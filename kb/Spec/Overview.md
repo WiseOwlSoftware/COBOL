@@ -10,7 +10,7 @@ related_files:
   - PROMPT.md
   - docs/DOC_INDEX.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
 ---
 

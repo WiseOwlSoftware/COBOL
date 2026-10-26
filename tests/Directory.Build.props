@@ -24,7 +24,7 @@
 
   <!--
     ⛔ NOT into a BenchmarkDotNet host project. BenchmarkDotNet builds each benchmark run through a project it
-    GENERATES under tests/Cobol.Net.Benchmarks/bin/…/, so that project inherits this file too; it references the
+    GENERATES under tests/WiseOwl.Cobol.Benchmarks/bin/…/, so that project inherits this file too; it references the
     benchmark assembly (which links the one helper it needs) and has no xunit, so the xunit-based helpers here
     (GateLegs.cs, GateLegAudit.cs, kb/Work PB1719) failed its build, and every benchmark case reported NA until
     kb/Work PB2117 found it.
@@ -40,7 +40,7 @@
 
   <!--
     THE GATE'S FRAMEWORK (kb/Work PB1719; docs/rearchitecture/DESIGN-test-build-ci.md section 3.14.3): every test
-    project runs under CobolNet.Gate.GateTestFramework (_shared/GateLegs.cs), which runs exactly one leg of the
+    project runs under WiseOwl.Cobol.Gate.GateTestFramework (_shared/GateLegs.cs), which runs exactly one leg of the
     gate's plan when the gate driver hands it a complete handshake, and is xunit's own framework otherwise. The
     attribute names the assembly, which a linked source file cannot, so it is written here. xunit resolves it by that
     name and silently runs its default framework on a miss; GateLegDriftTests pins it in every gated assembly.
@@ -50,7 +50,7 @@
   -->
   <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$([System.String]::Copy(`;$(DefineConstants);`).Contains(`;IMPACT_RECORDING;`))' != 'true'">
     <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
-      <_Parameter1>CobolNet.Gate.GateTestFramework</_Parameter1>
+      <_Parameter1>WiseOwl.Cobol.Gate.GateTestFramework</_Parameter1>
       <_Parameter2>$(AssemblyName)</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>

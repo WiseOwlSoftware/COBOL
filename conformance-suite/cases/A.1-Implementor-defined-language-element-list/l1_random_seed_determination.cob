@@ -13,7 +13,7 @@
       *> 144 is the one implementor obligation whose VALUE need not be documented, so what a
       *> conforming program can observe about it is exactly this: the branch EXISTS — an
       *> unseeded first reference is legal and yields a value — and the value obeys the
-      *> function's own returned-value rules. COBOL.NET's determination is per-process OS
+      *> function's own returned-value rules. WiseOwl COBOL's determination is per-process OS
       *> entropy (no fixed seed), which is by construction not reproducible across runs and so
       *> is not, and must not be, spelled as a literal in any golden.
       *>

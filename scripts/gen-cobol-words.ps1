@@ -19,12 +19,12 @@
 #   tests/version-matrix/reserved-words.json — the §8.9 per-edition reserved-word flags. Cross-check (RW-1/RW-2)
 #                                              AND, since kb/Work PB693, the SOURCE of the reservation gate:
 #                                              step 4b derives it here instead of reading a per-row flag.
-#   src/Cobol.Net.Frontend/Cobol.Net.Frontend.csproj — the <AntlrNamespace> property (single source of the generated-lexer namespace).
+#   src/WiseOwl.Cobol.Frontend/WiseOwl.Cobol.Frontend.csproj — the <AntlrNamespace> property (single source of the generated-lexer namespace).
 #
 # Outputs (BOTH committed; CobolWordsDriftTests asserts they agree with the JSON, both directions):
-#   src/Cobol.Net.Frontend/Grammar/Core/CobolWords.g4        — the generated cobolWord + reservedGatedWord parser
+#   src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4        — the generated cobolWord + reservedGatedWord parser
 #                                                              fragments (imported by CobolParserCore).
-#   src/Cobol.Net.Frontend/Parsing/CobolLexerWordSet.g.cs    — the generated `partial class CobolLexer` holding _dataNameTokens.
+#   src/WiseOwl.Cobol.Frontend/Parsing/CobolLexerWordSet.g.cs    — the generated `partial class CobolLexer` holding _dataNameTokens.
 #
 # ⚠ CONTENT-FILTER RULE (DEVLOG 578/584/585 — tripped 4× on the reserved-word lists): this script prints COUNTS
 #   ONLY, never a word list, into the conversation stream. Do not cat/grep these outputs into a conversation.
@@ -37,9 +37,9 @@ Import-Module (Join-Path $PSScriptRoot 'LfText.psm1') -Force   # every tracked o
 $repo       = Split-Path -Parent $PSScriptRoot
 $jsonIn     = Join-Path $repo 'tests/version-matrix/cobol-words.json'
 $reservedIn = Join-Path $repo 'tests/version-matrix/reserved-words.json'
-$csprojIn   = Join-Path $repo 'src/Cobol.Net.Frontend/Cobol.Net.Frontend.csproj'
-$g4Out      = Join-Path $repo 'src/Cobol.Net.Frontend/Grammar/Core/CobolWords.g4'
-$csOut      = Join-Path $repo 'src/Cobol.Net.Frontend/Parsing/CobolLexerWordSet.g.cs'
+$csprojIn   = Join-Path $repo 'src/WiseOwl.Cobol.Frontend/WiseOwl.Cobol.Frontend.csproj'
+$g4Out      = Join-Path $repo 'src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4'
+$csOut      = Join-Path $repo 'src/WiseOwl.Cobol.Frontend/Parsing/CobolLexerWordSet.g.cs'
 
 # ---- 0. Single-source the generated-lexer namespace from the csproj (mitigation R-A2 — a wrong namespace must
 #         be impossible, not a silent bug). The partial class MUST land in the SAME namespace as CobolLexer. ----

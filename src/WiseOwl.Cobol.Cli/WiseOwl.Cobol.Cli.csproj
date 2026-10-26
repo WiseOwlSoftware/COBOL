@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    WiseOwl.Cobol.Cli — the thin command-line shell for the WiseOwl COBOL compiler. Produces the cobol(.exe) executable.
+    All compilation logic lives in the WiseOwl.Cobol.Compiler library (this exe only parses args, prints diagnostics,
+    maps the outcome to an exit code, and optionally runs the compiled program). Split from the old combined exe
+    at G0 (docs/DESIGN.md §17) so the compiler is testable as a library.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>cobol</AssemblyName>
+    <RootNamespace>WiseOwl.Cobol.Cli</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WiseOwl.Cobol.Compiler\WiseOwl.Cobol.Compiler.csproj" />
+    <PackageReference Include="System.CommandLine" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="WiseOwl.Cobol.Tests.Unit" />
+  </ItemGroup>
+
+  <!-- THE PACKAGE SHIPS EVERY READYTORUN RUNTIME IMAGE (kb/Work PB2528; DESIGN-test-build-ci §3.16). The CLI's publish
+       output is what the WiseOwl.COBOL tool package packs (PackAsTool publishes, then packs that). The runtime
+       project lays one image per platform of $(CobolRuntimeReadyToRunIdentifiers) at ReadyToRun/<rid>/ in every
+       referencing project's output; a publish that would ship without one of them fails here rather than ship a
+       package whose compiled programs JIT the runtime on that platform. -->
+  <Target Name="CobolAssertReadyToRunRuntimePublished" AfterTargets="ComputeResolvedFilesToPublishList"
+          Condition="'$(CobolRuntimeReadyToRun)' != 'false'">
+    <ItemGroup>
+      <_CobolReadyToRunExpected Include="$(CobolRuntimeReadyToRunIdentifiers)" />
+      <_CobolReadyToRunExpectedPath Include="@(_CobolReadyToRunExpected->'ReadyToRun$([System.IO.Path]::DirectorySeparatorChar)%(Identity)$([System.IO.Path]::DirectorySeparatorChar)WiseOwl.Cobol.Runtime.dll')" />
+      <_CobolReadyToRunPublished Include="@(ResolvedFileToPublish->'%(RelativePath)')" />
+      <_CobolReadyToRunMissing Include="@(_CobolReadyToRunExpectedPath)" Exclude="@(_CobolReadyToRunPublished)" />
+    </ItemGroup>
+    <Error Condition="'@(_CobolReadyToRunMissing)' != ''"
+           Text="The WiseOwl COBOL publish lacks the ReadyToRun runtime image(s) @(_CobolReadyToRunMissing, ', ') (kb/Work PB2528): src/WiseOwl.Cobol.Runtime builds one per platform of CobolRuntimeReadyToRunIdentifiers and the publish output must carry each." />
+  </Target>
+
+  <!-- Opt-in build hook for the Obsidian vault code-reference notes (kb/Reference/, a GITIGNORED build output).
+       NOT run by default: the build does not depend on these notes (unlike the ANTLR parser, which IS a build
+       prerequisite). Enable on a build with -p:GenerateVaultReference=true (e.g. a docs/CI refresh). Normally the
+       generator is run by hand (pwsh scripts/gen-vault-reference.ps1), and a "runs clean" drift test
+       (VaultReferenceGeneratorDriftTests) guards it in CI — matching the scripts/gen-*.ps1 + drift-test convention. -->
+  <Target Name="GenerateVaultReference" AfterTargets="Build" Condition="'$(GenerateVaultReference)' == 'true'">
+    <Message Text="Generating Obsidian vault code-reference (kb/Reference/)..." Importance="high" />
+    <Exec Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)../../scripts/gen-vault-reference.ps1&quot;" />
+  </Target>
+
+  <!-- Opt-in build hook for the Obsidian grammar railroad diagrams (kb/Grammar/, a GITIGNORED build output).
+       Same posture as GenerateVaultReference above: NOT run by default (the build does not depend on these notes),
+       enable with -p:GenerateGrammarDiagrams=true (e.g. a docs/CI refresh). Normally run by hand
+       (pwsh scripts/gen-grammar-diagrams.ps1); GrammarDiagramGeneratorDriftTests guards it "runs clean" in CI.
+       Requires java + tools/rr/rr.war (java is already a prerequisite for the ANTLR parser generation). -->
+  <Target Name="GenerateGrammarDiagrams" AfterTargets="Build" Condition="'$(GenerateGrammarDiagrams)' == 'true'">
+    <Message Text="Generating Obsidian grammar railroad diagrams (kb/Grammar/)..." Importance="high" />
+    <Exec Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)../../scripts/gen-grammar-diagrams.ps1&quot;" />
+  </Target>
+
+</Project>

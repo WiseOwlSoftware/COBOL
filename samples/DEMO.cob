@@ -3,13 +3,13 @@
 
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 WS-NAME        PIC X(20) VALUE "CobolSharp".
+       01 WS-NAME        PIC X(20) VALUE "WiseOwl COBOL".
        01 WS-COUNTER     PIC 9(3)  VALUE 0.
        01 WS-TOTAL        PIC 9(5)  VALUE 0.
        01 WS-RESULT       PIC 9(5)  VALUE 0.
 
        PROCEDURE DIVISION.
-           DISPLAY "=== CobolSharp Compiler Demo ===".
+           DISPLAY "=== WiseOwl COBOL Compiler Demo ===".
            DISPLAY " ".
 
            DISPLAY "1. String display: Hello from " WS-NAME "!".

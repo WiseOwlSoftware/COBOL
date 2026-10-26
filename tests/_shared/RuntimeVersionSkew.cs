@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
-using CobolNet.Runtime;
+using WiseOwl.Cobol.Runtime;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
 /// THE ONE PLACE A TEST MAKES A RUNTIME VERSION OF ANOTHER MAJOR. A run unit refuses a module whose recorded runtime

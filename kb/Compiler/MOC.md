@@ -4,7 +4,7 @@ area: compiler
 status: draft
 last_updated: 2026-07-23
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - moc
   - compiler
 ---

@@ -4,21 +4,21 @@ area: compiler
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - docs/COBOLNET_PIPELINE_DESIGN.md
+  - docs/PIPELINE_DESIGN.md
   - docs/rearchitecture/DESIGN-version-conformance-pipeline.md
-  - src/Cobol.Net.Frontend/Pipeline/Frontend.cs
-  - docs/COBOLNET_DESIGN.md
+  - src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs
+  - docs/DESIGN.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - compiler
 ---
 
 # Compiler Pipeline
 
-COBOL.NET is a **6-phase compiler** that translates COBOL into idiomatic, typed-native C# compiled in-process by
+WiseOwl COBOL is a **6-phase compiler** that translates COBOL into idiomatic, typed-native C# compiled in-process by
 Roslyn. There is **no byte `ProgramState` substrate** and — the defining architectural decision — **no lowered
 basic-block/SSA IR**. The bound semantic tree is the single model; emitters only *render* it
-([[docs/COBOLNET_PIPELINE_DESIGN]], decision D1). See [[kb/IR/Node Types]] and
+([[docs/PIPELINE_DESIGN]], decision D1). See [[kb/IR/Node Types]] and
 [[kb/Architecture/High-Level Design]].
 
 ```
@@ -27,7 +27,7 @@ basic-block/SSA IR**. The bound semantic tree is the single model; emitters only
      ▼
 ┌─────────────┐   reference-format normalize · >>directives (cond. compile) ·
 │ PREPROCESS  │   COPY/REPLACE expansion · NIST placeholder fixups
-└─────┬───────┘   (Cobol.Net.Frontend/Preprocessor, Frontend.Preprocess)
+└─────┬───────┘   (WiseOwl.Cobol.Frontend/Preprocessor, Frontend.Preprocess)
       ▼
 ┌─────────────┐   ANTLR lexer (DEFAULT/PICMODE/SUBSCRIPT/COMMENT modes)
 │  LEX        │   + ZERO→ZERO_ARITH rewrite + >>COBOL-WORDS retype
@@ -39,7 +39,7 @@ basic-block/SSA IR**. The bound semantic tree is the single model; emitters only
       ▼
 ┌─────────────┐   resolve symbols/qualifiers/subscripts/refmod; typed & categorized
 │  BIND       │   BOUND TREE = ALL semantics. EDITION-AGNOSTIC
-└─────┬───────┘   (Cobol.Net.Compiler/Binding → BoundProgram)
+└─────┬───────┘   (WiseOwl.Cobol.Compiler/Binding → BoundProgram)
       ▼
 ┌───────────────────────┐  the SOLE edition gate (85/2002/2014/2023).
 │ VersionConformancePass │  TWO-ARM walk. strict=reject, permissive=warn

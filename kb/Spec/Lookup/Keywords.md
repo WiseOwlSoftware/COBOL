@@ -4,11 +4,11 @@ area: spec-lookup
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Editions/ReservedWords.Table.cs
+  - src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs
   - tests/version-matrix/reserved-words.json
   - specs/ISO_COBOL.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
   - lookup
 ---
@@ -16,7 +16,7 @@ tags:
 # Lookup — Keywords
 
 A **curated, classified** cross-reference of the significant COBOL keywords. (The full reserved-word repertoire —
-~500 words × edition flags — is generated data in `src/Cobol.Net.Editions/ReservedWords.Table.cs` /
+~500 words × edition flags — is generated data in `src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs` /
 `tests/version-matrix/reserved-words.json`, drift-guarded; it is *not* reproduced here. See
 [[kb/Semantics/Validation Rules]] for the §8.9 reserved-word funnel.)
 

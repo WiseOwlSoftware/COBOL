@@ -27,8 +27,8 @@
 # exactly how a run at 352 once passed as green.
 #
 # ⛔ AND READ WHICH COMPILER IT DROVE. Until 2026-09-06 this leg hard-coded the legacy byte engine's CLI, so its
-# headline MATCH count was a statement about the oracle (kb/Work/PB750). It drives `cobol` (src/Cobol.Net.Cli),
-# refuses to start unless the resolved binary really references `Cobol.Net.Compiler`, and NAMES the compiler in
+# headline MATCH count was a statement about the oracle (kb/Work/PB750). It drives `cobol` (src/WiseOwl.Cobol.Cli),
+# refuses to start unless the resolved binary really references `WiseOwl.Cobol.Compiler`, and NAMES the compiler in
 # every summary line: `=== NIST (cobol): ... ===`.
 set -u
 

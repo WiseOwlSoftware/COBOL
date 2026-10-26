@@ -4,14 +4,14 @@ area: runtime
 status: draft
 last_updated: 2026-07-23
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - runtime
   - moc
 ---
 
 # 🗺 Runtime — Map of Content
 
-The typed-native runtime kernel (`Cobol.Net.Runtime`) that generated COBOL programs call into. No byte-array State.
+The typed-native runtime kernel (`WiseOwl.Cobol.Runtime`) that generated COBOL programs call into. No byte-array State.
 
 ## Notes in this domain
 

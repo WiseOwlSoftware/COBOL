@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB194 - ARITHMETIC IS STANDARD (the COBOL-2002 mode, obsolete 2014, removed 2023) routes to
       *> the SAME SDIDI decimal engine as STANDARD-DECIMAL: its standard intermediate data item for every
-      *> operand COBOL.NET can carry IS the standard-decimal one (8.8.1.5.2), so every mode-conditioned
+      *> operand WiseOwl COBOL can carry IS the standard-decimal one (8.8.1.5.2), so every mode-conditioned
       *> decision must answer identically for the two spellings.
       *>
       *> The IN-ARITHMETIC-RANGE screen of 15.43.4 r1 / 15.58.4 r1 (8.8.4.4.4 GR3 l) measures a floating-point

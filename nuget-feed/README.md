@@ -12,7 +12,7 @@ The ANTLR 4.13.2 C# runtime, built from our fork of ANTLR, with one upstream def
 - **Why a fork:** the C# runtime on nuget.org stops at 4.13.1 (upstream never published 4.13.2 for C#), and both
   4.13.1 and 4.13.2 carry the defect below. The C# runtime of 4.13.2 differs from 4.13.1 only in its version
   strings, so this build also matches the 4.13.2 tool jar the parser is generated with
-  (`src/Cobol.Net.Frontend/ANTLR4/antlr-4.13.2-complete.jar`).
+  (`src/WiseOwl.Cobol.Frontend/ANTLR4/antlr-4.13.2-complete.jar`).
 - **The defect (kb/Work PB3504):** `PredictionMode.HasSLLConflictTerminatingPrediction` (pure SLL mode, configs
   with semantic predicates) copies the configuration set with the predicates removed and adds each configuration
   WITHOUT a merge cache. Merging the prediction contexts of configurations that differ only by predicate then

@@ -13,7 +13,7 @@ ensure_utf8()
 root = pathlib.Path(sys.argv[1])
 B = chr(100) + 'otnet'  # avoid the literal in this file
 pat = [('wait', r'tail -n \+1 -f'), ('gate', B + r' test|build-local'), ('build', B + r' build'),
-       ('probe compile/run', r'\bcobol(\.exe)?\b|Cobol\.Net\.Cli|\.cob\b'), ('cite', r'cite\.py'),
+       ('probe compile/run', r'\bcobol(\.exe)?\b|WiseOwl\.Cobol\.Cli|\.cob\b'), ('cite', r'cite\.py'),
        ('register/gen scripts', r'work\.py|gen_conformance|record_verdicts|gen_ledger|verify\.py'),
        ('git', r'(^|&& |; )git '), ('search grep/rg/find', r'\b(grep|rg|find)\b'),
        ('read sed/cat/head', r'\b(sed -n|cat |head |tail )'), ('python', r'python')]

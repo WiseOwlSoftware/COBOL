@@ -60,7 +60,7 @@ concurrency:
 # and its job uploads them with `if: always()` as artifact test-results-<OS>-<job> (14-day retention) — a
 # red is diagnosable from the artifact without a re-run (kb/Work PB108). The two OSes share shard NAMES, so the
 # artifact name carries both; a Conformance shard's is test-results-<OS>-conformance-<shard>, the exact pattern
-# the conformance-population job downloads. Each such step also sets COBOLNET_HARNESS_LOG to
+# the conformance-population job downloads. Each such step also sets WISEOWL_COBOL_HARNESS_LOG to
 # <its results directory>/harness-observations.log and its job uploads that file with the TRX: the test harness's every
 # retry and non-observation of a child process, with the budget, the work it covered and the host's load, so a
 # non-observation on CI is read from the artifact (kb/Work PB3108; CiHarnessLogDriftTests).
@@ -72,7 +72,7 @@ concurrency:
 # service ETIMEDOUT, and the merge queue removed the pull request (merge-group run 38502926616, PR #39).
 #
 # ⛔ NO JOB SETS A VARIABLE THAT NARROWS A TEST RUN (kb/Work PB1718; DESIGN-test-build-ci §3.14.3): the gate's leg
-# handshake COBOLNET_GATE_*, or VSTest* / RunSettingsFilePath, which MSBuild imports from the environment as the
+# handshake WISEOWL_COBOL_GATE_*, or VSTest* / RunSettingsFilePath, which MSBuild imports from the environment as the
 # VSTest target's filter and run settings. A hosted job's environment is exactly what this file declares, so that
 # is how CI scrubs; `python scripts/test_population.py audit-callers` (GateLegDriftTests arm 6) is red on one. The guard job is the exception: its verdict is guard-fast.sh's own NIST-loop
 # output, not a `dotnet test` exit.
@@ -379,6 +379,11 @@ jobs:
       - name: Diagnostic prefix — no tracked file spells a code with the former prefix (rename_diagnostic_prefix.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/rename_diagnostic_prefix.py --check
+      # The code carries the product's name, WiseOwl.Cobol (kb/Work PB3837): no tracked path or line outside history spells
+      # a retired name. The rename's audit, for the same reason as the two above.
+      - name: Retired names — no tracked path or file outside history spells a retired name (rename_retired_names.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/rename_retired_names.py --check
       # EVERY script self-test, DISCOVERED (kb/Work PB2563): each test_*.py / test_*.ps1 and each script handling
       # --self-test under scripts/ — the hook self-tests, cite.py, ledger_plan.py, landing_check.py and the orchestrator's,
       # which until PB2563 were named here one by one while eleven of them ran nowhere. The same runner is an audit of the
@@ -406,13 +411,13 @@ jobs:
           git submodule update --init tools/claude-skills
           python3 .claude/skills/workstream/check_practices.py
 
-  # ── The authoritative NIST gate: THE guard, scripts/guard-fast.sh. It builds src/Cobol.Net.Cli, compiles the ~376
+  # ── The authoritative NIST gate: THE guard, scripts/guard-fast.sh. It builds src/WiseOwl.Cobol.Cli, compiles the ~376
   # NIST CCVS-85 programs its population derives from tests/nist/corpus.tsv, runs each in its own clean directory
   # after exactly its declared predecessors across the runner's cores (JOBS defaults to nproc), and audits every
   # verdict against the manifest (scripts/guard-nist-audit.sh). Linux only — the NIST loop is bash. A non-zero exit
   # (any REGRESSION, DIFF, FAIL*, audit finding, or build warning) fails the job.
-  # ⛔ IT MEASURES WiseOwl COBOL (kb/Work/PB750): the NIST leg drives `cobol` (src/Cobol.Net.Cli), refuses to start
-  # if the resolved binary does not reference Cobol.Net.Compiler, and names the compiler in its
+  # ⛔ IT MEASURES WiseOwl COBOL (kb/Work/PB750): the NIST leg drives `cobol` (src/WiseOwl.Cobol.Cli), refuses to start
+  # if the resolved binary does not reference WiseOwl.Cobol.Compiler, and names the compiler in its
   # `=== NIST (cobol): … ===` line. ──
   guard:
     name: Guard (WiseOwl COBOL NIST, parallel)
@@ -438,7 +443,7 @@ jobs:
       - name: Run parallel guard (scripts/guard-fast.sh)
         run: bash scripts/guard-fast.sh
 
-  # ── The greenfield WiseOwl COBOL compiler (src/Cobol.Net.*) suites — the ACTIVE work (the committed differential
+  # ── The greenfield WiseOwl COBOL compiler (src/WiseOwl.Cobol.*) suites — the ACTIVE work (the committed differential
   # goldens + the NIST byte-baselines + the version matrix + unit). The guard job's NIST leg drives the same
   # compiler (PB750) over the CLI, from bash, on Linux only; these jobs cover the in-process compile path, both
   # OSes, and everything outside NIST, so they stay a separate gate (DEVLOG 515). Each job builds its own test project(s) then runs --no-build. The
@@ -500,22 +505,22 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
           restore-keys: ${{ runner.os }}-nuget-
       - name: Build the conformance project
-        run: dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
+        run: dotnet build tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj
       # The POPULATION this shard's trx is checked against, listed from THIS build (conformance-population job).
       - name: List the discovered population (scripts/test_population.py, scrubbed)
         shell: bash
         run: |
           . scripts/python-resolve.sh
           mkdir -p TestResults/${{ runner.os }}-${{ matrix.shard }}
-          "$PY" scripts/test_population.py list --project tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj \
+          "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj \
             --out TestResults/${{ runner.os }}-${{ matrix.shard }}/conformance.list.txt
       - name: Conformance shard ${{ matrix.shard }}
         shell: bash
         env:
-          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
         run: |
           set -o pipefail
-          python3 scripts/inert_lane.py watch -- dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build \
+          python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build \
             --filter "${{ matrix.filter }}" \
             --logger "trx;LogFileName=conformance-${{ matrix.shard }}.trx" --results-directory TestResults/${{ runner.os }}-${{ matrix.shard }} \
             2>&1 | tee TestResults/${{ runner.os }}-${{ matrix.shard }}/shard.log
@@ -559,19 +564,19 @@ jobs:
         run: ./scripts/fetch-gnucobol-tests.ps1
       - name: Build greenfield test projects
         run: |
-          dotnet build tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj
-          dotnet build tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj
-          dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
+          dotnet build tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj
+          dotnet build tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj
+          dotnet build tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj
       - name: Greenfield unit tests
         env:
-          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
-        run: python3 scripts/inert_lane.py watch -- dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-unit
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
+        run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-unit
       # Characterization gate (rearch P0): COMPARES the committed diagnostic + emitted-C# snapshots. CI must NEVER set
-      # COBOLNET_UPDATE_SNAPSHOTS (that would rewrite them); a real emit/diagnostic change re-seeds locally under review.
+      # WISEOWL_COBOL_UPDATE_SNAPSHOTS (that would rewrite them); a real emit/diagnostic change re-seeds locally under review.
       - name: Greenfield characterization snapshots (behavior-neutrality gate)
         env:
-          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
-        run: python3 scripts/inert_lane.py watch -- dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-unit
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
+        run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj --no-build --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-unit
       # The self-tests that read the BUILT assemblies (`SELF-TEST-NEEDS: build`; filter_population.py lists what the
       # Conformance and Unit assemblies discover), which the audits job cannot run (kb/Work PB2563). After the test
       # legs, so a red self-test never hides their results.
@@ -637,22 +642,22 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
           restore-keys: ${{ runner.os }}-nuget-
       - name: Build the conformance project (Release)
-        run: dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --configuration Release
+        run: dotnet build tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --configuration Release
       # The POPULATION this shard's trx is checked against, listed from THIS (Release, Windows) build.
       - name: List the discovered population (scripts/test_population.py, scrubbed)
         shell: bash
         run: |
           . scripts/python-resolve.sh
           mkdir -p TestResults/${{ runner.os }}-${{ matrix.shard }}
-          "$PY" scripts/test_population.py list --project tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj \
+          "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj \
             --configuration Release --out TestResults/${{ runner.os }}-${{ matrix.shard }}/conformance.list.txt
       - name: Conformance shard ${{ matrix.shard }}
         shell: bash
         env:
-          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
         run: |
           set -o pipefail
-          dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --configuration Release \
+          dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --configuration Release \
             --filter "${{ matrix.filter }}" \
             --logger "trx;LogFileName=conformance-${{ matrix.shard }}.trx" --results-directory TestResults/${{ runner.os }}-${{ matrix.shard }} \
             2>&1 | tee TestResults/${{ runner.os }}-${{ matrix.shard }}/shard.log
@@ -724,7 +729,7 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
           restore-keys: ${{ runner.os }}-nuget-
       - name: Build the conformance project
-        run: dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
+        run: dotnet build tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj
       # ⛔ KEYED ON THE METHOD NAME, NOT `Class.Method` (plan §11 A13): NistDifferentialTests is now six
       # partition CLASSES (NistDifferentialTests_P0 …), and `~NistDifferentialTests.NistProgram_MatchesGolden`
       # can never match `NistDifferentialTests_P0.NistProgram_MatchesGolden`. vstest answers an unmatched
@@ -736,13 +741,13 @@ jobs:
       # evidence. Needs only python3 and the built project — no submodule, which is why it can live here
       # (`submodules: false`, kb/Work PB159).
       - name: Assert the INV-1-strong filter selects a real population (kb/Work PB752)
-        run: python3 scripts/filter_population.py --filter "FullyQualifiedName~NistProgram_MatchesGolden" --filtered tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
+        run: python3 scripts/filter_population.py --filter "FullyQualifiedName~NistProgram_MatchesGolden" --filtered tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj
       - name: NIST goldens byte-exact at --std 2023 --permissive (the existing NistDifferentialTests, re-editioned)
         env:
-          COBOLNET_NIST_STD: "2023"
-          COBOLNET_NIST_PERMISSIVE: "1"
-          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-inv1-strong/harness-observations.log
-        run: python3 scripts/inert_lane.py watch -- dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --filter "FullyQualifiedName~NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-inv1-strong
+          WISEOWL_COBOL_NIST_STD: "2023"
+          WISEOWL_COBOL_NIST_PERMISSIVE: "1"
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-inv1-strong/harness-observations.log
+        run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --filter "FullyQualifiedName~NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-inv1-strong
       - name: Upload test results (TRX)
         if: ${{ always() }}
         uses: ./.github/actions/upload-results
@@ -773,7 +778,7 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
           restore-keys: ${{ runner.os }}-nuget-
       - name: Build (Release, warnings-as-errors)
-        run: dotnet build Cobol.Net.sln --configuration Release
+        run: dotnet build WiseOwl.Cobol.sln --configuration Release
       # Greenfield conformance moved to the windows-conformance SHARDED job (kb/Work A14) — same coverage,
       # a third of the wall time; the population guard proves nothing fell between the shards.
       # GPL corpus fetched on demand for the PB209 population drift gate — see the Linux job's twin. (PB277)
@@ -787,12 +792,12 @@ jobs:
         run: ./scripts/fetch-gnucobol-tests.ps1
       - name: Greenfield unit tests
         env:
-          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
-        run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --configuration Release --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-build-test
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
+        run: dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --configuration Release --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-build-test
       - name: Greenfield characterization snapshots (behavior-neutrality gate)
         env:
-          COBOLNET_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
-        run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build --configuration Release --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-build-test
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
+        run: dotnet test tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj --no-build --configuration Release --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-build-test
       - name: Upload test results (TRX)
         if: ${{ always() }}
         uses: ./.github/actions/upload-results

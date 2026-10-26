@@ -11,9 +11,9 @@ apart — `CollationTableTests.Manifest_InputsAndOutput_MatchTheCommittedFiles`,
 
 | Generator | Reads | Writes |
 |---|---|---|
-| `scripts/collation/generate-collation-table.py` | `allkeys_CLDR.txt`, `allkeys.txt`, `UnicodeData.txt`, `PropList.txt`, `Blocks.txt`, `FractionalUCA.txt`, `PropertyValueAliases.txt` | `src/Cobol.Net.Runtime/Collation/Data/root-collation.bin` + `.manifest.json` (the derived collation table, format 2) |
-| `scripts/collation/pack-cldr-collation.py` | `cldr/collation/*.xml`, `cldr/bcp47/collation.xml`, `cldr/supplemental/supplementalData.xml`, `cldr/RELEASE` | `src/Cobol.Net.Runtime/Collation/CLDR/Data/cldr-collation.zip` + `.manifest.json` (the CLDR collation pack) |
-| `scripts/unicode/generate-grapheme-table.py` | `GraphemeBreakProperty.txt`, `emoji-data.txt`, `DerivedCoreProperties.txt` | `src/Cobol.Net.Runtime/Unicode/Segmentation/Data/grapheme-break.bin` + `.manifest.json` (the grapheme cluster property table) |
+| `scripts/collation/generate-collation-table.py` | `allkeys_CLDR.txt`, `allkeys.txt`, `UnicodeData.txt`, `PropList.txt`, `Blocks.txt`, `FractionalUCA.txt`, `PropertyValueAliases.txt` | `src/WiseOwl.Cobol.Runtime/Collation/Data/root-collation.bin` + `.manifest.json` (the derived collation table, format 2) |
+| `scripts/collation/pack-cldr-collation.py` | `cldr/collation/*.xml`, `cldr/bcp47/collation.xml`, `cldr/supplemental/supplementalData.xml`, `cldr/RELEASE` | `src/WiseOwl.Cobol.Runtime/Collation/CLDR/Data/cldr-collation.zip` + `.manifest.json` (the CLDR collation pack) |
+| `scripts/unicode/generate-grapheme-table.py` | `GraphemeBreakProperty.txt`, `emoji-data.txt`, `DerivedCoreProperties.txt` | `src/WiseOwl.Cobol.Runtime/Unicode/Segmentation/Data/grapheme-break.bin` + `.manifest.json` (the grapheme cluster property table) |
 
 Regenerating is deliberate: fetch a newer pinned set (all of the SAME Unicode/CLDR release), run the three
 generators, run the tests (including the full CLDR conformance files and the ICU cross-checks), and commit data +
@@ -40,11 +40,11 @@ artifacts + manifests together.
 
 Verification data that is NOT committed in full (2.3 MB each), from the same CLDR tag —
 `common/uca/CollationTest_CLDR_NON_IGNORABLE_SHORT.txt` and `CollationTest_CLDR_SHIFTED_SHORT.txt`: deterministic
-1-in-25 samples live in `tests/Cobol.Net.Tests.Unit/TestData/collation/`; the full files run when the environment
-variable `COBOLNET_UCA_CONFORMANCE_DIR` names the directory holding them (`CollationConformanceTests`). The full
+1-in-25 samples live in `tests/WiseOwl.Cobol.Tests.Unit/TestData/collation/`; the full files run when the environment
+variable `WISEOWL_COBOL_UCA_CONFORMANCE_DIR` names the directory holding them (`CollationConformanceTests`). The full
 run of 2026-08-18: 206,298 + 227,809 lines, 0 violations. The full `GraphemeBreakTest.txt` 17.0.0
 (`https://www.unicode.org/Public/17.0.0/ucd/auxiliary/GraphemeBreakTest.txt`, 126 KB) IS committed, under
-`tests/Cobol.Net.Tests.Unit/TestData/segmentation/`, and runs always (766 cases, 0 failures).
+`tests/WiseOwl.Cobol.Tests.Unit/TestData/segmentation/`, and runs always (766 cases, 0 failures).
 
 The specifications the derivations follow: UTS #10 (Unicode Collation Algorithm) revision 53 for Unicode 17.0.0
 (`https://www.unicode.org/reports/tr10/tr10-53.html`) — Table 16 for implicit weights, Table 12 for the shifted

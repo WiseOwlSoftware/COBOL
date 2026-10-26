@@ -5,10 +5,10 @@ status: draft
 last_updated: 2026-07-23
 related_files:
   - docs/DIAGNOSTICS.md
-  - src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs
+  - src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs
   - tests/version-matrix/constructs.json
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
   - lookup
 ---

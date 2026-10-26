@@ -4,24 +4,24 @@ area: ir
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs
-  - src/Cobol.Net.Compiler.SourceGen/BoundVisitorGenerator.cs
-  - src/Cobol.Net.Compiler/Binding/Model/Place.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs
+  - src/WiseOwl.Cobol.Compiler.SourceGen/BoundVisitorGenerator.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs
   - docs/rearchitecture/DESIGN-binder-bound-tree.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - ir
 ---
 
 # IR — Bound Tree Node Types
 
-> The COBOL.NET compiler has **no separate lowered IR**. The "IR" *is* the typed **bound semantic tree** produced by
+> The WiseOwl COBOL compiler has **no separate lowered IR**. The "IR" *is* the typed **bound semantic tree** produced by
 > the binder and defined in `Binding/Bound/BoundTree.cs`.
 
 It is the single backend-neutral source of truth: the binder resolves every reference to a `Place`, every literal to
 typed text, and every condition/expression to a bound node **once**, so the backend (and the PC dispatcher) walk this
 tree without ever re-touching the ANTLR parse tree. No bound node holds a raw parse context. The owner-locked decision
-(`COBOLNET_DESIGN` §1.1 / §18.23) keeps this: the node carries the fully-resolved classification
+(`DESIGN` §1.1 / §18.23) keeps this: the node carries the fully-resolved classification
 (e.g. `BoundMove.Kind`, `StorageForm`) so no consumer re-derives semantics at emit. See
 [[kb/Architecture/High-Level Design]].
 
@@ -44,7 +44,7 @@ tree without ever re-touching the ANTLR parse tree. No bound node holds a raw pa
 Error-node families (`BoundUnsupported`, `*Error`) keep the tree **total** — every input yields a node.
 
 ## The exhaustive visitor
-`Cobol.Net.Compiler.SourceGen/BoundVisitorGenerator.cs` is a Roslyn incremental source generator. For every
+`WiseOwl.Cobol.Compiler.SourceGen/BoundVisitorGenerator.cs` is a Roslyn incremental source generator. For every
 `[BoundNode]` root it discovers the sealed leaves *through the semantic model* (`INamedTypeSymbol.BaseType`, never a
 text scan) and emits `I{Root}Visitor<out T>` plus a `BoundVisitor.Accept<T>` dispatch. Adding a leaf regenerates the
 interface and makes every consumer **fail to compile** until it handles the node — replacing the ~205 hand-maintained

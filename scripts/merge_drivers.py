@@ -39,7 +39,7 @@ THE DRIVERS (DRIVERS: the one registry; `.gitattributes` repeats its patterns, a
   WORK NOTES        kb/Work/PB*.md: the frontmatter is merged per KEY (the same rule), the body by git's UNION merge
                     (two branches that each append a paragraph keep both; a line both rewrote differently is kept
                     twice, visible to the reader, never lost).
-  RUNTIME ABI PIN   src/Cobol.Net.Runtime/RuntimeAbi.pin (abi_pin.py): two branches that each raised a counter raise it
+  RUNTIME ABI PIN   src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin (abi_pin.py): two branches that each raised a counter raise it
                     by both, and the hashes of the merged surface, which no merge can know, are marked UNMEASURED for
                     `abi_pin.py settle` to measure on the merged tree before the merge commit is made.
   SYMBOL SETS       src/**/PublicAPI.*.txt, the public-API baselines (Microsoft.CodeAnalysis.PublicApiAnalyzers): a SET of
@@ -386,7 +386,7 @@ DRIVERS: tuple[Driver, ...] = (
            "construct id -> its entry in the version-matrix catalogue"),
     Driver("cobol-work-note", ("kb/Work/PB*.md",), lambda: merge_note,
            "frontmatter per key, body by union: two branches that each append to one note keep both"),
-    Driver("cobol-abi-pin", ("src/Cobol.Net.Runtime/RuntimeAbi.pin",), lambda: abi_pin.merge_text,
+    Driver("cobol-abi-pin", ("src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin",), lambda: abi_pin.merge_text,
            "the runtime major and call ABI counters add; the merged surface's hashes are measured, not merged"),
     Driver("cobol-keyed-publicapi", ("src/**/PublicAPI.*.txt",), lambda: merge_symbol_set,
            "a public-API baseline is a set of symbol lines: a line either side added is kept, a line either side removed "
@@ -981,7 +981,7 @@ def self_test() -> int:
                and not covered_by_driver("src/A.cs"))
         expect("patterns: a driver's pattern names a path as git does: `**/` spans zero or more directories, `*` and `?` "
                "stay within one, a pattern without `/` matches the last component at any depth",
-               pattern_matches("src/Cobol.Net.Runtime/PublicAPI.Unshipped.txt", "src/**/PublicAPI.*.txt")
+               pattern_matches("src/WiseOwl.Cobol.Runtime/PublicAPI.Unshipped.txt", "src/**/PublicAPI.*.txt")
                and pattern_matches("src/a/b/PublicAPI.Shipped.txt", "src/**/PublicAPI.*.txt")
                and pattern_matches("src/PublicAPI.Shipped.txt", "src/**/PublicAPI.*.txt")
                and not pattern_matches("tests/a/PublicAPI.Shipped.txt", "src/**/PublicAPI.*.txt")
@@ -989,10 +989,10 @@ def self_test() -> int:
                and pattern_matches("kb/Work/PB3727.md", "kb/Work/PB*.md") and not pattern_matches("kb/Work/x/PB1.md", "kb/Work/PB*.md")
                and pattern_matches("a/b/x.nupkg", "*.nupkg") and pattern_matches("kb/Work/PB1.md", "kb/Work/PB?.md")
                and pattern_matches("d/x/y", "d/**") and pattern_matches("v1.md", "v[0-9].md") and not pattern_matches("v1.md", "v[!0-9].md")
-               and covered_by_driver("src/Cobol.Net.Runtime/PublicAPI.Shipped.txt")
+               and covered_by_driver("src/WiseOwl.Cobol.Runtime/PublicAPI.Shipped.txt")
                # kb/Work PB3748: covered_by_driver asks pattern_matches, which anchors a pattern with a `/` at the root, so a
                # path that only ENDS in a driver's pattern is not covered (PurePosixPath.match matched from the right)
-               and not covered_by_driver("x/kb/Work/PB1.md") and not covered_by_driver("x/src/Cobol.Net.Runtime/RuntimeAbi.pin")
+               and not covered_by_driver("x/kb/Work/PB1.md") and not covered_by_driver("x/src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin")
                and not covered_by_driver("kb/Work/sub/PB1.md") and covered_by_driver("kb/Work/PB1.md"))
         expect("check: the registry and this repository's .gitattributes agree",
                not check(HERE.parent), "; ".join(check(HERE.parent)))

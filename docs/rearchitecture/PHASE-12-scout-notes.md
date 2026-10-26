@@ -90,7 +90,7 @@ spec/code citation, but confirm at step start).
    pointer-target constructs are `USAGE POINTER [TO type-name-1]` (restricted data-pointer, §13.18.60.2 / Annex
    D.9.2.2), which dovetails with Step 8. The §7 table also has swapped citations: **SAME AS = §13.18.49** (not
    §13.18.57), **TYPE = §13.18.57**, **TYPEDEF = §13.18.58** (the table inverts the last pair). Same mislabel lives in
-   `ISO2023_CONFORMANCE_PLAN.md:644` and `COBOLNET_DATA_MODEL_DESIGN.md:434` — fix all three.
+   `ISO2023_CONFORMANCE_PLAN.md:644` and `DATA_MODEL_DESIGN.md:434` — fix all three.
 
 7. **DYNAMIC LENGTH: the real work is genuinely unlanded, but the plan's SEMANTIC anchors drift (Steps 4/5). [VERIFIED]**
    No `DynamicLength`/`CobolDynString` handling exists anywhere in `src/` or `tests/` — Steps 4/5 are real. But: (a) the
@@ -329,7 +329,7 @@ spec §14.9.20) — a separate gap, note it.
   TYPE clause; current `typeClause : TYPE IS? IDENTIFIER` at CobolData.g4:299 even accepts an `IS` the 2023 Format 1
   doesn't show), or (b) what the plan likely meant — restricted pointers `USAGE POINTER [TO type-name]` (§13.18.60.2),
   which belongs with Step 8. No `TYPE TO`/restricted-pointer handling exists in `src/`. Fix the same mislabel in
-  `ISO2023_CONFORMANCE_PLAN.md:644` + `COBOLNET_DATA_MODEL_DESIGN.md:434`.
+  `ISO2023_CONFORMANCE_PLAN.md:644` + `DATA_MODEL_DESIGN.md:434`.
 - **[VERIFIED] SAME AS is DONE** (P10 Step 16): `ExpandSameAs` DataBinder.cs:1210 on the ONE `CloneItem` (:1118);
   `sameAsClause` CobolData.g4:317-319; SRs COBOL1555/1556/1557 (DiagnosticCatalog.cs:173-192); golden
   `conformance-suite/cases/13.18.49-SAME-AS/typedef_same_as.cob`; `SameAsTests.cs:14`; row `same-as-clause-2002` active. The plan's §7
@@ -372,16 +372,16 @@ pinning their text.
 
 ### Registry mechanism (plan line 77 is drift) **[VERIFIED]**
 
-There is **no `src/Cobol.Net.Compiler/Diagnostics/`** dir and no "P-test rewrite" anywhere in the repo. The live
-registry (since P2.10a, landed the day AFTER the plan was written) is **`src/Cobol.Net.Editions/Diagnostics/
+There is **no `src/WiseOwl.Cobol.Compiler/Diagnostics/`** dir and no "P-test rewrite" anywhere in the repo. The live
+registry (since P2.10a, landed the day AFTER the plan was written) is **`src/WiseOwl.Cobol.Editions/Diagnostics/
 DiagnosticCatalog.cs`** (public static `DiagnosticDescriptor` fields; `All` reflects them) + `DiagnosticDescriptor.cs`.
 A new catalog-routed code touches THREE things: the descriptor in `DiagnosticCatalog.cs`, the emit site
 (`Edition.Error(DiagnosticCatalog.X, …)`), and the regenerated **`docs/DIAGNOSTICS.md`** (`pwsh
-scripts/gen-diagnostics-doc.ps1` or `COBOLNET_WRITE_DIAGNOSTICS_DOC=1`). Enforced by
-`tests/Cobol.Net.Tests.Unit/DiagnosticRegistryDriftTests.cs` (unique Ids :26; no bare literal for split codes
+scripts/gen-diagnostics-doc.ps1` or `WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1`). Enforced by
+`tests/WiseOwl.Cobol.Tests.Unit/DiagnosticRegistryDriftTests.cs` (unique Ids :26; no bare literal for split codes
 0899/1533 :37; doc-in-sync :55). `EditionCodes.cs` holds ONLY 0900-0903. Bare-string emit
 (`Edition.Error("COBOLnnnn", …)`) is still legal for non-split codes, but the P10/P11 pattern for new rule-FAMILY
-codes is catalog descriptors. Frontend parse layer has its own catalogue (`src/Cobol.Net.Frontend/Diagnostics/
+codes is catalog descriptors. Frontend parse layer has its own catalogue (`src/WiseOwl.Cobol.Frontend/Diagnostics/
 DiagnosticDescriptors.cs`). **Also fix `PHASE-13-*.md:597`** which carries the same stale "band head 1538" claim.
 
 ### Corpus + battery baseline **[VERIFIED]**

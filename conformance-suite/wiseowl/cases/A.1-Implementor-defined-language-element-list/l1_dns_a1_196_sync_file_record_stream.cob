@@ -17,7 +17,7 @@
       *>   handled). This item is optional."   OK  §A.1 196)
       *>
       *> THE DOCUMENTED CHOICE, docs/CONFORMANCE.md DOC-A.1-196: "Not
-      *>   provided. COBOL.NET has no rule for synchronizing the
+      *>   provided. WiseOwl COBOL has no rule for synchronizing the
       *>   records of a file: a record area is never aligned or padded
       *>   as a whole, and a SYNCHRONIZED elementary item in a record
       *>   sits at exactly the offset it would have without the clause

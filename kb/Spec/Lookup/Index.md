@@ -4,7 +4,7 @@ area: spec-lookup
 status: draft
 last_updated: 2026-07-23
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
   - lookup
   - index
@@ -54,7 +54,7 @@ flowchart LR
     COMP["COMPILER\nPreprocess · Lex · Parse\nPhases"]
     IR["IR\nBound tree\nIR Mapping"]
     SEM["SEMANTICS\nBind + VersionConformancePass\nSemantic Rules"]
-    RUN["RUNTIME\nCobol.Net.Runtime\nRuntime Mapping"]
+    RUN["RUNTIME\nWiseOwl.Cobol.Runtime\nRuntime Mapping"]
     SPEC --> COMP --> IR --> SEM --> RUN
     SEM -. gates .-> SPEC
     IR -. rendered by .-> RUN

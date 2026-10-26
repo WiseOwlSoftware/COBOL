@@ -9,7 +9,7 @@
       *> general format (PDF p485 rendered) writes
       *>     { SOURCE IS | SOURCES ARE } { identifier-1 | arithmetic-expression-1 } … [ rounded-phrase ]
       *> — the ellipsis follows the OPERAND brace pair, and the rounded-phrase sits OUTSIDE it, governing the
-      *> whole clause.  COBOL.NET's grammar was `(SOURCE|SOURCES) (IS|ARE)? dataReference+`: neither the
+      *> whole clause.  WiseOwl COBOL's grammar was `(SOURCE|SOURCES) (IS|ARE)? dataReference+`: neither the
       *> expression operand nor the ROUNDED phrase had any surface, so 13.18.53.3 SR3/SR5/SR7 and 13.18.53.4 GR2
       *> had no reachable population at all and `SOURCE IS (WS-A + WS-B)` was a raw parse error.
       *>

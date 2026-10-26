@@ -26,7 +26,7 @@
                FILE STATUS IS WS-CK.
       *> GR3 b) applies "when the USING phrase of the ASSIGN clause is specified" with NO condition on the TO
       *> phrase, so where both are written the USING content wins and literal-1 is never used. §12.4.5.3 GR4
-      *> leaves any consistency rule between the two to the implementor, and COBOL.NET defines none
+      *> leaves any consistency rule between the two to the implementor, and WiseOwl COBOL defines none
       *> (docs/CONFORMANCE.md §7, DOC-A.1-10): an unrelated content is accepted, not diagnosed.
            SELECT MIX ASSIGN TO "pb324mix.dat" USING WS-NAME
                ORGANIZATION IS LINE SEQUENTIAL

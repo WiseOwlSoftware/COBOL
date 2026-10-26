@@ -2,12 +2,12 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 #nullable enable
 using System.Reflection;
-using CobolNet.Tests.Shared;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace CobolNet.Gate;
+namespace WiseOwl.Cobol.Gate;
 
 /// <summary>
 /// The per-assembly audits of the gate's leg contract (kb/Work PB1719; DESIGN-test-build-ci.md section 3.14.4 arms

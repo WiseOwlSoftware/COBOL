@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.Json;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>One test of the conformance suite at one edition, as the generator's manifest states it
 /// (<c>conformance-suite/harness/generate.py#entry_for</c>; DESIGN-conformance-suite.md §4, §5).</summary>
@@ -81,7 +81,7 @@ internal static class SuiteManifest
 
     private static WiseOwlManifest LoadManifest()
     {
-        string dir = ScratchDirectory.Create("CobolNet_Suite_");
+        string dir = ScratchDirectory.Create("WiseOwlCobol_Suite_");
         try
         {
             Generate(dir);

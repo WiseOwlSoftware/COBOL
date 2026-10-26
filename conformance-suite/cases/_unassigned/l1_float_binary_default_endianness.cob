@@ -19,7 +19,7 @@
       *> specified, 11.9.8, FLOAT-BINARY clause, specifies which of
       *> these phrases is implied."  GR19a fixes what the answer MEANS:
       *> "The HIGH-ORDER-LEFT phrase specifies that the endianness of
-      *> the data item is big-endian."  COBOL.NET's determination is
+      *> the data item is big-endian."  WiseOwl COBOL's determination is
       *> HIGH-ORDER-LEFT.
       *>
       *> THIS IS THE OTHER ARM OF pb164_float_hor_image. That golden

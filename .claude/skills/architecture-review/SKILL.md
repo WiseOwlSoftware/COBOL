@@ -27,7 +27,7 @@ engine's deletion was the `PB2108` cluster (landed), implemented from the plan's
 ## Preconditions specific to this project
 
 - **There is no legacy engine to refactor.** kb/Work PB2110 deleted it (`docs/rearchitecture/LEGACY-ARCHIVE.md` names the
-  tag); the census and every wave cover `src/Cobol.Net.*` (`.agent-fleet.json` indexes that tree only).
+  tag); the census and every wave cover `src/WiseOwl.Cobol.*` (`.agent-fleet.json` indexes that tree only).
 - **The approved `DESIGN-external-repository.md` is given, not reopened.** Its slices PB2097–PB2104 are in flight;
   R1 designs around them and a wave never touches a file an in-flight slice names.
 - **The fix lane is partitioned**, never paused: every group's file set is checked against the in-flight work
@@ -83,12 +83,12 @@ the `wf_r2_review.js` fleet, launched by the attended operator in three commands
 
 ## Subsystems (R2's review fleet runs one agent per subsystem × dimension)
 
-Preprocessor (`Cobol.Net.Frontend/Preprocessor`) · lexer and grammar (`**/*.g4` and lexer actions) · parser drivers
+Preprocessor (`WiseOwl.Cobol.Frontend/Preprocessor`) · lexer and grammar (`**/*.g4` and lexer actions) · parser drivers
 and the syntax tree · data binding (`DataBinder*`) · procedure binding (`Binding/Procedure`) · reference resolution
 (`ReferenceResolver`) · validation and edition gating (`Validation`, `VersionConformancePass`) · lowering and the
 bound tree (`BoundTree`) · Roslyn code generation (`CodeGen`) · OO (`Oo`, `OoBinder`, `OoEmitter`) · runtime values
 and numerics · runtime I/O · runtime control and exceptions (`ExceptionState`) · editions and diagnostics
-(`Cobol.Net.Editions`, `DiagnosticCatalog`) · CLI · tests, scripts and CI (layout and duplication only).
+(`WiseOwl.Cobol.Editions`, `DiagnosticCatalog`) · CLI · tests, scripts and CI (layout and duplication only).
 
 **Dimensions:** the four of `PROMPT.md` §4 (architecture · full code · performance · duplication and efficiency),
 plus modern-C# conformance. Every agent also applies the project review overlay (`.claude/skills/review`).
@@ -104,7 +104,7 @@ four (R69 §2), which is why R1 runs before zero GAP.
 
 ## Rules the restructure must keep
 
-- **Typed-native only.** No byte `ProgramState` substrate anywhere in `src/Cobol.Net.*`; bytes only at the file
+- **Typed-native only.** No byte `ProgramState` substrate anywhere in `src/WiseOwl.Cobol.*`; bytes only at the file
   boundary or a mixed-USAGE REDEFINES codec.
 - **The phase seams.** No C# text in a bound node; semantics live in binding, not in renderers. The
   `ICodeGenBackend` seam stays, so a CIL backend can still drop in.
@@ -140,7 +140,7 @@ four (R69 §2), which is why R1 runs before zero GAP.
 
 Today: `net10.0`, C# 14 (`LangVersion` 14), and `global.json` pins SDK 10.0.100 (`latestMinor`); the .NET 11 SDK
 is installed as a preview. R4 targets the latest STABLE .NET at the time it runs, per
-`brent-tools:dotnet-engineering` → `references/modernization.md`. `Cobol.Net.Compiler.SourceGen` keeps
+`brent-tools:dotnet-engineering` → `references/modernization.md`. `WiseOwl.Cobol.Compiler.SourceGen` keeps
 `netstandard2.0`, because Roslyn hosts generators there.
 
 **The .NET 11 alternative** (the design's §5.5, owner 2026-09-29):

@@ -33,7 +33,7 @@
       *>   -1.5 -> (-1)*INTEGER(1.5)=-1   +1.5 -> +1   0 -> 0   -1.0 -> -1   +1.0 -> +1
       *>   -0.5 -> (-1)*INTEGER(0.5)=(-1)*0=0          -0.25 -> (-1)*INTEGER(0.25)=0
       *> ⚠ Under COBOL-85's native arithmetic §15.4.1 licenses an implementor-defined APPROXIMATION of that
-      *> expression, so the P-* lines are a DETERMINATION PIN, not a bare assertion. COBOL.NET's §15.4.1
+      *> expression, so the P-* lines are a DETERMINATION PIN, not a bare assertion. WiseOwl COBOL's §15.4.1
       *> determination for the exact family is on record in docs/CONFORMANCE.md A.1 item 92, in terms:
       *> "Sign discipline is the spec's, not the carrier's — MOD floors and REM truncates (§15.64.4 /
       *> §15.77.4), INTEGER floors and INTEGER-PART truncates (§15.44 / §15.49)". Under that determination

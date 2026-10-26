@@ -20,7 +20,7 @@ traceable review: every normative rule → its implementation → a verified ver
 ## 1. Definition of DONE
 
 Every normative ISO/IEC 1989:2023 rule — and its 1985/2002/2014 applicability — has:
-- **(a)** a located implementation (a traceability link into `src/Cobol.Net.*`), OR a recorded **owner
+- **(a)** a located implementation (a traceability link into `src/WiseOwl.Cobol.*`), OR a recorded **owner
   documented-non-support decision** (optional modules only, per §4.2.16);
 - **(b)** a conformance **verdict VERIFIED against the spec TEXT** (not against the legacy or GnuCOBOL);
 - **(c)** a **spec-derived test** that covers it — the expected value COMPUTED FROM THE SPEC, never copied from an
@@ -161,7 +161,7 @@ rather than under `docs/`, because its reader is the battery, not a person.
 > behavioural rule: it is an obligation to SPECIFY and to DOCUMENT an implementor-defined element (§4.2.5), and a
 > binder symbol alone cannot discharge that — a DETERMINATION in `docs/CONFORMANCE.md` §7 can. So a DOC row's
 > `code-location` is **its §7 register anchor, plus every greenfield implementing site**:
-> `docs/CONFORMANCE.md#DOC-A.1-<n>; src/Cobol.Net.…#Symbol[; …]`.
+> `docs/CONFORMANCE.md#DOC-A.1-<n>; src/WiseOwl.Cobol.…#Symbol[; …]`.
 >
 > **The anchor is COMPUTED from the row's own rule-id, never chosen** —
 > `inventory-schema.json` → `kinds.DOC.anchor-template` expands `{rule-id}`, which is why §7's item key is the
@@ -174,7 +174,7 @@ rather than under `docs/`, because its reader is the battery, not a person.
 > `4.2.16` for §1, `A.4.<n>` for §5) and forbids citing one bare.
 >
 > **A DOC row closes exactly as every other row does**: its own anchor, at least one site matching
-> `kinds.DOC.implementation-pattern` (`^src/Cobol\.Net\.` — the same greenfield predicate `audit_annex_a1.py`'s
+> `kinds.DOC.implementation-pattern` (`^src/WiseOwl\.Cobol\.` — the same greenfield predicate `audit_annex_a1.py`'s
 > source sweep applies), and a spec-derived `test-ref`. ⛔ There is **no policy arm**: a row whose only location
 > is its §7 anchor stays a GAP. **The owner answered that question `no` on 2026-09-02 (`kb/Work/PB280` Q2)** —
 > §1(a) is not widened — on the ground that the claim such an arm would rest on is unfalsifiable: greenfield
@@ -326,14 +326,14 @@ in §1 — located, verified, tested — cost what it is supposed to cost.
 ```
 python scripts/spec/record_verdicts.py --dry-run batch.json     # validate + report the GAP delta, write nothing
 python scripts/spec/record_verdicts.py batch.json [more.json]   # merge
-dotnet test tests/Cobol.Net.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"
+dotnet test tests/WiseOwl.Cobol.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"
 ```
 
 A record sets only the adjudicated fields (plus the two retirement control fields below) and is keyed by `rule-id`:
 
 ```json
 {"rule-id": "AR-15.7-1", "verdict": "CONFORMS",
- "code-location": "src/Cobol.Net.Compiler/Binder/Intrinsics/IntrinsicSignatures.cs#Abs",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binder/Intrinsics/IntrinsicSignatures.cs#Abs",
  "test-ref": "conformance:2023/intrinsic_abs; unit:IntrinsicArgumentRuleTests.Abs_RejectsAlphanumeric",
  "editions": "85,2002,2014,2023", "notes": ""}
 ```
@@ -396,7 +396,7 @@ retirement, and the rows that predate the rule are a measured residue (kb/Work P
 | the Python loader | `scripts/spec/inventory_schema.py` | parsing that schema, deriving `state`, and the ATOMIC inventory write |
 | the writer | `scripts/spec/record_verdicts.py` | validating a batch's SHAPE and merging it all-or-nothing — witnesses by union (PB959) |
 | the witness-count gate | `scripts/spec/audit_witness_loss.py` | that no row LOSES a witness without a retirement or a re-site (PB959) |
-| the battery gate | `tests/Cobol.Net.Tests.Unit/SpecTraceabilityInventoryDriftTests.cs` | REFERENTIAL integrity, continuously |
+| the battery gate | `tests/WiseOwl.Cobol.Tests.Unit/SpecTraceabilityInventoryDriftTests.cs` | REFERENTIAL integrity, continuously |
 | the register audit | `scripts/spec/audit_annex_a1.py`, run by `AnnexA1RegisterDriftTests` | that `docs/CONFORMANCE.md` §7 is internally sound and agrees with the inventory |
 
 - **`kinds` is orthogonal to `verdicts`, and that is the point.** `verdicts` says what a VERDICT costs; `kinds`
@@ -619,7 +619,7 @@ python scripts/spec/phase_b_batch.py 15.32-15.44     # writes scratchpad/phase-b
 #   … run the workflow (one adjudicate agent + one refute agent per slug) …
 python scripts/spec/record_verdicts.py --dry-run scratchpad/phase-b/out-*.json
 python scripts/spec/record_verdicts.py scratchpad/phase-b/out-*.json
-dotnet test tests/Cobol.Net.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"
+dotnet test tests/WiseOwl.Cobol.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"
 ```
 
 `phase_b_batch.py` excludes rules that already carry a verdict, so a re-run after a partial batch is safe.
@@ -629,7 +629,7 @@ SEARCHING.** Batch 8 (2026-09-01) cost 574M cache-read tokens over 39 agents for
 agent's ~120 turns went on the same three greps — where is the grammar rule, where is the binder and emitter,
 where are the tests — a search with one answer per subject that was being bought once per agent. The dossier
 computes it once per subject and pastes it into each of that subject's part files: the ANTLR rules (matched on
-the rule name, on the clause its comment block cites, and on the construct keyword), every `src/Cobol.Net.*` file
+the rule name, on the clause its comment block cites, and on the construct keyword), every `src/WiseOwl.Cobol.*` file
 citing the subject's clause with the citing lines, the same for `tests/` including the `.cob` goldens, the
 `docs/CONFORMANCE.md` determinations, the `kb/Work/` notes whose `spec_refs` or `inventory_rows` fall inside the
 subject **with their `status`** — which is how §8 item 8's "do not re-report a landed fix" gets answered without

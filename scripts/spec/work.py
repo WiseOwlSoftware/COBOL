@@ -4,7 +4,7 @@
 ⛔ WHY THIS EXISTS. "What is left to do" was authored in FIVE places, each in a different format, and three of
 them declared themselves canonical:
 
-    docs/COBOLNET_REARCHITECTURE_PLAN.md §0 NEXT   "the ONLY live-state SSOT"      buried in 3,614 lines
+    docs/REARCHITECTURE_PLAN.md §0 NEXT   "the ONLY live-state SSOT"      buried in 3,614 lines
     docs/rearchitecture/CONFORMANCE-FIX-QUEUE.md   owns its own LANDED tally       2,484 lines of prose
     kb/Remaining Work Tracker.md                   "the canonical remaining-work tracker"   5 days stale
     §11 analysis backlog                           17 analyses                     inside the plan
@@ -72,7 +72,7 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 QUEUE = REPO / "docs" / "rearchitecture" / "CONFORMANCE-FIX-QUEUE.md"
-PLAN = REPO / "docs" / "COBOLNET_REARCHITECTURE_PLAN.md"
+PLAN = REPO / "docs" / "REARCHITECTURE_PLAN.md"
 WORK = REPO / "kb" / "Work"
 
 KINDS = {"defect", "analysis", "adjudication", "decision"}
@@ -122,7 +122,7 @@ def write_note(item: dict, body: str) -> str:
             "rejects_legal_source", "under_rejects", "process_only", "blocked_by", "spec_refs"]
     fm = ["---", f'title: "{item["id"]} — {item["summary"][:70]}"']
     fm += [fm_line(k, item[k]) for k in keys]
-    fm += ["tags: [cobolsharp, work, " + item["kind"] + "]", "---", "",
+    fm += ["tags: [wiseowl-cobol, work, " + item["kind"] + "]", "---", "",
            f'# {item["id"]} — {item["summary"]}', ""]
     return "\n".join(fm) + body.rstrip() + "\n"
 
@@ -255,7 +255,7 @@ def parse_frontmatter(text: str) -> dict | None:
     two malformations look identical under "it was rejected".
 
     ⛔ A RUNAWAY IS BOUNDED BY THE NEXT KEY, and that is measured, not assumed. A list left open by a missing
-    bracket used to keep eating lines until some later line happened to end in `]` — so `tags: [cobolsharp,
+    bracket used to keep eating lines until some later line happened to end in `]` — so `tags: [wiseowl-cobol,
     work, defect]` silently became three of `inventory_rows`' members and the malformation was never reported.
     A line that begins a new frontmatter key ends the open list with the error instead; no continuation of a
     real wrapped list can look like one, because its members are rule-ids, clause numbers and tag words.
@@ -1025,7 +1025,7 @@ def _mention_members(raw: str, block: str, end: int) -> tuple[str, ...]:
 SITES_REQUIRED_FROM = 3443
 #: The site-block form SITES_RULE asks for, quoted by MANDATORY-PRACTICES R3 and the registrar brief (a drift check in
 #: scripts/orchestrator/test_plan_wave.py holds them to it and to what note_sites reads from it).
-SITES_EXAMPLE = "**Sites:** `src/Cobol.Net.Compiler/Binding/DataBinder.cs:123` (`DataBinder.Bind`, `DataBinder.Sync`)"
+SITES_EXAMPLE = "**Sites:** `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs:123` (`DataBinder.Bind`, `DataBinder.Sync`)"
 SITES_RULE = ("an open note that names a cluster declares its sites: a `**Sites:**` paragraph naming each file it "
               "changes AND the members it changes in it, the file's path (a `:line` suffix optional) followed by a "
               "parenthesis of code spans, as in " + SITES_EXAMPLE + ", or `path#Member`; the wave planner partitions "

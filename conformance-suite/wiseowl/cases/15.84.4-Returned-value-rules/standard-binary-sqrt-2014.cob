@@ -7,7 +7,7 @@
       *> D-A (owner protocol 2026-08-30): ARITHMETIC IS STANDARD-BINARY is DECLINED.
       *> Annex A.3 item 2 makes the clause processor-dependent, and ISO 4.2.6 gives the
       *> implementor the discretion not to claim support plus the duty to warn at compile
-      *> time and to document the absence. COBOL.NET's warning mechanism is the hard
+      *> time and to document the absence. WiseOwl COBOL's warning mechanism is the hard
       *> COBOL0806 (docs/CONFORMANCE.md 1 explains why an error rather than a warning).
       *> This case NAMES the function whose returned value 15.x defines in terms of the
       *> arithmetic mode, so the decline is proven on the path the inventory row is about

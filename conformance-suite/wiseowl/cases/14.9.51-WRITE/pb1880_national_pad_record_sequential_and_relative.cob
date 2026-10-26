@@ -10,7 +10,7 @@
       *> standard-defined and witnessed by pb327_national_line_sequential_fill, §14.9.30.4 GR15). The standard says only
       *> that the bytes of a WRITE past the end of record-name-1 are undefined (§14.9.51.4 GR13, Annex A.2 item 64) and
       *> that on a short record sequential READ "the portion of the record area that is to the right of the last valid
-      *> character read is undefined" (§14.9.30.4 GR14); docs/CONFORMANCE.md D-WRT1 and docs/COBOLNET_FILES_DESIGN.md D30
+      *> character read is undefined" (§14.9.30.4 GR14); docs/CONFORMANCE.md D-WRT1 and docs/FILES_DESIGN.md D30
       *> fix the content: a position no record description occupies, and a position past the end of a short stored record,
       *> is a SPACE - and in a national record area the national space, the two bytes 00 20 (D-N1: UTF-16BE), never the
       *> byte pair 20 20 (U+2020, a character that is not a space at all). One pad serves every organization

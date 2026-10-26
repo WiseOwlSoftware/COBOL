@@ -48,7 +48,7 @@ ONE GATE, in this order (§3.14.3):
   5. `--list-tests` per assembly (scrubbed), then BESIDE the legs the self-tests that read the built assemblies
      (`self_tests.py --built`, joined after the legs; a red one makes the gate RED), the plan, then per leg the three
      assemblies CONCURRENTLY, each through the
-     leg handshake (all three COBOLNET_GATE_* variables, or none) and printed through scripts/test_leg_report.py;
+     leg handshake (all three WISEOWL_COBOL_GATE_* variables, or none) and printed through scripts/test_leg_report.py;
      an assembly the plan gives no case in a leg is not invoked for it;
   6. the POPULATION CHECK (scripts/test_population.py) per assembly over its legs' trx files, the publish of every
      measured duration to the SHARED TIMINGS STORE that times the next gate's plan, even in a fresh worktree
@@ -362,6 +362,8 @@ AUDITS = (
     # kb/Work PB3575: every diagnostic code is COBOL####; the rename's own rules, asked as a question over the committed
     # tree, an audit for the reason CONFLICT MARKERS is one (PB2878).
     ("DIAGNOSTIC PREFIX", ["scripts/rename_diagnostic_prefix.py", "--check"]),
+    # kb/Work PB3837: the code carries the product's name; the rename's own audit over the committed tree, for the same reason.
+    ("RETIRED NAMES", ["scripts/rename_retired_names.py", "--check"]),
     ("SELF-TESTS", ["scripts/self_tests.py"]),
     # kb/Work PB1957 row 44, the CI invariant: CI's `audits` job ran these two and the gate did not, so train 1067's
     # PR 9 went RED in CI on a `blocked: true` the work register refuses, behind a GREEN gate.
@@ -691,7 +693,7 @@ class Host:
                                       lambda cmd, cwd: subprocess.run(cmd, cwd=cwd, **spawn()).returncode)
 
     def build(self, spawn: Spawn) -> bool:
-        return subprocess.run(["dotnet", "build", "Cobol.Net.sln", "-v", "quiet"], cwd=self.repo,
+        return subprocess.run(["dotnet", "build", "WiseOwl.Cobol.sln", "-v", "quiet"], cwd=self.repo,
                               **spawn()).returncode == 0
 
     def binaries(self) -> dict[str, dict[str, str]]:
@@ -699,15 +701,15 @@ class Host:
         host's identity record names (tests/_shared/GateLegs.cs `GateIdentityRecord.ProductAssemblies`)."""
         out = {}
         for asm, project in GATED_ASSEMBLIES.items():
-            tests = sorted((self.repo / project / "bin" / "Debug").glob(f"*/Cobol.Net.Tests.{asm}.dll"))
+            tests = sorted((self.repo / project / "bin" / "Debug").glob(f"*/WiseOwl.Cobol.Tests.{asm}.dll"))
             if len(tests) != 1:
-                raise PopulationError(f"{project}: expected one built Cobol.Net.Tests.{asm}.dll under bin/Debug, "
+                raise PopulationError(f"{project}: expected one built WiseOwl.Cobol.Tests.{asm}.dll under bin/Debug, "
                                       f"found {len(tests)}")
             test_dll = tests[0]
             hashes = {"<test>": _sha256(test_dll)}
             for dll in sorted(test_dll.parent.glob("*.dll")):
                 n = dll.name
-                if dll != test_dll and (n.startswith("Cobol.Net.") or n == "cobol.dll"):
+                if dll != test_dll and (n.startswith("WiseOwl.Cobol.") or n == "cobol.dll"):
                     hashes[n] = _sha256(dll)
             out[asm] = hashes
         return out
@@ -776,14 +778,14 @@ def leg_stem(leg: int, asm: str) -> str:
 
 def leg_env(handshake: dict[str, str], observations: Path) -> dict[str, str]:
     """⛔ THE ONLY PLACE A TEST HOST'S ENVIRONMENT IS MADE (§3.14.3): the scrubbed environment — no stray
-    COBOLNET_GATE_*, VSTest* or RunSettingsFilePath — in English, with this gate's handshake merged over it: all three
+    WISEOWL_COBOL_GATE_*, VSTest* or RunSettingsFilePath — in English, with this gate's handshake merged over it: all three
     variables, or none. The test harness's observation log (every retry and non-observation of a child process,
     tests/_shared/ProcessObservation.cs) goes to `observations` in the run directory, one per leg host, so a
     non-observation is read beside the leg's own log instead of in one temp file every gate on the host appends to
     (kb/Work PB3108)."""
     if handshake and set(handshake) != set(HANDSHAKE):
         raise ValueError(f"a partial handshake {sorted(handshake)}: the driver hands all three variables or none")
-    return {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **handshake, "COBOLNET_HARNESS_LOG": str(observations)}
+    return {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **handshake, "WISEOWL_COBOL_HARNESS_LOG": str(observations)}
 
 
 # ── a run directory: the gate's pid, its verdict record, and the one way to wait for it (kb/Work PB3536) ──────────
@@ -1532,12 +1534,12 @@ class Gate:
     def _run_leg(self, out: Outcome, leg: int, assemblies: list[str], run: Path, plan: dict | None,
                  digest: str | None, spawn: Spawn, legs_started: float) -> list[LegRun]:
         self.say(f"build-local: leg {leg} — {', '.join(assemblies)} concurrently")
-        handshake = {} if plan is None else {"COBOLNET_GATE_PLAN": str((run / "plan.json").resolve()),
-                                             "COBOLNET_GATE_LEG": str(leg), "COBOLNET_GATE_PLAN_SHA256": digest}
+        handshake = {} if plan is None else {"WISEOWL_COBOL_GATE_PLAN": str((run / "plan.json").resolve()),
+                                             "WISEOWL_COBOL_GATE_LEG": str(leg), "WISEOWL_COBOL_GATE_PLAN_SHA256": digest}
 
         def one(asm: str) -> tuple[str, int, float, float]:
             env = leg_env(handshake, run / f"{leg_stem(leg, asm)}.observations.log")
-            out.handshakes[(leg, asm)] = {k: v for k, v in env.items() if k.upper().startswith("COBOLNET_GATE_")}
+            out.handshakes[(leg, asm)] = {k: v for k, v in env.items() if k.upper().startswith("WISEOWL_COBOL_GATE_")}
             t = time.monotonic()
             rc = self.host.run_leg(asm, leg, run, env, spawn)
             return asm, rc, time.monotonic() - t, time.monotonic() - legs_started
@@ -1874,7 +1876,7 @@ class FakeHost(Host):
     def binaries(self):
         if "crash" in self.plant:
             raise RuntimeError("planted: a defect in the driver's own code")
-        return {a: {"<test>": f"test-{a}", "Cobol.Net.Compiler.dll": f"compiler-{a}"} for a in GATED_ASSEMBLIES}
+        return {a: {"<test>": f"test-{a}", "WiseOwl.Cobol.Compiler.dll": f"compiler-{a}"} for a in GATED_ASSEMBLIES}
 
     def listing(self, asm, spawn):
         if "population" in self.plant and asm == "Unit":
@@ -1903,7 +1905,7 @@ class FakeHost(Host):
 
     def run_leg(self, asm, leg, run, env, spawn) -> int:
         self.envs[(leg, asm)] = dict(env)
-        planned = env.get("COBOLNET_GATE_LEG") is not None
+        planned = env.get("WISEOWL_COBOL_GATE_LEG") is not None
         names = [n for n in self.POPULATION[asm] if not planned or gate_plan.leg_of(self.plan_obj, asm, n) == leg]
         cases = [(n, ["Passed"]) for n in names]
         red = False
@@ -1922,18 +1924,18 @@ class FakeHost(Host):
         failed = sum(o == ["Failed"] for _, o in cases)
         log = [f"  Failed {cases[0][0]} [1 s]", "  Error Message:", "   PLANTED-RED-MESSAGE"] if red else []
         log.append(f"{'Failed!' if red else 'Passed!'}  - Failed:     {failed}, Passed:     {passed}, Skipped:     0, "
-                   f"Total:     {len(cases)}, Duration: 1 s - Cobol.Net.Tests.{asm}.dll (net10.0)")
+                   f"Total:     {len(cases)}, Duration: 1 s - WiseOwl.Cobol.Tests.{asm}.dll (net10.0)")
         (run / f"{stem}.log").write_text("\n".join(log) + "\n", encoding="utf-8", newline="\n")
         if planned:
-            rec = {"schema": 1, "assembly": asm, "leg": leg, "plan_sha256": env["COBOLNET_GATE_PLAN_SHA256"],
+            rec = {"schema": 1, "assembly": asm, "leg": leg, "plan_sha256": env["WISEOWL_COBOL_GATE_PLAN_SHA256"],
                    "plan_content_sha256": self.plan_obj["sha256"],
-                   "test_assembly": {"file": f"Cobol.Net.Tests.{asm}.dll", "mvid": "0", "sha256": f"test-{asm}"},
-                   "product_assemblies": {"Cobol.Net.Compiler.dll": f"compiler-{asm}"},
+                   "test_assembly": {"file": f"WiseOwl.Cobol.Tests.{asm}.dll", "mvid": "0", "sha256": f"test-{asm}"},
+                   "product_assemblies": {"WiseOwl.Cobol.Compiler.dll": f"compiler-{asm}"},
                    "received": len(self.POPULATION[asm]), "runs": [gate_plan.name_key(n) for n in names]}
             if "digest" in self.plant and asm == "Conformance" and leg == 2:
                 rec["plan_sha256"] = "f" * 64
             if "binary" in self.plant and asm == "Conformance" and leg == 2:
-                rec["product_assemblies"] = {"Cobol.Net.Compiler.dll": "rebuilt-between-legs"}
+                rec["product_assemblies"] = {"WiseOwl.Cobol.Compiler.dll": "rebuilt-between-legs"}
             (run / f"{stem}.json").write_text(json.dumps(rec), encoding="utf-8", newline="\n")
         return 1 if red else 0
 
@@ -1972,7 +1974,7 @@ def self_test() -> int:
             and o.populations["Unit"].exact and ("Characterization" not in o.legs_invoked.get(2, [])), str(o.legs_invoked))
         hs = o.handshakes
         arm("every leg host is handed all three handshake variables, naming its own leg and the plan's digest",
-            all(set(v) == set(HANDSHAKE) and v["COBOLNET_GATE_LEG"] == str(leg) for (leg, _), v in hs.items()), str(hs))
+            all(set(v) == set(HANDSHAKE) and v["WISEOWL_COBOL_GATE_LEG"] == str(leg) for (leg, _), v in hs.items()), str(hs))
         o2 = [l for l in sink if l.startswith(VERDICT)]
         arm("the verdict line is the last line, and counts every assembly's discovered cases",
             sink[-1] == o.line and "Conformance 6/6" in o.line and "Unit 4/4" in o.line
@@ -2066,15 +2068,15 @@ def self_test() -> int:
             calls.clear()
             arm("a Windows host with no WSL has no Linux gate to hold anything, and is not asked",
                 real.linux_gate_holder(run=probing(EXIT_BUSY, busy_text), which=lambda _: None) is None and not calls)
-        stray = {"COBOLNET_GATE_LEG": "2", "VSTestTestCaseFilter": "FullyQualifiedName~Nothing"}
+        stray = {"WISEOWL_COBOL_GATE_LEG": "2", "VSTestTestCaseFilter": "FullyQualifiedName~Nothing"}
         os.environ.update(stray)
         try:
             observations = Path("run") / "leg-1-Unit.observations.log"
             env = leg_env({}, observations)
-            planned = leg_env({"COBOLNET_GATE_PLAN": "p", "COBOLNET_GATE_LEG": "1", "COBOLNET_GATE_PLAN_SHA256": "d"},
+            planned = leg_env({"WISEOWL_COBOL_GATE_PLAN": "p", "WISEOWL_COBOL_GATE_LEG": "1", "WISEOWL_COBOL_GATE_PLAN_SHA256": "d"},
                               observations)
             try:
-                leg_env({"COBOLNET_GATE_LEG": "1"}, observations)
+                leg_env({"WISEOWL_COBOL_GATE_LEG": "1"}, observations)
                 partial_refused = False
             except ValueError:
                 partial_refused = True
@@ -2083,11 +2085,11 @@ def self_test() -> int:
                 os.environ.pop(k, None)
         arm("a leg host's environment is scrubbed of a stray handshake and VSTest property, and a partial handshake "
             "is refused",
-            "COBOLNET_GATE_LEG" not in env and "VSTestTestCaseFilter" not in env and planned["COBOLNET_GATE_LEG"] == "1"
+            "WISEOWL_COBOL_GATE_LEG" not in env and "VSTestTestCaseFilter" not in env and planned["WISEOWL_COBOL_GATE_LEG"] == "1"
             and "VSTestTestCaseFilter" not in planned and partial_refused)
         arm("a leg host writes the harness observation log into the run directory, one file per leg host (PB3108)",
-            env.get("COBOLNET_HARNESS_LOG") == str(observations) == planned.get("COBOLNET_HARNESS_LOG"), str(env.get(
-                "COBOLNET_HARNESS_LOG")))
+            env.get("WISEOWL_COBOL_HARNESS_LOG") == str(observations) == planned.get("WISEOWL_COBOL_HARNESS_LOG"), str(env.get(
+                "WISEOWL_COBOL_HARNESS_LOG")))
 
         # Batched gating (kb/Work PB2515): the shared implementer scope `leg1`, and with no setting the coded default.
         o, h = gate("default-scope", scope=None)
@@ -2707,8 +2709,8 @@ def self_test() -> int:
             rc1 == 0 and len(v1) == 1 and "GREEN" in v1[0] and "leg(s) 1 of plan" in v1[0]
             and rc12 == 0 and "GREEN" in v12[0] and "Conformance 6/6" in v12[0]
             and (d / "out1" / "plan.json").read_bytes() == (d / "plan.json").read_bytes()
-            and handed.get("COBOLNET_GATE_PLAN") == str((d / "out1" / "plan.json").resolve())
-            and handed.get("COBOLNET_GATE_PLAN_SHA256") == digest and rc_bad == 1, f"{v1} {v12} {rc_bad}")
+            and handed.get("WISEOWL_COBOL_GATE_PLAN") == str((d / "out1" / "plan.json").resolve())
+            and handed.get("WISEOWL_COBOL_GATE_PLAN_SHA256") == digest and rc_bad == 1, f"{v1} {v12} {rc_bad}")
         sink.clear()
         rc_none = plan_leg(FakeHost(d, d / "gate.lock"), "none", [1], d / "out4", sink.append)
         arm("plan_leg without a plan runs the whole population in its one leg with no handshake",

@@ -20,7 +20,7 @@
       *> of margin R." §6.3.4 lists what the program-text area may
       *> contain; nothing in §6.3 gives any meaning to characters
       *> outside it, and nothing makes them an error.
-      *> COBOL.NET's determination: the rightmost character position is
+      *> WiseOwl COBOL's determination: the rightmost character position is
       *> COLUMN 72, so the program-text area is columns 8-72 and columns
       *> 73 onward are outside the program text and are DISCARDED.
       *

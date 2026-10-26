@@ -40,8 +40,8 @@ ALLOWED = set(ADJUDICATED)
 #: `tests/<project>/<...>/<Class>.cs#<Method>` -> the canonical form, when the project names the form.
 CS_REF = re.compile(r"^tests/(?P<proj>[A-Za-z0-9_.]+)/(?:.*/)?(?P<cls>[A-Za-z0-9_]+)\.cs#(?P<m>[A-Za-z0-9_]+)$")
 PROJECT_FORM = {
-    "Cobol.Net.Tests.Unit": "unit",
-    "Cobol.Net.Tests.Conformance": "conformance-test",
+    "WiseOwl.Cobol.Tests.Unit": "unit",
+    "WiseOwl.Cobol.Tests.Conformance": "conformance-test",
 }
 #: A repository path a file-backed form names (`conformance-suite/cases/<folder>/<id>.cob` -> `conformance:cases/
 #: <folder>/<id>`, the SPEC-DERIVED suite form, the one that can actually CLOSE a row) is spelled by the schema's own

@@ -78,7 +78,7 @@ def build_notes(rows: list[dict]) -> dict[str, str]:
             # be entirely GAP. Collapsing them into one number is what makes a burn-down look stalled.
             f"adjudicated: {adj}", f"resolved: {len(items) - g}",
             "generated: true",
-            "tags: [cobolsharp, conformance, generated]",
+            "tags: [wiseowl-cobol, conformance, generated]",
             "---", "",
             f"# §{clause} — {len(items)} items, {g} GAP", "",
             "> ⚙ **Generated** from `tests/version-matrix/traceability-inventory.json`. Do not edit — record",
@@ -111,7 +111,7 @@ def build_notes(rows: list[dict]) -> dict[str, str]:
         f'description: "P14 burn-down over {total} normative ISO/IEC 1989:2023 items; v1.0 = zero GAP."',
         f"items: {total}", f"gap: {gaps}", f"adjudicated: {adjudicated}", f"resolved: {total - gaps}",
         "generated: true",
-        "tags: [cobolsharp, conformance, generated, dashboard]", "---", "",
+        "tags: [wiseowl-cobol, conformance, generated, dashboard]", "---", "",
         "# Conformance dashboard", "",
         "> ⚙ **Generated** from the traceability inventory. `v1.0 = zero GAP` (owner decision D13).",
         "> This view is AGGREGATES by design — the per-rule detail lives in the inventory JSON, which queries",

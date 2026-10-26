@@ -9,7 +9,7 @@
 
 **54 findings across 13 of 15 docs.** By (category, severity): incomplete-to-spec/major=1, incomplete-to-spec/minor=4, incomplete-to-spec/nit=2, legacy-port-unverified/major=3, legacy-port-unverified/minor=1, mis-cited/major=3, mis-cited/minor=16, mis-cited/nit=10, spec-wrong/blocker=1, spec-wrong/major=8, spec-wrong/minor=4, spec-wrong/nit=1
 
-## docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md (4 findings, 30 decisions checked)
+## docs/CONDITIONS_EXCEPTIONS_DESIGN.md (4 findings, 30 decisions checked)
 
 | # | Sev | Category | Impl | Loc | Cites | Correct-per-spec |
 |---|-----|----------|------|-----|-------|------------------|
@@ -23,7 +23,7 @@
 - **[MINOR/mis-cited] lines 189-193 (D3) and 307-309 (Hard problems)** — CLAIM: D3 / Hard-problem: emitting short-circuiting && / || for COBOL AND / OR is framed as 'a deliberate divergence from the eager legacy engine', justified on idiom/safety/corpus-safety, with an offered fallback: 'If a future program relies on eager eval (IF I>0 AND TABLE(I)=X with EC-BOUND off), the local fix is to hoist that operand before the &&.'
 - **[MINOR/mis-cited] lines 392-396 (ISO citations) + lines 261, 270, 356** — CLAIM: Condition-family ISO citations: '§8.8.4.1 — relation conditions (... space-extension §8.8.4.1.2; pointer = / NOT = §8.8.4.1.4)'; '§8.8.4.2 — abbreviated combined relation conditions'; '§8.8.4.3 / §8.8.4.4 — class conditions (... sign conditions)'; '§8.8.4.9 — logical operators and precedence NOT > AND > XOR > OR'. Inline: 'ABBREVIATED COMBINED (ISO §8.8.4.2)', 'space-extension ... (ISO §8.8.4.1.2)
 
-## docs/COBOLNET_CONTROL_FLOW_DESIGN.md (9 findings, 18 decisions checked)
+## docs/CONTROL_FLOW_DESIGN.md (9 findings, 18 decisions checked)
 
 | # | Sev | Category | Impl | Loc | Cites | Correct-per-spec |
 |---|-----|----------|------|-----|-------|------------------|
@@ -47,7 +47,7 @@
 - **[NIT/mis-cited] :72 (D8), :276 (ISO citations)** — CLAIM: D8 + ISO-citations: 'ISO §14.9.14 GR9/10: SECTION phrase only in a section, PARAGRAPH phrase only in a paragraph' / '(bare EXIT ...; GR9 SECTION-only, GR10 PARAGRAPH-only)'.
 - **[NIT/incomplete-to-spec] :232 (edge case), :36 (D2 rationale)** — CLAIM: Edge case: 'Last paragraph falls off the end: pc becomes N ... loop exits = normal run-unit termination (no STOP RUN needed; ISO §14.6.11 ...).' Stated unconditionally.
 
-## docs/COBOLNET_DATA_MODEL_DESIGN.md (5 findings, 20 decisions checked)
+## docs/DATA_MODEL_DESIGN.md (5 findings, 20 decisions checked)
 
 | # | Sev | Category | Impl | Loc | Cites | Correct-per-spec |
 |---|-----|----------|------|-----|-------|------------------|
@@ -63,7 +63,7 @@
 - **[MINOR/mis-cited] Section 7 (line 54); C# mapping (line 510); edge case (line 562); ISO citations (line 608)** — CLAIM: 'SET cond TO TRUE -> assign the parent its first/low value (ISO section 14.9.34)'; 'SET cond-name TO TRUE picks the FIRST value of a THRU range (the low bound) or the first literal (ISO section 14.9.34)'; ISO citations 'section 14.9.34 SET statement - condition-name SET TO TRUE assigns the first/low value'.
 - **[MINOR/mis-cited] D9 (line 241 cites SR17) vs D9 (line 304 cites SR5)** — CLAIM: A dynamic (OCCURS DYNAMIC) table shall be neither the subject nor object of a REDEFINES (guard 1525) - cited as 'section 13.18.44 SR17' in one place and 'section 13.18.44 SR5 (:21497)' in another.
 
-## docs/COBOLNET_FILES_DESIGN.md (4 findings, 28 decisions checked)
+## docs/FILES_DESIGN.md (4 findings, 28 decisions checked)
 
 | # | Sev | Category | Impl | Loc | Cites | Correct-per-spec |
 |---|-----|----------|------|-----|-------|------------------|
@@ -77,7 +77,7 @@
 - **[MINOR/mis-cited] :86** — CLAIM: Hard problems: "Variable-length REWRITE must equal the replaced record length (14.9.35 GR16) or it is status 44 with the record unchanged." — mechanism: "REWRITE re-serializes, compares serialized length to the remembered length, and returns 44 if different."
 - **[NIT/mis-cited] :159** — CLAIM: ISO citations footer: "...14.9.24 and 14.9.45 SORT and MERGE, 14.9.40 and 14.9.22 numeric-key value compare..."
 
-## docs/COBOLNET_INTERPROGRAM_DESIGN.md (3 findings, 21 decisions checked)
+## docs/INTERPROGRAM_DESIGN.md (3 findings, 21 decisions checked)
 
 | # | Sev | Category | Impl | Loc | Cites | Correct-per-spec |
 |---|-----|----------|------|-----|-------|------------------|
@@ -89,7 +89,7 @@
 - **[MINOR/mis-cited] — C# mapping, RETURNING/GOBACK (line 83); Hard problems (line 113)** — CLAIM: C# mapping (RETURNING / GOBACK): 'GOBACK RETURNING WS-R.  ->  _ret = WS_R; return _ret;' and Hard problems: 'GOBACK RETURNING sets the return value' — presented as a standard ISO lowering under a §14.9.18 citation, with no extension caveat and no entry in the doc's Edition-gating section.
 - **[NIT/mis-cited] — Edge cases, first bullet (line 126)** — CLAIM: Edge cases: 'Transitive passing mode (§14.9.4.4 GR5): default BY REFERENCE; a BY REFERENCE/CONTENT/VALUE phrase applies to all following args until the next phrase (port the legacy CallBinder mode-threading, drop its byte emission).' — attributes tri-modal (REFERENCE/CONTENT/VALUE) transitivity to §14.9.4.4 GR5, with a legacy-port rationale.
 
-## docs/COBOLNET_INTRINSICS_DESIGN.md (7 findings, 20 decisions checked)
+## docs/INTRINSICS_DESIGN.md (7 findings, 20 decisions checked)
 
 | # | Sev | Category | Impl | Loc | Cites | Correct-per-spec |
 |---|-----|----------|------|-----|-------|------------------|
@@ -97,7 +97,7 @@
 | 27 | minor | mis-cited | implemented | :257 (also :77, :140, :202) | §15.24 | §15.24 is the DAY-OF-INTEGER function, not LENGTH. The LENGTH function is §15.50 (§15.50.1: "The LENGTH function returns an integer equal to the length of the argument in alphanumeric character positions, national character positions, or boolean positions"). The doc itself cites the correct §15.50.4 |
 | 28 | minor | mis-cited | implemented | :261 (also :247) | §14.9.21 | §14.9.21 is the INITIATE statement. The INITIALIZE statement is §14.9.20. The FILLER-skip / REDEFINES-skip semantics the doc attributes to it are actually §14.9.20.4 GR5: a)2 "If the FILLER phrase is not specified, elementary data items with an explicit or implicit FILLER clause" are excluded, and a |
 | 29 | minor | mis-cited | implemented | :263 | §14.9.43 | §14.9.43 is the STRING statement. The STOP statement (STOP RUN / run-unit termination) is §14.9.42. Mis-citation. |
-| 30 | minor | legacy-port-unverified | implemented | :239 | none (implicitly §15.67/§15.68/§15.69) | This is a legacy-port decision ("port the legacy parser exactly") with no independent spec derivation, exactly the high-risk category the audit targets. §15.67 (NUMVAL), §15.68 (NUMVAL-C), §15.69 (NUMVAL-F) define detailed argument rules that the legacy CobolSharp parser (the differential net, possi |
+| 30 | minor | legacy-port-unverified | implemented | :239 | none (implicitly §15.67/§15.68/§15.69) | This is a legacy-port decision ("port the legacy parser exactly") with no independent spec derivation, exactly the high-risk category the audit targets. §15.67 (NUMVAL), §15.68 (NUMVAL-C), §15.69 (NUMVAL-F) define detailed argument rules that the legacy parser (the differential net, possi |
 | 31 | nit | mis-cited | implemented | :256 | §15.4 | §15.4 is "Returned values" (§15.4.1 Numeric and integer functions). The table(ALL)-subscript rule is in §15.3 Arguments: "When ALL is specified as a subscript, the effect is as if each table element associated with that subscript position were specified." Should cite §15.3. Mis-citation (nit). |
 | 32 | nit | spec-wrong **CODE-BUG?** | implemented | :243 (also :156) | §15.99.3 | For the ISO FUNCTION form, §15.99.3 r1 requires the offset: position 17 is '–'/'+'/'0', positions 18-19 the hours from UTC, and positions 20-21 the additional minutes — i.e., FUNCTION WHEN-COMPILED is a 21-char value that DOES include the offset, identical in structure to CURRENT-DATE. The doc's bla |
 
@@ -109,7 +109,7 @@
 - **[NIT/mis-cited] :256** — CLAIM: "§15.4 — table(ALL) subscript: each occurrence passed as a separate argument" (ISO citations).
 - **[NIT/spec-wrong] :243 (also :156)** — CLAIM: "WHEN-COMPILED and CURRENT-DATE differ in format (WHEN-COMPILED has no offset historically; CURRENT-DATE includes the Greenwich offset in positions 17-21)" (Edge cases). The C# mapping sketch shows WHEN_COMPILED = "06/08/202612.00.00" (17-char slash/dot form).
 
-## docs/COBOLNET_NUMERIC_DESIGN.md (6 findings, 20 decisions checked)
+## docs/NUMERIC_DESIGN.md (6 findings, 20 decisions checked)
 
 | # | Sev | Category | Impl | Loc | Cites | Correct-per-spec |
 |---|-----|----------|------|-----|-------|------------------|
@@ -127,7 +127,7 @@
 - **[MINOR/mis-cited] :360 (ISO citations), :333 (edge case), :313 (MOVE), :135 (D6)** — CLAIM: 'A negative result stored into an unsigned receiver stores the magnitude (sign dropped)' is attributed to §14.9.25 GR8 (repeated in D6, the MOVE hard problem, and the edge case).
 - **[NIT/mis-cited] :361 (ISO citations)** — CLAIM: The picture digit-count ceiling (fixed-point numeric literals 1 through 31 digits) driving the long->Int128 storage boundary is attributed to '§6046'.
 
-## docs/COBOLNET_OO_DESIGN.md (6 findings, 18 decisions checked)
+## docs/OO_DESIGN.md (6 findings, 18 decisions checked)
 
 | # | Sev | Category | Impl | Loc | Cites | Correct-per-spec |
 |---|-----|----------|------|-----|-------|------------------|
@@ -145,7 +145,7 @@
 - **[MINOR/incomplete-to-spec] :362, :491, :493 (Open questions / Never-landed)** — CLAIM: Deferred/'later refinement' surface: method-name AS literal-1, qualified object-class-name OF SUPER, and object VIEWS (§8.4.3.5) are deferred/staged ('deferred; v1 uses the COBOL method-name directly'; 'object VIEWS ... stay the deferred narrowing surface').
 - **[NIT/mis-cited] :209, :470, :490 (all cite §12063)** — CLAIM: D9 rationale: 'Parametric polymorphism is an OPTIONAL feature in ISO §12063'; 'COBOL resolves overloads by method-resolution-signature ... §12063' (repeated at lines 470, 490).
 
-## docs/COBOLNET_REDEFINES_DESIGN.md (3 findings, 22 decisions checked)
+## docs/REDEFINES_DESIGN.md (3 findings, 22 decisions checked)
 
 | # | Sev | Category | Impl | Loc | Cites | Correct-per-spec |
 |---|-----|----------|------|-----|-------|------------------|
@@ -157,7 +157,7 @@
 - **[MAJOR/mis-cited] Summary lines 12-20; Tier-B/Tier-C boundary box lines 12-20; D10 (line 80-84, 'BINARY (COMP/COMP-4) and PACKED (COMP-3)'); code DataBinder.cs:2797 (Usage.Packed branch)** — CLAIM: Tier B also admits PACKED (COMP-3) leaves whose window 'IS their zoned digit image', cited to '§13.18.60 USAGE GR4'. The class's ONE backing is a string, so a COMP-3 leaf is stored one character (byte) per digit as a zoned overpunch image.
 - **[NIT/mis-cited] Edge cases line 195; ISO citations line 213** — CLAIM: Edge case 'Nested REDEFINES (SR11: target may itself be a redefiner)' and citation-list entry 'SR11 (data-name-2 may itself be subordinate to / be a REDEFINES entry)'.
 
-## docs/COBOLNET_REPORT_WRITER_DESIGN.md (2 findings, 40 decisions checked)
+## docs/REPORT_WRITER_DESIGN.md (2 findings, 40 decisions checked)
 
 | # | Sev | Category | Impl | Loc | Cites | Correct-per-spec |
 |---|-----|----------|------|-----|-------|------------------|
@@ -167,7 +167,7 @@
 - **[MINOR/mis-cited] Summary line 11; §1 Architecture line 51** — CLAIM: Summary: "the REPORT SECTION (ISO §13.6/§13.14/§13.15 + the §13.18 report clauses)"; and §1 Architecture: "never added to the storage forest — report groups are not storage, §13.6".
 - **[MINOR/mis-cited] §2 engine-behavior table, line 73** — CLAIM: §2 engine table, GROUP INDICATE row: "GROUP INDICATE | §13.18.29 — indicated items print on the first presentation after INITIATE / page advance / control break, blanked otherwise".
 
-## docs/COBOLNET_STRING_OPS_DESIGN.md (3 findings, 28 decisions checked)
+## docs/STRING_OPS_DESIGN.md (3 findings, 28 decisions checked)
 
 | # | Sev | Category | Impl | Loc | Cites | Correct-per-spec |
 |---|-----|----------|------|-----|-------|------------------|
@@ -179,7 +179,7 @@
 - **[NIT/mis-cited] :206 (also :103)** — CLAIM: "MOVE alpha->alpha: ... JUSTIFIED RIGHT pad/truncate left — ISO §14.9.25/§13.18.36" and citations list "§13.18.36 JUSTIFIED (right-justify pad/truncate left)".
 - **[NIT/incomplete-to-spec] :138** — CLAIM: "DELIMITED BY absent -> take min(fieldWidth, remaining) chars (GR11b)." — UNSTRING with no DELIMITED BY examines min(receiver-width, chars-remaining) characters.
 
-## docs/COBOLNET_VALIDATION_DESIGN.md — ✅ SPEC-FAITHFUL (24 decisions checked)
+## docs/VALIDATION_DESIGN.md — ✅ SPEC-FAITHFUL (24 decisions checked)
 
 ## docs/rearchitecture/DESIGN-compile-time-expressions.md (1 findings, 35 decisions checked)
 

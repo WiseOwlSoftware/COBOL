@@ -1,11 +1,11 @@
-> # ADOPTED — data-model design D21 (`docs/COBOLNET_DATA_MODEL_DESIGN.md`) is the SSOT since 2026-08-18 (DEVLOG 1322).
+> # ADOPTED — data-model design D21 (`docs/DATA_MODEL_DESIGN.md`) is the SSOT since 2026-08-18 (DEVLOG 1322).
 > This file is the historical draft D21 re-derived from (every clause re-checked with `cite.py --check`; two
 > decisions changed at adoption — no per-item `FloatEditSpec` projection / static mask field, `IsFloatEdited` alone
 > discriminates and `CobolEdit.FloatMask.Parse` is the one parser). Where this draft and D21 differ, D21 governs.
 >
 > # UNREVIEWED AGENT DRAFT — NOT A DESIGN SSOT (frozen 2026-08-09)
 > Produced by the wf_fdd1492c probe-sweep fleet's PB66 design agent, unreviewed by the main line and
-> NOT adopted. kb/Work/PB66.md owns the item; docs/COBOLNET_DESIGN.md §0.5 does NOT list this file.
+> NOT adopted. kb/Work/PB66.md owns the item; docs/DESIGN.md §0.5 does NOT list this file.
 > The draft's terminology finding stands on its own citations (the 2023 standard calls the category a
 > FLOATING-POINT NUMERIC-EDITED item, §13.18.40.4 GR13 b — "external floating-point" appears nowhere
 > in the spec) but every claim must be re-derived at adoption (cite.py --check).
@@ -20,14 +20,14 @@ demands ("implementing external float PICTURE … is its own feature wave with a
 Scope: the `E`-symbol PICTURE character-string of §13.18.40 — **PICTURE analysis · storage model · editing (store)
 · de-editing (read) · MOVE and arithmetic-store semantics · SIGN / DECIMAL-POINT IS COMMA / CURRENCY SIGN /
 BLANK WHEN ZERO / VALUE / INITIALIZE interactions · `FUNCTION HIGHEST-ALGEBRAIC` and `FUNCTION LOWEST-ALGEBRAIC`
-· edition gating · diagnostics · the test plan.** Files: `src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs`,
+· edition gating · diagnostics · the test plan.** Files: `src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs`,
 `Binding/Model/PicInfo.cs`, `Binding/DataBinder.cs`, `Binding/Procedure/Verbs/IntrinsicBinder.cs`,
 `CodeGen/Roslyn/RuntimeApi.cs`, `CodeGen/Emit/NumericRenderer.cs`, `CodeGen/Verbs/{Move,Arithmetic,AcceptDisplay,
-String}Emitter.cs`, `CodeGen/DataDivision/ValueInitializer.cs`, `src/Cobol.Net.Runtime/Values/Numeric/CobolEdit.cs`.
+String}Emitter.cs`, `CodeGen/DataDivision/ValueInitializer.cs`, `src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs`.
 
 Companion docs (this doc defers to them and must be merged into them on landing):
-`docs/COBOLNET_DATA_MODEL_DESIGN.md` (the category/storage register — PB66 names it as the owning doc),
-`docs/COBOLNET_NUMERIC_DESIGN.md` (D1 the Int128 engine, D3 the arithmetic modes, D7/D16/D18 the float lane),
+`docs/DATA_MODEL_DESIGN.md` (the category/storage register — PB66 names it as the owning doc),
+`docs/NUMERIC_DESIGN.md` (D1 the Int128 engine, D3 the arithmetic modes, D7/D16/D18 the float lane),
 `docs/rearchitecture/DESIGN-version-conformance-pipeline.md` (the one edition gate),
 `docs/rearchitecture/DESIGN-edition-framework.md` (`constructs.json` rows).
 
@@ -985,7 +985,7 @@ decides and the divergence is recorded, not adopted.
 | `Runtime/Values/Numeric/CobolDec.cs:23` | note the exact-representation use beside the arithmetic-entry comment |
 | `tests/version-matrix/constructs.json` | `pic-external-float-2002` → active; **fix the illegal `source` picture** |
 | `tests/version-matrix/traceability-inventory.json` | `RV-15.43.4-1`, `RV-15.58.4-1` → CONFORMS + `test-ref`; the §13.18.40.3/.4/.5 and §14.6.8.4 rows become adjudicable |
-| `docs/COBOLNET_DATA_MODEL_DESIGN.md` · `docs/COBOLNET_NUMERIC_DESIGN.md` · `docs/CONFORMANCE.md` · `docs/DIAGNOSTICS.md` · `docs/DOC_INDEX.md` | merge this design; record D-EF8's pinned undefined-behaviour choice |
+| `docs/DATA_MODEL_DESIGN.md` · `docs/NUMERIC_DESIGN.md` · `docs/CONFORMANCE.md` · `docs/DIAGNOSTICS.md` · `docs/DOC_INDEX.md` | merge this design; record D-EF8's pinned undefined-behaviour choice |
 | `kb/Work/PB66.md` | `status: open → closed` in the landing commit |
 
 ---

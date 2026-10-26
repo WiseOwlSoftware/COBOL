@@ -30,14 +30,15 @@ THE RULES (one table, RULES, in the order they apply), all anchored on the old p
   - code that matches the prefix in the compiler's output does the same: the prefix after a severity word at the end
     of a literal ("error " + old prefix), or the bare prefix literal as the argument of a string test (StartsWith,
     Contains, removeprefix and their kin).
-Anything else spelled with the old letters is NOT a diagnostic prefix and stays: the docs/COBOLNET_*.md design-doc file
-names and the runtime's environment variables (an underscore follows), a COBOL program named COBOLNET in a test (the
-bare literal as the argument of any call but a string test, a DISPLAY literal), the CobolNet namespaces.
+Anything else spelled with the old letters is NOT a diagnostic prefix and these rules leave it: a design document's name
+or an environment variable (an underscore follows), a COBOL program named for the product in a test (the bare literal
+as the argument of any call but a string test, a DISPLAY literal), a namespace. Those names are retired too, by
+scripts/rename_retired_names.py (kb/Work PB3837), which applies THESE rules first and then its own.
 
 WHAT IT NEVER REWRITES (EXCEPT, the one list): history and frozen records, which keep the spelling of their day
 (CLAUDE.md rule 6; kb/Work PB785) — DEVLOG/, the applied verdict batches under adjudication/, the frozen evidence under
 docs/rearchitecture/evidence/ — and the two files that own the rule: the decision note that quotes the owner's words,
-and this script. Inside a file, a witness the traceability inventory records as RETIRED keeps the spelling it was
+this script, and the later rename that spells the former prefix in its own rules (scripts/rename_retired_names.py). Inside a file, a witness the traceability inventory records as RETIRED keeps the spelling it was
 retired under (PROTECTED, below).
 
 ⭐ AN AUDIT, NOT A TEST (`--check`; the gate driver's DIAGNOSTIC PREFIX audit, CI's `audits` job, the battery, and the
@@ -72,6 +73,7 @@ EXCEPT = (
     "docs/rearchitecture/evidence/",
     "kb/Work/PB3575.md",
     "scripts/rename_diagnostic_prefix.py",
+    "scripts/rename_retired_names.py",
 )
 
 #: An enumeration of fewer tracked paths than this is a broken one (a missing observation is not a negative one).
@@ -253,7 +255,7 @@ def self_test() -> int:
            ("DEVLOG/2600-x.md", "adjudication/a/b.json", "docs/rearchitecture/evidence/x.json", "kb/Work/PB3575.md")],
            [True] * 4)
     expect("a current doc, a note and the source are rewritten", [excluded(p) for p in
-           ("docs/CONFORMANCE.md", "kb/Work/PB3576.md", "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs",
+           ("docs/CONFORMANCE.md", "kb/Work/PB3576.md", "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
             "docs/rearchitecture/evidence-index.md")], [False] * 4)
 
     from scratch_repo import ScratchRepo, scratch_dir  # noqa: PLC0415
