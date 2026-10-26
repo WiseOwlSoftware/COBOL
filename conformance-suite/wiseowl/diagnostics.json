@@ -15047,6 +15047,86 @@
   ],
   "expect": "COBOLNET2392"
  },
+ "pb3691-relation-integer-function-literal": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2532"
+ },
+ "pb3691-relation-literal-integer-function": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2532"
+ },
+ "pb3691-relation-numeric-function-item": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2532"
+ },
+ "pb3691-relation-folded-length-function": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2532"
+ },
+ "pb3691-evaluate-integer-function-object": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2532"
+ },
+ "pb3691-search-when-integer-function": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2532"
+ },
+ "pb3691-perform-until-integer-function": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2532"
+ },
+ "pb3691-abbreviated-integer-function": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2532"
+ },
+ "pb3691-relation-integer-function-national": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2532"
+ },
  "pb370-move-first-condition-below-2002": {
   "refuse-at": [
    "85"
