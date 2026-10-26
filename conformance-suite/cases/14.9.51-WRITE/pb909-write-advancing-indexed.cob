@@ -9,6 +9,9 @@
 *> indexed WRITE is a syntax-rule violation - the mirror of SR2, which already lands on COBOL1720. It used
 *> to be a COBOL1756 deferral ("print-control phrases are for sequential print files") and a run-unit abort.
 *> The rule is the same at every edition. COBOL1720 (kb/Work PB909).
+*> The WRITE carries no INVALID KEY phrase: beside ADVANCING (Format 1 only) that phrase could not be
+*> syntactically associated with the WRITE at all (14.5.3.3; COBOL2269, kb/Work PB3830 review R1-1),
+*> and this case witnesses the organization rule, which only the binder knows.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB909NWAI.
        ENVIRONMENT DIVISION.
@@ -27,7 +30,6 @@
            OPEN OUTPUT IX-FILE.
            MOVE "K001" TO IX-KEY.
            WRITE IX-REC AFTER ADVANCING 1 LINE
-               INVALID KEY DISPLAY "DUP"
            END-WRITE.
            CLOSE IX-FILE.
            STOP RUN.
