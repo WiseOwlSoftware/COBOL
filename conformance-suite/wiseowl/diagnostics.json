@@ -23397,5 +23397,93 @@
    "2023"
   ],
   "expect": "CALL … AS NESTED argument 1: ALL \"57\" BY CONTENT to formal parameter 'E' (the MOVE ISO"
+ },
+ "pb3682-typedef-group-usage-national-over-bit": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1653"
+ },
+ "pb3682-typedef-group-usage-bit-over-national": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1653"
+ },
+ "pb3682-typedef-usage-group-contradiction": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1927"
+ },
+ "pb3682-typedef-usage-binary-over-alphanumeric": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0881"
+ },
+ "pb3682-typedef-usage-no-sign-over-signed-picture": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1566"
+ },
+ "pb3682-typedef-usage-index-with-value": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2168"
+ },
+ "pb3682-typedef-usage-national-without-picture": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0881"
+ },
+ "pb3682-typedef-usage-fixed-binary-with-picture": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0870"
+ },
+ "pb3682-same-as-group-with-usage-not-level-1": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1556"
+ },
+ "pb3682-type-subject-group-usage-from-enclosing-group": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1653"
+ },
+ "pb3682-same-as-subject-group-usage-from-enclosing-group": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1653"
  }
 }

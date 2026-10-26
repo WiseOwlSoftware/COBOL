@@ -127,7 +127,7 @@ public sealed class LandingPipelineDriftTests
         string body = source[landDef..source.IndexOf("\ndef ", landDef + 1, StringComparison.Ordinal)];
         int guard = body.IndexOf("if st != ruleset.ACTIVE:", StringComparison.Ordinal);
         Assert.True(guard > 0, "enqueue.py's land() no longer tests the merge queue for ACTIVE");
-        foreach (string step in new[] { "tested(wt", "merge_main(wt", "(rc := gate_once(", "(stamp or _stamp)", "queue(wt" })
+        foreach (string step in new[] { "tested(wt", "merge(wt, branch, base)", "(rc := gate_once(", "(stamp or _stamp)", "queue(wt" })
         {
             int at = body.IndexOf(step, StringComparison.Ordinal);
             Assert.True(at > guard, $"in enqueue.py's land(), `{step}` is {(at < 0 ? "missing" : "BEFORE the queue guard")}");
@@ -319,7 +319,7 @@ public sealed class LandingPipelineDriftTests
         string body = source[landDef..source.IndexOf("\ndef ", landDef + 1, StringComparison.Ordinal)];
         int lockAt = body.IndexOf("gate_slot.ExclusiveLock.try_take(", StringComparison.Ordinal);
         Assert.True(lockAt > 0, "enqueue.py's land() no longer takes the worktree's land lock (kb/Work PB3310)");
-        foreach (string step in new[] { "worktree_state(wt)", "fetch_main(wt)", "merge_main(wt", "gates(wt)", "(stamp or _stamp)", "queue(wt" })
+        foreach (string step in new[] { "worktree_state(wt)", "fetch_main(wt)", "merge(wt, branch, base)", "gates(wt)", "(stamp or _stamp)", "queue(wt" })
         {
             int at = body.IndexOf(step, StringComparison.Ordinal);
             Assert.True(at > lockAt, $"in enqueue.py's land(), `{step}` is {(at < 0 ? "missing" : "BEFORE the land lock")}");
@@ -388,6 +388,11 @@ public sealed class LandingPipelineDriftTests
             "land: main moving while the landing queues is merged in again WITHOUT any gate and the branch is queued "
                 + "on the new main",
             "land: a conflict bringing the moved main in while the landing queues is exit 4",
+            // kb/Work PB3673: a clean merge of main that could not be completed is no conflict (a finisher's)
+            "land: a clean merge of main that could not be completed for a cause in the ENVIRONMENT",
+            "land: a clean merge of main that could not be completed because of the merged tree itself",
+            "land: the class of a merge that could not be completed is the gate's ONE classification",
+            "land: the same arm at the catch-up merge while the landing queues",
             // kb/Work PB3612: the one exception, a true textual merge in a file both sides changed
             "land: bringing main in changed a file the branch also changes (a clean textual merge in shared.txt): the "
                 + "one gate runs ONCE on the merged head",

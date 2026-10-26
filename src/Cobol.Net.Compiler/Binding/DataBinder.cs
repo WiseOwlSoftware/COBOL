@@ -3793,7 +3793,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (member.TypeRefName is not null) ExpandType(member);
             if (member.SameAsName is not null) ExpandSameAs(member, []);
         }
-        if (template.TypedefStrong && template.IsElementary)
+        if (template.TypedefStrong && template.IsElementary && !template.HasSubordinates)
         {
             using var _ = Edition.At(template);
             Edition.Error(DiagnosticCatalog.TypeDeclarationShape, $"TYPEDEF '{template.CobolName}': an ELEMENTARY "
@@ -3874,7 +3874,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // group typed after a same-level bit item starts at the first bit of a byte (§8.5.1.6.3), not inside the
         // predecessor's byte (kb/Work PB1569). An ELEMENTARY type has no GR2, and its subject is placed by
         // §8.5.1.6.3 exactly as written in place. Read by BitLayout.SharesByteWith, the one placement predicate.
-        item.AlignedAsLevelOne = template.IsGroup;
+        item.AlignedAsLevelOne = template.HasSubordinates;
 
         // An EXTERNAL type declaration's effect lands on its REFERENCES (ISO §13.18.22; P10 Step 16 — the
         // former COBOLNET1534 stage is lifted): GR2 — a data description containing an external type shall be
@@ -3915,7 +3915,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // §13.18.57.3 SR7 (review fix #1): a level-77 subject requires an ELEMENTARY type — a level-77 item is an
         // independent elementary item (§13.18.38). Version- AND strength-invariant (this applies to WEAK types too;
         // the old SR6 branch caught only the STRONG case).
-        if (item.Level == 77 && template.IsGroup)
+        if (item.Level == 77 && template.HasSubordinates)
             Edition.Error("COBOLNET1536", $"'{subject}': a level-77 item referencing TYPE '{typeName}' requires an "
                 + "elementary type — a level-77 item is an independent elementary item (ISO §13.18.57.3 SR7)");
 
@@ -3951,7 +3951,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // clauses ... are assumed by data defined using the type-name") shares CopyEntryDescription with the
         // SAME AS expansion; scope TypeSubject — §13.18.57.4 GR1 EXCLUDES alignment (contrast §13.18.49.4 GR1,
         // which copies it). The subject's own VALUE wins (§13.18.57.4 GR3 — RawValue ??=).
-        if (template.IsGroup)
+        if (template.HasSubordinates)
             foreach (var child in template.Children)
                 item.AddMember(CloneItem(child, item));
         bool wroteBased = item.IsBased;
@@ -4105,15 +4105,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// alignment exclusion, and a reproduced subordinate carries its own entry's clauses whole. The
     /// <see cref="DescriptionCopyKind.EntryOnly"/> clauses (VALUE, ANY LENGTH) stay behind for a COMPILER
     /// TEMPORARY alone — the enum member says why.</param>
-    private static void CopyEntryDescription(DataItem from, DataItem to, DescriptionCopyScope scope)
+    /// <param name="picAsWritten">The PICTURE side of <paramref name="from"/> as it stood before the usage walk rewrote it,
+    /// when a constant's length phrase completed <paramref name="from"/> ahead of the pipeline
+    /// (<see cref="CopyClauseDescription"/>, kb/Work PB2465, PB3682); null reads the entry as it is.</param>
+    private static void CopyEntryDescription(DataItem from, DataItem to, DescriptionCopyScope scope,
+        PictureAsWritten? picAsWritten = null)
     {
         bool entryCopy = scope is not DescriptionCopyScope.CompilerTemp;
-        if (to.Pic is null && from.Pic is not null)
-        {
-            to.Pic = from.Pic;
-            to.PicIsUsageSynthesized = from.PicIsUsageSynthesized;   // the profile's provenance travels with it (PB495)
-            to.PicIsValueImplied = from.PicIsValueImplied;           // … written or SR9-implied (§13.18.57.4 GR3; PB1300)
-        }
+        var pictureSide = picAsWritten ?? new PictureAsWritten(from.Pic, from.PicIsUsageSynthesized, from.Pending);
+        bool takesPicture = to.Pic is null && pictureSide.Pic is not null;
+        pictureSide.GiveTo(to);
+        if (takesPicture) to.PicIsValueImplied = from.PicIsValueImplied;   // … written or SR9-implied (§13.18.57.4 GR3; PB1300)
         // ⛔ The WRITTEN character-string travels on its OWN condition, not on Pic's. §13.16.3 SR8's recovery
         // clears the analyzed profile while keeping the spelling the later screens have to name, so an entry can
         // carry PictureText with a NULL Pic; guarding this on `from.Pic is not null` would drop the spelling from
@@ -4128,7 +4130,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // subject: §13.16.4 GR1/GR2 imply the clause for every SUBORDINATE group, so a false antecedent here
         // silently re-categorized a whole subtree (kb/Work PB522).
         if (to.GroupUsage is GroupUsage.None) to.GroupUsage = from.GroupUsage;
-        if (to.Pending is PicPending.None) to.Pending = from.Pending;
         // The provenance of the VALUE travels with it (DataItem.ValueCopiedFrom): the §13.18.63.3 SR13/SR14
         // screen's subject is the entry that WROTE the VALUE clause, so a copied one must not re-report the
         // template's / target's already-screened entry once per reference site.
@@ -4407,7 +4408,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // §13.18.49.3 SR7: data-name-1 shall reference an elementary item or a level-1 group item (of the
         // file / working-storage / local-storage / linkage section; a level-66 RENAMES alias is neither).
-        if (target.Level == 66 || !(target.IsElementary || target.Level == 1))
+        if (target.Level == 66 || target.HasSubordinates && target.Level != 1)
         {
             Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS '{targetName}' shall "
                 + "reference an elementary item or a level 1 group item (ISO §13.18.49.3 SR7)");
@@ -4439,7 +4440,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
         // §13.18.49.3 SR8: a level-77 subject requires an elementary data-name-1 (a level-77 item is an
         // independent ELEMENTARY item — the TYPE-clause SR7 twin, 1536).
-        if (item.Level == 77 && target.IsGroup)
+        if (item.Level == 77 && target.HasSubordinates)
         {
             Edition.Error(DiagnosticCatalog.SameAsEntryRule, $"'{subject}': a level-77 SAME AS subject requires "
                 + "an elementary data-name-1 (ISO §13.18.49.3 SR8)");
@@ -4487,6 +4488,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // third acquisition route cannot drift from the other two (before PB495 it carried its own
                     // copy of the `Binary or Packed or Comp5` hand-list and silently dropped every other usage).
                     ApplyEffectiveUsage(item, au);
+                    // ⛔ A PICTURE-LESS data-name-1 (`01 G USAGE BINARY-LONG. 05 E.`) has no profile to rewrite: its
+                    // representation IS the group's clause, so the subject takes what the usage walk hands E — the profile
+                    // entry bind synthesized for the group and its deferred NATIONAL / BIT mark (§13.18.60.4 GR1; the
+                    // elementary arm of UsageInheritanceWalk). Without them the subject holds a usage and no picture, which
+                    // the walk (it completes only an item with no usage of its own) never repairs (kb/Work PB3682).
+                    if (item.Pic is null && PictureAsWrittenOf(p) is var groupProfile
+                        && (groupProfile.UsageSynthesized || groupProfile.Pending is not PicPending.None))
+                        groupProfile.GiveTo(item);
                     // The clause travels WHOLE: its WITH NO SIGN phrase (§13.18.60.2) is not a separate clause,
                     // so GR3's "as though specified for the subject" carries it too. Recorded, not applied — the
                     // ONE adjudication site (ApplyEffectiveNoSign, from UsageInheritancePass) runs later in the
@@ -4511,7 +4520,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 }
         // GR2: a group data-name-1 → the subject becomes a group with the same subordinate names, descriptions,
         // and hierarchy; levels renumber relative to the subject (GR2b, may exceed 49 — GR2c). The ONE CloneItem.
-        if (target.IsGroup)
+        if (target.HasSubordinates)
         {
             int levelDelta = item.Level - target.Level;
             foreach (var child in target.Children)
@@ -6904,14 +6913,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <para><see cref="Pictureless"/> is the representation entry bind synthesized for a picture-less usage
     /// (§13.16.3 SR8) — the profile that, by GR1, belongs to the leaves rather than to the group header that
     /// wrote the clause. <see cref="Pending"/> carries the deferred NATIONAL/BIT mark the same way, and
-    /// <see cref="FromName"/> names the entry the clause was written on so §13.18.60.3 SR2's message can point
-    /// at it.</para>
+    /// <see cref="From"/> is the entry the clause was written on, so §13.18.60.3 SR2's message can name it and
+    /// <see cref="AnsweredByTypeDeclaration"/> can tell whether the entry it reached lies in the same copy.</para>
     /// <para><see cref="NoSign"/> is the <c>WITH NO SIGN</c> phrase of that same clause (§13.18.60.2 prints it
     /// INSIDE the PACKED-DECIMAL alternative, so it is not a clause of its own): it hands down with the clause
     /// it belongs to, and is adjudicated at each leaf by <see cref="ApplyEffectiveNoSign"/> — kb/Work PB570,
     /// where it was read from the entry's own <c>usageClause</c> and therefore never reached a leaf at all.</para></summary>
     private readonly record struct InheritedUsage(
-        Usage? Effective, PicInfo? Pictureless, PicPending Pending, string? FromName, bool NoSign);
+        Usage? Effective, PicInfo? Pictureless, PicPending Pending, DataItem? From, bool NoSign)
+    {
+        /// <summary>The name of <see cref="From"/>, or null for FILLER (and when nothing is inherited).</summary>
+        public string? FromName => From?.CobolName;
+    }
 
     /// <summary>
     /// ⛔ THE USAGE-INHERITANCE PASS (P5.11e, DESIGN-data-model §2.7) — ISO §13.18.60.4 GR1, run ONCE over the
@@ -6941,10 +6954,25 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     ///
     /// <para>Runs BEFORE <see cref="InheritSignClauses"/> — a non-DISPLAY item takes the BinaryMinus sign form
     /// regardless of any inherited SIGN clause (§13.18.52 applies only to usage-display items).</para>
+    ///
+    /// <para><b>⛔ EVERY WRITTEN TREE, THE TYPE DECLARATIONS TOO (kb/Work PB3682).</b> A TYPEDEF template is off
+    /// <see cref="Roots"/> but its clauses are source (§4.3), and §13.18.57.4 GR1 makes a TYPE subject's description
+    /// "as though the data description identified by type-name-1 had been coded in place", so the rules this walk asks
+    /// of a group's USAGE and GROUP-USAGE hold of the declaration whether or not anything references it. Walked over
+    /// the roots alone, an unused template's <c>GROUP-USAGE NATIONAL</c> over a <c>GROUP-USAGE BIT</c> subgroup
+    /// (§13.18.29.3 SR3), a group USAGE its subordinate contradicts (§13.18.60.3 SR2) or a leaf the group's usage
+    /// cannot describe (§13.18.60.3 SR3) compiled clean while the byte-identical storage group was refused, and a
+    /// used one was refused only through the copies its subjects held, once per reference and naming the subject.
+    /// The templates are walked after the roots, and a COPY of a description (an entry a TYPE or SAME AS clause
+    /// produced) takes the walk's application but not its screens where the fact is the declaration's own
+    /// (<see cref="AnsweredByTypeDeclaration"/>): one defect, reported once, where it is written. A template's
+    /// leaves also take the usage their group hands down, as a TYPE subject's do, so a template and a subject of one
+    /// declaration are one description to the §8.5.3.1 comparison (<c>StrongTypeModel</c>).</para>
     /// </summary>
     internal void UsageInheritancePass()
     {
         foreach (var root in Roots) UsageInheritanceWalk(root, default);
+        foreach (var declaration in AllTypeDecls().ToList()) UsageInheritanceWalk(declaration, default);
     }
 
     /// <summary>⛔ THE ONE "usage this entry carries in its OWN right" derivation: its written USAGE clause, or
@@ -6969,6 +6997,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (_completedAhead.Contains(item)) return;
         using var _ = Edition.At(item);
 
+        // ⛔ A copy's facts are its declaration's (kb/Work PB3682): the screens below are asked of the entry only when
+        // the fact is the entry's own or its placement's, never one the TYPE / SAME AS declaration it was copied from
+        // already reports where it is written. The clauses are still APPLIED either way.
+        bool answered = AnsweredByTypeDeclaration(item, inherited.From);
+
         // ── §13.18.60.3 SR2 ─────────────────────────────────────────────────────────────────────────────────
         // "If the USAGE clause is written in the data description entry for a group item, it may also be written
         // in the data description entry for any subordinate elementary item or group item, but the same usage
@@ -6980,10 +7013,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // identification (§13.18.60.4 GR4/GR6, both implementor-defined) means. `USAGE COMP` inside a
         // `USAGE BINARY` group is therefore the same usage in both entries and conforms.
         if (item.OwnUsage is { } ownWritten && inherited.Effective is { } fromGroup && ownWritten != fromGroup)
+        {
+            using var sr2 = Edition.Muted(answered);
             Edition.Error(DiagnosticCatalog.UsageGroupContradiction, $"data item '{item.CobolName ?? "FILLER"}': "
                 + $"USAGE {UsageFamilies.UsageWord(ownWritten)} contradicts the USAGE {UsageFamilies.UsageWord(fromGroup)} written for the group item "
                 + $"'{inherited.FromName ?? "FILLER"}' to which it is subordinate — a USAGE clause may be written "
                 + "in both entries, but the same usage shall be specified in both (ISO §13.18.60.3 SR2)");
+        }
 
         // What THIS entry hands down: its own (or implied) clause together with the representation entry bind
         // synthesized for it, else whatever it inherited, unchanged.
@@ -6993,9 +7029,32 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // is the one that applies to H's leaves (§13.18.60.4 GR1).
         var down = HandDown(inherited, item);
 
-        if (item.Children.Count > 0) UsageInheritanceGroup(item, down);
-        else UsageInheritanceElementary(item, inherited);
+        if (item.Children.Count > 0)
+        {
+            UsageInheritanceGroup(item, down, answered);
+            foreach (var c in item.Children) UsageInheritanceWalk(c, down);
+        }
+        else
+        {
+            using var elementary = Edition.Muted(answered);
+            UsageInheritanceElementary(item, inherited);
+        }
     }
+
+    /// <summary>⛔ Does a TYPE or SAME AS DECLARATION already answer for the facts the walk would report of
+    /// <paramref name="item"/> against <paramref name="source"/>, the entry that handed it a clause (kb/Work PB3682)?
+    /// §13.18.57.4 GR1 and §13.18.49.4 GR1 make a copy's description "as though … coded in place", so a defect INSIDE
+    /// a copy is a fact of the description it reproduces, which is screened where it is written: a TYPEDEF template by
+    /// this very walk (<see cref="UsageInheritancePass"/>), a SAME AS source as a storage entry. Repeating it at the
+    /// copy would report one defect once per reference and name the subject for the declaration. True when the entry's
+    /// description IS a copy (it is one — <see cref="DataItem.ClonedFrom"/> — or it is the subject whose TYPE clause
+    /// composed it, which can write no USAGE or GROUP-USAGE of its own, §13.16.3 SR14) and the clause reached it from
+    /// nothing, or from an entry of the SAME copy (the subject or a member under it,
+    /// <see cref="DataItem.ReferenceSite"/>). A clause that came from OUTSIDE the copy — a group the subject is
+    /// subordinate to — is a fact of its PLACEMENT, and the copy reports it: the declaration is legal on its own.</summary>
+    private static bool AnsweredByTypeDeclaration(DataItem item, DataItem? source) =>
+        (item.ClonedFrom is not null || item.TypeName is not null)
+        && (source is null || ReferenceEquals(source.ReferenceSite, item.ReferenceSite));
 
     /// <summary>⛔ THE ONE "what an entry hands down" derivation of the §13.18.60.4 GR1 walk: the entry's own (or
     /// implied) clause together with the representation entry bind synthesized for it, else whatever it inherited,
@@ -7006,7 +7065,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return ownOrImplied is null && item.Pending is PicPending.None
             ? inherited
             : new InheritedUsage(ownOrImplied, item.PicIsUsageSynthesized ? item.Pic : null,
-                                 item.Pending, item.CobolName, item.OwnNoSign);
+                                 item.Pending, item, item.OwnNoSign);
     }
 
     /// <summary>The usage <paramref name="item"/>'s ancestors hand down to it — what <see cref="UsageInheritanceWalk"/>
@@ -7039,10 +7098,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return subordinate.GroupUsage == group.GroupUsage;
     }
 
+    /// <summary>Is the GROUP-USAGE pair (<paramref name="group"/>'s clause against its subgroup <paramref name="copy"/>'s)
+    /// one the declaration a copy came from holds in its own text? True when <paramref name="copy"/> is a copy and the
+    /// group is a member of the same copy, or is the TYPE / SAME AS subject whose clause is the one its declaration's header
+    /// wrote (<see cref="DataItem.ClonedFrom"/> of the subgroup names the declaration's own entry, whose parent is that
+    /// header). False for a subject whose clause an enclosing group IMPLIED (its declaration's header writes none or another).</summary>
+    private static bool GroupUsagePairIsTheDeclarations(DataItem group, DataItem copy) =>
+        copy.ClonedFrom is { } original
+        && (group.ClonedFrom is not null || original.Parent?.GroupUsage == group.GroupUsage);
+
     /// <summary>The GROUP arm of the §13.18.60.4 GR1 walk: the GROUP-USAGE conformance rules (§13.18.29.3), the
     /// COBOL-2023 SYNCHRONIZED-on-a-group gate, and GR1's own "not to the group itself" — shed the profile entry
     /// bind synthesized here and hand it to the elementary items below.</summary>
-    private void UsageInheritanceGroup(DataItem item, InheritedUsage down)
+    private void UsageInheritanceGroup(DataItem item, InheritedUsage down, bool answered)
     {
         // GROUP-USAGE (ISO §13.18.29; D20/PB79) — SR1's forest-dependent halves, and SR2/SR3's "all subordinate
         // group items shall be explicitly or implicitly described with GROUP-USAGE BIT / NATIONAL": a
@@ -7050,20 +7118,29 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (item.GroupUsage is not GroupUsage.None)
         {
             string gu = item.GroupUsage is GroupUsage.Bit ? "BIT" : "NATIONAL";
+            // ⛔ "Not strongly typed" is a fact of the COMPOSED subject, never of the template (a TYPEDEF STRONG
+            // template is no typed item, §8.5.3.1): the subject that a STRONG type composes reports it, so it is
+            // never `answered` by a declaration.
             if (StrongTypeModel.IsStrongGroup(item))
                 Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the "
                     + "GROUP-USAGE clause may be specified only if the subject of the entry is not strongly typed "
                     + "(ISO §13.18.29.3 SR1)");
-            if (ReferenceResolver.HasVariableLengthSubordinate(item))
-                Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the "
-                    + "GROUP-USAGE clause may be specified only if the subject of the entry is not a "
-                    + "variable-length group (ISO §13.18.29.3 SR1; §8.5.1.12)");
+            using (Edition.Muted(answered))
+                if (ReferenceResolver.HasVariableLengthSubordinate(item))
+                    Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{item.CobolName ?? "FILLER"}': the "
+                        + "GROUP-USAGE clause may be specified only if the subject of the entry is not a "
+                        + "variable-length group (ISO §13.18.29.3 SR1; §8.5.1.12)");
             foreach (var c in item.Children)
             {
                 if (c.Children.Count == 0) continue;
                 if (!ImplyGroupUsage(item, c))
                 {
                     using var __c = Edition.At(c);
+                    // A subgroup that is a COPY was written in the declaration it copies, and when the GROUP-USAGE it
+                    // contradicts was written there too the pair is the declaration's, reported where it is written. A
+                    // clause the group took from OUTSIDE the copy (an enclosing group implied it onto the TYPE or SAME AS
+                    // subject) is a fact of the PLACEMENT, and the copy reports it (kb/Work PB3682).
+                    using var __m = Edition.Muted(GroupUsagePairIsTheDeclarations(item, c));
                     Edition.Error(DiagnosticCatalog.GroupUsageRule, $"data item '{c.CobolName ?? "FILLER"}': a group "
                         + $"subordinate to a GROUP-USAGE {gu} group shall itself be GROUP-USAGE {gu}, explicitly or "
                         + $"implicitly — not GROUP-USAGE {(c.GroupUsage is GroupUsage.Bit ? "BIT" : "NATIONAL")} "
@@ -7084,8 +7161,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             item.PicIsUsageSynthesized = false;
         }
         item.Pending = PicPending.None;
-
-        foreach (var c in item.Children) UsageInheritanceWalk(c, down);
     }
 
     /// <summary>The ELEMENTARY arm of the §13.18.60.4 GR1 walk — where the invariant is made true: an item that
@@ -7170,7 +7245,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // An entry that wrote its OWN usage clause was bound and screened by BindEntry, so only the acquired
         // half needs the representation work; the WITH NO SIGN phrase below is the ONE rule both spellings
         // still owe, and it runs for both (§13.18.60.4 GR1's equivalence, kb/Work PB570).
-        if (acquired)
+        // ⛔ A copy of a description this walk already COMPLETED holds the result (kb/Work PB3682): a TYPE clause of a
+        // GLOBAL type declaration in a contained program copies the template its container's bind walked, whose
+        // picture-less leaf took the group's profile (PicIsUsageSynthesized — which only this walk and an entry's own
+        // picture-less usage set, and an entry that wrote its own usage is never `acquired`). It has no PICTURE to
+        // prohibit and nothing left to apply.
+        if (acquired && !item.PicIsUsageSynthesized)
         {
             // §13.16.3 SR8: for the picture-less usages a PICTURE is prohibited, and the item's representation
             // comes from the usage. Identical verdict, identical recovery and identical diagnostic code to the
@@ -7287,10 +7367,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// enclosing clause takes precedence, and an item's OWN clause (already consumed by
     /// <see cref="PictureAnalyzer.Analyze"/> at entry bind) wins outright. Runs BEFORE the REDEFINES
     /// classification pass because a SEPARATE sign occupies its own character position (§13.18.52 GR6a) — it
-    /// widens the item's image, which feeds the class-max width.</summary>
+    /// widens the item's image, which feeds the class-max width.
+    /// <para>⛔ THE TYPE DECLARATIONS TOO (kb/Work PB3682), as <see cref="UsageInheritancePass"/>: a template and a subject
+    /// of one declaration are one description to the §8.5.3.1 comparison, so the template's leaves take the group's SIGN as
+    /// its subject's do. A pointer restricted to a STRONG type compares the declaration's TEMPLATE form with the subject's:
+    /// `01 TG TYPEDEF STRONG SIGN IS LEADING SEPARATE. 05 A PIC S9(3).` left the template's leaf at the default sign, so
+    /// `SET P TO ADDRESS OF W` (W typed by TG) was refused as another type. The walk only applies, and a copy of a template
+    /// already walked re-applies the same clause to the same profile.</para></summary>
     internal void InheritSignClauses()
     {
         foreach (var root in Roots) InheritSignWalk(root, null);
+        foreach (var declaration in AllTypeDecls().ToList()) InheritSignWalk(declaration, null);
     }
 
     /// <summary>One entry of the §13.18.52 GR1 walk: the nearest enclosing clause, unless the entry wrote its own.

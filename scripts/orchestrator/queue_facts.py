@@ -5,9 +5,11 @@
     python scripts/orchestrator/queue_facts.py            # each open pull request into main, one line each
     python scripts/orchestrator/queue_facts.py --self-test
 
-Two readers use it and nothing else asks GitHub about a pull request's place in the queue: the branch survey
-(prune_worktrees.live_survey: ENQUEUED, NOT QUEUED, BOUNCED) and the landing lane's queue watch (land_lane.py tick,
-kb/Work PB3527), which takes the facts the survey read on the same tick.
+Nothing else asks GitHub about a pull request's place in the queue. This docstring names no count of callers (a count
+rots, kb/Work PB3744): `grep -rn "queue_facts.<operation>" scripts` finds the callers of an operation. `read` answers the
+branch survey (prune_worktrees.live_survey: ENQUEUED, NOT QUEUED, BOUNCED), the landing lane's queue watch (land_lane.py
+tick, kb/Work PB3527), which takes the facts the survey read on the same tick, and the driver-file hold
+(enqueue.driver_file_holders, which land_lane.driver_files_free asks again on every exit-16 wait tick, kb/Work PB3642).
 
 WHAT ONE READ RETURNS ({head branch: PullRequest}, or None when GitHub could not be asked):
   - ONE GraphQL query: the merge queue's own entries on main (`mergeQueue(branch: "main")`, the queue's record of who
@@ -22,10 +24,10 @@ WHAT ONE READ RETURNS ({head branch: PullRequest}, or None when GitHub could not
     A check-run still in progress whose job has completed is a PROPAGATION FAULT (PR #385, 2026-10-22: job `ci-gate`
     completed success at 18:46:46Z, its check-run on the head commit stayed in_progress for 50 minutes, the queue
     empty, the merge state BLOCKED): `CheckRun.stuck`.
-A third caller asks for the REDS of a bounce (kb/Work PB3644): `fetch_bounce_results` downloads the test results of the
+`fetch_bounce_results` asks for the REDS of a bounce (kb/Work PB3644): it downloads the test results of the
 newest failed merge-group run of a branch's open pull request into the worktree (`gate_plan.CI_BOUNCE_RESULTS`), where the
 gate planner reads them as tier 0a, called by `run_gate_legs.Host.fetch_bounce_results` before every gate's plan.
-A fourth asks which commits the queue is TESTING (kb/Work PB3769): `live_heads` returns the head commit of each of the
+`live_heads` asks which commits the queue is TESTING (kb/Work PB3769): it returns the head commit of each of the
 queue's current entries (`mergeQueue(branch: "main").entries.headCommit`: the merge-group commit its workflow run tests)
 for CI's `supersede` job (scripts/orchestrator/cancel_superseded.py), which cancels every unfinished merge-group run whose
 head commit no entry heads any more; an unreadable, absent or incomplete queue is None there too.
@@ -265,6 +267,8 @@ FAILED_RUNS = ('failure', 'timed_out')
 #: The artifacts of build-and-test.yml's test jobs (./.github/actions/upload-results): the TRX files of every shard.
 RESULTS_PATTERN = 'test-results-*'
 BOUNCE_SOURCE = 'SOURCE.txt'
+#: The sibling directory a download lands in before it replaces the results directory (kb/Work PB3716).
+STAGING_SUFFIX = '.fetching'
 
 
 def bounce_run(runs: list, number: int) -> dict | None:
@@ -281,7 +285,10 @@ def fetch_bounce_results(branch: str, dest: pathlib.Path, gh: Gh | None = None) 
     ran the failed cases by impact like any other (tier 0a is for exactly them). Returns one line saying what `dest`
     now holds. `dest` is REPLACED by the newest bounce's results, EMPTIED when the pull request has no failed
     merge-group run (a stale bounce's reds would mis-order the next plan), and LEFT AS IT WAS when GitHub cannot be
-    asked (a non-observation changes nothing). It orders the gate and never selects it, so a miss costs only the order."""
+    asked or the download fails (a non-observation changes nothing, kb/Work PB3716). The download goes into a sibling
+    staging directory (`<dest>.fetching`) that replaces `dest` only once it is whole, so a download that fails, or dies
+    half-way, never takes `dest`'s files with it and never leaves a partial result in it. It orders the gate and never
+    selects it, so a miss costs only the order."""
     run = gh or ruleset.real_gh
     try:
         rc, out, _ = run(['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner'])
@@ -310,20 +317,50 @@ def fetch_bounce_results(branch: str, dest: pathlib.Path, gh: Gh | None = None) 
             fetched = False
         if fetched:   # a bounce's results are some 200 MB: a re-gate of the same bounce downloads them once
             return f'ci bounce: the failed merge-group run {newest["id"]} of pull request #{number}: its test results are already in {dest}'
-        shutil.rmtree(dest, ignore_errors=True)
-        dest.mkdir(parents=True)
-        rc, _, err = run(['run', 'download', str(newest['id']), '--repo', repo, '--pattern', RESULTS_PATTERN,
-                          '--dir', str(dest)])
-        if rc != 0:
-            return (f'ci bounce: run {newest["id"]} of pull request #{number} failed, but its test results could not be '
-                    f'downloaded ({(err.strip().splitlines() or ["no reason given"])[0]}; expired or never uploaded): '
-                    f'{dest} is empty')
-        (dest / BOUNCE_SOURCE).write_text(
-            f'{marker}merge group of pull request #{number}, {newest.get("conclusion")}, {newest.get("created_at") or "?"}); '
-            'fetched by queue_facts.fetch_bounce_results (kb/Work PB3644)\n', encoding='utf-8', newline='\n')
+        staging = dest.with_name(dest.name + STAGING_SUFFIX)
+        shutil.rmtree(staging, ignore_errors=True)   # a staging directory an earlier, killed fetch left behind
+        try:
+            staging.mkdir(parents=True)
+            rc, _, err = run(['run', 'download', str(newest['id']), '--repo', repo, '--pattern', RESULTS_PATTERN,
+                              '--dir', str(staging)])
+            if rc != 0:
+                return (f'ci bounce: run {newest["id"]} of pull request #{number} failed, but its test results could not be '
+                        f'downloaded ({(err.strip().splitlines() or ["no reason given"])[0]}; expired, never uploaded or '
+                        f'GitHub unreachable): {dest} left as it was ({_holds(dest)})')
+            (staging / BOUNCE_SOURCE).write_text(
+                f'{marker}merge group of pull request #{number}, {newest.get("conclusion")}, {newest.get("created_at") or "?"}); '
+                'fetched by queue_facts.fetch_bounce_results (kb/Work PB3644)\n', encoding='utf-8', newline='\n')
+            _swap_in(staging, dest)
+        finally:
+            shutil.rmtree(staging, ignore_errors=True)   # gone after a swap; a failed or interrupted download's partial files
         return f'ci bounce: the failed merge-group run {newest["id"]} of pull request #{number}: its test results are in {dest}'
     except (ruleset.Unobserved, ValueError, KeyError, TypeError, AttributeError, OSError) as e:
         return f'ci bounce: not observed ({type(e).__name__}: {str(e).splitlines()[0] if str(e) else ""}); {dest} left as it was'
+
+
+def _holds(dest: pathlib.Path) -> str:
+    """What `dest` holds, for the message that says it was left as it was: the run its provenance marker names."""
+    try:
+        m = re.match(r'GitHub Actions run (\d+) \(', (dest / BOUNCE_SOURCE).read_text(encoding='utf-8'))
+    except OSError:
+        return 'no bounce results' if not dest.is_dir() or not any(dest.iterdir()) else 'files without a provenance marker'
+    return f'the test results of run {m.group(1)}' if m else 'files without a provenance marker'
+
+
+def _swap_in(staging: pathlib.Path, dest: pathlib.Path) -> None:
+    """Replace `dest` by the whole `staging` directory. The old `dest` is renamed aside first and restored if the new one
+    cannot be moved into place, so a failure here (OSError) leaves `dest` as it was."""
+    aside = dest.with_name(dest.name + '.replaced')
+    shutil.rmtree(aside, ignore_errors=True)
+    if dest.exists():
+        dest.rename(aside)
+    try:
+        staging.rename(dest)
+    except OSError:
+        if aside.exists():
+            aside.rename(dest)
+        raise
+    shutil.rmtree(aside, ignore_errors=True)
 
 
 def _no_bounce(dest: pathlib.Path, why: str) -> str:
@@ -468,7 +505,7 @@ def self_test() -> int:
                                                   'conclusion': concl, 'created_at': f'2026-10-24T10:{rid % 60:02d}:00Z'}
 
     def bounce_gh(runs: list[dict], *, pr: str = '547', download_rc: int = 0, runs_rc: int = 0,
-                  asked: list[list[str]] | None = None) -> Gh:
+                  asked: list[list[str]] | None = None, partial: bool = False) -> Gh:
         def gh(args: list[str]) -> tuple[int, str, str]:
             if asked is not None:
                 asked.append(list(args))
@@ -480,6 +517,10 @@ def self_test() -> int:
                 return (0, json.dumps({'workflow_runs': runs}), '') if runs_rc == 0 else (1, '', 'HTTP 502')
             if args[:2] == ['run', 'download']:
                 if download_rc:
+                    if partial:   # gh wrote one artifact before it died
+                        half = pathlib.Path(args[args.index('--dir') + 1]) / 'test-results-Linux-half'
+                        half.mkdir(parents=True)
+                        (half / 'half.trx').write_text('<Test', encoding='utf-8', newline='\n')
                     return download_rc, '', 'no valid artifacts found to download\nmore'
                 art = pathlib.Path(args[args.index('--dir') + 1]) / 'test-results-Linux-unit'
                 art.mkdir(parents=True)
@@ -519,11 +560,44 @@ def self_test() -> int:
         expect("a branch with no open pull request has no bounce: nothing is downloaded and old results are emptied",
                'none' in nopr and 'no open pull request' in nopr and not dest.exists(), nopr)
         fetch_bounce_results('fix', dest, bounce_gh(runs))
-        gone = fetch_bounce_results('fix', dest, bounce_gh([*runs, group(547, 810, 'failure')], download_rc=1))
-        expect("a failed run whose artifacts cannot be downloaded (expired, never uploaded) says so, naming gh's reason, "
-               "and leaves the directory empty, never the previous bounce's reds",
-               'could not be downloaded (no valid artifacts found to download' in gone and dest.is_dir()
-               and not any(dest.iterdir()), gone)
+        staging = dest.with_name(dest.name + STAGING_SUFFIX)
+        aside = dest.with_name(dest.name + '.replaced')
+        gone = fetch_bounce_results('fix', dest, bounce_gh([*runs, group(547, 810, 'failure')], download_rc=1, partial=True))
+        expect("a failed run whose artifacts cannot be downloaded (expired, never uploaded, GitHub unreachable) says so, "
+               "naming gh's reason and what the directory still holds, and LEAVES the previous results exactly as they were "
+               "(kb/Work PB3716: it deleted them before the download, and a partial download landed in the directory)",
+               'could not be downloaded (no valid artifacts found to download' in gone
+               and f'{dest} left as it was (the test results of run 800)' in gone
+               and (dest / 'test-results-Linux-unit' / 'unit.trx').read_text(encoding='utf-8') == '<TestRun/>'
+               and 'run 800' in (dest / BOUNCE_SOURCE).read_text(encoding='utf-8')
+               and not (dest / 'test-results-Linux-half').exists() and not staging.exists(), gone)
+        fresh = pathlib.Path(tmp) / 'never-fetched'
+        nothing = fetch_bounce_results('fix', fresh, bounce_gh(runs, download_rc=1, partial=True))
+        expect("a failed download into a directory that was never fetched leaves nothing behind: no directory, no partial "
+               "artifact, no staging directory, and the message says the directory holds no bounce results",
+               not fresh.exists() and not fresh.with_name(fresh.name + STAGING_SUFFIX).exists()
+               and f'{fresh} left as it was (no bounce results)' in nothing, nothing)
+        newer = fetch_bounce_results('fix', dest, bounce_gh([*runs, group(547, 810, 'failure')]))
+        expect("a newer bounce whose download succeeds REPLACES the older one whole: only run 810's marker and artifacts "
+               "remain, with no staging and no aside directory",
+               'run 810' in newer and 'run 810' in (dest / BOUNCE_SOURCE).read_text(encoding='utf-8')
+               and sorted(q.name for q in dest.iterdir()) == [BOUNCE_SOURCE, 'test-results-Linux-unit']
+               and not staging.exists() and not aside.exists(), newer)
+        real_rename = pathlib.Path.rename
+
+        def failing_rename(self: pathlib.Path, target: object) -> pathlib.Path:
+            if self.name.endswith(STAGING_SUFFIX):
+                raise PermissionError('locked')
+            return real_rename(self, target)
+        pathlib.Path.rename = failing_rename   # type: ignore[method-assign]
+        try:
+            locked = fetch_bounce_results('fix', dest, bounce_gh([*runs, group(547, 820, 'failure')]))
+        finally:
+            pathlib.Path.rename = real_rename   # type: ignore[method-assign]
+        expect("a swap that cannot move the new results into place restores the old ones and says not observed",
+               'not observed (PermissionError' in locked and 'left as it was' in locked
+               and 'run 810' in (dest / BOUNCE_SOURCE).read_text(encoding='utf-8')
+               and not staging.exists() and not aside.exists(), locked)
         fetch_bounce_results('fix', dest, bounce_gh(runs))
         unread = [fetch_bounce_results('fix', dest, bounce_gh(runs, runs_rc=1)),
                   fetch_bounce_results('fix', dest, lambda a: (1, '', 'x')),

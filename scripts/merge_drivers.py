@@ -65,6 +65,14 @@ merges cleanly, as it would without a driver, the file merges; else the file the
 THE MERGE (`merge`): `git merge --no-commit` with the drivers, then `abi_pin.settle` when the pin says UNMEASURED, then
 the merge commit. The settle writes only the files abi_pin.OWNED names; `prune_worktrees.mechanical` (the review's
 coverage rule) accepts a merge whose tree differs from the drivers' own merge in those files and nowhere else.
+`merge` answers with a `Merged`, which tells THREE ends apart (kb/Work PB3673): the branch now contains the ref (`clean`),
+files left in conflict (`conflicts`: a finisher resolves them), and a CLEAN merge whose runtime ABI pin could not be
+settled (`unsettled`: abi_pin's Failure, classified by run_gate_legs.NOT_RUN_CAUSES as the host's or the tree's). Both
+non-clean ends abort the merge and leave the branch unchanged (`--keep` leaves it in progress for a finisher); the landing
+(enqueue.py) ends them differently, because a conflict is a finisher's work and a settle the host blocked is a retry. The
+`merge` command's exit: 0 merged · 1 conflicts · EXIT_INCOMPLETE (3) a clean merge that could not be completed, its line
+`NOT COMPLETED [<cause>] — …` naming the cause's tag (run_gate_legs.NOT_RUN_CAUSES: `merge-blocked` is the host's,
+`merge-failed` the merged tree's).
 """
 from __future__ import annotations
 
@@ -76,16 +84,19 @@ import re
 import subprocess
 import sys
 import tempfile
-from typing import Callable
+from typing import Callable, NamedTuple
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import abi_pin  # noqa: E402  (the runtime ABI pin: the driver's merger, the settle `merge` runs and its Failure, kb/Work PB3610, PB3673)
 import verdict_line  # noqa: E402  (the one home of the `=== ENQUEUE: ` verdict line and the CONFLICT outcome, kb/Work PB3714)
 from standard_streams import ensure_utf8
 
 #: A merge function: (base, ours, theirs) texts -> the merged text, or None for a real conflict.
 Merger = Callable[[str, str, str], "str | None"]
 NL = chr(10)
+#: `merge_drivers.py merge`'s exit for a clean merge that could not be completed (1 is a conflict).
+EXIT_INCOMPLETE = 3
 
 
 # ── the three-way rule, over keyed blocks ────────────────────────────────────────────────────────────────────────
@@ -354,11 +365,6 @@ def merge_symbol_set(base: str, ours: str, theirs: str) -> str:
     return "".join(ln + NL for ln in header + sorted(kept.difference(header)))
 
 
-def _abi_pin_merger() -> Merger:
-    import abi_pin  # noqa: PLC0415  (scripts/: the pin's own format and counters)
-    return abi_pin.merge_text
-
-
 # ── the registry ─────────────────────────────────────────────────────────────────────────────────────────────────
 @dataclasses.dataclass(frozen=True)
 class Driver:
@@ -380,7 +386,7 @@ DRIVERS: tuple[Driver, ...] = (
            "construct id -> its entry in the version-matrix catalogue"),
     Driver("cobol-work-note", ("kb/Work/PB*.md",), lambda: merge_note,
            "frontmatter per key, body by union: two branches that each append to one note keep both"),
-    Driver("cobol-abi-pin", ("src/Cobol.Net.Runtime/RuntimeAbi.pin",), _abi_pin_merger,
+    Driver("cobol-abi-pin", ("src/Cobol.Net.Runtime/RuntimeAbi.pin",), lambda: abi_pin.merge_text,
            "the runtime major and call ABI counters add; the merged surface's hashes are measured, not merged"),
     Driver("cobol-keyed-publicapi", ("src/**/PublicAPI.*.txt",), lambda: merge_symbol_set,
            "a public-API baseline is a set of symbol lines: a line either side added is kept, a line either side removed "
@@ -456,36 +462,60 @@ def run_driver(name: str, base: pathlib.Path, ours: pathlib.Path, theirs: pathli
 
 
 # ── the merge ────────────────────────────────────────────────────────────────────────────────────────────────────
-def merge(repo: pathlib.Path, ref: str, message: str, measure: Callable[[pathlib.Path], str | None] | None = None,
-          keep: bool = False) -> list[str] | None:
-    """MERGE `ref` into the checked-out branch with every driver: None when the branch now contains it (the merge
-    commit made, the ABI pin settled in it); else the files left in conflict, or the pin's path when it could not be
-    settled, with the merge aborted and the branch unchanged. A branch that only needs `ref` fast-forwards. `measure`:
-    abi_pin.settle's measurement (a self-test's stand-in for the build). `keep` (a finisher resolving a conflict): the merge
-    is left in progress with its conflict markers instead of aborted; the finisher resolves, runs `abi_pin.py settle
-    --stage` when the pin says UNMEASURED, and commits."""
-    import abi_pin  # noqa: PLC0415
+class Merged(NamedTuple):
+    """What `merge` made of its ref (kb/Work PB3673): THREE ends, which a caller must tell apart because three different
+    people fix them. `clean`: the branch now contains the ref. `conflicts`: the files left in conflict, a finisher's work.
+    `incomplete`: the merge was clean (or git refused to start it) but could not be completed, abi_pin's Failure with the
+    cause classified by run_gate_legs: the ABI pin could not be settled, or git refused the merge commit or the fast-forward;
+    MERGE_BLOCKED is the host's, a retry's, MERGE_FAILED is the merged tree's. Never both a conflict and an incomplete merge.
+    `in_progress`: the merge was left in progress for a finisher (`keep`), not aborted."""
+    conflicts: tuple[str, ...] = ()
+    incomplete: abi_pin.Failure | None = None
+    in_progress: bool = False
+
+    @property
+    def clean(self) -> bool:
+        return not self.conflicts and self.incomplete is None
+
+
+def _refused(what: str, p: subprocess.CompletedProcess) -> Merged:
+    """The Merged of a git command that failed with no file in conflict: the host's refusal (a lock, a full disk, a
+    worktree that would be overwritten), with git's own words; never reported as a conflict in some file."""
+    return Merged(incomplete=abi_pin.Failure(abi_pin.MERGE_BLOCKED, f"{what} failed: {(p.stderr or p.stdout).strip()}"))
+
+
+def merge(repo: pathlib.Path, ref: str, message: str, measure: abi_pin.Runner | None = None, keep: bool = False) -> Merged:
+    """MERGE `ref` into the checked-out branch with every driver: `clean` when the branch now contains it (the merge
+    commit made, the ABI pin settled in it); else the files left in conflict (`conflicts`) or why a clean merge could not be
+    completed (`incomplete`: the pin could not be settled, or git refused), with the merge aborted and the branch
+    unchanged. A branch that only needs `ref` fast-forwards. `measure`: abi_pin.settle's measurement (a self-test's
+    stand-in for the build). `keep` (a finisher): the merge is left in progress instead of aborted, with its conflict
+    markers or, when only the pin could not be settled, as it stood when the settle failed; the finisher resolves, runs
+    `abi_pin.py settle --stage` when the pin says UNMEASURED, and commits."""
     if git(repo, "merge-base", "--is-ancestor", ref, "HEAD").returncode == 0:
-        return None                                      # the branch already contains `ref`: nothing to merge
+        return Merged()                                  # the branch already contains `ref`: nothing to merge
     if git(repo, "merge-base", "--is-ancestor", "HEAD", ref).returncode == 0:
-        return None if git(repo, "merge", "--ff-only", ref).returncode == 0 else ["?"]
-    if git(repo, "merge", "--no-commit", "--no-ff", ref, attributes_of="HEAD").returncode != 0:
+        ff = git(repo, "merge", "--ff-only", ref)
+        return Merged() if ff.returncode == 0 else _refused(f"git merge --ff-only {ref}", ff)
+    started = git(repo, "merge", "--no-commit", "--no-ff", ref, attributes_of="HEAD")
+    if started.returncode != 0:
         files = git(repo, "diff", "--name-only", "--diff-filter=U").stdout.split()
         if not keep:
             git(repo, "merge", "--abort")
-        return files or ["?"]
+        return Merged(tuple(files), in_progress=keep) if files else _refused(f"git merge {ref}", started)   # none: git refused
     if abi_pin.needs_settle(repo):
         err = abi_pin.settle(repo, measure=measure or abi_pin.run_measurement)
         if err:
-            print(f"merge_drivers: the runtime ABI pin could not be settled: {err}", file=sys.stderr)
-            git(repo, "merge", "--abort")
-            git(repo, "checkout", "HEAD", "--", *abi_pin.OWNED)   # abort keeps the settle's own edits to files the merge changed
-            return [abi_pin.PIN_PATH]
+            print(f"merge_drivers: the runtime ABI pin could not be settled [{err.cause}]: {err.why}", file=sys.stderr)
+            if not keep:
+                git(repo, "merge", "--abort")
+                git(repo, "checkout", "HEAD", "--", *abi_pin.OWNED)   # abort keeps the settle's own edits to files the merge changed
+            return Merged(incomplete=err, in_progress=keep)
     done = git(repo, "commit", "--no-edit", "-m", message)
     if done.returncode != 0:
         git(repo, "merge", "--abort")
-        return ["?"]
-    return None
+        return _refused("git commit of the merge", done)
+    return Merged()
 
 
 def merge_conflicts(repo: pathlib.Path | str, ref: str) -> list[str] | None:
@@ -520,7 +550,6 @@ def is_drivers_merge(repo: pathlib.Path | str, parents: list[str], tree: str) ->
     them (merged_tree), or that tree with the runtime ABI pin settled into it (the three files abi_pin.OWNED names, and
     only when the drivers left the pin UNMEASURED). This is the review's coverage rule for a merge of main
     (prune_worktrees.mechanical), so it must be exactly the merge's own definition: there is no other."""
-    import abi_pin  # noqa: PLC0415
     clean = merged_tree(repo, parents)
     if clean is None:
         return False
@@ -743,15 +772,15 @@ def self_test() -> int:
         expect("conflicts: a ref git cannot read is None (git cannot say), never []",
                merge_conflicts(repo, "refs/heads/no-such-branch") is None)
         files = merge(repo, "main", "Merge main (self-test)")
-        merged = json.loads((repo / "d.json").read_text(encoding="utf-8")) if files is None else {}
+        merged = json.loads((repo / "d.json").read_text(encoding="utf-8")) if files.clean else {}
         body = (repo / "kb" / "Work" / "PB1.md").read_text(encoding="utf-8")
         expect("git: merge() brings main in through the drivers: both entries, the status flip and both note paragraphs",
-               files is None and set(merged) == {"a", "c", "ours", "theirs"} and "status: landed" in body
+               files.clean and set(merged) == {"a", "c", "ours", "theirs"} and "status: landed" in body
                and "Landed A." in body and "Main note." in body and len(scratch.git("log", "--merges", "--format=%h").split()) == 1,
                f"{files} {sorted(merged)} {body!r}")
         expect("git: a public-API baseline both branches changed merges through its driver as a set: the symbol both "
                "added once, the line one side removed gone, sorted",
-               files is None and baseline.read_text(encoding="utf-8") == api(hdr, "A.D", "A.G", "A.N", "A.X", "A.Z"),
+               files.clean and baseline.read_text(encoding="utf-8") == api(hdr, "A.D", "A.G", "A.N", "A.X", "A.Z"),
                repr(baseline.read_text(encoding="utf-8")))
         expect("git: merge-tree with config_args reproduces the merge's tree (the review's coverage rule reads it)",
                git(repo, "merge-tree", "--write-tree", "HEAD^1", "HEAD^2", attributes_of="HEAD^1").stdout.split()[:1]
@@ -774,14 +803,15 @@ def self_test() -> int:
                str(merge_conflicts(repo, "left")))
         files = merge(repo, "left", "Merge left (self-test)")
         expect("git: an entry both sides changed differently is a conflict naming the file; the merge is aborted, the branch unchanged",
-               files == ["d.json"] and scratch.git("rev-parse", "HEAD") == tip and not scratch.git("status", "--porcelain"),
+               files.conflicts == ("d.json",) and not files.in_progress and files.incomplete is None
+               and scratch.git("rev-parse", "HEAD") == tip and not scratch.git("status", "--porcelain"),
                f"{files}")
         kept = merge(repo, "left", "Merge left (self-test)", keep=True)
         in_progress = scratch.run("rev-parse", "-q", "--verify", "MERGE_HEAD").returncode == 0
         marked = "<<<<<<<" in (repo / "d.json").read_text(encoding="utf-8")
         scratch.run("merge", "--abort")
         expect("git: keep leaves a conflicting merge IN PROGRESS with its markers, for a finisher to resolve",
-               kept == ["d.json"] and in_progress and marked and scratch.git("rev-parse", "HEAD") == tip, f"{kept}")
+               kept.conflicts == ("d.json",) and kept.in_progress and in_progress and marked and scratch.git("rev-parse", "HEAD") == tip, f"{kept}")
         # kb/Work PB3713, the branch survey's LANDED proof: main already holds the topic's entry (another carrier put it
         # there) beside one of its own, so a PLAIN merge-tree conflicts in the keyed file, while the drivers merge it to
         # main's own tree, which is what makes the branch LANDED
@@ -811,7 +841,7 @@ def self_test() -> int:
         text = (fr.path / "d.json").read_text(encoding="utf-8")
         expect("git: an entry both sides changed, on lines apart, merges through git's own line merge exactly as a plain "
                "git merge does (the keyed merger declines, the fallback is clean): no conflict, no markers",
-               plain_clean.returncode == 0 and files is None and text == fat("1+", "4+") and not fr.git("status", "--porcelain"),
+               plain_clean.returncode == 0 and files.clean and text == fat("1+", "4+") and not fr.git("status", "--porcelain"),
                f"{plain_clean.returncode} {files} {text!r}")
         # A branch cut BEFORE a driver existed: its .gitattributes still says merge=union for the baseline, and main switched
         # the attribute to the driver, whose first two-sided merge sorted the baseline. The registry's attributes decide (kb/Work
@@ -830,7 +860,7 @@ def self_test() -> int:
         text = (old.path / "src" / "L" / "PublicAPI.Unshipped.txt").read_text(encoding="utf-8")
         expect("git: a branch cut with the old attributes (merge=union) merges a baseline through the registry's driver: "
                "the set, sorted, no symbol twice (the branch's own union would duplicate the lines main moved)",
-               len(union.split()) != len(set(union.split())) and files is None
+               len(union.split()) != len(set(union.split())) and files.clean
                and text == api(hdr, "A.A", "B.B", "C.C", "D.D", "E.E", "F.F", "N.N")
                and is_drivers_merge(old.path, [old.git("rev-parse", "HEAD^1"), old.git("rev-parse", "HEAD^2")],
                                     old.git("rev-parse", "HEAD^{tree}")),
@@ -840,7 +870,7 @@ def self_test() -> int:
         again = merge(fr.path, "main", "Merge main (again)")
         older = merge(fr.path, "main~1", "Merge main~1 (ancestor)")
         expect("git: a ref the branch already contains is no conflict and no new commit (a resumed agent's first merge step)",
-               again is None and older is None and fr.git("rev-parse", "HEAD") == before, f"{again} {older}")
+               again.clean and older.clean and fr.git("rev-parse", "HEAD") == before, f"{again} {older}")
         # The history replay (kb/Work PB3643): a recorded merge whose branches each inserted at one place and each rewrote
         # one line, resolved by hand, counts as one conflicted merge with one hunk of each kind; a merge that took clean
         # (one side only) is no conflict.
@@ -875,7 +905,6 @@ def self_test() -> int:
                alone == together == {"both-changed": 1, "conflicted": 1, "insertion": 0, "revision": 1, "unreadable": 0},
                f"{alone} {together}")
         # The ABI pin through git: both branches raise the major; the merge adds them and settles before its commit.
-        import abi_pin  # noqa: PLC0415
         pr = ScratchRepo.init(root / "pin")
         pin = lambda major, h: f"runtime-major {major}{NL}runtime-hash {h}{NL}call-abi 2{NL}boundary-hash {h}{NL}"    # noqa: E731
         files_at = lambda major, h: {abi_pin.PIN_PATH: pin(major, h), abi_pin.PROPS_PATH: f"<Version>{major}.0.0</Version>{NL}",    # noqa: E731
@@ -888,19 +917,32 @@ def self_test() -> int:
         pr.commit("main", files_at(18, "B1"))
         pr.git("switch", "-q", "topic")
 
-        def fake_measure(r: pathlib.Path) -> str | None:        # the test's write mode
+        def fake_measure(r: pathlib.Path) -> abi_pin.Failure | None:        # the test's write mode
             (r / abi_pin.PIN_PATH).write_bytes(abi_pin.with_values((r / abi_pin.PIN_PATH).read_text(encoding="utf-8"), {
                 "runtime-hash": "MEASURED", "boundary-hash": "MEASURED"}).encode("utf-8"))
             return None
-        gone = merge(pr.path, "main", "Merge main (pin self-test)", measure=lambda r: "no SDK")
-        expect("pin: a settle that fails aborts the merge and names the pin, the branch unchanged",
-               gone == [abi_pin.PIN_PATH] and pr.git("log", "--format=%s", "-1") == "topic" and not pr.git("status", "--porcelain"),
+        no_sdk = abi_pin.Failure(abi_pin.MERGE_BLOCKED, "the measuring run could not start: no SDK")
+        broken = abi_pin.Failure(abi_pin.MERGE_FAILED, "the measuring run exited 1")
+        gone = merge(pr.path, "main", "Merge main (pin self-test)", measure=lambda r: no_sdk)
+        expect("pin: a settle that fails aborts the merge, the branch unchanged, and is NOT a conflict: the merge answers "
+               "with the settle's own Failure and its class (kb/Work PB3673: it used to name the pin as a conflicted file, "
+               "and the landing sent a finisher to resolve a merge with no conflict)",
+               gone.incomplete == no_sdk and gone.conflicts == () and not gone.clean and not gone.in_progress
+               and pr.git("log", "--format=%s", "-1") == "topic" and not pr.git("status", "--porcelain"),
                f"{gone}")
+        stuck = merge(pr.path, "main", "Merge main (pin self-test)", measure=lambda r: broken, keep=True)
+        left = pr.run("rev-parse", "-q", "--verify", "MERGE_HEAD").returncode == 0
+        pr.run("merge", "--abort")
+        pr.git("checkout", "HEAD", "--", *abi_pin.OWNED)
+        expect("pin: keep (a finisher) leaves a merge whose pin could not be settled IN PROGRESS, for `abi_pin.py settle "
+               "--stage` once the cause is removed, and still answers with the Failure, not a conflict",
+               stuck.incomplete == broken and stuck.conflicts == () and stuck.in_progress and left
+               and pr.git("log", "--format=%s", "-1") == "topic" and not pr.git("status", "--porcelain"), f"{stuck} {left}")
         done = merge(pr.path, "main", "Merge main (pin self-test)", measure=fake_measure)
         pinned = abi_pin.parse((pr.path / abi_pin.PIN_PATH).read_text(encoding="utf-8"))
         expect("pin: both branches raised the major 17 -> 18: the merge makes it 19 (the counters add), settles the "
                "props and the pin BEFORE the one merge commit, and leaves the tree clean",
-               done is None and pinned is not None and pinned["runtime-major"] == "19" and pinned["runtime-hash"] == "MEASURED"
+               done.clean and pinned is not None and pinned["runtime-major"] == "19" and pinned["runtime-hash"] == "MEASURED"
                and "<Version>19.0.0</Version>" in (pr.path / abi_pin.PROPS_PATH).read_text(encoding="utf-8")
                and len(pr.git("log", "--merges", "--format=%h").split()) == 1 and not pr.git("status", "--porcelain"),
                f"{done} {pinned}")
@@ -947,7 +989,11 @@ def self_test() -> int:
                and pattern_matches("kb/Work/PB3727.md", "kb/Work/PB*.md") and not pattern_matches("kb/Work/x/PB1.md", "kb/Work/PB*.md")
                and pattern_matches("a/b/x.nupkg", "*.nupkg") and pattern_matches("kb/Work/PB1.md", "kb/Work/PB?.md")
                and pattern_matches("d/x/y", "d/**") and pattern_matches("v1.md", "v[0-9].md") and not pattern_matches("v1.md", "v[!0-9].md")
-               and covered_by_driver("src/Cobol.Net.Runtime/PublicAPI.Shipped.txt"))
+               and covered_by_driver("src/Cobol.Net.Runtime/PublicAPI.Shipped.txt")
+               # kb/Work PB3748: covered_by_driver asks pattern_matches, which anchors a pattern with a `/` at the root, so a
+               # path that only ENDS in a driver's pattern is not covered (PurePosixPath.match matched from the right)
+               and not covered_by_driver("x/kb/Work/PB1.md") and not covered_by_driver("x/src/Cobol.Net.Runtime/RuntimeAbi.pin")
+               and not covered_by_driver("kb/Work/sub/PB1.md") and covered_by_driver("kb/Work/PB1.md"))
         expect("check: the registry and this repository's .gitattributes agree",
                not check(HERE.parent), "; ".join(check(HERE.parent)))
         bad = root / "bad"
@@ -964,11 +1010,6 @@ def self_test() -> int:
         remove_tree(root)
     print(f"merge_drivers self-test: {'FAIL' if failures else 'PASS'}")
     return 1 if failures else 0
-
-
-def abi_pin_path() -> str:
-    import abi_pin  # noqa: PLC0415
-    return abi_pin.PIN_PATH
 
 
 def main() -> int:
@@ -1014,13 +1055,18 @@ def main() -> int:
     if a.cmd == "driver":
         return run_driver(a.name, a.base, a.ours, a.theirs)
     if a.cmd == "merge":
-        files = merge(a.repo, a.ref, a.message or f"Merge {a.ref}", keep=a.keep)
-        if files and a.keep:
-            print(f"CONFLICT in {', '.join(files)} — resolve each against BOTH sides' intent; then, when "
-                  f"{abi_pin_path()} says UNMEASURED, `python scripts/abi_pin.py settle --stage`; then `git add` and `git commit`")
+        done = merge(a.repo, a.ref, a.message or f"Merge {a.ref}", keep=a.keep)
+        if done.incomplete:
+            print(f"NOT COMPLETED [{done.incomplete.cause}] — the merge was clean but " + done.incomplete.why.splitlines()[0] + "; "
+                  + (f"the merge is left in progress: remove the cause, then `python scripts/abi_pin.py settle --stage`, "
+                     f"`git add` and `git commit`" if done.in_progress else "the merge was aborted, the branch unchanged"))
+            return EXIT_INCOMPLETE
+        if done.conflicts and done.in_progress:
+            print(f"CONFLICT in {', '.join(done.conflicts)} — resolve each against BOTH sides' intent; then, when "
+                  f"{abi_pin.PIN_PATH} says UNMEASURED, `python scripts/abi_pin.py settle --stage`; then `git add` and `git commit`")
             return 1
-        if files:
-            print(verdict_line.conflict_outcome(files))
+        if done.conflicts:
+            print(verdict_line.conflict_outcome(list(done.conflicts)))
             return 1
         return 0
     ap.print_help()

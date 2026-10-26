@@ -11,7 +11,7 @@ groups.json:
     {"letter": "KA", "slug": "w58a", "group": "INTRINSICS BEYOND BINARY64", "notes": "PB999, PB1000", "lead": "PB999",
      "codes": "COBOLNET2400–COBOLNET2402", "root": "...", "files": "`kb/Work/PB999.md`, ...", "body": "...",
      "file_set": ["src/...", ...],   # the files the group changes, a LIST (plan_wave.py writes it); when absent or
-                                      # empty, the set computed now from its notes (plan_wave.computed_file_set);
+                                      # empty, the set computed now from its notes (inflight.computed_file_set);
                                       # a file under src/Cobol.Net.Runtime/IO/ makes it a host-I-O group (below)
      "member_set": {"src/...": ["Type.Member", ...]},   # optional: the members it claims in those files (a file
                                       # absent is claimed whole; kb/Work PB3670), recorded in the ledger with them
@@ -25,7 +25,7 @@ coord.fleet_stop_problem: absolute, the scratch outside the checkout, the stop f
 made `E:COBOL-coordscratch` of an unquoted Windows path three times). Writes <scratch>\\msg-w<wave>-<letter
 lower-cased>.txt per group (the file wf_rolling_wave.js opens), runs check_practices.py over the specs AND the groups
 file (exit 1 on a miss), and only when that is GREEN RECORDS every rendered group in the dispatch ledger
-(<coord>/inflight-groups.json) through plan_wave.record_dispatch, an upsert on (wave, letter) with the group's notes,
+(<coord>/inflight-groups.json) through dispatch_ledger.record_dispatch, an upsert on (wave, letter) with the group's notes,
 file set and member claims: a RED render records nothing, so it holds no note from a later plan (kb/Work PB3114). `--no-record` renders
 and checks only (the planner's first pass on peeked codes, before it reserves any).
 
@@ -33,7 +33,7 @@ The ledger has exactly two structured writers, this renderer (every wave, the pl
 and `plan_wave.py --release` (an aborted dispatch); it is never written from a scrape of a prompt (kb/Work PB3186: the
 retired guard-hook recorder took every note id a brief mentioned and recorded six entries of 303-910 files, which bound
 fix-lane worktrees to reference notes and stopped their landings). The planner's file-set partition and the landing
-check read it (plan_wave.inflight_file_sets, source 3).
+check read it (inflight.inflight_file_sets, source 3).
 
 Every spec names TWO stop files (kb/Work PB2483): the owner's global stop (`coord.global_stop()`) and this fleet's own
 `stop_file` (`coord.fleet_stop(scratch, scope)`; plan_wave.py writes it). A fleet stopped by its own file never stops
@@ -62,7 +62,8 @@ TEMPLATE = HERE / 'templates' / 'dispatch-spec-implementer.md'
 sys.path.insert(0, str(REPO / 'scripts' / 'orchestrator'))
 sys.path.insert(0, str(REPO / 'scripts' / 'spec'))
 import coord  # noqa: E402  (the one definition of the stop files and the reports directory)
-import plan_wave  # noqa: E402  (record_dispatch: THE ledger writer; computed_file_set: THE computed file set)
+import dispatch_ledger  # noqa: E402  (record_dispatch: THE ledger writer, kb/Work PB3186)
+import inflight  # noqa: E402  (computed_file_set: THE computed file set; Claim, IndexPolicy)
 import work  # noqa: E402  (the register: which notes are terminal)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[3] / "scripts"))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -105,11 +106,11 @@ def host_io(files):
 
 
 def group_claim(g, claim_of):
-    """A group's declared set (plan_wave.Claim): its `file_set` LIST with its `member_set` (plan_wave.py writes both),
-    or, when that is absent or empty, `claim_of(its note ids)` (the set its notes declare, plan_wave.computed_file_set).
+    """A group's declared set (inflight.Claim): its `file_set` LIST with its `member_set` (plan_wave.py writes both),
+    or, when that is absent or empty, `claim_of(its note ids)` (the set its notes declare, inflight.computed_file_set).
     The one reading the ledger's record and the host-I-O paragraph share."""
     if isinstance(g.get('file_set'), list) and g['file_set']:
-        return plan_wave.Claim.of(g['file_set'], g.get('member_set'))
+        return inflight.Claim.of(g['file_set'], g.get('member_set'))
     return claim_of(list(dict.fromkeys(PB.findall(g.get('notes', '')))))
 
 
@@ -128,7 +129,7 @@ def render(cfg, g, files, tpl=None):
 
 
 def record(cfg, coord_dir, terminal=None, claim_of=None):
-    """Record every group of the groups file `cfg` in the dispatch ledger (plan_wave.record_dispatch, an upsert on
+    """Record every group of the groups file `cfg` in the dispatch ledger (dispatch_ledger.record_dispatch, an upsert on
     (wave, letter)) and return the entries written. A group's notes are its `notes` field's ids; its files and members
     are group_claim(g, claim_of): its `file_set` LIST and `member_set`, or, when a hand-built groups file carries none,
     `claim_of(note ids)` (default computed_claims(coord_dir)). `terminal(note id)` defaults to the register's landed or
@@ -140,14 +141,14 @@ def record(cfg, coord_dir, terminal=None, claim_of=None):
     groups = [{'letter': g['letter'], 'slug': g.get('slug'), 'notes': list(dict.fromkeys(PB.findall(g.get('notes', '')))),
                'files': sorted(c.files), 'members': c.member_lists()}
               for g in cfg['groups'] for c in [group_claim(g, claim_of)]]
-    return plan_wave.record_dispatch(coord_dir, str(cfg['wave']), groups, terminal)
+    return dispatch_ledger.record_dispatch(coord_dir, str(cfg['wave']), groups, terminal)
 
 
 def computed_claims(coord_dir):
-    """`claim_of`: plan_wave.computed_file_set over this tree, on the planner's index policy (THE index of the tree,
+    """`claim_of`: inflight.computed_file_set over this tree, on the planner's index policy (THE index of the tree,
     cached in `coord_dir`, kb/Work PB3203), memoized per note list so the render and the record compute it once."""
-    policy = plan_wave.IndexPolicy.of(coord_dir)
-    once = functools.cache(lambda ids: plan_wave.computed_file_set(REPO, list(ids), policy))
+    policy = inflight.IndexPolicy.of(coord_dir)
+    once = functools.cache(lambda ids: inflight.computed_file_set(REPO, list(ids), policy))
     return lambda ids: once(tuple(ids))
 
 
