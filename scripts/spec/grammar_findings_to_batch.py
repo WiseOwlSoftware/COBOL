@@ -107,7 +107,9 @@ def convert(findings: list[dict], catalog: dict[str, dict], schema: Schema) -> t
             seen[rid] = verdict
             rec = {"rule-id": rid, "verdict": VERDICT_MAP[verdict],
                    "code-location": f.get("grammar_site", ""), "test-ref": "",
-                   "editions": editions, "notes": ""}
+                   "editions": editions}
+            # `notes` is named only when the finding has something to say: a record writing it empty would be refused
+            # over a row that already carries prose, and an omitted one keeps it (kb/Work PB3795).
             if verdict == "DIVERGES":
                 rec["notes"] = (f"grammar {f.get('divergence_kind', 'other')}: "
                                 f"ISO requires {f.get('iso_syntax', '(unstated)')}; "
@@ -194,6 +196,13 @@ def self_test() -> int:
         if not ok:
             print(f"      got {[r['editions'] for r in recs]}")
             rc = 1
+    # a finding with nothing to say names no `notes`: written empty it would erase a row's prose (kb/Work PB3795)
+    recs, _ = convert([{**base, "verdict": "MATCHES", "rule_ids": ["SR-14.9.1.3-1"]}], cat, schema)
+    ok = len(recs) == 1 and "notes" not in recs[0]
+    print(("  ok: " if ok else "  SELF-TEST FAILED: ") + "a MATCHES finding writes no notes")
+    if not ok:
+        print(f"      got {recs}")
+        rc = 1
     # coverage must NAME what was left unadjudicated
     left = coverage([{**base, "verdict": "MATCHES", "rule_ids": ["SR-14.9.1.3-1"]}], cat)
     ok = set(left.get("14.9.1", [])) == {"SR-14.9.1.3-2", "FMT-14.9.1.2-1"}

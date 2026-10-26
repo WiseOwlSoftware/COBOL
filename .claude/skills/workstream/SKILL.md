@@ -175,12 +175,12 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   `after` (ignored by the renderer; the workflow uses it), and `file_set`, the list of files the group changes
   (`plan_wave.py` writes it; without it the renderer computes the set from the group's notes). Spec files are keyed
   on the full letter: `msg-w<wave>-<letter lower-cased>.txt`. Once its `check_practices.py` run is GREEN the renderer
-  also RECORDS every group in the dispatch ledger (`plan_wave.record_dispatch`, an upsert on wave and letter that keeps a re-rendered group's first `at`, kb/Work PB3392; `--coord
+  also RECORDS every group in the dispatch ledger (`dispatch_ledger.record_dispatch`, an upsert on wave and letter that keeps a re-rendered group's first `at`, kb/Work PB3392; `--coord
   DIR`), the ledger's one writer, so the planners' file-set partition and the landing check see a hand-planned wave too
   (kb/Work PB3186); a RED render records nothing (kb/Work PB3114). It refuses, before writing, a `scratch` or
   `stop_file` that is not an absolute path (and a scratch inside the checkout): quote Windows paths in Git Bash.
   `check_practices.py <groups.json>` refuses two groups whose claims MEET on ANY file both claim, a primary file or a
-  secondary one (`plan_wave.collision`, the planner's own rule: either has no `member_set` entry for the file, so claims
+  secondary one (`inflight.collision`, the planner's own rule: either has no `member_set` entry for the file, so claims
   it whole, or a member of one matches a member of the other) unless one declares `after:` the other: two groups on
   different members of one file whose claims meet nowhere run side by side (kb/Work PB3670, PB3696). The partition reads members the same way (DESIGN-orchestrator-loop.md section 9 item 1b):
   give a note's `**Sites:**` paragraph its members (`path#Member`, or `` `path` (`member`, ...) ``, a `:line` after

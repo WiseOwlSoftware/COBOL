@@ -39,8 +39,8 @@ turned one LOW finding (a test theory's length class) into a DECISION row, and t
 recorded before SEVERITIES were required carries a free word (`minor`, `MAJOR`) and BLOCKS: an unknown severity is
 never waved through.
 
-`stamp` writes the verdict into the implementer's report header as the line plan_wave.REVIEW reads (CLEAN <reviewer>
-<head>, or FINDINGS <n> <reviewer> <head> <file>), and reads it back through plan_wave.parse_review, so the writer and
+`stamp` writes the verdict into the implementer's report header as the line reports.REVIEW reads (CLEAN <reviewer>
+<head>, or FINDINGS <n> <reviewer> <head> <file>), and reads it back through reports.parse_review, so the writer and
 the reader cannot drift. prune_worktrees.py lists a DONE branch WAITING TO LAND only under a CLEAN stamp at its tip;
 plan_wave.py plans a finisher for a FINDINGS stamp.
 
@@ -95,7 +95,7 @@ import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import plan_wave  # noqa: E402  (the one reader of the stamp, and the one definition of a stamp line: PB3077)
+import reports  # noqa: E402  (the one reader of the stamp, and the one definition of a stamp line: PB3077)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -106,7 +106,6 @@ SEVERITIES = ("critical", "high", "medium", "low", "info")
 #: The blocking set of every round a review finisher can still answer, and of the round after the last one.
 BLOCKING_DEFAULT = ("critical", "high", "medium")
 BLOCKING_AT_CAP = ("critical", "high")
-REVIEW_LINE = plan_wave.REVIEW_LINE   # the planner skips these lines when it reads the branch (kb/Work PB3077)
 
 
 SHA = re.compile(r"[0-9a-f]{7,40}")
@@ -415,9 +414,9 @@ def stamp_line(v: dict, findings_file: pathlib.Path) -> str:
 
 def stamp(report: pathlib.Path, findings_file: pathlib.Path) -> str:
     """Write the newest verdict of `findings_file` into the report's header: replace its Review line, else insert one
-    right under the status line (plan_wave.header_lines and plan_wave.status_line: the planner's own reading).
+    right under the status line (reports.header_lines and reports.status_line: the planner's own reading).
 
-    A report that is not FINISHED (plan_wave.Report.finished: DONE, or DISCHARGED with branch work) is REFUSED, a
+    A report that is not FINISHED (reports.Report.finished: DONE, or DISCHARGED with branch work) is REFUSED, a
     header with no status line among them: the branch survey never admits such a report, so a stamp on it would read as
     a reviewed branch that nobody lands (kb/Work PB3181 shape 3: w1080f's header began with an empty line and no
     `Status:`, the stamp went under line 0, and the reviewed, gate-GREEN branch sat in the DECISION rows)."""
@@ -426,7 +425,7 @@ def stamp(report: pathlib.Path, findings_file: pathlib.Path) -> str:
         raise RecordError(f"{findings_file} holds no verdict: run `verdict` first")
     if " " in str(findings_file):
         raise RecordError(f"the findings file path must have no space (the stamp reads it as one word): {findings_file}")
-    rep = plan_wave.parse_report(report)
+    rep = reports.parse_report(report)
     if rep is None or not rep.finished:
         raise RecordError(f"{report} is not a finished fix-lane report ("
                           + ("not a w<wave><letter>-PB<lead>-report.md name" if rep is None else
@@ -436,18 +435,18 @@ def stamp(report: pathlib.Path, findings_file: pathlib.Path) -> str:
     line = stamp_line(verdicts[-1], findings_file)
     text = report.read_text(encoding="utf-8")
     lines = with_leads(text.splitlines(), lead_lines(findings_file, verdicts[-1]))
-    end = len(plan_wave.header_lines(lines))
-    at = next((i for i in range(end) if REVIEW_LINE.match(lines[i].strip())), None)
+    end = len(reports.header_lines(lines))
+    at = next((i for i in range(end) if reports.REVIEW_LINE.match(lines[i].strip())), None)   # the stamp line (PB3077)
     if at is not None:
         lines[at] = line
     else:
-        lines.insert(plan_wave.status_line(lines[:end])[0] + 1, line)
+        lines.insert(reports.status_line(lines[:end])[0] + 1, line)
     out = "\n".join(lines) + ("\n" if text.endswith("\n") else "")
     header = "\n".join(lines[:end + (0 if at is not None else 1)])
-    got = plan_wave.parse_review(header)
+    got = reports.parse_review(header)
     v = verdicts[-1]
     if got is None or got.verdict != v["verdict"] or got.sha != v["head"] or got.findings != v["findings"]:
-        raise RecordError(f"the stamp would not read back through plan_wave.parse_review: {line!r} -> {got}")
+        raise RecordError(f"the stamp would not read back through reports.parse_review: {line!r} -> {got}")
     report.write_text(out, encoding="utf-8", newline="")
     return line
 
@@ -667,9 +666,9 @@ def self_test() -> int:
               refused(finding, f, 1, json.dumps({"file": "a", "line": 1, "category": "c", "summary": "s",
                                                  "severity": "low", "failure_scenario": "x"})))
         line = stamp(report, f)
-        rep = plan_wave.parse_report(report)
+        rep = reports.parse_report(report)
         check(f"arm: a FINDINGS stamp reads back through plan_wave: {line} -> {rep.review if rep else None}",
-              rep is not None and rep.review == plan_wave.Review("FINDINGS", 1, "w9a-review-r1", "abc1234", str(f))
+              rep is not None and rep.review == reports.Review("FINDINGS", 1, "w9a-review-r1", "abc1234", str(f))
               and rep.status == "DONE")
         check("arm: the stamp goes right under the Status line",
               report.read_text(encoding="utf-8").splitlines()[3].startswith("**Review:** FINDINGS 1 "))
@@ -678,15 +677,15 @@ def self_test() -> int:
         verdict(f, 2)
         line = stamp(report, f)
         text = report.read_text(encoding="utf-8")
-        rep = plan_wave.parse_report(report)
+        rep = reports.parse_report(report)
         check("arm: a re-review REPLACES the stamp, never adds a second",
               text.count("**Review:** CLEAN") == 1 and "FINDINGS 1" not in text.split("## ")[0])
         check("arm: a CLEAN stamp covers exactly its head",
               rep.review.verdict == "CLEAN" and rep.review.covers("def5678aaaa") and not rep.review.covers("abc1234"))
         check("arm: the line below the header is untouched", "**Review:** below the header binds nothing" in text)
         check("arm: a FINDINGS stamp without its file does not parse",
-              plan_wave.parse_review("**Review:** FINDINGS 2 x abc1234") is None)
-        check("arm: a placeholder does not parse", plan_wave.parse_review("**Review:** pending") is None)
+              reports.parse_review("**Review:** FINDINGS 2 x abc1234") is None)
+        check("arm: a placeholder does not parse", reports.parse_review("**Review:** pending") is None)
         # kb/Work PB3181 shape 3: a report that is not FINISHED is refused and left untouched, never stamped under line 0
         for name, body in (("w9b-PB2-report.md", "\n# w9 group B -- PB2\nBranch: b · head abc1234\n"),   # no status line
                            ("w9c-PB3-report.md", "Status: SPLIT\nBranch: b · HEAD: abc1234\n"),
