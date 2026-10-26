@@ -486,7 +486,7 @@ def self_test() -> int:
         arm("the listing parser keeps 4-space-indented names verbatim", body == Counter({"A.B": 1, "C.D  ": 1}),
             str(body))
 
-        scrubbed = ["WISEOWL_COBOL_GATE_PLAN", "wiseowl-cobol_gate_leg", "WISEOWL_COBOL_GATE_PLAN_SHA256", "VSTestTestCaseFilter",
+        scrubbed = ["WISEOWL_COBOL_GATE_PLAN", "wiseowl_cobol_gate_leg", "WISEOWL_COBOL_GATE_PLAN_SHA256", "VSTestTestCaseFilter",
                     "VSTestSetting", "vstest_host_debug", "RunSettingsFilePath"]
         kept = ["WISEOWL_COBOL_COMPILE_CACHE", "PATH", "RUNSETTINGS", "WISEOWL_COBOL_GATE"]
         arm("the scrub rule names the handshake, VSTest* and RunSettingsFilePath (any case), nothing else",
