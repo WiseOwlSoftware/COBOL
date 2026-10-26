@@ -46,7 +46,7 @@ public sealed class DiagnosticCodePrefixDriftTests
 
     /// <summary>The former prefix in a code's shape: the rename script's rules, as one pattern.</summary>
     private static readonly Regex OldCode = new(
-        @"COBOLNET(?:[0-9]|\*\*[0-9]|nnnn|####|<n>|…|\\+d|\[0-9\]|\()|COBOL\(\?:NET\)\?",
+        @"COBOLNET(?:[0-9]|\*\*[0-9]|nnnn|####|<n>|…|\\+d|\[0-9\]|\()|COBOL\(\?:NET\)\?(?:[0-9]|\\+d|\[0-9\])",
         RegexOptions.CultureInvariant);
 
     /// <summary>A witness the traceability inventory records as RETIRED (<c>retired-witness: &lt;ref&gt;</c>, the mark's text
@@ -127,6 +127,7 @@ public sealed class DiagnosticCodePrefixDriftTests
         [
             $"docs/{old}_DESIGN.md", $"CALL \"{old}\" USING W-N", $"DISPLAY \"HELLO FROM {old}\".", "error COBOL1985: x",
             $"\"notes\": \"retired-witness: unit:T.X_Is{old}1934 (re-spelled)\"",
+            "new(\"\\\"(COBOL(?:NET)?_[A-Z0-9_]*)\\\"\")", $"{old}_CLOCK",
         ];
         string dir = ScratchDirectory.Create("prefix-sweep");
         try

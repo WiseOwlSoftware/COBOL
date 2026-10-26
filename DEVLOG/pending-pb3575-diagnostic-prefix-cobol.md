@@ -27,7 +27,11 @@ an anchor (`ZeroWhereNoRulePermitsIt_IsCOBOL2386`, six `PictureCompositionTests`
 The first gate stopped on WITNESS LOSS (14 unexcused against the base): the rename had re-spelled them in the JSON by
 hand. They now go through `record_verdicts.py` as one batch (14 records, 14 rows changed, GAP 31 → 31) that retires
 each old spelling and records the new one, and the script never re-spells a `retired-witness:` mark, the record that
-excuses the loss (its self-test and the drift test both pin that).
+excuses the loss (its self-test and the drift test both pin that). The second gate's Unit leg caught one over-match:
+the rule collapsing the optional group `COBOL(?:NET)?` had also rewritten `RuntimeConfigTests`' environment-variable
+pattern `COBOL(?:NET)?_…`, which must still match `COBOLNET_CLOCK`. The rule now fires only before a digit atom, the
+test is restored, and the script's self-test and the drift test's planted cases both hold the name pattern unchanged.
+A sweep of the base for every other non-numeric rule match found only diagnostic uses.
 
 **By hand**, where the rules cannot decide: `alloc.py` prints `COBOL####` for the code kind (the reservations are bare
 numbers, so `alloc.json` needs no conversion) and scans whole words only; `test_alloc.py`; the adapter drift test
