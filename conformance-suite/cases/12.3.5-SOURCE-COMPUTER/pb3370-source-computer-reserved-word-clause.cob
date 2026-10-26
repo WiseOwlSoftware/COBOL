@@ -9,7 +9,7 @@
       *> could be the computer-name or an unrecognized configuration paragraph, both readings fail at
       *> GLOBAL, and the parser's error-time prediction used to take the configuration section's: the
       *> refusal was a bare COBOL0307.  It is now refused BY NAME in the SOURCE-COMPUTER paragraph's
-      *> format (COBOLNET1970), the one diagnostic, at every edition.
+      *> format (COBOL1970), the one diagnostic, at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. N3370SG.
        ENVIRONMENT DIVISION.

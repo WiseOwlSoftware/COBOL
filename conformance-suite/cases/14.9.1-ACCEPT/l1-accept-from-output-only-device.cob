@@ -9,7 +9,7 @@
       *> hardware or software device capable of providing data to the
       *> program". OUT-DEV IS declared, but it is bound to SYSOUT, an
       *> output-only implementor device-name (12.3.7.3), so the second
-      *> conjunct of SR2 fails: rejected (COBOLNET0817).
+      *> conjunct of SR2 fails: rejected (COBOL0817).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1ACC02.
        ENVIRONMENT DIVISION.

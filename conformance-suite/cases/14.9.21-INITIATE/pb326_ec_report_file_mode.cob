@@ -23,7 +23,7 @@
       *>   3. OPEN OUTPUT, then OPEN EXTEND -> both legal; GR3 names the two modes and this pins BOTH.
       *> (The former ARM 2 opened this report file INPUT, which §14.9.27.3 SR1 forbids — "The OPEN statement
       *> for a report file shall not contain the INPUT phrase or the I-O phrase" — and which now draws
-      *> COBOLNET2371 at compile time (kb/Work PB318). It was never conforming source, so it is gone.)
+      *> COBOL2371 at compile time (kb/Work PB318). It was never conforming source, so it is gone.)
       *> Before kb/Work PB326 the condition was a catalogue row with no raise site anywhere in src: every arm
       *> here INITIATEd silently and each GENERATE wrote into a connector that was not open.
       >>TURN EC-REPORT-FILE-MODE EC-REPORT-INACTIVE CHECKING ON

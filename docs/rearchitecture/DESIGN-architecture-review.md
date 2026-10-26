@@ -1147,14 +1147,14 @@ records, so nothing a descriptor carries is lost: `catalog` (`DiagnosticCatalog`
 `DiagnosticCatalog.cs:3333,3344,3355`, and `EditionContext.cs:310` reads it to keep those declined optional elements
 inert under `--permissive`, so a schema without it would silently change behaviour the default-mode oracle never
 exercises), `annex`, `doc` (the XML summary), and **`twinOf`**: the frontend rows that are parse-layer twins of a
-catalog row (the eight `COBOLNETnnnn` fields of `DiagnosticDescriptors`) carry no `code` of
+catalog row (the eight `COBOLnnnn` fields of `DiagnosticDescriptors`) carry no `code` of
 their own but `twinOf: "<catalog>.<name>"`, and the generator emits the reference (`Code =
 DiagnosticCatalog.GoToFormatShape.Code`), so the code is written once and a twin round-trips exactly as the source
 spells it today. And **`family`**: catalog rows take their code from the private constant `NotImplemented`
-(`COBOLNET0899`) or from `StrongType` (`COBOLNET1533`) (`DiagnosticCatalog.cs:44,47`) — the split-code families
+(`COBOL0899`) or from `StrongType` (`COBOL1533`) (`DiagnosticCatalog.cs:44,47`) — the split-code families
 the existing test exempts by name (`DiagnosticRegistryDriftTests.cs:44-57`, `SharedCodes`), and the reason `All`
 sorts by code, then id. They are a `families` table in the same file (`{ "name": "NotImplemented", "code":
-"COBOLNET0899" }` and `StrongType`'s), a member row carries `family: "<name>"` instead of a `code`, and the generator
+"COBOL0899" }` and `StrongType`'s), a member row carries `family: "<name>"` instead of a `code`, and the generator
 emits the two private constants from the table and `Code = NotImplemented` in each member, so each family's code is
 written once. **`suppressKeys`** is the same shape for the suppression keys: rows share the two PUBLIC constants
 `RecognizedNotImplemented` (`"recognized-not-implemented"`) and `DeclinedOptionalElement`
@@ -1173,7 +1173,7 @@ generated collection expression sorted as today (by code, then id: `DiagnosticCa
 only a test can do: rows ↔ `.g.cs` ↔ `.md` agree, no two rows share a code except through `twinOf` or a `family`
 (the two sanctioned sharings: a family's members are exempt exactly as `SharedCodes` exempts them today, and the
 test reads the families table instead of its hand list), every `twinOf` names a row, every `family` names a
-families entry, every `suppressKey` names a `suppressKeys` entry, and no `COBOLNETnnnn` literal is emitted outside the generated files. The two
+families entry, every `suppressKey` names a `suppressKeys` entry, and no `COBOLnnnn` literal is emitted outside the generated files. The two
 descriptor records stay two types: they serve two reporting channels with different contracts (a positional message
 template in the front end's bag; a title, a citation and the suppression and permissive behaviour in the edition
 catalog), and the duplicated RULE — code allocation — is unified by the one file. PB1708's lesson is honored as stated
@@ -1257,7 +1257,7 @@ gates are per-walk instances it creates and hold no state of their own, so nothi
 `VisitDebuggingModeClause`, `:721-727`, read by the procedure fragment's declarative-section visit and by the word
 check, `:2598`, and RESET at each program unit, `:627-630`); the flagged-word set that reports the reserved-word
 diagnostic once per word (`_flaggedWords`, `:616`, read by both of the word gate's contexts, `:2600` and `:2639`); and
-the over-long-word set that reports COBOLNET1567 once per word (`_overlongWords`, `:618`, `:2524-2544`). The core
+the over-long-word set that reports COBOL1567 once per word (`_overlongWords`, `:618`, `:2524-2544`). The core
 skeleton keeps its own gate, `CompilationGroupConstructGate`, which owns the contexts the core still defines after the
 regroup (`programUnit` and the §10 shells, `CobolParserCore.g4:62`); its `ProgramUnitContext` check calls
 `walk.BeginProgramUnit()`, the walk's one method that resets the per-unit posture, so the second program of a
@@ -1437,7 +1437,7 @@ transitive scan), the rule finds these members: `is85`, `is2002`, `is2014`, `is2
 `facilityWord` (`:557-563`) and `screenPositionAhead` (`:288-298`, COL, COLS and COLUMNS), both through `reservedHere`;
 `keywordContinuesHere` (`:437`) through `IsKeywordReadingHere` (`:467`); `userWordHere` (`:371-375`); the action
 `gatedDeclaration` (`:389-392`, through `userWordHere`) and `NoteGatedOffender` (`:401-404`, called by the
-authoritative pass's syntax-error listener); and `ReservedUserWordViolation` (`:545-554`, the COBOLNET0901 message, not
+authoritative pass's syntax-error listener); and `ReservedUserWordViolation` (`:545-554`, the COBOL0901 message, not
 a predicate); the `DialectLevel` setter shim is deleted (the front end sets `Edition`, both axes). And these sites: five spelled `{isXXXX()}?` —
 `| {is2023()}? LOCATION` (`CobolControlFlow.g4:66`), `| {is2002()}? validationClause` (`CobolData.g4:379`),
 `({is2002()}? validateValidPhrase)?` (`CobolData.g4:828`), `| {is2023()}? applyCommitClause` (`CobolIO.g4:334`) and

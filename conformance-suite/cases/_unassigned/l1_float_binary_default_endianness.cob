@@ -59,7 +59,7 @@
       *> The FLOAT-DECIMAL half of item 48 (11.9.9.3 SR6) does not
       *> arise: the standard DECIMAL floating-point usages are
       *> documented processor-dependent non-support, rejected with
-      *> COBOLNET1564 (pinned by
+      *> COBOL1564 (pinned by
       *> FloatFamilyTests.ProcessorDependent_Rejected1564), so no
       *> default encoding or endianness is ever implied for one.
        IDENTIFICATION DIVISION.

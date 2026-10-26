@@ -11,7 +11,7 @@
       *> An arithmetic expression has no description whose characters could be
       *> copied (a numeric literal has its own digits), so the BY CONTENT
       *> expression N3 * 2 into the 4-character group method formal is
-      *> COBOLNET0828.
+      *> COBOL0828.
        IDENTIFICATION DIVISION.
        CLASS-ID. PB1946GK INHERITS FROM BASE.
        ENVIRONMENT DIVISION.

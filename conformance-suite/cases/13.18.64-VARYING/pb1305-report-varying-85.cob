@@ -7,7 +7,7 @@
       *> kb/Work PB1305 - the report VARYING clause (§13.18.64) is a
       *> COBOL-2002 introduction; COBOL-85 has no VARYING clause in a
       *> report group description entry, so the clause is refused at
-      *> 85 by its introduction gate (COBOLNET0900). The positive twins
+      *> 85 by its introduction gate (COBOL0900). The positive twins
       *> are conformance:cases/13.18.64-VARYING/pb1305_report_varying_expression and
       *> conformance:cases/13.18.64-VARYING/pb1305_report_varying_standard_decimal.
       *> "Each entry containing a VARYING clause establishes an

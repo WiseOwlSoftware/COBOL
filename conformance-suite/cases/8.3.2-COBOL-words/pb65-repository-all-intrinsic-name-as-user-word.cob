@@ -8,7 +8,7 @@
       *> identified): a paragraph named MOD, an index-name ABS and a file-name LENGTH-OF are user-defined words
       *> spelling identified intrinsic-function-names (LENGTH itself is a reserved word). kb/Work PB65
       *> (FMT-15.58.2): `01 LOWEST-ALGEBRAIC PIC S999 VALUE -12.` compiled clean under FUNCTION ALL INTRINSIC.
-      *> COBOLNET1649 at each declaration funnel.
+      *> COBOL1649 at each declaration funnel.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB65NR5ALL.
        ENVIRONMENT DIVISION.

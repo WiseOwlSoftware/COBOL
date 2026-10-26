@@ -13,7 +13,7 @@
       *> unit"; 13.18.40.4 GR14: "The first occurrence of the currency symbol adds the number of characters in
       *> the currency string to the size of the item. Each subsequent occurrence of the currency symbol adds
       *> one to the size of the item." Before this landing the binder held ONE symbol and ONE string per unit:
-      *> a multi-character literal-7 was refused (COBOLNET0896 "not yet supported"), a second clause overwrote
+      *> a multi-character literal-7 was refused (COBOL0896 "not yet supported"), a second clause overwrote
       *> the first, and the implied '$' died the moment any clause bound another symbol.
       *> FU:  fixed insertion (13.18.40.5 r5) - PIC U9.99 with "USD" is 7 characters: USD5.25.
       *> FLU: floating insertion (r6a) - PIC UUU9 is 6 characters; the ONE rendered occurrence sits before the

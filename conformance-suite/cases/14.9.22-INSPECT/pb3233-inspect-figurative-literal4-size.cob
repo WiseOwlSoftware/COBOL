@@ -9,7 +9,7 @@
       *> constant". SPACE as literal-4 is "an implicit one character
       *> data item" (SR3), and "QR" is two characters. It compiled
       *> clean and converted each space to Q.
-      *> Expected: COBOLNET0846 at every edition.
+      *> Expected: COBOL0846 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG3233C4.
        DATA DIVISION.

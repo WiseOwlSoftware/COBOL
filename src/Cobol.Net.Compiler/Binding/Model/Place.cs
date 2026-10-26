@@ -440,7 +440,7 @@ public sealed record SlotWindow(AccessPath Cell) : CellWindowCoding(Cell)
     /// <see cref="NationalWindow.PositionsOf"/> model — the gate and the geometry must not be able to disagree
     /// about the population). It is the three pointer/object PICTURE categories the model gives a managed
     /// carrier: data-pointer, program-pointer and object reference. USAGE FUNCTION-POINTER and USAGE MESSAGE-TAG
-    /// are NOT here because they gain no <c>PicInfo</c> at all (the staged §13.18.60 USAGE band, COBOLNET0899);
+    /// are NOT here because they gain no <c>PicInfo</c> at all (the staged §13.18.60 USAGE band, COBOL0899);
     /// they reach <c>DataBinder.ByteWindowResidueOf</c>'s "no bound representation" arm instead, and the day
     /// their stage lifts this predicate is where they join.
     /// <para>⚠ A REDEFINES class can never contain such a member on conforming source, which is why
@@ -908,7 +908,7 @@ public sealed record NatImagePlace(Place Inner) : PlaceDecorator(Inner);
 /// SR31), so <see cref="RegisterItem"/> carries a native-binary <see cref="PicInfo"/> (scale 0) and the numeric
 /// pipeline reads it as a scale-0 integer with no profile. The register is set ONLY by SET Format 14 (which emits
 /// <c>SetCapacity</c>/<c>CapacityUpBy</c>/<c>CapacityDownBy</c> directly); an ordinary store receiver is rejected
-/// COBOLNET1523 at bind time (SR30–32), so <c>PlaceRenderer.Write</c> of this place is an internal-error backstop.
+/// COBOL1523 at bind time (SR30–32), so <c>PlaceRenderer.Write</c> of this place is an internal-error backstop.
 /// </summary>
 public sealed record CapacityRegisterPlace(AccessPath Table, DataItem RegisterItem) : Place
 {

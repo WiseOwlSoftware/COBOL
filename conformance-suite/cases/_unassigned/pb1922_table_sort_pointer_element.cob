@@ -18,7 +18,7 @@
       *> A table element is the whole of its description, pointer and all: the sorted elements are what GR24 places, so a
       *> pointer travels with the key beside it. The pointer's value is a managed reference in the BASED area's slot,
       *> not part of the byte image the element's other items occupy (kb/Work PB231); before this change the statement
-      *> was deferred (COBOLNET1756) and aborted the run unit, though every other shared-storage table sorted.
+      *> was deferred (COBOL1756) and aborted the run unit, though every other shared-storage table sorted.
       *> The pointer is spelled legally: USAGE POINTER is admitted below level 1 only inside a STRONG type declaration
       *> (§13.18.60.3 SR14), so the table is a strongly-typed group and the BASED record takes its type.
       *>

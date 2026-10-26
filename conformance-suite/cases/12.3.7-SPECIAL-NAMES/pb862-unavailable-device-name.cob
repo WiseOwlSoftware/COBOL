@@ -10,7 +10,7 @@
       *> one of them.  Before the table this entry compiled and registered PRT as the mnemonic of a device
       *> named CONSOEL; the typo surfaced only at the DISPLAY that used it, as a device "not capable of
       *> receiving data" - and a program that declared the entry but never used it compiled clean.  The
-      *> refusal is now at the DECLARATION, by name: COBOLNET2241.
+      *> refusal is now at the DECLARATION, by name: COBOL2241.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB862DEV.
        ENVIRONMENT DIVISION.

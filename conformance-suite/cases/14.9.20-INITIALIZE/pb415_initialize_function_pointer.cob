@@ -22,7 +22,7 @@
       *> kb/Work PB415 — the COBOL-2014 INITIALIZE category-name FUNCTION-POINTER (ISO §14.9.20.2), at its own
       *> introduction edition. §8.9 reserves FUNCTION-POINTER from 2014, which is the same edition that
       *> introduced the USAGE FUNCTION-POINTER category (§13.18.60); below 2014 the word is refused
-      *> COBOLNET0900 by the initialize-category-2014 construct row.
+      *> COBOL0900 by the initialize-category-2014 construct row.
       *>
       *> ⛔ FUNCTION-POINTER IS THE ASYMMETRIC ONE, AND THE ASYMMETRY IS THE PRINTED STANDARD (PB418 verified it
       *> against the licensed PDF at folio 639): §14.9.20.4 GR4's SET-form list, GR6a1's sender list and GR6c's

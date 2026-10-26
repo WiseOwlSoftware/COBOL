@@ -12,7 +12,7 @@
 *>
 *> DET-A is described in BOTH report description entries, and BOTH the USE BEFORE REPORTING declarative and
 *> the GENERATE name it WITHOUT the report-name qualifier §8.4.2.2.2 Format 1 provides.  Each is an ambiguous
-*> reference and each is COBOLNET1920.  Rejected at EVERY edition: the uniqueness rule has no introduction
+*> reference and each is COBOL1920.  Rejected at EVERY edition: the uniqueness rule has no introduction
 *> edition and the Report Writer module carries it in all four.  Before kb/Work PB365 this program compiled
 *> with ZERO diagnostics and bound both references to R-A's group, purely because R-A is written first.
        IDENTIFICATION DIVISION.

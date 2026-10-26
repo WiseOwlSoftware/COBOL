@@ -11,15 +11,15 @@
       *> alphanumeric group item (13.18.29.4 GR3), and B1 is USAGE BIT - 13.18.60.4 GR5: "The USAGE BIT clause
       *> specifies that bits shall be used to represent a boolean data item."  Not DISPLAY, so not conforming.
       *> ⛔ WHAT THIS FIXTURE PINS IS THE ATTRIBUTION.  Until kb/Work PB207 landed, this program was rejected
-      *> with COBOLNET0899 - "the 13.18.63.4 GR5 area deposit for a bit-packed group is not yet implemented" -
+      *> with COBOL0899 - "the 13.18.63.4 GR5 area deposit for a bit-packed group is not yet implemented" -
       *> because the PB207 staging screened on DataItem.HasBitDescendant and sat in FRONT of the SR14 arm.  The
       *> program is not a compiler gap; it is non-conforming source, and telling a programmer otherwise sends
       *> them to wait for a feature instead of to their own declaration.  The CONFORMING half of that same
       *> screen - a GROUP-USAGE BIT group, whose members ARE usage bit by 13.18.29.3 SR2 and which 13.18.63.3 SR14's
       *> alphanumeric scoping therefore does not reach - is implemented and pinned by the positive golden
       *> conformance-suite/cases/13.18.63-VALUE/pb207_bit_group_value.cob.
-      *> MEASURED AT ALL FOUR EDITIONS: COBOLNET1702 is reported at every one.  At --std 85 the boolean-data
-      *> gate COBOLNET0900 is reported ALONGSIDE it, not instead of it - a syntax rule the standard has
+      *> MEASURED AT ALL FOUR EDITIONS: COBOL1702 is reported at every one.  At --std 85 the boolean-data
+      *> gate COBOL0900 is reported ALONGSIDE it, not instead of it - a syntax rule the standard has
       *> carried since 1985 does not stop applying because the item's usage is a later introduction.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB207N1.

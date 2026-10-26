@@ -77,7 +77,7 @@ public sealed class UsageClausePhraseDriftTests : CobolNetTestBase
         ["PACKED_DECIMAL"] = [UsagePhrase.NoSign],
         ["INDEX"] = [],
         // USAGE MESSAGE-TAG (kb/Work PB487): the printed line is the bare word; the usage is DECLINED non-support
-        // (Annex A.3 item 4) and refused by name, COBOLNET1943.
+        // (Annex A.3 item 4) and refused by name, COBOL1943.
         ["MESSAGE_TAG"] = [],
         ["NATIONAL"] = [],
         ["BIT"] = [],
@@ -213,7 +213,7 @@ public sealed class UsageClausePhraseDriftTests : CobolNetTestBase
     public void TheRule_IsWrittenOnlyInTheTable()
     {
         var refusalNames = new Regex(@"\b(UsageSignPhraseScope|UsageNoSignPhraseScope|UsageEndiannessPhraseScope"
-            + @"|UsageEncodingPhraseScope)\b|""COBOLNET(4733|1565|1716|1717)""");
+            + @"|UsageEncodingPhraseScope)\b|""COBOL(4733|1565|1716|1717)""");
         var phraseReaders = new Regex(@"\.(binarySign|noSignPhrase|floatFormatPhrase)\(\)");
         var offenders = new List<string>();
         foreach (string file in Directory.EnumerateFiles(TestRepo.Src(), "*.cs", SearchOption.AllDirectories))
@@ -243,7 +243,7 @@ public sealed class UsageClausePhraseDriftTests : CobolNetTestBase
     /// <summary>How each grammar rule that hosts <c>usageClause</c> is probed: a program that writes one entry per
     /// <see cref="UsagePhrase"/> (named <c>R-1</c>, <c>R-2</c>, …, each <c>USAGE DISPLAY</c> plus that phrase) in
     /// that host, or <see langword="null"/> for a host whose whole module is declined (the screen description
-    /// entry, Annex A.4.2, refused by <c>ScreenFacility</c> as COBOLNET1560).</summary>
+    /// entry, Annex A.4.2, refused by <c>ScreenFacility</c> as COBOL1560).</summary>
     private static readonly Dictionary<string, Func<string, string, string>?> UsageClauseHosts = new(StringComparer.Ordinal)
     {
         // §13.16.2 format 1: a data description entry.
@@ -309,7 +309,7 @@ public sealed class UsageClausePhraseDriftTests : CobolNetTestBase
             if (build is null)
             {
                 var declined = CompileText($"host-{host}", 2023, id => ScreenProgram(id));
-                Assert.Contains(declined, e => e.Contains("COBOLNET1560", StringComparison.Ordinal)
+                Assert.Contains(declined, e => e.Contains("COBOL1560", StringComparison.Ordinal)
                     && e.Contains("the USAGE clause of a screen description entry", StringComparison.Ordinal));
                 continue;
             }
@@ -330,7 +330,7 @@ public sealed class UsageClausePhraseDriftTests : CobolNetTestBase
     }
 
     /// <summary>kb/Work PB3517's repro, verbatim in substance: three entries, each writing SIGNED / UNSIGNED on a
-    /// usage whose line prints no such phrase, draw ONE COBOLNET4733 EACH and nothing else of the family. Before the
+    /// usage whose line prints no such phrase, draw ONE COBOL4733 EACH and nothing else of the family. Before the
     /// fix the program compiled clean and printed <c>07 AB -005</c>.</summary>
     [Fact]
     public void SignPhraseOnNonBinaryUsages_DrawsOneRefusalPerEntry_PinnedToSpec()
@@ -340,10 +340,10 @@ public sealed class UsageClausePhraseDriftTests : CobolNetTestBase
                    01 WS-X PIC X(2) USAGE DISPLAY SIGNED VALUE "AB".
                    01 WS-P PIC S9(3) PACKED-DECIMAL UNSIGNED VALUE -5.
             """, 2014);
-        Assert.Equal(3, errors.Count(e => e.Contains("COBOLNET4733", StringComparison.Ordinal)));
+        Assert.Equal(3, errors.Count(e => e.Contains("COBOL4733", StringComparison.Ordinal)));
         Assert.Equal(3, errors.Count);
         foreach (string entry in new[] { "'WS-U'", "'WS-X'", "'WS-P'" })
-            Assert.Contains(errors, e => e.Contains(entry, StringComparison.Ordinal) && e.Contains("COBOLNET4733"));
+            Assert.Contains(errors, e => e.Contains(entry, StringComparison.Ordinal) && e.Contains("COBOL4733"));
     }
 
     /// <summary>The negative direction, one usage per phrase that does not print it, each drawing the phrase's own
@@ -383,7 +383,7 @@ public sealed class UsageClausePhraseDriftTests : CobolNetTestBase
 
     /// <summary>The positive direction: a usage whose printed line carries a phrase ACCEPTS it, clean. The
     /// endianness-phrase on FLOAT-BINARY-128 / FLOAT-DECIMAL-16/-34 is applicable too, but those usages are
-    /// documented non-support (COBOLNET1564, Annex A.3 items 17/19), so they cannot supply a clean compile.</summary>
+    /// documented non-support (COBOL1564, Annex A.3 items 17/19), so they cannot supply a clean compile.</summary>
     [Theory]
     [InlineData("USAGE BINARY-CHAR SIGNED")]
     [InlineData("USAGE BINARY-CHAR UNSIGNED")]
@@ -410,46 +410,46 @@ public sealed class UsageClausePhraseDriftTests : CobolNetTestBase
     public void RepeatedFloatPhrase_Rejects_ButOrderIsFree_PinnedToSpec()
     {
         var repeated = CompileAt("rep", "01 W USAGE FLOAT-BINARY-32 HIGH-ORDER-LEFT HIGH-ORDER-RIGHT.", 2023);
-        Assert.Contains(repeated, e => e.Contains("COBOLNET1718", StringComparison.Ordinal));
+        Assert.Contains(repeated, e => e.Contains("COBOL1718", StringComparison.Ordinal));
 
         // FLOAT-DECIMAL-16 is the only line that prints BOTH float phrases, so it is the only place the any-order
-        // rule is observable. The usage is documented non-support (COBOLNET1564) — assert that the ONLY complaint is
-        // that non-support, in EITHER order: no COBOLNET1716/1717/1718.
+        // rule is observable. The usage is documented non-support (COBOL1564) — assert that the ONLY complaint is
+        // that non-support, in EITHER order: no COBOL1716/1717/1718.
         foreach (string order in new[] { "BINARY-ENCODING HIGH-ORDER-RIGHT", "HIGH-ORDER-RIGHT BINARY-ENCODING" })
         {
             var errors = CompileAt("ord-" + order.Replace(' ', '-'), $"01 W USAGE FLOAT-DECIMAL-16 {order}.", 2023);
-            Assert.Contains(errors, e => e.Contains("COBOLNET1564", StringComparison.Ordinal));
-            Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1716", StringComparison.Ordinal));
-            Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1717", StringComparison.Ordinal));
-            Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1718", StringComparison.Ordinal));
+            Assert.Contains(errors, e => e.Contains("COBOL1564", StringComparison.Ordinal));
+            Assert.DoesNotContain(errors, e => e.Contains("COBOL1716", StringComparison.Ordinal));
+            Assert.DoesNotContain(errors, e => e.Contains("COBOL1717", StringComparison.Ordinal));
+            Assert.DoesNotContain(errors, e => e.Contains("COBOL1718", StringComparison.Ordinal));
         }
     }
 
     /// <summary>The 2014 introduction gate (constructs.json <c>usage-float-format-phrase-2014</c>): the phrase is a
     /// 2014 language element in its own right — Annex A.3 item 18 names it separately from item 17's usages — so it
-    /// draws COBOLNET0900 below 2014 and nothing at 2014+.</summary>
+    /// draws COBOL0900 below 2014 and nothing at 2014+.</summary>
     [Fact]
     public void EndiannessPhrase_IsGatedAt2014_PinnedToSpec()
     {
         const string source = "01 W USAGE FLOAT-BINARY-32 HIGH-ORDER-RIGHT.";
-        Assert.Contains(CompileAt("gate2002", source, 2002), e => e.Contains("COBOLNET0900", StringComparison.Ordinal));
-        Assert.DoesNotContain(CompileAt("gate2014", source, 2014), e => e.Contains("COBOLNET0900", StringComparison.Ordinal));
-        Assert.DoesNotContain(CompileAt("gate2023", source, 2023), e => e.Contains("COBOLNET0900", StringComparison.Ordinal));
+        Assert.Contains(CompileAt("gate2002", source, 2002), e => e.Contains("COBOL0900", StringComparison.Ordinal));
+        Assert.DoesNotContain(CompileAt("gate2014", source, 2014), e => e.Contains("COBOL0900", StringComparison.Ordinal));
+        Assert.DoesNotContain(CompileAt("gate2023", source, 2023), e => e.Contains("COBOL0900", StringComparison.Ordinal));
     }
 
     /// <summary>The SIGNED / UNSIGNED phrase exists only on the COBOL-2002 fixed-width binary usages, so it needs no
     /// gate of its own: below 2002 the usage word draws its introduction gate, and on any other usage the phrase is
-    /// refused at every edition by the table (COBOLNET4733) — the words are not reserved before 2002, and the
+    /// refused at every edition by the table (COBOL4733) — the words are not reserved before 2002, and the
     /// refusal does not depend on that.</summary>
     [Fact]
     public void SignPhrase_IsRefusedOffTheBinaryUsages_AtEveryEdition_PinnedToSpec()
     {
         foreach (int dialect in new[] { 85, 2002, 2014, 2023 })
             Assert.Contains(CompileAt($"ed{dialect}", "01 W PIC 9(4) USAGE COMP UNSIGNED.", dialect),
-                e => e.Contains("COBOLNET4733", StringComparison.Ordinal));
+                e => e.Contains("COBOL4733", StringComparison.Ordinal));
         Assert.Empty(CompileAt("ed2002pos", "01 W USAGE BINARY-SHORT UNSIGNED.", 2002));
         Assert.Contains(CompileAt("ed85pos", "01 W USAGE BINARY-SHORT UNSIGNED.", 85),
-            e => e.Contains("COBOLNET0900", StringComparison.Ordinal));
+            e => e.Contains("COBOL0900", StringComparison.Ordinal));
     }
 
     /// <summary>A PROGRAM-ID unique per fixture — .NET serves a STALE same-named assembly otherwise, so a shared name

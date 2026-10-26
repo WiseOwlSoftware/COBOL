@@ -56,7 +56,7 @@ public enum DebugCause
 ///     02  FILLER         PIC X   VALUE SPACE.
 ///     02  DEBUG-CONTENTS PIC X(30).  *> implementor-defined width (WiseOwl COBOL pins 30, enough for every
 ///                                    *> procedure-trigger DEBUG-CONTENTS token; the data/file record-image
-///                                    *> legs are staged — see COBOLNET1571).
+///                                    *> legs are staged — see COBOL1571).
 /// </code>
 /// </summary>
 public sealed class DebugItem
@@ -116,7 +116,7 @@ public sealed class DebugItem
 
     /// <summary>The DEBUG-CONTENTS token for a procedure-trigger cause (X3.23-1985; the DB101A-witnessed taxonomy).
     /// The SORT INPUT/OUTPUT, MERGE OUTPUT and USE PROCEDURE causes are staged — a program combining an active
-    /// debugging declarative with those is rejected COBOLNET1571 at bind, so they never reach here.</summary>
+    /// debugging declarative with those is rejected COBOL1571 at bind, so they never reach here.</summary>
     private static string ContentsFor(DebugCause cause) => cause switch
     {
         DebugCause.StartProgram => "START PROGRAM",

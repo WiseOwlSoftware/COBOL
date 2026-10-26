@@ -134,7 +134,7 @@ public sealed class FileCollatingSequenceSpecTests
     {
         var diagnostics = EditionHarness.GetDiagnostics(
             Program("FCS005", "COLLATING SEQUENCE OF IX-KEY IX-KEY IS REV"), 85);
-        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOL0900");
         EditionHarness.AssertNoDiagnostic(diagnostics, Sr8Text);
     }
 }

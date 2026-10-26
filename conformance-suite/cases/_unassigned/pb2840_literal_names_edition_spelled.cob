@@ -14,7 +14,7 @@
       *> it in the same edition spelling the word was lexed in:
       *>   1. INVOKE O "Xς" names the method METHOD-ID. Xσ
       *>      (14.9.23.3 SR4 b: literal-1 "shall be the name of a method
-      *>      contained in the instance interface"); it was COBOLNET0825.
+      *>      contained in the instance interface"); it was COBOL0825.
       *>   2. CALL "Zς" reaches PROGRAM-ID. Zσ (14.9.4.4 GR3 b:
       *>      the program named by the literal is located; it was
       *>      EC-PROGRAM-NOT-FOUND).

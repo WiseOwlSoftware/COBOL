@@ -10,7 +10,7 @@
       *> QUALIFIED — §8.4.2.2.1: "Identical user-defined names may be specified in a source unit; however,
       *> uniqueness shall be established through qualification for each user-defined name explicitly
       *> referenced". The capture used to be the whole reference's text, so CNT OF G1 became the undefined
-      *> name CNTOFG1 and this conforming program was REJECTED (COBOLNET0851 "not defined").
+      *> name CNTOFG1 and this conforming program was REJECTED (COBOL0851 "not defined").
       *>
       *> DERIVATION. CNT OF G1 = 2 and CNT OF G2 = 3, so only the qualifier decides which is data-name-1.
       *> §13.18.38.4 GR7: "The value of the data item referenced by data-name-1 represents the current

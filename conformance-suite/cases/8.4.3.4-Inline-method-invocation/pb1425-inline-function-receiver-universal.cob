@@ -8,7 +8,7 @@
       *>   object reference NULL nor a universal object reference shall be specified." A function-identifier
       *>   is a legal identifier-1 of an inline method invocation (8.4.3.1.3 SR1), and SR2 asks the item it
       *>   references: PB1425N3F returns a UNIVERSAL object reference, so `FUNCTION PB1425N3F (1) :: "SPEAK"`
-      *>   is refused by SR2 (COBOLNET2138) - an INVOKE statement is the form that takes a universal receiver.
+      *>   is refused by SR2 (COBOL2138) - an INVOKE statement is the form that takes a universal receiver.
        IDENTIFICATION DIVISION.
        FUNCTION-ID. PB1425N3F.
        ENVIRONMENT DIVISION.

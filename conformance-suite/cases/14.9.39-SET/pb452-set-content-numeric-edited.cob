@@ -9,7 +9,7 @@
       *> numeric-EDITED item its own separate category, so an edited receiver is not admitted - and this is
       *> exactly where SET format 15 is NARROWER than the HIGHEST-ALGEBRAIC / LOWEST-ALGEBRAIC functions Annex
       *> D.32 offers as its alternatives, whose 15.43.3 / 15.58.3 rule 1 admits "category numeric or
-      *> numeric-edited". Reading the rules as interchangeable would silently accept this. COBOLNET1938
+      *> numeric-edited". Reading the rules as interchangeable would silently accept this. COBOL1938
       *> (kb/Work PB452).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB452NUMERICEDITED.

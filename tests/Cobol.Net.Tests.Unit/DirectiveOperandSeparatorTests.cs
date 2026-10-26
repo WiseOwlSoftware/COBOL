@@ -55,7 +55,7 @@ public sealed class DirectiveOperandSeparatorTests
         Assert.Single(events);
     }
 
-    [Fact] // the closed-word rows too: the central COBOLNET1911 check reads the same operand, and the separator may stand
+    [Fact] // the closed-word rows too: the central COBOL1911 check reads the same operand, and the separator may stand
     // right after the directive word itself, where a space would (§8.3.5 2)).
     public void ClosedWordRow_TakesASeparatorAfterTheDirectiveWord()
     {

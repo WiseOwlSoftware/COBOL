@@ -241,7 +241,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             w.Line("if (!RunUnit.Current.DebugMode) return;   // the X3.23-1985 object-time debug switch (default ON)");
             // ⛔ THIS RE-ENTRANCY GUARD IS NOT §14.9.49.4 GR2's, and deliberately raises no EC-FLOW-USE (kb/Work
             // PB368 asked the question of both guards). The two are EDITION-DISJOINT: USE FOR DEBUGGING is the
-            // X3.23-1985 declarative ISO 2002 deleted (`use-for-debugging-removed-2002`, COBOLNET0902), and
+            // X3.23-1985 declarative ISO 2002 deleted (`use-for-debugging-removed-2002`, COBOL0902), and
             // EC-FLOW-USE is a 2002 EC-model name — at --std 85 there is no exception-name to set, and at 2002+
             // there is no debugging declarative to re-enter. GR2's guard is EmitRunUseBody's.
             w.Line("if (__dbgBusy) return;");

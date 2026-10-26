@@ -8,7 +8,7 @@
 *> user-defined words or system-names." external-locale-name-1 (the LOCALE
 *> clause, 12.3.7.2) and entry-convention-name-1 (the ENTRY-CONVENTION
 *> clause, 11.9.7) are SYSTEM-NAMES (8.3.2.3.1); NESTED and USER-DEFAULT are 8.9-reserved
-*> from 2002 - so both slots below are refused with COBOLNET0901. The 8.9
+*> from 2002 - so both slots below are refused with COBOL0901. The 8.9
 *> funnel's retired keyword ladder exempted BOTH slots whole (it could not
 *> tell the keyword COBOL from the name beside it), so this compiled clean
 *> before PB764 split the keyword off as a `formatWord`.

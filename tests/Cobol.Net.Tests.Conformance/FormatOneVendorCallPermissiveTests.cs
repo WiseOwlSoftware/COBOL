@@ -8,7 +8,7 @@ namespace CobolNet.Tests.Conformance;
 /// kb/Work PB162 — the <c>--permissive</c> lane for the vendor spellings of a FORMAT-1 CALL. ISO §14.9.4.2
 /// Format 1 (<c>cite.py --check 14.9.4.2 "Format 1 (Program)"</c> → OK) prints <c>[BY REFERENCE] {identifier-2}</c>
 /// and <c>BY CONTENT {identifier-2}</c> and nothing else: no BY VALUE, no literal, no expression. Those belong to
-/// Format 2, which the AS phrase selects. Strict keeps PB130's ISO-correct narrowing (COBOLNET0899, an error);
+/// Format 2, which the AS phrase selects. Strict keeps PB130's ISO-correct narrowing (COBOL0899, an error);
 /// <c>--permissive</c> reports the same code as a WARNING and binds the argument with the Format-2 semantics the
 /// spelling plainly intends — a literal or expression crosses as a detached BY CONTENT value, BY VALUE as the Value
 /// mode. GnuCOBOL accepts all of these on a CALL naming no prototype, and IBM / Micro Focus accept BY VALUE and a
@@ -74,7 +74,7 @@ public sealed class FormatOneVendorCallPermissiveTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Program, 2023);
         Assert.False(ok, "ISO §14.9.4.2 Format 1 admits identifier-2 only");
-        Assert.Equal(6, errors.Count(e => e.Contains("COBOLNET0899")));
+        Assert.Equal(6, errors.Count(e => e.Contains("COBOL0899")));
     }
 
     /// <summary><c>--permissive</c>: six warnings under the same code, and each argument binds as the Format-2
@@ -84,7 +84,7 @@ public sealed class FormatOneVendorCallPermissiveTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(Program, 2023, permissive: true);
         Assert.True(ok, $"--permissive must accept the vendor spellings: {string.Join("\n", errors)}");
-        Assert.Equal(6, warnings.Count(w => w.Contains("COBOLNET0899") && w.Contains("--permissive")));
+        Assert.Equal(6, warnings.Count(w => w.Contains("COBOL0899") && w.Contains("--permissive")));
 
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(Program, 2023, permissive: true);
         Assert.True(ranOk, detail);

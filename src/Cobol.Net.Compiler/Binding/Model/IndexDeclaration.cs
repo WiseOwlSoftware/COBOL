@@ -13,7 +13,7 @@ namespace CobolNet.Binding.Model;
 /// insert, so two tables that each declared <c>INDEXED BY IX</c> silently SHARED one C# cell, a written
 /// <c>IX</c> compiled with no §8.4.2.2.3 SR1 ambiguity diagnostic, and the SR6 form that disambiguates it
 /// (<c>IX OF EA</c>) was "not defined". A TYPE referenced twice cloned one index-name onto two tables and was
-/// refused outright (the former COBOLNET1531 stage) for the same reason.</para></summary>
+/// refused outright (the former COBOL1531 stage) for the same reason.</para></summary>
 /// <param name="Name">The index-name as declared (compared case-insensitively, §8.1.3.2 GR3 a)).</param>
 /// <param name="Table">The OCCURS entry whose INDEXED BY phrase declares it — the first qualifier SR6 admits.</param>
 /// <param name="Cell">The C# <c>long</c> member holding the occurrence number (COBOLNET_DESIGN §3.5).</param>

@@ -39,7 +39,7 @@ Algorithm (port legacy ResolveQualifiedName): resolve the rightmost qualifier Z 
 == 4. SUBSCRIPTING / INDEXING, ISO §8.4.2.3 ==
 OCCURS dimensions are collected by walking item→ancestors (legacy LocationResolver does exactly this). COBOL subscripts are 1-BASED and listed OUTER→INNER (`T(outer, inner)`); C# arrays are 0-based — so each subscript emits as `[expr - 1]`. Multi-dim: COBOL-85 caps a table at 7 dimensions (the 3-dim cap was ANSI-74, out of scope); 2002+ removes the fixed cap — store dims as a list, no fixed cap; >7 dims at `--std 85` ⇒ diagnostic (G1, per-edition gating section). Each dimension is a SEPARATE C# array index because a 2-D OCCURS is an array-of-structs-containing-array (`Rows[i-1].Cols[j-1]`), NOT a flattened 1-D — this is the natural .NET shape and removes all the legacy multiplier/stepSize offset arithmetic.
   • Subscript forms: ISO §8.4.2.3.2's general format has exactly THREE alternatives — `ALL`, **arithmetic-expression-1**, and `index-name-1 [ {+|-} integer-1 ]` → `idx ± lit - 1`. The middle one is the wide one and it is NOT a closed list of shapes: §8.8.1.1 admits "an identifier referencing a numeric data item, a numeric literal, the figurative constant ZERO …, such identifiers, figurative constants, and literals separated by arithmetic operators", and §8.4.3.1.2 Format 2 makes that identifier a qualified-data-name-WITH-SUBSCRIPTS — so an integer literal, a plain or qualified data-name, `I + 1`, `(A + B) / 2`, `FUNCTION INTEGER(X)` and **a subscripted identifier such as `X(1)`** are all one alternative. The resolver's direct position walk (`ReferenceResolver.BindPosition`, kb/Work PB2151) reads the parse node into a typed `Position` for the shapes that map to an ordinal term by term and is never the arbiter of what is legal: anything else routes to the D18 materializer, which binds the same node through the expression binder; what did not parse as an `arithmeticExpression` is refused by name (D18 below; DESIGN-binder-bound-tree.md §3.9).
-  • **Which names may carry a subscript, and how many — ISO §8.4.2.3.3 SR2 and SR3, and they are ONE predicate each, in `DataItem`.** SR2: the entry "shall contain an OCCURS clause **or shall be subordinate to** a data description entry that contains an OCCURS clause" = `DataItem.IsTableElement`. SR3: "the number of subscripts shall equal the number of OCCURS clauses in the description of the table element being referenced" = `DataItem.SubscriptArity`, with `SubscriptLevels()` the same walk as a list, outermost first (SR3's "order of successively less inclusive dimensions"). `ReferenceResolver.ScreenSubscriptArity` reports both by name (COBOLNET2096 / COBOLNET2097) at the ONE resolution site, so the rule reaches the SENDING and RECEIVING sides of a statement identically. It fires only on a reference that WRITES subscripts: SR5's seven exceptions all admit an OMITTED list (a SEARCH subject, a REDEFINES clause, an OCCURS KEY IS phrase, a SORT key or table subject, a screen entry's FROM/TO/USING phrase, a report SUM addend) and belong to the owning binders. ⛔ `DataItem.IsTable` is the answer to a DIFFERENT question — "does THIS entry carry an OCCURS clause", a table-RECOGNITION test — and using it where SR2 belongs is what made `Y (X(1))` a two-subscript reference (kb/Work PB877); `SubscriptAdmissionDriftTests` pins both the predicate and its single call site.
+  • **Which names may carry a subscript, and how many — ISO §8.4.2.3.3 SR2 and SR3, and they are ONE predicate each, in `DataItem`.** SR2: the entry "shall contain an OCCURS clause **or shall be subordinate to** a data description entry that contains an OCCURS clause" = `DataItem.IsTableElement`. SR3: "the number of subscripts shall equal the number of OCCURS clauses in the description of the table element being referenced" = `DataItem.SubscriptArity`, with `SubscriptLevels()` the same walk as a list, outermost first (SR3's "order of successively less inclusive dimensions"). `ReferenceResolver.ScreenSubscriptArity` reports both by name (COBOL2096 / COBOL2097) at the ONE resolution site, so the rule reaches the SENDING and RECEIVING sides of a statement identically. It fires only on a reference that WRITES subscripts: SR5's seven exceptions all admit an OMITTED list (a SEARCH subject, a REDEFINES clause, an OCCURS KEY IS phrase, a SORT key or table subject, a screen entry's FROM/TO/USING phrase, a report SUM addend) and belong to the owning binders. ⛔ `DataItem.IsTable` is the answer to a DIFFERENT question — "does THIS entry carry an OCCURS clause", a table-RECOGNITION test — and using it where SR2 belongs is what made `Y (X(1))` a two-subscript reference (kb/Work PB877); `SubscriptAdmissionDriftTests` pins both the predicate and its single call site.
   • INDEX-NAMEs (INDEXED BY): an index-name is a DISTINCT entity, NOT a data item (ISO §8.4.2.3 / §13.18.38). DECISION: an index-name → a C# `long` field holding a 1-BASED OCCURRENCE NUMBER (not a byte displacement; the legacy byte-displacement model is rejected as it leaks layout). SET idx TO n → `idx = n`; SET idx UP/DOWN BY k → `idx ±= k`; using idx as a subscript → `[idx - 1]`. (Rationale: occurrence-number semantics are layout-free and make SEARCH/SEARCH ALL emit as plain integer loops; the only observable difference — idx surviving a redefine of the table element width — is implementor-defined and not in the conformance corpus.) Index-name lives in the same static/instance scope as its table.
 
 == 5. REFERENCE MODIFICATION x(s:l), ISO §8.4.3.3 (general rules §8.4.3.3.4; spec lines 6952-7020) ==
@@ -70,7 +70,7 @@ Fixed-point = native `long` holding the UNSCALED value; scale is compile-time me
     a usage-national leaf through `NationalBytesPlace` (its UTF-16BE pairs, D-N1) — and a partial part is a
     `RefModPlace` over that image in bytes. So a REDEFINES view of another layout that puts a window boundary, or
     leaves an interior byte, on the odd byte of a national character is tiled and addressed like any other byte;
-    COBOLNET1655 "do not tile" is left to a window no leaf reaches.
+    COBOL1655 "do not tile" is left to a window no leaf reaches.
 
 == 8. REDEFINES — the storage-overlay boundary ==
 > **Canonical REDEFINES design.** The 4-tier one-canonical-backing model below is the design; the SSOT is
@@ -106,7 +106,7 @@ while staying coherent, and confines bytes to genuine mixed-USAGE puns only.
 == 10. VALUE INITIALIZATION incl. TABLES, ISO §13.18.63 / §14.9.4 ==
 Default (no VALUE): alphanumeric→spaces, numeric→0 (unscaled), index→1, pointer→null. Already implemented for flat items. Extensions needed:
   • Group with VALUE: initialize every subordinate per the group literal spread across the group's char positions (rare; the common form is per-elementary VALUE). 
-  • OCCURS with VALUE: ISO permits VALUE on a table item → every element initialized to that value (Format 1 GR9). Emit the table as `CobolTable.Fill<_T_Item>(n, o => init)`, built at run time with each element composed afresh (never an array literal with one initializer per occurrence: its text grew with the element count, and a `10000 x 10000` table was an out-of-memory compile, kb/Work PB1722). The **Format 2 (table) VALUE** (ISO §13.18.63.2, COBOL-2002) is NOT a bare one-literal-per-element positional list — it REQUIRES a `FROM (subscript-1)` phrase (optional `TO (subscript-2)`) keying a literal list to occurrence RANGES with cyclic reuse (GR13), no-TO = fill to the maximum (GR14), later-FROM-wins on overlap (GR15), and the GR16 dynamic-capacity computation. Emit per RUN of occurrences that initialize alike (`TableValueRuns.Of`, `OccurrenceRunEmit`; kb/Work PB1722): a fixed table becomes `CobolTable.Fill<_T_Item>(n, o => o switch { <= last1 => ElemInit(run1), … })`, a periodic run selecting its element by `(o - first) % period` (default outside every range — §13.18.63.4 leaves those occurrences UNDEFINED, so this is the implementation default, not a spec guarantee), a dynamic table a `CobolDynTable` opened at the GR16 initial capacity with a per-occurrence seed. **ONE PLAN serves EVERY storage lane**, and it is built in the BINDER: `DataBinder.ResolveTableValues` (`DataBinder.TableValue.cs`) validates §13.18.63.3 SR18–SR23 and resolves GR12–GR16 into a `TableValuePlan` on the entry — the OCCURS chain (`Dims`, most inclusive first, SR20's order) plus its well-formed PHRASES (FROM/TO tuples, element count, literals), O(phrases) and never an element map (kb/Work PB1722): `LiteralAt(subs)` scans the phrases last to first (GR15) and takes the literal at the element's run position modulo the list (GR13); `TableValueRuns.Of` gives the emitters the runs of occurrences that initialize alike; `RankForm` gives INITIALIZE … TO VALUE one rank range per phrase. `DataItem.ValueAt(subs)` is THE reader: it answers with the Format-1 `RawValue` (the same for every occurrence, GR9) or the Format-2 literal keyed to that tuple, so the THREE storage lanes cannot disagree about a table element's value — `ValueInitializer.InitializerFor` (the record-struct fields), `GroupImageCodec.ImageInitOf` (the character-image backings: Tier-B REDEFINES, EXTERNAL cells, BASED records, OO backings) and `GroupImageCodec.InitialBitCarrierOf` (the §8.5.1.6.3 packed BOOLEAN POSITIONS of a bit group). **Each of those two image lanes has independently dropped a format-2 VALUE**, by reading `RawValue` alone and repeating one occurrence: the character lane in kb/Work PB208, the bit carrier in PB505 (measured all-zero where the record-struct lane gave the seeded bits). `ValueFormat2Tests.AllStorageLanes_SeedTheSameOccurrences` is the drift test — it compiles each shape twice, once natively and once behind a REDEFINES alias that moves it onto its image lane, and requires the same answer (kb/Work PB208: the image lane used to read only `item.RawValue` — null for a table VALUE — and `StrRepeat` the VALUE-less default, discarding the seed silently for every image-stored leaf). **Both emit lanes thread an OCCURRENCE CONTEXT** — the subscripts of every OCCURS level entered on the way down from the record root — through `FieldInit` / `ComposedInit` / `PhysicalChildrenOf` / `ImageInitOf`, which is what lets the VALUE live on an entry SUBORDINATE to the OCCURS (SR18) and span several dimensions (GR12's odometer). Without a table VALUE in the subtree (`DataItem.ContainsTableValue` false) every level is one uniform run and one element initializer is composed, and `PhysicalModel`'s memo stands (the ~49-level CCVS nesting stays linear). **The literals are screened exactly as a format-1 literal is**: §13.18.63.3 SR2 is an ALL FORMATS rule and SR16 carries SRs 10–15 into format 2, so `DataBinder.ScreenTableValueLiterals` — at ENTRY BIND, beside the format-1 call site — puts each occurrence-literal through `DataBinder.ScreenValueLiteral`, the ONE funnel the format-1 `RawValue` takes, and stores what it returns, so the `--permissive` numeric rewrite reaches the emitter's per-occurrence override too. The GEOMETRY cannot be screened there: SR18/SR20/SR21/SR22/SR23 are written against the entry's OCCURS ANCESTORS and `DataItem.Parent` is assigned only after the entry binds — the post-forest pass is where they live (kb/Work PB505, which found ONE staged COBOLNET0899 standing in for all of them and refusing the conforming shapes alongside the violations). A GROUP entry's table VALUE is a group-level VALUE: SR13/SR14 through `CheckGroupValueDeclarations`, and §13.18.63.4 GR5's area deposit through `GroupValueSlicer.AreaOf`, which reads `ValueAt` and so deposits the area PER OCCURRENCE. Its LITERAL is screened in `CheckGroupValueDeclarations` too, against the GROUP as subject (SR13 sentence 1's category and SR4/SR5/SR10's group size sentences, through the same `ValidateValueCategory`) — that arm read only the format-1 carrier, which was harmless only while the group's table VALUE was discarded; the deposit and the screen landed together.
+  • OCCURS with VALUE: ISO permits VALUE on a table item → every element initialized to that value (Format 1 GR9). Emit the table as `CobolTable.Fill<_T_Item>(n, o => init)`, built at run time with each element composed afresh (never an array literal with one initializer per occurrence: its text grew with the element count, and a `10000 x 10000` table was an out-of-memory compile, kb/Work PB1722). The **Format 2 (table) VALUE** (ISO §13.18.63.2, COBOL-2002) is NOT a bare one-literal-per-element positional list — it REQUIRES a `FROM (subscript-1)` phrase (optional `TO (subscript-2)`) keying a literal list to occurrence RANGES with cyclic reuse (GR13), no-TO = fill to the maximum (GR14), later-FROM-wins on overlap (GR15), and the GR16 dynamic-capacity computation. Emit per RUN of occurrences that initialize alike (`TableValueRuns.Of`, `OccurrenceRunEmit`; kb/Work PB1722): a fixed table becomes `CobolTable.Fill<_T_Item>(n, o => o switch { <= last1 => ElemInit(run1), … })`, a periodic run selecting its element by `(o - first) % period` (default outside every range — §13.18.63.4 leaves those occurrences UNDEFINED, so this is the implementation default, not a spec guarantee), a dynamic table a `CobolDynTable` opened at the GR16 initial capacity with a per-occurrence seed. **ONE PLAN serves EVERY storage lane**, and it is built in the BINDER: `DataBinder.ResolveTableValues` (`DataBinder.TableValue.cs`) validates §13.18.63.3 SR18–SR23 and resolves GR12–GR16 into a `TableValuePlan` on the entry — the OCCURS chain (`Dims`, most inclusive first, SR20's order) plus its well-formed PHRASES (FROM/TO tuples, element count, literals), O(phrases) and never an element map (kb/Work PB1722): `LiteralAt(subs)` scans the phrases last to first (GR15) and takes the literal at the element's run position modulo the list (GR13); `TableValueRuns.Of` gives the emitters the runs of occurrences that initialize alike; `RankForm` gives INITIALIZE … TO VALUE one rank range per phrase. `DataItem.ValueAt(subs)` is THE reader: it answers with the Format-1 `RawValue` (the same for every occurrence, GR9) or the Format-2 literal keyed to that tuple, so the THREE storage lanes cannot disagree about a table element's value — `ValueInitializer.InitializerFor` (the record-struct fields), `GroupImageCodec.ImageInitOf` (the character-image backings: Tier-B REDEFINES, EXTERNAL cells, BASED records, OO backings) and `GroupImageCodec.InitialBitCarrierOf` (the §8.5.1.6.3 packed BOOLEAN POSITIONS of a bit group). **Each of those two image lanes has independently dropped a format-2 VALUE**, by reading `RawValue` alone and repeating one occurrence: the character lane in kb/Work PB208, the bit carrier in PB505 (measured all-zero where the record-struct lane gave the seeded bits). `ValueFormat2Tests.AllStorageLanes_SeedTheSameOccurrences` is the drift test — it compiles each shape twice, once natively and once behind a REDEFINES alias that moves it onto its image lane, and requires the same answer (kb/Work PB208: the image lane used to read only `item.RawValue` — null for a table VALUE — and `StrRepeat` the VALUE-less default, discarding the seed silently for every image-stored leaf). **Both emit lanes thread an OCCURRENCE CONTEXT** — the subscripts of every OCCURS level entered on the way down from the record root — through `FieldInit` / `ComposedInit` / `PhysicalChildrenOf` / `ImageInitOf`, which is what lets the VALUE live on an entry SUBORDINATE to the OCCURS (SR18) and span several dimensions (GR12's odometer). Without a table VALUE in the subtree (`DataItem.ContainsTableValue` false) every level is one uniform run and one element initializer is composed, and `PhysicalModel`'s memo stands (the ~49-level CCVS nesting stays linear). **The literals are screened exactly as a format-1 literal is**: §13.18.63.3 SR2 is an ALL FORMATS rule and SR16 carries SRs 10–15 into format 2, so `DataBinder.ScreenTableValueLiterals` — at ENTRY BIND, beside the format-1 call site — puts each occurrence-literal through `DataBinder.ScreenValueLiteral`, the ONE funnel the format-1 `RawValue` takes, and stores what it returns, so the `--permissive` numeric rewrite reaches the emitter's per-occurrence override too. The GEOMETRY cannot be screened there: SR18/SR20/SR21/SR22/SR23 are written against the entry's OCCURS ANCESTORS and `DataItem.Parent` is assigned only after the entry binds — the post-forest pass is where they live (kb/Work PB505, which found ONE staged COBOL0899 standing in for all of them and refusing the conforming shapes alongside the violations). A GROUP entry's table VALUE is a group-level VALUE: SR13/SR14 through `CheckGroupValueDeclarations`, and §13.18.63.4 GR5's area deposit through `GroupValueSlicer.AreaOf`, which reads `ValueAt` and so deposits the area PER OCCURRENCE. Its LITERAL is screened in `CheckGroupValueDeclarations` too, against the GROUP as subject (SR13 sentence 1's category and SR4/SR5/SR10's group size sentences, through the same `ValidateValueCategory`) — that arm read only the format-1 carrier, which was harmless only while the group's table VALUE was discarded; the deposit and the screen landed together.
   • Figurative constants (ZERO/SPACE/HIGH-VALUE/LOW-VALUE/QUOTE/ALL "x"): map to the typed default of the right width — ZERO→0L or "0000", SPACE→new string(' ',w), ALL "AB"→repeat to width. Capture FigurativeInit + AllLiteralPattern (legacy already models these; port).
   The whole 01 field's initializer is a single C# object-initializer expression composed recursively from the leaves — emitted in the static field declaration (program) or the instance ctor (OO), one initializer per instance.
 
@@ -140,8 +140,8 @@ Concrete kinds:
     store (a record area receiving a READ, a FILE STATUS group, CALL's copy-in/out — the WHOLE image, never GR8's current-extent slice; it unwraps an occurs-depending wrapper — kb/Work PB80:
     an FD record holding an ODO is an `OdoGroupPlace` over a class-tier window, and a `Read(record).FromImage(…)` spelled at an emitter was CS1061). No Place-based emitter spells `.FromImage(` itself (the codec generator and OoEmitter's fresh method-LINKAGE root are the record struct's own member).
     `ReferenceResolver.RefModExclusion` is THE §8.4.3.3.3 SR1 admissibility rule
-    (COBOLNET1647 for a strongly-typed / variable-length group, a numeric item of a non-DISPLAY/NATIONAL usage, an edited or numeric leaf under a strongly-typed group, an index / pointer /
-    object reference); `ExpressionBinder.ResolveReceiving` never drops a receiver silently — a DEFERRED resolver answer (kb/Work PB1030's `RefResolution`) is COBOLNET0899 recognized-not-implemented at the chokepoint, and its null always means reported. **Every verb binder states an operand's ROLE when it resolves it** (kb/Work PB881): a RECEIVING operand through `ExpressionBinder.ResolveReceiving`, every other reference through `ExpressionBinder.ResolveSending`; no binder under `Verbs/` calls `ctx.Refs.Resolve` directly (`ReceivingResolutionDriftTests`), because the receiving-operand prohibitions (§13.18.15.3 SR2 CONSTANT RECORD, §8.4.3.15.3 SR3, §8.4.3.14.3 SR2, §8.4.3.6.3 SR1, §13.10.4 GR1) are rules over the role, not over a statement — a binder that reached the resolver directly for INSPECT REPLACING, READ/RETURN INTO, a CORRESPONDING receiving group, SEARCH VARYING, INVOKE RETURNING/BY REFERENCE or a SET pointer receiver opted out of all of them.
+    (COBOL1647 for a strongly-typed / variable-length group, a numeric item of a non-DISPLAY/NATIONAL usage, an edited or numeric leaf under a strongly-typed group, an index / pointer /
+    object reference); `ExpressionBinder.ResolveReceiving` never drops a receiver silently — a DEFERRED resolver answer (kb/Work PB1030's `RefResolution`) is COBOL0899 recognized-not-implemented at the chokepoint, and its null always means reported. **Every verb binder states an operand's ROLE when it resolves it** (kb/Work PB881): a RECEIVING operand through `ExpressionBinder.ResolveReceiving`, every other reference through `ExpressionBinder.ResolveSending`; no binder under `Verbs/` calls `ctx.Refs.Resolve` directly (`ReceivingResolutionDriftTests`), because the receiving-operand prohibitions (§13.18.15.3 SR2 CONSTANT RECORD, §8.4.3.15.3 SR3, §8.4.3.14.3 SR2, §8.4.3.6.3 SR1, §13.10.4 GR1) are rules over the role, not over a statement — a binder that reached the resolver directly for INSPECT REPLACING, READ/RETURN INTO, a CORRESPONDING receiving group, SEARCH VARYING, INVOKE RETURNING/BY REFERENCE or a SET pointer receiver opted out of all of them.
   • Condition88Place(parent,valueset)  Read=`CobolCond.In(parent.Read(),…)`  Write(true)=set parent to value.
 Every verb emitter (MOVE/ADD/COMPUTE/file READ INTO/WRITE FROM/CALL USING) takes Places and never touches layout — the unification the task demands. CALL BY REFERENCE passes the receiver Place's address: since a `record struct` member or array element is a C# variable, emit `ref` (e.g. `Sub(ref WsRec.Count)`) for BY REFERENCE; BY CONTENT copies the Read(). (A ref-mod or 88 receiver cannot be passed by ref → diagnose or pass by content per ISO.)
 
@@ -218,14 +218,14 @@ PB486) and
 file-section entry, SR8 the size screen in BITS with its level-1-without-EXTERNAL exemption, SR10 no entry that defines new
 storage between data-name-2 and the subject — every entry of the resolution scope between the pair must itself be a
 redefinition, kb/Work PB2518 — SR13 no CONSTANT RECORD
-target, SR15 alignment — a subject that needs a byte boundary over a data-name-2 that begins mid-byte) are COBOLNET2739
-(SR8 keeps COBOLNET1539). The storage classification (`ClassifyRedefinesClasses`) runs after them and may assume them.
+target, SR15 alignment — a subject that needs a byte boundary over a data-name-2 that begins mid-byte) are COBOL2739
+(SR8 keeps COBOL1539). The storage classification (`ClassifyRedefinesClasses`) runs after them and may assume them.
 `ResolveRedefines` walks the COMPOSED forest (`CompositionForest`: roots, `TYPE` / `SAME AS` clones and the `TYPEDEF`
 templates, which are off `Roots`) so every redefiner has its target, but it screens only the entries the programmer WROTE
 (`ClonedFrom` null): a redefiner inside a type declaration is diagnosed once, at the declaration, used or not (kb/Work PB2518).
 
 **⛔ THE RENAMES CLAUSE'S ENTRY-LEVEL RULES ARE THE SAME SHAPE** (kb/Work PB1283; `DataBinder.RenamesEntry.cs`,
-COBOLNET2740). The operands are found by name in the owner's subtree, which includes the owner, so each resolved operand is
+COBOL2740). The operands are found by name in the owner's subtree, which includes the owner, so each resolved operand is
 ASKED what it is: `ScreenRenamesOperand` (§13.18.45.3 SR5 level 1 / 77 / the owner, SR3 the operand's own and its ANCESTORS'
 OCCURS — never the items between the endpoints, which may legally hold a table — and SR6 CONSTANT RECORD) and
 `ScreenRenamesWindowOrder` (SR11: data-name-3 neither begins before data-name-2 nor ends at or before its end, in bits for
@@ -258,7 +258,7 @@ table bounds are evaluated (`BindTableBounds`; `DataItem.TableBoundsPending` kee
 subscripts are screened against the real dimensions), with the entry's description still open, so measuring the entry
 itself or an ancestor stays the SR4 cycle. Before the item exists only a PICTURE, VALUE or DYNAMIC LENGTH clause reads a
 constant, none of which may describe a group (§13.18.40.3 SR1, §13.18.63.3 SR13), so an operand under such an entry is
-that clause's refusal plus COBOLNET1547.
+that clause's refusal plus COBOL1547.
 
 **⛔ A LENGTH PHRASE MEASURES THE COMPLETED DESCRIPTION** (kb/Work PB2465). §13.10.4 GR5/GR6 take the value "as
 specified in" the BYTE-LENGTH / LENGTH intrinsic, which measures the item as described — and four clauses that decide
@@ -286,7 +286,7 @@ that list both ways, so the clause added next is either an `integerOperand` or a
 is the one reader (`IntegerOperandText` for the full-width DYNAMIC LENGTH LIMIT, which has no host limit): the literal as
 written, or the constant's integer asked what the written literal is asked — §5.5 1)'s unsigned and nonzero default with
 the owning clause's zero permission (`IntegerOperandRules.Slots`, by OWNER, never by the carrier rule), the host limit
-(COBOLNET2427) and, for a constant that is not an integer, COBOLNET1547. Two positions need more than the grammar rule:
+(COBOL2427) and, for a constant that is not an integer, COBOL1547. Two positions need more than the grammar rule:
 LINAGE prints "data-name-1 or integer-1", so a constant-name parses as the data-name and `BindLinageClause` asks
 `ConstantOf` first (`ConstantOperandValue`, the same reader); and SYMBOLIC CHARACTERS writes its names and its ordinals
 as WORDS side by side, so `symbolicCharacterEntry` has three ordered alternatives — literal ordinals first (a program
@@ -313,7 +313,7 @@ constant-name is that constant, never an ALPHABET code-name or an external-local
 (docs/CONFORMANCE.md §7 items 181, 184). Goldens `2002/pb1942_special_names_constant_literals`,
 `negative/pb1942-currency-numeric-constant`.
 
-**⛔ A CONDITION-NAME IS A THIRD KIND OF VALUE-CLAUSE SUBJECT, and it indicates NO SIZE** (kb/Work PB598). `DataBinder.BindCondition` screens a Format-3 VALUE literal through the ONE screen the item VALUE uses (`ValidateValueCategory` — §13.18.63.3 SR4/SR5 are ALL FORMATS rules and SR24, "Syntax rules 10 and 17 above apply", carries SR10 in whole), and the screen takes the subject as a `ValueSubject` descriptor (`Binding/ValueSubject.cs`) rather than a bare size, because WHICH SUBJECT it is decides which SENTENCES of those rules bind. Each of SR4/SR5/SR10 is a sentence pair: a CLASS sentence over "the item" / "the subject of the entry", which reaches a condition-name; and a SIZE sentence naming only "an elementary item" (bounded by "the size indicated by an **explicit** PICTURE clause") and a group item. A Format-3 entry is `88 condition-name-1 value-clause .` (§13.16.2), which admits no PICTURE clause; SR33 makes that level-88 entry the subject of the entry; §8.5.1.3.2 item 3 gives a condition-name entry "no true concept of level", so it is neither of §8.5.1.3.1's record subdivisions; and §13.18.63.4 GR19 gives it its conditional variable's characteristics only **implicitly** — which is what "explicit" excludes. So `ValueSubject.ForConditionName()` carries no size, and the three level-88 call sites (the THROUGH-range pair and the singleton leg) pass it; passing the conditional variable's size instead made `01 XV PIC X. 88 XC VALUE "cd".` COBOLNET1740, a rejection of legal source and a GnuCOBOL differential flip. The standard defines what the oversize literal MEANS, which a size rule would make dead text: §8.8.4.5.3 item 2 sends the comparison to the relation-condition rules, so it never compares equal (a permanently-false condition), and §14.9.39.4 GR6 → §13.18.63.4 GR7 → §14.6.8.5 places it "with space fill or truncation to the right". Goldens `85/pb598_condition_name_value_size`, `2002/pb598_condition_name_value_size_national_bit`, and `ConditionNameValueSizeTests` for the edition axis and the drift proof that the two subjects the sentences DO name are still measured.
+**⛔ A CONDITION-NAME IS A THIRD KIND OF VALUE-CLAUSE SUBJECT, and it indicates NO SIZE** (kb/Work PB598). `DataBinder.BindCondition` screens a Format-3 VALUE literal through the ONE screen the item VALUE uses (`ValidateValueCategory` — §13.18.63.3 SR4/SR5 are ALL FORMATS rules and SR24, "Syntax rules 10 and 17 above apply", carries SR10 in whole), and the screen takes the subject as a `ValueSubject` descriptor (`Binding/ValueSubject.cs`) rather than a bare size, because WHICH SUBJECT it is decides which SENTENCES of those rules bind. Each of SR4/SR5/SR10 is a sentence pair: a CLASS sentence over "the item" / "the subject of the entry", which reaches a condition-name; and a SIZE sentence naming only "an elementary item" (bounded by "the size indicated by an **explicit** PICTURE clause") and a group item. A Format-3 entry is `88 condition-name-1 value-clause .` (§13.16.2), which admits no PICTURE clause; SR33 makes that level-88 entry the subject of the entry; §8.5.1.3.2 item 3 gives a condition-name entry "no true concept of level", so it is neither of §8.5.1.3.1's record subdivisions; and §13.18.63.4 GR19 gives it its conditional variable's characteristics only **implicitly** — which is what "explicit" excludes. So `ValueSubject.ForConditionName()` carries no size, and the three level-88 call sites (the THROUGH-range pair and the singleton leg) pass it; passing the conditional variable's size instead made `01 XV PIC X. 88 XC VALUE "cd".` COBOL1740, a rejection of legal source and a GnuCOBOL differential flip. The standard defines what the oversize literal MEANS, which a size rule would make dead text: §8.8.4.5.3 item 2 sends the comparison to the relation-condition rules, so it never compares equal (a permanently-false condition), and §14.9.39.4 GR6 → §13.18.63.4 GR7 → §14.6.8.5 places it "with space fill or truncation to the right". Goldens `85/pb598_condition_name_value_size`, `2002/pb598_condition_name_value_size_national_bit`, and `ConditionNameValueSizeTests` for the edition axis and the drift proof that the two subjects the sentences DO name are still measured.
 
 **⛔ WHICH VALUE FORMAT MAY APPEAR WHERE — TWO SETS, NOT TWO LISTS OF CONDITIONS** (kb/Work PB556, PB557).
 Both rules are stated by the standard over a CLASS of things, and both had been written as a couple of the
@@ -321,7 +321,7 @@ members. (a) §13.18.63.3 SR33 — "*Formats 3 and 5 may be specified only when 
 the entry is 88*". The grammar admits every VALUE format through ONE rule on purpose (formats 3 and 5 share
 their literal / THROUGH list), so this is a bind rule: `DataBinder.ConditionOnlyPhraseOf` is the SET of
 format-3/5-only phrases — the THROUGH phrase, `IN alphabet-name-1`, `WHEN SET TO FALSE IS literal-4`,
-`{IS INVALID | ARE VALID}` — and `BindEntry`, which binds only non-88 entries, reports **COBOLNET2167** and binds
+`{IS INVALID | ARE VALID}` — and `BindEntry`, which binds only non-88 entries, reports **COBOL2167** and binds
 nothing when one appears. Nothing screened it before: `VALUE 1 THRU 5` on a numeric level-01 entry reached the
 code generator as the glued text `1THRU5` and failed the Roslyn compilation, and `VALUE "A" THRU "C"` on an
 alphanumeric one compiled clean and stored that glued text truncated to the picture width. (b) §13.16.3 SR10 —
@@ -330,7 +330,7 @@ of which §13.18.63.3 SR9 restates four by usage (FUNCTION-POINTER, MESSAGE-TAG,
 PROGRAM-POINTER). `UsageFamilies.AdmitsNoValueLiteral` is SR10's class set spelled as the usages §8.5.2.1 Table 2
 files under those classes — INDEX, MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, PROGRAM-POINTER —
 beside `UsageFamilies.IsPictureless` and in the same shape, and it is read by TWO screens reporting ONE
-**COBOLNET2168**: `BindEntry` for the entry's own USAGE clause and `UsageInheritanceElementary` for the usage an
+**COBOL2168**: `BindEntry` for the entry's own USAGE clause and `UsageInheritanceElementary` for the usage an
 elementary item acquires from its group (§13.18.60.4 GR1), with the cited rule from ONE sentence,
 `UsageFamilies.NoValueClauseRule`. The set was first written from SR9 alone and covered two of its four usages
 (kb/Work PB557: an OBJECT REFERENCE VALUE ran clean with the literal discarded, `VALUE NULL` failed the backend);
@@ -341,7 +341,7 @@ re-derives the set from SR10 and Table 2 (and SR9's usages) out of `specs/ISO_CO
 behavioural probe cannot contradict a wrong set.
 
 **⛔ THE VALUE CLAUSE'S PLACEMENT RULES ARE ONE SCREEN** (`DataBinder.ValuePlacement`, kb/Work PB550 + PB551,
-**COBOLNET2406**). §13.18.63.3 SR12 (format 1; SR16 carries it into format 2) bars a VALUE clause in an entry
+**COBOL2406**). §13.18.63.3 SR12 (format 1; SR16 carries it into format 2) bars a VALUE clause in an entry
 that contains a REDEFINES clause or is subordinate to one; SR25 bars a format 3, 4 or 5 VALUE clause in or under
 a CONSTANT RECORD entry. Both ask one question of the entry's ancestor chain, so both are asked at the moment the
 chain exists — `BindEntries` right after an entry is attached (formats 1/2), `BindCondition` for a level-88
@@ -355,7 +355,7 @@ seeds the storage it shares), and a condition-name under a CONSTANT RECORD was l
 
 **⛔ §13.18.63.3 SR2/SR3 ARE ALL-FORMATS RULES, AND ONE FUNNEL ASKS THEM FOR EVERY FORMAT** (kb/Work PB208,
 PB586). `DataBinder.ScreenValueLiteral` is the ONE literal screen — SR2's class half (`ValidateValueCategory`),
-its range half and SR3's sign (`ValidateNumericValue`, **COBOLNET1625**, kb/Work PB3567: a literal written with EITHER
+its range half and SR3's sign (`ValidateNumericValue`, **COBOL1625**, kb/Work PB3567: a literal written with EITHER
 sign, `+5` as `-5`, is a signed literal and an unsigned subject refuses it), SR6's edition gate — and every VALUE
 literal of every format now takes it: format 1's item VALUE, format 2's per-occurrence literals, format 3's
 literal-2, both ends of a THROUGH range and literal-4 (the conditional variable's picture as the subject,
@@ -367,19 +367,19 @@ VALUE is the one direct caller of the class half left, because a group's categor
 **⛔ AND §13.18.63.3 SR30 NEEDS NO SCREEN OF ITS OWN** (kb/Work PB558) — "*Condition-name and
 content-validation formats shall not be specified in the report section*" is a CONSEQUENCE of two rules each
 screened where it belongs: SR33 confines those formats to level 88, and §13.18.33.3 SR4 bounds report group
-description entries to level-numbers 1 through 49 (**COBOLNET1746**, `LevelNumberPass`, over the whole parse
+description entries to level-numbers 1 through 49 (**COBOL1746**, `LevelNumberPass`, over the whole parse
 tree). The conjunction is exact, so a third screen would report the same source line twice. The
-content-validation half is separately answered by the declined A.4.14 facility (COBOLNET1708).
+content-validation half is separately answered by the declined A.4.14 facility (COBOL1708).
 
-**⛔ A VALUE OPERAND IS A LITERAL POSITION, AND ONE SCREEN SAYS SO FOR EVERY FORMAT** (kb/Work PB732). Every general format of the VALUE clause writes *literal-n* in every operand position (§13.18.63.2 — Format 1 `literal-1`, Format 2 `{literal-1}…`, Format 3 `literal-2 [THROUGH literal-3]` **and its second position `[WHEN SET TO FALSE IS literal-4]`**, Format 4 `{literal-1}…`, Format 5 `literal-5 [THROUGH literal-6]`; verified against the printed general-format figures, not only the transcription). The `valueClauseOperand : unaryExpression | nonNumericLiteral` grammar is a deliberate SUPERSET — a constant-name and a symbolic-character are spelled as ordinary user words, and only the symbol tables tell them from a data-name — so this is a BIND rule, never a grammar screen. `DataBinder.IsLiteralValueOperand` is that rule, PURE (no folding, no diagnostics) so a caller may ask about an operand it will not read: it admits a literal, a keyword figurative constant (§8.3.3.6.3 SR1 — "A figurative constant may be used whenever 'literal' appears in a format"), `ALL symbolic-character-1` whose word §8.3.3.6.3 SR4 requires to be a SYMBOLIC CHARACTERS name, a bare symbolic-character, a constant-name (§13.10.3 SR2), and a numeric literal under its written sign (§8.3.3.3.2 rule 2). `DataBinder.ReportNonLiteralValueOperand` is the ONE report, deduped per operand node: a BARE word draws **COBOLNET1639** (the position admits a constant-name or a symbolic-character and the word is neither, so it identifies no resource — §8.4.2.1), any other non-literal shape draws **COBOLNET1902** (nothing is undefined; the general format itself is violated — §13.18.63.2 / §4.2.2). `RawValueOperandText` asks the predicate FIRST and returns null on failure, so the compile fails with a named diagnostic and the emitter never sees the operand. **Every caller threads it** — `BindCondition`'s singleton and THROUGH legs, its `ScreenFalsePhraseOperand` (literal-4), `BindEntry`'s Format-1 funnel through `ExtractValue`, `BuildTableValueSpecs` (Format 2), and `DataBinder.Reports`' Format-4 entry — because the sink was the reader's last arm, an unconditional `op.GetText()`: an undefined word became an alphanumeric literal OF ITS OWN SPELLING on an alphanumeric subject (`01 C4 PIC X(7) VALUE NOSUCHW.` ran to exit 0 and printed `NOSUCHW`, a silent wrong answer) and reached Roslyn as a C# identifier on a numeric one (`CS0103`, exit 70). This is the DATA-DIVISION arm of the R30 "a word that names nothing" chokepoint: `ReferenceResolver.Resolve` closes the PROCEDURE DIVISION arm, and the VALUE clause never entered it because it resolves its own operands. The other three §13.10.3 SR2 literal-position seams — `IntegerOperandValue` (every integer-n position: the OCCURS bounds, the report-writer operands since kb/Work PB1947 and, since PB1948, RESERVE, BLOCK CONTAINS, RECORD CONTAINS, DYNAMIC LENGTH LIMIT, PICTURE LOCALE SIZE, LINAGE and the SYMBOLIC CHARACTERS ordinals), `ExpandPicConstants`, `ConstantValueRawText` — already reported an undefined word; VALUE was the only one that did not. **literal-4 also needed the GRAMMAR widened, and the widening and the screen are one change**: the `[WHEN SET TO FALSE IS literal-4]` phrase wrote its operand as the narrow `literal` rule, so the two word spellings a literal position admits died as a PARSE error — `88 CN VALUE 1 WHEN SET TO FALSE IS K` with K a constant-name gave COBOL0001 + COBOL0309 "A literal value is expected here, not a data-name", a rejection of conforming source under §13.10.3 SR2. The phrase is now its own grammar rule, `valueClauseFalsePhrase : WHEN? SET? TO? FALSE_ IS? valueClauseOperand`, so the binder names the node it screens instead of relying on "the only direct valueClauseOperand child", and the widened operand cannot re-open the sink. **⛔ AND THE SCREENED VALUE IS NOW BOUND, NOT DROPPED** (kb/Work PB555). It used to be screened and discarded, on the reasoning that `SET condition-name TO FALSE` declined loudly anyway "so a field would be a lookup nothing reads" — but the causality ran the other way: literal-4 having no field on `Condition88` is *why* §13.18.63.4 GR20 could not be implemented and *why* §13.18.63.3 SR27 had nothing to compare against, so one unmodelled operand held two rules shut at once. `Condition88.FalseValue` now carries it in the same raw-operand-text convention as `Values`, `BindFalsePhraseOperand` stores it, and the two rules follow (below). Negatives `negative/pb732-value-*` (one per arm, `reject-at` all four editions); positive twins `2023/pb732_value_word_substitutions` (whose `WHEN SET TO FALSE IS K-ZERO` / `IS SYM-A` legs fail to PARSE on the pre-fix compiler) and `85/pb732_value_symbolic_character` prove the legal word spellings still bind.
+**⛔ A VALUE OPERAND IS A LITERAL POSITION, AND ONE SCREEN SAYS SO FOR EVERY FORMAT** (kb/Work PB732). Every general format of the VALUE clause writes *literal-n* in every operand position (§13.18.63.2 — Format 1 `literal-1`, Format 2 `{literal-1}…`, Format 3 `literal-2 [THROUGH literal-3]` **and its second position `[WHEN SET TO FALSE IS literal-4]`**, Format 4 `{literal-1}…`, Format 5 `literal-5 [THROUGH literal-6]`; verified against the printed general-format figures, not only the transcription). The `valueClauseOperand : unaryExpression | nonNumericLiteral` grammar is a deliberate SUPERSET — a constant-name and a symbolic-character are spelled as ordinary user words, and only the symbol tables tell them from a data-name — so this is a BIND rule, never a grammar screen. `DataBinder.IsLiteralValueOperand` is that rule, PURE (no folding, no diagnostics) so a caller may ask about an operand it will not read: it admits a literal, a keyword figurative constant (§8.3.3.6.3 SR1 — "A figurative constant may be used whenever 'literal' appears in a format"), `ALL symbolic-character-1` whose word §8.3.3.6.3 SR4 requires to be a SYMBOLIC CHARACTERS name, a bare symbolic-character, a constant-name (§13.10.3 SR2), and a numeric literal under its written sign (§8.3.3.3.2 rule 2). `DataBinder.ReportNonLiteralValueOperand` is the ONE report, deduped per operand node: a BARE word draws **COBOL1639** (the position admits a constant-name or a symbolic-character and the word is neither, so it identifies no resource — §8.4.2.1), any other non-literal shape draws **COBOL1902** (nothing is undefined; the general format itself is violated — §13.18.63.2 / §4.2.2). `RawValueOperandText` asks the predicate FIRST and returns null on failure, so the compile fails with a named diagnostic and the emitter never sees the operand. **Every caller threads it** — `BindCondition`'s singleton and THROUGH legs, its `ScreenFalsePhraseOperand` (literal-4), `BindEntry`'s Format-1 funnel through `ExtractValue`, `BuildTableValueSpecs` (Format 2), and `DataBinder.Reports`' Format-4 entry — because the sink was the reader's last arm, an unconditional `op.GetText()`: an undefined word became an alphanumeric literal OF ITS OWN SPELLING on an alphanumeric subject (`01 C4 PIC X(7) VALUE NOSUCHW.` ran to exit 0 and printed `NOSUCHW`, a silent wrong answer) and reached Roslyn as a C# identifier on a numeric one (`CS0103`, exit 70). This is the DATA-DIVISION arm of the R30 "a word that names nothing" chokepoint: `ReferenceResolver.Resolve` closes the PROCEDURE DIVISION arm, and the VALUE clause never entered it because it resolves its own operands. The other three §13.10.3 SR2 literal-position seams — `IntegerOperandValue` (every integer-n position: the OCCURS bounds, the report-writer operands since kb/Work PB1947 and, since PB1948, RESERVE, BLOCK CONTAINS, RECORD CONTAINS, DYNAMIC LENGTH LIMIT, PICTURE LOCALE SIZE, LINAGE and the SYMBOLIC CHARACTERS ordinals), `ExpandPicConstants`, `ConstantValueRawText` — already reported an undefined word; VALUE was the only one that did not. **literal-4 also needed the GRAMMAR widened, and the widening and the screen are one change**: the `[WHEN SET TO FALSE IS literal-4]` phrase wrote its operand as the narrow `literal` rule, so the two word spellings a literal position admits died as a PARSE error — `88 CN VALUE 1 WHEN SET TO FALSE IS K` with K a constant-name gave COBOL0001 + COBOL0309 "A literal value is expected here, not a data-name", a rejection of conforming source under §13.10.3 SR2. The phrase is now its own grammar rule, `valueClauseFalsePhrase : WHEN? SET? TO? FALSE_ IS? valueClauseOperand`, so the binder names the node it screens instead of relying on "the only direct valueClauseOperand child", and the widened operand cannot re-open the sink. **⛔ AND THE SCREENED VALUE IS NOW BOUND, NOT DROPPED** (kb/Work PB555). It used to be screened and discarded, on the reasoning that `SET condition-name TO FALSE` declined loudly anyway "so a field would be a lookup nothing reads" — but the causality ran the other way: literal-4 having no field on `Condition88` is *why* §13.18.63.4 GR20 could not be implemented and *why* §13.18.63.3 SR27 had nothing to compare against, so one unmodelled operand held two rules shut at once. `Condition88.FalseValue` now carries it in the same raw-operand-text convention as `Values`, `BindFalsePhraseOperand` stores it, and the two rules follow (below). Negatives `negative/pb732-value-*` (one per arm, `reject-at` all four editions); positive twins `2023/pb732_value_word_substitutions` (whose `WHEN SET TO FALSE IS K-ZERO` / `IS SYM-A` legs fail to PARSE on the pre-fix compiler) and `85/pb732_value_symbolic_character` prove the legal word spellings still bind.
 
 **⛔ LITERAL-4 IS FORMAT 3's THIRD OPERAND-BEARING CONSTITUENT, AND ITS TWO RULES ARE ONE BINDING** (kb/Work PB555). §13.18.63.2 Format 3 prints three operand positions after `VALUE`/`VALUES` — the `literal-2 [THROUGH literal-3]` group, `[ IN alphabet-name-1 ]`, and `[ WHEN SET TO FALSE IS literal-4 ]` — and `Condition88` now carries all three (`Values`, `Alphabet`, `FalseValue`). The two rules that had nowhere to live while literal-4 was dropped:
 
-- **§13.18.63.3 SR27 — `DataBinder.CheckFalseValueDistinct`, COBOLNET2048.** "*The value of literal-4 shall not be equal to the value of any occurrence of literal-2. When the THROUGH phrase is specified: a) when literal-2 is of a class other than alphanumeric or national, the value of literal-4 shall not be equal to any value in the range of any occurrence of literal-2 through literal-3, inclusive. b) when literal-2 is of class alphanumeric or national, and the runtime collating sequence is known, …*" The first sentence carries **no class qualifier and no THROUGH precondition**, so it is tested against every occurrence of literal-2, singleton or range low bound; a) and b) then add RANGE MEMBERSHIP and differ only in the ordering that decides it — a) §14.7.8 rule 1's algebraic order, b) rule 2's collating sequence. b)'s "*any literal-2*" clause is the first sentence restated and is not tested twice. **b) is enforceable here because the sequence is a compile-time fact**: the `IN alphabet-name-1` alphabet when written, else the PROGRAM COLLATING SEQUENCE, and SR26's NOTE names the only unknowable arm ("*The runtime collating sequence is unknown when the collating sequence is defined by a locale or the collating sequence is otherwise determined at runtime*") — so a LOCALE alphabet drops the range half of the screen rather than guessing at it. The ordering itself is the **runtime's own** `CobolCollation.Compare`, reached through `CollatingTable.Collation(national)`: the compiler materializes the same carrier class `CollationEmit` renders into the generated program, so there is exactly one §12.3.7.4 GR7 k weighting and one §8.8.4.2.7 comparison in the product. An operand whose value is not known at compile time (a non-ZERO figurative, an `ALL` literal, a symbolic-character) is **skipped, not guessed**: SR27 speaks of "the value of literal-4", and inventing one would reject conforming source. **⛔ AND "THE VALUE OF" IS ONE READER, NOT A DECODER PER CLASS** (kb/Work PB920). The screen used to branch on `CobolLiteral.IsStringLiteral(literal-2)` and compare only SAME-KIND pairs, which is a rule about SPELLING where SR27 speaks of VALUE — and on a NUMERIC-EDITED subject one value has two spellings, so `01 X PIC ZZ9.99. 88 X-TEN VALUE " 10.00" WHEN SET TO FALSE IS 10.` compiled clean and `SET X-TEN TO FALSE` left the condition TRUE (measured: `X-STILL-TRUE`, `XF=[ 10.00]`). `DataBinder.ConditionValueOf` now answers what an operand's value IS over its conditional variable — the **SR6 edited image** on a numeric-edited subject, composed by the ONE composer `ValueInitializer.EditedImageOfNumericValue` ("*literals in formats 1, 2, and 4 of the VALUE clause may be numeric when they shall be converted to their numeric-edited forms according to the rules for the MOVE statement*"), and the literal's own numeric or character value otherwise — and `CompareConditionValues` orders a pair or answers *unknown*. §8.8.4.2.1's NOTE is the rule that makes the two spellings one value here: "*All comparisons involving numeric-edited data items are alphanumeric or national comparisons, including when the associated VALUE clause is a numeric literal*", with §8.8.4.5.3 GR2 making the condition-name test one of them. The composer takes `(dialectLevel, decimalPointIsComma)` rather than an `EmitContext` **so the binder can ask SR6's question at bind time without a second copy of it**; `ConditionValueRecipeDriftTests` names its three readers and pins that signature. Negatives `negative/pb920-false-value-crosses-edited-image` and its `-mirrored` twin (both arms — the fix does not branch on literal-2's class), positive `2023/pb920_false_value_cross_class_distinct`.
+- **§13.18.63.3 SR27 — `DataBinder.CheckFalseValueDistinct`, COBOL2048.** "*The value of literal-4 shall not be equal to the value of any occurrence of literal-2. When the THROUGH phrase is specified: a) when literal-2 is of a class other than alphanumeric or national, the value of literal-4 shall not be equal to any value in the range of any occurrence of literal-2 through literal-3, inclusive. b) when literal-2 is of class alphanumeric or national, and the runtime collating sequence is known, …*" The first sentence carries **no class qualifier and no THROUGH precondition**, so it is tested against every occurrence of literal-2, singleton or range low bound; a) and b) then add RANGE MEMBERSHIP and differ only in the ordering that decides it — a) §14.7.8 rule 1's algebraic order, b) rule 2's collating sequence. b)'s "*any literal-2*" clause is the first sentence restated and is not tested twice. **b) is enforceable here because the sequence is a compile-time fact**: the `IN alphabet-name-1` alphabet when written, else the PROGRAM COLLATING SEQUENCE, and SR26's NOTE names the only unknowable arm ("*The runtime collating sequence is unknown when the collating sequence is defined by a locale or the collating sequence is otherwise determined at runtime*") — so a LOCALE alphabet drops the range half of the screen rather than guessing at it. The ordering itself is the **runtime's own** `CobolCollation.Compare`, reached through `CollatingTable.Collation(national)`: the compiler materializes the same carrier class `CollationEmit` renders into the generated program, so there is exactly one §12.3.7.4 GR7 k weighting and one §8.8.4.2.7 comparison in the product. An operand whose value is not known at compile time (a non-ZERO figurative, an `ALL` literal, a symbolic-character) is **skipped, not guessed**: SR27 speaks of "the value of literal-4", and inventing one would reject conforming source. **⛔ AND "THE VALUE OF" IS ONE READER, NOT A DECODER PER CLASS** (kb/Work PB920). The screen used to branch on `CobolLiteral.IsStringLiteral(literal-2)` and compare only SAME-KIND pairs, which is a rule about SPELLING where SR27 speaks of VALUE — and on a NUMERIC-EDITED subject one value has two spellings, so `01 X PIC ZZ9.99. 88 X-TEN VALUE " 10.00" WHEN SET TO FALSE IS 10.` compiled clean and `SET X-TEN TO FALSE` left the condition TRUE (measured: `X-STILL-TRUE`, `XF=[ 10.00]`). `DataBinder.ConditionValueOf` now answers what an operand's value IS over its conditional variable — the **SR6 edited image** on a numeric-edited subject, composed by the ONE composer `ValueInitializer.EditedImageOfNumericValue` ("*literals in formats 1, 2, and 4 of the VALUE clause may be numeric when they shall be converted to their numeric-edited forms according to the rules for the MOVE statement*"), and the literal's own numeric or character value otherwise — and `CompareConditionValues` orders a pair or answers *unknown*. §8.8.4.2.1's NOTE is the rule that makes the two spellings one value here: "*All comparisons involving numeric-edited data items are alphanumeric or national comparisons, including when the associated VALUE clause is a numeric literal*", with §8.8.4.5.3 GR2 making the condition-name test one of them. The composer takes `(dialectLevel, decimalPointIsComma)` rather than an `EmitContext` **so the binder can ask SR6's question at bind time without a second copy of it**; `ConditionValueRecipeDriftTests` names its three readers and pins that signature. Negatives `negative/pb920-false-value-crosses-edited-image` and its `-mirrored` twin (both arms — the fix does not branch on literal-2's class), positive `2023/pb920_false_value_cross_class_distinct`.
 
-- **§13.18.63.3 SR31 — `DataBinder.BindCondition` + `DataBinder.Switches.TryResolveRangeAlphabet`, COBOLNET1997/1998/1999 and COBOLNET2176.** "*Alphabet-name-1 may be specified only when the literals specified in the THROUGH phrase are of class alphanumeric or national. If literal-2 and literal-3 or literal-5 and literal-6 are of class national, alphabet-name-1 shall reference an alphabet that defines a national collating sequence; otherwise, alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence.*" All four obligations are enforced: a NUMERIC through-pair under `IN` is COBOLNET1998; a name that is undeclared or is not an alphabet is COBOLNET1997; each half of sentence 2's class agreement is COBOLNET1999; and **`IN alphabet-name-1` written with NO THROUGH phrase at all is COBOLNET2176** (kb/Work PB890) — with no THROUGH phrase there are no "*literals specified in the THROUGH phrase*", so the permission the words "only when" grant is never satisfied. That last arm was held open by a guard, `cond.Values.Any(v => v.High is not null)`, whose stated reason was that the phrase is "inert, not erroneous" over a value LIST — a GENERAL-RULE answer to a SYNTAX-RULE question — and whose real reason was a green golden that violated the rule (`2002/pb695_value_false_optional_words`'s `88 CN-ORDER VALUE 1 IN AL1 …`, since rewritten as a conforming alphanumeric THROUGH range). Negative `negative/pb890-value-alphabet-without-through`.
+- **§13.18.63.3 SR31 — `DataBinder.BindCondition` + `DataBinder.Switches.TryResolveRangeAlphabet`, COBOL1997/1998/1999 and COBOL2176.** "*Alphabet-name-1 may be specified only when the literals specified in the THROUGH phrase are of class alphanumeric or national. If literal-2 and literal-3 or literal-5 and literal-6 are of class national, alphabet-name-1 shall reference an alphabet that defines a national collating sequence; otherwise, alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence.*" All four obligations are enforced: a NUMERIC through-pair under `IN` is COBOL1998; a name that is undeclared or is not an alphabet is COBOL1997; each half of sentence 2's class agreement is COBOL1999; and **`IN alphabet-name-1` written with NO THROUGH phrase at all is COBOL2176** (kb/Work PB890) — with no THROUGH phrase there are no "*literals specified in the THROUGH phrase*", so the permission the words "only when" grant is never satisfied. That last arm was held open by a guard, `cond.Values.Any(v => v.High is not null)`, whose stated reason was that the phrase is "inert, not erroneous" over a value LIST — a GENERAL-RULE answer to a SYNTAX-RULE question — and whose real reason was a green golden that violated the rule (`2002/pb695_value_false_optional_words`'s `88 CN-ORDER VALUE 1 IN AL1 …`, since rewritten as a conforming alphanumeric THROUGH range). Negative `negative/pb890-value-alphabet-without-through`.
 
-- **§13.18.63.2's LEADING WORDS — `DataBinder.CheckValueConnective`, COBOLNET2177** (kb/Work PB559). Format 1 prints `VALUE IS literal-1` — VALUE underlined, IS not, and neither VALUES nor ARE anywhere — while Formats 2, 3 and 4 print a two-line REQUIRED CHOICE between `VALUE IS` and `VALUES ARE`, which §5.2.6.3 makes exactly one of its alternatives. So VALUE pairs with IS, VALUES with ARE, and `VALUE ARE` / `VALUES IS` / a Format-1 `VALUES` are spellings no figure prints; §13.18.63.3 SR17 ("*The words VALUE and VALUES are equivalent*") is what admits VALUES at all and is a **Format 2** rule, reached by Format 3 through SR24 and Format 4 through SR34, which Format 1 applies to neither, and SR39 states the identical pairing in words for Format 5 — the one format that detaches the connective. **The screen takes the format from its CALLER and is deliberately not a grammar rule**: Format 1 and Format 3 are the same token sequence and differ by the entry's level-number (SR33), Format 4 by the section, and a parse rule cannot see either — so the grammar keeps the `(VALUE|VALUES) (IS|ARE)?` superset and all three live bind arms screen it (the condition-name arm, the data-item/table arm, and the report-section arm in `DataBinder.Reports`; the screen-section VALUE clause is refused whole as a declined facility by `ScreenFacility`, and Format 5 by COBOLNET1708). Negatives `negative/pb559-value-connective-crossed` and `negative/pb559-value-format1-values`; the four LEGAL heads stay pinned by `2002/l1_value_values_equivalent_2002` and `2023/l1_value_values_equivalent`.
+- **§13.18.63.2's LEADING WORDS — `DataBinder.CheckValueConnective`, COBOL2177** (kb/Work PB559). Format 1 prints `VALUE IS literal-1` — VALUE underlined, IS not, and neither VALUES nor ARE anywhere — while Formats 2, 3 and 4 print a two-line REQUIRED CHOICE between `VALUE IS` and `VALUES ARE`, which §5.2.6.3 makes exactly one of its alternatives. So VALUE pairs with IS, VALUES with ARE, and `VALUE ARE` / `VALUES IS` / a Format-1 `VALUES` are spellings no figure prints; §13.18.63.3 SR17 ("*The words VALUE and VALUES are equivalent*") is what admits VALUES at all and is a **Format 2** rule, reached by Format 3 through SR24 and Format 4 through SR34, which Format 1 applies to neither, and SR39 states the identical pairing in words for Format 5 — the one format that detaches the connective. **The screen takes the format from its CALLER and is deliberately not a grammar rule**: Format 1 and Format 3 are the same token sequence and differ by the entry's level-number (SR33), Format 4 by the section, and a parse rule cannot see either — so the grammar keeps the `(VALUE|VALUES) (IS|ARE)?` superset and all three live bind arms screen it (the condition-name arm, the data-item/table arm, and the report-section arm in `DataBinder.Reports`; the screen-section VALUE clause is refused whole as a declined facility by `ScreenFacility`, and Format 5 by COBOL1708). Negatives `negative/pb559-value-connective-crossed` and `negative/pb559-value-format1-values`; the four LEGAL heads stay pinned by `2002/l1_value_values_equivalent_2002` and `2023/l1_value_values_equivalent`.
 - **§13.18.63.4 GR20 / §14.9.39.4 GR7 — the SET store.** See `COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` D7.
 
 **Edition.** The phrase and the `SET … TO FALSE` arm it feeds are a COBOL-2002 introduction, gated recognition-first in `VersionConformancePass.ParseArm` (`VisitValueClauseFalsePhrase`, `VisitSetBooleanStatement`) on `constructs.json` rows `value-false-phrase-2002` and `set-condition-false-2002`. The edge is DERIVED, not quoted, and the derivation is one line so it can be overturned in one: the repo holds no 2002 or 2014 text, the 2023 Annex E carries no 85→2002 VALUE or SET row (the A.1 authority gap, D18), and the reserved-word evidence cannot date it because `FALSE` is already reserved at COBOL-85 for EVALUATE. Goldens `2002/pb555_value_false_phrase` (positive) and `negative/pb555-*` (SR27 both arms, SR7, and the 85 edition edge).
@@ -403,7 +403,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
 > already on PicInfo; a parallel flag could drift from it). Literals wider than long emit `Int128.Parse("…")`
 > (`EmitCore.IntLiteral` — C# has no Int128 literal form); the store boundary narrows via the width-aware
 > `ArithmeticEmitter.Narrow`. The SURFACE cap is per-edition (18 at `--std 85`, 31 at 2002+, >31 rejected everywhere —
-> `EditionContext.CheckDigitCapacity`, COBOLNET0801/0802); Int128's 38 digits are substrate headroom only.
+> `EditionContext.CheckDigitCapacity`, COBOL0801/0802); Int128's 38 digits are substrate headroom only.
 
 **Rationale.** Owner-locked: hardware-native, exact, DISPLAY image falls out for free; Int128 is a fixed-size value type far cheaper than BigInteger.
 
@@ -464,7 +464,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   identifier-2 all accepted an edited item silently). A message, the activation description and START's SR6 b) 2.
   comparison name a category through `ItemCategory.CategoryName`, the ONE spelling of a Table 2 category.
   ⛔ **The category was a staged skeleton until PB492 and the shape of the bug is the reason this entry exists:**
-  the analyzer RECOVERED the category to Alphanumeric and raised COBOLNET0899, so no such item could be defined
+  the analyzer RECOVERED the category to Alphanumeric and raised COBOL0899, so no such item could be defined
   at any edition — and every consumer that had grown an edited arm had grown only the ALPHANUMERIC half of it,
   including two whole-width-fill guards in `MoveEmitter.ConvertSource` that sent a figurative or ALL-literal
   source AROUND the editor instead of through it. Recognition also read the GR7/GR10 insertion set as a literal
@@ -554,7 +554,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
     items shall be described with the SIGN IS SEPARATE clause"). A DISPLAY-only arm there made the WHOLE subtree
     non-distributable: `01 NG GROUP-USAGE NATIONAL VALUE N"AB123". 05 NGA PIC N(2). 05 NGB PIC 9(3).` measured
     `NGA=[  ] NGB=[000]` against its alphanumeric twin's `[AB]` / `[123]`.
-  ⛔ **The category was refused BY NAME until this landing** — `PictureAnalyzer` raised COBOLNET0899 "Phase 4a
+  ⛔ **The category was refused BY NAME until this landing** — `PictureAnalyzer` raised COBOL0899 "Phase 4a
   residue" from FOUR hand-written arms (the boolean arm and the numeric arm of the usage screen, plus private
   copies in the float-edited and locale-edited analyses that were ALSO the only SR12 screen those two paths had,
   so a float-edited or format-2 picture under USAGE BINARY/COMP/PACKED met no §13.18.60.3 SR3 screen at all).
@@ -607,7 +607,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   carried population is now the character categories, every NUMERIC usage on its pinned byte form, BOOLEAN in
   both representations, NATIONAL in ALL its spellings — the category, the national-edited form, and the
   national-form numeric / numeric-edited / boolean of §13.18.60.3 SR12, whose arm stopped being a derived-only
-  answer when kb/Work PB646 removed the COBOLNET0899 staging (D-N7); the predicate is now the single test
+  answer when kb/Work PB646 removed the COBOL0899 staging (D-N7); the predicate is now the single test
   `Pic.Usage is National` — and the POINTER family. **Nothing is refused today.**
 - **D-SLOT, the DYNAMIC-LENGTH half (kb/Work PB1026, 2026-09-23).** A dynamic-length item of a CELL-BACKED
   class (an EXTERNAL record, an EXTERNAL file's out-of-line record, an ADDRESS-OF-taken record) has no fixed
@@ -706,9 +706,9 @@ content-validation half is separately answered by the declined A.4.14 facility (
     the shared gate. It is unreachable on conforming source: §13.18.44.3 SR12/SR14 bar a class-object /
     message-tag / pointer item and a strongly-typed group from either side of a REDEFINES entry, and
     §13.18.60.3 SR14 admits a pointer USAGE only at level 1 or under a STRONG type declaration.
-  - **Two SCREENS landed with it**, because the residue diagnostic COBOLNET1695 had been rejecting two
+  - **Two SCREENS landed with it**, because the residue diagnostic COBOL1695 had been rejecting two
     NONCONFORMING shapes for the wrong reason and opening the gate would have made them compile clean:
-    **COBOLNET1797** (§13.18.5.3 SR1 — a BASED subject of class object) and **COBOLNET1796** (§13.18.22.3 SR4
+    **COBOL1797** (§13.18.5.3 SR1 — a BASED subject of class object) and **COBOL1796** (§13.18.22.3 SR4
     — an EXTERNAL item of class object or pointer). The asymmetry is the standard's own.
 - **D-N5 the RECORD-IMAGE channel IS the byte channel — DISCHARGED 2026-09-05, kb/Work PB327.**
   `GroupImageCodec.AsImage()`/`FromImage()` is a group's **STORAGE** face: a numeric leaf already contributed
@@ -1147,7 +1147,7 @@ MEMBER inside an alphanumeric group (`PhysicalModel`: run members are bit items;
 own internal composition is `BitLayout.ExtentBits`, see the placement note above). A national group's face is its
 character image, stored by `WriteGroupImage`. The MOVE dispatch: `MoveClassifier.Kind` sends an as-if receiver
 down the Convert path over `OperandPic` (`ConvertSource` reads `target.OperandPic`), and `IsGroupSender` excludes
-an as-if sender. Diagnostics: COBOLNET1653 (`GroupUsageRule`) for SR1 + SR2/SR3's explicit-USAGE and
+an as-if sender. Diagnostics: COBOL1653 (`GroupUsageRule`) for SR1 + SR2/SR3's explicit-USAGE and
 subordinate-conflict halves; the leaf conformance is the shared §13.18.60.3 screen — 0881 for the shapes SR5 /
 SR12 / SR20 refuse, and nothing staged: SR12's five picture shapes all bind (D-N7, kb/Work PB646), so a national
 group's leaves may be numeric, numeric-edited or boolean as well as national and national-edited, and
@@ -1167,9 +1167,9 @@ That placement is load-bearing, not cosmetic: `DataBinder.UsageKeyword` derives 
 **PB174** added `floatFormatPhrase*` for §13.18.60.2's per-item `endianness-phrase` / `encoding-phrase`. All four
 tails are parsed after any keyword and narrowed by the binder, the parse-wide/bind-narrow posture: which usage each
 tail may follow is ONE table, `UsagePhraseRules` (`Binding/Model/UsagePhrase.cs`) — SIGNED / UNSIGNED on
-BINARY-CHAR/-SHORT/-LONG/-DOUBLE (COBOLNET4733), WITH NO SIGN on PACKED-DECIMAL (COBOLNET1565), the endianness-phrase
-on the five standard float usages (COBOLNET1716), the encoding-phrase on FLOAT-DECIMAL-16/-34 (COBOLNET1717) — read
-by ONE method, `DataBinder.ScreenUsagePhrases`, which also screens a repeated float phrase (COBOLNET1718) and hands
+BINARY-CHAR/-SHORT/-LONG/-DOUBLE (COBOL4733), WITH NO SIGN on PACKED-DECIMAL (COBOL1565), the endianness-phrase
+on the five standard float usages (COBOL1716), the encoding-phrase on FLOAT-DECIMAL-16/-34 (COBOL1717) — read
+by ONE method, `DataBinder.ScreenUsagePhrases`, which also screens a repeated float phrase (COBOL1718) and hands
 back only the phrases the usage admits (kb/Work PB3517: the SIGNED / UNSIGNED arm had never been written, so
 `USAGE COMP UNSIGNED` compiled clean with the word ignored). `UsageClausePhraseDriftTests` reads the keyword
 inventory and the clause's phrase rules out of the `.g4`, checks the table against its transcription of the
@@ -1244,16 +1244,16 @@ IS COMMA, overflow → EC-DATA-OVERFLOW + the pinned image, underflow → zero);
 divergences raise SIZE ERROR); de-edit goldens (float-edited → numeric / numeric-edited / alphanumeric,
 incompatible content → EC-DATA-INCOMPATIBLE); HIGHEST/LOWEST-ALGEBRAIC per mode; the edition gate at 85; VALUE.
 
-**As landed (DEVLOG 1322, 2026-08-18):** `PictureAnalyzer.AnalyzeFloatEdited` (COBOLNET1658 per violated rule —
+**As landed (DEVLOG 1322, 2026-08-18):** `PictureAnalyzer.AnalyzeFloatEdited` (COBOL1658 per violated rule —
 Table 10 rendered from PDF pages 489–490 to confirm the OCR'd row E); the 2002 introduction gate keys on
 `IsFloatEdited` through the ONE `VersionConformancePass.PictureConstructId` (the forest, report printables and the
 report SUM-counter Analyze alike — since kb/Work PB492 that ONE function also keys national-edited off the
 category-national picture's own `EditMask`, and `PicInfo.SkeletonGate`, which existed only to carry the recovered
 national-edited identity forward, is gone); the
-EC-DATA-INCOMPATIBLE flag / fatal ambient gate; COBOLNET1659 (§13.18.63.3 SR6's literal-FORM rule, BOTH
+EC-DATA-INCOMPATIBLE flag / fatal ambient gate; COBOL1659 (§13.18.63.3 SR6's literal-FORM rule, BOTH
 directions, decided once in `DataBinder.ValidateValueCategory`, which every item VALUE reaches through the ONE
 screen `DataBinder.ScreenValueLiteral` — format 1's `RawValue` and format 2's per-occurrence literals alike — and
-which the level-88 arms call directly) and COBOLNET1660
+which the level-88 arms call directly) and COBOL1660
 (§15.43.4 r1 / §15.58.4 r1); `ValidateNumericValue` serves the numeric-edited subject (SR6's "no truncation of
 digits or sign", SR3's sign representation — for the floating form the significand's own sign symbol);
 `ValueInitializer.EditedImageOfNumericValue` is the ONE compose of a numeric-edited item's numeric VALUE image,
@@ -1337,28 +1337,28 @@ remaining question is a syntax rule reported by `CapacityPlaceOf`, never a "not 
   `Parent.Children`: it takes no record slot.
 - **Qualified** (`WS-CAP OF WS-TABLE`, `IN` likewise) resolves through the ONE §8.4.2.2 matcher,
   `DataBinder.QualifierChainMatches`, off that `Parent`. §8.4.2.2.3 SR2 permits qualifying a name that needs no
-  qualification; a qualifier that names no context of the register is **COBOLNET2127**.
+  qualification; a qualifier that names no context of the register is **COBOL2127**.
 - **One written definition, several copies (kb/Work PB2988).** SR30's "defined elsewhere" compares WRITTEN
   definitions: a `CAPACITY IN` written once in a type declaration (or under a SAME AS operand) is reproduced by every
   TYPE / SAME AS copy of its entry, so `DynamicResolve` lists each copy's register under the one name when every
   table already listed is a copy of the same written entry (`DataItem.WrittenDefinition`, the `ClonedFrom` chain's
-  end); a register of a DIFFERENT written entry, or an explicit data-name of the spelling, stays **COBOLNET1523**.
+  end); a register of a DIFFERENT written entry, or an explicit data-name of the spelling, stays **COBOL1523**.
   The copies are told apart by SR30's second sentence — qualification through the implied level (`DC OF A`,
   `DC OF B`) — and a reference the qualifiers leave reaching two registers of the nearest element is §8.4.2.2.3 SR1's
-  ambiguity, judged by the ONE verdict `DataBinder.UniqueOrReportAmbiguous` (**COBOLNET1639**). Its `--permissive`
+  ambiguity, judged by the ONE verdict `DataBinder.UniqueOrReportAmbiguous` (**COBOL1639**). Its `--permissive`
   disposition picks the first declared register, which `ReferenceResolver.CapacityRegisterPlaceOf` then judges like a
   unique reference's register: ambiguity is a fault of the written reference and excuses nothing about the register
-  it resolves to, so a picked register under a table is still **COBOLNET2126** (the PB2988 review's R1-1; the
+  it resolves to, so a picked register under a table is still **COBOL2126** (the PB2988 review's R1-1; the
   index-name arm's permissive pick is screened by §13.7.3 SR4 the same way). A `CapacityRef` carries a place only
   when it has no fault. The verdict is the same at EVERY ask of one written reference: a probe and a repeated ask
   (SET classifies its operand, then binds it) get the pick silently (`UniqueOrReportAmbiguous(…, report: false)`),
   and only the report is once per reference — for the register in `CapacityPlaceOf` and for the index-name in
   `ResolveIndexName` alike.
-- **Subscripted** is **COBOLNET2125** — §13.18.38.3 SR31, "Data-name-3 shall not be subscripted."
-- **Reference-modified** goes to the ONE §8.4.3.3.3 SR1 screen (`RefModExclusion` → COBOLNET1647): the register is a
+- **Subscripted** is **COBOL2125** — §13.18.38.3 SR31, "Data-name-3 shall not be subscripted."
+- **Reference-modified** goes to the ONE §8.4.3.3.3 SR1 screen (`RefModExclusion` → COBOL1647): the register is a
   numeric item of an implementor-chosen binary usage, and SR1 admits only usage DISPLAY or NATIONAL.
 - **⚠ DETERMINATION — a register on a table NESTED inside another table has no writable reference form**
-  (**COBOLNET2126**). Defining such a table is legal (§8.5.1.9.1 item 3: it "may be nested in any combination to the
+  (**COBOL2126**). Defining such a table is legal (§8.5.1.9.1 item 3: it "may be nested in any combination to the
   same number of levels as a fixed-capacity table") and naming its register is legal, but SR30 places the register
   *inside* the outer table — deliberately unlike the occurs-depending item, which §13.18.38.3 SR20 forces *outside*
   the table it sizes — so §8.4.2.3.3 SR3/SR5 require one subscript per enclosing OCCURS clause while SR31 forbids
@@ -1393,7 +1393,7 @@ byte-granular is ONE fixed atom of `BitLayout.RunCharacters` bytes, the slice th
 bit items is reshaped and compared by the same walk (kb/Work PB2691); a dynamic-capacity table of bit items is no run
 member (kb/Work PB2818): it is out-of-line storage that starts a byte of its own, one element of ceil(n / 8) bytes long for
 the comparison, so it keeps the relative byte position §8.5.1.12.2 pairs tables by, and the item after it starts on the next byte boundary. The relation is screened at bind by §8.5.1.12.1 through the MOVE's own reader
-(`VariableLengthCompatibility.PairRefusal`) → **COBOLNET2492**. Only the operations that genuinely need a FIXED record
+(`VariableLengthCompatibility.PairRefusal`) → **COBOL2492**. Only the operations that genuinely need a FIXED record
 window (WRITE/RELEASE) and the shapes the composer cannot reach (CONFORMANCE.md A.1 item 57) stay staged LOUD.
 
 **The component model of a variable-length group (kb/Work PB244 shape (b)).** `GroupImageCodec.VarParts` is the ONE
@@ -1495,14 +1495,14 @@ window composes the same image from the positions the leaf reserves in its fixed
 (DISPLAY and FUNCTION LENGTH / BYTE-LENGTH, through the `transfer:` flag of `PlaceRenderer.VarGroupCurrentImage`, the twin of
 `GroupImage`'s); MOVE, comparison, CALL and a record keep `CurrentExtentImageCapable`.
 
-**CORE ships whole:** declaration (all phrases, each once and in the printed order — §13.18.38.2 with §5.2.1, refused otherwise by `DataBinder.NarrowToDataDivisionFormats`, **COBOLNET2789**, kb/Work PB1265) · out-of-line growable storage · CAPACITY
+**CORE ships whole:** declaration (all phrases, each once and in the printed order — §13.18.38.2 with §5.2.1, refused otherwise by `DataBinder.NarrowToDataDivisionFormats`, **COBOL2789**, kb/Work PB1265) · out-of-line growable storage · CAPACITY
 read + SET Format 14 write · implicit + explicit growth · INITIALIZED seeding · bounds/capacity ECs
 (EC-BOUND-SUBSCRIPT/-OVERFLOW/-TABLE-LIMIT/-SET, EC-FLOW-SEARCH via a per-table `_inSearch` guard) · SEARCH/SEARCH
 ALL over current capacity · `INITIALIZE <dynamic-table>` · **`INITIALIZE` of a group CONTAINING one** (§14.9.20.4
 GR10 — the per-occurrence loop over the current capacity, capacity unchanged) · **whole-group `MOVE` of a
 variable-length group** in either direction and to or from a compatible FIXED group (§14.9.25.4 GR9 over the
-§8.5.1.12 component carrier, screened at bind by §14.9.25.3 SR9 → **COBOLNET1931**) · **the relation condition over
-a compatible pair** (§8.8.4.2.17, screened by §8.5.1.12.1 → **COBOLNET2492**) · **the CORRESPONDING verbs
+§8.5.1.12 component carrier, screened at bind by §14.9.25.3 SR9 → **COBOL1931**) · **the relation condition over
+a compatible pair** (§8.8.4.2.17, screened by §8.5.1.12.1 → **COBOL2492**) · **the CORRESPONDING verbs
 over an occurs-depending group** · the 2014 edition gate + matrix/VCR rows. **Staged LOUD
 (diagnostic, not a silent wrong answer):** whole-group image of a containing group in the statements that need a
 FIXED record window — WRITE/RELEASE (§14.6.9; the two shapes CONFORMANCE.md A.1 item 57 excludes - a dynamic-capacity
@@ -1516,12 +1516,12 @@ dynamic-length item or dynamic-capacity table SUBORDINATE (**1698**, §13.18.44.
 **Grammar (SHARED .g4 → FULL legacy guard; additive).** A new `CAPACITY` lexer token; a DYNAMIC alt on
 `occursClause` (LL-disjoint — DYNAMIC is not an integerLiteral; superset parse — no edition predicate) with an
 SUPERSET `occursDynamicPhrase*` (any order and number, narrowed at bind time — see above); the COBOL-2014 introduction gate is the bind-time
-`ConstructRegistry.Check(OccursDynamic2014)` at `OdoModel.OdoBindOccursSpec` → **COBOLNET0900** (the
+`ConstructRegistry.Check(OccursDynamic2014)` at `OdoModel.OdoBindOccursSpec` → **COBOL0900** (the
 `VersionConformancePass` funnel at end state — `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).
 NO SET grammar change (Format 14 is the
 existing SET syntax, binder-rerouted). Diagnostics: **1522** (declaration/placement/SR28 — FILE SECTION, ODO-nesting,
 FROM/TO bounds, dup phrase), **1523** (CAPACITY register misuse SR30–32), **1524** (SET Format 14 misuse), 1525–1527
-(staged-loud). (08xx band exhausted; 15xx, last-used 1521.) **COBOLNET1528 was DELETED** with the PB500 landing —
+(staged-loud). (08xx band exhausted; 15xx, last-used 1521.) **COBOL1528 was DELETED** with the PB500 landing —
 the rule it cited, §13.18.63.4 GR16, is a FORMAT 2 general rule and never reached the FORMAT 1 VALUE it refused;
 its code is never reallocated.
 
@@ -1535,7 +1535,7 @@ greenfield-only). **Two plan refinements:** (a) NO VCR row — the VCR's own pre
 states 2002→2014 *introductions* are captured by the matrix `introducedIn` tag, not the VCR (which carries only
 2014→2023 Annex-E deltas + a few 2002→2014 behavior rows); the `constructs.json` + `ConstructDialectStatus` pair IS the
 canonical introduction record. (b) NO separate `dyn_pre2014` corpus golden — the corpus runner asserts compile+run
-SUCCESS only; the below-2014 **COBOLNET0900** rejection is asserted by the matrix row's `expectDiagnostic` at editions
+SUCCESS only; the below-2014 **COBOL0900** rejection is asserted by the matrix row's `expectDiagnostic` at editions
 85/2002 (`VersionMatrixTests`), the one place negative gating belongs. `DynamicResolve` (CAPACITY-register/access
 resolution) belongs with increments 2/3 where the register becomes a readable item;
 (2) CAPACITY register read + SET Format 14. The register is a `CapacityRegisterPlace`
@@ -1618,11 +1618,11 @@ captured from the one committing subscript reading by `ReferenceResolver.Capture
 and the object-property GETs a function- or property-bearing subscript needs (they run once ahead of the scan, in the order
 a per-evaluation window drains them, so the bound never reads an unstored temp; the WHEN condition keeps its own per-evaluation
 copy). A nested
-dynamic table that no WHEN phrase subscripts either is refused COBOLNET2075. `SearchBinder.DynamicTablePath` builds the
+dynamic table that no WHEN phrase subscripts either is refused COBOL2075. `SearchBinder.DynamicTablePath` builds the
 instance path with `BuildTablePath(table, subscripts)` for both formats, and the emitter reads that `CobolDynTable` into one
 local (`__searchTblN`) that carries the scan bound and the EnterSearch/ExitSearch bracket. A fixed or occurs-depending table
 has ONE bound for every occurrence of its enclosing tables, a dynamic table has one per occurrence (docs/CONFORMANCE.md
-D-SRCH-DYN). OCCURS DYNAMIC in the FILE SECTION is rejected **COBOLNET1526** (§8.5.1.9.1 item 3 — "any place
+D-SRCH-DYN). OCCURS DYNAMIC in the FILE SECTION is rejected **COBOL1526** (§8.5.1.9.1 item 3 — "any place
 OTHER THAN the file section") on every route a description reaches a record by, positioned at the entry that wrote the
 TYPE or SAME AS clause (`DataItem.ReferenceSite`, kb/Work PB1629), never at the declaration the table is copied from. The SET Format 14 capacity peek uses a PURE `ReferenceResolver.CapacityRegisterFor`
 (never `refs.Resolve`, which would route an OO `prop OF obj` first target through the property hook and enqueue a
@@ -1640,7 +1640,7 @@ Format 1 VALUE here is therefore conforming source with a fully determined meani
 which gives the same number from the other side), and §13.18.63.4 GR9 plus §13.18.38.4 GR1 (band "FORMATS 1, 2 AND
 4") give **every occurrence** the value. `ValueInitializer.FieldInit` already does both with no code of its own,
 opening the `CobolDynTable` at `OccursSpec.InitialCap ?? 0` and seeding every occurrence from `DataItem.ValueAt`.
-A `COBOLNET1528` refusal stood at `DynamicResolve` for this, reading GR16b's "no TO phrase … in the VALUE clause"
+A `COBOL1528` refusal stood at `DynamicResolve` for this, reading GR16b's "no TO phrase … in the VALUE clause"
 as covering a Format 1 `VALUE IS literal-1`; it rejected legal source, and its two arms disagreed with each other —
 the GROUP arm fired only when the OCCURS carried a TO, so `OCCURS DYNAMIC FROM 3.` with subordinate VALUEs compiled
 and seeded correctly while `OCCURS DYNAMIC FROM 3 TO 9.` was refused, while the ELEMENTARY arm ignored the TO and
@@ -1716,7 +1716,7 @@ chokepoint) / the class-condition arm (`CheckClassConditionOperand`) / `OoConfor
 **Grammar (shared-.g4 rules → FULL legacy guard per change).** `typedefClause : IS? TYPEDEF STRONG? ;` and
 `sameAsClause : SAME AS cobolWord ((OF|IN) cobolWord)* ;` on `dataDescriptionClause` (superset parse — no edition
 predicates); the TYPE-reference rule pre-existed. The COBOL-2002 introduction gates are the `VersionConformancePass`
-parse arms (`VisitTypedefClause` / `VisitTypeClause` / `VisitSameAsClause`, recognition-based) → **COBOLNET0900**
+parse arms (`VisitTypedefClause` / `VisitTypeClause` / `VisitSameAsClause`, recognition-based) → **COBOL0900**
 (rows `typedef-def-2002` / `type-clause-2002` / `same-as-clause-2002`). The `AS` token is shared with the
 CONSTANT-entry surface (both §8.9-interval words; `AS` is nameSlot-only — the FU-1 ledger). `POINTER TO type-name`
 stays out.
@@ -1850,7 +1850,7 @@ nested TYPE ref's SR6 ancestor walk sees the enclosing strong item (no false SR6
 subgroup matches a standalone INNER-T item (§8.5.3.1 alternative 1). A cloned OCCURS DEPENDING ON resolves data-name-1 in the clone's
 OWN record subtree first (`OdoResolve` reads `SubtreeCandidates` over the record before the scope-wide
 `QualifiedCandidates` — §13.18.57.4 GR1's "coded in place"), not a globally-first same-named counter; each tier is
-COUNTED, and several survivors are §8.4.2.2.3 SR1's ambiguity (COBOLNET1639 through `UniqueOrReportAmbiguous`,
+COUNTED, and several survivors are §8.4.2.2.3 SR1's ambiguity (COBOL1639 through `UniqueOrReportAmbiguous`,
 kb/Work PB978), never the first declared. Three §13.18.57.3 syntax rules are enforced: **1536** SR7 (a level-77
 subject needs an elementary type — weak-invariant, not just STRONG), **1537** SR2 (a TYPE entry must be followed
 immediately by a subordinate or level-88 entry, else a silent member-merge / CS1061 leak), **1538** SR5 (no USAGE/SIGN
@@ -1865,7 +1865,7 @@ use, so a used template's error is one diagnostic (`EditionContext.AddOnce`). `T
 Two things stay with the PLACEMENT, because §13.18.57.4 GR1 makes a TYPE clause "as though the data description … had been coded in
 place": the DEPENDING ON counter is looked up where the description lands (§8.4.2.2.1 rule 5), so a counter that neither the
 declaration nor the program defines is NOT an error in an unused template — a use site may supply it, and its clone reports it
-(COBOLNET0851) — and SR18/SR21's record attributes are the clone's to ask; and the CAPACITY register is minted per placed table,
+(COBOL0851) — and SR18/SR21's record attributes are the clone's to ask; and the CAPACITY register is minted per placed table,
 never per declaration (§13.18.58.4 GR2).
 
 **RISKS flagged:** `OccursSpec` sharing on clone (verify it holds NAMES re-resolved by `OdoResolve`, not cached
@@ -1958,7 +1958,7 @@ second sentence: the condition "is set to exist for a class condition and a VALI
 detected during item identification" — so a subscript inside a class test is checked, NOTE 1). The codegen-time
 twin — every integer count read at an operation site: the OCCURS DEPENDING object, a RECORD VARYING DEPENDING
 length, a report DEPENDING count, SEARCH's bound — is `PlaceRenderer.CountRead`, the one renderer of the same
-profile read. Only a NON-numeric `--permissive` operand (COBOLNET0844) keeps the profile-less `CobolTable.Occ(path)`
+profile read. Only a NON-numeric `--permissive` operand (COBOL0844) keeps the profile-less `CobolTable.Occ(path)`
 digit decode.
 
 ⛔ **THE SUBSCRIPT READ RETURNS AN `Occurrence`, NOT A BARE `long` (kb/Work PB2695).** The narrowing to `long`
@@ -1991,7 +1991,7 @@ sentinel (`Occurrence.AtLeast` keeps the exact text of the value it moves). The 
 exact `Int128` the 38-digit temporary holds (`CobolNum.PositionOfWide`), as `OccValue*` do. The three copies of the message
 became one (`CobolString.RefModViolation`). The literal arm is the same chain: an integer literal or integer constant-name
 past `long` was `PositionConstant(long)` clamped at bind, which named `9223372036854775807` in the runtime detail AND in the
-compile-time `COBOLNET2670`/`COBOLNET2671` screen, for a subscript literal as well; `PositionWideConstant(BigInteger)` keeps
+compile-time `COBOL2670`/`COBOL2671` screen, for a subscript literal as well; `PositionWideConstant(BigInteger)` keeps
 the value (signed, so no negation of a clamp), renders as `Occurrence.OfLiteral("…")`, and `LiteralRefModRangeViolation`
 names it. A negation over a value past `long` is bound through the expression binder like any other operator
 (`Position.ExceedsLongArithmetic`), because `-long.MinValue` wraps. The exact value is bounded by the 38-digit temporary's
@@ -1999,7 +1999,7 @@ capacity for an expression (a 40-digit product names 10^38 − 1), as PB2695 doc
 
 ⛔ **AND THE FAST PATH MAY NAME ONLY A CARRIER THE EMITTED HELPER DECLARES A PARAMETER FOR (kb/Work PB201).** The bind-time text names the field and lets C# overload resolution supply the conversion — the same device that lets ONE text serve a `long` field and the `string` image the post-bind whole-group analysis may promote it to. But the bet is good only as far as the helper's own overload set reaches. The NUMERIC position read — `CobolTable.Occ(x, in NumProfile)` and `CobolString.RefModPosition(x, in NumProfile)` — takes `long | string | Int128 | ulong | UInt128` at every scale (the profile carries the scale, so no second arity exists), and the NON-numeric `CobolTable.Occ(x)` takes `long | string`. `Int128` must be numeric-admissible also because the D18 segment temp — the 38-digit integer POSITION a subscript or reference-modifier expression denotes (exact up to 10^38 − 1, saturated by sign past it; 19 digits holding the `long`-saturated position until kb/Work PB2695), stored after its integrality is asked on the expression's own carrier (kb/Work PB1890) — is read back through this very path. Before kb/Work PB201 the unscaled set was `long | string` alone and NOTHING checked the operand against it. `DataItem.ElementType` produces more carriers than any overload set ever will: `double`/`float` (a COMP-1/COMP-2 leaf), `ManagedPointer`, `ProgramPointer`, an object-reference type, and a GROUP's per-program `record struct` — these still have no overload and are exactly what the route below exists for — plus, back then, the unscaled `Int128`/`ulong`/`UInt128` of the >18-digit and unsigned-binary tiers, which have one now. For every one of them the emitted text was not C# that compiles. MEASURED in the DEFAULT strict lane, on source §8.8.1.1 and §8.4.2.3.4 GR1b make legal: `E(W-FL)` with `USAGE FLOAT-LONG` → `CS1503 cannot convert from 'double' to 'long'`; `E(W-BIG)` with `PIC 9(20) COMP` → the same from `System.Int128`; `E(W-U)` with `BINARY-DOUBLE UNSIGNED` → from `ulong`; and `W-W(W-FL:2)` at the reference-modification bound. A GROUP subscript under `--permissive` emitted the record struct (CS1503) or, for a class-tier BASED group, a bare COBOL word that is not a C# name at all (CS0103) — so the warning's promise to decode "its digit characters as an unsigned integer" was never kept, and the two group shapes failed DIFFERENTLY.
 
-⚠ **The answer is a ROUTE, not a wider overload set.** `PositionRead` admits only the declared carriers — `ReferenceResolver.NumericPositionCarriers` / `NonNumericPositionCarriers`, paired with `PositionCarrierOverloadDriftTests`, which compares them to the runtime methods' ACTUAL overloads by reflection, asserts the subscript and ref-mod arms admit the same numeric set, and forbids a profile-less numeric arity from returning — and returns null otherwise, so `RenderSegment` takes the D18 route it already documents as the answer for anything it cannot render. There `ExpressionBinder` screens the operand under §8.8.1.1 (COBOLNET0844, both lanes) and `NumericRenderer.FieldNum` — THE ONE numeric read — supplies the carrier-correct decode, including a group's §8.5.2.1 alphanumeric IMAGE through the ONE sending reader, so an occurs-depending group sends its §13.18.38.4 GR8 current-count part. The three INTEGER carriers `Int128`/`ulong`/`UInt128` were genuinely MISSING OVERLOADS and got them — `CobolTable.Occ` needs the capability, not an escape, because the SECOND emitter of the same text has no route: `PlaceRenderer.CountRead` renders the OCCURS DEPENDING ON current-count read at CODEGEN time from a Place, and §13.18.38.3 SR17 admits any item that "shall describe an integer", 20 digits included. All three narrow through **the ONE narrowing, `CobolNum.Position`, which SATURATES**: §8.4.2.3.4 GR2 requires "greater than the highest permissible occurrence number" to be DETECTED, and a plain `(long)` cast can wrap an out-of-range position back inside `1..n` and lose the condition. ⚠ The FLOAT carriers are deliberately absent: a `double` can be fractional and GR1b's integrality test runs over an unscaled/profile pair a float has no equivalent of, so a float operand keeps taking the D18 route. What overloads can NEVER close is the group: its carrier is a per-program generated type.
+⚠ **The answer is a ROUTE, not a wider overload set.** `PositionRead` admits only the declared carriers — `ReferenceResolver.NumericPositionCarriers` / `NonNumericPositionCarriers`, paired with `PositionCarrierOverloadDriftTests`, which compares them to the runtime methods' ACTUAL overloads by reflection, asserts the subscript and ref-mod arms admit the same numeric set, and forbids a profile-less numeric arity from returning — and returns null otherwise, so `RenderSegment` takes the D18 route it already documents as the answer for anything it cannot render. There `ExpressionBinder` screens the operand under §8.8.1.1 (COBOL0844, both lanes) and `NumericRenderer.FieldNum` — THE ONE numeric read — supplies the carrier-correct decode, including a group's §8.5.2.1 alphanumeric IMAGE through the ONE sending reader, so an occurs-depending group sends its §13.18.38.4 GR8 current-count part. The three INTEGER carriers `Int128`/`ulong`/`UInt128` were genuinely MISSING OVERLOADS and got them — `CobolTable.Occ` needs the capability, not an escape, because the SECOND emitter of the same text has no route: `PlaceRenderer.CountRead` renders the OCCURS DEPENDING ON current-count read at CODEGEN time from a Place, and §13.18.38.3 SR17 admits any item that "shall describe an integer", 20 digits included. All three narrow through **the ONE narrowing, `CobolNum.Position`, which SATURATES**: §8.4.2.3.4 GR2 requires "greater than the highest permissible occurrence number" to be DETECTED, and a plain `(long)` cast can wrap an out-of-range position back inside `1..n` and lose the condition. ⚠ The FLOAT carriers are deliberately absent: a `double` can be fractional and GR1b's integrality test runs over an unscaled/profile pair a float has no equivalent of, so a float operand keeps taking the D18 route. What overloads can NEVER close is the group: its carrier is a per-program generated type.
 
 ⚠ **A COMPOUND SEGMENT CARRYING A SCALED OPERAND ROUTES TO THE TEMP, NOT TO OPERAND-WISE DE-SCALING.** GR1b tests
 the integrality of **the result** of the whole expression, not of each operand: `W-E(W-P + W-Q)` with
@@ -2012,7 +2012,7 @@ standard applies it. A SINGLE scaled operand IS the result, so it needs no detou
 function "if and when the conditions containing them are evaluated", so a subscript inside a PERFORM UNTIL /
 SEARCH WHEN / EVALUATE object must not be lifted to a statement pre-op. `UdfBinder` already solves this
 (`UdfAttachPerEvaluation` / `BoundUdfEvaluated`) — **follow that precedent exactly.** (The loud residue stage it
-used to carry for the windows it did not reach, COBOLNET1509, is DELETED: its last two callers — an EVALUATE
+used to carry for the windows it did not reach, COBOL1509, is DELETED: its last two callers — an EVALUATE
 condition subject and a partial-expression object's subject splice — now bind the subject once, kb/Work PB912.)
 
 **One parse, one tree (kb/Work PB2151).** The route binds the position's `arithmeticExpression` NODE of the main
@@ -2037,7 +2037,7 @@ subordinate to a type declaration that includes the STRONG phrase." SR15: "The U
 shall not be specified in the file section." SR4: the same five phrases *plus INDEX* barred from a CONSTANT
 RECORD entry "or in any item subordinate to" one. Three rules of one clause, none previously enforced anywhere;
 all three are now `CheckUsageDeclarations`
-(`src/Cobol.Net.Compiler/Binding/DataBinder.UsageDeclaration.cs` — COBOLNET1724 / 1725 / 1726), a declared
+(`src/Cobol.Net.Compiler/Binding/DataBinder.UsageDeclaration.cs` — COBOL1724 / 1725 / 1726), a declared
 `BindPipeline` pass at `UsageResolved`.
 
 **Why ONE pass and not five checks.** A pointer usage reaches a data item by FOUR routes: a written USAGE clause,
@@ -2056,7 +2056,7 @@ pointer-class type declaration (`01 PT IS TYPEDEF USAGE POINTER.`) is a legal le
 `01 G. 05 A TYPE PT.` is, by §13.18.57.4 GR1, "as though the data description identified by type-name-1 had been
 coded in place of the TYPE clause" — the level-05 spelling SR14 forbids, and the exact twin of the SAME AS copy
 (§13.18.49.4 GR1, the same words), which was always rejected. That spelling compiled clean and its group then failed
-at a CALL or a program prototype pair with a carrier diagnostic (COBOLNET1688 / COBOLNET1513) naming no rule it
+at a CALL or a program prototype pair with a carrier diagnostic (COBOL1688 / COBOL1513) naming no rule it
 broke. So `CheckUsageDeclarations`' second loop — the composed-entry loop that already asks the EXTERNAL and BASED
 class rules of each entry carrying a TYPE clause (PB1212) — asks SR14's elementary arm
 (`ScreenSr14ElementaryPlacement`, the one helper both loops call) of every WRITTEN entry that carries a TYPE clause:
@@ -2071,7 +2071,7 @@ screen is now one helper (`ScreenConstantRecordUsage`, `ScreenExternalClassItem`
 first loop's order, so SR4 still names a CONSTANT RECORD pointer before SR14 does. SR4 asks a TYPE entry for its whole
 composed subtree and reports ONCE at the TYPE entry, naming the first item that carries a barred phrase: the type
 declaration may be legal, and the TYPE clause is what must change. Two first-loop arms have no TYPE twin there:
-§13.18.60.3 SR15, whose TYPE twin is its own rule (§13.18.57.3 SR8, COBOLNET2960), and SR14 arm A, whose subject is
+§13.18.60.3 SR15, whose TYPE twin is its own rule (§13.18.57.3 SR8, COBOL2960), and SR14 arm A, whose subject is
 a group's own written USAGE clause. `UsageDeclarationPlacementDriftTests.EveryWrittenEntryScreenIsAskedOfTheTypeEntryToo`
 reads both loops from the source and fails on a new first-loop screen until the second loop asks it too or the test
 records why it need not.
@@ -2097,7 +2097,7 @@ source; the backstop is kept as the recovery-path guard, never deleted.
 
 **Forward obligations, held by a test rather than by memory.** `Usage.MessageTag` EXISTS as of kb/Work PB487,
 but the usage itself is DECLINED non-support — the data-item half of the Annex A.3 item 4 asynchronous messaging
-facility (`docs/CONFORMANCE.md` §4 item 1), refused BY NAME in `PictureAnalyzer.ParseUsage` with COBOLNET1943 at
+facility (`docs/CONFORMANCE.md` §4 item 1), refused BY NAME in `PictureAnalyzer.ParseUsage` with COBOL1943 at
 every edition. The member is there for the FLOAT-BINARY-128 reason: `ParseUsage` must return something and the
 entry is PICTURE-less (§13.16.3 SR8 exempts message-tag), so without it the errored compile carried a null
 `PicInfo` into the emitter — which is exactly the unhandled `NullReferenceException` PB487 measured.
@@ -2107,10 +2107,10 @@ WITNESSED** (kb/Work PB544). The earlier reading here — that because no messag
 and SR14's message-tag arms and SR21 were "unreachable rather than unimplementable" — conflated a declined
 SEMANTIC with an unwritten SYNTAX RULE, and it was wrong on the measurement as well: a syntax rule is decided
 on the written entry, ahead of and independently of whether the usage is supported. MEASURED at `--std 2023`:
-`01 CFG CONSTANT RECORD. 05 Q USAGE MESSAGE-TAG.` reports COBOLNET1726 naming **SR4**;
-`01 G USAGE MESSAGE-TAG. 05 M PIC X(3).` reports COBOLNET1724 naming **SR14**; and
-`01 M USAGE MESSAGE-TAG USAGE DISPLAY PIC X(3).` reports COBOLNET2158 naming **SR21** — each beside the
-COBOLNET1943 decline, never instead of it. SR21's screen is `DataBinder.CheckMessageTagExclusivity`, and the
+`01 CFG CONSTANT RECORD. 05 Q USAGE MESSAGE-TAG.` reports COBOL1726 naming **SR4**;
+`01 G USAGE MESSAGE-TAG. 05 M PIC X(3).` reports COBOL1724 naming **SR14**; and
+`01 M USAGE MESSAGE-TAG USAGE DISPLAY PIC X(3).` reports COBOL2158 naming **SR21** — each beside the
+COBOL1943 decline, never instead of it. SR21's screen is `DataBinder.CheckMessageTagExclusivity`, and the
 reason it could not exist before is structural rather than semantic: `BindEntry` kept a single `usageText`
 that each successive USAGE clause OVERWROTE, so `01 M USAGE MESSAGE-TAG USAGE DISPLAY PIC X(3).` bound as a
 plain DISPLAY item and compiled with NO diagnostic at all. A rule whose subject is the SET of usage clauses
@@ -2136,7 +2136,7 @@ The entry is then no longer picture-less, so the SR8 closing guard never sees it
 standard states this rule once per entry kind: §13.15.3 SR14 is the report group entry's copy and shares this
 classifier (`ImpliedReportPicture`, called from `DataBinder.Reports.cs`); §13.17.3 SR10 is the screen entry's and
 needs no site, the SCREEN SECTION being the declined Annex A.4.2 module this doc already owns. Below COBOL-2002
-the construct row `value-implied-picture-2002` refuses it by name (COBOLNET0900).
+the construct row `value-implied-picture-2002` refuses it by name (COBOL0900).
 
 ### D23. The initial-state BACKGROUND (§11.9.10 OPTIONS INITIALIZE + §14.6.2.3.2 action 1) is ONE choke point, `InitialStateBackground`, that all three consuming arms route through — the fill is a background laid UNDER the VALUE seed, never a substitute for a missing one. (kb/Work PB152.)
 
@@ -2162,7 +2162,7 @@ the sole producer of a background seed; a unit drift test pins that it has exact
 **Where each fact is resolved, and why not elsewhere.**
 - **literal-1's byte — at BIND time**, on `OptionsInitialize.LiteralFillChar`, because §11.9.10.3 SR1 ("Literal-1
   shall specify a one-byte hexadecimal-alphanumeric literal") is a SYNTAX rule and that is its diagnostic site
-  (COBOLNET1727). ⛔ "Hexadecimal-alphanumeric" is §8.3.3.2.2's FORMAT 2 (`X"nn"`), a defined term — *not* loose
+  (COBOL1727). ⛔ "Hexadecimal-alphanumeric" is §8.3.3.2.2's FORMAT 2 (`X"nn"`), a defined term — *not* loose
   wording for "a short quoted literal", so `INITIALIZE ALL TO "Z"` is nonconforming.
 - **the FIGURATIVE fills — at CODEGEN**, through `FigurativeConstants.FillChar`, the compiler's single definition
   of the alphanumeric extremes. §8.3.3.6.4 GR6 makes the high-value format "the character … that has the highest
@@ -2228,7 +2228,7 @@ SR27's "no more than one of … a string of two or more currency symbols … a s
 falls out the same way (row floating-currency-left has a blank floating-sign-left column). A rule the matrix
 already carries is not written down twice. That claim is MEASURED, not argued: PB530 re-derived all three rules
 against a build carrying the walk — SR25's `9+9` / `99-9`, SR26's `99$9` / `9$99+`, SR27's `+++$$$` (NOTE 5's own
-invalid example) / `ZZZ$$$` are COBOLNET1935 at all four editions, while SR26 NOTE 4's six valid strings, SR27
+invalid example) / `ZZZ$$$` are COBOL1935 at all four editions, while SR26 NOTE 4's six valid strings, SR27
 NOTE 5's valid `+$$$` and the extended-sign spellings `L$999` / `999$L` all bind AND edit correctly.
 `PictureTable10DriftTests` re-parses the table out of
 `specs/ISO_COBOL.md` on every build and compares all 576 cells plus the 163-mark glyph count, so "the table is
@@ -2277,7 +2277,7 @@ non-floating insertion symbols" — and SR12 makes `es` the EXTENDED (FOR-phrase
 precedence at all: it constrains no neighbour (`PIC LL EDITING "L" IS ":"` is the shape SR12 a) names as
 sufficient). A NON-FLOATING `es` is position-ambiguous exactly like a fixed currency symbol (`CurrencyLeading` /
 `CurrencyTrailing` in `PictureComposition.Precedence`), asked of every other symbol by the matrix: `PIC 99L99`
-refuses (COBOLNET1935), `PIC L999`, `PIC 9999L`, `PIC L$999`, `PIC 999$L` bind. A FLOATING `es` string (rule 6) is
+refuses (COBOL1935), `PIC L999`, `PIC 9999L`, `PIC L$999`, `PIC 999$L` bind. A FLOATING `es` string (rule 6) is
 floating insertion and Table 10 states the `cs` mapping for the non-floating column and row alone, so it stays
 transparent. **The one pair the matrix does NOT judge is one currency-like symbol against another** (`es`/`es`,
 `es`/`cs`): the blank leading-currency-before-trailing-currency cell would refuse the two ends of Annex D.24's `PIC
@@ -2294,7 +2294,7 @@ it as a basic letter, §13.18.40.4 GR14 ('es') and §13.18.40.5 rule 3 make it a
 character-string-1, and SR9 — the rule that types the phrase's literals — enumerates only literal-1/-2/-3. The
 grammar used to DEMAND the quoted spelling, so every conforming EDITING phrase was a parse error and SR8/SR10/SR11
 were reachable only through a spelling the standard does not define; `editingPhrase` now reads
-`EDITING ( cobolWord | literal ) …` and the quoted spelling draws the named **COBOLNET2149** at bind
+`EDITING ( cobolWord | literal ) …` and the quoted spelling draws the named **COBOL2149** at bind
 (parse-wide/bind-narrow), never an ANTLR syntax error.
 
 **literal-1/-2/-3 are LITERAL POSITIONS, a different operand kind from character-1** (kb/Work PB778). They are the
@@ -2302,14 +2302,14 @@ were reachable only through a spelling the standard does not define; `editingPhr
 literal-position chokepoint `DataBinder.RawValueOperandText` (parameterised by a `LiteralPosition` that names the
 operand and the format in its diagnostics), so a constant-name (§13.10.3 SR2 / §13.10.4 GR1), a symbolic-character,
 `ALL literal-1` and a concatenation expression (§8.8.3.3 GR3) all arrive as the literal they stand for, and a data
-name or undefined word is refused by name (COBOLNET1639/1902). A keyword figurative constant is ONE character here
+name or undefined word is refused by name (COBOL1639/1902). A keyword figurative constant is ONE character here
 (§8.3.3.6.4 GR3b — the EDITING rules specify no length) whose class is the subject's (GR1): `EditLiteral` carries it
 as `EditLiteralClass.Figurative` in both representations (its character from `ConcatFolder.FigurativeChar`, the one
 figurative-character table) and `PictureAnalyzer` resolves it against the subject before SR9 is asked. A numeric or
-boolean literal — or NULL — is `NotAlphanumericOrNational` and SR9 refuses it (COBOLNET1955). Before PB778 a
+boolean literal — or NULL — is `NotAlphanumericOrNational` and SR9 refuses it (COBOL1955). Before PB778 a
 constant-name was a parse error and `EDITING T IS SPACE` / `IS "-" & "/"` inserted their SOURCE TEXT.
 
-Two shapes of the phrase used to be STAGED LOUD (COBOLNET0899) although Annex D.24 demonstrates both, and they
+Two shapes of the phrase used to be STAGED LOUD (COBOL0899) although Annex D.24 demonstrates both, and they
 are now rendered. A literal may be 50 characters (SR9) and §13.18.40.5 rule 6's first sentence lists "the
 extended editing sign control symbols, if specified" among the FLOATING insertion symbols — so a FOR-phrase
 character-1 repeated twice or more is a floating string, exactly as `$$$` is. Two structural consequences:
@@ -2341,14 +2341,14 @@ Goldens `2023/pb491_editing_variable_width` (Annex D.24's own images and sizes) 
 §13.18.40.3 SR4 caps character-string-1 at 63 characters AS WRITTEN — SR6's second sentence ("the length of the
 integer, not the length of the constant-name, is counted toward the maximum number of characters in
 character-string-1") is what fixes that reading, and it is what keeps `PIC X(30000)` legal — reported as
-**COBOLNET2146**. SR6's repetition factor is validated ONCE, in `PictureAnalyzer.TryExpandRepeats`, against "an
+**COBOL2146**. SR6's repetition factor is validated ONCE, in `PictureAnalyzer.TryExpandRepeats`, against "an
 unsigned nonzero integer": a sign, a zero, an empty or non-numeric factor and an unclosed parenthesis each draw
-**COBOLNET2147**, by the literal route and by the constant-name route alike, since
+**COBOL2147**, by the literal route and by the constant-name route alike, since
 `DataBinder.Constants.ExpandPicConstants` rewrites `(constant-name)` to `(integer)` in the source string and
 hands it to the same expander. The expansion is BOUNDED as it accumulates: past WiseOwl COBOL's
 **⚠ implementor-defined maximum of 134 217 728 (2²⁷) character positions in one elementary item** — the standard
 sets none, SR4 bounding only the written string, SR14 only a numeric item's digit positions, and Annex A.1
-carrying no maximum-item-size item — the entry draws **COBOLNET2148**. Before this, `PIC X(-3)` left the binder
+carrying no maximum-item-size item — the entry draws **COBOL2148**. Before this, `PIC X(-3)` left the binder
 as an unhandled `ArgumentOutOfRangeException` and `PIC X(2000000000)` as an `OutOfMemoryException`: a compiler
 crash with no diagnostic and no source location. PICTURE format 2's SIZE obeys the same cap (§13.18.40.4 GR17
 makes integer-1 a character-position count), asked at the one place the limit lives.
@@ -2356,14 +2356,14 @@ makes integer-1 a character-position count), asked at the one place the limit li
 **The extended editing sign control symbols are a SET, and two rules are stated over it (kb/Work PB530, PB855).**
 SR24's and SR25's SECOND sentences are the two the matrix cannot reach (they order one currency-like symbol against
 another, which Table 10's blank cell would refuse). SR24: "either one or two extended editing sign control symbols
-may be used in character-string-1" — a third is COBOLNET1985, asked in `PictureComposition.Validate` over the PICTURE,
+may be used in character-string-1" — a third is COBOL1985, asked in `PictureComposition.Validate` over the PICTURE,
 because a SYMBOL is an occurrence (a FLOATING string of one character-1 is one, each fixed occurrence is one): a count
 of EDITING phrases missed `PIC L9L9L` under one phrase, and `PIC 9L9F9G` with three FOR phrases once bound and
 rendered `MOVE -12` as `0(1)2]`. The same bound keeps the position-ambiguous role search at 2^4 assignments. SR25: "the
 first occurrence of the EDITING phrase shall be for the leftmost symbol in character-string-1 and the second occurrence
 shall be for the rightmost symbol" — asked at the end of `PictureAnalyzer.ValidateEditing`, over the FOR-form phrases it
 collected (SR12: the FOR form alone is an extended symbol; an IS-form phrase is simple insertion and is not counted),
-and refused as COBOLNET1984 unless the first phrase's character-1 IS the string's first symbol and the second's its last.
+and refused as COBOL1984 unless the first phrase's character-1 IS the string's first symbol and the second's its last.
 The order is not cosmetic, because each extended symbol renders its own literal at its own position: `PIC F999.99L`
 with the phrases reversed rendered `-1.5` as `)001.50(` where the conforming spelling renders `(001.50)`.
 **⛔ THE READING (PB855, replacing PB530's)**: SR25 is read AS WRITTEN. PB530 read "the leftmost symbol" as the
@@ -2389,7 +2389,7 @@ EDITING phrase is a COBOL-2023 introduction and `negative/pb490-picture-editing-
 the national / boolean / floating-point arms have taken their strings and BEFORE the geometry derivation — which
 presumes a well-formed string (the scale, the digit-position count and the floating-string detector all assume
 the P run, the decimal point and the floating symbol are where the standard requires them). A violation is
-COBOLNET1934 (a named §13.18.40.3 composition rule) or COBOLNET1935 (the §13.18.40.6 Table 10 precedence) and the
+COBOL1934 (a named §13.18.40.3 composition rule) or COBOL1935 (the §13.18.40.6 Table 10 precedence) and the
 item recovers, the compile having already failed. Table 10's `E` and exponent-`+` rows and columns are carried
 for fidelity and for the drift test but are not walked from this path: §13.18.40.4 GR13 b pins the floating-point
 form's two parts more narrowly than Table 10 does, and `AnalyzeFloatEdited` is that rule's one place. That one
@@ -2429,7 +2429,7 @@ Two properties keep that honest, and both are structural rather than case-by-cas
 
 1. **Each arm states its own general rule as a loud assertion.** The national arm carries GR9/GR10, the boolean
    arm GR8, the alphanumeric arm GR6/GR7's alphabet, and the pure-numeric fall-through GR11's "at least one
-   symbol '9'" — each a COBOLNET0808 naming the rule. Every one of them is unreachable while `PictureComposition`
+   symbol '9'" — each a COBOL0808 naming the rule. Every one of them is unreachable while `PictureComposition`
    (D24) and GR5–GR13 agree; they exist so that the agreement is ASSERTED rather than assumed, because a
    fall-through arm reached by exhaustion is exactly where a character-string that defines NO category ends up.
    Before the composition validator existed, `PIC S`, `PIC PPP`, `PIC SV` and `PIC SPPP` each bound a
@@ -2523,11 +2523,11 @@ CONCRETE COBOL→C# MAPPINGS:
 
 ### The grammar captures subscript and ref-mod content as ONE undifferentiated raw token stream (subToken* in SUBSCRIPT lexer mode); `(I J)` (2 subscripts) and `(3:2)` (ref-mod) and `(I)(3:2)` (subscript THEN ref-mod) are syntactically identical at the rule level — only the presence of SUB_COLON distinguishes them.
 
-**⛔ The group may be EMPTY (kb/Work PB969).** The same capture carries a keyword-omitted function-identifier's argument list, and §8.4.3.2.2 brackets the arguments INSIDE the parentheses, so `F()` is the zero-argument spelling (for a function-pointer, §8.4.3.2.3 SR5 makes it the only keyword-omitted one); `subToken+` refused it with COBOL0001 while `F( )` parsed. An empty — or whitespace-only — group after a name that resolves to a DATA item is refused by name in the resolver (`ReferenceResolver.ScreenEmptyParentheses` / `IsEmptyGroup`, COBOLNET2309: §8.4.2.3.2 writes `( subscript … )`, §8.4.3.3.2 a required leftmost-position); before it the whitespace-only spelling compiled clean on the sending side and aborted at run time.
+**⛔ The group may be EMPTY (kb/Work PB969).** The same capture carries a keyword-omitted function-identifier's argument list, and §8.4.3.2.2 brackets the arguments INSIDE the parentheses, so `F()` is the zero-argument spelling (for a function-pointer, §8.4.3.2.3 SR5 makes it the only keyword-omitted one); `subToken+` refused it with COBOL0001 while `F( )` parsed. An empty — or whitespace-only — group after a name that resolves to a DATA item is refused by name in the resolver (`ReferenceResolver.ScreenEmptyParentheses` / `IsEmptyGroup`, COBOL2309: §8.4.2.3.2 writes `( subscript … )`, §8.4.3.3.2 a required leftmost-position); before it the whitespace-only spelling compiled clean on the sending side and aborted at run time.
 
 Port the legacy ExpressionBinder's SUB_* token interpreter verbatim (it is proven over 364 NIST tests): for each `(...)` suffix group, scan tokens — if it contains SUB_COLON it is a ref-mod (split into start/length sub-expressions at the colon), else it is a subscript list (split on SUB_WS / SUB_COMMA into N subscript expressions, each itself possibly a relative `idx ± lit`). Phase-A flatten produces a clean {qualifiers[], subscriptGroups[][], refMod?} that Phase-B resolves. Do NOT try to re-grammar this — the SUBSCRIPT-mode design is intentional and reusing the interpreter avoids re-deriving COBOL subscript edge cases.
 
-⚠ **The position walk is a reader, not an expression compiler, and the difference is where it ends (D18).** `ReferenceResolver.BindPosition` reads integer literals, data-names, index-names, `+ - *`, unary minus and parentheses off the parse node into a typed `Position` (kb/Work PB2151); **everything else binds the same node through the real pipeline into the §15.4 temporary** — never grown a new hand-written arm, which is how a reader turns into a third expression compiler. **The walk is an OPTIMIZATION over that route, never the arbiter of what is legal in the position, and stating it the other way round cost a defect: PB42.** For one commit the D18 gate asked "is this segment FUNCTION-bearing?" instead of "can the renderer render it", so `W-E(W-I ** 2)` and `W-E(2.0)` — plain arithmetic under §8.8.1.1 ("a numeric literal … separated by arithmetic operators") with §8.3.2.4.2 listing `**` as an arithmetic operator — kept compiling clean and throwing at run time. ⛔ **Routing everything is NOT the unaudited-table mistake PB1 taught, and the reason is structural: THE GRAMMAR ADJUDICATES.** A shape §8.8.1.1 does not admit — an alphanumeric literal, an `ALL` figurative constant (legal only in the §8.4.2.3.3 r6 positions) — does not parse as an `arithmeticExpression`, and the D18 hook refuses it by name (COBOLNET2363). Admission is by parsing, not by assertion, which is why the next arithmetic form needs no edit here. ⚠ Those two remain **run-time** throws where they should be bind-time diagnostics — right position, wrong stage; that is PB42's recorded residue.
+⚠ **The position walk is a reader, not an expression compiler, and the difference is where it ends (D18).** `ReferenceResolver.BindPosition` reads integer literals, data-names, index-names, `+ - *`, unary minus and parentheses off the parse node into a typed `Position` (kb/Work PB2151); **everything else binds the same node through the real pipeline into the §15.4 temporary** — never grown a new hand-written arm, which is how a reader turns into a third expression compiler. **The walk is an OPTIMIZATION over that route, never the arbiter of what is legal in the position, and stating it the other way round cost a defect: PB42.** For one commit the D18 gate asked "is this segment FUNCTION-bearing?" instead of "can the renderer render it", so `W-E(W-I ** 2)` and `W-E(2.0)` — plain arithmetic under §8.8.1.1 ("a numeric literal … separated by arithmetic operators") with §8.3.2.4.2 listing `**` as an arithmetic operator — kept compiling clean and throwing at run time. ⛔ **Routing everything is NOT the unaudited-table mistake PB1 taught, and the reason is structural: THE GRAMMAR ADJUDICATES.** A shape §8.8.1.1 does not admit — an alphanumeric literal, an `ALL` figurative constant (legal only in the §8.4.2.3.3 r6 positions) — does not parse as an `arithmeticExpression`, and the D18 hook refuses it by name (COBOL2363). Admission is by parsing, not by assertion, which is why the next arithmetic form needs no edit here. ⚠ Those two remain **run-time** throws where they should be bind-time diagnostics — right position, wrong stage; that is PB42's recorded residue.
 
 ### REDEFINES is a byte-level storage overlay with no clean typed-native equivalent: two differently-typed C# fields cannot share memory, so a write through one view is invisible to the other.
 
@@ -2561,9 +2561,9 @@ Model an index-name as a C# `long` holding a 1-BASED OCCURRENCE NUMBER, not a di
 - Subscript/position single-evaluation (ISO): `TBL(F(X)) (G(Y):H(Z))` — F,G,H must each evaluate exactly once. Emit temps for every non-trivial subscript and ref-mod position before composing the Place.
 - Relative subscript `idx - 1` where idx is at occurrence 1 → index 0-1 = -1: a runtime bounds violation (EC-BOUND-SUBSCRIPT). Honor with a checked path when EC enabled; otherwise undefined (matches no-EC corpus behavior).
 - Level-88 VALUE with multiple literals AND THRU ranges mixed (VALUE 0 5 THRU 9 12): the condition is an OR over each literal/range — `St==0 || (St>=5&&St<=9) || St==12`. Capture the full value-item list, not just the first (DataBinder.ExtractValue currently grabs only FirstOrDefault — a bug for 88s and for multi-literal table VALUEs).
-- SET cond-name TO TRUE picks the FIRST value of a THRU range (the low bound) or the first literal (ISO §14.9.39.4 GR6); SET TO FALSE places `Condition88.FalseValue` — literal-4 of the `WHEN SET TO FALSE` phrase (ISO §14.9.39.4 GR7 / §13.18.63.4 GR20) — through the SAME store, selected by `BoundSetConditions.ToTrue`; §14.9.39.3 SR7 refuses the arm when the phrase is absent (COBOLNET2049).
+- SET cond-name TO TRUE picks the FIRST value of a THRU range (the low bound) or the first literal (ISO §14.9.39.4 GR6); SET TO FALSE places `Condition88.FalseValue` — literal-4 of the `WHEN SET TO FALSE` phrase (ISO §14.9.39.4 GR7 / §13.18.63.4 GR20) — through the SAME store, selected by `BoundSetConditions.ToTrue`; §14.9.39.3 SR7 refuses the arm when the phrase is absent (COBOL2049).
 - JUSTIFIED RIGHT interacts with ref-mod and with numeric MOVE: JUST only applies to alphanumeric/alphabetic receivers (ISO §13.18.32) — diagnose/ignore on numeric. Already plumbed in CobolString.Store(justifiedRight).
-- COMP-5 / BINARY-* with no PIC: width-bounded native int with TWO'S-COMPLEMENT WRAP on overflow (not digit truncation) — PicInfo.StorageWidth picks the byte width. `CobolNum.Store` WRAPs and `TryStore` range-checks by `NumProfile.StorageLength` (`WrapBinary`/`InBinaryRange`, branching signed vs unsigned; §14.9.25 GR8 magnitude for unsigned). The BINARY-CHAR family synthesizes via `PicInfo.BinaryItem` (PICTURE-less, §13.16.3 SR8 prohibits a picture → COBOLNET0870).
+- COMP-5 / BINARY-* with no PIC: width-bounded native int with TWO'S-COMPLEMENT WRAP on overflow (not digit truncation) — PicInfo.StorageWidth picks the byte width. `CobolNum.Store` WRAPs and `TryStore` range-checks by `NumProfile.StorageLength` (`WrapBinary`/`InBinaryRange`, branching signed vs unsigned; §14.9.25 GR8 magnitude for unsigned). The BINARY-CHAR family synthesizes via `PicInfo.BinaryItem` (PICTURE-less, §13.16.3 SR8 prohibits a picture → COBOL0870).
 - 19-38 digit pictures overflow `long` (max 18 digits) → Int128. PicInfo.ClrType/DefaultInitializer/ProfileInitializer and the NumX literal renderer must branch on WidePrecision; CobolNum needs Int128 overloads. Pictures >38 (NATIONAL/2014) are out of scope for v1.
 - REDEFINES of a table or by a table; REDEFINES chains (A redefines B redefines C): resolve the ultimate base; the whole chain is ONE redefines class with ONE canonical backing per the 4-tier verdict (A alias / B string canonical / C class-scoped byte canonical / D reject loud — `COBOLNET_REDEFINES_DESIGN.md`); never independent stored fields per view.
 - Qualification of an index-name or a LINAGE-COUNTER by file/report name (grammar dataReference alts): index-name qualification is by table name (ISO §8.4.2.2 rule 6) — resolve via the owning table; LINAGE-COUNTER/LINE-COUNTER/PAGE-COUNTER are special registers, not data items — they get dedicated Places.
@@ -2578,9 +2578,9 @@ standard (27 listed elements) — which `docs/CONFORMANCE.md` §5 records as **N
 **The posture is REFUSAL, not accept-and-ignore, and the licence decides which.** Annex **A.4.1**: *"An
 implementation shall accept the syntax and provide the functionality for an optional element **only when**
 support for that language element is claimed by the implementor."* That is a prohibition on accepting, so an
-unclaimed A.4 module is a named **error** (`COBOLNET1560` / `COBOLNET1707`). Contrast the Annex **A.3
+unclaimed A.4 module is a named **error** (`COBOL1560` / `COBOL1707`). Contrast the Annex **A.3
 processor-dependent** facilities — MCS — whose licence is §4.2.6 and whose posture is
-accept-inert plus a mandatory compile-time **warning** (`COBOLNET1578`; `COBOLNET1580` VALIDATE
+accept-inert plus a mandatory compile-time **warning** (`COBOL1578`; `COBOL1580` VALIDATE
 rides the same band). The severity is carried by the `DiagnosticDescriptor` and dispatched once in
 `EditionContext.Report(descriptor, message)` — never by a local test at an emit site.
 
@@ -2605,7 +2605,7 @@ with no descriptor — so the code had no `docs/DIAGNOSTICS.md` row at all):
 
 The EC arm lives in `EcNameResolution.Advise`, the ONE resolution funnel, which is what makes it cover
 `>>TURN`, `USE`, the PERFORM `WHEN` phrase and `RAISE` together; the two RAISING sites that call `Advise`
-directly already refuse a non-`EC-USER` name with COBOLNET0858. §14.6.13.1.1 licenses raising *no* condition for
+directly already refuse a non-`EC-USER` name with COBOL0858. §14.6.13.1.1 licenses raising *no* condition for
 an optional element's level-3 name, but it does not license silently accepting the name.
 
 The OPTIONS paragraph's `INITIALIZE … SCREEN …` target (§11.9.10.4 GR3) is a seventh shape and draws 1560 too;
@@ -2665,12 +2665,12 @@ standard / the ISO2023_CONFORMANCE_PLAN M2 catalog) + `docs/VERSION_TEST_MATRIX_
     at `--std 85`.
   • Format 2 (table) VALUE — literals keyed to occurrence ranges via a mandatory `FROM (subscript)` phrase
     (§13.18.63.2): 2002 introduction (derived — the 2023 Annex E VALUE rows are numeric-edited only, the A1
-    authority gap) — diagnose at `--std 85` (COBOLNET0900); construct `value-table-format-2002`. Its SYNTAX
+    authority gap) — diagnose at `--std 85` (COBOL0900); construct `value-table-format-2002`. Its SYNTAX
     RULES carry no version proviso: SR18/SR20/SR21/SR22/SR23 are reported at all four editions, ALONGSIDE the
     introduction gate (and, for the SR22/SR23 shapes, alongside OCCURS DYNAMIC's 2014 gate), never instead
     of it.
   • SET condition-name TO FALSE / the `VALUE … WHEN SET TO FALSE` phrase: 2002 introduction — diagnose at
-    `--std 85` (COBOLNET0900; rows `set-condition-false-2002` / `value-false-phrase-2002`, fired
+    `--std 85` (COBOL0900; rows `set-condition-false-2002` / `value-false-phrase-2002`, fired
     recognition-first by `VersionConformancePass.ParseArm`).
   • Zero-length reference modification: edition-varying, 2023-only directive control — see §5
     (REF-MOD-ZERO-LENGTH / EC-BOUND-REF-MOD, `VERSION_CHANGE_REFERENCE.md` #30).

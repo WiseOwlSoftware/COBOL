@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1507 - 10.6.1: a program-definition contains only `[ program-definition ] ...` after its procedure
       *>   division, and a function-definition is a source unit of the compilation group itself. FIP1507F is written
-      *>   INSIDE the program FIP1507 (before its END PROGRAM). COBOLNET2274. The legal shape is
+      *>   INSIDE the program FIP1507 (before its END PROGRAM). COBOL2274. The legal shape is
       *>   conformance/2002/pb1507_source_unit_shapes_legal.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. FIP1507.

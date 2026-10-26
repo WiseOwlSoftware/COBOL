@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1507 - 11.10.3 SR6: "The RECURSIVE clause shall not be specified if any program that directly or
       *>   indirectly contains this program is an initial program." S6I1507 is RECURSIVE and is contained in the
-      *>   INITIAL S6O1507. COBOLNET2755.
+      *>   INITIAL S6O1507. COBOL2755.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. S6O1507 IS INITIAL.
        PROCEDURE DIVISION.

@@ -58,7 +58,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     public void NoteDebuggingLineBetweenLiteralParts(string file, int line)
         => _debuggingLinesBetweenLiteralParts.Add(new SourceOrigin(file, line));
 
-    /// <summary>§6.3.5 2) - COBOLNET3473: every debugging line in <paramref name="sourceLines"/> (the origins of the lines
+    /// <summary>§6.3.5 2) - COBOL3473: every debugging line in <paramref name="sourceLines"/> (the origins of the lines
     /// <c>DebuggingLineRewriter</c> kept as source) that stands between the parts of a continued literal. Only a comment
     /// line or a blank line may; a source line there is what GnuCOBOL rejects with -fdebugging-line ("continuation
     /// character expected"). Reported at the line's indicator.</summary>
@@ -90,14 +90,14 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     }
 
     /// <summary>§6.2.3.2 SR2: "The floating comment indicator of an inline comment shall be preceded by a
-    /// separator space" — COBOLNET2495. The text from the indicator on is still taken as the comment.</summary>
+    /// separator space" — COBOL2495. The text from the indicator on is still taken as the comment.</summary>
     public void OnUnseparatedFloatingComment(string file, int line, int column)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FloatingCommentNotSeparated.Code,
             "the floating comment indicator *> shall be preceded by a separator space (ISO §6.2.3.2 SR2); write a "
             + "space before it", At(file, line, column), default);
 
     /// <summary>§6.2.3.2 SR3: "All the characters forming a multiple-character floating indicator shall be
-    /// specified on the same line" — COBOLNET2496, for a continuation line that completes one begun at the end of
+    /// specified on the same line" — COBOL2496, for a continuation line that completes one begun at the end of
     /// the latest logical line.</summary>
     public void OnSplitFloatingIndicator(string file, int line, string indicator)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FloatingIndicatorSplit.Code,
@@ -105,7 +105,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             + "characters of a multiple-character floating indicator shall be on the same line (ISO §6.2.3.2 SR3)",
             At(file, line, FixedFormLine.IndicatorColumn), default);
 
-    /// <summary>§6.3.5 2) — COBOLNET2688: a continuation line completes a multiple-character separator or invocation
+    /// <summary>§6.3.5 2) — COBOL2688: a continuation line completes a multiple-character separator or invocation
     /// operator (<c>==</c>, <c>::</c>) begun at the end of the latest logical line.</summary>
     public void OnSplitSeparator(string file, int line, string token)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.MultipleCharacterTokenSplit.Code,
@@ -113,53 +113,53 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             + "multiple-character separator or operator shall be on the same line (ISO §6.3.5 2))",
             At(file, line, FixedFormLine.IndicatorColumn), default);
 
-    /// <summary>§6.2.3.2 SR6 / §6.3.5 2) / §6.4.2 — COBOLNET2684: the first nonblank character of a literal's
+    /// <summary>§6.2.3.2 SR6 / §6.3.5 2) / §6.4.2 — COBOL2684: the first nonblank character of a literal's
     /// continuation line is not the quotation symbol of its opening delimiter.</summary>
     public void OnContinuationQuote(string file, int line, int column, char quote)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.LiteralContinuationQuote.Code,
             $"the first nonblank character of a continuation line of a literal shall be {QuoteName(quote)}, the quotation "
             + "symbol used in the literal's opening delimiter (ISO §6.2.3.2 SR6)", At(file, line, column), default);
 
-    /// <summary>§6.3.5 2) — COBOLNET2685: a national literal continued by the fixed continuation indicator.</summary>
+    /// <summary>§6.3.5 2) — COBOL2685: a national literal continued by the fixed continuation indicator.</summary>
     public void OnNationalFixedContinuation(string file, int line)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.NationalLiteralFixedContinuation.Code,
             "a national literal may be continued only with a floating literal continuation indicator, not the fixed "
             + "continuation indicator (ISO §6.3.5 2))", At(file, line, FixedFormLine.IndicatorColumn), default);
 
-    /// <summary>§6.2.3.2 SR5 — COBOLNET2686: a floating literal continuation indicator on a line that holds the fixed
+    /// <summary>§6.2.3.2 SR5 — COBOL2686: a floating literal continuation indicator on a line that holds the fixed
     /// continuation indicator.</summary>
     public void OnFloatingOnFixedContinuation(string file, int line, int column)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FloatingContinuationOnFixedContinuation.Code,
             "a floating literal continuation indicator shall not be specified on a line that contains a fixed literal "
             + "continuation indicator (ISO §6.2.3.2 SR5)", At(file, line, column), default);
 
-    /// <summary>§6.2.3.2 SR4 — COBOLNET2687: a literal continued with both forms of continuation.</summary>
+    /// <summary>§6.2.3.2 SR4 — COBOL2687: a literal continued with both forms of continuation.</summary>
     public void OnTwoContinuationForms(string file, int line, int column)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.LiteralContinuedTwoForms.Code,
             "a literal shall not be continued with more than one form of continuation: the fixed indicator and the "
             + "floating indicator are both used on it (ISO §6.2.3.2 SR4)", At(file, line, column), default);
 
-    /// <summary>§6.3.7.3 / §6.4.4.3 — COBOLNET2689: an inline comment on a line that holds a floating literal
+    /// <summary>§6.3.7.3 / §6.4.4.3 — COBOL2689: an inline comment on a line that holds a floating literal
     /// continuation indicator.</summary>
     public void OnCommentAfterFloatingContinuation(string file, int line, int column)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FloatingContinuationComment.Code,
             "an inline comment shall not be written on a line that contains a floating literal continuation indicator "
             + "(ISO §6.3.7.3, §6.4.4.3)", At(file, line, column), default);
 
-    /// <summary>§6.4.2 — COBOLNET2690: the continued line or a continuation line of a literal holds no literal
+    /// <summary>§6.4.2 — COBOL2690: the continued line or a continuation line of a literal holds no literal
     /// content.</summary>
     public void OnEmptyLiteralPart(string file, int line, int column)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.LiteralContinuationPartEmpty.Code,
             "at least one character of the literal content shall be specified on the continued line and on each "
             + "continuation line (ISO §6.4.2)", At(file, line, column), default);
 
-    /// <summary>§7.3.3 SR2 — COBOLNET2691: a compiler directive written after program text on its line.</summary>
+    /// <summary>§7.3.3 SR2 — COBOL2691: a compiler directive written after program text on its line.</summary>
     public void OnDirectiveAfterProgramText(string file, int line, int column)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.DirectiveAfterProgramText.Code,
             "a compiler directive shall be preceded only by zero, one, or more space characters; write it on a line of "
             + "its own (ISO §7.3.3 SR2)", At(file, line, column), default);
 
-    /// <summary>§7.3.3 SR1 — COBOLNET2696: a continuation line (a fixed-form hyphen in column 7, or the line after a
+    /// <summary>§7.3.3 SR1 — COBOL2696: a continuation line (a fixed-form hyphen in column 7, or the line after a
     /// floating literal continuation indicator) follows a compiler directive line. It is not joined: the directive
     /// stays what its own line says, and the continuation line is dropped (kb/Work PB1360).</summary>
     public void OnDirectiveContinued(string file, int line, int column)
@@ -167,7 +167,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             "this line continues the compiler directive on the line above; a compiler directive shall be specified on "
             + "one line (ISO §7.3.3 SR1)", At(file, line, column), default);
 
-    /// <summary>§6.1 3) a) — COBOLNET2653: a free-form line of more than 255 character positions (kb/Work PB1496).
+    /// <summary>§6.1 3) a) — COBOL2653: a free-form line of more than 255 character positions (kb/Work PB1496).
     /// Every such line is reported, at the first position past the limit; it is then read in full.</summary>
     public void OnFreeFormLineTooLong(string file, int line, int positions)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FreeFormLineTooLong.Code,
@@ -175,7 +175,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             + $"{ReferenceFormatProcessor.FreeFormMaxPositions} (a tab counts the positions it advances over, DOC-A.1-157)",
             At(file, line, ReferenceFormatProcessor.FreeFormMaxPositions), default);
 
-    /// <summary>§6.3.3 / §6.2.2 — COBOLNET2616: the indicator area holds a character that is not a fixed indicator
+    /// <summary>§6.3.3 / §6.2.2 — COBOL2616: the indicator area holds a character that is not a fixed indicator
     /// (kb/Work PB1494). Every such line is reported; it is then read as a source line.</summary>
     public void OnInvalidIndicator(string file, int line, Rune indicator)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FixedIndicatorInvalid.Code,
@@ -216,7 +216,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     /// Every occurrence is reported — a format switch is not a once-per-file fact like the continuation gates.
     /// <para>The OPERAND is checked here for the same reason and from the same row (kb/Work PB794): §7.3.24.2
     /// admits FIXED or FREE and nothing else, and this is the only stage that sees the line. One producer
-    /// (COBOLNET1911) for every directive whose operand is a closed word set.</para>
+    /// (COBOL1911) for every directive whose operand is a closed word set.</para>
     /// </summary>
     public void OnSourceFormatDirective(string file, int line, string operand, int column)
     {

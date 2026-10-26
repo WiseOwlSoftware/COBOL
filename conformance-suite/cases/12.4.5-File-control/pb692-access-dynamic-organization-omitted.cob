@@ -8,7 +8,7 @@
 *> screen keyed on a written clause would miss. 12.4.5.10.3 general rule 6: "When the
 *> ORGANIZATION clause is not specified, sequential organization with the RECORD SEQUENTIAL
 *> phrase is implied", so F IS a sequential file and DYNAMIC is closed out of it even though
-*> nothing in the entry says SEQUENTIAL. COBOLNET1858 at every edition (kb/Work PB692).
+*> nothing in the entry says SEQUENTIAL. COBOL1858 at every edition (kb/Work PB692).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB692N3.
        ENVIRONMENT DIVISION.

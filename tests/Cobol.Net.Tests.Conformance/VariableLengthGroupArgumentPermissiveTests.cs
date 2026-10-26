@@ -77,7 +77,7 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
 
     /// <summary>The numeric position: a numeric-argument function (ABS), a string-argument function with a numeric
     /// result (NUMVAL), and the two arithmetic verbs that decode a group operand's digit characters (§8.8.1.1 bars the
-    /// operand; COBOLNET0844 is the warning).</summary>
+    /// operand; COBOL0844 is the warning).</summary>
     private const string NumericProgram = """
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3424NUM.
@@ -236,10 +236,10 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
     /// <summary>Strict conformance refuses the argument (§15.3) and the arithmetic operand (§8.8.1.1); the refusal
     /// is what makes the permissive coercion an extension.</summary>
     [Theory]
-    [InlineData(nameof(StringProgram), "COBOLNET1627")]
-    [InlineData(nameof(NumericProgram), "COBOLNET1627")]
-    [InlineData(nameof(NumericProgram), "COBOLNET0844")]
-    [InlineData(nameof(StrongProgram), "COBOLNET1627")]
+    [InlineData(nameof(StringProgram), "COBOL1627")]
+    [InlineData(nameof(NumericProgram), "COBOL1627")]
+    [InlineData(nameof(NumericProgram), "COBOL0844")]
+    [InlineData(nameof(StrongProgram), "COBOL1627")]
     public void Strict_RefusesTheVariableLengthGroupOperand(string which, string code)
     {
         string src = which switch { nameof(StringProgram) => StringProgram, nameof(NumericProgram) => NumericProgram, _ => StrongProgram };
@@ -258,7 +258,7 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
     {
         var (ok, _, warnings) = EditionHarness.CompileFull(StringProgram, 2023, permissive: true);
         Assert.True(ok, "--permissive must accept the coercion");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1627");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1627");
 
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(StringProgram, 2023, permissive: true);
         Assert.True(ranOk, detail);
@@ -285,8 +285,8 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
     {
         var (ok, _, warnings) = EditionHarness.CompileFull(NumericProgram, 2023, permissive: true);
         Assert.True(ok, "--permissive must accept the coercion");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1627");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0844");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1627");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL0844");
 
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(NumericProgram, 2023, permissive: true);
         Assert.True(ranOk, detail);
@@ -315,7 +315,7 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
     {
         var (ok, _, warnings) = EditionHarness.CompileFull(StrongNumericProgram, 2023, permissive: true);
         Assert.True(ok, "--permissive must accept the coercion");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0844");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL0844");
 
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(StrongNumericProgram, 2023, permissive: true);
         Assert.True(ranOk, detail);
@@ -330,7 +330,7 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
     {
         var (ok, _, warnings) = EditionHarness.CompileFull(ConvertProgram, 2023, permissive: true);
         Assert.True(ok, "--permissive must accept the coercion");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1627");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1627");
 
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(ConvertProgram, 2023, permissive: true);
         Assert.True(ranOk, detail);

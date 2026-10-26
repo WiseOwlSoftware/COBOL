@@ -5,7 +5,7 @@
       *> portable: unverified
       *>---
       *> kb/Work PB643 - RESERVE integer-1 above this implementation's
-      *> limit of 524,287 input-output areas is refused (COBOLNET2897).
+      *> limit of 524,287 input-output areas is refused (COBOL2897).
       *>   cite.py --check 12.4.5.14.3 "If the RESERVE clause is
       *>     specified, the number of input-output areas allocated is
       *>     equal to the value of integer-1" -> OK §12.4.5.14.3 1)

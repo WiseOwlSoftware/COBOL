@@ -32,7 +32,7 @@ using CobolNet.Runtime;
 ///   word is read as the class even when the program declares a constant of that spelling: the only allowable
 ///   two-operand list is class + name, and the constant reading would be a list of two names, which is refused.</item>
 ///   <item>Anything else — three or more operands, a literal before another operand, or a leading word that
-///   is not a provided device class — is COBOLNET2256.</item>
+///   is not a provided device class — is COBOL2256.</item>
 /// </list>
 /// </summary>
 internal static class AssignTargetRule
@@ -44,7 +44,7 @@ internal static class AssignTargetRule
         new HashSet<string>(CobolNames.Comparer) { "DISK", "PRINTER" };
 
     /// <summary>The target the TO phrase identifies — the text <c>FileModel.AssignTarget</c> carries to the
-    /// runtime — reporting COBOLNET2256 for a list the determination does not allow. On a refused list the LAST
+    /// runtime — reporting COBOL2256 for a list the determination does not allow. On a refused list the LAST
     /// operand is returned so binding continues on a plausible shape under an already-failed compile.</summary>
     public static string Resolve(EditionContext edition, LiteralEnvironment env, Core.AssignTargetContext[] targets,
         string fileName)
@@ -146,7 +146,7 @@ internal static class AssignTargetRule
         return "";
     }
 
-    /// <summary>The ONE report of an ASSIGN operand's literal-1 shape (COBOLNET2645), anchored at the operand.</summary>
+    /// <summary>The ONE report of an ASSIGN operand's literal-1 shape (COBOL2645), anchored at the operand.</summary>
     private static void Report(EditionContext edition, Antlr4.Runtime.ParserRuleContext at, string message)
     {
         using var _ = edition.At(at);

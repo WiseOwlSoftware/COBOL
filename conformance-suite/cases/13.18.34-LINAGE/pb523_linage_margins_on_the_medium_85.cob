@@ -20,7 +20,7 @@
       *> 2023 fixture reads its print files back with ORGANIZATION IS LINE
       *> SEQUENTIAL, so each DISPLAYed index IS a physical line number.
       *> LINE SEQUENTIAL does not exist at COBOL-85 (it is the 2023
-      *> ORGANIZATION phrase; this compiler rejects it with COBOLNET0900
+      *> ORGANIZATION phrase; this compiler rejects it with COBOL0900
       *> at --std 85), so the medium is read here one CHARACTER at a time
       *> through a record sequential file with a PIC X record — which
       *> observes the same bytes one level lower, counting the line feeds

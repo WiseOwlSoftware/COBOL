@@ -12,7 +12,7 @@
       *> the intermediates PB1505X and PB1505Y, which is legal.  (The
       *> first sentence concerns two DIFFERENT same-named methods
       *> inherited together, which only multiple class inheritance can
-      *> produce -- Annex A.4.10 item 1, not claimed, COBOLNET0849.)
+      *> produce -- Annex A.4.10 item 1, not claimed, COBOL0849.)
       *> Expected: INVOKE Z "M1" runs PB1505W's M1 (9.3.9: the subclass
       *> has all the methods of the inherited classes) -> W-M1-FINAL.
        IDENTIFICATION DIVISION.

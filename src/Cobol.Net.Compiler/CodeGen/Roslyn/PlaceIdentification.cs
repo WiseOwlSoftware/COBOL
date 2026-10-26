@@ -200,7 +200,7 @@ internal static class PlaceIdentification
     /// <para>A <see cref="BitWindow"/>'s offset is not hoisted, because no verb that identifies its operands here can
     /// receive a USAGE BIT item with a run-time subscript: a BY REFERENCE bit argument's subscripts "consist of only
     /// fixed-point numeric literals or arithmetic expressions … in which all operands are numeric literals" (ISO
-    /// §14.9.4.3 SR6, COBOLNET1683; INVOKE's twin is §14.9.23.3 SR12), and INSPECT, STRING and UNSTRING take only
+    /// §14.9.4.3 SR6, COBOL1683; INVOKE's twin is §14.9.23.3 SR12), and INSPECT, STRING and UNSTRING take only
     /// usage display or national operands (§14.9.22.3 SR1, §14.9.43.3 SR1, §14.9.48.3 SR4). The view's byte <see cref="RedefViewPlace.Offset"/>, which every other coding reads, is
     /// hoisted above.</para></summary>
     private static WindowCoding? FreezeCoding(WindowCoding? coding, Func<string, string> hoist) => coding switch

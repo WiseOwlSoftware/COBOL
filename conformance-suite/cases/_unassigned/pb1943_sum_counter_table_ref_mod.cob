@@ -36,7 +36,7 @@
       *>   FUNCTION LENGTH (CF-U (1) (2:3)) = 3
       *> The CONTROL FOOTING FINAL prints at TERMINATE one line: CF-U at columns 1, 13 and 25 = 1234, 1234, 7734,
       *> then the SOURCE CF-U (2) (2:3) item at column 37 = "23D".
-      *> Before the fix a subscripted reference-modified counter drew COBOLNET1639 "not defined", and LENGTH answered 2.
+      *> Before the fix a subscripted reference-modified counter drew COBOL1639 "not defined", and LENGTH answered 2.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.

@@ -15,7 +15,7 @@
       *> - "the capacity of the table is increased"), whichever description of the
       *> occurrence's storage the store names.
       *> MEASURED BEFORE THE FIX: every reference to A(n), B1(n) or B2(n) drew
-      *> COBOLNET0899 as a receiver and COBOLNET1756 (a run-time abort) as a
+      *> COBOL0899 as a receiver and COBOL1756 (a run-time abort) as a
       *> sender - the class's backing was not reachable through a dynamic table.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1933DYN.

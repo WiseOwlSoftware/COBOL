@@ -8,7 +8,7 @@
 *> previously in the same compilation group", else from a function prototype definition in it (b), else from the
 *> external repository (c). The definition PB989LATE FOLLOWS the program whose REPOSITORY names it, so it is not a);
 *> no function prototype definition of that name is in the group (b), and this implementation has no external
-*> repository to consult (c) - nothing can say what the call returns, which is COBOLNET1505 at the reference
+*> repository to consult (c) - nothing can say what the call returns, which is COBOL1505 at the reference
 *> (12.3.8.3 SR10 allows the name only as a prototype in the group, a definition specified PREVIOUSLY, or a function
 *> with information in the external repository). Its only defect is the order: moving the definition above the
 *> program, or giving the group a prototype of it ahead of every other unit (10.6.2 SR1), makes it conforming.

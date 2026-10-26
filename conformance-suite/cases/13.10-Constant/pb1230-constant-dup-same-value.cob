@@ -10,7 +10,7 @@
 *> compilation-variable-name-1 shall be the same as specified in the
 *> other constant-name". The literal 5 and the expression 2 + 3 denote
 *> one value but are two specifications; before PB1230 the check
-*> compared the folded values and this program compiled (COBOLNET1547).
+*> compared the folded values and this program compiled (COBOL1547).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGPB1230.
 DATA DIVISION.

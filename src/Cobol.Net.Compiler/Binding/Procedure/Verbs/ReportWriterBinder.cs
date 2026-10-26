@@ -174,7 +174,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     }
 
     /// <summary>⛔ THE SOURCE CLAUSE'S identifier-1 RULES THAT NEED ITS BOUND ITEM (kb/Work PB1293), reported under
-    /// COBOLNET2770 and returned as "refused" so the operand is neither bound nor reported twice.
+    /// COBOL2770 and returned as "refused" so the operand is neither bound nor reported twice.
     /// <list type="bullet">
     /// <item>ISO §13.18.53.3 SR8 — "Identifier-1 shall not reference a variable-length group", asked of every
     /// identifier-1, printable entry or not.</item>

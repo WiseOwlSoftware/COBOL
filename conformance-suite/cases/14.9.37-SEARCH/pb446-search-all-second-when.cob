@@ -6,7 +6,7 @@
 *>---
 *> ISO 1989:2023 §14.9.37.2 Format 2 (rendered, PDF page 750): the ellipsis sits on the [ AND ... ] bracket, not
 *> on the WHEN brace (§5.2.7), so a SEARCH ALL has exactly ONE WHEN phrase whose AND phrase repeats. The grammar
-*> used to admit N WHEN phrases (measured: this program printed HIT3). Refused at every edition. COBOLNET2269
+*> used to admit N WHEN phrases (measured: this program printed HIT3). Refused at every edition. COBOL2269
 *> (kb/Work PB446).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB446SA2W.

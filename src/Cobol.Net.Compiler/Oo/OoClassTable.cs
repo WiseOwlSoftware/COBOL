@@ -31,7 +31,7 @@ public sealed class OoClassTable
 
     /// <summary>All interfaces in source order (§11.6 — emitted as C# interfaces BEFORE the classes, purely
     /// for readability; Roslyn needs no ordering). Interfaces and classes share ONE name namespace
-    /// (<see cref="_ifaceByName"/> is checked against <see cref="_byName"/> at Build — a collision is COBOLNET0820, §8.3.2.2).</summary>
+    /// (<see cref="_ifaceByName"/> is checked against <see cref="_byName"/> at Build — a collision is COBOL0820, §8.3.2.2).</summary>
     public IReadOnlyList<OoInterfaceSymbol> Interfaces => _interfaces;
     private readonly List<OoInterfaceSymbol> _interfaces = [];
 
@@ -126,7 +126,7 @@ public sealed class OoClassTable
     /// whatever kind of element refers. A word the element declares itself as the same type is recorded twice, which
     /// is no conflict. A METHOD-ID spelled like its CLASS-ID, or a contained program's paragraph spelled like a class
     /// its container's REPOSITORY declares, is therefore legal until the element references that class-name, and then
-    /// refused COBOLNET2692 at whichever of the two comes second, here or at the declaration funnel
+    /// refused COBOL2692 at whichever of the two comes second, here or at the declaration funnel
     /// (<c>DataBinder.DeclareUserWord</c>). The names a CONFIGURATION SECTION declares reach a contained element the
     /// same way (§8.4.6.1), and the data binder records each reference to one here too
     /// (<c>DataBinder.RecordConfigurationNameUse</c>, kb/Work PB3153). False, recording nothing, when no census holds
@@ -221,7 +221,7 @@ public sealed class OoClassTable
     /// variable-length, so §14.8.2.2 rule 2's "both shall be of the same type" makes this vector its crossing too: a
     /// dynamic-length member rides it as its current content and a dynamic-capacity table as its current occurrences, each
     /// in its element's form, recreated in the receiver's description (§14.6.9.2). Excluding the shape refused legal
-    /// source (COBOLNET1688 on the CALL, COBOLNET1513 on the prototype) and staged a group MOVE of it loud.</para>
+    /// source (COBOL1688 on the CALL, COBOL1513 on the prototype) and staged a group MOVE of it loud.</para>
     /// It is tested BEFORE <see cref="StringCarried"/>, which is true of every group.</summary>
     public static bool LeafCarried(DataItem item) =>
         item.IsGroup && !item.BoundaryImageCapable && StrongTypeModel.IsStrongGroup(item);
@@ -355,7 +355,7 @@ public sealed class OoClassTable
     /// (§11.7.3 SR2 / SR8); and the two declined Annex A.4.10 items — multiple class inheritance (item 1) and a
     /// method-name defined twice in one definition (item 3: parametric polymorphism, ISO §9.3.5.3, whose support this
     /// implementation does not claim, deep-dive D9).
-    /// <para>⚠ The three §12063 citations that stood here and at the two COBOLNET0822 emit sites were NOT
+    /// <para>⚠ The three §12063 citations that stood here and at the two COBOL0822 emit sites were NOT
     /// clause numbers — ISO/IEC 1989:2023 has no §12063; the number was a stray line anchor, recorded as
     /// finding 44 of <c>docs/rearchitecture/DESIGN-SPEC-RECONCILIATION.md</c>. Re-derived and
     /// <c>cite.py --check</c>ed: §9.3.5.3 is "Parametric polymorphism", its rule 7 is "Parametric polymorphism
@@ -988,7 +988,7 @@ public sealed class OoClassTable
     /// METHOD-ID's own source element) and the object-class-name or interface-name of a definition containing it sit in
     /// different source elements, and an override or an implementation of a method spelled like the class keeps the
     /// legality of the method it overrides or implements. Before this rule a class's OWN method was renamed alone
-    /// (kb/Work PB975), so an override of an inherited method spelled like the class was refused (COBOLNET4213, retired)
+    /// (kb/Work PB975), so an override of an inherited method spelled like the class was refused (COBOL4213, retired)
     /// and an implementation of a prototype spelled like the class failed in Roslyn (CS0535).</para>
     /// <para>Run once every override is marked (<see cref="ResolveOverrides"/>), before any procedure binds an INVOKE
     /// (<c>OoBinder</c> reads <see cref="OoMethodSymbol.CsName"/>).</para></summary>

@@ -9,7 +9,7 @@
       *>   function PB2073NF returns PIC 9, so its temporary (8.4.3.2.4 GR1: the description of the RETURNING item) is
       *>   no object reference and BAL OF FUNCTION PB2073NF (1) is no object property: the resolver's probe, which now
       *>   reads a function's RETURNING description, must not take it for one, and the reference is refused under SR2
-      *>   (COBOLNET2918) however 14.9.4.3 SR20's omission of BY CONTENT would have routed it.
+      *>   (COBOL2918) however 14.9.4.3 SR20's omission of BY CONTENT would have routed it.
        IDENTIFICATION DIVISION.
        FUNCTION-ID. PB2073NF.
        DATA DIVISION.

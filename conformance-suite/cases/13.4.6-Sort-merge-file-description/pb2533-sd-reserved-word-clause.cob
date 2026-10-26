@@ -14,7 +14,7 @@
       *> ("COBOL0307: unexpected 'GLOBAL'. A period may be missing ..."): the error production that names a
       *> closed format's residue begins at an IDENTIFIER, so a reserved word never entered it.  The parser's
       *> error strategy now reads the same ClosedFormats row the post-parse refusal reads and reports
-      *> COBOLNET1970 naming the format.  Refused at every edition: GLOBAL is reserved from COBOL-85 on and
+      *> COBOL1970 naming the format.  Refused at every edition: GLOBAL is reserved from COBOL-85 on and
       *> the format is closed in every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2533SD.

@@ -15,7 +15,7 @@
       *>   . `INITIALIZE N1 THEN TO DEFAULT` / `THEN DEFAULT` / `TO DEFAULT` / `DEFAULT`
       *> The bare `INITIALIZE N1 DEFAULT` is why initializeOperandList carries the reservedHere("DEFAULT")
       *> guard: DEFAULT rides cobolWord, so the greedy `{identifier-1}...` loop would otherwise take it as
-      *> a second operand and the statement would die on COBOLNET1639. 8.9 reserves DEFAULT from 2002, so
+      *> a second operand and the statement would die on COBOL1639. 8.9 reserves DEFAULT from 2002, so
       *> at this edition it can never be a user-defined word (8.3.2.1); at 85 the loop still absorbs it,
       *> which is the correct 85 reading because the DEFAULT phrase does not exist there.
       *> Expected values, derived from 14.9.20.4. GR5 c) 1. makes an item a receiving-operand under the

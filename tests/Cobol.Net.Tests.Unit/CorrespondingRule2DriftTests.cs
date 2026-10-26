@@ -33,7 +33,7 @@ namespace CobolNet.Tests.Unit;
 /// so rule 2 also owes SR8 (a fixed-width binary sender needs a numeric or numeric-edited receiver) and SR9 (a
 /// variable-length group operand needs a compatible group opposite). Asking <see cref="MoveValidity.Table16Refusal"/>
 /// alone skipped both, MEASURED: a <c>BINARY-LONG</c> namesake paired with a <c>PIC X(5)</c> one and overwrote
-/// it while the written MOVE of the same two items was refused COBOLNET0819, and a variable-length-group
+/// it while the written MOVE of the same two items was refused COBOL0819, and a variable-length-group
 /// namesake paired with an elementary one and reached the run time as a <c>NotImplementedCobolFeatureException</c>.
 /// The matrix carries a <c>Binary-long</c> and a <c>Variable-length-group</c> position for exactly that reason,
 /// and <see cref="TheBoundAndItemKeyedShapeEntriesAnswerTogether"/> pins the two-arm split the fix could have

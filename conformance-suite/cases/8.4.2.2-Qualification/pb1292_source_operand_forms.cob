@@ -28,7 +28,7 @@
       *>   LINE 2 - K = 1, 3, 5 (FROM 1 BY 2) subscripts WS-CC: WS-CC(1) = A, WS-CC(3) = C, WS-CC(5) = E, at columns
       *>            1, 3, 5 (STEP 2) => `A C E`.
       *>   LINE 3 - the same with the subscript an expression of the counter: WS-CC(K + 1) = B, D, F => `B D F`.
-      *> Fails (COBOLNET0899 'SOURCE KC does not resolve to a data item', 'a subscripted ... SOURCE operand ... is not
+      *> Fails (COBOL0899 'SOURCE KC does not resolve to a data item', 'a subscripted ... SOURCE operand ... is not
       *> yet implemented') on a binder whose identifier arm looks a NAME up in ordinary storage.
       *>
       *> THE READ-BACK IS BYTE-WISE ON PURPOSE (see pb565_report_repeating_entry).

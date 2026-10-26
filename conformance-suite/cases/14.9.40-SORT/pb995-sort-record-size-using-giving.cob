@@ -17,7 +17,7 @@
       *>     file-name-3. If the file description entry for file-name-3 describes fixed-length records, the file
       *>     description entry for file-name-1 shall not describe a record that is larger than the record described
       *>     for file-name-3." -> OK §14.9.40.3 11)
-      *> Each statement below breaks one arm and is refused (COBOLNET1757), the legal twin of each in
+      *> Each statement below breaks one arm and is refused (COBOL1757), the legal twin of each in
       *> 85/pb995_sort_merge_record_size_ranges:
       *>   1  SD fixed 5, USING a fixed 8-byte file                    SR5, fixed arm (the USING record is larger)
       *>   2  SD VARYING 3 TO 5, USING a fixed 2-byte file            SR5, variable arm, smaller than the smallest

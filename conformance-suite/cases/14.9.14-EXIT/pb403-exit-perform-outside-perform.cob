@@ -20,7 +20,7 @@
 *> "defensive fallback (SR8: never reached for a valid bind)" -- an invariant the binder never established.
 *>
 *> The 85 arm is its own fixture (pb403-exit-perform-below-2002): EXIT PERFORM does not exist in COBOL-85, so
-*> the refusal there is the introduction gate COBOLNET0900 and not this placement rule.
+*> the refusal there is the introduction gate COBOL0900 and not this placement rule.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB403NEG1.
        PROCEDURE DIVISION.

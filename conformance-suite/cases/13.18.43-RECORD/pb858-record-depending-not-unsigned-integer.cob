@@ -9,7 +9,7 @@
       *> unsigned integer in the working-storage, local-storage, or linkage section."
       *> Each item is in working-storage, so only the first two obligations are asked:
       *> W-GRP is a group (not elementary), W-SGN is signed, W-DEC has a decimal place.
-      *> Each is refused, COBOLNET2922.
+      *> Each is refused, COBOL2922.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB858DU.
        ENVIRONMENT DIVISION.

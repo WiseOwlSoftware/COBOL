@@ -7,7 +7,7 @@
       *> kb/Work PB759 -- a parameterized class and its REPOSITORY expansion below the introducing edition.
       *> CLASS-ID (11.3) and the REPOSITORY class-specifier (12.3.8) are COBOL-2002 introductions, and the
       *> USING clause (11.3.2) and the EXPANDS phrase (12.3.8.2) ride them, so at COBOL-85 the program draws
-      *> the OO introduction diagnostic (COBOLNET0900) and not a parse error about a missing period.
+      *> the OO introduction diagnostic (COBOL0900) and not a parse error about a missing period.
        IDENTIFICATION DIVISION.
        CLASS-ID. PB759N85BOX.
        END CLASS PB759N85BOX.

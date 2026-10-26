@@ -12,7 +12,7 @@
       *> `WHEN "P" THRU "D" AL` and `88 X VALUE "P" THRU "D" AL` are the IN phrase, with the
       *> meaning 14.7.8 rule 2 gives it: "When the IN alphabet-name phrase is specified, the collating
       *> sequence used for range evaluation is the collating sequence defined by that alphabet". kb/Work
-      *> PB983: the EVALUATE spelling died COBOLNET2072 and the VALUE spelling COBOLNET1639.
+      *> PB983: the EVALUATE spelling died COBOL2072 and the VALUE spelling COBOL1639.
       *>
       *> NO PROGRAM COLLATING SEQUENCE IS DECLARED, so every leg below is the OPPOSITE of what the native
       *> order answers: a phrase that is parsed but dropped flips a line.

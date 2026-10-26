@@ -16,7 +16,7 @@
       *> wide, so a width compare cannot tell them apart, but the
       *> subordinate entries -- which ARE a group's description (8.5.3.1:
       *> the elementary items' positions, lengths and clauses) -- differ:
-      *> COBOLNET1513. Before the fix this compiled and the definition read
+      *> COBOL1513. Before the fix this compiled and the definition read
       *> the caller's "07XY" as D-A="07" (alphanumeric) and D-B="XY" as a
       *> PIC 9(2) field.
        IDENTIFICATION DIVISION.

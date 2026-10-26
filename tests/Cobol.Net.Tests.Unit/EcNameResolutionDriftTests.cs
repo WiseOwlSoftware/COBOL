@@ -135,10 +135,10 @@ public sealed class EcNameResolutionDriftTests
     public void MigratedEcCodes_HaveNoBareLiteralsLeft()
     {
         var offenders = CompilerSources()
-            .Where(s => Regex.IsMatch(s.Text, "\"COBOLNET0711\"|\"COBOLNET0878\"|\"COBOLNET1636\""))
+            .Where(s => Regex.IsMatch(s.Text, "\"COBOL0711\"|\"COBOL0878\"|\"COBOL1636\""))
             .Select(s => s.Rel).ToList();
         Assert.True(offenders.Count == 0,
-            "bare COBOLNET0711/0878/1636 string literal(s) — these codes are catalog descriptors "
+            "bare COBOL0711/0878/1636 string literal(s) — these codes are catalog descriptors "
             + "(DiagnosticCatalog.EcName*) and must be emitted through them:\n  "
             + string.Join("\n  ", offenders));
     }

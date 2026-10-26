@@ -7,7 +7,7 @@
 *> kb/Work PB977 - ISO 12.3.7.2 prints the FOR phrase in ONE position: "ALPHABET alphabet-name-2 FOR
 *> NATIONAL IS ..." - after the name, before IS.  Written AFTER the definition it is a spelling no
 *> edition prints and no dialect owns; it used to compile clean as a "historical superset" while the
-*> same postfix on the CLASS clause drew a bare parse error.  Expected: COBOLNET2315 at every edition.
+*> same postfix on the CLASS clause drew a bare parse error.  Expected: COBOL2315 at every edition.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB977NEG.
 ENVIRONMENT DIVISION.

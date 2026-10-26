@@ -19,7 +19,7 @@ namespace CobolNet.Binding.Bound;
 /// generated <see cref="IBoundStatementVisitor{T}"/> (PHASE-07 Step 6c), so a new bound-statement leaf is a
 /// COMPILE error here, and its answer is a non-nullable <see cref="StoreKind"/>: EVERY leaf classifies EVERY
 /// Place it carries, so there is no "outside the taxonomy" answer for a caller to stage (kb/Work PB1275 — thirteen
-/// leaves used to answer null, and the property desugar turned each into COBOLNET0843, refusing an object or
+/// leaves used to answer null, and the property desugar turned each into COBOL0843, refusing an object or
 /// pointer property in every SET format although §8.4.3.9.3 SR5/SR6 admit it wherever a data item of its
 /// description may stand).
 /// </summary>
@@ -28,7 +28,7 @@ namespace CobolNet.Binding.Bound;
 /// - Only PLACE stores can hit a property temp. Non-Place stores (generated index/ALTER fields, external
 ///   switches, FILE STATUS via <c>FileModel</c>, report-engine counters, run-unit exception state,
 ///   <c>BoundTableSort.Storage</c>) can never target the temp — a temp is a synthesized simple local
-///   (and a property subject cannot carry OCCURS, COBOLNET0842), so those arms are <c>None</c> here.
+///   (and a property subject cannot carry OCCURS, COBOL0842), so those arms are <c>None</c> here.
 /// - <see cref="Place.Item"/> is identity-compared: every Place wrapper (RefMod/alias/view) forwards
 ///   <c>Item</c> to the underlying item, so a windowed write through <c>RefModPlace</c> still classifies.
 /// - The child-statement recursion (<c>Kids</c>) is DEFENSIVELY total over conditional-phrase bodies (SIZE
@@ -273,7 +273,7 @@ public static class BoundStores
             StoreKind.ReadWrite, n.AtEop, n.NotAtEop,                  // FROM-move then read as the image
             n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);          // the --permissive pair (PB691)
         // The INVALID KEY lists are walked on BOTH READ arms. They are §14.9.30.2 Format-2 phrases and the
-        // sequential arm reports COBOLNET1720 for them, but --permissive leaves the bind standing and
+        // sequential arm reports COBOL1720 for them, but --permissive leaves the bind standing and
         // §14.9.30.4 GR13c then RUNS the NOT INVALID KEY imperative — a store inside it is a real store, and
         // omitting the lists here is the same two-arm disagreement kb/Work PB334 was about.
         public StoreKind Visit(BoundRead n) => StoreOrKids(IntoHit(n.IntoMove), StoreKind.Write,
@@ -339,7 +339,7 @@ public static class BoundStores
         public StoreKind Visit(BoundFree n) => n.Operands.Any(Hit) ? StoreKind.ReadWrite : StoreKind.None;
         public StoreKind Visit(BoundRaiseObject n) => StoreKind.None;                  // RAISE identifier-1 is sent
         // SET capacity names a dynamic-capacity TABLE (an AccessPath, never a Place) — and a property subject cannot
-        // carry OCCURS (COBOLNET0842) — so it can store into no property temp.
+        // carry OCCURS (COBOL0842) — so it can store into no property temp.
         public StoreKind Visit(BoundSetCapacity n) => StoreKind.None;
     }
 }

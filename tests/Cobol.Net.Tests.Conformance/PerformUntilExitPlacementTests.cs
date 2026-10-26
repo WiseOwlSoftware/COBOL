@@ -11,7 +11,7 @@ namespace CobolNet.Tests.Conformance;
 /// §14.9.28.4 GR1, "The range includes all statements that are executed as the result of a transfer of control in
 /// the range of the PERFORM statement" — never from an oracle (GnuCOBOL 3.2.0 enforces neither half).
 ///
-/// <para>Each REFUSED row asserts COBOLNET2954 exactly ONCE — one statement violates, so one report — which a
+/// <para>Each REFUSED row asserts COBOL2954 exactly ONCE — one statement violates, so one report — which a
 /// negative golden's substring match cannot. The rows vary the three arms: <b>with</b> (the statement itself writes
 /// VARYING or a TEST phrase, including the superset EXIT after a varying-phrase's own UNTIL or an AFTER level's),
 /// <b>under, lexically</b> (inside an inline PERFORM that writes one, at any depth), and <b>under, out of line</b>
@@ -23,7 +23,7 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class PerformUntilExitPlacementTests
 {
-    private const string Sr8 = "COBOLNET2954";
+    private const string Sr8 = "COBOL2954";
 
     private const string Loop = "PERFORM UNTIL EXIT\n    ADD 1 TO W-N\n    EXIT PERFORM\nEND-PERFORM";
 
@@ -115,7 +115,7 @@ public sealed class PerformUntilExitPlacementTests
     }
 
     /// <summary>Below 2023 there is no UNTIL EXIT phrase at all (§14.9.28.4 GR11 is a COBOL-2023 addition), so the
-    /// superset EXIT after a varying-phrase's UNTIL draws the edition's COBOLNET0900 there, beside SR8.</summary>
+    /// superset EXIT after a varying-phrase's UNTIL draws the edition's COBOL0900 there, beside SR8.</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]
@@ -125,7 +125,7 @@ public sealed class PerformUntilExitPlacementTests
         var (ok, diagnostics) = EditionHarness.Compile(
             Program("PBUX14", "PERFORM VARYING W-N FROM 1 BY 1 UNTIL EXIT\n    EXIT PERFORM\nEND-PERFORM", ""), edition);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOL0900");
     }
 
     private static string Program(string pid, string body, string paragraphs) => $"""

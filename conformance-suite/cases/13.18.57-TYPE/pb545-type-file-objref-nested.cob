@@ -13,8 +13,8 @@
       *>   with a USAGE OBJECT REFERENCE clause" -> OK §13.18.57.3 8)
       *> THE SUBORDINATE ARM, AT DEPTH: FR's type FT holds N, of type OT, whose subordinate OT-R is USAGE
       *> OBJECT REFERENCE (legal in working-storage under a STRONG type declaration). The direct-USAGE
-      *> screen (§13.18.60.3 15), COBOLNET1725) never sees OT-R - it is a working-storage declaration - and
-      *> the SAME AS twin (§13.18.49.3 6), COBOLNET1556) is a different clause: before kb/Work PB545 this
+      *> screen (§13.18.60.3 15), COBOL1725) never sees OT-R - it is a working-storage declaration - and
+      *> the SAME AS twin (§13.18.49.3 6), COBOL1556) is a different clause: before kb/Work PB545 this
       *> compiled clean and ran. With OT-R described as PIC X the program compiles clean. TYPEDEF and TYPE
       *> are COBOL 2002.
        IDENTIFICATION DIVISION.

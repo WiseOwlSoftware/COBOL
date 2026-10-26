@@ -68,7 +68,7 @@ public sealed class ReferenceSitePositionTests
         "       MAIN-PARA.\n" +
         "           STOP RUN.\n";
 
-    /// <summary>§8.5.1.9.1 3): COBOLNET1526 at the entry that put the table in the file section, on each route.</summary>
+    /// <summary>§8.5.1.9.1 3): COBOL1526 at the entry that put the table in the file section, on each route.</summary>
     [Theory]
     [InlineData("PB1629F1", "       FD F.\n       01 R-TYPE TYPE TT.\n       SD S.\n       01 SR PIC X.\n", "R-TYPE TYPE TT", "TDECL OCCURS")]
     [InlineData("PB1629F2", "       FD F.\n       01 R.\n          05 A PIC X(2).\n          05 G-TYPE TYPE TT.\n       SD S.\n       01 SR PIC X.\n", "G-TYPE TYPE TT", "TDECL OCCURS")]
@@ -78,7 +78,7 @@ public sealed class ReferenceSitePositionTests
     [InlineData("PB1629F6", "       FD F.\n       01 R PIC X.\n       SD S.\n       01 SR.\n          05 A PIC X(2).\n          05 G-SAME SAME AS TT-W.\n", "G-SAME SAME AS", "TWDECL OCCURS")]
     public void FileSectionDynamicTable_IsReportedAtTheEntryThatWroteTheClause(string id, string fileSection,
         string siteMarker, string declarationMarker) =>
-        AssertReportedAt(string.Format(Head, id) + fileSection + FileTail, 2023, "COBOLNET1526", siteMarker,
+        AssertReportedAt(string.Format(Head, id) + fileSection + FileTail, 2023, "COBOL1526", siteMarker,
             declarationMarker);
 
     /// <summary>An entry WRITTEN in the file section is its own site: the position the diagnostic always had.</summary>
@@ -86,7 +86,7 @@ public sealed class ReferenceSitePositionTests
     public void FileSectionDynamicTable_WrittenInPlace_StaysAtItsOwnEntry() =>
         AssertReportedAt(string.Format(Head, "PB1629F7")
             + "       FD F.\n       01 R.\n          05 TIP OCCURS DYNAMIC FROM 2 TO 5.\n             10 E PIC X(3).\n"
-            + FileTail, 2023, "COBOLNET1526", "TIP OCCURS", null);
+            + FileTail, 2023, "COBOL1526", "TIP OCCURS", null);
 
     /// <summary>The message names the entry the user must change when the table is a member the clause copied in.</summary>
     [Fact]
@@ -95,7 +95,7 @@ public sealed class ReferenceSitePositionTests
         var (ok, errors) = EditionHarness.Compile(string.Format(Head, "PB1629F8")
             + "       FD F.\n       01 R-NAMED TYPE TT.\n" + FileTail, 2023);
         Assert.False(ok);
-        Assert.Contains(errors, e => e.Contains("COBOLNET1526", StringComparison.Ordinal)
+        Assert.Contains(errors, e => e.Contains("COBOL1526", StringComparison.Ordinal)
             && e.Contains("'R-NAMED' copies in through its TYPE or SAME AS clause", StringComparison.Ordinal));
     }
 
@@ -125,21 +125,21 @@ public sealed class ReferenceSitePositionTests
     /// that ask what SURROUNDS the table, and SR2's counter lookup: each is reported at the clause's subject.</summary>
     [Theory]
     // SR22: the table is followed by a non-subordinate entry in the record the copy joins.
-    [InlineData("PB1629W1", "COBOLNET0856", TypeWithCounter + "       01 R.\n          05 GA TYPE TTC.\n          05 XA PIC X.\n", "GA TYPE TTC", "TC OCCURS")]
-    [InlineData("PB1629W2", "COBOLNET0856", "       01 SRC.\n          05 NS PIC 9.\n          05 TS OCCURS 1 TO 5 DEPENDING ON NS.\n             10 ES PIC X.\n       01 R.\n          05 GB SAME AS SRC.\n          05 XB PIC X.\n", "GB SAME AS SRC", "TS OCCURS")]
+    [InlineData("PB1629W1", "COBOL0856", TypeWithCounter + "       01 R.\n          05 GA TYPE TTC.\n          05 XA PIC X.\n", "GA TYPE TTC", "TC OCCURS")]
+    [InlineData("PB1629W2", "COBOL0856", "       01 SRC.\n          05 NS PIC 9.\n          05 TS OCCURS 1 TO 5 DEPENDING ON NS.\n             10 ES PIC X.\n       01 R.\n          05 GB SAME AS SRC.\n          05 XB PIC X.\n", "GB SAME AS SRC", "TS OCCURS")]
     // SR1(b)/SR10: the copy joins an OCCURS item (and the counter is then subscripted, SR2).
-    [InlineData("PB1629W3", "COBOLNET0854", TypeWithCounter + "       01 R.\n          05 OC OCCURS 2.\n             10 GC TYPE TTC.\n", "GC TYPE TTC", "TC OCCURS")]
-    [InlineData("PB1629W4", "COBOLNET0853", TypeWithCounter + "       01 R.\n          05 OD OCCURS 2.\n             10 GD TYPE TTC.\n", "GD TYPE TTC", "TC OCCURS")]
+    [InlineData("PB1629W3", "COBOL0854", TypeWithCounter + "       01 R.\n          05 OC OCCURS 2.\n             10 GC TYPE TTC.\n", "GC TYPE TTC", "TC OCCURS")]
+    [InlineData("PB1629W4", "COBOL0853", TypeWithCounter + "       01 R.\n          05 OD OCCURS 2.\n             10 GD TYPE TTC.\n", "GD TYPE TTC", "TC OCCURS")]
     // §13.18.44.3 SR5: the copy lies within a REDEFINES area.
-    [InlineData("PB1629W5", "COBOLNET0855", TypeWithCounter + "       01 R.\n          05 GE TYPE TTC.\n          05 HE REDEFINES GE.\n             10 HX PIC X(3).\n", "GE TYPE TTC", "TC OCCURS")]
+    [InlineData("PB1629W5", "COBOL0855", TypeWithCounter + "       01 R.\n          05 GE TYPE TTC.\n          05 HE REDEFINES GE.\n             10 HX PIC X(3).\n", "GE TYPE TTC", "TC OCCURS")]
     // §13.18.44.3 SR5: the REDEFINES area lies INSIDE the copied TYPE description, which screens no REDEFINES class of its own.
-    [InlineData("PB1629WA", "COBOLNET0855", "       01 TTR TYPEDEF.\n          05 G.\n             10 NR PIC 9.\n             10 TR OCCURS 1 TO 5 DEPENDING ON NR.\n                15 ER PIC X.\n          05 HR REDEFINES G.\n             10 HX PIC X(3).\n       01 R.\n          05 GR TYPE TTR.\n", "GR TYPE TTR", "TR OCCURS")]
+    [InlineData("PB1629WA", "COBOL0855", "       01 TTR TYPEDEF.\n          05 G.\n             10 NR PIC 9.\n             10 TR OCCURS 1 TO 5 DEPENDING ON NR.\n                15 ER PIC X.\n          05 HR REDEFINES G.\n             10 HX PIC X(3).\n       01 R.\n          05 GR TYPE TTR.\n", "GR TYPE TTR", "TR OCCURS")]
     // DEPENDING ON data-name-1 is looked up where the copy is PLACED: nothing there defines it.
-    [InlineData("PB1629W6", "COBOLNET0851", TypeNeedingCounter + "       01 R.\n          05 GF TYPE TTN.\n", "GF TYPE TTN", "TN OCCURS")]
+    [InlineData("PB1629W6", "COBOL0851", TypeNeedingCounter + "       01 R.\n          05 GF TYPE TTN.\n", "GF TYPE TTN", "TN OCCURS")]
     // SR17: the placement supplies a counter that is not an integer.
-    [InlineData("PB1629W7", "COBOLNET0852", TypeNeedingCounter + "       01 CNT PIC X.\n       01 R.\n          05 GG TYPE TTN.\n", "GG TYPE TTN", "TN OCCURS")]
+    [InlineData("PB1629W7", "COBOL0852", TypeNeedingCounter + "       01 CNT PIC X.\n       01 R.\n          05 GG TYPE TTN.\n", "GG TYPE TTN", "TN OCCURS")]
     // SR20: the placement supplies a counter inside the table's range.
-    [InlineData("PB1629W8", "COBOLNET0857", TypeNeedingCounter + "       01 R.\n          05 GH TYPE TTN.\n          05 CNT PIC 9.\n", "GH TYPE TTN", "TN OCCURS")]
+    [InlineData("PB1629W8", "COBOL0857", TypeNeedingCounter + "       01 R.\n          05 GH TYPE TTN.\n          05 CNT PIC 9.\n", "GH TYPE TTN", "TN OCCURS")]
     public void OccursDependingOnPlacementFault_IsReportedAtTheEntryThatWroteTheClause(string id, string code,
         string data, string siteMarker, string declarationMarker) =>
         AssertReportedAt(string.Format(WsHead, id) + data + WsTail, 2023, code, siteMarker, declarationMarker);
@@ -149,15 +149,15 @@ public sealed class ReferenceSitePositionTests
     public void OccursDependingOnPlacementFault_WrittenInPlace_StaysAtItsOwnEntry() =>
         AssertReportedAt(string.Format(WsHead, "PB1629W9")
             + "       01 R.\n          05 NW PIC 9.\n          05 TW OCCURS 1 TO 5 DEPENDING ON NW.\n"
-            + "             10 EW PIC X.\n          05 XW PIC X.\n" + WsTail, 2023, "COBOLNET0856", "TW OCCURS", null);
+            + "             10 EW PIC X.\n          05 XW PIC X.\n" + WsTail, 2023, "COBOL0856", "TW OCCURS", null);
 
-    /// <summary>§13.18.63.3 SR14 (COBOLNET1702) reads the same anchor: the JUSTIFIED member is legal in the type
+    /// <summary>§13.18.63.3 SR14 (COBOL1702) reads the same anchor: the JUSTIFIED member is legal in the type
     /// declaration and wrong under the VALUE the reference adds, so the refusal is at the TYPE clause's subject.</summary>
     [Fact]
     public void GroupValueOverACopiedJustifiedMember_IsReportedAtTheEntryThatWroteTheClause() =>
         AssertReportedAt(string.Format(WsHead, "PB1629V1")
             + "       01 TJ TYPEDEF.\n          05 JM PIC X(2) JUSTIFIED RIGHT.\n       01 R-GV TYPE TJ VALUE \"AB\".\n"
-            + WsTail, 2023, "COBOLNET1702", "R-GV TYPE TJ", "JM PIC X(2)");
+            + WsTail, 2023, "COBOL1702", "R-GV TYPE TJ", "JM PIC X(2)");
 
     /// <summary>§13.18.38.3 SR10: the copy of a one-table type under seven tables is the eighth dimension (a refusal
     /// the written-entries-only walk never made), reported at the clause's subject and once.</summary>
@@ -168,9 +168,9 @@ public sealed class ReferenceSitePositionTests
         string siteMarker, string declarationMarker)
     {
         string source = string.Format(WsHead, id) + data + WsTail;
-        AssertReportedAt(source, 2023, "COBOLNET2646", siteMarker, declarationMarker);
+        AssertReportedAt(source, 2023, "COBOL2646", siteMarker, declarationMarker);
         var (_, errors) = EditionHarness.Compile(source, 2023);
-        Assert.Single(errors, e => e.Contains("COBOLNET2646", StringComparison.Ordinal));
+        Assert.Single(errors, e => e.Contains("COBOL2646", StringComparison.Ordinal));
     }
 
     /// <summary>A type declaration that itself nests eight deep is reported once, in the declaration, and its copy is
@@ -183,9 +183,9 @@ public sealed class ReferenceSitePositionTests
             + "             05 A4 OCCURS 2.\n              06 A5 OCCURS 2.\n               07 A6 OCCURS 2.\n"
             + "                08 A7 OCCURS 2.\n                 09 A8 PIC X OCCURS 2.\n"
             + "       01 R9 TYPE TT9.\n" + WsTail;
-        AssertReportedAt(source, 2023, "COBOLNET2646", "A8 PIC X OCCURS", "R9 TYPE TT9");
+        AssertReportedAt(source, 2023, "COBOL2646", "A8 PIC X OCCURS", "R9 TYPE TT9");
         var (_, errors) = EditionHarness.Compile(source, 2023);
-        Assert.Single(errors, e => e.Contains("COBOLNET2646", StringComparison.Ordinal));
+        Assert.Single(errors, e => e.Contains("COBOL2646", StringComparison.Ordinal));
     }
 
     /// <summary>The seven-table body (B7 is subscripted seven times); a table under one more is an eighth dimension.</summary>
@@ -205,31 +205,31 @@ public sealed class ReferenceSitePositionTests
     /// inside a TYPEDEF, a SAME AS of a record that holds a SAME AS) adds none either.</summary>
     [Theory]
     // §13.18.38.3 SR17: the counter in the copied description is not an integer.
-    [InlineData("PB1629D1", "COBOLNET0852", "       01 TD1 TYPEDEF.\n          02 N PIC X.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R TYPE TD1.\n")]
-    [InlineData("PB1629D2", "COBOLNET0852", "       01 HD2.\n          02 N PIC X.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R SAME AS HD2.\n")]
+    [InlineData("PB1629D1", "COBOL0852", "       01 TD1 TYPEDEF.\n          02 N PIC X.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R TYPE TD1.\n")]
+    [InlineData("PB1629D2", "COBOL0852", "       01 HD2.\n          02 N PIC X.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R SAME AS HD2.\n")]
     // SR2 / SR1(b)+SR10: the counter, and the table, nest inside the copied description.
-    [InlineData("PB1629D3", "COBOLNET0853", "       01 TD3 TYPEDEF.\n          02 A OCCURS 2.\n             03 N PIC 9.\n             03 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R TYPE TD3.\n")]
-    [InlineData("PB1629D4", "COBOLNET0854", "       01 TD4 TYPEDEF.\n          02 A OCCURS 2.\n             03 N PIC 9.\n             03 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R TYPE TD4.\n")]
-    [InlineData("PB1629D5", "COBOLNET0854", "       01 HD5.\n          02 A OCCURS 2.\n             03 N PIC 9.\n             03 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R SAME AS HD5.\n")]
+    [InlineData("PB1629D3", "COBOL0853", "       01 TD3 TYPEDEF.\n          02 A OCCURS 2.\n             03 N PIC 9.\n             03 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R TYPE TD3.\n")]
+    [InlineData("PB1629D4", "COBOL0854", "       01 TD4 TYPEDEF.\n          02 A OCCURS 2.\n             03 N PIC 9.\n             03 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R TYPE TD4.\n")]
+    [InlineData("PB1629D5", "COBOL0854", "       01 HD5.\n          02 A OCCURS 2.\n             03 N PIC 9.\n             03 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R SAME AS HD5.\n")]
     // §13.18.44.3 SR5: the REDEFINES area lies inside the copied description.
     // (A TYPE declaration's members form no REDEFINES class, so for a TYPE copy the reference is where the rule is
     // asked — OccursDependingOnPlacementFault_IsReportedAtTheEntryThatWroteTheClause, PB1629WA; a SAME AS source is a
     // written record whose class exists, so it reports the fault and its copy does not.)
-    [InlineData("PB1629D6", "COBOLNET0855", "       01 HD6.\n          02 G.\n             03 N PIC 9.\n             03 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n          02 H REDEFINES G.\n             03 HX PIC X(3).\n", "       01 R SAME AS HD6.\n")]
+    [InlineData("PB1629D6", "COBOL0855", "       01 HD6.\n          02 G.\n             03 N PIC 9.\n             03 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n          02 H REDEFINES G.\n             03 HX PIC X(3).\n", "       01 R SAME AS HD6.\n")]
     // SR22: the table is followed, inside the copied description, by a non-subordinate entry.
-    [InlineData("PB1629D7", "COBOLNET0856", "       01 TD7 TYPEDEF.\n          02 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n          02 Z PIC X.\n", "       01 R TYPE TD7.\n")]
-    [InlineData("PB1629D8", "COBOLNET0856", "       01 HD8.\n          02 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n          02 Z PIC X.\n", "       01 R SAME AS HD8.\n")]
+    [InlineData("PB1629D7", "COBOL0856", "       01 TD7 TYPEDEF.\n          02 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n          02 Z PIC X.\n", "       01 R TYPE TD7.\n")]
+    [InlineData("PB1629D8", "COBOL0856", "       01 HD8.\n          02 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n          02 Z PIC X.\n", "       01 R SAME AS HD8.\n")]
     // SR20: the counter lies inside the table's own range, both inside the copied description.
-    [InlineData("PB1629D9", "COBOLNET0857", "       01 TD9 TYPEDEF.\n          02 D OCCURS 1 TO 5 DEPENDING ON N.\n             03 N PIC 9.\n", "       01 R TYPE TD9.\n")]
+    [InlineData("PB1629D9", "COBOL0857", "       01 TD9 TYPEDEF.\n          02 D OCCURS 1 TO 5 DEPENDING ON N.\n             03 N PIC 9.\n", "       01 R TYPE TD9.\n")]
     // §8.4.2.2.3 SR1: the counter is ambiguous among members of the one copied description.
-    [InlineData("PB1629DC", "COBOLNET1639", "       01 TDC TYPEDEF.\n          02 G1.\n             03 N PIC 9.\n          02 G2.\n             03 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R TYPE TDC.\n")]
-    [InlineData("PB1629DD", "COBOLNET1639", "       01 HDD.\n          02 G1.\n             03 N PIC 9.\n          02 G2.\n             03 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R SAME AS HDD.\n")]
+    [InlineData("PB1629DC", "COBOL1639", "       01 TDC TYPEDEF.\n          02 G1.\n             03 N PIC 9.\n          02 G2.\n             03 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R TYPE TDC.\n")]
+    [InlineData("PB1629DD", "COBOL1639", "       01 HDD.\n          02 G1.\n             03 N PIC 9.\n          02 G2.\n             03 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R SAME AS HDD.\n")]
     // The KEY phrase's data-name-2 is counted by the same verdict (the sibling arm): also once, at the declaration.
-    [InlineData("PB1629DE", "COBOLNET1639", "       01 TDE TYPEDEF.\n          02 D OCCURS 3 ASCENDING KEY IS K.\n             03 G1.\n                04 K PIC 9.\n             03 G2.\n                04 K PIC 9.\n", "       01 R TYPE TDE.\n")]
-    [InlineData("PB1629DF", "COBOLNET1639", "       01 HDF.\n          02 D OCCURS 3 ASCENDING KEY IS K.\n             03 G1.\n                04 K PIC 9.\n             03 G2.\n                04 K PIC 9.\n", "       01 R SAME AS HDF.\n")]
+    [InlineData("PB1629DE", "COBOL1639", "       01 TDE TYPEDEF.\n          02 D OCCURS 3 ASCENDING KEY IS K.\n             03 G1.\n                04 K PIC 9.\n             03 G2.\n                04 K PIC 9.\n", "       01 R TYPE TDE.\n")]
+    [InlineData("PB1629DF", "COBOL1639", "       01 HDF.\n          02 D OCCURS 3 ASCENDING KEY IS K.\n             03 G1.\n                04 K PIC 9.\n             03 G2.\n                04 K PIC 9.\n", "       01 R SAME AS HDF.\n")]
     // SR10: a copy of a copy whose eighth dimension arose one level up.
-    [InlineData("PB1629DA", "COBOLNET2646", "       01 T2A TYPEDEF.\n" + SevenDeep + "       01 T1A TYPEDEF.\n          02 Y OCCURS 2 TYPE T2A.\n", "       01 R TYPE T1A.\n")]
-    [InlineData("PB1629DB", "COBOLNET2646", "       01 HB.\n" + SevenDeep + "       01 G1B.\n          02 X OCCURS 2.\n             03 Y SAME AS HB.\n", "       01 R SAME AS G1B.\n")]
+    [InlineData("PB1629DA", "COBOL2646", "       01 T2A TYPEDEF.\n" + SevenDeep + "       01 T1A TYPEDEF.\n          02 Y OCCURS 2 TYPE T2A.\n", "       01 R TYPE T1A.\n")]
+    [InlineData("PB1629DB", "COBOL2646", "       01 HB.\n" + SevenDeep + "       01 G1B.\n          02 X OCCURS 2.\n             03 Y SAME AS HB.\n", "       01 R SAME AS G1B.\n")]
     public void FactOfTheDeclaration_IsNotReportedAgainAtALegalReference(string id, string code, string declaration,
         string reference)
     {

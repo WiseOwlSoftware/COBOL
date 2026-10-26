@@ -62,7 +62,7 @@ public sealed class OccursOperandCaptureDriftTests
             "ClauseDataName",          // DataBinder.cs — calls it only after ScreenClauseOperandShape passes
             "ResolveReportCode",       // §13.18.12.3 SR2 RD CODE: the screen is over the BASE item; the written reference rides on
             "SumAddendRef",            // §13.18.54 SUM identifier-1: a subscript is LEGAL and bound separately
-            "UponDetailRef",           // §13.18.54.3 SR7 UPON: screens subscript/ref-mod itself (COBOLNET2046)
+            "UponDetailRef",           // §13.18.54.3 SR7 UPON: screens subscript/ref-mod itself (COBOL2046)
             "ControlOperandRef",       // §13.18.16.3 SR4 CONTROL: a ref-mod is LEGAL and kept separately
         ];
         var callers = BinderFiles()

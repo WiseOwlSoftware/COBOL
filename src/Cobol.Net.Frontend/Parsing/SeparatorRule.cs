@@ -18,20 +18,20 @@ namespace CobolNet.Frontend.Parsing;
 /// <list type="bullet">
 /// <item>rule 2 — "The COBOL characters comma and semicolon, immediately followed by a space, are separators": a comma
 /// or semicolon with no space after it is no separator, so <c>MOVE 1 TO N,M</c> names no second receiver
-/// (<c>COBOLNET2631</c>);</item>
+/// (<c>COBOL2631</c>);</item>
 /// <item>rule 3 — "The COBOL character period, when followed by a space, is a separator": <c>DISPLAY N.DISPLAY M</c>
-/// ends no sentence (<c>COBOLNET2632</c>);</item>
+/// ends no sentence (<c>COBOL2632</c>);</item>
 /// <item>rule 5 — "The opening delimiter shall be immediately preceded by a space, left parenthesis, or opening
 /// pseudo-text delimiter. The closing delimiter shall be immediately followed by one of the separators space, comma,
 /// semicolon, period, right parenthesis, or closing pseudo-text delimiter": <c>DISPLAY "AB"N</c>, <c>MOVE"AB" TO A</c>
-/// and <c>W"AB"</c> beside a data item W (<c>COBOLNET2633</c>);</item>
+/// and <c>W"AB"</c> beside a data item W (<c>COBOL2633</c>);</item>
 /// <item>the three operator clauses that state their OWN separator context — §8.7.1 "[the arithmetic operators are
 /// COBOL characters] that shall be preceded by a space and followed by a space except that no space is required
 /// between a left parenthesis and a unary operator or between a unary operator and a left parenthesis", §8.7.3 "The
 /// concatenation operator is the COBOL character '&amp;', which shall be immediately preceded and followed by a
 /// separator space" and §8.7.4 "The invocation operator is the two contiguous COBOL characters '::', which shall be
 /// immediately preceded and followed by a separator space": <c>SPACE&amp;SPACE</c>, <c>O:: "M"</c>, <c>O ::"M"</c>,
-/// <c>1*2</c>, <c>(A)+(B)</c> and <c>-Y</c> (<c>COBOLNET2993</c>; kb/Work PB1430, PB2017). §8.7.3 and §8.7.4 are asked
+/// <c>1*2</c>, <c>(A)+(B)</c> and <c>-Y</c> (<c>COBOL2993</c>; kb/Work PB1430, PB2017). §8.7.3 and §8.7.4 are asked
 /// by <see cref="Violations"/> over the token stream; §8.7.1 by <see cref="ArithmeticOperatorViolations"/> over the
 /// parse tree, because only the tree says whether a <c>+</c> or <c>-</c> is a binary operator, a unary operator or
 /// no operator at all (a numeric literal's own sign, a <c>LINE PLUS</c> screen clause).</item>
@@ -59,7 +59,7 @@ namespace CobolNet.Frontend.Parsing;
 /// <para>⚠ ONE REPORT PER BOUNDARY. An operator touching a literal breaks two rules at one boundary — §8.3.5 5) for the
 /// literal's delimiter and §8.7.3 / §8.7.4 for the operator. The operator's clause is the specific one (it names the
 /// very character that touches), so the operator reports the boundary and the literal's delimiter check stands down
-/// for it: <c>O ::"M"</c> is one COBOLNET2993, never a COBOLNET2633 beside it.</para>
+/// for it: <c>O ::"M"</c> is one COBOL2993, never a COBOL2633 beside it.</para>
 /// <para>Edition-invariant: §8.3.5's text, and COBOL-85's, carry no edition qualifier; §8.7.3 and §8.7.4 qualify no
 /// edition either (the operators themselves are 2002 introductions, which <c>VersionConformancePass</c> gates on
 /// recognition).</para>
@@ -121,7 +121,7 @@ public static class SeparatorRule
     /// <summary>Whether <paramref name="u"/> heads a LITERAL-ONLY slot rather than an arithmetic expression: the VALUE
     /// clauses' <c>valueClauseOperand : unaryExpression | …</c> parses its signs as unary operators (a superset parse), but
     /// the position admits a literal and nothing else, so a sign there is the literal's — `--5` is "more than one sign
-    /// character" (§8.3.3.3.2 2), <c>COBOLNET2155</c>, which the literal rules own — and no operator exists to be spaced.</summary>
+    /// character" (§8.3.3.3.2 2), <c>COBOL2155</c>, which the literal rules own — and no operator exists to be spaced.</summary>
     private static bool InLiteralSlot(Core.UnaryExpressionContext u)
     {
         IParseTree top = u;

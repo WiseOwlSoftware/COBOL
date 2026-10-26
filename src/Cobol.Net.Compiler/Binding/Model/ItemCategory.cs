@@ -131,7 +131,7 @@ public static class ItemCategory
         // The structural half no classifier carries. §8.5.1.3.1 — "The most basic subdivisions of a record,
         // that is, those not further subdivided, are called elementary items" — so an entry with NO subordinates
         // is not a group item whatever else it is, and here it is an error-recovery artifact (a refused
-        // MESSAGE-TAG entry, a picture-less USAGE NATIONAL awaiting COBOLNET0881). It has no kind at all;
+        // MESSAGE-TAG entry, a picture-less USAGE NATIONAL awaiting COBOL0881). It has no kind at all;
         // admitting it would let a rule about group items answer about something that is not one.
         if (!item.IsGroupEntry) return GroupKinds.None;
         // §13.18.29.4 GR1/GR2 — the GROUP-USAGE clause names the kind outright, and SR1 above guarantees such a
@@ -348,7 +348,7 @@ public static class ItemCategory
     /// INDEX. A second copy would drift the moment MESSAGE-TAG or FUNCTION-POINTER gains a bound model;
     /// <c>ConditionNameAssociationDriftTests</c> asserts the two populations are the same set.</para>
     /// <para>The WRITTEN clause is read as well as the resolved one, and both arms are load-bearing: a
-    /// MESSAGE-TAG entry is refused non-support by <c>PictureAnalyzer.ParseUsage</c> (COBOLNET1943) and binds a
+    /// MESSAGE-TAG entry is refused non-support by <c>PictureAnalyzer.ParseUsage</c> (COBOL1943) and binds a
     /// recovery <see cref="PicInfo"/> (no class), so its WRITTEN clause is the reliable witness — while a usage
     /// acquired by §13.18.60.4 GR1 inheritance, a TYPE clone or a SAME AS copy writes no clause of its own and is
     /// visible only in the resolved <see cref="DataItem.Pic"/>.</para></summary>
@@ -373,7 +373,7 @@ public static class ItemCategory
     /// <para>⛔ BOTH ARMS, for the reason <see cref="IsIndexMessageTagObjectOrPointer"/> states: the WRITTEN
     /// clause is visible only in <see cref="DataItem.OwnUsage"/>, and a usage acquired by a TYPE clone or a
     /// SAME AS copy only in the resolved <see cref="DataItem.Pic"/>. The usage is DECLINED non-support (Annex
-    /// A.3 item 4, refused by name with COBOLNET1943 at the entry), so the resolved profile is
+    /// A.3 item 4, refused by name with COBOL1943 at the entry), so the resolved profile is
     /// <c>PicInfo.MessageTagRecovery()</c> — a recovery placeholder that nonetheless carries the written usage,
     /// precisely so a later screen can ask this question instead of reading the placeholder's CATEGORY as if it
     /// were an analysis (kb/Work PB453).</para></summary>
@@ -383,7 +383,7 @@ public static class ItemCategory
     /// <summary>Which of ISO §13.18.60.3 SR14's phrases a usage names, or null — asked of a
     /// <see cref="DataItem.OwnUsage"/> (the written clause) and of a resolved <see cref="PicInfo.Usage"/> alike
     /// (<c>DataBinder.Sr14PhraseOf(DataItem)</c> reads both, kb/Work PB819). MESSAGE-TAG (kb/Work PB487) is the member
-    /// the compiler refuses BY NAME (declined non-support, COBOLNET1943): its profile is a recovery shape with no
+    /// the compiler refuses BY NAME (declined non-support, COBOL1943): its profile is a recovery shape with no
     /// class, so only the usage — never the category — identifies it.
     /// <para>SR14: "A USAGE clause with the MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, or
     /// PROGRAM-POINTER phrase may be specified only for an elementary data item at level 1 or an elementary data
@@ -392,7 +392,7 @@ public static class ItemCategory
     {
         // MESSAGE-TAG is the FIRST phrase SR14 names. Its arm lands here rather than staying a forward
         // obligation because kb/Work PB487 gave the model a Usage member for it — the usage is DECLINED
-        // non-support and refused by name (COBOLNET1943), so like FUNCTION-POINTER it is the WRITTEN
+        // non-support and refused by name (COBOL1943), so like FUNCTION-POINTER it is the WRITTEN
         // clause, never a bound class, that this screen sees.
         Usage.MessageTag => "MESSAGE-TAG",
         Usage.Pointer => "POINTER",

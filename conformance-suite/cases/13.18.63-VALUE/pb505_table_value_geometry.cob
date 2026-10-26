@@ -12,7 +12,7 @@
       *> kb/Work PB505 - THE FORMAT 2 (TABLE) VALUE OVER THE WHOLE POPULATION 13.18.63.3 SR18 ADMITS.
       *> Until this landed, DataBinder.ValidateTableValues accepted exactly one shape - a single-dimension
       *> table VALUE on the entry that itself carries the OCCURS clause - and every other shape exited
-      *> through ONE staged diagnostic, COBOLNET0899, "recognized but currently supported only on a
+      *> through ONE staged diagnostic, COBOL0899, "recognized but currently supported only on a
       *> single-dimension table's own OCCURS entry".  That refusal covered CONFORMING source: SR18 says
       *> "A data description entry that contains the VALUE clause shall contain an OCCURS clause or be
       *> subordinate to a data description entry that contains an OCCURS clause", and the subordinate half

@@ -24,12 +24,12 @@
       *> formals (E's actual may implement I's). Each of those nested
       *> in an IF, EVALUATE or inline PERFORM defers alone, and so does
       *> an IF whose condition reads through a formal (they drew a
-      *> false internal error COBOLNET2362). PB2937SC has a WRITTEN
+      *> false internal error COBOL2362). PB2937SC has a WRITTEN
       *> superclass, so its SUPER "SHOW" binds against PB2937SB here.
       *> Neither is expanded, so neither creates a class or displays.
       *> PI is an ordinary class spelled like the zero-argument
       *> intrinsic PI: a class-name is a user-defined word (8.3.2.1),
-      *> and INVOKE PI "NEW" names the class (it drew COBOLNET1543).
+      *> and INVOKE PI "NEW" names the class (it drew COBOL1543).
       *> EXPECTED OUTPUT: PB2937SM creates a PI and invokes its SHOW,
       *> which displays "PI-OK", then displays "PB2937-OK".
        IDENTIFICATION DIVISION.

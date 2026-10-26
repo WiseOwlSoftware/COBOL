@@ -10,7 +10,7 @@
 *> portable: unverified
 *>---
 *> ISO 1989:2023 Annex A.4.8 item 2) "SELECT WHEN clause (13.18.51)" - the module's second item, DECLINED
-*> (docs/CONFORMANCE.md section 5, row A.4.8), refused by name with COBOLNET1705. 13.18.51.2's printed
+*> (docs/CONFORMANCE.md section 5, row A.4.8), refused by name with COBOL1705. 13.18.51.2's printed
 *> general format (RENDERED, PDF p481) is `SELECT WHEN { condition-name-1 | OTHER }` - plain braces, NO
 *> choice indicators, so exactly one of the two. This witness is the condition-name-1 arm.
 *> Refused rather than accepted inert because 13.18.51.4 GR1/GR2 make the clause decide WHICH record

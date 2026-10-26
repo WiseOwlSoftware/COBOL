@@ -112,7 +112,7 @@ public sealed class RecordSizeModelTests
 
     /// <summary>Binds <paramref name="fileSection"/> and returns its one file. ⛔ The source must bind CLEAN, binder
     /// errors included: a size measured on source the compile refuses is not a record size (kb/Work PB1604 — e.g.
-    /// a dynamic-capacity table under an FD record, which COBOLNET1526 refuses per §8.5.1.9.1 3)).</summary>
+    /// a dynamic-capacity table under an FD record, which COBOL1526 refuses per §8.5.1.9.1 3)).</summary>
     private static FileModel Single(string fileSection, string specialNames = "")
     {
         string src = "       IDENTIFICATION DIVISION.\r\n"

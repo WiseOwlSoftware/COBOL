@@ -16,9 +16,9 @@ namespace CobolNet.Tests.Unit;
 /// The §A.4.9 locale-module EDITION GATING, arm by arm as the module went live (fix-queue PB27 §③ opened this
 /// class when the elements were documented non-support and their edition claims were SUPPRESSED; every
 /// suppression has now lifted): the four locale FUNCTIONS' D8 window is enforced since kb/Work PB64 T4
-/// (COBOLNET1502 below it, binding at and after it), the case functions' LOCALE phrase is a 2002 construct gate
-/// since T5 (COBOLNET0900 below 2002), and the NUMVAL-C / TEST-NUMVAL-C LOCALE keyword is a 2002 construct gate
-/// since T6 — the LAST arm, with which COBOLNET1518 itself was deleted.
+/// (COBOL1502 below it, binding at and after it), the case functions' LOCALE phrase is a 2002 construct gate
+/// since T5 (COBOL0900 below 2002), and the NUMVAL-C / TEST-NUMVAL-C LOCALE keyword is a 2002 construct gate
+/// since T6 — the LAST arm, with which COBOL1518 itself was deleted.
 /// <para>
 /// ⛔ THE FORCING FUNCTION, ANSWERED (the class summary once demanded it): the introduction years these gates
 /// assert were unverifiable from the 2023 text alone — §8.11 lists intrinsic NAMES with no edition data, Annex E
@@ -48,9 +48,9 @@ public sealed class LocaleModuleNonSupportTests
     }
 
     /// <summary>⚙ THE SUPPRESSION LIFTED a third time — the LAST (kb/Work PB64 T6; the module is CLAIMED whole):
-    /// the LOCALE keyword of NUMVAL-C / TEST-NUMVAL-C is LIVE, so it is a 2002 construct gate — COBOLNET0900
+    /// the LOCALE keyword of NUMVAL-C / TEST-NUMVAL-C is LIVE, so it is a 2002 construct gate — COBOL0900
     /// below 2002 naming the keyword — and, at and after 2002, the keyword binds (here to an UNDECLARED
-    /// locale-name FR, the one undeclared-locale-name diagnostic COBOLNET1664 — this helper declares no
+    /// locale-name FR, the one undeclared-locale-name diagnostic COBOL1664 — this helper declares no
     /// SPECIAL-NAMES LOCALE). Never 1518 any more, at any edition — the diagnostic is deleted.</summary>
     [Theory]
     [InlineData(85, true)]
@@ -60,14 +60,14 @@ public sealed class LocaleModuleNonSupportTests
     public void TheNumvalCLocaleKeyword_IsEditionGated_NowThatItIsLive(int edition, bool gated)
     {
         var errors = CompileErrors("           COMPUTE S = FUNCTION NUMVAL-C(\"12.34\" LOCALE FR).\n", edition);
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));
-        if (gated) Assert.Contains(errors, e => e.Contains("COBOLNET0900") && e.Contains("LOCALE keyword"));
-        Assert.Contains(errors, e => e.Contains("COBOLNET1664"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1518"));
+        if (gated) Assert.Contains(errors, e => e.Contains("COBOL0900") && e.Contains("LOCALE keyword"));
+        Assert.Contains(errors, e => e.Contains("COBOL1664"));
     }
 
     /// <summary>⚙ THE SUPPRESSION LIFTED a second time (kb/Work PB64 T5): the LOCALE phrase of LOWER-CASE / UPPER-CASE
-    /// is LIVE, so it is a 2002 construct gate — COBOLNET0900 below 2002 naming the phrase — and, at and after 2002,
-    /// the phrase binds (here to an UNDECLARED locale-name, the one undeclared-locale-name diagnostic COBOLNET1664 —
+    /// is LIVE, so it is a 2002 construct gate — COBOL0900 below 2002 naming the phrase — and, at and after 2002,
+    /// the phrase binds (here to an UNDECLARED locale-name, the one undeclared-locale-name diagnostic COBOL1664 —
     /// this helper declares no SPECIAL-NAMES LOCALE). Never 1518 any more, at any edition.</summary>
     [Theory]
     [InlineData(85, true)]
@@ -77,15 +77,15 @@ public sealed class LocaleModuleNonSupportTests
     public void TheCaseFunctionLocalePhrase_IsEditionGated_NowThatItIsLive(int edition, bool gated)
     {
         var errors = CompileErrors("           MOVE FUNCTION LOWER-CASE(R LOCALE FR) TO R.\n", edition);
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));
-        if (gated) Assert.Contains(errors, e => e.Contains("COBOLNET0900") && e.Contains("LOCALE phrase"));
-        else Assert.DoesNotContain(errors, e => e.Contains("COBOLNET0900"));
-        Assert.Contains(errors, e => e.Contains("COBOLNET1664"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1518"));
+        if (gated) Assert.Contains(errors, e => e.Contains("COBOL0900") && e.Contains("LOCALE phrase"));
+        else Assert.DoesNotContain(errors, e => e.Contains("COBOL0900"));
+        Assert.Contains(errors, e => e.Contains("COBOL1664"));
     }
 
     /// <summary>⚙ THE SUPPRESSION LIFTED (kb/Work PB64 T4 — the forcing function the class summary promised): the four
     /// locale functions bind Runtime, so their D8 window is enforced again — LOCALE-TIME-FROM-SECONDS (2014, kb/Work
-    /// R28's provisional edge) is COBOLNET1502 below 2014 and binds at 2014/2023; LOCALE-DATE (2002) likewise below
+    /// R28's provisional edge) is COBOL1502 below 2014 and binds at 2014/2023; LOCALE-DATE (2002) likewise below
     /// 2002. Never 1518 any more.</summary>
     [Theory]
     [InlineData(85, true)]
@@ -95,8 +95,8 @@ public sealed class LocaleModuleNonSupportTests
     public void ALocaleFunction_KeepsItsEditionWindow_NowThatItIsLive(int edition, bool rejected)
     {
         var errors = CompileErrors("           MOVE FUNCTION LOCALE-TIME-FROM-SECONDS(S) TO R.\n", edition);
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1518"));
-        if (rejected) Assert.Contains(errors, e => e.Contains("COBOLNET1502") && e.Contains("LOCALE-TIME-FROM-SECONDS"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1518"));
+        if (rejected) Assert.Contains(errors, e => e.Contains("COBOL1502") && e.Contains("LOCALE-TIME-FROM-SECONDS"));
         else Assert.DoesNotContain(errors, e => e.Contains("LOCALE-TIME-FROM-SECONDS"));
     }
 
@@ -109,7 +109,7 @@ public sealed class LocaleModuleNonSupportTests
     public void ASupportedFunction_KeepsItsEditionGate(int edition)
     {
         var errors = CompileErrors("           MOVE FUNCTION TRIM(\"  ab  \") TO R.\n", edition);
-        Assert.Contains(errors, e => e.Contains("COBOLNET1502") && e.Contains("TRIM"));
+        Assert.Contains(errors, e => e.Contains("COBOL1502") && e.Contains("TRIM"));
     }
 
     /// <summary>…and at its own edition that same function compiles, so the gate is a WINDOW and not a ban.</summary>
@@ -117,6 +117,6 @@ public sealed class LocaleModuleNonSupportTests
     public void ASupportedFunction_CompilesAtItsOwnEdition()
     {
         var errors = CompileErrors("           MOVE FUNCTION TRIM(\"  ab  \") TO R.\n", 2014);
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1502"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1502"));
     }
 }

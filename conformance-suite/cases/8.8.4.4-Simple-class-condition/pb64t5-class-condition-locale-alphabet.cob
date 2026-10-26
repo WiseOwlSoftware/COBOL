@@ -6,7 +6,7 @@
 *>---
       *> ISO 8.8.4.4.3 SR2: "Alphabet-name-1 shall not reference an alphabet associated with a locale." An ALPHABET ...
       *> IS LOCALE defines a collating sequence, not a coded character set (12.3.7.4 GR7 Table 6), so a class condition
-      *> cannot test membership of it - COBOLNET1669 locale-alphabet-not-a-charset (kb/Work PB64 T5) - for an alphabet
+      *> cannot test membership of it - COBOL1669 locale-alphabet-not-a-charset (kb/Work PB64 T5) - for an alphabet
       *> of EITHER class: the alphanumeric LOC and the FOR NATIONAL NLOC (the one predicate, DataBinder.IsLocaleAlphabet).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB64T5SR2.

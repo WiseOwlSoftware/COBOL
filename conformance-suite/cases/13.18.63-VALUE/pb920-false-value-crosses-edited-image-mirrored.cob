@@ -12,8 +12,8 @@
 *> written, and SR27's unconditional first sentence forbids it: "The value of literal-4 shall not be equal
 *> to the value of any occurrence of literal-2."
 *> THE BAND IS 2002+, for the same reason as its twin: WHEN SET TO FALSE and SET condition-name TO FALSE are
-*> COBOL-2002 additions, so at --std 85 the two COBOLNET0900 edition gates fire on top of SR27 and the case
-*> would pass for the wrong reason. MEASURED at 2002 and 2014: COBOLNET2048 alone.
+*> COBOL-2002 additions, so at --std 85 the two COBOL0900 edition gates fire on top of SR27 and the case
+*> would pass for the wrong reason. MEASURED at 2002 and 2014: COBOL2048 alone.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGPB920B.
 DATA DIVISION.

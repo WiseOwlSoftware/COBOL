@@ -42,7 +42,7 @@ reproduced; § citations are kept for navigation.
 edition (introduced / removed / diagnostic / active-or-pending), grouped into 14 categories.
 
 
-**And the diagnostic-code lookup:** [[kb/Spec/Lookup/Diagnostics]] — every `COBOLNET####` → meaning ·
+**And the diagnostic-code lookup:** [[kb/Spec/Lookup/Diagnostics]] — every `COBOL####` → meaning ·
 severity · ISO § · **phase** · construct.
 
 ## 🔗 Cross-domain map

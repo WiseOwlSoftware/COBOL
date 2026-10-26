@@ -23,7 +23,7 @@
       *> description entry, so FN (BOTH alphabets) and FP (the FOR form) compile and READ ... INTO proceeds;
       *> FM names only alphabet-name-2 and is merely declared. The data is written through FW, whose record
       *> is alphanumeric DISPLAY under alphabet-name-1 (EBCDIC): FN and FP convert each EBCDIC byte back, so
-      *> both read AB012 (13.18.13.4 GR1, GR2, GR6 a). Before the fix FN, FP and FM each drew COBOLNET1672
+      *> both read AB012 (13.18.13.4 GR1, GR2, GR6 a). Before the fix FN, FP and FM each drew COBOL1672
       *> "the record item 'FILLER' is not usage NATIONAL" about an item the program never wrote.
       *>   cite.py: OK  14.9.30.4 6)  (General rules)
        IDENTIFICATION DIVISION.

@@ -26,7 +26,7 @@ using CobolNet.Runtime;
 /// <c>FindInterface</c> directly, and <see cref="OoClassTable"/> is built ONCE PER COMPILATION GROUP from every
 /// CLASS-ID / INTERFACE-ID definition in the file. So the compiler answered a question about the GROUP where
 /// the standard asks about the REFERRING SOURCE ELEMENT: a program with no REPOSITORY paragraph at all could
-/// write <c>USE AFTER EXCEPTION OBJECT CF4A</c> and compile clean, and COBOLNET0859 said so out loud — "does
+/// write <c>USE AFTER EXCEPTION OBJECT CF4A</c> and compile clean, and COBOL0859 said so out loud — "does
 /// not name a class of the compilation group". Widening a set is silent by construction: nothing downstream can
 /// notice a reference that should not have resolved.</para>
 ///
@@ -46,7 +46,7 @@ public static class OoNameResolution
 
     /// <summary>A resolution outcome. <see cref="Class"/> and <see cref="Interface"/> are mutually exclusive:
     /// classes and interfaces share ONE name namespace (<see cref="OoClassTable"/> rejects a collision as
-    /// COBOLNET0820, ISO §8.3.2.2), so at most one can be set.
+    /// COBOL0820, ISO §8.3.2.2), so at most one can be set.
     /// <para><see cref="IsFormal"/> is the third outcome, and sets neither: the name is a PARAMETER-NAME of the
     /// parameterized definition the reference is written in (§11.3.4 GR6 / §11.6.4 GR4 — "may be specified within
     /// this class definition only where an object-class-name or an interface-name is permitted"). It names whatever

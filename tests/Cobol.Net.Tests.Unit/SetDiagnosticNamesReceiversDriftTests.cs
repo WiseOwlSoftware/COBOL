@@ -18,7 +18,7 @@ namespace CobolNet.Tests.Unit;
 /// programmer actually read was <c>SET . TO SELF</c>: a statement nobody wrote, naming neither the operands
 /// they wrote nor (the <c>SELF/SUPER</c> arms) the sender they wrote. Measured on this tree before the repair:
 /// <c>SET P1 P2 TO SELF</c> over two <c>USAGE POINTER</c> items printed
-/// <c>COBOLNET0869: SET … TO SELF/SUPER: …</c>.</para>
+/// <c>COBOL0869: SET … TO SELF/SUPER: …</c>.</para>
 /// <para>⛔ THE REPAIR IS STRUCTURAL, SO THE TEST IS STRUCTURAL. Nine call sites had each written their own
 /// <c>string.Join(' ', refs.Select(r =&gt; $"'{r.GetText()}'"))</c> while five siblings holding the same list
 /// wrote <c>…</c> instead; the naming now has ONE home, <c>SetFormatSelection.Written</c>, which is what a new

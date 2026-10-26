@@ -8,7 +8,7 @@
       *> kb/Work PB528 - the SECOND obligation of ISO 1989:2023 13.18.40.3 SR2: "Character-string-1 shall
       *> consist of an allowable COMBINATION of characters used as picture symbols. The allowable combinations
       *> of symbols for a PICTURE clause are specified in 13.18.40.6, Precedence rules." Nothing read a
-      *> symbol's POSITION, so none of these was ever tested. Each is COBOLNET1935. Table 10's blank cell is
+      *> symbol's POSITION, so none of these was ever tested. Each is COBOL1935. Table 10's blank cell is
       *> a PROHIBITION, and an 'x' means the column symbol "may precede (but not necessarily immediately)"
       *> the row symbol, so the relation binds NON-ADJACENT pairs too.
       *>

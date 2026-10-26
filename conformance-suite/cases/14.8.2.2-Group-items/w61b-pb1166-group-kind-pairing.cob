@@ -15,7 +15,7 @@
       *> is not the alphanumeric group rule 1 pairs with an alphanumeric
       *> group of equal width (NG); and the elementary side of an
       *> alphanumeric-group pairing must be of CATEGORY alphanumeric, which
-      *> PIC A(4) (alphabetic) is not (AL). Both are COBOLNET1736.
+      *> PIC A(4) (alphabetic) is not (AL). Both are COBOL1736.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W61BNEGGK.
        DATA DIVISION.

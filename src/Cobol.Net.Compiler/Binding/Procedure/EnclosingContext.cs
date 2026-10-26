@@ -25,7 +25,7 @@ internal enum SourceElementKind
     /// forbids.
     /// <para>REACHABLE since kb/Work PB894 made §11.10.2 Format 2 writable (<c>prototypePhrase</c>, shared with
     /// FUNCTION-ID). Any statement in a prototype's procedure division is refused by §10.6.2 SR4 f)
-    /// (COBOLNET2272, <c>PrototypeUnitRules</c>), NOT by the placement rules — which is what
+    /// (COBOL2272, <c>PrototypeUnitRules</c>), NOT by the placement rules — which is what
     /// <c>ExitPlacementContextDriftTests.ProgramPrototypeDefinition_ExitProgram_IsRefusedBySr4fNotBySr7</c>
     /// pins; §14.9.4.3 SR13's NESTED screen (<c>CallBinder</c>) refuses this element, because its "program
     /// definition" does not name it.</para></summary>
@@ -199,7 +199,7 @@ internal static partial class PlacementRules
     /// is raised by the EMITTER as EC-FLOW-GLOBAL-GOBACK — not here. A bind-time approximation of GR6 would
     /// reject exactly the programs SR1 already covers and miss exactly the ones it does not.</para>
     /// <para>⚠ RESUME's §14.9.33.3 SR2 is the same sentence for a third statement but keeps its own
-    /// COBOLNET0713: its refusal sits inside a longer decision (GR1 makes a RESUME in a global declarative's
+    /// COBOL0713: its refusal sits inside a longer decision (GR1 makes a RESUME in a global declarative's
     /// DYNAMIC scope a CONTINUE, which is the arm this screen has no counterpart for).</para></summary>
     public static bool RefusedInGlobalDeclarative(BinderContext ctx, EcRaiseSite site)
     {

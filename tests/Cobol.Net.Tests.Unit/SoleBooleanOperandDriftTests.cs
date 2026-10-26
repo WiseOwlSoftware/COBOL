@@ -14,7 +14,7 @@ namespace CobolNet.Tests.Unit;
 /// a boolean constant-name the boolean literal it stands for. COMPUTE's sole right-hand operand parses as Format 1's
 /// arithmetic expression, so the binder re-routes it to Format 2; that re-route read an unparenthesized DATA
 /// reference only, and a sole boolean function, a parenthesized boolean item and a boolean constant-name were each
-/// refused with COBOLNET1511 on legal source.
+/// refused with COBOL1511 on legal source.
 /// <para>The shape that makes the next host automatic: <c>ConditionBinder.BindSoleBooleanOperand</c> and its
 /// diagnostic-free twin <c>IsSoleBooleanOperand</c> are the only readers of the sole-identifier forms; the boolean
 /// expression's own leaf (<c>BindBoolOperandValue</c> and the routing predicate <c>IsBooleanValueOperand</c>) and

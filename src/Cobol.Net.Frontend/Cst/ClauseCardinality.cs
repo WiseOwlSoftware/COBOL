@@ -31,7 +31,7 @@ namespace CobolNet.Frontend.Cst;
 /// when a rule of the format DOES specify otherwise — the row's comment names that syntax rule (§13.16.3 SR4 for the
 /// data description entry, §13.4.5.3 SR2 for the FD, …). Otherwise the once-only elements in the sequence the figure
 /// prints them, and <c>ClosedFormatPass</c> refuses an element written after one the figure prints later
-/// (COBOLNET2987): the OPTIONS paragraph (§11.9.2), the CONFIGURATION SECTION (§12.3.2) and the identification division
+/// (COBOL2987): the OPTIONS paragraph (§11.9.2), the CONFIGURATION SECTION (§12.3.2) and the identification division
 /// (§11.2.1) print a fixed sequence of brackets, and none has a rule that frees it.
 /// <c>ClauseCardinalityDriftTests</c> requires a sequence to hold exactly the list's once-only alternatives, so a
 /// clause added to such a list cannot go unranked.</param>
@@ -48,8 +48,8 @@ namespace CobolNet.Frontend.Cst;
 /// <param name="ChoiceIndicators">⛔ WHICH RULE A REPEAT BREAKS: true when the figure encloses its clauses in CHOICE
 /// INDICATORS (ISO §5.2.6.4 — each alternative at most once, in any order; the OBJECT-COMPUTER paragraph's
 /// §12.3.6.2), so <c>ClosedFormatPass</c> reports a repeat through the one choice-indicator reader
-/// (<c>ChoiceIndicators.AtMostOnce</c>, COBOLNET2104) and not as a bracket without an ellipsis (§5.2.6.2, §5.2.7;
-/// COBOLNET2423). A choice-indicator group is order-free by the same clause, so it carries no
+/// (<c>ChoiceIndicators.AtMostOnce</c>, COBOL2104) and not as a bracket without an ellipsis (§5.2.6.2, §5.2.7;
+/// COBOL2423). A choice-indicator group is order-free by the same clause, so it carries no
 /// <see cref="Sequence"/> (kb/Work PB3133, ISO review R1-1).</param>
 public sealed record ClauseList(string Format, string FormatLabel, string Subject, IReadOnlySet<Type> Repeatable,
     IReadOnlyList<Type>? Sequence, Func<ParserRuleContext, object>? KindOf = null, EarlierFigure? Earlier = null,
@@ -184,7 +184,7 @@ public static class ClauseCardinalities
             // OptionsBinder never read (the first one won in silence), is a repeat (kb/Work PB1508's sibling arm).
             // The figure fixes its sequence and ranks one element here. The AUTHOR … SECURITY and REMARKS
             // comment-entry paragraphs are not elements of this figure at all: they are the COBOL-85 / COBOL-74 lists
-            // removed at 2002 and refused by the removal gate (COBOLNET0902; under --permissive a warning, and they
+            // removed at 2002 and refused by the removal gate (COBOL0902; under --permissive a warning, and they
             // are still not counted against a figure that does not print them).
             //
             // ⛔ EARLIER: THE COBOL-85 FIGURE (kb/Work PB2532), in force below 2002. ⚠ DERIVED, NOT QUOTED — the
@@ -195,7 +195,7 @@ public static class ClauseCardinalities
             // that sequence (the same bracket, ellipsis and sequence conventions ISO §5.2.6.2, §5.2.7 and §5.2.1 state).
             // Measured against the in-repository corpora (5,958 sources): none repeats or reorders them, and the 38
             // NIST CCVS-85 programs that write them all keep this sequence. Its OPTIONS paragraph is a 2002
-            // introduction, refused at 85 (COBOLNET0804), and REMARKS is the COBOL-74 carryover the 1985 figure does
+            // introduction, refused at 85 (COBOL0804), and REMARKS is the COBOL-74 carryover the 1985 figure does
             // not print, accepted at 85 for the CCVS: neither is counted. Overturn here if a 1985 text says otherwise.
             [typeof(Core.IdentificationParagraphContext)] =
                 new("ISO §11.2.1", "", "identification division",
@@ -224,9 +224,9 @@ public static class ClauseCardinalities
             // §12.3.6.2 (RENDERED, PDF p315 / folio 285): the OBJECT-COMPUTER paragraph encloses its two clauses, CHARACTER
             // CLASSIFICATION and PROGRAM COLLATING SEQUENCE, in CHOICE INDICATORS within brackets, which §5.2.6.4 defines as
             // zero or more of the alternatives, each at most once, in any order: the elements are once-only and the ORDER is
-            // free (kb/Work PB3133 — this list's counts used to live in the binder, COBOLNET1652, beside a table that
-            // exempted it; the table counts it, the ONE choice-indicator reader ChoiceIndicators.AtMostOnce reports it as COBOLNET2104 — ChoiceIndicators: true). The '85 clauses MEMORY SIZE and SEGMENT-LIMIT are not elements of this
-            // figure — the removal gate (COBOLNET0902) refuses them at 2002+ — so they are not counted against it.
+            // free (kb/Work PB3133 — this list's counts used to live in the binder, COBOL1652, beside a table that
+            // exempted it; the table counts it, the ONE choice-indicator reader ChoiceIndicators.AtMostOnce reports it as COBOL2104 — ChoiceIndicators: true). The '85 clauses MEMORY SIZE and SEGMENT-LIMIT are not elements of this
+            // figure — the removal gate (COBOL0902) refuses them at 2002+ — so they are not counted against it.
             //
             // ⛔ EARLIER: THE COBOL-85 FIGURE (kb/Work PB3133), in force below 2002. ⚠ DERIVED, NOT QUOTED — the repository
             // holds no 1985 text (docs/VERSION_CHANGE_REFERENCE.md ratified decision #1; row 7.7 for the clause). ANSI

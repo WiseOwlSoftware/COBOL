@@ -23,7 +23,7 @@
       *>   ONLY); interface-1 = the object interface of L1C05SC, whose
       *>   GETX returns OBJECT REFERENCE L1C05SX WITHOUT ONLY: the same
       *>   class, but not "described with the ONLY phrase", so it does
-      *>   not conform and §11.8.3 SR2 is violated: COBOLNET0841.
+      *>   not conform and §11.8.3 SR2 is violated: COBOL0841.
       *>   Everything else is identical to the admitted
       *>   conformance:cases/9.3.8.2.3-Conformance-between-interfaces/l1c05_oo_returning_only_same_class.
        IDENTIFICATION DIVISION.

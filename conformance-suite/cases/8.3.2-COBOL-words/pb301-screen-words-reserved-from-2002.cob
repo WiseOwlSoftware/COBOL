@@ -12,7 +12,7 @@
       *> conformance-suite/cases/_unassigned/pb301_screen_words_as_user_words_85.
       *> WHAT THIS PINS THAT "is rejected" DOES NOT: the DIAGNOSTIC. The generated reservation gate withdraws
       *> each word from `cobolWord` at the editions 8.9 reserves it and `reservedGatedWord` re-admits it in the
-      *> DEFINITION slot alone, so the entry still PARSES and the 8.9 funnel answers with COBOLNET0901 naming
+      *> DEFINITION slot alone, so the entry still PARSES and the 8.9 funnel answers with COBOL0901 naming
       *> the rule. Without that second half the user gets COBOL0001 "no viable alternative", which names
       *> nothing and sends them looking for a syntax error that is not there.
        IDENTIFICATION DIVISION.
@@ -23,7 +23,7 @@
       *> SYSTEM-NAMES" - so the implementor-name of a 12.3.7 SPECIAL-NAMES entry is refused too. CRT
       *> without STATUS is not the declined CRT STATUS clause (12.3.7 spells that CRT STATUS IS), so this
       *> is the ordinary implementor-name entry the COBOL-85 lane compiles - and the same text at 2002+
-      *> must draw COBOLNET0901, not the screen module's COBOLNET1560.
+      *> must draw COBOL0901, not the screen module's COBOL1560.
        SPECIAL-NAMES.
            CRT IS SCR-MNEM.
        DATA DIVISION.

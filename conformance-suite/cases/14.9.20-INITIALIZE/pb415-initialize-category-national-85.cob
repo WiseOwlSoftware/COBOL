@@ -8,7 +8,7 @@
 *> category names; five are COBOL-85 words and eight entered later with the data categories they name.
 *> ISO 8.9 reserves NATIONAL from 2002 (tests/version-matrix/reserved-words.json r85=false), so at
 *> --std 85 `REPLACING NATIONAL` names a category-name COBOL-85's list does not contain and the
-*> initialize-category-2002 construct row refuses it COBOLNET0900.
+*> initialize-category-2002 construct row refuses it COBOL0900.
 *> It compiles at 2002 and above — the category-name is conforming there, and with no national item in G it
 *> simply selects no receiving operand (14.9.20.4 GR5c2), which is the rule's own answer and not a gap.
 *> The '85 POSITIVE control is conformance-suite/cases/14.9.20-INITIALIZE/pb415_initialize_multi_category_85: the five classic

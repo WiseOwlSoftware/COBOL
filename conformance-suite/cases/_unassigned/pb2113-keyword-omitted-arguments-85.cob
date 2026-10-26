@@ -15,7 +15,7 @@
       *> a COBOL 2002 rule, so at --std 85 the binder takes no keyword-
       *> omitted route (IntrinsicBinder.KeywordOmittedFunction's edition
       *> gate) and MAX is a data-name that no entry declares
-      *> (COBOLNET1639, 8.4.2.1).
+      *> (COBOL1639, 8.4.2.1).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P2113N.
        ENVIRONMENT DIVISION.

@@ -10,7 +10,7 @@
       *> | literal-2 } ]) is a COBOL-2002 introduction (constructs row
       *> copy-literal-name-2002, VCR row 7.44; kb/Work PB1601): ANSI
       *> X3.23-1985's COPY names its text by a user-defined word only.
-      *> The statement below draws COBOLNET0900 at --std 85; the positive
+      *> The statement below draws COBOL0900 at --std 85; the positive
       *> twin at 2002 is pb1355_library_text_literal.
 000100 IDENTIFICATION DIVISION.
 000200 PROGRAM-ID. PB1601LN.

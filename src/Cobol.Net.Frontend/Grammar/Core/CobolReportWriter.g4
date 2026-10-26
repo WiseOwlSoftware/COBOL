@@ -26,8 +26,8 @@ reportSection
 // RD report-name [report-description-clause]... .  { constant-entry | report-group-description-entry } ...
 // (§13.8.2). The brace group's ellipsis is "one or more", and §13.8.4 says "An RD entry shall be followed by one
 // or more report group description entries": the grammar admits the list EMPTY and DataBinder.BindReportSection
-// reports the RD with no report group entry (COBOLNET2708), exactly as the sort-merge twin's "one or more record
-// description entries" is a bind-time rule (COBOLNET1837) — a rule-named diagnostic, not a parse error.
+// reports the RD with no report group entry (COBOL2708), exactly as the sort-merge twin's "one or more record
+// description entries" is a bind-time rule (COBOL1837) — a rule-named diagnostic, not a parse error.
 reportDescriptionEntry
     : RD reportName reportDescriptionClause* DOT (constantEntry | reportGroupEntry)*
     ;
@@ -77,7 +77,7 @@ reportControlClause
 // with integer-1 (it cannot follow an integer-1 that is followed by integer-2), and integer-2 may stand alone — the
 // three alternatives below are exactly those shapes, and SR2's "either integer-1 or integer-2 or both" is the
 // grammar's own (an empty brace group has no alternative). SR3 — the five trailing phrases "may be specified only
-// if integer-1 is specified" — is a bind-time rule (COBOLNET2709), because the grammar cannot see which
+// if integer-1 is specified" — is a bind-time rule (COBOL2709), because the grammar cannot see which
 // alternative preceded a repeated phrase list without duplicating it.
 // ⛔ ALL FOUR WORDS OF `[ LIMIT IS | LIMITS ARE ]` ARE OPTIONAL WORDS (kb/Work PB3751). On the printed format
 // (PDF p468 / folio 438) only PAGE carries an underline, and §8.3.2.4.3 makes each un-underlined uppercase word
@@ -275,7 +275,7 @@ reportSourceClause
 // ⚠ The operand list is separated by nothing but a space, so a written operator BINDS (the `(addOp
 // multiplicativeExpression)*` loop is greedy): `SOURCES ARE A + B` is ONE operand. §13.18.53.3 SR7 is what makes
 // that unambiguous — with more than one operand and any of them an expression, "each operand shall be enclosed
-// in parentheses" — and the binder ENFORCES it (COBOLNET2142) rather than inferring it from this shape.
+// in parentheses" — and the binder ENFORCES it (COBOL2142) rather than inferring it from this shape.
 // What stops the greedy list is unchanged: the §8.9 reservation gate on cobolWord (the PB792 argument) — every
 // clause that can follow opens with a reserved word, and so does ROUNDED.
 reportValueOperand

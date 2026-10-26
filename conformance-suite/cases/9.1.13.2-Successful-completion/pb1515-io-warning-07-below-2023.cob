@@ -9,10 +9,10 @@
       *> successful completion with a nonzero status, the exception
       *> condition EC-I-O-WARNING (ISO 9.1.13.1), and EC-I-O-WARNING is
       *> new in COBOL-2023 (Annex E.3.3 item 18), so enabling it by
-      *> >>TURN at 2002 or 2014 is COBOLNET0878, never a silent no-op:
+      *> >>TURN at 2002 or 2014 is COBOL0878, never a silent no-op:
       *> before 2023 the '07' of the OPEN below raised nothing a
       *> program could handle. (At --std 85 the >>TURN directive itself
-      *> is refused first, COBOLNET0900.)
+      *> is refused first, COBOL0900.)
        >>TURN EC-I-O-WARNING CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1515NG.

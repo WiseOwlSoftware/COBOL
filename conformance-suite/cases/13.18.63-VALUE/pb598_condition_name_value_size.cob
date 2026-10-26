@@ -28,7 +28,7 @@
       *> gives a condition-name its conditional variable's
       *> characteristics only IMPLICITLY - which is what "explicit"
       *> excludes.  Measured before this fix: every line below was
-      *> COBOLNET1740, legal source rejected.
+      *> COBOL1740, legal source rejected.
       *>
       *> AND THE STANDARD SAYS WHAT AN OVERSIZE ONE MEANS, which a size
       *> rule would make dead text:

@@ -17,7 +17,7 @@ namespace CobolNet.Binding.Procedure;
 /// <para>⛔ WHY A LOWERING AND NOT AN IMAGE. The relation used to be emitted as ONE whole-group character-image
 /// comparison, which is element order only when every leaf's character image happens to order like its value: a
 /// FLOAT leaf's image orders by its sign/exponent characters (<c>-5 &lt; 3</c> answered GE), a SIGNED DISPLAY leaf's
-/// overpunch does not order algebraically (it was staged COBOLNET0899 instead), a pointer leaf has no image at all
+/// overpunch does not order algebraically (it was staged COBOL0899 instead), a pointer leaf has no image at all
 /// (the run unit aborted), and a collating sequence with equal weights makes image-unequal leaves element-equal.
 /// Each elementary pair is instead a <see cref="BoundRelational"/> over the two leaves' own places, so every leaf
 /// kind compares by the SAME rule an explicit relation between those two items uses (§8.8.4.2.4 numeric,

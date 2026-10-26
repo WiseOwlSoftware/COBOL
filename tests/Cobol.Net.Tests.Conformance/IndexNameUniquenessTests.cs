@@ -39,7 +39,7 @@ public sealed class IndexNameUniquenessTests
     {
         var (ok, diags) = Compile(id, body);
         Assert.False(ok, "a bare IX declared by two tables must not compile (§8.4.2.2.3 SR1)");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET1639");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1639");
         EditionHarness.AssertHasDiagnostic(diags, "does not uniquely identify an index-name");
     }
 
@@ -58,7 +58,7 @@ public sealed class IndexNameUniquenessTests
     {
         var (ok, diags) = Compile("H", "    SET IX OF W TO 1.");
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET1639");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1639");
         EditionHarness.AssertHasDiagnostic(diags, "SR6");
     }
 
@@ -69,7 +69,7 @@ public sealed class IndexNameUniquenessTests
     {
         var (ok, diags) = Compile("I", "    MOVE EB(IX OF EA) TO W.");
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET1961");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1961");
     }
 
     /// <summary>§14.9.37.3 SR8 ("shall be subscripted by the first index-name associated with identifier-1") is met
@@ -154,7 +154,7 @@ public sealed class IndexNameUniquenessTests
     /// <summary>The <c>--permissive</c> disposition of an ambiguous index-name (§8.4.2.2.3 SR1, warned, resolved to
     /// the first declaration) still screens the table it resolves to: here that table lies in a LINKAGE record that
     /// is no operand of the USING phrase, so §13.7.3 SR4 e) ("It is a condition-name or index-name associated with a
-    /// data item that satisfies one of the above conditions") refuses the reference, COBOLNET2746, exactly as it
+    /// data item that satisfies one of the above conditions") refuses the reference, COBOL2746, exactly as it
     /// refuses the qualified <c>IX OF T1</c>.</summary>
     [Fact]
     public void Permissive_AmbiguousIndexName_ScreensTheLinkageRecordItResolvesTo()
@@ -173,8 +173,8 @@ public sealed class IndexNameUniquenessTests
                 GOBACK.
             """, 2023, permissive: true);
         Assert.False(ok, "the first declaration's table is in an unreferenceable LINKAGE record (ISO §13.7.3 SR4)");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1639");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2746");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1639");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2746");
         EditionHarness.AssertNoDiagnostic(errors, "CS0131");
     }
 
@@ -226,6 +226,6 @@ public sealed class IndexNameUniquenessTests
                 GOBACK.
             """, 2023, permissive: true);
         Assert.True(ok, string.Join(Environment.NewLine, errors));
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1639");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1639");
     }
 }

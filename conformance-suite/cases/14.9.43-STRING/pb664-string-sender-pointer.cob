@@ -12,7 +12,7 @@
       *> argument, an ALLOCATE RETURNING phrase or a FREE statement.  STRING is not among them.
       *> Measured before the fix: this program compiled clean and stored "CobolNet.Runtime.CellPointer" - the
       *> CLR carrier's type name - into A66, through OperandText's sending-image fall-through.
-      *> USAGE POINTER is a COBOL-2002 introduction, so 85 rejects the DECLARATION instead (COBOLNET0902) and
+      *> USAGE POINTER is a COBOL-2002 introduction, so 85 rejects the DECLARATION instead (COBOL0902) and
       *> is not claimed here.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB664NEGP.

@@ -11,7 +11,7 @@
       *>   condition X IS PB3153C; the class is declared by the
       *>   CONTAINING program's SPECIAL-NAMES, which 8.4.6.1 lets it
       *>   reference) and DECLARES PB3153C as a paragraph-name: two types
-      *>   in PB3153N1's source element, refused COBOLNET2692 exactly as
+      *>   in PB3153N1's source element, refused COBOL2692 exactly as
       *>   the same shape is in one program. PB3153N2 declares the same
       *>   paragraph and never uses the class: legal (8.4.6.1), so it
       *>   draws no diagnostic.

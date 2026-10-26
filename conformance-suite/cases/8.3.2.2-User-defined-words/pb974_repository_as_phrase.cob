@@ -22,7 +22,7 @@
       *> whose externalized name is the literal - here each definition is declared with a DIFFERENT word and an
       *> AS literal of its own (11.3.2 CLASS-ID / 11.6.2 INTERFACE-ID / 11.5.2 FUNCTION-ID), so only the
       *> literal can connect the two. kb/Work PB974: every one of these specifiers except PROGRAM refused
-      *> `AS` with COBOLNET0901, and `FUNCTION PI E INTRINSIC` died COBOL0307.
+      *> `AS` with COBOL0901, and `FUNCTION PI E INTRINSIC` died COBOL0307.
       *>
       *>   BOXY  -> the class W974BOX AS "W974-BOX"; its BAL property starts at 100 (13.18.63 VALUE)
       *>   AMOUNT (PROPERTY AMOUNT AS "BAL") -> 12.3.8.3 SR16 a): the property literal-4 of the declared class,

@@ -9,7 +9,7 @@
       *> a statement rule no parameter-name touches is asked whether or
       *> not anything expands the class: the MOVE's receiving operand
       *> names nothing this source element declares, which 8.4.2.1
-      *> refuses (COBOLNET1639) exactly as in an ordinary class. The
+      *> refuses (COBOL1639) exactly as in an ordinary class. The
       *> INVOKE through the formal-typed ITEM is each expansion's and
       *> draws nothing here, so the 1639 is this rule's.
        IDENTIFICATION DIVISION.

@@ -27,13 +27,13 @@ one post-bind pass — see [[kb/Semantics/Passes]]). Both write to a shared `IDi
 ## Flow-sensitive file-state / FILE STATUS checking
 File-connector semantics are bound in `SequentialIoBinder`/`KeyedIoBinder` over the `FileModel` (organization, access
 mode, `FileStatusItem`, `Linage`). At COBOL-2023 a cross-connector consistency rule set fires: for an external file
-every corresponding SELECT must name the same external FILE STATUS item (`COBOLNET1573`), the same external RELATIVE
-KEY item (`COBOLNET1575`), and those items must themselves be external (`COBOLNET1624`). `FlagConformancePass` also
+every corresponding SELECT must name the same external FILE STATUS item (`COBOL1573`), the same external RELATIVE
+KEY item (`COBOL1575`), and those items must themselves be external (`COBOL1624`). `FlagConformancePass` also
 tags FILE-STATUS references testing `'04'`/`'07'` for the FLAG-14 migration net.
 
 ## Category / MOVE compatibility
 `MoveBinder` enforces the version-invariant §14.9.25.3 SR1 class check first — a MOVE operand of class
-index/message-tag/object/pointer is rejected at every edition (`COBOLNET0809`). The edition-conditional SR5
+index/message-tag/object/pointer is rejected at every edition (`COBOL0809`). The edition-conditional SR5
 figurative-category rules (ALL-digit→integer obsolete-2023; QUOTE→numeric obsolete-2014; other→numeric removed-2023)
 are gated in the pass's `GateMove`, re-deriving classification from the bound MOVE's source × each receiver's resolved
 PICTURE. See [[kb/IR/Data Flow]].
@@ -59,7 +59,7 @@ its matrix row (and vice versa). `>>COBOL-WORDS` SR3/SR4 category validation run
 
 ## Diagnostic catalog structure
 `DiagnosticDescriptor(Code, Id, Severity, Title, IsoSection, SuppressKey?)` — a stable kebab-case `Id` survives code
-renumbering; `Code` may repeat (the `COBOLNET0899` recognized-not-implemented family). `DiagnosticCatalog.All` is
+renumbering; `Code` may repeat (the `COBOL0899` recognized-not-implemented family). `DiagnosticCatalog.All` is
 reflected, feeding [[docs/DIAGNOSTICS]] and `DiagnosticRegistryDriftTests`. Notable code bands:
 - `0900/0901/0902/0903` — edition introduction / reserved-word / removal / obsolete.
 - `0801/0802/0809/0810/0811` — digit-capacity & MOVE class checks.

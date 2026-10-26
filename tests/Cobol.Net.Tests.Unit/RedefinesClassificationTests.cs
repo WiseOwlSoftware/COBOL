@@ -59,7 +59,7 @@ public sealed class RedefinesClassificationTests
     /// returns before the tier is ever consulted, and the view DOES come out with <c>DynamicString</c> even
     /// though its class is Rejected. (A class DISSOLVED by the nested-anchor loop bypasses the tier loop
     /// entirely, which is the same hole from the other side.) What actually keeps a user program from carrying
-    /// the disjoint storage is the COBOLNET1698 DIAGNOSTIC, which is fatal — the compile never reaches emit. The
+    /// the disjoint storage is the COBOL1698 DIAGNOSTIC, which is fatal — the compile never reaches emit. The
     /// tier verdict is belt-and-braces at the modelling layer, and worth having as such.</para>
     /// <para>So this test asserts the two things that are TRUE and load-bearing — the tier verdict and the fatal
     /// diagnostic — and PINS the measured storage form rather than a wish. If someone later teaches
@@ -73,7 +73,7 @@ public sealed class RedefinesClassificationTests
         // (1) The tier verdict — load-bearing, and set by ClassifyRedefinesClasses' Sr17Shape loop.
         Assert.Equal(RedefinesTier.Rejected, Item(d, "WS-B").Class!.Tier);
         // (2) THE ACTUAL BARRIER: a fatal bind diagnostic, so nothing downstream of it ever runs for real.
-        Assert.Contains(ed.Diagnostics, x => x.Contains("COBOLNET1698", StringComparison.Ordinal));
+        Assert.Contains(ed.Diagnostics, x => x.Contains("COBOL1698", StringComparison.Ordinal));
         // (3) The pass RAN — without this every storage assertion below is inert, which is precisely how this
         //     test shipped green while asserting nothing (the battery-#38 lesson).
         Assert.NotNull(Item(d, "WS-A").Storage);
@@ -299,7 +299,7 @@ public sealed class RedefinesClassificationTests
     /// rejection): a float or COMP-5 pun is an ordinary Tier-B byte-window class now — the leaf's window is
     /// its pinned byte form at StorageWidth (IEEE 4 bytes for COMP-1; the full-container 2 bytes for a
     /// 9(4) COMP-5), image-forced onto the one string backing. The float fixture is re-expressed as the
-    /// LEGAL picture-less <c>USAGE COMP-1</c> (the old <c>PIC 9(4) COMP-1</c> was COBOLNET1521 illegal
+    /// LEGAL picture-less <c>USAGE COMP-1</c> (the old <c>PIC 9(4) COMP-1</c> was COBOL1521 illegal
     /// source binding through error recovery — it proved nothing).</summary>
     [Fact]
     public void TierB_FloatAndComp5Puns_ByteWindows()

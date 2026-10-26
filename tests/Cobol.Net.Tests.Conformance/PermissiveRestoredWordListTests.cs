@@ -10,7 +10,7 @@ namespace CobolNet.Tests.Conformance;
 /// COBOL-2002 national group; §8.9 reserves GROUP-USAGE from 2002, so the only reading is the §13.18.29 clause.
 /// The migration mode restores GROUP-USAGE as a user word (it was free at 85), and before the derived list-end
 /// predicate (<c>keywordContinuesHere</c>) the VALUE operand list swallowed GROUP-USAGE NATIONAL and drew
-/// COBOLNET1639 ×2 + COBOLNET1585. Expected output is read off the source: the group's VALUE N"AB" initializes
+/// COBOL1639 ×2 + COBOL1585. Expected output is read off the source: the group's VALUE N"AB" initializes
 /// its one national element A.
 /// </summary>
 public sealed class PermissiveRestoredWordListTests

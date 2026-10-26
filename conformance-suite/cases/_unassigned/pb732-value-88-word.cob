@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB732 — arm: Format 3 (condition-name) VALUE, SINGLETON operand. ISO 13.18.63.2 Format 3
 *> writes literal-2, so the level-88 operand is the same literal position as Format 1's literal-1
-*> (13.18.63.3 SR27 reads it as "the value of literal-2"). An undefined word there is COBOLNET1639
+*> (13.18.63.3 SR27 reads it as "the value of literal-2"). An undefined word there is COBOL1639
 *> (8.4.2.1). Pre-fix, on an ALPHANUMERIC conditional variable it compiled clean and compared against
 *> the seven-character string "NOSUCHW".
 IDENTIFICATION DIVISION.

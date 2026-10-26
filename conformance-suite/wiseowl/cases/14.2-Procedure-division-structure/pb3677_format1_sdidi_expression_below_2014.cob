@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB3677, the negative of pb3677_format1_sdidi_expression: ARITHMETIC IS STANDARD-DECIMAL, which makes the
       *> argument expression an SDIDI value, is a COBOL-2014 introduction (OPTIONS paragraph, ISO 11.9), so it is refused at
-      *> COBOL-2002 and COBOL-85 by name (COBOLNET0900) and accepted from 2014 on.
+      *> COBOL-2002 and COBOL-85 by name (COBOL0900) and accepted from 2014 on.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3677BM.
        OPTIONS.

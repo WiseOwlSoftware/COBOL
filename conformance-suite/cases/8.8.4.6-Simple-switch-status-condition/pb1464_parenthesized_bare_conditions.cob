@@ -9,7 +9,7 @@
       *> the simple condition truth value." A condition-name (8.8.4.2.7 rule 2) and a switch-status condition-name
       *> (8.8.4.6) are simple conditions, so `(X1)` and `(S1-OFF)` are those conditions and mean what X1 and S1-OFF
       *> mean. The grammar reads a parenthesized bare word as a parenthesized ARITHMETIC operand, and the bare-operand
-      *> classifier did not look through the parentheses, so every one of these drew COBOLNET2318 in every edition.
+      *> classifier did not look through the parentheses, so every one of these drew COBOL2318 in every edition.
       *>   cite.py --check 8.8.4.2.1 "The inclusion in parentheses of simple conditions does not change the simple
       *>     condition truth value" -> OK
       *> X = 1 and X1 is true for 1; the switch is OFF by default (its OFF STATUS name is true, its ON STATUS name false).

@@ -13,10 +13,10 @@
       *> which fatal exception conditions, if any, are detected at compile
       *> time, and the circumstances under which they are detected."
       *> DETERMINATION PINNED (docs/CONFORMANCE.md DOC-A.1-69): the
-      *> compile-time detections are the COBOLNET1662 warning for an
+      *> compile-time detections are the COBOL1662 warning for an
       *> unprovided ORDER TABLE and a LITERAL reference modification
-      *> outside a fixed-size item (kb/Work PB1707: COBOLNET2670 error
-      *> where EC-BOUND-REF-MOD checking is off, COBOLNET2671 warning
+      *> outside a fixed-size item (kb/Work PB1707: COBOL2670 error
+      *> where EC-BOUND-REF-MOD checking is off, COBOL2671 warning
       *> where it is on). With checking ON the compiler still produces
       *> executable code: a constant subscript outside the OCCURS bounds,
       *> a constant reference modification outside the item (the warning
@@ -61,7 +61,7 @@
       *>   (exit 1), which a golden cannot carry. It is left out here.
       *>   NO UNCHECKED REFERENCE MODIFICATION: a literal one outside the
       *>   item is refused at compile time while checking is off
-      *>   (COBOLNET2670, negative:pb1707-refmod-literal-out-of-range),
+      *>   (COBOL2670, negative:pb1707-refmod-literal-out-of-range),
       *>   and a computed one ends the run unit (owner decision R60),
       *>   which a golden cannot carry (tests in
       *>   RefModUncheckedTerminationTests). It is left out here.

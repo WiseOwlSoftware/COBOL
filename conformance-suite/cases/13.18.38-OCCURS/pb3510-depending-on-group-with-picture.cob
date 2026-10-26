@@ -8,10 +8,10 @@
       *> is written with a PICTURE, but a subordinate entry makes it a group,
       *> and the table under it depends on it. 13.18.40.3 SR1, "The PICTURE
       *> clause may be specified only at the elementary level"
-      *> (COBOLNET2191); 13.18.38.3 SR17, "Data-name-1 shall describe an
-      *> integer" (a group item is not one; COBOLNET0852, the code this
+      *> (COBOL2191); 13.18.38.3 SR17, "Data-name-1 shall describe an
+      *> integer" (a group item is not one; COBOL0852, the code this
       *> refusal expects); and SR20 - the group occupies every byte position
-      *> from the table's first to its record's last (COBOLNET0857). The
+      *> from the table's first to its record's last (COBOL0857). The
       *> binder overflowed its stack here before any of them was reported.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3510N2.

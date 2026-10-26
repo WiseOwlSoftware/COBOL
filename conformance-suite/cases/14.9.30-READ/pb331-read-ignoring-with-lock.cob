@@ -11,10 +11,10 @@
       *> one slot - a collapse that ALSO rejected the LEGAL pair IGNORING LOCK WITH NO
       *> LOCK, which 14.9.30.4 GR11 b)/d) distinguish by naming "the NO LOCK phrase" and
       *> "the LOCK phrase" as different phrases. Splitting the brackets is what makes
-      *> this file necessary: without the COBOLNET1818 check the split would have opened
+      *> this file necessary: without the COBOL1818 check the split would have opened
       *> a silent hole. 2002/pb331_read_lock_brackets is its permitted-pair twin.
       *> The rule is edition-invariant, hence all four editions; below 2002 the phrases
-      *> additionally draw the COBOLNET0900 introduction gate.
+      *> additionally draw the COBOL0900 introduction gate.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB331SR3.
        ENVIRONMENT DIVISION.

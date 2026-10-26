@@ -92,7 +92,7 @@ internal readonly record struct ExternalizedSubject(
 /// temporary clones — §8.4.3.2.4 GR1), and its positional USING formals (§14.8.2). Built by the run-unit
 /// emitter BETWEEN the DATA and PROCEDURE bind phases, so a <c>FUNCTION user-name(args)</c> reference binds
 /// against signatures of function units defined ANYWHERE in the compilation group, including after the caller.
-/// <paramref name="Returning"/> is null only for the ill-formed no-RETURNING function (COBOLNET1507 — already
+/// <paramref name="Returning"/> is null only for the ill-formed no-RETURNING function (COBOL1507 — already
 /// diagnosed; call sites fail loud without re-reporting).</summary>
 /// <param name="Name">user-function-name-1 as written — the key every <c>FUNCTION word(…)</c> reference
 /// resolves against (ISO §8.4.6.6 / §8.4.6.7 scope the WORD, never the AS literal).</param>
@@ -127,7 +127,7 @@ public sealed record ProgramSpecifier(string Name, string ExternalizedName);
 /// <summary>One §12.3.8.2 user-defined-function-specifier as WRITTEN — <c>FUNCTION function-prototype-name-1 [AS
 /// literal-5]</c>. <paramref name="ExternalizedName"/> is literal-5 when the AS phrase is present and the name itself
 /// otherwise (§12.3.8.4 GR11 NOTE 2). <paramref name="At"/> is the REPOSITORY entry, where a diagnostic about its
-/// resolution (<c>BinderDriver.UserFunctionsOf</c>, COBOLNET2969) is reported. Collected by
+/// resolution (<c>BinderDriver.UserFunctionsOf</c>, COBOL2969) is reported. Collected by
 /// <c>DataBinder</c>'s REPOSITORY loop; RESOLVED by <c>GroupRepository.ResolveFunction</c>.</summary>
 internal sealed record FunctionSpecifier(string Name, string ExternalizedName, Antlr4.Runtime.ParserRuleContext At);
 
@@ -317,7 +317,7 @@ public sealed partial class DataBinder
         }
         foreach (var idx in item.Indexes) IndexNames.Inherit(idx, depth);
         // Appended after this element's own register and each nearer container's (nearest first, as called), the
-        // order ReferenceResolver.CapacityRegisterFor reads. A register the container refused (SR30's COBOLNET1523)
+        // order ReferenceResolver.CapacityRegisterFor reads. A register the container refused (SR30's COBOL1523)
         // failed that compile and has no CapacityRegister view to inherit.
         if (item.OccursSpec is { CapacityName: { } cap, CapacityRegister: not null }) AddCapacityRegister(_capacityRegisters, cap, item);
         foreach (var child in item.Children) InheritGlobalSubtree(child, depth);
@@ -437,7 +437,7 @@ public sealed partial class DataBinder
             if (item is null)
             {
                 // §14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
-                Edition.Error("COBOLNET0888",
+                Edition.Error("COBOL0888",
                     $"PROCEDURE DIVISION USING parameter '{pname}' is not a level-01/77 LINKAGE SECTION item "
                     + "(ISO §14.2.2 SR1)");
                 pos++;
@@ -502,7 +502,7 @@ public sealed partial class DataBinder
             // ordinary callee-local field; its value transfers out at termination (GR7, the Call copy-out).
             LinkageReturning = FindLinkageRoot(rref.GetText());
             if (LinkageReturning is null)
-                Edition.Error("COBOLNET0888",
+                Edition.Error("COBOL0888",
                     $"PROCEDURE DIVISION RETURNING item '{rref.GetText()}' is not a level-01/77 LINKAGE SECTION "
                     + "item (ISO §14.2.2 SR1)");
             else
@@ -531,19 +531,19 @@ public sealed partial class DataBinder
             using var _ = Edition.At(root);
             string where = $"data item '{root.CobolName ?? "FILLER"}'";
             if (!LinkageRoots.Contains(root))
-                Edition.Error("COBOLNET1542", $"{where}: the ANY LENGTH clause may be specified only in an "
+                Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may be specified only in an "
                     + "elementary level 1 entry in the LINKAGE SECTION (ISO §13.18.2.3 SR2)");
             else if (root.IsGroup)
-                Edition.Error("COBOLNET1542", $"{where}: the subject of an ANY LENGTH clause shall be "
+                Edition.Error("COBOL1542", $"{where}: the subject of an ANY LENGTH clause shall be "
                     + "ELEMENTARY — this entry has subordinate items (ISO §13.18.2.3 SR2)");
             else if (OoIsClassUnit)
                 // This binder's own LINKAGE is the OBJECT/FACTORY paragraph's, never a method's (method
                 // linkage binds via OoBindMethodData into OoMethodBinding.LinkageRoots, swept there).
-                Edition.Error("COBOLNET1542", $"{where}: the ANY LENGTH clause may be specified only in the "
+                Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may be specified only in the "
                     + "linkage section of a function, a contained program, or a method that is not a property "
                     + "method — not in a factory or instance definition (ISO §13.18.2.3 SR2)");
             else if (!UnitIsContained && !UnitIsFunction)
-                Edition.Error("COBOLNET1542", $"{where}: the ANY LENGTH clause may not be specified in an "
+                Edition.Error("COBOL1542", $"{where}: the ANY LENGTH clause may not be specified in an "
                     + "OUTERMOST program — only in a function, a contained program, or a method "
                     + "(ISO §13.18.2.3 SR2 and its NOTE)");
             else
@@ -553,7 +553,7 @@ public sealed partial class DataBinder
                 bool formal = LinkageFormals.Any(f => ReferenceEquals(f.Item, root) && !f.ByValue);
                 bool returning = ReferenceEquals(LinkageReturning, root);
                 if (UnitIsFunction ? !formal : !(formal || returning))
-                    Edition.Error("COBOLNET1542", UnitIsFunction
+                    Edition.Error("COBOL1542", UnitIsFunction
                         ? $"{where}: in a FUNCTION the subject of an ANY LENGTH clause shall be referenced in "
                           + "the procedure division header as a formal parameter with the BY REFERENCE phrase "
                           + "(ISO §13.18.2.3 SR4)"
@@ -682,7 +682,7 @@ public sealed partial class DataBinder
         // a record name — two describers name their records as they like, IC227A), and the cell carries the
         // record's content and its dynamic-length items (StorageCell.DynAt) or its pointer value (SlotAt), so GR4 b)'s
         // "the data contained in all record description entries" is ONE copy per run unit. It used to be staged
-        // loud as COBOLNET0899: the character half alone would have split the area in two.
+        // loud as COBOL0899: the character half alone would have split the area in two.
         foreach (var file in Files)
             if (file is { IsExternal: true, ExternalName: { } extName } && file.Records.Count > 0)
             {

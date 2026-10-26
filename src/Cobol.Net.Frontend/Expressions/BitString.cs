@@ -20,7 +20,7 @@ namespace CobolNet.Frontend.Expressions;
 /// A compile-time (directive) boolean operand is ALWAYS a concrete boolean LITERAL — §7.3.7.2 SR1 admits only
 /// boolean literals, and §7.3.3 SR10 bars the figurative constants (<c>ZERO</c> / <c>ALL "literal"</c>) that the
 /// runtime §8.8.2 admits — so there is no positionless (figurative) case here; a figurative operand is a formation
-/// error the evaluator rejects (COBOLNET1619), never a value.
+/// error the evaluator rejects (COBOL1619), never a value.
 /// </summary>
 public sealed class BitString : IEquatable<BitString>
 {

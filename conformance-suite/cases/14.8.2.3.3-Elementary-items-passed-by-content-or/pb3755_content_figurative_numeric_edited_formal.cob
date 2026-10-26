@@ -12,7 +12,7 @@
       *> factory method and a user-defined function - conforms and runs at 2002 and 2014. (A numeric formal would be rule
       *> 2 a)'s COMPUTE, which takes no figurative but ZERO at any edition.) The program does not print the formal: the
       *> pre-removal fill is the implementor's. The 2023 twins (pb3755-call-..., pb3755-invoke-..., pb3755-function-...)
-      *> are refused COBOLNET0902 per lane.
+      *> are refused COBOL0902 per lane.
       *>   cite.py --check 14.8.2.3.3 "the conformance rules are the same as for a MOVE statement" -> OK
       *>     14.8.2.3.3 2) d)
       *>   cite.py --check 14.9.25.3 "In all other cases, the move of an alphanumeric figurative constant (SPACE, QUOTE,

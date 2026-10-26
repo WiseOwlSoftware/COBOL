@@ -11,7 +11,7 @@
       *> kb/Work PB511 at the INTRODUCING EDITION of the phrase: the EXTERNAL clause's `AS literal-1` is a
       *> COBOL-2002 addition (X3.23-1985 has no AS phrase anywhere and AS is a user-definable word there),
       *> and it had NO GRAMMAR AT ALL -- `externalClause : IS? EXTERNAL` was the whole rule, so a conforming
-      *> program that names its external items was `error COBOLNET0901: 'AS' is a reserved word` at 2002,
+      *> program that names its external items was `error COBOL0901: 'AS' is a reserved word` at 2002,
       *> 2014 and 2023 alike.  The rules this golden pins:
       *>   13.18.22.2 general format (rendered, PDF p430/folio 400):
       *>                "IS EXTERNAL [ AS literal-1 ]"  -- IS bare, EXTERNAL and AS underlined.

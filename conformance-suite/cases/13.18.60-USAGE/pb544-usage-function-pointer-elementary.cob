@@ -10,7 +10,7 @@
       *> `PictureAnalyzer.ParseUsage` staged the usage loud and left `Pic` null, so `Sr14PlacementClass` never
       *> saw the item and `05 F USAGE FUNCTION-POINTER TO proto.` was refused by the staging band rather than
       *> by SR14. USAGE FUNCTION-POINTER went LIVE with kb/Work PB452 + PB817, so the arm now reports the rule
-      *> (COBOLNET1724) and the row's second residue has a witness.
+      *> (COBOL1724) and the row's second residue has a witness.
       *> Pinned at 2014 and 2023: FUNCTION-POINTER is dated 2014 by its §8.9 reservation
       *> (constructs.json usage-function-pointer-2014), so below 2014 the entry names its edition instead.
        IDENTIFICATION DIVISION.

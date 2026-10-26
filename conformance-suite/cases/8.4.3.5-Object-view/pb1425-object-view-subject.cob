@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1425 - ISO 8.4.3.5.3 SR1: "Identifier-1 shall be of class object; the predefined object
       *>   references SUPER and NULL shall not be specified." N is a numeric item, not an object reference,
-      *>   and NULL is named by the rule: both object-views are refused by SR1 (COBOLNET2870), never by the
+      *>   and NULL is named by the rule: both object-views are refused by SR1 (COBOL2870), never by the
       *>   reserved-word diagnostic AS used to draw.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1425W1.

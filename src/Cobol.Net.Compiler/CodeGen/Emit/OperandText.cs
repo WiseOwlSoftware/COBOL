@@ -362,7 +362,7 @@ internal static class OperandText
         // the one DISPLAY shows - the current-extent image, CONFORMANCE.md A.1 item 57 - through the ONE reader
         // PlaceRenderer.VarGroupOperandImage. DISPLAY and an intrinsic function's string argument both ask this
         // method, so the variable-length group a --permissive build coerces to a function argument (ISO 15.3 admits
-        // one only where the function says so - LENGTH and BYTE-LENGTH - and COBOLNET1627 warns) is that same image,
+        // one only where the function says so - LENGTH and BYTE-LENGTH - and COBOL1627 warns) is that same image,
         // never the Tier-C refusal (kb/Work PB3424).
         op is BoundFieldOperand { Place: var vp } && PlaceRenderer.VarGroupOperandImage(vp, context) is { } varImage
             ? varImage
@@ -426,7 +426,7 @@ internal static class OperandText
         // used to spell itself, one line above), the capability guard, and the plain struct image.
         // ⛔ A VARIABLE-LENGTH group a ONE-WAY consumer reads is its CURRENT-extent image - the one DISPLAY shows (A.1 item
         // 57) - through the ONE reader PlaceRenderer.VarGroupOperandImage (kb/Work PB3424): CONVERT's ANY source
-        // (IntrinsicRenderer.StorageArg) under --permissive, where §15.3 14) bars the group argument and COBOLNET1627
+        // (IntrinsicRenderer.StorageArg) under --permissive, where §15.3 14) bars the group argument and COBOL1627
         // warns. §8.5.1.11.2 makes a variable-length item behave as though contiguous with its neighbours whenever a
         // procedural operation is applied to a group containing it, so the contiguous current-extent image is the
         // group's storage as an operation sees it: a dynamic-length NATIONAL member rides as the UTF-16BE bytes it
@@ -711,9 +711,9 @@ internal static class OperandText
             // are the four the model gives a MANAGED carrier — data-pointer, program-pointer, function-pointer
             // and object reference — and none of them has a character image: §8.5.2.1 Table 2 puts them in class
             // pointer and class object, and every statement that asks for one is refused at BIND (MOVE
-            // §14.9.25.3 SR1 → COBOLNET0809; DISPLAY §14.9.11.3 SR1 → COBOLNET1694; INSPECT §14.9.22.3 SR1 and
-            // UNSTRING §14.9.48.3 SR2 → COBOLNET1626/1651; STRING §14.9.43.3 SR1 → COBOLNET1626; a relation
-            // §8.8.4.2.3 SR5 → COBOLNET0869). This arm used to be `Read(p).ToString()`, which turned that
+            // §14.9.25.3 SR1 → COBOL0809; DISPLAY §14.9.11.3 SR1 → COBOL1694; INSPECT §14.9.22.3 SR1 and
+            // UNSTRING §14.9.48.3 SR2 → COBOL1626/1651; STRING §14.9.43.3 SR1 → COBOL1626; a relation
+            // §8.8.4.2.3 SR5 → COBOL0869). This arm used to be `Read(p).ToString()`, which turned that
             // missing screen into TEXT: `MOVE P TO A66` stored the first characters of the CLR carrier's type
             // name, and so did `STRING P …` for a year after the MOVE arm was fixed. A wrong answer is worse
             // than a crash, so the renderer now states the invariant instead of inventing a value.

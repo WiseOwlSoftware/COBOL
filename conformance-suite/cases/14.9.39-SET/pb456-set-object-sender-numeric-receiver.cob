@@ -10,7 +10,7 @@
       *> 8.8.1.1 admits only numeric operands in an arithmetic expression, and SR2 makes identifier-2 "a data
       *> item of class index". Format 5 is therefore the only format this statement can be, and its receiving
       *> operand rule refuses N4 - a PIC 9(4) item is not of class object.
-      *> ⛔ It used to reach the ARITHMETIC screen instead (COBOLNET0844, "'U' ... is not a numeric operand"),
+      *> ⛔ It used to reach the ARITHMETIC screen instead (COBOL0844, "'U' ... is not a numeric operand"),
       *> because the format was selected from the receiving list alone and Format 1's identifier-1 brace admits
       *> any identifier. The diagnostic was true of 8.8.1.1 and silent about the rule the program broke. Two
       *> OoSpineTests cases measured it, and they are what dropped this cluster from train 40.

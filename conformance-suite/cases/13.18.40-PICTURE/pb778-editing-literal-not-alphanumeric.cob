@@ -8,7 +8,7 @@
       *> literal-3 shall be alphanumeric literals."  The literal-position
       *> operand may be written as a constant-name (13.10.3 SR2), but the
       *> literal KN stands for (13.10.4 GR1) is the NUMERIC literal 7, and
-      *> a numeric literal is not an alphanumeric literal: COBOLNET1955.
+      *> a numeric literal is not an alphanumeric literal: COBOL1955.
       *> Before kb/Work PB778 a numeric literal-1 was inserted as its
       *> source text with no diagnostic, and the constant-name spelling
       *> did not parse at all.

@@ -13,7 +13,7 @@
       *> (conformance:cases/14.9.3-ALLOCATE/pb231_based_pointer_leaf), while
       *> 13.18.22.3 SR4 bars BOTH classes from the EXTERNAL clause
       *> (conformance:cases/13.18.22-EXTERNAL/pb231-external-pointer-item). Until the
-      *> pointer third, one residue diagnostic (COBOLNET1695) rejected
+      *> pointer third, one residue diagnostic (COBOL1695) rejected
       *> all three shapes for one wrong reason; each now draws the rule
       *> that is actually about it, and this fixture is what stops the
       *> object-reference one from becoming an under-rejection.

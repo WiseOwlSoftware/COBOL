@@ -13,7 +13,7 @@
       *> SET sending operand, a prototype CALL / function activation /
       *> method invocation argument, or a pointer-or-object-reference
       *> relation condition - no VALUE clause, at any class.
-      *> COBOLNET2576 at each NULL.
+      *> COBOL2576 at each NULL.
       *> MEASURED BEFORE: compiled clean at every edition; N ran as
       *> 0000 and A held four U+0000 characters (LOW-VALUE).
       *> The predefined NULL is a COBOL-2002 addition; 2002+ pinned.

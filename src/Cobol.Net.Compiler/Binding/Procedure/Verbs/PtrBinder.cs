@@ -507,7 +507,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// entered only once Format 10 has been chosen; the screen it keeps is the RULE, run uniformly.</para>
     /// <para>The screen resolves through <see cref="PtrResolvePointer"/> (the committing form), which is also
     /// what kb/Work PB221 asked for: a probe's Place is unscreened and must never enter the bound tree, and
-    /// committing the FIRST operand's probe made <c>SET P(XE) Q(XE) UP BY 4</c> diagnose COBOLNET0844 for Q and
+    /// committing the FIRST operand's probe made <c>SET P(XE) Q(XE) UP BY 4</c> diagnose COBOL0844 for Q and
     /// not for P — one statement, one rule, two verdicts.</para></summary>
     public BoundStatement BindSetUpDown(Core.SetIndexStatementContext ud)
     {
@@ -541,7 +541,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>An INDEX-NAME among Format 10's receiving operands is a CATEGORY error, not an undefined name
-    /// (kb/Work PB388): <c>ctx.Refs.Resolve</c> answers for a DATA ITEM only and would report COBOLNET1639 on a
+    /// (kb/Work PB388): <c>ctx.Refs.Resolve</c> answers for a DATA ITEM only and would report COBOL1639 on a
     /// name an INDEXED BY phrase legally declares. §13.18.38.3 r7 closes the list of contexts that may reference
     /// an index-name and SET Format 1/2 is one of them — so the statement is still refused, for the real
     /// reason.</summary>

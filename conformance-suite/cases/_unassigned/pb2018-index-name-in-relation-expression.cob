@@ -8,7 +8,7 @@
       *> 8.8.4.2.13 says "Relation tests may be made only between" an index-name and a numeric data item or
       *> numeric literal. The relation's OPERAND is then the index-name. In N < (K + 2) the operand is an arithmetic
       *> expression and K is an operand of THAT expression, where 8.8.1.1 admits only numeric data items, numeric
-      *> literals and ZERO. COMPUTE N = K + 2 is refused the same way (COBOLNET1637).
+      *> literals and ZERO. COMPUTE N = K + 2 is refused the same way (COBOL1637).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2018IXN.
        DATA DIVISION.

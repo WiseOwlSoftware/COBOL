@@ -20,7 +20,7 @@
       *> So METHOD-ID PB2921C may share the class-name PB2921C, and the
       *>   condition-name Q of method PB2921C-M may share the data-name
       *>   Q of method PB2921C. The compiler kept ONE census for a class
-      *>   and all its methods and refused both COBOLNET2692; and it
+      *>   and all its methods and refused both COBOL2692; and it
       *>   rendered the class-named method with an _M suffix, the C#
       *>   identifier of the method-name PB2921C-M (CS0111).
       *> Expected values: each INVOKE names one method, and each

@@ -6,7 +6,7 @@
 *>---
 *> ISO 1989:2023 13.10.3 SR6 - none of the literals in arithmetic-expression-1 of a constant entry
 *> shall be a figurative constant; 7.3.6.2 SR1b - every operand shall be a fixed-point numeric literal
-*> (kb/Work PB1229; COBOLNET1547). The figurative ZERO next to an arithmetic operator, as ZERO, ZEROS or
+*> (kb/Work PB1229; COBOL1547). The figurative ZERO next to an arithmetic operator, as ZERO, ZEROS or
 *> ZEROES, and inside parentheses, is no numeric literal.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGKC11.

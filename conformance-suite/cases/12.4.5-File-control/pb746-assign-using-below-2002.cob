@@ -11,7 +11,7 @@
       *> EDITION, DERIVED (constructs row assign-using-2002, VCR row 7.27): Annex E never names the phrase, so it
       *> predates 2023; GnuCOBOL's per-standard dialect files date it at 2002 (cobol85.conf
       *> assign-using-variable: unconformable, cobol2002.conf: ok) and cobc 3.2 -std=cobol85 refuses it.
-      *> Below 2002 each arm draws COBOLNET0900 naming the phrase: the TO ... USING tail (DYNA) and the bare
+      *> Below 2002 each arm draws COBOL0900 naming the phrase: the TO ... USING tail (DYNA) and the bare
       *> ASSIGN USING (DYNB). ASSIGN TO literal-1 alone (CHK) is COBOL-85 and draws nothing.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB746N.

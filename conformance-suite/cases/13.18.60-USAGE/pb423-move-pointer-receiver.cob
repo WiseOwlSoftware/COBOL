@@ -17,7 +17,7 @@
 *>
 *> The sender is an alphanumeric data item, a legal MOVE sender, so the receiver is the ONLY violation: `MOVE NULL
 *> TO P` (this case's original spelling) now stops at the sender, which ISO 8.4.3.10.3 SR1 refuses first
-*> (COBOLNET2576, kb/Work PB1427), and would no longer witness the receiving arm.
+*> (COBOL2576, kb/Work PB1427), and would no longer witness the receiving arm.
 *>
 *> The edition band starts at 2002 because USAGE POINTER is a COBOL-2002 element (13.18.60); below it the
 *> declaration itself is gated and the program would be rejected for a different reason.

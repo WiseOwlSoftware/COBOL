@@ -8,7 +8,7 @@
       *>   not be specified in a data description entry that: a) Has a
       *>   level-number of 01, 66, 77, or 88". A is a level-77 entry that
       *>   carries OCCURS (level 77 is a distinct level-number from 01 in
-      *>   the sentence), refused COBOLNET2404 at all four editions.
+      *>   the sentence), refused COBOL2404 at all four editions.
       *> cite.py --check 13.18.38.3 "Has a level-number of 01, 66, 77,
       *>   or 88" -> OK  13.18.38.3 1) a)
        IDENTIFICATION DIVISION.

@@ -11,7 +11,7 @@
       *> `TYPE CH CX OR PAGE` (13.18.57.2) is legal, and `LINE 5` is legal in a
       *> control heading without the phrase - together they break SR9. The rule
       *> had no site while the phrase had no grammar surface.
-      *> No edition changes the rule, so all four reject, with COBOLNET2199 (the
+      *> No edition changes the rule, so all four reject, with COBOL2199 (the
       *> LINE clause's syntax-rule band).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1248N1.

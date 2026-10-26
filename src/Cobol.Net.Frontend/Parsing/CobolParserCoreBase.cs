@@ -243,7 +243,7 @@ public abstract class CobolParserCoreBase : Parser
     // ⛔ `orderTableAhead()` WAS HERE and is DELETED (kb/Work PB704). It read the word pair (ORDER, TABLE) by text
     // only because ORDER had no lexer token — and that missing token was itself the defect: a KEYWORD slot that
     // borrows `cobolWord` is refused by the §8.9 funnel's position-blind IDENTIFIER check, which is what made
-    // `SORT … WITH DUPLICATES IN ORDER` a COBOLNET0901 at every edition from 2002. ORDER is now a token with a
+    // `SORT … WITH DUPLICATES IN ORDER` a COBOL0901 at every edition from 2002. ORDER is now a token with a
     // `cobol-words.json` nameSlot row (the FORMAT precedent), so `orderTableClause` matches its own two keywords
     // and the funnel's OrderTableClause slot-0 exemption is gone too. The clause stays UNGATED by edition and
     // still precedes `implementorSwitchEntry`; `Grammar/Core/CobolSpecialNames.g4` carries the reasons.
@@ -256,7 +256,7 @@ public abstract class CobolParserCoreBase : Parser
     /// <para>⛔ NOT EDITION-GATED, the ORDER TABLE precedent. `SET x ATTRIBUTE …` has no other reading at any
     /// edition: Format 1 requires TO, Format 2 requires UP/DOWN BY, and a bare `SET x y` is not a SET at all — so
     /// there is no COBOL-85 reading to protect, and recognizing the shape everywhere is what lets the named
-    /// COBOLNET1707 refusal replace a raw parse error below 2002 as well as above it.</para></summary>
+    /// COBOL1707 refusal replace a raw parse error below 2002 as well as above it.</para></summary>
     protected bool setAttributeAhead()
     {
         for (int i = 2; i <= 12; i++)
@@ -322,10 +322,10 @@ public abstract class CobolParserCoreBase : Parser
     /// words or system-names").
     /// <para>It is <see cref="reservedHere"/> plus ONE thing: the MIGRATION MODE, and the whole decision lives in
     /// <see cref="ReservedWordSet.AdmitsAsUserWord"/> — the assembly that owns §8.9 — so this gate and the funnel
-    /// that reports COBOLNET0901 can never disagree about which occurrences are names. <c>--permissive</c>
+    /// that reports COBOL0901 can never disagree about which occurrences are names. <c>--permissive</c>
     /// "accepts constructs the targeted edition REMOVED, warning instead of rejecting", and a word the edition
     /// ADDED to §8.9 is precisely such a removal: the funnel computes <c>ConstructAvailability.Removed</c> for it,
-    /// <see cref="EditionSeverityPolicy"/> downgrades the COBOLNET0901 to a warning, and this compile must keep
+    /// <see cref="EditionSeverityPolicy"/> downgrades the COBOL0901 to a warning, and this compile must keep
     /// PARSING the word as a user-defined word or the whole class becomes a parse error that no severity policy
     /// can downgrade.</para>
     /// <para>⛔ BUT THE EXEMPTION IS NOT A BLANKET <c>Edition.Permissive ||</c> (kb/Work PB792). A word §8.9
@@ -355,7 +355,7 @@ public abstract class CobolParserCoreBase : Parser
 
     /// <summary>The <c>reservedGatedWord</c> action: <paramref name="word"/> was DECLARED — every use of that rule is a
     /// definition slot (VersionConformancePass.VisitReservedGatedWord relies on the same fact). Recorded only when
-    /// §8.9 leaves it free here; where §8.9 reserves it the match stands and the funnel answers COBOLNET0901.
+    /// §8.9 leaves it free here; where §8.9 reserves it the match stands and the funnel answers COBOL0901.
     /// Actions never run during prediction.</summary>
     protected void gatedDeclaration(IToken? word)
     {
@@ -381,7 +381,7 @@ public abstract class CobolParserCoreBase : Parser
     /// wherever §8.9 reserves NATIONAL — and there §8.3.2.1 1) ("Reserved words shall not be used as user-defined
     /// words") leaves the entry-name reading illegal. So the name reading is refused exactly when the lookahead is a
     /// reservation-gated word §8.9 reserves at this edition AND the rest of the entry parses as its clauses; when it
-    /// does not (`05 DEFAULT PIC X.`), the name reading stands and the funnel's COBOLNET0901 names the word.
+    /// does not (`05 DEFAULT PIC X.`), the name reading stands and the funnel's COBOL0901 names the word.
     /// <para>The test is <see cref="ReservedGatedWord"/>, never <see cref="userWordHere"/>: the migration mode admits a
     /// word an edition ADDED as a user word, but a source conforming to the TARGETED edition has one reading, and
     /// <c>--permissive</c> never changes the meaning of conforming source (`05 BIT PIC 1(8).` under --permissive at
@@ -637,7 +637,7 @@ public abstract class CobolParserCoreBase : Parser
     /// <para>⛔ NOT FOR A VERB WHOSE RESERVATION IS NON-MONOTONIC (kb/Work PB374). RECEIVE and SEND are reserved at
     /// COBOL-85 for the '85 communication module, user words at 2002/2014 and reserved again at 2023 for asynchronous
     /// messaging, so this predicate recognized the 2023 formats at --std 85. Their arms are the union grammar
-    /// (<see cref="wordAhead"/>) and the edition pass gates their introduction (COBOLNET0900).</para>
+    /// (<see cref="wordAhead"/>) and the edition pass gates their introduction (COBOL0900).</para>
     /// <para>⛔ The arms this gates are KEYWORD-TOKEN-LED, never IDENTIFIER-led: an IDENTIFIER-led <c>statement</c>
     /// alternative poisons ANTLR's ALL(*) boolean-factor prediction DFA and regresses <c>COMPUTE R = B-NOT A.</c> at
     /// every edition (DEVLOG 903). Reads the SAME <see cref="ReservedWords"/> table the §8.9 funnel uses, so
@@ -795,7 +795,7 @@ public abstract class CobolParserCoreBase : Parser
     protected bool boolExprAhead()
     {
         // Fires at ALL editions (superset parse — residue migration #2): a below-2002 boolean condition must PARSE so
-        // the bind-time gate can name COBOLNET0900, rather than fail as a generic parse error. A B-op-free comparison
+        // the bind-time gate can name COBOL0900, rather than fail as a generic parse error. A B-op-free comparison
         // still returns false and falls to comparisonExpression unchanged (the shared rule is untouched — DEVLOG 621).
         int prev = 0;   // token immediately BEFORE position i (0 = condition start — a leading binary B-op has no left operand)
         for (int i = 1; i <= 96; i++)

@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB3338 - ISO 12.4.6.3.3 SR7: "APPLY COMMIT clauses shall not include data items containing object-reference data items."
 *> The shape: identifier-1 is a level-01 universal object reference. The clause is accepted for a RELATIVE file, so the only refusal this program can
-*> draw is SR7's own, by name (COBOLNET4709). Fails if the clause is accepted or refused for another reason.
+*> draw is SR7's own, by name (COBOL4709). Fails if the clause is accepted or refused for another reason.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3338S7.
        ENVIRONMENT DIVISION.

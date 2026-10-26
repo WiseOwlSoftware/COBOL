@@ -65,7 +65,7 @@ public sealed class ClassSpellingDriftTests
     /// <summary>⛔ A DIAGNOSTIC THAT NAMES THE CLASS OF A DATA ITEM OR AN OPERAND ASKS <c>ClassNameOf</c> (kb/Work PB3192
     /// review R1-1). <c>ClassOfItem</c> answers "alphanumeric" for a strongly-typed group — §15.3 item 2's reading of a
     /// function ARGUMENT — while §8.5.2.1 makes its class the type-name everywhere else; the procedure-header BY VALUE
-    /// screen (COBOLNET1553) spelled <c>Name(ClassOfItem(item))</c> and told the user a strongly-typed formal was of
+    /// screen (COBOL1553) spelled <c>Name(ClassOfItem(item))</c> and told the user a strongly-typed formal was of
     /// class alphanumeric. Every BY VALUE class screen (header formal, CALL, INVOKE, user function) and the
     /// operand-class exclusion screen names the class through the family; no source spells Name over ClassOfItem.</summary>
     [Fact]
@@ -89,7 +89,7 @@ public sealed class ClassSpellingDriftTests
             (["Binding", "ProcedureHeaderScreen.cs"], "public void ByValueClass"),
             (["Binding", "Procedure", "Verbs", "CallBinder.cs"], "private void ValueClassScreen"),
             (["Binding", "Procedure", "Verbs", "OoBinder.cs"], "InvokeByValueOperandClass"),
-            (["Binding", "Procedure", "Verbs", "UdfBinder.cs"], "COBOLNET1554"),
+            (["Binding", "Procedure", "Verbs", "UdfBinder.cs"], "COBOL1554"),
             (["Binding", "Procedure", "ExpressionBinder.cs"], "OperandClassExcluded"),
         ];
         foreach (var (path, member) in screens)

@@ -14,10 +14,10 @@ public enum RefOutcome
     /// <summary>The SOURCE is wrong and the resolver has REPORTED the rule it breaks — an undefined name
     /// (§8.4.2.1), a subscript on a non-table item (§8.4.2.3.3 SR2), something in a subscript position that is not
     /// a subscript (§8.4.2.3.2), a reference to a declaration that was itself refused, …. A caller binds a refusal
-    /// node; the statement funnel's refusal ledger fails the compile (COBOLNET2362) if the claim was false.</summary>
+    /// node; the statement funnel's refusal ledger fails the compile (COBOL2362) if the claim was false.</summary>
     Reported,
     /// <summary>A LEGAL reference in a shape WiseOwl COBOL has not built. The resolver has already put it on the
-    /// unbuilt-operand ledger, so the statement funnel announces it (COBOLNET1756) even if the caller dropped it;
+    /// unbuilt-operand ledger, so the statement funnel announces it (COBOL1756) even if the caller dropped it;
     /// <see cref="RefResolution.Shape"/> names which shape, and <see cref="DeferredShapes"/> names who owns
     /// building it.</summary>
     Deferred,
@@ -79,7 +79,7 @@ public static class DeferredShapes
 /// <c>Place?</c>, and a null meant one of three incompatible things — the name identifies nothing (reported), the
 /// source is otherwise wrong (sometimes reported), or the shape is legal and not built (never reported) — so every
 /// caller guessed, and they guessed differently: one site reported its own "unresolvable" error on top of the
-/// resolver's COBOLNET1639, another bound a run-time <c>NotImplemented</c> for an ILLEGAL subscript
+/// resolver's COBOL1639, another bound a run-time <c>NotImplemented</c> for an ILLEGAL subscript
 /// (<c>DISPLAY E("A")</c> compiled with a warning and aborted the run unit), and the statement funnel told the
 /// cases apart only by whether the statement happened to draw an error. The answer is now one of
 /// <see cref="RefOutcome"/>'s three, a caller's refusal node is chosen FROM it (<see cref="Refusal"/>,
@@ -124,7 +124,7 @@ public sealed class RefResolution
     /// <summary>The place, or null with a diagnostic GUARANTEED — for a position whose caller has no node that can
     /// carry a deferral (a helper answering "place or already reported", a pointer or object-reference operand
     /// screened for its category next). A <see cref="RefOutcome.Deferred"/> shape is reported there as
-    /// recognized-not-implemented (COBOLNET0899, an error: the staged-loud posture the receiving chokepoint
+    /// recognized-not-implemented (COBOL0899, an error: the staged-loud posture the receiving chokepoint
     /// takes), so the caller's null always means "reported" and its own category diagnostic is never issued for
     /// a reference that did not resolve.</summary>
     public Place? PlaceOrReported(EditionContext edition)

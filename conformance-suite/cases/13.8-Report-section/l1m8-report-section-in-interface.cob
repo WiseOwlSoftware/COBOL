@@ -17,7 +17,7 @@
       *> prototype", cite.py: OK §10.6.1, the NOTE). That is the
       *> shape here: prototype SPEAK carries an (empty) REPORT SECTION
       *> and is otherwise a bare header.
-      *> Expected: COBOLNET2272, the prototype-body screen, arm e):
+      *> Expected: COBOL2272, the prototype-body screen, arm e):
       *>   §10.6.2 4) e) "The data division may contain only a linkage
       *>   section." (cite.py: OK §10.6.2 4) e)) - the rule through
       *>   which §13.8.3's interface prohibition is enforced for the one

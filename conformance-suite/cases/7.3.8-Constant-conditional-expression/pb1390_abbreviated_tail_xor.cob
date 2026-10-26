@@ -20,7 +20,7 @@
       *> P1-P3: EVALUATE partial expressions (§14.9.13.3 SR8 - the object preceded by the subject is an
       *> ordinary condition) with XOR and an OR-led abbreviated tail, counted over A in 1..3.
       *> K1-K5: the >>IF constant-conditional-expression is "a complex condition as specified in 8.8.4.9"
-      *> (§7.3.8.2 SR1 d)), so XOR / EXCLUSIVE-OR are its connectives too (were COBOLNET1619):
+      *> (§7.3.8.2 SR1 d)), so XOR / EXCLUSIVE-OR are its connectives too (were COBOL1619):
       *>   K1 1 = 2 XOR 1 = 1 = TRUE; K2 1 = 1 EXCLUSIVE-OR 1 = 1 = FALSE;
       *>   K3 1 = 1 OR 1 = 2 XOR 1 = 1 = T OR (F XOR T) = TRUE (OR-first grouping would give FALSE);
       *>   K4 1 = 1 XOR 1 = 1 AND 1 = 2 = T XOR (T AND F) = TRUE (XOR-first grouping would give FALSE);

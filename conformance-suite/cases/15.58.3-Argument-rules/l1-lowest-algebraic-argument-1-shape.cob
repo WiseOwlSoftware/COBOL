@@ -6,7 +6,7 @@
 *>---
       *> ISO §15.58.3 rule 1 — "Argument-1 shall be a data item of category numeric or numeric-edited and
       *> shall not be an integer function or numeric function." FOUR violations, one for each clause of the
-      *> rule; every one draws COBOLNET1516.
+      *> rule; every one draws COBOL1516.
       *>   (a) AN PIC X(5) — category alphanumeric (§8.5.2.1 Table 2), neither category the rule admits.
       *>   (b) FUNCTION LENGTH — "The type of this function is integer" (§15.50.1): an INTEGER FUNCTION.
       *>   (c) FUNCTION ABS over a NON-integer numeric argument — §15.7.1's type table gives function type

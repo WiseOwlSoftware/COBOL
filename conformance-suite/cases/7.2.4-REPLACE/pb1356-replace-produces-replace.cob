@@ -8,7 +8,7 @@
 *> REPLACE statement shall not contain a COPY statement, a REPLACE
 *> statement, a SOURCE FORMAT directive, a comment, or a blank line"
 *> (cite.py --check: OK §7.2.4.4 9)). XX1 is replaced by the word
-*> REPLACE: COBOLNET2574 (kb/Work PB1356). Fixed form.
+*> REPLACE: COBOL2574 (kb/Work PB1356). Fixed form.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1356RR.
        DATA DIVISION.

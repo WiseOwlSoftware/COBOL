@@ -7,7 +7,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1294 - ISO 13.18.54: a SUM clause's data-name-1 names an entry of the REPORT SECTION (a rolled
-      *> total). Before this it was refused (COBOLNET0899 report-sum-rolled-total) and 13.18.53.4 GR3's exception
+      *> total). Before this it was refused (COBOL0899 report-sum-rolled-total) and 13.18.53.4 GR3's exception
       *> for an unprintable SOURCE entry was unreachable.
       *> 13.18.54.3 SR4: "Data-name-1 shall be the name of a numeric data item in the report section."
       *>   cite.py: OK  13.18.54.3 4)  (Syntax rules)

@@ -16,7 +16,7 @@
       *> and pointer members, variable-length items and occurs-depending tables).
       *> R2 has the same layout, so a byte-for-byte round trip through SAVE shows
       *> the alias carries the binary and packed bytes in both directions.
-      *> MEASURED BEFORE THE FIX: the span was DEFERRED - a COBOLNET1756 warning
+      *> MEASURED BEFORE THE FIX: the span was DEFERRED - a COBOL1756 warning
       *> and NotImplementedCobolFeatureException at run time - for every member
       *> that was not usage display or national.
        IDENTIFICATION DIVISION.

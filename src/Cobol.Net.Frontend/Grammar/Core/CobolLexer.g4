@@ -473,7 +473,7 @@ FLOAT_DECIMAL     : 'FLOAT-DECIMAL' ;
 // BEFORE IDENTIFIER so maximal-munch + first-rule-wins picks the whole keyword (the source text 'FLOAT-BINARY-32'
 // lexes as ONE IDENTIFIER otherwise — the numeric suffix is swallowed by NAME_BODY). Introduction-gated to 2014
 // post-bind (VersionConformancePass, via the Usage member); binary32/64 are LIVE (native float/double), the
-// binary128/decimal formats are processor-dependent non-support (Annex A.3 items 17/19, COBOLNET1564).
+// binary128/decimal formats are processor-dependent non-support (Annex A.3 items 17/19, COBOL1564).
 FLOAT_BINARY_32   : 'FLOAT-BINARY-32' ;
 FLOAT_BINARY_64   : 'FLOAT-BINARY-64' ;
 FLOAT_BINARY_128  : 'FLOAT-BINARY-128' ;
@@ -486,7 +486,7 @@ FLOAT_DECIMAL_34  : 'FLOAT-DECIMAL-34' ;
 // the pair reads the way it lexes. Reserved only from 2014 (ReservedWords.Table), so every one is ALSO a
 // cobolWord alternative under the derived reservation gate and mirrored in _dataNameTokens
 // (tests/version-matrix/cobol-words.json) — `01 FLOAT-INFINITY PIC X.` stays legal at --std 85/2002 and draws
-// COBOLNET0901 by name at 2014+.
+// COBOL0901 by name at 2014+.
 // All seven are also §8.8.4.4.2 class-condition alternatives (kb/Work PB225, the `className` rule).
 // FLOAT-NOT-A-NUMBER-QUIET's ONLY surface is that class condition — Format 15 does not offer it — so its token
 // landed with the class condition that reads it; maximal munch orders it against FLOAT-NOT-A-NUMBER.
@@ -603,8 +603,8 @@ XML         : 'XML' ;
 // ACTIVE-CLASS (ISO §13.18.60.2 USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS) — a required word of
 // the format, §8.9-reserved 2002+ and a USER WORD at 85, so it rides the cobolWord reservation funnel like
 // FACTORY (tests/version-matrix/cobol-words.json). Before kb/Work PB389 it had NO token: the phrase lexed as
-// an IDENTIFIER, parsed as `OBJECT REFERENCE className`, and drew COBOLNET0813 'unknown class ACTIVE-CLASS'
-// PLUS COBOLNET0901 'reserved word' — a required word of the general format reported as a botched user name.
+// an IDENTIFIER, parsed as `OBJECT REFERENCE className`, and drew COBOL0813 'unknown class ACTIVE-CLASS'
+// PLUS COBOL0901 'reserved word' — a required word of the general format reported as a botched user name.
 ACTIVE_CLASS : 'ACTIVE-CLASS' ;
 ACCESS      : 'ACCESS' ;
 ADDRESS     : 'ADDRESS' ;
@@ -678,7 +678,7 @@ BY          : 'BY' ;
 // The RECORD clause's BYTES/CHARACTERS brace group (ISO §13.18.43.2, all three formats): §13.18.43.3 SR2 makes
 // the two words SYNONYMOUS ("The words BYTES and CHARACTERS are synonymous and may be used interchangeably"),
 // and until kb/Work PB721 there was no BYTES token at all, so `RECORD CONTAINS 20 BYTES` — legal COBOL in every
-// supported edition — was refused as an unrecognized FD clause (COBOLNET1970). §8.10 context-sensitive ("RECORD
+// supported edition — was refused as an unrecognized FD clause (COBOL1970). §8.10 context-sensitive ("RECORD
 // clause"), never §8.9-reserved, so it stays a legal user word at every edition through cobolWord.
 BYTES       : 'BYTES' ;
 CENTER      : 'CENTER' ;   // COLUMN clause alignment (ISO §13.18.14.2 Format 1) — §8.10 context-sensitive (user word at every edition; kb/Work PB1220)
@@ -732,7 +732,7 @@ DEPENDING   : 'DEPENDING' ;
 DESCENDING  : 'DESCENDING' ;
 // DESTINATION clause (ISO §13.18.18) — the declined A.4.14 VALIDATE facility's data-division surface. §8.9
 // reserves the word at EVERY edition, but it is still admitted to cobolWord: the token must reach a name slot
-// so `01 DESTINATION PIC X.` keeps drawing the NAMED COBOLNET0901 reserved-word diagnostic instead of the
+// so `01 DESTINATION PIC X.` keeps drawing the NAMED COBOL0901 reserved-word diagnostic instead of the
 // generic parse error a keyword-only token would produce (the PB100 lesson — a declined facility must not
 // degrade a neighbouring diagnostic).
 DESTINATION : 'DESTINATION' ;
@@ -774,7 +774,7 @@ FILE        : 'FILE' ;
 FILLER      : 'FILLER' ;
 FINAL       : 'FINAL' ;
 FINALLY     : 'FINALLY' ;                 // exception-checking PERFORM FINALLY phrase (ISO §14.9.28.2 Format 3; new-in-2023 reserved word, Annex E.2 item 25)
-FORMAT      : 'FORMAT' ;                  // FD FORMAT clause (ISO §13.18.24). Reserved from 2002 only (ReservedWords.Table row: r85=false) — so it is cobolWord/nameSlot-admitted (tests/version-matrix/cobol-words.json) and a COBOL-85 program may still name a data item FORMAT; §8.9's COBOLNET0901 funnel names it at 2002+.
+FORMAT      : 'FORMAT' ;                  // FD FORMAT clause (ISO §13.18.24). Reserved from 2002 only (ReservedWords.Table row: r85=false) — so it is cobolWord/nameSlot-admitted (tests/version-matrix/cobol-words.json) and a COBOL-85 program may still name a data item FORMAT; §8.9's COBOL0901 funnel names it at 2002+.
 FULL_       : 'FULL' ;
 POSITIVE    : 'POSITIVE' ;
 NEGATIVE    : 'NEGATIVE' ;
@@ -975,7 +975,7 @@ UNDERLINE_  : 'UNDERLINE' ;
 UNIT        : 'UNIT' ;
 // UNIVERSAL (ISO §8.4.3.5.2, the object-view `identifier-1 AS UNIVERSAL`) — a required word of the format, §8.9-reserved
 // 2002+ and a USER WORD at 85, so it rides the cobolWord reservation funnel like ACTIVE-CLASS (cobol-words.json). Before
-// kb/Work PB1425 it had NO token: the object-view had no grammar at all and `D AS UNIVERSAL` drew COBOLNET0901 on AS.
+// kb/Work PB1425 it had NO token: the object-view had no grammar at all and `D AS UNIVERSAL` drew COBOL0901 on AS.
 UNIVERSAL   : 'UNIVERSAL' ;
 UNTIL       : 'UNTIL' ;
 UP          : 'UP' ;
@@ -1028,14 +1028,14 @@ QUOTES      : 'QUOTES' ;
 // old parse error). Additive: the no-space <decimal>E<digits> form was previously always a parse error. (D16.)
 // The body is a FRAGMENT (the Group-B one-body discipline) because THREE tokens consume it: this one, the
 // FN_SIGNED twin (kb/Work R17 — the float shape was the one signed-capable literal with no twin, so
-// `FUNCTION EXP(-1.5E3)` lexed as TWO arguments and drew a false COBOLNET1504).
+// `FUNCTION EXP(-1.5E3)` lexed as TWO arguments and drew a false COBOL1504).
 // ⛔ THE SIGNIFICAND IS A FIXED-POINT LITERAL, SO IT IS WRITTEN AS ONE (kb/Work PB2729). §8.3.3.3.3 1): "A floating-point
 // numeric literal is formed from two fixed-point numeric literals separated by the letter 'E' without intervening
 // spaces", and §8.3.3.3.2 3) puts a fixed-point literal's decimal point "anywhere within the literal except as the
 // rightmost character". DEC_BODY is that fixed-point shape; this body used to spell a WIDER copy beside it
 // (`[0-9]+ '.' [0-9]*`), so `VALUE 3.E2` lexed as one FLOATLIT that no form check refused and the backend died on
 // (CS1061), and `COMPUTE X = 1.E2 + 5` compiled. Over DEC_BODY, `3.E2` is INTEGERLIT `3` and a period with no space
-// after it, which SeparatorRule names (§8.3.5 3), COBOLNET2632). The exponent is the other fixed-point literal, an
+// after it, which SeparatorRule names (§8.3.5 3), COBOL2632). The exponent is the other fixed-point literal, an
 // integer ("no decimal point", §8.3.3.3.3 3)). SignedLiteralShapeDriftTests holds every FLOAT*_BODY significand to a DEC*_BODY.
 fragment FLOAT_BODY : DEC_BODY 'E' [-+]? INT_BODY ;
 FLOATLIT    : FLOAT_BODY ;
@@ -1044,7 +1044,7 @@ FLOATLIT    : FLOAT_BODY ;
 // character written in numeric literals to represent the decimal separator shall be the comma" (ISO §12.3.7.4 GR14 a) —
 // the floating-point form's significand included (§8.3.3.3.3: "two fixed-point numeric literals separated by the
 // letter 'E'"), so `1,5E+3` is ONE literal. The lexer cannot know the SPECIAL-NAMES clause, so the shape is one token
-// in EVERY mode; the binder's ONE normalizer canonicalizes it to dot-decimal and reports COBOLNET0895 when
+// in EVERY mode; the binder's ONE normalizer canonicalizes it to dot-decimal and reports COBOL0895 when
 // DECIMAL-POINT IS COMMA is not in effect. No dot-mode program legally spells `<digits>,<digits>E<exponent>` (the
 // comma-decimal fixed form assembles in the parser as INTEGERLIT COMMA INTEGERLIT because ',' alone is a token; the
 // float shape needs the E-tail, so it is lexed whole — before this a comma-mode `VALUE 1,5E+3` silently seeded 1 and
@@ -1076,7 +1076,7 @@ fragment STR_BODY  : '"' (~["\n] | '""')* '"' | '\'' (~['\n] | '\'\'')* '\'' ;  
 // data item named X, `DISPLAY X"GG"` compiled and printed the item followed by GG, and `MAX(NX"00G1")` answered
 // the item's value. The repertoire rules — §8.3.3.2.3 SR5 and §8.3.3.5.3 SR4 (hexadecimal digits), §8.3.3.4.3
 // SR3 (a hexadecimal digit) and SR2 (a boolean character, '0' or '1') — are now asked of the whole token by
-// LiteralScreen (CobolLiteral.RepertoireViolation → COBOLNET2630), beside the §8.3.3 grouping and length
+// LiteralScreen (CobolLiteral.RepertoireViolation → COBOL2630), beside the §8.3.3 grouping and length
 // rules it already asked: the token must MATCH so something is left to diagnose (the R03 doctrine this block
 // began with). Every prefixed body is therefore STR_BODY, doubled delimiters included, so no content can split one.
 // ⚠ ZERO LENGTH IS LEGAL IN EVERY FORMAT, and STR_BODY admits it: §8.3.3.5.3 NOTE 2 "Hexadecimal-national literals
@@ -1109,7 +1109,7 @@ fragment DEC_COMMA_BODY : [0-9]+ ',' [0-9]+ | ',' [0-9]+ ;                      
 // or last character in such words." Without it `01 MY_NAME PIC X(6).` — legal at three of the four editions this
 // compiler targets — did not parse at any of them, dying as `no viable alternative at input 'MY_'`.
 // ⚠ SUPERSET-PARSE / BIND-NARROW, the repo's standing doctrine: the underscore is admitted at EVERY edition here
-// and the COBOL-85 rejection is a BIND-time gate (Constructs.UserWordUnderscore2002 → COBOLNET0900, raised beside
+// and the COBOL-85 rejection is a BIND-time gate (Constructs.UserWordUnderscore2002 → COBOL0900, raised beside
 // the §8.3.2.1 word-LENGTH check in VersionConformancePass.VisitCobolWord — same clause, same visitor). A lexer
 // that refused it below 2002 would produce `no viable alternative`, which is an unexplained rejection rather
 // than a named edition diagnostic.
@@ -1126,7 +1126,7 @@ fragment DEC_COMMA_BODY : [0-9]+ ',' [0-9]+ | ',' [0-9]+ ;                      
 // noncharacters the text stages use as markers (U+FDD0 is the debugging-line carrier) — a SUPERSET of Annex B on
 // purpose: which of those characters a word may hold, and where, is the edition's Annex B.3 (three position classes,
 // changed by Annex E between 2014 and 2023), asked of the finished word by CobolWordRule at bind time, where a
-// character outside it is NAMED (COBOLNET2773) instead of ending the word with an unexplained "unexpected". The
+// character outside it is NAMED (COBOL2773) instead of ending the word with an unexplained "unexpected". The
 // AntlrInputStream holds UTF-16 code units, so a supplementary-plane letter arrives as two surrogates — both in this
 // class, so the pair stays inside its word. A word may END on an extended character (a combining mark is B.3 item 2,
 // legal last); only hyphen and underscore are barred from the ends here.
@@ -1206,7 +1206,7 @@ GTEQUAL     : '>=' ;
 NOTEQUAL    : '<>' ;
 
 // A period is a separator only when a space follows it (§8.3.5 rule 3). The token is every period the literal and
-// PICTURE rules did not take; SeparatorRule reports one with no space after it (COBOLNET2632, kb/Work PB1394).
+// PICTURE rules did not take; SeparatorRule reports one with no space after it (COBOL2632, kb/Work PB1394).
 DOT         : '.' ;
 // P7 Step 12: inside a list region (an argument list, or a reference's subscripts — kb/Work PB2113) the ','/';'-plus-
 // space separator (§8.3.5 rules 1/2) is a REAL token — the boundary must survive to the parser: a '(' right after it
@@ -1220,7 +1220,7 @@ DOT         : '.' ;
 // `, ` and `; ` of every compile off the cached DFA, and the unpredicated twin it needed is gone with it.
 FNARG_SEPARATOR : [,;] [ \n]+ { if (!InListRegion()) Skip(); } ;
 // A comma NOT followed by whitespace is preserved for DECIMAL-POINT IS COMMA, where it is a numeric literal's
-// decimal point; anywhere else it is no separator (§8.3.5 rule 2) and SeparatorRule reports it (COBOLNET2631).
+// decimal point; anywhere else it is no separator (§8.3.5 rule 2) and SeparatorRule reports it (COBOL2631).
 COMMA       : ',' ;
 LPAREN      : '(' { OnDefaultLParen(); } ;
 RPAREN      : ')' { OnDefaultRParen(); } ;
@@ -1241,16 +1241,16 @@ SLASH       : '/' ;
 // ⚠ §8.7.4's "shall be immediately preceded and followed by a separator space" is not a TOKEN-level rule: the
 // parser sees the skipped-WS stream, and '::' has no other lexical role, so `O::"M"` and `O :: "M"` are the same
 // token run here. The rule is decided post-lex, from the characters beside the token, by SeparatorRule
-// (COBOLNET2993, kb/Work PB1430) — the one site for every separator-context rule, and AMPERSAND's too.
+// (COBOL2993, kb/Work PB1430) — the one site for every separator-context rule, and AMPERSAND's too.
 COLONCOLON  : '::' ;
 COLON       : ':' ;
 // The concatenation operator (ISO §8.7.3): the COBOL character '&', joining literals into one literal
 // (§8.8.3). '&' has no other lexical role, so the token is unambiguous with or without spaces; the §8.7.3
 // requirement that it be "immediately preceded and followed by a separator space" is decided post-lex by
-// SeparatorRule (COBOLNET2993, kb/Work PB1430), exactly as '::''s §8.7.4 twin is.
+// SeparatorRule (COBOL2993, kb/Work PB1430), exactly as '::''s §8.7.4 twin is.
 AMPERSAND   : '&' ;
 // A ';' with no space after it (the §8.3.5 separator `; ` is FNARG_SEPARATOR above). It is no separator (§8.3.5 rule
-// 2), and SeparatorRule reports it (COBOLNET2631) — so it rides the HIDDEN channel, where that post-lex rule sees it and
+// 2), and SeparatorRule reports it (COBOL2631) — so it rides the HIDDEN channel, where that post-lex rule sees it and
 // the parser does not, rather than being skipped out of existence (kb/Work PB1394).
 SEMICOLON   : ';' -> channel(HIDDEN) ;
 

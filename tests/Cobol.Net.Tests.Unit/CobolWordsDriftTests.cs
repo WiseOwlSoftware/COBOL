@@ -128,13 +128,13 @@ public sealed class CobolWordsDriftTests
         // Confidence alignment (the generator's RW-3 throw, asserted from the other side): the token-level gate
         // keys on userWordHere() = !IsReservedAt (outside the migration mode), which is confidence-blind, while the §8.9 funnel only REPORTS
         // high-confidence rows. A gated lower-confidence word would be rejected with a bare parse error and no
-        // COBOLNET0901 to explain it.
+        // COBOL0901 to explain it.
         var confidence = LoadConfidence();
         var lowConfidence = expected.Where(t => !(confidence.TryGetValue(ToWord(t), out var c) && c == "high"))
                                     .OrderBy(w => w, StringComparer.Ordinal).Take(5).ToList();
         Assert.True(lowConfidence.Count == 0,
             $"gated word(s) not high-confidence: [{string.Join(",", lowConfidence)}] — the gate would reject the "
-            + "declaration with no COBOLNET0901 (the funnel reports high-confidence rows only)");
+            + "declaration with no COBOL0901 (the funnel reports high-confidence rows only)");
     }
 
     /// <summary>The lexer's runtime <c>_dataNameTokens</c> set equals the JSON <c>subscriptTrigger=true</c> tokens.

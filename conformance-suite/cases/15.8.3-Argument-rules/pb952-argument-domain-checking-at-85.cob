@@ -8,7 +8,7 @@
       *> EC-ARGUMENT-FUNCTION exception condition is set to exist and checking for EC-ARGUMENT-FUNCTION is not
       *> enabled, the implementor defines the result"), and >>TURN is the 2002 exception-checking directive, so
       *> below 2002 the bound-adjacent domain witness cannot be written: the directive is the edition gate's
-      *> COBOLNET0900. The positive twin is 2002/pb952_argument_domain_bound_adjacent (kb/Work PB952), which
+      *> COBOL0900. The positive twin is 2002/pb952_argument_domain_bound_adjacent (kb/Work PB952), which
       *> screens ACOS(1 + 10**-30) - the closest fixed-point argument past +1 - to EC-ARGUMENT-FUNCTION.
        >>TURN EC-ARGUMENT-FUNCTION CHECKING ON
        IDENTIFICATION DIVISION.

@@ -8,7 +8,7 @@
       *>   at the same level as it, so it is a name of the entry's source element - here SHOWA, a method
       *>   definition, which is a source element of its own (10.5). SHOWB is another source element, so
       *>   its reference to Q2 identifies nothing (8.4.2.1: "a statement shall contain a reference that
-      *>   uniquely identifies that resource"): COBOLNET1639. The register used to leak to the sibling
+      *>   uniquely identifies that resource"): COBOL1639. The register used to leak to the sibling
       *>   and the backend failed with CS0103.
       *>   cite.py --check 13.18.38.3 "Data-name-3 shall not be defined elsewhere in the source element"
       *>     -> OK  13.18.38.3 30)

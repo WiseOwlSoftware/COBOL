@@ -35,14 +35,14 @@ public sealed class OoPortedTests
     //   Invoke_MultiMethod_FirstMethodDoesNotFallIntoSecond -> OoSpineTests.Trap4_MethodFallThrough_
     //       DoesNotEnterSiblingMethod (its doc comment names this legacy guard)
     //   Invoke_SuperInRootClass_FailsLoudly        -> OoSpineTests.InheritanceDiagnostics_0829_0827_2791
-    //       (SUPER in a root class is the clean COBOLNET0827; the legacy code was COBOL0115)
+    //       (SUPER in a root class is the clean COBOL0827; the legacy code was COBOL0115)
     //   Inherits_SubclassOwnData_FailsLoudly       -> SUPERSEDED: subclass-own OBJECT data is fully
     //       SUPPORTED (the legacy COBOL0113 staging reject is retired); the positive guard is
     //       OoSpineTests.SubclassOwnObjectData_IndependentPerInstance
     //   Inherits_CaseMismatchedOverride_StillOverrides -> OoSpineTests.Trap2_CaseMismatchedOverride_
     //       StillDispatches (COBOL names are case-insensitive — one C# slot, §8.3.2.2)
     //   Inherits_UnknownBase_FailsLoudly           -> OoSpineTests.InheritsUnknownBase_0821_KnownBaseCompiles
-    //       (COBOLNET0821; the legacy code was COBOL0114)
+    //       (COBOL0821; the legacy code was COBOL0114)
     // ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
     private static (bool Ok, string Stdout, string Detail) CompileAndRun(string source, int edition = 2002)
@@ -121,7 +121,7 @@ public sealed class OoPortedTests
     /// and BY CONTENT forms are now SUPPORTED (§14.8.2.3.3 COMPUTE-rule conversion — see
     /// OoSpineTests.ByContentNumeric_ComputeRuleConversion), so the no-silent-drop contract is proven by the
     /// CORRECT delivered value instead; the BY VALUE form (no BY VALUE formals yet — §14.9.23.3 SR5b) stays a
-    /// loud compile-time COBOLNET0828, never a drop.</summary>
+    /// loud compile-time COBOL0828, never a drop.</summary>
     [Fact]
     public void Ported_Invoke_UnsupportedArgForm_FailsLoudly()
     {
@@ -143,7 +143,7 @@ public sealed class OoPortedTests
             ArgFormDriver("OODRVP9C", "ACCP9C", @"INVOKE A ""ADDTO"" USING BY VALUE AMT RETURNING R."), 2002);
         Assert.False(okVal, "a BY VALUE argument against a BY REFERENCE formal must be rejected loudly, "
             + "never silently dropped");
-        EditionHarness.AssertHasDiagnostic(errsVal, "COBOLNET0828");
+        EditionHarness.AssertHasDiagnostic(errsVal, "COBOL0828");
     }
 
     // ── Ported #2: subclass method LINKAGE with OCCURS … INDEXED BY ─────────────────────────────────────────

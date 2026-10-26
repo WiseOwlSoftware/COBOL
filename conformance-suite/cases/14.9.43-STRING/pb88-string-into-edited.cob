@@ -6,7 +6,7 @@
 *>---
       *> ISO 14.9.43.3 SR5: "Identifier-3 shall not reference an edited data item and shall not be described with
       *> the JUSTIFIED clause." Both halves: a numeric-edited receiver, and a JUSTIFIED one (the second was not
-      *> checked at all). kb/Work PB88: COBOLNET1651 at bind (a run-time stage before).
+      *> checked at all). kb/Work PB88: COBOL1651 at bind (a run-time stage before).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB88NSTRED.
        DATA DIVISION.

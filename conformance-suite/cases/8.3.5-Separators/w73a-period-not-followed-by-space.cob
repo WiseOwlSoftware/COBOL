@@ -7,7 +7,7 @@
       *> kb/Work PB1394 - ISO 8.3.5 rule 3: "The COBOL character period,
       *>  when followed by a space, is a separator." N.DISPLAY ends no
       *>  sentence; it used to compile and print 005 then 007.
-      *>  COBOLNET2632 at every edition.
+      *>  COBOL2632 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGW73APD.
        DATA DIVISION.

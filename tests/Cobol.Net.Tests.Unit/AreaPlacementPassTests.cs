@@ -55,7 +55,7 @@ public sealed class AreaPlacementPassTests
             L("MAIN-PARA."),
             L("    DISPLAY \"A\"."),
             L("    NEXT-PARA."),
-            L("    STOP RUN.")), "(6,12): error COBOLNET3734");
+            L("    STOP RUN.")), "(6,12): error COBOL3734");
 
     [Fact] // an area-A item that does not BEGIN its line is not in area A either
     public void ParagraphHeaderAfterASentence_IsRefusedAt85()
@@ -64,7 +64,7 @@ public sealed class AreaPlacementPassTests
             L("PROGRAM-ID. ARMID."),
             L("PROCEDURE DIVISION."),
             L("MAIN-PARA. DISPLAY \"A\". NEXT-PARA."),
-            L("    STOP RUN.")), "(4,32): error COBOLNET3734");
+            L("    STOP RUN.")), "(4,32): error COBOL3734");
 
     [Fact]
     public void StatementInAreaA_IsRefusedAt85()
@@ -74,7 +74,7 @@ public sealed class AreaPlacementPassTests
             L("PROCEDURE DIVISION."),
             L("MAIN-PARA."),
             L("DISPLAY \"A\"."),
-            L("    STOP RUN.")), "(5,8): error COBOLNET3735");
+            L("    STOP RUN.")), "(5,8): error COBOL3735");
 
     [Fact] // a level-number other than 01 and 77 may begin in either area; an entry continued on a new line may not
     public void EntryContinuedInAreaA_IsRefusedAt85_ButAnIndentedLevelIsNot()
@@ -92,8 +92,8 @@ public sealed class AreaPlacementPassTests
             L("PROCEDURE DIVISION."),
             L("MAIN-PARA."),
             L("    STOP RUN."));
-        AssertRejectedAt85Only(source, "(9,8): error COBOLNET3735");
-        Assert.Single(Check(85, source).Errors, e => e.Contains("COBOLNET373", StringComparison.Ordinal));
+        AssertRejectedAt85Only(source, "(9,8): error COBOL3735");
+        Assert.Single(Check(85, source).Errors, e => e.Contains("COBOL373", StringComparison.Ordinal));
     }
 
     [Fact] // DOC-A.1-157: a tab advances to the next tab stop, so a tab-indented header stands at position 9 (area A)
@@ -119,7 +119,7 @@ public sealed class AreaPlacementPassTests
             L("    PERFORM LIB-PARA."),
             L("    STOP RUN."),
             L("COPY ARLIB.")),
-            "ARLIB.cpy(1,12): error COBOLNET3734",
+            "ARLIB.cpy(1,12): error COBOL3734",
             ("ARLIB.cpy", Source(L("    LIB-PARA."), L("    DISPLAY \"L\"."))));
 
     [Fact] // every area-A item of the family, each written in area A, compiles at 85
@@ -177,7 +177,7 @@ public sealed class AreaPlacementPassTests
     [InlineData(" \"JK\".", 9)]
     [InlineData("   \"JK\".", 11)]
     public void ContinuedLiteralTextInAreaA_IsRefusedAt85Only(string text, int column)
-        => AssertRejectedAt85Only(ContinuedLiteral(C(text)), $"(6,{column}): error COBOLNET3735");
+        => AssertRejectedAt85Only(ContinuedLiteral(C(text)), $"(6,{column}): error COBOL3735");
 
     [Fact] // position 12 is area B: the same continuation compiles at 85
     public void ContinuedLiteralTextInAreaB_IsAccepted()
@@ -200,10 +200,10 @@ public sealed class AreaPlacementPassTests
             L("    DISPLAY \"A\""),
             C("  ."),
             L("    STOP RUN."));
-        AssertRejectedAt85Only(source, "(6,10): error COBOLNET3735");
+        AssertRejectedAt85Only(source, "(6,10): error COBOL3735");
         var r = Check(85, source);
         Assert.Equal(CompilerDriver.Outcome.FrontendError, r.Status);
-        Assert.Single(r.Errors, e => e.Contains("COBOLNET373", StringComparison.Ordinal));
+        Assert.Single(r.Errors, e => e.Contains("COBOL373", StringComparison.Ordinal));
     }
 
     [Fact] // a blank continuation line has no text to place; a library text's continuation line is reported where it is written
@@ -215,6 +215,6 @@ public sealed class AreaPlacementPassTests
             L("MAIN-PARA."),
             L("    COPY ARCONT."),
             L("    STOP RUN.")),
-            "ARCONT.cpy(2,8): error COBOLNET3735",
+            "ARCONT.cpy(2,8): error COBOL3735",
             ("ARCONT.cpy", Source(L("    DISPLAY \"" + FirstPartOfContinuedLiteral), C("\"JK\"."), C("        "))));
 }

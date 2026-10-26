@@ -11,7 +11,7 @@ namespace CobolNet.Tests.Conformance;
 /// interface-name", c) "the same object-class-name, and the presence or absence of the FACTORY and ONLY phrases is the
 /// same in both interfaces", d) "ACTIVE-CLASS phrase, and the presence or absence of the FACTORY phrase is the same in
 /// both interfaces"). The class implements the interface with the SAME formal description (conforms) or a DIFFERENT one
-/// (COBOLNET0841). The ACTIVE-CLASS rows are the ones PB1497 made reachable: an interface method prototype may carry the
+/// (COBOL0841). The ACTIVE-CLASS rows are the ones PB1497 made reachable: an interface method prototype may carry the
 /// phrase (§13.18.60.3 SR16; §10.6.1 NOTE), and the containing class is no part of the description.
 /// </summary>
 public sealed class Rule2ObjectReferenceConformanceTests
@@ -112,6 +112,6 @@ public sealed class Rule2ObjectReferenceConformanceTests
         if (conforms)
             Assert.Empty(errors);   // not merely "no 0841": the conforming pair compiles clean
         else
-            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0841");
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0841");
     }
 }

@@ -11,7 +11,7 @@
       *> holds two items named K, so KEY IS K OF B names B's K and only
       *> B's; the key used to be captured as the bare word K and looked
       *> up as the FIRST K under the table (A's), which refused this
-      *> legal SEARCH ALL (COBOLNET1965) and would have keyed on A.
+      *> legal SEARCH ALL (COBOL1965) and would have keyed on A.
       *> B's K ascends 1 2 3 while A's K descends 9 8 7, so a search
       *> keyed on the wrong K finds nothing at all.
        PROGRAM-ID. PB1018-OCCURS-KEY-QUALIFIED.

@@ -101,7 +101,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             if (ctx.Validation.CheckReadKeyOrganization(file))
             {
                 if (kind != ReadKind.Random)
-                    ctx.Edition.Error("COBOLNET0864", $"READ … KEY on '{file.CobolName}' is a Format-2 phrase and "
+                    ctx.Edition.Error("COBOL0864", $"READ … KEY on '{file.CobolName}' is a Format-2 phrase and "
                         + "cannot combine with NEXT/PREVIOUS/AT END (ISO §14.9.30 general formats)");
                 // SR11's record-key-name-1 arm (kb/Work PB1099): a SOURCE-form key is named by its record-key-name
                 // and by nothing else, so the name is asked BEFORE the operand is read as a data-name.
@@ -109,7 +109,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 {
                     if (use is RecordKeyNameUse.Refused) return BoundRejected.Reported(ctx.Edition);
                     if (use is RecordKeyNameUse.OtherFile)
-                        return BoundRejected.Report(ctx.Edition, "COBOLNET0864", $"READ … KEY IS {keyRef.GetText()} on "
+                        return BoundRejected.Report(ctx.Edition, "COBOL0864", $"READ … KEY IS {keyRef.GetText()} on "
                             + $"'{file.CobolName}': '{keyRef.GetText()}' is a record-key-name of another file; "
                             + "record-key-name-1 shall be specified in the RECORD KEY clause or an ALTERNATE RECORD KEY "
                             + "clause associated with file-name-1 (ISO §14.9.30.3 SR11)");
@@ -125,7 +125,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 else if (keyPlace.DenotedItem is not { } keyItem
                     || Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem) is not { } ki)
                 {
-                    return BoundRejected.Report(ctx.Edition, "COBOLNET0864", $"READ … KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
+                    return BoundRejected.Report(ctx.Edition, "COBOL0864", $"READ … KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
                         + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30.3 SR11)");
                 }
                 else keyIndex = ki;
@@ -157,7 +157,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         BoundRecordLock lock_, RetrySpec? retry)
     {
         if (w.writeBeforeAfter() is not null || w.writeAtEndOfPage() is not null)
-            // ⛔ A SYNTAX RULE, NOT A DEFERRAL (kb/Work PB909): SR3 is SR2's mirror, and COBOLNET1720 is where SR2
+            // ⛔ A SYNTAX RULE, NOT A DEFERRAL (kb/Work PB909): SR3 is SR2's mirror, and COBOL1720 is where SR2
             // already lands. It is an error in BOTH lanes — Format 2 gives a print-control phrase no meaning to bind.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoPhraseForbiddenHere, $"the "
                 + (w.writeBeforeAfter() is not null ? "ADVANCING" : "END-OF-PAGE")
@@ -206,7 +206,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     public BoundStatement BindDelete(Core.DeleteStatementContext del)
     {
         string name = del.fileName().GetText();
-        // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
+        // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOL1639).
         if (!ctx.Validation.ResolveFile(del.fileName(), "DELETE", out var file)) return BoundRejected.Reported(ctx.Edition);
         // §13.4.6.3 SR3: an SD file (its SELECT may even carry ORGANIZATION RELATIVE/INDEXED) previously bound
         // and ran against an unregistered connector — the fail-open status read '00' (kb/Work PB140).
@@ -214,7 +214,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             return BoundRejected.Reported(ctx.Edition);   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
         if (file.IsSequential)
         {
-            return BoundRejected.Report(ctx.Edition, "COBOLNET0865", $"DELETE RECORD shall not be specified for sequential-organization "
+            return BoundRejected.Report(ctx.Edition, "COBOL0865", $"DELETE RECORD shall not be specified for sequential-organization "
                 + $"file '{name}' (ISO §14.9.10.3 SR1)");
         }
         // §14.9.10.3 SR2 — the INVALID KEY / NOT INVALID KEY phrases shall not be specified for a DELETE RECORD
@@ -236,7 +236,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
 
     /// <summary>Bind <c>DELETE FILE file</c> (ISO §14.9.10 Format 2 — COBOL-2023). The construct parses at every
     /// edition; its introduction gate fires on RECOGNITION in the VersionConformancePass parse arm
-    /// (<c>VisitDeleteFileStatement</c>, Step 14h.2 — COBOLNET0900 below 2023), so an undeclared file-name names
+    /// (<c>VisitDeleteFileStatement</c>, Step 14h.2 — COBOL0900 below 2023), so an undeclared file-name names
     /// its edition too; no <c>BoundKeyedDeleteFile</c> node is involved in the gate.</summary>
     public BoundStatement BindDeleteFile(Core.DeleteFileStatementContext df)
     {
@@ -249,7 +249,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         foreach (var fn in df.fileName())
         {
             string name = fn.GetText();
-            // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639). GR12's as-if
+            // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOL1639). GR12's as-if
             // duplication means each name is its own statement, so a bad one drops its own element and the
             // others still bind.
             if (!ctx.Validation.ResolveFile(fn, "DELETE FILE", out var file)) continue;
@@ -281,7 +281,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     public BoundStatement BindStart(Core.StartStatementContext st)
     {
         string name = st.fileName().GetText();
-        // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639).
+        // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOL1639).
         if (!ctx.Validation.ResolveFile(st.fileName(), "START", out var file)) return BoundRejected.Reported(ctx.Edition);
         // §9.1.19 / §13.4.6.3 SR3: "The only statements that may reference a sort file are the RELEASE, RETURN,
         // and SORT statements." START was the ONE keyed verb that skipped this screen (BindDelete,
@@ -401,7 +401,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             // legal and semantically empty: there is no data-name-1 to substitute. §4.2.2 ¶4 leaves flagging a
             // general rule to the implementor ("An implementation may, but is not required to, flag violations
             // of such rules"), and the alternative to flagging is emitting code that cannot work — so this
-            // rejects, in the SAME COBOLNET0862 channel this method already uses for SR1/SR3/SR5/SR6/SR8, and
+            // rejects, in the SAME COBOL0862 channel this method already uses for SR1/SR3/SR5/SR6/SR8, and
             // no longer as a silent compile followed by a run-time abort.
             if (operand is null)
             {

@@ -7,7 +7,7 @@
       *> kb/Work PB1394 - ISO 8.3.3.4.3 SR2: "Boolean-character-1 shall
       *>  be a boolean character, '0' or '1'". B"012" is a boolean
       *>  literal holding the character 2; beside the item B it used to
-      *>  compile as B followed by "012" and print QQQ012. COBOLNET2630.
+      *>  compile as B followed by "012" and print QQQ012. COBOL2630.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGW73ABL.
        DATA DIVISION.

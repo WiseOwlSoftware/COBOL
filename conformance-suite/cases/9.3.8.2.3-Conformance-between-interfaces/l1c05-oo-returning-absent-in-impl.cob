@@ -20,7 +20,7 @@
       *>   is identical on both sides (one BY REFERENCE PIC 9(4) formal)
       *>   EXCEPT that the prototype has RETURNING and the
       *>   implementation has none, so the object interface does not
-      *>   conform and §11.8.3 SR2 is violated: COBOLNET0841 (the
+      *>   conform and §11.8.3 SR2 is violated: COBOL0841 (the
       *>   IMPLEMENTS conformance diagnostic). Control: with RETURNING
       *>   LK-R on both sides the same source compiles.
        IDENTIFICATION DIVISION.

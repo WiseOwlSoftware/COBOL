@@ -10,7 +10,7 @@
       *> kb/Work PB500 - A **FORMAT 1** VALUE ON OR UNDER AN OCCURS DYNAMIC ENTRY IS CONFORMING SOURCE,
       *> and 13.18.63.4 GR16's VALUE-derived initial capacity DOES NOT REACH IT.
       *>
-      *> A COBOLNET1528 refusal used to reject this file outright, citing GR16 and reading its subrule (b)
+      *> A COBOL1528 refusal used to reject this file outright, citing GR16 and reading its subrule (b)
       *> ("If no TO phrase is specified in the VALUE clause, the initial capacity is set equal to the
       *> expected capacity specified in the OCCURS clause") as covering a Format 1 "VALUE IS literal-1",
       *> which trivially has no TO phrase.  IT DOES NOT.  GR16 sits under the FORMAT 2 general-rule heading

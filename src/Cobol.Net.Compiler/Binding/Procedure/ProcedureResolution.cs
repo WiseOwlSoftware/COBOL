@@ -76,7 +76,7 @@ internal readonly record struct ResolvedProcedure(PcRange Range, SectionInfo? Se
 
 /// <summary>The outcome of resolving one procedure-name reference: the resolved procedure, or nothing plus (when
 /// the reference identified MORE than one procedure rather than none) the reason.
-/// <para>⛔ Both null is "no procedure of that name" — the COBOLNET1639 case. A non-null
+/// <para>⛔ Both null is "no procedure of that name" — the COBOL1639 case. A non-null
 /// <paramref name="Ambiguity"/> is the opposite failure, and the two must not be collapsed: telling a user that
 /// no paragraph carries a name their program declares twice sends them looking for the wrong thing.</para></summary>
 internal readonly record struct ProcedureResolution(ResolvedProcedure? Procedure, ProcedureAmbiguity? Ambiguity)

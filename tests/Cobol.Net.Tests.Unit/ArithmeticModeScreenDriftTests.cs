@@ -134,11 +134,11 @@ public sealed class ArithmeticModeScreenDriftTests : CobolNetTestBase
     {
         // §4.2.6: "An implementation shall provide a warning mechanism at compile time to indicate use of
         // syntactically-detectable processor-dependent language elements not supported by that implementation."
-        // WiseOwl COBOL's is the hard COBOLNET0806 (see docs/CONFORMANCE.md §1 on why an error, not a warning).
+        // WiseOwl COBOL's is the hard COBOL0806 (see docs/CONFORMANCE.md §1 on why an error, not a warning).
         var errors = CompileAt2014(production, Fixtures[production]);
-        int count = errors.Count(e => e.Contains("COBOLNET0806", StringComparison.Ordinal));
+        int count = errors.Count(e => e.Contains("COBOL0806", StringComparison.Ordinal));
         Assert.True(count >= 1,
-            $"[{production}] ARITHMETIC IS STANDARD-BINARY drew no COBOLNET0806. Diagnostics:\n"
+            $"[{production}] ARITHMETIC IS STANDARD-BINARY drew no COBOL0806. Diagnostics:\n"
             + string.Join("\n", errors.DefaultIfEmpty("(none)")));
         // Exactly once, not once per binder that happens to look: the screen sits at the single point the
         // clause is READ, so §11.9.4 GR1 inheritance never re-reports a clause the unit did not write.
@@ -149,7 +149,7 @@ public sealed class ArithmeticModeScreenDriftTests : CobolNetTestBase
     public void StandardBinary_PerEditionDiagnostics_AreDistinct_PinnedToSpec()
     {
         // ⛔ MEASURED, after a falsification attempt showed the two legs were NOT distinguished by the negative
-        // corpus alone: swapping the 2002 case's expected code to COBOLNET0806 still PASSED, because 0806 fires
+        // corpus alone: swapping the 2002 case's expected code to COBOL0806 still PASSED, because 0806 fires
         // at 2002 too. The legs ARE different — just not in the direction the single-substring check can see —
         // so the discrimination is pinned here, negatives included.
         //
@@ -162,18 +162,18 @@ public sealed class ArithmeticModeScreenDriftTests : CobolNetTestBase
         string source = Fixtures["identificationParagraph"];
 
         var at2002 = CompileAt("e2002", source, 2002);
-        Assert.Contains(at2002, d => d.Contains("COBOLNET0900", StringComparison.Ordinal));
-        Assert.Contains(at2002, d => d.Contains("COBOLNET0806", StringComparison.Ordinal));
+        Assert.Contains(at2002, d => d.Contains("COBOL0900", StringComparison.Ordinal));
+        Assert.Contains(at2002, d => d.Contains("COBOL0806", StringComparison.Ordinal));
 
         var at2014 = CompileAt("e2014", source, 2014);
-        Assert.Contains(at2014, d => d.Contains("COBOLNET0806", StringComparison.Ordinal));
-        Assert.DoesNotContain(at2014, d => d.Contains("COBOLNET0900", StringComparison.Ordinal));
-        Assert.DoesNotContain(at2014, d => d.Contains("COBOLNET0903", StringComparison.Ordinal));
+        Assert.Contains(at2014, d => d.Contains("COBOL0806", StringComparison.Ordinal));
+        Assert.DoesNotContain(at2014, d => d.Contains("COBOL0900", StringComparison.Ordinal));
+        Assert.DoesNotContain(at2014, d => d.Contains("COBOL0903", StringComparison.Ordinal));
 
         var at2023 = CompileAt("e2023", source, 2023);
-        Assert.Contains(at2023, d => d.Contains("COBOLNET0806", StringComparison.Ordinal));
-        Assert.Contains(at2023, d => d.Contains("COBOLNET0903", StringComparison.Ordinal));
-        Assert.DoesNotContain(at2023, d => d.Contains("COBOLNET0900", StringComparison.Ordinal));
+        Assert.Contains(at2023, d => d.Contains("COBOL0806", StringComparison.Ordinal));
+        Assert.Contains(at2023, d => d.Contains("COBOL0903", StringComparison.Ordinal));
+        Assert.DoesNotContain(at2023, d => d.Contains("COBOL0900", StringComparison.Ordinal));
     }
 
     public static TheoryData<string> FixtureNames()

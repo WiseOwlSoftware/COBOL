@@ -11,12 +11,12 @@ namespace CobolNet.Tests.Unit;
 /// description identified by type-name-1 [data-name-1] had been coded in place", excluding only the clauses each
 /// GR-1 names — so a BASED clause travels (§13.18.58.4 GR3: "All other data description clauses … are assumed by
 /// data defined using the type-name"), and the composed entry is held to the placement rules a written BASED
-/// clause is (§13.16.3 SR5/SR13/SR16, COBOLNET2510). The subject's OWN VALUE literal initializes the composed item
+/// clause is (§13.16.3 SR5/SR13/SR16, COBOL2510). The subject's OWN VALUE literal initializes the composed item
 /// (§13.18.57.4 GR3), so it is screened against the composed PICTURE — except for the size sentence, which
 /// §13.18.63.3 SR4 writes over "an explicit PICTURE clause" only.
 /// <para>The corpus pins the level arm and the positive shapes (<c>2002/w66g_pb1300_type_same_as_composition</c>,
 /// <c>negative/w66g-pb1300-composed-based-level</c>); a negative golden's <c>.err</c> is one substring, so the
-/// arms that share COBOLNET2510 are told apart here by the rule each message names.</para>
+/// arms that share COBOL2510 are told apart here by the rule each message names.</para>
 /// </summary>
 public sealed class TypeSameAsCompositionTests : CobolNetTestBase
 {
@@ -43,8 +43,8 @@ public sealed class TypeSameAsCompositionTests : CobolNetTestBase
                 + "       01 G.\n          05 X TYPE T.\n          05 S SAME AS B.\n",
                 "           DISPLAY G\n"), dialectLevel: 2002);
         Assert.False(ok);
-        Assert.Contains("COBOLNET2510: 'X': TYPE 'T' brings a BASED clause", detail, StringComparison.Ordinal);
-        Assert.Contains("COBOLNET2510: 'S': SAME AS 'B' brings a BASED clause", detail, StringComparison.Ordinal);
+        Assert.Contains("COBOL2510: 'X': TYPE 'T' brings a BASED clause", detail, StringComparison.Ordinal);
+        Assert.Contains("COBOL2510: 'S': SAME AS 'B' brings a BASED clause", detail, StringComparison.Ordinal);
         Assert.Contains("§13.16.3 SR16", detail, StringComparison.Ordinal);
     }
 
@@ -57,7 +57,7 @@ public sealed class TypeSameAsCompositionTests : CobolNetTestBase
             Program("CBEXT", "       01 T TYPEDEF BASED PIC X(5).\n       01 E EXTERNAL TYPE T.\n",
                 "           DISPLAY \"X\"\n"), dialectLevel: 2002);
         Assert.False(ok);
-        Assert.Contains("COBOLNET2510: 'E': TYPE 'T' brings a BASED clause", detail, StringComparison.Ordinal);
+        Assert.Contains("COBOL2510: 'E': TYPE 'T' brings a BASED clause", detail, StringComparison.Ordinal);
         Assert.Contains("§13.16.3 SR5", detail, StringComparison.Ordinal);
     }
 
@@ -88,8 +88,8 @@ public sealed class TypeSameAsCompositionTests : CobolNetTestBase
                 + "       01 N TYPEDEF PIC 9(3).\n       01 M TYPE N VALUE 12345.\n",
                 "           DISPLAY Q M\n"), dialectLevel: 2002);
         Assert.False(ok);
-        Assert.Contains("COBOLNET1740: data item 'Q'", detail, StringComparison.Ordinal);
-        Assert.Contains("COBOLNET1625: data item 'M'", detail, StringComparison.Ordinal);
+        Assert.Contains("COBOL1740: data item 'Q'", detail, StringComparison.Ordinal);
+        Assert.Contains("COBOL1625: data item 'M'", detail, StringComparison.Ordinal);
     }
 
     /// <summary>⚠ DETERMINATION (kb/Work PB1300): over a VALUE-IMPLIED template picture, §13.18.63.3 SR4's size

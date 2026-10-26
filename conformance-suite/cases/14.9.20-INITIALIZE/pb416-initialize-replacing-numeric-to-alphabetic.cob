@@ -14,7 +14,7 @@
 *> contain, so the rule is decided over the phrase alone.
 *> Measured before PB416: this compiled clean and STORED, leaving a PIC A(4) item holding "5   " — a value no
 *> conforming program can produce, and one a later class-ALPHABETIC test on the item reads as false. The
-*> explicit-MOVE form of the same cell was already COBOLNET0819; the two now ask ONE screen (MoveTable16).
+*> explicit-MOVE form of the same cell was already COBOL0819; the two now ask ONE screen (MoveTable16).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB416NNA.
        DATA DIVISION.

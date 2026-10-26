@@ -7,7 +7,7 @@
       *> kb/Work PB239 - the address-identifier (ISO 8.4.3.1.2 identifier
       *> Format 9 - ADDRESS OF identifier-1 / ADDRESS OF PROGRAM) arrived in
       *> COBOL-2002 with the pointer classes, so the CALL argument 14.9.4.3
-      *> SR3 names is an introduction gate below 2002 (COBOLNET0900). This
+      *> SR3 names is an introduction gate below 2002 (COBOL0900). This
       *> program uses nothing else past COBOL-85.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB239N85.

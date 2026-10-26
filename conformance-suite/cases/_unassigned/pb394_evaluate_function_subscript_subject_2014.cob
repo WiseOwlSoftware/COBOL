@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB394 - the POSITIVE replacement for the retired negative case
-      *> pb17-function-subscript-evaluate-subject. That case pinned COBOLNET1509, the narrowed
+      *> pb17-function-subscript-evaluate-subject. That case pinned COBOL1509, the narrowed
       *> per-evaluation residue stage, on CONFORMING SOURCE: a function-bearing subscript in an
       *> EVALUATE selection SUBJECT was refused because this backend re-BOUND the subject once per
       *> selection pair, so the function-identifier's statement-scoped activation would have run once

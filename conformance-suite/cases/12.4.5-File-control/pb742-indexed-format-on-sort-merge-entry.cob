@@ -9,7 +9,7 @@
 *> rows rather than one: sentence 1 speaks about the file's ORGANIZATION, and a sort-merge file has
 *> none to speak of (12.4.5.1 Format 4 admits only the SEQUENTIAL phrase and no key clause at all).
 *> Here the entry specifies Format 1 by writing a RECORD KEY clause while an SD describes the file.
-*> COBOLNET1900, not COBOLNET0863: the subject is the file DESCRIPTION entry, not a key clause's own
+*> COBOL1900, not COBOL0863: the subject is the file DESCRIPTION entry, not a key clause's own
 *> rule, and the remedy is a different edit (describe the file with an FD, or drop the clause).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB742SDIX.

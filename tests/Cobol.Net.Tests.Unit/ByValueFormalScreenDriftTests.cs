@@ -12,7 +12,7 @@ namespace CobolNet.Tests.Unit;
 /// a BY VALUE phrase shall be defined as a data item of class numeric, message-tag, object, or pointer" (cite.py --check
 /// 14.2.2 → OK 14.2.2 2)) — is <c>ProcedureHeaderScreen.ByValueClass</c>; the program/function header arm
 /// (<c>CallBindLinkage</c>) and the METHOD header arm (<c>OoBindMethodData</c>) both ASK it, and neither spells the
-/// class set or the <c>COBOLNET1553</c> code itself. Before this the program arm held the rule inline and the method arm
+/// class set or the <c>COBOL1553</c> code itself. Before this the program arm held the rule inline and the method arm
 /// refused every BY VALUE formal outright — a second copy of the rule waiting to disagree. Likewise the method formal's
 /// passing mode is compared by the ONE §9.3.8.2.3 rule set (<c>OoConformance.MethodConformanceMismatches</c>, rule 1).
 /// </summary>
@@ -28,7 +28,7 @@ public sealed class ByValueFormalScreenDriftTests
     {
         string text = Compiler(folder, file);
         Assert.Contains("header.ByValueClass(", text);
-        Assert.DoesNotContain("COBOLNET1553", text);
+        Assert.DoesNotContain("COBOL1553", text);
     }
 
     /// <summary>⛔ THE CLASS SET IS THE TABLE-2 CLASSIFIER'S, NOT A PicCategory LIST (kb/Work PB3222). The list read the

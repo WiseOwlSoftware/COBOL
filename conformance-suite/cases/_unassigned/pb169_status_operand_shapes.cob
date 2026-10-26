@@ -11,7 +11,7 @@
       *> item with usage display or usage national"; SR3's conditional ("If
       *> literal-1 IS numeric, it shall be an integer") presupposes the
       *> non-numeric form; SR4 bars only a zero-length literal.
-      *> Before this landing ALL THREE of the shapes below drew COBOLNET0844
+      *> Before this landing ALL THREE of the shapes below drew COBOL0844
       *> quoting 8.8.1.1 - legal COBOL rejected under a rule the programmer had
       *> not broken. The EXIT-CODE values are asserted by
       *> StopGobackExitCodeTests (a .out golden compares stdout only).

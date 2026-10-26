@@ -53,25 +53,25 @@ public sealed class SeparatorRuleTests
     public void ConformingSeparators_AreNotReported(string text) => Assert.Empty(Codes(text));
 
     [Theory]
-    [InlineData("MOVE 1 TO N,M.\n", "COBOLNET2631")]
-    [InlineData("MOVE 1 TO N;M.\n", "COBOLNET2631")]          // the hidden-channel SEMICOLON
-    [InlineData("MOVE A(I,J) TO N.\n", "COBOLNET2631")]      // a bare COMMA inside a subscript list
-    [InlineData("MOVE A(1;2) TO N.\n", "COBOLNET2631")]      // a bare SEMICOLON (HIDDEN): never a decimal point
-    [InlineData("MOVE N,5 TO M.\n", "COBOLNET2631")]         // a letter before it: no numeric literal
-    [InlineData("DISPLAY N.DISPLAY M.\n", "COBOLNET2632")]
-    [InlineData("DISPLAY \"AB\"N.\n", "COBOLNET2633")]          // closing delimiter
-    [InlineData("MOVE\"AB\" TO A.\n", "COBOLNET2633")]          // opening delimiter
-    [InlineData("IF \"AB\"=A DISPLAY \"Y\" END-IF.\n", "COBOLNET2633")]
-    [InlineData("DISPLAY W\"AB\".\n", "COBOLNET2633")]          // a prefix-looking word: IDENTIFIER W + literal
-    [InlineData("DISPLAY \"AB\"(1:1).\n", "COBOLNET2633")]      // '(' is no closing separator
-    // §8.7.3 / §8.7.4 — the operator owns its boundary, so a touching literal adds no COBOLNET2633 beside it.
-    [InlineData("MOVE O::\"M\" TO A.\n", "COBOLNET2993")]
-    [InlineData("MOVE O:: \"M\" TO A.\n", "COBOLNET2993")]     // no literal involved: only §8.7.4 can see it
-    [InlineData("MOVE O ::\"M\" TO A.\n", "COBOLNET2993")]
-    [InlineData("MOVE SPACE&SPACE TO W.\n", "COBOLNET2993")]   // figurative operands (§8.8.3.2 SR1): no delimiter
-    [InlineData("MOVE K1 &K2 TO W.\n", "COBOLNET2993")]        // constant-names (§13.10.3 SR2)
-    [InlineData("MOVE \"AB\"&\"CD\" TO W.\n", "COBOLNET2993")]  // both sides touch literals: still one report
-    [InlineData("MOVE \"AB\" &\"CD\" TO W.\n", "COBOLNET2993")]
+    [InlineData("MOVE 1 TO N,M.\n", "COBOL2631")]
+    [InlineData("MOVE 1 TO N;M.\n", "COBOL2631")]          // the hidden-channel SEMICOLON
+    [InlineData("MOVE A(I,J) TO N.\n", "COBOL2631")]      // a bare COMMA inside a subscript list
+    [InlineData("MOVE A(1;2) TO N.\n", "COBOL2631")]      // a bare SEMICOLON (HIDDEN): never a decimal point
+    [InlineData("MOVE N,5 TO M.\n", "COBOL2631")]         // a letter before it: no numeric literal
+    [InlineData("DISPLAY N.DISPLAY M.\n", "COBOL2632")]
+    [InlineData("DISPLAY \"AB\"N.\n", "COBOL2633")]          // closing delimiter
+    [InlineData("MOVE\"AB\" TO A.\n", "COBOL2633")]          // opening delimiter
+    [InlineData("IF \"AB\"=A DISPLAY \"Y\" END-IF.\n", "COBOL2633")]
+    [InlineData("DISPLAY W\"AB\".\n", "COBOL2633")]          // a prefix-looking word: IDENTIFIER W + literal
+    [InlineData("DISPLAY \"AB\"(1:1).\n", "COBOL2633")]      // '(' is no closing separator
+    // §8.7.3 / §8.7.4 — the operator owns its boundary, so a touching literal adds no COBOL2633 beside it.
+    [InlineData("MOVE O::\"M\" TO A.\n", "COBOL2993")]
+    [InlineData("MOVE O:: \"M\" TO A.\n", "COBOL2993")]     // no literal involved: only §8.7.4 can see it
+    [InlineData("MOVE O ::\"M\" TO A.\n", "COBOL2993")]
+    [InlineData("MOVE SPACE&SPACE TO W.\n", "COBOL2993")]   // figurative operands (§8.8.3.2 SR1): no delimiter
+    [InlineData("MOVE K1 &K2 TO W.\n", "COBOL2993")]        // constant-names (§13.10.3 SR2)
+    [InlineData("MOVE \"AB\"&\"CD\" TO W.\n", "COBOL2993")]  // both sides touch literals: still one report
+    [InlineData("MOVE \"AB\" &\"CD\" TO W.\n", "COBOL2993")]
     public void NonconformingSeparator_IsReportedOnce(string text, string code) => Assert.Equal([code], Codes(text));
 
     [Theory] // §8.7.3 / §8.7.4: a separator space on each side — a line end is one, and so is the end of the text
@@ -155,7 +155,7 @@ public sealed class SeparatorRuleTests
     {
         var tree = DirectiveExpressionFragment.ParseOperand(expression);
         var v = Assert.Single(SeparatorRule.ArithmeticOperatorViolations(expression, tree!));
-        Assert.Equal("COBOLNET2993", v.Descriptor.Code);
+        Assert.Equal("COBOL2993", v.Descriptor.Code);
         Assert.Contains("§8.7.1", v.Message);
         Assert.Contains(what, v.Message);
         Assert.EndsWith(fix, v.Message);
@@ -174,10 +174,10 @@ public sealed class SeparatorRuleTests
     public void CommaBeginningALiteralAfterAnOperator_IsNotAMissingSeparator(string text) => Assert.Empty(Codes(text));
 
     [Fact] // two literals that touch: the closing delimiter's report covers the boundary — one diagnostic, not two
-    public void AdjacentLiterals_ReportTheBoundaryOnce() => Assert.Equal(["COBOLNET2633"], Codes("DISPLAY \"A\"'B'.\n"));
+    public void AdjacentLiterals_ReportTheBoundaryOnce() => Assert.Equal(["COBOL2633"], Codes("DISPLAY \"A\"'B'.\n"));
 
     [Fact] // a comma that is no separator AND ends a literal's closing context is rule 2's, reported on the comma
-    public void CommaAfterLiteral_IsRuleTwo() => Assert.Equal(["COBOLNET2631"], Codes("DISPLAY \"AB\",N.\n"));
+    public void CommaAfterLiteral_IsRuleTwo() => Assert.Equal(["COBOL2631"], Codes("DISPLAY \"AB\",N.\n"));
 
     [Theory]
     [InlineData("X\"41\"")]

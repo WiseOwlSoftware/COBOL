@@ -8,7 +8,7 @@
       *> 2) makes a BY CONTENT argument into a pointer formal "the same as
       *> if a SET statement were performed" (14.9.4.3 SR25 imports it into
       *> a CALL ... AS NESTED). DP is restricted to REC-T and LP is not:
-      *> 14.9.39.3 SR19 refuses the SET, so the CALL is COBOLNET1688.
+      *> 14.9.39.3 SR19 refuses the SET, so the CALL is COBOL1688.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. N1063C.
        DATA DIVISION.

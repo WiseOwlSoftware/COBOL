@@ -61,7 +61,7 @@ every user word ──► cobolWord rule ──► ParseArm.VisitCobolWord
 
 | Field | Meaning | Example |
 |---|---|---|
-| `Code` | emitted, may repeat | `COBOLNET0900` |
+| `Code` | emitted, may repeat | `COBOL0900` |
 | `Id` | stable kebab-case, survives renumber | `construct-requires-edition` |
 | `Severity` | Error / Warning / Info | Error |
 | `IsoSection` | citation | §8.9 |

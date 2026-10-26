@@ -11,7 +11,7 @@
 *> declarative procedure G whose USE statement carries GLOBAL: SR2 has no exception for a statement nested in a
 *> WHEN phrase, and §14.9.33.3 SR1's permission for a WHEN phrase answers a different question (where a RESUME
 *> may appear), not whether SR2 is excused. The binder used to ask the WHEN-phrase question first and so let this
-*> RESUME through; it is now refused with COBOLNET0713 exactly as a RESUME written directly in G is.
+*> RESUME through; it is now refused with COBOL0713 exactly as a RESUME written directly in G is.
 *> (The exception-checking PERFORM is a COBOL 2023 construct, so 2023 is the introducing edition for this shape;
 *> the direct form is pinned by ExceptionConditionConformanceTests.)
        IDENTIFICATION DIVISION.

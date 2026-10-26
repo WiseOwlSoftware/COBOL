@@ -7,7 +7,7 @@
       *> ISO §8.4.6.2.1 3) b) 1. narrows a duplicated name to ONE source
       *> element - the nearest that declares it - and no further: two
       *> global X items in that one element remain ambiguous, so the
-      *> bare reference is refused (COBOLNET1639) exactly as two local
+      *> bare reference is refused (COBOL1639) exactly as two local
       *> ones would be (kb/Work PB1047; positive twin:
       *> 85/pb1047_nearest_declaring_element).
       *> RULE: cite.py --check 8.4.6.2.1 "The item in source element A

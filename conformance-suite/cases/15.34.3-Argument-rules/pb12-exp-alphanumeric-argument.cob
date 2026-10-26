@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> PB12 - the 15.3 argument-class screen now has a row for EXP. 15.34.3 rule 1: "Argument-1 shall be of
-      *> class numeric." An alphanumeric item is not, so the screen rejects it with COBOLNET1627 where before
+      *> class numeric." An alphanumeric item is not, so the screen rejects it with COBOL1627 where before
       *> the function had no row at all and the illegal argument was accepted and a value computed from it.
       *> EXP is 2002+ (15.34), so 85 is not in the reject set.
        IDENTIFICATION DIVISION.

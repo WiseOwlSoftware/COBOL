@@ -8,7 +8,7 @@
       *> 14.5.1: "Any statement with a conditional phrase that is not terminated by its explicit scope
       *> terminator is a conditional statement" - so the IF with no END-IF below is a conditional statement
       *> where only an imperative statement is admitted, although NOT AT END ends it for the parser. Refused
-      *> COBOLNET2796 at every edition.
+      *> COBOL2796 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB351NR.
        ENVIRONMENT DIVISION.

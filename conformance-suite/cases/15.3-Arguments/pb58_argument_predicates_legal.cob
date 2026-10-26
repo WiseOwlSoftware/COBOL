@@ -24,7 +24,7 @@
       *> unsigned integer numeric item and an unsigned integer literal (15.18.3 r1/r2/r3) and over an
       *> all-national list; INTEGER-OF-FORMATTED-DATE with a data-item argument-2 of the format's class
       *> (15.48.3 r3); SECONDS-FROM-FORMATTED-TIME with ALL "hh:mm:ss" as the format literal (8.3.3.6.3 SR1
-      *> - a figurative constant is admitted where 'literal' appears; it was COBOLNET1517); SUBSTITUTE
+      *> - a figurative constant is admitted where 'literal' appears; it was COBOL1517); SUBSTITUTE
       *> with an EMPTY argument-3 (a deletion - only argument-1/-2 carry 15.87.3 r3's zero-length rule).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB58PREDLEGAL.

@@ -7,7 +7,7 @@
 *>---
       *> ISO 13.10 Constant entry -- the CONFORMING spelling of what a
       *> MicroFocus/GnuCOBOL level 78 is used for, and the positive half
-      *> of the COBOLNET1746 screen: rejecting 78 is only correct if the
+      *> of the COBOL1746 screen: rejecting 78 is only correct if the
       *> standard way to name a compile-time constant still works. K is a
       *> level-01 CONSTANT entry, substituted at compile time, and it is
       *> used exactly where the rejected 78 entry was -- as the leftmost

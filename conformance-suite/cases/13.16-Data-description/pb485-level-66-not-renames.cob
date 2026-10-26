@@ -10,7 +10,7 @@
       *> PICTURE and no RENAMES clause, so it is a 13.16.2 format-1 entry
       *> written at level 66, and 13.16.3 SR1 bounds a format-1 entry to
       *> "77 or 1 through 49". The FORMAT axis is independent of the
-      *> SECTION axis COBOLNET1746 screens: 66 is perfectly legal in
+      *> SECTION axis COBOL1746 screens: 66 is perfectly legal in
       *> working-storage under 13.18.33.3 SR5 -- as a RENAMES entry.
       *> kb/Work PB485.
        IDENTIFICATION DIVISION.

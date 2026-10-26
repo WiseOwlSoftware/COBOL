@@ -22,7 +22,7 @@
       *> and fell through PicCategory.Pointer to `_ => "…ToString()"`, so `DISPLAY WS-PTR` compiled clean
       *> and printed a CLR ManagedPointer carrier — a value with no COBOL meaning. kb/Work PB148 put the
       *> screen on the ONE classifier (IntrinsicArgumentRules.ClassOf) as a reusable operand-CLASS gate, so
-      *> all three pointer categories and class object reject through the same COBOLNET1694, and the
+      *> all three pointer categories and class object reject through the same COBOL1694, and the
       *> sibling fixtures l1-display-program-pointer-operand and l1-display-object-reference-operand pin
       *> the two categories a USAGE-POINTER-only special case would have left printing CLR text.
       *> The ADMIT side is conformance:cases/14.9.11-DISPLAY/l1_display_admitted_classes.

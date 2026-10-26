@@ -191,7 +191,7 @@ public sealed class IntrinsicFloatLaneArgumentRunDriftTests : CobolNetTestBase
 
     /// <summary>Compile one <c>--permissive</c> program that references <paramref name="reference"/> in the
     /// numeric channel with a <c>FLOAT-LONG</c> operand. <c>--permissive</c> is deliberate: PB248's §15.3 type-6
-    /// screen REJECTS a floating-point item at an integer position under strict conformance (COBOLNET1627), so
+    /// screen REJECTS a floating-point item at an integer position under strict conformance (COBOL1627), so
     /// strict alone cannot reach the renderer at all and a strict-only probe would be green for the wrong
     /// reason.</summary>
     private CompilerDriver.Result CompileWithAFloatArgument(string programId, string reference)

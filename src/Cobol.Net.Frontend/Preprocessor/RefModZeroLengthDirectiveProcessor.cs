@@ -32,8 +32,8 @@ public static class RefModZeroLengthDirectiveProcessor
     private const string Keyword = "REF-MOD-ZERO-LENGTH";   // 19 characters
 
     /// <summary>Process <paramref name="text"/>: collect the toggle events and blank the directive lines.
-    /// ⛔ It takes NO diagnostic channel. The introduction gate (COBOLNET0900, kb/Work PB725) and the OPERAND
-    /// check (COBOLNET1911, kb/Work PB794) both fire at the ONE directive-recognition point, from the same
+    /// ⛔ It takes NO diagnostic channel. The introduction gate (COBOL0900, kb/Work PB725) and the OPERAND
+    /// check (COBOL1911, kb/Work PB794) both fire at the ONE directive-recognition point, from the same
     /// registry row, so this stage has nothing left to report — the same removal PB725 made to four stages'
     /// dialect parameters. Line-count preserving.</summary>
     /// <para><paramref name="stackOps"/> are the PUSH/POP directives of the same text, replayed over the toggles

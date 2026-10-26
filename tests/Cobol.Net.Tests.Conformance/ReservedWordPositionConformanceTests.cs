@@ -7,7 +7,7 @@ namespace CobolNet.Tests.Conformance;
 /// <summary>
 /// Per-edition enforcement of the screen/report allowlist-band reserved words through the POSITION-AWARE §8.9
 /// funnel (P2.8 W2 — the RW104A adversarial review): a band context-keyword token (COLUMN, COL, SCREEN, BIT,
-/// DEFAULT, LENGTH, NATIONAL are the table-backed ones) rejects with COBOLNET0901 (ISO §8.3.2.1 rule 1 /
+/// DEFAULT, LENGTH, NATIONAL are the table-backed ones) rejects with COBOL0901 (ISO §8.3.2.1 rule 1 /
 /// §8.3.2.1 r1: "Reserved words shall not be used as user-defined words or system-names") ONLY when it occupies a provable
 /// user-word position — the data entry-name slot (§13.16), a paragraph/section definition (§14.4.2/§14.4.3),
 /// the SELECT file-name (§12.4.5.1), a program-name site (§11.10.2). KEYWORD occurrences that the permissive
@@ -63,7 +63,7 @@ public sealed class ReservedWordPositionConformanceTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(ReportColumnProgram, edition);
         Assert.True(ok, $"--std {edition}: {string.Join("; ", errors)}");
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0901");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0901");
     }
 
     // ── The data entry-name slot (§13.16) ────────────────────────────────────────────────────────────────────
@@ -88,7 +88,7 @@ public sealed class ReservedWordPositionConformanceTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(ScreenDataItemProgram, 85);
         Assert.True(ok, $"--std 85: {string.Join("; ", errors)}");
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0901");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0901");
     }
 
     /// <summary>2002+ reserves SCREEN (§8.9 via reserved-words.json row SCREEN): the entry-name use is a
@@ -101,7 +101,7 @@ public sealed class ReservedWordPositionConformanceTests
     {
         var (ok, diags) = EditionHarness.Compile(ScreenDataItemProgram, edition);
         Assert.False(ok, $"--std {edition} strict must reject a data item named with a reserved word");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0901");
         EditionHarness.AssertHasDiagnostic(diags, "'SCREEN'");
     }
 
@@ -112,7 +112,7 @@ public sealed class ReservedWordPositionConformanceTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(ScreenDataItemProgram, 2002, permissive: true);
         Assert.True(ok, $"--std 2002 --permissive: {string.Join("; ", errors)}");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL0901");
     }
 
     /// <summary>COLUMN has been reserved CONTINUOUSLY since 1985 (reserved-words.json row COLUMN) — naming a
@@ -133,7 +133,7 @@ public sealed class ReservedWordPositionConformanceTests
                 STOP RUN.
             """, 85);
         Assert.False(ok, "--std 85 strict must reject a data item named COLUMN (reserved since 1985)");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0901");
         EditionHarness.AssertHasDiagnostic(diags, "'COLUMN'");
     }
 
@@ -157,7 +157,7 @@ public sealed class ReservedWordPositionConformanceTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(ColParagraphProgram, 85);
         Assert.True(ok, $"--std 85: {string.Join("; ", errors)}");
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0901");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0901");
     }
 
     /// <summary>2002 reserved COL: the paragraph DEFINITION is a provable user-word position — strict rejects,
@@ -167,12 +167,12 @@ public sealed class ReservedWordPositionConformanceTests
     {
         var (ok, diags) = EditionHarness.Compile(ColParagraphProgram, 2002);
         Assert.False(ok, "--std 2002 strict must reject a paragraph named COL");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0901");
         EditionHarness.AssertHasDiagnostic(diags, "'COL'");
 
         var (okP, errorsP, warningsP) = EditionHarness.CompileFull(ColParagraphProgram, 2002, permissive: true);
         Assert.True(okP, $"--std 2002 --permissive: {string.Join("; ", errorsP)}");
-        EditionHarness.AssertHasDiagnostic(warningsP, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(warningsP, "COBOL0901");
     }
 
     /// <summary>A file NAMED with the band word DEFAULT (reserved 2002+) in its SELECT clause.</summary>
@@ -202,7 +202,7 @@ public sealed class ReservedWordPositionConformanceTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(DefaultFileProgram, 85);
         Assert.True(ok, $"--std 85: {string.Join("; ", errors)}");
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0901");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0901");
     }
 
     /// <summary>2002 reserved DEFAULT (the OPTIONS-paragraph family): the SELECT file-name is a provable
@@ -212,7 +212,7 @@ public sealed class ReservedWordPositionConformanceTests
     {
         var (ok, diags) = EditionHarness.Compile(DefaultFileProgram, 2002);
         Assert.False(ok, "--std 2002 strict must reject a file named DEFAULT");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0901");
         EditionHarness.AssertHasDiagnostic(diags, "'DEFAULT'");
     }
 
@@ -243,10 +243,10 @@ public sealed class ReservedWordPositionConformanceTests
             """;
         var (ok85, errors85, warn85) = EditionHarness.CompileFull(source, 85);
         Assert.True(ok85, string.Join("; ", errors85));
-        EditionHarness.AssertNoDiagnostic(warn85, "COBOLNET0901");
+        EditionHarness.AssertNoDiagnostic(warn85, "COBOL0901");
         var (ok02, diags02) = EditionHarness.Compile(source, 2002);
         Assert.False(ok02, "--std 2002 strict must reject a program named SCREEN");
-        EditionHarness.AssertHasDiagnostic(diags02, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(diags02, "COBOL0901");
     }
 
     /// <summary>A SECTION defined with a band word (BIT reserved 2002): 85 clean, 2002 strict 0901.</summary>
@@ -263,10 +263,10 @@ public sealed class ReservedWordPositionConformanceTests
             """;
         var (ok85, errors85, warn85) = EditionHarness.CompileFull(source, 85);
         Assert.True(ok85, string.Join("; ", errors85));
-        EditionHarness.AssertNoDiagnostic(warn85, "COBOLNET0901");
+        EditionHarness.AssertNoDiagnostic(warn85, "COBOL0901");
         var (ok02, diags02) = EditionHarness.Compile(source, 2002);
         Assert.False(ok02, "--std 2002 strict must reject a section named BIT");
-        EditionHarness.AssertHasDiagnostic(diags02, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(diags02, "COBOL0901");
     }
 
     // ── The KEYWORD slot that BORROWS cobolWord (kb/Work PB693) ─────────────────────────
@@ -292,7 +292,7 @@ public sealed class ReservedWordPositionConformanceTests
     /// from 2002 AND has a lexer token, so the gate removes its <c>cobolWord</c> alternative there; the ON-phrase
     /// slot borrowed <c>cobolWord</c> to match it, which turned this legal clause into a parse error carrying a
     /// FALSE "'FORMAT' … cannot be used as a user-defined word". The word is a KEYWORD here, so the answer is
-    /// the declined-facility COBOLNET1708 (Annex A.4.14 — the VALIDATE facility's support is not claimed) and
+    /// the declined-facility COBOL1708 (Annex A.4.14 — the VALIDATE facility's support is not claimed) and
     /// NO §8.9 diagnostic at all. The <c>declined-validate-status</c> negative case is the corpus twin.</summary>
     [Theory]
     [InlineData(2002)]
@@ -302,8 +302,8 @@ public sealed class ReservedWordPositionConformanceTests
     {
         var (ok, diags) = EditionHarness.Compile(ValidateStatusOnPhraseProgram, edition);
         Assert.False(ok, $"--std {edition} must decline the VALIDATE-STATUS clause");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET1708");
-        EditionHarness.AssertNoDiagnostic(diags, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1708");
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL0901");
     }
 
     /// <summary>The same clause under <c>--permissive</c>: FORMAT is a word COBOL-2002 ADDED to §8.9 (r85 false),
@@ -316,8 +316,8 @@ public sealed class ReservedWordPositionConformanceTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(ValidateStatusOnPhraseProgram, 2002, permissive: true);
         Assert.True(ok, $"--std 2002 --permissive: {string.Join("; ", errors)}");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1708");
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1708");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0901");
     }
 
     /// <summary>ONE occurrence of the word, ONE report (kb/Work PB693). A REFERENCE to a reservation-gated
@@ -343,8 +343,8 @@ public sealed class ReservedWordPositionConformanceTests
                 STOP RUN.
             """, edition);
         Assert.False(ok, $"--std {edition} strict must reject a reference to the reserved word FORMAT");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0901");
-        Assert.Equal(1, diags.Count(d => d.Contains("COBOLNET0901", StringComparison.Ordinal)
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0901");
+        Assert.Equal(1, diags.Count(d => d.Contains("COBOL0901", StringComparison.Ordinal)
                                          && d.Contains("'FORMAT'", StringComparison.Ordinal)));
     }
 }

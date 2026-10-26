@@ -346,7 +346,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// sit. A PICTURE-less entry with no subordinates is neither elementary (§8.5.1.3.1 — "The most basic
     /// subdivisions of a record, that is, those not further subdivided, are called elementary items") nor a group item — an
     /// error-recovery artifact (a refused MESSAGE-TAG or staged FUNCTION-POINTER entry, a picture-less
-    /// <c>USAGE NATIONAL</c> awaiting COBOLNET0881) — and §14.7.6 speaks only of "a data item in D1". Keeping it
+    /// <c>USAGE NATIONAL</c> awaiting COBOL0881) — and §14.7.6 speaks only of "a data item in D1". Keeping it
     /// in a MOVE-validity filter made the exclusion invisible to ADD and SUBTRACT CORRESPONDING, which reached
     /// it only through rule 3's numeric test by luck of ordering.</para></summary>
     private static bool CorrEligible(DataItem item) =>
@@ -374,7 +374,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// <c>1(4) BIT</c>→<c>1(4) BIT</c> were silently dropped where it says Yes.</para>
     /// <para>⚠ A REFUSAL IS A SILENT NON-SELECTION, NEVER A DIAGNOSTIC. §14.7.6 defines which pairs CORRESPOND;
     /// a pair whose implied move would be invalid simply is not one, so the receiving item keeps its prior
-    /// content and the direct-MOVE COBOLNET0819 must not fire from here. That is why this reads
+    /// content and the direct-MOVE COBOL0819 must not fire from here. That is why this reads
     /// <see cref="MoveValidity.Table16Refusal"/>'s null-ness and discards its message.</para>
     /// <para>⚠ THE ≥2002 DE-EDITING GATE THE PRIVATE COPY CARRIED IS GONE, DELIBERATELY. It admitted a
     /// numeric-edited sender into a numeric receiver only at <c>--std</c> 2002 and above, with no citation and
@@ -388,7 +388,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// numeric or numeric-edited receiver) and SR9 (a variable-length group operand needs a compatible group on
     /// the other side), both MEASURED wrong: <c>MOVE CORRESPONDING</c> over a <c>BINARY-LONG</c> K and a
     /// <c>PIC X(5)</c> K paired them and overwrote the receiver, while the written <c>MOVE K OF G1 TO K OF G2</c>
-    /// was refused COBOLNET0819 by the same compiler; and a variable-length-group namesake paired with an
+    /// was refused COBOL0819 by the same compiler; and a variable-length-group namesake paired with an
     /// elementary one reached the run time as a <c>NotImplementedCobolFeatureException</c>. Both are asked now
     /// through the ONE composite entry <see cref="MoveTable16.DataItemRefusal"/> — a single call, so the next
     /// MOVE syntax rule lands here without an edit.</para>

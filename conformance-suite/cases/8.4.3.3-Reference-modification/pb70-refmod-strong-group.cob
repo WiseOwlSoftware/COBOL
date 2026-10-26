@@ -7,7 +7,7 @@
       *> ISO 8.4.3.3.3 SR1: identifier-1 may be "a group item that is neither a strongly-typed group nor a
       *> variable-length group" - a STRONG typed group is excluded. kb/Work PB70: every SR1 exclusion used to
       *> fall to a run-time NotImplemented (a sending ref-mod) or a silent drop (a receiving one); it is a
-      *> bind-time rejection now, COBOLNET1647.
+      *> bind-time rejection now, COBOL1647.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB70NSTRONG.
        DATA DIVISION.

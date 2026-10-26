@@ -12,7 +12,7 @@
       *> an alphanumeric group item that includes all elementary items starting with data-name-2 ... or
       *> the first elementary item in data-name-2 (if data-name-2 is a group item), and concluding with
       *> data-name-3". So a THROUGH alias IS a group data item and SR12 admits it on either side; this
-      *> program used to be refused COBOLNET1757 "described with level-number 66, so it is not a group
+      *> program used to be refused COBOL1757 "described with level-number 66, so it is not a group
       *> data item". SR12 names no level number (ADD/SUBTRACT SR6 do; they still refuse it).
       *>
       *> DETERMINATION (docs/CONFORMANCE.md section 7): 14.7.6 rule 1 pairs items with "the same data-name

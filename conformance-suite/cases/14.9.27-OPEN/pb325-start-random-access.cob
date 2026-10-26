@@ -9,7 +9,7 @@
 *> START legal on an ACCESS RANDOM connector. The blank row is not a run-time status - unlike WRITE's item-8
 *> '48' and REWRITE/DELETE's item-9 '49', 9.1.13.7 names no status for it - because 14.9.41.3 SR1 removes the
 *> statement at COMPILE time: "The access mode of the file referenced by file-name-1 shall be either
-*> sequential or dynamic."  KeyedIoBinder.BindStart screens it with COBOLNET0862.
+*> sequential or dynamic."  KeyedIoBinder.BindStart screens it with COBOL0862.
 *> BOTH keyed organizations are exercised: the screen sits before the organization split, so a
 *> one-organization fixture would not show that the relative arm is covered too.
 *> The reachable cells of the same table are walked by conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative and
