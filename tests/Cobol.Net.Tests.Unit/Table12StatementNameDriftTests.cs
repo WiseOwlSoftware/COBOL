@@ -71,7 +71,7 @@ public sealed class Table12StatementNameDriftTests
     /// <summary>The rule reference of every <c>statement</c> alternative, scraped from the grammar (comments
     /// stripped first — sibling rules are NAMED in the rule's comments). Asserts each alternative is a single
     /// rule reference, the shape <see cref="Table12StatementNames.NameOf"/> depends on.</summary>
-    private static List<string> ScrapeStatementAlternatives()
+    internal static List<string> ScrapeStatementAlternatives()
     {
         string grammar = File.ReadAllText(TestRepo.Src(
             Path.Combine("Cobol.Net.Frontend", "Grammar", "CobolParserCore.g4")));
@@ -123,8 +123,9 @@ public sealed class Table12StatementNameDriftTests
     // ── The other two columns: conditional phrase and explicit scope terminator (kb/Work PB351) ─────────────
 
     /// <summary>Table 12's three columns per row — (statement name, conditional phrase, explicit scope terminator) —
-    /// scraped the way <see cref="ScrapeTable12"/> scrapes the first.</summary>
-    private static List<(string Name, string Phrase, string Terminator)> ScrapeTable12Rows()
+    /// scraped the way <see cref="ScrapeTable12"/> scrapes the first. Internal: <c>ConditionalPhraseDriftTests</c>
+    /// reads the conditional-phrase column through the SAME scrape (kb/Work PB3830).</summary>
+    internal static List<(string Name, string Phrase, string Terminator)> ScrapeTable12Rows()
     {
         string spec = File.ReadAllText(Path.Combine(TestRepo.Root, "specs", "ISO_COBOL.md"));
         int anchor = spec.IndexOf("<a id=\"table-12\">", StringComparison.Ordinal);
@@ -170,8 +171,9 @@ public sealed class Table12StatementNameDriftTests
     /// END-PERFORM, so <see cref="ConditionalStatements.IsConditional"/> can never call it conditional. A new
     /// statement rule that carries an imperative operand without a conditional phrase fails here until the
     /// classifier is taught what it is.</summary>
-    [Fact]
-    public void OnlyARowWithAConditionalPhrase_OrTheTerminatedPerform_HoldsAStatementBlock()
+    /// <summary>Every parser rule of every grammar file, name → body, comments stripped (the rules' own comments
+    /// quote other rules' names). Internal: <c>ConditionalPhraseDriftTests</c> reads the same scrape.</summary>
+    internal static Dictionary<string, string> ScrapeGrammarRules()
     {
         var grammarRules = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (string file in Directory.EnumerateFiles(
@@ -184,6 +186,13 @@ public sealed class Table12StatementNameDriftTests
         }
         Assert.True(grammarRules.ContainsKey("statementBlock") && grammarRules.Count > 300,
             $"scraped {grammarRules.Count} parser rules — the grammar scrape broke");
+        return grammarRules;
+    }
+
+    [Fact]
+    public void OnlyARowWithAConditionalPhrase_OrTheTerminatedPerform_HoldsAStatementBlock()
+    {
+        var grammarRules = ScrapeGrammarRules();
 
         bool Reaches(string rule)
         {

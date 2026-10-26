@@ -1,0 +1,61 @@
+      *>--- conformance-case
+      *> id: pb3830-second-on-size-error
+      *> rules: [GR-14.5.3.3-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> kb/Work PB3830. ISO 14.5.3.3 (its closing paragraph, after list item 4):
+      *> "Any phrase encountered is the next phrase of the most-recently
+      *> preceding unterminated statement with which that phrase may be
+      *> syntactically associated. If all permitted occurrences of a phrase
+      *> have already been specified for a given statement, a subsequent
+      *> occurrence of that phrase is not syntactically associated with that
+      *> statement." (cite.py --check 14.5.3.3 -> OK; cite.py labels the
+      *> paragraph "4)", the rendered page prints it unindented after 4) b).)
+      *> ISO 14.5.1: "Any statement with a conditional phrase that is not
+      *> terminated by its explicit scope terminator is a conditional
+      *> statement" (cite.py --check 14.5.1 -> OK).
+      *>
+      *> all permitted occurrences of ON SIZE ERROR are written, and no other statement is open, so the phrase may be
+      *> syntactically associated with no statement. Refused COBOLNET2269
+      *> (the statement-format-shape code) at every edition.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB3830U3.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT SF ASSIGN TO "PB3830U3S.TMP"
+               ORGANIZATION IS SEQUENTIAL.
+           SELECT RELF ASSIGN TO "PB3830U3R.TMP"
+               ORGANIZATION IS RELATIVE
+               ACCESS MODE IS DYNAMIC
+               RELATIVE KEY IS RK.
+           SELECT PRTF ASSIGN TO "PB3830U3P.TMP"
+               ORGANIZATION IS SEQUENTIAL.
+       DATA DIVISION.
+       FILE SECTION.
+       FD SF.
+       01 SF-REC PIC X(4).
+       FD RELF.
+       01 RELF-REC PIC X(4).
+       FD PRTF LINAGE IS 2 LINES.
+       01 PRT-REC PIC X(4).
+       WORKING-STORAGE SECTION.
+       01 RK   PIC 9(4) VALUE 5.
+       01 A    PIC 9 VALUE 5.
+       01 B    PIC 9 VALUE 9.
+       01 C    PIC 9 VALUE 0.
+       01 D    PIC 9 VALUE 0.
+       01 F    PIC X VALUE "-".
+       01 G    PIC X VALUE "-".
+       01 S1   PIC X(4) VALUE "ABCD".
+       01 S2   PIC X(2) VALUE SPACES.
+       01 T-AREA VALUE "ABC".
+          05 T-E PIC X OCCURS 3 INDEXED BY TI.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           ADD A TO B
+               ON SIZE ERROR MOVE "S" TO F
+               ON SIZE ERROR MOVE "T" TO F
+           END-ADD
+           STOP RUN.

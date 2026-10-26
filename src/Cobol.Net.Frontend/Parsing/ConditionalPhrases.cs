@@ -85,15 +85,19 @@ public static class ConditionalPhrases
             + nameof(FamilyOfHeadToken) + " must follow it");
     }
 
-    /// <summary>The kind of the phrase the token stream holds next (<c>NOT</c>? then <c>ON</c>/<c>AT</c>? then the
-    /// keyword), or null when it holds none. Read-only over the stream — safe in ANTLR's repeated predictions.</summary>
-    internal static ConditionalPhraseKind? KindAhead(ITokenStream stream)
+    /// <summary>The kind of the phrase the token stream holds next, or null when it holds none. Read-only over the
+    /// stream — safe in ANTLR's repeated predictions.</summary>
+    internal static ConditionalPhraseKind? KindAhead(ITokenStream stream) =>
+        KindOfLeadingTokens(stream.LA(1), stream.LA(2), stream.LA(3));
+
+    /// <summary>The ONE reading of a phrase's leading token types — <c>NOT</c>? then <c>ON</c>/<c>AT</c>? then the
+    /// keyword — for the parse-time predicate and the error strategy alike; null when they open no phrase.</summary>
+    internal static ConditionalPhraseKind? KindOfLeadingTokens(int first, int second, int third)
     {
-        int i = 1;
-        bool negated = stream.LA(i) == CobolLexer.NOT;
-        if (negated) i++;
-        if (stream.LA(i) is CobolLexer.ON or CobolLexer.AT) i++;
-        return FamilyOfHeadToken(stream.LA(i)) is { } family ? new(family, negated) : null;
+        bool negated = first == CobolLexer.NOT;
+        int next = negated ? second : first, after = negated ? third : second;
+        int keyword = next is CobolLexer.ON or CobolLexer.AT ? after : next;
+        return FamilyOfHeadToken(keyword) is { } family ? new(family, negated) : null;
     }
 
     /// <summary>The kinds of the phrases <paramref name="phrases"/> holds, in written order.</summary>
@@ -104,10 +108,6 @@ public static class ConditionalPhrases
     /// there is never a second.</summary>
     public static Core.ConditionalPhraseContext? Find(Core.ConditionalPhrasesContext? phrases, ConditionalPhraseKind kind) =>
         phrases?.conditionalPhrase().FirstOrDefault(p => KindOf(p) == kind);
-
-    /// <summary>The imperative-statement of the written phrase of <paramref name="kind"/>, or null.</summary>
-    public static Core.StatementBlockContext? Block(Core.ConditionalPhrasesContext? phrases, ConditionalPhraseKind kind) =>
-        Find(phrases, kind)?.statementBlock();
 
     /// <summary>Whether any phrase of <paramref name="family"/> (either polarity) is written.</summary>
     public static bool HasFamily(Core.ConditionalPhrasesContext? phrases, ConditionalPhraseFamily family) =>
@@ -154,7 +154,7 @@ public static class ConditionalPhraseAssociation
 
     /// <summary>⛔ THE OWNERS: every grammar rule that writes <c>conditionalPhrases</c>, with its general formats' phrase
     /// brackets (the §14.9 general formats, read against Table 12 by <c>ConditionalPhraseDriftTests</c>).</summary>
-    public static readonly FrozenDictionary<int, Format[]> Owners = new Dictionary<int, Format[]>
+    public static readonly FrozenDictionary<int, IReadOnlyList<Format>> Owners = new Dictionary<int, IReadOnlyList<Format>>
     {
         // §14.9.2 / §14.9.44 / §14.9.26 / §14.9.12 / §14.9.8: every format prints [| ON SIZE ERROR | NOT ON SIZE ERROR |].
         [Core.RULE_addStatement] = [Pair(ConditionalPhraseFamily.SizeError)],
@@ -238,7 +238,7 @@ public static class ConditionalPhraseAssociation
         for (var c = context; c is not null; c = c.Parent as ParserRuleContext)
         {
             if (c is Core.ConditionalPhrasesContext open) candidates.Add(open);
-            for (var d = LastRuleChild(c); d is not null; d = LastRuleChild(d))
+            for (var d = CobolErrorStrategy.LastRuleChild(c); d is not null; d = CobolErrorStrategy.LastRuleChild(d))
                 if (d is Core.ConditionalPhrasesContext ended) candidates.Add(ended);
         }
         // Not this rule's error when a candidate may take the phrase: the parse failed for another reason.
@@ -266,18 +266,12 @@ public static class ConditionalPhraseAssociation
     /// <summary>The conditional phrase the default-channel tokens from <paramref name="index"/> spell, or null.</summary>
     private static ConditionalPhraseKind? KindAt(ITokenStream stream, int index)
     {
-        var tokens = new List<int>(3);
-        for (int i = index; i < stream.Size && tokens.Count < 3; i++)
-            if (stream.Get(i) is { Channel: TokenConstants.DefaultChannel } t) tokens.Add(t.Type);
-        int at = 0;
-        bool negated = tokens.Count > at && tokens[at] == CobolLexer.NOT;
-        if (negated) at++;
-        if (tokens.Count > at && tokens[at] is CobolLexer.ON or CobolLexer.AT) at++;
-        return tokens.Count > at && ConditionalPhrases.FamilyOfHeadToken(tokens[at]) is { } family ? new(family, negated) : null;
+        Span<int> types = [TokenConstants.EOF, TokenConstants.EOF, TokenConstants.EOF];
+        int n = 0;
+        for (int i = index; i < stream.Size && n < types.Length; i++)
+            if (stream.Get(i) is { Channel: TokenConstants.DefaultChannel } t) types[n++] = t.Type;
+        return ConditionalPhrases.KindOfLeadingTokens(types[0], types[1], types[2]);
     }
-
-    private static ParserRuleContext? LastRuleChild(ParserRuleContext c) =>
-        c.ChildCount > 0 ? c.GetChild(c.ChildCount - 1) as ParserRuleContext : null;
 
     /// <summary>The verb of the statement that owns <paramref name="phrases"/> (a screen ACCEPT / DISPLAY owns them
     /// through its positioning phrase).</summary>
@@ -293,7 +287,7 @@ public static class ConditionalPhraseAssociation
         (phrases.Parent as ParserRuleContext ?? throw new InvalidOperationException(
             "conditionalPhrases has no owning rule context")).RuleIndex;
 
-    private static Format[] FormatsOf(int ownerRule) =>
+    private static IReadOnlyList<Format> FormatsOf(int ownerRule) =>
         Owners.TryGetValue(ownerRule, out var formats) ? formats
             : throw new InvalidOperationException(
                 $"grammar rule '{Core.ruleNames[ownerRule]}' writes conditionalPhrases but has no row in "
