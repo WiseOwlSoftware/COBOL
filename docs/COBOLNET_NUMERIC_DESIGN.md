@@ -574,7 +574,9 @@ four the sibling sweep found, `**` included — it reaches the same quantizer an
 - A **float receiver** and a **receiver-less** render keep the binary64 for the same reason (D18 b), and
   `FloatLanding` now answers that too — see "The receiver-shape half is folded in" below.
 - A **floating-point numeric-edited** resultant (`FloatEdited`, data-model design D21 / kb/Work PB66) is never a final transfer for this
-  purpose: it has no fixed fraction scale to round at, so it keeps the working scale and truncates.
+  purpose: it has no fixed fraction scale to round at, so it keeps the binary64 and the store normalizes it into the
+  mask and rounds the significand by the receiver's mode (kb/Work PB3829's sweep: it used to land at the ≥ 9 working
+  scale with truncation first, so `SQRT(1.5241383936E-24)` into `+9.999E+99` displayed +0.000E+00).
 
 Two consumers, one rule: `IntrinsicRenderer.RenderFloatNative` (the §15.4.1 float family) and
 `NumericRenderer.Power` (native `**`). `CobolIntrinsics.FromDouble` takes the mode as a
@@ -668,7 +670,7 @@ function of the family lands through the one `FromDouble`, and the golden
 **Guard.** `FloatLandingModeDriftTests` proves every invariant over every legal (integer-digits, scale) pair
 crossed with every one of the eight modes — the final transfer's scale and mode, the store's rescale being the
 identity, a nested intermediate being `Binary64`, a float / receiver-less receiver being `Binary64` even on a
-final transfer, the float-edited resultant keeping the working scale — asserts the runtime quantizer names no
+final transfer, the float-edited resultant keeping the binary64 — asserts the runtime quantizer names no
 rounding mode of its own, and asserts that NEITHER consumer re-derives the receiver-shape half in its own
 landing body; `CarrierLandingFormTests.FromDouble_IsTheSameLandingAsTheMove` sweeps every mode instead of the one
 both channels used to hard-code. `ArithmeticOneInitialEvaluationDriftTests` reads the EMITTED C# and asserts each

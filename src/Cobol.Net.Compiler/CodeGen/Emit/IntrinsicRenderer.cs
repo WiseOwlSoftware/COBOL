@@ -448,7 +448,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 // (ReceiverContext.MoveSender: the receiver's scale is known and MOVE lands the parsed decimal
                 // digit-for-digit; the binary64 route would land NUMVAL-F("1.5E-8") into V9(9) as 14 through
                 // ToScaled's multiply-then-truncate, and lose every digit past the 17th of a 20-digit argument).
-                if (num.Receiver.Real || (num.Receiver.Receiverless && !num.Receiver.MoveSender))
+                // ⛔ A FLOATING-POINT NUMERIC-EDITED receiver has no fixed scale either (kb/Work PB3829's sweep, the
+                // FloatLanding rule): its store normalizes the value into the mask, so a landing at the ≥ 9 working
+                // scale first turned NUMVAL-F("1.5E-12") into +0.000E+00. It takes the binary64 too.
+                if (num.Receiver.Real || num.Receiver.FloatEdited || (num.Receiver.Receiverless && !num.Receiver.MoveSender))
                     return new NumX(RuntimeApi.Intrinsic("NumvalFDouble", $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0, Real: true, Approximate: true);
                 int ws = num.Receiver.FloatWorkingScale;
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}, {ws}{CommaFlag}{DigitCapFlag}{CheckedFlag}"), ws);
