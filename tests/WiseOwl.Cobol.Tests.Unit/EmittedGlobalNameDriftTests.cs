@@ -18,20 +18,21 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ EVERY NAMESPACE-QUALIFIED NAME THE CODE GENERATOR WRITES IS global::-ROOTED (docs/rearchitecture/
 /// DESIGN-external-repository.md §4.5; kb/Work PB2097). Every emitted type lives in the module's namespace
 /// <c>Cobol.&lt;S&gt;</c>, <c>&lt;S&gt;</c> the assembly simple name, so the namespace <c>Cobol.System</c> of an assembly
-/// named <c>System</c> (or <c>Cobol.WiseOwl.Cobol</c>, <c>Cobol.Microsoft</c>) is a member of the enclosing <c>Cobol</c>
+/// named <c>System</c> (or <c>Cobol.WiseOwl</c>, <c>Cobol.Microsoft</c>) is a member of the enclosing <c>Cobol</c>
 /// namespace, and C# resolves a written <c>System.Math.Max</c> to <c>Cobol.System.Math</c> before it reaches the
 /// global namespace: CS0234 on legal source. The generated file's using directives sit inside the module's namespace
 /// and name their namespaces from <c>global::</c>, which roots every SIMPLE name; this test roots every QUALIFIED one.
 /// It reads every string the compiler's code generator and binder hold (literal and interpolated text, through the
 /// Roslyn syntax tree, so the code between an interpolation's braces is not read as text) and is red when one spells
-/// <c>System.</c>, <c>WiseOwl.Cobol.</c> or <c>Microsoft.</c> without <c>global::</c> in front.
+/// <c>System.</c>, <c>WiseOwl.</c> (the first segment of the compiler's and the runtime's namespaces, kb/Work PB3837) or
+/// <c>Microsoft.</c> without <c>global::</c> in front.
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class EmittedGlobalNameDriftTests
 {
     /// <summary>A root namespace at the start of a qualified name: not preceded by a name character, a member dot, the
     /// <c>::</c> of <c>global::</c>, or a verbatim <c>@</c>.</summary>
-    private static readonly Regex UnrootedQualifiedName = new(@"(?<![\w.:@])(System|WiseOwl.Cobol|Microsoft)\.[A-Za-z_]",
+    private static readonly Regex UnrootedQualifiedName = new(@"(?<![\w.:@])(System|WiseOwl|Microsoft)\.[A-Za-z_]",
         RegexOptions.Compiled);
 
     /// <summary>Strings the compiler holds that are NOT C# it emits, with the reason: each is matched by file and by a
@@ -39,6 +40,7 @@ public sealed class EmittedGlobalNameDriftTests
     private static readonly (string File, string Fragment, string Why)[] NotEmittedCSharp =
     [
         ("CodeGen/AssemblyPackager.cs", "Microsoft.NETCore.App", "the runtimeconfig JSON names the shared framework"),
+        ("CodeGen/AssemblyPackager.cs", "WiseOwl.Cobol.Runtime.dll", "the runtime's FILE name, copied beside the program"),
         ("Binding/PictureAnalyzer.cs", "System.Decimal is a different", "a diagnostic message a user reads"),
     ];
 
@@ -73,7 +75,7 @@ public sealed class EmittedGlobalNameDriftTests
             .Distinct()
             .ToList();
         Assert.True(unrooted.Count == 0,
-            "the compiler writes these qualified names without global::, so an assembly named System, WiseOwl.Cobol or Microsoft "
+            "the compiler writes these qualified names without global::, so an assembly named System, WiseOwl or Microsoft "
             + "captures them inside its namespace Cobol.<S> (CS0234 on legal source; DESIGN-external-repository §4.5) — write "
             + "each as global::System.… (or, when the string is not emitted C#, list it in NotEmittedCSharp with why):\n  "
             + string.Join("\n  ", unrooted));

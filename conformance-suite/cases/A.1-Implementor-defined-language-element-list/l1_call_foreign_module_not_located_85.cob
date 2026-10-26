@@ -39,7 +39,7 @@
        PROGRAM-ID. L1CNC85.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 WS-NAME PIC X(17) VALUE "WiseOwl.Cobol.Runtime".
+       01 WS-NAME PIC X(21) VALUE "WiseOwl.Cobol.Runtime".
        PROCEDURE DIVISION.
        MAIN-PARA.
            CALL "L1CNC85S"
