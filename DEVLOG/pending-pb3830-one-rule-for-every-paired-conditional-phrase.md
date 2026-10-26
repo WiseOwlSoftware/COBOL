@@ -94,4 +94,6 @@ arithmetic-operand reading (`ExpressionBinder.ComputeZeroOperand`). The other fo
 prints. New: golden `pb3830_compute_zero_size_error` (85–2023), refusals `pb3830-compute-zero-binds-inward` (COBOL2796)
 and `pb3830-compute-all-zero-numeric` (COBOL0902, 2002–2023), a COMPUTE leg in `pb1415_all_zero_numeric_85`, and a
 boolean-receiver ZERO row in `BooleanOperatorTests` (COBOL1511). Inventory batch `pb3830-review-r2-compute-zero` adds
-the witnesses; GAP 31 → 31.
+the witnesses; GAP 31 → 31. Gate (run `000001-20261026T205257Z`, head f3076f15f): `=== BUILD-LOCAL GATE: LEG 1 ONLY
+(batched gating, PB2515): GREEN — … Conformance 12,921/18,920 · Unit 37,613/38,400 · Characterization 36/36 cases ran
+(skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN …`.
