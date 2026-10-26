@@ -37,8 +37,10 @@ that creates each, and the splits not yet landed), and `ScriptLayeringDriftTests
 1. The planner's line is a chain (coord, reports, branch_classify, inflight, clusters, groups, dispatch_ledger,
 plan_wave). A module whose split has not landed stands for the modules its split creates, so `inflight.py` may import
 `prune_worktrees` for the survey's git facts until PB3731 moves them. An import inside a `self_test` is test code. A
-declared module that existed before, or whose step's note is landed, must exist, so a rename never reads as "not created
-yet". The audit's self-test plants each rule's violation. `GitBatchDriftTests` now holds the new in-flight readers too,
+declared module that existed before must exist, and a split is all or nothing (once one of its modules exists, every one
+does), so a rename never reads as "not created yet". A first version decided "created" from the step's kb/Work status,
+and the gate's Linux inert watch caught the test reading kb/Work notes, which the inert lane skips tests for; the
+structural rule needs no register. The audit's self-test plants each rule's violation. `GitBatchDriftTests` now holds the new in-flight readers too,
 and `MergeDriverDriftTests` reads the predecessor-merge instructions where they now live, `groups.py`.
 
 The oracle: `test_plan_wave.py` passed 460 of 460 checks with the identical 416 `check(` labels, and the golden

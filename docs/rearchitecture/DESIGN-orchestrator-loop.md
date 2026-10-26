@@ -1769,7 +1769,8 @@ split has not landed STANDS FOR the modules its split creates (`SPLITS`): its ow
 and an import of it is allowed wherever an import of one of those modules is, so `inflight.py` may import
 `prune_worktrees` for the git facts until PB3731 moves them into `branch_classify.py`; and an import inside a script's
 `self_test` is test code, never a layer (the cases move to `scripts/selftests/`, §16.2). A declared module that existed
-before the restructure, or whose step's note is landed, must exist, so a rename never reads as "not created yet".
+before the restructure must exist, and a split is all or nothing (once one module of a split exists, every one
+does), so a rename never reads as "not created yet".
 
 | Tier | Note | Step | Files claimed whole | Oracle (what proves nothing changed) |
 |---|---|---|---|---|

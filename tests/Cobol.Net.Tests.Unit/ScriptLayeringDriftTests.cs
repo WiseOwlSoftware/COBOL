@@ -16,7 +16,7 @@ namespace CobolNet.Tests.Unit;
 /// acyclic; each module's imports are read from its syntax tree (module level, inside a function, under
 /// <c>TYPE_CHECKING</c>), a declared module not created yet is skipped, a module whose split has not landed stands for
 /// the modules its split creates, an import inside a script's <c>self_test</c> is test code, never a layer, and a
-/// declared module that existed before the restructure or whose step's note is landed must exist (a rename that left the
+/// declared module that existed before the restructure must exist and a split is all or nothing (a rename that left the
 /// declaration behind would otherwise read as "not created yet").
 /// </summary>
 /// <remarks>
