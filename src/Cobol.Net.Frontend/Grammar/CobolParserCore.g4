@@ -1100,8 +1100,9 @@ statementBlock
 // statement, a subsequent occurrence of that phrase is not syntactically associated with that statement." ANTLR's
 // greedy loop supplies "most-recently preceding" (the innermost open statement is asked first); the predicate supplies
 // "may be syntactically associated" — the phrase is in one of the owner's printed general formats together with the
-// phrases already written, and is not one already written (ConditionalPhraseAssociation, which also keeps a superset
-// reading, last of all, so a phrase NO statement may take is still refused by name rather than as a bare COBOL0001).
+// phrases already written, and is not one already written (ConditionalPhraseAssociation; a phrase only an earlier
+// edition's format prints still associates, last of all, so the conformance pass names it, and a phrase NO open
+// statement may take is named COBOLNET2269 by CobolErrorStrategy).
 // So in `SUBTRACT A FROM C ON SIZE ERROR ADD 1 TO D NOT ON SIZE ERROR …` the NOT phrase is the ADD's, the ADD is a
 // conditional statement inside an imperative-statement, and COBOLNET2796 refuses it; in `READ F AT END ADD 1 TO X NOT
 // AT END …` the ADD cannot take NOT AT END, so it is the READ's.

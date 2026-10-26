@@ -91,7 +91,7 @@ implementation increment. `[F]` = frontend-inline (no bound residue); `[B]` = bo
 | j VALUE-EDITING | a numeric-edited item whose VALUE is a literal with no editing symbols | `[B]` `GateData`/`DataItem.RawValue` + Pic | 1 | E.2 item 29 |
 | k VALUE-FIG-CON-LENGTH | a figurative constant in a VALUE clause of an item with no specified length | `[B]` `GateData`/`DataItem` (fig word + length model) | 1 | E.2 item 11. GR4 spells it `VALUE-FIG-CON-NO-LENTH` (typo); the accepted word is the figure's `VALUE-FIG-CON-LENGTH` |
 | l VALUE-ZERO | a numeric-edited item whose VALUE specifies figurative ZERO | `[B]` = same as g | 1 | E.2 item 28. Deduped with g |
-| m WRITE-END-OF-PAGE | a WRITE that *allows* END-OF-PAGE (file has LINAGE) but omits the AT EOP phrase — a WRITE with only NOT AT END-OF-PAGE omits it (§14.9.51.3 SR19 names the two phrases separately) | `[B]` `VisitWriteStatement` + File LINAGE, `PhraseBlocks.HasOnBranch` | 1 | E.2 item 19 family (AT-EOP default); GR4 m normative |
+| m WRITE-END-OF-PAGE | a WRITE that *allows* END-OF-PAGE (file has LINAGE) but omits the AT EOP phrase — a WRITE with only NOT AT END-OF-PAGE omits it (§14.9.51.3 SR19 names the two phrases separately) | `[B]` `VisitWriteStatement` + File LINAGE, `ConditionalPhrases.Find` (the positive AT END-OF-PAGE phrase) | 1 | E.2 item 19 family (AT-EOP default); GR4 m normative |
 
 ### 1.2 FLAG-02 (§7.3.14.4 GR4 a–f — ALL + 5 options)
 
@@ -206,7 +206,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
 * **Incr 1 — the data/VALUE + report/WRITE options** (parse arm + resolved lookups), delivered as sub-increments:
   * **1a (DONE)** g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO — `VisitDataDescriptionEntry`; numeric-edited via the ONE
     `PictureAnalyzer` (discard edition); figurative ZERO via `FirstDescendant<FigurativeConstantContext>`.
-  * **1c (DONE)** m WRITE-END-OF-PAGE (WRITE + `FileModel.Linage` + no `writeAtEndOfPage`) + FLAG-02 f
+  * **1c (DONE)** m WRITE-END-OF-PAGE (WRITE + `FileModel.Linage` + no AT END-OF-PAGE phrase in its `conditionalPhrases`) + FLAG-02 f
     TERMINATE-WITH-VARYING (TERMINATE + a report whose fields carry `Varyings`) — scope-exact (kb/Work PB3288): the
     WRITE's record-name (qualified or not, through `ResolveItem`) or `FILE file-name` resolves to a file among
     `VisibleFiles()` (the unit's own, then its containers' GLOBAL ones, §13.18.27.4 GR1), and each TERMINATE report-name

@@ -49,7 +49,8 @@ public sealed class RequiredFormatPhraseDriftTests
     {
         ["14.9.34.2|AT"] = "RETURN's AT END — bind-time COBOLNET1850 via "
             + "StatementValidation.ScreenOmittedRequiredPhrase from SortBinder.BindReturn (kb/Work PB350); the "
-            + "grammar keeps `returnAtEndPhrase?` on purpose so the diagnostic can name the rule",
+            + "grammar keeps the phrase inside the optional `conditionalPhrases` on purpose so the diagnostic can name "
+            + "the rule (kb/Work PB3830)",
         ["14.9.37.2|WHEN"] = "SEARCH ALL's WHEN — already required BY THE GRAMMAR: "
             + "`searchAllWhenClause+` (and `searchWhenClause+` for Format 1), so no bind screen is needed",
     };
@@ -115,7 +116,7 @@ public sealed class RequiredFormatPhraseDriftTests
         // §14.9.30.2 Format 1 prints READ's AT END / NOT AT END pair inside BRACKETS WITH CHOICE INDICATORS,
         // which §5.2.6.4 reads as "zero or more of the alternatives" — so READ's phrase really is optional and
         // must NOT be reported. A scrape that could not tell the two pages apart would fail here, and that
-        // asymmetry is exactly what `readAtEnd` depends on.
+        // asymmetry is exactly what READ's phrase depends on.
         Assert.DoesNotContain(hits, h => h.Clause == "14.9.30.2");
 
         // Exactly the adjudicated rows, no more: a new one is a decision, never a silent pass.
@@ -132,8 +133,9 @@ public sealed class RequiredFormatPhraseDriftTests
             "Cobol.Net.Compiler", "Binding", "Procedure", "Verbs", "SortBinder.cs"));
 
         // §14.9.34.2 — the grammar deliberately keeps the phrase OPTIONAL so the binder can name the rule …
-        // (comments stripped first: the rule's own comment block NAMES `returnAtEndPhrase?` to explain why.)
-        Assert.Matches(new Regex(@"returnStatement\s*:.*?returnAtEndPhrase\?", RegexOptions.Singleline),
+        // (comments stripped first: the rule's own comment block explains why.) `conditionalPhrases` matches empty,
+        // which is what keeps the phrase optional to the PARSE (kb/Work PB3830).
+        Assert.Matches(new Regex(@"returnStatement\s*:[^;]*?conditionalPhrases", RegexOptions.Singleline),
             Regex.Replace(io, @"//[^\r\n]*", ""));
         // … and the binder screen is the enforcement point, testing the BLOCK (which covers the reversed
         // NOT-only arm too) rather than the phrase node (which would not).
