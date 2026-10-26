@@ -29,7 +29,8 @@ that names one new witness adds it and a batch that omits the field keeps what t
 that NAMES it restates it, and a record that omits it leaves it as the row has it (kb/Work PB3795, PB3375: until
 then an omitted `notes` was written as empty, and four landings erased 25 rows' forensic prose that way). A
 statement never goes from saying something to saying nothing (`statement_losses`; writing the field empty over a
-non-empty one is refused), and a record that changes the verdict must restate `notes`, whose prose argues the old
+non-empty one is refused, except a `derivation` the row can no longer stand on: a record that gives a derivation-
+closed rule a non-resolving verdict writes `"derivation": ""` to withdraw it), and a record that changes the verdict must restate `notes`, whose prose argues the old
 verdict. Until PB959 both witness fields were overwritten too, and a batch that re-typed two of five witnesses
 deleted the other three with nothing anywhere able to see it. A witness now leaves a row only by an explicit
 RETIREMENT:
@@ -247,7 +248,7 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         # diff as well. And a record that CHANGES the verdict while keeping `notes` would leave the old verdict's
         # reasoning standing under the new one (a PARTIAL row's defect prose under the CONFORMS that closes it), so
         # it must restate the prose, as it must re-site the code-location (`resites`).
-        for loss in statement_losses(row, {**row, **after}):
+        for loss in statement_losses(row, {**row, **after}, schema):
             bad.append(f"{where}: '{loss.field}' would go from {loss.chars} characters to empty — the record writes it "
                        f"empty over what the row says; leave the field out to keep it, or restate it")
         if (row.get("verdict") and verdict != row["verdict"] and "notes" not in rec
@@ -316,7 +317,11 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         # asks, so the writer and the drift gate cannot come to read one rule differently (kb/Work PB315).
         if schema.derivation is not None:
             for refusal in schema.derivation.refusals(probe, schema):
-                bad.append(f"{where}: [{refusal.code}] {refusal.message}")
+                hint = ""
+                if refusal.code == "verdict-does-not-resolve" and schema.derivation.field not in rec:
+                    hint = (f"; the record omits '{schema.derivation.field}', which keeps the row's: write it "
+                            f"empty to withdraw the derivation this verdict can no longer stand on")
+                bad.append(f"{where}: [{refusal.code}] {refusal.message}{hint}")
 
     return bad
 
