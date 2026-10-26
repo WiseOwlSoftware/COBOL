@@ -76,7 +76,7 @@ public sealed class TextManipulationStatementTests : IDisposable
         Assert.Equal(["X1 X2 C3", "X1 X2 X3", "X1 X2 X3"], Shown(text));
     }
 
-    [Theory] // constructs row replace-also-last-2002: both phrases are COBOLNET0900 below 2002, silent from 2002.
+    [Theory] // constructs row replace-also-last-2002: both phrases are COBOL0900 below 2002, silent from 2002.
     [InlineData(85, true)]
     [InlineData(2002, false)]
     [InlineData(2014, false)]
@@ -84,7 +84,7 @@ public sealed class TextManipulationStatementTests : IDisposable
     public void AlsoAndLast_AreGatedBelow2002(int edition, bool rejected)
     {
         var (_, bag) = Run(" REPLACE ALSO ==X1== BY ==A1==.\n REPLACE LAST OFF.\n", edition);
-        Assert.Equal(rejected ? 2 : 0, bag.Diagnostics.Count(d => d.Code == "COBOLNET0900"));
+        Assert.Equal(rejected ? 2 : 0, bag.Diagnostics.Count(d => d.Code == "COBOL0900"));
     }
 
     [Theory] // constructs row replacing-partial-word-2002 (kb/Work PB1670): ONE gate for COPY and REPLACE, once per statement.
@@ -97,7 +97,7 @@ public sealed class TextManipulationStatementTests : IDisposable
         Copybook("bkpw.cpy", " 01 PFX-A PIC X.\n");
         var (_, bag) = Run(" COPY bkpw REPLACING LEADING ==PFX-== BY ==C1-== TRAILING ==-A== BY ==-B==.\n"
             + " REPLACE LEADING ==X1== BY ==Y1== TRAILING ==X2== BY ==Y2==.\n", edition);
-        Assert.Equal(expected, bag.Diagnostics.Count(d => d.Code == "COBOLNET0900"));
+        Assert.Equal(expected, bag.Diagnostics.Count(d => d.Code == "COBOL0900"));
     }
 
     [Fact] // the whole-pseudo-text operands of both statements are 1985 forms: no gate at any edition
@@ -105,14 +105,14 @@ public sealed class TextManipulationStatementTests : IDisposable
     {
         Copybook("bkpw.cpy", " 01 PFX-A PIC X.\n");
         var (_, bag) = Run(" COPY bkpw REPLACING ==PFX-A== BY ==C1-A==.\n REPLACE ==X1== BY ==Y1==.\n", 85);
-        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOLNET0900");
+        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOL0900");
     }
 
     [Fact] // §7.2.4.2 format 2: LAST is followed by OFF.
     public void LastWithoutOff_IsASyntaxError()
     {
         var (_, bag) = Run(" REPLACE LAST ==X1== BY ==A1==.\n");
-        Rejects(bag, "COBOLNET2449", "REPLACE LAST is followed by OFF");
+        Rejects(bag, "COBOL2449", "REPLACE LAST is followed by OFF");
     }
 
     // ── PB1358: §7.2.4.3 SR1 / SR2 ───────────────────────────────────────────────────────────────────────────────
@@ -140,14 +140,14 @@ public sealed class TextManipulationStatementTests : IDisposable
     public void ReplaceAfterAParenthesis_IsNotPrecededByASpace()
     {
         var (_, bag) = Run(" MOVE (REPLACE ==X1== BY ==A1==.\n");
-        Rejects(bag, "COBOLNET2449", "§7.2.4.3 SR2");
+        Rejects(bag, "COBOL2449", "§7.2.4.3 SR2");
     }
 
     [Fact] // SR2: REPLACE glued behind a period forms no statement, and says so.
     public void ReplaceGluedBehindAPeriod_IsDiagnosed()
     {
         var (_, bag) = Run(" DISPLAY X.REPLACE ==X1== BY ==A1==.\n");
-        Rejects(bag, "COBOLNET2449", "REPLACE is glued");
+        Rejects(bag, "COBOL2449", "REPLACE is glued");
     }
 
     // ── PB1353: the operand content rules (§7.2.3.3 / §7.2.4.3 — one screen) and §8.3.5 6) ──────────────────────
@@ -164,7 +164,7 @@ public sealed class TextManipulationStatementTests : IDisposable
     public void ReplaceOperandContent_IsScreened(string source, string rule)
     {
         var (_, bag) = Run(source);
-        Rejects(bag, "COBOLNET2572", rule);
+        Rejects(bag, "COBOL2572", rule);
     }
 
     [Theory]
@@ -176,7 +176,7 @@ public sealed class TextManipulationStatementTests : IDisposable
     {
         Copybook("bk1.cpy", " 01 AA-X PIC X(5) VALUE \"HELLO\".\n");
         var (_, bag) = Run(" " + statement + "\n");
-        Rejects(bag, "COBOLNET2572", rule);
+        Rejects(bag, "COBOL2572", rule);
     }
 
     [Fact] // SR9: a text-word longer than 65,535 characters, in pseudo-text and (COPY) in library text.
@@ -184,10 +184,10 @@ public sealed class TextManipulationStatementTests : IDisposable
     {
         string word = new('Q', 70_000);
         var (_, bag) = Run(" REPLACE ==" + word + "== BY ==A==.\n");
-        Rejects(bag, "COBOLNET2572", "§7.2.4.3 SR9");
+        Rejects(bag, "COBOL2572", "§7.2.4.3 SR9");
         Copybook("bklong.cpy", " 01 " + word + " PIC X.\n");
         var (_, bag2) = Run(" COPY bklong.\n");
-        Rejects(bag2, "COBOLNET2572", "§7.2.3.3 SR9");
+        Rejects(bag2, "COBOL2572", "§7.2.3.3 SR9");
     }
 
     [Fact] // The legal forms stay legal: a comma beside a word, an empty pseudo-text-2, '==' inside a literal.
@@ -205,7 +205,7 @@ public sealed class TextManipulationStatementTests : IDisposable
     public void PseudoTextDelimiters_AreSeparated(string source, string which)
     {
         var (_, bag) = Run(source);
-        Rejects(bag, "COBOLNET2573", which);
+        Rejects(bag, "COBOL2573", which);
     }
 
     // ── PB1356: the text a replacing action produces ─────────────────────────────────────────────────────────────
@@ -214,9 +214,9 @@ public sealed class TextManipulationStatementTests : IDisposable
     public void ReplaceResult_ShallNotHoldCopyOrReplace()
     {
         var (_, bag) = Run(" REPLACE ==YY== BY ==REPLACE==.\n YY\n");
-        Rejects(bag, "COBOLNET2574", "a REPLACE statement");
+        Rejects(bag, "COBOL2574", "a REPLACE statement");
         var (_, bag2) = Run(" REPLACE LEADING ==ZZ== BY ==CO==.\n ZZPY CPB.\n");
-        Rejects(bag2, "COBOLNET2574", "a COPY statement");
+        Rejects(bag2, "COBOL2574", "a COPY statement");
     }
 
     [Fact] // §7.2.4.4 GR9 "shall not contain … a comment": a partial-word result that SPELLS a comment indicator — the
@@ -225,9 +225,9 @@ public sealed class TextManipulationStatementTests : IDisposable
     public void ReplaceResult_ShallNotHoldAComment_ButALiteralMayHoldItsCharacters()
     {
         var (_, bag) = Run(" REPLACE LEADING ==Q== BY ==*==.\n SHOW Q>1 \"B\".\n");
-        Rejects(bag, "COBOLNET2574", "a comment");
+        Rejects(bag, "COBOL2574", "a comment");
         var (_, bag2) = Run(" REPLACE LEADING ==Q== BY ==X*==.\n SHOW Q>1\n");
-        Rejects(bag2, "COBOLNET2574", "a comment");
+        Rejects(bag2, "COBOL2574", "a comment");
         var (text, bag3) = Run(" REPLACE ==YY== BY ==\"*>\"==.\n SHOW YY\n");
         Clean(bag3);
         Assert.Equal(["\"*>\""], Shown(text));
@@ -238,7 +238,7 @@ public sealed class TextManipulationStatementTests : IDisposable
     {
         Copybook("bkcm.cpy", " SHOW Q>1 \"B\".\n");
         var (_, bag) = Run(" COPY bkcm REPLACING LEADING ==Q== BY ==*==.\n");
-        Rejects(bag, "COBOLNET2574", "§7.2.3.4 GR13");
+        Rejects(bag, "COBOL2574", "§7.2.3.4 GR13");
     }
 
     [Fact] // DOC-A.1-40: only a period in the FILE NAME is an extension; a period in a directory part ("../lib/BOOK",
@@ -277,7 +277,7 @@ public sealed class TextManipulationStatementTests : IDisposable
     {
         Copybook("bkr.cpy", " ZZPY bkx.\n");
         var (_, bag) = Run(" COPY bkr REPLACING LEADING ==ZZ== BY ==CO==.\n");
-        Rejects(bag, "COBOLNET2574", "§7.2.3.4 GR13");
+        Rejects(bag, "COBOL2574", "§7.2.3.4 GR13");
         Copybook("bkrep.cpy", " YY ==X1== BY ==A1==.\n SHOW X1\n");
         var (text, bag2) = Run(" COPY bkrep REPLACING ==YY== BY ==REPLACE==.\n");
         Clean(bag2);
@@ -290,7 +290,7 @@ public sealed class TextManipulationStatementTests : IDisposable
         Copybook("p6in.cpy", " 01 IN-A PIC X(2) VALUE \"IN\".\n");
         Copybook("p6out.cpy", " COPY p6in REPLACING ==IN-A== BY ==IN-B==.\n");
         var (_, bag) = Run(" COPY p6out.\n");
-        Rejects(bag, "COBOLNET1640", "GR12");
+        Rejects(bag, "COBOL1640", "GR12");
         Copybook("p6ok.cpy", " COPY p6in.\n");
         var (text, bag2) = Run(" COPY p6ok.\n");
         Clean(bag2);

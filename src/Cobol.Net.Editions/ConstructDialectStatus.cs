@@ -7,7 +7,7 @@ public enum ConstructAvailability
 {
     /// <summary>Valid at the edition, no flag.</summary>
     Available,
-    /// <summary>Newer than the edition — introduction gating (COBOLNET0900 band; error on BOTH axes).</summary>
+    /// <summary>Newer than the edition — introduction gating (COBOL0900 band; error on BOTH axes).</summary>
     NotYetIntroduced,
     /// <summary>Removed by the edition — error strict / warning permissive (the removed-construct severity seam).</summary>
     Removed,

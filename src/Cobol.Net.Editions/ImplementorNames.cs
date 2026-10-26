@@ -64,7 +64,7 @@ public sealed record ImplementorName(string Name, SystemNameKind Kind,
 /// implementor shall specify the names that are available for switch-name-1, feature-name-1, and
 /// device-name-1.</i>", and to Annex A.1 items 189 (device-name), 190 (feature-name) and 191 (switch-name).
 /// Adding the next name is A ROW HERE and nothing else: the SPECIAL-NAMES binder refuses every entry whose name is
-/// not a row (COBOLNET2241 — kb/Work PB862) and classifies every mnemonic by its row's <see cref="SystemNameKind"/>,
+/// not a row (COBOL2241 — kb/Work PB862) and classifies every mnemonic by its row's <see cref="SystemNameKind"/>,
 /// and the ACCEPT / DISPLAY / WRITE / SET binders read the row's capability. There is no second list: the
 /// <c>AcceptInputDevices</c> / <c>DisplayOutputDevices</c> sets that used to live in the ACCEPT/DISPLAY binder, and
 /// the "any switch-name is accepted" leniency of the switch registry, are this table now.
@@ -72,7 +72,7 @@ public sealed record ImplementorName(string Name, SystemNameKind Kind,
 /// <c>CONSOLE</c> (input AND output — standard input / standard output), <c>SYSIN</c> (input — standard input),
 /// <c>SYSOUT</c> (output — standard output), <c>SYSERR</c> (output — standard error). §12.3.7.3 SR7's "additional
 /// restrictions": an input-only device may not be a DISPLAY target, an output-only one may not be an ACCEPT
-/// source (COBOLNET0817).</para>
+/// source (COBOL0817).</para>
 /// <para><b>feature-names</b> (A.1 items 190 and 222): <c>C01</c> — skip to channel 1, the top of the next page
 /// (the <c>ADVANCING PAGE</c> advance); <c>CSP</c> — suppress spacing (a zero-line advance: the record is presented
 /// on the current line). ⚖ Surveyed (<c>survey_compilers_on_latitude</c> / <c>follow_gnucobol_on_split_latitude</c>):
@@ -114,7 +114,7 @@ public static class ImplementorNames
 
     private static readonly char[] Digits = "0123456789".ToCharArray();
 
-    /// <summary>The device-names with their capabilities, for a COBOLNET0817 message — generated from the table.</summary>
+    /// <summary>The device-names with their capabilities, for a COBOL0817 message — generated from the table.</summary>
     public static string DescribeDevices() => string.Join(", ", All.Values
         .Where(r => r.Kind == SystemNameKind.Device)
         .OrderBy(r => r.Name, StringComparer.Ordinal)

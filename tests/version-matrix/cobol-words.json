@@ -149,7 +149,7 @@
    "token": "BYTES",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "the RECORD clause's BYTES/CHARACTERS brace group (13.18.43.2, all three general formats). 13.18.43.3 SR2: 'The words BYTES and CHARACTERS are synonymous and may be used interchangeably'. 8.10 context-sensitive ('RECORD clause'), never 8.9-reserved at any edition, so it is a legal user word everywhere and needs no reservation gate. The CLAUSE is a different question and is gated elsewhere: the BYTES SPELLING is a COBOL-2023 addition (Annex E.3.3 item 13), refused below 2023 by VersionConformancePass.VisitRecordClause / constructs.json row record-clause-bytes-2023 - so this nameSlot row is what keeps `01 BYTES PIC X.` legal COBOL-85 while the clause is named above it, the ORDER precedent exactly. Before kb/Work PB721 the word had no token at all and `RECORD CONTAINS 20 BYTES` - legal COBOL-2023 - was refused COBOLNET1970 as an unrecognized file description clause"
+   "note": "the RECORD clause's BYTES/CHARACTERS brace group (13.18.43.2, all three general formats). 13.18.43.3 SR2: 'The words BYTES and CHARACTERS are synonymous and may be used interchangeably'. 8.10 context-sensitive ('RECORD clause'), never 8.9-reserved at any edition, so it is a legal user word everywhere and needs no reservation gate. The CLAUSE is a different question and is gated elsewhere: the BYTES SPELLING is a COBOL-2023 addition (Annex E.3.3 item 13), refused below 2023 by VersionConformancePass.VisitRecordClause / constructs.json row record-clause-bytes-2023 - so this nameSlot row is what keeps `01 BYTES PIC X.` legal COBOL-85 while the clause is named above it, the ORDER precedent exactly. Before kb/Work PB721 the word had no token at all and `RECORD CONTAINS 20 BYTES` - legal COBOL-2023 - was refused COBOL1970 as an unrecognized file description clause"
   },
   {
    "token": "B_AND",
@@ -251,7 +251,7 @@
    "token": "COMMIT",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "commit/rollback facility. USER WORD at 85/2002/2014; reserved 2023 only. The nameSlot alternative is RESERVATION-GATED (kb/Work PB137): the generator emits `{!reservedHere(...)}?` so at 2023 no operand list can absorb the bare facility verb (the statement arms parse everywhere), while below 2023 the word stays an ordinary user word. Declarations at 2023 re-admit through dataName's predicated alternatives so the 8.9 funnel (COBOLNET0901) still NAMES the word; the negative fixture conformance-suite/cases/_unassigned/user-word-commit.cob pins the declaration screen."
+   "note": "commit/rollback facility. USER WORD at 85/2002/2014; reserved 2023 only. The nameSlot alternative is RESERVATION-GATED (kb/Work PB137): the generator emits `{!reservedHere(...)}?` so at 2023 no operand list can absorb the bare facility verb (the statement arms parse everywhere), while below 2023 the word stays an ordinary user word. Declarations at 2023 re-admit through dataName's predicated alternatives so the 8.9 funnel (COBOL0901) still NAMES the word; the negative fixture conformance-suite/cases/_unassigned/user-word-commit.cob pins the declaration screen."
   },
   {
    "token": "CONDITION",
@@ -323,7 +323,7 @@
    "token": "DESTINATION",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "DESTINATION clause (13.18.18) of the declined A.4.14 VALIDATE facility: 8.9-reserved at EVERY edition, yet name-slot-admitted so `01 DESTINATION PIC X.` keeps the named COBOLNET0901 funnel diagnostic (the COLUMN/LENGTH class)"
+   "note": "DESTINATION clause (13.18.18) of the declined A.4.14 VALIDATE facility: 8.9-reserved at EVERY edition, yet name-slot-admitted so `01 DESTINATION PIC X.` keeps the named COBOL0901 funnel diagnostic (the COLUMN/LENGTH class)"
   },
   {
    "token": "DISPLAY",
@@ -533,7 +533,7 @@
    "token": "FORMAT",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "the FD FORMAT clause (13.18.24), the Annex A.4.8 optional module this implementation DECLINES (CONFORMANCE.md 5; refused by COBOLNET1705 at bind). FORMAT gained a lexer token when the clause gained a parse surface, so the nameSlot row is what keeps a COBOL-85 data item NAMED Format legal - ReservedWords.Table has FORMAT r85=false, reserved 2002+, and the 8.9 funnel COBOLNET0901 names it above 85. subscriptTrigger=true because a table may be named Format and nothing in the FORMAT clause is followed by '(' (the AS row's deliberate false has no analogue here)"
+   "note": "the FD FORMAT clause (13.18.24), the Annex A.4.8 optional module this implementation DECLINES (CONFORMANCE.md 5; refused by COBOL1705 at bind). FORMAT gained a lexer token when the clause gained a parse surface, so the nameSlot row is what keeps a COBOL-85 data item NAMED Format legal - ReservedWords.Table has FORMAT r85=false, reserved 2002+, and the 8.9 funnel COBOL0901 names it above 85. subscriptTrigger=true because a table may be named Format and nothing in the FORMAT clause is followed by '(' (the AS row's deliberate false has no analogue here)"
   },
   {
    "token": "FREE",
@@ -821,7 +821,7 @@
    "token": "ORDER",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "the SORT DUPLICATES phrase optional word (14.9.40.2 [ WITH DUPLICATES IN ORDER ]) and the SPECIAL-NAMES ORDER TABLE clause keyword (12.3.7.2). ORDER gained a lexer token when kb/Work PB704 showed a keyword slot may not borrow cobolWord: the 8.9 funnel checks IDENTIFIER position-blind, so the phrase was rejected COBOLNET0901 at every edition from 2002. ReservedWords.Table has ORDER r85=false, reserved 2002+, so this nameSlot row is what keeps a COBOL-85 data item NAMED Order legal while the derived reservation gate and the 8.9 funnel name it above 85 - the FORMAT precedent exactly. subscriptTrigger=true because a table may be named Order and neither ORDER-bearing format is followed by a left parenthesis"
+   "note": "the SORT DUPLICATES phrase optional word (14.9.40.2 [ WITH DUPLICATES IN ORDER ]) and the SPECIAL-NAMES ORDER TABLE clause keyword (12.3.7.2). ORDER gained a lexer token when kb/Work PB704 showed a keyword slot may not borrow cobolWord: the 8.9 funnel checks IDENTIFIER position-blind, so the phrase was rejected COBOL0901 at every edition from 2002. ReservedWords.Table has ORDER r85=false, reserved 2002+, so this nameSlot row is what keeps a COBOL-85 data item NAMED Order legal while the derived reservation gate and the 8.9 funnel name it above 85 - the FORMAT precedent exactly. subscriptTrigger=true because a table may be named Order and neither ORDER-bearing format is followed by a left parenthesis"
   },
   {
    "token": "OVERRIDE",
@@ -1019,7 +1019,7 @@
    "token": "ROLLBACK",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "commit/rollback facility. USER WORD at 85/2002/2014; reserved 2023 only. The nameSlot alternative is RESERVATION-GATED (kb/Work PB137): the generator emits `{!reservedHere(...)}?` so at 2023 no operand list can absorb the bare facility verb (the statement arms parse everywhere), while below 2023 the word stays an ordinary user word. Declarations at 2023 re-admit through dataName's predicated alternatives so the 8.9 funnel (COBOLNET0901) still NAMES the word; the negative fixture conformance-suite/cases/_unassigned/user-word-commit.cob pins the declaration screen."
+   "note": "commit/rollback facility. USER WORD at 85/2002/2014; reserved 2023 only. The nameSlot alternative is RESERVATION-GATED (kb/Work PB137): the generator emits `{!reservedHere(...)}?` so at 2023 no operand list can absorb the bare facility verb (the statement arms parse everywhere), while below 2023 the word stays an ordinary user word. Declarations at 2023 re-admit through dataName's predicated alternatives so the 8.9 funnel (COBOL0901) still NAMES the word; the negative fixture conformance-suite/cases/_unassigned/user-word-commit.cob pins the declaration screen."
   },
   {
    "token": "ROUNDING",

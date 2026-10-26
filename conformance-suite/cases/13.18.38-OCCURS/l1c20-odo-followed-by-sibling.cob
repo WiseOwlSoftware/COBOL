@@ -14,7 +14,7 @@
       *> it in the same record: it is not subordinate to R-TAB, so the
       *> record description violates SR22. Every other rule is met:
       *> R-N precedes the table (SR20), is an integer (SR17), and
-      *> 0 <= 1 < 5 (SR16). The expected rejection is COBOLNET0856,
+      *> 0 <= 1 < 5 (SR16). The expected rejection is COBOL0856,
       *> whose meaning is exactly this rule's violation.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C20A.

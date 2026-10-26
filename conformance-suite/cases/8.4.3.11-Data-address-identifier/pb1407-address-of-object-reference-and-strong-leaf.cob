@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1407. ISO 8.4.3.11.3 SR2: "Identifier-1 shall not reference an object reference or an elementary item
-      *> subordinate to a strongly-typed group item." Both halves are refused COBOLNET2785 (the SR2 text names the rule),
+      *> subordinate to a strongly-typed group item." Both halves are refused COBOL2785 (the SR2 text names the rule),
       *> in the SET sender and the relation operand. The legal neighbours compile: the address of the strongly-typed
       *> GROUP itself (a restricted data-pointer, 8.4.3.11.4 GR2) and of a leaf of a WEAKLY typed record.
        IDENTIFICATION DIVISION.

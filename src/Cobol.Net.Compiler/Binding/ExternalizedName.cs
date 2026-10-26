@@ -164,11 +164,11 @@ internal static class ExternalizedName
     /// (<see cref="CobolNet.Runtime.ExternalizedNames.FormInEdition"/>, DOC-A.1-68): leading and trailing spaces are not
     /// part of the name. The run-time CALL / CANCEL / program-address / INVOKE side forms its target through the
     /// same function, which is why <c>PROGRAM-ID. S AS "trail  "</c> is now reached by <c>CALL "trail"</c> and by
-    /// <c>CALL "trail  "</c> alike (kb/Work PB1539). Removing the spaces is reported as a WARNING (COBOLNET2642),
+    /// <c>CALL "trail  "</c> alike (kb/Work PB1539). Removing the spaces is reported as a WARNING (COBOL2642),
     /// because the name the program is known by is not the literal as written. A literal of spaces ONLY forms the
     /// zero-length name, which nothing can name; where the clause itself refuses a zero-length literal
     /// (<paramref name="zeroLengthRefused"/> — every clause but §11.3.3's CLASS-ID) the formation rule refuses it
-    /// too (COBOLNET2643) rather than create a program no CALL can reach.</summary>
+    /// too (COBOL2643) rather than create a program no CALL can reach.</summary>
     private static string? Form(string written, EditionContext edition, string where, string tag,
         bool zeroLengthRefused)
     {

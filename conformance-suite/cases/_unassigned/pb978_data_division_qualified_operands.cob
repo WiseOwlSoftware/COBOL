@@ -10,7 +10,7 @@
       *> THE RULE. ISO 8.4.2.2.3 SR1: "For each non unique user-defined name that is explicitly referenced,
       *> uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of
       *> reference." The negative twins (tests/conformance/negative/pb978-*) pin the unqualified spellings,
-      *> which name two items and are refused (COBOLNET1639). This golden pins the QUALIFIED spellings, which
+      *> which name two items and are refused (COBOL1639). This golden pins the QUALIFIED spellings, which
       *> name exactly one - and the one they name is the SECOND declared, so a first-match resolver fails it:
       *>   OCCURS 1 TO 9 DEPENDING ON CNT OF GB  - GB's CNT (5), not GA's (2), so T is five
       *>     characters (13.18.38.4 GR8 a - data-name-1 is outside the group, so its value is

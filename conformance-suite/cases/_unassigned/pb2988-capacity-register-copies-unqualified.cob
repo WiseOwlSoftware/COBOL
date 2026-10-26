@@ -11,7 +11,7 @@
       *>   reproduce the register DC of ST, so the bare DC names two
       *>   registers: 8.4.2.2.3 SR1 "uniqueness shall be established
       *>   through a sequence of qualifiers that precludes any ambiguity
-      *>   of reference" -> OK 8.4.2.2.3 1). Refused COBOLNET1639 (the
+      *>   of reference" -> OK 8.4.2.2.3 1). Refused COBOL1639 (the
       *>   one ambiguity verdict), never resolved to A's register.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2988N.

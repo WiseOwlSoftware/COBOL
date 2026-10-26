@@ -7,7 +7,7 @@
 *> ISO 1989:2023 13.18.60.3 SR12 - the NATIONAL-FORM shapes (a numeric, numeric-edited or boolean
 *> PICTURE under USAGE NATIONAL) are national data, and national data is a COBOL-2002 introduction
 *> (construct registry row national-data-2002), so below 2002 the version-conformance pass rejects
-*> each declaration with COBOLNET0900 naming COBOL-2002. The companion POSITIVE goldens are
+*> each declaration with COBOL0900 naming COBOL-2002. The companion POSITIVE goldens are
 *> conformance:{2002,2014,2023}/pb646_national_form_numeric.
 *> The gate keys on the RESOLVED usage, not only on the written keyword, so the GROUP-INHERITED
 *> spelling below (13.18.60.4 GR1) is rejected exactly as the written one is - kb/Work PB646.

@@ -11,7 +11,7 @@
       *> the same description as that object reference". N invokes MR
       *> through O2, described C1 (no ONLY), so the sender is described
       *> C1, and 14.9.39.3 SR14 admits into the ACTIVE-CLASS receiver Z
-      *> only an ACTIVE-CLASS reference, SELF or NULL -- COBOLNET0828.
+      *> only an ACTIVE-CLASS reference, SELF or NULL -- COBOL0828.
       *> (Before the fix the sender was always read as ACTIVE-CLASS and
       *> this compiled.)
        IDENTIFICATION DIVISION.

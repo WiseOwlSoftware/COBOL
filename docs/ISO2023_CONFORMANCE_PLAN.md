@@ -288,7 +288,7 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
     EC-DATA-CONVERSION channel). Argument-2 is a one-character SUBSTITUTION character per the 2023 text
     (§15.26.3 r2 / §15.66.3 r2 — the format names no CCSID/codeset facility), so BOTH argument forms are fully
     implemented — nothing staged. The N"…" Latin-1-only literal guard was lifted (full UTF-16 repertoire,
-    D-N1); binder SR checks = COBOLNET1546. Conformance `national_intrinsics` (greenfield-only — the legacy
+    D-N1); binder SR checks = COBOL1546. Conformance `national_intrinsics` (greenfield-only — the legacy
     oracle's DISPLAY-OF is a pass-through approximation).
   - **M2-DATA-4** Boolean data — CORE COMPLETE (386): `PIC 1`/`USAGE BIT`, `B"…"`, MOVE/VALUE/INITIALIZE/ZERO/
     DISPLAY/compare/JUSTIFIED. Conformance `boolean_data`. A 2-agent review caught + fixed VALUE corruption,
@@ -361,7 +361,7 @@ first; large subsystems (pointers, exceptions, OO) last.
 > ⛔ **The ☑/◐ marks below are LEGACY-era. For GREENFIELD truth read `docs/PHASE4_RECONCILIATION.md`**
 > (DEVLOG 610 — the ratified Phase-4 entry audit). Many "done" items (all of §3.2 M2-DATA:
 > BINARY-CHAR / FLOAT / NATIONAL / BIT / POINTER; both §3.1 UDF invocation rows) were done in the RETIRED
-> legacy engine and stage LOUD (COBOLNET0899) in the greenfield — Phase 4 reclaims them. The OO umbrella
+> legacy engine and stage LOUD (COBOL0899) in the greenfield — Phase 4 reclaims them. The OO umbrella
 > (§3.7, catalogued ◐) is effectively DONE (24 goldens; DEVLOG 600-609). Use the reconciliation table's
 > per-track wave sizing, not these marks, to scope work.
 
@@ -389,7 +389,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   byte form: zoned DISPLAY, binary, packed, COMP-5, IEEE float, INDEX) (§8.4.3.2.4 GR1; golden
   `udf_returning_categories`, greenfield-only — the legacy carries only numeric results);
   every other RETURNING category — float, boolean, index, data-pointer, object-reference and strong-typed /
-  REDEFINES / variable-length groups — is carried too (kb/Work PB1419 deleted the per-shape COBOLNET1510 residues).
+  REDEFINES / variable-length groups — is carried too (kb/Work PB1419 deleted the per-shape COBOL1510 residues).
 - ☐ **M2-UDF-3 — Separate-compilation user functions (prototypes).** Caller + function in different translation
   units. *Medium.* §8.13 external repository + function-prototype. *Current:* caller and function must share one
   compilation group. *Recipe:* function-prototype definitions in the caller (or an external repository registry).
@@ -465,8 +465,8 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   constants into ONE literal; §8.8.3.3 GR3 makes the result a compile-time literal usable anywhere a literal
   of its class may appear — implemented in the greenfield `src/Cobol.Net.*` as the `Binding/ConcatFolder.cs`
   fold (NO runtime operator; no emitter leg) — operands include a constant-name and a symbolic-character, and the
-  class is folded pairwise per §8.8.3.3 GR1 (kb/Work PB1406) — with the §8.8.3.2 SRs as `COBOLNET1540/1541/1545`
-  (a word standing for no literal `COBOLNET2473`; §12.3.7.3 SR11's symbolic-character operand `COBOLNET2474`), the
+  class is folded pairwise per §8.8.3.3 GR1 (kb/Work PB1406) — with the §8.8.3.2 SRs as `COBOL1540/1541/1545`
+  (a word standing for no literal `COBOL2473`; §12.3.7.3 SR11's symbolic-character operand `COBOL2474`), the
   `concat-operator-2002` VersionConformancePass parse-arm gate (0900 at `--std 85`), the enabled
   `conformance-suite/cases/8.8.3-Concatenation-expressions/literal_concat` golden (+ `concat_below_2002` / `concat_class_mismatch` negatives)
   and the active version-matrix row. Never existed in the legacy engine (GreenfieldOnly).

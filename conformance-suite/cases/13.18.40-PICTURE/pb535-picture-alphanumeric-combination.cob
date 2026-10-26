@@ -10,7 +10,7 @@
       *> no general rule defines a category for a string that mixes 'A' or 'X' with a comma, a zero
       *> suppression symbol or an editing sign control symbol. 13.18.40.3 SR2's second obligation is what
       *> rejects them - "the allowable combinations of symbols for a PICTURE clause are specified in
-      *> 13.18.40.6, Precedence rules" - so each is COBOLNET1935, naming the ordered pair whose Table 10 cell
+      *> 13.18.40.6, Precedence rules" - so each is COBOL1935, naming the ordered pair whose Table 10 cell
       *> is blank.
       *>
       *> Before anything read symbol combination these bound category ALPHANUMERIC and their length came from

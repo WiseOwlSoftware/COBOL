@@ -9,7 +9,7 @@
       *> names CONCAT, FIND-STRING and BASECONVERT "are prohibited within
       *> the scope of that REPOSITORY paragraph as user-defined words".
       *> At COBOL-2014 the same program compiles
-      *> (2014/pb1083_all_intrinsic_edition_names). COBOLNET1649.
+      *> (2014/pb1083_all_intrinsic_edition_names). COBOL1649.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1083E3.
        ENVIRONMENT DIVISION.

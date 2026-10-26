@@ -260,7 +260,7 @@ public static partial class CobolEdit
                 // EDITING character-1 inserts its WHOLE literal-1 (rule 3: "if literal-1 is specified, character-1"
                 // is a simple insertion symbol; GR14 'es' counts literal-1's size — kb/Work PB866). The FOR form
                 // never reaches here: §13.18.40.3 SR12 bars extended editing sign control symbols from this form
-                // (PictureAnalyzer.AnalyzeFloatEdited, COBOLNET1658). '.' is SPECIAL insertion (rule 4) and falls to
+                // (PictureAnalyzer.AnalyzeFloatEdited, COBOL1658). '.' is SPECIAL insertion (rule 4) and falls to
                 // the default, which copies every remaining mask character verbatim.
                 default:
                     if (RuleFor(c, m.Edits) is { SimpleInsertion: true } r) sb.Append(r.Pos);

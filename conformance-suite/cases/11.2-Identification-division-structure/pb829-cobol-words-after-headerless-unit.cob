@@ -11,7 +11,7 @@
       *> PROGRAM-ID line above, and the directive below is INSIDE it.  The COBOL-WORDS stage looked
       *> only for the header line, so the directive was accepted in silence; the placement is now judged by
       *> DirectiveSiteProcessor from the row's directivePlacement data, on the ONE unit-start test that knows
-      *> the header-less forms (COBOLNET2652, kb/Work PB1377; it was COBOLNET1623 from the COBOL-WORDS stage).
+      *> the header-less forms (COBOL2652, kb/Work PB1377; it was COBOL1623 from the COBOL-WORDS stage).
        >>COBOL-WORDS UNDEFINE "ZQX"
        PROCEDURE DIVISION.
        MAIN-PARA.

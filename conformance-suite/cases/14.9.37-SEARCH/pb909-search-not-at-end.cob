@@ -6,8 +6,8 @@
 *>---
 *> ISO 1989:2023 §14.9.37.2 Format 1 (serial) prints "[ AT END imperative-statement-1 ]" and no NOT AT END
 *> phrase. The grammar's shared at-end clause admits the vendor NOT AT END branch, which used to bind to the
-*> DEFERRAL carrier: a COBOLNET1756 warning, then a run-unit abort when the SEARCH ran. §4.2.2 makes the
-*> compile-time indication of a general-format violation mandatory; every edition refuses. COBOLNET2269
+*> DEFERRAL carrier: a COBOL1756 warning, then a run-unit abort when the SEARCH ran. §4.2.2 makes the
+*> compile-time indication of a general-format violation mandatory; every edition refuses. COBOL2269
 *> (kb/Work PB909).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB909NSNE.

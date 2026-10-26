@@ -31,17 +31,17 @@ public sealed class GeneralFormatViolationTests
 {
     [Theory]
     // ACCEPT / DISPLAY (M412) — FROM and UPON take a mnemonic-name or a device word, never a data item.
-    [InlineData("PBGF01", "ACCEPT W-A FROM W-B", "COBOLNET0817")]
-    [InlineData("PBGF02", "DISPLAY W-A UPON W-B", "COBOLNET0817")]
+    [InlineData("PBGF01", "ACCEPT W-A FROM W-B", "COBOL0817")]
+    [InlineData("PBGF02", "DISPLAY W-A UPON W-B", "COBOL0817")]
     [InlineData("PBGF03", "ACCEPT W-A FROM DATE WITH NO ADVANCING", "COBOL0307")]
     // IF (M413) — condition-1 and statement-1 are unbracketed; ELSE is one bracketed phrase.
     [InlineData("PBGF04", "IF DISPLAY \"X\" END-IF", "COBOL0001")]
     [InlineData("PBGF05", "IF W-N = 1 DISPLAY \"A\" ELSE DISPLAY \"B\" ELSE DISPLAY \"C\" END-IF", "COBOL0307")]
-    [InlineData("PBGF06", "IF W-N = 1 END-IF", "COBOLNET2072")]
+    [InlineData("PBGF06", "IF W-N = 1 END-IF", "COBOL2072")]
     // EVALUATE (M414) — a WHEN phrase needs its selection object; WHEN OTHER is one trailing phrase.
     [InlineData("PBGF07", "EVALUATE W-N WHEN DISPLAY \"X\" END-EVALUATE", "COBOL0001")]
-    [InlineData("PBGF08", "EVALUATE W-N WHEN OTHER DISPLAY \"O\" WHEN 1 DISPLAY \"1\" END-EVALUATE", "COBOLNET2073")]
-    [InlineData("PBGF09", "EVALUATE W-N WHEN 1 DISPLAY \"1\" WHEN OTHER DISPLAY \"O\" WHEN OTHER DISPLAY \"P\" END-EVALUATE", "COBOLNET2073")]
+    [InlineData("PBGF08", "EVALUATE W-N WHEN OTHER DISPLAY \"O\" WHEN 1 DISPLAY \"1\" END-EVALUATE", "COBOL2073")]
+    [InlineData("PBGF09", "EVALUATE W-N WHEN 1 DISPLAY \"1\" WHEN OTHER DISPLAY \"O\" WHEN OTHER DISPLAY \"P\" END-EVALUATE", "COBOL2073")]
     // PERFORM (M415) — UNTIL takes a condition; the varying-phrase's UNTIL is unbracketed.
     [InlineData("PBGF10", "PERFORM UNTIL DISPLAY \"X\" END-PERFORM", "COBOL0001")]
     [InlineData("PBGF12", "PERFORM VARYING W-N FROM 1 BY 1 DISPLAY W-N END-PERFORM", "COBOL0001")]
@@ -61,26 +61,26 @@ public sealed class GeneralFormatViolationTests
     [InlineData("PBGF24", "CALL \"PBSUB\" USING W-A USING W-B", "COBOL0307")]
     // SET (M420) — a receiving operand is required; UP BY / DOWN BY is one brace choice over index-names.
     [InlineData("PBGF25", "SET TO 5", "COBOL0001")]
-    [InlineData("PBGF26", "SET W-N UP BY 1", "COBOLNET2112")]
+    [InlineData("PBGF26", "SET W-N UP BY 1", "COBOL2112")]
     [InlineData("PBGF27", "SET IX UP BY 1 DOWN BY 1", "COBOL0307")]
     // SORT / MERGE (M422, M423) — the file format's ON … KEY phrase is a brace group, data-name-1 unbracketed.
-    [InlineData("PBGF28", "SORT SW USING F1 GIVING F2", "COBOLNET1757")]
-    [InlineData("PBGF29", "SORT SW ON ASCENDING KEY USING F1 GIVING F2", "COBOLNET1757")]
+    [InlineData("PBGF28", "SORT SW USING F1 GIVING F2", "COBOL1757")]
+    [InlineData("PBGF29", "SORT SW ON ASCENDING KEY USING F1 GIVING F2", "COBOL1757")]
     [InlineData("PBGF31", "MERGE SW USING F1 F2 GIVING F3", "COBOL0001")]
     [InlineData("PBGF32", "MERGE SW ON ASCENDING KEY USING F1 F2 GIVING F3", "COBOL0001")]
     // WRITE (M424) — a written FROM needs its operand, once; ADVANCING takes an integer or identifier.
     [InlineData("PBGF34", "WRITE R1 FROM", "COBOL0001")]
-    [InlineData("PBGF35", "WRITE R1 AFTER ADVANCING \"A\" LINES", "COBOLNET2365")]
+    [InlineData("PBGF35", "WRITE R1 AFTER ADVANCING \"A\" LINES", "COBOL2365")]
     [InlineData("PBGF36", "WRITE R1 FROM W-A FROM W-B", "COBOL0307")]
     // READ (M425) — a written INTO needs its operand; AT END once; KEY only for an indexed file.
     [InlineData("PBGF37", "READ F1 INTO", "COBOL0001")]
     // The second AT continues the DISPLAY (its screen AT phrase), and that parse dies at END: the same COBOL0001 at END the
     // statement draws inside an open IF, where it used to draw "A period may be missing" at AT (kb/Work PB3832 review R1-2).
     [InlineData("PBGF38", "READ F1 AT END DISPLAY \"E\" AT END DISPLAY \"F\" END-READ", "COBOL0001")]
-    [InlineData("PBGF39", "READ F1 KEY IS W-A", "COBOLNET0864")]
+    [InlineData("PBGF39", "READ F1 KEY IS W-A", "COBOL0864")]
     // OPEN / CLOSE (M426) — a mode is required, one per file group; CLOSE names a file.
     [InlineData("PBGF40", "OPEN F1", "COBOL0001")]
-    [InlineData("PBGF41", "CLOSE W-A", "COBOLNET1639")]
+    [InlineData("PBGF41", "CLOSE W-A", "COBOL1639")]
     [InlineData("PBGF42", "OPEN INPUT OUTPUT F1", "COBOL0001")]
     public void AStatementOutsideItsGeneralFormat_IsRefused(string pid, string statement, string code)
     {

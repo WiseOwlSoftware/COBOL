@@ -253,9 +253,9 @@ public sealed class DeclinedFacilityDriftTests
     /// The declined grammar is permissive inside its constructs (§4.2.7, A.4.1), and that posture was read as
     /// licence to leave a printed keyword out of an operand group. It is not one: a word with its own lexer token
     /// that no arm names reaches only the <c>cobolWord</c> sink, which refuses a §8.9-reserved word, so the parse
-    /// fails INSIDE the declined construct and the error listener answers COBOLNET0901, "is a reserved word …
+    /// fails INSIDE the declined construct and the error listener answers COBOL0901, "is a reserved word …
     /// cannot be used as a user-defined word" — false, because the format prints it as the clause's own word —
-    /// where the declined-facility refusal COBOLNET1708 belongs. Three keywords did it, one at a time: the class
+    /// where the declined-facility refusal COBOL1708 belongs. Three keywords did it, one at a time: the class
     /// condition's BOOLEAN (kb/Work PB857), VALIDATE-STATUS's FORMAT (kb/Work PB693) and the CLASS clause's
     /// BOOLEAN (kb/Work PB3831). The keyword list is DERIVED here from each rule's cited general format in
     /// <c>specs/ISO_COBOL.md</c>, and the arm list from the grammar, so the next one fails here.</summary>
@@ -268,7 +268,7 @@ public sealed class DeclinedFacilityDriftTests
             + "citation reader is broken, or a rule lost the comment that ties it to its printed format");
         Assert.True(missing.Count == 0,
             "printed keyword(s) with a lexer token that no arm of the declined rule names — each falls to cobolWord, "
-            + "which refuses a reserved word, so the declined clause draws a false COBOLNET0901 instead of COBOLNET1708. "
+            + "which refuses a reserved word, so the declined clause draws a false COBOL0901 instead of COBOL1708. "
             + "Add the arm (ISO §5.2.2): " + string.Join("; ", missing));
     }
 
@@ -326,7 +326,7 @@ public sealed class DeclinedFacilityDriftTests
     }
 
     /// <summary>The declined-facility diagnostics are ERRORS, not warnings — the distinction that makes
-    /// the whole band different from the §4.2.6 processor-dependent band (COBOLNET1578/1579/1580, Warning).
+    /// the whole band different from the §4.2.6 processor-dependent band (COBOL1578/1579/1580, Warning).
     /// Annex A.4.1: an implementation "shall accept the syntax … for an optional element ONLY when support for
     /// that language element is claimed", so accepting a declined element's syntax is itself the
     /// non-conformance. It is also what makes the rows WITNESSABLE: the negative corpus asserts a failing
@@ -347,14 +347,14 @@ public sealed class DeclinedFacilityDriftTests
     }
 
     /// <summary>The band's codes are 1708 and 1710 and nothing else carries them — the allocation this cluster claimed. A
-    /// collision is how the shipped COBOLNET1573 two-meanings defect happened. COBOLNET1709 (the declined SEQUENTIAL operand of
+    /// collision is how the shipped COBOL1573 two-meanings defect happened. COBOL1709 (the declined SEQUENTIAL operand of
     /// APPLY COMMIT) is RETIRED since kb/Work PB3340 provided the sequential transaction journal: no descriptor carries it,
     /// and it is never reallocated.</summary>
     [Fact]
     public void TheDeclinedBand_OwnsItsCodesExclusively()
     {
-        foreach (string code in new[] { "COBOLNET1708", "COBOLNET1710" })
+        foreach (string code in new[] { "COBOL1708", "COBOL1710" })
             Assert.Single(DiagnosticCatalog.All, d => d.Code == code);
-        Assert.DoesNotContain(DiagnosticCatalog.All, d => d.Code == "COBOLNET1709");
+        Assert.DoesNotContain(DiagnosticCatalog.All, d => d.Code == "COBOL1709");
     }
 }

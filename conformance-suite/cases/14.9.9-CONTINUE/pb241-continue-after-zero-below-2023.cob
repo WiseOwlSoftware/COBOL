@@ -9,7 +9,7 @@
       *> spelling exists below COBOL-2023: the AFTER ... SECONDS phrase
       *> is a 2023 addition (14.9.9.2 general format; Annex E.3.3 item
       *> 14), so even its zero interval is refused by name
-      *> (COBOLNET0900, the introduction band). The positive golden is
+      *> (COBOL0900, the introduction band). The positive golden is
       *> 2023/pb241_continue_bare_equals_after_zero.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB241NG.

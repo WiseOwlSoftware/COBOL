@@ -11,7 +11,7 @@
       *> that character-string-1 "shall include at least one symbol '9'" and admits 'P', 'S' and 'V' only
       *> BESIDE that '9'. 13.18.40.3 SR12 a says the same from the other side - character-string-1 shall
       *> contain at least one of 'A', 'N', 'X', 'Z', '1', '9', '*' or at least two occurrences of one of
-      *> character-1, 'x', '+', '-' and the currency symbol - so the diagnostic is COBOLNET1934.
+      *> character-1, 'x', '+', '-' and the currency symbol - so the diagnostic is COBOL1934.
       *>
       *> Each of these bound a ZERO-LENGTH category-numeric item, silently, at every edition, for as long as
       *> nothing read symbol COMBINATION: the pure-numeric arm of the analyzer is the FALL-THROUGH, reached

@@ -8,8 +8,8 @@
 *> specified for the subject of the entry." SR18 says the identical sentence about POINTER TO type-name-1
 *> (pb153-pointer-to-type-without-typedef) and the two are enforced by ONE screen. A restricted
 *> program-pointer is declared as a TYPE DECLARATION and reached by a TYPE clause - the conforming spelling
-*> is the 2002 golden pb817_restricted_program_pointer. COBOLNET0881. kb/Work PB817 (and PB609's fix shape).
-*> (This file replaced `program-pointer-restricted`, which pinned the COBOLNET0899 staged-loud non-support
+*> is the 2002 golden pb817_restricted_program_pointer. COBOL0881. kb/Work PB817 (and PB609's fix shape).
+*> (This file replaced `program-pointer-restricted`, which pinned the COBOL0899 staged-loud non-support
 *> the PB452/PB817 landing removed - feedback_green_test_can_hold_a_gap_open.)
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGPP05.

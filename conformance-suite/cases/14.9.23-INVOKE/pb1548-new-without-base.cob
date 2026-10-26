@@ -10,7 +10,7 @@
       *> New is not predefined for every class: §16.2 "The interface BaseFactoryInterface specifies the factory
       *> interface of the BASE class" (cite.py: OK §16.2), and a class has BASE's methods only by inheriting it
       *> (§9.3.9). PB1548NC has no INHERITS clause, so its factory interface is empty and "NEW" names no method
-      *> of it (kb/Work PB1548) -> COBOLNET2448. Before PB1548 this compiled: New was treated as predefined.
+      *> of it (kb/Work PB1548) -> COBOL2448. Before PB1548 this compiled: New was treated as predefined.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1548NM.
        ENVIRONMENT DIVISION.

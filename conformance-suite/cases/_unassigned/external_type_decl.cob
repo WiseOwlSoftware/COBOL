@@ -12,7 +12,7 @@
       *> SR1/SR5; 8.5.3; Annex E.3 item 10). SR5 forces a strongly-typed
       *> external record's type to itself be an external type declaration,
       *> so a strong external item (R) references the external type (T).
-      *> Below 2023 the co-occurrence is rejected (COBOLNET0900) — that
+      *> Below 2023 the co-occurrence is rejected (COBOL0900) — that
       *> below-edition leg is asserted by the version matrix.
        DATA DIVISION.
        WORKING-STORAGE SECTION.

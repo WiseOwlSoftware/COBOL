@@ -6,7 +6,7 @@
 *>---
 *> THE SECOND ARM of the introduction gate: §5.2.6.4 says the alternatives inside choice indicators "may be
 *> specified in any order", so AFTER BEFORE ADVANCING n is the same COBOL-2023 combination as
-*> BEFORE AFTER ADVANCING n and must be refused by the same edition gate, with the same COBOLNET0900 naming
+*> BEFORE AFTER ADVANCING n and must be refused by the same edition gate, with the same COBOL0900 naming
 *> write-before-and-after-advancing-2023. A gate that keyed on the first word, or on a phrase count, would
 *> pass one order and not the other — which is the defect shape kb/Work PB712 was: the gate counted PHRASES.
        IDENTIFICATION DIVISION.

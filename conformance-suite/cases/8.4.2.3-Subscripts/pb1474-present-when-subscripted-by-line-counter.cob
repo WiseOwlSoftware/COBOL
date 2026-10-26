@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1474 - ISO 8.4.2.3.3 SR8: "In the report section, neither a sum counter nor the LINE-COUNTER and PAGE-COUNTER identifiers may be used as a subscript."
       *> cite.py: OK  8.4.2.3.3 8)  (Syntax rules)
-      *> Here: PRESENT WHEN TE(LINE-COUNTER) = 1 (COBOL-2002); reported by 13.15.3 SR16 (COBOLNET1559).
+      *> Here: PRESENT WHEN TE(LINE-COUNTER) = 1 (COBOL-2002); reported by 13.15.3 SR16 (COBOL1559).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W12GPB1474PRESENTWHENSUBSCRIPT.
        ENVIRONMENT DIVISION.

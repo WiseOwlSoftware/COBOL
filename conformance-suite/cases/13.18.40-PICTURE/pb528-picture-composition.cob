@@ -9,7 +9,7 @@
       *> kb/Work PB528 - the COMPOSITION syntax rules of ISO 1989:2023 13.18.40.3. PictureAnalyzer's symbol
       *> loop tested MEMBERSHIP only, so every one of these compiled clean at all four editions and several
       *> RAN, producing an image no rule defines (PIC 99.99.99 turned 123456 into 56.00.00; PIC ZZ**9 rendered
-      *> 7 as "  **7", two replacement characters in one item). Each entry below is COBOLNET1934, and each
+      *> 7 as "  **7", two replacement characters in one item). Each entry below is COBOL1934, and each
       *> rule is a syntax rule of every edition from 1985 on, so all four reject.
       *>
       *> PB01  SR16 - "The symbol 'P' may appear only as a continuous string of 'P's in the leftmost or

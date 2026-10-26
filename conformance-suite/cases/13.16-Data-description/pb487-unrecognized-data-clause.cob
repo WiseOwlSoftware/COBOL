@@ -11,7 +11,7 @@
       *> undefined COMP-n, and every clause the compiler had not implemented all bound an entry the programmer
       *> did not write.  ISO 13.16.2's general format is a CLOSED list (rendered from the printed page, PDF
       *> p393 / printed folio 363) and 4.2.2 makes a general format the definition of what may be written, so
-      *> the word is now NAMED: COBOLNET1941, at every edition and every strictness.  There is no dialect that
+      *> the word is now NAMED: COBOL1941, at every edition and every strictness.  There is no dialect that
       *> admits it - a vendor extension is admitted only under the dialect that owns it, never by a catch-all,
       *> and this implementation declares no vendor dialect.
       *> Rejected at 85 as well as 2023: the general format is a closed list in every edition of the standard,

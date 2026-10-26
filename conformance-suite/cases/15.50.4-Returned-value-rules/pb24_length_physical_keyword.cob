@@ -10,7 +10,7 @@
       *>
       *> ⛔ THIS GOLDEN EXISTS BECAUSE THE KEYWORD REJECTED LEGAL SOURCE (fix-queue PB24). The generic argument
       *> path counted PHYSICAL as an operand:
-      *>     COBOLNET1504: FUNCTION LENGTH takes 1 argument(s); 2 given (ISO 15.3)
+      *>     COBOL1504: FUNCTION LENGTH takes 1 argument(s); 2 given (ISO 15.3)
       *> It is now consumed exactly as ANYCASE is for the NUMVAL-C family, so no grammar change was needed - a
       *> bare word already parses as an argument context.
       *>

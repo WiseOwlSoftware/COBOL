@@ -15,7 +15,7 @@ namespace CobolNet.Frontend.Expressions;
 /// with 8.8.2") is evaluated by the conditional-compilation stage, before any compiler pass exists, from a directive
 /// FRAGMENT parse the compilation-unit walk never reaches. The gate used to be a private body of
 /// <c>VersionConformancePass</c>, so <c>&gt;&gt;DEFINE G AS B"1100" B-SHIFT-L 1</c> compiled clean at 2002 and 2014
-/// while the runtime twin <c>COMPUTE B1 = B1 B-SHIFT-L 1</c> was COBOLNET0900 (kb/Work PB1370). Both lanes now call
+/// while the runtime twin <c>COMPUTE B1 = B1 B-SHIFT-L 1</c> was COBOL0900 (kb/Work PB1370). Both lanes now call
 /// THIS body: the pass per grammar site, the directive stage per evaluated fragment.
 /// <c>BooleanExpressionGateSiteDriftTests</c> enumerates the grammar sites and pins that each is gated and that the
 /// body is written once.</para>

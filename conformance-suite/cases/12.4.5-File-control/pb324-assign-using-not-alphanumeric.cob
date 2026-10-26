@@ -8,7 +8,7 @@
 *> and shall not be subordinate to the file description entry for file-name-1." §9.1.21 states the same
 *> requirement in the concepts - "The USING phrase references an alphanumeric data item whose content at the
 *> time an OPEN, SORT, or MERGE statement for that file is executed uniquely identifies the specific physical
-*> file to be accessed". WS-NUM is a category-NUMERIC item, so it cannot be data-name-1: COBOLNET1810 at every
+*> file to be accessed". WS-NUM is a category-NUMERIC item, so it cannot be data-name-1: COBOL1810 at every
 *> edition that has the USING phrase (2002 on, kb/Work PB746), since the rule is the clause's own (kb/Work PB324).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB324N1.

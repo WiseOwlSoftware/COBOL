@@ -38,7 +38,7 @@ public sealed record ParagraphSentence(IReadOnlyList<ParserRuleContext> Entries,
 /// reason (kb/Work PB3370): their second period is optional in the grammar so the optional computer-name's
 /// prediction can commit to the paragraph, and a reserved word after the name is named in the paragraph's format.
 /// The period the syntax rules require (§12.3.5.3 SR1, §12.3.6.3 SR4: it goes only with nothing written) is the
-/// same COBOLNET3408 here.
+/// same COBOL3408 here.
 /// <c>ParagraphPeriodDriftTests</c> holds every grammar rule that writes <c>DOT?</c> to a row here, so a paragraph
 /// that gains the shape cannot parse into silence.</para>
 /// </summary>

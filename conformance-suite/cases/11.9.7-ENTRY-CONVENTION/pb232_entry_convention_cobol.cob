@@ -14,7 +14,7 @@
       *> different case ("w56ecin") activates it (§8.3.2.2: lowercase and uppercase letters are equivalent).
       *> The contained program carries no ENTRY-CONVENTION (SR1 forbids it there) and is COBOL by GR4 c.
       *> Expected, derived from the rules: the clause is accepted; OUTER then INNER then OUTER-END.
-      *> Fails if: COBOL is refused as a convention name (COBOLNET2385 over-reach), or the case-insensitive
+      *> Fails if: COBOL is refused as a convention name (COBOL2385 over-reach), or the case-insensitive
       *> name mapping of GR2 / §8.3.2.2 does not locate the contained program.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W56ECOUT.

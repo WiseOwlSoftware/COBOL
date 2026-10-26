@@ -9,7 +9,7 @@
 *> sentence, so kb/Work PB348 carries it on the RELEASE row of the per-verb rules table rather than
 *> applying it to every FROM phrase.
 *> 85 is not listed because the FROM phrase admits only identifier-1 at X3.23-1985, so a literal
-*> sender there is refused by the edition gate COBOLNET0871 before SR4 is reached -- a different
+*> sender there is refused by the edition gate COBOL0871 before SR4 is reached -- a different
 *> rule, and a .err file names ONE diagnostic for every edition it lists.
 *> This was a missing APPLICATION, not a missing capability: the compiler already owns the
 *> zero-length-literal predicate and applies it in ControlFlowBinder, IntrinsicBinder,

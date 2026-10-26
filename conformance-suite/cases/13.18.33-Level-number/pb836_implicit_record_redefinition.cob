@@ -18,7 +18,7 @@
       *>   MOVE "AB12CD" TO R-TEXT sets the six leading positions;
       *>   R-TYPED (TYPE WT: 05 WA PIC X(2), 05 WN PIC 9(2)) then reads WA="AB", WN=12;
       *>   R-NUM (05 NA PIC X(2), 05 NB PIC 9(2), 05 NC PIC X(2)) reads NB+1 = 13 and NC="CD".
-      *> COBOL-2002: TYPEDEF / TYPE are 2002 introductions (their own COBOLNET0900 gate covers 85).
+      *> COBOL-2002: TYPEDEF / TYPE are 2002 introductions (their own COBOL0900 gate covers 85).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB836IMPL.
        ENVIRONMENT DIVISION.

@@ -35,7 +35,7 @@
       *>
       *> The edition is 2023 because the REF-MOD-ZERO-LENGTH directive is a COBOL-2023 addition (§7.3.23,
       *> Annex E.3.3 item 23) and is what makes §8.5.4 item 9 reachable at all; its below-2023 rejection
-      *> (COBOLNET0900) is the version matrix's own `ref-mod-zero-length-2023` construct row.  The RULE does
+      *> (COBOL0900) is the version matrix's own `ref-mod-zero-length-2023` construct row.  The RULE does
       *> not otherwise differ by edition, and the 2014 half of it is pb425_zero_length_item_move.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB425-ZERO-LEN-SENDER-SHAPES.

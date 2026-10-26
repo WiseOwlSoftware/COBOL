@@ -8,7 +8,7 @@
       *> explicitly as usage display or national." 8.5.2.1 gives only an ALPHANUMERIC group item the usage of display;
       *> the class and category of a strongly-typed group are its type-name, so its usage is read off its elementary
       *> items, and a USAGE OBJECT REFERENCE leaf is neither display nor national. The program used to compile and
-      *> abort at run time in the Tier-C whole-group island; it is refused at bind (COBOLNET1626). A group holding a
+      *> abort at run time in the Tier-C whole-group island; it is refused at bind (COBOL1626). A group holding a
       *> pointer or object reference is legal only inside a STRONG type (13.18.60.3 SR14), so this is the one shape.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1527NSTR.

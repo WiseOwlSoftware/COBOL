@@ -20,7 +20,7 @@
       *>     the implementor describes in 15.4.1, S9(30) (30, 30), which
       *>     a nested LENGTH / BYTE-LENGTH result is as well.
       *> The index function has its own golden (2023). Before the fix
-      *> every line but the first two drew COBOLNET1627 "argument-1 is
+      *> every line but the first two drew COBOL1627 "argument-1 is
       *> a numeric literal".
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1398A.

@@ -48,7 +48,7 @@ internal enum NonReceivableForm
 /// rules lived in three places that disagreed: the receiving chokepoint named EXCEPTION-OBJECT, LINAGE-COUNTER and
 /// LINE-COUNTER; SET Format 5 and INVOKE RETURNING named the object-view (each with its own message); and NULL, SELF,
 /// SUPER and the address-identifiers reached no rule at all — a receiving slot that took only a data reference refused
-/// them as a parse error re-coded to §8.9 (COBOLNET0901 "'SELF' is a reserved word … cannot be used as a user-defined
+/// them as a parse error re-coded to §8.9 (COBOL0901 "'SELF' is a reserved word … cannot be used as a user-defined
 /// word"), a rule the program had not broken. Every row is asked by <see cref="ExpressionBinder"/>'s receiving
 /// chokepoint and by nothing else.</summary>
 internal static class ReceivingOperandForms

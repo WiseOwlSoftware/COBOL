@@ -268,7 +268,7 @@ public static class CobolInspect
     {
         if (!fill) { repl.CopyTo(0, chars, pos, size); return; }
         // A figurative is never zero-length: §8.3.3.6.3 SR2's zero-length ALL literal-1 is a compile-time error
-        // (COBOLNET1648) and every other figurative is one character — so there is no empty case to invent a value for.
+        // (COBOL1648) and every other figurative is one character — so there is no empty case to invent a value for.
         for (int i = 0; i < size; i++) chars[pos + i] = repl[i % repl.Length];
     }
 

@@ -163,6 +163,6 @@ public sealed class InspectDifferentialTests
                 DISPLAY C1.
             """));
         Assert.False(ok, "INSPECT BACKWARD must be rejected at --std 85");
-        Assert.Contains("COBOLNET0845", detail);
+        Assert.Contains("COBOL0845", detail);
     }
 }

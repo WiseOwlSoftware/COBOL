@@ -18,7 +18,7 @@
       * A.4.7), and A.4.1 makes "any associated syntax rules, general
       * rules, other rules, exception conditions, and I-O status
       * values" optional with it: the SHARING and LOCK MODE clauses are
-      * COBOL-2002 introductions (COBOLNET0900 below 2002) and a
+      * COBOL-2002 introductions (COBOL0900 below 2002) and a
       * COBOL-85 program is compiled for a processor on which the
       * module is not in effect. The mode a connector holds there is
       * the implementor's own, which restricts nobody, so Table 19

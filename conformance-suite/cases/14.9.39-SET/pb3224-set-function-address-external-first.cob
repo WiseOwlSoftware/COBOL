@@ -12,7 +12,7 @@
 *> define (no compile-time signature, §12.3.8.4 GR11 c), and is written FIRST; FPD is restricted to NSDBL (one USING
 *> formal). §8.4.3.12.4 GR3 makes ADDRESS OF FUNCTION NSZERO a function-pointer restricted to NSZERO (none), whose
 *> signature differs from NSDBL's. The same statement with FPD written first was always refused, so the verdict
-*> must not depend on the order: COBOLNET1959 (prototype-pointer-signature).
+*> must not depend on the order: COBOL1959 (prototype-pointer-signature).
 IDENTIFICATION DIVISION.
 FUNCTION-ID. NSDBL.
 DATA DIVISION.

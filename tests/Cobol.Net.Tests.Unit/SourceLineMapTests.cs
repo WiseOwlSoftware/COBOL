@@ -192,31 +192,31 @@ public sealed class SourceLineMapTests : IDisposable
             SourceFile = "main.cob",
             LineMap = new SourceLineMap([new(new SourceOrigin("main.cob", 1)), new(new SourceOrigin("main.cob", 2)), new(new SourceOrigin("lib.cpy", 7)), new(new SourceOrigin("main.cob", 4))]),
         };
-        ed.Error("COBOLNET9999", "bare");
-        Assert.Equal("error COBOLNET9999: bare", ed.Diagnostics[^1]);
+        ed.Error("COBOL9999", "bare");
+        Assert.Equal("error COBOL9999: bare", ed.Diagnostics[^1]);
         using (ed.At(3, 11))
         {
-            ed.Error("COBOLNET9999", "in the copybook");
-            Assert.Equal("lib.cpy(7,12): error COBOLNET9999: in the copybook", ed.Diagnostics[^1]);
+            ed.Error("COBOL9999", "in the copybook");
+            Assert.Equal("lib.cpy(7,12): error COBOL9999: in the copybook", ed.Diagnostics[^1]);
             using (ed.At(4, 0))
             {
-                ed.Warning("COBOLNET9998", "nested");
-                Assert.Equal("main.cob(4,1): warning COBOLNET9998: nested", ed.Warnings[^1]);
+                ed.Warning("COBOL9998", "nested");
+                Assert.Equal("main.cob(4,1): warning COBOL9998: nested", ed.Warnings[^1]);
             }
-            ed.Error("COBOLNET9999", "restored");   // the inner scope restored the outer position
+            ed.Error("COBOL9999", "restored");   // the inner scope restored the outer position
             Assert.StartsWith("lib.cpy(7,12): ", ed.Diagnostics[^1]);
         }
-        ed.Error("COBOLNET9999", "cleared");
-        Assert.Equal("error COBOLNET9999: cleared", ed.Diagnostics[^1]);
+        ed.Error("COBOL9999", "cleared");
+        Assert.Equal("error COBOL9999: cleared", ed.Diagnostics[^1]);
         // an UNSET captured cursor keeps the current position — never "line 0"
         using (ed.At(2, 3))
         using (ed.At(default(DiagnosticCursor)))
         {
-            ed.Error("COBOLNET9999", "kept");
+            ed.Error("COBOL9999", "kept");
             Assert.StartsWith("main.cob(2,4): ", ed.Diagnostics[^1]);
         }
         // a line outside the map (a synthetic position) falls back to the main file
-        using (ed.At(99, 0)) { ed.Error("COBOLNET9999", "beyond"); Assert.StartsWith("main.cob(99,1): ", ed.Diagnostics[^1]); }
+        using (ed.At(99, 0)) { ed.Error("COBOL9999", "beyond"); Assert.StartsWith("main.cob(99,1): ", ed.Diagnostics[^1]); }
     }
 
     [Fact]

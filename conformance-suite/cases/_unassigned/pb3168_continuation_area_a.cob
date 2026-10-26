@@ -11,7 +11,7 @@
       *> ANSI X3.23-1985 had ("Area A of a continuation line must be
       *> blank") and ISO 2002 removed. Both continuation lines below
       *> begin their text in area A (positions 8 and 10), so the program
-      *> is conforming from 2002 on and, at --std 85, COBOLNET3735 (the
+      *> is conforming from 2002 on and, at --std 85, COBOL3735 (the
       *> pb3168 negative). 6.5 6) a): a continued literal appends the
       *> program text "beginning with the first character after the
       *> initial quotation symbol"; 6.5 6) b): any other continuation

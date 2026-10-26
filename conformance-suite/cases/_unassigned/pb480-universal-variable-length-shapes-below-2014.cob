@@ -7,7 +7,7 @@
       *> kb/Work PB480 - the NEGATIVE twin of conformance-suite/cases/_unassigned/pb480_universal_variable_length_shapes. A
       *> dynamic-length elementary item (the DYNAMIC LENGTH clause, ISO 13.18.19 / 8.5.1.10) is a COBOL-2014
       *> introduction, so the variable-length group that crosses the universal INVOKE is rejected below 2014
-      *> (COBOLNET0900).
+      *> (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB480SNG.
        DATA DIVISION.

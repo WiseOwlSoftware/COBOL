@@ -14,7 +14,7 @@
       *>   it, so its reference identifies no resource. §8.4.2.1: "In
       *>   order to use a resource, a statement shall contain a reference
       *>   that uniquely identifies that resource" (cite.py --check
-      *>   8.4.2.1 -> OK). Diagnostic: COBOLNET1639 undefined-reference
+      *>   8.4.2.1 -> OK). Diagnostic: COBOL1639 undefined-reference
       *>   (docs/DIAGNOSTICS.md). Twin of the positive witness
       *>   2002/l1g4_global_redefines_subject_group.
        IDENTIFICATION DIVISION.

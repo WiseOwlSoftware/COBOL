@@ -10,9 +10,9 @@
 *> rule of the FILE description entry -- and §14.9.40.3 SR6 a) says why: "The data items
 *> identified by key data-names shall be described in records associated with file-name-1."
 *> Until kb/Work PB345 the ONLY diagnostic this program drew was the compiler's own
-*> deferral warning, "SORT 'S1' without an SD record - not implemented" (COBOLNET1756),
+*> deferral warning, "SORT 'S1' without an SD record - not implemented" (COBOL1756),
 *> followed by a run-unit abort -- the compiler apologising for the source's error.
-*> kb/Work PB345 -> COBOLNET1837.
+*> kb/Work PB345 -> COBOL1837.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB345N4.
        ENVIRONMENT DIVISION.

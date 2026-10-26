@@ -6,7 +6,7 @@
 *>---
 *> ISO 1989:2023 13.18.63.3 SR33 - "Formats 3 and 5 may be specified only when the level-number of the
 *> subject of the entry is 88." The THROUGH phrase is written only in those two formats (13.18.63.2), so a
-*> level-01 entry carrying one is nonconforming source and shall be diagnosed at compile time (COBOLNET2167).
+*> level-01 entry carrying one is nonconforming source and shall be diagnosed at compile time (COBOL2167).
 *> No edition changes this: Annex E carries no 2023 change to SR33 and the screen has no version predicate,
 *> so all four editions reject.
 *> MEASURED BEFORE the screen: the grammar admits every VALUE format through one rule (formats 3 and 5 share

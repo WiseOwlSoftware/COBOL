@@ -10,7 +10,7 @@
       *>  immediately followed by one of the separators space, comma,
       *>  semicolon, period, right parenthesis, or closing pseudo-text
       *>  delimiter." DISPLAY "AB"N used to print AB005, MOVE"AB" and IF
-      *>  "AB"=A compiled. COBOLNET2633 at every edition.
+      *>  "AB"=A compiled. COBOL2633 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGW73ALD.
        DATA DIVISION.

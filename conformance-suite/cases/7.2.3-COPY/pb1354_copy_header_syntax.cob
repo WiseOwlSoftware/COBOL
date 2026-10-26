@@ -8,7 +8,7 @@
       *> general-format order: after text-name-1 only the OF/IN phrase,
       *> SUPPRESS [PRINTING], the REPLACING phrase and the separator
       *> period may follow. GARBAGE is none of them, so the statement is
-      *> COBOLNET2449 at every edition. Before the fix a hand scan
+      *> COBOL2449 at every edition. Before the fix a hand scan
       *> skipped every character after the name to the next '.', and
       *> the program compiled silently.
       *> cite.py --check 7.2.3.4 "logically replacing the entire COPY

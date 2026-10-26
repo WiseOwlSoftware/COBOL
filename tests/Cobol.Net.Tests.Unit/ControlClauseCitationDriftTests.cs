@@ -73,7 +73,7 @@ public sealed class ControlClauseCitationDriftTests
         // all". That is true of FLOAT and FALSE of INDEX: §13.18.60.3 SR10 closes the set of contexts in which
         // an index data item may be referenced explicitly, and §8.4.5 makes a data-division clause naming a data
         // item exactly such an explicit reference — so the INDEX operand is illegal source that was reaching a
-        // RUNTIME loud. It is now COBOLNET1700 at bind, and the false sentence is gone. Re-derived from the
+        // RUNTIME loud. It is now COBOL1700 at bind, and the false sentence is gone. Re-derived from the
         // spec, like everything else here, rather than quoted from memory.
         string[] specLines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
         string sr10 = Array.Find(specLines, l => l.Contains("An index data item may be referenced explicitly only"))

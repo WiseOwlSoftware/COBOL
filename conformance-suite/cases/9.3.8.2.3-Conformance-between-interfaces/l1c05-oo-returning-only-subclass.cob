@@ -25,7 +25,7 @@
       *>   INHERITS FROM L1C05TX: ONLY is present but the
       *>   object-class-name is not "the same" (rule 5 c) 2., which
       *>   admits a subclass, applies only WITHOUT ONLY), so it does not
-      *>   conform and §11.8.3 SR2 is violated: COBOLNET0841.
+      *>   conform and §11.8.3 SR2 is violated: COBOL0841.
        IDENTIFICATION DIVISION.
        CLASS-ID. L1C05TX INHERITS FROM BASE.
        ENVIRONMENT DIVISION.

@@ -96,21 +96,21 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
 | page fit | §13.18.35.4 GR4b absolute (integer-1 > LC) / GR4c relative (trial = LC + Σ relative values ≤ the §13.18.57.4 GR8 lower limit: DE→LAST DETAIL, CH→LAST CH, CF→FOOTING); the chronologically FIRST body group since INITIATE is exempt (GR4); only body groups test (§13.18.57.3 SR15); a first PRESENT line carrying the NEXT PAGE phrase takes no test and the fit is unsuccessful (GR4a — see the LINE NEXT PAGE row) |
 | page advance | §14.9.16.4 GR6 in order: PF → physical advance (form feed) → CODE evaluation (`EvaluateCode`, PB1129) → PC+1, or PC←1 after a NEXT GROUP NEXT PAGE WITH RESET (GR6d / §13.18.37.4 GR6) → LC←0 → PH. The feed itself (b–e) is `PageFeed`, shared with the report heading that stands on a page by itself |
 | NEXT GROUP | §13.18.37 (kb/Work PB957) — the bound clause is the runtime's own `ReportNextGroup` record on `ReportGroup.NextGroup`, applied by the ONE method `ApplyNextGroup` after a group's last line (GR2). RH (GR3): absolute LC←integer-1, relative LC+=integer-2, NEXT PAGE → the RH is alone on page 1 and `PageFeed` runs with no PF (§13.18.57.4 GR6f 1) and PC←1 when WITH RESET (§14.9.16.4 GR4a). Body (GR4): absolute LC←integer-1 when LC is below it, else integer-1 goes to the SAVE LOCATION with LC←FOOTING, and the next non-dummy body group takes the forced advance then GR4a 1 (absolute first line: LC←saved, fit re-applied) or GR4a 3 (relative: first line at saved+1 unless the group would pass its lower limit — then a second advance and FIRST DETAIL); a TERMINATE next discards the save and restores LC ("no effect at all"); relative adds integer-2 below FOOTING else LC←FOOTING (an unpaged report has no FOOTING — the distance is added); NEXT PAGE LC←FOOTING and arms the GR6 reset. CF (GR1): only the footing AT the break level applies its clause — at TERMINATE the most major one (§14.9.46.4 GR3b). PF (GR5): absolute/relative move LC, which places a relative RF (§13.18.35.4 GR5b5). A dummy or SUPPRESSed group never reaches it (§8.4.3.15.4 GR5, §14.9.45.4 GR3). GR4a 2 (a next group opening with an absolute LINE … NEXT PAGE) IS GR4a 1: the advance it names is the one the save location already forces, never a second (docs/CONFORMANCE.md, the LINE NEXT PAGE block) |
-| LINE NEXT PAGE | §13.18.35.2 Format 1 (kb/Work PB1001) — `integer-1 ON NEXT PAGE` and the bare `ON NEXT PAGE` operand. ⛔ **A FLAG, NOT A KIND**: `ReportLineModel.NextPage` / `ReportGroupLine.NextPage`, set by `DataBinder.Reports.RepeatedLine` on the group's FIRST report line only (SR7), on an Absolute line (integer-1) or a Relative one (the bare operand), so every phrase-less placement rule stays the one rule. The engine reads it on the group's first PRESENT line (GR4/GR5 — PRESENT WHEN decides which line is first): a body group declares the fit unsuccessful without a test (GR4a) — the chronologically first body group since INITIATE takes no fit test at all, so the phrase does not advance it — and then places by GR5a (integer-1) or GR5b3 (the bare form, the first body group on its page → FIRST DETAIL); a report footing is on a page by itself (GR5a) — `PresentHeadingFooting` takes the bare `PageFeed` (no PH before it, §13.18.57.4 GR6b; no PF after it, GR6f 2) and places at integer-1, or at the HEADING integer for the bare form (§13.18.57.4 GR7f — a DETERMINATION). Syntax rules on COBOLNET2199, screened once per WRITTEN clause over the flat entry array by `ScreenReportLineClauses` (with SR3/SR5 — kb/Work PB1002): SR3 (integer ≤ the page limit, or 9999 unpaged), SR5 (unpaged → relative only; the bare operand is not the relative form, as §13.18.37.3 SR3 reads NEXT GROUP NEXT PAGE), SR7 (only the first LINE clause), SR8 (body group or report footing only). SR10a keeps the phrase to a multiple LINE clause's first operand. Pinned by `2002/pb1001_line_next_page` and four negatives |
+| LINE NEXT PAGE | §13.18.35.2 Format 1 (kb/Work PB1001) — `integer-1 ON NEXT PAGE` and the bare `ON NEXT PAGE` operand. ⛔ **A FLAG, NOT A KIND**: `ReportLineModel.NextPage` / `ReportGroupLine.NextPage`, set by `DataBinder.Reports.RepeatedLine` on the group's FIRST report line only (SR7), on an Absolute line (integer-1) or a Relative one (the bare operand), so every phrase-less placement rule stays the one rule. The engine reads it on the group's first PRESENT line (GR4/GR5 — PRESENT WHEN decides which line is first): a body group declares the fit unsuccessful without a test (GR4a) — the chronologically first body group since INITIATE takes no fit test at all, so the phrase does not advance it — and then places by GR5a (integer-1) or GR5b3 (the bare form, the first body group on its page → FIRST DETAIL); a report footing is on a page by itself (GR5a) — `PresentHeadingFooting` takes the bare `PageFeed` (no PH before it, §13.18.57.4 GR6b; no PF after it, GR6f 2) and places at integer-1, or at the HEADING integer for the bare form (§13.18.57.4 GR7f — a DETERMINATION). Syntax rules on COBOL2199, screened once per WRITTEN clause over the flat entry array by `ScreenReportLineClauses` (with SR3/SR5 — kb/Work PB1002): SR3 (integer ≤ the page limit, or 9999 unpaged), SR5 (unpaged → relative only; the bare operand is not the relative form, as §13.18.37.3 SR3 reads NEXT GROUP NEXT PAGE), SR7 (only the first LINE clause), SR8 (body group or report footing only). SR10a keeps the phrase to a multiple LINE clause's first operand. Pinned by `2002/pb1001_line_next_page` and four negatives |
 | line placement | §13.18.35.4 GR5a (absolute → integer-1), GR5b1 RH (HEADING+n−1), GR5b2 PH (RH-on-page aware), **GR5b3 body (FIRST body group on page → FIRST DETAIL, relative value IGNORED; else LC+n)**, GR5b4 PF (FOOTING+n), GR5b5 RF (PF-on-page aware), **GR5c (a report NOT divided into pages: every relative first line, RH and RF included, → LC+n)** — the whole GR5 rule is ONE method, `FirstLineTarget`, asked by all four presentation paths (kb/Work PB1247: the unpaged arm used to live only in the body-group copy), GR7 subsequent lines, GR6 LC-before-compose, GR8 final LC = last line printed. **GR3 overlap / overprint (kb/Work PB1247, PB1130)**: the engine HOLDS each composed line back until the next line proves it is not an overprint; a relative line with integer-2 zero on the held line MERGES its non-space characters into it (one physical line, LC still names it — GR1, §8.4.3.15.4 GR4); any other line on or above the device's line sets EC-REPORT-LINE-OVERLAP — raised (checking on) it abandons that line and LC is untouched (§14.9.16.4 GR8 / §14.9.46.4 GR5 resume at the next line), unchecked it prints on the next physical line and `_physLine` records where it really went. The held line belongs to the FILE CONNECTOR (`FileConnector.HeldLineDrain`, one holder per connector, claimed through `CobolFile.HoldLine` before every write, drained by the next line, a page feed, the end of TERMINATE and every CLOSE path) |
 | `Terminate` | §14.9.46.4 GR1 (inactive → **EC-REPORT-INACTIVE**, the statement is unsuccessful), **GR2 (no GENERATE ⇒ NO groups print — only →inactive)**, GR3a–d as ONE bracket: controls→prior (a), CFs minor→major (b), §13.18.57.4 GR6f final-page PF ("immediately followed by" the RF) and the RF (c), and only THEN the restore (d) — so a PF/RF that SOURCEs a control item shows its prior value (kb/Work PB1187), GR6 (file NOT closed) |
 | controls | §13.18.16.4 GR1 (operand order = hierarchy), GR2 (FINAL highest, never breaks mid-report), GR3 (first GENERATE saves priors; major→minor compare), GR4a (CF composes under restored prior values), GR5 (TERMINATE = most-major break). The SAVED prior = the item's CHARACTER IMAGE via generated get/set delegates (representation-faithful for every category; restore decodes via `CobolNum.StoreDisplay` for native numeric leaves); the break TEST is the program's own equality comparison (§12.3.6.4 GR11 c) names the CONTROL clause as an implicit user of the program collating sequence — kb/Work PB1131): the emitter passes `AddControl` the collated `CobolString.Compare` a relation condition over the item would render, and none when that IS code-unit equality (no sequence, or a numeric/boolean item) |
 | SUM | §13.18.54.4 GR1 (ONE counter per ENTRY OCCURRENCE — a repeating entry's counters are a table, `ReportSumFamily`, kb/Work PB1271 — scale from the entry's PICTURE, and its IDENTITY is that occurrence's id, never GR5's data-name — two entries may legally share one name, kb/Work PB882), GR2 (reset at the end of the group it prints in — EVERY presentation path, the page footing's page total and the report footing included, and also a group with no present line or a SUPPRESSed one (`BeginGroup`) — or, with RESET ON, at the end of its LEVEL's control-footing processing, `ProcessControlFootings`, whether or not a control footing is DECLARED for the level: "If no such control footing is defined, it is assumed to be present and to consist of a 01-level entry alone" (kb/Work PB1297); a RESET ON entry's own presence is not asked there — GR10 speaks of "the current instance of the report group" the entry is IN, which SR8 keeps from being that footing), GR10's other half (an occurrence an OCCURS … DEPENDING count excludes is neither printed nor reset — the counter's presence slot ANDs its PRESENT WHEN chain with its occurrence's `ReportSumModel.RepetitionGuards`, kb/Work PB1271), GR4 (the counter is the printable entry's source item — `ReportSumCounterPlace`, the ONE place a counter is read and written), GR7c1/c2 (accumulate per GENERATE / per the term's OWN UPON filter — a detail named n times in the phrase adds n times, `SumTerm.Fires` is a COUNT, kb/Work PB1297), GR9 (multi-addend). **GR1's SIZE ERROR INDICATOR (kb/Work PB1130)**: the counter's capacity is the PICTURE's digit count (enforced by the store each term's addition ends in, through the counter's own `NumProfile` — `AddSum` carries no digit count since kb/Work PB1686), derived per category by `DataBinder.SumCounterDigits` (kb/Work PB1296) — numeric: the 9s; numeric-edited: every DIGIT POSITION (`PicInfo.DigitPositions` — Z, *, floating insertion, not only the 9s: ZZ9 is three digits); alphanumeric / national (edited or not): each character position that is not a B / 0 / / insertion character. **The carrier is `Int128` end to end** (kb/Work PB1509/PB1560/PB1666): `SumEntry.Value` and every `SumTerm`, which is a `Func<Int128, Int128>` — ONE ADDITION: the counter's content in, its content after the term's ADD-consistent addition out (kb/Work PB1686); the procedure division reads and writes the counter as its DISPLAY image (`SumImage` / `SetSumImage`; a store whose characters are not a numeric image keeps them in `SumEntry.Image`, and a reference to them is §14.6.13.2 rule 2's EC-DATA-INCOMPATIBLE — kb/Work PB2553), and `PicInfo.SumCounterItem` keeps GR1's digit count up to 38 (every numeric PICTURE, ≤ 31 digit positions by §13.18.40.3 SR14; only an alphanumeric/national PICTURE of more than 38 positions is bounded by the carrier). **GR3's "consistent with the general rules of the ADD statement" is literal (kb/Work PB1686): a term's addition is emitted by the ADD statement's own machinery** — `NumericRenderer.Fold` over the term's addends (GR9's sum, the one initial evaluation), `Combine(counter content, "+", sum)` at the WIDER of the two scales in the unit's lane (the scaled `Int128`, or the SDIDI under a standard mode, §11.9.5.2 GR1/GR3), and `StoreExpr(…, raiseOnSizeError: true)` through the counter's profile with the clause's ROUNDED mode, so the sum is stored ONCE at the counter's scale. Aligning each addend to the counter's scale first (the former form) cut an addend finer than the counter one addend at a time: a 9V99 counter fed 1.000 then −0.005 held 1.00 where `ADD` gives 0.99. Any `CobolSizeError` / `OverflowException` from that evaluation (a sum past the capacity, an intermediate past the carrier, a PROHIBITED-inexact transfer) is the GR3 size error: the counter keeps its value and the indicator is set. An addition past the counter's capacity is the GR3 size error — the counter keeps its value (ADD ON SIZE ERROR, §14.7.5 1)), the indicator is set, EC-REPORT-SUM-SIZE is raised (fatal, checking-gated); GR4 fills the printable item with SPACES while the indicator is set (unconditionally — the emitted compose asks `SumPresentable`, which also raises); INITIATE (§14.9.21.4 GR1a) and every GR2 reset unset it. The counter carries a LIST of `SumTerm`s — one per `SUM … [UPON …]` group, because §13.18.54.3 SR1 lets the SUM keyword "appear more than once" in one clause and GR7c2 attaches each UPON phrase to ITS group |
 | GROUP INDICATE | §13.18.28.4 GR1 — "the same effect as a PRESENT WHEN clause" whose condition is true only on the first GENERATE issued for the current DETAIL group after an INITIATE (a), a page advance (b) or a control break (c). The condition is PER DETAIL GROUP (`ReportGroup.GroupIndicatePending`): `ArmGroupIndicate` sets it on every detail at each of the three events, and `GenerateCore` clears it on the GENERATEd detail AFTER its presentation (so the group's own page-fit advance re-arms what its lines read; a SUPPRESSed or all-absent presentation still consumes it — the GENERATE was issued). `PresentBody` publishes it as `CobolReport.GroupIndicatePresent` before composing, and the emitter ANDs that into the indicated item's presence test beside its PRESENT WHEN chain and OCCURS DEPENDING guards (§13.18.63.4 GR22 names all three suppressors) — so a non-presented indicated item is ABSENT (§13.18.41.4 GR2b): it places nothing, moves no horizontal counter, and a relative COLUMN operand needs nothing of its own (kb/Work PB1244; the former report-wide flag and post-compose column-span blanking are gone) |
 | USE BEFORE REPORTING | §14.9.49 Format 2 GR8/SR9 — the declarative section binds to the named group (`BoundDeclarative.ReportGroup`) and runs (a `__RunUse` bounded dispatch) just before the group is produced. ⛔ **Which declarative runs is chosen per STATEMENT, not per group** (kb/Work PB369): §14.9.49.4 GR4 is headed FORMATS 1 AND 2 — a) the qualifying declarative of the source element containing the GENERATE / TERMINATE, else b) a GLOBAL one of the next containing element, repeated outward. So there is NO per-group hook: every unit that can see a report and has a qualifying declarative in its GR4 chain emits `__BeforeReporting_{uid}(int gi, bool globalOnly)` (a non-GLOBAL case runs only when `!globalOnly`; the tail is `__outer.__BeforeReporting_{uid}(gi, true)` while a container up to the declaring program has a GLOBAL one), and GENERATE / TERMINATE hand the engine that selector (`Generate(name, sel)` / `Terminate(sel)`; cached per instance in `__brSel_{uid}`). The engine keys it by `ReportGroup.Index`, assigned by `AddGroup` in report-description order. `ReportWriterEmitter.EmitBeforeReportingSelectors` / `ChainSelects` |
-| GLOBAL RD | §13.18.27.3 SR1 e) / §13.18.27.4 GR1–GR2 (kb/Work PB369) — `ReportModel.IsGlobal`; `BinderDriver.BindUnitData` makes each container's GLOBAL report visible to a contained program (`DataBinder.InheritGlobalReport` — nearest container first, a local name hides), with its groups and its sum counters (GR1: data-names subordinate to a global name are global). ⛔ Two lists: `DataBinder.Reports` is what a unit DECLARES (constructs, validates, binds the description of); `DataBinder.VisibleReports` is what its procedure division can NAME — every report-name / group / counter / USE resolution reads it, pinned by `GlobalReportScopeTests.ProcedureBinding_ResolvesReportsOnlyThroughVisibleReports`. The report is ONE engine in the declaring program, reached through the `__outer` chain (`DataBinder.ReportDepth` → `RuntimeApi.ReportEngine(index, depth)`; the counter places carry the depth). A contained GENERATE / INITIATE / TERMINATE also requires the report's FD to be GLOBAL (§14.9.16.3 SR3/SR4, §14.9.21.3 SR2, §14.9.46.3 SR2 → COBOLNET2392). SR4 (no GLOBAL in a class) → COBOLNET1520 |
-| the REPORT-GROUP REFERENCE | ⛔ **ONE funnel, `Binding/ReportGroupResolution.cs`** — THREE sites name a report group by name (`GENERATE data-name-1` §14.9.16.3 SR1, `USE BEFORE REPORTING identifier-1` §14.9.49.3 SR9, and the SUM clause's `UPON data-name-2` §13.18.54.3 SR7 — the DATA-division one, resolved in `ResolveReports`). The two statement sites share the parse rule `reportGroupReference` (`cobolWord ((IN|OF) reportName)?` — §8.4.2.2.2 Format 1's file-report-qualifier, the only qualifier a level-01 group has; §8.4.2.2.3 SR3 makes IN ≡ OF) and the one resolver. It collects EVERY candidate and reports **COBOLNET1920** when more than one survives (§8.4.2.2.1 / §8.4.2.2.3 SR1). Before kb/Work PB365 both sites returned on the FIRST match, so the same 01-level name in two RDs bound to whichever report was written first, silently — and GENERATE's qualifier did not parse at all. `ReportGroupResolutionDriftTests` keeps the search out of every other file |
+| GLOBAL RD | §13.18.27.3 SR1 e) / §13.18.27.4 GR1–GR2 (kb/Work PB369) — `ReportModel.IsGlobal`; `BinderDriver.BindUnitData` makes each container's GLOBAL report visible to a contained program (`DataBinder.InheritGlobalReport` — nearest container first, a local name hides), with its groups and its sum counters (GR1: data-names subordinate to a global name are global). ⛔ Two lists: `DataBinder.Reports` is what a unit DECLARES (constructs, validates, binds the description of); `DataBinder.VisibleReports` is what its procedure division can NAME — every report-name / group / counter / USE resolution reads it, pinned by `GlobalReportScopeTests.ProcedureBinding_ResolvesReportsOnlyThroughVisibleReports`. The report is ONE engine in the declaring program, reached through the `__outer` chain (`DataBinder.ReportDepth` → `RuntimeApi.ReportEngine(index, depth)`; the counter places carry the depth). A contained GENERATE / INITIATE / TERMINATE also requires the report's FD to be GLOBAL (§14.9.16.3 SR3/SR4, §14.9.21.3 SR2, §14.9.46.3 SR2 → COBOL2392). SR4 (no GLOBAL in a class) → COBOL1520 |
+| the REPORT-GROUP REFERENCE | ⛔ **ONE funnel, `Binding/ReportGroupResolution.cs`** — THREE sites name a report group by name (`GENERATE data-name-1` §14.9.16.3 SR1, `USE BEFORE REPORTING identifier-1` §14.9.49.3 SR9, and the SUM clause's `UPON data-name-2` §13.18.54.3 SR7 — the DATA-division one, resolved in `ResolveReports`). The two statement sites share the parse rule `reportGroupReference` (`cobolWord ((IN|OF) reportName)?` — §8.4.2.2.2 Format 1's file-report-qualifier, the only qualifier a level-01 group has; §8.4.2.2.3 SR3 makes IN ≡ OF) and the one resolver. It collects EVERY candidate and reports **COBOL1920** when more than one survives (§8.4.2.2.1 / §8.4.2.2.3 SR1). Before kb/Work PB365 both sites returned on the FIRST match, so the same 01-level name in two RDs bound to whichever report was written first, silently — and GENERATE's qualifier did not parse at all. `ReportGroupResolutionDriftTests` keeps the search out of every other file |
 | the BEFORE REPORTING RANGE | §14.9.49.4 GR10 — a GENERATE, INITIATE or TERMINATE executed **within the range of** a USE BEFORE REPORTING declarative sets EC-FLOW-REPORT, is **unsuccessful**, and leaves **the state of the report unchanged**. `RunBeforeReporting` — the ONE funnel every presentation path uses — brackets the statement's GR4 selector with `RunUnit.ReportFlow.Enter()/Exit()` (a `finally`, so a fatal EC out of the declarative cannot latch the range), and the three verbs consult `InBeforeReporting` first. ⛔ **The range is the RUN UNIT's, not one report's and not one program's**: GR10 attaches no element qualifier where §14.9.18.4 GR6 attaches one explicitly for EC-FLOW-GLOBAL-GOBACK ("… in the same program as the GOBACK statement"), and the standard's other flow rules read the same way (§14.9.32.4 GR1's "within the range of an input procedure"). A per-`CobolReport` flag would pass `2023/pb326_flow_report_cross_report` while being wrong. A DEPTH, not a bool — two different groups' declaratives nest |
-| SUPPRESS | §14.9.45 — `SUPPRESS PRINTING` names its GROUP (`BoundSuppress.Group`, `__RPT_n.SuppressPrinting(groupIndex)`), and the engine honours it only while THAT group's own BEFORE REPORTING hook runs (`RunBeforeReporting` scopes `_hookGroup`/`_hookSuppressed`: cleared on entry, restored on exit) — GR1 "only for the report group named in the USE procedure", GR2 current instance only; reached by a PERFORM from elsewhere (§14.9.49.3 SR4) it has no effect (kb/Work PB1186). The target group is the lexically-enclosing USE BEFORE REPORTING group, resolved at bind from `BindCursor` ∈ the declarative's pc range (GR1); a SUPPRESS outside such a procedure is COBOLNET1581 (SR1). GR3 a–d inhibit printing / page advance / NEXT GROUP / LINE-COUNTER, but NOT sum accumulation (GR7, already done in Generate) nor the end-of-group sum reset (GR2) — so a suppressed control footing's totals stay correct (only PRESENT WHEN / ODO absence skips the reset, GR10). Body groups run `EndOfGroupSumReset` on the suppressed path; heading/footing groups (no reset) return after the hook |
+| SUPPRESS | §14.9.45 — `SUPPRESS PRINTING` names its GROUP (`BoundSuppress.Group`, `__RPT_n.SuppressPrinting(groupIndex)`), and the engine honours it only while THAT group's own BEFORE REPORTING hook runs (`RunBeforeReporting` scopes `_hookGroup`/`_hookSuppressed`: cleared on entry, restored on exit) — GR1 "only for the report group named in the USE procedure", GR2 current instance only; reached by a PERFORM from elsewhere (§14.9.49.3 SR4) it has no effect (kb/Work PB1186). The target group is the lexically-enclosing USE BEFORE REPORTING group, resolved at bind from `BindCursor` ∈ the declarative's pc range (GR1); a SUPPRESS outside such a procedure is COBOL1581 (SR1). GR3 a–d inhibit printing / page advance / NEXT GROUP / LINE-COUNTER, but NOT sum accumulation (GR7, already done in Generate) nor the end-of-group sum reset (GR2) — so a suppressed control footing's totals stay correct (only PRESENT WHEN / ODO absence skips the reset, GR10). Body groups run `EndOfGroupSumReset` on the suppressed path; heading/footing groups (no reset) return after the hook |
 | PRESENT WHEN | §13.18.41 Format 1 — ⛔ **ONE PRESENCE SNAPSHOT PER GROUP PRESENTATION** (kb/Work PB1272). The emitter gives each report group with a conditioned entry a generated probe (`__RPT_P_{r}_{g}(bool[])`, `ReportWriterEmitter.PresencePlan`) holding one slot per conditioned LINE (its chain AND its enclosing OCCURS … DEPENDING counts), per conditioned printable ITEM (its field-local chain AND its repetition guards) and per conditioned SUM entry the group prints (its full chain); the engine runs it ONCE per presentation (`BeginPresentation` → `ReportGroup.SnapshotPresence`), BEFORE any LINE processing (GR2; §13.18.38.4 GR13 for DEPENDING) and AFTER the USE BEFORE REPORTING selection, and the placement, the page-fit trial, the compose (`__RPT_n.IsPresent(g, k)`) and the sum reset all read the same answers. Only the LINE chains used to be snapshotted: an item's chain ran inside its compose — after the page advance the group's own fit test had caused, so a page heading's declarative could change it — and a SUM entry's chain ran again at the end of the group. A GROUP INDICATE condition is NOT a slot: it is engine state the group's own page advance re-arms (§13.18.28.4 GR1; kb/Work PB1244). ⛔ **That order is a DETERMINATION, not a reading** (kb/Work PB367b): §14.9.49.4 GR9 d) performs the declarative "Before the processing of any LINE clauses defined for the report group" and GR2 evaluates condition-1 "before the processing of any LINE clauses for the report group" — the SAME boundary, with no rule ordering them, and both precede the page fit test (GR9 c); §13.18.41.4 GR3 d). It is settled this way because the reverse makes a declarative's execution depend on data the declarative exists to set: condition-1 is any condition (§13.18.41.2), typically over the very items §14.9.49.4 GR8 lets the procedure prepare ("just before the named report group is produced"), and a level-01 PRESENT WHEN would otherwise silently suppress the procedure that would have made the group present. Witnessed by `ReportWriterConformanceTests.UseBeforeReporting_PresentWhen_DeclarativeRunsBeforeTheConditionIsEvaluated`; an absent line is SKIPPED so the next relative line re-anchors on LINE-COUNTER (GR2b — the line collapse); the fit-test form, the trial sum, and the GR5 first-line placement key on the first PRESENT line (§13.18.35.4 GR4/GR5; absent relative lines excluded from the trial, §13.18.41.4 GR3d); no PRESENT line ⇒ no fit test, no printing, no counter movement and no NEXT GROUP (a dummy group, §8.4.3.15.4 GR5) — but the group's processing still ENDS, so its end-of-group sum reset runs (`BeginGroup`): GR2b omits the ENTIRE group only for an absent LEVEL-01 entry, whose condition every counter of the group carries in its chain, so those counters are not reset anyway (kb/Work PB1272); an absent SUM entry is neither printed (the compose reads its slot) nor reset (`EndOfGroupSumReset` reads the same slot — GR3g/§13.18.54.4 GR10); absent printable items place nothing and never advance the horizontal counter (GR3e/GR3f) |
 | VARYING | §13.18.64 — per-repetition counters over the multiple-COLUMN repetition vehicle (SR1): compose-local `Int128`s (GR1 — "an independent temporary integer data item that shall be large enough to contain the maximum expected value"; kb/Work PB1305), first occurrence ← FROM (default 1, GR3a — re-evaluated per presentation), += BY per repetition (default 1, GR3b); each value persists through its occurrence (GR4 — `SOURCE IS counter` renders it, GR4 NOTE). FROM/BY land through `CobolReport.VaryingInteger` in their own lane (fixed point unscaled at its scale, binary64, or the standard-decimal intermediate); a noninteger value raises EC-REPORT-VARYING (GR5, fatal, bound to GENERATE/TERMINATE through `EcBinder`'s report-production names) and, with checking off, takes the value's integer part — GR5 leaves the print line undefined (§A.2 item 63) |
 | multiple/relative COLUMN | §13.18.14 F1 — a multiple COLUMN clause defines one printable item per operand (GR12); relative (PLUS) operands place at `horizontal counter + integer-2` (GR8) with the counter starting at 0 (GR7) and set to each placed item's rightmost column (GR9) |
-| the VALUE / SOURCE OPERAND LIST | ⛔ **ONE list, ONE cycling reader, ONE syntax screen** (kb/Work PB506). ISO writes the same two rules twice, once per clause: §13.18.63.3 SR35 = §13.18.53.3 SR6 (a multi-operand clause requires a repeating entry — §13.15.4 GR3 — and an operand count equal to its repetitions, or that number multiplied by the repetitions of successive higher repeating entries) and §13.18.63.4 GR23 = §13.18.53.4 GR4 ("successive operands are assigned to successive repeating printable items, horizontally and then vertically … If no further operands remain, assignment begins again from the first operand"). So `ReportFieldModel.Sources` is a LIST (a single-operand clause is a one-element list), `ReportFieldModel.SourceAt(rep)` is the only per-repetition reader — indexed by the repetition ORDINAL, which is what makes GR23's last sentence true by construction ("If any of the printable items are suppressed as a result of a PRESENT WHEN clause … operands are nevertheless assigned to them"), and `DataBinder.Reports.ScreenRepeatingOperandCount` is the ONE screen, fed by both clauses with its own diagnostic each (**COBOLNET2012** VALUE / **COBOLNET2013** SOURCE) and the repetition chain read off the entry scope stack. Before PB506 `FieldValueSource` held ONE glued string (`ExtractValue`'s `GetText()` over the whole list, so `VALUE "XX" "YY"` reached the emitter as `"XX""YY"` and printed `XX"YY`) and the SOURCE clause had no multi-operand grammar surface at all. GR23's wrap-around sentence became REACHABLE when both repetition axes did (kb/Work PB565) — a repeating entry subordinate to another one has more placements than a conforming operand count, `conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition` lines 30–31 — and `ReportOperandListDriftTests` still asserts it on the model |
+| the VALUE / SOURCE OPERAND LIST | ⛔ **ONE list, ONE cycling reader, ONE syntax screen** (kb/Work PB506). ISO writes the same two rules twice, once per clause: §13.18.63.3 SR35 = §13.18.53.3 SR6 (a multi-operand clause requires a repeating entry — §13.15.4 GR3 — and an operand count equal to its repetitions, or that number multiplied by the repetitions of successive higher repeating entries) and §13.18.63.4 GR23 = §13.18.53.4 GR4 ("successive operands are assigned to successive repeating printable items, horizontally and then vertically … If no further operands remain, assignment begins again from the first operand"). So `ReportFieldModel.Sources` is a LIST (a single-operand clause is a one-element list), `ReportFieldModel.SourceAt(rep)` is the only per-repetition reader — indexed by the repetition ORDINAL, which is what makes GR23's last sentence true by construction ("If any of the printable items are suppressed as a result of a PRESENT WHEN clause … operands are nevertheless assigned to them"), and `DataBinder.Reports.ScreenRepeatingOperandCount` is the ONE screen, fed by both clauses with its own diagnostic each (**COBOL2012** VALUE / **COBOL2013** SOURCE) and the repetition chain read off the entry scope stack. Before PB506 `FieldValueSource` held ONE glued string (`ExtractValue`'s `GetText()` over the whole list, so `VALUE "XX" "YY"` reached the emitter as `"XX""YY"` and printed `XX"YY`) and the SOURCE clause had no multi-operand grammar surface at all. GR23's wrap-around sentence became REACHABLE when both repetition axes did (kb/Work PB565) — a repeating entry subordinate to another one has more placements than a conforming operand count, `conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition` lines 30–31 — and `ReportOperandListDriftTests` still asserts it on the model |
 
 **The four statement-precondition conditions, and what `>>TURN` does and does not gate.** EC-FLOW-REPORT
 (§14.9.49.4 GR10), EC-REPORT-ACTIVE (§14.9.21.4 GR2), EC-REPORT-FILE-MODE (§14.9.21.4 GR3) and
@@ -163,8 +163,8 @@ off-by-one through every later counter check.
   generalised): the integer as written, or the integer constant's value, which §13.10.4 GR1 makes "as if the literal
   were written" and therefore meets what the written literal meets — §5.5 1)'s unsigned/nonzero default with each
   clause's own zero permission (`IntegerOperandRules.Slots`, classified by the CLAUSE that owns the operand, not by
-  the carrier rule) and the host limit (COBOLNET2427). A constant that is not an integer is COBOLNET1547, a zero one
-  COBOLNET2386. The value is memoised per operand node because the report binder replays a repeating entry's
+  the carrier rule) and the host limit (COBOL2427). A constant that is not an integer is COBOL1547, a zero one
+  COBOL2386. The value is memoised per operand node because the report binder replays a repeating entry's
   subtree (§13.18.38.4 GR10) and one bad constant is one diagnostic.
 - **PLUS and + are ONE grammar fragment** (kb/Work PB951): `reportRelativeSign : PLUSWORD | PLUS` is the only
   spelling of a relative operand in `CobolReportWriter.g4`, referenced by the LINE, COLUMN and NEXT GROUP
@@ -174,13 +174,13 @@ off-by-one through every later counter check.
 - **NEXT GROUP** (§13.18.37; kb/Work PB957) is captured on its level 1 entry's group during the walk and bound
   by `BindNextGroupClauses` once the RD's groups are complete (the TYPE clause may follow it in the entry, and
   SR6a/SR6c/SR7 read the group's lines). It screens §13.15.3 SR6 over the flat entry array and §13.18.37.3
-  SR1/SR3/SR4/SR5/SR6/SR7 per group on **COBOLNET2284**; "the minimum last line number of the report group" is
+  SR1/SR3/SR4/SR5/SR6/SR7 per group on **COBOL2284**; "the minimum last line number of the report group" is
   the GR5/GR7 placement walked over the group's UNCONDITIONAL lines (`MinimumLastLine` — a PRESENT WHEN or
   OCCURS DEPENDING line may be absent, and absence can only leave the last line higher up). The binding is the
   runtime's own `ReportNextGroup` record, which the emitter writes verbatim.
 - **A REPEATING ENTRY IS A SUBTREE REPLAY, AND THAT IS THE ONLY REPETITION MECHANISM** (§13.18.38 format 3 —
   `OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]`; kb/Work PB565).
-  `ReportOccursOf` reads the clause and enforces its syntax rules (one bundled code, `COBOLNET2021`: SR1a no
+  `ReportOccursOf` reads the clause and enforces its syntax rules (one bundled code, `COBOL2021`: SR1a no
   OCCURS on an 01 entry · SR10 nesting only without DEPENDING · SR16 bounds · SR17 integer data-name-1 · SR24
   TO⊥DEPENDING together · SR25 STEP required over an absolute COLUMN · SR26 integer-3 ≥ the repeated item's
   span · SR27 a DEPENDING entry is followed only by its subordinates · and the DYNAMIC/KEY/INDEXED phrases,
@@ -201,7 +201,7 @@ off-by-one through every later counter check.
     whose integer is equal to the number of operands of the LINE clause, except that the multiple LINE clause
     allows the report lines to be defined at unequal vertical intervals." `DataBinder.ReportRepetitionOf`
     builds exactly that — a simple, STEP-less, vertical `ReportOccursSpec` — and the repetition ORDINAL then
-    selects the LINE operand. §13.18.35.3 SR10 a/b/c/d and SR4 are screened on **COBOLNET2199**; SR10d (no
+    selects the LINE operand. §13.18.35.3 SR10 a/b/c/d and SR4 are screened on **COBOL2199**; SR10d (no
     OCCURS in the same entry) is what keeps §13.15.4 GR3's repetition count single-valued.
   - **Placement** (§13.18.38.4 GR12) is `ReportColumnKindModel` horizontally and `ReportLineKindModel`
     vertically, built by the twin helpers `RepeatedPlacements` and `RepeatedLine`: the displacement
@@ -266,7 +266,7 @@ off-by-one through every later counter check.
     c/d as a single subtree scan refused `03 LINE PLUS 1 OCCURS 3 TIMES.` over a subordinate `05 COLUMN 1`,
     which is GR10c and conforming source. SR26 is measured on the entry's OWN axis: the repeated item's
     printed width horizontally, the lines one occurrence occupies vertically (`ReportEntryLineSpan`).
-  - **No residue on either axis.** `COBOLNET0899 report-occurs-in-group` and `report-multiple-line` are
+  - **No residue on either axis.** `COBOL0899 report-occurs-in-group` and `report-multiple-line` are
     RETIRED, never to be reallocated, and `ReportRepeatingEntryDriftTests.NeitherRepetitionAxis_StagesLoud`
     fails if either descriptor is re-declared.
 - **A CONTROL-clause OPERAND is a written reference, and there is ONE of it** (`ReportControlRef` — name +
@@ -296,22 +296,22 @@ off-by-one through every later counter check.
   reference. The arm choice is made once, in `ResolveSumAddend`: SR4's *data-name-1* (a report-section item —
   a rolled total, GR6 — and SR4 g)'s cross-report spelling of it) is resolved by `ResolveRolledAddend` (the
   "ROLLED TOTAL" bullet below), and SR5's *identifier-1* is screened for BOTH
-  halves of its sentence — resolution outside the report section AND the CATEGORY (**COBOLNET2045**), which
+  halves of its sentence — resolution outside the report section AND the CATEGORY (**COBOL2045**), which
   also refuses every reference-modified spelling, since §8.4.3.3.4 GR6 c) makes a ref-mod's unique data item
   alphanumeric and SR5 requires a numeric one. `UPON data-name-2` (SR7) is captured by `UponDetailRef` and
   resolved through the report-group funnel — it "shall be the name of a detail" and "may be qualified only by a
-  report-name" (**COBOLNET2046**); a detail of ANOTHER report is legal, and because GR7 c) 2) accumulates on a
+  report-name" (**COBOL2046**); a detail of ANOTHER report is legal, and because GR7 c) 2) accumulates on a
   GENERATE run against THAT report's engine the addition registers there (`ReportDetailRef.Owner`,
   `CobolReport.AddGenerateTrigger`). **ONE counter per ENTRY** (GR1) however many times the SUM keyword
   appears (SR1): the grammar's `reportSumClause` is the repeated `reportSumGroup` followed by the clause's ONE RESET
   phrase and ONE rounded-phrase (§13.18.54.2 — the outer brace closes after the UPON phrase; kb/Work PB1295), and
   each group becomes a `ReportSumTerm` with its OWN UPON list, emitted as one `AddSumTerm` call. A phrase written
   BETWEEN two SUM groups ends the clause, so the entry carries a second `reportSumClause`, which
-  `ScreenReportEntryClausePresence` refuses (COBOLNET1559). The entry's PICTURE is screened once, from the site that
+  `ScreenReportEntryClausePresence` refuses (COBOL1559). The entry's PICTURE is screened once, from the site that
   analyses it (`ScreenReportEntryPicture`): the digit-position limit of §13.18.40.3 SR14 through the data division's
   own `ScreenPictureDigitCapacity` (kb/Work PB1687) and §13.18.54.3 SR2 through `MoveTable16.NumericSenderRefusal`
-  (COBOLNET2750; docs/CONFORMANCE.md, the integer-row determination). A subscript in any report entry clause is asked
-  once per written entry by `ScreenReportSubscripts` (§8.4.2.3.3 SR8, COBOLNET2751): `SubscriptWordsOfReference` reads
+  (COBOL2750; docs/CONFORMANCE.md, the integer-row determination). A subscript in any report entry clause is asked
+  once per written entry by `ScreenReportSubscripts` (§8.4.2.3.3 SR8, COBOL2751): `SubscriptWordsOfReference` reads
   the words of a reference's subscript lists, and a report section item that is not a
   counter is the SUM expression's / SOURCE's own section rule (`ReportSectionNameIn`). (Before PB482 the addend went through `KeyReference` — the
   FILE STATUS key helper — so `SUM WS-CELL(2)` compiled and ABORTED at the first GENERATE, `SUM WS-TXT(1:2)`
@@ -341,10 +341,10 @@ off-by-one through every later counter check.
   anything else, and any operand under the clause's ROUNDED phrase (§13.18.53.3 SR5 — "it is considered to be an
   arithmetic-expression"), is `FieldComputeSource` / an expression `ReportSumAddend`, bound in the PROCEDURE
   phase through the ONE `ExpressionBinder.BindExpr` and rendered into GR2's implicit COMPUTE. The screens are
-  each clause's own: **COBOLNET2141** (§13.18.53.3 SR3 — the entry shall be numeric or numeric-edited),
-  **COBOLNET2142** (SR7 — a multi-operand clause containing an expression parenthesizes EVERY operand; enforced,
-  never inferred from the greedy parse), **COBOLNET2143** (§13.18.54.3 SR3 — SUM's ROUNDED needs a COLUMN
-  clause) and **COBOLNET2144** (the SECTION rules, which differ by clause and are screened by the one walk
+  each clause's own: **COBOL2141** (§13.18.53.3 SR3 — the entry shall be numeric or numeric-edited),
+  **COBOL2142** (SR7 — a multi-operand clause containing an expression parenthesizes EVERY operand; enforced,
+  never inferred from the greedy parse), **COBOL2143** (§13.18.54.3 SR3 — SUM's ROUNDED needs a COLUMN
+  clause) and **COBOL2144** (the SECTION rules, which differ by clause and are screened by the one walk
   `ReportSectionNameIn`: SOURCE's SR4 admits a report counter or a sum counter of the CURRENT report, SUM's SR6
   admits nothing of the report section at all).
   ⚠ **DETERMINATION — what the SUM clause's ROUNDED phrase rounds.** §13.18.54.4 GR4 ("the content of the sum
@@ -367,7 +367,7 @@ off-by-one through every later counter check.
   IMAGE-CARRIED, `StorageFormPass` gives it `StorageForm.CharImage`, kb/Work PB2553). Because it is a Place, every verb reaches it through the machinery it
   already has, receiving side included; the former read-only `BoundReportSumRef` is DELETED, and the compose of
   a SUM entry's printable face now goes through the same place (which is what GR4's "moved, according to the
-  general rules of the MOVE statement" asks for). An ambiguous or mis-qualified reference is **COBOLNET2145** —
+  general rules of the MOVE statement" asks for). An ambiguous or mis-qualified reference is **COBOL2145** —
   and a counter is ONE CANDIDATE AMONG ALL THE DATA-NAMES OF ITS SPELLING (kb/Work PB3232): `SumCounterFamilyFor`
   counts the counters together with the ordinary data items the written qualifiers reach in the same source element
   (`DataBinder.QualifiedCandidates`), so an unqualified `TOT-N` that names a sum counter AND a WORKING-STORAGE item is
@@ -389,10 +389,10 @@ off-by-one through every later counter check.
   (every written entry with a data-name, its qualification innermost first, whether it holds a SUM clause) feeds
   `DataBinder.ReportEntriesNamed` — the visible reports (own and GLOBAL containers', nearest source element, §8.4.6.2.1
   rule 3) under the ONE §8.4.2.2.3 SR4 `QualifierWalk`, report-name last — and `DataBinder.ReportEntryReferenceRefused`
-  reports **COBOLNET5092**. Three arms ask it before they say "not defined": `ReferenceResolver.ReportUnidentified`
+  reports **COBOL5092**. Three arms ask it before they say "not defined": `ReferenceResolver.ReportUnidentified`
   (every procedure division identifier), `DataBinder.ResolveClauseOperand` (FILE STATUS, RELATIVE KEY, LINAGE, APPLY
   COMMIT) and the data-division OCCURS … DEPENDING ON lookup; `ReportItemReferenceTests` pins the three. The report
-  section's own clauses are not refused here: their operand rules are theirs (`ReportSectionNameIn`, COBOLNET2144).
+  section's own clauses are not refused here: their operand rules are theirs (`ReportSectionNameIn`, COBOL2144).
 - **A REPEATING ENTRY'S SUM COUNTER IS A TABLE, ONE COUNTER PER OCCURRENCE** (kb/Work PB1271). §13.18.54.4 GR8 a)
   adds each occurrence of a repeating addend "into the corresponding occurrence of the sum counter", GR10 speaks of
   "the corresponding sum counter" of an absent occurrence, and all three §13.15.4 GR3 repetition vehicles are OCCURS
@@ -412,7 +412,7 @@ off-by-one through every later counter check.
   enclosing repetition with `Occurs` = its extent (and its own `Occurs` = the COLUMN count), so
   `ReferenceResolver.SumCounterFor` reads the written subscripts through the ONE `ReadSubscripts` (§8.4.2.3.3 SR3
   count, SR5 "Each table element reference shall be subscripted" — an unsubscripted `CF-U` of a multiple COLUMN
-  entry is now COBOLNET2270, SR4 index-name association) and the table(ALL) intrinsic argument reads the levels and
+  entry is now COBOL2270, SR4 index-name association) and the table(ALL) intrinsic argument reads the levels and
   their counts off the family (`IntrinsicBinder.TryBindAllArgument` asks `SumCounterFamilyFor` first, in
   `Resolve`'s order; `ReferenceResolver.SumCounterOccurrenceCount` ranges a DEPENDING level over §13.18.38.4 GR13's
   count — §15.3: "the range of values is determined by the object of the OCCURS DEPENDING ON clause" — as
@@ -439,8 +439,8 @@ off-by-one through every later counter check.
   (no COLUMN, §13.18.53.4 GR3) has an occurrence too — it prints nothing, but a SUM clause may still name it.
   `ResolveRolledAddend` resolves the written name once (the qualifiers consumed against each entry's hierarchy, the
   report-name last — SR4 g) is the same arm, not a second one), screens it once per WRITTEN addend (SR4: a numeric item
-  with a value, unsubscripted — COBOLNET2730; a) no UPON; b)/c)/d) the levels of repetition, `RolledRepetitionFault`;
-  f) the report-type pairing, COBOLNET2731, within one report only; e) the chain terminates, `ScreenRolledChains` over
+  with a value, unsubscripted — COBOL2730; a) no UPON; b)/c)/d) the levels of repetition, `RolledRepetitionFault`;
+  f) the report-type pairing, COBOL2731, within one report only; e) the chain terminates, `ScreenRolledChains` over
   every report) and then maps per COUNTER OCCURRENCE (GR8): the INNERMOST levels of the addend and the counter are the
   same levels (SR4 d) — "in order beginning with the lowest level of nesting"), so an addend occurrence belongs to the
   counter occurrence whose coordinates equal its own innermost ones, and its outer levels are the "complete table"
@@ -475,7 +475,7 @@ off-by-one through every later counter check.
   PROCEDURE division an unqualified counter resolves only against a sole report; in the REPORT SECTION an unqualified
   counter "is qualified implicitly by the name of the report in whose report description entry the reference is made"
   (`ReferenceResolver.ReportScope`, set for the span of one RD's clause binding). A qualification violation is
-  **COBOLNET2729** (`report-counter-qualification`). `ReferenceResolver.Resolve` early-returns
+  **COBOL2729** (`report-counter-qualification`). `ReferenceResolver.Resolve` early-returns
   for the counter tokens — LOAD-BEARING for the qualified form, where `cobolWord()` is the qualifier and
   would otherwise mis-resolve as a base data-name.
 - **Receiving guard**: ALL receiving resolution (MOVE targets, arithmetic resultants ×3, SET targets) goes
@@ -490,7 +490,7 @@ off-by-one through every later counter check.
   captured as parse contexts at data bind and bound in the procedure phase through the ONE `ConditionBinder`
   (`ReportWriterBinder.BindReportGroupClauses`, memoized per distinct context, called at the top of
   `StatementBinder.Bind`); VARYING FROM/BY bind the same way through the ONE expression binder.
-- **The §13.15.3/§13.18.64.3 SR family = COBOLNET1559** (`report-group-clause-rule`, one bundled code): SR16 —
+- **The §13.15.3/§13.18.64.3 SR family = COBOL1559** (`report-group-clause-rule`, one bundled code): SR16 —
   condition-1 shall not reference LINE-/PAGE-COUNTER or a report-section data item (token scan in
   `ResolveReports` — `CheckConditionOperands` — over the PRESENT WHEN clauses the report WRITES, read off
   `ReportModel.WrittenEntries`, never off the bound lines and fields, so an entry that produces no line, field or
@@ -501,7 +501,7 @@ off-by-one through every later counter check.
   data item or report section name — `ScreenReportVaryingClauses` and `ResolveReports`, once per written entry); SR3 —
   the counter shall not appear in its own FROM. A counter named in SOURCE, a subscript, FROM or BY resolves through
   `ReferenceResolver.VaryingScope` (§13.18.64.4 GR4 NOTE; see the VARYING bullet above).
-- **The §13.15.3 CLAUSE-PRESENCE family = COBOLNET2247** (`report-entry-clause-presence`, one bundled code;
+- **The §13.15.3 CLAUSE-PRESENCE family = COBOL2247** (`report-entry-clause-presence`, one bundled code;
   kb/Work PB853), screened by `ScreenReportEntryClausePresence` ONCE per written entry over the flat RD entry
   array, before the walk — the `ScreenReportLineNesting` shape, so a §13.18.38 format 3 replay cannot
   multiply it. An entry is ELEMENTARY when the entry after it is not subordinate to it (§13.15.4 GR1). SR10 —
@@ -513,11 +513,11 @@ off-by-one through every later counter check.
   read off the level hierarchy by `SubordinateToLineClause` (never off the line the build last opened — a COLUMN
   entry that is a sibling of a LINE subtree used to inherit it; kb/Work PB1224); **SR12** — a PICTURE in every
   elementary SOURCE or SUM entry, printable or not; and SR14's VALUE-only entry with no implied picture, in the
-  binder's PICTURE arm (the two former COBOLNET0899 descriptors `report-column-without-line` and
+  binder's PICTURE arm (the two former COBOL0899 descriptors `report-column-without-line` and
   `report-item-missing-picture` are folded into this code). **§13.15.4 GR2's BLANK WHEN ZERO and JUSTIFIED subject
   rules** (§13.18.8.3 SR1/SR2, §13.18.32.3 SR3) are the data division's `BlankWhenZeroViolation` /
-  `JustifiedViolation` predicates (COBOLNET2405), asked of the printable item's analysed picture. The same screen carries
-  **§13.18.28.3 SR1 = COBOLNET2519** (`report-group-indicate-placement`, kb/Work PB1245): GROUP INDICATE only in a
+  `JustifiedViolation` predicates (COBOL2405), asked of the printable item's analysed picture. The same screen carries
+  **§13.18.28.3 SR1 = COBOL2519** (`report-group-indicate-placement`, kb/Work PB1245): GROUP INDICATE only in a
   DETAIL group (the TYPE read from the level-01 entry through `WrittenGroupKind`, the helper
   `ScreenReportLineClauses` shares), and on an elementary entry only with a COLUMN clause and a SOURCE or VALUE
   clause — the elementary half is SR11's. SR8 is `ScreenReportLineNesting`
@@ -528,20 +528,20 @@ off-by-one through every later counter check.
 - **Every `data-name-n` operand of the OCCURS clause goes through the ONE capture `ClauseDataName`**
   (kb/Work PB885) — format 3's `DEPENDING ON data-name-1` here and the data-division format 2/4 operands
   (`DEPENDING`, `KEY`, `CAPACITY IN`) alike: §13.18.38.3 SR2/SR5/SR31 forbid a subscript, and §8.4.2.2.2
-  Format 1 admits IN/OF qualifiers, so a subscripted operand draws COBOLNET2024 and a qualified one keeps its
+  Format 1 admits IN/OF qualifiers, so a subscripted operand draws COBOL2024 and a qualified one keeps its
   qualifiers. data-name-1 then resolves through `ResolveClauseOperand` (survivor-counting, silent for an
   operand the capture refused). `OccursOperandCaptureDriftTests` pins the callers of the dropping
   `KeyReference` capture to the named report operands whose own rules permit or screen what it drops.
 - **The report FILE is the report writer's alone** (kb/Work PB1171). §13.4.5.3 SR8 — "No record description
   entries or constant entries shall be associated with the file description entry for a report file" — is asked
-  in the FD loop after the clauses (`DataBinder`, **COBOLNET2578**). §13.4.5.3 SR9 (= §13.18.46.3 SR3) — the
+  in the FD loop after the clauses (`DataBinder`, **COBOL2578**). §13.4.5.3 SR9 (= §13.18.46.3 SR3) — the
   file-name "may be referenced in the procedure division only by the USE statement, the WHEN phrase of a PERFORM
   statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase" — is ONE screen,
-  `StatementValidation.ScreenReportFileReference` (**COBOLNET2577**), asked by `ResolveFile` for every statement
+  `StatementValidation.ScreenReportFileReference` (**COBOL2577**), asked by `ResolveFile` for every statement
   except OPEN and CLOSE (`admitsReportFile`), so a new file statement is refused a report file by construction;
   SORT / MERGE USING-GIVING resolve through `ResolveFile` with their own restatement (§14.9.40.3 SR8, §14.9.24.3
   SR9), WRITE / REWRITE ask it of their record's file (§14.9.51.3 SR12, §14.9.35.3 SR11), and FUNCTION
-  EXCEPTION-FILE asks it of its argument. OPEN's INPUT / I-O half stays §14.9.27.3 SR1 (COBOLNET2371).
+  EXCEPTION-FILE asks it of its argument. OPEN's INPUT / I-O half stays §14.9.27.3 SR1 (COBOL2371).
 
 ## 4. Emission (`CodeGen/Verbs/ReportWriterEmitter.cs`)
 
@@ -592,7 +592,7 @@ LINE-/PAGE-COUNTER; **the arithmetic-expression-1 operand of BOTH value clauses 
 SR3/SR5/SR7 screened, §13.18.54.3 SR3/SR6 screened; kb/Work PB852 × PB883); **the SUM counter's data-name in
 the procedure division's name space** (§13.18.54.4 GR5 + GR12 — read AND altered, `ReportSumCounterPlace`;
 kb/Work PB840); CONTROL/CONTROLS incl. FINAL (breaks, prior-value CF composition, TERMINATE final
-break) — **FINAL only as the FIRST operand, once** (§13.18.16.2 `FINAL [ data-name-1 ] …`, COBOLNET2421, kb/Work PB483), each RD clause and PAGE phrase at most once (§13.14.2 / §13.18.39.2 with §5.2.6.2 / §5.2.7, COBOLNET2423, `UnrepeatedElements`), the printable item's SIGN clause screened by §13.18.52.3 SR1/SR2 through the data description entry's own test (COBOLNET2422, kb/Work PB537) — **and REFERENCE-MODIFIED control operands** (§13.18.16.3 SR4 — the break is sensed on the slice, and the
+break) — **FINAL only as the FIRST operand, once** (§13.18.16.2 `FINAL [ data-name-1 ] …`, COBOL2421, kb/Work PB483), each RD clause and PAGE phrase at most once (§13.14.2 / §13.18.39.2 with §5.2.6.2 / §5.2.7, COBOL2423, `UnrepeatedElements`), the printable item's SIGN clause screened by §13.18.52.3 SR1/SR2 through the data description entry's own test (COBOL2422, kb/Work PB537) — **and REFERENCE-MODIFIED control operands** (§13.18.16.3 SR4 — the break is sensed on the slice, and the
 TYPE CH/CF and SUM RESET ON operands that name the level carry the same ref-mod, §13.18.57.3 SR10 /
 §13.18.54.3 SR8); **SUM with SUBSCRIPTED addends** (§13.18.54.3 SR5's identifier-1 is §8.4.3.1.2 Format 2's qualified-data-name-with-subscripts — a literal, index-name or expression subscript, bound in the procedure phase) + UPON (SR7-screened against the report-group funnel) + RESET, the repeated `SUM … UPON …` group into the ONE counter of the entry (SR1 / GR1 / GR7c2) and the `SUM OF` optional word; GROUP INDICATE; summary `GENERATE report-name`; multi-name INITIATE/TERMINATE;
 **the four RWCS statement-precondition exception conditions** (EC-FLOW-REPORT §14.9.49.4 GR10,
@@ -600,7 +600,7 @@ EC-REPORT-ACTIVE §14.9.21.4 GR2, EC-REPORT-FILE-MODE §14.9.21.4 GR3 / §14.9.2
 §14.9.16.4 GR7 and §14.9.46.4 GR1 — the unsuccessful/state-unchanged half unconditional, the raise `>>TURN`-gated);
 **SUPPRESS PRINTING** (§14.9.45 — inhibit the current instance's printing/advance/NEXT GROUP/LINE-COUNTER,
 NOT the sum accumulation or end-of-group reset; SR1/GR1 bind-resolve the enclosing USE BEFORE REPORTING group,
-COBOLNET1581 on a misplaced SUPPRESS); PD counter references incl. qualified; USE BEFORE REPORTING (Format 2
+COBOL1581 on a misplaced SUPPRESS); PD counter references incl. qualified; USE BEFORE REPORTING (Format 2
 declaratives); unpaged reports;
 **PRESENT WHEN Format 1** (§13.18.41 — any entry level, chain semantics per GR2b, the GR3a–g LINE/COLUMN/SUM
 interactions, edition-gated 2002); **VARYING** (§13.18.64 — over any repetition vehicle,
@@ -608,7 +608,7 @@ counter-as-SOURCE, per-presentation FROM); **multiple + relative (PLUS) COLUMN**
 COL/COLS/COLUMNS/NUMBERS/ARE spellings and the GR7–GR9 horizontal counter); **REPETITION ON BOTH AXES**
 (kb/Work PB565) — the §13.18.38 format 3 OCCURS clause horizontally (GR10a/GR10b, GR12a/GR12b) AND vertically
 (GR10c/GR10d, GR12c/GR12d) with its SR10/SR16/SR24–SR27 syntax rules, and the **multiple LINE clause**
-(§13.18.35.3 SR10, bound as §13.18.35.4 GR9's simple OCCURS, SR4 and SR10 a/b/c/d screened on COBOLNET2199) —
+(§13.18.35.3 SR10, bound as §13.18.35.4 GR9's simple OCCURS, SR4 and SR10 a/b/c/d screened on COBOL2199) —
 all three §13.15.4 GR3 vehicles live, edition-gated 2002.
 
 **The RD CODE clause is LIVE (§13.18.12; kb/Work PB1129).** `ReportModel.Code` (`ReportCodeModel`: literal-1's characters, or
@@ -621,7 +621,7 @@ code's length up, and a line wider than that is cut at it). The one evaluation i
 group, either during page advance processing … or whenever page advance processing is not performed"): from
 `AdvancePage` at §14.9.16.4 GR6 c) — after the page footing, which is therefore written with the OLD value — from
 `PresentBody` for a body group that took no advance, and from the first GENERATE (whose report and page headings precede
-its first body group). SR1/SR2/SR3 are COBOLNET2713 (`ResolveReportCode`, `ScreenReportCodeAgreement`); the clause is not
+its first body group). SR1/SR2/SR3 are COBOL2713 (`ResolveReportCode`, `ScreenReportCodeAgreement`); the clause is not
 edition-gated, because the 2023 text does not say which edition introduced the identifier form and an unverified gate
 would reject legal source (docs/CONFORMANCE.md A.4.11).
 
@@ -631,9 +631,9 @@ the connector's one held-back line (`CobolFile.HoldLine` / `ClaimDevice`, kb/Wor
 in GENERATE order, so the codes of §13.18.12 separate the reports' records. `CLOSE` asks every associated report whether it is
 still active (§14.9.6.4 GR5, the `||` over the file's reports in `SequentialIoEmitter`). The REPORT clause's three
 correspondence rules — a name with no RD (§13.18.46.3 SR1), a name in two REPORT clauses (SR2) and an RD named by no clause
-(§13.14.3 SR1) — are COBOLNET2714 (`ScreenReportClauseNames`, the file resolution in `ResolveReports`).
+(§13.14.3 SR1) — are COBOL2714 (`ScreenReportClauseNames`, the file resolution in `ResolveReports`).
 
-**Staged LOUD at bind (`COBOLNET0899`, Edition.Error — legal-but-unimplemented, never silent):**
+**Staged LOUD at bind (`COBOL0899`, Edition.Error — legal-but-unimplemented, never silent):**
 **FUNCTION inside a PRESENT WHEN condition
 (`report-condition-function` — the UDF activation-hoist is statement-context machinery)**; an
 arithmetic-expression-1 SUM addend written with a LEADING PARENTHESIS
@@ -649,10 +649,10 @@ at the two points a usage becomes known: of the USAGE CLAUSE as it is captured (
 the only place a GROUP entry's clause is visible) and of the usage a printable item settles on when no
 clause stated one (§13.18.60.4 GR7/GR8's implied usage). The entry scope stack carries the effective usage,
 which is GR1's "applies only to each elementary item in the group"; SR2's "the same usage shall be
-specified in both entries" rides the same code (COBOLNET2198). **PAGE-COUNTER is a receiving operand**
+specified in both entries" rides the same code (COBOL2198). **PAGE-COUNTER is a receiving operand**
 wherever §8.4.3.15.3 SR1 admits an integer data item — `Model.ReportPageCounterPlace` resolved at the one
 receiving chokepoint, never a per-verb arm (kb/Work PB429) — and SR3's LINE-COUNTER prohibition is
-COBOLNET2197 beside it.
+COBOL2197 beside it.
 
 **The REPORT SECTION entry grammar and the PAGE clause are the printed ones** (kb/Work PB1226, PB1059):
 `reportDescriptionEntry` is `RD … { constantEntry | reportGroupEntry } …` (§13.8.2; the constant entry rides the
@@ -664,7 +664,7 @@ runs at their constant entries, and both `BindReportSectionEntries` and every fl
 `ScreenReportVaryingClauses`) run per run, so no screen reads a hierarchy across a constant (kb/Work PB1954).
 **§8.5.1.3.2's equal-sibling rule** ("numerically equal level-numbers" for every item immediately subordinate to one
 group; §13.18.33.1 gives report group entries the data hierarchy) is `ScreenReportLevelNumbers`, once per written
-entry, asking the data arm's own `ScreenImmediateMemberLevel` — COBOLNET2771, the code `BindEntries` reports for a
+entry, asking the data arm's own `ScreenImmediateMemberLevel` — COBOL2771, the code `BindEntries` reports for a
 record (kb/Work PB1246, PB1954). A constant's
 `LENGTH OF` / `BYTE-LENGTH OF` may name a report entry: `DeclareReportEntries` records every named entry before
 binding, `ReportLengthOperand` refuses a report group (§13.10.3 SR11 — elementary report items only, kb/Work PB1226)
@@ -673,14 +673,14 @@ and measures an elementary one by its DESCRIPTION — PICTURE, USAGE (its own or
 entries by `DescribeReportItem` and analyzed by `ReportPrintablePicture`, the two functions the report walk builds the
 printable item from (`DataBinder.ReportItemDescription.cs`, kb/Work PB1941) — so the item measures the same wherever
 the constant is evaluated: in the FILE SECTION, in an earlier group, earlier in its own group, or in the OCCURS
-clause of an entry it is subordinate to; and `ScreenReportDescriptionHasGroup` reports an RD with no group entry, COBOLNET2708,
+clause of an entry it is subordinate to; and `ScreenReportDescriptionHasGroup` reports an RD with no group entry, COBOL2708,
 §13.8.4); the report group entry's name slot is the data description entry's `dataName` (FILLER included,
 §13.18.20.3 SR3), read through `CstExtensions.NameOrNull`; and `reportPageClause` carries the page-width operand
 (`integer-2 {COLS | COLUMNS}`, `ReportModel.PageWidth`, default 999 by §13.18.39.4 GR5 → `CobolReport`'s page
 width, the one the `Place` truncation and EC-REPORT-PAGE-WIDTH measure; §13.18.14.3 SR6 screens each written COLUMN
-operand against it, COBOLNET2710), `LAST {CONTROL HEADING | CH} IS integer-5` (`ReportModel.LastControlHeading`,
+operand against it, COBOL2710), `LAST {CONTROL HEADING | CH} IS integer-5` (`ReportModel.LastControlHeading`,
 the control headings' lower limit, GR8 d)) and the `FIRST DE`/`LAST DE` synonyms; §13.18.39.3 SR3 (a phrase
-without integer-1) is COBOLNET2709. The TYPE clause's control rows are `{CONTROL HEADING | CH} (reportControlName
+without integer-1) is COBOL2709. The TYPE clause's control rows are `{CONTROL HEADING | CH} (reportControlName
 (OR PAGE)?)?` and `{CONTROL FOOTING | CF} reportControlName?` (`reportControlName : (ON | FOR)? (FINAL | dataReference)`,
 §13.18.57.2): `ReportGroupModel.OrPage` → the engine's `ReportGroup.OrPage`, and `CobolReport.AdvancePage(causing)` ends
 with `PresentOrPageHeadings` (§13.18.57.4 GR6 c): every OR PAGE heading, major → minor, as the first body group of the
@@ -706,17 +706,17 @@ combination of the three clauses against the printed sets. A NUMBERS the format 
 user-defined word by §8.10 (`COLS NUMBERS 5` is a two-operand clause naming a constant NUMBERS). The word rides
 `ReportColumnSpec.Alignment`, and ONE function, `ReportColumnSpec.AbsoluteLeftmost(printable-size)` (GR6 b)–d)), feeds both
 the emitter's placement and GR9's horizontal counter (`AbsoluteRightmost`) AND the bind-time line-width walk; SR9's
-absolute-only rule is COBOLNET2711, and an aligned item whose leftmost column falls before column 1 — a case the
-standard states no outcome for — is COBOLNET2712 (CONFORMANCE §3). The phrase gates with the other 2002 COLUMN forms
+absolute-only rule is COBOL2711, and an aligned item whose leftmost column falls before column 1 — a case the
+standard states no outcome for — is COBOL2712 (CONFORMANCE §3). The phrase gates with the other 2002 COLUMN forms
 (`report-multi-column-2002`).
 **The ARRANGEMENT rules** (kb/Work PB1222, PB1270) have three homes, one per kind of fact:
-- *Written clause* — `ScreenReportColumnClauses` (COBOLNET2745, once per written clause over the flat entry array):
+- *Written clause* — `ScreenReportColumnClauses` (COBOL2745, once per written clause over the flat entry array):
   §13.18.14.3 SR10 a) (a multiple COLUMN clause and an OCCURS clause in one entry — the COLUMN arm of the two-arm rule
   whose LINE arm is `MultipleLineOperands`) and SR10 b) (integer-1 occurrences strictly increasing); no PRESENT WHEN
-  excuse. `ScreenReportPageIntegers` (COBOLNET2744, in `BindReportDescriptionClauses`, over the WRITTEN integers
+  excuse. `ScreenReportPageIntegers` (COBOL2744, in `BindReportDescriptionClauses`, over the WRITTEN integers
   before the GR3 defaults): §13.18.39.3 SR5 (page limit ≤ 9999) and SR6 (HEADING ≤ FIRST DETAIL ≤ LAST CONTROL HEADING
   ≤ LAST DETAIL ≤ FOOTING ≤ page limit, pairwise over the ones written).
-- *One printable line* — `ScreenReportColumnArrangement` (COBOLNET2745), per `ReportLineModel` after the whole source
+- *One printable line* — `ScreenReportColumnArrangement` (COBOL2745), per `ReportLineModel` after the whole source
   element is described (the printable-size is a picture's), over `NominalPlacements` — THE one nominal horizontal walk,
   shared with the line-width computation: SR7 (absolute items by written column number, in order), SR8 a) (overlap),
   SR8 b) (an absolute item's rightmost column past the page width) and SR8 c) (a relative tail past the page width,
@@ -724,7 +724,7 @@ standard states no outcome for — is COBOLNET2712 (CONFORMANCE §3). The phrase
   items "each subject to a different PRESENT WHEN clause": `DifferentPresentWhen` — each carries a clause (its own or an
   ancestor entry's below the line entry, or a GROUP INDICATE) the other does not. Pairs are over WRITTEN entries
   (`ReportFieldModel.Entry`), so a repeating entry's repetitions are never compared with each other (SR26 owns them).
-- *One report group* — `ScreenReportGroupLines` (COBOLNET2199), per group once it is complete: §13.18.35.3 SR6 a) (absolute
+- *One report group* — `ScreenReportGroupLines` (COBOL2199), per group once it is complete: §13.18.35.3 SR6 a) (absolute
   lines in increasing order), b) (equal absolute lines overlap; a relative line of integer-2 zero is excepted by
   §13.18.35.4 GR3), c) (every absolute line within `GroupLimits`, the §13.18.57.4 GR7/GR8 limits) and e) (an absolute
   line described after a relative one), each excused only by different PRESENT WHEN clauses on the lines'
@@ -738,7 +738,7 @@ standard states no outcome for — is COBOLNET2712 (CONFORMANCE §3). The phrase
   limit for the footings, GR2 a)) and when its candidate FIRST line — `MinimumLastLine` asked for that line alone,
   every line above it absent — falls above `RelativeFirstLineFloor` (HEADING for the headings, FOOTING + 1 for the
   footings, GR2 c)/g)); a report footing whose first line is the bare `ON NEXT PAGE` starts at HEADING (GR7 f).
-- *The set of groups* — `ScreenReportGroupCensus` (COBOLNET2749), once every CH/CF has its control level:
+- *The set of groups* — `ScreenReportGroupCensus` (COBOL2749), once every CH/CF has its control level:
   §13.18.57.3 SR13 (RH/PH/PF/RF at most once), SR14 (one CH and one CF per control level, counted per RESOLVED level so
   an omitted operand and a written one collide) and SR15 (at least one body group). The run-time `AddGroup` holds one
   slot per type and level, so an unscreened duplicate replaced the first group silently.
@@ -808,7 +808,7 @@ deep-dive table points here.
   range is the RUN UNIT's — a GENERATE of a SECOND report from inside report R-A's declarative is refused, and
   the same GENERATE succeeds once MAIN has left the range); `2023/pb326_ec_report_file_mode` (two arms — not
   open, and the two modes §14.9.21.4 GR3 permits; an INPUT or I-O open of a report file is not writable source,
-  §14.9.27.3 SR1 → COBOLNET2371, kb/Work PB318 — with the follow-on EC-REPORT-INACTIVE proving that
+  §14.9.27.3 SR1 → COBOL2371, kb/Work PB318 — with the follow-on EC-REPORT-INACTIVE proving that
   GR3's "no action is taken" left the report inactive); `2023/pb326_ec_report_active_inactive` (GR2's "no other
   effect" witnessed by a SUM counter that keeps its total across a refused second INITIATE).
 - Corpus golden `conformance-suite/cases/13.18.14-COLUMN/rw_present_when.cob` (+`.out`, byte-exact, verified by RUNNING): the

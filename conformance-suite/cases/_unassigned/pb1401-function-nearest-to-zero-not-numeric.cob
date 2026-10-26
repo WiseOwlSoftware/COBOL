@@ -8,7 +8,7 @@
       *> specified, identifier-1 shall reference a data item whose category is numeric." The operand here
       *> is an ALPHANUMERIC function (15.2 item 1 - "of the class and category alphanumeric"). The screen
       *> used to classify a data-item reference only, so a function-identifier failed open and reached a
-      *> renderer with no numeric description to test (kb/Work PB1401). COBOLNET2216.
+      *> renderer with no numeric description to test (kb/Work PB1401). COBOL2216.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1401NEGSR6.
        DATA DIVISION.

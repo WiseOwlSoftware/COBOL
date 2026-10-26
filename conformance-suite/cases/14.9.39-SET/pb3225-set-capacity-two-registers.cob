@@ -11,7 +11,7 @@
       *> Both operands are CAPACITY registers, so SR29 admits each, but the format prints data-name-2 once:
       *> two receiving operands are no Format 14.
       *> No printed SET format admits the list, in EITHER order of its operands (kb/Work PB3225): the statement is
-      *> refused with COBOLNET2112 (no-format-admits-receiver). It used to be refused only when the register was
+      *> refused with COBOL2112 (no-format-admits-receiver). It used to be refused only when the register was
       *> written first; written second it compiled with a not-implemented warning and aborted the run unit after
       *> displaying START. OCCURS DYNAMIC and Format 14 are COBOL-2014 introductions, so below 2014 the OCCURS
       *> clause itself takes the edition-band code and SR29 is not the subject.

@@ -11,7 +11,7 @@
       *> shall provide a warning mechanism at compile time to indicate
       *> use of syntactically-detectable processor-dependent language
       *> elements not supported by that implementation" - each EC-MCS
-      *> name below draws the COBOLNET1578 warning and the program runs.
+      *> name below draws the COBOL1578 warning and the program runs.
       *> No SEND or RECEIVE sets an EC-MCS condition here (14.6.13.1.1
       *> licenses raising none), but a RAISE raises it like any level-3
       *> name: 14.9.29.4 GR1 "the associated exception condition is

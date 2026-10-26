@@ -8,7 +8,7 @@ namespace CobolNet.Tests.Conformance;
 /// User-defined function invocation (ISO §9.4 / §8.4.3.2 / §12.3.8; Phase 4c M2-UDF-1 — DEVLOG 615).
 /// End-to-end behavior rides the three udf_* conformance goldens (COMPUTE/MOVE receiving forms, inline
 /// sub-expression, literal + arithmetic-expression arguments — all byte-exact); these lock the edition
-/// gate, the §12.3.8.4 GR12 repository semantics, and the COBOLNET1501/1505–1509 diagnostic band.
+/// gate, the §12.3.8.4 GR12 repository semantics, and the COBOL1501/1505–1509 diagnostic band.
 /// </summary>
 public sealed class UdfInvocationTests
 {
@@ -51,13 +51,13 @@ public sealed class UdfInvocationTests
         string src = Group("UDFT1", "    COMPUTE WS-R = FUNCTION UDFDBL(WS-A).");
         var (ok85, e85, _) = EditionHarness.CompileFull(src, 85);
         Assert.False(ok85, "user-defined functions are 2002+; 85 must reject");
-        EditionHarness.AssertHasDiagnostic(e85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(e85, "COBOL0900");
         var (ok02, e02, _) = EditionHarness.CompileFull(src, 2002);
         Assert.True(ok02, "must bind at 2002: " + string.Join("\n", e02));
     }
 
     /// <summary>§12.3.8.4 GR12 is a PRECONDITION: without the repository FUNCTION specifier the name is not
-    /// a user-function reference — COBOLNET1501, with the hint naming the in-group FUNCTION-ID.</summary>
+    /// a user-function reference — COBOL1501, with the hint naming the in-group FUNCTION-ID.</summary>
     [Fact]
     public void MissingRepositoryEntry_1501_WithGr12Hint()
     {
@@ -65,14 +65,14 @@ public sealed class UdfInvocationTests
             repository: "    FUNCTION ALL INTRINSIC.");
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1501");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1501");
         Assert.Contains(errors, e => e.Contains("REPOSITORY", StringComparison.Ordinal));
         // The hint cites the rule where it is (kb/Work PB1085): §12.3.8.4 GR12, never the general format §12.3.8.2.
         Assert.Contains(errors, e => e.Contains("§12.3.8.4 GR12", StringComparison.Ordinal));
     }
 
     /// <summary>A REPOSITORY-declared function with NO in-group FUNCTION-ID definition is the
-    /// separate-compilation prototype surface (M2-UDF-3) — staged loud as COBOLNET1505.</summary>
+    /// separate-compilation prototype surface (M2-UDF-3) — staged loud as COBOL1505.</summary>
     [Fact]
     public void DeclaredButUndefined_PrototypeGap_1505()
     {
@@ -94,10 +94,10 @@ public sealed class UdfInvocationTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1505");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1505");
     }
 
-    /// <summary>§14.8.2 positional correspondence: an argument-count mismatch is COBOLNET1506. (The
+    /// <summary>§14.8.2 positional correspondence: an argument-count mismatch is COBOL1506. (The
     /// zero-argument spelling is the bare name — empty parentheses are a §8.4.3.2 format violation and
     /// already fail at parse.)</summary>
     [Theory]
@@ -107,11 +107,11 @@ public sealed class UdfInvocationTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Group("UDFT4", body), 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1506");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1506");
     }
 
     /// <summary>§14.2 procedure-division header (:23666): "The RETURNING phrase shall be specified in a
-    /// function definition" — checked once per unit, even for an uncalled function (COBOLNET1507).</summary>
+    /// function definition" — checked once per unit, even for an uncalled function (COBOL1507).</summary>
     [Fact]
     public void FunctionWithoutReturning_1507()
     {
@@ -134,7 +134,7 @@ public sealed class UdfInvocationTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1507");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1507");
     }
 
     /// <summary>Per-evaluation activation (P10 Step 10 — §8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2): a function
@@ -159,7 +159,7 @@ public sealed class UdfInvocationTests
     /// augment) and an AFTER level's FROM operand (re-read at every outer-augment re-initialization) — BIND,
     /// and carry NO 1509 stage.
     /// <para>⛔ THIS THEORY USED TO ASSERT THE OPPOSITE, AND THAT IS THE POINT (kb/Work PB437). It pinned
-    /// <c>Assert.False(ok)</c> + COBOLNET1509 on both rows, green, for source the standard admits — the same
+    /// <c>Assert.False(ok)</c> + COBOL1509 on both rows, green, for source the standard admits — the same
     /// construct the FIRST-level FROM one position over and the UNTIL condition in the same statement both
     /// accepted, and the diagnostic's own text said the refusal was "an activation cardinality this
     /// implementation does not yet realize", i.e. a capability limit and not a rule. A green test pinning a
@@ -176,7 +176,7 @@ public sealed class UdfInvocationTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Group(pid, body), 2002);
         Assert.True(ok, "a per-evaluation OPERAND window must bind: " + string.Join("\n", errors));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1509", StringComparison.Ordinal));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1509", StringComparison.Ordinal));
     }
 
     /// <summary>A user-function EVALUATE selection SUBJECT compiles, and carries NO 1509 stage: ISO §14.9.13.4
@@ -192,7 +192,7 @@ public sealed class UdfInvocationTests
         const string body = "    EVALUATE FUNCTION UDFDBL(2)\n        WHEN 4 DISPLAY \"E\"\n    END-EVALUATE.";
         var (ok, errors, _) = EditionHarness.CompileFull(Group("UDFT6H", body), 2002);
         Assert.True(ok, "a user-function EVALUATE subject must bind: " + string.Join("\n", errors));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1509", StringComparison.Ordinal));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1509", StringComparison.Ordinal));
     }
 
     /// <summary>The SEARCH WHEN window binds per-evaluation too (per scan pass — §14.9.37.4 GR1, "Any subscripting specified in a WHEN phrase is evaluated each time the conditions in that WHEN phrase are evaluated", over GR4's "The process is then repeated using the new index setting") — the
@@ -259,16 +259,16 @@ public sealed class UdfInvocationTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
     }
 
     /// <summary>Two FUNCTION-ID definitions with one name. ⛔ The DIAGNOSTIC CHANGED with kb/Work PB660 and the
-    /// old one was citing the wrong clause: COBOLNET1508 keyed on the declared WORD and cited §8.4.6.6, the
+    /// old one was citing the wrong clause: COBOL1508 keyed on the declared WORD and cited §8.4.6.6, the
     /// scope of function-prototype-NAMES, which says nothing about uniqueness. What makes THIS pair illegal is
     /// that both definitions externalize one name — §8.3.2.2: "Except for method-names and property-names,
     /// when two or more source elements identify something with the same externalized name, they refer to the
     /// same instance" — the same sentence two outermost PROGRAM definitions collide under, so one check
-    /// (COBOLNET2213) reports both. <see cref="DuplicateFunctionWord_UnderDifferentAsLiterals_1508"/> is what
+    /// (COBOL2213) reports both. <see cref="DuplicateFunctionWord_UnderDifferentAsLiterals_1508"/> is what
     /// keeps 1508 exercised on the clash §8.4.6.7 genuinely owns.</summary>
     [Fact]
     public void DuplicateFunctionId_2213()
@@ -287,7 +287,7 @@ public sealed class UdfInvocationTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2213");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2213");
     }
 
     /// <summary>The clash §8.4.6.7 owns and §8.3.2.2 does not see: two function DEFINITIONS sharing the
@@ -313,7 +313,7 @@ public sealed class UdfInvocationTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1508");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1508");
     }
 
     /// <summary>§8.4.6.6: within a function definition its OWN user-function-name is referable with NO
@@ -411,7 +411,7 @@ public sealed class UdfInvocationTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Group("UDFT15", "    EXIT FUNCTION."), 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0827");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0827");
     }
 
     /// <summary>The exit-function-window removal edge (Annex E.2 :49036): valid at 2002/2014, 0902 at 2023
@@ -451,7 +451,7 @@ public sealed class UdfInvocationTests
         Assert.True(ok02, string.Join("\n", e02));
         var (ok23, e23, _) = EditionHarness.CompileFull(src, 2023);
         Assert.False(ok23, "EXIT FUNCTION was removed by 2023 (Annex E.2) — strict must reject");
-        EditionHarness.AssertHasDiagnostic(e23, "COBOLNET0902");
+        EditionHarness.AssertHasDiagnostic(e23, "COBOL0902");
     }
 
     /// <summary>The RETURNING category channel (§8.4.3.2.4 GR1 / §14.2.2 SR5 — NO category restriction on a
@@ -459,7 +459,7 @@ public sealed class UdfInvocationTests
     /// alphanumeric, numeric-edited, national, FLOAT, BOOLEAN, INDEX, data POINTER, and groups of every shape
     /// (character image, binary leaf, internal REDEFINES, OCCURS DEPENDING, strongly typed). The runtime
     /// behavior is the udf_returning_categories and udf_returning_every_category goldens; this theory pins that no
-    /// category is refused (kb/Work PB1419 deleted the per-shape COBOLNET1510 residue list this test used to pin
+    /// category is refused (kb/Work PB1419 deleted the per-shape COBOL1510 residue list this test used to pin
     /// GREEN — a green test holding a gap open). <paramref name="consumer"/> is the one statement that reads the
     /// result in the way its class admits (DISPLAY is not a reader of a pointer or an index).</summary>
     [Theory]
@@ -654,7 +654,7 @@ public sealed class UdfInvocationTests
 
     /// <summary>UDF-3: a FUNCTION-ID … IS PROTOTYPE (§11.5 Format 2) preceding the caller (§10.6.2 SR1) supplies
     /// the signature; the same-name in-group DEFINITION that follows is authoritative (§12.3.8 GR11a) — the pair
-    /// is NOT a COBOLNET1508 duplicate. Binds clean at 2002.</summary>
+    /// is NOT a COBOL1508 duplicate. Binds clean at 2002.</summary>
     [Fact]
     public void Prototype_WithDefinition_NotDuplicate_Binds()
     {
@@ -700,7 +700,7 @@ public sealed class UdfInvocationTests
 
     /// <summary>UDF-3: a prototype-declared function with NO in-group definition BINDS — the prototype supplies
     /// the §8.4.3.2.4 GR1 signature and the definition is a separately-compiled target resolved at run time
-    /// (§12.3.8 GR11c / §8.4.3.2.4 GR6b). The former COBOLNET1505 "not implemented" gap is closed for the
+    /// (§12.3.8 GR11c / §8.4.3.2.4 GR6b). The former COBOL1505 "not implemented" gap is closed for the
     /// prototyped case (the cross-assembly run is proven in InterProgramFileDifferentialTests).</summary>
     [Fact]
     public void PrototypeOnly_NoInGroupDefinition_Binds()
@@ -735,7 +735,7 @@ public sealed class UdfInvocationTests
     }
 
     /// <summary>UDF-3: §10.6.2 SR3 — an in-group prototype and same-name definition shall have the same
-    /// signature; an argument-count mismatch is COBOLNET1513.</summary>
+    /// signature; an argument-count mismatch is COBOL1513.</summary>
     [Fact]
     public void PrototypeDefinitionSignatureMismatch_1513()
     {
@@ -772,10 +772,10 @@ public sealed class UdfInvocationTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1513");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1513");
     }
 
-    /// <summary>UDF-3: a function prototype without a RETURNING phrase is ill-formed — COBOLNET1507 (a function
+    /// <summary>UDF-3: a function prototype without a RETURNING phrase is ill-formed — COBOL1507 (a function
     /// cannot deliver a result without it, §14.2).</summary>
     [Fact]
     public void PrototypeWithoutReturning_1507()
@@ -797,11 +797,11 @@ public sealed class UdfInvocationTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1507");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1507");
     }
 
     /// <summary>UDF-3: FUNCTION-ID … IS PROTOTYPE is a 2002 introduction — a prototype at 85 is rejected with the
-    /// edition-naming COBOLNET0900 (the W1.5 ReservedWordEditionHints mapping for the {is2002()}?-gated tail).</summary>
+    /// edition-naming COBOL0900 (the W1.5 ReservedWordEditionHints mapping for the {is2002()}?-gated tail).</summary>
     [Fact]
     public void PrototypeAt85_0900()
     {
@@ -823,7 +823,7 @@ public sealed class UdfInvocationTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 85);
         Assert.False(ok, "a function prototype is 2002+; 85 must reject");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
     }
 
     // ── M2-UDF-4: REPOSITORY specifiers + the §8.4.3.2 SR2 keyword-omitted reference form (DEVLOG 626) ────────
@@ -874,7 +874,7 @@ public sealed class UdfInvocationTests
 
     /// <summary>ISO §8.3.2.1 rule 5 (kb/Work PB65): under FUNCTION ALL INTRINSIC every intrinsic-function-name is
     /// "identified in a function-specifier in the REPOSITORY paragraph", so a data item named MOD is an ILLEGAL
-    /// user-defined word — COBOLNET1649 at the declaration. (The previous form of this test pinned "the data item
+    /// user-defined word — COBOL1649 at the declaration. (The previous form of this test pinned "the data item
     /// wins" as green while its own remark conceded "enforcing it is staged" — the green-test-holds-a-gap-open
     /// shape; the standard's prohibition is what makes the FUNCTION-less reference unambiguous.)</summary>
     [Fact]
@@ -884,7 +884,7 @@ public sealed class UdfInvocationTests
             ws: "01 GRP.\n           05 MOD PIC 9(4) OCCURS 3 VALUE 7.");
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok, "a data item spelling a REPOSITORY-identified intrinsic-function-name shall be rejected (ISO §8.3.2.1 rule 5)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1649");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1649");
     }
 
     /// <summary>The rule-5 CONTROL: without a REPOSITORY entry for MOD an intrinsic-function-name IS a legal
@@ -902,7 +902,7 @@ public sealed class UdfInvocationTests
     /// <summary>§8.4.3.2.3 SR2: WITHOUT a REPOSITORY intrinsic/ALL specifier the word FUNCTION is REQUIRED — a
     /// bare MAX(a, b) is NOT the intrinsic. Since kb/Work R22 this is a COMPILE-TIME rejection: the name matches
     /// a catalogued intrinsic, no data item shadows it, and the REPOSITORY does not declare it, so the reference
-    /// draws COBOLNET1543. (The previous form of this test PINNED the run-time loud-fail as green — the
+    /// draws COBOL1543. (The previous form of this test PINNED the run-time loud-fail as green — the
     /// green-test-holds-a-gap-open shape: its doc claimed "a compile-time assertion cannot distinguish it from
     /// the intrinsic-routed case", which R22 made false.) Contrast: with FUNCTION ALL INTRINSIC the same source
     /// runs and computes MAX=34.</summary>
@@ -914,6 +914,6 @@ public sealed class UdfInvocationTests
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok, "MAX without FUNCTION and without an ALL/named-intrinsic specifier is not the "
             + "intrinsic and shall be rejected at compile time (ISO §8.4.3.2.3 SR2 — kb/Work R22)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1543");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1543");
     }
 }

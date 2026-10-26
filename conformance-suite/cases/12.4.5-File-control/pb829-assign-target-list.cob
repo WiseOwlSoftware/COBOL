@@ -10,7 +10,7 @@
       *> literal-1 are defined by the implementor") is what refuses it.  COBOL.NET's determination
       *> (docs/CONFORMANCE.md section 7, DOC-A.1-71) allows one operand naming the file, or a device
       *> class (DISK or PRINTER) followed by one operand naming the file - two file names are neither,
-      *> so this is COBOLNET2256 BY NAME.  It used to be COBOL0308, a parse error at the second literal.
+      *> so this is COBOL2256 BY NAME.  It used to be COBOL0308, a parse error at the second literal.
       *> Rejected at every edition: the list and SR5's latitude are the same in all four.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB829AT.

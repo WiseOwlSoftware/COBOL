@@ -6,7 +6,7 @@
 *>---
       *> kb/Work R31's other arm: TWO declarations of Y each sit under an X, so Y IN X matches
       *> twice and no qualifier set written here establishes uniqueness (ISO 8.4.2.2 -
-      *> "uniqueness shall be established through qualification"). COBOLNET1639's
+      *> "uniqueness shall be established through qualification"). COBOL1639's
       *> multiple-match message names the count.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. R31NEG.

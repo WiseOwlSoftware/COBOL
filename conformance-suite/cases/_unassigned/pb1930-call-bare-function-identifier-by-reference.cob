@@ -8,7 +8,7 @@
 *> identifier (8.4.3.1.2 Format 1), but it takes the PREVAILING mode (14.9.4.4 GR5): BY REFERENCE for the first argument.
 *> 14.9.4.3 SR3: "Identifier-2 shall reference an address-identifier or a data item defined in the file, working-storage,
 *> local-storage, or linkage section", and the temporary a function returns (8.4.3.2.1) is none of those, so a function
-*> can cross only BY CONTENT. The binder reports it by that rule (COBOLNET1677), not as an arithmetic operand.
+*> can cross only BY CONTENT. The binder reports it by that rule (COBOL1677), not as an arithmetic operand.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1930NEGM.
        DATA DIVISION.

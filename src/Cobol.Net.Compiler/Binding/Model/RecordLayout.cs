@@ -250,7 +250,7 @@ internal static class RecordLayout
     /// <para>A variable-length record is sent and held as its CONTIGUOUS image (§8.5.1.11.2 — "behaves in all
     /// respects as though it were in fact contiguous with its neighbors"; determination D-FRA), so a key that a
     /// dynamic-length item PRECEDES has no one position (a dynamic-capacity table cannot be in a record —
-    /// §8.5.1.9.1 3), COBOLNET1526; <see cref="FileModel.MaxDynamicExtent"/>): it starts at its offset in the
+    /// §8.5.1.9.1 3), COBOL1526; <see cref="FileModel.MaxDynamicExtent"/>): it starts at its offset in the
     /// record's FIXED run plus whatever those members hold in THIS record. Such a key is
     /// <see cref="KeyWindow.FollowsVariable"/>, its <see cref="KeyWindow.Offset"/> is the FIXED-run offset the
     /// record type's runtime layout (<c>CobolContiguousLayout.Position</c>) starts from, and its

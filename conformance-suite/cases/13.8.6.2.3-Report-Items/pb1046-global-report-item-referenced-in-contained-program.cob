@@ -8,7 +8,7 @@
       *> RD R-1 GLOBAL the contained program INNER can name PV, a printable item of the container's report. That makes
       *> the name referenceable, not the reference legal: 13.8.6.2.3 closes the procedure division's access to report
       *> items to the sum counters and the DETAIL groups GENERATE names, and PV is neither. DISPLAY PV in INNER is
-      *> refused as COBOLNET5092 (it used to be COBOLNET1639 "'PV' is not defined"). The control is
+      *> refused as COBOL5092 (it used to be COBOL1639 "'PV' is not defined"). The control is
       *> pb1046_report_sum_counter_in_contained_program, where INNER alters a sum counter of the same GLOBAL report.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1046R3.

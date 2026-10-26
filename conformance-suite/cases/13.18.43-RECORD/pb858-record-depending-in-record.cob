@@ -9,7 +9,7 @@
       *> unsigned integer in the working-storage, local-storage, or linkage section."
       *> F-LEN is an elementary unsigned integer, but it is described in the FILE
       *> section (inside F-REC), so the third obligation is broken. The rule is in every
-      *> edition (Annex E lists no change to the RECORD clause). Refused, COBOLNET2922.
+      *> edition (Annex E lists no change to the RECORD clause). Refused, COBOL2922.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB858DR.
        ENVIRONMENT DIVISION.

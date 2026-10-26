@@ -201,7 +201,7 @@ public sealed class SendingValueOnceDriftTests
     /// argument for a non-numeric formal conform "as for a MOVE statement", and the argument's value reaches the
     /// formal through the materialized temporary. So the formal must hold what `MOVE FUNCTION f TO x` stores into an
     /// item of the formal's description — per formal category. The INVOKE used to refuse every numeric-typed function
-    /// here (COBOLNET0828, the expression arm) because the temporary did not move as the function.</summary>
+    /// here (COBOL0828, the expression arm) because the temporary did not move as the function.</summary>
     [Theory]
     [InlineData("SVI01", "FUNCTION INTEGER(W-N)", "PIC X(6)")]
     [InlineData("SVI02", "FUNCTION INTEGER-PART(-12.5)", "PIC X(6) JUSTIFIED RIGHT")]

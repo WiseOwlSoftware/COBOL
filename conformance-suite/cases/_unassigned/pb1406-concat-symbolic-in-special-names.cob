@@ -9,7 +9,7 @@
       *> specify neither a symbolic-character figurative constant nor a
       *> zero-length literal." The CLASS clause's literal-5 here is a
       *> concatenation expression with a symbolic-character operand:
-      *> COBOLNET2474.
+      *> COBOL2474.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG1406SSN.
        ENVIRONMENT DIVISION.

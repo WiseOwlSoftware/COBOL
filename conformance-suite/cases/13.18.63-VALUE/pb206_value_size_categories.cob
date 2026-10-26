@@ -28,7 +28,7 @@
       *>   maximum is the LIMIT phrase's or implementor-defined (GR2) -
       *>   so SR4/SR5's "size indicated by an explicit PICTURE clause"
       *>   has no value here and the screen must not measure.
-      *>   ⛔ MEASURED ON 1d949007: UN was REJECTED (COBOLNET0898, "the
+      *>   ⛔ MEASURED ON 1d949007: UN was REJECTED (COBOL0898, "the
       *>   VALUE national literal exceeds the item's 1 national
       *>   positions") while UD, the byte-for-byte same shape in the
       *>   other category, compiled and ran - legal source refused by

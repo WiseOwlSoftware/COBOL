@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB3678, the negative of pb3678_parenthesized_function_numeric_formal: the program-prototype format of
 *> CALL (the AS phrase, ISO 14.9.4.2 Format 2) is a COBOL-2002 introduction, so it is refused at COBOL-85 by name
-*> (COBOLNET0900) and accepted from 2002 on.
+*> (COBOL0900) and accepted from 2002 on.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3678E.
 DATA DIVISION.

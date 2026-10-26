@@ -67,7 +67,7 @@ public sealed class NonstandardExtensionRegisterDriftTests
             {
                 var on = new EditionContext(2023) { FlagExtensions = true };
                 PictureAnalyzer.ParseUsage(spelling, on, "data item 'T'");
-                Assert.True(on.Warnings.Any(w => w.Contains("COBOLNET2894") && w.Contains(spelling)),
+                Assert.True(on.Warnings.Any(w => w.Contains("COBOL2894") && w.Contains(spelling)),
                     $"{spelling} ({row.Id}) was not flagged: [{string.Join(" | ", on.Warnings)}]");
                 var off = new EditionContext(2023);
                 PictureAnalyzer.ParseUsage(spelling, off, "data item 'T'");

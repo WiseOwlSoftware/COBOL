@@ -9,7 +9,7 @@
       *> with the RECORD SEQUENTIAL phrase is implied." F carries NO
       *> ORGANIZATION clause, so it IS a file with sequential
       *> organization, and SR1 therefore rejects the
-      *> DELETE RECORD statement (COBOLNET0865). This is the arm a check
+      *> DELETE RECORD statement (COBOL0865). This is the arm a check
       *> written against an explicitly-written clause would miss - the
       *> sibling of l1-delete-record-sequential-organization.
        IDENTIFICATION DIVISION.

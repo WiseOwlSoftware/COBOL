@@ -87,7 +87,7 @@ public sealed class Flag02DirectiveScopeTests
     }
 
     private static bool Has(IReadOnlyList<string> warnings, string option) =>
-        warnings.Any(w => w.Contains("warning COBOLNET1620", StringComparison.Ordinal)
+        warnings.Any(w => w.Contains("warning COBOL1620", StringComparison.Ordinal)
             && w.Contains(option, StringComparison.Ordinal));
 
     // ── GR5: no FLAG-02 directive anywhere → every option is off ─────────────────────────────────────────────
@@ -100,7 +100,7 @@ public sealed class Flag02DirectiveScopeTests
     public void Gr5_NoDirective_NoOptionIsOn(int edition)
     {
         var none = CompileWarnings(Program("F02S5A", "", "", ""), edition);
-        Assert.DoesNotContain(none, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+        Assert.DoesNotContain(none, w => w.Contains("COBOL1620", StringComparison.Ordinal));
 
         var control = CompileWarnings(Program("F02S5B", "ALL", "", ""), edition);
         Assert.True(Has(control, IoStatus07), string.Join("\n", control));
@@ -111,7 +111,7 @@ public sealed class Flag02DirectiveScopeTests
         // whenever the TURN is present would pass the first pair. The >>TURN lines are present in BOTH programs; only
         // the >>FLAG-02 ALL line differs.
         var noneBef = CompileWarnings(StateCoupledProgram("F02S5C", flagAll: false), edition);
-        Assert.DoesNotContain(noneBef, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+        Assert.DoesNotContain(noneBef, w => w.Contains("COBOL1620", StringComparison.Ordinal));
 
         var controlBef = CompileWarnings(StateCoupledProgram("F02S5D", flagAll: true), edition);
         Assert.True(Has(controlBef, EcProgramExceptions), string.Join("\n", controlBef));

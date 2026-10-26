@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB2841 - the CONTINUE AFTER ... SECONDS phrase is a COBOL-2023 addition (ISO 14.9.9.2 general
-      *> format), so below 2023 the statement is refused by name (COBOLNET0900, the
+      *> format), so below 2023 the statement is refused by name (COBOL0900, the
       *> introduction band) whatever the interval holds. The positive golden is
       *> conformance-suite/cases/_unassigned/pb2841_continue_after_non_finite.cob: a FLOAT-LONG interval that is
       *> -infinity or a NaN is no EC-DATA-NOT-FINITE (14.6.13.2 item 3 names STANDARD floating-point

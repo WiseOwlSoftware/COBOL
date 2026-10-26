@@ -7,7 +7,7 @@
 *> kb/Work PB1304 - ISO 13.18.58.4 GR1: the RENAMES clauses of a TYPEDEF are part of the type, so the type's
 *>   definition is only as good as its members: 13.18.45.3 SR4 requires data-name-2 and data-name-3 to be names of
 *>   items "in the same record", and NOSUCH names nothing in a group defined with T, so the alias on R is
-*>   refused at the group that is built from the type (COBOLNET1655, the diagnostic every RENAMES operand
+*>   refused at the group that is built from the type (COBOL1655, the diagnostic every RENAMES operand
 *>   that names nothing draws).
 *>   cite.py: OK  13.18.58.4 1)  (General rules)
 *>   cite.py: OK  13.18.45.3 4)  (Syntax rules)

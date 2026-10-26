@@ -208,7 +208,7 @@ public sealed class InterProgramFileDifferentialTests
 
     /// <summary>§14.9.49.4 GR4a beats GR4b: the contained program's OWN declarative naming the inherited GLOBAL
     /// file (legal — §13.18.30 makes the file-name visible; the IC234A bind shape that previously raised
-    /// COBOLNET0897) is selected over the outer's GLOBAL one.</summary>
+    /// COBOL0897) is selected over the outer's GLOBAL one.</summary>
     [Fact]
     public void GlobalFd_ContainedOwnUseOnInheritedFile_BeatsOuterGlobal()
         => AssertMatchesGolden("""

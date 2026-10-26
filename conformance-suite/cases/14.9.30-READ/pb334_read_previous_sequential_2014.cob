@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB334 — READ ... PREVIOUS on a file with SEQUENTIAL organization, the 2014 leg.
       *> Until PB334 this arm of the binder never called readDirection(): PREVIOUS bound as a forward
-      *> read at every edition and the COBOLNET0900 gate never fired.
+      *> read at every edition and the COBOL0900 gate never fired.
       *>
       *> THE RULES, and every expected value below derived from them (no observation):
       *>  14.9.30.4 GR19 - "An implicit or explicit NEXT phrase or a PREVIOUS phrase results in a

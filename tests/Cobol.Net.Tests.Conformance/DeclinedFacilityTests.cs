@@ -12,13 +12,13 @@ namespace CobolNet.Tests.Conformance;
 /// (<c>ConformanceSuiteTestsBase{TSlot}.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic</c> asserts the refusal
 /// and matches its <c>wiseowl/diagnostics.json</c> code), and the positive corpus compares STDOUT only — the fixture header of
 /// <c>2023/wave_h_facilities_inert.cob</c> says in so many words that the warnings "go to the non-failing
-/// compile channel (not stdout)". So COBOLNET1560 / 1578 / 1579 / 1580 had **no assertion mechanism of any
+/// compile channel (not stdout)". So COBOL1560 / 1578 / 1579 / 1580 had **no assertion mechanism of any
 /// kind**: a repository-wide search found the four codes only inside SOURCE COMMENTS. Every one of them could
 /// have stopped firing and nothing would have gone red (feedback_green_gates_arent_evidence;
 /// feedback_reachability_is_measured_not_deduced). <c>EditionHarness.CompileFull</c> returns the warning channel,
 /// which is the seam these facts use.</para>
 ///
-/// <para>The A.4 DATA-DIVISION halves need none of this: COBOLNET1708/1709/1710 are ERRORS (Annex A.4.1 — an
+/// <para>The A.4 DATA-DIVISION halves need none of this: COBOL1708/1709/1710 are ERRORS (Annex A.4.1 — an
 /// optional element's syntax is accepted only when support is claimed), so they are witnessed by the ordinary
 /// <c>declined-*</c> refusals of <c>conformance-suite/</c>.</para>
 /// </summary>
@@ -53,11 +53,11 @@ public sealed class DeclinedFacilityTests
             Prologue + "\n           VALIDATE WS-REC.\n           STOP RUN.\n", edition);
         Assert.True(ok, "the VALIDATE statement is accepted-inert (§4.2.6 ¶3), never a compile error: "
             + string.Join("\n", errors));
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1580");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1580");
     }
 
     /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL. At <c>--std 85</c> VALIDATE is a USER-DEFINED WORD
-    /// (§8.9 reserves it "added 2002"), so the statement arm must NOT fire and no COBOLNET1580 may appear — the
+    /// (§8.9 reserves it "added 2002"), so the statement arm must NOT fire and no COBOL1580 may appear — the
     /// same fact <c>conformance:cases/_unassigned/user-word-validate</c> pins from the other side. Without this leg the
     /// theory above would pass just as well against a compiler that warned unconditionally.</summary>
     [Fact]
@@ -75,7 +75,7 @@ public sealed class DeclinedFacilityTests
 
                """, 85);
         Assert.True(ok, "VALIDATE is a legal user-defined word at COBOL-85 (ISO §8.9)");
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET1580");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL1580");
     }
 
     /// <summary>ISO §14.9.7 / §14.9.36, Annex A.4.3 items 4 and 5 — the COMMIT and ROLLBACK STATEMENTS are the
@@ -134,11 +134,11 @@ public sealed class DeclinedFacilityTests
                """;
         var (okStrict, errors, _) = EditionHarness.CompileFull(src, 2023);
         Assert.False(okStrict, "strict: a declined A.4.14 clause is an ERROR (Annex A.4.1)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1708");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1708");
 
         var (okPermissive, _, warnings) = EditionHarness.CompileFull(src, 2023, permissive: true);
         Assert.True(okPermissive, "--permissive: the declined clause downgrades through the Removed() seam");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1708");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1708");
     }
 
     private const string ClassEntry = """
@@ -169,7 +169,7 @@ public sealed class DeclinedFacilityTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(ClassEntry, 2023);
         Assert.False(ok, "strict: the declined A.4.14 CLASS clause is an ERROR (Annex A.4.1)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1708");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1708");
         string message = string.Join("\n", errors);
         Assert.Contains("the CLASS clause of the", message, StringComparison.Ordinal);
         Assert.DoesNotContain("CLASS NUMERIC clause", message, StringComparison.Ordinal);
@@ -177,8 +177,8 @@ public sealed class DeclinedFacilityTests
 
     /// <summary>⛔ EVERY OPERAND §13.18.11.2 PRINTS DRAWS THE SAME REFUSAL (kb/Work PB3831). The brace group offers
     /// NUMERIC, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, alphabet-name-1 and class-name-1, and
-    /// the clause is declined whichever is written, so each draws COBOLNET1708 and nothing else. BOOLEAN drew
-    /// COBOLNET0901 ("'BOOLEAN' is a reserved word … cannot be used as a user-defined word") because the operand
+    /// the clause is declined whichever is written, so each draws COBOL1708 and nothing else. BOOLEAN drew
+    /// COBOL0901 ("'BOOLEAN' is a reserved word … cannot be used as a user-defined word") because the operand
     /// rule had no arm for it and the word fell to cobolWord, which refuses a reserved word: a false statement
     /// about a word the format prints as the clause's own keyword. The no-0901 and no-0001 legs are what fail
     /// for an omitted keyword; <c>DeclinedFacilityDriftTests.EveryPrintedKeyword_IsAnArmOfItsRule</c> derives
@@ -212,8 +212,8 @@ public sealed class DeclinedFacilityTests
                """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, edition);
         Assert.False(ok, "strict: the declined A.4.14 CLASS clause is an ERROR (Annex A.4.1)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1708");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1708");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0901");
         EditionHarness.AssertNoDiagnostic(errors, "COBOL0001");
     }
 
@@ -232,7 +232,7 @@ public sealed class DeclinedFacilityTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(ClassEntry, 85);
         Assert.False(ok, "the §13.18.11 CLASS clause does not exist at COBOL-85");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1708");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL1708");
     }
 
     /// <summary>⛔ THE NEIGHBOURING HAZARD, which is a SUPPORTED construct sharing the same word — the shape
@@ -263,6 +263,6 @@ public sealed class DeclinedFacilityTests
                """, 2023);
         Assert.True(ok, "the §12.3.7 SPECIAL-NAMES CLASS clause is CLAIMED and must keep compiling: "
             + string.Join("\n", errors));
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1708");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL1708");
     }
 }

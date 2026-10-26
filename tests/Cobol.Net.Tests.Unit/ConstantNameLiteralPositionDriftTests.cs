@@ -77,7 +77,7 @@ public sealed class ConstantNameLiteralPositionDriftTests
     /// ClosedFormatPass refuses the whole run by name, so nothing in it binds and no literal is specified there.</summary>
     private const string ErrorProduction =
         "the error production of a closed clause list (CobolExpressions.g4#unrecognizedClause and its data division form "
-        + "unrecognizedDataClause), refused by name (COBOLNET1941 / 1970 / 1971); it is no format, so it specifies no literal";
+        + "unrecognizedDataClause), refused by name (COBOL1941 / 1970 / 1971); it is no format, so it specifies no literal";
 
     /// <summary>The word-admitting literal slots no enabled golden can witness, each with its reason.</summary>
     internal static readonly IReadOnlyDictionary<string, string> Unwitnessed = new Dictionary<string, string>
@@ -88,21 +88,21 @@ public sealed class ConstantNameLiteralPositionDriftTests
             + "literal",
         ["valueOfClause"] = "the VALUE OF clause of the file description entry, " + Removed2002,
         ["paddingCharacterClause"] = "the SELECT PADDING CHARACTER clause, obsolete at 2002 and absent from ISO 2014 and 2023 "
-            + "(COBOLNET0903 / COBOLNET0902); its operand is never bound, so a golden that writes a constant-name there would "
+            + "(COBOL0903 / COBOL0902); its operand is never bound, so a golden that writes a constant-name there would "
             + "witness the parse alone",
         ["mcsSendStatement"] = "the message server's SEND statement, a processor-dependent facility this implementation does not "
-            + "provide: accepted inert with COBOLNET1578 (docs/CONFORMANCE.md §4 item 1), so its operand never binds",
+            + "provide: accepted inert with COBOL1578 (docs/CONFORMANCE.md §4 item 1), so its operand never binds",
         ["screenFromClause"] = Screen,
         ["validateDefaultClause"] = Validate,
         ["validateStatusClause"] = Validate,
     };
 
     private const string Screen =
-        "the SCREEN SECTION is a declined optional module (Annex A.4.2), refused whole by COBOLNET1560, so its clauses never bind";
+        "the SCREEN SECTION is a declined optional module (Annex A.4.2), refused whole by COBOL1560, so its clauses never bind";
 
     private const string Validate =
         "the VALIDATE facility is a declined optional element (Annex A.4.14), its data-division clauses refused by name "
-        + "(COBOLNET1708)";
+        + "(COBOL1708)";
 
     private static string GrammarDir() => TestRepo.Src("Cobol.Net.Frontend", "Grammar");
 

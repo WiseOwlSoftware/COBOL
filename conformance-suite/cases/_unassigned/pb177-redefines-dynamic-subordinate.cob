@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> The OTHER side of the COBOLNET1525 -> COBOLNET1698 RECODE, which had no witness at all: a REDEFINES
+      *> The OTHER side of the COBOL1525 -> COBOL1698 RECODE, which had no witness at all: a REDEFINES
       *> subject with a DYNAMIC-CAPACITY TABLE subordinate to it. 8.5.1.12.1 makes that a "variable-length
       *> group" - "a group item whose data description has at least one dynamic-length elementary item or
       *> dynamic-capacity table as a subordinate item" - so 13.18.44.3 SR17 rejects it: "Neither data-name-2 nor

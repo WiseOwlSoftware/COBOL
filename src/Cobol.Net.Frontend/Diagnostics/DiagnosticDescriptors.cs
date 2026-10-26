@@ -13,7 +13,7 @@ public sealed record DiagnosticDescriptor(
 /// <summary>
 /// The frontend's own diagnostic descriptors: the generic parse error (COBOL0001), the parser's syntax hints
 /// (COBOL0100–0313, chosen in <c>CobolErrorStrategy</c>), the parse-layer twins of <c>DiagnosticCatalog</c>
-/// descriptors (each COBOLNET twin takes its code from the catalogue descriptor, so the two cannot drift) and the
+/// descriptors (each COBOL#### twin takes its code from the catalogue descriptor, so the two cannot drift) and the
 /// COPY preprocessing errors (CBL3620–3622). Every other compiler diagnostic is a <c>DiagnosticCatalog</c> descriptor
 /// (<c>CobolNet.Editions.Diagnostics</c>).
 /// </summary>
@@ -74,55 +74,55 @@ public static class DiagnosticDescriptors
         "{0}");
 
     // ══════════════════════════════════════
-    // COBOLNET2072/2073: the required imperative-statement operand and the misplaced WHEN OTHER (kb/Work PB396).
+    // COBOL2072/2073: the required imperative-statement operand and the misplaced WHEN OTHER (kb/Work PB396).
     // Parse-layer twins of catalogue descriptors — the CODE is single-sourced from DiagnosticCatalog so the two
     // registries cannot drift. The message is composed at the CobolErrorStrategy site (it names the enclosing
     // statement and the offending token).
     // ══════════════════════════════════════
-    public static readonly DiagnosticDescriptor COBOLNET2072 = new(
+    public static readonly DiagnosticDescriptor COBOL2072 = new(
         CobolNet.Editions.Diagnostics.DiagnosticCatalog.RequiredImperativeMissing.Code,
         DiagnosticSeverity.Error, "{0}");
-    public static readonly DiagnosticDescriptor COBOLNET2073 = new(
+    public static readonly DiagnosticDescriptor COBOL2073 = new(
         CobolNet.Editions.Diagnostics.DiagnosticCatalog.WhenOtherOutOfPosition.Code,
         DiagnosticSeverity.Error, "{0}");
 
     // ══════════════════════════════════════
-    // COBOLNET2172/2173: a written shape NO general format of its clause prints (kb/Work PB412, PB421) — the
+    // COBOL2172/2173: a written shape NO general format of its clause prints (kb/Work PB412, PB421) — the
     // GO TO complement (§14.9.17.2) and a CORRESPONDING phrase after a MOVE sending operand (§14.9.25.2).
     // Same single-sourcing as 2072/2073 above: the CODE comes from the catalogue descriptor, the message is
     // composed at the CobolErrorStrategy site from the format's own cardinalities.
     // ══════════════════════════════════════
-    public static readonly DiagnosticDescriptor COBOLNET2172 = new(
+    public static readonly DiagnosticDescriptor COBOL2172 = new(
         CobolNet.Editions.Diagnostics.DiagnosticCatalog.GoToFormatShape.Code,
         DiagnosticSeverity.Error, "{0}");
-    public static readonly DiagnosticDescriptor COBOLNET2173 = new(
+    public static readonly DiagnosticDescriptor COBOL2173 = new(
         CobolNet.Editions.Diagnostics.DiagnosticCatalog.MoveCorrespondingPosition.Code,
         DiagnosticSeverity.Error, "{0}");
 
     // ══════════════════════════════════════
-    // COBOLNET2418/2419: the parse-layer twins of the figurative-spelling keyword refusal (kb/Work PB510) and the
+    // COBOL2418/2419: the parse-layer twins of the figurative-spelling keyword refusal (kb/Work PB510) and the
     // §13.18.40.3 SR7 PICTURE separator-period rule (kb/Work PB569). Same single-sourcing as 2072/2073.
     // ══════════════════════════════════════
-    public static readonly DiagnosticDescriptor COBOLNET2418 = new(
+    public static readonly DiagnosticDescriptor COBOL2418 = new(
         CobolNet.Editions.Diagnostics.DiagnosticCatalog.FigurativeSpellingNotTheKeyword.Code,
         DiagnosticSeverity.Error, "{0}");
-    public static readonly DiagnosticDescriptor COBOLNET2419 = new(
+    public static readonly DiagnosticDescriptor COBOL2419 = new(
         CobolNet.Editions.Diagnostics.DiagnosticCatalog.PictureTrailingSymbolNotLast.Code,
         DiagnosticSeverity.Error, "{0}");
 
-    // COBOLNET2994: an inline method invocation's empty parenthesis pair (kb/Work PB1430) — the grammar requires the
+    // COBOL2994: an inline method invocation's empty parenthesis pair (kb/Work PB1430) — the grammar requires the
     // argument list inside the optional parentheses, and CobolErrorStrategy names the refused shape.
-    public static readonly DiagnosticDescriptor COBOLNET2994 = new(
+    public static readonly DiagnosticDescriptor COBOL2994 = new(
         CobolNet.Editions.Diagnostics.DiagnosticCatalog.InlineInvocationEmptyArguments.Code,
         DiagnosticSeverity.Error, "{0}");
 
     // ══════════════════════════════════════
-    // COBOLNET2269: a statement written in a shape none of its general formats prints (kb/Work PB909) — the
+    // COBOL2269: a statement written in a shape none of its general formats prints (kb/Work PB909) — the
     // parse-layer twin, for the shapes the grammar now REFUSES rather than admits and hands to the binder: the
     // SEARCH phrases no SEARCH format prints (NOT AT END, a KEY phrase, a second Format-2 WHEN; kb/Work PB446).
     // Same single-sourcing as 2172/2173: ONE code, the message composed at the CobolErrorStrategy site.
     // ══════════════════════════════════════
-    public static readonly DiagnosticDescriptor COBOLNET2269 = new(
+    public static readonly DiagnosticDescriptor COBOL2269 = new(
         CobolNet.Editions.Diagnostics.DiagnosticCatalog.StatementFormatShape.Code,
         DiagnosticSeverity.Error, "{0}");
 

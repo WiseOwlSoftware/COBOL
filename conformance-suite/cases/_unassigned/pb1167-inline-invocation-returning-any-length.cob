@@ -10,7 +10,7 @@
       *> invocation has no receiving item to give it one (13.18.2.4 GR1 b) takes n from the activating
       *> element's returning item), so the same method that PB1167 makes legal through an INVOKE statement with
       *> a RETURNING identifier is refused inline.  The ANY LENGTH twin of pb428-inline-invocation-returning-
-      *> active-class.  COBOLNET2140.  kb/Work PB1167.
+      *> active-class.  COBOL2140.  kb/Work PB1167.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1167N1.
        ENVIRONMENT DIVISION.

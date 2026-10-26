@@ -11,7 +11,7 @@
       *> reference modifier; 8.4.3.3.3 SR5 allows one only where "an
       *> identifier referencing a data item of class alphanumeric,
       *> boolean, or national is permitted" (cite.py: OK for each).
-      *> COBOLNET3317 at every edition.
+      *> COBOL3317 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG2468I.
        DATA DIVISION.

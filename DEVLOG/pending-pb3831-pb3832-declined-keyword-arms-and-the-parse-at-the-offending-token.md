@@ -1,12 +1,12 @@
 ## PB3831, PB3832: a declined clause's printed keywords are all arms, and the parse hints read the offending token's position
 
-Two fuzz findings the owner approved on 2026-10-26 ("Approve the CLASS IS BOOLEAN and COBOLNET2072 wording fixes too"),
+Two fuzz findings the owner approved on 2026-10-26 ("Approve the CLASS IS BOOLEAN and COBOL2072 wording fixes too"),
 under the standing rule of the same morning: "We always strive to fix the root causes, never simply making the
 diagnostic pass". Both refusals were right and both messages were false.
 
-**PB3831, `CLASS IS BOOLEAN`.** Re-probed: `r0901.cob` drew COBOLNET0901 ("'BOOLEAN' is a reserved word ... cannot be
+**PB3831, `CLASS IS BOOLEAN`.** Re-probed: `r0901.cob` drew COBOL0901 ("'BOOLEAN' is a reserved word ... cannot be
 used as a user-defined word") at 2002, 2014 and 2023, where every other operand of the declined CLASS clause draws
-COBOLNET1708. `validateClassOperand` had no BOOLEAN arm, so the reserved word fell to `cobolWord`, which refuses it, and
+COBOL1708. `validateClassOperand` had no BOOLEAN arm, so the reserved word fell to `cobolWord`, which refuses it, and
 the parse failed inside the declined construct. The file's comment called that "a plain syntax error inside a construct
 this compiler declines"; it was a false statement about a word §13.18.11.2 prints as the clause's own keyword. FORMAT
 in VALIDATE-STATUS (PB693) and the class condition's BOOLEAN (PB857) were the same mechanism. The fix adds the arm,
@@ -15,13 +15,13 @@ reads each declined rule's cited general format from `specs/ISO_COBOL.md` and re
 lexer token to be an arm the rule reaches, never through `cobolWord` (a tail rule also counts what its host
 `valueClause` parses). A companion fact holds every keyword-writing rule of the file to a citation, and a can-fail
 theory removes the BOOLEAN arm and the tail's VALID arm. Witnesses: a per-operand theory over all seven printed
-operands (COBOLNET1708, and no COBOLNET0901 or COBOL0001) and the refusal `declined-validate-class-boolean`. The sibling
+operands (COBOL1708, and no COBOL0901 or COBOL0001) and the refusal `declined-validate-class-boolean`. The sibling
 sweep over every grammar rule that mixes keyword arms with `cobolWord` (`acceptSource`, `validateStatusStage`,
 `classConditionName`, `concatOperand`, `screenName`) found no other short list.
 
 **PB3832, the false missing-statement claim.** Re-probed: `r14.cob` (an IF after an open `IF .. ELSE IF .. END-IF`, its
-condition `LENGTH OF WS-OUT = 30`) drew COBOLNET2072 "the IF statement's general format shows an imperative-statement
-here" plus COBOL0001, while the lone IF drew a bare COBOL0001; `IF A NOT <> B` drew COBOLNET2072 at NOT. A probe matrix
+condition `LENGTH OF WS-OUT = 30`) drew COBOL2072 "the IF statement's general format shows an imperative-statement
+here" plus COBOL0001, while the lone IF drew a bare COBOL0001; `IF A NOT <> B` drew COBOL2072 at NOT. A probe matrix
 (IF, ELSE, EVALUATE WHEN and WHEN OTHER, inline PERFORM and PERFORM UNTIL, SEARCH WHEN, ON SIZE ERROR, NOT ON SIZE
 ERROR, AT END, INVALID KEY; empty versus failing inside; at depth 0 and inside the open nest) showed the reach: every
 nested failure drew the false claim, every nested empty block was named IF, the scope-terminator hint said "END-SEARCH
@@ -39,9 +39,9 @@ them). A block is empty exactly when one CONTINUE stepped from a configuration t
 figurative-spelling hint reads the expected set there, and the rule-stack hints (the scope terminator, MOVE, SPECIAL-NAMES,
 INDEXED BY, FILE-CONTROL) read the rules open there. A second report at the token the previous report named is
 suppressed: the recovery resumed at the decision and met the same fault, which is why r14 drew COBOL0001 twice. After
-the fix r14 and the lone IF draw the same single COBOL0001, every empty block in the matrix draws COBOLNET2072 naming its
+the fix r14 and the lone IF draw the same single COBOL0001, every empty block in the matrix draws COBOL2072 naming its
 own statement at both depths except the depth-0 conditional phrases, and no failing block draws it. The golden
-`pb1034-not-lteq` expected the false COBOLNET2072 and now expects COBOL0001. Pinned by four new tests in
+`pb1034-not-lteq` expected the false COBOL2072 and now expects COBOL0001. Pinned by four new tests in
 `RequiredImperativeStatementDriftTests`; DESIGN-frontend-grammar §3.11 records the new test and closes its "known message
 gap" for the empty inline PERFORM.
 
@@ -57,13 +57,13 @@ token and the construct it completed just before it, re-simulated in full contex
 the report moves to the token where that re-simulation dies and is read there (`OffendingPosition.CarryForward`); a report covers
 every token from the parser's position through the one it names. A probe matrix over twelve phrase forms (ADD, COMPUTE,
 READ, WRITE, STRING, CALL; empty and failing; depth 0 and nested) now draws one diagnostic per row, the same at both
-depths: COBOLNET2072 naming the statement, or the lone statement's COBOL0001 at OF. The predecessor matrix's two other
+depths: COBOL2072 naming the statement, or the lone statement's COBOL0001 at OF. The predecessor matrix's two other
 depth-dependent rows agree now too (EVALUATE's empty WHEN OTHER, and `IF X NOT <> 1`, which drew two reports nested). A
 prediction refused by a semantic predicate at the token is not carried (the walk evaluates none; `OBJECT-COMPUTER. XYZ
 FOO IS.` keeps its 0g refusal), and a structural hint (priority 0 or less) at the token where the parser stands outranks
 the move: it diagnoses the token as written, the furthest point some parse reached does not. The one structural arm that
 read token adjacency as a position fault, WHEN OTHER's (0b), now asks the same question: `WHEN OTHER IF LENGTH OF X`
-drew COBOLNET2073 "a WHEN OTHER phrase may be specified at most once" at depth 0, where the phrase is in place and the
+drew COBOL2073 "a WHEN OTHER phrase may be specified at most once" at depth 0, where the phrase is in place and the
 IF fails at OF. The whole Conformance population (18,844) and the whole Unit population ran green on the change but for
 one pinned row, `GeneralFormatViolationTests` PBGF38 (`READ F1 AT END DISPLAY "E" AT END DISPLAY "F" END-READ`): its
 second AT continues the DISPLAY's screen AT phrase, that parse dies at END, and the row now draws the COBOL0001 at END it

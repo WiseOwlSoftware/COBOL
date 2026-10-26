@@ -15,7 +15,7 @@
 *> could ever be inside it: a compiler that ignored the IN alphabet-name-1 phrase, or that weighed the
 *> range natively, would accept this program. It pins that the SR27 screen consults the sequence
 *> 14.7.8 rule 2 gives the range, through the SAME CobolCollation.Compare the generated program uses.
-*> COBOLNET2048. Its conforming twin (literal-4 = "A", outside the range) is exercised by
+*> COBOL2048. Its conforming twin (literal-4 = "A", outside the range) is exercised by
 *> conformance-suite/cases/13.18.63-VALUE/pb555_value_false_phrase's native-ordered leg.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGPB555B.

@@ -7,7 +7,7 @@
       *> ISO 14.2.2 SR2 - a data-name in a BY VALUE phrase of the procedure division header shall
       *> be of class numeric, message-tag, object, or pointer. A USAGE INDEX data item is of class
       *> index (8.5.2.1 Table 2), though its storage model is numeric, so it is refused
-      *> (COBOLNET1553) exactly as the argument side refuses an index operand BY VALUE.
+      *> (COBOL1553) exactly as the argument side refuses an index operand BY VALUE.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3222-BVFI.
        DATA DIVISION.

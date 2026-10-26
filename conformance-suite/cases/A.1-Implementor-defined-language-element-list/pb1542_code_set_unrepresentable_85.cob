@@ -42,7 +42,7 @@
       *>  Only SEQUENTIAL files carry the clause: a RELATIVE or
       *>        INDEXED file description entry is Format 2, which
       *>        prints no CODE-SET clause (§13.4.5.3 SR7; kb/Work
-      *>        PB1238 refuses it, COBOLNET2604).
+      *>        PB1238 refuses it, COBOL2604).
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        SPECIAL-NAMES.

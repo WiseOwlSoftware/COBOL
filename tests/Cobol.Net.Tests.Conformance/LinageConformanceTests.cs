@@ -65,7 +65,7 @@ public sealed class LinageConformanceTests
     // ── The BYTES on the medium (§13.18.34.4 GR1/GR4/GR5/GR8, §14.9.51.4 GR25 g)/GR26 a)) ─────────────────
 
     /// <summary><see cref="CobolNet"/> at the shipping default edition, for the one fixture that needs a post-85 construct:
-    /// ORGANIZATION IS LINE SEQUENTIAL is COBOL-2023 (§12.4.5.10.3; COBOLNET0900 rejects it at --std 85). The
+    /// ORGANIZATION IS LINE SEQUENTIAL is COBOL-2023 (§12.4.5.10.3; COBOL0900 rejects it at --std 85). The
     /// LINAGE rules under test are identical across all four editions, so the arm is exercised where it exists.</summary>
     private static readonly CobolNetCompiler CobolNet2023 = new(2023);
 
@@ -267,7 +267,7 @@ public sealed class LinageConformanceTests
     [InlineData("LNGBY9", "lngby9.prt", "", "RECORD CONTAINS 4 CHARACTERS", 85)]
     [InlineData("LNGBYA", "lngbya.prt", "", "LINAGE IS 10 LINES", 85)]
     // A LINE SEQUENTIAL file's FD carries no RECORD CONTAINS (§13.4.5.3 SR4 — "neither the BLOCK CONTAINS clause
-    // nor the RECORD CONTAINS clause shall be specified"; COBOLNET2605), so its record width is the 01's alone.
+    // nor the RECORD CONTAINS clause shall be specified"; COBOL2605), so its record width is the 01's alone.
     [InlineData("LNGBYB", "lngbyb.prt", "\n        ORGANIZATION IS LINE SEQUENTIAL", "", 2023)]
     [InlineData("LNGBYC", "lngbyc.prt", "\n        ORGANIZATION IS LINE SEQUENTIAL", "LINAGE IS 10 LINES", 2023)]
     public void Bytes_PlainWriteAfterAnAfterWrite_AdvancesFirst_NoWeld(

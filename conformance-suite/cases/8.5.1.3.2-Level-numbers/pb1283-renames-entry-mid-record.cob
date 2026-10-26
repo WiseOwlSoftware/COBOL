@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1283 - SR2 - a data description entry follows the record's RENAMES entries.
       *>   cite.py --check 13.18.45.3 "All RENAMES entries referring to data items within a given record shall immediately follow the last data description entry" -> OK
-      *> COBOLNET2740 (renames-entry-rule). The positive twin is conformance/85/pb1283_renames_legal.cob.
+      *> COBOL2740 (renames-entry-rule). The positive twin is conformance/85/pb1283_renames_legal.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1283N9.
        DATA DIVISION.

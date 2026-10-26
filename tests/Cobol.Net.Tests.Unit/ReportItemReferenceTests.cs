@@ -16,14 +16,14 @@ namespace CobolNet.Tests.Unit;
 /// data division or by any other procedure division statements, except in the following cases: 1) Sum counters may
 /// be inspected or altered in the procedure division. 2) Report groups of type DETAIL are accessed by the GENERATE
 /// statement", and §13.15.3 SR7: "The data-name shall not be referenced in any other way." The reference is refused
-/// (COBOLNET5092), under THAT rule — it used to be told COBOLNET1639 "no declaration gives the name", false about a
+/// (COBOL5092), under THAT rule — it used to be told COBOL1639 "no declaration gives the name", false about a
 /// name the report section declares. One lookup (<c>DataBinder.ReportEntriesNamed</c>) and one refusal
 /// (<c>DataBinder.ReportEntryReferenceRefused</c>) serve every arm that used to say "not defined"; the complement
 /// test names the arms so a fourth cannot be added without asking.
 /// </summary>
 public sealed class ReportItemReferenceTests
 {
-    private const string ReportItemCode = "COBOLNET5092";
+    private const string ReportItemCode = "COBOL5092";
 
     private static string Source(string wsExtra, string reportExtra, string procedure, string globalRd = "",
         string fileExtra = "", string innerProgram = "") => string.Join("\n",
@@ -86,7 +86,7 @@ public sealed class ReportItemReferenceTests
     {
         var d = Bind(Source("", "", "           " + statement + "."));
         Assert.Single(d, x => x.Contains(ReportItemCode));
-        Assert.DoesNotContain(d, x => x.Contains("COBOLNET1639"));
+        Assert.DoesNotContain(d, x => x.Contains("COBOL1639"));
     }
 
     /// <summary>§13.8.6.2.3 1) — "Sum counters may be inspected or altered in the procedure division": the SUM entry's
@@ -128,7 +128,7 @@ public sealed class ReportItemReferenceTests
     {
         var d = Bind(Source("", "", "           " + statement + "."));
         Assert.DoesNotContain(d, x => x.Contains(ReportItemCode));
-        Assert.Contains(d, x => x.Contains("COBOLNET1639"));
+        Assert.Contains(d, x => x.Contains("COBOL1639"));
     }
 
     /// <summary>§13.18.27.4 GR1/GR2 — a GLOBAL report's names are visible to the contained program, so a printable
@@ -145,13 +145,13 @@ public sealed class ReportItemReferenceTests
             Inner("           DISPLAY PV.\n           DISPLAY DL."));
         var d = Bind(refused);
         Assert.Equal(2, d.Count(x => x.Contains(ReportItemCode)));
-        Assert.DoesNotContain(d, x => x.Contains("COBOLNET1639"));
+        Assert.DoesNotContain(d, x => x.Contains("COBOL1639"));
 
         string hidden = Source("", "", "           CALL \"PB1046UI\".", "", innerProgram:
             Inner("           DISPLAY PV."));
         var h = Bind(hidden);
         Assert.DoesNotContain(h, x => x.Contains(ReportItemCode));
-        Assert.Contains(h, x => x.Contains("COBOLNET1639"));
+        Assert.Contains(h, x => x.Contains("COBOL1639"));
     }
 
     /// <summary>§13.8.6.2.3 — "any clauses in any other section of the data division": the FILE-CONTROL clause that

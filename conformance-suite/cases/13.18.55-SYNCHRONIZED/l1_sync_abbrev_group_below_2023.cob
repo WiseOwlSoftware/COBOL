@@ -8,7 +8,7 @@
       *> abbreviation is the SAME clause spelled shorter, so it has to meet
       *> the SAME edition gate: SYNCHRONIZED on a GROUP item is a COBOL-2023
       *> introduction (ISO Annex E.3.2 item 6 / VCR row 43) and below 2023 it
-      *> is rejected strict with COBOLNET0900 - the diagnostic
+      *> is rejected strict with COBOL0900 - the diagnostic
       *> negative/sync_group_below_2023 pins for the FULL spelling. This is
       *> the complement: if the two spellings were separate constructs the
       *> abbreviation could slip past the gate and silently accept a 2023-only

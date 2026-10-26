@@ -54,7 +54,7 @@ public sealed class RecoveryCategoryCascadeTests
     public void RejectedPicture_IsDiagnosedOnce_AtItsDeclaration(string stmt)
     {
         var diags = EditionHarness.GetDiagnostics(Prog(stmt), 2023);
-        Assert.Contains(diags, d => d.Contains("COBOLNET1934"));
+        Assert.Contains(diags, d => d.Contains("COBOL1934"));
         Assert.All(diags, d => Assert.Contains("W-BAD", d));
         Assert.Single(diags);
     }

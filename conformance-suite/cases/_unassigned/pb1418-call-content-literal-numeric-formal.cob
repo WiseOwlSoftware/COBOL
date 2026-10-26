@@ -11,7 +11,7 @@
       *> literal, the figurative constant ZERO" as COMPUTE operands - never
       *> a nonnumeric literal. 14.9.4.3 SR25 imports 14.8.2 into the NESTED
       *> CALL, so BY CONTENT "ABCD" into the PIC 9(4) formal is
-      *> COBOLNET1688. (Before the fix the MOVE rule of 2 d) was asked
+      *> COBOL1688. (Before the fix the MOVE rule of 2 d) was asked
       *> instead, the call compiled, and the callee saw 0000.)
       *> cite.py --check 14.8.2.3.3 "If the formal parameter is numeric,
       *>   the conformance rules are the same as for a COMPUTE statement"

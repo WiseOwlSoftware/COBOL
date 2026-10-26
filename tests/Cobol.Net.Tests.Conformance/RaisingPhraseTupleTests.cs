@@ -43,7 +43,7 @@ public sealed class RaisingPhraseTupleTests
             IDENTIFICATION DIVISION.
             INTERFACE-ID. IRPT1.
             END INTERFACE IRPT1.
-            """), "COBOLNET0858");
+            """), "COBOL0858");
 
     /// <summary>§14.2.1 prints `[ FACTORY OF ]` on the object-class-name-1 line only (§14.2.2 SR8 names that
     /// operand a class) — `RAISING FACTORY OF &lt;interface&gt;` is not a printed spelling.</summary>
@@ -63,7 +63,7 @@ public sealed class RaisingPhraseTupleTests
             IDENTIFICATION DIVISION.
             INTERFACE-ID. IRPT2.
             END INTERFACE IRPT2.
-            """), "COBOLNET0858");
+            """), "COBOL0858");
 
     /// <summary>§14.2.2 SR8 on the FACTORY alternative, METHOD-ID arm: the class is not in the method's
     /// REPOSITORY scope — 0858 through the SAME partition the program arm uses.</summary>
@@ -82,7 +82,7 @@ public sealed class RaisingPhraseTupleTests
             END METHOD M1.
             END OBJECT.
             END CLASS CRPT3.
-            """), "COBOLNET0858");
+            """), "COBOL0858");
 
     private static string ExitProgramRaising(string pid, string header, string usage) => $$"""
             IDENTIFICATION DIVISION.
@@ -121,13 +121,13 @@ public sealed class RaisingPhraseTupleTests
     {
         var errors = ErrorsOf(ExitProgramRaising("RPT5", "FACTORY OF CRPT5", "CRPT5")
             .Replace("SET F TO CRPT5.", "INVOKE CRPT5 \"NEW\" RETURNING F."));
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET4211");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL4211");
         Assert.Contains(errors, e => e.Contains("§14.9.14.3 SR5a", StringComparison.Ordinal));
     }
 
     /// <summary>A method IS a source element: each method's GOBACK is checked against ITS OWN header. The
     /// header state used to be loaded in the roster-registration loop, so both methods here were checked
-    /// against M2's (empty) header and M1's legal `GOBACK RAISING EXCEPTION EC-USER-RPT6` drew COBOLNET0717
+    /// against M2's (empty) header and M1's legal `GOBACK RAISING EXCEPTION EC-USER-RPT6` drew COBOL0717
     /// (§14.9.18.3 SR2).</summary>
     [Fact]
     public void MethodRaising_EachMethodChecksItsOwnHeader()

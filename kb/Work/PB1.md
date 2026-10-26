@@ -28,7 +28,7 @@ tags: [cobolsharp, work, defect]
 
 # PB1 — LANDED — the CLASS half (DEVLOG 1117); a named residue stays open
 
-> **`COBOLNET1627` (`intrinsic-argument-class`), edition-invariant, strict-reject with a `--permissive` warning —
+> **`COBOL1627` (`intrinsic-argument-class`), edition-invariant, strict-reject with a `--permissive` warning —
 > the DA6 disposition for the sibling §8.8.1.1 question.** Five of the twelve rows CLOSE (ABS, PRESENT-VALUE,
 > RANDOM, RANGE, REM — bare class constraints, now fully enforced); five go **PARTIAL** because their rule has a
 > second half this screen does not reach, and one is unaffected. Half a rule enforced is PARTIAL, not CONFORMS.
@@ -106,7 +106,7 @@ tags: [cobolsharp, work, defect]
 > Neither emits a diagnostic at any edition.
 >
 > **⚠ AND IT IS A HOLE IN DA6, WHICH LANDED HOURS EARLIER.** DA6 installed the §8.8.1.1 strict reject for an
-> alphanumeric ARITHMETIC operand (`COBOLNET0844`). Function arguments bypass it: `BindArgOperand` routes through
+> alphanumeric ARITHMETIC operand (`COBOL0844`). Function arguments bypass it: `BindArgOperand` routes through
 > `BindFunctionArgumentExpr`, whose `OperandContext.FunctionArgument` deliberately suppresses the
 > `ExpressionBinder.OperandRef` numeric screen. So `COMPUTE R = A` is correctly rejected while
 > `COMPUTE R = FUNCTION ABS(A)` is not. Sweeping DA6's siblings is part of this fix (`feedback_scan_all_similar`).

@@ -14,7 +14,7 @@
       *> external item initialized at initial state (unlike a plain external
       *> item, whose VALUE takes effect only via INITIALIZE, 13.18.63 GR4a),
       *> so A initializes to its VALUE and DISPLAY prints it. The reject-at-
-      *> 2023 leg (COBOLNET1549) is pinned by the negative corpus.
+      *> 2023 leg (COBOL1549) is pinned by the negative corpus.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 R IS EXTERNAL CONSTANT RECORD.

@@ -16,9 +16,9 @@
 *> too. The rule is edition-invariant — the counters and SR3 are in the '85 standard unchanged — so every
 *> edition rejects.
 *>
-*> ⚠ THE CODE IS THE POINT AS MUCH AS THE REJECTION. The refusal used to be emitted as COBOLNET0899, the
+*> ⚠ THE CODE IS THE POINT AS MUCH AS THE REJECTION. The refusal used to be emitted as COBOL0899, the
 *> "recognized but not implemented" band, which tells the reader their LEGAL program is unsupported when in
-*> fact their program is illegal; it now carries its own rule code, COBOLNET2197.
+*> fact their program is illegal; it now carries its own rule code, COBOL2197.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB429LCR.
        ENVIRONMENT DIVISION.

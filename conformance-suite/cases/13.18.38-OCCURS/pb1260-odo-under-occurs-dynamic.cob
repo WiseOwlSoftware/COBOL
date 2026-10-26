@@ -9,7 +9,7 @@
       *>   occurs-depending table subordinate to it". A Format 4 (DYNAMIC)
       *>   table is an OCCURS entry too: G below has an occurs-depending
       *>   table beneath it. (The same shape under a fixed OCCURS was
-      *>   already COBOLNET0854; the dynamic arm compiled and aborted at
+      *>   already COBOL0854; the dynamic arm compiled and aborted at
       *>   run time.)
       *> cite.py --check 13.18.38.3 "The OCCURS clause shall not be
       *>   specified in a data description entry that" -> OK

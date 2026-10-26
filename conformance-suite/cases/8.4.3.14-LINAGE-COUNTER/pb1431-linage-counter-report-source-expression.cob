@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1431 - 8.4.3.14.3 SR1: "LINAGE-COUNTER may be referenced only in procedure division statements."
       *> A report-section SOURCE clause is a data division entry, so SOURCE LINAGE-COUNTER + 1 is refused, as the
-      *> data-name clause operands (OCCURS DEPENDING ON, FILE STATUS, ...) already were by COBOLNET2024. Before, the
+      *> data-name clause operands (OCCURS DEPENDING ON, FILE STATUS, ...) already were by COBOL2024. Before, the
       *> expression bound through the procedure-phase expression binder and read the live counter.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1431SRC.

@@ -9,7 +9,7 @@
 *> CORRESPONDING phrase."  Those rules include 14.9.25.3 syntax rule 2, which with 8.5.3.3 requires
 *> the sending operand of a MOVE whose receiver is a strongly-typed group to be a group item of the
 *> SAME type.  The SD record area here is an ordinary group, so the move is invalid and the RETURN
-*> is refused (COBOLNET1533).
+*> is refused (COBOL1533).
 *> Before kb/Work PB348 this program compiled and ran silently while the identical MOVE written out
 *> explicitly was rejected -- the INTO move was built in the emitter and no bind pass ever saw it.
 *> 85 is not listed: TYPEDEF and the STRONG phrase are 2002 introductions, so the 1985 leg is

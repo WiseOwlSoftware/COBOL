@@ -12,7 +12,7 @@
       *> the compiler used to get the invalid one wrong in a way the missing diagnostic understates: it
       *> reported the digit positions of the '+' run ONLY and ignored the '$' run entirely, so every
       *> downstream consumer (the SR14 capacity gate, the MOVE geometry, FUNCTION LENGTH) was computed from a
-      *> shape the standard does not define. Each entry is COBOLNET1935 - SR27 needs no rule of its own
+      *> shape the standard does not define. Each entry is COBOL1935 - SR27 needs no rule of its own
       *> because Table 10's floating rows carry it - and SR27 is a syntax rule of every edition from 1985 on.
       *> The VALID control +$$$ is the positive golden 85/pb530_picture_floating_anchor_85 entry A09.
       *>

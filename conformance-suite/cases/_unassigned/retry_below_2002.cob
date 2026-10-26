@@ -8,7 +8,7 @@
       *> (DESIGN-version-conformance-pipeline.md): the parse-time {is2002()}? predicates AND the reverse-signature
       *> ReservedWordEditionHints arm are GONE — RETRY parses at all editions (superset; the OPEN site via the
       *> retryPhraseAhead() forward-detect) and the introduction gate is enforced at BIND (GateRetryIntro ->
-      *> Check(RetryPhrase2002)) on every I/O statement that carries it, so below 2002 it is an exact COBOLNET0900.
+      *> Check(RetryPhrase2002)) on every I/O statement that carries it, so below 2002 it is an exact COBOL0900.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. RTB.
        ENVIRONMENT DIVISION.

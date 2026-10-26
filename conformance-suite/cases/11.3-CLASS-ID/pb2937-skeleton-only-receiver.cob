@@ -10,7 +10,7 @@
       *> OK), so what does not turn on which class it is has one answer
       *> in every expansion. ONE is described "T ONLY" and X is "T", and
       *> 14.9.39.3 SR12 a)1. (cite.py OK) requires an ONLY receiver's
-      *> sender to be described with the ONLY phrase: COBOLNET0867.
+      *> sender to be described with the ONLY phrase: COBOL0867.
        IDENTIFICATION DIVISION.
        CLASS-ID. NSKONLY USING T.
        ENVIRONMENT DIVISION.

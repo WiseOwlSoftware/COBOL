@@ -27,7 +27,7 @@
       *>     the item is the digit then ":" at each occurrence => "5::". (kb/Work PB529: this item was `LL`
       *>     with no 9 until the SR14 lower bound became a screen of its own - two simple insertion symbols
       *>     describe ZERO digit positions, and 13.18.40.3 SR14 requires 1 through 31 for a numeric-edited
-      *>     item; negative/pb529-picture-no-digit-position pins `PIC LL EDITING L IS ":"` as COBOLNET2882.)
+      *>     item; negative/pb529-picture-no-digit-position pins `PIC LL EDITING L IS ":"` as COBOL2882.)
       *> N03 L99F EDITING L FOR NEGATIVE IS "-" EDITING F FOR POSITIVE IS "+" with -12 - SR24's "either
       *>     one or two extended editing sign control symbols may be used" and SR25's leftmost/rightmost
       *>     placement. Table 9: character-1 with the NEGATIVE phrase renders literal-2 over a negative

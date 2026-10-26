@@ -9,7 +9,7 @@
       *> the nearest-declaring-element rule like every other data-name
       *> (kb/Work PB1047, wave 69 Z: a contained program's own
       *> FUNCTION-POINTER beside a container's GLOBAL one of the same
-      *> name drew COBOLNET1501, and a contained data item hid nothing)
+      *> name drew COBOL1501, and a contained data item hid nothing)
       *> RULE §8.4.3.2.3 SR4: "Function-pointer-name-1 shall be defined
       *>   as a function-pointer data item."  cite.py --check 8.4.3.2.3
       *>   "Function-pointer-name-1 shall be defined as a function-

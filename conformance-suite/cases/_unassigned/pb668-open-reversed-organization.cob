@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB668, COBOLNET2210. REVERSED establishes the BACKWARD
+      *> kb/Work PB668, COBOL2210. REVERSED establishes the BACKWARD
       *> retrieval of ISO 14.9.30.4 GR21 c), which only a positionable
       *> record ordinal on a RECORD sequential medium supports, so the
       *> phrase is admitted for record sequential organization alone -
@@ -14,13 +14,13 @@
       *> is RELATIVE, which SR5 also excludes, so the two phrases agree
       *> here and differ only on LINE SEQUENTIAL - and that difference
       *> is unreachable from conforming source at every edition, since
-      *> LINE SEQUENTIAL arrived in 2023 (COBOLNET0900) and REVERSED was
-      *> deleted in 2002 (COBOLNET0902). It is defence in depth under
+      *> LINE SEQUENTIAL arrived in 2023 (COBOL0900) and REVERSED was
+      *> deleted in 2002 (COBOL0902). It is defence in depth under
       *> --permissive, which is why the screen tests the organization
       *> and not merely "not sequential".
       *> reject-at is 85 ALONE because at 2002 and later the phrase is
       *> refused first, by the open-reversed-removed-2002 edition gate
-      *> (COBOLNET0902, VERSION_CHANGE_REFERENCE row 7.12) - so this
+      *> (COBOL0902, VERSION_CHANGE_REFERENCE row 7.12) - so this
       *> syntax rule has exactly one edition at which it can be seen.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB668N1.

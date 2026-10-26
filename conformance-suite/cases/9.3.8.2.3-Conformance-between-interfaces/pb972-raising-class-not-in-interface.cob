@@ -13,7 +13,7 @@
       *> the object implements. The class method raises PB972NBE; the
       *> interface's method has NO RAISING phrase at all (the measured
       *> repro of the note: it compiled and ran clean).
-      *> Expected: COBOLNET0841 naming rule 9 b)
+      *> Expected: COBOL0841 naming rule 9 b)
        IDENTIFICATION DIVISION.
        INTERFACE-ID. PB972NBI.
        PROCEDURE DIVISION.

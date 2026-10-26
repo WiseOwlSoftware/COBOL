@@ -8,7 +8,7 @@
       *> portable: unverified
       *>---
       *> THE NEXT GROUP CLAUSE AT A CONTROL BREAK, ON A REPORT HEADING ALONE ON ITS PAGE, AND BEFORE A
-      *> TERMINATE (kb/Work PB957 — the clause was refused by name, COBOLNET0899, at every edition).
+      *> TERMINATE (kb/Work PB957 — the clause was refused by name, COBOL0899, at every edition).
       *>
       *> THE RULES.
       *> §13.18.37.4 GR1 — "The NEXT GROUP clause has no effect when it is specified in a control footing

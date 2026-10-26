@@ -7,7 +7,7 @@
       *> AN ABSOLUTE NEXT GROUP IN A REPORT THAT IS NOT DIVIDED INTO PAGES (kb/Work PB957).
       *> ISO/IEC 1989:2023 §13.18.37.3 SR3: "If the report is not divided into pages, only the relative
       *> form of the clause may be specified." The RD has no PAGE clause.
-      *> Drawn on COBOLNET2284 (report-next-group-clause-rule).
+      *> Drawn on COBOL2284 (report-next-group-clause-rule).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB957NAU.
        ENVIRONMENT DIVISION.

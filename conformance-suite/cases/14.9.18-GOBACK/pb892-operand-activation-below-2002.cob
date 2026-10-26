@@ -10,7 +10,7 @@
       *> GOBACK RAISING phrase (14.9.18) and USE AFTER EXCEPTION CONDITION
       *> - all ISO/IEC 1989:2002 introductions. At COBOL-85 this source does
       *> not describe a program, so the compiler refuses the FIRST construct
-      *> the edition does not have with COBOLNET0900 rather than activating
+      *> the edition does not have with COBOL0900 rather than activating
       *> the function and dropping the condition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB892N85.

@@ -8,7 +8,7 @@
       *> kb/Work PB434 - ISO/IEC 1989:2023 14.9.28.4 GR16 bans a transfer of control OUT of an exception-
       *> checking PERFORM from its FINALLY phrase (imperative-statement-5): "There shall be no statements that
       *> include a transfer of control out of the PERFORM statement within imperative-statement-5"
-      *> (negative pb434-finally-transfer-out, COBOLNET2927). This golden pins what the ban does NOT reach:
+      *> (negative pb434-finally-transfer-out, COBOL2927). This golden pins what the ban does NOT reach:
       *>   - EXIT PERFORM in imperative-statement-5: GR16 "Any EXIT PERFORM statement within
       *>     imperative-statement-5 transfers control to an implicit CONTINUE statement following the
       *>     END-PERFORM" - so the rest of FINALLY is skipped and the statement after END-PERFORM runs;

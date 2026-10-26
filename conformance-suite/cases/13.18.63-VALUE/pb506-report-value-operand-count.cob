@@ -14,7 +14,7 @@
       *> LEGAL multi-level case SR35's "multiplied by" admits; it does not license a short list here.
       *> Before kb/Work PB506 this compiled clean and printed `AAA  AAA  AAA`, indistinguishable from the legal
       *> three-operand program.  SR35 carries no version proviso, so it is reported at all four editions; at 85
-      *> the COBOLNET0900 introduction gate for the multiple COLUMN clause is reported ALONGSIDE it, not instead
+      *> the COBOL0900 introduction gate for the multiple COLUMN clause is reported ALONGSIDE it, not instead
       *> of it (the kb/Work PB505 negative-fixture precedent).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB506N2.

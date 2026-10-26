@@ -15,7 +15,7 @@
       *>     nothing but a trailing sign or CR/DB may follow it, and a '9' does. Before kb/Work PB855 the string
       *>     bound clean and MOVE -12.3 rendered "00(12", a spelling no general rule of the standard describes.
       *> The IS form (simple insertion, rule 3) has no Table-10 precedence and stays legal anywhere:
-      *> positive golden 2023/pb528_picture_editing_transparency_2023 N01 (9L9 EDITING L IS ":"). COBOLNET1935, 2023
+      *> positive golden 2023/pb528_picture_editing_transparency_2023 N01 (9L9 EDITING L IS ":"). COBOL1935, 2023
       *> only (the EDITING phrase is a COBOL-2023 introduction, Annex E.3.3 item 19).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB855MID.

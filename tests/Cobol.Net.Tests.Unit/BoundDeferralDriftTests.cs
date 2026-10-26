@@ -14,7 +14,7 @@ namespace CobolNet.Tests.Unit;
 /// ⛔ kb/Work PB909 — <c>BoundUnsupported</c>'s TWO JOBS, split into two TYPES. The deferral carrier meant both
 /// "WiseOwl COBOL has not built this" and "no general format prints this", so an ungrammatical statement and a
 /// missing feature looked the same: INSPECT … REPLACING TRAILING and SEARCH … NOT AT END compiled with a
-/// COBOLNET1756 warning and aborted the run unit, where ISO §4.2.2 ¶2 owes a compile-time indication of
+/// COBOL1756 warning and aborted the run unit, where ISO §4.2.2 ¶2 owes a compile-time indication of
 /// "violations of the general formats and the explicit syntax rules of standard COBOL".
 /// <para>The split: <see cref="BoundRejected"/> is a REFUSAL, obtainable only through
 /// <see cref="BoundRejected.Report"/>, which records an error first — so a refusal can be neither silent nor
@@ -112,28 +112,28 @@ MAIN.
     /// it — the case the old deferral left entirely silent at run time. Each must be an ERROR under the code
     /// that names its rule, and must NOT be the deferral announce.</summary>
     [Theory]
-    [InlineData("A", "INSPECT S REPLACING TRAILING \" \" BY \"*\".", "COBOLNET2269", "REPLACING TRAILING")]
-    [InlineData("B", "INSPECT S TALLYING N FOR TRAILING \" \".", "COBOLNET2269", "FOR TRAILING")]
-    [InlineData("C", "INSPECT S TALLYING N FOR FIRST \" \".", "COBOLNET2269", "FOR FIRST")]
+    [InlineData("A", "INSPECT S REPLACING TRAILING \" \" BY \"*\".", "COBOL2269", "REPLACING TRAILING")]
+    [InlineData("B", "INSPECT S TALLYING N FOR TRAILING \" \".", "COBOL2269", "FOR TRAILING")]
+    [InlineData("C", "INSPECT S TALLYING N FOR FIRST \" \".", "COBOL2269", "FOR FIRST")]
     [InlineData("D", "SEARCH E AT END DISPLAY \"N\" NOT AT END DISPLAY \"Y\" WHEN E(IX) = 1 DISPLAY \"H\" END-SEARCH.",
-        "COBOLNET2269", "SEARCH … NOT AT END")]
-    [InlineData("E", "ENTRY \"PB909ENTRY\".", "COBOLNET2269", "ENTRY")]
-    [InlineData("F", "OPEN OUTPUT IX-FILE. WRITE IX-REC AFTER ADVANCING 1 LINE.", "COBOLNET1720", "SR3")]
-    [InlineData("G", "SORT TROW ASCENDING KEY TCELL.", "COBOLNET1757", "SR14 e")]
+        "COBOL2269", "SEARCH … NOT AT END")]
+    [InlineData("E", "ENTRY \"PB909ENTRY\".", "COBOL2269", "ENTRY")]
+    [InlineData("F", "OPEN OUTPUT IX-FILE. WRITE IX-REC AFTER ADVANCING 1 LINE.", "COBOL1720", "SR3")]
+    [InlineData("G", "SORT TROW ASCENDING KEY TCELL.", "COBOL1757", "SR14 e")]
     public void IllegalShape_IsARefusal_NeverADeferral(string id, string stmt, string code, string text)
     {
         var (ok, errors, warnings) = Compile(string.Format(Head, id) + "    " + stmt + "\nSKIPPER.\n    STOP RUN.\n");
         Assert.False(ok);
         Assert.Contains(errors, e => e.Contains(code, StringComparison.Ordinal)
                                      && e.Contains(text, StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     /// <summary>The three Report Writer operand rules that used to stage a deferral naming their own syntax rule:
     /// INITIATE §14.9.21.3 SR1 and TERMINATE §14.9.46.3 SR1 ("Report-name-1 shall be defined by a report
     /// description entry in the report section") and GENERATE §14.9.16.3 SR1/SR2 (a detail report group, or a
     /// report). <c>ReportGroupResolution.Match.None</c> is undiagnosed by contract, so the GENERATE arm is the
-    /// report — each now an ERROR under COBOLNET1757, and never the deferral announce.</summary>
+    /// report — each now an ERROR under COBOL1757, and never the deferral announce.</summary>
     [Theory]
     [InlineData("INITIATE NO-SUCH-RPT.", "§14.9.21.3 SR1")]
     [InlineData("TERMINATE NO-SUCH-RPT.", "§14.9.46.3 SR1")]
@@ -163,9 +163,9 @@ SKIPPER.
 """;
         var (ok, errors, warnings) = Compile(src);
         Assert.False(ok);
-        Assert.Contains(errors, e => e.Contains("COBOLNET1757", StringComparison.Ordinal)
+        Assert.Contains(errors, e => e.Contains("COBOL1757", StringComparison.Ordinal)
                                      && e.Contains(rule, StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     /// <summary>SEARCH ALL is the SECOND arm of the same dispatch (feedback_two_arm_dispatch) — its own row.</summary>
@@ -185,13 +185,13 @@ PROCEDURE DIVISION.
 """;
         var (ok, errors, warnings) = Compile(src);
         Assert.False(ok);
-        Assert.Contains(errors, e => e.Contains("COBOLNET2269", StringComparison.Ordinal)
+        Assert.Contains(errors, e => e.Contains("COBOL2269", StringComparison.Ordinal)
                                      && e.Contains("SEARCH ALL … NOT AT END", StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     /// <summary>The funnel's classification of an unresolvable operand: a subscript on a non-table item is
-    /// COBOLNET2096 (§8.4.2.3.3 SR2), and the INSPECT whose identifier-1 it was used to ALSO announce "not
+    /// COBOL2096 (§8.4.2.3.3 SR2), and the INSPECT whose identifier-1 it was used to ALSO announce "not
     /// implemented". A statement whose bind already drew an error makes no claim about the compiler.</summary>
     [Fact]
     public void RefusedOperand_DrawsNoDeferralAnnounce()
@@ -199,8 +199,8 @@ PROCEDURE DIVISION.
         var (ok, errors, warnings) = Compile(string.Format(Head, "H")
             + "    INSPECT S(1) TALLYING N FOR ALL \"A\".\nSKIPPER.\n    STOP RUN.\n");
         Assert.False(ok);
-        Assert.Contains(errors, e => e.Contains("COBOLNET2096", StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("COBOL2096", StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     /// <summary>And the other half, which a compiler that refused everything would fail: legal source the
@@ -234,11 +234,11 @@ SKIPPER.
 """;
         var (ok, errors, warnings) = Compile(src);
         Assert.True(ok, string.Join("\n", errors));
-        Assert.Contains(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.Contains(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     /// <summary>kb/Work PB938 — a test that PINS a capability limit is a decision about the standard. Now that the
-    /// deferral has one code of its own (COBOLNET1756 means "WiseOwl COBOL has not built this" and nothing else), a
+    /// deferral has one code of its own (COBOL1756 means "WiseOwl COBOL has not built this" and nothing else), a
     /// NEGATIVE golden expecting it would be asserting that the standard refuses what only this compiler does —
     /// the `pb17-function-subscript-varying-by` shape, which held conforming source as a rejection for months
     /// and was found only by a fix walking past it. The population is zero; this keeps it zero.</summary>
@@ -247,7 +247,7 @@ SKIPPER.
     {
         var refusals = SuiteManifest.Manifest.Refusals.Values.ToList();
         Assert.True(refusals.Count >= 1000, $"only {refusals.Count} refusal expectations found — has the suite moved?");
-        var pins = refusals.Where(r => r.Expect.Contains("COBOLNET1756", StringComparison.Ordinal))
+        var pins = refusals.Where(r => r.Expect.Contains("COBOL1756", StringComparison.Ordinal))
             .Select(r => r.Id).ToList();
         Assert.True(pins.Count == 0, "a negative golden expects the DEFERRAL code — a capability limit pinned as "
             + "the standard's refusal (kb/Work PB938):\n" + string.Join("\n", pins));

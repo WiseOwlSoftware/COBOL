@@ -7,7 +7,7 @@
 *> ISO 13.18.60.2 prints [ WITH NO SIGN ] only on the PACKED-DECIMAL line;
 *> the DISPLAY line prints no phrase. 13.15.4 GR2 makes a report group
 *> description entry's USAGE clause the data description entry's clause, so
-*> the entry draws COBOLNET1565 exactly as it does in WORKING-STORAGE
+*> the entry draws COBOL1565 exactly as it does in WORKING-STORAGE
 *> (pb3517-no-sign-phrase-on-binary-usage). Before branch review R1-1 of
 *> kb/Work PB3517 this program compiled clean and printed 005.
        IDENTIFICATION DIVISION.

@@ -10,7 +10,7 @@
       *> every instance (§11.7), so it cannot hold a reference bound to the class of the
       *> object that invoked THIS activation.  The same clause's positive shapes ship in
       *> conformance-suite/cases/9.3.6-Method-invocation/pb389_object_reference_descriptor.cob (LOCAL-STORAGE).
-      *> kb/Work PB1308 (decision R62): a method's WORKING-STORAGE SECTION is itself refused (COBOLNET1519, §13.5.3
+      *> kb/Work PB1308 (decision R62): a method's WORKING-STORAGE SECTION is itself refused (COBOL1519, §13.5.3
       *> SR1) at every edition; the entry is still bound in its own section, so this SR16 arm keeps answering too.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB389N2.

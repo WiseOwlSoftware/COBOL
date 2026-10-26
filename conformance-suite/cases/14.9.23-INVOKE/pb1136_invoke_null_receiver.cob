@@ -10,7 +10,7 @@
       *>   §8.4.3.7.3 SR2: "NULL is implicitly described as class object and category object reference, and is not a
       *>   universal object reference" — so every INVOKE below is legal source: SR4's a)-i) name descriptions NULL
       *>   does not have, SR6 (no BY CONTENT / BY VALUE) is the universal receiver's, and no formal parameter exists
-      *>   for SR5 or SR18 to compare an argument with. It used to be a compile-time warning COBOLNET1756 and a
+      *>   for SR5 or SR18 to compare an argument with. It used to be a compile-time warning COBOL1756 and a
       *>   run-time NotImplemented abort.
       *>   §14.9.23.4 GR5: "If identifier-1 is null, the EC-OO-NULL exception condition is set to exist and execution
       *>   of the INVOKE statement is terminated." EC-OO-NULL is fatal (Table 13) and its checking is enabled by the

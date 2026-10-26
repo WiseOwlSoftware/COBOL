@@ -16,8 +16,8 @@
       *> group is compared with a control written as FILLER with the
       *> USAGE clause spelled out: the same description, so the same
       *> size and the same contents. Before the fix every entry was read
-      *> as a NAME and refused with COBOLNET0901 (and the PICTURE-less
-      *> ones with a false COBOLNET0881).
+      *> as a NAME and refused with COBOL0901 (and the PICTURE-less
+      *> ones with a false COBOL0881).
       *> EXPECTED, by the rule: G1 EQ, G2 EQ, G3 EQ, G4 EQ.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB845A.

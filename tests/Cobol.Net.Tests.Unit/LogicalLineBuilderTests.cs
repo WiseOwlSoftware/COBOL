@@ -93,7 +93,7 @@ public sealed class LogicalLineBuilderTests
     }
 
     [Theory] // A literal is a quotation symbol followed by a hyphen at the END of the line only: a hyphen with anything but
-             // spaces after it is a closed literal (and a separator error of its own, COBOLNET2633, from a later stage).
+             // spaces after it is a closed literal (and a separator error of its own, COBOL2633, from a later stage).
     [InlineData(true)]
     [InlineData(false)]
     public void ClosedLiteralFollowedByHyphenAndText_IsNotAContinuationIndicator(bool fixedForm)
@@ -108,10 +108,10 @@ public sealed class LogicalLineBuilderTests
     public static TheoryData<string, string, string, string> BothFormatsNegatives => new()
     {
         // §6.2.3.2 SR6 / §6.4.2 / §6.5 8): the first nonblank character of the continuation line is not the opening quote.
-        { "DISPLAY \"AB\"-", "    CD\".", "COBOLNET2684", "no quotation symbol" },
-        { "DISPLAY \"AB\"-", "    'CD'.", "COBOLNET2684", "the other quotation symbol" },
+        { "DISPLAY \"AB\"-", "    CD\".", "COBOL2684", "no quotation symbol" },
+        { "DISPLAY \"AB\"-", "    'CD'.", "COBOL2684", "the other quotation symbol" },
         // §6.3.7.3 / §6.4.4.3: an inline comment on a line that holds a floating literal continuation indicator.
-        { "DISPLAY \"AB\"- *> comment", "    \"CD\".", "COBOLNET2689", "comment after the indicator" },
+        { "DISPLAY \"AB\"- *> comment", "    \"CD\".", "COBOL2689", "comment after the indicator" },
     };
 
     [Theory]
@@ -130,9 +130,9 @@ public sealed class LogicalLineBuilderTests
            // line" — a free-form rule.
     public void FreeForm_ContinuationLineWithNoContent_IsDiagnosed()
     {
-        Assert.Contains("COBOLNET2690", Codes(Normalize("DISPLAY \"AB\"-\n    \"\".\n", InitialReferenceFormat.Free, 2002).Bag));
-        Assert.Contains("COBOLNET2690", Codes(Normalize("DISPLAY \"\"-\n    \"AB\".\n", InitialReferenceFormat.Free, 2002).Bag));
-        Assert.DoesNotContain("COBOLNET2690", Codes(Normalize("DISPLAY \"AB\"-\n    \"\"\"\".\n", InitialReferenceFormat.Free, 2002).Bag));
+        Assert.Contains("COBOL2690", Codes(Normalize("DISPLAY \"AB\"-\n    \"\".\n", InitialReferenceFormat.Free, 2002).Bag));
+        Assert.Contains("COBOL2690", Codes(Normalize("DISPLAY \"\"-\n    \"AB\".\n", InitialReferenceFormat.Free, 2002).Bag));
+        Assert.DoesNotContain("COBOL2690", Codes(Normalize("DISPLAY \"AB\"-\n    \"\"\"\".\n", InitialReferenceFormat.Free, 2002).Bag));
     }
 
     [Fact] // §6.2.3.2 SR5: a floating indicator on a line that holds the fixed continuation indicator.
@@ -141,7 +141,7 @@ public sealed class LogicalLineBuilderTests
         string open = "000100 DISPLAY \"" + new string('A', 56);
         Assert.Equal(72, open.Length);
         var (_, bag) = Normalize(open + "\n000200-    \"CD\"-\n000300     \"EF\".\n", InitialReferenceFormat.Fixed, 2002);
-        Assert.Contains("COBOLNET2686", Codes(bag));
+        Assert.Contains("COBOL2686", Codes(bag));
     }
 
     [Fact] // §6.2.3.2 SR4: one form of continuation per literal — either order.
@@ -149,14 +149,14 @@ public sealed class LogicalLineBuilderTests
     {
         string open = "000100 DISPLAY \"" + new string('A', 56);
         var (_, floatingThenFixed) = Normalize("000100 DISPLAY \"AB\"-\n000200-    \"CD\".\n", InitialReferenceFormat.Fixed, 2002);
-        Assert.Contains("COBOLNET2687", Codes(floatingThenFixed));
+        Assert.Contains("COBOL2687", Codes(floatingThenFixed));
         // floating on line 1, a continuation line that ends open at margin R, then a hyphen line: the literal was
         // continued by the floating form, and now by the fixed one.
         string middle = "000200 \"" + new string('B', 64);
         Assert.Equal(72, middle.Length);
         var (_, viaMargin) = Normalize("000100 DISPLAY \"AB\"-\n" + middle + "\n000300-    \"CD\".\n", InitialReferenceFormat.Fixed, 2002);
-        Assert.Contains("COBOLNET2687", Codes(viaMargin));
-        Assert.DoesNotContain("COBOLNET2687", Codes(Normalize(open + "\n000200-    \"CD\".\n", InitialReferenceFormat.Fixed, 2002).Bag));
+        Assert.Contains("COBOL2687", Codes(viaMargin));
+        Assert.DoesNotContain("COBOL2687", Codes(Normalize(open + "\n000200-    \"CD\".\n", InitialReferenceFormat.Fixed, 2002).Bag));
     }
 
     [Theory] // §6.3.5 2): "National literals may be continued only with a floating literal continuation indicator."
@@ -170,13 +170,13 @@ public sealed class LogicalLineBuilderTests
         string head = "000100 01 X PIC N(80) VALUE " + opening + new string('A', 72 - 28 - opening.Length);
         Assert.Equal(72, head.Length);
         var (_, bag) = Normalize(head + "\n000200-    \"CD\".\n", InitialReferenceFormat.Fixed, 2002);
-        Assert.Equal(diagnosed, Codes(bag).Contains("COBOLNET2685"));
+        Assert.Equal(diagnosed, Codes(bag).Contains("COBOL2685"));
     }
 
     [Theory] // §6.3.5 2): the join must not SPELL a multiple-character separator, invocation operator or indicator.
-    [InlineData("000100     REPLACE =\n000200-    =A== BY ==B==.\n", "COBOLNET2688")]
-    [InlineData("000100     INVOKE X :\n000200-    :M.\n", "COBOLNET2688")]
-    [InlineData("000100     MOVE A TO X *\n000200-    > c\n", "COBOLNET2496")]
+    [InlineData("000100     REPLACE =\n000200-    =A== BY ==B==.\n", "COBOL2688")]
+    [InlineData("000100     INVOKE X :\n000200-    :M.\n", "COBOL2688")]
+    [InlineData("000100     MOVE A TO X *\n000200-    > c\n", "COBOL2496")]
     public void MultipleCharacterToken_SplitAcrossTheJoin_IsDiagnosed(string src, string code)
         => Assert.Contains(code, Codes(Normalize(src, InitialReferenceFormat.Fixed, 2002).Bag));
 
@@ -187,24 +187,24 @@ public sealed class LogicalLineBuilderTests
     public void FloatingContinuation_IntroductionGate(bool fixedForm, int std, int expected)
     {
         var (_, bag) = Normalize(Lines(fixedForm, "DISPLAY \"A\"-", "    \"B\".", "DISPLAY \"C\"-", "    \"D\"."), Format(fixedForm), std);
-        Assert.Equal(expected, Codes(bag).Count(c => c == "COBOLNET0900"));
+        Assert.Equal(expected, Codes(bag).Count(c => c == "COBOL0900"));
     }
 
     [Theory] // kb/Work R61, row debugging-line-removed-2014: the D indicator is accepted at 85, obsolete at 2002 (the
-             // obsolete warning, COBOLNET0903), removed at 2014 (COBOLNET0902, an error strict, a warning permissive) —
+             // obsolete warning, COBOL0903), removed at 2014 (COBOL0902, an error strict, a warning permissive) —
              // once per compilation; the NIST S / Y debugging letters are the CCVS dialect and never gated.
     [InlineData(85, false, "D", false, null, false)]
-    [InlineData(2002, false, "D", false, "COBOLNET0903", false)]
-    [InlineData(2014, false, "D", false, "COBOLNET0902", true)]
-    [InlineData(2023, false, "D", false, "COBOLNET0902", true)]
-    [InlineData(2023, true, "D", false, "COBOLNET0902", false)]
+    [InlineData(2002, false, "D", false, "COBOL0903", false)]
+    [InlineData(2014, false, "D", false, "COBOL0902", true)]
+    [InlineData(2023, false, "D", false, "COBOL0902", true)]
+    [InlineData(2023, true, "D", false, "COBOL0902", false)]
     [InlineData(2023, false, "S", true, null, false)]
     [InlineData(2023, false, "Y", true, null, false)]
     public void DebuggingLine_EditionWindow(int std, bool permissive, string indicator, bool ccvs, string? code, bool isError)
     {
         var (m, bag) = Normalize("000100" + indicator + "    DISPLAY \"A\".\n000200" + indicator + "    DISPLAY \"B\".\n", InitialReferenceFormat.Fixed,
             std, permissive, ccvs);
-        var found = bag.Diagnostics.Where(d => d.Code is "COBOLNET0902" or "COBOLNET0903").ToList();
+        var found = bag.Diagnostics.Where(d => d.Code is "COBOL0902" or "COBOL0903").ToList();
         Assert.Equal(code is null ? 0 : 1, found.Count);                       // once per compilation
         if (code is not null)
         {
@@ -253,7 +253,7 @@ public sealed class LogicalLineBuilderTests
     }
 
     [Theory] // §7.3.3 1) (kb/Work PB1360): a compiler directive is specified on ONE line, so a continuation line after a
-             // directive line — fixed hyphen, or the line after a floating literal indicator — is diagnosed (COBOLNET2696),
+             // directive line — fixed hyphen, or the line after a floating literal indicator — is diagnosed (COBOL2696),
              // NOT joined: the directive keeps what its own line says and the line takes a discarded slot.
     [InlineData(true, ">>DEFINE XX AS \"AB\"-", "    \"CD\"")]
     [InlineData(false, ">>DEFINE XX AS \"AB\"-", "    \"CD\"")]
@@ -267,7 +267,7 @@ public sealed class LogicalLineBuilderTests
         Assert.Equal(directive[..^2], lines[0].Trim());   // §6.5 4): the program text ends before the indicator ("-)
         Assert.Equal("", lines[1]);                       // the continuation line took a discarded slot
         Assert.Equal("DISPLAY X.", lines[2].Trim());
-        Assert.Single(bag.Diagnostics, d => d.Code == "COBOLNET2696" && d.Location.Line == 1);
+        Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2696" && d.Location.Line == 1);
     }
 
     [Theory] // the fixed-form hyphen in column 7, with an interspersed comment line (never a join target), and a
@@ -280,7 +280,7 @@ public sealed class LogicalLineBuilderTests
         string src = "000100 " + head + "\n000200* between\n" + continuation + "\n000400     STOP RUN.\n";
         var (m, bag) = Normalize(src, InitialReferenceFormat.Fixed, std: 2023);
         string[] lines = m.Text.Split('\n');
-        Assert.Equal(directive, bag.Diagnostics.Any(d => d.Code == "COBOLNET2696"));
+        Assert.Equal(directive, bag.Diagnostics.Any(d => d.Code == "COBOL2696"));
         if (directive) Assert.Equal(head, lines[0].Trim());   // not extended
         else
         {
@@ -311,8 +311,8 @@ public sealed class LogicalLineBuilderTests
         ReferenceFormatProcessor.NormalizeToFreeFormMapped(hyphen, gates, "main.cob", InitialReferenceFormat.Fixed);
         ReferenceFormatProcessor.NormalizeToFreeFormMapped(hyphen + "000300     MOVE A TO X*> c\n", gates, "book.cpy",
             InitialReferenceFormat.Fixed);
-        Assert.Single(bag.Diagnostics, d => d.Code == "COBOLNET0903");           // the first use, in the main source
-        var unseparated = Assert.Single(bag.Diagnostics, d => d.Code == "COBOLNET2495");
+        Assert.Single(bag.Diagnostics, d => d.Code == "COBOL0903");           // the first use, in the main source
+        var unseparated = Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2495");
         Assert.Equal("book.cpy", unseparated.Location.FileName);
         Assert.Equal(2, unseparated.Location.Line);                              // 0-based: physical line 3 of the copybook
     }
@@ -370,7 +370,7 @@ public sealed class LogicalLineBuilderTests
     }
 
     [Theory] // kb/Work PB2490: the walk cannot know whether the debugging line is a comment (no WITH DEBUGGING MODE) or
-             // source, so it NOTES the line it passed over, and the line is diagnosed (COBOLNET3473) only when the rewriter
+             // source, so it NOTES the line it passed over, and the line is diagnosed (COBOL3473) only when the rewriter
              // reports it as source - a source line is outside §6.3.5 2): only comment lines and blank lines may be there.
     [InlineData(false, false)]
     [InlineData(true, true)]
@@ -385,7 +385,7 @@ public sealed class LogicalLineBuilderTests
         var debuggingLine = m.Lines[1].Origin;                              // the logical line the debugging line kept (physical line 2)
         Assert.Equal(2, debuggingLine.Line);
         gates.OnSourceDebuggingLines(isSource ? new[] { debuggingLine } : Array.Empty<SourceOrigin>());
-        var d = bag.Diagnostics.Where(x => x.Code == "COBOLNET3473").ToArray();
+        var d = bag.Diagnostics.Where(x => x.Code == "COBOL3473").ToArray();
         Assert.Equal(diagnosed ? 1 : 0, d.Length);
         if (diagnosed) Assert.Equal((1, 6), (d[0].Location.Line, d[0].Location.Column));   // 0-based: line 2, the indicator column
     }
@@ -397,7 +397,7 @@ public sealed class LogicalLineBuilderTests
         var gates = new ReferenceFormatDiagnostics(85, permissive: false, bag);
         var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped("000100     STOP RUN.\n000200D    DISPLAY \"X\".\n", gates, "t.cob", true, out _, false);
         gates.OnSourceDebuggingLines([m.Lines[1].Origin]);
-        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOLNET3473");
+        Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOL3473");
     }
 
     [Fact] // a debugging line after a line that needs no continuation is the latest logical line: its continuation is its own

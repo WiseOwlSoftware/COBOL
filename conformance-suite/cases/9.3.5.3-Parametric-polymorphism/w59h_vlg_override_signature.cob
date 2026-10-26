@@ -12,7 +12,7 @@
       *>     9.3.5.3 7)
       *> Parametric polymorphism (the half that SELECTS among same-named
       *> methods by that signature) is not claimed - A.4.10 item 3,
-      *> COBOLNET0822 - but the signature is still consumed by a MANDATORY
+      *> COBOL0822 - but the signature is still consumed by a MANDATORY
       *> rule:
       *>   cite.py --check 11.7.3 "If the OVERRIDE phrase is specified,
       *>     there shall be a method with the same method resolution
@@ -23,7 +23,7 @@
       *> the same and the override is accepted. The negative twin
       *> negative/w59h-vlg-override-fixed-group changes ONLY that table to a
       *> fixed OCCURS 1 table - compatible under 8.5.1.12, but not the same
-      *> signature - and is refused with COBOLNET0829.
+      *> signature - and is refused with COBOL0829.
       *> DERIVATION of the .out line:
       *>   MOVE "bb" TO T(2) - T is a receiving item whose subscript exceeds
       *>   the capacity, so "the capacity of the table is increased to the

@@ -12,7 +12,7 @@
       *> 8.3.2.4.3 therefore makes `VALIDATE-STATUS IS "E" ERROR FOR W` a conforming spelling.
       *> WHY THIS IS A NEGATIVE CASE. The VALIDATE-STATUS clause is a DECLINED obsolete feature of the
       *> VALIDATE facility, and 4.2.7 makes non-support conformant only when it is DIAGNOSED -
-      *> COBOLNET1708 is that diagnosis. The WHEN-less spelling must draw the SAME refusal, and the
+      *> COBOL1708 is that diagnosis. The WHEN-less spelling must draw the SAME refusal, and the
       *> code is what proves the clause was recognized rather than mis-parsed (COBOL0001).
       *> 8.9 does not reserve VALIDATE-STATUS at COBOL-85, where the clause does not exist at all, so
       *> reject-at names 2002 and later - the editions where the refusal is a DIAGNOSED non-support.

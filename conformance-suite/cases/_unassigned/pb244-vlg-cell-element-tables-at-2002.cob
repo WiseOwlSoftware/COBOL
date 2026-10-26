@@ -9,7 +9,7 @@
       *> COBOL-2014 program: the DYNAMIC LENGTH clause that makes each occurrence a
       *> variable-length group (ISO 8.5.1.12.1, 13.18.19) and the OCCURS DYNAMIC
       *> table of 8.5.1.9 are 2014 additions, so editions 85 and 2002 reject it
-      *> with the edition-band diagnostic COBOLNET0900 BEFORE the group's display
+      *> with the edition-band diagnostic COBOL0900 BEFORE the group's display
       *> format (14.9.11.4 GR7) is ever in question.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB244NCE.

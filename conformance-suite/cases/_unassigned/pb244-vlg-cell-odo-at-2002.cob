@@ -9,7 +9,7 @@
       *> COBOL-2014 program: the DYNAMIC LENGTH clause that makes the group
       *> variable-length (ISO 8.5.1.12.1, 13.18.19) is a 2014 addition, so
       *> editions 85 and 2002 reject it with the edition-band diagnostic
-      *> COBOLNET0900 BEFORE the group's display format (14.9.11.4 GR7) is ever in
+      *> COBOL0900 BEFORE the group's display format (14.9.11.4 GR7) is ever in
       *> question.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB244NEC.

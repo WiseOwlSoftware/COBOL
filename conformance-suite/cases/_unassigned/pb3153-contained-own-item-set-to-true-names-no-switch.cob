@@ -13,10 +13,10 @@
       *>   describes" (8.4.6.1 -> OK 8.4.6.1), so SET PB53NON TO TRUE
       *>   names a data item, no condition-name: "Condition-name-1 shall
       *>   be associated with a conditional variable" (14.9.39.3 SR6 ->
-      *>   OK 14.9.39.3 6)). COBOLNET1639 (not a condition-name), the
+      *>   OK 14.9.39.3 6)). COBOL1639 (not a condition-name), the
       *>   code a program with no switch of that spelling gets. Before
       *>   the fix the message named external switch SWITCH-1, and the
-      *>   word was also refused as used as two types (COBOLNET2692).
+      *>   word was also refused as used as two types (COBOL2692).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB53SN.
        ENVIRONMENT DIVISION.

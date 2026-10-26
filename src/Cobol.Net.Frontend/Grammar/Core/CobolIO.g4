@@ -31,7 +31,7 @@ fileControlParagraph
 // the third IsProvableUserWordPosition slot. `reservedGatedWord` is the declaration re-admission the reservation
 // gate needs (kb/Work PB693, the dataName/programName precedent): a §8.9-reserved word is gated OUT of cobolWord
 // at the editions that reserve it, so without this alternative `SELECT DEFAULT …` at --std 2002 answers a raw
-// COBOL0001 instead of the targeted COBOLNET0901. It sits HERE and not in `fileName`, which every REFERENCE uses
+// COBOL0001 instead of the targeted COBOL0901. It sits HERE and not in `fileName`, which every REFERENCE uses
 // — OPEN/CLOSE take file-name LISTS, and re-admitting the word there would let a list absorb the next
 // statement's leading keyword again (the PB693 defect). DataBinder reads `grp.fileName()` null-safely.
 fileControlClauseGroup
@@ -91,7 +91,7 @@ fileControlClauses
     // COBOL-85 PADDING CHARACTER clause removed at COBOL-2002. Every one of them opens with a reserved word, so
     // this last alternative — whose first token is an IDENTIFIER — can only ever match source the general format
     // does not admit. It is NOT a vendor hook (see CobolExpressions.g4#unrecognizedClause).
-    | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
+    | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
     ;
 
 // ISO §12.4.5.7 COLLATING SEQUENCE clause — the collating sequence for the record keys of an INDEXED file.
@@ -136,7 +136,7 @@ sharingMode
 // 115.12–144.04 has NO rule under it at all, and neither does IS. LOCK heads no other file-control clause, so
 // dropping MODE introduces no new prediction ambiguity. The COBOL-2002 introduction gate keys on the CLAUSE
 // (VersionConformancePass ParseArm.VisitLockModeClause), never on `ctx.MODE()`, so it survives the omission —
-// probed, `lock85-bare-gated` → COBOLNET0900.
+// probed, `lock85-bare-gated` → COBOL0900.
 lockModeClause
     : LOCK MODE? IS? (MANUAL | AUTOMATIC) lockOnPhrase?
     ;
@@ -160,7 +160,7 @@ fileReserveClause
 // (§12.4.5.9, which this comment once cited, is the LOCK MODE
 // clause; kb/Work PB159), and the word occurs NOWHERE in the 2023 text — §8.9's list runs PACKED-DECIMAL → PAGE.
 // SUPERSET PARSE at every edition, gated post-bind from 2014 by VersionConformancePass ParseArm
-// .VisitPaddingCharacterClause (registry row `padding-character-removed-2014`, COBOLNET0902 — an error under
+// .VisitPaddingCharacterClause (registry row `padding-character-removed-2014`, COBOL0902 — an error under
 // strict, a warning with the pre-removal no-op reading under --permissive). Deleting the rule was MEASURED and
 // rejected: NIST SQ216A writes `PADDING CHARACTER IS "9"` and SQ217A the operand form `PADDING PADDING-CHARACTER`
 // (both compiled at --std 85), so the 85/2002 reading has to stay. Nothing is captured on the FileModel and that
@@ -170,7 +170,7 @@ fileReserveClause
 // ⛔ TWO ARMS, ONE TOKEN (kb/Work PB300 — the second arm is why a decline may not cost the user the WORD):
 // PADDING is also a `reservationGated` row in tests/version-matrix/cobol-words.json, so `01 PADDING PIC X.` is a
 // legal declaration exactly at 2014/2023, where §8.9 does not reserve the word, and draws a targeted
-// COBOLNET0901 at 85/2002 through dataName's generated `reservedGatedWord` alternative.
+// COBOL0901 at 85/2002 through dataName's generated `reservedGatedWord` alternative.
 paddingCharacterClause
     : PADDING CHARACTER? IS? (literal | dataReference)
     ;
@@ -182,7 +182,7 @@ paddingCharacterClause
 // ⛔ PARSED AND *DIAGNOSED*, NOT PARSED AND IGNORED (kb/Work PB292). Until 2026-09-05 nothing anywhere read
 // this rule and the clause compiled clean at every edition on BOTH arms, which left docs/CONFORMANCE.md §2
 // row 26's "Not claimed" unobservable and §4.2.6 ¶3's MANDATORY compile-time warning mechanism unbuilt. The
-// decline now lands at DataBinder.BindFileControl as COBOLNET1778 (accept-inert Warning) — Annex A.3 item 26
+// decline now lands at DataBinder.BindFileControl as COBOL1778 (accept-inert Warning) — Annex A.3 item 26
 // for STANDARD-1, Annex A.1 item 150 for feature-name-1. Variable-length records keep the §12.4.5.11.4 GR5
 // implementor framing (4-byte length prefix, Annex A.1 item 151), which §12.4.5.11.4 GR1 keeps invisible to
 // the record area and the record size.
@@ -278,7 +278,7 @@ recordKeyName
 // key suppression value: a record's alternate access path is withheld when the key equals literal-1 (§12.4.5.6.4
 // GR6). Fixed order — DUPLICATES precedes SUPPRESS. Parses at all editions (superset); introduction-gated at 2023
 // by VersionConformancePass ParseArm.VisitAlternateKeySuppressWhen (recognition-fire on this dedicated rule, NOT
-// on the WHEN token — so the gate survives the omission; probed, `alt85-suppress-bare-gated` → COBOLNET0900).
+// on the WHEN token — so the gate survives the omission; probed, `alt85-suppress-bare-gated` → COBOL0900).
 // ⛔ WHEN IS AN OPTIONAL WORD (§8.3.2.4.3: an un-underlined uppercase word "may be specified at the user's option
 // with no effect on the semantics of the format"; kb/Work PB695 family 3). MEASURED on printed page 350 / folio
 // 320 off the PDF's vector rectangles, not read off the OCR: SUPPRESS carries a rule at x 254.17–299.45 under a
@@ -315,8 +315,8 @@ relativeKeyClause
 // sentence closed by ONE separator period, and the APPLY COMMIT clause, when written, is a sentence of its own (SQ206A
 // writes two SAME clauses before one period). The `DOT?` after every clause is a PUNCTUATION SUPERSET kept so the
 // misplaced period is refused BY NAME rather than as a bare parse error: ClosedFormatPass reads this rule's periods
-// through ParagraphPeriods (a period that splits the sentence → COBOLNET3407, the closing period missing →
-// COBOLNET3408; kb/Work PB2727), and ParagraphPeriodDriftTests holds every rule that writes `DOT?` to a row there.
+// through ParagraphPeriods (a period that splits the sentence → COBOL3407, the closing period missing →
+// COBOL3408; kb/Work PB2727), and ParagraphPeriodDriftTests holds every rule that writes `DOT?` to a row there.
 ioControlParagraph
     : I_O_CONTROL DOT (ioControlClause DOT?)*
     ;
@@ -342,7 +342,7 @@ ioControlClause
     // commit-and-rollback facility is a COBOL-2023 addition (Annex E.3.2 item 2). ⚠ kb/Work PB2291 VERDICT: a
     // CONSTRUCT GATE, not word status — APPLY is §8.10 context-sensitive at every edition and no earlier edition
     // has an APPLY clause, so `APPLY COMMIT` has no other reading below 2023, and the gate turns what the
-    // conformance pass should name (COBOLNET0900) into a bare COBOL0001. Recorded in EditionReadDriftTests.
+    // conformance pass should name (COBOL0900) into a bare COBOL0001. Recorded in EditionReadDriftTests.
     | {is2023()}? applyCommitClause
     | multipleFileClause
     | rerunClause
@@ -352,7 +352,7 @@ ioControlClause
     // post-bind). ⚠ THIS is the alternative kb/Work PB487's sibling sweep missed: it is INLINE, not a named
     // `xxxClause : genericClause` wrapper, so a grep read by rule NAME skips it. It is NOT a vendor hook (see
     // CobolExpressions.g4#unrecognizedClause).
-    | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
+    | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
     ;
 
 // ISO §12.4.6.4 SAME clause. In every format only SAME (and RECORD/SORT/SORT-MERGE) is a required word;
@@ -375,7 +375,7 @@ multipleFileTapeEntry
 // X3.23-1985 RERUN clause (I-O-CONTROL) — a checkpoint hint stating WHEN rerun records are written; the
 // rerun mechanism itself is implementor-defined, so a null rerun facility accepts and ignores it (parsed
 // and ignored, the MULTIPLE FILE posture). Obsolete '85 element DELETED by ISO 2002 (RERUN is absent from
-// the 2023 text entirely, §8.9 included); the EditionValidator flags it COBOLNET0902 ≥2002
+// the 2023 text entirely, §8.9 included); the EditionValidator flags it COBOL0902 ≥2002
 // (`rerun-removed-2002`, VCR Table 7 row 7.15).
 //   RERUN [ON {file-name-1 | implementor-name-1}]
 //         EVERY { [END OF] {REEL|UNIT} OF file-name-2
@@ -490,7 +490,7 @@ closeOption
 // ⛔ THE FILE NAME IS BARE: BOTH FORMATS PRINT `READ file-name-1`, AND NO EDITION PRINTS `READ FILE file-name-1`.
 // The `{ record-name-1 | FILE file-name-1 }` choice belongs to WRITE (§14.9.51.2) and REWRITE (§14.9.35.2) alone,
 // where it is Annex A.4.13's declined element and SequentialIoBinder.DeclinedFilePhrase refuses it by name
-// (COBOLNET1706). This rule carried a copy of that two-arm head, `READ (fileName | FILE fileName)`, that nothing
+// (COBOL1706). This rule carried a copy of that two-arm head, `READ (fileName | FILE fileName)`, that nothing
 // refused, so `READ FILE F1` compiled clean at every --std and ran as a plain READ (kb/Work PB2728). Without the
 // arm, FILE (a reserved word, never a fileName) is a syntax error here: §5.2.1 admits only the words a general
 // format prints, "in the sequence given in the general format", and neither READ format prints FILE.
@@ -611,7 +611,7 @@ readInvalidKey
 //
 // `FILE fileName` is a DISTINCT parse alternative because it is Annex A.4.13's optional element (item 2),
 // which this implementation does NOT claim — the binder needs to SEE the arm to refuse it by name
-// (SequentialIoBinder.DeclinedFilePhrase → COBOLNET1706). Both printed formats — Format 1 (sequential) and
+// (SequentialIoBinder.DeclinedFilePhrase → COBOL1706). Both printed formats — Format 1 (sequential) and
 // Format 2 (random) — carry the same `{ record-name-1 | FILE file-name-1 }` choice, so ONE alternative
 // serves both and the sequential/keyed reroute below inherits the refusal.
 
@@ -671,7 +671,7 @@ recordFromPhrase
 // item" is then asked of the function's temporary item (§8.4.3.2.4 GR1) by the ONE operand-class screen.
 // ⚠ `(LINE | LINES)?` FOLLOWS THE dataReference ARM TOO, A SUPERSET: mnemonic-name-1 also parses as a dataReference,
 // and the printed `{ mnemonic-name-1 | PAGE }` alternative carries no LINE/LINES. Only the symbol table tells the two
-// apart, so SequentialIoBinder.BindAdvancing refuses the word on its mnemonic arm (COBOLNET2269, kb/Work PB1189).
+// apart, so SequentialIoBinder.BindAdvancing refuses the word on its mnemonic arm (COBOL2269, kb/Work PB1189).
 writeBeforeAfter
     : (BEFORE AFTER? | AFTER BEFORE?) ADVANCING?
       ( PAGE
@@ -991,7 +991,7 @@ returnStatement
 // PDF p738 / folio 708 — the bracketed `[ NOT AT END … ]` and `[ END-RETURN ]` sit on the lines around
 // it), so the phrase IS mandatory: §5.2.6.2 makes brackets the only convention that lets a portion of a
 // format be omitted. It is enforced at BIND time — StatementValidation.ScreenOmittedRequiredPhrase from
-// SortBinder.BindReturn, COBOLNET1850 — because a bind-time diagnostic can NAME the omitted phrase, the
+// SortBinder.BindReturn, COBOL1850 — because a bind-time diagnostic can NAME the omitted phrase, the
 // statement and the clause where a parse error can only report an unexpected token, and because the
 // second alternative below (SR4's reversed order) would otherwise fail mid-alternative rather than
 // reporting the real rule. Keeping the phrase optional here is what lets the binder see the tree and say
@@ -1136,7 +1136,7 @@ unstringOnOverflow
 // concession that would be unnecessary if it were generally sending — and GR7 has each match "tallied (format 1)
 // or replaced by literal-3 (format 2)", while GR20 makes format 4 execute AS a format 2 over the same
 // identifier-1. So Formats 2/3/4 MODIFY it and bar a function-identifier. ⛔ THE BINDER SCREENS PER FORMAT
-// (InspectBinder, COBOLNET1632); widening the grammar alone would ACCEPT ILLEGAL SOURCE.
+// (InspectBinder, COBOL1632); widening the grammar alone would ACCEPT ILLEGAL SOURCE.
 // The function-identifier is an added ALTERNATIVE beside dataReference rather than a shared operand rule, so
 // the generated .dataReference() accessor stays; unifying it is kb/Work PB2114.
 inspectStatement

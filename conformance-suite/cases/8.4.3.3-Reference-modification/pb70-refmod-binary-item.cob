@@ -6,7 +6,7 @@
 *>---
       *> ISO 8.4.3.3.3 SR1: a numeric item may be identifier-1 only "of usage display or national"; a BINARY
       *> (COMP) item has no character positions to modify. kb/Work PB70: this was a run-time NotImplemented on
-      *> a sending ref-mod and a SILENT no-op on a receiving one; COBOLNET1647 at bind now.
+      *> a sending ref-mod and a SILENT no-op on a receiving one; COBOL1647 at bind now.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB70NBINARY.
        DATA DIVISION.

@@ -13,8 +13,8 @@
       *> and 13.10.3 SR2 lets a constant-name stand "anywhere that a format
       *> specifies a literal of the class and category of constant-name-1"
       *> - so literal-1 may be a constant-name too (ALL K). Before PB1627
-      *> ALL "A" & K and ALL "A" & SPACE drew COBOLNET1541 and ALL K drew
-      *> the symbolic-character error COBOLNET1670.
+      *> ALL "A" & K and ALL "A" & SPACE drew COBOL1541 and ALL K drew
+      *> the symbolic-character error COBOL1670.
       *> Expected values: 8.8.3.3 GR2 (the value is the concatenation of
       *> the operand values; a figurative is ONE character, 8.3.3.6.4 GR3a),
       *> GR1 (the class, folded pair by pair), and 8.3.3.6.4 GR2 (literal-1

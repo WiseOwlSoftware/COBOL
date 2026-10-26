@@ -24,7 +24,7 @@ public static partial class ConditionalCompilationProcessor
     private static void ApplyDisplay(string rest, CompileTimeExpressionEvaluator evaluator, DirectiveDiag diag,
         CompilationInputs inputs, DiagnosticBag? bag)
     {
-        if (rest.Length == 0) return;   // §7.3.12.2 writes at least one operand: that PRESENCE is the central check's (COBOLNET1911)
+        if (rest.Length == 0) return;   // §7.3.12.2 writes at least one operand: that PRESENCE is the central check's (COBOL1911)
         if (ParseDisplayFragment(rest, diag, ">>DISPLAY", compiled: true) is not { } fragment) return;
 
         var images = new List<string>();

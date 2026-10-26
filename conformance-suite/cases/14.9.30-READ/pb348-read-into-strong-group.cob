@@ -8,7 +8,7 @@
 *> record is moved from the record area to the area specified by identifier-1 according to the rules
 *> for the MOVE statement without the CORRESPONDING phrase."  So READ ... INTO a strongly-typed
 *> group from an ordinary record area is refused for the same reason its RETURN sibling is
-*> (14.9.25.3 SR2 / 8.5.3.3, COBOLNET1533).
+*> (14.9.25.3 SR2 / 8.5.3.3, COBOL1533).
 *> This fixture exists because the READ arm and the RETURN arm are DIFFERENT CALL SITES -- and the
 *> sequential READ and the keyed READ are two more.  kb/Work PB348 binds all four through one
 *> MoveBinder.BindIntoPhrase call so they cannot disagree; this is the assertion that they do not.

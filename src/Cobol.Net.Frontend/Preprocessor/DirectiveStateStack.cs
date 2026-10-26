@@ -21,7 +21,7 @@ public enum DirectiveStackKind { Push, Pop }
 public readonly record struct DirectiveStackOp(int Line, DirectiveStackKind Kind, string? Row)
 {
     /// <summary>Read a parsed directive line as a PUSH/POP op. False when the line is not a PUSH or POP, and also
-    /// when its operand is malformed — <c>COBOLNET1911</c> has already said so at the one recognition point
+    /// when its operand is malformed — <c>COBOL1911</c> has already said so at the one recognition point
     /// (kb/Work PB794), and a malformed directive changes no state.</summary>
     public static bool TryParse(CompilerDirectiveLine directive, int line, out DirectiveStackOp op)
     {
@@ -75,7 +75,7 @@ public interface IDirectiveStateCarrier
 /// "previously stored by a PUSH directive and … not removed by a POP directive". Each directive therefore has a
 /// STACK of saved states, and a POP removes the most recent one.</item>
 /// <item>§7.3.20.4 GR2 — a named POP with nothing stored "is unsuccessful"; <see cref="Apply"/> answers that, and
-/// <see cref="DirectiveSiteProcessor"/> is the one place that warns (<c>COBOLNET2297</c>).</item>
+/// <see cref="DirectiveSiteProcessor"/> is the one place that warns (<c>COBOL2297</c>).</item>
 /// </list>
 ///
 /// <para>The state itself lives where each directive is processed — the reference format in the normalizer, the

@@ -21,7 +21,7 @@ public sealed record KeyedInvalidKey(
 /// that fact: a Format-1 forward walk, a Format-1 backward walk, or the Format-2 random retrieval by key value.
 /// <para>⛔ ONE ENUM FOR BOTH READ NODES. It was <c>KeyedReadKind</c>, reachable only from
 /// <see cref="BoundKeyedRead"/>, while the sequential-organization <c>BoundRead</c> had no direction member at
-/// all — so <c>READ … PREVIOUS</c> on a SEQUENTIAL file bound as a forward read and the COBOLNET0900 edition
+/// all — so <c>READ … PREVIOUS</c> on a SEQUENTIAL file bound as a forward read and the COBOL0900 edition
 /// gate, which keys on this enum, never fired (kb/Work PB334). Both nodes carry it now and both are reached
 /// through <see cref="IBoundRead"/>, so a rule written on the direction cannot be written for one organization
 /// only.</para>

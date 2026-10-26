@@ -191,25 +191,25 @@ its §2 dispositions every processor-dependent element of Annex A.3, its §5 eve
 item, and a unit test (`ReadmeDeclinedSummaryDriftTests`) fails when this list and the tables disagree:
 
 - The Message Control System (A.3 item 4) compiles with the warning §4.2.6 requires for a processor-dependent element
-  (COBOLNET1578), and the program runs with the facility inert; the MESSAGE-TAG usage (COBOLNET1943) is refused.
-- The VALIDATE statement (A.4.14) compiles with a warning by documented choice under §4.2.7 (COBOLNET1580); the
-  facility's data-division clauses (COBOLNET1708) and its EC-VALIDATE exception names (COBOLNET1710) are refused.
-- Screen handling (A.4.2; COBOLNET1560, COBOLNET1707), FORMAT and SELECT WHEN file handling (A.4.8, COBOLNET1705) and
-  WRITE FILE and REWRITE FILE (A.4.13, COBOLNET1706) are refused with errors, which is how Annex A.4.1 reads for an
+  (COBOL1578), and the program runs with the facility inert; the MESSAGE-TAG usage (COBOL1943) is refused.
+- The VALIDATE statement (A.4.14) compiles with a warning by documented choice under §4.2.7 (COBOL1580); the
+  facility's data-division clauses (COBOL1708) and its EC-VALIDATE exception names (COBOL1710) are refused.
+- Screen handling (A.4.2; COBOL1560, COBOL1707), FORMAT and SELECT WHEN file handling (A.4.8, COBOL1705) and
+  WRITE FILE and REWRITE FILE (A.4.13, COBOL1706) are refused with errors, which is how Annex A.4.1 reads for an
   optional module whose support is not claimed.
-- ARITHMETIC IS STANDARD-BINARY (A.3 item 2) is refused (COBOLNET0806).
+- ARITHMETIC IS STANDARD-BINARY (A.3 item 2) is refused (COBOL0806).
 - FLOAT-BINARY-128 (A.3 item 17, which leaves the FLOAT-BINARY clause of A.3 item 12 partial) and the standard decimal
-  floating-point usages (A.3 items 19 and 20–21) have no conforming .NET type and are refused (COBOLNET1564); the
-  FLOAT-DECIMAL clause (A.3 item 13) compiles with a warning (COBOLNET2424).
+  floating-point usages (A.3 items 19 and 20–21) have no conforming .NET type and are refused (COBOL1564); the
+  FLOAT-DECIMAL clause (A.3 item 13) compiles with a warning (COBOL2424).
 - CONTINUE AFTER (A.3 item 8) suspends execution for whole seconds: a fractional interval truncates.
-- The RECORD DELIMITER clause (A.3 item 26) compiles with a warning (COBOLNET1778).
+- The RECORD DELIMITER clause (A.3 item 26) compiles with a warning (COBOL1778).
 - No reel or unit device backs the CLOSE and OPEN phrases that name one (A.3 items 28–30 and 33–34): they are accepted,
   act as on a file that is not on a unit, and report I-O status '07'.
 - CODE-SET (A.3 item 27) converts the identity code sets and EBCDIC; an alphabet no device encodes (a literal-phrase
-  alphabet, or UTF-8 or UCS-4 as the medium's encoding) is refused (COBOLNET1672).
+  alphabet, or UTF-8 or UCS-4 as the medium's encoding) is refused (COBOL1672).
 - A file's COLLATING SEQUENCE clause (A.3 items 41–42) orders an alphanumeric record key by any alphabet, LOCALE
-  included; a national alphabet defined by literals or by LOCALE, on a national record key, is refused (COBOLNET1584).
-- Multiple class inheritance (A.4.10, COBOLNET0849) and method overloading (COBOLNET0822, and so the parametric
+  included; a national alphabet defined by literals or by LOCALE, on a national record key, is refused (COBOL1584).
+- Multiple class inheritance (A.4.10, COBOL0849) and method overloading (COBOL0822, and so the parametric
   polymorphism of A.3 item 45) are refused; multiple interface inheritance is supported.
 - The report writer (A.4.11) and dynamic-length items (A.4.5) are partial, and §5 itemizes what each supports.
 

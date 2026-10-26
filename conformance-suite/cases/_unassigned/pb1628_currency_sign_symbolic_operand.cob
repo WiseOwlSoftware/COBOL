@@ -14,7 +14,7 @@
       *> (no symbolic-character) names literal-1..6 and 9, not literal-7.
       *> SYM-D IS 37 is ordinal 37 of the native alphanumeric set: "$".
       *> The currency string is "US$", inserted at the fixed position of
-      *> the PICTURE SYMBOL "$". Before the fix: COBOLNET2473.
+      *> the PICTURE SYMBOL "$". Before the fix: COBOL2473.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1628C.
        ENVIRONMENT DIVISION.

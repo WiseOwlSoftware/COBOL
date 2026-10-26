@@ -12,7 +12,7 @@
       *> parse error at CRT-ST.
       *> WHY THIS IS A NEGATIVE CASE AND NOT A POSITIVE ONE. The CRT STATUS clause belongs to the
       *> DECLINED screen module (Annex A.4.2 item 25), and 4.2.7 makes non-support conformant only when
-      *> it is DIAGNOSED - COBOLNET1560 is that diagnosis. So the correct behaviour for the IS-less
+      *> it is DIAGNOSED - COBOL1560 is that diagnosis. So the correct behaviour for the IS-less
       *> spelling is the SAME refusal the fully-written spelling draws, and the diagnostic code is what
       *> proves the clause was recognized rather than mis-parsed: a program the parser could not read
       *> would report COBOL0001, not a screen-facility refusal by name.

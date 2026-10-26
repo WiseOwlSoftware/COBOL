@@ -11,7 +11,7 @@
       *> strictness, with no diagnostic anywhere.  This program compiled CLEAN and RAN, with WIBBLE simply
       *> discarded.  ISO 4.2.2 makes a general format the definition of what may be written ("An
       *> implementation shall provide a warning mechanism ... to indicate violations of the general formats
-      *> and the explicit syntax rules of standard COBOL"), so the word is now NAMED: COBOLNET1970.
+      *> and the explicit syntax rules of standard COBOL"), so the word is now NAMED: COBOL1970.
       *> The 12.3.7.2 clause list was RENDERED from the printed page (PDF p320 / folio 290) before it was
       *> closed - closing a list against the lossy OCR diagram would REJECT LEGAL SOURCE, which is strictly
       *> worse than the silence it replaces.

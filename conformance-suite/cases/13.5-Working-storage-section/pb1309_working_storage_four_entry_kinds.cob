@@ -10,7 +10,7 @@
       *> cite.py: OK 13.5.2 (General format) "type-declaration-entry". The constant and type-declaration entries
       *> are COBOL-2002 (13.10, 13.18.58), so 2002 is the introducing edition of the four-kind format. The
       *> leading-entry half (a section whose first entry is not level 1 or 77 is none of the four kinds, 13.11.1)
-      *> is pinned by negative/pb1246-section-first-entry-not-level-1 (COBOLNET2771).
+      *> is pinned by negative/pb1246-section-first-entry-not-level-1 (COBOL2771).
       *> Expected: A=007 (PIC 9(3) VALUE 7), K=42, the record typed by the TYPEDEF carries the type's VALUE "AB",
       *> B=WXY, and the alphanumeric constant KS=HI; the BYTE-LENGTH OF constant form is accepted here too.
        IDENTIFICATION DIVISION.

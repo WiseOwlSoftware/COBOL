@@ -12,7 +12,7 @@
       *> Reading the WRITTEN clause SET off the parse tree instead of the decode flags is what fixes that whole
       *> CLASS of miss - PROPERTY escaped for the same reason, and ALIGNED, CONSTANT RECORD, DYNAMIC LENGTH,
       *> GROUP-USAGE, SAME AS, SELECT WHEN and the validation clauses escaped simply by never being listed.
-      *> Nine of the fourteen clauses SR17 excludes were invisible.  COBOLNET1542.
+      *> Nine of the fourteen clauses SR17 excludes were invisible.  COBOL1542.
       *> Rejected from 2002: the ANY LENGTH clause is a COBOL-2002 introduction.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB487AL2.

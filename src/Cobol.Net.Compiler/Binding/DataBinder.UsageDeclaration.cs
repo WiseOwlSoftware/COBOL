@@ -27,7 +27,7 @@ namespace CobolNet.Binding;
 ///   <item><c>01 PT IS TYPEDEF USAGE POINTER. 01 G. 05 A TYPE PT.</c> — the fifth, the TYPE twin of SAME AS
 ///     (§13.18.57.4 GR1 and §13.18.49.4 GR1 state the same "as though … coded in place" effect). The template is
 ///     a legal level-1 entry, so only the SITE breaks the rule; it compiled clean until kb/Work PB3129, and its
-///     group then failed at a CALL or a prototype pair with a carrier diagnostic (COBOLNET1688 / COBOLNET1513).</item>
+///     group then failed at a CALL or a prototype pair with a carrier diagnostic (COBOL1688 / COBOL1513).</item>
 /// </list>
 ///
 /// <para><b>⛔ The rule was verified against the PRINTED page before the screen was written.</b> SR14's reading
@@ -57,7 +57,7 @@ namespace CobolNet.Binding;
 /// so the determination is a one-line change if the owner reads the letter the other way.</para>
 ///
 /// <para><b>A syntax rule is a "shall", so the conforming response is a compile-time diagnostic</b> — the same
-/// posture as SR14's drafting twin §13.18.57.3 SR6 (COBOLNET1532, a plain <c>Edition.Error</c> with no
+/// posture as SR14's drafting twin §13.18.57.3 SR6 (COBOL1532, a plain <c>Edition.Error</c> with no
 /// permissive escape). It is NOT dialect-gated: <c>--permissive</c> is the migration mode for constructs an
 /// edition REMOVED, which this is not. GnuCOBOL accepts the shape, but the follow-GnuCOBOL rule covers
 /// implementor-defined LATITUDE, and a syntax rule is not latitude.</para>
@@ -133,7 +133,7 @@ public sealed partial class DataBinder
             // "The EXTERNAL clause shall not be specified for a data item of class object or pointer."
             // ⛔ WHY IT IS HERE AND WHY NOW (kb/Work PB231, the pointer third). Until the pointer-class storage
             // landing, `01 P USAGE POINTER EXTERNAL.` was rejected — but by the byte-window RESIDUE diagnostic
-            // (COBOLNET1695 / the EXTERNAL twin), i.e. "recognized but not yet implemented", which is a
+            // (COBOL1695 / the EXTERNAL twin), i.e. "recognized but not yet implemented", which is a
             // different verdict about a different thing. Opening the byte-window gate to pointer-class leaves
             // would have made this NONCONFORMING shape compile clean: an under-rejection created by a fix. The
             // rule that actually bars it is enforced in the same change set, and it is the ITEM's own class the
@@ -145,7 +145,7 @@ public sealed partial class DataBinder
             // "The subject of the entry shall not be of class object." The EXTERNAL twin's other half, and the
             // asymmetry is the rule's own: the BASED rule names ONLY class object, so `01 P USAGE POINTER
             // BASED.` — class POINTER — is legal source and is exactly what kb/Work PB231's pointer third
-            // implements. Same reason for the timing as SR4 above: COBOLNET1695 used to reject both, and this
+            // implements. Same reason for the timing as SR4 above: COBOL1695 used to reject both, and this
             // one must keep being rejected after the gate opens.
             if (ScreenBasedClassObjectItem(item, name)) continue;
 
@@ -215,7 +215,7 @@ public sealed partial class DataBinder
         // so the narrower rule names a CONSTANT RECORD pointer), then the EXTERNAL and BASED class rules, then
         // §13.18.5.3 SR2 (`01 A TYPE VT BASED.`, a variable-length group), and last
         // §13.18.60.3 SR14 arm B. §13.18.60.3 SR15 is not here because its TYPE twin is a rule of its own
-        // (§13.18.57.3 SR8, COBOLNET2960), and SR14 arm A's subject is a group that WROTE its usage, which a TYPE entry
+        // (§13.18.57.3 SR8, COBOL2960), and SR14 arm A's subject is a group that WROTE its usage, which a TYPE entry
         // never does. UsageDeclarationPlacementDriftTests
         // .EveryWrittenEntryScreenIsAskedOfTheTypeEntryToo pins that list and that order.
         foreach (var item in CompositionForest().Where(i => i.TypeName is not null))
@@ -350,7 +350,7 @@ public sealed partial class DataBinder
     /// <see cref="Sr4ConstantRecordUsage"/>).
     /// <para>It asks the PHRASE and never the resolved CATEGORY, because the rule is written over the phrase
     /// ("A USAGE clause with the MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER, or PROGRAM-POINTER
-    /// phrase") and a usage the compiler REFUSES by name (MESSAGE-TAG, declined non-support, COBOLNET1943) binds a
+    /// phrase") and a usage the compiler REFUSES by name (MESSAGE-TAG, declined non-support, COBOL1943) binds a
     /// recovery profile whose category is no analysis: arm B used to key on the class
     /// (<c>PointerObjectClass</c>, the §13.18.44.3 REDEFINES screen's predicate), so it was blind to exactly the usages
     /// whose keyword is refused while arm A, reading the written clause, still reported them — a staged or declined

@@ -7,7 +7,7 @@
       *> kb/Work PB240 - ISO 14.9.4.3 SR11 (FORMAT 1): "Identifier-2 and
       *> identifier-3 shall not be described with the ANY LENGTH clause."
       *> The contained program forwards its own ANY LENGTH formal through a
-      *> Format-1 CALL (no AS phrase) - COBOLNET1542, whatever the mode.
+      *> Format-1 CALL (no AS phrase) - COBOL1542, whatever the mode.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB240NF.
        DATA DIVISION.

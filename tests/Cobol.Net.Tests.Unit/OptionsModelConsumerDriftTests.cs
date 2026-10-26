@@ -19,7 +19,7 @@ namespace CobolNet.Tests.Unit;
 /// program WROTE. A field that <c>OptionsBinder</c> sets and nothing reads is a clause accepted without diagnostic
 /// that changes nothing, which PB152 measured as a silent wrong answer (the INITIALIZE clause's SECTIONS were
 /// bound and ignored). PB298 found the same shape three more times: two FLOAT-DECIMAL fields (deleted when the
-/// clause was declined with COBOLNET2424, kb/Work R43) and the ENTRY-CONVENTION name (deleted by PB298), which the screen in
+/// clause was declined with COBOL2424, kb/Work R43) and the ENTRY-CONVENTION name (deleted by PB298), which the screen in
 /// <c>OptionsBinder.ScreenEntryConvention</c> leaves with exactly one admissible value, COBOL, the implied
 /// default. A clause that is screened or declined, and so cannot change a program, has no field.
 /// <para>The rule pinned here: each public property of <see cref="OptionsModel"/> is read as

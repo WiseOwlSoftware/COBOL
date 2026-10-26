@@ -106,7 +106,7 @@
              DISPLAY "LANEF =NE"
            END-IF.
       *> kb/Work PB195 - the OPERAND-position range screen is the decimal128 one in every mode now, so a
-      *> literal beyond binary64 is legal source: this used to be a hard COBOLNET1661 under native arithmetic
+      *> literal beyond binary64 is legal source: this used to be a hard COBOL1661 under native arithmetic
       *> while the identical program compiled under ARITHMETIC IS STANDARD-DECIMAL.
            IF 1.0E+400 > X1
              DISPLAY "REL   =BIG"

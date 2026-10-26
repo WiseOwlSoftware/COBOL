@@ -11,7 +11,7 @@
       *>   REFERENCE PB3132D of its local item; the class is declared by
       *>   the class's REPOSITORY, 8.4.6.4) and then DECLARES PB3132D as a
       *>   paragraph-name: two types in M2's source element, refused
-      *>   COBOLNET2692 at the paragraph (the use came first, so the
+      *>   COBOL2692 at the paragraph (the use came first, so the
       *>   declaration funnel is the one that sees the conflict). Method M3
       *>   declares PB3132D as a data-name and never references the
       *>   class: legal (8.4.6.1), and it must draw no diagnostic.

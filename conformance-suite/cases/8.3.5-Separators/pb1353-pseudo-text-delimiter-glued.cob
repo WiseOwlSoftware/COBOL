@@ -8,7 +8,7 @@
 *> preceded by a space; a closing pseudo-text delimiter shall be
 *> immediately followed by one of the separators space, comma,
 *> semicolon, or period" (cite.py --check: OK §8.3.5 6)). ==XX1==BY
-*> glues BY to the closing delimiter: COBOLNET2573 (kb/Work PB1353).
+*> glues BY to the closing delimiter: COBOL2573 (kb/Work PB1353).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1353DG.
        DATA DIVISION.

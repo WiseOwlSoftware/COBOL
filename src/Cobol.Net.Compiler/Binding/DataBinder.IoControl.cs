@@ -254,7 +254,7 @@ public sealed partial class DataBinder
         return ReferenceEquals(Base(a), Base(b));
     }
 
-    /// <summary>⛔ THE ONE REPORT of the APPLY COMMIT clause's own syntax rules (COBOLNET4709; ISO §12.4.6.3.3).</summary>
+    /// <summary>⛔ THE ONE REPORT of the APPLY COMMIT clause's own syntax rules (COBOL4709; ISO §12.4.6.3.3).</summary>
     private void ApplyCommitRule(string what, string rule, string quoted) =>
         Edition.Error(DiagnosticCatalog.ApplyCommitClauseRule, $"APPLY COMMIT: {what} — ISO §12.4.6.3.3 {rule}: \"{quoted}\"");
 
@@ -264,7 +264,7 @@ public sealed partial class DataBinder
     /// sharing phrase), §14.9.30.3 SR5 / §14.9.35.3 SR5 (READ's and REWRITE's lock phrases) and §14.9.47.3 SR2
     /// (UNLOCK). Each caller passes its own rule quoted with its citation; the fact is
     /// <see cref="FileModel.SubjectToApplyCommit"/>, recorded off this paragraph.
-    /// <para>Each rule is enforced here in its own right (COBOLNET2974): since kb/Work PB3338 the APPLY COMMIT clause is
+    /// <para>Each rule is enforced here in its own right (COBOL2974): since kb/Work PB3338 the APPLY COMMIT clause is
     /// accepted for the keyed organizations, so every one of these forbidden shapes is a program a user can write.
     /// (§12.4.6.4.4 GR3, the family's seventh member, is a general rule about an ACTIVE clause's sharing at run time,
     /// not a syntax rule.)</para></summary>

@@ -6,8 +6,8 @@
 *> portable: unverified
 *>---
       *> kb/Work PB780 - a constant-name stands wherever a format writes a literal that NAMES a program, a method or a
-      *> report code. Each position below was refused before the fix (COBOLNET1639 "not defined" at CALL, CANCEL and
-      *> ADDRESS OF PROGRAM; COBOLNET1676 at CALL ... AS NESTED; COBOLNET0866 at INVOKE; COBOLNET2713 at CODE IS).
+      *> report code. Each position below was refused before the fix (COBOL1639 "not defined" at CALL, CANCEL and
+      *> ADDRESS OF PROGRAM; COBOL1676 at CALL ... AS NESTED; COBOL0866 at INVOKE; COBOL2713 at CODE IS).
       *>
       *> RULES (cite.py --check, all OK):
       *> 13.10.3 SR2: "Except in a compiler directive, constant-name-1 may be used anywhere that a format specifies a

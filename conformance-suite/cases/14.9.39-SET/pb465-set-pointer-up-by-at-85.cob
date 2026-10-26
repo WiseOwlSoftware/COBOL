@@ -14,7 +14,7 @@
 *> what the two rules DO at the edition that introduces them; this one pins that they are not available below
 *> it, so a repair to GR19/GR20 cannot quietly make the construct compile at 85. The program also trips the
 *> USAGE POINTER and SET ADDRESS OF gates - every data-pointer construct is post-85 - so the expected .err
-*> names THIS construct's gate text rather than the bare COBOLNET0900 code, which any of the three would
+*> names THIS construct's gate text rather than the bare COBOL0900 code, which any of the three would
 *> satisfy: a case that can pass on a sibling's diagnostic is evidence about the sibling.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB465SETPTR85.

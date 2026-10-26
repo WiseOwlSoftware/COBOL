@@ -11,7 +11,7 @@
       *> 8.8.1.1 admits "a numeric literal, the figurative constant ZERO"
       *> as COMPUTE operands - never a nonnumeric literal. The literal
       *> "ABCD" crosses BY CONTENT (8.4.3.2.4 GR5 b) into the PIC 9(4)
-      *> formal L-X, and 8.4.3.2.3 SR13 imports 14.8.2 -> COBOLNET2470.
+      *> formal L-X, and 8.4.3.2.3 SR13 imports 14.8.2 -> COBOL2470.
       *> (Before the fix it compiled and the function saw 0000.)
       *> cite.py --check 14.8.2.3.3 "If the formal parameter is numeric,
       *>   the conformance rules are the same as for a COMPUTE statement"

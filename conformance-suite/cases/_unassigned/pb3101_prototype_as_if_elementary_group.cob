@@ -18,7 +18,7 @@
       *> elementary data item of usage bit ... described with PICTURE
       *> 1(m)", a national group likewise with PICTURE N(m) - so the two
       *> signatures are the same (the comparator this replaced refused
-      *> the pair, COBOLNET1513, by asking whether both sides were
+      *> the pair, COBOL1513, by asking whether both sides were
       *> groups). The CALL through the prototype passes W-B (PIC 1(8)
       *> BIT) for the bit group - 14.8.2.3.2 rule 2 "Additionally" b):
       *> a bit group matches an elementary bit item of the same number

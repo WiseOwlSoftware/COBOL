@@ -7,7 +7,7 @@
       *> kb/Work PB1146. ISO 14.2.1: the DECLARATIVES portion is printed only in Format 1 (with-sections), whose
       *> body after END DECLARATIVES is sections; 14.4.1: "If one paragraph is in a section, all paragraphs
       *> shall be in sections" - the declarative section ERR-S makes paragraph P1 a paragraph outside every
-      *> section. Refused COBOLNET2797 at every edition.
+      *> section. Refused COBOL2797 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1146NC.
        ENVIRONMENT DIVISION.

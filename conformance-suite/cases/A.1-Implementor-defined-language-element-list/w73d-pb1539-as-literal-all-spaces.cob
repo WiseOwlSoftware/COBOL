@@ -10,7 +10,7 @@
       *> name without its leading and trailing spaces - so this literal forms the
       *> zero-length name, which no CALL, CANCEL or program-address target can name.
       *> Where the clause itself refuses a zero-length literal the formation rule
-      *> refuses this one too (COBOLNET2643) instead of creating a program nothing can
+      *> refuses this one too (COBOL2643) instead of creating a program nothing can
       *> reach.  Below 2002 the AS phrase itself is the introduction gate
       *> (negative/pb303_as_phrase_below_2002).
        IDENTIFICATION DIVISION.

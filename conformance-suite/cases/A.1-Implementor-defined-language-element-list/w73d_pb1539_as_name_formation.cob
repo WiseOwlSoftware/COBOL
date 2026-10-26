@@ -15,7 +15,7 @@
        *> 8.3.2.2", so all three CALLs below name PB1539S, and 8.3.2.2 ("when two or
        *> more source elements identify something with the same externalized name,
        *> they refer to the same instance") makes the two EXTERNAL items one item.
-       *> Each AS literal with spaces draws warning COBOLNET2642.
+       *> Each AS literal with spaces draws warning COBOL2642.
        *> Expected (derived from those rules, not observed):
        *>   IN PB1539S 1   - CALL "pb1539-trail" (the formed name, other case)
        *>   IN PB1539S 2   - CALL " PB1539-TRAIL  " (formed the same way)

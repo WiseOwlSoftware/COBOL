@@ -10,7 +10,7 @@
       *> alternative here, so a times-phrase can be written before the WHEN — and the Format-3 binder never
       *> asked for a control phrase, so EVERY one written was dropped and the body ran exactly ONCE.
       *> reject-at names 2023 alone because Format 3 itself is COBOL-2023: below it the WHEN phrase is
-      *> refused first by the introduction gate (COBOLNET0900), which is a different diagnostic.
+      *> refused first by the introduction gate (COBOL0900), which is a different diagnostic.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB431NEGF3.
        DATA DIVISION.

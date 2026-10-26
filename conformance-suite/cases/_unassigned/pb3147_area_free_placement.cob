@@ -16,8 +16,8 @@
       *> level-numbers 01 and 77, DECLARATIVES, END DECLARATIVES and the
       *> end marker begin in area B (position 12) or follow other text
       *> of their line; two statements, a continued clause and a period
-      *> begin in area A (position 8). At --std 85 each is COBOLNET3734
-      *> or COBOLNET3735 (the two pb3147 negatives).
+      *> begin in area A (position 8). At --std 85 each is COBOL3734
+      *> or COBOL3735 (the two pb3147 negatives).
       *> Expected (14.4.3 order): MAIN-PARA shows A and W-N (7),
       *> control falls through to P2, which performs P3 (W-X, M) and
       *> shows B before STOP RUN - A / 7 / M / B. A header read as

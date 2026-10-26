@@ -23,7 +23,7 @@
       *> the renderer's ASCII transliteration showed `SET . TO SELF`.
       *> Its twin is pb388-set-pointer-self-sender.cob, which is the
       *> SAME defect one general format over (Format 7's carrier arm,
-      *> COBOLNET0869). Two arms, one repair: the receiving list is
+      *> COBOL0869). Two arms, one repair: the receiving list is
       *> named through SetFormatSelection.Written at both.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB388-SET-OBJ-SELF.

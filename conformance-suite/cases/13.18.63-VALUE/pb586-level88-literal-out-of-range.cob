@@ -9,7 +9,7 @@
 *> indicated by the PICTURE clause or the USAGE clause." A condition-name has its conditional variable's
 *> characteristics (13.18.63.4 GR19), so 12345 is outside PIC 9(2)'s range. MEASURED BEFORE: compiled clean
 *> at every edition - a condition-name that can never be true - while the format-1 twin
-*> 01 W2 PIC 9(2) VALUE 12345. was COBOLNET1625 (kb/Work PB586). The THROUGH-range end, the WHEN SET TO
+*> 01 W2 PIC 9(2) VALUE 12345. was COBOL1625 (kb/Work PB586). The THROUGH-range end, the WHEN SET TO
 *> FALSE literal, SR3's sign and the report-section (format 4) literal are pinned by ValueClauseScreenTests.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB586L88RNG.

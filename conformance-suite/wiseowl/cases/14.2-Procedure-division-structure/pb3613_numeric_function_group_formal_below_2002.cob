@@ -7,7 +7,7 @@
 *> kb/Work PB3613, the negative of pb3613_numeric_function_group_formal: the program-prototype
 *> format of CALL (the AS phrase, ISO 14.9.4.2 Format 2) is a COBOL-2002 introduction, so
 *> the BY CONTENT numeric function value into a group formal that its second regime moves
-*> (14.2.3 GR9) is refused at COBOL-85 by name (COBOLNET0900) and accepted from 2002 on.
+*> (14.2.3 GR9) is refused at COBOL-85 by name (COBOL0900) and accepted from 2002 on.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3613N1.
 DATA DIVISION.

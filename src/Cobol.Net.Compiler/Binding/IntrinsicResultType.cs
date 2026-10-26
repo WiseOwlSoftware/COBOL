@@ -371,7 +371,7 @@ internal static class IntrinsicResultType
         // A COUNTER REGISTER is "a temporary unsigned integer data item" (§8.4.3.14.4 GR1 / §8.4.3.15.4 GR1) that
         // the binder carries as a computed operand, and §8.4.3.15.3 SR1 admits PAGE-COUNTER / LINE-COUNTER "in any
         // context where an integer data item may appear" — `PERFORM PAGE-COUNTER TIMES` among them, which this
-        // classifier used to refuse as COBOLNET1646 (kb/Work PB1153).
+        // classifier used to refuse as COBOL1646 (kb/Work PB1153).
         BoundComputedOperand { Expr: var register } when AlgebraicRanges.IsCounterRegister(register) => true,
         // The figurative ZERO read numerically IS the integer 0 (§8.3.3.6.4 GR4 — "the numeric value '0'";
         // §8.8.1.1 admits it as an arithmetic operand). It reaches here only in an all-numeric list, because any

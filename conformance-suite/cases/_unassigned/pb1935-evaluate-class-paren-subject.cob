@@ -8,7 +8,7 @@
       *> class-condition case. WHEN IS NUMERIC over the subject (N)
       *> forms the class condition (N) IS NUMERIC (ISO 14.9.13.4 4)
       *> a)), whose subject is an arithmetic expression, not the
-      *> identifier-1 8.8.4.4.2 prints. COBOLNET3318 at every edition.
+      *> identifier-1 8.8.4.4.2 prints. COBOL3318 at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG1935F.
        DATA DIVISION.

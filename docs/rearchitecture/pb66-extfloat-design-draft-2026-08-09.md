@@ -13,7 +13,7 @@
 # DESIGN — External floating-point PICTURE (floating-point numeric-edited data)
 
 Status: **DESIGN — DRAFT, nothing implemented.** The construct is recognized and staged loud today
-(`COBOLNET0899` at ≥2002, `COBOLNET0900` below) — see §2 for the literal probe evidence. This document is the
+(`COBOL0899` at ≥2002, `COBOL0900` below) — see §2 for the literal probe evidence. This document is the
 decision-complete target for the whole feature; it is the design-doc-first prerequisite `kb/Work/PB66.md`
 demands ("implementing external float PICTURE … is its own feature wave with a design-doc section first").
 
@@ -150,7 +150,7 @@ the exponent. The analyzer therefore validates SR24/SR25 on each half, never on 
 
 **This is a live defect the wave must fix:** `DataBinder.cs:2147` today routes every
 `Category: Numeric or NumericEdited` item through `EditionContext.CheckDigitCapacity`, which emits
-`COBOLNET0801` citing "31 digits (ISO §8.3.3.3.2)" (the message cited the phantom §8.3.1.2 until
+`COBOL0801` citing "31 digits (ISO §8.3.3.3.2)" (the message cited the phantom §8.3.1.2 until
 kb/Work PB159/PB290 repaired it). A 36-digit significand is legal; the SR14 path must be
 skipped for the float form and replaced with the SR15 + GR13 b pair (§4.3).
 
@@ -228,28 +228,28 @@ downstream errors are category errors.
 **Probe `pb66d01.cob` (`PROGRAM-ID. PB66D01`), default `--std` (2023):**
 
 ```
-  error COBOLNET0899: an external floating-point PICTURE (symbol E) is recognized but not yet implemented (owning roadmap phase: Phase 6) - data item 'W-EF' (ISO 13.18.40 external float; skeleton W2 (loud), full Phase 6 (IEEE float catchall); PENDING)
-  error COBOLNET0819: MOVE . TO W-EF: MOVE is invalid - a noninteger numeric sending operand does not move to an alphabetic, alphanumeric or alphanumeric-edited receiver (ISO 14.9.25.3 SR10, Table 16)
+  error COBOL0899: an external floating-point PICTURE (symbol E) is recognized but not yet implemented (owning roadmap phase: Phase 6) - data item 'W-EF' (ISO 13.18.40 external float; skeleton W2 (loud), full Phase 6 (IEEE float catchall); PENDING)
+  error COBOL0819: MOVE . TO W-EF: MOVE is invalid - a noninteger numeric sending operand does not move to an alphabetic, alphanumeric or alphanumeric-edited receiver (ISO 14.9.25.3 SR10, Table 16)
 ```
 
 **Same program at `--std 85` — the introduction gate fires instead:**
 
 ```
-  error COBOLNET0819: MOVE . TO W-EF: MOVE is invalid - a noninteger numeric sending operand does not move to an alphabetic, alphanumeric or alphanumeric-edited receiver (ISO 14.9.25.3 SR10, Table 16)
-  error COBOLNET0900: an external floating-point PICTURE (symbol E) requires COBOL-2002 (targeting COBOL-85) - data item 'W-EF' (ISO 13.18.40 external float; skeleton W2 (loud), full Phase 6 (IEEE float catchall); PENDING)
+  error COBOL0819: MOVE . TO W-EF: MOVE is invalid - a noninteger numeric sending operand does not move to an alphabetic, alphanumeric or alphanumeric-edited receiver (ISO 14.9.25.3 SR10, Table 16)
+  error COBOL0900: an external floating-point PICTURE (symbol E) requires COBOL-2002 (targeting COBOL-85) - data item 'W-EF' (ISO 13.18.40 external float; skeleton W2 (loud), full Phase 6 (IEEE float catchall); PENDING)
 ```
 
 **Probe `pb66d02.cob` (`PROGRAM-ID. PB66D02`) — the two inventory rows this note owns:**
 
 ```
-  error COBOLNET0899: an external floating-point PICTURE (symbol E) is recognized but not yet implemented (owning roadmap phase: Phase 6) - data item 'W-EF' (ISO 13.18.40 external float; skeleton W2 (loud), full Phase 6 (IEEE float catchall); PENDING)
-  error COBOLNET1516: FUNCTION HIGHEST-ALGEBRAIC argument-1 shall be a category numeric or numeric-edited DATA ITEM - not a literal, an arithmetic expression, a group item, a reference-modified item, an index, or another function (ISO 15.43.3 rule 1)
-  error COBOLNET1516: FUNCTION LOWEST-ALGEBRAIC argument-1 shall be a category numeric or numeric-edited DATA ITEM - not a literal, an arithmetic expression, a group item, a reference-modified item, an index, or another function (ISO 15.58.3 rule 1)
+  error COBOL0899: an external floating-point PICTURE (symbol E) is recognized but not yet implemented (owning roadmap phase: Phase 6) - data item 'W-EF' (ISO 13.18.40 external float; skeleton W2 (loud), full Phase 6 (IEEE float catchall); PENDING)
+  error COBOL1516: FUNCTION HIGHEST-ALGEBRAIC argument-1 shall be a category numeric or numeric-edited DATA ITEM - not a literal, an arithmetic expression, a group item, a reference-modified item, an index, or another function (ISO 15.43.3 rule 1)
+  error COBOL1516: FUNCTION LOWEST-ALGEBRAIC argument-1 shall be a category numeric or numeric-edited DATA ITEM - not a literal, an arithmetic expression, a group item, a reference-modified item, an index, or another function (ISO 15.58.3 rule 1)
 ```
 
 **Probe `pb66d05.cob` (`PROGRAM-ID. PB66D05`) — eight different `E` masks, including `+9(2).9(3)E+9999`,
 `999E+99`, `-9,9(5)E+99`, `$9.99E+99`, `ZZ9.99E+99`, `9V99E+99` — every one reaches `PictureAnalyzer` intact and
-draws only the single `COBOLNET0899`.** ⇒ **the lexer and grammar need NO work**: `PIC_STRING` already carries
+draws only the single `COBOL0899`.** ⇒ **the lexer and grammar need NO work**: `PIC_STRING` already carries
 `+ - . , ( ) E` and the repetition factor. The whole feature is binder + emitter + runtime.
 
 **Baseline the design must not regress — `pb66d04.cob` (`PROGRAM-ID. PB66D04`), the fixed-point fold over the
@@ -418,19 +418,19 @@ and the `SkeletonGate` recovery at `:122-123`. The `E` case is lifted OUT of the
 
 ```
 1.  count 'E'. 0 → not this form (fall through unchanged).
-                >1 → COBOLNET1643 (§13.18.40.3 SR12 b: 'E' may appear only once).
+                >1 → COBOL1643 (§13.18.40.3 SR12 b: 'E' may appear only once).
 2.  split at the single 'E' → sig, exp.
-3.  exp must match  '+' '9'{1,4}                       else COBOLNET1644 (§13.18.40.4 GR13 b).
+3.  exp must match  '+' '9'{1,4}                       else COBOL1644 (§13.18.40.4 GR13 b).
         ExpDigits = |'9's|.
 4.  sig:
       a. optional leading '+' or '-'                    → SigSigned, SigSign
-      b. the remainder over { '9','B','0','/',',','.' } — any other symbol → COBOLNET1645
+      b. the remainder over { '9','B','0','/',',','.' } — any other symbol → COBOL1645
          naming the offending symbol and Table 10 row 'E' (§13.18.40.6 / §13.18.40.3 SR2).
          Distinct message legs for V, P, S, Z, *, cs, CR/DB and an EDITING character-1,
          each citing the rule that bans it (§12) — never one generic "invalid symbol".
-      c. at most one '.'                                else COBOLNET1643 (SR12 b, symbol '.').
-      d. at least one '9'                               else COBOLNET1646 (SR15: 1..36).
-      e. SigDigits = |'9's| ; 1 <= SigDigits <= 36      else COBOLNET1646 (SR15).
+      c. at most one '.'                                else COBOL1643 (SR12 b, symbol '.').
+      d. at least one '9'                               else COBOL1646 (SR15: 1..36).
+      e. SigDigits = |'9's| ; 1 <= SigDigits <= 36      else COBOL1646 (SR15).
       f. SigScale  = |'9's right of the '.'|  (0 if none).
       g. Table 10 order among the retained symbols is checked by the SAME table walk the
          fixed-point precedence validator uses, run on `sig` alone (§13.18.40.6's two-strings
@@ -716,7 +716,7 @@ So `VALUE` on a floating-point edited item admits: a **floating-point numeric li
 two fixed-point numeric literals separated by the letter 'E' without intervening spaces" ✔ OK; exponent "a maximum
 of four digits and no decimal point" ✔ OK), `ZERO`/`ZEROES`/`0`/`0.0`, or an alphanumeric literal of exactly
 `Length` characters (SR7). A **fixed-point** numeric literal other than zero is an SR6 violation →
-`COBOLNET1647`. A numeric literal initialises through the editing rules (§13.18.63.3 SR11: "Editing characters in
+`COBOL1647`. A numeric literal initialises through the editing rules (§13.18.63.3 SR11: "Editing characters in
 a picture character-string for a numeric-edited data item are used in editing of the initial value when the data
 item is initialized and the literal is numeric" ✔ OK), i.e. through `FormatFloat` at compile time
 (`ValueInitializer.cs:159` gains the float arm). SR2's "shall be representable exactly … without truncation of
@@ -727,7 +727,7 @@ Probe `pb66d03` proves the floating-point literal channel already works end to e
 ### 9.6 The 2023 `PICTURE … EDITING` phrase
 
 Banned for this form (§1.2 / §13.18.40.3 SR12 a). `PictureAnalyzer.ValidateEditing` runs BEFORE the `E` scan
-today; the float analyzer rejects an `EDITING` phrase on a float-edited picture with `COBOLNET1645`'s
+today; the float analyzer rejects an `EDITING` phrase on a float-edited picture with `COBOL1645`'s
 character-1 leg before `ValidateEditing`'s SR10 ("character-1 shall appear at least once") can produce a
 confusing secondary error.
 
@@ -793,7 +793,7 @@ The smallest nonzero magnitude, needed for the "closer to zero" half:
 | **STANDARD-BINARY** | documented-unsupported (D3; the mode is obsolete per §8.8.1.4.1's NOTE) — the existing `ArithmeticMode.StandardBinary` rejection covers it | — | — |
 
 **Rule (D-EF9):** at the function reference, if `HIGHEST-ALGEBRAIC(item) > farthest` or
-`minNonZero < closest`, emit **`COBOLNET1648`** naming §15.43.4 r1 / §15.58.4 r1, the mode in effect, and the
+`minNonZero < closest`, emit **`COBOL1648`** naming §15.43.4 r1 / §15.58.4 r1, the mode in effect, and the
 bound.
 
 **Both halves are live — worked out for `intDigits = 1`:**
@@ -831,37 +831,37 @@ covers what happens at `--std 2002`.
 
 | `--std` | Behaviour |
 |---|---|
-| **85** | `COBOLNET0900` — "a floating-point numeric-edited PICTURE (the symbol E) requires COBOL-2002 (targeting COBOL-85)". Unchanged mechanism: the `constructs.json` row `pic-external-float-2002` with `introducedIn: 2002`, fired by `VersionConformancePass`'s `GateData` enumerator. **The `SkeletonGate` carrier is DELETED** — it exists only because `PicInfo.Recovery` erased the category; once the analyzer returns a real `PicCategory.NumericEdited` the enumerator keys on `Pic.IsFloatEdited`, exactly as the National/Boolean rows key on `Pic.Category`. (`PicInfo.SkeletonGate`'s doc-comment names external float as one of its two users; after this wave only `NationalEdited2002` remains, and the property's comment must say so.) |
-| **2002** | Fully live. §15.43.4/§15.58.4 r1 in the 2014 wording did not yet exist, so `COBOLNET1648` is issued citing **§8.8.1.3 + Annex A.3** (the implementor-defined intermediate and the processor-dependent capability) rather than §15.43.4 r1. The *test* is identical — the constraint is physical, not editorial: the compiler cannot return a value its intermediate cannot hold. |
-| **2014 / 2023** | Fully live; `COBOLNET1648` cites §15.43.4 r1 / §15.58.4 r1. |
+| **85** | `COBOL0900` — "a floating-point numeric-edited PICTURE (the symbol E) requires COBOL-2002 (targeting COBOL-85)". Unchanged mechanism: the `constructs.json` row `pic-external-float-2002` with `introducedIn: 2002`, fired by `VersionConformancePass`'s `GateData` enumerator. **The `SkeletonGate` carrier is DELETED** — it exists only because `PicInfo.Recovery` erased the category; once the analyzer returns a real `PicCategory.NumericEdited` the enumerator keys on `Pic.IsFloatEdited`, exactly as the National/Boolean rows key on `Pic.Category`. (`PicInfo.SkeletonGate`'s doc-comment names external float as one of its two users; after this wave only `NationalEdited2002` remains, and the property's comment must say so.) |
+| **2002** | Fully live. §15.43.4/§15.58.4 r1 in the 2014 wording did not yet exist, so `COBOL1648` is issued citing **§8.8.1.3 + Annex A.3** (the implementor-defined intermediate and the processor-dependent capability) rather than §15.43.4 r1. The *test* is identical — the constraint is physical, not editorial: the compiler cannot return a value its intermediate cannot hold. |
+| **2014 / 2023** | Fully live; `COBOL1648` cites §15.43.4 r1 / §15.58.4 r1. |
 
 `constructs.json` row changes: `status: pending → active`, `diagnosticCode`/`expectDiagnostic` unchanged
-(`COBOLNET0900`), `description` rewritten (drop "silent-misbinds"/"Phase 6"), `display` → "a floating-point
+(`COBOL0900`), `description` rewritten (drop "silent-misbinds"/"Phase 6"), `display` → "a floating-point
 numeric-edited PICTURE (the symbol E)", `citation` → "ISO §13.18.40.4 GR13 b", and **`source` corrected from the
 illegal `PIC +9V99E+99` to `PIC +9.99E+99`** (§2).
 
 ⛔ **Edition-gate sweep obligation** (`feedback_edition_gate_sweep`): every golden added by this wave compiles at
-2002/2014/2023 and draws `COBOLNET0900` at 85. The `new-construct` skill's matrix row is mandatory.
+2002/2014/2023 and draws `COBOL0900` at 85. The `new-construct` skill's matrix row is mandatory.
 
 ---
 
 ## 12. Diagnostics
 
-Next free code is **`COBOLNET1643`** (`scripts/session-probe.ps1`: "src-grep max COBOLNET1642 · catalog max
-COBOLNET1641 · next free = COBOLNET1643").
+Next free code is **`COBOL1643`** (`scripts/session-probe.ps1`: "src-grep max COBOL1642 · catalog max
+COBOL1641 · next free = COBOL1643").
 
 | Code | Condition | Citation in the message |
 |---|---|---|
-| `COBOLNET1643` | `E` (or `.`) appears more than once in character-string-1 | §13.18.40.3 SR12 b |
-| `COBOLNET1644` | the exponent part is not `+9(n)`, n = 1..4 | §13.18.40.4 GR13 b |
-| `COBOLNET1645` | a symbol appears in the significand that may not precede `E`. **Separate legs**, each naming the symbol and its own rule: `V`/`P` (Table 10 row E; SR17/SR20 point exclusivity), `S` (Table 10 row E; SR18), `Z`/`*` (GR13 b "Neither floating insertion editing nor zero suppression with replacement shall be specified for the significand"), the currency symbol (GR13 b + Table 10 row E), `CR`/`DB` (Table 10 row E), an `EDITING` character-1 (SR12 a + §13.18.40.6's `es`≡`cs` precedence) | §13.18.40.6 Table 10 + the named rule |
-| `COBOLNET1646` | significand digit positions outside 1..36 | §13.18.40.3 SR15 |
-| `COBOLNET1647` | a `VALUE` literal for a floating-point format that is a non-zero **fixed-point** numeric literal | §13.18.63.3 SR6 |
-| `COBOLNET1648` | `HIGHEST-`/`LOWEST-ALGEBRAIC` argument-1's extreme value is outside the intermediate data item's range for the mode in effect | §15.43.4 r1 / §15.58.4 r1 (≥2014); §8.8.1.3 + Annex A.3 (2002) |
-| existing `COBOLNET0900` | below COBOL-2002 | `constructs.json` row |
+| `COBOL1643` | `E` (or `.`) appears more than once in character-string-1 | §13.18.40.3 SR12 b |
+| `COBOL1644` | the exponent part is not `+9(n)`, n = 1..4 | §13.18.40.4 GR13 b |
+| `COBOL1645` | a symbol appears in the significand that may not precede `E`. **Separate legs**, each naming the symbol and its own rule: `V`/`P` (Table 10 row E; SR17/SR20 point exclusivity), `S` (Table 10 row E; SR18), `Z`/`*` (GR13 b "Neither floating insertion editing nor zero suppression with replacement shall be specified for the significand"), the currency symbol (GR13 b + Table 10 row E), `CR`/`DB` (Table 10 row E), an `EDITING` character-1 (SR12 a + §13.18.40.6's `es`≡`cs` precedence) | §13.18.40.6 Table 10 + the named rule |
+| `COBOL1646` | significand digit positions outside 1..36 | §13.18.40.3 SR15 |
+| `COBOL1647` | a `VALUE` literal for a floating-point format that is a non-zero **fixed-point** numeric literal | §13.18.63.3 SR6 |
+| `COBOL1648` | `HIGHEST-`/`LOWEST-ALGEBRAIC` argument-1's extreme value is outside the intermediate data item's range for the mode in effect | §15.43.4 r1 / §15.58.4 r1 (≥2014); §8.8.1.3 + Annex A.3 (2002) |
+| existing `COBOL0900` | below COBOL-2002 | `constructs.json` row |
 | existing SIGN validation | a `SIGN` clause on the entry | §13.18.52.3 SR1 |
 
-`COBOLNET0899` for this construct is **retired** — the whole point of the wave. The `DiagnosticCatalog` /
+`COBOL0899` for this construct is **retired** — the whole point of the wave. The `DiagnosticCatalog` /
 `docs/DIAGNOSTICS.md` regeneration (`scripts/gen-diagnostics-doc.ps1`) runs in the same change set.
 
 ---
@@ -926,10 +926,10 @@ EC-DATA-INCOMPATIBLE (§14.6.13.2 rule 4) and the deterministic value.
 `FUNCTION HIGHEST-ALGEBRAIC (PIC -9.9(5)E+99)` → `+9.99999E+99`;
 `FUNCTION LOWEST-ALGEBRAIC` of the same → `-9.99999E+99`;
 `FUNCTION LOWEST-ALGEBRAIC (PIC 9.9(5)E+99)` (unsigned) → `0`;
-`FUNCTION HIGHEST-ALGEBRAIC (PIC 9.9E+999)` → `COBOLNET1648` under NATIVE, **accepted** under
+`FUNCTION HIGHEST-ALGEBRAIC (PIC 9.9E+999)` → `COBOL1648` under NATIVE, **accepted** under
 `ARITHMETIC IS STANDARD-DECIMAL` (the mode-parameterised half of D-EF9 — the probe that flips the axis the
 subject holds fixed, `feedback_probe_the_shape_the_subject_hides`);
-`FUNCTION HIGHEST-ALGEBRAIC (PIC 9.9E+9999)` → `COBOLNET1648` under BOTH modes (both halves of the range test).
+`FUNCTION HIGHEST-ALGEBRAIC (PIC 9.9E+9999)` → `COBOL1648` under BOTH modes (both halves of the range test).
 `FUNCTION SMALLEST-ALGEBRAIC` of a float-edited item → the existing §15.83.3 r1 rejection (a NEGATIVE test that
 must keep failing).
 
@@ -942,8 +942,8 @@ must keep failing).
 
 ### 13.8 Edition matrix
 
-Every §13.2/§13.3 program at `--std 85` ⇒ `COBOLNET0900`; at 2002/2014/2023 ⇒ green.
-`COBOLNET1648`'s citation text differs at 2002 vs ≥2014 — asserted.
+Every §13.2/§13.3 program at `--std 85` ⇒ `COBOL0900`; at 2002/2014/2023 ⇒ green.
+`COBOL1648`'s citation text differs at 2002 vs ≥2014 — asserted.
 
 ### 13.9 Drift / structural tests
 
@@ -1006,7 +1006,7 @@ Recommendation: BLANK WHEN ZERO wins (§9.4's three grounds). If the owner disag
 `BLANK WHEN ZERO` on a floating-point edited entry — but §13.18.8.3 SR1 plainly admits it, so rejecting legal
 source would need its own justification.
 
-**Q3 — OWNER-RESERVED. Does `COBOLNET1648` (D-EF9) also fire at the DECLARATION?** As designed it fires only at a
+**Q3 — OWNER-RESERVED. Does `COBOL1648` (D-EF9) also fire at the DECLARATION?** As designed it fires only at a
 `HIGHEST-`/`LOWEST-ALGEBRAIC` reference, because that is the only place the rules constrain. An `E+9999` mask is
 otherwise perfectly usable (nothing can produce a value that large, so no store can overflow it). The
 alternative — warn at declaration that the item's declared range exceeds the implementation's intermediate — is

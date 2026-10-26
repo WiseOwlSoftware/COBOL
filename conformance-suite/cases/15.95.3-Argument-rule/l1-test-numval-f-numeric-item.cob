@@ -20,7 +20,7 @@
       *> conformance:cases/15.95.3-Argument-rule/l1_test_numval_f_class_screen requires it to return a value. A screen that read
       *> "looks numeric" instead of the Table 2 class column would reject both, and the two fixtures
       *> together are what separates them.
-      *> Expected: COBOLNET1627, the intrinsic-argument-class diagnostic.
+      *> Expected: COBOL1627, the intrinsic-argument-class diagnostic.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGL1TNVFN.
        DATA DIVISION.

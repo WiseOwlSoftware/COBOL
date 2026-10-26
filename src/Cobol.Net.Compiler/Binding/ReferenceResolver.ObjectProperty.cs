@@ -170,7 +170,7 @@ public sealed partial class ReferenceResolver
             // A subscript after a non-word object (`P OF U AS C (2)`) subscripts neither part: identifier-3 is no
             // qualified data name and the property's value is the get method's RETURNING item, no table element
             // (§8.4.2.3.2 writes subscripts only after a qualified data name; §8.4.2.3.3 SR2). One BEFORE the object
-            // (`P (2) OF SELF`) is ExpressionFormationPass's COBOLNET2776; a word chain keeps its subscripts in
+            // (`P (2) OF SELF`) is ExpressionFormationPass's COBOL2776; a word chain keeps its subscripts in
             // identifier-3 (PropertyObjectReference), where the ordinary screen reads them.
             if (written.SubscriptGroup is { } sub && sub.Start.TokenIndex > terminal!.Stop.TokenIndex)
             {
@@ -273,7 +273,7 @@ public sealed partial class ReferenceResolver
         data.ActivationSites.Add(dref);
 
         if (!data.OoRepositoryProperties.ContainsKey(name))
-            data.Edition.Error("COBOLNET0843",
+            data.Edition.Error("COBOL0843",
                 $"the object-property reference '{name}' OF '{objWritten}' requires a PROPERTY specifier in the "
                 + "REPOSITORY paragraph (ISO §8.4.3.9.3 SR1; §12.3.8)");
 

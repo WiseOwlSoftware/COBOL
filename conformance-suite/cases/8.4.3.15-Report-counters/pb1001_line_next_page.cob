@@ -7,7 +7,7 @@
 *> portable: unverified
 *>---
       *> THE LINE CLAUSE'S NEXT PAGE PHRASE, BOTH OPERAND FORMS, ON A BODY GROUP AND ON A REPORT FOOTING
-      *> (kb/Work PB1001 — `LINE integer-1 ON NEXT PAGE` was refused, COBOLNET0899, at every edition).
+      *> (kb/Work PB1001 — `LINE integer-1 ON NEXT PAGE` was refused, COBOL0899, at every edition).
       *>
       *> THE RULES (ISO/IEC 1989:2023).
       *> §13.18.35.2 Format 1 — the operand is `integer-1 [ON NEXT PAGE]`, `{PLUS|+} integer-2` or a bare

@@ -11,7 +11,7 @@
       *>   EXTERNAL clause." The run-unit external store keys its cells
       *>   case-insensitively (a data-name's case never matters, 8.3.2),
       *>   so `01 A ... EXTERNAL` and `01 B ... EXTERNAL AS "a"` are ONE
-      *>   externalized name: rejected COBOLNET2159 - they used to alias one
+      *>   externalized name: rejected COBOL2159 - they used to alias one
       *>   cell of the first-created width in silence.
       *> cite.py --check 13.18.22.3 "In the same source element, the
       *>   externalized name of the subject of the entry that" -> OK

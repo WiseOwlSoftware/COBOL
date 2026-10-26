@@ -19,7 +19,7 @@
       *> the construct drew three raw COBOL0001 errors about a colon at EVERY
       *> edition — and the superseded construct row recorded exactly that as a
       *> permanent residue ("no distinctive token"). '::' IS a distinctive
-      *> token, so the below-2002 answer is COBOLNET0900 naming the construct.
+      *> token, so the below-2002 answer is COBOL0900 naming the construct.
       *> The .err names 0900; the same compile also draws 0900 for REPOSITORY
       *> CLASS, INVOKE, USAGE OBJECT REFERENCE and the CLASS-ID unit, which is
       *> expected — every one of them is the same 2002 OO band.

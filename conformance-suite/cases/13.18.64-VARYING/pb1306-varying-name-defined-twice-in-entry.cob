@@ -7,7 +7,7 @@
       *> kb/Work PB1306 - ISO 13.18.64.3 SR2: "Data-name-1 shall not be defined elsewhere in the source element, except as
       *> data-name-1 in another VARYING clause of an entry not subordinate to the subject of the current entry."
       *> A second K in the SAME VARYING clause is neither: it is a second definition inside the one entry.
-      *> COBOLNET1559.
+      *> COBOL1559.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1306N2.
        ENVIRONMENT DIVISION.

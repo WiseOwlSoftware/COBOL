@@ -69,7 +69,7 @@ public sealed partial class DataBinder
         // redefiner would run past it.
         bool exempt = target.Level == 1 && !target.HasExternalClause;
         if (!exempt && StorageBitsOf(item) is var itemBits && StorageBitsOf(target) is var targetBits && itemBits > targetBits)
-            Edition.Error("COBOLNET1539", $"'{name}' REDEFINES '{tname}': the redefining storage area "
+            Edition.Error("COBOL1539", $"'{name}' REDEFINES '{tname}': the redefining storage area "
                 + $"({itemBits} bits) is larger than the redefined ({targetBits}) — permitted only when the redefined "
                 + "item is level 1 and not EXTERNAL (ISO §13.18.44.3 SR8)");
 

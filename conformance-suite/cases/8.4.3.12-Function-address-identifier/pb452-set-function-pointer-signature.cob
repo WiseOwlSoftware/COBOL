@@ -7,7 +7,7 @@
 *> ISO 1989:2023 14.9.39.3 SR20, last sentence - "The function-prototypes associated with identifier-12 and
 *> identifier-13 shall have the same signature." FPD is restricted to NSDBL (one USING formal) and FPZ to
 *> NSZERO (none), so neither the pointer-to-pointer copy nor the ADDRESS OF FUNCTION sender conforms.
-*> COBOLNET1959 (the one code SR20 and SR22 share - kb/Work PB817). kb/Work PB452.
+*> COBOL1959 (the one code SR20 and SR22 share - kb/Work PB817). kb/Work PB452.
 IDENTIFICATION DIVISION.
 FUNCTION-ID. NSDBL.
 DATA DIVISION.

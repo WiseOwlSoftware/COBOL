@@ -7,7 +7,7 @@
       *> NEXT GROUP NEXT PAGE IN A PAGE FOOTING (kb/Work PB957).
       *> ISO/IEC 1989:2023 §13.18.37.3 SR5: "The NEXT PAGE phrase shall not be specified in a page
       *> footing."
-      *> Drawn on COBOLNET2284 (report-next-group-clause-rule).
+      *> Drawn on COBOL2284 (report-next-group-clause-rule).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB957NPF.
        ENVIRONMENT DIVISION.

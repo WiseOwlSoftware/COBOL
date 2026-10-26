@@ -8,8 +8,8 @@
       *> PERFORM statement with or under a PERFORM statement with the VARYING phrase or either the TEST BEFORE
       *> or TEST AFTER phrase". The varying-phrase prints "UNTIL condition-1" only (14.9.28.2), and this
       *> PERFORM writes UNTIL EXIT there. It used to be a bare COBOL0001 naming no rule; the grammar now spells
-      *> EXIT in every UNTIL of a PERFORM so the binder names the rule: COBOLNET2954 at every edition, beside
-      *> COBOLNET0900 below 2023, where UNTIL EXIT (14.9.28.4 GR11) does not exist at all.
+      *> EXIT in every UNTIL of a PERFORM so the binder names the rule: COBOL2954 at every edition, beside
+      *> COBOL0900 below 2023, where UNTIL EXIT (14.9.28.4 GR11) does not exist at all.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB434VX.
        DATA DIVISION.

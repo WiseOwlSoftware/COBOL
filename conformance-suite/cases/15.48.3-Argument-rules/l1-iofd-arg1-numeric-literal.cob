@@ -14,7 +14,7 @@
       *> mechanism is how a screen gets deleted with the test still green.
       *>  · It is NOT true that "the literal-shape screen passes it". The shape
       *>    screen asks whether argument-1 bound as a string literal; a numeric
-      *>    literal did not, so COBOLNET1517 fires on this program as well.
+      *>    literal did not, so COBOL1517 fires on this program as well.
       *>  · It is NOT true that "only both together reject it". THREE overlapping
       *>    screens reject this one program: the position-0 class rule of r1, the
       *>    CROSS-argument rule of r3 ("Argument-2 shall be a data item of the same

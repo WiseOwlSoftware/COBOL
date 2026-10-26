@@ -10,7 +10,7 @@
       *> name, and XYZ 12 as an unrecognized clause, so XYZ was refused as the clause. No level-number
       *> can follow this paragraph, so the error production now opens at the integer: XYZ is the
       *> computer-name and 12 is refused BY NAME in the OBJECT-COMPUTER paragraph's format
-      *> (COBOLNET1970), the one diagnostic, at every edition.
+      *> (COBOL1970), the one diagnostic, at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. N3390OI.
        ENVIRONMENT DIVISION.

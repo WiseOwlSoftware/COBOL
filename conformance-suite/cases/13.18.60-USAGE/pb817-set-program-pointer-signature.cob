@@ -9,7 +9,7 @@
 *> associated with identifier-7 and identifier-8 shall have the same signature." PPU is an UNRESTRICTED
 *> program-pointer: it is associated with no program-prototype at all, so no same-signature reading can be
 *> satisfied. (14.8.2.3.2 states the same requirement explicitly in the argument-passing direction: "if
-*> either is a restricted pointer, both shall be restricted and of the same type.") COBOLNET1959 - the one
+*> either is a restricted pointer, both shall be restricted and of the same type.") COBOL1959 - the one
 *> code SR20 and SR22 share, because they are one rule over two carriers. kb/Work PB817.
 *> kb/Work PB989 - ISO 12.3.8.4 GR10 a): the details come from a program definition specified PREVIOUSLY in the
 *> compilation group; a definition that follows the REPOSITORY entry is not one. The callee below is therefore

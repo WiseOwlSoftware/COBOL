@@ -10,7 +10,7 @@
       *> optional word and `CURSOR CURS-IT` is a conforming spelling. The grammar demanded IS until
       *> PB695 and the spelling was a parse error.
       *> The CURSOR clause is the DECLINED screen module (Annex A.4.2 item 25); 4.2.7 makes non-support
-      *> conformant only when DIAGNOSED, and COBOLNET1560 is that diagnosis - the same one the fully
+      *> conformant only when DIAGNOSED, and COBOL1560 is that diagnosis - the same one the fully
       *> written spelling draws, which is exactly what 8.3.2.4.3 requires of an optional word ("with no
       *> effect on the semantics of the format"). A COBOL0001 here would mean the clause was never
       *> recognized. 8.9 reserves CURSOR from 2002 only, so at COBOL-85 this is an implementor-switch

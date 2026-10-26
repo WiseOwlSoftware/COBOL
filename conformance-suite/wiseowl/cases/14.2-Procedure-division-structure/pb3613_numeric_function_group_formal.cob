@@ -16,7 +16,7 @@
 *>   cite.py --check 14.8.2.2 "If the argument is passed by content, the conformance rules are the same as for a MOVE statement"
 *>   -> OK  14.8.2.2 2)  (Group items)
 *> and a function-identifier is a MOVE sending operand (14.9.25.4 GR1), so the argument conforms - it was
-*> refused as if it were an arithmetic expression, which is no MOVE sender (COBOLNET1688 at the CALL ... AS NESTED,
+*> refused as if it were an arithmetic expression, which is no MOVE sender (COBOL1688 at the CALL ... AS NESTED,
 *> and the INVOKE lane crossed the temporary's own text, -15). Its value is stored as the group move
 *> stores it, 14.9.25.4 GR4, "no conversion of data from one form of internal representation to another":
 *>   cite.py --check 14.9.25.4 "except that there is no conversion of data from one form of internal representation to another"
@@ -32,7 +32,7 @@
 *>   n:4  BY CONTENT FUNCTION MAX(N 3)   -> value 3    -> [3    ] (unsigned, the control)
 *>   n:5  BY CONTENT FUNCTION LENGTH(VG) -> value 5    -> [5    ] (VG is a variable-length group: 2 + CNT 3; the binder lowers
 *>        the call to an arithmetic sum, which is still the function-identifier's value and no arithmetic expression)
-*> for each of C, D and I. Before the fix C refused every one (COBOLNET1688), D showed the 38-digit zoned image of
+*> for each of C, D and I. Before the fix C refused every one (COBOL1688), D showed the 38-digit zoned image of
 *> the value cell (zeros in the first five positions) and I the temporary's own signed text (-15, -1.5, -2).
 IDENTIFICATION DIVISION.
 CLASS-ID. PB3613K INHERITS FROM BASE.

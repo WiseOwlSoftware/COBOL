@@ -16,8 +16,8 @@ namespace CobolNet.Tests.Conformance;
 ///     01 G.  05 A USAGE u.            the ELEMENTARY item below level 1     (arm B)
 ///     01 G USAGE u.  05 A PIC X.      the GROUP spelling, §13.18.60.4 GR1    (arm A)
 /// </code>
-/// <para>Both are violations of the one rule, so both draw COBOLNET1724 — for EVERY phrase, whether the compiler
-/// models the usage or refuses its keyword (MESSAGE-TAG: declined non-support, COBOLNET1943). The matrix is read off
+/// <para>Both are violations of the one rule, so both draw COBOL1724 — for EVERY phrase, whether the compiler
+/// models the usage or refuses its keyword (MESSAGE-TAG: declined non-support, COBOL1943). The matrix is read off
 /// <see cref="ItemCategory.Sr14PhraseOf(Usage?)"/>, so a usage added to SR14's population is a row here without anyone
 /// remembering it; one hand-written <c>if</c> per phrase is how the elementary arm went blind to the staged
 /// FUNCTION-POINTER and the declined MESSAGE-TAG while the group arm saw them.</para>
@@ -47,7 +47,7 @@ public sealed class UsageDeclarationPlacementMatrixTests
     private static bool Reports1724(string source)
     {
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(source);
-        return !ok && Regex.IsMatch(detail, @"COBOL(?:NET)?1724");
+        return !ok && Regex.IsMatch(detail, @"COBOL1724");
     }
 
     [Theory]
@@ -59,8 +59,8 @@ public sealed class UsageDeclarationPlacementMatrixTests
         string elementary = Program($"P819E{tag}", $"01 G.\n    05 A USAGE {word}.");
         string group = Program($"P819G{tag}", $"01 G USAGE {word}.\n    05 A PIC X.");
         Assert.True(Reports1724(elementary),
-            $"`05 A USAGE {word}.` inside an ordinary group violates §13.18.60.3 SR14 and must draw COBOLNET1724");
+            $"`05 A USAGE {word}.` inside an ordinary group violates §13.18.60.3 SR14 and must draw COBOL1724");
         Assert.True(Reports1724(group),
-            $"`01 G USAGE {word}. 05 A PIC X.` violates §13.18.60.3 SR14 (via §13.18.60.4 GR1) and must draw COBOLNET1724");
+            $"`01 G USAGE {word}. 05 A PIC X.` violates §13.18.60.3 SR14 (via §13.18.60.4 GR1) and must draw COBOL1724");
     }
 }

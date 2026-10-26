@@ -9,7 +9,7 @@
       *> immediately preceded and followed by a separator space." Both
       *> operands are figurative constants (8.8.3.2 SR1 admits them), so
       *> no literal delimiter touches the operator and no 8.3.5 rule can
-      *> see SPACE&SPACE; it used to compile and run. COBOLNET2993.
+      *> see SPACE&SPACE; it used to compile and run. COBOL2993.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1430N3.
        DATA DIVISION.

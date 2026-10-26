@@ -25,7 +25,7 @@
       *> ARM: the RESOLVED path (class-name-1 naming a factory method).
       *> The universal arm is l1-invoke-returning-constant-record-
       *> universal.
-      *> Expected: COBOLNET1548 (docs/DIAGNOSTICS.md,
+      *> Expected: COBOL1548 (docs/DIAGNOSTICS.md,
       *> constant-as-receiver).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1IV22RA.

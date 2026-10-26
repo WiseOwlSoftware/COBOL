@@ -40,7 +40,7 @@ public sealed partial class DataBinder
     /// <summary>What the usage walk rewrites on an entry's PICTURE side: the profile, whether entry bind synthesized it for
     /// a picture-less usage (<see cref="DataItem.PicIsUsageSynthesized"/> — the walk sheds it from a group header and
     /// clears the flag with it) and the deferred NATIONAL / BIT mark. A copy of a group completed ahead needs all three
-    /// as they were: the header's profile without its provenance reads as a WRITTEN PICTURE on a group (COBOLNET2191), and
+    /// as they were: the header's profile without its provenance reads as a WRITTEN PICTURE on a group (COBOL2191), and
     /// without it its leaves have no profile to take (kb/Work PB3682).</summary>
     private readonly record struct PictureAsWritten(PicInfo? Pic, bool UsageSynthesized, PicPending Pending)
     {

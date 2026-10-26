@@ -27,7 +27,7 @@
       *> a CX — for which no class entry qualifies — reaches pass b).
       *>
       *> Before kb/Work PB365 this program did not compile at all: DeclBindUse resolved the Format-4 operand
-      *> with the class table alone, so `USE AFTER EXCEPTION OBJECT IZ` was rejected COBOLNET0859 "does not
+      *> with the class table alone, so `USE AFTER EXCEPTION OBJECT IZ` was rejected COBOL0859 "does not
       *> name a class of the compilation group" — SR16's diagnostic answering SR17's question — and pass b)
       *> had no code at all.
       *>

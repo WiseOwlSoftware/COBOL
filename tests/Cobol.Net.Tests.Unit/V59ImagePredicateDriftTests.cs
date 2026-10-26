@@ -83,7 +83,7 @@ public sealed class V59ImagePredicateDriftTests
         // one predicate further out. §14.8.2.2 and §14.8.3.2 ADMIT a VARIABLE-LENGTH group across a Format-2
         // CALL / RETURNING / INVOKE boundary "subject to compatibility as described in 8.5.1.12", and
         // IsImageCapable is false for such a group BY DEFINITION — so a guard spelled that way refused every
-        // one of them (COBOLNET1688 on legal source). BoundaryImageCapable is "fixed record window OR
+        // one of them (COBOL1688 on legal source). BoundaryImageCapable is "fixed record window OR
         // current-extent carrier"; the ADMISSION itself is decided at bind by VariableLengthCompatibility.
         Assert.True(narrow == 0,
             "CallEmitter must not guard a group crossing on IsImageCapable: a variable-length group is never "

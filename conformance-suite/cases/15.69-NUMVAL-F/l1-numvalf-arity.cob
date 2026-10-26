@@ -8,7 +8,7 @@
       *> underlined (required words) and the format has exactly ONE argument position: no repetition brace,
       *> no bracketed second position, no keyword phrase. §15.3 opens with "The definition of a function
       *> specifies the number of arguments required, which may be zero, one, or more", and §15.69.2 is that
-      *> definition — so a two-argument reference is not a NUMVAL-F reference at all. COBOLNET1504.
+      *> definition — so a two-argument reference is not a NUMVAL-F reference at all. COBOL1504.
       *>
       *> The ADMIT side — the one-argument reference written exactly as §15.69.2 prints it, with values
       *> derived from §15.69.3 r1/r4 and §15.69.4 r1 — is

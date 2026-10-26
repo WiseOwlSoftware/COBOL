@@ -9,7 +9,7 @@
       *> entry whose picture character-string contains the symbol 'S' - an alphanumeric group item, national
       *> group item, or strongly-typed group item."  SR2: "The usage of an elementary item for which the SIGN
       *> clause is specified shall be display or national."  Each entry below violates one of the two, and
-      *> each compiled clean at every edition before kb/Work PB537 - COBOLNET2422:
+      *> each compiled clean at every edition before kb/Work PB537 - COBOL2422:
       *>   U  - numeric, no 'S' (SR1)          X  - alphanumeric ELEMENTARY item (SR1; only a GROUP is admitted)
       *>   E  - numeric-edited, no 'S' (SR1)   C  - S9(4) COMP (SR2)       P - S9(4) COMP-3 (SR2)
       *>   I  - USAGE INDEX, no PICTURE (SR1)  GC - inherits COMP from its group (SR2 reads the usage it HAS)

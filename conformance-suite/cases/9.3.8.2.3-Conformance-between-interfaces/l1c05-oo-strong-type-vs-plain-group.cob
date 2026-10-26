@@ -29,7 +29,7 @@
       *>   conformance:cases/9.3.8.2.3-Conformance-between-interfaces/l1c05_oo_strong_type_same_type; only the
       *>   item named above is not "of the same type" (§8.5.3.1), so the
       *>   object interface does not conform and §11.8.3 SR2 is
-      *>   violated: COBOLNET0841.
+      *>   violated: COBOL0841.
        IDENTIFICATION DIVISION.
        INTERFACE-ID. L1C05WI.
        PROCEDURE DIVISION.

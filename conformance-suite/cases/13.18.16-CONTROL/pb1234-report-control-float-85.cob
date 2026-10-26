@@ -7,7 +7,7 @@
       *> kb/Work PB1234 - a floating-point CONTROL operand needs a
       *> floating-point data item, and USAGE FLOAT-LONG (like the rest
       *> of the float trio) is a COBOL-2002 introduction, refused at 85
-      *> by its introduction gate (COBOLNET0900). The positive twin is
+      *> by its introduction gate (COBOL0900). The positive twin is
       *> conformance:cases/13.18.16-CONTROL/pb1234_report_control_float.
       *> "For each data-name-1 an internal data item, known as a prior
       *> control, is implicitly defined, having the same data

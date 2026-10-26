@@ -17,7 +17,7 @@ namespace CobolNet.Runtime;
 /// <c>IntrinsicRenderer.RenderNum</c>'s standard-mode arm; an all-fixed-point argument list stays on the
 /// exact Int128 family (documented equivalence — <c>COBOLNET_NUMERIC_DESIGN.md</c> D3).</para>
 /// <para>The four financial/statistical functions (ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION)
-/// were staged LOUD (COBOLNET0899) "until CobolDec evaluations land" — these are those evaluations, so the
+/// were staged LOUD (COBOL0899) "until CobolDec evaluations land" — these are those evaluations, so the
 /// stage is removed in the same change set. Their EAEs are Add/Sub/Mul/Div/Pow chains, all existing
 /// <see cref="CobolDec"/> operations; STANDARD-DEVIATION's square root is a prose approximation
 /// (§15.4.1 last ¶ — no EAE), computed in binary64 and converted in per §8.8.1.5.1, exactly like the

@@ -6,7 +6,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB1129 - the RD CODE clause (ISO 13.18.12), literal form. It was refused COBOLNET0899 in every form.
+      *> kb/Work PB1129 - the RD CODE clause (ISO 13.18.12), literal form. It was refused COBOL0899 in every form.
       *>
       *> RULES (cite.py --check, all OK):
       *> 13.18.12.4 GR1: "When the CODE clause is specified, literal-1 or identifier-1 is automatically placed in

@@ -12,7 +12,7 @@
       *> H returns a CIND, which IMPLEMENTS IIND - interface-2 is reached.
       *> IIND's M returns an IHOP, whose H returns a CIND - interface-1 is
       *> reached. Neither M names the other interface itself, and the pair
-      *> still does not conform: COBOLNET0841.
+      *> still does not conform: COBOL0841.
        IDENTIFICATION DIVISION.
        INTERFACE-ID. IHOP.
        ENVIRONMENT DIVISION.

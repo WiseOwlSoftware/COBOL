@@ -27,7 +27,7 @@ public class Violations
     {
         // TODO: this is the silent-no-op shape the loud-failure invariant forbids  <- cobolnet-no-silent-todo
         // The bypass shape is a bare code literal passed to an emit API, not merely the string existing:
-        Emit(Severity.Error, "COBOLNET1999", "bypasses the catalog");   // cobolnet-raw-diagnostic-code-literal
+        Emit(Severity.Error, "COBOL1999", "bypasses the catalog");   // cobolnet-raw-diagnostic-code-literal
     }
 
     private enum Severity { Error }

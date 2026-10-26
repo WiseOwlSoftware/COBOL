@@ -7,7 +7,7 @@
       *> kb/Work PB1425 - the object-view (ISO 8.4.3.1.2 Format 5, 8.4.3.5) is object-orientation surface
       *> introduced with COBOL-2002 (constructs.json object-view-2002: A.4.10 does not list it among the
       *> optional OO elements, Annex E's 2014->2023 delta does not list it). The program uses no other
-      *> OO construct, so the COBOLNET0900 below names the object-view itself; the positive twin is
+      *> OO construct, so the COBOL0900 below names the object-view itself; the positive twin is
       *> conformance-suite/cases/8.4.3.1-Identifier/pb1425_object_view.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1425W0.

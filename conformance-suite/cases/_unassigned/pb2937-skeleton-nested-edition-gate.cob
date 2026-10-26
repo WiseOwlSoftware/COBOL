@@ -12,7 +12,7 @@
       *> every expansion, and a multi-character ALL literal is not
       *> permitted to be associated with a numeric item (8.3.3.6.3
       *> SR3; cite.py --check 8.3.3.6.3 -> OK 8.3.3.6.3 3)), removed in
-      *> COBOL-2002: COBOLNET0902 in the skeleton, whether or not
+      *> COBOL-2002: COBOL0902 in the skeleton, whether or not
       *> anything expands the class. The deferred IF used to hide its
       *> branches from the edition pass, and this compiled clean.
        IDENTIFICATION DIVISION.
