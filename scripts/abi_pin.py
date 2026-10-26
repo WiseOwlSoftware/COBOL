@@ -37,6 +37,7 @@ from typing import Callable
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from test_population import scrubbed_env  # noqa: E402  (scripts/: the gate-environment scrub, kb/Work PB1718)
+from standard_streams import ensure_utf8  # noqa: E402
 
 PIN_PATH = "src/Cobol.Net.Runtime/RuntimeAbi.pin"
 PROPS_PATH = "Directory.Build.props"
@@ -275,4 +276,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

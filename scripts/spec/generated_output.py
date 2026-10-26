@@ -20,6 +20,8 @@ import sys
 import tempfile
 from pathlib import Path
 from typing import Callable
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: How many of the foreign entries a refusal names before it counts the rest.
 _SHOWN = 5
@@ -90,6 +92,7 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--self-test", action="store_true", required=True, help="prove every arm on planted directories")
     parser.parse_args()

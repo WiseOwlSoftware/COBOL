@@ -63,6 +63,7 @@ from test_population import GATED_ASSEMBLIES as ASSEMBLIES, PopulationError, lis
 # spawned with `**slot.spawn_kwargs()`, or a Linux child runs outside the cap and a build server outlives the slot.
 from gate_slot import GateSlots, Slot  # noqa: E402
 import external_corpus  # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
 
 SCHEMA = 2
 # The assemblies whose execution the map records — keep in step with tools/impact/ImpactRecording.targets.
@@ -224,10 +225,6 @@ def check(m: dict) -> list[str]:
 
 
 def main() -> int:
-    # The docstring and the progress lines carry '⛔' and '⚠': a cp1252 console made `--help` itself crash.
-    for stream in (sys.stdout, sys.stderr):
-        if hasattr(stream, "reconfigure"):
-            stream.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--commit", default="HEAD")
     ap.add_argument("--assemblies", default=",".join(ASSEMBLIES), help="comma-separated: " + ",".join(ASSEMBLIES))
@@ -239,10 +236,6 @@ def main() -> int:
     ap.add_argument("--keep", action="store_true", help="keep the detached worktree afterwards")
     ap.add_argument("--priority", default="BelowNormal", choices=["Normal", "BelowNormal", "Idle"])
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
-    except Exception:  # noqa: BLE001
-        pass
 
     sha = git("rev-parse", args.commit)
     store = (args.store or default_store()).resolve()
@@ -375,4 +368,5 @@ def record(args: argparse.Namespace, sha: str, store: Path, wt: Path, raw: Path,
 
 
 if __name__ == "__main__":
+    ensure_utf8(line_buffering=True)  # the progress lines are read while the recording runs
     sys.exit(main())

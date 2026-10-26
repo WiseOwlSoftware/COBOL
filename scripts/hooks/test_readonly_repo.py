@@ -9,6 +9,9 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from scratch_repo import scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
+from standard_streams import ensure_utf8  # noqa: E402
+
+ensure_utf8()
 
 HOOK = pathlib.Path(__file__).with_name("readonly_repo.py")
 REPO = pathlib.Path(__file__).resolve().parents[2]

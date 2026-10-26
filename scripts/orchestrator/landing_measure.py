@@ -71,6 +71,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import coord  # noqa: E402
 import ruleset  # noqa: E402
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = HERE.parents[1]
 FILE = "landing-measurements.jsonl"
@@ -191,7 +193,8 @@ def validate(rec: dict) -> dict:
 
 def patch_record(existing: dict | None, patch: dict) -> dict:
     """`existing` with every non-None field of `patch` laid over it, validated. The FIRST `enqueued` and `done_each`
-    are kept and `done` only moves earlier: a re-enqueue after a bounce is the same landing, still waiting."""
+    are kept and `dispatched` and `done` only move earlier: a re-enqueue after a bounce is the same landing, still
+    waiting (a later dispatch is a finisher's, inside the wait the first one began)."""
     rec = {"schema": SCHEMA, "pr": patch["pr"], "branch": None, "changes": 1, "dispatched": None, "done": None,
            "review_clean": None,
            "enqueued": None, "merged": None, "bounces": None, "bounce_causes": [], "pre_queue_reds": None,
@@ -206,7 +209,7 @@ def patch_record(existing: dict | None, patch: dict) -> dict:
             continue
         if k in ("enqueued", "done_each") and rec.get(k):
             continue
-        if k == "done" and rec.get("done") and iso_time(v) >= iso_time(rec["done"]):
+        if k in ("dispatched", "done") and rec.get(k) and iso_time(v) >= iso_time(rec[k]):
             continue
         rec[k] = v
     return validate(rec)
@@ -510,7 +513,7 @@ def local_gate(worktree: pathlib.Path) -> tuple[float, int] | None:
 
 
 def stage_times(branch: str, reports_dir: pathlib.Path, coord_dir: pathlib.Path, done: str | None,
-                enqueued: str) -> dict:
+                enqueued: str, existing: dict | None = None) -> dict:
     """The two stamps no tool records as it happens, read back when the pull request is queued (kb/Work PB3638: the
     owner's fix-cycle bar is measured per stage, and `review_clean` had been recorded for 0 of 540 landings):
       dispatched    the dispatch ledger's time (`at`, plan_wave.record_dispatch) of the EARLIEST dispatch still
@@ -522,8 +525,16 @@ def stage_times(branch: str, reports_dir: pathlib.Path, coord_dir: pathlib.Path,
                     skipped, review_findings.load refuses it).
     A stamp that would break the order a landing passes (review_clean before `done` or after `enqueued`, dispatched
     after any later stamp) is None: a missing observation, never a guessed one, and never a record `validate` refuses
-    (enqueue.py would then write no record at all)."""
+    (enqueue.py would then write no record at all).
+    `existing` is the pull request's record from an earlier enqueue, when there is one: the stamps are bounded by what
+    the record WILL hold once `patch_record` has laid this call over it (the FIRST `enqueued`, the earliest `done`, the
+    `review_clean` and `dispatched` it already carries), not by this call's times alone. A re-enqueue after a bounce and
+    a re-review is the same landing, still waiting: its second CLEAN verdict follows the first enqueue and stays out of
+    the record (kb/Work PB3710), where it would make `enqueued` precede `review_clean`."""
     import plan_wave  # noqa: PLC0415  (THE report and dispatch-ledger reader)
+    old = existing or {}
+    enqueued = old.get("enqueued") or enqueued
+    done = min((x for x in (done, old.get("done")) if x), key=iso_time, default=None)
     import review_findings  # noqa: PLC0415  (THE findings-file reader)
     reps = plan_wave.load_reports(reports_dir)
     mine = [r for r in reps if r.branch == branch and r.finished]
@@ -547,7 +558,7 @@ def stage_times(branch: str, reports_dir: pathlib.Path, coord_dir: pathlib.Path,
                 break
     if clean and ((done and iso_time(clean) < iso_time(done)) or iso_time(clean) > iso_time(enqueued)):
         clean = None
-    if dispatched and iso_time(dispatched) > min(iso_time(x) for x in (done, clean, enqueued) if x):
+    if dispatched and iso_time(dispatched) > min(iso_time(x) for x in (done, clean or old.get("review_clean"), enqueued) if x):
         dispatched = None
     return {"dispatched": dispatched, "review_clean": clean}
 
@@ -558,11 +569,16 @@ def record_enqueued(path: pathlib.Path, worktree: pathlib.Path, branch: str, pr:
     """What `enqueue.py queue` can record the moment a pull request is queued: the branch, the enqueue time, each
     carried change's finish (`done_times`, run in the landing worktree), the dispatch and review-clean times
     (`stage_times`, from the coordination directory that holds `path`) and the local gate seconds from the worktree's
-    verdict.json files. `changes` defaults to the changes found (one per lead note), else 1."""
+    verdict.json files. `changes` defaults to the changes found (one per lead note), else 1. A pull request already
+    recorded is judged against its FIRST enqueue, by `done_times` and `stage_times` alike, so the re-enqueue's update
+    is never one `validate` refuses (kb/Work PB3710)."""
     at = enqueued or now_iso()
     g = local_gate(worktree)
-    each = done_times(branch, reports_dir, at, git or git_runner(worktree))
-    stages = stage_times(branch, reports_dir, path.parent, each[0] if each else None, at)
+    old = next((r for r in read_all(path) if r.get("pr") == pr), None)    # an earlier enqueue of this pull request
+    # a re-enqueue after a bounce is the same landing, still waiting since its FIRST enqueue (`patch_record` keeps it):
+    # a change finished after that time is no DONE of this landing, so it is not written (kb/Work PB3710)
+    each = done_times(branch, reports_dir, (old or {}).get("enqueued") or at, git or git_runner(worktree))
+    stages = stage_times(branch, reports_dir, path.parent, each[0] if each else None, at, old)
     return record(path, {"pr": pr, "branch": branch, "changes": changes or len(each) or None, "enqueued": at,
                          "done": each[0] if each else None, "done_each": each, **stages,
                          "local_gate_s": round(g[0], 1) if g else None, "local_gate_runs": g[1] if g else None,
@@ -730,8 +746,10 @@ ARMS = ("a record is a patch: later calls fill fields, the first enqueue time st
         "a queue stall is recorded once per read with its cause and what the watch did, never as a bounce (complete "
         "re-reads the bounces and keeps the stalls), a malformed stall is refused, and summary counts the stalls",
         "the dispatch and review-clean stamps are read at enqueue from the dispatch ledger and the CLEAN verdict's "
-        "findings record, a stamp out of order stays null, and summary prints each stage and marks a span over the "
-        "owner's bar")
+        "findings record, a stamp out of order stays null, a re-enqueue after a bounce and a re-review is bounded by "
+        "the record's first enqueue, for its DONE and its CLEAN alike (its record is never refused, kb/Work PB3710), "
+        "and summary prints each stage and "
+        "marks a span over the owner's bar")
 
 
 def _self_test(tmp: pathlib.Path) -> list[str]:
@@ -852,7 +870,47 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
             or early["dispatched"] is not None or late["review_clean"] is not None
             or stage_times("zz", srd, sc, None, t("09:40")) != {"dispatched": None, "review_clean": None}):
         fails.append(f"{stage_arm}: {st} / {early} / {late}")
-    srec = [patch_record(None, {"pr": 81, "branch": "b81", "dispatched": t("08:00"), "done": t("08:20"),
+    # kb/Work PB3710: enqueued 09:40 (CLEAN 09:20), a bounce, a re-review CLEAN at 10:00, re-enqueued 10:10: the same
+    # landing, still waiting since 09:40, so the re-review is out of order against the record and is not written
+    commits["abcdef12"] = t("09:00")
+    again = sc / "enqueued.jsonl"
+    first = record_enqueued(again, tmp / "no-worktree", "bs", 90, srd, enqueued=t("09:40"), git=fake_git())
+    with open(sc / "scratch" / "w5" / "review-w5-a.jsonl", "a", encoding="utf-8", newline="\n") as f:
+        f.write(json.dumps({"kind": "verdict", "round": 2, "branch": "bs", "head": "abcdef12",
+                            "reviewer": "w5a-review-r1", "verdict": "CLEAN", "findings": 0,
+                            "blocking": ["critical", "high", "medium"], "leads": [], "at": t("10:00")}) + chr(10))
+    try:
+        second = record_enqueued(again, tmp / "no-worktree", "bs", 90, srd, enqueued=t("10:10"), git=fake_git())
+    except ValueError as e:
+        second = {"refused": str(e)}
+    if (first["enqueued"], first["review_clean"], first["done"]) != (t("09:40"), t("09:20"), t("09:00")) \
+            or (second.get("enqueued"), second.get("review_clean"), second.get("done")) \
+            != (t("09:40"), t("09:20"), t("09:00")):
+        fails.append(f"{stage_arm}: a re-enqueue after a re-review: first {first}, second {second}")
+    # the same for DONE: b170 is first enqueued at 05:00 with no DONE report (its report's HEAD is committed 06:00),
+    # bounces, is finished after that enqueue and re-enqueued at 07:00: the finish follows the first enqueue, is no
+    # DONE of this landing, and used to make `done` follow `enqueued` so the record was refused (review finding R1-1)
+    redone = sc / "redone.jsonl"
+    d1 = record_enqueued(redone, tmp / "no-worktree", "b170", 93, rd, enqueued=t("05:00"), git=fake_git())
+    try:
+        d2 = record_enqueued(redone, tmp / "no-worktree", "b170", 93, rd, enqueued=t("07:00"), git=fake_git())
+    except ValueError as e:
+        d2 = {"refused": str(e)}
+    if (d1["done"], d1["done_each"], d2.get("enqueued"), d2.get("done"), d2.get("done_each")) \
+            != (None, [], t("05:00"), None, []) \
+            or done_times("b170", rd, t("07:00"), fake_git()) != [t("06:00")]:
+        fails.append(f"{stage_arm}: a re-enqueue with a DONE after the first enqueue: first {d1}, second {d2}")
+    # a re-enqueue that finds the first one's clean stamp missing still bounds the new one by the first enqueue
+    # (stage_times alone: the record is the caller's), and an earlier dispatch is never replaced by a later one
+    bare = {"pr": 91, "branch": "bs", "enqueued": t("09:40"), "done": t("09:00")}
+    if stage_times("bs", srd, sc, t("09:00"), t("10:10"), bare)["review_clean"] is not None \
+            or stage_times("bs", srd, sc, t("09:00"), t("10:10"))["review_clean"] != t("10:00"):
+        fails.append(f"{stage_arm}: stage_times ignored the record's first enqueue")
+    later = patch_record(patch_record(None, {"pr": 92, "branch": "b92", "dispatched": t("08:00")}),
+                         {"pr": 92, "dispatched": t("08:30")})
+    if later["dispatched"] != t("08:00"):
+        fails.append(f"{stage_arm}: a later dispatch replaced the first: {later['dispatched']}")
+    srec =[patch_record(None, {"pr": 81, "branch": "b81", "dispatched": t("08:00"), "done": t("08:20"),
                                 "review_clean": t("08:40"), "enqueued": t("09:00"), "merged": t("09:10")}),
             patch_record(None, {"pr": 82, "branch": "b82", "enqueued": t("10:00"), "merged": t("10:40")})]
     stext = "\n".join(summarize(srec, []))
@@ -1033,11 +1091,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str]) -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-        sys.stderr.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     a = parser().parse_args(argv)
     if a.self_test:
         return self_test()
@@ -1064,4 +1117,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))

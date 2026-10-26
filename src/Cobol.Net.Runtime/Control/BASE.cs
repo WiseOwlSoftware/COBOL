@@ -52,6 +52,8 @@ public class BASE : CobolObject
         if (CobolNames.Same(name, "FACTORYOBJECT")   // the normalized key is the Annex C fold (PB1402)
             && StandardMethodCrossing.Matches(args, returning, StandardMethodCrossing.FactoryObjectReturning))
         {
+            CheckActiveClassReturning(true, "INVOKE 'FactoryObject'", returning!.Description,
+                StandardMethodCrossing.FactoryObjectReturning);   // §14.8.3.3 rule 2 b) 4. (kb/Work PB2985)
             returning!.Value = __FactoryObject();
             return;
         }
@@ -119,6 +121,8 @@ public class __FACTORY_BASE : CobolObject
         if (CobolNames.Same(name, "NEW")   // the normalized key is the Annex C fold (PB1402)
             && StandardMethodCrossing.Matches(args, returning, StandardMethodCrossing.NewReturning))
         {
+            CheckActiveClassReturning(true, "INVOKE 'New'", returning!.Description,
+                StandardMethodCrossing.NewReturning);   // §14.8.3.3 rule 2 b) 4. (kb/Work PB2985)
             returning!.Value = __New();
             return;
         }
@@ -135,9 +139,10 @@ public class __FACTORY_BASE : CobolObject
 /// Rule 6 is the §14.9.39.3 table over the two descriptions (kb/Work PB2463): an ACTIVE-CLASS sender's class is "the
 /// class containing the data item" (SR12 b) 2.), here the standard class BASE, so New and FactoryObject match a
 /// universal receiving item, one described with BASE (FACTORY OF BASE for FactoryObject) and an ACTIVE-CLASS one of the
-/// same FACTORY presence (SR14 a)). Whether the returned object's CLASS conforms to the receiving item is then a question
-/// only the object can answer, so the caller's delivery asks it (<see cref="CobolObject.NarrowUniversal{T}"/>; §14.8.3.3
-/// rule 2).</summary>
+/// same FACTORY presence (SR14 a)). The bound method's conformance is §14.8.3.3 rule 2 b) 4.: invoked through a universal
+/// reference, the ACTIVE-CLASS item is sent as a universal reference, so a typed receiving item raises EC-OO-UNIVERSAL
+/// (<see cref="CobolObject.CheckActiveClassReturning"/>, asked by both methods; kb/Work PB2985) and the caller's delivery
+/// narrowing (<see cref="CobolObject.NarrowUniversal{T}"/>) is the floor when checking is off.</summary>
 internal static class StandardMethodCrossing
 {
     /// <summary>The standard class BASE as an ACTIVE-CLASS description's class facts: §16.1 gives it no superclass, and

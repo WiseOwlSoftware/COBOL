@@ -93,7 +93,7 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                 cause or one main fails the same way, kb/Work PB3526), exit 9 (GitHub refused the push, the PR or the
                 queue), or a runner that DIED                     retried ONCE at this head (enqueue.md's own rule)
        exit 8 — QUEUE NOT ACTIVE                                   HALT (above); relaunched once the halt is cleared
-       anything else — CONFLICT 4, GATE RED 5 (a branch-carried GATE NOT RUN too), a DEVLOG refusal 6,
+       anything else — CONFLICT 4, GATE RED 5 (a branch-carried GATE NOT RUN too), a DEVLOG or register refusal 6,
                 UNREVIEWED 11, UNTESTED 14 (no recorded GREEN local gate covers the tip, kb/Work PB3612), an exit
                 2 or 9 retried once already                       STOPPED: never relaunched at this head unless
                                                                    re-armed; the enqueue unit dispatches its finisher
@@ -144,6 +144,7 @@ from enqueue import (EXIT_CONFLICT, EXIT_DRIVER_FILE_QUEUED, EXIT_GATE_BUSY, EXI
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 from detached import spawn_detached  # noqa: E402  (THE one way a process outlives its caller, kb/Work PB3536)
 import verdict_line  # noqa: E402  (scripts/: the one home of the `=== ENQUEUE: ` verdict line, kb/Work PB3714)
+from standard_streams import ensure_utf8  # noqa: E402
 
 LANE_DIR = "land-lane"
 ATTEMPTS = "attempts"
@@ -2093,7 +2094,8 @@ def self_test() -> int:
         # ... recorded by the runner on exit 4, pointed to by the status line, printed by `conflict-brief`
         c17 = fresh("conflict")
         fake4 = [sys.executable, "-c",
-                 "import sys; sys.stdout.reconfigure(encoding='utf-8'); "   # enqueue.py's own output encoding
+                 f"import sys; sys.path.append({str(HERE.parent)!r}); "  # as enqueue.py starts: its streams in UTF-8
+                 "from standard_streams import ensure_utf8; ensure_utf8(); "
                  f"print({verdict_line.render(verdict_line.conflict_outcome(['scripts/x.py']), 'wbrief')!r}); "
                  "raise SystemExit(4)"]
         r17 = {"name": "wbrief", "state": "WAITING TO LAND", "tip": cbr.git("rev-parse", "HEAD"),
@@ -2163,10 +2165,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     ap = argparse.ArgumentParser(description=__doc__.split(chr(10))[0])
     ap.add_argument("--self-test", action="store_true")
     ap.add_argument("--coord", help=f"the coordination directory (default ${coord.ENV} or {coord.DEFAULT})")
@@ -2224,4 +2222,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

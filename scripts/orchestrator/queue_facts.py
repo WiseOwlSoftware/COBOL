@@ -49,6 +49,8 @@ from typing import Callable
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import ruleset  # noqa: E402  (its gh runner: a hang guard, and Unobserved on any failure to read; the required contexts)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 Gh = Callable[[list[str]], tuple[int, str, str]]
 #: A check-run conclusion that keeps a required check from passing (GraphQL CheckConclusionState).
@@ -560,10 +562,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    try:
-        sys.stdout.reconfigure(encoding='utf-8')
-    except AttributeError:
-        pass
     ap = argparse.ArgumentParser(description=__doc__.split(chr(10))[0])
     ap.add_argument('--self-test', action='store_true')
     a = ap.parse_args(argv)
@@ -582,4 +580,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == '__main__':
+    ensure_utf8()
     sys.exit(main())
