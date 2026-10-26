@@ -79,7 +79,7 @@ const RETURN_LINE =
 // relative run name is the agent's WORKTREE's run, never the main checkout's: run_gate_legs.resolve_run) and returns
 // its exit code and line. Exit 0 (GREEN) continues exactly as a DONE return carrying that verdict: the finished test
 // (the report's `Status: GATE-PENDING` is finished only when its gate run is GREEN at its HEAD,
-// plan_wave.Report.finished), then the branch review. Any other verdict (RED; NOT RUN, a process that DIED among them;
+// reports.Report.finished), then the branch review. Any other verdict (RED; NOT RUN, a process that DIED among them;
 // BUSY, a gate that never ran) goes to a GATE FINISHER, at most `gate_fix_rounds`. No verdict by
 // the last window, or the ceiling, is STALLED. Before PB3536 the wave read any non-DONE as SPLIT and the next wave's
 // finisher re-ran the same gate at the same head (wave 1150 group A's review finisher, whose gate the return killed).
@@ -388,7 +388,7 @@ function fixFindings(g, r, v, round) {
 }
 
 // THE FINISHED TEST (kb/Work PB3181). A branch with finished work is the one its REPORT calls finished: DONE, or
-// DISCHARGED with a HEAD past its base. That predicate lives ONCE, in Python (plan_wave.Report.finished), because the
+// DISCHARGED with a HEAD past its base. That predicate lives ONCE, in Python (reports.Report.finished), because the
 // branch survey (prune_worktrees.py) reads the same report to decide WAITING TO LAND; this wave kept its own copy
 // (`hasWork`) of the return's claim, so a DONE return whose report had no status line was reviewed, stamped CLEAN and
 // then never landed (w1080f, 2026-10-15). A workflow script has no process API, so ONE mechanical cobol-locator runs

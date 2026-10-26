@@ -46,9 +46,9 @@ landing's ACTUAL diff with its declared set and with every in-flight branch (DES
 
   * its MEMBERS: the members its site blocks name in a file (`path#Member`, `path (`member`, …)`, work.NoteSites.members)
     for a site file that is no caller; the planner's partition meets on those, and on every other file whole
-    (plan_wave.collision, scripts/arch/source_units.py; kb/Work PB3670).
+    (inflight.collision, scripts/arch/source_units.py; kb/Work PB3670).
 
-Callers: `plan_wave.declared_sets` (the planner's collision check, `file_set_collisions`, the spec renderer's and the
+Callers: `inflight.declared_sets` (the planner's collision check, `file_set_collisions`, the spec renderer's and the
 landing check's computed set, all on THE index of the tree: kb/Work PB3203) returns `note_file_set`'s `files` and
 `members`, and
 `work.py check` fails an open PB2119 note whose names are unknown (on `load()`: the newest committed record, a check
@@ -178,7 +178,7 @@ def _records(repo: Path) -> list[dict]:
 def load(repo: Path = REPO) -> dict:
     """The newest committed index (by commit date), for the readers bounded by time that widen by drift (work.py
     check's unknown-name rule, `--note`); the planner, the spec renderer and the landing check read THE index of the
-    tree instead (plan_wave.IndexPolicy, kb/Work PB3203). A missing index is a refusal: a file set is never guessed."""
+    tree instead (inflight.IndexPolicy, kb/Work PB3203). A missing index is a refusal: a file set is never guessed."""
     found = _records(repo)
     if not found:
         raise SystemExit(f"⛔ no schema-{SCHEMA} member index under {RECORD_DIR}: run "
@@ -352,11 +352,11 @@ def callers(index: dict, names: list[str], repo: Path = REPO, drifted: dict[str,
 def note_file_set(text: str, repo: Path = REPO, index: dict | Callable[[], dict] | None = None,
                   drifted: dict[str, str] | Callable[[], dict[str, str]] | None = None) -> dict:
     """{sites, names, how, unknown, files, members, sited, index} of one note: its DECLARED set (DESIGN-architecture-review
-    §8.7; kb/Work PB3242, PB3670), what plan_wave.declared_sets returns and file_census_notes renders. `files` is its
+    §8.7; kb/Work PB3242, PB3670), what inflight.declared_sets returns and file_census_notes renders. `files` is its
     structured sites (work.note_sites: the files they name, and, for a RESTRUCTURING note only, every tracked code file
     under a folder they name) plus every caller the index finds of the names it moves or changes. `members` is {file:
     the members its sites name in it} for the site files every mention of which names members (work.NoteSites.members)
-    and that are no caller: the partition reads those by member and every other file whole (plan_wave.collision).
+    and that are no caller: the partition reads those by member and every other file whole (inflight.collision).
     A FIX-LANE note's folder site reserves NOTHING (kb/Work PB3670): a fix changes files, and a folder named as where
     to look (`Binding/`, `src/Cobol.Net.Runtime`) once reserved its whole subsystem (234 and 222 files for wave
     20261032's groups A and B), holding every unrelated fix on any file under it. A restructuring note that moves or
