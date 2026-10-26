@@ -19,6 +19,11 @@ if ($unpushed) { Write-Host "⚠ UNPUSHED commits: $(@($unpushed).Count)" } else
 # Only the session can arm one (a background Bash task, whose exit wakes it), so the probe — which the SessionStart hook
 # runs at every start, resume, clear and compaction — prints a ⛔ with the command whenever none is armed.
 & python scripts/orchestrator/mailbox.py status 2>&1 | ForEach-Object { Write-Host $_ }
+# The auto-memory index rides EVERY turn of every session and agent (kb/Work PB3779: 19.5K chars, about 4.9K tokens a turn,
+# $75 a week). The cap and the key of its path live once, in account.py; the probe prints its line and flags it over the
+# cap, so the drift is seen when it starts instead of measured once.
+$memoryLine = & python scripts/orchestrator/account.py --memory-index 2>&1
+Write-Host "$(if ($LASTEXITCODE -ne 0) { '⛔ ' })$(@($memoryLine) -join ' ')"
 
 # 2. Diagnostic band — the next-free rule (the CEILING of the src scan, the catalog scan and every code already
 #    reserved for an in-flight worktree) lives ONCE, in scripts/orchestrator/alloc.py (`code_scans`, which carries
