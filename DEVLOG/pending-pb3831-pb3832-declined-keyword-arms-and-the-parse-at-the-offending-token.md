@@ -101,4 +101,8 @@ counted only while its invocation can still take a token (the IF an END-IF just 
 `IF … IF … END-IF END-IF END-IF`). Witnesses: `ParseRecoveryHintTruthTests` `AMissingSeparatorPeriod_IsNamedOnTheFaultsOneReport`
 (PBHT31..37, at depth 0, inside an open IF and inside the open nest) and `AScopeTerminatorOutsideItsStatement_NamesTheStatement`
 (PBHT13..18, each asserting the one COBOL0306). The reviewer's probe set (missing period after MOVE, DISPLAY, ADD, IF,
-COMPUTE, STOP RUN, READ; a stray END-IF, END-ADD, END-PERFORM) now draws main's diagnosis once.
+COMPUTE, STOP RUN, READ; a stray END-IF, END-ADD, END-PERFORM) now draws main's diagnosis once. Before the gate the
+whole Conformance population (18,857) and the whole Unit population ran green locally but for the two absent-corpus
+environment tests.
+
+Review-round-2 gate (run 000001-20261026T211413Z, head 83cb6de35): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,303/18,857, Unit 37,263/38,449, Characterization 36/36 cases ran; Linux half (WSL clone of HEAD) GREEN).
