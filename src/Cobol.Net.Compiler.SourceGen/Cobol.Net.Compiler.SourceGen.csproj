@@ -26,4 +26,36 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
   </ItemGroup>
 
+  <!--
+    A LONG-LIVED PROCESS THAT LOADED THIS ANALYZER MUST NOT BLOCK THE NEXT BUILD (kb/Work PB3674). A C# language
+    server (csharp-ls, the LSP tool of MANDATORY-PRACTICES P13) loads this assembly straight from bin\ and keeps it
+    loaded for the life of its session, long after the agent that asked for a definition has returned. Windows will
+    not let a build OVERWRITE a loaded image (MSB3027/MSB3021 "locked by"), so every later build in that worktree
+    (the landing's ABI-pin settle, a finisher's gate) failed as if the branch were broken. A loaded image CAN be
+    renamed, so a build whose fresh output differs from the file already in bin\ first tries to delete the old file
+    and, when it is held, moves it aside as <name>.<guid>.held; the holder keeps its (now renamed) file, the build
+    writes the new one, and the next build deletes the held copies it can. An unchanged output is left alone (equal
+    timestamps: the copy skips it), so incremental builds stay incremental. If the file can be neither deleted nor
+    renamed, the copy fails as before, loudly. A delete that does not succeed is the expected case, not a warning
+    (this project builds with warnings as errors).
+  -->
+  <PropertyGroup>
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3061</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+  <Target Name="MoveAsideHeldOutput" BeforeTargets="CopyFilesToOutputDirectory">
+    <PropertyGroup>
+      <_FreshOutput>@(IntermediateAssembly->'%(FullPath)')</_FreshOutput>
+      <_FreshName>@(IntermediateAssembly->'%(Filename)%(Extension)')</_FreshName>
+      <_BinOutput>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(OutDir)', '$(_FreshName)'))</_BinOutput>
+      <_BinOutputIsStale Condition="Exists('$(_BinOutput)') And $([System.IO.File]::GetLastWriteTime('$(_FreshOutput)').Ticks) != $([System.IO.File]::GetLastWriteTime('$(_BinOutput)').Ticks)">true</_BinOutputIsStale>
+    </PropertyGroup>
+    <ItemGroup>
+      <_HeldOutput Include="$(_BinOutput).*.held" />
+    </ItemGroup>
+    <Delete Files="@(_HeldOutput)" ContinueOnError="true" />
+    <Delete Condition="'$(_BinOutputIsStale)' == 'true'" Files="$(_BinOutput)" ContinueOnError="true" />
+    <Move Condition="'$(_BinOutputIsStale)' == 'true' And Exists('$(_BinOutput)')" SourceFiles="$(_BinOutput)"
+          DestinationFiles="$(_BinOutput).$([System.Guid]::NewGuid().ToString('N')).held" />
+  </Target>
+
 </Project>

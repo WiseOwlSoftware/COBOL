@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1034_cce_printed_relational_operators
 *> rules: [FMT-8.7.5.1]
-*> accept: [2002]
+*> accept: [2014]
 *> source-format: free
 *> portable: unverified
 *>---

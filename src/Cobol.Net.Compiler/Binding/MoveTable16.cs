@@ -140,10 +140,12 @@ public readonly record struct MoveRefusal(MoveRule Rule, string Reason);
 /// <para>
 /// ⚠ WHAT STAYS OUTSIDE: §14.9.25.3 SR5's figurative→numeric prohibition for HIGH-VALUE, LOW-VALUE, QUOTE and the
 /// ALL literal, whose three edition rows (permitted through 2014, removed at 2023, and the surviving
-/// digit-only-ALL-to-integer exception) live in ONE place, <c>VersionConformancePass.GateSr5</c> — an edition-gated
-/// policy, not a flat refusal, so it is not expressible as a <see langword="string"/>? here. It has two askers there:
-/// <c>GateMove</c> (every bound MOVE, per receiver) and <c>GateInitialize</c> (INITIALIZE REPLACING's hypothetical
-/// MOVE, per category — kb/Work PB879). SR5's SPACE arm is NOT outside: SPACE into a numeric or numeric-edited item is
+/// digit-only-ALL-to-integer exception) live in ONE place, <c>FigurativeAssociation.GateSr5</c> — an edition-gated
+/// policy, not a flat refusal, so it is not expressible as a <see langword="string"/>? here. It has three askers:
+/// <c>VersionConformancePass.GateMove</c> (every bound MOVE, per receiver), <c>VersionConformancePass.GateInitialize</c>
+/// (INITIALIZE REPLACING's hypothetical MOVE, per category — kb/Work PB879) and
+/// <c>ParameterConformance.GateFigurativeEdition</c> (a figurative argument BY CONTENT into the formal parameter
+/// §14.8.2.3.3 rule 2 d) gives the MOVE rules — kb/Work PB3755). SR5's SPACE arm is NOT outside: SPACE into a numeric or numeric-edited item is
 /// prohibited at every edition (kb/Work PB3605), so it is a flat refusal and <see cref="MoveValidity.FigurativeRefusal"/>
 /// answers it beside SR6 and SR7.
 /// </para>
@@ -240,7 +242,7 @@ public static class MoveTable16
         // reading of such a view, not against SR6 — which the standard states unconditionally, with no reference
         // to the table. Asked and answered rather than left to be rediscovered.
         // §14.9.25.3 SR5's SPACE arm rides the same reader (kb/Work PB3605): it is prohibited at every edition, so it
-        // is a flat refusal here and not one of VersionConformancePass.GateSr5's edition rows.
+        // is a flat refusal here and not one of FigurativeAssociation.GateSr5's edition rows.
         return sender is BoundFigurative or BoundAllLiteral
             ? MoveValidity.FigurativeRefusal(FigurativeSenderOf(sender), receiver.Heading)
             : null;
@@ -325,7 +327,7 @@ public static class MoveTable16
     /// pair is formed (<c>CorrespondingBinder.CorrEligible</c>), where SR1 as written reaches only the sender.
     /// Adding it here would put two mechanisms on one question, which is what this class exists to prevent.</para>
     /// <para>⚠ AND NEITHER IS SR5's figurative→numeric prohibition, for the reason the class header gives: its
-    /// three edition rows live in <c>VersionConformancePass.GateSr5</c>, and a figurative constant is not a data
+    /// three edition rows live in <c>FigurativeAssociation.GateSr5</c>, and a figurative constant is not a data
     /// item, so no operand this entry can be given could reach it.</para>
     /// </summary>
     public static string? DataItemRefusal(DataItem sender, DataItem receiver) =>

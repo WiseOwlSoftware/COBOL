@@ -172,7 +172,7 @@ public static class MoveValidity
     /// (ISO/IEC 1989:2002 clause 14.8.24.2 SR5; the same sentence in the 2009 committee draft that led to 2014), and
     /// its Annex G.1 item 2 names "any figurative constant except SPACE" as the archaic move. The 1985 edge is derived
     /// (VCR row 7.41). SR5's other arms (HIGH-VALUE, LOW-VALUE, QUOTE, an ALL literal) were permitted through 2014, so
-    /// they are edition rows rather than refusals, and <c>VersionConformancePass.GateSr5</c> owns them.</item>
+    /// they are edition rows rather than refusals, and <c>FigurativeAssociation.GateSr5</c> (compiler side) owns them.</item>
     /// <item>SR6: "The figurative constant ZERO shall not be moved to an alphabetic data item."</item>
     /// <item>SR7: "Any figurative constant for which the associated character or characters are not boolean characters
     /// shall not be moved to a boolean data item". ZERO is boolean zeros in a boolean context (§8.3.3.6.4 GR4), and an

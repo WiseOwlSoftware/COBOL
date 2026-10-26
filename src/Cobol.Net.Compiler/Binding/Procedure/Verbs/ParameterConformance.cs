@@ -101,6 +101,35 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
                 // §14.8.2 as a whole, as the BY REFERENCE arm says it: the reason names its own subclause —
                 // §14.8.2.3.3 for an elementary formal, §14.8.2.2 rule 2 for a group one (kb/Work PB1617).
                 + $"(ISO §14.8.2 via {site.ImportingRule})");
+        else if (arg.Mode is CobolPassMode.Content)
+            GateFigurativeEdition(formal, arg.Value, $"{site.Callee} argument {position}");
+    }
+
+    /// <summary>⛔ §14.9.25.3 SR5's EDITION ROWS FOR A FIGURATIVE ARGUMENT BY CONTENT (kb/Work PB3755). §14.8.2.3.3 rule 2
+    /// d): "Otherwise, the conformance rules are the same as for a MOVE statement with the argument as the sending
+    /// operand and the corresponding formal parameter as the receiving operand" — so HIGH-VALUE, LOW-VALUE, QUOTE and a
+    /// non-digit ALL literal BY CONTENT into a numeric-edited formal are under the rows the written MOVE is under: valid
+    /// through 2014 and COBOLNET0902 at 2023 (QUOTE obsolete from 2014). The activation relation
+    /// (<see cref="ContentConformanceReason"/>) is EDITION-BLIND and asks only the flat refusals (SPACE, ZERO, boolean
+    /// characters, Table 16), so the rows are asked here, after it passed, through the ONE body every asker of the MOVE
+    /// rules shares (<see cref="FigurativeAssociation.GateSr5"/>); CALL AS NESTED, a user-defined function (both through
+    /// <see cref="CheckArgument"/>) and INVOKE (<c>OoBinder.OoBindInvocationArg</c>) are one rule over four activated
+    /// elements (§14.8.2.3.3 rule 2) and call this one method.
+    /// <para>A NUMERIC formal is rule 2 a)'s COMPUTE, which takes no figurative but ZERO whatever the edition, so the
+    /// relation has refused the pair and no row is asked; a group formal is §14.8.2.2 rule 2's conversion-free group move,
+    /// which SR5 does not reach. A call whose activated program is located by name at run time has no formal here (and no
+    /// run-time lane carries an edition): its argument is the activation boundary's.</para></summary>
+    /// <param name="formal">The corresponding formal parameter.</param>
+    /// <param name="value">The argument's operand (null for an argument with storage, which is no figurative).</param>
+    /// <param name="subject">How the diagnostic names the argument, e.g. <c>CALL … AS NESTED argument 2</c>.</param>
+    internal void GateFigurativeEdition(DataItem formal, BoundOperand? value, string subject)
+    {
+        if (value is null || FigurativeAssociation.Sr5FigurativeText(value) is not { } figText) return;
+        if (formal.Pic is not { Category: PicCategory.NumericEdited }
+            || FigurativeAssociation.Sr5ReceiverOf(formal) is not { } receiver) return;
+        FigurativeAssociation.GateSr5(ctx.Edition.Edition, ctx.Edition.Sink, value, receiver.Category, receiver.Integer,
+            $"{subject}: {figText} BY CONTENT to formal parameter '{formal.CobolName}' "
+            + "(the MOVE ISO §14.8.2.3.3 rule 2 d) requires to be valid)");
     }
 
     /// <summary>⛔ ISO §14.8.2.3.2 / §14.8.2.2 FOR A BY REFERENCE ARGUMENT, ASKED OF THE ONE RELATION (kb/Work PB3101,

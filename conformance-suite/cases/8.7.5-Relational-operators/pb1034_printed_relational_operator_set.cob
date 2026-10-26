@@ -10,8 +10,8 @@
       *> IS [NOT] =, IS <>, IS GREATER THAN OR EQUAL TO, IS >=, IS LESS THAN OR EQUAL TO, IS <=. IS is not underlined
       *> and THAN / TO are not underlined, so each is optional (5.2.3). This is the positive half: every printed
       *> spelling EXCEPT the symbol <> compiles at every edition and evaluates by the rule 8.8.4.2.4 gives numeric
-      *> operands. `<>` is a COBOL-2002 introduction (VCR row 7.26, kb/Work PB1459: COBOLNET0900 below 2002), so
-      *> its printed `IS <>` spelling is asserted in 2002/pb1034_is_not_equal_symbol. The five
+      *> operands. `<>` is a COBOL-2014 introduction (VCR row 7.26, kb/Work PB1459, PB3604: COBOLNET0900 below 2014), so
+      *> its printed `IS <>` spelling is asserted in 2014/pb1034_is_not_equal_symbol. The five
       *> spellings it does NOT print (NOT >=, NOT <=, NOT GREATER THAN OR EQUAL TO, NOT LESS THAN OR EQUAL TO, and
       *> EQUAL THAN) are the pb1034-* negatives.
       *>   cite.py --check 8.8.4.2.4 "For operands whose class is numeric, a comparison is made with respect to the
