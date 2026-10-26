@@ -187,8 +187,17 @@ def witness_shape_error(field: str, ref: str, schema: "Schema") -> str | None:
     return None
 
 
+def relocated(location: str, moved: Mapping[str, str]) -> str | None:
+    """A code-location `path[#member]` spelled at the path git records `path` as RENAMED to (`moved`: old repository path
+    -> new one), its member kept; None when its file did not move."""
+    path, hash_, member = location.partition("#")
+    new = moved.get(path)
+    return f"{new}{hash_}{member}" if new else None
+
+
 def witness_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schema",
-                   respelled: Mapping[str, str] | None = None) -> list[WitnessLoss]:
+                   respelled: Mapping[str, str] | None = None,
+                   moved: Mapping[str, str] | None = None) -> list[WitnessLoss]:
     """Every witness `before` carried that `after` does not — THE one definition of a narrowing (kb/Work PB959).
 
     Read by the writer (`record_verdicts.py`, at record time) and by the auditor (`audit_witness_loss.py`, over a
@@ -199,16 +208,24 @@ def witness_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schem
     `audit_witness_loss.respellings`); a lost reference whose new spelling `after` carries is the same witness,
     excused as RE-SPELLED. The conformance suite's move (kb/Work PB3177) re-spelled 7,920 references at once, and
     a clause pass that moves a test to another clause folder re-spells it again.
+
+    A code-location is the CODE, not its spelling, the same way: `moved` maps every repository path git records as
+    RENAMED across the change to its new path, and a lost `path[#member]` whose file moved and that `after` cites at
+    the new path with the same member (`relocated`) is RE-SPELLED too. The product rename (kb/Work PB3837) moved every
+    source file and re-spelled 10,982 code-locations at once. A test-ref re-spelling never excuses a code-location:
+    the two maps are separate arguments.
     """
     retired = retired_witnesses(after.get("notes", ""))
     respelled = respelled or {}
+    moved = moved or {}
     out: list[WitnessLoss] = []
     for field in WITNESS_FIELDS:
         sep = schema.code_location_sep if field == "code-location" else schema.test_ref_sep
         kept = set(schema.split(after.get(field, "") or "", sep))
         resited = resites(field, before.get("verdict", ""), after.get("verdict", ""))
         out += [WitnessLoss(before.get("rule-id", ""), field, ref, ref in retired, resited,
-                            field == "test-ref" and respelled.get(ref) in kept)
+                            (field == "test-ref" and respelled.get(ref) in kept)
+                            or (field == "code-location" and relocated(ref, moved) in kept))
                 for ref in schema.split(before.get(field, "") or "", sep) if ref not in kept]
     return out
 

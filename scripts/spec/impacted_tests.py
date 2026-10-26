@@ -91,7 +91,7 @@ SHARED_TEST_DIR = "tests/_shared/"   # linked into every test project
 TEST_PROJECTS = (*TEST_ASSEMBLIES, SHARED_TEST_DIR)
 # Structural inputs: every assembly may change.
 STRUCTURAL_RE = re.compile(r"(\.g4|\.csproj|\.props|\.targets|\.sln|global\.json|nuget\.config|\.editorconfig)$"
-                           r"|^src/Cobol\.Net\.Compiler\.SourceGen/|(^|/)Directory\.[^/]+$", re.IGNORECASE)
+                           r"|^src/WiseOwl\.Cobol\.Compiler\.SourceGen/|(^|/)Directory\.[^/]+$", re.IGNORECASE)
 #: Two non-C# files under `src/` that no assembly embeds and no test executes: the public-API baselines of the Roslyn
 #: analyzer (`<AdditionalFiles>` of the runtime project, RS0016/RS0017: read at build time) and the runtime ABI pin
 #: (`RuntimeAbi.pin`, which scripts/abi_pin.py measures and RuntimeAbiPinDriftTests reads; the version the build uses is

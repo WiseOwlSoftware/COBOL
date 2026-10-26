@@ -1067,7 +1067,7 @@
     ],
     "DOC": {
       "anchor-template": "docs/CONFORMANCE.md#{rule-id}",
-      "implementation-pattern": "^src/Cobol\\.Net\\.",
+      "implementation-pattern": "^src/WiseOwl\\.Cobol\\.",
       "anchor-exempt-verdicts": ["DOCUMENTED-NON-SUPPORT"]
     }
   },

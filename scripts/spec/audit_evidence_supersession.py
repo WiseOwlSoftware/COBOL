@@ -91,6 +91,7 @@ import citation_corpus  # noqa: E402  (same directory; the ONE definition of "fr
 import grammar_source  # noqa: E402  (same directory; THE reader of the grammar's rules, kb/Work PB3204)
 import work  # noqa: E402  (work.tracked_paths: a path exists when the COMMITTED tree has it; PB1957 2026-10-07)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+import rename_retired_names as retired_names  # noqa: E402  (scripts/: the ONE map from a retired path to its present one)
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
@@ -237,7 +238,9 @@ def scan(files: list[pathlib.Path], rules: dict[str, list[tuple[str, int, int]]]
             for path, lo, hi, rule in cites:
                 if not rule:
                     stats["citations"] += 1
-                    if path not in tracked:
+                    # A file the product rename moved (kb/Work PB3837) is the same file under its present name:
+                    # moving it refuted nothing, and the frozen record keeps the name it was measured under.
+                    if retired_names.renamed_path(path) not in tracked:
                         if not exempt:
                             findings.append(Finding("path", rel, _line_of(raw, f"{path}:{lo}"), where,
                                                     f"cites {path}:{lo} — that file no longer exists"))
@@ -353,6 +356,15 @@ def self_test() -> int:
         moved = len(drift) == 1 and not f2
         print(f"  {'ok  ' if moved else 'FAIL'} anchor  a MOVED rule is reported as drift and gates nothing")
         ok &= moved
+        # A citation measured under a name the product rename retired (kb/Work PB3837) cites a file that exists under
+        # its present name: the move refuted nothing, so the path arm stays silent (the spelling is built, so the
+        # RETIRED NAMES audit reads no retired name in this file).
+        retired = "src/" + "Cobol" + ".Net" + ".Frontend/Grammar/Core/Fake.g4"
+        p.write_text(json.dumps({BANNER_KEY: banner, "e": [f"{retired}:10 — a claim"]}, indent=1),
+                     encoding="utf-8", newline="\n")
+        renamed = not any(f.kind == "path" for f in scan([p], rules, root)[0])
+        print(f"  {'ok  ' if renamed else 'FAIL'} path    silent on a file the product rename moved")
+        ok &= renamed
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 

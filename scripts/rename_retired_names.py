@@ -95,9 +95,12 @@ def _ci(word: bytes) -> bytes:
                     for c in word)
 
 
-#: Every retired spelling, case-insensitive: the compiler's first name with or without a separator (but never a word
-#: that merely begins with it, `…network`), and the legacy product's name. The audit's one pattern.
-RETIRED = re.compile(_ci(b"Cobol") + b"(?:[._-]?" + _ci(b"Net") + b"(?!" + _ci(b"work") + b")|" + _ci(b"Sharp") + b")")
+#: Every retired spelling, case-insensitive: the compiler's first name with or without a separator — a regular
+#: expression's too: an escaped dot (`Cobol\.Net`, `Cobol\\.Net`), a lookahead or an optional group naming the second
+#: half (`Cobol(?!Net\.`, `COBOL(NET)?_`) — but never a word that merely begins with it (`…network`), and the legacy
+#: product's name. The audit's one pattern.
+RETIRED = re.compile(_ci(b"Cobol") + rb"(?:[._-]|\\+\.|\(\?!|\(\?:|\()?" + _ci(b"Net") + b"(?!" + _ci(b"work") + b")|"
+                     + _ci(b"Cobol") + _ci(b"Sharp"))
 
 #: The design documents' stems (docs/<prefix>_<stem>.md), the ones in the tree and the ones only prose still names.
 DOC_STEMS = (
@@ -128,6 +131,10 @@ RULES: tuple[tuple[re.Pattern[bytes], bytes], ...] = (
     (re.compile(rb"(?m)(^[ \t]*- )" + _LEGACY.lower() + rb"(?=[ \t]*\r?$)"), rb"\1wiseowl-cobol"),
     # the project, assembly, solution and namespace names
     (re.compile(rb"Cobol\.Net(?![a-z])"), b"WiseOwl.Cobol"),
+    # a regular expression's spelling: an escaped dot keeps its escapes, a lookahead that excluded the old namespace
+    # loses that arm (the new one, `WiseOwl.Cobol.`, puts a dot after `Cobol`, so no `Cobol<letters>.` pattern meets it)
+    (re.compile(rb"Cobol(\\+)\.Net(?![a-z])"), rb"WiseOwl\1.Cobol"),
+    (re.compile(rb"Cobol\(\?!Net\\\.\|"), b"Cobol(?!"),
     (re.compile(_OLD + rb"(?=[A-Za-z0-9_])"), b"WiseOwlCobol"),
     # the conformance tests' compiler FIELD, never the namespace: its declaration, a call on it, a ternary choosing it
     (re.compile(_OLD + rb"(?=\.Compile[A-Za-z]*\(| = new\b)"), b"WiseOwlCobol"),
@@ -138,6 +145,7 @@ RULES: tuple[tuple[re.Pattern[bytes], bytes], ...] = (
     (re.compile(_UP + rb"_(?=(?:" + _STEMS + rb")(?![A-Z0-9_]))"), b""),
     (re.compile(_UP + rb"_(?=\*(?:_DESIGN)?\.md)"), b""),
     (re.compile(rb"COBOL\(\?:NET\)\?_"), b"(?:WISEOWL_)?COBOL_"),
+    (re.compile(rb"COBOL\(NET\)\?_"), b"(WISEOWL_)?COBOL_"),
     (re.compile(_UP + rb"_"), b"WISEOWL_COBOL_"),
     # prose, and the remaining spellings
     (re.compile(rb"COBOL\.NET|Cobol\.NET|COBOL_NET\b"), b"WiseOwl COBOL"),
@@ -356,6 +364,9 @@ def self_test() -> int:
          "WISEOWL_COBOL_*, WISEOWL_COBOL_<NAME>", "the environment variables, a plan file stem among them"),
         (r'new("\"(COBOL(?:NET)?_[A-Z0-9_]*)\"")', r'new("\"((?:WISEOWL_)?COBOL_[A-Z0-9_]*)\"")',
          "the pattern for the variables the runtime reads"),
+        (r'"^src/Cobol\.Net\." and r"^src/Cobol\\.Net\\.Compiler" and @"\bCobol(?!Net\.|Literal\.)[A-Z]" and "COBOL(NET)?_"',
+         r'"^src/WiseOwl\.Cobol\." and r"^src/WiseOwl\\.Cobol\\.Compiler" and @"\bCobol(?!Literal\.)[A-Z]" and '
+         r'"(WISEOWL_)?COBOL_"', "a regular expression's spellings: escaped dots, a lookahead arm, an optional group"),
         (f"{up}0899 and error {up}1234", "COBOL0899 and error COBOL1234", "a diagnostic code (PB3575's rules first)"),
         (f"the COBOL.NET compiler; Cobol.NET; `{old.lower()}-no-biginteger`; [{old.lower()} compile]; "
          f"CALL \"{up}\"; HELLO FROM {up}.",

@@ -174,7 +174,7 @@ rather than under `docs/`, because its reader is the battery, not a person.
 > `4.2.16` for §1, `A.4.<n>` for §5) and forbids citing one bare.
 >
 > **A DOC row closes exactly as every other row does**: its own anchor, at least one site matching
-> `kinds.DOC.implementation-pattern` (`^src/Cobol\.Net\.` — the same greenfield predicate `audit_annex_a1.py`'s
+> `kinds.DOC.implementation-pattern` (`^src/WiseOwl\.Cobol\.` — the same greenfield predicate `audit_annex_a1.py`'s
 > source sweep applies), and a spec-derived `test-ref`. ⛔ There is **no policy arm**: a row whose only location
 > is its §7 anchor stays a GAP. **The owner answered that question `no` on 2026-09-02 (`kb/Work/PB280` Q2)** —
 > §1(a) is not widened — on the ground that the claim such an arm would rest on is unfalsifiable: greenfield
