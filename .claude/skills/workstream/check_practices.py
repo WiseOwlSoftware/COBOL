@@ -310,6 +310,36 @@ RETIRED = re.compile(r'scripts/spec/(?:orient|fix_clusters|status_delta)\.py')
 SUBMODULE_SCRIPT = re.compile(r'tools/claude-skills/([\w./-]+\.(?:py|js))')
 FROZEN = ('DEVLOG/', 'docs/rearchitecture/evidence/')
 
+# kb/Work PB3780: the workstream overlay is loaded by EVERY loop unit (about 45 turns each), so it must not order the load of
+# its base skill (agent-fleet, 4.5K tokens re-read on each turn for text the overlay states again in project terms), it
+# stays under SKILL_MAX_BYTES, and every reference file it sends a reader to exists: the base's by its full submodule path,
+# its own by `references/<file>.md` in the skill's directory. The other overlays (gate, review, spec-lookup) are loaded for
+# one job each and still invoke their base first.
+BASE_ON_DEMAND = ('workstream',)
+SKILL_MAX_BYTES = 15_000
+ORDERS_BASE_LOAD = re.compile(r'Invoke `brent-tools:[\w-]+` \(Skill tool\)|Read `tools/claude-skills/skills/[\w-]+/SKILL\.md`')
+REFERENCE_FILE = re.compile(r'(tools/claude-skills/skills/[\w-]+/)?references/([\w.-]+\.md)')
+
+
+def overlay_problems(name, text, repo=None):
+    """What is wrong with the overlay `name`'s SKILL.md `text` (kb/Work PB1699, PB3780), as messages: a base-on-demand overlay
+    that orders its base's load, is larger than SKILL_MAX_BYTES or names a reference file that does not exist; any other
+    overlay that names no brent-tools base skill."""
+    repo = repo or REPO
+    if name not in BASE_ON_DEMAND:
+        return [] if 'brent-tools:' in text else [f'{name} overlay does not invoke its brent-tools base skill first']
+    found = []
+    if ORDERS_BASE_LOAD.search(text):
+        found.append(f'{name} overlay orders its base skill\'s load (kb/Work PB3780: read the base reference the job needs, once)')
+    if len(text.encode('utf-8')) > SKILL_MAX_BYTES:
+        found.append(f'{name} SKILL.md is {len(text.encode("utf-8"))} bytes, over {SKILL_MAX_BYTES} (kb/Work PB3780: '
+                     f'move narrative to references/)')
+    for base, file in sorted(set(REFERENCE_FILE.findall(text))):
+        where = repo / base / 'references' if base else repo / '.claude' / 'skills' / name / 'references'
+        if not (where / file).is_file():
+            found.append(f'{name} SKILL.md names {(base or "") + "references/" + file}, which does not exist')
+    return found
+
 
 def fleet_tooling():
     plugin = SKILLS / '.claude-plugin' / 'plugin.json'
@@ -322,8 +352,8 @@ def fleet_tooling():
         pins = set(PIN.findall(path.read_text(encoding='utf-8')))
         if pins != {version}:
             found.append(f'{name} names brent-tools {sorted(pins) or "no version"}, the submodule is {version}')
-        if name in OVERLAYS and f'brent-tools:' not in path.read_text(encoding='utf-8'):
-            found.append(f'{name} overlay does not invoke its brent-tools base skill first')
+        if name in OVERLAYS:
+            found += overlay_problems(name, path.read_text(encoding='utf-8'))
     sys.path.insert(0, str(SKILLS / 'skills' / 'agent-fleet' / 'references'))
     try:
         import fleet_config
@@ -358,7 +388,7 @@ def main():
         bad += 1
         print('FAIL     fleet tooling (kb/Work/PB1699):\n' + '\n'.join(f'           {t}' for t in tooling))
     else:
-        print('ok       fleet tooling: pin, .agent-fleet.json, submodule script paths, no retired copies')
+        print('ok       fleet tooling: pin, overlays, .agent-fleet.json, submodule script paths, no retired copies')
     over = mechanical_model_overrides()
     if over:
         bad += 1
