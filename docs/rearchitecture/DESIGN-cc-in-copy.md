@@ -2,7 +2,7 @@
 
 > **STATUS: IMPLEMENTED (DEVLOG 966).** Subsystem deep-dive for merging the conditional-compilation (CC) and
 > COPY text-manipulation stages so directives INSIDE copybooks are processed (ISO §7.2.1). Design SSOT; the plan
-> (`COBOLNET_REARCHITECTURE_PLAN.md` §0) points here. Keep current with the code (rule 4). The merged
+> (`REARCHITECTURE_PLAN.md` §0) points here. Keep current with the code (rule 4). The merged
 > `ConditionalCompilationProcessor.ProcessWithCopy` driver is wired into `Frontend`; the legacy `Process`/COPY
 > paths stay byte-identical. Gate: characterization 33/33 · CC/COPY unit 26/26 · CopyConditional 8/8 · the
 > `cc_in_copy` golden · GnuCOBOL +2 fixes/0 regressions · legacy guard ALL GREEN · greenfield Conformance 3806/0.
@@ -83,7 +83,7 @@ directive. Inside pseudo-text the diagnostic also quotes §7.2.3.3 SR10 / §7.2.
 ### §3.2a Text-words — the one scanner under COPY and REPLACE (kb/Work PB1350 / PB1351 / PB1354)
 
 Everything the text-manipulation stage does is decided over §7.2.2.5 TEXT-WORDS, and ONE type forms them:
-`TextWordScanner` (`src/Cobol.Net.Frontend/Preprocessor/TextWord.cs`). A space or a comment is no text-word; the
+`TextWordScanner` (`src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs`). A space or a comment is no text-word; the
 colon and parentheses are separator text-words outside literals; a period, comma or semicolon separates only when
 a space (or a line end, or a closing `==`) follows (§8.3.5 2)/3)), so `Z,ZZ9` and `ZZ.ZZ` are one word; a literal
 is ONE word from its prefix (`X" N" NX" B" BX"`) through its closing delimiter with doubled quotes inside; `&` is a
@@ -204,7 +204,7 @@ the NIST stage's output, asserts the six directive stages are line-count preserv
 diagnostics, and (via `CompilerDriver` → `EditionContext.LineMap`) to the binder's diagnostic cursor and
 `EXCEPTION-LOCATION`. The `>>TURN` / `>>FLAG` / `>>REF-MOD-ZERO-LENGTH` event lines are compared with token lines
 and therefore stay in RESULTANT space — the map is consulted only at the user-facing boundary. Consumer side:
-`docs/COBOLNET_VALIDATION_DESIGN.md` §2 "Positions".
+`docs/VALIDATION_DESIGN.md` §2 "Positions".
 
 ## §4 Wiring (greenfield only)
 

@@ -10,7 +10,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
-namespace CobolNet.Impact;
+namespace WiseOwl.Cobol.Impact;
 
 /// <summary>
 /// The per-test impact recorder's probe. tools/impact/ImpactInstrumenter rewrites every method that carries
@@ -27,7 +27,7 @@ namespace CobolNet.Impact;
 /// reports as unattributed rather than dropping.</para>
 ///
 /// <para><b>Child processes.</b> A compiled COBOL program runs as <c>dotnet prog.dll</c> in a child process that loads
-/// the instrumented <c>Cobol.Net.Runtime.dll</c>. Every <c>Process.Start</c> in an instrumented assembly is
+/// the instrumented <c>WiseOwl.Cobol.Runtime.dll</c>. Every <c>Process.Start</c> in an instrumented assembly is
 /// rewritten to <see cref="Start(ProcessStartInfo)"/> and its siblings, which hand the child a file path
 /// (<see cref="OutVariable"/>) and queue it on the starting context; the child records into one array for its whole
 /// life and writes it at exit, and the framework folds it into the test that started it. A child nobody attributed
@@ -37,11 +37,11 @@ internal static class ImpactProbe
 {
     // Not `const`: RuntimeConfigTests scans the runtime assembly for LITERAL environment-variable names and requires
     // each to be a registered runtime setting. These belong to the recorder, never to a run unit.
-    internal static readonly string DirVariable = "COBOLNET_IMPACT_DIR";
-    internal static readonly string ProbesVariable = "COBOLNET_IMPACT_PROBES";
-    internal static readonly string OutVariable = "COBOLNET_IMPACT_OUT";
-    private const string ContextKey = "CobolNet.Impact.Context";
-    private const string AmbientKey = "CobolNet.Impact.Ambient";
+    internal static readonly string DirVariable = "WISEOWL_COBOL_IMPACT_DIR";
+    internal static readonly string ProbesVariable = "WISEOWL_COBOL_IMPACT_PROBES";
+    internal static readonly string OutVariable = "WISEOWL_COBOL_IMPACT_OUT";
+    private const string ContextKey = "WiseOwl.Cobol.Impact.Context";
+    private const string AmbientKey = "WiseOwl.Cobol.Impact.Ambient";
 
     private static readonly AsyncLocal<Tuple<byte[], ConcurrentQueue<string>>?>? s_context;
     private static readonly byte[]? s_fallback;

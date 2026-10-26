@@ -1,0 +1,423 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Runtime.IO;
+using WiseOwl.Cobol.Tests.Shared;
+using Xunit;
+using static WiseOwl.Cobol.Tests.Shared.FileHarness;
+
+namespace WiseOwl.Cobol.Tests.Unit;
+
+/// <summary>
+/// ⛔ TWO RUN UNITS SHARING A RELATIVE OR INDEXED FILE UNDER <c>SHARING WITH ALL OTHER</c> SEE EACH OTHER'S RECORD
+/// LOCKS AND KEEP EACH OTHER'S RECORDS (kb/Work PB2660). ISO §9.1.16: <i>"While locked by a given file connector, a
+/// record is not accessible to another file connector in the same or a different run unit, except by the execution
+/// of a READ statement with the IGNORING LOCK phrase"</i>; §9.1.13.8 1): <i>"I-O status = 51. The input-output
+/// statement is unsuccessful due to an attempt to access a record that is currently locked by another file
+/// connector"</i>; §9.1.15 3): <i>"The sharing with all other mode allows concurrent access to a physical file
+/// through other file connectors specifying input, I-O, or extend mode … Record locks are in effect."</i>
+/// <para>Before PB2660 a keyed connector read the whole file at OPEN and rewrote it at CLOSE, and its record locks
+/// lived in its own run unit's table, so a second run unit's READ WITH LOCK of a record the first held answered
+/// '00', its REWRITE and WRITE answered '00', and the first run unit's CLOSE then erased them. A second
+/// <see cref="FileRegistry"/> IS a second run unit here: it shares no table and no handle with the first
+/// (<see cref="RunUnitFileLockDriftTests"/>), so only what the physical file and the host's byte-range locks carry
+/// can pass between them.</para>
+/// <para>The PB754 half: emptying a keyed store is done in ONE place, <see cref="StoreTable.AttachCreated{T}"/>,
+/// which refuses a store another connector still holds — no connector clears one itself.</para>
+/// </summary>
+public sealed class CrossRunUnitKeyedStoreDriftTests
+{
+    private static List<string> Records(string host, FileOrg org)
+    {
+        var reader = new FileRegistry();
+        Register(reader, "R", host, org, sharing: null);
+        reader.OpenStatic("R", FileOpenMode.Input);
+        var all = new List<string>();
+        while (reader.ReadShared("R", previous: false, FileRecordLock.None, advancingOnLock: false, ignoringLock: false,
+                   FileRetryKind.None, 0, out string image) == "00")
+            all.Add(image);
+        reader.Close("R");
+        return all;
+    }
+
+    [Theory]
+    [InlineData(FileOrg.Relative, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Indexed, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Relative, RegionHostKind.LockFiles)]
+    [InlineData(FileOrg.Indexed, RegionHostKind.LockFiles)]
+    public void AnotherRunUnitsRecordLock_Answers51_AndItsUpdatesSurviveTheFirstClose(FileOrg org, RegionHostKind regionHost)
+    {
+        using var forced = RegionHostSeam.Use(regionHost);
+        string host = Tmp($"lock-{org}");
+        try
+        {
+            Seed(host, org, ["AAAA", "BBBB"]);
+            var a = new FileRegistry();
+            var b = new FileRegistry();
+            Register(a, "A", host, org);
+            Register(b, "B", host, org);
+            a.OpenStatic("A", FileOpenMode.IO);
+            b.OpenStatic("B", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("A"));
+            Assert.Equal("00", b.Status("B"));
+
+            Assert.Equal("00", Read(a, "A", org, 1, out _, phrase: FileRecordLock.WithLock));
+
+            // §9.1.16 / §9.1.13.8 1) — the record A holds is not accessible to B, in another run unit.
+            Assert.Equal("51", Read(b, "B", org, 1, out _, phrase: FileRecordLock.WithLock));
+            Assert.Equal("51", Rewrite(b, "B", org, 1, "ZZZZ"));
+            // §14.9.30.4 GR12 — IGNORING LOCK makes it available "even if it is locked".
+            Assert.Equal("00", Read(b, "B", org, 1, out string ignored, phrase: FileRecordLock.None, ignoringLock: true));
+            Assert.Equal(Rec(1, "AAAA"), ignored);
+            // A record nobody holds is B's to change, and A sees the change at its next statement.
+            Assert.Equal("00", Write(b, "B", org, 3, "CCCC"));
+            Assert.Equal("00", Rewrite(b, "B", org, 2, "YYYY"));
+            Assert.Equal("00", Read(a, "A", org, 3, out string seen, phrase: FileRecordLock.None));
+            Assert.Equal(Rec(3, "CCCC"), seen);
+
+            // A's UNLOCK gives the record back to every run unit.
+            a.Unlock("A", records: true);
+            Assert.Equal("00", Read(b, "B", org, 1, out _, phrase: FileRecordLock.WithLock));
+            Assert.Equal("00", Rewrite(b, "B", org, 1, "XXXX"));
+
+            a.Close("A");   // A's CLOSE must not write back the image A read at its OPEN
+            b.Close("B");
+            Assert.Equal([Rec(1, "XXXX"), Rec(2, "YYYY"), Rec(3, "CCCC")], Records(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>A READ WITH LOCK through an <c>OPEN INPUT</c> connector — a read-only handle — sets its lock (§14.9.30.4
+    /// GR11 c), §12.4.5.9.4: record locks are in effect under SHARING WITH ALL OTHER, §9.1.15 3)) and publishes it to
+    /// the other run units. The read-only handle holds the record's byte SHARED and then asks whether anybody else holds
+    /// it; the question must not count the asker's own hold, which on Windows (per-handle LockFileEx) an exclusive test
+    /// lock through the same handle does, so the lock was refused with '51' by nobody (lander review, train 1042).</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Indexed, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Relative, RegionHostKind.LockFiles)]
+    [InlineData(FileOrg.Indexed, RegionHostKind.LockFiles)]
+    public void AnInputConnectorsReadWithLock_Succeeds_AndIsSeenByAnotherRunUnit(FileOrg org, RegionHostKind regionHost)
+    {
+        using var forced = RegionHostSeam.Use(regionHost);
+        string host = Tmp($"input-lock-{org}");
+        try
+        {
+            Seed(host, org, ["AAAA", "BBBB"]);
+            var a = new FileRegistry();
+            var b = new FileRegistry();
+            Register(a, "A", host, org);
+            Register(b, "B", host, org);
+            a.OpenStatic("A", FileOpenMode.Input);
+            b.OpenStatic("B", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("A"));
+            Assert.Equal("00", b.Status("B"));
+
+            Assert.Equal("00", Read(a, "A", org, 1, out string image, phrase: FileRecordLock.WithLock));
+            Assert.Equal(Rec(1, "AAAA"), image);
+            Assert.Equal("51", Read(b, "B", org, 1, out _, phrase: FileRecordLock.WithLock));
+            Assert.Equal("00", Read(b, "B", org, 2, out _, phrase: FileRecordLock.WithLock));
+
+            a.Close("A");
+            Assert.Equal("00", Read(b, "B", org, 1, out _, phrase: FileRecordLock.WithLock));
+            b.Close("B");
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>§14.7.9.3 — a RETRY against a holder in ANOTHER run unit waits for it to give the lock back, and the
+    /// wait happens OUTSIDE the store's statement mutex: the holder can only give the lock back by executing a
+    /// statement of its own, which the mutex would otherwise keep from ever running. RETRY FOREVER against such a
+    /// holder is not the deadlock docs/CONFORMANCE.md DOC-A.1-109 detects: the holder can release, so the wait goes
+    /// on until it does.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, FileRetryKind.Times, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Indexed, FileRetryKind.Times, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Relative, FileRetryKind.Forever, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Indexed, FileRetryKind.Forever, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Relative, FileRetryKind.Times, RegionHostKind.LockFiles)]
+    [InlineData(FileOrg.Indexed, FileRetryKind.Times, RegionHostKind.LockFiles)]
+    [InlineData(FileOrg.Relative, FileRetryKind.Forever, RegionHostKind.LockFiles)]
+    [InlineData(FileOrg.Indexed, FileRetryKind.Forever, RegionHostKind.LockFiles)]
+    public void ARetryWaitsForTheOtherRunUnit_OutsideTheStoreMutex(FileOrg org, FileRetryKind kind, RegionHostKind regionHost)
+    {
+        using var forced = RegionHostSeam.Use(regionHost);
+        string host = Tmp($"retry-{org}");
+        try
+        {
+            Seed(host, org, ["AAAA", "BBBB"]);
+            var a = new FileRegistry();
+            var b = new FileRegistry();
+            Register(a, "A", host, org);
+            Register(b, "B", host, org);
+            a.OpenStatic("A", FileOpenMode.IO);
+            b.OpenStatic("B", FileOpenMode.IO);
+            Assert.Equal("00", Read(a, "A", org, 1, out _, phrase: FileRecordLock.WithLock));
+
+            int pauses = 0;
+            FileRegistry.PauseObserver.Value = _ =>
+            {
+                Assert.False(MutexHeld(host, writable: true), "a retry waits outside the store mutex");
+                if (++pauses == 2) a.Unlock("A", records: true);   // the first re-attempt still meets the lock
+            };
+            try
+            {
+                Assert.Equal("00", Read(b, "B", org, 1, out string image, phrase: FileRecordLock.WithLock,
+                    retry: kind, amount: 3));
+                Assert.Equal(Rec(1, "AAAA"), image);
+            }
+            finally { FileRegistry.PauseObserver.Value = null; }
+            Assert.Equal(2, pauses);
+            a.Close("A");
+            b.Close("B");
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>kb/Work PB754 — Table 19 refuses an OUTPUT open beside any other connector (§9.1.13.9 1) e)), and
+    /// the refusal precedes the OPEN body: the existing connector keeps every record. The OPTIONAL-absent shape is
+    /// the one place a connector is attached with a status other than '00', and it is registered all the same.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void AnOutputOpenBesideAnAttachedConnector_IsRefused_AndEmptiesNothing(FileOrg org)
+    {
+        string host = Tmp($"output-{org}");
+        try
+        {
+            Seed(host, org, ["AAAA", "BBBB"]);
+            foreach (var mode in new[] { FileOpenMode.Input, FileOpenMode.IO })
+            {
+                var reg = new FileRegistry();
+                Register(reg, "A", host, org);
+                Register(reg, "B", host, org);
+                reg.OpenStatic("A", mode);
+                Assert.Equal("00", reg.Status("A"));
+                reg.OpenStatic("B", FileOpenMode.Output);
+                Assert.Equal("61", reg.Status("B"));
+                Assert.Equal("00", Read(reg, "A", org, 2, out string image, phrase: FileRecordLock.None));
+                Assert.Equal(Rec(2, "BBBB"), image);
+                reg.CloseAll();
+            }
+
+            string absent = Tmp($"absent-{org}");
+            var opt = new FileRegistry();
+            Register(opt, "A", absent, org, optional: true);
+            Register(opt, "B", absent, org, optional: true);
+            opt.OpenStatic("A", FileOpenMode.Input);
+            Assert.Equal("05", opt.Status("A"));
+            opt.OpenStatic("B", FileOpenMode.Output);
+            Assert.Equal("61", opt.Status("B"));
+            opt.CloseAll();
+            TryDelete(absent);
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>kb/Work PB2693 — a duplicate-key walk keeps its place across another run unit's change. §14.9.30.4 GR26:
+    /// duplicates of an alternate key are made available "in the same order ... in which they are released by execution
+    /// of WRITE statements, or by execution of REWRITE statements that create such duplicate values", and GR21 f) 1.
+    /// resumes "immediately after the record that was made available by that prior READ statement". That order is
+    /// the file's, so it survives the reload a coherent connector makes when another run unit changed the file: the
+    /// release ordinals are PERSISTED with the records, never renumbered from file position. A reload that renumbered
+    /// them moved every record after B's deleted one down by one, and A's READ NEXT skipped D3.</summary>
+    [Theory]
+    [InlineData("delete", RegionHostKind.OfThisProcess)]
+    [InlineData("rewrite", RegionHostKind.OfThisProcess)]
+    [InlineData("write", RegionHostKind.OfThisProcess)]
+    [InlineData("delete", RegionHostKind.LockFiles)]
+    [InlineData("rewrite", RegionHostKind.LockFiles)]
+    [InlineData("write", RegionHostKind.LockFiles)]
+    public void ADuplicateKeyWalk_KeepsItsPlace_AcrossAnotherRunUnitsChange(string change, RegionHostKind regionHost)
+    {
+        using var forced = RegionHostSeam.Use(regionHost);
+        string host = Tmp($"dups-{change}");
+        try
+        {
+            void Indexed(FileRegistry reg, string name, FileSharing? sharing)
+            {
+                reg.RegisterIndexed(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
+                    primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
+                reg.AddAlternateKey(name, key: [new(4, 1)], duplicates: true);
+                if (sharing is { } s) reg.RegisterSharing(name, s, FileLockMode.Manual, multiple: false);
+            }
+            string W(FileRegistry reg, string name, string image) =>
+                reg.WriteShared(name, image, -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
+            var seed = new FileRegistry();
+            Indexed(seed, "S", null);
+            seed.OpenStatic("S", FileOpenMode.Output);
+            foreach (var image in new[] { "0001Aaaa", "0002Dbbb", "0003Dccc", "0004Dddd", "0005Beee" })
+                Assert.Contains(W(seed, "S", image), new[] { "00", "02" });   // §9.1.13.2 1) — 02: a duplicate key
+            seed.Close("S");
+
+            var a = new FileRegistry();
+            var b = new FileRegistry();
+            Indexed(a, "A", FileSharing.AllOther);
+            Indexed(b, "B", FileSharing.AllOther);
+            a.OpenStatic("A", FileOpenMode.IO);
+            b.OpenStatic("B", FileOpenMode.IO);
+            // GR32 — the first released record of the duplicate set; GR30 makes the alternate key the key of reference
+            // (and GR27 sets 02 on a SEQUENTIAL read only).
+            Assert.Equal("00", a.ReadKeyedShared("A", keyIndex: 0, "0000D   ", FileRecordLock.None, false,
+                FileRetryKind.None, 0, out string first));
+            Assert.Equal("0002Dbbb", first);
+
+            Assert.Contains(change switch
+            {
+                // An earlier-released record leaves the file.
+                "delete" => b.DeleteShared("B", "0001Aaaa", FileRetryKind.None, 0),
+                // A record's alternate key changes from B to D: it joins the set last (§14.9.35.4 GR24 b)).
+                "rewrite" => b.RewriteShared("B", "0005Deee", -1, FileRecordLock.None, FileRetryKind.None, 0),
+                // A new record joins the set D, last (GR26).
+                _ => W(b, "B", "0006Dfff"),
+            }, new[] { "00", "02" });
+
+            var walk = new List<string>();
+            while (a.ReadShared("A", previous: false, FileRecordLock.None, advancingOnLock: false, ignoringLock: false,
+                       FileRetryKind.None, 0, out string next) is "00" or "02")
+                walk.Add(next);
+            // The walk ends with the set: every other record's alternate key (A, B) is LOWER than D.
+            string[] expected = change switch
+            {
+                "delete" => ["0003Dccc", "0004Dddd"],
+                "rewrite" => ["0003Dccc", "0004Dddd", "0005Deee"],
+                _ => ["0003Dccc", "0004Dddd", "0006Dfff"],
+            };
+            Assert.Equal(expected, walk);
+            a.Close("A");
+            b.Close("B");
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>kb/Work PB2693 — each key's duplicate order survives the CLOSE, even when no single order of the records
+    /// could carry them all. §14.9.35.4 GR24 b) moves a REWRITTEN record last among the duplicates of each key the
+    /// REWRITE changed and a) leaves its place under every other key, so two records can stand r2, r1 under one key and
+    /// r1, r2 under another. A store that kept the order in the sequence of its frames had to lose one of them at the
+    /// CLOSE; the ordinals now travel with the records.</summary>
+    [Fact]
+    public void EachKeysDuplicateOrder_SurvivesTheClose_WhenNoSingleRecordOrderCarriesThem()
+    {
+        string host = Tmp("cyclic");
+        try
+        {
+            void Indexed(FileRegistry reg)
+            {
+                reg.RegisterIndexed("F", host, recordWidth: 6, optional: false, accessMode: (int)KeyedAccess.Dynamic,
+                    primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
+                reg.AddAlternateKey("F", key: [new(4, 1)], duplicates: true);
+                reg.AddAlternateKey("F", key: [new(5, 1)], duplicates: true);
+            }
+            var writer = new FileRegistry();
+            Indexed(writer);
+            writer.OpenStatic("F", FileOpenMode.Output);
+            foreach (var image in new[] { "0001ax", "0002ax" })
+                Assert.Contains(writer.WriteShared("F", image, -1, FileRecordLock.None, FileRetryKind.None, 0, page: null),
+                    new[] { "00", "02" });
+            writer.Close("F");
+            writer.OpenStatic("F", FileOpenMode.IO);
+            // The first alternate key leaves the set and comes back (GR24 b) twice), the second is never changed (a)).
+            foreach (var image in new[] { "0001bx", "0001ax" })
+                Assert.Contains(writer.RewriteShared("F", image, -1, FileRecordLock.None, FileRetryKind.None, 0),
+                    new[] { "00", "02" });
+            writer.Close("F");
+
+            var reader = new FileRegistry();
+            Indexed(reader);
+            reader.OpenStatic("F", FileOpenMode.Input);
+            Assert.Equal(["0002ax", "0001ax"], Duplicates(reader, keyIndex: 0, "0000a "));
+            Assert.Equal(["0001ax", "0002ax"], Duplicates(reader, keyIndex: 1, "0000 x"));
+            reader.Close("F");
+        }
+        finally { TryDelete(host); }
+
+        // §14.9.30.4 GR32 then GR21 f) 1.: the first released duplicate, then each one after it.
+        static List<string> Duplicates(FileRegistry reg, int keyIndex, string keyImage)
+        {
+            Assert.Equal("00", reg.ReadKeyedShared("F", keyIndex, keyImage, FileRecordLock.None, false,
+                FileRetryKind.None, 0, out string first));
+            var all = new List<string> { first };
+            while (reg.ReadShared("F", previous: false, FileRecordLock.None, advancingOnLock: false, ignoringLock: false,
+                       FileRetryKind.None, 0, out string next) is "00" or "02")
+                all.Add(next);
+            return all;
+        }
+    }
+
+    /// <summary>The guard behind the arbitration fires when the arbitration is bypassed: a store being created while
+    /// another connector holds it is a loud defect, never a silent emptying (kb/Work PB754).</summary>
+    [Fact]
+    public void CreatingAStoreAnotherConnectorHolds_IsADefect()
+    {
+        var table = new StoreTable();
+        var file = new PhysicalFileIdentity(1, 7);
+        var held = table.Attach<RelativeStore>("pb754-host", file);
+        Assert.Throws<InvalidOperationException>(() => table.AttachCreated("pb754-host", file, new RelativeStore(), arbitrated: true));
+        Assert.Throws<InvalidOperationException>(() => table.AttachCreated("pb754-host", null, new RelativeStore(), arbitrated: true));
+        table.Detach("pb754-host", held);
+        Assert.Null(table.AttachCreated("pb754-host", file, new RelativeStore(), arbitrated: true).File);   // a store being created holds no file yet
+    }
+
+    /// <summary>Where Table 19 is not asked (COBOL-85, kb/Work PB670: <c>FileConnector.SharingFacilityInEffect</c> false) the
+    /// creation beside a holder is a normal open: the created store replaces the path's entry, the holder keeps the store it
+    /// has, and its detach leaves the new entry alone.</summary>
+    [Fact]
+    public void WhereNothingIsArbitrated_ACreationReplacesTheStoreTheHoldersKeep()
+    {
+        var table = new StoreTable();
+        var file = new PhysicalFileIdentity(1, 7);
+        var held = table.Attach<RelativeStore>("pb670-host", file);
+        var created = table.AttachCreated("pb670-host", file, new RelativeStore(), arbitrated: false);
+        Assert.NotSame(held, created);
+        Assert.Same(created, table.Attach<RelativeStore>("pb670-host", file));
+        table.Detach("pb670-host", held);   // the holder leaves: the path's entry is the creation's
+        Assert.Same(created, table.Attach<RelativeStore>("pb670-host", file));
+    }
+
+    /// <summary>⛔ ONE STORE PER PHYSICAL FILE, NOT PER PATH (kb/Work PB3533): an attachment through a handle on another physical
+    /// file at the same path (the first removed or renamed away and another made there outside the run unit) gets a store of its
+    /// own, and so does a creation there; the store of the file the path no longer names stays its holder's, whose detach leaves
+    /// the path's entry alone. Where the host cannot tell a file (no identity on either side), the path decides as before.</summary>
+    [Fact]
+    public void AFileMadeAtAPathSinceGetsAStoreOfItsOwn()
+    {
+        var table = new StoreTable();
+        PhysicalFileIdentity removed = new(1, 7), madeSince = new(1, 8);
+        var old = table.Attach<RelativeStore>("pb3533-host", removed);
+        Assert.Same(old, table.Attach<RelativeStore>("pb3533-host", removed));
+        Assert.Same(old, table.Attach<RelativeStore>("pb3533-host", null));
+        var current = table.Attach<RelativeStore>("pb3533-host", madeSince);
+        Assert.NotSame(old, current);
+        Assert.Same(current, table.Attach<RelativeStore>("pb3533-host", madeSince));
+        foreach (var _ in Enumerable.Range(0, 3)) table.Detach("pb3533-host", old);   // the old store's holders leave: the path's entry stays
+        Assert.Same(current, table.Attach<RelativeStore>("pb3533-host", madeSince));
+        var created = table.AttachCreated("pb3533-host", new PhysicalFileIdentity(1, 9), new RelativeStore(), arbitrated: true);
+        Assert.NotSame(current, created);
+        Assert.Same(created, table.Attach<RelativeStore>("pb3533-host", null));
+    }
+
+    /// <summary>No connector empties a keyed store itself. Emptying is the store's CREATION, done in one place:
+    /// <c>OPEN OUTPUT</c>'s <c>StoreTable.AttachCreated</c>, which refuses a store another connector still holds, and then
+    /// <c>KeyedStore.Create</c>'s <c>PagedFile.Create</c>, the one truncation (kb/Work PB754; on the keyed store engine,
+    /// kb/Work PB3335, a store holds no records in memory, so there is nothing a connector could clear).</summary>
+    [Fact]
+    public void NoConnectorClearsASharedStore()
+    {
+        static IEnumerable<(string Line, int At)> Code(string file, string token) =>
+            File.ReadAllLines(file).Select((l, i) => (l, i + 1)).Where(x => x.l.Contains(token, StringComparison.Ordinal)
+                && !x.l.TrimStart().StartsWith("//", StringComparison.Ordinal));
+        foreach (var file in new[] { "RelativeConnector.cs", "IndexedConnector.cs", "KeyedConnector.cs" })
+        {
+            var clears = Code(TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", file), ".Clear()").ToList();
+            Assert.True(clears.Count == 0, $"{file} clears something a keyed store holds: "
+                + string.Join("; ", clears.Select(c => $"{c.At}: {c.Line.Trim()}"))
+                + " — emptying a shared keyed store is OPEN OUTPUT's creation alone (kb/Work PB754).");
+        }
+        string io = TestRepo.Src("WiseOwl.Cobol.Runtime", "IO");
+        var truncations = Directory.EnumerateFiles(io, "*.cs", SearchOption.TopDirectoryOnly)
+            .SelectMany(f => Code(f, "PagedFile.Create(").Select(c => $"{Path.GetFileName(f)}:{c.At}"))
+            .ToList();
+        Assert.True(truncations.All(t => t.StartsWith("KeyedStore.cs:", StringComparison.Ordinal)) && truncations.Count > 0,
+            "PagedFile.Create — the one truncation of a keyed store — is reached only through KeyedStore.Create; found: "
+            + string.Join(", ", truncations));
+    }
+}

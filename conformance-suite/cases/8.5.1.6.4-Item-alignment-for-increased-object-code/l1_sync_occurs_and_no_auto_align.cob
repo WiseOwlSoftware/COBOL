@@ -27,7 +27,7 @@
       *> or national. A record itself may be automatically synchronized."
       *>
       *> THE DETERMINATION THESE TWO REST ON, docs/CONFORMANCE.md DOC-A.1-195
-      *> (the §13.18.55.4 GR9 obligation, Annex A.1 item 195): COBOL.NET
+      *> (the §13.18.55.4 GR9 obligation, Annex A.1 item 195): WiseOwl COBOL
       *> performs NO physical alignment for SYNCHRONIZED and generates NO
       *> implicit FILLER for it — and "GR10's optional automatic alignment is
       *> not specified, so nothing is aligned without the clause either", and

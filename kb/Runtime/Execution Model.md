@@ -4,23 +4,23 @@ area: runtime
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs
-  - src/Cobol.Net.Runtime/Verbs/CobolInspect.cs
-  - src/Cobol.Net.Runtime/IO/CobolFile.cs
-  - src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.cs
-  - src/Cobol.Net.Runtime/Control/ManagedPointer.cs
-  - src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs
-  - docs/COBOLNET_NUMERIC_DESIGN.md
-  - docs/COBOLNET_FILES_DESIGN.md
-  - docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md
+  - src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs
+  - src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs
+  - src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs
+  - src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs
+  - src/WiseOwl.Cobol.Runtime/Control/ManagedPointer.cs
+  - src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs
+  - docs/NUMERIC_DESIGN.md
+  - docs/FILES_DESIGN.md
+  - docs/CONDITIONS_EXCEPTIONS_DESIGN.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - runtime
 ---
 
 # Runtime — Execution Model
 
-The generated C# program is a thin orchestrator that calls into **`Cobol.Net.Runtime`** (`CobolNet.Runtime.*`). The
+The generated C# program is a thin orchestrator that calls into **`WiseOwl.Cobol.Runtime`** (`WiseOwl.Cobol.Runtime.*`). The
 runtime is **typed-native**: a COBOL record is a .NET `record struct`, an elementary item is a native field
 (`long`/`Int128`/`double`/`string`/`bool`), and every verb is a value-in/value-out static helper. There is **no
 persistent byte-array `ProgramState` substrate** and no fallback to a byte-array engine — byte images exist only

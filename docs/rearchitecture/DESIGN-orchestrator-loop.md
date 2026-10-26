@@ -821,7 +821,7 @@ and the repository.
   - `pb`: the highest `kb/Work/PB<n>.md`;
   - `code`: the ceiling of BOTH scans: every whole-word `COBOL\d{4}` in `src/**/*.cs` (outside `bin`/`obj`; the
     parser's series COBOL0001-COBOL0313 shares the prefix and sits below every other code, kb/Work PB3575) and every
-    quoted `"COBOL\d{4}"` in `src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs`. This is the rule
+    quoted `"COBOL\d{4}"` in `src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs`. This is the rule
     `session-probe.ps1` used to compute itself; it now calls `alloc.py peek code --probe` and prints that line, so
     the rule exists once;
   - `wave`: the highest wave OR train number in use (`alloc.wave_top`): in a report's name in the reports directory
@@ -985,7 +985,7 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    site block and no primary file was located, or a dispatch the ledger recorded with no files) meets NOTHING, in
    flight and within the wave: PB3263's rule (an unknown set meets its subsystem, the notes' `area:`) reserved a whole
    subsystem for such a note and held unrelated fixes for hours (wave w20261032's groups A and B recorded 234 and 222
-   files, all of `Binding/` and `Cobol.Net.Runtime/` from a fix-lane note's FOLDER site, and held the owner-approved
+   files, all of `Binding/` and `WiseOwl.Cobol.Runtime/` from a fix-lane note's FOLDER site, and held the owner-approved
    fuzz fixes PB3664 and PB3665 on files neither touched), so it is deleted, and a fix-lane note's folder site reserves
    nothing (`member_index.note_file_set`). The plan table and the group's spec name an empty group `UNPARTITIONED`, and
    the spec asks its implementer to give each note a `**Sites:**` paragraph naming its files and members in its first
@@ -1122,7 +1122,7 @@ from that measurement and are refit from `units.jsonl` and `usage_report.py` (PB
 ### 9.1 The campaign lane (`--cluster`, kb/Work PB2120)
 
 The fix lane plans from harm: `fix_clusters.py` reads `.agent-fleet.json`, which keeps `kind: defect`, skips
-`process_only` notes, and resolves sites under `src/Cobol.Net.*` only, over the notes that wait on nothing
+`process_only` notes, and resolves sites under `src/WiseOwl.Cobol.*` only, over the notes that wait on nothing
 (`clusters.ready_notes_view` copies them into a directory of its own: `fix_clusters.py` skips by a stored flag, and
 whether a note is blocked is derived, kb/Work PB3389). A CAMPAIGN (the legacy
 retirement `PB2108`, the architecture review `PB1754`) is `process_only` work in `tests/`, `scripts/`, `.github/`,
@@ -1247,19 +1247,22 @@ and the terminals mode (13.2). The prototype has never run a real session; the o
 
 ## 10a. Starting at logon
 
-The reboot path is one Startup entry, `cobolnet-autoresume.cmd`, written by `scripts/orchestrator/install-autostart.ps1` (run once
+The reboot path is one Startup entry, `wiseowl-cobol-autoresume.cmd`, written by `scripts/orchestrator/install-autostart.ps1` (run once
 by the owner; `-DryRun` shows the file, `-Uninstall` removes it). It opens a Windows Terminal window `cobol-supervisor` in the repo
 and runs `scripts/orchestrator/autostart.ps1`, which lives in git: wait 25 s for the desktop, honour a `STOP` file and a waiting
 `OWNER-QUESTIONS.md`, adopt `origin/main` into the checkout (`adopt_main.py`, section 4.10: the routine the supervisor runs between its units), then run
 `orchestrate.ps1 -Watch` in that window so the owner can watch it, and print what the exit code means.
 
-This replaces the old arrangement (a `%LOCALAPPDATA%\CobolNet` script that started an interactive `claude` session whose prompt had
+This replaced an older arrangement (a script under `%LOCALAPPDATA%` that started an interactive `claude` session whose prompt had
 to re-create a session-only cron job at `5 3 * * *`). The supervisor needs no cron: `budget.py` returns `hold-day` until 03:05 and
 `hold-session` until the 5-hour reset, and every unit is a fresh session chained by `handoff.json`, so a reboot loses at most the unit
 that was running (a Workflow in flight dies with its process; its worktrees and checkpoints survive and the next `resume` unit
-picks them up). The installer moves the old script and the old `.cmd` to `%LOCALAPPDATA%\CobolNet\replaced\` as a rollback copy and
-nothing calls them. `test_autostart.ps1` proves the install, the idempotent re-install, the uninstall, and that STOP and a waiting
-owner question stop the start, all in temp directories.
+picks them up). EXACTLY ONE entry starts the loop: the installer moves every other Startup `.cmd` whose text runs
+`orchestrator/autostart.ps1` (an entry written under an earlier name before kb/Work PB3837 retired the product's old names)
+to `%LOCALAPPDATA%\WiseOwl.Cobol\replaced\`, and copies there an entry under its own name that does not start the loop before
+replacing it: rollback copies, which nothing calls. `test_autostart.ps1` proves the install, that the earlier entry is moved and
+an unrelated one stays, the idempotent re-install, the uninstall, and that STOP and a waiting owner question stop the start, all
+in temp directories.
 
 ## 10b. Starting an ATTENDED session (and the context-full restart)
 
@@ -1471,7 +1474,7 @@ commits, + 49 on `test_plan_wave.py`), `prune_worktrees.py` (34; its self-test i
 same week every one of their hottest functions was `self_test` (90, 66, 41 and 35 hunks; `plan()` 64). kb/Work PB3723
 measured wave 20261107: both same-file pairs conflicted INSIDE `self_test()` although neither edited the member the
 planner expected them to share. `docs/CONFORMANCE.md` took 93 commits (50 hunks in §4, 40 in §3, 15 in §7), and
-`src/Cobol.Net.Runtime/PublicAPI.Unshipped.txt` 20 (a line union once duplicated a symbol, PB3694). The owner:
+`src/WiseOwl.Cobol.Runtime/PublicAPI.Unshipped.txt` 20 (a line union once duplicated a symbol, PB3694). The owner:
 "why do so many changes affect the same scripts?" — and the decision to restructure, designed by a Mythos model,
 implemented by Opus implementers through the workstream skill, in the Mythos lane (PB3726). This section is the design
 every step implements; `DESIGN-test-build-ci.md` §3.14.10 and section 3.17.4 point here and carry nothing of their own.

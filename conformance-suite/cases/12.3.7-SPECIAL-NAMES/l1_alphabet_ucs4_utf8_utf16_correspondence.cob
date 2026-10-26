@@ -34,7 +34,7 @@
       *> and §12.3.7.4 GR6 makes the native ordinal association the implementor's ("The
       *> implementor shall define the order of characters within the native alphanumeric
       *> coded character set and the native national coded character set, associating each
-      *> character with an ordinal position within the character set"). COBOL.NET's
+      *> character with an ordinal position within the character set"). WiseOwl COBOL's
       *> determination is UTF-16 code units in code-unit order, so the native ordinal of a
       *> character is its code unit + 1 (§15.70.1 "The lowest ordinal position is 1").
       *> Each printed number is therefore THE CORRESPONDENCE GR7 asks the implementor to

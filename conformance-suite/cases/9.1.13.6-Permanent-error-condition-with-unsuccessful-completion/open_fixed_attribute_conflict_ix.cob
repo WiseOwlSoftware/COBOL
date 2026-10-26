@@ -13,7 +13,7 @@
       *> "prime record key, alternate record keys, SUPPRESS WHEN
       *> attribute ... the collating sequence of the keys for indexed
       *> files" among the attributes fixed when a file is created;
-      *> COBOL.NET records and validates the KEY COUNT and each key's
+      *> WiseOwl COBOL records and validates the KEY COUNT and each key's
       *> window, DUPLICATES, SUPPRESS WHEN value and collating
       *> sequence. The organization / record-size / record-type
       *> attributes are the 85 twin, open_fixed_attribute_conflict.
@@ -33,7 +33,7 @@
       *> table changed homes and the answers did not.
       *>
       *> The key half of the set — and only the key half — has a
-      *> documented runtime opt-out, COBOLNET_KEYCHECK=OFF
+      *> documented runtime opt-out, WISEOWL_COBOL_KEYCHECK=OFF
       *> (CONFORMANCE.md DOC-A.1-129), which no COBOL program can
       *> set; FixedFileAttributeFormatTests pins both of its arms.
        ENVIRONMENT DIVISION.

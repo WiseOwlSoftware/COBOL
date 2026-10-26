@@ -16,7 +16,7 @@
       *> consistent specification for data-name-1, device-name-1, and literal-1 in the ASSIGN clause. The
       *> implementor shall specify the consistency rules"; it does NOT require the same data item the way GR1 i)
       *> does for FILE STATUS ("where data-name-4 shall reference the same corresponding external data item").
-      *> COBOL.NET's consistency rule compares the ASSIGN operand text (device class dropped, case ignored) and
+      *> WiseOwl COBOL's consistency rule compares the ASSIGN operand text (device class dropped, case ignored) and
       *> the USING data-name by SPELLING (docs/CONFORMANCE.md §7, DOC-A.1-72), which both entries below satisfy
       *> while each program keeps its OWN storage for FNAME.
       *>

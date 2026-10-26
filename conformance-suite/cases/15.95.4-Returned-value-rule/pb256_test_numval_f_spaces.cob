@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB256 — ⛔ THE DETERMINATION THAT USED TO BE MADE IN SILENCE: a space does NOT split the
       *> exponent's `n`. Two ISO sentences pull in opposite directions and they give DIFFERENT answers, so
-      *> this fixture exists to pin the one COBOL.NET took (docs/CONFORMANCE.md §3).
+      *> this fixture exists to pin the one WiseOwl COBOL took (docs/CONFORMANCE.md §3).
       *>
       *> ⛔ THE RULES ARE THE NUMVAL-F FUNCTION'S. §15.95.1 says TEST-NUMVAL-F "verifies that the contents of
       *> argument-1 conform to the specification for argument-1 of the NUMVAL-F function", and §15.95.4 r1 a)
@@ -20,7 +20,7 @@
       *> Read as "elide the space and JOIN the runs on either side", an exponent written with an interior
       *> space would be one number: "1E+1 234" would have the four-digit exponent 1234 and CONFORM (0), and
       *> "1E+1 2345" would have the five-digit exponent 12345, whose fifth digit §15.95.4 r1 b) 5 puts at
-      *> position 9. COBOL.NET answers 0 to NEITHER and 9 to neither — see EIN4/EIN5 below.
+      *> position 9. WiseOwl COBOL answers 0 to NEITHER and 9 to neither — see EIN4/EIN5 below.
       *>
       *> THE OTHER READING WINS, on two independent grounds:
       *>  (a) §15.69.3 r1's format figure — verified on the PRINTED page 898, not only in the transcription

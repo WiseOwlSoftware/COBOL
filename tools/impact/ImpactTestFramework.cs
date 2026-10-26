@@ -10,11 +10,11 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using CobolNet.Gate;
+using WiseOwl.Cobol.Gate;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace CobolNet.Impact;
+namespace WiseOwl.Cobol.Impact;
 
 /// <summary>
 /// The gate's framework (<see cref="GateTestFramework"/>: a recording runs the same executor, handshake and leg

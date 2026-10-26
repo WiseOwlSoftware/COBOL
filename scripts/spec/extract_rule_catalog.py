@@ -836,7 +836,7 @@ def main() -> int:
     # sanctioned marker `<!-- TRANSCRIPTION-FAILED: page N — reason -->` and nothing else. That marker is
     # greppable, counted, and impossible to mistake for the standard, whereas a summary READS like content, which
     # is exactly why page 28's hole survived for months. A known missing page is recoverable; a page quietly
-    # replaced by prose ABOUT the page is not. (COBOLNET_DESIGN §1.4 applied to the spec itself.)
+    # replaced by prose ABOUT the page is not. (DESIGN §1.4 applied to the spec itself.)
     META = [
         (re.compile(r"\bI'?m not able to\b|\bI can quote\b|\bI'?m happy to help\b", re.I), "assistant refusal/offer"),
         (re.compile(r"here is a summary|summary and key excerpts|here are the key", re.I), "summary preamble"),

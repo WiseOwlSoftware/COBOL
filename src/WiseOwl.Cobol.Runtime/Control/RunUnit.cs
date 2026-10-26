@@ -1,0 +1,311 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Runtime.Exceptions;
+using WiseOwl.Cobol.Runtime.IO;
+
+namespace WiseOwl.Cobol.Runtime;
+
+/// <summary>
+/// The single owner of all run-unit-lifetime state (ISO §14.6.1 run unit; DESIGN-runtime-library §2.1).
+/// Replaces the five independent process-global static stores: one instance per run unit owning the program
+/// table, the EC engine, the EXTERNAL store, the MODULE-NAME stack, the file registry, the clock, and the FUNCTION RANDOM
+/// sequence (kb/Work PB307 — the sixth store, which the consolidation first missed). The
+/// ambient current run unit is an <see cref="AsyncLocal{T}"/> so a host that thread-hops or runs run units
+/// concurrently each see their own (uniform threading model — the former <c>[ThreadStatic]</c>-vs-plain-static
+/// split is gone). The pre-existing static facades (<see cref="ProgramRegistry"/>, <see cref="ExceptionState"/>,
+/// <see cref="CobolFile"/>, <see cref="CobolModule"/>, <see cref="ExternalStore"/>) remain the emitted surface
+/// as thin delegators over <see cref="Current"/>, so generated code is byte-stable pre-G8. <b>A new run unit is a
+/// NEW <see cref="RunUnit"/> object, on every path</b> (kb/Work PB1069): the emitted driver's
+/// <c>ProgramRegistry.Reset()</c> is <see cref="Begin"/>, and a host's <see cref="Run"/> constructs one too — so no
+/// member can be forgotten by a hand-written reset list (the switch, locale and report-flow state all were, and
+/// survived into the next run unit a host began in the same process). The §14.6.11 implicit CloseAll and the
+/// §14.6.12 abnormal-termination surface are runtime-side — <see cref="ProgramTable.RunMain"/> and <see cref="Terminate"/>.
+/// </summary>
+public sealed class RunUnit
+{
+    private static readonly AsyncLocal<RunUnit?> _current = new();
+
+    /// <summary>The ambient current run unit — lazily established if none (the delegating static facades reach
+    /// state through this, so a plain generated <c>Main</c> works without ever naming <see cref="RunUnit"/>).</summary>
+    public static RunUnit Current => _current.Value ??= new RunUnit();
+
+    /// <summary>The ambient current run unit, or null when none has been established (diagnostic/host use).</summary>
+    internal static RunUnit? TryCurrent => _current.Value;
+
+    public RunUnit()
+    {
+        Exceptions = new ExceptionEngine(Modules);   // the staged-RAISING slot names its activation (kb/Work PB892)
+        Programs = new ProgramTable(this);
+        Transactions = new TransactionControl(Files, Modules, SortFiles, Exceptions);
+        // The text-processing subsystems' cheap, idempotent initialization (Collation/CollationRuntime.cs): the key
+        // cache configuration from the environment; the derived tables stay lazy unless COBOL_COLLATION_WARMUP asks.
+        Collation.CollationRuntime.Initialize();
+    }
+
+    /// <summary>The run-unit program registry (name resolution, §14.6.2.3 state model, CANCEL).</summary>
+    public ProgramTable Programs { get; }
+
+    /// <summary>The run-unit-wide LAST EXCEPTION STATUS register + propagation slots (§14.6.13.1.1).</summary>
+    public ExceptionEngine Exceptions { get; }
+
+    /// <summary>The run-unit EXTERNAL data store (§8.6.7 / §13.18.22).</summary>
+    public ExternalTable External { get; } = new();
+
+    /// <summary>The FUNCTION MODULE-NAME call-name stack (§15.65).</summary>
+    public ModuleStack Modules { get; } = new();
+
+    /// <summary>The external-switch store (§12.3.7 GR4 NOTE 1 — switch scope is the run unit).</summary>
+    public SwitchStore Switches { get; } = new();
+
+    /// <summary>The run-unit file-connector registry (§9.1; owns the physical-file sharing table).</summary>
+    public FileRegistry Files { get; } = new();
+
+    /// <summary>The run unit's commit and rollback (§9.1.18; kb/Work PB3338): its active APPLY COMMIT clauses and the
+    /// COMMIT and ROLLBACK statements over them and <see cref="Files"/>.</summary>
+    internal TransactionControl Transactions { get; }
+
+    /// <summary>The run unit's sort-merge file stores (ISO §14.9.40 / §14.9.24; kb/Work PB1570) — the in-memory SD
+    /// buffers of the SORT/MERGE statements this run unit executes, which no other run unit can see or mutate.</summary>
+    public SortFileTable SortFiles { get; } = new();
+
+    /// <summary>The run unit's ONE current FUNCTION RANDOM sequence (ISO §15.75.3 r4 — the implementor seed belongs
+    /// to "the first reference to this function in the run unit"; kb/Work PB307).</summary>
+    public RandomSequence Random { get; } = new();
+
+    /// <summary>The run unit's Report Writer control-flow state: the USE BEFORE REPORTING range
+    /// (ISO §14.9.49.4 GR10 — <see cref="ReportFlowState"/> records why the range is the RUN UNIT's).</summary>
+    public ReportFlowState ReportFlow { get; } = new();
+
+    /// <summary>The run unit's clock (ISO §14.9.1.4 GR7; injectable — a test may set a fixed clock). HOST
+    /// CONFIGURATION, not run-unit state: a run unit <see cref="Begin"/> starts inherits it from the ambient run unit
+    /// it replaces (<see cref="HostConfiguration"/>).</summary>
+    public IClock Clock { get; set; } = SystemClock.Instance;
+
+    /// <summary>The run unit's LOCALE state (ISO §8.2.1 / §14.6.6; DESIGN-locale-facility §4.3): the two implementor
+    /// defaults (determination L2) and the locale current per category — what a LOCALE-based collating sequence
+    /// resolves at each use (<see cref="LocaleCollation"/>).</summary>
+    public LocaleState Locale { get; } = new();
+
+    /// <summary>The X3.23-1985 OBJECT-TIME (run-time) debug switch (the '85 debug module — deleted 2002, absent 2023;
+    /// WiseOwl COBOL models the facility only at <c>--std 85</c>, VCR Table 7 row 7.17). It is implementor-defined; for a
+    /// CCVS run it is ON. Default ON so a program compiled WITH DEBUGGING MODE runs its debugging declaratives (the
+    /// COMPILE-time switch — SOURCE-COMPUTER … WITH DEBUGGING MODE — is what gates whether the debug scaffolding is
+    /// emitted at all; this is the second switch that gates whether emitted triggers actually fire). The emitted
+    /// <c>__RunDebug</c> helper reads it, giving a future CLI <c>--debug-mode off</c> override a single home without
+    /// perturbing generated code. HOST CONFIGURATION like <see cref="Clock"/> (<see cref="HostConfiguration"/>).</summary>
+    public bool DebugMode { get; set; } = true;
+
+    /// <summary>The names of the members that are HOST CONFIGURATION rather than run-unit state: set by the host
+    /// (or a test) that embeds the runtime, not by any COBOL statement, and carried from the ambient run unit into
+    /// the one <see cref="Begin"/> starts in its place — a host that injects a fixed clock and then runs a compiled
+    /// program's <c>Main</c> (whose first statement begins the run unit) keeps its clock. Every OTHER member is
+    /// fresh in a new run unit; <c>RunUnitStateDriftTests</c> holds both halves by reflection.</summary>
+    public static IReadOnlyList<string> HostConfiguration { get; } = [nameof(Clock), nameof(DebugMode)];
+
+    /// <summary>The run unit's FACTORY OBJECTS, one per class, created at the first reference in THIS run unit
+    /// (ISO §9.3.14.2: "A factory object is created before it is first referenced by a run unit", and "deleted
+    /// after it is last referenced by a run unit" — both lifetimes are the RUN UNIT's; kb/Work PB1069). A factory
+    /// used to be a process-lifetime <c>static readonly</c> singleton on its generated class, so its factory data —
+    /// and every instance object, ALLOCATEd area and dynamic item reachable from it — outlived the run unit and was
+    /// visible to the next one a host began in the same process, contrary to §14.6.11 items 3, 4 and 6. Keyed by
+    /// the generated factory type; a run unit executes on one logical thread, so the table needs no lock.</summary>
+    private readonly Dictionary<Type, CobolObject> _factoryObjects = [];
+
+    /// <summary>The factory object of the class whose generated factory type is <typeparamref name="T"/> in this
+    /// run unit, created on first reference (the emitted <c>__Instance</c> property reads it). Creation runs the
+    /// generated constructor — the factory's VALUE initialization and its file registrations (§9.1.4) — once per
+    /// run unit.
+    /// <para>⛔ THE ONE RESOURCE AN INVOKE CHECKS (ISO §14.9.23.4 GR7 b): "If the method is not found or the resources
+    /// necessary to execute the method are not available, the EC-OO-METHOD exception condition is set to exist". The
+    /// implementor defines which resources are checked (Annex A.1 item 102; docs/CONFORMANCE.md DOC-A.1-102), and this is
+    /// it: the class's type initialization, which the first reference to its factory object triggers, completes. A class
+    /// whose type initializer throws is a class whose method cannot be executed, so it is EC-OO-METHOD here — never the
+    /// raw <see cref="TypeInitializationException"/> the CLR would hand an unchecked program (kb/Work PB1422). The CLR
+    /// remembers the failure, so every later reference to that class raises it again.</para></summary>
+    public T FactoryObject<T>() where T : CobolObject, new()
+    {
+        if (_factoryObjects.TryGetValue(typeof(T), out var existing)) return (T)existing;
+        T created;
+        // `new T()` through a type parameter is Activator.CreateInstance<T>(), which WRAPS whatever the constructor (or the
+        // type initializer it triggers) throws in a System.Reflection.TargetInvocationException: unwrap it, so a condition the generated
+        // constructor raises reaches the COBOL boundary as itself, and a failed initialization is the EC below.
+        try { created = new T(); }
+        catch (System.Reflection.TargetInvocationException wrapped) when (wrapped.InnerException is { } inner)
+        {
+            if (inner is TypeInitializationException initFailed) throw InitializationFailure(typeof(T), initFailed);
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(inner).Throw();
+            throw;   // unreachable: Throw() never returns
+        }
+        catch (TypeInitializationException initFailed) { throw InitializationFailure(typeof(T), initFailed); }
+        _factoryObjects.Add(typeof(T), created);
+        // The class's (and every superclass's) METHOD working-storage is static data: its first method activation
+        // in this run unit is always preceded by this creation, because a method runs on a factory object or on an
+        // instance its factory's New made — so the class adopts its static storage into this run unit HERE.
+        created.__AdoptRunUnitStorage(this);
+        return created;
+    }
+
+    private static CobolFatalException InitializationFailure(Type factory, TypeInitializationException failure) =>
+        new("EC-OO-METHOD",
+            $"INVOKE: the class '{factory.Name}' could not be initialized, so its method cannot be executed "
+            + $"({failure.InnerException?.GetType().Name ?? failure.GetType().Name}; ISO §14.9.23.4 GR7b)");
+
+    /// <summary>The static-storage resets this run unit has ADOPTED, in adoption order (kb/Work PB1069). Static data
+    /// — a RECURSIVE program's or a function's WORKING-STORAGE (§13.5.4 GR1) and a class's METHOD WORKING-STORAGE (OO
+    /// deep-dive D3) — is a C# static on its generated type, so it is the ONE kind of run-unit state that a new
+    /// <see cref="RunUnit"/> object cannot make fresh by construction. The set is keyed by the reset delegate (two
+    /// delegates of one static method are equal), so a class reached through several subclass factories adopts once.</summary>
+    private readonly List<Action> _staticStorage = [];
+    private readonly HashSet<Action> _adoptedStaticStorage = [];
+
+    /// <summary>Adopt one unit's static storage into this run unit: its <paramref name="reset"/> runs NOW — ISO
+    /// §14.6.2.3.2 case 1, "The first time the function, method, or program in which it is described is activated in
+    /// a run unit", holds even when the same loaded module served an earlier run unit in this process — and again at
+    /// <see cref="Terminate"/>. Adopting the same reset twice is a no-op.</summary>
+    public void AdoptStaticStorage(Action reset)
+    {
+        if (!_adoptedStaticStorage.Add(reset)) return;
+        _staticStorage.Add(reset);
+        reset();
+    }
+
+    /// <summary>Normal and abnormal run-unit termination's runtime epilogue — ONE method for every boundary
+    /// (<see cref="ProgramTable.RunMain"/>'s, <see cref="Run"/>'s and a host activation's, <see cref="EndForHost"/>),
+    /// idempotent so a host that nests them runs it harmlessly twice. ISO §14.6.11 2): "An implicit CLOSE statement without any phrases is executed for each file
+    /// that is in the open mode" (also after an abnormal termination, §14.6.12). Then every adopted static storage
+    /// returns to its initial state, which RELEASES what it held — §14.6.11 3) "Any storage obtained with an ALLOCATE
+    /// statement and not yet released by a FREE statement is released", 4) "All instance objects are destroyed" and
+    /// 6) "Any resources occupied by dynamic-capacity tables or dynamic-length elementary items are freed": a static
+    /// POINTER, OBJECT REFERENCE or dynamic item is managed memory that stays reachable exactly as long as the
+    /// static field refers to it, and everything else the run unit owned is released with this object.
+    /// <para>The storage is released even when a close failed: item 2's closes run "even when an error occurs", and
+    /// <see cref="IO.FileRegistry.CloseAll"/> rethrows a failure no I-O status describes only after every file is
+    /// closed, so the rest of the epilogue must not hang on it either (kb/Work PB603).</para></summary>
+    public void Terminate()
+    {
+        try
+        {
+            // §14.6.12: "If commit and rollback is in effect, a rollback is executed. This rollback differs from user
+            // specified rollbacks in that only files and not any of the data items" are restored — the file-only
+            // ROLLBACK of an abnormal ending, before the implicit CLOSE, whose own first step commits a NORMAL ending's
+            // transactions (§9.1.18.5; DESIGN-runtime-library.md 2.2.1.10, kb/Work PB3337).
+            if (EndedAbnormally) Files.EndTransactions(abnormal: true);
+            Files.CloseAll();
+        }
+        finally
+        {
+            foreach (var reset in _staticStorage) reset();
+        }
+    }
+
+    /// <summary>⛔ Whether this run unit is ending ABNORMALLY (§14.6.12): any exception but STOP RUN's unwind leaving its
+    /// outermost boundary — a fatal exception condition, a CALL/CANCEL fatal, or a runtime failure no condition names.
+    /// <see cref="Terminate"/> reads it to choose §9.1.18.5's rollback over its commit (kb/Work PB3337).</summary>
+    internal bool EndedAbnormally { get; private set; }
+
+    /// <summary>The exception FILTER every run-unit boundary runs over the exception leaving it (it never catches: false):
+    /// records an abnormal ending before the boundary's <c>finally</c> runs <see cref="Terminate"/>.</summary>
+    internal bool NoteEnding(Exception ending)
+    {
+        if (ending is not StopRun) EndedAbnormally = true;
+        return false;
+    }
+
+    private long _exitStatus;
+
+    /// <summary>The run unit's own termination status "passed to the operating system" by STOP RUN / a main-program
+    /// GOBACK with a status phrase (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10), or 1 once the run unit ended abnormally
+    /// (§14.6.12). On .NET the single observable of that hand-over is the process exit code, so the STATUS value and the
+    /// ERROR/NORMAL indication collapse into this ONE canonical integer (the documented implementor mapping —
+    /// <c>docs/CONFORMANCE.md</c> §4.2.16; Annex A "required documented behavior" items 192/193): the STATUS value when
+    /// specified, else ERROR ⇒ 1 / NORMAL ⇒ 0. <b>It is the RUN UNIT's state and nothing else's</b>: writing it touches no
+    /// process-wide cell, because a run unit embedded in a .NET host (<see cref="Run"/>, <see cref="ProgramTable.RunMain"/>)
+    /// must not end or restate the HOST's exit code (DOC-A.1-167 — STOP RUN and a fatal condition "end the RUN UNIT ONLY";
+    /// kb/Work PB3163). The boundary that IS the process entry — the generated <c>Main</c>'s
+    /// <see cref="ProgramTable.RunModule"/> — delivers it to <c>Environment.ExitCode</c> once, when the run unit has ended,
+    /// and a host reads it here. The status still crosses assembly boundaries, because STOP RUN terminates the WHOLE run
+    /// unit from anywhere (§14.9.42.4 GR6) and every module of the run unit writes this ONE shared field through
+    /// <see cref="SetExitStatus"/>: a status set by a separately-compiled CALLed module reaches the entry boundary even
+    /// though the run unit's MAIN program carries no status phrase of its own. Default 0 (a status-free run unit never
+    /// writes this field, and the generated <c>Main</c> stays scaffolding-free — the zero-scaffolding invariant, DESIGN
+    /// §18.16). The future RETURN-CODE special register writes this SAME field (singular-pattern — one exit-code source,
+    /// never two).
+    /// <para>The host exit code is a 32-bit integer, so the entry boundary CLAMPS the status to that range through the one
+    /// saturating narrowing (<see cref="CobolNum.Position32"/>), never wraps it: a bare <c>(int)</c> turned
+    /// <c>STOP RUN WITH ERROR STATUS 4294967296</c> into exit 0 — a NORMAL termination for an ERROR phrase
+    /// (kb/Work PB1178). docs/CONFORMANCE.md item 192 documents the range (and a POSIX host's own low-8-bit
+    /// report).</para></summary>
+    public long ExitStatus
+    {
+        get => _exitStatus;
+        set => _exitStatus = value;
+    }
+
+    /// <summary>The emitted-surface shim STOP RUN / GOBACK write (kept name-stable over <see cref="Current"/>,
+    /// mirroring the <see cref="ExceptionState"/>/<see cref="ProgramRegistry"/> facades): set the ambient run unit's
+    /// termination status (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10). Every module of the run unit shares that one run
+    /// unit, so the status crosses assembly boundaries.</summary>
+    public static void SetExitStatus(long status) => Current.ExitStatus = status;
+
+    /// <summary>Establish a FRESH ambient run unit for the duration of <paramref name="body"/> — the host's
+    /// lifecycle boundary (begin = a new run unit, <see cref="StartAfter"/>; end = the §14.6.11 implicit CloseAll +
+    /// ambient restore). Hosts embedding several run units use it; the emitted driver uses <see cref="Begin"/>.</summary>
+    public static void Run(Action<RunUnit> body)
+    {
+        var prior = _current.Value;
+        var ru = StartAfter(prior);
+        _current.Value = ru;
+        try { body(ru); }
+        catch (Exception ending) when (ru.NoteEnding(ending)) { throw; }   // never taken: the filter records the ending
+        finally
+        {
+            ru.Terminate();
+            // A run unit the body's activations ENDED was replaced by a new ambient one (EndForHost), which ends here too.
+            if (_current.Value is { } replacement && !ReferenceEquals(replacement, ru)) replacement.Terminate();
+            _current.Value = prior;
+        }
+    }
+
+    /// <summary>End this run unit for the .NET host whose activation it was running when a STOP RUN or a run-unit fatal
+    /// reached the outermost boundary (<see cref="ProgramTable.CallProgram"/> with no caller; owner decision R48,
+    /// docs/CONFORMANCE.md DOC-A.1-167): the §14.6.11 actions (<see cref="Terminate"/>), then, when this run unit is the
+    /// ambient one, a NEW ambient run unit in its place, so the host's next activation begins a run unit that inherits
+    /// nothing (kb/Work PB1069: a new run unit is a new object) while the host process continues. The termination status
+    /// travels in the <see cref="RunUnitEndedException"/> the boundary throws, and the new run unit's own
+    /// <see cref="ExitStatus"/> starts at 0; neither touches the host process's exit code (kb/Work PB3163).</summary>
+    internal void EndForHost()
+    {
+        Terminate();
+        if (ReferenceEquals(_current.Value, this)) _current.Value = StartAfter(this);
+    }
+
+    /// <summary>Begin a NEW run unit and make it the ambient one — the emitted run-unit driver's first statement
+    /// (<c>ProgramRegistry.Reset()</c>). Every member of the new run unit is fresh (program table, EXTERNAL store,
+    /// MODULE-NAME stack, files, switches (§12.3.7.4 4) — the implementor-defined scope is the run unit), locale
+    /// (§14.6.11 5), FUNCTION RANDOM sequence
+    /// (§15.75.3 r4), report flow, exception status, factory objects (§9.3.14.2) and the termination status),
+    /// because it is a new object — only the <see cref="HostConfiguration"/> carries over. The run unit it
+    /// replaces is not touched: its own termination (<see cref="ProgramTable.RunMain"/>'s finally, or
+    /// <see cref="Run"/>'s) closed its files, and dropping the last reference to it releases everything it owned
+    /// (§14.6.11 items 3, 4 and 6 — ALLOCATEd storage, instance objects, dynamic items — are managed memory).</summary>
+    public static RunUnit Begin()
+    {
+        var ru = StartAfter(_current.Value);
+        _current.Value = ru;
+        return ru;
+    }
+
+    /// <summary>A new run unit that follows <paramref name="prior"/> (null = none): fresh state, the prior's
+    /// <see cref="HostConfiguration"/>. Its termination status is its own (0): the previous run unit's STOP RUN status is
+    /// not inherited, and no process-wide cell is touched (kb/Work PB3163).</summary>
+    private static RunUnit StartAfter(RunUnit? prior)
+    {
+        var ru = new RunUnit();
+        if (prior is not null)
+        {
+            ru.Clock = prior.Clock;
+            ru.DebugMode = prior.DebugMode;
+        }
+        return ru;
+    }
+}

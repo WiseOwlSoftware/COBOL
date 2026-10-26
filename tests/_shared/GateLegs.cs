@@ -14,7 +14,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace CobolNet.Gate;
+namespace WiseOwl.Cobol.Gate;
 
 /// <summary>
 /// xunit's own framework, with an executor that runs ONE LEG of the gate's plan when, and only when, the gate driver
@@ -165,9 +165,9 @@ internal sealed class GatePlan
     /// <summary>The plan file's schema this reader understands.</summary>
     public const int Schema = 1;
 
-    /// <summary>The gated test projects are <c>Cobol.Net.Tests.&lt;key&gt;</c>; the plan, the impact map and the
+    /// <summary>The gated test projects are <c>WiseOwl.Cobol.Tests.&lt;key&gt;</c>; the plan, the impact map and the
     /// gate name each by its key (<c>Conformance</c>, <c>Unit</c>, <c>Characterization</c>).</summary>
-    private const string TestAssemblyPrefix = "Cobol.Net.Tests.";
+    private const string TestAssemblyPrefix = "WiseOwl.Cobol.Tests.";
 
     public static string AssemblyKey(string assemblyName)
     {
@@ -309,9 +309,9 @@ internal sealed class GateAssemblyPlan
 /// caller of <c>dotnet test</c> (section 3.14.3).</summary>
 internal abstract record GateHandshake
 {
-    public const string PlanVariable = "COBOLNET_GATE_PLAN";
-    public const string LegVariable = "COBOLNET_GATE_LEG";
-    public const string DigestVariable = "COBOLNET_GATE_PLAN_SHA256";
+    public const string PlanVariable = "WISEOWL_COBOL_GATE_PLAN";
+    public const string LegVariable = "WISEOWL_COBOL_GATE_LEG";
+    public const string DigestVariable = "WISEOWL_COBOL_GATE_PLAN_SHA256";
 
     /// <summary>The first words of every refused case's message.</summary>
     public const string RefusalPrefix = "GATE ENVIRONMENT INCOMPLETE: ";
@@ -442,14 +442,14 @@ internal static class GateIdentityRecord
     }
 
     /// <summary>The compiler under test: the repository's own assemblies in the test assembly's directory
-    /// (<c>Cobol.Net.*</c> and the CLI's <c>cobol.dll</c>), the test assembly excluded.</summary>
+    /// (<c>WiseOwl.Cobol.*</c> and the CLI's <c>cobol.dll</c>), the test assembly excluded.</summary>
     internal static IEnumerable<string> ProductAssemblies(string bin, string testAssemblyLocation) =>
         Directory.EnumerateFiles(bin, "*.dll")
             .Where(f =>
             {
                 string name = Path.GetFileName(f);
                 return !string.Equals(f, testAssemblyLocation, StringComparison.OrdinalIgnoreCase)
-                       && (name.StartsWith("Cobol.Net.", StringComparison.Ordinal) || name == "cobol.dll");
+                       && (name.StartsWith("WiseOwl.Cobol.", StringComparison.Ordinal) || name == "cobol.dll");
             })
             .Order(StringComparer.Ordinal);
 

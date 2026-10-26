@@ -8,7 +8,7 @@
       *> ISO §13.18.60.4 GR22 a) — "The amount of storage allocated for an object reference
       *> data item is implementor-defined and is not necessarily the same for every object
       *> reference."  Annex A.1 item 214 makes that amount REQUIRED user documentation, and
-      *> COBOL.NET's determination is docs/CONFORMANCE.md item DOC-A.1-214: an object
+      *> WiseOwl COBOL's determination is docs/CONFORMANCE.md item DOC-A.1-214: an object
       *> reference IS one .NET managed reference, so every shape of the §13.18.60.2 general
       *> format allocates the SAME amount — the runtime's reference width, 8 bytes on the
       *> 64-bit runtime this compiler targets.  This golden is that determination's witness.

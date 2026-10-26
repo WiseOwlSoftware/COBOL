@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
 /// ⛔ THE ONE BUDGET RULE for every child process a test observes (kb/Work PB3108; DESIGN-test-build-ci.md §3.10): a
@@ -28,15 +28,15 @@ namespace CobolNet.Tests.Shared;
 /// The unit stays the design's floor for one program: 120 s, against a recorded cost of at most 9.3 s for one suite
 /// test's compile AND run (run.py's <c>seconds</c>, 2026-10-22, 32 logical processors) and 7.0 s and 3.8 s for the two
 /// single-program tests the shared gate timings name in PB3108 (RelationPairShapeTests, ActivationResourcesTests),
-/// so it carries a multiple of 13 to 32 for load. <c>COBOLNET_RUN_TIMEOUT_MS</c> sets it.
+/// so it carries a multiple of 13 to 32 for load. <c>WISEOWL_COBOL_RUN_TIMEOUT_MS</c> sets it.
 /// </para>
 /// </remarks>
 internal sealed class ObservationBudget
 {
     /// <summary>The harness unit: the budget of one process doing one job (compile one program, run one program, run
-    /// one script). Default 120 000 ms; <c>COBOLNET_RUN_TIMEOUT_MS</c> overrides it.</summary>
+    /// one script). Default 120 000 ms; <c>WISEOWL_COBOL_RUN_TIMEOUT_MS</c> overrides it.</summary>
     public static int UnitMs { get; } =
-        int.TryParse(Environment.GetEnvironmentVariable("COBOLNET_RUN_TIMEOUT_MS"), out int ms) && ms > 0
+        int.TryParse(Environment.GetEnvironmentVariable("WISEOWL_COBOL_RUN_TIMEOUT_MS"), out int ms) && ms > 0
             ? ms : 120_000;
 
     /// <summary>One process that starts no child it waits for: one unit.</summary>
@@ -83,5 +83,5 @@ internal sealed class ObservationBudget
 
     /// <summary>The budget as a non-observation reports it: the total, the work, and how it was computed.</summary>
     public override string ToString() => string.Create(CultureInfo.InvariantCulture,
-        $"{Ms} ms for {Work} ({Units} unit(s) of {PerUnitMs} ms; COBOLNET_RUN_TIMEOUT_MS sets the unit)");
+        $"{Ms} ms for {Work} ({Units} unit(s) of {PerUnitMs} ms; WISEOWL_COBOL_RUN_TIMEOUT_MS sets the unit)");
 }

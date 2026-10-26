@@ -1,0 +1,59 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Diagnostics;
+using WiseOwl.Cobol;
+using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Tests.Shared;                             // ProcessObserver — the ONE child-process observer
+
+namespace WiseOwl.Cobol.Tests.Unit;
+
+/// <summary>
+/// Base for WiseOwl COBOL end-to-end tests: compile a COBOL source string with <see cref="CompilerDriver"/> (the
+/// greenfield COBOL→C#→Roslyn pipeline) into a per-test temp directory, run the produced assembly, and return its
+/// captured stdout. Each test gets an isolated temp dir (disposed afterwards).
+/// </summary>
+public abstract class WiseOwlCobolTestBase : IDisposable
+{
+    protected readonly string TempDir;
+
+    protected WiseOwlCobolTestBase()
+    {
+        TempDir = ScratchDirectory.Create("WiseOwlCobol_Tests_");
+    }
+
+    public void Dispose()
+    {
+        if (Directory.Exists(TempDir))
+            ScratchDirectory.Remove(TempDir);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>Compile <paramref name="source"/> and run it; returns whether it ran and its trimmed stdout.</summary>
+    protected (bool ok, string stdout, string detail) CompileAndRun(string source, int dialectLevel = 85)
+    {
+        string srcPath = Path.Combine(TempDir, "prog.cob");
+        string dllPath = Path.Combine(TempDir, "prog.dll");
+        File.WriteAllText(srcPath, source);
+
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(srcPath, dllPath, DialectLevel: dialectLevel, SourceFormat: InitialReferenceFormat.Auto));
+        if (!result.Success)
+            return (false, "", $"{result.Status}: {string.Join("\n", result.Errors)}");
+        return RunAssembly(dllPath);
+    }
+
+    /// <summary>Run an assembly <see cref="CompilerDriver"/> produced; returns whether it exited 0, its stdout with
+    /// newlines canonicalized and trailing whitespace trimmed, and its stderr. For a test that compiles with options
+    /// <see cref="CompileAndRun"/> does not take (<c>--permissive</c>, a source format) and reads the result's
+    /// warnings before running it.</summary>
+    protected (bool ok, string stdout, string detail) RunAssembly(string dllPath)
+    {
+        // The ONE child-process observer (tests/_shared/ProcessObservation.cs) — a run that does not complete
+        // raises rather than returning an empty stdout for the caller to compare. See plan §11 A12.
+        var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"") { WorkingDirectory = TempDir };
+        var obs = ProcessObserver.ObserveOrThrow(psi, runDirectory: TempDir);
+        // Canonicalize newlines so multi-line expectations are platform-independent (a compiled program's DISPLAY
+        // uses the platform newline: \r\n on Windows, \n on Linux/CI). See the legacy EndToEndTestBase note.
+        string stdout = obs.Stdout.ReplaceLineEndings("\r\n").TrimEnd();
+        return (obs.ExitCode == 0, stdout, obs.Stderr.Trim());
+    }
+}

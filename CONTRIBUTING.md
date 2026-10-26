@@ -52,7 +52,7 @@ scripts), **Python 3.14+** and **Java 21+** (for ANTLR).
 ```bash
 git clone https://github.com/WiseOwlSoftware/COBOL.git
 cd COBOL
-dotnet build Cobol.Net.sln
+dotnet build WiseOwl.Cobol.sln
 ```
 
 Always build the **solution**, not a single project, before running tests with `--no-build`; otherwise you test a

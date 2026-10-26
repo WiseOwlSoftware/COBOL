@@ -32,7 +32,7 @@
       *>     then says "The implementor may allow a wider range", which §A.1 item 206 classes as an OPTIONAL,
       *>     documentation-required element. The NOTE's own parenthetical — "assuming an 8-bit representation"
       *>     — is the standard flagging precisely that assumption, inside an informative note.
-      *>     ⛔ SO THESE TWO LINES PIN COBOL.NET'S DOCUMENTED DETERMINATION, NOT A STANDARD-FIXED VALUE.
+      *>     ⛔ SO THESE TWO LINES PIN WiseOwl COBOL'S DOCUMENTED DETERMINATION, NOT A STANDARD-FIXED VALUE.
       *>     docs/CONFORMANCE.md A.1 item 207 pins "BINARY-CHAR 1 byte ... two's complement, big-endian,
       *>     SIGNED and UNSIGNED the same width (GR21)", and item 206 declares the wider range "Not provided.
       *>     Each usage holds exactly the GR12 minimum range for its width: CHAR ±128 / 0–255". Given THAT

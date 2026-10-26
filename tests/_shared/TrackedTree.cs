@@ -3,7 +3,7 @@
 
 using System.Diagnostics;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
 /// ⭐ THE COMMITTED TREE — the files git tracks, as repo-root-relative paths with <c>/</c> separators (kb/Work PB735,

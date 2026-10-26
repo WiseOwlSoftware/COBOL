@@ -798,7 +798,7 @@ def self_test() -> int:
 
         for name, command, tool, expected in [
             ("`cd <main> && dotnet build` from a worktree -> DENY on the main fleet", f'cd "{main}" && dotnet build', "Bash", 1),
-            ("no location change -> the payload cwd (main) -> DENY", "dotnet build Cobol.Net.sln", "Bash", 1),
+            ("no location change -> the payload cwd (main) -> DENY", "dotnet build WiseOwl.Cobol.sln", "Bash", 1),
             ("PowerShell `Set-Location <wt>; dotnet build` -> ALLOW", f"Set-Location {wt}; dotnet build -c Debug", "PowerShell", 0),
             ("PowerShell `Set-Location <wt>; (Measure-Command {{ dotnet publish }})` -> ALLOW",
              f"Set-Location {wt}; (Measure-Command {{ dotnet publish x.csproj -c Release }}).TotalSeconds", "PowerShell", 0),
@@ -806,7 +806,7 @@ def self_test() -> int:
             ("PowerShell `pwsh -WorkingDirectory <wt> -Command` -> ALLOW",
              f'pwsh -NoProfile -WorkingDirectory "{wt}" -Command "dotnet build"', "PowerShell", 0),
             ("Bash `git worktree add … && cd <wt> && dotnet build` -> ALLOW",
-             f"git worktree add -q --detach x abc && cd {wt.as_posix()} && dotnet build Cobol.Net.sln", "Bash", 0),
+             f"git worktree add -q --detach x abc && cd {wt.as_posix()} && dotnet build WiseOwl.Cobol.sln", "Bash", 0),
             ("Bash `mkdir -p … && cd <wt> && dotnet build` -> ALLOW", f"mkdir -p /tmp/q && cd {wt.as_posix()} && dotnet build", "Bash", 0),
             ("Bash `ls …; cd <wt> && dotnet build` -> ALLOW", f"ls STOP; cd {wt.as_posix()} && dotnet build", "Bash", 0),
             ("Bash `pushd <wt> && dotnet build` -> ALLOW", f"pushd {wt.as_posix()} && dotnet build", "Bash", 0),
@@ -815,7 +815,7 @@ def self_test() -> int:
             ("Bash `cd <wt> & dotnet build` -> DENY: a background cd does not move the shell", f"cd {wt.as_posix()} & dotnet build", "Bash", 1),
             ("a target the line does not determine -> UNKNOWN -> DENY session-wide", "cd $NOWHERE && dotnet build", "Bash", 1),
             ("from main, `dotnet build <wt>/x.sln` builds the worktree -> ALLOW",
-             f"dotnet build {wt.as_posix()}/Cobol.Net.sln", "Bash", 0),
+             f"dotnet build {wt.as_posix()}/WiseOwl.Cobol.sln", "Bash", 0),
             ("`cd <scratch probe> && dotnet build` (PB3770: the adjudicator's command) -> ALLOW",
              f"cd {fx['plain'].as_posix()} && dotnet build -c Release", "Bash", 0),
             ("PowerShell `Set-Location <scratch probe>; dotnet run -c Release` -> ALLOW",
@@ -828,7 +828,7 @@ def self_test() -> int:
             check(f"scope: {name}", denies(command, main, tool), expected)
         # The harmful direction: from a worktree, a build of the MAIN checkout's solution must see the main fleet.
         check("scope: from a worktree, `dotnet build <main>/x.sln` -> DENY on the main fleet",
-              denies(f"dotnet build {main.as_posix()}/Cobol.Net.sln", wt), 1)
+              denies(f"dotnet build {main.as_posix()}/WiseOwl.Cobol.sln", wt), 1)
         check("scope: from a worktree, `dotnet run --project <main>/x.csproj` -> DENY on the main fleet",
               denies(f"dotnet run --project {main.as_posix()}/x.csproj", wt), 1)
         check("scope: a scratch probe referencing a worktree, built from main -> DENY on that worktree's agent",
@@ -884,7 +884,7 @@ def self_test() -> int:
 
     # ── 3. The verb matcher, both ways — `dotnet --version` must stay OUT of scope ─────────────────────────
     for cmd, expected in [
-        ("dotnet build Cobol.Net.sln", True),
+        ("dotnet build WiseOwl.Cobol.sln", True),
         ("timeout 900 dotnet test x.csproj", True),
         ("dotnet --version", False),
         ("dotnet tool list", False),

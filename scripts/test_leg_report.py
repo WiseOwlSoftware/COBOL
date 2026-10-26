@@ -8,7 +8,7 @@
 a leg's output matching `^(Passed!|Failed!)|error|\\[FAIL\\]`, and only the last 20 of those. vstest prints a failing
 test as a block —
 
-      Failed CobolNet.Tests.Unit.SomeTests.SomeFact [21 s]
+      Failed WiseOwl.Cobol.Tests.Unit.SomeTests.SomeFact [21 s]
       Error Message:
        System.UnauthorizedAccessException : Access to the path '…' is denied.
       Stack Trace:
@@ -39,7 +39,7 @@ reporter that could not look is not a green, feedback_green_gates_arent_evidence
 `--self-test` drives the rule against a REAL vstest failure transcript (the one golden lane #2's lander captured,
 DEVLOG 1700, with a planted token for its message) and proves, arm by arm, that the message and the stack frames
 reach the printed report — and, as the calibration that makes the proof mean something, that BOTH retired filters
-drop that same message. `tests/Cobol.Net.Tests.Unit/TestLegReportDriftTests.cs` runs it in every Unit leg and
+drop that same message. `tests/WiseOwl.Cobol.Tests.Unit/TestLegReportDriftTests.cs` runs it in every Unit leg and
 asserts every gate script routes its legs through this file.
 """
 from __future__ import annotations
@@ -93,36 +93,36 @@ def read_log(path: pathlib.Path) -> list[str]:
 #: A planted token, standing in for the assertion message a real red carries. Nothing else in the transcript
 #: contains it, so "the token reached the report" is exactly "the failure's message reached the report".
 PLANT = "PB1573-PLANTED-FAILURE-MESSAGE-7f3c"
-FRAME = "at CobolNet.Tests.Unit.ConflictMarkerDriftTests.Sweep"
+FRAME = "at WiseOwl.Cobol.Tests.Unit.ConflictMarkerDriftTests.Sweep"
 
 #: The real transcript of a failing Unit leg (golden lane #2 batch 3, DEVLOG 1700), message replaced by PLANT.
 FAILED_TRANSCRIPT = f"""\
-Test run for E:\\COBOL\\tests\\Cobol.Net.Tests.Unit\\bin\\Debug\\net10.0\\Cobol.Net.Tests.Unit.dll (.NETCoreApp,Version=v10.0)
+Test run for E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\bin\\Debug\\net10.0\\WiseOwl.Cobol.Tests.Unit.dll (.NETCoreApp,Version=v10.0)
 A total of 1 test files matched the specified pattern.
-[xUnit.net 00:00:40.84]     CobolNet.Tests.Unit.ConflictMarkerDriftTests.TheSweepActuallyReadsTheTrackedTree [FAIL]
-  Failed CobolNet.Tests.Unit.ConflictMarkerDriftTests.TheSweepActuallyReadsTheTrackedTree [21 s]
+[xUnit.net 00:00:40.84]     WiseOwl.Cobol.Tests.Unit.ConflictMarkerDriftTests.TheSweepActuallyReadsTheTrackedTree [FAIL]
+  Failed WiseOwl.Cobol.Tests.Unit.ConflictMarkerDriftTests.TheSweepActuallyReadsTheTrackedTree [21 s]
   Error Message:
    System.UnauthorizedAccessException : {PLANT}
   Stack Trace:
      at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
    at System.IO.File.OpenRead(String path)
-   {FRAME}(String root, IEnumerable`1 relativePaths) in E:\\COBOL\\tests\\Cobol.Net.Tests.Unit\\ConflictMarkerDriftTests.cs:line 232
-   at CobolNet.Tests.Unit.ConflictMarkerDriftTests.TheSweepActuallyReadsTheTrackedTree() in E:\\COBOL\\tests\\Cobol.Net.Tests.Unit\\ConflictMarkerDriftTests.cs:line 124
+   {FRAME}(String root, IEnumerable`1 relativePaths) in E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\ConflictMarkerDriftTests.cs:line 232
+   at WiseOwl.Cobol.Tests.Unit.ConflictMarkerDriftTests.TheSweepActuallyReadsTheTrackedTree() in E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\ConflictMarkerDriftTests.cs:line 124
 
-Failed!  - Failed:     1, Passed: 29189, Skipped:     0, Total: 29190, Duration: 2 m 47 s - Cobol.Net.Tests.Unit.dll (net10.0)
+Failed!  - Failed:     1, Passed: 29189, Skipped:     0, Total: 29190, Duration: 2 m 47 s - WiseOwl.Cobol.Tests.Unit.dll (net10.0)
 """.splitlines()
 
 PASSED_TRANSCRIPT = """\
-Test run for E:\\COBOL\\tests\\Cobol.Net.Tests.Unit\\bin\\Debug\\net10.0\\Cobol.Net.Tests.Unit.dll (.NETCoreApp,Version=v10.0)
+Test run for E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\bin\\Debug\\net10.0\\WiseOwl.Cobol.Tests.Unit.dll (.NETCoreApp,Version=v10.0)
 A total of 1 test files matched the specified pattern.
-Passed!  - Failed:     0, Passed: 29190, Skipped:     0, Total: 29190, Duration: 2 m 41 s - Cobol.Net.Tests.Unit.dll (net10.0)
+Passed!  - Failed:     0, Passed: 29190, Skipped:     0, Total: 29190, Duration: 2 m 41 s - WiseOwl.Cobol.Tests.Unit.dll (net10.0)
 """.splitlines()
 
 #: A filter that matched nothing: vstest prints no verdict line and EXITS 0.
 EMPTY_TRANSCRIPT = """\
-Test run for E:\\COBOL\\tests\\Cobol.Net.Tests.Conformance\\bin\\Debug\\net10.0\\Cobol.Net.Tests.Conformance.dll (.NETCoreApp,Version=v10.0)
+Test run for E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Conformance\\bin\\Debug\\net10.0\\WiseOwl.Cobol.Tests.Conformance.dll (.NETCoreApp,Version=v10.0)
 A total of 1 test files matched the specified pattern.
-No test matches the given testcase filter `FullyQualifiedName~NoSuchTest` in E:\\COBOL\\tests\\Cobol.Net.Tests.Conformance\\bin\\Debug\\net10.0\\Cobol.Net.Tests.Conformance.dll
+No test matches the given testcase filter `FullyQualifiedName~NoSuchTest` in E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Conformance\\bin\\Debug\\net10.0\\WiseOwl.Cobol.Tests.Conformance.dll
 """.splitlines()
 
 

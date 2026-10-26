@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
 /// ⛔ THE ONE READER of <c>specs/ISO_COBOL.md</c> FOR A DRIFT GUARD: a clause's own region, the numbered rules

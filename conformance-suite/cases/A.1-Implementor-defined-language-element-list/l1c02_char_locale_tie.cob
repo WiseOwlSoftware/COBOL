@@ -34,7 +34,7 @@
       *>     collating sequence.
       *> Documented determination (docs/CONFORMANCE.md DOC-A.1-21,
       *> branch 2): "an ALPHABET ... IS LOCALE sequence is an
-      *> algorithm, not a written order ... COBOL.NET returns the
+      *> algorithm, not a written order ... WiseOwl COBOL returns the
       *> LOWEST-CODED member of that rank ... X"00", X"01" and X"1F"
       *> all share ordinal 1 of a locale sequence, and FUNCTION
       *> CHAR(1) is X"00"."

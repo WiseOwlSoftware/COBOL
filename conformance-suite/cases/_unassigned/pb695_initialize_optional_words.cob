@@ -9,7 +9,7 @@
       *> ISO 14.9.20.2, read off the printed page (PDF p667 / folio 637). The statement's underlines fall
       *> on INITIALIZE, FILLER, ALL, VALUE, REPLACING, BY, DEFAULT and the thirteen category names. WITH,
       *> the two THENs, DATA and BOTH occurrences of TO are printed plain, so 8.3.2.4.3 makes every
-      *> spelling here conforming source. COBOL.NET required both TOs and answered COBOL0001.
+      *> spelling here conforming source. WiseOwl COBOL required both TOs and answered COBOL0001.
       *>   . `INITIALIZE G1 WITH FILLER ALL TO VALUE`  - fully written
       *>   . `INITIALIZE G1 FILLER ALL VALUE`          - WITH and TO omitted  (this program)
       *>   . `INITIALIZE N1 THEN TO DEFAULT` / `THEN DEFAULT` / `TO DEFAULT` / `DEFAULT`

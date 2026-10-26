@@ -4,14 +4,14 @@ area: ir
 status: draft
 last_updated: 2026-07-23
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - ir
   - moc
 ---
 
 # 🗺 IR — Map of Content
 
-The intermediate representation of COBOL.NET is the typed **bound tree** — there is **no separate lowered IR**.
+The intermediate representation of WiseOwl COBOL is the typed **bound tree** — there is **no separate lowered IR**.
 
 ## Notes in this domain
 

@@ -3,7 +3,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
 /// THE child-process observer for every test project — one rule, one place, and the rule is:
@@ -13,7 +13,7 @@ namespace CobolNet.Tests.Shared;
 /// <para>
 /// ⛔ WHY THIS TYPE EXISTS (plan §11 A12; DESIGN-test-build-ci.md §3.10). Six separate copies of "start
 /// <c>dotnet</c>, wait 30 seconds, return whatever came back" existed across the test tree
-/// (<c>CutRunner.RunExit</c>, <c>AcceptDifferentialTests.AcceptRun</c>, <c>CobolNetTestBase.CompileAndRun</c>,
+/// (<c>CutRunner.RunExit</c>, <c>AcceptDifferentialTests.AcceptRun</c>, <c>WiseOwlCobolTestBase.CompileAndRun</c>,
 /// and three in the legacy <c>EndToEndTestBase</c>). Every one of them handled a timeout the same wrong way:
 /// kill the process, return <i>partial or empty stdout</i>, and let the caller compare it against a golden.
 /// A contention timeout therefore reported as a VALUE MISMATCH — indistinguishable from a semantic

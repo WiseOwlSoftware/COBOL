@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB133 wave C - ISO 14.9.4.4 GR12 with checking NOT enabled (14.6.13.1.1: "if checking
       *> for an exception that occurs is not enabled, no exception condition is raised"): the content of an
-      *> omitted formal is undefined, and COBOL.NET's DOCUMENTED implementor choice (the CA10 lenient
+      *> omitted formal is undefined, and WiseOwl COBOL's DOCUMENTED implementor choice (the CA10 lenient
       *> posture) is the type's benign empty value - a numeric view answers zero. With
       *> >>TURN EC-PROGRAM-ARG-OMITTED CHECKING ON the same reference is the fatal EC in the CALLEE's own
       *> engine (never the caller's ON EXCEPTION phrase - GR3i).

@@ -5,7 +5,7 @@
 `kb/Spec/Lookup/Constraints.md` — keep those in sync when a row changes here.
 
 Scope note (single-write rule): **doctrine → `PROMPT.md`** · **process rules + the session-start sequence →
-`CLAUDE.md`** · **phases, worklist and live state → `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0** ·
+`CLAUDE.md`** · **phases, worklist and live state → `docs/REARCHITECTURE_PLAN.md` §0** ·
 **history → `DEVLOG/`**. This file holds the catalog and nothing else.
 
 ---
@@ -91,5 +91,5 @@ not exhaustive — you must also identify and fix any other anti-patterns you fi
 - **This list is illustrative, not exhaustive.** Anything meeting the same bar — hidden coupling, dead code,
   duplicated logic — is in scope whether or not it has a label here.
 
-Phases, worklist and current status are NOT here — they live in `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0, and the
+Phases, worklist and current status are NOT here — they live in `docs/REARCHITECTURE_PLAN.md` §0, and the
 session-start sequence lives in `CLAUDE.md`.

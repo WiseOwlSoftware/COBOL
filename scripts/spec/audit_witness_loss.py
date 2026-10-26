@@ -83,22 +83,35 @@ def schema_at(rev: str) -> Schema | None:
         return None
 
 
-def respelled_from_name_status(out: str, before: Schema, after: Schema) -> dict[str, str]:
-    """`git diff -M --name-status -z` output → {before test-ref: after test-ref} for every RENAMED file that a
-    file-backed form names on both sides, each side spelled by its own tree's schema (`Schema.ref_for_path`)."""
+def renamed_from_name_status(out: str) -> dict[str, str]:
+    """`git diff -M --name-status -z` output → {old path: new path} for every RENAMED file (a modified, deleted or
+    copied one moves nothing)."""
     fields = out.split("\0")
     found: dict[str, str] = {}
     i = 0
     while i < len(fields) and fields[i]:
         status = fields[i]
         if status[:1] in ("R", "C"):
-            old, new = fields[i + 1], fields[i + 2]
+            if status[0] == "R":
+                found[fields[i + 1]] = fields[i + 2]
             i += 3
-            if status[0] == "R" and (was := before.ref_for_path(old)) and (now := after.ref_for_path(new)):
-                found[was] = now
         else:
             i += 2
     return found
+
+
+def respelled_from_name_status(out: str, before: Schema, after: Schema) -> dict[str, str]:
+    """`git diff -M --name-status -z` output → {before test-ref: after test-ref} for every RENAMED file that a
+    file-backed form names on both sides, each side spelled by its own tree's schema (`Schema.ref_for_path`)."""
+    return {was: now for old, new in renamed_from_name_status(out).items()
+            if (was := before.ref_for_path(old)) and (now := after.ref_for_path(new))}
+
+
+def moves(before_rev: str, after_rev: str | None) -> dict[str, str]:
+    """{old path: new path} for every file git records as RENAMED from `before_rev` to `after_rev` (None: the working
+    tree), anywhere in the repository: a code-location may name any file (kb/Work PB3837)."""
+    return renamed_from_name_status(_git("-c", "diff.renameLimit=0", "diff", "-M", "--name-status", "-z", before_rev,
+                                         *([after_rev] if after_rev else [])))
 
 
 def respellings(before_rev: str, after_rev: str | None, before: Schema, after: Schema) -> dict[str, str]:
@@ -113,7 +126,8 @@ def respellings(before_rev: str, after_rev: str | None, before: Schema, after: S
 
 
 def compare(before: list[dict[str, Any]], after: list[dict[str, Any]], schema,
-            respelled: dict[str, str] | None = None) -> tuple[list[WitnessLoss], list[str]]:
+            respelled: dict[str, str] | None = None,
+            moved: dict[str, str] | None = None) -> tuple[list[WitnessLoss], list[str]]:
     """(every witness lost by a row present on both sides, the rule-ids of witnessed rows that vanished)."""
     by_after = {r["rule-id"]: r for r in after}
     losses: list[WitnessLoss] = []
@@ -124,7 +138,7 @@ def compare(before: list[dict[str, Any]], after: list[dict[str, Any]], schema,
             if row.get("code-location") or row.get("test-ref"):
                 vanished.append(row["rule-id"])
             continue
-        losses += witness_losses(row, now, schema, respelled)
+        losses += witness_losses(row, now, schema, respelled, moved)
     return losses, vanished
 
 
@@ -135,10 +149,13 @@ def compare_revisions(before: list[dict[str, Any]], after: list[dict[str, Any]],
     nothing for it."""
     losses, vanished = compare(before, after, schema)
     before_schema = schema_at(before_rev) or schema
-    if any(not l.excused and l.field == "test-ref" and before_schema.ref_path(l.ref) for l in losses):
+    refs = any(not l.excused and l.field == "test-ref" and before_schema.ref_path(l.ref) for l in losses)
+    locations = any(not l.excused and l.field == "code-location" for l in losses)
+    if refs or locations:
         after_schema = (schema_at(after_rev) or schema) if after_rev else schema
         losses, vanished = compare(before, after, schema,
-                                   respellings(before_rev, after_rev, before_schema, after_schema))
+                                   respellings(before_rev, after_rev, before_schema, after_schema) if refs else None,
+                                   moves(before_rev, after_rev) if locations else None)
     return losses, vanished
 
 
@@ -189,7 +206,7 @@ def check(base: str, schema) -> int:
     for s in erased:
         print(f"  ⛔ ERASED   {s.rule_id} {s.field}: {s.chars} characters of statement now empty")
     if respelled:
-        print(f"  ⓘ RE-SPELLED {len(respelled)} test-ref(s) on {len({l.rule_id for l in respelled})} row(s): the "
+        print(f"  ⓘ RE-SPELLED {len(respelled)} witness(es) on {len({l.rule_id for l in respelled})} row(s): the "
               "same files, moved (git's rename record), cited under their new names")
     if vanished:
         print(f"  ⓘ {len(vanished)} witnessed row(s) no longer in the inventory (catalog-owned, not gated): "
@@ -398,6 +415,19 @@ def self_test(schema) -> int:
     expect("a re-spelling never excuses a code-location",
            witness_losses(row, {**row, "code-location": schema.code_location_sep.join(locs[1:])}, schema,
                           {locs[0]: locs[1]}), 1, 0)
+    # A code-location whose FILE moved (kb/Work PB3837: the product rename moved every source file), cited at the new
+    # path with its member kept, is the same code; a moved file the row does not cite at its new path is still a loss.
+    path0, hash0, member0 = locs[0].partition("#")
+    relocated_to = f"src/0-SELF-TEST/{path0.rpartition('/')[2]}"
+    relocated_row = {**row, "code-location": schema.code_location_sep.join([relocated_to + hash0 + member0, *locs[1:]])}
+    expect("a code-location whose file moved, cited at its new path with its member, is excused",
+           witness_losses(row, relocated_row, schema, None, {path0: relocated_to}), 0, 1)
+    expect("a moved file the row does not cite at its new path is still a loss",
+           witness_losses(row, {**row, "code-location": schema.code_location_sep.join(locs[1:])}, schema, None,
+                          {path0: relocated_to}), 1, 0)
+    verify("git's rename record maps each RENAMED path to its new one (a modified, deleted or copied file moves nothing)",
+           renamed_from_name_status("\0".join(["R098", "src/A/x.cs", "src/B/x.cs", "M", "src/C.cs", "D", "src/D.cs",
+                                               "C075", "src/E.cs", "src/F.cs", ""])) == {"src/A/x.cs": "src/B/x.cs"})
     owed = owed_back([("t", row["verdict"], l) for l in witness_losses(row, moved, schema, {refs[0]: moved_to})],
                      {row["rule-id"]: moved}, schema).get(row["rule-id"], {})
     verify("history replay owes back no re-spelled witness", not owed, f": owed {owed}")

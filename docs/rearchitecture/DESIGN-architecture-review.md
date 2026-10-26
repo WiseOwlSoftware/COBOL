@@ -16,18 +16,18 @@
 
 | Area | Where | Size |
 |---|---|---|
-| Compiler (binding, validation, lowering, code generation, OO) | `src/Cobol.Net.Compiler` | ~103,600 lines, 253 files |
-| Runtime | `src/Cobol.Net.Runtime` | ~39,200 lines, 141 files |
-| Front end (preprocessor, lexer/parser drivers) | `src/Cobol.Net.Frontend` | ~12,600 lines, 71 files |
-| Editions and the diagnostic registry | `src/Cobol.Net.Editions` | ~7,900 lines, 21 files |
-| Source generator, CLI | `src/Cobol.Net.Compiler.SourceGen`, `src/Cobol.Net.Cli` | ~700 lines |
+| Compiler (binding, validation, lowering, code generation, OO) | `src/WiseOwl.Cobol.Compiler` | ~103,600 lines, 253 files |
+| Runtime | `src/WiseOwl.Cobol.Runtime` | ~39,200 lines, 141 files |
+| Front end (preprocessor, lexer/parser drivers) | `src/WiseOwl.Cobol.Frontend` | ~12,600 lines, 71 files |
+| Editions and the diagnostic registry | `src/WiseOwl.Cobol.Editions` | ~7,900 lines, 21 files |
+| Source generator, CLI | `src/WiseOwl.Cobol.Compiler.SourceGen`, `src/WiseOwl.Cobol.Cli` | ~700 lines |
 | ANTLR grammars | `src/**/*.g4` | ~8,600 lines |
 | Tests, scripts, hooks, CI | `tests/`, `scripts/`, `.github/` | layout and duplication only (§5.6) |
 
 **Out of scope:**
-- **The legacy `CobolSharp.*` projects** (~46,000 lines). They are deleted by kb/Work PB2110 (P15's Cuts 1–2,
+- **The legacy `Legacy.*` projects** (~46,000 lines). They are deleted by kb/Work PB2110 (P15's Cuts 1–2,
   decoupled from v1.0 by R69) and are never refactored; until then the census (PB2115) and every wave exclude
-  `src/CobolSharp.*`.
+  `src/Legacy.*`.
 - **Behavior.** No change to any compiled program's output, any diagnostic, or any conformance verdict. A defect the
   review finds becomes a `kb/Work` note and is fixed in the normal fix lane, never inside a refactor (§4).
 
@@ -87,8 +87,8 @@ Every finding is a `kb/Work` note (CLAUDE.md rule 8), never a list in this docum
   table and its findings file (`docs/rearchitecture/evidence/arch-census/<sha>.json` and `<sha>.findings.json`);
   this document keeps no copy, because a hand-kept list is stale the day after it is written.
 - **The census instrument** is `scripts/arch/census.py` driving the Roslyn host `tools/ArchCensus` (MSBuildWorkspace,
-  never grep). It measures a DETACHED worktree at one commit; its scope rule makes every `src/Cobol.Net.*` project a
-  census project and every `tests/Cobol.Net.*` project a reader, and refuses a solution project it does not classify.
+  never grep). It measures a DETACHED worktree at one commit; its scope rule makes every `src/WiseOwl.Cobol.*` project a
+  census project and every `tests/WiseOwl.Cobol.*` project a reader, and refuses a solution project it does not classify.
   Its POPULATION CHECK compares the types it saw with the type definitions of each built assembly's metadata and
   refuses to write a record on any difference. Reachability is a semantic walk confirmed by `SymbolFinder`, with
   every exclusion a stated rule the record carries. `ArchCensusDriftTests` keeps the newest record whole and the
@@ -98,7 +98,7 @@ Every finding is a `kb/Work` note (CLAUDE.md rule 8), never a list in this docum
 - **Performance baseline** (`brent-tools:performance-diagnosis`): the compile-throughput benchmark and the
   whole-population gate time, so no refactor regresses speed unseen. The instrument is
   `scripts/arch/perf_baseline.py` (kb/Work PB2117, which is also kb/Work A6's): warm compile throughput and the
-  generated programs' hot paths through `tests/Cobol.Net.Benchmarks` (BenchmarkDotNet, each with a witness), cold
+  generated programs' hot paths through `tests/WiseOwl.Cobol.Benchmarks` (BenchmarkDotNet, each with a witness), cold
   whole-process compiles, the same hot paths against GnuCOBOL 3.2 under WSL with a 1x/2x/4x scaling curve, the peak
   resident set of every whole process, SORT and MERGE both in memory and spilling to temporary files (kb/Work PB2777),
   and the gate time read from `build-local.ps1`'s `verdict.json`. It writes the record, conditions and noise band included, to
@@ -145,25 +145,25 @@ is tracked tooling with a self-test, so the next batch is a command, never a bri
 <!-- r2-subsystems:begin -->
 | Subsystem (`key`) | Files: include | except |
 |---|---|---|
-| preprocessor (`preprocessor`) | `src/Cobol.Net.Frontend/Preprocessor/**` | — |
-| lexer and grammar (`lexer-grammar`) | `src/Cobol.Net.Frontend/Grammar/**` `src/Cobol.Net.Frontend/*.ps1` | — |
-| parser drivers and the syntax tree (`parser-tree`) | `src/Cobol.Net.Frontend/{Parsing,Cst,Expressions,Pipeline,Common}/**` `src/Cobol.Net.Frontend/*.csproj` | — |
-| data binding (`data-binding`) | `src/Cobol.Net.Compiler/Binding/*.cs` `src/Cobol.Net.Compiler/Binding/Model/**` `src/Cobol.Net.Compiler/Binding/Passes/**` | `src/Cobol.Net.Compiler/Binding/ReferenceResolver*.cs` `src/Cobol.Net.Compiler/Binding/RefResolution.cs` `src/Cobol.Net.Compiler/Binding/QualifiedNameClasses.cs` `src/Cobol.Net.Compiler/Binding/EcNameResolution.cs` `src/Cobol.Net.Compiler/Binding/ReportGroupResolution.cs` `src/Cobol.Net.Compiler/Binding/Oo*.cs` `src/Cobol.Net.Compiler/Binding/Prototype*.cs` |
-| procedure binding (`procedure-binding`) | `src/Cobol.Net.Compiler/Binding/Procedure/**` | — |
-| reference resolution (`reference-resolution`) | `src/Cobol.Net.Compiler/Binding/ReferenceResolver*.cs` `src/Cobol.Net.Compiler/Binding/RefResolution.cs` `src/Cobol.Net.Compiler/Binding/QualifiedNameClasses.cs` `src/Cobol.Net.Compiler/Binding/EcNameResolution.cs` `src/Cobol.Net.Compiler/Binding/ReportGroupResolution.cs` | — |
-| validation and edition gating (`validation`) | `src/Cobol.Net.Compiler/Validation/**` `src/Cobol.Net.Compiler/Binding/Validation/**` | — |
-| lowering and the bound tree (`bound-tree`) | `src/Cobol.Net.Compiler/Binding/Bound/**` `src/Cobol.Net.Compiler.SourceGen/**` | — |
-| Roslyn code generation (`codegen`) | `src/Cobol.Net.Compiler/CodeGen/**` `src/Cobol.Net.Compiler/*.{cs,csproj}` | — |
-| OO (`oo`) | `src/Cobol.Net.Compiler/Oo/**` `src/Cobol.Net.Compiler/Binding/Oo*.cs` `src/Cobol.Net.Compiler/Binding/Prototype*.cs` | — |
-| runtime values and numerics (`runtime-values`) | `src/Cobol.Net.Runtime/{Values,Intrinsics,Verbs}/**` `src/Cobol.Net.Runtime/*.{cs,csproj}` | — |
-| runtime collation, Unicode and globalization (`runtime-text`) | `src/Cobol.Net.Runtime/{Collation,Unicode,Globalization}/**` | — |
-| runtime I/O (`runtime-io`) | `src/Cobol.Net.Runtime/IO/**` | — |
-| runtime control and exceptions (`runtime-control`) | `src/Cobol.Net.Runtime/{Control,Exceptions,Repository}/**` | — |
-| editions and diagnostics (`editions-diagnostics`) | `src/Cobol.Net.Editions/**` `src/Cobol.Net.Frontend/Diagnostics/**` | — |
-| CLI (`cli`) | `src/Cobol.Net.Cli/**` | — |
-| tests, scripts and CI (`tests-scripts-ci`) | `tests/**` `scripts/**` `tools/**` `.github/**` `.claude/**` `*.ps1` `Directory.*.props` `Cobol.Net.sln` | — |
+| preprocessor (`preprocessor`) | `src/WiseOwl.Cobol.Frontend/Preprocessor/**` | — |
+| lexer and grammar (`lexer-grammar`) | `src/WiseOwl.Cobol.Frontend/Grammar/**` `src/WiseOwl.Cobol.Frontend/*.ps1` | — |
+| parser drivers and the syntax tree (`parser-tree`) | `src/WiseOwl.Cobol.Frontend/{Parsing,Cst,Expressions,Pipeline,Common}/**` `src/WiseOwl.Cobol.Frontend/*.csproj` | — |
+| data binding (`data-binding`) | `src/WiseOwl.Cobol.Compiler/Binding/*.cs` `src/WiseOwl.Cobol.Compiler/Binding/Model/**` `src/WiseOwl.Cobol.Compiler/Binding/Passes/**` | `src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver*.cs` `src/WiseOwl.Cobol.Compiler/Binding/RefResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/QualifiedNameClasses.cs` `src/WiseOwl.Cobol.Compiler/Binding/EcNameResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/Oo*.cs` `src/WiseOwl.Cobol.Compiler/Binding/Prototype*.cs` |
+| procedure binding (`procedure-binding`) | `src/WiseOwl.Cobol.Compiler/Binding/Procedure/**` | — |
+| reference resolution (`reference-resolution`) | `src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver*.cs` `src/WiseOwl.Cobol.Compiler/Binding/RefResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/QualifiedNameClasses.cs` `src/WiseOwl.Cobol.Compiler/Binding/EcNameResolution.cs` `src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs` | — |
+| validation and edition gating (`validation`) | `src/WiseOwl.Cobol.Compiler/Validation/**` `src/WiseOwl.Cobol.Compiler/Binding/Validation/**` | — |
+| lowering and the bound tree (`bound-tree`) | `src/WiseOwl.Cobol.Compiler/Binding/Bound/**` `src/WiseOwl.Cobol.Compiler.SourceGen/**` | — |
+| Roslyn code generation (`codegen`) | `src/WiseOwl.Cobol.Compiler/CodeGen/**` `src/WiseOwl.Cobol.Compiler/*.{cs,csproj}` | — |
+| OO (`oo`) | `src/WiseOwl.Cobol.Compiler/Oo/**` `src/WiseOwl.Cobol.Compiler/Binding/Oo*.cs` `src/WiseOwl.Cobol.Compiler/Binding/Prototype*.cs` | — |
+| runtime values and numerics (`runtime-values`) | `src/WiseOwl.Cobol.Runtime/{Values,Intrinsics,Verbs}/**` `src/WiseOwl.Cobol.Runtime/*.{cs,csproj}` | — |
+| runtime collation, Unicode and globalization (`runtime-text`) | `src/WiseOwl.Cobol.Runtime/{Collation,Unicode,Globalization}/**` | — |
+| runtime I/O (`runtime-io`) | `src/WiseOwl.Cobol.Runtime/IO/**` | — |
+| runtime control and exceptions (`runtime-control`) | `src/WiseOwl.Cobol.Runtime/{Control,Exceptions,Repository}/**` | — |
+| editions and diagnostics (`editions-diagnostics`) | `src/WiseOwl.Cobol.Editions/**` `src/WiseOwl.Cobol.Frontend/Diagnostics/**` | — |
+| CLI (`cli`) | `src/WiseOwl.Cobol.Cli/**` | — |
+| tests, scripts and CI (`tests-scripts-ci`) | `tests/**` `scripts/**` `tools/**` `.github/**` `.claude/**` `*.ps1` `Directory.*.props` `WiseOwl.Cobol.sln` | — |
 
-Under review: `src/**/*.{cs,g4,ps1,csproj}`, `tests/**/*.{cs,csproj,props,py,ps1,sh}`, `scripts/**/*.{py,ps1,sh,js,mjs,cs,yml}`, `tools/**/*.{cs,csproj,targets,sh,py,ps1}`, `.github/**/*.yml`, `.claude/**/*.{py,js,ps1}`, `.claude/agents/*.md`, `*.ps1`, `Directory.*.props`, `Cobol.Net.sln`. Left out: `**/*.{g.cs,g.i.cs,Designer.cs}` (generated, by the census rule `generated`; reviewed through its generator); `**/Generated/**` (a build output, the ANTLR parser, never committed); `**/obj/**` (a build output); `tools/claude-skills/**` (the pinned public-skills submodule, BrentRector/claude-skills, reviewed in its own repository).
+Under review: `src/**/*.{cs,g4,ps1,csproj}`, `tests/**/*.{cs,csproj,props,py,ps1,sh}`, `scripts/**/*.{py,ps1,sh,js,mjs,cs,yml}`, `tools/**/*.{cs,csproj,targets,sh,py,ps1}`, `.github/**/*.yml`, `.claude/**/*.{py,js,ps1}`, `.claude/agents/*.md`, `*.ps1`, `Directory.*.props`, `WiseOwl.Cobol.sln`. Left out: `**/*.{g.cs,g.i.cs,Designer.cs}` (generated, by the census rule `generated`; reviewed through its generator); `**/Generated/**` (a build output, the ANTLR parser, never committed); `**/obj/**` (a build output); `tools/claude-skills/**` (the pinned public-skills submodule, BrentRector/claude-skills, reviewed in its own repository).
 <!-- r2-subsystems:end -->
 - **Shards a reviewer can read whole** (B2). Each subsystem is cut by path into balanced shards of at most 6,000
   physical lines at the pin (the census `lines` column is per type, and a partial type's files fall in different
@@ -179,7 +179,7 @@ Under review: `src/**/*.{cs,g4,ps1,csproj}`, `tests/**/*.{cs,csproj,props,py,ps1
 - **Mechanical inputs, once** (B4). `scripts/arch/r2_inputs.py --pin <tree> --out <dir>` runs the semgrep
   invariants, the analyzers at `AnalysisLevel=latest-all` (one C# project at a time in a detached worktree of the pin,
   each cached; `--projects` measures some now, and a shard's input is written once the projects holding its files
-  are measured, because csc on `Cobol.Net.Compiler` with every rule on ran past 2,000 CPU-seconds and 28 GB while
+  are measured, because csc on `WiseOwl.Cobol.Compiler` with every rule on ran past 2,000 CPU-seconds and 28 GB while
   the leaf projects took under a minute), the drift-rule query
   per file and the open-notes scan ONCE, caches each step under the KEY it was made for (the pin, the step's version,
   the rule table; a step cached under another key is recomputed, never reused), and writes one self-contained input
@@ -197,7 +197,7 @@ Under review: `src/**/*.{cs,g4,ps1,csproj}`, `tests/**/*.{cs,csproj,props,py,ps1
   is written, and a feature with no rule (extension members, `params` spans, frozen collections, `required`) is a lead.
   Without it batch 1's inputs held 284 CA warnings and no IDE or SYSLIB rule (the w1034 claim refuter's C4); with it
   the runtime alone reports IDE0305, IDE0032, IDE0028, IDE0300, IDE0290, IDE0078, IDE0306, IDE0330 and IDE0066, and
-  the frontend SYSLIB1045 sixteen times. The rules cost nothing measurable (Cobol.Net.Editions built in 4 s with and
+  the frontend SYSLIB1045 sixteen times. The rules cost nothing measurable (WiseOwl.Cobol.Editions built in 4 s with and
   without them); the analyzer steps of batch 1's projects took 7 s (CLI), 10 s (Editions), 24 s (Frontend) and 23 s
   (Runtime).
 - **The workflow** is `.claude/skills/workstream/templates/wf_r2_review.js` (`check_practices.py` holds its required
@@ -332,7 +332,7 @@ Per §5.5: language-version and SDK upgrade first, then one analyzer rule per wa
 ### R5 — Close
 - The full battery, the GnuCOBOL differential and the NIST run.
 - The performance re-measure against the R0 baseline (a regression is a finding).
-- Docs: `COBOLNET_DESIGN.md`, `DOC_INDEX.md` and this document's status (the drift-rule index is a rendered view,
+- Docs: `DESIGN.md`, `DOC_INDEX.md` and this document's status (the drift-rule index is a rendered view,
   `scripts/rendered_views.py`, never committed).
 - The architecture drift tests stay in the suite, so the structure stays true after the review.
 
@@ -367,7 +367,7 @@ serialize every re-record by hand. A committed record cannot describe a tree tha
 of a commit can be made whenever it is needed.
 
 **The population is the suites' own, by construction.** The cases and their compiles live in the Conformance
-assembly (`tests/Cobol.Net.Tests.Conformance/ArchOracle.cs`), beside the theory families they mirror. Each case comes
+assembly (`tests/WiseOwl.Cobol.Tests.Conformance/ArchOracle.cs`), beside the theory families they mirror. Each case comes
 from a `[PartitionedRowSource]` row member and is compiled through the same option builder or harness path its
 theory calls (`ConformanceCorpus.PositiveOptions` and `NegativeCase`, `CorpusManifest.CompileOptions`,
 `EditionHarness.CompileStaged` and `CompileNistObserved`), so a golden added to a manifest is captured with no edit.
@@ -407,7 +407,7 @@ the verdict line `=== ARCH-ORACLE: IDENTICAL|DIFFERENT …`. `--diff` adds a uni
 the two captures' blobs (kb/Work PB2152 first needed the baseline's blobs by hand). Two existing captures compare as
 `compare_oracle.py <baseline manifest.json> <new manifest.json>`. The wave's DEVLOG entry shows the IDENTICAL line or
 explains every listed case; a fix-lane landing, which legitimately changes emitted C#, records nothing. The host process is
-`tests/Cobol.Net.ArchOracle`, a member of the solution that holds no logic of its own.
+`tests/WiseOwl.Cobol.ArchOracle`, a member of the solution that holds no logic of its own.
 
 **Drift.** `ArchOracleDriftTests` holds every `[PartitionedRowSource]` of the Conformance assembly enrolled, every
 non-sentinel row a case, no two rows one case, and an observation free of machine paths and the clock. It pins the
@@ -445,7 +445,7 @@ without a noun that says what); a partial type splits only along named concerns.
   The .NET 11 SDK is installed as a preview.
 - **Target: the latest STABLE .NET and its C# at the time R4 runs.** If .NET 11 is GA by then (its usual November
   release), that is `net11.0` with C# 15. Moving to a preview SDK is an owner decision (PB1754), never a default.
-- **The one named exception:** `Cobol.Net.Compiler.SourceGen` targets `netstandard2.0` because Roslyn hosts
+- **The one named exception:** `WiseOwl.Cobol.Compiler.SourceGen` targets `netstandard2.0` because Roslyn hosts
   generators on it. That is a real consumer, and it stays.
 - **Features applied analyzer-first** (`brent-tools:dotnet-engineering`, "Modernizing an existing codebase"):
   - primary constructors; collection expressions; the `field` keyword;
@@ -547,20 +547,20 @@ equal to it); all are cluster PB2119. The 67 test-only findings are judged by th
 
 **The layers, as the code is.** The plan's list (Editions → Frontend → syntax tree → Binding → bound tree →
 Validation → Lowering → CodeGen → Runtime) is refined on three measured points. (1) **There is no lowering layer**:
-`COBOLNET_PIPELINE_DESIGN.md` D1 decided "no separate IR layer; the bound tree IS the model", `DESIGN-codegen-backend.md`
+`PIPELINE_DESIGN.md` D1 decided "no separate IR layer; the bound tree IS the model", `DESIGN-codegen-backend.md`
 §2.3 made `Place` backend-neutral and structural, and the census has no namespace between the bound tree and code
 generation; the lowering-shaped computations (`MoveClassifier`, `MoveOverlap`, `AccessPath`, `TableValuePlan`) are
 bound-tree and model types, and each backend lowers privately. (2) **The runtime is a foundation, not the last
-stage**: `Cobol.Net.Runtime` references no other project (census `projects`), and every compiler layer uses it —
-`CobolNet.Frontend.Expressions → CobolNet.Runtime` 13 uses, `CobolNet.Binding → CobolNet.Runtime` 50,
-`CobolNet.CodeGen → CobolNet.Runtime` 81 — because the one numeric and text law is written there once
+stage**: `WiseOwl.Cobol.Runtime` references no other project (census `projects`), and every compiler layer uses it —
+`WiseOwl.Cobol.Frontend.Expressions → WiseOwl.Cobol.Runtime` 13 uses, `WiseOwl.Cobol.Binding → WiseOwl.Cobol.Runtime` 50,
+`WiseOwl.Cobol.CodeGen → WiseOwl.Cobol.Runtime` 81 — because the one numeric and text law is written there once
 (`CobolDec`, `CobolNames`, `CobolSpace`, `ExceptionCatalog` are the runtime types the front end names) and the
 compiler folds constants with the same code the generated program runs; the editions layer joined them for
 `CobolNames`, the Annex C fold its word tables are keyed by (kb/Work PB1965, the `["editions", "runtime"]` edge
 below). (3) **The compiler's own layers are already
-namespaces**: `CobolNet.Binding.Model` (147 types), `CobolNet.Binding.Bound` (263), the binders (`CobolNet.Binding`
-229, `.Procedure` 101, `.Passes` 10, `.Validation` 4, `CobolNet.Compiler.Oo` 22), `CobolNet.Validation` (25),
-`CobolNet.CodeGen` (77) and `.Emit` (17); the layering is enforced between them, and inside a layer the structure is
+namespaces**: `WiseOwl.Cobol.Binding.Model` (147 types), `WiseOwl.Cobol.Binding.Bound` (263), the binders (`WiseOwl.Cobol.Binding`
+229, `.Procedure` 101, `.Passes` 10, `.Validation` 4, `WiseOwl.Cobol.Compiler.Oo` 22), `WiseOwl.Cobol.Validation` (25),
+`WiseOwl.Cobol.CodeGen` (77) and `.Emit` (17); the layering is enforced between them, and inside a layer the structure is
 §8.3's concern. Within the front end, the ANTLR-generated parser and its hand-written superclass are one unit by
 construction (`CobolParserCore.g4` names `superClass = CobolParserCoreBase`; the measured edges run both ways,
 `Generated → Parsing` 2 and `Parsing → Generated` 40), so they are one layer with the compile-time expressions that
@@ -585,21 +585,21 @@ names as they are at the time the test runs):
 
 | # | Layer id | Namespaces (census `types` ids) | ISO anchor |
 |---|---|---|---|
-| 0 | `runtime` | `CobolNet.Runtime`, `.Collation`, `.Collation.Cache`, `.Collation.Cldr`, `.Collation.Locale`, `.Exceptions`, `.Globalization`, `.IO`, `.Unicode`, `.Unicode.Segmentation` | none: the standard defines no run-time library; its general rules assign duties to "the runtime system" (§8.4.3.2.4 GR6 b), "the runtime system attempts to locate the function being activated"), which this layer is part of. It is not a runtime module: "A runtime module results from compiling a compilation unit" (§14.6.1), which is the emitted `Cobol.<S>` assembly |
-| 1 | `editions` | `CobolNet.Editions`, `CobolNet.Editions.Diagnostics` | the editions' word lists (§8.9, Reserved words) and the conformance criteria (§4.2.1: "To conform to this Working Draft International Standard, an implementation of standard COBOL shall provide the required normative elements") |
-| 2 | `frontend.common` | `CobolNet.Frontend.Common`, `CobolNet.Common` (absorbed, R0-0221) | source text, spans, literals, compilation inputs |
-| 3 | `frontend.diagnostics` | `CobolNet.Frontend.Diagnostics` | the front end's diagnostic bag |
-| 4 | `frontend.parse` | `CobolNet.Frontend.Generated`, `CobolNet.Frontend.Cst`, `CobolNet.Frontend.Parsing`, `CobolNet.Frontend.Expressions` | the compilation stage's syntax: lexer, parser, parse tree, compile-time expressions (§7.1) |
-| 5 | `frontend.preprocessor` | `CobolNet.Frontend.Preprocessor` | the text manipulation stage (§7.1) |
-| 6 | `frontend.pipeline` | `CobolNet.Frontend` | the front-end orchestrator |
-| 7 | `compiler.model` | `CobolNet.Binding.Model` | the compile-time facts: items, places, files, options, the symbol table, the bound unit; after §8.3 (1) and (4), `DataBindResult` and `PlaceBuilder` |
-| 8 | `compiler.bound` | `CobolNet.Binding.Bound` | the bound tree (the seven `[BoundNode]` roots and their leaves) |
-| 9 | `compiler.binding` | `CobolNet.Binding`, `CobolNet.Binding.Procedure`, `CobolNet.Binding.Passes`, `CobolNet.Binding.Validation`, `CobolNet.Compiler.Oo` | data and procedure binding (§10.3's source units; §13, §14) |
-| 10 | `compiler.validation` | `CobolNet.Validation` | the post-bind passes and the one edition gate |
-| 11 | `compiler.codegen` | `CobolNet.CodeGen`, `CobolNet.CodeGen.Emit` | the backends behind `ICodeGenBackend` (§14.1's statements rendered) |
-| 12 | `compiler.pipeline` | `CobolNet` (root: `CompilerDriver`; `BinderDriver` and `BackendFactory` after §8.3) | the driver, a composition root |
-| 13 | `cli` | `CobolNet.Cli` | the command line, a composition root |
-| — | (tool) | `Cobol.Net.Compiler.SourceGen` | a build-time generator with no product reference; outside the graph by rule, not by omission |
+| 0 | `runtime` | `WiseOwl.Cobol.Runtime`, `.Collation`, `.Collation.Cache`, `.Collation.Cldr`, `.Collation.Locale`, `.Exceptions`, `.Globalization`, `.IO`, `.Unicode`, `.Unicode.Segmentation` | none: the standard defines no run-time library; its general rules assign duties to "the runtime system" (§8.4.3.2.4 GR6 b), "the runtime system attempts to locate the function being activated"), which this layer is part of. It is not a runtime module: "A runtime module results from compiling a compilation unit" (§14.6.1), which is the emitted `Cobol.<S>` assembly |
+| 1 | `editions` | `WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Editions.Diagnostics` | the editions' word lists (§8.9, Reserved words) and the conformance criteria (§4.2.1: "To conform to this Working Draft International Standard, an implementation of standard COBOL shall provide the required normative elements") |
+| 2 | `frontend.common` | `WiseOwl.Cobol.Frontend.Common`, `WiseOwl.Cobol.Common` (absorbed, R0-0221) | source text, spans, literals, compilation inputs |
+| 3 | `frontend.diagnostics` | `WiseOwl.Cobol.Frontend.Diagnostics` | the front end's diagnostic bag |
+| 4 | `frontend.parse` | `WiseOwl.Cobol.Frontend.Generated`, `WiseOwl.Cobol.Frontend.Cst`, `WiseOwl.Cobol.Frontend.Parsing`, `WiseOwl.Cobol.Frontend.Expressions` | the compilation stage's syntax: lexer, parser, parse tree, compile-time expressions (§7.1) |
+| 5 | `frontend.preprocessor` | `WiseOwl.Cobol.Frontend.Preprocessor` | the text manipulation stage (§7.1) |
+| 6 | `frontend.pipeline` | `WiseOwl.Cobol.Frontend` | the front-end orchestrator |
+| 7 | `compiler.model` | `WiseOwl.Cobol.Binding.Model` | the compile-time facts: items, places, files, options, the symbol table, the bound unit; after §8.3 (1) and (4), `DataBindResult` and `PlaceBuilder` |
+| 8 | `compiler.bound` | `WiseOwl.Cobol.Binding.Bound` | the bound tree (the seven `[BoundNode]` roots and their leaves) |
+| 9 | `compiler.binding` | `WiseOwl.Cobol.Binding`, `WiseOwl.Cobol.Binding.Procedure`, `WiseOwl.Cobol.Binding.Passes`, `WiseOwl.Cobol.Binding.Validation`, `WiseOwl.Cobol.Compiler.Oo` | data and procedure binding (§10.3's source units; §13, §14) |
+| 10 | `compiler.validation` | `WiseOwl.Cobol.Validation` | the post-bind passes and the one edition gate |
+| 11 | `compiler.codegen` | `WiseOwl.Cobol.CodeGen`, `WiseOwl.Cobol.CodeGen.Emit` | the backends behind `ICodeGenBackend` (§14.1's statements rendered) |
+| 12 | `compiler.pipeline` | `WiseOwl.Cobol` (root: `CompilerDriver`; `BinderDriver` and `BackendFactory` after §8.3) | the driver, a composition root |
+| 13 | `cli` | `WiseOwl.Cobol.Cli` | the command line, a composition root |
+| — | (tool) | `WiseOwl.Cobol.Compiler.SourceGen` | a build-time generator with no product reference; outside the graph by rule, not by omission |
 
 The ISO anchors are the seams the standard itself draws: §7.1 names the "two logical stages of compilation group
 processing — the text manipulation stage and the compilation stage" (layers 5 and 4); §10.3's source units are what
@@ -617,23 +617,23 @@ the assemblies contain that the file does not place fails the test. The file's c
   "schema": 1,
   "rule": "DESIGN-architecture-review.md §8.1: a cross-layer dependency is allowed iff its (from, to) pair is listed; intra-layer edges are free; every product namespace is placed; a tolerated row's uses never grow; its removedBy names the kb/Work notes that remove it",
   "layers": [
-    { "id": "runtime", "namespaces": ["CobolNet.Runtime", "CobolNet.Runtime.*"] },
-    { "id": "editions", "namespaces": ["CobolNet.Editions", "CobolNet.Editions.Diagnostics"] },
-    { "id": "frontend.common", "namespaces": ["CobolNet.Frontend.Common", "CobolNet.Common"] },
-    { "id": "frontend.diagnostics", "namespaces": ["CobolNet.Frontend.Diagnostics"] },
-    { "id": "frontend.parse", "namespaces": ["CobolNet.Frontend.Generated", "CobolNet.Frontend.Cst", "CobolNet.Frontend.Parsing", "CobolNet.Frontend.Expressions"] },
-    { "id": "frontend.preprocessor", "namespaces": ["CobolNet.Frontend.Preprocessor"] },
-    { "id": "frontend.pipeline", "namespaces": ["CobolNet.Frontend"] },
-    { "id": "compiler.model", "namespaces": ["CobolNet.Binding.Model"] },
-    { "id": "compiler.bound", "namespaces": ["CobolNet.Binding.Bound"] },
-    { "id": "compiler.binding", "namespaces": ["CobolNet.Binding", "CobolNet.Binding.Procedure", "CobolNet.Binding.Passes", "CobolNet.Binding.Validation", "CobolNet.Compiler.Oo"] },
-    { "id": "compiler.validation", "namespaces": ["CobolNet.Validation"] },
-    { "id": "compiler.codegen", "namespaces": ["CobolNet.CodeGen", "CobolNet.CodeGen.Emit"] },
-    { "id": "compiler.pipeline", "namespaces": ["CobolNet"] },
-    { "id": "cli", "namespaces": ["CobolNet.Cli"] }
+    { "id": "runtime", "namespaces": ["WiseOwl.Cobol.Runtime", "WiseOwl.Cobol.Runtime.*"] },
+    { "id": "editions", "namespaces": ["WiseOwl.Cobol.Editions", "WiseOwl.Cobol.Editions.Diagnostics"] },
+    { "id": "frontend.common", "namespaces": ["WiseOwl.Cobol.Frontend.Common", "WiseOwl.Cobol.Common"] },
+    { "id": "frontend.diagnostics", "namespaces": ["WiseOwl.Cobol.Frontend.Diagnostics"] },
+    { "id": "frontend.parse", "namespaces": ["WiseOwl.Cobol.Frontend.Generated", "WiseOwl.Cobol.Frontend.Cst", "WiseOwl.Cobol.Frontend.Parsing", "WiseOwl.Cobol.Frontend.Expressions"] },
+    { "id": "frontend.preprocessor", "namespaces": ["WiseOwl.Cobol.Frontend.Preprocessor"] },
+    { "id": "frontend.pipeline", "namespaces": ["WiseOwl.Cobol.Frontend"] },
+    { "id": "compiler.model", "namespaces": ["WiseOwl.Cobol.Binding.Model"] },
+    { "id": "compiler.bound", "namespaces": ["WiseOwl.Cobol.Binding.Bound"] },
+    { "id": "compiler.binding", "namespaces": ["WiseOwl.Cobol.Binding", "WiseOwl.Cobol.Binding.Procedure", "WiseOwl.Cobol.Binding.Passes", "WiseOwl.Cobol.Binding.Validation", "WiseOwl.Cobol.Compiler.Oo"] },
+    { "id": "compiler.validation", "namespaces": ["WiseOwl.Cobol.Validation"] },
+    { "id": "compiler.codegen", "namespaces": ["WiseOwl.Cobol.CodeGen", "WiseOwl.Cobol.CodeGen.Emit"] },
+    { "id": "compiler.pipeline", "namespaces": ["WiseOwl.Cobol"] },
+    { "id": "cli", "namespaces": ["WiseOwl.Cobol.Cli"] }
   ],
   "compositionRoots": ["compiler.pipeline", "cli"],
-  "excluded": [ { "assembly": "Cobol.Net.Compiler.SourceGen", "reason": "build-time generator; references no product assembly (census projects[].projectReferences = [])" } ],
+  "excluded": [ { "assembly": "WiseOwl.Cobol.Compiler.SourceGen", "reason": "build-time generator; references no product assembly (census projects[].projectReferences = [])" } ],
   "allowed": [
     ["editions", "runtime"],
     ["frontend.common", "editions"], ["frontend.common", "runtime"],
@@ -650,33 +650,33 @@ the assemblies contain that the file does not place fails the test. The file's c
     ["cli", "compiler.pipeline"], ["cli", "frontend.pipeline"], ["cli", "frontend.preprocessor"], ["cli", "frontend.diagnostics"], ["cli", "frontend.common"], ["cli", "editions"], ["cli", "runtime"]
   ],
   "tolerated": [
-    { "from": "CobolNet.Binding", "to": "CobolNet.CodeGen", "uses": 3, "removedBy": "PB2395 (extract: the figurative-constant classification and FillChar to compiler.model — DataBinder.cs:2435,2470,2850,4855; DataBinder.ImpliedPicture.cs:212); and the numeric-edited VALUE image compose, DataBinder.cs:4792 -> ValueInitializer.EditedImageOfNumericValue, which PB2395 also moves to compiler.model once the alphabet family is there (Draft 6, G1)" },
-    { "from": "CobolNet.Binding", "to": "CobolNet.CodeGen.Emit", "uses": 1, "removedBy": "PB2396 (move: EmitText.RepeatToWidth to frontend.common — DataBinder.cs:2970)" },
-    { "from": "CobolNet.Binding.Procedure", "to": "CobolNet.CodeGen", "uses": 2, "removedBy": "PB2395 (the same extract — InitializeBinder.cs:869)" },
-    { "from": "CobolNet.Binding.Model", "to": "CobolNet.CodeGen", "uses": 1, "removedBy": "PB2397 (extract: the C# member chain leaves the model — BoundUnit.cs:67, RuntimeApi.OuterChain)" },
-    { "from": "CobolNet.Binding.Model", "to": "CobolNet.Binding", "uses": 20, "removedBy": "PB2361 (DataBindResult: BoundUnit.Data and .Refs, BoundCompilation.InterfaceData, OoClassUnit's binder), PB2375 (PlaceBuilder at bind time: OdoModel.SearchDepending's resolver, OdoModel.cs:188), PB2402 (OoMethodDataScope and OptionsModel.cs's types move with the OO symbols) and PB2399 (the rest: SymbolTable's binder, the binder statics the model calls, BoundCompilation.Turn, LinkageFormal, Table16Operand, the alphabet family); PB2399 also ends DataItem and FileModel -> ReferenceResolver (HasVariableLengthSubordinate, DataItem.cs:956, FileModel.cs:566,627) and moves NationalAlphabetDef with the alphabet family (Draft 6, G1)" },
-    { "from": "CobolNet.Binding.Model", "to": "CobolNet.Binding.Bound", "uses": 2, "removedBy": "PB2400 (move: BoundUnit, OoClassUnit and BoundCompilation to compiler.bound, once they hold no binder, C# chain, parse context or OO-layer answer)" },
-    { "from": "CobolNet.Binding.Model", "to": "CobolNet.Compiler.Oo", "uses": 5, "removedBy": "PB2402 (move: the OO symbols with the closure they name, to compiler.model; 5 -> 2) and PB2403 (AdapterPair to compiler.model; the OoClassTable answers become BoundCompilation data; 2 -> 0)" },
-    { "from": "CobolNet.Binding.Model", "to": "CobolNet.Frontend.Generated", "uses": 4, "removedBy": "PB2398 (extract: BoundCompilation.Tree and BoundUnit.Ctx, BoundCompilation.cs:34, BoundUnit.cs:34, carry parse contexts across ICodeGenBackend; each reader's fact becomes a bound-node fact, DESIGN-backend-abstraction §1.1 lists no parse context)" },
-    { "from": "CobolNet.Binding.Bound", "to": "CobolNet.Binding", "uses": 33, "removedBy": "PB2347 (move: StatementBinder and its SubscriptSegments partial out of Bound/) and PB2405 (the rule families the bound nodes read move into compiler.bound); PB2420 (move: EditionContext, SortCollation, IeeeSpecial to compiler.model) and PB2419 (BoundAllLiteral.Of leaves for ConcatFolder) end the last nine pairs (Draft 6, G1)" },
-    { "from": "CobolNet.Binding.Bound", "to": "CobolNet.Binding.Procedure", "uses": 39, "removedBy": "PB2347 (the same move; MoveClassifier and MoveOverlap stay in compiler.bound); the walk reads 39 at 669e32aa9, two pairs more than at a02b165da (StatementBinder -> PlacementRules, UntilExitPlacement, landed after the census; Draft 7, H1)" },
-    { "from": "CobolNet.Binding.Bound", "to": "CobolNet.Binding.Validation", "uses": 1, "removedBy": "PB2347 (StatementBinder moves to Binding/Procedure, the same layer as StatementValidation; a row landed after a02b165da by the fix lane, measured by the walk at 669e32aa9, StatementBinder.cs:446; Draft 7, H1)" },
-    { "from": "CobolNet.Binding.Bound", "to": "CobolNet.Compiler.Oo", "uses": 6, "removedBy": "PB2402 (the OO symbols to compiler.model; 6 -> 1) and PB2347 (StatementBinder -> OoClassTable leaves Bound/)" },
-    { "from": "CobolNet.Binding.Bound", "to": "CobolNet.Frontend.Preprocessor", "uses": 1, "removedBy": "PB2347 (the StatementBinder move)" },
-    { "from": "CobolNet.Binding.Bound", "to": "CobolNet.Frontend.Generated", "uses": 18, "removedBy": "PB2347 (StatementBinder, the parse-context reader, out of Bound/) and PB2398 (BoundOo.cs's parse-context use becomes a bound-node fact)" },
-    { "from": "CobolNet.Binding.Bound", "to": "CobolNet.Frontend.Parsing", "uses": 1, "removedBy": "PB2347 and PB2398 (the StatementBinder move and the parse-context extract)" },
-    { "from": "CobolNet.Binding", "to": "CobolNet.Validation", "uses": 15, "removedBy": "PB2320 (move: BinderDriver, whose ten *Pass.Run calls are BinderDriver.cs:61-217, to compiler.pipeline) and PB2404 (move: IntegerOperandRules with IntegerSlot and IntegerSlotKind, IntegerOperandPass.cs:14-89, called from DataBinder.Constants.cs:858, to compiler.binding); PB2421 ends DataBinder -> VersionConformancePass (PictureConstructId to PicInfo, DataBinder.Reports.cs:3777), the pair no move of BinderDriver removes (Draft 6, G1)" },
-    { "from": "CobolNet.Binding.Passes", "to": "CobolNet.Validation", "uses": 1, "removedBy": "PB2320 (BindPipeline's VersionConformancePass row, BindPipeline.cs:163, goes with the driver's pass schedule)" },
-    { "from": "CobolNet.Binding.Procedure", "to": "CobolNet.Validation", "uses": 2, "removedBy": "PB2320 and PB2404 (the same moves)" },
-    { "from": "CobolNet.CodeGen", "to": "CobolNet.Binding", "uses": 93, "removedBy": "PB2361 and PB2375 (extract: the backend input stops carrying the binder — DataBindResult replaces EmitContext.Data, EmitCore.cs:19,34, and BoundUnit.Data/Refs; PlaceBuilder runs at bind time, so UnitEmitters.Refs and the 24 emit-time ReferenceResolver.ResolveItem calls go), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 and PB2399 (the OPTIONS, alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1)" },
-    { "from": "CobolNet.CodeGen.Emit", "to": "CobolNet.Binding", "uses": 33, "removedBy": "PB2361, PB2375, PB2402, PB2399 and PB2405 (the same extracts and moves); PB2420 ends EditionContext, RangeCollationCarrier and RelationPair (Draft 6, G1)" },
-    { "from": "CobolNet.CodeGen", "to": "CobolNet.Binding.Procedure", "uses": 4, "removedBy": "PB2406 (the four cursor records of Binding/Procedure/PlaceCursor.cs and ReferenceResolver.BuildCellPath to compiler.model; EcBinder.ExternalNames to the model, IntrinsicBinder.CompileClock read at bind time)" },
-    { "from": "CobolNet.CodeGen", "to": "CobolNet.Compiler.Oo", "uses": 19, "removedBy": "PB2402 (the OO symbols to compiler.model) and PB2403 (AdapterPair to compiler.model; the OoClassTable, ActivationDescriptions and OoStandardClasses answers reach the backend as BoundCompilation data); PB2403's sites include ProgramEmitter's OoClassTable read (Draft 6, G1)" },
-    { "from": "CobolNet.CodeGen", "to": "CobolNet.Frontend", "uses": 3, "removedBy": "PB2407 (move: CompilationInputs with the InputProbe and EnvironmentRead it names, Pipeline/CompilationInputs.cs, to frontend.common)" },
-    { "from": "CobolNet.CodeGen", "to": "CobolNet.Frontend.Generated", "uses": 2, "removedBy": "PB2398 (the two code-generation parse-context reads become bound-node facts)" },
-    { "from": "CobolNet.CodeGen", "to": "CobolNet.Frontend.Preprocessor", "uses": 1, "removedBy": "PB2408 (extract: the DirectiveResults read, CSharpEmitter.cs:32, moves to bind time)" },
-    { "from": "CobolNet.Frontend.Preprocessor", "to": "CobolNet.Frontend", "uses": 3, "removedBy": "PB2407 (the same move)" },
-    { "from": "CobolNet.Frontend.Parsing", "to": "CobolNet.Frontend.Preprocessor", "uses": 1, "removedBy": "PB2409 (move: ReferenceFormatProcessor.DebugLineCarrier to frontend.common — DebuggingLineRewriter.cs:95)" }
+    { "from": "WiseOwl.Cobol.Binding", "to": "WiseOwl.Cobol.CodeGen", "uses": 3, "removedBy": "PB2395 (extract: the figurative-constant classification and FillChar to compiler.model — DataBinder.cs:2435,2470,2850,4855; DataBinder.ImpliedPicture.cs:212); and the numeric-edited VALUE image compose, DataBinder.cs:4792 -> ValueInitializer.EditedImageOfNumericValue, which PB2395 also moves to compiler.model once the alphabet family is there (Draft 6, G1)" },
+    { "from": "WiseOwl.Cobol.Binding", "to": "WiseOwl.Cobol.CodeGen.Emit", "uses": 1, "removedBy": "PB2396 (move: EmitText.RepeatToWidth to frontend.common — DataBinder.cs:2970)" },
+    { "from": "WiseOwl.Cobol.Binding.Procedure", "to": "WiseOwl.Cobol.CodeGen", "uses": 2, "removedBy": "PB2395 (the same extract — InitializeBinder.cs:869)" },
+    { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.CodeGen", "uses": 1, "removedBy": "PB2397 (extract: the C# member chain leaves the model — BoundUnit.cs:67, RuntimeApi.OuterChain)" },
+    { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.Binding", "uses": 20, "removedBy": "PB2361 (DataBindResult: BoundUnit.Data and .Refs, BoundCompilation.InterfaceData, OoClassUnit's binder), PB2375 (PlaceBuilder at bind time: OdoModel.SearchDepending's resolver, OdoModel.cs:188), PB2402 (OoMethodDataScope and OptionsModel.cs's types move with the OO symbols) and PB2399 (the rest: SymbolTable's binder, the binder statics the model calls, BoundCompilation.Turn, LinkageFormal, Table16Operand, the alphabet family); PB2399 also ends DataItem and FileModel -> ReferenceResolver (HasVariableLengthSubordinate, DataItem.cs:956, FileModel.cs:566,627) and moves NationalAlphabetDef with the alphabet family (Draft 6, G1)" },
+    { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.Binding.Bound", "uses": 2, "removedBy": "PB2400 (move: BoundUnit, OoClassUnit and BoundCompilation to compiler.bound, once they hold no binder, C# chain, parse context or OO-layer answer)" },
+    { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.Compiler.Oo", "uses": 5, "removedBy": "PB2402 (move: the OO symbols with the closure they name, to compiler.model; 5 -> 2) and PB2403 (AdapterPair to compiler.model; the OoClassTable answers become BoundCompilation data; 2 -> 0)" },
+    { "from": "WiseOwl.Cobol.Binding.Model", "to": "WiseOwl.Cobol.Frontend.Generated", "uses": 4, "removedBy": "PB2398 (extract: BoundCompilation.Tree and BoundUnit.Ctx, BoundCompilation.cs:34, BoundUnit.cs:34, carry parse contexts across ICodeGenBackend; each reader's fact becomes a bound-node fact, DESIGN-backend-abstraction §1.1 lists no parse context)" },
+    { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Binding", "uses": 33, "removedBy": "PB2347 (move: StatementBinder and its SubscriptSegments partial out of Bound/) and PB2405 (the rule families the bound nodes read move into compiler.bound); PB2420 (move: EditionContext, SortCollation, IeeeSpecial to compiler.model) and PB2419 (BoundAllLiteral.Of leaves for ConcatFolder) end the last nine pairs (Draft 6, G1)" },
+    { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Binding.Procedure", "uses": 39, "removedBy": "PB2347 (the same move; MoveClassifier and MoveOverlap stay in compiler.bound); the walk reads 39 at 669e32aa9, two pairs more than at a02b165da (StatementBinder -> PlacementRules, UntilExitPlacement, landed after the census; Draft 7, H1)" },
+    { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Binding.Validation", "uses": 1, "removedBy": "PB2347 (StatementBinder moves to Binding/Procedure, the same layer as StatementValidation; a row landed after a02b165da by the fix lane, measured by the walk at 669e32aa9, StatementBinder.cs:446; Draft 7, H1)" },
+    { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Compiler.Oo", "uses": 6, "removedBy": "PB2402 (the OO symbols to compiler.model; 6 -> 1) and PB2347 (StatementBinder -> OoClassTable leaves Bound/)" },
+    { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Frontend.Preprocessor", "uses": 1, "removedBy": "PB2347 (the StatementBinder move)" },
+    { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Frontend.Generated", "uses": 18, "removedBy": "PB2347 (StatementBinder, the parse-context reader, out of Bound/) and PB2398 (BoundOo.cs's parse-context use becomes a bound-node fact)" },
+    { "from": "WiseOwl.Cobol.Binding.Bound", "to": "WiseOwl.Cobol.Frontend.Parsing", "uses": 1, "removedBy": "PB2347 and PB2398 (the StatementBinder move and the parse-context extract)" },
+    { "from": "WiseOwl.Cobol.Binding", "to": "WiseOwl.Cobol.Validation", "uses": 15, "removedBy": "PB2320 (move: BinderDriver, whose ten *Pass.Run calls are BinderDriver.cs:61-217, to compiler.pipeline) and PB2404 (move: IntegerOperandRules with IntegerSlot and IntegerSlotKind, IntegerOperandPass.cs:14-89, called from DataBinder.Constants.cs:858, to compiler.binding); PB2421 ends DataBinder -> VersionConformancePass (PictureConstructId to PicInfo, DataBinder.Reports.cs:3777), the pair no move of BinderDriver removes (Draft 6, G1)" },
+    { "from": "WiseOwl.Cobol.Binding.Passes", "to": "WiseOwl.Cobol.Validation", "uses": 1, "removedBy": "PB2320 (BindPipeline's VersionConformancePass row, BindPipeline.cs:163, goes with the driver's pass schedule)" },
+    { "from": "WiseOwl.Cobol.Binding.Procedure", "to": "WiseOwl.Cobol.Validation", "uses": 2, "removedBy": "PB2320 and PB2404 (the same moves)" },
+    { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Binding", "uses": 93, "removedBy": "PB2361 and PB2375 (extract: the backend input stops carrying the binder — DataBindResult replaces EmitContext.Data, EmitCore.cs:19,34, and BoundUnit.Data/Refs; PlaceBuilder runs at bind time, so UnitEmitters.Refs and the 24 emit-time ReferenceResolver.ResolveItem calls go), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 and PB2399 (the OPTIONS, alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1)" },
+    { "from": "WiseOwl.Cobol.CodeGen.Emit", "to": "WiseOwl.Cobol.Binding", "uses": 33, "removedBy": "PB2361, PB2375, PB2402, PB2399 and PB2405 (the same extracts and moves); PB2420 ends EditionContext, RangeCollationCarrier and RelationPair (Draft 6, G1)" },
+    { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Binding.Procedure", "uses": 4, "removedBy": "PB2406 (the four cursor records of Binding/Procedure/PlaceCursor.cs and ReferenceResolver.BuildCellPath to compiler.model; EcBinder.ExternalNames to the model, IntrinsicBinder.CompileClock read at bind time)" },
+    { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Compiler.Oo", "uses": 19, "removedBy": "PB2402 (the OO symbols to compiler.model) and PB2403 (AdapterPair to compiler.model; the OoClassTable, ActivationDescriptions and OoStandardClasses answers reach the backend as BoundCompilation data); PB2403's sites include ProgramEmitter's OoClassTable read (Draft 6, G1)" },
+    { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Frontend", "uses": 3, "removedBy": "PB2407 (move: CompilationInputs with the InputProbe and EnvironmentRead it names, Pipeline/CompilationInputs.cs, to frontend.common)" },
+    { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Frontend.Generated", "uses": 2, "removedBy": "PB2398 (the two code-generation parse-context reads become bound-node facts)" },
+    { "from": "WiseOwl.Cobol.CodeGen", "to": "WiseOwl.Cobol.Frontend.Preprocessor", "uses": 1, "removedBy": "PB2408 (extract: the DirectiveResults read, CSharpEmitter.cs:32, moves to bind time)" },
+    { "from": "WiseOwl.Cobol.Frontend.Preprocessor", "to": "WiseOwl.Cobol.Frontend", "uses": 3, "removedBy": "PB2407 (the same move)" },
+    { "from": "WiseOwl.Cobol.Frontend.Parsing", "to": "WiseOwl.Cobol.Frontend.Preprocessor", "uses": 1, "removedBy": "PB2409 (move: ReferenceFormatProcessor.DebugLineCarrier to frontend.common — DebuggingLineRewriter.cs:95)" }
   ]
 }
 ```
@@ -759,27 +759,27 @@ allowed pair is measured. Draft 1's three unmeasured non-root pairs (`compiler.b
 `compiler.binding → frontend.pipeline`, `compiler.validation → frontend.diagnostics`) had no such reason and are
 dropped: a binder that needs one adds it to this file in a reviewed change.
 
-Two measured cycles are dissolved by placement rather than by refusal: `CobolNet.Compiler.Oo ↔ CobolNet.Binding` (34
-and 40 uses) is one layer, and `CobolNet.Frontend.Generated ↔ CobolNet.Frontend.Parsing` (2 and 40) is one layer, for
+Two measured cycles are dissolved by placement rather than by refusal: `WiseOwl.Cobol.Compiler.Oo ↔ WiseOwl.Cobol.Binding` (34
+and 40 uses) is one layer, and `WiseOwl.Cobol.Frontend.Generated ↔ WiseOwl.Cobol.Frontend.Parsing` (2 and 40) is one layer, for
 the reasons given above. The runtime is one layer here because its root namespace is a bag (census `types`: every
-file under `Control/`, `Values/`, `Intrinsics/` and `Verbs/` declares `namespace CobolNet.Runtime`; findings R0-0225,
+file under `Control/`, `Values/`, `Intrinsics/` and `Verbs/` declares `namespace WiseOwl.Cobol.Runtime`; findings R0-0225,
 R0-0229–R0-0234) and the measured cycles `Runtime ↔ Runtime.IO` (10 and 49), `Runtime ↔ Runtime.Exceptions` (44 and
 8), `Runtime ↔ Runtime.Globalization` (8 and 9) cannot be read until that bag has namespaces; the Move waves of §8.2
 give it them, and the first census after those waves writes the runtime's own layer table into the same file (values
 ← exceptions ← control ← I-O, verbs and intrinsics, the order `DESIGN-runtime-library.md` §2 already states), with
 its own tolerated rows. The front end's internal order is in the file now because its namespaces exist.
 
-**The drift test.** `ArchitectureEdgesDriftTests` (tests/Cobol.Net.Tests.Unit) is a metadata walk over the built
+**The drift test.** `ArchitectureEdgesDriftTests` (tests/WiseOwl.Cobol.Tests.Unit) is a metadata walk over the built
 product assemblies, not a source scan and not an MSBuild workspace, so it costs about a second per gate:
 - **Population, one rule for both observers:** it opens each product assembly the test project's build output contains
-  (`Cobol.Net.Editions`, `Cobol.Net.Frontend`, `Cobol.Net.Compiler`, `Cobol.Net.Runtime`, `cobol`) with
+  (`WiseOwl.Cobol.Editions`, `WiseOwl.Cobol.Frontend`, `WiseOwl.Cobol.Compiler`, `WiseOwl.Cobol.Runtime`, `cobol`) with
   `System.Reflection.Metadata` and walks the AUTHORED type definitions only, by the census's rule: a type is generated
   only when every document that declares it is a generated output (a `Generated/` folder, a `*.g.cs` file, a source
   generator's output; `tools/ArchCensus/Program.cs:166`), so a partial with one hand-written document is authored. An
   attribute test is not that rule: at `a02b165da` the two populations differ by 12 types — the source generator's
   `BoundNodeAttribute`, `BoundVisitor`, `BoundStatementTree` and seven `I{Root}Visitor<T>` interfaces and the generated
-  `CobolNet.Editions.Constructs` carry no `[GeneratedCode]` (the census marks them generated), and the census counts
-  `CobolNet.Frontend.Generated.CobolParserCore` as authored (its hand partial `Parsing/CompilationUnitTokenRetypes.cs`)
+  `WiseOwl.Cobol.Editions.Constructs` carry no `[GeneratedCode]` (the census marks them generated), and the census counts
+  `WiseOwl.Cobol.Frontend.Generated.CobolParserCore` as authored (its hand partial `Parsing/CompilationUnitTokenRetypes.cs`)
   while the merged metadata type carries `[GeneratedCode("ANTLR", …)]`. So the walk reads each type's documents from
   the portable PDB beside its assembly (the documents of its methods' sequence points, and the `TypeDefinitionDocuments`
   custom debug information the C# compiler writes for a type with no method body) and applies the census's rule, and
@@ -827,9 +827,9 @@ The rules (each a drift assertion, listed with the measure that shows today's di
    provisional*), of which 83 are the runtime's `Control/`, `Control/Signals/`, `Values/`, `Values/Numeric/`,
    `Values/Tables/`, `Values/Text/`, `Intrinsics/` and `Verbs/` folders declaring the root namespace, 74 are the
    compiler's `Binding/Procedure/Verbs/` (40), `CodeGen/Verbs/` (20) and `CodeGen/Roslyn/` and `CodeGen/DataDivision/`
-   (7 each) declaring their parent's namespace, 13 are `Oo/` declaring `CobolNet.Compiler.Oo` under a root of
-   `CobolNet`, and the rest are the front end's `Common/` (2, in `CobolNet.Common`), `Parsing/` (3, in
-   `CobolNet.Frontend.Generated`) and `Pipeline/` (2, in `CobolNet.Frontend`) and the runtime's `Collation/CLDR/`
+   (7 each) declaring their parent's namespace, 13 are `Oo/` declaring `WiseOwl.Cobol.Compiler.Oo` under a root of
+   `WiseOwl.Cobol`, and the rest are the front end's `Common/` (2, in `WiseOwl.Cobol.Common`), `Parsing/` (3, in
+   `WiseOwl.Cobol.Frontend.Generated`) and `Pipeline/` (2, in `WiseOwl.Cobol.Frontend`) and the runtime's `Collation/CLDR/`
    (4, `Cldr`), `IO/Sharing/` (3) and `Control/Signals/` (2, in `Runtime.Exceptions`) and `IO/` (1). The 19 notes are the first
    Move/rename waves. A folder whose name is not a namespace segment (`CLDR` versus `Cldr`) renames to the segment.
 2. **One public type per file.** Measured (*text scan, provisional*): 178 of 553 authored files declare more than one
@@ -853,60 +853,60 @@ The rules (each a drift assertion, listed with the measure that shows today's di
    3 have no notes until it does); the drift assertions read the newest record, as `ArchCensusDriftTests` does.
 
 **Names: what changes, what does not, and the one owner question.**
-- *Project and assembly names do not change.* `Cobol.Net.{Editions,Frontend,Compiler,Runtime,Cli}` and the
-  `cobol` executable (`COBOLNET_PROJECT_ORG_DESIGN.md` §1.1) stay: the host-entry and activation design
-  (`DESIGN-external-repository.md` §4, §7.3) names `Cobol.Net.Runtime` as the assembly a host references, and the
+- *Project and assembly names do not change.* `WiseOwl.Cobol.{Editions,Frontend,Compiler,Runtime,Cli}` and the
+  `cobol` executable (`PROJECT_ORG_DESIGN.md` §1.1) stay: the host-entry and activation design
+  (`DESIGN-external-repository.md` §4, §7.3) names `WiseOwl.Cobol.Runtime` as the assembly a host references, and the
   NuGet ids `WiseOwl.COBOL` and `WiseOwl.COBOL.Runtime` (`DESIGN-USER-DOCUMENTATION.md` §6, owner R50) are package
   ids, which NuGet keeps independent of assembly names. R64 #3 allows a change ("Project and assembly names may
   change in the review"); nothing is gained by one.
 - *The namespace roots become the project names: **owner decision, PB2118 question 1, answered YES on 2026-10-07***
-  ("Yes to: May the namespace roots CobolNet, CobolNet.Frontend, CobolNet.Editions and CobolNet.Cli become the project names (Cobol.Net.Compiler, Cobol.Net.Frontend, Cobol.Net.Editions, Cobol.Net.Cli), reversing COBOLNET_PROJECT_ORG_DESIGN.md §1.1, which keeps the single token CobolNet?"). It was the owner's question because R64 #3 speaks of project and assembly
-  names only. The record that speaks of namespaces is `COBOLNET_PROJECT_ORG_DESIGN.md` §1.1 ("root namespaces stay
-  the single token `CobolNet`", with the owner named as the one who may prefer `Cobol.Net` namespaces), and §8.2
+  ("Yes to: May the namespace roots [of the compiler, the front end, the editions leaf and the CLI] become the project names ([WiseOwl.Cobol.Compiler, WiseOwl.Cobol.Frontend, WiseOwl.Cobol.Editions, WiseOwl.Cobol.Cli]), reversing PROJECT_ORG_DESIGN.md §1.1, which keeps the single token [root]?"; the bracketed names are today's, kb/Work PB3837 having retired the ones the question spelled). It was the owner's question because R64 #3 speaks of project and assembly
+  names only. The record that spoke of namespaces was `PROJECT_ORG_DESIGN.md` §1.1 (root namespaces under one
+  undotted token, with the owner named as the one who may prefer the dotted project names), and §8.2
   rule 1 does not force a flip: the census's rule is the project's `RootNamespace` plus its folders, and the
-  compiler's `RootNamespace` is `CobolNet` (`Cobol.Net.Compiler.csproj:16`); Draft 2 had decided the flip from R64 #3,
+  compiler's `RootNamespace` is `WiseOwl.Cobol` (`WiseOwl.Cobol.Compiler.csproj:16`); Draft 2 had decided the flip from R64 #3,
   which was the owner's to decide. The owner chose shape A of the two Draft 3 put:
-  - **Shape A — the roots become the project names (CHOSEN):** `CobolNet` → `Cobol.Net.Compiler`, `CobolNet.Frontend` →
-    `Cobol.Net.Frontend`, `CobolNet.Editions` → `Cobol.Net.Editions`, `CobolNet.Cli` → `Cobol.Net.Cli`, the test roots
-    likewise, the generated parser through the single-sourced `<AntlrNamespace>`; it reverses PROJECT_ORG §1.1 and
-    resolves R0-0220 by itself (`Oo/` under `Cobol.Net.Compiler` is `Cobol.Net.Compiler.Oo`). Files (*text scan,
+  - **Shape A — the roots become the project names (CHOSEN):** `WiseOwl.Cobol` → `WiseOwl.Cobol.Compiler`; the front end's,
+    the editions leaf's, the CLI's and the test roots already ARE their project names since the product rename (kb/Work
+    PB3837, 2026-10-26), the generated parser through the single-sourced `<AntlrNamespace>`; it reverses PROJECT_ORG §1.1 and
+    resolves R0-0220 by itself (`Oo/` under `WiseOwl.Cobol.Compiler` is `WiseOwl.Cobol.Compiler.Oo`). Files (*text scan,
     provisional*): the editions flip edits the `using` lines of 117 binding, code-generation, validation and OO files
     and 48 test files, the front-end flip 113 and 152, the compiler flip every compiler file (288) and about 650 test
     files. So every flip is a wide wave: it runs between fix-lane trains only when its file set (those files)
     collides with no in-flight train (the file-set partition, §8.7), which in practice means a quiet fix lane. The oracle: IDENTICAL for these four (no emitted `.g.cs` and no diagnostic stream names a
     compiler namespace, checked over the 14 characterization snapshots and the oracle blobs). Cut 3: the runtime root's
-    flip to `Cobol.Net.Runtime` (given, v1.0, PB2349) becomes the first of five flips to one spelling. The four waves:
+    flip to `WiseOwl.Cobol.Runtime` (given, v1.0, PB2349) becomes the first of five flips to one spelling. The four waves:
     PB2412 (editions), PB2413 (front end, after it), PB2414 (CLI) and PB2415 (compiler, last; it resolves R0-0220,
-    so PB2243 waits for it); `COBOLNET_PROJECT_ORG_DESIGN.md` §1.1 and `DESIGN-module-topology.md` §2.2 record the
+    so PB2243 waits for it); `PROJECT_ORG_DESIGN.md` §1.1 and `DESIGN-module-topology.md` §2.2 record the
     reversal.
-  - **Shape B — PROJECT_ORG §1.1 stands (not chosen):** the roots stay `CobolNet`, `CobolNet.Frontend`, `CobolNet.Editions`,
-    `CobolNet.Cli`; rule 1 holds against each project's `RootNamespace` as the census already measures it; R0-0220
-    (`Oo/` declaring `CobolNet.Compiler.Oo` under the root `CobolNet`) is a 13-file Move like the other 18
-    disagreements (the namespace follows the folder, `CobolNet.Oo`, or the folder follows the namespace); and
-    `DESIGN-module-topology.md` §2.2's `CobolNet.Compiler` row is corrected to the csproj's `CobolNet`. Files: none
-    beyond the 19 Move notes. The oracle: unaffected. Cut 3: still flips the runtime to `Cobol.Net.Runtime` (given), so
+  - **Shape B — PROJECT_ORG §1.1 stands (not chosen):** the roots stay `WiseOwl.Cobol`, `WiseOwl.Cobol.Frontend`, `WiseOwl.Cobol.Editions`,
+    `WiseOwl.Cobol.Cli`; rule 1 holds against each project's `RootNamespace` as the census already measures it; R0-0220
+    (`Oo/` declaring `WiseOwl.Cobol.Compiler.Oo` under the root `WiseOwl.Cobol`) is a 13-file Move like the other 18
+    disagreements (the namespace follows the folder, `WiseOwl.Cobol.Oo`, or the folder follows the namespace); and
+    `DESIGN-module-topology.md` §2.2's `WiseOwl.Cobol.Compiler` row is corrected to the csproj's `WiseOwl.Cobol`. Files: none
+    beyond the 19 Move notes. The oracle: unaffected. Cut 3: still flips the runtime to `WiseOwl.Cobol.Runtime` (given), so
     after v1.0 the runtime is the one root spelled with dots, which PROJECT_ORG §1.1 then records as its exception.
 - *Cut 3 is more than a `using` line.* The emitted bodies name runtime types fully qualified inline — the oracle blobs
-  carry `CobolNet.Runtime.Exceptions.ExceptionCatalog.IsFatalIoStatus` 6,249 times (from
-  `CodeGen/Verbs/IoStatusClass.cs`) and `CobolNet.Runtime.IO` 1,185 times — so Cut 3's oracle difference is every
+  carry `WiseOwl.Cobol.Runtime.Exceptions.ExceptionCatalog.IsFatalIoStatus` 6,249 times (from
+  `CodeGen/Verbs/IoStatusClass.cs`) and `WiseOwl.Cobol.Runtime.IO` 1,185 times — so Cut 3's oracle difference is every
   case that emits an I-O status check or a qualified runtime name, not one line per case; the plan's Cut 3 already
   routes every runtime reference through the `RuntimeApi` façade and takes ONE reviewed re-baseline, which §8.3 (9)
   keeps true by making that façade the `RuntimeMembers` catalogue first.
 - *The emitted program's namespace is given*: `Cobol.<S>` per `DESIGN-external-repository.md` §4.5. The
-  external-repository design's `CobolNet.Runtime.Repository` attribute family is spelled under the runtime root and
+  external-repository design's `WiseOwl.Cobol.Runtime.Repository` attribute family is spelled under the runtime root and
   follows Cut 3 mechanically; nothing in that design is reopened.
-- *Two namespaces named `Validation` at two layers* (`CobolNet.Binding.Validation`, the statement rules a binder
-  applies while binding, 4 types; `CobolNet.Validation`, the post-bind passes, 25 types) is a naming defect rule 5
+- *Two namespaces named `Validation` at two layers* (`WiseOwl.Cobol.Binding.Validation`, the statement rules a binder
+  applies while binding, 4 types; `WiseOwl.Cobol.Validation`, the post-bind passes, 25 types) is a naming defect rule 5
   catches: the binding-layer one is renamed to say what it is (`StatementRules` is the shape; R0-0015's extract,
   PB2310, is where it happens).
 
 **Tests.** R64 puts `tests/` in scope and kept today's test layout "until zero GAP"; the owner dropped R69 §2's hold on binding and code-generation restructuring on 2026-10-07 (PB2118 question 5, "Drop it") and that hold
 with it (PB1754 amended), so the re-home is a wave like any other, between fix-lane trains under the file-set
-partition (§8.7): a test file the in-flight train edits defers the wave that moves it. Measured: `Cobol.Net.Tests.Unit` holds 449 files, 435 of them in
-the one flat namespace `CobolNet.Tests.Unit` (12 in `.Collation`, 2 in `.Unicode`); `Cobol.Net.Tests.Conformance` holds
-200 files in one flat namespace; `tests/_shared` holds 11 (`CobolNet.Tests.Shared`, `CobolNet.Gate`). Rule 1 applies: a
-test file lives in the folder of the subsystem it tests, mirroring `src/` (`tests/Cobol.Net.Tests.Unit/Binding/…` →
-`Cobol.Net.Tests.Unit.Binding`), a drift test in the folder of the boundary it pins, and the 278 `*DriftTests.cs` are
+partition (§8.7): a test file the in-flight train edits defers the wave that moves it. Measured: `WiseOwl.Cobol.Tests.Unit` holds 449 files, 435 of them in
+the one flat namespace `WiseOwl.Cobol.Tests.Unit` (12 in `.Collation`, 2 in `.Unicode`); `WiseOwl.Cobol.Tests.Conformance` holds
+200 files in one flat namespace; `tests/_shared` holds 11 (`WiseOwl.Cobol.Tests.Shared`, `WiseOwl.Cobol.Gate`). Rule 1 applies: a
+test file lives in the folder of the subsystem it tests, mirroring `src/` (`tests/WiseOwl.Cobol.Tests.Unit/Binding/…` →
+`WiseOwl.Cobol.Tests.Unit.Binding`), a drift test in the folder of the boundary it pins, and the 278 `*DriftTests.cs` are
 the first population to re-home because their `<summary>` names the files they govern (`drift_rules.py` already reads
 them). The gate is unaffected: `scripts/gate_plan.py` keys every case on its display name's class and method
 (`name_key`, gate_plan.py:16), not its namespace, and a stale impact-map key only changes the order, never what runs
@@ -915,7 +915,7 @@ them). The gate is unaffected: `scripts/gate_plan.py` keys every case on its dis
 **Scripts: an artifact the tooling reads has ONE Python reader** (kb/Work PB3204, PB3209; R2 findings at 8be230068).
 The rules above are written for C#; for `scripts/` the same "one rule in one place" reads: a script that needs a
 fact about a shared artifact imports that artifact's reader and keeps no parser of its own. The ANTLR grammar under
-`src/Cobol.Net.Frontend/Grammar` is read by `scripts/spec/grammar_source.py` (`read()` → `Rule(name, kind, file,
+`src/WiseOwl.Cobol.Frontend/Grammar` is read by `scripts/spec/grammar_source.py` (`read()` → `Rule(name, kind, file,
 first_line, last_line, body, source, lead)`, comments and actions blanked, the population asserted), which replaced
 three private readers that did not agree on which rules the grammar declares (the dossier's missed 78 of 1,205);
 its self-test plants each trap they fell into and refuses
@@ -943,7 +943,7 @@ Extract note), then the same. There is no B: the order that held binding and cod
 gone (the owner dropped R69 §2's hold on binding and code-generation restructuring on 2026-10-07 (PB2118 question 5, "Drop it"); Draft 5's B rows are A, its C+B rows C). "Leaves first" stays the planner's preferred order. "Which candidate is hot" is a query the dispatcher runs at wave time over the open notes that
 name the type; this document keeps no count of it.
 
-**(1) `CobolNet.Binding.DataBinder`** — R0-0001.
+**(1) `WiseOwl.Cobol.Binding.DataBinder`** — R0-0001.
 *Responsibilities, from the partials and the pass list.* The data-description pipeline whose pass BODIES are its
 methods: `BindPipeline.Build` (`Binding/Passes/BindPipeline.cs:49-142`) registers its `BindPass` rows as lambdas over
 the binder (`d => d.ExpandTypes()`), from `SynthesizeImpliedPictures` to `MarkFileRecordImageLeaves`, under the
@@ -1132,14 +1132,14 @@ slices and fact sets as the seam it lacked).
 `DataBindResult`; step 1 (PB2296) carries every field named above. *Steps:* PB2296,
 PB2352–PB2361.
 
-**(2) `CobolNet.Editions.Diagnostics.DiagnosticCatalog`** — R0-0002: `public static readonly DiagnosticDescriptor`
+**(2) `WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog`** — R0-0002: `public static readonly DiagnosticDescriptor`
 fields beside four string constants (`NotImplemented`, `StrongType`, `RecognizedNotImplemented`,
-`DeclinedOptionalElement`); the census's own data-ize rule fires (its measures are on the note). And its twin: `CobolNet.Frontend.Diagnostics.DiagnosticDescriptors` holds descriptors (`CBLnnnn`, `COBOLnnnn`, and twins
+`DeclinedOptionalElement`); the census's own data-ize rule fires (its measures are on the note). And its twin: `WiseOwl.Cobol.Frontend.Diagnostics.DiagnosticDescriptors` holds descriptors (`CBLnnnn`, `COBOLnnnn`, and twins
 whose code is another constant) of a second `DiagnosticDescriptor` record, `(Code,
-DefaultSeverity, MessageTemplate)`; and `CobolNet.Editions.EditionCodes` holds the four edition-band codes that
+DefaultSeverity, MessageTemplate)`; and `WiseOwl.Cobol.Editions.EditionCodes` holds the four edition-band codes that
 `ConstructRegistry`, `CobolWordRule`, `VersionConformancePass` and the frontend's `CobolErrorListener` all read.
 *Target: data plus a generator, keeping every identity.* One data file,
-`src/Cobol.Net.Editions/Diagnostics/diagnostics.json`, holds every row of the three. The row schema is the union of the
+`src/WiseOwl.Cobol.Editions/Diagnostics/diagnostics.json`, holds every row of the three. The row schema is the union of the
 records, so nothing a descriptor carries is lost: `catalog` (`DiagnosticCatalog`, `DiagnosticDescriptors` or
 `EditionCodes`, the generated type the row lands in), `name` (the C# field name, the identity the callers use), `code`,
 `id`, `severity`, `message` (the editions record's title, or the frontend record's message template), `citation`,
@@ -1182,7 +1182,7 @@ each type still initializes in one static constructor, and under the ordered who
 change the gate's order, never what runs. *Seam:* the generated fields under today's names, and the row schema.
 *Steps:* PB2297, PB2362–PB2364.
 
-**(3) `CobolNet.Runtime.CobolIntrinsics`** — R0-0003 (its partials: `Dec`, `Exact`, `Float`, `NumvalLocale`,
+**(3) `WiseOwl.Cobol.Runtime.CobolIntrinsics`** — R0-0003 (its partials: `Dec`, `Exact`, `Float`, `NumvalLocale`,
 `RealArgs`, `Select`, `Text`, `TwoPi`; `Intrinsics/` under the root namespace, R0-0229); its members are emitted text
 (census reach `emitted-text`).
 *Responsibilities.* The partials are ARMS, not families: `Dec`, `Float`, `Exact` and `RealArgs` are the two bodies
@@ -1197,7 +1197,7 @@ adjacent behind one entry per function; the shared argument coercions become `Nu
 entry per function on its family type, reached by emitted code through a `RuntimeMembers` handle (9); every rename
 lands as one explained oracle difference (§4 item 1). *Steps:* PB2298, PB2365–PB2370.
 
-**(4) `CobolNet.Binding.ReferenceResolver`** — R0-0004 (its partial and nested types).
+**(4) `WiseOwl.Cobol.Binding.ReferenceResolver`** — R0-0004 (its partial and nested types).
 *Responsibilities, from the members.* Qualification ("Qualification is the specification of superordinate names
 from the hierarchy to which a user-defined name belongs", §8.4.2.2.1); subscripts ("Subscripts are used when
 reference is made to an individual element within a table of like elements", §8.4.2.3.1) including ALL and index-name
@@ -1214,7 +1214,7 @@ already in the bound tree and the backend never calls it, `CounterResolver`, `Ob
 `ReferenceResolver` stays the funnel that composes them and answers `RefResolution`. *Seams:* `RefResolution` and
 `PlaceBuilder.Build(…) → Place`. *Steps:* PB2299, PB2371–PB2375.
 
-**(5) `CobolNet.Binding.Procedure.IntrinsicBinder`** — R0-0005 (one file; its hand `case Bound…` arms are counted
+**(5) `WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder`** — R0-0005 (one file; its hand `case Bound…` arms are counted
 in PB2300); with `IntrinsicArgumentRules` (R0-0020) and `IntrinsicCatalog` (a table written as
 code).
 *Responsibilities.* FUNCTION-reference binding per §15 family: argument binding and the argument screens, result
@@ -1230,7 +1230,7 @@ family of (3) (`DateTimeIntrinsicBinder`, `NumericIntrinsicBinder`, `TextIntrins
 row plus one family-binder arm. *Seams:* `IntrinsicSig` (the catalog row) and `IIntrinsicFamilyBinder.Bind(IntrinsicSig,
 arguments) → BoundIntrinsicCall`. *Steps:* PB2300, PB2376–PB2381.
 
-**(6) `CobolNet.Validation.VersionConformancePass`** — R0-0006 (the bound arm and the word checks) with its nested
+**(6) `WiseOwl.Cobol.Validation.VersionConformancePass`** — R0-0006 (the bound arm and the word checks) with its nested
 `ParseArm` (R0-0009, the widest fan-out in the census).
 *Responsibilities.* The ONE edition gate (D7, `DESIGN-version-conformance-pipeline.md`): the bound arm over
 `BoundUnit` (STOP RUN status, CALL forms, prototypes), the parse arm (one `Visit` per construct family firing
@@ -1276,7 +1276,7 @@ this partition: a construct's grammar rule (§8.4), its gate and its `constructs
 §14.9 GAP fix lands in the procedure gate's file only — the shape that makes the next case automatic. *Steps:*
 PB2304, PB2385–PB2390, then PB2301 (the bound arm and `CobolWordGate`).
 
-**(7) `src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs`** — one file, three types: `ExceptionEngine` (R0-0014),
+**(7) `src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs`** — one file, three types: `ExceptionEngine` (R0-0014),
 `ArgumentSubstitute`, and the static `ExceptionState` the generated code calls, which is a forwarder today
 (`ExceptionState.cs:1672-1691`: `private static ExceptionEngine E => RunUnit.Current.Exceptions; public static string?
 LastName => E.LastName; …`).
@@ -1300,7 +1300,7 @@ would rewrite the same emitted calls a second time (the second re-baseline item 
 lands alone. *Seam:* the engine and its parts, reached from the captured `RunUnit` through `RuntimeMembers` handles.
 *Steps:* one, PB2309, grouped with PB2349.
 
-**(8) `src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs`** — a god FILE, not a god type (its measures are on PB2351's
+**(8) `src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs`** — a god FILE, not a god type (its measures are on PB2351's
 census columns): the seven `[BoundNode]` roots (`BoundExpr`, `BoundOperand`, `BoundBoolExpr`, `BoundCondition`,
 `BoundStatement`, `BoundPerformControl`, `BoundSetTarget`) and their records; the folder's other files already split by
 verb family. Also in `Bound/` and not nodes: `StatementBinder` (R0-0052, whose parse-context mentions make most of
@@ -1318,7 +1318,7 @@ stay, §8.1's bound-tree computations), PB2392 (the rule tables),
 PB2393 (the six small families) and PB2394 (`BoundStatement`'s leaves). PB2393 claims the file's §8.2 rule 2–3
 findings, so when the census computes those rules (PB2351) the generator does not file a second claim on it.
 
-**(9) `CobolNet.CodeGen.RuntimeApi`** — R0-0007 (`CodeGen/Roslyn/` under `CobolNet.CodeGen`, R0-0218); the ratchet
+**(9) `WiseOwl.Cobol.CodeGen.RuntimeApi`** — R0-0007 (`CodeGen/Roslyn/` under `WiseOwl.Cobol.CodeGen`, R0-0218); the ratchet
 `RuntimeApiGuardTests` still tolerates bare runtime names outside it, in `NumericRenderer`, `ConditionRenderer` and
 `OperandText` (PB2302 carries the measure).
 *Responsibilities.* Three member kinds under one name: `nameof` anchors for runtime types; fragment composers
@@ -1333,8 +1333,8 @@ which §8.1 lets read the runtime directly. **One `RuntimeAbi`, and which given 
 `DESIGN-backend-abstraction.md` §2.3 (2026-07-07, an elevation pass, not an owner decision) names its compiler-side
 catalogue `RuntimeAbi`; `DESIGN-external-repository.md` (owner-approved 2026-10-05, the later decision) has the
 runtime declare `RuntimeAbi.Version` and `RuntimeAbi.CallAbi`, its call-ABI integer, read by the runtime's
-`ProgramTable.RegisterModule` — a type in `Cobol.Net.Runtime`, which references no project. With both, every emitter
-that has `using CobolNet.Runtime` would see two `RuntimeAbi` types (CS0104) and the implementer would decide which
+`ProgramTable.RegisterModule` — a type in `WiseOwl.Cobol.Runtime`, which references no project. With both, every emitter
+that has `using WiseOwl.Cobol.Runtime` would see two `RuntimeAbi` types (CS0104) and the implementer would decide which
 design yields. The later, owner-approved design keeps the name: `RuntimeAbi` is the runtime's version and call-ABI
 type, and backend-abstraction §2.3 is amended in this change set (2026-10-07) to name its catalogue `RuntimeMembers`;
 nothing else in §2.3 changes. Draft 1's split of the catalogue into one class per runtime namespace stays withdrawn: a
@@ -1460,7 +1460,7 @@ same reason for four of the five spellings (LOCATION, VALID, APPLY and COMMIT, R
 (landed) holds two of those four: LOCATION and RETRY are word status, while APPLY COMMIT has no other reading below
 2023 and the VALID phrase's INVALID arm none below 2002, so they and the fifth, `validationClause` (whose CLASS,
 DESTINATION, INVALID and VARYING arms are reserved at every edition), gate constructs by edition. D7's statement in
-`COBOLNET_DESIGN.md` ("There is no parse-time `{isXXXX()}?` edition predicate") was not what the code does; that
+`DESIGN.md` ("There is no parse-time `{isXXXX()}?` edition predicate") was not what the code does; that
 document now states the verdict (word status sanctioned, the three construct gates recorded as D7 defects).
 Draft 1's "zero" and its correction of §3 R1 stay withdrawn; the `architecture-review` skill's grammar rule now
 states the verdict too.
@@ -1517,7 +1517,7 @@ grammar change; PB2292 (the duplicate `className`, landed) precedes the regroup.
 ### 8.5 Closed hierarchies → C# 15 unions
 
 **Measured.** Seven `[BoundNode]` roots with generated exhaustive visitors (`BoundVisitorGenerator`,
-`Cobol.Net.Compiler.SourceGen`): `BoundExpr` 13 leaves, `BoundOperand` 11, `BoundBoolExpr` 8, `BoundCondition` 14,
+`WiseOwl.Cobol.Compiler.SourceGen`): `BoundExpr` 13 leaves, `BoundOperand` 11, `BoundBoolExpr` 8, `BoundCondition` 14,
 `BoundStatement` 97, `BoundPerformControl` 5, `BoundSetTarget` 2. Nine visitor implementations over five roots
 (`BoundStatement` ×3, `BoundOperand` ×3, `BoundBoolExpr`, `BoundCondition`, `BoundExpr`), none over
 `BoundPerformControl` or `BoundSetTarget`. Hand dispatch still in place (*text scan, provisional*, and regex-dependent:
@@ -1569,7 +1569,7 @@ below starts before it):
    switches.
 5. `BoundStatement` last; when it converts, the generator emits no dispatch (a) at all, and it keeps emitting the
    structural walk (b), `StatementChildren`, `OwnValueParts` and the `Parts_` walkers, from the seven `[BoundNode]`
-   roots' union cases, so `Cobol.Net.Compiler.SourceGen` stays (a source generator targets `netstandard2.0` by the
+   roots' union cases, so `WiseOwl.Cobol.Compiler.SourceGen` stays (a source generator targets `netstandard2.0` by the
    Roslyn host's rule) with one job, the walk. Draft 3's hand-written total switch is withdrawn: it was PB26's
    mechanism. At every point between, each root's DISPATCH is EITHER a union OR a visitor, never both (one mechanism
    per root), and its WALK is always the generator's.
@@ -1599,10 +1599,10 @@ in the same change) is the in-flight file set a wave never touches until the sli
 `BindUnitData`, the program and function tables, `PrototypeSignatures`, `ObjectRefDescriptor`,
 `PicInfo.RestrictedPrototypeName`, `OoClassTable`, `OoClassSymbol`, `OoRepositoryScope`, `OoExpansion`,
 `OoNameResolution`, `RoslynBackend.Compile`, `BackendOptions`, `CompilerDriver.Options`, `Directory.Build.props`,
-`Cobol.Net.Runtime.csproj`, the 14 characterization snapshots); the text model (R51, R52, R53; `COBOLNET_FILES_DESIGN`
+`WiseOwl.Cobol.Runtime.csproj`, the 14 characterization snapshots); the text model (R51, R52, R53; `FILES_DESIGN`
 D29); P15 Cut 3 (the runtime namespace flip at v1.0, and its item 4a: the static runtime facades deleted, emitted code
 reaching the instances through the captured `RunUnit`, one reviewed re-baseline); the §0.5 deep dives as the subsystem
-SSOTs whose seams §8.1 formalizes (`COBOLNET_PIPELINE_DESIGN` D1 and D7; `DESIGN-codegen-backend` §2.2 and §2.3;
+SSOTs whose seams §8.1 formalizes (`PIPELINE_DESIGN` D1 and D7; `DESIGN-codegen-backend` §2.2 and §2.3;
 `DESIGN-backend-abstraction` §1 and §2.3 — §8.3 (9) implements §2.3 with its catalogue named `RuntimeMembers`, and
 §1.3's table gains the L6 row (the leak PB2293 records), the two amendments §8 makes to a given; the first because the owner-approved external-repository design, the later decision, owns
 `RuntimeAbi`; `DESIGN-binder-bound-tree` §3.1;

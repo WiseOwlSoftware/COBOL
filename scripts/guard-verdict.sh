@@ -229,7 +229,7 @@ guard_report_file() {
 # and a golden the program no longer writes, are as red as a different byte. The program's stdout counts as a written
 # file named `(stdout)` beside a print file and after an abnormal end (no report), compared on the acceptance basis (drop CR, strip per-line
 # trailing spaces, ignore trailing newlines) because a console's line ends are the host's.
-# This is the shell arm of NistOutputs.Grade (tests/Cobol.Net.Tests.Conformance/NistRunner.cs); scripts/guard-verify.sh
+# This is the shell arm of NistOutputs.Grade (tests/WiseOwl.Cobol.Tests.Conformance/NistRunner.cs); scripts/guard-verify.sh
 # holds the two to the same cases. Every problem is listed in PROBLEMS_FILE (kept as evidence by guard_preserve).
 # Applies only to a verdict already scored `match`, and rewrites it: a clean files arm leaves MATCH untouched.
 # A run that ENDED ABNORMALLY (a row corpus.tsv declares TERMINATES, scored by guard_termination_verdict) has no report

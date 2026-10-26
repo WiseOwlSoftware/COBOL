@@ -4,13 +4,13 @@ area: spec-lookup
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4
-  - src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4
-  - src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4
-  - src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4
+  - src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4
+  - src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4
+  - src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4
+  - src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4
   - tests/version-matrix/constructs.json
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
   - lookup
 ---

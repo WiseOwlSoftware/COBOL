@@ -931,26 +931,26 @@ check("a copy that differs, a copy whose text is gone, a typed number in a brief
        any("fix-lane-implementer-brief.md: types a turn cap" in m for m in drift),
        any("model_rules.json: types a turn cap ('220-turn cap')" in m for m in drift), len(drift)), (True, True, True, True, 4))
 # 7d. A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381; MANDATORY-PRACTICES I8). Expected from the
-#     rule: a file under src/Cobol.Net.Runtime/IO/ (either separator) makes a group host-I-O, a compiler or other runtime
+#     rule: a file under src/WiseOwl.Cobol.Runtime/IO/ (either separator) makes a group host-I-O, a compiler or other runtime
 #     file does not; the file set is the group's file_set list, else (absent or empty) what its notes declare; a
 #     host-I-O spec says run the unit and conformance legs from WSL after the Windows gate, any other says the
 #     targeted Linux half runs inside its own gate (the landing runs no Linux gate: kb/Work PB3612); check_practices refuses a spec whose paragraph is not its group's.
-check("host_io: a file under src/Cobol.Net.Runtime/IO/ sets it, either separator",
-      (mds.host_io(["src/Cobol.Net.Runtime/IO/IndexedConnector.cs"]), mds.host_io(["src\\Cobol.Net.Runtime\\IO\\Sharing\\X.cs"])),
+check("host_io: a file under src/WiseOwl.Cobol.Runtime/IO/ sets it, either separator",
+      (mds.host_io(["src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs"]), mds.host_io(["src\\WiseOwl.Cobol.Runtime\\IO\\Sharing\\X.cs"])),
       (True, True))
 check("host_io: a compiler file, another runtime folder, a look-alike folder and no file do not set it",
-      (mds.host_io(["src/Cobol.Net.Compiler/Binding/DataBinder.cs"]), mds.host_io(["src/Cobol.Net.Runtime/Values/CobolDec.cs"]),
-       mds.host_io(["src/Cobol.Net.Runtime/IOX/A.cs"]), mds.host_io([])), (False, False, False, False))
+      (mds.host_io(["src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs"]), mds.host_io(["src/WiseOwl.Cobol.Runtime/Values/CobolDec.cs"]),
+       mds.host_io(["src/WiseOwl.Cobol.Runtime/IOX/A.cs"]), mds.host_io([])), (False, False, False, False))
 asked = []
 check("group_claim: the file_set list (with its member_set) when it has files, else the notes' declared set",
       (mds.group_claim({"notes": "PB1", "file_set": ["src/A.cs"], "member_set": {"src/A.cs": ["M"]}},
                        lambda ids: asked.append(ids) or Claim.of({"src/N.cs"})).member_lists(),
        sorted(mds.group_claim({"notes": "PB1, PB2", "file_set": []},
-                              lambda ids: asked.append(ids) or Claim.of({"src/Cobol.Net.Runtime/IO/N.cs"})).files),
+                              lambda ids: asked.append(ids) or Claim.of({"src/WiseOwl.Cobol.Runtime/IO/N.cs"})).files),
        sorted(mds.group_claim({"notes": "PB3"}, lambda ids: asked.append(ids) or Claim()).files), asked),
-      ({"src/A.cs": ["M"]}, ["src/Cobol.Net.Runtime/IO/N.cs"], [], [["PB1", "PB2"], ["PB3"]]))
-IOG = dict(gjson[0], letter="IO", file_set=["src/Cobol.Net.Runtime/IO/IndexedConnector.cs"])
-CMG = dict(gjson[0], letter="CM", file_set=["src/Cobol.Net.Compiler/Binding/DataBinder.cs"])
+      ({"src/A.cs": ["M"]}, ["src/WiseOwl.Cobol.Runtime/IO/N.cs"], [], [["PB1", "PB2"], ["PB3"]]))
+IOG = dict(gjson[0], letter="IO", file_set=["src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs"])
+CMG = dict(gjson[0], letter="CM", file_set=["src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs"])
 io_spec, cm_spec = (mds.render(CFG77, g, FILES(g)) for g in (IOG, CMG))
 check("a host-I-O group's spec runs the Linux unit and conformance legs at its gate, blocking on the verdict",
       ("HOST-I-O GROUP" in io_spec, "bash scripts/linux-gate.sh --legs unit,conformance --nice" in io_spec,
@@ -1922,17 +1922,17 @@ def r3_plant(pid, site):
             "blocked_by": ["PB2118", "PB2417"], "cluster": ["PB2119"], "_body": body}
 
 
-for pid, site in (("PB9991", "src/Cobol.Net.Compiler/Binding/BindSession.cs"),
-                  ("PB9992", "src/Cobol.Net.Compiler/Binding/GroupRepository.cs"),
-                  ("PB9993", "src/Cobol.Net.Compiler/Oo/OoConformance.cs"),
-                  ("PB9994", "tests/Cobol.Net.Tests.Conformance/NonCobolActivatorReturnTests.cs")):
+for pid, site in (("PB9991", "src/WiseOwl.Cobol.Compiler/Binding/BindSession.cs"),
+                  ("PB9992", "src/WiseOwl.Cobol.Compiler/Binding/GroupRepository.cs"),
+                  ("PB9993", "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs"),
+                  ("PB9994", "tests/WiseOwl.Cobol.Tests.Conformance/NonCobolActivatorReturnTests.cs")):
     hit = [m for m in work.r3_program_problems(REAL + [r3_plant(pid, site)], REAL_SET) if m.startswith(pid)]
     check(f"a planted R3 note on {site.rsplit('/', 1)[-1]} must wait for an open slice", bool(hit), True)
 
 # PB2197 (the R1 landing's CI red): the existence rule reads the COMMITTED tree, so a build output that exists in a built
 # checkout and not in CI's never decides it; a note naming a generated parser file must name the grammar it comes from.
-GEN = "src/Cobol.Net.Frontend/Generated/CobolParserCore.cs"
-G4 = "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4"
+GEN = "src/WiseOwl.Cobol.Frontend/Generated/CobolParserCore.cs"
+G4 = "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4"
 gen_only = [m for m in work.r3_program_problems(REAL + [r3_plant("PB9995", GEN)], REAL_SET) if m.startswith("PB9995")]
 check("a planted R3 note naming only a generated file is refused (build output, no grammar)",
       any("build output" in m for m in gen_only), True)
@@ -1942,7 +1942,7 @@ with_g4["_body"] += "- `" + G4 + "`" + NL
 check("a planted R3 note naming the generated file AND its grammar passes the build-output rule",
       any("build output" in m for m in work.r3_program_problems(REAL + [with_g4], REAL_SET) if m.startswith("PB9996")), False)
 check("an untracked path is missing even if a local file has that name",
-      work.named_missing_paths("`src/Cobol.Net.Frontend/obj/project.assets.json`"), ["src/Cobol.Net.Frontend/obj/project.assets.json"])
+      work.named_missing_paths("`src/WiseOwl.Cobol.Frontend/obj/project.assets.json`"), ["src/WiseOwl.Cobol.Frontend/obj/project.assets.json"])
 
 # PB2562: a train label is a taken wave number, because a wave's first train is labelled with the wave number.
 with tempfile.TemporaryDirectory() as td:
@@ -2138,7 +2138,7 @@ for shape, text in (("a bold paragraph label", f"**Code site.** src/Lib/Alpha.cs
 check("R1-1: R3's site form names its members, with or without the :line; a :line alone claims the file whole",
       (work.note_sites(work.SITES_EXAMPLE).members, work.note_sites("**Sites:** `src/Lib/Beta.cs:12` (`Beta.Run`)").members,
        work.note_sites("**Sites:** `src/Lib/Beta.cs:12`").members),
-      ({"src/Cobol.Net.Compiler/Binding/DataBinder.cs": ("DataBinder.Bind", "DataBinder.Sync")},
+      ({"src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs": ("DataBinder.Bind", "DataBinder.Sync")},
        {"src/Lib/Beta.cs": ("Beta.Run",)}, {}))
 for doc in (".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
             ".claude/skills/workstream/templates/registrar-brief.md"):

@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1030 - ISO 13.18.44.3 SR5: "The data description entry for data-name-2 shall not
       *> contain an OCCURS clause", so OV's description is refused (COBOL1701). The statement that
-      *> references OV says so instead of announcing a COBOL.NET gap at run time.
+      *> references OV says so instead of announcing a WiseOwl COBOL gap at run time.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1030E.
        ENVIRONMENT DIVISION.

@@ -12,7 +12,7 @@ met by reference to other documents.
 
 | Clause | Subject | Current source of truth |
 |---|---|---|
-| §4.2.3 | Interaction with non-COBOL runtime modules | .NET interop: `COBOLNET_INTERPROGRAM_DESIGN.md`, R48 (STOP RUN under a .NET host) |
+| §4.2.3 | Interaction with non-COBOL runtime modules | .NET interop: `INTERPROGRAM_DESIGN.md`, R48 (STOP RUN under a .NET host) |
 | §4.2.4 | Interaction between COBOL implementations | not yet written as user text (migration chapter) |
 | §4.2.5 | Implementor-defined language elements | `docs/CONFORMANCE.md` §7 (Annex A.1 register, 182/182) + §3 determinations |
 | §4.2.6 | Processor-dependent language elements | `docs/CONFORMANCE.md` §2 (Annex A.3) + §4 documented non-support |
@@ -63,7 +63,7 @@ like any documentation site, nothing to download or install. A version picker sw
   work files' memory limit and location. Written once kb/Work PB3330's engine has landed.
 - *.NET interoperability* (§4.2.3) — calling COBOL from C# and C# from COBOL; the runtime package.
 - *Migrating* (§4.2.4) — from IBM Enterprise COBOL, Micro Focus and GnuCOBOL: what is standard, what is a dialect
-  extension, what CobolSharp rejects and why.
+  extension, what WiseOwl COBOL rejects and why.
 - *Release notes* — per version, derived from the DEVLOG entries between release tags (edited, not dumped).
 
 **Generated** (`docs/manual/reference/`), each by one generator with a drift test:
@@ -93,7 +93,7 @@ without its page is RED. Every citation a generated page prints passes `cite.py 
 
 **The tool ships the ReadyToRun runtime (owner decision 2026-10-07, kb/Work PB2528; DESIGN-test-build-ci §3.16).**
 The `WiseOwl.COBOL` package is the CLI's publish output, and that output already carries
-`ReadyToRun/<rid>/Cobol.Net.Runtime.dll` for every platform of `CobolRuntimeReadyToRunIdentifiers` (`win-x64`,
+`ReadyToRun/<rid>/WiseOwl.Cobol.Runtime.dll` for every platform of `CobolRuntimeReadyToRunIdentifiers` (`win-x64`,
 `linux-x64`), the same images the gates' programs run. The `cobol` command deploys the one for the platform it runs
 on beside every compiled program, and the portable runtime on any other platform. The CLI's publish fails if any
 image is missing (`CobolAssertReadyToRunRuntimePublished`), so the pack PB1613 adds needs no step of its own for

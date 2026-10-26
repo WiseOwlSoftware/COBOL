@@ -3,7 +3,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
 /// A child process that STAYS ALIVE while the test acts on the rest of the machine — the second half of the
@@ -55,7 +55,7 @@ internal sealed class LiveProcess : IDisposable
         if (!read.Wait(ObservationBudget.UnitMs))
             throw new HarnessNonObservationException(
                 $"⛔ HARNESS NON-OBSERVATION — no stdout line from '{_command}' within {ObservationBudget.UnitMs} ms "
-                + "(COBOLNET_RUN_TIMEOUT_MS); this is NOT a value mismatch and NOT a compiler verdict.");
+                + "(WISEOWL_COBOL_RUN_TIMEOUT_MS); this is NOT a value mismatch and NOT a compiler verdict.");
         return read.Result;
     }
 

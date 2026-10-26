@@ -8,7 +8,7 @@
       *>
       *> r3: "The maximum permitted value and minimum permitted value of the exponent is implementor-defined".
       *> For a literal in a STATEMENT the literal is its exact 8.3.3.3.3 rule-5 value carried on the SDIDI in
-      *> every arithmetic mode, so COBOL.NET's determination (CONFORMANCE.md 7, A.1 item 82) is the decimal128
+      *> every arithmetic mode, so WiseOwl COBOL's determination (CONFORMANCE.md 7, A.1 item 82) is the decimal128
       *> range, about 1E-6176 to 9.99E+6144.  1.0E+9999 and 1.0E-9999 are past it - and are the widest a legal
       *> literal can be, since SR3 caps the exponent at four digits.  1.0E+400 is INSIDE that range and compiles
       *> (pb156_float_literal_exact_native pins it); before owner decision D-B it was a hard COBOL1661 under

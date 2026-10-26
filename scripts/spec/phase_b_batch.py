@@ -186,7 +186,7 @@ def part_slug(base: str, index: int, total: int) -> str:
 #: the rest of the corpus put together — and an X-card cites a NIST test number, never an ISO clause. Including
 #: it would triple the scan to add nothing. The NIST `.cs` drivers under `tests/` are still scanned.
 CORPUS = {
-    "source": [("src", "Cobol.Net.*/**/*.cs")],
+    "source": [("src", "WiseOwl.Cobol.*/**/*.cs")],
     "tests": [("tests", "**/*.cs"),
               ("conformance-suite", "**/*.cob"),
               ("tests/characterization", "**/*.cob")],
@@ -206,7 +206,7 @@ SNIP = 300              # characters of one citing line (docs/CONFORMANCE.md row
 #: ALL-CAPS words that are in a subject name but are not a construct to search for. ⚠ This is NOT the
 #: construct→file map CLAUDE.md rule 8 forbids — nothing here names a file, a rule or a subsystem, and adding a
 #: construct never touches it. `COBOL` is the one that has to be here: as a keyword it matches every assembly
-#: (`src/Cobol.Net.*`), every grammar file (`CobolLexer.g4`) and every test, i.e. everything and therefore nothing.
+#: (`src/WiseOwl.Cobol.*`), every grammar file (`CobolLexer.g4`) and every test, i.e. everything and therefore nothing.
 #: ⛔ IT DELIBERATELY DOES NOT HOLD `TO`, `OF`, `WHEN`, `ALL`… Those look like stopwords and are COBOL RESERVED
 #: WORDS carrying a construct's identity: dropping them turns `GO TO statement` into `GO` and `BLANK WHEN ZERO
 #: clause` into `BLANK`+`ZERO`, and the grammar's `goToStatement` / `blankWhenZeroClause` then stop matching

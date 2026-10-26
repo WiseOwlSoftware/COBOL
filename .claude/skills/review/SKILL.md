@@ -26,7 +26,7 @@ C# text is a seam violation, that a fix without an ISO citation is incomplete. R
 python scripts/semgrep/verify.py
 ```
 
-Six architectural invariants from `COBOLNET_DESIGN.md` §1.2 are already mechanized (banned numeric types, persisted
+Six architectural invariants from `DESIGN.md` §1.2 are already mechanized (banned numeric types, persisted
 byte storage, silent TODOs, raw diagnostic literals, backend-neutrality). Anything it catches needs no human
 judgment. Do not spend review effort on what a pattern already covers — and if the review finds a defect class a
 rule COULD catch, add the rule (`scripts/semgrep/invariants.yml`) rather than only reporting the instance.

@@ -8,14 +8,14 @@
 *>---
       *> kb/Work PB1536 Q1 / R43 item 3 - Annex A.1 items 13, 15, 88 and 142
       *> (and the optional item 143) are CONDITIONALLY REQUIRED on support for
-      *> non-COBOL programs and functions, and COBOL.NET provides none:
+      *> non-COBOL programs and functions, and WiseOwl COBOL provides none:
       *> docs/CONFORMANCE.md section 7 records each as "Condition absent.".
       *>   cite.py --check A.1 "Conditionally required: If the associated
       *>     feature or language element is implemented then this element
       *>     is also required." -> OK A.1
       *> THIS PROGRAM IS THE WITNESS that the condition really is absent: a
       *> name that spells a real NON-COBOL module deployed beside every
-      *> COBOL.NET program - the runtime assembly Cobol.Net.Runtime.dll - is
+      *> WiseOwl COBOL program - the runtime assembly WiseOwl.Cobol.Runtime.dll - is
       *> never located, never called and never given an address.
       *>   cite.py --check 14.9.4.4 "If the program being called is not
       *>     a COBOL program, the rules for program-name formation and for
@@ -46,7 +46,7 @@
       *>   Y=7             so the MOVE never stores: Y keeps VALUE 7.
       *> 2002 dir: prototypes, >>TURN, RESUME and ADDRESS OF PROGRAM are 2002.
        IDENTIFICATION DIVISION.
-       FUNCTION-ID. W59HFN AS "Cobol.Net.Runtime" IS PROTOTYPE.
+       FUNCTION-ID. W59HFN AS "WiseOwl.Cobol.Runtime" IS PROTOTYPE.
        DATA DIVISION.
        LINKAGE SECTION.
        01 R PIC 9.
@@ -73,11 +73,11 @@
        END DECLARATIVES.
        MAIN SECTION.
        M-P.
-           CALL "Cobol.Net.Runtime"
+           CALL "WiseOwl.Cobol.Runtime"
                ON EXCEPTION DISPLAY "CALL-NOT-FOUND"
                NOT ON EXCEPTION DISPLAY "CALL-FOUND"
            END-CALL
-           SET PP TO ADDRESS OF PROGRAM "Cobol.Net.Runtime"
+           SET PP TO ADDRESS OF PROGRAM "WiseOwl.Cobol.Runtime"
            IF PP = NULL
                DISPLAY "PP-NULL"
            ELSE

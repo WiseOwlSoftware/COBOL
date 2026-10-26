@@ -1,0 +1,1258 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Xunit;
+using WiseOwl.Cobol.Tests.Shared;
+
+namespace WiseOwl.Cobol.Tests.Conformance;
+
+/// <summary>
+/// The host harness of DESIGN-external-repository §17.1 (kb/Work PB2099): a .NET host compiled against WiseOwl COBOL
+/// modules calls their generated host entries (§4.3), the .NET counterpart of a CALL statement. ISO/IEC 1989:2023
+/// §14.2.3 13) (cite.py OK): "When either the activating or the activated runtime element is other than a COBOL runtime
+/// element, the implementor shall specify the restrictions and mechanisms for all supported language products"; the
+/// entry is that mechanism, and its restriction — a host value is landed only when the landing loses nothing — refuses
+/// a lossy value BEFORE anything is activated.
+/// <para>Each line the host prints is derived from the standard: §14.2.3 9) lands a BY CONTENT argument by "a COMPUTE
+/// statement without the ROUNDED phrase" (cite.py OK), so 100.25 lands exactly and 1.234 into two fraction positions
+/// would lose a digit; §14.2.3 8) (cite.py OK) "operates as if the formal parameter occupies the same storage area as the
+/// argument", so the activated program's stores reach the host's variable and one variable passed twice is one storage;
+/// §14.9.4.4 11) (cite.py OK) makes an omitted OPTIONAL argument's omitted-argument condition true; WORKING-STORAGE keeps
+/// its last-used state across activations in one run unit until a CANCEL (§14.9.5); and a numeric content is decoded
+/// only when the class test NUMERIC (§8.8.4.4.4 3) n), cite.py OK) is true of it.</para>
+/// <para>The non-COBOL element is real: a C# host compiled here with Roslyn against the modules and run as its own
+/// process (<see cref="NonCobolElement"/>).</para>
+/// </summary>
+public sealed class HostEntryTests
+{
+    /// <summary>The programs a host activates: elementary formals of every landing row, BY REFERENCE and BY VALUE, an
+    /// OPTIONAL formal and a RETURNING item; an alias witness; a validity witness whose callee leaves content that is not
+    /// numeric in a numeric formal and in its RETURNING item through REDEFINES views.</summary>
+    private const string Programs = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H1PRG.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 WS-COUNT PIC 9(4) VALUE 0.
+        LINKAGE SECTION.
+        01 LK-AMOUNT PIC S9(7)V99.
+        01 LK-NAME PIC X(10).
+        01 LK-FLAG PIC S9(4) COMP-5.
+        01 LK-NOTE PIC X(8).
+        01 LK-RET PIC S9(9).
+        PROCEDURE DIVISION USING BY REFERENCE LK-AMOUNT LK-NAME
+            BY VALUE LK-FLAG BY REFERENCE OPTIONAL LK-NOTE
+            RETURNING LK-RET.
+        P1.
+            ADD 1 TO WS-COUNT
+            ADD LK-FLAG TO LK-AMOUNT
+            DISPLAY "IN [" LK-NAME "]"
+            MOVE "CHANGED" TO LK-NAME
+            IF LK-NOTE IS OMITTED
+                DISPLAY "NOTE OMITTED"
+            ELSE
+                DISPLAY "NOTE [" LK-NOTE "]"
+            END-IF
+            COMPUTE LK-RET = WS-COUNT * 10
+            GOBACK.
+        END PROGRAM H1PRG.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H1ALIAS.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-A PIC 9(4).
+        01 LK-B PIC 9(4).
+        01 LK-C PIC 9(8).
+        01 LK-I USAGE INDEX.
+        PROCEDURE DIVISION USING LK-A LK-B LK-C LK-I.
+        P1.
+            ADD 1 TO LK-A
+            DISPLAY "B=" LK-B
+            GOBACK.
+        END PROGRAM H1ALIAS.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H1BAD.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-N PIC 9(4).
+        01 LK-NX REDEFINES LK-N PIC X(4).
+        01 LK-T PIC X(3).
+        01 HRET PIC 9(4).
+        01 HRETX REDEFINES HRET PIC X(4).
+        PROCEDURE DIVISION USING LK-N LK-T RETURNING HRET.
+        P1.
+            MOVE "ABCD" TO LK-NX
+            MOVE "XYZ" TO LK-T
+            MOVE "ABC " TO HRETX
+            GOBACK.
+        END PROGRAM H1BAD.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H1WIDE.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-L PIC S9(18).
+        01 LK-W PIC S9(20).
+        01 LK-U PIC 9(4).
+        PROCEDURE DIVISION USING LK-L LK-W BY VALUE LK-U.
+        P1.
+            SUBTRACT 1 FROM LK-L
+            ADD 1 TO LK-W
+            DISPLAY "U=" LK-U
+            GOBACK.
+        END PROGRAM H1WIDE.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H1PTR.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-P USAGE POINTER.
+        PROCEDURE DIVISION USING LK-P.
+        P1.
+            IF LK-P = NULL
+                DISPLAY "P NULL"
+            END-IF
+            GOBACK.
+        END PROGRAM H1PTR.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H1OPT.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-A PIC X(4).
+        01 LK-B PIC X(4).
+        01 LK-P USAGE POINTER.
+        01 LK-Q USAGE POINTER.
+        01 LK-R USAGE POINTER.
+        01 LK-S USAGE POINTER.
+        PROCEDURE DIVISION USING OPTIONAL LK-A LK-B OPTIONAL LK-P LK-Q
+            LK-R OPTIONAL LK-S.
+        P1.
+            IF LK-A IS OMITTED
+                DISPLAY "A OMITTED"
+            ELSE
+                DISPLAY "A [" LK-A "] B [" LK-B "]"
+            END-IF
+            IF LK-P IS OMITTED
+                DISPLAY "P OMITTED"
+            END-IF
+            IF LK-Q = NULL
+                DISPLAY "Q NULL"
+            END-IF
+            IF LK-R = NULL
+                DISPLAY "R NULL"
+            END-IF
+            IF LK-S IS OMITTED
+                DISPLAY "S OMITTED"
+            END-IF
+            GOBACK.
+        END PROGRAM H1OPT.
+        """;
+
+    /// <summary>A function unit: its entry returns the RETURNING item and has no Cancel (CANCEL names programs).</summary>
+    private const string Function = """
+        IDENTIFICATION DIVISION.
+        FUNCTION-ID. H1FN.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-X PIC 9(3).
+        01 LK-R PIC 9(5).
+        PROCEDURE DIVISION USING LK-X RETURNING LK-R.
+        P1.
+            COMPUTE LK-R = LK-X * 2
+            GOBACK.
+        END FUNCTION H1FN.
+        """;
+
+    private const string Host = """
+        using System;
+        using Cobol.H1PROGS;
+        using Cobol.H1FUNC;
+
+        public static class H1HostProgram
+        {
+            public static int Main()
+            {
+                decimal amount = 100.25m; string name = "ALICE"; string? note = null;
+                long r = H1PRG.Call(ref amount, ref name, 5, ref note);
+                Console.WriteLine(FormattableString.Invariant($"1 {amount} [{name}] {r}"));
+                note = "HELLO";
+                r = H1PRG.Call(ref amount, ref name, -5, ref note);
+                Console.WriteLine(FormattableString.Invariant($"2 {amount} [{name}] {r}"));
+                H1PRG.Cancel();
+                r = H1PRG.Call(ref amount, ref name, 0, ref note);
+                Console.WriteLine($"3 {r}");
+                try { decimal bad = 1.234m; H1PRG.Call(ref bad, ref name, 0, ref note); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentOutOfRangeException e) { Console.WriteLine($"LOW {e.ParamName}"); }
+                try { decimal bad = 12345678m; H1PRG.Call(ref bad, ref name, 0, ref note); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentOutOfRangeException e) { Console.WriteLine($"HIGH {e.ParamName}"); }
+                try { string longName = "ABCDEFGHIJK"; H1PRG.Call(ref amount, ref longName, 0, ref note); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentOutOfRangeException e) { Console.WriteLine($"LENGTH {e.ParamName}"); }
+                r = H1PRG.Call(ref amount, ref name, 0, ref note);
+                Console.WriteLine($"4 {r}");
+
+                long a = 4, c = 0, i = 1;
+                H1ALIAS.Call(ref a, ref a, ref c, ref i);
+                Console.WriteLine($"A {a}");
+                try { long b = 0; H1ALIAS.Call(ref a, ref b, ref a, ref i); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentException e) { Console.WriteLine($"ALIAS {e.ParamName}"); }
+                // An index and a PIC 9(4) item are both `ref long` but different descriptions held in different
+                // storages: one variable for both is refused like any two descriptions (NIST IC207A's shape).
+                try { long b = 0; H1ALIAS.Call(ref a, ref b, ref c, ref a); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentException e) { Console.WriteLine($"ALIAS {e.ParamName}"); }
+                // The call's shape is decided before any value is landed (DESIGN-external-repository §4.3): 123456 is
+                // one digit too many for LK-A, yet the call is refused as one variable for two descriptions.
+                try { long big = 123456, b = 0; H1ALIAS.Call(ref big, ref b, ref big, ref i); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentException e) { Console.WriteLine($"FIRST {e.GetType().Name} {e.ParamName}"); }
+
+                long n = 7; string t = "AAA";
+                try { H1BAD.Call(ref n, ref t); Console.WriteLine("DECODED"); }
+                catch (FormatException e) { Console.WriteLine($"BAD {n} [{t}] {e.Message.Contains("'LK_N'")}"); }
+
+                long l = 999999999999999999; Int128 w = Int128.Parse("99999999999999999998");
+                H1WIDE.Call(ref l, ref w, 12);
+                Console.WriteLine($"W {l} {w}");
+                try { long big = 1000000000000000000; H1WIDE.Call(ref big, ref w, 0); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentOutOfRangeException e) { Console.WriteLine($"WIDE {e.ParamName}"); }
+                try { H1WIDE.Call(ref l, ref w, -1); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentOutOfRangeException e) { Console.WriteLine($"SIGN {e.ParamName}"); }
+
+                // A .NET null for a data pointer is the pointer NULL, never a null reference in the program.
+                WiseOwl.Cobol.Runtime.ManagedPointer p = null!;
+                H1PTR.Call(ref p);
+                Console.WriteLine($"PTR {ReferenceEquals(p, WiseOwl.Cobol.Runtime.ManagedPointer.Null)}");
+
+                // One variable for formals of one description, OPTIONAL and not, lands as distinct variables would
+                // (DESIGN-external-repository §4.3): a null one omits each OPTIONAL formal, a non-OPTIONAL data
+                // pointer lands it as NULL, and a non-OPTIONAL text refuses it.
+                string? s = "ABCD"; WiseOwl.Cobol.Runtime.ManagedPointer? q = null;
+                H1OPT.Call(ref s, ref s, ref q, ref q, ref q, ref q);
+                try { s = null; H1OPT.Call(ref s, ref s, ref q, ref q, ref q, ref q); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentNullException e) { Console.WriteLine($"OPTNULL {e.ParamName}"); }
+
+                long x = 21;
+                Console.WriteLine($"FN {H1FN.Call(ref x)}");
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>Programs with GROUP formals and RETURNING items, which a host passes as published record structs
+    /// (DESIGN-external-repository §4.3's group rows): nested groups, fixed tables of leaves and of groups, FILLER, a
+    /// REDEFINES view (no member), COMP-3 and COMP members; national and USAGE BIT members (two bit members share a
+    /// byte, §8.5.1.6.3); a validity witness; an OPTIONAL group; and a function whose RETURNING item is a group.</summary>
+    private const string GroupPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H2REC.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-REC.
+           05 LK-ID PIC 9(4).
+           05 FILLER PIC X(2).
+           05 LK-NAME PIC X(10).
+           05 LK-AMT PIC S9(5)V99 COMP-3.
+           05 LK-SUB.
+              10 LK-X PIC S9(4) COMP.
+              10 LK-Y PIC X(3).
+           05 LK-TAB PIC 9(2) OCCURS 3.
+           05 LK-PAIR OCCURS 2.
+              10 LK-P1 PIC X.
+              10 LK-P2 PIC 9.
+        01 LK-OUT.
+           05 LK-COUNT PIC 9(3).
+           05 LK-TEXT PIC X(5).
+        PROCEDURE DIVISION USING LK-REC RETURNING LK-OUT.
+        P1.
+            DISPLAY "IN " LK-ID " [" LK-NAME "] [" LK-Y "] " LK-TAB(1) LK-TAB(2) LK-TAB(3) " " LK-P1(2) LK-P2(2)
+            ADD 1 TO LK-ID
+            MOVE "BOB" TO LK-NAME
+            SUBTRACT 1 FROM LK-AMT
+            ADD 1 TO LK-TAB(2)
+            MOVE "Z" TO LK-P1(1)
+            MOVE 123 TO LK-COUNT
+            MOVE "DONE" TO LK-TEXT
+            GOBACK.
+        END PROGRAM H2REC.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H2BAD.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-G.
+           05 LK-N PIC 9(4).
+           05 LK-NX REDEFINES LK-N PIC X(4).
+           05 LK-T PIC X(3).
+        PROCEDURE DIVISION USING LK-G.
+        P1.
+            MOVE "ABCD" TO LK-NX
+            MOVE "XYZ" TO LK-T
+            GOBACK.
+        END PROGRAM H2BAD.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H2NB.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-NB.
+           05 LK-N PIC N(3).
+           05 LK-B PIC 1(3) USAGE BIT.
+           05 LK-C PIC 1(2) USAGE BIT.
+           05 LK-D PIC 9(2).
+        PROCEDURE DIVISION USING LK-NB.
+        P1.
+            DISPLAY "NB " LK-B " " LK-C " " LK-D
+            MOVE N"XY" TO LK-N
+            MOVE B"011" TO LK-B
+            MOVE B"10" TO LK-C
+            GOBACK.
+        END PROGRAM H2NB.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H2OPT.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-O.
+           05 LK-O1 PIC X(2).
+        PROCEDURE DIVISION USING BY REFERENCE OPTIONAL LK-O.
+        P1.
+            IF LK-O IS OMITTED
+                DISPLAY "O OMITTED"
+            ELSE
+                DISPLAY "O [" LK-O1 "]"
+                MOVE "ZZ" TO LK-O1
+            END-IF
+            GOBACK.
+        END PROGRAM H2OPT.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H2AS.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-NG GROUP-USAGE NATIONAL.
+           05 LK-NG1 PIC N(2).
+           05 LK-NG2 PIC N(1).
+        01 LK-F.
+           05 LK-F1 USAGE FLOAT-LONG.
+           05 LK-F2 USAGE INDEX.
+           05 LK-F3 PIC X(4) JUSTIFIED RIGHT.
+        PROCEDURE DIVISION USING LK-NG LK-F.
+        P1.
+            MOVE N"QR" TO LK-NG1
+            COMPUTE LK-F1 = LK-F1 * 2
+            DISPLAY "F3 [" LK-F3 "]"
+            GOBACK.
+        END PROGRAM H2AS.
+        """;
+
+    /// <summary>A function whose RETURNING item is a group: its entry returns the published record.</summary>
+    private const string GroupFunction = """
+        IDENTIFICATION DIVISION.
+        FUNCTION-ID. H2FN.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-X PIC 9(3).
+        01 LK-R.
+           05 LK-R1 PIC 9(5).
+           05 LK-R2 PIC X(4).
+        PROCEDURE DIVISION USING LK-X RETURNING LK-R.
+        P1.
+            COMPUTE LK-R1 = LK-X * 2
+            MOVE "FN" TO LK-R2
+            GOBACK.
+        END FUNCTION H2FN.
+        """;
+
+    private const string GroupHost = """
+        using System;
+        using Cobol.H2PROGS;
+        using Cobol.H2FUNC;
+
+        public static class H2HostProgram
+        {
+            public static int Main()
+            {
+                var r = new H2REC.LK_REC_Record { LK_ID = 41, LK_NAME = "ALICE", LK_AMT = -123.45m };
+                r.LK_SUB = new H2REC.LK_REC_Record.LK_SUB_Record { LK_X = -7, LK_Y = "AB" };
+                r.LK_TAB[1] = 9;
+                r.LK_PAIR[1] = new H2REC.LK_REC_Record.LK_PAIR_Record { LK_P1 = "Q", LK_P2 = 5 };
+                var o = H2REC.Call(ref r);
+                Console.WriteLine(FormattableString.Invariant(
+                    $"1 {r.LK_ID} [{r.LK_NAME}] {r.LK_AMT} {r.LK_SUB.LK_X} [{r.LK_SUB.LK_Y}] {string.Join(",", r.LK_TAB)} {r.LK_PAIR[0].LK_P1}{r.LK_PAIR[0].LK_P2} {o.LK_COUNT} [{o.LK_TEXT}]"));
+                try { var bad = r with { LK_AMT = 1.234m }; H2REC.Call(ref bad); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentOutOfRangeException e) { Console.WriteLine($"LOW {e.ParamName} {e.Message.Contains("'LK_AMT'")}"); }
+                try { var bad = r with { LK_TAB = new long[2] }; H2REC.Call(ref bad); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentException e) { Console.WriteLine($"OCC {e.ParamName}"); }
+                try { var bad = r with { LK_NAME = null! }; H2REC.Call(ref bad); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentNullException e) { Console.WriteLine($"NULL {e.ParamName}"); }
+                string image = r.AsImage();
+                string filled = image.Substring(0, 4) + "##" + image.Substring(6);
+                var back = H2REC.LK_REC_Record.FromImage(filled);
+                Console.WriteLine($"RT {back.AsImage() == filled} {back.LK_ID} {image.Substring(4, 2) == "  "}");
+
+                var g = new H2BAD.LK_G_Record { LK_N = 7, LK_T = "AAA" };
+                try { H2BAD.Call(ref g); Console.WriteLine("DECODED"); }
+                catch (FormatException e) { Console.WriteLine($"BAD {g.LK_N} [{g.LK_T}] {e.Message.Contains("'LK_G.LK_N'")}"); }
+
+                var nb = new H2NB.LK_NB_Record { LK_N = "ABC", LK_B = "101", LK_C = "01", LK_D = 12 };
+                H2NB.Call(ref nb);
+                Console.WriteLine($"NB2 [{nb.LK_N}] {nb.LK_B} {nb.LK_C} {nb.LK_D}");
+
+                H2OPT.LK_O_Record? opt = null;
+                H2OPT.Call(ref opt);
+                opt = new H2OPT.LK_O_Record { LK_O1 = "AB" };
+                H2OPT.Call(ref opt);
+                Console.WriteLine($"O2 [{opt.Value.LK_O1}]");
+
+                var ng = new H2AS.LK_NG_Record { LK_NG1 = "AB", LK_NG2 = "C" };
+                var fl = new H2AS.LK_F_Record { LK_F1 = 1.5, LK_F2 = 4, LK_F3 = "XY" };
+                H2AS.Call(ref ng, ref fl);
+                Console.WriteLine(FormattableString.Invariant($"AS [{ng.LK_NG1}{ng.LK_NG2}] {fl.LK_F1} {fl.LK_F2} [{fl.LK_F3}]"));
+
+                long x = 21;
+                var fr = H2FN.Call(ref x);
+                Console.WriteLine($"FN {fr.LK_R1} [{fr.LK_R2}]");
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>A host passes and receives GROUPS as published record structs (DESIGN-external-repository §4.3): each
+    /// member lands exactly into the record image at the place the activated program's description gives it, or the
+    /// call is refused with the member named before anything is activated; the activated program's stores come back
+    /// through the record (§14.2.3 8), cite.py OK); FILLER content round-trips through <c>FromImage</c>/<c>AsImage</c>;
+    /// a record any numeric member of which fails the class test NUMERIC (§8.8.4.4.4 3) n), cite.py OK) is not decoded,
+    /// and the host's variable is unchanged.</summary>
+    [Fact]
+    public void AHost_PassesGroupsAsPublishedRecords_LandingEachMemberExactlyAndDecodingByTheValidityRule()
+    {
+        string dir = ScratchDirectory.Create("h2host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H2PROGS", GroupPrograms);
+            NonCobolElement.CompileCobol(dir, "H2FUNC", GroupFunction);
+            NonCobolElement.CompileCSharp(dir, "H2HOST", GroupHost, "H2PROGS", "H2PROGS", "H2FUNC");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H2HOST.dll"), dir);
+            Assert.Equal(
+                "IN 0041 [ALICE     ] [AB ] 000900 Q5\n" +
+                "1 42 [BOB       ] -124.45 -7 [AB ] 0,10,0 Z0 123 [DONE ]\n" +
+                "LOW LK_REC True\n" +
+                "OCC LK_REC\n" +
+                "NULL LK_REC\n" +
+                "RT True 42 True\n" +
+                "BAD 7 [AAA] True\n" +
+                "NB 101 01 12\n" +
+                "NB2 [XY ] 011 10 12\n" +
+                "O OMITTED\n" +
+                "O [AB]\n" +
+                "O2 [ZZ]\n" +
+                "F3 [  XY]\n" +
+                "AS [QRC] 3 4 [  XY]\n" +
+                "FN 42 [FN  ]", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>Programs whose group formals hold OCCURS DEPENDING ON tables: one counted by an item of the record (in a
+    /// subordinate group, so another record struct presents it), one counted by an item outside the record, and one
+    /// whose count the activated program sets past the table's bounds.</summary>
+    private const string OdoPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H3ODO.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-HREC.
+           05 LK-HDR.
+              10 LK-CNT PIC 9(2).
+           05 LK-NAME PIC X(3).
+           05 LK-ITEM OCCURS 1 TO 4 DEPENDING ON LK-CNT.
+              10 LK-CODE PIC X(2).
+              10 LK-QTY PIC 9(3).
+        01 LK-N PIC 9.
+        01 LK-EXT.
+           05 LK-E PIC X(2) OCCURS 0 TO 3 DEPENDING ON LK-N.
+        PROCEDURE DIVISION USING LK-HREC LK-N LK-EXT.
+        P1.
+            DISPLAY "ODO " LK-CNT " " LK-CODE(1) LK-QTY(1) " " LK-CODE(LK-CNT) LK-QTY(LK-CNT)
+            ADD 1 TO LK-CNT
+            MOVE "NW" TO LK-CODE(LK-CNT)
+            MOVE 7 TO LK-QTY(LK-CNT)
+            MOVE "Z" TO LK-NAME
+            DISPLAY "EXT " LK-N " [" LK-EXT "]"
+            MOVE "QQ" TO LK-E(1)
+            GOBACK.
+        END PROGRAM H3ODO.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H3BIG.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-B.
+           05 LK-BC PIC 9.
+           05 LK-BT PIC X OCCURS 0 TO 2 DEPENDING ON LK-BC.
+        PROCEDURE DIVISION USING LK-B.
+        P1.
+            MOVE 9 TO LK-BC
+            GOBACK.
+        END PROGRAM H3BIG.
+        """;
+
+    private const string OdoHost = """
+        using System;
+        using Cobol.H3PROGS;
+
+        public static class H3HostProgram
+        {
+            public static int Main()
+            {
+                var h = new H3ODO.LK_HREC_Record();
+                Console.WriteLine($"NEW {h.LK_HDR.LK_CNT} {h.LK_ITEM.Length} {new H3ODO.LK_EXT_Record().LK_E.Length}");
+                h.LK_HDR = h.LK_HDR with { LK_CNT = 2 };
+                h.LK_ITEM = [new() { LK_CODE = "AA", LK_QTY = 1 }, new() { LK_CODE = "BB", LK_QTY = 2 }];
+                h.LK_NAME = "ABC";
+                long n = 2;
+                var e = new H3ODO.LK_EXT_Record();
+                e.LK_E[0] = "X1";
+                e.LK_E[1] = "X2";
+                H3ODO.Call(ref h, ref n, ref e);
+                Console.WriteLine($"OUT {h.LK_HDR.LK_CNT} {h.LK_ITEM.Length} {h.LK_ITEM[2].LK_CODE}{h.LK_ITEM[2].LK_QTY} [{h.LK_NAME}] [{string.Join(",", e.LK_E)}]");
+                try { var bad = h with { LK_ITEM = new H3ODO.LK_HREC_Record.LK_ITEM_Record[2] }; H3ODO.Call(ref bad, ref n, ref e); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentException x) { Console.WriteLine($"OCC {x.ParamName} {x.Message.Contains("has 3 entries")}"); }
+                try { var bad = h with { LK_HDR = h.LK_HDR with { LK_CNT = 5 } }; H3ODO.Call(ref bad, ref n, ref e); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentException x) { Console.WriteLine($"BOUNDS {x.ParamName} {x.Message.Contains("1 to 4")}"); }
+                string image = h.AsImage();
+                var back = H3ODO.LK_HREC_Record.FromImage(image);
+                Console.WriteLine($"RT {back.AsImage() == image} {back.LK_ITEM.Length} {image.Length}");
+
+                var b = new H3BIG.LK_B_Record();
+                try { H3BIG.Call(ref b); Console.WriteLine("DECODED"); }
+                catch (FormatException x) { Console.WriteLine($"ODOBAD {b.LK_BC} {b.LK_BT.Length} {x.Message.Contains("'LK_B.LK_BT'")}"); }
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>A host passes groups holding OCCURS DEPENDING ON tables (DESIGN-external-repository §4.3): a table counted
+    /// by an item of the record is an array of the DEPENDING ON value's entries, "the current number of occurrences"
+    /// (ISO §13.18.38.4 7), cite.py OK), so an array of another length, or a count outside the table's bounds, is refused
+    /// before anything is activated, and the write-back decodes as many entries as the activated program's count says;
+    /// a table counted by an item outside the record is its whole area; a count the activated program left outside the
+    /// bounds leaves the host's variable unchanged.</summary>
+    [Fact]
+    public void AHost_PassesOccursDependingTables_AsArraysOfTheirCurrentOccurrences()
+    {
+        string dir = ScratchDirectory.Create("h3host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H3PROGS", OdoPrograms);
+            NonCobolElement.CompileCSharp(dir, "H3HOST", OdoHost, "H3PROGS", "H3PROGS");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H3HOST.dll"), dir);
+            Assert.Equal(
+                "NEW 1 1 3\n" +
+                "ODO 02 AA001 BB002\n" +
+                "EXT 2 [X1X2]\n" +
+                "OUT 3 3 NW7 [Z  ] [QQ,X2,  ]\n" +
+                "OCC LK_HREC True\n" +
+                "BOUNDS LK_HREC True\n" +
+                "RT True 3 25\n" +
+                "ODOBAD 0 0 True", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>Programs whose group formal and RETURNING item are VARIABLE-LENGTH groups (ISO §8.5.1.12): a dynamic-length
+    /// item with a LIMIT, a dynamic-capacity table of numeric leaves with a minimum capacity, a dynamic-capacity table whose
+    /// elements hold a dynamic-length item (a table of variable-length elements), and a fixed table whose occurrences hold
+    /// one each; and a group whose OCCURS DEPENDING ON table follows a dynamic-length item, as its trailing storage. The
+    /// activated program grows both dynamic-capacity tables by storing past their capacity, stores past the LIMITs and
+    /// raises the DEPENDING ON count.</summary>
+    private const string VarPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H5VAR.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-V.
+           05 LK-ID PIC 9(3).
+           05 LK-NAME PIC X DYNAMIC LENGTH LIMIT IS 10.
+           05 LK-NUMS PIC 9(2) OCCURS DYNAMIC CAPACITY IN LK-NC FROM 1.
+           05 LK-ROWS OCCURS DYNAMIC CAPACITY IN LK-RC.
+              10 LK-RK PIC X(2).
+              10 LK-RN PIC X DYNAMIC LENGTH.
+           05 LK-PAIR OCCURS 2.
+              10 LK-PN PIC 9.
+              10 LK-PT PIC X DYNAMIC LENGTH LIMIT IS 4.
+           05 LK-TAG PIC X(2).
+        PROCEDURE DIVISION USING LK-V.
+        P1.
+            DISPLAY "IN " LK-ID " [" LK-NAME "] " LK-NUMS(1) LK-NUMS(2) " " LK-RK(1) "[" LK-RN(1) "] "
+                LK-PN(1) "[" LK-PT(1) "]" LK-PN(2) "[" LK-PT(2) "] " LK-TAG
+            ADD 1 TO LK-ID
+            MOVE "LONGER NAMES" TO LK-NAME
+            MOVE 33 TO LK-NUMS(3)
+            MOVE "R2" TO LK-RK(2)
+            MOVE "second" TO LK-RN(2)
+            MOVE "abcdef" TO LK-PT(1)
+            MOVE "Z" TO LK-TAG
+            GOBACK.
+        END PROGRAM H5VAR.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H5RET.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 SR.
+           05 SP PIC X(3).
+           05 SDYN PIC X DYNAMIC LENGTH.
+           05 ST PIC X(2) OCCURS DYNAMIC CAPACITY IN SC.
+        PROCEDURE DIVISION RETURNING SR.
+        P1.
+            MOVE "RET" TO SP
+            MOVE "dynamic" TO SDYN
+            MOVE "t1" TO ST(1)
+            MOVE "t2" TO ST(2)
+            GOBACK.
+        END PROGRAM H5RET.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H5ODO.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-O.
+           05 LK-OC PIC 9.
+           05 LK-OD PIC X DYNAMIC LENGTH.
+           05 LK-OT PIC X(2) OCCURS 1 TO 3 DEPENDING ON LK-OC.
+        PROCEDURE DIVISION USING LK-O.
+        P1.
+            DISPLAY "ODO " LK-OC " [" LK-OD "] " LK-OT(1) LK-OT(2)
+            MOVE 3 TO LK-OC
+            MOVE "C3" TO LK-OT(3)
+            MOVE "more" TO LK-OD
+            GOBACK.
+        END PROGRAM H5ODO.
+        """;
+
+    private const string VarHost = """
+        using System;
+        using Cobol.H5PROGS;
+
+        public static class H5HostProgram
+        {
+            private static void Refused(string what, H5VAR.LK_V_Record v)
+            {
+                try { H5VAR.Call(ref v); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentException x) { Console.WriteLine($"{what} {x.ParamName} {x.GetType().Name}"); }
+            }
+
+            public static int Main()
+            {
+                var v = new H5VAR.LK_V_Record();
+                Console.WriteLine($"NEW {v.LK_NUMS.Length} {v.LK_ROWS.Length} [{v.LK_NAME}] {v.LK_PAIR.Length}");
+                v.LK_ID = 7;
+                v.LK_NAME = "Ann";
+                v.LK_NUMS = [11, 22];
+                v.LK_ROWS = [new() { LK_RK = "AA", LK_RN = "note" }];
+                v.LK_PAIR[0] = new() { LK_PN = 1, LK_PT = "p" };
+                v.LK_PAIR[1] = new() { LK_PN = 2, LK_PT = "qq" };
+                v.LK_TAG = "XY";
+                Refused("NAME", v with { LK_NAME = "ELEVEN CHARS" });
+                Refused("MIN", v with { LK_NUMS = [] });
+                Refused("NULL", v with { LK_ROWS = null! });
+                var pairs = (H5VAR.LK_V_Record.LK_PAIR_Record[])v.LK_PAIR.Clone();
+                pairs[1] = pairs[1] with { LK_PT = "five5" };
+                Refused("PAIR", v with { LK_PAIR = pairs });
+                H5VAR.Call(ref v);
+                Console.WriteLine($"OUT {v.LK_ID} [{v.LK_NAME}] {string.Join(",", v.LK_NUMS)} "
+                    + $"{string.Join(",", Array.ConvertAll(v.LK_ROWS, r => r.LK_RK + "/" + r.LK_RN))} "
+                    + $"{string.Join(",", Array.ConvertAll(v.LK_PAIR, p => p.LK_PN + "/" + p.LK_PT))} [{v.LK_TAG}]");
+                var r = H5RET.Call();
+                Console.WriteLine($"RET [{r.SP}] [{r.SDYN}] {string.Join(",", r.ST)}");
+                var o = new H5ODO.LK_O_Record();
+                o.LK_OC = 2;
+                o.LK_OD = "d";
+                o.LK_OT = ["A1", "B2"];
+                H5ODO.Call(ref o);
+                Console.WriteLine($"ODOOUT {o.LK_OC} [{o.LK_OD}] {string.Join(",", o.LK_OT)}");
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>A host passes and receives VARIABLE-LENGTH groups (ISO §8.5.1.12; DESIGN-external-repository §4.3): the
+    /// published record presents a dynamic-length item as a string and a dynamic-capacity table as an array of its current
+    /// capacity, and crosses as the CALL lane's variable-length carrier of its description. Expected values, derived: a
+    /// dynamic-length item stored past its LIMIT is "truncated on the right as necessary" (§8.5.1.10.4), so "LONGER NAMES"
+    /// returns as its first 10 characters and "abcdef" as its first 4; a store past a dynamic-capacity table's capacity
+    /// creates the occurrence (§8.5.1.9.3), so the tables return with 3 and 2 entries; a landing that would lose content —
+    /// a string past the LIMIT, an array below the minimum capacity ("Integer-4 is the minimum capacity of the table",
+    /// §13.18.38.4 16)), a null array — is refused before anything is activated.</summary>
+    [Fact]
+    public void AHost_PassesVariableLengthGroups_AsTheCallLanesVariableLengthCarrier()
+    {
+        string dir = ScratchDirectory.Create("h5host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H5PROGS", VarPrograms);
+            NonCobolElement.CompileCSharp(dir, "H5HOST", VarHost, "H5PROGS", "H5PROGS");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H5HOST.dll"), dir);
+            Assert.Equal(
+                "NEW 1 0 [] 2\n" +
+                "NAME LK_V ArgumentOutOfRangeException\n" +
+                "MIN LK_V ArgumentException\n" +
+                "NULL LK_V ArgumentNullException\n" +
+                "PAIR LK_V ArgumentOutOfRangeException\n" +
+                "IN 007 [Ann] 1122 AA[note] 1[p]2[qq] XY\n" +
+                "OUT 8 [LONGER NAM] 11,22,33 AA/note,R2/second 1/abcd,2/qq [Z ]\n" +
+                "RET [RET] [dynamic] t1,t2\n" +
+                "ODO 2 [d] A1B2\n" +
+                "ODOOUT 3 [more] A1,B2,C3", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>A program whose group formal is a VARIABLE-LENGTH group holding a dynamic-length NATIONAL item and a
+    /// dynamic-capacity table of national elements (kb/Work PB3441).</summary>
+    private const string NationalVarPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H7NAT.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-N.
+           05 LK-ID PIC 9(2).
+           05 LK-NM PIC N DYNAMIC LENGTH LIMIT IS 6.
+           05 LK-NT PIC N(2) OCCURS DYNAMIC CAPACITY IN LK-NC FROM 1.
+        PROCEDURE DIVISION USING LK-N.
+        P1.
+            DISPLAY "IN " LK-ID " " FUNCTION BYTE-LENGTH (LK-NM) " " FUNCTION BYTE-LENGTH (LK-N)
+            IF LK-NM = NX"4E2D6587" DISPLAY "NM-OK" ELSE DISPLAY "NM-BAD" END-IF
+            IF LK-NT(2) = NX"00640065" DISPLAY "NT2-OK" ELSE DISPLAY "NT2-BAD" END-IF
+            MOVE NX"00780079007A" TO LK-NM
+            MOVE NX"006C006D" TO LK-NT(3)
+            GOBACK.
+        END PROGRAM H7NAT.
+        """;
+
+    private const string NationalVarHost = """
+        using System;
+        using Cobol.H7PROGS;
+
+        public static class H7HostProgram
+        {
+            public static int Main()
+            {
+                var n = new H7NAT.LK_N_Record();
+                n.LK_ID = 5;
+                n.LK_NM = "\u4E2D\u6587";
+                n.LK_NT = ["ab", "de"];
+                H7NAT.Call(ref n);
+                Console.WriteLine($"OUT {n.LK_ID} [{n.LK_NM}] {string.Join(",", n.LK_NT)}");
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>A host passes a VARIABLE-LENGTH group holding a dynamic-length NATIONAL item and a table of national
+    /// elements as the CALL lane's carrier, whose components are images (CONFORMANCE.md A.1 items 57 and 63; kb/Work
+    /// PB3441): the host's text lands as the item's UTF-16BE bytes and comes back decoded. Expected values, derived: the
+    /// item holds two positions, so four bytes, and the group two (LK-ID) + four + two elements of four = 14
+    /// (§15.14.4 rule 6); the host's U+4E2D U+6587 and the table's "de" (U+0064 U+0065) are what the activated program
+    /// compares; it stores three positions (xyz) and a THIRD element ("lm"), which creates the occurrence (§8.5.1.9.3).</summary>
+    [Fact]
+    public void AHost_PassesANationalVariableLengthGroup_AsItsUtf16Image()
+    {
+        string dir = ScratchDirectory.Create("h7host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H7PROGS", NationalVarPrograms);
+            NonCobolElement.CompileCSharp(dir, "H7HOST", NationalVarHost, "H7PROGS", "H7PROGS");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H7HOST.dll"), dir);
+            Assert.Equal(
+                "IN 05 4 14\n" +
+                "NM-OK\n" +
+                "NT2-OK\n" +
+                "OUT 5 [xyz] ab,de,lm", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>A program whose group formal is a strongly-typed group holding a data pointer, a program pointer and a
+    /// table: the first call sets both pointers, the second reads storage through the data pointer the host passed back.</summary>
+    private const string SlotPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H4PTR.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 T TYPEDEF STRONG.
+           05 TA PIC X(3).
+           05 TP USAGE POINTER.
+           05 TQ USAGE PROGRAM-POINTER.
+           05 TN PIC 9(2) OCCURS 2.
+        01 WS-X PIC X(4) VALUE "DATA".
+        LINKAGE SECTION.
+        01 LK-G TYPE T.
+        01 LK-X PIC X(4) BASED.
+        PROCEDURE DIVISION USING LK-G.
+        P1.
+            IF TP OF LK-G = NULL
+                DISPLAY "TP NULL " TA OF LK-G " " TN OF LK-G (2)
+                SET TP OF LK-G TO ADDRESS OF WS-X
+                SET TQ OF LK-G TO ENTRY "H4PTR"
+            ELSE
+                SET ADDRESS OF LK-X TO TP OF LK-G
+                DISPLAY "TP " LK-X
+            END-IF
+            MOVE "XYZ" TO TA OF LK-G
+            ADD 1 TO TN OF LK-G (2)
+            GOBACK.
+        END PROGRAM H4PTR.
+        """;
+
+    private const string SlotHost = """
+        using System;
+        using WiseOwl.Cobol.Runtime;
+        using Cobol.H4PROGS;
+
+        public static class H4HostProgram
+        {
+            public static int Main()
+            {
+                var g = new H4PTR.LK_G_Record { TA = "ABC" };
+                g.TN[1] = 4;
+                H4PTR.Call(ref g);
+                Console.WriteLine($"1 [{g.TA}] {g.TN[1]} {g.TP is { IsNull: false }} {!g.TQ.IsNull}");
+                H4PTR.Call(ref g);
+                Console.WriteLine($"2 [{g.TA}] {g.TN[1]}");
+                var image = H4PTR.LK_G_Record.FromImage(g.AsImage());
+                Console.WriteLine($"IMG [{image.TA}] {image.TP is null || image.TP.IsNull}");
+                try { var bad = g with { TN = new long[1] }; H4PTR.Call(ref bad); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentException x) { Console.WriteLine($"OCC {x.ParamName}"); }
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>A host passes a strongly-typed group whose pointer members ride managed slots (DESIGN-external-repository
+    /// §4.3's last host-type row): the record crosses as the CALL lane's cell area, so the activated program's formal
+    /// occupies that storage (ISO §14.2.3 8), cite.py OK) — its references as well as its characters — and the pointers
+    /// it sets come back to the host, which can pass them in again.</summary>
+    [Fact]
+    public void AHost_PassesAStrongGroupWithPointers_AsTheCellAreaOfItsReferences()
+    {
+        string dir = ScratchDirectory.Create("h4host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H4PROGS", SlotPrograms);
+            NonCobolElement.CompileCSharp(dir, "H4HOST", SlotHost, "H4PROGS", "H4PROGS");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H4HOST.dll"), dir);
+            Assert.Equal(
+                "TP NULL ABC 04\n" +
+                "1 [XYZ] 5 True True\n" +
+                "TP DATA\n" +
+                "2 [XYZ] 6\n" +
+                "IMG [XYZ] True\n" +
+                "OCC LK_G", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>A strongly-typed VARIABLE-LENGTH group holding a data pointer, a dynamic-length item, a dynamic-capacity table
+    /// whose elements hold a pointer and a number, as an argument (H6VP: the first call sets the pointers and grows the
+    /// table, the second reads them) and as a RETURNING item (H6RET).</summary>
+    private const string AreaPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H6VP.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 TG IS TYPEDEF STRONG.
+           05 TA PIC X DYNAMIC LENGTH LIMIT IS 10.
+           05 TP USAGE POINTER.
+           05 TT OCCURS DYNAMIC CAPACITY IN TC FROM 1 TO 5 INITIALIZED.
+              10 TT-X PIC X(2).
+              10 TT-N PIC 9(2).
+              10 TT-P USAGE POINTER.
+           05 TN PIC 9(2).
+        01 WS-X PIC X(4) VALUE "DATA".
+        01 WS-W PIC X(4) VALUE "WWWW".
+        01 K PIC Z.
+        LINKAGE SECTION.
+        01 LK-G TYPE TG.
+        01 B PIC X(4) BASED.
+        PROCEDURE DIVISION USING LK-G.
+        P1.
+            MOVE TC OF LK-G TO K
+            IF TP OF LK-G = NULL
+                DISPLAY "FIRST [" TA OF LK-G "] " TN OF LK-G " " K " "
+                    TT-X OF LK-G (1) TT-N OF LK-G (1) " " TT-X OF LK-G (2) TT-N OF LK-G (2)
+                SET TP OF LK-G TO ADDRESS OF WS-X
+                SET TT-P OF LK-G (2) TO ADDRESS OF WS-W
+                MOVE "longer than ten" TO TA OF LK-G
+                MOVE "cc" TO TT-X OF LK-G (3)
+            ELSE
+                SET ADDRESS OF B TO TP OF LK-G
+                DISPLAY "TP " B
+                SET ADDRESS OF B TO TT-P OF LK-G (2)
+                DISPLAY "TT2 " B " [" TT-X OF LK-G (3) "] " TT-N OF LK-G (3)
+            END-IF
+            ADD 1 TO TN OF LK-G
+            GOBACK.
+        END PROGRAM H6VP.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H6RET.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 TG IS TYPEDEF STRONG.
+           05 TA PIC X DYNAMIC LENGTH LIMIT IS 10.
+           05 TP USAGE POINTER.
+           05 TT OCCURS DYNAMIC CAPACITY IN TC FROM 1 TO 5 INITIALIZED.
+              10 TT-X PIC X(2).
+              10 TT-N PIC 9(2).
+              10 TT-P USAGE POINTER.
+           05 TN PIC 9(2).
+        01 WS-R PIC X(4) VALUE "RRRR".
+        LINKAGE SECTION.
+        01 LK-R TYPE TG.
+        PROCEDURE DIVISION RETURNING LK-R.
+        P1.
+            MOVE "ret" TO TA OF LK-R
+            SET TP OF LK-R TO ADDRESS OF WS-R
+            MOVE "r1" TO TT-X OF LK-R (1)
+            MOVE 41 TO TT-N OF LK-R (1)
+            MOVE 9 TO TN OF LK-R
+            GOBACK.
+        END PROGRAM H6RET.
+        """;
+
+    private const string AreaHost = """
+        using System;
+        using WiseOwl.Cobol.Runtime;
+        using Cobol.H6PROGS;
+
+        public static class H6HostProgram
+        {
+            private static string Show(H6VP.LK_G_Record g) =>
+                $"[{g.TA}] {g.TN} {g.TP is { IsNull: false }} " + string.Join(",", Array.ConvertAll(g.TT,
+                    t => $"{t.TT_X}/{t.TT_N}/{t.TT_P is { IsNull: false }}"));
+
+            public static int Main()
+            {
+                var g = new H6VP.LK_G_Record { TA = "Ann", TN = 7 };
+                g.TT = [new() { TT_X = "aa", TT_N = 11 }, new() { TT_X = "bb", TT_N = 22 }];
+                var overlong = g with { TA = "ELEVEN CHARS" };
+                try { H6VP.Call(ref overlong); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentOutOfRangeException x) { Console.WriteLine($"TA {x.ParamName}"); }
+                try { var bad = g with { TT = [] }; H6VP.Call(ref bad); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentException x) { Console.WriteLine($"MIN {x.ParamName} {x.GetType().Name}"); }
+                H6VP.Call(ref g);
+                Console.WriteLine("OUT1 " + Show(g));
+                H6VP.Call(ref g);
+                Console.WriteLine("OUT2 " + Show(g));
+                var r = H6RET.Call();
+                Console.WriteLine($"RET [{r.TA}] {r.TN} {r.TP is { IsNull: false }} " + string.Join(",", Array.ConvertAll(r.TT,
+                    t => $"{t.TT_X}/{t.TT_N}/{t.TT_P is { IsNull: false }}")));
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>A host passes and receives a strongly-typed group that holds BOTH a variable-length component and references
+    /// (ISO §14.2.3 13): the entry restriction PB3273 once stated). The published record crosses as the CALL lane's cell area
+    /// (the references in their managed slots beside the dynamic-length item and the dynamic-capacity table's element
+    /// cells), and the activated program's formal is laid over it (§14.2.3 8)), so its stores are the host's and the pointers
+    /// it sets come back and can be passed in again. Expected values, derived: a dynamic-length item stored past its LIMIT
+    /// is "truncated on the right as necessary" (§8.5.1.10.4), so "longer than ten" returns as its first 10 characters; a
+    /// store into occurrence 3 of a table of capacity 2 creates the occurrence (§8.5.1.9.3), whose members the store does
+    /// not name are first initialized under the INITIALIZED phrase (§8.5.1.9.5: "as though they had been the subject of a
+    /// statement of the form INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT": TT-N zero, TT-P null), so the table
+    /// returns with 3 entries and TT-N(3) is 00 — which holds only when the host's table is created by the DESCRIPTION'S
+    /// factory (the host's area is built from it), never by a space-filling one; ADD 1 raises TN each call (7, 8, 9); a landing that would lose content — a string past the LIMIT, an
+    /// array below the minimum capacity ("Integer-4 is the minimum capacity of the table", §13.18.38.4 16)) — is refused
+    /// before anything is activated. The RETURNING item is an area the activated program fills (§14.2.3 6) NOTE 1).</summary>
+    [Fact]
+    public void AHost_PassesAStrongVariableLengthGroupWithReferences_AsTheCellAreaOfItsComponentsAndReferences()
+    {
+        string dir = ScratchDirectory.Create("h6host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H6PROGS", AreaPrograms);
+            NonCobolElement.CompileCSharp(dir, "H6HOST", AreaHost, "H6PROGS", "H6PROGS");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H6HOST.dll"), dir);
+            Assert.Equal(
+                "TA LK_G\n" +
+                "MIN LK_G ArgumentException\n" +
+                "FIRST [Ann] 07 2 aa11 bb22\n" +
+                "OUT1 [longer tha] 8 True aa/11/False,bb/22/True,cc/0/False\n" +
+                "TP DATA\n" +
+                "TT2 WWWW [cc] 00\n" +
+                "OUT2 [longer tha] 9 True aa/11/False,bb/22/True,cc/0/False\n" +
+                "RET [ret] 9 True r1/41/False", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>The nested arms of the cell area (kb/Work PB3273): a subordinate group holding its own dynamic-length item
+    /// and pointer (its components numbered in the record's scope), a dynamic-capacity table under INITIALIZED whose
+    /// elements hold a nested dynamic-capacity table of pointers (each element cell a scope of its own, one level down),
+    /// as an argument (H7NEST: the first call sets the pointers and grows both tables, the second reads them back), and a
+    /// RETURNING group with a fixed table of variable-length elements holding pointers (H7RET).</summary>
+    private const string NestedAreaPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H7NEST.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 TG IS TYPEDEF STRONG.
+           05 TS.
+              10 TS-D PIC X DYNAMIC LENGTH LIMIT IS 4.
+              10 TS-P USAGE POINTER.
+              10 TS-N PIC 9(3).
+           05 TT OCCURS DYNAMIC CAPACITY IN TC FROM 2 TO 5 INITIALIZED.
+              10 TT-B PIC 9(2) VALUE 77.
+              10 TT-T OCCURS DYNAMIC CAPACITY IN TTC FROM 1 TO 3.
+                 15 TT-TN PIC 9 VALUE 5.
+                 15 TT-TP USAGE POINTER.
+        01 WS-X PIC X(4) VALUE "DATA".
+        01 WS-Y PIC X(4) VALUE "YYYY".
+        LINKAGE SECTION.
+        01 LK-G TYPE TG.
+        01 B PIC X(4) BASED.
+        PROCEDURE DIVISION USING LK-G.
+        P1.
+            IF TS-P OF LK-G = NULL
+                DISPLAY "FIRST [" TS-D OF LK-G "] " TS-N OF LK-G " " TT-TN OF LK-G (2, 1)
+                MOVE "nested" TO TS-D OF LK-G
+                SET TS-P OF LK-G TO ADDRESS OF WS-X
+                MOVE 7 TO TT-TN OF LK-G (3, 2)
+                SET TT-TP OF LK-G (3, 2) TO ADDRESS OF WS-Y
+            ELSE
+                SET ADDRESS OF B TO TS-P OF LK-G
+                DISPLAY "TS-P " B
+                SET ADDRESS OF B TO TT-TP OF LK-G (3, 2)
+                DISPLAY "TT-TP " B
+            END-IF
+            ADD 1 TO TS-N OF LK-G
+            GOBACK.
+        END PROGRAM H7NEST.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H7RET.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 TR IS TYPEDEF STRONG.
+           05 TA PIC X DYNAMIC LENGTH LIMIT IS 10.
+           05 TP USAGE POINTER.
+           05 TF OCCURS 2 TIMES.
+              10 TF-D PIC X DYNAMIC LENGTH LIMIT IS 3.
+              10 TF-P USAGE POINTER.
+        01 WS-R PIC X(4) VALUE "RRRR".
+        LINKAGE SECTION.
+        01 LK-A PIC 9(4).
+        01 LK-R TYPE TR.
+        PROCEDURE DIVISION USING LK-A RETURNING LK-R.
+        P1.
+            MOVE "abcd" TO TF-D OF LK-R (2)
+            SET TF-P OF LK-R (2) TO ADDRESS OF WS-R
+            MOVE "z" TO TA OF LK-R
+            ADD 1 TO LK-A
+            GOBACK.
+        END PROGRAM H7RET.
+        """;
+
+    private const string NestedAreaHost = """
+        using System;
+        using WiseOwl.Cobol.Runtime;
+        using Cobol.H7PROGS;
+
+        public static class H7HostProgram
+        {
+            private static string Show(H7NEST.LK_G_Record g) =>
+                $"TS {g.TS.TS_D}/{g.TS.TS_P is { IsNull: false }}/{g.TS.TS_N} TT " + string.Join(",", Array.ConvertAll(g.TT,
+                    t => $"{t.TT_B}:" + string.Join(";", Array.ConvertAll(t.TT_T, u => $"{u.TT_TN}/{u.TT_TP is { IsNull: false }}"))));
+
+            public static int Main()
+            {
+                var g = new H7NEST.LK_G_Record { TS = new() { TS_D = "s", TS_N = 3 } };
+                g.TT = [new() { TT_B = 1, TT_T = [new() { TT_TN = 1 }] }, new() { TT_B = 2, TT_T = [new() { TT_TN = 2 }] }];
+                H7NEST.Call(ref g);
+                Console.WriteLine("OUT1 " + Show(g));
+                H7NEST.Call(ref g);
+                Console.WriteLine("OUT2 " + Show(g));
+                long a = 4;
+                var r = H7RET.Call(ref a);
+                Console.WriteLine($"RET {a} [{r.TA}] {r.TP is { IsNull: false }} " + string.Join(",", Array.ConvertAll(r.TF,
+                    t => $"{t.TF_D}/{t.TF_P is { IsNull: false }}")));
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>The cell area's nested arms round-trip (kb/Work PB3273): a subordinate group's dynamic-length item and
+    /// pointer, and an element cell's nested dynamic-capacity table of pointers, cross into the activated program's formal
+    /// laid over the area (ISO §14.2.3 8)) and come back. Expected values, derived: "nested" stored into a LIMIT 4 item
+    /// returns as "nest" (§8.5.1.10.4, "truncated on the right as necessary"); the store into TT-TN (3, 2) creates
+    /// occurrence 3 of TT (§8.5.1.9.3), whose members the store does not name are initialized as INITIALIZE … TO VALUE
+    /// THEN TO DEFAULT under TT's INITIALIZED phrase (§8.5.1.9.5), so TT-B (3) is 77 and TT-TN (3, 1) is 5, and it creates
+    /// TT-T (3, 2), whose TT-TN is the 7 stored; both pointers the program sets come back and are passed in again (the
+    /// second activation reads through them). The RETURNING item's "abcd" stored into a LIMIT 3 item is "abc", and only
+    /// TF-P (2) was set.</summary>
+    [Fact]
+    public void AHost_PassesNestedComponentsAndReferences_ThroughTheCellArea_AndReadsThemBack()
+    {
+        string dir = ScratchDirectory.Create("h7host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H7PROGS", NestedAreaPrograms);
+            NonCobolElement.CompileCSharp(dir, "H7HOST", NestedAreaHost, "H7PROGS", "H7PROGS");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H7HOST.dll"), dir);
+            Assert.Equal(
+                "FIRST [s] 003 2\n" +
+                "OUT1 TS nest/True/4 TT 1:1/False,2:2/False,77:5/False;7/True\n" +
+                "TS-P DATA\n" +
+                "TT-TP YYYY\n" +
+                "OUT2 TS nest/True/5 TT 1:1/False,2:2/False,77:5/False;7/True\n" +
+                "RET 5 [z] False /False,abc/True", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>Whether the module <paramref name="name"/> in <paramref name="dir"/> has an entry point, and whether it
+    /// has a runtime configuration — an executable has both, a library neither.</summary>
+    private static (bool EntryPoint, bool RuntimeConfig) Launchable(string dir, string name)
+    {
+        using var pe = new System.Reflection.PortableExecutable.PEReader(File.OpenRead(Path.Combine(dir, name + ".dll")));
+        return (pe.PEHeaders.CorHeader!.EntryPointTokenOrRelativeVirtualAddress != 0,
+            File.Exists(Path.Combine(dir, name + ".runtimeconfig.json")));
+    }
+
+    [Fact]
+    public void AHost_CallsTheGeneratedEntries_LandingExactlyAndDecodingByTheValidityRule()
+    {
+        string dir = ScratchDirectory.Create("h1host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H1PROGS", Programs);
+            NonCobolElement.CompileCobol(dir, "H1FUNC", Function);
+            // A group with no main program is a LIBRARY (DESIGN-external-repository §7.2): no entry point and no runtime
+            // configuration, loaded by the host that calls its entries; a group with one is an executable.
+            Assert.Equal((false, false), Launchable(dir, "H1FUNC"));
+            Assert.Equal((true, true), Launchable(dir, "H1PROGS"));
+            NonCobolElement.CompileCSharp(dir, "H1HOST", Host, "H1PROGS", "H1PROGS", "H1FUNC");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H1HOST.dll"), dir);
+            Assert.Equal(
+                "IN [ALICE     ]\n" +
+                "NOTE OMITTED\n" +
+                "1 105.25 [CHANGED   ] 10\n" +
+                "IN [CHANGED   ]\n" +
+                "NOTE [HELLO   ]\n" +
+                "2 100.25 [CHANGED   ] 20\n" +
+                "IN [CHANGED   ]\n" +
+                "NOTE [HELLO   ]\n" +
+                "3 10\n" +
+                "LOW LK_AMOUNT\n" +
+                "HIGH LK_AMOUNT\n" +
+                "LENGTH LK_NAME\n" +
+                "IN [CHANGED   ]\n" +
+                "NOTE [HELLO   ]\n" +
+                "4 20\n" +
+                "B=0005\n" +
+                "A 5\n" +
+                "ALIAS LK_C\n" +
+                "ALIAS LK_I\n" +
+                "FIRST ArgumentException LK_C\n" +
+                "BAD 7 [XYZ] True\n" +
+                "U=0012\n" +
+                "W 999999999999999998 99999999999999999999\n" +
+                "WIDE LK_L\n" +
+                "SIGN LK_U\n" +
+                "P NULL\n" +
+                "PTR True\n" +
+                "A [ABCD] B [ABCD]\n" +
+                "P OMITTED\n" +
+                "Q NULL\n" +
+                "R NULL\n" +
+                "S OMITTED\n" +
+                "OPTNULL LK_B\n" +
+                "FN 42", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>kb/Work PB3586 (branch review R1-1): an ELEMENTARY <c>USAGE BIT</c> formal and RETURNING item cross the host
+    /// entry as their boolean POSITIONS (ISO §14.8.2.1's NOTE and §8.5.2.5, cite.py OK), never the storage occupancy
+    /// <c>ceil(n/8)</c>: <c>PIC 1(8) USAGE BIT</c> is one storage character but eight positions, so a host lands eight
+    /// positions into the formal (the width <c>HostLanding.LandText</c> checks), refuses nine, and reads back an
+    /// eight-position RETURNING item; <c>PIC 1(12) USAGE BIT</c> is two storage characters and twelve positions.</summary>
+    private const string BitPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H8BIT.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-B PIC 1(8) USAGE BIT.
+        01 LK-W PIC 1(12) USAGE BIT.
+        01 LK-R PIC 1(8) USAGE BIT.
+        PROCEDURE DIVISION USING LK-B LK-W RETURNING LK-R.
+        P1.
+            DISPLAY "B " LK-B " W " LK-W
+            MOVE B"01010101" TO LK-B
+            MOVE B"110011001100" TO LK-W
+            MOVE B"10100101" TO LK-R
+            GOBACK.
+        END PROGRAM H8BIT.
+        """;
+
+    private const string BitFunction = """
+        IDENTIFICATION DIVISION.
+        FUNCTION-ID. H8FN.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-X PIC 9(3).
+        01 LK-R PIC 1(8) USAGE BIT.
+        PROCEDURE DIVISION USING LK-X RETURNING LK-R.
+        P1.
+            MOVE B"00001010" TO LK-R
+            GOBACK.
+        END FUNCTION H8FN.
+        """;
+
+    private const string BitHost = """
+        using System;
+        using Cobol.H8PROGS;
+        using Cobol.H8FUNC;
+
+        public static class H8HostProgram
+        {
+            public static int Main()
+            {
+                string b = "00001010", w = "101010101010";
+                string r = H8BIT.Call(ref b, ref w);
+                Console.WriteLine($"1 {b} {w} {r}");
+                try { string bad = "000010101"; H8BIT.Call(ref bad, ref w); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentOutOfRangeException e) { Console.WriteLine($"LENGTH {e.ParamName}"); }
+                long x = 1;
+                Console.WriteLine($"FN {H8FN.Call(ref x)}");
+                return 0;
+            }
+        }
+        """;
+
+    [Fact]
+    public void AHost_PassesAnElementaryUsageBitItem_AsItsBooleanPositions_NotItsStorageOccupancy()
+    {
+        string dir = ScratchDirectory.Create("h8host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H8PROGS", BitPrograms);
+            NonCobolElement.CompileCobol(dir, "H8FUNC", BitFunction);
+            NonCobolElement.CompileCSharp(dir, "H8HOST", BitHost, "H8PROGS", "H8PROGS", "H8FUNC");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H8HOST.dll"), dir);
+            Assert.Equal(
+                "B 00001010 W 101010101010\n" +
+                "1 01010101 110011001100 10100101\n" +
+                "LENGTH LK_B\n" +
+                "FN 00001010", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+}

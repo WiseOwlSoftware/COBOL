@@ -9,7 +9,7 @@
       *> 13.10.4 GR5: "the class and category of constant-name-1 is numeric. Constant-name-1 is an integer. The
       *> value of constant-name-1 is determined as specified in the BYTE-LENGTH intrinsic function with the
       *> exception that when data-name-1 is an occurs-depending group item, the maximum size of the data item is
-      *> used." The byte widths are this compiler's documented ones (FUNCTION BYTE-LENGTH, COBOLNET_INTRINSICS_DESIGN):
+      *> used." The byte widths are this compiler's documented ones (FUNCTION BYTE-LENGTH, INTRINSICS_DESIGN):
       *> DISPLAY 1 byte per position, NATIONAL 2 bytes per position, a COMP-5 S9(9) item 4 bytes.
       *>   K1 = 4    W  PIC X(4)
       *>   K2 = 6    WN PIC N(3)

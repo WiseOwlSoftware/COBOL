@@ -3,7 +3,7 @@
 **Dimension:** The `ICodeGenBackend` seam made *real and enforced* — the precise, testable contract the bound tree /
 `Place` must satisfy so a second codegen backend (direct CIL via Mono.Cecil) is droppable in **without touching the
 frontend, binder, or bound tree**; the interface both backends implement; how both call the ONE
-`Cobol.Net.Runtime`; the concrete additions each of PHASE-05/06/07 needs; and the executable **backend-contract
+`WiseOwl.Cobol.Runtime`; the concrete additions each of PHASE-05/06/07 needs; and the executable **backend-contract
 test** that fails the build if a bound node ever exposes C#.
 
 **Status:** DESIGN (rearchitecture target). Author: backend-abstraction elevation pass. Date: 2026-07-07.
@@ -14,9 +14,9 @@ elaboration of the dual-backend goal the plan already names but under-weights. I
   test) — every decision here is compatible with that doc; where it adds detail it says so explicitly.
 - `DESIGN-binder-bound-tree.md` (§3.3 "no lowered IR; semantic normalization on the bound tree") — this doc **adds
   the missing guarantee** that §3.3 states as intent but does not make enforceable: the bound tree carries **no C#**.
-- `DESIGN-module-topology.md` (§2.1 deferred `Cobol.Net.BoundTree` assembly; Open Q4 "is a second backend
+- `DESIGN-module-topology.md` (§2.1 deferred `WiseOwl.Cobol.BoundTree` assembly; Open Q4 "is a second backend
   scheduled?") — this doc answers **yes** (PHASE-16) and fixes the CIL backend's assembly home.
-- `docs/COBOLNET_DESIGN.md` §1.1 (the 5-phase pipeline; `--backend roslyn|cil`; "NO *shared* lowered IR"), §1.3
+- `docs/DESIGN.md` §1.1 (the 5-phase pipeline; `--backend roslyn|cil`; "NO *shared* lowered IR"), §1.3
   (`Place` is "the ROSLYN backend's RENDERING of a backend-neutral structural resolution"), §18 #23.
 
 **Upholds the four owner-locked invariants** (SSOT §1.2) and the dual-backend goal (`project_dual_backend_goal`,
@@ -38,12 +38,12 @@ neutrality is enforced by a test, not by convention.*
    exhaustive `IBound*Visitor<T>` interfaces, the bound tree, the `NameMangler`, and a new backend-neutral
    `RuntimeMembers` catalogue are **shared**; the visitor *implementations*, the `Place` rendering, and all
    structure→branch lowering are **per-backend**.
-3. **Both backends call the ONE `Cobol.Net.Runtime` through ONE ABI catalogue.** `DESIGN-codegen-backend.md §3`'s
+3. **Both backends call the ONE `WiseOwl.Cobol.Runtime` through ONE ABI catalogue.** `DESIGN-codegen-backend.md §3`'s
    `RuntimeApi` (a C#-fragment-string façade) is **Roslyn-specific**; it is generalized here into a neutral,
    `nameof`-anchored `RuntimeMembers` (the typed list of runtime members) with two thin renderers over it —
    `RoslynRuntimeApi` (→ C# text) and `CilRuntimeApi` (→ Cecil `MethodReference`) — so a runtime rename breaks
    **both** backends at compile time, singular-pattern preserved.
-4. **The second backend is Mono.Cecil, in its own assembly** `Cobol.Net.Backend.Cil` (§3.2) — recommendation with
+4. **The second backend is Mono.Cecil, in its own assembly** `WiseOwl.Cobol.Backend.Cil` (§3.2) — recommendation with
    rationale over `System.Reflection.Emit` in §3.3. The seam-proof milestone (PHASE-16 Milestone 0) deliberately
    uses an **in-box** `System.Reflection.Emit` DISPLAY-only backend + a `NullBackend` so the seam is proven real
    **before** the Cecil dependency is taken.
@@ -65,7 +65,7 @@ droppable in without touching the frontend/binder/bound tree, every fact a backe
 - **Resolved symbols** — a `DataItem`, `FileModel`, `ReportModel`, `Condition88`, `IntrinsicSig`, `OoMethodSymbol`,
   a paragraph **pc index** (`int`), a `FileOpenMode`/`SetCapacityKind`/`CobolRounding` enum. References, not names.
 - **A STRUCTURAL `Place` lvalue** — an accessor chain of `AccessSegment`s (root symbol + member steps + `BoundExpr`
-  subscripts + a ref-mod `BoundExpr` span), per `DESIGN-codegen-backend.md §2.3` / `COBOLNET_DESIGN.md §1.3`. The
+  subscripts + a ref-mod `BoundExpr` span), per `DESIGN-codegen-backend.md §2.3` / `DESIGN.md §1.3`. The
   *structure* of the location, never its C# rendering.
 - **Categories & scaled-integer numeric facts** — `PicCategory`, `Usage`, `StorageForm` (the P5 discriminator),
   fractional `Scale`, `ImageWidth`, `Real`/`Dec` flags. These are COBOL/`.NET-shape` facts (scale is compile-time
@@ -93,7 +93,7 @@ droppable in without touching the frontend/binder/bound tree, every fact a backe
   (`BoundTree.cs:508-511`), `DynTablePlace.SendingPath/ReceivingPath` (`Place.cs:58`),
   `CapacityRegisterPlace.TablePath` (`Place.cs:176`), `RedefViewPlace.Backing` (`Place.cs:82`). An identifier is a
   **target-naming decision** owned by the shared `NameMangler` (§2.4), resolved from a symbol at render time.
-- **Roslyn `Syntax*` nodes or `using` decisions** — the `using CobolNet.Runtime;` / `using CobolNet.Runtime.IO;`
+- **Roslyn `Syntax*` nodes or `using` decisions** — the `using WiseOwl.Cobol.Runtime;` / `using WiseOwl.Cobol.Runtime.IO;`
   choices (`ProgramEmitter.cs`) are a C#-source concern; a CIL backend has no `using`s. These live in
   the Roslyn backend, keyed off which `RuntimeMembers` members were referenced.
 - **Format literals of the target language** — no C# escape/`SymbolDisplay.FormatLiteral` output stored on a node
@@ -121,7 +121,7 @@ adds them to PHASE-06 explicitly. L5 (the P6→P7 seam extraction) is **DONE** �
 ### 2.1 The interface (as `DESIGN-codegen-backend.md §2.2`, restated for reference)
 
 ```csharp
-namespace CobolNet.CodeGen;
+namespace WiseOwl.Cobol.CodeGen;
 
 /// The ONE seam between the backend-neutral BoundCompilation and a target. NEVER binds.
 public interface ICodeGenBackend
@@ -144,11 +144,11 @@ public sealed record BackendArtifact(
 
 public static class BackendFactory
 {
-    // Roslyn is in-assembly; Cil is resolved from the plugged Cobol.Net.Backend.Cil (§3.2) when present.
+    // Roslyn is in-assembly; Cil is resolved from the plugged WiseOwl.Cobol.Backend.Cil (§3.2) when present.
     public static ICodeGenBackend For(BackendId id, ICodeGenBackend? cil = null) => id switch
     {
         BackendId.Roslyn => new RoslynBackend(),
-        BackendId.Cil    => cil ?? throw new NotSupportedException("--backend cil: Cobol.Net.Backend.Cil not loaded"),
+        BackendId.Cil    => cil ?? throw new NotSupportedException("--backend cil: WiseOwl.Cobol.Backend.Cil not loaded"),
         _ => throw new NotSupportedException(),
     };
 }
@@ -179,7 +179,7 @@ source-generated from `[BoundNode]`. Those interfaces + the generated `Accept<T>
 The **exhaustiveness guarantee is inherited for free**: a new `BoundStatement` leaf is a compile error in *both*
 `StatementEmitter` and `CilStatementEmitter` — the source generator forces every backend's visitor to add an arm.
 
-### 2.3 One runtime, one ABI catalogue — how both backends call `Cobol.Net.Runtime`
+### 2.3 One runtime, one ABI catalogue — how both backends call `WiseOwl.Cobol.Runtime`
 
 `DESIGN-codegen-backend.md §3`'s `RuntimeApi` returns **C# fragment strings** — correct for Roslyn, useless for Cecil
 (which needs `MethodReference`s). To keep the singular-pattern rule (`feedback_one_mechanism_per_job`) across two backends,
@@ -188,10 +188,10 @@ split it into a **neutral catalogue** + two thin renderers:
 > **Amended 2026-10-07 (DESIGN-architecture-review §8.3 (9), R1 Draft 3):** the catalogue is named `RuntimeMembers`, not
 > `RuntimeAbi`. The owner-approved `DESIGN-external-repository.md` (2026-10-05, the later decision) has the RUNTIME
 > declare `RuntimeAbi` (its `Version` and `CallAbi`, read by `ProgramTable.RegisterModule`), and two types of one name
-> would meet in every emitter that has `using CobolNet.Runtime` (CS0104). Nothing else in this section changes.
+> would meet in every emitter that has `using WiseOwl.Cobol.Runtime` (CS0104). Nothing else in this section changes.
 
 ```csharp
-// SHARED (Cobol.Net.Compiler) — the ONE typed description of the runtime ABI, nameof-anchored.
+// SHARED (WiseOwl.Cobol.Compiler) — the ONE typed description of the runtime ABI, nameof-anchored.
 public static class RuntimeMembers
 {
     // Each member is a typed descriptor: declaring type + method name + arity, anchored to the real symbol so a
@@ -244,8 +244,8 @@ about it except: its runtime-call rendering routes through `RoslynRuntimeApi` **
 
 ### 3.2 `CilBackend` (future-additive) — assembly home
 
-`CilBackend : ICodeGenBackend` lives in a **NEW assembly `Cobol.Net.Backend.Cil`** that references
-`Cobol.Net.Compiler` (for `BoundCompilation` + `RuntimeMembers` + the visitor interfaces), `Cobol.Net.Runtime`
+`CilBackend : ICodeGenBackend` lives in a **NEW assembly `WiseOwl.Cobol.Backend.Cil`** that references
+`WiseOwl.Cobol.Compiler` (for `BoundCompilation` + `RuntimeMembers` + the visitor interfaces), `WiseOwl.Cobol.Runtime`
 (metadata, to import `MethodReference`s), and the `Mono.Cecil` NuGet. **Rationale for a separate assembly** (answers
 topology Open Q4): the whole point of the CIL backend is "*no Roslyn dependency*"; symmetrically, Roslyn-only callers
 should not carry the `Mono.Cecil` dependency. Isolating Cecil in a leaf backend assembly the CLI plugs into
@@ -265,7 +265,7 @@ seam-proof only (§ PHASE-16 Milestone 0).
 | Startup / AOT for the *emitted* program | ✅ plain assembly, no Roslyn | ✅ plain assembly |
 | Licensing | ✅ MIT | ✅ in-box (.NET Foundation) |
 | Maturity for a "decades-sustainable, commercial-quality" compiler (SSOT north star) | ✅ industry standard for IL authoring (Unity, ILSpy-adjacent, obfuscators — the owner's own Demeanor domain) | ⚠ persisted-builder path is new as of .NET 9 |
-| Dependency cost | one external NuGet, **isolated** to `Cobol.Net.Backend.Cil` | none (in-box) |
+| Dependency cost | one external NuGet, **isolated** to `WiseOwl.Cobol.Backend.Cil` | none (in-box) |
 
 The single external NuGet is an acceptable, isolated cost; the **PDB gap** is the decisive disqualifier for
 Reflection.Emit as the production backend (a compiler must be able to emit debuggable assemblies). The SSOT already
@@ -275,9 +275,9 @@ are genuine.
 
 ### 3.4 Shared vs backend-specific — the summary
 
-- **Shared** (`Cobol.Net.Compiler`, consumed by both): the frontend, the binder, `BoundCompilation` + the sealed
+- **Shared** (`WiseOwl.Cobol.Compiler`, consumed by both): the frontend, the binder, `BoundCompilation` + the sealed
   bound hierarchy, the structural `Place`/`AccessSegment`, the source-generated `IBound*Visitor<T>` interfaces + the
-  exhaustive `Accept<T>`, the `RuntimeMembers` catalogue, the `NameMangler`, the ONE `Cobol.Net.Runtime`.
+  exhaustive `Accept<T>`, the `RuntimeMembers` catalogue, the `NameMangler`, the ONE `WiseOwl.Cobol.Runtime`.
 - **Backend-specific**: the visitor *implementations* (text vs IL), `PlaceRenderer` vs `CilPlaceLower`, the
   runtime-call renderer (`RoslynRuntimeApi` vs `CilRuntimeApi`), the control-flow lowering (Roslyn preserves;
   Cil branches privately), the assembly writer (`CSharpCompilation` + `AssemblyPackager` vs Cecil `ModuleDefinition`
@@ -300,10 +300,10 @@ what P7 already lists.
 | refactor | `Binding/Model/Place.cs` `Read()/Write()` strings → structural `Place` + `AccessSegment` | L1/L2 removal (also P7 Step 11 / `DESIGN-codegen-backend.md §2.3`). |
 | refactor | `BoundTree.cs` C#-string node fields (`BoundSetCapacity.TablePath` :493; `BoundSearch.IndexField/DependCount/DynTable` :508-511; `BoundIndexRef.IndexField` :109; `SetIndexTarget.IndexField` :471; `BoundMethod.CsName` :32; `CapacityRegisterPlace.TablePath` `Place.cs:176`) → symbol/`Place` references | **L3/L4 removal — NEW; not in P7.** (§5, addition to P6.) |
 | create | `CodeGen/BackendContractTest` fixture (reflection + `CodeGen/**` analyzer scan) | Enforce §1: no `string`-returning render member / no raw-C#-identifier field on any `Place`/`Bound*` (§6). Generalizes `DESIGN-codegen-backend.md §6 R5`. |
-| create *(PHASE-16)* | assembly `Cobol.Net.Backend.Cil/` (`CilBackend`, `CilStatementEmitter`, `CilExpressionEmitter`, `CilConditionEmitter`, `CilPlaceLower`, `CilRuntimeApi`, `CilDispatcher`) | The second backend, Cecil, isolated (§3.2). Answers topology Open Q4. |
+| create *(PHASE-16)* | assembly `WiseOwl.Cobol.Backend.Cil/` (`CilBackend`, `CilStatementEmitter`, `CilExpressionEmitter`, `CilConditionEmitter`, `CilPlaceLower`, `CilRuntimeApi`, `CilDispatcher`) | The second backend, Cecil, isolated (§3.2). Answers topology Open Q4. |
 | create *(PHASE-16 M0)* | `CodeGen/NullBackend.cs` + `CodeGen/DisplayBackend.cs` (in-box `System.Reflection.Emit`) | Dependency-free seam-proof (§3.3 / PHASE-16 M0). |
 | edit | `Cli/CliOptions.cs` + `CompilerDriver.Options` (`CompilerDriver.cs:34`) — add `BackendId Backend = Roslyn`; `Cli/Program.cs` add `--backend {roslyn|cil}` | CLI selection (default Roslyn). |
-| create *(PHASE-16)* | `tests/Cobol.Net.Tests.BackendEquivalence/` | Byte-compare Roslyn vs Cil stdout on the corpus (§ PHASE-16). |
+| create *(PHASE-16)* | `tests/WiseOwl.Cobol.Tests.BackendEquivalence/` | Byte-compare Roslyn vs Cil stdout on the corpus (§ PHASE-16). |
 
 ---
 
@@ -399,7 +399,7 @@ string field fails the build, exactly the "missing-arm-is-a-compile-error" cultu
    to the COBOL source lines (the frontend already carries line info the binder can thread onto bound nodes as an
    optional neutral `SourceSpan`). Confirm whether COBOL-source-level debugging of the emitted assembly is a v1 goal
    or a follow-on (it does not affect the seam or neutrality — only the CIL backend's PDB writer).
-3. **Separate `Cobol.Net.Backend.Cil` assembly vs a `CodeGen/Cil/` folder in Compiler.** Recommendation: **separate
+3. **Separate `WiseOwl.Cobol.Backend.Cil` assembly vs a `CodeGen/Cil/` folder in Compiler.** Recommendation: **separate
    assembly** (isolates the Cecil dependency from the default Roslyn path; answers topology Open Q4 affirmatively).
    Acceptable alternative if the extra project is unwanted: a `CodeGen/Cil/` folder with Cecil referenced by the
    whole Compiler assembly — simpler, but every Roslyn-only caller then carries Cecil.

@@ -149,7 +149,7 @@ def parse_warnings(text: str, root: Path):
 
 
 # The analyzer build runs ONE PROJECT AT A TIME, each cached as its own step (`mech/analyzers-<project>.json`), in
-# dependency order. Measured 2026-10-07 (w1034): with every rule on, csc on Cobol.Net.Compiler ran single-threaded past
+# dependency order. Measured 2026-10-07 (w1034): with every rule on, csc on WiseOwl.Cobol.Compiler ran single-threaded past
 # 2,000 CPU-seconds and 28 GB while the leaf projects took under a minute, so a whole-solution step held EVERY shard's
 # input hostage to the slowest project. Per project, a shard's input is written as soon as the projects holding its
 # files are measured, and the batch that needs only the leaves need not wait for the compiler.
@@ -159,8 +159,8 @@ def parse_warnings(text: str, root: Path):
 # printed as warnings, so batch 1's inputs held 284 CA warnings and ZERO IDE/SYSLIB ones while design §5.5's features
 # are exactly those rules. The analyzer tree therefore gets a `.globalconfig` (the SDK reads one at the tree root)
 # raising the rules below to warning, written AFTER the plain build (SYSLIB1045 is a generator analyzer, and the
-# pin's TreatWarningsAsErrors would fail that build). Measured on the pin 2026-10-07 (w1037s): Cobol.Net.Editions 4 s
-# and Cobol.Net.Runtime 6 s with the rules on, the same as without; Runtime then reports IDE0305, IDE0032, IDE0028,
+# pin's TreatWarningsAsErrors would fail that build). Measured on the pin 2026-10-07 (w1037s): WiseOwl.Cobol.Editions 4 s
+# and WiseOwl.Cobol.Runtime 6 s with the rules on, the same as without; Runtime then reports IDE0305, IDE0032, IDE0028,
 # IDE0300, IDE0290, IDE0078, IDE0306, IDE0330 and IDE0066. A §5.5 feature with no rule here has no analyzer: a point
 # about it is a lead (N2). This table is the ONE place the mapping is written; each shard input carries it.
 MODERN_RULES = {
@@ -188,16 +188,16 @@ def analyzer_key(commit: str) -> dict:
     return {"pin": commit, "version": STEP_VERSION["analyzers"], "modern_rules": MODERN_RULES}
 
 
-PROJECT_ORDER = ["Cobol.Net.Editions", "Cobol.Net.Runtime", "Cobol.Net.Frontend", "Cobol.Net.Cli",
-                 "Cobol.Net.Compiler.SourceGen", "Cobol.Net.Compiler", "Cobol.Net.Benchmarks",
-                 "Cobol.Net.Tests.Characterization", "Cobol.Net.Tests.Conformance", "Cobol.Net.Tests.Unit",
-                 "Cobol.Net.ArchOracle"]
+PROJECT_ORDER = ["WiseOwl.Cobol.Editions", "WiseOwl.Cobol.Runtime", "WiseOwl.Cobol.Frontend", "WiseOwl.Cobol.Cli",
+                 "WiseOwl.Cobol.Compiler.SourceGen", "WiseOwl.Cobol.Compiler", "WiseOwl.Cobol.Benchmarks",
+                 "WiseOwl.Cobol.Tests.Characterization", "WiseOwl.Cobol.Tests.Conformance", "WiseOwl.Cobol.Tests.Unit",
+                 "WiseOwl.Cobol.ArchOracle"]
 
 
 def project_of(path: str) -> str | None:
     """The C# project whose folder holds `path` (src/<P>/..., tests/<P>/...), or None (scripts, CI, tools)."""
     parts = path.split("/")
-    if len(parts) > 2 and parts[0] in ("src", "tests") and parts[1].startswith("Cobol.Net.") and path.endswith(".cs"):
+    if len(parts) > 2 and parts[0] in ("src", "tests") and parts[1].startswith("WiseOwl.Cobol.") and path.endswith(".cs"):
         return parts[1]
     return None
 
@@ -205,11 +205,11 @@ def project_of(path: str) -> str | None:
 def analyzer_worktree(commit: str, out: Path) -> Path:
     """One detached worktree of the pin under `<out>/mech/tree`, reused by every project step (removed by --clean)."""
     wt = out / "mech" / "tree"
-    if not (wt / "Cobol.Net.sln").exists():
+    if not (wt / "WiseOwl.Cobol.sln").exists():
         subprocess.run(["git", "-C", str(REPO), "worktree", "add", "--detach", str(wt), commit], check=True,
                        capture_output=True)
         # a plain build first, so each analyzer step compiles ONLY its own project (BuildProjectReferences=false)
-        r = subprocess.run(["dotnet", "build", str(wt / "Cobol.Net.sln"), "-c", "Debug", "-nologo", "-nodeReuse:false",
+        r = subprocess.run(["dotnet", "build", str(wt / "WiseOwl.Cobol.sln"), "-c", "Debug", "-nologo", "-nodeReuse:false",
                             "-v:minimal"], capture_output=True, text=True, encoding="utf-8", errors="replace")
         if r.returncode != 0:
             raise SystemExit("the pin's plain build failed (exit %d):%s" % (r.returncode, r.stdout[-3000:]))
@@ -478,8 +478,8 @@ def self_test():
                     "  BTests  (tests/BTests.cs)\n    other\n  + 3 tree-wide sweep(s) also scan it: C\n"
                     "== src/A/Y.cs: 0 specific drift rule(s)\n")
     arm("a C# file maps to its project; a script maps to none",
-        project_of("src/Cobol.Net.Runtime/IO/X.cs") == "Cobol.Net.Runtime" and project_of("scripts/a.py") is None
-        and project_of("tests/Cobol.Net.Tests.Unit/A.cs") == "Cobol.Net.Tests.Unit" and project_of("src/Cobol.Net.Frontend/Grammar/G.g4") is None)
+        project_of("src/WiseOwl.Cobol.Runtime/IO/X.cs") == "WiseOwl.Cobol.Runtime" and project_of("scripts/a.py") is None
+        and project_of("tests/WiseOwl.Cobol.Tests.Unit/A.cs") == "WiseOwl.Cobol.Tests.Unit" and project_of("src/WiseOwl.Cobol.Frontend/Grammar/G.g4") is None)
     arm("drift rules parse per file", d == {"src/A/X.cs": ["ATests", "BTests"], "src/A/Y.cs": []})
     arm("a member site resolves to its file",
         finding_files({"site": {"members": ["M:N.T.F() @ src/A/X.cs:12"]}}) == {"src/A/X.cs"})

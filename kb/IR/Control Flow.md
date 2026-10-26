@@ -4,19 +4,19 @@ area: ir
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - docs/COBOLNET_CONTROL_FLOW_DESIGN.md
-  - src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs
-  - src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs
-  - src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs
+  - docs/CONTROL_FLOW_DESIGN.md
+  - src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - ir
 ---
 
 # IR — Control Flow (PC Dispatcher)
 
 Control flow is a single **program-counter (PC) state machine**, implemented as `__Dispatch` in
-`CodeGen/DispatchEmitter.cs` and designed in [[docs/COBOLNET_CONTROL_FLOW_DESIGN]]. Every paragraph — and, for
+`CodeGen/DispatchEmitter.cs` and designed in [[docs/CONTROL_FLOW_DESIGN]]. Every paragraph — and, for
 sectioning, every paragraph of every section, flattened into **one source-order PC space** — is a `case` in one
 `switch (pc)`, **not** a separate method. This ports the legacy compiler's proven return-address / exit-bounded
 dispatch (364 NIST tests) but realizes it in idiomatic C#. The stance: **"correctness over idiomatic for v1"** — the
