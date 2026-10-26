@@ -43,4 +43,16 @@ the same model). R1-3, the lead in the same file: the URL / word scan refused `g
 PowerShell `('obsidian')` string; a non-shell tool's arguments are no longer scanned and a quoted string in a PowerShell
 expression is no command. Each scenario is a case in `GUI_CASES` / `GUI_PS_CASES`; 18 of them fail on the pre-fix model.
 
+Branch review round 2 (two blocking findings, one lead, all answered): R2-1, the R1-3 fix made a quoted string in a
+PowerShell expression no command, but the call and dot-source operators run it (`& ("obsidian")`, `. ('C:/.../Obsidian.exe')`,
+`& $("explorer") .`) and the outer step's command word is the whole `(...)` word, so the launch passed; the operator's
+parenthesized string now stands in the command word. R2-2, the positional second argument of Start-Process is its
+-ArgumentList (`Start-Process cmd -NoNewWindow "/c start x.md"`), but a word past the target that began with `/` was
+skipped as a cmd.exe start flag; every word past the target is now re-read. R2-3 (lead, same file): the document arm judged
+a PowerShell property read (`$resp.json`) and a Bash shebang script (`./app.cs`) as documents. Root cause shared by R2-1
+and R2-3: the model took the shell as a parameter from the tool, so a `cmd /c` payload inside a Bash call was judged in
+Bash; `shell_location.Step` now carries the shell that parsed it (`Step.shell`) and `gui_launch.refusal(step)` reads it,
+so Bash execs a file while PowerShell and cmd.exe hand it to ShellExecute. 24 new cases across both tools plus two
+`Step.shell` cases in `test_shell_location.py`.
+
 Gate: see the landing record.
