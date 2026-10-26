@@ -118,6 +118,7 @@ public sealed class BooleanOperatorTests
     [Theory]
     [InlineData("COMPUTE R ROUNDED = A B-AND B.")]                       // SR: no ROUNDED on F2
     [InlineData("COMPUTE R = A ON SIZE ERROR DISPLAY \"E\".")]           // a sole boolean identifier: parsed as F1, re-routed to F2 by operand class
+    [InlineData("COMPUTE R = ZERO ON SIZE ERROR DISPLAY \"E\".")]        // a sole figurative ZERO: either format (§8.8.1.1), owns the phrase (PB3830 R2-1), F2 by the boolean receiver
     public void BooleanCompute_RoundedOrSizeError_Rejected1511(string proc)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog("BOP04", proc), 2002);

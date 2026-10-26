@@ -1894,8 +1894,14 @@ together with everything the statement already wrote and it is not already writt
 its formats' phrase brackets — READ's AT END and INVALID KEY are two formats, so they never meet on one READ). "Everything
 written" includes the **selectors**, the syntax elements only some of a rule's formats print (`Format.Unprinted`, each a
 `Selector`): READ NEXT, PREVIOUS and ADVANCING ON LOCK are §14.9.30.2 Format 1 only and KEY IS Format 2 only; WRITE
-ADVANCING is §14.9.51.2 Format 1 only; a COMPUTE whose right side parses as a boolean-expression is §14.9.8.2 Format 2,
-which prints no SIZE ERROR phrase. A format whose unprinted selector the statement wrote admits none of its phrases, so
+ADVANCING is §14.9.51.2 Format 1 only; a COMPUTE whose right side is a boolean-expression and no arithmetic expression
+is §14.9.8.2 Format 2, which prints no SIZE ERROR phrase. A selector is what the SOURCE wrote, never which alternative
+the parser took: `Selector.AlsoPrinted` names a written element that also reads as syntax of the other formats, and
+such an element selects nothing. The one such element today is a sole figurative ZERO, which parses through COMPUTE's
+boolean-expression alternative but is a §8.8.1.1 arithmetic expression, so `COMPUTE X = ZERO ON SIZE ERROR …` owns its
+phrase; `ComputeFormats.SoleFigurativeZero` is that reading, shared with `ArithmeticBinder`'s re-route to Format 1
+(branch review R2-1 of PB3830: the selector read the parse alternative, refused the legal statement and moved a nested
+COMPUTE's NOT ON SIZE ERROR outward). A format whose unprinted selector the statement wrote admits none of its phrases, so
 `READ R INVALID KEY READ G NEXT RECORD NOT INVALID KEY … END-READ` gives the NOT phrase and END-READ to READ R (branch
 review R1-1 of PB3830: a table of phrase brackets alone gave them to READ G, silently). A selector is looked for in the
 owner's own syntax only — a child rule, or the alternative a child bracket rule chose — never inside an expression or a
