@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> The SECOND grammar site of the SAME clause.  COBOL.NET's grammar admits organizationClause from the
+      *> The SECOND grammar site of the SAME clause.  WiseOwl COBOL's grammar admits organizationClause from the
       *> file description entry as well as from the file control entry (CobolData.g4 fileDescriptionClause),
       *> so the 12.4.5.10.3 GR2 edition gate has TWO parents and one arm has to cover both - the shape this
       *> repo gets wrong most often (a two-arm dispatch with one arm fixed).  The rule is identical: the LINE

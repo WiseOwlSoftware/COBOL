@@ -3,7 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace CobolNet.Tools.ArchCensus;
+namespace WiseOwl.Cobol.Tools.ArchCensus;
 
 /// <summary>
 /// THE stated rule for "a tool wrote this file" — the census measures generated code for the population check and

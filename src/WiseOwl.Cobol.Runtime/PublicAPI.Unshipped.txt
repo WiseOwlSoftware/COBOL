@@ -1,0 +1,283 @@
+#nullable enable
+WiseOwl.Cobol.Runtime.CellPointer.Extent.get -> int?
+WiseOwl.Cobol.Runtime.CellPointer.Extent.init -> void
+WiseOwl.Cobol.Runtime.Collation.LocaleCollationException
+WiseOwl.Cobol.Runtime.Collation.LocaleCollationException.DataSource.get -> string!
+WiseOwl.Cobol.Runtime.Collation.LocaleCollationException.Line.get -> int?
+WiseOwl.Cobol.Runtime.Collation.LocaleCollationException.LocaleCollationException(string! dataSource, int? line, string! reason, System.Exception? inner = null) -> void
+WiseOwl.Cobol.Runtime.Collation.LocaleCollationException.Reason.get -> string!
+WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.Failure.get -> WiseOwl.Cobol.Runtime.Collation.LocaleCollationException?
+WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation.Failure.init -> void
+WiseOwl.Cobol.Runtime.ConfigEntry.FamilyMember.get -> System.Func<string!, bool>?
+WiseOwl.Cobol.Runtime.ConfigEntry.FamilyMember.init -> void
+WiseOwl.Cobol.Runtime.DialectBehavior.FileSharingFacility = 2 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.ProgramTable.RunModule(System.Action! ensureRegistered, string! mainPath) -> void
+WiseOwl.Cobol.Runtime.RunUnitEndedException
+WiseOwl.Cobol.Runtime.RunUnitEndedException.Abnormal.get -> bool
+WiseOwl.Cobol.Runtime.RunUnitEndedException.ExitStatus.get -> long
+WiseOwl.Cobol.Runtime.RunUnitEndedException.RunUnitEndedException(long exitStatus, bool abnormal, string! message) -> void
+static WiseOwl.Cobol.Runtime.CobolDynStructure.PlainCode(int unit) -> int
+static WiseOwl.Cobol.Runtime.CobolDynStructure.UnitOf(int code) -> int
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.FractionPartU(System.UInt128 v, int scale) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.IntegerPartU(System.UInt128 v, int scale) -> System.UInt128
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.SignOfU(System.UInt128 v) -> long
+static WiseOwl.Cobol.Runtime.CobolVarGroup.FromImage(string! image, WiseOwl.Cobol.Runtime.GroupAtom![]! imageShape, WiseOwl.Cobol.Runtime.GroupAtom![]! to) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
+static WiseOwl.Cobol.Runtime.CobolVarGroup.OfImage(string! image) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
+static WiseOwl.Cobol.Runtime.CobolVarGroup.OverlaidImage(string! current, WiseOwl.Cobol.Runtime.GroupAtom![]! imageShape, WiseOwl.Cobol.Runtime.CobolVarGroup! view, WiseOwl.Cobol.Runtime.GroupAtom![]! viewShape) -> string!
+static WiseOwl.Cobol.Runtime.CobolVarGroup.OverlayImage(WiseOwl.Cobol.Runtime.CobolVarGroup! current, WiseOwl.Cobol.Runtime.GroupAtom![]! currentShape, string! image, WiseOwl.Cobol.Runtime.GroupAtom![]! imageShape, WiseOwl.Cobol.Runtime.ReceivingReferences? received) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
+static WiseOwl.Cobol.Runtime.CobolVarGroup.ToImage(WiseOwl.Cobol.Runtime.CobolVarGroup! v, WiseOwl.Cobol.Runtime.GroupAtom![]! from, WiseOwl.Cobol.Runtime.GroupAtom![]! imageShape, int width) -> string!
+static WiseOwl.Cobol.Runtime.ProgramRegistry.AddressNotLocated(string! name, bool function) -> string!
+static WiseOwl.Cobol.Runtime.ProgramRegistry.RunModule(System.Action! ensureRegistered, string! mainPath) -> void
+static WiseOwl.Cobol.Runtime.ProgramTable.ClassHalfPath(string! externalizedName, bool factory) -> string!
+static WiseOwl.Cobol.Runtime.ProgramTable.ClassPath(string! externalizedName) -> string!
+static WiseOwl.Cobol.Runtime.ProgramTable.ContainedPath(string! containerPath, string! name) -> string!
+static WiseOwl.Cobol.Runtime.ProgramTable.OutermostPath(string! externalizedName) -> string!
+static WiseOwl.Cobol.Runtime.SwitchStore.IsVariableName(string! variableName) -> bool
+static WiseOwl.Cobol.Runtime.SwitchStore.Names.get -> System.Collections.Generic.IReadOnlyList<string!>!
+WiseOwl.Cobol.Runtime.Occurrence
+WiseOwl.Cobol.Runtime.Occurrence.Occurrence() -> void
+WiseOwl.Cobol.Runtime.Occurrence.Occurrence(long value) -> void
+WiseOwl.Cobol.Runtime.Occurrence.Value.get -> long
+override WiseOwl.Cobol.Runtime.Occurrence.ToString() -> string!
+static WiseOwl.Cobol.Runtime.Occurrence.implicit operator WiseOwl.Cobol.Runtime.Occurrence(long value) -> WiseOwl.Cobol.Runtime.Occurrence
+static WiseOwl.Cobol.Runtime.Occurrence.implicit operator long(WiseOwl.Cobol.Runtime.Occurrence occurrence) -> long
+static WiseOwl.Cobol.Runtime.CobolNum.PositionOfWide(WiseOwl.Cobol.Runtime.CobolDec value) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolNum.PositionOfWide(double value) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolNum.PositionOfWide(System.Int128 unscaled, int scale) -> System.Int128
+static WiseOwl.Cobol.Runtime.Occurrence.implicit operator System.Int128(WiseOwl.Cobol.Runtime.Occurrence occurrence) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolDec.FromUnsigned(System.UInt128 magnitude, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.Occurrence.OfLiteral(string! integer) -> WiseOwl.Cobol.Runtime.Occurrence
+WiseOwl.Cobol.Runtime.ActivationDescription.ObjectClasses.get -> string![]?
+WiseOwl.Cobol.Runtime.ActivationDescription.ObjectClasses.init -> void
+WiseOwl.Cobol.Runtime.ActivationDescription.ObjectInterfaces.get -> string![]?
+WiseOwl.Cobol.Runtime.ActivationDescription.ObjectInterfaces.init -> void
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Classes.get -> System.Collections.Generic.IReadOnlyList<string!>?
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Classes.init -> void
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Deconstruct(out WiseOwl.Cobol.Runtime.ObjectReferenceKind Kind, out string? Name, out bool Factory, out bool Only, out System.Collections.Generic.IReadOnlyList<string!>? Classes, out System.Collections.Generic.IReadOnlyList<string!>? Interfaces) -> void
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Equals(WiseOwl.Cobol.Runtime.ObjectReferenceOperand other) -> bool
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Factory.get -> bool
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Factory.init -> void
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Interfaces.get -> System.Collections.Generic.IReadOnlyList<string!>?
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Interfaces.init -> void
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Kind.get -> WiseOwl.Cobol.Runtime.ObjectReferenceKind
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Kind.init -> void
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Name.get -> string?
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Name.init -> void
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.ObjectReferenceOperand() -> void
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.ObjectReferenceOperand(WiseOwl.Cobol.Runtime.ObjectReferenceKind Kind, string? Name, bool Factory, bool Only, System.Collections.Generic.IReadOnlyList<string!>? Classes, System.Collections.Generic.IReadOnlyList<string!>? Interfaces) -> void
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Only.get -> bool
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Only.init -> void
+WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Spelled.get -> string!
+WiseOwl.Cobol.Runtime.ObjectReferenceSet
+override WiseOwl.Cobol.Runtime.ObjectReferenceOperand.GetHashCode() -> int
+static WiseOwl.Cobol.Runtime.ObjectReferenceOperand.operator !=(WiseOwl.Cobol.Runtime.ObjectReferenceOperand left, WiseOwl.Cobol.Runtime.ObjectReferenceOperand right) -> bool
+static WiseOwl.Cobol.Runtime.ObjectReferenceOperand.operator ==(WiseOwl.Cobol.Runtime.ObjectReferenceOperand left, WiseOwl.Cobol.Runtime.ObjectReferenceOperand right) -> bool
+static WiseOwl.Cobol.Runtime.ObjectReferenceSet.Refusal(WiseOwl.Cobol.Runtime.ObjectReferenceOperand send, WiseOwl.Cobol.Runtime.ObjectReferenceOperand recv, bool activeClassSenderAdmitted = true) -> string?
+~override WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Equals(object obj) -> bool
+~override WiseOwl.Cobol.Runtime.ObjectReferenceOperand.ToString() -> string
+static WiseOwl.Cobol.Runtime.CobolFloat.ToScaledIntermediate(double v, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
+static WiseOwl.Cobol.Runtime.ExternalizedNames.FormInEdition(string? value, int dialectLevel) -> string!
+static WiseOwl.Cobol.Runtime.CobolNames.HasEditionSpelling(int dialectLevel) -> bool
+static WiseOwl.Cobol.Runtime.CobolDec.SubsidiaryQuotient(WiseOwl.Cobol.Runtime.CobolDec quotient, int scale, int digits) -> WiseOwl.Cobol.Runtime.CobolDec
+WiseOwl.Cobol.Runtime.ActivationDescription.AnyLengthClauses.get -> string?
+WiseOwl.Cobol.Runtime.ActivationDescription.AnyLengthClauses.init -> void
+WiseOwl.Cobol.Runtime.ActivationDescription.ClausePhrases.get -> string![]?
+WiseOwl.Cobol.Runtime.ActivationDescription.ClausePhrases.init -> void
+static WiseOwl.Cobol.Runtime.ActivationRelations.MatchViolation(WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> string?
+WiseOwl.Cobol.Runtime.CobolVarGroup.CobolVarGroup(string! Fixed, string![]! Dynamic, WiseOwl.Cobol.Runtime.CobolVarGroup![]?[]? Elements = null, System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?[]? Created = null) -> void
+WiseOwl.Cobol.Runtime.CobolVarGroup.Deconstruct(out string! Fixed, out string![]! Dynamic, out WiseOwl.Cobol.Runtime.CobolVarGroup![]?[]? Elements, out System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?[]? Created) -> void
+WiseOwl.Cobol.Runtime.CobolVarGroup.Created.get -> System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?[]?
+WiseOwl.Cobol.Runtime.CobolVarGroup.Created.init -> void
+WiseOwl.Cobol.Runtime.CobolVarGroup.CreatedAt(int i) -> System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?
+WiseOwl.Cobol.Runtime.CobolVarGroup.CreatedList.get -> System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?[]!
+WiseOwl.Cobol.Runtime.CobolDynTable<T>.CreatedAs(System.Func<T, WiseOwl.Cobol.Runtime.CobolVarGroup!>! carrierOf) -> System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?
+WiseOwl.Cobol.Runtime.CobolDynTable<T>.CreatedAs(System.Func<T, string!>! imageOf) -> System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?
+WiseOwl.Cobol.Runtime.StorageCell.VarGroupAt(int fixedAt, int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynTable, WiseOwl.Cobol.Runtime.OdoTail tail, int count, WiseOwl.Cobol.Runtime.CellGroupShape?[]? elems = null, bool byReference = false) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
+static WiseOwl.Cobol.Runtime.CobolBits.NatFromStorage(string! image) -> string!
+WiseOwl.Cobol.Runtime.OdoTail.KeepUnused(string! received, string! current, int count) -> string!
+WiseOwl.Cobol.Runtime.OdoTail.Lead.get -> int
+WiseOwl.Cobol.Runtime.OdoTail.Lead.init -> void
+WiseOwl.Cobol.Runtime.OdoTail.PositionsPerCharacter.get -> int
+WiseOwl.Cobol.Runtime.OdoTail.PositionsPerCharacter.init -> void
+WiseOwl.Cobol.Runtime.OdoTail.RecordMaxUnits.get -> int
+WiseOwl.Cobol.Runtime.OdoTail.RecordUnit.get -> int
+WiseOwl.Cobol.Runtime.OdoTail.Trailing.get -> int
+WiseOwl.Cobol.Runtime.OdoTail.Trailing.init -> void
+static WiseOwl.Cobol.Runtime.CobolVarGroup.Overlay(WiseOwl.Cobol.Runtime.CobolVarGroup! current, WiseOwl.Cobol.Runtime.CobolVarGroup! view, WiseOwl.Cobol.Runtime.GroupAtom![]! currentShape, WiseOwl.Cobol.Runtime.GroupAtom![]! viewShape, WiseOwl.Cobol.Runtime.ReceivingReferences? received) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
+static WiseOwl.Cobol.Runtime.UniversalGroupCarrier.WriteBackFixed(object? box, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal, string! image, WiseOwl.Cobol.Runtime.ReceivingReferences? received) -> object!
+static WiseOwl.Cobol.Runtime.UniversalGroupCarrier.WriteBackVariable(object? box, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal, WiseOwl.Cobol.Runtime.CobolVarGroup! carrier, WiseOwl.Cobol.Runtime.ReceivingReferences? received) -> object!
+static WiseOwl.Cobol.Runtime.ManagedPointer<T>.OverStorage(System.Func<T>! get, System.Action<T, WiseOwl.Cobol.Runtime.ReceivingReferences?>! store) -> WiseOwl.Cobol.Runtime.ManagedPointer<T>!
+WiseOwl.Cobol.Runtime.ManagedPointer<T>.Watch(WiseOwl.Cobol.Runtime.ManagedPointer! area) -> void
+WiseOwl.Cobol.Runtime.ReceivingReferences
+WiseOwl.Cobol.Runtime.ReceivingReferences.Within(int from, int to) -> bool
+WiseOwl.Cobol.Runtime.ReceivingReferences.From(int offset) -> WiseOwl.Cobol.Runtime.ReceivingReferences!
+WiseOwl.Cobol.Runtime.ReceivingReferences.Element(int component, int occurrence) -> WiseOwl.Cobol.Runtime.ReceivingReferences?
+WiseOwl.Cobol.Runtime.StorageCell.Received(long at, int width) -> void
+WiseOwl.Cobol.Runtime.StorageCell.Received(System.ReadOnlySpan<long> path, long at, int width) -> void
+static WiseOwl.Cobol.Runtime.CobolBits.Strided(string![]! occurrences, int stride, string! pads) -> string!
+static WiseOwl.Cobol.Runtime.CobolBits.StridePads(string! carrier, int at, int width, int stride, int count) -> string!
+static WiseOwl.Cobol.Runtime.CobolTable.OdoExtentTrimmed(WiseOwl.Cobol.Runtime.Occurrence count, int min, int max, int fixedUnits, int strideUnits, int trailingUnits) -> int
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.IntegerArgSaturatingReal(double v) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.IntegerArgUnboundedDec(WiseOwl.Cobol.Runtime.CobolDec v) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.IntegerArgSaturatingDec(WiseOwl.Cobol.Runtime.CobolDec v) -> System.Int128
+WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal
+WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.SortTerminationSignal(string! file, int action) -> void
+WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.File.get -> string!
+WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.Action.get -> int
+static WiseOwl.Cobol.Runtime.Exceptions.DispatchResult.CompletedNotNormally(int result) -> bool
+static WiseOwl.Cobol.Runtime.IO.CobolSort.AfterUseProcedure(object! useScope, int action) -> int
+static WiseOwl.Cobol.Runtime.IO.CobolSort.RegisterFormat1Sort(string! name, object? useScope) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolSort.UseProcedureExited(object! useScope) -> bool
+static WiseOwl.Cobol.Runtime.IO.CobolSort.AfterActivationReturn() -> void
+static WiseOwl.Cobol.Runtime.IO.CobolSort.TakeActivationReturnTermination() -> string?
+static WiseOwl.Cobol.Runtime.IO.CobolSort.TerminateAfterActivation(string? terminated) -> void
+static WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.EndsActivation(ref bool ended) -> bool
+const WiseOwl.Cobol.Runtime.ActivationCategory.FigurativeBoolean = "figurative-boolean" -> string!
+static WiseOwl.Cobol.Runtime.MoveValidity.FigurativeRefusal(WiseOwl.Cobol.Runtime.FigurativeSender sender, WiseOwl.Cobol.Runtime.Table16Category receiver) -> string?
+const WiseOwl.Cobol.Runtime.ActivationCategory.FigurativeSpace = "figurative-space" -> string!
+static WiseOwl.Cobol.Runtime.ActivationCategory.OfFigurative(WiseOwl.Cobol.Runtime.FigurativeSender sender) -> string!
+static WiseOwl.Cobol.Runtime.ActivationCategory.FigurativeSenderOf(string? category) -> WiseOwl.Cobol.Runtime.FigurativeSender?
+WiseOwl.Cobol.Runtime.FigurativeSender
+WiseOwl.Cobol.Runtime.FigurativeSender.Other = 0 -> WiseOwl.Cobol.Runtime.FigurativeSender
+WiseOwl.Cobol.Runtime.FigurativeSender.Zero = 1 -> WiseOwl.Cobol.Runtime.FigurativeSender
+WiseOwl.Cobol.Runtime.FigurativeSender.Space = 2 -> WiseOwl.Cobol.Runtime.FigurativeSender
+WiseOwl.Cobol.Runtime.FigurativeSender.BooleanCharacters = 3 -> WiseOwl.Cobol.Runtime.FigurativeSender
+WiseOwl.Cobol.Runtime.ActivationDescription.ObjectNameIsParameter.get -> bool
+WiseOwl.Cobol.Runtime.ActivationDescription.ObjectNameIsParameter.init -> void
+static WiseOwl.Cobol.Runtime.ActivationRelations.SignatureDifference(WiseOwl.Cobol.Runtime.ActivationDescription! first, WiseOwl.Cobol.Runtime.ActivationDescription! second, string! firstRole = "item", string! secondRole = "corresponding item") -> string?
+WiseOwl.Cobol.Runtime.IO.FileConnector.StartPositioned() -> string!
+WiseOwl.Cobol.Runtime.IO.FileConnector.Unsuccessful(string! status) -> string!
+WiseOwl.Cobol.Runtime.IO.KeySegment
+WiseOwl.Cobol.Runtime.IO.KeySegment.Deconstruct(out int Offset, out int Length, out WiseOwl.Cobol.Runtime.CobolContiguousLayout? Layout) -> void
+WiseOwl.Cobol.Runtime.IO.KeySegment.Equals(WiseOwl.Cobol.Runtime.IO.KeySegment other) -> bool
+WiseOwl.Cobol.Runtime.IO.KeySegment.KeySegment() -> void
+WiseOwl.Cobol.Runtime.IO.KeySegment.KeySegment(int Offset, int Length, WiseOwl.Cobol.Runtime.CobolContiguousLayout? Layout = null) -> void
+WiseOwl.Cobol.Runtime.IO.KeySegment.Layout.get -> WiseOwl.Cobol.Runtime.CobolContiguousLayout?
+WiseOwl.Cobol.Runtime.IO.KeySegment.Layout.init -> void
+WiseOwl.Cobol.Runtime.IO.KeySegment.Length.get -> int
+WiseOwl.Cobol.Runtime.IO.KeySegment.Length.init -> void
+WiseOwl.Cobol.Runtime.IO.KeySegment.Offset.get -> int
+WiseOwl.Cobol.Runtime.IO.KeySegment.Offset.init -> void
+override WiseOwl.Cobol.Runtime.IO.KeySegment.GetHashCode() -> int
+static WiseOwl.Cobol.Runtime.IO.KeySegment.operator !=(WiseOwl.Cobol.Runtime.IO.KeySegment left, WiseOwl.Cobol.Runtime.IO.KeySegment right) -> bool
+static WiseOwl.Cobol.Runtime.IO.KeySegment.operator ==(WiseOwl.Cobol.Runtime.IO.KeySegment left, WiseOwl.Cobol.Runtime.IO.KeySegment right) -> bool
+~override WiseOwl.Cobol.Runtime.IO.KeySegment.Equals(object obj) -> bool
+~override WiseOwl.Cobol.Runtime.IO.KeySegment.ToString() -> string
+WiseOwl.Cobol.Runtime.HostLanding
+static WiseOwl.Cobol.Runtime.CobolBits.WriteWindowInto(char[]! buffer, int startBit, string! bits) -> void
+static WiseOwl.Cobol.Runtime.HostLanding.RequireImage(string? image, int width, string! parameter) -> string!
+static WiseOwl.Cobol.Runtime.HostLanding.Dec(System.Int128 unscaled, int scale) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.HostLanding.Decimal(System.Int128 unscaled, int scale) -> decimal
+static WiseOwl.Cobol.Runtime.HostLanding.Integer(System.Int128 unscaled, int scale) -> System.Int128
+static WiseOwl.Cobol.Runtime.HostLanding.Land(WiseOwl.Cobol.Runtime.CobolDec value, in WiseOwl.Cobol.Runtime.NumProfile formal, string! parameter, string? member) -> System.Int128
+static WiseOwl.Cobol.Runtime.HostLanding.Land(System.Int128 value, in WiseOwl.Cobol.Runtime.NumProfile formal, string! parameter, string? member) -> System.Int128
+static WiseOwl.Cobol.Runtime.HostLanding.Land(System.UInt128 value, in WiseOwl.Cobol.Runtime.NumProfile formal, string! parameter, string? member) -> System.Int128
+static WiseOwl.Cobol.Runtime.HostLanding.Land(decimal value, in WiseOwl.Cobol.Runtime.NumProfile formal, string! parameter, string? member) -> System.Int128
+static WiseOwl.Cobol.Runtime.HostLanding.Land(long value, in WiseOwl.Cobol.Runtime.NumProfile formal, string! parameter, string? member) -> System.Int128
+static WiseOwl.Cobol.Runtime.HostLanding.LandedOccurrences(string! image, in WiseOwl.Cobol.Runtime.NumProfile depending, int minimum, int maximum, string! parameter, string! member, string! dependingName) -> int
+static WiseOwl.Cobol.Runtime.HostLanding.LandText(string? value, int positions, bool justified, bool boolean, string! parameter, string? member) -> string!
+static WiseOwl.Cobol.Runtime.HostLanding.LandVariable(string? value, int maximum, bool boolean, string! parameter, string? member) -> string!
+static WiseOwl.Cobol.Runtime.HostLanding.RequireOccurrences<T>(T[]? array, long occurrences, int minimum, int maximum, string! parameter, string! member) -> T[]!
+static WiseOwl.Cobol.Runtime.HostLanding.RequireDistinct(bool sameVariable, string! first, string! second) -> void
+static WiseOwl.Cobol.Runtime.HostLanding.TryOccurrences(string! image, in WiseOwl.Cobol.Runtime.NumProfile depending, int minimum, int maximum, string! member, string! dependingName, ref System.FormatException? failure, out int occurrences) -> bool
+static WiseOwl.Cobol.Runtime.HostLanding.TryDecode(string? image, in WiseOwl.Cobol.Runtime.NumProfile item, string! name, ref System.FormatException? failure, out System.Int128 unscaled) -> bool
+static WiseOwl.Cobol.Runtime.HostLanding.TryDec(System.UInt128 unscaled, int scale, string! name, ref System.FormatException? failure, out WiseOwl.Cobol.Runtime.CobolDec value) -> bool
+static WiseOwl.Cobol.Runtime.HostLanding.RequireCapacity<T>(T[]? array, int minimum, string! parameter, string! member) -> T[]!
+static WiseOwl.Cobol.Runtime.CobolVarGroup.RunOf(string! window, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynTable) -> string!
+static WiseOwl.Cobol.Runtime.CobolVarGroup.WindowOf(string! run, string! window, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynTable) -> string!
+WiseOwl.Cobol.Runtime.CobolDynTable<T>.CopyOf(System.Func<T, T>! copyElement) -> WiseOwl.Cobol.Runtime.CobolDynTable<T>!
+WiseOwl.Cobol.Runtime.CobolDynTable<T>.Recreated<TPart>(System.Collections.Generic.IReadOnlyList<TPart>! parts, TPart blank, System.Func<T, TPart, T>! store) -> WiseOwl.Cobol.Runtime.CobolDynTable<T>!
+static WiseOwl.Cobol.Runtime.IO.FileLockPosture.AdmitsAnotherRunUnit(System.IO.FileShare share) -> bool
+static WiseOwl.Cobol.Runtime.IO.FileLockPosture.WhenOwedWritesAreAdmitted(WiseOwl.Cobol.Runtime.IO.FileSharing sharing) -> System.IO.FileShare
+override sealed WiseOwl.Cobol.Runtime.IO.KeyedConnector.AbandonOpen() -> void
+override sealed WiseOwl.Cobol.Runtime.IO.KeyedConnector.CloseCore() -> string!
+override sealed WiseOwl.Cobol.Runtime.IO.KeyedConnector.InvalidateFilePosition() -> void
+override sealed WiseOwl.Cobol.Runtime.IO.KeyedConnector.OpenCore(WiseOwl.Cobol.Runtime.IO.FileOpenMode mode, WiseOwl.Cobol.Runtime.IO.FilePresence presence) -> string!
+WiseOwl.Cobol.Runtime.IO.FileRegistry.RegisterCommitControl(string! name) -> void
+WiseOwl.Cobol.Runtime.IO.FileRegistry.Commit() -> string?
+WiseOwl.Cobol.Runtime.IO.FileRegistry.Rollback() -> string?
+WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowApplyCommit -> bool
+WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowCommit -> bool
+WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowRollback -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitChecking.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitChecking.set -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowApplyCommitError(string! detail) -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowCommitChecking.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowCommitChecking.set -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowCommitError(string! detail) -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackChecking.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackChecking.set -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.FlowRollbackError(string! detail) -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.get -> bool
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking.set -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowCommitChecking.get -> bool
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowCommitChecking.set -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.get -> bool
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.set -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.ActivateApplyCommit(object! owner, string![]! keyedFiles, System.Action! save, System.Action! restore, System.Func<string!, bool>! storeStatus) -> bool
+static WiseOwl.Cobol.Runtime.IO.CobolFile.Commit() -> string?
+static WiseOwl.Cobol.Runtime.IO.CobolFile.RetireApplyCommit(object! owner) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.Rollback() -> string?
+static WiseOwl.Cobol.Runtime.IO.CobolFile.RollbackDueOnFatal(string! name, bool checkingEnabled) -> bool
+static WiseOwl.Cobol.Runtime.IO.CobolFile.RollbackOnFatal() -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.TerminateOnRefusalWithoutStatusItem(string! name, string! statement) -> void
+static WiseOwl.Cobol.Runtime.CobolNum.DisplayDecimal(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile receiver, bool commaMode) -> string!
+static WiseOwl.Cobol.Runtime.CobolNum.DisplayDecimal(string! image, in WiseOwl.Cobol.Runtime.NumProfile receiver, bool commaMode) -> string!
+static WiseOwl.Cobol.Runtime.CobolNum.DisplayDecimalU(System.UInt128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile receiver, bool commaMode) -> string!
+static WiseOwl.Cobol.Runtime.CobolNum.ParseDeviceDecimal(string! window, in WiseOwl.Cobol.Runtime.NumProfile receiver, bool commaMode) -> System.Int128
+static WiseOwl.Cobol.Runtime.AcceptSource.DeviceNumeric(in WiseOwl.Cobol.Runtime.NumProfile receiver, int size, bool commaMode) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolWide.DivTruncated(WiseOwl.Cobol.Runtime.CobolWide a, int aScale, WiseOwl.Cobol.Runtime.CobolWide b, int bScale, int resultScale) -> WiseOwl.Cobol.Runtime.CobolWide
+static WiseOwl.Cobol.Runtime.CobolDec.DivTruncatedToOdd(WiseOwl.Cobol.Runtime.CobolDec a, WiseOwl.Cobol.Runtime.CobolDec b, int scale) -> WiseOwl.Cobol.Runtime.CobolDec
+WiseOwl.Cobol.Runtime.CobolDecWithPrecision
+WiseOwl.Cobol.Runtime.CobolDecWithPrecision.CobolDecWithPrecision() -> void
+WiseOwl.Cobol.Runtime.CobolDecWithPrecision.CobolDecWithPrecision(WiseOwl.Cobol.Runtime.CobolDec Value, int Precision) -> void
+WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Deconstruct(out WiseOwl.Cobol.Runtime.CobolDec Value, out int Precision) -> void
+WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Equals(WiseOwl.Cobol.Runtime.CobolDecWithPrecision other) -> bool
+WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Precision.get -> int
+WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Precision.init -> void
+WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Value.get -> WiseOwl.Cobol.Runtime.CobolDec
+WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Value.init -> void
+override WiseOwl.Cobol.Runtime.CobolDecWithPrecision.GetHashCode() -> int
+~override WiseOwl.Cobol.Runtime.CobolDecWithPrecision.ToString() -> string
+static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.operator !=(WiseOwl.Cobol.Runtime.CobolDecWithPrecision left, WiseOwl.Cobol.Runtime.CobolDecWithPrecision right) -> bool
+static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.operator ==(WiseOwl.Cobol.Runtime.CobolDecWithPrecision left, WiseOwl.Cobol.Runtime.CobolDecWithPrecision right) -> bool
+static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Own(WiseOwl.Cobol.Runtime.CobolDec value) -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
+static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Add(WiseOwl.Cobol.Runtime.CobolDecWithPrecision a, WiseOwl.Cobol.Runtime.CobolDecWithPrecision b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
+static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Sub(WiseOwl.Cobol.Runtime.CobolDecWithPrecision a, WiseOwl.Cobol.Runtime.CobolDecWithPrecision b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
+static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Mul(WiseOwl.Cobol.Runtime.CobolDecWithPrecision a, WiseOwl.Cobol.Runtime.CobolDecWithPrecision b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
+static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Negate(WiseOwl.Cobol.Runtime.CobolDecWithPrecision a) -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
+static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.DivTruncatedToOdd(WiseOwl.Cobol.Runtime.CobolDecWithPrecision a, WiseOwl.Cobol.Runtime.CobolDecWithPrecision b, int receiverScale) -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
+static WiseOwl.Cobol.Runtime.CobolDec.FractionDigits(WiseOwl.Cobol.Runtime.CobolDec value) -> int
+static WiseOwl.Cobol.Runtime.CobolDec.Negate(WiseOwl.Cobol.Runtime.CobolDec value) -> WiseOwl.Cobol.Runtime.CobolDec
+const WiseOwl.Cobol.Runtime.CobolNum.NestedQuotientGuardDigits = 14 -> int
+static WiseOwl.Cobol.Runtime.CobolNum.NestedQuotientScale(int receiverScale, int precision) -> int
+~override WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Equals(object obj) -> bool
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolDec.FromDouble(double d) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolDec.FromApproximation(double d) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolDec.FromBinary64(double d, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec
+*REMOVED*WiseOwl.Cobol.Runtime.MoveSending.Binary64.get -> double
+WiseOwl.Cobol.Runtime.MoveSending.ExactValue.get -> WiseOwl.Cobol.Runtime.CobolDec
+*REMOVED*WiseOwl.Cobol.Runtime.MoveSending.Deconstruct(out string! Characters, out bool Group, out bool Fill, out bool Numeric, out System.Int128 Unscaled, out int Scale, out double? Real, out string? StorageImage) -> void
+*REMOVED*WiseOwl.Cobol.Runtime.MoveSending.MoveSending(string! Characters, bool Group = false, bool Fill = false, bool Numeric = false, System.Int128 Unscaled = default(System.Int128), int Scale = 0, double? Real = null, string? StorageImage = null) -> void
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolArgAdapt.WithValueSending(WiseOwl.Cobol.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null) -> WiseOwl.Cobol.Runtime.CobolArg
+WiseOwl.Cobol.Runtime.MoveSending.Approximate.get -> bool
+WiseOwl.Cobol.Runtime.MoveSending.Approximate.init -> void
+WiseOwl.Cobol.Runtime.MoveSending.Deconstruct(out string! Characters, out bool Group, out bool Fill, out bool Numeric, out System.Int128 Unscaled, out int Scale, out double? Real, out string? StorageImage, out bool Approximate) -> void
+WiseOwl.Cobol.Runtime.MoveSending.MoveSending(string! Characters, bool Group = false, bool Fill = false, bool Numeric = false, System.Int128 Unscaled = default(System.Int128), int Scale = 0, double? Real = null, string? StorageImage = null, bool Approximate = false) -> void
+static WiseOwl.Cobol.Runtime.CobolArgAdapt.WithValueSending(WiseOwl.Cobol.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null, bool approximate = false) -> WiseOwl.Cobol.Runtime.CobolArg
+WiseOwl.Cobol.Runtime.OverlappingMove
+static WiseOwl.Cobol.Runtime.OverlappingMove.AlphanumericToDisplay(string! sender, string! receiver, int receiverAt, in WiseOwl.Cobol.Runtime.NumProfile to, bool decimalPointIsComma) -> string!
+static WiseOwl.Cobol.Runtime.OverlappingMove.DisplayToDisplay(string! sender, string! receiver, int receiverAt, in WiseOwl.Cobol.Runtime.NumProfile from, in WiseOwl.Cobol.Runtime.NumProfile to) -> string!
+static WiseOwl.Cobol.Runtime.OverlappingMove.DisplayToPacked(string! sender, string! receiver, int receiverAt, in WiseOwl.Cobol.Runtime.NumProfile from, in WiseOwl.Cobol.Runtime.NumProfile to) -> string!
+static WiseOwl.Cobol.Runtime.OverlappingMove.PackedToDisplay(string! sender, string! receiver, int receiverAt, in WiseOwl.Cobol.Runtime.NumProfile from, in WiseOwl.Cobol.Runtime.NumProfile to) -> string!
+static WiseOwl.Cobol.Runtime.CobolNum.GroupDigits(string! text) -> string!
+const WiseOwl.Cobol.Runtime.ActivationDescription.ExternalRestrictionPrefix = "EXTERNAL TO " -> string!
+static WiseOwl.Cobol.Runtime.ActivationDescription.IsExternalRestriction(string! clauses) -> bool
+static WiseOwl.Cobol.Runtime.CobolBool.FromCharacters(string? v) -> string!
+static WiseOwl.Cobol.Runtime.CobolBool.Store(string? value, int width, bool justifiedRight) -> string!
+static WiseOwl.Cobol.Runtime.CobolArgAdapt.SdidiValue(WiseOwl.Cobol.Runtime.CobolPassMode mode, WiseOwl.Cobol.Runtime.CobolDec value, WiseOwl.Cobol.Runtime.SignEncoding signEncoding) -> WiseOwl.Cobol.Runtime.CobolArg
+static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassReturningViolation(WiseOwl.Cobol.Runtime.ActivationDescription! receiving, WiseOwl.Cobol.Runtime.ActivationDescription! sending) -> string?
+static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassReturning(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! receiving, WiseOwl.Cobol.Runtime.ActivationDescription! sending) -> void
+static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassFormalViolation(WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> string?
+static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassFormal(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> void

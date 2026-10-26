@@ -7,10 +7,10 @@ related_files:
   - DEVLOG/README.md
   - PROMPT.md
   - CLAUDE.md
-  - docs/COBOLNET_DESIGN.md
+  - docs/DESIGN.md
   - README.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - context
 ---
 
@@ -20,20 +20,20 @@ The narrative record is [[DEVLOG]] (2.6 MB, **DESCENDING** — newest entry firs
 since every other doc reads as current state). See [[kb/Context/Doctrine & Anti-Patterns]].
 
 ## The arc
-The project began as **CobolSharp**, a COBOL→.NET compiler built around a byte `ProgramState` substrate with a phased
+The project began as **WiseOwl COBOL**, a COBOL→.NET compiler built around a byte `ProgramState` substrate with a phased
 pipeline (grammar → semantics → bound tree → IR lowering → CIL emission → runtime), validated against the NIST CCVS
 COBOL-85 suite. That era's scaffolding survives in the `create-*.ps1` scripts (phases 0–21, IR-lowering agents,
 ~75% grammar coverage, ~75% NIST passing). See [[kb/Modernization/Audit Artifacts]].
 
 ## The 2026-06-08 owner-directed PIVOT
-The owner reframed the effort as a blank-slate, spec-first rewrite → **COBOL.NET** (compiler `cobol.exe`,
-`src/Cobol.Net.*`): COBOL translated to **idiomatic, typed-native C#** compiled by Roslyn — a COBOL record IS a .NET
+The owner reframed the effort as a blank-slate, spec-first rewrite → **WiseOwl COBOL** (compiler `cobol.exe`,
+`src/WiseOwl.Cobol.*`): COBOL translated to **idiomatic, typed-native C#** compiled by Roslyn — a COBOL record IS a .NET
 `record struct`, an elementary item IS a native field, numerics are native scaled integers. **There is NO byte
 substrate; the legacy engine is deleted from `main` (P15 Cut 2).** The
 PROMPT.md non-negotiable rules were "repeatedly corrected 2026-06-08." See [[kb/Architecture/High-Level Design]].
 
 ## The G0–G8 greenfield build order
-Drives the rearchitecture (design SSOT [[docs/COBOLNET_DESIGN]]): bound-tree pipeline with no lowered IR, `Place`
+Drives the rearchitecture (design SSOT [[docs/DESIGN]]): bound-tree pipeline with no lowered IR, `Place`
 lvalue, PC-dispatcher control flow, then REDEFINES, files, OO, EC, intrinsics — culminating in G8, the legacy
 retirement/cut-over (P15). See [[kb/Modernization/Tasks]].
 
@@ -48,7 +48,7 @@ records blast radius + gate results.
 > note."*
 
 ## Key concepts
-- CobolSharp (the legacy byte-array engine, NIST-oracle era) → **2026-06-08 pivot** → COBOL.NET (typed-native, spec-first).
+- WiseOwl COBOL (the legacy byte-array engine, NIST-oracle era) → **2026-06-08 pivot** → WiseOwl COBOL (typed-native, spec-first).
 - DEVLOG/ is the ONLY historical doc: one file per entry, rendered newest first by `scripts/devlog.py render`; real date+time header stamps, completed at the landing by `devlog.py stamp`; one entry per landing on main (kb/Work PB2605, PB3025).
 - Legacy compiler survives only as a differential oracle until G8/P15 cut-over.
 - Doctrine sources: [[PROMPT]], [[CLAUDE]], [[CONSTRAINTS]].

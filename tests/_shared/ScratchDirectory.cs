@@ -3,7 +3,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
 /// ⛔ THE ONE WAY A TEST MAKES AND REMOVES A SCRATCH DIRECTORY (kb/Work PB3194, review R1-2): <see cref="Create"/>,
@@ -15,14 +15,14 @@ namespace CobolNet.Tests.Shared;
 /// said nothing, and three things made it fail: a test that loaded the program it compiled into the test host
 /// (<c>AssemblyLoadContext.Default.LoadFromAssemblyPath</c>, <c>Assembly.LoadFrom</c>), which maps the file until the
 /// process ends, so Windows refuses its delete; a read-only entry; and a test host the gate ends at its first red, which
-/// runs no cleanup at all. 16,096 <c>CobolNet_Tests_*</c> directories had piled up in one host's temp directory by
+/// runs no cleanup at all. 16,096 <c>WiseOwlCobol_Tests_*</c> directories had piled up in one host's temp directory by
 /// 2026-10-23, nearly every one holding the one program a witness test had loaded. It is the C# twin of the Python
 /// self-tests' <c>rmtree(ignore_errors=True)</c> that <c>scripts/scratch_repo.py</c>'s <c>remove_tree</c> and
 /// <c>scratch_dir</c> replaced, and this class follows the same rules.</para>
 ///
 /// <para><b>The mechanism.</b>
 /// <list type="bullet">
-///   <item>Every scratch directory lives under ONE directory per test host, <c>&lt;temp&gt;/cobolnet-tests/&lt;pid&gt;-&lt;id&gt;</c>,
+///   <item>Every scratch directory lives under ONE directory per test host, <c>&lt;temp&gt;/wiseowl-cobol-tests/&lt;pid&gt;-&lt;id&gt;</c>,
 ///     beside a lock file of the same name, <c>&lt;pid&gt;-&lt;id&gt;.lock</c>, which the host holds open exclusively
 ///     for as long as it runs. The operating system releases that lock when the process ends, however it ends, so
 ///     "this host has ended" is the lock being free: no process id or start time is compared, and a reused pid cannot
@@ -42,7 +42,7 @@ namespace CobolNet.Tests.Shared;
 public static class ScratchDirectory
 {
     /// <summary>The directory that holds every test host's directory and lock file.</summary>
-    public static string HostsRoot { get; } = Path.Combine(Path.GetTempPath(), "cobolnet-tests");
+    public static string HostsRoot { get; } = Path.Combine(Path.GetTempPath(), "wiseowl-cobol-tests");
 
     private const string LockSuffix = ".lock";
 

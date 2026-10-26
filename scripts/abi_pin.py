@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """abi_pin.py — THE RUNTIME ABI PIN, a file nobody edits by hand (kb/Work PB3610; docs/rearchitecture/DESIGN-external-repository.md
-section 15.4; tests/Cobol.Net.Tests.Unit/RuntimeAbiPinDriftTests.cs).
+section 15.4; tests/WiseOwl.Cobol.Tests.Unit/RuntimeAbiPinDriftTests.cs).
 
     python scripts/abi_pin.py bump --runtime-major     # an incompatible change to PublicAPI.Shipped.txt or a codec's image
     python scripts/abi_pin.py bump --call-abi          # a compiler-side change to what crosses a CALL (RuntimeAbi.CallAbi)
@@ -8,7 +8,7 @@ section 15.4; tests/Cobol.Net.Tests.Unit/RuntimeAbiPinDriftTests.cs).
     python scripts/abi_pin.py settle [--stage]         # what the merge does when the pin says UNMEASURED
     python scripts/abi_pin.py --self-test
 
-THE PIN (`src/Cobol.Net.Runtime/RuntimeAbi.pin`): the runtime major and the hash of what it guards (the shipped public
+THE PIN (`src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin`): the runtime major and the hash of what it guards (the shipped public
 surface and the codecs' images), the call ABI and the hash of the boundary-layout fixture's compiler-side decisions.
 `RuntimeAbiPinDriftTests` re-measures all four and is red when the tree's measurement is not the pin.
 
@@ -19,7 +19,7 @@ to 2026-10-24), and the resolution is never a line edit: the merged tree has its
 its own major (a finisher's merge, 2026-10-24: "main's 17 shipped AnnuityDec(CobolRounding, CobolDec, long), so the merged
 surface is an incompatible change against main's 17: major 18"). So:
   - an author runs `bump` or `repin`, which edits the three places a number lives and has the test WRITE the measurement
-    (`COBOLNET_WRITE_ABI_PIN=1`, as `COBOLNET_WRITE_DIAGNOSTICS_DOC=1` writes the diagnostics doc);
+    (`WISEOWL_COBOL_WRITE_ABI_PIN=1`, as `WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1` writes the diagnostics doc);
   - the merge driver (merge_drivers.py, `cobol-abi-pin`) adds the counters two branches each raised (base + both
     increments) and marks the hashes UNMEASURED, and `merge_drivers.merge` runs `settle` before it makes the merge
     commit: the numbers are written into `Directory.Build.props` and `RuntimeAbi.cs`, and the test measures the merged
@@ -46,9 +46,9 @@ sys.path.insert(0, str(HERE))
 from test_population import scrubbed_env  # noqa: E402  (scripts/: the gate-environment scrub, kb/Work PB1718)
 from standard_streams import ensure_utf8  # noqa: E402
 
-PIN_PATH = "src/Cobol.Net.Runtime/RuntimeAbi.pin"
+PIN_PATH = "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin"
 PROPS_PATH = "Directory.Build.props"
-CALL_ABI_PATH = "src/Cobol.Net.Runtime/Control/RuntimeAbi.cs"
+CALL_ABI_PATH = "src/WiseOwl.Cobol.Runtime/Control/RuntimeAbi.cs"
 #: The files `settle` writes: the review's coverage rule (prune_worktrees.mechanical) accepts a merge commit whose tree
 #: differs from the drivers' own merge in these and nowhere else.
 OWNED = (PIN_PATH, PROPS_PATH, CALL_ABI_PATH)
@@ -56,8 +56,8 @@ UNMEASURED = "UNMEASURED"
 COUNTERS = ("runtime-major", "call-abi")
 HASHES = ("runtime-hash", "boundary-hash")
 KEYS = ("runtime-major", "runtime-hash", "call-abi", "boundary-hash")
-WRITE_VARIABLE = "COBOLNET_WRITE_ABI_PIN"
-TEST_PROJECT = "tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj"
+WRITE_VARIABLE = "WISEOWL_COBOL_WRITE_ABI_PIN"
+TEST_PROJECT = "tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj"
 TEST_FILTER = "FullyQualifiedName~RuntimeAbiPinDriftTests"
 NL = chr(10)
 _VERSION = re.compile(r"(<Version>)(\d+)(\.0\.0</Version>)")

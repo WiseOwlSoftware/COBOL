@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-namespace CobolNet.Tools.ArchCensus;
+namespace WiseOwl.Cobol.Tools.ArchCensus;
 
 /// <summary>
 /// Reachability, MEASURED (engineering-standards: never deduced). A census member is reachable when authored or

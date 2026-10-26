@@ -8,13 +8,13 @@ related_files:
   - PROMPT.md
   - CLAUDE.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - context
 ---
 
 # Doctrine & Anti-Patterns
 
-The engineering doctrine governing COBOL.NET's development, from [[CONSTRAINTS]] + [[PROMPT]]. Every rule exists
+The engineering doctrine governing WiseOwl COBOL's development, from [[CONSTRAINTS]] + [[PROMPT]]. Every rule exists
 because it was violated and corrected. Complements the process rules in [[kb/Context/Goals]].
 
 ## Anti-pattern catalog (must actively search for & correct)

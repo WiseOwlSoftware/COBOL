@@ -14,7 +14,7 @@
 *> conformance-suite/cases/13.18.63-VALUE/pb557_pointer_class_initial_value_is_null pins. (COBOL2168)
 *> MEASURED BEFORE: rc=70 with no COBOL diagnostic at all - the raw literal text reached the record-struct
 *> initializer and Roslyn reported `CS0029: Cannot implicitly convert type 'string' to
-*> 'CobolNet.Runtime.ManagedPointer'`, naming a generated .g.cs file.
+*> 'WiseOwl.Cobol.Runtime.ManagedPointer'`, naming a generated .g.cs file.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB557PTRNULL.
 DATA DIVISION.

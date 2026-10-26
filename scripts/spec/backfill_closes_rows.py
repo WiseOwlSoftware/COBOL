@@ -276,7 +276,7 @@ def self_test() -> int:
 
     # ── writing the field ────────────────────────────────────────────────────────────────────────────
     note = ('---\ntitle: "PB9 — x"\nid: PB9\nstatus: landed\ninventory_rows: ["GR-1.1-1"]\n'
-            'tags: [cobolsharp, work, defect]\n---\n\n# PB9\n\nbody\n')
+            'tags: [wiseowl-cobol, work, defect]\n---\n\n# PB9\n\nbody\n')
     once = insert_field(note, field_lines(["AR-15.7.3-1"]))
     parsed = work.parse_frontmatter(once)
     check("the field is written where a reader finds it — after inventory_rows",

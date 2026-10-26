@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.Json.Serialization;
 
-namespace CobolNet.Tools.ArchCensus;
+namespace WiseOwl.Cobol.Tools.ArchCensus;
 
 /// <summary>
 /// The host's whole output: compiler FACTS about the solution, written once as JSON for

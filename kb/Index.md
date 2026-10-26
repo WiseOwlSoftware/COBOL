@@ -1,27 +1,27 @@
 ---
-title: COBOL.NET — Knowledge Base Index
+title: WiseOwl COBOL — Knowledge Base Index
 area: index
 status: draft
 last_updated: 2026-07-23
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - index
 ---
 
-# COBOL.NET — Knowledge Base
+# WiseOwl COBOL — Knowledge Base
 > ⚠️ **Role: derived navigational layer — NOT authoritative.** This vault is a paraphrased "second brain" over
-> `docs/*` and the source. The canonical SSOTs are the repo docs (design → [[docs/COBOLNET_DESIGN]]; plan →
-> [[docs/COBOLNET_REARCHITECTURE_PLAN]] §0; map → [[docs/DOC_INDEX]]). **When a note and a doc disagree, the doc
+> `docs/*` and the source. The canonical SSOTs are the repo docs (design → [[docs/DESIGN]]; plan →
+> [[docs/REARCHITECTURE_PLAN]] §0; map → [[docs/DOC_INDEX]]). **When a note and a doc disagree, the doc
 > wins.** No verbatim ISO/IEC 1989:2023 text lives here (it stays in the private [[specs/ISO_COBOL]] submodule).
 > Notes are best-effort with a `last_updated` stamp — refresh, don't diverge. Tracking & docs-integration setup:
 > [[kb/Context/Vault & Docs Integration]].
 
-> A cross-linked "second brain" for the **CobolSharp / COBOL.NET** compiler: a commercial-quality,
+> A cross-linked "second brain" for the **WiseOwl COBOL / WiseOwl COBOL** compiler: a commercial-quality,
 > decades-sustainable COBOL compiler that translates standard COBOL into **idiomatic, typed-native C#**
 > compiled by **Roslyn** into a .NET assembly. Built from the **ISO/IEC 1989:2023** specification with
 > correct support for all prior editions (**1985 / 2002 / 2014**).
 
-**Repo root:** `E:\CobolSharp\`  ·  **Design SSOT:** [[docs/COBOLNET_DESIGN]]  ·  **The one plan:** [[docs/COBOLNET_REARCHITECTURE_PLAN]] §0
+**Repo root:** `E:\COBOL\`  ·  **Design SSOT:** [[docs/DESIGN]]  ·  **The one plan:** [[docs/REARCHITECTURE_PLAN]] §0
 
 ---
 

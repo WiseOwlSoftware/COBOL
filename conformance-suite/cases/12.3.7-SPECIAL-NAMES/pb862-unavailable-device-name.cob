@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB862 - ISO 12.3.7.3 SR8: "The implementor shall specify the names that are available for
-      *> switch-name-1, feature-name-1, and device-name-1."  COBOL.NET specifies them in ONE table
+      *> switch-name-1, feature-name-1, and device-name-1."  WiseOwl COBOL specifies them in ONE table
       *> (Binding/ImplementorNames.cs; docs/CONFORMANCE.md section 7, A.1 items 189/190/191) and CONSOEL is not
       *> one of them.  Before the table this entry compiled and registered PRT as the mnemonic of a device
       *> named CONSOEL; the typo surfaced only at the DISPLAY that used it, as a device "not capable of

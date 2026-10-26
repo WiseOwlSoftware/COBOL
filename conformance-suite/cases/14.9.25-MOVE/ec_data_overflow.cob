@@ -13,7 +13,7 @@
       *>
       *> The rule binds a receiver "described with a standard floating-point usage" — FLOAT-BINARY-32/-64 here
       *> (§13.18.60.4 GR14/GR15).  For COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED §14.6.8.3 rule 1 leaves the
-      *> conversion exceptions to the implementor, and COBOL.NET's determination is the SAME condition — one
+      *> conversion exceptions to the implementor, and WiseOwl COBOL's determination is the SAME condition — one
       *> rule for every float receiver (CONFORMANCE.md §7).
       *>
       *> ⛔ R4-R7 EXIST BECAUSE THE DOUBLE ARM WAS NOT CHECKED AT ALL (kb/Work PB271).  This header used to say

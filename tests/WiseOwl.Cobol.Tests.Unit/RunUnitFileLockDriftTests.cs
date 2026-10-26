@@ -1,0 +1,161 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Runtime.IO;
+using WiseOwl.Cobol.Tests.Shared;
+using Xunit;
+
+namespace WiseOwl.Cobol.Tests.Unit;
+
+/// <summary>
+/// ⛔ A SECOND RUN UNIT IS ARBITRATED BY TABLE 19 TOO (kb/Work PB833). ISO §9.1.15: <i>"The successful opening of a
+/// file establishes a file lock for the applicable sharing rules, thereby preventing other run units from opening
+/// that file with incompatible sharing rules."</i> The "applicable sharing rules" are rules 1)–3), which Table 19
+/// prints cell by cell, so for EVERY (sharing mode × open mode) on the existing side crossed with every one on the
+/// incoming side the second run unit's OPEN shall answer exactly what the in-run-unit arbiter answers: '61' where
+/// <c>Table19.Conflicts</c> refuses, a success-family status where it permits.
+/// <para>A second <see cref="FileRegistry"/> IS a second run unit here: it shares nothing with the first — not the
+/// <c>PhysicalFileTable</c>, so Table 19's in-memory arbitration cannot be what answers, and not a host handle,
+/// so a host share mode cannot be what answers for the host that cannot express the rule — and the file lock is
+/// the only thing standing between them.</para>
+/// </summary>
+[Trait("Host", "ReFS")]
+public sealed class RunUnitFileLockDriftTests
+{
+    public static TheoryData<FileSharing?, FileOpenMode, FileSharing?, FileOpenMode, FileOrg> EveryPair()
+    {
+        var data = new TheoryData<FileSharing?, FileOpenMode, FileSharing?, FileOpenMode, FileOrg>();
+        FileSharing?[] spellings = [null, FileSharing.NoOther, FileSharing.ReadOnly, FileSharing.AllOther];
+        foreach (var org in Enum.GetValues<FileOrg>())
+            foreach (var sa in spellings)
+                foreach (var ma in Enum.GetValues<FileOpenMode>())
+                    foreach (var sb in spellings)
+                        foreach (var mb in Enum.GetValues<FileOpenMode>())
+                            data.Add(sa, ma, sb, mb, org);
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(EveryPair))]
+    public void ASecondRunUnitsOpenIsArbitratedByTable19(FileSharing? sa, FileOpenMode ma, FileSharing? sb,
+        FileOpenMode mb, FileOrg org)
+    {
+        string host = FileHarness.Tmp($"{org}-{sa}{ma}-{sb}{mb}");
+        try
+        {
+            FileHarness.Seed(host, org, ["SEED"]);
+
+            var runUnit1 = new FileRegistry();
+            var runUnit2 = new FileRegistry();
+            // Each connector is declared as a program that OPENs it in its mode declares it: EXTEND is sequential access's
+            // (§14.9.27.3 SR2; kb/Work PB3479).
+            FileHarness.Register(runUnit1, "A", host, org, sa, access: FileHarness.AccessFor(ma));
+            FileHarness.Register(runUnit2, "B", host, org, sb, access: FileHarness.AccessFor(mb));
+
+            FileHarness.Open(runUnit1, "A", ma);
+            Assert.True(runUnit1.Status("A")[0] == '0',
+                $"The first run unit's OPEN answered '{runUnit1.Status("A")}' — the second one cannot be measured.");
+
+            FileHarness.Open(runUnit2, "B", mb);
+            var existing = (sa ?? FileRegistry.ImplementorDefaultSharing(ma, 2023), ma);
+            var request = (sb ?? FileRegistry.ImplementorDefaultSharing(mb, 2023), mb);
+            bool refused = Table19.Conflicts(request, existing);
+            string got = runUnit2.Status("B");
+            if (refused)
+                Assert.True(got == FileStatusCode.FileSharingConflict,
+                    $"Table 19 refuses {request} against {existing} ({org}) and §9.1.15 binds OTHER RUN UNITS to it, "
+                    + $"but the second run unit's OPEN answered '{got}'.");
+            else
+                Assert.True(got[0] == '0',
+                    $"Table 19 permits {request} against {existing} ({org}), but the second run unit's OPEN "
+                    + $"answered '{got}'.");
+
+            runUnit2.CloseAll();
+            runUnit1.CloseAll();
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
+
+    /// <summary>§9.1.15: <i>"The file lock is removed by an explicit or implicit CLOSE statement executed for that
+    /// file connector"</i> — so the refusal is not sticky: the CLOSE gives the lock back and the very next OPEN of
+    /// the other run unit succeeds, in every organization.</summary>
+    [Theory]
+    [InlineData(FileOrg.Sequential)]
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void TheCloseGivesTheFileLockBack(FileOrg org)
+    {
+        string host = FileHarness.Tmp($"close-{org}");
+        try
+        {
+            FileHarness.SeedRecords(host, org, 0);
+
+            var runUnit1 = new FileRegistry();
+            var runUnit2 = new FileRegistry();
+            FileHarness.Register(runUnit1, "A", host, org, FileSharing.NoOther);
+            FileHarness.Register(runUnit2, "B", host, org, FileSharing.AllOther);
+
+            runUnit1.OpenStatic("A", FileOpenMode.IO);
+            Assert.Equal(FileStatusCode.Success, runUnit1.Status("A"));
+            runUnit2.OpenStatic("B", FileOpenMode.Input);
+            Assert.Equal(FileStatusCode.FileSharingConflict, runUnit2.Status("B"));   // rule 1) exclusive access
+
+            runUnit1.Close("A");
+            runUnit2.OpenStatic("B", FileOpenMode.Input);
+            Assert.Equal(FileStatusCode.Success, runUnit2.Status("B"));
+            runUnit2.CloseAll();
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
+
+    /// <summary>⛔ ONLY A REGULAR FILE IS LOCKED. A device node is not a file whose bytes another run unit can
+    /// damage, and the lock lives on the inode: were <c>/dev/null</c> locked, every run unit that assigns it would be
+    /// arbitrated against every other on the machine (concurrent test programs among them). On a host with no
+    /// device of that name — or with no region lock at all — the answer is the same: nothing is held.</summary>
+    [Fact]
+    public void ADeviceNodeCarriesNoRegionLock()
+    {
+        string device = OperatingSystem.IsWindows() ? "NUL" : "/dev/null";
+        Assert.Equal(RunUnitFileLock.Outcome.Unavailable,
+            RunUnitFileLock.Take(device, FileSharing.NoOther, FileOpenMode.Output, out var held));
+        Assert.Null(held);
+    }
+
+    /// <summary>⛔ TWO RUN UNITS OPENING AT THE SAME INSTANT CANNOT BOTH WIN. The lock is PUBLISHED before it is
+    /// tested, so whichever publishes second finds the first; with a test-then-publish order both would pass and
+    /// both run units would write. Two <c>SHARING WITH NO OTHER</c> opens released by one barrier, many rounds:
+    /// at most one is ever a success-family status (a loser is '61', and may be both — each saw the other's
+    /// publication — which is a refused OPEN, not a violated lock).</summary>
+    [Fact]
+    public void TwoSimultaneousExclusiveOpens_NeverBothSucceed()
+    {
+        string host = FileHarness.Tmp("race");
+        try
+        {
+            FileHarness.SeedRecords(host, FileOrg.Sequential, 0);
+
+            for (int round = 0; round < 200; round++)
+            {
+                var a = new FileRegistry();
+                var b = new FileRegistry();
+                FileHarness.Register(a, "A", host, FileOrg.Sequential, FileSharing.NoOther);
+                FileHarness.Register(b, "B", host, FileOrg.Sequential, FileSharing.NoOther);
+                using var barrier = new Barrier(2);
+                var opened = new string[2];
+                var threads = new[]
+                {
+                    new Thread(() => { barrier.SignalAndWait(); a.OpenStatic("A", FileOpenMode.IO); opened[0] = a.Status("A"); }),
+                    new Thread(() => { barrier.SignalAndWait(); b.OpenStatic("B", FileOpenMode.IO); opened[1] = b.Status("B"); }),
+                };
+                foreach (var t in threads) t.Start();
+                foreach (var t in threads) t.Join();
+
+                Assert.False(opened[0][0] == '0' && opened[1][0] == '0',
+                    $"Round {round}: both run units opened {host} SHARING WITH NO OTHER ('{opened[0]}' and "
+                    + $"'{opened[1]}') — §9.1.15 1) 'specifies exclusive access to a physical file'.");
+                a.CloseAll();
+                b.CloseAll();
+            }
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
+}

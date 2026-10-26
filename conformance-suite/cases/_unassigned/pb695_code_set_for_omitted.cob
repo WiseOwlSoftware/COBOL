@@ -10,7 +10,7 @@
       *> carries exactly THREE underlines - CODE-SET, ALPHANUMERIC and NATIONAL. FOR and IS are printed
       *> plain, so 8.3.2.4.3 ("uppercase words that are not underlined are called optional words and may
       *> be specified at the user's option with no effect on the semantics of the format") makes every
-      *> spelling below conforming source. COBOL.NET required the FOR and answered COBOL0001.
+      *> spelling below conforming source. WiseOwl COBOL required the FOR and answered COBOL0001.
       *>   . `CODE-SET FOR ALPHANUMERIC IS AL1`  - fully written
       *>   . `CODE-SET ALPHANUMERIC IS AL1`      - FOR omitted   (this program)
       *>   . `CODE-SET ALPHANUMERIC AL1`         - FOR and IS omitted

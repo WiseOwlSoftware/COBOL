@@ -1,0 +1,223 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
+using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
+using Xunit;
+
+namespace WiseOwl.Cobol.Tests.Unit;
+
+/// <summary>
+/// The §8.3.5 separator-context rules (kb/Work PB1394) and the §8.3.3 content-repertoire rule of the prefixed literal
+/// formats (kb/Work PB1441), asked of source text lexed exactly as the front end lexes it. Every expectation is read off
+/// the rule it cites, never off the compiler: §8.3.5 2) a comma or semicolon is a separator only when "immediately
+/// followed by a space"; 3) a period only "when followed by a space"; 5) "The opening delimiter shall be immediately
+/// preceded by a space, left parenthesis, or opening pseudo-text delimiter. The closing delimiter shall be immediately
+/// followed by one of the separators space, comma, semicolon, period, right parenthesis, or closing pseudo-text
+/// delimiter"; §8.3.3.2.3 SR5 / §8.3.3.5.3 SR4 / §8.3.3.4.3 SR3 hexadecimal digits, §8.3.3.4.3 SR2 '0' or '1'; and
+/// §8.7.3 / §8.7.4 (kb/Work PB1430): the concatenation operator '&amp;' and the invocation operator '::' "shall be
+/// immediately preceded and followed by a separator space"; and §8.7.1 (kb/Work PB2017): the arithmetic operators "shall
+/// be preceded by a space and followed by a space except that no space is required between a left parenthesis and a unary
+/// operator or between a unary operator and a left parenthesis".
+/// </summary>
+public sealed class SeparatorRuleTests
+{
+    /// <summary>The code of every violation <see cref="SeparatorRule"/> finds in <paramref name="text"/>, in order.</summary>
+    private static List<string> Codes(string text)
+    {
+        var tokens = new CommonTokenStream(new CobolLexer(new AntlrInputStream(text)));
+        tokens.Fill();
+        return [.. SeparatorRule.Violations(text, tokens.GetTokens()).Select(v => v.Descriptor.Code)];
+    }
+
+    [Theory]
+    // Rule 2 — the separator forms, and the numeric-literal comma the rule leaves to the numeric-literal rules.
+    [InlineData("MOVE 1 TO N, M.\n")]
+    [InlineData("MOVE 1 TO N; M.\n")]
+    [InlineData("MOVE 1,5 TO N.\n")]                  // DECIMAL-POINT IS COMMA's decimal point (§12.3.7.4 GR14 a))
+    [InlineData("MOVE ,5 TO N.\n")]
+    [InlineData("MOVE A(1, 2) TO N.\n")]              // inside a subscript list (FNARG_SEPARATOR)
+    [InlineData("MOVE 1 TO N,\n")]                    // an end of line is a space to the lexer
+    // Rule 3 — a period followed by a space or by the end of the text.
+    [InlineData("DISPLAY N. DISPLAY M.")]
+    [InlineData("MOVE 1.5 TO N.\n")]                  // a decimal point is part of the numeric literal's token
+    // Rule 5 — every legal neighbour of both delimiters, in each literal format.
+    [InlineData("DISPLAY \"AB\" N.\n")]
+    [InlineData("DISPLAY (\"AB\").\n")]
+    [InlineData("DISPLAY \"AB\", \"CD\"; X\"41\".\n")]
+    [InlineData("DISPLAY N\"AB\" NX\"0041\" B\"01\" BX\"F\".\n")]
+    [InlineData("REPLACE ==\"AB\"== BY ==\"CD\"==.\n")]  // the pseudo-text delimiters
+    [InlineData("DISPLAY \"A\"\"B\".\n")]              // a doubled delimiter is content, one token
+    [InlineData("MOVE FUNCTION UPPER-CASE(\"ab\") TO W.\n")]
+    public void ConformingSeparators_AreNotReported(string text) => Assert.Empty(Codes(text));
+
+    [Theory]
+    [InlineData("MOVE 1 TO N,M.\n", "COBOL2631")]
+    [InlineData("MOVE 1 TO N;M.\n", "COBOL2631")]          // the hidden-channel SEMICOLON
+    [InlineData("MOVE A(I,J) TO N.\n", "COBOL2631")]      // a bare COMMA inside a subscript list
+    [InlineData("MOVE A(1;2) TO N.\n", "COBOL2631")]      // a bare SEMICOLON (HIDDEN): never a decimal point
+    [InlineData("MOVE N,5 TO M.\n", "COBOL2631")]         // a letter before it: no numeric literal
+    [InlineData("DISPLAY N.DISPLAY M.\n", "COBOL2632")]
+    [InlineData("DISPLAY \"AB\"N.\n", "COBOL2633")]          // closing delimiter
+    [InlineData("MOVE\"AB\" TO A.\n", "COBOL2633")]          // opening delimiter
+    [InlineData("IF \"AB\"=A DISPLAY \"Y\" END-IF.\n", "COBOL2633")]
+    [InlineData("DISPLAY W\"AB\".\n", "COBOL2633")]          // a prefix-looking word: IDENTIFIER W + literal
+    [InlineData("DISPLAY \"AB\"(1:1).\n", "COBOL2633")]      // '(' is no closing separator
+    // §8.7.3 / §8.7.4 — the operator owns its boundary, so a touching literal adds no COBOL2633 beside it.
+    [InlineData("MOVE O::\"M\" TO A.\n", "COBOL2993")]
+    [InlineData("MOVE O:: \"M\" TO A.\n", "COBOL2993")]     // no literal involved: only §8.7.4 can see it
+    [InlineData("MOVE O ::\"M\" TO A.\n", "COBOL2993")]
+    [InlineData("MOVE SPACE&SPACE TO W.\n", "COBOL2993")]   // figurative operands (§8.8.3.2 SR1): no delimiter
+    [InlineData("MOVE K1 &K2 TO W.\n", "COBOL2993")]        // constant-names (§13.10.3 SR2)
+    [InlineData("MOVE \"AB\"&\"CD\" TO W.\n", "COBOL2993")]  // both sides touch literals: still one report
+    [InlineData("MOVE \"AB\" &\"CD\" TO W.\n", "COBOL2993")]
+    public void NonconformingSeparator_IsReportedOnce(string text, string code) => Assert.Equal([code], Codes(text));
+
+    [Theory] // §8.7.3 / §8.7.4: a separator space on each side — a line end is one, and so is the end of the text
+    [InlineData("MOVE O :: \"M\" TO A.\n")]
+    [InlineData("MOVE O :: \"M\" (1) :: \"N\" TO A.\n")]
+    [InlineData("MOVE O\n:: \"M\" TO A.\n")]
+    [InlineData("MOVE O ::\n\"M\" TO A.\n")]
+    [InlineData("MOVE \"AB\" & \"CD\" & SPACE TO W.\n")]
+    [InlineData("MOVE \"AB\"\n&\n\"CD\" TO W.\n")]
+    public void SpacedOperators_AreNotReported(string text) => Assert.Empty(Codes(text));
+
+    [Theory] // the message names the side that touches, and the clause of the operator it is
+    [InlineData("MOVE O:: \"M\" TO A.\n", "§8.7.4", "write a space before it")]
+    [InlineData("MOVE O ::\"M\" TO A.\n", "§8.7.4", "write a space after it")]
+    [InlineData("MOVE SPACE&SPACE TO W.\n", "§8.7.3", "write a space on both sides of it")]
+    public void OperatorSpacing_NamesTheClauseAndTheSide(string text, string clause, string fix)
+    {
+        var tokens = new CommonTokenStream(new CobolLexer(new AntlrInputStream(text)));
+        tokens.Fill();
+        var v = Assert.Single(SeparatorRule.Violations(text, tokens.GetTokens()));
+        Assert.Contains(clause, v.Message);
+        Assert.EndsWith(fix, v.Message);
+    }
+
+    /// <summary>The operators <see cref="SeparatorRule.ArithmeticOperatorViolations"/> reports in the arithmetic
+    /// expression <paramref name="expression"/>, in source order — parsed as the fragment lane parses a compile-time
+    /// operand (the SAME expression grammar the unit uses), so the tree says which operator is binary, unary or none.</summary>
+    private static List<string> Spacing(string expression)
+    {
+        var tree = DirectiveExpressionFragment.ParseOperand(expression);
+        Assert.NotNull(tree);
+        return [.. SeparatorRule.ArithmeticOperatorViolations(expression, tree).Select(v => v.Token.Text)];
+    }
+
+    [Theory] // §8.7.1: a space on each side of a binary operator; a unary one may touch a left parenthesis instead
+    [InlineData("A + B")]
+    [InlineData("A - B * C / D ** E")]
+    [InlineData("(A + B) * (C - D)")]
+    [InlineData("A +\nB")]                    // a line end is a separator space (§8.3.5 1))
+    [InlineData("A\n+ B")]
+    [InlineData("- A")]                       // unary: a space after it
+    [InlineData("-(A)")]                      // unary beside a left parenthesis: no space required
+    [InlineData("- (A)")]
+    [InlineData("(- A)")]                     // a left parenthesis beside a unary operator: no space required
+    [InlineData("(-(A))")]
+    [InlineData("A * -2")]                    // a sign abutting its digits is part of the literal (§8.3.3.3.2 2)): no operator
+    [InlineData("A - -2")]
+    [InlineData("-2")]
+    [InlineData("+2.5 * 3")]
+    [InlineData("A * -(B)")]
+    [InlineData("A +, B")]                    // a comma followed by a space is a separator, usable wherever the space is (§8.3.5 2))
+    public void SpacedArithmeticOperators_AreNotReported(string expression) => Assert.Empty(Spacing(expression));
+
+    [Theory]
+    [InlineData("A+B", "+")]
+    [InlineData("A +B", "+")]                 // the space after it is missing
+    [InlineData("A+ B", "+")]                 // the space before it is missing
+    [InlineData("A -1", "-")]                 // an operand cannot follow an operand: the binary minus, no space after it
+    [InlineData("A*B", "*")]
+    [InlineData("A/B", "/")]
+    [InlineData("A**B", "**")]
+    [InlineData("(A)+(B)", "+")]              // a parenthesis exempts only a UNARY operator
+    [InlineData("(A + B)*C", "*")]
+    [InlineData("-A", "-")]                   // unary against an identifier: not exempt
+    [InlineData("(-A)", "-")]                 // the left parenthesis exempts the space BEFORE it, not the one after
+    [InlineData("A * -B", "-")]
+    [InlineData("A *-2", "*")]                // the sign is the literal's; the binary operator beside it is not spaced
+    [InlineData("- -A", "-")]                 // the first unary is spaced; the second touches its operand
+    public void UnspacedArithmeticOperator_IsReportedOnce(string expression, string op) =>
+        Assert.Equal([op], Spacing(expression));
+
+    [Fact] // every offending operator is reported, in source order
+    public void EveryUnspacedOperator_IsReported_InSourceOrder() => Assert.Equal(["*", "+", "-"], Spacing("A*B + C +D - E -F"));
+
+    [Theory] // the message names the clause, the kind of operator and the side that touches
+    [InlineData("A+ B", "binary arithmetic operator '+'", "write a space before it")]
+    [InlineData("A +B", "binary arithmetic operator '+'", "write a space after it")]
+    [InlineData("A*B", "binary arithmetic operator '*'", "write a space on both sides of it")]
+    [InlineData("-A", "unary arithmetic operator '-'", "write a space after it")]
+    public void ArithmeticOperatorSpacing_NamesTheClauseTheKindAndTheSide(string expression, string what, string fix)
+    {
+        var tree = DirectiveExpressionFragment.ParseOperand(expression);
+        var v = Assert.Single(SeparatorRule.ArithmeticOperatorViolations(expression, tree!));
+        Assert.Equal("COBOL2993", v.Descriptor.Code);
+        Assert.Contains("§8.7.1", v.Message);
+        Assert.Contains(what, v.Message);
+        Assert.EndsWith(fix, v.Message);
+    }
+
+    [Theory] // §8.3.3.3.2 3): a comma that begins a literal after an operator character is the decimal point, never a missing
+             // separator — the operator's own §8.7.1 violation is the one reported (kb/Work PB2017)
+    [InlineData("COMPUTE X = 1 *,1.\n")]
+    [InlineData("COMPUTE X = 1 /,1.\n")]
+    [InlineData("COMPUTE X = 1 **,1.\n")]
+    [InlineData("COMPUTE X = 1 +,1.\n")]
+    [InlineData("COMPUTE X = 1 -,1.\n")]
+    [InlineData("IF X =,1 DISPLAY 1.\n")]
+    [InlineData("IF X >,1 DISPLAY 1.\n")]
+    [InlineData("IF X <,1 DISPLAY 1.\n")]
+    public void CommaBeginningALiteralAfterAnOperator_IsNotAMissingSeparator(string text) => Assert.Empty(Codes(text));
+
+    [Fact] // two literals that touch: the closing delimiter's report covers the boundary — one diagnostic, not two
+    public void AdjacentLiterals_ReportTheBoundaryOnce() => Assert.Equal(["COBOL2633"], Codes("DISPLAY \"A\"'B'.\n"));
+
+    [Fact] // a comma that is no separator AND ends a literal's closing context is rule 2's, reported on the comma
+    public void CommaAfterLiteral_IsRuleTwo() => Assert.Equal(["COBOL2631"], Codes("DISPLAY \"AB\",N.\n"));
+
+    [Theory]
+    [InlineData("X\"41\"")]
+    [InlineData("x'4a4B'")]
+    [InlineData("X\"\"")]
+    [InlineData("NX\"0041\"")]
+    [InlineData("BX\"F0a\"")]
+    [InlineData("B\"0101\"")]
+    [InlineData("B''")]
+    [InlineData("\"GG\"")]      // Format 1 alphanumeric: any content
+    [InlineData("N\"GG\"")]     // Format 1 national: any content
+    public void InRepertoire_IsNotAViolation(string raw) => Assert.Null(CobolLiteral.RepertoireViolation(raw));
+
+    [Theory]
+    [InlineData("X\"GG\"", "§8.3.3.2.3 SR5", 'G')]
+    [InlineData("X\"4G\"", "§8.3.3.2.3 SR5", 'G')]
+    [InlineData("X\"4\"\"1\"", "§8.3.3.2.3 SR5", '"')]   // a doubled delimiter is content — not a hexadecimal digit
+    [InlineData("NX\"00G1\"", "§8.3.3.5.3 SR4", 'G')]
+    [InlineData("BX\"G1\"", "§8.3.3.4.3 SR3", 'G')]
+    [InlineData("B\"012\"", "§8.3.3.4.3 SR2", '2')]
+    [InlineData("B'1 0'", "§8.3.3.4.3 SR2", ' ')]
+    public void OutsideRepertoire_NamesTheCharacterAndTheRule(string raw, string clause, char bad)
+    {
+        string? message = CobolLiteral.RepertoireViolation(raw);
+        Assert.NotNull(message);
+        Assert.Contains(clause, message);
+        Assert.Contains($"'{bad}'", message);
+        Assert.Null(CobolLiteral.HexGroupViolation(raw));   // the repertoire rule precedes the grouping rule
+        if (!clause.EndsWith("SR2")) Assert.Equal("", CobolLiteral.Decode(raw));   // a hex decoder never throws on it
+    }
+
+    [Theory] // every prefixed literal is ONE token of its own type, whatever its content (the lexer no longer judges it)
+    [InlineData("X\"GG\"", CobolLexer.HEXLIT)]
+    [InlineData("NX\"00G1\"", CobolLexer.NATLIT)]
+    [InlineData("BX\"G1\"", CobolLexer.BOOLLIT)]
+    [InlineData("B\"012\"", CobolLexer.BOOLLIT)]
+    [InlineData("X\"4\"\"1\"", CobolLexer.HEXLIT)]
+    public void PrefixedLiteral_IsOneTokenWhateverItsContent(string raw, int type)
+    {
+        var tokens = new CobolLexer(new AntlrInputStream(raw)).GetAllTokens();
+        Assert.Equal((type, raw), (Assert.Single(tokens).Type, tokens[0].Text));
+    }
+}

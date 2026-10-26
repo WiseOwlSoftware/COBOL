@@ -8,7 +8,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1759RT.
       *> kb/Work PB1759 (owner decisions R51/R52; design
-      *> COBOLNET_FILES_DESIGN D29) - HIGH-VALUE IS U+FFFF, THE
+      *> FILES_DESIGN D29) - HIGH-VALUE IS U+FFFF, THE
       *> HIGHEST OF THE 65,536 NATIVE CHARACTERS (§8.3.3.6.4 GR6:
       *> "the character ... that has the highest ordinal position in
       *> the runtime collating sequence"), AND IT CROSSES THE ONE-BYTE

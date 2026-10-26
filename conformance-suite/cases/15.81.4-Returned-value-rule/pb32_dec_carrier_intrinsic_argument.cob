@@ -17,7 +17,7 @@
       *> generated C# fail on conforming source:
       *>     COMPUTE R = FUNCTION MAX(A + B, B)
       *>     error: backend compilation failed (generated C# at ...g.cs):
-      *>       error CS1503: Argument 1: cannot convert from 'CobolNet.Runtime.CobolDec' to 'System.Int128'
+      *>       error CS1503: Argument 1: cannot convert from 'WiseOwl.Cobol.Runtime.CobolDec' to 'System.Int128'
       *> That is the PB2 shape on the Dec axis: an INTERNAL failure escaping as a backend error, phrased in C#
       *> the programmer never asked to see.
       *>

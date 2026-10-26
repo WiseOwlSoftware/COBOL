@@ -34,7 +34,7 @@
       *>
       *> THE NUMBERS, AND WHY THEY ARE NOT ARBITRARY.
       *> The absolute answers come from the §13.18.55.4 GR9 implementor
-      *> determination, docs/CONFORMANCE.md DOC-A.1-195: COBOL.NET performs
+      *> determination, docs/CONFORMANCE.md DOC-A.1-195: WiseOwl COBOL performs
       *> NO physical alignment for SYNCHRONIZED and generates NO implicit
       *> FILLER for it. Combined with DOC-A.1-205 (a BINARY/COMP item of 3-4
       *> digits occupies 2 bytes) and DOC-A.1-209 (USAGE DISPLAY is one byte

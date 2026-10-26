@@ -18,12 +18,12 @@ compilation group (ISO §8.13, §12.3.8); the metadata that carries that informa
 check); cross-assembly classes, interfaces, parameterized definitions and expansions; the run-time locator the
 registry shares with the binder; the typed .NET host entry; the extension point for COBOL calling plain .NET.
 Dimension: **binder repository resolution + backend metadata emission + the run-time locate + the host surface**.
-Sibling docs own the data model (`DataItem`/`PicInfo`), the OO mapping (`docs/COBOLNET_OO_DESIGN.md`), the
-inter-program runtime (`docs/COBOLNET_INTERPROGRAM_DESIGN.md`) and the backend seam
+Sibling docs own the data model (`DataItem`/`PicInfo`), the OO mapping (`docs/OO_DESIGN.md`), the
+inter-program runtime (`docs/INTERPROGRAM_DESIGN.md`) and the backend seam
 (`docs/rearchitecture/DESIGN-codegen-backend.md`); where this design changes what they describe, the change is stated
 here and those documents are corrected to match it in the slice that makes the change (§20, §21).
 
-**SSOT alignment:** `docs/COBOLNET_DESIGN.md` §1 (typed-native only; one mechanism per job; phases one-directional;
+**SSOT alignment:** `docs/DESIGN.md` §1 (typed-native only; one mechanism per job; phases one-directional;
 backend-neutral bound tree) and §18. CLAUDE.md rule 4 governs the shape: ONE resolver behind which the compilation
 group and the metadata-backed store are two providers; ONE activation boundary, which every COBOL CALL, every
 pointer activation, every function activation and every .NET host entry crosses.
@@ -50,7 +50,7 @@ symptom of PB2087 and closes when PB2087 lands (§21).
 1. **The repository is the compiled assembly.** Every assembly `cobol` produces carries, for every source unit it
    compiled — program, function, class, interface, program prototype, function prototype, parameterized class or
    interface, expansion — its §8.13 information as ECMA-335 metadata (the CLR type/method/parameter where one exists)
-   plus a versioned family of custom attributes in `CobolNet.Runtime.Repository` for every fact the CLR cannot
+   plus a versioned family of custom attributes in `WiseOwl.Cobol.Runtime.Repository` for every fact the CLR cannot
    express. The assembly-level `[CobolRepository]` attribute IS the per-assembly index; a directory of assemblies IS a
    repository directory (§7). It is read with `System.Reflection.Metadata` and never loaded (§3.1, r6-meta).
 2. **The COBOL-to-COBOL boundary is the existing one, unchanged** (owner decision 2026-10-05). A CALL — through a
@@ -333,13 +333,13 @@ display only); the COBOL word itself is in the attribute.
 | `System.Reflection.Metadata` reader | **Adopt** (the only reader) | no loading, no reflection (r6-meta) |
 | A generated public host-entry class per program and function, in the program's assembly | **Adopt** | §4.3, §4.4 — the typed .NET surface and the repository anchor in one CLR member |
 | `ref T` for BY REFERENCE on the host entry | **Adopt** | the .NET idiom for a value the callee may change; one variable passed to two formals of one description gets one storage (§4.3) |
-| Feature switch `CobolNet.Runtime.DynamicProbe` | **Adopt** | the dynamic probe is the only reflection; switched off under AOT/trimming the runtime is analyzer-clean (§15.5) |
-| `PublicApiAnalyzers` on `Cobol.Net.Runtime` | **Adopt** | ties the ABI major version to the public surface (§15.4) |
+| Feature switch `WiseOwl.Cobol.Runtime.DynamicProbe` | **Adopt** | the dynamic probe is the only reflection; switched off under AOT/trimming the runtime is analyzer-clean (§15.5) |
+| `PublicApiAnalyzers` on `WiseOwl.Cobol.Runtime` | **Adopt** | ties the ABI major version to the public surface (§15.4) |
 | Generic math | Reject | not a signature concern |
 | `PersistedAssemblyBuilder` | Reject here; defer to a direct backend | `MetadataBuilder` is the better primitive |
 | `MetadataBuilder` custom-attribute encoding | Adopt in the drift test (§17.4) | backend independence |
 | Source generators | Reject | one record family + a round-trip test |
-| `IsTrimmable` on `Cobol.Net.Runtime` | Adopt | §15.5 |
+| `IsTrimmable` on `WiseOwl.Cobol.Runtime` | Adopt | §15.5 |
 | .NET 11 / C# 15 | Defer | STS, not GA; nothing needs it |
 
 ### 3.8 Target framework policy
@@ -359,7 +359,7 @@ other reasons costs that backend's slices, not these.
 ### 4.1 The boundary (unchanged)
 A PROGRAM-ID becomes `internal sealed class {ClassName} : ICobolProgram` whose CALL entry is `void Call(CobolArg[]
 args, CobolArg? returning)` (`ProgramEmitter.EmitCallMethod`), adopting each positional carrier into a `__lnk{Uid}`
-field (`FormalAdopt`; `ManagedPointer<T>`, the accessor carrier of `COBOLNET_INTERPROGRAM_DESIGN` D1). Activation is
+field (`FormalAdopt`; `ManagedPointer<T>`, the accessor carrier of `INTERPROGRAM_DESIGN` D1). Activation is
 `ProgramRegistry.CallProgram(name, callerPath, args, returning, notFoundEc, siteArgMismatchChecking)` →
 `ProgramTable.CallProgram`, which performs the whole §14.9.4.4 GR3 boundary around `inst.Call`: locate b) (the §8.4.6.3
 scope rules, then the sibling-module probe), recursion f), count/description/RETURNING d) over the registered
@@ -397,7 +397,7 @@ name `N` — definition or prototype — the compiler generates, in the group's 
 namespace Cobol.ACCT;
 /// <summary>PROGRAM-ID ACCT-UPDATE (ISO §11.10). Activates the program through the run unit's activation boundary
 /// (§14.9.4.4 GR3): one WORKING-STORAGE per run unit, RECURSIVE/INITIAL honored.</summary>
-[global::CobolNet.Runtime.Repository.CobolUnit(RepositoryUnitKind.Program, "ACCT-UPDATE", "ACCT-UPDATE", EntryConvention = "COBOL")]
+[global::WiseOwl.Cobol.Runtime.Repository.CobolUnit(RepositoryUnitKind.Program, "ACCT-UPDATE", "ACCT-UPDATE", EntryConvention = "COBOL")]
 public static class ACCT_UPDATE
 {
     /// <summary>01 LK-REC — the published record of the formal's description.</summary>
@@ -420,7 +420,7 @@ public static class ACCT_UPDATE
         // 1. HostLanding: every host value landed EXACTLY into a detached storage of its formal's description, or
         //    ArgumentException — before anything is activated; one storage for one variable passed twice
         // 2. one CobolArg per formal from the CALL lane's argument renderer over that storage
-        // 3. global::CobolNet.Runtime.ProgramRegistry.CallProgram("ACCT-UPDATE", callerPath: null, args, returning,
+        // 3. global::WiseOwl.Cobol.Runtime.ProgramRegistry.CallProgram("ACCT-UPDATE", callerPath: null, args, returning,
         //        siteArgMismatchChecking: true)
         // 4. finally: every BY REFERENCE variable decoded back by the validity rule; then the RETURNING value decoded
     }
@@ -697,14 +697,14 @@ program-class scope. `CsNameReservationDriftTests` reads every member declaratio
 members C# synthesizes for a record struct and the `ICobolProgram` members, and is red when one is in neither seed.
 Within a run unit one externalized name identifies one kind of entity (§8.3.2.2), so a program and a class never
 legally share one. Generated code roots every name outside the unit's own namespace at `global::`: an assembly named
-`System`, `Cobol` or `CobolNet` makes `Cobol.System` (…) a member of `Cobol`, which would otherwise capture a written
+`System`, `Cobol` or `WiseOwl.Cobol` makes `Cobol.System` (…) a member of `Cobol`, which would otherwise capture a written
 prefix (CS0234 on legal source), and an assembly named after a runtime type (`CobolNum`) would capture that simple name
 (CS0118). Two mechanisms root them, both in `ProgramEmitter.Emit`: the file's using directives sit INSIDE the
-module's namespace and name their namespaces from `global::` (`using global::CobolNet.Runtime;`), so a simple name is
+module's namespace and name their namespaces from `global::` (`using global::WiseOwl.Cobol.Runtime;`), so a simple name is
 found in the runtime before C# searches the enclosing `Cobol` namespace; and every QUALIFIED name the code generator
-writes is `global::`-qualified (`global::System.Math.Max`, `global::CobolNet.Runtime.Exceptions.ExceptionState`),
+writes is `global::`-qualified (`global::System.Math.Max`, `global::WiseOwl.Cobol.Runtime.Exceptions.ExceptionState`),
 which `EmittedGlobalNameDriftTests` enforces over every string the compiler holds. The record precedes the namespace
-(`[assembly: global::CobolNet.Runtime.Repository.CobolRepositoryAttribute(…)]`, C# requires it). `__CobolModule`'s one
+(`[assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(…)]`, C# requires it). `__CobolModule`'s one
 public member is `EnsureRegistered()`, which registers this assembly's programs into the current run unit once
 (§11.2); its `Register` body is private. A class-only or interface-only module emits a `__CobolModule` with nothing to
 register, so the record's `Registrar` always names a type. **Landed (kb/Work PB2097, slice 1).**
@@ -762,7 +762,7 @@ a definition publish the same record shape from one `RepositoryRecord.Of(BoundUn
 | implementor information | §5.4 | §5.4 |
 
 ### 5.4 "Any other information that the implementor requires" (A.1 item 67)
-1. `SchemaVersion`, the runtime ABI version (`RuntimeVersion`, the `AssemblyVersion` of `Cobol.Net.Runtime` the
+1. `SchemaVersion`, the runtime ABI version (`RuntimeVersion`, the `AssemblyVersion` of `WiseOwl.Cobol.Runtime` the
    entry was compiled against; its MAJOR is compared) and the call-ABI version (`CallAbi`, the version of the
    compiler's boundary layout — each boundary item's crossing form, carrier type and width — that the entry was
    emitted with; compared exactly) — all three compared: REPO-7, §11.3, §15.4.
@@ -778,7 +778,7 @@ a definition publish the same record shape from one `RepositoryRecord.Of(BoundUn
 
 ## 6. The attribute schema
 
-All attributes live in `CobolNet.Runtime.Repository`, are `sealed`, `Inherited = false`, with ONE constructor taking the
+All attributes live in `WiseOwl.Cobol.Runtime.Repository`, are `sealed`, `Inherited = false`, with ONE constructor taking the
 identity arguments and every other fact a named property of primitive / `string` / `string[]` / `int`-backed enum type;
 none references a `System.Type`.
 
@@ -1046,7 +1046,7 @@ conflict it answers, and on the word-only case it has nothing to follow and ISO 
    states).
 Legal source is never rejected, so the goldens that write `FUNCTION PB303FN` for `AS "PB303FNX"`
 (`2002/pb303_as_externalized_name`, `2014/pb303_as_externalized_name_2014`) and `FUNCTION W59HFN` for a prototype
-`AS "Cobol.Net.Runtime"` (`2002/w59h_non_cobol_names_not_found`) keep their source and their expectations; new goldens
+`AS "WiseOwl.Cobol.Runtime"` (`2002/w59h_non_cobol_names_not_found`) keep their source and their expectations; new goldens
 pin REPO-13 in one group (`FX AS "F"` and `F AS "G"` both preceding `FUNCTION F`), REPO-13 across the repository (a
 repository "F" beside `F AS "G"`), the word reaching a later-compiled unit (`F AS "G"` in a library, `FUNCTION F` in a
 program compiled against it), and the group-only word case. REPO-1 for a function specifier cites SR10 only when NONE
@@ -1137,7 +1137,7 @@ precedent: A.1 item 66's own words; Micro Focus `REPOSITORY` directive family (s
 > a prototype or definition of the same name in the repository; `off` suppresses it. A caller compiled against an
 > earlier signature is checked at run time when EC-PROGRAM-ARG-MISMATCH checking is enabled in both programs.
 
-**Manual, "Calling a WiseOwl COBOL program from .NET":** reference the COBOL assembly and `Cobol.Net.Runtime`; deploy
+**Manual, "Calling a WiseOwl COBOL program from .NET":** reference the COBOL assembly and `WiseOwl.Cobol.Runtime`; deploy
 both beside your host. Every program and user-defined function has a class `Cobol.<assembly>.<NAME>` with a method
 `Call` whose parameters are its PROCEDURE DIVISION USING formals — a `ref` parameter for BY REFERENCE (the variable
 receives what the program stored), a plain parameter for BY VALUE, nullable when OPTIONAL (`null` passes OMITTED) —
@@ -1246,7 +1246,7 @@ defect that must stop the compile. Collisions the C# compiler already reports as
 CS0433) stay errors. No `.diag.txt` changes.
 
 ### 10.3 What crosses
-An inter-assembly INVOKE emits what an in-group one emits (the method convention of `COBOLNET_OO_DESIGN.md`); strong
+An inter-assembly INVOKE emits what an in-group one emits (the method convention of `OO_DESIGN.md`); strong
 groups cross as leaf vectors (PB1116).
 
 ### 10.4 Bootstrap order for classes
@@ -1460,10 +1460,10 @@ compile. A host entry always enables the check on its side (§4.3).
 | `DataBinder.BindDeclarations` REPOSITORY loop (never resolved) | `ResolveRepositorySpecifiers` in `BinderDriver.BindUnitData` for every specifier at its position | `BinderDriver`, `OoDriver.BindClassData` |
 | `OoNameResolution.Resolve` message "no … is defined in this compilation group" | adds "and no information exists for it in the external repository" | — |
 | `RoslynBackend.Compile(csharp, path, name)` (console only; no extra refs; the driver keeps only `Error` diagnostics) | `(…, outputKind, extraReferences)`; GUID temp + retrying rename; CS0435/CS0436/CS0437 escalated to errors (§10.2) | `RoslynBackend.Emit`, `CompilerDriver` |
-| `BackendOptions`; `CompilerDriver.Options` | `+ OutputKind`, `+ ReferenceAssemblies`, `+ RepositoryUpdate`; `AssemblyName` remark corrected; `+ RepositoryPaths`, `+ ReferencePaths`, `+ RepositoryUpdate = true`, `+ RepositoryCheck = true` | `Cobol.Net.Cli BuildParser`, test harnesses |
-| `Directory.Build.props` (no `Version`) | `<Version>` from the package version; `RuntimeAbi.Version` reads the runtime's `AssemblyVersion`; `RuntimeAbi.CallAbi`, the call-ABI integer (§15.4); `Microsoft.CodeAnalysis.PublicApiAnalyzers` on `Cobol.Net.Runtime` with `PublicAPI.Shipped.txt` | `CobolRepositoryAttribute`, `RepositoryLocator`, `ProgramTable.RegisterModule`, `EmitEntryWrapper` (emits both versions) |
-| `Cobol.Net.Runtime.csproj` | `IsTrimmable`, `EnableTrimAnalyzer`; `RuntimeFeatures.DynamicProbe` (`[FeatureSwitchDefinition("CobolNet.Runtime.DynamicProbe")]`, `[FeatureGuard(typeof(RequiresUnreferencedCodeAttribute))]`) guarding `ProbeSiblingModule` (§15.5) | — |
-| 14 characterization snapshots (`tests/Cobol.Net.Tests.Characterization/Snapshots/char_*.g.cs.txt`) | re-baselined for the namespace line, `global::`, the registrar attribute and `EnsureRegistered` (slice 1), and for the host-entry class of each program (slice 2) | — |
+| `BackendOptions`; `CompilerDriver.Options` | `+ OutputKind`, `+ ReferenceAssemblies`, `+ RepositoryUpdate`; `AssemblyName` remark corrected; `+ RepositoryPaths`, `+ ReferencePaths`, `+ RepositoryUpdate = true`, `+ RepositoryCheck = true` | `WiseOwl.Cobol.Cli BuildParser`, test harnesses |
+| `Directory.Build.props` (no `Version`) | `<Version>` from the package version; `RuntimeAbi.Version` reads the runtime's `AssemblyVersion`; `RuntimeAbi.CallAbi`, the call-ABI integer (§15.4); `Microsoft.CodeAnalysis.PublicApiAnalyzers` on `WiseOwl.Cobol.Runtime` with `PublicAPI.Shipped.txt` | `CobolRepositoryAttribute`, `RepositoryLocator`, `ProgramTable.RegisterModule`, `EmitEntryWrapper` (emits both versions) |
+| `WiseOwl.Cobol.Runtime.csproj` | `IsTrimmable`, `EnableTrimAnalyzer`; `RuntimeFeatures.DynamicProbe` (`[FeatureSwitchDefinition("WiseOwl.Cobol.Runtime.DynamicProbe")]`, `[FeatureGuard(typeof(RequiresUnreferencedCodeAttribute))]`) guarding `ProbeSiblingModule` (§15.5) | — |
+| 14 characterization snapshots (`tests/WiseOwl.Cobol.Tests.Characterization/Snapshots/char_*.g.cs.txt`) | re-baselined for the namespace line, `global::`, the registrar attribute and `EnsureRegistered` (slice 1), and for the host-entry class of each program (slice 2) | — |
 | Tests naming the global-namespace registrar: `NonCobolActivatorReturnTests` (`asm.GetType("__CobolModule")…Register`, then `ProgramRegistry.CallProgram(…, "", …)` as a host), `FunctionLocateResourceWitnessTests` (a hand-written fixture declaring a global `__CobolModule` whose `Register` throws, with no `[CobolRepository]`), `InterProgramFileDifferentialTests` (the `XASMS1.dll` sibling-module remarks) | slice 1: the activator test reaches the module through `EnsureRegistered` named by `[CobolRepository(Registrar)]`; the witness fixture carries the assembly attribute and a throwing `EnsureRegistered`, so the probe still selects it and the throwing registrar is still what is tested; the remarks name the locator. Slice 2: the activator test is a host of the generated entries (`Cobol.L1HSTGB.L1HSTGB.Call()` inside `RunUnit.Run`) | — |
 | `docs/CONFORMANCE.md` DOC-A.1-65, -116, -141, -167 (the host route through `__CobolModule.Register()`, `ProgramRegistry.CallProgram`, `ICobolProgram.Call`) | rewritten to the host entry (§9.4's DOC-A.1-141 text; the other three name the entry, `EnsureRegistered` and the exception contract) in slice 2 | — |
 | Goldens pinning function resolution (§8.3 D-R3) | unchanged source and expectations; new goldens for REPO-13 in one group and across the repository, the word reaching a later-compiled unit, and the group-only word case | — |
@@ -1529,13 +1529,13 @@ Every decode failure is a diagnostic naming the file; a stray unreadable DLL the
 The record describes its own assembly; a CALLER goes stale: (1) `--repository-check` warned at the callee's compile;
 (2) GR3 d) at run time when checking is enabled in both (otherwise the lenient adoption, §4.2). **Version skew is
 guarded on both sides of the boundary, each by a recorded version and a fixture that makes forgetting it fail a test.**
-- **The runtime side — the .NET rule.** `Cobol.Net.Runtime` carries a real `AssemblyVersion` (from the package version;
+- **The runtime side — the .NET rule.** `WiseOwl.Cobol.Runtime` carries a real `AssemblyVersion` (from the package version;
   `Directory.Build.props`); its MAJOR changes exactly when its public surface or a codec's image layout changes
   incompatibly. `Microsoft.CodeAnalysis.PublicApiAnalyzers` with `PublicAPI.Shipped.txt` makes every surface change a
   deliberate, reviewed edit; a unit test asserts that the recorded major equals `RuntimeAbi.Version.Major`.
-  **The pin is a measured file, `src/Cobol.Net.Runtime/RuntimeAbi.pin`, that nobody edits** (kb/Work PB3610): the major and
+  **The pin is a measured file, `src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin`, that nobody edits** (kb/Work PB3610): the major and
   the surface hash, the call ABI and the boundary-layout hash. `RuntimeAbiPinDriftTests` re-measures all four and, under
-  `COBOLNET_WRITE_ABI_PIN=1`, writes them; `scripts/abi_pin.py bump --runtime-major|--call-abi` and `repin` raise the
+  `WISEOWL_COBOL_WRITE_ABI_PIN=1`, writes them; `scripts/abi_pin.py bump --runtime-major|--call-abi` and `repin` raise the
   numbers in `Directory.Build.props` and `RuntimeAbi.cs` and have the test write the hashes. Two branches that each
   changed the pin merge through the merge driver (`scripts/merge_drivers.py`): the counters add (each side's merged
   surface is incompatible with the other's), the hashes read UNMEASURED, and the merge measures the merged tree
@@ -1557,12 +1557,12 @@ guarded on both sides of the boundary, each by a recorded version and a fixture 
   layer.
 
 ### 15.5 Trimming and AOT
-`Cobol.Net.Runtime` is `IsTrimmable` and analyzer-clean. The dynamic probe is the ONLY reflection
+`WiseOwl.Cobol.Runtime` is `IsTrimmable` and analyzer-clean. The dynamic probe is the ONLY reflection
 (`LoadFromAssemblyPath` and `Assembly.GetType(string)` are IL2026 sites; `GetMethod` on an unannotated `Type` is
-IL2075) and it sits behind the feature switch `CobolNet.Runtime.DynamicProbe` (`RuntimeFeatures.DynamicProbe`, a
+IL2075) and it sits behind the feature switch `WiseOwl.Cobol.Runtime.DynamicProbe` (`RuntimeFeatures.DynamicProbe`, a
 `[FeatureSwitchDefinition]` property that is also a `[FeatureGuard(typeof(RequiresUnreferencedCodeAttribute))]`).
 With the switch ON (the default for a framework-dependent run unit) the probe runs and a trimmed publish must root the
-runtime (`<TrimmerRootAssembly Include="Cobol.Net.Runtime" />`: **a dynamically located callee requires the WHOLE
+runtime (`<TrimmerRootAssembly Include="WiseOwl.Cobol.Runtime" />`: **a dynamically located callee requires the WHOLE
 runtime**, since ILLink would remove members only the callee uses). With the switch OFF (`PublishTrimmed` /
 `PublishAot` set it in the runtime's `ILLink.Substitutions.xml`) the probe is removed and the trim analyzer sees no
 IL2026 at any CALL; the run unit is then **host-composed** (owner decision 2026-10-05; §11.4): the application is a
@@ -1720,8 +1720,8 @@ A fixture record rendered (a) by `RepositoryAttributeRenderer` through `RoslynBa
 `CustomAttributeEncoder` decodes equal; `Units` equals the record set.
 
 ### 17.5 Trim and AOT tests
-`Cobol.Net.Runtime` builds analyzer-clean. A caller is published trimmed with the probe switch ON and
-`TrimmerRootAssembly Cobol.Net.Runtime`, an untrimmed callee deployed beside it, the probe path runs out of process and
+`WiseOwl.Cobol.Runtime` builds analyzer-clean. A caller is published trimmed with the probe switch ON and
+`TrimmerRootAssembly WiseOwl.Cobol.Runtime`, an untrimmed callee deployed beside it, the probe path runs out of process and
 the CALL succeeds. A second publish with the switch OFF and no root is a HOST-COMPOSED application (§11.4): a .NET
 host referencing the main program's assembly and the callee's, calling both `EnsureRegistered()` and then the main's
 host entry; it is asserted analyzer-clean (no IL2026 at any CALL), and the main's COBOL CALL into the other assembly
@@ -1827,21 +1827,21 @@ specifier's literal is literal-4; §12.3.8.4 GR11 c) is run into b)'s paragraph 
 
 ## 20. The sibling documents this design governs (facts, each corrected in the slice that makes the change)
 
-- `docs/COBOLNET_INTERPROGRAM_DESIGN.md`: the program-prototype resolution paragraph ("this implementation's external
+- `docs/INTERPROGRAM_DESIGN.md`: the program-prototype resolution paragraph ("this implementation's external
   repository is the run unit's program registry") and the SR20/SR22 note ("no compile-time signature … the screen is
   not emitted") are corrected to §8 here — every prototype is resolved with a signature, from the group or from the
   repository, and checked at compile time; the sibling-module probe paragraph to §11.2 (the index, the registrar
   attribute, the one registration set and `EnsureRegistered`, the version and call-ABI refusal, the host-composed run unit); and the document gains the host entry as a caller of the
   D2 boundary (§4.3). Its D1 (the `ManagedPointer` accessor carrier) and D2 (`ICobolProgram`/`CobolArg` as the
   uniform ABI) stand as written.
-- `docs/COBOLNET_OO_DESIGN.md`: an `OoClassSymbol` may be imported (`Origin`); words are per-element (`IdentityScope`);
+- `docs/OO_DESIGN.md`: an `OoClassSymbol` may be imported (`Origin`); words are per-element (`IdentityScope`);
   descriptors compare identities; every emitted type lives in `Cobol.<assembly>` and foreign names are
   `global::`-qualified; parameterized definitions cross assemblies with D3's key-based reuse and placement rule (§10.5).
 - `docs/rearchitecture/DESIGN-codegen-backend.md` §2.0: `RoslynBackend` has `OutputKind`, per-compilation references,
   a temp-and-rename emit, the §10.2 warning policy and a second emission per own-assembly expansion; the
   `CilBackend` line "(Mono.Cecil → IL)" is "(`System.Reflection.Metadata` → IL)"; every backend renders the
   `RepositoryRecord` (§3.9, §17.4).
-- `docs/COBOLNET_DESIGN.md` §0.5 (the row for this document) and §9/§10's condensed views (one sentence each pointing
+- `docs/DESIGN.md` §0.5 (the row for this document) and §9/§10's condensed views (one sentence each pointing
   at §4/§8/§10 here); `docs/DOC_INDEX.md` (the row).
 - `docs/CONFORMANCE.md` DOC-A.1-66/-67/-138/-161/-162 and GR-12.3.8.4-11: §9.4's text; DOC-A.1-68 unchanged.
   DOC-A.1-141: §9.4's text, replacing the `ICobolProgram.Call(CobolArg[])` mechanism and its "no argument-count
@@ -1867,7 +1867,7 @@ and 6 stand alone; 3 needs 1, 2 and kb/Work PB2087; 4 needs 3; 5 needs 4; 7 need
 
 1. **Namespace, registration and the version guard — LANDED (kb/Work PB2097).** `CsNames.ModuleNamespaceOf`;
    `RuntimeApi.ModuleRecordAttribute` / `RegisterModule`; `ProgramEmitter.EmitModuleRegistrar`; `RuntimeAbi`
-   (`Version`, `CallAbi`, `Skew`); `CobolNet.Runtime.Repository.CobolRepositoryAttribute`; `ProgramTable.RegisterModule`
+   (`Version`, `CallAbi`, `Skew`); `WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute`; `ProgramTable.RegisterModule`
    and the attribute-reading `ProbeSiblingModule` (still the named-file probe: the locator is slice 5), whose failure
    reasons the not-found messages carry; the tests `EmittedGlobalNameDriftTests`, `ModuleRegistrationTests`,
    `ModuleRegistrationHostTests`, `RuntimeAbiPinDriftTests` (the major beside `PublicAPI.Shipped.txt` and the codec
@@ -1944,7 +1944,7 @@ and 6 stand alone; 3 needs 1, 2 and kb/Work PB2087; 4 needs 3; 5 needs 4; 7 need
    `--repository-check` (REPO-9 by `PrototypeSignatures.Same` over the decoded record), the multi-unit harness with its
    Linux leg, the cross-repository REPO-13 and word goldens, the pb1115 split. Docs: INTERPROGRAM's prototype paragraph
    and SR20/SR22 note; CONFORMANCE DOC-A.1-66/-67 and GR-12.3.8.4-11; the manual's "Separately compiled units";
-   COBOLNET_DESIGN §0.5/§9/§10 and DOC_INDEX rows. Depends on 4, 5 and 6.
+   DESIGN §0.5/§9/§10 and DOC_INDEX rows. Depends on 4, 5 and 6.
 8. **OO across assemblies, in two steps:** `Origin`, `IdentityScope`, class import, the §10.2 warning escalation;
    then interfaces, properties, skeletons with `CompileState`, the `ExpansionKey`, import by key (with the reference
    cycle), the two placements with the second emission, and stale-expansion REPO-9 over the `AssemblyRef` scan. Docs:

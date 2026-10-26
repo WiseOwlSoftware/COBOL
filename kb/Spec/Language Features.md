@@ -6,16 +6,16 @@ last_updated: 2026-07-23
 related_files:
   - README.md
   - specs/ISO_COBOL.md
-  - docs/COBOLNET_DESIGN.md
+  - docs/DESIGN.md
   - docs/CONFORMANCE.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
 ---
 
 # Language Features
 
-COBOL.NET implements standard COBOL by **division**, translating source into idiomatic typed-native C# (a COBOL
+WiseOwl COBOL implements standard COBOL by **division**, translating source into idiomatic typed-native C# (a COBOL
 record becomes a `record struct`; an elementary item becomes a native field — no byte substrate; see
 [[kb/Architecture/High-Level Design]]). The implemented surface (README + spec §11–§16):
 

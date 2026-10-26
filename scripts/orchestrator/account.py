@@ -54,7 +54,7 @@ from standard_streams import ensure_utf8  # noqa: E402
 ENV = "CLAUDE_CONFIG_DIR"
 # The owner's /skill-doctor review: a stamp file in the reviewing account's config dir, touched after the review; its
 # mtime is the review's time. It is due again SKILL_REVIEW_DAYS later (kb/Work R49 item 11, PB2598).
-SKILL_REVIEW_STAMP = "cobolsharp-skill-doctor.stamp"
+SKILL_REVIEW_STAMP = "wiseowl-cobol-skill-doctor.stamp"
 SKILL_REVIEW_DAYS = 7
 
 

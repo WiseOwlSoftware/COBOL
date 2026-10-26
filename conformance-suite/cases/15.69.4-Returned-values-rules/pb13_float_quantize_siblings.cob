@@ -25,7 +25,7 @@
       *> SIBLING 2 - the receiver-less ** relation, the exact shape of the headroom golden's EXP10 case: with no
       *> receiver there is no scale to quantize to, both sides saturated to the same Int128.MaxValue, and two
       *> values a FACTOR OF TEN apart compared EQUAL. 8.8.4.2.4 makes a native comparison proceed by the rules of
-      *> native arithmetic, and 15.4.1 leaves the returned value's representation to the implementor - COBOL.NET's
+      *> native arithmetic, and 15.4.1 leaves the returned value's representation to the implementor - WiseOwl COBOL's
       *> determination is binary64, so 10**30 and 10**31 are distinct and the relation is FALSE.
       *>
       *> SIBLING 3 - a value that genuinely EXCEEDS the receiver must raise the size error condition, never store a

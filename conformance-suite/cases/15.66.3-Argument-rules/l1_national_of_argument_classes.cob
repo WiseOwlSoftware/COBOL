@@ -23,7 +23,7 @@
       *>
       *> THE VALUES. §15.66.4 r1: "A character string is returned with each alphanumeric character in argument-1
       *> converted to its corresponding national coded character set representation. The implementor defines the
-      *> correspondence of characters." COBOL.NET's documented correspondence is the TOTAL UTF-16 IDENTITY
+      *> correspondence of characters." WiseOwl COBOL's documented correspondence is the TOTAL UTF-16 IDENTITY
       *> (docs/CONFORMANCE.md, Annex A.1 item 33 / item 188), so 'A' converts to the national 'A' and no
       *> character lacks a correspondent — §15.66.4 r2/r3's substitution never applies here.
       *> §15.66.4 r4: "The length of the returned value is the number of character positions of usage national

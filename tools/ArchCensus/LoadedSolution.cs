@@ -3,7 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace CobolNet.Tools.ArchCensus;
+namespace WiseOwl.Cobol.Tools.ArchCensus;
 
 /// <summary>The census and reader projects of one solution, loaded and compiled, with every document classified.</summary>
 internal sealed class LoadedSolution : IDisposable

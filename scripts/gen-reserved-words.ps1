@@ -14,7 +14,7 @@
 #     word/edition reservation flags with provenance, enter this repo).
 #
 # Outputs (BOTH committed; ReservedWordsDriftTests asserts they agree):
-#   src/Cobol.Net.Editions/ReservedWords.Table.cs
+#   src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs
 #   tests/version-matrix/reserved-words.json
 #
 # Derivation: flags = set membership per source (85/2002/2014 = GnuCOBOL; 2023 = the ISO spec itself).
@@ -37,7 +37,7 @@ Import-Module (Join-Path $PSScriptRoot 'LfText.psm1') -Force   # every tracked o
 $repo = Split-Path -Parent $PSScriptRoot
 $specPath = Join-Path $repo 'specs/ISO_COBOL.md'
 $vcrPath  = Join-Path $repo 'docs/VERSION_CHANGE_REFERENCE.md'
-$csOut    = Join-Path $repo 'src/Cobol.Net.Editions/ReservedWords.Table.cs'
+$csOut    = Join-Path $repo 'src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs'
 $jsonOut  = Join-Path $repo 'tests/version-matrix/reserved-words.json'
 # The §8.10 CONTEXT-SENSITIVE word table (kb/Work PB250). >>COBOL-WORDS SR3 admits a context-sensitive
 # word as literal-1/3/4 and SR4 bars one as literal-2/5/6, so the compiler needs the §8.10 population as
@@ -45,7 +45,7 @@ $jsonOut  = Join-Path $repo 'tests/version-matrix/reserved-words.json'
 # naming HEX, CURRENT, LC_ALL, ANUM, BYTE, ACTIVATING, STACK, TOP-LEVEL, UCS-4, UTF-8, UTF-16, ...  The
 # directive is a 2023 introduction (cobol-words-directive-2023), so §8.10's 2023 table is exactly the
 # population its rules speak about and no per-edition flags are needed.
-$ctxCsOut   = Join-Path $repo 'src/Cobol.Net.Editions/ContextSensitiveWords.Table.cs'
+$ctxCsOut   = Join-Path $repo 'src/WiseOwl.Cobol.Editions/ContextSensitiveWords.Table.cs'
 $ctxJsonOut = Join-Path $repo 'tests/version-matrix/context-sensitive-words.json'
 $cache    = Join-Path $repo '.cache/gnucobol-words'
 
@@ -247,7 +247,7 @@ $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine('// GnuCOBOL per-standard word lists (85/2002/2014 flags; derived facts with provenance).')
 [void]$sb.AppendLine('// ReservedWordsDriftTests asserts this table equals tests/version-matrix/reserved-words.json.')
 [void]$sb.AppendLine('// </auto-generated>')
-[void]$sb.AppendLine('namespace CobolNet.Editions;')   # must MATCH the committed table (kb/Work PB250: it said CobolNet.Validation, so a re-run broke the build)
+[void]$sb.AppendLine('namespace WiseOwl.Cobol.Editions;')   # must MATCH the committed table (kb/Work PB250: it said WiseOwl.Cobol.Validation, so a re-run broke the build)
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('public static partial class ReservedWords')
 [void]$sb.AppendLine('{')
@@ -294,7 +294,7 @@ $cb = [System.Text.StringBuilder]::new()
 [void]$cb.AppendLine('// ContextSensitiveWordsDriftTests asserts this table equals tests/version-matrix/context-sensitive-words.json')
 [void]$cb.AppendLine('// AND the spec section it came from.')
 [void]$cb.AppendLine('// </auto-generated>')
-[void]$cb.AppendLine('namespace CobolNet.Editions;')
+[void]$cb.AppendLine('namespace WiseOwl.Cobol.Editions;')
 [void]$cb.AppendLine('')
 [void]$cb.AppendLine('public static partial class ContextSensitiveWords')
 [void]$cb.AppendLine('{')

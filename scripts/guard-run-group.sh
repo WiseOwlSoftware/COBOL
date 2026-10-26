@@ -29,10 +29,10 @@ set -u
 
 ROOT="$1"; GROUP="$2"; TESTS="$3"
 OUT="$ROOT/tests/nist/output"
-# The COBOL runtime the compiled programs bind to, `Cobol.Net.Runtime` (scripts/guard-compiler.sh selects it).
+# The COBOL runtime the compiled programs bind to, `WiseOwl.Cobol.Runtime` (scripts/guard-compiler.sh selects it).
 # guard-fast.sh exports GUARD_RUNTIME_DLL (a repo-relative path); the default keeps a standalone invocation —
 # and scripts/guard-verify.sh's witnesses — working without the caller.
-RUNTIME="${GUARD_RUNTIME_DLL:-src/Cobol.Net.Runtime/bin/Debug/net10.0/Cobol.Net.Runtime.dll}"
+RUNTIME="${GUARD_RUNTIME_DLL:-src/WiseOwl.Cobol.Runtime/bin/Debug/net10.0/WiseOwl.Cobol.Runtime.dll}"
 case "$RUNTIME" in /*|[A-Za-z]:[\\/]*) ;; *) RUNTIME="$ROOT/$RUNTIME" ;; esac
 # A hung program used to block its whole group forever; the timeout makes that a reported NO-VERDICT instead.
 # `timeout` reports 124 on expiry and 137 after the -k KILL. A COBOL program may itself STOP RUN with status

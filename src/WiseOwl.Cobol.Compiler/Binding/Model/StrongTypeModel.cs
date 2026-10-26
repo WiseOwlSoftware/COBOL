@@ -1,0 +1,522 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using WiseOwl.Cobol.Runtime;
+
+namespace WiseOwl.Cobol.Binding.Model;
+
+/// <summary>
+/// The strong-typing model over the <see cref="DataItem"/> tree (ISO/IEC 1989:2023 §8.5.3 / §13.18.58 STRONG
+/// TYPEDEF; data-model D17) — §8.5.3.1's SAME-TYPE test and the tree-walking predicates behind the MOVE /
+/// relation / class-condition / argument / RETURNING / REDEFINES / RENAMES gates. Extracted off
+/// <c>DataItem</c> (P5.11b, DESIGN-data-model §2.4): strong typing is a USE-RESTRICTION overlay consulted at a
+/// handful of check sites, not core record shape — <c>DataItem</c> keeps only the stored facts
+/// (<see cref="DataItem.StrongType"/>, <see cref="DataItem.TypeName"/>) that <c>ExpandTypes</c> writes.
+/// <para>⛔ THERE IS ONE "same type" IN THE STANDARD AND ONE PREDICATE HERE. §8.5.3.1 defines it, and eight
+/// separate rules spend it — §14.9.25.3 SR2 (MOVE), §8.8.4.2.3 SR1 + §8.8.4.2.12 (comparison), §14.8.2.2
+/// (arguments), §14.8.3.2 (returning items), §9.3.8.2.3 rule 7 (interface conformance), §8.5.1.12.1's
+/// fixed-length sentence, §14.9.30.3 SR2 / §14.9.34.3 SR3 (the record area). Every one of them asks
+/// <see cref="SameType"/>; none of them re-derives the test (kb/Work PB427 — the predicate used to compare a
+/// type-NAME string plus a member-NAME PATH, which is neither of §8.5.3.1's two halves and was wrong in BOTH
+/// directions).</para>
+/// </summary>
+public static class StrongTypeModel
+{
+    /// <summary>The outermost enclosing item (the item itself or an ancestor) whose data description is strongly
+    /// typed — i.e. carries, or is subordinate to, a TYPE clause referencing a STRONG type declaration (ISO
+    /// §8.5.3.1). Null when the item is not part of any strongly-typed subtree. Backs the §8.5.3.3
+    /// use-restriction gates and the §8.5.3.1 same-type test.</summary>
+    public static DataItem? StrongRoot(DataItem item)
+    {
+        DataItem? root = null;
+        for (DataItem? cur = item; cur is not null; cur = cur.Parent)
+            if (cur.StrongType) root = cur;
+        return root;
+    }
+
+    /// <summary>True when the item is a strongly-typed GROUP — the operand form the MOVE / comparison /
+    /// class-condition same-type gates restrict (ISO §8.5.3.3: only group items may be strongly typed;
+    /// §14.9.25.3 SR2 / §8.8.4.2.3 SR1 / §8.8.4.4.3 SR1). An elementary leaf subordinate to a strong group is
+    /// NOT strongly typed, so its individual MOVE / comparison is unrestricted (a strong record is still built
+    /// up field by field). Asked of the entry's own form (<see cref="DataItem.IsGroupEntry"/>) so it agrees with
+    /// <c>ItemCategory.GroupKindsOf</c>, which reads it, before the usage walk too (kb/Work PB3682).</summary>
+    public static bool IsStrongGroup(DataItem item) => item.IsGroupEntry && StrongRoot(item) is not null;
+
+    /// <summary>True when the item is part of any strongly-typed subtree (a strong group OR a leaf subordinate
+    /// to one) — backs the §13.18.57.3 SR3/SR4 "in whole or in part" declaration checks (a RENAMES / REDEFINES
+    /// touching any part of a strong item is prohibited).</summary>
+    public static bool IsStronglyTyped(DataItem item) => StrongRoot(item) is not null;
+
+    /// <summary>The NEAREST enclosing item (the item itself or an ancestor) that directly carries a TYPE clause
+    /// — the item whose <see cref="DataItem.TypeName"/> it acquired. This is the item's TYPE DECLARATION for the
+    /// §8.5.3.1 same-type test: a nested <c>TYPE INNER-T</c> subgroup is anchored by INNER-T (itself), NOT by the
+    /// outermost strong record. Null when the item is not part of any typed subtree.</summary>
+    public static DataItem? TypeAnchor(DataItem item)
+    {
+        for (DataItem? cur = item; cur is not null; cur = cur.Parent)
+            if (cur.TypeName is not null) return cur;
+        return null;
+    }
+
+    // ── §8.5.3.1 — THE SAME-TYPE TEST ─────────────────────────────────────────────────────────────────────────
+    //
+    // The standard states it as TWO alternatives over typed ITEMS, both resting on one relation over type
+    // DECLARATIONS:
+    //
+    //   "Two typed items are of the same type when:
+    //    — The items are described with TYPE clauses that reference equivalent type declarations; or
+    //    — The items are described as subordinate items in equivalent type declarations, starting at the same
+    //      relative byte pr bit position and having the same length in bytes or bits."
+    //                                        ^ the transcription's OCR slip for "or"; quoted verbatim so the
+    //                                          `scripts/spec/cite.py --check` of this line is honest.
+    //
+    //   "Two type declarations are considered equivalent when they have the same type-name, both have the same
+    //    presence or absence of the EXTERNAL clause and the STRONG phrase, and for each elementary item in one
+    //    type declaration there is a corresponding elementary item in the other type declaration, starting at
+    //    the same relative byte or bit position and having the same length in bytes or bits. Each pair of
+    //    corresponding elementary items shall have the same ALIGNED, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED,
+    //    PICTURE, SIGN, SYNCHRONIZED, and USAGE clauses …"
+    //
+    // ⛔ A TYPE-NAME MATCH IS ONE CONJUNCT OF ONE HALF. It is not the test, and neither is a member-NAME path:
+    // §8.5.3.1's own NOTE ("either both items are described with the same TYPE clause or both items are
+    // described as the same subordinate item in the same type declaration") describes what the rules MEAN
+    // within ONE source element — it is informative, it is not the criterion, and reading it as one both
+    // ADMITTED a MOVE between two non-equivalent same-named declarations in different source elements
+    // (alphabetic characters deposited into two PIC 9(3) items, silently) and REFUSED a legal move between two
+    // differently-NAMED subgroups at the same relative position (kb/Work PB427).
+
+    /// <summary>ISO §8.5.3.1 — "Two typed items are of the same type when …". The ONE same-type predicate:
+    /// every rule in the standard that says "of the same type" of two typed items asks this.
+    /// <para>Which of the clause's two alternatives applies is decided by whether the operand IS its own
+    /// <see cref="TypeAnchor"/>: an item that carries a TYPE clause is "described with a TYPE clause"
+    /// (alternative 1 — equivalent declarations, nothing more); an item that does not is "described as a
+    /// subordinate item in a type declaration" (alternative 2 — equivalent declarations PLUS the same relative
+    /// position and length within them). A MIXED pair — one whole typed item against another's subordinate — is
+    /// covered by NEITHER alternative and is therefore not of the same type.</para></summary>
+    public static bool SameType(DataItem a, DataItem b)
+    {
+        if (TypeAnchor(a) is not { } ra || TypeAnchor(b) is not { } rb) return false;
+        bool aIsSubject = ReferenceEquals(ra, a), bIsSubject = ReferenceEquals(rb, b);
+        if (aIsSubject != bIsSubject) return false;
+        if (!EquivalentTypeDeclarations(ra, rb)) return false;
+        return aIsSubject || SamePosition(ra, a, rb, b);                 // alternative 1 | alternative 2
+    }
+
+    /// <summary>§8.5.3.1's second alternative past the equivalence of the declarations — "starting at the same
+    /// relative byte or bit position and having the same length in bytes or bits". BITS is the unit that expresses
+    /// both (§8.5.1.6.3 places bit items at bit positions), and the placement walk is BitLayout's ONE §8.5.1.6.3
+    /// cursor — never a second geometry here. Asked by <see cref="SameType"/> of two OPERANDS and by
+    /// <see cref="SameRestriction"/> of the two subordinate members a pair of restrictions name.</summary>
+    private static bool SamePosition(DataItem declA, DataItem a, DataItem declB, DataItem b)
+    {
+        int pa = BitLayout.StartBitOf(declA, a), pb = BitLayout.StartBitOf(declB, b);
+        return pa >= 0 && pa == pb && BitLayout.RunBits(a) == BitLayout.RunBits(b);
+    }
+
+    /// <summary>ISO §8.5.3.1 — "Two type declarations are considered equivalent when …". Takes either form the
+    /// model has of a declaration: a TYPE-clause SUBJECT (whose subtree <c>DataBinder.ExpandType</c> cloned
+    /// from the template through the ONE <c>CopyEntryDescription</c>, so it IS the declaration, kb/Work PB522)
+    /// or the TYPEDEF TEMPLATE itself (<c>DataBinder.TypeDecls</c>' entry — also fully expanded, because
+    /// <c>ExpandTypes</c> walks the templates too). <see cref="DeclaredTypeName"/> /
+    /// <see cref="DeclaredStrong"/> / <see cref="DeclaredExternal"/> read the three level-1 identity facts from
+    /// whichever form it is, so a restricted data-pointer's resolved declaration and a TYPE subject's anchor
+    /// compare through the same walk.</summary>
+    public static bool EquivalentTypeDeclarations(DataItem a, DataItem b) =>
+        EquivalentDeclarations(a, b, new Comparison());
+
+    private static bool EquivalentDeclarations(DataItem a, DataItem b, Comparison within)
+    {
+        if (ReferenceEquals(a, b)) return true;
+        if (!CobolNames.Same(DeclaredTypeName(a), DeclaredTypeName(b))
+            || DeclaredTypeName(a) is null)
+            return false;
+        if (DeclaredStrong(a) != DeclaredStrong(b) || DeclaredExternal(a) != DeclaredExternal(b)) return false;
+        return SameLayout(a, b, within);
+    }
+
+    /// <summary>ISO §8.5.3.1's STRUCTURAL half — "for each elementary item in one type declaration there is a
+    /// corresponding elementary item in the other type declaration, starting at the same relative byte or bit
+    /// position and having the same length in bytes or bits", each pair with the same ALIGNED, BLANK WHEN ZERO,
+    /// DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, SYNCHRONIZED and USAGE clauses — asked of two data description
+    /// entries whatever their type identity. <see cref="EquivalentTypeDeclarations"/> is this plus the type-name,
+    /// STRONG and EXTERNAL conjuncts; the prototype-versus-definition signature compare
+    /// (<see cref="PrototypeSignatures.Same"/>, ISO §13.7.3 SR2 / §10.6.2 SR2–SR3, kb/Work PB1115) asks it of two
+    /// untyped group formals, because a group's description IS its subordinate entries' descriptions.
+    /// <para>The correspondence IS position-and-length, and §13.18.44.3 SR12/SR14 keep REDEFINES out of a
+    /// strongly-typed declaration, so the elementary items of an equivalent pair tile their declaration
+    /// identically and declaration order IS position order — the two sequences are walked pairwise. GROUPING is
+    /// deliberately NOT compared: §8.5.3.1's first paragraph makes the essential characteristics "the relative
+    /// positions and lengths of the ELEMENTARY items … and the ALIGNED, BLANK WHEN ZERO, DYNAMIC LENGTH,
+    /// JUSTIFIED, PICTURE, SIGN, SYNCHRONIZED, and USAGE clauses specified for each of these elementary items",
+    /// and an intermediate group level is none of those.</para>
+    /// <para>A group's elementary items may be restricted program- or function-pointers, whose type is a prototype's
+    /// SIGNATURE CLASS (<see cref="SameAnalyzedProfile"/>); asked while the classes are computed, each carries its
+    /// prototype's current block (<see cref="PrototypeSignatureClasses.Classify"/>; kb/Work PB3120, PB3101).</para></summary>
+    public static bool SameElementaryLayout(DataItem a, DataItem b) =>
+        SameLayout(a, b, new Comparison());
+
+    private static bool SameLayout(DataItem a, DataItem b, Comparison within)
+    {
+        List<(DataItem Item, int Start)> la = [], lb = [];
+        if (!CollectElementary(a, 0, la) || !CollectElementary(b, 0, lb) || la.Count != lb.Count) return false;
+        for (int i = 0; i < la.Count; i++)
+            if (la[i].Start != lb[i].Start
+                || BitLayout.RunBits(la[i].Item) != BitLayout.RunBits(lb[i].Item)
+                || !SameEssentialCharacteristics(la[i].Item, lb[i].Item, within))
+                return false;
+        return true;
+    }
+
+    /// <summary>ISO §8.5.3.1's same-type relation as ONE KEY, for an operand whose counterpart is described only at run
+    /// time — a strongly-typed group crossing a UNIVERSAL object-reference dispatch, where §14.8.2.2 / §14.8.3.2 ("both
+    /// shall be of the same type") is asked of two independently compiled descriptions (kb/Work PB480). Built from
+    /// exactly what <see cref="SameType"/> reads: the type-name, the STRONG and EXTERNAL presence of the declaration,
+    /// the alternative (a TYPE subject, or a subordinate item at its relative bit position and length), and each
+    /// elementary item's relative bit position, length in bits and §8.5.3.1 essential characteristics (the
+    /// <see cref="SameEssentialCharacteristics"/> list: ALIGNED, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED,
+    /// SYNCHRONIZED and the analyzed PICTURE / SIGN / USAGE profile), so equal keys ⇔ <see cref="SameType"/> — pinned
+    /// end to end by <c>conformance:cases/9.3.6-Method-invocation/pb480_universal_match_relations</c> (two equivalent declarations of one
+    /// type-name in two source elements cross). The one fact a key cannot carry exactly is the LOCALE phrase's
+    /// external identification, which §8.5.3.1 compares character for character between two literals but without
+    /// regard to case when a word is involved: it is keyed as written, word or literal, so a literal and a word that
+    /// differ only in case key apart.</summary>
+    public static string TypeIdentityKey(DataItem item) => TypeIdentityKey(item, open: []);
+
+    /// <param name="open">The declarations whose keys are being built, innermost last: a restricted data-pointer member
+    /// keys the declaration it is restricted to (as <see cref="SameAnalyzedProfile"/> compares it), and one restricted
+    /// back to a declaration still open is keyed as the back-reference <c>@depth</c>, so the key of a self-referential
+    /// type terminates (kb/Work PB3120).</param>
+    private static string TypeIdentityKey(DataItem item, List<DataItem> open)
+    {
+        var anchor = TypeAnchor(item) ?? item;
+        var key = new System.Text.StringBuilder();
+        key.Append(CobolNames.Fold(DeclaredTypeName(anchor) ?? "")).Append(DeclaredStrong(anchor) ? "|STRONG" : "|-")
+            .Append(DeclaredExternal(anchor) ? "|EXTERNAL" : "|-");
+        if (!ReferenceEquals(anchor, item))
+            key.Append(CultureInfo.InvariantCulture, $"|SUBORDINATE {BitLayout.StartBitOf(anchor, item)}:{BitLayout.RunBits(item)}");
+        List<(DataItem Item, int Start)> leaves = [];
+        if (!CollectElementary(anchor, 0, leaves)) return key.Append("|UNPLACED ").Append(anchor.CobolName).ToString();
+        open.Add(anchor);
+        foreach (var (leaf, start) in leaves)
+            key.Append(CultureInfo.InvariantCulture, $"|{start}:{BitLayout.RunBits(leaf)}:{EssentialCharacteristicsKey(leaf, open)}");
+        open.RemoveAt(open.Count - 1);
+        return key.ToString();
+    }
+
+    /// <summary>True when <paramref name="decl"/>, the TYPEDEF template a restricted data-pointer member resolved to
+    /// (<c>DataBinder.ResolveRestrictedTypes</c>), is the declaration <paramref name="open"/> is the key of: the
+    /// template itself, or a TYPE SUBJECT of it. A subject's subtree is a clone of its template, so the two are one
+    /// type declaration (§8.5.3.1: the type of an item described with a TYPE clause is the declaration that clause
+    /// references) held by the model in two forms, and a key built from either form must be the same string. The
+    /// back-reference is therefore recognized across the forms by the type-name, which §8.3.2.2 restricts to one type of user-defined word within
+    /// a source element and which is what the member's declaration was resolved by (kb/Work PB3120).</summary>
+    private static bool IsOpenDeclaration(DataItem open, DataItem decl) =>
+        ReferenceEquals(open, decl) || (decl.IsTypedef && !open.IsTypedef && CobolNames.Same(open.TypeName, decl.CobolName));
+
+    /// <summary><see cref="SameEssentialCharacteristics"/> as a key: the entry clauses, then the analyzed profile
+    /// (<see cref="PicInfo"/>'s own record text, every axis by construction, with the members
+    /// <see cref="SameAnalyzedProfile"/> handles apart rendered apart — a restricted prototype-pointer by the TYPE it
+    /// is, its prototype's signature class, never the prototype's name; a restricted data-pointer by its type-name
+    /// under the fold <see cref="SameRestriction"/> compares with, and the declaration it resolves to).
+    /// <para>⛔ THE KEY IS THE SAME TEXT ON EVERY HOST (kb/Work PB3257). It is compiled into the program and compared
+    /// ordinally at run time against a key another compilation built (<c>ActivationRelations</c>), so a number in it
+    /// is formatted with the invariant culture: a negative <see cref="PicInfo.Scale"/> (<c>PIC 99P</c>) printed U+2212
+    /// under sv-SE, and two compilations of one type on two hosts keyed apart. The record text is rendered by
+    /// <see cref="InvariantRecordText"/>, because a record's synthesized <c>PrintMembers</c> formats its members with
+    /// the current culture and takes no format provider.</para></summary>
+    private static string EssentialCharacteristicsKey(DataItem x, List<DataItem> open)
+    {
+        string entry = string.Create(CultureInfo.InvariantCulture,
+            $"{(x.IsAligned ? "A" : "-")}{(x.BlankWhenZero ? "B" : "-")}{(x.Justified ? "J" : "-")}{SynchronizedKey(x.Synchronized)}")
+            + (x.IsDynamicLength ? string.Create(CultureInfo.InvariantCulture, $"D{x.DynMaxSize}/{CobolNames.Fold(x.DynStructure?.Name ?? "")}") : "");
+        if (x.Pic is not { } p) return entry;
+        string locale = p.LocaleEdit is { } le
+            ? string.Create(CultureInfo.InvariantCulture,
+                $"{le.Size}/{le.Picture}/{(le.Locale.Named is { } n ? (n.FromLiteral ? "L:" + n.External : "W:" + CobolNames.Fold(n.External)) : "-")}")
+            : "";
+        string rules = p.EditingRules is null ? "" : string.Join(";", p.EditingRules);   // char, string and bool members only
+        string restricted = p.RestrictedTypeName is null ? ""
+            : CobolNames.Fold(p.RestrictedTypeName)
+              + (p.RestrictedTypeDecl is not { } decl ? ""
+                 : open.FindIndex(o => IsOpenDeclaration(o, decl)) is var at and >= 0
+                     ? string.Create(CultureInfo.InvariantCulture, $"@{open.Count - at}")
+                     : $"[{TypeIdentityKey(decl, open)}]");
+        string profile = InvariantRecordText(p with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null, LocaleEdit = null });
+        return $"{entry}|{profile}|{rules}|{locale}|{PrototypeSignatures.RestrictionIdentity(x)}|{restricted}";
+    }
+
+    /// <summary>A record's synthesized text under the invariant culture: its <c>PrintMembers</c> formats each member
+    /// through <c>StringBuilder.Append(object)</c>, which reads <see cref="CultureInfo.CurrentCulture"/> and takes no
+    /// format provider, so the culture is set for the call (it is thread-local) and restored after it. Every member
+    /// the record has, and every one a later change adds, is then rendered the same on every host — the reason
+    /// <see cref="EssentialCharacteristicsKey"/> keys the analyzed profile by the record's own text (kb/Work PB3257).</summary>
+    private static string InvariantRecordText(object record)
+    {
+        var host = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        try { return record.ToString() ?? ""; }
+        finally { CultureInfo.CurrentCulture = host; }
+    }
+
+    /// <summary>The SYNCHRONIZED clause's letter in <see cref="EssentialCharacteristicsKey"/> — one per form, because
+    /// §8.5.3.1 compares the CLAUSES and <c>SYNC LEFT</c>, <c>SYNC RIGHT</c> and bare <c>SYNC</c> are three of them
+    /// (<see cref="SynchronizedPhrase"/>, kb/Work PB538); the run-time key separates them exactly as
+    /// <see cref="SameEssentialCharacteristics"/> does.</summary>
+    private static char SynchronizedKey(SynchronizedPhrase? phrase) => phrase switch
+    {
+        null => '-',
+        SynchronizedPhrase.Unqualified => 'Y',
+        SynchronizedPhrase.Left => 'L',
+        SynchronizedPhrase.Right => 'R',
+        _ => throw new ArgumentOutOfRangeException(nameof(phrase), phrase, "a SYNCHRONIZED form with no key letter"),
+    };
+
+    /// <summary>The type-name of a declaration in either of its two forms — a TYPEDEF template's own name
+    /// (§13.18.58: the TYPEDEF clause "declares and names" the type) or the name a TYPE-clause subject
+    /// references (<see cref="DataItem.TypeName"/>). Null when the item is neither.</summary>
+    private static string? DeclaredTypeName(DataItem d) => d.IsTypedef ? d.CobolName : d.TypeName;
+
+    /// <summary>"…both have the same presence or absence of … the STRONG phrase" (§8.5.3.1) — the template's own
+    /// STRONG phrase, or the strength a TYPE subject acquired from the template it references.</summary>
+    internal static bool DeclaredStrong(DataItem d) => d.IsTypedef ? d.DeclaresStrongType : d.StrongType;
+
+    /// <summary>"…both have the same presence or absence of the EXTERNAL clause …" AT LEVEL 1 OF THE TYPE
+    /// DECLARATION (§8.5.3.1 ¶1) — so the fact read is the TYPE DECLARATION's own EXTERNAL clause
+    /// (<see cref="DataItem.IsExternalTypedef"/>), never the referencing record's
+    /// (<see cref="DataItem.HasExternalClause"/>). On a TYPE subject the carrier is
+    /// <see cref="DataItem.ExternalFromType"/>, which <c>ExpandType</c> writes under §13.18.22.4 GR3; GR2
+    /// confines such a subject to level 1, and a non-level-1 one is already a hard error there, so for every
+    /// conforming program this reads the declaration's clause exactly.</summary>
+    private static bool DeclaredExternal(DataItem d) => d.IsTypedef ? d.IsExternalTypedef : d.ExternalFromType;
+
+    /// <summary>The declaration's elementary items with their relative BIT positions, in declaration order.
+    /// The placement is composed out of <see cref="BitLayout.StartBitWithin"/> — the ONE §8.5.1.6.3 cursor walk
+    /// — level by level, exactly as <see cref="BitLayout.StartBitOf"/> composes it, so no second geometry is
+    /// written here and a bit-bearing declaration is measured by the same law as its storage. False when any
+    /// level cannot be placed (an unmodelled overlay chain): a declaration whose geometry is unknown is never
+    /// declared equivalent to another.</summary>
+    private static bool CollectElementary(DataItem node, int at, List<(DataItem Item, int Start)> into)
+    {
+        if (node.Children.Count == 0) { into.Add((node, at)); return true; }
+        foreach (var c in node.Children)
+        {
+            int off = BitLayout.StartBitWithin(node, c);
+            if (off < 0 || !CollectElementary(c, at + off, into)) return false;
+        }
+        return true;
+    }
+
+    /// <summary>ISO §8.5.3.1 — "Each pair of corresponding elementary items shall have the same ALIGNED, BLANK
+    /// WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, SYNCHRONIZED, and USAGE clauses". The clause's own
+    /// eight-item list, one conjunct each; the PICTURE / SIGN / USAGE trio is answered by the analyzed profile
+    /// (<see cref="PicInfo"/> IS the canonical PICTURE + USAGE + SIGN analysis).</summary>
+    private static bool SameEssentialCharacteristics(DataItem x, DataItem y, Comparison within) =>
+        DescriptionClauses.AlignedOrDynamicLengthMismatch(x, y) is null       // ALIGNED §13.18.1; DYNAMIC LENGTH
+                                                                              //   §13.18.19 with LIMIT + structure (PB829)
+        && x.BlankWhenZero == y.BlankWhenZero                                 // BLANK WHEN ZERO §13.18.8
+        && x.Justified == y.Justified                                         // JUSTIFIED      §13.18.32
+        && x.Synchronized == y.Synchronized                                   // SYNCHRONIZED   §13.18.55
+        && SameAnalyzedProfile(x, y, within);                                // PICTURE + SIGN + USAGE
+
+    /// <summary>The PICTURE / SIGN / USAGE conjunct, with §8.5.3.1's two exceptions and its "Additionally"
+    /// paragraph.
+    /// <para>The comparison is <see cref="PicInfo"/>'s OWN record equality — every analyzed axis, and every axis
+    /// a later slice adds, is included by construction rather than by a hand-maintained member list. Some
+    /// members are handled apart from it (the exceptions below, and the two elided members after them):</para>
+    /// <list type="bullet">
+    ///   <item><b>Exceptions 1 and 2</b> — "Currency symbols match if and only if the corresponding currency
+    ///   strings are the same", and the period / comma picture symbols match only when DECIMAL-POINT IS COMMA is
+    ///   in effect for both declarations or for neither. Both are carried by <see cref="PicInfo.Clause"/> — the
+    ///   ONE PICTURE-clause identity (<see cref="PictureClauseIdentity"/>, kb/Work PB1166) that the §14.8 / §9.3
+    ///   activation and signature comparator reads too — which holds the canonical character-string, the currency
+    ///   STRING, and the DECIMAL-POINT IS COMMA state whenever the picture has a period or comma symbol. This used
+    ///   to rest on the claim that two items analyzed under different settings "differ in the profile already"
+    ///   through <see cref="PicInfo.Scale"/>, which holds only when a digit position follows the separator — the
+    ///   rule is about the SYMBOLS, so it is now carried as the symbols' own fact.</item>
+    ///   <item><b>The "Additionally" paragraph</b> — "locale specifications in the PICTURE clauses match if and
+    ///   only if" both specify the same SIZE phrase and the same external identification — never the
+    ///   locale-NAME, so two locale-names bound to one identification match (kb/Work PB1475). Carried on
+    ///   <see cref="PicInfo.LocaleEdit"/>, whose <see cref="LocaleEditSpec"/> equality IS that rule
+    ///   (<see cref="LocaleRef.SameIdentificationAs"/>), the predicate the OoConformance arms read too.</item>
+    /// </list>
+    /// <para>⛔ <see cref="PicInfo.EditingRules"/> is an <c>IReadOnlyList</c>, for which the record's synthesized
+    /// equality uses the DEFAULT comparer — reference equality — so two separately-analyzed items with identical
+    /// PICTURE EDITING phrases would compare unequal and legal source would be refused. It is elided from the
+    /// record compare and compared element-wise.</para>
+    /// <para>⛔ THE RESTRICTED-POINTER MEMBERS ARE ELIDED TOO, AND ASKED THEIR TYPE (kb/Work PB3120). A restricted
+    /// program- or function-pointer is typed by its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), so
+    /// <see cref="PicInfo.RestrictedPrototypeName"/> leaves the record compare and the pair is asked
+    /// <see cref="PrototypeSignatures.SameType"/> — two pointers restricted to differently named prototypes of one
+    /// signature are of the same type, exactly as an elementary pointer's description reads them
+    /// (<c>ActivationDescriptions</c>' <c>TO</c> class clause). A restricted data-pointer is typed by the DECLARATION its type-name
+    /// resolves to (GR23), so <see cref="PicInfo.RestrictedTypeName"/> and its resolution
+    /// <see cref="PicInfo.RestrictedTypeDecl"/> leave the record compare and the pair is asked
+    /// <see cref="SameRestriction(TypeRestriction, TypeRestriction)"/>, the relation the elementary arm spends. Neither
+    /// can stay in the record compare: the name decided what only the type may, and recursing into the declaration
+    /// would not terminate for a type whose pointer member is restricted back to it — which
+    /// <paramref name="within"/> settles by assuming the declaration pairs under comparison equivalent.</para>
+    /// </summary>
+    private static bool SameAnalyzedProfile(DataItem a, DataItem b, Comparison within)
+    {
+        if (a.Pic is not { } x || b.Pic is not { } y) return a.Pic is null && b.Pic is null;
+        if (ReferenceEquals(x, y)) return true;
+        if ((x with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null })
+            != (y with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null }))
+            return false;
+        if ((x.RestrictedTypeName is not null || y.RestrictedTypeName is not null)
+            && !SameRestriction(PointerRestriction(a), PointerRestriction(b), within)) return false;
+        if ((x.RestrictedPrototypeName is not null || y.RestrictedPrototypeName is not null)
+            && !PrototypeSignatures.SameType(a, b)) return false;
+        return x.EditingRules is null ? y.EditingRules is null
+            : y.EditingRules is { } yr && x.EditingRules.SequenceEqual(yr);
+    }
+
+    /// <summary>⛔ ONE §8.5.3.1 COMPARISON IN FLIGHT (kb/Work PB3120): what a pair of declarations being compared
+    /// carries down to the pointer members it meets. A restricted data-pointer member is typed by its type declaration
+    /// (§13.18.60.4 GR23), which may itself hold a pointer restricted back to it, so the declaration pairs being compared
+    /// are assumed equivalent (<see cref="Assume"/>) and the walk terminates. (A restricted program- or function-pointer
+    /// member is typed by the signature class its item carries, <see cref="PrototypeSignatures.SameType"/>.) Created at
+    /// each public entry, so no state outlives one question.</summary>
+    private sealed class Comparison
+    {
+        // Allocated on the first pair: most declarations hold no restricted data-pointer.
+        private HashSet<(DataItem, DataItem)>? _assumed;
+
+        /// <summary>True when the pair was not assumed before (it is now); false when it is already being compared.</summary>
+        public bool Assume(DataItem a, DataItem b) => (_assumed ??= []).Add((a, b));
+    }
+
+    // ── RESTRICTED DATA-POINTERS (ISO Annex D.9.2.2; §13.18.60.4 GR23, §8.4.3.11.4 GR2) ─────────────────────
+    // Annex D.9.2.2 names the model's TWO sources outright: a restricted data-pointer arises "1) by specifying a
+    // data description entry that contains a usage clause of the form USAGE POINTER TO type-name-1, or 2) by
+    // specifying a data-address-identifier (ADDRESS OF identifier-1, where identifier-1 is a strongly typed group
+    // item or another restricted data-pointer)". The SECOND source needs no grammar at all and was violable the
+    // day strong TYPEDEF landed — the whole strong-type use-restriction network was built out across MOVE / CALL /
+    // ACCEPT / STRING / REDEFINES / RENAMES / intrinsics and the POINTER subsystem was never wired in (kb/Work
+    // PB153). Both sources are reduced HERE to one thing — a TYPE IDENTITY — so the consumption screens
+    // (§14.9.3.3 SR4/SR5, §14.9.39.3 SR19, §14.8.2.3.2) all ask the same question of the same model.
+
+    /// <summary>The identity of the TYPE a value is restricted to: the type-NAME the restriction is spelled with
+    /// (§13.18.60.4 GR23 states it as <c>type-name-1</c>) together with the type DECLARATION that name resolves
+    /// to. <see langword="default"/> — a null <see cref="Name"/> — is UNRESTRICTED.
+    /// <para>Both are carried because a restriction's spelling and its declaration answer different halves of
+    /// §8.5.3.1: the name is the first conjunct of declaration equivalence, and the declaration is the rest of
+    /// it. Within one source element a type-name resolves to exactly one declaration (§8.3.2.2 makes the
+    /// type-name unique), so the name alone decides; ACROSS source elements two declarations may share a name
+    /// and differ — which is why the declaration travels with it.</para></summary>
+    /// <param name="Name">The type-name the restriction names, or null when unrestricted.</param>
+    /// <param name="Declaration">The type declaration the name resolves to, when the model has it: a TYPE
+    /// subject's anchor, or the TYPEDEF template <c>DataBinder.ResolveRestrictedTypes</c> attached. Null when
+    /// only the name is known.</param>
+    /// <param name="Member">Null for an item DESCRIBED WITH a TYPE clause (§8.5.3.1's first alternative: the type
+    /// is the declaration). The item itself for one DESCRIBED AS A SUBORDINATE item of a type declaration (the
+    /// second alternative: the type is the declaration PLUS the item's relative position and length in it), so
+    /// "the type of" a strongly-typed group nested inside a strong record is that group's own and never the whole
+    /// record's (§8.4.3.11.4 GR2).</param>
+    public readonly record struct TypeRestriction(string? Name, DataItem? Declaration, DataItem? Member = null)
+    {
+        /// <summary>True when this is a restriction at all (Annex D.9.2.2 — an ordinary data-pointer is not).</summary>
+        public bool IsRestricted => Name is not null;
+
+        /// <summary>The identity two same-type restrictions share, as one string — the form a universal dispatch's
+        /// activation description spells a pointer's restriction in (<c>ActivationDescriptions.Restriction</c>), where
+        /// the two restrictions come from two independently compiled source elements. "Of the same type" is §8.5.3.1's
+        /// relation, which <see cref="SameRestriction"/> asks of the two declarations, so the key is the declaration's
+        /// <see cref="TypeIdentityKey"/> (equal keys ⇔ <see cref="SameType"/>): two non-equivalent declarations of one
+        /// type-name key apart, and a subordinate member keys with its §8.5.3.1 second-alternative position and length,
+        /// so a description never equates a record's address with its subordinate group's. Only a restriction whose
+        /// declaration the model does not hold keys by its type-name alone, under the fold
+        /// <see cref="SameRestriction"/> compares names with.</summary>
+        public string Key => Name is null ? "*"
+            : (Member ?? Declaration) is { } declared ? TypeIdentityKey(declared)
+            : CobolNames.Fold(Name);
+
+        /// <inheritdoc/>
+        public override string ToString() => Name is null ? "(unrestricted)"
+            : Member is null ? Name
+            : $"{Member.CobolName ?? Member.CsName} (a subordinate item of type '{Name}')";
+    }
+
+    /// <summary>The type a DATA-POINTER ITEM's value is restricted to — Annex D.9.2.2 source 1, the declared
+    /// <c>USAGE POINTER TO type-name-1</c> (§13.18.60.4 GR23). <see langword="default"/> for an ordinary
+    /// data-pointer, and for any item that is not a data-pointer at all.</summary>
+    public static TypeRestriction PointerRestriction(DataItem item) =>
+        item.Pic is { Category: PicCategory.Pointer } pic && pic.RestrictedTypeName is not null
+            ? new TypeRestriction(pic.RestrictedTypeName, pic.RestrictedTypeDecl)
+            : default;
+
+    /// <summary>True when <paramref name="pointer"/> is a data-pointer restricted to a type "described with the STRONG
+    /// phrase" (§14.9.39.3 SR24 — the only restriction that bars <c>SET … UP BY / DOWN BY</c>): its
+    /// <see cref="PointerRestriction"/> resolved to a declaration that is a STRONG TYPEDEF
+    /// (<see cref="DataItem.TypedefStrong"/>) or a strongly-typed subject (<see cref="DataItem.StrongType"/>). A
+    /// restriction whose declaration is not in hand (an unresolved type-name, already refused by §13.18.60.3 SR18's
+    /// TYPEDEF requirement) is not decided here — never a rejection of what the model cannot prove strong.</summary>
+    public static bool IsRestrictedToStrongType(DataItem pointer) =>
+        PointerRestriction(pointer) is { IsRestricted: true, Declaration: { } decl } && DeclaredStrong(decl);
+
+    /// <summary>The type an <c>ADDRESS OF identifier-1</c> VALUE is restricted to — Annex D.9.2.2 source 2, whose
+    /// normative statement is §8.4.3.11.4 GR2: "If identifier-1 is a strongly-typed group item or a restricted
+    /// data-pointer, the data-address-identifier is a restricted data-pointer that is restricted to the type of
+    /// identifier-1." <see langword="default"/> when the operand is neither, i.e. the address is unrestricted.
+    /// <para>⛔ The strong-group arm deliberately uses <see cref="IsStrongGroup"/>, which is true of a GROUP only,
+    /// so no LEAF subordinate to a strong group has a restricted address — and none may have an address at all:
+    /// §8.4.3.11.3 SR2 forbids <c>ADDRESS OF</c> an elementary item subordinate to a strongly-typed group item
+    /// (<c>AddressOfOperandScreen</c>, kb/Work PB1407), so a strong record's only address is the group's own, the
+    /// restricted data-pointer this method returns for it. (This used to say a leaf's address "is UNRESTRICTED and
+    /// must stay legal" — the opposite of SR2, and the reason a strong-record leaf could be addressed through an
+    /// untyped BASED view.)</para>
+    /// <para>⛔ "THE TYPE OF identifier-1" IS THE OPERAND'S OWN TYPE, AND NEVER WHAT IT POINTS TO OR ENCLOSES (kb/Work
+    /// PB1408). A restricted data-pointer RP is a typed item whose type is the TYPEDEF it was declared with (§13.18.60.3
+    /// SR18 admits the restriction only in a type declaration, so RP always carries a TYPE clause: <c>01 RP TYPE
+    /// PT</c> with <c>PT IS TYPEDEF USAGE POINTER TO T-REC</c> is of type PT) — the address of RP is restricted to
+    /// PT, not to T-REC, which is the type of the item RP's VALUE addresses. (Reading the restriction RP carries
+    /// answered "restricted to T-REC", refusing <c>SET PP TO ADDRESS OF RP</c> for a PP restricted to PT and admitting
+    /// <c>SET ADDRESS OF BS TO ADDRESS OF RP</c> for a T-REC-typed BS.) And a strongly-typed group NESTED in a strong
+    /// record is typed by its position (<see cref="TypedItemType"/>'s <see cref="TypeRestriction.Member"/>), not as
+    /// the enclosing record.</para></summary>
+    public static TypeRestriction AddressOfRestriction(DataItem operand) =>
+        StrongGroupType(operand) is { IsRestricted: true } r ? r
+        : PointerRestriction(operand).IsRestricted ? TypedItemType(operand)
+        : default;
+
+    /// <summary>"Restricted to the same type" (§14.9.39.3 SR19, §14.8.2.3.2, §14.9.3.3 SR4/SR5) — the same
+    /// §8.5.3.1 relation every other same-type rule spends, asked of the identity a restriction carries: the
+    /// type-name always, and full declaration equivalence whenever BOTH sides resolved to a declaration. A
+    /// restriction is to a TYPE, not to a member position, so this is declaration equivalence and NOT
+    /// <see cref="SameType"/>, whose second alternative answers the different question of whether two OPERANDS
+    /// occupy corresponding positions within their declarations.</summary>
+    public static bool SameRestriction(TypeRestriction a, TypeRestriction b) => SameRestriction(a, b, new Comparison());
+
+    private static bool SameRestriction(TypeRestriction a, TypeRestriction b, Comparison within) =>
+        a.IsRestricted && b.IsRestricted
+        && CobolNames.Same(a.Name, b.Name)
+        && (a.Declaration is null || b.Declaration is null
+            // A declaration whose pointer member is restricted back to it asks this pair again: the pair is assumed
+            // equivalent while it is being compared (the greatest fixed point), and a difference anywhere answers
+            // false for the whole conjunction whatever was assumed on the way.
+            || !within.Assume(a.Declaration, b.Declaration)
+            || EquivalentDeclarations(a.Declaration, b.Declaration, within))
+        // §8.5.3.1's two alternatives never mix: a type declaration's own type and a position inside one are not
+        // the same type, and two positions are when they start and run alike in equivalent declarations.
+        && (a.Member is null) == (b.Member is null)
+        && (a.Member is not { } ma || b.Member is not { } mb
+            || (a.Declaration is { } da && b.Declaration is { } db && SamePosition(da, ma, db, mb)));
+
+    /// <summary>The type a TYPED data item is of — §14.9.3.3 SR4's "shall reference a typed data item, and the
+    /// data item referenced by data-name-2 shall be restricted to the type of data-name-1", whose antecedent is
+    /// TYPED, strongly or weakly. <see langword="default"/> when the item is untyped. The declaration travels
+    /// with the name: the anchor's own subtree IS the type declaration.</summary>
+    public static TypeRestriction TypedItemType(DataItem item) =>
+        TypeAnchor(item) is { } anchor
+            ? new TypeRestriction(anchor.TypeName, anchor, ReferenceEquals(anchor, item) ? null : item)
+            : default;
+
+    /// <summary>The type a strongly-typed group item IS (§14.9.3.3 SR5's "the type of data-name-1"), or
+    /// <see langword="default"/> when the item is not a strongly-typed group. ⛔ SR4 and SR5 ask about
+    /// DIFFERENT things — SR5's antecedent is a STRONGLY-TYPED GROUP, SR4's only a TYPED item — so the two keep
+    /// distinct accessors (this one and <see cref="TypedItemType"/>); conflating them rejects legal source.</summary>
+    public static TypeRestriction StrongGroupType(DataItem item) =>
+        IsStrongGroup(item) ? TypedItemType(item) : default;
+}

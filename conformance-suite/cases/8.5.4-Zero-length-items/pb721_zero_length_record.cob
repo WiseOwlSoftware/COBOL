@@ -10,7 +10,7 @@
       *> ISO/IEC 1989:2023 Annex A.3 item 43): "The capabilities of specifying a
       *> zero-length record for relative and sequential files, and of reading and
       *> writing such records, are dependent on the capabilities of the processor."
-      *> COBOL.NET PROVIDES the capability, on BOTH organizations the item names
+      *> WiseOwl COBOL PROVIDES the capability, on BOTH organizations the item names
       *> (docs/CONFORMANCE.md section 2 row 43) - so this golden exercises a sequential
       *> file AND a relative one, because a sequential-only witness would claim more
       *> than it proves.

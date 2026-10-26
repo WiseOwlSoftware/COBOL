@@ -1,6 +1,6 @@
 # SURVEY — Frontend Plumbing (preprocessor · parsing · diagnostics · edition-gate coupling)
 
-> Scope: `src/Cobol.Net.Frontend/{Preprocessor, Parsing, Pipeline, Common, Diagnostics}`. AS-BUILT
+> Scope: `src/WiseOwl.Cobol.Frontend/{Preprocessor, Parsing, Pipeline, Common, Diagnostics}`. AS-BUILT
 > assessment for the rearchitecture. Every claim is cited to `file:line` as read in the tree on
 > 2026-07-07. Companion plan docs: `DESIGN-frontend-grammar.md`, `DESIGN-edition-framework.md`,
 > `PHASE-02-…`, `PHASE-04-…`. The "ROADMAP GAP CHECK" section at the end reconciles this survey with
@@ -11,7 +11,7 @@
 ## 1. Responsibilities & pipeline place
 
 The frontend is the **source → preprocessed free-form text → ANTLR parse tree** stage. It is the
-compiler's first phase and its only ANTLR-facing surface; downstream, `Cobol.Net.Compiler`'s binder
+compiler's first phase and its only ANTLR-facing surface; downstream, `WiseOwl.Cobol.Compiler`'s binder
 consumes the raw generated parse contexts. The orchestrator is `Pipeline/Frontend.cs` (147 loc),
 which runs two phases:
 
@@ -32,7 +32,7 @@ The `Common/` and `Diagnostics/` folders provide the shared value types (`Source
 
 | Type / file | Role | LOC | Assessment |
 |---|---|---|---|
-| `Pipeline/Frontend.cs` | Pipeline orchestrator; owns `DialectLevel`, `Permissive`, `NistTestName`, `TurnEvents` | 147 | **Good.** Small, linear, well-documented. Two defects: `catch (Exception)` on the SLL bail (`:135`) and a raw `throw` for the TURN line-count invariant (`:103-105`). Namespace is the only frontend file already at `CobolNet.Frontend`. |
+| `Pipeline/Frontend.cs` | Pipeline orchestrator; owns `DialectLevel`, `Permissive`, `NistTestName`, `TurnEvents` | 147 | **Good.** Small, linear, well-documented. Two defects: `catch (Exception)` on the SLL bail (`:135`) and a raw `throw` for the TURN line-count invariant (`:103-105`). Namespace is the only frontend file already at `WiseOwl.Cobol.Frontend`. |
 | `Preprocessor/CopyProcessor.cs` | COPY + REPLACE expansion, text-word tokenization, REPLACING-operand mini-parser, copybook resolution, fixed/free copybook normalization | **737** | **Largest surface / mild god-object.** Cohesive around COPY/REPLACE but bundles 4 sub-responsibilities: a hand-rolled text-word tokenizer (`TokenizeTextWords :219`), a REPLACING-operand parser (`ReadReplaceOperand :609`), file resolution (`FindCopybook :705`), and a fixed-form detector (`NormalizeCopybook :443`). Carries its own edition-severity gate (`OnNonPseudoTextOperand :29`). |
 | `Preprocessor/ReferenceFormatProcessor.cs` | Fixed↔free reference-format normalization, `>>SOURCE FORMAT`, continuation/literal state machine, comment-entry handling, NIST marker strip | 578 | **Dense but cohesive.** A cross-line literal state machine (correct, subtle). Hosts nested `EditionGates` class (`:120-149`) that re-implements the strict/permissive severity policy. Static class with static entry points — no per-file state, edition passed positionally. |
 | `Preprocessor/ConditionalCompilationProcessor.cs` | `>>DEFINE/IF/ELSE/EVALUATE/WHEN` conditional compilation + a constant-conditional-expression parser | 403 | **Good, self-contained.** Its own tokenizer (`Tokenize :341`) + recursive-descent `CondParser`. No edition awareness (CC is 2002+ but ungated here — see §5). Byte-neutral on directive-free source. |
@@ -69,7 +69,7 @@ where the error token surfaces. It is a second, backward mechanism for a concept
 predicate already owns — a singular-pattern violation at the core of "four editions in one".
 
 ### S2 — Frontend re-encodes edition metadata the compiler owns · **HIGH** · `EditionGateHints.cs:35-63`; `ReferenceFormatProcessor.cs:120-149`; `CopyProcessor.cs:29-41`
-Because `Cobol.Net.Frontend` has no project reference to `Cobol.Net.Compiler` (where
+Because `WiseOwl.Cobol.Frontend` has no project reference to `WiseOwl.Cobol.Compiler` (where
 `ConstructRegistry` lives), the frontend physically cannot see the canonical edition registry, so it
 **re-copies** it three times: `EditionGateHints` hand-copies `(Display, IntroducedIn, Citation,
 RowId)` for ~29 constructs (`:35-63`); `ReferenceFormatProcessor.EditionGates` and
@@ -114,7 +114,7 @@ ad-hoc line mechanisms plus a dead one.
 
 ### S8 — Stale namespaces on 16 of 17 frontend files · **LOW** · every file except `Frontend.cs`
 All Preprocessor/Parsing/Common/Diagnostics files still declare `namespace legacy-root.*`
-(grep confirmed 16 files) though physically in `Cobol.Net.Frontend`. `Frontend.cs:16` further claims
+(grep confirmed 16 files) though physically in `WiseOwl.Cobol.Frontend`. `Frontend.cs:16` further claims
 it "is the ONE place WiseOwl COBOL reuses the legacy compiler assembly" — **stale**: the
 code was already physically extracted; only the namespace strings remain legacy.
 
@@ -189,7 +189,7 @@ are inconsistent.
 
 1. **Delete `EditionGateHints`; make the gate predicate stamp its own identity** (S1/S2). The forward
    fix the plan already specifies — the single highest-value change.
-2. **Introduce a shared lowest assembly (`Cobol.Net.Editions`) below Frontend** so the registry,
+2. **Introduce a shared lowest assembly (`WiseOwl.Cobol.Editions`) below Frontend** so the registry,
    reserved words, and the ONE `EditionSeverityPolicy` are visible to the frontend, deleting the three
    metadata/severity copies (S2). Root-cause fix.
 3. **Unify on one structured diagnostic model** (S3) and make `DiagnosticDescriptors` the single
@@ -203,7 +203,7 @@ are inconsistent.
    tokenizer used by CC too (S6/§4 tokenizer triplication).
 7. **Either adopt `SourceText` for all stage line math or delete it** (S7); fix the `SourceLocation`
    line convention once (B1).
-8. **Rename the 16 stale namespaces** to `CobolNet.Frontend.*` and fix the stale `Frontend.cs:16`
+8. **Rename the 16 stale namespaces** to `WiseOwl.Cobol.Frontend.*` and fix the stale `Frontend.cs:16`
    banner (S8).
 9. **Gate `ConditionalCompilationProcessor` on dialect** the way `TurnDirectiveProcessor` is (§4 hole).
 
@@ -221,7 +221,7 @@ Cross-referencing this survey against `DESIGN-frontend-grammar.md`, `DESIGN-edit
   (predicate stamping `Gate(int, GateId)` → delete `EditionGateHints`, run-in-parallel-then-delete).
   My B5 risk is explicitly acknowledged as R1 in both design docs — good.
 - **S2 (metadata/severity triplication + `DialectLevel` triple-source)** — covered by the
-  `Cobol.Net.Editions` leaf assembly (`DESIGN-edition-framework §2.1`, `PHASE-02 steps 1–3, 9`),
+  `WiseOwl.Cobol.Editions` leaf assembly (`DESIGN-edition-framework §2.1`, `PHASE-02 steps 1–3, 9`),
   `EditionInfo` single-sourcing (`§2.2`, P5), and `EditionSeverityPolicy` (`§2.3`, P2). `PHASE-02
   step 9` names both `ReferenceFormatProcessor.EditionGates` and `CopyProcessor` exactly.
 - **S5/B3 (catch Exception)** — `DESIGN-frontend-grammar §3.5 (3)` narrows it precisely.

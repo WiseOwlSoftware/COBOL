@@ -5,7 +5,7 @@ Start the orchestrator loop after logon (the reboot path). Launched in a Windows
 install-autostart.ps1 writes. Design: docs/rearchitecture/DESIGN-orchestrator-loop.md, section "Starting at logon".
 
 .DESCRIPTION
-Replaces the old %LOCALAPPDATA%\CobolNet\cobolnet-autoresume.ps1 (an interactive `claude` session whose prompt had to re-create a
+Replaces the old %LOCALAPPDATA%\WiseOwl.Cobol\wiseowl-cobol-autoresume.ps1 (an interactive `claude` session whose prompt had to re-create a
 session-only cron job). The supervisor needs no cron: it owns its own timing (budget.py holds until the session reset or until
 03:05 the next day) and every unit is a fresh session chained by a handoff file, so a reboot loses at most the unit that was running.
 

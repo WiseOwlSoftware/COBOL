@@ -28,15 +28,15 @@ before you push, and GnuCOBOL 3.2 inside WSL enables the differential comparison
 git clone https://github.com/WiseOwlSoftware/COBOL.git
 cd COBOL
 git config merge.renormalize true
-dotnet build Cobol.Net.sln
+dotnet build WiseOwl.Cobol.sln
 ```
 
 Every tracked text file is LF on every platform, and `.gitattributes` enforces it; the `merge.renormalize` setting
 keeps a merge from reporting conflicts that are only line endings. The first build regenerates the parser from the
-grammars under `src/Cobol.Net.Frontend`, so it takes a few minutes; later builds regenerate it only when a grammar
+grammars under `src/WiseOwl.Cobol.Frontend`, so it takes a few minutes; later builds regenerate it only when a grammar
 changes.
 
-The build leaves the compiler at `src/Cobol.Net.Cli/bin/Debug/net10.0/cobol` (`cobol.exe` on Windows). Build the
+The build leaves the compiler at `src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol` (`cobol.exe` on Windows). Build the
 whole solution, not one project: the tests run against the compiler the solution build produced.
 
 ## Compile and run a program
@@ -57,12 +57,12 @@ Put this in `hello.cob` (fixed reference format: code in columns 8 to 72):
 Then compile it and run it:
 
 ```bash
-cobol hello.cob -o hello.dll      # or: dotnet run --project src/Cobol.Net.Cli -- hello.cob -o hello.dll
+cobol hello.cob -o hello.dll      # or: dotnet run --project src/WiseOwl.Cobol.Cli -- hello.cob -o hello.dll
 dotnet hello.dll
 ```
 
 The compiler writes four files beside the output: `hello.dll`, `hello.runtimeconfig.json`, the runtime library
-`Cobol.Net.Runtime.dll`, and `hello.g.cs`, the C# it generated. Read the `.g.cs` file to see how your program maps
+`WiseOwl.Cobol.Runtime.dll`, and `hello.g.cs`, the C# it generated. Read the `.g.cs` file to see how your program maps
 to .NET.
 
 The options you will use most:
@@ -98,9 +98,9 @@ sweeps. The whole population runs in CI, on Windows and Linux, for every pull re
 To run one test project yourself, build the solution first, then test with `--no-build`:
 
 ```bash
-dotnet build Cobol.Net.sln
-dotnet test tests/Cobol.Net.Tests.Unit --no-build
-dotnet test tests/Cobol.Net.Tests.Conformance --no-build --filter "FullyQualifiedName~NistDifferentialTests"
+dotnet build WiseOwl.Cobol.sln
+dotnet test tests/WiseOwl.Cobol.Tests.Unit --no-build
+dotnet test tests/WiseOwl.Cobol.Tests.Conformance --no-build --filter "FullyQualifiedName~NistDifferentialTests"
 ```
 
 On Windows, `bash scripts/linux-gate.sh` runs CI's Linux legs under WSL to reproduce a Linux red. It clones the committed
@@ -109,36 +109,36 @@ half of its own plan the same way (`--legs targeted`).
 
 The test populations:
 
-- `tests/Cobol.Net.Tests.Conformance` over `conformance-suite/`: the per-edition conformance suites, programs
+- `tests/WiseOwl.Cobol.Tests.Conformance` over `conformance-suite/`: the per-edition conformance suites, programs
   derived from the standard with their expected output in a folder per ISO clause, and the programs WiseOwl must
   refuse (`conformance-suite/README.md`); the NIST CCVS suite under `tests/nist/`; and the version matrix, which compiles one corpus at all four editions.
-- `tests/Cobol.Net.Tests.Unit`: the runtime and compiler units, and the drift tests that keep two copies of one rule
+- `tests/WiseOwl.Cobol.Tests.Unit`: the runtime and compiler units, and the drift tests that keep two copies of one rule
   from diverging.
-- `tests/Cobol.Net.Tests.Characterization`: snapshots of diagnostics and emitted C# over a fixed corpus.
+- `tests/WiseOwl.Cobol.Tests.Characterization`: snapshots of diagnostics and emitted C# over a fixed corpus.
 - `tests/differential/`: the committed goldens of the Conformance project's `*DifferentialTests` classes, compared on
   every gate and CI run (recorded once, from an oracle since retired).
 - `tests/external/`: the GnuCOBOL differential, run once per batch against the pinned GnuCOBOL 3.2 test corpus.
 
-Two more projects in the solution measure rather than test. `tests/Cobol.Net.ArchOracle` runs the architecture
+Two more projects in the solution measure rather than test. `tests/WiseOwl.Cobol.ArchOracle` runs the architecture
 review's behavior-neutrality oracle outside xunit: `scripts/arch/capture_oracle.py` captures the C# and the diagnostics
 of every compile the file-driven suites perform, and `scripts/arch/compare_oracle.py` compares a tree's capture with
 one it makes on demand of the tree's own base commit, so a restructuring proves it changed no behavior and nothing is
-committed. `tests/Cobol.Net.Benchmarks` is the BenchmarkDotNet harness behind `scripts/arch/perf_baseline.py`, the
+committed. `tests/WiseOwl.Cobol.Benchmarks` is the BenchmarkDotNet harness behind `scripts/arch/perf_baseline.py`, the
 recorded performance baseline. No test asserts a time.
 
 ## Find your way around
 
 ```
 src/
-  Cobol.Net.Cli/                 the cobol command
-  Cobol.Net.Frontend/            reference format, COPY and REPLACE, directives, the ANTLR grammars and parser
-  Cobol.Net.Compiler/            binder, bound tree, C# emitter, Roslyn backend
-  Cobol.Net.Compiler.SourceGen/  the source generator for the bound-tree visitor
-  Cobol.Net.Editions/            the construct registry and per-edition gating
-  Cobol.Net.Runtime/             the library every compiled program runs on
+  WiseOwl.Cobol.Cli/                 the cobol command
+  WiseOwl.Cobol.Frontend/            reference format, COPY and REPLACE, directives, the ANTLR grammars and parser
+  WiseOwl.Cobol.Compiler/            binder, bound tree, C# emitter, Roslyn backend
+  WiseOwl.Cobol.Compiler.SourceGen/  the source generator for the bound-tree visitor
+  WiseOwl.Cobol.Editions/            the construct registry and per-edition gating
+  WiseOwl.Cobol.Runtime/             the library every compiled program runs on
 tests/                           the populations above
 specs/ISO_COBOL.md               the standard, transcribed to Markdown and searchable
-docs/COBOLNET_DESIGN.md          the design, with one deep-dive document per subsystem beside it
+docs/DESIGN.md          the design, with one deep-dive document per subsystem beside it
 docs/CONFORMANCE.md              every implementor-defined choice, with its reasons
 kb/Work/                         the work register: one note per defect, analysis or decision
 DEVLOG/                          the history, one file per landing

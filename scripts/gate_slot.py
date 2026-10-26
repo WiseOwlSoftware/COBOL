@@ -48,7 +48,7 @@ THE MECHANISM — every piece is an OS file lock, so nothing is ever cleaned up 
   settings ONE file, `<git common dir>/cobol-gate-slots/settings.json`, written only by `set-cap`,
            `set-implementer-scope` and `clear` (under `settings.lock`, replaced atomically, recording who, when and
            why) and read by every gate and by `status`. ⛔ The cap is a property of the SLOT DIRECTORY, never of a process: while
-           each gate read N from its own environment (the deleted COBOLNET_GATE_SLOTS), gates started with different
+           each gate read N from its own environment (the deleted WISEOWL_COBOL_GATE_SLOTS), gates started with different
            N shared one FIFO queue, and a cap-1 gate at its head waited for slot 1 while slot 3 stood free, blocking
            every cap-3 gate behind it (kb/Work PB2514, 2026-10-07 16:13 PDT). A waiter re-reads the cap on every
            poll, so a raise frees the queue at once. A setting may carry an expiry (`--until`, an ISO time with its

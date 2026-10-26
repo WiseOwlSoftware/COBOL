@@ -36,7 +36,7 @@ set -uo pipefail
 
 # Everything this script prints is ALSO kept in the snapshot: the platform shows setup stdout nowhere a session can
 # read it, so without this copy no session can verify a `[setup-env]` line (cloud smoke #3, 2026-09-24).
-SETUP_LOG=/var/log/cobolsharp-setup-env.log
+SETUP_LOG=/var/log/wiseowl-cobol-setup-env.log
 exec > >(tee "$SETUP_LOG") 2>&1
 
 log() { echo "[setup-env] $*"; }
@@ -189,7 +189,7 @@ fi
 # ── the GnuCOBOL 3.2 corpus tarball, pre-cached (pinned: the same URL + SHA-256 as scripts/fetch-gnucobol-tests.ps1,
 #    which the hook runs per clone after copying this file into tests/external/ — the fetch then skips the download).
 #    GPL-3.0 test text: cached OUTSIDE the repo, never committed (the fetch script's licensing posture). ──────────
-CACHE_DIR=/opt/cobolsharp-cache
+CACHE_DIR=/opt/wiseowl-cobol-cache
 GNUCOBOL_TGZ=gnucobol-3.2.tar.xz
 GNUCOBOL_SHA=3bb48af46ced4779facf41fdc2ee60e4ccb86eaa99d010b36685315df39c2ee2
 mkdir -p "$CACHE_DIR"
@@ -203,24 +203,24 @@ fi
 # ── the USER-LEVEL SessionStart hook (see the header): a shim that runs the repo's hook when the session's project
 #    dir is NOT the repo itself (the project-level hook already covers that case — never run it twice). Merged into
 #    ~/.claude/settings.json, never overwriting keys the platform may have put there. ──────────────────────────────
-cat > /usr/local/bin/cobolsharp-session-start <<'EOF'
+cat > /usr/local/bin/wiseowl-cobol-session-start <<'EOF'
 #!/usr/bin/env bash
 # User-level SessionStart shim installed by WiseOwl COBOL scripts/cloud/setup-env.sh — see that file's header.
-for repo in "${CLAUDE_PROJECT_DIR:-/home/user}/COBOL" /home/user/COBOL "${CLAUDE_PROJECT_DIR:-/home/user}/CobolSharp" /home/user/CobolSharp; do
+for repo in "${CLAUDE_PROJECT_DIR:-/home/user}/COBOL" /home/user/COBOL "${CLAUDE_PROJECT_DIR:-/home/user}/COBOL" /home/user/COBOL; do
   [ -f "$repo/scripts/hooks/session_start.py" ] || continue
   [ "$(realpath "${CLAUDE_PROJECT_DIR:-.}")" = "$(realpath "$repo")" ] && exit 0   # the project hook runs instead
   exec python "$repo/scripts/hooks/session_start.py"
 done
 exit 0
 EOF
-chmod 755 /usr/local/bin/cobolsharp-session-start
+chmod 755 /usr/local/bin/wiseowl-cobol-session-start
 python - <<'EOF' && log "user-level SessionStart hook installed" || log "WARN: user-level SessionStart hook NOT installed"
 import json, os, pathlib
 p = pathlib.Path(os.path.expanduser("~/.claude/settings.json"))
 p.parent.mkdir(parents=True, exist_ok=True)
 s = json.loads(p.read_text(encoding="utf-8")) if p.exists() and p.read_text(encoding="utf-8").strip() else {}
 entries = s.setdefault("hooks", {}).setdefault("SessionStart", [])
-cmd = "/usr/local/bin/cobolsharp-session-start"
+cmd = "/usr/local/bin/wiseowl-cobol-session-start"
 if not any(h.get("command") == cmd for e in entries for h in e.get("hooks", [])):
     entries.append({"matcher": "startup|resume|clear|compact",
                     "hooks": [{"type": "command", "command": cmd, "timeout": 300}]})

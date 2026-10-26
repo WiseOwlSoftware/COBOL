@@ -31,8 +31,8 @@ TESTDATA = HERE / "testdata"
 BASELINE = HERE / "baseline.json"
 
 GREENFIELD = [
-    "src/Cobol.Net.Cli", "src/Cobol.Net.Compiler", "src/Cobol.Net.Editions",
-    "src/Cobol.Net.Frontend", "src/Cobol.Net.Runtime",
+    "src/WiseOwl.Cobol.Cli", "src/WiseOwl.Cobol.Compiler", "src/WiseOwl.Cobol.Editions",
+    "src/WiseOwl.Cobol.Frontend", "src/WiseOwl.Cobol.Runtime",
 ]
 
 
@@ -83,7 +83,7 @@ def main() -> int:
     print(f"{len(declared)} rules declared.\n")
 
     # ---- Check 1: every rule fires on the deliberate violations -------------------------------------------
-    with tempfile.TemporaryDirectory(prefix="cobolnet-semgrep-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="wiseowl-cobol-semgrep-") as tmp:
         fired = {r["check_id"].split(".")[-1]
                  for r in run(strip_paths(CONFIG, pathlib.Path(tmp)), [str(TESTDATA)], no_git_ignore=True)}
     dead = [r for r in declared if r not in fired]

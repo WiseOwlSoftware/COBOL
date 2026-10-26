@@ -6,9 +6,9 @@ last_updated: 2026-07-23
 related_files:
   - tests/version-matrix/constructs.json
   - docs/VERSION_CHANGE_REFERENCE.md
-  - src/Cobol.Net.Editions/ConstructRegistry.cs
+  - src/WiseOwl.Cobol.Editions/ConstructRegistry.cs
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
   - lookup
 ---

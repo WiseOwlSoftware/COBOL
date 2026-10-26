@@ -71,7 +71,7 @@
       *> LAST   - §15.16.3 r2 upper bound, INSIDE: 65 534 is the last position and holds U+FFFF (65536).
       *> OVER   - §15.16.3 r2 upper bound, OUTSIDE: 65 535 exceeds the 65 534 positions this sequence has, so
       *>          §15.3 sets EC-ARGUMENT-FUNCTION and, checking being disabled, "the implementor defines the
-      *>          result of the function reference" (Annex A.1 item 90). COBOL.NET's determination is the ZERO
+      *>          result of the function reference" (Annex A.1 item 90). WiseOwl COBOL's determination is the ZERO
       *>          VALUE OF THE RETURNED TYPE - one national space for CHAR-NATIONAL - recorded at
       *>          CONFORMANCE.md §7 item 90, so 33. The load-bearing half is that it is NOT 65535: the bound
       *>          tracks the sequence, and a hardcoded 65 536 ceiling would answer 65535 here.

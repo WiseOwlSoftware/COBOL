@@ -7,7 +7,7 @@
 *>---
       *> ISO §13.18.55.4 GR11 — the implementor's rules for synchronizing the
       *> RECORDS OF A FILE, as that affects the synchronization of elementary
-      *> items. COBOL.NET's stated rule is that there are none: a file record
+      *> items. WiseOwl COBOL's stated rule is that there are none: a file record
       *> is laid out exactly as the equivalent WORKING-STORAGE group.
       *>
       *> THE RULE. §13.18.55.4 GR11: "Any rules for synchronization of the
@@ -21,7 +21,7 @@
       *>
       *> THE DETERMINATION, docs/CONFORMANCE.md DOC-A.1-195: "GR11 adds no
       *> file-level synchronization", under the same item-195 determination
-      *> that COBOL.NET performs NO physical alignment for SYNCHRONIZED and
+      *> that WiseOwl COBOL performs NO physical alignment for SYNCHRONIZED and
       *> generates NO implicit FILLER for it, and that "the external-media
       *> format of a record or group containing a SYNCHRONIZED elementary item
       *> is byte-identical to the same record written without the clause".

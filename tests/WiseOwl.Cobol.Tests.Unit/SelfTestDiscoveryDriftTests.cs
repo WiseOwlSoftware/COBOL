@@ -1,0 +1,388 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Text.RegularExpressions;
+using WiseOwl.Cobol.Tests.Shared;
+using Xunit;
+
+namespace WiseOwl.Cobol.Tests.Unit;
+
+/// <summary>
+/// ⛔ EVERY SCRIPT SELF-TEST RUNS IN EVERY GATE AND IN CI, THROUGH ONE DISCOVERING RUNNER (kb/Work PB2563):
+/// <c>scripts/self_tests.py</c> finds every self-test under the live tools' trees (<c>scripts/live_tools.py</c>'s
+/// <c>ROOTS</c>: <c>scripts/</c>, <c>.claude/</c> and <c>conformance-suite/harness/</c>), and the local gate's audits, the Linux gate
+/// and CI's jobs all run that runner and name no self-test by hand; only the gate (one shape, kb/Work PB3022) may
+/// REUSE a PASS recorded for unchanged inputs, while the Linux gate and CI run them all (kb/Work PB2914).
+/// </summary>
+/// <remarks>
+/// Until PB2563 the gates ran self-tests from hand lists: the gate driver's AUDITS named five, CI's audits job six,
+/// linux-gate.sh three, and eleven of the fourteen orchestrator self-tests ran in no gate and no CI job, so a regression
+/// in the loop's unit choice, the allocator's lock or the wave planner passed everything. <c>landing_check.py</c> ran
+/// only in CI, a red no local gate could show first (the CI invariant, kb/Work PB1957). These facts hold the three
+/// halves of the fix: the runner's discovery misses no self-test a broader net finds, every gate entry point runs the
+/// runner (and none names a self-test itself), and the runner's own arms, a planted failing self-test turning it RED
+/// among them, still fire.
+/// </remarks>
+[Trait("Sweep", "tree")]
+public sealed class SelfTestDiscoveryDriftTests
+{
+    private static readonly Regex QuotedFlag = new(@"[""']--self-test[""']", RegexOptions.Compiled);
+    private static readonly Regex ShellFlagArm = new(@"(^|\s)--self-test\)|=\s*[""']--self-test[""']", RegexOptions.Compiled);
+    private static readonly Regex StandaloneName = new(@"^test_[^/]*\.(py|ps1)$", RegexOptions.Compiled);
+
+    /// <summary>The scripts that read the live tools' trees, each through <c>live_tools.ROOTS</c> and never a copy.</summary>
+    private static readonly string[] LiveTreeReaders = ["self_tests.py", "line_endings.py", "temp_names.py", "scratch_repo.py",
+        "standard_streams.py"];
+
+    /// <summary>
+    /// The files the net reads, before <see cref="Roots"/> narrows them: every tracked script (declared, kb/Work PB3531,
+    /// so the drift-rule index names this class for each one). The roots are read at run time from the one list, so the
+    /// scope cannot copy them and holds the whole tree's scripts instead: the index may name this class for a script
+    /// outside the roots, and never misses one inside them.
+    /// </summary>
+    private static readonly TreeScope ScriptKinds = new(Under: [""], Kinds: [".py", ".sh", ".ps1"]);
+
+    /// <summary>
+    /// The trees the runner discovers in: the live tools' trees, read from <c>scripts/live_tools.py</c>'s
+    /// <c>ROOTS = (…)</c> so the net below scans exactly what the runner is meant to: <c>scripts/</c>, <c>.claude/</c>
+    /// and the conformance suite's harness, whose generator is a gate audit with a <c>--self-test</c> (kb/Work PB3174,
+    /// DESIGN-conformance-suite.md §9).
+    /// </summary>
+    private static IReadOnlyList<string> Roots()
+    {
+        Match m = Regex.Match(File.ReadAllText(TestRepo.Scripts("live_tools.py")), @"^ROOTS = \(([^)]*)\)",
+            RegexOptions.Multiline);
+        Assert.True(m.Success, "scripts/live_tools.py no longer declares the live tools' trees as `ROOTS = (…)`");
+        var roots = Regex.Matches(m.Groups[1].Value, @"""([^""]+)""").Select(x => x.Groups[1].Value).ToList();
+        Assert.All(roots, r => Assert.EndsWith("/", r));
+        Assert.Contains("scripts/", roots);
+        Assert.Contains("conformance-suite/harness/", roots);
+        return roots;
+    }
+
+    /// <summary>
+    /// The self-test runner, the line-endings WRITERS arm and the temp-name audit each kept a copy of the live trees
+    /// until kb/Work PB3176's branch review (R2-1): the harness joined two copies and not the third, so the temp-name
+    /// audit never scanned the harness the gate runs. Each reader now reads <c>live_tools.ROOTS</c> and declares no
+    /// tuple of its own.
+    /// </summary>
+    [Fact]
+    public void EveryLiveTreeReader_ReadsTheOneList()
+    {
+        foreach (string name in LiveTreeReaders)
+        {
+            string text = File.ReadAllText(TestRepo.Scripts(name));
+            Assert.True(text.Contains("live_tools.ROOTS", StringComparison.Ordinal),
+                $"scripts/{name} no longer reads the live tools' trees from live_tools.ROOTS");
+            Assert.False(Regex.IsMatch(text, @"^\w*ROOTS\s*=\s*\(", RegexOptions.Multiline),
+                $"scripts/{name} declares its own copy of the live tools' trees: read live_tools.ROOTS instead");
+        }
+    }
+
+    /// <summary>What the runner discovered here: each self-test's repository path and whether it runs with the flag.</summary>
+    private static IReadOnlyDictionary<string, bool> Discovered()
+    {
+        string runner = TestRepo.Scripts("self_tests.py");
+        Assert.True(File.Exists(runner), $"the self-test runner is missing: {runner}");
+        var r = PythonInstrument.Run(ObservationBudget.OneProcess, runner, "--list");
+        Assert.True(r.ExitCode == 0, $"`self_tests.py --list` failed (exit {r.ExitCode}).\n{r.Stdout}\n{r.Stderr}");
+        var roots = Roots();
+        var found = new Dictionary<string, bool>(StringComparer.Ordinal);
+        foreach (string line in r.Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (roots.Any(root => line.StartsWith(root, StringComparison.Ordinal)))
+            {
+                string[] parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                found[parts[0]] = parts.Length > 1 && parts[1] == "--self-test";
+            }
+        }
+
+        return found;
+    }
+
+    /// <summary>
+    /// The runner's discovery reads Python's syntax tree; this net reads text, more broadly: any tracked file under
+    /// the runner's roots named <c>test_*.py</c>/<c>test_*.ps1</c>, any Python line that is not a comment and holds a
+    /// quoted <c>--self-test</c> beside <c>argv</c> or <c>add_argument</c>, and any shell <c>--self-test)</c> arm or
+    /// <c>= "--self-test"</c> test. A self-test written in a shape the runner's rule misses is red here, by name.
+    /// </summary>
+    [Fact]
+    public void EverySelfTestTheNetFinds_IsDiscoveredByTheRunner()
+    {
+        var discovered = Discovered();
+        var roots = Roots();
+        var net = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (string rel in TrackedTree.Files(ScriptKinds))
+        {
+            if (!roots.Any(root => rel.StartsWith(root, StringComparison.Ordinal)))
+                continue;
+
+            if (StandaloneName.IsMatch(rel[(rel.LastIndexOf('/') + 1)..]))
+            {
+                net.Add(rel);
+                continue;
+            }
+
+            bool python = rel.EndsWith(".py", StringComparison.Ordinal);
+            bool shell = rel.EndsWith(".sh", StringComparison.Ordinal);
+            foreach (string raw in File.ReadLines(TestRepo.At(rel)))
+            {
+                string line = raw.Trim();
+                if (line.StartsWith('#'))
+                {
+                    continue;
+                }
+
+                if ((python && QuotedFlag.IsMatch(line) && (line.Contains("argv", StringComparison.Ordinal)
+                        || line.Contains("add_argument", StringComparison.Ordinal)))
+                    || (shell && ShellFlagArm.IsMatch(line)))
+                {
+                    net.Add(rel);
+                    break;
+                }
+            }
+        }
+
+        // The population is real: the orchestrator's self-tests, the hooks', the gate driver's and the runner's own.
+        foreach (string known in new[]
+                 {
+                     "scripts/orchestrator/test_alloc.py", "scripts/orchestrator/test_orchestrate_core.ps1",
+                     "scripts/orchestrator/landing_check.py", "scripts/hooks/test_forbidden_commands.py",
+                     "scripts/guard-population.sh", "scripts/run_gate_legs.py", "scripts/self_tests.py",
+                     "conformance-suite/harness/generate.py",
+                 })
+        {
+            Assert.True(net.Contains(known), $"the net no longer finds the known self-test {known}: the net is broken.");
+        }
+
+        var missed = net.Where(p => !discovered.ContainsKey(p)).ToList();
+        Assert.True(missed.Count == 0,
+            "self-tests the runner (scripts/self_tests.py) does not discover, so no gate and no CI job runs them: "
+            + string.Join(", ", missed) + ". Widen the runner's discovery rule (`classify`), never a list (kb/Work PB2563).");
+    }
+
+    /// <summary>
+    /// Every gate entry point runs the runner: the local gate's AUDITS (before the slot) and its post-build half, the
+    /// Linux gate's two legs, CI's audits job on Linux, greenfield-unit's post-build step and windows-self-tests on
+    /// Windows. And none of them runs a discovered self-test itself: a self-test named in a gate is a hand list again,
+    /// and a list goes stale the day a self-test is added.
+    /// </summary>
+    [Fact]
+    public void EveryGateEntryPoint_RunsTheRunner_AndNamesNoSelfTestByHand()
+    {
+        string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py"));
+        string linux = File.ReadAllText(TestRepo.Scripts("linux-gate.sh"));
+        string workflow = File.ReadAllText(TestRepo.At(".github", "workflows", "build-and-test.yml"));
+
+        Match audits = Regex.Match(driver, @"^AUDITS = \((.*?)^\)", RegexOptions.Multiline | RegexOptions.Singleline);
+        Assert.True(audits.Success, "scripts/run_gate_legs.py no longer declares its audits as `AUDITS = (…)`");
+        Assert.Contains(@"(""SELF-TESTS"", [""scripts/self_tests.py""])", audits.Groups[1].Value, StringComparison.Ordinal);
+        Assert.Matches(@"(?m)^BUILT_SELF_TESTS = \[""scripts/self_tests.py"", ""--built""\]\r?$", driver);
+        // kb/Work PB2914, PB3022: only the gate REUSES a recorded PASS (run_gate_legs adds SELF_TESTS_REUSE to its
+        // audits); CI and the Linux gate run every self-test, and so record the PASSes.
+        Assert.Matches(@"(?m)^SELF_TESTS_REUSE = ""--reuse""\r?$", driver);
+        Assert.DoesNotContain("--reuse", linux, StringComparison.Ordinal);
+        Assert.DoesNotContain("--reuse", workflow, StringComparison.Ordinal);
+        // linux-gate.sh runs its legs in parallel (kb/Work PB2879), so each runner call redirects to its leg's result
+        // file and runs in the background; it still calls THE runner, and names no self-test by hand.
+        // Both run in the AUDIT clone, outside the inert watch of the test legs (kb/Work PB2878): the self-tests are
+        // audits, which read inert paths by design.
+        Assert.Matches(@"(?m)^\s*selftests_leg selftests ""\$auditsnap""( > ""\$out/selftests\.result"" 2>&1 &)?\r?$", linux);
+        Assert.Matches(@"(?m)^\s+selftests_leg selftests-built ""\$auditsnap"" --built( > ""\$out/selftests-built\.result"" 2>&1 &)?\r?$", linux);
+
+        var steps = Jobs(workflow);
+        Assert.Contains("run: python3 scripts/self_tests.py", RunLines(steps["audits"]));
+        Assert.Contains("run: python3 scripts/self_tests.py --built", RunLines(steps["greenfield-unit"]));
+        Assert.Contains("run: python scripts/self_tests.py", RunLines(steps["windows-self-tests"]));
+        Assert.Matches(@"(?m)^\s+runs-on:\s*ubuntu", steps["audits"]);
+        Assert.Matches(@"(?m)^\s+runs-on:\s*ubuntu", steps["greenfield-unit"]);
+        Assert.Matches(@"(?m)^\s+runs-on:\s*windows", steps["windows-self-tests"]);
+        // kb/Work PB3581: the Windows self-tests are their own job, never a step after a build (the default phase never
+        // builds, and as windows-build-test's last step they were 7.4 minutes of the merge queue's longest job).
+        Assert.DoesNotContain("self_tests.py", string.Join("\n", RunLines(steps["windows-build-test"])), StringComparison.Ordinal);
+        Assert.DoesNotContain("dotnet build", steps["windows-self-tests"], StringComparison.Ordinal);
+
+        // No entry point runs a self-test by hand: a flag-handling self-test named with `--self-test`, or a standalone
+        // test_* script named at all, in a line that runs something (comments excluded).
+        var discovered = Discovered();
+        var sources = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["scripts/run_gate_legs.py AUDITS"] = audits.Groups[1].Value,
+            ["scripts/linux-gate.sh"] = linux,
+            ["scripts/build-local.ps1"] = File.ReadAllText(TestRepo.Scripts("build-local.ps1")),
+            ["scripts/build-local.sh"] = File.ReadAllText(TestRepo.Scripts("build-local.sh")),
+            ["scripts/battery.sh"] = File.ReadAllText(TestRepo.Scripts("battery.sh")),
+            [".github/workflows/build-and-test.yml"] = workflow,
+        };
+        var named = new List<string>();
+        foreach (var (where, text) in sources)
+        {
+            foreach (string raw in text.Split('\n'))
+            {
+                string line = raw.Trim();
+                if (line.StartsWith('#'))
+                {
+                    continue;
+                }
+
+                foreach (var (path, handlesFlag) in discovered)
+                {
+                    if (path == "scripts/self_tests.py")
+                    {
+                        continue;
+                    }
+
+                    if (handlesFlag ? line.Contains(path + " --self-test", StringComparison.Ordinal)
+                                    : line.Contains(path, StringComparison.Ordinal))
+                    {
+                        named.Add($"{where}: {path} in `{line}`");
+                    }
+                }
+            }
+        }
+
+        Assert.True(named.Count == 0,
+            "a gate entry point runs a self-test by hand instead of through scripts/self_tests.py: "
+            + string.Join("; ", named) + " (kb/Work PB2563).");
+    }
+
+    /// <summary>
+    /// The runner's own arms, by name: a self-test reduced to its happy path still exits 0. The planted-tree arms are
+    /// the "a failing self-test turns the gate red" proof; the gate driver's audit arm (GateLegDriftTests) carries a red
+    /// audit to a RED gate before the slot. ⛔ THIS TEST DOES NOT RUN THE SELF-TEST (kb/Work PB2882): the runner
+    /// discovers its own <c>--self-test</c> and runs it in every gate and CI job, where a red arm is a non-zero exit;
+    /// what is held here is that each arm is still DECLARED (<see cref="SelfTestArmSource"/>). Run a second time under
+    /// the harness's fixed 120 s budget it took 19 s alone and timed out twice in train 1058's lander gate.
+    /// </summary>
+    [Fact]
+    public void TheRunner_DeclaresEveryArm()
+    {
+        SelfTestArmSource.AssertDeclares(TestRepo.Scripts("self_tests.py"), new[]
+                 {
+                     "a script that only PASSES --self-test to another is not",
+                     "a docstring or comment mention is not",
+                     "a bash `--self-test)` case arm is a self-test",
+                     "test_*.ps1 is a standalone self-test",
+                     "a windows-only self-test does not run on linux",
+                     "a marker SHOWN past the header (a docstring example) declares nothing",
+                     "--built runs exactly the build-needing ones, the default run the rest",
+                     "discovery finds the planted tree's three self-tests",
+                     "a tracked script discovery cannot read ({planted}) fails discovery, never drops out",
+                     "each self-test gets a private COBOL_COORD_DIR",
+                     "each self-test commits under the private global config's identity, never the caller's",
+                     "a failing self-test is RED",
+                     "a failing self-test's output reaches the console",
+                     "a self-test for another platform is NOT RUN, not run",
+                     "one red makes the verdict RED",
+                     "the verdict names the red and the not-run one with its reason",
+                     // kb/Work PB2914: N concurrent simulated gates — reuse, the machine-wide budget, the hang detector.
+                     "a full run (CI, the Linux gate, a hand run) runs every self-test and records each PASS",
+                     "the recorded PASS holds a file read through a name built at run time (the trace saw it)",
+                     "a malformed record in the store is skipped, never a crash of the gate, and the good PASS still found",
+                     "{_FLEET_GATES} concurrent gates on an unchanged tree re-run nothing (every one REUSED)",
+                     "a changed input re-runs exactly the self-test that read it (each run a real one); the others are REUSED in every gate",
+                     "{_FLEET_GATES} gates running the same self-test at once run at most the budget's {_FLEET_CAP} at a time, and none hangs",
+                     "an edited import re-runs the self-test that imports it, and only that one",
+                     "a self-test still running past the hang detector is HANG — its own state, verdict and exit code, never RED",
+                     "a Python self-test whose trace does not show its own file records no PASS (the tracer did not run)",
+                 }.Select(arm => "arm: " + arm));
+        // The `({planted})` arm runs once per planted unreadable script: both stay planted.
+        SelfTestArmSource.AssertDeclares(TestRepo.Scripts("self_tests.py"), ["(\"broken.py\", ", "(\"latin1.py\", "]);
+    }
+
+    /// <summary>The arm reader is seen to fire (<see cref="SelfTestArmSource"/>): a planted deleted arm is reported by
+    /// name, a label split across two literals (an f-string's among them, after a CRLF) is found whole, and a present
+    /// label is not reported.</summary>
+    [Fact]
+    public void TheArmReader_ReportsADeletedArm_AndFindsASplitLabelWhole()
+    {
+        string planted = string.Join("\n",
+            "    check(\"arm: a failing self-test is RED\", got, want)",
+            "    check(\"arm: a changed input re-runs the self-test that read it; the others are \"",
+            "          \"REUSED in every gate\", got, want)",
+            "    check(f\"arm: {_FLEET_GATES} gates at once run at most {_FLEET_CAP} \"\r",
+            "          f\"at a time, and none hangs\", got, want)");
+        string[] arms =
+        [
+            "arm: a failing self-test is RED",
+            "arm: a changed input re-runs the self-test that read it; the others are REUSED in every gate",
+            "arm: {_FLEET_GATES} gates at once run at most {_FLEET_CAP} at a time, and none hangs",
+            "arm: one red makes the verdict RED",
+        ];
+        Assert.Equal(["arm: one red makes the verdict RED"], SelfTestArmSource.Missing(planted, arms));
+        Assert.Empty(SelfTestArmSource.Missing(planted, arms[..3]));
+    }
+
+    /// <summary>
+    /// ⛔ EVERY COMMAND OF CI's <c>audits</c> JOB RUNS IN THE GATE (the CI invariant; kb/Work PB1957 row 44): each
+    /// <c>python3 &lt;script&gt;</c> the job runs is an entry of <c>scripts/run_gate_legs.py</c> AUDITS, each
+    /// <c>git submodule update --init &lt;path&gt;</c> is one of its AUDIT_PREREQUISITES, or the script is recorded here with
+    /// where it runs instead. The next audit CI gains is a red here until the gate runs it too.
+    /// </summary>
+    /// <remarks>
+    /// Train 1067's PR 9 went RED in CI's <c>audits</c> job on <c>work.py check</c> (a <c>blocked: true</c> whose blocker
+    /// landed in the same train) behind a GREEN gate: CI ran <c>work.py check</c> and <c>check_practices.py</c>, the gate
+    /// ran neither, and nothing compared the two lists.
+    /// </remarks>
+    [Fact]
+    public void EveryCommandOfCisAuditsJob_IsAGateAudit_OrSaysWhereItRuns()
+    {
+        string driver = File.ReadAllText(TestRepo.Scripts("run_gate_legs.py"));
+        string workflow = File.ReadAllText(TestRepo.At(".github", "workflows", "build-and-test.yml"));
+        Match audits = Regex.Match(driver, @"^AUDITS = \((.*?)^\)", RegexOptions.Multiline | RegexOptions.Singleline);
+        Match prerequisites = Regex.Match(driver, @"^AUDIT_PREREQUISITES = \((.*?)^\)",
+            RegexOptions.Multiline | RegexOptions.Singleline);
+        Assert.True(audits.Success && prerequisites.Success,
+            "scripts/run_gate_legs.py no longer declares `AUDITS = (…)` and `AUDIT_PREREQUISITES = (…)`");
+
+        // A CI audit that is NOT a tree audit, and where it runs instead.
+        var elsewhere = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["scripts/devlog.py"] = "a LANDING check, not a tree audit: an implementer's entry stays DEVLOG/pending-*.md "
+                + "until enqueue.py stamps it, and `devlog.py check` refuses a pending entry, so it runs where every landing "
+                + "passes (`enqueue.py checks`, exit 6) and in CI on a pull request or merge group",
+        };
+
+        var lines = Jobs(workflow)["audits"].Split('\n').Select(l => l.Trim()).Where(l => !l.StartsWith('#')).ToList();
+        var scripts = lines.SelectMany(l => Regex.Matches(l, @"\bpython3?\s+(\S+\.py)\b").Select(m => m.Groups[1].Value))
+                           .Distinct(StringComparer.Ordinal).ToList();
+        var submodules = lines.SelectMany(l => Regex.Matches(l, @"\bgit submodule update --init (\S+)")
+                                                    .Select(m => m.Groups[1].Value))
+                              .Distinct(StringComparer.Ordinal).ToList();
+        Assert.True(scripts.Count >= 10,
+            $"found only {scripts.Count} `python3 <script>` commands in CI's audits job: the net is broken");
+        Assert.Contains("tools/claude-skills", submodules);
+
+        var notInGate = scripts.Where(s => !elsewhere.ContainsKey(s) && !audits.Groups[1].Value.Contains($"\"{s}\"",
+                                         StringComparison.Ordinal)).ToList();
+        Assert.True(notInGate.Count == 0,
+            "CI's audits job runs these and the local gate does not (a CI red no local gate shows first, kb/Work PB1957): "
+            + string.Join(", ", notInGate) + ". Add each to scripts/run_gate_legs.py AUDITS, or record here where it runs.");
+        var notPrepared = submodules.Where(p => !prerequisites.Groups[1].Value.Contains($"\"--init\", \"{p}\"",
+                                                StringComparison.Ordinal)).ToList();
+        Assert.True(notPrepared.Count == 0,
+            "CI's audits job makes these submodules ready and the gate does not: " + string.Join(", ", notPrepared)
+            + ". Add each to scripts/run_gate_legs.py AUDIT_PREREQUISITES.");
+        var stale = elsewhere.Keys.Where(s => !scripts.Contains(s)).ToList();
+        Assert.True(stale.Count == 0, "recorded as running elsewhere but no longer in CI's audits job: "
+            + string.Join(", ", stale));
+    }
+
+    /// <summary>The workflow's jobs, by id: each job's text up to the next job.</summary>
+    private static Dictionary<string, string> Jobs(string workflow)
+    {
+        var jobs = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (string job in Regex.Split(workflow, @"^  (?=[A-Za-z0-9_-]+:\s*$)", RegexOptions.Multiline))
+        {
+            Match id = Regex.Match(job, @"^([A-Za-z0-9_-]+):\s*$", RegexOptions.Multiline);
+            if (id.Success && id.Index == 0)
+            {
+                jobs[id.Groups[1].Value] = job;
+            }
+        }
+
+        return jobs;
+    }
+
+    private static List<string> RunLines(string job) =>
+        job.Split('\n').Select(l => l.Trim()).Where(l => l.StartsWith("run: ", StringComparison.Ordinal)).ToList();
+}
