@@ -1,4 +1,4 @@
-## PB3798: the guard hook refuses a command that starts a desktop GUI application
+## Entry 2609 — 2026-10-25 21:04 PDT — PB3798: the guard hook refuses a command that starts a desktop GUI application
 
 The owner's order of 2026-10-25 ("Stop fucking running Obsidian") followed a PB1957 implementer (w20261703b, PB3789)
 that ran `Start-Process` on Obsidian several times to read a Bases formula, so Obsidian windows kept opening on the
@@ -56,3 +56,4 @@ so Bash execs a file while PowerShell and cmd.exe hand it to ShellExecute. 24 ne
 `Step.shell` cases in `test_shell_location.py`.
 
 Gate: see the landing record.
+
