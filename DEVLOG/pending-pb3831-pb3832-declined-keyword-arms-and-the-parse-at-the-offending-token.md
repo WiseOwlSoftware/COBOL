@@ -52,3 +52,5 @@ ANTLR's SLL fallback closes the statement before it.
 Self-review: the new walk methods allocate only on an error report, and the three new readers share one walk per report; the per-path owner search
 is bounded at eight frames; `cite.py --check` passed on every clause cited; `semgrep/verify.py` and the citation audits
 are unchanged.
+
+Gate (run 000001-20261026T191128Z, head 70be735c0): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,858/18,844, Unit 37,429/38,430, Characterization 7/36 cases ran; Linux half (WSL clone of HEAD) GREEN).
