@@ -46,4 +46,10 @@ patch and the steps that remain.
 a base reference by its full path so a bare name is not misread. Performance: nothing on a hot path. Duplication: the gate paragraph, the
 checkpoint protocol and the DEVLOG sentence now exist once in the spec; the agent definition no longer carries them.
 
-**Gate.** (verdict line recorded below once the gate has run)
+**Gate.** `pwsh scripts/build-local.ps1 -Priority BelowNormal` at `dcf15ac93` (the branch head adds only this paragraph and was gated
+again): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's
+whole-population run: Conformance 10,123 · Unit 1,378 … Conformance 8,801/18,924 · Unit 37,021/38,399 · Characterization 36/36 cases ran
+(skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN · slot 1 of 3 …` (run `000001-20261026T232927Z`; the FLEET PRACTICES,
+RETIRED NAMES, WORK REGISTER and SELF-TESTS audits GREEN, the self-tests covering `test_plan_wave.py` 468/468,
+`test_dispatch_guard.py` 25/25 and `test_rolling_wave.py` 42/42). No C# changed, so no conformance case was added and the
+`semgrep/verify.py` counts cannot move.
