@@ -13,14 +13,17 @@
       *>
       *> A trailing-P receiver has a NEGATIVE scale: PIC 9PP holds hundreds, so a
       *> value below 100 lands as zero. Every returned value of ACOS / ASIN is
-      *> below 4, so the correct landing in a P-trailing receiver is ZERO, in
-      *> every rounding mode (3.14 is 0.0314 hundreds - nearest is zero too).
+      *> below 4, so the landing in a P-trailing receiver is ZERO under
+      *> truncation and the nearest modes (3.14 is 0.0314 hundreds); only a
+      *> directed mode away from zero moves it off zero, which
+      *> 14.7.4-ROUNDED/pb3829_rounded_bounded_function_modes covers.
       *>
-      *> kb/Work PB2633: the codomain clamp formed 10 ** (37 - scale) with a
-      *> wrapped Int128 at scale -2 (10 ** 39) and clamped every non-negative
-      *> value to -1, so ACOS(0.5) landed as -100 in PIC S9PP and 100 in PIC 9PP,
-      *> and wrapped to +1 unit at scale -11. The positive-scale controls pin the
-      *> clamp's other side: ACOS(-1) = 3.14159... lands as 3 in PIC S9 ROUNDED.
+      *> kb/Work PB2633: the codomain clamp (since retired, kb/Work PB3829)
+      *> formed 10 ** (37 - scale) with a wrapped Int128 at scale -2 (10 ** 39)
+      *> and clamped every non-negative value to -1, so ACOS(0.5) landed as -100
+      *> in PIC S9PP and 100 in PIC 9PP, and wrapped to +1 unit at scale -11.
+      *> The positive-scale control: ACOS(-1) = 3.14159... lands as 3 in PIC S9
+      *> ROUNDED.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2633CLAMP.
        DATA DIVISION.

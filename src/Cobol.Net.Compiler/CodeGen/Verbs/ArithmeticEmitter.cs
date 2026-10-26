@@ -144,8 +144,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// (or a saturated sentinel quotient) where §8.8.1.5.2 1) rounds it into the SDIDI and the quotient fits the
     /// receiver. The SDIDI lane now forms the quotient, the subsidiary quotient and the remainder on
     /// <c>CobolDec</c>, from the OPERANDS as they are (<see cref="NumericRenderer.DecOperand"/> lifts each); the native
-    /// lane keeps the exact Int128 kernel, whose intermediate range is checked (§14.7.5 5)): a float operand past the
-    /// carrier raises EC-SIZE-OVERFLOW from its alignment, as <c>CobolFloat.ToScaledIntermediate</c> does everywhere.</para></summary>
+    /// lane keeps the exact Int128 kernel for two scaled operands, whose intermediate range is checked (§14.7.5 5)), and
+    /// divides a binary64 or SDIDI operand as it is (<see cref="CarriedSubsidiaryQuotient"/>, kb/Work PB3829).</para></summary>
     public void EmitDivideRemainder(BoundDivideRemainder d)
         => EmitArith(d.SizeError, ise =>
         {
@@ -157,7 +157,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 CobolRounding.Truncation, ise, IntDigitsOf(d.Quotient.Place));
             int qDigits = SubsidiaryDigitsOf(d.Quotient.Place);
             var (dividend, divisor, subsidiary, quotientFor) = num.StandardDecimal
-                ? SdidiSubsidiaryQuotient(d, rcv, qs, qDigits)
+                ? CarriedSubsidiaryQuotient(d, Snapshot(num.Render(d.Dividend, rcv)), Snapshot(num.Render(d.Divisor, rcv)), ise, qs, qDigits)
                 : NativeSubsidiaryQuotient(d, rcv, ise, qs, qDigits);
             // The back-multiply rides Combine — the native product's digit-bound arms, the Dec lane under a standard
             // mode - instead of a raw C# splice whose Int128 product wrapped silently (PB129). A product past the Int128
@@ -178,12 +178,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 brackets.Receive(d.Remainder, null, () => StoreArith(d.Remainder, remainder, CobolRounding.Truncation));   // REMAINDER has no ROUNDED phrase
         });
 
-    /// <summary>The native lane of <see cref="EmitDivideRemainder"/>: both senders land in the exact Int128 lane the
-    /// kernel computes in (kb/Work PB85 — a FLOAT-LONG dividend or divisor lands TRUNCATED at the quotient receiver's
-    /// float working scale, §14.9.12.4 GR7's subsidiary quotient then being the fixed kernel's, an implementor
-    /// approximation §8.8.1.3 leaves to the implementor for a float sender; an unsigned-wide read funnels through Widen) and the
-    /// subsidiary quotient is a DIRECT kernel call at EXACTLY the receiver scale — not the renderer's working-scale
-    /// promotion, which yields the quotient at the dividend's higher scale and poisons the remainder multiply.
+    /// <summary>The native lane of <see cref="EmitDivideRemainder"/>: two scaled senders (an unsigned-wide read funnels
+    /// through Widen) divide in the exact Int128 kernel, and the subsidiary quotient is a DIRECT kernel call at EXACTLY
+    /// the receiver scale — not the renderer's working-scale promotion, which yields the quotient at the dividend's
+    /// higher scale and poisons the remainder multiply. A sender on the binary64 or SDIDI carrier goes to
+    /// <see cref="CarriedSubsidiaryQuotient"/> instead, which divides it as it is.
     /// Both senders are materialized (§14.9.12.4 GR5 — one item identification/evaluation): each appears in SEVERAL
     /// emitted expressions (kernel call(s) + the remainder back-multiply), and the quotient stores BEFORE the
     /// remainder is formed — a quotient receiver aliasing a sender must not poison the remainder.</summary>
@@ -191,8 +190,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         BoundDivideRemainder d, ReceiverContext rcv, bool ise, int qs, int qDigits)
     {
         var w = ctx.Writer;
-        NumX dividend = Snapshot(num.FixedLane(num.Render(d.Dividend, rcv), rcv)),
-             divisor = Snapshot(num.FixedLane(num.Render(d.Divisor, rcv), rcv));
+        NumX dividendX = num.Render(d.Dividend, rcv), divisorX = num.Render(d.Divisor, rcv);
+        if (dividendX.Real || dividendX.Dec || divisorX.Real || divisorX.Dec)
+            return CarriedSubsidiaryQuotient(d, Snapshot(dividendX), Snapshot(divisorX), ise, qs, qDigits);
+        NumX dividend = Snapshot(NumericRenderer.DeU(dividendX)),
+             divisor = Snapshot(NumericRenderer.DeU(divisorX));
         // The SUBSIDIARY quotient is truncated to the GIVING receiver's digits/scale (ISO §14.9.12 GR6c).
         string qt = $"__q{ctx.Names.NextStoreTmp()}";
         w.Line($"Int128 {qt} = {RuntimeApi.NumDivide(ise, dividend.Expr, $"{dividend.Scale}", divisor.Expr, $"{divisor.Scale}", $"{qs}", CobolRounding.Truncation)};");
@@ -209,22 +211,52 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             : new NumX(RuntimeApi.NumDivide(ise, dividend.Expr, $"{dividend.Scale}", divisor.Expr, $"{divisor.Scale}", $"{qs}", mode), qs));
     }
 
-    /// <summary>The standard-decimal lane of <see cref="EmitDivideRemainder"/> (kb/Work PB3017): the quotient is the
-    /// SDIDI result of the GR1 expression (dividend / divisor) over the operands as they are, formed ONCE and stored
-    /// with the receiver's own rounding; the subsidiary quotient is that same SDIDI value truncated at the receiver's
-    /// scale and capped at its digits (<c>CobolDec.SubsidiaryQuotient</c>). Nothing here lands in the Int128 carrier.
-    /// <para>Under STANDARD-DECIMAL the former Int128 kernel and this agree except where a true quotient carries 34 or
-    /// more consecutive nines at the truncation boundary (the SDIDI quotient rounds to 34 digits first, which is what
-    /// GR1 says); where this lane differs the standard's text is the authority.</para></summary>
-    private (NumX Dividend, NumX Divisor, NumX Subsidiary, Func<CobolRounding, NumX> QuotientFor) SdidiSubsidiaryQuotient(
-        BoundDivideRemainder d, ReceiverContext rcv, int qs, int qDigits)
+    /// <summary>The quotient of <see cref="EmitDivideRemainder"/> for the STANDARD-DECIMAL lane (kb/Work PB3017) and for a
+    /// NATIVE sender that is a binary64 (a FLOAT-LONG item, a float function's returned value) or an SDIDI value (a float
+    /// literal, a NUMVAL value): the quotient is the SAME division the statement without REMAINDER performs,
+    /// <c>Combine(dividend, "/", divisor)</c> as the final transfer into identifier-3 (§14.9.12.4 1): under standard-decimal
+    /// "the result of the arithmetic expression (dividend / divisor)"), and the subsidiary quotient is that quotient
+    /// truncated (§14.9.12.4 6) c): "a subsidiary quotient is developed that is signed and derived from the quotient by
+    /// truncation of digits at the least significant end and that has the same number of digits and the same decimal
+    /// point location as the data item referenced by identifier-3"). A quotient on the SDIDI or binary64 carrier is formed
+    /// ONCE and the store rounds it by the receiver's mode; one the division already landed at identifier-3's scale is
+    /// formed again at the receiver's mode when that is not TRUNCATION.
+    /// <para>⛔ NO SENDER IS QUANTIZED BEFORE THE DIVISION (kb/Work PB3829's sweep). The native lane used to land such a sender
+    /// TRUNCATED at the receiver's float working scale first, so the ROUNDED decision saw a value already cut:
+    /// <c>DIVIDE FL BY 1 GIVING Q ROUNDED MODE AWAY-FROM-ZERO REMAINDER R</c> with FL = 0.12340000000001 stored 0.1234
+    /// where the same statement without REMAINDER stored 0.1235 (§14.7.4.3 3)), and <c>DIVIDE 0.09 BY FB GIVING Q
+    /// REMAINDER R</c> with FB = 0.30000000000001 stored 0.3000 where the quotient 0.2999999999999 truncates to 0.2999.
+    /// One quotient, one rounding, whichever format of DIVIDE asks for it.</para></summary>
+    private (NumX Dividend, NumX Divisor, NumX Subsidiary, Func<CobolRounding, NumX> QuotientFor) CarriedSubsidiaryQuotient(
+        BoundDivideRemainder d, NumX dividend, NumX divisor, bool ise, int qs, int qDigits)
     {
-        NumX dividend = Snapshot(num.Render(d.Dividend, rcv)),
-             divisor = Snapshot(num.Render(d.Divisor, rcv));
-        NumX quotient = Snapshot(num.Combine(dividend, "/", divisor, rcv));
+        var w = ctx.Writer;
+        var pic = d.Quotient.Place.Item.Pic;
+        NumX QuotientAt(CobolRounding mode) =>
+            num.Combine(dividend, "/", divisor, ReceiverContext.Of(pic, mode, ise), outermost: true);
+        NumX truncated = Snapshot(QuotientAt(CobolRounding.Truncation));
         string sq = $"__sq{ctx.Names.NextStoreTmp()}";
-        ctx.Writer.Line($"CobolDec {sq} = {RuntimeApi.DecSubsidiaryQuotient(quotient.Expr, qs, qDigits)};");
-        return (dividend, divisor, new NumX(sq, 0, Dec: true), _ => quotient);
+        NumX subsidiary;
+        if (truncated.Dec)
+        {
+            w.Line($"CobolDec {sq} = {RuntimeApi.DecSubsidiaryQuotient(truncated.Expr, qs, qDigits)};");
+            subsidiary = new NumX(sq, 0, Dec: true);
+        }
+        else
+        {
+            // A binary64 quotient lands at identifier-3's scale by truncation (the checked form under ON SIZE ERROR /
+            // EC-SIZE, as the scaled kernel's DivideOrThrow); a scaled one is already there. Either is then capped at
+            // identifier-3's digits (kb/Work PB129).
+            string atScale = truncated.Real
+                ? RuntimeApi.FloatToScaled(truncated.Expr, $"{qs}", CobolRounding.Truncation, ise)
+                : truncated.Scale == qs ? truncated.Expr
+                : throw new InvalidOperationException(
+                    $"DIVIDE REMAINDER: a final-transfer quotient at scale {truncated.Scale}, not identifier-3's {qs}");
+            w.Line($"Int128 {sq} = {RuntimeApi.NumCapDigits(atScale, qDigits)};");
+            subsidiary = new NumX(sq, qs, Digits: qDigits);
+        }
+        return (dividend, divisor, subsidiary,
+            mode => mode == CobolRounding.Truncation || truncated.Dec || truncated.Real ? truncated : QuotientAt(mode));
     }
 
     /// <summary>COMPUTE Format 2 — boolean-compute (ISO §14.9.8): render the boolean RHS ONCE at the §14.9.8.4

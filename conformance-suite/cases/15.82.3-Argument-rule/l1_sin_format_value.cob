@@ -48,21 +48,14 @@
       *> how many returned values fell outside the closed interval.
       *> The receiver carries THREE integer digits so a violating
       *> value cannot be truncated back into range before the test
-      *> sees it. PEAK re-tests the bound exactly AT the maximum,
-      *> which is where a quantize-then-round arm can push a bounded
-      *> value past its bound (that is what pb65 found for ASIN/ACOS).
+      *> sees it. PEAK re-tests the bound exactly AT the maximum.
       *>
-      *> WHY SIN NEEDS NO CODOMAIN CLAMP, and why QUARTER is the line
-      *> that proves it: 15.82.4's bounds are CLOSED and the bounding
-      *> values are +1 and -1, both exactly representable at any
-      *> scale, so quantizing a value already inside [-1,+1] can at
-      *> worst land ON a bound and never outside it. That is the
-      *> opposite of 15.75.4 RANDOM, whose numerically identical-
-      *> looking "less than one" is OPEN and therefore does need the
-      *> clamp pb65 pins. If SIN were ever given RANDOM's open-unit
-      *> treatment by analogy, sin at the quarter-turn would be
-      *> clamped BELOW 1 and QUARTER would drop to +0999999 - which
-      *> is what makes this line a drift guard and not decoration.
+      *> QUARTER: 15.82.4 bounds the RETURNED value, not the value a
+      *> receiver stores (kb/Work PB3829: 14.9.8.4 2) stores it per
+      *> 14.6.8, 14.7.4 and 14.7.5). sin at the quarter-turn rounds to
+      *> exactly +1 at six places, and a store that cut a value back
+      *> below a bound would print +0999999 - which is what makes this
+      *> line a drift guard and not decoration.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1SINFV.
        DATA DIVISION.
