@@ -49,4 +49,7 @@ every regex that matched the old prefix was re-read for what the one prefix now 
 such as "COBOL2002"). Performance: the audit reads the tracked tree once, outside the gate slot. Duplication: none
 added; `semgrep/verify.py` counts unchanged.
 
-**Gate.** GATE_LINE
+**Gate.** Run `000004-20261026T181708Z` at `865f78263`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
+GREEN — ... Conformance 12,931/18,832 · Unit 37,735/38,392 · Characterization 7/36 cases ran (skipped 0) in 1 of 2
+leg(s) · Linux half (WSL clone of HEAD) GREEN ...`, with `=== DIAGNOSTIC PREFIX: GREEN — 18942 tracked path(s), none
+spells a code with the former prefix ===` and `=== WITNESS LOSS vs 448eeb9e6421: 0 unexcused, 14 retired ... GREEN ===`.
