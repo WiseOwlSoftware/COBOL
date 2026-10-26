@@ -449,7 +449,7 @@ def done_times(branch: str, reports_dir: pathlib.Path, not_after: str, git: Git,
     review rewrites the report it stamps (review_findings.py stamp, kb/Work PB3027) and a finisher's re-review re-stamps
     its own, so a file time is the LAST rewrite, never the finish (review finding R1-1 of PB3028's branch).
 
-    The changes are found from two seeds, each a DONE report (plan_wave.parse_report: its status, lead note and HEAD):
+    The changes are found from two seeds, each a DONE report (reports.parse_report: its status, lead note and HEAD):
       - a report whose header names `branch` (the implementer's own branch, queued as it is);
       - a report a commit in `upstream..HEAD` names on its `Report:` line: each cluster commit of a lander's train
         carries one (the retired train applier wrote it), and no implementer report names that train's branch
@@ -464,8 +464,8 @@ def done_times(branch: str, reports_dir: pathlib.Path, not_after: str, git: Git,
     so every landed branch head is an ancestor of main and of every branch cut after it; without this a later landing
     under a reused lead note (PB2426 had seven separate records landings; PB3024 lands in phases) would take the FIRST
     landing's finish as its DONE. plan_wave's branch survey applies the same rule: an ancestor of origin/main landed."""
-    import plan_wave  # noqa: PLC0415  (THE report reader: status, lead and HEAD are parsed in one place)
-    reps = [r for r in plan_wave.load_reports(reports_dir) if r.finished and r.head]
+    import reports  # noqa: PLC0415  (THE report reader: status, lead and HEAD are parsed in one place)
+    reps = [r for r in reports.load_reports(reports_dir) if r.finished and r.head]
     if not reps:
         return []
     rc, log = git(["log", "--format=%B", f"{upstream}..HEAD"])
@@ -486,7 +486,7 @@ def done_times(branch: str, reports_dir: pathlib.Path, not_after: str, git: Git,
 
     landed: dict[str, bool] = {}
 
-    def unlanded(r: plan_wave.Report) -> bool:
+    def unlanded(r: reports.Report) -> bool:
         if r.head not in landed:
             landed[r.head] = is_ancestor(r.head, upstream)
         return not landed[r.head]
@@ -516,7 +516,7 @@ def stage_times(branch: str, reports_dir: pathlib.Path, coord_dir: pathlib.Path,
                 enqueued: str, existing: dict | None = None) -> dict:
     """The two stamps no tool records as it happens, read back when the pull request is queued (kb/Work PB3638: the
     owner's fix-cycle bar is measured per stage, and `review_clean` had been recorded for 0 of 540 landings):
-      dispatched    the dispatch ledger's time (`at`, plan_wave.record_dispatch) of the EARLIEST dispatch still
+      dispatched    the dispatch ledger's time (`at`, dispatch_ledger.record_dispatch) of the EARLIEST dispatch still
                     recorded for a lead note that this branch's finished reports answer: a SPLIT predecessor's dispatch
                     counts, so a finisher's wait is inside dispatch → DONE. The ledger drops an entry once its notes are
                     terminal, so an earlier landing of a reused lead note is never read.
@@ -531,17 +531,17 @@ def stage_times(branch: str, reports_dir: pathlib.Path, coord_dir: pathlib.Path,
     `review_clean` and `dispatched` it already carries), not by this call's times alone. A re-enqueue after a bounce and
     a re-review is the same landing, still waiting: its second CLEAN verdict follows the first enqueue and stays out of
     the record (kb/Work PB3710), where it would make `enqueued` precede `review_clean`."""
-    import plan_wave  # noqa: PLC0415  (THE report and dispatch-ledger reader)
+    import reports  # noqa: PLC0415  (THE report reader, and the slug of a dispatch-ledger group)
     old = existing or {}
     enqueued = old.get("enqueued") or enqueued
     done = min((x for x in (done, old.get("done")) if x), key=iso_time, default=None)
     import review_findings  # noqa: PLC0415  (THE findings-file reader)
-    reps = plan_wave.load_reports(reports_dir)
+    reps = reports.load_reports(reports_dir)
     mine = [r for r in reps if r.branch == branch and r.finished]
     leads = {r.lead for r in mine}
     slugs = {r.slug.lower() for r in reps if r.lead in leads}
     ats = [g["at"] for g in coord.ledger_groups(coord_dir)
-           if plan_wave.ledger_slug(g) in slugs and isinstance(g.get("at"), (int, float))]
+           if reports.ledger_slug(g) in slugs and isinstance(g.get("at"), (int, float))]
     dispatched = dt.datetime.fromtimestamp(min(ats)).astimezone().isoformat(timespec="seconds") if ats else None
     clean = None
     stamp = next((r.review for r in reversed(mine) if r.review and r.review.verdict == "CLEAN"), None)

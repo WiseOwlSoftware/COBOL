@@ -1289,7 +1289,8 @@ kb/Work PB2914). One gate:
    `[driver]` the gate driver failed; `[population]` the population could not be listed after a GREEN build;
    `[arguments]` the gate script refused its arguments; and, made by `enqueue.py`, `[verdict]` no verdict line and
    `[unslotted]` a gate row that would run outside the shared slot; a NOT RUN naming no known cause is `[unclassified]`,
-   BRANCH. The driver's self-test holds every NOT RUN line of build-local.ps1, build-local.sh and linux-gate.sh, and
+   BRANCH. Two more rows classify the landing's merge of main, which is no gate but can fail the same two ways
+   (kb/Work PB3673, step 2 of section 3.17.2): `[merge-blocked]` ENVIRONMENT, `[merge-failed]` BRANCH. The driver's self-test holds every NOT RUN line of build-local.ps1, build-local.sh and linux-gate.sh, and
    its own, to a known tag. A landing reads an ENVIRONMENT cause as no red of the branch (exit 2, no BLOCKED line:
    retried once, a second is the operator's handoff); a BRANCH cause blocks like a red (exit 5, a finisher's) unless
    main fails the same way at the same step (`enqueue.gate_main`: the same row in a clean checkout of the origin/main
@@ -1924,9 +1925,9 @@ watches its own freshly spawned child); PENDING (exit 4: exit 3
 is BUSY, kb/Work PB3527) when the wait passes first; `NOT RUN [run]` (exit 2, ENVIRONMENT) when there is no such
 directory. A relative `<run>` (`TestResults/build-local/<run>`, the form an agent returns) names a run of the worktree
 that gated it, never of the reader's checkout: `run_gate_legs.resolve_run` is the one resolution, and the rolling
-wave's await (`--worktree`, the agent's worktree) and `plan_wave.Report.gate_state` (the report's Worktree field) both
+wave's await (`--worktree`, the agent's worktree) and `reports.Report.gate_state` (the report's Worktree field) both
 read from the main checkout through it (review R1-1 of wave 1152). The follower, the rolling wave's await and
-`plan_wave.Report.gate_state` all read through `watch`.
+`reports.Report.gate_state` all read through `watch`.
 
 **3. The handoff.** An implementer or finisher that reaches its TURN CAP while its gate still runs on its committed
 head, with nothing uncommitted, returns status `GATE-PENDING` with `gate_run` and `head`, its report's header saying
@@ -1935,7 +1936,7 @@ head, with nothing uncommitted, returns status `GATE-PENDING` with `gate_run` an
 `cobol-locator` per window runs `--await`; a workflow script has no process API and no clock): GREEN continues exactly
 as a DONE return carrying that verdict (the finished test, then the branch review), any other verdict sends ONE gate
 finisher (`gate_fix_rounds`), and no verdict by the last window, or the ceiling, is STALLED. The persisted verdict
-also needs no awaiter: `plan_wave.Report.finished` calls a GATE-PENDING report finished exactly when its run's verdict
+also needs no awaiter: `reports.Report.finished` calls a GATE-PENDING report finished exactly when its run's verdict
 is GREEN for the report's HEAD and measured that commit's own tree, unchanged while it ran; the planner waits on a
 gate still running and plans a finisher for one that ended otherwise, and the branch survey reads the same predicate.
 
@@ -2193,9 +2194,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    below). Every decision is a line in
    `<scratch>/review-w<wave>-<letter>.jsonl`, appended through `scripts/orchestrator/review_findings.py`, which computes
    the verdict from the file and stamps it into the report's header — `**Review:** CLEAN <reviewer> <head>` or
-   `FINDINGS <n> <reviewer> <head> <file>` — read back through `plan_wave.parse_review`, the one reader. The stamp sits
+   `FINDINGS <n> <reviewer> <head> <file>` — read back through `reports.parse_review`, the one reader. The stamp sits
    one line under the Status line, above an O11 header's `Branch:` line, and its reviewer label
-   (`land-review-<branch>-r<k>`) carries the branch name, so `plan_wave.parse_report` reads the branch, worktree and
+   (`land-review-<branch>-r<k>`) carries the branch name, so `reports.parse_report` reads the branch, worktree and
    head from the header's own fields with the stamp lines skipped (kb/Work PB3077). FINDINGS → a
    REVIEW FINISHER (a fresh implementer, because a workflow cannot message an agent that has returned: it merges the
    branch, answers every finding by its id — fixed at its root, or `no_change_needed` with the reason — re-gates and
@@ -2306,7 +2307,16 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `outcome_files`, and `LandingLaneDriftTests` keeps every other script from spelling the prefix. What is left in
    conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves with `merge_drivers.py merge
-   origin/main --keep`); before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
+   origin/main --keep`). A CLEAN merge that could not be COMPLETED is no conflict (kb/Work PB3673: a pin settle whose
+   measuring build met a locked DLL used to end `CONFLICT in …RuntimeAbi.pin` and cost a finisher for a merge with
+   nothing to resolve). `merge_drivers.merge` answers with a `Merged` (`clean`, `conflicts`, or `incomplete`: abi_pin's
+   `Failure(cause, why)`, also for git's own refusal of the merge commit), and the cause is read from the gate's one
+   classification, the `merge-*` rows of `run_gate_legs.NOT_RUN_CAUSES`: `merge-blocked` (ENVIRONMENT: a build output
+   another process holds, MSB3027 or MSB3021, a full disk, no SDK, git refused a write) is exit 2, `MERGE NOT COMPLETED`,
+   no report line, retried once by the lane and then the operator's; `merge-failed` (BRANCH: the merged tree's pin, build
+   or measuring test) blocks like a red, exit 5, a finisher's. `merge_drivers.py merge` ends exit 3 with `NOT COMPLETED
+   [<cause>] — …` where a conflict ends 1; with `--keep` a merge stopped at the pin stays in progress, for
+   `abi_pin.py settle --stage` once the cause is removed. Before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
    every outcome; kb/Work PB3310): a second `land` of the branch is exit 13, never a red, nothing touched and no report
    line, and the landing lane retries it once the lock is free (two runs on one branch raced on the merge, the stamp and
    the gates' files); **READ THE RECORD OF THE BRANCH'S OWN LOCAL GATE, AND GATE NOTHING** (owner 2026-10-23 ~20:4x PDT, kb/Work PB3612: "Taking one

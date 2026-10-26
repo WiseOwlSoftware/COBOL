@@ -12,8 +12,8 @@ This module measures the plan's part of it and writes nothing:
     flat for days (PB2911: 53 open notes held every GAP row, and the fix lane plans only `.agent-fleet.json`'s
     population), so `remaining()` names every such note and the page flags it loudly.
   * AN ESTIMATE PER BUCKET from measured inputs only: groups from the fix lane's own clustering (`fix_clusters.py`,
-    through `plan_wave.run_fix_clusters`) and the planner's group cap, waves from the planner's groups per wave,
-    weekly points from `model_rules.json`'s cost constants (`plan_wave.group_cost` / `landing_cost`, imported) and from
+    through `clusters.run_fix_clusters`) and the planner's group cap, waves from the planner's groups per wave,
+    weekly points from `model_rules.json`'s cost constants (`groups.group_cost` / `landing_cost`, imported) and from
     the newest meter-measured burn, hours from the landing rate (`landing_measure.landing_rate_input`: the merge
     queue's own once two pull requests have landed, else the retired trains' batched rate; kb/Work PB3028). A
     missing input makes its figure UNMEASURED (None), never a guessed number.
@@ -238,11 +238,11 @@ def estimate(sizes: list[int] | None, inputs: dict) -> dict:
     rules = inputs.get("rules")
     if sizes is None or rules is None:
         return {"groups": None, "waves": None, "points": None, "hours": None, "burn_points": None}
-    import plan_wave  # noqa: PLC0415  (the planner's cost rule, never a copy)
+    from groups import group_cost, landing_cost  # noqa: PLC0415  (the planner's cost rule, never a copy)
     w = rules["wave"]
     groups = len(sizes)
-    points = (sum(plan_wave.group_cost(w["implementer_model"], k, rules) for k in sizes)
-              + plan_wave.landing_cost(rules) * groups)
+    points = (sum(group_cost(w["implementer_model"], k, rules) for k in sizes)
+              + landing_cost(rules) * groups)
     rate, burn = inputs.get("rate"), inputs.get("burn")
     hours = groups / rate["per_h"] if rate and rate["per_h"] > 0 else None
     return {"groups": groups, "waves": math.ceil(groups / w["max_groups"]), "points": points, "hours": hours,
@@ -282,13 +282,13 @@ def estimate_inputs() -> dict:
     import account  # noqa: PLC0415
     import budget  # noqa: PLC0415
     import coord  # noqa: PLC0415
-    import plan_wave  # noqa: PLC0415
+    from clusters import FIX_CLUSTERS, run_fix_clusters  # noqa: PLC0415  (the fix lane's one clustering call)
     import landing_measure  # noqa: PLC0415
     rules = coord.rules()
     fix_groups = None
-    if plan_wave.FIX_CLUSTERS.exists():
+    if FIX_CLUSTERS.exists():
         with tempfile.TemporaryDirectory(prefix="ledger-fc-") as d:
-            fix_groups = plan_wave.run_fix_clusters("open", pathlib.Path(d) / "clusters-open.json", rules)
+            fix_groups = run_fix_clusters("open", pathlib.Path(d) / "clusters-open.json", rules)
     d = coord.coord_path()
     rate = landing_measure.landing_rate_input(d)
     acct = account.current()
