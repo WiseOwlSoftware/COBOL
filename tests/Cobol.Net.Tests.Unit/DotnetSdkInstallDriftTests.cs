@@ -44,7 +44,7 @@ public sealed class DotnetSdkInstallDriftTests
         RegexOptions.NonBacktracking);
 
     /// <summary>A job: its id two spaces deep, then every line deeper than that, a comment line or a blank line.</summary>
-    private static readonly Regex Job = new(@"(?m)^  (?<id>[A-Za-z0-9_-]+):[ \t]*\n(?<body>(?:(?:   .*|[ \t]*#.*|[ \t]*)\n)*)",
+    internal static readonly Regex JobShape = new(@"(?m)^  (?<id>[A-Za-z0-9_-]+):[ \t]*\n(?<body>(?:(?:   .*|[ \t]*#.*|[ \t]*)\n)*)",
         RegexOptions.NonBacktracking);
 
     private static readonly Regex PinLine = new(@"^DOTNET_SDK_VERSION=(?<v>\S+)$", RegexOptions.Multiline | RegexOptions.NonBacktracking);
@@ -288,7 +288,7 @@ public sealed class DotnetSdkInstallDriftTests
         string lf = workflow.ReplaceLineEndings("\n");
         int jobs = lf.IndexOf("\njobs:\n", StringComparison.Ordinal);
         string body = jobs < 0 ? (lf.StartsWith("jobs:\n", StringComparison.Ordinal) ? lf[6..] : "") : lf[(jobs + 7)..];
-        foreach (Match m in Job.Matches(body + "\n"))
+        foreach (Match m in JobShape.Matches(body + "\n"))
             yield return (m.Groups["id"].Value, m.Groups["body"].Value);
     }
 
