@@ -941,6 +941,24 @@ check("a copy that differs, a copy whose text is gone, a typed number in the spe
        any("finisher-brief.md: no statement matching" in m for m in drift),
        any("dispatch-spec-implementer.md: types a turn cap" in m for m in drift),
        any("model_rules.json: types a turn cap ('220-turn cap')" in m for m in drift), len(drift)), (True, True, True, True, 4))
+# 7c4. THE LOOP UNITS LOAD THE OVERLAY ONLY (kb/Work PB3780). Expected from the rule: every unit loads the workstream overlay and
+#      re-reads it on each of about 45 turns, so it must not order its base skill's load, must stay under SKILL_MAX_BYTES and
+#      must send a reader only to reference files that exist (the base's by its full submodule path, its own by references/<file>);
+#      the overlays loaded for one job each (gate, review, spec-lookup) still name their base. Each arm is seen refused on a plant.
+WS_SKILL = (coord.REPO / ".claude/skills/workstream/SKILL.md").read_text(encoding="utf-8")
+check("the real workstream overlay orders no base load, fits its size and names only files that exist",
+      check_practices.overlay_problems("workstream", WS_SKILL), [])
+check("... an overlay that orders its base's load by the Skill tool, or by a Read of its SKILL.md, is refused",
+      [len(check_practices.overlay_problems("workstream", WS_SKILL + t)) for t in
+       ("\nInvoke `brent-tools:agent-fleet` (Skill tool) before reading on.", "\nRead `tools/claude-skills/skills/agent-fleet/SKILL.md` instead.")], [1, 1])
+check("... an overlay over its size is refused", len(check_practices.overlay_problems(
+    "workstream", WS_SKILL + "x" * check_practices.SKILL_MAX_BYTES)), 1)
+check("... an overlay naming a reference file that does not exist (its own, or the base's) is refused",
+      [len(check_practices.overlay_problems("workstream", WS_SKILL + t)) for t in
+       ("\nSee references/no-such-file.md.", "\nSee tools/claude-skills/skills/agent-fleet/references/no-such-file.md.")], [1, 1])
+check("... a gate, review or spec-lookup overlay still has to name its base skill",
+      (check_practices.overlay_problems("gate", "no base named here"), check_practices.overlay_problems("gate", "Invoke `brent-tools:test-gate`")),
+      (["gate overlay does not invoke its brent-tools base skill first"], []))
 # 7d. A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381; MANDATORY-PRACTICES I8). Expected from the
 #     rule: a file under src/WiseOwl.Cobol.Runtime/IO/ (either separator) makes a group host-I-O, a compiler or other runtime
 #     file does not; the file set is the group's file_set list, else (absent or empty) what its notes declare; a

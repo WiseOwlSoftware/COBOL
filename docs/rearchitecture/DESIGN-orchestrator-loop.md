@@ -304,7 +304,10 @@ Each iteration, in this order:
 
 ### 4.1 What every unit prompt says
 
-- Load the `session-start` skill first; read the previous handoff the prompt names.
+- Load the `session-start` skill first; read the previous handoff the prompt names. A unit loads those skills only
+  (`workstream` where its own text says so): never the public base `agent-fleet`, whose 4.5K tokens would ride each of
+  a unit's about 45 turns. The `workstream` overlay orders no base load; it names the reference file each unit kind
+  reads once (`units/common.md`; `check_practices.py` `overlay_problems`, kb/Work PB3780).
 - Before EACH new step, check for `STOP-UNIT`; if it exists, finish the step, write the handoff and end (for a
   `wave` with a Workflow in flight: section 3.1).
 - End by writing `{HANDOFF}` that validates against `handoff.schema.json`.
