@@ -451,8 +451,9 @@ of an unsupported facility.
   `conformance:cases/14.9.48-UNSTRING/pb979_unstring_any_length_national` (national sender into two usage-national numeric receivers)
   and `conformance:cases/14.9.48-UNSTRING/pb980-unstring-national-mix`.
 - **D-FNUSE — a numeric, integer, index or boolean function-identifier is not "described … as usage display or
-  national", so it is no STRING character operand and no INSPECT identifier-n** (owner 2026-10-24; kb/Work PB3665,
-  rules `SR-14.9.43.3-1`, `SR-14.9.22.3-2`). §14.9.43.3 SR1 requires every identifier of STRING but the POINTER to be
+  national", so it is no STRING character operand, no INSPECT identifier-n and no numeric integer operand opposite a
+  character operand of a relation** (owner 2026-10-24 and 2026-10-25; kb/Work PB3665, PB3691,
+  rules `SR-14.9.43.3-1`, `SR-14.9.22.3-2`, `GR-8.8.4.2.1-6`). §14.9.43.3 SR1 requires every identifier of STRING but the POINTER to be
   *"described implicitly or explicitly as usage display or national"*, and §14.9.22.3 SR2 requires *"an elementary item
   described implicitly or explicitly as usage display or national"* of INSPECT's identifier-3 … identifier-n. A
   function-identifier references *"the unique data item that results from the evaluation of a function"* (§8.4.3.2.1),
@@ -478,6 +479,32 @@ of an unsupported facility.
   `conformance:cases/14.9.43-STRING/pb3665_string_function_usage_controls` and
   `conformance:cases/14.9.22-INSPECT/pb3665_inspect_function_usage_controls` (the admitted functions) and the
   `pb3665-*` refusals.
+  **The relation condition (owner 2026-10-25, "Refuse it per the spec"; kb/Work PB3691).** §8.8.4.2.5 (`cite.py
+  --check` OK) reads *"The numeric integer operand shall be an integer literal or an integer numeric data item of usage
+  display or national."* A numeric, integer or index function-identifier is neither: it is not a literal (§8.4.3.2.1:
+  it references a data item, and the folded `FUNCTION LENGTH(item)` is that function, never "an integer literal"), and
+  §15.2 4), 5) and 6) describe the item it returns without a usage. So `IF FUNCTION INTEGER(N) = "0007"`, `IF "0007" =
+  FUNCTION ABS(N)`, `IF FUNCTION LENGTH(N) = "4"`, the same pairs as EVALUATE subject/object, SEARCH WHEN, PERFORM UNTIL
+  and abbreviated combined relations, and the national forms, are refused with **COBOLNET2532** exactly as a COMP item is
+  (no new code), through the SAME reader STRING and INSPECT ask (`IntrinsicArgumentRules.FunctionIsNotDisplayOrNational`,
+  called by `RelationComparability.IsNumericIntegerOperand`); an index function (`FUNCTION MAX` over index items) opposite
+  a character operand was already refused by §8.8.4.2.13 (COBOLNET2533). The measured reason it mattered: §8.8.4.2.5
+  treats the integer operand "as though it were moved, according to the rules of the MOVE statement, to an elementary
+  data item of the same length in terms of character positions as the number of digits in the integer", which needs the operand's digit count — a display item has one (its PICTURE),
+  a function result has none the standard states — so `IF FUNCTION INTEGER(N) = "0007"` (N PIC 9(4) VALUE 7) compared
+  the function's literal-form text (A.1 item 92) and answered not equal, where `IF N = "0007"` answers equal.
+  **GnuCOBOL 3.2** also answers not equal there (and accepts a COMP item, which WiseOwl refuses, COBOLNET2532), so it is
+  no precedent for the admission. Admitted still: a numeric or integer function against a NUMERIC operand (`IF FUNCTION
+  INTEGER(N) = 7`, row 1), an alphanumeric or national function against a character operand (`FUNCTION UPPER-CASE(S) =
+  "ABCD"`, §15.2 1) and 3)), and an integer display item or literal against a character operand. `--permissive` keeps the
+  refused pair as COBOLNET2532's warning, the character comparison of the function's text, as for the other operands.
+  **`SendingValueTemp.FunctionValuePic` is not a usage claim and no admission rule reads it.** The returned-value item's
+  USAGE DISPLAY there is the implementor's representation (§15.4.1: *"the characteristics and representation of the
+  returned value are defined by the implementor"*) that sizes the item for `FUNCTION LENGTH` and IN-ARITHMETIC-RANGE
+  (A.1 item 92); the question "described … as usage display or national" is asked of the operand as written, through
+  `IntrinsicSig.ImplicitUsageOf` (§15.2), and `DisplayOrNationalUsagePredicateDriftTests` pins that `RelationComparability`
+  asks it and never reads a returned-value `PicInfo`. Witnessed by `conformance:cases/8.8.4.2-Simple-relation-conditions/pb3691_relation_function_operands`
+  (the admitted pairs) and the `pb3691-*` refusals.
 - **D-FRA — the record area of a file whose record is a dynamic-length item, a variable-length group or a pointer,
   and the record image such a record sends and receives** (2026-09-22; kb/Work PB981, row `GR-13.18.33.4-3`).
   §13.18.33.4 GR3 makes every level-1 entry of an FD or SD *"implicit redefinitions of the same area"*, and no rule
@@ -1730,12 +1757,13 @@ of an unsupported facility.
   ("This warning mechanism shall indicate violations of such rules") reaches them; the severity is ours. **§8.8.4.2.5**
   ("The numeric integer operand shall be an integer literal or an integer numeric data item of usage display or
   national"): a non-integer, COMPUTATIONAL, packed-decimal or floating-point item, a non-integer literal, an arithmetic
-  expression or a NUMERIC intrinsic function against an operand of class alphanumeric, alphabetic or national is an
-  **ERROR, COBOLNET2532**, and `--permissive` keeps it as a warning evaluated as the character comparison of the
-  value's text — the DA6 disposition every §8.8.1.1 / §15.3 class screen follows. An **INTEGER** intrinsic function
-  (§15.2 item 5) is admitted as the integer operand: §8.8.4.2.5 routes the comparison "according to the rules of the
-  MOVE statement", and the A.1 item 92 determination (§7) already makes such a function the Table-16 Integer row that moves to an
-  alphanumeric receiver in its literal text form, so the relation and the MOVE agree. **§8.8.4.2.13** ("Relation tests
+  expression or a numeric, integer or index intrinsic function-identifier against an operand of class alphanumeric,
+  alphabetic or national is an **ERROR, COBOLNET2532**, and `--permissive` keeps it as a warning evaluated as the
+  character comparison of the value's text — the DA6 disposition every §8.8.1.1 / §15.3 class screen follows. **An
+  INTEGER function-identifier is no longer admitted as the integer operand (owner 2026-10-25, kb/Work PB3691; the first
+  wave of this determination admitted it as the Table-16 Integer row of the A.1 item 92 determination, which moves such
+  a function to an alphanumeric receiver in its literal text form): see D-FNUSE's relation-condition paragraph.**
+  **§8.8.4.2.13** ("Relation tests
   may be made only between" two index-names; an index-name and a numeric data item or numeric literal; an index data
   item and an index-name or another index data item) is an **unconditional ERROR, COBOLNET2533** — the pairs outside
   it have no comparison to keep under `--permissive` (an index-name against an alphanumeric operand aborted the run
