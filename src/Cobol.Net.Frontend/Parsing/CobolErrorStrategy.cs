@@ -408,6 +408,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // (§8.3.2.2.16), so the suffix arrives here — read from the PARSER STATE, worded by MnemonicNameSlot.
         if (MnemonicSuffixMessage(recognizer, token, stream) is { } mnemonicMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2269, mnemonicMsg, 0));
+        // ⛔ 0e''. A TABLE 12 [NOT] PHRASE THAT NO OPEN STATEMENT MAY TAKE (kb/Work PB3830). The one conditionalPhrases
+        // rule associates a phrase by §14.5.3.3, so a phrase no open statement's general format admits — a second ON
+        // SIZE ERROR, a CALL's NOT ON OVERFLOW, a READ's INVALID KEY beside its AT END — ends every statement and
+        // arrives here; ConditionalPhraseAssociation reads the parser state and names the statement and the reason.
+        // Added after 0e, so SEARCH's own NOT AT END wording (its WHEN-branch advice) wins the shared code.
+        if (ConditionalPhraseAssociation.UnownedPhraseMessage(recognizer.Context, stream, token) is { } phraseMsg)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2269, phraseMsg, 0));
         // ⛔ 0f. AN INLINE METHOD INVOCATION'S EMPTY PARENTHESIS PAIR (kb/Work PB1430). `inlineInvocationSegment`
         // requires its argumentList inside the optional parentheses, so `O :: "M" ( )` arrives here, at the '(' or
         // the ')'. Outranks 0a for the same reason 0d does: the empty pair is the cause wherever the parse gives up.

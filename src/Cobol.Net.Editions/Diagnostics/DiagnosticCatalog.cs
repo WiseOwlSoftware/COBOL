@@ -7403,15 +7403,19 @@ public static class DiagnosticCatalog
     /// explicit scope terminator is not) is written as the operand of a phrase whose general format prints
     /// imperative-statement-n (kb/Work PB351): `READ F AT END IF X = 1 DISPLAY "A" NOT AT END …`. Refused by
     /// <c>ProcedureFormatPass</c> at every edition; IF's statement-1 / statement-2 are the one operand that admits
-    /// a trailing conditional statement (§14.9.19.3 SR1).</summary>
+    /// a trailing conditional statement (§14.9.19.3 SR1). §14.5.3.3 gives a [NOT] phrase to the most recent open
+    /// statement that may take it, so in `SUBTRACT … ON SIZE ERROR ADD 1 TO D NOT ON SIZE ERROR …` the NOT phrase is
+    /// the ADD's and the ADD is the conditional statement refused here (kb/Work PB3830).</summary>
     public static readonly DiagnosticDescriptor ConditionalStatementAsImperative = new(
         "COBOLNET2796", "conditional-statement-as-imperative", EditionSeverity.Error,
         "A conditional statement is written where the general format requires an imperative-statement. Any statement "
         + "with a conditional phrase that is not terminated by its explicit scope terminator is a conditional "
         + "statement, and an imperative statement may be a conditional statement only when it is delimited by its "
-        + "explicit scope terminator (Table 12). Close the inner statement with its END- terminator (END-IF, "
-        + "END-READ, END-SEARCH, …).",
-        "ISO §14.5.1; Table 12; §14.9.19.3 SR1");
+        + "explicit scope terminator (Table 12). A conditional phrase belongs to the most-recently preceding "
+        + "unterminated statement with which it may be syntactically associated, so a NOT phrase written after a "
+        + "nested statement that can take it is that statement's phrase. Close the inner statement with its END- "
+        + "terminator (END-IF, END-READ, END-ADD, END-SEARCH, …).",
+        "ISO §14.5.1; Table 12; §14.5.3.3; §14.9.19.3 SR1");
 
     /// <summary>COBOLNET2797 — the procedure division body mixes §14.2.1 Format 1 (with sections) and Format 2
     /// (without sections) (kb/Work PB1146): a sentence or a paragraph outside every section in a division that has
