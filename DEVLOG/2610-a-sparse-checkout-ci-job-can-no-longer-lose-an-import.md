@@ -1,4 +1,4 @@
-## A sparse-checkout CI job can no longer lose an import silently (PB3787)
+## Entry 2610 — 2026-10-25 21:23 PDT — A sparse-checkout CI job can no longer lose an import silently (PB3787)
 
 The merge-group `supersede` job (PB3769) checks out only `scripts/orchestrator` and `scripts/standard_streams.py` and
 runs `cancel_superseded.py` in a `continue-on-error` step. PB3637 had to add `standard_streams.py` to that list by hand
@@ -31,3 +31,4 @@ No inventory row is claimed or closed (process tooling). Self-review: the patter
 semantics (a name covers a file or directory and everything beneath it; `*` does not cross `/`); a repository file that
 shadows a standard-library module name (`scripts/orchestrator/mailbox.py`) would resolve ahead of it exactly as Python
 resolves it from the script's directory.
+
