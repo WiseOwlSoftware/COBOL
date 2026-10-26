@@ -1473,7 +1473,7 @@ def self_test() -> int:
                rc_nothing == 0 and any("nothing to land" in ln for ln in lines) and rc_title == 2,
                f"{rc_nothing} {rc_title}")
 
-        devlog_check, partition, register, prefix = (c.command for c in CHECKS)
+        devlog_check, partition, register, prefix, retired = (c.command for c in CHECKS)
 
         def runner(results: dict[tuple[str, ...], int], seen: list[tuple[tuple[str, ...], list[str]]]):
             def run(check: Check, args: list[str]) -> int:
@@ -1482,31 +1482,32 @@ def self_test() -> int:
             return run
         mapped = []
         for results in ({devlog_check: 1}, {partition: 1}, {devlog_check: 2}, {partition: 2}, {register: 1},
-                        {register: 2}, {prefix: 1}, {prefix: 2}, {}):
+                        {register: 2}, {prefix: 1}, {prefix: 2}, {retired: 1}, {retired: 2}, {}):
             seen: list[tuple[tuple[str, ...], list[str]]] = []
             mapped.append(run_checks("S", "B", runner(results, seen), say=lines.append))
         seen = []
         run_checks("S", "B", runner({}, seen), say=lines.append)
         missing = [c.command[0] for c in CHECKS if not (HERE.parent / c.command[0]).is_file()]
-        expect("checks runs the four landing scripts in order, the range only to the two that read one, and maps each "
-               "refusal to its own code: DEVLOG 6, landing check 3, register 6, diagnostic prefix 6, unreadable 2",
-               mapped == [6, 3, 2, 3, 6, 2, 6, 2, 0] and not missing
+        expect("checks runs the five landing scripts in order, the range only to the two that read one, and maps each "
+               "refusal to its own code: DEVLOG 6, landing check 3, register 6, diagnostic prefix 6, retired names 6, "
+               "unreadable 2",
+               mapped == [6, 3, 2, 3, 6, 2, 6, 2, 6, 2, 0] and not missing
                and seen == [(devlog_check, ["--rev", "S", "--base", "B"]), (partition, ["--rev", "S", "--base", "B"]),
-                            (register, []), (prefix, [])],
+                            (register, []), (prefix, []), (retired, [])],
                f"{mapped} {seen} missing={missing}")
 
-        # The register check and the diagnostic-prefix audit run the merged head's OWN scripts from the worktree's tree
-        # (kb/Work PB3389 review R1-1, PB3575 review R1-1), the other two this lane's: a worktree whose copies refuse
-        # is exit 1, one whose copies pass is exit 0.
+        # The register check and the two rename audits run the merged head's OWN scripts from the worktree's tree
+        # (kb/Work PB3389 review R1-1, PB3575 review R1-1, PB3837), the other two this lane's: a worktree whose copies
+        # refuse is exit 1, one whose copies pass is exit 0.
         for code in (1, 0):
             tree = root / f"register-{code}"
             (tree / "scripts" / "spec").mkdir(parents=True)
-            for in_tree in (CHECKS[2], CHECKS[3]):
+            for in_tree in CHECKS[2:]:
                 (tree / "scripts" / in_tree.command[0]).write_text(f"import sys; sys.exit({code})", encoding="utf-8",
                                                                    newline=chr(10))
-            expect(f"the register check and the diagnostic-prefix audit run the worktree's own scripts (exit {code})",
-                   _script_runner(tree)(CHECKS[2], []) == code and _script_runner(tree)(CHECKS[3], []) == code
-                   and CHECKS[2].in_tree and CHECKS[3].in_tree and not CHECKS[0].in_tree and not CHECKS[1].in_tree,
+            expect(f"the register check and the two rename audits run the worktree's own scripts (exit {code})",
+                   all(_script_runner(tree)(c, []) == code and c.in_tree for c in CHECKS[2:])
+                   and not CHECKS[0].in_tree and not CHECKS[1].in_tree,
                    f"code {code}")
 
         # The migrating landing (kb/Work PB3023 review R1-3): the base holds the monolithic DEVLOG.md, the branch adds
