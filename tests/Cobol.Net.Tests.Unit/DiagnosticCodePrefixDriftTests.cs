@@ -22,6 +22,9 @@ namespace CobolNet.Tests.Unit;
 /// (<see cref="TheSetAsidePathsAreTheRenameScriptsOwn"/> holds <see cref="Scope"/> to it): the history and frozen
 /// records that keep the spelling of their day (DEVLOG/, adjudication/, docs/rearchitecture/evidence/; CLAUDE.md rule 6,
 /// kb/Work PB785) and the three files that own the rule (the decision note quoting the owner, the script, this test).
+/// Inside a file, a witness the traceability inventory records as RETIRED keeps the spelling it was retired under (the
+/// rename re-spelled 14 witnesses through a <c>record_verdicts.py</c> batch, and the witness-loss audit excuses exactly
+/// the retired spelling).
 /// </para>
 /// <para>
 /// Only the code SHAPES are the rule: the old prefix followed by a digit, a Markdown-bold digit, a placeholder
@@ -46,6 +49,17 @@ public sealed class DiagnosticCodePrefixDriftTests
         @"COBOLNET(?:[0-9]|\*\*[0-9]|nnnn|####|<n>|…|\\+d|\[0-9\]|\()|COBOL\(\?:NET\)\?",
         RegexOptions.CultureInvariant);
 
+    /// <summary>A witness the traceability inventory records as RETIRED (<c>retired-witness: &lt;ref&gt;</c>, the mark's text
+    /// read from the inventory schema, its one definition) keeps the spelling it was retired under: the witness-loss
+    /// audit excuses the loss of exactly that spelling, so the rename script leaves it and the sweep forgives it.</summary>
+    private static readonly Lazy<Regex> s_retiredWitness = new(() =>
+    {
+        using var doc = System.Text.Json.JsonDocument.Parse(
+            File.ReadAllText(TestRepo.At("tests", "version-matrix", "inventory-schema.json")));
+        string mark = doc.RootElement.GetProperty("notes").GetProperty("retired-witness-mark").GetString()!;
+        return new Regex(Regex.Escape(mark) + @"\s*\S+", RegexOptions.CultureInvariant);
+    });
+
     /// <summary>What a sweep saw: the offending lines AND the population they were drawn from.</summary>
     internal sealed record SweepResult(IReadOnlyList<string> Offenders, int FilesScanned);
 
@@ -69,7 +83,7 @@ public sealed class DiagnosticCodePrefixDriftTests
                 continue;
             string[] lines = text.Split('\n');
             for (int i = 0; i < lines.Length; i++)
-                if (OldCode.IsMatch(lines[i]))
+                if (OldCode.IsMatch(lines[i]) && OldCode.IsMatch(s_retiredWitness.Value.Replace(lines[i], "")))
                     offenders.Add($"{rel}:{i + 1}: {lines[i].Trim()}");
         }
         return new SweepResult(offenders, scanned);
@@ -112,6 +126,7 @@ public sealed class DiagnosticCodePrefixDriftTests
         string[] innocent =
         [
             $"docs/{old}_DESIGN.md", $"CALL \"{old}\" USING W-N", $"DISPLAY \"HELLO FROM {old}\".", "error COBOL1985: x",
+            $"\"notes\": \"retired-witness: unit:T.X_Is{old}1934 (re-spelled)\"",
         ];
         string dir = ScratchDirectory.Create("prefix-sweep");
         try
