@@ -9,8 +9,11 @@ Experiment record (owner standing rule 2026-09-28: every fleet experiment goes h
 compiler.
 
 **The owner's instruction** (2026-10-24, restated for each night): "run the fuzz analysis and report its findings. Do not
-begin fixing any fuzz identified issues without my explicit approval". So every finding is filed with `status: owner`
-(PB3829 to PB3832), which no lane plans. The owner asked for the summary on 2026-10-26 about 10:50, and it was given.
+begin fixing any fuzz identified issues without my explicit approval". So every finding was first filed with `status: owner`
+(PB3829 to PB3832). The owner asked for the summary on 2026-10-26 about 10:50, and it was given. He then approved all
+four in chat (about 11:05 PDT PB3829, with "Ensure that the fix actually corrects the ROUNDED root cause, not just fixes
+that one example"; 11:10 PB3831 and PB3832; 11:15 PB3830), so they are `status: open`, each with an Owner decision
+section.
 
 ## The run
 
@@ -49,7 +52,7 @@ Totals from the verdict lines (258 signatures; programs in brackets): WISEOWL-CO
 (243) · LATITUDE 45 (184) · NOT-COMPARABLE 19 (72) · UNINITIALIZED 12 (36) · MODEL-ERROR 4 (9) · KNOWN 1 (1) ·
 WISEOWL-DEFECT 4 (10) · UNDECIDED 0.
 
-## The findings (filed, held for the owner)
+## The findings (filed; approved by the owner and open)
 
 | Note | Title | Class | Witnesses |
 |---|---|---|---|
