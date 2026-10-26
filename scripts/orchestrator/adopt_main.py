@@ -10,6 +10,10 @@ with every merge for as long as the loop runs: wave 1042 planned against a regis
 planner that predated the planner on main. The owner (2026-10-24 ~10:58 PDT, kb/Work PB2699): "fix the loop so it picks
 up landed changes itself. We should adopt efficiency improvements as soon as they are available and stable".
 
+`adopt` also feeds the impact-map lane (impact_lane.py, kb/Work PB3663): the commit it adopted or found current is
+recorded as an impact map in a detached worker, coalesced to the newest, so the gate's leg 1 can aim at what a change
+reaches. The adoption line carries what the lane did.
+
 `adopt` is called by the supervisor (orchestrate.ps1) BETWEEN units, when no unit runs, and by autostart.ps1 before the
 supervisor starts. It is NOT the only thing that moves the checkout: the attended session fast-forwards it by hand when
 ledger_state.py says a ledger publish is owed (`git merge --ff-only origin/main`), and `adopt` then finds nothing left to
@@ -44,6 +48,7 @@ from typing import Callable
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import coord  # noqa: E402
+import impact_lane  # noqa: E402  (the recorder lane an adoption feeds, kb/Work PB3663)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -72,6 +77,7 @@ class Adoption:
     reason: str                      # why KEPT, or what ADOPTED/CURRENT means
     supervisor_changed: bool = False
     changed: tuple[str, ...] = ()    # the SUPERVISOR_FILES the fast-forward changed
+    impact: str = ""                 # what the impact-map lane did with this commit (kb/Work PB3663), "" when not asked
 
     @property
     def line(self) -> str:
@@ -79,7 +85,8 @@ class Adoption:
             return sha[:9] or "?"
         moved = f"{short(self.before)}..{short(self.after)}" if self.action == ADOPTED else short(self.after)
         return (f"adopt main: {self.action} {moved} (origin/main {short(self.target)}): {self.reason}"
-                f"{'; the supervisor itself changed since it loaded, so it restarts before the next unit' if self.supervisor_changed else ''}")
+                f"{'; the supervisor itself changed since it loaded, so it restarts before the next unit' if self.supervisor_changed else ''}"
+                f"{'; ' + self.impact if self.impact else ''}")
 
 
 def _git(repo: pathlib.Path, *args: str) -> tuple[int, str]:
@@ -133,12 +140,21 @@ def tracked_changes(repo: pathlib.Path) -> list[str]:
     return [l for l in out.splitlines() if l.strip() and SETTINGS not in l]
 
 
-def adopt(repo: pathlib.Path, cdir: pathlib.Path, gh: Gh | None = None, *, dry_run: bool = False, loaded: str = "") -> Adoption:
+def adopt(repo: pathlib.Path, cdir: pathlib.Path, gh: Gh | None = None, *, dry_run: bool = False, loaded: str = "",
+          impact: Callable[[pathlib.Path, pathlib.Path, str], str] = impact_lane.request) -> Adoption:
     """Fast-forward the checkout when it is available and stable, and say whether the supervisor must restart.
-    `loaded` is the checkout's HEAD when the calling supervisor loaded its script ("" for a caller that holds none)."""
+    `loaded` is the checkout's HEAD when the calling supervisor loaded its script ("" for a caller that holds none).
+    THE IMPACT-MAP LANE IS ASKED ONCE for the commit the checkout is at when the adoption moved it (ADOPTED) or found
+    it already there (CURRENT), never for a KEPT outcome (the checkout did not move to a stable commit) and never on a
+    dry run (kb/Work PB3663, design section 4.10): `impact(repo, coord dir, sha)` starts a recording, queues behind the
+    running one, or skips, and answers the words the adoption line carries. It never raises and never blocks."""
     r = _decide(repo, cdir, gh or real_gh, dry_run)
     changed = supervisor_files_changed(repo, loaded, r.after) if loaded else ()
-    return dataclasses.replace(r, supervisor_changed=True, changed=changed) if changed else r
+    if changed:
+        r = dataclasses.replace(r, supervisor_changed=True, changed=changed)
+    if not dry_run and r.action in (ADOPTED, CURRENT) and r.after:
+        r = dataclasses.replace(r, impact=impact(repo, cdir, r.after))
+    return r
 
 
 def supervisor_files_changed(repo: pathlib.Path, loaded: str, now: str) -> tuple[str, ...]:
