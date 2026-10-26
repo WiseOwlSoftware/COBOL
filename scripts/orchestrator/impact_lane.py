@@ -451,6 +451,23 @@ def self_test() -> int:
         (elsewhere / RECORDER).write_text("#", encoding="utf-8")
         check("a lane that cannot decide reports it, never raises",
               "could not decide" in request(elsewhere, cdir, s8, start=fake_start, alive=fake_alive), True)
+        # 8b. the worker's liveness is read from the OS: a Python whose command line names this script is the worker, a
+        # Python that does not (a pid the OS reused) and a dead pid are not
+        nap = "import time; time.sleep(120)"
+        worker = subprocess.Popen([sys.executable, "-c", nap, WORKER_MARK], stdin=subprocess.DEVNULL)
+        stranger = subprocess.Popen([sys.executable, "-c", nap], stdin=subprocess.DEVNULL)
+        try:
+            check("a live Python naming impact_lane.py is the worker", worker_alive({"worker": {"pid": worker.pid}}), True)
+            check("a live Python that does not is a stranger on a reused pid, not the worker",
+                  worker_alive({"worker": {"pid": stranger.pid}}), False)
+            worker.kill()
+            worker.wait()
+            check("a dead worker's pid is not alive", worker_alive({"worker": {"pid": worker.pid}}), False)
+            check("no worker registered is not alive", (worker_alive({}), worker_alive({"worker": None})), (False, False))
+        finally:
+            stranger.kill()
+            stranger.wait()
+            worker.kill()
         # 9. measure: the share of gate plans a map served, per run directory's start
         wt = tmp / "wt"
         for run, state in (("000001-20261024T100000Z", "none"), ("000002-20261025T100000Z", "exact"), ("000003-20261025T110000Z", "nearest"),

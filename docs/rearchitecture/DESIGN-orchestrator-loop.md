@@ -702,7 +702,54 @@ unreadable / garbled CI, a green re-run of a red run, the restart trigger, a tra
 untracked file, ahead, diverged, off main, a dry run, the guard, a missing GitHub CLI, and `plan_wave.py` refusing) and
 `test_orchestrate_adopt.ps1` (the supervisor against a scratch origin and a fake `-GhExe`: a stable landing adopted between
 units, a red main kept with the unit still running, a landing that changed the supervisor restarting it with its
-arguments, counters and lock, and a dry run).
+arguments, counters and lock, and a dry run, plus section 8b: the impact-map lane is asked once for an ADOPTED and a
+CURRENT commit and never for a KEPT one or a dry run).
+
+#### 4.10.1 The loop records an impact map for what it adopts (`impact_lane.py`, kb/Work PB3663)
+
+**The decision** (owner 2026-10-24 ~17:10 PDT, attended session 0a5c7c77: "Yes, record the impact map automatically").
+Under batched gating (kb/Work PB2515) leg 1 is the only local run, and without a map it holds the change's own tests plus
+the cheapest slice of everything (gate 000004-20261024T221346Z ran 36,802 of 38,134 Unit cases and 10,207 of 18,394
+Conformance cases in leg 1 and could still leave a case the change reaches to CI: PB3666's bounce). No map had ever been
+recorded; the on-demand rule (kb/Work PB1709) dated from when every gate ran the whole population. The loop now records
+one for every main commit it adopts (DESIGN-test-build-ci.md §3.13 has the map, `impact_store.py` the store).
+
+**The trigger is `adopt_main.py adopt`**, the one routine that moves the checkout: it asks `impact_lane.request` once, for
+the commit the checkout is at when the adoption moved it (ADOPTED) or found it already there (CURRENT), never for a KEPT
+outcome (the checkout did not reach a stable commit) and never on a dry run. `autostart.ps1` and the supervisor both call
+it, so the lane needs no timer of its own, and `orchestrate.ps1` is unchanged: its `Say $a.line` carries the lane's words.
+
+**One recording at a time, in a detached worker** (`impact_lane.py work`, started through `scripts/detached.py`, so the
+supervisor's restart, a unit's end and a session's kill do not end it). The worker runs `record_impact_map.py` at
+BelowNormal; the recorder takes its own gate slot, so a recording waits behind the cap like any gate and never blocks a
+unit or the landing lane. A request while one runs COALESCES: `pending` in `<coord>/impact-lane.json` is the newest
+requested commit and replaces an older one, so a stale commit never queues and the worker records, after the running
+one, only the newest. It re-decides at pickup, so a commit a map recorded meanwhile serves is skipped.
+
+**Skipped:** a commit with a map; a commit the nearest map serves with documentation-only drift
+(`impact_store.nearest`); a commit whose own recording already FAILED (the next adoption of another commit tries again,
+so a commit that cannot be recorded does not loop); a checkout with no recorder script (a scratch checkout).
+
+**Loud on failure.** A recording that does not end `=== IMPACT MAP: RECORDED` (the recorder's FAILED line, no verdict line,
+a recorder that would not start, a worker that died) is posted to the operator's mailbox once per commit (`mailbox.py`,
+from `loop`, kind `info`, pointing at the recording's log `<coord>/logs/impact-map-<sha9>-<stamp>.log`) and shows in every
+later adoption line (`impact map: ... LAST RECORDING FAILED at ...`) until a recording succeeds.
+
+**Bounded store.** After a RECORDED verdict the worker prunes `<git common dir>/cobol-impact` to the newest
+`impact_store.KEEP_NEWEST` (4) maps plus the map serving each live worktree's base (a map is 25.2 MB, measured; the bound
+is about 100 MB plus the live bases'), removes a dead recording's temporary file and work directory, and keeps a failed
+recording's work directory for its diagnosis until the next tidy.
+
+**Measured use, the real bar.** `python scripts/orchestrator/impact_lane.py measure [--since ISO]` counts the gates'
+plans (`TestResults/build-local/<run>/plan.json`, `map_state`) a map served: `exact`, `documentation-only drift` or
+`nearest`, against `none` (and the retired `stale`). Before the lane: 72 plans on the owner's machine, all `none`. The
+staleness rule that would have defeated the lane is replaced (DESIGN-test-build-ci.md §3.13, "which map serves a base").
+
+**Tests.** `impact_lane.py --self-test` (scratch repository and coordination directory, a fake worker launcher and a fake
+recorder: one worker started, the coalesce, the replacement of a queued commit, the skips, the failure's line, mailbox
+message and single retry, a recorder with no verdict line, a nonzero exit or no start, a dead worker, a checkout with no
+recorder, a lane that cannot decide, `measure`), `impact_store.py --self-test` and `record_impact_map.py --self-test`;
+`ImpactMapLaneDriftTests` (Unit) pins them and the docs.
 
 ## 5. The handoff (`handoff.schema.json`)
 
