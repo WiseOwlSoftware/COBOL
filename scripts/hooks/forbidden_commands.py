@@ -289,7 +289,7 @@ for _after in STEPS:
 # substitution and a script block included), so a word in a commit message, a `grep` pattern or a heredoc body is no launch.
 for _st in STEPS:
     try:
-        _gui = gui_launch.refusal(_st)
+        _gui = gui_launch.refusal(_st, shell_location.shell_of(data.get("tool_name")))
     except Exception:  # noqa: BLE001 — a hook must never wedge a session; the self-test proves the rule fires
         _gui = None
     if _gui:
