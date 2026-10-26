@@ -30,6 +30,7 @@ namespace CobolNet.Tests.Unit;
 /// (3) No other rule spells a phrase keyword in phrase position, so no per-statement copy can come back. (4) Every
 /// alternative of the head is classified by the ONE token → family map, and every family has an alternative.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class ConditionalPhraseDriftTests
 {
     /// <summary>The [NOT]-pair kinds one Table 12 conditional-phrase cell lists (WHEN, THEN and ELSE are not in the
@@ -145,7 +146,8 @@ public sealed class ConditionalPhraseDriftTests
     {
         var heading = Regex.Match(spec, $@"^#### (14\.9\.\d+) {Regex.Escape(statement)} statement\s*$", RegexOptions.Multiline);
         Assert.True(heading.Success, $"no §14.9 heading for the {statement} statement in specs/ISO_COBOL.md");
-        var formats = Regex.Match(spec[heading.Index..], @"^##### 14\.9\.\d+\.2 General formats?\s*$(?<body>.*?)^##### ",
+        var formats = Regex.Match(spec[heading.Index..],
+            @"^##### 14\.9\.\d+\.2 " + SpecClauseText.GeneralFormatNoun + @"\s*$(?<body>.*?)^##### ",
             RegexOptions.Multiline | RegexOptions.Singleline);
         Assert.True(formats.Success, $"no General format(s) subclause under §{heading.Groups[1].Value}");
         var sets = new List<HashSet<ConditionalPhraseFamily>>();
