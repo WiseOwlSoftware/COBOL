@@ -10,8 +10,9 @@ whole, or on a member of one that matches a member of the other).
 
 Its readers: the wave planner (plan_wave.py), the landing check's guarantee (landing_check.py), the spec renderer
 (make_dispatch_specs.py: the declared set of a group it records), check_practices.py (two groups of one wave whose
-claims meet need `after:`), the branch survey's in-flight slugs (prune_worktrees.in_flight_slugs) and the member index's
-self-test (scripts/arch/member_index.py). In the import DAG of section 16.10 (scripts/script_layering.py) it imports
+claims meet need `after:`) and the branch survey's in-flight slugs (prune_worktrees.in_flight_slugs); the member
+index (scripts/arch/member_index.py) computes the declared sets declared_sets reads. In the import DAG of section 16.10
+(scripts/script_layering.py) it imports
 reports and, lazily, the branch survey's git facts (prune_worktrees: classify, main_names, branch_graph, replay_view,
 its git runner).
 """
