@@ -36,12 +36,12 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class ExitPlacementContextDriftTests
 {
-    private const string ExitPlacement = "COBOLNET0827";   // the EXIT-statement placement family
-    private const string ExitPerformCycleInF3 = "COBOLNET1604";   // SR8 sentence 2
-    private const string ResumePlacement = "COBOLNET0712";
-    private const string ResumeOperandInWhen = "COBOLNET1610";
-    private const string ReturnInGlobalDecl = "COBOLNET2102";   // §14.9.14.3 SR2 / §14.9.18.3 SR1
-    private const string RaisingLastOutOfPlace = "COBOLNET2103";   // §14.9.14.3 SR6 / §14.9.18.3 SR5
+    private const string ExitPlacement = "COBOL0827";   // the EXIT-statement placement family
+    private const string ExitPerformCycleInF3 = "COBOL1604";   // SR8 sentence 2
+    private const string ResumePlacement = "COBOL0712";
+    private const string ResumeOperandInWhen = "COBOL1610";
+    private const string ReturnInGlobalDecl = "COBOL2102";   // §14.9.14.3 SR2 / §14.9.18.3 SR1
+    private const string RaisingLastOutOfPlace = "COBOL2103";   // §14.9.14.3 SR6 / §14.9.18.3 SR5
 
     // ── SR8 sentence 1: "only in an inline or exception-checking PERFORM statement" ──────────────────────
 
@@ -60,7 +60,7 @@ public sealed class ExitPlacementContextDriftTests
     // [ WITH LOCATION ] and nothing else, so an exception-checking PERFORM carries NO loop-control phrase. The
     // until-phrase was incidental scaffolding — these rows measure where EXIT PERFORM and RESUME may be written,
     // not how the PERFORM repeats — and it compiled only because the Format-3 binder silently dropped every
-    // control phrase it was given, which is the defect PB431 closed (COBOLNET2118). imperative-statement-1 is
+    // control phrase it was given, which is the defect PB431 closed (COBOL2118). imperative-statement-1 is
     // still required and unbracketed, so `ADD 1 TO W-N` stays.
     // Exception-checking (Format 3) PERFORM — imperative-statement-1.
     [InlineData("PBEP05", "PERFORM\n    ADD 1 TO W-N\n    EXIT PERFORM\n  WHEN EC-SIZE\n    CONTINUE\nEND-PERFORM")]
@@ -145,7 +145,7 @@ public sealed class ExitPlacementContextDriftTests
     // ── SR7: "An EXIT PROGRAM statement may be specified only in a program procedure division" ───────────
 
     /// <summary>SR7's admitted position. ⛔ THE ASSERTION IS THAT THE COMPILE SUCCEEDS, not merely that
-    /// COBOLNET0827 is absent: a program refused for some OTHER reason would satisfy an absence-only assertion
+    /// COBOL0827 is absent: a program refused for some OTHER reason would satisfy an absence-only assertion
     /// and the row would be green for the wrong reason.</summary>
     [Fact]
     public void ExitProgram_InAProgramProcedureDivision_IsAccepted()
@@ -156,12 +156,12 @@ public sealed class ExitPlacementContextDriftTests
     }
 
     /// <summary>SR7's program-PROTOTYPE arm, pinned for real now that §11.10.2 Format 2 parses (kb/Work PB894 —
-    /// this fact used to pin the COBOLNET0901 parse refusal so that closing the gap would be loud). §14.2.2 SR10's
+    /// this fact used to pin the COBOL0901 parse refusal so that closing the gap would be loud). §14.2.2 SR10's
     /// fifth source element is a program prototype definition and its procedure division is a PROGRAM's, so
     /// §14.9.14.3 SR7 ("An EXIT PROGRAM statement may be specified only in a program procedure division") does NOT
     /// refuse EXIT PROGRAM there — <c>SourceElementKind.ProgramPrototype</c> is admitted beside
     /// <c>Program</c>. What refuses it is §10.6.2 SR4 f), "The procedure division shall contain only a procedure
-    /// division header": the statement is not an SR7 placement error but a prototype-body error (COBOLNET2272).
+    /// division header": the statement is not an SR7 placement error but a prototype-body error (COBOL2272).
     /// Both halves are asserted, so neither can hold for the wrong reason.</summary>
     [Fact]
     public void ProgramPrototypeDefinition_ExitProgram_IsRefusedBySr4fNotBySr7()
@@ -184,7 +184,7 @@ public sealed class ExitPlacementContextDriftTests
 
             """;
         var diagnostics = EditionHarness.GetDiagnostics(src, 2023);
-        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOLNET2272");
+        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOL2272");
         EditionHarness.AssertNoDiagnostic(diagnostics, ExitPlacement);
     }
 
@@ -290,7 +290,7 @@ public sealed class ExitPlacementContextDriftTests
     /// verdicts that come from the probe's declarative lookup, which is now the ONE copy of that lookup.</summary>
     [Theory]
     [InlineData("PBRS07", false, null)]
-    [InlineData("PBRS08", true, "COBOLNET0713")]
+    [InlineData("PBRS08", true, "COBOL0713")]
     public void Resume_InADeclarative_FollowsTheGlobalPhrase(string pid, bool global, string? expected)
     {
         var (ok, diagnostics) = EditionHarness.Compile(DeclarativeProgram(pid, "RESUME AT NEXT STATEMENT", global), 2023);

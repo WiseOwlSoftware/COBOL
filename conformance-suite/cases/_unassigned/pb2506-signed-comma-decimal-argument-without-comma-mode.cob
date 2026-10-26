@@ -9,7 +9,7 @@
       *> DECIMAL-POINT IS COMMA, and 8.3.5 2) makes a comma a separator
       *> only when "immediately followed by a space". So in a function
       *> argument list the signed -1,5 is ONE literal whatever the
-      *> mode, and without the clause it is COBOLNET0895 - the same
+      *> mode, and without the clause it is COBOL0895 - the same
       *> answer the unsigned 1,5 gets, never two arguments.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2506N.

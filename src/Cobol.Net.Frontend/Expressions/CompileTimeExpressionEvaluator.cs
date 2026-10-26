@@ -271,7 +271,7 @@ public sealed class CompileTimeExpressionEvaluator
     }
 
     /// <summary>Report a §12.3.7 GR14a decimal-separator violation through the code-preserving sink (the consumer
-    /// routes <see cref="CtDiagCode.NumericSeparator"/> to COBOLNET0895 / its own code). The message matches the
+    /// routes <see cref="CtDiagCode.NumericSeparator"/> to COBOL0895 / its own code). The message matches the
     /// binder's historical wording so its diagnostic is unchanged.</summary>
     private void ReportSeparator(NumericSeparatorIssue issue, string text)
     {
@@ -595,7 +595,7 @@ public sealed class CompileTimeExpressionEvaluator
     // ── shared small helpers ─────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Report a compiler-directive expression formation violation through the code-preserving sink (the
-    /// frontend routes <see cref="CtDiagCode.DirectiveRule"/> to COBOLNET1619).</summary>
+    /// frontend routes <see cref="CtDiagCode.DirectiveRule"/> to COBOL1619).</summary>
     private void ReportDirective(string where, string message) => _diag.Report(CtDiagCode.DirectiveRule, $"{where}: {message}");
 
     /// <summary>The frontend's invocation of the SHARED expression-formation rule (ISO §8.8.1.2 Table 3 /

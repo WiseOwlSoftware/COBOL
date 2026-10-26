@@ -12,8 +12,8 @@ namespace CobolNet.Tests.Unit;
 /// constant", §12.3.7.4 GR11 a)) both stand where a format specifies a literal, and every procedure-division position
 /// asks <c>ExpressionBinder.LiteralAliasOf</c> for them. The chain used to be written separately in six binders, and the
 /// positions that lacked a half refused conforming source: CALL Format 2's BY CONTENT and BY VALUE literal-2 and INVOKE
-/// had no symbolic-character arm (COBOLNET1639 "not defined"), and BY CONTENT of an alphanumeric constant-name drew the
-/// arithmetic refusal COBOLNET0844. So no procedure binder reads the constant table or the symbolic-character table
+/// had no symbolic-character arm (COBOL1639 "not defined"), and BY CONTENT of an alphanumeric constant-name drew the
+/// arithmetic refusal COBOL0844. So no procedure binder reads the constant table or the symbolic-character table
 /// itself; the next literal position calls the one resolution and gets both kinds.
 /// </summary>
 public sealed class LiteralAliasResolutionDriftTests

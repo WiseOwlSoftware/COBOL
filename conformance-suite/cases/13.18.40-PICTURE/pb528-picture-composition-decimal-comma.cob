@@ -11,7 +11,7 @@
       *> clause is specified, the precedence rules for the symbols comma and period are interchanged."
       *> SR13's second sentence was VACUOUS while the period rules it transfers did not exist. It is not any
       *> more: each entry is the comma-mode image of a rule the sibling golden proves in period mode, and
-      *> each is COBOLNET1934 naming both the transferred rule and SR13.
+      *> each is COBOL1934 naming both the transferred rule and SR13.
       *>
       *> PE01  SR20 through SR13 - 'V' and the DECIMAL separator, which is now the comma.
       *> PE02  SR17 through SR13 - 'P' and the decimal separator.

@@ -7,7 +7,7 @@
       *> Train 1021 review finding C-2 (kb/Work PB1060) - ISO/IEC 1989:2023 15.12.3 r1: "Argument-1 is the
       *> input data item to be converted and shall be a usage display or national data item or literal".
       *> ADDRESS OF X creates a unique data item of class pointer and category data-pointer (8.4.3.11.4 GR1),
-      *> neither display nor national, so it is refused as a USAGE POINTER argument-1 is (COBOLNET1642).
+      *> neither display nor national, so it is refused as a USAGE POINTER argument-1 is (COBOL1642).
       *> It used to compile and abort at run time with NotImplemented.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1060BC.

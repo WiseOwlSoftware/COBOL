@@ -11,7 +11,7 @@
       *> the order, so both entries below used to bind - and the order is not cosmetic: each extended symbol
       *> renders its own literal at its own position, so PO01 rendered MOVE -1.5 as ")001.50(" where the
       *> conforming spelling (positive golden 2023/pb530_picture_editing_order_2023) renders "(001.50)".
-      *> Each entry is COBOLNET1984. The EDITING phrase is a COBOL-2023 introduction (Annex E.3.3 item 19),
+      *> Each entry is COBOL1984. The EDITING phrase is a COBOL-2023 introduction (Annex E.3.3 item 19),
       *> so 2023 is the only edition at which the rule can bite; the below-2023 gate is the separate golden
       *> negative/pb490-picture-editing-at-85.
       *>

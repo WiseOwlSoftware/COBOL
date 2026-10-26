@@ -18,7 +18,7 @@ using Core = CobolParserCore;
 /// sets the section-background fill (StorageFormPass / InitialStateBackground, §11.9.10).
 /// <para>⛔ A clause that cannot change a program has NO field (kb/Work PB298): ENTRY-CONVENTION is screened by
 /// <c>OptionsBinder.ScreenEntryConvention</c> down to its one admissible value, COBOL, which is also the implied
-/// convention (§11.9.7.4 GR4 c), and FLOAT-DECIMAL is declined (COBOLNET2424). A producer-only field is a clause
+/// convention (§11.9.7.4 GR4 c), and FLOAT-DECIMAL is declined (COBOL2424). A producer-only field is a clause
 /// the program wrote, accepted in silence, that changes nothing; <c>OptionsModelConsumerDriftTests</c> fails on
 /// one.</para>
 /// </summary>
@@ -38,7 +38,7 @@ public sealed record OptionsModel
     /// implementor default applies).</summary>
     public FloatEndianness FloatBinaryEndianness { get; init; } = FloatEndianness.Unspecified;
 
-    // No FLOAT-DECIMAL clause fields (§11.9.9): the clause is declined and accepted inert (COBOLNET2424,
+    // No FLOAT-DECIMAL clause fields (§11.9.9): the clause is declined and accepted inert (COBOL2424,
     // OptionsBinder.DeclineFloatDecimal) because the standard decimal floating-point usages it configures are not
     // provided (Annex A.3 items 13 and 19).
 
@@ -75,7 +75,7 @@ public static class ArithmeticModes
     /// (<c>NumericRenderer.StandardDecimal</c>, <c>DataBinder.BindDeclarations</c>).</para>
     ///
     /// <para>⛔ <see cref="ArithmeticMode.StandardBinary"/>'s 35 is UNREACHABLE and is written down anyway. The
-    /// mode is declined at bind (<c>OptionsBinder.ArithmeticOf</c> → COBOLNET0806), so no compilation can carry
+    /// mode is declined at bind (<c>OptionsBinder.ArithmeticOf</c> → COBOL0806), so no compilation can carry
     /// it this far — but a table with a hole is a table that answers a question it has never been asked, and the
     /// previous shape here was a two-state ternary whose else-branch silently gave standard-binary the NATIVE
     /// cap. Recording the spec's real value keeps the double defence honest: the mode is rejected, AND if it
@@ -101,7 +101,7 @@ public static class ArithmeticModes
     /// <c>DataBinder.BindDeclarations</c>, and <see cref="NumvalDigitCap"/>'s 34 above all say so).
     /// <para>The set used to be written down in four places and TWO of the copies named STANDARD-DECIMAL alone.
     /// Measured 2026-08-31 at <c>--std 2014</c>: <c>01 EA PIC 9(3)E+999.</c> with
-    /// <c>OPTIONS. ARITHMETIC IS STANDARD.</c> was REJECTED — "COBOLNET1660 … outside the native (binary64)
+    /// <c>OPTIONS. ARITHMETIC IS STANDARD.</c> was REJECTED — "COBOL1660 … outside the native (binary64)
     /// intermediate's range" — in a program that had selected a standard mode, while the identical entry under
     /// STANDARD-DECIMAL compiled and printed <c>999E+999</c>. One arithmetic mode, two contradictory bounds,
     /// decided by which file the code path happened to reach. <c>ArithmeticModeTableTests</c> now holds the set to
@@ -110,7 +110,7 @@ public static class ArithmeticModes
     {
         ArithmeticMode.Native => false,
         ArithmeticMode.Standard => true,         // the 2002 mode — the SAME SDIDI engine (see the remark)
-        ArithmeticMode.StandardBinary => false,  // SBIDI, §8.8.1.4.2 — unreachable; declined at bind (COBOLNET0806)
+        ArithmeticMode.StandardBinary => false,  // SBIDI, §8.8.1.4.2 — unreachable; declined at bind (COBOL0806)
         ArithmeticMode.StandardDecimal => true,  // SDIDI, §8.8.1.5.2
         _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no engine classification for this mode"),
     };
@@ -177,7 +177,7 @@ public static class ArithmeticModes
     /// <item>STANDARD / STANDARD-DECIMAL — the SDIDI, §8.8.1.5.2 NOTE 2: ±9.999…E+6144 at 34 digits of precision,
     /// smallest positive nonzero 1.0E−6176.</item>
     /// <item>STANDARD-BINARY — the SBIDI, §8.8.1.4.2 NOTE 3: ±(2**16384 − 2**16271), smallest positive nonzero
-    /// 2**−16494. Declined at bind (COBOLNET0806), recorded for the same reason as above.</item>
+    /// 2**−16494. Declined at bind (COBOL0806), recorded for the same reason as above.</item>
     /// </list></summary>
     public static (string Farthest, string Nearest) IntermediateExtremes(ArithmeticMode mode) => mode switch
     {
@@ -208,14 +208,14 @@ public static class ArithmeticModes
 public enum FloatEndianness { Unspecified, HighOrderLeft, HighOrderRight }
 
 /// <summary>Encoding of a standard decimal floating-point usage, as the USAGE clause's own encoding-phrase states it
-/// (§13.18.60.2). The OPTIONS FLOAT-DECIMAL clause's phrase is not read: the clause is declined (COBOLNET2424).</summary>
+/// (§13.18.60.2). The OPTIONS FLOAT-DECIMAL clause's phrase is not read: the clause is declined (COBOL2424).</summary>
 public enum FloatEncoding { Unspecified, BinaryEncoding, DecimalEncoding }
 
 /// <summary>The token → enum mapping for the two float FORMAT phrases of ISO §13.18.60.2 ("where encoding-phrase
 /// is" / "where endianness-phrase is"). ONE definition for every clause that reads them — the OPTIONS FLOAT-BINARY
 /// clause (§11.9.8, endianness) and the USAGE clause's per-item phrases (§13.18.60.2, both). The grammar shares one
 /// <c>encodingPhrase</c>/<c>endiannessPhrase</c> rule pair across those and the OPTIONS FLOAT-DECIMAL clause
-/// (§11.9.9), whose phrases nothing reads because the clause is declined (COBOLNET2424); this is the rule pair's
+/// (§11.9.9), whose phrases nothing reads because the clause is declined (COBOL2424); this is the rule pair's
 /// binder-side twin, so a further citing site inherits the mapping instead of copying it (kb/Work PB174 —
 /// before this the mapping lived privately in <c>OptionsBinder</c> and the USAGE arm would have been copy #2).</summary>
 internal static class FloatFormatPhrase

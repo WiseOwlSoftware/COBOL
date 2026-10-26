@@ -35,7 +35,7 @@
       *>   argument A is
       *> not of the same type as the formal L -- the CALL violates
       *>   §14.8.2.2
-      *> and must be rejected (COBOLNET1688,
+      *> and must be rejected (COBOL1688,
       *>   call-argument-conformance). The
       *> positive twin 2002/l1c34_strong_type_currency_string_match
       *>   differs

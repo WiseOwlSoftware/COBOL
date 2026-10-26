@@ -9,7 +9,7 @@
       *>   cite.py: OK  11.6.3 6)
       *> SR6 is a rule on the WRITTEN list, asked before any name resolves (the class twin, 11.3.3 SR7, is):
       *> I1784Q names I1784Z twice and no interface I1784Z is declared, so the repetition is reported as
-      *> SR6 (COBOLNET2791) beside the unresolved name (COBOLNET0840), not only as two unresolved names.
+      *> SR6 (COBOL2791) beside the unresolved name (COBOL0840), not only as two unresolved names.
        IDENTIFICATION DIVISION.
        INTERFACE-ID. I1784Q INHERITS FROM I1784Z I1784Z.
        END INTERFACE I1784Q.

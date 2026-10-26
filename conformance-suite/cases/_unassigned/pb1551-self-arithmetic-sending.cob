@@ -8,7 +8,7 @@
       *> operand (ISO 14.9.2.2), and 8.8.1.1 admits only "an identifier
       *> referencing a numeric data item" there; SELF is class object. The
       *> operand rule is a receiving identifier in Format 1, so the GIVING form
-      *> reads SELF in its sending role and refuses it by class (COBOLNET0844) -
+      *> reads SELF in its sending role and refuses it by class (COBOL0844) -
       *> never as a receiver, and never by binding a view's or ADDRESS OF's
       *> inner data reference in its place.
        IDENTIFICATION DIVISION.

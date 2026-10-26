@@ -42,7 +42,7 @@ namespace CobolNet.Tests.Unit;
 /// partial-expression-1, which own their own NOT: <c>WHEN NOT A &gt; B AND A &gt; B</c> bound as
 /// <c>NOT (A &gt; B AND A &gt; B)</c> instead of §8.8.4.11.3's <c>(NOT A &gt; B) AND A &gt; B</c> — a silent wrong
 /// answer — and <c>WHEN NOT ANY</c> compiled clean. So <c>NOT?</c> stands on the operand alternatives (plus TRUE/FALSE
-/// and ANY, parsed only to be refused by name as COBOLNET3710), never on <c>condition</c> or <c>partialExpression</c>,
+/// and ANY, parsed only to be refused by name as COBOL3710), never on <c>condition</c> or <c>partialExpression</c>,
 /// and never outside the object.</para>
 /// </summary>
 public sealed class EvaluateSelectionObjectArityDriftTests
@@ -92,7 +92,7 @@ public sealed class EvaluateSelectionObjectArityDriftTests
 
     /// <summary>⛔ kb/Work PB2722 — the bracketed NOT stands on exactly the alternatives §14.9.13.2 prints it on (the
     /// four operand shapes that spell identifier-2 / literal-2 / arithmetic-expression-2 / boolean-expression-2 /
-    /// range-expression) plus the two words parsed only so COBOLNET3710 can refuse them by name — and on NEITHER
+    /// range-expression) plus the two words parsed only so COBOL3710 can refuse them by name — and on NEITHER
     /// <c>condition</c> nor <c>partialExpression</c>, whose own parse owns their leading NOT. A <c>NOT?</c> on either of
     /// those two, or outside the object, is the greedy hoist that bound <c>NOT A &gt; B AND A &gt; B</c> as
     /// <c>NOT (A &gt; B AND A &gt; B)</c>.</summary>

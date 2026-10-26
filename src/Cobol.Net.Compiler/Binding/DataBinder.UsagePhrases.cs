@@ -18,7 +18,7 @@ using Core = CobolParserCore;
 /// <param name="Endianness">The item's own endianness-phrase (§13.18.60.4 GR19a/b), which wins over the OPTIONS
 /// FLOAT-BINARY clause's implied one by §11.9.8.3 SR2/SR3's own wording.</param>
 /// <param name="Encoding">The item's own encoding-phrase (§13.18.60.4 GR20). Applicable only to FLOAT-DECIMAL-16/-34,
-/// which are documented non-support (COBOLNET1564, Annex A.3 item 19), so nothing consumes it yet.</param>
+/// which are documented non-support (COBOL1564, Annex A.3 item 19), so nothing consumes it yet.</param>
 internal readonly record struct UsageClausePhrases(
     bool Unsigned, bool NoSign, FloatEndianness Endianness, FloatEncoding Encoding);
 
@@ -35,14 +35,14 @@ public sealed partial class DataBinder
     /// (<c>BindEntry</c>) and a report group description entry (<c>DescribeReportItem</c>), whose USAGE clause
     /// §13.15.4 GR2 makes "the same clauses as those that are described under the general format for a data
     /// description entry". The third host, a screen description entry, is declined with its whole module
-    /// (<c>ScreenFacility</c>, COBOLNET1560). <c>UsageClausePhraseDriftTests</c> reads every host out of the
+    /// (<c>ScreenFacility</c>, COBOL1560). <c>UsageClausePhraseDriftTests</c> reads every host out of the
     /// grammar and probes each, so a fourth cannot ship unscreened (branch review R1-1 of kb/Work PB3517).</para>
     /// <para>The FLOAT-DECIMAL-16/-34 tail is a bracketed choice-indicator group, and the FLOAT-BINARY-* tail a
     /// single bracket, so the float phrases are also screened for REPEAT: §5.2.6.4, "any single alternative may
-    /// be specified only once" (COBOLNET1718). The same clause makes their order free ("The alternatives may be
+    /// be specified only once" (COBOL1718). The same clause makes their order free ("The alternatives may be
     /// specified in any order"), which the grammar's <c>floatFormatPhrase*</c> already is. A phrase on
     /// FLOAT-BINARY-128 / FLOAT-DECIMAL-16 / -34 is applicable even though those usages are documented
-    /// non-support (COBOLNET1564), so the refusal a user sees names the non-support.</para></summary>
+    /// non-support (COBOL1564), so the refusal a user sees names the non-support.</para></summary>
     /// <param name="clause">The entry's USAGE clause, or <see langword="null"/> when it wrote none.</param>
     /// <param name="usage">The clause's resolved usage.</param>
     /// <param name="usageText">The usage word as written, for the diagnostic.</param>

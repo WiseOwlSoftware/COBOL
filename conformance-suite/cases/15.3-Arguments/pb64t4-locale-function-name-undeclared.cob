@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 15.52.3 r3: "Locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph." NOPE is no
-      *> LOCALE clause's name - the ONE undeclared-locale-name diagnostic (COBOLNET1664) citing this function's rule
+      *> LOCALE clause's name - the ONE undeclared-locale-name diagnostic (COBOL1664) citing this function's rule
       *> (kb/Work PB64 T4; DESIGN-locale-facility 7 rule a: one code, every site).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB64T4UND.

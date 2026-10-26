@@ -10,7 +10,7 @@
       *> EQUALITY only — a range has no boolean meaning to lower to.
       *>
       *> ⚠ The operand rule and the COMPARISON rule are two different rules and this case is the operand
-      *> one.  The relation checkpoint's COBOLNET0844 ("boolean operands compare for equality only") is
+      *> one.  The relation checkpoint's COBOL0844 ("boolean operands compare for equality only") is
       *> about a comparison that has already been admitted; SR4 says the range may not be WRITTEN, which is
       *> one phase earlier and does not depend on which of the two lowerings the range happens to take
       *> (an inverted or IN-alphabet range builds a membership node and reaches no relation at all).
@@ -18,7 +18,7 @@
       *>
       *> ⚠ THE SELECTION SUBJECT IS AN IDENTIFIER, NOT A BOOLEAN ONE, ON PURPOSE.  Table 15's
       *> `[NOT] range-expression` row is blank under the Boolean-expression COLUMN, so a boolean SUBJECT
-      *> against a range object is independently invalid under SR10 and would draw COBOLNET1634 as well —
+      *> against a range object is independently invalid under SR10 and would draw COBOL1634 as well —
       *> the case would then reject for a rule that is not the one under test
       *> (feedback_green_gates_arent_evidence).  Identifier x range-expression is 'Y', so the only rule
       *> left to catch this program is SR4's exclusion of the range OPERANDS' class.

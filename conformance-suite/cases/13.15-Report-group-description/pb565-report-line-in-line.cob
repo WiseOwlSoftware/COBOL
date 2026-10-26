@@ -15,7 +15,7 @@
 *> vertically beneath the preceding occurrence" would have two different lines to measure from.
 *>
 *> It is a rule of EVERY edition — the single-operand LINE clause is COBOL-85 syntax — so this program is
-*> rejected at all four, on COBOLNET2199, the LINE clause syntax-rule family. Deleting the inner LINE clause
+*> rejected at all four, on COBOL2199, the LINE clause syntax-rule family. Deleting the inner LINE clause
 *> makes it conforming: one report line at LINE-COUNTER + 1 carrying N.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB565LIL.

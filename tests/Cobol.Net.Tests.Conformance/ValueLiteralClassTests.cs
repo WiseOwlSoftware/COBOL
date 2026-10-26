@@ -7,7 +7,7 @@ namespace CobolNet.Tests.Conformance;
 /// <summary>
 /// kb/Work PB94 — the VALUE clause's literal-class rules for numeric (ISO §13.18.63.3 SR2) and alphabetic /
 /// alphanumeric / alphanumeric-edited (SR4) subjects: an error strict at every edition; under <c>--permissive</c>
-/// the REPRESENTABLE vendor leniency is a COBOLNET1657 warning plus the value (a digits-only alphanumeric literal on a
+/// the REPRESENTABLE vendor leniency is a COBOL1657 warning plus the value (a digits-only alphanumeric literal on a
 /// numeric item is that number, ALL "digits" repeated to the digit width; a numeric literal on an alphanumeric item
 /// is its characters as MOVE would store them; a character figurative on a numeric item is ZERO); a literal no
 /// numeric item can hold (`PIC 9 VALUE "abc"` — which used to reach the C# backend) is an error on both axes.
@@ -31,12 +31,12 @@ public sealed class ValueLiteralClassTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Program(decl), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1657");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1657");
         var (pok, stdout, detail) = EditionHarness.CompileAndRun(Program(decl), 2023, permissive: true);
         Assert.True(pok, detail);
         Assert.Equal(expected, stdout.Trim());
         var (_, _, warnings) = EditionHarness.CompileFull(Program(decl), 2023, permissive: true);
-        Assert.Contains(warnings, w => w.Contains("COBOLNET1657"));
+        Assert.Contains(warnings, w => w.Contains("COBOL1657"));
     }
 
     [Theory]
@@ -46,10 +46,10 @@ public sealed class ValueLiteralClassTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Program("01 A PIC 9 VALUE \"abc\"."), edition);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1657");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1657");
         var (pok, perrors, _) = EditionHarness.CompileFull(Program("01 A PIC 9 VALUE \"abc\"."), edition, permissive: true);
         Assert.False(pok);
-        EditionHarness.AssertHasDiagnostic(perrors, "COBOLNET1657");
+        EditionHarness.AssertHasDiagnostic(perrors, "COBOL1657");
     }
 
     [Theory]
@@ -71,6 +71,6 @@ public sealed class ValueLiteralClassTests
         string src = Head + "01 N PIC 9 VALUE 1.\n   88 N-BLANK VALUE \" \".\nPROCEDURE DIVISION.\n    IF N-BLANK DISPLAY \"B\" ELSE DISPLAY \"N\" END-IF.\n    STOP RUN.\n";
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1657");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1657");
     }
 }

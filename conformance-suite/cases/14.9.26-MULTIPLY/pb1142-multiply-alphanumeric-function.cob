@@ -7,7 +7,7 @@
       *> kb/Work PB1142 - ISO 14.9.26.3 SR1: "Identifier-1 and identifier-2 shall reference a data item
       *> of category numeric." A function-identifier references a temporary whose class and category are
       *> the function's type (15.2), and UPPER-CASE's is alphanumeric, so it is not a MULTIPLY operand
-      *> (COBOLNET0844, the 8.8.1.1 class screen COMPUTE already applied). The operand-wrapper walk bound
+      *> (COBOL0844, the 8.8.1.1 class screen COMPUTE already applied). The operand-wrapper walk bound
       *> the function UNSCREENED and digit-decoded "12": B became 3.3 x 12 = 39.6 under STRICT.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1142N2.

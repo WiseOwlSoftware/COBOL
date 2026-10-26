@@ -12,7 +12,7 @@
       *> is therefore NOT a basic letter, so a PICTURE EDITING phrase that names one as character-1 is illegal
       *> source. The validator asked char.IsLetter, which admits every Unicode letter, so each of these
       *> compiled and rendered exactly like the legal `PIC 99T99 EDITING T IS ":"`; it now asks the ONE
-      *> basic-letter predicate (CobolCharacterRepertoire.IsBasicLetter) and the diagnostic is COBOLNET1591.
+      *> basic-letter predicate (CobolCharacterRepertoire.IsBasicLetter) and the diagnostic is COBOL1591.
       *> The EDITING phrase is a COBOL-2023 introduction (the edition gate refuses it below), so only 2023 is
       *> asked.
       *>

@@ -15,7 +15,7 @@
 *> exactly this operand pair: KX (USAGE BINARY-LONG) namesake KX (PIC X(5)) is not a corresponding pair and
 *> the receiver keeps ZZZZZ, with no diagnostic.
 *> This program writes the SAME two items as an EXPLICIT MOVE, where the rule is a "shall" and 4.2.2
-*> paragraph 2 requires a compile-time mechanism: COBOLNET0819. A regression that made CORRESPONDING start
+*> paragraph 2 requires a compile-time mechanism: COBOL0819. A regression that made CORRESPONDING start
 *> diagnosing, or made the written MOVE stop, breaks exactly one of the pair.
 *> Before PB391's second half the two askers disagreed the OTHER way round: the written MOVE was refused
 *> here while MOVE CORRESPONDING paired the same two items and overwrote the receiver with 00000.

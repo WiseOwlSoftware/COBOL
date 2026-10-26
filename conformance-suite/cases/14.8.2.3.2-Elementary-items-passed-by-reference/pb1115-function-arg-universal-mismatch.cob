@@ -9,7 +9,7 @@
       *> corresponding formal parameter or argument shall be a universal
       *> object reference." 8.4.3.2.3 SR13 imports it into a function
       *> activation. The formal is universal and W-O is described with a
-      *> class-name -> COBOLNET2470. (Before the fix it compiled and
+      *> class-name -> COBOL2470. (Before the fix it compiled and
       *> failed only at run time through the .NET carrier.)
       *> cite.py --check 14.8.2.3.2 "If either the argument or the formal
       *>   parameter is a universal object reference" -> OK  14.8.2.3.2 1)

@@ -13,7 +13,7 @@
       *> (§8.3.2.2), with its BY REFERENCE argument sharing the formal's
       *> storage (§14.2.3 GR8), is object orientation - an ISO/IEC
       *> 1989:2002 introduction absent from COBOL-85, so the 85 compiler
-      *> refuses the class reference and the INVOKE (COBOLNET0900).
+      *> refuses the class reference and the INVOKE (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W67QN85.
        ENVIRONMENT DIVISION.

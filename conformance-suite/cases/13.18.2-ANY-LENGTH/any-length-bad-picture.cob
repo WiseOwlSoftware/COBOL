@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> ISO 1989:2023 13.18.2.3 SR1: the PICTURE character-string of an ANY LENGTH entry shall be exactly ONE
-*> instance of the picture symbol 'N', 'X', or '1' - PIC X(2) violates SR1 (COBOLNET1542), even in the
+*> instance of the picture symbol 'N', 'X', or '1' - PIC X(2) violates SR1 (COBOL1542), even in the
 *> otherwise SR2-legal contained-program placement.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. ALNBPP9AL.

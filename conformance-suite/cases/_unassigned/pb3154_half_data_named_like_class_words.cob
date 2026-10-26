@@ -24,7 +24,7 @@
       *>   data-name of the factory and of the object definition,
       *>   PB3154A (the class's alphabet-name) a factory data-name and
       *>   PB3154H (the CLASS-ID) an object data-name: no source element
-      *>   uses one word as two types. Each was COBOLNET2692 before.
+      *>   uses one word as two types. Each was COBOL2692 before.
       *> The class's configuration still applies to both halves (12.3.4
       *>   GR1 "The entries explicitly or implicitly specified in the
       *>   configuration section of a source unit that contains other

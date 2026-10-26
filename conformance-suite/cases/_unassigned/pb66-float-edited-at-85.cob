@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 1989:2023 13.18.40.4 GR13 b) - the floating-point numeric-edited PICTURE (the symbol E) is a
-      *> COBOL-2002 introduction: at --std 85 the version-conformance pass rejects it (COBOLNET0900, registry
+      *> COBOL-2002 introduction: at --std 85 the version-conformance pass rejects it (COBOL0900, registry
       *> row pic-external-float-2002); at 2002+ it compiles (the version-matrix row pins that half). kb/Work PB66.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB66N85.

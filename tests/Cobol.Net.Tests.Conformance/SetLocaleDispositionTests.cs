@@ -6,7 +6,7 @@ namespace CobolNet.Tests.Conformance;
 
 /// <summary>
 /// The SET LOCALE formats (ISO §14.9.39 Formats 11 set-locale / 12 save-locale; Annex A.4.9 item 9) — kb/Work PB92
-/// made them recognized-and-refused by name (ONE COBOLNET1518, never "'LOCALE' is not defined" plus false 0901s or a
+/// made them recognized-and-refused by name (ONE COBOL1518, never "'LOCALE' is not defined" plus false 0901s or a
 /// bare parse error); kb/Work PB64 T1 IMPLEMENTS them. What this class pins now: every legal shape COMPILES CLEAN at
 /// 2002+ (no stray 0901 about the format's own keywords, no undefined-name noise — the §8.9 funnel exempts the
 /// statement's subtree), the illegal shapes draw exactly ONE named syntax-rule diagnostic, the two formats gate at the
@@ -44,16 +44,16 @@ public sealed class SetLocaleDispositionTests
         var (ok, errors, warnings) = EditionHarness.CompileFull(Header + $"\n               {stmt}\n               STOP RUN.\n", 2023);
         Assert.True(ok, string.Join("\n", errors));
         Assert.Empty(errors);
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET0901"));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL0901"));
     }
 
     [Theory]
-    [InlineData("SET LOCALE LC_TIME LC_TIME TO FR.", "COBOLNET1666")]             // §5.2.6.4 — each at most once
-    [InlineData("SET LOCALE USER-DEFAULT TO SYSTEM-DEFAULT.", "COBOLNET1667")]     // SR25
-    [InlineData("SET LOCALE USER-DEFAULT TO USER-DEFAULT.", "COBOLNET1667")]       // SR25
-    [InlineData("SET LOCALE LC_ALL TO NOPE.", "COBOLNET1664")]                     // SR26 — not a locale-name (nor an item)
-    [InlineData("SET LOCALE LC_ALL TO WS-X.", "COBOLNET1668")]                     // SR27 — not a data-pointer
-    [InlineData("SET WS-X TO LOCALE LC_ALL.", "COBOLNET1668")]                     // SR28 — not a data-pointer
+    [InlineData("SET LOCALE LC_TIME LC_TIME TO FR.", "COBOL1666")]             // §5.2.6.4 — each at most once
+    [InlineData("SET LOCALE USER-DEFAULT TO SYSTEM-DEFAULT.", "COBOL1667")]     // SR25
+    [InlineData("SET LOCALE USER-DEFAULT TO USER-DEFAULT.", "COBOL1667")]       // SR25
+    [InlineData("SET LOCALE LC_ALL TO NOPE.", "COBOL1664")]                     // SR26 — not a locale-name (nor an item)
+    [InlineData("SET LOCALE LC_ALL TO WS-X.", "COBOL1668")]                     // SR27 — not a data-pointer
+    [InlineData("SET WS-X TO LOCALE LC_ALL.", "COBOL1668")]                     // SR28 — not a data-pointer
     public void SetLocale_IllegalShapes_DrawExactlyOneNamedRule(string stmt, string code)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Header + $"\n               {stmt}\n               STOP RUN.\n", 2023);
@@ -71,15 +71,15 @@ public sealed class SetLocaleDispositionTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Header + $"\n               {stmt}\n               STOP RUN.\n", 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0900");
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1639"));   // never "'LOCALE' is not defined"
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1639"));   // never "'LOCALE' is not defined"
     }
 
     /// <summary>At COBOL-85 LOCALE is a user word: `SET LOCALE TO I5` over an integer item named LOCALE is Format 1
     /// (§14.9.39 — an elementary integer item receiver) and runs; the USER-DEFAULT-first shape is the one locale arm
     /// that stays edition-gated because `SET LOCALE USER-DEFAULT TO I7` IS a legal '85 two-receiver SET. The senders
     /// are index-names because §14.9.39.3 SR4 requires one for a numeric receiver ("If identifier-1 references a
-    /// numeric data item, index-name-2 shall be specified" — COBOLNET2326, kb/Work PB212).</summary>
+    /// numeric data item, index-name-2 shall be specified" — COBOL2326, kb/Work PB212).</summary>
     [Fact]
     public void At85_LocaleIsAUserWord_SetFormat1Runs()
     {

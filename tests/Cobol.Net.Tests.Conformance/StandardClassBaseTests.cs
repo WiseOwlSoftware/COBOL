@@ -58,7 +58,7 @@ public sealed class StandardClassBaseTests
             END FACTORY.
             END CLASS SCB1.
             """);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2448");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2448");
         EditionHarness.AssertHasDiagnostic(errors, "SR4 f)");
     }
 
@@ -91,7 +91,7 @@ public sealed class StandardClassBaseTests
             END FACTORY.
             END CLASS SCB2B.
             """);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2448");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2448");
         EditionHarness.AssertHasDiagnostic(errors, "SR4 h)");
     }
 
@@ -121,7 +121,7 @@ public sealed class StandardClassBaseTests
             CLASS-ID. SCB3.
             END CLASS SCB3.
             """);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2448");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2448");
         EditionHarness.AssertHasDiagnostic(errors, "SR4 a)");
     }
 
@@ -148,12 +148,12 @@ public sealed class StandardClassBaseTests
             END FACTORY.
             END CLASS SCB3C.
             """);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2448");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2448");
         EditionHarness.AssertHasDiagnostic(errors, "SR4 c)");
     }
 
     /// <summary>§11.3.3 SR2 + §8.4.6.4: the standard class is reached like any other — INHERITS FROM BASE without
-    /// `CLASS BASE` in the REPOSITORY is COBOLNET0821, and the message names the missing entry.</summary>
+    /// `CLASS BASE` in the REPOSITORY is COBOL0821, and the message names the missing entry.</summary>
     [Fact]
     public void InheritsFromBase_WithoutTheRepositoryEntry_Is0821_NamingTheStandardClass()
     {
@@ -162,7 +162,7 @@ public sealed class StandardClassBaseTests
             CLASS-ID. SCB4 INHERITS FROM BASE.
             END CLASS SCB4.
             """);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0821");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0821");
         EditionHarness.AssertHasDiagnostic(errors, "is the standard class BASE");
     }
 
@@ -199,7 +199,7 @@ public sealed class StandardClassBaseTests
                 CLASS BASE.
             END CLASS SCB5.
             """);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2448");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2448");
     }
 
     /// <summary>§16.2 gives both BASE methods a header with no USING phrase.</summary>
@@ -228,10 +228,10 @@ public sealed class StandardClassBaseTests
             REPOSITORY.
                 CLASS BASE.
             END CLASS SCB6.
-            """), "COBOLNET0826");
+            """), "COBOL0826");
 
     /// <summary>FactoryObject is an inherited instance method of every BASE subclass (§9.3.9), so redefining it
-    /// without OVERRIDE is §11.7.3 SR4a's COBOLNET0837.</summary>
+    /// without OVERRIDE is §11.7.3 SR4a's COBOL0837.</summary>
     [Fact]
     public void FactoryObject_RedefinedWithoutOverride_Is0837()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
@@ -252,7 +252,7 @@ public sealed class StandardClassBaseTests
             END METHOD FactoryObject.
             END OBJECT.
             END CLASS SCB7.
-            """), "COBOLNET0837");
+            """), "COBOL0837");
 
     /// <summary>BaseInterface's FactoryObject is not FINAL, so a subclass may OVERRIDE it; SUPER reaches BASE's, and
     /// an invocation through a typed reference dispatches to the override. Through a UNIVERSAL factory reference,

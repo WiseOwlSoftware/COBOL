@@ -13,7 +13,7 @@
       *>   digits that map to an alphanumeric character." Two digits
       *>   map to one (DOC-A.1-9), so three digits are refused with the
       *>   code the same literal draws in the program text,
-      *>   COBOLNET1635.
+      *>   COBOL1635.
       *>   cite.py --check 8.3.3.2.3 "Each hex-character-sequence-1
       *>     shall consist of the number of hexadecimal" -> OK
        IDENTIFICATION DIVISION.

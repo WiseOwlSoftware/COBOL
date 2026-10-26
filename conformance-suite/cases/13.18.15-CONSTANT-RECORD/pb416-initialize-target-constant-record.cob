@@ -10,9 +10,9 @@
 *> subject of the entry nor any data item subordinate to the subject of the entry shall be specified as a
 *> receiving data item."
 *> The CONSTANT RECORD clause is COBOL-2002 (13.18.15; D5), so 85 is not a reject edition for this program —
-*> below 2002 it is refused for the clause itself (COBOLNET0900), which is a different rule.
+*> below 2002 it is refused for the clause itself (COBOL0900), which is a different rule.
 *> Before PB416, INITIALIZE resolved identifier-1 with the plain reference resolver instead of the ONE
-*> receiving chokepoint, so COBOLNET1548 — the diagnostic the MOVE form of the same store already got — never
+*> receiving chokepoint, so COBOL1548 — the diagnostic the MOVE form of the same store already got — never
 *> fired and the structured constant was DESTROYED at run time, silently. identifier-1 now resolves through
 *> ExpressionBinder.ResolveReceiving, which is a funnel rather than a check: the CAPACITY register, a
 *> constant-name, LINE-COUNTER and PAGE-COUNTER are refused by the same routing, and so is the next

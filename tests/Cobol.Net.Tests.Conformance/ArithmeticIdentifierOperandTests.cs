@@ -83,7 +83,7 @@ public sealed class ArithmeticIdentifierOperandTests
     private static int Count(IEnumerable<string> diagnostics, string code) =>
         diagnostics.Count(d => d.Contains(code, StringComparison.Ordinal));
 
-    /// <summary>Every Format-1 verb × every non-receiver arm the mixed operand rules write: ONE COBOLNET1689 per
+    /// <summary>Every Format-1 verb × every non-receiver arm the mixed operand rules write: ONE COBOL1689 per
     /// bad operand, no crash — at 2002 (Format 4's introduction) and at the default 2023. The MULTIPLY row with a
     /// valid receiver BEFORE the invocation is the silent-drop shape the note measured.</summary>
     [Theory]
@@ -106,8 +106,8 @@ public sealed class ArithmeticIdentifierOperandTests
         {
             var (ok, errors, _) = EditionHarness.CompileFull(Program("PB1142R", statement), edition);
             Assert.False(ok, $"[std {edition}] '{statement}' must be rejected — Format 1 prints receivers only");
-            Assert.True(Count(errors, "COBOLNET1689") == 1,
-                $"[std {edition}] '{statement}': expected exactly one COBOLNET1689, got:\n{string.Join("\n", errors)}");
+            Assert.True(Count(errors, "COBOL1689") == 1,
+                $"[std {edition}] '{statement}': expected exactly one COBOL1689, got:\n{string.Join("\n", errors)}");
         }
     }
 
@@ -118,11 +118,11 @@ public sealed class ArithmeticIdentifierOperandTests
         var (ok, errors, _) = EditionHarness.CompileFull(
             Program("PB1142R2", "MULTIPLY A BY OB :: \"GETX\" FUNCTION SQRT(4)."), 2023);
         Assert.False(ok);
-        Assert.True(Count(errors, "COBOLNET1689") == 2, string.Join("\n", errors));
+        Assert.True(Count(errors, "COBOL1689") == 2, string.Join("\n", errors));
     }
 
     /// <summary>Every sending identifier position of every arithmetic verb, with an ALPHANUMERIC function and an
-    /// ALPHANUMERIC inline invocation: rejected with COBOLNET0844 under STRICT, exactly as COMPUTE already rejected
+    /// ALPHANUMERIC inline invocation: rejected with COBOL0844 under STRICT, exactly as COMPUTE already rejected
     /// the function form.</summary>
     [Theory]
     [InlineData("ADD {0} TO B.")]
@@ -144,7 +144,7 @@ public sealed class ArithmeticIdentifierOperandTests
             string statement = string.Format(shape, id);
             var (ok, errors, _) = EditionHarness.CompileFull(Program("PB1142S", statement), 2023);
             Assert.False(ok, $"'{statement}' must be rejected — ISO §8.8.1.1 admits only a NUMERIC identifier");
-            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0844");
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
         }
     }
 
@@ -182,7 +182,7 @@ public sealed class ArithmeticIdentifierOperandTests
         else
         {
             Assert.False(ok, $"'{statement}' must be rejected — ISO §8.8.1.1");
-            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0844");
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
         }
     }
 
@@ -196,7 +196,7 @@ public sealed class ArithmeticIdentifierOperandTests
         var (okc, _, warnings) = EditionHarness.CompileFull(Program(programId, $"MULTIPLY {id} BY B."), 2023,
             permissive: true);
         Assert.True(okc);
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0844");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL0844");
         var (ok, stdout, detail) = EditionHarness.CompileAndRun(Program(programId, $"MULTIPLY {id} BY B."), 2023,
             permissive: true);
         Assert.True(ok, detail);

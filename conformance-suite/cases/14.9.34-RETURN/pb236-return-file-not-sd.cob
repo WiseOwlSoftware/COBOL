@@ -8,7 +8,7 @@
 *> in the data division." F-IN has an FD. Also behind a GO TO, for the reason the RELEASE twin gives.
 *> This site used to conflate TWO verdicts in one test: `!FilesByName.TryGetValue(...) || !file.IsSortMerge`
 *> answered "there is no such file-name" (8.4.2.1) and "the file exists but is under an FD" (14.9.34.3 SR1)
-*> with the same message. They are different diagnoses; the undeclared case is now COBOLNET1639.
+*> with the same message. They are different diagnoses; the undeclared case is now COBOL1639.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB236RETNOSD.
 ENVIRONMENT DIVISION.

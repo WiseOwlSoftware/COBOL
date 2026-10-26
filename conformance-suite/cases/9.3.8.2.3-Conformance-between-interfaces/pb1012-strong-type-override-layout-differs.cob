@@ -28,7 +28,7 @@
       *>   X(5) in PB1012NB: the elementary items do not have the same
       *>   length, so the declarations are not equivalent (§8.5.3.1),
       *>   the formals are not of the same type and §11.7.3 SR9 is
-      *>   violated: COBOLNET0829.
+      *>   violated: COBOL0829.
        IDENTIFICATION DIVISION.
        CLASS-ID. PB1012NA INHERITS FROM BASE.
        ENVIRONMENT DIVISION.

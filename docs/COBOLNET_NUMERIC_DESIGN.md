@@ -174,7 +174,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >     Dec/float-bearing argument list evaluates its §15.4.1 r1 equivalent arithmetic expression ON the SDIDI
 >     (arguments lifted exactly per §8.8.1.5.1/.2 r1, NEVER quantized) and lands at the receiver once. An
 >     all-fixed-point list stays on the exact Int128 family (the documented equivalence above). The same change
->     removed the COBOLNET0899 stage: ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION now evaluate
+>     removed the COBOL0899 stage: ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION now evaluate
 >     their inexact-division EAEs in SDIDI form (STANDARD-DEVIATION's root is the §15.4.1-last-¶ prose
 >     approximation, converted in per §8.8.1.5.1), and the prose family's binary64 results CONVERT in
 >     (`CobolDec.FromApproximation`) instead of truncating to unscaled at a receiver-derived working scale. Pinned by
@@ -212,7 +212,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   `RenderDec` body — ACOS/ASIN/ATAN/COS/SIN/TAN/LOG/LOG10/RANDOM. Pinned by `pb253_prose_float_standard_container`
 >   (2002) and `pb253_prose_float_sdidi_container` (2014 + 2023).
 >   (ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION were staged loud under the standard
->   modes — COBOLNET0899 — until their SDIDI evaluations landed with PB56; the stage is gone.)
+>   modes — COBOL0899 — until their SDIDI evaluations landed with PB56; the stage is gone.)
 >   **The NUMVAL family under the standard modes (PB60, RV-15.67.4-1a / RV-15.69.4-3, 2026-08-17):** NUMVAL /
 >   NUMVAL-C / NUMVAL-F have no EAE, but their returned value is FIXED by their own rules — §15.67.4 r1 and
 >   §15.68.4 r1 "the numeric value represented by argument-1", and §15.69.4 r3 says it outright for NUMVAL-F
@@ -231,7 +231,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > - **The RW SUM clause (§8.8.1.5.1 names it):** documented-equivalence consumption at the ReportWriterEmitter
 >   chokepoint — each §13.18.54 GR3 accumulation is one ≤32-digit fixed-point addition, exact and digit-identical
 >   in both engines; no routing needed.
-> - **STANDARD-BINARY — documented-unsupported** (COBOLNET0806 at every edition that has it): spec-obsolete
+> - **STANDARD-BINARY — documented-unsupported** (COBOL0806 at every edition that has it): spec-obsolete
 >   (§8.8.1.4.1 NOTE 1); a binary128 SDIDI has no exact .NET carrier; revisit only if the spec retains it. Its
 >   2014 introduction edge is the pass's `arithmetic-standard-binary-2014` row (0900 below 2014; pending —
 >   no compiling cell).
@@ -240,11 +240,11 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   same CobolDec SDIDI engine (the standard intermediate for its reachable operands IS the decimal form); the
 >   `arithmetic-standard-2002` dual-window row emits 0900 below 2002, the 0903 obsolete flag at 2014, and 0807
 >   at 2023 (error strict / warning permissive).
-> - **Edition gates:** the OPTIONS paragraph is 2002+ (COBOLNET0804, `options-paragraph-2002` — with ARITHMETIC
+> - **Edition gates:** the OPTIONS paragraph is 2002+ (COBOL0804, `options-paragraph-2002` — with ARITHMETIC
 >   NATIVE|STANDARD); the 2014-only clauses each carry their own 0900 row (`options-default-rounded-2014`,
 >   `options-intermediate-rounding-2014`, `options-entry-convention-2014` [conservative — the in-repo 85/2002
 >   evidence establishes only ARITHMETIC at 2002], `options-float-binary/decimal-2014`, `options-initialize-2014`,
->   and the STANDARD-BINARY/STANDARD-DECIMAL keyword rows); ROUNDED MODE IS is 2014+ (COBOLNET0803); the
+>   and the STANDARD-BINARY/STANDARD-DECIMAL keyword rows); ROUNDED MODE IS is 2014+ (COBOL0803); the
 >   composite-of-operands check is 31 at EVERY edition (§14.7.7 rule 2 — an 85-specific tightening to 18 is
 >   refuted by CCVS-85 itself: NC101A composes 21 digits in a MULTIPLY).
 
@@ -314,7 +314,7 @@ The compiler's `PictureComposition.MarkFloating` reads the same `IsSimpleInserti
 > BinaryCapacity truncation, SIGNED default / UNSIGNED, and an implied DISPLAY digit count = the range's
 > max-magnitude decimal width (CHAR 3 / SHORT 5 / LONG 10 / DOUBLE 19 signed · 20 unsigned — the spec gives no
 > implied PICTURE, GR21, so this is the documented implementor choice). PICTURE is prohibited on the family
-> (§13.16.3 SR8 → COBOLNET0870).
+> (§13.16.3 SR8 → COBOL0870).
 
 ### D7. COMP-1/COMP-2 (and mixed float/fixed expressions) bypass the scaled-integer engine: the float operand promotes the whole sub-expression to `double`, computed in IEEE, and the final store to a fixed-point receiver converts double→CobolInt at the receiver scale (round per mode).
 
@@ -344,7 +344,7 @@ is expressible in extended, so equality satisfies it), and the vendor synonyms `
 GR13 (:22824): the trio are *signed numeric data items in an implementor-defined floating-point
 format* — so representation/range are OUR choice (IEEE binary32/64), documented per conformance item 207. **COMP-1/2
 (the `Usage.Float`/`Double` vendor synonyms) share every operation of this facility** — arithmetic, DISPLAY, and MOVE
-all route through the float paths below. **6b (stays COBOLNET0899):**
+all route through the float paths below. **6b (stays COBOL0899):**
 `FLOAT-BINARY-32/64/128` + `FLOAT-DECIMAL-16/34` (§13.18.60.4 GR14-GR20 :22826-22904) — a DISTINCT facility with pinned
 bit layouts, the endianness (GR19) + decimal-encoding (GR20) phrases, and (decimal64/128) a type .NET lacks; plus the
 external-float PICTURE `E`. Shipping the binary family without decimal/endianness would be the forbidden "broad
@@ -353,7 +353,7 @@ half-done" — 6a is the complete implementor-defined facility, 6b the pinned on
 **Representation.** A float elementary item is a NATIVE `float`/`double` field (never the scaled substrate, no
 NumProfile, no character image) — the loud Tier-C island in any group/REDEFINES/record (the `IsImageCapable`/
 `IsCharacterImage`/`StoreAsImage` guards already require `IsFloat:false`). PICTURE-less (§13.18.60.2 — a `PIC` with a
-float usage is a new **COBOLNET1521** reject; the 08xx declaration band is exhausted); a new `PicInfo.FloatItem(usage)` factory (mirrors `IndexItem`/
+float usage is a new **COBOL1521** reject; the 08xx declaration band is exhausted); a new `PicInfo.FloatItem(usage)` factory (mirrors `IndexItem`/
 `PointerItem`, `Digits:0/Scale:0` inert). `Usage.FloatShort/Long/Extended` fold into `IsFloat`; a new `IsSingle`
 predicate (Float/FloatShort) drives the `f` literal suffix + the `(float)` store cast. `ClrType` short→float,
 long/extended→double; init `0f`/`0d`.
@@ -403,7 +403,7 @@ kb/Work PB98). `EmitText.UnscaledLit` detects the E and returns a `Real` NumX wi
 float literal is already valid C# `double` syntax — the form the CALL/INVOKE argument emitters still take).
 The literal FORMAT is a COBOL-2002 introduction (constructs.json `floating-point-literal-2002`, VCR row 7.37, kb/Work
 PB674; COBOL-85's numeric literal is fixed-point alone): `LiteralScreen.GateFloatingPoint` refuses it below 2002 with
-COBOLNET0900 on the TOKEN (`LiteralTokens.FloatingPointTypes`), position-blind, so no consumer carries its own gate.
+COBOL0900 on the TOKEN (`LiteralTokens.FloatingPointTypes`), position-blind, so no consumer carries its own gate.
 ⛔ **THE LITERAL IS ITS EXACT VALUE IN EVERY POSITION AND EVERY MODE** (owner decision D-B, 2026-08-30; kb/Work
 PB156 + PB195, superseding the per-position split PB99 left behind). `NumericRenderer.LiteralNum` is the ONE
 rendering: a floating-point literal becomes its §8.3.3.3.3 rule-5 value — significand × 10^exponent — on the `Dec`
@@ -424,7 +424,7 @@ NATIVE statement onto the decimal128 lane (34 significant digits) where a fixed-
 `CombineNative`'s Int128 one (~38), so `A * B + 0.0E+0` and `A * B + 0.0` differ for 18-digit A and B, and
 INTERMEDIATE ROUNDING (§11.9.11) reaches the first and not the second. The sentence "a literal's NOTATION never
 changes the arithmetic" was written in four places and is false in all of them (kb/Work PB274).
-The binder checks the literal's FORM (SR2/SR3/SR4 — COBOLNET1661) at the ONE normalizer and its RANGE at the ONE
+The binder checks the literal's FORM (SR2/SR3/SR4 — COBOL1661) at the ONE normalizer and its RANGE at the ONE
 expression chokepoint (`CheckLiteral`, now decimal128 in every mode — one carrier, one range) and, separately, at
 the VALUE funnel for a FLOAT-* subject, where §13.18.63.3 SR2 asks for "permissible values within the range
 indicated by the PICTURE clause or the USAGE clause" (cite.py-verified verbatim) and, a FLOAT-* subject having
@@ -452,7 +452,7 @@ PROHIBITED on an inexact float uses a `CobolFloat.InexactAtScale` gate that rais
 unchanged (§14.7.4.3 rule 7); a transcendental intrinsic into a float receiver returns Real from `RenderFloat` when
 `TargetReal` (full binary64, not quantized to 9 digits).
 
-**Edition gate.** The trio introduced 2002 → the `ConstructRegistry` introduction gate stands (COBOLNET0900 below
+**Edition gate.** The trio introduced 2002 → the `ConstructRegistry` introduction gate stands (COBOL0900 below
 2002, silent ≥2002; default `--std` 2023). COMP-1/2 accepted at ALL editions (universal vendor synonyms of the
 conformant usages — a documented asymmetry, matches the legacy engine).
 
@@ -670,7 +670,7 @@ Goldens: `pb647_float_landing_mode` at 2002/2014/2023; `85/pb653_nested_float_op
 on one binary64); `2014/pb653_nested_float_rounded_mode` (the eight modes over a nested-float expression, the
 exact-half tie, and PROHIBITED seeing the whole value); `2014/pb654_prohibited_gate_one_evaluation` (one
 initial evaluation, measured through RANDOM's sequence position; the gate over an edited resultant);
-`negative/pb653-nested-float-rounded-mode-below-2014` (COBOLNET0803).
+`negative/pb653-nested-float-rounded-mode-below-2014` (COBOL0803).
 
 ## C# mapping
 
@@ -757,8 +757,8 @@ if (CobolNum.IsNumericClass(rawImageOrValue, P_X)) ...
 - **PICTURE digit ceiling — 18 (1985) vs 31 (2002+)**: `PIC S9(31)` (the `Int128` storage tier) is legal only at `--std ≥2002`; under `--std 85` any picture >18 digits is a compile diagnostic. The long→Int128 boundary is edition-reachable only at ≥2002.
 - **Composite-of-operands limit — 31 digits at every edition** (§14.7.7 rule 2): the compile-time threshold is the constant 31 — the spec states it with no edition qualifier, and CCVS-85 itself (NC101A composes 21 digits in a MULTIPLY) refutes any 85-specific tightening to 18.
 - **ROUNDED MODE IS / the 8 modes / DEFAULT ROUNDED (§11.9.6) / INTERMEDIATE ROUNDING (§11.9.11) — 2014+**: at `--std 85|2002` bare ROUNDED means the single nearest-away-from-zero rounding, and `ROUNDED MODE IS …` + those OPTIONS clauses are not-yet-introduced diagnostics. 2014→2023 behavior delta: rounding raises EC-SIZE-TRUNCATION only under PROHIBITED (`VERSION_CHANGE_REFERENCE.md` row 53).
-- **ARITHMETIC clause — LIVE (P10 Step 12)**: `NATIVE`/`STANDARD` are 2002 introductions (rows `options-paragraph-2002` / `options-arithmetic-native-2002` / `arithmetic-standard-2002`; the E.2-item-21 back-derivation), `STANDARD-BINARY`/`STANDARD-DECIMAL` 2014+ keyword rows on the `VisitArithmeticMethod` arm; at 2023 `STANDARD` is REMOVED (row 28 — 0807, error strict / warning permissive) and it is OBSOLETE-flagged (0903) at 2014; `STANDARD-BINARY` is OBSOLETE at 2023 (row 116) and documented-unsupported everywhere (COBOLNET0806 — distinct from the edition gates). The 2014-only OPTIONS clauses carry their own 0900 rows (`options-default-rounded/-intermediate-rounding/-entry-convention/-float-binary/-float-decimal/-initialize-2014`). At `--std 85` the whole paragraph is not-yet-introduced (0804).
-- **BINARY-CHAR/SHORT/LONG/DOUBLE usages — 2002+** (they lower to the COMP-5 binary-wrap discipline); diagnosed at `--std 85`. **LIVE:** PICTURE-less native 1/2/4/8-byte two's-complement integers (SIGNED default / UNSIGNED widens), BinaryCapacity truncation, implied DISPLAY digit width 3/5/10/19·20; introduction gate COBOLNET0900 below 2002, PICTURE prohibited COBOLNET0870 (§13.16.3 SR8). COMP-5 itself is an extension — document its per-dialect availability.
+- **ARITHMETIC clause — LIVE (P10 Step 12)**: `NATIVE`/`STANDARD` are 2002 introductions (rows `options-paragraph-2002` / `options-arithmetic-native-2002` / `arithmetic-standard-2002`; the E.2-item-21 back-derivation), `STANDARD-BINARY`/`STANDARD-DECIMAL` 2014+ keyword rows on the `VisitArithmeticMethod` arm; at 2023 `STANDARD` is REMOVED (row 28 — 0807, error strict / warning permissive) and it is OBSOLETE-flagged (0903) at 2014; `STANDARD-BINARY` is OBSOLETE at 2023 (row 116) and documented-unsupported everywhere (COBOL0806 — distinct from the edition gates). The 2014-only OPTIONS clauses carry their own 0900 rows (`options-default-rounded/-intermediate-rounding/-entry-convention/-float-binary/-float-decimal/-initialize-2014`). At `--std 85` the whole paragraph is not-yet-introduced (0804).
+- **BINARY-CHAR/SHORT/LONG/DOUBLE usages — 2002+** (they lower to the COMP-5 binary-wrap discipline); diagnosed at `--std 85`. **LIVE:** PICTURE-less native 1/2/4/8-byte two's-complement integers (SIGNED default / UNSIGNED widens), BinaryCapacity truncation, implied DISPLAY digit width 3/5/10/19·20; introduction gate COBOL0900 below 2002, PICTURE prohibited COBOL0870 (§13.16.3 SR8). COMP-5 itself is an extension — document its per-dialect availability.
 - **EC-* exception conditions (EC-SIZE-*) — 2002+**: at `--std 85` only the ON SIZE ERROR phrase semantics exist; EC names/TURN must not surface.
 
 (Verify every edition attribution above against the spec's Annex E / the edition record before wiring the gate — the spec, not this list, is authority.)
@@ -826,7 +826,7 @@ Two-phase per the spec: (a) evaluate the expression into the intermediate CobolI
 - DISPLAY of a zero value in a signed trailing-overpunch field: last digit '0' positive → '{' (e.g. PIC S9(4) value 0 → "000{"), NOT "0000" — confirmed by legacy table.
 - Numeric-edited zero with floating $ or Z across the whole field and no fixed 9 → entire field blanked to spaces (or '*' under check-protect); but if any fixed 9 exists the zeros print. BLANK WHEN ZERO overrides to all-spaces regardless. ⛔ BOTH tests ask for THE VALUE BEING STORED (§13.18.8.4 GR1; §13.18.40.5 rule 7 b "the value of the data to be stored"), i.e. the value AFTER §14.6.8.2 5)'s "further alignment, zero fill or truncation" of a numeric-edited receiver — so both live after the mask rescale in `CobolEdit.Render`, and `MOVE 0.4 TO PIC ZZZ9 BLANK WHEN ZERO` blanks exactly as `COMPUTE` of the same value does (kb/Work PB566).
 - Asterisk check-protect (*): suppressed positions AND the comma/B insertion chars inside the floating zone become '*', but the decimal point stays '.' (legacy pass-2 logic).
-- DECIMAL-POINT IS COMMA swaps the roles of '.' and ',' in both the picture interpretation and the edited output. **CURRENCY SIGN is a SET, and the currency STRING may have any length (§12.3.7.3 r21–r27 / §12.3.7.4 GR13 / §13.18.40.4 GR14; PB60 / AR-15.68.3-3, 2026-08-17):** `DataBinder.CurrencySigns` maps every currency PICTURE SYMBOL (uppercase-keyed, letter cases equivalent per r20) to a `CurrencyDefinition(Text, LiteralClass)` — its currency string AND the class of the literal-7 that gave it (kb/Work PB1089: SR28 confines an alphanumeric literal-7's symbol to usage-display numeric-edited items and a national one's to usage-national ones; the implied `'$'` clause is alphanumeric, so `PIC $9.99 USAGE NATIONAL` is COBOLNET2883) — a bare `CURRENCY SIGN "#"` binds '#'→"#" (r22), the 2002+ `CURRENCY SIGN "USD" WITH PICTURE SYMBOL "U"` binds 'U'→"USD" (r23: any length; at least one non-space; none of `0-9 + - , . *`), r21 refuses two clauses binding equivalent symbols to different strings, and r25 IMPLIES `'$'→"$"` unless a clause names '$' as literal-7 or literal-8 — so `PIC $$,$$9.99` stays legal beside a declared '#'. A PICTURE uses at most one symbol kind (§13.18.40.3 r24/r28); `PictureAnalyzer` finds which, CANONICALIZES the mask's symbol to `$` (`PicInfo.EditMask`), records the string on `PicInfo.CurrencyString` (null when it is "$") and the literal-7 class on `PicInfo.CurrencyClass` (null when the picture uses no currency symbol; asked by `PictureAnalyzer.ScreenUsageAgainstPicture` for the written USAGE and the GR1-inherited one alike), and adds the string's extra length to `PicInfo.Length` for the FIRST occurrence (GR14: "The first occurrence of the currency symbol adds the number of characters in the currency string to the size of the item. Each subsequent occurrence of the currency symbol adds one"). `CobolEdit.Format/TryFormat/DeEdit` take `currencyString:` per item (`EmitContext.EditCfg(pic)` — the per-unit `currency:` symbol argument is gone): the core edits the LOGICAL one-position-per-symbol image and `CobolEdit.Materialize` / `DeEdit`'s physical cursor map it to/from the physical one at the §13.18.40.4 GR14 widths (the search-based `ExpandCurrency`/`CollapseCurrency` pair that served the currency string alone was deleted by kb/Work PB491, which generalized the mechanism to the PICTURE EDITING literal as well) — fixed insertion puts the string where the symbol is (`PIC U9.99` → `USD5.25`), floating insertion lands it once before the first nonzero digit (`PIC UUU9` → ` USD12` / `USD123` / `  USD0`), an all-floating zero is all spaces at the physical width, BLANK WHEN ZERO blanks the physical width, and de-editing removes the string before the digit walk. NUMVAL-C / TEST-NUMVAL-C without argument-2 take the unit's `SoleCurrencyString` (§15.68.3 r3 — "$" with no clause, the one explicitly specified string, and COBOLNET1644 when two or more distinct strings are specified; r25's implied '$' is the picture-symbol default, not a competing string). Pinned by `pb60_currency_sign_set` / `pb60_currency_sign_bare_implied_dollar` + `CobolEditCurrencyStringTests`; negative `numval-c-ambiguous-currency`.
+- DECIMAL-POINT IS COMMA swaps the roles of '.' and ',' in both the picture interpretation and the edited output. **CURRENCY SIGN is a SET, and the currency STRING may have any length (§12.3.7.3 r21–r27 / §12.3.7.4 GR13 / §13.18.40.4 GR14; PB60 / AR-15.68.3-3, 2026-08-17):** `DataBinder.CurrencySigns` maps every currency PICTURE SYMBOL (uppercase-keyed, letter cases equivalent per r20) to a `CurrencyDefinition(Text, LiteralClass)` — its currency string AND the class of the literal-7 that gave it (kb/Work PB1089: SR28 confines an alphanumeric literal-7's symbol to usage-display numeric-edited items and a national one's to usage-national ones; the implied `'$'` clause is alphanumeric, so `PIC $9.99 USAGE NATIONAL` is COBOL2883) — a bare `CURRENCY SIGN "#"` binds '#'→"#" (r22), the 2002+ `CURRENCY SIGN "USD" WITH PICTURE SYMBOL "U"` binds 'U'→"USD" (r23: any length; at least one non-space; none of `0-9 + - , . *`), r21 refuses two clauses binding equivalent symbols to different strings, and r25 IMPLIES `'$'→"$"` unless a clause names '$' as literal-7 or literal-8 — so `PIC $$,$$9.99` stays legal beside a declared '#'. A PICTURE uses at most one symbol kind (§13.18.40.3 r24/r28); `PictureAnalyzer` finds which, CANONICALIZES the mask's symbol to `$` (`PicInfo.EditMask`), records the string on `PicInfo.CurrencyString` (null when it is "$") and the literal-7 class on `PicInfo.CurrencyClass` (null when the picture uses no currency symbol; asked by `PictureAnalyzer.ScreenUsageAgainstPicture` for the written USAGE and the GR1-inherited one alike), and adds the string's extra length to `PicInfo.Length` for the FIRST occurrence (GR14: "The first occurrence of the currency symbol adds the number of characters in the currency string to the size of the item. Each subsequent occurrence of the currency symbol adds one"). `CobolEdit.Format/TryFormat/DeEdit` take `currencyString:` per item (`EmitContext.EditCfg(pic)` — the per-unit `currency:` symbol argument is gone): the core edits the LOGICAL one-position-per-symbol image and `CobolEdit.Materialize` / `DeEdit`'s physical cursor map it to/from the physical one at the §13.18.40.4 GR14 widths (the search-based `ExpandCurrency`/`CollapseCurrency` pair that served the currency string alone was deleted by kb/Work PB491, which generalized the mechanism to the PICTURE EDITING literal as well) — fixed insertion puts the string where the symbol is (`PIC U9.99` → `USD5.25`), floating insertion lands it once before the first nonzero digit (`PIC UUU9` → ` USD12` / `USD123` / `  USD0`), an all-floating zero is all spaces at the physical width, BLANK WHEN ZERO blanks the physical width, and de-editing removes the string before the digit walk. NUMVAL-C / TEST-NUMVAL-C without argument-2 take the unit's `SoleCurrencyString` (§15.68.3 r3 — "$" with no clause, the one explicitly specified string, and COBOL1644 when two or more distinct strings are specified; r25's implied '$' is the picture-symbol default, not a competing string). Pinned by `pb60_currency_sign_set` / `pb60_currency_sign_bare_implied_dollar` + `CobolEditCurrencyStringTests`; negative `numval-c-ambiguous-currency`.
 - COMP-3 unsigned (PIC 9 COMP-3) must store sign nibble 0x0C (positive) and never retain a negative — the legacy EncodeComp3 fix: unsigned packed wrongly kept 0x0D and decoded negative.
 - COMP-5 signed negative extreme (−2^(width−1), e.g. −32768 for 2 bytes) is IN range — a naive magnitude check mis-flags it; bound the signed two's-complement value, not the magnitude (legacy clean ExceedsBinaryCapacity).
 - COMP-5 unsigned 8-byte range (long.Max, ulong.Max] requires `Int128` storage — a signed-long codec cannot hold it; the monomorphic wide engine carries the full 0..2^64−1 range.

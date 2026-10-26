@@ -10,7 +10,7 @@
       *> currency set recorded symbol -> string and DISCARDED literal-7's class at the CURRENCY SIGN clause, so no
       *> PICTURE could be asked; each of these compiled and ran. The class is now half of the set's definition
       *> (CurrencyDefinition) and the one USAGE x PICTURE screen asks it, for a written USAGE and for one acquired
-      *> from the group (13.18.60.4 GR1) alike: COBOLNET2883.
+      *> from the group (13.18.60.4 GR1) alike: COBOL2883.
       *>
       *> NC1  a NATIONAL literal-7 ('#' = N"EUR") on a DISPLAY item.
       *> NC2  an ALPHANUMERIC literal-7 ('U' = "USD") on a NATIONAL item.

@@ -9,7 +9,7 @@
       *> the edition pass's data gates ask its OBJECT data: USAGE
       *> FLOAT-BINARY-64 is a COBOL-2014 introduction (13.18.60.4 GR15;
       *> cite.py --check 13.18.60.4 -> OK 13.18.60.4 15)), and at 2002
-      *> it is COBOLNET0900 whether or not anything expands the class.
+      *> it is COBOL0900 whether or not anything expands the class.
       *> Nothing else here is below 2002, so the 0900 is this gate's.
        IDENTIFICATION DIVISION.
        CLASS-ID. NSKEDG USING T.

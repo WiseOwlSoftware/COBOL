@@ -10,7 +10,7 @@
       *>  hexadecimal literal. Before the fix the lexer's hex body
       *>  refused G, the literal re-lexed as the data-name X followed by
       *>  the literal "GG", and beside the item X below the program
-      *>  compiled and printed ZZZGG. COBOLNET2630 at every edition with
+      *>  compiled and printed ZZZGG. COBOL2630 at every edition with
       *>  the hexadecimal format (2002+).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGW73AHX.

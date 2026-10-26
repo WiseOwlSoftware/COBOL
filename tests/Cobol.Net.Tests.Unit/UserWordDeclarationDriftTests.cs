@@ -182,7 +182,7 @@ public sealed class UserWordDeclarationDriftTests
     /// constant-name (§13.10.3 SR2 admits one wherever a literal of its category is). A bare <c>Refs.Probe(…)</c> sees
     /// only the data item, so STANDARD-COMPARE's argument-4, WRITE ADVANCING's integer-1 and an EVALUATE object
     /// claimed an own constant-name as the inherited ordering-name, mnemonic-name or class-name and refused legal source
-    /// COBOLNET2692. So no expression pairs a configuration-section-name lookup with a raw probe: it asks
+    /// COBOL2692. So no expression pairs a configuration-section-name lookup with a raw probe: it asks
     /// <c>ReferenceResolver.DescribesOwnItem</c>, and the next two-reading position gets both halves.
     /// <para>The table names are read off the <c>ConfigurationNames</c> declarations, never listed by hand: a
     /// hand-written list once named a <c>Symbolics</c> table that does not exist and missed <c>SwitchConditions</c>
@@ -209,7 +209,7 @@ public sealed class UserWordDeclarationDriftTests
     /// the referent. The raw-probe guard above cannot see a member that asks NO own-item test at all: the bare-operand
     /// switch-status arm (<c>SetAlterBinder.SwitchCondOf</c>) resolved <c>IF SWON</c> through
     /// <c>SwitchConditions.TryUse</c> over a contained program's own <c>01 SWON PIC 1</c> and refused legal source
-    /// COBOLNET2692. So every member under <c>Binding/Procedure</c> that resolves a configuration-section name
+    /// COBOL2692. So every member under <c>Binding/Procedure</c> that resolves a configuration-section name
     /// (<c>TryUse</c> on a <c>ConfigurationNames</c> table or the mnemonic registry) and handles a data reference
     /// (a <c>DataReferenceContext</c>, <c>dataReference()</c> or <c>SoleDataRef…</c>) asks
     /// <c>DescribesOwnItem</c>. A member whose word arrives as a dedicated name token (ACCEPT FROM, the class

@@ -13,7 +13,7 @@
       *> word-for-word twin 14.9.42.3 syntax rule 2 for STOP RUN): "Identifier-2 shall reference an integer data
       *> item or a data item with usage display or usage national." 8.5.2.1: "An alphanumeric group item is
       *> treated as though it had a usage of display." The group therefore SATISFIES the second alternative.
-      *> Before the fix both verbs rejected it with COBOLNET1704 - a diagnostic quoting the very rule the operand
+      *> Before the fix both verbs rejected it with COBOL1704 - a diagnostic quoting the very rule the operand
       *> meets - because the screen asked the item's elementary PICTURE, which a group has none of, and read that
       *> absence as "no usage at all".
       *>

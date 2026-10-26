@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1133 - the RECURSIVE clause is a COBOL-2002 introduction (11.10.2 / 11.10.4), so the legal 2002+
       *>   shape of a RECURSIVE program with working-storage and a contained program is refused at 85 by the
-      *>   edition gate (COBOLNET0885), not by a storage staging. The positive twin is
+      *>   edition gate (COBOL0885), not by a storage staging. The positive twin is
       *>   conformance/2002/pb1133_recursive_container_static_ws.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1133N1 RECURSIVE.

@@ -16,7 +16,7 @@
       *> admits boolean-expression-1, so the operand is legal syntax and the
       *> pairing is what fails. Before the channel existed the same source was
       *> refused for the wrong reason entirely — the boolean operator was not
-      *> consumed at all, so `B-AND` landed in a name slot (COBOLNET0901) and the
+      *> consumed at all, so `B-AND` landed in a name slot (COBOL0901) and the
       *> statement reported "3 USING argument(s) for 1 formal parameter(s)", an
       *> arity diagnostic about a rule the program does not violate.
        IDENTIFICATION DIVISION.

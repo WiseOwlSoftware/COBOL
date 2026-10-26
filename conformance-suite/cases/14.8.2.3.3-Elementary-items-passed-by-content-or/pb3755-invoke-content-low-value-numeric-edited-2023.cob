@@ -7,7 +7,7 @@
       *> kb/Work PB3755, the INVOKE lane of pb3755-call-content-high-value-numeric-edited-2023: 14.9.23.3 SR5 c) applies
       *> 14.8.2 to a method's arguments, so LOW-VALUE BY CONTENT into the PIC ZZ9 formal of a factory method conforms as
       *> MOVE LOW-VALUE TO <a numeric-edited item> does - valid through 2014, removed at 2023 (14.9.25.3 SR5; Annex E.2
-      *> item 1 bullet 1) - and is COBOLNET0902 at 2023.
+      *> item 1 bullet 1) - and is COBOL0902 at 2023.
       *>   cite.py --check 14.9.23.3 "The rules for conformance as specified in 14.8.2, Parameters and 14.8.3,
       *>     Returning items apply" -> OK 14.9.23.3 5) c)
        IDENTIFICATION DIVISION.

@@ -154,11 +154,11 @@ externalizedNamePhrase
 // it POSITIONALLY between program-name-1 and the attribute group, while the attributes are a §5.2.6.4
 // choice-indicator group (any order, each at most once). Folding it into programIdAttribute is what produced
 // kb/Work PB303's exact inversion — `AS` fell through dataReferenceAttribute → cobolWord, so 2002+ rejected
-// it with COBOLNET0901 (AS is reserved from 2002) while '85 — the ONE edition whose PROGRAM-ID paragraph has
+// it with COBOL0901 (AS is reserved from 2002) while '85 — the ONE edition whose PROGRAM-ID paragraph has
 // no AS phrase — accepted it and folded the literal into the program name.
 // ⛔ AND §11.10.2 FORMAT 2 (prototype) — `PROGRAM-ID. program-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE .`
 // (kb/Work PB894; the §10.6.1 program-prototype source unit prints the same paragraph). It used to be UNWRITABLE:
-// this rule offered only the Format-1 attribute group, so `PROGRAM-ID. P IS PROTOTYPE.` drew COBOLNET0901 on the
+// this rule offered only the Format-1 attribute group, so `PROGRAM-ID. P IS PROTOTYPE.` drew COBOL0901 on the
 // reserved word while the byte-identical FUNCTION-ID tail compiled. The two formats are alternatives — IS
 // PROTOTYPE never combines with COMMON / INITIAL / RECURSIVE — and the tail is the ONE `prototypePhrase` both
 // paragraphs share, so BinderDriver.MakeUnit reads one node for either unit kind.
@@ -177,7 +177,7 @@ prototypePhrase
 // §11.10.2 program-name-1 is a user-defined word (§8.3.2.2). The `reservedGatedWord` alternative is the
 // DECLARATION home of every reservation-gated word (kb/Work PB693/PB655, the dataName precedent): a gated word
 // is never a cobolWord, so without this `PROGRAM-ID. UNLOCK.` at --std 2002 answers a raw COBOL0001 "no
-// viable alternative" instead of the targeted COBOLNET0901 that names §8.9 — and where §8.9 leaves the word
+// viable alternative" instead of the targeted COBOL0901 that names §8.9 — and where §8.9 leaves the word
 // FREE, this match is the declaration the token-level gate retypes the word for. A retyped word is an
 // IDENTIFIER, so the two alternatives never compete for one token.
 programName
@@ -221,7 +221,7 @@ commonProgramAttribute
 // is why ISO/IEC 1989:2023 defines no syntax for one anywhere. A sink over a COMMENT-ENTRY is right; a sink over
 // a CLAUSE or PARAGRAPH LIST is what this last alternative closes. `identificationParagraph*` lets the OPTIONS
 // paragraph be written twice where the figure brackets it once: ClosedFormatPass refuses the repeat from the
-// ClauseCardinalities row (COBOLNET2423; kb/Work PB1508 — OptionsBinder read only the first, in silence).
+// ClauseCardinalities row (COBOL2423; kb/Work PB1508 — OptionsBinder read only the first, in silence).
 identificationParagraph
     : optionsParagraph
     | authorParagraph
@@ -230,7 +230,7 @@ identificationParagraph
     | dateCompiledParagraph
     | securityParagraph
     | remarksParagraph
-    | unrecognizedClause DOT   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1971)
+    | unrecognizedClause DOT   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1971)
     ;
 
 // OPTIONS paragraph (COBOL-2002, ISO §11.9) — fully parsed into a structured clause tree (the model is consumed
@@ -239,7 +239,7 @@ identificationParagraph
 // - ORDER AND REPETITION. Each clause begins with a distinct keyword token, so `optionsClause+` is LL(1)-clean, but it
 //   is a SUPERSET: §5.2.1 binds the printed sequence (no §11.9.3 rule frees it) and a bracket admits its clause once.
 //   Both halves are read from ONE table row (ClauseCardinalities, OptionsClauseContext → ClosedFormatPass:
-//   COBOLNET2987 out of order, COBOLNET2423 repeated) — a superset parse with a named diagnostic, never a raw
+//   COBOL2987 out of order, COBOL2423 repeated) — a superset parse with a named diagnostic, never a raw
 //   COBOL0307 at the second clause.
 // - THE PERIOD. `[.]` is its own bracket, so with no clause it may still be written (`OPTIONS. .`); §11.9.3 SR1
 //   ("If any of the clauses are specified, then there shall be a terminating separator period") makes it required
@@ -321,7 +321,7 @@ floatBinaryClause
 // alternative is written and "The alternatives may be specified in any order". That is exactly the USAGE clause's
 // group, so the clause reuses its ONE rule, floatFormatPhrase (Core/CobolData.g4), instead of a second, ORDERED
 // copy that refused the legal endianness-first spelling with a raw parse error (the two-arm defect PB174 left:
-// it fixed the USAGE arm only). The clause is DECLINED whole — COBOLNET2424 (OptionsBinder.DeclineFloatDecimal,
+// it fixed the USAGE arm only). The clause is DECLINED whole — COBOL2424 (OptionsBinder.DeclineFloatDecimal,
 // docs/CONFORMANCE.md §2 row 13; kb/Work R43) — so every legal spelling must reach that warning, and §4.2.6 frees
 // the implementation from diagnosing a repeated phrase inside the unsupported syntax.
 floatDecimalClause
@@ -426,7 +426,7 @@ securityContent
     : ~DOT+
     ;
 
-// REMARKS. (a COBOL-74 carryover, accepted at 85 for the CCVS and removal-gated at 2002+ — COBOLNET0902.)
+// REMARKS. (a COBOL-74 carryover, accepted at 85 for the CCVS and removal-gated at 2002+ — COBOL0902.)
 // ⛔ THE SIXTH COMMENT-ENTRY BODY, AND IT WAS THE ODD ONE OUT (kb/Work PB829). The five paragraphs above all
 // spell their body `~DOT+` with a terminating DOT; this one spelled it `(IDENTIFIER | STRINGLIT)+` with NO
 // terminating DOT, so a comment-entry word that happens to be a LEXER TOKEN ended the content early and the
@@ -468,14 +468,14 @@ configurationSection
 // alternative is the error production, NOT a vendor hook (see Core/CobolExpressions.g4#unrecognizedClause); the
 // DOT is written HERE because a PARAGRAPH is period-terminated and the shared production is not.
 // `configurationParagraph*` is order-free and repeatable, a SUPERSET of the figure's fixed sequence of once-only
-// brackets (§5.2.1, §5.2.6.2): ClosedFormatPass narrows it from the ClauseCardinalities row (COBOLNET2987 out of
-// order, COBOLNET2423 repeated; kb/Work PB1508), as it does the OPTIONS paragraph's clauses.
+// brackets (§5.2.1, §5.2.6.2): ClosedFormatPass narrows it from the ClauseCardinalities row (COBOL2987 out of
+// order, COBOL2423 repeated; kb/Work PB1508), as it does the OPTIONS paragraph's clauses.
 configurationParagraph
     : sourceComputerParagraph
     | objectComputerParagraph
     | specialNamesParagraph
     | repositoryParagraph
-    | unrecognizedClause DOT   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1971)
+    | unrecognizedClause DOT   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1971)
     ;
 
 // REPOSITORY paragraph (COBOL-2002, ISO §12.3.8) — declares the program prototypes, function prototypes, classes,
@@ -484,7 +484,7 @@ configurationParagraph
 // ⛔ ONE SEPARATOR PERIOD: §12.3.8.2 prints `REPOSITORY. [ { specifier } … . ]` — the period inside the bracket, once,
 // after the last specifier. The `DOT?` after every entry is a PUNCTUATION SUPERSET kept so a period after each entry
 // (or none after the last) is refused BY NAME, not as a bare parse error: ClosedFormatPass reads the periods through
-// ParagraphPeriods (COBOLNET3407 / COBOLNET3408; kb/Work PB2727). It was a silent "period-per-entry style" tolerance.
+// ParagraphPeriods (COBOL3407 / COBOL3408; kb/Work PB2727). It was a silent "period-per-entry style" tolerance.
 // ⛔ EVERY SPECIFIER THAT PRINTS `[ AS literal-n ]` CARRIES THE ONE `externalizedNamePhrase` (kb/Work PB974; rendered
 // PDF p334-335 / folios 304-305 — AS underlined, the phrase bracketed, after the declared name and BEFORE the class and
 // interface specifiers' EXPANDS phrase). §12.3.8.4 GR2: "literal-1, literal-2, literal-3, or literal-5 is the
@@ -493,7 +493,7 @@ configurationParagraph
 // name stays the word the source element writes; what it RESOLVES to is found by the literal — OoRepositoryScope
 // (class / interface), BinderDriver.UserFunctionsOf (function), BinderDriver.ProgramPrototypesOf (program) and
 // ReferenceResolver.ResolveObjectProperty (property). The PROGRAM specifier had it alone (kb/Work PB237) and the
-// other four refused `CLASS BOXY AS "R11BOX"` with COBOLNET0901 (AS reserved).
+// other four refused `CLASS BOXY AS "R11BOX"` with COBOL0901 (AS reserved).
 // ⛔ AND THE INTRINSIC SPECIFIER TAKES A LIST: `FUNCTION { intrinsic-function-name-1 } … INTRINSIC` (same page) — one
 // name only refused `FUNCTION PI E INTRINSIC` (COBOL0307). The user-defined-function specifier is the one-name form
 // WITHOUT INTRINSIC; ALL(*) tells the two apart on the trailing INTRINSIC keyword.
@@ -548,16 +548,16 @@ programPrototypeName
 // deleted-2002 gate reads a NODE (VersionConformancePass ParseArm.VisitDebuggingModeClause) — a name-less
 // `SOURCE-COMPUTER. WITH DEBUGGING MODE.` stays illegal at every edition ('85 required the name, 2002 deleted the
 // clause). Everything else after the name is the error production, refused BY NAME by ClosedFormatPass
-// (COBOLNET1970). It used to be `computerAttributes : ~DOT+`, an UNGATED token sink that accepted
+// (COBOL1970). It used to be `computerAttributes : ~DOT+`, an UNGATED token sink that accepted
 // `SOURCE-COMPUTER. IBM-370 WIBBLE WOBBLE.` at every edition in silence.
 // ⛔ THE SECOND PERIOD IS A PUNCTUATION SUPERSET (kb/Work PB3370): `DOT?` even after a computer-name, and the period
-// §12.3.5.3 SR1 does not let go is refused BY NAME by ClosedFormatPass through ParagraphPeriods (COBOLNET3408). It is
+// §12.3.5.3 SR1 does not let go is refused BY NAME by ClosedFormatPass through ParagraphPeriods (COBOL3408). It is
 // what makes the optional name's prediction COMMIT: when the name's paragraph and the configuration section's error
 // production both fail at the same token (`SOURCE-COMPUTER. XYZ GLOBAL.` — XYZ is a computer-name or an unrecognized
 // paragraph, and GLOBAL fits neither), ANTLR's error-time prediction takes the lowest alternative that has already
 // LEFT the rule, and with a required period only the exit alternative had: XYZ was read as a configuration paragraph
 // and GLOBAL drew a bare COBOL0307. With the period optional the name's alternative leaves the rule too, so it wins,
-// and CobolErrorStrategy names GLOBAL in THIS format (COBOLNET1970). objectComputerParagraph is the same shape.
+// and CobolErrorStrategy names GLOBAL in THIS format (COBOL1970). objectComputerParagraph is the same shape.
 // A LITERAL after the name is the other half (kb/Work PB3373, PB3390): the error production opens at any literal too
 // (Core/CobolExpressions.g4#unrecognizedClause — the unsigned integer and the comma decimals included, since no
 // level-number follows this list), so `SOURCE-COMPUTER. XYZ "LIT".` and `SOURCE-COMPUTER. XYZ 12.` are ambiguous
@@ -586,7 +586,7 @@ debuggingModeClause
 // ⛔ THE FORMAT IS CLOSED (kb/Work PB830; RENDERED — PDF p315 / folio 285): the clause list is the two standard
 // clauses, plus the two X3.23-1985 clauses ISO 2002 deleted — MEMORY SIZE and SEGMENT-LIMIT, MODELLED as clauses
 // so their deleted-2002 gates read a NODE — and then the error production, refused BY NAME by ClosedFormatPass
-// (COBOLNET1970). The '85 clauses used to be a `~DOT` token SINK behind the name (`computerAttributes`), which
+// (COBOL1970). The '85 clauses used to be a `~DOT` token SINK behind the name (`computerAttributes`), which
 // swallowed `OBJECT-COMPUTER. IBM-370 WIBBLE WOBBLE.` at every edition AND, because the sink ran to the period,
 // REJECTED the '85 format's own printed order `MEMORY SIZE … PROGRAM COLLATING SEQUENCE … SEGMENT-LIMIT …` —
 // the sink ate PROGRAM COLLATING SEQUENCE's position and SEGMENT-LIMIT after it had nowhere to go.
@@ -598,7 +598,7 @@ debuggingModeClause
 // mid-alternative it would let the group be entered and then throw.
 // ⛔ THE SECOND PERIOD IS A PUNCTUATION SUPERSET (kb/Work PB3370), sourceComputerParagraph's reason: with it required,
 // `OBJECT-COMPUTER. XYZ GLOBAL.` read XYZ as an unrecognized configuration paragraph. §12.3.6.3 SR4 lets it go only
-// when neither the name nor a clause is written; ClosedFormatPass refuses it otherwise (COBOLNET3408). A literal
+// when neither the name nor a clause is written; ClosedFormatPass refuses it otherwise (COBOL3408). A literal
 // after the name resolves to the name the same way (kb/Work PB3373, sourceComputerParagraph's note).
 objectComputerParagraph
     : OBJECT_COMPUTER DOT ({!objectComputerClauseAhead()}? computerName)? objectComputerClause* DOT?
@@ -609,7 +609,7 @@ objectComputerClause
     | characterClassificationClause
     | memorySizeClause         // X3.23-1985 only — deleted 2002 (VCR row 7.7)
     | segmentLimitClause       // X3.23-1985 only — deleted 2002 (VCR row 7.8)
-    | unrecognizedClause       // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
+    | unrecognizedClause       // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
     ;
 
 // X3.23-1985 `MEMORY SIZE integer {WORDS | CHARACTERS | MODULES}`. MEMORY, WORDS and MODULES are not lexer tokens
@@ -628,7 +628,7 @@ segmentLimitClause
 // CHARACTER CLASSIFICATION {IS locale-phrase-1 [locale-phrase-2] | {FOR ALPHANUMERIC IS locale-phrase-1 | FOR
 // NATIONAL IS locale-phrase-2}…} (§12.3.6.2), locale-phrase = locale-name | LOCALE | SYSTEM-DEFAULT | USER-DEFAULT.
 // ⛔ PARSED SO IT CAN BE DIAGNOSED, NOT SO IT CAN BE USED — an §A.4.9 item 7 optional-locale element ("OBJECT-COMPUTER
-// paragraph, CHARACTER CLASSIFICATION clause"); the binder emits the documented-non-support COBOLNET1518 the LOCALE
+// paragraph, CHARACTER CLASSIFICATION clause"); the binder emits the documented-non-support COBOL1518 the LOCALE
 // clause carries (kb/Work PB78 — it was swallowed silently by the attribute sink after a name, a parse error without
 // one). CLASSIFICATION is not a token (an ordinary word at '85), so the arm is predicated on the word's text after
 // the CHARACTER token; the four locale-phrase spellings are all words here — the binder never gets to tell them
@@ -737,7 +737,7 @@ dataReference
 // ⚠ THE SUFFIX ORDER IS A SUPERSET PARSE (kb/Work PB1455, PB1426). The standard prints every qualifier BEFORE the
 // subscripts (§8.4.2.3.2 Format 1 `qualified-data-name-1 [ ( subscript … ) ]`) and the reference modifier after the
 // whole identifier (§8.4.3.1.2 Format 3), but this loop and `qualification`'s own tail admit `E (1) OF T` too, so
-// the refusal can NAME the rule: ExpressionFormationPass.VisitDataReference refuses it (COBOLNET2776) at every
+// the refusal can NAME the rule: ExpressionFormationPass.VisitDataReference refuses it (COBOL2776) at every
 // edition — no edition prints it. A grammar that refused it would leave `OF T` dangling as a bare parse error.
 dataReferenceSuffix
     : subscriptPart
@@ -781,7 +781,7 @@ propertyObject
 // functionArgument: the superset parse. The binder decides which the reference is and screens the items against that
 // reading — a subscript must be an arithmetic expression or ALL (ReferenceResolver), an argument whatever its function
 // admits (IntrinsicBinder) — and a bare COMMA (no space after it, so no separator: §8.3.5 2)) parses so SeparatorRule
-// can name it (COBOLNET2631) instead of a raw parse error.
+// can name it (COBOL2631) instead of a raw parse error.
 // ⛔ THE GROUP MAY BE EMPTY (kb/Work PB969). §8.4.3.2.2 prints the argument list `[ ( [ {argument-1 | OMITTED} ] … ) ]`
 // — the arguments bracketed INSIDE the parentheses, so `F()` is the zero-argument spelling, and for a function-pointer
 // §8.4.3.2.3 SR5 ("If function-pointer-name-1 is specified, the parentheses shall be specified") makes it the ONLY one.
@@ -819,11 +819,11 @@ refModPart
     ;
 
 // ISO §8.4.3.3.2: `( leftmost-position : [ length ] )` — only the length is bracketed. The leftmost position is
-// OPTIONAL HERE so that `X (:2)` reaches ReferenceResolver.ReadRefMod, which refuses it by name (COBOLNET2876, kb/Work
+// OPTIONAL HERE so that `X (:2)` reaches ReferenceResolver.ReadRefMod, which refuses it by name (COBOL2876, kb/Work
 // PB1407 / PB1458), instead of dying as a raw parse error: the superset parse. The labels are what every reader uses.
 // Each position is the SAME superset operand a subscript is (`functionArgument`, as in subscriptItem), not
 // arithmeticExpression: §8.4.3.3.3 SR4 makes both positions arithmetic expressions, and a position that is not one
-// (`X ("A" : 1)`) must reach ReadRefMod's segment renderer and be refused by name (COBOLNET2363, kb/Work PB1030)
+// (`X ("A" : 1)`) must reach ReadRefMod's segment renderer and be refused by name (COBOL2363, kb/Work PB1030)
 // rather than die as a raw parse error. The binder adjudicates; the grammar only delimits.
 refModSpec
     : leftmost=functionArgument? COLON length=functionArgument?
@@ -844,7 +844,7 @@ declarativePart
 // The optional integer after SECTION is the X3.23-1985 segment-number (Segmentation module, 0–99;
 // ≥50 = independent segment) — an obsolete '85 element DELETED by ISO 2002. Parsed at every edition
 // (accepted-inert at 85: all segments resident, a conforming posture); the EditionValidator flags it
-// COBOLNET0902 ≥2002 (`segment-numbers-removed-2002`, VCR Table 7 row 7.18). The companion
+// COBOL0902 ≥2002 (`segment-numbers-removed-2002`, VCR Table 7 row 7.18). The companion
 // SEGMENT-LIMIT clause is row 7.8 (gated at segmentLimitClause — kb/Work PB830).
 declarativeSection
     : sectionName SECTION integerLiteral? DOT sentence* declarativeParagraph*
@@ -880,7 +880,7 @@ sectionDefinition
 // slots — the two IsProvableUserWordPosition procedure-name positions. The `reservedGatedWord` alternative is
 // the declaration re-admission the reservation gate needs (kb/Work PB693, the dataName precedent): a
 // §8.9-reserved word is gated OUT of cobolWord at the editions that reserve it, so without this `BIT SECTION.`
-// at --std 2002 answers a raw COBOL0001 instead of the targeted COBOLNET0901 that names §8.9.
+// at --std 2002 answers a raw COBOL0001 instead of the targeted COBOL0901 that names §8.9.
 // ⛔ IT SITS ON THE DEFINITION WRAPPERS, NOT ON `procedureName`: procedureName is shared with every REFERENCE
 // (GO TO … DEPENDING's procedure-name LIST above all), and re-admitting the word there would let that list
 // absorb the next statement's leading keyword again — the very defect PB693 fixes. Consumers read these
@@ -978,10 +978,10 @@ statement
     //    ⛔ RECEIVE AND SEND ARE THE UNION GRAMMAR, GATED ON INTRODUCTION, NOT ON RESERVATION (kb/Work PB374).
     //    Both words are NON-MONOTONIC in §8.9: reserved at COBOL-85 (the '85 communication module's verbs), user
     //    words at 2002/2014, reserved again at 2023. A reservation predicate therefore recognized the 2023-only
-    //    §14.9.31.2 / §14.9.38.2 formats at --std 85 and warned COBOLNET1578 naming a 2023 facility, while
+    //    §14.9.31.2 / §14.9.38.2 formats at --std 85 and warned COBOL1578 naming a 2023 facility, while
     //    2002/2014 answered a raw parse error. The arm fires wherever the token spells the verb (wordAhead, so a
     //    >>COBOL-WORDS UNDEFINE still removes it), and the edition pass names the introduction
-    //    (VersionConformancePass VisitMcs*Statement → async-messaging-2023 → COBOLNET0900). No legal program of
+    //    (VersionConformancePass VisitMcs*Statement → async-messaging-2023 → COBOL0900). No legal program of
     //    any edition loses a reading: at 2002/2014 a user-defined word RECEIVE or SEND cannot begin a statement,
     //    and the operand-list keyword choice for an undeclared one is keywordContinuesHere's (kb/Work PB805).
     //    VALIDATE (reserved from 2002, its introduction) and COMMIT / ROLLBACK (reserved from 2023, theirs) keep
@@ -1131,7 +1131,7 @@ sendingOperand
 // classification). The sending operand's identifier arm IS the receiver arm's dataReference, so only the other arms
 // of `sendingOperand` are written here.
 // MULTIPLY's BY operand prints the same two shapes (§14.9.26.2) but stays `multiplyByOperand+`: that rule admits a
-// REPEATED sending operand and a ROUNDED literal, which ArithmeticBinder names (COBOLNET1689) where this rule's three
+// REPEATED sending operand and a ROUNDED literal, which ArithmeticBinder names (COBOL1689) where this rule's three
 // users take a parse error, so folding it in would change what parses.
 receiversOrSendingOperand
     : receivingArithmeticOperand+
@@ -1466,7 +1466,7 @@ entryStatement
 
 // ENTER language-name-1 [routine-name-1] — the other-language entry statement. Accepted-inert at 85
 // (comment-equivalent when only COBOL is supported — the conforming '85 posture; bound as a no-op);
-// the EditionValidator flags it COBOLNET0902 ≥2002 (`enter-removed-2002`, VCR Table 7 row 7.16).
+// the EditionValidator flags it COBOL0902 ≥2002 (`enter-removed-2002`, VCR Table 7 row 7.16).
 // The operands are deliberately NOT cobolWord: language-name-1 is a SYSTEM-name (`ENTER COBOL.` is the
 // canonical '85 switch-back and COBOL is an '85 reserved word — a cobolWord slot would trip the §8.9
 // funnel 0901 on conforming source), and routine-name-1 names an external routine, not a word in the
@@ -1500,7 +1500,7 @@ cancelTarget
 
 setStatement
     : setLocaleStatement          // F11/F12 (A.4.9 item 9) — FIRST: predicated on the LOCALE word, so no other form can claim it (kb/Work PB92)
-    | setScreenAttributeStatement // F6 (A.4.2 item 24) — predicated on the ATTRIBUTE word, refused by name at bind (COBOLNET1707)
+    | setScreenAttributeStatement // F6 (A.4.2 item 24) — predicated on the ATTRIBUTE word, refused by name at bind (COBOL1707)
     | setLastExceptionStatement
     | setContentStatement       // F15 (numeric-content) — CONTENT is a reserved token, so no other form can claim it
     | setSwitchStatement
@@ -1531,7 +1531,7 @@ setStatement
 // {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT} (ISO §14.9.39 Format 11, set-locale) and
 // SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT} (Format 12, save-locale).
 // IMPLEMENTED since kb/Work PB64 T1 (the binder's SetBinder.BindSetLocale / BindSaveLocale; it used to be parsed only to
-// draw COBOLNET1518 — kb/Work PB92: F11 used to bind as a generic SET of a data item named LOCALE, "'LOCALE' is not
+// draw COBOL1518 — kb/Work PB92: F11 used to bind as a generic SET of a data item named LOCALE, "'LOCALE' is not
 // defined" plus false 0901s about the format's own keywords; F12 was `unexpected '.'`). ⚠ THE CATEGORY OPERAND IS A
 // SET: the printed format's inner LC_ brace carries CHOICE INDICATORS (§5.2.6.4 — one or more, each at most once, any
 // order), hence `cobolWord+` after LOCALE; the binder enforces "each at most once" (the grammar cannot) and the
@@ -1833,7 +1833,7 @@ setObjectReferenceStatement
 // receiving operand", §8.4.3.7.3 SR1 "NULL shall not be specified as a receiving operand", §8.4.3.8.3 SR2 (SELF and
 // SUPER), §8.4.3.11.3 SR5, §8.4.3.12.3 SR3 and §8.4.3.13.3 SR4 (the three address-identifiers) "This identifier
 // format shall not be specified as a receiving operand". A receiving slot that took only `dataReference` refused them
-// as a parse error re-coded to §8.9 (COBOLNET0901 "'SELF' is a reserved word … cannot be used as a user-defined
+// as a parse error re-coded to §8.9 (COBOL0901 "'SELF' is a reserved word … cannot be used as a user-defined
 // word") — the right verdict for a rule the program did not break, and one that would turn into SILENT ACCEPTANCE the
 // moment the identifier tier is widened (PB1782). The P3 superset parse lets ExpressionBinder.ResolveReceiving — the
 // ONE receiving chokepoint — name the rule from ONE table keyed by the identifier's form (ReceivingOperandForms).
@@ -1875,7 +1875,7 @@ nonReceivableIdentifier
 // tell the two apart, so the grammar has ONE spelling for both: `dataReference` with the `propertyObject` suffix, and
 // the resolver decides by symbol (ReferenceResolver.QualifiedSuperClass: a class-name is the qualified SUPER, anything
 // else the property). Its one legal home is the invocation receiver (OoBinder.OoBindByReceiver); everywhere else
-// §8.4.3.8.3 SR3 refuses it (COBOLNET2900), exactly as it refuses a bare SUPER.
+// §8.4.3.8.3 SR3 refuses it (COBOL2900), exactly as it refuses a bare SUPER.
 //
 // ⛔ AN OBJECT-REFERENCE POSITION TAKES EVERY IDENTIFIER FORMAT THAT CAN YIELD AN OBJECT REFERENCE (kb/Work PB1425,
 // PB1197). §14.9.23.3 SR1 ("Identifier-1 shall be an object reference"), §14.9.29.3 SR2 and §14.9.39.3 SR9 ask the
@@ -1947,7 +1947,7 @@ setIndexStatement
 // ==========================================
 
 // Formats 1 (device) and 2 (temporal) are IMPLEMENTED; format 3 (screen, §14.9.1.2 — Annex A.4.2 item 1) is a
-// DECLINED optional element given a surface here purely so it draws the named COBOLNET1707 instead of a generic
+// DECLINED optional element given a surface here purely so it draws the named COBOL1707 instead of a generic
 // parse error, and so its MINIMAL shape stops being invisible: `ACCEPT screen-name-1` is token-identical to the
 // format-1 device ACCEPT, so without the binder's screen-name test it silently transfers device input into a
 // screen record (kb/Work PB260). The positioning and exception phrases live in CobolScreen.g4.
@@ -1993,7 +1993,7 @@ acceptSource
 // positioning word with NO viable reading at all, so the rule dies on a raw `COBOL0001: failed predicate`.
 // The argument for guarding it — "none of them can legally be a DISPLAY operand, so nothing legal is lost" —
 // is true of LEGAL source and misses that ILLEGAL source must still reach its NAMED diagnostic:
-// `01 COLUMN PIC 9.` … `DISPLAY COLUMN.` is a §8.3.2.1 rule-1 violation whose answer is COBOLNET0901 from
+// `01 COLUMN PIC 9.` … `DISPLAY COLUMN.` is a §8.3.2.1 rule-1 violation whose answer is COBOL0901 from
 // the §8.9 funnel, and the guard turned that into an unexplained parse error at every edition
 // (ReservedWordPositionConformanceTests.DataItemNamedColumn_Rejected0901_EvenAt85; the memory is
 // `left_edge_predicates`). Requiring one operand unconditionally and guarding only the CONTINUATION keeps
@@ -2085,7 +2085,7 @@ raisingPhrase
 //             { interface-name-1                    }
 //
 // ⛔ EACH ELEMENT IS A TUPLE, NOT A WORD (kb/Work PB815). This rule used to read `RAISING cobolWord+` — ONE
-// axis — so `RAISING FACTORY OF C` died on FACTORY's §8.9 reservation (COBOLNET0901) and the binder had only a
+// axis — so `RAISING FACTORY OF C` died on FACTORY's §8.9 reservation (COBOL0901) and the binder had only a
 // name, never the FACTORY phrase that §14.9.18.3 SR4 a)/c) and §14.9.14.3 SR5 a)/c) compare against the
 // identifier's description. FACTORY is underlined (required when its bracket is taken); OF is NOT, so it is an
 // optional word (§5.2.3). The three alternatives are all one cobolWord in the grammar — an exception-name, a

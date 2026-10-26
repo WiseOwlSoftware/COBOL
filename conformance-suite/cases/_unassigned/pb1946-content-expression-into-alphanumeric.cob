@@ -10,7 +10,7 @@
       *> integer guarantee, so Table 16's NONINTEGER numeric row applies:
       *> 14.9.25.3 Table 16, Numeric Noninteger -> "Alphanumeric-edited,
       *> Alphanumeric" is "No". The BY CONTENT expression N3 * 2 into the
-      *> PIC X(4) nested-program formal is COBOLNET1688. (The same pair into
+      *> PIC X(4) nested-program formal is COBOL1688. (The same pair into
       *> a numeric-edited formal is "Yes": pb1946_content_expression_move_regime.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1946X.

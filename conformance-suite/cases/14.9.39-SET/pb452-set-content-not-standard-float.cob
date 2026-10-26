@@ -12,7 +12,7 @@
       *> a standard usage pins an ISO/IEC 60559:2020 BASIC INTERCHANGE FORMAT, which is what GR33-GR35's
       *> "canonical representation ... for the basic interchange format corresponding to the usage of
       *> identifier-14" has to be taken from; FLOAT-LONG's representation is implementor-defined (13.18.60.4
-      *> GR13). COBOLNET1940 (kb/Work PB452). Declaring the same item FLOAT-BINARY-64 makes the statement legal -
+      *> GR13). COBOL1940 (kb/Work PB452). Declaring the same item FLOAT-BINARY-64 makes the statement legal -
       *> see 2014/pb452_set_content_float.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB452NOTSTANDARDFLOAT.

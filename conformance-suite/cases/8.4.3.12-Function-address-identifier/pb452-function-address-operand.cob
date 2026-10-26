@@ -7,7 +7,7 @@
 *> ISO 1989:2023 8.4.3.12.3 SR1 - "Identifier-1 shall be of category alphanumeric or national." The braced
 *> operand of ADDRESS OF FUNCTION is `function-prototype-name-1 | identifier-1` and nothing else (measured on
 *> the printed folio 141: unlike 8.4.3.13's PROGRAM twin there is no literal-1 arm), so a NUMERIC identifier
-*> names no function. COBOLNET1960. kb/Work PB452.
+*> names no function. COBOL1960. kb/Work PB452.
 IDENTIFICATION DIVISION.
 FUNCTION-ID. NAODBL.
 DATA DIVISION.

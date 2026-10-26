@@ -10,7 +10,7 @@
       *> clause", implying 'PICTURE X(length)' / '1(length)' / 'N(length)'.  COBOL-85 made no such grant - a
       *> PICTURE was required for every elementary item bar an index data item and the subject of a RENAMES
       *> clause - so at --std 85 this program names the construct and the edition that introduces it
-      *> (COBOLNET0900, the introduction band) rather than the generic SR8 rejection or, worse, compiling.
+      *> (COBOL0900, the introduction band) rather than the generic SR8 rejection or, worse, compiling.
       *> The construct row is value-implied-picture-2002; SR9's boolean and national arms are gated a second
       *> time and independently by boolean-data-2002 / national-data-2002, the literal forms themselves being
       *> 2002 additions, which is why the witness here is the ALPHANUMERIC arm.

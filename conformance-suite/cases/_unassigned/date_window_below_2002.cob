@@ -7,7 +7,7 @@
       *> ISO §15.100 YEAR-TO-YYYY / §15.23 DATE-TO-YYYYMMDD / §15.25 DAY-TO-YYYYDDD / §15.80
       *> SECONDS-PAST-MIDNIGHT are COBOL-2002 introductions (the Y2K windowing amendment + the clock
       *> function; PHASE-11-scout-notes.md spec:date-window). Below 2002 the D8 catalog window rejects
-      *> each reference BY NAME — COBOLNET1502 (IntrinsicBinder window gate).
+      *> each reference BY NAME — COBOL1502 (IntrinsicBinder window gate).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P11DATEW85.
        DATA DIVISION.

@@ -18,7 +18,7 @@ using Core = CobolParserCore;
 /// expression spine (BindExpr) RIDE THE HOST until 10q (ExpressionBinder), when those edges flip; the remaining
 /// host edges flip at 10t. Boolean-channel edges (BindBoolExpr / IsSoleBooleanOperand /
 /// BindSoleBooleanOperand) go to <see cref="ConditionBinder"/> through the host's <c>Cond</c> accessor.
-/// The COBOLNET1511 Format-2 SR bodies stay in-binder pending the 10t pure-lift sweep (10o deviation (b)).
+/// The COBOL1511 Format-2 SR bodies stay in-binder pending the 10t pure-lift sweep (10o deviation (b)).
 /// </summary>
 internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
 {
@@ -48,7 +48,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // §14.9.2.3 SR1b: the ADD Format-2 composite is "all of the operands ... excluding the data items that
             // follow the word GIVING" — the resultant identifiers are NOT superimposed into the composite (§14.7.7
             // rule 2). Pass no receivers so a wide GIVING target does not spuriously push the composite past 31
-            // (COBOLNET0805). MULTIPLY (§14.9.26.3 SR4 counts the GIVING receiver) is correctly unchanged.
+            // (COBOL0805). MULTIPLY (§14.9.26.3 SR4 counts the GIVING receiver) is correctly unchanged.
             ctx.Validation.CheckComposite("ADD", addends, []);
             return new BoundAddGiving(addends, givingRecv, sizeErr);
         }
@@ -277,7 +277,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     /// Format 2 / §8.8.2): the diagnostic AND the error node, so the statement never compiles clean.</summary>
     private BoundBoolExpr RefuseNonBooleanComputeOperand(Core.ArithmeticExpressionContext expr)
     {
-        ctx.Edition.Error("COBOLNET1511", $"a boolean COMPUTE receiver takes a boolean expression, "
+        ctx.Edition.Error("COBOL1511", $"a boolean COMPUTE receiver takes a boolean expression, "
             + $"not '{expr.GetText()}' (ISO §14.9.8 Format 2 / §8.8.2)");
         return BoundBoolError.Refused(ctx.Edition, $"COMPUTE boolean receiver takes a boolean expression, not '{expr.GetText()}' "
             + "(ISO §14.9.8 Format 2)");
@@ -343,7 +343,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // (kb/Work PB157 — the PB51 reading, decided by the spec; §8.3.3.6.3 SR2 excludes figuratives from
         // Format 6's literal-1).
         if (rhs is BoundBoolAll { IsAllLiteral: true })
-            ctx.Edition.Error("COBOLNET1511", "a boolean COMPUTE expression shall not consist solely of an ALL "
+            ctx.Edition.Error("COBOL1511", "a boolean COMPUTE expression shall not consist solely of an ALL "
                 + "literal (ISO §14.9.8.3 Format 2 SR3)");
         return BuildComputeBoolean(compute, rhs);
     }
@@ -353,13 +353,13 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     private BoundStatement BuildComputeBoolean(Core.ComputeStatementContext compute, BoundBoolExpr rhs)
     {
         if (compute.computeOnSizeError() is not null)
-            ctx.Edition.Error("COBOLNET1511", "ON SIZE ERROR may not be specified on a boolean COMPUTE "
+            ctx.Edition.Error("COBOL1511", "ON SIZE ERROR may not be specified on a boolean COMPUTE "
                 + "(ISO §14.9.8 Format 2 — no size-error phrase)");
         var targets = new List<Place>();
         foreach (var store in compute.computeStore())
         {
             if (store.roundedPhrase() is not null)
-                ctx.Edition.Error("COBOLNET1511", "ROUNDED may not be specified on a boolean COMPUTE "
+                ctx.Edition.Error("COBOL1511", "ROUNDED may not be specified on a boolean COMPUTE "
                     + "(ISO §14.9.8 Format 2)");
             // kb/Work PB128: the Format-2 boolean receivers ride the ONE receiving chokepoint (the direct
             // Refs.Resolve bypass skipped the CONSTANT RECORD / CAPACITY / constant-name screens); the
@@ -379,7 +379,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // ordinary boolean one and needs no exclusion.)
             var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
             if (cat is not PicCategory.Boolean)
-                ctx.Edition.Error("COBOLNET1511", $"the receiver '{store.receivingIdentifier().GetText()}' of a boolean "
+                ctx.Edition.Error("COBOL1511", $"the receiver '{store.receivingIdentifier().GetText()}' of a boolean "
                     + "COMPUTE shall be an elementary boolean item (ISO §14.9.8.3 Format 2 SR2)");
             targets.Add(p);
         }

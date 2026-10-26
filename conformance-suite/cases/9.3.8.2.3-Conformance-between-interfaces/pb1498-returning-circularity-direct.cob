@@ -13,7 +13,7 @@
       *> CCIRC, which IMPLEMENTS ICIRC - it reaches interface-2; ICIRC's M
       *> returns a CCIRC - it references interface-1 directly. "Indirectly"
       *> is the transitive closure (owner decision kb/Work R63), so CCIRC
-      *> does not conform to ICIRC: COBOLNET0841. (Before the fix nothing
+      *> does not conform to ICIRC: COBOL0841. (Before the fix nothing
       *> examined the sentence and the program ran.)
        IDENTIFICATION DIVISION.
        INTERFACE-ID. ICIRC.

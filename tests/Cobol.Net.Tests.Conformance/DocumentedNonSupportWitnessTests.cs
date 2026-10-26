@@ -15,7 +15,7 @@ namespace CobolNet.Tests.Conformance;
 /// tell those apart.
 ///
 /// <para>⛔ WHY THESE ARE NOT GOLDENS. The facilities left in this class are declined <b>ACCEPT-INERT</b>, so
-/// their named diagnostics are <b>warnings</b> (COBOLNET1578-1580, docs/CONFORMANCE.md §1): the positive corpus
+/// their named diagnostics are <b>warnings</b> (COBOL1578-1580, docs/CONFORMANCE.md §1): the positive corpus
 /// asserts a program COMPILES and byte-matches its <c>.out</c> and never looks at the warning channel, and the
 /// negative corpus requires the compile to FAIL, which a warning does not. So a corpus golden can pin the
 /// INERTNESS half and only a compile-diagnostic assertion can pin the DECLINE half. Each test below therefore
@@ -28,7 +28,7 @@ namespace CobolNet.Tests.Conformance;
 /// and refuted it: A.4.1 — "An implementation shall accept the syntax and provide the functionality for an
 /// optional element only when support for that language element is claimed by the implementor" — is a
 /// prohibition on ACCEPTING, so an unclaimed A.4 module is REFUSED, not warned. The whole module is now an
-/// ERROR by name (COBOLNET1560 data/environment surface, COBOLNET1707 procedure surface) through the one funnel
+/// ERROR by name (COBOL1560 data/environment surface, COBOL1707 procedure surface) through the one funnel
 /// <see cref="CobolNet.Binding.ScreenFacility"/>, which puts its witnesses where a refusal belongs: the NEGATIVE
 /// refusals, 41 programs <c>a42-*</c> under <c>conformance-suite/wiseowl/cases/</c>, each refusal's expected text
 /// naming the construct as well as the code. <c>ScreenFacilityConstructDriftTests</c> holds that coverage complete against
@@ -38,17 +38,17 @@ namespace CobolNet.Tests.Conformance;
 /// <para>THE SPEC BASIS, per remaining facility. (Commit and rollback left this class with kb/Work PB3338, which
 /// built it on the keyed store engine.) VALIDATE (Annex A.4.14) is
 /// OPTIONAL and additionally OBSOLETE (§4.2.13; Annex F.2 item 5): §4.2.7 requires only that the decline be
-/// identified in user documentation, so COBOLNET1580 is this implementation's own stronger posture — and a
+/// identified in user documentation, so COBOL1580 is this implementation's own stronger posture — and a
 /// posture that is documented but unmeasured is exactly what these rows owe. Asynchronous messaging (Annex A.3 item 4) and the OPTIONS FLOAT-DECIMAL clause (A.3
-/// item 13) are processor-dependent too, so their warnings (COBOLNET1578, COBOLNET2424) are §4.2.6 ¶3
+/// item 13) are processor-dependent too, so their warnings (COBOL1578, COBOL2424) are §4.2.6 ¶3
 /// obligations; kb/Work R43 made the rows conditioned solely on them derived verdicts that these facts witness.</para>
 /// </summary>
 public sealed class DocumentedNonSupportWitnessTests
 {
-    private const string ValidateNonSupport = "COBOLNET1580";   // VALIDATE — A.4.14 / §4.2.7 / F.2 item 5
-    private const string RecordDelimiterNonSupport = "COBOLNET1778";   // RECORD DELIMITER — A.3 item 26 + A.1 item 150
-    private const string McsNonSupport = "COBOLNET1578";               // SEND/RECEIVE — A.3 item 4 / §4.2.6 ¶3
-    private const string FloatDecimalClauseNonSupport = "COBOLNET2424"; // OPTIONS FLOAT-DECIMAL — A.3 items 13, 19
+    private const string ValidateNonSupport = "COBOL1580";   // VALIDATE — A.4.14 / §4.2.7 / F.2 item 5
+    private const string RecordDelimiterNonSupport = "COBOL1778";   // RECORD DELIMITER — A.3 item 26 + A.1 item 150
+    private const string McsNonSupport = "COBOL1578";               // SEND/RECEIVE — A.3 item 4 / §4.2.6 ¶3
+    private const string FloatDecimalClauseNonSupport = "COBOL2424"; // OPTIONS FLOAT-DECIMAL — A.3 items 13, 19
 
     /// <summary>The conformance-suite test's source text — the witness and the suite run the SAME file.</summary>
     private static string Golden(string id) => File.ReadAllText(TestRepo.SuiteCase(id));
@@ -67,7 +67,7 @@ public sealed class DocumentedNonSupportWitnessTests
         }
     }
 
-    /// <summary>VALIDATE → COBOLNET1580, at the editions the facility exists (2002+; at --std 85 VALIDATE is
+    /// <summary>VALIDATE → COBOL1580, at the editions the facility exists (2002+; at --std 85 VALIDATE is
     /// an ordinary user-defined word). §13.18.40.4 GR19's only trigger is the format validation stage of a
     /// VALIDATE statement, so the decline is what makes the rule unreachable.
     /// <para>⚠ The golden's <c>.out</c> pins INERTNESS only, never the decline: §14.9.50.4 GR5 ("the execution
@@ -79,7 +79,7 @@ public sealed class DocumentedNonSupportWitnessTests
         AssertRecognizedAndNamed(Golden("dns_validate_picture_locale_witness"),
             ValidateNonSupport, 2002, 2014, 2023);
 
-    /// <summary>RECORD DELIMITER → COBOLNET1778, at EVERY edition (the clause is in the '85 file control entry
+    /// <summary>RECORD DELIMITER → COBOL1778, at EVERY edition (the clause is in the '85 file control entry
     /// and every edition since), and — the point of the pair — ONCE PER ARM. §4.2.6 ¶3 compels the warning for
     /// the STANDARD-1 arm: Annex A.3 item 26 makes it processor-dependent and §12.4.5.11.4 GR2 makes its medium
     /// a tape drive this implementation has none of. The feature-name arm is declined on a DIFFERENT licence —
@@ -88,7 +88,7 @@ public sealed class DocumentedNonSupportWitnessTests
     /// STANDARD-1 fix implies it fires.
     /// <para>⛔ THE ASSERTION IS ON THE ARM, NOT ON THE CODE, and that is the whole design. kb/Work PB292's own
     /// warning was that "a fix touching only the STANDARD-1 arm repeats the defect shape" — and a test that
-    /// only asked for COBOLNET1778 over a two-SELECT program would PASS with the feature-name arm still silent
+    /// only asked for COBOL1778 over a two-SELECT program would PASS with the feature-name arm still silent
     /// (feedback_two_arm_dispatch). Each fact therefore demands the diagnostic that quotes ITS OWN clause
     /// spelling back, which is exactly the `seen` half <see cref="CobolNet.Binding.EditionContext.Declined"/>
     /// composes at the site.</para>
@@ -148,14 +148,14 @@ public sealed class DocumentedNonSupportWitnessTests
         Assert.DoesNotContain(raised, w => w.Contains("on file 'F4'", StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>ASYNCHRONOUS MESSAGING → COBOLNET1578, ONCE PER STATEMENT (kb/Work R43 / PB1198). Annex A.3
+    /// <summary>ASYNCHRONOUS MESSAGING → COBOL1578, ONCE PER STATEMENT (kb/Work R43 / PB1198). Annex A.3
     /// item 4 makes the facility processor-dependent ("dependent on the capability of a processor to allow run
     /// units to communicate with each other") and §4.2.6 ¶3 makes the compile-time warning mandatory for a
     /// declined one. The facility has TWO statements, RECEIVE (§14.9.31) and SEND (§14.9.38), and until this test
     /// only the SEND site was asserted anywhere (GobackGeneralFormatTests) — so the count, not the code, is the
     /// assertion: a decline wired into one statement's binder arm and not the other would still produce one
-    /// COBOLNET1578 (feedback_two_arm_dispatch). The facility is a COBOL-2023 introduction; below it the two formats
-    /// draw COBOLNET0900 and no COBOLNET1578 (negative/pb374-async-messaging-below-2023, kb/Work PB374), and at
+    /// COBOL1578 (feedback_two_arm_dispatch). The facility is a COBOL-2023 introduction; below it the two formats
+    /// draw COBOL0900 and no COBOL1578 (negative/pb374-async-messaging-below-2023, kb/Work PB374), and at
     /// 2014 both words are ordinary user-defined words (at 2002 they are still reserved for the obsolete communication
     /// facility, kb/Work PB656; negative/user-word-receive, version-matrix row receive-as-user-word).
     /// <para>The golden's <c>.out</c> pins the INERT half: with no message I-O neither ON EXCEPTION nor NOT ON
@@ -172,7 +172,7 @@ public sealed class DocumentedNonSupportWitnessTests
 
     /// <summary>BELOW 2023 THE FORMATS ARE AN INTRODUCTION, NOT THE FACILITY (kb/Work PB374). RECEIVE and SEND are
     /// §8.9-reserved at COBOL-85 too (the '85 communication module), so a reservation test recognized the 2023 formats
-    /// at --std 85 and compiled them under the 2023 facility's COBOLNET1578. Every edition below 2023 now refuses each
+    /// at --std 85 and compiled them under the 2023 facility's COBOL1578. Every edition below 2023 now refuses each
     /// statement with the introduction gate, and names no facility it does not have: the negative corpus asserts the
     /// error code only, so the absence of the warning is asserted here.</summary>
     [Theory]
@@ -184,11 +184,11 @@ public sealed class DocumentedNonSupportWitnessTests
         string source = Golden("pb374-async-messaging-below-2023");
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
         Assert.False(ok, $"the asynchronous messaging formats compiled at COBOL-{edition}");
-        Assert.Equal(2, errors.Count(e => e.Contains("COBOLNET0900", StringComparison.Ordinal)));
+        Assert.Equal(2, errors.Count(e => e.Contains("COBOL0900", StringComparison.Ordinal)));
         Assert.DoesNotContain(warnings, w => w.Contains(McsNonSupport, StringComparison.Ordinal));
     }
 
-    /// <summary>THE SAME FACILITY'S EXCEPTION-NAMES → COBOLNET1578, ONCE PER WRITTEN NAME, AND STILL ACCEPTED (kb/Work
+    /// <summary>THE SAME FACILITY'S EXCEPTION-NAMES → COBOL1578, ONCE PER WRITTEN NAME, AND STILL ACCEPTED (kb/Work
     /// PB374). The EC-MCS names compiled in SILENCE against a facility with no setting site; asynchronous messaging is
     /// Annex A.3 item 4, processor-dependent, so §4.2.6's warning mechanism is owed for them as for SEND and RECEIVE,
     /// and the posture is accept-inert, never the refusal the optional modules' names get. The golden writes the names
@@ -209,10 +209,10 @@ public sealed class DocumentedNonSupportWitnessTests
     }
 
     /// <summary>A DECLINED OPTIONAL MODULE'S EXCEPTION-NAME UNDER <c>--permissive</c> IS ACCEPTED, AND THEN IT RESOLVES
-    /// (kb/Work PB374 review R1-1). COBOLNET1710 is an Error descriptor marked <c>PermissiveInert</c>, so
+    /// (kb/Work PB374 review R1-1). COBOL1710 is an Error descriptor marked <c>PermissiveInert</c>, so
     /// <c>EditionContext.Declined</c> warns rather than refuses under <c>--permissive</c>; the exception-name funnel
     /// decided by a local severity test instead, warned the name as accepted, dropped it anyway, and the RAISE that
-    /// wrote it died as COBOLNET2362, a refusal no diagnostic names. Each source is the strict-mode NEGATIVE that
+    /// wrote it died as COBOL2362, a refusal no diagnostic names. Each source is the strict-mode NEGATIVE that
     /// pins the refusal (so the two postures read one file), at the three sites that reach the funnel by different
     /// paths: RAISE, &gt;&gt;TURN and a USE declarative.</summary>
     [Theory]
@@ -228,7 +228,7 @@ public sealed class DocumentedNonSupportWitnessTests
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023, permissive: true);
         Assert.True(ok, $"a PermissiveInert declined exception-name must compile under --permissive: "
                         + string.Join("\n", errors));
-        Assert.Contains(warnings, w => w.Contains("COBOLNET1710", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("COBOL1710", StringComparison.Ordinal)
                                        && w.Contains(name, StringComparison.Ordinal)
                                        && w.Contains("is accepted", StringComparison.Ordinal));
     }
@@ -266,14 +266,14 @@ public sealed class DocumentedNonSupportWitnessTests
         var (screenOk, screenErrors, _) = EditionHarness.CompileFull(Golden("a42-ec-screen-raise"), 2023,
                                                                      permissive: true);
         Assert.False(screenOk, "EC-SCREEN is not PermissiveInert; --permissive must not accept its names");
-        Assert.Contains(screenErrors, e => e.Contains("COBOLNET1707", StringComparison.Ordinal));
+        Assert.Contains(screenErrors, e => e.Contains("COBOL1707", StringComparison.Ordinal));
     }
 
-    /// <summary>The OPTIONS FLOAT-DECIMAL clause → COBOLNET2424 (kb/Work R43 / PB579). Annex A.3 item 13 makes
+    /// <summary>The OPTIONS FLOAT-DECIMAL clause → COBOL2424 (kb/Work R43 / PB579). Annex A.3 item 13 makes
     /// the clause processor-dependent and dependent on the standard decimal floating-point usages, which are not
     /// provided (item 19); §4.2.6 ¶3 compels the warning. It is the decline that LEAKED — the clause compiled
     /// with no diagnostic at all at 2014 and 2023 until this change. The complement is asserted too: the same
-    /// program with the claimed FLOAT-BINARY clause in its place draws no COBOLNET2424, so the warning is about
+    /// program with the claimed FLOAT-BINARY clause in its place draws no COBOL2424, so the warning is about
     /// the declined clause and not about the OPTIONS paragraph.</summary>
     [Theory]
     [InlineData(2014)]
@@ -291,7 +291,7 @@ public sealed class DocumentedNonSupportWitnessTests
         Assert.DoesNotContain(warnings, w => w.Contains(FloatDecimalClauseNonSupport, StringComparison.Ordinal));
     }
 
-    /// <summary>EVERY legal spelling of the declined FLOAT-DECIMAL clause reaches the COBOLNET2424 warning — never a
+    /// <summary>EVERY legal spelling of the declined FLOAT-DECIMAL clause reaches the COBOL2424 warning — never a
     /// parse error (kb/Work PB1508, wave 59 H; owner decision R43 item 5: a decline that diagnoses legal source
     /// wrongly is a leak). §11.9.9.2's phrases are enclosed in CHOICE INDICATORS, and §5.2.6.4 says "The
     /// alternatives may be specified in any order": the endianness-first order was refused with an anonymous
@@ -310,7 +310,7 @@ public sealed class DocumentedNonSupportWitnessTests
     }
 
     /// <summary>One arm of the RECORD DELIMITER decline, at one edition: the source COMPILES (accept-inert) and
-    /// a COBOLNET1778 warning quotes back <paramref name="armSpelling"/>. Reads the corpus golden, so the
+    /// a COBOL1778 warning quotes back <paramref name="armSpelling"/>. Reads the corpus golden, so the
     /// inertness half and the decline half never diverge.</summary>
     private static void AssertArmNamed(int edition, string armSpelling)
     {

@@ -9,7 +9,7 @@
       *>   constant nor a zero-length literal." A constant-name written
       *> as the ASSIGN operand is literal-1 as if written (13.10.4 GR1),
       *> so a constant that stands for a NUMERIC literal violates SR4:
-      *> COBOLNET2645, naming the constant. (The word is no longer read
+      *> COBOL2645, naming the constant. (The word is no longer read
       *> as device-name-1 once the program declares it a constant.)
       *>   cite.py --check 12.4.5.2 "Literal-1 shall be an alphanumeric
       *>     literal and shall be neither a figurative constant nor a

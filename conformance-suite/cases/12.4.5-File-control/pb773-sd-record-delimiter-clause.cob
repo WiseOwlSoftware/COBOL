@@ -11,7 +11,7 @@
 *> the one that speaks about it, which is why the rule is two rows (kb/Work PB773). The clause is
 *> otherwise a declined accept-inert clause that draws only a warning, so the refusal below is the
 *> program's only error.
-*> COBOLNET1900, not COBOLNET0863: the subject is the file DESCRIPTION entry.
+*> COBOL1900, not COBOL0863: the subject is the file DESCRIPTION entry.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB773SDRD.
 ENVIRONMENT DIVISION.

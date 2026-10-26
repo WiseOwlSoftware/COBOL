@@ -8,7 +8,7 @@
       *> other wave-67 group O goldens: pb1144_dyn_move_recreate, pb1269_dyn_overflow_resume_next,
       *> pb1411_dyn_vargroup_element_receiver). A dynamic-capacity table (8.5.1.9; OCCURS Format 4, 13.18.38)
       *> and its INITIALIZED phrase (8.5.1.9.5) are COBOL-2014 introductions, so at COBOL-85 and COBOL-2002
-      *> the table cannot be declared at all; COBOLNET0900 is the version gate.
+      *> the table cannot be declared at all; COBOL0900 is the version gate.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1267N1.
        DATA DIVISION.

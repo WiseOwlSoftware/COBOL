@@ -14,7 +14,7 @@
       *> and the COLUMN clause's integer-1 of 1000 exceeds it. The width was a
       *> run-time constant with no compile-time reader, so the program
       *> compiled.
-      *> No edition changes the rule, so all four reject, with COBOLNET2710.
+      *> No edition changes the rule, so all four reject, with COBOL2710.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1059N3.
        ENVIRONMENT DIVISION.

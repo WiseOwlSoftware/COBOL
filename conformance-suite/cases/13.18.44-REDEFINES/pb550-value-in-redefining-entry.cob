@@ -9,7 +9,7 @@
 *> A syntax rule at every edition (Annex E records no change). MEASURED BEFORE: compiled clean and displayed
 *> [AAAA|AAAA] - B's VALUE was silently discarded, because a REDEFINES view never seeds the storage it shares
 *> with its anchor (kb/Work PB550). The subordinate, group-level and format-2 (SR16) spellings are pinned by
-*> ValueClauseScreenTests. (COBOLNET2406)
+*> ValueClauseScreenTests. (COBOL2406)
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB550REDVAL.
 DATA DIVISION.

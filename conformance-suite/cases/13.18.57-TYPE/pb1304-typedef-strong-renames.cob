@@ -7,7 +7,7 @@
 *> kb/Work PB1304 - ISO 13.18.57.3 SR3: "If type-name-1 is described with the STRONG phrase, the subject of the entry
 *>   shall not be renamed in whole or in part." The RENAMES clauses of a type are part of the type
 *>   (13.18.58.4 GR1), so AB of a STRONG T renames, in part, every group defined with T, and the group built from
-*>   T is refused (COBOLNET1532) exactly as a RENAMES written after a strongly-typed record is. The
+*>   T is refused (COBOL1532) exactly as a RENAMES written after a strongly-typed record is. The
 *>   same would be silently accepted if the cloned aliases skipped the strong-type screen.
 *>   cite.py: OK  13.18.57.3 3)  (Syntax rules)
 *>   cite.py: OK  13.18.58.4 1)  (General rules)

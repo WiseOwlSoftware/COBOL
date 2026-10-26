@@ -15,7 +15,7 @@ namespace CobolNet.Binding;
 /// whether an elementary item is "described with" the clause do not: the §8.5.3.1 type-equivalence comparison
 /// (<see cref="StrongTypeModel"/>) compares each pair of corresponding elementary items' SYNCHRONIZED clauses, and with
 /// the flag left on the group entry <c>01 TC TYPEDEF STRONG SYNC. 05 X1 PIC X. …</c> and the same declaration written
-/// with SYNC on each leaf were two different types, so a legal CALL was refused COBOLNET1688. So each elementary item
+/// with SYNC on each leaf were two different types, so a legal CALL was refused COBOL1688. So each elementary item
 /// takes the form of the clause the nearest enclosing group wrote, unless its own entry wrote one (an entry's own
 /// clause is the nearest, as for the SIGN clause, §13.18.52.4 GR3).</para>
 ///

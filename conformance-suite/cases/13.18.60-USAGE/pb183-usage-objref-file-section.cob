@@ -8,7 +8,7 @@
 *> section." THE DIRECT DECLARATION ARM - a textbook two-arm dispatch with only the indirect arm
 *> enforced: its SAME AS twin (13.18.49.3 SR6, "a SAME AS clause in the file section shall not
 *> reference an item whose description contains a USAGE OBJECT REFERENCE data item") has been
-*> screened as COBOLNET1556 since the SAME AS landing, while writing the clause directly on an FD
+*> screened as COBOL1556 since the SAME AS landing, while writing the clause directly on an FD
 *> record was accepted. R is at level 1, so SR14 admits it and SR15 alone rejects it - which is what
 *> makes this fixture attributable to its own arm.
 IDENTIFICATION DIVISION.

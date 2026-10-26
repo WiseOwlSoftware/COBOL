@@ -19,7 +19,7 @@ namespace CobolNet.Frontend.Expressions;
 /// <para><b>Both lanes.</b> <c>VersionConformancePass</c> calls it per <c>comparisonOperator</c> node of the compilation
 /// unit; the conditional-compilation stage calls it per constant-conditional-expression FRAGMENT, which the
 /// compilation-unit walk never reaches — a <c>&gt;&gt;IF</c> operand is "formed according to the rules in 8.8.4.2" (§7.3.8.2
-/// SR1 a)) of the targeted edition, so <c>&gt;&gt;IF 5 &lt;&gt; 3</c> below 2014 is the same COBOLNET0900 its runtime twin
+/// SR1 a)) of the targeted edition, so <c>&gt;&gt;IF 5 &lt;&gt; 3</c> below 2014 is the same COBOL0900 its runtime twin
 /// draws. Until kb/Work PB3604 the row sat at 2002 and the directive lane had no gate at all.</para>
 /// </summary>
 public static class RelationalOperatorGate

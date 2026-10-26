@@ -18,7 +18,7 @@
       *>    bare literal-2 (GR8; the admission is 13.10.3 SR2 - a constant-name "may be used anywhere that a
       *>    format specifies a literal"). A literal never meets 14.9.4.3 SR3, so 14.9.4.4 GR9 a)2 assumes
       *>    BY CONTENT; 14.2.3 GR9's allocated record takes the formal's own description with the argument as
-      *>    a COMPUTE sending operand => +0042; MOVE to PIC ZZZ9 => "  42". It used to draw COBOLNET1548
+      *>    a COMPUTE sending operand => +0042; MOVE to PIC ZZZ9 => "  42". It used to draw COBOL1548
       *>    ("constant-name shall not be specified as a receiving operand") - legal source, refused.
       *>  S4 - boolean-expression-1, the third of SR17's operand set. B"1100" B-AND B"1010" is bit-wise
       *>    conjunction (8.8.2) => B"1000"; 8.8.2 rule 10 fixes the value length at the largest boolean

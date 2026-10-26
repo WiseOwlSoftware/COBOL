@@ -9,7 +9,7 @@
 *>   were written (13.10.3 SR2 lets the constant stand there).
 *>   cite.py: OK  5.5 1)  (Integer operands)
 *>   cite.py: OK  13.10.4 1)  (General rules)
-*> No rule of the BLOCK CONTAINS clause (13.18.10.3) permits zero, so a zero constant is COBOLNET2386 exactly
+*> No rule of the BLOCK CONTAINS clause (13.18.10.3) permits zero, so a zero constant is COBOL2386 exactly
 *> as the literal is. The positive twin is conformance/2002/pb1948_integer_n_constants.cob.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB1948N1.

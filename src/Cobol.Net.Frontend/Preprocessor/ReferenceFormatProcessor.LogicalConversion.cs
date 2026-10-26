@@ -82,7 +82,7 @@ public static partial class ReferenceFormatProcessor
             {
                 case CommentEntryText.Header:
                     // The paragraph HEADER stays program text — the parser and the one removal gate
-                    // (VersionConformancePass, COBOLNET0902 from 2002) must see the paragraph in fixed form as they do in
+                    // (VersionConformancePass, COBOL0902 from 2002) must see the paragraph in fixed form as they do in
                     // free form (kb/Work PB1494, PB1758) — and only the comment-entry is discarded. The entry's end is
                     // implied by the next Area-A word (COBOL-85), so the logical conversion writes the paragraph's
                     // terminating period explicitly: `AUTHOR. .` is the paragraph `AUTHOR DOT DOT` with no content.
@@ -146,7 +146,7 @@ public static partial class ReferenceFormatProcessor
                     break;
 
                 case LineKind.NotAnIndicator:
-                    gates?.OnInvalidIndicator(file, lineNo, indicator);   // COBOLNET2616, then read as a source line
+                    gates?.OnInvalidIndicator(file, lineNo, indicator);   // COBOL2616, then read as a source line
                     _builder.Add(area, site, fixedContinuation: false);
                     break;
 

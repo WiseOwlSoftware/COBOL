@@ -17,7 +17,7 @@
       *> UNLOCK unguarded at every edition.  This whole paragraph is
       *> ONE sentence - no period until STOP RUN - so before the fix
       *> `MOVE "ZZ" TO FS UNLOCK F1` parsed as a THREE-receiver MOVE
-      *> and answered COBOLNET1639 twice: conforming COBOL-2002
+      *> and answered COBOL1639 twice: conforming COBOL-2002
       *> source REJECTED, and the UNLOCK statement silently gone.
       *> The generated gate `{userWordHere("UNLOCK")}?` now withdraws
       *> the word from the slot exactly where 8.9 reserves it, so the

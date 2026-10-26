@@ -22,9 +22,9 @@ namespace CobolNet.Frontend.Cst;
 /// <param name="Noun">"clause" or "paragraph" — what the format's list is a list OF. The §12.3.2 and §11.2.1
 /// formats list PARAGRAPHS, not clauses, and a diagnostic that called an unrecognized paragraph header a
 /// "clause" would send the reader to the wrong subclause.</param>
-/// <param name="Diagnostic">The catalogue descriptor the refusal reports. §13.16.2 keeps COBOLNET1941, allocated when
-/// it was closed alone (kb/Work PB487); the clause-list formats share COBOLNET1970 and the paragraph-list formats
-/// COBOLNET1971. Carried on the row, so neither refusal site re-derives the code from the noun.</param>
+/// <param name="Diagnostic">The catalogue descriptor the refusal reports. §13.16.2 keeps COBOL1941, allocated when
+/// it was closed alone (kb/Work PB487); the clause-list formats share COBOL1970 and the paragraph-list formats
+/// COBOL1971. Carried on the row, so neither refusal site re-derives the code from the noun.</param>
 public sealed record ClosedFormat(string Clause, string FormatLabel, string Subject, string Noun, DiagnosticDescriptor Diagnostic)
 {
     /// <summary>⛔ THE ONE WORDING OF THE REFUSAL, for both of its sites (kb/Work PB2533): <c>ClosedFormatPass</c>, which
@@ -66,7 +66,7 @@ public static class ClosedFormats
         new Dictionary<Type, ClosedFormat>
         {
             // §13.16.2 Format 1 — the data description entry. Closed first, alone, by kb/Work PB487; PDF p393 /
-            // folio 363. Keeps COBOLNET1941 and its message verbatim: the code was allocated for this format and
+            // folio 363. Keeps COBOL1941 and its message verbatim: the code was allocated for this format and
             // is pinned by conformance:cases/13.16-Data-description/pb487-unrecognized-data-clause.
             [typeof(Core.DataDescriptionClauseContext)] =
                 new("13.16.2", "Format 1 ", "data description entry", "clause", DiagnosticCatalog.DataClauseUnrecognized),

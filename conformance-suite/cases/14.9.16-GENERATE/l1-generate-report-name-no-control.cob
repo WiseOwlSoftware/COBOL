@@ -9,7 +9,7 @@
 *> reporting, §14.9.16.4) is a syntax-rule violation and must be rejected at compile time. The data-name form
 *> GENERATE L1GNR-D on the same report is legal (SR1) and is included so the ONLY violation is SR2's.
 *> Report Writer and both GENERATE forms exist in every edition, so every edition rejects.
-*> The .err pins the clause citation the diagnostic carries, not its code: the code is COBOLNET0899 today and
+*> The .err pins the clause citation the diagnostic carries, not its code: the code is COBOL0899 today and
 *> kb/Work PB1028 owes it a syntax-rule code of its own.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1GNRNC.

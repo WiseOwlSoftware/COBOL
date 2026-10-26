@@ -11,7 +11,7 @@
       *> width (14.8.2.2 rule 1's activation reading), so the override compiled.
       *> cite.py --check 9.3.8.2.3 "the corresponding formal parameter in interface-1 has the same ALIGNED,
       *>   ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses" -> OK 3)
-      *> COBOLNET0829 on the overriding method.
+      *> COBOL0829 on the overriding method.
        IDENTIFICATION DIVISION.
        CLASS-ID. K3101R.
        IDENTIFICATION DIVISION.

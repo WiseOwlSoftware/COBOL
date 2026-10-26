@@ -84,11 +84,11 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, $"S=[{new string(' ', 31)}]");
 
-    // ── kb/Work PB2505: the RAISE that raises nothing is ADVISED (COBOLNET3803, Warning — legal source stays legal).
+    // ── kb/Work PB2505: the RAISE that raises nothing is ADVISED (COBOL3803, Warning — legal source stays legal).
     //    The advisory reads the same compile-time enablement EcEmitter.EmitRaise does, so it fires exactly where the
     //    generated code is the "checking not enabled" comment, and nowhere a RAISE really raises. ─────────────────
 
-    private const string RaiseAdvisory = "COBOLNET3803";
+    private const string RaiseAdvisory = "COBOL3803";
 
     [Fact]   // The Annex D.2.5 shape: a USE declarative for EC-USER-FATAL-ERROR, RAISEs of it and no TURN anywhere.
              // §14.6.13.1.1 + §14.6.13.1.4: neither RAISE raises, so each is advised AT ITS OWN statement, and the
@@ -1499,7 +1499,7 @@ public sealed class ExceptionConditionConformanceTests
                 GOBACK RAISING EXCEPTION EC-SIZE-OVERFLOW.
             """, "BEFORE");
 
-    // ── Diagnostics (the COBOLNET07xx/08xx band) ─────────────────────────────────────────────────────────────
+    // ── Diagnostics (the COBOL07xx/08xx band) ─────────────────────────────────────────────────────────────
 
     [Fact]   // §14.9.29.3 SR1: only a LEVEL-3 exception-name may be raised.
     public void Raise_Level2Name_Diagnosed()
@@ -1510,7 +1510,7 @@ public sealed class ExceptionConditionConformanceTests
             MAIN-PARA.
                 RAISE EXCEPTION EC-SIZE.
                 STOP RUN.
-            """, 2023), "COBOLNET0710");
+            """, 2023), "COBOL0710");
 
     [Fact]   // §14.6.13.1 / §7.3.25.3 SR2: an unknown exception-name is rejected.
     public void Raise_UnknownName_Diagnosed()
@@ -1521,7 +1521,7 @@ public sealed class ExceptionConditionConformanceTests
             MAIN-PARA.
                 RAISE EXCEPTION EC-BOGUS-NAME.
                 STOP RUN.
-            """, 2023), "COBOLNET0711");
+            """, 2023), "COBOL0711");
 
     [Fact]   // §14.9.33.3 SR1: RESUME only in a declarative.
     public void Resume_OutsideDeclaratives_Diagnosed()
@@ -1532,7 +1532,7 @@ public sealed class ExceptionConditionConformanceTests
             MAIN-PARA.
                 RESUME AT NEXT STATEMENT.
                 STOP RUN.
-            """, 2023), "COBOLNET0712");
+            """, 2023), "COBOL0712");
 
     [Fact]   // §14.9.33.3 SR2: RESUME shall not appear in a GLOBAL-phrase declarative.
     public void Resume_InGlobalDeclarative_Diagnosed()
@@ -1552,7 +1552,7 @@ public sealed class ExceptionConditionConformanceTests
             MAIN SECTION.
             MAIN-PARA.
                 STOP RUN.
-            """, 2023), "COBOLNET0713");
+            """, 2023), "COBOL0713");
 
     [Fact]   // §14.9.49.3 SR13: FILE only with an exception-name beginning EC-I-O.
     public void UseF3_FileWithNonIoName_Diagnosed()
@@ -1572,7 +1572,7 @@ public sealed class ExceptionConditionConformanceTests
             MAIN SECTION.
             MAIN-PARA.
                 STOP RUN.
-            """, 2023), "COBOLNET0715");
+            """, 2023), "COBOL0715");
 
     // ── §14.9.49.3 SR7/SR8/SR9/SR14: the STATEMENT is the boundary (kb/Work PB364) ───────────────────────────
     // Four rules share one sentence — "the same X shall not be … in more than one USE statement within the same
@@ -1604,7 +1604,7 @@ public sealed class ExceptionConditionConformanceTests
             MAIN SECTION.
             MAIN-PARA.
                 STOP RUN.
-            """, 2023), "COBOLNET0716");
+            """, 2023), "COBOL0716");
 
     [Theory]   // §14.9.49.3 SR14 is scoped to PAIRS. A bare exception-name in a Format-3 USE is
     [InlineData(2002)]   // exception-name-1 (§14.9.49.2's figure puts exception-name-2 only in the FILE
@@ -1683,7 +1683,7 @@ public sealed class ExceptionConditionConformanceTests
             MAIN SECTION.
             MAIN-PARA.
                 STOP RUN.
-            """, edition), "COBOLNET0897");
+            """, edition), "COBOL0897");
 
     [Theory]   // §14.9.49.3 SR8's complement: ONE Format-1 USE naming the same file twice. The figure writes
     [InlineData(85)]     // `{ file-name-1 } …` with nothing making the repetition illegal, and §14.9.49.4
@@ -1741,7 +1741,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, edition);
         Assert.False(ok, $"[--std {edition}] the second USE statement repeats TF across statements");
-        Assert.Equal(1, diagnostics.Count(d => d.Contains("COBOLNET0897", StringComparison.Ordinal)));
+        Assert.Equal(1, diagnostics.Count(d => d.Contains("COBOL0897", StringComparison.Ordinal)));
     }
 
     [Fact]   // §14.9.18.3 SR2 (¶27403): an EC-USER exception-name in GOBACK/EXIT RAISING shall be specified in
@@ -1753,7 +1753,7 @@ public sealed class ExceptionConditionConformanceTests
             PROCEDURE DIVISION.
             MAIN-PARA.
                 GOBACK RAISING EXCEPTION EC-USER-UNDECLARED.
-            """, 2023), "COBOLNET0717");
+            """, 2023), "COBOL0717");
 
     [Fact]   // §7.3.25.3 SR3: a duplicated (exception-name, file-name) combination within one TURN directive.
     public void Turn_DuplicateName_Diagnosed()
@@ -1764,7 +1764,7 @@ public sealed class ExceptionConditionConformanceTests
             PROCEDURE DIVISION.
             MAIN-PARA.
                 STOP RUN.
-            """, 2023), "COBOLNET0718");
+            """, 2023), "COBOL0718");
 
     [Fact]   // §7.3.25.3 SR4: a file-name only with an EC-I-O… exception-name.
     public void Turn_FileWithNonIoName_Diagnosed()
@@ -1775,7 +1775,7 @@ public sealed class ExceptionConditionConformanceTests
             PROCEDURE DIVISION.
             MAIN-PARA.
                 STOP RUN.
-            """, 2023), "COBOLNET0719");
+            """, 2023), "COBOL0719");
 
     // ── Per-edition gating (the four-compilers rule: 2002+ constructs diagnosed BY NAME at --std 85) ─────────
 
@@ -1788,7 +1788,7 @@ public sealed class ExceptionConditionConformanceTests
             PROCEDURE DIVISION.
             MAIN-PARA.
                 STOP RUN.
-            """, 85), "COBOLNET0900");   // the ONE introduction band (kb/Work PB725 retired the bespoke 0875)
+            """, 85), "COBOL0900");   // the ONE introduction band (kb/Work PB725 retired the bespoke 0875)
 
     [Fact]
     public void Raise_At85_DiagnosedWithEdition()
@@ -1799,7 +1799,7 @@ public sealed class ExceptionConditionConformanceTests
             MAIN-PARA.
                 RAISE EXCEPTION EC-USER-A.
                 STOP RUN.
-            """, 85), "COBOLNET0876");
+            """, 85), "COBOL0876");
 
     [Fact]
     public void UseF3_At85_DiagnosedWithEdition()
@@ -1815,7 +1815,7 @@ public sealed class ExceptionConditionConformanceTests
             MAIN SECTION.
             MAIN-PARA.
                 STOP RUN.
-            """, 85), "COBOLNET0877");
+            """, 85), "COBOL0877");
 
     [Fact]
     public void SetLastException_At85_DiagnosedWithEdition()
@@ -1826,7 +1826,7 @@ public sealed class ExceptionConditionConformanceTests
             MAIN-PARA.
                 SET LAST EXCEPTION TO OFF.
                 STOP RUN.
-            """, 85), "COBOLNET0879");
+            """, 85), "COBOL0879");
 
     [Fact]
     public void GobackRaising_At85_DiagnosedWithEdition()
@@ -1836,7 +1836,7 @@ public sealed class ExceptionConditionConformanceTests
             PROCEDURE DIVISION.
             MAIN-PARA.
                 GOBACK RAISING EXCEPTION EC-USER-A.
-            """, 85), "COBOLNET0879");
+            """, 85), "COBOL0879");
 
     private const string EcWordsProgram = """
         IDENTIFICATION DIVISION.
@@ -1868,7 +1868,7 @@ public sealed class ExceptionConditionConformanceTests
     }
 
     /// <summary>At 2002/2014/2023 the EC words (except the context-sensitive STATEMENT) ARE reserved words —
-    /// the P2.4 EditionValidator funnel enforces it per edition: strict rejects with COBOLNET0901.</summary>
+    /// the P2.4 EditionValidator funnel enforces it per edition: strict rejects with COBOL0901.</summary>
     [Theory]
     [InlineData(2002)]
     [InlineData(2014)]
@@ -1877,7 +1877,7 @@ public sealed class ExceptionConditionConformanceTests
     {
         var (ok, diags) = EditionHarness.Compile(EcWordsProgram, edition);
         Assert.False(ok, $"--std {edition} strict must reject reserved EC words used as user-defined words");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0901");
         EditionHarness.AssertHasDiagnostic(diags, "'RAISE'");
     }
 
@@ -1917,7 +1917,7 @@ public sealed class ExceptionConditionConformanceTests
 
     // ── The §15.33 width collision (kb/Work R05 — Phase-B F6): r1 fixes EXCEPTION-STATUS at 31 characters
     //    while COBOL-2023 words run to 63 (§8.3.2.1) and the §14.6.13.1.1 open-family suffixes are unbounded.
-    //    The r1 width is implemented AS WRITTEN; COBOLNET1636 (Warning) makes the collision visible. ──────────
+    //    The r1 width is implemented AS WRITTEN; COBOL1636 (Warning) makes the collision visible. ──────────
 
     /// <summary>44 characters — legal at 2023 only (the 31-char COBOL-2002 word limit rejects it below).</summary>
     private const string LongEc = "EC-USER-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -1936,7 +1936,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, $"S=[{LongEc[..31]}]");
 
-    [Fact]   // COBOLNET1636 fires ONCE per spelling even when the name appears at TURN + RAISE + USE (the ONE
+    [Fact]   // COBOL1636 fires ONCE per spelling even when the name appears at TURN + RAISE + USE (the ONE
              // resolution funnel dedupes), and the program still compiles clean — legal source stays legal.
     public void LongUserName_AdvisedOnce_CompilesClean()
     {
@@ -1950,7 +1950,7 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), 2023);
         Assert.True(ok, string.Join("\n", errors));
-        Assert.Equal(1, warnings.Count(w => w.Contains("COBOLNET1636")));
+        Assert.Equal(1, warnings.Count(w => w.Contains("COBOL1636")));
     }
 
     [Fact]   // The advisory rides the FUNNEL, not one verb: a name spelled ONLY in >>TURN — never RAISEd —
@@ -1966,13 +1966,13 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, 2023);
         Assert.True(ok, string.Join("\n", errors));
-        Assert.Contains(warnings, w => w.Contains("COBOLNET1636"));
+        Assert.Contains(warnings, w => w.Contains("COBOL1636"));
     }
 
     [Fact]   // Below 2023 the collision cannot arise: the 44-character word itself exceeds the COBOL-2002
              // 31-character word limit — INCLUDING in a >>TURN directive, where the word never reaches the
              // tree-walk funnel. ⛔ This fact FAILED when first written: the evidence ledger's "correctly
-             // rejected with COBOLNET1567" was measured on the RAISE spelling only, and the directive path
+             // rejected with COBOL1567" was measured on the RAISE spelling only, and the directive path
              // compiled the same word clean (CobolWordRule closed that hole — TURN operands now share the
              // §8.3.2.1 ceiling). No advisory either: 1636 is a 2023-collision message, not a length error.
     public void LongUserName_At2002_TheWordItselfIsRejected()
@@ -1986,8 +1986,8 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, 2002);
         Assert.False(ok, "a 44-character word must not compile at --std 2002");
-        Assert.Contains(errors, e => e.Contains("COBOLNET1567"));
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1636"));
+        Assert.Contains(errors, e => e.Contains("COBOL1567"));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1636"));
     }
 
     [Fact]   // §15.32.3 r1 / §15.30.3 r1 are PER-CONDITION (kb/Work R06): one statement checked for EC-SIZE
@@ -2253,7 +2253,7 @@ public sealed class ExceptionConditionConformanceTests
 
     [Fact]   // The hole the funnel closed: USE AFTER EC with a LEVEL-2 name of a 2023-only family (EC-MCS) at
              // --std 2002. The old USE-site copy guarded the introduction gate with Level == 3, so the level-2
-             // spelling slipped through un-gated; the funnel gates every level (COBOLNET0878).
+             // spelling slipped through un-gated; the funnel gates every level (COBOL0878).
     public void UseAfterEc_Level2NameOf2023Family_At2002_Diagnosed()
         => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics(Prog("ECT052",
             "", "", "", """
@@ -2262,5 +2262,5 @@ public sealed class ExceptionConditionConformanceTests
                 RESUME AT NEXT STATEMENT.
             """, """
                 STOP RUN.
-            """), 2002), "COBOLNET0878");
+            """), 2002), "COBOL0878");
 }

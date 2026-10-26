@@ -20,7 +20,7 @@
       *> the phrase turns even a bare identifier operand into GR2's COMPUTE, which is why one classifier decides
       *> the form for both clauses.  SR7: "If the SOURCE clause has more than one operand of which at least one is
       *> an arithmetic-expression, each operand shall be enclosed in parentheses" — the rule that makes an operand
-      *> LIST readable once an operand may itself contain operators, and it is ENFORCED (COBOLNET2142), not
+      *> LIST readable once an operand may itself contain operators, and it is ENFORCED (COBOL2142), not
       *> assumed from the grammar's shape.
       *>
       *> DERIVATION OF THE EXPECTED OUTPUT.  WS-A = 100, WS-B = 23, WS-F = 1.55, WS-N = 2.  One TYPE DE group, one

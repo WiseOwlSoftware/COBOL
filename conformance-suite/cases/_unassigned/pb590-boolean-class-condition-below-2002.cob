@@ -9,7 +9,7 @@
       *> BOOLEAN is not a reserved word in COBOL-85, so below 2002 the class condition's user-defined-word
       *> alternative claims it and the word can only name an alphabet-name-1 or a class-name-1. Here it
       *> names neither, so it identifies no resource - ISO 8.4.2.1, "In order to use a resource, a statement
-      *> shall contain a reference that uniquely identifies that resource" (COBOLNET1639).
+      *> shall contain a reference that uniquely identifies that resource" (COBOL1639).
       *>
       *> ⛔ THE COMPLEMENT IS 85/pb571_class_condition_one_table's sibling fact and is deliberately NOT
       *> rejected: `SPECIAL-NAMES. CLASS BOOLEAN IS "0" THROUGH "1".` with `IF X IS BOOLEAN` is conforming

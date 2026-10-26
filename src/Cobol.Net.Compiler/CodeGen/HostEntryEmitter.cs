@@ -50,7 +50,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
     /// (<see cref="PublishedRecordEmitter.Renders"/>). A unit with one that has none publishes no entry at all. No legal
     /// source reaches that today (kb/Work PB3273): a variable-length group whose members the data model's law refuses
     /// (<see cref="DataItem.CurrentExtentTransferImageCapable"/>: an occurs-depending table beneath an OCCURS item) is itself
-    /// refused by the binder (COBOLNET0853, COBOLNET0854), so DOC-A.1-141 states no group restriction. A shape the binder
+    /// refused by the binder (COBOL0853, COBOL0854), so DOC-A.1-141 states no group restriction. A shape the binder
     /// admits and the law refuses would need its row in DOC-A.1-141 before it could stay withheld.</summary>
     private static bool Published(BoundUnit u) =>
         u.Data.LinkageFormals.Select(f => (DataItem?)f.Item).Append(u.Data.LinkageReturning)

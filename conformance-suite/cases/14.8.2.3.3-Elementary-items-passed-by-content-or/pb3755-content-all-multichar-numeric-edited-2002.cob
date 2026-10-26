@@ -8,7 +8,7 @@
       *> association a figurative constant takes (moved to it, compared with it, paired with it): "If the length of
       *> literal-1 is greater than one, it is not permitted to be associated with a numeric or numeric-edited item". So
       *> ALL "57" BY CONTENT into the PIC ZZ9 formal of a contained program activated with the NESTED phrase is the
-      *> association MOVE ALL "57" TO <a numeric-edited item> is, and is COBOLNET0902 from 2002 (row
+      *> association MOVE ALL "57" TO <a numeric-edited item> is, and is COBOL0902 from 2002 (row
       *> all-literal-multichar-numeric-removed-2002, VCR row 7.13) - the edge the written MOVE has. Before this it
       *> compiled clean at every edition.
       *>   cite.py --check 8.3.3.6.3 "If the length of literal-1 is greater than one, it is not permitted to be

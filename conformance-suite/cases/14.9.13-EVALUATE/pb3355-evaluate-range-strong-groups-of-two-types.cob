@@ -8,7 +8,7 @@
       *> (cite.py --check 14.9.13.3 "The two operands in a range-expression shall be of the same class" -> OK). 8.5.2.1:
       *> "Both the class and the category of a strongly-typed group item are the type-name specified in the TYPE clause"
       *> (cite.py --check 8.5.2.1 -> OK), so LO (class TYPE-A) and HI (class TYPE-B) are two classes though both
-      *> types hold one PIC X(2) leaf, and the range LO THRU HI is refused by SR4 itself (COBOLNET2107).
+      *> types hold one PIC X(2) leaf, and the range LO THRU HI is refused by SR4 itself (COBOL2107).
       *> Why this can fail: the range-class screen compared the lattice's two answers (alphanumeric = alphanumeric).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3355EVN2.

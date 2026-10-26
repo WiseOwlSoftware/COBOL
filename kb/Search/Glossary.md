@@ -46,7 +46,7 @@ Vocabulary of the COBOL.NET project. Each term links to where it is developed.
   [[kb/Semantics/Validation Rules]].
 - **VCR** — `VERSION_CHANGE_REFERENCE.md`, the ~130-row edition-change checklist.
 - **§4.2.16 conformance record** — the implementor documentation (`CONFORMANCE.md`) required for conformance.
-- **COBOLNET0900–0903** — the edition-gating diagnostic band (intro / reserved / removed / obsolete).
+- **COBOL0900–0903** — the edition-gating diagnostic band (intro / reserved / removed / obsolete).
 
 ## Data & numerics
 - **Typed-native** — a record IS a `record struct`, an elementary item IS a native field; no byte substrate. See

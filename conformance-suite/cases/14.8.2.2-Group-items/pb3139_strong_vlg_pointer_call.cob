@@ -29,8 +29,8 @@
       *> cite.py --check 14.6.9.2 "The operation recreates or overwrites
       *>   the receiving table with a copy of the sending table" -> OK
       *> Every pair is of the one type TG, so the source conforms;
-      *> before the fix the CALL drew COBOLNET1688 (and the prototype
-      *> against its definition COBOLNET1513), and the MOVE was a
+      *> before the fix the CALL drew COBOL1688 (and the prototype
+      *> against its definition COBOL1513), and the MOVE was a
       *> run-time abort.
       *> DERIVATION (G holds TA "hello", TP -> X "DATA", TN 05, two
       *> occurrences of TT: "ab", and "cd" whose TT-P -> W "WWWW"):

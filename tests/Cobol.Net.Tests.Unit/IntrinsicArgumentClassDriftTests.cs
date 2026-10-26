@@ -164,11 +164,11 @@ public sealed class IntrinsicArgumentClassDriftTests
     {
         string catalog = File.ReadAllText(
             TestRepo.Src("Cobol.Net.Editions", "Diagnostics", "DiagnosticCatalog.cs"));
-        int at = catalog.IndexOf("COBOLNET1627", StringComparison.Ordinal);
-        Assert.True(at > 0, "COBOLNET1627 (intrinsic-argument-class) is not in the catalog");
+        int at = catalog.IndexOf("COBOL1627", StringComparison.Ordinal);
+        Assert.True(at > 0, "COBOL1627 (intrinsic-argument-class) is not in the catalog");
         string block = catalog[at..Math.Min(catalog.Length, at + 2400)];
         foreach (string cite in new[] { "§15.3", "§8.5.2.1", "§4.2.2" })
-            Assert.True(block.Contains(cite, StringComparison.Ordinal), $"COBOLNET1627 no longer cites {cite}");
+            Assert.True(block.Contains(cite, StringComparison.Ordinal), $"COBOL1627 no longer cites {cite}");
     }
 
     /// <summary>
@@ -264,7 +264,7 @@ public sealed class IntrinsicArgumentClassDriftTests
             // USAGE MESSAGE-TAG (kb/Work PB487) — §13.18.60.4 GR9 makes the class AND category of a message-tag
             // data item message-tag, a class this implementation does not model because it DECLINES the facility
             // (Annex A.3 item 4; docs/CONFORMANCE.md §4 item 1): ParseUsage refuses the usage BY NAME with
-            // COBOLNET1943, an Error, at every edition. So no CONFORMING program can present such an item to
+            // COBOL1943, an Error, at every edition. So no CONFORMING program can present such an item to
             // ClassOfPlace, and a usage-keyed CobolClass arm would be an arm for a class no bound item can
             // legally have. In the errored bind the storage category answers, as it does for the other refused
             // usages above (FLOAT-BINARY-128 and the FLOAT-DECIMAL pair) — hence "category". ⛔ This row is the

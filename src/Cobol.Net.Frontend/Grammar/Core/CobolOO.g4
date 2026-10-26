@@ -51,9 +51,9 @@ classIdParagraph
     : CLASS_ID DOT className externalizedNamePhrase? (IS? FINAL)? (INHERITS FROM? className+)?
       (USING ooParameterName+)?   // §11.3.2 — a PARAMETERIZED class (kb/Work PB759; see ooParameterName)
       DOT
-    ;   // [AS literal-1] sits between object-class-name-1 and [IS FINAL] per the §11.3.2 format (kb/Work PB303); [IS FINAL] precedes INHERITS per the §10.6 format (:12742-12744); a FINAL class shall not be a superclass (§11.3.4 GR3; an INHERITS naming one is §11.3.3 SR5 — bind-gated COBOLNET2791).
+    ;   // [AS literal-1] sits between object-class-name-1 and [IS FINAL] per the §11.3.2 format (kb/Work PB303); [IS FINAL] precedes INHERITS per the §10.6 format (:12742-12744); a FINAL class shall not be a superclass (§11.3.4 GR3; an INHERITS naming one is §11.3.3 SR5 — bind-gated COBOL2791).
         // INHERITS repetition PARSES per the §11.3.2 format (superset parse — P3 doctrine); v1 REJECTS 2+ bases
-        // LOUDLY at pass-1 (COBOLNET0849; SSOT §18 #18 / A.4.10) — never a bare syntax error, never a silent drop.
+        // LOUDLY at pass-1 (COBOL0849; SSOT §18 #18 / A.4.10) — never a bare syntax error, never a silent drop.
 
 className
     : cobolWord
@@ -92,7 +92,7 @@ interfaceName
 
 // INTERFACE definition (§11.6 :13157; §10.6 :12783-12796 — NO data division at the interface level; methods
 // are PROTOTYPES: header + optional LINKAGE-only data division, no procedure body — enforced at bind,
-// COBOLNET2272, the one §10.6.2 SR4 prototype-body screen). INHERITS repetition is SUPPORTED (C# interface lists are native — the deliberate asymmetry
+// COBOL2272, the one §10.6.2 SR4 prototype-body screen). INHERITS repetition is SUPPORTED (C# interface lists are native — the deliberate asymmetry
 // with the class-side single-inheritance restriction, SSOT §18.18).
 interfaceDefinition
     : (IDENTIFICATION DIVISION DOT)? INTERFACE_ID DOT interfaceName
@@ -138,7 +138,7 @@ methodKeyword
     ;
 
 // METHOD-ID. GET|SET PROPERTY prop-name — the explicit property-accessor selector (§10.6 :12810-12814;
-// §11.7 SR6/SR7 shape checks are pass-1, COBOLNET0842).
+// §11.7 SR6/SR7 shape checks are pass-1, COBOL0842).
 methodPropertySelector
     : (GET | SET) PROPERTY propertyName
     ;
@@ -176,7 +176,7 @@ invokeUsing
 // The §14.9.23.2 general format's BY CONTENT branch admits `arithmetic-expression-1 | boolean-expression-1 |
 // identifier-5 | literal-2` — read off the rendered figure, not the prose. With only `(dataReference | literal)`
 // here, `INVOKE O "M" USING BY CONTENT N + 1` did not fail: `N` matched dataReference and `+ 1` started a
-// SECOND invokeArgument, so the statement reported `COBOLNET0828: 2 USING argument(s) for 1 formal parameter(s)`
+// SECOND invokeArgument, so the statement reported `COBOL0828: 2 USING argument(s) for 1 formal parameter(s)`
 // — an arity diagnostic about a rule the program does not violate, which sends the reader at the method
 // signature. A silent mis-parse is worse than a parse error.
 // ⛔ `literal` FIRST, AND `dataReference` IS DELIBERATELY ABSENT — both facts were learned by breaking them.
@@ -282,11 +282,11 @@ invokeReturning
 // FACTORY × ONLY × name.
 //
 // Until PB389 this rule had three alternatives carrying ONE axis (`FACTORY OF className` / `className` / bare),
-// so ACTIVE-CLASS lexed as a user word and drew COBOLNET0813+0901, and a trailing ONLY was a raw COBOL0307.
+// so ACTIVE-CLASS lexed as a user word and drew COBOL0813+0901, and a trailing ONLY was a raw COBOL0307.
 //
 // FACTORY/ONLY vs interface-name-1: the grammar CANNOT separate an interface-name from an object-class-name
 // (both are one cobolWord), so the `[FACTORY OF] className [ONLY]` alternative is the SUPERSET parse (P3
-// doctrine) and the binder makes the general-format rejection once the name resolves — COBOLNET1925.
+// doctrine) and the binder makes the general-format rejection once the name resolves — COBOL1925.
 // ACTIVE-CLASS is its own alternative because it IS its own token.
 // `FACTORY OF?` is the same printed `[ FACTORY OF ]` bracket the PROCEDURE DIVISION header's `raisingTarget`
 // carries — PB848's and PB815's sibling sweeps each found it independently.

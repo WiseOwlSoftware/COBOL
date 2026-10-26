@@ -331,7 +331,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             Program("01 T PIC X(5).", "    MOVE FUNCTION TRIM(\"  X  \") TO T.\n    DISPLAY T."));
         Assert.False(ok);
         Assert.Contains("TRIM", detail);
-        Assert.Contains("COBOLNET1502", detail);
+        Assert.Contains("COBOL1502", detail);
     }
 
     /// <summary>DISPLAY-OF/NATIONAL-OF (§15.26/§15.66) are 2002 introductions — the D8 per-name catalog window
@@ -343,12 +343,12 @@ public sealed class IntrinsicFunctionDifferentialTests
             Program("01 T PIC X(5).", "    MOVE FUNCTION DISPLAY-OF(T) TO T.\n    DISPLAY T."));
         Assert.False(ok);
         Assert.Contains("DISPLAY-OF", detail);
-        Assert.Contains("COBOLNET1502", detail);
+        Assert.Contains("COBOL1502", detail);
         (ok, _, detail) = new CobolNetCompiler(85).CompileAndRun(
             Program("01 T PIC X(5).", "    MOVE FUNCTION NATIONAL-OF(\"AB\") TO T.\n    DISPLAY T."));
         Assert.False(ok);
         Assert.Contains("NATIONAL-OF", detail);
-        Assert.Contains("COBOLNET1502", detail);
+        Assert.Contains("COBOL1502", detail);
     }
 
     /// <summary>The NATIONAL-OF result is CATEGORY NATIONAL (§15.66.1 "the type of the function is national" →
@@ -360,7 +360,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         var (ok, _, detail) = new CobolNetCompiler(2002).CompileAndRun(
             Program("01 T PIC X(5).", "    MOVE FUNCTION NATIONAL-OF(\"AB\") TO T.\n    DISPLAY T."));
         Assert.False(ok);
-        Assert.Contains("COBOLNET0819", detail);
+        Assert.Contains("COBOL0819", detail);
     }
 
     [Fact]
@@ -435,12 +435,12 @@ public sealed class IntrinsicFunctionDifferentialTests
         // described) nor §8.4.3.2.3 SR11 ("a numeric function shall not be specified where an integer operand is
         // required, even though a particular reference … might yield an integer value"). kb/Work PB73 (adjudicated
         // 2026-08-18): a NUMERIC function is the Noninteger sender — refused into an alphanumeric receiver on the
-        // strict axis (COBOLNET0819) — and the DA2 admission (the CONFORMANCE.md item-92 text form) is exactly what
+        // strict axis (COBOL0819) — and the DA2 admission (the CONFORMANCE.md item-92 text form) is exactly what
         // --permissive keeps, with a warning. An INTEGER function (LENGTH, ORD, …) was and is legal there.
         var (ok, _, detail) = CobolNet.CompileAndRun(
             Program("01 T PIC X(8).", "    MOVE FUNCTION NUMVAL(\"1\") TO T.\n    DISPLAY T."));
         Assert.False(ok, "a NUMERIC-typed function is Table 16's Noninteger sender (ISO §14.9.25.3 SR10, §15.2 item 4)");
-        Assert.Contains("COBOLNET0819", detail);
+        Assert.Contains("COBOL0819", detail);
         var (okP, output, detailP) = EditionHarness.CompileAndRun(
             Program("01 T PIC X(8).", "    MOVE FUNCTION NUMVAL(\"1\") TO T.\n    DISPLAY T."), 2023, permissive: true);
         Assert.True(okP, detailP);
@@ -517,7 +517,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void BaseConvert_EqualDataItemBases_EcArgumentDefault_2023()
         // §15.12.3 r1 — the bases shall have "unequal values": DATA-ITEM bases are the runtime twin of the
-        // compile-time equal-literals screen (PB59 / AR-15.12.3-1 leg b — two equal LITERALS are COBOLNET1642
+        // compile-time equal-literals screen (PB59 / AR-15.12.3-1 leg b — two equal LITERALS are COBOL1642
         // at bind, negative pb59-baseconvert-equal-bases). Checking off: EC + the §15.3 zero-length default.
         => AssertSpec(Program("01 B2 PIC 99 VALUE 16.\n           01 B3 PIC 99 VALUE 16.\n           01 R PIC X(6).",
             "    MOVE FUNCTION BASECONVERT(\"FF\", B2, B3) TO R.\n    DISPLAY \"R=\" R.", "IFBASEQ"), "R=", 2023);
@@ -555,13 +555,13 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void Concat_And_BaseConvert_GatedBelow2023_1502()
     {
-        // Both are 2023 introductions (D8 edition window) — the binder names the edition (COBOLNET1502) at 2014.
+        // Both are 2023 introductions (D8 edition window) — the binder names the edition (COBOL1502) at 2014.
         foreach (string call in new[] { "FUNCTION CONCAT(\"A\", \"B\")", "FUNCTION BASECONVERT(\"F\", 16, 10)" })
         {
             var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
                 Program("01 R PIC X(8).", $"    MOVE {call} TO R.\n    DISPLAY R."));
             Assert.False(ok, $"{call} is 2023+; 2014 must reject");
-            Assert.Contains("COBOLNET1502", detail);
+            Assert.Contains("COBOL1502", detail);
         }
     }
 
@@ -589,7 +589,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             Program("01 Z PIC X(8) VALUE \"0042\".\n           01 R PIC X(8).",
                 "    MOVE FUNCTION TRIM(Z LEADING \"0\") TO R.\n    DISPLAY R."));
         Assert.False(ok, "TRIM argument-2 is 2023+; 2014 must reject");
-        Assert.Contains("COBOLNET1502", detail);
+        Assert.Contains("COBOL1502", detail);
         // …but TRIM itself (the space-trimming form) is 2014, so it binds+runs there.
         var (ok2, out2, d2) = new CobolNetCompiler(2014).CompileAndRun(
             Program("01 S PIC X(8) VALUE \"  HI  \".\n           01 R PIC X(8).",
@@ -637,7 +637,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             Program("01 H PIC X(3) VALUE \"ABC\".\n           01 P PIC 9.",
                 "    MOVE FUNCTION FIND-STRING(H \"B\") TO P.\n    DISPLAY P."));
         Assert.False(ok, "FIND-STRING is 2023+; 2014 must reject");
-        Assert.Contains("COBOLNET1502", detail);
+        Assert.Contains("COBOL1502", detail);
     }
 
     [Theory]
@@ -680,7 +680,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             Program("01 S PIC X(3) VALUE \"ABC\".\n           01 R PIC X(3).",
                 "    MOVE FUNCTION SUBSTITUTE(S \"B\" \"X\") TO R.\n    DISPLAY R."));
         Assert.False(ok, "SUBSTITUTE is 2023+; 2014 must reject");
-        Assert.Contains("COBOLNET1502", detail);
+        Assert.Contains("COBOL1502", detail);
     }
 
     // ── CONVERT (§15.19, Phase 5, DEVLOG 632): data-representation conversion; source/destination formats ─────
@@ -726,9 +726,9 @@ public sealed class IntrinsicFunctionDifferentialTests
             "IFCONVR"), "RT=SAME", 2023);
 
     [Theory]
-    [InlineData("CONVERT(A ANUM ANUM)", "COBOLNET1514")]   // SR3 — source == destination
-    [InlineData("CONVERT(A ANUM BYTE)", "COBOLNET1514")]   // SR9 — BYTE needs a HEX source
-    [InlineData("CONVERT(A ANY ANUM)", "COBOLNET1514")]    // SR8 — ANY needs an ANUM HEX / NAT HEX destination
+    [InlineData("CONVERT(A ANUM ANUM)", "COBOL1514")]   // SR3 — source == destination
+    [InlineData("CONVERT(A ANUM BYTE)", "COBOL1514")]   // SR9 — BYTE needs a HEX source
+    [InlineData("CONVERT(A ANY ANUM)", "COBOL1514")]    // SR8 — ANY needs an ANUM HEX / NAT HEX destination
     public void Convert_SyntaxRuleViolations_1514(string call, string code)
     {
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
@@ -758,7 +758,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             Program(ws + "\n           01 R PIC X(8).",
                 $"    MOVE FUNCTION {call} TO R.\n    DISPLAY R."));
         Assert.False(ok, $"{call} violates a §15.19.2 format rule or §15.19.3 argument rule");
-        Assert.Contains("COBOLNET1514", detail);
+        Assert.Contains("COBOL1514", detail);
     }
 
     [Fact]
@@ -768,7 +768,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             Program("01 A PIC X VALUE \"A\".\n           01 R PIC X(4).",
                 "    MOVE FUNCTION CONVERT(A ANUM ANUM HEX) TO R.\n    DISPLAY R."));
         Assert.False(ok, "CONVERT is 2023+; 2014 must reject");
-        Assert.Contains("COBOLNET1502", detail);
+        Assert.Contains("COBOL1502", detail);
     }
 
     [Fact]
@@ -889,7 +889,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
             Program("01 N PIC X(4).", "    MOVE FUNCTION MODULE-NAME(CURRENT) TO N.\n    DISPLAY N.", "MODNG"));
         Assert.False(ok, "MODULE-NAME is 2023+; 2014 must reject");
-        Assert.Contains("COBOLNET1502", detail);
+        Assert.Contains("COBOL1502", detail);
     }
 
     [Fact]
@@ -899,7 +899,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
             Program("01 N PIC X(8).", "    MOVE FUNCTION MODULE-NAME(NESTED) TO N.\n    DISPLAY N.", "MODNN"));
         Assert.False(ok, "MODULE-NAME NESTED requires a contained program");
-        Assert.Contains("COBOLNET1515", detail);
+        Assert.Contains("COBOL1515", detail);
     }
 
     [Fact]
@@ -998,7 +998,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             + "01 B USAGE FLOAT-BINARY-32.\n01 R USAGE FLOAT-BINARY-32.\nPROCEDURE DIVISION.\nM-P.\n"
             + "    COMPUTE R = FUNCTION SMALLEST-ALGEBRAIC(B).\n    DISPLAY R.\n    STOP RUN.");
         Assert.False(ok, "a standard binary float usage is barred under STANDARD-DECIMAL (§15.83.3 r2)");
-        Assert.Contains("COBOLNET1516", detail);
+        Assert.Contains("COBOL1516", detail);
         Assert.Contains("15.83.3", detail);
     }
 
@@ -1013,7 +1013,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             + "01 B USAGE FLOAT-BINARY-64.\n01 R USAGE FLOAT-BINARY-64.\nPROCEDURE DIVISION.\nM-P.\n"
             + "    COMPUTE R = FUNCTION HIGHEST-ALGEBRAIC(B).\n    DISPLAY R.\n    STOP RUN.");
         Assert.False(ok, "a standard binary float usage is barred under STANDARD-DECIMAL (§15.43.3 r2)");
-        Assert.Contains("COBOLNET1516", detail);
+        Assert.Contains("COBOL1516", detail);
     }
 
     [Fact]
@@ -1024,13 +1024,13 @@ public sealed class IntrinsicFunctionDifferentialTests
         // LENGTH(SUPER) was a COBOL0001 parse error — kb/Work PB124 wave 5c, AR-15.3-11). Since kb/Work PB1425 SELF
         // and [object-class-name-1 OF] SUPER ARE identifiers there (§8.4.3.1.2 Format 6, §8.4.3.1.3 SR1), so
         // LENGTH(SELF) in a method is the legal type-11 argument it always was, and SUPER is refused BY THE RULE that
-        // forbids it as any operand but an invocation's or a property's object — §8.4.3.8.3 SR3, COBOLNET2900, the
+        // forbids it as any operand but an invocation's or a property's object — §8.4.3.8.3 SR3, COBOL2900, the
         // same verdict §15.3 type 11 asks for. Pinning the code, not a parse error, is what keeps the refusal a
         // rule's rather than ANTLR's recovery choice.
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
             Program("01 R PIC 9(4).", "    COMPUTE R = FUNCTION LENGTH(SUPER).\n    DISPLAY R."));
         Assert.False(ok, "LENGTH(SUPER) must not compile (§15.3 type 11)");
-        Assert.Contains("COBOLNET2900", detail);
+        Assert.Contains("COBOL2900", detail);
 
         // The surface Format 4 newly makes REACHABLE, and the reason the bare form above is refused at all:
         // §8.4.3.8.3 SR3 — "SUPER may be specified only as the object in an object-property identifier or as
@@ -1043,7 +1043,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         var (okInline, _, detailInline) = new CobolNetCompiler(2023).CompileAndRun(
             Program("01 R PIC 9(4).", "    COMPUTE R = FUNCTION LENGTH(SUPER :: \"M\").\n    DISPLAY R."));
         Assert.False(okInline, "SUPER outside a method definition must not compile (§8.4.3.8)");
-        Assert.Contains("COBOLNET0827", detailInline);
+        Assert.Contains("COBOL0827", detailInline);
     }
 
     [Fact]
@@ -1058,7 +1058,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             Program("01 RS PIC X(10).",
                 "    MOVE FUNCTION CONCAT(\"x\" FUNCTION BOOLEAN-OF-INTEGER(5 8)) TO RS.\n    DISPLAY RS."));
         Assert.False(ok, "a boolean function's implicit usage bit violates §15.18.3 r2");
-        Assert.Contains("COBOLNET1627", detail);
+        Assert.Contains("COBOL1627", detail);
         Assert.Contains("Bit", detail);
     }
 
@@ -1069,7 +1069,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
             Program("01 R PIC +999.", "    MOVE FUNCTION SMALLEST-ALGEBRAIC(5) TO R.\n    DISPLAY R."));
         Assert.False(ok, "a literal argument violates §15.83.3 r1");
-        Assert.Contains("COBOLNET1516", detail);
+        Assert.Contains("COBOL1516", detail);
     }
 
     [Fact]
@@ -1079,7 +1079,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             Program("01 X PIC S999.\n           01 R PIC +999.",
                 "    MOVE FUNCTION SMALLEST-ALGEBRAIC(X) TO R.\n    DISPLAY R."));
         Assert.False(ok, "SMALLEST-ALGEBRAIC is 2023+; 2014 must reject");
-        Assert.Contains("COBOLNET1502", detail);
+        Assert.Contains("COBOL1502", detail);
     }
 
     // ── The COBOL-2014 date/time + number family (§15.17/38-41/48/69/79/92/95, Phase 5, DEVLOG 635) ───────────
@@ -1134,7 +1134,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         var (ok, _, detail) = new CobolNetCompiler(2002).CompileAndRun(
             Program("01 R PIC X(10).", "    MOVE FUNCTION FORMATTED-DATE(\"YYYYMMDD\", 153569) TO R.\n    DISPLAY R."));
         Assert.False(ok, "FORMATTED-DATE is 2014+; 2002 must reject");
-        Assert.Contains("COBOLNET1502", detail);
+        Assert.Contains("COBOL1502", detail);
     }
 
     [Fact]
@@ -1145,7 +1145,7 @@ public sealed class IntrinsicFunctionDifferentialTests
             Program("01 FMT PIC X(8) VALUE \"YYYYMMDD\".\n           01 R PIC X(10).",
                 "    MOVE FUNCTION FORMATTED-DATE(FMT, 153569) TO R.\n    DISPLAY R."));
         Assert.False(ok, "a non-literal format violates §15.39.3 r1");
-        Assert.Contains("COBOLNET1517", detail);
+        Assert.Contains("COBOL1517", detail);
     }
 
     // ── P7 Step 12: FUNCTION arguments as real arithmetic expressions (§8.4.3.2 SR8) ────────────────────────
@@ -1202,7 +1202,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         // The rejection fixture is `pb1-integer-arg-numeric-edited`; this pins the same verdict at the unit seam.
         AssertRejected(Program("01 WS-ED PIC Z9.\n01 R PIC 9(3).",
             "    MOVE 34 TO WS-ED.\n    COMPUTE R = FUNCTION ORD(FUNCTION CHAR(WS-ED)).\n    DISPLAY R."),
-            "COBOLNET1627");
+            "COBOL1627");
 
     [Fact]
     public void RefModArgument_Renders() =>
@@ -1248,7 +1248,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
             Program("01 R PIC 9(3).", "    COMPUTE R = FUNCTION MAX(OMITTED, 4).\n    DISPLAY R."));
         Assert.False(ok, "OMITTED violates §8.4.3.2 SR7 for an intrinsic");
-        Assert.Contains("COBOLNET1544", detail);
+        Assert.Contains("COBOL1544", detail);
     }
 
     // ── Spec-pinned: the boolean-conversion pair (§15.13 / §15.45 — P11 Step 2) ─────────────────────────────
@@ -1318,6 +1318,6 @@ public sealed class IntrinsicFunctionDifferentialTests
         var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
             Program("01 R PIC X(4).", "    MOVE FUNCTION CONCATENATE(\"A\", \"B\") TO R.\n    DISPLAY R."));
         Assert.False(ok, "CONCATENATE is not an ISO intrinsic function");
-        Assert.Contains("COBOLNET1501", detail);
+        Assert.Contains("COBOL1501", detail);
     }
 }

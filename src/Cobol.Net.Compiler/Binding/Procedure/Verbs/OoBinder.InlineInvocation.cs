@@ -240,7 +240,7 @@ internal sealed partial class OoBinder
             // §8.4.3.4.3 SR2 binds EVERY segment's identifier-1, not only the written first one: identifier is
             // defined recursively (§8.4.3.1.3 SR1), so `A1 :: "UNIV"` IS identifier-1 of `… :: "GETNAME"`, and a
             // universal temp there is the same excluded receiver (kb/Work PB1429 — it fell into the universal
-            // dynamic path, which never sets an implicit returning place, and ended in COBOLNET2362).
+            // dynamic path, which never sets an implicit returning place, and ended in COBOL2362).
             if (chained is { } recv && RefuseUniversalInlineReceiver(recv, written) is { } refusedChained)
                 return refusedChained;
             string receiverText = written;

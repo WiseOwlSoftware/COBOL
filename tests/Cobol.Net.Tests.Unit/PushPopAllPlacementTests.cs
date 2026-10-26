@@ -18,12 +18,12 @@ namespace CobolNet.Tests.Unit;
 /// division."</item>
 /// <item>ISO §7.3.20.3 SR3 — the same for POP.</item>
 /// </list>
-/// Both arms (outside a unit; inside a clause or statement) draw the §4.2.2 warning COBOLNET2344, and each legal
+/// Both arms (outside a unit; inside a clause or statement) draw the §4.2.2 warning COBOL2344, and each legal
 /// position is a control that draws nothing — the rule cannot be satisfied by warning everywhere.
 /// </summary>
 public sealed class PushPopAllPlacementTests
 {
-    private const string Code = "COBOLNET2344";
+    private const string Code = "COBOL2344";
 
     [Theory]
     [InlineData("PUSH", "§7.3.22.3 SR3")]

@@ -7,7 +7,7 @@
       *> ISO 15.87.3 r2 - "When argument-1 is an identifier that is class alphanumeric ... argument-2 and
       *> argument-3 shall be identifiers or literals that are class alphanumeric" (the national twin likewise),
       *> and 15.87.2 repeats the { [ANYCASE][FIRST|LAST] argument-2 argument-3 } pair - so r2 governs EVERY
-      *> pair. The SECOND pair here is national against an alphanumeric argument-1: COBOLNET1627 (kb/Work
+      *> pair. The SECOND pair here is national against an alphanumeric argument-1: COBOL1627 (kb/Work
       *> PB118 - the cross-argument screen stopped at the three DECLARED schema positions and the variadic tail
       *> bound clean).
        IDENTIFICATION DIVISION.

@@ -11,7 +11,7 @@
 *> carrying both would name two different repetition counts for one entry and §13.18.63.3 SR35's operand-count
 *> screen would have no answer.
 *>
-*> Diagnostic COBOLNET2199, the LINE clause syntax-rule family. Dropping either clause makes the source
+*> Diagnostic COBOL2199, the LINE clause syntax-rule family. Dropping either clause makes the source
 *> conforming: `LINE 2 4 7.` prints three lines, `LINE 2 OCCURS 3 TIMES STEP 8.` prints lines 2, 10 and 18.
 *> (STEP 8 rather than STEP 2 so that §13.18.38.3 SR26 — integer-3 shall prevent two consecutive repetitions
 *> overlapping, and the three LINE operands span six lines — does not also fire and mask the rule under test.)

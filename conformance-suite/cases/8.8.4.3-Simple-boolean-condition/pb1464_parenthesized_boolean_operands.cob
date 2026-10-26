@@ -15,7 +15,7 @@
       *>   (BW) T1 | NOT (BZ) T2 | ((BW)) T3 | NOT (BW) false F4 | (BW) AND NOT (BZ) T5
       *>   (BW) = BZ is 1 = 0, false F6 | (BW) = (BW) T7 | BZ = (BZ) T8 | (BW) = B"1" T9
       *>   EVALUATE (BW) WHEN BZ: 1 against 0, no match, so WHEN OTHER: EV-O
-      *> Before this change (BW) drew COBOLNET2318 as a condition and COBOLNET0844 "not a numeric operand" as a
+      *> Before this change (BW) drew COBOL2318 as a condition and COBOL0844 "not a numeric operand" as a
       *> relation operand, in every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1464BOL.

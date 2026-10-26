@@ -8,9 +8,9 @@
       *>   specified only in the following contexts" - a subscript,
       *>   PERFORM / SEARCH VARYING, SET and a relation condition. ADD's
       *>   receiver and a CALL USING operand are not among them, so both
-      *>   below are refused - and the diagnostic says WHY (COBOLNET1637,
+      *>   below are refused - and the diagnostic says WHY (COBOL1637,
       *>   the category error DISPLAY / MOVE / COMPUTE already draw), where
-      *>   it used to say COBOLNET1639 "'IX' is not defined" about a name
+      *>   it used to say COBOL1639 "'IX' is not defined" about a name
       *>   INDEXED BY declared.
       *> cite.py --check 13.18.38.3 "Index-name-1 may be specified only in
       *>   the following contexts" -> OK  13.18.38.3 7)

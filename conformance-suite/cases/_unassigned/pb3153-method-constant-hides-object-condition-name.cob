@@ -12,8 +12,8 @@
       *>   to the declaration in this method" -> OK 11.7.4 5). SHOWA's X
       *>   is its own constant-name, the numeric literal 7 (13.10.4
       *>   GR1), which is none of the simple conditions of 8.8.4.2.1:
-      *>   COBOLNET2318, as in a program whose only X is a constant
-      *>   (kb/Work PB3191 - it said COBOLNET1639 "not defined", a false
+      *>   COBOL2318, as in a program whose only X is a constant
+      *>   (kb/Work PB3191 - it said COBOL1639 "not defined", a false
       *>   message: X is declared). Before the PB3153 fix IF X tested
       *>   the object's level-88 X.
        IDENTIFICATION DIVISION.

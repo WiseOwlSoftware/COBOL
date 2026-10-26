@@ -8,7 +8,7 @@
       *> NOT on five selection-object alternatives only - the figure note: "The bracketed `NOT` applies only to the
       *> first five alternatives, exactly as stacked" - and prints FALSE as a selection object of its own, with no
       *> NOT; the object here faces a CONDITION subject (Table 15 admits TRUE or FALSE there), so only the NOT is
-      *> wrong: COBOLNET3710 at every edition, where the source used to compile clean.
+      *> wrong: COBOL3710 at every edition, where the source used to compile clean.
       *>   cite.py --check 14.9.13.2 "where selection-object is" -> OK
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2722NF.

@@ -7,7 +7,7 @@
 *>---
 *> ISO 1989:2023 Annex A.4.13 item 2) "WRITE FILE file-name-1 (14.9.51)" - the FILE phrase of the WRITE
 *> statement, an OPTIONAL language element (4.2.7) for which this implementation claims NO support
-*> (docs/CONFORMANCE.md section 5, row A.4.13). Refused by name with COBOLNET1706.
+*> (docs/CONFORMANCE.md section 5, row A.4.13). Refused by name with COBOL1706.
 *> This is 14.9.51.2 FORMAT 1 (sequential organization; 14.9.51.3 rule 2 requires format 1 there).
 *> WHAT THIS WITNESS ACTUALLY PINS: until 2026-09-02 this exact program COMPILED CLEAN and RAN, because
 *> the binder carried a live file-name arm that wrote the whole record area through FileModel.AreaRecord -

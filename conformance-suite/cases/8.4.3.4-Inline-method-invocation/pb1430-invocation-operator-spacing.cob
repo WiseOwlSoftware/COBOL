@@ -8,7 +8,7 @@
       *> contiguous COBOL characters '::', which shall be immediately
       *> preceded and followed by a separator space." A1:: "GETNAME" has
       *> no space before the operator and no literal beside it, so no
-      *> 8.3.5 rule can see it; it used to compile and run. COBOLNET2993.
+      *> 8.3.5 rule can see it; it used to compile and run. COBOL2993.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1430N2.
        ENVIRONMENT DIVISION.

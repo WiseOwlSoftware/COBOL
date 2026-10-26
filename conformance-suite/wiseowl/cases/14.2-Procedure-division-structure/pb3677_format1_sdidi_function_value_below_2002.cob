@@ -7,7 +7,7 @@
 *> kb/Work PB3677, the negative of pb3677_format1_sdidi_function_value: the REPOSITORY PROGRAM entry that makes
 *> a Format-1 CALL's callee a program the activating element has a program-specifier for (ISO 14.2.3 GR9, second
 *> regime: the numeric formal is filled by a COMPUTE) is a COBOL-2002 introduction, so it is refused at COBOL-85
-*> by name (COBOLNET0900) and accepted from 2002 on.
+*> by name (COBOL0900) and accepted from 2002 on.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3677N1.
 ENVIRONMENT DIVISION.

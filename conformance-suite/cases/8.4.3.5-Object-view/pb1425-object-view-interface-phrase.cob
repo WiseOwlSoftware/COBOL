@@ -7,7 +7,7 @@
       *> kb/Work PB1425 - ISO 8.4.3.5.2: the object-view's AS phrase is ONE brace of three alternatives,
       *>   `[FACTORY OF] object-class-name-1 [ONLY]`, `interface-name-1` and `UNIVERSAL`; FACTORY OF and ONLY
       *>   belong to the class alternative alone, and GR6 states the interface reading with neither.
-      *>   PB1425W3I is an interface, so `OU AS PB1425W3I ONLY` is refused (COBOLNET2872).
+      *>   PB1425W3I is an interface, so `OU AS PB1425W3I ONLY` is refused (COBOL2872).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1425W3.
        ENVIRONMENT DIVISION.

@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> kb/Work PB732 — arm: Format 4 (report-section) VALUE. ISO 13.18.63.2 Format 4 writes `{literal-1}...`
-*> for a report printable item, the same literal position as Format 1 -> COBOLNET1639 for an undefined
+*> for a report printable item, the same literal position as Format 1 -> COBOL1639 for an undefined
 *> word (8.4.2.1). Pre-fix the report printed the word's own spelling into the report file and the
 *> program exited 0 with no diagnostic.
 IDENTIFICATION DIVISION.

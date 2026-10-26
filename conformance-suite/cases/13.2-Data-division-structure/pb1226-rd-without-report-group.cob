@@ -12,8 +12,8 @@
       *> followed by NOTHING, so the program describes no report group at all;
       *> before the rule was screened it compiled clean and ran.
       *> No edition changes the rule (Annex E has no change to 13.8.4), so all
-      *> four editions reject, with COBOLNET2708 (the sort-merge twin's "one or
-      *> more record description entries" is COBOLNET1837).
+      *> four editions reject, with COBOL2708 (the sort-merge twin's "one or
+      *> more record description entries" is COBOL1837).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1226N1.
        ENVIRONMENT DIVISION.

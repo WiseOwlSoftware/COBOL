@@ -6,7 +6,7 @@
 **two files**, because the 1,323 GnuCOBOL programs live as `AT_DATA` heredocs inside 36 `.at` autotest wrappers.
 Two waves therefore shipped new bind-time REJECTIONS on a blast radius stated as empty, and the very next
 differential found both shapes in the corpus the sweep was named after — one of them in a case whose title is
-literally "REDEFINES: with OCCURS" (§13.18.44.3 SR5 s.1 → COBOLNET1701; §13.18.63.3 SR13 s.2 → COBOLNET1702).
+literally "REDEFINES: with OCCURS" (§13.18.44.3 SR5 s.1 → COBOL1701; §13.18.63.3 SR13 s.2 → COBOL1702).
 
 Three rules follow from that, and they are the design:
 
@@ -29,7 +29,7 @@ Usage:
     python scripts/corpus_sweep.py                                  # the census — what a sweep would read
     python scripts/corpus_sweep.py --verify-population              # the drift check, alone
     python scripts/corpus_sweep.py --pattern 'REDEFINES' --name redefines
-    python scripts/corpus_sweep.py --codes COBOLNET1698,COBOLNET1701   # which diagnostics FIRED (compiled)
+    python scripts/corpus_sweep.py --codes COBOL1698,COBOL1701   # which diagnostics FIRED (compiled)
 """
 from __future__ import annotations
 import argparse, json, os, re, sys
@@ -152,7 +152,7 @@ def main() -> int:
     ap.add_argument('--report', default=REPORT)
     ap.add_argument('--pattern', default='', help='regex asked of every program text (re.IGNORECASE|re.M)')
     ap.add_argument('--name', default='', help='what the pattern is looking for, for the report header')
-    ap.add_argument('--codes', default='', help='comma-separated COBOLNETnnnn — which FIRED on the corpus')
+    ap.add_argument('--codes', default='', help='comma-separated COBOLnnnn — which FIRED on the corpus')
     ap.add_argument('--verify-population', action='store_true', help='run the drift check alone')
     ap.add_argument('--show', type=int, default=25, help='max hits printed per population')
     ap.add_argument('--json', action='store_true', help='emit one machine-readable JSON line as well')

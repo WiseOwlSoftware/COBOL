@@ -59,7 +59,7 @@ public sealed class BooleanExpressionFormationTests
     public void ParenthesizedBooleanLiteral_IsABooleanOperand(string src, string expected)
     {
         // Table 4 permits ('(', literal) and (literal, ')'); rule 1 lets a boolean expression begin with '('. The
-        // value of a parenthesized literal is the literal (rule 7a). It was COBOLNET1619 "malformed".
+        // value of a parenthesized literal is the literal (rule 7a). It was COBOL1619 "malformed".
         Assert.NotNull(DirectiveExpressionFragment.ParseOperand(src));
         var (v, diag) = EvalOperand(src);
         Assert.Empty(diag.Reports);

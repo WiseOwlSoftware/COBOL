@@ -7,7 +7,7 @@
       *> A PRINTABLE ENTRY WITH A COLUMN CLAUSE AND NO OPERAND (kb/Work PB853), the PICTURE-LESS shape.
       *> ISO/IEC 1989:2023 §13.15.3 SR10: "Every elementary entry with a COLUMN clause shall also contain
       *> either a SOURCE, VALUE or SUM clause." This shape used to be refused only by accident, under the
-      *> SR12 PICTURE rule's staging code (COBOLNET0899); SR10 is the rule that decides it.
+      *> SR12 PICTURE rule's staging code (COBOL0899); SR10 is the rule that decides it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB853CNP.
        ENVIRONMENT DIVISION.

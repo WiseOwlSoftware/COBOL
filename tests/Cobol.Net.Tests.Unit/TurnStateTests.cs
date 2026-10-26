@@ -89,7 +89,7 @@ public sealed class TurnStateTests
     }
 
     [Fact]   // §7.3.25.3 SR2 is the DIRECTIVE STAGE's (TurnDirectiveExceptionNameTests; kb/Work PB2740): a name that reaches
-             // the fold unresolved is a broken hand-off, never a user error, so it throws and reports no COBOLNET0711.
+             // the fold unresolved is a broken hand-off, never a user error, so it throws and reports no COBOL0711.
     public void UnresolvedName_IsABrokenHandOff()
     {
         var edition = new EditionContext(2023);

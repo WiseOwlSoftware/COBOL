@@ -299,7 +299,7 @@ public sealed class MethodOmittedArgumentTests
             END METHOD M.
             END OBJECT.
             END CLASS CMOA7.
-            """), "COBOLNET1686");
+            """), "COBOL1686");
 
     /// <summary>§14.8.2.1 on the FUNCTION arm: a trailing argument may be omitted only when its formal is
     /// OPTIONAL — B is not (1506).</summary>
@@ -330,5 +330,5 @@ public sealed class MethodOmittedArgumentTests
                 DISPLAY FUNCTION FMOA8(W).
                 STOP RUN.
             END PROGRAM MOA8.
-            """), "COBOLNET1506");
+            """), "COBOL1506");
 }

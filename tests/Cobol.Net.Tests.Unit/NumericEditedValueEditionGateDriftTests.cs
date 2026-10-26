@@ -63,8 +63,8 @@ public sealed class NumericEditedValueEditionGateDriftTests
     public void NumericLiteralOnANumericEditedSubject_IsRefusedBelow2023_InEveryFormat(string label, string src)
     {
         foreach (int edition in (int[])[85, 2002, 2014])
-            Assert.True(Bind(label + edition, src, edition).Any(d => d.Contains("COBOLNET0900", StringComparison.Ordinal)),
-                $"{label} at --std {edition}: a numeric literal on a numeric-edited subject drew no COBOLNET0900. "
+            Assert.True(Bind(label + edition, src, edition).Any(d => d.Contains("COBOL0900", StringComparison.Ordinal)),
+                $"{label} at --std {edition}: a numeric literal on a numeric-edited subject drew no COBOL0900. "
                 + "ISO §13.18.63.3 SR6's permission is a COBOL-2023 addition (Annex E.3.3 item 43), so every "
                 + "format it reaches shall be refused below that edition — this format's arm stopped consulting "
                 + "the one screen (kb/Work PB921).");
@@ -76,7 +76,7 @@ public sealed class NumericEditedValueEditionGateDriftTests
     [MemberData(nameof(GatedFormats))]
     public void NumericLiteralOnANumericEditedSubject_IsAcceptedAt2023_InEveryFormat(string label, string src)
         => Assert.DoesNotContain(Bind(label + "2023", src, 2023),
-            d => d.Contains("COBOLNET0900", StringComparison.Ordinal));
+            d => d.Contains("COBOL0900", StringComparison.Ordinal));
 
     /// <summary>The operands SR6's edition does NOT gate, at the LOWEST edition — the screen's complement: the
     /// figurative constant ZERO or ZEROES (no numeric literal; Annex E.2 item 28 changed only its stored image at
@@ -90,7 +90,7 @@ public sealed class NumericEditedValueEditionGateDriftTests
     [InlineData("NOT-NUMERIC-EDITED", "       01  X  PIC 9(3) VALUE 10.\r\n")]
     public void TheLiteralsSr6DoesNotGate_AreNotRefusedAtTheLowestEdition(string label, string ws)
         => Assert.DoesNotContain(Bind(label, Data(ws), 85),
-            d => d.Contains("COBOLNET0900", StringComparison.Ordinal));
+            d => d.Contains("COBOL0900", StringComparison.Ordinal));
 
     // ── harness ─────────────────────────────────────────────────────────────────────────────────────────────
 

@@ -14,7 +14,7 @@
       *> implementation lays out — ISO §4.5: "Translation may be unsuccessful due
       *> to factors other than lack of conformance of a compilation group"
       *> (docs/CONFORMANCE.md §3 "Integer operands and host carriers"). The
-      *> verdict is COBOLNET2427, the one limit screen. Before PB1579 the literal
+      *> verdict is COBOL2427, the one limit screen. Before PB1579 the literal
       *> was read by int.TryParse and refused under SR4 as "not an integer
       *> literal" — a false sentence; with the reader fixed but no limit screen,
       *> the saturated length reached the prior control's copy and the program

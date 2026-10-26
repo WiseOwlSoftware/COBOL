@@ -700,7 +700,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
 
     /// <summary>
     /// The rows of a clause 15 function whose band STARTS before the function exists: the edition the compiler
-    /// introduces it at, <see cref="IntrinsicSig.IntroducedIn"/> (the COBOLNET1502 window). No rule of a function
+    /// introduces it at, <see cref="IntrinsicSig.IntroducedIn"/> (the COBOL1502 window). No rule of a function
     /// exists before the function does, so a per-edition suite built from such a band would include a rule that
     /// edition's compiler refuses to compile (kb/Work PB3173, branch review round 1: nine rows, ABS's at 2002 and
     /// TEST-NUMVAL's at 85 among them). A band that starts LATER than the window is a reading of the rule's 2023
@@ -728,7 +728,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
             else if (Array.IndexOf(s.Editions, first) < w)
                 bad.Add($"{r.RuleId}: editions '{r.Editions}' starts at {first}, but the {name} function "
                         + $"(§{m.Groups[1].Value}) exists from {window} — write the band from {window} "
-                        + "(IntrinsicCatalog.cs, the COBOLNET1502 window; kb/Work PB3173)");
+                        + "(IntrinsicCatalog.cs, the COBOL1502 window; kb/Work PB3173)");
         }
         return bad;
     }

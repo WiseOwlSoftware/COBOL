@@ -201,9 +201,9 @@ public sealed class CharacterPositionsTests
     public void FreeForm_255Positions_AreCountedAsCharacters()
     {
         var (_, within) = Normalize("DISPLAY " + Wides(247) + "\n", InitialReferenceFormat.Free);   // 8 + 247 = 255
-        Assert.DoesNotContain(within.Diagnostics, d => d.Code == "COBOLNET2653");
+        Assert.DoesNotContain(within.Diagnostics, d => d.Code == "COBOL2653");
         var (_, over) = Normalize("DISPLAY " + Wides(248) + "\n", InitialReferenceFormat.Free);     // 256
-        var diagnostic = Assert.Single(over.Diagnostics, d => d.Code == "COBOLNET2653");
+        var diagnostic = Assert.Single(over.Diagnostics, d => d.Code == "COBOL2653");
         Assert.Contains("256 character positions", diagnostic.Message);
     }
 
@@ -211,7 +211,7 @@ public sealed class CharacterPositionsTests
     public void FixedForm_AWideIndicator_IsNamedWhole()
     {
         var (lines, bag) = Normalize("000100" + Wide + "DISPLAY \"A\".\n", InitialReferenceFormat.Fixed);
-        var diagnostic = Assert.Single(bag.Diagnostics, d => d.Code == "COBOLNET2616");
+        var diagnostic = Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2616");
         Assert.Contains("'" + Wide + "'", diagnostic.Message);
         Assert.StartsWith("DISPLAY \"A\".", lines[0]);                         // then read as a source line
     }
@@ -219,7 +219,7 @@ public sealed class CharacterPositionsTests
     [Fact] // a diagnostic's column is a CHARACTER position of the line (the lexer's own columns are code points)
     public void FixedForm_ADiagnosticColumn_CountsCharacters()
     {
-        // a floating comment indicator directly after text, in a COBOL-2002 source: COBOLNET2650-family "unseparated"
+        // a floating comment indicator directly after text, in a COBOL-2002 source: COBOL2650-family "unseparated"
         // is asked at the indicator's column; with 3 wide characters before it the column is by position, not by unit.
         string line = "000100 " + Wides(3) + "*> remark";
         var (_, bag) = Normalize(line + "\n", InitialReferenceFormat.Fixed, std: 2002);

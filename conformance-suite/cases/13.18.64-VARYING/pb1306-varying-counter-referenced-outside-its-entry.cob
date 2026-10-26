@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1306 - ISO 13.18.64.3 SR2: "This definition of data-name-1 may be referenced only within the current
       *> entry or a subordinate entry." The second LINE entry is neither the entry that defines K nor subordinate to
-      *> it, so its SOURCE K names nothing: COBOLNET1639 (the name is not defined there).
+      *> it, so its SOURCE K names nothing: COBOL1639 (the name is not defined there).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1306N3.
        ENVIRONMENT DIVISION.

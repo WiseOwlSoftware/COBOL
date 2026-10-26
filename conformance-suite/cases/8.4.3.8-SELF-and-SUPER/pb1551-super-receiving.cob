@@ -7,7 +7,7 @@
       *> kb/Work PB1551 - ISO 8.4.3.8.3 SR2 (cite.py: OK 8.4.3.8.3 2)): SUPER,
       *> the same identifier format as SELF, written as the receiving operand
       *> of SET ... TO NULL. SR2, not SR3 (SUPER's two homes), is the rule the
-      *> receiving position breaks first; the chokepoint reports COBOLNET3978.
+      *> receiving position breaks first; the chokepoint reports COBOL3978.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1551UM.
        PROCEDURE DIVISION.

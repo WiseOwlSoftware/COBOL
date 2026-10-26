@@ -27,7 +27,7 @@ closed per weekly-quota point.
 | `scripts/orchestrator/steer.ps1` | the OPERATOR's one way to name the loop's next unit: a validated `handoff.operator.json` (section 4.8) |
 | `scripts/orchestrator/units/*.md` | `common.md` (the rules every unit obeys) plus one short prompt per unit type; they reference files, never paste them |
 | `scripts/orchestrator/handoff.schema.json` | the contract between a unit and the supervisor (section 5) |
-| `scripts/orchestrator/alloc.py` | the one locked allocator for DEVLOG numbers, `PB` ids, `COBOLNET` codes and wave numbers (section 6) |
+| `scripts/orchestrator/alloc.py` | the one locked allocator for DEVLOG numbers, `PB` ids, `COBOL####` diagnostic codes and wave numbers (section 6) |
 | `scripts/orchestrator/inventory_ratchet.py` | the closed-rows ratchet (section 7) |
 | `scripts/orchestrator/budget.py` | the weekly and session quota estimator (section 8) |
 | `scripts/orchestrator/plan_wave.py` + `model_rules.json` | the deterministic wave planner's plan (five stages over one `PlanState`) and its command line, and its routing and cost constants (section 9) |
@@ -811,7 +811,7 @@ Every unit's checkpoint and milestones are kept beside its log: `logs\<time>-<un
 ## 6. The allocator (`alloc.py`)
 
 `python scripts/orchestrator/alloc.py devlog | pb N | code N | wave` prints the allocated value or the range
-(`PB1982-PB1986`, `COBOLNET2799-COBOLNET2801`); `peek <kind>` prints the next free value without reserving, with
+(`PB1982-PB1986`, `COBOL2799-COBOL2801`); `peek <kind>` prints the next free value without reserving, with
 the truth-source detail. `--coord DIR` (or `COBOL_COORD_DIR`) and `--repo DIR` select the coordination directory
 and the repository.
 
@@ -819,8 +819,9 @@ and the repository.
   repository on every call:
   - `devlog`: the highest entry number in `DEVLOG/` (`devlog.py`'s reader; one file per entry, kb/Work PB3025);
   - `pb`: the highest `kb/Work/PB<n>.md`;
-  - `code`: the ceiling of BOTH scans: every `COBOLNET\d{4}` in `src/**/*.cs` (outside `bin`/`obj`) and every
-    quoted `"COBOLNET\d{4}"` in `src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs`. This is the rule
+  - `code`: the ceiling of BOTH scans: every whole-word `COBOL\d{4}` in `src/**/*.cs` (outside `bin`/`obj`; the
+    parser's series COBOL0001-COBOL0313 shares the prefix and sits below every other code, kb/Work PB3575) and every
+    quoted `"COBOL\d{4}"` in `src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs`. This is the rule
     `session-probe.ps1` used to compute itself; it now calls `alloc.py peek code --probe` and prints that line, so
     the rule exists once;
   - `wave`: the highest wave OR train number in use (`alloc.wave_top`): in a report's name in the reports directory

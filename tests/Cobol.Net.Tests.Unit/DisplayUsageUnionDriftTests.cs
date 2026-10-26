@@ -125,7 +125,7 @@ public sealed class DisplayUsageUnionDriftTests
             // PAIR — SPEC-REQUIRED, and it is the spec's own pair. §8.4.3.3.3 SR1 admits reference modification
             // of "a numeric data item of usage display or national that is not subordinate to a strongly-typed
             // group item", so this site enforces the standard. MEASURED: `MOVE NB(1:1) TO X` over a COMP-5 item
-            // draws COBOLNET1647 citing that rule. ⛔ WAS 4 DISPLAY-ONLY: the other three asked the IMAGE-FORM
+            // draws COBOL1647 citing that rule. ⛔ WAS 4 DISPLAY-ONLY: the other three asked the IMAGE-FORM
             // question (the RefMod view's wrap gate and the two RENAMES span arms) and now read
             // PicInfo.IsCharacterFormNumeric — before PB646 the view's gate named DISPLAY while the exclusion
             // above it already admitted the pair, so `RM(2:3)` over a national-form numeric passed the
@@ -174,7 +174,7 @@ public sealed class DisplayUsageUnionDriftTests
 
             // PAIR — SPEC-REQUIRED, verbatim (kb/Work PB1468). §8.8.4.2.5: "The numeric integer operand shall be an
             // integer literal or an integer numeric data item of usage display or national." A COMP/packed/float
-            // item against an alphanumeric operand is not §8.8.4.2.1 item 6's pair — refused COBOLNET2532.
+            // item against an alphanumeric operand is not §8.8.4.2.1 item 6's pair — refused COBOL2532.
             ["Binding/RelationComparability.cs"] = (0, 1),
 
             // KEEPER — D-U6a's UNIVERSAL box bridge: OoUnivImageBridged asks whether the canonical box is the ZONED
@@ -224,6 +224,6 @@ public sealed class DisplayUsageUnionDriftTests
                                                   "UdfBinder.cs"));
         Assert.Equal(0, CodeOccurrences(src, "Usage: Usage.Display"));
         Assert.Equal(0, CodeOccurrences(src, "UdfReturningResidue"));
-        Assert.Equal(0, CodeOccurrences(src, "COBOLNET1510"));
+        Assert.Equal(0, CodeOccurrences(src, "COBOL1510"));
     }
 }

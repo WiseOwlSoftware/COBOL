@@ -9,7 +9,7 @@
       *>  three-character opening delimiter (8.3.5 rule 5). Before the
       *>  fix NX"00G1" re-lexed as the data-name NX followed by "00G1",
       *>  so MAX(NX"00G1") took the item NX and printed [ZZZZ] with no
-      *>  diagnostic. COBOLNET2630.
+      *>  diagnostic. COBOL2630.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGW73ANX.
        ENVIRONMENT DIVISION.

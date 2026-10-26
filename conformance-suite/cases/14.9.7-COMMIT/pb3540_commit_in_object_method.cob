@@ -8,7 +8,7 @@
 *> not permitted in factory and object classes, nor in any of their methods nor in any runtime elements that they
 *> invoke." A COMMIT written in a method of an object definition is refused at translation: 14.9.7.3 SR1 reads "This
 *> statement shall not be specified in a recursive source element." (8.6.6: "Functions and methods are
-*> always recursive."), COBOLNET1690. The dynamic half, a program a method invokes, is the runtime's
+*> always recursive."), COBOL1690. The dynamic half, a program a method invokes, is the runtime's
 *> (pb3540_commit_rollback_under_method). Refused at 2023, the one edition that has the statement.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3540E.

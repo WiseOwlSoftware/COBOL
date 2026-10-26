@@ -38,7 +38,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // were bound LAZILY, from inside the pair binder, so a statement no arm read the subject in never
         // evaluated it: `WHEN ANY` against every subject — and, before the §14.9.13.2 grammar repair, an
         // EVALUATE whose only clause was WHEN OTHER — compiled the subject away entirely. Measured: an
-        // undefined selection subject lost its COBOLNET1639 (§8.4.2.1), `EVALUATE R (9)` over `OCCURS 3` lost
+        // undefined selection subject lost its COBOL1639 (§8.4.2.1), `EVALUATE R (9)` over `OCCURS 3` lost
         // EC-BOUND-SUBSCRIPT, and `EVALUATE A / B` with B = 0 lost EC-SIZE-ZERO-DIVIDE — all three fatal on the
         // identical program with one dead WHEN arm added. Touching every slot HERE, before any arm binds, both
         // resolves the operand and — through SubjectUsage.NeedsIntermediate, which is true for every shape but
@@ -235,7 +235,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// operator-bearing boolean expression alike (kb/Work PB1412).</para>
     /// <para>Returns false when the pairing is invalid and has been reported: the caller binds nothing more of it,
     /// because every further diagnostic the pair would draw is the same mistake read a second time
-    /// (<c>EVALUATE BW WHEN TRUE</c> over a wide boolean item drew COBOLNET1634 and then COBOLNET2318 "'TRUE' is used
+    /// (<c>EVALUATE BW WHEN TRUE</c> over a wide boolean item drew COBOL1634 and then COBOL2318 "'TRUE' is used
     /// as a condition" about the very object the table had just refused).</para></summary>
     private bool ScreenPairing(in EvaluatePairing pair, Core.EvaluateWhenItemContext item)
     {
@@ -285,7 +285,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// a figurative constant (§8.3.3.6.4 GR1 gives it its context's category, so the lattice answers a SET and
     /// not a class) or an already-reported error node, and abstains — the direction that cannot reject legal
     /// source. ⚠ Class MESSAGE-TAG, SR4's fourth exclusion, has no lattice member: USAGE MESSAGE-TAG is declined
-    /// non-support (COBOLNET1943) and refused by name at every edition, so no such operand reaches here; the day
+    /// non-support (COBOL1943) and refused by name at every edition, so no such operand reaches here; the day
     /// it lands, the lattice gains the member and this screen sees it with no change.</para>
     /// <para>The pointer case is the sharpest, and it is why SR4 cannot be left to the relation checkpoint: a
     /// range lowers to `subject &gt;= low AND subject &lt;= high` (§14.9.13.4 GR4 a) 5.), and where that pair is
@@ -484,7 +484,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         //   false pair stopping the phrase (GR4a–d) — its activations attach per-evaluation to the object
         //   term, and the composed &&/|| chain's C# short-circuit realizes GR4c exactly. A partial-expression
         //   object splices the subject's one VALUE in, so SR8's rewrite activates nothing of the subject's.
-        // No subject window stages COBOLNET1509 any more: the narrowed residue stage had exactly these two
+        // No subject window stages COBOL1509 any more: the narrowed residue stage had exactly these two
         // callers, and it is deleted with them.
 
         // A CONDITION subject (§14.9.13.4 GR3 e), Table 15's Condition column) pairs with TRUE/FALSE objects:
@@ -526,7 +526,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // IS BOUND FOR IT (kb/Work PB1668). §14.9.13.4 GR3 f) gives the subject word its truth value, GR4 a) 4. makes
         // the pair "true" exactly when the two truth values match — so `EVALUATE TRUE WHEN TRUE` is true and
         // `EVALUATE FALSE WHEN TRUE` is false. The object's word used to go through BindCondition, whose bare-word
-        // arm is not a condition (§8.8.4.2.1) and refused conforming source through the COBOLNET2319 net.
+        // arm is not a condition (§8.8.4.2.1) and refused conforming source through the COBOL2319 net.
         if (pair.Subject is EvaluateSubjectOperand.TrueOrFalse && item.booleanLiteral() is { } wordObject)
             return Constant(subjTrue == (wordObject.TRUE_() is not null));
 
@@ -755,7 +755,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// boolean subject as a §8.8.4.3 simple boolean condition (kb/Work PB400: one resolution, consulted twice).</para>
     /// <para>⛔ BOUND ONCE, NEVER PER WHEN (kb/Work PB842 / PB912). This used to run inside the pair binder, so the
     /// condition was re-bound — and re-emitted — once per WHEN arm, and a user-defined function inside it was
-    /// refused (COBOLNET1509) because a per-WHEN re-bind would have over-activated it. With the truth value in an
+    /// refused (COBOL1509) because a per-WHEN re-bind would have over-activated it. With the truth value in an
     /// intermediate the re-bind and the refusal are both gone. The intermediate is taken on the SAME
     /// <see cref="SubjectUsage.NeedsIntermediate"/> test as a value subject's: a single read in the first arm is
     /// itself the one evaluation at "the beginning of the execution of the EVALUATE statement".</para>

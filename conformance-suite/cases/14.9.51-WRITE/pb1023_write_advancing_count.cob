@@ -10,7 +10,7 @@
       *> "Identifier-2 shall reference an integer data item." SR15:
       *> "Integer-1 shall be positive or zero." The screen that now
       *> refuses a PIC X or PIC 9V9 identifier-2 and a 1.5 / "2" / -1
-      *> integer-1 (COBOLNET2365, negative/pb1023-write-advancing-count)
+      *> integer-1 (COBOL2365, negative/pb1023-write-advancing-count)
       *> must admit every integer USAGE and the zero count.
       *> Expected values: 13.18.34.4 GR7 - "the LINAGE-COUNTER is
       *> incremented by the value of the integer specified in the

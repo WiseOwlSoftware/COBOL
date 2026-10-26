@@ -6,7 +6,7 @@
 *>---
       *> ISO 14.9.39.3 SR27: "Identifier-10 shall reference an elementary data item of category data-pointer." The TO
       *> operand of SET LOCALE (Format 11) is a locale-name, USER-DEFAULT, SYSTEM-DEFAULT, or a data-pointer holding a
-      *> saved locale (14.9.39.4 GR23a / GR21) - WS-N is a numeric item, neither. COBOLNET1668 (kb/Work PB64 T1).
+      *> saved locale (14.9.39.4 GR23a / GR21) - WS-N is a numeric item, neither. COBOL1668 (kb/Work PB64 T1).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB64T1SR27.
        DATA DIVISION.

@@ -73,7 +73,7 @@ like any documentation site, nothing to download or install. A version picker sw
 - *Edition matrix* (§4.2.12, §4.2.13) — from `constructs.json` + `VERSION_CHANGE_REFERENCE.md`: per construct, the
   introducing edition, archaic/obsolete status, and what `--std` does with it.
 - *Command-line reference* — from `CliOptions` (one source for `--help` and the page).
-- *Diagnostics reference* — from the diagnostic catalog: one entry per `COBOLNET####` code with severity, the rule it
+- *Diagnostics reference* — from the diagnostic catalog: one entry per `COBOL####` code with severity, the rule it
   enforces (§ citation) and a minimal example.
 - *Runtime API reference* — from the runtime assembly's XML documentation comments.
 

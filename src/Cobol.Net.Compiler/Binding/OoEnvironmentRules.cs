@@ -93,7 +93,7 @@ internal static class OoEnvironmentRules
         }
     }
 
-    /// <summary>An unrecognized clause is refused BY NAME elsewhere (ClosedFormatPass, COBOLNET1970), so it is not
+    /// <summary>An unrecognized clause is refused BY NAME elsewhere (ClosedFormatPass, COBOL1970), so it is not
     /// reported twice here.</summary>
     private static bool AdmittedInSpecialNames(OoDefinition kind, Core.SpecialNameEntryContext e) =>
         e.unrecognizedClause() is not null

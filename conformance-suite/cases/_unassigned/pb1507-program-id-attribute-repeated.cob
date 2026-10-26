@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1507 - 5.2.6.4: "any single alternative may be specified only once" - the PROGRAM-ID attribute
       *>   group of 11.10.2 Format 1 is a choice-indicator group, so `IS COMMON COMMON PROGRAM` repeats COMMON.
-      *>   COBOLNET2104 (choice-alternative-repeated).
+      *>   COBOL2104 (choice-alternative-repeated).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. DUP1507.
        PROCEDURE DIVISION.

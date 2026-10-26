@@ -35,12 +35,12 @@ public sealed class TurnDirectiveExceptionNameTests
     }
 
     [Theory]   // SR2: unknown name, the EC-IMP- family this implementation does not define, a 2023-only family at 2002/2014
-    [InlineData("EC-NOSUCH CHECKING ON", 2023, "COBOLNET0711")]
-    [InlineData("EC-IMP-WIBBLE CHECKING ON", 2023, "COBOLNET0711")]
-    [InlineData("EC-USER-BAD- CHECKING ON", 2023, "COBOLNET0711")]
-    [InlineData("EC-EXTERNAL-FORMAT-CONFLICT CHECKING ON", 2002, "COBOLNET0878")]
-    [InlineData("EC-EXTERNAL-FORMAT-CONFLICT CHECKING ON", 2014, "COBOLNET0878")]
-    [InlineData("EC-SIZE EC-NOSUCH CHECKING OFF", 2023, "COBOLNET0711")]
+    [InlineData("EC-NOSUCH CHECKING ON", 2023, "COBOL0711")]
+    [InlineData("EC-IMP-WIBBLE CHECKING ON", 2023, "COBOL0711")]
+    [InlineData("EC-USER-BAD- CHECKING ON", 2023, "COBOL0711")]
+    [InlineData("EC-EXTERNAL-FORMAT-CONFLICT CHECKING ON", 2002, "COBOL0878")]
+    [InlineData("EC-EXTERNAL-FORMAT-CONFLICT CHECKING ON", 2014, "COBOL0878")]
+    [InlineData("EC-SIZE EC-NOSUCH CHECKING OFF", 2023, "COBOL0711")]
     public void CompiledAndOmitted_ReportTheSameSr2Diagnostic(string operand, int dialectLevel, string code)
     {
         Assert.Equal([code], Compiled(operand, dialectLevel, out _));
@@ -63,22 +63,22 @@ public sealed class TurnDirectiveExceptionNameTests
     public void RefusedName_ContributesNoToggle_AndTheOthersStay()
     {
         var codes = Compiled("ec-size EC-NOSUCH EC-ALL CHECKING ON", 2023, out var names);
-        Assert.Equal(["COBOLNET0711"], codes);
+        Assert.Equal(["COBOL0711"], codes);
         Assert.Equal(["EC-SIZE", "EC-ALL"], names.Select(n => n.Ec));
     }
 
-    [Fact]   // every name refused: SR2 says so once, and the directive is not ALSO called malformed (COBOLNET0718)
+    [Fact]   // every name refused: SR2 says so once, and the directive is not ALSO called malformed (COBOL0718)
     public void EveryNameRefused_IsNotAlsoMalformed()
     {
-        Assert.Equal(["COBOLNET0711"], Compiled("EC-NOSUCH CHECKING ON", 2023, out var names));
+        Assert.Equal(["COBOL0711"], Compiled("EC-NOSUCH CHECKING ON", 2023, out var names));
         Assert.Empty(names);
-        Assert.Equal(["COBOLNET0711", "COBOLNET0711"], Compiled("EC-NOSUCH EC-OTHER CHECKING ON", 2023, out _));
+        Assert.Equal(["COBOL0711", "COBOL0711"], Compiled("EC-NOSUCH EC-OTHER CHECKING ON", 2023, out _));
     }
 
-    [Fact]   // below COBOL-2002 the directive itself is the refusal (COBOLNET0900); the name window adds nothing
+    [Fact]   // below COBOL-2002 the directive itself is the refusal (COBOL0900); the name window adds nothing
     public void Below2002_TheNameWindowAddsNoSecondDiagnostic()
     {
-        Assert.DoesNotContain("COBOLNET0878", Compiled("EC-EXTERNAL-FORMAT-CONFLICT CHECKING ON", 85, out _));
-        Assert.DoesNotContain("COBOLNET0878", Omitted("EC-SIZE CHECKING ON", 85));
+        Assert.DoesNotContain("COBOL0878", Compiled("EC-EXTERNAL-FORMAT-CONFLICT CHECKING ON", 85, out _));
+        Assert.DoesNotContain("COBOL0878", Omitted("EC-SIZE CHECKING ON", 85));
     }
 }

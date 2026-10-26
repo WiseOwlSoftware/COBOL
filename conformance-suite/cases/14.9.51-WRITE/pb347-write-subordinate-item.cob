@@ -10,7 +10,7 @@
 *> Accepted, WRITE IR-DATA wrote the 5-byte subordinate item where the 8-byte record belongs.
 *> §4.2.2 makes the compile-time indication mandatory for "violations of the general formats and the
 *> explicit syntax rules of standard COBOL". The rule is written identically in 1985, 2002 and 2014, so
-*> there is no edition gate and every edition rejects. COBOLNET1757 (kb/Work PB347).
+*> there is no edition gate and every edition rejects. COBOL1757 (kb/Work PB347).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB347N3.
        ENVIRONMENT DIVISION.

@@ -23,7 +23,7 @@
       *> being constructed in the EMITTER -- downstream of both.  Its 2023 twin, where the same
       *> statement is REMOVED, is conformance:cases/14.9.32-RELEASE/pb348-release-from-quote-numeric-removed-2023.
       *> The 2014 leg: Annex E.2 item 21 makes the sender OBSOLETE, so the compiler warns
-      *> COBOLNET0903 and the semantics are unchanged -- and it now warns on the IMPLICIT move
+      *> COBOL0903 and the semantics are unchanged -- and it now warns on the IMPLICIT move
       *> as well as on the explicit one, which is the edition half of the same defect.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB348Q3.

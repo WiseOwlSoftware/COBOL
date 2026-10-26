@@ -79,7 +79,7 @@ public static class PictureAnalyzer
     /// legacy single-symbol form (tests / report items) — ignored when <paramref name="currencies"/> is given.
     /// <paramref name="edition"/>
     /// + <paramref name="where"/> carry the W2 loud-guard diagnostics: the symbol whitelist (§13.18.40.3 SR2) —
-    /// a symbol outside the legal set is a COBOLNET0808 error, and the legal-but-unimplemented 2002+ symbols
+    /// a symbol outside the legal set is a COBOL0808 error, and the legal-but-unimplemented 2002+ symbols
     /// <c>N</c>/<c>1</c>/<c>E</c> route their introduction gates + a not-implemented error (never the historical
     /// silent fall-through to "pure numeric, zero digits"). Analyze sees the RAW picture — DECIMAL-POINT IS COMMA
     /// (ISO §13.18.40.3 SR13) swaps the ROLES of <c>,</c> and <c>.</c> at edit time (<c>CobolEdit.MaskScale</c>'s
@@ -121,7 +121,7 @@ public static class PictureAnalyzer
         if (picture.EndsWith(';')) picture = picture[..^1];
         if (picture.Length == 0)
         {
-            edition.Error("COBOLNET0808", $"invalid PICTURE character-string — {where} "
+            edition.Error("COBOL0808", $"invalid PICTURE character-string — {where} "
                 + "(ISO §13.18.40.3 SR2: empty after separating the trailing ';' separator)");
             return PicInfo.Recovery();
         }
@@ -163,7 +163,7 @@ public static class PictureAnalyzer
             if (!currencySet.ContainsKey(up)) continue;
             if (cs == '\0') { cs = up; continue; }
             if (cs == up) continue;
-            edition.Error("COBOLNET0808", $"invalid PICTURE character-string {picture} — {where}: it uses two "
+            edition.Error("COBOL0808", $"invalid PICTURE character-string {picture} — {where}: it uses two "
                 + $"different currency symbols ('{cs}' and '{up}'); a PICTURE character-string may contain one "
                 + "currency symbol kind (ISO §13.18.40.3 r24 / r28)");
             return PicInfo.Recovery();
@@ -188,7 +188,7 @@ public static class PictureAnalyzer
 
         // ── PICTURE EDITING phrases (ISO §13.18.40.2 Format 1, COBOL-2023): validate SR8–SR12 and build the
         // render rules. char1Set lets the SR2 whitelist admit the declared editing characters (else char-1
-        // letters like 'L'/'T'/'G' would trip COBOLNET0808); char1Extended is the FOR-phrase subset, which
+        // letters like 'L'/'T'/'G' would trip COBOL0808); char1Extended is the FOR-phrase subset, which
         // §13.18.40.5 rule 6 makes FLOATING insertion symbols. The introduction gate below 2023 is fired by
         // VersionConformancePass.ParseArm.VisitPictureClause.
         var editRules = ValidateEditing(editing, expanded, usage, edition, where, cs, decimalPointIsComma,
@@ -216,7 +216,7 @@ public static class PictureAnalyzer
                 // '$' is a currency picture symbol iff it is a member of the unit's CURRENCY SIGN SET —
                 // §12.3.7.3 r25 IMPLIES `CURRENCY SIGN '$' PICTURE SYMBOL '$'` unless a clause names '$' as
                 // literal-7 or literal-8, so `PIC $$,$$9.99` stays legal beside a declared '#' (kb/Work PB60 /
-                // AR-15.68.3-3 measured it as COBOLNET0808 under the former single-symbol model — a legal-source
+                // AR-15.68.3-3 measured it as COBOL0808 under the former single-symbol model — a legal-source
                 // rejection); only a clause that TAKES '$' for another string retires it as a symbol.
                 case '$' when currencySet.ContainsKey('$'):
                     break;
@@ -247,8 +247,8 @@ public static class PictureAnalyzer
             // Wording is exact about what IS checked HERE: symbol MEMBERSHIP in the SR2 inventory. SR2's
             // OTHER obligation — the §13.18.40.6 allowable COMBINATION, i.e. symbol order and multiplicity
             // (`PIC 99.99.99`, `PIC 9ZZ`, `PIC N9`, `PIC NE`) — is PictureComposition, just below, and reports
-            // COBOLNET1934 / COBOLNET1935 (kb/Work PB528; data-model design D24).
-            edition.Error("COBOLNET0808", $"invalid PICTURE symbol '{bad}' in PICTURE {picture} — {where} "
+            // COBOL1934 / COBOL1935 (kb/Work PB528; data-model design D24).
+            edition.Error("COBOL0808", $"invalid PICTURE symbol '{bad}' in PICTURE {picture} — {where} "
                 + "(ISO §13.18.40.3 SR2: not an allowable picture symbol)");
             // Recovery representation ONLY: the compile has already FAILED above — this shape merely keeps the
             // doomed emit pass crash-free (CompilerDriver reports bind diagnostics after Emit completes).
@@ -259,7 +259,7 @@ public static class PictureAnalyzer
         // design D24). SR2 has TWO obligations and the loop above answered only the first: the symbols shall be
         // picture symbols, AND they shall form "an allowable combination", whose allowable combinations "are
         // specified in 13.18.40.6, Precedence rules". PictureComposition is that second half plus every
-        // composition syntax rule of the clause; a violation is COBOLNET1934 / COBOLNET1935 and the item recovers
+        // composition syntax rule of the clause; a violation is COBOL1934 / COBOL1935 and the item recovers
         // (the compile has already failed; the shape only keeps the doomed emit crash-free). It runs BEFORE the
         // geometry below because that derivation reads the symbol MULTISET and presumes a well-formed string —
         // e.g. the scale, the digit-position count and the floating-string detector all assume the P run, the
@@ -288,7 +288,7 @@ public static class PictureAnalyzer
         editingExtra = EditingPositions(expanded, editRules);
 
         // ── Category national (§8.5.2.10) / national-edited (§8.5.2.11) / boolean (§8.5.2.5) — LIVE. The
-        // introduction gate stays at every entry point (COBOLNET0900 below 2002; the registry rows are silent at
+        // introduction gate stays at every entry point (COBOL0900 below 2002; the registry rows are silent at
         // 2002+), exactly the BINARY-CHAR/POINTER pattern. Usage resolution per §13.18.60.4: SR13a — PIC N with
         // no USAGE clause implies NATIONAL; SR20 — PIC N admits ONLY usage NATIONAL; SR13b — PIC 1 with no usage
         // is DISPLAY; SR5 — usage BIT requires a boolean picture; SR12 national-form boolean (PIC 1 USAGE
@@ -321,7 +321,7 @@ public static class PictureAnalyzer
             // stands as the loud assertion of that agreement: a picture that reaches here holds an 'N' and some
             // symbol no category-defining rule admits, so it defines NO category and must never fall through to
             // the numeric geometry below.
-            edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR9/GR10: a "
+            edition.Error("COBOL0808", $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR9/GR10: a "
                 + "character-string containing the symbol 'N' defines an item only when it is all 'N' (national) "
                 + "or 'N' with the insertion symbols character-1 / B 0 / (national-edited))");
             return PicInfo.Recovery(expanded.Length);
@@ -343,7 +343,7 @@ public static class PictureAnalyzer
             // while Table 10 is transparent to a declared EDITING character-1 — so `PIC 11T EDITING "T" IS ":"`
             // passes the matrix and still defines no category. There is no boolean-edited category (Table 7 gives
             // category boolean "None").
-            edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR8: to define "
+            edition.Error("COBOL0808", $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR8: to define "
                 + "an item as boolean, character-string-1 shall contain only occurrences of the symbol '1'; "
                 + "§13.18.40.5 Table 7 gives category boolean no editing)");
             return PicInfo.Recovery(expanded.Length);
@@ -428,7 +428,7 @@ public static class PictureAnalyzer
             // silently SHORT alphanumeric items for as long as no rule read symbol COMBINATION.
             if (!expanded.All(c => c is 'A' or 'X' or '9' || CobolEdit.IsEditedCategorySymbol(c, char1Set)))
             {
-                edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR6/GR7: a "
+                edition.Error("COBOL0808", $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR6/GR7: a "
                     + "character-string containing the symbol 'A' or 'X' defines an item only when its symbols "
                     + "come from the set 'A', 'X', '9' (alphanumeric), optionally with character-1 or the "
                     + "insertion symbols B 0 / (alphanumeric-edited))");
@@ -479,7 +479,7 @@ public static class PictureAnalyzer
         // never reach a PicInfo.
         if (digits == 0)
         {
-            edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR11: to "
+            edition.Error("COBOL0808", $"invalid PICTURE {picture} — {where} (ISO §13.18.40.4 GR11: to "
                 + "define an item as fixed-point numeric, character-string-1 shall include at least one symbol "
                 + "'9'; a character-string of 'S', 'V' and 'P' alone defines none of GR3's eight categories)");
             return PicInfo.Recovery(expanded.Length);
@@ -881,7 +881,7 @@ public static class PictureAnalyzer
             + "only a numeric item's digit positions, and Annex A.1 carries no maximum-item-size item)");
 
     /// <summary>Validate the PICTURE EDITING phrases (ISO §13.18.40.3 SR8–SR12; COBOL-2023) and build the render
-    /// rules. Emits the SR diagnostics (COBOLNET1591–1596, COBOLNET1955). Every legal shape produces a rule: a
+    /// rules. Emits the SR diagnostics (COBOL1591–1596, COBOL1955). Every legal shape produces a rule: a
     /// literal of any width (SR9 allows 50 characters) and a floating character-1 (the same character-1 appearing
     /// ≥2 times under a FOR phrase, §13.18.40.5 rule 6) are rendered by <c>CobolEdit</c>'s variable-width
     /// materialization, not staged (kb/Work PB491). <paramref name="char1Set"/> (uppercased) collects every
@@ -938,21 +938,21 @@ public static class PictureAnalyzer
             string c1 = ph.Char1Text ?? "";
             if (c1.Length != 1 || !CobolCharacterRepertoire.IsBasicLetter(c1[0]))
             {
-                edition.Error("COBOLNET1591", $"{where}: PICTURE EDITING character-1 must be a single basic letter "
+                edition.Error("COBOL1591", $"{where}: PICTURE EDITING character-1 must be a single basic letter "
                     + $"(A-Z or a-z; an extended letter is not one — ISO §13.18.40.3 SR8; ISO §8.1.3.1 Table 1; got \"{c1}\")");
                 error = true; continue;
             }
             char char1 = char.ToUpperInvariant(c1[0]);
             if (char1 == cs || "ABCDENPRSVXZ".IndexOf(char1) >= 0)
             {
-                edition.Error("COBOLNET1591", $"{where}: PICTURE EDITING character-1 '{c1}' must be a basic letter "
+                edition.Error("COBOL1591", $"{where}: PICTURE EDITING character-1 '{c1}' must be a basic letter "
                     + "other than A B C D E N P R S V X Z or a CURRENCY-SIGN letter (ISO §13.18.40.3 SR8)");
                 error = true; continue;
             }
             // SR11: distinct character-1 across phrases.
             if (!char1Set.Add(char1))
             {
-                edition.Error("COBOLNET1592", $"{where}: PICTURE EDITING character-1 '{c1}' is specified in more than "
+                edition.Error("COBOL1592", $"{where}: PICTURE EDITING character-1 '{c1}' is specified in more than "
                     + "one EDITING phrase (ISO §13.18.40.3 SR11 — each character-1 shall be distinct)");
                 error = true; continue;
             }
@@ -962,7 +962,7 @@ public static class PictureAnalyzer
                 if (char.ToUpperInvariant(expanded[i]) == char1) occ++;
             if (occ == 0)
             {
-                edition.Error("COBOLNET1593", $"{where}: PICTURE EDITING character-1 '{c1}' does not appear in the "
+                edition.Error("COBOL1593", $"{where}: PICTURE EDITING character-1 '{c1}' does not appear in the "
                     + "PICTURE character-string (ISO §13.18.40.3 SR10)");
                 error = true; continue;
             }
@@ -991,7 +991,7 @@ public static class PictureAnalyzer
                 }
                 if (l.Text.Length > 50)
                 {
-                    edition.Error("COBOLNET1594", $"{where}: a PICTURE EDITING literal exceeds 50 characters "
+                    edition.Error("COBOL1594", $"{where}: a PICTURE EDITING literal exceeds 50 characters "
                         + "(ISO §13.18.40.3 SR9)");
                     error = true;
                 }
@@ -1022,7 +1022,7 @@ public static class PictureAnalyzer
                 {
                     char mu = char.ToUpperInvariant(mc);
                     if (allChar1.Contains(mu) || mu is '9' or 'P' or 'V' or 'Z' || mu == pointSymbol || mu == cs) continue;
-                    edition.Error("COBOLNET1596", $"{where}: with a FOR (extended editing sign control) EDITING "
+                    edition.Error("COBOL1596", $"{where}: with a FOR (extended editing sign control) EDITING "
                         + $"phrase the PICTURE character-string may contain only character-1 and 9 {pointSymbol} {cs} P V Z "
                         + $"(ISO §13.18.40.3 SR12b{(decimalPointIsComma ? "; SR13 — DECIMAL-POINT IS COMMA makes the comma the decimal point" : "")}; found '{mc}')");
                     error = true; break;
@@ -1030,7 +1030,7 @@ public static class PictureAnalyzer
                 // SR12a: the NEGATIVE and POSITIVE literals (when both present) occupy the same number of positions.
                 if (negLitSpec is { } n2 && posLitSpec is { } p3 && n2.Text.Length != p3.Text.Length)
                 {
-                    edition.Error("COBOLNET1595", $"{where}: the NEGATIVE and POSITIVE literals of a FOR EDITING "
+                    edition.Error("COBOL1595", $"{where}: the NEGATIVE and POSITIVE literals of a FOR EDITING "
                         + "phrase shall occupy the same number of character positions (ISO §13.18.40.3 SR12a)");
                     error = true; continue;
                 }
@@ -1103,7 +1103,7 @@ public static class PictureAnalyzer
 
         // An SR error → no rule set is applied (the item still binds numeric-edited; under the doomed emit
         // character-1 renders verbatim — harmless, the compile has already failed). There is no longer a STAGED
-        // arm: the two shapes that used to raise COBOLNET0899 here — a literal wider than one character, and a
+        // arm: the two shapes that used to raise COBOL0899 here — a literal wider than one character, and a
         // floating (repeated) character-1 under a FOR phrase — are both rendered, so no legal EDITING phrase is
         // refused (kb/Work PB491).
         return error || rules.Count == 0 ? null : rules.ToArray();
@@ -1158,8 +1158,8 @@ public static class PictureAnalyzer
             // fires from UsageConstructId; the caller synthesizes PicInfo.FunctionPointerItem with the MANDATORY
             // TO function-prototype-name operand (PICTURE-less, the ProgramPointerItem pattern). It used to be
             // refused here with the 0899 staged-loud band, which also left the entry with no PicInfo at all —
-            // so `01 FP USAGE FUNCTION-POINTER TO FPROTO.` drew a COBOLNET0881 "a PICTURE clause shall be
-            // specified" AND a COBOLNET0844 calling the item "of category alphanumeric" on top of the stage.
+            // so `01 FP USAGE FUNCTION-POINTER TO FPROTO.` drew a COBOL0881 "a PICTURE clause shall be
+            // specified" AND a COBOL0844 calling the item "of category alphanumeric" on top of the stage.
             case "FUNCTION-POINTER":
                 return Usage.FunctionPointer;
             // USAGE MESSAGE-TAG — the DATA half of the declined asynchronous-messaging facility (Annex A.3
@@ -1209,19 +1209,19 @@ public static class PictureAnalyzer
             // NON-conforming — the P12 re-scout catch). Documented non-support — rejected LOUD (never a silent wrong
             // representation). The member flows through so the 2014 introduction gate still fires below 2014.
             case "FLOAT-BINARY-128":
-                edition.Error("COBOLNET1564", $"{where}: USAGE FLOAT-BINARY-128 (ISO/IEC 60559:2020 binary128, "
+                edition.Error("COBOL1564", $"{where}: USAGE FLOAT-BINARY-128 (ISO/IEC 60559:2020 binary128, "
                     + "ISO §13.18.60.4 GR16) is a processor-dependent language element not supported by WiseOwl COBOL "
                     + "(Annex A.3 item 17): .NET provides no IEEE 754 binary128 type, and GR16 pins the format so a "
                     + "double-backed approximation would be non-conforming");
                 return Usage.FloatBinary128;
             case "FLOAT-DECIMAL-16":
-                edition.Error("COBOLNET1564", $"{where}: USAGE FLOAT-DECIMAL-16 (ISO/IEC 60559:2020 decimal64, "
+                edition.Error("COBOL1564", $"{where}: USAGE FLOAT-DECIMAL-16 (ISO/IEC 60559:2020 decimal64, "
                     + "ISO §13.18.60.4 GR17) is a processor-dependent language element not supported by WiseOwl COBOL "
                     + "(Annex A.3 item 19): .NET provides no IEEE 754 decimal64 type (System.Decimal is a different "
                     + "format)");
                 return Usage.FloatDecimal16;
             case "FLOAT-DECIMAL-34":
-                edition.Error("COBOLNET1564", $"{where}: USAGE FLOAT-DECIMAL-34 (ISO/IEC 60559:2020 decimal128, "
+                edition.Error("COBOL1564", $"{where}: USAGE FLOAT-DECIMAL-34 (ISO/IEC 60559:2020 decimal128, "
                     + "ISO §13.18.60.4 GR18) is a processor-dependent language element not supported by WiseOwl COBOL "
                     + "(Annex A.3 item 19): .NET provides no IEEE 754 decimal128 type");
                 return Usage.FloatDecimal34;
@@ -1237,8 +1237,8 @@ public static class PictureAnalyzer
 
     /// <summary>The ≥edition half of the W2 skeleton gate for a recognized-but-unimplemented PICTURE construct
     /// (external-float symbol E / national-edited): at or above the row's introducing edition — where the
-    /// introduction <c>Check</c> is silent — a COBOLNET0899 "recognized but not yet implemented" naming the owning
-    /// roadmap phase. Below the edition it is a NO-OP: the COBOLNET0900 introduction gate is fired instead by the
+    /// introduction <c>Check</c> is silent — a COBOL0899 "recognized but not yet implemented" naming the owning
+    /// roadmap phase. Below the edition it is a NO-OP: the COBOL0900 introduction gate is fired instead by the
     /// post-bind <c>VersionConformancePass</c> GateData enumerator over <c>PicInfo.SkeletonGate</c> (Step 14g.5 — the
     /// category is recovered to Alphanumeric, erasing the parse identity, so the flag carries the gate forward). Either
     /// way the compile FAILS below its edition (the 0900) or above (the 0899) — never a silent misbind.</summary>
@@ -1355,7 +1355,7 @@ public static class PictureAnalyzer
     /// written for the decimal separator "is always the period"); SR13's swap is printed under FORMAT 1. ',' is not
     /// a format-2 symbol under any setting. ⛔ NO compile-time relation between integer-1 and the digit count is
     /// checked — the hypothetical item's width is a RUNTIME quantity (the currency string's length is the locale's,
-    /// §13.18.40.5 r9) and §13.18.40.5 r14 reconciles the two at each edit. Violations are COBOLNET1673 with the
+    /// §13.18.40.5 r9) and §13.18.40.5 r14 reconciles the two at each edit. Violations are COBOL1673 with the
     /// sub-rule named; the item recovers at the SIZE length (the compile has failed). The returned PicInfo: category
     /// numeric-edited (GR16), Length = integer-1 (GR17 — never the mask width), Digits/Scale/DigitPositions from
     /// character-string-1, EditMask NULL, <see cref="PicInfo.LocaleEdit"/> carrying the canonical picture.</summary>

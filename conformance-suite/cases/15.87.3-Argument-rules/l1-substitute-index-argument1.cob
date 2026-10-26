@@ -28,10 +28,10 @@
       *>        — in the VARYING phrase of a SEARCH statement;  — in the SET statement;
       *>        — as an operand in a relation condition."
       *> An intrinsic-function argument is none of those five, so an index-NAME there is illegal by SR7
-      *> INDEPENDENTLY of §15.87.3 r1 — and COBOL.NET enforces SR7 (COBOLNET1637), so the rejection was not
+      *> INDEPENDENTLY of §15.87.3 r1 — and COBOL.NET enforces SR7 (COBOL1637), so the rejection was not
       *> attributable to the rule under test. §15.87.3 r1 screens DATA ITEMS, and Table 2 is headed "Class and
       *> category relationships for elementary data items", so the rule under test cannot even reach an
-      *> index-name. Passing a `USAGE INDEX` item instead is the shape r1 governs, and it draws COBOLNET1627.
+      *> index-name. Passing a `USAGE INDEX` item instead is the shape r1 governs, and it draws COBOL1627.
       *>   python scripts/spec/cite.py --check 13.18.38.3 "Index-name-1 may be specified only in the following
       *>   contexts"  ->  OK  §13.18.38.3 7)  (Syntax rules)
       *>

@@ -11,7 +11,7 @@
       *> or an indexed file". The rendered §13.4.5.2 Format 1 carries IS GLOBAL, BLOCK
       *> CONTAINS, the RECORD clause, the LINAGE clause and CODE-SET; Format 2 carries IS
       *> GLOBAL, BLOCK CONTAINS and the RECORD clause. The per-format admissibility screen
-      *> (COBOLNET2604) must refuse NONE of them — this program fails to compile if the
+      *> (COBOL2604) must refuse NONE of them — this program fails to compile if the
       *> screen's table drops a clause from the format that prints it. LABEL RECORDS is the
       *> COBOL-85 clause that stood in every '85 FD format. The relative leg then proves the
       *> Format 2 clauses bound: record 3 written at RELATIVE KEY 3 reads back at key 3

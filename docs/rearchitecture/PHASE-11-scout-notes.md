@@ -566,7 +566,7 @@ DIAGNOSTIC WORDING CITATIONS: reject unsupported locale-module syntax citing "IS
 | FUNCTION LOWER-CASE ( "AbC" ) — no locale in effect | "abc" (implementor-defined correspondence when no locale in effect; A-Z to a-z, same length) | §15.57.4 rules 1, 4, 5 |
 | FUNCTION LOCALE-DATE ( WS-7CHAR ) | compile-time violation — argument-1 shall be 8 character positions in length (YYYYMMDD per CURRENT-DATE 1-8) | §15.52.3 argument rules 1-2 |
 | FUNCTION LOCALE-TIME ( "240000" ) | valid input — hours 00 through 24 allowed; "250000" invalid; seconds up to 99 allowed | §15.53.3 rule 3 a) and b) |
-| Any use of LOCALE-COMPARE / LOCALE-DATE / LOCALE-TIME / LOCALE-TIME-FROM-SECONDS / STANDARD-COMPARE, or of the LOCALE keyword in LOWER-CASE / UPPER-CASE / NUMVAL-C / TEST-NUMVAL-C, when the A.4.9 module is not claimed | loud compile-time rejection (planned COBOLNET1518) naming the element + citing A.4.9 and §4.2.7/A.4.1; the non-LOCALE forms of LOWER-CASE / UPPER-CASE / NUMVAL-C / TEST-NUMVAL-C keep working (they are NOT optional) | A.4.1: 'An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor'; §4.2.7 documented-non-support sentence; A.4.9 items 2-6, 11-13 |
+| Any use of LOCALE-COMPARE / LOCALE-DATE / LOCALE-TIME / LOCALE-TIME-FROM-SECONDS / STANDARD-COMPARE, or of the LOCALE keyword in LOWER-CASE / UPPER-CASE / NUMVAL-C / TEST-NUMVAL-C, when the A.4.9 module is not claimed | loud compile-time rejection (planned COBOL1518) naming the element + citing A.4.9 and §4.2.7/A.4.1; the non-LOCALE forms of LOWER-CASE / UPPER-CASE / NUMVAL-C / TEST-NUMVAL-C keep working (they are NOT optional) | A.4.1: 'An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor'; §4.2.7 documented-non-support sentence; A.4.9 items 2-6, 11-13 |
 
 ### ⚠ Gotchas (trust these over the phase doc)
 
@@ -723,18 +723,18 @@ Fold rows with empty RuntimeMethod (NOT Deferred, name-routed in the binder): HI
 
 ### BindIntrinsicCore flow (`private BoundExpr BindIntrinsicCore(string name, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)` :112) — exact order:
 1. **UDF dispatch precedes catalog** (:119–121, §12.3.8.2 GR12) → `host.Udf.UdfBindCall`.
-2. Catalog miss → **COBOLNET1501** (:126) + `BoundExprError`.
-3. **Window gate** (:139–144): `sig.IntroducedIn > ctx.Edition.DialectLevel` → **COBOLNET1502**; `else if (sig.RemovedIn is { } gone && ctx.Edition.DialectLevel >= gone)` → **COBOLNET1503**. Both are non-fatal — bind continues (so arity/category checks still run).
-4. Standard-arithmetic staging (:154–160): ANNUITY/PRESENT-VALUE/VARIANCE/STANDARD-DEVIATION under ARITHMETIC STANDARD/STANDARD-DECIMAL → `DiagnosticCatalog.ArithmeticStandardIntrinsic` = **COBOLNET0899** slug "arithmetic-standard-intrinsic" (DiagnosticCatalog.cs:127–135).
+2. Catalog miss → **COBOL1501** (:126) + `BoundExprError`.
+3. **Window gate** (:139–144): `sig.IntroducedIn > ctx.Edition.DialectLevel` → **COBOL1502**; `else if (sig.RemovedIn is { } gone && ctx.Edition.DialectLevel >= gone)` → **COBOL1503**. Both are non-fatal — bind continues (so arity/category checks still run).
+4. Standard-arithmetic staging (:154–160): ANNUITY/PRESENT-VALUE/VARIANCE/STANDARD-DEVIATION under ARITHMETIC STANDARD/STANDARD-DECIMAL → `DiagnosticCatalog.ArithmeticStandardIntrinsic` = **COBOL0899** slug "arithmetic-standard-intrinsic" (DiagnosticCatalog.cs:127–135).
 5. **Special-bind dispatch by NAME** (before generic arg binding): `TRIM`→`BindTrim` :164 · `FIND-STRING`→`BindFindString` :168 · `SUBSTITUTE`→`BindSubstitute` :172 · `CONVERT`→`BindConvert` :176 · `MODULE-NAME`→`BindModuleName` :180.
-6. Generic `BindIntrinsicArgs(argCtxs)` :182 (body :684–693: `TryExpandAll` table(ALL) expansion :762, then `BindArgOperand` per arg) → **arity check COBOLNET1504** :185.
-7. FORMATTED-*/date-format-must-be-literal check **COBOLNET1517** :196.
+6. Generic `BindIntrinsicArgs(argCtxs)` :182 (body :684–693: `TryExpandAll` table(ALL) expansion :762, then `BindArgOperand` per arg) → **arity check COBOL1504** :185.
+7. FORMATTED-*/date-format-must-be-literal check **COBOL1517** :196.
 8. **Fold dispatch:** `sig.Bind == Fold && sig.Name == "LENGTH"` → `BindLengthFold(sig, args)` :201–202; `Fold && Name is "SMALLEST-ALGEBRAIC" or "HIGHEST-ALGEBRAIC" or "LOWEST-ALGEBRAIC"` → `BindAlgebraicFold` :206–208.
 9. **NUMVAL-C default-currency injection** :213–214 (exact): `if (sig.Name == "NUMVAL-C" && args.Count == 1) args.Add(new BoundStringLiteral(ctx.Data.CurrencyString));` — §15.68.3 r3, injected at bind so SPECIAL-NAMES never reaches the backend. (Step 6's TEST-NUMVAL-C must extend this condition.)
 10. MAX/MIN category-polymorphic resolution :219–232: `sig.ArgKinds == "p" && args.All(IsStringOperand)` → `resolved = sig with { RuntimeMethod = MaxString/MinString/OrdMaxString/OrdMinString }`; category → Alphanumeric for MAX/MIN only.
 11. Collating flags :242–245: `collate` = CHAR/ORD ∧ `ctx.Data.Collating != null` ∧ no national arg; `collateNat` = `ctx.Data.NationalCollating != null` ∧ (CHAR-NATIONAL ∨ ORD-with-national-arg).
-12. **COBOLNET0844 guard CURRENT state** :250–252: fires ONLY for `sig.Name is "CHAR" && nationalArg` — "FUNCTION CHAR takes an integer operand (§15.15.3 rule 1) — FUNCTION CHAR-NATIONAL (§15.16) is the national program-collating-sequence form". The old "CHAR-NATIONAL/ORD-over-national not yet implemented" guard is GONE (both landed in P10).
-13. DISPLAY-OF/NATIONAL-OF class/category checks → `CheckRepertoireArgs` :256 (body :468–501, **COBOLNET1546**).
+12. **COBOL0844 guard CURRENT state** :250–252: fires ONLY for `sig.Name is "CHAR" && nationalArg` — "FUNCTION CHAR takes an integer operand (§15.15.3 rule 1) — FUNCTION CHAR-NATIONAL (§15.16) is the national program-collating-sequence form". The old "CHAR-NATIONAL/ORD-over-national not yet implemented" guard is GONE (both landed in P10).
+13. DISPLAY-OF/NATIONAL-OF class/category checks → `CheckRepertoireArgs` :256 (body :468–501, **COBOL1546**).
 14. **EC gate** :260 (exact): `if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) host.Ec.EcNoteFunction();` → EcBinder.cs:39 `public void EcNoteFunction() => ctx.EcState.Functions = true;` — sets the group EC gate so the generated source carries the Exceptions using. Any new Ec*-named RuntimeMethod is covered automatically.
 15. `return new BoundIntrinsicCall(resolved, args, category, collate) { CollateNat = collateNat };` :262.
 
@@ -751,13 +751,13 @@ Switch on `args[0]`:
 - Nested string-result intrinsic → runtime `.Length` BoundIntrinsicCall.
 - Anything else (numeric/figurative literal) → `BoundExprError` citing §15.50.3.
 
-**Where byte geometry for BYTE-LENGTH would come from:** there is NO existing byte-width authority. `PicInfo.StorageWidth` (PicInfo.cs:301–312) gives bytes ONLY for Packed (Digits/2+1), Binary/Comp5 (1/2/4/8 by digits), BinaryChar/Short/Long/Double (1/2/4/8) — and returns **0 for DISPLAY/national/everything else** ("else 0 — unused"). A `BindByteLengthFold` must compose: DISPLAY = ImageWidth×1, national = ImageWidth×2 (D-N1), binary/packed = StorageWidth, groups = element-wise sum. Note DiagnosticCatalog.cs:120–124: `CONSTANT … AS BYTE-LENGTH OF` (COBOLNET0899 "constant-byte-length") is staged loud pending exactly this — "the byte-width authority lands ONCE, with it (the singular-pattern rule)" — so P11 Step 7 should also unblock that constant leg or at least be designed as the ONE authority.
+**Where byte geometry for BYTE-LENGTH would come from:** there is NO existing byte-width authority. `PicInfo.StorageWidth` (PicInfo.cs:301–312) gives bytes ONLY for Packed (Digits/2+1), Binary/Comp5 (1/2/4/8 by digits), BinaryChar/Short/Long/Double (1/2/4/8) — and returns **0 for DISPLAY/national/everything else** ("else 0 — unused"). A `BindByteLengthFold` must compose: DISPLAY = ImageWidth×1, national = ImageWidth×2 (D-N1), binary/packed = StorageWidth, groups = element-wise sum. Note DiagnosticCatalog.cs:120–124: `CONSTANT … AS BYTE-LENGTH OF` (COBOL0899 "constant-byte-length") is staged loud pending exactly this — "the byte-width authority lands ONCE, with it (the singular-pattern rule)" — so P11 Step 7 should also unblock that constant leg or at least be designed as the ONE authority.
 
 ### KeywordWordOf (:734–739) — how TRIM detects LEADING/TRAILING
-`private static string? KeywordWordOf(Core.FunctionArgumentContext a)` — returns the UPPERCASE text of a `fnArgPhraseWord()` (reserved phrase words in the arg grammar) OR of a bare, unqualified, unsubscripted sole data reference (`SoleDataReference` :743–750 unwraps arithmeticExpression→additive→multiplicative→power→unary→primary→dataReference with no operators); null otherwise. `BindTrim` (:271–297) loops args, consumes "LEADING"/"TRAILING" into `TrimMode` (0 both/1 LEADING/2 TRAILING → `BoundIntrinsicCall.TrimMode`), everything else → `BindArgOperand`; TRIM arg-2 below --std 2023 → COBOLNET1502 :292–295. Same pattern used by FIND-STRING (LAST/ANYCASE/START/AFTER :312–318), SUBSTITUTE (ANYCASE/FIRST/LAST :349–353), CONVERT (`IsConvertFormatWord` :504–505), MODULE-NAME (:517–518). An unmatched word falls back to the operand bind so data-names are never swallowed. **This is the mechanism Step 8's LOCALE-phrase detection reuses.**
+`private static string? KeywordWordOf(Core.FunctionArgumentContext a)` — returns the UPPERCASE text of a `fnArgPhraseWord()` (reserved phrase words in the arg grammar) OR of a bare, unqualified, unsubscripted sole data reference (`SoleDataReference` :743–750 unwraps arithmeticExpression→additive→multiplicative→power→unary→primary→dataReference with no operators); null otherwise. `BindTrim` (:271–297) loops args, consumes "LEADING"/"TRAILING" into `TrimMode` (0 both/1 LEADING/2 TRAILING → `BoundIntrinsicCall.TrimMode`), everything else → `BindArgOperand`; TRIM arg-2 below --std 2023 → COBOL1502 :292–295. Same pattern used by FIND-STRING (LAST/ANYCASE/START/AFTER :312–318), SUBSTITUTE (ANYCASE/FIRST/LAST :349–353), CONVERT (`IsConvertFormatWord` :504–505), MODULE-NAME (:517–518). An unmatched word falls back to the operand bind so data-names are never swallowed. **This is the mechanism Step 8's LOCALE-phrase detection reuses.**
 
 ### BindArgOperand (:701–713, internal — also reached back from UdfBinder)
-OMITTED → COBOLNET1544 error operand; unconsumed `fnArgPhraseWord` → `BoundOperandError`; nonNumericLiteral → `NonNumericOperand` (:717–727: concat fold via `host.Expr.ConcatOperand`, figurative, STRINGLIT → `BoundStringLiteral`, NATLIT → `host.Expr.NationalLiteralOperand`, **BOOLLIT → `host.Expr.BooleanLiteralOperand`**); else `OperandOf(host.Expr.BindExpr(a.arithmeticExpression()))`.
+OMITTED → COBOL1544 error operand; unconsumed `fnArgPhraseWord` → `BoundOperandError`; nonNumericLiteral → `NonNumericOperand` (:717–727: concat fold via `host.Expr.ConcatOperand`, figurative, STRINGLIT → `BoundStringLiteral`, NATLIT → `host.Expr.NationalLiteralOperand`, **BOOLLIT → `host.Expr.BooleanLiteralOperand`**); else `OperandOf(host.Expr.BindExpr(a.arithmeticExpression()))`.
 
 ## 3. Renderer — E:\COBOL\src\Cobol.Net.Compiler\CodeGen\Emit\IntrinsicRenderer.cs
 `internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)` :33.
@@ -776,8 +776,8 @@ OMITTED → COBOLNET1544 error operand; unconsumed `fnArgPhraseWord` → `BoundO
 ## 5. Boolean representation in the greenfield (the P10 base)
 - **D-B1:** a boolean value IS a '0'/'1' character string; `PicCategory.Boolean` (PicInfo.cs:29 — PIC 1 [USAGE BIT], one alphanumeric char per boolean position; bit-packing is named future residue).
 - **Runtime:** `CobolBool` (E:\COBOL\src\Cobol.Net.Runtime\Values\Text\CobolBool.cs) — `And/Or/Xor(string?, string?)` (§8.8.2 r9 right-zero-extension, r10 max-length result), `Not` :39, `Equal` :50 (equality-only), `IsTrue` :62 (§8.8.4.3.4 GR1), `Resize(v, width)` :67 (the §14.9.8 GR3 boolean-store discipline — left-align, right-zero-fill/truncate), `AndAll/OrAll/XorAll/EqualAll` :79–86 (figurative ALL forms). All string-in/string-out.
-- **Bound tree:** `BoundBoolExpr` abstract (BoundTree.cs:249) → `BoundBoolLiteral(string Bits)` :252, `BoundBoolRef(Place)` :255, `BoundBoolAll(string Bits)` :260, `BoundBoolBinary(BoundBoolExpr, char Op, BoundBoolExpr)` :264, `BoundBoolNot` :267, `BoundBoolError` :270. Bridges: `BoundBoolOperand(BoundBoolExpr)` : BoundOperand :275 (relation operand); `BoundBooleanCondition(BoundBoolExpr)` : BoundCondition :294. A boolean LITERAL as an intrinsic ARG arrives as `BoundStringLiteral { Category = PicCategory.Boolean }` (ExpressionBinder.BooleanLiteralOperand, ExpressionBinder.cs:92–101, 8191-cap COBOLNET0814).
-- **Binder:** ConditionBinder owns §8.8.2 — `MakeBoolBinary` :78–84 (rule-4 COBOLNET1511), `BindBoolOperandValue` :89–121 admits ONLY boolean literals / figurative ZERO / ALL B"…" / category-boolean items — **a FUNCTION call is NOT currently an admissible §8.8.2 boolean operand** (it would fail the sole-data-ref arm → COBOLNET1511). `Gr3Width` :144 computes the COMPUTE-store width.
+- **Bound tree:** `BoundBoolExpr` abstract (BoundTree.cs:249) → `BoundBoolLiteral(string Bits)` :252, `BoundBoolRef(Place)` :255, `BoundBoolAll(string Bits)` :260, `BoundBoolBinary(BoundBoolExpr, char Op, BoundBoolExpr)` :264, `BoundBoolNot` :267, `BoundBoolError` :270. Bridges: `BoundBoolOperand(BoundBoolExpr)` : BoundOperand :275 (relation operand); `BoundBooleanCondition(BoundBoolExpr)` : BoundCondition :294. A boolean LITERAL as an intrinsic ARG arrives as `BoundStringLiteral { Category = PicCategory.Boolean }` (ExpressionBinder.BooleanLiteralOperand, ExpressionBinder.cs:92–101, 8191-cap COBOL0814).
+- **Binder:** ConditionBinder owns §8.8.2 — `MakeBoolBinary` :78–84 (rule-4 COBOL1511), `BindBoolOperandValue` :89–121 admits ONLY boolean literals / figurative ZERO / ALL B"…" / category-boolean items — **a FUNCTION call is NOT currently an admissible §8.8.2 boolean operand** (it would fail the sole-data-ref arm → COBOL1511). `Gr3Width` :144 computes the COMPUTE-store width.
 - **Renderer:** `BooleanRenderer` (CodeGen\Emit\BooleanRenderer.cs, static) renders BoundBoolExpr → C# string exprs over CobolBool via the generated `IBoundBoolExprVisitor` (Render :20; a category-boolean item reads as its string via `PlaceRenderer.Read` :25).
 - **How a Boolean-result intrinsic behaves TODAY:** BOOLEAN-OF-INTEGER is the only `IntrinsicType.Boolean` row and is Deferred; its ResultCategory degrades to Numeric (catalog :45–51), so it hits RenderNum's loud guard. **To promote (P11 Step 2):** the natural carrier is a '0'/'1' string — (a) add `Boolean => PicCategory.Boolean` to ResultCategory; (b) render through the STRING channel (`RenderString` arm — the value is a string, same as national rides the string channel); (c) consumers classify by `ic.ResultCategory`: MoveBinder.cs:162 (`BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory` — MOVE Table-16 legality will see Boolean), IntrinsicBinder.OperandCategory :441–449 and IsStringOperand :542–553 (already treats category-Boolean fields as string operands); (d) if a FUNCTION result must participate in a §8.8.2 boolean expression or a boolean condition, ConditionBinder.BindBoolOperandValue (:89–121) and IsBooleanValueOperand (:127–140) need a new intrinsic arm — none exists; (e) IntrinsicRenderer.StrArgVisitor currently renders `BoundBoolOperand` loud (:402) — INTEGER-OF-BOOLEAN taking a boolean ITEM works via BoundFieldOperand (string read), but a nested Boolean-result intrinsic as an argument flows as `BoundComputedOperand{BoundIntrinsicCall}` whose Visit arm (:395–397) only accepts Alphanumeric/National result categories — extend to Boolean.
 
@@ -791,7 +791,7 @@ OMITTED → COBOLNET1544 error operand; unconsumed `fnArgPhraseWord` → `BoundO
 **CobolModule.cs**: Name(int kind) :25 (MODULE-NAME).
 
 ## 7. Diagnostics inventory touched by this subsystem
-COBOLNET1501 not-an-intrinsic :126 · **COBOLNET1502 introduced-later** :140 (also TRIM-arg2 :293) · **COBOLNET1503 removed** :143 · COBOLNET1504 arity :185 (+ special binds) · COBOLNET1514 CONVERT SRs :402–420 · COBOLNET1515 MODULE-NAME NESTED :535 · COBOLNET1516 algebraic-fold arg/float :611/:659 · COBOLNET1517 literal-format :196 · COBOLNET1543 malformed keyword-omitted args :104 · COBOLNET1544 OMITTED :705 · COBOLNET1546 repertoire args :473–500 · COBOLNET0844 CHAR-with-national-arg :251 · COBOLNET0899 (slugs "arithmetic-standard-intrinsic" DiagnosticCatalog.cs:127, "constant-byte-length" :117–124). COBOLNET1518 (A.4.9) does NOT exist yet — P11 Step 8 allocates it.
+COBOL1501 not-an-intrinsic :126 · **COBOL1502 introduced-later** :140 (also TRIM-arg2 :293) · **COBOL1503 removed** :143 · COBOL1504 arity :185 (+ special binds) · COBOL1514 CONVERT SRs :402–420 · COBOL1515 MODULE-NAME NESTED :535 · COBOL1516 algebraic-fold arg/float :611/:659 · COBOL1517 literal-format :196 · COBOL1543 malformed keyword-omitted args :104 · COBOL1544 OMITTED :705 · COBOL1546 repertoire args :473–500 · COBOL0844 CHAR-with-national-arg :251 · COBOL0899 (slugs "arithmetic-standard-intrinsic" DiagnosticCatalog.cs:127, "constant-byte-length" :117–124). COBOL1518 (A.4.9) does NOT exist yet — P11 Step 8 allocates it.
 
 ### Key signatures / anchors
 
@@ -801,15 +801,15 @@ COBOLNET1501 not-an-intrinsic :126 · **COBOLNET1502 introduced-later** :140 (al
 - `src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs:46-51 — public PicCategory ResultCategory (National/Alphanumeric else Numeric; Boolean falls to Numeric — THE seam for BOOLEAN-OF-INTEGER)`
 - `src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs:65 — public static bool TryGet(string name, out IntrinsicSig sig)`
 - `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:112 — private BoundExpr BindIntrinsicCore(string name, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)`
-- `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:139-144 — the D8 window gate: COBOLNET1502 (IntroducedIn > DialectLevel) / COBOLNET1503 (RemovedIn), after catalog lookup, before special binds`
+- `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:139-144 — the D8 window gate: COBOL1502 (IntroducedIn > DialectLevel) / COBOL1503 (RemovedIn), after catalog lookup, before special binds`
 - `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:213-214 — NUMVAL-C injection: if (sig.Name == "NUMVAL-C" && args.Count == 1) args.Add(new BoundStringLiteral(ctx.Data.CurrencyString));`
-- `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:250-252 — COBOLNET0844 current state: fires only for CHAR with a national argument (§15.15.3 r1)`
+- `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:250-252 — COBOL0844 current state: fires only for CHAR with a national argument (§15.15.3 r1)`
 - `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:260 — EC gate: if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) host.Ec.EcNoteFunction();`
 - `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:562 — private BoundExpr BindLengthFold(IntrinsicSig sig, List<BoundOperand> args)  (folds f.Place.Item.ImageWidth = CHARACTER positions; ref-mod/ODO loud; ANY LENGTH + nested-string → runtime .Length)`
 - `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:594 — private BoundExpr BindAlgebraicFold(IntrinsicSig sig, List<BoundOperand> args)  (the Fold precedent for BYTE-LENGTH; uses pic.StorageWidth at :634)`
 - `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:734-739 — private static string? KeywordWordOf(Core.FunctionArgumentContext a)  (phrase-word detection: fnArgPhraseWord OR bare sole dataReference, uppercased; LOCALE detection reuses this)`
 - `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:701 — internal BoundOperand BindArgOperand(Core.FunctionArgumentContext a)`
-- `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:271 — private BoundExpr BindTrim(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)  (TrimMode 0/1/2; arg-2 <2023 → COBOLNET1502)`
+- `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:271 — private BoundExpr BindTrim(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)  (TrimMode 0/1/2; arg-2 <2023 → COBOL1502)`
 - `src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs:150-151 — public sealed record BoundIntrinsicCall(IntrinsicSig Sig, IReadOnlyList<BoundOperand> Args, PicCategory ResultCategory, bool Collate = false) : BoundExpr  (+init props TrimMode/FindLast/FindAnycase/SubstituteModes/Convert*/ModuleNameKind/CollateNat)`
 - `src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs:49 — public NumX RenderNum(BoundIntrinsicCall ic)  (Deferred loud guard :52-53; switch on sig.RuntimeMethod :59-192)`
 - `src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs:269 — public string RenderString(BoundIntrinsicCall ic)  (Deferred loud guard :272-273; switch :274-329)`
@@ -819,21 +819,21 @@ COBOLNET1501 not-an-intrinsic :126 · **COBOLNET1502 introduced-later** :140 (al
 - `src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs:29 — PicCategory.Boolean (PIC 1, '0'/'1' char per position, D-B1)`
 - `src/Cobol.Net.Runtime/Values/Text/CobolBool.cs:29-86 — And/Or/Xor/Not/Equal/IsTrue/Resize/AndAll/OrAll/XorAll/EqualAll — all (string?,string?)->string/bool over the '0'/'1' substrate`
 - `src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs:249-275 — BoundBoolExpr hierarchy (BoundBoolLiteral/Ref/All/Binary/Not/Error) + BoundBoolOperand(BoundBoolExpr) : BoundOperand`
-- `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs:89-121 — BindBoolOperandValue: the §8.8.2 boolean-operand whitelist (NO intrinsic arm today — COBOLNET1511 otherwise)`
+- `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs:89-121 — BindBoolOperandValue: the §8.8.2 boolean-operand whitelist (NO intrinsic arm today — COBOL1511 otherwise)`
 - `src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs:92-101 — public BoundStringLiteral BooleanLiteralOperand(string raw) → BoundStringLiteral { Category = PicCategory.Boolean }`
 - `src/Cobol.Net.Compiler/CodeGen/Emit/BooleanRenderer.cs:20 — public static string Render(BoundBoolExpr e)  (BoundBoolExpr → C# string expr over CobolBool)`
 - `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs:39 — public void EcNoteFunction() => ctx.EcState.Functions = true;`
 - `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs:162 — BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory  (MOVE legality reads the intrinsic result category)`
 - `src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs:395-402 — StrArgVisitor: nested-intrinsic arm accepts only Alphanumeric/National result categories; Visit(BoundBoolOperand) is Loud — both need extension for boolean-result nesting`
-- `src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs:127 — DiagnosticCatalog.ArithmeticStandardIntrinsic = COBOLNET0899 slug "arithmetic-standard-intrinsic"`
-- `src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs:117-124 — COBOLNET0899 "constant-byte-length": CONSTANT … AS BYTE-LENGTH OF staged loud pending the §15.14 byte-width authority ("lands ONCE, with it")`
+- `src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs:127 — DiagnosticCatalog.ArithmeticStandardIntrinsic = COBOL0899 slug "arithmetic-standard-intrinsic"`
+- `src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs:117-124 — COBOL0899 "constant-byte-length": CONSTANT … AS BYTE-LENGTH OF staged loud pending the §15.14 byte-width authority ("lands ONCE, with it")`
 
 ### ⚠ Discrepancies vs the P11 phase doc
 
 - Every catalog line reference in the P11 doc §3.1 has drifted (the doc itself warns to re-scout): BOOLEAN-OF-INTEGER is :133 (doc :124), INTEGER-OF-BOOLEAN :161 (doc :143), BYTE-LENGTH :134 (:125), DATE-TO-YYYYMMDD/DAY-TO-YYYYDDD/YEAR-TO-YYYY :139-141 (:127-129), SECONDS-PAST-MIDNIGHT :166 (:148), TEST-DATE/DAY :168-169 (:150-151), TEST-NUMVAL/-C :170-171 (:152-153), CONCATENATE :174 (:156), LOCALE rows :162-165 + STANDARD-COMPARE :167 (:144-147/:149), SMALLEST-ALGEBRAIC :196 (:178).
 - The live Deferred set is 17 rows, not the doc's '22 at time of writing' — the 5 P10-landed rows (CHAR-NATIONAL, DISPLAY-OF, NATIONAL-OF, EXCEPTION-FILE-N, EXCEPTION-LOCATION-N) are already Runtime, exactly as the doc's strike-through notes predicted. grep 'IntrinsicBind.Deferred' confirms 17.
-- IntrinsicBinder line refs in the doc are stale: the window gate is at IntrinsicBinder.cs:139-144 (doc says :122-125); the NUMVAL-C currency injection at :213-214 (doc :179); the Ec-gate StartsWith check at :260 (doc :220); BindLengthFold at :562 (doc :465); the COBOLNET0844 guard at :250-252 (doc :214).
-- The COBOLNET0844 guard is no longer 'CHAR-NATIONAL/ORD-over-national not yet implemented' — it was NARROWED in P10 to reject only FUNCTION CHAR given a national argument (§15.15.3 r1 category violation, pointing the user at CHAR-NATIONAL). The doc's Step 3 'remove the 0844 guard' instruction is fully superseded (its own P10 banner already says so).
+- IntrinsicBinder line refs in the doc are stale: the window gate is at IntrinsicBinder.cs:139-144 (doc says :122-125); the NUMVAL-C currency injection at :213-214 (doc :179); the Ec-gate StartsWith check at :260 (doc :220); BindLengthFold at :562 (doc :465); the COBOL0844 guard at :250-252 (doc :214).
+- The COBOL0844 guard is no longer 'CHAR-NATIONAL/ORD-over-national not yet implemented' — it was NARROWED in P10 to reject only FUNCTION CHAR given a national argument (§15.15.3 r1 category violation, pointing the user at CHAR-NATIONAL). The doc's Step 3 'remove the 0844 guard' instruction is fully superseded (its own P10 banner already says so).
 - IntrinsicRenderer refs drifted: the Deferred loud guards are at :52-53 (RenderNum, doc says :45) and :272-273 (RenderString, doc :245); the NumvalC render arm is at :144-149 (doc :124-128).
 - The provisional-window comment is at IntrinsicCatalog.cs:58-61 (doc cites :50-52).
 - SMALLEST-ALGEBRAIC's value golden ALREADY EXISTS: conformance-suite/cases/15.83.4-Returned-value-rules/smallest_algebraic.cob/.out — the doc's Step 7 'add its golden' is partially satisfied; what is genuinely missing is the window-enforcement negative row (no smallest-algebraic-at-2014 file exists; tests/conformance/negative has no *algebraic* or *locale* rows).
@@ -870,7 +870,7 @@ Cross-channel guards: RenderNum rejects a string-class function in a numeric con
 
 ## 3. The binder — src\Cobol.Net.Compiler\Binding\Procedure\Verbs\IntrinsicBinder.cs
 
-`BindIntrinsicCore` (:112) is the one funnel: UDF dispatch precedes the catalog (:119-121, §12.3.8.2 GR12) → catalog lookup + COBOLNET1501 (:123-134) → D8 edition window COBOLNET1502/1503 (:139-144) → standard-arithmetic staging (:154-160) → bespoke phrase-keyword binds (TRIM :164, FIND-STRING :168, SUBSTITUTE :172, CONVERT :176, MODULE-NAME :180) → generic `BindIntrinsicArgs` + arity COBOLNET1504 (:182-189) → literal-format rule COBOLNET1517 (:193-198) → Fold short-circuits (LENGTH :201-202 → BindLengthFold :562-584; ALGEBRAIC :206-208 → BindAlgebraicFold :594-653) → **NUMVAL-C default-currency injection** (:213-214: `if (sig.Name == "NUMVAL-C" && args.Count == 1) args.Add(new BoundStringLiteral(ctx.Data.CurrencyString));`) → MAX/MIN category-polymorphic resolution (:219-232, `sig with { RuntimeMethod = ... }`) → collate flags (:242-245) → EC-gate flag for `RuntimeMethod.StartsWith("Ec")` (:260 `host.Ec.EcNoteFunction()`) → `new BoundIntrinsicCall(resolved, args, category, collate) { CollateNat = collateNat }` (:262).
+`BindIntrinsicCore` (:112) is the one funnel: UDF dispatch precedes the catalog (:119-121, §12.3.8.2 GR12) → catalog lookup + COBOL1501 (:123-134) → D8 edition window COBOL1502/1503 (:139-144) → standard-arithmetic staging (:154-160) → bespoke phrase-keyword binds (TRIM :164, FIND-STRING :168, SUBSTITUTE :172, CONVERT :176, MODULE-NAME :180) → generic `BindIntrinsicArgs` + arity COBOL1504 (:182-189) → literal-format rule COBOL1517 (:193-198) → Fold short-circuits (LENGTH :201-202 → BindLengthFold :562-584; ALGEBRAIC :206-208 → BindAlgebraicFold :594-653) → **NUMVAL-C default-currency injection** (:213-214: `if (sig.Name == "NUMVAL-C" && args.Count == 1) args.Add(new BoundStringLiteral(ctx.Data.CurrencyString));`) → MAX/MIN category-polymorphic resolution (:219-232, `sig with { RuntimeMethod = ... }`) → collate flags (:242-245) → EC-gate flag for `RuntimeMethod.StartsWith("Ec")` (:260 `host.Ec.EcNoteFunction()`) → `new BoundIntrinsicCall(resolved, args, category, collate) { CollateNat = collateNat }` (:262).
 
 Bound node: src\Cobol.Net.Compiler\Binding\Bound\BoundTree.cs:150-151 `BoundIntrinsicCall(IntrinsicSig Sig, IReadOnlyList<BoundOperand> Args, PicCategory ResultCategory, bool Collate = false)` + init-props `CollateNat/TrimMode/FindLast/FindAnycase/SubstituteModes/ConvertSource/ConvertDest/ConvertDestHex/ModuleNameKind`. Args are BoundOperands, not BoundExprs. `OperandOf` (:55-61) wraps for operand positions: folded BoundNumLiteral→BoundNumericLiteral, else BoundComputedOperand.
 
@@ -886,7 +886,7 @@ Bound node: src\Cobol.Net.Compiler\Binding\Bound\BoundTree.cs:150-151 `BoundIntr
 
 **String channel**: `ArgNum` :375 renders numeric args under `ReceiverContext.None`; `ArgInt` :379; `Str(op)` :384 dispatches through the exhaustive `StrArgVisitor` :390-403 — string literal → `EmitText.CsLiteral`, field → `OperandText.AsString(n, owner.Num)`, nested string-class intrinsic (Alphanumeric OR National) re-enters `owner.RenderString` :395-397, everything else (numeric literal, figurative, ALL, bool operand) is loud.
 
-**Scale discipline** (RenderNum returns `NumX(string Expr, int Scale, bool Dec, bool Real)`, EmitCore.cs:65): integer results scale 0; ABS/FRACTION-PART keep argument scale; MOD/REM the common scale; MEDIAN/MIDRANGE common+1; NUMVAL ws = max(Receiver.Scale, 6); NUMVAL-F and Float family ws = max(Receiver.Scale, 9); SECONDS-FROM-FORMATTED-TIME the format's fraction count computed at COMPILE time via `RuntimeApi.DateFormatFractionDigits` :177 (requires a literal format — COBOLNET1517).
+**Scale discipline** (RenderNum returns `NumX(string Expr, int Scale, bool Dec, bool Real)`, EmitCore.cs:65): integer results scale 0; ABS/FRACTION-PART keep argument scale; MOD/REM the common scale; MEDIAN/MIDRANGE common+1; NUMVAL ws = max(Receiver.Scale, 6); NUMVAL-F and Float family ws = max(Receiver.Scale, 9); SECONDS-FROM-FORMATTED-TIME the format's fraction count computed at COMPILE time via `RuntimeApi.DateFormatFractionDigits` :177 (requires a literal format — COBOL1517).
 
 ## 6. TEST-NUMVAL-F end-to-end (the template's live exemplar)
 
@@ -910,7 +910,7 @@ The NUMVAL family all lives in **Exact.cs** (not Text.cs): `Numval` :194-239 (pa
 
 - **LENGTH** (row :113, Bind=Fold): binder short-circuit `BindLengthFold` (IntrinsicBinder.cs:562-584) → `BoundNumLiteral` from `DataItem.ImageWidth`/literal length at COMPILE time; the runtime-length shapes (ANY LENGTH item, nested string-intrinsic argument) instead return a `BoundIntrinsicCall`, which RenderNum's `"Length"` case (:157-158) renders as `CobolIntrinsics.Length(<image>)` (Text.cs:124) — the runtime residue. Ref-mod/ODO args stay BoundExprError (loud by name).
 - **WHEN-COMPILED** (row :120): RenderString's `"WhenCompiled"` arm (:287) emits `EmitText.CsLiteral(WhenCompiledStamp.Value)` — a process-wide `Lazy<string>` baked from `RuntimeApi.DateFormat21(IntrinsicBinder.CompileClock())` (IntrinsicRenderer.cs:43-44); `CompileClock` is the injectable compile-time clock (IntrinsicBinder.cs:41).
-- **HIGHEST/LOWEST/SMALLEST-ALGEBRAIC** (rows :159-160, :196): `BindAlgebraicFold` (:594-653) → `BoundNumLiteral` from PICTURE metadata; float args rejected COBOLNET1516.
+- **HIGHEST/LOWEST/SMALLEST-ALGEBRAIC** (rows :159-160, :196): `BindAlgebraicFold` (:594-653) → `BoundNumLiteral` from PICTURE metadata; float args rejected COBOL1516.
 - BYTE-LENGTH (P11 Step 7) should follow the LENGTH pattern: keep Bind=Fold, add `BindByteLengthFold` beside `BindLengthFold`, route by name at the :201 fold dispatch.
 
 ## 9. Runtime files
@@ -938,7 +938,7 @@ The NUMVAL family all lives in **Exact.cs** (not Text.cs): `Numval` :194-239 (pa
 2. **Binder**: usually NOTHING. Touch IntrinsicBinder.cs only for: phrase keywords (BindTrim/BindFindString pattern), bind-time default injection (the NUMVAL-C :213 pattern — extend for TEST-NUMVAL-C), a Fold (new Bind*Fold beside :562), or result-category logic (the Boolean seams above).
 3. **Renderer arm**: RenderNum switch (IntrinsicRenderer.cs:59-192) for Numeric/Integer results — e.g. copy TestNumvalF :187-188: `case "TestNumval": return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}{CommaFlag}"), 0);` — or RenderString switch (:274-329) for Alphanumeric/National. Route the fragment through `RuntimeApi.Intrinsic`/`DateFn`/`EcFn` (never bare `CobolIntrinsics.` text — the ratchet guard pins bare counts). Pick the scale per §5 above.
 4. **Runtime body**: a static method named EXACTLY the RuntimeMethod string, on `CobolIntrinsics` (Text.cs for char/string analysis, Exact.cs for numeric/NUMVAL-family) or `CobolDate` (date/time) or `EcFunctions` (EC reads). Edge cases via `Exceptions.ExceptionState.ArgumentError(...)` returning the §15.3 default; cite the §15.n.4 rule per branch.
-5. **Same commit**: a value-exercising conformance golden (MOVE the FUNCTION into a PIC receiver, then DISPLAY the receiver — NOT `DISPLAY FUNCTION <numeric-fn>`, which is loud) + a `--std <earlier>` negative window row asserting COBOLNET1502/1503, + the version-matrix row where applicable. Battery + guard before commit.
+5. **Same commit**: a value-exercising conformance golden (MOVE the FUNCTION into a PIC receiver, then DISPLAY the receiver — NOT `DISPLAY FUNCTION <numeric-fn>`, which is loud) + a `--std <earlier>` negative window row asserting COBOL1502/1503, + the version-matrix row where applicable. Battery + guard before commit.
 
 ### Key signatures / anchors
 
@@ -973,7 +973,7 @@ The NUMVAL family all lives in **Exact.cs** (not Text.cs): `Numval` :194-239 (pa
 - The live Deferred set is 17 rows (grep-verified), consistent with the doc's 22-minus-5-LANDED arithmetic — the '43' figure the doc itself flags as stale is indeed stale; work the 17.
 - Clock.cs's doc comment names 'new FixedClock(...)' for in-process tests, but no FixedClock class exists anywhere — an in-process test must supply its own IClock implementation (or use the COBOLNET_CLOCK env pin as AcceptDifferentialTests does).
 - Doc §5.3 exit criterion says '213+ unit' — the current battery is 292 unit / 3467 conformance (post-P10); stale count only, no code impact.
-- Minor: the doc cites the provisional-window catalog comment at IntrinsicCatalog.cs:50-52 — it is at :59-61; the COBOLNET0844 CHAR guard the (already-superseded) Step 3 references is at IntrinsicBinder.cs:250-252 and was already narrowed to CHAR-only in P10 as the doc's banner notes.
+- Minor: the doc cites the provisional-window catalog comment at IntrinsicCatalog.cs:50-52 — it is at :59-61; the COBOL0844 CHAR guard the (already-superseded) Step 3 references is at IntrinsicBinder.cs:250-252 and was already narrowed to CHAR-only in P10 as the doc's banner notes.
 
 ## `code:tests-harness` — Code: conformance/matrix/negative test wiring (P10 worked example)
 
@@ -997,7 +997,7 @@ Four dirs: `tests/conformance/2002/` (247 files), `2014/` (68), `2023/` (32), `n
 
 `CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic(string name)` (CorpusRunnerTests.cs:97-115):
 - `EnabledNegative()` (:90-95) yields every `"enabled"` name from `tests/conformance/negative/manifest.json`.
-- Expected diagnostic = `File.ReadAllText(dir/name + ".err").Trim()` (:103) — the `.err` file holds a SUBSTRING (typically just a code, e.g. `COBOLNET1502`).
+- Expected diagnostic = `File.ReadAllText(dir/name + ".err").Trim()` (:103) — the `.err` file holds a SUBSTRING (typically just a code, e.g. `COBOL1502`).
 - Reject editions come from the `.cob`'s FIRST LINE: `*> reject-at: 85` (or `85 2002 2014 2023`) — parsed at :106-108; a missing header throws `InvalidOperationException`.
 - For each listed edition: `EditionHarness.CompileFull(src, ed)` must fail (`Assert.False(ok, ...)` :112) and `EditionHarness.AssertHasDiagnostic(errors, expected)` (:113) asserts SOME diagnostic contains the `.err` substring case-insensitively (EditionHarness.cs:95-100).
 
@@ -1018,21 +1018,21 @@ Because the legacy `ConformanceTests` auto-discovers every `.cob`+`.out`, a gold
 ### 6. Other test classes asked about
 
 - **`IntrinsicFunctionDifferentialTests.cs`** (tests\Cobol.Net.Tests.Conformance): two idioms — `AssertSameAsLegacy(source)` → `DifferentialGolden.Assert(source)` (:24) and `AssertSpec(source, expected, dialect = 85)` (:26-31) which does `new CobolNetCompiler(dialect).CompileAndRun(source)` + `Assert.Equal(CutRunner.Normalize(expected), cout)`. `DifferentialGolden.Assert` (DifferentialGolden.cs:42) compares against a COMMITTED golden `tests/differential/<TestClass>/<hash(edition,source)>.out` by default (`COBOLNET_DIFF_MODE=golden`); `bake`/`verify` modes cross-check the live legacy engine. New P11 spec-pinned intrinsic facts belong here via `AssertSpec` (spec value + § citation) — NOT differential — when legacy diverges or predates the function.
-- **`EditionGateDiagnosticTests.cs`**: message-QUALITY facts for the COBOLNET0900 band — `AssertNames(errors, requiredEdition, targeting)` (:20-25) asserts "COBOLNET0900" + `requires COBOL-{X}` + `targeting COBOL-{Y}`. One representative per gate CLASS (statement keyword, clause, SPECIAL-NAMES, unit, CALL-arg). Note: intrinsic-function windows do NOT use 0900 — they use COBOLNET1502/1503 from `src\Cobol.Net.Compiler\Binding\Procedure\Verbs\IntrinsicBinder.cs:139-144` (the D8 window: `sig.IntroducedIn > ctx.Edition.DialectLevel` → 1502 "FUNCTION {name} was introduced by ISO/IEC 1989:{year} (§15) — it requires --std {year} or later (targeting COBOL-{level})"; `RemovedIn` → 1503). Unknown name → 1501 (:126).
+- **`EditionGateDiagnosticTests.cs`**: message-QUALITY facts for the COBOL0900 band — `AssertNames(errors, requiredEdition, targeting)` (:20-25) asserts "COBOL0900" + `requires COBOL-{X}` + `targeting COBOL-{Y}`. One representative per gate CLASS (statement keyword, clause, SPECIAL-NAMES, unit, CALL-arg). Note: intrinsic-function windows do NOT use 0900 — they use COBOL1502/1503 from `src\Cobol.Net.Compiler\Binding\Procedure\Verbs\IntrinsicBinder.cs:139-144` (the D8 window: `sig.IntroducedIn > ctx.Edition.DialectLevel` → 1502 "FUNCTION {name} was introduced by ISO/IEC 1989:{year} (§15) — it requires --std {year} or later (targeting COBOL-{level})"; `RemovedIn` → 1503). Unknown name → 1501 (:126).
 
 ### 7. Complete worked example — the P10 exception_file_n set, end to end
 
 **(a) Positive golden**: `tests\conformance\2002\exception_file_n.cob` (header comment cites ISO 15.29/15.31; `>>TURN EC-I-O CHECKING ON`; a DECLARATIVES `USE AFTER EXCEPTION CONDITION EC-I-O-AT-END` displaying `FUNCTION EXCEPTION-FILE-N`, LENGTH probes, a `MOVE ... TO PIC N` + `N"10TF"` compare proving category-national) + `exception_file_n.out` (8 lines: `PRE=00`, `LEN-PRE=02`, `S: EC-I-O-AT-END`, `FN: 10TF`, `LEN-FN=04`, `NAT=YES`, `LEN-LN=01`, `AFTER`).
 **(b) Enabled**: `tests\conformance\2002\manifest.json:20` — `"exception_file_n"` in `"enabled"`. Runs via CorpusRunnerTests.cs:61-88 at strict `--std 2002`, byte-compares stdout to the .out under CutRunner.Normalize.
 **(c) Legacy exclusion**: `legacy-integration-tests/ConformanceTests.cs:111` — `("2002", "exception_file_n")` in `GreenfieldOnly` (comment :108-110: legacy has no EC model and no national result category); the legacy theory returns early at :304.
-**(d) Negative**: `tests\conformance\negative\exception_file_n_below_2002.cob` — line 1 `*> reject-at: 85`, lines 2-5 a spec-citation comment, body displays both -N twins. `exception_file_n_below_2002.err` = the single line `COBOLNET1502`. Enabled at `tests\conformance\negative\manifest.json:42`. Runs via CorpusRunnerTests.cs:97-115: CompileFull at 85 must fail; AssertHasDiagnostic(errors, "COBOLNET1502"). The diagnostic is produced by IntrinsicBinder.cs:139-141.
-**(e) Matrix row**: `tests\version-matrix\constructs.json:1731-1743` — id `"exception-file-n-2002"`, status "active", introducedIn 2002, removedIn null, expectDiagnostic "COBOLNET1502", diagnosticCode "COBOLNET1502", citation (§15.29/§15.31 + the 2023 optional-arg form staged loud → PHASE-13 Step 9), vcr, source = inline VMEFN1 program displaying both twins. Executed by VersionMatrixTests.cs:76-101 as 4 cells: compile at 2002/2014/2023, reject at 85 asserting COBOLNET1502. Rendered to `src\Cobol.Net.Editions\Constructs.g.cs:151` (`public const string ExceptionFileN2002 = "exception-file-n-2002";`) and `ConstructRegistry.g.cs:153` by `scripts/gen-constructs.ps1`.
+**(d) Negative**: `tests\conformance\negative\exception_file_n_below_2002.cob` — line 1 `*> reject-at: 85`, lines 2-5 a spec-citation comment, body displays both -N twins. `exception_file_n_below_2002.err` = the single line `COBOL1502`. Enabled at `tests\conformance\negative\manifest.json:42`. Runs via CorpusRunnerTests.cs:97-115: CompileFull at 85 must fail; AssertHasDiagnostic(errors, "COBOL1502"). The diagnostic is produced by IntrinsicBinder.cs:139-141.
+**(e) Matrix row**: `tests\version-matrix\constructs.json:1731-1743` — id `"exception-file-n-2002"`, status "active", introducedIn 2002, removedIn null, expectDiagnostic "COBOL1502", diagnosticCode "COBOL1502", citation (§15.29/§15.31 + the 2023 optional-arg form staged loud → PHASE-13 Step 9), vcr, source = inline VMEFN1 program displaying both twins. Executed by VersionMatrixTests.cs:76-101 as 4 cells: compile at 2002/2014/2023, reject at 85 asserting COBOL1502. Rendered to `src\Cobol.Net.Editions\Constructs.g.cs:151` (`public const string ExceptionFileN2002 = "exception-file-n-2002";`) and `ConstructRegistry.g.cs:153` by `scripts/gen-constructs.ps1`.
 
 ### Checklist for a new P11 golden+negative set (the P10-proven pattern)
 1. `tests/conformance/<ed>/<name>.cob` + `.out` (LF; header comment citing the ISO §).
 2. Add `<name>` to that dir's `manifest.json` `"enabled"` array (else the integrity fact fails).
 3. If the legacy cannot reproduce it: add `("<ed>", "<name>")` + comment to `GreenfieldOnly` in `legacy-integration-tests/ConformanceTests.cs` — SAME commit.
-4. Negative window row: `tests/conformance/negative/<name>.cob` with `*> reject-at: <editions>` line 1 + `<name>.err` containing the code substring (COBOLNET1502 for introduced-later intrinsics, 1503 for removed) + manifest `"enabled"` entry.
+4. Negative window row: `tests/conformance/negative/<name>.cob` with `*> reject-at: <editions>` line 1 + `<name>.err` containing the code substring (COBOL1502 for introduced-later intrinsics, 1503 for removed) + manifest `"enabled"` entry.
 5. Matrix row in `tests/version-matrix/constructs.json` (if a new construct id is warranted) + re-run `scripts/gen-constructs.ps1` and commit both .g.cs files.
 6. Optional spec-pinned xUnit facts in `IntrinsicFunctionDifferentialTests.cs` via `AssertSpec`.
 
@@ -1047,9 +1047,9 @@ Because the legacy `ConformanceTests` auto-discovers every `.cob`+`.out`, a gold
 - `tests/version-matrix/constructs.json:1731-1743 — the 'exception-file-n-2002' row (id/status/description/display/diagnosticCode/citation/introducedIn/removedIn/expectDiagnostic/vcr/source)`
 - `tests/conformance/2002/manifest.json:20 — "exception_file_n" in "enabled"`
 - `tests/conformance/negative/manifest.json:42 — "exception_file_n_below_2002" in "enabled"`
-- `conformance-suite/wiseowl/diagnostics.json "exception_file_n_below_2002" — refuse-at [85], expect COBOLNET1502` (the program's former line-1 `*> reject-at: 85` and its `.err`; kb/Work PB3177 moved both there)
+- `conformance-suite/wiseowl/diagnostics.json "exception_file_n_below_2002" — refuse-at [85], expect COBOL1502` (the program's former line-1 `*> reject-at: 85` and its `.err`; kb/Work PB3177 moved both there)
 - `legacy-integration-tests/ConformanceTests.cs:66 — private static readonly HashSet<(string, string)> GreenfieldOnly  [exception_file_n entry :111; skip :304]`
-- `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:139-144 — the D8 window gate: COBOLNET1502 (IntroducedIn > DialectLevel) / COBOLNET1503 (RemovedIn)`
+- `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:139-144 — the D8 window gate: COBOL1502 (IntroducedIn > DialectLevel) / COBOL1503 (RemovedIn)`
 - `src/Cobol.Net.Editions/Constructs.g.cs:151 + src/Cobol.Net.Editions/ConstructRegistry.g.cs:153 — generated by scripts/gen-constructs.ps1 from constructs.json (drift-tested)`
 - `tests/Cobol.Net.Tests.Conformance/IntrinsicFunctionDifferentialTests.cs:26 — private static void AssertSpec(string source, string expected, int dialect = 85)  [spec-pinned; :24 AssertSameAsLegacy → DifferentialGolden.Assert]`
 - `tests/Cobol.Net.Tests.Conformance/DifferentialGolden.cs:42 — public static void Assert(string source, int edition = 85, [CallerFilePath] string file = "", string? goldenName = null)  [committed goldens tests/differential/<class>/<hash>.out; COBOLNET_DIFF_MODE golden|bake|verify]`
@@ -1063,7 +1063,7 @@ Because the legacy `ConformanceTests` auto-discovers every `.cob`+`.out`, a gold
 - PHASE-11 doc's proposed negative-row names are hyphenated (boolean-of-integer-at-85.cob, concatenate-at-2023.cob) while the P10 EC-N precedent is underscored (exception_file_n_below_2002). The corpus already mixes both styles and the runner is name-agnostic — pick either, but the P10 intrinsic-window precedent is underscores with a _below_<edition> suffix.
 - PHASE-11 doc lines 353-354, 371-374 (Step 4, EXCEPTION-FILE-N/-LOCATION-N) are correctly marked already-delivered by P10 — verified: golden 2002/exception_file_n (not the doc's earlier intrinsics_ec_national name), matrix row exception-file-n-2002, negative exception_file_n_below_2002 @85 all exist and are enabled/active. Step 4 needs no new corpus work.
 - Housekeeping: stray build artifacts sit inside the corpus dirs — tests/conformance/2002/ contains address_of_qualified.dll/.g.cs/.runtimeconfig.json + Cobol.Net.Runtime.dll, and negative/ contains Cobol.Net.Runtime.dll. Harmless to discovery (only *.cob is enumerated) but they are CLI-run leftovers polluting the tree.
-- Terminology: intrinsic-function edition windows assert COBOLNET1502/1503 from IntrinsicBinder (the D8 catalog window), NOT the COBOLNET0900 band that EditionGateDiagnosticTests covers — a P11 negative row's .err should say COBOLNET1502 (introduced-later) or COBOLNET1503 (removed, e.g. CONCATENATE at 2023), matching the P11 doc's own §1 note (lines 92-96).
+- Terminology: intrinsic-function edition windows assert COBOL1502/1503 from IntrinsicBinder (the D8 catalog window), NOT the COBOL0900 band that EditionGateDiagnosticTests covers — a P11 negative row's .err should say COBOL1502 (introduced-later) or COBOL1503 (removed, e.g. CONCATENATE at 2023), matching the P11 doc's own §1 note (lines 92-96).
 
 ## `code:tier-c-code` — Code: Tier-C guard-site inventory + StorageForm/GroupImageCodec
 
@@ -1094,9 +1094,9 @@ Because the legacy `ConformanceTests` auto-discovers every `.cob`+`.out`, a gold
 3. **Tier A** (2411–2414): canonical elementary AND every member elementary with same `ElementType` + same `ImageWidth` → `Alias`.
 4. **Tier B** (2417): everything else → `StringCanonical`.
 
-**Caller** `ClassifyRedefinesClasses()` (DataBinder.cs:2263, BindPipeline pass row BindPipeline.cs:40) adds a third reject AFTER ComputeTier (lines 2304–2311): any member is/contains an OCCURS DYNAMIC table → `Edition.Error("COBOLNET1525", "REDEFINES involving the dynamic-capacity table in '{X}': ... shall be neither the subject nor the object of a REDEFINES (ISO §13.18.44 SR5)")`, tier forced `Rejected`, reason ??= `"REDEFINES of/over a dynamic-capacity table (§13.18.44 SR5, D9)"`. Then ONE `cls.Classify(tier, maxWidth, reject)` at 2313, offsets via `AssignClassOffsets` (SR9/SR10/GR1), and the Tier-B numeric-DISPLAY/BINARY/PACKED leaf image-promotion loop (2321–2343, `MarkImageForced` + SignKind rewrite per §13.18.60 GR4).
+**Caller** `ClassifyRedefinesClasses()` (DataBinder.cs:2263, BindPipeline pass row BindPipeline.cs:40) adds a third reject AFTER ComputeTier (lines 2304–2311): any member is/contains an OCCURS DYNAMIC table → `Edition.Error("COBOL1525", "REDEFINES involving the dynamic-capacity table in '{X}': ... shall be neither the subject nor the object of a REDEFINES (ISO §13.18.44 SR5)")`, tier forced `Rejected`, reason ??= `"REDEFINES of/over a dynamic-capacity table (§13.18.44 SR5, D9)"`. Then ONE `cls.Classify(tier, maxWidth, reject)` at 2313, offsets via `AssignClassOffsets` (SR9/SR10/GR1), and the Tier-B numeric-DISPLAY/BINARY/PACKED leaf image-promotion loop (2321–2343, `MarkImageForced` + SignKind rewrite per §13.18.60 GR4).
 
-**The second sanctioned writer** — `ForceStringCanonical(DataItem, string what)` (DataBinder.Linkage.cs:381): cell gate at 392 `leaves.Any(l => l.Pic is not { IsFloat: false, Usage: Usage.Display })` → `cls.Classify(Rejected, cls.Width, "{what} '{item.CobolName}' has a COMP/float/index/national/bit leaf — the shared single-byte character image cannot carry it (Tier-C byte island / the RESIDUE-11 2-byte national layout, deferred)")` and returns null. Note this gate is STRICTER than ComputeTier (refuses plain BINARY/PACKED, NATIONAL, BIT too — byte-addressed cell safety). Three callers: `CallMakeExternal` Linkage.cs:360 ("EXTERNAL record"; on null → `Edition.Error(DiagnosticCatalog.ExternalRecordNotCellBacked /* COBOLNET0899 family, DiagnosticCatalog.cs:383 */, "EXTERNAL record '{X}' cannot be cell-backed — {Class?.RejectReason ?? "unsupported leaf"} — recognized but not yet implemented")`), DataBinder.Ptr.cs:69 ("BASED item"), DataBinder.Ptr.cs:92 ("ADDRESS OF target record").
+**The second sanctioned writer** — `ForceStringCanonical(DataItem, string what)` (DataBinder.Linkage.cs:381): cell gate at 392 `leaves.Any(l => l.Pic is not { IsFloat: false, Usage: Usage.Display })` → `cls.Classify(Rejected, cls.Width, "{what} '{item.CobolName}' has a COMP/float/index/national/bit leaf — the shared single-byte character image cannot carry it (Tier-C byte island / the RESIDUE-11 2-byte national layout, deferred)")` and returns null. Note this gate is STRICTER than ComputeTier (refuses plain BINARY/PACKED, NATIONAL, BIT too — byte-addressed cell safety). Three callers: `CallMakeExternal` Linkage.cs:360 ("EXTERNAL record"; on null → `Edition.Error(DiagnosticCatalog.ExternalRecordNotCellBacked /* COBOL0899 family, DiagnosticCatalog.cs:383 */, "EXTERNAL record '{X}' cannot be cell-backed — {Class?.RejectReason ?? "unsupported leaf"} — recognized but not yet implemented")`), DataBinder.Ptr.cs:69 ("BASED item"), DataBinder.Ptr.cs:92 ("ADDRESS OF target record").
 
 ## 3. Guard-site inventory (every "Tier-C" / "IsImageCapable" site)
 
@@ -1110,9 +1110,9 @@ Because the legacy `ConformanceTests` auto-discovers every `.cob`+`.out`, a gold
 |---|------|-----------------|-----------|---------|----------|
 | A1 | DataBinder.cs:2390–2396 | ComputeTier reject 1 | float/COMP-5/BINARY-*/INDEX leaf | "float/COMP-5/BINARY-*/INDEX REDEFINES of '{X}' (Tier-C byte path) not yet implemented" | §13.18.60 (comment) |
 | A2 | DataBinder.cs:2402–2407 | ComputeTier reject 2 (national) | National leaf | "REDEFINES over national data in '{X}' … not yet implemented (Phase 4a residue)" | §13.18.44 + D-N1/D-N2 |
-| A3 | DataBinder.cs:2304–2311 | dynamic-table REDEFINES | ContainsDynamicTable | COBOLNET1525 + reason "(§13.18.44 SR5, D9)" | §13.18.44 SR5 |
+| A3 | DataBinder.cs:2304–2311 | dynamic-table REDEFINES | ContainsDynamicTable | COBOL1525 + reason "(§13.18.44 SR5, D9)" | §13.18.44 SR5 |
 | A4 | DataBinder.Linkage.cs:392–402 | ForceStringCanonical (EXTERNAL/BASED/ADDRESS-OF cell re-base) | P3 | "{what} '{X}' has a COMP/float/index/national/bit leaf — … (Tier-C byte island / the RESIDUE-11 2-byte national layout, deferred)" | §13.18.22.4 GR5 (accept path) |
-| A5 | DataBinder.Linkage.cs:360–366 | EXTERNAL record consumer of A4 | null class | COBOLNET0899 ExternalRecordNotCellBacked "EXTERNAL record '{X}' cannot be cell-backed — {RejectReason}" | §13.18.24 (catalog) |
+| A5 | DataBinder.Linkage.cs:360–366 | EXTERNAL record consumer of A4 | null class | COBOL0899 ExternalRecordNotCellBacked "EXTERNAL record '{X}' cannot be cell-backed — {RejectReason}" | §13.18.24 (catalog) |
 
 ### B. Bind-time loud-null / BoundUnsupported consumers of the class verdict
 | # | Site | Context | Predicate | Message | ISO cite |
@@ -1128,8 +1128,8 @@ Because the legacy `ConformanceTests` auto-discovers every `.cob`+`.out`, a gold
 | B9 | OoConformance.cs:217–220 (DescriptionMismatch) | BY REFERENCE / override signature group pairs | !P1 (arg and formal separately) | "the argument/formal group has a float/COMP-5/INDEX leaf (no character image — Tier-C)" | §14.8.2.3.2 / §9.3.8.2 |
 | B10 | OoConformance.cs:239 | group argument vs alphanumeric formal | !P1 | "the argument group has no character image (Tier-C)" | §14.8.2 |
 | B11 | OoBinder.cs:585 (OoContentMismatch) | INVOKE BY CONTENT group argument | !P1 | "the argument group has no character image (Tier-C)" | §14.8.2.3.3 |
-| B12 | OoBinder.cs:664–670 | universal INVOKE argument | descriptor == "T:!" | COBOLNET0866 "INVOKE: the argument '{X}' has no crossing form (a Tier-C group or a not-yet-carried category — mirrors the typed path's rejection)" | §14.9.23 |
-| B13 | OoBinder.cs:686–691 | universal INVOKE RETURNING | descriptor == "T:!" | COBOLNET0866 "INVOKE RETURNING '{X}': no crossing form (Tier-C / not-carried)" | §14.9.23 |
+| B12 | OoBinder.cs:664–670 | universal INVOKE argument | descriptor == "T:!" | COBOL0866 "INVOKE: the argument '{X}' has no crossing form (a Tier-C group or a not-yet-carried category — mirrors the typed path's rejection)" | §14.9.23 |
+| B13 | OoBinder.cs:686–691 | universal INVOKE RETURNING | descriptor == "T:!" | COBOL0866 "INVOKE RETURNING '{X}': no crossing form (Tier-C / not-carried)" | §14.9.23 |
 
 ### C. Emit-time loud guards (runtime `NotImplemented.Run/Value` via EmitCore.cs:72/75 LoudStmt/LoudValue)
 | # | Site | Verb/context | Predicate | Exact message | ISO cite |
@@ -1309,7 +1309,7 @@ unit-style golden if in doubt; the corpus golden stays within 8 bits.)
   `legacy-integration-tests/ConformanceTests.cs` (legacy has no boolean functions).
 - `conformance-suite/cases/_unassigned/boolean_conv_below_2002.cob` + `.err` (copy from here) + manifest "enabled" entry.
 - Matrix row in `tests/version-matrix/constructs.json` (id `boolean-of-integer-2002`, introducedIn 2002,
-  expectDiagnostic COBOLNET1502, citation §15.13/§15.45, source = the nested COMPUTE program from the negative
+  expectDiagnostic COBOL1502, citation §15.13/§15.45, source = the nested COMPUTE program from the negative
   row without the reject header) → re-run `scripts/gen-constructs.ps1` → commit BOTH regenerated .g.cs files
   (`src/Cobol.Net.Editions/Constructs.g.cs` + `ConstructRegistry.g.cs`).
 - Optional: one `AssertSpec` fact in `IntrinsicFunctionDifferentialTests.cs` (dialect 2002) pinning T3/T5 values.
@@ -1318,7 +1318,7 @@ unit-style golden if in doubt; the corpus golden stays within 8 bits.)
 - CLI spot-run: `dotnet build src/Cobol.Net.Cli && dotnet src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.dll
   <scratch>/intrinsics_boolean_conv.cob --std 2002 -o E:/Temp/claude/p11boolconv.dll --run` → expect the .out
   content EXACTLY (T3=128 proves MSB-first; T2 proves left-truncate + right-fill composition).
-- Negative spot: compile at --std 85 → COBOLNET1502 naming both functions.
+- Negative spot: compile at --std 85 → COBOL1502 naming both functions.
 - Then: build sln → stage → guard-fast → conformance → unit → commit (msg pattern:
   `feat(cobolnet): P11 Step 2 — FUNCTION BOOLEAN-OF-INTEGER/INTEGER-OF-BOOLEAN (§15.13/§15.45) on the P10
   boolean base + golden + 85-window row (DEVLOG NNN)`).
@@ -1390,13 +1390,13 @@ T5=00200
 T6=OK
 ```
 
-### Pre-authored negative `conformance-suite/cases/_unassigned/boolean_conv_below_2002.cob` (`.err` = `COBOLNET1502`)
+### Pre-authored negative `conformance-suite/cases/_unassigned/boolean_conv_below_2002.cob` (`.err` = `COBOL1502`)
 
 ```cobol
       *> reject-at: 85
       *> ISO §15.13 BOOLEAN-OF-INTEGER / §15.45 INTEGER-OF-BOOLEAN are COBOL-2002 introductions (the
       *> boolean-data amendment; PHASE-11-scout-notes.md spec:boolean). Below 2002 the D8 catalog window
-      *> rejects each reference BY NAME — COBOLNET1502 (IntrinsicBinder window gate).
+      *> rejects each reference BY NAME — COBOL1502 (IntrinsicBinder window gate).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P11BOOLW85.
        DATA DIVISION.

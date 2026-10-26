@@ -13,7 +13,7 @@
       *> docs/CONFORMANCE.md#DOC-A.1-198 documents ONE added restriction: "a system-name
       *> shall not consist of digits only, because such a character-string is always read
       *> as an integer literal (`OBJECT-COMPUTER. 12345.` is refused at the literal as a token the
-      *> closed format does not print, `COBOLNET1970`)".
+      *> closed format does not print, `COBOL1970`)".
       *> `12345` is otherwise a legal COBOL word (§8.3.2.1: digits allowed, no hyphen at
       *> either end; the letter requirement of §8.3.2.2 binds user-defined words only), so
       *> this documented restriction is the only reason to reject. The companion positive

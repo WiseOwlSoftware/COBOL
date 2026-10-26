@@ -9,7 +9,7 @@
       *> so the 12.4.5.10.3 GR2 edition gate has TWO parents and one arm has to cover both - the shape this
       *> repo gets wrong most often (a two-arm dispatch with one arm fixed).  The rule is identical: the LINE
       *> SEQUENTIAL phrase is a COBOL-2023 introduction (the Foreword's main-changes list over ISO/IEC
-      *> 1989:2014), so below 2023 it is COBOLNET0900 wherever it is written.  kb/Work PB688.
+      *> 1989:2014), so below 2023 it is COBOL0900 wherever it is written.  kb/Work PB688.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB688N2.
        ENVIRONMENT DIVISION.

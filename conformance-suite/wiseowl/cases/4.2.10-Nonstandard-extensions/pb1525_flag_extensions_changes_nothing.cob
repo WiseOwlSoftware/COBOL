@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB1525 - ISO 1989:2023 4.2.10: "An implementation shall provide a warning mechanism that optionally may
       *> be invoked by the user at compile time to indicate use of a nonstandard extension in a compilation group."
-      *> The mechanism is a WARNING (COBOLNET2894), so it must change nothing about the program: this source uses the
+      *> The mechanism is a WARNING (COBOL2894), so it must change nothing about the program: this source uses the
       *> vendor usages COMP-3, COMP-5 and COMP-2, which the compiler accepts at every edition and names under
       *> --flag-extensions, and it compiles and runs exactly as it does without the option. The warnings themselves are
       *> asserted by unit NonstandardExtensionWarningTests and the register by NonstandardExtensionRegisterDriftTests

@@ -164,7 +164,7 @@ public sealed class RelativeConnector : KeyedConnector
     public string ReadNext(out string image) => ReadSequential(out image, previous: false);
 
     /// <summary>Sequential <c>READ PREVIOUS</c> (COBOL-2002+; the compiler edition-gates the phrase — the ONE
-    /// <c>IBoundRead</c> arm of <c>VersionConformancePass</c>, COBOLNET0900). On THIS organization it selects a
+    /// <c>IBoundRead</c> arm of <c>VersionConformancePass</c>, COBOL0900). On THIS organization it selects a
     /// record by exactly the same §14.9.30.4 GR21 rules a READ NEXT does — see
     /// <see cref="SelectSequentialSlot"/> for why the after-OPEN at-end carve-out is the INDEXED block's alone
     /// (kb/Work PB343) and why the selection therefore takes no edition parameter.</summary>

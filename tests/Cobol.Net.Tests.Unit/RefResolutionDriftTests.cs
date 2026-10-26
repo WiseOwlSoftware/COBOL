@@ -9,7 +9,7 @@ namespace CobolNet.Tests.Unit;
 /// Deferred), and a silent null is unrepresentable only while three things stay true: every deferred shape is in
 /// the <see cref="DeferredShape"/> census with a description, the resolver puts every deferral on the unbuilt ledger
 /// before a caller sees it, and a caller that gets no place builds its refusal FROM the answer instead of writing
-/// its own (the pre-PB1030 shapes: an "unresolvable" error on top of the resolver's COBOLNET1639, or a run-time
+/// its own (the pre-PB1030 shapes: an "unresolvable" error on top of the resolver's COBOL1639, or a run-time
 /// NotImplemented for an ILLEGAL subscript).</summary>
 [Trait("Sweep", "tree")]
 public sealed class RefResolutionDriftTests
@@ -26,7 +26,7 @@ public sealed class RefResolutionDriftTests
     }
 
     /// <summary>The resolver records a deferral on the unbuilt ledger in BOTH commit entries, so the statement
-    /// funnel announces it (COBOLNET1756) whatever the caller does with the answer.</summary>
+    /// funnel announces it (COBOL1756) whatever the caller does with the answer.</summary>
     [Fact]
     public void BothCommitEntries_LedgerTheirDeferrals()
     {

@@ -198,8 +198,9 @@ def run_case(args):
     else:
         verdict = 'WE_REJECT_THEY_ACCEPT'
 
-    # The compiler's three code families: COBOL<n> (the parser), CBL<n> (COPY) and COBOLNET<n> (the rest).
-    codes = sorted(set(re.findall(r'\b((?:COBOLNET|COBOL|CBL)\d{4})\b', diag)))
+    # The compiler's two code prefixes: COBOL<n> (the parser's 0001-0313 and the rest's 0400 up; kb/Work PB3575) and
+    # CBL<n> (COPY).
+    codes = sorted(set(re.findall(r'\b((?:COBOL|CBL)\d{4})\b', diag)))
     first = ''
     for line in diag.splitlines():
         if 'error' in line.lower():

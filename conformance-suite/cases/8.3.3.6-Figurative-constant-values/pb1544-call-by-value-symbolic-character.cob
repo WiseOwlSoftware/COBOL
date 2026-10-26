@@ -7,7 +7,7 @@
 *> ISO 14.9.4.3 SR23 - "If literal-2 or its corresponding formal parameter is specified with the BY VALUE phrase,
 *> literal-2 shall be a numeric literal." A symbolic-character is literal-2 - it "defines a figurative constant"
 *> (12.3.7.4 GR11 a)) - and a figurative constant other than ZERO is never numeric (8.3.3.6.3 SR1 a)), so BY VALUE SA
-*> is refused BY NAME, COBOLNET1762 (kb/Work PB1544: it was "not defined").
+*> is refused BY NAME, COBOL1762 (kb/Work PB1544: it was "not defined").
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEG1544A.
 ENVIRONMENT DIVISION.

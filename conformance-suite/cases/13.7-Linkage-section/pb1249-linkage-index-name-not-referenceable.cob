@@ -8,7 +8,7 @@
       *> index-name associated with a data item that satisfies one of the above conditions"
       *> -> OK 13.7.3 4)). L-IX is the index-name of the table L-TE, which sits in the record
       *> L-T; L-T is not a USING operand, not a redefinition and not BASED, so neither the table
-      *> nor its index-name is referenceable: COBOLNET2746 at SET L-IX.
+      *> nor its index-name is referenceable: COBOL2746 at SET L-IX.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1249N3.
        DATA DIVISION.

@@ -11,7 +11,7 @@
       *> method-name is treated as a literal" mapped in a manner defined
       *> by the implementor. WiseOwl COBOL defines no call-convention-name
       *> (docs/CONFORMANCE.md DOC-A.1-68), so XYZZY selects no convention
-      *> and no mapping: the directive is malformed, COBOLNET1911. (Before
+      *> and no mapping: the directive is malformed, COBOL1911. (Before
       *> the fix any COBOL word was accepted and the COBOL-word mapping
       *> silently applied.)
        >>CALL-CONVENTION XYZZY

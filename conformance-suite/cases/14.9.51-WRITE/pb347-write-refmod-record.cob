@@ -15,7 +15,7 @@
 *> Accepted, WRITE IO-REC(1:3) wrote a 3-byte slice as the record.
 *> §4.2.2 makes the compile-time indication mandatory for "violations of the general formats and the
 *> explicit syntax rules of standard COBOL". The rule is written identically in 1985, 2002 and 2014, so
-*> there is no edition gate and every edition rejects. COBOLNET1757 (kb/Work PB347).
+*> there is no edition gate and every edition rejects. COBOL1757 (kb/Work PB347).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB347N4.
        ENVIRONMENT DIVISION.

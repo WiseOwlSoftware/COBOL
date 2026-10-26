@@ -16,7 +16,7 @@ namespace CobolNet.Tests.Unit;
 /// CONDITION (kb/Work PB1412). ISO §14.9.13.2 prints <c>boolean-expression-1</c> as a selection subject and
 /// <c>[ NOT ] boolean-expression-2</c> as a selection object, and §14.9.13.3 SR10's Table 15 has a Boolean-expression
 /// column and row. The grammar's <c>evaluateSubject</c> and <c>evaluateWhenItem</c> had no such alternative, so
-/// <c>EVALUATE A B-AND C WHEN B"1000"</c> parsed as a <c>condition</c> and was refused (COBOLNET1511 + COBOLNET1634) on
+/// <c>EVALUATE A B-AND C WHEN B"1000"</c> parsed as a <c>condition</c> and was refused (COBOL1511 + COBOL1634) on
 /// legal source.
 /// <para>This pins the three facts that keep the shape right, none of which a golden can see: (1) the alternative
 /// exists in BOTH rules, behind the same <c>{boolExprAhead()}?</c> discriminator every other boolean-expression host

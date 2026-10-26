@@ -12,7 +12,7 @@
       *> literal-4 there, so MYPI and EULER are intrinsic-function-names
       *> the REPOSITORY identifies and §12.3.8.3 SR13 forbids them as
       *> data-names. They used to compile, the data item shadowing the
-      *> function. COBOLNET1649.
+      *> function. COBOL1649.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1083SY.
        ENVIRONMENT DIVISION.

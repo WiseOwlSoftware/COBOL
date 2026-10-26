@@ -6,7 +6,7 @@
 *>---
       *> ISO 13.18.44.3 SR5, SENTENCE 1: "The data description entry for data-name-2 shall not contain an OCCURS
       *> clause." SR5 has FOUR sentences and this repo read only the fourth ("Neither the original definition nor
-      *> the redefinition shall include an occurs-depending table", which is COBOLNET0855's rule), concluded the
+      *> the redefinition shall include an occurs-depending table", which is COBOL0855's rule), concluded the
       *> whole rule was about something else, and shipped a comment saying the OCCURS-bearing data-name-2 case
       *> "NO syntax rule literally names". Sentence 1 names it outright. Measured before the screen: this program
       *> compiled CLEAN and ran, laying R over one occurrence's worth of storage.

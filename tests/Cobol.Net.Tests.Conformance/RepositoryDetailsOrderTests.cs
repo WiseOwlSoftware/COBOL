@@ -70,7 +70,7 @@ public sealed class RepositoryDetailsOrderTests
 
     /// <summary>The §8.4.6.7 / SR10 word reading and the GR11 externalized-name reading name two functions: a
     /// definition externalized "P989W" (its word P989WX) and a definition P989W AS "P989Z". D-R3: GR11 a) wins and the
-    /// compilation says so (COBOLNET2969).</summary>
+    /// compilation says so (COBOL2969).</summary>
     private const string TwoFunctionsOneWord = """
         IDENTIFICATION DIVISION.
         FUNCTION-ID. P989W AS "P989Z".
@@ -115,8 +115,8 @@ public sealed class RepositoryDetailsOrderTests
         string source = string.Format(TwoFunctionsOneWord, "FUNCTION P989W", "P989W");
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2002);
         Assert.True(ok, string.Join("\n", errors));
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET2969");
-        Assert.Contains(warnings, w => w.Contains("COBOLNET2969", StringComparison.Ordinal) && w.Contains("P989Z", StringComparison.Ordinal));
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL2969");
+        Assert.Contains(warnings, w => w.Contains("COBOL2969", StringComparison.Ordinal) && w.Contains("P989Z", StringComparison.Ordinal));
         var run = EditionHarness.CompileAndRun(source, 2002);
         Assert.True(run.Ok, run.Detail);
         Assert.Equal("0002", run.Stdout.Trim());
@@ -128,7 +128,7 @@ public sealed class RepositoryDetailsOrderTests
         string source = string.Format(TwoFunctionsOneWord, "FUNCTION P989Q AS \"P989Z\"", "P989Q");
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2002);
         Assert.True(ok, string.Join("\n", errors));
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET2969");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL2969");
         var run = EditionHarness.CompileAndRun(source, 2002);
         Assert.True(run.Ok, run.Detail);
         Assert.Equal("0001", run.Stdout.Trim());
@@ -176,7 +176,7 @@ public sealed class RepositoryDetailsOrderTests
             """;
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
         Assert.True(ok, string.Join("\n", errors));
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET2969");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL2969");
     }
 
     /// <summary>The CLASS arm of the same search: a class's REPOSITORY reaches every method (§12.3.4 GR1), and its
@@ -230,7 +230,7 @@ public sealed class RepositoryDetailsOrderTests
             : ClassNamingAFunction + "\n" + FunctionForTheClass;
         var (ok, errors, _) = EditionHarness.CompileFull(source, 2002);
         Assert.Equal(binds, ok);
-        if (!binds) EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1505");
+        if (!binds) EditionHarness.AssertHasDiagnostic(errors, "COBOL1505");
     }
 
     /// <summary>GR10 a)/b): a program definition BELOW the caller, a program prototype definition ahead of both.</summary>
@@ -273,7 +273,7 @@ public sealed class RepositoryDetailsOrderTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(CallerBetweenPrototypeAndDefinition, 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1684");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1684");
     }
 
     [Fact]   // GR10 a) is "specified PREVIOUSLY": with NO prototype, the definition that follows is the arm-c) program.

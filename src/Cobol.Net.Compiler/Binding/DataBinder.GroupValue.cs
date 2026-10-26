@@ -35,7 +35,7 @@ namespace CobolNet.Binding;
 /// character slice IS the area deposit. What was missing was the DIAGNOSTIC on the complement.</para>
 ///
 /// <para>A syntax rule is a "shall", so the only conforming response to a violation is a compile-time
-/// diagnostic (the same posture as the §13.18.63.3 SR2/SR3 numeric-VALUE screen, COBOLNET1625) — never a
+/// diagnostic (the same posture as the §13.18.63.3 SR2/SR3 numeric-VALUE screen, COBOL1625) — never a
 /// silent member-wise substitute, and it is NOT dialect-gated: no edition of the standard permitted this.</para>
 /// </summary>
 public sealed partial class DataBinder
@@ -57,8 +57,8 @@ public sealed partial class DataBinder
     /// <para><b>Once per WRITTEN VALUE clause.</b> The subject test reads <see cref="DataItem.ValueCopiedFrom"/>:
     /// a template's VALUE assumed by a reference site (§13.18.57.4 GR1) or a SAME AS subject (§13.18.49 GR1)
     /// names the SAME source entry the template already answered for. Measured: `01 A VALUE "ABCD".
-    /// 05 X PIC 9(4) COMP. 01 B SAME AS A.` reported COBOLNET1702 twice, both anchored at X's one declaration.
-    /// (A SAME AS entry can never carry its OWN VALUE — §13.16.3 SR12, enforced as COBOLNET1555 — so the SAME AS
+    /// 05 X PIC 9(4) COMP. 01 B SAME AS A.` reported COBOL1702 twice, both anchored at X's one declaration.
+    /// (A SAME AS entry can never carry its OWN VALUE — §13.16.3 SR12, enforced as COBOL1555 — so the SAME AS
     /// population is covered entirely by its target.) That holds for SR13 and SR14 — properties of the entry that
     /// wrote the clause — and NOT for SR1, a property of what the subject IS, which a TYPE reference can compose
     /// out of a template that conforms alone (<see cref="ScreenAssumedGroupValueSubject"/>, kb/Work PB2517).</para>
@@ -109,7 +109,7 @@ public sealed partial class DataBinder
             if (AncestorIsGroupValueSubject(item)) continue;
 
             // ⛔ NO BIT-PACKED REFUSAL HERE ANY MORE (kb/Work PB207, landed). A group with a USAGE BIT
-            // descendant used to be rejected by name, COBOLNET0899, on the ground that §13.18.63.4 GR5 had no
+            // descendant used to be rejected by name, COBOL0899, on the ground that §13.18.63.4 GR5 had no
             // area to deposit into. It has one, in the OTHER UNIT: §13.18.29.4 GR1b makes a bit group an as-if
             // `PICTURE 1(m)` item, so its area is m BOOLEAN POSITIONS from the §8.5.1.6.3 walk, and
             // GroupValueSlicer.AreaOf now composes it for both initializer lanes.

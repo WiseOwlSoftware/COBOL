@@ -56,7 +56,7 @@ internal enum SetOperandKind
 /// discriminates (3 switch, 4 condition, 6 attribute, 11/12 locale, 13 last-exception, 15 content) are chosen in
 /// <c>SetBinder.BindSet</c> by their own alternative.
 /// <para>⛔ FORMAT 17 IS ONE OF THEM, AND THIS COMMENT USED TO SAY IT "CANNOT BE REACHED" (kb/Work PB453).
-/// The MESSAGE-TAG entry is refused by name at the data description entry (COBOLNET1943) — but a refused entry
+/// The MESSAGE-TAG entry is refused by name at the data description entry (COBOL1943) — but a refused entry
 /// still produces a symbol, the statement still binds, and <c>SET MT-A TO MT-B</c> / <c>SET MT-A TO NULL</c>
 /// therefore DID reach this selection and fell through to §14.9.39.3 SR8's object-reference screen and
 /// §8.8.1.1's arithmetic screen. The user was told their message-tag item "shall be a USAGE OBJECT REFERENCE
@@ -84,7 +84,7 @@ internal enum SetFormat
     F16,
     /// <summary>Format 17 — message-tag. The DATA half of the Annex A.3 item-4 asynchronous messaging facility,
     /// which this implementation declines (docs/CONFORMANCE.md §4 item 1); selected so §4.2.6's mandatory
-    /// warning mechanism names the facility, exactly as COBOLNET1578 already does for its SEND/RECEIVE half.</summary>
+    /// warning mechanism names the facility, exactly as COBOL1578 already does for its SEND/RECEIVE half.</summary>
     F17,
 }
 
@@ -130,7 +130,7 @@ internal enum SetDirections
 /// admitted as a sending operand by exactly ONE printed format each (Format 5, 7, 9, 8), so that is the format
 /// the statement is, and its own receiving rule refuses the receiver BY NAME. Before this,
 /// <c>SET N4 TO U</c> reached the ARITHMETIC screen and was reported as "'U' is not a numeric operand"
-/// (COBOLNET0844) — true of §8.8.1.1 and silent about §14.9.39.3 SR8, which is the rule the program broke.
+/// (COBOL0844) — true of §8.8.1.1 and silent about §14.9.39.3 SR8, which is the rule the program broke.
 /// <see cref="SelectForTo"/> is that arm; <see cref="Select"/> stays the receiving-list-only answer.</para></summary>
 internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host)
 {
@@ -222,10 +222,10 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         // ⛔ A PREDEFINED OBJECT REFERENCE IS CLASSIFIED BEFORE THE GENERAL LOOKUP. §8.4.3.6.3 SR2 describes
         // EXCEPTION-OBJECT as "class object and category object reference", and NO data description entry
         // declares it — so the general resolution below answers "'EXCEPTION-OBJECT' is not defined"
-        // (COBOLNET1639), which is false about a name the standard itself declares, and the statement then
+        // (COBOL1639), which is false about a name the standard itself declares, and the statement then
         // binds as Format 1. Classified here, the receiving list selects Format 5 and the rule the program
         // actually broke is the one it draws: §8.4.3.6.3 SR1, "EXCEPTION-OBJECT shall not be specified as a
-        // receiving operand" (COBOLNET2196, reported by OoBindSetObjectRef — the SAME code the general receiving
+        // receiving operand" (COBOL2196, reported by OoBindSetObjectRef — the SAME code the general receiving
         // chokepoint draws, because it is the same rule; kb/Work PB922).
         // ⚠ Its three siblings never reach this classifier: NULL, SELF and SUPER are grammar TOKENS, which a SET
         // receiving list parses as a `nonReceivableIdentifier` (kb/Work PB1551), and SetBinder.BindSet refuses every
@@ -358,7 +358,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     public static string Written(IReadOnlyList<Core.DataReferenceContext> receivers) =>
         string.Join(' ', receivers.Select(r => $"'{r.GetText()}'"));
 
-    /// <summary>COBOLNET2112 — the residual arm §14.9.39.2 needs and did not have: NO printed general format's
+    /// <summary>COBOL2112 — the residual arm §14.9.39.2 needs and did not have: NO printed general format's
     /// receiving brace admits these operands, so the statement is refused rather than executed as Format 1/2
     /// arithmetic (kb/Work PB449 — <c>SET WS-N UP BY 4</c> over <c>PIC 9(4)</c> ran, and answered 5).</summary>
     /// <param name="amount">The sending/amount operand AS WRITTEN. ⛔ Never a U+2026 ellipsis: the diagnostic
@@ -376,7 +376,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
             + $"admits this receiving operand list — {what}, and {braces} (ISO §14.9.39.2)");
     }
 
-    /// <summary>COBOLNET2112 over the operands a SELECTED format does not admit — the arm for the formats whose
+    /// <summary>COBOL2112 over the operands a SELECTED format does not admit — the arm for the formats whose
     /// own binder screens only what it can resolve (Format 2's index-names, Format 14's and Format 16's single
     /// receiver). The carrier formats report their own SR through their own binder instead, which is why this is
     /// not called for them.</summary>
@@ -397,7 +397,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         return false;
     }
 
-    /// <summary>COBOLNET2112 for a receiving list that is not the SOLE receiver of a format whose printed receiving
+    /// <summary>COBOL2112 for a receiving list that is not the SOLE receiver of a format whose printed receiving
     /// operand carries NO ellipsis — Format 14's <c>data-name-2</c> and Format 16's <c>data-name-3</c> are each ONE
     /// operand (§14.9.39.2), so a second receiver means the statement is not that format either.
     /// <para>⛔ ORDER-FREE (kb/Work PB3225). The selection chose this format as the NEAREST row for any list that

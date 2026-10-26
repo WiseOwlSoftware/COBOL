@@ -8,7 +8,7 @@
       *> PB64 T6 — the format-2 item's VALUE clause, level-88 membership, INITIALIZE, REDEFINES width and the
       *> de-edit acceptance rule. IN THE 2023 CORPUS because a NUMERIC-LITERAL VALUE for a numeric-edited item
       *> is itself a COBOL-2023 introduction (ISO 13.18.63 SR6; Annex E.3.3 item 43 - the value-numeric-edited
-      *> gate, COBOLNET0900 below 2023); the format-2 semantics under test are 2002+.
+      *> gate, COBOL0900 below 2023); the format-2 semantics under test are 2002+.
       *> de-edit acceptance rule. The VALUE image is composed AT RUN TIME (ISO 13.18.40.5 r11 + 14.6.6 r6 make
       *> the locale the one current at editing time - no compile-time image exists), and the level-88 membership
       *> value composes the same way (13.18.63.3 SR6 converts per the MOVE rules; comparing raw literal text is

@@ -136,7 +136,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <c>file-name-1</c>, and ISO §8.4.2.1 fixes what a name must do: "In order to use a resource, a statement
     /// shall contain a reference that uniquely identifies that resource." A word that identifies no file
     /// connector identifies no resource.
-    /// <para>The diagnostic is the EXISTING <see cref="DiagnosticCatalog.UndefinedReference"/> (COBOLNET1639),
+    /// <para>The diagnostic is the EXISTING <see cref="DiagnosticCatalog.UndefinedReference"/> (COBOL1639),
     /// not a new code: "this source element defines no such name" is ONE rule, and the file-name space was
     /// simply missing from the place that already reports it for data-names (feedback_one_rule_one_place). A
     /// new statement that names a file gets the diagnostic by calling this, not by remembering to write
@@ -183,7 +183,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// individual element within a table of like elements") and reference modification (§8.4.3.3.1, "by specifying
     /// an identifier") are identifier decorations, and a special register is no user-defined word at all.
     /// <para>The production these positions share with a data-name is a superset parse, so this screen is where
-    /// the narrower operand is refused BY NAME (COBOLNET2972), quoting the reference as written; the statement is
+    /// the narrower operand is refused BY NAME (COBOL2972), quoting the reference as written; the statement is
     /// not bound. A position that may hold EITHER a file-name or a data-name (the SORT subject, APPLY COMMIT's
     /// operand list) decides by the base word first and asks this only of the file reading.</para></summary>
     /// <returns>The base word when the operand is a bare file-name; null after reporting.</returns>
@@ -218,12 +218,12 @@ internal sealed class StatementValidation(DataBinder data)
     /// from the REPORT clause's side as §13.18.46.3 SR3: "The subject of a file description entry that specifies a
     /// REPORT clause may be referenced in the procedure division only by the USE statement, the WHEN phrase of a
     /// PERFORM statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase." It used to be
-    /// asked by OPEN alone (COBOLNET2371, its INPUT / I-O half), so READ, START, DELETE, DELETE FILE, UNLOCK, a
+    /// asked by OPEN alone (COBOL2371, its INPUT / I-O half), so READ, START, DELETE, DELETE FILE, UNLOCK, a
     /// SORT / MERGE USING or GIVING file and WRITE of a report FD's record compiled clean and ran against the report
     /// writer's file. <see cref="ResolveFile"/> asks it for every statement that is not in the list; the statements
     /// whose operand is not a file-name ask it themselves (SORT/MERGE USING/GIVING through ResolveFile with their
     /// own rule; WRITE §14.9.51.3 SR12 and REWRITE §14.9.35.3 SR11 on the file of the record they resolved — such a
-    /// record is already refused at its entry, §13.4.5.3 SR8 COBOLNET2578, and the statement's own rule is reported
+    /// record is already refused at its entry, §13.4.5.3 SR8 COBOL2578, and the statement's own rule is reported
     /// as well, because every rule a statement violates is, kb/Work PB352).</summary>
     /// <returns>true when <paramref name="file"/> is not a report file; false after reporting.</returns>
     public bool ScreenReportFileReference(FileModel file, string verb, string? statementRule = null)
@@ -251,7 +251,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// telling the user that WiseOwl COBOL had not implemented a feature — the diagnosis sent to the wrong party,
     /// at the wrong time, and on an unexecuted path never sent at all. ISO §4.2.2 ¶2 puts violations of "the
     /// general formats and the explicit syntax rules" in the compile-time mechanism.</para>
-    /// <para>The diagnostic is the EXISTING <see cref="DiagnosticCatalog.UndefinedReference"/> (COBOLNET1639)
+    /// <para>The diagnostic is the EXISTING <see cref="DiagnosticCatalog.UndefinedReference"/> (COBOL1639)
     /// and no new code — "this source element defines no such name" is ONE rule (ISO §8.4.2.1), and the
     /// procedure-name space was simply missing from the place that already reports it for data-names and (since
     /// kb/Work PB236) for file-names. SORT's own private copy of this message folded into it here.</para>
@@ -606,11 +606,11 @@ internal sealed class StatementValidation(DataBinder data)
     /// A reference modifier rides on the <see cref="RefModPlace"/> DECORATOR and leaves <see cref="Place.Item"/>
     /// untouched, which is precisely why the containment test could not see it: <c>RELEASE SRT-REC(1:3)</c>
     /// released a 3-byte record into an 8-byte sort file.</para>
-    /// <para>The diagnostic is the EXISTING <see cref="DiagnosticCatalog.StatementOperandRule"/> (COBOLNET1757)
+    /// <para>The diagnostic is the EXISTING <see cref="DiagnosticCatalog.StatementOperandRule"/> (COBOL1757)
     /// and no new code: that descriptor's own contract is that "the CODE is the identity of the MECHANISM (a
     /// bind-time operand refusal), the MESSAGE carries the rule", and this IS that mechanism. ISO §4.2.2 ¶2
     /// puts the indication at compile time; before this, WRITE and REWRITE staged it to
-    /// <c>BoundUnsupported</c>, so <c>WRITE WS-REC</c> got a COBOLNET1756 deferral WARNING — the compiler's own
+    /// <c>BoundUnsupported</c>, so <c>WRITE WS-REC</c> got a COBOL1756 deferral WARNING — the compiler's own
     /// gap — for what is the source's error.</para></summary>
     /// <param name="record">The resolved operand.</param>
     /// <param name="refText">The operand as written, for the message.</param>
@@ -766,7 +766,7 @@ internal sealed class StatementValidation(DataBinder data)
         string written = dref.GetText();
         if (refs.ResolveTableOperand(dref) is not { } operand)
         {
-            // A name identifying no item is already reported (COBOLNET1639 — §8.4.2.1 "In order to use a
+            // A name identifying no item is already reported (COBOL1639 — §8.4.2.1 "In order to use a
             // resource, a statement shall contain a reference that uniquely identifies that resource"). What is
             // left is a reference that identifies a resource with NO data description — a special register — and
             // the rule it violates is SR2's first sentence.
@@ -861,7 +861,7 @@ internal sealed class StatementValidation(DataBinder data)
             + $"'{table.CobolName}' in a WHEN phrase.");
 
     /// <summary>The identifier-1 sink (ISO §14.9.37.3 SR1–SR3) — one code for one operand position, the same way
-    /// COBOLNET1964–1966 group SR7–SR13 by the operand each is about.</summary>
+    /// COBOL1964–1966 group SR7–SR13 by the operand each is about.</summary>
     private bool Identifier1(string verb, string written, string message)
     {
         data.Edition.Error(DiagnosticCatalog.SearchIdentifier1Operand, $"{verb} {written}: {message}");
@@ -906,7 +906,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckInspectCharactersReplacement(BoundOperand rep)
     {
         if (rep is not BoundStringLiteral { Value.Length: not 1 } bad) return true;
-        data.Edition.Error("COBOLNET0846", $"INSPECT REPLACING CHARACTERS BY a {bad.Value.Length}-"
+        data.Edition.Error("COBOL0846", $"INSPECT REPLACING CHARACTERS BY a {bad.Value.Length}-"
             + "character literal — literal-3 shall be one character in length (ISO §14.9.22.3 SR7)");
         return false;
     }
@@ -929,7 +929,7 @@ internal sealed class StatementValidation(DataBinder data)
         var (rule, phrase, names) = converting
             ? ("SR9", "CONVERTING", ("literal-4", "literal-5"))
             : ("SR6", "REPLACING", ("literal-1", "literal-3"));
-        data.Edition.Error("COBOLNET0846", $"INSPECT {phrase}: {names.Item1} {InspectLiteralImage(pattern, patternSize)} "
+        data.Edition.Error("COBOL0846", $"INSPECT {phrase}: {names.Item1} {InspectLiteralImage(pattern, patternSize)} "
             + $"and {names.Item2} {InspectLiteralImage(replacement, replacementSize)} differ in size "
             + $"(ISO §14.9.22.3 {rule} — the same size unless {names.Item2} is a figurative constant)");
         return false;
@@ -1025,7 +1025,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <para><b>What this screen deliberately does NOT check.</b> The second sentence of §14.9.30.3 SR2 /
     /// §14.9.34.3 SR3 (<i>"shall be a strongly-typed group item of the same type as identifier-1"</i>) is the same
     /// predicate over the same pair that §14.9.25.3 SR2 already applies to this move's SENDER — which IS the
-    /// record area — and <c>MoveTable16.Validity</c> refuses it under SR2 and <c>MoveBinder</c> reports it as COBOLNET1533, naming the phrase. A second
+    /// record area — and <c>MoveTable16.Validity</c> refuses it under SR2 and <c>MoveBinder</c> reports it as COBOL1533, naming the phrase. A second
     /// copy here is one rule in two places, this repository's most reproducible defect. The COUNT obligation is
     /// checked here because nothing else can express it: with several record areas the MOVE screen inspects only
     /// <c>FileModel.AreaRecord</c>, so a file whose LARGEST record happens to be the right type passed
@@ -1057,8 +1057,8 @@ internal sealed class StatementValidation(DataBinder data)
         //    The receiver's PLACE KIND is deliberately not filtered the way arm b) filters it below: a
         //    reference-modified or RENAMES view of a strongly-typed group — which §8.4.3.3.4 GR6 would make an
         //    elementary alphanumeric item, outside this rule's reach — cannot BE written. Measured, not assumed:
-        //    `READ f INTO WS-STRONG(1:4)` draws COBOLNET1647 (§8.4.3.3.3 SR1, reference modification of a
-        //    strongly-typed group item) and a RENAMES over one draws COBOLNET1532 (§13.18.57.3 SR4), both before
+        //    `READ f INTO WS-STRONG(1:4)` draws COBOL1647 (§8.4.3.3.3 SR1, reference modification of a
+        //    strongly-typed group item) and a RENAMES over one draws COBOL1532 (§13.18.57.3 SR4), both before
         //    this screen runs. A guard for a shape nothing can reach is a guard nothing can contradict. ──
         if (StrongTypeModel.IsStrongGroup(receiver.Item))
         {
@@ -1142,7 +1142,7 @@ internal sealed class StatementValidation(DataBinder data)
         // (the composite is then over the OTHER operands, still capped at 31) — like a floating-point operand. Those
         // four picture-less usages carry Category Numeric + IsFloat false, so without this guard they were wrongly
         // superimposed (BINARY-DOUBLE contributes up to 20 integer digits) and pushed a conforming program past 31
-        // (COBOLNET0805). COMP-5 is NOT in rule 2b's list and stays counted; float usages are already IsFloat. (CA6.)
+        // (COBOL0805). COMP-5 is NOT in rule 2b's list and stays counted; float usages are already IsFloat. (CA6.)
         // Category NUMERIC-EDITED is IN the composite (kb/Work PB155): a MULTIPLY/DIVIDE GIVING resultant is a
         // composite member (§14.9.26.3 SR4 counts ALL operands; §14.9.12.3 SR4 excludes only REMAINDER) and
         // §14.9.26.3/§14.9.12.3 SR2 admit it as numeric-edited — requiring Category Numeric silently dropped it.
@@ -1185,7 +1185,7 @@ internal sealed class StatementValidation(DataBinder data)
         // it — so the 18-digit figure does not govern the composite (it caps '85 PICTURE/literal capacity only).
         int composite = maxInt + maxFrac;
         if (composite <= 31) return true;
-        data.Edition.Error("COBOLNET0805",
+        data.Edition.Error("COBOL0805",
             $"{verb}: the composite of operands spans {composite} digits ({maxInt} integer + {maxFrac} fraction); "
             + "ISO/IEC 1989 caps the composite of operands at 31 digits (§14.7.7 rule 2 a))");
         return false;
@@ -1200,7 +1200,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckInitializeCategoryUnique(InitializeCategorySet namedSoFar, InitializeCategory cat)
     {
         if (!namedSoFar.Contains(cat)) return true;
-        data.Edition.Error("COBOLNET0834",
+        data.Edition.Error("COBOL0834",
             $"INITIALIZE REPLACING repeats the category-name {InitializeCategories.Spelling(cat)} "
             + "(ISO §14.9.20.3 SR6 — each category at most once in the phrase; §5.2.6.4 — each alternative at "
             + "most once within one category-name)");
@@ -1270,7 +1270,7 @@ internal sealed class StatementValidation(DataBinder data)
         Place named = place;
         while (named.DenotedItem is null && named is PlaceDecorator d) named = d.Inner;
         if ((named.DenotedItem ?? place.Item).Renames is null) return true;
-        data.Edition.Error("COBOLNET0835",
+        data.Edition.Error("COBOL0835",
             $"INITIALIZE '{refText}' — the data description entry for identifier-1 shall not contain a RENAMES "
             + "clause (ISO §14.9.20.3 SR5)");
         return false;
@@ -1387,7 +1387,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// enforced on one arm only (kb/Work PB334). ⚠ On the SEQUENTIAL-organization arm it is now
     /// DEFENCE IN DEPTH, not the only guard: §12.4.5.5.2 SR2 ("The DYNAMIC and RANDOM phrases shall not be
     /// specified for a sequential file") is screened at the FILE CONTROL ENTRY as of kb/Work PB692
-    /// (<c>DataBinder.BindFileControl</c>, COBOLNET1858), so <c>IsSequential &amp;&amp; AccessMode is Random</c>
+    /// (<c>DataBinder.BindFileControl</c>, COBOL1858), so <c>IsSequential &amp;&amp; AccessMode is Random</c>
     /// no longer reaches a statement at all. It stays because it is the STATEMENT's own rule and costs a
     /// field test — never because the entry rule might be missing.
     /// <para>The message names EVERY phrase the statement actually wrote — the at-end bracket carries choice
@@ -1417,7 +1417,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <para>SR3 b) — the WRITE/REWRITE half — has no screen of its own because none can be reached: the
     /// record-name-1 alternative names "a logical record in the file section" (§14.9.51.3 SR5, §14.9.35.3 SR1), which
     /// a record-less entry does not have, and the <c>FILE file-name-1</c> alternative is Annex A.4.13, refused by
-    /// COBOLNET1706 (docs/CONFORMANCE.md §5, row A.4.13).</para>
+    /// COBOL1706 (docs/CONFORMANCE.md §5, row A.4.13).</para>
     /// <para>A hard error at every edition: the source states a READ the standard gives no meaning, so there is no
     /// lenient corpus to protect and nothing for <c>--permissive</c> to keep. Returns true when the statement
     /// conforms; the caller still binds it, the compile having already failed.</para></summary>
@@ -1442,7 +1442,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckReadKeyOrganization(FileModel file)
     {
         if (file.Organization == FileOrganization.Indexed) return true;
-        data.Edition.Error("COBOLNET0864", $"READ … KEY on '{file.CobolName}': the KEY phrase may be "
+        data.Edition.Error("COBOL0864", $"READ … KEY on '{file.CobolName}': the KEY phrase may be "
             + "specified only when ORGANIZATION IS INDEXED (ISO §14.9.30.3 SR10)");
         return false;
     }
@@ -1506,7 +1506,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (file.SubjectToApplyCommit) return true;   // SR8's leading conjunct — cf. §12.4.5.9.3 SR1
         if (!(effectiveSharing is SharingMode.AllOther && file.LockMode is null)) return true;
-        data.Edition.Error("COBOLNET1512", $"OPEN of file '{file.CobolName}' with SHARING WITH ALL OTHER "
+        data.Edition.Error("COBOL1512", $"OPEN of file '{file.CobolName}' with SHARING WITH ALL OTHER "
             + "requires the file to have a LOCK MODE clause (ISO §14.9.27.3 SR8)");
         return false;
     }
@@ -1522,7 +1522,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// define — kb/Work PB317/PB318, and kb/Work PB668 for REVERSED).
     /// <para>NO REWIND's two rules are §14.9.27.3 SR5 — <i>"The NO REWIND phrase may be specified only for
     /// sequential files"</i>, the EXACT twin of the CLOSE rule §14.9.6.3 SR1 that <c>BindClose</c> enforces as
-    /// COBOLNET1693, which is why the OPEN half went unchecked for so long — and SR6, <i>"The NO REWIND phrase
+    /// COBOL1693, which is why the OPEN half went unchecked for so long — and SR6, <i>"The NO REWIND phrase
     /// may be specified only when the INPUT or OUTPUT phrase is specified"</i>, which §14.9.27.4 GR12 a)
     /// corroborates by naming only EXTEND as the mode that suppresses the positioning the phrase talks about.
     /// SR5's predicate is ORGANIZATION, not access mode — §9.1.7.2 puts record sequential and line sequential
@@ -1615,7 +1615,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckWriteEopLinage(FileModel file)
     {
         if (file.Linage is not null) return true;
-        data.Edition.Error("COBOLNET0860", $"WRITE … END-OF-PAGE on file '{file.CobolName}', whose file "
+        data.Edition.Error("COBOL0860", $"WRITE … END-OF-PAGE on file '{file.CobolName}', whose file "
             + "description entry has no LINAGE clause (ISO §14.9.51.3 SR19)");
         return false;
     }
@@ -1627,7 +1627,7 @@ internal sealed class StatementValidation(DataBinder data)
     public bool CheckWriteEopAdvancingPage(bool advancingPageWithAtEop)
     {
         if (!advancingPageWithAtEop) return true;
-        data.Edition.Error("COBOLNET0861", "WRITE … ADVANCING PAGE with an END-OF-PAGE phrase: the two "
+        data.Edition.Error("COBOL0861", "WRITE … ADVANCING PAGE with an END-OF-PAGE phrase: the two "
             + "shall not both be specified in a single WRITE statement (ISO §14.9.51.3 SR18)");
         return false;
     }
@@ -1700,14 +1700,14 @@ internal sealed class StatementValidation(DataBinder data)
     /// by every relation (IF, EVALUATE pairings/ranges, PERFORM UNTIL, SEARCH WHEN, sole-operand conditions).
     /// A PURE emission check (no verdict — the caller always builds the node; the checks are side-effect
     /// diagnostics): class-boolean comparability (§8.8.4.2.2 Format 2 — boolean operands compare only with a
-    /// boolean or the figurative ZERO, equality only — COBOLNET0844), and the strongly-typed-group rules
-    /// (§8.8.4.2.3 SR1: same type both sides — COBOLNET1533; SR4: a strong group with a boolean/object/pointer
-    /// leaf is equality-only — COBOLNET1535 <c>strong-compare-ordering</c>), and the
+    /// boolean or the figurative ZERO, equality only — COBOL0844), and the strongly-typed-group rules
+    /// (§8.8.4.2.3 SR1: same type both sides — COBOL1533; SR4: a strong group with a boolean/object/pointer
+    /// leaf is equality-only — COBOL1535 <c>strong-compare-ordering</c>), and the
     /// §8.8.4.2.2 FORMAT 3 band (<see cref="CheckFormat3Relation"/>) — "a relation condition involving operands
     /// of class message-tag, object, or pointer is a message-tag-object-or-pointer-reference relation
     /// condition" (§8.8.4.2.1), whose general format admits ONLY <c>IS [NOT] EQUAL TO</c> / <c>=</c> /
     /// <c>&lt;&gt;</c> and whose SR5 requires both operands to be of one of those three classes AND of the same
-    /// CATEGORY (COBOLNET0868 for a relation naming class object, COBOLNET0869 otherwise).
+    /// CATEGORY (COBOL0868 for a relation naming class object, COBOL0869 otherwise).
     /// <para>⛔ THAT BAND WAS WRITTEN IN <c>ConditionBinder.BindComparison</c>'s relation arm until kb/Work
     /// PB399 — one caller of this checkpoint, not the checkpoint — so it screened `IF P &gt;= Q` and said
     /// nothing about the SAME pair under EVALUATE, SEARCH WHEN, PERFORM UNTIL or an abbreviated relation.
@@ -1749,11 +1749,11 @@ internal sealed class StatementValidation(DataBinder data)
                 IntrinsicArgumentRules.CandidateClasses(o) is var set
                 && (set.Length == 0 || Array.IndexOf(set, CobolClass.Boolean) >= 0);
             if (!(BoolCompatible(left) && BoolCompatible(right)))
-                data.Edition.Error("COBOLNET0844", "a boolean operand may be compared only with another "
+                data.Edition.Error("COBOL0844", "a boolean operand may be compared only with another "
                     + "boolean operand or the figurative constant ZERO (ISO §8.8.4.2.2; §8.8.4.2.3 "
                     + "SR2/SR3 exclude class boolean from the general relation)");
             else if (op is not ("==" or "!="))
-                data.Edition.Error("COBOLNET0844", "boolean operands compare for equality only — an ordering "
+                data.Edition.Error("COBOL0844", "boolean operands compare for equality only — an ordering "
                     + "relation is not defined for class boolean (ISO §8.8.4.2.2 Format 2)");
         }
         // §8.8.4.2.3 SR1 (data-model D17): if either operand is a strongly-typed group, both shall be of the same
@@ -1901,7 +1901,7 @@ internal sealed class StatementValidation(DataBinder data)
         // anything else it keeps the class the lattice gives it — pointer — and SR5 below refuses the pair.
         // NULL opposite NULL: §8.4.3.10.3 SR1 — "This item may be used only in the following cases, depending upon
         // the associated data item's class" — and neither operand is a data item for NULL to be associated with, so
-        // no case applies; it is the ONE SR1 refusal, COBOLNET2576 (kb/Work PB1427). The pair must stop here: no
+        // no case applies; it is the ONE SR1 refusal, COBOL2576 (kb/Work PB1427). The pair must stop here: no
         // renderer reads NULL, because every admitted slot compares it against the class of its other operand.
         if (IsNull(left) && IsNull(right))
         {
@@ -1914,11 +1914,11 @@ internal sealed class StatementValidation(DataBinder data)
         var rc = NullReading(right, left);
         if (!IsFormat3(lc) && !IsFormat3(rc)) return;   // a general-relation or boolean condition — not this band
         // ⚠ CLASS MESSAGE-TAG — Format 3's third class — has no lattice member, because USAGE MESSAGE-TAG is
-        // DECLINED non-support (COBOLNET1943, Annex A.3 item 4) and `ParseUsage` refuses it BY NAME at every
+        // DECLINED non-support (COBOL1943, Annex A.3 item 4) and `ParseUsage` refuses it BY NAME at every
         // edition, so no message-tag operand can reach a bound relation on a compile that is not already
         // errored. The rule below is written over the classes the lattice can present; the day the usage lands,
         // the lattice gains its member and this screen sees it without a change here.
-        // COBOLNET0868 is the object-reference band, COBOLNET0869 the pointer/address one (whose descriptor
+        // COBOL0868 is the object-reference band, COBOL0869 the pointer/address one (whose descriptor
         // names object references too); a relation that mentions class object reports under 0868.
         bool obj = lc is CobolClass.Object || rc is CobolClass.Object;
         string code = obj ? DiagnosticCatalog.ObjectRelationShape.Code : DiagnosticCatalog.PointerOperandShape.Code;
@@ -1961,7 +1961,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// boolean, object-reference and data-pointer — and so missed PROGRAM-POINTER and FUNCTION-POINTER, the other
     /// two categories Table 2 gathers into class pointer; `IF T1 &gt; T2` over a strong group with a
     /// program-pointer leaf compiled clean. (Class message-tag has no lattice member because USAGE MESSAGE-TAG is
-    /// declined non-support, COBOLNET1943; the day it lands, the lattice gains it and this sees it unchanged.)</summary>
+    /// declined non-support, COBOL1943; the day it lands, the lattice gains it and this sees it unchanged.)</summary>
     private static bool ContainsNonOrderableLeaf(DataItem item)
     {
         if (item.IsElementary)

@@ -193,7 +193,7 @@ public sealed partial class DataBinder
         // ⛔ THE DECLARATION SIDE, not the post-expansion StrongTypeModel.StrongRoot — the rule's subject is
         // "a type declaration", i.e. the TYPEDEF STRONG template entry the programmer wrote, and a TYPE
         // REFERENCE to it is governed by a different rule (§13.18.57.3 SR2 bars an 88 immediately after any
-        // TYPE-clause entry, COBOLNET1537). The parent walk is UnderStrongTypeDeclaration, shared with
+        // TYPE-clause entry, COBOL1537). The parent walk is UnderStrongTypeDeclaration, shared with
         // §13.18.60.3 SR14, whose second arm is the same words. The second arm here is confined to GROUP items
         // because the letter says "a group item subordinate to such a type declaration": an ELEMENTARY member
         // of a strong template may carry a condition-name.

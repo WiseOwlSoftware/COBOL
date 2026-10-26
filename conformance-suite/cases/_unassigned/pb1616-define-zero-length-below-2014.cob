@@ -15,7 +15,7 @@
       *>   cite.py --check 8.3.3.1 "the length of the literal is zero,
       *>     and it is known as a zero-length literal" -> OK
       *> At 85 the >>DEFINE directive is itself unintroduced; both are
-      *>   COBOLNET0900. The 2014 twin is conformance:2014/
+      *>   COBOL0900. The 2014 twin is conformance:2014/
       *>   pb1616_define_zero_length_literal.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1616NZL.

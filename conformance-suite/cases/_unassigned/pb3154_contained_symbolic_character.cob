@@ -18,7 +18,7 @@
       *>   element contained within that source element" -> OK 8.4.6.1.
       *> The contained program PB3154I may not have a configuration
       *>   section of its own (12.3.3 SR1), so SYM-B is its container's.
-      *>   It was COBOLNET1639 "not defined" in PB3154I before.
+      *>   It was COBOL1639 "not defined" in PB3154I before.
       *> Expected values: SYM-B is the character at ordinal 67 of the
       *>   native alphabet (12.3.7.4 GR11), X"42" = "B", in both
       *>   programs.

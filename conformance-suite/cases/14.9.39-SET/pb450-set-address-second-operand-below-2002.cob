@@ -11,7 +11,7 @@
 *> setAddressStatement rule (VersionConformancePass.ParseArm.VisitSetAddressStatement), so it fires wherever
 *> in the receiving list the ADDRESS phrase stands.
 *> !! THE PROGRAM CARRIES EXACTLY ONE setAddressStatement, AND IT IS THE MIXED ONE, ON PURPOSE. A companion
-*> `SET P1 TO ADDRESS OF REC-A` would draw the SAME COBOLNET0900 from a shape the OLD grammar could express,
+*> `SET P1 TO ADDRESS OF REC-A` would draw the SAME COBOL0900 from a shape the OLD grammar could express,
 *> so this case would stay green even if the mixed receiving list regressed to COBOL0001 - which is exactly
 *> what it was before kb/Work PB450 half 2 (measured: `SET ADDRESS OF B1 P1 TO P2` was
 *> `error COBOL0001: unexpected 'P1'`) (feedback_green_gates_arent_evidence).

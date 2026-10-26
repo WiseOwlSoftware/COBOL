@@ -8,7 +8,7 @@
       *> ISO/IEC 1989:2023 §12.3.7.3 SR18: "Literal-7 shall be an alphanumeric or
       *> national literal that is not a figurative constant", and §8.3.3.3.1:
       *> "Numeric literals are of the class and category numeric" — so this is
-      *> refused as a NUMERIC literal (COBOLNET0892). Before PB1579 the class was
+      *> refused as a NUMERIC literal (COBOL0892). Before PB1579 the class was
       *> decided by int.TryParse || decimal.TryParse over the text, and a literal
       *> too long for System.Decimal read as "not numeric", fell into the
       *> alphanumeric path and was refused under the wrong rule (SR22, "shall

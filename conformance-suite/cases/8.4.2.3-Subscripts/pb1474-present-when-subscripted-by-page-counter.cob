@@ -8,7 +8,7 @@
       *> cite.py: OK  8.4.2.3.3 8)  (Syntax rules)
       *> Here: PRESENT WHEN TE(PAGE-COUNTER) = 1 (COBOL-2002). 13.15.3 SR16 also refuses every reference to PAGE-COUNTER in the condition
       *> ("Condition-1 shall not reference any sum counter, LINE-COUNTER, PAGE-COUNTER, or other report section data item."), subscript or not;
-      *> cite.py: OK  13.15.3 16)   It is that rule (COBOLNET1559) that reports it.
+      *> cite.py: OK  13.15.3 16)   It is that rule (COBOL1559) that reports it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W12GPB1474PRESENTWHENSUBSCRIPT.
        ENVIRONMENT DIVISION.

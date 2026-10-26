@@ -21,7 +21,7 @@
       *> containing the SUM clause, the data-name is the name of the sum counter, not the name of the associated
       *> printable item, if any."  GR12: "It is permissible for procedure division statements to alter the content
       *> of sum counters."  ALTERING presupposes REFERENCING, so the counter's data-name belongs in the source
-      *> element's name space; `MOVE 500 TO CF-U` used to draw COBOLNET1639 'is not defined'.
+      *> element's name space; `MOVE 500 TO CF-U` used to draw COBOL1639 'is not defined'.
       *>
       *> DERIVATION OF THE EXPECTED OUTPUT.  One detail, one CONTROL FOOTING FINAL, one GENERATE, one TERMINATE.
       *> 13.18.54.4 GR2 sets every counter to zero at the INITIATE; GR7 c) 1) accumulates each addend "whenever any

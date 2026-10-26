@@ -10,7 +10,7 @@ namespace CobolNet.Tests.Unit;
 /// ⛔ A NAMED OCCURS DYNAMIC CAPACITY REGISTER IS REACHED THROUGH EXACTLY ONE LOOKUP, AND THAT LOOKUP JUDGES THE
 /// WRITTEN REFERENCE (kb/Work PB457). The register is not in <c>ByName</c> — it is a view over the table's
 /// capacity, never storage — so whatever <c>ReferenceResolver.CapacityRegisterFor</c> refuses is not handed to a
-/// slower path: it is the END of resolution, and the general resolver then said COBOLNET1639 "is not defined"
+/// slower path: it is the END of resolution, and the general resolver then said COBOL1639 "is not defined"
 /// about a name ISO §13.18.38.3 SR30 declares. The old hook refused on two PARSE-shape conjuncts —
 /// <c>DataReferenceCst.HasNoSuffix</c> (since deleted, kb/Work PB2193; <c>dataReferenceSuffix</c> made it false
 /// for QUALIFICATION as well as for subscripts, so the legal <c>SET WS-CAP OF WS-TABLE TO 7</c> failed it) and the

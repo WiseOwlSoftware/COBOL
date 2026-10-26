@@ -13,7 +13,7 @@
       *> carries LINAGE IS 10 (the literal form — no data item at all) — the linage
       *> references are not the same corresponding external item. (The FILE STATUS and
       *> RELATIVE KEY faces of §14.8.4.2 are compile-blocked in one compilation group by
-      *> the ≥2023 COBOLNET1573/1575 cross-SELECT checks — VCR 18/31 — so LINAGE is the
+      *> the ≥2023 COBOL1573/1575 cross-SELECT checks — VCR 18/31 — so LINAGE is the
       *> in-group-reachable runtime vector.) Checking enabled in both elements; the
       *> Fatal condition is set at the CALL, the call is not successful (GR3h #1).
        IDENTIFICATION DIVISION.

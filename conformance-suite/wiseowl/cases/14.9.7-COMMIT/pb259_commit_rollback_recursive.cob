@@ -12,7 +12,7 @@
 *> GR1 is asked before GR2 (EC-FLOW-COMMIT / EC-FLOW-ROLLBACK under a recursive runtime element): with no clause
 *> there is no transaction for the statement to act on, so it continues. PB259RSB is a non-recursive program called
 *> while the RECURSIVE PB259REC is active (a COMMIT written IN a recursive source element is 14.9.7.3 SR1's
-*> refusal, COBOLNET1690); under EC-ALL checking no condition is raised, so both EXCEPTION-STATUS reads are blank
+*> refusal, COBOL1690); under EC-ALL checking no condition is raised, so both EXCEPTION-STATUS reads are blank
 *> and control returns normally. The same statements under an ACTIVE clause raise the conditions:
 *> cases/14.9.7-COMMIT/pb3338_commit_rollback_under_recursive_element.
        >>TURN EC-ALL CHECKING ON

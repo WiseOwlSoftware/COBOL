@@ -9,7 +9,7 @@
       *> CONDITION (14.9.49) and the >>TURN directive (7.3.25) are all
       *> ISO/IEC 1989:2002 introductions, so at COBOL-85 this source does
       *> not describe a program: the compiler refuses the first construct
-      *> the edition does not have with COBOLNET0900.
+      *> the edition does not have with COBOL0900.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB867N.
        PROCEDURE DIVISION.

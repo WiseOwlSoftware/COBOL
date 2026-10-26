@@ -10,7 +10,7 @@
       *> data class or data category in the rules of COBOL refers to the category unless class is specifically
       *> indicated" -> OK) and "Both the class and the category of a strongly-typed group item are the type-name
       *> specified in the TYPE clause" (8.5.2.1 -> OK), so the strongly-typed group V is not an alphanumeric data item
-      *> and CALL V is refused (COBOLNET1681). 15.3 item 2 treats a strong group as alphanumeric for a function
+      *> and CALL V is refused (COBOL1681). 15.3 item 2 treats a strong group as alphanumeric for a function
       *> ARGUMENT only.
       *> Why this can fail: the class lattice answers alphanumeric for a strongly-typed group, so a screen that asked
       *> it accepted the group and read its character image as a program-name at run time.

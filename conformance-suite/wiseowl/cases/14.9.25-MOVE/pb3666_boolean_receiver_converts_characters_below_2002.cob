@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB3666, the negative of pb3666_boolean_receiver_converts_characters: boolean data, the PICTURE symbol 1
 *> and USAGE BIT, is a COBOL-2002 introduction (ISO/IEC 1989:2002), so the boolean receiver of the MOVE is refused
-*> at COBOL-85 by name (COBOLNET0900) and accepted from 2002 on.
+*> at COBOL-85 by name (COBOL0900) and accepted from 2002 on.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3666NEG85.
        DATA DIVISION.

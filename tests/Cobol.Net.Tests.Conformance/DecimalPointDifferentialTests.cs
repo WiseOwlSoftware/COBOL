@@ -184,7 +184,7 @@ public sealed class DecimalPointDifferentialTests
             """, "E=01.50=", dialect: 2023);   // numeric literal VALUE on a numeric-edited item is 2023 (Annex E.3.3 item 43)
 
     /// <summary>§12.3.7 GR14a (negative): a tight-comma decimal literal WITHOUT the clause is rejected with the
-    /// specific COBOLNET0895 diagnostic — §8.3.3.3.2 admits only the decimal point. (The legacy accepts it
+    /// specific COBOL0895 diagnostic — §8.3.3.3.2 admits only the decimal point. (The legacy accepts it
     /// unconditionally — a version-invariant non-conformance, not ported.)</summary>
     [Fact]
     public void CommaLiteral_WithoutClause_Rejected()
@@ -201,7 +201,7 @@ public sealed class DecimalPointDifferentialTests
                 STOP RUN.
             """);
         Assert.False(cok, "a tight-comma literal without DECIMAL-POINT IS COMMA must be rejected");
-        Assert.Contains("COBOLNET0895", cdetail);
+        Assert.Contains("COBOL0895", cdetail);
     }
 
     /// <summary>§13.18.60 GR1: a group-level USAGE applies to each subordinate elementary item, and the

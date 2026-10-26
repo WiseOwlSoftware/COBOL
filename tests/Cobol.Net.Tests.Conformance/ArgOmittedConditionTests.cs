@@ -8,7 +8,7 @@ namespace CobolNet.Tests.Conformance;
 /// kb/Work PB971 — the METHOD arm of the *-ARG-OMITTED rule, which the goldens cannot reach: ISO §14.9.23.4 GR10
 /// ("If a parameter for which the omitted-argument condition is true is referenced in an invoked method, except as
 /// an argument or in the omitted-argument condition, the EC-OO-ARG-OMITTED exception condition is set to exist")
-/// is Table 13 Fatal, and a method's own DECLARATIVES are not implemented yet (COBOLNET0899), so the observable is
+/// is Table 13 Fatal, and a method's own DECLARATIVES are not implemented yet (COBOL0899), so the observable is
 /// §14.6.13.1.3 item 7 — checking enabled, no applicable USE in the source unit: abnormal run-unit termination,
 /// naming EC-OO-ARG-OMITTED. The program and function arms are the goldens
 /// <c>2002/pb971_program_arg_omitted</c> and <c>2002/pb971_function_arg_omitted</c>.

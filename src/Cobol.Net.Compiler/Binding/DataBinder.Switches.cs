@@ -134,7 +134,7 @@ public sealed partial class DataBinder
     /// an optional word (PB983), so `THRU "M" AL` is the phrase only when AL names an alphabet, and an EVALUATE
     /// identifier-4 `IN AL` parses as a qualification until EvaluateBinder peels it (PB843). No recognition-time
     /// arm can see those spellings; every spelling reaches here once it IS the phrase. The VALUE clause's
-    /// no-THROUGH refusal (§13.18.63.3 SR31, COBOLNET ValueAlphabetWithoutThrough) calls it too, so a phrase the
+    /// no-THROUGH refusal (§13.18.63.3 SR31, DiagnosticCatalog.ValueAlphabetWithoutThrough) calls it too, so a phrase the
     /// binder refuses for another reason still names its edition.</summary>
     internal void GateRangeAlphabetPhrase(string where) =>
         ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.RangeInAlphabet2002, where);
@@ -230,8 +230,8 @@ public sealed partial class DataBinder
     /// <summary>⛔ THE ONE resolver of an alphabet-name referenced where a CODED CHARACTER SET is required (ISO
     /// §12.3.7.4 GR7 Table 6; kb/Work PB110 — the class condition's alphabet-name-1, SYMBOLIC CHARACTERS … IN,
     /// CLASS … IN, CODE-SET): the set of the named alphabet of either class, with the two refusals every site
-    /// shares — a LOCALE alphabet defines a collating sequence only (Table 6's blank row → COBOLNET1669, citing
-    /// <paramref name="rule"/>), and an undeclared name is COBOLNET0898 naming the site. Null on either refusal.
+    /// shares — a LOCALE alphabet defines a collating sequence only (Table 6's blank row → COBOL1669, citing
+    /// <paramref name="rule"/>), and an undeclared name is COBOL0898 naming the site. Null on either refusal.
     /// <paramref name="at"/> is the reference, whose element's §8.3.2.2 census records the use (kb/Work PB3153).</summary>
     internal CodedCharacterSet? CodedCharacterSetOf(Antlr4.Runtime.RuleContext at, string alphabetName, string site,
         string rule)
@@ -240,7 +240,7 @@ public sealed partial class DataBinder
         NationalAlphabetDef? n = a is null && NationalAlphabets.TryUse(at, alphabetName, out var nv) ? nv : null;
         if (a is null && n is null)
         {
-            Edition.Error("COBOLNET0898", $"{site}: '{alphabetName}' is not an alphabet-name declared by a "
+            Edition.Error("COBOL0898", $"{site}: '{alphabetName}' is not an alphabet-name declared by a "
                 + $"SPECIAL-NAMES ALPHABET clause ({rule}; §12.3.7)");
             return null;
         }
@@ -382,7 +382,7 @@ public sealed partial class DataBinder
     /// ⛔ THIS REPLACED A SCALAR PAIR (kb/Work PB60 / AR-15.68.3-3): <c>CurrencyPicSymbol</c>/<c>CurrencyString</c>
     /// held ONE symbol and ONE string per unit — a second clause silently overwrote the first, the implied '$'
     /// died the moment any clause bound another symbol (a legal <c>PIC $$,$$9.99</c> under <c>CURRENCY SIGN "#"</c>
-    /// was COBOLNET0808), and a multi-character string was refused outright (COBOLNET0896, "not yet supported" —
+    /// was COBOL0808), and a multi-character string was refused outright (COBOL0896, "not yet supported" —
     /// deferral debt). Every PICTURE consumer now asks this set which symbol a mask uses (<c>PictureAnalyzer</c>
     /// records it on <c>PicInfo.CurrencyString</c> after canonicalizing the mask's symbol to '$'), and NUMVAL-C's
     /// §15.68.3 r3 default is <see cref="SoleCurrencyString"/>.
@@ -403,7 +403,7 @@ public sealed partial class DataBinder
     /// <summary>The ONE currency string NUMVAL-C / TEST-NUMVAL-C use when argument-2 (and LOCALE) is absent
     /// (§15.68.3 r3): the single explicitly specified string, or the default "$" when the unit has no CURRENCY
     /// SIGN clause; NULL when the unit specifies two or more distinct strings — r3's "there shall be only one" is
-    /// then violated and the reference is diagnosed at bind (COBOLNET1644).</summary>
+    /// then violated and the reference is diagnosed at bind (COBOL1644).</summary>
     public string? SoleCurrencyString => _explicitCurrencyStrings.Count switch
     {
         0 => "$",
@@ -432,7 +432,7 @@ public sealed partial class DataBinder
     {
         // The normalization ALGORITHM is the ONE shared CobolNet.Common.NumericLiteral.Normalize (Frontend), so the
         // compile-time expression evaluator applies the identical §12.3.7.4 GR14 a) rule; the binder retains ownership
-        // of the COBOLNET0895 diagnostic (its own channel/descriptor), routing the returned issue to it verbatim.
+        // of the COBOL0895 diagnostic (its own channel/descriptor), routing the returned issue to it verbatim.
         string norm = Common.NumericLiteral.Normalize(text, DecimalPointIsComma, out var issue);
         switch (issue)
         {
@@ -499,7 +499,7 @@ public sealed partial class DataBinder
     /// while NUMVAL("123.45") valued 123.45 — the exact inversion of §15.67.3 r5, with no diagnostic
     /// (kb/Work PB60 / AR-15.67.3-5). The SYMBOLIC CHARACTERS figurative constants were the one SPECIAL-NAMES
     /// table still missing: a contained program's <c>MOVE SYM-A TO Y</c> naming its container's symbolic-character
-    /// was COBOLNET1639 "not defined" (kb/Work PB3154's sweep; §8.4.6.1 lists symbolic-character among the names a
+    /// was COBOL1639 "not defined" (kb/Work PB3154's sweep; §8.4.6.1 lists symbolic-character among the names a
     /// configuration section declares for "any source element contained within that source element"). Each one
     /// carries its containment distance (<see cref="_inheritedSymbolics"/>), so a nearer declaration of the spelling
     /// hides it (<see cref="DropShadowedConstants"/>; kb/Work PB3154 review R1-1).
@@ -558,7 +558,7 @@ public sealed partial class DataBinder
         if (dp.IDENTIFIER()?.GetText() is { } word && CobolNames.Same(word, "COMMA"))
             DecimalPointIsComma = true;
         else
-            Edition.Error("COBOLNET0894", $"DECIMAL-POINT IS {dp.IDENTIFIER()?.GetText()}: the only form is "
+            Edition.Error("COBOL0894", $"DECIMAL-POINT IS {dp.IDENTIFIER()?.GetText()}: the only form is "
                 + "DECIMAL-POINT IS COMMA (ISO §12.3.7)");
     }
 
@@ -658,8 +658,8 @@ public sealed partial class DataBinder
         Report($"CURRENCY SIGN {spelling}: {op.Name} shall be {op.Requirement} — this is {what} (ISO §12.3.7.3 {op.Rule})");
         return null;
 
-        // The clause's one report: the pre-catalog COBOLNET0892 band of CURRENCY SIGN operand rules.
-        void Report(string message) => Edition.Error("COBOLNET0892", message);
+        // The clause's one report: the pre-catalog COBOL0892 band of CURRENCY SIGN operand rules.
+        void Report(string message) => Edition.Error("COBOL0892", message);
     }
 
     /// <summary>Bind <c>CURRENCY [SIGN] [IS] literal-7 [WITH PICTURE SYMBOL literal-8]</c> (ISO §12.3.7.3
@@ -688,19 +688,19 @@ public sealed partial class DataBinder
             // PICMODE exploit: the word between PICTURE and literal-8 arrives as a PIC_STRING token — it must be
             // the keyword SYMBOL (the grammar cannot distinguish; semantic check per the grammar's own note).
             if (cur.PIC_STRING()?.GetText() is { } sym && !CobolNames.Same(sym, "SYMBOL"))
-                Edition.Error("COBOLNET0892", $"CURRENCY SIGN: expected 'WITH PICTURE SYMBOL', found 'PICTURE {sym}' (ISO §12.3.7)");
+                Edition.Error("COBOL0892", $"CURRENCY SIGN: expected 'WITH PICTURE SYMBOL', found 'PICTURE {sym}' (ISO §12.3.7)");
             string? literal8 = operands.Length > 1 ? CurrencyOperandOf(operands[1], CurrencyOperand.Literal8)?.Text : "";
             if (literal8 is null) return;
             if (literal8.Length != 1)
             {
-                Edition.Error("COBOLNET0892", "CURRENCY SIGN: the PICTURE SYMBOL literal shall be a single "
+                Edition.Error("COBOL0892", "CURRENCY SIGN: the PICTURE SYMBOL literal shall be a single "
                     + "character (ISO §12.3.7.3 r26)");
                 return;
             }
             // r23a/b — the currency STRING's content (its length is free).
             if (literal7.Trim().Length == 0)
             {
-                Edition.Error("COBOLNET0890", "CURRENCY SIGN: the currency string shall contain at least one "
+                Edition.Error("COBOL0890", "CURRENCY SIGN: the currency string shall contain at least one "
                     + "non-space character (ISO §12.3.7.3 r23a)");
                 return;
             }
@@ -709,7 +709,7 @@ public sealed partial class DataBinder
             // currency strings" — their content is the runtime coded character set's, used exactly as written.
             if (!literal7Hex && literal7.Any(c => char.IsAsciiDigit(c) || c is '+' or '-' or ',' or '.' or '*'))
             {
-                Edition.Error("COBOLNET0890", $"CURRENCY SIGN \"{literal7}\": a currency string may not contain the "
+                Edition.Error("COBOL0890", $"CURRENCY SIGN \"{literal7}\": a currency string may not contain the "
                     + "digits 0 through 9 or the characters '+' '-' ',' '.' '*' (ISO §12.3.7.3 r23b)");
                 return;
             }
@@ -721,11 +721,11 @@ public sealed partial class DataBinder
         {
             // Bare form (the COBOL-85 surface): r22 — one character, both string and symbol.
             if (literal7Hex)
-                Edition.Error("COBOLNET0890", "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
+                Edition.Error("COBOL0890", "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
                     + "SYMBOL phrase (ISO §12.3.7.3 r19)");
             if (literal7.Length != 1)
             {
-                Edition.Error("COBOLNET0890", $"CURRENCY SIGN \"{literal7}\": without PICTURE SYMBOL the literal "
+                Edition.Error("COBOL0890", $"CURRENCY SIGN \"{literal7}\": without PICTURE SYMBOL the literal "
                     + "shall consist of a single character (ISO §12.3.7.3 r22)");
                 return;
             }
@@ -743,7 +743,7 @@ public sealed partial class DataBinder
         // not the identical string (SR28 would then confine the one symbol to display AND to national items).
         if (_currencySigns.TryGetValue(key, out var bound) && bound != definition)
         {
-            Edition.Error("COBOLNET0891", $"CURRENCY SIGN: the symbol '{symbol}' is already bound to "
+            Edition.Error("COBOL0891", $"CURRENCY SIGN: the symbol '{symbol}' is already bound to "
                 + $"{(bound.LiteralClass is LiteralClass.National ? "national " : "")}\"{bound.Text}\" "
                 + $"(ISO §12.3.7.3 r21; SR28)");
             return;
@@ -761,7 +761,7 @@ public sealed partial class DataBinder
             || char.ToUpperInvariant(c) is 'A' or 'B' or 'C' or 'D' or 'E' or 'N' or 'P' or 'R' or 'S' or 'V' or 'X' or 'Z'
             || c is ' ' or '+' or '-' or ',' or '.' or '*' or '/' or ';' or '(' or ')' or '"' or '=';
         if (forbidden)
-            Edition.Error("COBOLNET0891", $"{what} '{c}': not a valid currency symbol — digits, the picture "
+            Edition.Error("COBOL0891", $"{what} '{c}': not a valid currency symbol — digits, the picture "
                 + "letters A B C D E N P R S V X Z, space, and + - , . * / ; ( ) \" = are excluded (ISO §12.3.7.3 SR22/SR27)");
     }
 
@@ -885,17 +885,17 @@ public sealed partial class DataBinder
             // paragraph's clauses are a list since kb/Work PB78 (either clause, either order, with or without a
             // computer-name). ⛔ HOW OFTEN AND IN WHAT ORDER IS NOT ASKED HERE (kb/Work PB3133): the `ClauseCardinalities`
             // OBJECT-COMPUTER row, read by `ClosedFormatPass`, counts every clause. From 2002 the figure's choice
-            // indicators (§5.2.6.4, each alternative at most once, any order) report a repeat as COBOLNET2104 through
+            // indicators (§5.2.6.4, each alternative at most once, any order) report a repeat as COBOL2104 through
             // `ChoiceIndicators.AtMostOnce`; the COBOL-85 figure's three separate brackets report a repeat as
-            // COBOLNET2423 and a misplaced clause as COBOLNET2987. This loop used to count the two clauses itself
-            // (COBOLNET1652, deleted) beside a table that exempted the list.
+            // COBOL2423 and a misplaced clause as COBOL2987. This loop used to count the two clauses itself
+            // (COBOL1652, deleted) beside a table that exempted the list.
             if (para.objectComputerParagraph() is { } ocp)
             {
                 foreach (var oc in ocp.objectComputerClause())
                 {
                     if (oc.programCollatingSequenceClause() is { } pcs) pcsClause = pcs;
                     // §12.3.6 CHARACTER CLASSIFICATION (Annex A.4.9 item 7) — IMPLEMENTED since kb/Work PB64 T5 (it was
-                    // refused by name with COBOLNET1518 since PB78, and swallowed by the attribute sink before that).
+                    // refused by name with COBOL1518 since PB78, and swallowed by the attribute sink before that).
                     // Saved and resolved AFTER the SPECIAL-NAMES paragraph, whose LOCALE clauses declare the names it
                     // references (§12.3.6.3 SR3) — the PCS takes the same path.
                     if (oc.characterClassificationClause() is { } cc) ccClause = cc;
@@ -922,13 +922,13 @@ public sealed partial class DataBinder
             // The general format itself PRINTS alphabet-name-clause BEFORE the LOCALE clause (§12.3.7.2; §5.2.1
             // "shall be written in the compilation group in the sequence given in the general format"), so an
             // ALPHABET … IS LOCALE locale-name-2 is a FORWARD reference in every conforming program — and binding
-            // ALPHABET in source order refused every one of them with COBOLNET1664 "no LOCALE clause is in scope".
+            // ALPHABET in source order refused every one of them with COBOL1664 "no LOCALE clause is in scope".
             var alphabetClauses = new List<Core.AlphabetClauseContext>();
             foreach (var entry in sn.specialNameEntry())
             {
                 using var _ = Edition.At(entry);
                 // §12.3.7 LOCALE clause (Annex A.4.9 item 10, the clause half) — IMPLEMENTED since kb/Work PB64 T1: the
-                // locale-name is DECLARED (DataBinder.LocaleBind). It used to be refused by name with COBOLNET1518
+                // locale-name is DECLARED (DataBinder.LocaleBind). It used to be refused by name with COBOL1518
                 // (PB25 → T0), and before that a raw parse error at the clause's own literal.
                 if (entry.localeClause() is { } loc) { LocaleBind(loc); continue; }
                 if (entry.orderTableClause() is { } ot) { OrderTableBind(ot); continue; }
@@ -949,7 +949,7 @@ public sealed partial class DataBinder
                 // surface. ⚠ Both clauses PARSED and were read by no binder at all until kb/Work PB260, so
                 // `CRT STATUS IS WS-CRT` compiled clean with ZERO diagnostics: a declined facility that a program
                 // could write and get a clean compile out of is not declined, it is undiagnosed. Refused by name
-                // (COBOLNET1560), the same posture as the SCREEN SECTION they belong to.
+                // (COBOL1560), the same posture as the SCREEN SECTION they belong to.
                 if (entry.cursorClause() is { } curs) { ScreenFacility.ReportCursorClause(Edition, curs); continue; }
                 if (entry.crtStatusClause() is { } crt) { ScreenFacility.ReportCrtStatusClause(Edition, crt); continue; }
                 if (entry.implementorSwitchEntry() is { } sw) BindImplementorNameEntry(sw);
@@ -978,7 +978,7 @@ public sealed partial class DataBinder
     /// <summary>One switch-name / feature-name / device-name entry (ISO §12.3.7.2). §12.3.7.3 SR8 — "<i>The implementor
     /// shall specify the names that are available for switch-name-1, feature-name-1, and device-name-1.</i>" — is
     /// decided HERE, once, from the ONE table (<see cref="ImplementorNames"/>): a name that is not a row, or a
-    /// non-switch name written with ON/OFF STATUS, is COBOLNET2241 (kb/Work PB862) and registers nothing. A switch
+    /// non-switch name written with ON/OFF STATUS, is COBOL2241 (kb/Work PB862) and registers nothing. A switch
     /// row registers its condition-names (§12.3.7.4 GR2) here; EVERY row's mnemonic — a switch's for SET
     /// (§12.3.7.3 SR5) as much as a device's or feature's — is read by the procedure binders through
     /// <c>BinderContext.Mnemonics</c>, which classifies it by the same <see cref="ImplementorNameEntry"/>
@@ -1031,14 +1031,14 @@ public sealed partial class DataBinder
         if (alnumName is not null)
         {
             if (CollatingAlphabetFault(alnumName, national: false) is { } fault)
-                Edition.Error("COBOLNET0898", CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumName,
+                Edition.Error("COBOL0898", CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumName,
                     national: false, fault, "ISO §12.3.6.3 SR1"));
             else if (Alphabets.TryUse(pcs, alnumName, out var def)) Collating = def.IsIdentity ? null : def;
         }
         if (natName is not null)
         {
             if (CollatingAlphabetFault(natName, national: true) is { } fault)
-                Edition.Error("COBOLNET0898", CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE FOR NATIONAL",
+                Edition.Error("COBOL0898", CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE FOR NATIONAL",
                     natName, national: true, fault, "ISO §12.3.6.3 SR2"));
             else if (NationalAlphabets.TryUse(pcs, natName, out var def))
                 NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
@@ -1048,7 +1048,7 @@ public sealed partial class DataBinder
     /// <summary>Bind the OBJECT-COMPUTER <c>CHARACTER CLASSIFICATION {IS locale-phrase-1 [locale-phrase-2] | {FOR ALPHANUMERIC
     /// IS locale-phrase-1 | FOR NATIONAL IS locale-phrase-2}…}</c> clause (ISO §12.3.6.2; kb/Work PB64 T5): each phrase is
     /// LOCALE (the current locale at activation), SYSTEM-DEFAULT, USER-DEFAULT, or a locale-name of the SPECIAL-NAMES
-    /// paragraph (§12.3.6.3 SR3 — undeclared → COBOLNET1664, the ONE undeclared-locale-name diagnostic); the two-phrase IS
+    /// paragraph (§12.3.6.3 SR3 — undeclared → COBOL1664, the ONE undeclared-locale-name diagnostic); the two-phrase IS
     /// form gives the alphanumeric then the national classification (GR5 a–j); a class named twice in the FOR form is
     /// a form violation (§5.2.6.4 — each at most once).</summary>
     private void ResolveClassification(Core.CharacterClassificationClauseContext cc)
@@ -1100,14 +1100,14 @@ public sealed partial class DataBinder
     /// allowable content of literal-9."
     /// <list type="bullet">
     ///   <item>SR10 — "Literal-4 and literal-9 shall be alphanumeric or national literals": a numeric, boolean or
-    ///   figurative operand is COBOLNET0898.</item>
+    ///   figurative operand is COBOL0898.</item>
     ///   <item>SR11 — literal-9 "shall specify neither a symbolic-character figurative constant nor a zero-length
     ///   literal".</item>
     ///   <item>The clause is BRACKETED and unrepeated in the general format (unlike LOCALE / CURRENCY / CLASS,
     ///   which carry a printed ellipsis), so a second ORDER TABLE clause — or a repeated ordering-name — is a form
     ///   violation.</item>
     /// </list>
-    /// <para>⚖ The ADVISORY (COBOLNET1662, a warning): GR17 leaves literal-9's allowable content to the
+    /// <para>⚖ The ADVISORY (COBOL1662, a warning): GR17 leaves literal-9's allowable content to the
     /// implementor, so a spelling this implementation cannot resolve is legal source with a defined RUNTIME
     /// outcome — §15.85.4 r2 sets EC-ORDER-NOT-SUPPORTED at every reference. Rejecting it would refuse a
     /// conforming program; saying nothing would let a program whose every STANDARD-COMPARE is inoperative compile
@@ -1118,7 +1118,7 @@ public sealed partial class DataBinder
     /// §12.3.7.2; DESIGN-locale-facility §4.1, T1): declare the locale-name with its external identification. §12.3.7.3
     /// SR10 — literal-4 "shall be alphanumeric or national"; SR11 — "shall not be a symbolic-character figurative
     /// constant" nor a zero-length literal (the grammar admits any literal, so both are checked here); a locale-name
-    /// declared twice is COBOLNET4250, asked by the declaration funnel (§8.4.2.1; kb/Work PB3216). §12.3.7.4
+    /// declared twice is COBOL4250, asked by the declaration funnel (§8.4.2.1; kb/Work PB3216). §12.3.7.4
     /// GR5 — the implementor specifies the allowable content: DETERMINATION L1, a locale tag, POSIX spellings normalized
     /// (<see cref="LocaleSymbol.Tag"/>); availability is NOT checked here (§8.1.5 — run time; L1 item 4).</summary>
     private void LocaleBind(Core.LocaleClauseContext loc)
@@ -1148,13 +1148,13 @@ public sealed partial class DataBinder
     }
 
     /// <summary>Resolve a locale-name reference (ISO §12.3.7.3 SR24 for the ALPHABET clause; §14.9.39.3 SR26 for SET
-    /// LOCALE; the later increments' sites) to its symbol, or null after COBOLNET1664 — the ONE undeclared-locale-name
+    /// LOCALE; the later increments' sites) to its symbol, or null after COBOL1664 — the ONE undeclared-locale-name
     /// diagnostic, with the citing site named (DESIGN-locale-facility §7 rule a).</summary>
     /// <param name="at">The reference, whose source element's §8.3.2.2 census records the use (kb/Work PB3153).</param>
     internal LocaleSymbol? ResolveLocaleName(Antlr4.Runtime.RuleContext at, string name, string site, string rule)
     {
         if (Locales.TryUse(at, name, out var sym)) return sym;
-        Edition.Error("COBOLNET1664", $"{site}: '{name}' is not a locale-name declared by a SPECIAL-NAMES LOCALE clause ({rule})"
+        Edition.Error("COBOL1664", $"{site}: '{name}' is not a locale-name declared by a SPECIAL-NAMES LOCALE clause ({rule})"
             + (Locales.Count == 0 ? "; no LOCALE clause is in scope" : $"; declared: {string.Join(", ", Locales.Names)}"));
         return null;
     }
@@ -1163,12 +1163,12 @@ public sealed partial class DataBinder
     /// national"; SR11 — "shall specify neither a symbolic-character figurative constant nor a zero-length literal"),
     /// shared by the ORDER TABLE clause's literal-9 and the LOCALE clause's literal-4: decodes the literal (a
     /// concatenation expression folds first — §8.8.3.3 GR3 makes it usable anywhere a literal of its class is),
-    /// reporting COBOLNET0898 and returning false on a violation. <paramref name="what"/> names the clause for the
+    /// reporting COBOL0898 and returning false on a violation. <paramref name="what"/> names the clause for the
     /// message; <paramref name="operand"/> the literal's role ("literal-9").
     /// <para>⛔ SR11 bars ONE kind of figurative constant — the symbolic-character one — and §8.3.3.6.3 SR1 admits every
     /// other as a literal of its class, so <c>ORDER TABLE T1 IS SPACE</c> and <c>LOCALE LA IS SPACE</c> are legal:
     /// SPACE then names an ordering table / a locale this implementation does not provide, which is the RUN-TIME
-    /// answer (the COBOLNET1662 advice and EC-ORDER-NOT-SUPPORTED / EC-LOCALE-MISSING), not a syntax error. This screen
+    /// answer (the COBOL1662 advice and EC-ORDER-NOT-SUPPORTED / EC-LOCALE-MISSING), not a syntax error. This screen
     /// used to refuse every figurative constant under a rule that quotes only the symbolic-character one (kb/Work
     /// PB1537), and the NULL it also refused was not a figurative constant at all (§8.4.3.10.3 SR1).</para>
     /// <para>A WORD at the position is a constant-name (§13.10.3 SR2, kb/Work PB1942 — <see cref="SpecialNamesConstant"/>):
@@ -1238,8 +1238,8 @@ public sealed partial class DataBinder
             return false;
         }
 
-        // The clause's one report: the pre-catalog COBOLNET0898 band of SPECIAL-NAMES literal rules.
-        void Report(string message) => Edition.Error("COBOLNET0898", message);
+        // The clause's one report: the pre-catalog COBOL0898 band of SPECIAL-NAMES literal rules.
+        void Report(string message) => Edition.Error("COBOL0898", message);
     }
 
     /// <summary>Declare one <c>DYNAMIC LENGTH [STRUCTURE] name [IS] {…}</c> clause (ISO §12.3.7.2; kb/Work PB829):
@@ -1309,7 +1309,7 @@ public sealed partial class DataBinder
         // rather than as a second rule — is a second ordering-name.
         if (OrderTables.Count > 0)
         {
-            Edition.Error("COBOLNET0898", $"ORDER TABLE {name}: the ORDER TABLE clause may be specified only once "
+            Edition.Error("COBOL0898", $"ORDER TABLE {name}: the ORDER TABLE clause may be specified only once "
                 + "in a SPECIAL-NAMES paragraph — its general format brackets it without an ellipsis, unlike the "
                 + $"repeatable clauses (ISO §12.3.7.2); '{OrderTables.Names.First()}' is already declared");
             return;
@@ -1364,10 +1364,10 @@ public sealed partial class DataBinder
             // PB101 — the T3 arm; determination L5 makes one locale sequence serve both classes). Table 6 row LOCALE: a
             // collating sequence, NOT a coded character set — CODE-SET / SYMBOLIC … IN / CLASS … IN may not name it
             // (§12.3.7.3 SR16g/SR17d); the ONE coded-set resolver (CodedCharacterSetOf) refuses it for all three with
-            // COBOLNET1669, because AlphabetDef.CodedSet is null for this arm.
+            // COBOL1669, because AlphabetDef.CodedSet is null for this arm.
             // `IS LOCALE locale-name-2` (§12.3.7.3 SR24: "locale-name-2 shall be a locale-name defined by the LOCALE clause")
             // — the NAMED form (T1): the sequence of THAT locale, whose external identification the symbol carries and
-            // whose availability is decided at use (EC-LOCALE-MISSING). An undeclared name is COBOLNET1664 and the
+            // whose availability is decided at use (EC-LOCALE-MISSING). An undeclared name is COBOL1664 and the
             // alphabet falls back to the current-locale form so the rest of the program still binds.
             var locale = LocaleCollatingSpec.CurrentLocale;
             if (localePhrase.cobolWord() is { } localeName)
@@ -1391,7 +1391,7 @@ public sealed partial class DataBinder
         // intercept them rather than mis-binding their letters as literal characters.
         if (CodeSetNameOf(def, CobolWords) is { } wrongBranch)
         {
-            Edition.Error("COBOLNET0898", $"ALPHABET {name} IS {wrongBranch}: the {wrongBranch} coded character "
+            Edition.Error("COBOL0898", $"ALPHABET {name} IS {wrongBranch}: the {wrongBranch} coded character "
                 + "set may be referenced only in the FOR NATIONAL branch of the ALPHABET clause "
                 + "(ISO §12.3.7.2 general format)");
             return;
@@ -1618,7 +1618,7 @@ public sealed partial class DataBinder
         }
         if (def.STANDARD_1() is not null || def.STANDARD_2() is not null)
         {
-            Edition.Error("COBOLNET0898", $"ALPHABET {name} FOR NATIONAL: STANDARD-1/STANDARD-2 name the "
+            Edition.Error("COBOL0898", $"ALPHABET {name} FOR NATIONAL: STANDARD-1/STANDARD-2 name the "
                 + "ISO/IEC 646 ALPHANUMERIC coded character set and may be referenced only in the FOR "
                 + "ALPHANUMERIC branch (ISO §12.3.7.2 general format)");
             return;
@@ -1984,7 +1984,7 @@ public sealed partial class DataBinder
     /// while the LOCALE / ORDER TABLE literals (<see cref="TryClauseTextLiteral"/>) tested the folded value, so
     /// <c>ALPHABET AZ IS "" &amp; ""</c> compiled clean beside the LOCALE clause's refusal of the same operand. A plain
     /// token is asked structurally (<see cref="CobolLiteral.IsZeroLength"/> — a malformed hexadecimal literal decodes to
-    /// nothing too and is LiteralScreen's COBOLNET1635, not SR11), a concatenation through the fold's diagnostic-free
+    /// nothing too and is LiteralScreen's COBOL1635, not SR11), a concatenation through the fold's diagnostic-free
     /// walk (the reporting fold is <see cref="LiteralCharsOf"/>'s).</summary>
     private bool IsZeroLengthOperand(Core.LiteralContext lit) =>
         lit.nonNumericLiteral()?.concatenationExpression() is { } ce

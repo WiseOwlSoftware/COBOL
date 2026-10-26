@@ -9,7 +9,7 @@
 *> identifier-1 is a receiving data item whenever REPLACING or CONVERTING stores into it (14.9.22.3 SR8 makes it
 *> a SENDING operand only in Format 1, TALLYING alone). Before PB881 INSPECT resolved identifier-1 with the
 *> plain reference resolver, so the constant was REWRITTEN at run time with no diagnostic while the identical
-*> MOVE drew COBOLNET1548. Both statements below are refused; the CONSTANT RECORD clause is COBOL-2002, so 85
+*> MOVE drew COBOL1548. Both statements below are refused; the CONSTANT RECORD clause is COBOL-2002, so 85
 *> is not a reject edition for THIS rule (below 2002 the clause itself is refused, a different rule).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB881NIR.

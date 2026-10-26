@@ -13,7 +13,7 @@
       *> names "the limits of an implementation" (docs/CONFORMANCE.md §3
       *> "Integer operands and host carriers"). Before PB1058 each of these took
       *> the COMPILER down with an unhandled System.OverflowException out of
-      *> int.Parse; now each is COBOLNET2427 at every edition (the report writer
+      *> int.Parse; now each is COBOL2427 at every edition (the report writer
       *> and LINAGE are COBOL-85 syntax).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1058IL.

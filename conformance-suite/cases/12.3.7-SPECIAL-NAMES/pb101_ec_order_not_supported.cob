@@ -14,11 +14,11 @@
       *> ⛔ THE POINT OF THIS GOLDEN IS THAT THE CONDITION IS *OBSERVED*, not merely registered. A registered
       *> exception-name with no raise site is a zero-fan-out result that reads as coverage (the standing rule in
       *> DESIGN-locale-facility 4.10). Two things are pinned: the raise itself, and the fact that the NAME is
-      *> legal again at every naming site — >>TURN and USE both take it. It was refused BY NAME with COBOLNET1518
+      *> legal again at every naming site — >>TURN and USE both take it. It was refused BY NAME with COBOL1518
       *> until support for ISO/IEC 14651:2020 was claimed under Annex A.3 item 25 (kb/Work PB100 -> PB101 T7).
       *>
       *> 12.3.7.4 GR17 leaves the allowable content of literal-9 to the implementor, so "NO SUCH TABLE" is LEGAL
-      *> source that this processor cannot resolve: the compile succeeds with the COBOLNET1662 advisory and the
+      *> source that this processor cannot resolve: the compile succeeds with the COBOL1662 advisory and the
       *> reference raises at run time. That is the whole point of the warning rather than an error.
       *>
       *> 15.85.4 r6 gives the returned value; with the condition raised and the declarative resuming at the next

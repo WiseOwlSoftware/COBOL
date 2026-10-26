@@ -13,7 +13,7 @@
       *> APPLY COMMIT clause active each has "the same effect as a CONTINUE statement" (§14.9.7.4 GR1,
       *> §14.9.36.4 GR1), so they draw no warning and the output is unchanged.
       *> This golden pins the resulting posture: the program COMPILES, RUNS, and the statements are INERT —
-      *> the named warnings COBOLNET1578/1580 go to the non-failing compile channel (not stdout), so the
+      *> the named warnings COBOL1578/1580 go to the non-failing compile channel (not stdout), so the
       *> observable behaviour is simply that the surrounding statements execute normally.
       *> Before Wave H each of these was a GENERIC parse error, which satisfied neither the warning
       *> obligation nor the project's never-a-silent-wrong-answer rule.

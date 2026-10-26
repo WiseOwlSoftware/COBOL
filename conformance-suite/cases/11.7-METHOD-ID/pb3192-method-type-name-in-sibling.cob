@@ -12,7 +12,7 @@
       *> 13.18.27.3 4)). "A local name may be referenced only in the
       *> source element in which it is declared" (8.4.6.2.1 -> OK
       *> 8.4.6.2.1), so SHOWB's TYPE TU names no type declaration it
-      *> can see: refused COBOLNET1530. The type-name sat in one
+      *> can see: refused COBOL1530. The type-name sat in one
       *> class-wide table, so SHOWB used SHOWA's TU silently.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3192G.

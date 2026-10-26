@@ -54,10 +54,10 @@ Deep, decision-complete design for the WiseOwl COBOL FILES subsystem (typed reco
 > `RedefinesTarget` through `DataItem.SetRedefinition`. The §13.18.44.3 REDEFINES-clause syntax rules (SR5, SR8,
 > SR12, SR14, SR16, SR17) screen `Clause` members only — an implicit redefinition has no clause and no
 > data-name-2. What DOES reach the implicit case is §13.18.57.3 SR4 ("shall not be implicitly or explicitly
-> redefined"): a strongly-typed item anywhere in a record that shares its area is COBOLNET1532, tested on BOTH
+> redefined"): a strongly-typed item anywhere in a record that shares its area is COBOL1532, tested on BOTH
 > sides of the pair because the sharing is symmetric. A dynamic-length, variable-length-group or pointer-class
 > record never joins the class at all — it is an OUT-OF-LINE record (D27). What can still be staged loud as
-> COBOLNET0899 (`implicit-record-area-shape`) is a character-window record with a byte-window residue — never
+> COBOL0899 (`implicit-record-area-shape`) is a character-window record with a byte-window residue — never
 > borrowed from a REDEFINES rule. A report
 > description's level-1 entries are NOT implicit redefinitions (§13.18.33.4 GR3's second sentence) and never join a
 > class.
@@ -88,7 +88,7 @@ operation is applied to a group containing it"* (§8.5.1.11.2).
   clauses, `SameOccurrenceRule`: SR5 report, SR6 sort or merge, SR7 any other file), SR8 (a sort-merge-area clause
   names a sort or merge file), SR9 / SR10 (a file-area clause is wholly inside the record-area / sort-merge-area
   clauses it shares a file with) and §13.18.27.3 SR2 (no GLOBAL on the FD or records of a record-area member). One
-  code, `COBOLNET2738`, names the rule in its message. The SORT and MERGE statements read the same model
+  code, `COBOL2738`, names the rule in its message. The SORT and MERGE statements read the same model
   (`SortBinder.ScreenSameClauses`, §14.9.40.3 SR10 / §14.9.24.3 SR11).
 - `FileModel.AreaRecord` is the largest CHARACTER-window record (the first record only when every record is out of
   line); `FileModel.OutOfLineRecords` is every other out-of-line record of the file and of its SAME peers.
@@ -161,7 +161,7 @@ operation is applied to a group containing it"* (§8.5.1.11.2).
 - **The implied RECORD clause** (§13.18.43.4 GR5, implementor-defined) is Format 2 exactly when a record is
   variable-length (`FileModel.ImpliesVariableFormat`; `RecordSizeVaries` is the one question every registration
   and `SortBinder.SortVaryingOf` ask). `MaxRecordSize` counts a dynamic-length item at its maximum size (GR8 b) —
-  the only variable-length member a record can hold, since COBOLNET1526 refuses a dynamic-capacity table under any
+  the only variable-length member a record can hold, since COBOL1526 refuses a dynamic-capacity table under any
   FD / SD record (§8.5.1.9.1 3); kb/Work PB1604); `FileModel.RecordMax` reaches the connector as `RecordMax`, the
   §14.9.30.4 GR14/GR15 truncation bound, separately from the area width the image is padded to — an unlimited
   dynamic-length record must not size every READ's area buffer.
@@ -170,8 +170,8 @@ operation is applied to a group containing it"* (§8.5.1.11.2).
   indexed RECORD KEY / ALTERNATE RECORD KEY — has no fixed position in the contiguous image, so it is located PER
   RECORD. `RecordLayout.KeyWindowOf` is the ONE bind-time answer: the key's FIXED-run offset and its furthest reach
   (every preceding member at its maximum), read by `SortBinder.SortAddFileKeys` (§14.9.40.3 SR6 g) /
-  §14.9.24.3 SR4 g), COBOLNET0874), the `FileControlKeyRules` rows for §12.4.5.12.3 SR4 and §12.4.5.6.3 SR5
-  (COBOLNET0863) and `KeyedIoEmitter.KeyWindow`. At run time the record type's ONE `CobolContiguousLayout`
+  §14.9.24.3 SR4 g), COBOL0874), the `FileControlKeyRules` rows for §12.4.5.12.3 SR4 and §12.4.5.6.3 SR5
+  (COBOL0863) and `KeyedIoEmitter.KeyWindow`. At run time the record type's ONE `CobolContiguousLayout`
   (emitted beside `FromContiguousImage` as the static `__contiguous`, exposed through `__Contiguous`) serves both
   the decomposition and `Position` — the record's extent table, else the same take step
   (`CobolVarGroup.ContiguousTake`) — so `CobolSort.Key` and
@@ -188,7 +188,7 @@ operation is applied to a group containing it"* (§8.5.1.11.2).
   the cell's DYNAMIC SLOTS (`Place.DynSlotWindow` / `VarGroupWindow`, COBOLNET_DATA_MODEL_DESIGN D-SLOT), a
   pointer record its managed slot. The READ / WRITE halves above are unchanged: they already go through
   `PlaceRenderer`, whose cell arms compose and decompose the same contiguous image. It used to be staged loud
-  (COBOLNET0899) — the character half alone would have split GR4 b)'s one area in two.
+  (COBOL0899) — the character half alone would have split GR4 b)'s one area in two.
 
 **Rejected alternatives.** Stage the shapes loud (the PB836 posture — rejects legal source); make the record area a
 cell with managed slots for a pointer record (the pointer still has no character image to send, and a dynamic
@@ -379,7 +379,7 @@ while the NOT INVALID arm must RUN, and both sequential arms bind the pair and r
 **Rows five and six are kb/Work PB334, and they arrived the same way SR2's sequential arm did.** SR7 pairs an
 ORGANIZATION with a read DIRECTION, and `SequentialIoBinder.BindRead` never called `readDirection()` at all — so
 SR7 had **no attachment point anywhere in the compiler**, and a line-sequential `READ … PREVIOUS` was accepted and
-read FORWARD. §14.9.30.3 SR10 (the KEY phrase, a hard `COBOLNET0864`) and the Format-1 membership rule were the
+read FORWARD. §14.9.30.3 SR10 (the KEY phrase, a hard `COBOL0864`) and the Format-1 membership rule were the
 same omission on the same arm. All three now read their phrase; §14.9.30.3 SR6 and SR10 live in
 `StatementValidation` as ONE check each, called by BOTH READ binder arms, because a per-arm copy is precisely how
 they came to be enforced on one organization only. ⚠ READ's NOT INVALID KEY is the ONE phrase on this seam that is
@@ -403,19 +403,19 @@ DELETE FILE had its own copy of the pair dispatch with no gate. `NotPhraseGateDr
 open: a NOT-phrase read in the I-O emitters must reach a renderer, every renderer call must pass the `hook` variable,
 and a `UseHookResult` may be built (`new` or `default`) only inside `EmitUseHook`.
 
-**One code, six rules.** `COBOLNET1720` serves all six, on the `COBOLNET1694` precedent: the *shape* is one
+**One code, six rules.** `COBOL1720` serves all six, on the `COBOL1694` precedent: the *shape* is one
 rule ("a phrase is written where this statement's syntax rules forbid it") and each site's message quotes its own
 §/SR. §14.9.10.3 **SR1** (DELETE RECORD on a sequential-organization file) is deliberately **not** on this seam —
-it is a hard `COBOLNET0865` error at every edition and strictness, because it is not a documented leniency.
+it is a hard `COBOL0865` error at every edition and strictness, because it is not a documented leniency.
 
 **The edition-gate sweep was RUN, not assumed** (gating a construct breaks everything compiling it below that
 edition). The rules are edition-invariant — `Removed` keys on `Permissive`, never on edition — and the probe
 emits an identical diagnostic count at 85/2002/2014/2023. The corpus risk was the real one: a static scan finds
 **315** `REWRITE … INVALID KEY` and **28** `DELETE … INVALID KEY` sites in the NIST programs, and NIST runs
 **strict** by default. Compiling all **459** at `--std 85` produces the **same 17 pre-existing failures** (every
-one read individually: `CM*` COMMUNICATION SECTION parse errors and `DB*` `COBOLNET1571` debug-module rejections)
+one read individually: `CM*` COMMUNICATION SECTION parse errors and `DB*` `COBOL1571` debug-module rejections)
 and **zero** new ones — every one of those 343 phrase sites is on an organization/access mode where the phrase is
-LEGAL. The harness was proved able to surface `COBOLNET1720` as a failure before that zero was trusted.
+LEGAL. The harness was proved able to surface `COBOL1720` as a failure before that zero was trusted.
 
 ### D10. A physical file's §9.1.6 FIXED FILE ATTRIBUTES are validated FROM THE FILE'S OWN FORMAT — there is no catalog and no sidecar (§14.9.27.4 GR10 → '39').
 
@@ -610,7 +610,7 @@ the GROUP's, the tape phrase is the file-name's own), both emitter arms carry it
 the sharing-aware `FileOpenShared`, since the phrases are independent), and `FileRegistry.NoRewindPhraseEffect`
 is the ONE place the rule is written: it refuses any category but (a) LOUDLY, and overlays '07' on a status
 whose first digit is '0' — GR25 a) reserves an unsuccessful open's own diagnosis. §14.9.27.3 SR5 and SR6 —
-the phrase is for sequential files, under INPUT or OUTPUT only — are screened at bind (COBOLNET1802/1803),
+the phrase is for sequential files, under INPUT or OUTPUT only — are screened at bind (COBOL1802/1803),
 which is what keeps categories (b), (c) and (d) off the runtime path in the first place; SR5 is the exact twin
 of the CLOSE rule §14.9.6.3 SR1, and until kb/Work PB317 only the CLOSE spelling had a screen while the OPEN
 phrase parsed and was silently dropped. Both screens are now rows of the ONE tape-phrase rule set — **D26**,
@@ -653,7 +653,7 @@ implements REVERSED for sequential files), under the standing implementor-latitu
 **What went wrong.** kb/Work PB317 gave NO REWIND a `bool NoRewind` of its own on `BoundOpenFile`, a `noRewind`
 parameter on two emitter renderers, two runtime entry points and `OpenCore` — and REVERSED, the alternative
 beside it in the SAME grammar production, was read by NOBODY. `VersionConformancePass` gated it out at 2002+
-(COBOLNET0902, correct) and at `--std 85` it parsed, bound to nothing and ran FORWARD with no diagnostic:
+(COBOL0902, correct) and at `--std 85` it parsed, bound to nothing and ran FORWARD with no diagnostic:
 `OPEN INPUT F REVERSED. READ F.` answered the FIRST record where COBOL-85 requires the last (kb/Work PB668).
 A phrase's own boolean is a phrase's own opportunity to be forgotten — the two-arm dispatch one layer up.
 
@@ -682,9 +682,9 @@ second retrieval path for a direction bit); reading REVERSED as a status overlay
 is about a medium the phrase does not APPLY to, and REVERSED applies — it is a positioning).
 
 **The syntax rules are NARROWER than NO REWIND's on both axes**, which is precisely why the rules are a row per
-phrase rather than a shared predicate: REVERSED admits RECORD sequential organization only (COBOLNET2210 —
+phrase rather than a shared predicate: REVERSED admits RECORD sequential organization only (COBOL2210 —
 §14.9.30.3 SR7 denies the backward walk to LINE SEQUENTIAL, and a relative or indexed file has no record
-*number* for GR21 c) to compare) and the INPUT group only (COBOLNET2211 — the phrase's whole effect is a
+*number* for GR21 c) to compare) and the INPUT group only (COBOL2211 — the phrase's whole effect is a
 retrieval direction), where §14.9.27.3 SR5/SR6 give NO REWIND both sequential kinds (§9.1.7.2) and both INPUT
 and OUTPUT. ⚠ The LINE SEQUENTIAL cell is unreachable from conforming source at EVERY edition — LINE
 SEQUENTIAL arrived in 2023 and REVERSED left in 2002 — so it is defence in depth under `--permissive`; the
@@ -769,10 +769,10 @@ survived), and the APPLY COMMIT exemption over a RELATIVE file.
 is the antecedent of six syntax rules of CLAIMED clauses and statements: §12.4.5.9.3 SR1 (LOCK MODE), §12.4.6.4.3
 SR11 (a SAME clause mixing subject and non-subject files), §14.9.27.3 SR7 (OPEN's sharing phrase), §14.9.30.3 SR5 and
 §14.9.35.3 SR5 (READ's and REWRITE's lock phrases) and §14.9.47.3 SR2 (UNLOCK). kb/Work PB371 recorded them CONFORMS
-"witnessed by the refusal of the antecedent", but that refusal (the since-retired COBOLNET1709; kb/Work PB3338 and
+"witnessed by the refusal of the antecedent", but that refusal (the since-retired COBOL1709; kb/Work PB3338 and
 PB3340 made the clause accepted for every organization) was `PermissiveInert`, so under `--permissive` every forbidden
 shape compiled clean. They now report through ONE helper,
-`DataBinder.ScreenApplyCommitSubject` (COBOLNET2974), each caller quoting its own rule: the LOCK MODE arm as the
+`DataBinder.ScreenApplyCommitSubject` (COBOL2974), each caller quoting its own rule: the LOCK MODE arm as the
 APPLY COMMIT clause records the fact (the file control entries are bound first), SR11 after the whole I-O-CONTROL
 paragraph (an APPLY COMMIT clause may follow the SAME clause), SR7 in `BindOpen` beside SR8, the lock phrases in
 `FileLockBinder.ScreenLockPhraseAgainstAutomatic` (the one screen every lock phrase passes) and UNLOCK in
@@ -965,8 +965,8 @@ is not present, the execution of the DELETE FILE statement is successful and the
 associating statements on the one verb where guessing wrong destroys data.
 
 **§12.4.5.2 SR7 is enforced at bind time**, once the data forest is indexed (`DataBinder.ResolveAssignUsing`):
-data-name-1 shall reference an alphanumeric data item (`COBOLNET1810`) and shall not be subordinate to the file
-description entry for file-name-1 (`COBOLNET1811`). The second half is the dangerous one — an operand inside the
+data-name-1 shall reference an alphanumeric data item (`COBOL1810`) and shall not be subordinate to the file
+description entry for file-name-1 (`COBOL1811`). The second half is the dangerous one — an operand inside the
 file's own record area is overwritten by every READ of that file.
 
 **Rejected alternatives.** Emitting a `CobolFile.Assign(key, expr)` statement before every OPEN (spreads one rule
@@ -1014,7 +1014,7 @@ kept the legal contention+retention pair out of `ApplyPostReadLockActions`'s GR1
 SUPPLIED §14.9.30.3 SR3: `FileLockBinder.CheckRecordLockPhrase`'s summary claimed to enforce "IGNORING LOCK and
 WITH LOCK are mutually exclusive" while its body tested only SR4's automatic-locking condition, so the
 forbidden pair was rejected by the collapse and by nothing else. Splitting the brackets without landing a real
-SR3 check in the same change set would have opened that hole; `CheckIgnoringLock` -> COBOLNET1818 is the check,
+SR3 check in the same change set would have opened that hole; `CheckIgnoringLock` -> COBOL1818 is the check,
 and `negative/pb331-read-ignoring-with-lock` is its witness, paired with the permitted-pair positive
 `2002/pb331_read_lock_brackets`. ⚠ SR3's "the LOCK phrase" is WITH LOCK and NOT WITH NO LOCK: §14.9.30.4 GR11 b)
 names "the NO LOCK phrase" and GR11 d) "the LOCK phrase" as different phrases in the same statement.
@@ -1144,28 +1144,28 @@ alphanumeric group item of the maximum size established by the RECORD clause"*.
 FILLER `PIC X(n)` — as the last act of binding each FD, and everything downstream sees an ordinary record.
 `FileModel.AreaRecord` is consequently non-null for every FD that can be opened with data, and is null only for a
 REPORT file (§13.4.5.3 SR8 forbids it record descriptions). A SELECT with no FD or SD at all never reaches code
-generation: §12.4.5.2 SR3 rejects it (COBOLNET2635, `DataBinder.ScreenSelectsHaveDescriptions`), and an FD or SD
-that no SELECT names is rejected by §13.4.5.3 SR1 / §13.4.6.3 SR1 (COBOLNET2636) (kb/Work PB1077, PB1237, PB1290).
+generation: §12.4.5.2 SR3 rejects it (COBOL2635, `DataBinder.ScreenSelectsHaveDescriptions`), and an FD or SD
+that no SELECT names is rejected by §13.4.5.3 SR1 / §13.4.6.3 SR1 (COBOL2636) (kb/Work PB1077, PB1237, PB1290).
 
 - **A GROUP, not an elementary `PIC X(n)`,** because the distinction is observable: §14.9.25.4 makes a MOVE whose
   sender is a group item a group (alphanumeric) move, so `READ … INTO` a numeric receiver copies bytes where an
   elementary alphanumeric sender would convert. GR6 says "group item".
 - **Unnamed and off `ByName`,** because the entry is implied: the program cannot reference it, which is precisely
   why SR3 b) and c) require the `FILE … FROM` and `INTO` phrases on the verbs.
-- **SR3 c) is a STATEMENT screen, asked above the organization split: COBOLNET3983** (kb/Work PB694).
+- **SR3 c) is a STATEMENT screen, asked above the organization split: COBOL3983** (kb/Work PB694).
   `StatementValidation.CheckReadIntoOnRecordLessFile` refuses a READ without INTO on such a file; its antecedent is
   `FileModel.HasNoRecordDescriptionEntries` (an FD — not a report file, not an SD — with no WRITTEN record
   description entry, so it holds even where the implied record could not be built), and
   `SequentialIoBinder.BindRead` asks it BEFORE rerouting a relative file to `KeyedIoBinder.BindRead`, so both arms
   are under the one rule. **SR3 b) has no screen because none is reachable:** the record-name-1 alternative names
   "a logical record in the file section" (§14.9.51.3 SR5, §14.9.35.3 SR1) and this entry has none, while the
-  `FILE file-name-1` alternative is Annex A.4.13, declined (COBOLNET1706, `docs/CONFORMANCE.md` §5 row A.4.13). The
+  `FILE file-name-1` alternative is Annex A.4.13, declined (COBOL1706, `docs/CONFORMANCE.md` §5 row A.4.13). The
   consequence is documented there: a record-less file is INPUT-ONLY in this implementation.
 - **The size is "the maximum size established by the RECORD clause"** — format 1's integer-1, format 3's
   integer-5, format 2's integer-3. A format-2 clause with no `TO` phrase establishes none (§13.18.43.4 GR10
   defers to "the greatest number of bytes described for a record in that file", and none is described), and
-  neither does an absent clause, which §13.4.5.3 SR3 a) and §13.18.43.3 SR1 forbid outright: **COBOLNET1836**.
-- **The two entry kinds that take SR3's permission back are SCREENS, not fallbacks: COBOLNET1837.** §13.4.5.3 SR7
+  neither does an absent clause, which §13.4.5.3 SR3 a) and §13.18.43.3 SR1 forbid outright: **COBOL1836**.
+- **The two entry kinds that take SR3's permission back are SCREENS, not fallbacks: COBOL1837.** §13.4.5.3 SR7
   (INDEXED) and §13.4.6.3 SR2 (sort-merge) both require record description entries, because both are keyed and a
   key is located IN a record (§12.4.5.12.3 SR2; §14.9.40.3 SR6 a).
 
@@ -1187,7 +1187,7 @@ ORGANIZATION IS SEQUENTIAL ACCESS MODE IS RANDOM.` compiled and ran clean (kb/Wo
 
 **Where it lives.** `DataBinder.BindFileControl`, immediately after the clause loop, beside the §12.4.5.9.3 SR2
 screen already there: `file.IsSequential && file.AccessMode is Random or Dynamic` — the predicate NAMES the
-two phrases SR2 names rather than negating SEQUENTIAL → **COBOLNET1858**,
+two phrases SR2 names rather than negating SEQUENTIAL → **COBOL1858**,
 positioned at the ACCESS MODE clause itself. Both banned phrases go through one screen and one descriptor,
 because SR2 is one prohibition with two spellings.
 
@@ -1215,7 +1215,7 @@ is the only path that reaches it.
 
 **Edition-invariance was derived, not assumed.** No `docs/VERSION_CHANGE_REFERENCE.md` row touches §12.4.5.5, and
 ANSI X3.23-1985's sequential-I-O file control entry likewise offered no ACCESS MODE but SEQUENTIAL, so the screen
-is unconditional and three of the four negatives assert `COBOLNET1858` at 85/2002/2014/2023. The LINE SEQUENTIAL
+is unconditional and three of the four negatives assert `COBOL1858` at 85/2002/2014/2023. The LINE SEQUENTIAL
 negative names 2002/2014/2023 only — 1985 has no line sequential organization at all, so its 1985 verdict belongs
 to that organization's edition gate (kb/Work PB688), not to this rule.
 
@@ -1257,7 +1257,7 @@ behind a `_keyedCheckedFiles` memo whose only job was to make the report once-pe
 FIRST KEYED VERB naming the file — and a program whose procedure division only OPENs and CLOSEs the file has no
 such verb. Measured on the pre-fix tree: an entry with `RECORD KEY IS IX-KEY` and `ALTERNATE RECORD KEY IS
 IX-ALT` both under `OCCURS` compiled with **zero diagnostics**, and adding one `READ … NEXT` grew two
-COBOLNET0863s. Two citations were wrong in the same site — the required-clause rule was filed under §12.4.5.13,
+COBOL0863s. Two citations were wrong in the same site — the required-clause rule was filed under §12.4.5.13,
 a clause that has no syntax rules at all, and SR2/SR3 were cited as "§12.4.5.13 SR2/SR3" — and one rule was
 missing entirely in a way the resolution path hid: an ALTERNATE RECORD KEY whose data-name-1 resolved to nothing
 was *dropped silently* from `FileModel.AlternateKeys`, leaving the file with fewer access paths than the entry
@@ -1292,7 +1292,7 @@ any site at all: `SELECT F ASSIGN … RECORD KEY IS K.` — no ORGANIZATION clau
 §12.4.5.10.3 GR6 — compiled clean and bound a key nothing read. Both rules also carry a SECOND sentence over the
 file DESCRIPTION entry (*"The associated file description entry shall not be a sort-merge file description
 entry"*), which no per-clause row can reach because the format may be specified by the ORGANIZATION clause alone;
-that is the `Entry` role, and it reports under its own code (COBOLNET1900) because its subject is the file
+that is the `Entry` role, and it reports under its own code (COBOL1900) because its subject is the file
 description entry and its remedy is a different edit.
 
 **A rule with two obligations gets a row per arm, sharing one rule-id** (kb/Work PB743). §12.4.5.12.3 SR2 and
@@ -1323,8 +1323,8 @@ only SELECT, ASSIGN and SEQUENTIAL is a legal Format 3 entry for an FD and no en
 from the FD side; the obligation SR13 states is the SD's (its entry shall be Format 4), and the drift test pins the
 subset relation so that statement is checked rather than asserted. SR11's first sentence is the one row on the
 `Entry` role that is NOT about an SD: it is screened over the indexed and relative kinds (a report file is exempt:
-Format 3 is stated for it), under its own code, COBOLNET2912, because its subject is the file's organization and
-not a key clause (SR8's and SR9's first sentences are COBOLNET0863 rows over the key clause that names them). The
+Format 3 is stated for it), under its own code, COBOL2912, because its subject is the file's organization and
+not a key clause (SR8's and SR9's first sentences are COBOL0863 rows over the key clause that names them). The
 note PB773 was dispatched as *"one table row each"*; measured against the table that was wrong — the table's rows
 were about one key operand and these two rules are about the whole clause SET of an entry — so the table gained
 the formats column instead.
@@ -1343,7 +1343,7 @@ whether a variable-length member precedes it) with the prime key's and with ever
 operand carries its clause ordinal (`FileKeyOperand.Ordinal`), so two clauses naming one item each violate it. Its
 SOURCE-phrase exemption — *"This restriction does not apply in the case where either key is specified using the
 SOURCE phrase"* — is `CoincidingKey`'s first test, and a SOURCE-form key is no other key to coincide with. §12.4.5.2 SR8's third operand, the file-level COLLATING SEQUENCE clause, is refused where it
-is RESOLVED (`DataBinder.ResolveFileCollating`, COBOLNET1582), because the same test is also the guard that stops
+is RESOLVED (`DataBinder.ResolveFileCollating`, COBOL1582), because the same test is also the guard that stops
 the rest of that method and splitting a guard from its report would leave the resolution running on an entry it
 has already refused; its citation was §12.4.5.7.1, the clause's descriptive General paragraph, and is now SR8.
 The traceability row `SR-12.4.5.2-8` names both sites.
@@ -1357,7 +1357,7 @@ qualifier, an alternate key `WITH DUPLICATES`, a relative key in WORKING-STORAGE
 without a keyed verb, draws the SAME diagnostics, exactly once.
 
 **THE SECOND KEY FORM — `record-key-name-1 SOURCE IS { data-name-2 } …` — IS PROVIDED** (kb/Work PB1099 Q1, owner
-rule R65; it was refused by name as COBOLNET1954 from kb/Work PB358 until then, and the code is retired).
+rule R65; it was refused by name as COBOL1954 from kb/Work PB358 until then, and the code is retired).
 §12.4.5.12.2 and §12.4.5.6.2 each print a required choice of two key forms — `{ data-name-1 | record-key-name-1
 SOURCE IS { data-name-2 } … }` (rendered from printed pages 359 and 350; `RECORD`, `ALTERNATE` and `SOURCE` carry
 underline rules, `KEY` and both occurrences of `IS` do not) — and §12.4.5.12.4 GR2 / §12.4.5.6.4 GR2 give the
@@ -1391,7 +1391,7 @@ the same list.
   `KeyNameReading` set — the record-key-names of every visible file (the clause: of its own entry) and EVERY
   data-name reading (each same-spelled data item `DataBinder.QualifiedCandidates` reaches; the clause narrows them to
   its entry's key items, as its key clauses' SR2 selection does) — judged by the one §8.4.2.2.3 SR1 verdict
-  (`DataBinder.UniqueOrReportAmbiguous`, COBOLNET1639): a name two clauses of one entry declare (no Format 6 qualifier
+  (`DataBinder.UniqueOrReportAmbiguous`, COBOL1639): a name two clauses of one entry declare (no Format 6 qualifier
   can separate them), two files declare unqualified, or one or more data items also bear is refused, never resolved
   to "the record-key-name first" (kb/Work PB1099 review R1-2). The data-name readings are counted, never probed: a
   probe answers only a unique item, so a second same-spelled data item used to drop both out of the count and the
@@ -1405,7 +1405,7 @@ the same list.
 - **SORT/MERGE GIVING an indexed file** (§14.9.40.3 SR9, §14.9.24.3 SR10) compares the first key with the prime
   key's byte location and size, which a SOURCE-form prime key has only when its windows are one run.
 - **Edition.** ANSI X3.23-1985 prints data-name-1 only, so the phrase is a post-1985 form gated once, on the
-  shared rule (`record-key-source-2002`, VCR row 7.36, a DERIVED provisional 2002 edge; COBOLNET0900 at 85).
+  shared rule (`record-key-source-2002`, VCR row 7.36, a DERIVED provisional 2002 edge; COBOL0900 at 85).
 Witnesses: `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source` (a reversed-order prime key, a duplicate alternate key,
 the concatenated uniqueness '22', the sequential order, READ / START / START WITH LENGTH / DELETE on both keys, a
 Format-6 qualified record-key-name), `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099-record-key-source-85`, and
@@ -1717,7 +1717,7 @@ facts the emitter's own output consumes. §14.9.32.4 GR4 makes `RELEASE record-n
 `MOVE x TO record-name-1` followed by the same RELEASE without FROM (§14.9.51.4 GR5 a) and §14.9.35.4 GR7 a) say
 it for WRITE and REWRITE; §14.9.30.4 GR4 b) and §14.9.34.4 GR5 b) are the same sentence for INTO), so *exactly*
 has to include the bind. Measured, before the fix: `RELEASE SRT-REC FROM WS-NUM` (a `PIC 9(3)` sender into a
-`PIC A(8)` record) compiled clean where the identical explicit MOVE drew COBOLNET0819; and
+`PIC A(8)` record) compiled clean where the identical explicit MOVE drew COBOL0819; and
 `RELEASE SRT-NUM FROM QUOTE` **aborted the run** with an unhandled `NotImplementedCobolFeatureException` before
 the record was released, because `MarkImageForced` — a fact `StorageFormPass` consumes — is collected by the
 binder and the emitter-built move never passed through it (kb/Work PB348).
@@ -1739,11 +1739,11 @@ the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC
   record per verb carrying the admitted CATEGORIES and the nullable zero-length clause; a scalar "must be
   alphanumeric" column would have REJECTED LEGAL SOURCE on the REWRITE arm. The FILE-phrase readings
   (§14.9.51.3 SR10, §14.9.35.3 SR8) are unreachable — the FILE arm is Annex A.4.13 item 2, declined
-  COBOLNET1706 earlier. Diagnostics: COBOLNET1914, COBOLNET1915.
+  COBOL1706 earlier. Diagnostics: COBOL1914, COBOL1915.
 - **The phrase is ONE grammar rule, and its edition edge is ONE gate** (kb/Work PB2650). §14.9.51.2, §14.9.35.2
   and §14.9.32.2 print the same `FROM { identifier-1 | literal-1 }`, so the three statements share
   `recordFromPhrase : FROM sendingOperand`, and `VersionConformancePass.ParseArm.VisitRecordFromPhrase` refuses
-  literal-1 (a figurative constant included) below COBOL-2002 (construct `from-literal-2002`, COBOLNET0871;
+  literal-1 (a figurative constant included) below COBOL-2002 (construct `from-literal-2002`, COBOL0871;
   VERSION_CHANGE_REFERENCE row 7.34 derives the 1985 edge). It used to be three copies of the rule with the gate
   on RELEASE's alone, so WRITE and REWRITE took a literal at `--std 85`. The per-verb rules above stay rows of
   `FromPhraseRules`; the edition edge is the same for all three, so it is not a column.
@@ -1777,7 +1777,7 @@ the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC
   sender is conceptual (kb/Work PB887).** ACCEPT format 2 (§14.9.1.4 GR6) transfers a clock reading that GR7–GR12
   describe as "an unsigned elementary integer data item of usage display" of 6/8/5/7/8/1 digits
   (`AcceptKinds.ConceptualDigits`). `AcceptDisplayBinder` materializes exactly that item as a compiler temp
-  (`BoundAccept.Conceptual`), asks `MoveTable16.Validity` with it (framed COBOLNET0818 under §14.9.1.3 SR3, so the
+  (`BoundAccept.Conceptual`), asks `MoveTable16.Validity` with it (framed COBOL0818 under §14.9.1.3 SR3, so the
   phrase `ImplicitMovePhrase.AcceptTemporal` carries `ValidityAskedByStatement`), and binds the transfer with
   `BindMoveOf` onto `BoundAccept.Store`; the emitter fills the temp from the clock and renders the store with
   `MoveEmitter`. The emitter's former per-category arms were a second copy of `MoveEmitter.ConvertSource` whose
@@ -1792,9 +1792,9 @@ the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC
   place, or against a Table-16 position for §14.9.20.3 SR4's "item of the specified category") and
   `MoveTable16.DataItemRefusal` (§14.7.6 rule 2's two data items) run one chain in SR order — SR2, SR6/SR7/SR8,
   SR9, SR10 — and return the refusing RULE with its reason; the per-rule readers are private.
-  `MoveBinder` frames each rule under its own code (COBOLNET1533 · COBOLNET1931 · COBOLNET0819 with SR10's
-  `--permissive` re-reading); INITIALIZE (COBOLNET2031), INVOKE/CALL BY CONTENT (§14.8.2.3.3 rule 2d,
-  COBOLNET0828) and CORRESPONDING (a silent non-pairing) take the reason. `MoveTable16AskerDriftTests` pins the
+  `MoveBinder` frames each rule under its own code (COBOL1533 · COBOL1931 · COBOL0819 with SR10's
+  `--permissive` re-reading); INITIALIZE (COBOL2031), INVOKE/CALL BY CONTENT (§14.8.2.3.3 rule 2d,
+  COBOL0828) and CORRESPONDING (a silent non-pairing) take the reason. `MoveTable16AskerDriftTests` pins the
   private readers and the three Table-16-alone askers whose sender has no data item.
 
 **Rejected alternatives.** *Fix the RELEASE call site* — the smallest diff and the wrong shape: eight call sites
@@ -1829,7 +1829,7 @@ rather than from the three binders. That is the whole architectural point: a ver
 phrase gets the rule by calling the phrase binder, which it must do anyway to get its implicit move. `IntoPhraseRules`
 (beside `ImplicitMovePhrase`, and the INTO twin of `FromPhraseRules`) carries each verb's wording and absorbs the
 former `ImplicitMovePhrase.ReadInto` / `ReturnInto` statics as its `Phrase` property — one object per INTO verb,
-not two. Diagnostics: COBOLNET1994 (admissibility), COBOLNET1995 (the strong-receiver count).
+not two. Diagnostics: COBOL1994 (admissibility), COBOL1995 (the strong-receiver count).
 
 - **The two verbs differ in ONE fact, and it is a property of the DESCRIPTION ENTRY, not of the rule.** Both of
   READ's rules admit a record-less entry (*"no record description entry or only one"*, *"at most one"*) and both
@@ -1840,10 +1840,10 @@ not two. Diagnostics: COBOLNET1994 (admissibility), COBOLNET1995 (the strong-rec
 - **The SAME-TYPE half of SR2/SR3 is deliberately NOT checked here.** Each rule's second sentence — *"shall be a
   strongly-typed group item of the same type as identifier-1"* — is the same predicate over the same pair that
   §14.9.25.3 SR2 applies to this move's SENDER, which *is* the record area; `CheckStrongMove` reports it as
-  COBOLNET1533 naming the phrase (D23), and a second copy here would be one rule in two places. What that screen
+  COBOL1533 naming the phrase (D23), and a second copy here would be one rule in two places. What that screen
   **cannot** express is the COUNT, because it inspects only `FileModel.AreaRecord`: a file whose LARGEST record
   happened to be a strongly-typed group of the right type passed everything, with a second record area no
-  diagnostic could see. The count is therefore exactly what COBOLNET1995 owns — the division is by what each
+  diagnostic could see. The count is therefore exactly what COBOL1995 owns — the division is by what each
   screen can decide, not by which rule number it belongs to.
 - **A strongly-typed receiver draws ONE diagnostic, not two, and that is derived.** §13.18.29.4 GR3 excludes a
   strongly-typed group from the alphanumeric group items, so arm b) of the admissibility rule can never admit
@@ -1923,7 +1923,7 @@ redefining children (GR8's *"excluding redefinitions and renamings"*), already t
 occurrences, and already lays a bit-bearing subtree out by the §8.5.1.6.3 walk (GR4's *"the entire byte in which
 that data item ends"*). `FileModel.MinRecordSize` is GR8 a): the same `ByteWidth` wherever no table varies beneath
 an item, and otherwise each occurs-depending table at `DataItem.MinimumOccurrences` (its integer-1; a record holds
-no dynamic-capacity table — §8.5.1.9.1 3), COBOLNET1526), a bit-bearing ODO subtree placed by the bit walk. A
+no dynamic-capacity table — §8.5.1.9.1 3), COBOL1526), a bit-bearing ODO subtree placed by the bit walk. A
 parallel leaf re-summation would be the same rule twice — and it was: the one this replaced rounded each bit leaf to
 a byte of its own, so two `PIC 1(3) USAGE BIT` items had minimum 2 over maximum 1.
 
@@ -1944,8 +1944,8 @@ variable-length shape, and NO clause at all answers null, which is what keeps th
 §13.18.43.4 GR5 implies a clause from the record descriptions (an implied clause cannot contradict what it was
 derived from).
 
-**Two codes, because the subjects differ.** **COBOLNET2009** for the clause's own integer pair (SR5/SR9 — the
-remedy is editing the clause); **COBOLNET2010** for a record description outside it (SR3/SR4 — the remedy may be
+**Two codes, because the subjects differ.** **COBOL2009** for the clause's own integer pair (SR5/SR9 — the
+remedy is editing the clause); **COBOL2010** for a record description outside it (SR3/SR4 — the remedy may be
 at either end). SR4 is ONE printed sentence with TWO obligations and therefore TWO rows sharing one rule-id, with
 a negative golden per arm: the PB743 clamp applied before the defect rather than after it.
 
@@ -1969,7 +1969,7 @@ sentence ever changes.
 *"The words BYTES and CHARACTERS are synonymous and may be used interchangeably"*, and all three printed
 general formats carry the same `{ BYTES | CHARACTERS }` brace group, so `recordClause` writes
 `(CHARACTERS | BYTES)` in both of its alternatives. BYTES had no lexer token at all and
-`RECORD CONTAINS 20 BYTES` was refused COBOLNET1970 as an unrecognized FD clause — legal COBOL-2023,
+`RECORD CONTAINS 20 BYTES` was refused COBOL1970 as an unrecognized FD clause — legal COBOL-2023,
 rejected.
 
 ⛔ **BUT THE SPELLING IS A 2023 ADDITION, AND THAT WAS DERIVED RATHER THAN ASSUMED.** Annex E.3.3 item 13
@@ -1977,7 +1977,7 @@ lists BYTES among the words that *"have either been added to the list of context
 context in which they are reserved has been expanded"*. That sentence is an OR, so the word alone does not
 settle it — but §8.10 gives BYTES exactly ONE construct, the *"RECORD clause"*, so there is no earlier
 context for 2023 to have EXPANDED and the first arm is the one that applies. `VisitRecordClause` in the
-version-conformance pass therefore refuses the word below 2023 (**COBOLNET0900**, constructs.json row
+version-conformance pass therefore refuses the word below 2023 (**COBOL0900**, constructs.json row
 `record-clause-bytes-2023`), on the CONTINUE AFTER … SECONDS precedent — SECONDS is in the same item-13 list.
 The gate is a PARSE ARM and not a `{is2023()}?` predicate because the word sits mid-alternative, where a
 semantic predicate does not steer prediction and would throw a token error instead of naming the edition.
@@ -1991,7 +1991,7 @@ token is exactly how that right gets lost silently. Three programs say which is 
 `conformance:cases/13.18.43-RECORD/pb721_zero_length_record_85` (the CHARACTERS spelling, accepted at 85) and
 `conformance:cases/_unassigned/pb721_bytes_user_word_85` (the word as a data-name, a table and a paragraph-name at 85).
 
-**SR1 stays where it is** (`DataBinder.MaterializeImpliedRecord`, COBOLNET1836): it is about the clause's
+**SR1 stays where it is** (`DataBinder.MaterializeImpliedRecord`, COBOL1836): it is about the clause's
 PRESENCE, decidable while the entry is read — D19's first list, not its second.
 
 **SR6 is the one rule of this subclause still without a site, and that is a decision.** *"Data-name-1 shall
@@ -2046,14 +2046,14 @@ file name as the clause's data-name and died at OPEN naming a word the programme
   (`Where`) and read only as `Single`, so no caller can take "the first". Its record-confined twin
   `SubtreeCandidates(root, name, quals)` serves RENAMES (§13.18.45.3 SR4) and a TYPEDEF clone's own OCCURS DEPENDING
   ON counter. Several survivors go to **`UniqueOrReportAmbiguous`**, the ONE data-division ambiguity verdict
-  (§8.4.2.2.3 SR1, COBOLNET1639; under `--permissive` a warning and the first declared — the procedure division's
+  (§8.4.2.2.3 SR1, COBOL1639; under `--permissive` a warning and the first declared — the procedure division's
   own disposition). Every data-division operand reads it: FILE STATUS, RELATIVE KEY, RECORD … DEPENDING ON and LINAGE
   (through `ResolveClauseOperand`), RECORD KEY / ALTERNATE RECORD KEY (SR2 narrows to this file's records first,
   then counts), ASSIGN … USING, OCCURS … DEPENDING ON, SAME AS, RENAMES, and the report CONTROL / SOURCE / SUM
   operands. `DataNameResolutionDriftTests` (Unit) pins the type's shape and forbids `[0]` off a raw candidate list
   in the data binder.
 - **`ClauseDataName(dref, clauseFace)`** — the capture, screened by `ScreenClauseOperandShape` against the three
-  shapes a `data-name-n` position does not admit → **COBOLNET2024**: a SPECIAL REGISTER (LINAGE-COUNTER /
+  shapes a `data-name-n` position does not admit → **COBOL2024**: a SPECIAL REGISTER (LINAGE-COUNTER /
   LINE-COUNTER / PAGE-COUNTER are §8.4.3.1 Format 10 / Format 11 identifiers, and §8.4.3.14.3 SR1 / §8.4.3.15.3
   SR1 confine them to the procedure division), a SUBSCRIPT (§8.4.2.3's *with-subscripts* form is an identifier,
   and each of these clauses independently bans an operand subject to an OCCURS clause), and a
@@ -2072,10 +2072,10 @@ file name as the clause's data-name and died at OPEN naming a word the programme
 - **`ScreenReferenceModifier(dref, face, edition)`** — the NOTE's reference-modifier arm alone, for the one
   `data-name-n` operand that must carry a subscript: SEARCH ALL Format 2's `data-name-1` and every `data-name-2`
   (§14.9.37.2; §14.9.37.3 SR8 requires the first index-name subscript). `SearchAllFormat2Rules.CheckKeySide` asks it,
-  so `WHEN TK (IX) (1:2) = "AB"` is COBOLNET2024 rather than a prefix-key search (kb/Work PB1457). The sentence is
+  so `WHEN TK (IX) (1:2) = "AB"` is COBOL2024 rather than a prefix-key search (kb/Work PB1457). The sentence is
   worded once, in `ReportReferenceModified`, shared with `ScreenDataNameShape`.
 - **`ResolveClauseOperand(name, quals, face, at)`** — the resolution, reporting a zero- or many-survivor outcome
-  under **COBOLNET1639**, the same descriptor the procedure division's own unidentified reference uses: the rule
+  under **COBOL1639**, the same descriptor the procedure division's own unidentified reference uses: the rule
   broken is §8.4.2.1/§8.4.2.2, not a rule of the clause.
 
 **The exceptions, and why they are principled.** The REPORT SECTION's SOURCE (§13.18.53), SUM (§13.18.54) and
@@ -2086,7 +2086,7 @@ the key inside a record description of the file), but take the candidates from t
 
 **The LINAGE clause's own syntax rules** live in `DataBinder.ResolveLinage`, the FD-clause twin of
 `ResolveFileCollating` and D19's `ResolveFiles` arm: §13.18.34.3 **SR1** (*"Data-name-1, data-name-2,
-data-name-3, and data-name-4 shall not be subject to any OCCURS clauses"*) → **COBOLNET2025**. It had no site at
+data-name-3, and data-name-4 shall not be subject to any OCCURS clauses"*) → **COBOL2025**. It had no site at
 all — a LINAGE operand naming a table element compiled clean and killed the process at OPEN OUTPUT. **SR2**
 (*"shall reference elementary unsigned numeric integer data items"*) and **SR3** (*"Integer-2 shall not be greater
 than integer-1"*) are the other two tests of the same method, under the same code (kb/Work PB524). SR2 names the
@@ -2097,7 +2097,7 @@ governs it. Before, the emitter ASSUMED SR2 and its "defensive rescale" laundere
 alphanumeric "007" became page size 7 and a PIC 9V9 5.5 was truncated to 5. A zero integer-1 / integer-2 is §5.5
 1)'s, refused by `IntegerOperandPass` (SR4's permission covers only integer-3 / integer-4). §8.4.3.14.3 **SR2**, *"The LINAGE-COUNTER identifier shall not be referenced as a
 receiving operand"*, is the third arm of `ExpressionBinder.ResolveReceiving`'s register dispatch →
-**COBOLNET2026**; LINE-COUNTER and PAGE-COUNTER had arms and LINAGE-COUNTER did not, so permanently illegal
+**COBOL2026**; LINE-COUNTER and PAGE-COUNTER had arms and LINAGE-COUNTER did not, so permanently illegal
 source was refused as a not-yet-implemented receiver shape.
 
 **Pinned by** `ClauseOperandQualificationSpecTests` (behaviour, all four editions: the qualified operand of each
@@ -2323,7 +2323,7 @@ otherwise, the read is a random read and the rules for format 2 apply" — makes
 FORMAT one fact, so ONE enum carries it: `ReadKind { Next, Previous, Random }`, on `BoundRead` and
 `BoundKeyedRead` alike, reached through `IBoundRead`. `VersionConformancePass.GateStatement` has ONE arm over
 that interface. (It was `KeyedReadKind`, reachable only from the keyed node; the sequential node had no direction
-member, so `READ … PREVIOUS` on a SEQUENTIAL file bound as a forward read AND skipped its COBOLNET0900 2002 gate
+member, so `READ … PREVIOUS` on a SEQUENTIAL file bound as a forward read AND skipped its COBOL0900 2002 gate
 — kb/Work PB334.)
 
 `SequentialConnector.Read(previous, out image)` implements GR21's "When the file is a sequential file" block
@@ -2522,7 +2522,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   page write or a sync the host refuses at the statement and at the CLOSE; the refusals a real file cannot produce on
   demand are injected under the connector's own handle through `KeyedStore.MediumObserver`
   (`tests/Cobol.Net.Tests.Unit/Store/RefusingPageMedium`, `DyingPageMedium`).
-- I-O status discipline (kb/Work PB140): `FileConnector.Status`'s setter is the ONE assignment path — it records `EverAccessed` AND drops the §9.1.13.7 3) '43' gate (READ terminals re-arm through `ReadSucceeded`); openness is the ONE base `_openMode` bit, separate from the `OptionalAbsent` file-position state a CLOSE leaves unchanged (§14.9.6.4 GR6); `FileRegistry` throws on an unregistered or misrouted name (never a fail-open '00' — the SD/organization screens reject at bind time, COBOLNET1692/1693); `FileConnector.Close` maps OS failures to '30' (§9.1.13.6 item 1) with the sequential streams nulled either way; CLOSE WITH LOCK locks only on a successful close.
+- I-O status discipline (kb/Work PB140): `FileConnector.Status`'s setter is the ONE assignment path — it records `EverAccessed` AND drops the §9.1.13.7 3) '43' gate (READ terminals re-arm through `ReadSucceeded`); openness is the ONE base `_openMode` bit, separate from the `OptionalAbsent` file-position state a CLOSE leaves unchanged (§14.9.6.4 GR6); `FileRegistry` throws on an unregistered or misrouted name (never a fail-open '00' — the SD/organization screens reject at bind time, COBOL1692/1693); `FileConnector.Close` maps OS failures to '30' (§9.1.13.6 item 1) with the sequential streams nulled either way; CLOSE WITH LOCK locks only on a successful close.
 - Keyed-verb branch discipline (kb/Work PB325): the ACCESS MODE is the SOLE discriminator of a keyed verb's branch, and it lives in ONE place — `KeyedConnector.Access`, the abstract base `RelativeConnector` and `IndexedConnector` share. Every branch the standard draws inside a keyed verb is drawn on it (§14.9.51.4 GR29 a)/b), GR38/GR39; §14.9.35.4 GR5 vs. GR21/GR22/GR23; §14.9.10.4 GR2 vs. GR3/GR4), and the OPEN MODE enters only as the permission test that FOLLOWS — Table 20 (§14.9.27.4 GR8), whose unsuccessful cells §9.1.13.7 items 8 and 9 name. ⛔ An open mode in a branch PREDICATE inverts that dependency: `_access == Sequential || Mode == Extend` made the runtime's answer depend on an unenforced bind-time screen (§14.9.27.3 SR2) and turned Table 20's blank Random/Dynamic × WRITE × Extend cell into a successful append instead of item 8 b)'s '48'. The whole table is walked by conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative + l1_table20_indexed and, for the cell conforming source cannot reach, unit:Table20WriteOpenModeTests.
 - READ preconditions live in the BASE, once, in the standard's own order (kb/Work PB336). `FileConnector` owns
   the three of them and every organization's READ entry delegates: `ReadOpenModeGuard` (§14.9.30.4 GR2 /
@@ -2652,7 +2652,7 @@ failing loudly if a selector is not emitted at all (a comparison of nothing is n
 failure branches were fired once before it was trusted.
 - **ORGANIZATION LINE SEQUENTIAL is a COBOL-2023 INTRODUCTION** (§12.4.5.10.3 GR2), so it is rejected at 85,
   2002 AND 2014 — `constructs.json` row `file-organization-line-sequential-2023`, gated on the clause's
-  RECOGNITION by `VersionConformancePass.ParseArm.VisitOrganizationClause` (COBOLNET0900). **The edition IS
+  RECOGNITION by `VersionConformancePass.ParseArm.VisitOrganizationClause` (COBOL0900). **The edition IS
   derivable from the 2023 spec after all** (kb/Work PB688 corrected the earlier "not derivable — derive it from
   the 2002 standard" reading): the **Foreword's** list of the main changes this third edition makes over
   ISO/IEC 1989:2014 names “Line Sequential file organization” outright. Annex E happens to carry no item for
@@ -2686,7 +2686,7 @@ failure branches were fired once before it was trusted.
 - **OPTIONAL reach differs by edition** (85 restricts which organizations/open modes admit OPTIONAL; 2002 widens
   it) — the edge-case table above states the 2023 behavior; derive and gate the 85 subset from the 1985 standard.
 - Gating lives in the BINDER off the ONE `DialectMode` (SSOT §14.11): a construct the target edition lacks never
-  reaches the bound tree (it is a `COBOLNET-` diagnostic); the connectors/codec implement the union of editions, and
+  reaches the bound tree (it is a `COBOL####` diagnostic); the connectors/codec implement the union of editions, and
   per-edition BEHAVIOR variants (e.g. READ PREVIOUS after OPEN) are bound-tree/runtime-parameterized by edition,
   never duplicated per backend. The NIST corpus compiles at `--std` 85 and is the 85 positive net; the
   rejected-construct negative cases are version-test-matrix work, not NIST work.
@@ -2700,8 +2700,8 @@ compiled inert:
 
 | Module | Elements | Where it parses | Refusal |
 | --- | --- | --- | --- |
-| A.4.8 | FORMAT clause (§13.18.24) on an FD; SELECT WHEN clause (§13.18.51) on a record description entry | `formatClause` in `fileDescriptionClause`; `selectWhenClause` in `dataDescriptionClause` (`Core/CobolData.g4`) | `COBOLNET1705`, from `DataBinder` — the FD clause loop and `BindEntry` |
-| A.4.13 | the `FILE file-name-1` alternative of WRITE (§14.9.51.2, **both** formats) and REWRITE (§14.9.35.2) | the `FILE fileName` alternative of `writeStatement` / `rewriteStatement` (`Core/CobolIO.g4`) | `COBOLNET1706`, from `SequentialIoBinder.DeclinedFilePhrase` — ONE site, both verbs |
+| A.4.8 | FORMAT clause (§13.18.24) on an FD; SELECT WHEN clause (§13.18.51) on a record description entry | `formatClause` in `fileDescriptionClause`; `selectWhenClause` in `dataDescriptionClause` (`Core/CobolData.g4`) | `COBOL1705`, from `DataBinder` — the FD clause loop and `BindEntry` |
+| A.4.13 | the `FILE file-name-1` alternative of WRITE (§14.9.51.2, **both** formats) and REWRITE (§14.9.35.2) | the `FILE fileName` alternative of `writeStatement` / `rewriteStatement` (`Core/CobolIO.g4`) | `COBOL1706`, from `SequentialIoBinder.DeclinedFilePhrase` — ONE site, both verbs |
 
 **Why recognize-and-refuse, and why an ERROR rather than the accept-inert band.** Annex A.4.1: *"An
 implementation shall accept the syntax and provide the functionality for an optional element only when
@@ -2711,7 +2711,7 @@ is what the traceability inventory refuses to close a DOCUMENTED-NON-SUPPORT row
 carries the full printed general format (rendered from the PDF, not read off the OCR) purely so the binder
 can name what it saw.
 
-The severity is the point of difference from `COBOLNET1578/1580`, which ACCEPT their facility inert
+The severity is the point of difference from `COBOL1578/1580`, which ACCEPT their facility inert
 and warn. Those facilities are **additive** — a program means what it says with the message or validate
 behavior simply absent. These two are not: an inert FORMAT changes which bytes reach the medium
 (§13.18.24.4 GR1 — external media format), an inert SELECT WHEN selects the wrong record description entry
@@ -2737,7 +2737,7 @@ alike, and the negative witnesses carry `*> reject-at: 85 2002 2014 2023`. One l
 85: §8.9 reserves `FORMAT` only from 2002 (`ReservedWords.Table`, `r85=false`), so at `--std 85` the word is a
 legal user-defined name. That is preserved by the `nameSlot` row in `tests/version-matrix/cobol-words.json`
 — measured: `01 FORMAT PIC X(4).` plus a subscripted `FORMAT-E (2)` compiles and RUNS at `--std 85`, and
-draws `COBOLNET0901` by name at 2002/2014/2023 through the existing §8.9 funnel. No `constructs.json` row is
+draws `COBOL0901` by name at 2002/2014/2023 through the existing §8.9 funnel. No `constructs.json` row is
 owed: that register's contract is source that COMPILES CLEAN at its introducing edition, which a permanently
 declined element never does — the same reason VALIDATE, the SCREEN SECTION, MCS and COMMIT/ROLLBACK have no
 rows either.
@@ -2760,7 +2760,7 @@ Three statements print `record-name-1` in their general format, and all three sa
   description entry and it may be qualified."*
 
 **The rule has ONE home: `StatementValidation.ResolveRecordName`**, which returns the owning `FileModel` or
-false having reported (COBOLNET1757), in `ResolveFile`'s shape. It enforces two things:
+false having reported (COBOL1757), in `ResolveFile`'s shape. It enforces two things:
 
 1. **Identity, not containment.** The reference shall BE one of the file's `Records`. Its predecessor,
    `SequentialIoBinder.FileOfRecord`, walked the reference's `DataItem` up to its top-level 01 and tested THAT
@@ -2795,9 +2795,9 @@ a grammar at all; narrowing `recordName` would also turn a citable diagnosis int
 
 **Staging.** ISO §4.2.2 ¶2 makes the compile-time indication mandatory for *"violations of the general formats
 and the explicit syntax rules of standard COBOL"*. WRITE and REWRITE previously staged an unresolvable record
-to `BoundUnsupported`, so `WRITE WS-REC` drew only the COBOLNET1756 **deferral warning** — the compiler
+to `BoundUnsupported`, so `WRITE WS-REC` drew only the COBOL1756 **deferral warning** — the compiler
 announcing ITS OWN gap for what is the source's error. The two arms are now separate: a name that resolves to
-nothing already has COBOLNET1639 (§8.4.2.1) from the resolver and stays a deferral; a reference that resolves
+nothing already has COBOL1639 (§8.4.2.1) from the resolver and stays a deferral; a reference that resolves
 but is not a logical record is refused at bind.
 
 **Edition posture.** Edition-INVARIANT — the rule is written identically in 1985, 2002 and 2014, so there is no
@@ -2810,7 +2810,7 @@ three verbs and that a SORT returns exactly the records RELEASE named. (kb/Work 
 ## The `file-name` operand — ONE resolution that takes the PARSE NODE, and ONE shape rule
 
 Every procedure-division statement that names a file resolves it through `StatementValidation.ResolveFile`
-(§8.4.2.1, COBOLNET1639 for a word that names no file; the §13.4.5.3 SR9 report-file screen beside it). It
+(§8.4.2.1, COBOL1639 for a word that names no file; the §13.4.5.3 SR9 report-file screen beside it). It
 takes the operand's PARSE NODE, never a string, in two overloads for the two productions that reach it:
 
 - `fileName` (a bare `cobolWord`) — CLOSE, READ, START, DELETE, DELETE FILE, UNLOCK, RETURN. The grammar already
@@ -2821,7 +2821,7 @@ takes the operand's PARSE NODE, never a string, in two overloads for the two pro
   `StatementValidation.ScreenFileNameOperand` FIRST. FUNCTION EXCEPTION-FILE / EXCEPTION-FILE-N ask the same screen
   of a sole-reference argument.
 
-**The shape rule (COBOLNET2972).** A file-name is a user-defined word naming a file connector and is written alone:
+**The shape rule (COBOL2972).** A file-name is a user-defined word naming a file connector and is written alone:
 §8.4.2.2.2 prints no qualified format for it (it appears only as the `file-report-qualifier` of another name), and
 subscripting (§8.4.2.3.1) and reference modification (§8.4.3.3.1) decorate identifiers. Until kb/Work PB2040 these
 callers handed the resolver `dataReference().GetText()` — ANTLR's GLUED text — so `OPEN OUTPUT A OF B` silently
@@ -2839,8 +2839,8 @@ statements are the eight §9.1.13.1 names as those whose execution sets the I-O 
 formats), OPEN, READ, REWRITE, START, UNLOCK and WRITE.
 
 - SR3, and the WRITE / REWRITE record-name slot (where the record names its file): `StatementValidation.ScreenSortMergeFile`
-  (COBOLNET1692), asked by each verb binder of the file it resolved.
-- SR4 everywhere else: `StatementValidation.ScreenSortMergeRecordReferences` (COBOLNET2973), asked ONCE per
+  (COBOL1692), asked by each verb binder of the file it resolved.
+- SR4 everywhere else: `StatementValidation.ScreenSortMergeRecordReferences` (COBOL2973), asked ONCE per
   input-output statement by `StatementBinder.BindStatement`, the funnel every statement passes through. It walks the
   statement's parse subtree, subscripts included, skipping the FROM / INTO phrases, the nested imperative statements
   (each screened as its own statement) and the record-name / file-name operand itself, and refuses any reference
@@ -2864,7 +2864,7 @@ data-name-1 or record-key-name-1"* names the clause's own alphabet either way.
 (`Binding/ConstructOperandRegister.cs`), whose construct here is the Format-2 CLAUSE, per file control entry —
 never a `HashSet` hoisted out of the loop over `FileModel.KeyLevelCollating`, which is what the register exists to
 make impossible: that shape screened per NAME across every clause at once and rejected
-`COLLATING SEQUENCE OF IX-KEY IX-KEY IS REV` with a diagnostic (COBOLNET1582) whose own text — *named in more
+`COLLATING SEQUENCE OF IX-KEY IX-KEY IS REV` with a diagnostic (COBOL1582) whose own text — *named in more
 than one COLLATING SEQUENCE clause* — the program falsified. The same register enforces §14.9.49.3 SR7/SR8/SR9/SR14
 over the USE statement (`COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md`, kb/Work PB364); it is one mechanism for every
 rule whose boundary is a construct and whose subject is an operand written inside it. Because the register
@@ -2872,7 +2872,7 @@ remembers the LAST clause that named a key rather than the first, ONE violation 
 offending clause also repeats the key internally.
 
 **Edition posture.** The file-control COLLATING SEQUENCE clause is a COBOL-2002 addition (`constructs.json`
-`file-collating-clause-2002`, COBOLNET0900 at `--std 85`), so SR8's behaviour lanes are 2002/2014/2023 and 85 is the
+`file-collating-clause-2002`, COBOL0900 at `--std 85`), so SR8's behaviour lanes are 2002/2014/2023 and 85 is the
 gate lane. Witnesses: `conformance:FileCollatingSequenceSpecTests` (both arms per edition, the
 one-diagnostic count, and the 85 gate), the positive golden
 `conformance-suite/cases/12.4.5.7-COLLATING-SEQUENCE/pb703_collating_key_named_twice` (a key named twice in ONE clause, whose output proves
@@ -2889,7 +2889,7 @@ syntax rules about the CLAUSE, so `ResolveFileCollating` screens them before any
 test (`CollatingAlphabetFault`) — never lazily inside the per-key resolution, where a shadowed alphabet-name-1
 escaped. A NATIVE or UCS-4 national alphabet is the native national sequence and resolves to it; a national
 alphabet defined by literals or LOCALE on a national key is Annex A.3 item 41, not provided, and is declined BY NAME
-through `EditionContext.Declined` (COBOLNET1584, severity Error — an inert compile would order by a different
+through `EditionContext.Declined` (COBOL1584, severity Error — an inert compile would order by a different
 sequence than the one written). Witnesses: `2002/pb1074_file_collating_key_class`,
 `negative/pb1074-file-collating-alphabet-class`, `negative/pb1074-file-collating-national-declined`.
 

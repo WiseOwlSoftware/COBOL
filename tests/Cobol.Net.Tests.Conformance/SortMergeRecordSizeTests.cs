@@ -61,7 +61,7 @@ public sealed class SortMergeRecordSizeTests
     }
 
     private static int CountRule(IEnumerable<string> errors, string rule) =>
-        errors.Count(e => e.Contains("COBOLNET1757", StringComparison.Ordinal) && e.Contains(rule, StringComparison.Ordinal));
+        errors.Count(e => e.Contains("COBOL1757", StringComparison.Ordinal) && e.Contains(rule, StringComparison.Ordinal));
 
     // (SD, USING files, GIVING) → the rule that must refuse it, or null when the statement is legal.
     // Sizes are in bytes; the key (two bytes) always lies inside the SD's smallest record (§14.9.40.3 SR6 g).

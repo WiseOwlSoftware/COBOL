@@ -80,8 +80,8 @@ public sealed class ScreenFacilityConstructDriftTests
 
     /// <summary>kb/Work R32, kept as an ABSENCE assertion because a negative golden can only assert presence.
     /// A name DECLARED in a refused SCREEN SECTION is not UNDEFINED: the program is rejected for the facility
-    /// (COBOLNET1560 for the section, COBOLNET1707 for the screen DISPLAY), never with the §8.4.2.1
-    /// "is not defined" verdict (COBOLNET1639), which would send the user hunting a declaration that is right
+    /// (COBOL1560 for the section, COBOL1707 for the screen DISPLAY), never with the §8.4.2.1
+    /// "is not defined" verdict (COBOL1639), which would send the user hunting a declaration that is right
     /// there. This is what <c>tests/conformance/2023/screen_section_reference.cob</c> used to hold before PB260
     /// refuted its premise (it asserted the program COMPILED).</summary>
     [Theory]
@@ -94,12 +94,12 @@ public sealed class ScreenFacilityConstructDriftTests
         var (ok, errors) = Compile(ScreenProgram, edition);
         Assert.False(ok, "a SCREEN SECTION program must be REJECTED — Annex A.4.1 admits an optional element's "
             + "syntax only when support is claimed, and docs/CONFORMANCE.md §5 records A.4.2 as Not claimed");
-        Assert.True(Has(errors, "COBOLNET1560"), "expected the named screen-facility refusal:\n"
+        Assert.True(Has(errors, "COBOL1560"), "expected the named screen-facility refusal:\n"
             + string.Join("\n", errors));
-        Assert.True(Has(errors, "COBOLNET1707"), "expected the screen DISPLAY (format 2) to be named too — a "
+        Assert.True(Has(errors, "COBOL1707"), "expected the screen DISPLAY (format 2) to be named too — a "
             + "bare `DISPLAY screen-name` is token-identical to the device format and used to PRINT the screen "
             + "record:\n" + string.Join("\n", errors));
-        Assert.False(Has(errors, "COBOLNET1639"), "a name declared in the SCREEN SECTION must not also be "
+        Assert.False(Has(errors, "COBOL1639"), "a name declared in the SCREEN SECTION must not also be "
             + "reported as undefined (kb/Work R32):\n" + string.Join("\n", errors));
     }
 
@@ -122,7 +122,7 @@ public sealed class ScreenFacilityConstructDriftTests
                 STOP RUN.
             """, edition);
         Assert.True(ok, string.Join("\n", errors));
-        Assert.False(Has(errors, "COBOLNET1560") || Has(errors, "COBOLNET1707"));
+        Assert.False(Has(errors, "COBOL1560") || Has(errors, "COBOL1707"));
     }
 
     /// <summary>⛔ THE REGRESSION THIS WAVE ALMOST SHIPPED. `ON EXCEPTION` / `NOT ON EXCEPTION` is spelled the
@@ -156,7 +156,7 @@ public sealed class ScreenFacilityConstructDriftTests
                 STOP RUN.
             """, 2023);
         Assert.True(ok, string.Join("\n", errors));
-        Assert.False(Has(errors, "COBOLNET1707"));
+        Assert.False(Has(errors, "COBOL1707"));
     }
 
     /// <summary>⛔ THE COMPLEMENT OF THE OPTIONS INITIALIZE REFUSAL. §11.9.10.4 GR1 — "If ALL is specified,
@@ -181,7 +181,7 @@ public sealed class ScreenFacilityConstructDriftTests
                 STOP RUN.
             """, 2023);
         Assert.True(ok, string.Join("\n", errors));
-        Assert.False(Has(errors, "COBOLNET1560"));
+        Assert.False(Has(errors, "COBOL1560"));
     }
 
     // ══ THE SCREEN SURFACE'S OWN WORDS (kb/Work PB301) ═══════════════════════════════════════════════════════
@@ -214,7 +214,7 @@ public sealed class ScreenFacilityConstructDriftTests
     /// barred exactly where §8.9 reserves them, and §8.9 adds all but COLUMN in 2002, which leaves them legal
     /// COBOL-85 user words.</para>
     /// <para>Both arms are asserted here, and the REJECTING arm asserts the DIAGNOSTIC, not merely the rejection:
-    /// COBOLNET0901 names §8.9, where the raw COBOL0001 "no viable alternative" this class of bug produces names
+    /// COBOL0901 names §8.9, where the raw COBOL0001 "no viable alternative" this class of bug produces names
     /// nothing. The corpus lanes are <c>85/pb301_screen_words_as_user_words</c>,
     /// <c>2023/pb301_screen_words_as_user_words</c>, <c>negative/pb301-screen-words-reserved-from-2002</c> and
     /// <c>negative/pb301-column-reserved-at-every-edition</c>; the SCREEN-position complement — the same words
@@ -247,7 +247,7 @@ public sealed class ScreenFacilityConstructDriftTests
 
         Assert.False(ok, $"§8.9 reserves '{word}' at COBOL-{edition}, so §8.3.2.1 rule 1 bars it from a "
             + "user-defined-word slot");
-        Assert.True(Has(errors, "COBOLNET0901"), $"'{word}' must be refused BY NAME at COBOL-{edition} (§8.9 via "
+        Assert.True(Has(errors, "COBOL0901"), $"'{word}' must be refused BY NAME at COBOL-{edition} (§8.9 via "
             + $"the reservation gate's `reservedGatedWord` twin), never as a raw parse error:\n"
             + string.Join("\n", errors));
     }
@@ -488,7 +488,7 @@ public sealed class ScreenFacilityConstructDriftTests
                 STOP RUN.
             """, 2023);
         Assert.True(ok, string.Join("\n", errors));
-        Assert.False(Has(errors, "COBOLNET1707"));
+        Assert.False(Has(errors, "COBOL1707"));
     }
 
     /// <summary>The COBOL-85 complement of the CRT/CURSOR reservation gate: below 2002 those words are not
@@ -512,11 +512,11 @@ public sealed class ScreenFacilityConstructDriftTests
                 STOP RUN.
             """;
         var at85 = Compile(src, 85);
-        Assert.False(Has(at85.Errors, "COBOLNET1560"),
+        Assert.False(Has(at85.Errors, "COBOL1560"),
             "at COBOL-85 CURSOR is not reserved (§8.9), so this is an implementor-switch entry and carries no "
             + "screen verdict:\n" + string.Join("\n", at85.Errors));
         var at2023 = Compile(src, 2023);
-        Assert.True(Has(at2023.Errors, "COBOLNET1560: the SPECIAL-NAMES CURSOR clause"),
+        Assert.True(Has(at2023.Errors, "COBOL1560: the SPECIAL-NAMES CURSOR clause"),
             "at 2002+ the same text IS the §12.3.7 CURSOR clause (Annex A.4.2 item 25):\n"
             + string.Join("\n", at2023.Errors));
     }

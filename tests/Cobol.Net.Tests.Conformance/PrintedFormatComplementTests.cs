@@ -38,8 +38,8 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class PrintedFormatComplementTests
 {
-    private const string GoToShape = "COBOLNET2172";
-    private const string MoveCorrPosition = "COBOLNET2173";
+    private const string GoToShape = "COBOL2172";
+    private const string MoveCorrPosition = "COBOL2173";
 
     /// <summary>A main program whose PROCEDURE DIVISION is <paramref name="body"/>, with the two groups and the
     /// scalars the MOVE rows need. Paragraph P-A / P-B exist so a GO TO row is about SYNTAX alone and never
@@ -110,7 +110,7 @@ public sealed class PrintedFormatComplementTests
 
     /// <summary>⛔ THE EDITION-GATED ARM IS NOT A PARSE ERROR. The target-less <c>GO TO.</c> is ANSI
     /// X3.23-1985's alterable form, deleted by ISO/IEC 1989:2002 — so at 85 it COMPILES, and at 2002+ it draws
-    /// the named removal diagnostic (COBOLNET0811) instead of the no-viable-alternative the narrowing would
+    /// the named removal diagnostic (COBOL0811) instead of the no-viable-alternative the narrowing would
     /// otherwise have produced. The four-compilers rule wants the EDITION named, which is why that third
     /// alternative stayed in the grammar rather than being deleted with the rest of the complement.</summary>
     [Fact]
@@ -124,7 +124,7 @@ public sealed class PrintedFormatComplementTests
         {
             var (ok, diagnostics) = EditionHarness.Compile(Prog("PBGT21" + edition, body), edition);
             Assert.False(ok, $"--std {edition}: the target-less GO TO was removed by ISO/IEC 1989:2002");
-            EditionHarness.AssertHasDiagnostic(diagnostics, "COBOLNET0811");
+            EditionHarness.AssertHasDiagnostic(diagnostics, "COBOL0811");
             EditionHarness.AssertNoDiagnostic(diagnostics, GoToShape);   // gated by name, not by shape
         }
     }

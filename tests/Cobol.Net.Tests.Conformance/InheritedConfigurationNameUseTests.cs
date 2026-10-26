@@ -12,7 +12,7 @@ namespace CobolNet.Tests.Conformance;
 /// and lets it use identical words of its own ("each source element may use identical user-defined words to name items
 /// independent of the use of these user-defined words by other source elements"). So a contained program that
 /// declares a paragraph PBK is legal, and the same program that ALSO uses PBK as the inherited type uses one word as
-/// two types in its own source element: refused COBOLNET2692, exactly as the flat program that declares both is.
+/// two types in its own source element: refused COBOL2692, exactly as the flat program that declares both is.
 /// </summary>
 /// <remarks>
 /// One row per type §8.4.6.1 lists as declared in a configuration section, each at the first edition that has it.
@@ -65,7 +65,7 @@ public sealed class InheritedConfigurationNameUseTests
         """;
 
     /// <summary>The contained program USES the inherited name and declares a paragraph spelled like it: two types of
-    /// user-defined word in its own source element (§8.3.2.2), refused COBOLNET2692 naming both.</summary>
+    /// user-defined word in its own source element (§8.3.2.2), refused COBOL2692 naming both.</summary>
     [Theory]
     [MemberData(nameof(Kinds))]
     public void AUseOfTheInheritedName_BesideAParagraphOfTheSameSpelling_IsRefused(string kind, string entry,
@@ -73,26 +73,26 @@ public sealed class InheritedConfigurationNameUseTests
     {
         var (ok, diags) = EditionHarness.Compile(Program(entry, data, use), edition);
         Assert.False(ok, $"PBK used as a {kind} and declared as a paragraph-name in one source element must be refused");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET2692");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL2692");
         EditionHarness.AssertHasDiagnostic(diags, kind);
     }
 
     /// <summary>The same contained program WITHOUT the use declares only the paragraph: legal (§8.4.6.1, "each source
-    /// element may use identical user-defined words"), so no COBOLNET2692.</summary>
+    /// element may use identical user-defined words"), so no COBOL2692.</summary>
     [Theory]
     [MemberData(nameof(Kinds))]
     public void TheParagraphAlone_IsLegal(string kind, string entry, string data, string use, int edition)
     {
         _ = (kind, data, use);
         var (_, diags) = EditionHarness.Compile(Program(entry, "", ""), edition);
-        EditionHarness.AssertNoDiagnostic(diags, "COBOLNET2692");
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL2692");
     }
 
     /// <summary>§8.4.6.1: "a source element's reference to such a name, even when it is a different type of
     /// user-defined word, is to the item which that source element describes". SET LOCALE … TO admits a locale-name
     /// and an identifier, so the contained program's own PBL is the operand, not its container's locale-name PBL: a
-    /// data-pointer item is legal, and an alphanumeric one is §14.9.39.3 SR27's refusal (COBOLNET1668), never a use
-    /// of the locale-name (COBOLNET2692).</summary>
+    /// data-pointer item is legal, and an alphanumeric one is §14.9.39.3 SR27's refusal (COBOL1668), never a use
+    /// of the locale-name (COBOL2692).</summary>
     [Theory]
     [InlineData("USAGE POINTER", true)]
     [InlineData("PIC X", false)]
@@ -119,14 +119,14 @@ public sealed class InheritedConfigurationNameUseTests
             END PROGRAM PB3153LO.
             """;
         var (ok, diags) = EditionHarness.Compile(source, 2002);
-        EditionHarness.AssertNoDiagnostic(diags, "COBOLNET2692");
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL2692");
         Assert.Equal(legal, ok);
-        if (!legal) EditionHarness.AssertHasDiagnostic(diags, "COBOLNET1668");
+        if (!legal) EditionHarness.AssertHasDiagnostic(diags, "COBOL1668");
     }
 
     /// <summary>The same rule at WRITE … ADVANCING, which admits a mnemonic-name and an identifier: the contained
     /// program's own PBT is the line count, not its container's mnemonic-name PBT for C01. An integer item is legal; an
-    /// alphanumeric one is §14.9.51.3 SR14's refusal (COBOLNET2365), never a use of the mnemonic-name. An own integer
+    /// alphanumeric one is §14.9.51.3 SR14's refusal (COBOL2365), never a use of the mnemonic-name. An own integer
     /// CONSTANT-NAME is integer-1 (§13.10.3 SR2: it "may be used anywhere that a format specifies a literal of the
     /// class and category of constant-name-1"), so it wins too (review round 2; a bare data probe missed it).</summary>
     [Theory]
@@ -165,16 +165,16 @@ public sealed class InheritedConfigurationNameUseTests
             END PROGRAM PB3153WO.
             """;
         var (ok, diags) = EditionHarness.Compile(source, edition);
-        EditionHarness.AssertNoDiagnostic(diags, "COBOLNET2692");
+        EditionHarness.AssertNoDiagnostic(diags, "COBOL2692");
         Assert.Equal(legal, ok);
-        if (!legal) EditionHarness.AssertHasDiagnostic(diags, "COBOLNET2365");
+        if (!legal) EditionHarness.AssertHasDiagnostic(diags, "COBOL2365");
     }
 
     /// <summary>The same rule at FUNCTION STANDARD-COMPARE's argument-4 positions (§15.85.2 "( argument-1 argument-2
     /// [ ordering-name-1 ] [ argument-4 ] )"). Position 3 of the THREE-argument form admits an integer data item as
     /// well as an ordering-name, so the contained program's own PBV is argument-4, not its container's ordering-name
     /// PBV: legal, and no ordering-name use is recorded. With FOUR arguments position 3 IS ordering-name-1, so PBV
-    /// there is a use of the inherited ordering-name beside the element's own data-name PBV (COBOLNET2692, the
+    /// there is a use of the inherited ordering-name beside the element's own data-name PBV (COBOL2692, the
     /// census's refusal at a position that admits the one type only), while PBV at position 4 is argument-4, the own
     /// item, never the "ordering-name in the argument-4 position" refusal. The corpus golden
     /// <c>2014/pb3153_inherited_names_yield_to_own_items</c> pins the three-argument form, the EVALUATE and VALUE
@@ -213,7 +213,7 @@ public sealed class InheritedConfigurationNameUseTests
         var (ok, diags) = EditionHarness.Compile(source, 2014);
         Assert.Equal(legal, ok);
         EditionHarness.AssertNoDiagnostic(diags, "in the argument-4 position");
-        if (legal) EditionHarness.AssertNoDiagnostic(diags, "COBOLNET2692");
+        if (legal) EditionHarness.AssertNoDiagnostic(diags, "COBOL2692");
         else EditionHarness.AssertHasDiagnostic(diags, $"({ownType} and ordering-name)");
     }
 
@@ -256,7 +256,7 @@ public sealed class InheritedConfigurationNameUseTests
             """;
         var (ok, diags) = EditionHarness.Compile(source, 2002);
         Assert.False(ok);
-        Assert.Single(diags, d => d.Contains("COBOLNET2692", StringComparison.Ordinal));
+        Assert.Single(diags, d => d.Contains("COBOL2692", StringComparison.Ordinal));
         EditionHarness.AssertHasDiagnostic(diags, "'PB53MDIG' names two types of user-defined word in this source "
             + "element (paragraph-name and class-name)");
     }

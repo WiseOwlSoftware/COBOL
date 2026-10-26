@@ -20,7 +20,7 @@
       *> and, at COBOL-2023, also OBSOLETE (§4.2.13, Annex F.2 item 5) —
       *> docs/CONFORMANCE.md §4 item 3. No format validation stage ever
       *> executes, so GR19 has no occasion to apply.
-      *> WITNESS: the named COBOLNET1580 non-support warning, which is
+      *> WITNESS: the named COBOL1580 non-support warning, which is
       *> the WHOLE discriminating evidence (pinned by
       *> DocumentedNonSupportWitnessTests). The .out pins INERTNESS
       *> ONLY — control passes through the VALIDATE and N reaches 1.
