@@ -18158,10 +18158,10 @@
   "rule-digest": "673abcd97a8c",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.PictureRequired.cs#CheckPictureRequired; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
-  "test-ref": "conformance:cases/13.16-Data-description/pb487-picture-required-elementary; conformance:cases/13.16-Data-description/program-pointer-with-picture; unit:ImpliedPictureTests.Sr9_GrantsNothingHere_SoSr8StillRequiresThePicture",
+  "test-ref": "conformance:cases/13.16-Data-description/pb487-picture-required-elementary; conformance:cases/13.16-Data-description/program-pointer-with-picture; unit:ImpliedPictureTests.Sr9_GrantsNothingHere_SoSr8StillRequiresThePicture; conformance:cases/13.16-Data-description/pb3682-typedef-usage-national-without-picture; conformance:cases/13.16-Data-description/pb3682-typedef-usage-fixed-binary-with-picture",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Both halves hold. The prohibition half (no PICTURE on the eleven picture-less usages) is enforced at BindEntry. The REQUIREMENT half - 'For any other entry describing an elementary item, a PICTURE clause shall be specified except as indicated in Syntax rule 9' - is the CheckPictureRequired closing guard: COBOLNET0881 over the conformance forest, a recovery PicInfo over the composition forest, so no elementary item reaches the emitter without one (before it, every picture-less elementary entry escaped with a null PicInfo and CRASHED the compiler with an unhandled NullReferenceException in MoveEmitter.ConvertSource). An unexpanded TYPE / SAME AS reference is excluded by the rule's own words - it describes nothing. kb/Work PB487. || UPDATED BY kb/Work PB504: the guard now has NO CARVE-OUT AT ALL. SR8's deferral to SR9 is honoured by APPLYING SR9 rather than by excusing it - SynthesizeImpliedPictures gives every entry inside SR9's grant the implied PICTURE two passes earlier, so such an entry is no longer a picture-less leaf and this guard never sees it. The former figurative-VALUE exemption is therefore GONE rather than widened; it had also silently admitted `01 G VALUE ALL \"AB\".` to the ONE-CHARACTER recovery item, which stored A (kb/Work PB831). What the guard still reports is exactly SR8's own population: a numeric literal VALUE, the class-pointer figurative NULL, a zero-length literal (SR9 excludes it by name), a Format-2 table VALUE (SR9 grants only the data-item format), and an entry with no VALUE clause at all.",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -18188,10 +18188,10 @@
   "rule-digest": "2462f276d57b",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#AdmitsNoValueLiteral; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary",
-  "test-ref": "conformance:cases/13.16-Data-description/pb515-value-on-index-item; conformance:cases/13.16-Data-description/pb515_index_item_without_value; conformance:cases/13.16-Data-description/pb557-value-null-on-pointer; conformance:cases/13.16-Data-description/pb557-value-on-object-reference; conformance-test:ValueClauseScreenTests.IndexItem_WithValue_IsRejected_WrittenAndInherited; conformance-test:ValueClauseScreenTests.IndexItem_WithoutValue_Compiles; unit:ValueClauseUsageSetDriftTests.TheSet_IsSr10sClasses_ThroughTableTwo",
+  "test-ref": "conformance:cases/13.16-Data-description/pb515-value-on-index-item; conformance:cases/13.16-Data-description/pb515_index_item_without_value; conformance:cases/13.16-Data-description/pb557-value-null-on-pointer; conformance:cases/13.16-Data-description/pb557-value-on-object-reference; conformance-test:ValueClauseScreenTests.IndexItem_WithValue_IsRejected_WrittenAndInherited; conformance-test:ValueClauseScreenTests.IndexItem_WithoutValue_Compiles; unit:ValueClauseUsageSetDriftTests.TheSet_IsSr10sClasses_ThroughTableTwo; conformance:cases/13.16-Data-description/pb3682-typedef-usage-index-with-value",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB515, LANDED (wave 58). \"The VALUE clause shall not be specified for data items of class index, message-tag, object, or pointer\" (cite --check OK, §13.16.3 10)). UsageFamilies.AdmitsNoValueLiteral is now THIS rule's class set, spelled as the usages §8.5.2.1 Table 2 files under the four classes: INDEX (class index), MESSAGE-TAG, OBJECT REFERENCE (class object), POINTER / FUNCTION-POINTER / PROGRAM-POINTER (class pointer); ValueClauseUsageSetDriftTests.TheSet_IsSr10sClasses_ThroughTableTwo re-derives it from SR10 and Table 2 in the spec on every run, both directions. It was written from §13.18.63.3 SR9 alone and so lacked USAGE INDEX: `77 I USAGE INDEX VALUE 7.` compiled at every edition and seeded the index item. Two screens, one diagnostic (COBOLNET2168) and one cited sentence (UsageFamilies.NoValueClauseRule): BindEntry for the entry's own USAGE clause, UsageInheritanceElementary for a usage ACQUIRED from a group under §13.18.60.4 GR1 (`01 G USAGE INDEX. 05 A VALUE 1.` compiled clean before). The pointer and object classes were already refused (PB557) and are unchanged; the message-tag leg reports beside the facility decline (COBOLNET1943 + COBOLNET2168). MEASURED on the wave-58 build at every edition.",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -21607,11 +21607,11 @@
   "subject": "GROUP-USAGE clause",
   "rule-digest": "49f1aee6188c",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
-  "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb79-group-usage-not-a-group",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/DataBinder.cs#UsageInheritanceGroup",
+  "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb79-group-usage-not-a-group; conformance-test:UsageInheritanceDriftTests.ATypedefDefect_IsReportedOnce_AtTheDeclaration",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "LANDED 2026-08-18 (PB79). COBOLNET1653 on an entry with a PICTURE (elementary), an entry with no subordinates, a strongly-typed group (StrongTypeModel.IsStrongGroup) or a variable-length group (ReferenceResolver.HasVariableLengthSubordinate). retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems (ResolveIndexItems was removed when a group's USAGE clause became each leaf's USAGE clause (kb/Work PB495+PB520+PB540, b5101f8e0))",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -21622,11 +21622,11 @@
   "subject": "GROUP-USAGE clause",
   "rule-digest": "e711f2d82424",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
-  "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb79-group-usage-explicit-usage; conformance:cases/13.18.29-GROUP-USAGE/pb79-group-usage-subordinate-conflict; conformance:cases/13.16-Data-description/pb79_group_usage_bit",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/DataBinder.cs#UsageInheritanceGroup",
+  "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb79-group-usage-explicit-usage; conformance:cases/13.18.29-GROUP-USAGE/pb79-group-usage-subordinate-conflict; conformance:cases/13.16-Data-description/pb79_group_usage_bit; conformance:cases/13.18.29-GROUP-USAGE/pb3682-typedef-group-usage-bit-over-national",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "LANDED 2026-08-18 (PB79). USAGE BIT implied for the subject (the PicPending.BitUsage adjudication a group-level USAGE BIT clause rides — §13.18.60.4 GR1: every subordinate PICTURE-1 leaf without its own USAGE becomes bit-form; a non-boolean leaf is COBOLNET0881); an explicit USAGE on the subject is COBOLNET1653; every subordinate group is GROUP-USAGE BIT implicitly, a conflicting explicit one COBOLNET1653. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems (ResolveIndexItems was removed when a group's USAGE clause became each leaf's USAGE clause (kb/Work PB495+PB520+PB540, b5101f8e0))",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -21637,11 +21637,11 @@
   "subject": "GROUP-USAGE clause",
   "rule-digest": "84e6e796f9f2",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
-  "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb79-group-usage-explicit-usage; conformance:cases/13.16-Data-description/pb79_group_usage_national",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/DataBinder.cs#UsageInheritanceGroup; src/Cobol.Net.Compiler/Binding/DataBinder.cs#GroupUsagePairIsTheDeclarations",
+  "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb79-group-usage-explicit-usage; conformance:cases/13.16-Data-description/pb79_group_usage_national; conformance:cases/13.18.29-GROUP-USAGE/pb3682-typedef-group-usage-national-over-bit; conformance:cases/13.18.29-GROUP-USAGE/pb3682-type-subject-group-usage-from-enclosing-group; conformance:cases/13.18.29-GROUP-USAGE/pb3682-same-as-subject-group-usage-from-enclosing-group",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "LANDED 2026-08-18 (PB79). USAGE NATIONAL implied for the subject (the PicPending.NationalUsage adjudication: every subordinate leaf must be usage national — a boolean/numeric leaf is the national-FORM staged leg (0899, Phase 4a residue), an alphabetic/alphanumeric one COBOLNET0881); an explicit USAGE on the subject and a conflicting subordinate GROUP-USAGE are COBOLNET1653. The SIGN IS SEPARATE half rides the numeric-national leg (staged with it). retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems (ResolveIndexItems was removed when a group's USAGE clause became each leaf's USAGE clause (kb/Work PB495+PB520+PB540, b5101f8e0))",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -24218,10 +24218,10 @@
   "rule-digest": "79a36e0436a2",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ApplyEffectiveNoSign",
-  "test-ref": "conformance:cases/13.18.40-PICTURE/pb570-group-no-sign-signed-picture; conformance:cases/13.18.40-PICTURE/pb570_group_no_sign; conformance-test:UsageInheritanceDriftTests.InheritedUsagePhrase_IsTheSameItemAsAWrittenOne",
+  "test-ref": "conformance:cases/13.18.40-PICTURE/pb570-group-no-sign-signed-picture; conformance:cases/13.18.40-PICTURE/pb570_group_no_sign; conformance-test:UsageInheritanceDriftTests.InheritedUsagePhrase_IsTheSameItemAsAWrittenOne; conformance:cases/13.18.40-PICTURE/pb3682-typedef-usage-no-sign-over-signed-picture",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB570 LANDED. SR31's subject is 'the subject of the entry' the NO SIGN phrase is specified for, and 13.18.60.4 GR1 makes that each elementary item in the group whenever the clause is written at a group level. Both spellings are now adjudicated by ONE site, DataBinder.ApplyEffectiveNoSign, reached from the 13.18.60.4 GR1 walk: the phrase travels on DataItem.OwnNoSign (a DescriptionCopyKind.Clause field, so TYPE / SAME AS carry it) and on InheritedUsage.NoSign. MEASURED on this worktree's own build: `01 GS USAGE PACKED-DECIMAL WITH NO SIGN. 05 W1 PIC S9(4).` -> COBOLNET1566 citing SR31 plus the GR1 provenance, at all four editions (it compiled CLEAN before, at every nesting depth); the elementary spelling is unchanged. The negative fixture the previous record asked for is tests/conformance/negative/pb570-group-no-sign-signed-picture. The phrase axis of UsageInheritanceDriftTests now compares the group and leaf spellings of every keyword-only USAGE phrase over a picture set that includes PIC S9(4), so the arm cannot be lost again.",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -26317,11 +26317,11 @@
   "subject": "SAME AS clause",
   "rule-digest": "00fdc5435c02",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/Cobol.Net.Compiler/Binding/DataBinder.cs#EntryClauseCandidates",
-  "test-ref": "conformance-test:SameAsTests.SameAsOfMidLevelGroup_Rejected1556",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/Cobol.Net.Compiler/Binding/DataBinder.cs#EntryClauseCandidates; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandSameAsEntry",
+  "test-ref": "conformance-test:SameAsTests.SameAsOfMidLevelGroup_Rejected1556; conformance:cases/13.18.49-SAME-AS/pb3682-same-as-group-with-usage-not-level-1; conformance:cases/13.18.49-SAME-AS/pb3682_same_as_leaf_under_group_usage",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "SR7 \"Data-name-1 shall reference an elementary item or a level 1 group item described in the file, working-storage, local-storage, or linkage section.\" (--check 13.18.49.3 -> OK 7)). Shape half: `target.Level == 66 || !(IsElementary || Level == 1)` -> 1556 (SameAsOfMidLevelGroup_Rejected1556; probe q03_66 RENAMES target -> 1556; r02_gr4 level-05 group -> 1556). Section half: resolution through EntryClauseCandidates only finds data-division record items; constant-name (p01), condition-name (p02), TYPEDEF root (p03), REPORT SECTION group (p20) all -> 1556 'does not resolve'; SCREEN SECTION (p04) is refused as a declined module (COBOLNET1560, CONFORMANCE.md §5). Positives: FILE (q06_fdok, q07), LOCAL-STORAGE and LINKAGE (p16_sr7ok -> [ABC][QQ][LS]), WORKING-STORAGE throughout. The test covers only the level half. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023)",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -26378,10 +26378,10 @@
   "rule-digest": "52d4e09b110e",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/Cobol.Net.Compiler/Binding/DataBinder.cs#CopyEntryDescription; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs",
-  "test-ref": "conformance:cases/13.18.49-SAME-AS/typedef_same_as",
+  "test-ref": "conformance:cases/13.18.49-SAME-AS/typedef_same_as; conformance:cases/13.18.49-SAME-AS/pb3682_same_as_picture_less_group_usage",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "GR1 (--check 13.18.49.4 -> OK 1)). Copy via the one CopyEntryDescription (scope Entry - alignment carried, as GR1 has no alignment exclusion); exclusion list enforced by DataItem [DescriptionCopy] classifications + DescriptionCopyCompletenessDriftTests. Probes: VALUE/JUSTIFIED/BLANK WHEN ZERO carried and REDEFINES excluded (p09: `01 B REDEFINES A PIC X(4) JUSTIFIED RIGHT. 01 S SAME AS B.` MOVE \"AB\" TO S -> A stays [WXYZ], S [  AB]; SZ SAME AS a BWZ VALUE 0 item -> [   ]); GLOBAL excluded (p21: nested program cannot see W SAME AS a GLOBAL item -> COBOLNET1639); EXTERNAL excluded by classification (HasExternalClause None), while a TYPE-derived external rides §13.18.22.4 GR3; level-number/name excluded (qualified references to the copy work, p10). CONSTANT RECORD exclusion is vacuous under SR10. SELECT WHEN belongs to Annex A.4.8 (declined, CONFORMANCE.md §5; DataBinder refuses the clause), so its exclusion is unreachable. Chained copy with VALUE through OCCURS: q10 -> [AB12][AB12AB12] length 8. Also conformance:cases/8.5.2.5-Boolean-category/pb522_group_usage_travels_with_the_description (GROUP-USAGE travels). EDGE NOTED (not a verdict change): an elementary data-name-1 inside a GROUP-USAGE NATIONAL group (p24, q02) yields a DISPLAY subject (BYTE-LENGTH 3 / 4 vs E's 8) - the national usage is implied by the group (§13.18.29.3 SR3 'explicitly or implicitly described as usage national', --check OK) and GR3 transfers a USAGE clause only from an alphanumeric or strongly-typed group; the literal reading supports the compiler, recorded as a dossier gap. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023) || Code-location witnesses adjusted by registrar 14e: src/Cobol.Net.Compiler/Binding/Model/DataItem.cs (the symbol named was not in the file at 071ff04ea; path kept)",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -26407,11 +26407,11 @@
   "subject": "SAME AS clause",
   "rule-digest": "1cc8a30332ce",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/Cobol.Net.Compiler/Binding/Model/ItemCategory.cs#GroupKindsOf",
-  "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb646_national_form_numeric_2002; conformance:cases/13.18.49-SAME-AS/w66g_pb1300_type_same_as_composition",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/Cobol.Net.Compiler/Binding/Model/ItemCategory.cs#GroupKindsOf; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandSameAsEntry",
+  "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb646_national_form_numeric_2002; conformance:cases/13.18.49-SAME-AS/w66g_pb1300_type_same_as_composition; conformance:cases/13.18.49-SAME-AS/pb3682_same_as_leaf_under_group_usage",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB1300. Rule (cite.py --check 13.18.49.4 'If an alphanumeric group item or strongly-typed group item to which data-name-1 is subordinate contains a USAGE clause, the effect is as though that USAGE clause had been specified for the subject of the entry' -> OK §13.18.49.4 3)). ExpandSameAs's ancestor walk now takes a USAGE only from a group whose ItemCategory.GroupKindsOf is Alphanumeric or StronglyTyped, passing over any other kind; GroupKindsOf reads the GROUP-USAGE a group is 'explicitly or implicitly described as' (§13.18.29.3 SR2/SR3) pull-style, so a group nested in a GROUP-USAGE NATIONAL group is a national group already in this first bind pass. Golden: SA SAME AS AE under `01 A USAGE COMP-5` -> BYTE-LENGTH 2 (alphanumeric group transfers); ES SAME AS E under `05 H USAGE NATIONAL` in `01 G GROUP-USAGE NATIONAL` -> 3 (H is a national group; E itself is 6). The GR5 sibling (SIGN, set alphanumeric|national|strongly-typed) takes the same filter.",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -26722,11 +26722,11 @@
   "subject": "SIGN clause",
   "rule-digest": "e2f672522328",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#WithInheritedSign; src/Cobol.Net.Compiler/Binding/DataBinder.ReportItemDescription.cs#EnclosingReportItem; src/Cobol.Net.Compiler/Binding/DataBinder.ReportItemDescription.cs#ReportPrintablePicture",
-  "test-ref": "conformance:cases/13.18.52-SIGN/pb536_code_set_group_sign; conformance:cases/13.18.52-SIGN/pb493_report_group_sign_inherited",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#WithInheritedSign; src/Cobol.Net.Compiler/Binding/DataBinder.ReportItemDescription.cs#EnclosingReportItem; src/Cobol.Net.Compiler/Binding/DataBinder.ReportItemDescription.cs#ReportPrintablePicture; src/Cobol.Net.Compiler/Binding/DataBinder.cs#InheritSignClauses",
+  "test-ref": "conformance:cases/13.18.52-SIGN/pb536_code_set_group_sign; conformance:cases/13.18.52-SIGN/pb493_report_group_sign_inherited; conformance:cases/14.9.39-SET/pb3682_set_restricted_pointer_to_typedef_group_clauses",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB493 (landed, wave 20261032). A group's SIGN clause reaches each subordinate signed numeric item through ONE rule, DataBinder.WithInheritedSign, read by the data division's group walk (InheritSignClauses), the 13.18.49.4 GR5 SAME AS transform and now the REPORT SECTION: a report group description entry hands its clause down through EnclosingReportItem, the same reader that hands down its USAGE (13.18.60.4 GR1). Before the fix `01 DET-A TYPE DE SIGN LEADING SEPARATE. 02 COLUMN 1 PIC S9(3) SOURCE WN.` printed the GR4 default `00N` for -5; golden 2002/pb493_report_group_sign_inherited prints `-005 +007`. Determination D-SIGN1 (docs/CONFORMANCE.md section 3): an inherited clause reaches a display or national signed item only; a binary or packed item keeps its representation (data division witness: pb536_code_set_group_sign).",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -27832,11 +27832,11 @@
   "subject": "TYPE clause",
   "rule-digest": "01fc812f7f9d",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#CopyEntryDescription; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenComposedBased; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#IsBased",
-  "test-ref": "conformance:cases/13.18.49-SAME-AS/w66g_pb1300_type_same_as_composition; conformance:cases/13.16-Data-description/w66g-pb1300-composed-based-level",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#CopyEntryDescription; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ScreenComposedBased; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#IsBased; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandType",
+  "test-ref": "conformance:cases/13.18.49-SAME-AS/w66g_pb1300_type_same_as_composition; conformance:cases/13.16-Data-description/w66g-pb1300-composed-based-level; conformance:cases/13.18.57-TYPE/pb3682_typedef_picture_less_group_usage; conformance-test:UsageInheritanceDriftTests.TheDescriptionCopies_AskTheEntry_NotTheCompletedForm",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB1300. Rule (cite.py --check 13.18.57.4 'excluding the level-number, name, alignment, and the GLOBAL, SELECT WHEN, and TYPEDEF clauses specified for type-name-1' -> OK §13.18.57.4 1); 13.18.58.4 'All other data description clauses and subordinate data descriptions are assumed by data defined using the type-name' -> OK 3)). The one description copy (CopyEntryDescription) carries every clause but the exclusions; BASED is now DescriptionCopyKind.EntryOnly (carried by TYPE / SAME AS / subordinate copies, not onto a compiler temporary), so `01 T TYPEDEF BASED PIC X(5). 01 X TYPE T.` makes X a based item: SET ADDRESS OF X TO ADDRESS OF Y then X=[HELLO], MOVE to X writes Y (positive golden). A composed BASED is placement-screened as a written one (ScreenComposedBased, COBOLNET2510: §13.16.3 SR16 level 1/77, SR5 not with EXTERNAL, SR13 not with CONSTANT RECORD) - `05 X TYPE T` is refused (negative golden). SR16's SECTION sentence is owned by kb/Work PB516 for both arms (BasedLevelAdmitted is the shared predicate). The alignment exclusion (scope TypeSubject), level-number/name and TYPEDEF behave as before (probe t1 of the adjudication).",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -28028,10 +28028,10 @@
   "rule-digest": "82a2f919cb84",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#TryFindTypeDecl; src/Cobol.Net.Compiler/Binding/DataBinder.cs#InheritGlobalTypeDecls; src/Cobol.Net.Compiler/Binding/BinderDriver.cs#BindUnitData",
-  "test-ref": "conformance:cases/13.18.58-TYPEDEF/pb1303_global_typedef_inherited; conformance:cases/13.18.58-TYPEDEF/pb1303-local-typedef-not-inherited",
+  "test-ref": "conformance:cases/13.18.58-TYPEDEF/pb1303_global_typedef_inherited; conformance:cases/13.18.58-TYPEDEF/pb1303-local-typedef-not-inherited; conformance:cases/13.18.58-TYPEDEF/pb3682_global_typedef_picture_less_group_usage",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB1303 (wave 1012 J). cite.py --check 13.18.58.4 'The GLOBAL clause applies to the scope of the type-name' OK GR3; --check 8.4.6.2.2 'type-name described with a GLOBAL clause is a global name' OK. A GLOBAL type declaration is now a global name: BinderDriver.BindUnitData hands every container's GLOBAL TYPEDEFs to the contained unit BEFORE data.Bind (DataBinder.InheritGlobalTypeDecls, nearest container first, a local declaration shadowing); DataBinder.TryFindTypeDecl is the ONE type-name lookup (TYPE clause, USAGE POINTER TO type-name, an intrinsic's type-name argument). Golden: the directly contained and the grandchild program use OUTER's T (group with a numeric member and an 88) and the nearer MID's U over OUTER's U; the negative pins that a type-name WITHOUT GLOBAL stays local (COBOLNET1530). The object-definition clause of 8.4.6.2.2 (a type-name declared in a factory or instance definition is global to its methods) was probed and already conforms.",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -28088,10 +28088,10 @@
   "rule-digest": "e4600b0998b6",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#UsageInheritancePass; src/Cobol.Net.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ApplyEffectiveUsage; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#IsPictureless",
-  "test-ref": "conformance:cases/13.18.60-USAGE/pb495-sr2-contradicting-group-usage; conformance-test:UsageInheritanceDriftTests.Sr2_ContradictingUsages_AreDiagnosed_AndTheAgreeingSpellingCompiles; conformance-test:UsageInheritanceDriftTests.InheritedUsage_IsTheSameItemAsAWrittenOne; unit:PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless; unit:PicturelessUsageSetDriftTests.EveryPicturelessMember_IsSr8Named_OrACoveredDetermination",
+  "test-ref": "conformance:cases/13.18.60-USAGE/pb495-sr2-contradicting-group-usage; conformance-test:UsageInheritanceDriftTests.Sr2_ContradictingUsages_AreDiagnosed_AndTheAgreeingSpellingCompiles; conformance-test:UsageInheritanceDriftTests.InheritedUsage_IsTheSameItemAsAWrittenOne; unit:PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless; unit:PicturelessUsageSetDriftTests.EveryPicturelessMember_IsSr8Named_OrACoveredDetermination; conformance:cases/13.18.60-USAGE/pb3682-typedef-usage-group-contradiction",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB495 landed the ONE derivation of an elementary item's EFFECTIVE usage -- its own USAGE clause, else the nearest enclosing group's (13.18.60.4 GR1) -- feeding the group-header shed, the leaf's representation and EVERY 13.18.60.3 screen through the SAME code the written-clause path runs (PictureAnalyzer.ScreenUsageAgainstPicture, extracted for the purpose). The invariant is stated and locked as an EQUIVALENCE rather than as cases: `01 G USAGE u. 05 A <pic>.` and `01 G. 05 A <pic> USAGE u.` are the same item, so they must produce the same verdict, the same diagnostic code and the same width, for EVERY member of the Usage enum. UsageInheritanceDriftTests enumerates the enum and asserts exactly that (24 members x 6 pictures x 2 arms). MEASURED on the pre-fix tree 39479e19: 108 of those 138 cells DIFFERED between the two arms; after the fix, 0 differ. SR2 HAD NO SITE AT ALL before this landing (`grep '13.18.60.3 SR2' src/` was empty): the nearer clause simply won and the outer one was discarded in silence, so `01 G USAGE COMP. 05 A PIC 9(4). 05 B PIC 9(4) USAGE DISPLAY.` compiled with B a 4-byte DISPLAY item and the group 6 bytes where the conforming spelling gives 4. It is now COBOLNET1927, reported against the SUBORDINATE entry and against the NEAREST enclosing entry that wrote a clause, so a chain G->H->A reports each adjacent contradiction once, at the entry whose clause has to change. \"The same usage\" is compared as the RESOLVED Usage member, which is what the standard asks: SR6 makes COMP the abbreviation for COMPUTATIONAL, and GR4/GR6 leave the BINARY and COMPUTATIONAL representations to the implementor, so this implementation's identification of the three makes them one usage and `USAGE COMP` inside a `USAGE BINARY` group conforms -- pinned positively by the second half of the Sr2_ContradictingUsages test (A=2 B=2 C=2 G=6). Edition-invariant: a group-level USAGE clause, COMPUTATIONAL and DISPLAY are all COBOL-85, which is why the negative golden's reject-at names all four editions.",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -28103,10 +28103,10 @@
   "rule-digest": "0562710a2856",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#UsageInheritancePass; src/Cobol.Net.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ApplyEffectiveUsage; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#IsPictureless",
-  "test-ref": "conformance:cases/13.18.60-USAGE/ca35_comp_alpha_picture; conformance:cases/13.18.60-USAGE/ca35_packed_alpha_picture; conformance:cases/13.18.60-USAGE/pb495-sr2-contradicting-group-usage; conformance-test:UsageInheritanceDriftTests.InheritedUsage_IsTheSameItemAsAWrittenOne; unit:PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless; unit:PicturelessUsageSetDriftTests.EveryPicturelessMember_IsSr8Named_OrACoveredDetermination",
+  "test-ref": "conformance:cases/13.18.60-USAGE/ca35_comp_alpha_picture; conformance:cases/13.18.60-USAGE/ca35_packed_alpha_picture; conformance:cases/13.18.60-USAGE/pb495-sr2-contradicting-group-usage; conformance-test:UsageInheritanceDriftTests.InheritedUsage_IsTheSameItemAsAWrittenOne; unit:PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless; unit:PicturelessUsageSetDriftTests.EveryPicturelessMember_IsSr8Named_OrACoveredDetermination; conformance:cases/13.18.60-USAGE/pb3682-typedef-usage-binary-over-alphanumeric",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB495 landed the ONE derivation of an elementary item's EFFECTIVE usage -- its own USAGE clause, else the nearest enclosing group's (13.18.60.4 GR1) -- feeding the group-header shed, the leaf's representation and EVERY 13.18.60.3 screen through the SAME code the written-clause path runs (PictureAnalyzer.ScreenUsageAgainstPicture, extracted for the purpose). The invariant is stated and locked as an EQUIVALENCE rather than as cases: `01 G USAGE u. 05 A <pic>.` and `01 G. 05 A <pic> USAGE u.` are the same item, so they must produce the same verdict, the same diagnostic code and the same width, for EVERY member of the Usage enum. UsageInheritanceDriftTests enumerates the enum and asserts exactly that (24 members x 6 pictures x 2 arms). MEASURED on the pre-fix tree 39479e19: 108 of those 138 cells DIFFERED between the two arms; after the fix, 0 differ. BOTH LIMBS NOW HOLD, and the two holes the row recorded are closed together because the extraction made them one site. LIMB 2 (\"an elementary data item SUBORDINATE TO A GROUP ITEM whose declaration contains\" the usage) had no site: `01 G USAGE COMP. 05 A PIC X(3).` compiled and A stayed a 3-byte alphanumeric DISPLAY item with the COMP silently dropped. It now reports the SAME COBOLNET0881 as the written-clause spelling, from the same code. THE NUMERIC-EDITED HOLE (kb/Work PB540) is closed in the same change: the screen's predicate was `anyAlpha`, so `PIC ZZ9 USAGE COMP` escaped it and bound as a 1-byte binary item against a 3-character image; writing the rule properly in the extracted screen -- SR3 admits only \"a picture character-string that describes a NUMERIC item\", and 8.5.2 Table 2 puts category numeric alone in class numeric while numeric-EDITED is class alphanumeric -- rejects it on both arms and recovers to usage-display, so the item measures 3 like the usage-less control. Measured at 85/2002/2014/2023.",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -28388,10 +28388,10 @@
   "rule-digest": "59f0a3ac3ff6",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#UsageInheritancePass; src/Cobol.Net.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ApplyEffectiveUsage; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#IsPictureless",
-  "test-ref": "conformance:cases/13.18.60-USAGE/pb495_group_usage_applies_to_each_leaf; conformance:cases/13.16-Data-description/pb79_group_usage_bit; conformance:cases/13.18.60-USAGE/pb495-inherited-usage-forbids-picture; conformance-test:UsageInheritanceDriftTests.PicturelessLeafUnderAGroupUsage_TakesTheUsagesWidth; conformance-test:UsageInheritanceDriftTests.Sr8Set_MatchesWhatTheCompilerActuallyDoes; conformance-test:UsageInheritanceDriftTests.InheritedUsage_IsTheSameItemAsAWrittenOne; unit:PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless; unit:PicturelessUsageSetDriftTests.EveryPicturelessMember_IsSr8Named_OrACoveredDetermination",
+  "test-ref": "conformance:cases/13.18.60-USAGE/pb495_group_usage_applies_to_each_leaf; conformance:cases/13.16-Data-description/pb79_group_usage_bit; conformance:cases/13.18.60-USAGE/pb495-inherited-usage-forbids-picture; conformance-test:UsageInheritanceDriftTests.PicturelessLeafUnderAGroupUsage_TakesTheUsagesWidth; conformance-test:UsageInheritanceDriftTests.Sr8Set_MatchesWhatTheCompilerActuallyDoes; conformance-test:UsageInheritanceDriftTests.InheritedUsage_IsTheSameItemAsAWrittenOne; unit:PicturelessUsageSetDriftTests.EverySr8NamedUsage_WithAMember_IsPictureless; unit:PicturelessUsageSetDriftTests.EveryPicturelessMember_IsSr8Named_OrACoveredDetermination; conformance:cases/13.18.57-TYPE/pb3682_typedef_picture_less_group_usage; conformance:cases/13.18.58-TYPEDEF/pb3682_global_typedef_picture_less_group_usage; conformance:cases/13.18.49-SAME-AS/pb3682_same_as_picture_less_group_usage; conformance-test:UsageInheritanceDriftTests.APicturelessGroupUsage_IsCopiedWithItsSubordinates",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB495 landed the ONE derivation of an elementary item's EFFECTIVE usage -- its own USAGE clause, else the nearest enclosing group's (13.18.60.4 GR1) -- feeding the group-header shed, the leaf's representation and EVERY 13.18.60.3 screen through the SAME code the written-clause path runs (PictureAnalyzer.ScreenUsageAgainstPicture, extracted for the purpose). The invariant is stated and locked as an EQUIVALENCE rather than as cases: `01 G USAGE u. 05 A <pic>.` and `01 G. 05 A <pic> USAGE u.` are the same item, so they must produce the same verdict, the same diagnostic code and the same width, for EVERY member of the Usage enum. UsageInheritanceDriftTests enumerates the enum and asserts exactly that (24 members x 6 pictures x 2 arms). MEASURED on the pre-fix tree 39479e19: 108 of those 138 cells DIFFERED between the two arms; after the fix, 0 differ. THE RULE'S TWO SENTENCES NOW BOTH HOLD. (a) \"it applies only to each elementary item in the group\": a PICTURE-less leaf under a group-level BINARY-CHAR/-SHORT/-LONG/-DOUBLE, COMP-1/COMP-2, FLOAT-SHORT/-LONG/-EXTENDED, FLOAT-BINARY-32/-64 or INDEX now IS an item of that usage and takes its width (1/2/4/8, 4/8, 4/8/8, 4/8, 8) instead of the ZERO-LENGTH cell it was; a PICTURE-BEARING leaf under one of those usages draws the same 13.16.3 SR8 diagnostic, with the same code, that the written-clause spelling draws, instead of silently keeping its usage-display width. (b) \"and not to the group itself\": the group header sheds the profile entry bind synthesized for it -- for EVERY picture-less usage now, derived from DataItem.PicIsUsageSynthesized rather than from a hand-list of four shapes, so a group-level FLOAT-SHORT no longer emits the GROUP as a scalar C# float (a raw Roslyn CS1061 on every member reference, and the worst-harm arm of the finding). The MOVE-into-an-inherited-picture-less-leaf compiler crash (NullReferenceException in MoveEmitter.ConvertSource) goes with it, as does an NRE in ProgramEmitter.EmitCallMethod for the same shape used as a PROCEDURE DIVISION USING formal (the linkage formal's carrier-residency verdict was taken from the transient synthesized profile, before this pass sheds it; it is now the structural test). Also landed here: kb/Work PB520's roster -- 13.16.3 SR8's prohibition was five separate hand-written `if (entryUsage is ...)` arms in BindEntry with no INDEX arm, so `05 A PIC 9(4) USAGE INDEX.` silently DISCARDED the picture; it is now one screen over the one set.",
+  "notes": "",
   "state": "OK"
  },
  {
@@ -43058,10 +43058,10 @@
   "rule-digest": "dbef5caa0790",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#setAddressStatement; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindSetAddress; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#ScreenPointerReceiverRestriction; src/Cobol.Net.Compiler/Binding/Model/StrongTypeModel.cs#AddressOfRestriction; src/Cobol.Net.Compiler/Binding/Model/StrongTypeModel.cs#PointerRestriction; src/Cobol.Net.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetAddressOfBased; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetPointer; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#ScreenBasedReceiverRestriction",
-  "test-ref": "conformance:cases/13.18.38-OCCURS/pb80_based_odo_group; conformance:cases/14.9.39-SET/pb153-set-address-strong-to-unrestricted; conformance:cases/14.9.39-SET/pb153-set-unrestricted-to-address-of-strong; conformance:cases/14.9.39-SET/pb450-set-format7-restricted-sender-second-receiver; conformance:cases/14.9.39-SET/pb450_set_format7_receiving_list; conformance:cases/13.18.60-USAGE/pb548-set-unrestricted-into-restricted; conformance:cases/13.18.60-USAGE/pb548-set-restricted-into-unrestricted; conformance:cases/13.18.60-USAGE/pb548_set_restricted_pointer_plain; conformance:cases/14.9.39-SET/pb665-set-address-of-untyped-from-restricted; conformance:cases/8.4.3.11-Data-address-identifier/pb665_restricted_pointer_conforming",
+  "test-ref": "conformance:cases/13.18.38-OCCURS/pb80_based_odo_group; conformance:cases/14.9.39-SET/pb153-set-address-strong-to-unrestricted; conformance:cases/14.9.39-SET/pb153-set-unrestricted-to-address-of-strong; conformance:cases/14.9.39-SET/pb450-set-format7-restricted-sender-second-receiver; conformance:cases/14.9.39-SET/pb450_set_format7_receiving_list; conformance:cases/13.18.60-USAGE/pb548-set-unrestricted-into-restricted; conformance:cases/13.18.60-USAGE/pb548-set-restricted-into-unrestricted; conformance:cases/13.18.60-USAGE/pb548_set_restricted_pointer_plain; conformance:cases/14.9.39-SET/pb665-set-address-of-untyped-from-restricted; conformance:cases/8.4.3.11-Data-address-identifier/pb665_restricted_pointer_conforming; conformance:cases/14.9.39-SET/pb3682_set_restricted_pointer_to_typedef_group_clauses",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB89, then kb/Work PB153, then kb/Work PB450 half 2 (wave 43 group D/E). SR19 IS THREE SENTENCES, AND THE ROW NAMED A WITNESS FOR ONLY THE FIRST. PB89 landed sentence 1's TO NULL arm ('identifier-6 shall be the predefined address NULL or shall reference a data-pointer' - it had been a parse error) and the row's single test-ref, conformance:cases/13.18.38-OCCURS/pb80_based_odo_group, exercises exactly that and nothing else; sentences 2 and 3 are the restricted-data-pointer screens, which PB153 landed with two negatives the row never named. This record adds them. ### SENTENCE 3 IS NOT SR20. The converse sentence ('If identifier-6 references a restricted data-pointer, either identifier-5 shall reference a data-pointer restricted to the same type or data-name-1 shall be a typed item of the type to which identifier-6 is restricted' - cite.py --check 14.9.39.3 OK, returned as 19)) is an UNNUMBERED continuation paragraph of rule 19; RENDERED at 300 dpi from the printed page (folio 736 / PDF p766), 20) is FORMAT 8's 'Identifier-12 shall reference a data item of category function-pointer ...'. Six code sites and two goldens carried the inherited SR20, including the user-visible COBOLNET0869 message; all are corrected. ### AND PB450 OPENED A CELL SENTENCE 3 COULD NOT REACH. Until Format 7's receiving operand became the printed repeated brace, identifier-6's restriction reached the screen only through an `ADDRESS OF x` sender (Annex D.9.2.2 source 2, 8.4.3.11.4 GR2), because the two fixed productions split on the SENDER's spelling meant a PLAIN restricted pointer item could never stand as identifier-6 beside an ADDRESS OF receiver - MEASURED before the landing, `SET ADDRESS OF B1 P-PLAIN TO P-RESTRICTED` was `error COBOL0001: unexpected 'P-PLAIN'`. It is now screened from D.9.2.2 source 1 as well (13.18.60.4 GR23, 'If type-name-1 is specified, this data item is a restricted data-pointer' - cite.py --check OK), and negative/pb450-set-format7-restricted-sender-second-receiver pins it at the SECOND receiving operand with the first one conforming, so the case cannot pass for the wrong reason. Both SR19 screens are asked PER RECEIVING OPERAND (ScreenPointerReceiverRestriction), because the restriction is the operand's and not the statement's.",
+  "notes": "",
   "state": "OK"
  },
  {
