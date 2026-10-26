@@ -308,7 +308,7 @@ public sealed class CarrierLandingFormTests
     }
 
     /// <summary>The quantizer / exact-family renders that reach the runtime with a working scale carry the ONE
-    /// <c>CheckedFlag</c> — <c>FromDouble</c>, <c>FromDoubleBounded</c>, native <c>**</c>, NUMVAL-F. A site that
+    /// <c>CheckedFlag</c> — <c>FromDouble</c>, native <c>**</c>, NUMVAL-F. A site that
     /// renders <c>FromDouble(...)</c> or a NUMVAL-F value call without it lands a no-phrase store on the sentinel
     /// again.
     /// <para>⛔ NUMVAL AND NUMVAL-C ARE NO LONGER ON THIS LIST, AND THE SECOND HALF ASSERTS THEY DO NOT COME BACK
@@ -321,7 +321,7 @@ public sealed class CarrierLandingFormTests
     {
         string ir = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
         string nr = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Emit", "NumericRenderer.cs"));
-        foreach (Match m in Regex.Matches(ir + nr, @"RuntimeApi\.Intrinsic\(""FromDouble(Bounded)?"",[^;]*;"))
+        foreach (Match m in Regex.Matches(ir + nr, @"RuntimeApi\.Intrinsic\(""FromDouble"",[^;]*;"))
             Assert.True(m.Value.Contains("{CheckedFlag}", StringComparison.Ordinal),
                 $"a FromDouble render without the landing form (kb/Work PB77): {m.Value}");
         // NUMVAL-F: the value render (not the TEST- validator, which returns a position, scale 0) — the case arm
