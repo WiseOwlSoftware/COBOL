@@ -1,4 +1,4 @@
-## PB3728: plan_wave.py split by job, plan() in five stages, the pipeline scripts' import DAG declared once
+## Entry 2604 — 2026-10-25 20:48 PDT — PB3728: plan_wave.py split by job, plan() in five stages, the pipeline scripts' import DAG declared once
 
 The first split of the pipeline-scripts restructure (kb/Work PB3726, tier 2; DESIGN-orchestrator-loop.md §16.3). The
 2,472-line planner did six jobs, and every fix appended to it. It is now five library modules with one job each and a
@@ -54,3 +54,4 @@ own blind spot (rule 6). No inventory row moved: process tooling, `closes_rows: 
 Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on 3c403f92c (run 000005-20261026T030836Z:
 Conformance 8,416, Unit 36,703, Characterization 6 cases ran; Linux half, WSL clone of HEAD, GREEN), after two reds on
 the way: LINE ENDINGS (a self-test write without `newline=`) and the Linux inert watch (rule 6's first form).
+
