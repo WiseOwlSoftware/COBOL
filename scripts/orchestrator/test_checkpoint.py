@@ -114,6 +114,19 @@ unreadable = {t["branch"]: t for t in checkpoint.worktrees(REPO)}
 check("an unreadable worktree stays, uncommitted unknown", (sorted(unreadable), unreadable.get("broken", {}).get("uncommitted", "absent")),
       (["broken", "clean", "committed", "dirty"], None))
 
+# kb/Work PB3715: the synthesized handoff never loses a worktree git could not measure (None is falsy: an unknown state is not a
+# clean one). End to end, then every arm of the state table through the one predicate.
+h = checkpoint.synthesize(COORD, REPO, "wave")
+check("an unmeasured worktree is in branches_pending, the clean one is not",
+      sorted(b["branch"] for b in h["branches_pending"]), ["broken", "committed", "dirty"])
+check("the summary names exactly the worktree git could not measure", "git could not measure broken. Last milestones" in h["summary"], True)
+check("the unmeasured entry is a schema-valid branch status", {b["status"] for b in h["branches_pending"]} <= {"DONE", "SPLIT", "DISCHARGED", "BLOCKED"}, True)
+for ahead, uncommitted, want_work, want_unknown in [(0, 0, False, False), (2, 0, True, False), (0, 3, True, False),
+                                                    (None, 0, True, True), (0, None, True, True), (None, None, True, True)]:
+    tree = {"ahead_of_main": ahead, "uncommitted": uncommitted}
+    check(f"holds_work(ahead={ahead}, uncommitted={uncommitted})", checkpoint.holds_work(tree), want_work)
+    check(f"unmeasured(ahead={ahead}, uncommitted={uncommitted})", checkpoint.unmeasured(tree), want_unknown)
+
 # a listing that fails (the directory is no repository) records no worktrees and says so on stderr, and does not raise: a
 # dead unit's handoff is still synthesized (the supervisor's own self-tests run these commands against a plain directory)
 (TMP / "no-such-repo").mkdir()
