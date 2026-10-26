@@ -188,7 +188,8 @@ internal readonly record struct ReceiverContext(
     /// two consumers, and they must agree because one returned value must not land two ways.
     /// <para>
     /// <paramref name="finalTransfer"/> is the caller's <c>NumericRenderer.Outermost</c> — TRUE exactly when the
-    /// value IS the value transferred to a single resultant identifier. There are exactly THREE answers:
+    /// value IS the value transferred to a single resultant identifier. There are exactly TWO answers, quantize at a
+    /// fixed-point resultant or keep the binary64, and the second covers the last two shapes:
     /// <list type="bullet">
     ///   <item><b>The final transfer into a fixed-point resultant</b> quantizes AT that identifier's scale with
     ///     the statement's own ROUNDED mode. §14.7.4.1: "If, after decimal point alignment, the number of places
@@ -196,11 +197,14 @@ internal readonly record struct ReceiverContext(
     ///     provided for the fraction of the resultant identifier, truncation is relative to the size provided for
     ///     the resultant identifier" (cite.py-verified) — the decision is made ONCE, at the receiver's scale, so
     ///     the store's rescale is the identity and no second rounding can contradict it.</item>
-    ///   <item><b>A FLOATING-POINT numeric-edited resultant</b> (<see cref="FloatEdited"/>) is never a final
-    ///     transfer for this purpose: it has no fixed fraction scale to round at — the result normalizes into the
-    ///     mask and the STORE rounds its significand to the mask's digits by the receiver's mode (kb/Work PB2638)
-    ///     — so it quantizes at the capped working scale with TRUNCATION and the mask's own normalization does the
-    ///     rest (data-model D21 / kb/Work PB66).</item>
+    ///   <item><b>A FLOATING-POINT numeric-edited resultant</b> (<see cref="FloatEdited"/>) is no final transfer
+    ///     for this purpose: it has no fixed fraction scale to round at. The result normalizes into the mask and
+    ///     the STORE rounds its significand to the mask's digits by the receiver's mode (kb/Work PB2638; data-model
+    ///     D21 / kb/Work PB66), so the value keeps its binary64 like every shape below. ⛔ It used to land at the
+    ///     capped ≥ 9 working scale with TRUNCATION first (kb/Work PB3829's sweep), which is exactly the loss of
+    ///     small magnitudes a floating mask exists to avoid: <c>COMPUTE FE ROUNDED = FUNCTION SQRT(1.5241383936E-24)</c>
+    ///     into <c>PIC +9.999E+99</c> displayed +0.000E+00 where the same value through <c>+ 0</c> displayed
+    ///     +1.235E-12.</item>
     ///   <item><b>EVERYTHING ELSE KEEPS THE BINARY64 AND QUANTIZES NOT AT ALL</b> — a NESTED intermediate, a
     ///     float receiver, a receiver-less render. There is no transfer here, so there is no scale to quantize
     ///     TO; the ONE quantization happens at the receiver store, on the whole expression's value.</item>
@@ -236,11 +240,11 @@ internal readonly record struct ReceiverContext(
     /// channels rather than by arithmetic luck.
     /// </para>
     /// <para>
-    /// ⚠ A CODOMAIN CLAMP BELONGS TO A LANDING, NOT TO AN EXPRESSION (kb/Work PB65's scope, re-derived here).
-    /// <c>FromDoubleBounded</c>'s clamp exists because ROUNDING a quantized value can push it out of the
-    /// function's §15.x.4 codomain; a nested operand is not rounded here at all, and the codomain of
-    /// <c>FUNCTION RANDOM * 5</c> is not RANDOM's, so the clamp correctly does not travel with the operand. The
-    /// receiver-less and float-receiver arms have always worked this way.
+    /// ⛔ NO LANDING CLAMPS TO A FUNCTION'S CODOMAIN (kb/Work PB3829, overturning PB65's clamp). A §15.x.4 bound is
+    /// a rule on the RETURNED value, which every arm here leaves untouched; the final-transfer arm then rounds it
+    /// once at the resultant identifier per §14.7.4.3, and the value it lands may lie past the bound (ACOS(-1)
+    /// ROUNDED into <c>9V9999</c> is 3.1416, beyond π) or fail to fit (a size error, §14.7.5), exactly as the same
+    /// value does when it arrives through a nested expression or a <c>COMP-2</c> item.
     /// </para>
     /// <para>
     /// ⛔ WHAT PB647 ORIGINALLY CLOSED, KEPT BECAUSE IT IS WHY THE FINAL-TRANSFER ARM READS AS IT DOES. The
@@ -262,9 +266,7 @@ internal readonly record struct ReceiverContext(
     /// </para>
     /// </summary>
     public FloatLandingDecision FloatLanding(bool finalTransfer) =>
-        !finalTransfer || Real || Receiverless ? FloatLandingDecision.Binary64
-        : RoundsAtItsScale ? FloatLandingDecision.At(Scale, Rounding)
-        : FloatLandingDecision.At(FloatWorkingScale, CobolRounding.Truncation);   // the FLOATING-POINT edited resultant
+        finalTransfer && RoundsAtItsScale ? FloatLandingDecision.At(Scale, Rounding) : FloatLandingDecision.Binary64;
 
     /// <summary>⛔ THE ONE PREDICATE "A FINAL TRANSFER INTO THIS RESULTANT ROUNDS AT <see cref="Scale"/> WITH
     /// <see cref="Rounding"/>": a receiver that is neither receiver-less, nor floating-point, nor a FLOATING-POINT

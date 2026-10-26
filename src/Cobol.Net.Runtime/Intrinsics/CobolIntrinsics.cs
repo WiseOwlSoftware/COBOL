@@ -345,47 +345,6 @@ public static partial class CobolIntrinsics
         throw new Exceptions.CobolFatalException("EC-ARGUMENT-FUNCTION", why);
     }
 
-    /// <summary>The scale-37 maxima of the bounded codomains (fix-queue PB65 / RV-15.75.4-1): the largest
-    /// unscaled magnitude PERMITTED inside each codomain, at 37 fraction digits — so the per-scale limit is one
-    /// exact integer division, <c>max37 / 10^(37−scale)</c> (floor, for a positive dividend), never a double
-    /// computation that loses the bound past 15 digits. For the OPEN unit bound the constant is 10³⁷ − 1
-    /// (equality excluded); for the irrational π bounds it is ⌊bound·10³⁷⌋ (equality unreachable — the bound is
-    /// not a decimal), independently derived: π to 40 places via Decimal in python, floor at 37. Both fit
-    /// Int128 (max ≈ 1.70e38).</summary>
-    public static readonly Int128 CodomainBelowOne37 = Int128.Parse("9999999999999999999999999999999999999");
-    public static readonly Int128 CodomainHalfPi37 = Int128.Parse("15707963267948966192313216916397514420");
-    public static readonly Int128 CodomainPi37 = Int128.Parse("31415926535897932384626433832795028841");
-
-    /// <summary>
-    /// ⛔ THE BOUNDED-CODOMAIN QUANTIZER (fix-queue PB65 / RV-15.75.4-1). When <see cref="FromDouble"/> ROUNDS —
-    /// which since kb/Work PB647 is when the statement asked it to, not unconditionally — the top half-ulp of a
-    /// codomain whose §15.x.4 rule bounds the returned value rounds OUT of it: RANDOM's [0, 1) produced exactly
-    /// 1.000000000 in a PIC 9V9(9) receiver under NEAREST-AWAY-FROM-ZERO (§15.75.4 r1's
-    /// "less than one" is strict), and ASIN(1) at scale 9 rounded to 1.570796327 &gt; π/2 — outside §15.10.4 r1's
-    /// CLOSED bound, because the bound is irrational and the nearest scaled value above it is not "equal to π/2".
-    /// The DOUBLE never exits the codomain (Math.PI/2 &lt; π/2; NextDouble() &lt; 1); only the quantization does,
-    /// which is why the clamp acts on the QUANTIZED value. The clamp is symmetric in magnitude — every family
-    /// member's codomain is symmetric or zero-anchored on the safe side (ACOS ≥ 0, RANDOM ≥ 0 hold in double
-    /// already). The limit divides exactly from the scale-37 constant; <paramref name="scale"/> ≤ 31 always
-    /// (a working scale is capped at the receiver's Int128 headroom and a PICTURE at 31 digits, §13.18.40.3 SR14 —
-    /// and a FINAL-TRANSFER scale is a PICTURE's own, so the same bound holds).
-    /// <para>⛔ IT IS A NO-OP UNDER TRUNCATION, AND THAT IS NOT A REASON TO DELETE IT (kb/Work PB647). A truncating
-    /// landing cannot leave a codomain the double is already inside, so the no-phrase COMPUTE — now the common
-    /// case — never reaches the clamp; an explicit ROUNDED still does, and `2023/pb65_codomain_clamp` carries
-    /// ROUNDED legs precisely so this stays a MEASURED rule rather than a green test proving nothing.</para>
-    /// </summary>
-    public static Int128 FromDoubleBounded(double d, int scale, CobolRounding mode, Int128 max37, bool checkedLanding = false)
-    {
-        Int128 q = FromDouble(d, scale, mode, checkedLanding);
-        // ⛔ A TRAILING-P RECEIVER HAS A NEGATIVE SCALE (PictureAnalyzer: scale = -trailingP; kb/Work PB2633). Every
-        // codomain constant is a scale-37 value below 10^38 (π is 3.14…), so at scale ≤ -1 the divisor 10^(37-scale)
-        // is ≥ 10^38 and the limit is floor(max37 / 10^(37-scale)) = 0 - the bound lands as zero units of 10^-scale
-        // (ACOS(-1) = 3.14 is 0 hundreds, §14.7.4.3 r2 truncation). The divisor is never formed past 10^38: the
-        // wrapped 10^39 it used to be made the limit -1 and ACOS landed as -100 at scale -2 for every argument.
-        Int128 limit = scale < 0 ? Int128.Zero : max37 / Pow10.AsWide(37 - scale);
-        return q > limit ? limit : q < -limit ? -limit : q;
-    }
-
     /// <param name="checkedLanding">The LANDING's form (kb/Work PB77 — the same two-form rule as
     /// <c>CobolFloat.ToScaled</c> / <c>ToScaledUnchecked</c> and <c>CobolDec.ToUnscaledChecked</c> / <c>ToUnscaled</c>):
     /// <c>true</c> under ON SIZE ERROR / EC-SIZE checking, where a value past the carrier RAISES the size error
@@ -409,6 +368,17 @@ public static partial class CobolIntrinsics
     /// emitter-side rule that chooses it: the resultant identifier's own mode for a final transfer
     /// (§14.7.4.3 rule 2 — "If the ROUNDED phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION
     /// had been specified"), TRUNCATION for a nested intermediate. A new call site must decide, not inherit.</param>
+    /// <remarks>⛔ THE LANDING ROUNDS ONCE AND NOTHING CUTS IT AFTERWARDS, WHATEVER THE FUNCTION'S CODOMAIN (kb/Work
+    /// PB3829, overturning PB65's codomain clamp). A §15.x.4 returned-value rule bounds the RETURNED VALUE, the §15.4
+    /// "temporary elementary data item" (§15.8.4 r1: ACOS's "is greater than or equal to zero and less than or equal
+    /// to π"; §15.75.4 r1: RANDOM's "is greater than or equal to zero and less than one"), and the binary64 this
+    /// family returns is always inside it. What the RESULTANT IDENTIFIER receives is a different value, governed by
+    /// §14.9.8.4 r2 ("stored, in conformance with the specifications in 14.6.8, Alignment and transfer of data into
+    /// data items, 14.7.4, ROUNDED phrase, and 14.7.5, SIZE ERROR phrase and size error condition"): ROUNDED rounds the
+    /// returned value to the nearest value the receiver can represent (§14.7.4.3 r4), which for ACOS(-1) at four places
+    /// is 3.1416 > π, and a rounded value the receiver cannot hold is a size error (§14.7.5 3)), never a value cut back
+    /// inside the codomain. The clamp PB65 put here returned 3.1415 for <c>COMPUTE R ROUNDED = FUNCTION ACOS(-1)</c>
+    /// while <c>FUNCTION ACOS(-1) + 0</c> stored 3.1416, and turned RANDOM's size error into a silent 0.9999.</remarks>
     public static Int128 FromDouble(double d, int scale, CobolRounding mode, bool checkedLanding = false)
     {
         // EC-ARGUMENT-FUNCTION raise point (§14.6.13.1.6 — the exception-condition table gives it Fatal): the
