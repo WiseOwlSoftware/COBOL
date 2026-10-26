@@ -63,7 +63,7 @@ ADJUDICATED = ("verdict", "code-location", "test-ref", "derivation", "editions",
 #: evidence about the rule, and a batch that re-types three of five witnesses has not refuted the other two.
 #: A witness leaves a row only by an explicit, reasoned RETIREMENT, which is written into the row's `notes` as
 #: `RETIRED_WITNESS_MARK <ref>` so the loss is visible to `audit_witness_loss.py --check` long after the batch
-#: file that asked for it is gone. Every other adjudicated field is a single statement the record restates.
+#: file that asked for it is gone. Every other adjudicated field is a single statement (`STATEMENT_FIELDS`).
 #:
 #: ⚖ ONE ASYMMETRY, MEASURED FROM THE INVENTORY'S OWN HISTORY: a RE-ADJUDICATION (the record changes the row's
 #: verdict) RE-SITES `code-location` instead of merging it. A PARTIAL or NOT-IMPLEMENTED row's code-location names
@@ -72,6 +72,10 @@ ADJUDICATED = ("verdict", "code-location", "test-ref", "derivation", "editions",
 #: history walk found removed were exactly that shape. A `test-ref` is never re-sited: a test that exists and
 #: exercises the rule is an observation of it whatever the verdict says (`CODE_LOCATION_RESITES_ON_READJUDICATION`).
 WITNESS_FIELDS = ("code-location", "test-ref")
+#: The adjudicated fields that are ONE STATEMENT each (verdict, derivation, editions, notes): a record that names one
+#: restates it, a record that does not leaves it as the row has it (kb/Work PB3795), and none may go from saying
+#: something to saying nothing (`statement_losses`).
+STATEMENT_FIELDS = tuple(f for f in ADJUDICATED if f not in WITNESS_FIELDS)
 CODE_LOCATION_RESITES_ON_READJUDICATION = True
 #: The mark `record_verdicts.merged` appends to a row's `notes` for each retired witness. It is DATA, the schema's
 #: `notes.retired-witness-mark`, because the C# battery gate reads the same spelling (kb/Work PB762): the gate must
@@ -206,6 +210,45 @@ def witness_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schem
         out += [WitnessLoss(before.get("rule-id", ""), field, ref, ref in retired, resited,
                             field == "test-ref" and respelled.get(ref) in kept)
                 for ref in schema.split(before.get(field, "") or "", sep) if ref not in kept]
+    return out
+
+
+class StatementLoss(NamedTuple):
+    """One statement field a row carried non-empty BEFORE a write and carries empty AFTER it (kb/Work PB3795)."""
+    rule_id: str
+    field: str
+    chars: int   # the length of the statement that went (the prose, for `notes`)
+
+
+def statement_text(row: dict[str, Any], field: str) -> str:
+    """What a row SAYS in a statement field: the PROSE of `notes` (`prose_of`: the retired-witness marks the writer
+    appended are history, not the statement), the value of every other one."""
+    value = row.get(field, "") or ""
+    return (prose_of(value) if field == "notes" else value).strip()
+
+
+def statement_losses(before: dict[str, Any], after: dict[str, Any]) -> list[StatementLoss]:
+    """Every statement field `before` said something in that `after` says nothing in — THE one definition of an
+    erased statement, the sibling of `witness_losses` (kb/Work PB3795, PB3375).
+
+    ⛔ WHY THE PROSE IS WATCHED LIKE EVIDENCE. A row's `notes` is the only record of WHY its verdict stands (the
+    spec derivation, the `cite.py --check` that validated it, the goldens): it is the instrument `witness_losses`
+    cannot see. Until PB3795 a record that restated a verdict without `notes` wrote the absent field as empty, and
+    four landings erased 25 rows' prose with every gate green and the retirement marks still in the row.
+    Read by the writer (`record_verdicts.validate`, at record time) and by the auditor (`audit_witness_loss.py`,
+    over a diff or the history), so the two cannot come to disagree about it.
+
+    ONE EXCUSE, `derivation`: it is the §1.1 alternative to a `test-ref` (PB386), so it leaves a row whenever a
+    spec-derived test arrives and the row's `test-ref` says so. Nothing else is excused: a statement that changed
+    is not a loss, one that went blank is.
+    """
+    out: list[StatementLoss] = []
+    for field in ADJUDICATED:
+        if field in WITNESS_FIELDS or not (was := statement_text(before, field)) or statement_text(after, field):
+            continue
+        if field == "derivation" and (after.get("test-ref", "") or "").strip():
+            continue
+        out.append(StatementLoss(before.get("rule-id", ""), field, len(was)))
     return out
 
 #: A parenthesised or semicolon-introduced clause citation inside a rule's own text — the form Annex A.1 uses to
