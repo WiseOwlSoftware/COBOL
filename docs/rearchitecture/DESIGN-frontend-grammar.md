@@ -80,12 +80,12 @@ consumes).
    tree's shape away, so ONE test covers every grammar arm.
    **Worked example (PB350).** §14.9.34.2 prints RETURN's `AT END imperative-statement-1` unbracketed between a
    bracketed `[ NOT AT END … ]` and `[ END-RETURN ]` (rendered from the printed page, folio 708). The grammar
-   wrote `returnAtEndPhrase?` AND `returnAtEndPhrase`'s reversed alternative made the AT END half optional too,
-   so a RETURN with no AT END compiled at all four editions and, at end of data, control fell THROUGH the
+   wrote RETURN's phrases optional (today the shared `conditionalPhrases`, §3.16, which matches empty), so a RETURN
+   with no AT END compiled at all four editions and, at end of data, control fell THROUGH the
    statement onto a record area §14.9.34.4 GR3 leaves undefined — a loop written on RETURN could never terminate
-   from the statement. The screen tests `atEnd is null` after `PhraseBlocks.Split`, which covers BOTH arms;
-   testing the phrase NODE would have left the reversed NOT-only arm compiling (the two-arm dispatch with one
-   arm fixed). ⚠ `readAtEnd` is NOT the same case: §14.9.30.2 prints READ's AT END / NOT AT END pair inside
+   from the statement. The screen tests `atEnd is null` after `PhraseBlocks.Bind` has bound each phrase by its role,
+   which covers every spelling; testing for "no phrase written" would have left the NOT-only spelling compiling (the
+   two-arm dispatch with one arm fixed). ⚠ READ is NOT the same case: §14.9.30.2 prints READ's AT END / NOT AT END pair inside
    brackets WITH choice indicators, which §5.2.6.4 reads as "zero or more", so there the phrase really is
    optional. The asymmetry is why the two pages are measured separately.
    **The check, when writing or reviewing any `?` on a statement PHRASE rule: point at the brackets in the
@@ -1643,8 +1643,9 @@ shows. It is ACCEPTED, unchanged, and behaves per §14.9.19.4 GR4. That combinat
 question rather than the cardinality slip §3.11 fixes, and refusing it would newly reject source this compiler
 has always compiled; recorded here and in the `.g4` rather than inherited silently from the quantifier.
 
-**The SEARCH formats (kb/Work PB446).** `searchAtEndClause` is `AT? END statementBlock` — the READ/RETURN
-`NOT AT END` arm it used to carry leaked into BOTH SEARCH formats through the shared rule — and
+**The SEARCH formats (kb/Work PB446).** SEARCH's `[ AT END imperative-statement-1 ]` is the shared
+`conditionalPhrases` (§3.16), whose association table gives both SEARCH formats the AT END phrase alone — the READ/RETURN
+`NOT AT END` arm a shared SEARCH rule once carried leaked into BOTH formats — and
 `searchAllStatement` carries exactly ONE `searchAllWhenClause` (Format 2's ellipsis is on the `[ AND … ]`
 bracket) and no KEY phrase (the home-grown `searchAllKeyPhrase` was read by no binder). The complement is a syntax
 error that `CobolErrorStrategy.SearchFormatShapeMessage` re-codes as COBOL2269 from the parser state
@@ -1807,7 +1808,9 @@ parse-tree pass, `Compiler/Validation/ProcedureFormatPass.cs`, run right after `
 conditional phrase spells its operand `statementBlock`, which is `statement+`, so `READ F AT END IF X = 1 … NOT AT
 END …` compiled. §14.5.1: a conditional statement is "any statement with a conditional phrase that is not terminated
 by its explicit scope terminator", and an imperative statement may be one only "delimited by its explicit scope
-terminator". The classifier, `Binding/ConditionalStatements.IsConditional`, reads both halves off the parse — a
+terminator". Which statement a [NOT] phrase belongs to is §14.5.3.3's rule (§3.16), so in `SUBTRACT … ON SIZE ERROR ADD
+1 TO D NOT ON SIZE ERROR … END-SUBTRACT` the NOT phrase is the ADD's and the ADD is the conditional statement refused;
+the message then quotes §14.5.3.3 as well (kb/Work PB3830). The classifier, `Binding/ConditionalStatements.IsConditional`, reads both halves off the parse — a
 conditional phrase is written when the statement's OWN syntax holds a `statementBlock`, and the terminator is the
 token `END_` + the statement's Table 12 name (`Table12StatementNames`) — so a new statement rule is classified with
 no edit. The pass screens every `statementBlock` whose parent is not `ifStatement`: IF's statement-1/statement-2 is
@@ -1863,6 +1866,76 @@ SR2's own exception; the declined SCREEN, VALIDATE and message-server facilities
 CHARACTER clauses). The two slots where a word is also a system-name, ASSIGN's device-name-1 and LOCALE's
 external-locale-name-1, are witnessed like the rest (`pb2500_assign_constant_name`, `pb2500_locale_constant_name`):
 the program's declaration of the word wins (kb/Work PB2500). The `integer-n` positions are `IntegerOperandSlotDriftTests`'s (`integerOperand`).
+
+### 3.16 The paired conditional phrases — one rule, one association decision (kb/Work PB3830)
+
+**The rule.** §14.5.1 Table 12 lists each statement's conditional phrases — [NOT] ON SIZE ERROR (ADD, COMPUTE,
+DIVIDE, MULTIPLY, SUBTRACT), [NOT] ON EXCEPTION (ACCEPT, CALL, DELETE, DISPLAY, RECEIVE, SEND), [NOT] INVALID KEY
+(DELETE, READ, REWRITE, START, WRITE), [NOT] AT END (READ, RETURN; SEARCH's AT END alone), [NOT] ON OVERFLOW (STRING,
+UNSTRING) and [NOT] END-OF-PAGE (WRITE) — and §14.5.3.3 gives ONE association rule for all of them, in the paragraph
+that closes the clause (rendered, PDF page 566: it follows list item 4 unindented): "Any phrase encountered is the next
+phrase of the most-recently preceding unterminated statement with which that phrase may be syntactically associated.
+If all permitted occurrences of a phrase have already been specified for a given statement, a subsequent occurrence
+of that phrase is not syntactically associated with that statement." The owner's requirement (2026-10-26): "all COBOL
+paired conditional phrases should be handled grammatically in the same consistent manner".
+
+**The shape.** ONE rule spells them: `conditionalPhrases : ({conditionalPhraseAssociates($ctx)}? conditionalPhrase)*`,
+`conditionalPhrase : NOT? conditionalPhraseHead statementBlock`, and `conditionalPhraseHead` holds every phrase
+keyword (ON, AT and KEY optional, §5.2.3). Every owning statement writes `conditionalPhrases` bare at the position its
+format prints the phrases (the screen ACCEPT / DISPLAY through `screenTail`, after the positioning phrase). The 18
+per-statement rules it replaced (`arithmeticOnSizeError`, `computeOnSizeError`, `callExceptionPhrases`, `readAtEnd`,
+`readInvalidKey`, `writeAtEndOfPage`, … `searchAtEndClause`) are deleted, and every binder asks for its family
+through the ONE reader, `Frontend/Parsing/ConditionalPhrases` (`KindOf`, `Find`, `HasFamily`), and binds the pair by
+ROLE through `PhraseBlocks.Bind` — §5.2.6.4's choice indicators let the two be written in either order.
+
+**The decision.** `ConditionalPhraseAssociation.Associates` is the predicate's whole body: a phrase joins the statement
+that owns the loop exactly when one of the statement's printed general formats, AT THE TARGET EDITION, admits it
+together with everything the statement already wrote and it is not already written (`Owners`: one row per owning rule,
+its formats' phrase brackets — READ's AT END and INVALID KEY are two formats, so they never meet on one READ). "Everything
+written" includes the **selectors**, the syntax elements only some of a rule's formats print (`Format.Unprinted`, each a
+`Selector`): READ NEXT, PREVIOUS and ADVANCING ON LOCK are §14.9.30.2 Format 1 only and KEY IS Format 2 only; WRITE
+ADVANCING is §14.9.51.2 Format 1 only; a COMPUTE whose right side is a boolean-expression and no arithmetic expression
+is §14.9.8.2 Format 2, which prints no SIZE ERROR phrase. A selector is what the SOURCE wrote, never which alternative
+the parser took: `Selector.AlsoPrinted` names a written element that also reads as syntax of the other formats, and
+such an element selects nothing. The one such element today is a sole figurative ZERO, which parses through COMPUTE's
+boolean-expression alternative but is a §8.8.1.1 arithmetic expression, so `COMPUTE X = ZERO ON SIZE ERROR …` owns its
+phrase; `ComputeFormats.SoleFigurativeZero` is that reading, shared with `ArithmeticBinder`'s re-route to Format 1
+(branch review R2-1 of PB3830: the selector read the parse alternative, refused the legal statement and moved a nested
+COMPUTE's NOT ON SIZE ERROR outward). A format whose unprinted selector the statement wrote admits none of its phrases, so
+`READ R INVALID KEY READ G NEXT RECORD NOT INVALID KEY … END-READ` gives the NOT phrase and END-READ to READ R (branch
+review R1-1 of PB3830: a table of phrase brackets alone gave them to READ G, silently). A selector is looked for in the
+owner's own syntax only — a child rule, or the alternative a child bracket rule chose — never inside an expression or a
+nested statement. A rule whose formats print different brackets either splits them across grammar rules (ACCEPT and
+DISPLAY through `screenTail`, DELETE record / file) or carries selectors (READ, WRITE, COMPUTE). ANTLR's
+greedy loop supplies "most-recently preceding": the innermost open statement is asked first, and when it declines,
+its loop ends, the statement ends (§14.5.3.3 2) c), 4) b)) and the next enclosing owner is asked. So `SUBTRACT … ON
+SIZE ERROR ADD 1 TO D NOT ON SIZE ERROR …` gives the NOT phrase to the ADD (COBOL2796 then refuses the ADD as a
+conditional statement in an imperative-statement, §3.14), while `READ F AT END ADD 1 TO X NOT AT END …` gives it to the
+READ. **The superset reading, last of all:** a phrase only an earlier edition prints (CALL's `ON OVERFLOW`, 85–2014,
+ISO/IEC 1989:2002 §14.8.4.1 Format 1) still associates with its statement for the conformance pass to name
+(COBOL0882) — but only when no enclosing open statement may take it at the target edition, so at 2023 `STRING …
+NOT ON OVERFLOW CALL "P" ON OVERFLOW …` is the STRING's (legal), and at 85–2014 the CALL's (COBOL2796). Reading the
+edition here is the one sanctioned phrase-association read of `EditionReadDriftTests`. The superset relaxes the EDITION
+only, never a selector. A phrase NO open statement may take — a second ON SIZE ERROR, a CALL's NOT ON OVERFLOW, a READ's
+INVALID KEY beside its AT END or after its NEXT, a WRITE's INVALID KEY after ADVANCING, a boolean COMPUTE's ON SIZE ERROR
+— is a syntax error that `CobolErrorStrategy` names COBOL2269 from the parser state
+(`ConditionalPhraseAssociation.UnownedPhraseMessage`, which names the selector that ruled the formats out).
+
+**Why a context-dependent predicate, and why the loop lives in the shared rule.** The predicate reads `$ctx`, so ANTLR
+evaluates it only in `conditionalPhrases`' own decisions, with that rule's context; when an inner statement's prediction
+reaches an OUTER loop's predicate through the follow links it treats it as true instead of asking it with the inner
+context (a context-free predicate would be evaluated there with the wrong context and kill the exit path). For the same
+reason the owners write the rule bare: an owner-level `conditionalPhrases?` decision would reach the predicate one rule
+deep and ignore it. One consequence for error recovery: a syntax error just after an owner's fixed part now surfaces
+in the next element's rule (the empty loop exits), so a hint keyed on the statement walks up to it
+(`CobolErrorStrategy.NearestSearchBeforeWhen`).
+
+**Held by** `ConditionalPhraseDriftTests`: Table 12's conditional-phrase column, scraped from the transcription, equals
+the owners' phrases at the latest edition statement by statement; exactly the owners write the rule, bare; no other
+rule spells a phrase keyword; every head alternative names one family; every Table 12 statement whose general formats
+(scraped from §14.9) print different phrase brackets is split by rule or carries selectors, and every selector is its
+owner's child rule or a child bracket's alternative. The conformance cases of
+`cases/14.5.3.3-Implicit-scope-termination/` pin each family both ways.
 
 ## 4. Current → target module changes
 

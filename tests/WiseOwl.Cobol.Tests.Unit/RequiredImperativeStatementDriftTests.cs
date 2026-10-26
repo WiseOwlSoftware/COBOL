@@ -64,12 +64,14 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
     }
 
     /// <summary>The population the invariant governs must not be empty — a guard that measures nothing is green
-    /// for the wrong reason. There are nine such operand positions across IF, EVALUATE, PERFORM and SEARCH.</summary>
+    /// for the wrong reason. There are nine such operand positions across IF, EVALUATE, PERFORM and SEARCH, and every
+    /// Table 12 [NOT] phrase of every statement is ONE more: the shared <c>conditionalPhrase</c> rule (kb/Work PB3830)
+    /// — fourteen references with the rule's own definition.</summary>
     [Fact]
     public void TheGrammar_StillUsesStatementBlockAtEveryPhrasePosition()
     {
         int uses = GrammarFiles().Sum(f => Regex.Matches(f.Text, @"\bstatementBlock\b").Count);
-        Assert.True(uses >= 30, $"only {uses} statementBlock references — the rule was renamed or the phrases were "
+        Assert.True(uses >= 14, $"only {uses} statementBlock references — the rule was renamed or the phrases were "
             + "rewritten; this guard must move with them rather than pass vacuously");
     }
 

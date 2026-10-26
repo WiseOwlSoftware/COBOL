@@ -168,7 +168,7 @@ screenUsingClause
 // ⛔ THE EXCEPTION PHRASES ARE BOUND TO THE POSITIONING PHRASE, AND THAT COUPLING IS LOAD-BEARING — DO NOT
 // "SIMPLIFY" IT BACK INTO TWO INDEPENDENT OPTIONAL TAILS. `ON EXCEPTION` / `NOT ON EXCEPTION` is spelled the
 // same on a screen ACCEPT/DISPLAY as on the half-dozen statements that already own one, and DISPLAY appears
-// inside every one of their imperative-statement slots. With a free-standing `screenExceptionPhrases?` the
+// inside every one of their imperative-statement slots. With the phrases free-standing on DISPLAY the
 // inner DISPLAY STEALS the enclosing statement's arm:
 //
 //     DELETE FILE F ON EXCEPTION DISPLAY "EXC" NOT ON EXCEPTION DISPLAY "NOEXC" END-DELETE
@@ -179,9 +179,11 @@ screenUsingClause
 // tail unambiguous: no other statement's exception arm can begin with it, and a real screen ACCEPT/DISPLAY
 // that wants an exception handler is positioned in practice. The cost is one spelling — an UNPOSITIONED
 // `DISPLAY screen-name ON EXCEPTION …` — which stays a parse error exactly as it was before this wave, while
-// the far more common `DISPLAY screen-name` alone is caught by the binder's screen-name test.
+// the far more common `DISPLAY screen-name` alone is caught by the binder's screen-name test (the unpositioned
+// spelling's diagnostic is kb/Work PB1528). The phrases are `conditionalPhrases` (kb/Work PB3830), whose association
+// table gives screenTail the [NOT] ON EXCEPTION pair (§14.9.1.2 Format 3, §14.9.11.2 Format 2).
 screenTail
-    : screenPositionPhrase screenExceptionPhrases?
+    : screenPositionPhrase conditionalPhrases
     ;
 
 screenPositionPhrase
@@ -191,13 +193,6 @@ screenPositionPhrase
 screenPositionLeg
     : LINE NUMBER? IS? (dataReference | integerLiteral)
     | (COLUMN | COL | COLUMNS | COLS) NUMBER? IS? (dataReference | integerLiteral)
-    ;
-
-// [ ON EXCEPTION imperative-statement-1 ] [ NOT ON EXCEPTION imperative-statement-2 ] — ON is not underlined.
-// Either order, each at most once (the printed stack is a bracketed pair, mcsExceptionPhrases' shape).
-screenExceptionPhrases
-    : ON? EXCEPTION statementBlock (NOT ON? EXCEPTION statementBlock)?
-    | NOT ON? EXCEPTION statementBlock (ON? EXCEPTION statementBlock)?
     ;
 
 // SET screen-name-1 ATTRIBUTE {| BELL | BLINK | HIGHLIGHT | LOWLIGHT | REVERSE-VIDEO | UNDERLINE |} {OFF|ON} …

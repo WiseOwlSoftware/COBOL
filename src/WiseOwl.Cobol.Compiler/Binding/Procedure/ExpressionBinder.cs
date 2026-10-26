@@ -1161,6 +1161,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         NonNumericInNumericContext(lit.nonNumericLiteral(), lit.GetText(), positionRule)
         ?? NumericLiteralExpr(lit.GetText());
 
+    /// <summary>A COMPUTE right side that parsed as a boolean-expression but is a sole figurative ZERO
+    /// (<see cref="ComputeFormats.SoleFigurativeZero"/>), read as the Format 1 arithmetic expression §8.8.1.1 makes it:
+    /// through the ONE numeric-context reading every arithmetic operand takes, so <c>ALL ZERO</c> meets the same
+    /// §8.3.3.6.3 SR1 a) edition gate as in <c>ADD ALL ZERO TO X</c> (kb/Work PB1415; PB3830 review R2-1).</summary>
+    internal BoundExpr ComputeZeroOperand(Core.NonNumericLiteralContext zero) =>
+        NonNumericInNumericContext(zero, zero.GetText(), positionRule: null)
+        ?? throw new InvalidOperationException("a sole figurative ZERO right side has no nonnumeric-literal node");
+
     /// <summary>⛔ THE ONE <c>nonNumericLiteral</c> → NUMERIC-CONTEXT reading (ISO §8.8.1.1), the numeric-side twin
     /// of <see cref="NonNumericLiteralOperand"/>. Returns null when the node is absent (so the caller falls back to
     /// its numeric literal), the constant zero for figurative ZERO — the ONE figurative §8.8.1.1 admits — and a
