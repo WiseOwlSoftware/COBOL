@@ -3231,8 +3231,10 @@ already-derivable coverage; none change the pipeline.
   whole-population run is the population check. ONE shared setting each, in the slot directory every
   worktree shares, departs from them: `python scripts/gate_slot.py set-cap N [--until ISO] [--why TEXT]` and
   `set-implementer-scope leg1|whole [--until ISO]` (`whole` = both legs, the owner's switch back; an expired setting
-  is its default again); `gate_slot.py clear [cap] [implementer-scope]` returns to the defaults; `gate_slot.py status`
-  shows both, every held slot and the queue. `enqueue.py queue` records each landing (`scripts/orchestrator/landing_measure.py`), and `landing_measure.py
+  is its default again); `gate_slot.py clear [cap] [light-cap] [implementer-scope]` returns to the defaults;
+  `gate_slot.py status` shows them, every held slot and the queue of both pools. A second, LIGHT pool (cap 2,
+  `set-light-cap N`) serves a gate whose slot work is script self-tests alone, the inert lane's Linux half, so a
+  notes-only landing never waits behind the full gates (kb/Work PB3724). `enqueue.py queue` records each landing (`scripts/orchestrator/landing_measure.py`), and `landing_measure.py
   summary` compares the merge queue with the retired trains' records.
 - Greenfield conformance: `dotnet test tests/Cobol.Net.Tests.Conformance` · unit: `tests/Cobol.Net.Tests.Unit` ·
   characterization: `tests/Cobol.Net.Tests.Characterization` ·
