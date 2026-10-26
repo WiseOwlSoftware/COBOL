@@ -1367,7 +1367,7 @@ joined the table the same way, which is the table doing its job: a tenth format 
   LL(1) set — so the parse fails at that token whatever follows, and no legal program is affected — instead of
   letting the base strategy exit a list that may end; its 0g hint, read at every report, re-runs the parser from
   its state and real invocation stack to the offending token (re-taking the tokens a failed adaptive prediction
-  looked past) on ANTLR's OWN full-context simulator (`ResidueWalk`, a `ParserATNSimulator` subclass: the runtime's
+  looked past) on ANTLR's OWN full-context simulator (`ResimulationWalk`, a `ParserATNSimulator` subclass: the runtime's
   `Closure`, its graph-structured `PredictionContext` stacks and its merge, kb/Work PB3489 — a closure of the
   compiler's own with one call stack per path multiplied with each nested argument list and hung on a syntax error
   three FUNCTION calls deep) and, if a configuration there holds the production's call on its stack, names the list
@@ -1628,14 +1628,32 @@ discarding all but the last.
 
 **The diagnostics (COBOLNET2072 / COBOLNET2073).** Because the grammar rules cannot match empty, the violation
 arrives as a syntax error, and `CobolErrorStrategy` re-codes it in TWO arms — both structural, neither a table of
-verbs. COBOLNET2072 fires when the expected set admits every token that can start a `statementBlock` (computed
-once from the ATN) and the offending token starts none of them, naming the enclosing statement from the rule
-invocation stack (`searchAllStatement` → "SEARCH ALL"). COBOLNET2073 fires on a WHEN OTHER phrase whose position
+verbs. COBOLNET2072 fires when, AT the offending token, a statement block has begun and holds nothing: the parse is
+re-simulated from the parser's state and real stack to that token (the same `ResimulationWalk` the closed-format
+residue hint runs), and one CONTINUE stepped from a configuration that begins a statement directly in a
+`statementBlock` lets the offending token follow. The statement is named from that configuration's stack, the first
+`…Statement` rule above the block (`searchAllStatement` → "SEARCH ALL"; an ON SIZE ERROR phrase names its ADD).
+**Why not the parser's own position (kb/Work PB3832).** A failed adaptive prediction reports the token where every
+alternative died while the parser stands at the decision's FIRST token. After an open `IF … ELSE IF … END-IF` the
+inner IF's optional END-IF is a dangling decision whose full-context prediction looks through the following
+statements, so `IF LENGTH OF X = 30` failed at OF with the parser before the END-IF, whose next position admits every
+statement start: the old test (expected set ⊇ FIRST(`statementBlock`), token in none) told the user an IF lacked its
+imperative-statement and named IF for an empty SEARCH or PERFORM body. The same test was true after a complete
+statement and after a condition the token wrongly continued (`IF A NOT <> B`, `IF A NOT <= B`). The hints that read an
+expected set (the empty block, the figurative spelling) now read it at the offending token, and a report at the token
+the previous report named is suppressed: the recovery that resumes at the decision's first token re-meets the same
+fault, which drew the same COBOL0001 twice. **Known gap (depth 0, the paired conditional phrases):** a wholly empty
+`ON SIZE ERROR`, `AT END` or `INVALID KEY` block written at statement level is refused with `COBOL0307` at the
+phrase's first word: the phrase decision fails and ANTLR's SLL fallback leaves the statement before it, so no
+configuration at the offending token still holds the statement; nested inside an open IF the same block draws
+COBOLNET2072 naming its statement. The paired-phrase grammar is kb/Work PB3830's. COBOLNET2073 fires on a WHEN OTHER phrase whose position
 is wrong, separated from an EMPTY WHEN OTHER body by one token of lookahead past OTHER (and past PERFORM Format
-3's un-underlined optional EXCEPTION). **Known message gap:** a wholly empty inline `PERFORM … END-PERFORM` with
-no loop-control phrase fails on `performStatement`'s own alternatives decision, where `GetExpectedTokens()`
-answers with a single token, so it is rejected with the generic parse error rather than COBOLNET2072; pinned by
-`AWhollyEmptyInlinePerform_IsRejected` so the rejection cannot regress.
+3's un-underlined optional EXCEPTION). The wholly empty inline `PERFORM … END-PERFORM`, which fails on
+`performStatement`'s own alternatives decision with the parser still before PERFORM, draws COBOLNET2072 since the
+test reads the offending token's position (`AWhollyEmptyInlinePerform_IsRejected_WithTheNamedDiagnostic`).
+`RequiredImperativeStatementDriftTests` pins both directions at depth 0 and inside the open nest: a truly empty block
+of IF, ELSE, EVALUATE WHEN, PERFORM, SEARCH WHEN and (nested) ON SIZE ERROR draws COBOLNET2072 naming its own
+statement, and a block whose first statement fails inside it never does.
 
 **⚠ DETERMINATION (owner-overturnable).** The two IF formats stay ONE grammar rule, so `END_IF?` also admits
 `IF X = 1 NEXT SENTENCE END-IF` — a Format-2 body under a Format-1 terminator that no single printed format

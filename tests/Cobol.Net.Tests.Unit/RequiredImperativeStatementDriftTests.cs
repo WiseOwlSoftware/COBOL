@@ -142,19 +142,117 @@ public sealed class RequiredImperativeStatementDriftTests : CobolNetTestBase
         Assert.Contains(code, detail, StringComparison.Ordinal);
     }
 
-    /// <summary>The wholly empty inline PERFORM — no loop-control phrase, no body — is REJECTED, which is the
-    /// rule (§14.9.28.2 Format 2 prints imperative-statement-1 unbracketed). It is measured separately because
-    /// it is the ONE shape that does not carry the named COBOLNET2072: with no <c>performInlineHead</c> to
-    /// commit the parse, the failure is a no-viable-alternative on <c>performStatement</c>'s own alternatives
-    /// decision, and at that state <c>Parser.GetExpectedTokens()</c> answers with a single token rather than the
-    /// 167 that can start a statement, so the ATN test in <c>CobolErrorStrategy</c> cannot recognise it. Pinned
-    /// here so the rejection cannot regress and so the message gap is measured rather than remembered.</summary>
+    /// <summary>The wholly empty inline PERFORM — no loop-control phrase, no body — is REJECTED with the named
+    /// COBOLNET2072, which is the rule (§14.9.28.2 Format 2 prints imperative-statement-1 unbracketed). It was the one
+    /// shape that drew only the generic parse error: with no <c>performInlineHead</c> to commit the parse, the failure is
+    /// a no-viable-alternative on <c>performStatement</c>'s own alternatives decision, with the parser still before
+    /// PERFORM, and the old test read the PARSER's expected set there. The test now re-simulates the parse to the
+    /// offending END-PERFORM and asks whether one statement there would let it follow (kb/Work PB3832).</summary>
     [Fact]
-    public void AWhollyEmptyInlinePerform_IsRejected()
+    public void AWhollyEmptyInlinePerform_IsRejected_WithTheNamedDiagnostic()
     {
         var (ok, _, detail) = CompileAndRun(Program("PB396I", "           PERFORM\n           END-PERFORM"));
         Assert.False(ok, "an inline PERFORM with no imperative-statement-1 was accepted (ISO §14.9.28.2 Format 2).");
-        Assert.Contains("END-PERFORM", detail, StringComparison.Ordinal);
+        Assert.Contains("COBOLNET2072", detail, StringComparison.Ordinal);
+        Assert.Contains("The PERFORM statement's general format", detail, StringComparison.Ordinal);
+    }
+
+    // ── kb/Work PB3832: the empty-block diagnostic names the real fault at every nesting depth ──────────────
+
+    /// <summary>The r14 shape: an <c>IF … ELSE IF … END-IF</c> that leaves the OUTER IF open, so the inner IF's
+    /// optional END-IF is a dangling decision whose full-context prediction looks ahead through the statements that
+    /// follow. A failure there is reported at the token where every alternative died, with the parser still at the
+    /// END-IF.</summary>
+    private const string OpenNest =
+        "           IF X = 1\n               DISPLAY \"A\"\n           ELSE IF X = 2\n               DISPLAY \"B\"\n"
+        + "           END-IF\n";
+
+    /// <summary>A statement that fails INSIDE a block: LENGTH is reserved (§8.9), and `LENGTH OF` is no ISO
+    /// register, so the condition fails at OF.</summary>
+    private const string FailsInside = "IF LENGTH OF X = 4 DISPLAY \"C\" END-IF";
+
+    /// <summary>⛔ A TRULY EMPTY BLOCK DRAWS COBOLNET2072 NAMING ITS OWN STATEMENT, AT DEPTH 0 AND INSIDE THE OPEN NEST.
+    /// Before kb/Work PB3832 the nested rows named IF for every construct (the parser's rule stack at the dangling
+    /// END-IF), and the empty inline PERFORM drew only the generic error. ISO §5.2.6.2 licenses an omission only for a
+    /// bracketed portion; each block here is unbracketed in its format (§14.9.19.2 IF, §14.9.13.2 EVALUATE, §14.9.28.2
+    /// PERFORM, §14.9.37.2 SEARCH, §14.9.2.2 ADD's SIZE ERROR phrase), and each block's own scope terminator closes a
+    /// statement that IS open (§14.5.3.2). The SIZE ERROR rows run nested only: at depth 0 the parse leaves the ADD
+    /// before the phrase (a separate defect of the paired-phrase grammar, recorded in the PB3832 report as a lead). The
+    /// WHEN OTHER row runs nested only: at depth 0 the parse fails at the WHEN, where the WHEN OTHER arm names the
+    /// phrase itself (row PB396E of <see cref="AnEmptyRequiredImperative_IsRejected"/>).</summary>
+    [Theory]
+    [InlineData("PB3832A", false, "IF X = 1 END-IF", "IF")]
+    [InlineData("PB3832B", true, "IF X = 1 END-IF", "IF")]
+    [InlineData("PB3832C", false, "IF X = 1 DISPLAY \"T\" ELSE END-IF", "IF")]
+    [InlineData("PB3832D", true, "IF X = 1 DISPLAY \"T\" ELSE END-IF", "IF")]
+    [InlineData("PB3832E", false, "EVALUATE X WHEN 3 END-EVALUATE", "EVALUATE")]
+    [InlineData("PB3832F", true, "EVALUATE X WHEN 3 END-EVALUATE", "EVALUATE")]
+    [InlineData("PB3832G", false, "PERFORM END-PERFORM", "PERFORM")]
+    [InlineData("PB3832H", true, "PERFORM END-PERFORM", "PERFORM")]
+    [InlineData("PB3832I", false, "PERFORM UNTIL X > 5 END-PERFORM", "PERFORM")]
+    [InlineData("PB3832J", true, "PERFORM UNTIL X > 5 END-PERFORM", "PERFORM")]
+    [InlineData("PB3832K", false, "SEARCH R WHEN R (I) = 7 END-SEARCH", "SEARCH")]
+    [InlineData("PB3832L", true, "SEARCH R WHEN R (I) = 7 END-SEARCH", "SEARCH")]
+    [InlineData("PB3832M", true, "ADD 1 TO X ON SIZE ERROR END-ADD", "ADD")]
+    [InlineData("PB3832AD", true, "ADD 1 TO X NOT ON SIZE ERROR END-ADD", "ADD")]
+    [InlineData("PB3832AE", false, "SEARCH R AT END WHEN R (I) = 7 DISPLAY \"F\" END-SEARCH", "SEARCH")]
+    [InlineData("PB3832AF", true, "SEARCH R AT END WHEN R (I) = 7 DISPLAY \"F\" END-SEARCH", "SEARCH")]
+    [InlineData("PB3832AG", true, "EVALUATE X WHEN 3 DISPLAY \"T\" WHEN OTHER END-EVALUATE", "EVALUATE")]
+    public void ATrulyEmptyBlock_IsNamedByItsOwnStatement_AtEveryDepth(string id, bool nested, string statement, string owner)
+    {
+        var (ok, _, detail) = CompileAndRun(Program(id, (nested ? OpenNest : "") + "           " + statement), 2023);
+        Assert.False(ok, $"{id}: an empty imperative-statement compiled");
+        Assert.Contains("COBOLNET2072", detail, StringComparison.Ordinal);
+        Assert.Contains($"The {owner} statement's general format", detail, StringComparison.Ordinal);
+        foreach (string other in new[] { "IF", "EVALUATE", "PERFORM", "SEARCH", "ADD" }.Where(o => o != owner))
+            Assert.DoesNotContain($"The {other} statement's general format", detail, StringComparison.Ordinal);
+        // The scope-terminator hint asked the parser's rule stack too: nested, the statement opened after the dangling
+        // END-IF decision was on no stack of the parser's, and its own terminator was "without a matching" statement.
+        Assert.DoesNotContain("appears without a matching", detail, StringComparison.Ordinal);
+    }
+
+    /// <summary>⛔ A BLOCK THAT HOLDS A FAILING STATEMENT IS NOT EMPTY, AT ANY DEPTH (kb/Work PB3832). Each block below
+    /// begins with a statement that fails inside its condition, and each nested row used to draw COBOLNET2072, "the IF
+    /// statement's general format shows an imperative-statement here", where the IF has its statement. The condition
+    /// rows are the second witness: the fault of <c>IF X NOT &lt;&gt; 1</c> is the NOT that §8.8.4.2.2 Format 1 does
+    /// not print before <c>&lt;&gt;</c>, and the old test read the IF's next position, after the condition it had
+    /// closed at X, as an empty block. None of these is a missing statement, so none draws COBOLNET2072.</summary>
+    [Theory]
+    [InlineData("PB3832N", false, "IF X = 1 " + FailsInside + " END-IF")]
+    [InlineData("PB3832O", true, "IF X = 1 " + FailsInside + " END-IF")]
+    [InlineData("PB3832P", false, "IF X = 1 DISPLAY \"T\" ELSE " + FailsInside + " END-IF")]
+    [InlineData("PB3832Q", true, "IF X = 1 DISPLAY \"T\" ELSE " + FailsInside + " END-IF")]
+    [InlineData("PB3832R", false, "EVALUATE X WHEN 3 " + FailsInside + " END-EVALUATE")]
+    [InlineData("PB3832S", true, "EVALUATE X WHEN 3 " + FailsInside + " END-EVALUATE")]
+    [InlineData("PB3832T", false, "PERFORM " + FailsInside + " END-PERFORM")]
+    [InlineData("PB3832U", true, "PERFORM " + FailsInside + " END-PERFORM")]
+    [InlineData("PB3832V", false, "SEARCH R WHEN R (I) = 7 " + FailsInside + " END-SEARCH")]
+    [InlineData("PB3832W", true, "SEARCH R WHEN R (I) = 7 " + FailsInside + " END-SEARCH")]
+    [InlineData("PB3832X", false, "ADD 1 TO X ON SIZE ERROR " + FailsInside + " END-ADD")]
+    [InlineData("PB3832Y", true, "ADD 1 TO X ON SIZE ERROR " + FailsInside + " END-ADD")]
+    [InlineData("PB3832Z", false, FailsInside)]
+    [InlineData("PB3832AA", true, FailsInside)]
+    [InlineData("PB3832AB", false, "IF X NOT <> 1 DISPLAY \"C\" END-IF")]
+    [InlineData("PB3832AC", true, "IF X NOT <> 1 DISPLAY \"C\" END-IF")]
+    public void ABlockWhoseStatementFails_IsNotCalledEmpty_AtAnyDepth(string id, bool nested, string statement)
+    {
+        var (ok, _, detail) = CompileAndRun(Program(id, (nested ? OpenNest : "") + "           " + statement), 2023);
+        Assert.False(ok, $"{id}: a statement that fails inside its block compiled");
+        Assert.DoesNotContain("COBOLNET2072", detail, StringComparison.Ordinal);
+    }
+
+    /// <summary>The r14 repro and the lone IF draw the SAME diagnostic, once: the nested parse used to report the fault
+    /// at OF twice (the recovery resumed at the dangling END-IF and met it again), with a false COBOLNET2072 on the
+    /// first (kb/Work PB3832).</summary>
+    [Fact]
+    public void TheNestedFailure_DrawsTheLoneIfsOneDiagnostic()
+    {
+        var (_, _, lone) = CompileAndRun(Program("PB3832L1", "           " + FailsInside), 2023);
+        var (_, _, nested) = CompileAndRun(Program("PB3832L2", OpenNest + "           " + FailsInside), 2023);
+        static string[] Codes(string detail) =>
+            [.. Regex.Matches(detail, @"\bCOBOL(?:NET)?\d{4}\b").Select(m => m.Value)];
+        Assert.Equal(new[] { "COBOL0001" }, Codes(lone));
+        Assert.Equal(Codes(lone), Codes(nested));
     }
 
     /// <summary>⛔ THE COMPLEMENT, so the guard above cannot be satisfied by rejecting the construct outright:

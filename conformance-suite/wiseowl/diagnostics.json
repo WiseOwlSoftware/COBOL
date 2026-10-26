@@ -920,6 +920,14 @@
   ],
   "expect": "COBOLNET1708"
  },
+ "declined-validate-class-boolean": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1708"
+ },
  "declined-validate-default": {
   "refuse-at": [
    "2002",
@@ -3687,7 +3695,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET2072"
+  "expect": "COBOL0001"
  },
  "pb1036-sort-merge-turn-at-85": {
   "refuse-at": [
