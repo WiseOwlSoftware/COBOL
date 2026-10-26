@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB3165 - the SR30 duplicate check is made within the METHOD's source element: Q2 below
       *>   is both the method's own data-name and its table's CAPACITY register, which 13.18.38.3 SR30
-      *>   forbids ("Data-name-3 shall not be defined elsewhere in the source element"), COBOLNET1523.
+      *>   forbids ("Data-name-3 shall not be defined elsewhere in the source element"), COBOL1523.
       *>   (The check against the method's names, not the object's, must still fire after the
       *>   register moved into the method's own scope.)
       *>   cite.py --check 13.18.38.3 "Data-name-3 shall not be defined elsewhere in the source element"

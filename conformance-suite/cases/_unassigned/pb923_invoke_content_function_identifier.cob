@@ -10,7 +10,7 @@
       *> `BY CONTENT FUNCTION f(...)` is 14.9.23.2's identifier-5 (14.9.23.3 SR21 - a sending operand). Its
       *> conformance is chosen by the FORMAL (14.8.2.3.3 rule 2): a non-numeric formal takes rule 2 d)'s MOVE
       *> lane and a numeric formal rule 2 a)'s COMPUTE lane. The MOVE lane used to be unreachable - the sole
-      *> function parsed as arithmetic-expression-1 and was refused COBOLNET0828. Values by the MOVE rules
+      *> function parsed as arithmetic-expression-1 and was refused COBOL0828. Values by the MOVE rules
       *> (14.9.25.4 GR6 a: alphanumeric receiver, left-justified, space-filled) and COMPUTE:
       *>   LOWER-CASE("  HI    ") = "  hi    "  -> "  hi    "
       *>   UPPER-CASE("  hi    ") = "  HI    "  -> "  HI    "

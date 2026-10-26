@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1129. ISO/IEC 1989:2023 13.18.12.3 SR1: "Literal-1 shall be an alphanumeric literal."
-      *> (cite.py OK). CODE IS 12 writes a numeric literal (COBOLNET2713).
+      *> (cite.py OK). CODE IS 12 writes a numeric literal (COBOL2713).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1129N1.
        ENVIRONMENT DIVISION.

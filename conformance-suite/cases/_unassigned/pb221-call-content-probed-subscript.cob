@@ -13,7 +13,7 @@
       *> type-discriminating sniff and is deliberately side-effect-free, so it
       *> applies NO position screen; committing its Place therefore bypassed
       *> every screen at four call sites. One statement, one rule, two verdicts:
-      *> the adjacent BY REFERENCE operand drew COBOLNET0844 and this one did
+      *> the adjacent BY REFERENCE operand drew COBOL0844 and this one did
       *> not. kb/Work PB221.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB221N1.

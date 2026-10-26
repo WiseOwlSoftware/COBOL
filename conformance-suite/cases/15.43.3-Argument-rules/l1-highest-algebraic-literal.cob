@@ -16,7 +16,7 @@
       *> The sibling conjuncts: category, by conformance:cases/15.43.3-Argument-rules/l1-highest-algebraic-category; the function
       *> exclusion, by conformance:cases/15.43.3-Argument-rules/l1-highest-algebraic-intrinsic-arg and
       *> conformance:cases/15.43.3-Argument-rules/algebraic-udf-argument.
-      *> Expected: COBOLNET1516, the algebraic-family argument diagnostic.
+      *> Expected: COBOL1516, the algebraic-family argument diagnostic.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1HALIT.
        DATA DIVISION.

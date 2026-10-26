@@ -18,7 +18,7 @@
       *> §14.9.40.3 SR13 asks only that data-name-2 "have an OCCURS clause"; no rule excepts a table whose storage is
       *> shared with another description, and GR18/GR24 sort the table and present it in data-name-2, so the sorted
       *> elements ARE the storage the other views read. A compiler that cannot sort such a table must refuse the
-      *> source; one that accepts it and aborts at run time (the pre-PB1175 build: COBOLNET1756, then
+      *> source; one that accepts it and aborts at run time (the pre-PB1175 build: COBOL1756, then
       *> NotImplementedCobolFeatureException) has rejected legal source.
       *> The Format-2 SORT is a COBOL-2002 introduction (negative/w70c-pb1174-table-sort-below-2002 pins its refusal at
       *> 85); the shared-storage form takes the same edition.

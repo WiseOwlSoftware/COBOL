@@ -23,7 +23,7 @@ namespace CobolNet.Tests.Unit;
 /// (<c>ReferenceResolver.WrapIfOdoGroup</c>) resolves data-name-1's own place, and resolving a GROUP holding an
 /// occurs-depending table wraps it again: <c>DEPENDING ON</c> the record that holds the table (fuzz program fz01530),
 /// or two records each depending on the other, recursed without end and the compiler died of a stack overflow before
-/// COBOLNET0852 or COBOLNET0857 reached the user. The SR20 test also looked for a group data-name-1 among the record's
+/// COBOL0852 or COBOL0857 reached the user. The SR20 test also looked for a group data-name-1 among the record's
 /// LEAVES, found none, and passed it.</para>
 /// <para><b>What this pins.</b> (1) The only writers of <see cref="OccursSpec.Depending"/> are the admission in
 /// <c>OdoResolve</c>, guarded by the three predicates, and the extent freeze in <c>SendingValueTemp</c>, which repoints
@@ -68,50 +68,50 @@ public sealed class OdoDependingAdmissionDriftTests
             01 WS-G.
                05 WS-H.
                   10 WS-T OCCURS 1 TO 5 TIMES DEPENDING ON WS-G PIC X.
-            """, ["COBOLNET0852", "COBOLNET0857"] },
+            """, ["COBOL0852", "COBOL0857"] },
         // An intermediate group between the record and the table.
         { "ancestor-group", """
             01 WS-G.
                05 WS-H.
                   10 WS-T OCCURS 1 TO 5 TIMES DEPENDING ON WS-H PIC X.
-            """, ["COBOLNET0852", "COBOLNET0857"] },
+            """, ["COBOL0852", "COBOL0857"] },
         // fz01530 itself: the PICTURE'd "elementary" item is the group holding the table.
         { "ancestor-with-picture", """
             01 WS-G PIC S9(4).
                05 WS-T OCCURS 1 TO 5 TIMES DEPENDING ON WS-G PIC X.
-            """, ["COBOLNET0852", "COBOLNET0857", "COBOLNET2191"] },
+            """, ["COBOL0852", "COBOL0857", "COBOL2191"] },
         // The table's own entry, elementary and group.
         { "table-itself", """
             01 WS-G.
                05 WS-H.
                   10 WS-T OCCURS 1 TO 5 TIMES DEPENDING ON WS-T PIC 9.
-            """, ["COBOLNET0853", "COBOLNET0857"] },
+            """, ["COBOL0853", "COBOL0857"] },
         { "table-itself-group", """
             01 WS-G.
                05 WS-H.
                   10 WS-T OCCURS 1 TO 5 TIMES DEPENDING ON WS-T.
                      15 WS-E PIC 9.
-            """, ["COBOLNET0852", "COBOLNET0853", "COBOLNET0857"] },
+            """, ["COBOL0852", "COBOL0853", "COBOL0857"] },
         // Two records each depending on the other: neither is in its table's range, both are groups (SR17).
         { "each-others-record", """
             01 WS-G.
                05 WS-T OCCURS 1 TO 5 TIMES DEPENDING ON WS-B PIC X.
             01 WS-B.
                05 WS-TB OCCURS 1 TO 5 TIMES DEPENDING ON WS-G PIC X.
-            """, ["COBOLNET0852"] },
+            """, ["COBOL0852"] },
         // A group before the table in another record (SR17 only).
         { "group-elsewhere", """
             01 WS-K.
                05 WS-K1 PIC 9.
             01 WS-G.
                05 WS-T OCCURS 1 TO 5 TIMES DEPENDING ON WS-K PIC X.
-            """, ["COBOLNET0852"] },
+            """, ["COBOL0852"] },
         // An integer after the table, in the same record (SR22 + SR20).
         { "integer-after", """
             01 WS-G.
                05 WS-T OCCURS 1 TO 5 TIMES DEPENDING ON WS-N PIC X.
                05 WS-N PIC 9.
-            """, ["COBOLNET0856", "COBOLNET0857"] },
+            """, ["COBOL0856", "COBOL0857"] },
         // Legal: a counter inside the group before the table, and one in a record of its own.
         { "legal", """
             01 WS-G.
@@ -139,7 +139,7 @@ public sealed class OdoDependingAdmissionDriftTests
             Assert.False(OdoModel.IsWithin(dep, table), $"{shape}: '{dep.CobolName}' lies within its table");
             Assert.False(OdoModel.IsWithin(table, dep), $"{shape}: '{dep.CobolName}' contains its table");
         }
-        string[] reported = diagnostics.Select(d => Regex.Match(d, @"COBOLNET\d{4}").Value)
+        string[] reported = diagnostics.Select(d => Regex.Match(d, @"COBOL\d{4}").Value)
             .Where(c => c.Length > 0).Distinct().Order().ToArray();
         Assert.Equal(codes.Order().ToArray(), reported);
         if (shape == "legal")

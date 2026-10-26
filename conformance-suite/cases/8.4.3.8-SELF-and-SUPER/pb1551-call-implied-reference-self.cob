@@ -10,7 +10,7 @@
       *> GR5 makes the BY REFERENCE phrase transitive (cite.py: OK
       *> 14.9.4.4 5)): with no phrase written, Format 1 passes the
       *> keyword-less SELF BY REFERENCE, so ISO 8.4.3.8.3 SR2 (cite.py:
-      *> OK 8.4.3.8.3 2)) refuses it (COBOLNET3978). It was refused as a
+      *> OK 8.4.3.8.3 2)) refuses it (COBOL3978). It was refused as a
       *> function-identifier temporary, which SELF is not.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1551CIM.

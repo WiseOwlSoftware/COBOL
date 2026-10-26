@@ -15,25 +15,25 @@ namespace CobolNet.Tests.Unit;
 /// branch review R1-1): the leading comments of every conformance-suite program WiseOwl refuses, against the
 /// <c>expect</c> of its entry in <c>conformance-suite/wiseowl/diagnostics.json</c>.
 /// <para><b>What happened.</b> kb/Work PB1784 gave each OO definition rule its own descriptor: the OVERRIDE / FINAL
-/// prototype rules left COBOLNET0840 for COBOLNET4212, the interface INHERITS cycle left it for COBOLNET2791, and the
-/// GOBACK / EXIT RAISING operand rule left COBOLNET0849 for COBOLNET4211. The <c>.err</c> files were re-pinned, and the
-/// gate stayed green, but five golden headers still said <c>Expected: COBOLNET0840</c>, <c>Diagnostic COBOLNET0840</c>
-/// or <c>-&gt; COBOLNET0849</c>. Nothing reads a header, so a reader of the golden was told the wrong diagnostic and
+/// prototype rules left COBOL0840 for COBOL4212, the interface INHERITS cycle left it for COBOL2791, and the
+/// GOBACK / EXIT RAISING operand rule left COBOL0849 for COBOL4211. The <c>.err</c> files were re-pinned, and the
+/// gate stayed green, but five golden headers still said <c>Expected: COBOL0840</c>, <c>Diagnostic COBOL0840</c>
+/// or <c>-&gt; COBOL0849</c>. Nothing reads a header, so a reader of the golden was told the wrong diagnostic and
 /// nothing could notice.</para>
 /// <para><b>The rule.</b> In the leading comment block of every refused program whose refusal pins at least one
-/// <c>COBOLNETnnnn</c> code, every code the header STATES as the expectation — written after <c>Expected</c>,
+/// <c>COBOLnnnn</c> code, every code the header STATES as the expectation — written after <c>Expected</c>,
 /// <c>Diagnostic</c> or <c>-&gt;</c> — is one the refusal pins. A code named any other way (a history sentence, a
 /// sibling rule's code, the code a fix replaced) is prose and is not read. A refusal that pins only message text
 /// carries no code to compare, so its program is not asked.</para>
 /// </summary>
 public sealed class NegativeGoldenHeaderCodeDriftTests
 {
-    /// <summary>A code the header states as the expected diagnostic: <c>Expected: COBOLNETnnnn</c>,
-    /// <c>Diagnostic COBOLNETnnnn</c> (optionally <c>is</c>) or <c>-&gt; COBOLNETnnnn</c>.</summary>
+    /// <summary>A code the header states as the expected diagnostic: <c>Expected: COBOLnnnn</c>,
+    /// <c>Diagnostic COBOLnnnn</c> (optionally <c>is</c>) or <c>-&gt; COBOLnnnn</c>.</summary>
     private static readonly Regex StatedCode = new(
-        @"(?:\bExpected\b|\bDiagnostic\b|->)\s*:?\s*(?:is\s+)?(COBOLNET\d{4})", RegexOptions.CultureInvariant);
+        @"(?:\bExpected\b|\bDiagnostic\b|->)\s*:?\s*(?:is\s+)?(COBOL\d{4})", RegexOptions.CultureInvariant);
 
-    private static readonly Regex AnyCode = new(@"COBOLNET\d{4}", RegexOptions.CultureInvariant);
+    private static readonly Regex AnyCode = new(@"COBOL\d{4}", RegexOptions.CultureInvariant);
 
     /// <summary>The golden's leading comment block, one line per comment line, the <c>*&gt;</c> marker and the
     /// sequence area removed, joined so a statement that wraps a line still reads as one.</summary>
@@ -62,15 +62,15 @@ public sealed class NegativeGoldenHeaderCodeDriftTests
     [Fact]
     public void TheDetector_TripsOnAHeaderStatingASupersededCode()
     {
-        var pinned = new HashSet<string> { "COBOLNET4212" };
-        Assert.Equal(["COBOLNET0840"], StaleStatedCodes(
-            ["      *> reject-at: 2002 2014 2023", "      *> Expected: COBOLNET0840 with the prototype message head.",
+        var pinned = new HashSet<string> { "COBOL4212" };
+        Assert.Equal(["COBOL0840"], StaleStatedCodes(
+            ["      *> reject-at: 2002 2014 2023", "      *> Expected: COBOL0840 with the prototype message head.",
              "       IDENTIFICATION DIVISION."], pinned));
-        Assert.Equal(["COBOLNET0840"], StaleStatedCodes(
+        Assert.Equal(["COBOL0840"], StaleStatedCodes(
             ["      *> no OVERRIDE is written, so only SR8 is violated.  Diagnostic",
-             "      *> COBOLNET0840 with the prototype message head."], pinned));
+             "      *> COBOL0840 with the prototype message head."], pinned));
         Assert.Empty(StaleStatedCodes(
-            ["      *> Expected: COBOLNET4212; before kb/Work PB1784 it was COBOLNET0840."], pinned));
+            ["      *> Expected: COBOL4212; before kb/Work PB1784 it was COBOL0840."], pinned));
     }
 
     /// <summary>Every refused program whose expectation pins a code states only pinned codes in its header. The

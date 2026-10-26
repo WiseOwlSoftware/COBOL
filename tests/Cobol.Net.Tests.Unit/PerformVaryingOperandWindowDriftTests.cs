@@ -29,7 +29,7 @@ namespace CobolNet.Tests.Unit;
 /// carries, so only the activation COUNT differs, and only a side-effecting function could see it. The window
 /// table is therefore pinned HERE, over the generated C#, where "before the loop" and "inside the loop" are
 /// directly measurable. Before PB437 the two per-evaluation slots had no window — they had a REFUSAL
-/// (COBOLNET1509, on source the standard admits).</para>
+/// (COBOL1509, on source the standard admits).</para>
 ///
 /// <para><b>What is measured.</b> Each program carries exactly ONE function reference, in one operand slot,
 /// written as a table SUBSCRIPT so it registers a §15.4 temporary store as a pre-op — the same pending list a
@@ -127,7 +127,7 @@ public sealed class PerformVaryingOperandWindowDriftTests
             + "    END-PERFORM.");
         Assert.True(acts.Count == 1 && acts[0] > loop,
             "a BY operand is read at every augmenting operation (ISO §14.9.28.4 GR12), so its function activation "
-            + "belongs INSIDE the loop. Before kb/Work PB437 this program was REJECTED (COBOLNET1509):\n" + cs);
+            + "belongs INSIDE the loop. Before kb/Work PB437 this program was REJECTED (COBOL1509):\n" + cs);
     }
 
     /// <summary>An AFTER level's FROM — identifier-6 / index-name-4 / literal-3. It is SET TWICE by two different
@@ -147,6 +147,6 @@ public sealed class PerformVaryingOperandWindowDriftTests
         Assert.True(acts.Count == 2 && acts[0] < loop && acts[1] > loop,
             "an AFTER level's FROM operand is read at GR13 a)'s initialization (before the loop) AND at "
             + "GR13 e) 2 a.'s re-initialization (inside the outer loop) — both are setting operations under ISO "
-            + "§14.9.28.4 GR12. Before kb/Work PB437 this program was REJECTED (COBOLNET1509):\n" + cs);
+            + "§14.9.28.4 GR12. Before kb/Work PB437 this program was REJECTED (COBOL1509):\n" + cs);
     }
 }

@@ -12,7 +12,7 @@ namespace CobolNet.Tests.Unit;
 /// converts to the printed 1-based column once, where it renders. A reporter that adds 1 itself —
 /// <c>sink.At(tok.Line, tok.Column + 1)</c>, <c>new DiagnosticCursor(tag.Start.Line, tag.Start.Column + 1)</c> — is
 /// therefore one column to the RIGHT of its construct, and it is invisible to every test that matches a diagnostic
-/// by code only. The branch fixed COBOLNET2927 and COBOLNET2158 this way and the reviewer found COBOLNET1719's three
+/// by code only. The branch fixed COBOL2927 and COBOL2158 this way and the reviewer found COBOL1719's three
 /// sites (<c>ExpressionFormationPass</c>) still doing it. The form that cannot be wrong is
 /// <c>sink.At(token)</c> / <c>edition.At(ctx)</c> (<c>DiagnosticCursorAt</c>), which this guard keeps as the only one:
 /// no compiler source adds a literal 1 to a <c>Column</c>. <c>SourceLocation.ToString</c> (the 0-based

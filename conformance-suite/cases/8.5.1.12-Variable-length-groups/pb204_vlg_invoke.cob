@@ -12,7 +12,7 @@
       *> argument is 14.8.2.2: "If either the formal parameter or the argument is a variable length group, the
       *> formal parameter and the argument shall be compatible, as described in 8.5.1.12, Variable-length
       *> groups", and what governs the result is 14.8.3.2's identical sentence over the RETURNING pair. Both
-      *> legs here are conforming source; both used to draw COBOLNET1688 at bind, and a method merely
+      *> legs here are conforming source; both used to draw COBOL1688 at bind, and a method merely
       *> DECLARING such a formal used to emit the Tier-C loud in a body nobody could invoke.
       *>
       *> THE ARGUMENT'S PREFIX IS SPLIT 2+1 AGAINST THE FORMAL'S X(3) so the crossing is proved to line up by

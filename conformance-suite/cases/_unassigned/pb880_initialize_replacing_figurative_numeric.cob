@@ -15,7 +15,7 @@
       *> storage") at every edition. The move is bound now. The explicit twin at the end is the control: both
       *> forms must print the same thing, and N2 is touched ONLY by INITIALIZE so no other statement can have
       *> supplied the storage fact.
-      *> The same program at --std 2023 is refused COBOLNET0902 (kb/Work PB879 - the negative twin
+      *> The same program at --std 2023 is refused COBOL0902 (kb/Work PB879 - the negative twin
       *> pb879-initialize-replacing-high-value-numeric-2023). This test wrote BY SPACE until kb/Work PB3605:
       *> SPACE into a numeric item is refused at every edition, so it has no pre-removal fill to witness.
        IDENTIFICATION DIVISION.

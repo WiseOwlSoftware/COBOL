@@ -36,13 +36,13 @@ public sealed class PointerDataTests
     {
         var (ok85, e85, _) = EditionHarness.CompileFull(Prog("    DISPLAY \"X\"."), 85);
         Assert.False(ok85, "USAGE POINTER is 2002+; 85 must reject");
-        EditionHarness.AssertHasDiagnostic(e85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(e85, "COBOL0900");
         var (ok02, e02, _) = EditionHarness.CompileFull(Prog("    SET P TO NULL.\n    DISPLAY \"X\"."), 2002);
         Assert.True(ok02, "USAGE POINTER + SET TO NULL must bind at 2002: " + string.Join("\n", e02));
     }
 
     /// <summary>§14.9.39 Format 7 — a data-pointer SET target shall be USAGE POINTER; a non-pointer target
-    /// (or a non-pointer/non-NULL sender) is COBOLNET0869.</summary>
+    /// (or a non-pointer/non-NULL sender) is COBOL0869.</summary>
     [Theory]
     [InlineData("    SET N TO P.")]                 // pointer sender into a non-pointer target (routes to F4)
     [InlineData("    SET P TO N.")]                 // non-pointer sender into a pointer
@@ -50,18 +50,18 @@ public sealed class PointerDataTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog(body), 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0869");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
     }
 
     /// <summary>⛔ AN INDEX-NAME RECEIVER IS REFUSED FOR THE REASON IT IS REFUSED (kb/Work PB388).
     /// <c>SET IX TO P</c> re-routes to the data-pointer format on the SENDER's category, and the receiver
-    /// resolution then answered for a DATA ITEM only — so the FIRST thing the user read was COBOLNET1639,
+    /// resolution then answered for a DATA ITEM only — so the FIRST thing the user read was COBOL1639,
     /// "'IX' is not defined — no declaration in this source element gives the name 'IX'", about a name
     /// INDEXED BY declared four lines up. The refusal is right (§14.9.39.3 SR17: identifier-5 shall reference
     /// a data item of category data-pointer); the statement about the program was not.</summary>
     /// <remarks>BOTH arms of the dispatch: the carrier re-route is selected by whichever operand HAS a carrier
     /// category, so an index-name reaches the receiving position AND the sending one (feedback_two_arm_dispatch
-    /// — the sender arm was still printing COBOLNET1639 after the receiver arm was repaired).</remarks>
+    /// — the sender arm was still printing COBOL1639 after the receiver arm was repaired).</remarks>
     [Theory]
     [InlineData("    SET IX TO P.")]
     [InlineData("    SET P TO IX.")]
@@ -82,13 +82,13 @@ public sealed class PointerDataTests
             """.Replace("{0}", body);
         var (ok, errors, _) = EditionHarness.CompileFull(prog, 2002);
         Assert.False(ok, "an index-name is not of category data-pointer");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0869");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1639");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL1639");
         EditionHarness.AssertNoDiagnostic(errors, "is not defined");
     }
 
     /// <summary>§8.8.4.2.16 — a data pointer is not ORDERED: only [NOT] EQUAL; an ordering operator or an
-    /// object/numeric mix is COBOLNET0869.</summary>
+    /// object/numeric mix is COBOL0869.</summary>
     [Theory]
     [InlineData("    IF P < Q DISPLAY \"X\" END-IF.")]   // ordering
     [InlineData("    IF P = N DISPLAY \"X\" END-IF.")]   // pointer vs numeric
@@ -96,6 +96,6 @@ public sealed class PointerDataTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog(body), 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0869");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
     }
 }

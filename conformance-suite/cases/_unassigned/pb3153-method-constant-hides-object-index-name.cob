@@ -13,7 +13,7 @@
       *>   is its own constant-name, written "as if literal-1 ... were
       *>   written where constant-name-1 is written" (13.10.4 GR1 -> OK
       *>   13.10.4 1)), so SET QI TO 4 names no receiving item:
-      *>   COBOLNET1548, as in a program whose only QI is a constant.
+      *>   COBOL1548, as in a program whose only QI is a constant.
       *>   Before the fix SET QI TO 4 moved the object's index-name QI.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3153IP.

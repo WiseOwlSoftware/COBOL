@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB3605 - a figurative constant BY CONTENT takes 14.8.2.3.3 rule 2 d)'s MOVE, the WHOLE
       *> 14.9.25.3 question, and SR5 keeps SPACE out of a numeric-edited item at every edition. So SPACE into the
-      *> PIC ZZ9 formal of a contained program activated with the NESTED phrase does not conform -> COBOLNET1688
+      *> PIC ZZ9 formal of a contained program activated with the NESTED phrase does not conform -> COBOL1688
       *> naming SR5. (A numeric formal is rule 2 a)'s COMPUTE, which takes no SPACE either.)
       *>   cite.py --check 14.9.25.3 "In all other cases, the move of an alphanumeric figurative constant (SPACE,
       *>     QUOTE, HIGH-VALUE, LOW-VALUE, ALL "literal", or ALL symbolic-character) to either a numeric item or a

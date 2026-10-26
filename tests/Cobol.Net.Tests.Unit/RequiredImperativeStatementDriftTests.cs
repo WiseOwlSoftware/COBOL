@@ -112,28 +112,28 @@ public sealed class RequiredImperativeStatementDriftTests : CobolNetTestBase
 
     /// <summary>Every unbracketed imperative-statement operand, written EMPTY, is rejected — and rejected with
     /// the named diagnostic rather than a generic parse failure, so the user is told which rule was broken.
-    /// COBOLNET2072 is the empty operand; COBOLNET2073 is the WHEN OTHER phrase written out of position, which is
+    /// COBOL2072 is the empty operand; COBOL2073 is the WHEN OTHER phrase written out of position, which is
     /// the same format read one level up.</summary>
     [Theory]
     // IF Format 1 / Format 2 — statement-1 unbracketed, and a brace alternative (ISO §14.9.19.2).
-    [InlineData("PB396A", "           IF X = 1\n           END-IF\n           DISPLAY \"A\"", "COBOLNET2072")]
-    [InlineData("PB396B", "           IF X = 1\n               DISPLAY \"T\"\n           ELSE\n           END-IF", "COBOLNET2072")]
-    [InlineData("PB396C", "           IF X = 1.\n           DISPLAY \"A\".", "COBOLNET2072")]
+    [InlineData("PB396A", "           IF X = 1\n           END-IF\n           DISPLAY \"A\"", "COBOL2072")]
+    [InlineData("PB396B", "           IF X = 1\n               DISPLAY \"T\"\n           ELSE\n           END-IF", "COBOL2072")]
+    [InlineData("PB396C", "           IF X = 1.\n           DISPLAY \"A\".", "COBOL2072")]
     // EVALUATE — imperative-statement-1 inside the outer brace group (ISO §14.9.13.2).
-    [InlineData("PB396D", "           EVALUATE X\n               WHEN 3\n           END-EVALUATE", "COBOLNET2072")]
+    [InlineData("PB396D", "           EVALUATE X\n               WHEN 3\n           END-EVALUATE", "COBOL2072")]
     [InlineData("PB396E", "           EVALUATE X\n               WHEN 3 DISPLAY \"T\"\n               WHEN OTHER\n"
-                        + "           END-EVALUATE", "COBOLNET2072")]
+                        + "           END-EVALUATE", "COBOL2072")]
     // …and the WHEN OTHER phrase out of position: repeated, or ahead of a WHEN phrase.
     [InlineData("PB396F", "           EVALUATE X\n               WHEN OTHER DISPLAY \"O1\"\n"
-                        + "               WHEN 3 DISPLAY \"T\"\n           END-EVALUATE", "COBOLNET2073")]
+                        + "               WHEN 3 DISPLAY \"T\"\n           END-EVALUATE", "COBOL2073")]
     [InlineData("PB396G", "           EVALUATE X\n               WHEN 3 DISPLAY \"T\"\n"
                         + "               WHEN OTHER DISPLAY \"O1\"\n               WHEN OTHER DISPLAY \"O2\"\n"
-                        + "           END-EVALUATE", "COBOLNET2073")]
+                        + "           END-EVALUATE", "COBOL2073")]
     // PERFORM Format 2 — imperative-statement-1 unbracketed between the phrase bracket and END-PERFORM.
-    [InlineData("PB396H", "           PERFORM UNTIL X > 5\n           END-PERFORM", "COBOLNET2072")]
+    [InlineData("PB396H", "           PERFORM UNTIL X > 5\n           END-PERFORM", "COBOL2072")]
     // SEARCH / SEARCH ALL — `{ imperative-statement-2 | NEXT SENTENCE }`, a brace alternation (ISO §14.9.37.2).
     [InlineData("PB396J", "           SET I TO 1\n           SEARCH R\n               AT END DISPLAY \"NF\"\n"
-                        + "               WHEN R (I) = 7\n           END-SEARCH", "COBOLNET2072")]
+                        + "               WHEN R (I) = 7\n           END-SEARCH", "COBOL2072")]
     public void AnEmptyRequiredImperative_IsRejected(string id, string body, string code)
     {
         var (ok, _, detail) = CompileAndRun(Program(id, body));
@@ -144,7 +144,7 @@ public sealed class RequiredImperativeStatementDriftTests : CobolNetTestBase
 
     /// <summary>The wholly empty inline PERFORM — no loop-control phrase, no body — is REJECTED, which is the
     /// rule (§14.9.28.2 Format 2 prints imperative-statement-1 unbracketed). It is measured separately because
-    /// it is the ONE shape that does not carry the named COBOLNET2072: with no <c>performInlineHead</c> to
+    /// it is the ONE shape that does not carry the named COBOL2072: with no <c>performInlineHead</c> to
     /// commit the parse, the failure is a no-viable-alternative on <c>performStatement</c>'s own alternatives
     /// decision, and at that state <c>Parser.GetExpectedTokens()</c> answers with a single token rather than the
     /// 167 that can start a statement, so the ATN test in <c>CobolErrorStrategy</c> cannot recognise it. Pinned
@@ -188,7 +188,7 @@ public sealed class RequiredImperativeStatementDriftTests : CobolNetTestBase
     /// conditional phrase that is not terminated by its explicit scope terminator is a conditional statement", and an
     /// imperative statement may be a conditional statement only "delimited by its explicit scope terminator". The
     /// screen (<c>ProcedureFormatPass</c>) asks it of every <c>statementBlock</c> whose parent is not the IF statement,
-    /// so each phrase family below is refused COBOLNET2796 with no code of its own — the undelimited inner statement
+    /// so each phrase family below is refused COBOL2796 with no code of its own — the undelimited inner statement
     /// is an IF in some rows and a conditional ADD in others, because the classification is Table 12's, not IF's.</summary>
     [Theory]
     [InlineData("PB351A", "           ADD 1 TO X ON SIZE ERROR IF X = 1 DISPLAY \"A\"\n           END-ADD")]
@@ -203,7 +203,7 @@ public sealed class RequiredImperativeStatementDriftTests : CobolNetTestBase
     {
         var (ok, _, detail) = CompileAndRun(Program(id, body));
         Assert.False(ok, $"{id} compiled: a conditional statement was accepted as an imperative-statement (§14.5.1).");
-        Assert.Contains("COBOLNET2796", detail, StringComparison.Ordinal);
+        Assert.Contains("COBOL2796", detail, StringComparison.Ordinal);
     }
 
     /// <summary>The complement: the same inner statements DELIMITED by their END- terminators are imperative

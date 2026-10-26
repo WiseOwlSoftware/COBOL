@@ -25,7 +25,7 @@ public sealed class EditionContextTests
         ed.Removed(EditionCodes.RemovedConstruct, "LABEL RECORDS clause removed in COBOL-2002");
         Assert.True(ed.HasErrors);
         Assert.Empty(ed.Warnings);
-        Assert.Contains(ed.Diagnostics, d => d.StartsWith("error COBOLNET0902", StringComparison.Ordinal));
+        Assert.Contains(ed.Diagnostics, d => d.StartsWith("error COBOL0902", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public sealed class EditionContextTests
         var ed = new EditionContext(2023, permissive: true);   // the documented migration mode
         ed.Removed(EditionCodes.RemovedConstruct, "LABEL RECORDS clause removed in COBOL-2002");
         Assert.False(ed.HasErrors);                             // permissive must NOT fail the compile
-        Assert.Contains(ed.Warnings, w => w.StartsWith("warning COBOLNET0902", StringComparison.Ordinal));
+        Assert.Contains(ed.Warnings, w => w.StartsWith("warning COBOL0902", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -64,13 +64,13 @@ public sealed class EditionContextTests
     /// source by <c>PIC LL EDITING L IS ":"</c> (<c>negative/pb529-picture-editing-no-digit-position</c>); the
     /// screen itself is witnessed here on every edition's capacity, COBOL-85's 18 included.</summary>
     [Theory]
-    [InlineData(2023, 0, "COBOLNET2882")]
-    [InlineData(85, 0, "COBOLNET2882")]
+    [InlineData(2023, 0, "COBOL2882")]
+    [InlineData(85, 0, "COBOL2882")]
     [InlineData(2023, 1, null)]
     [InlineData(2023, 31, null)]
-    [InlineData(2023, 32, "COBOLNET0801")]
+    [InlineData(2023, 32, "COBOL0801")]
     [InlineData(85, 18, null)]
-    [InlineData(85, 19, "COBOLNET0802")]
+    [InlineData(85, 19, "COBOL0802")]
     public void CheckDigitCapacity_AsksSr14sRangeAtBothEnds(int edition, int digits, string? code)
     {
         var ed = new EditionContext(edition);
@@ -89,7 +89,7 @@ public sealed class EditionContextTests
     {
         var ed = new EditionContext(2023);
         ed.CheckDigitCapacity(34, "data item 'X' (PICTURE 9(34))");
-        string message = Assert.Single(ed.Diagnostics, d => d.Contains("error COBOLNET0801:", StringComparison.Ordinal));
+        string message = Assert.Single(ed.Diagnostics, d => d.Contains("error COBOL0801:", StringComparison.Ordinal));
         Assert.Contains("§13.18.40.3 SR14", message, StringComparison.Ordinal);
     }
 

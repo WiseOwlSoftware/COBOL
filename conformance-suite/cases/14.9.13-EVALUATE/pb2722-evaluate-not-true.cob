@@ -9,7 +9,7 @@
       *> stacked" (identifier-2, literal-2, arithmetic-expression-2, boolean-expression-2, range-expression) - and
       *> prints TRUE as a selection object of its own, with no NOT. The word TRUE is not a condition, so NOT TRUE is
       *> no condition-2 either: source no format admits, owed a compile-time indication by 4.2.2 ("to indicate
-      *> violations of the general formats"): COBOLNET3710, at every edition. Before the fix it compiled clean.
+      *> violations of the general formats"): COBOL3710, at every edition. Before the fix it compiled clean.
       *>   cite.py --check 14.9.13.2 "where selection-object is" -> OK
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2722NT.

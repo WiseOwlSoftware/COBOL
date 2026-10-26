@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB234 - ADDRESS OF a static WORKING-STORAGE item of a
       *> RECURSIVE program. Before PB234 the program was refused outright
-      *> (COBOLNET0899); nothing in 8.4.3.11 or 14.9.5.4 forbids it.
+      *> (COBOL0899); nothing in 8.4.3.11 or 14.9.5.4 forbids it.
       *>
       *> EXPECTED VALUES, DERIVED FROM THE RULES:
       *>  - 13.5.4 GR1: the working-storage of a program without the initial

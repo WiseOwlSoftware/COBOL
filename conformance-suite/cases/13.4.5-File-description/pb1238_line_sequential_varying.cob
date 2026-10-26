@@ -11,7 +11,7 @@
       *> Format 2, RECORD IS VARYING ... DEPENDING ON, is not a RECORD CONTAINS clause, and
       *> §14.9.51.4 GR22 describes exactly this file: "For a line sequential file with a file
       *> description entry containing a RECORD clause with the DEPENDING phrase". The screen
-      *> (COBOLNET2605) must not refuse it. The record written with LN = 3 is "ABC" (GR22:
+      *> (COBOL2605) must not refuse it. The record written with LN = 3 is "ABC" (GR22:
       *> the record area is filled to the right as depending on data-name-1); read back into
       *> a space-filled area it is ABC, so the display is [ABC].
        IDENTIFICATION DIVISION.

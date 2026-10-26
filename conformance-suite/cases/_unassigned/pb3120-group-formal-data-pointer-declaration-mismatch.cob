@@ -13,7 +13,7 @@
       *> (T-REC holds a PIC 9(4)) and its definition (a PIC X(4)) hold
       *> two types, so the pointer members differ, the signatures
       *> differ, and 10.6.2 SR2 (OK 10.6.2 2)) refuses the pair
-      *> (COBOLNET1513). Comparing the NAME T-REC alone accepted it.
+      *> (COBOL1513). Comparing the NAME T-REC alone accepted it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. DPX IS PROTOTYPE.
        DATA DIVISION.

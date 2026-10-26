@@ -14,10 +14,10 @@
 *> on it, at any edition. Nothing in 8.4.2.3.3 SR5's seven exceptions is about writing a subscript; SR5 is
 *> about OMITTING one.
 *>
-*> WHY THE CODE MATTERS AND NOT MERELY THE REJECTION. Before PB877 this drew COBOLNET0899, "a reference
+*> WHY THE CODE MATTERS AND NOT MERELY THE REJECTION. Before PB877 this drew COBOL0899, "a reference
 *> shape COBOL.NET does not yet implement as a receiver" - a PROMISE, about source no edition of the
 *> standard will ever admit - and the identical reference on the SENDING side compiled clean and aborted at
-*> run time, where 4.2.2 requires a compile-time mechanism. COBOLNET2096 names the rule on both sides.
+*> run time, where 4.2.2 requires a compile-time mechanism. COBOL2096 names the rule on both sides.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB877NONTABLE.
        DATA DIVISION.

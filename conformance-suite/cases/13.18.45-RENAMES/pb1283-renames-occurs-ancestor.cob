@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1283 - SR3 - data-name-2 is subject to its ancestor's OCCURS clause.
       *>   cite.py --check 13.18.45.3 "Data-name-1, data-name-2 and data-name-3 shall not be subject to any OCCURS clauses" -> OK
-      *> COBOLNET2740 (renames-entry-rule). The positive twin is conformance/85/pb1283_renames_legal.cob.
+      *> COBOL2740 (renames-entry-rule). The positive twin is conformance/85/pb1283_renames_legal.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1283N3.
        DATA DIVISION.

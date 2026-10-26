@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB3570, the negative of pb3570_floating_literal_group_move: a floating-point numeric
 *> literal (ISO 8.3.3.3.3) is a COBOL-2002 introduction, so the MOVE of one to a group is
-*> refused at COBOL-85 by name (COBOLNET0900) and accepted from 2002 on.
+*> refused at COBOL-85 by name (COBOL0900) and accepted from 2002 on.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3570FN.
 DATA DIVISION.

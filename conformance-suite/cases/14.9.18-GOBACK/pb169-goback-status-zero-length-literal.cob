@@ -10,7 +10,7 @@
       *> fixes STOP and misses GOBACK fails, because "which arm did I fix" is the
       *> most reproducible defect shape in this repository.
       *> (GOBACK ... WITH STATUS is a COBOL-2023 introduction, so 2023 only - at
-      *> 85/2002/2014 the introduction gate COBOLNET0900 would answer first and
+      *> 85/2002/2014 the introduction gate COBOL0900 would answer first and
       *> the fixture would pin the wrong rejection.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB169N5.

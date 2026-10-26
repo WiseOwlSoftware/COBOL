@@ -15,7 +15,7 @@
       *> "EN_us.UTF-8" select the same locale at run time (CONFORMANCE.md
       *> DOC-A.1-181 normalizes both to en-US) but they are two literal
       *> values, so the two LOCALE phrases do not match and the RETURNING
-      *> pair does not conform (COBOLNET0828). Everything else - the SIZE
+      *> pair does not conform (COBOL0828). Everything else - the SIZE
       *> phrase, the character-string - is the same on both sides.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W61BNEGLOC.

@@ -8,7 +8,7 @@
       *> be described with the ANY LENGTH clause." Identifier-4 is the BY
       *> CONTENT / BY VALUE operand of the program-prototype CALL, so the
       *> contained program's ANY LENGTH formal L may cross BY REFERENCE
-      *> (14.8.2.3.2 rules d/e) but not BY CONTENT - COBOLNET1542.
+      *> (14.8.2.3.2 rules d/e) but not BY CONTENT - COBOL1542.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB240NC.
        DATA DIVISION.

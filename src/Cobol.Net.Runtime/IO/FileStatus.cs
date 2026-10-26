@@ -73,7 +73,7 @@ public static class FileStatusCode
         : PermanentError;
 
     /// <summary>38 — OPEN of a file previously CLOSEd WITH LOCK (the ≤2014 CLOSE … WITH LOCK leg; NOT part of the
-    /// 2002 5x/6x file-sharing family — that construct is COBOLNET0902-rejected at 2023 via the
+    /// 2002 5x/6x file-sharing family — that construct is COBOL0902-rejected at 2023 via the
     /// close-with-lock-removed-2023 gate, so 38 stays only for the still-legal ≤2014 path).</summary>
     public const string FileLocked = "38";
     /// <summary>39 — the file attribute conflict condition (ISO §9.1.13.6 item 7): an OPEN or DELETE FILE is

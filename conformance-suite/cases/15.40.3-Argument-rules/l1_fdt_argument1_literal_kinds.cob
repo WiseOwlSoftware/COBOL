@@ -24,8 +24,8 @@
       *> both are admitted and both compute the same value.
       *>
       *> The other half of r1 - LITERAL-ness - is the negative corpus:
-      *> l1-fdt-argument1-not-a-literal (COBOLNET1517, a PIC X data item) and
-      *> l1-fdt-argument1-boolean-literal (COBOLNET1627, a literal that is
+      *> l1-fdt-argument1-not-a-literal (COBOL1517, a PIC X data item) and
+      *> l1-fdt-argument1-boolean-literal (COBOL1627, a literal that is
       *> neither national nor alphanumeric).
       *>
       *> Derivation of the values (§15.5.2 integer date 1 = 1601-01-01, so

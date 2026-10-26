@@ -39,7 +39,7 @@ public sealed class KeywordSpellingDriftTests
     }
 
     /// <summary>The interchangeability is written ONCE per family — the FIRST set of its grammar rule is exactly
-    /// the §8.3.3.6.2 alternatives. The error strategy's COBOLNET2418 arm reads the families from here, so a
+    /// the §8.3.3.6.2 alternatives. The error strategy's COBOL2418 arm reads the families from here, so a
     /// family rule that lost a spelling would silently stop naming it.</summary>
     [Fact]
     public void FigurativeWordRules_AreTheSpecFamilies()
@@ -58,8 +58,8 @@ public sealed class KeywordSpellingDriftTests
         // position, written, expected diagnostic ("" = compiles)
         { "BLANK WHEN ZERO", "01 B PIC 9(3) BLANK WHEN ZERO.", "" },
         { "BLANK ZERO", "01 B PIC 9(3) BLANK ZERO.", "" },
-        { "BLANK WHEN ZEROS", "01 B PIC 9(3) BLANK WHEN ZEROS.", "COBOLNET2418" },
-        { "BLANK ZEROES", "01 B PIC 9(3) BLANK ZEROES.", "COBOLNET2418" },
+        { "BLANK WHEN ZEROS", "01 B PIC 9(3) BLANK WHEN ZEROS.", "COBOL2418" },
+        { "BLANK ZEROES", "01 B PIC 9(3) BLANK ZEROES.", "COBOL2418" },
     };
 
     /// <summary>Both directions at the data-division keyword position: the printed spelling compiles (with and
@@ -83,16 +83,16 @@ public sealed class KeywordSpellingDriftTests
     }
 
     /// <summary>The procedure-division keyword position, where ANTLR's fallback reports the failure at the IS /
-    /// NOT before the word, or at the word with no ZERO in the expected set — the COBOLNET2418 sign arm must name
+    /// NOT before the word, or at the word with no ZERO in the expected set — the COBOL2418 sign arm must name
     /// the misspelled keyword in both shapes; the relation spelled with the figurative constant still compiles.</summary>
     [Theory]
     [InlineData("N IS ZERO", "")]
     [InlineData("N IS NOT ZERO", "")]
     [InlineData("N = ZEROS", "")]
     [InlineData("N NOT = ZEROES", "")]
-    [InlineData("N IS ZEROS", "COBOLNET2418")]
-    [InlineData("N IS NOT ZEROES", "COBOLNET2418")]
-    [InlineData("N NOT ZEROS", "COBOLNET2418")]
+    [InlineData("N IS ZEROS", "COBOL2418")]
+    [InlineData("N IS NOT ZEROES", "COBOL2418")]
+    [InlineData("N NOT ZEROS", "COBOL2418")]
     public void SignCondition_AdmitsOnlyZero(string condition, string expected)
     {
         var (ok, errors) = Compile($"""
@@ -117,10 +117,10 @@ public sealed class KeywordSpellingDriftTests
     [InlineData("01 W PIC 999..", "")]
     [InlineData("01 W USAGE DISPLAY PIC 999,.", "")]
     [InlineData("01 W PIC 999, VALUE ZERO.", "")]
-    [InlineData("01 W PIC 999,, USAGE DISPLAY.", "COBOLNET2419")]
-    [InlineData("01 W PIC 999,; VALUE ZERO.", "COBOLNET2419")]
-    [InlineData("01 W PIC 999., VALUE ZERO.", "COBOLNET2419")]
-    [InlineData("01 W PIC 999.; VALUE ZERO.", "COBOLNET2419")]
+    [InlineData("01 W PIC 999,, USAGE DISPLAY.", "COBOL2419")]
+    [InlineData("01 W PIC 999,; VALUE ZERO.", "COBOL2419")]
+    [InlineData("01 W PIC 999., VALUE ZERO.", "COBOL2419")]
+    [InlineData("01 W PIC 999.; VALUE ZERO.", "COBOL2419")]
     public void PictureTrailingSymbol_IsFollowedByTheSeparatorPeriod(string entry, string expected)
     {
         var (ok, errors) = Compile($"""

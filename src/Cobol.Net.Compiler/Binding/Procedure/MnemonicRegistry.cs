@@ -21,7 +21,7 @@ using CobolNet.Runtime;
 /// device named WIBBLE. §12.3.7.3 SR5/SR6/SR7 key the use of a mnemonic on the TYPE of the name it is
 /// associated with — SET for a switch, WRITE for a feature, ACCEPT/DISPLAY for a device — and §8.3.2.3.1 makes
 /// that type a property of the name. An entry naming an unavailable name contributes nothing (the SPECIAL-NAMES
-/// binder reported it, COBOLNET2241); a switch entry with no mnemonic declares nothing a statement can
+/// binder reported it, COBOL2241); a switch entry with no mnemonic declares nothing a statement can
 /// reference.</para>
 /// (P7 Step 10h — moved off the ACCEPT partial onto <see cref="BinderContext"/>: ACCEPT-FROM, DISPLAY-UPON and
 /// the WRITE SR13 / SR16 / ADVANCING legs share the ONE per-unit map; since kb/Work PB454 so do SET Format 3's
@@ -61,7 +61,7 @@ internal sealed class MnemonicRegistry(DataBinder data)
             // compilationGroup through the class contexts), so the device map was EMPTY inside every method
             // while the SWITCH map — built from the SAME rule through OoDriver's synthetic reparented unit —
             // resolved. The walk now reads each OO ancestor's own configuration (a method itself may not
-            // declare one — §12.3.3 SR2, enforced as COBOLNET1519); TryAdd keeps the nearest scope.
+            // declare one — §12.3.3 SR2, enforced as COBOL1519); TryAdd keeps the nearest scope.
             var env = n switch
             {
                 Core.ProgramUnitContext pu => pu.environmentDivision(),

@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB132 - ISO 14.9.4.3 SR1's LEGAL side + 14.9.4.4 GR3b: identifier-1 is an alphanumeric
       *> data item and the activated program is the one whose name is its VALUE at execution time. The
-      *> COBOLNET1681 screen must admit this (its job is the numeric/boolean/index targets only).
+      *> COBOL1681 screen must admit this (its job is the numeric/boolean/index targets only).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB132DY.
        DATA DIVISION.

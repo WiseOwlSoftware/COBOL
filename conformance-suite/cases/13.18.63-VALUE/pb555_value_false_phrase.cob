@@ -12,7 +12,7 @@
       *> `[ WHEN SET TO FALSE IS literal-4 ]`. The model carried the first two; literal-4 was parsed,
       *> category-screened and then DISCARDED, which held two rules shut at once: 13.18.63.3 SR27 had
       *> nothing to compare against, and `SET condition-name TO FALSE` had no value to store, so it
-      *> staged loud (COBOLNET1756) and aborted the run unit.
+      *> staged loud (COBOL1756) and aborted the run unit.
       *>
       *> Expected values, computed from the standard.
       *> 13.18.63.4 GR20: "When a condition-name is referenced in a 'SET condition-name TO FALSE'

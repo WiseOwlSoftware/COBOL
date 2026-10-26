@@ -29,9 +29,9 @@ public sealed class SearchAllFormat2RuleCoverageDriftTests
 {
     /// <summary>The three codes PB445 allocated, and nothing else: the Format-2 rules divide by the OPERAND a
     /// violation is about, which is what a user has to change. A WHEN whose SHAPE is not Format 2 at all is the
-    /// existing COBOLNET1757 and is deliberately NOT in this set — it is a general-format verdict, not a
+    /// existing COBOL1757 and is deliberately NOT in this set — it is a general-format verdict, not a
     /// syntax-rule one, so it claims no SR number.</summary>
-    private static readonly string[] Format2Codes = ["COBOLNET1964", "COBOLNET1965", "COBOLNET1966"];
+    private static readonly string[] Format2Codes = ["COBOL1964", "COBOL1965", "COBOL1966"];
 
     /// <summary>(section → rule numbers) for §14.9.37.3, scraped from the transcription. The clause prints its
     /// rules under three banners — ALL FORMATS, FORMAT 1, FORMAT 2 — and which banner a rule sits under is the
@@ -107,7 +107,7 @@ public sealed class SearchAllFormat2RuleCoverageDriftTests
             "ISO §14.9.37.3 prints a FORMAT 2 syntax rule no PB445 diagnostic claims in its IsoSection: "
             + string.Join(", ", unclaimed.Select(n => "SR" + n))
             + ". The codes divide the rules by the OPERAND the violation is about — the table's declaration "
-            + "(COBOLNET1964), the KEY side of a WHEN (COBOLNET1965), the SENDING side (COBOLNET1966) — so put "
+            + "(COBOL1964), the KEY side of a WHEN (COBOL1965), the SENDING side (COBOL1966) — so put "
             + "the new rule under the one whose operand it is about, and say so in that descriptor's IsoSection.");
     }
 

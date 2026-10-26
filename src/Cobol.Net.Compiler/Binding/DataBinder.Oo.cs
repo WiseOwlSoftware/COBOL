@@ -82,7 +82,7 @@ public sealed class OoMethodDataScope
 /// The METHOD-data half of the data binder (OO deep-dive D6 — port slice 2): a method's LINKAGE SECTION
 /// (→ typed C# parameters via capturable locals) and LOCAL-STORAGE SECTION (→ C# locals, re-initialized each
 /// activation, §8.6.4). A method has NO WORKING-STORAGE at any edition: §13.5.3 SR1 allows it "only in a factory
-/// definition or an instance definition, but not in a method definition", so one is refused (COBOLNET1519; kb/Work
+/// definition or an instance definition, but not in a method definition", so one is refused (COBOL1519; kb/Work
 /// PB1308, decision R62) and its entries bind as LOCAL-STORAGE for recovery only. Items bind into the CLASS's one
 /// forest (so USAGE/SIGN inheritance, object-reference resolution, profiles, and struct types all apply unchanged)
 /// but their NAMES join the method's own scope as they are declared (<see cref="NameScopeOf"/>; kb/Work PB3192).
@@ -147,9 +147,9 @@ public sealed partial class DataBinder
     /// <para>The grammar cannot tell interface-name-1 from object-class-name-1 (both are one <c>cobolWord</c>),
     /// so it parses the superset <c>[FACTORY OF] className [ONLY]</c> and THIS method makes the general-format
     /// rejection once the name resolves: the interface alternative carries neither FACTORY nor ONLY.</para>
-    /// <para>Three verdicts live here and nowhere else — COBOLNET0813 (the name is neither a class nor an
-    /// interface of the compilation group), COBOLNET1925 (FACTORY/ONLY on the interface-name alternative) and
-    /// COBOLNET1924 (§13.18.60.3 SR16, ACTIVE-CLASS outside a factory definition, an instance definition, or the
+    /// <para>Three verdicts live here and nowhere else — COBOL0813 (the name is neither a class nor an
+    /// interface of the compilation group), COBOL1925 (FACTORY/ONLY on the interface-name alternative) and
+    /// COBOL1924 (§13.18.60.3 SR16, ACTIVE-CLASS outside a factory definition, an instance definition, or the
     /// linkage or local-storage section of a method definition). kb/Work PB389.</para>
     /// </summary>
     internal ObjectRefDescriptor OoBindObjectRefDescriptor(
@@ -223,7 +223,7 @@ public sealed partial class DataBinder
         // funnel, is what makes that scope travel with the descriptor: `oru` is the reference site the
         // ancestor walk starts from.
         var resolved = Compiler.Oo.OoNameResolution.Resolve(OoClasses, Edition, site, name,
-            Compiler.Oo.OoNameResolution.Want.Either, where, "COBOLNET0813", resolveRule);
+            Compiler.Oo.OoNameResolution.Want.Either, where, "COBOL0813", resolveRule);
         // A PARAMETER-NAME of the parameterized definition being bound as itself (kb/Work PB2051, PB2937): it stands where
         // an object-class-name or an interface-name is permitted (§11.3.4 GR6), so the description takes the alternative
         // its own REPOSITORY specifier declares — an interface formal is the bare-name alternative — marked FORMAL: what it
@@ -273,7 +273,7 @@ public sealed partial class DataBinder
     /// record's <c>StorageCell</c> — its ONE storage, which <c>ManagedPointer.At</c> aliases — emits STATIC
     /// (§13.5.4 GR1: one copy shared by every activation) and <c>__ResetStatics</c> re-seeds it IN PLACE
     /// (§14.6.2.3.2 action 2), where the old routing REJECTED `ADDRESS OF` a static item outright
-    /// (COBOLNET0899 — legal source refused).</summary>
+    /// (COBOL0899 — legal source refused).</summary>
     public IReadOnlySet<string> StaticAddressableCells => _staticAddressableCells;
     private readonly HashSet<string> _staticAddressableCells = new(StringComparer.Ordinal);
 
@@ -437,7 +437,7 @@ public sealed partial class DataBinder
                 // §13.5.3, §13.8.3, §13.9.3 SR1) — are judged once, at EVERY edition, by the one DATA-division placement
                 // table (kb/Work PB1251, PB1308 decision R62). A method's own data division is LOCAL-STORAGE (§13.6.3) and
                 // LINKAGE (§13.7.3), both bound below. The same screen refuses every GLOBAL clause written in the method
-                // (§13.18.27.3 SR4, COBOLNET1520 — a method prototype of an interface included; kb/Work PB1045).
+                // (§13.18.27.3 SR4, COBOL1520 — a method prototype of an interface included; kb/Work PB1045).
                 OoDefinitionRules.Screen(OoDefinition.Method, where, dd, Edition);
                 if (dd.workingStorageSection() is { } ws)
                 {
@@ -499,7 +499,7 @@ public sealed partial class DataBinder
             var item = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 CobolNames.Same(r.CobolName, pname));
             if (item is null)
-                Edition.Error("COBOLNET0888", $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
+                Edition.Error("COBOL0888", $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
                     + "a level-01/77 LINKAGE SECTION item of the method (ISO §14.2.2 SR1)");
             else if (header.AdmitFormal(pname, item))
             {
@@ -528,7 +528,7 @@ public sealed partial class DataBinder
             m.Binding!.Returning = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 CobolNames.Same(r.CobolName, rref.GetText()));
             if (m.Binding!.Returning is null)
-                Edition.Error("COBOLNET0888", $"{where}: PROCEDURE DIVISION RETURNING item '{rref.GetText()}' "
+                Edition.Error("COBOL0888", $"{where}: PROCEDURE DIVISION RETURNING item '{rref.GetText()}' "
                     + "is not a level-01/77 LINKAGE SECTION item of the method (ISO §14.2.2 SR1)");
             else
                 header.CheckReturning(rref.GetText(), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here
@@ -556,7 +556,7 @@ public sealed partial class DataBinder
         foreach (var root in m.Binding!.LocalRoots)
             if (root.IsAnyLength)
             {
-                Edition.Error("COBOLNET1542", $"{where}: data item '{root.CobolName ?? "FILLER"}': the ANY "
+                Edition.Error("COBOL1542", $"{where}: data item '{root.CobolName ?? "FILLER"}': the ANY "
                     + "LENGTH clause may be specified only in the LINKAGE SECTION (ISO §13.18.2.3 SR2)");
                 root.IsAnyLength = false;
             }
@@ -565,14 +565,14 @@ public sealed partial class DataBinder
             if (!root.IsAnyLength) continue;
             string rw = $"{where}: data item '{root.CobolName ?? "FILLER"}'";
             if (root.IsGroup)
-                Edition.Error("COBOLNET1542", $"{rw}: the subject of an ANY LENGTH clause shall be ELEMENTARY "
+                Edition.Error("COBOL1542", $"{rw}: the subject of an ANY LENGTH clause shall be ELEMENTARY "
                     + "— this entry has subordinate items (ISO §13.18.2.3 SR2)");
             else if (m.Accessor != '\0')
-                Edition.Error("COBOLNET1542", $"{rw}: the ANY LENGTH clause may not be specified in a PROPERTY "
+                Edition.Error("COBOL1542", $"{rw}: the ANY LENGTH clause may not be specified in a PROPERTY "
                     + "method (ISO §13.18.2.3 SR2 — a method that is not a property method)");
             else if (!m.Binding!.Formals.Any(f => ReferenceEquals(f.Item, root) && !f.ByValue)   // SR3 a): a BY VALUE formal does not qualify
                 && !ReferenceEquals(m.Binding!.Returning, root))
-                Edition.Error("COBOLNET1542", $"{rw}: the subject of an ANY LENGTH clause shall be referenced "
+                Edition.Error("COBOL1542", $"{rw}: the subject of an ANY LENGTH clause shall be referenced "
                     + "in the method's procedure division header as a BY REFERENCE formal parameter or as the "
                     + "RETURNING item (ISO §13.18.2.3 SR3)");
             else
@@ -885,7 +885,7 @@ public sealed partial class DataBinder
     /// emitter renders DIRECT field bodies — observably identical to the spec's implicit MOVE methods (§13.18.42.4
     /// GR1/GR2) because the descriptions are identical by construction. WITH NO GET/SET suppresses the accessor; an
     /// explicit GET/SET PROPERTY method of the subject's name (already on the roster) is §11.7.3 SR5, asked here as its
-    /// own rule (COBOLNET2790), and the clause then defines nothing.
+    /// own rule (COBOL2790), and the clause then defines nothing.
     /// <para>⛔ THE SUBJECT IS THE ITEM THAT CARRIES THE CLAUSE (<see cref="DataItem.Property"/>, kb/Work PB1273).
     /// This used to walk the PARSE entries and find each subject by FIRST NAME MATCH over the whole forest, so with
     /// two same-named items the accessor bound whichever came first in tree order — a wrong answer, and the one
@@ -1002,7 +1002,7 @@ public sealed partial class DataBinder
     /// <summary>Route a method-scoped Tier-B REDEFINES class's ONE string backing to its method LOCAL (M2-OO-1h
     /// step 3): a method LOCAL-STORAGE / LINKAGE canonical → a method LOCAL (suppressed from the class-level field
     /// loop via <see cref="CallSuppressedRootFields"/>, emitted in <c>OoEmitMethod</c>). A method owns no
-    /// WORKING-STORAGE (§13.5.3 SR1 — COBOLNET1519), so there is no static arm. Runs after
+    /// WORKING-STORAGE (§13.5.3 SR1 — COBOL1519), so there is no static arm. Runs after
     /// <c>ClassifyRedefinesClasses</c>. A subordinate (02) canonical rides its root's composed initializer and
     /// needs no routing (its backing is a member of the method-local root struct already).</summary>
     internal void OoRouteMethodRedefinesBackings()

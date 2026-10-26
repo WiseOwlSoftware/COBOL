@@ -52,7 +52,7 @@ public sealed class EcImplementorNamesDocumentationDriftTests
     }
 
     /// <summary>A.1 item 99 says this implementation provides no <c>EC-IMP-suffix</c> name, and the catalog agrees: no
-    /// level-3 row starts <c>EC-IMP-</c> and the name resolves to nothing (the refusal itself is COBOLNET0711, witnessed by the
+    /// level-3 row starts <c>EC-IMP-</c> and the name resolves to nothing (the refusal itself is COBOL0711, witnessed by the
     /// <c>pb1531-ec-imp-suffix-*</c> negative goldens).</summary>
     [Fact]
     public void Item99_NoEcImpSuffixNameExists()

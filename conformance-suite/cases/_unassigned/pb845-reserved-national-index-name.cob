@@ -7,7 +7,7 @@
       *> kb/Work PB845. ISO 8.3.2.1 1): "Reserved words shall not be used
       *> as user-defined words or system-names", and 8.9 reserves
       *> NATIONAL from COBOL-2002. An index-name is a user-defined word,
-      *> so INDEXED BY NATIONAL is COBOLNET0901. Before the fix NATIONAL
+      *> so INDEXED BY NATIONAL is COBOL0901. Before the fix NATIONAL
       *> was exempt from the reservation gate as a supposed function
       *> name and this compiled at every edition.
        IDENTIFICATION DIVISION.

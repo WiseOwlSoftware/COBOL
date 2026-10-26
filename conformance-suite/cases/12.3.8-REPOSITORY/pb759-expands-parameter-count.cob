@@ -7,7 +7,7 @@
       *> kb/Work PB759 -- ISO 12.3.8.4 GR5: "The number of parameters in the USING phrase of the EXPANDS phrase
       *> of the class-specifier shall be the same as the number of parameters in the USING clause of the
       *> CLASS-ID paragraph of object-class-name-2."  PB759NCHOLD declares ONE formal; the specifier supplies
-      *> TWO actual parameters, so no class can be created from it -> COBOLNET2240.
+      *> TWO actual parameters, so no class can be created from it -> COBOL2240.
        IDENTIFICATION DIVISION.
        CLASS-ID. PB759NCBOX.
        END CLASS PB759NCBOX.

@@ -8,7 +8,7 @@
       *>   given user-defined word may be used as only one type of
       *>   user-defined word" -> OK 8.3.2.2. Method PB2921S is one
       *>   source element, and S1 is both its data-name and its
-      *>   section-name: refused COBOLNET2692. The method arm of the
+      *>   section-name: refused COBOL2692. The method arm of the
       *>   procedure-name walk declared no section-name, so this
       *>   compiled clean.
        IDENTIFICATION DIVISION.

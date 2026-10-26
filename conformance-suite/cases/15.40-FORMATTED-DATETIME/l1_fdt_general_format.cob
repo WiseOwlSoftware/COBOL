@@ -18,9 +18,9 @@
       *> THE ARITY IS THE HALF A POSITIVE GOLDEN CANNOT PROVE ALONE: a
       *> catalog row reading 2..4 or 3..5 would pass every line here. The
       *> reject side is the negative corpus - l1-fdt-arity-two-arguments and
-      *> l1-fdt-arity-five-arguments (COBOLNET1504); the un-licensed omission
+      *> l1-fdt-arity-five-arguments (COBOL1504); the un-licensed omission
       *> of FUNCTION is the generic §8.4.3.2.3 SR2 arm, pinned by
-      *> negative/kof-undeclared-intrinsic-args (COBOLNET1543).
+      *> negative/kof-undeclared-intrinsic-args (COBOL1543).
       *>
       *> Every expected value is derived from the rule text, not observed:
       *>   §15.5.2 - integer date 1 is 1601-01-01, so 143951 is 1995-02-15

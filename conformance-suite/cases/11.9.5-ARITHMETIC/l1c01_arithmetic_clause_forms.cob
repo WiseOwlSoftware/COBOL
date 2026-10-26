@@ -28,7 +28,7 @@
       *>     the returned value is the absolute value of the
       *>     approximation of the square root" -> OK §15.84.4 4)
       *> STANDARD-BINARY is the documented processor-dependent decline
-      *> (A.3 item 2, docs/CONFORMANCE.md, COBOLNET0806); not used here.
+      *> (A.3 item 2, docs/CONFORMANCE.md, COBOL0806); not used here.
       *> 2014 dir: STANDARD-DECIMAL first exists in 2014.
       *> Each source element has its own OPTIONS paragraph (§11.9.5.2 4
       *> names "this source element or a containing source element");

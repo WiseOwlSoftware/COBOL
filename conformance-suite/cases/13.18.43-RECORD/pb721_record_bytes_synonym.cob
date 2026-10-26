@@ -13,7 +13,7 @@
       *> writes BYTES in all three.
       *>
       *> Until kb/Work PB721 the word had no lexer token at all and the grammar admitted
-      *> only CHARACTERS, so every one of these lines was refused COBOLNET1970 ("'BYTES'
+      *> only CHARACTERS, so every one of these lines was refused COBOL1970 ("'BYTES'
       *> is not a clause of the file description entry") - legal COBOL-2023, rejected.
       *>
       *> !! THIS GOLDEN IS 2023-ONLY BY RULE, NOT BY HABIT. The BYTES spelling is a
@@ -21,7 +21,7 @@
       *> the list of context-sensitive words or the context in which they are reserved
       *> has been expanded", and 8.10 gives BYTES exactly ONE construct - the RECORD
       *> clause - so there is no earlier context for the second arm to name. Below 2023
-      *> it is refused COBOLNET0900; that is
+      *> it is refused COBOL0900; that is
       *> conformance-suite/cases/13.18.43-RECORD/pb721-record-bytes-below-2023.cob.
       *>
       *> THE COMPLEMENT IS THE OTHER HALF OF THE RULE, and it is why WS-BYTES is here.

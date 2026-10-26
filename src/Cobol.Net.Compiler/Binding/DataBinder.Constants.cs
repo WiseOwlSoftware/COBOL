@@ -35,7 +35,7 @@ using CobolNet.Runtime;
 /// <item><c>ExtractValue</c> — a VALUE-clause constant-name operand substitutes its raw literal text (the
 /// text-plumbed data path, the ConcatFolder RawText precedent);</item>
 /// <item><c>ExpressionBinder.ResolveReceiving</c> — a constant-name as a receiving operand rejects
-/// (<c>COBOLNET1548</c> — a literal cannot be a receiver; SR2 permits a constant only where a LITERAL is
+/// (<c>COBOL1548</c> — a literal cannot be a receiver; SR2 permits a constant only where a LITERAL is
 /// permitted).</item>
 /// </list>
 /// The four AS forms (§13.10.2): <b>AS literal-1</b> (GR1/GR2 — the constant IS the literal, class and
@@ -537,7 +537,7 @@ public sealed partial class DataBinder
 
     /// <summary>The §13.18.15.3 SR2 receiving-operand prohibition for CONSTANT RECORD content — "Neither the data
     /// item described by the subject of the entry nor any data item subordinate to the subject of the entry shall be
-    /// specified as a receiving data item". The <c>COBOLNET1548</c> message when the place is (or is subordinate to)
+    /// specified as a receiving data item". The <c>COBOL1548</c> message when the place is (or is subordinate to)
     /// a structured constant, else null. It REPORTS NOTHING: the receiving chokepoint reports it, and §8.4.3.2.4
     /// GR5's argument-manner test only asks it (kb/Work PB1418).
     /// <para>⛔ IT HAS EXACTLY ONE CALL SITE, AND THAT IS THE DESIGN: <c>ExpressionBinder.ReceivingPlaceBar</c>, the
@@ -567,7 +567,7 @@ public sealed partial class DataBinder
     /// optional name and the body. The entry binds here unless a reference bound it already, or it waits for an
     /// operand described later (<see cref="BindDeclaredConstant"/>, kb/Work PB1231). Produces NO <see cref="DataItem"/> (§13.10.4 GR1/GR3 — a constant is a substitution, not storage). The
     /// COBOL-2002 introduction gate is the VersionConformancePass parse arm (<c>VisitConstantEntryBody</c> →
-    /// constant-entry-2002 → COBOLNET0900 below 2002), NOT here (the binder stays edition-agnostic — Step E).</summary>
+    /// constant-entry-2002 → COBOL0900 below 2002), NOT here (the binder stays edition-agnostic — Step E).</summary>
     private void BindConstantEntry(
         Antlr4.Runtime.ParserRuleContext entry, Core.LevelNumberContext level, Core.DataNameContext? nameCtx,
         Core.ConstantEntryBodyContext body)
@@ -789,7 +789,7 @@ public sealed partial class DataBinder
 
     /// <summary>Routes the shared compile-time evaluator's diagnostics to the CONSTANT-entry binder's own codes: an
     /// arithmetic rule → the <c>ConstantEntryRule</c> descriptor; a §12.3.7 GR14a separator violation →
-    /// COBOLNET0895 — unchanged from the pre-shared-evaluator binder.</summary>
+    /// COBOL0895 — unchanged from the pre-shared-evaluator binder.</summary>
     private sealed class ConstantEvaluatorDiagnostics(DataBinder owner) : CobolNet.Frontend.Expressions.ICtDiagnostics
     {
         public void Report(CobolNet.Frontend.Expressions.CtDiagCode code, string message)
@@ -1065,7 +1065,7 @@ public sealed partial class DataBinder
     /// literal-1 … were written where constant-name-1 is written"). Because the constant stands for the literal, the
     /// substituted value meets what the WRITTEN literal meets: §5.5 1)'s "unsigned and nonzero unless otherwise
     /// specified in the associated rules" (the clause's own exception, <see cref="CobolNet.Validation.IntegerOperandRules.Classify"/>)
-    /// and the host limit (COBOLNET2427, which <c>IntegerOperandPass</c> raises for a literal pre-bind and which a
+    /// and the host limit (COBOL2427, which <c>IntegerOperandPass</c> raises for a literal pre-bind and which a
     /// constant can only meet here, where its value is known). Null (reported) for a non-integer, a negative or zero-
     /// where-nonzero, an over-limit or an unknown constant-name.</summary>
     /// <param name="operand">The operand node of the clause that prints the <c>integer-n</c>.</param>
@@ -1113,7 +1113,7 @@ public sealed partial class DataBinder
             // THE ONE integer-literal reader (kb/Work PB1579): an integer constant beyond the host range is still an
             // INTEGER constant-name — a TryParse here refused it as "not an INTEGER constant-name". Substituted for
             // integer-n (§13.10.4 GR1), it meets the limit the written literal meets: IntegerOperandPass screens a
-            // LITERAL pre-bind (COBOLNET2427), and a constant is known only here, so the same verdict is raised here
+            // LITERAL pre-bind (COBOL2427), and a constant is known only here, so the same verdict is raised here
             // — never a saturated bound handed to the layout, which then tried to allocate it.
             if (k is { Category: PicCategory.Numeric, IntegerText: { } it }
                 && CobolNet.Validation.IntegerOperandRules.TryHostValue(it, out int kv, out bool beyondLimit))

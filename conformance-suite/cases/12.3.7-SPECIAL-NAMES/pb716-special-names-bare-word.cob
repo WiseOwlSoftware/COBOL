@@ -11,7 +11,7 @@
       *> `cobolWord (IS? cobolWord)? switchOnClause? switchOffClause?` - minimum spelling ONE word - inside the
       *> unbounded entry loop, so any word left over after a clause became a complete, silent entry: this
       *> program compiled and ran at every edition, ZOTZOT simply discarded.  The word now reaches the
-      *> closed-format error production and is named (COBOLNET1970).
+      *> closed-format error production and is named (COBOL1970).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB716BARE.
        ENVIRONMENT DIVISION.

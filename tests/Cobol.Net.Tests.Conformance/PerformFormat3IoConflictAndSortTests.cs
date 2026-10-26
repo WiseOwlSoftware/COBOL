@@ -831,7 +831,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
     /// <para>⛔ A WHEN body binds under TURN OFF ALL (§14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL
     /// is assumed at the end of imperative-statement-1"), and a TURN directive may NOT be written inside the
     /// exception-checking PERFORM at all (§7.3.25.3 SR5: "A TURN directive shall not be specified within an exception
-    /// processing PERFORM statement"; the compiler warns, COBOLNET2187). A SORT / MERGE whose EC-SORT-MERGE conditions
+    /// processing PERFORM statement"; the compiler warns, COBOL2187). A SORT / MERGE whose EC-SORT-MERGE conditions
     /// must be raised therefore lives in a PARAGRAPH compiled under the program's own EC-ALL directive and is
     /// PERFORMed from the WHEN body (<c>paras</c> of <see cref="Sort"/>): the shape a conforming program has.</para></summary>
     private static string InWhen(string body) => $"""

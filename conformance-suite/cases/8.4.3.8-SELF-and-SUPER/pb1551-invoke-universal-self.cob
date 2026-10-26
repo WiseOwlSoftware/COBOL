@@ -10,7 +10,7 @@
       *> 14.9.23.3 6)), so the keyword-less SELF is identifier-3, a
       *> receiving operand by SR20 (cite.py: OK 14.9.23.3 20)), and ISO
       *> 8.4.3.8.3 SR2 refuses it (cite.py: OK 8.4.3.8.3 2)) -
-      *> COBOLNET3978. It was refused as "a literal or arithmetic-
+      *> COBOL3978. It was refused as "a literal or arithmetic-
       *> expression argument", which SELF is not.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1551IUM.

@@ -8,7 +8,7 @@
 *>---
       *> kb/Work PB163 - ISO 13.18.27.3 SR1b: GLOBAL may be specified on a level-1 entry in the file,
       *> working-storage, LOCAL-STORAGE, or linkage section. The registration pass scanned WS only, so a
-      *> GLOBAL LOCAL-STORAGE item was UNDEFINED in every containee (COBOLNET1639 on conforming source).
+      *> GLOBAL LOCAL-STORAGE item was UNDEFINED in every containee (COBOL1639 on conforming source).
       *> Derived: the containee reads the container's per-activation LS through the containment bridge
       *> (13.18.27 GR2) - SEES=0007.
        IDENTIFICATION DIVISION.

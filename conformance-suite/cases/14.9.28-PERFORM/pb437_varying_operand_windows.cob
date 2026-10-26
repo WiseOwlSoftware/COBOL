@@ -13,7 +13,7 @@
       *> pre-op registered exactly like a user-function activation), so an operand read once per STATEMENT and
       *> one read once per OPERATION give DIFFERENT answers, which is what makes this a test.
       *>
-      *> Both statements were REJECTED outright before PB437 (COBOLNET1509), in slots the compiler accepted one
+      *> Both statements were REJECTED outright before PB437 (COBOL1509), in slots the compiler accepted one
       *> operand position over.
       *>
       *> EXPECTED VALUES, DERIVED FROM THE RULES AND NOT FROM A RUN. W-E holds 1,2,3,4,5.

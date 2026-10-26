@@ -143,7 +143,7 @@ public enum PositionReadForm
     /// <c>CobolString.RefModPosition(x, profile)</c>.</summary>
     RefModPosition,
 
-    /// <summary>A NON-numeric item the <c>--permissive</c> lane admits (COBOLNET0844): its digit characters decoded
+    /// <summary>A NON-numeric item the <c>--permissive</c> lane admits (COBOL0844): its digit characters decoded
     /// as an unsigned integer, <c>CobolTable.Occ(x)</c>.</summary>
     Digits,
 }

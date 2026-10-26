@@ -6,8 +6,8 @@
 *>---
 *> VCR 30 (ISO §7.3.23.2): >>REF-MOD-ZERO-LENGTH's operand is ON or OFF (ON is not
 *> underlined in the printed format, so a bare directive selects it) — any other operand
-*> is COBOLNET1911, the ONE malformed-operand producer §7.3.3 SR6 earns for the whole
-*> §7.3 family (kb/Work PB794, which retired this directive's own COBOLNET1576).
+*> is COBOL1911, the ONE malformed-operand producer §7.3.3 SR6 earns for the whole
+*> §7.3 family (kb/Work PB794, which retired this directive's own COBOL1576).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. RMZLMAL.
        ENVIRONMENT DIVISION.

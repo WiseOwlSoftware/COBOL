@@ -9,7 +9,7 @@
 *> The shape: a contained program's APPLY COMMIT clause names RELF, a file of its CONTAINING program's FILE-CONTROL
 *> paragraph (not GLOBAL, so not visible to the contained program at all). An APPLY COMMIT operand is looked up only in
 *> the element that writes the clause, so the only refusal this program can draw is that the operand resolves to nothing
-*> there (COBOLNET1639, "no declaration in this source element"). Fails if the clause is accepted.
+*> there (COBOL1639, "no declaration in this source element"). Fails if the clause is accepted.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3338S1.
        ENVIRONMENT DIVISION.

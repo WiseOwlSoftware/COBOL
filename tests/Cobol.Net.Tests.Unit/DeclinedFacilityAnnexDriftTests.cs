@@ -50,7 +50,7 @@ public sealed class DeclinedFacilityAnnexDriftTests
     private static IReadOnlyList<DiagnosticDescriptor> Declined() =>
         DiagnosticCatalog.All.Where(d => d.Annex != DeclinedAnnex.None).ToList();
 
-    /// <summary>Every <c>COBOLNET####</c> code named inside one section of <c>docs/CONFORMANCE.md</c>, read from
+    /// <summary>Every <c>COBOL####</c> code named inside one section of <c>docs/CONFORMANCE.md</c>, read from
     /// the heading up to the next <c>## </c>. The registers are markdown, so this is a scan and not a parse —
     /// but it is a scan of the DOCUMENT, which is what §4.2.6 and §4.2.7 make the normative artifact.</summary>
     private static HashSet<string> CodesUnder(string heading)
@@ -62,7 +62,7 @@ public sealed class DeclinedFacilityAnnexDriftTests
             if (line.StartsWith(heading, StringComparison.Ordinal)) { inSection = true; continue; }
             if (!inSection) continue;
             if (line.StartsWith("## ", StringComparison.Ordinal)) break;
-            foreach (Match m in Regex.Matches(line, @"COBOLNET[0-9]{4}"))
+            foreach (Match m in Regex.Matches(line, @"COBOL[0-9]{4}"))
                 codes.Add(m.Value);
         }
         return codes;
@@ -159,10 +159,10 @@ public sealed class DeclinedFacilityAnnexDriftTests
     [Fact]
     public void TheGuards_CanFail_AndDoNotFireOnCorrectCitations()
     {
-        var a4CitingA3 = new DiagnosticDescriptor("COBOLNET9998", "fabricated-a4", EditionSeverity.Error,
+        var a4CitingA3 = new DiagnosticDescriptor("COBOL9998", "fabricated-a4", EditionSeverity.Error,
             "an OPTIONAL element (§4.2.6) that is not supported", "ISO §4.2.6 / Annex A.4.14",
             Annex: DeclinedAnnex.A4);
-        var a3CitingA4 = new DiagnosticDescriptor("COBOLNET9997", "fabricated-a3", EditionSeverity.Warning,
+        var a3CitingA4 = new DiagnosticDescriptor("COBOL9997", "fabricated-a3", EditionSeverity.Warning,
             "a processor-dependent element (§4.2.7) that is not supported", "ISO §4.2.7 / Annex A.3 item 4",
             Annex: DeclinedAnnex.A3);
         Assert.Matches(Cites("4.2.6"), a4CitingA3.Title + " " + a4CitingA3.IsoSection);
@@ -172,13 +172,13 @@ public sealed class DeclinedFacilityAnnexDriftTests
         Assert.DoesNotMatch(Cites("4.2.6"), a4CitingA3.PostureClause!);   // arm 2 would flag it too
         Assert.DoesNotMatch(Cites("4.2.7"), a3CitingA4.PostureClause!);
 
-        var correct = new DiagnosticDescriptor("COBOLNET9996", "fabricated-ok", EditionSeverity.Error,
+        var correct = new DiagnosticDescriptor("COBOL9996", "fabricated-ok", EditionSeverity.Error,
             "an OPTIONAL element (§4.2.7; Annex A.4.14), additionally obsolete (§4.2.13) and outside the "
             + "§4.2.16 claim", "ISO §4.2.7 / Annex A.4.1", Annex: DeclinedAnnex.A4);
         Assert.DoesNotMatch(Cites("4.2.6"), correct.Title + " " + correct.IsoSection);
         Assert.Matches(Cites("4.2.7"), correct.IsoSection);
 
-        var both = new DiagnosticDescriptor("COBOLNET9995", "fabricated-both", EditionSeverity.Warning,
+        var both = new DiagnosticDescriptor("COBOL9995", "fabricated-both", EditionSeverity.Warning,
             "listed in both annexes", "ISO §4.2.6 ¶3 / §4.2.7 / Annex A.3 items 6-7 / Annex A.4.3",
             Annex: DeclinedAnnex.A3 | DeclinedAnnex.A4);
         Assert.Equal("§4.2.6 / §4.2.7", both.PostureClause);
@@ -186,7 +186,7 @@ public sealed class DeclinedFacilityAnnexDriftTests
             Assert.Matches(Cites(clause.TrimStart('§')), both.IsoSection);
 
         // A descriptor that is not a decline carries no clause at all — the None arm of the derivation.
-        Assert.Null(new DiagnosticDescriptor("COBOLNET9994", "fabricated-none", EditionSeverity.Error,
+        Assert.Null(new DiagnosticDescriptor("COBOL9994", "fabricated-none", EditionSeverity.Error,
             "not a decline", "ISO §8.1").PostureClause);
     }
 }

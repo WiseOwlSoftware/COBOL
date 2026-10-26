@@ -101,7 +101,7 @@ public sealed class UsageInheritanceDriftTests
     {
         var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRun(source);
         string text = ok ? stdout : detail;
-        var codes = Regex.Matches(text, @"COBOL(?:NET)?\d{4}").Select(m => m.Value).Distinct().Order().ToList();
+        var codes = Regex.Matches(text, @"COBOL\d{4}").Select(m => m.Value).Distinct().Order().ToList();
         if (!ok && codes.Count == 0) codes.Add("FAIL-WITHOUT-A-CODE:" + text.Split('\n')[0].Trim());
         return codes.Count > 0 ? string.Join(",", codes) : "OK " + stdout.Trim();
     }
@@ -189,8 +189,8 @@ public sealed class UsageInheritanceDriftTests
     ///
     /// <para>Some members are excluded because the compiler refuses the KEYWORD before any picture rule is
     /// reached, so neither spelling is evidence about SR8: FLOAT-BINARY-128 and FLOAT-DECIMAL-16/-34 are
-    /// documented processor-dependent non-support (COBOLNET1564, Annex A.3 items 17/19), and the five pointer/object
-    /// phrases (MESSAGE-TAG, declined non-support COBOLNET1943, Annex A.3 item 4, kb/Work PB487, among them) are
+    /// documented processor-dependent non-support (COBOL1564, Annex A.3 items 17/19), and the five pointer/object
+    /// phrases (MESSAGE-TAG, declined non-support COBOL1943, Annex A.3 item 4, kb/Work PB487, among them) are
     /// refused by §13.18.60.3 SR14 at level 05 whatever the picture — which they are on BOTH spellings since
     /// kb/Work PB819 made the elementary arm read the phrase, so no carve-out for a refused keyword remains in the
     /// GR1 equivalence above. They are named by PREDICATE — the 1564 test and the 1724 test — never by list, so a
@@ -209,12 +209,12 @@ public sealed class UsageInheritanceDriftTests
         string withPicture = Verdict(Program($"S8P{tag}", $"01 G.\n    05 A PIC 9(4) USAGE {word}."));
         string without = Verdict(Program($"S8N{tag}", $"01 G.\n    05 A USAGE {word}."));
 
-        // The keyword itself refused (documented non-support COBOLNET1564): neither spelling is SR8 evidence,
+        // The keyword itself refused (documented non-support COBOL1564): neither spelling is SR8 evidence,
         // because no picture rule is ever reached.
-        if (withPicture.Contains("COBOLNET1564")) return;
+        if (withPicture.Contains("COBOL1564")) return;
         // §13.18.60.3 SR14 refuses the five pointer/object phrases at level 05 whatever the picture — the
         // placement rule fires first, so again neither spelling is SR8 evidence here.
-        if (withPicture.Contains("COBOLNET1724") && without.Contains("COBOLNET1724")) return;
+        if (withPicture.Contains("COBOL1724") && without.Contains("COBOL1724")) return;
 
         if (UsageFamilies.IsPictureless(usage))
         {
@@ -226,10 +226,10 @@ public sealed class UsageInheritanceDriftTests
         }
         else
         {
-            Assert.True(withPicture.StartsWith("OK") || withPicture.Contains("COBOLNET0881"),
+            Assert.True(withPicture.StartsWith("OK") || withPicture.Contains("COBOL0881"),
                 $"USAGE {word} is NOT in UsageFamilies.IsPictureless, so ISO §13.16.3 SR8 REQUIRES a PICTURE "
                 + $"beside it — `05 A PIC 9(4) USAGE {word}.` must be accepted, or refused by a §13.18.60.3 "
-                + $"picture-category rule (COBOLNET0881), not by an SR8 prohibition: {withPicture}");
+                + $"picture-category rule (COBOL0881), not by an SR8 prohibition: {withPicture}");
         }
     }
 
@@ -301,7 +301,7 @@ public sealed class UsageInheritanceDriftTests
             """;
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(bad);
         Assert.False(ok, "a USAGE DISPLAY leaf inside a USAGE COMPUTATIONAL group violates ISO §13.18.60.3 SR2");
-        Assert.Contains("COBOLNET1927", detail);
+        Assert.Contains("COBOL1927", detail);
         Assert.Contains("§13.18.60.3 SR2", detail);
 
         // SR6 makes COMP the abbreviation for COMPUTATIONAL, and this implementation identifies BINARY with
@@ -349,7 +349,7 @@ public sealed class UsageInheritanceDriftTests
             """;
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(twice);
         Assert.False(ok);
-        var reports = detail.Split('\n').Where(l => l.Contains("COBOLNET1927")).ToList();
+        var reports = detail.Split('\n').Where(l => l.Contains("COBOL1927")).ToList();
         Assert.Single(reports);
         Assert.Contains("group item 'TG'", reports[0]);
 
@@ -368,7 +368,7 @@ public sealed class UsageInheritanceDriftTests
             """;
         var (ok2, _, detail2) = new CobolNetCompiler(2023).CompileAndRun(sameAs);
         Assert.False(ok2);
-        Assert.Single(detail2.Split('\n'), l => l.Contains("COBOLNET1927"));
+        Assert.Single(detail2.Split('\n'), l => l.Contains("COBOL1927"));
     }
 
     /// <summary>⛔ A DESCRIPTION COPIED BEFORE THE USAGE WALK STILL HAS ITS SUBORDINATES (kb/Work PB3682). Entry bind answers
@@ -376,7 +376,7 @@ public sealed class UsageInheritanceDriftTests
     /// <c>UsageInheritancePass</c> sheds it from a group header (§13.18.60.4 GR1, "and not to the group itself"). TYPE and
     /// SAME AS copy first, so a copy that asked <c>DataItem.IsGroup</c> ("no PICTURE") of `01 G USAGE BINARY-LONG. 05 A.
     /// 05 B.` saw an ELEMENTARY item, cloned no subordinates, and gave the subject one member's width: a SAME AS subject was
-    /// a quarter of its source's size, and a TYPEDEF with the same shape was refused outright (COBOLNET2191 beside COBOLNET0881).
+    /// a quarter of its source's size, and a TYPEDEF with the same shape was refused outright (COBOL2191 beside COBOL0881).
     /// The subject is the source's size, its members are addressable, and a GLOBAL declaration copied by a contained program
     /// — after the container's own bind completed it — keeps them too.</summary>
     [Fact]

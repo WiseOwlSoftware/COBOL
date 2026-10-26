@@ -10,7 +10,7 @@
       *> parentheses."  Operands of a SOURCE clause are separated by nothing but a space (13.18.53.2's ellipsis
       *> repeats the brace pair), so once an operand may itself contain operators the list has two readings and
       *> the standard removes the choice by requiring the parentheses — on EVERY operand, the bare identifiers
-      *> included.  The rule is ENFORCED (COBOLNET2142), never inferred from the grammar's shape; its negative
+      *> included.  The rule is ENFORCED (COBOL2142), never inferred from the grammar's shape; its negative
       *> twin is conformance-suite/cases/13.18.53-SOURCE/pb852-source-operand-parens.cob.
       *>
       *> WHY THIS COPY IS AT 2002 AND THE REST OF PB852 AT 85.  SR7 only bites on a multi-operand clause, which

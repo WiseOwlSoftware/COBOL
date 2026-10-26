@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> THE COMPLEMENT OF THE COBOLNET1710 TABLE (feedback_measure_the_selectors_complement): the refusal
+      *> THE COMPLEMENT OF THE COBOL1710 TABLE (feedback_measure_the_selectors_complement): the refusal
       *> is keyed to EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK, the three names Annex A.4.3
       *> item 3 lists - NOT to the EC-FLOW level-2 family, whose other level-3 names belong to facilities
       *> this compiler DOES implement. A bare "EC-FLOW" prefix in the table would reject this legal program.

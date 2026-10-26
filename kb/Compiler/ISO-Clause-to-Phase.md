@@ -30,16 +30,16 @@ phase(s) implement or enforce it.** Phases: **Pre** (preprocess), **Lex**, **Par
 | **§8.5** | Data categories (national, boolean, tables) | Bind · Run | typing at Bind; UTF-16/bit behavior at Run |
 | **§8.8.1** | Arithmetic expressions | Bind · Run | tree at Bind (`BoundBinary`/`BoundPower`); `CobolNum` at Run |
 | **§8.8.2** | Boolean/bit expressions | Bind · Run | `BoundBool*`; `CobolBool` at Run |
-| **§8.8.3** | Concatenation | Bind | `ConcatFolder` (COBOLNET1540/1541/1545) |
+| **§8.8.3** | Concatenation | Bind | `ConcatFolder` (COBOL1540/1541/1545) |
 | **§8.8.4** | Conditions (relation/class/sign/88/switch) | Bind · Run | `ConditionBinder` → `ConditionRenderer` short-circuit C# |
-| **§8.9** | Reserved-word repertoire | **Val** | the §8.9 funnel (`ParseArm`, COBOLNET0901) → [[kb/Spec/Lookup/Semantic Rules]] |
+| **§8.9** | Reserved-word repertoire | **Val** | the §8.9 funnel (`ParseArm`, COBOL0901) → [[kb/Spec/Lookup/Semantic Rules]] |
 | **§9.1.13** | I-O status codes | **Run** | two-char `FileStatusCode` on the connectors |
 | **§9.4** | User-defined functions | Bind · Gen · Run | `IntrinsicBinder`/UDF resolution |
 | **§10** | Structured compilation group | Parse · Bind | repository/prototypes |
 | **§11** | Identification / OO structure | Bind · Gen · Run | program→class, CLASS-ID/METHOD → `CobolObject` |
 | **§11.9** | OPTIONS paragraph | Bind · Val | `OptionsBinder` (ARITHMETIC/ROUNDED/FLOAT); edition-gated |
 | **§12** | Environment (SPECIAL-NAMES, FILE-CONTROL) | Bind (+ Pre) | ALPHABET/CLASS/CURRENCY; SELECT/ASSIGN |
-| **§12.4.5.3** | External-file consistency | Bind · Val | COBOLNET1573/1575/1624 (2023) |
+| **§12.4.5.3** | External-file consistency | Bind · Val | COBOL1573/1575/1624 (2023) |
 | **§13** | Data division | Bind · Run | PICTURE/USAGE/OCCURS/REDEFINES → typed-native → [[kb/IR/Data Flow]] |
 | **§13.16 / §13.18** | Data-description clauses | Bind | `DataBinder`, `PicInfo`, `StorageForm` |
 | **§13.18** | Report Writer descriptions | Bind · Run | `ReportWriterBinder` → `CobolReport` |

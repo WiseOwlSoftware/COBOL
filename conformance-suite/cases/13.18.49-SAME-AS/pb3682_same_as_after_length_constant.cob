@@ -12,7 +12,7 @@
       *>   13.18.49.4 GR1 copies the description "as though ... coded in place" (cite.py: OK  13.18.49.4 1)), so V is the same
       *>   group as X whether or not C measured X first: two members, and a length equal to X's.
       *>   Before the fix the copy took the header's profile without its provenance and read it as a WRITTEN PICTURE on a group
-      *>   (COBOLNET2191), and its members had no profile to take (COBOLNET0881).
+      *>   (COBOL2191), and its members had no profile to take (COBOL0881).
       *>   Each leg can fail: the program is refused; V has no members; V is not the length of X.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P3682M.

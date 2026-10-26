@@ -12,7 +12,7 @@
       *> `invokeArgument` admitted only `(dataReference | literal)`, and the
       *> failure was NOT a parse error (fix-queue PB46). `BY CONTENT N + 1`
       *> matched `N` as a dataReference and started a SECOND argument at `+ 1`,
-      *> so the statement reported COBOLNET0828 "2 USING argument(s) for 1
+      *> so the statement reported COBOL0828 "2 USING argument(s) for 1
       *> formal parameter(s)" — an arity diagnostic about a rule the program
       *> does not violate, pointing the reader at the method signature. A silent
       *> mis-parse is worse than a rejection.

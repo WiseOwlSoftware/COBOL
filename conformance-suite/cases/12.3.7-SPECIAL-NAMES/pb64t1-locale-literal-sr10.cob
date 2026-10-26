@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 12.3.7.3 SR10: "literal-4 shall be alphanumeric or national" - a numeric literal as the external
-      *> identification draws the ONE SPECIAL-NAMES text-literal rule (COBOLNET0898) the ORDER TABLE clause's literal-9
+      *> identification draws the ONE SPECIAL-NAMES text-literal rule (COBOL0898) the ORDER TABLE clause's literal-9
       *> shares (kb/Work PB64 T1).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB64T1SR10.

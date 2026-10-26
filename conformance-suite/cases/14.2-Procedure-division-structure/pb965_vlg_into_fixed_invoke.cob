@@ -12,7 +12,7 @@
       *> argument is a variable length group, the formal parameter and the argument shall be compatible, as
       *> described in 8.5.1.12"; 14.8.3.2 says the same of a RETURNING pair and applies its length rule only
       *> when "neither of them is strongly typed or a variable length group". The compiler refused both
-      *> RETURNING pairs (COBOLNET0828, "character length mismatch (formal 7, argument 5)") by comparing the
+      *> RETURNING pairs (COBOL0828, "character length mismatch (formal 7, argument 5)") by comparing the
       *> variable-length group's collapsed width.
       *>
       *> EXPECTED VALUES, DERIVED:

@@ -6,7 +6,7 @@
 *>---
       *> ISO §15.14 BYTE-LENGTH is a COBOL-2002 introduction (byte-length ≠ FUNCTION LENGTH, D7;
       *> PHASE-11-scout-notes.md spec:byte-length). Below 2002 the D8 catalog window rejects the reference
-      *> BY NAME — COBOLNET1502 (IntrinsicBinder window gate).
+      *> BY NAME — COBOL1502 (IntrinsicBinder window gate).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P11BLW85.
        DATA DIVISION.

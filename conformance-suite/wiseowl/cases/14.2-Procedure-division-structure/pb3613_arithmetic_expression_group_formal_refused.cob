@@ -9,7 +9,7 @@
 *> fails 14.8.2.2 rule 2 ("the same as for a MOVE statement with the argument as the sending operand"):
 *>   cite.py --check 14.8.2.2 "If the argument is passed by content, the conformance rules are the same as for a MOVE statement"
 *>   -> OK  14.8.2.2 2)  (Group items)
-*> It stays refused (COBOLNET1688) while FUNCTION LENGTH of a variable-length group, which the binder lowers to the
+*> It stays refused (COBOL1688) while FUNCTION LENGTH of a variable-length group, which the binder lowers to the
 *> same arithmetic tree, is accepted: BoundComputedOperand.FunctionValue tells the two apart.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3613AE.

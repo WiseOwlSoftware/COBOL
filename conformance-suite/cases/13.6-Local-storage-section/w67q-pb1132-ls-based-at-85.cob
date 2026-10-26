@@ -9,7 +9,7 @@
       *> (§13.6, automatic data re-initialized on every activation,
       *> §8.6.4) holding a BASED entry (§13.18.5, whose implicit address
       *> §14.6.2.3.2 action 5 sets to null) is COBOL-2002 source; the 85
-      *> compiler refuses both the section and the clause (COBOLNET0900).
+      *> compiler refuses both the section and the clause (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W67QN85S.
        DATA DIVISION.

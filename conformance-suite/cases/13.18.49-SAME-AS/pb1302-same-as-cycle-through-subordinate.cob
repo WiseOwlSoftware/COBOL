@@ -10,7 +10,7 @@
       *>   references the subject of the entry or any group item to which this
       *>   entry is subordinate.' G (data-name-1 of H) holds Y SAME AS H. The
       *>   subordinate is written FIRST, the order that used to truncate the
-      *>   cycle into a cascade COBOLNET0881 (kb/Work PB1302).
+      *>   cycle into a cascade COBOL0881 (kb/Work PB1302).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1302NSA.
        DATA DIVISION.

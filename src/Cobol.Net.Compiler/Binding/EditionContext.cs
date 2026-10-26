@@ -155,12 +155,12 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     // (BoundRejected), a refused or unbuilt operand (BoundExprError / BoundOperandError / BoundBoolError), a
     // refused condition (BoundConditionError) — is lowered by the emitter to a run-time abort. Such a node is
     // harmless only when the compile FAILS (a refusal: its error was reported) or when the gap is ANNOUNCED (an
-    // unbuilt shape: COBOLNET1756). Before this ledger nothing tied the node to either: ~140 sites reported and
+    // unbuilt shape: COBOL1756). Before this ledger nothing tied the node to either: ~140 sites reported and
     // then returned an ordinary no-op, and an operand error could be built with no report at all (a STRING
     // sending ALL literal, §14.9.43.3 SR2, compiled clean and aborted the run unit). Every such node is now
     // obtainable only through a factory that records itself here, and StatementBinder.BindStatement — the ONE
     // funnel every statement passes — reads the ledger: a refusal with no error during the statement fails the
-    // compile (COBOLNET2362), an unbuilt operand in a statement that drew no error is announced (COBOLNET1756).
+    // compile (COBOL2362), an unbuilt operand in a statement that drew no error is announced (COBOL1756).
 
     /// <summary>Every <see cref="Error(string, string)"/> call, a de-duplicated repeat INCLUDED — so a
     /// parameterized expansion that re-binds a line and re-finds its error (kb/Work PB759, where the text is
@@ -177,7 +177,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// statement answers for its own refusals once, as for its unbuilt operands and its deferrals (kb/Work PB2937,
     /// review R1-1). A nested statement's refusals were answered by its own funnel — reported, or the shadow of a
     /// deferral it took — so the statement enclosing it never answers for them again: before this, a compound statement
-    /// (IF, EVALUATE, an inline PERFORM) around a deferred object property drew a false COBOLNET2362.</summary>
+    /// (IF, EVALUATE, an inline PERFORM) around a deferred object property drew a false COBOL2362.</summary>
     internal bool TakeRefusalsSince(int mark)
     {
         bool any = _refusalsBound > mark;
@@ -205,7 +205,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         + "please report it with the source that produced it";
 
     /// <summary>Record an operand shape WiseOwl COBOL has not BUILT (not a source error) — announced once per
-    /// statement by the funnel as COBOLNET1756, exactly as a statement-level <c>BoundUnsupported</c> is.</summary>
+    /// statement by the funnel as COBOL1756, exactly as a statement-level <c>BoundUnsupported</c> is.</summary>
     internal void NoteUnbuilt(string feature) => _unbuilt.Add(feature);
 
     private readonly List<string> _expansionDeferred = [];
@@ -286,7 +286,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     }
 
     /// <summary>Record a diagnostic keyed by a catalogue <see cref="DiagnosticDescriptor"/> (P2.10 — the
-    /// first-class registry replacing bare <c>COBOLNETnnnn</c> string literals). Emits the descriptor's
+    /// first-class registry replacing bare <c>COBOLnnnn</c> string literals). Emits the descriptor's
     /// <see cref="DiagnosticDescriptor.Code"/> with the site-composed <paramref name="message"/> — byte-identical
     /// to the former bare-code call — while binding the site to a stable, documented, suppressible identity
     /// (<see cref="DiagnosticDescriptor.Id"/>). All P2-catalogued descriptors reachable here are error-severity;
@@ -300,8 +300,8 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <summary>The <see cref="Warning"/> twin of the descriptor-keyed <see cref="Error(DiagnosticDescriptor,string)"/>.
     /// ⛔ ITS ABSENCE WAS A DEFECT, not a gap: a descriptor-carrying site that wanted a warning had no descriptor
     /// overload to reach for, so <c>--permissive</c> sites passed <c>descriptor.Id</c> to the string overload
-    /// instead and emitted the kebab SLUG in the code position. That shipped in COBOLNET1627 (PB1) and
-    /// COBOLNET1628 (PB6) — both documented under codes they never printed. Warning and Error must offer the
+    /// instead and emitted the kebab SLUG in the code position. That shipped in COBOL1627 (PB1) and
+    /// COBOL1628 (PB6) — both documented under codes they never printed. Warning and Error must offer the
     /// SAME shape, or the asymmetry writes the bug for the next caller.
     /// <see cref="DiagnosticEmitFormDriftTests"/> keeps it from returning.</summary>
     public void Warning(DiagnosticDescriptor descriptor, string message) => Warning(descriptor.Code, message);
@@ -309,7 +309,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <summary>⛔ THE ONE SEAM FOR A NONSTANDARD EXTENSION IN USE (ISO §4.2.10; kb/Work PB1525) — every binder
     /// site that ACCEPTS a construct ISO does not define names it through here, with the register row's id
     /// (<see cref="ExtensionIds"/>), at the one place the construct is accepted. Under <see cref="FlagExtensions"/> it
-    /// writes the named warning <see cref="DiagnosticCatalog.NonstandardExtensionUsed"/> (COBOLNET2894), once per
+    /// writes the named warning <see cref="DiagnosticCatalog.NonstandardExtensionUsed"/> (COBOL2894), once per
     /// occurrence; otherwise it does nothing. The row, not the site, says whether the extension is flaggable: §4.2.10
     /// "shall flag only extensions that are syntactically distinguishable", so a row that is not
     /// <see cref="NonstandardExtension.Distinguishable"/> or is only <see cref="ExtensionSupport.RefusedByName"/> is a
@@ -351,24 +351,24 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <para>The DESCRIPTOR's <see cref="DiagnosticDescriptor.Severity"/> chooses the disposition, so the
     /// policy lives in the catalogue (where it is documented and drift-tested) and never in a local test at
     /// the site: <see cref="EditionSeverity.Warning"/> ⇒ ACCEPT-INERT (the facility is additive — the program
-    /// compiles, runs, and the facility does nothing: COBOLNET1578/1579/1778, satisfying §4.2.6 ¶3's
-    /// mandatory compile-time warning mechanism for their Annex A.3 elements, and COBOLNET1580, whose A.4.14
+    /// compiles, runs, and the facility does nothing: COBOL1578/1579/1778, satisfying §4.2.6 ¶3's
+    /// mandatory compile-time warning mechanism for their Annex A.3 elements, and COBOL1580, whose A.4.14
     /// VALIDATE is instead a §4.2.7 element this implementation documents rather than is obliged to warn about
     /// — kb/Work PB709; the descriptor's <c>Annex</c> datum is what tells the two apart);
     /// <see cref="EditionSeverity.Error"/> ⇒ REFUSE (an inert
     /// compile would change the ANSWER, so Annex A.4.1's "shall accept the syntax … only when support … is
     /// claimed" applies to an optional element, and §4.2.6 ¶3's "The implementor is not required to produce
     /// executable code when unsupported processor-dependent language elements are used" to a
-    /// processor-dependent one: COBOLNET1560/1584/1705/1706/1707).</para>
+    /// processor-dependent one: COBOL1560/1584/1705/1706/1707).</para>
     /// <para>⛔ THE BAND SPLITS ON WHETHER AN INERT READING EXISTS, NOT ON WHICH ANNEX LISTS THE ELEMENT, and
     /// that is why there is ONE method and not two: a facility whose absence leaves every program-visible value
     /// unchanged is accepted-and-named, and one whose absence would change the ANSWER is refused-and-named.
     /// ⚠ This paragraph read "an Annex A.3 processor-dependent facility is accepted-and-warned under §4.2.6,
     /// while an Annex A.4 optional module that is Not claimed is refused" until 2026-09-09, which described a
     /// COINCIDENCE in the rows that existed — every refusal happened to be A.4 — as if it were the rule.
-    /// COBOLNET1584 refutes it: a national key collating sequence defined by literals or LOCALE is Annex A.3
+    /// COBOL1584 refutes it: a national key collating sequence defined by literals or LOCALE is Annex A.3
     /// item 41 and is REFUSED, because an inert compile would order the key by a different sequence than the one
-    /// written (the first refutation, COBOLNET1954's A.3 item 40, is retired — kb/Work PB1099 provides the
+    /// written (the first refutation, COBOL1954's A.3 item 40, is retired — kb/Work PB1099 provides the
     /// SOURCE phrase). What the annex still decides is the POSTURE
     /// CLAUSE the message cites — <see cref="DiagnosticDescriptor.Annex"/> → <c>PostureClause</c>.
     /// Both dispositions are "name the facility, then bind to a no-op or refuse"; only the severity differs, so
@@ -380,14 +380,14 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// but SOME declines do have an INERT reading, and whether this one does is the descriptor's
     /// <see cref="DiagnosticDescriptor.PermissiveInert"/> fact, read in <see cref="Refuses"/> and nowhere else. The
     /// axis is whether an accepted element could change the answer the source states. A decline whose sibling
-    /// STATEMENT is already accept-inert (the A.4.14 VALIDATE clauses beside COBOLNET1580) can be tolerated under
+    /// STATEMENT is already accept-inert (the A.4.14 VALIDATE clauses beside COBOL1580) can be tolerated under
     /// <c>--permissive</c> and bound to a no-op. A declined
-    /// module's exception-name (COBOLNET1710) is tolerated too, but it RESOLVES as an ordinary exception-name:
+    /// module's exception-name (COBOL1710) is tolerated too, but it RESOLVES as an ordinary exception-name:
     /// no statement of the declined facility sets its condition (§14.6.13.1.1), so only a RAISE of the name
     /// raises it, exactly as written (§14.9.29.4 GR1), and its USE declarative or WHEN phrase then runs — an
     /// observable result, but the one the source states (docs/CONFORMANCE.md §4). A decline that would REBIND the
     /// source to a different construct cannot: an inert A.4.2 screen ACCEPT is re-read as the device ACCEPT
-    /// and moves the wrong data (COBOLNET1560/1707), an inert FORMAT clause changes which bytes reach the
+    /// and moves the wrong data (COBOL1560/1707), an inert FORMAT clause changes which bytes reach the
     /// medium (1705), an inert WRITE FILE writes the wrong record (1706). Those four are
     /// <c>PermissiveInert: false</c> and <c>--permissive</c> does not move them in either direction — which
     /// is also, measurably, how the accept-inert rows have always behaved.</para>
@@ -412,7 +412,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// reports by it, and a site that must also BIND by the posture (EcNameResolution.Advise: an accepted
     /// exception-name resolves, a refused one does not) reads it here. A local
     /// <c>descriptor.Severity == …</c> test drops the permissive half: under <c>--permissive</c> the name was
-    /// warned as accepted and then dropped, and the RAISE that wrote it died as COBOLNET2362, a refusal with no
+    /// warned as accepted and then dropped, and the RAISE that wrote it died as COBOL2362, a refusal with no
     /// rule-naming diagnostic (kb/Work PB374 review R1-1).</summary>
     public bool Refuses(DiagnosticDescriptor descriptor) =>
         descriptor.Severity == EditionSeverity.Error && !(descriptor.PermissiveInert && Permissive);
@@ -433,7 +433,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <see cref="DiagnosticCatalog.DigitCapacityUnder1"/>, 19–31 digits require COBOL-2002+ (COBOL-85's own limit
     /// is 18, §8.3.3.3.2), more than 31 is invalid at every edition. The lower bound used to be the CALLER's skip
     /// guard (<c>DigitPositions &gt; 0</c>), which made the exact condition SR14 forbids the condition that skipped
-    /// its check. The composition validator's SR12 a) (COBOLNET1934) stops most digit-position-less pictures first
+    /// its check. The composition validator's SR12 a) (COBOL1934) stops most digit-position-less pictures first
     /// (<c>PIC S</c>, <c>PIC V</c>, a lone <c>$</c>), but not <c>PIC LL EDITING L IS ":"</c>: two simple insertion
     /// character-1 satisfy SR12 a's "at least two occurrences of … character-1" and describe NO digit position, which
     /// was the live exemption the old guard carried (pinned by <c>pb528_picture_editing_transparency_2023</c> until
@@ -449,11 +449,11 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         }
         if (digits <= MaxDigits) return;
         if (digits > 31)
-            Error("COBOLNET0801", $"{what} has {digits} digit positions; ISO/IEC 1989 limits a numeric item to 31 "
+            Error("COBOL0801", $"{what} has {digits} digit positions; ISO/IEC 1989 limits a numeric item to 31 "
                 + "digit positions (ISO §13.18.40.3 SR14) and this compiler limits a fixed-point literal to the 31 "
                 + "digits §8.3.3.3.2 requires an implementor to allow");
         else
-            Error("COBOLNET0802", $"{what} has {digits} digit positions; COBOL-85 limits fixed-point items and "
+            Error("COBOL0802", $"{what} has {digits} digit positions; COBOL-85 limits fixed-point items and "
                 + $"literals to 18 digits — 19–31 digits require --std 2002 or later (targeting COBOL-{DialectLevel})");
     }
 }

@@ -7,13 +7,13 @@ namespace CobolNet.Tests.Conformance;
 /// <summary>
 /// The W2 data-skeleton × edition matrix (roadmap Phase 2; VERSION_TEST_MATRIX introduction invariants). A
 /// 2002-introduced data construct that WiseOwl COBOL recognizes must NEVER compile silently: below 2002 the
-/// ConstructRegistry introduction gate rejects (COBOLNET0900 naming COBOL-2002); at 2002/2014/2023 it either
+/// ConstructRegistry introduction gate rejects (COBOL0900 naming COBOL-2002); at 2002/2014/2023 it either
 /// WORKS or says so loudly. Before this sweep each of these silently misbound to USAGE DISPLAY / "pure numeric,
 /// zero digits".
 /// <para>
 /// ⛔ THE STAGED SET IS NOW EMPTY, and it is asserted empty rather than described that way —
 /// <see cref="NoDataSkeleton_StagesAt0899"/> compiles every shape that was ever in it and fails if any of them
-/// returns to a COBOLNET0899 "not yet implemented" posture. The two theories that used to enumerate the staged
+/// returns to a COBOL0899 "not yet implemented" posture. The two theories that used to enumerate the staged
 /// rows are gone with the last row: USAGE OBJECT REFERENCE left at the Phase-3 OO spine, USAGE POINTER at Phase
 /// 4b, the BINARY-CHAR family at Phase 4 M2-DATA-1, NATIONAL (§8.5.2.10) and BOOLEAN (§8.5.2.5) data at Phase 4a
 /// M2-DATA-3/4, the FLOAT-SHORT trio at Phase 6a, the PICTURE symbol E with kb/Work PB66, NATIONAL-EDITED with
@@ -37,7 +37,7 @@ public sealed class DataSkeletonEditionTests
         """;
 
     /// <summary>⛔ THE SUCCESSOR TO THE STAGED-ROW THEORIES, and the reason deleting them is not a loss of
-    /// coverage: EVERY shape that ever sat in the staged set compiles at 2023 with no COBOLNET0899 in its
+    /// coverage: EVERY shape that ever sat in the staged set compiles at 2023 with no COBOL0899 in its
     /// errors OR its warnings. A re-staged data construct fails here even if nobody remembers to re-add a row.
     /// <para>The last member to leave was the national FORM of ISO §13.18.60.3 SR12 — "An elementary data item
     /// with usage national shall be described with a picture character-string that describes a boolean,
@@ -67,14 +67,14 @@ public sealed class DataSkeletonEditionTests
             """), 2023);
         Assert.True(ok, "every data construct that ever sat in the W2 skeleton set is LIVE: "
             + string.Join("\n", errors));
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0899");
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0899");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0899");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0899");
     }
 
     /// <summary>The national FORM of §13.18.60.3 SR12 keeps the introduction edge the rest of the set keeps
     /// (kb/Work PB646, registry row national-data-2002): each shape compiles at every 2002+ edition and is
-    /// rejected at 85 with COBOLNET0900 NAMING COBOL-2002 — never the historical silent DISPLAY misbind, and
-    /// never the COBOLNET0899 staging this row used to assert.</summary>
+    /// rejected at 85 with COBOL0900 NAMING COBOL-2002 — never the historical silent DISPLAY misbind, and
+    /// never the COBOL0899 staging this row used to assert.</summary>
     [Theory]
     [InlineData("01 WS-A PIC 9(4) USAGE NATIONAL.")]
     [InlineData("01 WS-A PIC S9(4) USAGE NATIONAL SIGN IS LEADING SEPARATE.")]
@@ -86,11 +86,11 @@ public sealed class DataSkeletonEditionTests
         {
             var (ok, errors, _) = EditionHarness.CompileFull(Prog("DSKNF" + edition, wsEntry), edition);
             Assert.True(ok, $"a national-form picture must compile at --std {edition}: {string.Join("\n", errors)}");
-            EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0899");
+            EditionHarness.AssertNoDiagnostic(errors, "COBOL0899");
         }
         var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKNF85", wsEntry), 85);
         Assert.False(ok85, "national data is a 2002 introduction — rejected at --std 85");
-        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL0900");
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
@@ -110,24 +110,24 @@ public sealed class DataSkeletonEditionTests
         }
         var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKOREF85", "01 WS-O USAGE OBJECT REFERENCE."), 85);
         Assert.False(ok85, "USAGE OBJECT REFERENCE is a 2002 introduction — rejected at --std 85");
-        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL0900");
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
     /// <summary>PICTURE is prohibited with USAGE OBJECT REFERENCE (§13.18.60.4 — the item is picture-less);
-    /// the conflict diagnoses COBOLNET0812, never an incoherent picture-with-reference classification.</summary>
+    /// the conflict diagnoses COBOL0812, never an incoherent picture-with-reference classification.</summary>
     [Fact]
     public void UsageObjectReference_WithPicture_Rejects0812()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(
             Prog("DSKOREFP", "01 WS-O PIC X(4) USAGE OBJECT REFERENCE."), 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0812");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0812");
     }
 
     /// <summary>The floating-point numeric-edited PICTURE went LIVE with data-model design D21 (kb/Work PB66; ISO
     /// §13.18.40.4 GR13 b — a significand character-string and an exponent +9{1..4} joined by E; §14.6.8.4 the
-    /// store): it compiles at every 2002+ edition and stays introduction-gated at 85 (COBOLNET0900 naming
+    /// store): it compiles at every 2002+ edition and stays introduction-gated at 85 (COBOL0900 naming
     /// COBOL-2002 — registry row pic-external-float-2002). The former 0899 not-implemented posture is retired.</summary>
     [Theory]
     [InlineData("01 WS-EF PIC +9.99E+99.")]
@@ -145,15 +145,15 @@ public sealed class DataSkeletonEditionTests
         }
         var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKFE85", wsEntry), 85);
         Assert.False(ok85, "the floating-point numeric-edited PICTURE is a 2002 introduction — rejected at --std 85");
-        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL0900");
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
     /// <summary>NATIONAL-EDITED went LIVE with kb/Work PB492 (ISO §8.5.2.11 / §13.18.40.4 GR10 — "at least one
     /// symbol 'N', and at least one instance of character-1 or one of the symbols from the set 'B', '0', '/'";
     /// §13.18.40.5 Table 7 gives the category SIMPLE INSERTION): every one of those shapes compiles at every
-    /// 2002+ edition and stays introduction-gated at 85 (COBOLNET0900 naming COBOL-2002 — registry row
-    /// national-edited-2002). The former 0899 not-implemented posture is retired, and so is the COBOLNET0808 that
+    /// 2002+ edition and stays introduction-gated at 85 (COBOL0900 naming COBOL-2002 — registry row
+    /// national-edited-2002). The former 0899 not-implemented posture is retired, and so is the COBOL0808 that
     /// refused the character-1 leg by quoting a Table-10 reading GR10 contradicts.</summary>
     [Theory]
     [InlineData("01 WS-NE PIC NNBNN.")]
@@ -174,13 +174,13 @@ public sealed class DataSkeletonEditionTests
         }
         var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKNE85", wsEntry), 85);
         Assert.False(ok85, "national-edited data is a 2002 introduction — rejected at --std 85");
-        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL0900");
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
     /// <summary>The BINARY-CHAR family went LIVE with Phase 4 M2-DATA-1 (ISO §13.18.60.4 GR12): a PICTURE-less
     /// fixed-width binary item compiles at every 2002+ edition (a native 1/2/4/8-byte integer) and stays
-    /// introduction-gated at 85 (COBOLNET0900 naming COBOL-2002). The former 0899 not-implemented posture is
+    /// introduction-gated at 85 (COBOL0900 naming COBOL-2002). The former 0899 not-implemented posture is
     /// retired.</summary>
     [Theory]
     [InlineData("01 WS-C BINARY-CHAR SIGNED.")]
@@ -197,13 +197,13 @@ public sealed class DataSkeletonEditionTests
         }
         var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKBIN85", wsEntry), 85);
         Assert.False(ok85, "the BINARY-CHAR family is a 2002 introduction — rejected at --std 85");
-        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL0900");
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
     /// <summary>NATIONAL data went LIVE at Phase 4a M2-DATA-3 (ISO §8.5.2.10 / §13.18.40.4 GR9 /
     /// §13.18.60.4 SR13a): a PIC N item (usage implied NATIONAL) compiles at every 2002+ edition — one UTF-16
-    /// char per national position (D-N1) — and stays introduction-gated at 85 (COBOLNET0900 naming COBOL-2002).
+    /// char per national position (D-N1) — and stays introduction-gated at 85 (COBOL0900 naming COBOL-2002).
     /// The former 0899 not-implemented posture is retired.</summary>
     [Theory]
     [InlineData("01 WS-N PIC N(4).")]
@@ -217,7 +217,7 @@ public sealed class DataSkeletonEditionTests
         }
         var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKNAT85", wsEntry), 85);
         Assert.False(ok85, "national data is a 2002 introduction — rejected at --std 85");
-        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL0900");
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
@@ -237,7 +237,7 @@ public sealed class DataSkeletonEditionTests
         }
         var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKBOOL85", wsEntry), 85);
         Assert.False(ok85, "boolean data is a 2002 introduction — rejected at --std 85");
-        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL0900");
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }
 
@@ -255,17 +255,17 @@ public sealed class DataSkeletonEditionTests
     }
 
     /// <summary>PICTURE is prohibited with the BINARY-CHAR family (ISO §13.16.3 SR8 — the item is picture-less);
-    /// the conflict diagnoses COBOLNET0870, never an incoherent picture-with-binary classification (mirrors the
+    /// the conflict diagnoses COBOL0870, never an incoherent picture-with-binary classification (mirrors the
     /// USAGE OBJECT REFERENCE 0812 rule).</summary>
     [Fact]
     public void BinaryChar_WithPicture_Rejects0870()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog("DSKBINP", "01 WS-C PIC S9(4) USAGE BINARY-CHAR."), 2002);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0870");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0870");
     }
 
-    /// <summary>A symbol outside the §13.18.40.3 SR2 PICTURE whitelist is an invalid PICTURE (COBOLNET0808) at
+    /// <summary>A symbol outside the §13.18.40.3 SR2 PICTURE whitelist is an invalid PICTURE (COBOL0808) at
     /// EVERY edition — previously it fell through the classifier to "pure numeric, zero digits".</summary>
     [Theory]
     [InlineData(85)]
@@ -277,7 +277,7 @@ public sealed class DataSkeletonEditionTests
         var (ok, errors, _) = EditionHarness.CompileFull(
             Prog("DSKQ" + edition, "01 WS-Q PIC 9Q9."), edition);
         Assert.False(ok, $"PIC 9Q9 must be rejected at --std {edition} (ISO §13.18.40.3 SR2)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0808");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0808");
         EditionHarness.AssertHasDiagnostic(errors, "invalid PICTURE symbol");
     }
 
@@ -323,6 +323,6 @@ public sealed class DataSkeletonEditionTests
             01 WS-BI PIC 9(8) BINARY.
             """), edition);
         Assert.True(ok, $"--std {edition}: {string.Join("; ", errors)}");
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0899");
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOL0899");
     }
 }

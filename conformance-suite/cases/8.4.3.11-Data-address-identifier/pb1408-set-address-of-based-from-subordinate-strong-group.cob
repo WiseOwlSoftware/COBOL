@@ -11,7 +11,7 @@
       *> PLUS its relative position and length in it, which T-REC itself (whole record) does not have. 14.9.39.3 SR19:
       *> "If data-name-1 is a strongly-typed group item ..., identifier-6 shall reference a data-pointer restricted
       *> to the type of data-name-1." BS is of type T-REC, so the address of the subordinate group shall not become
-      *> the address of BS (it used to compile and abort at run time with EC-BOUND-PTR): refused COBOLNET0869.
+      *> the address of BS (it used to compile and abort at run time with EC-BOUND-PTR): refused COBOL0869.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1408N2.
        DATA DIVISION.

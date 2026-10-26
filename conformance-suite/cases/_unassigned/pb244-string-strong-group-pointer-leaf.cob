@@ -8,7 +8,7 @@
       *> explicitly as usage display or national." 8.5.2.1 gives only an ALPHANUMERIC group item the usage of
       *> display; the class and category of a strongly-typed group are its type-name, so its usage is read off its
       *> elementary items and a USAGE POINTER leaf is neither display nor national. The program used to compile and
-      *> abort at run time in the Tier-C whole-group island; it is refused at bind (COBOLNET1626).
+      *> abort at run time in the Tier-C whole-group island; it is refused at bind (COBOL1626).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB244NSTRPTR.
        DATA DIVISION.

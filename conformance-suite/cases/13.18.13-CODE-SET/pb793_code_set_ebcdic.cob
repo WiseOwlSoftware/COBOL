@@ -17,7 +17,7 @@
       *> The alphabet is the EBCDIC code-name (12.3.7.3 SR15 / 12.3.7.4 GR7 i; owner decision kb/Work
       *> PB793), whose correspondence with the native character set is IBM CCSID 37. Before PB793 the only
       *> coded character sets a CODE-SET clause could name here were the ones whose correspondence IS the
-      *> identity, and everything else was the documented Annex A A.3 item 27 non-support (COBOLNET1672).
+      *> identity, and everything else was the documented Annex A A.3 item 27 non-support (COBOL1672).
       *>
       *> EXPECTED VALUES, DERIVED FROM CCSID 37 AND NOTHING ELSE. "AB012" written through CODE-SET IS A-EBC
       *> reaches the medium as X'C1 C2 F0 F1 F2' (A=X'C1', B=X'C2', 0=X'F0', 1=X'F1', 2=X'F2'):

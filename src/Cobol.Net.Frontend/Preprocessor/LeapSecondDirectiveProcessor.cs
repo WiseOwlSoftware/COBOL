@@ -45,7 +45,7 @@ public static class LeapSecondDirectiveProcessor
     /// <summary>Process <paramref name="text"/>: collect the toggle events and blank the directive lines.
     /// ⛔ It takes NO diagnostic channel: the EDITION question was answered once at the directive-recognition point
     /// (<c>CompilerDirectiveCatalog</c>, kb/Work PB725), the OPERAND question by the row's <c>directiveOperand</c>
-    /// column (COBOLNET1911, kb/Work PB794) and the PLACEMENT question by <c>DirectivePlacementPass</c>.
+    /// column (COBOL1911, kb/Work PB794) and the PLACEMENT question by <c>DirectivePlacementPass</c>.
     /// <paramref name="stackOps"/> are the PUSH/POP directives of the same text, replayed over the toggles
     /// (§7.3.20 / §7.3.22; kb/Work PB941). Line-count preserving.</summary>
     public static (string Text, DirectiveTimeline<LeapSecondEvent> Events) Process(

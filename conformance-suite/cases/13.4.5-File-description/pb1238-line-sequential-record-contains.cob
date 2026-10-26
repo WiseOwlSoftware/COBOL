@@ -9,7 +9,7 @@
       *> clause of the sequential format of the 12.4.5, File control entry is specified
       *> neither the BLOCK CONTAINS clause nor the RECORD CONTAINS clause shall be
       *> specified." LINE SEQUENTIAL is new in ISO/IEC 1989:2023, so the rule is 2023-only
-      *> (below it the organization itself is refused). Refused, COBOLNET2605.
+      *> (below it the organization itself is refused). Refused, COBOL2605.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1238LS.
        ENVIRONMENT DIVISION.

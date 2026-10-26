@@ -60,7 +60,7 @@
       *> ---- THE VALUE RULES (PB11's second half) ----
       *> 15.41.3 r6 / 15.40.3 r7 - the offset argument may be OMITTED for a UTC or offset format, and the
       *> function is then "evaluated as though 0 were specified". This is the CONVERSE of r5/r6 and is LEGAL;
-      *> the COBOLNET1633 screen is deliberately one-sided so it cannot reject these.
+      *> the COBOL1633 screen is deliberately one-sided so it cannot reject these.
            MOVE FUNCTION FORMATTED-TIME("hhmmss+hhmm" 3600) TO T
            DISPLAY "OMIT-OFF=" T
            MOVE FUNCTION FORMATTED-DATETIME("YYYYMMDDThhmmssZ" 100000 3600) TO T

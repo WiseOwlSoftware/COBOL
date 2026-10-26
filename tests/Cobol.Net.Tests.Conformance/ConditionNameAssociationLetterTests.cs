@@ -6,7 +6,7 @@ namespace CobolNet.Tests.Conformance;
 
 /// <summary>
 /// ⛔ ISO §13.16.3 SR24 — WHICH LETTER the refusal quotes (kb/Work PB947). Every lettered exclusion produces the same
-/// code, COBOLNET1976, and only the quoted sentence tells them apart, so a corpus <c>.err</c> naming the code cannot
+/// code, COBOL1976, and only the quoted sentence tells them apart, so a corpus <c>.err</c> naming the code cannot
 /// see the defect this pins: a VARIABLE-LENGTH group (letter h) was refused under letter c) — "an alphanumeric group
 /// containing items with a usage other than display" — because c)'s subject was asked as "a group with no
 /// GROUP-USAGE clause", which is two of §3.11's FOUR exclusions from "alphanumeric group item".
@@ -59,18 +59,18 @@ public sealed class ConditionNameAssociationLetterTests
             """);
 
         string alnum = ForName(errors, "G1-A");
-        Assert.Contains("COBOLNET1976", alnum);
+        Assert.Contains("COBOL1976", alnum);
         Assert.Contains("\"c) An alphanumeric group containing items with a usage other than display.\"", alnum);
         Assert.DoesNotContain("h) A variable-length group", alnum);
 
         string variable = ForName(errors, "VG-A");
-        Assert.Contains("COBOLNET1976", variable);
+        Assert.Contains("COBOL1976", variable);
         Assert.Contains("\"h) A variable-length group.\"", variable);
         Assert.DoesNotContain("c) An alphanumeric group", variable);
     }
 
     /// <summary>A STRONGLY-TYPED group instance is not an alphanumeric group (§3.11) either. SR24 letter g) is the
-    /// type DECLARATION's, so the instance is barred by the rule that is about it — §13.18.57.3 SR2, COBOLNET1537, an
+    /// type DECLARATION's, so the instance is barred by the rule that is about it — §13.18.57.3 SR2, COBOL1537, an
     /// 88 immediately after a TYPE-clause entry — and by no SR24 letter. It used to draw a second, wrong refusal under
     /// letter c) for the COMP member its TYPE brings.</summary>
     [Fact]
@@ -85,7 +85,7 @@ public sealed class ConditionNameAssociationLetterTests
             """);
 
         string mine = ForName(errors, "SG-A");
-        Assert.Contains("COBOLNET1537", mine);
-        Assert.DoesNotContain("COBOLNET1976", mine);
+        Assert.Contains("COBOL1537", mine);
+        Assert.DoesNotContain("COBOL1976", mine);
     }
 }

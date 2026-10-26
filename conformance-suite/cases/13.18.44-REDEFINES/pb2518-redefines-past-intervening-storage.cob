@@ -8,7 +8,7 @@
       *> storage area shall follow the entries defining the area of data-name-2, without intervening entries that
       *> define new storage areas."
       *>   cite.py --check 13.18.44.3 "without intervening entries that define new storage areas" -> OK  10)
-      *> C defines a new storage area between A and B, so B REDEFINES A reaches past it. COBOLNET2739 (the entry-level
+      *> C defines a new storage area between A and B, so B REDEFINES A reaches past it. COBOL2739 (the entry-level
       *> rule family, DataBinder.RedefinesEntry.cs). The positive twin is
       *> conformance/85/pb2518_redefines_only_redefinitions_between.cob.
        IDENTIFICATION DIVISION.

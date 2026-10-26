@@ -11,7 +11,7 @@
       *> a declared EDITING character-1 is TRANSPARENT to the walk (kb/Work PB528), which is exactly what
       *> makes the two LEGAL spellings legal (positive golden 2023/pb530_picture_editing_order_2023 entries
       *> E05 'L$999' and E06 '999$L'). This entry is the other half of that determination: transparency does
-      *> not RESCUE a currency symbol that is neither leftmost nor rightmost. COBOLNET1935, 2023 only (the
+      *> not RESCUE a currency symbol that is neither leftmost nor rightmost. COBOL1935, 2023 only (the
       *> EDITING phrase is a COBOL-2023 introduction, Annex E.3.3 item 19).
       *>
       *> PC01 99$9L - the currency symbol is the third of five symbols. Assigned the leading-currency role

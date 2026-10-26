@@ -5,8 +5,8 @@
 *> portable: unverified
 *>---
       *> kb/Work PB1127 - ISO 14.9.22.3 SR7: "When the CHARACTERS phrase is specified, literal-3 shall be one character in length" - the two-character constant
-      *> KAB is literal-3 here (13.10.3 SR2). It used to draw COBOLNET1639 instead of the SR7 violation.
-      *> Expected: COBOLNET0846 (the INSPECT size rule) at 2023, the first edition with constant entries.
+      *> KAB is literal-3 here (13.10.3 SR2). It used to draw COBOL1639 instead of the SR7 violation.
+      *> Expected: COBOL0846 (the INSPECT size rule) at 2023, the first edition with constant entries.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG1127H7.
        DATA DIVISION.

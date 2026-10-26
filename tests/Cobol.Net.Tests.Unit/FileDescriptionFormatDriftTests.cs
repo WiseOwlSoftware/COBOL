@@ -89,7 +89,7 @@ public sealed class FileDescriptionFormatDriftTests
         string row = File.ReadAllLines(TestRepo.Docs("CONFORMANCE.md"))
             .Single(l => l.StartsWith("| A.4.11 |", StringComparison.Ordinal));
         Assert.Contains("The LINAGE clause (item 10, §13.18.34) is CLAIMED", row, StringComparison.Ordinal);
-        Assert.Contains("a LINAGE clause on a Format 2 (relative or indexed) or Format 3 (report) entry is refused COBOLNET2604",
+        Assert.Contains("a LINAGE clause on a Format 2 (relative or indexed) or Format 3 (report) entry is refused COBOL2604",
             row, StringComparison.Ordinal);
         Assert.Equal(FileDescriptionFormat.Sequential,
             FileDescriptionFormats.ByContext[typeof(Core.LinageClauseContext)].Formats);

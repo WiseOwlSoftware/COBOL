@@ -7,7 +7,7 @@
       *> kb/Work PB757 -- ISO 14.9.23.3 SR18: "If an OMITTED phrase is specified, an OPTIONAL phrase shall
       *> be specified for the corresponding formal parameter in the procedure division header."  REQ's
       *> formal X carries no OPTIONAL phrase, so the OMITTED argument is a syntax-rule violation
-      *> (COBOLNET2237, the INVOKE twin of CALL's COBOLNET1685).
+      *> (COBOL2237, the INVOKE twin of CALL's COBOL1685).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB757N1.
        ENVIRONMENT DIVISION.

@@ -9,7 +9,7 @@
       *>     imperative-statement-1 of an exception-checking PERFORM statement, or in an output procedure of another
       *>     MERGE statement, or an input or output procedure of a file format SORT statement, or in a declarative
       *>     procedure." -> OK §14.9.24.3 1)
-      *> Annex E.2 item 20: the prior standard allowed it, 2023 prohibits it (COBOLNET1572). The 2014 acceptance is
+      *> Annex E.2 item 20: the prior standard allowed it, 2023 prohibits it (COBOL1572). The 2014 acceptance is
       *> pinned by 2014/pb1139_merge_in_sort_procedure_allowed.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1139K.

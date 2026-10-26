@@ -26,7 +26,7 @@ public enum NumericSeparatorIssue
 /// separator for the active mode.
 ///
 /// This is the algorithm that used to live inline in <c>DataBinder.NormalizeNumericLiteral</c>; it is lifted to
-/// the Frontend so BOTH the compiler binder (which keeps emitting COBOLNET0895 with its own descriptor) AND the
+/// the Frontend so BOTH the compiler binder (which keeps emitting COBOL0895 with its own descriptor) AND the
 /// compile-time expression evaluator (which routes the issue to a frontend code) share ONE normalization rule —
 /// no second, drifting normalizer (singular-pattern).
 /// </summary>
@@ -184,7 +184,7 @@ public static class NumericLiteral
     /// <para>⛔ NEVER A TEXT EXPANSION. The pair comes from <see cref="TryParseExact"/>'s (significand,
     /// power of ten). Expanding the value to digit text would build a string as long as the literal's decade
     /// bound allows, and that bound is the SDIDI intermediate exponent range (owned solely by
-    /// <c>ArithmeticModes.IntermediateExponentRange</c>, which COBOLNET1661 enforces on the literal at bind) —
+    /// <c>ArithmeticModes.IntermediateExponentRange</c>, which COBOL1661 enforces on the literal at bind) —
     /// thousands of characters for one argument. The SCALE simply goes NEGATIVE instead — <c>1.0E+300</c> is 1
     /// at scale −300 — which <c>CobolNum.Rescale</c> already carries (it is the same negative scale a PICTURE-P
     /// trailing-scaled item uses).</para>
@@ -196,7 +196,7 @@ public static class NumericLiteral
     /// (<c>EmitText.UnscaledLit</c>, the CALL argument lane) and the bind-time lane prediction (<c>FunctionValueLane</c>,
     /// kb/Work PB3268) read the SAME pair: a literal's digit bound is asked of one decomposition.</para>
     /// Returns false for text that is not a canonical numeric literal; the binder has already diagnosed it
-    /// (COBOLNET1661 for an out-of-range exponent, the §8.3.3.3.3 SR2/SR3 form checks for the rest).</summary>
+    /// (COBOL1661 for an out-of-range exponent, the §8.3.3.3.3 SR2/SR3 form checks for the rest).</summary>
     public static bool TryUnscaledParts(string text, out string digits, out int scale)
     {
         string t = text.Trim().TrimStart('+');

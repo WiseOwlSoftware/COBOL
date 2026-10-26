@@ -8,7 +8,7 @@
       *> PB1127 - ISO 13.10.3 SR2: "constant-name-1 may be used anywhere that a format specifies a literal"
       *>   (cite.py --check 13.10.3 -> OK 2) and 13.10.4 GR1: the constant-name stands as if its literal were
       *>   written where it is written. INSPECT's literal-1 .. literal-5 positions are such positions, so a
-      *>   constant-name there behaves exactly as the literal it names. It was refused COBOLNET1639 ("not defined").
+      *>   constant-name there behaves exactly as the literal it names. It was refused COBOL1639 ("not defined").
       *> 14.9.22.3 SR3: "when identifier-1 is of class boolean, the figurative constant is of class boolean and
       *>   only the figurative constant ZERO may be specified" - ZERO itself stays legal (BZ below).
       *> WHY EACH LEG CAN FAIL:

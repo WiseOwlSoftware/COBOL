@@ -8,7 +8,7 @@
       *> ISO/IEC 1989:2023 §13.4.5.3 SR8: "Format 3 is the file description entry for a
       *> report file", and the rendered §13.4.5.2 Format 3 prints IS EXTERNAL, IS GLOBAL,
       *> BLOCK CONTAINS, the record-clause, CODE-SET and REPORT — no linage-clause (a
-      *> report's page is described by its RD PAGE clause). Refused, COBOLNET2604.
+      *> report's page is described by its RD PAGE clause). Refused, COBOL2604.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1238RL.
        ENVIRONMENT DIVISION.

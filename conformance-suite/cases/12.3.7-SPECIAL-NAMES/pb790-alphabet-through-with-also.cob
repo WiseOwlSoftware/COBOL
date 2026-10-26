@@ -11,7 +11,7 @@
       *> brackets".  This entry compiled clean at every edition and the ALSO operand "D" was silently dropped:
       *> it kept an UNSPECIFIED position above "A" (12.3.7.4 GR7 k3) instead of sharing "A"'s, so the IF below
       *> printed ABOVE.  There is no merged reading - GR7 k5 (THROUGH) and k6 (ALSO) place operands by
-      *> incompatible rules - so the entry is refused by name: COBOLNET2242.
+      *> incompatible rules - so the entry is refused by name: COBOL2242.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB790TA.
        ENVIRONMENT DIVISION.

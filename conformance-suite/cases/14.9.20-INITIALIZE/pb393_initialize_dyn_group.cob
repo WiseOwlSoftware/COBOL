@@ -13,7 +13,7 @@
       *> the AFTER line proves both halves of the rule at once: every one of the three elements is the
       *> 14.9.20.4 GR6c alphanumeric default SPACES, and CAP is still 3. The fixed member D-HDR is initialized
       *> in definition order (GR8) by the same walk.
-      *> Before this fixture the child walk met the dynamic member on an explicit arm that staged COBOLNET1527
+      *> Before this fixture the child walk met the dynamic member on an explicit arm that staged COBOL1527
       *> loud - a deferral written before GR10 was read, since GR10 does not defer this case, it SPECIFIES it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB393INIDYN.

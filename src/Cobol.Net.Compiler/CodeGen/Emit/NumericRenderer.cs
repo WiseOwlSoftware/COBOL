@@ -512,7 +512,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // MOVE MOVE43 TO MOVE3 mis-derivation). A mixed-usage (COMP-leaf) group is an ORDINARY image-capable
         // group now — its leaves' pinned bytes ARE the image (the Step D arm-1 dissolution).
         // ⛔ IsImageCapable, and correct ONLY because strict conformance now REJECTS a group arithmetic operand
-        // (DA6 — §8.8.1.1, COBOLNET0844 in ExpressionBinder). Reaching here therefore means --permissive was
+        // (DA6 — §8.8.1.1, COBOL0844 in ExpressionBinder). Reaching here therefore means --permissive was
         // requested, and the leniency must be CONSISTENT: before, a group of PIC X leaves computed while a group of
         // PIC 9 leaves threw at run time, so the operand whose digits were unambiguous failed and the merely-textual
         // one succeeded. Migrating this arm while strict still ACCEPTED the construct would have extended acceptance
@@ -529,7 +529,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         //       Tier-B / BASED string-canonical window (what `ReferenceResolver`'s
         //       `WrapIfOdoGroup(new RedefViewPlace(...))` builds for a BASED record carrying an ODO table)
         //       rendered `<string window>.AsImage()` → backend CS1061. MEASURED, not deduced: strict
-        //       conformance rejects a group arithmetic operand (COBOLNET0844 below), so the reach is
+        //       conformance rejects a group arithmetic operand (COBOL0844 below), so the reach is
         //       `--permissive`, which is a SUPPORTED mode — `COMPUTE X = <BASED ODO group> + 1 --permissive`
         //       was the probe.
         //   (b) the MAXIMUM image where §13.18.38.4 GR8 wants the CURRENT-count part. A numeric decode of a

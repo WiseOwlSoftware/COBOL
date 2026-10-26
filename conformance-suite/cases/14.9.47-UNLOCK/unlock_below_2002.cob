@@ -8,7 +8,7 @@
       *> (DESIGN-version-conformance-pipeline.md): the parse-time {is2002()}? predicate AND the reverse-signature
       *> ReservedWordEditionHints arm are GONE — UNLOCK now parses at all editions (superset) and the introduction
       *> gate is enforced at BIND (BindUnlock → ConstructRegistry.Check(UnlockStatement2002)), so below 2002 it is
-      *> an exact COBOLNET0900 with the construct identity known, not a post-hoc guess.
+      *> an exact COBOL0900 with the construct identity known, not a post-hoc guess.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. ULB.
        ENVIRONMENT DIVISION.

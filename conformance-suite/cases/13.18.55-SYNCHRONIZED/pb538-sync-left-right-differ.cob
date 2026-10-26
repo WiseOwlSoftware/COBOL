@@ -18,7 +18,7 @@
       *>   both shall be of the same type"   cite.py: OK  14.8.2.2 2)
       *> The prototype's B1 is SYNC LEFT and the caller's is SYNC RIGHT; everything else is the same. The two lay out
       *> identically under the one-byte natural boundary (docs/CONFORMANCE.md DOC-A.1-197), but the CLAUSES differ,
-      *> so A is not of the same type as L and the CALL is refused COBOLNET1688 (before the fix the phrase was
+      *> so A is not of the same type as L and the CALL is refused COBOL1688 (before the fix the phrase was
       *> discarded at bind and the CALL compiled clean). The positive twin is 2023/pb539_sync_group_as_if_leaves.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P538S IS PROTOTYPE.

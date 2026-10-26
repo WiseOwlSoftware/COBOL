@@ -10,7 +10,7 @@
       *>   word". CAPS is a SECTION-NAME in the procedure division (the
       *>   sibling of the paragraph case: both are declared by the
       *>   procedure-division binder after the data division), refused
-      *>   COBOLNET2692.
+      *>   COBOL2692.
       *> cite.py --check 13.18.38.3 "Data-name-3 shall not be defined
       *>   elsewhere in the source element" -> OK  13.18.38.3 30)
        IDENTIFICATION DIVISION.

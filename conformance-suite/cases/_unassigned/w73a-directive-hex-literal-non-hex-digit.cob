@@ -11,7 +11,7 @@
       *>  body, for the 8.3.3 rules. ISO
       *>  8.3.3.2.3 SR5: "Hex-character-sequence-1 shall be composed of
       *>  hexadecimal digits". X"GG" as a >>DEFINE value is refused by
-      *>  name (COBOLNET2630 naming SR5) instead of decoding to an empty
+      *>  name (COBOL2630 naming SR5) instead of decoding to an empty
       *>  value that >>IF would then compare.
        >>DEFINE V AS X"GG"
        IDENTIFICATION DIVISION.

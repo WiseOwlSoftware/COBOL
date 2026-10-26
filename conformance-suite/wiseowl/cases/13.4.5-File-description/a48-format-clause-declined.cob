@@ -13,7 +13,7 @@
 *> ISO 1989:2023 Annex A.4.8 item 1) "FORMAT clause (13.18.24)" - an OPTIONAL language element (4.2.7) for
 *> which this implementation claims NO support (docs/CONFORMANCE.md section 5, row A.4.8). A.4.1: an
 *> implementation shall accept the syntax for an optional element ONLY when support for it is claimed - so
-*> the clause is RECOGNIZED (13.18.24.2 general format) in order to be REFUSED BY NAME with COBOLNET1705,
+*> the clause is RECOGNIZED (13.18.24.2 general format) in order to be REFUSED BY NAME with COBOL1705,
 *> never accepted inert: 13.18.24.4 GR1 makes the clause change the on-medium representation, so an inert
 *> compile would write the WRONG BYTES rather than merely omit a facility.
 *> This witness is the minimal legal single-alternative spelling WITH the optional word DATA, on the

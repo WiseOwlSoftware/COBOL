@@ -62,7 +62,7 @@ public sealed class TableValueElementCountTests
     /// <summary>§13.18.63.3 SR23 — "the values of subscript-1 and subscript-2 corresponding to all levels higher
     /// than that of the OCCURS clause, if applicable, shall be equal": an unbounded OUTER dimension may be spanned
     /// (nothing is above it), an unbounded INNER one may not be carried out of, and with two nested unbounded
-    /// dimensions the rule binds the inner one too — the case the COBOLNET1946 screen used to miss.</summary>
+    /// dimensions the rule binds the inner one too — the case the COBOL1946 screen used to miss.</summary>
     [Fact]
     public void UnboundedDimension_CountsOnlyWhereSr23Holds()
     {

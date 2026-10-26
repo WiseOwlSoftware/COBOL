@@ -13,7 +13,7 @@
 *> PRESENT WHEN clause (§13.18.41) — each already a `*-2002` construct row here — and this.
 *>
 *> So a COBOL-85 compilation shall name the edition rather than silently repeat the item: construct
-*> `report-occurs-2002`, diagnostic COBOLNET0900. Above 85 the same source compiles and prints OK OK OK.
+*> `report-occurs-2002`, diagnostic COBOL0900. Above 85 the same source compiles and prints OK OK OK.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB565O85.
        ENVIRONMENT DIVISION.

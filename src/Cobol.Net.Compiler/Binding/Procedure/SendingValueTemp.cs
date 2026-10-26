@@ -465,7 +465,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// condition-1 is assigned a truth value according to the rules for evaluating conditional expressions".
     /// <see cref="Materialize"/> could hold a VALUE and nothing could hold a TRUTH value — <see cref="BoundCondition"/>
     /// and <see cref="BoundBoolExpr"/> are separate hierarchies — so a condition subject was re-bound and
-    /// re-evaluated once per WHEN, and a user-defined function inside one was refused (COBOLNET1509) rather than
+    /// re-evaluated once per WHEN, and a user-defined function inside one was refused (COBOL1509) rather than
     /// over-activated.
     /// <para>The intermediate result item for a truth value is a ONE-POSITION BOOLEAN item: §8.8.4.3.4 GR1 —
     /// "Boolean-expression-1 evaluates true if the result of the expression is 1" — reads exactly such an item, so

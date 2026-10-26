@@ -13,7 +13,7 @@
       *>   sequence given in the general format". DERIVED, NOT QUOTED:
       *>   no 1985 text is in the repository (VERSION_CHANGE_REFERENCE
       *>   row 7.7). SEGMENT-LIMIT written before MEMORY SIZE is
-      *>   COBOLNET2987; it compiled clean at --std 85 before.
+      *>   COBOL2987; it compiled clean at --std 85 before.
       *> cite.py --check 5.2.1 "shall be written in the compilation
       *>   group in the sequence given in the general format" -> OK
        IDENTIFICATION DIVISION.

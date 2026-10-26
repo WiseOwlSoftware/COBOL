@@ -13,7 +13,7 @@
       *> element when a function or inline method invocation is referenced."
       *> A method whose procedure division header declares no
       *> RETURNING item therefore has nothing for the identifier to reference
-      *> — COBOLNET2139.  The INVOKE statement is the form for such a method,
+      *> — COBOL2139.  The INVOKE statement is the form for such a method,
       *> and the diagnostic says so.  kb/Work PB428.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB428N3.

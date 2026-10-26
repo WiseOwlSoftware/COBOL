@@ -11,7 +11,7 @@
       *> storage of a computer. It does not affect the use of the data item". A PIC X(6) DISPLAY leaf under
       *> a redefined record is a MOVE receiver, so the PIC N(3) NATIONAL leaf in the same position is one
       *> too; 14.9.25.4 GR6 a) admits a national receiving operand with "alignment and any necessary space
-      *> filling ... as defined in 14.6.8". The program was once refused with COBOLNET0899 ("a reference
+      *> filling ... as defined in 14.6.8". The program was once refused with COBOL0899 ("a reference
       *> shape COBOL.NET does not yet implement as a receiver") on the redefined side of the class; the
       *> REDEFINES-over-national refusal was removed by PB231, and this golden pins all three positions.
       *>

@@ -77,9 +77,9 @@ public sealed class SpecPinnedNistTests
     /// phrase's own word rode <c>cobolWord</c>, the §8.9 funnel — which screens IDENTIFIER occurrences
     /// POSITION-BLIND — refused it as a user-defined word from 2002 on, so a real CCVS program was rejected at
     /// every edition a user is likely to target.
-    /// <para>⚠ THE ASSERTION IS THE ABSENCE OF COBOLNET0901, NOT A CLEAN COMPILE, and deliberately so. ST127A is
+    /// <para>⚠ THE ASSERTION IS THE ABSENCE OF COBOL0901, NOT A CLEAN COMPILE, and deliberately so. ST127A is
     /// an X3.23-1985 program: at strict COBOL-2002 its SD still carries the DATA RECORDS clause, which ISO 2002
-    /// DELETED (COBOLNET0873), so a "compiles clean" assertion could only be made under <c>--permissive</c> —
+    /// DELETED (COBOL0873), so a "compiles clean" assertion could only be made under <c>--permissive</c> —
     /// and under <c>--permissive</c> the reservation gate does not fire and the 0901 degrades to a warning, so
     /// that spelling of the test would have passed BEFORE the fix as well (feedback_green_gates_arent_evidence).
     /// The strict compile with 0901 excluded fails on the old compiler and passes on the new one.</para></summary>
@@ -91,11 +91,11 @@ public sealed class SpecPinnedNistTests
         {
             var r = CompiledProgramCache.Compile(CorpusManifest.CompileOptions("ST127A", Path.Combine(dir, "ST127A.dll"), 2002, permissive: false, checkOnly: false));
             string all = string.Join("\n", r.Errors);
-            Assert.DoesNotContain("COBOLNET0901", all, StringComparison.Ordinal);
+            Assert.DoesNotContain("COBOL0901", all, StringComparison.Ordinal);
             Assert.DoesNotContain("'ORDER'", all, StringComparison.Ordinal);
             // The program's ONE remaining strict-2002 obstacle is the deleted FD/SD clause, not the SORT phrase —
             // asserted so a future change that silently stops compiling the SORT at all cannot pass this test.
-            Assert.Contains("COBOLNET0873", all, StringComparison.Ordinal);
+            Assert.Contains("COBOL0873", all, StringComparison.Ordinal);
         }
         finally { ScratchDirectory.Remove(dir); }
     }

@@ -9,7 +9,7 @@
       *> formal LF is an alphanumeric group item (3.11), so the rule binds the pair, and 8.5.1.12.3 sets the
       *> lengths it compares: "For purposes of determining compatibility, the dynamic-capacity table is
       *> considered to be the same length as the corresponding table". VG therefore counts 2+3+2 = 7 and LF
-      *> counts 2+3+2+3 = 10 - the formal is LARGER, so the AS NESTED CALL is rejected (COBOLNET1688). The
+      *> counts 2+3+2+3 = 10 - the formal is LARGER, so the AS NESTED CALL is rejected (COBOL1688). The
       *> counterpart of 2014/pb965_vlg_into_fixed_boundary, whose 7-against-7 pair is admitted (kb/Work PB965).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB965NL.

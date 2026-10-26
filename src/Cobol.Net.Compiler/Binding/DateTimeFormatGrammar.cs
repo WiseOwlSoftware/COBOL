@@ -13,8 +13,8 @@ internal enum DateTimeFormatKind { Date, Time, Combined }
 internal enum DateTimeZone { None, Local, Utc, Offset }
 
 /// <summary>What <see cref="DateTimeFormatGrammar.Describe"/> knows about a legal §15.3 format: its KIND (the
-/// §15.39/40/41/48/79/92 rule-2 screen, COBOLNET1631) and its time portion's ZONE (the §15.40.3 r6 / §15.41.3 r5
-/// screen, COBOLNET1633).</summary>
+/// §15.39/40/41/48/79/92 rule-2 screen, COBOL1631) and its time portion's ZONE (the §15.40.3 r6 / §15.41.3 r5
+/// screen, COBOL1633).</summary>
 internal readonly record struct DateTimeFormatInfo(DateTimeFormatKind Kind, DateTimeZone Zone);
 
 /// <summary>

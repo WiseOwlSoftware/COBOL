@@ -18,7 +18,7 @@
       *>   be described as a group item of the same type" -> OK
       *>   14.9.25.3 2)
       *> Each pair is of one type, so the source conforms; before the
-      *> fix BY CONTENT drew COBOLNET1688 and RETURNING COBOLNET1736,
+      *> fix BY CONTENT drew COBOL1688 and RETURNING COBOL1736,
       *> and the function result could not be moved.
       *> DERIVATION:
       *>   C  G holds an object and "ABC". BY CONTENT the callee's record

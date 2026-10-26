@@ -11,7 +11,7 @@
       *> either spelling must bind identically (before R15 the omitted form compiled clean and died at run
       *> time with "INSPECT of unresolvable item"). 14.9.22.4 GR1/GR7 make Format 1 (TALLYING) a SENDING
       *> use, which 8.4.3.2.3 SR1 admits; the REPLACING/CONVERTING receiving bar stays (the negative
-      *> fixture inspect-kof-replacing pins COBOLNET1632).
+      *> fixture inspect-kof-replacing pins COBOL1632).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. R15INSKOF.
        ENVIRONMENT DIVISION.

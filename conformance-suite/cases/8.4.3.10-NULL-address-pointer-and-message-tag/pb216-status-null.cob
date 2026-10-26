@@ -15,7 +15,7 @@
       *> condition". The termination-status phrase is none of those.
       *> It once parsed as a figurative constant and reached the GR5 renderer
       *> (kb/Work PB216); NULL is now its own identifier rule, refused here by
-      *> the one 8.4.3.10.3 SR1 context screen, COBOLNET2576 (kb/Work PB1427).
+      *> the one 8.4.3.10.3 SR1 context screen, COBOL2576 (kb/Work PB1427).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB216N1.
        PROCEDURE DIVISION.

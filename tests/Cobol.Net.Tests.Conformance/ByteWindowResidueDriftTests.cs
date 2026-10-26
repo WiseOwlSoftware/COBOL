@@ -22,7 +22,7 @@ namespace CobolNet.Tests.Conformance;
 /// <para>They were TWO hand-written lists — a deny-list in <c>ComputeTier</c>, an allow-list in
 /// <c>ForceStringCanonical</c> — and they drifted. kb/Work PB203 opened the REDEFINES one to USAGE BIT leaves
 /// and the cell one was never touched, so <c>01 R BASED. 05 B PIC 1(8) USAGE BIT.</c> drew a bind-time
-/// COBOLNET1695 while its byte-identical REDEFINES twin compiled and ran — rejects-legal-source, since no
+/// COBOL1695 while its byte-identical REDEFINES twin compiled and ran — rejects-legal-source, since no
 /// syntax rule anywhere conditions BASED, EXTERNAL or ADDRESS OF on a subordinate's USAGE. This is the ninth
 /// recorded instance of this repo's two-arm-dispatch shape, and this file is what makes the tenth impossible:
 /// the four surfaces must return the SAME verdict for the same leaf, whatever that verdict is.</para>
@@ -69,7 +69,7 @@ public sealed class ByteWindowResidueDriftTests
         { "BWR09", "PIC N(4)", 8, true },
         // ⛔ AND THE OTHER FOUR SPELLINGS §13.18.60.3 SR12 ADMITS — ROWS AT LAST (kb/Work PB646). The
         // national-form NUMERIC, NUMERIC-EDITED and BOOLEAN forms used to be a comment here saying why they
-        // could not be rows: `PictureAnalyzer` staged each loud at COBOLNET0899 before storage classification
+        // could not be rows: `PictureAnalyzer` staged each loud at COBOL0899 before storage classification
         // ran, so the gate's arm for them was a derived answer nothing could contradict
         // ([[a_dead_lookup_is_also_unverified]]). The staging is gone and the arm is now MEASURED on all four
         // surfaces. The BYTES column is the §13.18.60.4 GR8 / D-N1 determination applied to §13.18.40.4 GR1's
@@ -131,12 +131,12 @@ public sealed class ByteWindowResidueDriftTests
     /// <item>the level-1 <c>USAGE POINTER BASED</c> shape — §13.18.60.3 SR14's first arm, the one PB231's
     /// pointer third implements — COMPILES AND RUNS, and reads NULL after a plain ALLOCATE (§14.9.3.4 GR9);</item>
     /// <item><c>USAGE OBJECT REFERENCE BASED</c> is REFUSED, by §13.18.5.3 SR1 ("The subject of the entry shall
-    /// not be of class object") — COBOLNET1797, not a residue;</item>
+    /// not be of class object") — COBOL1797, not a residue;</item>
     /// <item><c>USAGE POINTER EXTERNAL</c> is REFUSED, by §13.18.22.3 SR4 ("The EXTERNAL clause shall not be
-    /// specified for a data item of class object or pointer") — COBOLNET1796.</item>
+    /// specified for a data item of class object or pointer") — COBOL1796.</item>
     /// </list>
     /// <para>Parts 2 and 3 are the ones the landing could most easily have broken: both shapes used to be
-    /// rejected by the residue diagnostic COBOLNET1695, so opening the gate without them would have turned two
+    /// rejected by the residue diagnostic COBOL1695, so opening the gate without them would have turned two
     /// NONCONFORMING programs into clean compiles — an under-rejection created by a fix. The asymmetry between
     /// them (BASED bars only class object; EXTERNAL bars class object AND class pointer) is the standard's own,
     /// and asserting BOTH is what keeps a future "simplification" from unifying the two lists.</para></summary>
@@ -173,7 +173,7 @@ public sealed class ByteWindowResidueDriftTests
                 STOP RUN.
             """);
         Assert.False(objOk, "§13.18.5.3 SR1: the subject of a BASED entry shall not be of class object");
-        Assert.Contains("COBOLNET1797", objDetail, StringComparison.Ordinal);
+        Assert.Contains("COBOL1797", objDetail, StringComparison.Ordinal);
 
         var (extOk, extDetail) = Run("""
             IDENTIFICATION DIVISION.
@@ -187,7 +187,7 @@ public sealed class ByteWindowResidueDriftTests
             """);
         Assert.False(extOk, "§13.18.22.3 SR4: the EXTERNAL clause shall not be specified for a data item of "
             + "class object or pointer");
-        Assert.Contains("COBOLNET1796", extDetail, StringComparison.Ordinal);
+        Assert.Contains("COBOL1796", extDetail, StringComparison.Ordinal);
     }
 
     private static (bool Ok, string Detail) Run(string src)

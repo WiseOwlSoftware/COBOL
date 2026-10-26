@@ -6,7 +6,7 @@
       *> portable: unverified
       *>---
       *> ISO 13.18.33.3 SR3/SR5 and 13.18.33.4 GR2 -- the OVER-REJECTION
-      *> GUARD for the COBOLNET1746 screen. Every level-number the
+      *> GUARD for the COBOL1746 screen. Every level-number the
       *> standard permits in the working-storage section is written here
       *> and must still compile at COBOL-85, the earliest edition the
       *> matrix covers: the 01 through 09 spellings SR3 sanctions ("A

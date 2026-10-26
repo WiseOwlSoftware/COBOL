@@ -6,7 +6,7 @@
       *>---
       * kb/Work PB2017 - ISO 8.7.1: an arithmetic operator "shall be
       * preceded by a space and followed by a space".  A*B touches
-      * both operands.  It compiled and ran; COBOLNET2993.
+      * both operands.  It compiled and ran; COBOL2993.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2017N1.
        DATA DIVISION.

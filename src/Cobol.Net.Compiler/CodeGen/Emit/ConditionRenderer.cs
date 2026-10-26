@@ -536,7 +536,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     /// <summary>ISO §8.8.4.2's category of a figurative constant WORD standing opposite an operand of
     /// <paramref name="context"/> — §8.3.3.6.4 GR1's national-or-alphanumeric split, with GR4's boolean reading
-    /// of ZERO (the class mix is bind-rejected COBOLNET0844, so only ZERO reaches a boolean context).</summary>
+    /// of ZERO (the class mix is bind-rejected COBOL0844, so only ZERO reaches a boolean context).</summary>
     private static PicCategory FigurativeCategory(PicCategory? context) =>
         context is PicCategory.National or PicCategory.Boolean ? context.Value : PicCategory.Alphanumeric;
 
@@ -921,7 +921,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             c.CheckRangeInvalid, c.Condition.Alphabet)).ToList();
         // ⛔ TOTAL OVER AN EMPTY VALUE SET (kb/Work PB501). §13.16.2 formats 3 and 4 both print the value-clause
         // UNBRACKETED, so an entry with no values is nonconforming source and `LevelNumberPass` refuses it by
-        // name (COBOLNET1747) — this renderer is never reached for one in a compilation that gets as far as
+        // name (COBOL1747) — this renderer is never reached for one in a compilation that gets as far as
         // codegen. But a bind-time recovery can still leave the list empty (an operand that was not a literal
         // position binds nothing, kb/Work PB732), and `string.Join` over an empty sequence rendered the
         // TWO-CHARACTER C# fragment `()`, so the generated source read `if (())` and the user was shown

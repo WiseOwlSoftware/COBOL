@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1507 - 11.10.3 SR5: "The INITIAL clause shall not be specified if any program that directly or
       *>   indirectly contains this program is a recursive program." S5I1507 is INITIAL and is contained in the
-      *>   RECURSIVE S5O1507. COBOLNET2755. The positive twin is conformance/2002/pb1507_source_unit_shapes_legal.cob.
+      *>   RECURSIVE S5O1507. COBOL2755. The positive twin is conformance/2002/pb1507_source_unit_shapes_legal.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. S5O1507 IS RECURSIVE.
        PROCEDURE DIVISION.

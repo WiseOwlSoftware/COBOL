@@ -12,7 +12,7 @@
       *> It is the drift net for a TWO-ARM defect measured on this tree: the resolver arm that intercepts the
       *> predefined object reference (ISO 8.4.3.6.3 SR2) carried the 2002 gate while the receiving-operand screen
       *> for SR1 - "EXCEPTION-OBJECT shall not be specified as a receiving operand" - compared the spelling on
-      *> its own, so `MOVE "ABCD" TO EXCEPTION-OBJECT` here drew COBOLNET2196: SR1 quoted at a program that
+      *> its own, so `MOVE "ABCD" TO EXCEPTION-OBJECT` here drew COBOL2196: SR1 quoted at a program that
       *> references no register at all. The positive at the introducing edition is
       *> conformance-suite/cases/8.4.3.1-Identifier/pb922_exception_object_reference.cob.
       *>

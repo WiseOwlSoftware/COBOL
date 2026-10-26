@@ -10,7 +10,7 @@
       *> ("The DISPLAY directive allows the display of compile-time information during the
       *> compilation of COBOL source") and Annex E.2 item 5, which lists DISPLAY, POP and
       *> PUSH among the compiler-directive words added in 2023 - so below 2023 each is the
-      *> introduction diagnostic COBOLNET0900.
+      *> introduction diagnostic COBOL0900.
       *>
       *> Note the clause pairing: 7.3.20 is POP and 7.3.22 is PUSH, the reverse of the
       *> order the pre-PB725 code comment listed them in.

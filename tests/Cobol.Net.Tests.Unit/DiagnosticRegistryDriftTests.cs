@@ -11,8 +11,8 @@ namespace CobolNet.Tests.Unit;
 /// The P2.10 diagnostic-registry drift check (mirrors <c>ConstructRegistryDriftTests</c> /
 /// <c>ReservedWordsDriftTests</c>): the first-class <see cref="DiagnosticCatalog"/> is THE source, so
 /// (a) every descriptor's stable <see cref="DiagnosticDescriptor.Id"/> is unique, (b) no compiler emit site
-/// still uses a BARE split-code string literal where a descriptor now exists (the <c>COBOLNET0899</c> catch-all
-/// and the reused <c>COBOLNET1533</c>), and (c) <c>docs/DIAGNOSTICS.md</c> is a RENDERED VIEW of the catalogue
+/// still uses a BARE split-code string literal where a descriptor now exists (the <c>COBOL0899</c> catch-all
+/// and the reused <c>COBOL1533</c>), and (c) <c>docs/DIAGNOSTICS.md</c> is a RENDERED VIEW of the catalogue
 /// (kb/Work PB3026, <c>scripts/rendered_views.py</c>): gitignored and never committed, because two pull requests that each
 /// add a diagnostic would both rewrite it. This test is that view's render check: the catalogue must render one row per
 /// descriptor. Render it: <c>pwsh scripts/gen-diagnostics-doc.ps1</c> (or run this test with
@@ -23,13 +23,13 @@ public sealed class DiagnosticRegistryDriftTests
 {
     /// <summary>The split codes the 0899/1533 migration moved onto descriptors — no bare
     /// <c>.Error("&lt;code&gt;"</c> literal for these may survive in the compiler.</summary>
-    private static readonly string[] SplitCodes = ["COBOLNET0899", "COBOLNET1533"];
+    private static readonly string[] SplitCodes = ["COBOL0899", "COBOL1533"];
 
     /// <summary>Codes DELIBERATELY shared by multiple descriptors: the split families. Any other shared code is a
-    /// collision — COBOLNET1535 was once listed here, its second descriptor (the staged RENAMES-in-TYPEDEF stage) having
+    /// collision — COBOL1535 was once listed here, its second descriptor (the staged RENAMES-in-TYPEDEF stage) having
     /// been a collision nobody had registered; the stage was implemented and the descriptor deleted (kb/Work PB1304,
     /// PB608), so the code now has one meaning like every other.</summary>
-    private static readonly string[] SharedCodes = ["COBOLNET0899", "COBOLNET1533"];
+    private static readonly string[] SharedCodes = ["COBOL0899", "COBOL1533"];
 
     [Fact]
     public void EveryDescriptor_HasUniqueId()
@@ -42,10 +42,10 @@ public sealed class DiagnosticRegistryDriftTests
         Assert.True(dupes.Count == 0, $"duplicate descriptor Id(s): [{string.Join(", ", dupes)}]");
     }
 
-    /// <summary>No two descriptors may share a COBOLNET Code — one user-visible code, one meaning — except the
+    /// <summary>No two descriptors may share a COBOL#### Code — one user-visible code, one meaning — except the
     /// deliberate split-code families (<see cref="SplitCodes"/>: many staged-loud descriptors share 0899/1533 by
     /// design). Id-uniqueness alone cannot catch a code collision (two kebab names, one code) — the shipped
-    /// COBOLNET1573 collision class.</summary>
+    /// COBOL1573 collision class.</summary>
     [Fact]
     public void EveryDescriptor_HasUniqueCode_OutsideSplitFamilies()
     {
@@ -76,9 +76,9 @@ public sealed class DiagnosticRegistryDriftTests
             + string.Join(", ", offenders));
     }
 
-    /// <summary>Every COBOLNETnnnn id string EMITTED anywhere in src (compiler, frontend, editions, runtime)
+    /// <summary>Every COBOLnnnn id string EMITTED anywhere in src (compiler, frontend, editions, runtime)
     /// must exist as a catalog descriptor — a bare literal outside the catalog is invisible to the next-free
-    /// allocation scan and to DIAGNOSTICS.md, which is exactly how the shipped COBOLNET1573 two-meanings
+    /// allocation scan and to DIAGNOSTICS.md, which is exactly how the shipped COBOL1573 two-meanings
     /// collision happened (the P13 plan-vs-spec review finding C1: the frontend's REF-MOD-ZERO-LENGTH
     /// malformed-operand emit bypassed the catalog, and Wave E's catalog-only scan re-allocated 1573).</summary>
     [Fact]
@@ -88,7 +88,7 @@ public sealed class DiagnosticRegistryDriftTests
         var offenders = new List<string>();
         string src = TestRepo.Src();
         var emitRx = new System.Text.RegularExpressions.Regex(
-            "Report(?:Error|Warning)\\(\\s*\"(COBOLNET\\d{4})\"|(?<![\\w.])(?:Error|Warning)\\(\\s*\"(COBOLNET\\d{4})\"");
+            "Report(?:Error|Warning)\\(\\s*\"(COBOL\\d{4})\"|(?<![\\w.])(?:Error|Warning)\\(\\s*\"(COBOL\\d{4})\"");
         foreach (var file in Directory.EnumerateFiles(src, "*.cs", SearchOption.AllDirectories))
         {
             if (file.Contains("Generated", StringComparison.OrdinalIgnoreCase)
@@ -110,7 +110,7 @@ public sealed class DiagnosticRegistryDriftTests
     }
 
     /// <summary>⛔ THE EXCEPTION-CHECKING (FORMAT-3) PERFORM'S CODES ARE ALL CATALOG DESCRIPTORS (kb/Work PB1154). The
-    /// family COBOLNET1597-1617 was written as bare string literals at <c>ctx.Edition.Error("COBOLNET16nn", …)</c>, a
+    /// family COBOL1597-1617 was written as bare string literals at <c>ctx.Edition.Error("COBOL16nn", …)</c>, a
     /// shape <see cref="EveryEmittedCode_IsACatalogDescriptor"/>'s regex cannot see (its look-behind skips a dotted
     /// call), so the whole family had no catalogue row, no DIAGNOSTICS.md entry and no suppress key. This pins the
     /// family two ways: no source file outside the catalogue writes one of its codes as a quoted literal, and every
@@ -118,7 +118,7 @@ public sealed class DiagnosticRegistryDriftTests
     [Fact]
     public void ExceptionCheckingPerformCodes_AreCatalogDescriptors()
     {
-        var literal = new System.Text.RegularExpressions.Regex("\"COBOLNET(159[7-9]|160\\d|161[0-7])\"");
+        var literal = new System.Text.RegularExpressions.Regex("\"COBOL(159[7-9]|160\\d|161[0-7])\"");
         var offenders = new List<string>();
         foreach (var file in Directory.EnumerateFiles(TestRepo.Src(), "*.cs", SearchOption.AllDirectories))
         {
@@ -132,14 +132,14 @@ public sealed class DiagnosticRegistryDriftTests
                     offenders.Add($"{Path.GetFileName(file)}:{i + 1}");
         }
         Assert.True(offenders.Count == 0,
-            "bare COBOLNET1597-1617 literal(s) — reference the DiagnosticCatalog descriptor (kb/Work PB1154): "
+            "bare COBOL1597-1617 literal(s) — reference the DiagnosticCatalog descriptor (kb/Work PB1154): "
             + string.Join(", ", offenders));
 
         string[] emitted =
         [
-            "COBOLNET1597", "COBOLNET1599", "COBOLNET1600", "COBOLNET1601", "COBOLNET1604", "COBOLNET1605", "COBOLNET1606",
-            "COBOLNET1607", "COBOLNET1608", "COBOLNET1610", "COBOLNET1611", "COBOLNET1612", "COBOLNET1613", "COBOLNET1614",
-            "COBOLNET1615", "COBOLNET1616", "COBOLNET1617",
+            "COBOL1597", "COBOL1599", "COBOL1600", "COBOL1601", "COBOL1604", "COBOL1605", "COBOL1606",
+            "COBOL1607", "COBOL1608", "COBOL1610", "COBOL1611", "COBOL1612", "COBOL1613", "COBOL1614",
+            "COBOL1615", "COBOL1616", "COBOL1617",
         ];
         var known = DiagnosticCatalog.All.Where(d => d.Severity == CobolNet.Editions.EditionSeverity.Error)
             .Select(d => d.Code).ToHashSet(StringComparer.Ordinal);
@@ -173,11 +173,11 @@ public sealed class DiagnosticRegistryDriftTests
         sb.Append("> **Rendered view** of `src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs` — gitignored, never committed or edited.\n");
         sb.Append("> Render: `pwsh scripts/gen-diagnostics-doc.ps1` (or run `DiagnosticRegistryDriftTests` with\n");
         sb.Append("> `COBOLNET_WRITE_DIAGNOSTICS_DOC=1`).\n\n");
-        sb.Append("This catalogue is the first-class registry that replaced bare `COBOLNETnnnn` string literals\n");
+        sb.Append("This catalogue is the first-class registry that replaced bare `COBOLnnnn` string literals\n");
         sb.Append("(rearch PHASE 02, P2.10). A **Code** may repeat across rows — the emitted number is byte-stable, the\n");
         sb.Append("stable **Id** is the identity. The `recognized-not-implemented` suppress key groups every\n");
-        sb.Append("legal-but-deferred feature so it can be muted as a group. Scope: the edition band + the `COBOLNET0899`\n");
-        sb.Append("split + the reused `COBOLNET1533`; the broader every-code→descriptor migration is the P7 follow-on.\n\n");
+        sb.Append("legal-but-deferred feature so it can be muted as a group. Scope: the edition band + the `COBOL0899`\n");
+        sb.Append("split + the reused `COBOL1533`; the broader every-code→descriptor migration is the P7 follow-on.\n\n");
         sb.Append("| Code | Id | Severity | ISO § | Suppress key | Title |\n");
         sb.Append("| --- | --- | --- | --- | --- | --- |\n");
         foreach (var d in DiagnosticCatalog.All)

@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1026 - the DYNAMIC LENGTH clause is a COBOL-2014 addition (ISO 8.5.1.10 / 13.18.19), so
       *> below 2014 a dynamic-length record of an EXTERNAL file is refused by the edition gate
-      *> (COBOLNET0900) - the shared out-of-line record area exists only where the clause does.
+      *> (COBOL0900) - the shared out-of-line record area exists only where the clause does.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1026NEG.
        ENVIRONMENT DIVISION.

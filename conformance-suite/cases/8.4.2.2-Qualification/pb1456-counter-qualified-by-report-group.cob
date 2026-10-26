@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1456 - ISO 8.4.2.2.3 SR9: "Whenever the LINE-COUNTER of a different report is referenced, LINE-COUNTER
       *> shall be qualified explicitly by the report-name associated with the different report." The qualifier D2 names a
-      *> report GROUP, not a report, so the reference is a qualification violation: COBOLNET2729 (the report counter
+      *> report GROUP, not a report, so the reference is a qualification violation: COBOL2729 (the report counter
       *> qualification rule, not the not-yet-implemented band the legal qualified form used to draw).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1456N1.

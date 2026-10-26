@@ -210,7 +210,7 @@ public sealed class Ansi85AcceptanceTests
 
     /// <summary>WITH the switch, a DEBUG-* register reference is a legal '85 use of the now-MODELED facility — it
     /// resolves to the DEBUG-ITEM register (an alphanumeric view), so the program COMPILES; never a deferred
-    /// COBOLNET0899 nor a false §8.9 "reserved word as user-defined word" COBOLNET0901.</summary>
+    /// COBOL0899 nor a false §8.9 "reserved word as user-defined word" COBOL0901.</summary>
     [Fact]
     public void UseForDebugging_SwitchPresent_DebugRegisters_Resolve()
     {
@@ -235,9 +235,9 @@ public sealed class Ansi85AcceptanceTests
                 STOP RUN.
             """, 85);
         Assert.True(ok, string.Join("\n", errors));
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0899");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0901");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1571");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0899");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL0901");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL1571");
     }
 
     /// <summary>The '85 operand forms in one declarative: ALL REFERENCES OF identifier (OF-qualified),
@@ -336,15 +336,15 @@ public sealed class Ansi85AcceptanceTests
     /// <summary>DB101A (switch + active DEBUG-* register use + ON procedure-name subjects) COMPILES at 85 — the
     /// X3.23-1985 procedure-trigger debug facility (DEBUG-ITEM register + ON procedure-name / ALL PROCEDURES) is
     /// modeled (VCR Table 7 row 7.17), so its DEBUG-* references resolve and its debugging declaratives bind; no
-    /// deferred COBOLNET0899, no false COBOLNET0901, and no COBOLNET1571 (its subjects are all procedure-names).</summary>
+    /// deferred COBOL0899, no false COBOL0901, and no COBOL1571 (its subjects are all procedure-names).</summary>
     [Fact]
     public void Db101a_CompilesAt85_DebugFacilityModeled()
     {
         var (ok, diagnostics) = EditionHarness.CompileNist("DB101A", 85);
         Assert.True(ok, string.Join("\n", diagnostics));
-        EditionHarness.AssertNoDiagnostic(diagnostics, "COBOLNET0899");
-        EditionHarness.AssertNoDiagnostic(diagnostics, "COBOLNET0901");
-        EditionHarness.AssertNoDiagnostic(diagnostics, "COBOLNET1571");
+        EditionHarness.AssertNoDiagnostic(diagnostics, "COBOL0899");
+        EditionHarness.AssertNoDiagnostic(diagnostics, "COBOL0901");
+        EditionHarness.AssertNoDiagnostic(diagnostics, "COBOL1571");
     }
 
     // ── §8.9 user-word continuity: each word frees exactly at its ReservedWords.Table edition ──
@@ -374,7 +374,7 @@ public sealed class Ansi85AcceptanceTests
         // 0901 at 85 strict (the '85 reservation, §8.3.2.1 rule 1)…
         var (ok85, errors85, _) = EditionHarness.CompileFull(src, 85);
         Assert.False(ok85);
-        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL0901");
         // …reserved through freeEdition-1 (the last still-reserved edition below it, when one exists)…
         int[] editions = EditionHarness.Editions;
         int lastReserved = editions.Last(e => e < freeEdition);
@@ -382,7 +382,7 @@ public sealed class Ansi85AcceptanceTests
         {
             var (okMid, errorsMid, _) = EditionHarness.CompileFull(src, lastReserved);
             Assert.False(okMid);
-            EditionHarness.AssertHasDiagnostic(errorsMid, "COBOLNET0901");
+            EditionHarness.AssertHasDiagnostic(errorsMid, "COBOL0901");
         }
         // …and a plain user word from freeEdition on (compiles + runs).
         var (ok, stdout, detail) = new CobolNetCompiler(freeEdition).CompileAndRun(src);

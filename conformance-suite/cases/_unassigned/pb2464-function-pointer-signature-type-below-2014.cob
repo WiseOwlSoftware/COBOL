@@ -8,7 +8,7 @@
       *> 2014/pb2464_function_pointer_signature_type: USAGE
       *> FUNCTION-POINTER (13.18.60.4 GR26) is a COBOL 2014 category, so a
       *> function-pointer restricted to a function-prototype cannot be
-      *> declared below --std 2014 (COBOLNET0900).
+      *> declared below --std 2014 (COBOL0900).
        IDENTIFICATION DIVISION.
        FUNCTION-ID. F1N IS PROTOTYPE.
        DATA DIVISION.

@@ -7,7 +7,7 @@
       *> ISO 1989:2023 13.18.63.3 SR6: "literals for floating-point formats shall be specified as floating-point,
       *> though the figurative constant ZERO or ZEROES and the integer and decimal forms of the literal zero may
       *> also be specified" - a NONZERO fixed-point literal on a floating-point numeric-edited item is
-      *> COBOLNET1659 (kb/Work PB66); the level-88 (format 2) form of the VALUE clause is under the same rule.
+      *> COBOL1659 (kb/Work PB66); the level-88 (format 2) form of the VALUE clause is under the same rule.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB66NVF.
        DATA DIVISION.

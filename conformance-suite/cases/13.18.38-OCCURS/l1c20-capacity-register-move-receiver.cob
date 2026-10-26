@@ -15,7 +15,7 @@
       *>   OK  §13.18.38.4 15)  (General rules)
       *> MOVE 4 TO T-CAP names T-CAP as the MOVE receiving item.
       *> The statement is not a SET statement, so the exception does
-      *> not apply and the source shall be rejected: COBOLNET1523,
+      *> not apply and the source shall be rejected: COBOL1523,
       *> whose meaning is exactly this violation.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C20C.

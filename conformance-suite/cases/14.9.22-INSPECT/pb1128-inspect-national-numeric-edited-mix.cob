@@ -10,7 +10,7 @@
       *> shall reference a data item or literal of class boolean or national, respectively" -
       *> refuses the alphanumeric literal-1 " " beside it. The class used to be read off the
       *> category alone, which answered "alphanumeric". USAGE NATIONAL arrives in 2002.
-      *> Expected: COBOLNET2306 (character-operand-class-mix).
+      *> Expected: COBOL2306 (character-operand-class-mix).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGPB1128NATNE.
        DATA DIVISION.

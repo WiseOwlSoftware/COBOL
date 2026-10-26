@@ -8,7 +8,7 @@
       *> contained within the choice indicators shall be specified, but any single alternative shall be
       *> specified only once". The FOR ALPHANUMERIC / FOR NATIONAL pair of every COLLATING SEQUENCE
       *> brace is such a group, read by ONE reader (CollatingAlphabetPair, kb/Work PB1075): a repeated
-      *> alternative is refused COBOLNET2104 instead of the last one silently winning.
+      *> alternative is refused COBOL2104 instead of the last one silently winning.
       *> NEGATIVE (sibling arm): OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE (12.3.6.2) repeats FOR
       *> NATIONAL.
        IDENTIFICATION DIVISION.

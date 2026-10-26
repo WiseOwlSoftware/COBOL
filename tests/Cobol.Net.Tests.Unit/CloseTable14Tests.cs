@@ -165,7 +165,7 @@ public sealed class CloseTable14Tests
             Assert.Equal(FileStatusCode.FileAlreadyOpen, reg.Status("S"));
             reg.Close("S");
 
-            // (d) Non-sequential: §14.9.27.3 SR5 rejects the phrase at bind time (COBOLNET1802), so the runtime
+            // (d) Non-sequential: §14.9.27.3 SR5 rejects the phrase at bind time (COBOL1802), so the runtime
             // arm behind it is loud — the OPEN twin of the CLOSE N/A cells asserted above.
             reg.RegisterRelative("R", Path.Combine(dir, "r.dat"), 8, false, 0, 4, -1, -1);
             Assert.Throws<InvalidOperationException>(() => reg.OpenNoRewindStatic("R", FileOpenMode.Input));

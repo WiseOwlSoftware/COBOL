@@ -10,7 +10,7 @@
       *> at the reserved word SIZE, the LOCALE phrase was the one reading left, and its word test
       *> refused FOO, so the parse used to stop at a bare COBOL0001 "cannot parse construct near
       *> 'FOO'" and then refused SIZE as well. FOO is now refused BY NAME in the data description
-      *> entry's format (COBOLNET1941), the one diagnostic, at every edition.
+      *> entry's format (COBOL1941), the one diagnostic, at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. N3391DE.
        DATA DIVISION.

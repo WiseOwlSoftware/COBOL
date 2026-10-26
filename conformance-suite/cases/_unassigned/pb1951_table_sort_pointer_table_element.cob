@@ -17,7 +17,7 @@
       *> A table element is the whole of its description, so every occurrence of a pointer table inside it is part of
       *> what GR24 places: each inner pointer travels with its element. A pointer's value is a managed reference in
       *> the BASED area's slot, one slot per inner occurrence, not part of the element's byte image (kb/Work PB231,
-      *> PB1922). Before this change an element holding a pointer TABLE was deferred (COBOLNET1756) and the statement
+      *> PB1922). Before this change an element holding a pointer TABLE was deferred (COBOL1756) and the statement
       *> aborted the run unit, though an element holding an elementary pointer sorted (kb/Work PB1922).
       *> USAGE POINTER is admitted below level 1 only inside a STRONG type declaration (§13.18.60.3 SR14), so each
       *> table is a strongly-typed group and the BASED record takes its type.

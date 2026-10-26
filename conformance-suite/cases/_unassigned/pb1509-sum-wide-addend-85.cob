@@ -12,7 +12,7 @@
       *> COBOL-85 capped a fixed-point item at 18 digits; the 19-31
       *> digit tier (and with it a sum counter wider than 18 digits
       *> over such an addend) is 2002 and later, so the 19-digit
-      *> addend is refused at 85 (COBOLNET0802). The positive twins are
+      *> addend is refused at 85 (COBOL0802). The positive twins are
       *> conformance:cases/11.9.5-ARITHMETIC/pb1509_sum_counter_wide_native and
       *> conformance:cases/11.9.5-ARITHMETIC/pb1509_sum_counter_wide_standard_decimal.
        IDENTIFICATION DIVISION.

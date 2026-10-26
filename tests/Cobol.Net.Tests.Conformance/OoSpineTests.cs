@@ -12,7 +12,7 @@ namespace CobolNet.Tests.Conformance;
 /// INVOKE NEW / no-arg instance binding, typed object references): the deep-dive's ADVERSARIAL REGRESSION
 /// TRAPS reproduced as day-one tests (each was a REAL caught legacy bug — traps #1/#4/#10 run here or in the
 /// enabled 2002 corpus), the D8 control-flow contract (method GOBACK vs STOP RUN vs EXIT METHOD), and the OO
-/// diagnostic band (COBOLNET0813/0820–0827). Two-object independence (trap #1) runs as the ENABLED corpus
+/// diagnostic band (COBOL0813/0820–0827). Two-object independence (trap #1) runs as the ENABLED corpus
 /// programs oo_instance_data / oo_object_group (ConformanceSuiteTests byte-compares them).
 /// </summary>
 public sealed class OoSpineTests
@@ -104,7 +104,7 @@ public sealed class OoSpineTests
     /// die — it asserted the <c>NotImplementedCobolFeatureException</c> text "unknown procedure 'PARA-C'" — so
     /// a GREEN test was pinning the broken stage: the program COMPILED, shipped an assembly, and blamed a gap
     /// in WiseOwl COBOL for what is an error in the source (ISO §4.2.2 ¶2 requires the compile-time mechanism).
-    /// The refusal is now the compile-time COBOLNET1639, and the method-local explanation rides it.</para></summary>
+    /// The refusal is now the compile-time COBOL1639, and the method-local explanation rides it.</para></summary>
     [Fact]
     public void Trap10_CrossMethodPerform_IsRefusedAtCompileTime()
     {
@@ -123,7 +123,7 @@ public sealed class OoSpineTests
                 DISPLAY "M2-PARA".
             END METHOD M2.
             """));
-        string e = Assert.Single(errors, x => x.Contains("COBOLNET1639", StringComparison.Ordinal));
+        string e = Assert.Single(errors, x => x.Contains("COBOL1639", StringComparison.Ordinal));
         Assert.Contains("PERFORM 'PARA-C' names no procedure", e, StringComparison.Ordinal);
         Assert.Contains("METHOD-LOCAL", e, StringComparison.Ordinal);
         Assert.Contains("§3.164", e, StringComparison.Ordinal);
@@ -228,7 +228,7 @@ public sealed class OoSpineTests
             MAIN.
                 STOP RUN.
             END PROGRAM OOSP6.
-            """), "COBOLNET0813");
+            """), "COBOL0813");
 
     /// <summary>§10.7.3 SR4 — END CLASS names its class (Validation.EndMarkerPass; kb/Work PB988).</summary>
     [Fact]
@@ -237,7 +237,7 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             CLASS-ID. OSPC7.
             END CLASS OTHER7.
-            """), "COBOLNET2793");
+            """), "COBOL2793");
 
     /// <summary>D9 (v1) — method names unique per class; §12063 overloading is optional and deferred.</summary>
     [Fact]
@@ -254,7 +254,7 @@ public sealed class OoSpineTests
             END METHOD M1.
             END OBJECT.
             END CLASS OSPC8.
-            """), "COBOLNET0822");
+            """), "COBOL0822");
 
     /// <summary>Trap #8 — INHERITS of an unknown base is LOUD (0821), never silently a root class; a KNOWN
     /// base COMPILES (slice 3a — `: BASE` emission; the former 0899 staging is retired).</summary>
@@ -266,7 +266,7 @@ public sealed class OoSpineTests
             CLASS-ID. OSPC9 INHERITS FROM NOBASE.
             END CLASS OSPC9.
             """);
-        EditionHarness.AssertHasDiagnostic(unknown, "COBOLNET0821");
+        EditionHarness.AssertHasDiagnostic(unknown, "COBOL0821");
         var (okKnown, knownErrors, _) = EditionHarness.CompileFull("""
             IDENTIFICATION DIVISION.
             CLASS-ID. OSPB10.
@@ -294,7 +294,7 @@ public sealed class OoSpineTests
             """, """
             METHOD-ID. M1.
             END METHOD M1.
-            """)), "COBOLNET0825");
+            """)), "COBOL0825");
 
     /// <summary>§16.2.1 — NEW's only result is the reference: RETURNING is required and USING is meaningless;
     /// the receiver must conform (§14.8 — a typed receiver of an UNRELATED class rejects).</summary>
@@ -303,7 +303,7 @@ public sealed class OoSpineTests
     {
         EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSP12", "OSPC12", """
                 INVOKE OSPC12 "NEW".
-            """, "")), "COBOLNET0826");
+            """, "")), "COBOL0826");
         EditionHarness.AssertHasDiagnostic(ErrorsOf($$"""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. OOSP13.
@@ -332,11 +332,11 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             CLASS-ID. OSPD13.
             END CLASS OSPD13.
-            """), "COBOLNET0826");
+            """), "COBOL0826");
     }
 
     /// <summary>§14.9.14.3 SR7 — EXIT PROGRAM only in a program procedure division; the method form only in a
-    /// method (both COBOLNET0827).</summary>
+    /// method (both COBOL0827).</summary>
     [Fact]
     public void ExitPlacement_0827()
     {
@@ -348,7 +348,7 @@ public sealed class OoSpineTests
             PARA-A.
                 EXIT PROGRAM.
             END METHOD M1.
-            """)), "COBOLNET0827");
+            """)), "COBOL0827");
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. OOSP15.
@@ -357,13 +357,13 @@ public sealed class OoSpineTests
                 EXIT METHOD.
                 STOP RUN.
             END PROGRAM OOSP15.
-            """), "COBOLNET0827");
+            """), "COBOL0827");
     }
 
     /// <summary>M2-OO-1i — a method definition shall NOT own an ENVIRONMENT DIVISION, FILE SECTION, REPORT
     /// SECTION, or SCREEN SECTION: each may appear only in a factory or instance definition (ISO §12.4.3 SR1 /
     /// §13.4.3 SR1 / §13.9 / §13.10). A method's own data division is limited to LOCAL-STORAGE (§13.6.3) +
-    /// LINKAGE (§13.7.3). Each violation is a HARD COBOLNET1519 (superseding the old "recognized but not yet
+    /// LINKAGE (§13.7.3). Each violation is a HARD COBOL1519 (superseding the old "recognized but not yet
     /// implemented" 0899 — the construct is spec-forbidden, not merely unimplemented). Object/factory FILE-CONTROL
     /// + FILE SECTION ARE legal (the M2-OO-1i object/factory leg); a method references those files via
     /// §11.7.4 GR5, it never declares its own.</summary>
@@ -392,10 +392,10 @@ public sealed class OoSpineTests
             PARA-A.
                 CONTINUE.
             END METHOD M.
-            """)), "COBOLNET1519");
+            """)), "COBOL1519");
 
     /// <summary>M2-OO-1i — the GLOBAL clause shall not be specified in a factory / instance / method definition
-    /// (ISO §13.18.27.3 SR4). A FACTORY <c>FD … IS GLOBAL</c> is COBOLNET1520 — GLOBAL is a nested-PROGRAM
+    /// (ISO §13.18.27.3 SR4). A FACTORY <c>FD … IS GLOBAL</c> is COBOL1520 — GLOBAL is a nested-PROGRAM
     /// containment mechanism that does not cross the class boundary; program↔class file sharing is EXTERNAL only
     /// (§9.1.5). (The FACTORY file itself is legal — inc 3 — only the GLOBAL clause on it is rejected.)</summary>
     [Fact]
@@ -430,10 +430,10 @@ public sealed class OoSpineTests
             OBJECT.
             END OBJECT.
             END CLASS GFCLS.
-            """)), "COBOLNET1520");
+            """)), "COBOL1520");
 
     /// <summary>M2-OO-1i — the GLOBAL clause is barred in an INSTANCE (object) definition too (ISO §13.18.27.3
-    /// SR4). An OBJECT <c>FD … IS GLOBAL</c> is COBOLNET1520. (The OBJECT file itself is legal — inc 4, a
+    /// SR4). An OBJECT <c>FD … IS GLOBAL</c> is COBOL1520. (The OBJECT file itself is legal — inc 4, a
     /// per-object connector — only the GLOBAL clause on it is rejected.)</summary>
     [Fact]
     public void ObjectFile_Global_1520()
@@ -464,7 +464,7 @@ public sealed class OoSpineTests
             PROCEDURE DIVISION.
             END OBJECT.
             END CLASS GOCLS.
-            """)), "COBOLNET1520");
+            """)), "COBOL1520");
 
     /// <summary>kb/Work PB369 — §13.18.27.3 SR4 bars GLOBAL on a REPORT description entry too (SR1 e) is the
     /// third entry kind it names). The RD GLOBAL staging used to answer this shape with "not yet implemented";
@@ -501,10 +501,10 @@ public sealed class OoSpineTests
             PROCEDURE DIVISION.
             END OBJECT.
             END CLASS GRCLS.
-            """)), "COBOLNET1520");
+            """)), "COBOL1520");
 
     /// <summary>M2-OO-1i review — §13.18.27.3 SR4 bars GLOBAL on a DATA item too (not just an FD) in a factory /
-    /// instance / method definition. A GLOBAL level-01 in an OBJECT WORKING-STORAGE is COBOLNET1520 (was silently
+    /// instance / method definition. A GLOBAL level-01 in an OBJECT WORKING-STORAGE is COBOL1520 (was silently
     /// accepted — a false-negative diagnostic).</summary>
     [Fact]
     public void ObjectData_Global_1520()
@@ -530,10 +530,10 @@ public sealed class OoSpineTests
             PROCEDURE DIVISION.
             END OBJECT.
             END CLASS GDCLS.
-            """)), "COBOLNET1520");
+            """)), "COBOL1520");
 
-    /// <summary>M2-OO-1i review — a GLOBAL data item in a METHOD (here LINKAGE) is COBOLNET1520, superseding the
-    /// old mislabeled COBOLNET0899 "not yet implemented": §13.18.27.3 SR4 makes GLOBAL spec-FORBIDDEN in a method,
+    /// <summary>M2-OO-1i review — a GLOBAL data item in a METHOD (here LINKAGE) is COBOL1520, superseding the
+    /// old mislabeled COBOL0899 "not yet implemented": §13.18.27.3 SR4 makes GLOBAL spec-FORBIDDEN in a method,
     /// not merely unimplemented.</summary>
     [Fact]
     public void MethodData_Global_1520()
@@ -548,7 +548,7 @@ public sealed class OoSpineTests
             MAIN.
                 CONTINUE.
             END METHOD M.
-            """)), "COBOLNET1520");
+            """)), "COBOL1520");
 
     /// <summary>kb/Work PB1045 — a CONSTANT entry is an entry §13.18.27.3 SR1 a) lets carry the GLOBAL clause, so SR4
     /// bars it in every factory, instance and method definition, a method prototype included (§10.6.1 NOTE: "A
@@ -597,9 +597,9 @@ public sealed class OoSpineTests
             END CLASS GKCLS.
             """));
         foreach (var (name, line) in new[] { ("KP", 7), ("KF", 19), ("KO", 26), ("KM", 31) })
-            Assert.Contains(errors, e => e.Contains("COBOLNET1520") && e.Contains($"constant entry '{name}'")
+            Assert.Contains(errors, e => e.Contains("COBOL1520") && e.Contains($"constant entry '{name}'")
                                          && e.Contains($"({line},"));
-        Assert.Equal(4, errors.Count(e => e.Contains("COBOLNET1520")));
+        Assert.Equal(4, errors.Count(e => e.Contains("COBOL1520")));
     }
 
     /// <summary>kb/Work PB1045 — SR4 is asked of the clause as WRITTEN, once per clause: a GLOBAL FD and a GLOBAL
@@ -624,8 +624,8 @@ public sealed class OoSpineTests
             END OBJECT.
             END CLASS GFRCLS.
             """));
-        Assert.Contains(errors, e => e.Contains("COBOLNET1520") && e.Contains("file description entry 'GFR'"));
-        Assert.Contains(errors, e => e.Contains("COBOLNET1520") && e.Contains("data description entry 'GFR-REC'"));
+        Assert.Contains(errors, e => e.Contains("COBOL1520") && e.Contains("file description entry 'GFR'"));
+        Assert.Contains(errors, e => e.Contains("COBOL1520") && e.Contains("data description entry 'GFR-REC'"));
     }
 
     /// <summary>The staged boundaries stay LOUD (never a silent drop): INVOKE SELF (slice 3b) reaches the
@@ -642,7 +642,7 @@ public sealed class OoSpineTests
             PARA-A.
                 DISPLAY "X".
             END METHOD M1.
-            """)), "COBOLNET0828");
+            """)), "COBOL0828");
 
     // ── Slice 2 (deep-dive D3/D6 — method LINKAGE/LOCAL-STORAGE/WS + INVOKE USING/RETURNING) ───────────────
 
@@ -764,7 +764,7 @@ public sealed class OoSpineTests
 
     /// <summary>§14.9.23.3 SR 10 both ways: OBJECT data may NOT cross an INVOKE BY REFERENCE — a BARE
     /// object-data argument is assumed BY CONTENT (GR6a2: the callee's writes are invisible to the object's
-    /// state), and an EXPLICIT BY REFERENCE of object data is the compile-time COBOLNET4269 on every receiver: a typed
+    /// state), and an EXPLICIT BY REFERENCE of object data is the compile-time COBOL4269 on every receiver: a typed
     /// one, the predefined NULL (an object reference, §8.4.3.7.3 SR2) and a universal one, through which §14.9.23.3 SR6
     /// makes even a bare argument BY REFERENCE. A driver WS argument (SR 9) crosses BY REFERENCE and the callee's write IS
     /// visible.</summary>
@@ -835,10 +835,10 @@ public sealed class OoSpineTests
         Assert.Equal("OD=05\nWN=06", CutRunner.Normalize(stdout));
         // SR10's own code on every receiver lane (kb/Work PB1136): typed, NULL, and universal (bare = BY REFERENCE, SR6).
         EditionHarness.AssertHasDiagnostic(ErrorsOf(Program("OOSP20", "OSPC20", "LK-SELF", "BY REFERENCE ")),
-            "COBOLNET4269");
+            "COBOL4269");
         EditionHarness.AssertHasDiagnostic(ErrorsOf(Program("OOSP20N", "OSPC20N", "NULL", "BY REFERENCE ")),
-            "COBOLNET4269");
-        EditionHarness.AssertHasDiagnostic(ErrorsOf(Program("OOSP20U", "OSPC20U", "LU", "")), "COBOLNET4269");
+            "COBOL4269");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(Program("OOSP20U", "OSPC20U", "LU", "")), "COBOL4269");
     }
 
     /// <summary>§14.8.2 strict REFERENCE conformance: a description mismatch (PIC 9(4) formal, PIC 9(5)
@@ -860,17 +860,17 @@ public sealed class OoSpineTests
         EditionHarness.AssertHasDiagnostic(ErrorsOf(Mk("OOSP21", "OSPC21", "PIC 9(5) VALUE 1", """
                 INVOKE OSPC21 "NEW" RETURNING T.
                 INVOKE T "M1" USING W.
-            """)), "COBOLNET0828");
+            """)), "COBOL0828");
         EditionHarness.AssertHasDiagnostic(ErrorsOf(Mk("OOSP22", "OSPC22", "PIC 9(4) VALUE 1", """
                 INVOKE OSPC22 "NEW" RETURNING T.
                 INVOKE T "M1" USING W RETURNING W.
-            """)), "COBOLNET0828");   // method declares no RETURNING
+            """)), "COBOL0828");   // method declares no RETURNING
     }
 
     /// <summary>ISO §13.5.3 SR1 — "Within a class definition, the working-storage section may be specified only in a
     /// factory definition or an instance definition, but not in a method definition" — is the standard's own text, not
     /// a 2023 window (kb/Work PB1308, decision R62; Annex E.2 lists no removal of it), so a method's WORKING-STORAGE
-    /// SECTION is refused at EVERY edition with COBOLNET1519 and <c>--permissive</c> does not relax it (a syntax-rule
+    /// SECTION is refused at EVERY edition with COBOL1519 and <c>--permissive</c> does not relax it (a syntax-rule
     /// violation is not an edition-gated construct). The legal way to share a counter across activations is the
     /// instance definition's working-storage, which the same program then compiles and runs: one copy per INSTANCE,
     /// persistent across activations, while the method's LOCAL-STORAGE is initial on every activation (§8.6.4).</summary>
@@ -885,7 +885,7 @@ public sealed class OoSpineTests
         var (ok, errors, _) = EditionHarness.CompileFull(MethodCounterSource("OOSP23", "OSPC23",
             "WORKING-STORAGE SECTION.\n01 CTR PIC 9(2) VALUE 0."), dialect, permissive: permissive);
         Assert.False(ok, $"method WS must be rejected at --std {dialect} (ISO §13.5.3 SR1)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1519");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1519");
     }
 
     [Fact]
@@ -1211,8 +1211,8 @@ public sealed class OoSpineTests
     }
 
     /// <summary>§9.3.8.2 — an override whose SIGNATURE does not conform to the overridden method is the
-    /// compile-time COBOLNET0829 (never a Roslyn CS error on user source); trap #7 — SUPER in a root class
-    /// and SELF outside any method are clean 0827 placement diagnostics; an INHERITS cycle is ISO §11.3.3 SR4 (COBOLNET2791, kb/Work PB1505).</summary>
+    /// compile-time COBOL0829 (never a Roslyn CS error on user source); trap #7 — SUPER in a root class
+    /// and SELF outside any method are clean 0827 placement diagnostics; an INHERITS cycle is ISO §11.3.3 SR4 (COBOL2791, kb/Work PB1505).</summary>
     [Fact]
     public void InheritanceDiagnostics_0829_0827_2791()
     {
@@ -1259,7 +1259,7 @@ public sealed class OoSpineTests
             END METHOD M.
             END OBJECT.
             END CLASS S27.
-            """), "COBOLNET0829");
+            """), "COBOL0829");
         // SUPER in a ROOT class: written without the DriverAndClass helper, whose class inherits the standard class
         // BASE (kb/Work PB1548) — a class that INHERITS FROM BASE is not a root, and its SUPER searches BASE.
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
@@ -1275,7 +1275,7 @@ public sealed class OoSpineTests
             END METHOD M1.
             END OBJECT.
             END CLASS OSPC28.
-            """), "COBOLNET0827");
+            """), "COBOL0827");
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. OOSP29.
@@ -1299,13 +1299,13 @@ public sealed class OoSpineTests
             REPOSITORY.
                 CLASS A29.
             END CLASS B29.
-            """), "COBOLNET2791");
+            """), "COBOL2791");
     }
 
     /// <summary>§11.3.3 SR4 is a rule of EVERY class on a cycle and of no class that merely inherits into one (kb/Work
     /// PB1784): with A30 → B30 ⇄ C30, B30 and C30 each break it and A30 breaks nothing. The cycle walk used to cut the
     /// links as it went, so it reported A30 and never reached C30. A class named like an interface is ONE §8.3.2.2
-    /// report (COBOLNET0820), not that report plus a duplicate-class one.</summary>
+    /// report (COBOL0820), not that report plus a duplicate-class one.</summary>
     [Fact]
     public void InheritsCycle_ReportsEachMember_AndNotTheClassLeadingIntoIt()
     {
@@ -1341,11 +1341,11 @@ public sealed class OoSpineTests
             CLASS-ID. D30.
             END CLASS D30.
             """);
-        Assert.Single(errors, e => e.Contains("COBOLNET2791: class 'B30'", StringComparison.Ordinal));
-        Assert.Single(errors, e => e.Contains("COBOLNET2791: class 'C30'", StringComparison.Ordinal));
+        Assert.Single(errors, e => e.Contains("COBOL2791: class 'B30'", StringComparison.Ordinal));
+        Assert.Single(errors, e => e.Contains("COBOL2791: class 'C30'", StringComparison.Ordinal));
         Assert.DoesNotContain(errors, e => e.Contains("class 'A30'", StringComparison.Ordinal));
         Assert.Single(errors, e => e.Contains("'D30'", StringComparison.Ordinal));
-        Assert.Contains(errors, e => e.Contains("COBOLNET0820: 'D30' is defined as both a class and an interface",
+        Assert.Contains(errors, e => e.Contains("COBOL0820: 'D30' is defined as both a class and an interface",
             StringComparison.Ordinal));
     }
 
@@ -1595,7 +1595,7 @@ public sealed class OoSpineTests
     /// used to require the RUN to die: `SEARCH TAB2` over a method-local non-table returned a
     /// <c>BoundUnsupported</c>, so the program COMPILED, shipped an assembly and aborted the run unit claiming
     /// WiseOwl COBOL had not implemented a feature — a GREEN test pinning the broken stage, on a rule ISO §4.2.2 ¶2
-    /// puts in the compile-time mechanism. It is now COBOLNET2075 quoting §14.9.37.3 SR2, and the SHADOWING
+    /// puts in the compile-time mechanism. It is now COBOL2075 quoting §14.9.37.3 SR2, and the SHADOWING
     /// claim is asserted more sharply than before: the error names TAB2 as "not a table", which only the
     /// METHOD-LOCAL `PIC X(4)` is — the object's same-named item IS a table with an INDEXED phrase, so a lookup
     /// that had bypassed the method scope would have compiled clean.</para></summary>
@@ -1627,7 +1627,7 @@ public sealed class OoSpineTests
             PROCEDURE DIVISION.
             METHOD-ID. M.
             """));
-        string shadow = Assert.Single(shadowErrors, x => x.Contains("COBOLNET2075", StringComparison.Ordinal));
+        string shadow = Assert.Single(shadowErrors, x => x.Contains("COBOL2075", StringComparison.Ordinal));
         Assert.Contains("'TAB2' is not a table", shadow, StringComparison.Ordinal);
         Assert.Contains("§14.9.37.3 SR2", shadow, StringComparison.Ordinal);
         // level-66 RENAMES in method LOCAL-STORAGE now compiles and runs — the alias reads the record span
@@ -1655,7 +1655,7 @@ public sealed class OoSpineTests
 
     /// <summary>§11.7.4 GR5 (M2-OO-1h step 2) — a method table's OCCURS DEPENDING data-name-1 may resolve to a
     /// VISIBLE, UNSHADOWED OBJECT item (the global fallback in LookupDataInScopeOf), not only a method-local name.
-    /// The gate is gone; a false COBOLNET0851 "not defined" must not fire on a method-scoped depending name.</summary>
+    /// The gate is gone; a false COBOL0851 "not defined" must not fire on a method-scoped depending name.</summary>
     [Fact]
     public void MethodOdo_DependingOnVisibleObjectData()
     {
@@ -1688,7 +1688,7 @@ public sealed class OoSpineTests
     }
 
     /// <summary>§13.18.44.3 SR (M2-OO-1h step 3) — a method 01 REDEFINES may only overlay a preceding item in the
-    /// SAME method scope; naming an OBJECT item is out of scope → COBOLNET1577 (renumbered from the 1518 collision, review V11), never a silent cross-scope bind
+    /// SAME method scope; naming an OBJECT item is out of scope → COBOL1577 (renumbered from the 1518 collision, review V11), never a silent cross-scope bind
     /// (the pre-fix behavior bound the method redefiner to the object item through the global Roots pool).</summary>
     [Fact]
     public void MethodRedefines_TargetInObjectScope_Rejected()
@@ -1711,7 +1711,7 @@ public sealed class OoSpineTests
             01 OBJNUM PIC 9(4) VALUE 1.
             PROCEDURE DIVISION.
             METHOD-ID. M.
-            """)), "COBOLNET1577");
+            """)), "COBOL1577");
     }
 
     /// <summary>§13.18.44.3 SR (M2-OO-1h review B) — a REDEFINES target must be in the SAME data description; a
@@ -1735,7 +1735,7 @@ public sealed class OoSpineTests
                 DISPLAY LVIEW.
                 GOBACK.
             END METHOD M.
-            """)), "COBOLNET1577");
+            """)), "COBOL1577");
     }
 
     // ── The FACTORY slice (§11.4; brief D11 — DEVLOG 604) ───────────────────────────────────────────────────
@@ -1745,7 +1745,7 @@ public sealed class OoSpineTests
     /// dispatch, no collision. A factory METHOD-ID named NEW in a BASE subclass without OVERRIDE is the §11.7.3
     /// SR4 a) 0837 (kb/Work PB1582); INVOKE class-name
     /// of a method in NEITHER factory roster is the SR3 0825; SUPER in a ROOT class's factory method is the
-    /// trap-#7 0827 (factory flavor); a BY REFERENCE argument reading FACTORY WS violates SR 10 (COBOLNET4269).</summary>
+    /// trap-#7 0827 (factory flavor); a BY REFERENCE argument reading FACTORY WS violates SR 10 (COBOL4269).</summary>
     [Fact]
     public void Factory_DualRoster_AndDiagnosticBand()
     {
@@ -1813,14 +1813,14 @@ public sealed class OoSpineTests
             END METHOD NEW.
             END FACTORY.
             END CLASS OSPC37.
-            """), "COBOLNET0837");
+            """), "COBOL0837");
         EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSP38", "OSPC38", """
                 INVOKE OSPC38 "NOFM".
             """, """
             METHOD-ID. M1.
             PROCEDURE DIVISION.
             END METHOD M1.
-            """)), "COBOLNET0825");
+            """)), "COBOL0825");
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. OOSP39.
@@ -1841,7 +1841,7 @@ public sealed class OoSpineTests
             END METHOD M.
             END FACTORY.
             END CLASS OSPC39.
-            """), "COBOLNET0827");
+            """), "COBOL0827");
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. OOSP40.
@@ -1873,7 +1873,7 @@ public sealed class OoSpineTests
             END METHOD DRIVE.
             END FACTORY.
             END CLASS OSPC40.
-            """), "COBOLNET4269");   // SR10's own code (kb/Work PB1136); FW and LN otherwise conform
+            """), "COBOL4269");   // SR10's own code (kb/Work PB1136); FW and LN otherwise conform
     }
 
     /// <summary>FACTORY is a legal USER WORD at COBOL-85 (§8.9 reserves it only from 2002) — the continuity
@@ -1907,7 +1907,7 @@ public sealed class OoSpineTests
             END PROGRAM OOSP42.
             """, 2002);
         Assert.False(ok02, "FACTORY is §8.9-reserved at 2002+ — the funnel must 0901");
-        EditionHarness.AssertHasDiagnostic(errors02, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(errors02, "COBOL0901");
     }
 
     // ── The OVERRIDE/FINAL attribute wave (§11.7 SR3/SR4a/GR3, §11.3 GR3 — DEVLOG 605) ─────────────────────
@@ -1973,11 +1973,11 @@ public sealed class OoSpineTests
             """;
         var (okStrict, errsStrict, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(okStrict, "SR4a: redefinition without OVERRIDE must be rejected strict");
-        EditionHarness.AssertHasDiagnostic(errsStrict, "COBOLNET0837");
+        EditionHarness.AssertHasDiagnostic(errsStrict, "COBOL0837");
         var (okPerm, errsPerm, warnsPerm) = EditionHarness.CompileFull(src, 2002, permissive: true);
         Assert.True(okPerm, "the migration leniency: --permissive keeps the pre-wave inference: "
             + string.Join("\n", errsPerm));
-        EditionHarness.AssertHasDiagnostic(warnsPerm, "COBOLNET0837");
+        EditionHarness.AssertHasDiagnostic(warnsPerm, "COBOL0837");
     }
 
     /// <summary>§11.7.3 SR3 first sentence — OVERRIDE with no matching superclass method (incl. no INHERITS at all)
@@ -1993,7 +1993,7 @@ public sealed class OoSpineTests
             METHOD-ID. M OVERRIDE.
             PROCEDURE DIVISION.
             END METHOD M.
-            """)), "COBOLNET0838");
+            """)), "COBOL0838");
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
             CLASS-ID. BAS45.
@@ -2020,7 +2020,7 @@ public sealed class OoSpineTests
             END METHOD M.
             END OBJECT.
             END CLASS SUB45.
-            """), "COBOLNET0839");
+            """), "COBOL0839");
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
             CLASS-ID. BAS46 IS FINAL.
@@ -2033,7 +2033,7 @@ public sealed class OoSpineTests
             REPOSITORY.
                 CLASS BAS46.
             END CLASS SUB46.
-            """), "COBOLNET2791");   // a FINAL superclass is §11.3.3 SR5, the INHERITS clause's rule (kb/Work PB1784)
+            """), "COBOL2791");   // a FINAL superclass is §11.3.3 SR5, the INHERITS clause's rule (kb/Work PB1784)
     }
 
     /// <summary>OVERRIDE is a legal USER word at COBOL-85 (§8.9 reserves it from 2002) — the continuity
@@ -2067,7 +2067,7 @@ public sealed class OoSpineTests
             END PROGRAM OOSP48.
             """, 2002);
         Assert.False(ok02, "OVERRIDE is §8.9-reserved at 2002+ — the funnel must 0901");
-        EditionHarness.AssertHasDiagnostic(errors02, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(errors02, "COBOL0901");
     }
 
     // ── The INTERFACE/PROPERTY wave (§11.5/§11.6/§11.8/§13.18.42 — DEVLOG 606) ──────────────────────────────
@@ -2110,7 +2110,7 @@ public sealed class OoSpineTests
             END METHOD SPEAK.
             END OBJECT.
             END CLASS CSPK50.
-            """), "COBOLNET0841");
+            """), "COBOL0841");
 
     /// <summary>§9.3.11 — a class shall implement ALL prototypes of its interfaces (incl. inherited).</summary>
     [Fact]
@@ -2128,7 +2128,7 @@ public sealed class OoSpineTests
             OBJECT. IMPLEMENTS ISPK50.
             END OBJECT.
             END CLASS CSPK51.
-            """), "COBOLNET0841");
+            """), "COBOL0841");
 
     /// <summary>The P6 phase-review find (DEVLOG 775): the crossing-form harmonize must cover
     /// interface-IMPLEMENTATION pairs, not just override chains. The implementing method's body flips its
@@ -2205,7 +2205,7 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             CLASS-ID. MBBASEB.
             END CLASS MBBASEB.
-            """), "COBOLNET0849");
+            """), "COBOL0849");
 
     /// <summary>§10.7.3 SR6 — END INTERFACE names its interface (Validation.EndMarkerPass; kb/Work PB988).</summary>
     [Fact]
@@ -2214,9 +2214,9 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             INTERFACE-ID. ISPK52.
             END INTERFACE OTHER52.
-            """), "COBOLNET2793");
+            """), "COBOL2793");
 
-    /// <summary>§10.6.2 SR4 f) — a method prototype is a header only. A body is COBOLNET2272, the ONE
+    /// <summary>§10.6.2 SR4 f) — a method prototype is a header only. A body is COBOL2272, the ONE
     /// prototype-body screen every prototype kind shares (kb/Work PB894; formerly the 0840 family).</summary>
     [Fact]
     public void Interface_PrototypeWithBody_2272()
@@ -2230,9 +2230,9 @@ public sealed class OoSpineTests
                 CONTINUE.
             END METHOD PING.
             END INTERFACE ISPK53.
-            """), "COBOLNET2272");
+            """), "COBOL2272");
 
-    /// <summary>ISO §11.7.3 SR6 — a GET accessor has no USING and a single RETURNING (COBOLNET2790, kb/Work PB1503).</summary>
+    /// <summary>ISO §11.7.3 SR6 — a GET accessor has no USING and a single RETURNING (COBOL2790, kb/Work PB1503).</summary>
     [Fact]
     public void AccessorShape_GetWithUsing_2790()
         => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
@@ -2249,9 +2249,9 @@ public sealed class OoSpineTests
             END METHOD.
             END OBJECT.
             END CLASS CPRP54.
-            """), "COBOLNET2790");
+            """), "COBOL2790");
 
-    /// <summary>ISO §11.7.3 SR5 — a PROPERTY-clause subject shall not ALSO have an explicit accessor (COBOLNET2790,
+    /// <summary>ISO §11.7.3 SR5 — a PROPERTY-clause subject shall not ALSO have an explicit accessor (COBOL2790,
     /// kb/Work PB1503 — its own rule now, no longer a by-product of an accessor-name collision).</summary>
     [Fact]
     public void PropertyClause_DuplicateExplicitAccessor_2790()
@@ -2272,7 +2272,7 @@ public sealed class OoSpineTests
             END METHOD.
             END OBJECT.
             END CLASS CPRP55.
-            """), "COBOLNET2790");
+            """), "COBOL2790");
 
     /// <summary>The property REFERENCE binds (§8.4.3.9 — the GR1 implicit get-INVOKE desugar; DEVLOG 607
     /// retired the DEVLOG-606 named-0899 stage) when the §8.4.3.9.3 SR1 REPOSITORY specifier is present.</summary>
@@ -2339,7 +2339,7 @@ public sealed class OoSpineTests
         Assert.True(ok85, $"{word} must be a legal user word at --std 85: " + string.Join("\n", errors85));
         var (ok02, errors02, _) = EditionHarness.CompileFull(src("OOSP58"), 2002);
         Assert.False(ok02, $"{word} is §8.9-reserved at 2002+ — the funnel must 0901");
-        EditionHarness.AssertHasDiagnostic(errors02, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(errors02, "COBOL0901");
     }
 
     /// <summary>IMPLEMENTS is §8.10 CONTEXT-SENSITIVE (spec :10853), NOT §8.9-reserved — a legal user word
@@ -2395,7 +2395,7 @@ public sealed class OoSpineTests
             REPOSITORY.
                 CLASS BASE.
             END CLASS CSPK60.
-            """), "COBOLNET0826");
+            """), "COBOL0826");
 
     // ── Property REFERENCES (§8.4.3.9 — the GR1–GR3 desugar; DEVLOG 607) ────────────────────────────────────
 
@@ -2442,7 +2442,7 @@ public sealed class OoSpineTests
             PROCEDURE DIVISION.
             END OBJECT.
             END CLASS CPRR61.
-            """), "COBOLNET0843");
+            """), "COBOL0843");
 
     /// <summary>§8.4.3.9.3 SR3 — a SENDING property reference needs a GET accessor; WITH NO GET → 0843.</summary>
     [Fact]
@@ -2464,7 +2464,7 @@ public sealed class OoSpineTests
             PROCEDURE DIVISION.
             END OBJECT.
             END CLASS CPRR62.
-            """), "COBOLNET0843");
+            """), "COBOL0843");
 
     /// <summary>§8.4.3.9.3 SR4 — a RECEIVING property reference needs a SET accessor; WITH NO SET → 0843.
     /// The polarity is CLASSIFIED (BoundStores), so the same reference is fine as a sender.</summary>
@@ -2489,7 +2489,7 @@ public sealed class OoSpineTests
             END CLASS CPRR63.
             """;
         EditionHarness.AssertHasDiagnostic(ErrorsOf(PropRefDriver("OOSP63", "CPRR63", "    PROPERTY BAL.",
-            "    MOVE 9 TO BAL OF A.") + cls), "COBOLNET0843");
+            "    MOVE 9 TO BAL OF A.") + cls), "COBOL0843");
         var (ok, errors, _) = EditionHarness.CompileFull(PropRefDriver("OOSP64", "CPRR63", "    PROPERTY BAL.",
             "    MOVE BAL OF A TO W.") + cls, 2002);
         Assert.True(ok, "the SAME property must remain readable (GR1 — sending only): "
@@ -2690,7 +2690,7 @@ public sealed class OoSpineTests
     public void Universal_ForbiddenArgShapes_0866(string stmt)
         => EditionHarness.AssertHasDiagnostic(
             ErrorsOf(UnivHazard("OOUV16", "    INVOKE CUH4A \"NEW\" RETURNING U.\n    " + stmt)),
-            "COBOLNET0866");
+            "COBOL0866");
 
     /// <summary>§14.9.39 F5 SR12 — a UNIVERSAL sender cannot narrow into a TYPED receiver (an object view
     /// is the narrowing tool); SUPER is never a sender (SR9); a non-object receiver fails SR8.</summary>
@@ -2720,7 +2720,7 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             CLASS-ID. CUV17.
             END CLASS CUV17.
-            """), "COBOLNET0867");
+            """), "COBOL0867");
 
     // ── The EC-OO wave (§14.9.29 / §14.9.18 SR4 / §14.9.49 F4 / §8.4.3.6 — DEVLOG 609) ─────────────────────
 
@@ -2923,22 +2923,22 @@ public sealed class OoSpineTests
     /// <summary>The 0848 band: RAISE NULL (SR2), RAISE of a non-object item (SR2), and EXCEPTION-OBJECT as
     /// a receiving operand (§8.4.3.6 SR1).</summary>
     [Theory]
-    [InlineData("    RAISE NULL.", "COBOLNET0848")]
-    [InlineData("    RAISE N4.", "COBOLNET0848")]
+    [InlineData("    RAISE NULL.", "COBOL0848")]
+    [InlineData("    RAISE N4.", "COBOL0848")]
     // kb/Work PB922: ONE rule, ONE code. ISO §8.4.3.6.3 SR1 is a rule about EVERY receiving operand, so SET's
-    // arm now draws the SAME COBOLNET2196 the general receiving chokepoint does, and with SR1's own clause number
+    // arm now draws the SAME COBOL2196 the general receiving chokepoint does, and with SR1's own clause number
     // (the message said §8.4.3.6, where cite.py --check FAILS).
-    [InlineData("    SET EXCEPTION-OBJECT TO E.", "COBOLNET2196")]
+    [InlineData("    SET EXCEPTION-OBJECT TO E.", "COBOL2196")]
     public void RaiseObject_BindViolations(string stmt, string code)
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC13", "", stmt)), code);
 
-    /// <summary>The §14.9.18.3 SR4 band, COBOLNET4211 (split off the A.4.10 decline COBOLNET0849, kb/Work PB745): a
+    /// <summary>The §14.9.18.3 SR4 band, COBOL4211 (split off the A.4.10 decline COBOL0849, kb/Work PB745): a
     /// UNIVERSAL identifier (SR4d) and a declared class missing from the PD-header RAISING list (SR4a).</summary>
     [Theory]
     [InlineData("    GOBACK RAISING U.")]
     [InlineData("    GOBACK RAISING E.")]
     public void GobackRaising_BindViolations_4211(string stmt)
-        => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC14", "", stmt)), "COBOLNET4211");
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC14", "", stmt)), "COBOL4211");
 
     /// <summary>§14.2.2 SR7 — a header RAISING exception-name shall be level-3 EC-USER (0858).</summary>
     [Fact]
@@ -2956,7 +2956,7 @@ public sealed class OoSpineTests
             END METHOD M1.
             END OBJECT.
             END CLASS CEOZ1.
-            """), "COBOLNET0858");
+            """), "COBOL0858");
 
     /// <summary>§14.9.49.3 SR16 — USE AFTER EXCEPTION OBJECT names a class of the group (0859).</summary>
     [Fact]
@@ -2970,7 +2970,7 @@ public sealed class OoSpineTests
                 CONTINUE.
             END DECLARATIVES.
             """,
-            "    CONTINUE.")), "COBOLNET0859");
+            "    CONTINUE.")), "COBOL0859");
 
     /// <summary>§8.8.4.2.2 Format 3 — ordering operators and object-vs-non-object mixes reject (0868).</summary>
     [Theory]
@@ -2998,5 +2998,5 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             CLASS-ID. CUV18.
             END CLASS CUV18.
-            """), "COBOLNET0868");
+            """), "COBOL0868");
 }

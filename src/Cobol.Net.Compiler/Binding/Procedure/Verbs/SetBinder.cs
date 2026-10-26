@@ -81,7 +81,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // receiving chokepoint — once, here, before a format is selected from a list that holds a non-reference.
         if (RefuseNonReceivable(set) is { } nonReceivable) return nonReceivable;
         // F11 set-locale / F12 save-locale (§14.9.39; Annex A.4.9 item 9) — IMPLEMENTED since kb/Work PB64 T1 (it
-        // used to be refused by name with COBOLNET1518 — kb/Work PB92 before that: "'LOCALE' is not defined").
+        // used to be refused by name with COBOL1518 — kb/Work PB92 before that: "'LOCALE' is not defined").
         if (set.setLocaleStatement() is { } sl)
         {
             bool save = sl.setLocaleSource() is null;   // F12 has no Format-11 TO operand (the grammar splits the two formats)
@@ -180,9 +180,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// here would be one rule written down twice.</para>
     /// <para>SCREENS: SR31 — FARTHEST-FROM-ZERO / NEAREST-TO-ZERO take a NUMERIC data item (§8.5.2.12), which a
     /// numeric-EDITED item is not (§8.5.2.13), so this is NARROWER than the intrinsics' §15.x.3 r1 →
-    /// COBOLNET1938; SR31 a) — the SIGN phrase is required when the receiver's two farthest-from-zero magnitudes
-    /// differ → COBOLNET1939; SR32 — the three float words take a STANDARD floating-point usage (§3.166/§3.167,
-    /// NOT COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) → COBOLNET1940.</para></summary>
+    /// COBOL1938; SR31 a) — the SIGN phrase is required when the receiver's two farthest-from-zero magnitudes
+    /// differ → COBOL1939; SR32 — the three float words take a STANDARD floating-point usage (§3.166/§3.167,
+    /// NOT COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) → COBOL1940.</para></summary>
     private BoundStatement BindSetContent(Core.SetContentStatementContext sc)
     {
         var v = sc.setContentValue();
@@ -320,10 +320,10 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// <summary><c>SET LOCALE {category… | USER-DEFAULT} TO {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT}</c>
     /// (ISO §14.9.39 Format 11; DESIGN-locale-facility §4.3; kb/Work PB64 T1). The first operand is USER-DEFAULT (GR22 —
     /// the user default is set) or a SET of categories (the printed brace carries choice indicators — §5.2.6.4: one or
-    /// more, each at most once, any order; a duplicate is COBOLNET1666). The TO operand is one dataReference split here:
-    /// USER-DEFAULT / SYSTEM-DEFAULT (GR23b/c; SR25 — not with a USER-DEFAULT first operand → COBOLNET1667), a
-    /// locale-name of the SPECIAL-NAMES LOCALE clause (SR26 — undeclared → COBOLNET1664), else identifier-10, which
-    /// shall be an elementary data item of category data-pointer (SR27 → COBOLNET1668).</summary>
+    /// more, each at most once, any order; a duplicate is COBOL1666). The TO operand is one dataReference split here:
+    /// USER-DEFAULT / SYSTEM-DEFAULT (GR23b/c; SR25 — not with a USER-DEFAULT first operand → COBOL1667), a
+    /// locale-name of the SPECIAL-NAMES LOCALE clause (SR26 — undeclared → COBOL1664), else identifier-10, which
+    /// shall be an elementary data item of category data-pointer (SR27 → COBOL1668).</summary>
     private BoundStatement BindSetLocale(Core.SetLocaleStatementContext sl)
     {
         var words = sl.formatWord();                // [0] = LOCALE, [1..] = categories | USER-DEFAULT (formatWords, kb/Work PB764)
@@ -423,7 +423,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary><c>SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}</c> (ISO §14.9.39 Format 12; kb/Work PB64 T1):
-    /// identifier-11 shall be an elementary data item of category data-pointer (SR28 → COBOLNET1668); the words after TO
+    /// identifier-11 shall be an elementary data item of category data-pointer (SR28 → COBOL1668); the words after TO
     /// are LOCALE and LC_ALL (GR26) or USER-DEFAULT (GR27) — the predicate admitted exactly those.</summary>
     private BoundStatement BindSaveLocale(Core.SetLocaleStatementContext sl)
     {
@@ -445,7 +445,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// function-pointer (Format 8), program-pointer (Format 9) — are selected by whichever operand HAS a
     /// carrier category, so an index-name can stand on the other side of any of them. Each position then
     /// resolved through <c>ctx.Refs.Resolve</c>, which answers for a DATA ITEM only, and the FIRST thing the
-    /// user read was COBOLNET1639: "'IX' is not defined — no declaration in this source element gives the name
+    /// user read was COBOL1639: "'IX' is not defined — no declaration in this source element gives the name
     /// 'IX'" — false about a name INDEXED BY declared, and it sends the reader hunting a typo. §13.18.38.3 r7
     /// closes the list of contexts that may reference an index-name and the SET statement IS one of them, as
     /// Format 1 (§14.9.39.3 SR1). So the statement is still refused — for the category, which is the real
@@ -483,7 +483,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>SET data-pointer assignment (§14.9.39 Format 7; Phase-4b increment 1): every target shall
-    /// be USAGE POINTER (COBOLNET0869 otherwise); the sender is the NULL figurative or another data pointer
+    /// be USAGE POINTER (COBOL0869 otherwise); the sender is the NULL figurative or another data pointer
     /// (SELF/SUPER are object-only — 0869). A pointer-item sender is screened per receiver for §14.9.39.3 SR19's
     /// restricted-data-pointer rule through PtrBinder's one screen (kb/Work PB548); the <c>ADDRESS OF</c>
     /// spellings reach Format 7 through setAddressStatement / <c>PtrBinder.BindSetAddress</c>.</summary>
@@ -573,13 +573,13 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// compile-time warning mechanism for a processor-dependent element this implementation does not support
     /// (Annex A.3 item 4; docs/CONFORMANCE.md §4 item 1). kb/Work PB453.
     /// <para>⛔ THE POINT IS THE NAME. The statement already failed — its operands' own MESSAGE-TAG entries are
-    /// refused with COBOLNET1943 — but before this it went on to draw a rule from ANOTHER format: the screen
-    /// keyed to §14.9.39.3 SR8 for a TO NULL sender (COBOLNET0867, "shall be a USAGE OBJECT REFERENCE data
+    /// refused with COBOL1943 — but before this it went on to draw a rule from ANOTHER format: the screen
+    /// keyed to §14.9.39.3 SR8 for a TO NULL sender (COBOL0867, "shall be a USAGE OBJECT REFERENCE data
     /// item" — the DIAGNOSTIC's words; SR8's own text is "Identifier-3 shall be any item of class object that is permitted as a receiving item"),
-    /// and the §8.8.1.1 screen for a message-tag sender (COBOLNET0844, "of category
+    /// and the §8.8.1.1 screen for a message-tag sender (COBOL0844, "of category
     /// alphanumeric is not a numeric operand", the diagnostic's words again). Both describe a statement the
     /// programmer did not write, and both point at a repair that is not one. The SAME facility's SEND/RECEIVE
-    /// half has named itself since COBOLNET1578; this is its data half's statement arm.</para>
+    /// half has named itself since COBOL1578; this is its data half's statement arm.</para>
     /// <para>⚠ Format 17's SEMANTICS are deliberately NOT implemented, and that is an owner decision still
     /// owed rather than an omission: the printed format is <c>SET data-name-4 TO { data-name-5 | NULL }</c>,
     /// making data-name-4 the receiver, while §14.9.39.4 GR40 moves the content of data-name-4 INTO data-name-5
@@ -1097,7 +1097,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // RECEIVER being restricted, and identifier-7 is a `{ } ...` list: each restricted receiver is compared with
         // the sender on its own, so the verdict cannot depend on which receiver was written first. (The first
         // receiver used to stand for the list; an unrestricted one made every compare vacuous, and
-        // `SET UPP RP TO ADDRESS OF PROGRAM OTHER` compiled while `SET RP UPP TO ...` drew COBOLNET1959.)
+        // `SET UPP RP TO ADDRESS OF PROGRAM OTHER` compiled while `SET RP UPP TO ...` drew COBOL1959.)
         // SR22 also binds the receivers to ONE sender, so two receivers restricted to differently-signed
         // prototypes cannot both conform to it — the SR20 argument on the function twin, verbatim.
         if (ReceiversDisagreeing(targets, host.ProgramSignatureOf) is { } clash)
@@ -1296,7 +1296,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // catch-all brace, where a sender of class object or of category data-/program-/function-pointer is
         // admissible in no Format-1 sending position (§8.8.1.1 / §14.9.39.3 SR2) and names exactly one other
         // format. `SET N4 TO U` is that statement: Format 1's brace admits N4, so the sender used to reach the
-        // ARITHMETIC screen (COBOLNET0844, "'U' is not a numeric operand") while the rule the program broke was
+        // ARITHMETIC screen (COBOL0844, "'U' is not a numeric operand") while the rule the program broke was
         // §14.9.39.3 SR8. It now selects Format 5 and SR8 refuses N4 by name.
         switch (_fmt.SelectForTo(kinds, sender, out _))
         {
@@ -1433,7 +1433,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// prints no <c>identifier</c> alternative for it and §14.9.39.4 GR4 is written "For each occurrence of
     /// index-name-3". So the three UP/DOWN formats between them admit an index-name, a data-pointer (SR23) and a
     /// dynamic-capacity register (SR29) — and NOTHING else. <c>SET WS-N UP BY 4</c> over a <c>PIC 9(4)</c> used
-    /// to compile and answer 5; it now draws COBOLNET2112, because no printed format admits it.</para></summary>
+    /// to compile and answer 5; it now draws COBOL2112, because no printed format admits it.</para></summary>
     public BoundStatement BindSetUpDown(Core.SetIndexStatementContext ud)
     {
         var recvs = Receivers(ud.setReceivingIdentifier());
@@ -1500,7 +1500,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // receiving list, and a CAPACITY register is what this receiver IS — so the format is CONSUMED here and the
         // reference's own rule is stated by the ONE screen that owns it (Refs.Resolve → CapacityPlaceOf). Nothing is
         // stacked on top of that diagnostic: the receiver is implemented; the reference is illegal.
-        // ⚠ ResolveSending, deliberately: the receiving chokepoint REFUSES a CAPACITY register (COBOLNET1523 —
+        // ⚠ ResolveSending, deliberately: the receiving chokepoint REFUSES a CAPACITY register (COBOL1523 —
         // "except in a SET statement Format 14"), and this IS Format 14; the call exists only for the resolver's
         // own reference diagnostic.
         // An AMBIGUOUS register (§8.4.2.2.3 SR1; kb/Work PB2988) is the same screen's: refused, or under --permissive
@@ -1561,7 +1561,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>SET [SIZE OF] data-name-3 TO n (ISO §14.9.39 Format 16, COBOL-2023): set the current length of a
-    /// dynamic-length elementary item. data-name-3 shall itself be dynamic-length (SR33 → COBOLNET1568). The 2023
+    /// dynamic-length elementary item. data-name-3 shall itself be dynamic-length (SR33 → COBOL1568). The 2023
     /// introduction gate is on the <see cref="BoundSetSize"/> node (VersionConformancePass semantic arm), covering
     /// both the explicit SIZE OF form and the bare re-routed form. Whether EC-STORAGE-NOT-AVAIL checking is enabled
     /// at this statement is NOT captured here: §14.9.39.4 GR37/GR38's nonfatal condition rides the ambient
@@ -1576,7 +1576,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         if (!p.Item.IsDynamicLength)
         {
-            return BoundRejected.Report(ctx.Edition, "COBOLNET1568",
+            return BoundRejected.Report(ctx.Edition, "COBOL1568",
                 $"SET SIZE OF '{p.Item.CobolName}': data-name-3 shall be a dynamic-length elementary item "
                 + "(ISO §14.9.39.3 Format 16 SR33)");
         }

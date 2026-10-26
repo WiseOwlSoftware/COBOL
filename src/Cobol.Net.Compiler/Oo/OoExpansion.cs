@@ -44,7 +44,7 @@ using CobolNet.Runtime;
 /// expanding the same parameterized class with the same actual parameters are the same class instance", and
 /// expansions with different actuals "shall not have the same externalized object-class-name". The expansion
 /// name is its identity: specifiers repeating one (name, definition, actuals) triple across source elements
-/// create ONE class; a name reused with a different definition or actuals is COBOLNET2240.</para>
+/// create ONE class; a name reused with a different definition or actuals is COBOL2240.</para>
 ///
 /// <para><b>The definition itself emits nothing.</b> It is a skeleton, and §12.3.8.4 GR1 ("If object-class-name-1
 /// is a class described with the USING phrase, object-class-name-1 may be specified only in the REPOSITORY
@@ -73,7 +73,7 @@ internal static class OoExpansion
         IReadOnlySet<string> ExpandedNames);
 
     /// <summary>One parameterized definition: its context, its formals in USING order, and the kind each formal's
-    /// REPOSITORY specifier declares it as (null when undeclared — already COBOLNET2239).</summary>
+    /// REPOSITORY specifier declares it as (null when undeclared — already COBOL2239).</summary>
     private sealed record Skeleton(ParserRuleContext Ctx, string Name, bool IsInterface,
         IReadOnlyList<Core.OoParameterNameContext> Formals, IReadOnlyList<bool?> FormalIsInterface);
 

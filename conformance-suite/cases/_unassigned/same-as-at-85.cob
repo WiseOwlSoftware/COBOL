@@ -6,7 +6,7 @@
 *>---
       *> ISO 1989:2023 13.18.49 - the SAME AS clause is a COBOL-2002 introduction (the TYPEDEF-family
       *> data-description edge, provisional per the decision-1 policy): at --std 85 the version-conformance
-      *> pass rejects it (COBOLNET0900, registry row same-as-clause-2002).
+      *> pass rejects it (COBOL0900, registry row same-as-clause-2002).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. SAME-AS-AT-85-P10TS.
        DATA DIVISION.

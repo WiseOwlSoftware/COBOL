@@ -17,7 +17,7 @@
       *>   PB1017IF - once as a CLASS, once as an INTERFACE;
       *>   MAX      - once as an intrinsic-function-name-1, once as a
       *>              user-defined function-prototype-name-1.
-      *> Each draws COBOLNET1761. The identical repeat of PB1017BOX is
+      *> Each draws COBOL1761. The identical repeat of PB1017BOX is
       *> conforming and draws nothing.
        IDENTIFICATION DIVISION.
        CLASS-ID. PB1017BOX.

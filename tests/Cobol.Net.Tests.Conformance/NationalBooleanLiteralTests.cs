@@ -9,8 +9,8 @@ namespace CobolNet.Tests.Conformance;
 /// literals; Phase 4a M2-DATA-3/4). Before this increment every funnel silently misbound the token text
 /// (the leading N/B and the quotes leaked into the value); now each funnel either DECODES the literal with its
 /// category tag (string-legal contexts — DISPLAY, MOVE, EVALUATE selection, INSPECT args, CALL USING) or
-/// rejects COBOLNET0844 (numeric contexts — §8.8.1: a boolean/national literal is not a numeric operand).
-/// The literal guard rides COBOLNET0814: length &gt; 8,191 positions (§8.3.3.4.3 SR1 / §8.3.3.5.3 SR1; asked of every literal token by LiteralScreen — kb/Work PB1393). The
+/// rejects COBOL0844 (numeric contexts — §8.8.1: a boolean/national literal is not a numeric operand).
+/// The literal guard rides COBOL0814: length &gt; 8,191 positions (§8.3.3.4.3 SR1 / §8.3.3.5.3 SR1; asked of every literal token by LiteralScreen — kb/Work PB1393). The
 /// content repertoire is the FULL national set (one UTF-16 char per position, D-N1) — the former
 /// Latin-1-only staged guard was LIFTED by the P10 national wave when the §8.1.2 alphanumeric↔national
 /// correspondence landed (FUNCTION DISPLAY-OF / NATIONAL-OF, §15.26/§15.66).
@@ -205,7 +205,7 @@ public sealed class NationalBooleanLiteralTests
         Assert.Equal("N=AB  !\nB=1000", stdout);
     }
 
-    /// <summary>A national literal longer than 8,191 national positions is rejected COBOLNET0814
+    /// <summary>A national literal longer than 8,191 national positions is rejected COBOL0814
     /// (ISO §8.3.3.5.3 SR1 — "shall be less than or equal to 8,191 national character positions"). The source is built programmatically —
     /// an 8,192-character literal never belongs in a checked-in file.</summary>
     [Fact]
@@ -221,10 +221,10 @@ public sealed class NationalBooleanLiteralTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §6.1 3) a): not one free-form line
         Assert.False(ok, "an 8,192-position national literal must be rejected (ISO §8.3.3.5.3 SR1)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0814");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0814");
     }
 
-    /// <summary>A boolean literal longer than 8,191 boolean positions is rejected COBOLNET0814
+    /// <summary>A boolean literal longer than 8,191 boolean positions is rejected COBOL0814
     /// (ISO §8.3.3.4.3 SR1 — "shall be less than or equal to 8,191 boolean character positions").</summary>
     [Fact]
     public void BooleanLiteral_Over8191Positions_Rejects0814()
@@ -239,10 +239,10 @@ public sealed class NationalBooleanLiteralTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(FixedFormLayout.Source(src), 2002);   // §6.1 3) a): not one free-form line
         Assert.False(ok, "an 8,192-position boolean literal must be rejected (ISO §8.3.3.4.3 SR1)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0814");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0814");
     }
 
-    /// <summary>A boolean literal in a numeric context is COBOLNET0844 (ISO §8.8.1 — an arithmetic operand
+    /// <summary>A boolean literal in a numeric context is COBOL0844 (ISO §8.8.1 — an arithmetic operand
     /// is a numeric item or numeric literal; class boolean is neither).</summary>
     [Fact]
     public void BooleanLiteral_InNumericContext_Rejects0844()
@@ -260,10 +260,10 @@ public sealed class NationalBooleanLiteralTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok, "ADD of a boolean literal must be rejected (ISO §8.8.1)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0844");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
     }
 
-    /// <summary>A national literal in a numeric-expression position is COBOLNET0844 (ISO §8.8.1).</summary>
+    /// <summary>A national literal in a numeric-expression position is COBOL0844 (ISO §8.8.1).</summary>
     [Fact]
     public void NationalLiteral_InNumericContext_Rejects0844()
     {
@@ -283,7 +283,7 @@ public sealed class NationalBooleanLiteralTests
         // The ADD-operand shape exercises the binder's §8.8.1.1 0844 arm, like the boolean twin.)
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok, "a national literal in an arithmetic context must be rejected (ISO §8.8.1)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0844");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
     }
 
     /// <summary>A non-Latin-1 character in an N"…" literal is LEGAL (§8.3.3.5 — the content repertoire is the

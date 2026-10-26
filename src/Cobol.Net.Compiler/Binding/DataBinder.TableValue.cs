@@ -164,7 +164,7 @@ public sealed partial class DataBinder
         for (int k = 0; k < dims.Count; k++)
         {
             if (spec.From[k] >= 1 && spec.From[k] <= dims[k].Ceiling) continue;
-            Edition.Error("COBOLNET1586", $"{phrase}: a Format 2 VALUE FROM subscript ({spec.FromWritten[k]}) is out of "
+            Edition.Error("COBOL1586", $"{phrase}: a Format 2 VALUE FROM subscript ({spec.FromWritten[k]}) is out of "
                 + $"range 1..{dims[k].Ceiling} for {DimensionName(dims, k)} "
                 + $"(ISO §13.18.63.3 SR20{CeilingProvenance(dims[k])})");
         }
@@ -175,7 +175,7 @@ public sealed partial class DataBinder
             for (int k = 0; k < dims.Count; k++)
             {
                 if (to[k] >= 1 && to[k] <= dims[k].Ceiling) continue;
-                Edition.Error("COBOLNET1587", $"{phrase}: a Format 2 VALUE TO subscript ({spec.ToWritten![k]}) is out of range "
+                Edition.Error("COBOL1587", $"{phrase}: a Format 2 VALUE TO subscript ({spec.ToWritten![k]}) is out of range "
                     + $"1..{dims[k].Ceiling} for {DimensionName(dims, k)} "
                     + $"(ISO §13.18.63.3 SR21{CeilingProvenance(dims[k])})");
             }
@@ -187,7 +187,7 @@ public sealed partial class DataBinder
             //    "successive" is the LEXICOGRAPHIC order of the whole tuple — a per-dimension comparison would
             //    reject `FROM (1 3) TO (2 1)`, which is two successive elements of a 2×3 table.
             if (Subscripts.Compare(new Subscripts([.. to]), new Subscripts([.. spec.From])) < 0)
-                Edition.Error("COBOLNET1587", $"{phrase}: the TO subscripts ({spec.ToText}) identify a "
+                Edition.Error("COBOL1587", $"{phrase}: the TO subscripts ({spec.ToText}) identify a "
                     + $"table element PRECEDING the one the FROM subscripts ({spec.FromText}) "
                     + "identify — subscript-2 shall be the same occurrence or a successive occurrence of the "
                     + "table element associated with the corresponding subscript-1 (ISO §13.18.63.3 SR21)");
@@ -217,7 +217,7 @@ public sealed partial class DataBinder
         //    CLAUSE." Both arms, because every dimension in the list is the subject's own OCCURS or one
         //    superordinate to it — the subordinate arm was the missing half.
         else if (dims.FirstOrDefault(d => d.DynamicWithoutTo) is { } unbounded)
-            Edition.Error("COBOLNET1588", $"{phrase}: a Format 2 VALUE with no TO phrase is not permitted "
+            Edition.Error("COBOL1588", $"{phrase}: a Format 2 VALUE with no TO phrase is not permitted "
                 + $"{(ReferenceEquals(unbounded.Owner, item) ? "in the same entry as" : "in an entry subordinate to")}"
                 + $" the OCCURS DYNAMIC clause on '{unbounded.Owner.CobolName ?? "FILLER"}', which specifies no TO "
                 + "(expected) capacity (ISO §13.18.63.3 SR22)");

@@ -12,7 +12,7 @@
       *> "the formal parameter shall be described with the same number or a smaller number of bytes as the
       *> corresponding argument" (OK 14.8.2.2 1)), measured for a run-time slice by its MAXIMUM extent
       *> (docs/CONFORMANCE.md D-RM1 a)); 14.9.23.3 SR5 c) applies 14.8.2 at compile time. LG is 4 bytes:
-      *> COBOLNET0828 "larger than the argument (3)". The unlimited twin is admitted:
+      *> COBOL0828 "larger than the argument (3)". The unlimited twin is admitted:
       *> conformance:cases/_unassigned/pb3128_refmod_dynamic_length_argument.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3128NL.

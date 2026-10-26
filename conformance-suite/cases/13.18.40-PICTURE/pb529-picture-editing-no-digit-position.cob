@@ -13,7 +13,7 @@
       *> position (13.18.40.4 GR14 counts only 9, Z, * and the floating symbols, and 'P'), so the picture
       *> describes ZERO digit positions and SR14 refuses it. The digit-capacity screen used to be skipped on
       *> exactly that count (its guard was DigitPositions > 0) and the item was accepted, a numeric-edited item
-      *> that holds no digit; it now asks the lower bound itself, COBOLNET2882.
+      *> that holds no digit; it now asks the lower bound itself, COBOL2882.
       *> Pinned at 2023: the EDITING phrase is a COBOL-2023 introduction.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB529NCE.

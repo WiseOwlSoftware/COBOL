@@ -16,7 +16,7 @@
       *>            paragraph of 14.4.3) and H2 has none: neither declares a PARAGRAPH named like its section, so the
       *>            section-name is the word's one type (the census used to find H declared as both).
       *>   MAIN   - a section whose paragraph is named differently.
-      *> Compile + run printing OK proves none of them draws COBOLNET2692.
+      *> Compile + run printing OK proves none of them draws COBOL2692.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB990POS.
        ENVIRONMENT DIVISION.

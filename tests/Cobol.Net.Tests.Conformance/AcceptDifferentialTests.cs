@@ -447,7 +447,7 @@ public sealed class AcceptDifferentialTests
             """);
         var (ok85, diags) = EditionHarness.Compile(source, 85);
         Assert.False(ok85, "ACCEPT FROM DATE YYYYMMDD must be rejected at --std 85 (introduced by ISO 2002, §14.9.1)");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0815");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0815");
 
         AssertOutputs(source, expected: "20260610", clock: "2026-06-10T14:30:45.67", dialect: 2002);
     }
@@ -747,7 +747,7 @@ public sealed class AcceptDifferentialTests
     // national "of the same size", and GR4 gives "the sign position ... an ordinal number within that data item", so
     // S PIC S9(4) USAGE NATIONAL SIGN LEADING SEPARATE has five national positions and S(2:) is its four digit
     // positions, exactly S2(2:4). The position count read the PICTURE length (4) for every national item, so (2:)
-    // transferred three characters (measured: -0009) and S2(2:4) was refused COBOLNET2670 "extends past the
+    // transferred three characters (measured: -0009) and S2(2:4) was refused COBOL2670 "extends past the
     // 4-position item".
     [Fact]
     public void Device_OmittedLengthNationalSignSeparateSlice_CountsTheSignPosition()
@@ -857,7 +857,7 @@ public sealed class AcceptDifferentialTests
             """);
         var (ok85, diags) = EditionHarness.Compile(source, 85);
         Assert.False(ok85, "ACCEPT FROM DAY YYYYDDD must be rejected at --std 85 (introduced by ISO 2002, §14.9.1)");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0815");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0815");
         EditionHarness.AssertHasDiagnostic(diags, "ACCEPT FROM DAY YYYYDDD");
 
         AssertOutputs(source, expected: "2026161", clock: "2026-06-10T14:30:45.67", dialect: 2002);

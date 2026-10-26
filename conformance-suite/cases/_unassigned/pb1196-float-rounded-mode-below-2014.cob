@@ -10,7 +10,7 @@
       *> resultant already takes 14.7.4.3 rule 2's implied TRUNCATION and
       *> a bare ROUNDED; the ROUNDED MODE IS phrase that selects any other
       *> of the eight modes is a COBOL-2014 introduction (14.7.4.2), so at
-      *> --std 2002 the phrase alone is refused, COBOLNET0803.
+      *> --std 2002 the phrase alone is refused, COBOL0803.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1196FLTNEG.
        DATA DIVISION.

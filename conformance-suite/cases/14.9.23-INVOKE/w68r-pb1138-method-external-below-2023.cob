@@ -7,9 +7,9 @@
 *> kb/Work PB1138 - the edition floor of the positive golden
 *> 2023/w68r_pb1138_method_external_check: a method activation's external-item
 *> check (ISO 14.9.23.4 GR7 d) raises the EC-EXTERNAL family, which is new in
-*> COBOL-2023 (Annex E.2 item 9) - enabling it by >>TURN at 2002/2014 is COBOLNET0878,
+*> COBOL-2023 (Annex E.2 item 9) - enabling it by >>TURN at 2002/2014 is COBOL0878,
 *> never a silent no-op. (At --std 85 the >>TURN directive and the OO facility are
-*> refused first, COBOLNET0900.)
+*> refused first, COBOL0900.)
       >>TURN EC-EXTERNAL-FORMAT-CONFLICT CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W68RNEG2.

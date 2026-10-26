@@ -15,7 +15,7 @@
       *>   . `CODE-SET ALPHANUMERIC IS AL1`      - FOR omitted   (this program)
       *>   . `CODE-SET ALPHANUMERIC AL1`         - FOR and IS omitted
       *> The 2002 introduction gate is unaffected: VersionConformancePass.VisitCodeSetClause keys on the
-      *> codeSetForPhrase SUBRULE, never on ctx.FOR(), so `--std 85` still answers COBOLNET0900 here.
+      *> codeSetForPhrase SUBRULE, never on ctx.FOR(), so `--std 85` still answers COBOL0900 here.
       *> 13.18.13.4 GR2 makes the on-medium coded character set the one alphabet-name-1 references, and
       *> 12.3.7.4 GR7 c) makes STANDARD-1's correspondence to the native set the IDENTITY over the ISO 646
       *> characters - so the write/read round trip is byte-exact and OUT= is the record written.

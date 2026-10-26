@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> The >>LEAP-SECOND directive (ISO 7.3.17) is a COBOL-2002 compiler-directive introduction; below 2002 it
-      *> is the four-compilers introduction diagnostic (COBOLNET0900), never silently consumed (kb/Work PB65 - the
+      *> is the four-compilers introduction diagnostic (COBOL0900), never silently consumed (kb/Work PB65 - the
       *> directive used to be recognized and discarded at every edition).
        >>LEAP-SECOND ON
        IDENTIFICATION DIVISION.

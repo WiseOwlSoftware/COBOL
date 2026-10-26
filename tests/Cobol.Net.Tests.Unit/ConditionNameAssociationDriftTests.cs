@@ -190,7 +190,7 @@ public sealed class ConditionNameAssociationDriftTests
         Assert.Equal('h', Excl(Group("OUTER", 1, inner)));
 
         // A strongly-typed group instance (it carries StrongType from its TYPE clause) is no alphanumeric group, and
-        // g) is the declaration's letter, so SR24 excludes it by no letter; COBOLNET1537 owns the instance.
+        // g) is the declaration's letter, so SR24 excludes it by no letter; COBOL1537 owns the instance.
         var strongInstance = Group("SG", 1, Comp("P1"));
         strongInstance.StrongType = true;
         Assert.Null(DataBinder.ConditionalVariableExclusion(strongInstance));

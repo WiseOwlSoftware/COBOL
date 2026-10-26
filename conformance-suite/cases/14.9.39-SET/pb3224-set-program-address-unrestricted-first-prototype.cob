@@ -14,7 +14,7 @@
       *> signature differs from RP's.
       *> Every other rule is met: both prototypes precede the program and are named in its REPOSITORY
       *> (§8.4.3.13.3 SR3), RPT is a TYPEDEF (§13.18.60.3 SR19). The same statement with RP written first was always
-      *> refused, so the verdict must not depend on the order: COBOLNET1959 (prototype-pointer-signature) at
+      *> refused, so the verdict must not depend on the order: COBOL1959 (prototype-pointer-signature) at
       *> every edition that has ADDRESS OF PROGRAM.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3224X IS PROTOTYPE.

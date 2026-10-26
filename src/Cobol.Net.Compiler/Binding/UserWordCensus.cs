@@ -10,7 +10,7 @@ namespace CobolNet.Binding;
 /// binder also hosts its METHODS, each a source element of its own (§10.5, "A source element is a source unit
 /// excluding any contained source units"), so each method carries its own census on
 /// <see cref="OoMethodDataScope.Words"/> (kb/Work PB2921: one shared census refused a METHOD-ID spelled like its
-/// CLASS-ID, and a condition-name in one method spelled like a data-name in another, both COBOLNET2692 on legal
+/// CLASS-ID, and a condition-name in one method spelled like a data-name in another, both COBOL2692 on legal
 /// source). Each element's census is the one <see cref="Compiler.Oo.OoClassTable.CensusOf"/> keeps for it. Recorded
 /// by <see cref="DataBinder.DeclareUserWord"/> for every declaration, and by
 /// <see cref="Compiler.Oo.OoClassTable.RecordReferenceUse"/> for every reference to an object-class-name,
@@ -39,7 +39,7 @@ internal sealed class UserWordCensus
         return UserWordKinds.MayBeOneWord(first, kind) || !_conflictReported.Add(word) ? null : first;
     }
 
-    /// <summary>THE one wording of a §8.3.2.2 conflict (COBOLNET2692), for the declaration funnel and the method
+    /// <summary>THE one wording of a §8.3.2.2 conflict (COBOL2692), for the declaration funnel and the method
     /// reference record alike: <paramref name="first"/> is the type the word was first recorded as.</summary>
     public static string ConflictMessage(string word, UserWordKind first, UserWordKind second) =>
         $"'{word}' names two types of user-defined word in this source element ({first.Spelling()} and "

@@ -8,7 +8,7 @@
 *> the report section." This is the WITNESS for that rule, and the rule is enforced as a CONSEQUENCE of two
 *> others rather than by a screen of its own: SR33 confines formats 3 and 5 to a level-number of 88, and
 *> 13.18.33.3 SR4 - "Report group description entries that are subordinate to an RD entry shall have
-*> level-numbers with the values 1 through 49" - refuses 88 in this section (COBOLNET1746, LevelNumberPass).
+*> level-numbers with the values 1 through 49" - refuses 88 in this section (COBOL1746, LevelNumberPass).
 *> The conjunction is exact, so writing a third screen would report the same line twice.
 *> kb/Work PB558 measured the hole this closes: the report-entry walk had no level-88 arm, so the entry was
 *> neither rejected nor registered but DROPPED, and a program that went on to reference the condition-name

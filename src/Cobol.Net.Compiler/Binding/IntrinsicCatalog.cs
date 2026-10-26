@@ -26,7 +26,7 @@ public enum IntrinsicDomain { None, ClosedUnit, NonNegative, Positive, AboveMinu
 /// compile-time fold; <see cref="Deferred"/> — the renderer's never-hit backstop (P11 drove the backlog to
 /// zero and it stays only so an unregistered row fails LOUD).
 /// <para>⚠ The former <c>Unsupported</c> member — the A.4.9 locale module's documented-non-support bind,
-/// COBOLNET1518 — is DELETED (kb/Work PB64 T6): every A.4.9 element is implemented (owner decision Q1,
+/// COBOL1518 — is DELETED (kb/Work PB64 T6): every A.4.9 element is implemented (owner decision Q1,
 /// 2026-08-18; DESIGN-locale-facility §12 T1–T7), the last rows moved to <see cref="Runtime"/> at T4, and an
 /// enum case with zero rows is a lookup nobody reads (feedback_a_dead_lookup_is_also_unverified).</para></summary>
 public enum IntrinsicBind { Runtime, Fold, Deferred }
@@ -257,7 +257,7 @@ public static class IntrinsicCatalog
         // form (YYYYMMDD)", which reads as an integer — but Annex D is marked `(informative)` and §1167 calls it
         // an explanation of features, so clause 15 and Table 21 decide. A concepts annex is not a rule.
         // ⚙ Until PB64 T4 the column was never read (the rows bound as documented non-support, so
-        // COBOLNET1518 fired first) — a dead lookup is also an unverified one
+        // COBOL1518 fired first) — a dead lookup is also an unverified one
         // (feedback_a_dead_lookup_is_also_unverified); the Verified schemas re-derived it before the rows
         // went live. PB1 is the standing proof of the cost of skipping that re-derivation.
         // LIVE since kb/Work PB64 T4 (DESIGN-locale-facility §4.7/§4.8): the trailing 'l' is §15.3 argument type 8, a
@@ -302,13 +302,13 @@ public static class IntrinsicCatalog
         // (window [2002,2023), premised on "CONCATENATE = the 2002/2014 name removed in 2023") was audit drift —
         // a 2023 removal of a real 2002 function would appear in the E.2 incompatibility list, and it does not.
         // CONCATENATE is a vendor extension (Micro Focus / GnuCOBOL / ACUCOBOL); a reference to it correctly
-        // draws COBOLNET1501 ("not an intrinsic function of ISO/IEC 1989"). Adding it as a dialect-gated vendor
+        // draws COBOL1501 ("not an intrinsic function of ISO/IEC 1989"). Adding it as a dialect-gated vendor
         // extension is a SEPARATE decision for a future vendor-extension wave, not an ISO edition window.
 
         // ── COBOL-2014 additions — windows CONFIRMED 2026-08-08 (kb/Work R28): the WG4 CD 1.2 (2009) Annex
         // D.2 item 4 new-function list, adversarially verified against the published-2014 inventory. The
         // former "provisional pending the matrix wave" caveat is retired; NUMVAL-F/TEST-NUMVAL-F moved OUT
-        // of this block to 2002 (the COBOL Consortium's COBOL2002 introduction names them as 2002 additions),
+        // of this block to 2002 (the COBOL Consortium's COBOL 2002 introduction names them as 2002 additions),
         // and LOCALE-TIME-FROM-SECONDS/SECONDS-PAST-MIDNIGHT moved IN from 2002. ──────────────────────────
         Add(new("ABS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "AbsScaled", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.IntegerFollowsArgument1));     // §15.7.1
         Add(new("COMBINED-DATETIME", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "in", "CombinedDatetime", IntrinsicBind.Runtime, false, 2014)); // §15.17
@@ -320,8 +320,8 @@ public static class IntrinsicCatalog
         Add(new("FORMATTED-DATETIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 3, 4, "sinn", "FormattedDatetime", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1)); // §15.40.1 (a4 = optional offset minutes)
         Add(new("FORMATTED-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "snn", "FormattedTime", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1));      // §15.41.1 (a3 = optional offset minutes)
         Add(new("INTEGER-OF-FORMATTED-DATE", IntrinsicType.Integer, IntrinsicArity.Fixed, 2, 2, "ss", "IntegerOfFormattedDate", IntrinsicBind.Runtime, false, 2014)); // §15.48
-        // ⛔ 2002, not 2014 (kb/Work R28, decided 2026-08-08): the COBOL Consortium's COBOL2002 introduction
-        // names NUMVAL-F/TEST-NUMVAL-F among the functions ADDED by COBOL2002, and both are ABSENT from the
+        // ⛔ 2002, not 2014 (kb/Work R28, decided 2026-08-08): the COBOL Consortium's COBOL 2002 introduction
+        // names NUMVAL-F/TEST-NUMVAL-F among the functions ADDED by COBOL 2002, and both are ABSENT from the
         // WG4 2014-cycle drafts' new-function lists. The provisional 2014 window rejected legal 2002 COBOL.
         Add(new("NUMVAL-F", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "s", "NumvalF", IntrinsicBind.Runtime, false, 2002));        // §15.69
         Add(new("SECONDS-FROM-FORMATTED-TIME", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "ss", "SecondsFromFormattedTime", IntrinsicBind.Runtime, false, 2014)); // §15.79

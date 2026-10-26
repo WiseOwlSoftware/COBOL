@@ -7,7 +7,7 @@
       *> kb/Work PB1394 - ISO 8.3.3.4.3 SR3: "Hexadecimal-digit-1 shall
       *>  be a hexadecimal digit". BX"G1" is a hexadecimal-boolean
       *>  literal with a non-hexadecimal digit; beside the item BX it
-      *>  used to compile as BX followed by "G1". COBOLNET2630.
+      *>  used to compile as BX followed by "G1". COBOL2630.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGW73ABX.
        DATA DIVISION.

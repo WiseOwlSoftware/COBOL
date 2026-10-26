@@ -50,7 +50,7 @@ public sealed class PointerAddressingTests
         var (okMix, eMix, _) = EditionHarness.CompileFull(
             Prog("PTAT3", decls, "    SET P TO ADDRESS OF X.\n            SET P IX UP BY 1."), 2002);
         Assert.False(okMix);
-        EditionHarness.AssertHasDiagnostic(eMix, "COBOLNET0869");
+        EditionHarness.AssertHasDiagnostic(eMix, "COBOL0869");
     }
 
     /// <summary>The two NEW binder gates fire with THEIR OWN diagnostics at 85 (the review's gate-masking

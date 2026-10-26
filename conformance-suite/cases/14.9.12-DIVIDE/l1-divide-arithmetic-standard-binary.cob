@@ -14,7 +14,7 @@
       *> permits an implementor not to claim support, and docs/CONFORMANCE.md §2 row 2 records it "Not
       *> claimed"; §8.8.1.4.1 NOTE 1 / Annex F.2 item 3 also make it obsolete. The requirement a decline
       *> carries is that it be LOUD: an unclaimed mode must be refused by name, never accepted and
-      *> silently computed in some other mode. So this program shall be REJECTED with COBOLNET0806 at
+      *> silently computed in some other mode. So this program shall be REJECTED with COBOL0806 at
       *> every edition where the clause exists (2014+; arithmetic-standard-binary-2014).
       *>
       *> WITHOUT THIS FIXTURE the standard-binary sentence of GR1 and GR7 would be neither implemented nor

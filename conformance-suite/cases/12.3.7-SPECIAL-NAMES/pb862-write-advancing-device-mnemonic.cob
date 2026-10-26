@@ -8,7 +8,7 @@
       *> feature-name specified by the implementor."  SYSOUT is a DEVICE-name (docs/CONFORMANCE.md section 7,
       *> A.1 item 189), and 12.3.7.3 SR7 confines a device's mnemonic-name-3 to ACCEPT and DISPLAY.  The WRITE
       *> binder used to treat ANY SPECIAL-NAMES mnemonic as a zero-line advance, whatever it named; the
-      *> feature-names are C01 and CSP (A.1 item 190).  COBOLNET2243.
+      *> feature-names are C01 and CSP (A.1 item 190).  COBOL2243.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB862WADV.
        ENVIRONMENT DIVISION.

@@ -8,7 +8,7 @@ namespace CobolNet.Tests.Conformance;
 /// <summary>
 /// kb/Work PB1154 / PB3353 — the file-I/O statements an exception-checking PERFORM may carry, on their ABNORMAL paths as
 /// fully as on their success path (owner 2026-10-17: SORT and file I-O tests cover both). The compile-time bans
-/// (COBOLNET1605-1617: a multi-operand CLOSE / DELETE FILE / OPEN, a file SORT, a MERGE in imperative-statement-1) are
+/// (COBOL1605-1617: a multi-operand CLOSE / DELETE FILE / OPEN, a file SORT, a MERGE in imperative-statement-1) are
 /// pinned by <c>PerformFormat3Tests</c> and, for their positions, <c>ExceptionPerformBanPositionTests</c>; this class
 /// pins the LEGAL single-operand statement beside each ban, because the ban exists to make the WHEN phrase's answer to
 /// "which implicit statement failed" unambiguous (§14.9.6.3 SR3, §14.9.10.3 SR4, §14.9.27.3 SR3), and that answer is

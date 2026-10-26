@@ -79,7 +79,7 @@ public sealed class ReservedWordSet
     public ReservedWordEntry? Find(string upperWord) => ReservedWords.Find(upperWord);
 
     /// <summary>True when <paramref name="upperWord"/> is reserved for the compilation group and may emit
-    /// COBOLNET0901 when used as a user-defined word: a <c>&gt;&gt;COBOL-WORDS</c> UNDEFINE/SUBSTITUTE suppression
+    /// COBOL0901 when used as a user-defined word: a <c>&gt;&gt;COBOL-WORDS</c> UNDEFINE/SUBSTITUTE suppression
     /// wins (never rejects), then a RESERVE overlay reserves unconditionally, else the generated §8.9 table's
     /// HIGH-CONFIDENCE reserved-at-edition rule (the conservative policy).</summary>
     public bool RejectsAt(string upperWord, int edition)

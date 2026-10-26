@@ -8,7 +8,7 @@
       *> may now be specified for a group level data item"), and a TYPE DECLARATION's group is a group item: the 2023
       *> text of 13.18.55.3 SR1, "The SYNCHRONIZED clause may be specified for group and elementary items"
       *> (cite.py: OK  13.18.55.3 1)), is what admits it. TYPEDEF is a COBOL-2002 clause, so the TYPEDEF arm is
-      *> refused at 2002 and 2014 with COBOLNET0900, exactly as conformance:negative/sync_group_below_2023 refuses a
+      *> refused at 2002 and 2014 with COBOL0900, exactly as conformance:negative/sync_group_below_2023 refuses a
       *> storage group. Before the fix the gate ran only over the storage forest, which a type declaration is not
       *> part of, so this program compiled and ran at 2002 and 2014.
        IDENTIFICATION DIVISION.

@@ -72,7 +72,7 @@
       *>                            omitted text
       *>     IN-IS-5                the omitted OVERRIDE took no effect
       *> 2002 dir: the >> compiler-directive facility is refused below
-      *>   2002 (COBOLNET0900).
+      *>   2002 (COBOL0900).
       *> Editions: Annex E.2 8) changed the end-of-directive omission
       *>   rules (GR6 format 1, GR10 format 2) so that the whole
       *>   condition is true only when both constituent conditions

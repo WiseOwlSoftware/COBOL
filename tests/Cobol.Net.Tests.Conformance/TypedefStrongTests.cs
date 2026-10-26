@@ -7,8 +7,8 @@ namespace CobolNet.Tests.Conformance;
 /// <summary>
 /// The STRONG TYPEDEF use + declaration restrictions (Phase 6, data-model D17, increment 2): a strongly-typed group
 /// item (ISO §8.5.3.3) protects its data integrity with COMPILE-TIME checks, whose violation must be a LOUD bind-time
-/// rejection (COBOLNET_DESIGN §1.4). Each guard cites its ISO rule — the USE gates (COBOLNET1533): MOVE §14.9.25.3
-/// SR2, comparison §8.8.4.2.3 SR1, class condition §8.8.4.4.3 SR1; the DECLARATION gates (COBOLNET1532): §13.18.57.3
+/// rejection (COBOLNET_DESIGN §1.4). Each guard cites its ISO rule — the USE gates (COBOL1533): MOVE §14.9.25.3
+/// SR2, comparison §8.8.4.2.3 SR1, class condition §8.8.4.4.3 SR1; the DECLARATION gates (COBOL1532): §13.18.57.3
 /// SR3 (no RENAMES), SR4 (no REDEFINES), SR6 (level-1 or subordinate to a strong group). The positive companions must
 /// NOT trip a guard — the run-success corpus (<c>typedef_strong_ok</c>) covers same-type MOVE/compare behavior; these
 /// assert the negative gating and that a same-type / same-position operation stays clean.
@@ -32,17 +32,17 @@ public sealed class TypedefStrongTests
         """;
 
     /// <summary>§14.9.25.3 SR2 — a MOVE whose RECEIVER is a strongly-typed group requires a SENDER of the same type;
-    /// a different-type whole-record MOVE is COBOLNET1533.</summary>
+    /// a different-type whole-record MOVE is COBOL1533.</summary>
     [Fact]
     public void MoveDifferentType_Rejected1533()
     {
         var (ok, diag) = EditionHarness.Compile(TwoTypes + "\n    MOVE RA TO RB.\n    STOP RUN.", 2002);
         Assert.False(ok, "MOVE between two different strong types must be rejected (ISO §14.9.25.3 SR2)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1533");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1533");
     }
 
     /// <summary>§8.8.4.2.3 SR1 — if either comparison operand is a strongly-typed group, both shall be of the same
-    /// type; a different-type relation is COBOLNET1533. (The check rides the ONE CheckedRelational chokepoint, so it
+    /// type; a different-type relation is COBOL1533. (The check rides the ONE CheckedRelational chokepoint, so it
     /// also covers EVALUATE / PERFORM UNTIL / SEARCH WHEN.)</summary>
     [Fact]
     public void CompareDifferentType_Rejected1533()
@@ -50,22 +50,22 @@ public sealed class TypedefStrongTests
         var (ok, diag) = EditionHarness.Compile(
             TwoTypes + "\n    IF RA = RB\n        DISPLAY \"X\"\n    END-IF.\n    STOP RUN.", 2002);
         Assert.False(ok, "comparing two different strong types must be rejected (ISO §8.8.4.2.3 SR1)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1533");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1533");
     }
 
     /// <summary>§8.8.4.4.3 SR1 — a strongly-typed group has its own unique class and category (the type-name) and may
-    /// not appear in a class condition. COBOLNET1533.</summary>
+    /// not appear in a class condition. COBOL1533.</summary>
     [Fact]
     public void ClassConditionOnStrongGroup_Rejected1533()
     {
         var (ok, diag) = EditionHarness.Compile(
             TwoTypes + "\n    IF RA IS NUMERIC\n        DISPLAY \"X\"\n    END-IF.\n    STOP RUN.", 2002);
         Assert.False(ok, "a class condition on a strongly-typed group must be rejected (ISO §8.8.4.4.3 SR1)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1533");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1533");
     }
 
     /// <summary>§13.18.57.3 SR6 — a STRONG type may be referenced only at level 1 or subordinate to a strongly-typed
-    /// group; a strong TYPE reference as a lone field of an ORDINARY group is COBOLNET1532.</summary>
+    /// group; a strong TYPE reference as a lone field of an ORDINARY group is COBOL1532.</summary>
     [Fact]
     public void StrongRefInOrdinaryGroup_Rejected1532()
     {
@@ -84,11 +84,11 @@ public sealed class TypedefStrongTests
                 STOP RUN.
             """, 2002);
         Assert.False(ok, "a strong TYPE reference inside an ordinary group must be rejected (ISO §13.18.57.3 SR6)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1532");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1532");
     }
 
     /// <summary>§13.18.57.3 SR4 — a strongly-typed item shall not be redefined in whole or in part; a REDEFINES over a
-    /// strong record is COBOLNET1532.</summary>
+    /// strong record is COBOL1532.</summary>
     [Fact]
     public void RedefinesOverStrongItem_Rejected1532()
     {
@@ -107,11 +107,11 @@ public sealed class TypedefStrongTests
                 STOP RUN.
             """, 2002);
         Assert.False(ok, "a REDEFINES over a strongly-typed item must be rejected (ISO §13.18.57.3 SR4)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1532");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1532");
     }
 
     /// <summary>§13.18.57.3 SR3 — a strongly-typed item shall not be renamed in whole or in part; a level-66 RENAMES
-    /// spanning a strong record's fields is COBOLNET1532.</summary>
+    /// spanning a strong record's fields is COBOL1532.</summary>
     [Fact]
     public void RenamesOverStrongItem_Rejected1532()
     {
@@ -131,13 +131,13 @@ public sealed class TypedefStrongTests
                 STOP RUN.
             """, 2002);
         Assert.False(ok, "a RENAMES over a strongly-typed item must be rejected (ISO §13.18.57.3 SR3)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1532");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1532");
     }
 
     /// <summary>ISO §8.5.3.1 alternative 2 — two subordinate items in equivalent type declarations are of the same
     /// type only when they start "at the same relative byte or bit position and [have] the same length in bytes or
     /// bits". GA (bit 0) and GB (bit 24) are two subgroups of ONE declaration at DIFFERENT positions, so a
-    /// cross-position MOVE is COBOLNET1533.
+    /// cross-position MOVE is COBOL1533.
     /// <para>⚠ This test stated the criterion correctly while the code it pinned matched member-NAME PATHS, and it
     /// passed only because this fixture's paths and positions happen to agree (kb/Work PB427). Its companions
     /// <see cref="MoveSameOffsetDifferentlyNamedSubgroups_Accepted"/> (paths differ, positions agree → legal) and
@@ -164,13 +164,13 @@ public sealed class TypedefStrongTests
                 STOP RUN.
             """, 2002);
         Assert.False(ok, "a MOVE between different-position subgroups of one strong type is not same-type (ISO §8.5.3)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1533");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1533");
     }
 
     /// <summary>The positive companions must compile CLEAN — the gates must not over-restrict: an individual field
     /// MOVE into a strong record (a strong record is built up field by field), a same-position subgroup MOVE/compare
     /// (matching relative path), and a whole-record same-type MOVE. (The <c>typedef_strong_ok</c> corpus golden
-    /// byte-verifies the run behavior; here we assert no false COBOLNET1532/1533.)</summary>
+    /// byte-verifies the run behavior; here we assert no false COBOL1532/1533.)</summary>
     [Fact]
     public void SameTypeAndFieldOps_CompileClean()
     {
@@ -285,7 +285,7 @@ public sealed class TypedefStrongTests
             """, 2002);
         Assert.False(ok, "equivalent declarations do not make two subordinate items the same type unless they also "
             + "start at the same relative position and have the same length (ISO §8.5.3.1)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1533");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1533");
     }
 
     /// <summary>§8.5.3.1's equivalence relation: a matching type-NAME is ONE conjunct. Two source elements each
@@ -324,7 +324,7 @@ public sealed class TypedefStrongTests
             """, 2002);
         Assert.False(ok, "two same-named but structurally different type declarations are NOT equivalent, so items "
             + "described with them are not of the same type (ISO §8.5.3.1 / §14.9.25.3 SR2)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1533");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1533");
     }
 
     /// <summary>§8.5.3.1's equivalence relation, the POSITIVE direction across a source-element boundary: the same
@@ -403,7 +403,7 @@ public sealed class TypedefStrongTests
             """, 2002);
         Assert.False(ok, "corresponding elementary items with different PICTURE clauses make the two type "
             + "declarations non-equivalent (ISO §8.5.3.1)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1533");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1533");
     }
 
     /// <summary>ISO §14.8.2.2 — "If either the formal parameter or the corresponding argument is a strongly-typed
@@ -440,6 +440,6 @@ public sealed class TypedefStrongTests
             """, 2002);
         Assert.False(ok, "an argument that is not of the formal's type may not cross into a strongly-typed group "
             + "formal (ISO §14.8.2.2)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1688");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1688");
     }
 }

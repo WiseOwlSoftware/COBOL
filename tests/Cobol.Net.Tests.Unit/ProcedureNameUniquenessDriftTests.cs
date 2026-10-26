@@ -158,7 +158,7 @@ public sealed class ProcedureNameUniquenessDriftTests
     public void AnUnqualifiedDuplicatedParagraphNameIsRejected(int edition)
     {
         var errors = Compile("ambiguous", Ambiguous, edition);
-        Assert.Contains(errors, e => e.Contains("COBOLNET2121", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("COBOL2121", StringComparison.Ordinal));
     }
 
     /// <summary>…and the two legal shapes stay legal, at every edition: §8.4.2.2.2 format 4 qualification, and

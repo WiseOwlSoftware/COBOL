@@ -6,7 +6,7 @@
 *>---
 *> ISO 8.4.3.2 SR7 - OMITTED shall not be specified as an intrinsic-function argument (P7 Step 12:
 *> the functionArgument grammar admits the 8.4.3.2.2 format's OMITTED alternative as a superset parse;
-*> the binder rejects it for intrinsics with COBOLNET1544).
+*> the binder rejects it for intrinsics with COBOL1544).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGFOMIT.
 DATA DIVISION.

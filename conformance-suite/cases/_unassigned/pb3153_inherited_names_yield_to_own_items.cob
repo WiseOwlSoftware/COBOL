@@ -37,7 +37,7 @@
       *>   (level 1), WHEN PB53CLS compares D with "AB" (EQ), and
       *>   AFTER ADVANCING PB53TOP is integer-1 (2 lines), never the
       *>   inherited C01 mnemonic-name (that reading is refused
-      *>   COBOLNET2692, a word used as two types, 8.3.2.2).
+      *>   COBOL2692, a word used as two types, 8.3.2.2).
       *> cite.py --check 13.10.3 "may be used anywhere that a format
       *>   specifies a literal of the class and category of
       *>   constant-name-1" -> OK 13.10.3 2)

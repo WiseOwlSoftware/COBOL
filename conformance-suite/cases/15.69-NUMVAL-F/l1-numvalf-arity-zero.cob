@@ -10,7 +10,7 @@
       *> bracketed second position, and nothing making the one position optional. §15.3 opens "The
       *> definition of a function specifies the number of arguments required, which may be zero, one, or
       *> more" — and §15.69.2 IS that definition — so the count in the figure is a bound in BOTH
-      *> directions, and a reference supplying none is not a NUMVAL-F reference. COBOLNET1504
+      *> directions, and a reference supplying none is not a NUMVAL-F reference. COBOL1504
       *> ("FUNCTION NUMVAL-F takes 1 argument(s); 0 given (ISO §15.3)").
       *>
       *> ⚠ ITS OWN FILE, DELIBERATELY. An empty argument list is the one arity shape that could in

@@ -120,8 +120,8 @@ ISO §8.13 says the external repository "contains all information required for a
 methods and for checking conformance", and §12.3.8 makes it the third source every REPOSITORY specifier may resolve
 against. Today (kb/Work PB1086) there is none: `REPOSITORY. PROGRAM NOSUCHPG. FUNCTION NOSUCHFN. CLASS NOSUCHCL.`
 compiles clean; a program prototype that misses the group resolves with a null signature that
-`PrototypeSignatures.Same` treats as conforming; a function that misses it draws COBOLNET1505 at a use; a class that
-misses it draws COBOLNET0813/0821/0859 at a use; a property misses silently. And a .NET program can reach a COBOL
+`PrototypeSignatures.Same` treats as conforming; a function that misses it draws COBOL1505 at a use; a class that
+misses it draws COBOL0813/0821/0859 at a use; a property misses silently. And a .NET program can reach a COBOL
 program only through the untyped `ProgramRegistry.CallProgram(name, callerPath, CobolArg[])`, which
 `docs/CONFORMANCE.md` DOC-A.1-65/-116/-141/-167 document as the host API. This design gives the clause one reading and
 every program a typed .NET entry over the one boundary, and makes that entry the only host surface.
@@ -184,9 +184,9 @@ Each quotation was run through `cite.py --check`. **(group)** marks a row the in
 | §12.3.8.4 GR12–GR14 | intrinsic precedence / keyword omission / ALL | (group) |
 | §12.3.8.4 GR15 | "Property-name-1 is the name of an object property that may be used throughout the scope of the containing environment division" | §8.5 |
 | §8.4.6.7 | "A user-function-name may be referenced in the REPOSITORY paragraph of any source element that follows that function definition" … "if the external repository is updated, in any subsequently-compiled source unit that specifies that user-function-name as a function-prototype-name in its REPOSITORY paragraph" | §8.3 D-R3 — the record carries the user-function-name beside the externalized name and the provider answers a word lookup (`FunctionByWord`) when GR11 a)–c) miss; REPO-13 when the externalized-name step and the word name different functions |
-| §13.7.3 SR2 | "The description of the formal parameters and the returning item that appear in the linkage section of a function prototype or a program prototype shall match the description of the formal parameters and the returning item in the corresponding function definition or program definition" | (group) `PrototypeSignatures.Same` → COBOLNET1513; across units the same comparator over the decoded record (§9.2, REPO-9) |
+| §13.7.3 SR2 | "The description of the formal parameters and the returning item that appear in the linkage section of a function prototype or a program prototype shall match the description of the formal parameters and the returning item in the corresponding function definition or program definition" | (group) `PrototypeSignatures.Same` → COBOL1513; across units the same comparator over the decoded record (§9.2, REPO-9) |
 | §10.6.3 GR1 | "Compilation of a program prototype definition or a function prototype definition generates information required for the external repository" | §7.2 — a prototype unit compiles to its host-entry class carrying the signature, and its index entry |
-| §10.6.2 SR2/SR3 | "If a compilation group contains both a program definition and a program prototype definition with the same externalized name, the signatures of these two compilation units shall be the same" (and the function twin) | (group) COBOLNET1513 — within ONE compilation group only; across groups a difference is §8.13 ¶4's "flag differences" (REPO-9, §9.2), never an error |
+| §10.6.2 SR2/SR3 | "If a compilation group contains both a program definition and a program prototype definition with the same externalized name, the signatures of these two compilation units shall be the same" (and the function twin) | (group) COBOL1513 — within ONE compilation group only; across groups a difference is §8.13 ¶4's "flag differences" (REPO-9, §9.2), never an error |
 | §14.9.4.4 GR3 b)–i) | locate ("the runtime system attempts to locate the program being called"), GR3 d) conformance "if checking for it is enabled in both the activated program and activating runtime element", GR3 e) externals, GR3 f) recursion, GR3 i) "If the program was successfully called, after control is returned from the called program the ON EXCEPTION phrase, if specified, is ignored" | the existing boundary, unchanged (§4.1); the host entry crosses it with checking enabled on its side (§4.3) |
 | §14.2.3 GR8–GR10 | BY REFERENCE "operates as if the formal parameter occupies the same storage area as the argument"; BY CONTENT/BY VALUE "if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase" | the boundary (PB2087 for group formals); the host entry lands host values by the same rule, refuses any landing that would lose a digit, a sign or a character (GR13), and gives one host variable passed twice one storage (§4.3) |
 | §14.2.3 GR6 NOTE 1 | "In COBOL, the storage for the returning item is allocated in the activating source unit" | the host entry allocates the RETURNING receiver, as a COBOL activator does (§4.3) |
@@ -271,7 +271,7 @@ Each quotation was run through `cite.py --check`. **(group)** marks a row the in
 - **Measured — prototype conformance (scratchpad `r6/pb1115/`, the worktree's `cobol` build):** the golden
   `2002/pb1115_prototype_group_description` (prototype `L-G` / `L-A` / `L-B`, definition `D-G` / `03 D-S` / `D-A` /
   `D-B`) compiles and prints `A=07 B=XY` / `W-A=12 W-B=ZZ`; the negative `pb1115-prototype-group-subordinates` (the
-  two fields swapped) draws COBOLNET1513. That comparator, fed the decoded record, is the cross-unit check (§9.2).
+  two fields swapped) draws COBOL1513. That comparator, fed the decoded record, is the cross-unit check (§9.2).
 - **`MetadataBuilder` / `PersistedAssemblyBuilder` / `UnmanagedCallersOnly` / trimming** (learn.microsoft.com): as cited
   in §3.3–§3.7: `SignatureTypeEncoder.CustomModifiers()` exists; `AddParameter(ParameterAttributes, StringHandle, int)`;
   `ParameterAttributes.Optional/HasDefault`; `PersistedAssemblyBuilder` is .NET 9+ and "require[s] a fully trusted
@@ -1005,7 +1005,7 @@ IS the externalized name under `ExternalizedNames`' fold (DOC-A.1-68).
 2. GR10 b): a program PROTOTYPE definition in the group (prototypes precede all other units, §10.6.2 SR1).
 3. GR10 c): `MetadataRepositoryProvider.Program(externalizedName)` → the first entry of `P:name` in the search order,
    its signature decoded from that entry's host-entry `Call` method (§5.3).
-4. None → REPO-1; the prototype is not registered (a CALL through it is COBOLNET1760).
+4. None → REPO-1; the prototype is not registered (a CALL through it is COBOL1760).
 `ProgramPrototype.Signature` is non-nullable. The CALL it binds is the existing one (§4.2).
 
 ### 8.3 Function specifier (SR10, GR11) — determination D-R3
@@ -1282,7 +1282,7 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   surfaces of everything it names, and either serves.
 - **`CLASS N [AS lit] EXPANDS P USING A1…An`** — one sequence in every group: (1) P is the group's skeleton, else the
   repository's (REPO-1 if neither); A1…An are in-scope classes/interfaces (group or imported); arity/kind checks as
-  in-group (COBOLNET2240). (2) The key K is computed. (3) **Import before expand:** an expansion in the search space
+  in-group (COBOL2240). (2) The key K is computed. (3) **Import before expand:** an expansion in the search space
   with externalized name `lit ?? N` and key K is imported (§10.1) and its assembly referenced — also when that assembly
   references this group's own previous build. That is an assembly reference cycle, which the CLR and Roslyn accept
   (circ: circular assembly references compile and run); the existing expansion was compiled against the members this
@@ -1313,7 +1313,7 @@ that meaning; a group compiled against a superseded meaning is a stale caller th
   cannot hold between a class and a superseded edition of it.
 - **The "shall not" of §9.3.12** ("If two classes expand a parameterized class with different actual parameters, they
   are not the same class instance and shall not have the same externalized object-class-name") is a run-unit rule. It
-  is reported as an ERROR (COBOLNET2240) only where the two classes will NECESSARILY share a run unit: the same-name,
+  is reported as an ERROR (COBOL2240) only where the two classes will NECESSARILY share a run unit: the same-name,
   different-triple expansion is in an assembly THIS GROUP REFERENCES (an actual's or the definition's), or it is the
   existing `<name>.dll` that placement (a) would overwrite with a different class. A same-name, different-triple
   expansion that is merely elsewhere in the search space is REPO-2 (a warning), as every other same-name difference
@@ -1478,7 +1478,7 @@ route are deleted in the slice that lands their replacements.
 
 | Edition | REPOSITORY paragraph | Resolution | Emission |
 |---|---|---|---|
-| 85 | every specifier kind is refused at recognition with COBOLNET0900 (the `repository-*-2002` rows) | never consulted; a Format-1 CALL is the boundary as always (§14.8.2.3.2 rule 1, "the formal parameter shall be of the same length as the corresponding argument", is its run-time screen) | the host entry and the records ARE emitted (an 85 program is a legal callee of a 2023 prototype and of .NET); `Edition = 85` |
+| 85 | every specifier kind is refused at recognition with COBOL0900 (the `repository-*-2002` rows) | never consulted; a Format-1 CALL is the boundary as always (§14.8.2.3.2 rule 1, "the formal parameter shall be of the same length as the corresponding argument", is its run-time screen) | the host entry and the records ARE emitted (an 85 program is a legal callee of a 2023 prototype and of .NET); `Edition = 85` |
 | 2002 / 2014 / 2023 | all five kinds; EXPANDS | §8, §10.5 | all |
 No new gate; §17.1's 85 arm proves introduction gating fires before any REPO-* diagnostic.
 
@@ -1500,7 +1500,7 @@ No new gate; §17.1's 85 arm proves introduction gating fires before any REPO-* 
 | REPO-10 | Error | `--repository DIR` does not exist / cannot be enumerated | — |
 | REPO-11 | Error | an imported symbol's base, implemented interface or referenced identity is in no entry | §12.3.8.4 GR6 |
 | REPO-12 | Info | the previous build of this output, or an own-assembly expansion target of the same name, carries another schema, runtime major or call ABI; not compared / overwritten (§10.5) | §8.13 ¶4 |
-| REPO-13 (COBOLNET2969, slice 6) | Warning | a `FUNCTION F` specifier for which GR11 a), b) or c) selects the function externalized "F" while a different function whose user-function-name is F exists, in the compilation group or in the repository; the externalized name is used (D-R3) | §12.3.8.4 GR11; §8.4.6.7 |
+| REPO-13 (COBOL2969, slice 6) | Warning | a `FUNCTION F` specifier for which GR11 a), b) or c) selects the function externalized "F" while a different function whose user-function-name is F exists, in the compilation group or in the repository; the externalized name is used (D-R3) | §12.3.8.4 GR11; §8.4.6.7 |
 Existing codes keep their roles: 1761 (SR1/SR2), 1760, 1505, 0813/0821/0859 (unreachable for a declared name), 1513 (a
 definition vs a prototype in ONE compilation group, §10.6.2 SR2/SR3), 2240 (expansion identity reuse; the §9.3.12
 "shall not" where the two classes necessarily share a run unit, §10.5), 0900. No exception condition is new and
@@ -1633,8 +1633,8 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   (patched fixtures); `--repository-check` → REPO-9 against the previous build and against a differing published
   prototype / absent with `off` / REPO-12 on an old schema; a specifier naming only a LATER definition → REPO-1; a
   function specifier none of SR10's alternatives satisfies → REPO-1; REPO-13 in one group and across the repository; a
-  same-group prototype/definition difference → COBOLNET1513; a same-name different-triple expansion in a referenced
-  assembly → COBOLNET2240, elsewhere → REPO-2.
+  same-group prototype/definition difference → COBOL1513; a same-name different-triple expansion in a referenced
+  assembly → COBOL2240, elsewhere → REPO-2.
 - Run-time (out of process): a stale caller → EC-PROGRAM-ARG-MISMATCH when checking is enabled in both, a lenient
   adoption when not, ON EXCEPTION taking the former; a missing callee → EC-PROGRAM-NOT-FOUND; two different assemblies
   carrying one name → EC-PROGRAM-NOT-FOUND naming both; a runtime-major-skewed and a call-ABI-skewed assembly → naming
@@ -1644,7 +1644,7 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   and then reached by a probe is registered once.
 - Existing goldens keep their expectations (the three function-resolution goldens included) except the SR14 cases
   kb/Work PB989 rewrote with prototypes, and the corpus programs whose FUNCTION-ID definition followed the program that
-  names it, which now precede it (a definition that follows is COBOLNET1505 until slice 7's REPO-1).
+  names it, which now precede it (a definition that follows is COBOL1505 until slice 7's REPO-1).
 
 ### 17.2 Round-trip and two-sided schema drift tests
 - For every LINKAGE root of every conformance golden: `Decode(Encode(x))` satisfies `SignatureDifference == null` both
@@ -1757,7 +1757,7 @@ imported class, a host entry, a skeleton, an expansion assembly from two differe
 | A dotted namespace `Cobol.<simple name>` | `PAY.V2.dll` meets a type `V2` of `PAY.dll` (CS0434/CS0437 on legal source, r7-ns) |
 | Including data-names or intermediate grouping in signature identity | §13.7.3 SR2 asks the descriptions to match, and §8.5.3.1's essential characteristics do not include names or grouping; pb1115's prototype and definition differ in both and are one signature |
 | Fixing the emitter until the corpus compiles with zero Roslyn warnings | CS1718 is reported on legal `IF B = B` (r6-warn); a warning-free corpus is not reachable by emitter changes alone, and surfacing warnings would change every `.diag.txt` |
-| COBOLNET1513 for a definition that differs from a prototype in another group | §10.6.2 SR2/SR3 are scoped to one compilation group; across groups the standard asks for flagging (§8.13 ¶4), which REPO-9 is |
+| COBOL1513 for a definition that differs from a prototype in another group | §10.6.2 SR2/SR3 are scoped to one compilation group; across groups the standard asks for flagging (§8.13 ¶4), which REPO-9 is |
 | `modreq`/`modopt`; `CallConv*`/`UnmanagedCallersOnly`; CLR `[Optional]` | §3.3, §3.4, §3.5 |
 | Recording the callee's words as identity | §6.4 |
 | Refusing parameterized classes across assemblies | §9.3.12 is core OO (DOC-A.1-138) |
@@ -1933,7 +1933,7 @@ and 6 stand alone; 3 needs 1, 2 and kb/Work PB2087; 4 needs 3; 5 needs 4; 7 need
    compile-time resolution. Docs: INTERPROGRAM's probe paragraph (index-based); the manual's trimmed/AOT paragraph.
    Depends on 4 (the `Units` index) and, through it, 3 (the composed application activates its main through a host
    entry).
-6. **The group provider's corrections — kb/Work PB989 (LANDED with PB2102; the order-blind tables are `GroupRepository`'s one `Find`, REPO-13 is COBOLNET2969).** Inside the existing group tables: externalized-name keys and
+6. **The group provider's corrections — kb/Work PB989 (LANDED with PB2102; the order-blind tables are `GroupRepository`'s one `Find`, REPO-13 is COBOL2969).** Inside the existing group tables: externalized-name keys and
    source order for GR10/GR11 a)/b), the word → definition map, D-R3 step 2's group arm and step 3's in-group REPO-13,
    with their goldens; and in the same change the corpus programs that name a later program definition with no
    prototype (§8.2's list) gain a prototype of the callee, so no golden depends on the order-blind table this slice

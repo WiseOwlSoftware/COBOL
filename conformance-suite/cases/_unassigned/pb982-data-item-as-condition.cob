@@ -8,7 +8,7 @@
       *> condition-name, switch-status, sign, and omitted-argument conditions." WS-X is a PIC X data item:
       *> none of them, and no abbreviated relation is in progress to make it an object (8.8.4.12). It used
       *> to compile clean and abort the run unit with NotImplementedCobolFeatureException. Expected:
-      *> COBOLNET2318 at every edition - in a PERFORM UNTIL, the condition position every verb shares.
+      *> COBOL2318 at every edition - in a PERFORM UNTIL, the condition position every verb shares.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB982NDI.
        DATA DIVISION.

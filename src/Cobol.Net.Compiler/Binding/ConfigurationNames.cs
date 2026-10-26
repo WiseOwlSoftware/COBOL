@@ -14,7 +14,7 @@ namespace CobolNet.Binding;
 /// declaration of its own announced (§12.3.4 GR1 hands them down; <see cref="DataBinder.InheritConfiguration"/>).
 /// §8.3.2.2 says "<i>Within a source element, a given user-defined word may be used as only one type of
 /// user-defined word</i>": the element that writes <c>IF X IS DIGS</c> over an inherited class DIGS uses DIGS as a
-/// class-name, and a paragraph DIGS of its own is then a second type in that element (refused COBOLNET2692 like the
+/// class-name, and a paragraph DIGS of its own is then a second type in that element (refused COBOL2692 like the
 /// flat program that declares both). The declaration funnel never saw such a use, because the name is declared in
 /// ANOTHER element.
 /// <para>So a lookup here is one of two named operations, and nothing else reads the entries: <see cref="TryUse"/>

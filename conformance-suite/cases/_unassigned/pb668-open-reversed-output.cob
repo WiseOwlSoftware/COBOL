@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB668, COBOLNET2211. COBOL-85's OPEN general format
+      *> kb/Work PB668, COBOL2211. COBOL-85's OPEN general format
       *> writes REVERSED in the INPUT group ONLY (VERSION_CHANGE_
       *> REFERENCE row 7.12; this repository holds no 1985 text, so the
       *> rule comes from that row plus the surveyed implementations).
@@ -12,11 +12,11 @@
       *> I-O and EXTEND have no READ of the created/extended file for it
       *> to apply to. The group below is OUTPUT, so the phrase is not
       *> admissible even though the file is record sequential and the
-      *> organization rule (COBOLNET2210) is satisfied - the two rules
+      *> organization rule (COBOL2210) is satisfied - the two rules
       *> are independent and each needs its own witness, exactly as
       *> 14.9.27.3 SR5 and SR6 do for the sibling WITH NO REWIND.
       *> reject-at is 85 ALONE because at 2002 and later the phrase is
-      *> refused first, by open-reversed-removed-2002 (COBOLNET0902).
+      *> refused first, by open-reversed-removed-2002 (COBOL0902).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB668N2.
        ENVIRONMENT DIVISION.

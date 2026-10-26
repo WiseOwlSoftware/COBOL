@@ -8,9 +8,9 @@ namespace CobolNet.Tests.Conformance;
 /// The X3.23-1985 USE FOR DEBUGGING / DEBUG-ITEM special-register facility at <c>--std 85</c> (VCR Table 7 row
 /// 7.17). The '85 debug module was deleted by ISO/IEC 1989:2002 and is absent from ISO/IEC 1989:2023, so its
 /// authoritative behavior is the 1985 standard; WiseOwl COBOL models it (accepted-and-ACTIVE) only at <c>--std 85</c>
-/// and rejects it ≥2002 (COBOLNET0902). Implemented: the ON procedure-name / ALL PROCEDURES trigger leg with the
+/// and rejects it ≥2002 (COBOL0902). Implemented: the ON procedure-name / ALL PROCEDURES trigger leg with the
 /// DEBUG-CONTENTS transfer-cause taxonomy (START PROGRAM / SPACES / PERFORM LOOP / FALL THROUGH — DB101A witness)
-/// and DEBUG-NAME. STAGED loud (COBOLNET1571): the data-name / file-name / cd-name subject kinds and the
+/// and DEBUG-NAME. STAGED loud (COBOL1571): the data-name / file-name / cd-name subject kinds and the
 /// SORT/MERGE-procedure cause.
 /// </summary>
 public sealed class DebugFacilityTests
@@ -165,7 +165,7 @@ public sealed class DebugFacilityTests
         Assert.Equal(86, rb - lb);
     }
 
-    /// <summary>The removal gate: WITH DEBUGGING MODE + USE FOR DEBUGGING are rejected COBOLNET0902 at ≥2002 (the
+    /// <summary>The removal gate: WITH DEBUGGING MODE + USE FOR DEBUGGING are rejected COBOL0902 at ≥2002 (the
     /// '85 debug module deleted 2002 — §8.9 absence).</summary>
     [Theory]
     [InlineData(2002)]
@@ -174,7 +174,7 @@ public sealed class DebugFacilityTests
     public void DebugFacility_AtOrAbove2002_RejectsWith0902(int edition)
     {
         var diags = EditionHarness.GetDiagnostics(AllProcedures, edition);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0902");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0902");
     }
 
     /// <summary>A bare procedure-name subject (ON P-LOOP) fires ONLY for that procedure — P-START / P-END are not
@@ -249,7 +249,7 @@ public sealed class DebugFacilityTests
         Assert.Equal("IN TARGET", stdout.Replace("\r", "").TrimEnd('\n'));
     }
 
-    /// <summary>The data-name subject leg (ON ALL REFERENCES OF identifier) is STAGED — rejected loud COBOLNET1571
+    /// <summary>The data-name subject leg (ON ALL REFERENCES OF identifier) is STAGED — rejected loud COBOL1571
     /// (its after-statement data trigger + DEBUG-SUB rendering are not modeled).</summary>
     [Fact]
     public void OnDataName_At85_StagedLoud1571()
@@ -277,11 +277,11 @@ public sealed class DebugFacilityTests
             """;
         var (ok, diags) = EditionHarness.Compile(src, 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET1571");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571");
     }
 
     /// <summary>A SORT/MERGE INPUT/OUTPUT procedure that is also a debug subject is STAGED — rejected loud
-    /// COBOLNET1571 (the SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS cause is not modeled; reject rather than
+    /// COBOL1571 (the SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS cause is not modeled; reject rather than
     /// emit a stale cause).</summary>
     [Fact]
     public void SortProcedureSubject_At85_StagedLoud1571()
@@ -321,6 +321,6 @@ public sealed class DebugFacilityTests
             """;
         var (ok, diags) = EditionHarness.Compile(src, 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET1571");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571");
     }
 }

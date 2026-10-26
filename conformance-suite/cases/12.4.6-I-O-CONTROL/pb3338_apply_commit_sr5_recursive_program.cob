@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB3338 - ISO 12.4.6.3.3 SR5: "This clause shall not be specified in a recursive source element."
 *> The shape: the clause in a program with the RECURSIVE attribute. The clause is accepted for a RELATIVE file, so the only refusal this program can
-*> draw is SR5's own, by name (COBOLNET4709). Fails if the clause is accepted or refused for another reason.
+*> draw is SR5's own, by name (COBOL4709). Fails if the clause is accepted or refused for another reason.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3338S5 RECURSIVE.
        ENVIRONMENT DIVISION.

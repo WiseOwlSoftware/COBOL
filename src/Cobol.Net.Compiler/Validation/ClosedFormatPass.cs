@@ -45,7 +45,7 @@ namespace CobolNet.Validation;
 /// it is load-bearing rather than convenient. The §13.16.2 refusal used to live in <c>DataBinder.BindEntry</c>,
 /// which is NOT reached for every written entry: the level-66 and level-88 paths return before it, so an
 /// unrecognized word on <c>88 CN WIBBLE VALUE 1.</c> was dropped in silence by the very fix that closed the
-/// format — MEASURED on the pre-change build, where only COBOLNET1747 fired and WIBBLE vanished. Four of the
+/// format — MEASURED on the pre-change build, where only COBOL1747 fired and WIBBLE vanished. Four of the
 /// other seven formats have no binder entry point at all — an unrecognized
 /// CONFIGURATION SECTION or IDENTIFICATION DIVISION paragraph binds nothing by construction. A walk over the
 /// parse tree sees the written syntax whether or not anything binds it.</para>
@@ -91,8 +91,8 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     /// print ONE separator period after the paragraph's entries — §12.4.6.2 a second only around the APPLY COMMIT
     /// clause, a sentence of its own — and §5.2.1 binds "the words, phrases, clauses, punctuation, and operands in
     /// each general format". The grammar superset-parses a period after every entry so the refusal can name the
-    /// rule: a period that splits the paragraph is COBOLNET3407, at the period; a paragraph that ends without its
-    /// closing period is COBOLNET3408, at its last entry. Error at every edition: the 1985, 2002, 2014 and 2023
+    /// rule: a period that splits the paragraph is COBOL3407, at the period; a paragraph that ends without its
+    /// closing period is COBOL3408, at its last entry. Error at every edition: the 1985, 2002, 2014 and 2023
     /// formats all print the single period. The SOURCE-COMPUTER and OBJECT-COMPUTER rows (§12.3.5.2, §12.3.6.2;
     /// kb/Work PB3370) read the same way: a paragraph with nothing after its header has no sentence, which is the
     /// one spelling §12.3.5.3 SR1 and §12.3.6.3 SR4 let omit the second period.</summary>
@@ -166,7 +166,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             string noun = ClosedFormats.Of(first.GetType())?.Noun ?? "clause";
             string subject = $"{list.Subject}{OwnerSuffix(container)}", written = $"the {noun} '{WrittenOpening(first)}'";
             // A figure whose clauses sit in CHOICE INDICATORS is §5.2.6.4's, read by the ONE choice-indicator reader
-            // (COBOLNET2104); any other repeated bracket is §5.2.6.2 / §5.2.7's (COBOLNET2423; kb/Work PB3133, review R1-1).
+            // (COBOL2104); any other repeated bracket is §5.2.6.2 / §5.2.7's (COBOL2423; kb/Work PB3133, review R1-1).
             if (list.ChoiceIndicators) ChoiceIndicators.AtMostOnce(_edition, count, subject, written, list.Format);
             else UnrepeatedElements.AtMostOnce(_edition, count, subject, written, list.Format, orderFree: list.Sequence is null);
         }
@@ -175,7 +175,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     /// <summary>ISO §5.2.1 — "The words, phrases, clauses, punctuation, and operands in each general format shall be
     /// written in the compilation group in the sequence given in the general format, unless otherwise specified by
     /// the rules of that format." Reported at <paramref name="clause"/>, the element written after
-    /// <paramref name="printedLater"/> although the figure prints it first (COBOLNET2987).</summary>
+    /// <paramref name="printedLater"/> although the figure prints it first (COBOL2987).</summary>
     private void ReportOutOfOrder(ParserRuleContext container, ClauseList list, ParserRuleContext clause,
         ParserRuleContext printedLater)
     {

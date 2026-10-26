@@ -8,7 +8,7 @@
 *> shall not be specified for a sequential file." This is the DYNAMIC half on the same
 *> explicit ORGANIZATION IS SEQUENTIAL entry: one rule, two spellings, and a screen that
 *> caught only the phrase its repro happened to write would be the two-arm dispatch again.
-*> COBOLNET1858 at every edition (kb/Work PB692).
+*> COBOL1858 at every edition (kb/Work PB692).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB692N2.
        ENVIRONMENT DIVISION.

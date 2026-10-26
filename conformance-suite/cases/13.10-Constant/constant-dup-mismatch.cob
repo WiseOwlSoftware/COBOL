@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> ISO 1989:2023 13.10.3 SR9 - a duplicated constant-name shall carry the SAME specification as the
-*> prior entry (COBOLNET1547).
+*> prior entry (COBOL1547).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGKC07.
 DATA DIVISION.

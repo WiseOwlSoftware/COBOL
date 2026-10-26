@@ -12,7 +12,7 @@
       *> The TERMINATE R-A R-B in imperative-statement-1 names two
       *> reports; everything else is legal (the single-name companion
       *> conformance:cases/14.9.46-TERMINATE/l1c33_terminate_single_in_exc_perform compiles
-      *> and runs with the same PERFORM shape). Expected: COBOLNET1606.
+      *> and runs with the same PERFORM shape). Expected: COBOL1606.
       *> EDITION: the exception-checking PERFORM is COBOL-2023.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C33N.

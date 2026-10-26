@@ -8,7 +8,7 @@
       *> program activated with the NESTED phrase. 14.8.2.3.2 "Additionally" d) relaxes the formal's LENGTH only;
       *> its PICTURE clause is still a clause rule 2 requires the argument to share, and the slice 8.4.3.3.4 GR5
       *> creates has none - "a slice matches no ANY LENGTH formal" (docs/CONFORMANCE.md D-RM1 b)), as the INVOKE
-      *> lanes already answer -> COBOLNET1688. (Before the fix the CALL lane admitted it.)
+      *> lanes already answer -> COBOL1688. (Before the fix the CALL lane admitted it.)
       *> cite.py --check 14.8.2.3.2 "its length is considered to match the length of the corresponding
       *>   argument" -> OK 14.8.2.3.2 2)
        IDENTIFICATION DIVISION.

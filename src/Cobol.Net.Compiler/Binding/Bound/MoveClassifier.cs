@@ -103,7 +103,7 @@ public static class MoveClassifier
     /// constants WRITTEN IN THE SOURCE — "SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL "literal", or ALL
     /// symbolic-character" — and a zero-length literal is not one of them. GR2/GR3 are GENERAL rules about the
     /// value moved. Feeding the rewrite to those gates would turn <c>MOVE "" TO PIC 9(3)</c> — which the
-    /// standard permits at every edition — into a COBOLNET0902 rejection, i.e. a wrong answer traded for a false
+    /// standard permits at every edition — into a COBOL0902 rejection, i.e. a wrong answer traded for a false
     /// rejection. The screens run on <c>BoundMove.Source</c> (the written operand) and this runs on
     /// <c>BoundMove.Stores</c>; <c>VersionConformancePass.GateMove</c> likewise re-derives from
     /// <c>m.Source</c>.</para>
@@ -162,7 +162,7 @@ public static class MoveClassifier
     /// — §8.5.4's stem read as one structure — never a copy of its four group bullets.</para>
     /// <para>⚠ Which of the four is REACHABLE here is §14.9.25.3 SR9's business, not this rule's: a
     /// VARIABLE-LENGTH group (items 5 and 7, and any group holding a dynamic-length member) may move only to or
-    /// from a compatible GROUP, so it never reaches an elementary receiver and COBOLNET1931 refuses it first.
+    /// from a compatible GROUP, so it never reaches an elementary receiver and COBOL1931 refuses it first.
     /// Item 1 — the occurs-depending group with integer-1 zero — is the shape that gets here, and the predicate
     /// covers the others without a second site if SR9 ever admits one.</para>
     /// </summary>

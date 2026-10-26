@@ -57,24 +57,24 @@ public sealed class MethodUserWordTests
         END CLASS CPB2623E.
         """;
 
-    /// <summary>Under <c>--permissive</c> at 2023 the removed EXIT METHOD is a warning (COBOLNET0902), and the data item
+    /// <summary>Under <c>--permissive</c> at 2023 the removed EXIT METHOD is a warning (COBOL0902), and the data item
     /// named METHOD does not stop the statement's keyword from being read: no syntax error, the program compiles.</summary>
     [Fact]
     public void ExitMethod_UnderPermissive_ReadsTheRetypedKeyword()
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(ExitMethodWithMethodDataItem, 2023, permissive: true);
         Assert.True(ok, string.Join("\n", errors));
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0902");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL0902");
     }
 
     /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL: the same program targeting COBOL-2014, where §8.9 reserves
-    /// METHOD, is refused at the data item (COBOLNET0901) — so the 2023 success above is the edition's, not the
+    /// METHOD, is refused at the data item (COBOL0901) — so the 2023 success above is the edition's, not the
     /// harness's.</summary>
     [Fact]
     public void MethodDataItem_At2014_IsRefused()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(ExitMethodWithMethodDataItem, 2014);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0901");
     }
 }

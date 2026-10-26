@@ -11,7 +11,7 @@
       *>   cite.py --check 15.20.3 "Argument-1 shall be of class numeric." -> OK §15.20.3 1)
       *> §8.5.2.1 Table 2 puts an alphanumeric PICTURE item in class ALPHANUMERIC, so PIC X(3) is
       *> not of class numeric and this reference is illegal source; §4.2.2 obliges the indication.
-      *> The diagnostic is COBOLNET1627 ("intrinsic-argument-class", docs/DIAGNOSTICS.md).
+      *> The diagnostic is COBOL1627 ("intrinsic-argument-class", docs/DIAGNOSTICS.md).
       *>
       *> ⛔ IT LOOKED COVERED AND WAS NOT - twice over, and each neighbouring fixture says so in
       *> its own header. negative/pb1-numeric-arg-trig-family is NAMED for the trig family but its
@@ -24,8 +24,8 @@
       *> ⚠ EDITION 85 IS IN THE REJECT SET, DELIBERATELY. COS carries IntroducedIn 85 in
       *> IntrinsicCatalog - IntrinsicBinder's D8 comment records that the 42 rows of the 1989
       *> Intrinsic Function Module amendment are part of the 85 dialect here - so at --std 85 the
-      *> reference reaches the class screen rather than the COBOLNET1502 edition window, and the
-      *> same COBOLNET1627 must fire. (pb1-numeric-arg-trig-family's header asserts the opposite
+      *> reference reaches the class screen rather than the COBOL1502 edition window, and the
+      *> same COBOL1627 must fire. (pb1-numeric-arg-trig-family's header asserts the opposite
       *> for ACOS/ASIN/ATAN, "post-85 intrinsics", and omits 85 from its own reject set; that
       *> claim contradicts the catalog and leaves those three unwitnessed at 85.)
        IDENTIFICATION DIVISION.

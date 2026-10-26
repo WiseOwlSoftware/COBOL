@@ -9,7 +9,7 @@
       *> it as they ask a class's: USAGE FLOAT-BINARY-32 is a COBOL-2014
       *> introduction (13.18.60.4 GR14; cite.py --check 13.18.60.4 ->
       *> OK 13.18.60.4 14)), so a prototype formal described with it is
-      *> COBOLNET0900 at 2002. No interface forest was ever gated.
+      *> COBOL0900 at 2002. No interface forest was ever gated.
       *> Nothing else here is below 2002, so the 0900 is this gate's.
        IDENTIFICATION DIVISION.
        INTERFACE-ID. NIFEDG.

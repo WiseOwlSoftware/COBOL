@@ -243,10 +243,10 @@ internal static class PlaceRenderer
         DynTablePlace d => $"{RenderPath(d.Path, AccessDir.Receiving)} = {rhs};",
         RedefViewPlace v => Received(v, WriteView(v, rhs)),
         // Unreachable: SET Format 14 routes to BoundSetCapacity, and any other store into the CAPACITY register is
-        // rejected COBOLNET1523 at bind time (§13.18.38 SR30–32). The backstop for a receiver path that forgot the gate.
+        // rejected COBOL1523 at bind time (§13.18.38 SR30–32). The backstop for a receiver path that forgot the gate.
         CapacityRegisterPlace => throw new System.InvalidOperationException(
             "the CAPACITY register is set only by SET Format 14 (ISO §13.18.38.3 SR30-32); a direct store must be "
-            + "rejected COBOLNET1523 at bind time and never reach PlaceRenderer.Write"),
+            + "rejected COBOL1523 at bind time and never reach PlaceRenderer.Write"),
         // A REPORT SECTION sum counter as a RECEIVER — ISO §13.18.54.4 GR12: "It is permissible for procedure
         // division statements to alter the content of sum counters." The store goes to the RWCS engine, at the
         // counter's own scale (GR1); there is no storage to write (kb/Work PB840).

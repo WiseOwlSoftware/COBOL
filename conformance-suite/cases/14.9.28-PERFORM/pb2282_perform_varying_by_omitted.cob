@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB2282 - a PERFORM VARYING phrase and an AFTER phrase with their BY phrases omitted, at the
       *> introducing edition COBOL-2002 (VCR row 7.42; constructs.json perform-varying-by-omitted-2002; below
-      *> 2002 it is COBOLNET0900, negative pb2282-perform-varying-by-omitted-below-2002).
+      *> 2002 it is COBOL0900, negative pb2282-perform-varying-by-omitted-below-2002).
       *>   cite.py --check 14.9.28.4 "For any BY phrase that is omitted, the augment value is 1" -> OK §14.9.28.4 12)
       *>   cite.py --check 14.9.28.4 "the induction variable is incremented by the augment value, and condition-1
       *>     is evaluated again" -> OK §14.9.28.4 13) d)
