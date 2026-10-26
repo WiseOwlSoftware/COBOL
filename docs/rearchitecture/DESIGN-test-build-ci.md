@@ -688,8 +688,8 @@ why that direction cannot reach the audit at all).
 |---|---|---|---|
 | `VersionMatrixTests_P0 … _P11` | 12 | 2127 rows, **720.5 s SERIAL** — the whole 721 s leg | 12 × (175…179 rows), 552–601 s each, all spanning the run together |
 | `NistDifferentialTests_P0 … _P5` | 6 | 349 rows, 237.9 s SERIAL | 6 × (58–59 rows), 329–354 s each |
-| `ConformanceSuiteTests_P0 … _P23` (formerly `CorpusRunnerTests`) | 24 | at 3 partitions (2026-10-07, about 4,635 rows): 3 × about 1,546 cases, 246–282 s each, the Conformance leg's 95–220 s tail at 1–4 threads | 24 × about 193 rows (kb/Work PB2527); `CorpusPartitioningDriftTests` bounds a partition at 250 rows |
-| `OptionalWordSubsetDriftTests_P0 … _P7` | 8 | one 23-row class, 131–152 s span (one row 59 s) | 8 × about 3 formats (kb/Work PB2527), bounded at 3 |
+| `ConformanceSuiteTests_P0 … _P23` (formerly `CorpusRunnerTests`) | 24 | at 3 partitions (2026-10-07, about 4,635 rows): 3 × about 1,546 cases, 246–282 s each, the Conformance leg's 95–220 s tail at 1–4 threads | 24 × about 193 rows (kb/Work PB2527); `ConformancePartitioningDriftTests` bounds a partition at 500 rows |
+| `OptionalWordSubsetDriftTests_P0 … _P8` | 9 | one 23-row class, 131–152 s span (one row 59 s) | 9 × at most 3 formats (kb/Work PB2527; 9 since kb/Work PB3751's rows made 26), bounded at 3 by `ConformancePartitioningDriftTests` |
 | `StorageFormNistEquivalenceTests_P0 … _P7` | 8 | one `[Fact]` looping the corpus, **171.5 s** — *was* the Unit leg's wall clock | 8 slice-`[Fact]`s, 81–138 s each |
 
 Whole-corpus assertions stay OFF the partitioned base and run ONCE (`VersionMatrixTests`' two catalogue facts,
@@ -2226,7 +2226,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    reads `capped` when that verdict is the round after the last finisher (no finisher was sent to answer it: the
    successor neither answers nor re-records them) and `unanswered` otherwise (a finisher was sent and came back
    without answering, its report rewritten: the successor's review covers the predecessor's content and records again
-   each finding that still holds; branch review R1-1, R2-1, R3-1). Every content problem is a TEAR, and a TORN
+   each finding that still holds; branch review R1-1, R2-1, R3-1). `capped` is one definition, `review_findings.capped`
+   (the verdict blocked on `BLOCKING_AT_CAP`), and gives each case ONE owner (kb/Work PB3404): a capped verdict's
+   findings are the predecessor's next-wave finisher's and hold the successor until it lands; an uncapped one's are
+   the successor's, whose review answers them, so `carrying_findings` does not hold a successor reviewed CLEAN over a
+   head that contains the verdict's head (`prune_worktrees.review_answers`), and no finisher fixes them twice. Every content problem is a TEAR, and a TORN
    findings file holds every branch it names (review R4-1, R5-1, R6-1, R6-2): the reader classifies a file as torn
    when it cannot be opened or read (gone, a directory in its place, a read denied), starts with a byte-order mark,
    holds bytes that are not UTF-8, does not end with a newline, holds no record, or holds a line that is not a record
@@ -2265,13 +2269,31 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    again, and the queue lands by merge commit anyway. **THROUGH THE MERGE DRIVERS** (`scripts/merge_drivers.py`, kb/Work
    PB3610): the files two landings both edit are merged by key, not by line — the keyed catalogues a landing adds an
    entry to (`wiseowl/diagnostics.json` and `options.json`, the traceability inventory, `constructs.json`), the work notes
-   two branches append to, and the runtime ABI pin (`RuntimeAbi.pin`, which `scripts/abi_pin.py` measures: the counters
-   two branches each raised add, the merged surface's hashes are measured on the merged tree before the merge commit).
+   two branches append to, the runtime ABI pin (`RuntimeAbi.pin`, which `scripts/abi_pin.py` measures: the counters
+   two branches each raised add, the merged surface's hashes are measured on the merged tree before the merge commit),
+   and the public-API baselines (`src/**/PublicAPI.*.txt`, `cobol-keyed-publicapi`, kb/Work PB3727: a SET of symbol
+   lines, so a line either side added is kept, a line either side removed is gone, the header stays first and the rest
+   is sorted; the line union before it kept a removed line and once a symbol twice, PB3694).
    `DRIVERS` is the registry, `.gitattributes` repeats its patterns, `merge_drivers.py --check` and
    `MergeDriverDriftTests` hold the two together, and git is given the drivers on its command line
-   (`-c merge.<name>.driver=…`), so no checkout carries configuration that can go stale. The review's coverage rule
-   (`prune_worktrees.mechanical`) reads the same `is_drivers_merge`, so a merge the drivers made is mechanical and a hand
-   resolution is not. What is left in conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
+   (`-c merge.<name>.driver=…`), so no checkout carries configuration that can go stale, and the attributes with them
+   (`-c attr.tree=…`, `merge_drivers.attributes_tree`: the merged-into side's `.gitattributes` with a `merge=<driver>`
+   line per registry pattern after it), so a branch cut before a driver existed merges that driver's files through it.
+   The other way round fails: until a branch that ADDS a driver lands, its landing merges main in through main's
+   registry, which has no such driver, so that branch leaves the files the driver governs as main has them (a new driver
+   lands alone, DESIGN-orchestrator-loop.md section 16.9). The review's coverage rule (`prune_worktrees.mechanical`)
+   reads the same `is_drivers_merge`, built on `merged_tree` (kb/Work PB3713), the one definition of a clean merge's
+   tree, which the branch survey's LANDED proof (`prune_worktrees.merges_to_main_unchanged`) reads too, with the first
+   parent's attributes through `attributes_tree`; so a merge the drivers made is mechanical and a hand resolution is
+   not. PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643): `docs/CONFORMANCE.md` and the `DESIGN-*.md`
+   documents look append-only, but `merge_drivers.py --hunks <file>…` replays the merges in history and classifies each
+   conflict hunk of git's line merge, and over `CONFORMANCE.md`, `DESIGN-runtime-library.md` and this document it counted
+   45 conflicted merges holding 3 hunks where both sides inserted at one place and 115 where both REVISED text the base
+   already held (one mechanism's paragraph, one Annex A.1 register row), so a union merge would keep a stale paragraph
+   beside its replacement in a document that describes the current compiler, and a word-level merge came out different
+   from the person's resolution in 3 of the 9 merges it resolved. Such a conflict is a decision about what the text now
+   says, the finisher's; `--hunks` is rerun before any prose driver is proposed, and a file whose conflicts are
+   insertions earns one. What is left in conflict is real (a conflict stops it, exit 4: the merge is aborted, the branch's
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves with `merge_drivers.py merge
    origin/main --keep`); before the worktree is first read, take its LAND LOCK (`<git dir>/cobol-land.lock`, released by
    every outcome; kb/Work PB3310): a second `land` of the branch is exit 13, never a red, nothing touched and no report
@@ -2316,7 +2338,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    merge group below integrates the branch on the current main and runs the whole population; a conflict here is exit 4
    too);
    `devlog.py stamp` numbers the entry (once: a stamped entry keeps its number, PB3123); run the landing checks that used to live in
-   the former direct-push landing script — `devlog.py check` (exactly one new entry file, stamped and well-formed) and `landing_check.py` (the R3 file-set
+   the former direct-push landing script — `devlog.py check` (exactly one new entry file, stamped and well-formed), `work.py check` (the register audit, run by the merged
+   head's own `scripts/spec/work.py`: a note main gained after the branch's gate meets a rule the branch added there, never first in the
+   merge group's CI, PB3389) and `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`, then the R3 file-set
    partition, PB2118) — then `gh pr create` (title = the branch's one-line subject, body = the forensic message) and
    `gh pr merge --merge-queue`-equivalent (`gh pr merge --auto`) so the PR joins the queue. Done. No lease, no local
    whole population, no waiting for CI. That the pull request then ENTERS the queue is the landing lane's QUEUE WATCH
@@ -2359,6 +2383,22 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    group's `base_sha` is the head of the group queued ahead of it (run 38360587401's base held entry 1996 before that
    pull request reached main), so the range is this pull request's own change whatever is queued with it.
    `landing_check.py` reads the in-flight branches on purpose, and only locally.
+   **Superseded runs are cancelled (kb/Work PB3769; owner 2026-10-25: "cancelling superseded runs automatically").**
+   When an entry ahead fails or leaves, GitHub rebuilds every group behind it: each entry gets a new merge-group commit
+   and a new run, and the old runs kept running, holding runners under the concurrent-job limit (2026-10-25: after #591
+   was ejected at 20:18Z, runs 40228927401 and 40228888256, later 40230142896, 40230142122 and 40230639741, held
+   runners until cancelled by hand). A `concurrency` group cannot catch them, since each group's ref
+   (`gh-readonly-queue/main/pr-<n>-<base sha>`) is unique. So every merge-group run starts with the `supersede` job (no
+   `needs`): `scripts/orchestrator/cancel_superseded.py` lists the unfinished merge-group runs, THEN reads the head
+   commit of every current queue entry (`queue_facts.live_heads`, the one reader of the queue's facts; in that order,
+   because a run created after the read would otherwise look superseded), and cancels each run of the queue on main
+   whose head commit no entry heads, never its own run and never a live entry's. The replacement groups' runs are
+   created at the moment of supersession, so they are what sweeps the runs they replaced. ⛔ It cancels NOTHING when
+   the queue cannot be read whole (a failed or malformed read, no queue, more entries than one page), reads empty, or
+   does not hold the run's own head commit (a read taken before GitHub recorded the group, or the run is itself
+   superseded); each is a warning annotation. Every outcome exits 0 and the step is `continue-on-error`: housekeeping
+   never decides a verdict. A cancelled superseded run fails its own `ci-gate`, on a commit no entry heads any more,
+   which the queue no longer reads.
 5. **On `main`**: the merged commit is the tested merge-group tree. The `push` run keeps only `changes` + `ci-gate` (the
    record the probe reads); the matrix runs on `merge_group` and `workflow_dispatch`. On `pull_request` only the cheap
    jobs run (audits, the DEVLOG and work-register checks), so twenty PRs do not queue eighty matrix jobs behind the
@@ -2517,7 +2557,7 @@ demand and not committed.
   at `landing_tokens` (`model_rules.json`) instead of one lander per train.
 - **Measurement** (PB3028, landed): `landing_measure.py` replaced `train_measure.py`, which is deleted with its drift
   test. One record per pull request in `<coord>/landing-measurements.jsonl`, built up by patches because no tool sees
-  a whole landing: `enqueue.py queue` writes the enqueue time, each carried change's DONE (`done_times`: the committer time of the HEAD commit its DONE implementer report names, never the report file's time, which the branch review's stamp rewrites; the changes are the reports naming the branch plus those a train commit's `Report:` line names, one per lead note, each the earliest of its finisher chain; a report whose HEAD is already an ancestor of origin/main is a change that landed before this one and counts for nothing, because the queue's MERGE method makes every landed head an ancestor of every later branch) the dispatch and review-clean times (`stage_times`, kb/Work PB3638: `dispatched` the dispatch ledger's time of the earliest dispatch still recorded for a lead note the branch's reports answer, `review_clean` the time of the CLEAN verdict record the newest report's stamp names; a time out of order stays null) and the worktree's local gate seconds (the sum of its `verdict.json` `timings.wall_s`);
+  a whole landing: `enqueue.py queue` writes the enqueue time, each carried change's DONE (`done_times`: the committer time of the HEAD commit its DONE implementer report names, never the report file's time, which the branch review's stamp rewrites; the changes are the reports naming the branch plus those a train commit's `Report:` line names, one per lead note, each the earliest of its finisher chain; a report whose HEAD is already an ancestor of origin/main is a change that landed before this one and counts for nothing, because the queue's MERGE method makes every landed head an ancestor of every later branch) the dispatch and review-clean times (`stage_times`, kb/Work PB3638: `dispatched` the dispatch ledger's time of the earliest dispatch still recorded for a lead note the branch's reports answer, `review_clean` the time of the CLEAN verdict record the newest report's stamp names; a time out of order stays null; the order is judged against the record the enqueue will patch, so a re-enqueue after a bounce and a re-review keeps the first `enqueued`, the earliest `dispatched` and `done`, and leaves out a CLEAN verdict, and a DONE (`done_times` is bounded by the first enqueue, not this call's time), that follows the first enqueue, kb/Work PB3710) and the worktree's local gate seconds (the sum of its `verdict.json` `timings.wall_s`);
   `record --review-clean` (a hand correction) and `--bounce-causes` (cluster-defect · load-timing · conflict · infrastructure) are named by
   whoever knows; `complete` reads `mergedAt`, the count of FAILED merge-group runs of the PR (a run GitHub cancelled
   because an earlier entry failed is a ripple, not a bounce), the count of FAILED `pull_request` runs on the PR's head
@@ -2542,7 +2582,9 @@ demand and not committed.
   cheap `ci-gate` is attached to the PR's HEAD commit, so a check-run lookup would have read it as a verdict on the
   matrix. `push.branches` is `[ main ]` (PB3024's closing change dropped the `ci/**` landing branches), and the
   DEVLOG-entry check runs only on `pull_request` and `merge_group`. `ci-gate`'s `needs:` and its drift check (every job
-  wired) are unchanged.
+  wired) are unchanged. The `supersede` job (kb/Work PB3769) runs on `merge_group` only and is the one job granted
+  `actions: write` (with `contents: read` for its sparse checkout and `pull-requests: read` for the queue's entries); it
+  cancels the runs the queue has replaced (§3.17.2 step 4).
 - A **ruleset** on `main` (classic branch protection has no merge queue, and GitHub offers a merge queue only to an
   ORGANIZATION-owned repository — the second apply, 2026-10-11 18:44, was refused with `Invalid rule 'merge_queue'` on
   the personal account's repository, so the repository is `WiseOwlSoftware/COBOL`: owner decision 2026-10-11, kb/Work
@@ -2612,7 +2654,11 @@ carries the `Host` trait). Landed with kb/Work PB3025: `DEVLOG.md` does not exis
 well-formed header and a unique number (`devlog.py --self-test`'s `lint` arm over the repository's own `DEVLOG/`, run
 by every gate's self-tests and CI's `audits` job). Landed with kb/Work PB3107: `NoTrackedRecord_DescribesOneBranchsTree`
 (no committed arch-oracle baseline, and `capture_oracle.py` has no `--record`), the rule of §3.17.2 step 4 that no
-landing is held to a record of its own tree.
+landing is held to a record of its own tree. Landed with kb/Work PB3769:
+`TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse` (the `supersede` job runs on `merge_group` alone
+with no `needs`, runs `cancel_superseded.py` with the run's id and head commit, is the only job with `actions: write`,
+is `continue-on-error` and a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
+are declared), the supersession rule of §3.17.2 step 4.
 
 ### 3.18 THE INERT LANE — a change no test reads runs the audits and nothing else (kb/Work PB2878)
 

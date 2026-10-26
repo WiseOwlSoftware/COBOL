@@ -76,6 +76,8 @@ from collections import OrderedDict
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(REPO, "scripts", "spec"))
 import work  # noqa: E402 — named_missing_paths: the one rule that a path a note names exists
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 NOTES_DIR = os.path.join(REPO, "kb", "Work")
 RECORD_DIR = "docs/rearchitecture/evidence/arch-census"
 
@@ -92,7 +94,6 @@ silent: false
 rejects_legal_source: false
 under_rejects: false
 process_only: true
-blocked: {blocked}
 blocked_by: {blocked_by}
 cluster: ["PB2119"]
 spec_refs: []
@@ -118,7 +119,7 @@ EXTRACT_MODEL = "Opus (an extract wave: kb/Work R69 §4; `model_rules.json` rout
 
 
 def frontmatter(title, nid, blocked_by=(), reason=DEFAULT_REASON):
-    return FRONTMATTER.format(title=title, nid=nid, blocked="true" if blocked_by else "false",
+    return FRONTMATTER.format(title=title, nid=nid,
                               blocked_by=json.dumps(list(blocked_by)), reason=reason)
 
 
@@ -616,7 +617,6 @@ silent: {silent}
 rejects_legal_source: {rejects_legal_source}
 under_rejects: {under_rejects}
 process_only: {process_only}
-blocked: false
 blocked_by: []
 cluster: ["PB1754"]
 spec_refs: {spec_refs}
@@ -1006,7 +1006,7 @@ def self_test():
             with open(os.path.join(nd, n + ".md"), encoding="utf-8", newline="") as fh:
                 return fh.read().replace("\r\n", "\n")
         g = read("PB9004")
-        assert 'blocked: true\nblocked_by: ["PB9100", "R69"]' in g, g[:900]
+        assert 'blocked_by: ["PB9100", "R69"]' in g and "\nblocked:" not in g, g[:900]   # derived, never stored (PB3389)
         assert "**Seam:** S." in g and "T1; T2" in g and "census_ids: R0-9003" in g and "Extract:" in g
         assert "**Blocked by:** PB9100, R69 (" in g          # body and frontmatter come from one list
         u = read("PB9005")
@@ -1047,7 +1047,6 @@ def self_test():
 
 
 def main():
-    sys.stdout.reconfigure(encoding="utf-8")   # titles carry §, → and em dashes; a cp1252 console cannot print them
     ap = argparse.ArgumentParser()
     ap.add_argument("findings", nargs="?")
     ap.add_argument("--ids")
@@ -1095,4 +1094,5 @@ def main():
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

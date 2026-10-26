@@ -2438,6 +2438,11 @@ internal static class RuntimeApi
     public static string ArgWithValueSending(string arg, string? storageImage, bool approximate) =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.WithValueSending)}({arg}{(storageImage is null ? "" : ", " + storageImage)}{(approximate ? ", approximate: true" : "")})";
 
+    /// <summary>An SDIDI value crossing at its own exponent — <see cref="CobolArgAdapt.SdidiValue"/> (kb/Work PB3677):
+    /// <paramref name="mode"/> is the C# text of the pass mode, <paramref name="dec"/> the <c>CobolDec</c> expression.</summary>
+    public static string ArgSdidiValue(string mode, string dec, SignEncoding signEncoding) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.SdidiValue)}({mode}, {dec}, {nameof(SignEncoding)}.{signEncoding})";
+
     /// <summary>The carrier of the predefined NULL written as a CALL / function-activation argument (kb/Work PB1630;
     /// <see cref="PredefinedNullArgument"/> states the rule).</summary>
     public static string PredefinedNullArgumentCarrier =>
@@ -2647,6 +2652,20 @@ internal static class RuntimeApi
     public static string ObjNarrowUniversal(string clrType, string box, string what) =>
         $"{nameof(CobolObject)}.{nameof(CobolObject.NarrowUniversal)}<{clrType}>({box}, "
         + $"{Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(what, quote: true)})";
+
+    /// <summary>The bound method's half of an ACTIVE-CLASS returning item's conformance for a universal invocation
+    /// (ISO §14.8.3.3 rule 2 b) 4. through §14.9.23.4 GR7 c); kb/Work PB2985) — see
+    /// <see cref="CobolObject.CheckActiveClassReturning"/>. <paramref name="enabledInMethod"/> is the C# text of the
+    /// method's EC-OO-UNIVERSAL checking (a literal folded at bind time).</summary>
+    public static string ObjCheckActiveClassReturning(string enabledInMethod, string what, string receiving, string sending) =>
+        $"{nameof(CobolObject)}.{nameof(CobolObject.CheckActiveClassReturning)}({enabledInMethod}, "
+        + $"{Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(what, quote: true)}, {receiving}, {sending})";
+
+    /// <summary>The bound method's half of an ACTIVE-CLASS formal's conformance for a universal invocation (ISO §14.8.2.3.2
+    /// rule 4 through §14.9.23.4 GR7 c); kb/Work PB2985) — see <see cref="CobolObject.CheckActiveClassFormal"/>.</summary>
+    public static string ObjCheckActiveClassFormal(string enabledInMethod, string what, string argument, string formal) =>
+        $"{nameof(CobolObject)}.{nameof(CobolObject.CheckActiveClassFormal)}({enabledInMethod}, "
+        + $"{Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(what, quote: true)}, {argument}, {formal})";
 
     /// <summary>An object-view's checked re-description (ISO §8.4.3.5.4 GR2–GR6) of <paramref name="source"/> as CLR type
     /// <paramref name="clrType"/> (no trailing <c>?</c>), exact-class when the ONLY phrase was written — see
@@ -2898,7 +2917,7 @@ internal static class RuntimeApi
     public static string EditIsBlanked(string read) => $"{nameof(CobolEdit)}.{nameof(CobolEdit.IsBlanked)}({read})";
 
     /// <summary>The COMPILE-TIME edited-image composition (a typed passthrough): a numeric literal VALUE on a
-    /// numeric-edited item bakes its edited image as a constant (ISO §13.18.63 GR6) with the SAME runtime
+    /// numeric-edited item bakes its edited image as a constant (ISO §13.18.63.3 SR6) with the SAME runtime
     /// editor the generated code calls.</summary>
     public static string EditCompose(Int128 value, int valueScale, string picture, bool blankWhenZero, string? currencyString,
         bool commaMode, IReadOnlyList<CobolEdit.EditRule>? edits = null) =>

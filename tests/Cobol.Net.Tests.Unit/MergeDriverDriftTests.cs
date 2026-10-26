@@ -9,11 +9,14 @@ namespace CobolNet.Tests.Unit;
 /// ⛔ THE FILES TWO LANDINGS BOTH EDIT ARE MERGED BY DRIVER, AND ONE FUNCTION MERGES MAIN IN (kb/Work PB3610;
 /// docs/rearchitecture/DESIGN-test-build-ci.md §3.17.2 step 2). <c>scripts/merge_drivers.py</c> keeps a registry
 /// (<c>DRIVERS</c>) of the catalogues a landing appends to — <c>wiseowl/diagnostics.json</c> and <c>options.json</c>, the
-/// traceability inventory, <c>constructs.json</c>, the work notes — and of the runtime ABI pin, which
-/// <c>scripts/abi_pin.py</c> measures; <c>.gitattributes</c> repeats its patterns, and <c>--check</c> holds the two
+/// traceability inventory, <c>constructs.json</c>, the work notes — of the runtime ABI pin, which
+/// <c>scripts/abi_pin.py</c> measures, and of the public-API baselines, merged as SETS of symbol lines (kb/Work PB3727;
+/// docs/rearchitecture/DESIGN-orchestrator-loop.md section 16.9); <c>.gitattributes</c> repeats its patterns, and <c>--check</c> holds the two
 /// together. <c>enqueue.py land</c> merges main in through <c>merge_drivers.merge</c>, so two branches that each added an
 /// entry are no conflict; the review's coverage rule (<c>prune_worktrees.mechanical</c>) reads the same function, so a
-/// merge the drivers made reads as mechanical and a hand resolution does not.
+/// merge the drivers made reads as mechanical and a hand resolution does not. PROSE HAS NO DRIVER, ON PURPOSE (kb/Work
+/// PB3643): <c>merge_drivers.py --hunks</c> replays the merges in history and classifies each conflict hunk, and the
+/// design documents' conflicts are REVISIONS of one paragraph, never two appended sections.
 /// </summary>
 /// <remarks>
 /// Until PB3610 these landings stopped at CONFLICT and cost a finisher cycle each (the landing logs counted
@@ -40,9 +43,21 @@ public sealed class MergeDriverDriftTests
             "keyed rows: an array of objects is keyed by a member",
             "keyed nested: entries at a deeper indentation inside a member are keyed too",
             "note: frontmatter merges per key and the bodies by union",
+            "publicapi: lines each side added are both kept",
+            "publicapi: a line one side removed is gone",
+            "publicapi: the header stays first and the rest is sorted",
+            "publicapi: the same line added by both is one line",
+            "git: a public-API baseline both branches changed merges through its driver as a set",
+            "git: a branch cut with the old attributes (merge=union) merges a baseline through the registry's driver",
+            "patterns: a driver's pattern names a path as git does",
+            "hunks: two insertions at one place are an INSERTION hunk",
+            "hunks: the history replay counts a merge both parents changed",
+            "hunks: a merge that took one parent's file whole is counted",
             "git: WITHOUT the drivers the same merge conflicts (the premise)",
             "git: merge() brings main in through the drivers",
             "git: merge-tree with config_args reproduces the merge's tree",
+            "tree: merged_tree is that merge's tree",
+            "tree: an entry main already holds beside its own merges to main's tree",
             "git: keep leaves a conflicting merge IN PROGRESS",
             "pin: both branches raised the major 17 -> 18: the merge makes it 19",
             "pin: a settle that fails aborts the merge and names the pin",
@@ -87,7 +102,12 @@ public sealed class MergeDriverDriftTests
         string enqueue = File.ReadAllText(TestRepo.At("scripts/orchestrator/enqueue.py"));
         Assert.Contains("merge_drivers.merge(wt, base,", enqueue, StringComparison.Ordinal);
         Assert.DoesNotContain("\"merge\", \"--no-edit\"", enqueue, StringComparison.Ordinal);
-        Assert.Contains("merge_drivers.is_drivers_merge(", File.ReadAllText(TestRepo.At("scripts/prune_worktrees.py")), StringComparison.Ordinal);
+        string prune = File.ReadAllText(TestRepo.At("scripts/prune_worktrees.py"));
+        Assert.Contains("merge_drivers.is_drivers_merge(", prune, StringComparison.Ordinal);
+        // The survey's LANDED proof merges main and the branch the way the landing does (kb/Work PB3713): a plain
+        // `git merge-tree` conflicts in a keyed catalogue the drivers merge by key, so a branch already on main never read LANDED.
+        Assert.True(prune.Contains("merge_drivers.merged_tree(", StringComparison.Ordinal) && !prune.Contains("'merge-tree'", StringComparison.Ordinal),
+            "scripts/prune_worktrees.py runs its own `git merge-tree`: prove a landing with merge_drivers.merged_tree, the one definition of a clean merge's tree (kb/Work PB3713)");
         Assert.Contains("merge_drivers.conflict_outcome(files)", enqueue, StringComparison.Ordinal);
         string lane = File.ReadAllText(TestRepo.At("scripts/orchestrator/land_lane.py"));
         Assert.Contains("merge_drivers.merge_conflicts(", lane, StringComparison.Ordinal);

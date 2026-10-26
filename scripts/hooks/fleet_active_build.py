@@ -81,6 +81,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "orchestrat
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import account  # noqa: E402  (the one resolver of Claude's config dir, kb/Work PB2479)
 import shell_location  # noqa: E402  (the one parser of a command's location changes, kb/Work PB2599)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 WINDOW_SECONDS = 120
 
@@ -664,4 +666,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(self_test()) if "--self-test" in sys.argv else main()

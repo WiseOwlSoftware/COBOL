@@ -1004,14 +1004,35 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     $"SET {written} TO ENTRY {lit.Spelling}: the ENTRY literal shall be an alphanumeric or national "
                     + "literal, not zero-length, naming a program (ISO §8.4.3.13.3 SR2 / §8.3.2.2)");
             }
-            return new BoundSetEntry(targets, entryName, null);
+            return RestrictedReceiverRefusesEntry(targets, written, lit.Spelling)
+                ? BoundRejected.Reported(ctx.Edition)
+                : new BoundSetEntry(targets, entryName, null);
         }
         // The resolver reported (or defers) the reference; "the ENTRY identifier is unresolvable" on top named
         // no rule the program broke (kb/Work PB1030).
         if (host.Expr.ResolveSending(se.dataReference()) is var entryAnswer && entryAnswer.Place is not { } namePlace)
             return entryAnswer.Refusal(ctx.Edition);
-        return new BoundSetEntry(targets, null, namePlace);
+        return RestrictedReceiverRefusesEntry(targets, written, se.dataReference().GetText())
+            ? BoundRejected.Reported(ctx.Edition)
+            : new BoundSetEntry(targets, null, namePlace);
     }
+
+    /// <summary>⛔ THE VENDOR <c>TO ENTRY</c> SPELLING OBEYS THE CONTENT RULE OF A RESTRICTED PROGRAM-POINTER (kb/Work
+    /// PB935, decided by the ISO text 2026-09-30). §13.18.60.4 GR25 is an obligation on the ITEM, whichever statement
+    /// loads it: "A restricted program-pointer shall contain only the predefined address NULL or the address of a
+    /// program with the same signature as that identified by the specified program-prototype-name." The ENTRY operand
+    /// names a program by VALUE (a literal, or an identifier whose content is the name), so it is an UNRESTRICTED
+    /// sender — associated with no program-prototype, exactly the literal-1 and identifier-1 arms of the ISO
+    /// <c>ADDRESS OF PROGRAM</c> form — and it is refused for a restricted receiver by the same helper
+    /// (<see cref="RestrictedReceiverNeedsPrototype"/>). The conforming load is <c>SET pp TO ADDRESS OF PROGRAM
+    /// program-prototype-name-1</c> (§8.4.3.13.4 GR3). Returns true having reported.</summary>
+    private bool RestrictedReceiverRefusesEntry(IReadOnlyList<Place> receivers, string written, string operandSpelling) =>
+        RestrictedReceiverNeedsPrototype(receivers, $"SET {written} TO ENTRY {operandSpelling}",
+            "the vendor TO ENTRY form names a program by value, so its sender is an unrestricted program-address and is "
+            + "associated with no program-prototype; a restricted program-pointer shall contain only the predefined "
+            + "address NULL or the address of a program with the same signature as its program-prototype "
+            + "(ISO §13.18.60.4 GR25; §14.9.39.3 SR22), which SET … TO ADDRESS OF PROGRAM program-prototype-name-1 "
+            + "establishes (ISO §8.4.3.13.4 GR3)");
 
     /// <summary>§14.9.39.3 SR21's receiving half — "Identifier-7 shall reference a data item of category
     /// program-pointer" — over the first <paramref name="count"/> of <paramref name="drefs"/>. ONE screen for
@@ -1110,7 +1131,10 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         string senderWhat = operand.NamePlace is null
             ? $"literal \"{operand.NameLiteral}\""
             : $"identifier '{operandRef?.GetText() ?? DataBinder.WrittenText((ParserRuleContext?)pai.functionCall() ?? pai.inlineMethodInvocation()!)}'";
-        return RestrictedReceiverNeedsPrototype(targets, senderWhat, written)
+        return RestrictedReceiverNeedsPrototype(targets, $"SET {written} TO ADDRESS OF PROGRAM {senderWhat}",
+                "only the program-prototype-name-1 arm of a program-address-identifier is itself restricted "
+                + "(ISO §8.4.3.13.4 GR3); an unrestricted sender is associated with no program-prototype, so the two "
+                + "cannot have the same signature (ISO §14.9.39.3 SR22)")
             ? BoundRejected.Reported(ctx.Edition)
             : new BoundSetEntry(targets, operand.NameLiteral, operand.NamePlace);
     }
@@ -1187,33 +1211,29 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         return name;
     }
 
-    /// <summary>§14.9.39.3 SR22 against a program-address-identifier that is NOT the prototype arm. Only
-    /// §8.4.3.13.4 GR3's prototype arm gives the identifier a restriction, so an identifier-1 or literal-1
-    /// sender is an UNRESTRICTED program-pointer: SR22 requires "the program-prototypes associated with
-    /// identifier-7 and identifier-8" to have the same signature, and an unrestricted pointer is associated
-    /// with none. Distinct from a prototype with no compile-time signature, which
+    /// <summary>§14.9.39.3 SR22 against an UNRESTRICTED program-address sender, one helper for every spelling that
+    /// loads one. Only §8.4.3.13.4 GR3's prototype arm gives a program-address-identifier a restriction, so an
+    /// identifier-1 or literal-1 sender is an UNRESTRICTED program-pointer: SR22 requires "the program-prototypes
+    /// associated with identifier-7 and identifier-8" to have the same signature, and an unrestricted pointer is
+    /// associated with none. Distinct from a prototype with no compile-time signature, which
     /// <c>PrototypeSignatures.Same</c> deliberately lets through — the same reading
     /// <see cref="BindSetProgramPointer"/> enforces. Returns true having reported.
-    /// <para>⚠ WHICH ARM IS THIS, AND WHY IS ITS TWIN NOT SCREENED? The vendor <c>SET pp TO ENTRY</c> form
-    /// (<see cref="BindSetEntry"/>) is deliberately NOT subject to this, and the asymmetry is the standard's
-    /// rather than an oversight: SR22 constrains <i>identifier-8</i>, the sender of §14.9.39.2 <b>Format 9</b>,
-    /// and the ENTRY spelling is not that format — its words are in no ISO general format at all, so the rule
-    /// has no operand there to name. <c>conformance-suite/cases/13.18.60-USAGE/pb817_restricted_program_pointer</c> is the
-    /// witness that loads a restricted program-pointer through it. §13.18.60.4 GR25's content obligation on a
-    /// restricted program-pointer is a separate question about the EXTENSION's own discipline, registered as
-    /// its own mechanism.</para></summary>
-    private bool RestrictedReceiverNeedsPrototype(IReadOnlyList<Place> receivers, string senderWhat, string written)
+    /// <para>⚠ BOTH SPELLINGS REACH IT (kb/Work PB935). The ISO literal-1 / identifier-1 arms of
+    /// <see cref="BindSetProgramAddress"/> pass the SR22 / GR3 wording; the vendor <c>SET pp TO ENTRY</c> form
+    /// (<see cref="BindSetEntry"/>) passes §13.18.60.4 GR25's, because its words are in no ISO general format and so
+    /// SR22 has no identifier-8 to name there, but GR25 binds the receiving ITEM whatever loads it. The
+    /// load of a restricted program-pointer that conforms is <c>ADDRESS OF PROGRAM program-prototype-name-1</c>.</para>
+    /// </summary>
+    /// <param name="statement">The statement as written up to and including its sender, e.g. <c>SET PP TO ENTRY "X"</c>.</param>
+    /// <param name="why">The rule sentence that follows the receiver's restriction in the message, citations included.</param>
+    private bool RestrictedReceiverNeedsPrototype(IReadOnlyList<Place> receivers, string statement, string why)
     {
         // The FIRST restricted receiver is named; one is enough to refuse, and which one is named is the only thing
         // the order of the list decides (kb/Work PB3224).
         if (receivers.Select(r => r.Item.Pic?.RestrictedPrototypeName).FirstOrDefault(n => n is not null) is not { } receiverProto)
             return false;
         ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature,
-            $"SET {written} TO ADDRESS OF PROGRAM {senderWhat}: the receiving program-pointer is restricted to "
-            + $"program-prototype '{receiverProto}', and only the program-prototype-name-1 arm of a "
-            + "program-address-identifier is itself restricted (ISO §8.4.3.13.4 GR3); an unrestricted sender "
-            + "is associated with no program-prototype, so the two cannot have the same signature "
-            + "(ISO §14.9.39.3 SR22)");
+            $"{statement}: the receiving program-pointer is restricted to program-prototype '{receiverProto}', and {why}");
         return true;
     }
 

@@ -37,6 +37,8 @@ import sys
 REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "scripts" / "spec"))
 from cite import norm  # noqa: E402  — ONE notion of "the same words" as the citation checker's
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
 CATALOG = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
@@ -112,10 +114,6 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true", help=f"record the measurement in {DATA.relative_to(REPO)}")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     if PDF is None or not PDF.exists():
         sys.exit("FATAL: the ISO PDF was not found under specs-private/ (a private submodule: "
                  "git submodule update --init specs-private). This tool measures the printed page.")
@@ -148,4 +146,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

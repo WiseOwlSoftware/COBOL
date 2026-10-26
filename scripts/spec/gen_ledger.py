@@ -110,6 +110,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import coord  # noqa: E402  (names the coordination directory)
 import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 import ledger_plan  # noqa: E402  (the plan's lanes: measured there, rendered here)
+from standard_streams import ensure_utf8  # noqa: E402
 
 INVENTORY_REL = "tests/version-matrix/traceability-inventory.json"
 INVENTORY = REPO / INVENTORY_REL
@@ -446,7 +447,7 @@ def measure_commits(shas: typing.Sequence[str], register: bool = True) -> dict[s
 
     inventory_oids = set(o for o in inventory_ids if o)
     summaries: dict[str, tuple[dict, frozenset[str]] | None] = {}
-    notes: dict[str, dict | None] = {}   # a file without frontmatter is not a note, exactly as `work.load` skips it
+    notes: dict[str, dict | None] = {}   # a file without frontmatter counts as no note: these are HISTORICAL trees, which may hold one a later `work.py check` refuses (PB3654)
     for oid, data in git_batch.blobs(REPO, [*(o for o in inventory_ids if o), *(o for ids in note_ids for o in ids)]):
         text = data.decode("utf-8", errors="replace")
         if oid not in inventory_oids:
@@ -1461,13 +1462,6 @@ def self_test() -> int:
 
 
 def main() -> int:
-    # Both streams in UTF-8 BEFORE argparse can print (its --help and usage errors carry the docstring's non-ASCII):
-    # a redirected stream is the host's code page on Windows otherwise (kb/Work PB1546's class).
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except AttributeError:   # a replaced stream (a test harness's) has no reconfigure
-            pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUT,
                     help=f"HTML to write (default {DEFAULT_OUT})")
@@ -1537,4 +1531,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

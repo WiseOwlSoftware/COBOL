@@ -41,6 +41,8 @@ from typing import Any
 
 from inventory_schema import (INVENTORY_PATH, REPO, SCHEMA_PATH, Schema, WitnessLoss, load_inventory, load_schema,
                               witness_losses, witness_shape_error)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 INVENTORY_REL = INVENTORY_PATH.relative_to(REPO).as_posix()
 SCHEMA_REL = SCHEMA_PATH.relative_to(REPO).as_posix()
@@ -407,10 +409,6 @@ def main() -> int:
     ap.add_argument("--since", help="--history: only commits after this revision")
     ap.add_argument("--restore-batch", help="--history: write a record_verdicts batch of every witness owed back")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     schema = load_schema()
     if args.self_test:
         return self_test(schema)
@@ -420,4 +418,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

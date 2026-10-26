@@ -111,8 +111,8 @@ internal readonly record struct ReceiverContext(
     /// <summary>
     /// The floor <c>NumericRenderer.Landed</c> uses when it lands an SDIDI intermediate into the exact
     /// <c>Int128</c> lane for a VALUE-SEMANTICS consumer that supplies no scale of its own (an intrinsic argument,
-    /// a CALL BY VALUE arithmetic-expression argument, a SET pointer UP/DOWN BY amount, an ALLOCATE character
-    /// count): 6 fraction digits. It is the ONLY consumer of the constant.
+    /// a SET pointer UP/DOWN BY amount, an ALLOCATE character count): 6 fraction digits. (Not a CALL argument: one
+    /// no formal can see crosses at its SDIDI's own exponent, <c>CobolArgAdapt.SdidiValue</c>, kb/Work PB3677.) It is the ONLY consumer of the constant.
     /// <para>⛔ IT IS NOT A NUMVAL RULE, AND CALLING IT ONE HELD A WRONG ANSWER OPEN (kb/Work PB251). Named
     /// <c>NumvalScaleFloor</c>, it read as though §15.67/§15.68/§15.69 prescribed a 6-digit working scale. They
     /// prescribe no working scale at all: §15.67.4 r1 / §15.68.4 r1 fix the returned value as "the numeric value

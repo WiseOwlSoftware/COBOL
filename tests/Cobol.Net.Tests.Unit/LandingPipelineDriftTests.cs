@@ -18,7 +18,10 @@ namespace CobolNet.Tests.Unit;
 /// exist, the workflow has no landing-branch trigger, and no tracked file outside the history names them; and no landing
 /// is held to a COMMITTED RECORD OF ITS OWN TREE (kb/Work PB3107): a merge group is built on every group queued ahead of
 /// it, so such a record cannot describe the tree that lands — the arch-oracle baseline is not committed and the landing
-/// oracle that refused on it is retired with the direct-push scripts.
+/// oracle that refused on it is retired with the direct-push scripts; and every merge-group run starts with the
+/// <c>supersede</c> job (kb/Work PB3769), the one job with <c>actions: write</c>, which cancels the merge-group runs the
+/// queue has replaced through <c>scripts/orchestrator/cancel_superseded.py</c> (its fail-safe arms held here by name) and
+/// never decides a verdict (<c>continue-on-error</c>).
 /// </summary>
 /// <remarks>
 /// <para>The operator's review (2026-10-11 13:39, mailbox 20261011-133923): a pull request runs only CI's cheap jobs, so
@@ -143,6 +146,57 @@ public sealed class LandingPipelineDriftTests
         Assert.DoesNotContain("a pull_request / dispatch run is always the full matrix", wf);
         Assert.DoesNotContain("check-runs?check_name=ci-gate", wf);
         Assert.Contains(".event != \"pull_request\" and .conclusion == \"success\"", wf);
+    }
+
+    /// <summary>⛔ SUPERSEDED MERGE-GROUP RUNS ARE CANCELLED (kb/Work PB3769; DESIGN-test-build-ci.md §3.17.2 step 4): the
+    /// <c>supersede</c> job runs on the <c>merge_group</c> event alone, waits for no job (it is what the replacement
+    /// groups' runs start with), runs <c>cancel_superseded.py</c> with this run's id and head commit, is the only job
+    /// granted <c>actions: write</c>, never decides a verdict, and is a <c>needs</c> of <c>ci-gate</c>; the script's
+    /// arms (every keep, ignore and fail-safe case) and the queue reader's are declared.</summary>
+    [Fact]
+    public void TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse()
+    {
+        string wf = File.ReadAllText(TestRepo.At(".github", "workflows", "build-and-test.yml")).ReplaceLineEndings("\n");
+        Match job = Regex.Match(wf, @"^  supersede:\n(?<body>(?:(?:   .*|[ \t]*#.*|[ \t]*)\n)*)", RegexOptions.Multiline);
+        Assert.True(job.Success, "build-and-test.yml has no `supersede` job: superseded merge-group runs hold runners");
+        string body = job.Groups["body"].Value;
+        Assert.Matches(new Regex(@"^    if: github\.event_name == 'merge_group'$", RegexOptions.Multiline), body);
+        Assert.DoesNotMatch(new Regex(@"^    needs:", RegexOptions.Multiline), body);
+        Assert.Matches(new Regex(@"^      actions: write\b", RegexOptions.Multiline), body);
+        Assert.Matches(new Regex(@"^        continue-on-error: true$", RegexOptions.Multiline), body);
+        Assert.Contains("run: python3 scripts/orchestrator/cancel_superseded.py --repo \"$REPO\" --run-id \"$RUN_ID\" "
+                        + "--sha \"$SHA\"", body, StringComparison.Ordinal);
+        Assert.Contains("RUN_ID: ${{ github.run_id }}", body, StringComparison.Ordinal);
+        Assert.Contains("SHA: ${{ github.sha }}", body, StringComparison.Ordinal);
+        Assert.True(Regex.Matches(wf, @"^\s+actions:\s*write\b", RegexOptions.Multiline).Count == 1,
+            "a job other than `supersede` is granted `actions: write`: only the sweep may cancel a run");
+        Assert.Matches(new Regex(@"^  ci-gate:\n(?:.*\n)*?    needs: \[[^\]]*\bsupersede\b", RegexOptions.Multiline), wf);
+
+        SelfTestArmSource.AssertDeclares(TestRepo.Scripts("orchestrator", "cancel_superseded.py"), new[]
+        {
+            "a run whose head commit heads a current queue entry is kept",
+            "an unfinished merge-group run whose head commit heads no current queue entry is cancelled, queued or in progress",
+            "this run itself is never cancelled, whatever its head commit",
+            "a completed run is ignored",
+            "a pull_request or push run is ignored, its head commit in no entry",
+            "a merge-group run of another branch's queue is ignored",
+            "an unreadable queue (None) cancels nothing",
+            "an empty queue cancels nothing",
+            "a queue read that does not hold this run's own head commit cancels nothing (a stale read, or this run is "
+                + "itself superseded)",
+            "the runs are listed in every unfinished status BEFORE the queue is read (a run created after the read "
+                + "would otherwise look superseded)",
+            "a cancel GitHub refuses (the run finished in between) is reported as a warning and the sweep goes on",
+            "an offline queue read cancels nothing and says so as a warning",
+            "a run list GitHub refuses for some statuses judges only the runs it listed, says which statuses it could "
+                + "not list, and cancels nothing unseen",
+            "every outcome exits 0 (housekeeping never decides a verdict); a usage error exits 2",
+        });
+        SelfTestArmSource.AssertDeclares(TestRepo.Scripts("orchestrator", "queue_facts.py"), new[]
+        {
+            "live_heads: a queue longer than one page, no merge queue on main, a failed call, a malformed answer or an "
+                + "offline gh is None (an incomplete read), never a short list",
+        });
     }
 
     /// <summary>The retired landing's files, by name: the direct-push landing script (both forms), the landing lease
@@ -307,8 +361,10 @@ public sealed class LandingPipelineDriftTests
             "GitHub's refusal of the pull request list, the pull request or the queue is exit 9, never 0",
             "HEAD beside origin/main is refused (main brought in first), and HEAD on main is refused before any check",
             "HEAD at origin/main has nothing to land; an empty title or body is a usage error",
-            "checks runs the two landing scripts on the range in order and maps each refusal to its own code: "
-                + "DEVLOG 6, landing check 3, unreadable 2",
+            "checks runs the three landing scripts in order, the range only to the two that read one, and maps each "
+                + "refusal to its own code: DEVLOG 6, landing check 3, register 6, unreadable 2",
+            // kb/Work PB3389 review R1-1: the register of the merged head, read by that head's own work.py
+            "the register check runs the worktree's own scripts/spec/work.py (exit {code})",
             // kb/Work PB3023: the whole landing step, one script
             "land: the migrating landing (the whole history added as files) titles its pull request from its ONE new "
                 + "entry, the landing rule's own (devlog.landing_entries)",

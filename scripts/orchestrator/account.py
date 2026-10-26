@@ -48,6 +48,8 @@ from typing import Any, Mapping
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import coord  # noqa: E402
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 ENV = "CLAUDE_CONFIG_DIR"
 # The owner's /skill-doctor review: a stamp file in the reviewing account's config dir, touched after the review; its
@@ -442,10 +444,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--rules", help="a model_rules.json to read instead of the repository's (a test seam)")
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     if a.self_test:
         return _self_test()
     rules = coord.rules(pathlib.Path(a.rules) if a.rules else None)
@@ -483,4 +481,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

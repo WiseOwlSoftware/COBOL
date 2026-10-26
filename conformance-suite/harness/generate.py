@@ -65,6 +65,8 @@ import cobol_source as cobol  # noqa: E402  (this directory's: the program-text 
 import config  # noqa: E402  (this directory's: the harness's adapter, profile and baseline formats)
 import generated_output  # noqa: E402  (the one way a generator clears the directory it writes: never wholesale)
 import inventory_schema  # noqa: E402  (the inventory's one schema: its editions, its evidence predicates)
+sys.path.append(str(Path(__file__).resolve().parents[2] / "scripts"))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 CONSTRUCTS_PATH = REPO / "tests" / "version-matrix" / "constructs.json"
 RESERVED_WORDS_PATH = REPO / "tests" / "version-matrix" / "reserved-words.json"
@@ -1702,9 +1704,5 @@ def self_test() -> int:
 
 
 if __name__ == "__main__":
-    for _stream in (sys.stdout, sys.stderr):
-        try:
-            _stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
+    ensure_utf8()
     sys.exit(main(sys.argv[1:]))
