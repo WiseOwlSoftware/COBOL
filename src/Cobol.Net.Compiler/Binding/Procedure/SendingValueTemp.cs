@@ -91,7 +91,14 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// IN-ARITHMETIC-RANGE tests) AND NOT THE INTERMEDIATE THAT
     /// CARRIES A VALUE TO ITS RECEIVERS: that item is described for the value and its receivers
     /// (<see cref="IntermediatePic"/>, kb/Work PB3268), because a receiver of more than 9 fraction digits is owed
-    /// the digits a single-receiver MOVE stores.</para></summary>
+    /// the digits a single-receiver MOVE stores.</para>
+    /// <para>⛔ ITS USAGE DISPLAY IS THE IMPLEMENTOR'S REPRESENTATION, NEVER A §15.2 DESCRIPTION (kb/Work PB3691;
+    /// docs/CONFORMANCE.md D-FNUSE). §15.4.1 leaves "the characteristics and representation of the returned value" to
+    /// the implementor and §15.2 4), 5) and 6) state no usage for a numeric, integer or index function's item; the
+    /// representation here only SIZES that item (what <c>FUNCTION LENGTH</c> measures, DOC-A.1-92). The question
+    /// "described … as usage display or national" that §8.8.4.2.5, §14.9.43.3 SR1 and §14.9.22.3 SR2 ask is asked of the
+    /// operand AS WRITTEN, through <c>IntrinsicSig.ImplicitUsageOf</c> (<see cref="IntrinsicArgumentRules.FunctionIsNotDisplayOrNational"/>),
+    /// and no admission rule reads this description (<c>DisplayOrNationalUsagePredicateDriftTests</c>).</para></summary>
     internal static readonly PicInfo FunctionValuePic =
         new(PicCategory.Numeric, Usage.Display, Length: ReturnedIntegerDigits + ReturnedFractionDigits,
             Digits: ReturnedIntegerDigits + ReturnedFractionDigits, Scale: ReturnedFractionDigits, Signed: true);
