@@ -225,7 +225,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("nx.cob", Head + "       PROCEDURE DIVISION.\n           DISPLAY XXXXX058 W ) .\n           STOP RUN.\n");
         var (ok, lines) = Compile("nx.cob", edition: 85, nist: "NX");
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("nx.cob(7,31): error COBOL0307"));   // longer: the ')' is in column 31
+        Assert.Contains(lines, d => d.Contains("nx.cob(7,31): error COBOL0001"));   // longer: the ')' is in column 31
 
         Write("ns.cob", "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. NS.\n       ENVIRONMENT DIVISION.\n"
             + "       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XXXXX083 ) .\n"   // shorter: the ')' is in column 34
@@ -234,13 +234,13 @@ public sealed class DiagnosticPositionTests : IDisposable
             + "       DATA DIVISION.\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
         (ok, lines) = Compile("ns.cob", edition: 85, nist: "NS");
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("ns.cob(5,34): error COBOL0307"));
+        Assert.Contains(lines, d => d.Contains("ns.cob(5,34): error COBOL0001"));
         Assert.Contains(lines, d => d.Contains("ns.cob(8,65): error COBOL0312"));
 
         Write("nd.cob", Head + "       PROCEDURE DIVISION.\n           DISPLAY XXXXX069 W ) .\n           STOP RUN.\n");
         (ok, lines) = Compile("nd.cob", edition: 85, nist: "ND");
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("nd.cob(7,31): error COBOL0307"));   // deleted: the ')' STAYS in column 31
+        Assert.Contains(lines, d => d.Contains("nd.cob(7,31): error COBOL0001"));   // deleted: the ')' STAYS in column 31
 
         // the unit is COBOL-85, so COPY names its library text by a WORD (a literal name is COBOL-2002: VCR row 7.44,
         // kb/Work PB1601)
@@ -248,7 +248,7 @@ public sealed class DiagnosticPositionTests : IDisposable
         Write("nk.cob", Head + "       PROCEDURE DIVISION.\n           COPY NC.\n           STOP RUN.\n");
         (ok, lines) = Compile("nk.cob", edition: 85, nist: "NK");
         Assert.False(ok);
-        Assert.Contains(lines, d => d.Contains("NC.CPY(1,31): error COBOL0307"));
+        Assert.Contains(lines, d => d.Contains("NC.CPY(1,31): error COBOL0001"));
         Assert.DoesNotContain(lines, d => d.Contains("COBOL0900"));
     }
 

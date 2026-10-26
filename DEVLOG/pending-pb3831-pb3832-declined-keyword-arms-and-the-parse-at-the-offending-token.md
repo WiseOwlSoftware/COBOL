@@ -77,3 +77,28 @@ are unchanged.
 Gate (run 000001-20261026T191128Z, head 70be735c0): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,858/18,844, Unit 37,429/38,430, Characterization 7/36 cases ran; Linux half (WSL clone of HEAD) GREEN).
 
 Review-finisher gate (run 000001-20261026T201211Z, head 245a26d5f, the merge of main's PB3575 prefix rename): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 10,255/18,844, Unit 37,289/38,449, Characterization 7/36 cases ran; Linux half (WSL clone of HEAD) GREEN). Before it, the whole Conformance population (18,844) and the whole Unit population ran green on the merged tree but for the two absent-corpus environment tests.
+
+Branch review round 2 returned two blocking findings, both regressions against main that round 1's one-report rule
+exposed, both fixed at the root. R2-1: the rule keeps a fault's first report and drops the recovery's repeat at the
+same token, but only the repeat carried an expected set (the text of the exception's), so the commonest COBOL syntax
+error, a separator period missing before a section or paragraph header (ISO §14.5.1), drew a bare COBOL0001 where main
+drew COBOL0307 "A period may be missing". Every report kind now reads the position's expected set
+(`OffendingPosition.Expected`), and the eight expected-set guesses read it only where it does not hold the token.
+Reading it on a failed prediction exposed the guess itself: a period being EXPECTED is not a period being MISSING. `05
+A(1)` expects one after A, and the data division was told it lacked "the end of the previous sentence". So the guess
+now asks the walk whether a period lets the token follow, written before it or before the word ahead of it (the header
+a missing period ran into the statement: `MOVE 1 TO A` then `S2 SECTION.` takes S2 as a receiving operand and dies at
+SECTION) — the lead filed at round 1 ("hint 14 fires wherever the expected set holds a period"), fixed here since the
+fix needed it. A word whose characters no edition's Annex B permits is no reading (`CobolCharacterRepertoire.IsWordAtSomeEdition`):
+the line holding only U+00A0 (`pb1660-nbsp-only-line-is-not-blank`) is a word to the superset lexer and was "missing" a
+period as a paragraph-name. Thirteen goldens and fifteen pinned test expectations that drew the old guess at a repeated or misplaced
+phrase (a second USING, `SET IX UP BY 1 DOWN BY 1`, a USAGE on a level-66 entry, a stray ')') now draw the bare
+COBOL0001 at the same token; none of those positions takes a period that would let the token follow. R2-2: the rules
+open at a failed prediction's token were read off the walk's CLOSED configurations, which hold every rule that may
+BEGIN there, every statement rule among them, so a stray END-IF after a complete statement found its IF and hint 13's
+COBOL0306 (ISO §14.5.3.2) fell silent. They are now the rules of the configurations that took the token before, each
+counted only while its invocation can still take a token (the IF an END-IF just completed is not open:
+`IF … IF … END-IF END-IF END-IF`). Witnesses: `ParseRecoveryHintTruthTests` `AMissingSeparatorPeriod_IsNamedOnTheFaultsOneReport`
+(PBHT31..37, at depth 0, inside an open IF and inside the open nest) and `AScopeTerminatorOutsideItsStatement_NamesTheStatement`
+(PBHT13..18, each asserting the one COBOL0306). The reviewer's probe set (missing period after MOVE, DISPLAY, ADD, IF,
+COMPUTE, STOP RUN, READ; a stray END-IF, END-ADD, END-PERFORM) now draws main's diagnosis once.
