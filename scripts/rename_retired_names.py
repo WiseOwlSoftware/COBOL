@@ -150,6 +150,8 @@ RULES: tuple[tuple[re.Pattern[bytes], bytes], ...] = (
     # prose, and the remaining spellings
     (re.compile(rb"COBOL\.NET|Cobol\.NET|COBOL_NET\b"), b"WiseOwl COBOL"),
     (re.compile(_UP), b"WISEOWL"),
+    # a lower-case environment variable (a case-insensitive scrub's test input) keeps the variable's underscore
+    (re.compile(_OLD.lower() + rb"_"), b"wiseowl_cobol_"),
     (re.compile(_OLD.lower()), b"wiseowl-cobol"),
     (re.compile(b"Cobolnet(?=[0-9])"), b"Cobol"),
     (re.compile(b"Cobolnet"), b"WiseOwlCobol"),
@@ -281,8 +283,9 @@ def run(root: Path, paths: list[str], *, write: bool) -> Result:
 
 
 def offenders(root: Path, paths: list[str]) -> list[str]:
-    """Every tracked path outside EXCEPT that spells a retired name, and every `path:line: text` of a text file that
-    does (binary files are not read: a retired name inside one is no line a rule could rename)."""
+    """Every tracked path outside EXCEPT that spells a retired name, every `path:line: text` of a text file that does,
+    and every BINARY file that does: no rule can rewrite one (the rename sets it aside), so it is named whole, to be
+    regenerated from its source, never passed over as clean."""
     found = []
     for rel in paths:
         if excluded(rel):
@@ -293,7 +296,10 @@ def offenders(root: Path, paths: list[str]) -> list[str]:
         if not f.is_file():
             continue
         data = f.read_bytes()
-        if not RETIRED.search(data) or b"\0" in data[:BINARY_PROBE]:
+        if not RETIRED.search(data):
+            continue
+        if b"\0" in data[:BINARY_PROBE]:
+            found.append(f"{rel}: (a binary file spells a retired name; regenerate it from its source)")
             continue
         for n, line in enumerate(data.split(b"\n"), 1):
             if retired_spans(line):
@@ -362,6 +368,8 @@ def self_test() -> int:
         (f"{up}_CLOCK, {up}_GATE_PLAN, {up}_GATE_PLAN_SHA256, \"{up}_GATE_\", {up}_*, {up}_<NAME>",
          "WISEOWL_COBOL_CLOCK, WISEOWL_COBOL_GATE_PLAN, WISEOWL_COBOL_GATE_PLAN_SHA256, \"WISEOWL_COBOL_GATE_\", "
          "WISEOWL_COBOL_*, WISEOWL_COBOL_<NAME>", "the environment variables, a plan file stem among them"),
+        (f"[\"{up}_GATE_PLAN\", \"{old.lower()}_gate_leg\"]", "[\"WISEOWL_COBOL_GATE_PLAN\", \"wiseowl_cobol_gate_leg\"]",
+         "an environment variable in lower case keeps its underscore"),
         (r'new("\"(COBOL(?:NET)?_[A-Z0-9_]*)\"")', r'new("\"((?:WISEOWL_)?COBOL_[A-Z0-9_]*)\"")',
          "the pattern for the variables the runtime reads"),
         (r'"^src/Cobol\.Net\." and r"^src/Cobol\\.Net\\.Compiler" and @"\bCobol(?!Net\.|Literal\.)[A-Z]" and "COBOL(NET)?_"',
@@ -445,6 +453,11 @@ def self_test() -> int:
     expect("the history keeps its spelling", (root / "DEVLOG/0001-x.md").read_bytes(), f"history {dotted}\n".encode())
     expect("a second run moves and changes nothing", (move(root, write=True), run(root, tracked(root), write=True)
                                                       .changed), ([], []))
+    expect("a binary file no rule can rewrite is named whole, never passed over",
+           (check(root, min_tracked=1), offenders(root, tracked(root))),
+           (1, ["b.bin: (a binary file spells a retired name; regenerate it from its source)"]))
+    repo.git("rm", "-q", "--cached", "b.bin")
+    (root / "b.bin").unlink()
     expect("the audit is GREEN once the tree is converted", check(root, min_tracked=1), 0)
     # a branch cut before the rename: its new file lands in the OLD directory beside the renamed one (a merge)
     (root / f"src/{dotted}.Cli").mkdir()
