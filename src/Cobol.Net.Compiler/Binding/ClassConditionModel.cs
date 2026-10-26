@@ -196,16 +196,14 @@ internal static class ClassConditionModel
             category is PicCategory.Numeric or PicCategory.NumericEdited,
         ClassOperandRule.UsageDisplayOrNational => function
             ? category is not (PicCategory.Alphanumeric or PicCategory.National)
-            : usage is { } u && !DisplayOrNational(u),
+            : usage is { } u && !UsageFamilies.IsDisplayOrNational(u),
         ClassOperandRule.NumericUsageOrCategory =>
-            usage is { } u2 && !DisplayOrNational(u2) && category is not PicCategory.Numeric,
+            usage is { } u2 && !UsageFamilies.IsDisplayOrNational(u2) && category is not PicCategory.Numeric,
         ClassOperandRule.NumericCategory => category is { } c && c is not PicCategory.Numeric,
         ClassOperandRule.StandardFloatUsage => category is not null
             && !(usage is { } u3 && UsageFamilies.IsStandardFloat(u3)),
         _ => false,
     };
-
-    private static bool DisplayOrNational(Usage u) => u is Usage.Display or Usage.National;
 
     /// <summary>The diagnostic code, the clause reference and the rule's own words for
     /// <paramref name="rule"/> — declared beside the predicate that tests it, so a message can never name a

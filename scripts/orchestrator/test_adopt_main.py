@@ -18,6 +18,9 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import adopt_main as am  # noqa: E402
 from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
+from standard_streams import ensure_utf8  # noqa: E402
+
+ensure_utf8()
 
 TMP = scratch_dir("adopt-main-test-")
 REPO, COORD, ORIGIN, LANDER = TMP / "repo", TMP / "coord", TMP / "origin.git", TMP / "lander"

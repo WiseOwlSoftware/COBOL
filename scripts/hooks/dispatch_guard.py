@@ -42,14 +42,15 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "orchestrator"))
 import coord  # noqa: E402  (the one definition of STOP-UNIT and the loop-unit marker)
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
+
+ensure_utf8()
 
 try:
     data = json.load(sys.stdin)
 except Exception:  # noqa: BLE001
     sys.exit(0)
-
-# the harness reads hook stderr as UTF-8; Windows would otherwise encode it in the console code page
-sys.stderr.reconfigure(encoding="utf-8")
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 CHECK = REPO / ".claude" / "skills" / "workstream" / "check_practices.py"

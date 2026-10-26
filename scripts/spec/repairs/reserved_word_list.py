@@ -39,6 +39,8 @@ import collections
 import pathlib
 import re
 import sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[2]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[3]
 SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
@@ -75,10 +77,6 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
 
     lines = SPEC_MD.read_text(encoding="utf-8").splitlines()
     out, changed, dash = rebuild(lines)
@@ -110,4 +108,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

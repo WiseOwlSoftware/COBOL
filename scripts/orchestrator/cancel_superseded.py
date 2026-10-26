@@ -43,6 +43,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import queue_facts  # noqa: E402  (live_heads: the one reader of the merge queue's facts)
 import ruleset  # noqa: E402  (the gh runner: a hang guard, Unobserved on any failure; the repository's name)
+sys.path.append(str(HERE.parent))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 Gh = ruleset.Gh
 #: The branch every merge-group run of the queue on main is on: `gh-readonly-queue/main/pr-<n>-<sha>`.
@@ -256,10 +258,6 @@ def self_test() -> int:
 
 
 def main(argv: list[str] | None = None, gh: Gh | None = None) -> int:
-    try:
-        sys.stdout.reconfigure(encoding='utf-8')
-    except AttributeError:
-        pass
     ap = argparse.ArgumentParser(description=__doc__.split(chr(10))[0])
     ap.add_argument('--self-test', action='store_true')
     ap.add_argument('--run-id', type=int, default=0, help="this workflow run's id (github.run_id): never cancelled")
@@ -294,4 +292,5 @@ def main(argv: list[str] | None = None, gh: Gh | None = None) -> int:
 
 
 if __name__ == '__main__':
+    ensure_utf8()
     sys.exit(main())

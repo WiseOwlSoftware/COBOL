@@ -21,6 +21,8 @@ import re
 import sys
 import unicodedata
 from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = ROOT / "specs" / "ISO_COBOL.md"
@@ -200,4 +202,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

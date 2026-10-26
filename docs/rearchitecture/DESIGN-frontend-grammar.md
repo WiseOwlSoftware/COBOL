@@ -599,7 +599,14 @@ the §13.18.60.3 SR18/SR19 screen and FUNCTION-POINTER's mandatory operand). The
 REQUIRED-INSIDE-AN-OPTIONAL-GROUP shape was OBJECT REFERENCE's `(FACTORY OF)?`, whose OF is also unstressed on
 folio 503; it is `(FACTORY OF?)?` now. Both are pinned by `OptionalWordSubsetDriftTests` rows, the guard the gates
 run: `audit_grammar_optional_words.py` judges each group as a unit of its own and so reports a word required
-inside an optional group (kb/Work PB715), but it measures the private PDF and runs in no gate.
+inside an optional group (kb/Work PB715), but it measures the private PDF and runs in no gate. A bracket whose
+words are ALL plain is written as every spelling of each alternative — `reportPageClause`'s `PAGE (LIMIT IS? | IS |
+LIMITS ARE? | ARE)?` for §13.18.39.2's `[ LIMIT IS | LIMITS ARE ]` — and the audit judges such a flat group on its
+whole language (kb/Work PB3751). A word the grammar must demand because only a later phase can tell its omission
+apart (the VALUE clause's `IN alphabet-name-1`, decided by symbol in `DataBinder.RangeAlphabetPhraseOf`) carries an
+`// audit:optional-word <WORD> decided-by <Type>.<Member>` line in its rule, which the audit checks and reports as
+DECIDED. Optional words are judged within EACH format (§8.3.2.4.3): RECEIVE's CONTINUE phrase leaves AFTER and
+SECONDS plain on its own page while the CONTINUE statement's format rules both, and each rule follows its own.
 
 ⛔ **Why this is generated and not written by hand (kb/Work PB300, CLAUDE.md rule 5).** The second half used to be
 a hand-written list of two words inside `CobolData.g4`'s `dataName`, paired with a hand-written
