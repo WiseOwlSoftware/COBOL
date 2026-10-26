@@ -1,4 +1,4 @@
-## PB3389, PB3721, PB3654: the register derives `blocked`, reads a glob as a sweep, and refuses a note it cannot read
+## Entry 2589 — 2026-10-25 17:23 PDT — PB3389, PB3721, PB3654: the register derives `blocked`, reads a glob as a sweep, and refuses a note it cannot read
 
 Three defects of one reader, `scripts/spec/work.py`, each a silent drop or a stale copy; each found by a landing or a plan
 that went wrong without the register saying so.
@@ -70,3 +70,4 @@ diff's names unfiltered. The self-test plants a landing that carries the setting
 (lands). R2-2: DESIGN-test-build-ci.md section 3.17.2 step 3 and the DOC_INDEX landing-check sequence now name the
 `work.py check` landing check and the new arm. The merge of the reviewed head onto current main had one textual
 conflict, `cancel_superseded.py` (the same standard-streams change spelled two ways): the branch's side kept.
+
