@@ -82,9 +82,12 @@ PB2526). Each leg runs the three assemblies concurrently.
 - **The cap is ONE shared setting, 3 by default** (owner 2026-10-10 10:20 PDT, kb/Work PB2514: "Cap 3 permanently"):
   `python scripts/gate_slot.py set-cap N [--until ISO] [--why TEXT]` departs from it in the slot directory every
   worktree shares; every gate re-reads it while it waits, so a change reaches the queue at once, and an expired setting
-  is the coded default again with no one acting. `gate_slot.py clear [cap] [implementer-scope]` returns a setting (none
-  named: both) to its coded default at once. `gate_slot.py status` prints the cap, the implementer scope, every held
-  slot and the queue. No environment variable sets either.
+  is the coded default again with no one acting. `gate_slot.py clear [cap] [light-cap] [implementer-scope]` returns a
+  setting (none named: all) to its coded default at once. `gate_slot.py status` prints the cap, the light cap, the
+  implementer scope, every held slot and the queue of both pools. No environment variable sets either. **A notes-only
+  (inert-lane) gate does not queue for this cap** (kb/Work PB3724): its one slot-bound step, the Linux script self-tests,
+  takes a slot of the separate LIGHT pool (cap 2 by default, `set-light-cap N`), so it waits for no implementer's build;
+  a waiting gate's log says why a later ticket went first (landing gates are served before implementer gates, PB3103).
 - **The impact map AIMS leg 1; it never filters a leg.** Under batched gating (kb/Work PB2515) leg 1 is the local run,
   so the map's tiers decide which cases it holds, and the loop records a map for EVERY main commit it adopts (owner
   2026-10-24, kb/Work PB3663: `adopt_main.py` asks `impact_lane.py`, which records in a detached worker inside a gate
