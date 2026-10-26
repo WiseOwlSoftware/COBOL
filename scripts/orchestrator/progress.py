@@ -10,7 +10,7 @@ per tick would wake the attended session every ten minutes for news it already h
 
 THE LINE, read from the coordination directory only (no git, no GitHub: it runs every few minutes):
   groups        every dispatch-ledger group (coord.ledger_groups: the dispatched work still in flight) by its
-                state: RUNNING (no report answers it, plan_wave.answers), DONE and reviewed CLEAN, DONE with review
+                state: RUNNING (no report answers it, reports.answers), DONE and reviewed CLEAN, DONE with review
                 FINDINGS, DONE and not yet reviewed, or another status (SPLIT, DISCHARGED, BLOCKED, GATE-PENDING)
   landings      the landing records (landing_measure.read_all) enqueued and merged since the unit started (whether a
                 pull request is in the merge queue NOW is the hosting service's to say: a record enqueued and never
@@ -38,7 +38,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import coord  # noqa: E402
 import landing_measure  # noqa: E402
-import plan_wave  # noqa: E402
+import reports  # noqa: E402  (THE fleet-report reader: a report, a ledger group's slug, "answered")
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -49,12 +49,12 @@ REVIEW_STALL_MIN = 15    # half the owner's 30-minute dispatch-to-queue bar (kb/
 def progress(cdir: pathlib.Path, since: float, now: float | None = None) -> dict:
     """The progress figures and the stalls, as a dict (render prints the line)."""
     now = time.time() if now is None else now
-    reps = plan_wave.load_reports(coord.reports_dir(str(cdir)))
+    reps = reports.load_reports(coord.reports_dir(str(cdir)))
     groups: dict[str, int] = {"running": 0, "clean": 0, "findings": 0, "unreviewed": 0, "other": 0}
     waiting: list[dict] = []   # {slug, notes, minutes, on}
     for g in coord.ledger_groups(cdir):
-        slug, notes = plan_wave.ledger_slug(g), list(g.get("notes", []))
-        mine = [r for r in reps if plan_wave.answers(r, g)]
+        slug, notes = reports.ledger_slug(g), list(g.get("notes", []))
+        mine = [r for r in reps if reports.answers(r, g)]
         if not mine:
             groups["running"] += 1
             if isinstance(g.get("at"), (int, float)):

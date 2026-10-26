@@ -88,9 +88,15 @@ PB2526). Each leg runs the three assemblies concurrently.
   (inert-lane) gate does not queue for this cap** (kb/Work PB3724): its one slot-bound step, the Linux script self-tests,
   takes a slot of the separate LIGHT pool (cap 2 by default, `set-light-cap N`), so it waits for no implementer's build;
   a waiting gate's log says why a later ticket went first (landing gates are served before implementer gates, PB3103).
-- **The impact map only ORDERS.** It is recorded ON DEMAND (`python scripts/spec/record_impact_map.py`, a detached
-  worktree, ~25 min at BelowNormal, inside a gate slot), never per commit (kb/Work PB1709). With no map, or a stale
-  one, the gate still runs everything — the order is plainer, never the population smaller.
+- **The impact map AIMS leg 1; it never filters a leg.** Under batched gating (kb/Work PB2515) leg 1 is the local run,
+  so the map's tiers decide which cases it holds, and the loop records a map for EVERY main commit it adopts (owner
+  2026-10-24, kb/Work PB3663: `adopt_main.py` asks `impact_lane.py`, which records in a detached worker inside a gate
+  slot at BelowNormal, ~14 min and 25 MB a map, coalescing to the newest commit; `python scripts/orchestrator/
+  impact_lane.py status|measure` shows it; by hand `python scripts/spec/record_impact_map.py [--commit <sha>]`). A map
+  serves a base FILE BY FILE (`scripts/spec/impact_store.py`): a change to a file the map's commit and the base share is
+  attributed by line range, a change to a file that differs between them is taken at the file level, and the plan's
+  `map …` line says `exact`, `documentation-only drift`, `nearest` or `none`. With no map at all, the gate still plans
+  everything and CI's merge-group run still runs it — the aim is plainer, never the population smaller.
 - **An implementer is done on `LEG 1 ONLY (batched gating, PB2515): GREEN`** (a plain GREEN only while the owner sets
   the scope `whole`). On Windows that one verdict covers BOTH hosts (owner 2026-10-23, kb/Work PB3612; MANDATORY-PRACTICES
   I8): after the Windows legs are green, the gate runs the SAME plan's legs in a WSL clone of your COMMITTED HEAD (`bash

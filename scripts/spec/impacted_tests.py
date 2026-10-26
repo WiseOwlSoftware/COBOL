@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """impacted_tests.py — what a change REACHES, as the order plan's TIERS (kb/Work PB1683, PB1708 M11, PB1712).
 
-The map ORDERS the gate; it never SELECTS it (owner, 2026-09-28, kb/Work PB1708). Every implementer gate runs the
-whole discovered population of Conformance, Unit and Characterization; this script tells `scripts/gate_plan.py`
-which tests a change can affect, so they run FIRST and a red surfaces in minutes. It reads the RECORDED impact map
+The map ORDERS the gate's plan; it never FILTERS a leg (owner, 2026-09-28, kb/Work PB1708). Every gate PLANS the whole
+discovered population of Conformance, Unit and Characterization into two legs; this script tells `scripts/gate_plan.py`
+which tests a change can affect, so they come FIRST. Under batched gating (kb/Work PB2515) leg 1 is the only local run,
+so these tiers decide which cases it holds, and the loop records a map for every main commit it adopts
+(kb/Work PB3663) so that a change is attributed instead of falling back to the cheapest slice of everything. It reads
+the RECORDED impact map
 (`scripts/spec/record_impact_map.py`: per test, the METHODS its execution reached, each with the line ranges it
 owns) and puts every recorded test in a tier (docs/rearchitecture/DESIGN-test-build-ci.md §3.13):
 
@@ -31,11 +34,18 @@ From the diff alone it names the tier-0d drift tests too: those the drift-rule i
 (kb/Work PB3531), and those governing a register that cites what the change removes — a deleted member, a renamed
 test, a deleted file (`removals`, `drift_rules.citing`, kb/Work PB3131).
 
-EVERY TEST IS TIER 1, with the reason printed, whenever the change cannot be attributed: no map for the base, a map
-older than the base by more than documentation (its line numbers describe another tree), a `.g4`, project, build or
-source-generator input, a NEW src file, non-C# data under `src/`, a method reached only outside every test's
-context. Nothing here can drop a test: a test the map under-reaches (static FIELD reads are invisible to the
-recorder — PB1712) lands in a later tier of the SAME gate and still runs.
+WHICH MAP SERVES THE BASE (kb/Work PB3663; `impact_store.nearest`): the one whose commit's tree differs from the base's
+in the fewest source files, whatever its age or ancestry. A change to a file the two trees share is attributed by line
+range exactly; a change to a file that DIFFERS between them (`drift`: main moved on after the map was recorded) is taken
+at the FILE level, tier 1 for every test that executed any method of it, because the map's line ranges describe another
+version of that file. So a map a few hours behind the base still tiers almost every change; the rule it replaces called
+any map older than the base by more than documentation stale and tiered nothing.
+
+EVERY TEST IS TIER 1, with the reason printed, whenever the change cannot be attributed: no map in the store at all, a
+`.g4`, project, build or source-generator input, a src file the map has never seen, non-C# data under `src/`, a
+method reached only outside every test's context. Nothing here can drop a test: a test the map under-reaches (static
+FIELD reads are invisible to the recorder — PB1712; a test added since the map's commit is not in it) lands in a later
+tier of the SAME plan and still runs in CI's merge-group run.
 
 ⛔ NO FILTER. This script prints no vstest filter and takes no `--plus`: M11 deleted the narrowing (a map for a base
 re-armed a silent under-selection, PB1712), and M13 deleted the whole-assembly filter line and `--plus` together with
@@ -52,16 +62,13 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import base64
 import codecs
-import fnmatch
 import gzip
 import json
 import re
 import subprocess
 import sys
 import tempfile
-import zlib
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -72,21 +79,26 @@ sys.path.insert(0, str(REPO / "scripts"))
 from test_population import GATED_ASSEMBLIES  # noqa: E402
 import drift_rules  # noqa: E402  (scripts/spec, beside this file)
 import cs_members  # noqa: E402  (scripts/spec, beside this file)
+import impact_store  # noqa: E402  (scripts/spec, beside this file: THE store and the rule for which map serves a base)
+from impact_store import SCHEMA, bit_ids, is_doc, pack, unpack  # noqa: E402
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/ (as run_gate_legs.py)
 from coord import is_work  # noqa: E402  (THE paths that are never work: coord.NEVER_WORK, kb/Work PB3465, PB3474)
 from standard_streams import ensure_utf8  # noqa: E402
-SCHEMA = 2
 CONFORMANCE_DIR = "tests/Cobol.Net.Tests.Conformance/"
 # The gated test projects, by the assembly name the map and the gate use ("Conformance", "Unit", ...).
 TEST_ASSEMBLIES = {f"{d}/": k for k, d in GATED_ASSEMBLIES.items()}
 SHARED_TEST_DIR = "tests/_shared/"   # linked into every test project
 TEST_PROJECTS = (*TEST_ASSEMBLIES, SHARED_TEST_DIR)
-# Paths no test EXECUTES: they can only be READ by a test, which the reader search below finds.
-DOC_GLOBS = ["docs/*", "kb/*", "*.md", ".claude/*", "adjudication/*", "specs/*", "scripts/*", "tools/impact/*",
-             ".github/*", "samples/*"]
 # Structural inputs: every assembly may change.
 STRUCTURAL_RE = re.compile(r"(\.g4|\.csproj|\.props|\.targets|\.sln|global\.json|nuget\.config|\.editorconfig)$"
                            r"|^src/Cobol\.Net\.Compiler\.SourceGen/|(^|/)Directory\.[^/]+$", re.IGNORECASE)
+#: Two non-C# files under `src/` that no assembly embeds and no test executes: the public-API baselines of the Roslyn
+#: analyzer (`<AdditionalFiles>` of the runtime project, RS0016/RS0017: read at build time) and the runtime ABI pin
+#: (`RuntimeAbi.pin`, which scripts/abi_pin.py measures and RuntimeAbiPinDriftTests reads; the version the build uses is
+#: `Directory.Build.props`, a structural input). A change to one is data a test may READ (`readers`), not "a non-C#
+#: input under src/" that puts every test in tier 1. Measured (kb/Work PB3663): two of 22 code-changing landings of a
+#: replayed day fell back to tier 1 for the baselines alone, and PB3666's own change for the pin alone.
+READ_ONLY_DATA_RE = re.compile(r"(^|/)(PublicAPI\.(Shipped|Unshipped)\.txt|RuntimeAbi\.pin)$")
 HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 #: The conformance suite's test trees (conformance-suite/harness/generate.py's TREES): a file of one of their clause
 #: folders belongs to suite tests by id (`suite_tests`), and the two keyed files beside them name tests by id.
@@ -112,11 +124,11 @@ class Reach:
 
 @dataclass
 class Analysis:
-    """One change against one map: the map found for the base (possibly STALE — then its durations and test names
-    still serve the plan, but its line numbers do not describe the tree, so every test is tier 1), what the change
+    """One change against one map: the map that serves the base (`impact_store.nearest`; with drift, its line ranges
+    describe the files the two trees share and a change to any other file is taken at the file level), what the change
     reaches, and each recorded test's tier per assembly, keyed by its RAW display name."""
     map: dict | None
-    map_state: str            # "exact" · "documentation-only drift" · "stale" · "none"
+    map_state: str            # "exact" · "documentation-only drift" · "nearest" (source files differ) · "none"
     reach: Reach
     tiers: dict[str, dict[str, int]]
 
@@ -124,27 +136,6 @@ class Analysis:
 def git(*args: str) -> str:
     return subprocess.run(["git", *args], cwd=REPO, check=True, capture_output=True, text=True,
                           encoding="utf-8").stdout.strip()
-
-
-def default_store() -> Path:
-    common = Path(git("rev-parse", "--git-common-dir"))
-    return (common if common.is_absolute() else (REPO / common).resolve()) / "cobol-impact"
-
-
-def is_doc(path: str) -> bool:
-    return any(fnmatch.fnmatch(path, g) for g in DOC_GLOBS) and not path.startswith(("src/", "tests/"))
-
-
-def unpack(b64: str) -> int:
-    return int.from_bytes(zlib.decompress(base64.b64decode(b64)), "little") if b64 else 0
-
-
-def bit_ids(n: int):
-    for bi, byte in enumerate(n.to_bytes((n.bit_length() + 7) // 8, "little")):
-        if byte:
-            for k in range(8):
-                if byte >> k & 1:
-                    yield bi * 8 + k
 
 
 def load_map(path: Path) -> dict:
@@ -157,10 +148,13 @@ def load_map(path: Path) -> dict:
 
 
 class MapIndex:
-    """The map, decoded once: per file its entries and their line ranges; per recorded test its bitset."""
+    """The map, decoded once: per file its entries and their line ranges; per recorded test its bitset. `drift` is the
+    set of source files that differ between the map's commit and the base (`impact_store.Choice.drift`): their recorded
+    line ranges describe another version of the file, so a change to one is taken at the file level."""
 
-    def __init__(self, m: dict):
+    def __init__(self, m: dict, drift: frozenset[str] = frozenset()):
         self.m = m
+        self.drift = drift
         self.entries = m["entries"]
         self.ranges: dict[str, list[tuple[int, int, int]]] = {}   # file -> [(lo, hi, id)], lines 0 = type-level
         self.file_ids: dict[str, int] = {}                          # file -> mask of every entry in it
@@ -464,45 +458,53 @@ def changed_entries(path: str, base: str) -> set[str]:
     return {k for k, v in now.items() if then.get(k) != v}
 
 
-def ancestor_distance(sha: str, base: str) -> int | None:
-    """How many commits `sha` is behind `base`, or None when it is not an ancestor of `base`."""
-    if subprocess.run(["git", "merge-base", "--is-ancestor", sha, base], cwd=REPO, capture_output=True).returncode:
-        return None
-    return int(git("rev-list", "--count", f"{sha}..{base}"))
+class MapChoice(NamedTuple):
+    """The map that serves a base: `map` None when the store holds none; `state` "exact" (the map's commit IS the base),
+    "documentation-only drift" (the two trees differ in documentation only), "nearest" (source files differ: `drift`)
+    or "none"; `drift` the source files that differ between the map's commit and the base."""
+    map: dict | None
+    state: str
+    drift: frozenset[str]
 
 
-def non_doc_drift(sha: str, base: str) -> list[str]:
-    """The files other than documentation that differ between `sha` and `base`."""
-    return [f for f in git("diff", "--name-only", sha, base).splitlines() if f and not is_doc(f)]
+def explicit_map(path: Path, base: str) -> MapChoice:
+    """A map named on the command line (`--map`): served as `find_map` serves one of the store, by the files that
+    differ between its commit's tree and `base`'s. A commit git does not know (a hand-made map) tells nothing, so the
+    map is taken as describing the base exactly, as it always was."""
+    m = load_map(path)
+    drift = impact_store.drift_between(REPO, str(m.get("commit", "")), base)
+    if drift is None or m.get("commit") == base:
+        return MapChoice(m, "exact", frozenset())
+    return MapChoice(m, "nearest" if drift else "documentation-only drift", frozenset(drift))
 
 
-def find_map(store: Path, base: str, reach: Reach) -> tuple[dict | None, str]:
-    """The map recorded at `base`; else the newest one at an ancestor of `base`. An ancestor's map whose difference
-    from the base is only documentation describes the base exactly. Any other ancestor's map is STALE: its line
-    numbers describe another tree, so every test is tier 1 — but its durations and test names still serve the plan."""
-    exact = store / f"{base}.json.gz"
-    if exact.exists():
-        return load_map(exact), "exact"
-    candidates = []
-    for p in store.glob("*.json.gz") if store.is_dir() else []:
-        sha = p.name.split(".")[0]
-        if p.name != f"{sha}.json.gz":
-            continue  # partial (trial) maps are never used implicitly
-        distance = ancestor_distance(sha, base)
-        if distance is not None:
-            candidates.append((distance, sha, p))
-    for _, sha, p in sorted(candidates):
-        drift = non_doc_drift(sha, base)
-        if not drift:
-            reach.notes.append(f"map {sha[:12]} is older than the base {base[:12]} only by documentation — used")
-            return load_map(p), "documentation-only drift"
-        reach.every_tier1.append(f"the newest map at an ancestor ({sha[:12]}) is STALE: {len(drift)} "
-                                 f"non-documentation file(s) changed between it and the base {base[:12]} (first: "
-                                 f"{drift[0]}) — its durations and names are used, its line numbers are not")
-        return load_map(p), "stale"
-    reach.every_tier1.append(f"no impact map recorded for the base {base[:12]} or any ancestor in {store} — "
-                             f"record one (record_impact_map.py --commit {base[:12]})")
-    return None, "none"
+def find_map(store: Path, base: str, reach: Reach) -> MapChoice:
+    """The map that serves `base` (`impact_store.nearest`: the fewest source files differing between its commit and the
+    base, whatever its age or ancestry; kb/Work PB3663). Its line ranges describe every file the two trees share
+    exactly, so only a file in `drift` is taken at the file level (`reach_cs`); no usable map at all puts every test in
+    tier 1, with the reason printed."""
+    choice = impact_store.nearest(store, base, REPO)
+    if choice is None:
+        reach.every_tier1.append(f"no impact map recorded in {store} for the base {base[:12]} (the loop records one for "
+                                 f"every main commit it adopts; by hand: record_impact_map.py --commit {base[:12]})")
+        return MapChoice(None, "none", frozenset())
+    try:
+        m = load_map(choice.path)
+    except (OSError, EOFError, ValueError) as e:   # gzip.BadGzipFile is an OSError; a torn JSON body a ValueError
+        # A map pruned or replaced between the choice and the read, or torn by a killed recorder: the plan goes on
+        # unaimed and says why, never fails (a schema mismatch is another matter: load_map exits, loudly).
+        reach.every_tier1.append(f"the impact map {choice.sha[:12]} for the base {base[:12]} could not be read "
+                                 f"({type(e).__name__}: {e}) — record it again")
+        return MapChoice(None, "none", frozenset())
+    if choice.sha == base:
+        return MapChoice(m, "exact", frozenset())
+    if not choice.drift:
+        reach.notes.append(f"map {choice.sha[:12]} differs from the base {base[:12]} only by documentation — used")
+        return MapChoice(m, "documentation-only drift", frozenset())
+    reach.notes.append(f"map {choice.sha[:12]} serves the base {base[:12]}: {len(choice.drift)} source file(s) differ "
+                       f"between them (first: {choice.drift[0]}) — a change to one of those is taken at the file level, "
+                       f"every other file by line range")
+    return MapChoice(m, "nearest", frozenset(choice.drift))
 
 
 def tests_changed(text: str, diff: list[Hunk] | None) -> set[str]:
@@ -538,6 +540,9 @@ def reach_test_file(path: str, base: str | None, reach: Reach) -> None:
 
 
 def reach_cs(ix: MapIndex, path: str, status: str, base: str | None, reach: Reach) -> None:
+    if path in ix.drift:
+        drifted_change(ix, path, base, reach)
+        return
     if path not in ix.ranges:
         if path.startswith(TEST_PROJECTS):
             return  # never executed by the recording: its added and edited tests are tier 0a (reach_test_file)
@@ -558,9 +563,36 @@ def reach_cs(ix: MapIndex, path: str, status: str, base: str | None, reach: Reac
         mask |= ids
     reach.direct |= mask
     reach.widened |= ix.expand(mask)
+    if bad := ambient_only(ix, mask):
+        reach.every_tier1.append(f"{len(bad)} changed method(s) executed only OUTSIDE every test's context "
+                                 f"(e.g. {bad[0]}) — cannot attribute them")
     names = sorted({ix.entries[i][0].split("::")[-1].split("(")[0] for i in bit_ids(mask)})
     reach.notes.append(f"{path}: {len(names)} changed method(s) {', '.join(names[:6])}"
                        + (" …" if len(names) > 6 else "") if names else f"{path}: comments and blank lines only")
+
+
+def ambient_only(ix: MapIndex, mask: int) -> list[str]:
+    """⛔ The entries of `mask` reached ONLY outside every test's context (the ambient array, never a test's). In a test
+    file that is xunit DISCOVERY running a theory's data source — the theories naming a changed source are already tier
+    0a (`tests_changed`) — so those are no finding; in product code it is a finalizer or a thread that does not flow the
+    context, and nothing attributes it. Asked of the methods a hunk lands in and of a file no test reached anything of,
+    never of a file-level widening that merely CONTAINS such a method (a finalizer beside test-reached code does not make
+    a change to the file unattributable; measured: two of 22 replayed landings, both editing CobolNet.Runtime.CobolObject)."""
+    return [ix.entries[i][0] for i in bit_ids(mask & ix.ambient & ~ix.reached)
+            if not all(f.startswith(TEST_PROJECTS) for f, _, _ in ix.entries[i][1])]
+
+
+def drifted_change(ix: MapIndex, path: str, base: str | None, reach: Reach) -> None:
+    """A change to a file that DIFFERS between the map's commit and the base (kb/Work PB3663): the map's line ranges
+    describe another version of it, so which method the change lands in cannot be read from them. Every test that
+    executed any method of the file is tier 1 (the file-level superset of the method-level answer), and the file-level
+    widening of `declaration_change` follows. A file the map has never seen is unattributable."""
+    if path not in ix.known:
+        reach.every_tier1.append(f"{path}: differs between the map's commit and the base, and the map has never seen it")
+        return
+    reach.direct |= ix.file_ids.get(path, 0)
+    declaration_change(ix, path, base, reach, "differs between the map's commit and the base (its recorded line ranges "
+                                              "describe another version)")
 
 
 def declaration_change(ix: MapIndex, path: str, base: str | None, reach: Reach, why: str) -> None:
@@ -569,6 +601,10 @@ def declaration_change(ix: MapIndex, path: str, base: str | None, reach: Reach, 
     own = ix.file_ids.get(path, 0)
     if not own and not users:
         reach.every_tier1.append(f"{path}: {why}, and no executed file names a type it declares — cannot bound it")
+        return
+    if not (own & ix.reached) and not any(ix.file_ids[u] & ix.reached for u in users or []) and (bad := ambient_only(ix, own)):
+        reach.every_tier1.append(f"{path}: {why}, and every entry of it ran only OUTSIDE every test's context "
+                                 f"(e.g. {bad[0]}) — cannot attribute it")
         return
     reach.widened |= ix.expand(own)
     for u in users or []:
@@ -674,7 +710,7 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
             if path.startswith(TEST_PROJECTS) and status != "D":  # a deleted file has no test left to run
                 reach_test_file(path, base, reach)
             continue
-        if path.startswith("src/"):
+        if path.startswith("src/") and not READ_ONLY_DATA_RE.search(path):
             reach.every_tier1.append(f"{path}: a non-C# input under src/ (embedded data or resources)")
             continue
         if path in SUITE_KEYED:
@@ -718,18 +754,6 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
             reach.every_tier1.append(f"{path}: test data no test source names and no rule attributes")
         else:
             reach.notes.append(f"{path}: no test source names it and it is not built — not a test input")
-    if ix is None:
-        return
-    # ⛔ A changed entry reached ONLY outside every test's context. In a test file that is xunit DISCOVERY running
-    # a theory's data source — the theories naming a changed source are already tier 0a (`tests_changed`); in product
-    # code it is a finalizer or a thread that does not flow the context, and nothing attributes it.
-    orphan = (reach.direct | reach.widened) & ix.ambient & ~ix.reached
-    unattributed = [ix.entries[i][0] for i in bit_ids(orphan)
-                    if not all(f.startswith(TEST_PROJECTS) for f, _, _ in ix.entries[i][1])]
-    if unattributed:
-        reach.every_tier1.append(f"{len(unattributed)} changed method(s) executed only OUTSIDE every test's context "
-                                 f"(e.g. {unattributed[0]}) — cannot attribute them")
-
 
 def tiers(ix: MapIndex, reach: Reach) -> dict[str, dict[str, int]]:
     """Per assembly, per recorded display name, its tier (1 · 2 · 3). Rows sharing a display name (xunit truncates
@@ -758,17 +782,17 @@ def analyse(base: str | None, files: list[str] | None = None, map_path: Path | N
     reach = Reach()
     base = git("rev-parse", base) if base else None
     if map_path:
-        m, state = load_map(map_path), "exact"
-        if m.get("partial"):
-            reach.notes.append(f"⚠ {map_path} is a PARTIAL (trial) map over {m.get('filter')!r}")
+        found = explicit_map(map_path, base or git("rev-parse", "HEAD"))
+        if found.map.get("partial"):
+            reach.notes.append(f"⚠ {map_path} is a PARTIAL (trial) map over {found.map.get('filter')!r}")
     else:
-        m, state = find_map(store or default_store(), base or git("rev-parse", "HEAD"), reach)
-    ix = MapIndex(m) if m is not None else None
+        found = find_map(store or impact_store.default_store(REPO), base or git("rev-parse", "HEAD"), reach)
+    ix = MapIndex(found.map, found.drift) if found.map is not None else None
     changes = [("M", f) for f in files] if files else (changed_files(base) if base else [])
     if not changes:
         reach.notes.append("no changed files")
-    reach_of(ix if state != "stale" else None, changes, base if not files else None, reach)
-    return Analysis(m, state, reach, tiers(ix, reach) if ix is not None else {})
+    reach_of(ix, changes, base if not files else None, reach)
+    return Analysis(found.map, found.state, reach, tiers(ix, reach) if ix is not None else {})
 
 
 def plan_json(a: Analysis) -> dict:
@@ -782,16 +806,15 @@ def plan_json(a: Analysis) -> dict:
 
 
 def synthetic_map() -> dict:
-    """Two methods in A.cs (lines 10-20 and 30-40), a static constructor of A implied by One(), a type-level entry in
-    B.cs reached only ambiently, and three Conformance tests: M1 reaches One(), M2 only the constructor, M3 nothing
-    of A."""
-    def pack(n: int) -> str:
-        return base64.b64encode(zlib.compress(n.to_bytes((n.bit_length() + 7) // 8, "little"))).decode()
+    """Two methods in A.cs (lines 10-20 and 30-40), a finalizer there (42-44) that only the ambient array ever reached, a
+    static constructor of A implied by One(), a type-level entry in B.cs reached only ambiently, and three Conformance
+    tests: M1 reaches One(), M2 only the constructor, M3 nothing of A."""
     return {"schema": SCHEMA, "commit": "0" * 40,
             "entries": [["N.A::One()", [["src/Cobol.Net.Compiler/A.cs", 10, 20]]],
                         ["N.A::Two()", [["src/Cobol.Net.Compiler/A.cs", 30, 40]]],
                         ["N.B <type-level>", [["src/Cobol.Net.Compiler/B.cs", 0, 0]]],
-                        ["N.A::.cctor()", [["src/Cobol.Net.Compiler/A.cs", 5, 8]]]],
+                        ["N.A::.cctor()", [["src/Cobol.Net.Compiler/A.cs", 5, 8]]],
+                        ["N.A::Finalize()", [["src/Cobol.Net.Compiler/A.cs", 42, 44]]]],
             "implies": {"0": [3]},
             "known_files": ["src/Cobol.Net.Compiler/A.cs", "src/Cobol.Net.Compiler/B.cs",
                             "src/Cobol.Net.Compiler/Enum.cs"],
@@ -799,7 +822,7 @@ def synthetic_map() -> dict:
                       ["Conformance", "N.T.M2", "N.T.M2", "N.T", "Conformance:c1", 1.0, True],
                       ["Conformance", "N.T.M3", "N.T.M3", "N.T", "Conformance:c1", 1.0, True]],
             "test_bits": [pack(0b0001), pack(0b1000), pack(0)], "class_bits": {}, "collection_bits": {},
-            "ambient_bits": pack(0b0100)}
+            "ambient_bits": pack(0b10100)}
 
 
 def worktree_changes_in_scratch_repo() -> list[tuple[str, str]]:
@@ -821,6 +844,117 @@ def worktree_changes_in_scratch_repo() -> list[tuple[str, str]]:
             REPO = saved
 
 
+def map_service_arms(check) -> None:
+    """Which map serves a base, driven through `analyse` on a scratch repository (kb/Work PB3663). The synthetic map is
+    stored under the first commit's name; later commits are 'main moving on' (documentation, B.cs, A.cs, a new file),
+    and each scenario analyses one edit of A.cs line 12 (inside `One()`, lines 10-20 of the map) against a base. The
+    module's REPO and HEAD point at the scratch repository for the duration."""
+    from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    global REPO, HEAD
+    saved = (REPO, HEAD)
+    a_path, b_path = "src/Cobol.Net.Compiler/A.cs", "src/Cobol.Net.Compiler/B.cs"
+    a_lines = [f"    int x{n} = {n};" for n in range(1, 46)]
+    a_edited = [*a_lines[:11], "    int x12 = 99;", *a_lines[12:]]
+
+    def text(lines: list[str]) -> str:
+        return "\n".join(lines) + "\n"
+
+    tmp = scratch_dir("impacted-map-service-")
+    try:
+        repo = ScratchRepo.init(tmp / "repo")
+        repo.commit("the map's commit", {a_path: text(a_lines), b_path: "b\n", "docs/d.md": "d\n"})
+        recorded = repo.git("rev-parse", "HEAD")
+        repo.commit("documentation moves", {"docs/d.md": "d2\n", "scripts/t.py": "t\n"})
+        docs = repo.git("rev-parse", "HEAD")
+        repo.commit("B.cs moves", {b_path: "b2\n"})
+        b_moved = repo.git("rev-parse", "HEAD")
+        repo.commit("A.cs moves", {a_path: text([*a_lines[:30], "    int y = 0;", *a_lines[31:]])})
+        a_moved = repo.git("rev-parse", "HEAD")
+        repo.commit("a new file", {"src/Cobol.Net.Compiler/New.cs": "n\n"})
+        new_file = repo.git("rev-parse", "HEAD")
+        store = tmp / "store"
+        store.mkdir()
+        with gzip.open(impact_store.map_file(store, recorded), "wt", encoding="utf-8", newline="\n") as fh:
+            json.dump(synthetic_map(), fh)
+
+        def served(label: str, base: str, edited: str, text_after: str, want_state: str, want_drift: set[str],
+                   want_tiers: dict[str, int] | None, every_tier1: bool = False) -> None:
+            """The edit of `edited` (to `text_after`) on top of `base`, analysed against the store."""
+            global HEAD
+            repo.git("checkout", "-q", "--detach", base)
+            repo.commit(f"edit for {label}", {edited: text_after})
+            try:
+                REPO, HEAD = repo.path, repo.git("rev-parse", "HEAD")
+                found = find_map(store, base, Reach())
+                a = analyse(base, store=store)
+                got = a.tiers.get("Conformance")
+                check(label, a.map_state == want_state and set(found.drift) == want_drift
+                      and bool(a.reach.every_tier1) == every_tier1 and (want_tiers is None or got == want_tiers),
+                      f"{a.map_state}; drift {sorted(found.drift)}; {a.reach.every_tier1[:1]}; {got}")
+            finally:
+                REPO, HEAD = repo.path, None
+
+        REPO = repo.path
+        served("a map older than the base by documentation only describes it exactly (tier 1: the method edited)",
+               docs, a_path, text(a_edited), "documentation-only drift", set(), {"N.T.M1": 1, "N.T.M2": 3, "N.T.M3": 3})
+        served("a map older than the base by OTHER source files still attributes a file the trees share by line range",
+               b_moved, a_path, text(a_edited), "nearest", {b_path}, {"N.T.M1": 1, "N.T.M2": 3, "N.T.M3": 3})
+        served("a file that differs between the map's commit and the base is taken at the file level: every test that "
+               "executed any method of it is tier 1", a_moved, a_path, text([*a_edited[:30], "    int y = 1;", *a_edited[31:]]),
+               "nearest", {a_path, b_path}, {"N.T.M1": 1, "N.T.M2": 1, "N.T.M3": 3})
+        served("a hunk inside a method only the ambient array reached (a finalizer) cannot be attributed: every test is tier 1",
+               docs, a_path, text([*a_lines[:42], "    int x43 = 99;", *a_lines[43:]]), "documentation-only drift", set(),
+               {"N.T.M1": 1, "N.T.M2": 1, "N.T.M3": 1}, every_tier1=True)
+        served("a file the map has never seen, new since its commit, puts every test in tier 1",
+               new_file, "src/Cobol.Net.Compiler/New.cs", "n2\n", "nearest", {a_path, b_path, "src/Cobol.Net.Compiler/New.cs"},
+               {"N.T.M1": 1, "N.T.M2": 1, "N.T.M3": 1}, every_tier1=True)
+
+        # A map recorded AFTER the base serves it by comparing trees: ancestry plays no part.
+        later = tmp / "later"
+        later.mkdir()
+        with gzip.open(impact_store.map_file(later, b_moved), "wt", encoding="utf-8", newline="\n") as fh:
+            json.dump(synthetic_map(), fh)
+        repo.git("checkout", "-q", "--detach", docs)
+        repo.commit("edit for the newer map", {a_path: text(a_edited)})
+        REPO, HEAD = repo.path, repo.git("rev-parse", "HEAD")
+        try:
+            found = find_map(later, docs, Reach())
+            a = analyse(docs, store=later)
+            check("a map recorded AFTER the base serves it: its drift is the files the two trees differ in, and a file "
+                  "they share is attributed by line range",
+                  a.map_state == "nearest" and set(found.drift) == {b_path}
+                  and a.tiers.get("Conformance") == {"N.T.M1": 1, "N.T.M2": 3, "N.T.M3": 3},
+                  f"{a.map_state}; {sorted(found.drift)}; {a.tiers.get('Conformance')}")
+            # A map named on the command line is served by the same comparison (its commit is the one it was recorded at).
+            named = tmp / "named.json.gz"
+            with gzip.open(named, "wt", encoding="utf-8", newline="\n") as fh:
+                json.dump({**synthetic_map(), "commit": recorded}, fh)
+            a = analyse(docs, map_path=named)
+            check("a map named with --map is served by the same comparison: its commit differs from the base in "
+                  "documentation only", a.map_state == "documentation-only drift"
+                  and a.tiers.get("Conformance") == {"N.T.M1": 1, "N.T.M2": 3, "N.T.M3": 3},
+                  f"{a.map_state}; {a.tiers.get('Conformance')}")
+            unknown = tmp / "unknown.json.gz"
+            with gzip.open(unknown, "wt", encoding="utf-8", newline="\n") as fh:
+                json.dump(synthetic_map(), fh)   # its commit is 40 zeros: git holds no such commit
+            check("... and one whose commit git does not know describes the base as given",
+                  explicit_map(unknown, docs).state == "exact", explicit_map(unknown, docs).state)
+            torn = tmp / "torn"
+            torn.mkdir()
+            impact_store.map_file(torn, recorded).write_bytes(b"this is not a gzip file")
+            r = Reach()
+            found = find_map(torn, docs, r)
+            check("a map file that cannot be read (torn by a killed recorder, or pruned meanwhile) leaves the plan unaimed "
+                  "with the cause printed, never a failed plan",
+                  found.map is None and found.state == "none" and any("could not be read" in w for w in r.every_tier1),
+                  r.every_tier1[:1])
+        finally:
+            REPO, HEAD = repo.path, None
+    finally:
+        REPO, HEAD = saved
+        remove_tree(tmp)
+
+
 def self_test() -> int:
     """Prove each arm FIRES against a synthetic map (feedback_prove_the_watchdog_fails)."""
     from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch-repository fixture, kb/Work PB3584)
@@ -838,7 +972,8 @@ def self_test() -> int:
         return tiers(ix, reach)["Conformance"], reach
 
     t, _ = tiers_for(["src/Cobol.Net.Compiler/A.cs"])
-    check("a mapped file (file level) puts its tests in tier 2 and the others in tier 3",
+    check("a mapped file (file level) puts its tests in tier 2 and the others in tier 3 (A.cs also holds a finalizer only "
+          "the ambient array reached: it does not make the file unattributable)",
           t == {"N.T.M1": 2, "N.T.M2": 2, "N.T.M3": 3}, t)
     for label, f in [("an UNMAPPED (new) src file puts every test in tier 1", "src/Cobol.Net.Compiler/New.cs"),
                      ("a known file no test executed puts every test in tier 1", "src/Cobol.Net.Compiler/Enum.cs"),
@@ -848,7 +983,12 @@ def self_test() -> int:
                      ("a runtime data file puts every test in tier 1", "src/Cobol.Net.Runtime/Collation/Data/x.bin")]:
         t, reach = tiers_for([f])
         check(label, set(t.values()) == {1} and bool(reach.every_tier1), reach.every_tier1[:1])
-    planted = ["public sealed class T", "{", "    [Fact]", "    public void A() { }", "    [Theory]",
+    t, reach = tiers_for(["src/Cobol.Net.Runtime/PublicAPI.Unshipped.txt", "src/Cobol.Net.Runtime/PublicAPI.Shipped.txt",
+                          "src/Cobol.Net.Runtime/RuntimeAbi.pin"])
+    check("a public-API analyzer baseline is data a test may read, not a non-C# input: no test goes to tier 1 for it "
+          "(nor for the runtime ABI pin)",
+          not reach.every_tier1 and set(t.values()) == {3}, (reach.every_tier1[:1], t))
+    planted =["public sealed class T", "{", "    [Fact]", "    public void A() { }", "    [Theory]",
                "    [InlineData(\"x]\")]", "    public async Task B(string s) { }", "    [Fact(Skip = \"y\")]",
                "    [Trait(\"k\", \"v\")]", "    public void C<TSlot>() { }",
                "    private static int Helper() => 1;", "}"]
@@ -1111,33 +1251,13 @@ def self_test() -> int:
           t == {"N.T.M1": 2, "N.T.M2": 1, "N.T.M3": 3}, t)
 
     r = Reach()
-    m, state = find_map(Path(REPO / "tests" / "no-such-impact-store"), git("rev-parse", "HEAD"), r)
-    check("no map for the base puts every test in tier 1", m is None and state == "none" and bool(r.every_tier1),
-          r.every_tier1[:1])
+    found = find_map(Path(REPO / "tests" / "no-such-impact-store"), git("rev-parse", "HEAD"), r)
+    check("no map for the base puts every test in tier 1",
+          found.map is None and found.state == "none" and bool(r.every_tier1), r.every_tier1[:1])
 
-    # A map at an ANCESTOR of the base: documentation-only drift describes the base; any other drift is STALE —
-    # still returned (durations, names) but every test tier 1. Git ancestry is planted, so a shallow clone runs it.
-    global ancestor_distance, non_doc_drift
-    real = (ancestor_distance, non_doc_drift)
-    with tempfile.TemporaryDirectory() as store:
-        with gzip.open(Path(store) / f"{'a' * 40}.json.gz", "wt", encoding="utf-8", newline="\n") as fh:
-            json.dump(synthetic_map(), fh)
-        try:
-            ancestor_distance = lambda sha, base: 1  # noqa: E731
-            for label, drift, want in [("a documentation-only older map is used as exact", [],
-                                        "documentation-only drift"),
-                                       ("a STALE map is returned for its durations but puts every test in tier 1",
-                                        ["src/Cobol.Net.Compiler/A.cs"], "stale")]:
-                non_doc_drift = lambda sha, base, d=drift: d  # noqa: E731
-                r = Reach()
-                m, state = find_map(Path(store), "b" * 40, r)
-                ix_old = MapIndex(m) if m else None
-                t = tiers(ix_old, r)["Conformance"] if ix_old else {}
-                ok = state == want and m is not None and (
-                    (bool(r.every_tier1) and set(t.values()) == {1}) if want == "stale" else not r.every_tier1)
-                check(label, ok, f"{state}; {r.every_tier1[:1]}")
-        finally:
-            ancestor_distance, non_doc_drift = real
+    # The map that serves a base, against a real scratch repository (kb/Work PB3663): its tree's difference from the
+    # base's decides what the map can say, never its age or its ancestry.
+    map_service_arms(check)
 
     # The files a worktree changed leave out coord.NEVER_WORK (kb/Work PB3474): the harness's edit of its tracked settings
     # file, the checkpoint file and the gate's results are no change of the code, whatever the diff against the base says.

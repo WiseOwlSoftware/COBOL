@@ -7,13 +7,17 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE LOOP'S LANDING LANE LANDS, BESIDE THE UNIT, AND THE ENQUEUE UNIT DOES NOT (kb/Work PB3103;
-/// DESIGN-orchestrator-loop.md section 4.9; MANDATORY-PRACTICES O11): <c>scripts/orchestrator/orchestrate.ps1</c>
-/// starts <c>land_lane.py tick</c> as a BACKGROUND process (never awaited on the unit's event loop) as each unit starts
-/// and on a period while it runs, and step 3 of <c>scripts/orchestrator/units/enqueue.md</c> reads
-/// <c>land_lane.py status</c> and runs no <c>enqueue.py land</c> of its own.
+/// ⛔ THE LOOP'S LANDING LANE LANDS, BESIDE THE UNIT, AND THE ENQUEUE UNIT DOES NOT (kb/Work PB3103, PB3639;
+/// MANDATORY-PRACTICES O11): <c>orchestrate.ps1</c> starts <c>land_lane.py tick</c> as a BACKGROUND process from its one
+/// timer <c>Step-Lane</c>, called in <c>Invoke-Unit</c>, in <c>Wait-Until</c> after its STOP check and between units, and
+/// <c>enqueue.md</c> step 3 reads <c>land_lane.py status</c> and lands nothing.
 /// </summary>
 /// <remarks>
+/// <para>The design is DESIGN-orchestrator-loop.md section 4.9. The tick is never awaited on the unit's event loop. The
+/// lane spends no tokens, so it ticks for as long as the supervisor lives, unit or no unit (kb/Work PB3639): as each unit
+/// starts and on a period while it runs, in <c>Wait-Until</c> (a budget hold and a failure backoff tick; the STOP check
+/// comes first, so no tick starts once STOP exists) and at the loop top between units. The summary above is the text
+/// <c>drift_rules.py</c> prints before an edit of <c>orchestrate.ps1</c>, so it names every call site the test requires.</para>
 /// <para>Before the lane a branch reviewed CLEAN landed only when the loop's NEXT enqueue unit started, after its whole
 /// wave ended: wave 1069's group D was stamped CLEAN at 12:34 PDT and E and F by 13:05, and all three idled while G and
 /// H ran; then no implementer ran while the enqueue unit gated and waited on the merge queue. The owner chose the

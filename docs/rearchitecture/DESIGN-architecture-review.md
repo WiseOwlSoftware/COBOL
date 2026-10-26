@@ -1641,11 +1641,11 @@ slice in `blocked_by`), PB2151 and PB2129 where a note's sites need them, and v1
 is COMPUTED, never listed (PB2118 Draft 8; the seventh refuter, J2, found PB2296's hand list missing 16 callers and
 naming a file that does not exist, and Draft 7's "the brief computes callers with the rewriter's dry run and
 `where.py`" was no mechanism: `where.py` maps spec clauses to files, and the brief is rendered after the check). It is
-the union of its notes' DECLARED sets plus the group's primary file (`plan_wave.collision_set`, the fix lane's groups
+the union of its notes' DECLARED sets plus the group's primary file (`inflight.collision_set`, the fix lane's groups
 and a campaign's alike; the primary file is claimed whole unless every note declares a site block and one names it),
 and it is a set of MEMBERS, not only of files (kb/Work PB3670, the owner's top priority of 2026-10-24: "I do not
 understand why we cannot update separate regions of code in a single source file from different groups such that a
-merge conflict doesn't occur"): a `plan_wave.Claim` holds each file and the members claimed in it (a C# member, a
+merge conflict doesn't occur"): a `inflight.Claim` holds each file and the members claimed in it (a C# member, a
 Python function, a Markdown section, `scripts/arch/source_units.py`), a file with none named being claimed whole. A
 note's declared set is its STRUCTURED sites only, read by ONE reader, the register's
 `work.note_sites` (kb/Work PB3242), which the planner, the member index, the spec renderer and the landing check all
@@ -1683,8 +1683,8 @@ of `src/` and `tests/`, and the host's sources), and the planner plans only on T
 (`member_index.current`: a committed or cached record with that key, else one regenerated into
 `<coord>/member-index/`, else a refusal with `--no-index-regenerate`): a stale index cannot see a type or file a
 landing added (PB833's `OfdRegionLocks.cs` inside PB2251's site folder; K1), and Draft 8's "an older index only widens
-a set" was false. ONE function computes a declared set, `plan_wave.declared_sets`, on ONE explicit index policy
-(`plan_wave.IndexPolicy`: THE index of the tree, cached in `<coord>/member-index/`; kb/Work PB3203), and the planner,
+a set" was false. ONE function computes a declared set, `inflight.declared_sets`, on ONE explicit index policy
+(`inflight.IndexPolicy`: THE index of the tree, cached in `<coord>/member-index/`; kb/Work PB3203), and the planner,
 the spec renderer (`computed_file_set`, for a groups file that carries no file set) and the landing check (the same, for
 unrecorded R3 work) all pass it: the admission and the guarantee are one quantity, where the landing check's copy once
 read the newest committed record, which cannot see what a landing added. Regenerating costs a solution build plus the
@@ -1700,7 +1700,7 @@ as text. The dispatcher, `scripts/orchestrator/plan_wave.py` (`collision`, the O
 read from sources a branch classification cannot drop (`inflight_file_sets`): every worktree's changed files, committed
 or not, and every unlanded branch's, each counted only while it still differs from `origin/main`, plus every group of
 the dispatch ledger (`<coord>/inflight-groups.json`, read through `coord.ledger_groups`) whose notes are still
-open. The ledger has STRUCTURED writers only (kb/Work PB3186): `plan_wave.record_dispatch`, an upsert keyed on (wave,
+open. The ledger has STRUCTURED writers only (kb/Work PB3186): `dispatch_ledger.record_dispatch`, an upsert keyed on (wave,
 letter), called by `make_dispatch_specs.py` for every group it renders, the planner's waves and a hand-planned wave
 alike, with the group's exact file set, so a dispatched group is in flight before its first edit (J3); and `--release`.
 Draft 8's second writer, the dispatch guard's record of every HAND dispatch it admitted from a scrape of every note id
@@ -1708,7 +1708,7 @@ its prompt and named files mentioned, recorded reference notes as dispatched wor
 entries of 303 to 910 files on 2026-10-15) and is deleted; an entry it left (`hand: true`, a wave that is not a
 number) is ignored by every reader and dropped by the next record, and an attended dispatch made without a rendered
 group is in flight from its worktree's first edit, the landing check behind it. The planner reads each in-flight
-owner through the branch survey's lifecycle state (`plan_wave.classify_inflight`): work WAITING FOR REVIEW, WAITING TO
+owner through the branch survey's lifecycle state (`inflight.classify_inflight`): work WAITING FOR REVIEW, WAITING TO
 LAND or ENQUEUED is finished, and a group meeting it is planned as its CONTINUATION (its pred merges that branch
 first, no `after:`); a dispatched group with no report, and a branch IN FLIGHT, STOPPED, BOUNCED or undecided
 (DECISION) is running, and a group meeting it waits, the collision named; a group's own work (the branch its pred
@@ -1720,15 +1720,15 @@ names for a row not yet landed, in ALL three columns (Draft 6 read only "Today",
 files of "Callers updated in the same change"; H4), from every name in a code span, not only the first (`: GroupRepository`), a type
 mapped to each file declaring it, a member to the file declaring it (a one-word or widely declared name is reported,
 not guessed), and the `tests/` and `docs/` paths the table names. Set (b) is a RESERVATION, not work
-(`plan_wave.slice_reservation`, kb/Work PB3456): a campaign's plan reads it, and it holds only the restructuring
+(`inflight.slice_reservation`, kb/Work PB3456): a campaign's plan reads it, and it holds only the restructuring
 program's groups, those holding a note of R69 §2's "R2 and every R3 wave" (`work.restructuring`: a `cluster` list
 naming PB1754 or PB2119), whichever campaign plans them. A fix campaign's group (PB3353, PB2911) and the fix lane are
 never held for a slice, and the held row reads OPEN (RESERVED) until in-flight work holds a slice. A collision defers
 the group, with the collision named (the file, or `file#member`). Two claims MEET only on a file either claims whole, or
-on a member of one that matches a member of the other (`plan_wave.unit_meet`, `source_units.match`), and never on a
+on a member of one that matches a member of the other (`inflight.unit_meet`, `source_units.match`), and never on a
 file a merge driver merges by key (`merge_drivers.covered_by_driver`): two groups on different members of one file run
 side by side, and git's three-way merge combines their branches. An in-flight worktree's or branch's members are the
-units its ACTUAL diff touches in each file another claim shares (`plan_wave.inflight_units`, batched git reads); a
+units its ACTUAL diff touches in each file another claim shares (`inflight.inflight_units`, batched git reads); a
 ledger group's are the members it recorded. An EMPTY set meets NOTHING (kb/Work PB3670, superseding PB3263's "an
 unknown set meets its subsystem"): the group is named UNPARTITIONED and holds nothing, and its implementer adds the
 notes' site blocks. No partition removes every conflict (kb/Work PB3640: a declared set is a prediction), so a conflict
@@ -1741,7 +1741,7 @@ remaining miss must stop a landing, never land silently. `scripts/orchestrator/l
 WORKS ON (the ids leading its commit subjects, ranges expanded, and the notes whose `status` it changes; a commit that
 only mentions a note does not work on it) and compares the landing's ACTUAL diff (`git diff --name-only --no-renames
 origin/main...<rev>`: a moved file counts at its old path too, and the planner's admission reads diffs the same way,
-through one reader, `plan_wave.changed_files`) with
+through one reader, `inflight.changed_files`) with
 (1) its declared file set, for the R3 work it lands: the set the dispatch ledger recorded when the work was planned or
 admitted, read from the FULL ledger (the landing flips its own notes to terminal, and that declaration stays its
 authority), or the set computed now for a note never recorded; a file an R3 commit changed that existed on `main` and
