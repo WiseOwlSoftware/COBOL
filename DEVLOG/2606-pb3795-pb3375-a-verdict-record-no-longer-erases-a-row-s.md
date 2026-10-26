@@ -1,4 +1,4 @@
-## PB3795 + PB3375: a verdict record no longer erases a row's notes, and the audit sees an erased statement
+## Entry 2606 — 2026-10-25 20:54 PDT — PB3795 + PB3375: a verdict record no longer erases a row's notes, and the audit sees an erased statement
 
 `record_verdicts.merged` took a full record's statement fields from the record and wrote an absent one as empty. A record
 that restated a verdict and forgot `notes` therefore erased the row's forensic prose (the derivation, its `cite.py --check`,
@@ -47,3 +47,4 @@ restated, empty-over-prose refused, verdict change without notes refused, witnes
 
 **Self-review.** Silent-failure lens: the loss was silent because absence and emptiness were one value; the rule now
 distinguishes them and the audit closes the hand-edit path. The gate's verdict line is in the report.
+
