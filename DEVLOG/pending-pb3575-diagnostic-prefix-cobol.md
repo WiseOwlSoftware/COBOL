@@ -53,3 +53,19 @@ added; `semgrep/verify.py` counts unchanged.
 GREEN — ... Conformance 12,931/18,832 · Unit 37,735/38,392 · Characterization 7/36 cases ran (skipped 0) in 1 of 2
 leg(s) · Linux half (WSL clone of HEAD) GREEN ...`, with `=== DIAGNOSTIC PREFIX: GREEN — 18942 tracked path(s), none
 spells a code with the former prefix ===` and `=== WITNESS LOSS vs 448eeb9e6421: 0 unexcused, 14 retired ... GREEN ===`.
+
+**Branch review, round 1.** One blocking finding, R1-1: the audit ran in the gate and in CI's `audits` job, not at
+the landing. A branch cut before the rename that merges main cleanly is gated at its own head, whose gate has no such
+audit, and its old spellings would meet the audit for the first time in the merge queue's CI, which the CI invariant
+forbids. The review finisher's own merge of main showed it: five notes main gained after the reviewed base (PB3830,
+PB3831, PB3832, PB3836, PB906; 26 spellings of 5 codes) came in without a conflict and turned the audit RED. The
+landing now runs the merged head's own `rename_diagnostic_prefix.py --check` as its fourth check, the same shape as
+`work.py check` (kb/Work PB3389): a refusal is exit 6, which a finisher answers by running the rename, and a tree that
+cannot be listed is exit 2, NOT RUN. The finisher brief's exit-6 arm, MANDATORY-PRACTICES L1, DOC_INDEX,
+DESIGN-test-build-ci.md and the enqueue unit name it. The lead R1-2 sat in the same script, so it is fixed too: the
+rules missed code that builds a code (`"<prefix>" + code`, an interpolation hole) or matches the prefix in the
+compiler's output (`"error <prefix>"`, `StartsWith("<prefix>")`). A negative assertion built that way would pass
+whatever the compiler printed. Four rules now cover those shapes, plus the hyphenated band and the backticked family
+word. A bare literal passed to any other call stays, because it is a name (the COBOL program of
+`ModuleRegistrationHostTests`). Run over the pre-rename main, the script now converts all nine string sites the first
+pass converted by hand. What it still leaves is prose and names.

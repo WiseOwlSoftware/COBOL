@@ -3,7 +3,7 @@
 
     python scripts/rename_diagnostic_prefix.py              # rewrite the committed tree in place; prints the counts
     python scripts/rename_diagnostic_prefix.py --dry-run    # name the files it would change, change nothing
-    python scripts/rename_diagnostic_prefix.py --check      # the gate's audit: exit 1 naming every old-prefix line
+    python scripts/rename_diagnostic_prefix.py --check      # the audit: exit 1 naming every old-prefix line, 2 NOT RUN
     python scripts/rename_diagnostic_prefix.py --self-test
 
 ⛔ WHY (owner decision 2026-10-23, kb/Work PB3575, "COBOL####"; restated 2026-10-26 ~10:55 PDT): every diagnostic
@@ -24,9 +24,15 @@ THE RULES (one table, RULES, in the order they apply), all anchored on the old p
   - a regular expression that matches a code (a backslash-d, a [0-9] class, a group) does the same, and the forms that
     named both prefixes collapse to the one (an optional NET group; the alternation old|new|);
   - the prose word naming the code family ("an old-prefix code", "an old-prefix diagnostic", "-class") becomes
-    COBOL####, since "a COBOL code" would read as COBOL source code.
+    COBOL####, since "a COBOL code" would read as COBOL source code;
+  - code that builds a code from its number (an interpolation hole after the prefix, the prefix literal concatenated
+    with `+`) does the same;
+  - code that matches the prefix in the compiler's output does the same: the prefix after a severity word at the end
+    of a literal ("error " + old prefix), or the bare prefix literal as the argument of a string test (StartsWith,
+    Contains, removeprefix and their kin).
 Anything else spelled with the old letters is NOT a diagnostic prefix and stays: the docs/COBOLNET_*.md design-doc file
-names (an underscore follows), a COBOL program named COBOLNET in a test, the CobolNet namespaces.
+names and the runtime's environment variables (an underscore follows), a COBOL program named COBOLNET in a test (the
+bare literal as the argument of any call but a string test, a DISPLAY literal), the CobolNet namespaces.
 
 WHAT IT NEVER REWRITES (EXCEPT, the one list): history and frozen records, which keep the spelling of their day
 (CLAUDE.md rule 6; kb/Work PB785) — DEVLOG/, the applied verdict batches under adjudication/, the frozen evidence under
@@ -34,13 +40,16 @@ docs/rearchitecture/evidence/ — and the two files that own the rule: the decis
 and this script. Inside a file, a witness the traceability inventory records as RETIRED keeps the spelling it was
 retired under (PROTECTED, below).
 
-⭐ AN AUDIT, NOT A TEST (`--check`; the gate driver's DIAGNOSTIC PREFIX audit, CI's `audits` job, the battery). A tree
+⭐ AN AUDIT, NOT A TEST (`--check`; the gate driver's DIAGNOSTIC PREFIX audit, CI's `audits` job, the battery, and the
+landing check `enqueue.py checks` runs on the MERGED head with the merged head's own copy of this script). A tree
 that still spells a code with the old prefix outside EXCEPT is RED, naming each line, so a branch that merged main
-without converting itself is red before its build, never in a golden's diff. It is the SAME rules, asked as a
+without converting itself is red before its build, never in a golden's diff; and a branch cut before this rename that
+merges main CLEANLY (a new note citing an old-prefix code conflicts with nothing) is refused at its landing, exit 6, a
+finisher's, never first in the merge group's CI (PB3575 review R1-1, the CI invariant). It is the SAME rules, asked as a
 question: a line is an offender exactly when a rewrite would change it, so the rename and its guard cannot disagree.
 It is an audit rather than a tree-sweeping Unit test for the reason scripts/conflict_markers.py is (kb/Work PB2878):
 a test that reads every tracked file makes every path one a test reads, and the inert lane could then skip nothing.
-A broken enumeration (no git, too few tracked paths) is RED, never a clean tree.
+A broken enumeration (no git, too few tracked paths) is NOT RUN, exit 2 (a failure to every gate), never a clean tree.
 """
 from __future__ import annotations
 
@@ -77,8 +86,24 @@ RULES: tuple[tuple[re.Pattern[bytes], bytes], ...] = (
     (re.compile(rb"COBOL\(\?:NET\)\?(?=[0-9]|\\+d|\[0-9\])"), b"COBOL"),
     # a code, a Markdown-bold code, a placeholder, or a regex that matches a code
     (re.compile(rb"COBOLNET(?=[0-9]|\*\*[0-9]|nnnn|####|<n>|\xe2\x80\xa6|\\+d|\[0-9\]|\()"), b"COBOL"),
-    # the prose word for a code of the family
-    (re.compile(rb"COBOLNET(?=(?: |-)(?:code|codes|Code|diagnostic|diagnostics|class)\b)"), b"COBOL####"),
+    # a band written with a hyphen (`COBOLNET-08xx`) loses the hyphen with its NET
+    (re.compile(rb"COBOLNET-(?=[0-9]{2}xx\b)"), b"COBOL"),
+    # the prose word for a code of the family, backticked or not (`an old-prefix code`, `` `old-prefix` codes``, the
+    # parse layer's `twin` of a catalogue descriptor)
+    (re.compile(rb"COBOLNET(?=`?(?: |-)(?:code|codes|Code|diagnostic|diagnostics|class|twin|twins)\b)"), b"COBOL####"),
+    # code that BUILDS a code from its number: an interpolation hole (`$"COBOLNET{n}"`, `f"COBOLNET{first:04d}"`) or a
+    # concatenation (`"COBOLNET" + code`). PB3575 review R1-2: a negative assertion built this way
+    # (`AssertNoDiagnostic(diag, "COBOLNET" + code)`) searches for a prefix the compiler no longer prints, so it passes
+    # whatever the compiler emits.
+    (re.compile(rb"COBOLNET(?=\{)"), b"COBOL"),
+    (re.compile(rb"([\"'])COBOLNET(?=\1\s*\+)"), rb"\1COBOL"),
+    # code that MATCHES the prefix in the compiler's output: a severity word before it (`"error COBOLNET"`), or a
+    # string-test call whose argument is the bare prefix (`StartsWith("COBOLNET")`, `removeprefix("COBOLNET")`). The
+    # bare literal as the argument of any OTHER call is a name and stays: the COBOL program of
+    # ModuleRegistrationHostTests (`Callee("COBOLNET", 10)`, `CALL "COBOLNET"`), named like a generated namespace.
+    (re.compile(rb"\b(error|warning|info|note) COBOLNET(?=[\"'])"), rb"\1 COBOL"),
+    (re.compile(rb"(\b(?:StartsWith|EndsWith|Contains|IndexOf|LastIndexOf|startswith|endswith|removeprefix|"
+                rb"removesuffix|find|rfind|index|count)\(\s*([\"']))COBOLNET(?=\2)"), rb"\1COBOL"),
 )
 
 #: A file whose first BINARY_PROBE bytes hold a NUL is binary (git's heuristic) and is not rewritten.
@@ -184,11 +209,28 @@ def self_test() -> int:
          r'@"COBOL\d{4}" "COBOL\\d{4}" COBOL[0-9]{4} "COBOL(159[7-9])"', "the regular expressions"),
         (rf"(?:{old}|COBOL|CBL)\d{{4}} and COBOL(?:NET)?\d{{4}}", r"(?:COBOL|CBL)\d{4} and COBOL\d{4}",
          "the both-prefix forms collapse to one"),
-        (f"a {old} diagnostic, no {old} code, a {old}-class rejection, a {old} Code",
-         "a COBOL#### diagnostic, no COBOL#### code, a COBOL####-class rejection, a COBOL#### Code",
-         "the prose word for the family"),
+        (f"a {old} diagnostic, no {old} code, a {old}-class rejection, a {old} Code, `{old}` codes, each {old} twin",
+         "a COBOL#### diagnostic, no COBOL#### code, a COBOL####-class rejection, a COBOL#### Code, `COBOL####` codes, "
+         "each COBOL#### twin", "the prose word for the family"),
+        (f"a targeted {old}-08xx diagnostic, the {old}07xx band", "a targeted COBOL08xx diagnostic, the COBOL07xx band",
+         "a band, hyphenated or not"),
         (f"docs/{old}_DESIGN.md, CALL \"{old}\" USING, HELLO FROM {old}.",
          f"docs/{old}_DESIGN.md, CALL \"{old}\" USING, HELLO FROM {old}.", "a name that is no diagnostic prefix stays"),
+        # PB3575 review R1-2: the shapes that build a code or match the prefix in the compiler's output
+        (f'AssertNoDiagnostic(diag, "{old}" + code); x = \'{old}\'+n',
+         "AssertNoDiagnostic(diag, \"COBOL\" + code); x = 'COBOL'+n", "a concatenation that builds a code"),
+        ('$"expected ' + old + '{mk.Groups[1].Value}" f"' + old + '{first:04d}-' + old + '{last:04d}"',
+         '$"expected COBOL{mk.Groups[1].Value}" f"COBOL{first:04d}-COBOL{last:04d}"',
+         "an interpolation hole that builds a code"),
+        (f'e.Contains("error {old}", O) "b.cob(7,12): warning {old}" \'note {old}\'',
+         "e.Contains(\"error COBOL\", O) \"b.cob(7,12): warning COBOL\" 'note COBOL'",
+         "a severity word before the prefix at the end of a literal"),
+        (f'w.StartsWith("{old}", O) e.Contains( "{old}") a.removeprefix(\'{old}\') s.IndexOf("{old}")',
+         "w.StartsWith(\"COBOL\", O) e.Contains( \"COBOL\") a.removeprefix('COBOL') s.IndexOf(\"COBOL\")",
+         "a string test whose argument is the bare prefix"),
+        (f'Callee("{old}", 10) CompileCobol(dir, "CobolNet", x) DISPLAY "AFTER {old} " W-N "HELLO FROM {old}"',
+         f'Callee("{old}", 10) CompileCobol(dir, "CobolNet", x) DISPLAY "AFTER {old} " W-N "HELLO FROM {old}"',
+         "the bare literal as any other call's argument, and a DISPLAY literal, are names and stay"),
         (r'new("\"(COBOL(?:NET)?_[A-Z0-9_]*)\"") and ' + old + "_CLOCK",
          r'new("\"(COBOL(?:NET)?_[A-Z0-9_]*)\"") and ' + old + "_CLOCK",
          "an environment-variable name and the regex that matches the names stay"),
@@ -237,9 +279,9 @@ def self_test() -> int:
            offenders(root, ["late.md"])), (1, [f"late.md:2: error {old}0899: x"]))
     run(root, tracked(root), write=True)
     expect("the audit is GREEN once the tree is converted", check(root, min_tracked=1), 0)
-    expect("an enumeration of too few tracked paths is RED", check(root), 1)
+    expect("an enumeration of too few tracked paths is NOT RUN (exit 2), never a pass", check(root), 2)
     bare = scratch_dir("rename-prefix-bare-")
-    expect("a directory git cannot enumerate is RED", check(bare, min_tracked=1), 1)
+    expect("a directory git cannot enumerate is NOT RUN (exit 2), never a pass", check(bare, min_tracked=1), 2)
     print(f"=== RENAME DIAGNOSTIC PREFIX SELF-TEST: {'FAIL — ' + str(len(failures)) if failures else 'PASS'} ===")
     return 1 if failures else 0
 
@@ -256,16 +298,17 @@ def offenders(root: Path, changed: list[str]) -> list[str]:
 
 def check(root: Path, min_tracked: int = MIN_TRACKED) -> int:
     """The audit: 0 when no tracked file outside EXCEPT spells a code with the old prefix, 1 naming every line when one
-    does, and 1 when the tree cannot be enumerated or enumerates to fewer than `min_tracked` paths."""
+    does, and 2 (NOT RUN, never a pass) when the tree cannot be enumerated or enumerates to fewer than `min_tracked`
+    paths: the landing check maps 1 to a refusal a finisher answers and 2 to NOT RUN (enqueue.py CHECKS)."""
     try:
         paths = tracked(root)
     except (subprocess.CalledProcessError, OSError, SystemExit) as e:
-        print(f"=== DIAGNOSTIC PREFIX: RED — the tracked tree of {root} could not be listed ({e}) ===")
-        return 1
+        print(f"=== DIAGNOSTIC PREFIX: NOT RUN — the tracked tree of {root} could not be listed ({e}) ===")
+        return 2
     if len(paths) < min_tracked:
-        print(f"=== DIAGNOSTIC PREFIX: RED — only {len(paths)} tracked path(s) under {root} (at least {min_tracked} "
-              "expected): the enumeration is broken, so the audit would read nothing ===")
-        return 1
+        print(f"=== DIAGNOSTIC PREFIX: NOT RUN — only {len(paths)} tracked path(s) under {root} (at least "
+              f"{min_tracked} expected): the enumeration is broken, so the audit would read nothing ===")
+        return 2
     r = run(root, paths, write=False)
     found = offenders(root, r.changed)
     if found:
