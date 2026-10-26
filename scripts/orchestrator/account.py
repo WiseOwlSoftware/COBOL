@@ -5,6 +5,7 @@
     python scripts/orchestrator/account.py --field config_dir|child_config_dir|name|project_dir|account_uuid|email
     python scripts/orchestrator/account.py --config-dir DIR --seed-plan | --seed-check   # kb/Work PB2480
     python scripts/orchestrator/account.py [--config-dir DIR] --skill-review              # kb/Work PB2598
+    python scripts/orchestrator/account.py [--config-dir DIR] --memory-index              # kb/Work PB3779
     python scripts/orchestrator/account.py --self-test
 
 Design: docs/rearchitecture/DESIGN-orchestrator-loop.md section 2.1 (kb/Work PB2478, PB2479). Owner 2026-10-07: the fix
@@ -29,6 +30,11 @@ a PARAMETER of every coordination tool, never an assumption.
   the pruning it drives edits the skills and plugins the seed copies. So `skill_review` answers "was THIS account's
   skill set reviewed within the week?" from every account's stamp: a review under an account whose skill set contains
   this one's covers it, which is how a freshly seeded account inherits its source's review instead of re-asking.
+- The auto-MEMORY INDEX (kb/Work PB3779) is `<config dir>/projects/<main checkout's repo key>/memory/MEMORY.md`, which every
+  agent turn and every main-thread turn carries (about 4.9K tokens at 19.5K chars). It holds the anchors, the START HERE
+  pointers and the standing rules, and stays under `MEMORY_INDEX_CAP_CHARS`: every dated decision, resume note and lane
+  handoff is one line in `project_history_index.md` instead. `--memory-index` prints its size and exits 1 over the cap,
+  and `session-probe.ps1` prints that line at every session start, so the drift is seen when it starts.
 - TELEMETRY is per MACHINE, not per account: every account's settings export to the one sink on 127.0.0.1:4318, which
   writes `~/.claude/telemetry/<UTC day>.jsonl` (`otlp_sink.OUT_DIR`). Each `api_request` event carries the account id
   (`usage_report.ACCOUNT_ATTR`, `user.account_uuid`), and a consumer that needs one account's spend filters on it.
@@ -56,6 +62,9 @@ ENV = "CLAUDE_CONFIG_DIR"
 # mtime is the review's time. It is due again SKILL_REVIEW_DAYS later (kb/Work R49 item 11, PB2598).
 SKILL_REVIEW_STAMP = "wiseowl-cobol-skill-doctor.stamp"
 SKILL_REVIEW_DAYS = 7
+# The auto-memory index rides every turn of every session, so it is capped (kb/Work PB3779: 19.5K chars was about 4.9K
+# tokens a turn, $75 a week at the measured turn rate).
+MEMORY_INDEX_CAP_CHARS = 6000
 
 
 class UnknownAccount(LookupError):
@@ -239,6 +248,36 @@ def seed_plan(acct: Account, rules: dict[str, Any], repo: pathlib.Path) -> dict[
             "flags": {"path": str(acct.global_config), "set": seed["flags"]}, "never": seed["never"]}
 
 
+@dataclasses.dataclass(frozen=True)
+class MemoryIndex:
+    path: pathlib.Path
+    chars: int | None            # None: the file does not exist or cannot be read
+    lines: int
+
+    @property
+    def over(self) -> bool:
+        return self.chars is not None and self.chars > MEMORY_INDEX_CAP_CHARS
+
+    def render(self) -> str:
+        if self.chars is None:
+            return f"memory index: none readable at {self.path} (absent, or no read access)"
+        text = f"memory index: {self.chars} chars, {self.lines} lines (cap {MEMORY_INDEX_CAP_CHARS}) at {self.path}"
+        if self.over:
+            return (f"{text} - OVER THE CAP: move the dated decisions, resume notes and lane handoffs to "
+                    f"project_history_index.md, one line each; every agent turn re-reads this file")
+        return text
+
+
+def memory_index(acct: Account, repo: pathlib.Path = coord.REPO) -> MemoryIndex:
+    """The account's auto-memory index for `repo`'s main checkout (a linked worktree's sessions share its memory)."""
+    path = acct.project_dir(main_checkout(repo)) / "memory" / "MEMORY.md"
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return MemoryIndex(path, None, 0)
+    return MemoryIndex(path, len(text), len(text.splitlines()))
+
+
 def _is_junction_to(link: pathlib.Path, target: pathlib.Path) -> bool:
     is_link = getattr(os.path, "isjunction", lambda p: False)(link) or os.path.islink(link)
     return is_link and same_dir(pathlib.Path(os.path.realpath(link)), pathlib.Path(os.path.realpath(target)))
@@ -353,6 +392,7 @@ def _self_test() -> int:
         (d / ".claude.json").write_text("{not json", encoding="utf-8", newline="\n")
         check("unreadable global config -> no uuid", p.uuid, None)
     _skill_review_cases(check)
+    _memory_index_cases(check)
     for f in fails:
         print("FAIL:", f)
     print(f"account self-test: {len(checked) - len(fails)}/{len(checked)} checks OK")
@@ -429,8 +469,41 @@ def _skill_review_cases(check) -> None:
         check("PB2598: a review 7 days old is due again", got(), None)
 
 
+def _memory_index_cases(check) -> None:
+    """kb/Work PB3779, over a temporary config dir and repository: the key is the MAIN checkout's, the cap is exact."""
+    import subprocess  # noqa: PLC0415
+    import tempfile
+    with tempfile.TemporaryDirectory() as t:
+        root = pathlib.Path(t)
+        cfg, repo = root / "cfg", root / "repo"
+        repo.mkdir()
+        subprocess.run(["git", "init", "-q", str(repo)], check=True)
+        subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q",
+                        "--allow-empty", "-m", "x"], check=True)
+        wt = root / "wt"
+        subprocess.run(["git", "-C", str(repo), "worktree", "add", "-q", str(wt)], check=True)
+        reset = {"weekday": 0, "hour": 0, "minute": 0, "tz": "UTC"}
+        rules = {"quota": {}, "accounts": {"list": [{"name": "m", "config_dir": str(cfg), "weekly_reset": reset}]}}
+        acct = current(rules, {ENV: str(cfg)})
+        key = re.sub(r"[:\\/]", "-", str(main_checkout(repo)))
+        index = cfg / "projects" / key / "memory" / "MEMORY.md"
+        check("PB3779: no index file -> nothing to cap", memory_index(acct, repo).render().startswith("memory index: none readable"), True)
+        index.parent.mkdir(parents=True)
+        index.write_text("a" * MEMORY_INDEX_CAP_CHARS, encoding="utf-8", newline="\n")
+        m = memory_index(acct, repo)
+        check("PB3779: an index exactly at the cap is not over", (m.chars, m.over), (MEMORY_INDEX_CAP_CHARS, False))
+        index.write_text("a" * MEMORY_INDEX_CAP_CHARS + "\nb\n", encoding="utf-8", newline="\n")
+        m = memory_index(acct, repo)
+        check("PB3779: one char past the cap is over", (m.chars, m.lines, m.over), (MEMORY_INDEX_CAP_CHARS + 3, 2, True))
+        check("PB3779: the over line says what to move and where", "project_history_index.md" in m.render(), True)
+        check("PB3779: a linked worktree reads the main checkout's index", memory_index(acct, wt).path, index)
+        index.write_bytes(b"\xff\xfe" + b"a" * 10)
+        check("PB3779: a non-UTF-8 index is still sized, never reported absent", memory_index(acct, repo).chars is not None, True)
+        subprocess.run(["git", "-C", str(repo), "worktree", "remove", "--force", str(wt)], check=True)
+
+
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap =argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--json", action="store_true")
     who = ap.add_mutually_exclusive_group()
     who.add_argument("--account", help="a named account from the table instead of the one CLAUDE_CONFIG_DIR selects")
@@ -441,6 +514,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--seed-check", action="store_true", help="list what the dir lacks of its seed; exit 1 if anything")
     ap.add_argument("--skill-review", action="store_true",
                     help="say which account's /skill-doctor review covers this account's skill set; exit 1 if it is due")
+    ap.add_argument("--memory-index", action="store_true",
+                    help="print the auto-memory index's size against its cap (kb/Work PB3779); exit 1 if it is over")
     ap.add_argument("--rules", help="a model_rules.json to read instead of the repository's (a test seam)")
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args(argv)
@@ -460,6 +535,10 @@ def main(argv: list[str] | None = None) -> int:
         bad = seed_problems(acct, rules, repo)
         print("\n".join(bad) if bad else f"{acct.name}: seeded ({acct.config_dir})")
         return 1 if bad else 0
+    if a.memory_index:
+        m = memory_index(acct, repo)
+        print(m.render())
+        return 1 if m.over else 0
     if a.skill_review:
         r = skill_review(acct, rules)
         print(f"{acct.name}: reviewed {r.age_days} day(s) ago under {r.by} ({r.stamp})" if r
