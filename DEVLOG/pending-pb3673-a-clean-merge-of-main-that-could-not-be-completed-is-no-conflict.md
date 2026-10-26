@@ -30,3 +30,8 @@ with `pattern_matches`, which anchors a pattern with a `/` at the root; the note
 
 **Not done here.** PB2665 (the loop's meter unit and `orchestrate.ps1`'s breaker read an environment cause as a unit
 failure) is the third member of the family the note names and its own note.
+
+**Gate.** First gate RED (run 000001-20261026T031943Z): two land-order drift tests anchored on the text `merge_main(wt`, which
+`land` now calls as its `merge` collaborator (re-anchored on `merge(wt, branch, base)`). Second gate, run
+000002-20261026T032852Z: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 8,432/18,832 · Unit
+36,665/38,367 · Characterization 7/36 cases ran · Linux half (WSL clone of HEAD) GREEN …`.
