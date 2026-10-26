@@ -31,10 +31,10 @@
       *>     argument in bytes") reports it. The S9(19) leg is the one that fails on the
       *>     common "8 bytes for everything from 10 digits up" shortcut.
       *> SIGN - the width is SIGN-INDEPENDENT: S9(4) and 9(4) both answer 2. GR4 leaves this
-      *>     to the implementor; COBOL.NET's determination sets the boundary by the SIGNED
+      *>     to the implementor; WiseOwl COBOL's determination sets the boundary by the SIGNED
       *>     worst case so one picture never splits into two widths (the GR21 precedent, which
       *>     pins SIGNED and UNSIGNED to one length for the fixed-width binary usages).
-      *> ALIGN - GR4's "alignment" obligation. COBOL.NET's determination is NO alignment: the
+      *> ALIGN - GR4's "alignment" obligation. WiseOwl COBOL's determination is NO alignment: the
       *>     binary leaf begins at the next byte and no implicit FILLER is generated, so
       *>     X(1) + S9(4) BINARY + X(1) is 1 + 2 + 1 = 4. An implementation aligning the
       *>     binary item to a 2-byte boundary answers 6 (1 + pad 1 + 2 + 1 + pad 1).

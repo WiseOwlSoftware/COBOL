@@ -3,7 +3,7 @@
 using System.Globalization;
 using System.Reflection;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
 /// THE mechanism for running one theory-heavy test class across SEVERAL xUnit collections — one rule, one place.
@@ -168,7 +168,7 @@ internal static class TestPartitionAudit
     /// test assembly's drift test consists of.</summary>
     /// <remarks>This throws rather than asserting so that <c>tests/_shared</c> stays free of an xUnit reference:
     /// <c>tests/Directory.Build.props</c> links these files into EVERY project under <c>tests/</c>, and
-    /// <c>Cobol.Net.Benchmarks</c> is not a test project and has no xUnit package.
+    /// <c>WiseOwl.Cobol.Benchmarks</c> is not a test project and has no xUnit package.
     /// <para>⛔ Zero families is a FAILURE, not a pass. A selector that returns nothing is evidence about what it
     /// returned, never about what it dropped, and a coverage gate that quietly found nothing to cover is the
     /// exact shape of a green test holding a gap open.</para></remarks>

@@ -11,8 +11,8 @@
 *> portable: unverified
 *>---
       *> PB61 - FUNCTION LENGTH (15.50.4) and FUNCTION BYTE-LENGTH (15.14.4), one probe per RULE BRANCH, the
-      *> expected values derived from the standard (never from an oracle). COBOL.NET's pinned widths
-      *> (COBOLNET_INTRINSICS_DESIGN, BYTE-LENGTH): DISPLAY 1 byte/position, NATIONAL 2 (D-N1), COMP 9(4) 2,
+      *> expected values derived from the standard (never from an oracle). WiseOwl COBOL's pinned widths
+      *> (INTRINSICS_DESIGN, BYTE-LENGTH): DISPLAY 1 byte/position, NATIONAL 2 (D-N1), COMP 9(4) 2,
       *> COMP-1 4, COMP-2 8, INDEX/POINTER 8, USAGE BIT ceil(n/8). An alphanumeric group's LENGTH is r3's
       *> "alphanumeric character positions", which under the 1-byte-per-position model equals its bytes.
       *> CARR:  15.50.4 r3 - a COMP-1/COMP-2/INDEX/POINTER item is "other than category boolean or usage
@@ -51,7 +51,7 @@
       *> BIT:   15.50.4 r1 - an elementary boolean item's length is in BOOLEAN positions: PIC 1(12) USAGE BIT
       *>        -> 12 (BYTE-LENGTH 2), a DISPLAY boolean PIC 1(4) -> 4 4, the boolean literal B"10110" -> 5.
       *> PHYS:  15.14.2's optional PHYSICAL keyword (FMT-15.14.2) is accepted on BYTE-LENGTH as on LENGTH; under
-      *>        COBOL.NET's 15.50.4 r8 / 15.14.4 r7 determination (the group is physically located where it is
+      *>        WiseOwl COBOL's 15.50.4 r8 / 15.14.4 r7 determination (the group is physically located where it is
       *>        defined) it returns the value the same reference returns without it: 7 7 and 9 9.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB61LENBRANCHES.

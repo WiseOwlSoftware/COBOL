@@ -20,7 +20,7 @@ BS = chr(92)
 
 CASES = [
     # (command, cwd, allowed?)
-    ("git rm -r -q src/CobolSharp.Compiler tests/CobolSharp.Tests.Unit", str(WT), True),
+    ("git rm -r -q src/Legacy.Compiler tests/Legacy.Tests.Unit", str(WT), True),
     ("git rm -r src/X", str(WT), True),
     ("git rm -r --cached src/X", str(WT), True),
     ("git rm -r -- src/X", str(WT), True),

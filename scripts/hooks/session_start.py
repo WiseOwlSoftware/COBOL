@@ -74,7 +74,7 @@ def fetch_cloud_corpus() -> str:
     import shutil
     sys.path.insert(0, str(REPO / "scripts"))
     import external_corpus
-    cached = pathlib.Path("/opt/cobolsharp-cache/gnucobol-3.2.tar.xz")
+    cached = pathlib.Path("/opt/wiseowl-cobol-cache/gnucobol-3.2.tar.xz")
     target = REPO / "tests" / "external" / cached.name
     out: list[str] = []
 

@@ -9,7 +9,7 @@
       *> --std 85. The full derivation is in tests/conformance/2023/pb367_use_procedure_is_the_
       *> section.cob; this is the 85 WITNESS, because the rule is edition-INDEPENDENT: 14.9.49.3
       *> SR1, 14.4.2, 14.6.3 rule 1 and 14.9.14.4 GR1/GR2/GR7 carry the same text in every edition
-      *> COBOL.NET targets, and the truncation had no edition arm. Only USE format 1 is exercised
+      *> WiseOwl COBOL targets, and the truncation had no edition arm. Only USE format 1 is exercised
       *> here - the EXCEPTION CONDITION format and >>TURN are 2002-and-later, so this file gates
       *> clean at 85 while asserting the same rule.
       *>

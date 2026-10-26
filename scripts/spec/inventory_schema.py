@@ -441,7 +441,7 @@ class DerivedSelector:
     """One `derived-verdicts` entry — a verdict that follows MECHANICALLY from one owner determination.
 
     ⛔ THE PREDICATE IS DATA AND BOTH ENGINES READ IT. This class and
-    `tests/Cobol.Net.Tests.Unit/DerivedVerdictDriftTests.Select` are the two evaluators; neither carries a copy of
+    `tests/WiseOwl.Cobol.Tests.Unit/DerivedVerdictDriftTests.Select` are the two evaluators; neither carries a copy of
     a selector. Until 2026-09-02 the schema's own $comment claimed that already — and it was false: no Python
     consumer of `derived-verdicts` existed, so the PB198 batch was produced by hand and the "two readers" that
     justify writing the predicate as data were one reader and an aspiration.
@@ -919,7 +919,7 @@ class Schema:
         """Does this row name a site in the compiler a program could observe the determination through?
 
         The predicate is the row's OWN `code-location` list read through its kind's `implementation-pattern` —
-        the greenfield `src/Cobol.Net.*` predicate `audit_annex_a1.py`'s source sweep already applies. A path is
+        the greenfield `src/WiseOwl.Cobol.*` predicate `audit_annex_a1.py`'s source sweep already applies. A path is
         falsifiable by an independent reader; an opinion is not. A row of a kind that declares no
         implementation-pattern is vacuously observable, so adding a kind never tightens an existing one.
         """

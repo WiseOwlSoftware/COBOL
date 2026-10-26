@@ -6,7 +6,7 @@ using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace CobolNet.Tools.ArchCensus;
+namespace WiseOwl.Cobol.Tools.ArchCensus;
 
 /// <summary>
 /// The architecture census's Roslyn host (kb/Work PB2115; DESIGN-architecture-review.md §3 R0). It loads a solution

@@ -22,7 +22,7 @@
       *>   §7.3.6.3 GR3 "The final result of the arithmetic expression
       *>   shall be truncated to the integer part of the value" -> OK
       *>   §7.3.6.3 3).
-      *> COBOL.NET's standard arithmetic is the standard-decimal
+      *> WiseOwl COBOL's standard arithmetic is the standard-decimal
       *>   intermediate data item: "a maximum precision of 34 decimal
       *>   digits" (-> OK §8.8.1.5.2); an inexact intermediate rounds
       *>   NEAREST-AWAY-FROM-ZERO, "If the INTERMEDIATE ROUNDING clause

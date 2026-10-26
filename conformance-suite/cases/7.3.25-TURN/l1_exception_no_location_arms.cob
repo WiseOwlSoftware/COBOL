@@ -16,7 +16,7 @@
       *>   §15.30.3 r1  EXCEPTION-LOCATION   -> one alphanumeric space
       *>   §15.31.3 r1  EXCEPTION-LOCATION-N -> one national space char
       *>   §15.32.3 r1  EXCEPTION-STATEMENT  -> 63 spaces
-      *> COBOL.NET saves no location information when LOCATION is absent
+      *> WiseOwl COBOL saves no location information when LOCATION is absent
       *> - the §7.3.25.4 GR7 determination ("If the LOCATION phrase is
       *> not specified, the implementor shall specify whether this
       *> information is made available or not"; Annex A.1 item 204) - so

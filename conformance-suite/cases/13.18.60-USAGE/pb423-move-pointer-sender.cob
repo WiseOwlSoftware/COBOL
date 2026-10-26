@@ -10,7 +10,7 @@
 *> EITHER operand position, whatever the other operand is; 13.18.60.3 SR9 lists the references a data-pointer
 *> data item may appear in and a MOVE is not among them.
 *>
-*> Measured before the fix: this program compiled, ran and printed Y=[CobolNet] - the CLR type name of the
+*> Measured before the fix: this program compiled, ran and printed Y=[WiseOwl.Cobol] - the CLR type name of the
 *> pointer carrier, deposited into a user's alphanumeric item with no diagnostic anywhere. The screen asked
 *> only class INDEX, excused by a comment asserting the other three classes "cannot reach a bound MOVE yet".
 *>

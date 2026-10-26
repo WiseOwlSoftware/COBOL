@@ -283,7 +283,7 @@ conformance-suite/
   a whole run replaces the baseline, an `--editions` run replaces the record of each edition it ran and keeps the
   others' (each edition's record is a whole run of its suite), and `--test` is refused with it. `run.py` executes the per-edition suites; the `wiseowl` manifest and its
   refusals are the in-process xUnit runner's (S1c).
-- **In WiseOwl's own pipeline**: the xUnit runner in `Cobol.Net.Tests.Conformance` executes the same manifests
+- **In WiseOwl's own pipeline**: the xUnit runner in `WiseOwl.Cobol.Tests.Conformance` executes the same manifests
   in-process (fast) and also checks `wiseowl/diagnostics.json`; the drift test that requires the two runners'
   verdict sets to be equal runs `harness/run.py` with the WiseOwl adapter itself, on the same generated suites, so
   every gate and both of CI's operating systems run it (no CI job of its own, which a local gate would not
@@ -402,7 +402,7 @@ conformance-suite/
 | F9 — compile-only positives | Warning | Adopted: every accepted test runs; an empty `.out` (§3.1) |
 | F10 — working directory, file names, stdin, vendor reserved words, limits | Warning | Adopted (§4 profiles, §5) |
 | F11 — clause 11 alone measures the cheap kind of test | Suggestion | Adopted: the pilot adds COMPUTE and one file statement (§8) |
-| F12 — counting rules; "`CutRunner.Normalize` does not exist" | Suggestion | Counting rule adopted (§2). The class claim is wrong: `internal static class CutRunner` with `Normalize` is `tests/Cobol.Net.Tests.Conformance/CompilerUnderTest.cs:12` |
+| F12 — counting rules; "`CutRunner.Normalize` does not exist" | Suggestion | Counting rule adopted (§2). The class claim is wrong: `internal static class CutRunner` with `Normalize` is `tests/WiseOwl.Cobol.Tests.Conformance/CompilerUnderTest.cs:12` |
 | F13 — two runners parsing headers | Suggestion | Adopted: the generator's manifests are the only input to both runners, with a verdict drift test (§5) |
 | F14 — free-form header; id and file name | Suggestion | Adopted (§3, §3.1) |
 
@@ -469,7 +469,7 @@ hold the status, this section the scope. Every slice ships its own tests and dri
   and baseline. On the way, the `cobol` command's exit code for a source the binding phase refuses (a syntax rule the
   binder checks, an edition diagnostic) became 65, like a parse error, where it had fallen to 70, the code of the
   compiler's own failure.
-- **S1c — WiseOwl's manifest runner (PB3176).** An xUnit runner in `tests/Cobol.Net.Tests.Conformance` that executes
+- **S1c — WiseOwl's manifest runner (PB3176).** An xUnit runner in `tests/WiseOwl.Cobol.Tests.Conformance` that executes
   the generator's manifests in-process (accept: compile, run, compare through `CutRunner.Normalize`; flag: the
   diagnostic at the marked line; `wiseowl/diagnostics.json`: the refusal and its code or message), and the drift
   tests of §9: equal verdicts with `run.py` on the WiseOwl adapter, and the two normalizations on one shared fixture.

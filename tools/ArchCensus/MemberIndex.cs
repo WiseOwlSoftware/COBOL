@@ -3,7 +3,7 @@
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 
-namespace CobolNet.Tools.ArchCensus;
+namespace WiseOwl.Cobol.Tools.ArchCensus;
 
 /// <summary>
 /// The member index (kb/Work PB2118 Draft 8, J2; DESIGN-architecture-review §8.7 "the file-set partition"): from the

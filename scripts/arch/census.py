@@ -18,7 +18,7 @@ What it measures (the facts come from a Roslyn semantic model, never from grep):
 
 How:
   1. a DETACHED worktree at the commit (default HEAD) — a record describes exactly one tree, never a dirty one;
-  2. `dotnet build Cobol.Net.sln -c Debug` there (the population check reads the BUILT assemblies);
+  2. `dotnet build WiseOwl.Cobol.sln -c Debug` there (the population check reads the BUILT assemblies);
   3. the Roslyn host `tools/ArchCensus` (built from THIS checkout, so an older commit can be measured) loads the
      solution through MSBuildWorkspace and writes the raw facts; it REFUSES a solution whose projects the scope does
      not partition, a workspace load failure, and a compilation with errors;
@@ -79,16 +79,16 @@ FROZEN_BANNER = (
 
 # ── THE SCOPE RULE ─────────────────────────────────────────────────────────────────────────────────────────────
 # Every solution project is exactly one of these, or the run is refused (the host checks the partition too):
-#   census   — a product project: under src/, named Cobol.Net.*;
-#   reader   — a test or benchmark project under tests/, named Cobol.Net.*: its uses count as test uses, its
+#   census   — a product project: under src/, named WiseOwl.Cobol.*;
+#   reader   — a test or benchmark project under tests/, named WiseOwl.Cobol.*: its uses count as test uses, its
 #              scaffolds and drift tests are measured, its own size is not;
-#   excluded — the legacy engine (CobolSharp.*), being deleted (kb/Work R69 §1; the Delete program PB2119):
+#   excluded — the legacy engine (Legacy.*), being deleted (kb/Work R69 §1; the Delete program PB2119):
 #              nothing in the census depends on it, so leaving it out changes no number about the product.
-CENSUS_PREFIX = "Cobol.Net."
-LEGACY_PREFIX = "CobolSharp."
-# The assembly generated programs call: CodeGen/AssemblyPackager.cs copies Cobol.Net.Runtime.dll beside every compiled
+CENSUS_PREFIX = "WiseOwl.Cobol."
+LEGACY_PREFIX = "WiseOwl COBOL."
+# The assembly generated programs call: CodeGen/AssemblyPackager.cs copies WiseOwl.Cobol.Runtime.dll beside every compiled
 # program, and the emitter writes calls to it as TEXT, so its members are reached by names inside string literals.
-EMITTED_SURFACE = ["Cobol.Net.Runtime"]
+EMITTED_SURFACE = ["WiseOwl.Cobol.Runtime"]
 
 # ── THE GOD-CLASS AND WAVE-KIND POLICY ─────────────────────────────────────────────────────────────────────────
 GOD_CLASS_LINES = 800          # DESIGN-architecture-review §3 R0: "any type over ~800 lines across its partials"
@@ -107,7 +107,7 @@ REGISTER = "kb/"                               # a kb/Work mention counts only w
 CONVENTIONAL = {"README.md", "LICENSE", "LICENSE.md", "LICENSE.txt", "__init__.py", ".gitignore", ".gitattributes",
                 ".gitmodules", "CLAUDE.md", "AGENTS.md", "CONTRIBUTING.md", "SECURITY.md", "CODE_OF_CONDUCT.md",
                 "CLA.md", "global.json", "nuget.config", "Directory.Build.props", "Directory.Packages.props",
-                "Directory.Build.targets", "Cobol.Net.sln", "PROMPT.md", ".agent-fleet.json",
+                "Directory.Build.targets", "WiseOwl.Cobol.sln", "PROMPT.md", ".agent-fleet.json",
                 "conftest.py"}
 # ...and any file whose name, or whose folder's name, says it is a notice for people (a README, a LICENSE, a NOTICE).
 NOTICE = re.compile(r"(?i)readme|license|notice")
@@ -634,12 +634,12 @@ def measure(commit: str, work: Path, out_dir: Path) -> Path:
     print(f"census: {sha[:12]} ({date}) in {wt}", flush=True)
     git("worktree", "add", "--detach", str(wt), sha)
     try:
-        sln = (wt / "Cobol.Net.sln").read_text(encoding="utf-8-sig")
+        sln = (wt / "WiseOwl.Cobol.sln").read_text(encoding="utf-8-sig")
         scope = scope_of(solution_projects(sln))
         print(f"census: scope census={scope['census']} readers={scope['readers']} excluded={scope['excluded']}",
               flush=True)
         t0 = time.time()
-        run_logged(["dotnet", "build", "Cobol.Net.sln", "-c", "Debug", "-v", "quiet"], wt, logs / "build.log")
+        run_logged(["dotnet", "build", "WiseOwl.Cobol.sln", "-c", "Debug", "-v", "quiet"], wt, logs / "build.log")
         host = work / "host"
         run_logged(["dotnet", "build", str(REPO / HOST), "-c", "Release", "-o", str(host), "-v", "quiet"], REPO,
                    logs / "host-build.log")
@@ -648,7 +648,7 @@ def measure(commit: str, work: Path, out_dir: Path) -> Path:
         scope_file.write_text(json.dumps(scope), encoding="utf-8", newline="\n")
         raw_file = work / "raw.json"
         t1 = time.time()
-        run_logged(["dotnet", str(host / "ArchCensus.dll"), "--solution", str(wt / "Cobol.Net.sln"), "--scope",
+        run_logged(["dotnet", str(host / "ArchCensus.dll"), "--solution", str(wt / "WiseOwl.Cobol.sln"), "--scope",
                     str(scope_file), "--out", str(raw_file)], wt, logs / "host.log")
         print(f"census: measured in {time.time() - t1:.0f}s", flush=True)
         raw = json.loads(raw_file.read_text(encoding="utf-8"))
@@ -707,14 +707,14 @@ def self_test() -> int:
             return str(e)
         return ""
 
-    real = solution_projects((REPO / "Cobol.Net.sln").read_text(encoding="utf-8-sig"))
+    real = solution_projects((REPO / "WiseOwl.Cobol.sln").read_text(encoding="utf-8-sig"))
     scope = scope_of(real)
-    arm("the scope rule partitions the real Cobol.Net.sln (no unclassified project, a census and a reader each)",
+    arm("the scope rule partitions the real WiseOwl.Cobol.sln (no unclassified project, a census and a reader each)",
         bool(scope["census"]) and bool(scope["readers"])
         and sorted(scope["census"] + scope["readers"] + scope["excluded"]) == sorted(n for n, _ in real), str(scope))
-    planted = real + [("Cobol.Net.Planted", "src/Cobol.Net.Planted/Cobol.Net.Planted.csproj")]
-    arm("a NEW src/Cobol.Net.* project joins the census by the rule, with no edit here",
-        "Cobol.Net.Planted" in scope_of(planted)["census"])
+    planted = real + [("WiseOwl.Cobol.Planted", "src/WiseOwl.Cobol.Planted/WiseOwl.Cobol.Planted.csproj")]
+    arm("a NEW src/WiseOwl.Cobol.* project joins the census by the rule, with no edit here",
+        "WiseOwl.Cobol.Planted" in scope_of(planted)["census"])
     why = failure_of(lambda: scope_of(real + [("Contoso.Tool", "tools/Contoso.Tool/Contoso.Tool.csproj")]))
     arm("a project the rule does not classify REFUSES the run, naming it", "Contoso.Tool" in why, why)
     folder = 'Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{X}"\n'
@@ -729,11 +729,11 @@ def self_test() -> int:
     why = failure_of(lambda: population_check([{**ok, "sourceTypes": [], "compiledTypes": []}]))
     arm("an EMPTY built assembly FAILS the run (never a clean zero)", "no authored type" in why, why)
 
-    r = responsibilities("CobolNet.Binding.DataBinder", ["src/x/DataBinder.cs", "src/x/DataBinder.Reports.cs"],
+    r = responsibilities("WiseOwl.Cobol.Binding.DataBinder", ["src/x/DataBinder.cs", "src/x/DataBinder.Reports.cs"],
                          ["BindReportGroup", "BindReportLine", "EmitReportSum", "BindMove", "Validate"],
-                         {"CobolNet.A": 3, "CobolNet.B": 9})
+                         {"WiseOwl.Cobol.A": 3, "WiseOwl.Cobol.B": 9})
     arm("responsibilities name the partial concerns, the shared method subjects and the main dependencies",
-        r == {"concerns": ["Reports"], "subjects": ["Report (3)"], "depends": ["CobolNet.B", "CobolNet.A"]}, str(r))
+        r == {"concerns": ["Reports"], "subjects": ["Report (3)"], "depends": ["WiseOwl.Cobol.B", "WiseOwl.Cobol.A"]}, str(r))
 
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)

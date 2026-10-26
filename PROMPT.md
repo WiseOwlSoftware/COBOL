@@ -3,7 +3,7 @@
 > **This file is DOCTRINE — the standing "how we build" that does not change session to session.**
 > It deliberately does not restate what other files own:
 > **process rules → `CLAUDE.md`** · **the work register → `kb/Work/` (the ONLY one — CLAUDE.md rule 8)** · **live state → plan §0** · **anti-pattern catalog → `CONSTRAINTS.md`** ·
-> **design → `docs/COBOLNET_DESIGN.md` + the deep-dives** · **history → `DEVLOG/`**.
+> **design → `docs/DESIGN.md` + the deep-dives** · **history → `DEVLOG/`**.
 > Where this file and one of those disagree, the owning file wins and this one gets fixed.
 
 ## 1. The mission

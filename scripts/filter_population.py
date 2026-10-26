@@ -43,8 +43,8 @@ real at all.
 Usage (the wave-local gate applies its filter to ONE assembly and runs the other two unfiltered):
 
     python scripts/filter_population.py --filter "<expanded filter>" \
-        --filtered tests/Cobol.Net.Tests.Conformance \
-        --unfiltered tests/Cobol.Net.Tests.Unit --unfiltered tests/Cobol.Net.Tests.Characterization
+        --filtered tests/WiseOwl.Cobol.Tests.Conformance \
+        --unfiltered tests/WiseOwl.Cobol.Tests.Unit --unfiltered tests/WiseOwl.Cobol.Tests.Characterization
 
 ⛔ `--allow-build` FOR A CALLER THAT HAS NOT BUILT YET (kb/Work PB751). Discovery runs `--no-build` by default,
 because the gate callers build the solution themselves and re-building per term would multiply the gate's cost.
@@ -271,7 +271,7 @@ def self_test(filtered: str, unfiltered: str, allow_build: bool = False) -> int:
         ("a grouped live filter is silent", f"({fq}~{live}|{fq}~{other})", [filtered], [unfiltered], RC_OK, ""),
         # A failed discovery is an ERROR, never a finding: a missing observation is not a negative one.
         ("a discovery failure is exit 2, not a finding", f"{fq}~{live}",
-         ["tests/Cobol.Net.Tests.NoSuchProject_PB708"], [], RC_ERROR, ""),
+         ["tests/WiseOwl.Cobol.Tests.NoSuchProject_PB708"], [], RC_ERROR, ""),
     ]
     if elsewhere:
         # ⛔ PB691 ITSELF: a term whose tests live only in the assembly this invocation runs unfiltered.
@@ -313,8 +313,8 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.self_test:
-        return self_test(args.filtered[0] if args.filtered else "tests/Cobol.Net.Tests.Conformance",
-                         args.unfiltered[0] if args.unfiltered else "tests/Cobol.Net.Tests.Unit",
+        return self_test(args.filtered[0] if args.filtered else "tests/WiseOwl.Cobol.Tests.Conformance",
+                         args.unfiltered[0] if args.unfiltered else "tests/WiseOwl.Cobol.Tests.Unit",
                          args.allow_build)
     if not args.filter or not args.filtered:
         ap.error("--filter and at least one --filtered are required (or --self-test)")

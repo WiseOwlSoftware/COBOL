@@ -7,14 +7,14 @@
 > **STATUS: the AUTHORITATIVE greenfield-truth view of the M2/M3/M4 catalog** (the ratified
 > Phase-4 entry audit — `docs/COMPLETION_ROADMAP_COUNCIL.md` Phase 4). The catalog
 > `docs/ISO2023_CONFORMANCE_PLAN.md` §3 carries LEGACY-era ☑/◐ marks; THIS table supersedes them with the
-> per-item greenfield status verified against `src/Cobol.Net.*` by a 10-agent audit (no LANDED/NOT-STARTED
+> per-item greenfield status verified against `src/WiseOwl.Cobol.*` by a 10-agent audit (no LANDED/NOT-STARTED
 > mark overturned on cross-check). The single largest finding: the M2-DATA "done" marks are
 > LEGACY-ONLY mirages — national/boolean/pointers/floats were implemented in the retired legacy engine and
 > stage LOUD (COBOL0899) in the greenfield; Phase 4 reclaims them. Keep this in sync as tracks land.
 
 
 Audit of docs/ISO2023_CONFORMANCE_PLAN.md §3 (M2/M3/M4 catalog) against the live greenfield tree
-(src/Cobol.Net.*). Cross-checked 8 LANDED + 3 NOT-STARTED (all NOT-STARTED rows in the set) + spot
+(src/WiseOwl.Cobol.*). Cross-checked 8 LANDED + 3 NOT-STARTED (all NOT-STARTED rows in the set) + spot
 checks on ALLOCATE / VALIDATE / PicInfo skeletons. **No LANDED or NOT-STARTED mark overturned.** Minor
 corrections in the Corrections section.
 
@@ -281,7 +281,7 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
   - **NEW cross-assembly test** (`InterProgramFileDifferentialTests` Fix-G style, or a new `UdfCrossAssemblyTests`): `CompileTo` a caller+prototype module and a separately-compiled `FUNCTION-ID` definition module into one dir; `CutRunner.Run` the caller → assert the RETURNING crossed the assembly boundary; a second test with the definition module ABSENT → assert the failure detail contains **`EC-FUNCTION-NOT-FOUND`** (the §8.4.3.2.4 GR6b Fatal surface — mirrors `Call_AbsentSiblingModule_StillNotFound`).
   - **`UdfInvocationTests`** additions: prototype-provides-signature; prototype+definition-not-duplicate; prototype-no-RETURNING→1507; keyword-omitted intrinsic + user-function; a data-name shadowing an intrinsic still binds as data (no false function re-route); ALL-INTRINSIC/named collection.
   - **Matrix / registry:** `function-prototype-2002` row (IntroducedIn 2002) in `ConstructDialectStatus.cs` + `constructs.json` mirror (0900 at 85). Legacy exclusions in `ConformanceTests.cs` for the new goldens (DEVLOG 618 rule).
-  - **Same-change-set docs:** this file's M2-UDF-3 (NOT-STARTED→LANDED) + M2-UDF-4 (PARTIAL→LANDED-or-residue) rows; the stale grammar comments (`CobolParserCore.g4:182–185`, `:438–443` — "later slice / not yet bound"); the DEVLOG entry; the resume-prompt STATE banner; and `COBOLNET_INTERPROGRAM_DESIGN.md`'s function section (the prototype-signature loader + the D1 cross-assembly-via-sibling-probe posture).
+  - **Same-change-set docs:** this file's M2-UDF-3 (NOT-STARTED→LANDED) + M2-UDF-4 (PARTIAL→LANDED-or-residue) rows; the stale grammar comments (`CobolParserCore.g4:182–185`, `:438–443` — "later slice / not yet bound"); the DEVLOG entry; the resume-prompt STATE banner; and `INTERPROGRAM_DESIGN.md`'s function section (the prototype-signature loader + the D1 cross-assembly-via-sibling-probe posture).
 
 - **Implementation order (small green commits; FULL `scripts/guard.sh` on the grammar commit).** **(1)** Lexer `PROTOTYPE` + `_dataNameTokens` + `cobolWord` + `CheckedTokenTypes` + `functionIdParagraph` tail + regen → greenfield battery + **FULL legacy guard** (85 surface invariant). **(2)** `IsPrototype` on CallUnit + `CallBuildUserFunctionTable` dedupe + no-body emit filter + RunMain first-program + `BoundCallProgram.IsFunction` + `CallProgram` EC-name + 1505 rework → battery. **(3)** `udf_prototype` golden + `GreenfieldOnly` + cross-assembly tests (present + absent→EC-FUNCTION-NOT-FOUND) + registry/matrix rows → battery + **legacy conformance**. **(4)** UDF-4: `DataBinder` ALL-INTRINSIC/named collection + inheritance + the keyword-omitted bind-side re-route + SR12/SR13 1513 check + `udf_all_intrinsic` golden + tests → battery. **(5)** Docs + DEVLOG + resume-prompt + memory + commit/push (feedback_fully_autonomous_push); confirm CI.
 
@@ -359,13 +359,13 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
   design-sanctioned Tier-B shape (`ExternalStore`'s own doc: "never a persisted byte substrate",
   ProgramRegistry.cs:258-263); no `byte[]` anywhere; byte offsets are character offsets in this model
   (byte=char holds for the alphanumeric/zoned world — see RESIDUE-11 for NATIONAL/bit). (c) **SSOT authority**
-  — COBOLNET_DESIGN.md:627-628: the ONE carrier serves "USAGE POINTER, ADDRESS OF, BASED, ALLOCATE/FREE, SET
+  — DESIGN.md:627-628: the ONE carrier serves "USAGE POINTER, ADDRESS OF, BASED, ALLOCATE/FREE, SET
   ADDRESS OF". **Rejected:** `ManagedPointer<T>.OverField/Cell` closures as the pointer VALUE — they fail
   structural equality (§8.8.4.2.16), have no byte offset for F10 GR20 (pointer_arith unrealizable), and no
   window algebra for a 1-byte BASED view over a 10-byte buffer; OverField stays what it is: the CALL-ABI
   carrier. A PointerRegistry-style side table stays rejected (memory feedback_managed_pointers). The
   `Cell(T)`-doc's "also the ALLOCATE backing" claim (ProgramRegistry.cs:93,113-114) is SUPERSEDED — update the
-  doc comment + COBOLNET_DESIGN §9.1 in the same change set (feedback_follow_design_docs_and_spec).
+  doc comment + DESIGN §9.1 in the same change set (feedback_follow_design_docs_and_spec).
 - **ADDRESS OF ⇒ byte-backing (the CallMakeExternal generalization).** A parse-tree pre-scan collects the
   `SET p TO ADDRESS OF x` operands (alt 2 of setAddressStatement — the ONLY ADDRESS OF surface in the grammar;
   alt 1's operand is the BASED receiver, never forced); a late hook `PtrBindAddressables(program)` runs beside
@@ -458,7 +458,7 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
   `BoundSetPointerUpDown(IReadOnlyList<Place> Targets, BoundExpression Amount, bool Up)`;
   `BoundAllocate(DataItem? Based, BoundExpression? Chars, bool Initialized, Place? Returning)`;
   `BoundFree(IReadOnlyList<Place> Operands)`.
-- **Runtime additions** (namespace CobolNet.Runtime): `StorageCell` (Holder generalized — `ExternalStore.Cells`
+- **Runtime additions** (namespace WiseOwl.Cobol.Runtime): `StorageCell` (Holder generalized — `ExternalStore.Cells`
   becomes `Dictionary<string, StorageCell>`; the generated `ref ….Ref` bridge shape is UNCHANGED, so IC-series
   baselines must stay byte-identical — guard-proved); `CellPointer` + `ManagedPointer.At(cell, offset)`;
   `SameTarget` structural branch; `CobolPtr.Deref(p, classWidth) → ref string`, `.OffsetOf(p) → long`,
@@ -503,7 +503,7 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
   description refresh. The three goldens double as the phase demo (feedback_demo_per_phase) — outputs
   ISO-derived above, not just non-crashing. Full battery + legacy guard green pre-commit with the IC-series
   watched specifically for the Holder→StorageCell rename (behavior-neutral by construction; escalate on any
-  diff). Same-change-set doc updates: COBOLNET_DESIGN §9.1 (supersede the `Cell(T)`-as-ALLOCATE-backing claim
+  diff). Same-change-set doc updates: DESIGN §9.1 (supersede the `Cell(T)`-as-ALLOCATE-backing claim
   with the StorageCell/CellPointer model + WHY), PicInfo.cs:31-35 and ProgramRegistry.cs:77-79/:93 doc
   comments, this file's M2-DATA-5/M2-PROC-5 rows, DEVLOG entry, resume-prompt STATE banner.
 - **STAGED RESIDUE (named, loud).** (1) Pointers across the CALL boundary: no CobolArgAdapt pointer arm
@@ -682,7 +682,7 @@ both ways); negative corpus +1 (based-level-05).
   (GR4 :6375 / GR6c), equality-only boolean relations, `<` national ordering under the default national PCS,
   `MOVE B-NAME TO B-FLAG` display-form→bit-form (§8.8.4.2.8's usage-independence, value moved per §14.9.25.4 GR6 a)).
 
-- **STORAGE DECISIONS (the documented implementor choices — record in COBOLNET_DESIGN with the WHY).**
+- **STORAGE DECISIONS (the documented implementor choices — record in DESIGN with the WHY).**
   **D-N1 National representation**: an elementary national item is a plain C# `string` of `Length` characters
   (Length = count of N positions); .NET strings are natively UTF-16, so the golden header's "two bytes per
   character position" is the *documented implementor choice* (§13.18.60.4 GR8 + §8.1.2 NOTE 2). ALL width
@@ -941,7 +941,7 @@ both ways); negative corpus +1 (based-level-05).
   BoundStringLiteral.Category + BOOLLIT arms at all funnels → ConvertSource Boolean arm + SpliceInto pad →
   MoveCategoryLegality boolean half (0819) + relation guard (0844) + Compare pad → InitializeCategory.Boolean
   → VALUE decode/validation (0898) + 0881 SR5 → IsCharacterImage Boolean → boolean test flips + new tests +
-  negative cases → `boolean_data` enabled + registry/json boolean flip + docs (COBOLNET_DESIGN data §: D-B1) +
+  negative cases → `boolean_data` enabled + registry/json boolean flip + docs (DESIGN data §: D-B1) +
   DEVLOG. GATE: full greenfield battery + LEGACY ConformanceTests + guard-fast. **Commit 2 — NATIONAL
   (M2-DATA-3)**: PicInfo national legs + `national-edited-2002` pending row + SR12/SR20/SR13 resolution (0881/
   0899 shapes) → NATLIT arms + 0814 guard → ConvertSource National arm + Table 16 national half → national
@@ -972,12 +972,12 @@ both ways); negative corpus +1 (based-level-05).
   Grammar/Core/CobolData.g4 :428–437; tests/version-matrix/constructs.json :408–427;
   tests/conformance/2002/manifest.json :5, :8, :46; conformance-suite/cases/13.18.40-PICTURE/national_data.cob :42–45 + .out
   line 8; legacy-integration-tests/ConformanceTests.cs :51–55, :62–102, :108;
-  tests/Cobol.Net.Tests.Conformance/CorpusRunnerTests.cs :25–31, :61–88, :97–115 [brief];
+  tests/WiseOwl.Cobol.Tests.Conformance/CorpusRunnerTests.cs :25–31, :61–88, :97–115 [brief];
   DataSkeletonEditionTests.cs :30–45, :50–77, :114–128 [brief]; LoudGuardTests.cs :62–76, :84–110, :125–147
   [brief]; VersionMatrixTests.cs :53–74 [brief]; ConstructRegistryDriftTests.cs :33–53 [brief];
   Runtime SequentialFile.cs :199–222, :422 [brief]; IntrinsicCatalog.cs :125 [brief]. Plus the
   **category-set sweep command**: grep `PicCategory.Alphanumeric or PicCategory.NumericEdited` across
-  src/Cobol.Net.Compiler — every hit consciously extended (National/Boolean join) or exempted with a comment
+  src/WiseOwl.Cobol.Compiler — every hit consciously extended (National/Boolean join) or exempted with a comment
   (feedback_scan_all_similar).
 
 - **STAGED RESIDUE (named, loud — each with § + guard).** (1) **Bit operators** B-AND/B-OR/B-XOR/B-NOT/
@@ -1007,7 +1007,7 @@ both ways); negative corpus +1 (based-level-05).
   leaf kind a byte window cannot express at all, so the shared area grew a second half. `StorageCell` carries
   MANAGED SLOTS keyed by byte offset beside its byte image, the member's bytes there are reserved placeholders
   of its `ByteWidth`, and `Place.SlotWindow` (the third `WindowCoding`) reads/writes the slot through
-  `CobolPtr.SlotRead`/`SlotWrite` — see **D-SLOT** in `COBOLNET_DATA_MODEL_DESIGN.md`. §14.9.3.4 GR9's
+  `CobolPtr.SlotRead`/`SlotWrite` — see **D-SLOT** in `DATA_MODEL_DESIGN.md`. §14.9.3.4 GR9's
   null-seeding is satisfied by construction (an unwritten slot reads null). Positive witness
   `conformance:cases/14.9.3-ALLOCATE/pb231_based_pointer_leaf`; the two NONCONFORMING shapes the residue diagnostic used to
   reject for the wrong reason now draw their own rules (COBOL1797 = §13.18.5.3 SR1, COBOL1796 =
@@ -1015,7 +1015,7 @@ both ways); negative corpus +1 (based-level-05).
   national record gate, was discharged next, by kb/Work PB327 (2026-09-05): the record codec IS the byte
   channel — `AsImage()`/`FromImage()` ships a national leaf's two UTF-16BE bytes, `GateNationalRecords` became
   `GateFileRecordByteSurface` asking the ONE byte-window predicate, and D-N5 in
-  `COBOLNET_DATA_MODEL_DESIGN.md` records the discharge. Witnesses
+  `DATA_MODEL_DESIGN.md` records the discharge. Witnesses
   `conformance:cases/14.9.27-OPEN/pb327_national_fd_record`, `conformance:2002/pb327_national_line_sequential_fill`,
   `conformance:cases/_unassigned/pb327_national_record_key`.
   (11) **STANDARD-COMPARE §15.85 / BYTE-LENGTH §15.14** — IntrinsicBind.Deferred (BYTE-LENGTH must answer 2×
@@ -1344,7 +1344,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   EmitCompute precedent :856–869), store each via the data increment's ONE boolean store rule (§14.6.8.6
   left-align / zero-fill / truncate right — if the data increment inlined it at MOVE sites, factor
   `CobolBool.Fit(value, width)` and make both use it; feedback_singular_pattern). **New
-  `src\Cobol.Net.Runtime\Text\CobolBool.cs`** (beside CobolString.cs/CobolClass.cs, sibling namespace):
+  `src\WiseOwl.Cobol.Runtime\Text\CobolBool.cs`** (beside CobolString.cs/CobolClass.cs, sibling namespace):
   `And/Or/Xor(string a, string b)` — rule 9 right-zero-extend shorter to max length, positionwise, result length
   = max (rule 10); `AndAll/OrAll/XorAll(string a, string bits)` — bits repeated/truncated to `a.Length`
   (§8.3.3.6.4 GR2) then combined; `Not(string a)` — flip, length preserved; `Equal(string a, string b)` —
@@ -1408,7 +1408,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   bool_compute_nonbool_receiver (SR2). Matrix expectations: the two new rows green at all four editions.
   boolean_ops doubles as the phase demo leg (feedback_demo_per_phase — outputs derived above, not just
   non-crashing). Same-change-set docs: this file's M2-DATA-4 row + track-(a) row, DEVLOG entry, resume-prompt
-  STATE banner; COBOLNET_DESIGN's boolean section gets the CobolBool/BoundBoolExpr model + the GR3-vs-rule-10
+  STATE banner; DESIGN's boolean section gets the CobolBool/BoundBoolExpr model + the GR3-vs-rule-10
   width distinction (feedback_follow_design_docs_and_spec).
 - **Implementation order + battery gates** (each step ends green before the next): **(0)** PRE: the boolean-data
   increment merged (`boolean-data-2002` active; '0'/'1' storage + BOOLLIT decode live). **(1)** Lexer tokens +
@@ -1453,7 +1453,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   :1343–1364), :1370–1383; StatementBinder.Evaluate.cs:26–164 (:77–113, :119–139, :155–164);
   StatementBinder.Udf.cs:220–222; StatementBinder.Exceptions.cs:388–432; BoundTree.cs:90–210, :277;
   BoundStores.cs:47–182. Emit: ConditionRenderer.cs:16–76; CSharpEmitter.cs:852–876; OperandText.cs:17–47;
-  NumericRenderer.cs:24–62; IntrinsicRenderer.cs:271. Runtime: src/Cobol.Net.Runtime/Text/ (new CobolBool.cs).
+  NumericRenderer.cs:24–62; IntrinsicRenderer.cs:271. Runtime: src/WiseOwl.Cobol.Runtime/Text/ (new CobolBool.cs).
   Tests: constructs.json:419–427, :614; manifest.json:46–47; ConformanceTests.cs:62/:108. Spec: :8865–8885,
   :9323–9420, :9566–9581, :9683–9689, :9795–9817, :10339–10347, :23254, :24303–24308, :24869–24881,
   :26538–26606, :27153–27283, :49320–49344, :44534–44625. Legacy: ArithmeticTypeSystem.cs:67–74/:115–121;
@@ -1536,7 +1536,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
 > ordinals: 51/RETRY/IGNORING/43-after-conflict/GR11a auto-release/REWRITE-WITH-LOCK 51/EXTEND WRITE-WITH-LOCK
 > 51/FOREVER→52), `file_sharing_mutate` (REWRITE/DELETE 51 + RETRY + write-lock), `2023/delete_file_sharing`
 > (62/62/62/62/62/00/05/35 — every retry form keeps the file-sharing class, §9.1.13.9 defining no deadlock value); `CobolFileLockTests` (18), 4 SR negatives (SR8/SR4/SR2/SR1→1512), 6 matrix rows.
-> Runtime: `src/Cobol.Net.Runtime/IO/FileRegistry.cs` + `IO/Sharing/PhysicalFileTable.cs` (the P8 homes — the
+> Runtime: `src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs` + `IO/Sharing/PhysicalFileTable.cs` (the P8 homes — the
 > SSOT for this subsystem).
 
 ### M2-FILE-1 — SHARING / LOCK MODE / RETRY / UNLOCK — DECISION-COMPLETE DESIGN (synthesis 2026-07-06; grammar pre-authorized; IMPLEMENTED — see AS-BUILT above)
@@ -1605,7 +1605,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   - **Verb phrases** — the OPEN SHARING override + RETRY bind onto `BoundOpen`; READ/WRITE/REWRITE record-lock + RETRY + ADVANCING onto the bound verb; UNLOCK → `BoundUnlock`.
   - **SR validation → NEW band `COBOL1512`** (message-differentiated — the 0869/1511 precedent), each citing its §: LOCK MODE `MULTIPLE` on sequential org/access (SR2 :15540); `SHARING WITH ALL OTHER` (clause or OPEN phrase) without a `LOCK MODE` clause (SR8 :29171); READ `IGNORING LOCK` + `WITH LOCK` together (SR3 :29845); any of IGNORING/WITH LOCK/WITH NO LOCK under a file whose effective LOCK MODE is AUTOMATIC (READ SR4 :29847 / WRITE SR22 :33415 / REWRITE SR4 :30472); UNLOCK on a SORT/MERGE file (SR1 :32675); a lock/retry phrase that somehow reached START (defensive — grammar forbids). APPLY-COMMIT SRs are vacuous (residue #3). **Edition gate** = registry rows (below) via the parse-layer 0900 map + `EditionValidator` visitor rows; NO binder-side `ConstructRegistry.Check` needed for the introduction gate (the pointer/boolean precedent: at 85 the gated grammar is dead and the binder is unreachable) — the `COBOL1512` checks run at ≥2002 only.
 
-- **Runtime** (`src/Cobol.Net.Runtime/IO/`):
+- **Runtime** (`src/WiseOwl.Cobol.Runtime/IO/`):
   - **`FileSupport.cs` `FileStatusCode`** (:36 band): ADD `RecordLocked="51"`, `Deadlock="52"`, `RunUnitLockLimit="53"`, `ConnectorLockLimit="54"`, `FileSharingConflict="61"`, `DeleteFileSharing="62"` (the singular status table). **KEEP `FileLocked="38"`** but reframe its doc comment: *"38 — OPEN of a file previously CLOSEd WITH LOCK (the ≤2014 CLOSE…WITH LOCK leg; NOT part of the 2002 5x/6x sharing family — that construct is 0902-rejected at 2023 via close-with-lock-removed-2023)."* (Refines the ISO brief's "retire 38": it stays, correctly, for the still-legal ≤2014 path.)
   - **NEW partial `CobolFile.Locks.cs`** — the ONE physical-file registry (singular pattern): `Dictionary<string /*resolvedHostPath*/, PhysicalFileState>` where `PhysicalFileState { Dictionary<string connectorName,(SharingMode,FileOpenMode)> Open; Dictionary<string recordId,string ownerConnector> RecordLocks; bool ClosedWithLock; }`. Absorbs the existing `Locked` HashSet (:16) — `ClosedWithLock` per physical path replaces the by-name set (fixes the latent shared-path 38 bug for free). `Init()` (:19/:23) clears it. Helpers: `RegisterSharing(name, path, SharingMode, LockModeInfo?)` (emitted after `Register`, mirroring `SetLinage` :86); `TryOpenShared(name, path, mode, sharingOverride) → status` (Table-19 classify vs OTHER open connectors → 61 or register+00); `LockRecord(name, path, recordId, mode) → bool granted` (another owner ⇒ deny→51 unless self; enforce 15/connector→54, 255/run-unit→53); `IsLockedByOther(...)`; `ReleaseSingle`/`ReleaseAllForConnector(name)` (UNLOCK + CLOSE); `RetryLoop(Func<string> attempt, RetrySpec)` (n-times; a SECONDS period clamped to the A.1 item 166 maximum meaningful value of ZERO so it makes no further attempt; only FOREVER on a RECORD conflict bails to the §9.1.13.8 item 2 deadlock 52; never sleeps).
   - **Facade threading** — `Open` (:50) becomes sharing-aware: consult `TryOpenShared` before `f.Open(mode)`; the `ClosedWithLock` check replaces `Locked.Contains` (:54) → 38. Keyed `KeyedOpen` (:651) mirrors. READ/WRITE/REWRITE/DELETE facade methods + keyed twins gain `(BoundRecordLock, RetrySpec)`-derived args: acquire/deny the record lock (record id = RRN for relative / prime-key for indexed / byte-offset for sequential — the connectors already own these: `RelativeFile._lastSlot`, `IndexedFile._lastReadPrime`, `SequentialFile._lastReadBlockStart`), set 51 on denial, apply single/multiple release. AUTOMATIC ⇒ auto-lock on any READ; MANUAL ⇒ only on explicit `WITH LOCK`. `IGNORING LOCK` ⇒ bypass the deny. `ADVANCING ON LOCK` ⇒ on NEXT/PREVIOUS, skip records `IsLockedByOther` until unlocked/EOF (GR22). NEW `Unlock(name, records)` → 42 if not open else `ReleaseAllForConnector` + status 00. Every verb already emits `EmitStoreFileStatus` + `EmitUseHook`, so the new 5x/6x codes flow to FILE STATUS and the EC bridge automatically.
@@ -1625,7 +1625,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   ```
   `EditionGateHints.cs` (beside `Based` :43): `Gate Sharing/LockMode/Retry/Unlock` + token arms in the `switch` (:82): `CobolLexer.SHARING when InRule(ruleStack,"fileControlClauseGroup")||InRule(ruleStack,"openStatement") => Sharing`; `CobolLexer.LOCK when Next(stream,token,1)?.Type==CobolLexer.MODE => LockMode` (MODE-lookahead disjoins CLOSE…WITH LOCK); `CobolLexer.RETRY => Retry`; `CobolLexer.UNLOCK => Unlock` (as user words they parse through `cobolWord` and never error, so an error AT the token below 2002 IS the gated construct — the XOR/boolean argument). `EditionValidator` visitor rows (beside the CLOSE-WITH-LOCK gate :150): `VisitSharingClause`/`VisitLockModeClause`/`VisitUnlockStatement`/`VisitRetryPhrase` → `ConstructRegistry.Check(_edition, "…-2002", …)` for the ≥-check at bind (redundant with the parse-layer hint but the four-per-edition-compiler discipline, feedback_version_test_matrix). `tests/version-matrix/constructs.json`: mirror all six rows (`active`, `expectDiagnostic: "COBOL0900"` for the five introduction rows / `"COBOL0901"` for the user-word row), each with an embedded `source` (a minimal SELECT-with-SHARING / LOCK MODE / a `RETRY`/`UNLOCK` statement that compiles clean at 2002+ and 0900s at 85; the user-word row declares `01 SHARING PIC X.` — clean at 85, 0901 at ≥2002).
 
-- **Tests / goldens / docs.** **NEW golden `conformance-suite/cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/file_sharing.cob` + `.out`** (manifest `enabled`, alphabetical) — the single-run-unit, two-connector real test: **two `SELECT`s (F-A MANUAL, F-B MANUAL) both `ASSIGN "share.dat"` RELATIVE/DYNAMIC `SHARING WITH ALL OTHER` `LOCK MODE`** (SR8-satisfied). Flow + ISO-derived expected lines: seed via an exclusive OUTPUT connector (records 1=`ALPHA`,2=`BRAVO`); `OPEN I-O F-A`/`OPEN I-O F-B` → `OPEN-A=00`,`OPEN-B=00` (both ALL OTHER); `READ F-A(1) WITH LOCK` → `READA=00`; `READ F-B(1)` → `READB=51` (locked by another connector, GR9); `READ F-B(1) RETRY 2 TIMES` → `RETRYB=51` (single-thread, holder can't release mid-loop — GR4b exhausts); `READ F-B(1) IGNORING LOCK` → `IGN=ALPHA` (GR12); `UNLOCK F-A` then `READ F-B(1)` → `AFTER=00`; then `OPEN SHARING WITH NO OTHER I-O F-B` while F-A still open → `EXCL=61` (§9.1.13.9(b)). Expected `.out`: `OPEN-A=00 / OPEN-B=00 / READA=00 / READB=51 / RETRYB=51 / IGN=ALPHA / AFTER=00 / EXCL=61`. This doubles as the phase demo (feedback_demo_per_phase — outputs derived, not just non-crashing). **LEGACY-runner impact: the legacy binder/emitter have ZERO sharing/lock support** (legacy `CobolFile` has only the by-name `Locked`/38 primitive; no SHARING/LOCK MODE binding, no UNLOCK statement case). The shared grammar will PARSE the clauses at 2002, but legacy bind chokes ⇒ **`GreenfieldOnly` exclusion `("2002","file_sharing")` in `ConformanceTests.cs:66` in the SAME commit** (feedback_legacy_suite_on_shared_corpus; the DEVLOG 618 `udf_exit_function` / DEVLOG 621 `boolean_ops` precedent). **NEW unit battery `CobolFileLockTests`** (against the `CobolFile.Locks` registry directly): Table-19 all five 61 sub-cases (a)-(e); 51 grant/deny + self re-access (GR8); single-release (any I-O except START, GR6) vs MULTIPLE; 53 (256th run-unit lock) / 54 (16th connector lock); UNLOCK-clears + UNLOCK-not-open→42; RETRY n-times exhaust + FOREVER→52 deadlock-bail; IGNORING-LOCK bypass; ADVANCING-ON-LOCK skip-scan; default-NO-OTHER preserves lone-connector open. **NEGATIVE cases (each asserts `COBOL1512`, the pointer/boolean negative-harness):** `lock_mode_multiple_sequential` (SR2), `sharing_all_no_lockmode` (SR8), `read_ignoring_and_lock` (SR3), `read_auto_with_lock` (SR4). **Edition-gate negatives (0900 at 85):** `sharing_clause_85`, `lock_mode_85`, `retry_85`, `unlock_85`. **Matrix:** the six `constructs.json` rows green at all four editions. **Same-change-set docs:** this file's M2-FILE-1 row (NOT-STARTED → LANDED), the **M3-4 row** (the "OPEN SHARING/record LOCK/RETRY/UNLOCK reserved-only" clause → satisfied) and the **M2-FILE-2 note** (correct "sharing-tied (9x)" → **5x/6x**, CONFLICT-1), the DEVLOG entry, the resume-prompt STATE banner, and COBOLNET_DESIGN's file-I/O section (the `CobolFile.Locks` physical-file registry + the D1 single-run-unit posture; feedback_follow_design_docs_and_spec).
+- **Tests / goldens / docs.** **NEW golden `conformance-suite/cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/file_sharing.cob` + `.out`** (manifest `enabled`, alphabetical) — the single-run-unit, two-connector real test: **two `SELECT`s (F-A MANUAL, F-B MANUAL) both `ASSIGN "share.dat"` RELATIVE/DYNAMIC `SHARING WITH ALL OTHER` `LOCK MODE`** (SR8-satisfied). Flow + ISO-derived expected lines: seed via an exclusive OUTPUT connector (records 1=`ALPHA`,2=`BRAVO`); `OPEN I-O F-A`/`OPEN I-O F-B` → `OPEN-A=00`,`OPEN-B=00` (both ALL OTHER); `READ F-A(1) WITH LOCK` → `READA=00`; `READ F-B(1)` → `READB=51` (locked by another connector, GR9); `READ F-B(1) RETRY 2 TIMES` → `RETRYB=51` (single-thread, holder can't release mid-loop — GR4b exhausts); `READ F-B(1) IGNORING LOCK` → `IGN=ALPHA` (GR12); `UNLOCK F-A` then `READ F-B(1)` → `AFTER=00`; then `OPEN SHARING WITH NO OTHER I-O F-B` while F-A still open → `EXCL=61` (§9.1.13.9(b)). Expected `.out`: `OPEN-A=00 / OPEN-B=00 / READA=00 / READB=51 / RETRYB=51 / IGN=ALPHA / AFTER=00 / EXCL=61`. This doubles as the phase demo (feedback_demo_per_phase — outputs derived, not just non-crashing). **LEGACY-runner impact: the legacy binder/emitter have ZERO sharing/lock support** (legacy `CobolFile` has only the by-name `Locked`/38 primitive; no SHARING/LOCK MODE binding, no UNLOCK statement case). The shared grammar will PARSE the clauses at 2002, but legacy bind chokes ⇒ **`GreenfieldOnly` exclusion `("2002","file_sharing")` in `ConformanceTests.cs:66` in the SAME commit** (feedback_legacy_suite_on_shared_corpus; the DEVLOG 618 `udf_exit_function` / DEVLOG 621 `boolean_ops` precedent). **NEW unit battery `CobolFileLockTests`** (against the `CobolFile.Locks` registry directly): Table-19 all five 61 sub-cases (a)-(e); 51 grant/deny + self re-access (GR8); single-release (any I-O except START, GR6) vs MULTIPLE; 53 (256th run-unit lock) / 54 (16th connector lock); UNLOCK-clears + UNLOCK-not-open→42; RETRY n-times exhaust + FOREVER→52 deadlock-bail; IGNORING-LOCK bypass; ADVANCING-ON-LOCK skip-scan; default-NO-OTHER preserves lone-connector open. **NEGATIVE cases (each asserts `COBOL1512`, the pointer/boolean negative-harness):** `lock_mode_multiple_sequential` (SR2), `sharing_all_no_lockmode` (SR8), `read_ignoring_and_lock` (SR3), `read_auto_with_lock` (SR4). **Edition-gate negatives (0900 at 85):** `sharing_clause_85`, `lock_mode_85`, `retry_85`, `unlock_85`. **Matrix:** the six `constructs.json` rows green at all four editions. **Same-change-set docs:** this file's M2-FILE-1 row (NOT-STARTED → LANDED), the **M3-4 row** (the "OPEN SHARING/record LOCK/RETRY/UNLOCK reserved-only" clause → satisfied) and the **M2-FILE-2 note** (correct "sharing-tied (9x)" → **5x/6x**, CONFLICT-1), the DEVLOG entry, the resume-prompt STATE banner, and DESIGN's file-I/O section (the `CobolFile.Locks` physical-file registry + the D1 single-run-unit posture; feedback_follow_design_docs_and_spec).
 
 - **Implementation order (small commits; each green before the next; FULL `scripts/guard.sh` on every grammar-touching commit).** **(1)** Lexer 9 tokens + `_dataNameTokens` + `cobolWord` + `CheckedTokenTypes`(3) + regen → greenfield battery + **FULL legacy guard** (85 surface invariant — the nine words behave as user words end-to-end). **(2)** Grammar (sharingClause/lockModeClause; openClause sharing+retry; retryPhrase/recordLockPhrase; READ advancing/retry/lock; write/rewrite/delete; unlockStatement + dispatch) + `EditionGateHints` + registry/json rows + regen → battery + **FULL legacy guard** + DFA timing check; empirically verify no viable-alt regressions on the untouched READ/WRITE/OPEN no-phrase paths. **(3)** FileModel fields + `BindFileControl` arms + Bound nodes + verb-phrase binding + `COBOL1512` SR checks + EditionValidator visitor rows → battery. **(4)** `FileStatusCode` 51/52/53/54/61/62 + `CobolFile.Locks.cs` registry + Open/Read/Write/Rewrite/Delete/Unlock threading + `RegisterSharing` + emitter arms + `CobolFileLockTests` → battery. **(5)** `file_sharing` golden + `GreenfieldOnly` + the four SR negatives + the four 85-gate negatives + manifest + matrix activation → full battery + **legacy conformance** + **FULL legacy guard**. **(6)** Docs + DEVLOG + resume-prompt + commit/push (feedback_fully_autonomous_push).
 
@@ -1736,7 +1736,7 @@ after review: 1973 conformance · 216 unit · legacy integration 81 GREEN.
 → hard COBOL1519 (a method may not own them, §12.4.3/§13.4.3 SR1). (2) `FileKeyExpr` — the one canonical
 connector-key expression (byte-identical sweep of ~28 sites). (3) FACTORY files register in the class singleton
 (`OoQualifyClassFiles` `Class::FACT::name` + `OoEmitFileMembers` ctor registration; COBOL1520 GLOBAL guard); a
-root-cause fix made the `using CobolNet.Runtime.IO` + entry-wrapper `CobolFile.Init/CloseAll` scaffolding count class
+root-cause fix made the `using WiseOwl.Cobol.Runtime.IO` + entry-wrapper `CobolFile.Init/CloseAll` scaffolding count class
 files (`anyFiles`). (4) OBJECT files are PER-OBJECT connectors — a minted `__fkey_X = MintInstanceKey("Class::INST::name")`
 field, ctor registration + `__TrackInstanceFile`, and a §9.1.4 `~CobolObject()` finalizer refined to suppress-by-
 default / re-arm-only-for-file-owners. (5) EXTERNAL object/factory FD shares the one run-unit connector + record area

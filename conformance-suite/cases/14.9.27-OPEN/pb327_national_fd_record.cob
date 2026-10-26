@@ -10,7 +10,7 @@
       *> ("National characters shall be represented in the storage of
       *> the computer as characters of a uniform size equal to or a
       *> multiple of the size of characters in the computer's
-      *> alphanumeric character set") and COBOL.NET pins TWO bytes,
+      *> alphanumeric character set") and WiseOwl COBOL pins TWO bytes,
       *> UTF-16BE, high-order first (determination D-N1). So S-REC is
       *> an EIGHT-byte record: three national positions (six bytes)
       *> then two alphanumeric ones. The secondary 01 S-BYTES shares

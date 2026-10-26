@@ -233,7 +233,7 @@ The `Place` layer already smooths most of this — `NumericImagePlace.Read/Write
 
 ### 5.4 `StoreAsImage` — the pivotal flag: read/write site census
 
-Grepped over `src/Cobol.Net.Compiler`:
+Grepped over `src/WiseOwl.Cobol.Compiler`:
 
 - **Declaration:** `DataItem.cs:169` — `public bool StoreAsImage { get; set; }` (public mutable).
 - **Write sites (≈11, across all three layers):**

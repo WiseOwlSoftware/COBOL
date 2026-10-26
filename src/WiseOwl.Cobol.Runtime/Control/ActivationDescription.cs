@@ -1,0 +1,335 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+
+namespace WiseOwl.Cobol.Runtime;
+
+/// <summary>Which shape of data description an <see cref="ActivationDescription"/> describes — the arm of the two
+/// relations (<see cref="ActivationRelations"/>) that decides it.</summary>
+public enum ActivationShape
+{
+    /// <summary>A spelled OMITTED argument (ISO §14.9.23.2): it has no description, and §9.3.6 match rule 3 b)
+    /// admits it against an OPTIONAL formal only.</summary>
+    Omitted,
+    /// <summary>An elementary item that is not an object reference (every PICTURE category, the class-pointer
+    /// usages).</summary>
+    Elementary,
+    /// <summary>An object reference (§13.18.60.2) — <see cref="ActivationDescription.ObjectKind"/> and its phrases.</summary>
+    ObjectReference,
+    /// <summary>A fixed-length alphanumeric group item that is not strongly typed.</summary>
+    AlphanumericGroup,
+    /// <summary>A bit group or national group, "treated as an elementary item" at the activation boundary (ISO
+    /// §14.8.2.1 / §14.8.3.1 NOTE).</summary>
+    AsIfElementaryGroup,
+    /// <summary>A variable-length group (§8.5.1.12.1) that is not strongly typed.</summary>
+    VariableLengthGroup,
+    /// <summary>A strongly-typed group item (§8.5.3): its class and category are its type-name (§8.5.2.1).</summary>
+    StrongGroup,
+    /// <summary>A BY CONTENT / BY VALUE argument that is a VALUE with a character image and no storage of the activating
+    /// element's: a literal, a figurative constant, an ALL literal or an intrinsic function's value, a numeric one included
+    /// (kb/Work PB165, PB3613: a function-identifier is a MOVE sender, whose digits a plain-group formal's record takes).
+    /// <see cref="ActivationDescription.Category"/> is its category (a figurative constant's is
+    /// <see cref="ActivationCategory.Figurative"/>, <see cref="ActivationCategory.FigurativeZero"/>,
+    /// <see cref="ActivationCategory.FigurativeSpace"/> or <see cref="ActivationCategory.FigurativeBoolean"/>, whose category
+    /// the receiving context chooses, §8.3.3.6.4 GR1) and <see cref="ActivationDescription.Table16"/> its §14.9.25.3 Table 16
+    /// row.</summary>
+    Literal,
+    /// <summary>A BY CONTENT / BY VALUE argument that is an arithmetic expression: a numeric COMPUTE sender that is no MOVE
+    /// sender, with no character image, so a group formal's §14.9.25.4 GR4 character copy has nothing to copy
+    /// (kb/Work PB165, PB1946). A numeric FUNCTION's value is not one (<see cref="Literal"/>, kb/Work PB3613).</summary>
+    Expression,
+    /// <summary>The predefined NULL written as an argument (§8.4.3.10.3 SR1 a)): an identifier whose category is the
+    /// formal's class, so only a formal of class pointer or object reference takes it, by a SET (§14.8.2.3.3).</summary>
+    PredefinedNull,
+}
+
+/// <summary>The §13.18.60.2 kind of an object-reference description.</summary>
+public enum ObjectReferenceKind
+{
+    /// <summary>Not an object reference.</summary>
+    None,
+    /// <summary>A universal object reference (no class or interface phrase).</summary>
+    Universal,
+    /// <summary>Described with an interface-name.</summary>
+    Interface,
+    /// <summary>Described with an object-class-name.</summary>
+    ObjectClass,
+    /// <summary>Described with the ACTIVE-CLASS phrase.</summary>
+    ActiveClass,
+}
+
+/// <summary>The ISO §8.5.2 class-and-category names an <see cref="ActivationDescription.Category"/> carries that the
+/// relations themselves read (every other category name is compared only for equality). §8.5.2.1: "an alphanumeric
+/// group item has class and category alphanumeric", a bit group boolean, a national group national.</summary>
+public static class ActivationCategory
+{
+    /// <summary>Category alphanumeric — the elementary partner of an alphanumeric group (§14.8.2.2 / §14.8.3.2).</summary>
+    public const string Alphanumeric = "alphanumeric";
+    /// <summary>Class and category boolean.</summary>
+    public const string Boolean = "boolean";
+    /// <summary>Class and category national.</summary>
+    public const string National = "national";
+    /// <summary>Class object (an object reference).</summary>
+    public const string Object = "object";
+    /// <summary>Class pointer, category data-pointer.</summary>
+    public const string DataPointer = "data-pointer";
+    /// <summary>Class pointer, category program-pointer.</summary>
+    public const string ProgramPointer = "program-pointer";
+    /// <summary>Class pointer, category function-pointer.</summary>
+    public const string FunctionPointer = "function-pointer";
+    /// <summary>Class and category index (a USAGE INDEX item).</summary>
+    public const string Index = "index";
+    /// <summary>Class and category numeric: the sending operand a COMPUTE takes (§8.8.1.1; §14.8.2.3.3 rule 2 a)).</summary>
+    public const string Numeric = "numeric";
+    /// <summary>A figurative constant other than ZERO, or an ALL literal with a character that is not a boolean character
+    /// (a <see cref="ActivationShape.Literal"/>): an alphanumeric value whose category the receiving context chooses
+    /// (§8.3.3.6.4 GR1), which §14.9.25.3 SR7 keeps out of a boolean receiver.</summary>
+    public const string Figurative = "figurative";
+    /// <summary>The figurative constant ZERO (a <see cref="ActivationShape.Literal"/>): a <see cref="Figurative"/> that is
+    /// also the one figurative constant a COMPUTE takes as a sending operand (§8.8.1.1), that §14.9.25.3 SR6 keeps out of
+    /// an alphabetic receiver, and whose characters are boolean zeros in a boolean context (§8.3.3.6.4 GR4).</summary>
+    public const string FigurativeZero = "figurative-zero";
+    /// <summary>An ALL literal every one of whose characters is a boolean character ('0' or '1'; a
+    /// <see cref="ActivationShape.Literal"/>): a <see cref="Figurative"/> that §14.9.25.3 SR7 lets move to a boolean
+    /// receiver (kb/Work PB3101).</summary>
+    public const string FigurativeBoolean = "figurative-boolean";
+    /// <summary>The figurative constant SPACE (a <see cref="ActivationShape.Literal"/>): a <see cref="Figurative"/> that
+    /// §14.9.25.3 SR5 keeps out of a numeric or numeric-edited receiver at every edition (kb/Work PB3605).</summary>
+    public const string FigurativeSpace = "figurative-space";
+
+    /// <summary>The figurative categories, each paired with the §14.9.25.3 sender it stands for — the ONE table both
+    /// directions read (<see cref="OfFigurative"/> when the compiler describes an argument, <see cref="FigurativeSenderOf"/>
+    /// when a relation asks the MOVE rules of it), so a figurative category cannot exist on one side only.</summary>
+    private static readonly (string Category, FigurativeSender Sender)[] FigurativeCategories =
+    [
+        (Figurative, FigurativeSender.Other),
+        (FigurativeZero, FigurativeSender.Zero),
+        (FigurativeSpace, FigurativeSender.Space),
+        (FigurativeBoolean, FigurativeSender.BooleanCharacters),
+    ];
+
+    /// <summary>The category of a figurative-constant or ALL-literal argument whose §14.9.25.3 sender is
+    /// <paramref name="sender"/>.</summary>
+    public static string OfFigurative(FigurativeSender sender) =>
+        Array.Find(FigurativeCategories, p => p.Sender == sender).Category;
+
+    /// <summary>The §14.9.25.3 sender a figurative <paramref name="category"/> stands for, or null when the category is
+    /// no figurative one.</summary>
+    public static FigurativeSender? FigurativeSenderOf(string? category)
+    {
+        foreach (var (c, s) in FigurativeCategories)
+            if (string.Equals(c, category, StringComparison.Ordinal)) return s;
+        return null;
+    }
+}
+
+/// <summary>
+/// ⛔ THE DESCRIPTION OF ONE OPERAND OF AN ACTIVATION, as it crosses a UNIVERSAL object-reference dispatch (OO deep-dive
+/// D10; kb/Work PB480 / PB1780). Through a universal receiver the method is chosen at run time (ISO §9.3.6: "it is the
+/// class of the actual object referenced at runtime that is used in resolving a method invocation"), so both sides'
+/// descriptions must travel to the generated <c>__CobolInvoke</c> switch, which asks the standard's TWO relations of
+/// them — §9.3.6's MATCH (resolution; a failure is EC-OO-METHOD after the INHERITS walk) and §14.8.2 / §14.8.3's
+/// CONFORMANCE (asked of the bound method by §14.9.23.4 GR7 c); a failure is EC-OO-UNIVERSAL). Both are in
+/// <see cref="ActivationRelations"/>.
+/// <para>⛔ THE SAME DESCRIPTION CROSSES A CALL (kb/Work PB165). A CALL whose activated program is located by name at run
+/// time has no compile-time formal to check an argument against — a dynamic Format-1 CALL, or a program-prototype whose
+/// details §12.3.8.4 GR10 c) takes from the external repository — so §14.9.4.4 GR3 d)'s "rules for conformance specified
+/// in 14.8.2, Parameters and 14.8.3, Returning items" are asked at call initiation: the activating element states each
+/// argument's and its RETURNING item's description on its <see cref="CobolArg"/>, the activated program registers its
+/// formals' and its RETURNING item's (<see cref="BoundaryItem.Description"/>), and <see cref="ActivationRelations.CallArgumentViolation"/> /
+/// <see cref="ActivationRelations.CallReturningViolation"/> compare them. A BY CONTENT or BY VALUE argument with no
+/// storage is described as the value it is (<see cref="ActivationShape.Literal"/>, <see cref="ActivationShape.Expression"/>,
+/// <see cref="ActivationShape.PredefinedNull"/>).</para>
+/// <para>It replaced a descriptor STRING compared for equality (<c>OoConformance.ConformanceDescriptor</c>), which
+/// could answer only "the two strings are equal": that is neither relation. Match rule 3 e) is an identity of a CLAUSE
+/// LIST (a group carries none of the clauses, so two groups match whatever their sizes and a group never matches a
+/// <c>PIC X(n)</c>), and conformance is not identity (§14.8.2.2 rule 1 admits a SMALLER formal group, §8.5.1.12.3
+/// admits a dynamic-capacity table opposite a fixed one). Every field here is read by one of the two relations
+/// (<c>ActivationDescriptionFieldDriftTests</c>).</para>
+/// <para>The compiler builds every description in ONE place (<c>ActivationDescriptions</c>) from the data
+/// description entry; the generated code constructs it with an object initializer. It is a record so that a fact only
+/// the run time knows — a reference-modified argument's evaluated length (<see cref="CobolInvokeArg.ReferenceModified"/>)
+/// — is set with <c>with</c>, never by a second field-by-field copy.</para>
+/// </summary>
+public sealed record ActivationDescription
+{
+    /// <summary>The spelled OMITTED argument's description (kb/Work PB757).</summary>
+    public static ActivationDescription Omitted { get; } = new() { Shape = ActivationShape.Omitted };
+
+    /// <summary>Which arm of the relations decides this operand.</summary>
+    public ActivationShape Shape { get; init; }
+
+    /// <summary>ISO §9.3.6 match rule 3 c) "is the same class and category": the §8.5.2 class and category of the
+    /// item. A strongly-typed group's is its type-name (§8.5.2.1), a bit / national group's is boolean / national,
+    /// an alphanumeric group's alphanumeric.</summary>
+    public string Category { get; init; } = "";
+
+    /// <summary>The <see cref="Clauses"/> of a class pointer described without a TO phrase (an unrestricted pointer).</summary>
+    public const string Unrestricted = "*";
+
+    /// <summary>The <see cref="Clauses"/> prefix of a program- or function-pointer restricted to a prototype that has NO
+    /// compile-time signature: ISO §12.3.8.4 GR10 c) / GR11 c) take its details "from the external repository", which in
+    /// this implementation is the run unit, so its signature — the pointer's TYPE (§13.18.60.4 GR25 / GR26) — is not known
+    /// to the compilation that describes it (kb/Work PB3162). Followed by the prototype's folded name.</summary>
+    public const string ExternalRestrictionPrefix = "EXTERNAL TO ";
+
+    /// <summary>True when <paramref name="clauses"/> is the restriction of a pointer whose prototype's signature is
+    /// unknown at compile time (<see cref="ExternalRestrictionPrefix"/>).</summary>
+    public static bool IsExternalRestriction(string clauses) =>
+        clauses.StartsWith(ExternalRestrictionPrefix, StringComparison.Ordinal);
+
+    /// <summary>ISO §9.3.6 match rule 3 e) — the identity of "the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC
+    /// LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses", with rule 3 e) 1.'s currency strings and 2.'s
+    /// DECIMAL-POINT IS COMMA state folded into the PICTURE part, as one canonical text (empty for a group, which
+    /// carries none of the clauses). The class-pointer restriction (§14.8.2.3.2's class-pointer paragraph) is its
+    /// USAGE clause's TO phrase and is part of it too: <c>TO</c> a data-pointer's TYPE identity, or the SIGNATURE class of a
+    /// program- or function-pointer's prototype (§13.18.60.4 GR25 / GR26; kb/Work PB2464), <see cref="Unrestricted"/> for
+    /// none. The LOCALE phrase's external identification is not an
+    /// identity (<see cref="LocaleExternal"/>).</summary>
+    public string Clauses { get; init; } = "";
+
+    /// <summary>The <see cref="Clauses"/> as a reader spells them: one phrase per clause the item is described with,
+    /// in the words of its data description entry (<c>PICTURE 9(6)</c>, <c>USAGE PACKED-DECIMAL</c>, <c>JUSTIFIED</c>,
+    /// <c>USAGE POINTER TO T-REC</c>, …), the source element's <c>DECIMAL-POINT IS COMMA</c> and currency string
+    /// among them (§9.3.6 match rule 3 e) 1. / 2.). Never compared — <see cref="Clauses"/> is the identity. A refusal
+    /// quotes the description (<see cref="ToString"/>) and names the clause that differs
+    /// (<see cref="ActivationRelations.MatchViolation"/>) with these, so no identity key — a type declaration's
+    /// layout, a PICTURE identity's packed fields — reaches a user's diagnostic (kb/Work PB2077 review). Null for a
+    /// shape that is described by no clause.</summary>
+    public string[]? ClausePhrases { get; init; }
+
+    /// <summary>ISO §9.3.6 match rule 3 e) 3. b.: the external identification of the PICTURE clause's LOCALE phrase —
+    /// the external-locale-name or literal value as written — or null for a LOCALE phrase without a locale-name and
+    /// for a picture with no LOCALE phrase (the presence and SIZE of the phrase are in <see cref="Clauses"/>).</summary>
+    public string? LocaleExternal { get; init; }
+
+    /// <summary>True when <see cref="LocaleExternal"/> came from a literal (compared character for character) rather
+    /// than an external-locale-name word (§8.1.3.2 GR3 a), compared without regard to case).</summary>
+    public bool LocaleFromLiteral { get; init; }
+
+    /// <summary>True when the item is described with the ANY LENGTH clause (§13.18.2) — §14.9.23.4 GR7 c) bars it from
+    /// a method bound through a universal receiver.</summary>
+    public bool AnyLength { get; init; }
+
+    /// <summary>The <see cref="Clauses"/> this elementary item would carry were it described with the ANY LENGTH clause —
+    /// its PICTURE the one symbol its character-string repeats (§13.18.2.3 SR1) and its length unstated — or null when
+    /// the character-string repeats no single symbol, so that no ANY LENGTH item has its PICTURE clause. ISO §14.8.2.3.2
+    /// "Additionally" d) makes an ANY LENGTH formal's length "considered to match the length of the corresponding
+    /// argument", and every other clause is still compared, so §9.3.6 match rule 3 e)'s ANY LENGTH item
+    /// (<see cref="ActivationRelations.MatchViolation"/>) compares this with the ANY LENGTH formal's <see cref="Clauses"/>
+    /// (kb/Work PB2077; docs/CONFORMANCE.md D-RM1 b)). Null in a description an older compiler built, which reproduces
+    /// the literal reading that description was compiled under.</summary>
+    public string? AnyLengthClauses { get; init; }
+
+    /// <summary>The item's CHARACTER positions: an alphanumeric group's image width (§14.8.2.2 rule 1 / §14.8.3.2 compare
+    /// it), a bit / national group's boolean / national positions (§14.8.2.3.2 "Additionally" b) / c)). Zero for every
+    /// other shape.</summary>
+    public int Positions { get; init; }
+
+    /// <summary>An elementary item's USAGE (the clause's name) — the half of §14.8.3.3 "Additionally" 2) / 3) that pairs
+    /// a bit group with an elementary item of usage BIT and a national group with one of usage NATIONAL; for a bit /
+    /// national group, the usage its GROUP-USAGE gives its positions.</summary>
+    public string Usage { get; init; } = "";
+
+    /// <summary>The item's heading in ISO §14.9.25.3 Table 16 — an elementary item's, a bit / national group's as-if
+    /// PICTURE's (§13.18.29.4 GR1 b) / GR2 b)) — or <see cref="Table16Category.None"/> for a group and for every class
+    /// SR1 governs. §9.3.6 match rule 7's "may be a sending item in a MOVE statement" reads it
+    /// (<see cref="MoveValidity.Table16Refusal"/>; kb/Work PB2076). The compiler derives it through the ONE mapping its
+    /// own MOVE screens use (<c>Table16Operand.Heading</c>).</summary>
+    public Table16Category Table16 { get; init; }
+
+    /// <summary>True when the item is described with usage binary-char, binary-short, binary-long or binary-double —
+    /// §14.9.25.3 SR8's antecedent, which a MOVE from it needs a numeric or numeric-edited receiver for
+    /// (<see cref="MoveValidity.BinaryWidthRefusal"/>).</summary>
+    public bool BinaryWidth { get; init; }
+
+    /// <summary>A strongly-typed group's §8.5.3.1 type identity — its type-name, STRONG and EXTERNAL presence and the
+    /// position, length and clauses of every elementary item — so two descriptions name "the same type" exactly when
+    /// these are equal (§14.8.2.2 / §14.8.3.2: "both shall be of the same type").</summary>
+    public string? StrongType { get; init; }
+
+    /// <summary>A group's ISO §8.5.1.12 layout as positional atoms (<see cref="GroupAtom"/>: REDEFINES subtrees dropped,
+    /// subordinate groups flattened, tables whole with their element's atoms) — what the §8.5.1.12 compatibility walk
+    /// (<see cref="GroupCompatibility.Walk"/>) compares and what the carrier conversions between two shapes of group read
+    /// (<see cref="UniversalGroupCarrier"/>). Null for a non-group, and for a group with a USAGE BIT leaf (§8.5.1.6.3's
+    /// shared-byte runs make a character position non-positional), which then stands as one run of
+    /// <see cref="Positions"/>.</summary>
+    public GroupAtom[]? Atoms { get; init; }
+
+    /// <summary>An object reference's §13.18.60.2 kind.</summary>
+    public ObjectReferenceKind ObjectKind { get; init; }
+
+    /// <summary>The class-name or interface-name of an object reference (folded; null for universal and
+    /// ACTIVE-CLASS).</summary>
+    public string? ObjectName { get; init; }
+
+    /// <summary>The FACTORY phrase of an object reference.</summary>
+    public bool Factory { get; init; }
+
+    /// <summary>The ONLY phrase of an object reference.</summary>
+    public bool Only { get; init; }
+
+    /// <summary>True when <see cref="ObjectName"/> is a PARAMETER-NAME of the parameterized class or interface definition
+    /// being bound as itself (kb/Work PB2937), not a class-name or interface-name: ISO §9.3.8.2.4 makes each expansion
+    /// "treated as if the actual parameter classes or interfaces were substituted for the parameters throughout the class
+    /// definition", so whether such a description names the same class as another one is each expansion's question. Only
+    /// a skeleton's own binders describe one, and nothing emits a skeleton, so no run-time description carries it; the
+    /// pair-mode identity reads it (<see cref="ActivationRelations.SignatureDifference"/>).</summary>
+    public bool ObjectNameIsParameter { get; init; }
+
+    /// <summary>The CLASSES an object-reference description's objects belong to, as ISO §14.9.39.3 SR12 a) 2. / b) 2. and
+    /// SR10 relate them (<see cref="ObjectReferenceOperand.Classes"/>): the class the description names — for
+    /// ACTIVE-CLASS, "the class containing the data item" — followed by every class it inherits from, folded. Null for a
+    /// universal or interface-name description and for an ACTIVE-CLASS one with no containing class. §9.3.6 match rule
+    /// 6 reads it: a method returning an object of an UNRELATED class is not a match (kb/Work PB2463).</summary>
+    public string[]? ObjectClasses { get; init; }
+
+    /// <summary>The INTERFACES an object-reference description's objects implement, as ISO §14.9.39.3 SR10 relates them
+    /// (<see cref="ObjectReferenceOperand.Interfaces"/>): for an interface-name description that interface and every
+    /// interface it inherits from; for an object-class-name or ACTIVE-CLASS description the §11.8.4 GR2 closure of the
+    /// class's IMPLEMENTS clauses (its factory definition's when the FACTORY phrase is written), folded. Null for a
+    /// universal description (kb/Work PB2463).</summary>
+    public string[]? ObjectInterfaces { get; init; }
+
+    /// <summary>A FORMAL parameter described with the OPTIONAL phrase (§9.3.6 match rules 1 and 3 b)).</summary>
+    public bool Optional { get; init; }
+
+    /// <summary>A FORMAL parameter specified BY VALUE — never a match for a universal invocation, every argument of
+    /// which is BY REFERENCE (§14.9.23.3 SR6; §9.3.6 match rule 3 a)).</summary>
+    public bool ByValue { get; init; }
+
+    /// <summary>How the description reads in a refusal — an EC-OO-UNIVERSAL or CALL-lane message at run time and the
+    /// typed INVOKE's compile-time COBOL0828, which quote one relation's text (kb/Work PB2077).</summary>
+    public override string ToString() => Shape switch
+    {
+        ActivationShape.Omitted => "OMITTED",
+        ActivationShape.ObjectReference => ObjectKind switch
+        {
+            ObjectReferenceKind.Universal => "OBJECT REFERENCE",
+            ObjectReferenceKind.Interface => $"OBJECT REFERENCE {ObjectName}",
+            ObjectReferenceKind.ActiveClass => $"OBJECT REFERENCE {(Factory ? "FACTORY OF " : "")}ACTIVE-CLASS",
+            _ => $"OBJECT REFERENCE {(Factory ? "FACTORY OF " : "")}{ObjectName}{(Only ? " ONLY" : "")}",
+        },
+        ActivationShape.AlphanumericGroup => $"an alphanumeric group of {Positions} character positions",
+        ActivationShape.AsIfElementaryGroup => $"a {Category} group of {Positions} positions",
+        ActivationShape.VariableLengthGroup => $"a variable-length group ({GroupCompatibility.Describe(Atoms ?? [])})",
+        // The category is "type:" + the type-name (§8.5.2.1: a strongly-typed group's class and category ARE its
+        // type-name), so the reader is shown the type-name alone.
+        ActivationShape.StrongGroup => $"a strongly-typed group of type {Category[(Category.IndexOf(':') + 1)..]}",
+        ActivationShape.Literal => Category switch
+        {
+            ActivationCategory.Figurative => "a figurative constant or an ALL literal",
+            ActivationCategory.FigurativeZero => "the figurative constant ZERO",
+            ActivationCategory.FigurativeSpace => "the figurative constant SPACE",
+            ActivationCategory.FigurativeBoolean => "an ALL literal of boolean characters",
+            ActivationCategory.Alphanumeric => "an alphanumeric value",
+            _ => $"a {Category} value",
+        },
+        ActivationShape.Expression => "an arithmetic expression",
+        ActivationShape.PredefinedNull => "NULL",
+        // A reference-modified operand (§8.4.3.3.4 GR6) is elementary and described by no clause at all. The clauses are
+        // spelled as the entry spells them, never as their identity key.
+        _ => Clauses.Length == 0 ? $"an elementary {Category} item described by no PICTURE clause"
+            : ClausePhrases is not { Length: > 0 } phrases ? $"an elementary {Category} item"
+            : $"an elementary {Category} item described with {string.Join(" ", phrases)}",
+    };
+}

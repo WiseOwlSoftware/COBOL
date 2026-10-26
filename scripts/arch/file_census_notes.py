@@ -100,7 +100,7 @@ spec_refs: []
 inventory_rows: []
 closes_rows: []
 closes_rows_reason: "{reason}"
-tags: [cobolsharp, work, analysis]
+tags: [wiseowl-cobol, work, analysis]
 ---
 """
 
@@ -623,7 +623,7 @@ spec_refs: {spec_refs}
 inventory_rows: []
 closes_rows: []
 closes_rows_reason: "{reason}"
-tags: [cobolsharp, work, {kind}, r2]
+tags: [wiseowl-cobol, work, {kind}, r2]
 ---
 """
 

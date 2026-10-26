@@ -55,7 +55,7 @@ gate driver `scripts/run_gate_legs.py` runs in-process; stdout is the tier summa
 Usage:
     python scripts/spec/impacted_tests.py --base <sha>                 # the worktree's change against its base
     python scripts/spec/impacted_tests.py --base <sha> --plan tiers.json
-    python scripts/spec/impacted_tests.py src/Cobol.Net.Compiler/Binding/DataBinder.Constants.cs
+    python scripts/spec/impacted_tests.py src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs
     python scripts/spec/impacted_tests.py --self-test
 """
 
@@ -84,7 +84,7 @@ from impact_store import SCHEMA, bit_ids, is_doc, pack, unpack  # noqa: E402
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/ (as run_gate_legs.py)
 from coord import is_work  # noqa: E402  (THE paths that are never work: coord.NEVER_WORK, kb/Work PB3465, PB3474)
 from standard_streams import ensure_utf8  # noqa: E402
-CONFORMANCE_DIR = "tests/Cobol.Net.Tests.Conformance/"
+CONFORMANCE_DIR = "tests/WiseOwl.Cobol.Tests.Conformance/"
 # The gated test projects, by the assembly name the map and the gate use ("Conformance", "Unit", ...).
 TEST_ASSEMBLIES = {f"{d}/": k for k, d in GATED_ASSEMBLIES.items()}
 SHARED_TEST_DIR = "tests/_shared/"   # linked into every test project
@@ -577,7 +577,7 @@ def ambient_only(ix: MapIndex, mask: int) -> list[str]:
     0a (`tests_changed`) — so those are no finding; in product code it is a finalizer or a thread that does not flow the
     context, and nothing attributes it. Asked of the methods a hunk lands in and of a file no test reached anything of,
     never of a file-level widening that merely CONTAINS such a method (a finalizer beside test-reached code does not make
-    a change to the file unattributable; measured: two of 22 replayed landings, both editing CobolNet.Runtime.CobolObject)."""
+    a change to the file unattributable; measured: two of 22 replayed landings, both editing WiseOwl.Cobol.Runtime.CobolObject)."""
     return [ix.entries[i][0] for i in bit_ids(mask & ix.ambient & ~ix.reached)
             if not all(f.startswith(TEST_PROJECTS) for f, _, _ in ix.entries[i][1])]
 
@@ -810,14 +810,14 @@ def synthetic_map() -> dict:
     static constructor of A implied by One(), a type-level entry in B.cs reached only ambiently, and three Conformance
     tests: M1 reaches One(), M2 only the constructor, M3 nothing of A."""
     return {"schema": SCHEMA, "commit": "0" * 40,
-            "entries": [["N.A::One()", [["src/Cobol.Net.Compiler/A.cs", 10, 20]]],
-                        ["N.A::Two()", [["src/Cobol.Net.Compiler/A.cs", 30, 40]]],
-                        ["N.B <type-level>", [["src/Cobol.Net.Compiler/B.cs", 0, 0]]],
-                        ["N.A::.cctor()", [["src/Cobol.Net.Compiler/A.cs", 5, 8]]],
-                        ["N.A::Finalize()", [["src/Cobol.Net.Compiler/A.cs", 42, 44]]]],
+            "entries": [["N.A::One()", [["src/WiseOwl.Cobol.Compiler/A.cs", 10, 20]]],
+                        ["N.A::Two()", [["src/WiseOwl.Cobol.Compiler/A.cs", 30, 40]]],
+                        ["N.B <type-level>", [["src/WiseOwl.Cobol.Compiler/B.cs", 0, 0]]],
+                        ["N.A::.cctor()", [["src/WiseOwl.Cobol.Compiler/A.cs", 5, 8]]],
+                        ["N.A::Finalize()", [["src/WiseOwl.Cobol.Compiler/A.cs", 42, 44]]]],
             "implies": {"0": [3]},
-            "known_files": ["src/Cobol.Net.Compiler/A.cs", "src/Cobol.Net.Compiler/B.cs",
-                            "src/Cobol.Net.Compiler/Enum.cs"],
+            "known_files": ["src/WiseOwl.Cobol.Compiler/A.cs", "src/WiseOwl.Cobol.Compiler/B.cs",
+                            "src/WiseOwl.Cobol.Compiler/Enum.cs"],
             "tests": [["Conformance", "N.T.M1", "N.T.M1", "N.T", "Conformance:c1", 1.0, True],
                       ["Conformance", "N.T.M2", "N.T.M2", "N.T", "Conformance:c1", 1.0, True],
                       ["Conformance", "N.T.M3", "N.T.M3", "N.T", "Conformance:c1", 1.0, True]],
@@ -852,7 +852,7 @@ def map_service_arms(check) -> None:
     from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
     global REPO, HEAD
     saved = (REPO, HEAD)
-    a_path, b_path = "src/Cobol.Net.Compiler/A.cs", "src/Cobol.Net.Compiler/B.cs"
+    a_path, b_path = "src/WiseOwl.Cobol.Compiler/A.cs", "src/WiseOwl.Cobol.Compiler/B.cs"
     a_lines = [f"    int x{n} = {n};" for n in range(1, 46)]
     a_edited = [*a_lines[:11], "    int x12 = 99;", *a_lines[12:]]
 
@@ -870,7 +870,7 @@ def map_service_arms(check) -> None:
         b_moved = repo.git("rev-parse", "HEAD")
         repo.commit("A.cs moves", {a_path: text([*a_lines[:30], "    int y = 0;", *a_lines[31:]])})
         a_moved = repo.git("rev-parse", "HEAD")
-        repo.commit("a new file", {"src/Cobol.Net.Compiler/New.cs": "n\n"})
+        repo.commit("a new file", {"src/WiseOwl.Cobol.Compiler/New.cs": "n\n"})
         new_file = repo.git("rev-parse", "HEAD")
         store = tmp / "store"
         store.mkdir()
@@ -906,7 +906,7 @@ def map_service_arms(check) -> None:
                docs, a_path, text([*a_lines[:42], "    int x43 = 99;", *a_lines[43:]]), "documentation-only drift", set(),
                {"N.T.M1": 1, "N.T.M2": 1, "N.T.M3": 1}, every_tier1=True)
         served("a file the map has never seen, new since its commit, puts every test in tier 1",
-               new_file, "src/Cobol.Net.Compiler/New.cs", "n2\n", "nearest", {a_path, b_path, "src/Cobol.Net.Compiler/New.cs"},
+               new_file, "src/WiseOwl.Cobol.Compiler/New.cs", "n2\n", "nearest", {a_path, b_path, "src/WiseOwl.Cobol.Compiler/New.cs"},
                {"N.T.M1": 1, "N.T.M2": 1, "N.T.M3": 1}, every_tier1=True)
 
         # A map recorded AFTER the base serves it by comparing trees: ancestry plays no part.
@@ -971,20 +971,20 @@ def self_test() -> int:
         reach_of(ix, [("M", f) for f in files], None, reach)
         return tiers(ix, reach)["Conformance"], reach
 
-    t, _ = tiers_for(["src/Cobol.Net.Compiler/A.cs"])
+    t, _ = tiers_for(["src/WiseOwl.Cobol.Compiler/A.cs"])
     check("a mapped file (file level) puts its tests in tier 2 and the others in tier 3 (A.cs also holds a finalizer only "
           "the ambient array reached: it does not make the file unattributable)",
           t == {"N.T.M1": 2, "N.T.M2": 2, "N.T.M3": 3}, t)
-    for label, f in [("an UNMAPPED (new) src file puts every test in tier 1", "src/Cobol.Net.Compiler/New.cs"),
-                     ("a known file no test executed puts every test in tier 1", "src/Cobol.Net.Compiler/Enum.cs"),
-                     ("an ambient-only file puts every test in tier 1", "src/Cobol.Net.Compiler/B.cs"),
-                     ("a grammar file puts every test in tier 1", "src/Cobol.Net.Frontend/Grammar/Core/X.g4"),
+    for label, f in [("an UNMAPPED (new) src file puts every test in tier 1", "src/WiseOwl.Cobol.Compiler/New.cs"),
+                     ("a known file no test executed puts every test in tier 1", "src/WiseOwl.Cobol.Compiler/Enum.cs"),
+                     ("an ambient-only file puts every test in tier 1", "src/WiseOwl.Cobol.Compiler/B.cs"),
+                     ("a grammar file puts every test in tier 1", "src/WiseOwl.Cobol.Frontend/Grammar/Core/X.g4"),
                      ("a props file puts every test in tier 1", "Directory.Build.props"),
-                     ("a runtime data file puts every test in tier 1", "src/Cobol.Net.Runtime/Collation/Data/x.bin")]:
+                     ("a runtime data file puts every test in tier 1", "src/WiseOwl.Cobol.Runtime/Collation/Data/x.bin")]:
         t, reach = tiers_for([f])
         check(label, set(t.values()) == {1} and bool(reach.every_tier1), reach.every_tier1[:1])
-    t, reach = tiers_for(["src/Cobol.Net.Runtime/PublicAPI.Unshipped.txt", "src/Cobol.Net.Runtime/PublicAPI.Shipped.txt",
-                          "src/Cobol.Net.Runtime/RuntimeAbi.pin"])
+    t, reach = tiers_for(["src/WiseOwl.Cobol.Runtime/PublicAPI.Unshipped.txt", "src/WiseOwl.Cobol.Runtime/PublicAPI.Shipped.txt",
+                          "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin"])
     check("a public-API analyzer baseline is data a test may read, not a non-C# input: no test goes to tier 1 for it "
           "(nor for the runtime ABI pin)",
           not reach.every_tier1 and set(t.values()) == {3}, (reach.every_tier1[:1], t))
@@ -1062,7 +1062,7 @@ def self_test() -> int:
     saved, HEAD = HEAD, "HEAD"
     try:
         reach = Reach()
-        reach_of(None, [("D", "tests/Cobol.Net.Tests.Unit/NoSuchDeletedTests.cs")], "HEAD", reach)
+        reach_of(None, [("D", "tests/WiseOwl.Cobol.Tests.Unit/NoSuchDeletedTests.cs")], "HEAD", reach)
         check("a replayed deletion of a test file names no test and does not read the absent file",
               not any(reach.changed_tests.values()), reach.changed_tests)
     finally:
@@ -1094,11 +1094,11 @@ def self_test() -> int:
                     ("docs/CONFORMANCE.md", {"AnnexA1RegisterDriftTests"}),
                     (copy + "copy-library-text.cob", {"ConstantNameLiteralPositionDriftTests"}),
                     # kb/Work PB3112: the reads a test spells with a nested call, a constant or a wrapper's callers.
-                    ("src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4", {"ArithmeticOperandRoleDriftTests",
+                    ("src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4", {"ArithmeticOperandRoleDriftTests",
                                                                           "SendingOperandDriftTests",
                                                                           "ReceivingOperandFormDriftTests"}),
-                    ("src/Cobol.Net.Compiler/Binding/ClassConditionModel.cs", {"ClassConditionTableDriftTests"}),
-                    ("src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs", {"FixedFormRecordDriftTests"}),
+                    ("src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs", {"ClassConditionTableDriftTests"}),
+                    ("src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs", {"FixedFormRecordDriftTests"}),
                     # A wrapper's trailing parameters (`AssertDeclares(string script, params string[] cases)`) are no path.
                     ("scripts/spec/cite.py", {"CitationAuditSelfTestDriftTests"})]:
         reach = Reach()
@@ -1203,7 +1203,7 @@ def self_test() -> int:
     inventory = drift_rules.ROOT / "tests" / "version-matrix" / "traceability-inventory.json"
     ref = re.search(r"unit:([A-Z]\w*)\.([A-Za-z_]\w*)", text_of(inventory))
     got = drift_rules.citing(drift_rules.index(), [drift_rules.Removal(
-        f"tests/Cobol.Net.Tests.Unit/{ref.group(1)}.cs", False, frozenset({ref.group(2)}),
+        f"tests/WiseOwl.Cobol.Tests.Unit/{ref.group(1)}.cs", False, frozenset({ref.group(2)}),
         frozenset({ref.group(1)}))]) if ref else {}
     check("the real inventory: renaming a test it cites names SpecTraceabilityInventoryDriftTests (tier 0d)",
           "SpecTraceabilityInventoryDriftTests" in got, sorted(got))
@@ -1225,17 +1225,17 @@ def self_test() -> int:
          (25, 0, [], ["    private static int Helper(int x)", "    {", "        return x;", "    }"]), set()),
     ]
     for label, (start, count, removed, added), want in method_cases:
-        got = method_ids(ix, "src/Cobol.Net.Compiler/A.cs",
+        got = method_ids(ix, "src/WiseOwl.Cobol.Compiler/A.cs",
                          Hunk(start, count, start, len(added), removed, added, lexed(removed), lexed(added)))
         check(label, (got is None) if want is None else (got is not None and set(bit_ids(got)) == want), got)
     # The sibling arm of PB3190 review R1-1: a line deleted from a string literal between methods (here a class-level
     # raw-string constant, lines 24-26 of a planted A.cs) is a declaration change even when it reads like a comment.
     a_cs = [f"    // line {n}" for n in range(1, 24)] + ["    const string H = " + q3, "      // generated",
                                                           "      " + q3 + ";", "}"]
-    got = [method_ids(ix, "src/Cobol.Net.Compiler/A.cs", h) for h in diff_between(a_cs, a_cs[:24] + a_cs[25:])]
+    got = [method_ids(ix, "src/WiseOwl.Cobol.Compiler/A.cs", h) for h in diff_between(a_cs, a_cs[:24] + a_cs[25:])]
     check("a comment-looking line deleted from a string literal between methods is a declaration change",
           got == [None], got)
-    got = [method_ids(ix, "src/Cobol.Net.Compiler/A.cs", h) for h in diff_between(a_cs, a_cs[:1] + a_cs[2:])]
+    got = [method_ids(ix, "src/WiseOwl.Cobol.Compiler/A.cs", h) for h in diff_between(a_cs, a_cs[:1] + a_cs[2:])]
     check("a real comment line deleted between methods reaches nothing", got == [0], got)
     reach = Reach()
     reach.direct |= 1 << 0

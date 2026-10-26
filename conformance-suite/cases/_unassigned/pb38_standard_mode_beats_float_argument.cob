@@ -14,7 +14,7 @@
       *> ⛔ THIS GOLDEN EXISTS BECAUSE ONE FLOAT ARGUMENT DEMOTED THE WHOLE LIST (fix-queue PB38).
       *> IntrinsicRenderer.RenderNum routed on AnyRealArgument with NO arithmetic-mode guard, while
       *> NumericRenderer.CombineCore, NumericRenderer.Power and ConditionRenderer all test the mode FIRST - the
-      *> ordering COBOLNET_NUMERIC_DESIGN.md D3 states in words, "the mode branch runs BEFORE the D16 float
+      *> ordering NUMERIC_DESIGN.md D3 states in words, "the mode branch runs BEFORE the D16 float
       *> branch". RenderNum was the one renderer that did not, so:
       *>     MEDIAN(H1 H2 H3 F1 F1) -> 100000000000000004.76   where the SDIDI-exact answer is 100000000000000001
       *>     MAX(H1 H2 H3 F1)       -> 100000000000000004.76   where the SDIDI-exact answer is 100000000000000003

@@ -10,7 +10,7 @@
       *>   to be an integer numeric literal" (-> OK §7.3.6.3 3)), and
       *>   "The implementor shall allow for fixed-point numeric
       *>   literals of 1 through 31 digits in length" (-> OK
-      *>   §8.3.3.3.2) - COBOL.NET's limit is 31 (COBOL0801).
+      *>   §8.3.3.3.2) - WiseOwl COBOL's limit is 31 (COBOL0801).
       *> 2002/2014: standard arithmetic (Annex E.2 6) + 21)) carries
       *>   34 digits, so 9999999999999999999999999999999 squared
       *>   (about 1.0E62) is representable as an intermediate, but its

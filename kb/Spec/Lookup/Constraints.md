@@ -7,9 +7,9 @@ related_files:
   - CONSTRAINTS.md
   - specs/ISO_COBOL.md
   - docs/CONFORMANCE.md
-  - src/Cobol.Net.Editions/EditionInfo.cs
+  - src/WiseOwl.Cobol.Editions/EditionInfo.cs
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
   - lookup
 ---
@@ -44,7 +44,7 @@ enforces limits) and **engineering constraints** (the development doctrine from 
 | No duplication `[Duplication]` | canonical helpers; source-gen visitor | CONSTRAINTS.md | `BoundVisitorGenerator` (compile-error on gap) | — | [[kb/IR/Node Types]] |
 | Singular pattern | one best mechanism per job | CONSTRAINTS.md / PROMPT.md | `Place`, PC dispatcher, one gate | — | [[kb/Context/Doctrine & Anti-Patterns]] |
 | No transitional hacks / workarounds | fix the root cause; propagate type changes fully | PROMPT.md | design-time singular pattern | — | [[kb/Context/Goals]] |
-| No byte substrate | typed-native only; bytes transient at boundaries | owner directive | no `ProgramState` in `Cobol.Net.*` | — | [[kb/Architecture/High-Level Design]] |
+| No byte substrate | typed-native only; bytes transient at boundaries | owner directive | no `ProgramState` in `WiseOwl.Cobol.*` | — | [[kb/Architecture/High-Level Design]] |
 
 ## See also
 - [[kb/Spec/Constraints]] — the prose version (spec-side).

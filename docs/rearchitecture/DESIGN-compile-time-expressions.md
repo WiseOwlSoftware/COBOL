@@ -110,7 +110,7 @@ The evaluator must live in **Frontend** so both callers reach it (`Editions ← 
 cannot reference Compiler). Its lexical dependencies were relocated down accordingly — the singular lexical
 utilities, now reachable by both layers:
 
-* **`CobolLiteral`** (the ONE literal codec) relocated Compiler → `Frontend/Common` (namespace `CobolNet.Common`
+* **`CobolLiteral`** (the ONE literal codec) relocated Compiler → `Frontend/Common` (namespace `WiseOwl.Cobol.Common`
   unchanged; all Compiler `using`s still resolve). **Done, build-verified.**
 * **`NumericLiteral.Normalize`** — the §12.3.7 GR14a numeric-literal normalizer extracted to `Frontend/Common`;
   `DataBinder.NormalizeNumericLiteral` delegates to it and keeps emitting COBOL0895 byte-identically. **Done,
@@ -266,7 +266,7 @@ text may differ by that one clause from today (CONSTANT goldens updated same com
 
 ### 5.3 Numeric-literal normalization
 
-The one chokepoint is `CobolNet.Common.NumericLiteral.Normalize` (Frontend, §3) — §12.3.7 GR14a. The binder
+The one chokepoint is `WiseOwl.Cobol.Common.NumericLiteral.Normalize` (Frontend, §3) — §12.3.7 GR14a. The binder
 passes its real `DecimalPointIsComma` and routes the issue to COBOL0895; the **frontend passes `false`** —
 directives are processed before SPECIAL-NAMES is bound (§7.2), so a directive numeric literal is always
 dot-decimal (a stated, spec-grounded limitation).
@@ -373,7 +373,7 @@ and **transfers** (GR1): `DiagnosticBag.Transfer(stream, line)`, one line per de
 by one space (DOC-A.1-53) — which `CompilerDriver.Result.CompileOutput` hands to the CLI, which writes each line to the compiler
 stream it names, before the diagnostics. UPON (GR5, GR6; DOC-A.1-54): no phrase is as if UPON LISTING; LISTING and the
 output device-names CONSOLE and SYSOUT are the compiler's standard output, SYSERR its standard error; a device-name is a row of
-the ONE `ImplementorNames` table (which therefore lives in `Cobol.Net.Editions`, beside the directive catalog, where the
+the ONE `ImplementorNames` table (which therefore lives in `WiseOwl.Cobol.Editions`, beside the directive catalog, where the
 front end and the binder both read it); §5.2.6.4's choice indicators — the device group and LISTING each at most once, in any
 order — are checked once per phrase (COBOL2698). A PARAMETER value that the environment does not supply makes the whole
 directive transfer nothing (GR3). A violation reports and transfers nothing; a directive in an omitted branch does not run.

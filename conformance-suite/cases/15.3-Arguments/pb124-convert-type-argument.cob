@@ -6,7 +6,7 @@
 *>---
       *> Table 21 lists Type1 for CONVERT, but 15.19.3's argument rules and 15.19.4's returned-value rules
       *> define NOTHING for a type-name (a type declaration has neither storage nor a value for any
-      *> source-format to read) - a standard-text inconsistency recorded in docs/CONFORMANCE.md. COBOL.NET
+      *> source-format to read) - a standard-text inconsistency recorded in docs/CONFORMANCE.md. WiseOwl COBOL
       *> rejects with the reason named, not "undefined data-name" (kb/Work PB124 wave 4, AR-15.3-14).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB124NG.

@@ -328,7 +328,7 @@ def self_test() -> int:
     # kb/Work R23 — the source-citation sweep, proven able to fail for BOTH of its reasons.
     import tempfile
     with tempfile.TemporaryDirectory() as td:
-        fake = pathlib.Path(td) / 'Cobol.Net.Fake' / 'X.cs'
+        fake = pathlib.Path(td) / 'WiseOwl.Cobol.Fake' / 'X.cs'
         fake.parent.mkdir(parents=True)
         fake.write_text('// precision (implementor item 999)\n// and the real one (implementor item 2)\n',
                         encoding='utf-8', newline="\n")
@@ -425,7 +425,7 @@ def sweep_source_citations(register: dict[int, dict], numbered: dict[int, str], 
         parts = path.parts
         if 'obj' in parts or 'bin' in parts or 'Generated' in parts:
             continue
-        if not any(p.startswith('Cobol.Net.') for p in parts):
+        if not any(p.startswith('WiseOwl.Cobol.') for p in parts):
             continue
         text = path.read_text(encoding='utf-8', errors='replace')
         for m in CITATION_RX.finditer(text):

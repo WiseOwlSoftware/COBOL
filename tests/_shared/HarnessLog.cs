@@ -2,13 +2,13 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
 /// THE test harness's observation log: one line per event a test run cannot show as a verdict but a reader must be able
 /// to count afterwards (a retried or unobserved child process, <c>ProcessObserver</c>; a scratch directory that
 /// could not be removed, <c>ScratchDirectory</c>). The local gate (<c>scripts/run_gate_legs.py</c>) and every CI test
-/// step set <c>COBOLNET_HARNESS_LOG</c> to a file in their results directory, which CI uploads with the TRX (kb/Work
+/// step set <c>HARNESS_LOG</c> to a file in their results directory, which CI uploads with the TRX (kb/Work
 /// PB3108; <c>CiHarnessLogDriftTests</c>). The Linux gate (<c>scripts/linux-gate.sh</c>) sets it to a file on the Linux
 /// filesystem and copies that into its results directory as it ends: the log is read beside its writers
 /// (<see cref="ReadAll"/>), and on a Windows drive mounted over 9P (WSL's <c>/mnt/e</c>) an append beside a reader lost
@@ -16,10 +16,10 @@ namespace CobolNet.Tests.Shared;
 /// </summary>
 internal static class HarnessLog
 {
-    /// <summary>The log file: <c>COBOLNET_HARNESS_LOG</c>, or one in the temp directory when no gate names one.</summary>
+    /// <summary>The log file: <c>HARNESS_LOG</c>, or one in the temp directory when no gate names one.</summary>
     public static string Path { get; } =
-        Environment.GetEnvironmentVariable("COBOLNET_HARNESS_LOG")
-        ?? System.IO.Path.Combine(System.IO.Path.GetTempPath(), "cobolnet-harness-observations.log");
+        Environment.GetEnvironmentVariable("HARNESS_LOG")
+        ?? System.IO.Path.Combine(System.IO.Path.GetTempPath(), "wiseowl-cobol-harness-observations.log");
 
     /// <summary>Say, on standard error and in this log, that a test's scratch <paramref name="path"/> could not be deleted
     /// and why, and what becomes of it (<paramref name="then"/>). THE one report of a failed test cleanup

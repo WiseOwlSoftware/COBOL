@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Microsoft.CodeAnalysis;
 
-namespace CobolNet.Tools.ArchCensus;
+namespace WiseOwl.Cobol.Tools.ArchCensus;
 
 /// <summary>One census type as the compiler declares it: every partial, with the document each lives in.</summary>
 internal sealed record CensusType(

@@ -8,10 +8,10 @@ related_files:
   - CLAUDE.md
   - CONSTRAINTS.md
   - specs/ISO_COBOL.md
-  - docs/COBOLNET_DESIGN.md
+  - docs/DESIGN.md
   - docs/VERSION_TEST_MATRIX_DESIGN.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - context
 ---
 
@@ -33,7 +33,7 @@ Owner-emphasized, repeatedly corrected:
 1. **The ISO spec is authority for EVERY case** — read [[specs/ISO_COBOL]] and cite the § (in code + DEVLOG) for any
    semantics/syntax/output question. Never guess; never infer behavior from the NIST goldens or the GnuCOBOL differential (regression nets with
    known holes, NOT authority).
-2. **Implement each feature FROM its subsystem deep-dive design doc** ([[docs/COBOLNET_DESIGN]] §0.5 indexes them) +
+2. **Implement each feature FROM its subsystem deep-dive design doc** ([[docs/DESIGN]] §0.5 indexes them) +
    the spec — follow the doc, do not improvise.
 3. **Implement the COMPLETE feature to the spec + design — NEVER scope to what a test references.** Tests VERIFY; they
    do not bound what to build.
@@ -44,7 +44,7 @@ Owner-emphasized, repeatedly corrected:
 > the § … Never guess; never infer behavior from a regression net."*
 
 ## Supporting standing rules
-- **Typed-native, no byte substrate** — the greenfield `src/Cobol.Net.*` never routes through a byte `ProgramState`;
+- **Typed-native, no byte substrate** — the greenfield `src/WiseOwl.Cobol.*` never routes through a byte `ProgramState`;
   native scaled numerics; every NEW subsystem is typed-native.
 - **Singular pattern** — one mechanism per job (the best one); two coexisting mechanisms is the anti-pattern; resolve
   the structural singular-pattern at design time.

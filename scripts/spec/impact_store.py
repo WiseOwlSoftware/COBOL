@@ -236,7 +236,7 @@ def self_test() -> int:
     check("a bitset round-trips through pack and unpack", unpack(pack(0b1010_0001 << 40)), 0b1010_0001 << 40)
     check("bit_ids lists the set bits ascending", list(bit_ids(0b1000_0101)), [0, 2, 7])
     check("docs and scripts are documentation; src and tests never are",
-          [is_doc(p) for p in ("docs/a.md", "scripts/x.py", "src/Cobol.Net.Compiler/A.cs", "tests/a/b.md", "README.md")],
+          [is_doc(p) for p in ("docs/a.md", "scripts/x.py", "src/WiseOwl.Cobol.Compiler/A.cs", "tests/a/b.md", "README.md")],
           [True, True, False, False, True])
 
     tmp = scratch_dir("impact-store-")

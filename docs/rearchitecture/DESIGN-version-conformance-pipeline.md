@@ -13,7 +13,7 @@
 > version-conformance pipeline; the version-gating
 > *framework* primitives (`EditionInfo`, `IDiagnosticSink`, `ConstructRegistry`, `constructs.json`) remain owned by
 > [`DESIGN-edition-framework.md`](DESIGN-edition-framework.md). Cross-refs: [`DESIGN-frontend-grammar.md`](DESIGN-frontend-grammar.md),
-> [`DESIGN-binder-bound-tree.md`](DESIGN-binder-bound-tree.md). SSOT for settled invariants stays `docs/COBOLNET_DESIGN.md`.
+> [`DESIGN-binder-bound-tree.md`](DESIGN-binder-bound-tree.md). SSOT for settled invariants stays `docs/DESIGN.md`.
 
 > **TWO-ARM ARCHITECTURE (the load-bearing invariant).** NO `.Syntax`/raw parse context is added to any bound node
 > — the `BoundTree.cs` invariant STANDS. The pass (`VersionConformancePass.cs`) is **TWO-ARM**:
@@ -273,7 +273,7 @@ compiler-directive word (§8.12). It calls the same `ConstructRegistry.Check` fu
 COBOL0902 at a removing one, COBOL0903 at an obsoleting one.
 
 **The roster is derived, and that is the load-bearing part.** `constructs.json` rows carry a `directiveWords`
-column; `CompilerDirectiveCatalog` (`Cobol.Net.Editions`) inverts it into the word → row map the stage consults.
+column; `CompilerDirectiveCatalog` (`WiseOwl.Cobol.Editions`) inverts it into the word → row map the stage consults.
 Adding a directive is ONE row plus `pwsh scripts/gen-constructs.ps1` — the word becomes recognized, its edition
 becomes enforced, and the version matrix compiles its `source` at all four editions, in one change.
 
@@ -295,7 +295,7 @@ directives the driver consumes, so `>>SOURCE FORMAT UNKNOWN`, `>>LISTING GARBAGE
 in silence. **COBOL0883 and COBOL1576 are RETIRED** by that consolidation; COBOL1650 keeps only
 §7.3.17.3 SR1's placement rule.
 
-**And the directive LINE has one parse.** `CompilerDirectiveLine` (`Cobol.Net.Editions`) owns the indicator with
+**And the directive LINE has one parse.** `CompilerDirectiveLine` (`WiseOwl.Cobol.Editions`) owns the indicator with
 its optional following space (§7.3.3 SR5), the directive word, and the operand with a §7.3.3 SR3/SR4 inline
 comment removed (quote-aware, so the `*>` inside `>>DISPLAY "a *> b"` is data). Every stage calls it. Seven
 hand-rolled copies of `trimmed[2..].TrimStart()` are gone, and with them a class of defect the copies all shared:
@@ -424,9 +424,9 @@ finally funnels every bind-time `Check` into the one pass.
 
 ## 7. SSOT / doc impact
 
-- `docs/COBOLNET_DESIGN.md` — records the pipeline as `parse → bind (edition-agnostic) → version-conformance pass →
+- `docs/DESIGN.md` — records the pipeline as `parse → bind (edition-agnostic) → version-conformance pass →
   emit`, and that edition gating is a single bound-tree pass.
 - `DESIGN-edition-framework.md` — add a pointer to this doc; note the pass is the single consumer of `ConstructRegistry`.
 - `DESIGN-frontend-grammar.md` — the superset-parse + construct-id-annotation convention (action-not-predicate).
 - `DESIGN-binder-bound-tree.md` — the binder is edition-agnostic; no bound node carries a `.Syntax`/parse back-reference.
-- `DOC_INDEX.md` + `docs/COBOLNET_REARCHITECTURE_PLAN.md` — index this doc; slot the migration as a phase.
+- `DOC_INDEX.md` + `docs/REARCHITECTURE_PLAN.md` — index this doc; slot the migration as a phase.

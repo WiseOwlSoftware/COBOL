@@ -7,13 +7,13 @@ related_files:
   - .gitignore
   - docs/DOC_INDEX.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - context
 ---
 
 # Vault Architecture & Setup
 
-**As of 2026-07-23 the Obsidian vault root IS the repo root (`E:\CobolSharp\`)** — one vault, one graph over the whole
+**As of 2026-07-23 the Obsidian vault root IS the repo root (`E:\COBOL\`)** — one vault, one graph over the whole
 project. Confirmed: the pre-existing `[[kb/…]]` links resolve unchanged (Obsidian suffix-matches the new
 `kb/…` paths), and `docs/*` is now in the graph. This note records how the layers fit and how each is
 maintained.
@@ -53,7 +53,7 @@ generated version. Tracked in [[kb/Work.base|the work register]].
 
 **✅ Pilot LIVE (2026-07-23):** `scripts/gen-vault-reference.ps1` generates **634 type notes** across all six greenfield projects (Bound, Compiler, SourceGen, Editions, Runtime, Frontend) — class / record / record-struct / struct / enum / interface into `kb/Reference/` (index: [[kb/Reference/Bound/_Index]]) from the source `///` summaries — drift-proof, gitignored
 build output, 3 documentation-debt items surfaced. The PowerShell generator now covers all six greenfield projects (Bound, Compiler, SourceGen, Editions, Runtime, Frontend), with an opt-in MSBuild build hook
-(`-p:GenerateVaultReference=true` in `Cobol.Net.Cli.csproj`) and a `VaultReferenceGeneratorDriftTests` "runs clean" CI check.
+(`-p:GenerateVaultReference=true` in `WiseOwl.Cobol.Cli.csproj`) and a `VaultReferenceGeneratorDriftTests` "runs clean" CI check.
 
 ## Grammar diagrams (railroad)
 A second generator — `scripts/gen-grammar-diagrams.ps1` — renders **railroad syntax diagrams** from the ANTLR
@@ -62,7 +62,7 @@ A second generator — `scripts/gen-grammar-diagrams.ps1` — renders **railroad
 build output). Covers all **nine** ANTLR parser fragments (386 diagrams) — index at [[kb/Grammar/_Index]]. Wide
 rules render at native font via the `wide-diagram` cssclass + the `.obsidian/snippets/grammar-diagrams.css` snippet.
 Run a subset with `-Fragments Name1,Name2`; `-Width` tunes the wrap threshold. Productionized the same way as the
-code-reference generator: an opt-in MSBuild build hook (`-p:GenerateGrammarDiagrams=true` in `Cobol.Net.Cli.csproj`)
+code-reference generator: an opt-in MSBuild build hook (`-p:GenerateGrammarDiagrams=true` in `WiseOwl.Cobol.Cli.csproj`)
 and a `GrammarDiagramGeneratorDriftTests` "runs clean" CI check (requires `java` + the vendored `tools/rr/rr.war`).
 
 ## See also

@@ -9,7 +9,7 @@
       *> fixed-point receiver as its EXACT value, identically through the MOVE channel and the arithmetic
       *> channel. ISO 14.6.8.2 rule 1 ("the value is treated as if it had been converted to a fixed-point
       *> value") + rule 4 ("truncation on either end"); rule 2 gives the FLOAT-LONG sender's conversion to
-      *> the implementor and COBOL.NET's determination is that same exact conversion, at every edition.
+      *> the implementor and WiseOwl COBOL's determination is that same exact conversion, at every edition.
       *> The ROUNDED MODE IS legs live in the 2014/2023 twins -- the phrase is COBOL-2014+ (COBOL0803).
       *> Expected values are the EXACT expansions of the binary64 significands, not observations:
       *>   16331239353195370 = 8165619676597685 x 2                          -- exact

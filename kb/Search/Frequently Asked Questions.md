@@ -4,20 +4,20 @@ area: search
 status: draft
 last_updated: 2026-07-23
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - search
 ---
 
 # Frequently Asked Questions
 
-## What is COBOL.NET?
-A compiler (`src/Cobol.Net.*`, exe `cobol`) that translates standard COBOL into **idiomatic, typed-native C#** which
+## What is WiseOwl COBOL?
+A compiler (`src/WiseOwl.Cobol.*`, exe `cobol`) that translates standard COBOL into **idiomatic, typed-native C#** which
 Roslyn compiles into a .NET assembly. Built from the ISO/IEC 1989:2023 spec with support for editions 1985/2002/2014.
 See [[kb/Architecture/High-Level Design]].
 
-## Why "CobolSharp" *and* "COBOL.NET"?
-The repository is `CobolSharp`; the *product* the current code builds is **COBOL.NET**. CobolSharp was the original
-byte-engine compiler; a 2026-06-08 owner pivot began the blank-slate typed-native rewrite. The legacy `CobolSharp.*`
+## Why "WiseOwl COBOL" *and* "WiseOwl COBOL"?
+The repository is `WiseOwl COBOL`; the *product* the current code builds is **WiseOwl COBOL**. WiseOwl COBOL was the original
+byte-engine compiler; a 2026-06-08 owner pivot began the blank-slate typed-native rewrite. The legacy `Legacy.*`
 projects survive only as a differential oracle until the G8 cut-over. See [[kb/Context/Project History]].
 
 ## Is there an intermediate representation (IR)?
@@ -60,8 +60,8 @@ spec-derived golden. 46 items, **30 landed / 16 remain** (as of 2026-07-23). See
 full NIST regression gate. .NET 10 / C# 14. See [[kb/Compiler/Build System]].
 
 ## What are the design SSOTs I should read first?
-[[docs/COBOLNET_DESIGN]] (the decision-complete design SSOT) and [[docs/COBOLNET_REARCHITECTURE_PLAN]] §0 (the live
-plan/resume state). Then the per-subsystem `docs/COBOLNET_*_DESIGN.md` deep-dives. See
+[[docs/DESIGN]] (the decision-complete design SSOT) and [[docs/REARCHITECTURE_PLAN]] §0 (the live
+plan/resume state). Then the per-subsystem `docs/*_DESIGN.md` deep-dives. See
 [[kb/Architecture/MOC]].
 
 ## See also

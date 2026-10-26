@@ -23,8 +23,8 @@
       *>     phrase is specified, to imperative-statement-2." -> OK 3) i)
       *> THE DETERMINATION PINNED (docs/CONFORMANCE.md DOC-A.1-16, "The
       *> same at every edition"): the runtime assembly
-      *> Cobol.Net.Runtime.dll, a non-COBOL .NET assembly deployed beside
-      *> every COBOL.NET program, is not located by CALL.
+      *> WiseOwl.Cobol.Runtime.dll, a non-COBOL .NET assembly deployed beside
+      *> every WiseOwl COBOL program, is not located by CALL.
       *> This edition has no TURN directive and no EXCEPTION-STATUS
       *> function, so only the phrase taken is observable.
       *> DERIVATION of every .out line:
@@ -39,14 +39,14 @@
        PROGRAM-ID. L1CNC85.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 WS-NAME PIC X(17) VALUE "Cobol.Net.Runtime".
+       01 WS-NAME PIC X(17) VALUE "WiseOwl.Cobol.Runtime".
        PROCEDURE DIVISION.
        MAIN-PARA.
            CALL "L1CNC85S"
                ON EXCEPTION DISPLAY "SUB-NOT-FOUND"
                NOT ON EXCEPTION DISPLAY "SUB-CALLED"
            END-CALL
-           CALL "Cobol.Net.Runtime"
+           CALL "WiseOwl.Cobol.Runtime"
                ON EXCEPTION DISPLAY "LIT-NOT-FOUND"
                NOT ON EXCEPTION DISPLAY "LIT-CALLED"
            END-CALL

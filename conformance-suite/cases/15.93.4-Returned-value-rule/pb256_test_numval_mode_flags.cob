@@ -21,7 +21,7 @@
       *> (§15.95.4 r1 a) — same sentence, rule 4.
       *> §15.93.4 r1 b) 2 / 4 and §15.95.4 r1 b) 2 / 4 condition the digit cap on the arithmetic mode:
       *> 31 native, 34 standard-decimal. ARITHMETIC IS STANDARD — the COBOL-2002 mode, obsolete 2014 and
-      *> removed 2023, so 2002 is where it can be measured — is named by NONE of the sub-notes; COBOL.NET's
+      *> removed 2023, so 2002 is where it can be measured — is named by NONE of the sub-notes; WiseOwl COBOL's
       *> recorded determination is that it takes 34 because its standard intermediate data item IS the
       *> standard DECIMAL one and it routes to the same engine (ArithmeticModes.NumvalDigitCap /
       *> ArithmeticModes' SDIDI remark, kb/Work PB194/PB198). This fixture is what MEASURES that

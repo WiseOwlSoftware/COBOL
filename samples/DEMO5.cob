@@ -40,9 +40,9 @@
            DISPLAY "   UPPER-CASE: "
                FUNCTION UPPER-CASE("hello world").
            DISPLAY "   REVERSE: "
-               FUNCTION REVERSE("CobolSharp").
+               FUNCTION REVERSE("WiseOwl COBOL").
            DISPLAY "   LENGTH: "
-               FUNCTION LENGTH("CobolSharp").
+               FUNCTION LENGTH("WiseOwl COBOL").
 
            DISPLAY "4. OO COBOL parsing: supported".
            DISPLAY "   (CLASS-ID, METHOD-ID, INVOKE)".

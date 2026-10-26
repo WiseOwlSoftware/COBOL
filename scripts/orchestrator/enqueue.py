@@ -2503,7 +2503,7 @@ def self_test() -> int:
                str(held_by_pattern))
         one = next(iter(samples.values()))
         other_files = driver_file_holders(drv.path, base_ref, "drv", gh=listing_gh(
-            [(910, "elsewhere", "o", ["src/Cobol.Net.Runtime/Other.cs", "kb/Work/PB1.md"]), (911, "drv", "o", [one])], []))
+            [(910, "elsewhere", "o", ["src/WiseOwl.Cobol.Runtime/Other.cs", "kb/Work/PB1.md"]), (911, "drv", "o", [one])], []))
         cut_off = driver_file_holders(drv.path, base_ref, "drv", gh=listing_gh(
             [(912, "refactor", "o", [f"src/f{i}.cs" for i in range(FILES_LISTED)])], []))
         expect("driver files: a pull request changing other files, or the branch's own pull request (a bounce's), holds "

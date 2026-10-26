@@ -18,7 +18,7 @@ Owner-emphasized, each earned by a correction. These nine are the SSOT; `PROMPT.
    quoted text is genuinely in the standard, and the clause NUMBER is never re-derived before it propagates into
    code comments, goldens and the DEVLOG. Two CA10 citations were wrong exactly this way. A citation you did not
    run `--check` on is not a citation.
-2. **Implement each feature FROM its subsystem deep-dive design doc** (`docs/COBOLNET_DESIGN.md` §0.5 lists them)
+2. **Implement each feature FROM its subsystem deep-dive design doc** (`docs/DESIGN.md` §0.5 lists them)
    plus the spec. Follow the doc; do not improvise. A design correction updates the doc in the same change set.
 3. **Implement the COMPLETE feature to spec + design — never scope to what a test references.** Tests verify, they
    do not scope. Deferral, a GAP, or rejecting legal source is debt, and only an explicit owner decision.
@@ -79,7 +79,7 @@ Owner-emphasized, each earned by a correction. These nine are the SSOT; `PROMPT.
 1. **`kb/Work/` — THE WORK REGISTER, and the answer to "what do I do now".** Run
    `python scripts/spec/work.py next`; `kb/Work.base` → **Fix next** is the same list, sortable. It ranks on what
    a defect DOES to a user's program, not on its severity label. ⛔ Never re-derive a worklist from prose.
-2. **`docs/COBOLNET_REARCHITECTURE_PLAN.md` §0** — live state, gates, open GAPs, owner decisions and the campaign
+2. **`docs/REARCHITECTURE_PLAN.md` §0** — live state, gates, open GAPs, owner decisions and the campaign
    narrative. ⛔ **It no longer carries a worklist and must never regrow one** (rule 8). Trust §0 over any status
    written anywhere else, including memory — but trust `kb/Work/` over §0 for what is OPEN.
 3. **`pwsh scripts/session-probe.ps1`** — the mechanical state check (branch · dirty/unpushed · next-free
@@ -87,9 +87,9 @@ Owner-emphasized, each earned by a correction. These nine are the SSOT; `PROMPT.
 4. Before the session ends: update the `kb/Work/` notes you touched, update §0, add a DEVLOG entry.
 
 ## The project
-WiseOwl COBOL (repo `WiseOwlSoftware/COBOL`; code `src/Cobol.Net.*`, exe `cobol`, NuGet `WiseOwl.COBOL`) compiles COBOL into **idiomatic typed-native C# built by Roslyn**: a
+WiseOwl COBOL (repo `WiseOwlSoftware/COBOL`; code `src/WiseOwl.Cobol.*`, exe `cobol`, NuGet `WiseOwl.COBOL`) compiles COBOL into **idiomatic typed-native C# built by Roslyn**: a
 COBOL record IS a .NET `record struct`, an elementary item IS a native field. **There is NO byte `ProgramState`
-substrate — never reintroduce one.** The legacy CobolSharp engine that had one is deleted from `main` (PHASE 15 Cut 2,
+substrate — never reintroduce one.** The legacy WiseOwl COBOL engine that had one is deleted from `main` (PHASE 15 Cut 2,
 kb/Work PB2110); `docs/rearchitecture/LEGACY-ARCHIVE.md` names the tag that preserves it.
 
 **Mission (owner decision D13):** a commercial-quality, decades-sustainable compiler that is **100% conforming to
@@ -102,9 +102,9 @@ code review · performance · duplication and efficiency** — as continuous cri
 comprehensive pass once the design settles (`PROMPT.md` §4).
 
 ## Where things live
-- **Plan / live state:** `docs/COBOLNET_REARCHITECTURE_PLAN.md` — §0 live state · §3 execution model · §8
+- **Plan / live state:** `docs/REARCHITECTURE_PLAN.md` — §0 live state · §3 execution model · §8
   forward-residue ledger · §9 verification commands + corpus mechanics · §11 analysis backlog · §12 risk register.
-- **Design SSOT:** `docs/COBOLNET_DESIGN.md` plus the `docs/rearchitecture/DESIGN-*.md` deep-dives.
+- **Design SSOT:** `docs/DESIGN.md` plus the `docs/rearchitecture/DESIGN-*.md` deep-dives.
 - **The work register:** **`kb/Work/`** — ONE note per item (defect · analysis · adjudication · decision),
   tracked in git, with the forensic prose in the note body. `kb/Work.base` is the view; **`Fix next`** ranks
   on what a defect DOES to a user's program, not on its severity label. `python scripts/spec/work.py next`
@@ -142,7 +142,7 @@ battery plus the GnuCOBOL differential once per accumulated batch, pre-merge, in
 Linux, so the implementer's gate runs the Linux half of the targeted leg under WSL before a push** (`scripts/linux-gate.sh
 --legs targeted`, kb/Work PB1732, PB3612); without `--legs targeted` that script runs CI's four whole Linux legs (unit,
 characterization, conformance, and CI's `guard` job), about 6 minutes, the tool that reproduces a Linux CI red on this
-box. Build `Cobol.Net.sln` (not a single project) before
+box. Build `WiseOwl.Cobol.sln` (not a single project) before
 any `--no-build` run. Commands and the current battery baseline are in plan §0 "Gates" and §9.
 ⛔ **THE CI INVARIANT (owner 2026-10-04): GitHub CI must never fail when the same code was tested locally by the same
 processes.** CI is the verification of the local process, never its first run. A CI red is therefore ALSO a defect in the

@@ -68,7 +68,7 @@ DOMAIN = [
     ".claude/agents/*.md",   # the role definitions: model, turn cap, hooks and the bar each agent runs under
     "*.ps1",                 # root scripts (the w1034 refuter: create-agents.ps1, create-auditartifacts.ps1)
     "Directory.*.props",
-    "Cobol.Net.sln",
+    "WiseOwl.Cobol.sln",
 ]
 # Each exclusion with its reason; a domain file matching one is reported as excluded, never as a hole.
 EXCLUDED = [
@@ -79,10 +79,10 @@ EXCLUDED = [
 ]
 
 # ── THE TABLE ────────────────────────────────────────────────────────────────────────────────────────────────────
-C = "src/Cobol.Net.Compiler"
+C = "src/WiseOwl.Cobol.Compiler"
 B = C + "/Binding"
-F = "src/Cobol.Net.Frontend"
-R = "src/Cobol.Net.Runtime"
+F = "src/WiseOwl.Cobol.Frontend"
+R = "src/WiseOwl.Cobol.Runtime"
 TABLE = [
     {"key": "preprocessor", "area": "frontend/preprocessor", "name": "preprocessor", "include": [F + "/Preprocessor/**"]},
     {"key": "lexer-grammar", "area": "frontend/grammar", "name": "lexer and grammar", "include": [F + "/Grammar/**", F + "/*.ps1"]},
@@ -98,7 +98,7 @@ TABLE = [
                  B + "/EcNameResolution.cs", B + "/ReportGroupResolution.cs"]},
     {"key": "validation", "area": "binding/validation", "name": "validation and edition gating", "include": [C + "/Validation/**", B + "/Validation/**"]},
     {"key": "bound-tree", "area": "binding", "name": "lowering and the bound tree",
-     "include": [B + "/Bound/**", "src/Cobol.Net.Compiler.SourceGen/**"]},
+     "include": [B + "/Bound/**", "src/WiseOwl.Cobol.Compiler.SourceGen/**"]},
     {"key": "codegen", "area": "codegen", "name": "Roslyn code generation", "include": [C + "/CodeGen/**", C + "/*.{cs,csproj}"]},
     {"key": "oo", "area": "binder/oo", "name": "OO", "include": [C + "/Oo/**", B + "/Oo*.cs", B + "/Prototype*.cs"]},
     {"key": "runtime-values", "area": "runtime/values", "name": "runtime values and numerics",
@@ -108,10 +108,10 @@ TABLE = [
     {"key": "runtime-io", "area": "runtime/io", "name": "runtime I/O", "include": [R + "/IO/**"]},
     {"key": "runtime-control", "area": "runtime/control", "name": "runtime control and exceptions", "include": [R + "/{Control,Exceptions,Repository}/**"]},
     {"key": "editions-diagnostics", "area": "editions", "name": "editions and diagnostics",
-     "include": ["src/Cobol.Net.Editions/**", F + "/Diagnostics/**"]},
-    {"key": "cli", "area": "cli", "name": "CLI", "include": ["src/Cobol.Net.Cli/**"]},
+     "include": ["src/WiseOwl.Cobol.Editions/**", F + "/Diagnostics/**"]},
+    {"key": "cli", "area": "cli", "name": "CLI", "include": ["src/WiseOwl.Cobol.Cli/**"]},
     {"key": "tests-scripts-ci", "area": "process/tooling", "name": "tests, scripts and CI",
-     "include": ["tests/**", "scripts/**", "tools/**", ".github/**", ".claude/**", "*.ps1", "Directory.*.props", "Cobol.Net.sln"]},
+     "include": ["tests/**", "scripts/**", "tools/**", ".github/**", ".claude/**", "*.ps1", "Directory.*.props", "WiseOwl.Cobol.sln"]},
 ]
 
 

@@ -2,7 +2,7 @@
 """
 generate-collation-table.py — build WiseOwl COBOL's DERIVED root collation table from Unicode CLDR / UCA data.
 
-    python scripts/collation/generate-collation-table.py [--data data/unicode] [--out src/Cobol.Net.Runtime/Collation/Data]
+    python scripts/collation/generate-collation-table.py [--data data/unicode] [--out src/WiseOwl.Cobol.Runtime/Collation/Data]
 
 Inputs (all pinned, all committed under data/unicode/, all under the Unicode License — data/unicode/LICENSE-UNICODE.txt):
   allkeys_CLDR.txt   the CLDR ROOT collation in DUCET format (cldr/common/uca, release tag in SOURCES.md) — the weights
@@ -384,7 +384,7 @@ def reorder_groups(markers, firsts, singles_first_primary, aliases):
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--data", default="data/unicode")
-    ap.add_argument("--out", default="src/Cobol.Net.Runtime/Collation/Data")
+    ap.add_argument("--out", default="src/WiseOwl.Cobol.Runtime/Collation/Data")
     args = ap.parse_args()
 
     p_cldr = os.path.join(args.data, "allkeys_CLDR.txt")

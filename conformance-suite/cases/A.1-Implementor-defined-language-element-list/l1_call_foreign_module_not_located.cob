@@ -33,9 +33,9 @@
       *>     alphanumeric character string that is the exception-name"
       *>     -> OK 1)
       *> THE DETERMINATION PINNED (docs/CONFORMANCE.md DOC-A.1-16): a CALL
-      *> resolves only to a COBOL.NET program; every other target - a
+      *> resolves only to a WiseOwl COBOL program; every other target - a
       *> .NET assembly present in the application directory (the runtime
-      *> assembly Cobol.Net.Runtime.dll, deployed beside every COBOL.NET
+      *> assembly WiseOwl.Cobol.Runtime.dll, deployed beside every WiseOwl COBOL
       *> program) named by a literal or held in an identifier - is not
       *> located, so GR3 g)'s non-COBOL branch is never reached.
       *> Checking for EC-PROGRAM is enabled by the TURN below, so the
@@ -57,14 +57,14 @@
        PROGRAM-ID. L1CNC01.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 WS-NAME PIC X(17) VALUE "Cobol.Net.Runtime".
+       01 WS-NAME PIC X(17) VALUE "WiseOwl.Cobol.Runtime".
        PROCEDURE DIVISION.
        MAIN-PARA.
            CALL "L1CNCSUB"
                ON EXCEPTION DISPLAY "SUB-NOT-FOUND"
                NOT ON EXCEPTION DISPLAY "SUB-CALLED"
            END-CALL
-           CALL "Cobol.Net.Runtime"
+           CALL "WiseOwl.Cobol.Runtime"
                ON EXCEPTION
                    DISPLAY "LIT-NOT-FOUND " FUNCTION EXCEPTION-STATUS
                NOT ON EXCEPTION

@@ -4,7 +4,7 @@ area: diagrams
 status: draft
 last_updated: 2026-07-23
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - diagram
 ---
 
@@ -19,7 +19,7 @@ How a bound statement becomes observable runtime behavior via the typed-native r
 flowchart TD
     BT["bound node (e.g. BoundCompute)"] --> EMIT["CodeGen emitter renders a call"]
     EMIT --> CS["generated C# (.g.cs)"]
-    CS --> RT["Cobol.Net.Runtime kernel"]
+    CS --> RT["WiseOwl.Cobol.Runtime kernel"]
     RT --> NUM["Values: CobolNum · CobolString · CobolDynTable"]
     RT --> VERB["Verbs: CobolInspect · CobolStringOps"]
     RT --> IOK["IO: CobolFile · connectors · CobolSort"]

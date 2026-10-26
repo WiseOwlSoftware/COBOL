@@ -7,7 +7,7 @@
 *> kb/Work PB443 - ISO 14.9.37.3 SR2, first sentence: "The data description of identifier-1 shall
 *> contain an OCCURS clause with an INDEXED phrase". PLAIN has no OCCURS clause. This verdict was
 *> DECIDED before PB443 and then delivered as a BoundUnsupported, i.e. compiled into the program as a
-*> run-time abort blaming COBOL.NET for an unimplemented feature (4.2.2 paragraph 2 puts it here).
+*> run-time abort blaming WiseOwl COBOL for an unimplemented feature (4.2.2 paragraph 2 puts it here).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB443SR2B.
        DATA DIVISION.

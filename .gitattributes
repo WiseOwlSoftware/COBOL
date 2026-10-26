@@ -20,7 +20,7 @@
 data/unicode/*.txt -text
 data/unicode/*.xml -text
 data/unicode/cldr/** -text
-tests/Cobol.Net.Tests.Unit/TestData/segmentation/*.txt -text
+tests/WiseOwl.Cobol.Tests.Unit/TestData/segmentation/*.txt -text
 
 # A conformance fixture whose BYTES are its subject: CR LF terminates a free-form line, and a CR not followed by a LINE
 # FEED is a character of the line (DOC-A.1-156, kb/Work PB1496), so it keeps its CR LF terminators and its lone CRs.
@@ -46,7 +46,7 @@ conformance-suite/wiseowl/options.json merge=cobol-keyed-object
 tests/version-matrix/traceability-inventory.json merge=cobol-keyed-inventory
 tests/version-matrix/constructs.json merge=cobol-keyed-constructs
 kb/Work/PB*.md merge=cobol-work-note
-src/Cobol.Net.Runtime/RuntimeAbi.pin merge=cobol-abi-pin
+src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin merge=cobol-abi-pin
 # The public-API baselines (Microsoft.CodeAnalysis.PublicApiAnalyzers) are SETS of symbol lines under one `#nullable
 # enable` header (kb/Work PB3727; DESIGN-orchestrator-loop.md section 16.9): a line either side added is kept, a line
 # either side removed is gone, the header stays first and the rest is sorted, so two branches that each add a member are

@@ -25,7 +25,7 @@
       *> (Table 14's Non-unit x CLOSE UNIT cell is symbol e: "The file
       *> remains in the open mode ... and no other action takes place").
       *>
-      *> The LAST line is COBOL.NET's documented DETERMINATION, not the
+      *> The LAST line is WiseOwl COBOL's documented DETERMINATION, not the
       *> standard's answer: once no member of the group is open the area
       *> is UNAVAILABLE (GR7) and the standard defines nothing about
       *> referencing it, so docs/CONFORMANCE.md 7 (A.1 item 24) states

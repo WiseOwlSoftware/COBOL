@@ -36,7 +36,7 @@ test so "automatic" stays automatic).
     That distinction is not a heuristic, it is measured: on the tree at the time of writing, 122 bare paths in
     this directory did not exist and every single one was a proposal, while ZERO line-anchored citations were
     dangling. Checking bare paths would be 122 false reds and would have killed the gate on day one.
-  · `rule` — an ANTLR rule name CLAIMED to be in the grammar that is not in `src/Cobol.Net.Frontend/Grammar`.
+  · `rule` — an ANTLR rule name CLAIMED to be in the grammar that is not in `src/WiseOwl.Cobol.Frontend/Grammar`.
     Two extraction arms, both narrow on purpose (below).
   · `marker` — a `superseded_by` that does not carry `note`, `date` and `why`. An exemption is a SUPPRESSION,
     and an empty suppression is a mute button: the marker has to say which note refuted the claim, when, and
@@ -318,8 +318,8 @@ def self_test() -> int:
     cases = [
         ("banner", {"a": "x"}, None),
         ("banner", {BANNER_KEY: "frozen, no convention named", "a": "x"}, None),
-        ("path", {BANNER_KEY: banner, "e": ["src/Cobol.Net.Nope/Gone.cs:12 — a claim"]}, MARKER_KEY),
-        ("rule", {BANNER_KEY: banner, "e": ["src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4:10 — ghostRule"]},
+        ("path", {BANNER_KEY: banner, "e": ["src/WiseOwl.Cobol.Nope/Gone.cs:12 — a claim"]}, MARKER_KEY),
+        ("rule", {BANNER_KEY: banner, "e": ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4:10 — ghostRule"]},
          MARKER_KEY),
         ("rule", {BANNER_KEY: banner, "e": ["grammar `realRule : ghostRule ghostRule?` exists"]}, MARKER_KEY),
         ("marker", {BANNER_KEY: banner, "e": {MARKER_KEY: {"note": "PB712"}, "t": "x"}}, None),
@@ -343,11 +343,11 @@ def self_test() -> int:
                 ok &= silent
         # The coordinate drift arm reports and never gates — both halves matter. The cited FILE has to exist,
         # or the `path` arm fires first and "gates nothing" would pass for the wrong reason.
-        (root / "src" / "Cobol.Net.Frontend" / "Grammar" / "Core").mkdir(parents=True, exist_ok=True)
-        (root / "src" / "Cobol.Net.Frontend" / "Grammar" / "Core" / "Fake.g4").write_text("", encoding="utf-8", newline="\n")
+        (root / "src" / "WiseOwl.Cobol.Frontend" / "Grammar" / "Core").mkdir(parents=True, exist_ok=True)
+        (root / "src" / "WiseOwl.Cobol.Frontend" / "Grammar" / "Core" / "Fake.g4").write_text("", encoding="utf-8", newline="\n")
         scratch.git("add", "-A")
         p.write_text(json.dumps({BANNER_KEY: banner,
-                                 "e": ["src/Cobol.Net.Frontend/Grammar/Core/Fake.g4:900 — realRule"]}, indent=1),
+                                 "e": ["src/WiseOwl.Cobol.Frontend/Grammar/Core/Fake.g4:900 — realRule"]}, indent=1),
                      encoding="utf-8", newline="\n")
         f2, drift, _ = scan([p], rules, root)
         moved = len(drift) == 1 and not f2

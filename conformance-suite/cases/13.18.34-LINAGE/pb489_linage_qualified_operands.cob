@@ -43,7 +43,7 @@
       *> FIRST and holds 5 / 4 / 1 / 4 — different in every operand. A
       *> compiler that keeps only the base word of the operand and then
       *> resolves it by first match binds W-GRP's items, and this fixture
-      *> was written because that is exactly what COBOL.NET did: the
+      *> was written because that is exactly what WiseOwl COBOL did: the
       *> IN/OF qualifier was accepted by the grammar and discarded by the
       *> binder, so the whole page model was built on another data item's
       *> value with no diagnostic at any stage (kb/Work PB489, measured).

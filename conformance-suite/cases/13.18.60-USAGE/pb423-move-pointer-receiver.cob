@@ -12,7 +12,7 @@
 *>
 *> Measured before the fix: `MOVE NULL TO P` reached the BACKEND and surfaced a Roslyn message about the
 *> GENERATED C# - "error CS0029: Cannot implicitly convert type 'string' to
-*> 'CobolNet.Runtime.ManagedPointer'" - in place of a COBOL diagnostic. 13.18.60.3 SR9 is the rule the
+*> 'WiseOwl.Cobol.Runtime.ManagedPointer'" - in place of a COBOL diagnostic. 13.18.60.3 SR9 is the rule the
 *> programmer wants instead: a data-pointer data item may be referenced "in a SET statement", never a MOVE.
 *>
 *> The sender is an alphanumeric data item, a legal MOVE sender, so the receiver is the ONLY violation: `MOVE NULL

@@ -23,7 +23,7 @@
       *>   $**,**9.99            the same capacity with NO sign symbol anywhere in the mask, so no negative
       *>                         value may be represented: 0
       *>   BINARY-CHAR SIGNED    §13.18.60.4 GR21 leaves the representation and length implementor-defined;
-      *>                         COBOL.NET documents 1 byte, two's complement (CONFORMANCE.md A.1 items
+      *>                         WiseOwl COBOL documents 1 byte, two's complement (CONFORMANCE.md A.1 items
       *>                         206/207), which is exactly the NOTE's "assuming an 8-bit twos-complement
       *>                         representation": -128
       *>   BINARY-CHAR UNSIGNED  the same container unsigned — §13.18.60.4 GR12's range for it starts at 0

@@ -11,7 +11,7 @@
       *> What decides it is the storage model: 13.18.44.4 GR1 associates the subject with "an area sufficient to
       *> contain the number of bits required by the data item referenced by the subject of the entry", and
       *> 8.5.1.9.1 says a dynamic-capacity table's capacities "may vary during execution" - there is no fixed
-      *> area to associate. A COBOL.NET storage-model rejection, honestly labelled.
+      *> area to associate. A WiseOwl COBOL storage-model rejection, honestly labelled.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB177NB.
        DATA DIVISION.

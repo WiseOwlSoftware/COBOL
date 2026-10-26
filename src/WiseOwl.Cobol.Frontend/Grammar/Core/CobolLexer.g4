@@ -1,0 +1,1323 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+
+lexer grammar CobolLexer;
+
+options {
+    caseInsensitive = true;
+}
+
+// Virtual token types for the FUNCTION argument-list parentheses (ISO §8.4.3.2.3 SR6). No lexer rule matches
+// them: the '(' / ')' rules below RETYPE themselves from the _parenRegions stack the lexer already maintains, which
+// is the ONE place that knows which parens open an argument list. A distinct type is what lets every DOWNSTREAM
+// consumer stop guessing — see the SR6 note on OnDefaultLParen.
+// REF_LPAREN / REF_RPAREN are virtual for the same reason (kb/Work PB2113, owner ruling D10): the '(' right after a word
+// that can name a data item opens that reference's SUBSCRIPT list, REFERENCE MODIFIER or keyword-omitted ARGUMENT list
+// (ISO §8.3.5 4) names all three), never an arithmetic group. The lexer publishes that decision as the paren's TYPE, the
+// parser's subscriptPart / refModPart read it, and the tokens BETWEEN the two parens are the ordinary DEFAULT-mode
+// vocabulary — the SUBSCRIPT lexer mode, its parallel SUB_* token family and the binder's hand-rolled re-parse of that
+// flat stream are gone.
+// SIGNED_INTEGERLIT / SIGNED_DECIMALLIT are virtual: the FN_SIGNED_* rules retype a sign-adjacent literal to them inside
+// a list region (an argument list or a reference's parenthesized tail), where §8.3.5 1) makes the space a separator.
+// DEFINED is virtual for the same reason in another region: it is a keyword ONLY inside a primed compiler-directive
+// expression, so IDENTIFIER's action retypes the word there (see IDENTIFIER). A rule spelling 'DEFINED' would publish
+// that literal in the vocabulary, whose literal names are read as "the lexer makes this word a keyword token"
+// (CobolKeywordTokens, CobolWordsDriftTests) — which, everywhere else, it does not.
+// DEBUG_LINE_IN_REGION is virtual for the same reason: the PICMODE region retypes its debugging-line carrier rule to it
+// (kb/Work PB1913), so a debugging line inside an open PICTURE character-string reaches DebuggingLineRewriter as a
+// marker that says its text was SKIPPED, not lexed.
+tokens { FNARG_LPAREN, FNARG_RPAREN, REF_LPAREN, REF_RPAREN, SIGNED_INTEGERLIT, SIGNED_DECIMALLIT, DEFINED,
+         DEBUG_LINE_IN_REGION }
+
+// The channel of a debugging line that is a COMMENT (kb/Work PB1705): DebuggingLineRewriter moves the tokens of a
+// fixed-form debugging line here when its source unit does not declare WITH DEBUGGING MODE. No lexer rule emits to it.
+channels { ABSENT_DEBUG_LINE }
+
+@members {
+    // Track the types of the last TWO non-WS tokens emitted: one for the reference-paren decision, two for the
+    // FUNCTION-argument suppression (P7 Step 12 — '(' after "FUNCTION name" opens an ARGUMENT list, ISO
+    // §8.4.3.2 SR6, lexed in DEFAULT mode so arguments parse as real arithmeticExpressions).
+    private int _lastNonWsTokenType = -1;
+    private int _prevNonWsTokenType = -1;
+
+    // THE REFERENCE-PAREN TRIGGER: whitelist approach.
+    //
+    // In COBOL, '(' after a data-name means subscript/reference-modification; '(' after anything else means
+    // arithmetic grouping (e.g., IF (A + B) > C). The whitelist is IDENTIFIER plus every context-sensitive
+    // keyword that can appear as a user-defined data-name. Safe failure mode: a token missing from the set makes
+    // the parser see LPAREN/RPAREN (arithmetic) instead of REF_LPAREN/REF_RPAREN — a clear parse error on the
+    // first subscripted use.
+    // ⛔ WHY THE DECISION STAYS IN THE LEXER (kb/Work PB2113, DESIGN-frontend-grammar §9.4): ISO §8.3.5 1) makes the
+    // SPACE a separator, so `X (I J)` is two subscripts and `X (I -1)` a subscript and the literal -1, while
+    // `X (I - 1)` is one subtraction (§8.7.1 spaces an operator, §8.3.3.3.2 puts a literal's sign at its leftmost
+    // character). The parser sees the skipped-WS stream, so only the lexer can tell `-1` from `- 1`; it does that
+    // inside a LIST REGION (an argument list or a reference's parenthesized tail) and nowhere else, and it must know
+    // which parens open one. What it no longer does is lex the region's CONTENT in a mode of its own.
+    //
+    // The set (_dataNameTokens) is GENERATED into Parsing/CobolLexerWordSet.g.cs from
+    // tests/version-matrix/cobol-words.json (the subscriptTrigger=true rows) by scripts/gen-cobol-words.ps1
+    // (rearchitecture PHASE 04, Group A) — single-sourced with the parser cobolWord rule (Grammar/Core/CobolWords.g4)
+    // and cross-checked by CobolWordsDriftTests, retiring the by-hand "mirror cobolWord" discipline this comment
+    // used to instruct. Do NOT hand-add a token here: edit cobol-words.json and re-run the generator.
+
+    private bool PreviousTokenCouldBeDataName()
+        => _dataNameTokens.Contains(_lastNonWsTokenType) && !_reservedNonNames.Contains(_lastNonWsTokenType);
+
+    // ⛔ A WORD THIS COMPILE RESERVES IS NEVER A DATA-NAME, SO A '(' AFTER IT IS NEVER A SUBSCRIPT (kb/Work PB1465).
+    // _dataNameTokens is edition-blind: it holds every word that is a user-defined word in SOME edition, because
+    // the reference-paren decision is frozen here, before any parser predicate can ask the edition. That made the '(' after
+    // a boolean OPERATOR — B-AND / B-OR / B-XOR / B-NOT, user words at COBOL-85 and reserved by ISO §8.9 from 2002 —
+    // open a reference paren, so `IF BZ B-OR (BW B-AND BW)` and `COMPUTE BR = B-NOT (BW B-XOR BZ)` were COBOL0001
+    // although §8.8.2's Table 4 admits '(' after every boolean operator. §8.3.2.1 rule 1 ("Reserved words shall not
+    // be used as user-defined words") settles it for EVERY reservation-gated word at once: the compile's own answer
+    // to "is this word a user-defined word here" (ReservedWordSet.AdmitsAsUserWord — the question the parser's
+    // userWordHere gate and the §8.9 funnel ask) is handed in by TokenRetypes.PrimeLexer, and a word it refuses
+    // stops triggering. An intrinsic-function-name word keeps its trigger (a keyword-omitted call, §8.4.3.2.3 SR2),
+    // which is why PrimeLexer excludes the intrinsicKeywordName rule's own tokens rather than this lexer listing them.
+    private readonly System.Collections.Generic.HashSet<int> _reservedNonNames =
+        new System.Collections.Generic.HashSet<int>();
+    public void SetReservedNonDataNames(System.Collections.Generic.IReadOnlySet<int> types)
+    {
+        _reservedNonNames.Clear();
+        foreach (int t in types) _reservedNonNames.Add(t);
+    }
+
+    /// <summary>The edition-blind reference-paren trigger set (every word that is a data-name in some edition), for
+    /// TokenRetypes.PrimeLexer to narrow per compile.</summary>
+    public static System.Collections.Generic.IReadOnlySet<int> SubscriptTriggerTokens => _dataNameTokens;
+
+    // ⛔ THE REPORT-WRITER SUM CLAUSE IS NOT THE SUM FUNCTION (kb/Work PB924). SUM carries subscriptTrigger for
+    // §8.4.3.2.3 SR2's keyword-omitted intrinsic call `SUM(1 2 3)`, and a reserved word can never be a data-name,
+    // so that trigger exists ONLY for the function. ISO §13.18.54.3 SR9: "Within a report description entry, if
+    // the keyword SUM is preceded by the keyword FUNCTION, SUM is a reference to the SUM intrinsic function.
+    // Otherwise, SUM refers to the report writer SUM clause" — so inside the REPORT SECTION a bare SUM's '(' can
+    // only open a parenthesised addend (arithmetic-expression-1), and capturing it as a reference paren made
+    // `SUM (WS-K * WS-M)` unparseable while `SUM WS-K * WS-M` compiled. SR9's discriminator is the REGION, which
+    // is why the trigger is made contextual here rather than recovered after the fact: the reference-paren decision
+    // is frozen at lex time. The FUNCTION-keyword form is unaffected (PreviousIsFunctionName keys on FUNCTION
+    // before the name, and SUM then stays the argument-list FNARG_LPAREN), and outside the REPORT SECTION the
+    // keyword-omitted SUM(…) still captures exactly as before. SUM is the only §8.9 ∩ §8.11 word (LENGTH,
+    // RANDOM, SIGN, SUM) that begins a report or data description clause whose operand can open with '(' — the
+    // SIGN clause (§13.18.52) takes none — so it is the only word the region changes (CobolLexerModeDriftTests).
+    private bool _inReportSection;
+    private bool IsReportSumClauseKeyword() => _inReportSection && _lastNonWsTokenType == SUM;
+
+    // The REPORT SECTION region: opened by the `REPORT SECTION` header, closed by the next section or division
+    // header — the data division's fixed section order puts only the SCREEN SECTION or the PROCEDURE DIVISION after
+    // it, and a nested program's REPORT SECTION follows its own header again.
+    private void TrackReportSection(int type)
+    {
+        if (type == SECTION) _inReportSection = _lastNonWsTokenType == REPORT;
+        else if (type == DIVISION) _inReportSection = false;
+    }
+
+    // ⛔ >>COBOL-WORDS (ISO §7.3.10.4 GR2/GR3/GR4) IS APPLIED HERE, TO EACH TOKEN AS IT IS EMITTED (kb/Work PB1372).
+    // Every decision this lexer takes from a keyword — PIC's mode switch, the FUNCTION argument region, the
+    // reference-paren trigger, the REPORT SECTION region — is frozen at lex time, so a retype that ran after lexing could
+    // reach none of them: a synonym of PIC/PICTURE never entered PICMODE, a synonym of FUNCTION never opened an
+    // argument region, a de-reserved PICTURE still swallowed the next word as a picture string, and the one seam that
+    // existed (a set of de-reserved types that made '(' subscript) covered only the last of them. NextToken retypes
+    // the token FIRST (CobolWordsRewriter.Plan.Apply — synonym → its keyword's type, de-reserved word → IDENTIFIER),
+    // then records the EFFECTIVE type as the previous token and acts on it, so every one of those decisions reads the
+    // word the directive made of it, and no later stage re-applies the directive to a token. The default plan is
+    // empty: nothing is retyped and the lexer is byte-identical to one that knows no directive.
+    private WiseOwl.Cobol.Frontend.Parsing.CobolWordsRewriter.Plan _cobolWords =
+        WiseOwl.Cobol.Frontend.Parsing.CobolWordsRewriter.Plan.Empty;
+    public void SetCobolWords(WiseOwl.Cobol.Frontend.Parsing.CobolWordsRewriter.Plan plan) => _cobolWords = plan;
+
+    // ⛔ A WORD IS EMITTED IN ITS EDITION'S ANNEX C SPELLING (kb/Work PB1402). Every word comparison downstream folds
+    // through the ONE comparer, CobolNames, whose table is COBOL 2023's Annex C. Below 2023 the edition's Annex C
+    // differs observably in one place — E.2 item 14 deleted (0131,0069) and (03C2,03C3) — so a COBOL 2002/2014 word
+    // is written here with those letters already folded (CobolNames.EditionSpelling), and from then on the one
+    // comparer gives that edition's answer. Default 2023: the spelling is the source's, unchanged.
+    private int _caseMappingEdition = 2023;
+    public void SetCaseMappingEdition(int dialectLevel) => _caseMappingEdition = dialectLevel;
+
+    private void ApplyEditionSpelling(Antlr4.Runtime.IToken token)
+    {
+        if (_caseMappingEdition >= 2023 || token.Type != IDENTIFIER
+            || token is not Antlr4.Runtime.CommonToken word) return;
+        // A word of basic characters has one spelling at every edition: look at the input, build no text.
+        bool basic = true;
+        for (int p = word.StartIndex; p <= word.StopIndex && basic; p++)
+        {
+            int offset = p - InputStream.Index;   // LA(k > 0) is the k-th character from the index, LA(-k) k before it
+            basic = InputStream.LA(offset >= 0 ? offset + 1 : offset) < 0x80;
+        }
+        if (basic) return;
+        string text = word.Text;
+        string spelled = WiseOwl.Cobol.Runtime.CobolNames.EditionSpelling(text, _caseMappingEdition);
+        if (!ReferenceEquals(spelled, text)) word.Text = spelled;
+    }
+
+    // THE LIST REGIONS (P7 Step 12; kb/Work PB2113). '(' after "FUNCTION functionName" is the function's argument-list
+    // paren (ISO §8.4.3.2 SR6); '(' after a word that can name a data item is that reference's parenthesized tail —
+    // its subscripts (§8.4.2.3.2), its reference modifier (§8.4.3.3.2) or, for the keyword-omitted form name(args)
+    // (§8.4.3.2.3 SR2, D2), its arguments. Both are LIST regions: the §8.3.5 2) comma/semicolon separator survives
+    // as FNARG_SEPARATOR and a sign touching its digits after a separator is a signed literal (SignedLiteralCanStart),
+    // so juxtaposed operands stay apart. Every token inside either region is the DEFAULT-mode vocabulary. The paren
+    // stack tracks what each OPEN paren is, so the matching ')' takes the same type and the region tests are exact.
+    private bool PreviousIsFunctionName() => _prevNonWsTokenType == FUNCTION && !_functionIsAddressOperand;
+
+    // ⛔ THE FUNCTION OF `ADDRESS [OF] FUNCTION word` DOES NOT HEAD A FUNCTION-IDENTIFIER (kb/Work PB1416). §8.4.3.12.2
+    // prints `ADDRESS OF FUNCTION { function-prototype-name-1 | identifier-1 }`: the word after FUNCTION is a prototype
+    // name, which takes no argument list, or identifier-1, which §8.4.3.1.3 SR1 makes ANY identifier format — so a '('
+    // after it is that identifier's SUBSCRIPT or reference modifier, never §8.4.3.2.3 SR6's argument paren. Retyping
+    // it FNARG_LPAREN kept it from the reference paren that subscriptPart reads (REF_LPAREN), and
+    // `ADDRESS OF FUNCTION WS-NAME(2)` died COBOL0001. Set as each FUNCTION token is emitted (NextToken), from the
+    // two tokens before it: ADDRESS, or ADDRESS OF (OF is optional — §8.4.3.12.2 does not underline it).
+    private bool _functionIsAddressOperand;
+
+    private enum ParenRegion : byte { Group, Arguments, Reference }
+    private readonly System.Collections.Generic.List<ParenRegion> _parenRegions = new();
+    private int _openListRegions;   // the open Arguments + Reference entries of _parenRegions
+
+    // COMPILER-DIRECTIVE EXPRESSION region (compile-time expression evaluator, ISO §7.3.6/§7.3.7/§7.3.8). The
+    // frontend fragment-parses a directive operand / constant-conditional-expression with the lexer primed here.
+    // Two directive-only effects (both context-sensitive — nil global blast radius): (1) 'DEFINED' becomes a
+    // token (the §7.3.8.4.4 defined-condition keyword — reserved nowhere else); (2) every '(' is a grouping
+    // LPAREN, never a subscript. Effect (2) is required because the subscript-vs-grouping decision treats a '('
+    // after any word that COULD be a data-name as a subscript, and the boolean operators (B-AND …) are legal
+    // data-names below 2023, so `A B-AND (…)` would mis-lex the group as a reference paren; a directive operand
+    // never subscripts, so every '(' is unambiguously a group (confirmed by token dump, DESIGN §4.1).
+    private bool _primeDirectiveExpr;
+
+    private bool InListRegion() => _openListRegions > 0;
+
+    // Fragment re-parse hook (the compile-time directive-expression parse): treat the WHOLE input as a directive
+    // operand / cce region — DEFINED is a token and every '(' groups (DESIGN §4.1).
+    public void PrimeDirectiveExpr() => _primeDirectiveExpr = true;
+
+    // IDENTIFIER's action in a primed directive expression: the §7.3.8.4.4 keyword DEFINED is the one word the region
+    // makes a token (a virtual token — see the tokens block). Reached only when primed, so the Text it reads is never
+    // built for an ordinary source identifier.
+    private void RetypeDirectiveKeyword()
+    {
+        if (string.Equals(Text, "DEFINED", System.StringComparison.OrdinalIgnoreCase)) Type = DEFINED;
+    }
+
+    // ⛔ AN ARGUMENT-LIST PARENTHESIS IS NOT AN ARITHMETIC PARENTHESIS, AND EMITTING BOTH AS LPAREN MADE EVERY
+    // DOWNSTREAM PASS GUESS (fix-queue PB48). §8.4.3.2.3 SR6: "If a function's definition permits arguments and a
+    // left parenthesis immediately follows function-prototype-name-1 or intrinsic-function-name-1, the left
+    // parenthesis is ALWAYS treated as the left parenthesis of that function's arguments" — categorically, so it
+    // is never the '(' of a parenthesized arithmetic expression. ZeroTokenRewriter reads adjacency to '(' / ')'
+    // as proof that a figurative ZERO sits inside parenthesized arithmetic, which is true for a grouping paren and
+    // FALSE for this one; the result was that `FUNCTION LOWER-CASE(ZERO)` reached the binder as an arithmetic
+    // zero and was rejected as class numeric, while the keyword-omitted `LOWER-CASE(ZERO)` — whose arguments were
+    // then re-lexed from their text, where no parens are present — returned the correct "0". Two arms of one
+    // dispatch, one right (feedback_two_arm_dispatch).
+    // ⛔ THE FIX IS THE TOKEN TYPE, NOT A SECOND COPY OF THE PREDICATE. The rewriter could have re-derived "is
+    // this '(' an argument list" by walking back two tokens, but that is this method's rule written down twice,
+    // and the reference-paren decision above proves how easily the two copies drift (feedback_one_rule_one_place). The
+    // stack below is the single source of truth; retyping publishes it, so the rewriter's own rule — "ZERO
+    // adjacent to an ARITHMETIC paren is arithmetic" — becomes true as written, with no change to it at all.
+    // The reference paren is published the same way, and for the same reason (kb/Work PB2113): REF_LPAREN is the
+    // paren after a data-name-capable word, so the parser's subscriptPart / refModPart take exactly the parens this
+    // method classified, and a grouping paren after a ')' (`MAX(T (1) (A + B))`, two arguments) never becomes a
+    // second subscript list.
+    private void OnDefaultLParen()
+    {
+        // A directive-expression region never subscripts: every '(' groups (DESIGN §4.1). Checked first so a '('
+        // after a boolean-operator data-name (e.g. `A B-AND (…)`, B-AND legal as a name below 2023) stays a group.
+        // ⛔ A WORD RIGHT AFTER THE INVOCATION OPERATOR `::` IS literal-1, NEVER A DATA-NAME (kb/Work PB780): §8.4.3.4.2
+        // prints `identifier-1 :: literal-1 [ ( … ) ]`, and a constant-name spelling literal-1 (§13.10.3 SR2) is the one
+        // word that stands there — so its '(' is the argument-list paren the written literal's '(' is, and `O :: K (X)`
+        // lexes exactly as `O :: "M" (X)` does.
+        if (!_primeDirectiveExpr && PreviousTokenCouldBeDataName() && !PreviousIsFunctionName()
+            && _prevNonWsTokenType != COLONCOLON && !IsReportSumClauseKeyword())
+        {
+            OpenRegion(ParenRegion.Reference);
+            Type = REF_LPAREN;   // subscripts / reference modifier / keyword-omitted arguments; its ')' is REF_RPAREN
+            return;
+        }
+        // Not a reference: record whether this paren opens a FUNCTION argument region, and publish it as the type.
+        // ⚠ THE `&& PreviousTokenCouldBeDataName()` CONJUNCT THAT STOOD HERE IS GONE, and dropping it is part of
+        // the fix rather than a tidy-up. SR6 keys on the '(' following an intrinsic-function-name — it says
+        // nothing about whether that name's TOKEN happens to be one of the context-sensitive words that can also
+        // be a data name. Of the nine `intrinsicKeywordName` tokens, eight are in _dataNameTokens and BIT is not, so
+        // the conjunct silently made `FUNCTION BIT(…)` the one function call whose parens were not an argument
+        // region — a difference with no rule behind it, and exactly the sort of accidental exception a later
+        // reader would preserve as intentional.
+        if (PreviousIsFunctionName())
+        {
+            OpenRegion(ParenRegion.Arguments);
+            Type = FNARG_LPAREN;
+        }
+        else OpenRegion(ParenRegion.Group);
+    }
+
+    private void OpenRegion(ParenRegion region)
+    {
+        _parenRegions.Add(region);
+        if (region != ParenRegion.Group) _openListRegions++;
+    }
+
+    private void OnDefaultRParen()
+    {
+        if (_parenRegions.Count == 0) return;   // unbalanced source — the parser reports it
+        var region = _parenRegions[_parenRegions.Count - 1];
+        _parenRegions.RemoveAt(_parenRegions.Count - 1);
+        if (region == ParenRegion.Group) return;
+        _openListRegions--;
+        Type = region == ParenRegion.Arguments ? FNARG_RPAREN : REF_RPAREN;
+    }
+
+    // ⛔ NO SEMANTIC PREDICATE ON A PATH THE DFA MUST CACHE — CONTEXT GOES IN AN ACTION (kb/Work PB1715). ANTLR
+    // 4.13.2 never caches a mode's start state whose closure passed through a predicate (LexerATNSimulator.MatchATN)
+    // nor a DFA edge whose target did (AddDFAEdge), so every token that REACHES a predicate re-runs ATN simulation
+    // and re-adds its DFA state under lock(dfa.states) — on every occurrence, not once. Six left-edge predicates in
+    // this mode (the four FN_SIGNED_* twins, DEFINED, FNARG_SEPARATOR) did that to EVERY token of every compile:
+    // the CLI paid the simulation serially and parallel compiles serialized on the one lock (3.5x peak at 8
+    // threads, DESIGN-test-build-ci.md §3.14.5 M6). Each match is now unconditional and an ACTION decides what it
+    // is (DEFINED became a virtual token IDENTIFIER's action retypes); actions do not suppress DFA edges.
+    // LexerDfaCacheDriftTests holds it: re-lexing the suite's sources after a warm-up leaves the cached DFA nowhere.
+
+    // A signed numeric literal's sign is the leftmost CHARACTER of the literal (ISO §8.3.3.3.2 2): "If a sign is
+    // used, it shall appear as the leftmost character of the literal") and an arithmetic operator "shall be
+    // preceded by a space and followed by a space" (§8.7.1) — so inside a list region a [+-] that follows a
+    // separator and touches its digits starts a NEW argument or subscript (a signed literal), never a binary
+    // operator: MAX(A -4) and T(I -4) are two each, MAX(A - 4) and T(I - 4) one subtraction each. Asked by the
+    // FN_SIGNED_* action after the match, so the separator test reads the character before the TOKEN'S START, not
+    // before the input index.
+    private bool SignedLiteralCanStart()
+    {
+        if (!InListRegion()) return false;
+        int start = TokenStartCharIndex;
+        int before = InputStream.LA(start - 1 - InputStream.Index);   // LA(-k) is the character k before the index
+        return before == ' ' || before == '\n' || before == ',' || before == ';'
+            || before == '(';
+    }
+
+    // The FN_SIGNED_* action. A [+-] touching a numeric body always matches as ONE token (maximal munch over the
+    // unconditional rule); where SignedLiteralCanStart holds it is the signed literal. Elsewhere the sign is the
+    // arithmetic operator on its own, exactly what PLUS / MINUS lex, and the digits are a literal of their own: the
+    // token is cut back to its first character and the lexer resumes at the digits, which re-lex as the unsigned
+    // literal the old predicate-false path produced. No body character is a line break, so only the column moves.
+    private void OnSignedLiteral(int signedType)
+    {
+        if (SignedLiteralCanStart()) { Type = signedType; return; }
+        Type = InputStream.LA(TokenStartCharIndex - InputStream.Index) == '+' ? PLUS : MINUS;
+        CutTokenTo(1);
+    }
+
+    // ⛔ THE ONE WAY AN ACTION GIVES BACK PART OF ITS MATCH (kb/Work PB1728). Ending a token early is two facts, not
+    // one: where the input resumes AND the column the next token starts at — the lexer's Column is advanced by the
+    // match and is NOT recomputed by a Seek. PIC_STRING's two trims used to Seek back over the separator alone, so
+    // every token after `PIC 9,` on that line reported a column one too high (`01 Y PIC 9, VALUE 1.`: VALUE at 26,
+    // correct 25) and every diagnostic anchored there pointed one column right. The token's text follows from the
+    // cut (ANTLR reads it from the input interval the token spans), so no caller sets Text. Every caller cuts a
+    // match that holds no line break — a sign and its digits, a PICTURE character-string — which is what makes the
+    // column arithmetic exact; Line is untouched for the same reason.
+    private void CutTokenTo(int length)
+    {
+        InputStream.Seek(TokenStartCharIndex + length);
+        Column = TokenStartColumn + length;
+    }
+
+    public override Antlr4.Runtime.IToken NextToken()
+    {
+        var token = base.NextToken();
+        // The group's >>COBOL-WORDS first, so everything below reads the EFFECTIVE word (see SetCobolWords).
+        if (!_cobolWords.IsEmpty && token is Antlr4.Runtime.CommonToken word) _cobolWords.Apply(word);
+        ApplyEditionSpelling(token);
+        // PIC / PICTURE opens PICMODE (the picture character-string is lexed as ONE token) — here, not as a lexer command
+        // of the PIC rule, because whether this token IS the PIC keyword is the directive's answer (UNDEFINE "PICTURE"
+        // makes a data-name of it; EQUATE "PIC" WITH "PX" makes PX the keyword).
+        if (token.Type == PIC) PushMode(PICMODE);
+        // DEBUG_LINE is a marker, not a word: like a comment it must not become the "previous token" of the next one.
+        if (token.Type != WS && token.Type != DEBUG_LINE && token.Type != DEBUG_LINE_IN_REGION
+            && token.Type != Antlr4.Runtime.TokenConstants.EOF)
+        {
+            TrackReportSection(token.Type);   // before the shift: it asks what PRECEDED this token
+            if (token.Type == FUNCTION)       // before the shift too (see _functionIsAddressOperand)
+                _functionIsAddressOperand = _lastNonWsTokenType == ADDRESS
+                    || (_lastNonWsTokenType == OF && _prevNonWsTokenType == ADDRESS);
+            _prevNonWsTokenType = _lastNonWsTokenType;
+            _lastNonWsTokenType = token.Type;
+        }
+        return token;
+    }
+}
+
+// ==========================================
+// DEFAULT MODE
+// ==========================================
+// Assumes preprocessed input: fixed→free normalized, COPY/REPLACE expanded.
+
+// The separator space is the space and the line end ONLY: the line-entry stage (PhysicalLines, kb/Work PB1800) has
+// already expanded every TAB and taken every CR LF to its LF, so neither has a rule here.
+WS           : [ \n]+ -> skip ;
+COMMENT_START: '*>' -> skip, pushMode(COMMENT_MODE) ;
+
+// A fixed-form DEBUGGING LINE's marker (the X3.23-1985 debug module; kb/Work PB1705, owner decision R56): the §6.5
+// logical conversion writes a `D` line as this carrier followed by the line's program text
+// (ReferenceFormatProcessor.DebugLineCarrier, held equal to this spelling by DebuggingLineDriftTests). The marker is a
+// HIDDEN token, and the line's text is lexed as ordinary tokens behind it: whether they are SOURCE or COMMENT is decided
+// per source unit, after lexing, by DebuggingLineRewriter (the unit's SOURCE-COMPUTER WITH DEBUGGING MODE clause is
+// further down the token stream than the line may be, so no earlier stage can know). Longer than COMMENT_START's `*>`, so
+// it wins. PICMODE cannot lex the line's text on the strength of a decision not yet made — which of the two the text is
+// changes the lexer's own mode — so it SKIPS the line as a comment and leaves a DEBUG_LINE_IN_REGION marker
+// (PIC_DEBUG_LINE below); when the rewriter finds such a line is SOURCE (its unit declares the mode), the frontend blanks
+// that line's carrier and lexes the text again, now with the line as plain source (kb/Work PB1913). A subscript or
+// reference-modification region is no mode of its own any more (kb/Work PB2113): its text is DEFAULT-mode text, so a
+// debugging line inside one is lexed behind this marker like any other.
+DEBUG_LINE   : '*>' '\u{FDD0}' 'DEBUG ' -> channel(HIDDEN) ;
+
+// ── END-xxx paired terminators (must precede END and IDENTIFIER) ──
+
+END_IF       : 'END-IF' ;
+END_PERFORM  : 'END-PERFORM' ;
+END_EVALUATE : 'END-EVALUATE' ;
+END_RECEIVE  : 'END-RECEIVE' ;  // MCS scope terminator (ISO 14.9.31)
+END_READ     : 'END-READ' ;
+END_SEND     : 'END-SEND' ;     // MCS scope terminator (ISO 14.9.38)
+END_SEARCH   : 'END-SEARCH' ;
+END_CALL     : 'END-CALL' ;
+END_RETURN   : 'END-RETURN' ;
+END_REWRITE  : 'END-REWRITE' ;
+END_DELETE   : 'END-DELETE' ;
+END_WRITE    : 'END-WRITE' ;
+END_START    : 'END-START' ;
+END_JSON     : 'END-JSON' ;
+END_XML      : 'END-XML' ;
+END_METHOD   : 'END-METHOD' ;
+END_ADD      : 'END-ADD' ;
+END_SUBTRACT : 'END-SUBTRACT' ;
+END_MULTIPLY : 'END-MULTIPLY' ;
+END_DIVIDE   : 'END-DIVIDE' ;
+END_COMPUTE  : 'END-COMPUTE' ;
+END_STRING   : 'END-STRING' ;
+END_UNSTRING : 'END-UNSTRING' ;
+END_ACCEPT   : 'END-ACCEPT' ;
+END_DISPLAY  : 'END-DISPLAY' ;
+
+END_OF_PAGE  : 'END-OF-PAGE' ;
+EOP          : 'EOP' ;
+
+// ── Hyphenated keywords (must precede IDENTIFIER) ──
+
+PROGRAM_ID      : 'PROGRAM-ID' ;
+FUNCTION_ID     : 'FUNCTION-ID' ;   // COBOL-2002 user-defined function unit header (ISO §11.5)
+EXCLUSIVE_OR    : 'EXCLUSIVE-OR' ;  // COBOL-2023 logical exclusive-or operator, = XOR (ISO §8.8.4.9; a 2023 addition per Annex E.2 item 25 — VCR rows 32/41; the former "2002" note was the W3-corrected mislabel)
+// COBOL-2002 BOOLEAN OPERATORS (ISO §8.7.2 / §8.8.2). Maximal-munch safe: `B-ANDER`/`B-ORDER` stay IDENTIFIER
+// by longer match; `B-AND` exact reduces to the keyword by rule order (hyphenated keywords precede IDENTIFIER);
+// BOOLLIT `B"…"` is disjoint (the char after B is a quote). User words at 85 (admitted via cobolWord +
+// _dataNameTokens); the operator meaning parses at every edition and is introduction-gated post-bind
+// (VersionConformancePass through BooleanOperatorGate) — no parse-time edition read (kb/Work PB2291).
+B_AND           : 'B-AND' ;
+B_OR            : 'B-OR' ;
+B_XOR           : 'B-XOR' ;
+B_NOT           : 'B-NOT' ;
+// Boolean shift operators (ISO §8.8.2, COBOL-2023). Order-sensitive: the -LC/-RC literals FIRST so a longer
+// match wins over the -L/-R prefix (ANTLR first-match; feedback_grammar_precedence).
+B_SHIFT_LC      : 'B-SHIFT-LC' ;
+B_SHIFT_RC      : 'B-SHIFT-RC' ;
+B_SHIFT_L       : 'B-SHIFT-L' ;
+B_SHIFT_R       : 'B-SHIFT-R' ;
+FLOAT_SHORT     : 'FLOAT-SHORT' ;   // COBOL-2002 standard floating point: IEEE-754 single (= COMP-1)
+FLOAT_LONG      : 'FLOAT-LONG' ;    // COBOL-2002 standard floating point: IEEE-754 double (= COMP-2)
+FLOAT_EXTENDED  : 'FLOAT-EXTENDED' ;// COBOL-2002 extended float — mapped to IEEE-754 double (.NET has no quad)
+// COBOL-2002 ROUNDED MODE names (ISO §14.7.4). Reserved words; corpus-checked (only in comments).
+AWAY_FROM_ZERO          : 'AWAY-FROM-ZERO' ;
+NEAREST_AWAY_FROM_ZERO  : 'NEAREST-AWAY-FROM-ZERO' ;
+NEAREST_EVEN            : 'NEAREST-EVEN' ;
+NEAREST_TOWARD_ZERO     : 'NEAREST-TOWARD-ZERO' ;
+TOWARD_GREATER          : 'TOWARD-GREATER' ;
+TOWARD_LESSER           : 'TOWARD-LESSER' ;
+PROHIBITED              : 'PROHIBITED' ;
+TRUNCATION              : 'TRUNCATION' ;
+METHOD_ID       : 'METHOD-ID' ;
+CLASS_ID        : 'CLASS-ID' ;
+INTERFACE_ID    : 'INTERFACE-ID' ;
+WORKING_STORAGE : 'WORKING-STORAGE' ;
+LOCAL_STORAGE   : 'LOCAL-STORAGE' ;
+SENTENCE        : 'SENTENCE' ;
+DATE_WRITTEN    : 'DATE-WRITTEN' ;
+DATE_COMPILED   : 'DATE-COMPILED' ;
+SOURCE_COMPUTER : 'SOURCE-COMPUTER' ;
+OBJECT_COMPUTER : 'OBJECT-COMPUTER' ;
+OBJECT      : 'OBJECT' ;
+OVERRIDE    : 'OVERRIDE' ;  // METHOD-ID attribute (ISO §11.7, 2002+; §8.9-reserved 2002+ — user word at 85, funnel row exists)
+IMPLEMENTS  : 'IMPLEMENTS' ;  // FACTORY/OBJECT paragraph clause (§11.8; §8.10 CONTEXT-SENSITIVE — a user word at EVERY edition, never funneled)
+PROPERTY    : 'PROPERTY' ;  // the PROPERTY clause / GET-SET selector / repository specifier (§13.18.42/§11.7/§12.3.8; §8.9-reserved 2002+)
+GET         : 'GET' ;       // METHOD-ID GET PROPERTY selector (§11.7; §8.9-reserved 2002+ — user word at 85)
+INTERFACE   : 'INTERFACE' ; // END INTERFACE + the repository INTERFACE specifier (§11.6/§12.3.8; §8.9-reserved 2002+)
+FACTORY     : 'FACTORY' ;   // the FACTORY paragraph (ISO §11.4, 2002+; §8.9-reserved 2002+ — user word at 85, funnel row exists)
+PROTOTYPE   : 'PROTOTYPE' ; // FUNCTION-ID … IS PROTOTYPE (ISO §11.5 Format 2 / §10.6; §8.9-reserved 2002+ — user word at 85, funnel row exists)
+INHERITS    : 'INHERITS' ;   // COBOL-2002 OO: CLASS-ID. name INHERITS FROM base (ISO §11.3); corpus-clean
+SPECIAL_NAMES   : 'SPECIAL-NAMES' ;
+FILE_CONTROL    : 'FILE-CONTROL' ;
+I_O_CONTROL     : 'I-O-CONTROL' ;
+I_O             : 'I-O' ;
+PACKED_DECIMAL  : 'PACKED-DECIMAL' ;
+// COBOL-2002 fixed-width binary usages of the USAGE clause (ISO §13.18.60). Must precede
+// BINARY/IDENTIFIER; maximal munch
+// matches the full 'BINARY-xxx' over the shorter 'BINARY' token.
+BINARY_CHAR     : 'BINARY-CHAR' ;
+BINARY_SHORT    : 'BINARY-SHORT' ;
+BINARY_LONG     : 'BINARY-LONG' ;
+BINARY_DOUBLE   : 'BINARY-DOUBLE' ;
+// COBOL-2002 OPTIONS-paragraph clause words (ISO §11.9). All are CONTEXT-SENSITIVE — reserved only inside the
+// OPTIONS paragraph — so each is ALSO listed in cobolWord (CobolParserCore.g4) and mirrored in _dataNameTokens
+// above, keeping it legal as a user-defined name everywhere else. Hyphenated forms must precede IDENTIFIER so
+// maximal-munch + first-rule-wins picks the whole keyword (e.g. 'STANDARD-BINARY' over IDENTIFIER); a bare
+// 'STANDARD' still lexes as STANDARD, and 'WC-COBOL' still lexes as one IDENTIFIER. Corpus-checked: zero of these
+// appear as user-defined words in the test corpus.
+STANDARD_BINARY   : 'STANDARD-BINARY' ;
+STANDARD_DECIMAL  : 'STANDARD-DECIMAL' ;
+ENTRY_CONVENTION  : 'ENTRY-CONVENTION' ;
+FLOAT_BINARY      : 'FLOAT-BINARY' ;
+FLOAT_DECIMAL     : 'FLOAT-DECIMAL' ;
+// The COBOL-2014 IEEE-754 interchange float USAGES (ISO §13.18.60.4 GR14-18): FLOAT-BINARY-32/64/128 =
+// ISO/IEC 60559:2020 binary32/64/128, FLOAT-DECIMAL-16/34 = decimal64/128. Dedicated hyphenated tokens declared
+// BEFORE IDENTIFIER so maximal-munch + first-rule-wins picks the whole keyword (the source text 'FLOAT-BINARY-32'
+// lexes as ONE IDENTIFIER otherwise — the numeric suffix is swallowed by NAME_BODY). Introduction-gated to 2014
+// post-bind (VersionConformancePass, via the Usage member); binary32/64 are LIVE (native float/double), the
+// binary128/decimal formats are processor-dependent non-support (Annex A.3 items 17/19, COBOL1564).
+FLOAT_BINARY_32   : 'FLOAT-BINARY-32' ;
+FLOAT_BINARY_64   : 'FLOAT-BINARY-64' ;
+FLOAT_BINARY_128  : 'FLOAT-BINARY-128' ;
+FLOAT_DECIMAL_16  : 'FLOAT-DECIMAL-16' ;
+FLOAT_DECIMAL_34  : 'FLOAT-DECIMAL-34' ;
+// The COBOL-2014 NUMERIC-CONTENT value words (ISO §14.9.39.2 Format 15 — `SET CONTENT OF … TO`; kb/Work PB452).
+// Hyphenated, so each must precede IDENTIFIER: the source text lexes as ONE IDENTIFIER of the SAME length
+// otherwise, and an equal-length tie is broken by rule order. FLOAT-NOT-A-NUMBER-SIGNALING needs no ordering
+// against FLOAT-NOT-A-NUMBER (maximal munch takes the longer match regardless of order) but is written first so
+// the pair reads the way it lexes. Reserved only from 2014 (ReservedWords.Table), so every one is ALSO a
+// cobolWord alternative under the derived reservation gate and mirrored in _dataNameTokens
+// (tests/version-matrix/cobol-words.json) — `01 FLOAT-INFINITY PIC X.` stays legal at --std 85/2002 and draws
+// COBOL0901 by name at 2014+.
+// All seven are also §8.8.4.4.2 class-condition alternatives (kb/Work PB225, the `className` rule).
+// FLOAT-NOT-A-NUMBER-QUIET's ONLY surface is that class condition — Format 15 does not offer it — so its token
+// landed with the class condition that reads it; maximal munch orders it against FLOAT-NOT-A-NUMBER.
+FARTHEST_FROM_ZERO           : 'FARTHEST-FROM-ZERO' ;
+NEAREST_TO_ZERO              : 'NEAREST-TO-ZERO' ;
+IN_ARITHMETIC_RANGE          : 'IN-ARITHMETIC-RANGE' ;
+FLOAT_INFINITY               : 'FLOAT-INFINITY' ;
+FLOAT_NOT_A_NUMBER_SIGNALING : 'FLOAT-NOT-A-NUMBER-SIGNALING' ;
+FLOAT_NOT_A_NUMBER_QUIET     : 'FLOAT-NOT-A-NUMBER-QUIET' ;
+FLOAT_NOT_A_NUMBER           : 'FLOAT-NOT-A-NUMBER' ;
+HIGH_ORDER_LEFT   : 'HIGH-ORDER-LEFT' ;
+HIGH_ORDER_RIGHT  : 'HIGH-ORDER-RIGHT' ;
+BINARY_ENCODING   : 'BINARY-ENCODING' ;
+DECIMAL_ENCODING  : 'DECIMAL-ENCODING' ;
+ARITHMETIC        : 'ARITHMETIC' ;
+DEFAULT           : 'DEFAULT' ;
+INTERMEDIATE      : 'INTERMEDIATE' ;
+ROUNDING          : 'ROUNDING' ;
+// BLANK [WHEN] ZERO is parsed as individual tokens in the parser grammar
+// X3.23-1985 RERUN clause unit (obsolete '85 element deleted by ISO 2002 — accepted-inert at 85, 0902 ≥2002
+// per VCR Table 7 row 7.15). Hyphenated, so it must precede IDENTIFIER; a longer user word like
+// CLOCK-UNITS-X still lexes as one IDENTIFIER (maximal munch). Also a legal user word via cobolWord where
+// the §8.9 funnel frees it (mirrored in _dataNameTokens).
+CLOCK_UNITS     : 'CLOCK-UNITS' ;
+// GROUP-USAGE (ISO §13.18.29, COBOL-2002 — kb/Work PB79): hyphenated, so it precedes IDENTIFIER; a user word
+// below 2002 via cobolWord (mirrored in _dataNameTokens), funnel-0901'd at >=2002 as a name.
+GROUP_USAGE     : 'GROUP-USAGE' ;
+DAY_OF_WEEK     : 'DAY-OF-WEEK' ;
+REVERSE_VIDEO   : 'REVERSE-VIDEO' ;
+FOREGROUND_COLOR: 'FOREGROUND-COLOR' ;
+BACKGROUND_COLOR: 'BACKGROUND-COLOR' ;
+
+// ── Division/section keywords ──
+
+IDENTIFICATION : 'IDENTIFICATION' ;
+CONFIGURATION : 'CONFIGURATION' ;
+DIVISION    : 'DIVISION' ;
+ENVIRONMENT : 'ENVIRONMENT' ;
+DATA        : 'DATA' ;
+PROCEDURE   : 'PROCEDURE' ;
+REPORT      : 'REPORT' ;
+SCREEN      : 'SCREEN' ;
+SECTION     : 'SECTION' ;
+LINKAGE     : 'LINKAGE' ;
+INPUT_OUTPUT : 'INPUT-OUTPUT' ;
+FD          : 'FD' ;
+RD          : 'RD' ;
+SD          : 'SD' ;
+
+// ── Statement keywords ──
+
+ACCEPT      : 'ACCEPT' ;
+ADD         : 'ADD' ;
+ALTER       : 'ALTER' ;
+CALL        : 'CALL' ;
+CANCEL      : 'CANCEL' ;
+CAPACITY    : 'CAPACITY' ;   // OCCURS DYNAMIC … CAPACITY IN data-name (ISO §13.18.38 Format 4, COBOL-2014; D9)
+CLOSE       : 'CLOSE' ;
+COMPUTE     : 'COMPUTE' ;
+CONTINUE    : 'CONTINUE' ;
+DELETE      : 'DELETE' ;
+DISPLAY     : 'DISPLAY' ;
+// X3.23-1985 ENTER statement verb (obsolete '85 element deleted by ISO 2002 — accepted-inert at 85,
+// 0902 ≥2002 per VCR Table 7 row 7.16). A legal user word via cobolWord at editions where the §8.9
+// funnel frees it (85-only reserved per ReservedWords.Table); mirrored in _dataNameTokens.
+ENTER       : 'ENTER' ;
+GENERATE    : 'GENERATE' ;
+DIVIDE      : 'DIVIDE' ;
+EVALUATE    : 'EVALUATE' ;
+EXIT        : 'EXIT' ;
+GOBACK      : 'GOBACK' ;
+GO          : 'GO' ;
+IF          : 'IF' ;
+INITIATE    : 'INITIATE' ;
+INITIALIZE  : 'INITIALIZE' ;
+INITIALIZED : 'INITIALIZED' ;
+INSPECT     : 'INSPECT' ;
+ALLOCATE    : 'ALLOCATE' ;
+FREE        : 'FREE' ;
+INVOKE      : 'INVOKE' ;
+JSON        : 'JSON' ;
+// MESSAGE-TAG usage (ISO §13.18.60 — the MCS data surface; reserved 2023 only per §8.9 / Annex E.2 item 25).
+// Maximal munch keeps this ahead of MESSAGE: 'MESSAGE-TAG' is the longer match. It had NO token until kb/Work
+// PB487, so the bare (USAGE-less) spelling §13.18.60.2 makes legal fell to the genericDataClause catch-all and
+// the entry bound with NO usage at all — a compiler crash on the elementary path. A legal user word below 2023,
+// so it is cobolWord/_dataNameTokens-admitted (cobol-words.json) and funnel-0901'd at 2023.
+MESSAGE_TAG : 'MESSAGE-TAG' ;
+MESSAGE     : 'MESSAGE' ;      // MCS: the CONTINUE AFTER MESSAGE RECEIVED phrase (ISO 14.9.31)
+MERGE       : 'MERGE' ;
+MOVE        : 'MOVE' ;
+MULTIPLY    : 'MULTIPLY' ;
+OPEN        : 'OPEN' ;
+PERFORM     : 'PERFORM' ;
+READ        : 'READ' ;
+RELEASE     : 'RELEASE' ;
+REPOSITORY  : 'REPOSITORY' ;   // COBOL-2002 REPOSITORY paragraph header (ISO §12.3.8)
+RETURN      : 'RETURN' ;
+REWRITE     : 'REWRITE' ;
+SEARCH      : 'SEARCH' ;
+SET         : 'SET' ;
+SORT        : 'SORT' ;
+START       : 'START' ;
+STOP        : 'STOP' ;
+STRING      : 'STRING' ;
+SUBTRACT    : 'SUBTRACT' ;
+SUPPRESS    : 'SUPPRESS' ;
+TERMINATE   : 'TERMINATE' ;
+UNSTRING    : 'UNSTRING' ;
+WRITE       : 'WRITE' ;
+XML         : 'XML' ;
+
+// ── Clause/phrase keywords ──
+
+// ACTIVE-CLASS (ISO §13.18.60.2 USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS) — a required word of
+// the format, §8.9-reserved 2002+ and a USER WORD at 85, so it rides the cobolWord reservation funnel like
+// FACTORY (tests/version-matrix/cobol-words.json). Before kb/Work PB389 it had NO token: the phrase lexed as
+// an IDENTIFIER, parsed as `OBJECT REFERENCE className`, and drew COBOL0813 'unknown class ACTIVE-CLASS'
+// PLUS COBOL0901 'reserved word' — a required word of the general format reported as a botched user name.
+ACTIVE_CLASS : 'ACTIVE-CLASS' ;
+ACCESS      : 'ACCESS' ;
+ADDRESS     : 'ADDRESS' ;
+// ALIGNED clause (ISO §13.18.1; reserved 2002+ per §8.9) — a §13.16.2 Format-1 data-description clause. It had NO
+// token and NO parser rule until kb/Work PB487, so it lexed as IDENTIFIER and the genericDataClause catch-all ate
+// it: the clause was ACCEPTED and INERT, which is the silent-wrong-layout case §13.18.1.4 GR1 exists to prevent.
+// A legal user word at COBOL-85, so it is cobolWord/_dataNameTokens-admitted (cobol-words.json) and funnel-0901'd
+// ≥2002 by the VersionConformancePass §8.9 funnel (the CONSTANT/BASED precedent).
+ALIGNED     : 'ALIGNED' ;
+AREA        : 'AREA' ;
+BASED       : 'BASED' ;
+// CONSTANT (ISO §13.10 constant entry / §13.18.15 CONSTANT RECORD clause; reserved 2002+ per §8.9) — a legal
+// user word at COBOL-85, so it is cobolWord/_dataNameTokens-admitted (cobol-words.json) and funnel-0901'd ≥2002
+// by the VersionConformancePass §8.9 funnel (the PROTOTYPE/SHARING precedent).
+CONSTANT    : 'CONSTANT' ;
+// AS (the §13.10 constant entry's AS phrase; reserved 2002+ per §8.9) — the same interval as CONSTANT: a legal
+// user word at COBOL-85, cobolWord/_dataNameTokens-admitted (cobol-words.json), funnel-0901'd ≥2002. Its only
+// keyword slot is the constantEntryBody `AS` — a direct token, never a name slot.
+AS          : 'AS' ;
+// PROGRAM-POINTER / FUNCTION-POINTER (USAGE phrases, ISO §13.18.60; reserved 2002+ per §8.9) — the CONSTANT/AS
+// interval treatment: legal user words at COBOL-85, cobolWord/_dataNameTokens-admitted (cobol-words.json),
+// funnel-0901'd ≥2002. Their only keyword slots are the usageKeyword alternatives — direct tokens.
+PROGRAM_POINTER  : 'PROGRAM-POINTER' ;
+FUNCTION_POINTER : 'FUNCTION-POINTER' ;
+// ── The remaining INITIALIZE category-names (ISO §14.9.20.2 "where category-name is:") ────────────────────────
+// The printed figure encloses THIRTEEN underlined words in a brace carrying CHOICE INDICATORS; five of them had
+// no lexer token at all, so eight of the thirteen could not be spelled (kb/Work PB415). BOOLEAN / DATA-POINTER /
+// NATIONAL-EDITED / OBJECT-REFERENCE are the four that were still lexing as IDENTIFIER (MESSAGE-TAG,
+// PROGRAM-POINTER, FUNCTION-POINTER and NATIONAL already had one). §8.9 reserves all four from 2002 only
+// (reserved-words.json r85=false), so each gets the CONSTANT/AS interval treatment: a legal user word at
+// COBOL-85, cobolWord/_dataNameTokens-admitted through cobol-words.json, funnel-0901'd ≥2002. The hyphenated
+// spellings out-length DATA / NATIONAL / OBJECT by maximal munch, so rule order against them is not load-bearing.
+BOOLEAN          : 'BOOLEAN' ;            // §8.5.2.5 category boolean (also the §13.18.60 USAGE BIT category)
+DATA_POINTER     : 'DATA-POINTER' ;       // §8.5.2.6 category data-pointer (USAGE POINTER's category-name)
+NATIONAL_EDITED  : 'NATIONAL-EDITED' ;    // §8.5.2.11 category national-edited
+OBJECT_REFERENCE : 'OBJECT-REFERENCE' ;   // §8.5.2.12 category object-reference (USAGE OBJECT REFERENCE is TWO words)
+AREAS       : 'AREAS' ;
+ALPHABETIC       : 'ALPHABETIC' ;
+ALPHABETIC_LOWER : 'ALPHABETIC-LOWER' ;
+ALPHABETIC_UPPER : 'ALPHABETIC-UPPER' ;
+ADVANCING   : 'ADVANCING' ;
+AFTER       : 'AFTER' ;
+ALL         : 'ALL' ;
+ALSO        : 'ALSO' ;
+ALPHANUMERIC_EDITED : 'ALPHANUMERIC-EDITED' ;
+NUMERIC_EDITED : 'NUMERIC-EDITED' ;
+ALPHANUMERIC : 'ALPHANUMERIC' ;
+ALTERNATE   : 'ALTERNATE' ;
+AND         : 'AND' ;
+ANY         : 'ANY' ;
+ASCENDING   : 'ASCENDING' ;
+// APPLY COMMIT clause (ISO §12.4.6.3) — the declined A.4.3 commit-and-rollback facility's I-O-CONTROL surface.
+// APPLY is a §8.10 CONTEXT-SENSITIVE word ("I-O-CONTROL paragraph"), never §8.9-reserved, so it stays a legal
+// user-defined word at every edition through cobolWord.
+APPLY       : 'APPLY' ;
+ASSIGN      : 'ASSIGN' ;
+ARE         : 'ARE' ;
+AT          : 'AT' ;
+AUTO        : 'AUTO' ;
+AUTHOR      : 'AUTHOR' ;
+BACKWARD    : 'BACKWARD' ;   // COBOL-2002 INSPECT … BACKWARD (right-to-left inspection, ISO §14.9.22)
+BEFORE      : 'BEFORE' ;
+BELL        : 'BELL' ;
+BLINK       : 'BLINK' ;
+BINARY      : 'BINARY' ;
+BIT         : 'BIT' ;
+BLANK       : 'BLANK' ;
+BLOCK       : 'BLOCK' ;
+BOTTOM      : 'BOTTOM' ;
+BY          : 'BY' ;
+// The RECORD clause's BYTES/CHARACTERS brace group (ISO §13.18.43.2, all three formats): §13.18.43.3 SR2 makes
+// the two words SYNONYMOUS ("The words BYTES and CHARACTERS are synonymous and may be used interchangeably"),
+// and until kb/Work PB721 there was no BYTES token at all, so `RECORD CONTAINS 20 BYTES` — legal COBOL in every
+// supported edition — was refused as an unrecognized FD clause (COBOL1970). §8.10 context-sensitive ("RECORD
+// clause"), never §8.9-reserved, so it stays a legal user word at every edition through cobolWord.
+BYTES       : 'BYTES' ;
+CENTER      : 'CENTER' ;   // COLUMN clause alignment (ISO §13.18.14.2 Format 1) — §8.10 context-sensitive (user word at every edition; kb/Work PB1220)
+CF          : 'CF' ;
+CH          : 'CH' ;
+CHARACTER   : 'CHARACTER' ;
+CHARACTERS  : 'CHARACTERS' ;
+CLASS       : 'CLASS' ;
+CODE        : 'CODE' ;
+CODE_SET    : 'CODE-SET' ;
+COL         : 'COL' ;
+COLS        : 'COLS' ;      // COBOL-2002 COLUMN-clause spelling (ISO §13.18.14 SR1); usable as a user word via cobolWord (§8.9 funnel gates ≥2002)
+COLUMN      : 'COLUMN' ;
+COLUMNS     : 'COLUMNS' ;   // COBOL-2002 COLUMN-clause spelling (ISO §13.18.14 SR1); usable as a user word via cobolWord (§8.9 funnel gates ≥2002)
+COLLATING   : 'COLLATING' ;
+COMMIT      : 'COMMIT' ;       // commit/rollback facility (A.3 items 6-7) - recognized-not-supported
+COMMON      : 'COMMON' ;
+COMP        : 'COMP' ;
+COMP_1      : 'COMP-1' ;
+COMP_2      : 'COMP-2' ;
+COMP_3      : 'COMP-3' ;
+COMP_4      : 'COMP-4' ;
+COMP_5      : 'COMP-5' ;
+COMPUTATIONAL   : 'COMPUTATIONAL' ;
+COMPUTATIONAL_1 : 'COMPUTATIONAL-1' ;
+COMPUTATIONAL_2 : 'COMPUTATIONAL-2' ;
+COMPUTATIONAL_3 : 'COMPUTATIONAL-3' ;
+COMPUTATIONAL_4 : 'COMPUTATIONAL-4' ;
+COMPUTATIONAL_5 : 'COMPUTATIONAL-5' ;
+CONTAINS    : 'CONTAINS' ;
+CONTENT     : 'CONTENT' ;
+CONTROL     : 'CONTROL' ;
+CONTROLS    : 'CONTROLS' ;
+CONVERTING  : 'CONVERTING' ;
+CORR        : 'CORR' ;
+CURRENCY    : 'CURRENCY' ;
+CYCLE       : 'CYCLE' ;
+DECIMAL_POINT : 'DECIMAL-POINT' ;
+CORRESPONDING : 'CORRESPONDING' ;
+COUNT       : 'COUNT' ;
+DATE        : 'DATE' ;
+DAY         : 'DAY' ;
+DE          : 'DE' ;
+DETAIL      : 'DETAIL' ;
+YYYYMMDD    : 'YYYYMMDD' ;
+YYYYDDD     : 'YYYYDDD' ;
+DECLARATIVES: 'DECLARATIVES' ;
+DELIMITED   : 'DELIMITED' ;
+DELIMITER   : 'DELIMITER' ;
+DEPENDING   : 'DEPENDING' ;
+DESCENDING  : 'DESCENDING' ;
+// DESTINATION clause (ISO §13.18.18) — the declined A.4.14 VALIDATE facility's data-division surface. §8.9
+// reserves the word at EVERY edition, but it is still admitted to cobolWord: the token must reach a name slot
+// so `01 DESTINATION PIC X.` keeps drawing the NAMED COBOL0901 reserved-word diagnostic instead of the
+// generic parse error a keyword-only token would produce (the PB100 lesson — a declined facility must not
+// degrade a neighbouring diagnostic).
+DESTINATION : 'DESTINATION' ;
+DOWN        : 'DOWN' ;
+DUPLICATES  : 'DUPLICATES' ;
+DYNAMIC     : 'DYNAMIC' ;
+// ── The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18; obsolete '85 elements
+//    deleted by ISO 2002; each is ALSO a legal user word via cobolWord at the editions where the §8.9
+//    funnel frees it — all five are mirrored in _dataNameTokens above, with ENTER and CLOCK-UNITS in
+//    their own bands) ──
+DEBUGGING   : 'DEBUGGING' ;   // USE FOR DEBUGGING (the '85 debug facility, row 7.17)
+EVERY       : 'EVERY' ;       // RERUN … EVERY (row 7.15)
+RERUN       : 'RERUN' ;       // the I-O-CONTROL RERUN clause head (row 7.15)
+REFERENCES  : 'REFERENCES' ;  // USE FOR DEBUGGING ON ALL REFERENCES OF (row 7.17); distinct from REFERENCE
+PROCEDURES  : 'PROCEDURES' ;  // USE FOR DEBUGGING ON ALL PROCEDURES (row 7.17); distinct from PROCEDURE
+// ⛔ NO `EDITED` TOKEN, DELIBERATELY (kb/Work PB415). EDITED is not an ISO §8.9 reserved word at 85, 2002, 2014 or
+// 2023 — it has no reserved-words.json row — and its only grammar consumer was the two-token
+// `ALPHANUMERIC EDITED` / `NUMERIC EDITED` spelling of an INITIALIZE category-name, which §14.9.20.2 prints only
+// hyphenated. The hard token shadowed IDENTIFIER, so `01 EDITED PIC X.` was a COBOL0001 at every edition; with
+// the token gone the word is an ordinary user-defined word, which is what §8.3.2.1 makes it. (EDITING, below, is
+// a genuine 2023 reserved word and keeps its token.)
+EDITING     : 'EDITING' ;                 // PICTURE EDITING phrase (ISO §13.18.40.2; new-in-2023 reserved word, Annex E.2 item 25)
+ELSE        : 'ELSE' ;
+END         : 'END' ;
+EOL         : 'EOL' ;
+EOS         : 'EOS' ;
+ERASE       : 'ERASE' ;
+ENTRY       : 'ENTRY' ;
+EQUAL       : 'EQUAL' ;
+ERROR       : 'ERROR' ;
+EXCEPTION   : 'EXCEPTION' ;
+EXTEND      : 'EXTEND' ;
+EXTERNAL    : 'EXTERNAL' ;
+FIRST       : 'FIRST' ;
+FOOTING     : 'FOOTING' ;
+FOR         : 'FOR' ;
+FALSE_      : 'FALSE' ;
+FILE        : 'FILE' ;
+FILLER      : 'FILLER' ;
+FINAL       : 'FINAL' ;
+FINALLY     : 'FINALLY' ;                 // exception-checking PERFORM FINALLY phrase (ISO §14.9.28.2 Format 3; new-in-2023 reserved word, Annex E.2 item 25)
+FORMAT      : 'FORMAT' ;                  // FD FORMAT clause (ISO §13.18.24). Reserved from 2002 only (ReservedWords.Table row: r85=false) — so it is cobolWord/nameSlot-admitted (tests/version-matrix/cobol-words.json) and a COBOL-85 program may still name a data item FORMAT; §8.9's COBOL0901 funnel names it at 2002+.
+FULL_       : 'FULL' ;
+POSITIVE    : 'POSITIVE' ;
+NEGATIVE    : 'NEGATIVE' ;
+REQUIRED    : 'REQUIRED' ;
+RESERVE     : 'RESERVE' ;
+FROM        : 'FROM' ;
+FUNCTION    : 'FUNCTION' ;
+GROUP       : 'GROUP' ;
+HEADING     : 'HEADING' ;
+HIGHLIGHT   : 'HIGHLIGHT' ;
+INDICATE    : 'INDICATE' ;
+LABEL       : 'LABEL' ;
+LAST        : 'LAST' ;
+LINAGE      : 'LINAGE' ;
+LINAGE_COUNTER : 'LINAGE-COUNTER' ;
+LIMIT       : 'LIMIT' ;
+LIMITS      : 'LIMITS' ;
+LINE_COUNTER : 'LINE-COUNTER' ;
+GENERIC     : 'GENERIC' ;
+GIVING      : 'GIVING' ;
+GLOBAL      : 'GLOBAL' ;
+GREATER     : 'GREATER' ;
+SYMBOLIC    : 'SYMBOLIC' ;
+TABLE       : 'TABLE' ;
+ALPHABET    : 'ALPHABET' ;
+CRT         : 'CRT' ;
+CURSOR      : 'CURSOR' ;
+PROCEED     : 'PROCEED' ;
+UPON        : 'UPON' ;
+USE         : 'USE' ;
+STANDARD    : 'STANDARD' ;
+REPORTING   : 'REPORTING' ;
+SUM         : 'SUM' ;
+IN          : 'IN' ;
+INDEX       : 'INDEX' ;
+INDEXED     : 'INDEXED' ;
+INITIAL_    : 'INITIAL' ;
+INPUT       : 'INPUT' ;
+INSTALLATION: 'INSTALLATION' ;
+INTRINSIC   : 'INTRINSIC' ;   // COBOL-2002 REPOSITORY FUNCTION … INTRINSIC (ISO §12.3.8)
+INTO        : 'INTO' ;
+INVALID     : 'INVALID' ;
+IS          : 'IS' ;
+JUST        : 'JUST' ;
+JUSTIFIED   : 'JUSTIFIED' ;
+KEY         : 'KEY' ;
+LEADING     : 'LEADING' ;
+LEFT        : 'LEFT' ;
+LENGTH      : 'LENGTH' ;
+LESS        : 'LESS' ;
+LINE        : 'LINE' ;
+LINES       : 'LINES' ;
+LOCATION    : 'LOCATION' ;                // exception-checking PERFORM WITH LOCATION phrase (ISO §14.9.28.2 Format 3; new-in-2023 reserved word, Annex E.2 item 25)
+LOCK        : 'LOCK' ;
+LOWLIGHT    : 'LOWLIGHT' ;
+// ── COBOL-2002 file sharing / record locking (ISO §12.4.5.9 LOCK MODE, §12.4.5.15 SHARING, §14.7.9 RETRY,
+// §14.9.27 OPEN, §14.9.30 READ, §14.9.47 UNLOCK). SHARING/RETRY/
+// UNLOCK are §8.9-reserved since 2002 (funnel-gated); MANUAL/AUTOMATIC/IGNORING/FOREVER/SECONDS/ONLY are
+// §8.10 context-sensitive (user-legal at every edition). The phrases parse at every edition and are
+// introduction-gated post-bind (VersionConformancePass); the one parse-time edition read is OPEN's RETRY word
+// status (CobolIO.g4#openClause; kb/Work PB2291).
+MANUAL      : 'MANUAL' ;
+AUTOMATIC   : 'AUTOMATIC' ;
+IGNORING    : 'IGNORING' ;
+FOREVER     : 'FOREVER' ;
+SECONDS     : 'SECONDS' ;
+SHARING     : 'SHARING' ;
+RETRY       : 'RETRY' ;
+UNLOCK      : 'UNLOCK' ;
+METHOD      : 'METHOD' ;
+MODE        : 'MODE' ;
+NATIONAL    : 'NATIONAL' ;
+NATIVE      : 'NATIVE' ;
+NEXT        : 'NEXT' ;
+NORMAL      : 'NORMAL' ;
+NO          : 'NO' ;
+NUMBER      : 'NUMBER' ;
+NUMBERS     : 'NUMBERS' ;   // COLUMN/LINE clause plural spelling (ISO §13.18.14/§13.18.35) — §8.10 context-sensitive (user word at every edition)
+NOT         : 'NOT' ;
+NUMERIC     : 'NUMERIC' ;
+NULL_       : 'NULL' ;
+OCCURS      : 'OCCURS' ;
+OF          : 'OF' ;
+OFF         : 'OFF' ;
+ON          : 'ON' ;
+ONLY        : 'ONLY' ;   // COBOL-2002 SHARING READ ONLY (ISO §12.4.5.15) — §8.10 context-sensitive (user word)
+OR          : 'OR' ;
+XOR         : 'XOR' ;   // COBOL-2023 logical exclusive-or operator (ISO §8.8.4.9; 2023 per Annex E.2 item 25 — VCR rows 32/41)
+OMITTED     : 'OMITTED' ;
+OPTIONAL    : 'OPTIONAL' ;
+OPTIONS     : 'OPTIONS' ;   // COBOL-2002 OPTIONS paragraph header (ISO §11.9)
+// The OPTIONAL word ORDER of the SORT DUPLICATES phrase (ISO §14.9.40.2 `[ WITH DUPLICATES IN ORDER ]`) and the
+// REQUIRED word of the SPECIAL-NAMES ORDER TABLE clause (§12.3.7.2). §8.9 reserves ORDER from 2002
+// (ReservedWords.Table row: r85=false), so — exactly like FORMAT — the token carries a `nameSlot` row in
+// tests/version-matrix/cobol-words.json, which is what keeps `01 ORDER PIC X.` legal at COBOL-85 while the
+// derived reservation gate + the §8.9 funnel name it at 2002+. ⛔ IT MUST BE A TOKEN: a keyword slot that
+// borrows `cobolWord` is refused by the funnel's position-blind IDENTIFIER check (kb/Work PB704, the PB693
+// shape). Maximal munch keeps HIGH-ORDER-LEFT/HIGH-ORDER-RIGHT and any ORDER-suffixed user word one longer match.
+ORDER       : 'ORDER' ;
+ORGANIZATION: 'ORGANIZATION' ;
+OTHER       : 'OTHER' ;
+OUTPUT      : 'OUTPUT' ;
+OVERFLOW    : 'OVERFLOW' ;
+PACKED      : 'PACKED' ;
+PAGE        : 'PAGE' ;
+PAGE_COUNTER : 'PAGE-COUNTER' ;
+PADDING     : 'PADDING' ;
+PARAGRAPH   : 'PARAGRAPH' ;
+PARSE       : 'PARSE' ;        // JSON/XML PARSE (2014+); usable as a user word via cobolWord
+PROCESSING  : 'PROCESSING' ;   // XML PARSE … PROCESSING PROCEDURE (2014+); usable as a user word via cobolWord
+PF          : 'PF' ;
+PH          : 'PH' ;
+// PIC/PICTURE → PICMODE captures the PIC string as one token. The mode is pushed by NextToken, AFTER the >>COBOL-WORDS
+// retype (kb/Work PB1372): a rule command could not tell the keyword from a data-name the directive made of it, nor a
+// synonym the directive made the keyword. Handles: PIC X(120), PIC IS S9(18), PICTURE $$$,$$9.99CR, etc.
+PIC         : ('PIC' | 'PICTURE') ;
+POINTER     : 'POINTER' ;
+PLUSWORD    : 'PLUS' ;       // the reserved WORD PLUS (LINE/NEXT GROUP relative); distinct from PLUS ('+')
+PRESENT     : 'PRESENT' ;   // PRESENT WHEN clause (ISO §13.18.41, 2002+); usable as a user word via cobolWord (§8.9 funnel gates ≥2002)
+PREVIOUS    : 'PREVIOUS' ;
+PRINTING    : 'PRINTING' ;
+PROGRAM     : 'PROGRAM' ;
+// ── EC exception-model words (ISO 2002+; each is ALSO a legal user word via cobolWord + _dataNameTokens) ──
+RAISING     : 'RAISING' ;    // GOBACK/EXIT … RAISING + the PD-header RAISING phrase (ISO §14.9.18 / §14.2)
+RAISE       : 'RAISE' ;      // RAISE statement (ISO §14.9.29)
+RESUME      : 'RESUME' ;     // RESUME statement (ISO §14.9.33)
+STATEMENT   : 'STATEMENT' ;  // RESUME AT NEXT STATEMENT (ISO §14.9.33)
+CONDITION   : 'CONDITION' ;  // USE AFTER EXCEPTION CONDITION (ISO §14.9.49 Format 3)
+EO          : 'EO' ;         // USE AFTER EO ≡ EXCEPTION OBJECT (ISO §14.9.49.3 SR15; the EC-OO wave) — same context-sensitive recipe as EC
+EC          : 'EC' ;         // USE AFTER EC ≡ EXCEPTION CONDITION (ISO §14.9.49.3 SR12); maximal munch keeps
+                             // EC-I-O-AT-END etc. one IDENTIFIER (the longer match wins)
+RANDOM      : 'RANDOM' ;
+RECEIVE     : 'RECEIVE' ;      // MCS RECEIVE (ISO 14.9.31) - recognized-not-supported (4.2.6, A.3 item 4)
+RECORD      : 'RECORD' ;
+RECORDS     : 'RECORDS' ;
+REEL        : 'REEL' ;
+REPORTS     : 'REPORTS' ;
+RESET       : 'RESET' ;
+RECURSIVE   : 'RECURSIVE' ;
+REDEFINES   : 'REDEFINES' ;
+REPLACING   : 'REPLACING' ;
+REFERENCE   : 'REFERENCE' ;
+RELATIVE    : 'RELATIVE' ;
+REMAINDER   : 'REMAINDER' ;
+REMOVAL     : 'REMOVAL' ;
+REMARKS     : 'REMARKS' ;
+RENAMES     : 'RENAMES' ;
+RETURNING   : 'RETURNING' ;
+REWIND      : 'REWIND' ;
+REVERSED    : 'REVERSED' ;
+RF          : 'RF' ;
+RH          : 'RH' ;
+ROLLBACK    : 'ROLLBACK' ;     // commit/rollback facility (A.3 items 6-7) - recognized-not-supported
+ROUNDED     : 'ROUNDED' ;
+RIGHT       : 'RIGHT' ;
+RUN         : 'RUN' ;
+SAME        : 'SAME' ;
+STRONG      : 'STRONG' ;   // TYPEDEF STRONG (ISO §13.18.58.2, COBOL-2002; data-model D17)
+SORT_MERGE  : 'SORT-MERGE' ;
+MULTIPLE    : 'MULTIPLE' ;
+TAPE        : 'TAPE' ;
+POSITION    : 'POSITION' ;
+SEND        : 'SEND' ;         // MCS SEND (ISO 14.9.38) - recognized-not-supported (4.2.6, A.3 item 4)
+SECURE      : 'SECURE' ;
+SECURITY    : 'SECURITY' ;
+SELECT      : 'SELECT' ;
+SELF        : 'SELF' ;
+SEPARATE    : 'SEPARATE' ;
+SEQUENCE    : 'SEQUENCE' ;
+SEQUENTIAL  : 'SEQUENTIAL' ;
+SIGN        : 'SIGN' ;
+SIGNED      : 'SIGNED' ;     // COBOL-2002 BINARY-xxx SIGNED (USAGE clause, ISO §13.18.60); beats SIGN
+UNSIGNED    : 'UNSIGNED' ;   // COBOL-2002 BINARY-xxx UNSIGNED
+SIZE        : 'SIZE' ;
+SOURCE      : 'SOURCE' ;
+SOURCES     : 'SOURCES' ;    // COBOL-2002 SOURCE-clause plural spelling (ISO §13.18.53.2 / §13.18.53.3 SR1); usable as a user word via cobolWord (§8.9 funnel gates ≥2002)
+STANDARD_1  : 'STANDARD-1' ;
+STANDARD_2  : 'STANDARD-2' ;
+STATUS      : 'STATUS' ;
+SUPER       : 'SUPER' ;
+SYNC        : 'SYNC' ;
+SYNCHRONIZED: 'SYNCHRONIZED' ;
+TALLYING    : 'TALLYING' ;
+TEST        : 'TEST' ;
+THAN        : 'THAN' ;
+THEN        : 'THEN' ;
+THROUGH     : 'THROUGH' ;
+THRU        : 'THRU' ;
+TIME        : 'TIME' ;
+TIMES       : 'TIMES' ;
+TO          : 'TO' ;
+TOP         : 'TOP' ;
+TRAILING    : 'TRAILING' ;
+TRUE_       : 'TRUE' ;
+TYPE        : 'TYPE' ;
+TYPEDEF     : 'TYPEDEF' ;
+UNDERLINE_  : 'UNDERLINE' ;
+UNIT        : 'UNIT' ;
+// UNIVERSAL (ISO §8.4.3.5.2, the object-view `identifier-1 AS UNIVERSAL`) — a required word of the format, §8.9-reserved
+// 2002+ and a USER WORD at 85, so it rides the cobolWord reservation funnel like ACTIVE-CLASS (cobol-words.json). Before
+// kb/Work PB1425 it had NO token: the object-view had no grammar at all and `D AS UNIVERSAL` drew COBOL0901 on AS.
+UNIVERSAL   : 'UNIVERSAL' ;
+UNTIL       : 'UNTIL' ;
+UP          : 'UP' ;
+USAGE       : 'USAGE' ;
+USING       : 'USING' ;
+// VALIDATE-STATUS / VAL-STATUS (ISO §13.18.62; §13.18.62.3 SR9 makes the two words EQUIVALENT) and VALID (the
+// §13.18.63 format-5 content-validation entry) — the declined A.4.14 surface. HYPHENATED, so VALIDATE_STATUS
+// must precede IDENTIFIER (an equal-length match is broken by rule order); it also precedes VALIDATE here for
+// readability — ANTLR's maximal munch already prefers the longer literal. All three are §8.9-reserved from
+// 2002 and USER WORDS at 85, so all three ride cobolWord and the §8.9 funnel makes the ≥2002 rejection.
+VALIDATE_STATUS : 'VALIDATE-STATUS' ;
+VAL_STATUS      : 'VAL-STATUS' ;
+VALID       : 'VALID' ;
+VALIDATE    : 'VALIDATE' ;     // VALIDATE (ISO 14.9.50) - optional 4.2.7/A.4.14 + obsolete 4.2.13
+VALUE       : 'VALUE' ;
+VALUES      : 'VALUES' ;
+VARYING     : 'VARYING' ;
+WHEN        : 'WHEN' ;
+WITH        : 'WITH' ;
+// ⛔ ONE TOKEN PER RESERVED WORD — the figurative spellings are DISTINCT §8.9 reserved words (kb/Work PB510).
+// ZERO, ZEROS and ZEROES (and each singular/plural pair below) are interchangeable ONLY where the §8.3.3.6.2
+// figurative-constant format lists them as alternatives — the parser rules zeroWord / spaceWord /
+// highValueWord / lowValueWord / quoteWord in CobolExpressions.g4 are that interchangeability, written once.
+// Everywhere else a general format names ONE of them as a keyword (§5.2.2: "They are required in order to
+// select the functionality associated with that keyword") and admits no other: BLANK WHEN ZERO (§13.18.8.2),
+// the sign condition's ZERO (§8.8.4.7.2), the OPTIONS INITIALIZE clause's BINARY ZEROES / HIGH-VALUES /
+// LOW-VALUES / SPACES (§11.9.10.2). Folding the spellings into one token made that distinction unrecoverable
+// and every one of those formats accepted every spelling. The only multi-spelling keyword rule left is PIC
+// (§13.18.40.3 SR5 "PIC is an abbreviation for PICTURE") — KeywordSpellingDriftTests pins that.
+ZERO        : 'ZERO' ;
+ZEROS       : 'ZEROS' ;
+ZEROES      : 'ZEROES' ;
+SPACE       : 'SPACE' ;
+SPACES      : 'SPACES' ;
+HIGH_VALUE  : 'HIGH-VALUE' ;
+HIGH_VALUES : 'HIGH-VALUES' ;
+LOW_VALUE   : 'LOW-VALUE' ;
+LOW_VALUES  : 'LOW-VALUES' ;
+QUOTE_      : 'QUOTE' ;
+QUOTES      : 'QUOTES' ;
+
+// ── Numeric literals (must come BEFORE IDENTIFIER) ──
+// DECIMALLIT handles DOT-based decimals in the lexer (maximal munch resolves
+// DOT-as-decimal vs DOT-as-sentence-terminator). COMMA-based decimals for
+// DECIMAL-POINT IS COMMA are handled in the parser via numericLiteralCore.
+
+// Floating-point numeric literal (ISO §8.3.3.3.3): a significand (which SHALL include a decimal point, 1-36 digits)
+// joined to an exponent (1-4 digits, optionally signed) by 'E', no intervening spaces — e.g. 1.5E3, 2.5E-2, .5E10.
+// MUST precede DECIMALLIT so maximal munch keeps "1.5E3" ONE token, not DECIMALLIT "1.5" + IDENTIFIER "E3" (the
+// old parse error). Additive: the no-space <decimal>E<digits> form was previously always a parse error. (D16.)
+// The body is a FRAGMENT (the Group-B one-body discipline) because THREE tokens consume it: this one, the
+// FN_SIGNED twin (kb/Work R17 — the float shape was the one signed-capable literal with no twin, so
+// `FUNCTION EXP(-1.5E3)` lexed as TWO arguments and drew a false COBOL1504).
+// ⛔ THE SIGNIFICAND IS A FIXED-POINT LITERAL, SO IT IS WRITTEN AS ONE (kb/Work PB2729). §8.3.3.3.3 1): "A floating-point
+// numeric literal is formed from two fixed-point numeric literals separated by the letter 'E' without intervening
+// spaces", and §8.3.3.3.2 3) puts a fixed-point literal's decimal point "anywhere within the literal except as the
+// rightmost character". DEC_BODY is that fixed-point shape; this body used to spell a WIDER copy beside it
+// (`[0-9]+ '.' [0-9]*`), so `VALUE 3.E2` lexed as one FLOATLIT that no form check refused and the backend died on
+// (CS1061), and `COMPUTE X = 1.E2 + 5` compiled. Over DEC_BODY, `3.E2` is INTEGERLIT `3` and a period with no space
+// after it, which SeparatorRule names (§8.3.5 3), COBOL2632). The exponent is the other fixed-point literal, an
+// integer ("no decimal point", §8.3.3.3.3 3)). SignedLiteralShapeDriftTests holds every FLOAT*_BODY significand to a DEC*_BODY.
+fragment FLOAT_BODY : DEC_BODY 'E' [-+]? INT_BODY ;
+FLOATLIT    : FLOAT_BODY ;
+
+// The DECIMAL-POINT IS COMMA twin of the floating-point literal (kb/Work PB98): under DECIMAL-POINT IS COMMA "the
+// character written in numeric literals to represent the decimal separator shall be the comma" (ISO §12.3.7.4 GR14 a) —
+// the floating-point form's significand included (§8.3.3.3.3: "two fixed-point numeric literals separated by the
+// letter 'E'"), so `1,5E+3` is ONE literal. The lexer cannot know the SPECIAL-NAMES clause, so the shape is one token
+// in EVERY mode; the binder's ONE normalizer canonicalizes it to dot-decimal and reports COBOL0895 when
+// DECIMAL-POINT IS COMMA is not in effect. No dot-mode program legally spells `<digits>,<digits>E<exponent>` (the
+// comma-decimal fixed form assembles in the parser as INTEGERLIT COMMA INTEGERLIT because ',' alone is a token; the
+// float shape needs the E-tail, so it is lexed whole — before this a comma-mode `VALUE 1,5E+3` silently seeded 1 and
+// `MOVE 1,5E+3 TO X` was a parse error). Same body discipline as FLOAT_BODY: fragment + FN_SIGNED twin
+// (SignedLiteralShapeDriftTests scrapes every FLOAT*_BODY). Its significand is the comma-decimal fixed-point body, as
+// FLOAT_BODY's is DEC_BODY (kb/Work PB2729): `1,E2` is no literal (§8.3.3.3.2 3)).
+fragment FLOAT_COMMA_BODY : DEC_COMMA_BODY 'E' [-+]? INT_BODY ;
+COMMA_FLOATLIT : FLOAT_COMMA_BODY ;
+
+// ── Shared literal fragment bodies (rearchitecture PHASE 04, Group B) ──
+// One definition per literal tokenization shape, referenced by the literal tokens and their sign-adjacent twins. A
+// second lexer mode used to re-declare each body char-for-char (the SUBSCRIPT mode, deleted by kb/Work PB2113); a
+// string-escape / national-literal / data-name fix is applied ONCE (DESIGN-frontend-grammar §3.3b).
+fragment STR_BODY  : '"' (~["\n] | '""')* '"' | '\'' (~['\n] | '\'\'')* '\'' ;   // STRINGLIT
+// ⛔ FORMAT 2 IS THE SAME LITERAL KIND, SO IT IS THE SAME TOKEN (fix-queue R03). §8.3.3.5.2 and §8.3.3.4.2 each
+// print TWO general formats — `N"…"` / `NX"…"` and `B"…"` / `BX"…"` — and their ALL-FORMATS general rules put
+// both formats in ONE class and category (§8.3.3.5.4 GR2 national, §8.3.3.4.4 GR2 boolean). Folding Format 2
+// into the existing token is therefore what the standard says, and it is also what keeps the change tractable:
+// 32 call sites already route NATLIT→national and BOOLLIT→boolean, and every one stays correct untouched.
+// ⚠ THE ALTERNATIVE IS A MISTAKE ALREADY IN THIS FILE. `HEXLIT` is a token of its own even though §8.3.3.2 makes
+// a hexadecimal literal "one FORM of an alphanumeric literal, not a separate kind of thing" (CobolLiteral's own
+// words) — and that split is why its decoding had to be added at FOUR separate call sites, the fourth being a
+// silent VALUE-clause miscompile. A second token here would have bought the same bill twice over.
+// ⛔ A PREFIXED LITERAL'S BODY IS ANY QUOTED CONTENT — THE LEXER DELIMITS, IT DOES NOT JUDGE THE CONTENT (kb/Work
+// PB1441, PB1394). §8.3.5 5) makes `X"`, `N"`, `B"` and the three-character `NX"` / `BX"` OPENING DELIMITERS, so
+// once one is written the character-string can only be a literal of that format, well formed or not. The bodies
+// used to spell each format's REPERTOIRE — `[0-9a-f]*` for X, NX and BX, `[01]*` for B — and a body outside it
+// failed the whole alternative, so maximal munch fell back to IDENTIFIER `X` + a Format 1 STRINGLIT: beside a
+// data item named X, `DISPLAY X"GG"` compiled and printed the item followed by GG, and `MAX(NX"00G1")` answered
+// the item's value. The repertoire rules — §8.3.3.2.3 SR5 and §8.3.3.5.3 SR4 (hexadecimal digits), §8.3.3.4.3
+// SR3 (a hexadecimal digit) and SR2 (a boolean character, '0' or '1') — are now asked of the whole token by
+// LiteralScreen (CobolLiteral.RepertoireViolation → COBOL2630), beside the §8.3.3 grouping and length
+// rules it already asked: the token must MATCH so something is left to diagnose (the R03 doctrine this block
+// began with). Every prefixed body is therefore STR_BODY, doubled delimiters included, so no content can split one.
+// ⚠ ZERO LENGTH IS LEGAL IN EVERY FORMAT, and STR_BODY admits it: §8.3.3.5.3 NOTE 2 "Hexadecimal-national literals
+// can be of zero length", §8.3.3.4.3 NOTE "Hexadecimal-boolean literals can be of zero length", §8.3.3.4.4 GR4 for
+// Format 1 boolean (kb/Work PB65), §8.3.3.2.3 NOTE 2 for X (PB59).
+// Hexadecimal-alphanumeric X"…" / X'…' (§8.3.3.2.2 Format 2 — the printed page shows BOTH delimiters with
+// the hex sequence OPTIONAL, verified at 300 dpi 2026-08-09): one body, both delimiters, zero length legal —
+// the Group-B discipline.
+// LiteralScreen asks the §8.3.3 length and grouping rules of every literal TOKEN of the unit's one tree and of each
+// compiler-directive fragment (kb/Work PB1393, PB1616), and a keyword-omitted intrinsic's argument list is part of that tree like any other operand: its literals
+// are the ordinary DEFAULT-mode tokens (kb/Work PB2113), so `LENGTH(X"414")` is screened as the HEXLIT it is.
+// LiteralScreenDriftTests requires every token defined over one of these literal body fragments to be in the screen's
+// token set.
+fragment HEX_BODY  : [x] STR_BODY ;                                                  // §8.3.3.2.2 Format 2
+fragment NAT_BODY  : 'N' STR_BODY                                                    // NATLIT F1
+                   | 'NX' STR_BODY ;                                                 // §8.3.3.5.2 Format 2
+fragment BOOL_BODY : 'B' STR_BODY                                                    // BOOLLIT F1
+                   | 'BX' STR_BODY ;                                                 // §8.3.3.4.2 Format 2
+fragment INT_BODY  : [0-9]+ ;                                                        // INTEGERLIT
+fragment DEC_BODY  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;                                // DECIMALLIT
+// The DECIMAL-POINT IS COMMA fixed-point shape (ISO §12.3.7.4 GR14 a)). Its UNSIGNED form has no token of its own: a
+// comma is a token, so numericLiteralCore assembles the contiguous INTEGERLIT COMMA INTEGERLIT / COMMA INTEGERLIT.
+// The SIGNED form cannot be assembled there: inside a list region the sign and the digits before the comma are already
+// one SIGNED_INTEGERLIT, so `MIN(-1,5 2)` was MIN(-1, 0.5, 2) and `ABS(-1,5)` two arguments (kb/Work PB2506). It is a
+// body so that its sign-adjacent twin exists and SignedLiteralShapeDriftTests holds both halves of the shape.
+fragment DEC_COMMA_BODY : [0-9]+ ',' [0-9]+ | ',' [0-9]+ ;                           // FN_SIGNED_COMMA_DECIMALLIT
+// ⛔ THE UNDERSCORE IS A COBOL WORD CHARACTER AND HAS BEEN SINCE COBOL-2002 (fix-queue R02). §8.3.2.1: "Each
+// character of a COBOL word … shall be selected from the set of basic letters, basic digits, extended letters,
+// and the basic special characters HYPHEN AND UNDERSCORE. The hyphen or underscore shall not appear as the first
+// or last character in such words." Without it `01 MY_NAME PIC X(6).` — legal at three of the four editions this
+// compiler targets — did not parse at any of them, dying as `no viable alternative at input 'MY_'`.
+// ⚠ SUPERSET-PARSE / BIND-NARROW, the repo's standing doctrine: the underscore is admitted at EVERY edition here
+// and the COBOL-85 rejection is a BIND-time gate (Constructs.UserWordUnderscore2002 → COBOL0900, raised beside
+// the §8.3.2.1 word-LENGTH check in VersionConformancePass.VisitCobolWord — same clause, same visitor). A lexer
+// that refused it below 2002 would produce `no viable alternative`, which is an unexplained rejection rather
+// than a named edition diagnostic.
+// ⛔ AND "NOR LAST" IS NOW ENFORCED FOR BOTH SEPARATORS, WHICH IT WAS NOT. The same sentence bars a leading OR
+// trailing hyphen or underscore. NOT-FIRST was already structural (every alternative opens with a letter or a
+// digit) and NOT-LAST held only in the ALPHA-start alternative, whose tail is `[a-z0-9]`; the two DIGIT-start
+// alternatives ended in `*` over the separator class, so `1A-` and `42-X-` were ACCEPTED — a pre-existing hole
+// for the hyphen that the underscore would have silently inherited. Factoring the tail into NAME_TAIL, which
+// cannot end on a separator, closes it for both characters in all three alternatives at once.
+// ⛔ EXTENDED LETTERS ARE WORD CHARACTERS (kb/Work PB1402; Annex A.4.6, claimed). §8.3.2.1 puts "extended letters"
+// in the same sentence as the basic ones, and §8.1.3.2 GR4 makes them the Annex B repertoire; this class used to be
+// [a-z0-9_-] alone, so `01 CAFÉ PIC X(3).` died as COBOL0001 at the É. EXT_CHAR is the LEXICAL class
+// CobolCharacterRepertoire.IsWordCharacter states — every character outside the basic repertoire except the
+// noncharacters the text stages use as markers (U+FDD0 is the debugging-line carrier) — a SUPERSET of Annex B on
+// purpose: which of those characters a word may hold, and where, is the edition's Annex B.3 (three position classes,
+// changed by Annex E between 2014 and 2023), asked of the finished word by CobolWordRule at bind time, where a
+// character outside it is NAMED (COBOL2773) instead of ending the word with an unexplained "unexpected". The
+// AntlrInputStream holds UTF-16 code units, so a supplementary-plane letter arrives as two surrogates — both in this
+// class, so the pair stays inside its word. A word may END on an extended character (a combining mark is B.3 item 2,
+// legal last); only hyphen and underscore are barred from the ends here.
+fragment EXT_CHAR  : ~[\u0000-\u007F\uFDD0-\uFDEF\uFFFE\uFFFF] ;
+fragment NAME_TAIL : ([a-z0-9_-] | EXT_CHAR)* ([a-z0-9] | EXT_CHAR) ;   // cannot END on a separator (§8.3.2.1)
+fragment NAME_BODY                                                                   // IDENTIFIER
+    : [0-9]+ [-_] ([a-z0-9] | EXT_CHAR) NAME_TAIL?   // digit-start with separator: 42-DATANAMES, 42_DATANAMES
+    | [0-9]+ ([a-z] | EXT_CHAR) NAME_TAIL?           // digit-start with letter: 11A, 25COUNT, 80PARTS, 1É
+    | ([a-z] | EXT_CHAR) NAME_TAIL?                  // alpha-start: A, WRK-DS-01V00, MY_NAME, CAFÉ
+    ;
+
+// ── List-region signed literals (P7 Step 12; kb/Work PB2113) ──
+// Inside a list region (an argument list or a reference's parenthesized tail, and only there — the action), a sign
+// that follows a separator and touches its digits is the leftmost CHARACTER of a numeric literal (ISO §8.3.3.3.2
+// r2); a binary operator is space-surrounded (§8.7.1). These twins re-type to the virtual SIGNED_* token types:
+// MAX(A -4) lexes A SIGNED_INTEGERLIT(-4) = two arguments, T(I -4) two subscripts; MAX(A - 4) lexes A MINUS 4 = one
+// subtraction. Outside argument regions OnSignedLiteral cuts the token back to its sign, so [+-] lexes PLUS/MINUS
+// and the digits their own literal, exactly as a lone sign always has. ⛔ The context test is the ACTION, never a
+// predicate on the rule (kb/Work PB1715 — see the members): a predicate here re-simulated every `+`/`-` token.
+// The decimal twin MUST precede the integer twin (else -15.6 orphans ".6"),
+// and the FLOAT twin precedes them both (kb/Work R17): "-1.5E3" must stay ONE token — without this twin the
+// signed-decimal rule won maximal munch at "-1.5" and orphaned "E3" as an IDENTIFIER, so the parser reported
+// two arguments (§8.3.3.3.3 r2 makes the sign part of the literal; §15.3 type 10 admits the literal). The
+// sign travels in the TOKEN TEXT and the type is plain FLOATLIT — one vocabulary, zero parser changes, and
+// the emitter's E-form arm renders the signed text as a C# double literal directly.
+FN_SIGNED_FLOATLIT   : [+-] FLOAT_BODY { OnSignedLiteral(FLOATLIT); } ;
+FN_SIGNED_COMMA_FLOATLIT : [+-] FLOAT_COMMA_BODY { OnSignedLiteral(COMMA_FLOATLIT); } ;   // kb/Work PB98
+FN_SIGNED_DECIMALLIT : [+-] DEC_BODY { OnSignedLiteral(SIGNED_DECIMALLIT); } ;
+FN_SIGNED_COMMA_DECIMALLIT : [+-] DEC_COMMA_BODY { OnSignedLiteral(SIGNED_DECIMALLIT); } ;   // kb/Work PB2506
+FN_SIGNED_INTEGERLIT : [+-] INT_BODY { OnSignedLiteral(SIGNED_INTEGERLIT); } ;
+
+DECIMALLIT  : DEC_BODY ;
+
+// ── IDENTIFIER (must come BEFORE INTEGERLIT) ──
+// COBOL-85 user-defined words: 1-30 chars from {A-Z, a-z, 0-9, hyphen}, no leading/trailing hyphen.
+// §8.3.2.2's "at least one basic letter or extended letter" is NOT checked here, and cannot be: a paragraph-name or
+// section-name may be letterless (`1-2`), so the token must admit it. The rule is asked at every other word's
+// DECLARATION, by DataBinder.DeclareUserWord (kb/Work PB1403).
+// Digit-start forms: 42-DATANAMES (hyphen), 11A/25COUNT/80PARTS (letter).
+// Pure digits remain INTEGERLIT (level numbers, paragraph numbers, etc.).
+// The action is the ONE place a word that is a keyword only in a primed region is retyped: DEFINED, the §7.3.8.4.4
+// defined-condition keyword (`compilation-variable-name IS [NOT] DEFINED`), is NOT a reserved word in the source
+// language — it is a token ONLY inside a primed compiler-directive-expression fragment, and an ordinary IDENTIFIER
+// (a legal user data-name) everywhere else. ⛔ An ACTION, never a predicate
+// (kb/Work PB1715): the predicate the DEFINED rule carried kept every D-initial word of every compile (DATA,
+// DIVISION, DISPLAY …) off the cached DFA.
+IDENTIFIER  : NAME_BODY { if (_primeDirectiveExpr) RetypeDirectiveKeyword(); } ;
+
+INTEGERLIT  : INT_BODY ;
+
+// ── String literals ──
+
+STRINGLIT   : STR_BODY ;
+// National literal N"…" / N'…' (ISO §8.3.3.5, COBOL-2002). The leading N is part of the token so
+// ANTLR's maximal-munch prefers it over IDENTIFIER (a bare N) and over a plain STRINGLIT; an
+// identifier such as NAME is unaffected (it has no opening quote). NX"…" (Format 2, hexadecimal-national) is
+// the same token (fix-queue R03).
+NATLIT      : NAT_BODY ;
+// ⚠ ZERO LENGTH IS LEGAL IN BOTH DELIMITERS — §8.3.3.2.3 NOTE 2, "Hexadecimal-alphanumeric literals can be
+// of zero length", and §8.3.3.2.2 Format 2 brackets the hex sequence under BOTH delimiter spellings (page
+// rendered and verified — PB59). The quotation arm's `+` was fixed by R03's sweep; the APOSTROPHE arm kept
+// its `+` until PB59, so X'' split into IDENTIFIER + a zero-length Format-1 literal — the same silent-split
+// hole, one delimiter over. The GROUPING rule (§8.3.3.2.3 r6, pairs of digits) and the REPERTOIRE rule (SR5,
+// hexadecimal digits) are asked by LiteralScreen, not here: a lexer that refused an odd count or a non-hex
+// digit would put the literal back in the silent-split hole this whole item exists to close (see HEX_BODY).
+HEXLIT      : HEX_BODY ;
+// Boolean literal B"0101" / B'0101' (ISO §8.3.3.4, COBOL-2002). The leading B is part of the token so
+// maximal-munch prefers it over IDENTIFIER (a bare B) and over a plain STRINGLIT. BX"…" (Format 2,
+// hexadecimal-boolean) is the same token; neither body is judged here (§8.3.3.4.3 SR2/SR3 — see HEX_BODY).
+BOOLLIT     : BOOL_BODY ;
+
+// ── Operators (multi-char before single-char) ──
+
+POWER       : '**' ;
+LTEQUAL     : '<=' ;
+GTEQUAL     : '>=' ;
+NOTEQUAL    : '<>' ;
+
+// A period is a separator only when a space follows it (§8.3.5 rule 3). The token is every period the literal and
+// PICTURE rules did not take; SeparatorRule reports one with no space after it (COBOL2632, kb/Work PB1394).
+DOT         : '.' ;
+// P7 Step 12: inside a list region (an argument list, or a reference's subscripts — kb/Work PB2113) the ','/';'-plus-
+// space separator (§8.3.5 rules 1/2) is a REAL token — the boundary must survive to the parser: a '(' right after it
+// opens a PARENTHESIZED ARGUMENT or SUBSCRIPT, and the LPAREN whitelist action sees the separator (not the previous
+// operand's data-name) as the previous token, so `MAX(A * B, (C + 1) / 2, …)` (IF119A/IF123A) and
+// `HARRY (I - 3, 4, (X * 2) - 3)` (ISO Annex D.3.5.3) do not mis-lex the group as a subscript of the operand before
+// it. Outside list regions the ACTION skips it — ISO §8.3.5 2): "The COBOL characters comma and semicolon,
+// immediately followed by a space, are separators that may be used anywhere the separator space is used" — so it
+// is skipped exactly as the space is. ONE rule matches the separator everywhere and its action says which it is;
+// ⛔ never a predicate choosing between two rules (kb/Work PB1715): the predicate this rule carried kept every
+// `, ` and `; ` of every compile off the cached DFA, and the unpredicated twin it needed is gone with it.
+FNARG_SEPARATOR : [,;] [ \n]+ { if (!InListRegion()) Skip(); } ;
+// A comma NOT followed by whitespace is preserved for DECIMAL-POINT IS COMMA, where it is a numeric literal's
+// decimal point; anywhere else it is no separator (§8.3.5 rule 2) and SeparatorRule reports it (COBOL2631).
+COMMA       : ',' ;
+LPAREN      : '(' { OnDefaultLParen(); } ;
+RPAREN      : ')' { OnDefaultRParen(); } ;
+LT          : '<' ;
+GT          : '>' ;
+EQUALS      : '=' ;
+PLUS        : '+' ;
+MINUS       : '-' ;
+STAR        : '*' ;
+SLASH       : '/' ;
+// ⛔ THE INVOCATION OPERATOR IS A TOKEN, AND IT HAD NONE (kb/Work PB428). ISO §8.7.4: "The invocation operator
+// is the two contiguous COBOL characters '::'". §8.4.3.4.2 prints it as the required punctuation of the
+// inline-method-invocation identifier format, and §8.3.5 rule 7 ("The COBOL character colon, EXCEPT AS PART
+// OF THE INVOCATION OPERATOR, is a separator") makes the two characters one lexical unit rather than two
+// colons. With no rule here the whole of §8.4.3.1.2 Format 4 was unwritable in EVERY identifier position: the
+// lexer stopped at the first ':' and the parser reported punctuation. MUST precede COLON in source order for
+// readability — ANTLR's longest-match already decides it, and CobolLexerModeDriftTests pins the token dump.
+// ⚠ §8.7.4's "shall be immediately preceded and followed by a separator space" is not a TOKEN-level rule: the
+// parser sees the skipped-WS stream, and '::' has no other lexical role, so `O::"M"` and `O :: "M"` are the same
+// token run here. The rule is decided post-lex, from the characters beside the token, by SeparatorRule
+// (COBOL2993, kb/Work PB1430) — the one site for every separator-context rule, and AMPERSAND's too.
+COLONCOLON  : '::' ;
+COLON       : ':' ;
+// The concatenation operator (ISO §8.7.3): the COBOL character '&', joining literals into one literal
+// (§8.8.3). '&' has no other lexical role, so the token is unambiguous with or without spaces; the §8.7.3
+// requirement that it be "immediately preceded and followed by a separator space" is decided post-lex by
+// SeparatorRule (COBOL2993, kb/Work PB1430), exactly as '::''s §8.7.4 twin is.
+AMPERSAND   : '&' ;
+// A ';' with no space after it (the §8.3.5 separator `; ` is FNARG_SEPARATOR above). It is no separator (§8.3.5 rule
+// 2), and SeparatorRule reports it (COBOL2631) — so it rides the HIDDEN channel, where that post-lex rule sees it and
+// the parser does not, rather than being skipped out of existence (kb/Work PB1394).
+SEMICOLON   : ';' -> channel(HIDDEN) ;
+
+// ── Catch-all for unrecognized characters ──
+
+ANY_CHAR    : . ;
+
+// ==========================================
+// PICMODE — captures PIC/PICTURE string as one token
+// ==========================================
+// After PIC/PICTURE, optionally skip IS, then capture the entire
+// PIC string (e.g., X(120), S9(18), $$$,$$9.99CR) as one token.
+//
+// Key insight: PIC strings never contain spaces. A period within
+// a PIC string (like 9.99) is always followed by another PIC char,
+// while a sentence-ending period is followed by whitespace/EOF.
+
+mode PICMODE;
+
+PIC_IS      : 'IS' -> skip ;              // optional IS keyword
+PIC_WS      : [ \n]+ -> skip ;       // skip whitespace
+// A comment line between PIC and its character-string (kb/Work PB1493). Source comments are removed by the
+// reference-format stage (ISO §6.5 2) / 3)) before the lexer runs, but the fixed-form DEBUGGING-line carrier
+// (ReferenceFormatProcessor.DebugLineCarrier) still reaches it as a *> line — and *> never begins a picture
+// character-string (> is no PICTURE symbol). Longest match: it always reaches at least as far as PIC_STRING would.
+// A fixed-form DEBUGGING line inside the open region (kb/Work PB1913): skipped whole, like a comment, but as a marker
+// DebuggingLineRewriter can find. It precedes PIC_COMMENT because the two match the same text and the first rule wins.
+PIC_DEBUG_LINE : '*>' '\u{FDD0}' 'DEBUG ' ~[\n]* -> type(DEBUG_LINE_IN_REGION), channel(HIDDEN) ;
+PIC_COMMENT : '*>' ~[\n]* -> skip ;
+PIC_STRING  : ( ~[ \n.] | '.' ~[ \n] )+
+    {
+        // Handle PIC "999999999999.." — greedy match consumed sentence-ending period.
+        // If the PIC string ends with '.' and the char that caused the match was also '.',
+        // trim the trailing period and back up so it becomes a DOT token (CutTokenTo: the input AND the column).
+        var t = Text;
+        if (t.Length > 1 && t[t.Length - 1] == '.')
+        {
+            CutTokenTo(t.Length - 1);
+        }
+        // A trailing ',' or ';' IMMEDIATELY FOLLOWED BY A SPACE is the CLAUSE SEPARATOR over-captured by the
+        // greedy match (ISO §8.3.5 rule 2) — `77 X PIC 99, VALUE 3.` must lex the picture as "99" (VCR Table 7
+        // row 7.14; the W2 adversarial-review finding; the ';' twin was NC203A/245A/251A/252A). The
+        // following-character GUARD is load-bearing: a LEGAL trailing ',' (§13.18.40.3 SR7 — PICTURE as the
+        // last clause) is followed by the separator PERIOD, not a space (NC125A's `PIC 9,9,…,9,.` — the token
+        // ends at the ',' because '.'+newline cannot extend the match, so LA(1) is '.' and the ',' is a
+        // PICTURE SYMBOL to keep). The seek-back re-lexes a trimmed separator in DEFAULT mode, where
+        // FNARG_SEPARATOR's action skips it (a PICTURE clause is never inside a list region).
+        else if (t.Length > 1 && (t[t.Length - 1] == ',' || t[t.Length - 1] == ';'))
+        {
+            int la = InputStream.LA(1);
+            if (la == ' ' || la == '\n' || la == Antlr4.Runtime.IntStreamConstants.EOF)
+            {
+                CutTokenTo(t.Length - 1);
+            }
+        }
+    } -> popMode ;
+    // Matches: any non-whitespace-non-period char,
+    //      OR: a period followed by a non-whitespace char (embedded decimal)
+    // Post-action: if PIC string ends with '.', the greedy match consumed a
+    //   sentence-ending period — back up one char so it tokenizes as DOT;
+    //   likewise a trailing ','/';' clause separator (§8.3.5 r2) backs up and re-lexes as a skip token.
+
+// ==========================================
+// COMMENT_MODE — *> to end of line
+// ==========================================
+
+mode COMMENT_MODE;
+
+COMMENT_TEXT : ~[\n]+ -> skip ;
+COMMENT_END  : [\n]   -> popMode, skip ;

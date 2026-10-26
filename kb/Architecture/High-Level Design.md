@@ -4,22 +4,22 @@ area: architecture
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - docs/COBOLNET_DESIGN.md
-  - docs/COBOLNET_ARCHITECTURE.md
-  - docs/COBOLNET_REARCHITECTURE_PLAN.md
+  - docs/DESIGN.md
+  - docs/ARCHITECTURE.md
+  - docs/REARCHITECTURE_PLAN.md
   - docs/rearchitecture/DESIGN-version-conformance-pipeline.md
-  - src/Cobol.Net.Compiler/Binding/Model/Place.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - architecture
 ---
 
 # High-Level Design
 
-COBOL.NET is a blank-slate rewrite (`src/Cobol.Net.*`, exe `cobol.exe`) that translates COBOL into **idiomatic,
+WiseOwl COBOL is a blank-slate rewrite (`src/WiseOwl.Cobol.*`, exe `cobol.exe`) that translates COBOL into **idiomatic,
 typed-native C# source compiled by Roslyn**. The North Star (owner decision **D13**): a commercial-quality,
 decades-sustainable compiler **100% conforming to ISO/IEC 1989:2023** and to all prior editions (1985/2002/2014). The
-design SSOT is [[docs/COBOLNET_DESIGN]]; the live plan is [[docs/COBOLNET_REARCHITECTURE_PLAN]] §0.
+design SSOT is [[docs/DESIGN]]; the live plan is [[docs/REARCHITECTURE_PLAN]] §0.
 
 ## The "best native .NET implementation" mapping
 A direct structural correspondence, not a byte emulator:
@@ -79,7 +79,7 @@ PROGRESS** (the current CONFORMANCE-FIX-QUEUE / P14 arc); G8 legacy cut-over + r
 - [[kb/Compiler/Pipeline]] · [[kb/IR/Node Types]] · [[kb/Runtime/Execution Model]]
 - [[kb/Spec/Version Targeting]] — the four-editions mission.
 
-- **Canonical docs (SSOT, now in-graph):** [[docs/COBOLNET_DESIGN]] (the decision-complete design SSOT) · [[docs/COBOLNET_ARCHITECTURE]] · [[docs/COBOLNET_REARCHITECTURE_PLAN]] (§0 live plan).
+- **Canonical docs (SSOT, now in-graph):** [[docs/DESIGN]] (the decision-complete design SSOT) · [[docs/ARCHITECTURE]] · [[docs/REARCHITECTURE_PLAN]] (§0 live plan).
 
 ## Backlinks
 - [[kb/Index]] — "Start here."

@@ -12,7 +12,7 @@
       *> does, because that is the half a program actually sees.
       *>
       *> §14.9.25.4 GR6 d)4.a makes the receiving item's content UNDEFINED in this case, so the value below is a
-      *> DETERMINATION and not a derivation: COBOL.NET performs the ISO/IEC 60559 conversion and keeps its
+      *> DETERMINATION and not a derivation: WiseOwl COBOL performs the ISO/IEC 60559 conversion and keeps its
       *> result, which is ±Infinity.  For FLOAT-SHORT/-LONG/-EXTENDED the same value is the §14.6.8.3 rule 1
       *> implementor choice ("the implementor specifies any exception conditions that might be set to exist
       *> during data conversion") — here, none with checking off.

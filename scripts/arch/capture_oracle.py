@@ -7,9 +7,9 @@ negative fixture at each edition its `*> reject-at:` header names), the NIST CCV
 cells, and the version-matrix construct samples at every edition and severity axis their theories compile — it
 captures the emitted C# and the diagnostic stream (outcome, compile-time output, every error and warning with its
 code, severity, line, column and message). The population and the compiles are the SUITES' OWN: they live in
-`tests/Cobol.Net.Tests.Conformance/ArchOracle.cs`, enumerated from the same row sources and compiled through the same
+`tests/WiseOwl.Cobol.Tests.Conformance/ArchOracle.cs`, enumerated from the same row sources and compiled through the same
 option builders the theories call, and `ArchOracleDriftTests` holds every row source enrolled. This script only builds
-and runs `tests/Cobol.Net.ArchOracle` (the process that hosts that code outside xunit) and writes the manifest.
+and runs `tests/WiseOwl.Cobol.ArchOracle` (the process that hosts that code outside xunit) and writes the manifest.
 
 OUTPUT
   TestResults/arch-oracle/<label>/            every case's `<id>.g.cs` and `<id>.diag.txt` (gitignored; diff locally)
@@ -49,7 +49,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for stand
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
-HOST_PROJECT = REPO / "tests" / "Cobol.Net.ArchOracle" / "Cobol.Net.ArchOracle.csproj"
+HOST_PROJECT = REPO / "tests" / "WiseOwl.Cobol.ArchOracle" / "WiseOwl.Cobol.ArchOracle.csproj"
 RESULTS = REPO / "TestResults" / "arch-oracle"
 SCHEMA = 1
 # The file system decides one thing the compiler reports: a COPY text found by a case-insensitive probe is named as
@@ -70,16 +70,16 @@ def commit_state() -> tuple[str, bool]:
 
 
 def host_dll(configuration: str) -> Path:
-    found = sorted((HOST_PROJECT.parent / "bin" / configuration).glob("*/Cobol.Net.ArchOracle.dll"))
+    found = sorted((HOST_PROJECT.parent / "bin" / configuration).glob("*/WiseOwl.Cobol.ArchOracle.dll"))
     if len(found) != 1:
-        sys.exit(f"capture_oracle: expected exactly one built Cobol.Net.ArchOracle.dll under "
+        sys.exit(f"capture_oracle: expected exactly one built WiseOwl.Cobol.ArchOracle.dll under "
                  f"{HOST_PROJECT.parent / 'bin' / configuration}, found {len(found)} (build it, or drop --no-build)")
     return found[0]
 
 
 def oracle_environment() -> dict[str, str]:
     env = {k: v for k, v in os.environ.items() if not k.upper().startswith("COBOL")}
-    env["COBOLNET_COMPILE_CACHE"] = "off"
+    env["WISEOWL_COBOL_COMPILE_CACHE"] = "off"
     return env
 
 

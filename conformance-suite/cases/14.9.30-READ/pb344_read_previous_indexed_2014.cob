@@ -31,7 +31,7 @@
       *> requirement, so the prior standard's normative content is its RULE.  And were the prior behaviour
       *> already at end, Annex E.2 — the list of SUBSTANTIVE changes potentially affecting existing programs —
       *> would carry no item 22 at all.)  VERSION_CHANGE_REFERENCE row 29;
-      *> CobolNet.Runtime.DialectBehavior.IndexedReadPreviousAfterOpenAtEnd.
+      *> WiseOwl.Cobol.Runtime.DialectBehavior.IndexedReadPreviousAfterOpenAtEnd.
       *> INDEXED ONLY: the relative block prints rule b) unamended (kb/Work PB343,
       *> tests/conformance/*/pb343_read_previous_relative.cob).  READ ... PREVIOUS is a 2002 introduction, so
       *> there is no --std 85 copy (negative/pb334-read-previous-85 owns that rejection).
