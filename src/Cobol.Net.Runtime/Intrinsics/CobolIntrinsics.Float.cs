@@ -145,9 +145,7 @@ public static partial class CobolIntrinsics
     /// and the receiver-less/float arm renders it unquantized through <c>CobolFloat.Display</c>, which is
     /// IEEE-faithful and prints the sign. <c>Math.Abs</c> IS rule 4, and it is the only input on which it does
     /// any work.</para>
-    /// <para>The APPROXIMATION half needs nothing: <c>Math.Sqrt</c> is IEC 60559 correctly-rounded, and SQRT's
-    /// catalog row carries <c>Codomain.None</c> correctly — §15.84.4 states no bound, so the
-    /// <c>FromDoubleBounded</c> clamp must not apply.</para></remarks>
+    /// <para>The APPROXIMATION half needs nothing: <c>Math.Sqrt</c> is IEC 60559 correctly-rounded.</para></remarks>
     public static double Sqrt(double x) => Math.Abs(Math.Sqrt(x));   // §15.84.4 r4 — the ABSOLUTE value (|−0.0| = +0.0)
     public static double Log(double x) => Math.Log(x);       // §15.55 — domain: the screen (§15.55.3 r2)
     public static double Log10(double x) => Math.Log10(x);   // §15.56 — domain: the screen (§15.56.3 r2)
