@@ -577,7 +577,7 @@ four the sibling sweep found, `**` included — it reaches the same quantizer an
   purpose: it has no fixed fraction scale to round at, so it keeps the working scale and truncates.
 
 Two consumers, one rule: `IntrinsicRenderer.RenderFloatNative` (the §15.4.1 float family) and
-`NumericRenderer.Power` (native `**`). `CobolIntrinsics.FromDouble`/`FromDoubleBounded` take the mode as a
+`NumericRenderer.Power` (native `**`). `CobolIntrinsics.FromDouble` takes the mode as a
 REQUIRED parameter — no default — so a new call site must decide rather than inherit.
 
 **A nested operand keeps its binary64 (kb/Work PB653).** PB647's first cut landed a nested intermediate at the
@@ -653,9 +653,17 @@ A FLOATING-POINT numeric-edited receiver is deliberately out: it has no fixed fr
 
 **Blast radius, measured.** The whole Conformance corpus moved exactly ONE golden,
 `2023/pb65_codomain_clamp`, in two lines (`ASINH` 0.523598776 → 0.523598775, `SQRTD` 1.000000000 →
-0.999999999), both re-derived from the exact binary64 expansions. That golden gained six ROUNDED legs, because
-truncation can never leave a codomain the double is already inside — so PB65's clamp is now reachable only under
-an explicit rounding mode, and would have gone unexercised by a green test.
+0.999999999), both re-derived from the exact binary64 expansions.
+
+**No landing clamps to a function's codomain (kb/Work PB3829).** PB65 had put a clamp on this landing for the
+functions whose §15.x.4 rule bounds the returned value (ACOS, ASIN, ATAN, RANDOM, FRACTION-PART), cutting a ROUNDED
+landing back inside the bound. It read a rule on the RETURNED value (§15.4's temporary, which the binary64 always
+satisfies) as a rule on the RESULTANT IDENTIFIER, whose value §14.9.8.4 r2 gives to §14.6.8, §14.7.4 and §14.7.5:
+`COMPUTE R ROUNDED = FUNCTION ACOS(-1)` into `9V9999` stored 3.1415 where §14.7.4.3 r4 gives 3.1416, while
+`FUNCTION ACOS(-1) + 0` (the nested arm) and the standard-decimal arm already stored 3.1416, and RANDOM ROUNDED into a
+`V9(4)` receiver stored a silent .9999 where the rounded 1.0000 is a §14.7.5 size error. The clamp is deleted: every
+function of the family lands through the one `FromDouble`, and the golden
+`15.10.4-Returned-value-rule/pb3829_rounded_bounded_returned_value` measures the rule over every rounding mode.
 
 **Guard.** `FloatLandingModeDriftTests` proves every invariant over every legal (integer-digits, scale) pair
 crossed with every one of the eight modes — the final transfer's scale and mode, the store's rescale being the

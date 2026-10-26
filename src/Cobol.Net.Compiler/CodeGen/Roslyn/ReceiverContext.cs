@@ -236,11 +236,11 @@ internal readonly record struct ReceiverContext(
     /// channels rather than by arithmetic luck.
     /// </para>
     /// <para>
-    /// ⚠ A CODOMAIN CLAMP BELONGS TO A LANDING, NOT TO AN EXPRESSION (kb/Work PB65's scope, re-derived here).
-    /// <c>FromDoubleBounded</c>'s clamp exists because ROUNDING a quantized value can push it out of the
-    /// function's §15.x.4 codomain; a nested operand is not rounded here at all, and the codomain of
-    /// <c>FUNCTION RANDOM * 5</c> is not RANDOM's, so the clamp correctly does not travel with the operand. The
-    /// receiver-less and float-receiver arms have always worked this way.
+    /// ⛔ NO LANDING CLAMPS TO A FUNCTION'S CODOMAIN (kb/Work PB3829, overturning PB65's clamp). A §15.x.4 bound is
+    /// a rule on the RETURNED value, which every arm here leaves untouched; the final-transfer arm then rounds it
+    /// once at the resultant identifier per §14.7.4.3, and the value it lands may lie past the bound (ACOS(-1)
+    /// ROUNDED into <c>9V9999</c> is 3.1416, beyond π) or fail to fit (a size error, §14.7.5), exactly as the same
+    /// value does when it arrives through a nested expression or a <c>COMP-2</c> item.
     /// </para>
     /// <para>
     /// ⛔ WHAT PB647 ORIGINALLY CLOSED, KEPT BECAUSE IT IS WHY THE FINAL-TRANSFER ARM READS AS IT DOES. The
