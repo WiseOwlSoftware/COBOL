@@ -897,11 +897,11 @@ check("a fleet stop is STOP-<scope>", coord.fleet_stop(pathlib.Path("S"), "loop"
 # 7c2. THE TURN CAP HAS ONE HOME (kb/Work PB3701). Expected from the rule: the implementer's cap is the `maxTurns` of
 #      .claude/agents/cobol-implementer.md (the number the harness enforces); a rendered spec says exactly it, in both
 #      places the template names it, and check_practices refuses a spec that says another, a statement elsewhere that
-#      differs from its role's maxTurns, a statement whose text is gone, and an implementer brief that types a number.
+#      differs from its role's maxTurns, a statement whose text is gone, and a spec template that types a number.
 IMPL_CAP = coord.agent_turn_cap("cobol-implementer")
 spec0 = (specs or [""])[0]
 check("a rendered spec's turn cap is the implementer's maxTurns, at both places",
-      (f"\nTurn cap {IMPL_CAP} — at the cap" in spec0, f"pass the {IMPL_CAP}-turn cap" in spec0, "{turn_cap}" in spec0),
+      (f"\nTurn cap {IMPL_CAP} — at the cap" in spec0, f"of the {IMPL_CAP}-turn cap" in spec0, "{turn_cap}" in spec0),
       (True, True, False))
 check("check_practices accepts a rendered spec whose Turn cap is the maxTurns",
       [m for m in check_practices.check(spec_file, [check_practices.RENDERED_TURN_CAP]) if "Turn cap" in m],
@@ -909,6 +909,17 @@ check("check_practices accepts a rendered spec whose Turn cap is the maxTurns",
 spec_file.write_text(spec0.replace(f"Turn cap {IMPL_CAP} —", f"Turn cap {IMPL_CAP - 180} —"), encoding="utf-8", newline="\n")
 check("... and refuses it when it says 220 (the retired figure)",
       len(check_practices.check(spec_file, [check_practices.RENDERED_TURN_CAP])), 1)
+spec_file.write_text(spec0, encoding="utf-8", newline="\n")
+# 7c3. A SPEC SAYS EACH RULE ONCE (kb/Work PB3777). Expected from the rule: the implementer's instruction file is ONE file
+#      whose paragraphs state each rule once, so a rendered spec repeats no sentence of SENTENCE_MIN characters or more and
+#      check_practices refuses a spec that does (the spec and brief it replaced carried the checkpoint protocol, the gate,
+#      the DEVLOG entry, I9, the citation rule and the STOP rule twice).
+check("a rendered spec states no sentence twice", check_practices.repeated_sentences(spec0), [])
+twice = "orientation (grep/read) was 46 % of every implementer's tokens in waves 45–57, re-deriving what earlier waves had already learned."
+check("... and the sentence this test repeats is one the spec states", twice in " ".join(spec0.split()), True)
+spec_file.write_text(spec0 + "\n" + twice + "\n", encoding="utf-8", newline="\n")
+check("... and check_practices refuses a spec that states a sentence twice",
+      [m.startswith("PB3777: states twice: orientation") for m in check_practices.check(spec_file, []) if "PB3777" in m], [True])
 spec_file.write_text(spec0, encoding="utf-8", newline="\n")
 check("every statement of a cap in the tree matches its role's maxTurns", check_practices.turn_cap_copies(), [])
 CAPREPO = TMP / "caprepo"
@@ -920,15 +931,15 @@ p5.write_text(p5.read_text(encoding="utf-8").replace(f"implementer {IMPL_CAP} (r
               encoding="utf-8", newline="\n")
 fb = CAPREPO / ".claude/skills/workstream/templates/finisher-brief.md"
 fb.write_text(fb.read_text(encoding="utf-8").replace("Turn cap", "Cap of"), encoding="utf-8", newline="\n")
-brief = CAPREPO / ".claude/skills/workstream/templates/fix-lane-implementer-brief.md"
+brief = CAPREPO / ".claude/skills/workstream/templates/dispatch-spec-implementer.md"
 brief.write_text(brief.read_text(encoding="utf-8") + "\nA HARD CAP of 220 turns.\n", encoding="utf-8", newline="\n")
 rules_copy = CAPREPO / check_practices.NUMBERLESS_CAP_FILES[0]
 rules_copy.write_text(rules_copy.read_text(encoding="utf-8").replace("inside the implementer's turn cap", "inside the 220-turn cap"), encoding="utf-8", newline="\n")
 drift = check_practices.turn_cap_copies(CAPREPO)
-check("a copy that differs, a copy whose text is gone, a typed number in a brief and a typed cap in the rules file are each refused",
+check("a copy that differs, a copy whose text is gone, a typed number in the spec template and a typed cap in the rules file are each refused",
       (any(f"states 220 turns for cobol-implementer, whose maxTurns is {IMPL_CAP}" in m for m in drift),
        any("finisher-brief.md: no statement matching" in m for m in drift),
-       any("fix-lane-implementer-brief.md: types a turn cap" in m for m in drift),
+       any("dispatch-spec-implementer.md: types a turn cap" in m for m in drift),
        any("model_rules.json: types a turn cap ('220-turn cap')" in m for m in drift), len(drift)), (True, True, True, True, 4))
 # 7d. A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381; MANDATORY-PRACTICES I8). Expected from the
 #     rule: a file under src/WiseOwl.Cobol.Runtime/IO/ (either separator) makes a group host-I-O, a compiler or other runtime
