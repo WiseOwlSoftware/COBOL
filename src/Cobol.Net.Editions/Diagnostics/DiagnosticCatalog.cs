@@ -2434,8 +2434,9 @@ public static class DiagnosticCatalog
         + "ISO §8.8.4.2.1 defines that pair only as item 6, \"Two operands where one is a numeric integer and the other "
         + "is class alphanumeric or national\", and §8.8.4.2.5: \"The numeric integer operand shall be an integer "
         + "literal or an integer numeric data item of usage display or national.\" A non-integer, COMPUTATIONAL, "
-        + "packed-decimal or floating-point operand, an arithmetic expression, or a NUMERIC intrinsic function has no "
-        + "defined comparison with a character operand. MOVE the value to a data item of the character operand's class "
+        + "packed-decimal or floating-point operand, an arithmetic expression, or a function-identifier of a numeric, "
+        + "integer or index intrinsic function (ISO §15.2 4), 5) and 6) state no usage for the item it returns; "
+        + "docs/CONFORMANCE.md D-FNUSE) has no defined comparison with a character operand. MOVE the value to a data item of the character operand's class "
         + "first, or compare it with a numeric operand. --permissive accepts it with a warning as the character "
         + "comparison of the value's text.", "ISO §8.8.4.2.5");
     public static readonly DiagnosticDescriptor RelationIndexPair = new(

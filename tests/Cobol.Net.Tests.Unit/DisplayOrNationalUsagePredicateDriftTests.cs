@@ -23,6 +23,8 @@ namespace CobolNet.Tests.Unit;
 /// strongly-typed leaf walk exists once, and STRING no longer reads a storage form as a usage. The behaviour (a bit
 /// group refused at identifier-1, -2 and -3, the alphanumeric and national groups still admitted) is the conformance
 /// goldens <c>pb3228-string-bit-group-*</c> and <c>pb3228_string_group_usage_controls</c>.</para>
+/// <para>The sentence is stated a third time by §8.8.4.2.5 for the numeric integer operand of a relation with a
+/// character operand (kb/Work PB3691), asked of the same function reader.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class DisplayOrNationalUsagePredicateDriftTests
@@ -73,6 +75,26 @@ public sealed class DisplayOrNationalUsagePredicateDriftTests
         Assert.Contains("CheckInspectIdentifier1FunctionUsage(", inspect);
         Assert.Contains("KeywordOmittedFunction(dref)", inspect);
         Assert.Contains("IntrinsicSig.ImplicitUsageOf(", Code("Binding", "IntrinsicArgumentRules.cs"));
+    }
+
+    /// <summary>kb/Work PB3691 (owner 2026-10-25): §8.8.4.2.5 — "The numeric integer operand shall be an integer literal
+    /// or an integer numeric data item of usage display or national" — is the same sentence a third time. The relation
+    /// checkpoint's admission of item 6's numeric operand asks the ONE function reader FIRST (before the literal arm,
+    /// which the folded FUNCTION LENGTH would otherwise take), and never reads an implementor returned-value
+    /// description (<c>SendingValueTemp.FunctionValuePic</c> and its siblings state the usage DISPLAY the implementor
+    /// represents the value in, §15.4.1; they are no §15.2 description). An INTEGER function was once admitted "as the
+    /// temporary §15.4 makes it", which is how <c>IF FUNCTION INTEGER(N) = "0007"</c> compiled and answered not equal.</summary>
+    [Fact]
+    public void RelationItem6NumericOperand_AsksTheOneFunctionReader_AndNoReturnedValueDescription()
+    {
+        string src = Code("Binding", "RelationComparability.cs");
+        int reader = src.IndexOf("IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(", StringComparison.Ordinal);
+        Assert.True(reader >= 0, "RelationComparability.IsNumericIntegerOperand must ask FunctionIsNotDisplayOrNational (kb/Work PB3691).");
+        Assert.True(reader < src.IndexOf("BoundNumericLiteral =>", StringComparison.Ordinal),
+            "the function arm must precede the numeric-literal arm, or the folded FUNCTION LENGTH is called an integer literal.");
+        Assert.DoesNotContain("FunctionValuePic", src);
+        Assert.DoesNotContain("NumericReturnedValuePic", src);
+        Assert.DoesNotContain("IntermediatePic", src);
     }
 
     [Fact]
