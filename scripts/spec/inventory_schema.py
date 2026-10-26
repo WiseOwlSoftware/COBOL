@@ -63,7 +63,7 @@ ADJUDICATED = ("verdict", "code-location", "test-ref", "derivation", "editions",
 #: evidence about the rule, and a batch that re-types three of five witnesses has not refuted the other two.
 #: A witness leaves a row only by an explicit, reasoned RETIREMENT, which is written into the row's `notes` as
 #: `RETIRED_WITNESS_MARK <ref>` so the loss is visible to `audit_witness_loss.py --check` long after the batch
-#: file that asked for it is gone. Every other adjudicated field is a single statement the record restates.
+#: file that asked for it is gone. Every other adjudicated field is a single statement (`STATEMENT_FIELDS`).
 #:
 #: ⚖ ONE ASYMMETRY, MEASURED FROM THE INVENTORY'S OWN HISTORY: a RE-ADJUDICATION (the record changes the row's
 #: verdict) RE-SITES `code-location` instead of merging it. A PARTIAL or NOT-IMPLEMENTED row's code-location names
@@ -72,6 +72,10 @@ ADJUDICATED = ("verdict", "code-location", "test-ref", "derivation", "editions",
 #: history walk found removed were exactly that shape. A `test-ref` is never re-sited: a test that exists and
 #: exercises the rule is an observation of it whatever the verdict says (`CODE_LOCATION_RESITES_ON_READJUDICATION`).
 WITNESS_FIELDS = ("code-location", "test-ref")
+#: The adjudicated fields that are ONE STATEMENT each (verdict, derivation, editions, notes): a record that names one
+#: restates it, a record that does not leaves it as the row has it (kb/Work PB3795), and none may go from saying
+#: something to saying nothing (`statement_losses`).
+STATEMENT_FIELDS = tuple(f for f in ADJUDICATED if f not in WITNESS_FIELDS)
 CODE_LOCATION_RESITES_ON_READJUDICATION = True
 #: The mark `record_verdicts.merged` appends to a row's `notes` for each retired witness. It is DATA, the schema's
 #: `notes.retired-witness-mark`, because the C# battery gate reads the same spelling (kb/Work PB762): the gate must
@@ -206,6 +210,48 @@ def witness_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schem
         out += [WitnessLoss(before.get("rule-id", ""), field, ref, ref in retired, resited,
                             field == "test-ref" and respelled.get(ref) in kept)
                 for ref in schema.split(before.get(field, "") or "", sep) if ref not in kept]
+    return out
+
+
+class StatementLoss(NamedTuple):
+    """One statement field a row carried non-empty BEFORE a write and carries empty AFTER it (kb/Work PB3795)."""
+    rule_id: str
+    field: str
+    chars: int   # the length of the statement that went (the prose, for `notes`)
+
+
+def statement_text(row: dict[str, Any], field: str) -> str:
+    """What a row SAYS in a statement field: the PROSE of `notes` (`prose_of`: the retired-witness marks the writer
+    appended are history, not the statement), the value of every other one."""
+    value = row.get(field, "") or ""
+    return (prose_of(value) if field == "notes" else value).strip()
+
+
+def statement_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schema") -> list[StatementLoss]:
+    """Every statement field `before` said something in that `after` says nothing in — THE one definition of an
+    erased statement, the sibling of `witness_losses` (kb/Work PB3795, PB3375).
+
+    ⛔ WHY THE PROSE IS WATCHED LIKE EVIDENCE. A row's `notes` is the only record of WHY its verdict stands (the
+    spec derivation, the `cite.py --check` that validated it, the goldens): it is the instrument `witness_losses`
+    cannot see. Until PB3795 a record that restated a verdict without `notes` wrote the absent field as empty, and
+    four landings erased 25 rows' prose with every gate green and the retirement marks still in the row.
+    Read by the writer (`record_verdicts.validate`, at record time) and by the auditor (`audit_witness_loss.py`,
+    over a diff or the history), so the two cannot come to disagree about it.
+
+    ONE EXCUSE, `derivation`, and only when the row can no longer stand on it (`Schema.derivation_superseded`): it
+    is the §1.1 alternative to a spec-derived `test-ref` (PB386), so it leaves a row when such a test arrives, and
+    it MUST leave one whose verdict stops resolving (`Derivation.refusals` codes `has-spec-derived-test` and
+    `verdict-does-not-resolve`). Without the second, a rule closed on a derivation and then found defective could
+    not be re-adjudicated at all (the derivation is refused when kept, this rule refused when dropped). Nothing
+    else is excused: a statement that changed is not a loss, one that went blank is.
+    """
+    out: list[StatementLoss] = []
+    for field in ADJUDICATED:
+        if field in WITNESS_FIELDS or not (was := statement_text(before, field)) or statement_text(after, field):
+            continue
+        if field == schema.derivation_field and schema.derivation_superseded(after):
+            continue
+        out.append(StatementLoss(before.get("rule-id", ""), field, len(was)))
     return out
 
 #: A parenthesised or semicolon-introduced clause citation inside a rule's own text — the form Annex A.1 uses to
@@ -671,7 +717,7 @@ class Derivation:
                                f"('{anchor}') — it is derived, never chosen"))
         # ⛔ REFUSAL 1 — the row demonstrably HAS an observable obligation. A derivation asserts that no
         # spec-derived test can exist; a spec-derived test on the same row refutes that outright.
-        if any(schema.is_spec_derived(r) for r in schema.split(row.get("test-ref", ""), schema.test_ref_sep)):
+        if schema.has_spec_derived_test(row):
             out.append(Refusal("has-spec-derived-test",
                                "this row already carries a SPEC-DERIVED test-ref, so it has an observable "
                                "obligation and may not close on a derivation (design doc §1.1 refusal 1)"))
@@ -961,10 +1007,25 @@ class Schema:
                 return "GAP"
         if not self.spec_derived_required:
             return "OK" if row.get("test-ref") else "GAP"
-        refs = self.split(row.get("test-ref", ""), self.test_ref_sep)
-        if any(self.is_spec_derived(r) for r in refs):
+        if self.has_spec_derived_test(row):
             return "OK"
         return "OK" if self.derivation_stands(row) else "GAP"
+
+    def has_spec_derived_test(self, row: dict[str, Any]) -> bool:
+        """Does the row carry a test-ref that can be the basis for closing it (`is_spec_derived`)?"""
+        return any(self.is_spec_derived(r) for r in self.split(row.get("test-ref", "") or "", self.test_ref_sep))
+
+    @property
+    def derivation_field(self) -> str | None:
+        """The row field a §1.1 derivation is written in, or None when the schema defines none."""
+        return self.derivation.field if self.derivation is not None else None
+
+    def derivation_superseded(self, row: dict[str, Any]) -> bool:
+        """Is `row` one a derivation may not stand on: it carries a spec-derived test (the derivation's premise,
+        that none can exist, is refuted) or its verdict does not resolve (a derivation stands in for the covering
+        test, never for the verdict)? These are `Derivation.refusals`' first two refusals; `statement_losses` asks
+        it, so the one place that lets a derivation go is the one place that refuses it staying."""
+        return self.has_spec_derived_test(row) or (row.get("verdict") or "") not in self.resolving
 
     def derivation_stands(self, row: dict[str, Any]) -> bool:
         """Does this row carry an owner-signed DERIVATION that stands in place of §1(c)'s test?
