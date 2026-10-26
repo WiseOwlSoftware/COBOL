@@ -74,8 +74,9 @@ public static class ItemCategory
     /// operand of §12.4.5.2 SR7 and the record keys of §12.4.5.12.3 SR2 / §12.4.5.6.3 SR2 each admitted a strong
     /// group). A second, COMPLETE copy lived privately in <c>DataBinder.GroupValue</c> for §13.18.63.3 SR14;
     /// ONE RULE WRITTEN DOWN IN TWO PLACES had already drifted, which is the whole reason it now lives here.</para>
-    /// <para><c>IsGroup</c> (no PICTURE **and** it has subordinates) is the structural half no classifier
-    /// carries: a PICTURE-less entry with no subordinates is not a group item and has no category at all, and
+    /// <para><c>IsGroupEntry</c> (subordinates **and** no PICTURE the program wrote — the entry's form, which equals
+    /// <c>IsGroup</c> once the usage walk has shed a picture-less usage's synthesized profile from a group header) is the
+    /// structural half no classifier carries: a PICTURE-less entry with no subordinates is not a group item and has no category at all, and
     /// admitting it would let a rule about data items answer about something that is not one.</para>
     /// </summary>
     public static bool IsAlphanumericGroup(DataItem item) => GroupKindsOf(item).HasFlag(GroupKinds.Alphanumeric);
@@ -118,7 +119,7 @@ public static class ItemCategory
         // ⛔ A level-66 THROUGH alias IS A GROUP ITEM, and it is the one group item with no subordinates
         // (kb/Work PB907). §13.18.45.4 GR2: "When the THROUGH phrase is specified, data-name-1 defines an
         // alphanumeric group item that includes all elementary items starting with data-name-2 …" — so the
-        // answer is a CATEGORY fact, not the STRUCTURAL `IsGroup` below (the entry rides Renames66 and carries
+        // answer is a CATEGORY fact, not the STRUCTURAL `IsGroupEntry` below (the entry rides Renames66 and carries
         // a composed alphanumeric PICTURE for its carrier). It is ALWAYS the alphanumeric kind: §13.18.45.3
         // SR8 bars "a strongly-typed group item … a variable-length data item, or an occurs-depending table"
         // from the range, and a level-66 entry writes no GROUP-USAGE clause. The no-THROUGH alias (GR1) takes
@@ -132,7 +133,7 @@ public static class ItemCategory
         // is not a group item whatever else it is, and here it is an error-recovery artifact (a refused
         // MESSAGE-TAG entry, a picture-less USAGE NATIONAL awaiting COBOLNET0881). It has no kind at all;
         // admitting it would let a rule about group items answer about something that is not one.
-        if (!item.IsGroup) return GroupKinds.None;
+        if (!item.IsGroupEntry) return GroupKinds.None;
         // §13.18.29.4 GR1/GR2 — the GROUP-USAGE clause names the kind outright, and SR1 above guarantees such a
         // group is neither strongly typed nor variable-length, so these two arms are terminal.
         var groupUsage = GroupUsageInEffect(item);
