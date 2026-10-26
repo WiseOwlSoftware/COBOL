@@ -333,12 +333,12 @@ Git = Callable[..., Any]   # prune_worktrees.git's shape: (*args, cwd=) -> Compl
 def _note_line(nid: str, worktree: str, git: Git, reports: list[Any]) -> str:
     """`- PBnnnn (status): title — newest report: <path> (<status>)`, the note read from origin/main (where the notes of
     main's commits are), else from the worktree's own copy (a note the branch filed)."""
-    import plan_wave  # noqa: PLC0415  (the one frontmatter reader and the one report order)
+    from clusters import note_of  # noqa: PLC0415  (the one note reader, on the one frontmatter reader)
     shown = git("show", f"{MAIN}:kb/Work/{nid}.md", cwd=worktree)
     text = shown.stdout if shown.returncode == 0 else None
     if text is None and (local := pathlib.Path(worktree) / "kb" / "Work" / f"{nid}.md").is_file():
         text = local.read_text(encoding="utf-8", errors="replace")
-    note = plan_wave.note_of(text, nid, {}) if text else None
+    note = note_of(text, nid, {}) if text else None
     head = f"- {nid} ({note.status}): {note.title[:200]}" if note else f"- {nid}: no kb/Work note on main or the branch"
     newest = [r for r in reports if nid in r.notes or r.lead == nid]
     return head + (f" — newest report: {newest[-1].path} ({newest[-1].status})" if newest else " — no report")
@@ -347,7 +347,7 @@ def _note_line(nid: str, worktree: str, git: Git, reports: list[Any]) -> str:
 def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, reports: list[Any],
                    now: dt.datetime | None = None) -> str:
     """THE CONFLICT BRIEF (section doc) for `branch` in `worktree` against origin/main, as Markdown. `reports` are the
-    fix-lane reports, oldest first (plan_wave.load_reports with the dispatch ledger, so each names the notes it
+    fix-lane reports, oldest first (reports.load_reports with the dispatch ledger, so each names the notes it
     answers). Git answers three questions: the merge base, the commits main gained on `files` since it (ONE `git log`
     over every file), and the branch's own commit subjects; a question git cannot answer is said in the brief, never
     dropped."""
@@ -422,10 +422,10 @@ def write_conflict_brief(cdir: pathlib.Path, a: dict[str, Any], git: Git | None 
     when the verdict line is unreadable (a log not in UTF-8), the ones the drivers' dry run leaves in conflict against
     origin/main (merge_drivers.merge_conflicts)."""
     import merge_drivers  # noqa: PLC0415  (scripts/: the one dry-run merge)
-    import plan_wave  # noqa: PLC0415
+    from reports import load_reports  # noqa: PLC0415  (the one report order, with the dispatch ledger's notes)
     import prune_worktrees  # noqa: PLC0415
     git = git or prune_worktrees.git
-    reports = plan_wave.load_reports(coord.reports_dir(str(cdir)), cdir)
+    reports = load_reports(coord.reports_dir(str(cdir)), cdir)
     main_sha = main_of(a["worktree"], git)
     files = verdict_line.outcome_files(a.get("verdict")) or merge_drivers.merge_conflicts(a["worktree"], MAIN) or []
     text = conflict_brief(a["branch"], a["worktree"], files, git=git, reports=reports)
@@ -443,7 +443,7 @@ def show_conflict_brief(cdir: pathlib.Path, branch: str, git: Git | None = None,
     moved), its worktree from the latest attempt or the last survey. Exit 0 with the brief, 1 when there is nothing to
     brief (no worktree, or nothing conflicts)."""
     import merge_drivers  # noqa: PLC0415  (scripts/: the one dry-run merge)
-    import plan_wave  # noqa: PLC0415
+    from reports import load_reports  # noqa: PLC0415  (the one report order, with the dispatch ledger's notes)
     import prune_worktrees  # noqa: PLC0415
     git = git or prune_worktrees.git
     lane = view(cdir)
@@ -464,7 +464,7 @@ def show_conflict_brief(cdir: pathlib.Path, branch: str, git: Git | None = None,
                                         "merging origin/main leaves nothing in conflict now: nothing to brief"))
         return 1
     say(conflict_brief(branch, wt, files, git=git,
-                       reports=plan_wave.load_reports(coord.reports_dir(str(cdir)), cdir)).rstrip())
+                       reports=load_reports(coord.reports_dir(str(cdir)), cdir)).rstrip())
     return 0
 
 
@@ -2054,7 +2054,7 @@ def self_test() -> int:
         #     main also adds a file the branch never touches. The brief names the conflicted file, main's commit on it
         #     (and not the other file), the notes on both sides with their status and newest report.
         import merge_drivers  # noqa: PLC0415
-        import plan_wave  # noqa: PLC0415
+        from reports import Report  # noqa: PLC0415
         cbr = ScratchRepo.init(root / "wt-brief")
         fixture_git = lambda *args, cwd=None: cbr.run(*args, cwd=cwd)   # noqa: E731  (the self-test's git: the fixture)
 
@@ -2067,10 +2067,10 @@ def self_test() -> int:
         cbr.git("update-ref", MAIN, "HEAD")
         cbr.git("reset", "-q", "--hard", merge_base)
         cbr.commit("WIP checkpoint: PB9002 the branch's side of x", {"scripts/x.py": "a = 3\n"})
-        brief_reports = [plan_wave.Report(pathlib.Path("w9a-PB9001-report.md"), 9, "w9a", "PB9001", "DONE", ["PB9001"],
-                                          False, "fix-main", None, "aaaa"),
-                         plan_wave.Report(pathlib.Path("w9b-PB9002-report.md"), 9, "w9b", "PB9002", "DONE", ["PB9002"],
-                                          False, "wbrief", str(cbr.path), "bbbb")]
+        brief_reports = [Report(pathlib.Path("w9a-PB9001-report.md"), 9, "w9a", "PB9001", "DONE", ["PB9001"],
+                                  False, "fix-main", None, "aaaa"),
+                         Report(pathlib.Path("w9b-PB9002-report.md"), 9, "w9b", "PB9002", "DONE", ["PB9002"],
+                                  False, "wbrief", str(cbr.path), "bbbb")]
         expect("conflict brief: the drivers' dry run names the file both sides edited, not the one only main added",
                merge_drivers.merge_conflicts(cbr.path, MAIN) == ["scripts/x.py"],
                str(merge_drivers.merge_conflicts(cbr.path, MAIN)))

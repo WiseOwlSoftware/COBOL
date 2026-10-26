@@ -15,12 +15,12 @@ ACTUALLY changed with
      were planned, read from the FULL ledger (a landing flips its own notes to terminal, and that declaration is
      still the authority for it); for a note no entry records that the landing's OWN recorded dispatch closed on the
      way (an implementer fixed it, MANDATORY-PRACTICES I9), that dispatch's recorded set (kb/Work PB3263); and only for
-     work no dispatch of the landing records, the set computed now (plan_wave.computed_file_set, on the planner's own
+     work no dispatch of the landing records, the set computed now (inflight.computed_file_set, on the planner's own
      index policy, THE index of this tree: kb/Work PB3203). A file an R3 commit changed that existed on main and lies
      outside that set STOPS the landing, the stop naming the arm the set came from: the wave touched a file nothing
      protected. A consulted group recorded with NO files declared nothing: its set is UNKNOWN to this check,
      so such a file is named in a warning instead, and check 2 still applies to it;
-  2. every OTHER in-flight branch's actual changes (plan_wave.inflight_file_sets: worktrees, unlanded branches, the
+  2. every OTHER in-flight branch's actual changes (inflight.inflight_file_sets: worktrees, unlanded branches, the
      dispatch ledger's declared sets), when the shared file is R3 work on either side. A shared file stops the LATER
      of the two (by dispatch time: the ledger's `at`, else the branch's first commit): it re-plans and rebases onto
      the earlier after that lands. The earlier one lands, and the check names the branch that must rebase.
@@ -35,7 +35,7 @@ the files and the note statuses that differ from EVERY parent (its conflict reso
 ids leading its own subject, never its first-parent diff, which carries the other parent's whole history (a merged
 predecessor's commits, attributed one by one by the same walk, or main's own landings in a `Merge origin/main`).
 
-Draft 10 (the ninth refuter's K1-K3). Every diff is read with --no-renames (plan_wave.changed_files), so a moved file
+Draft 10 (the ninth refuter's K1-K3). Every diff is read with --no-renames (inflight.changed_files), so a moved file
 counts at its old path too. An in-flight branch is R3 work because its DISPATCH says so, never by its commit wording
 alone (implementers commit `WIP checkpoint: …`), and it is bound to ONE dispatch (identity, kb/Work PB3186): its
 fix-lane REPORT (the newest whose branch field names it) and that report's ledger group, else the ids that lead its
@@ -82,7 +82,8 @@ sys.path.insert(0, str(HERE.parent / "spec"))
 import coord  # noqa: E402
 import git_batch  # noqa: E402  (scripts/: the batched git reads, one process for many objects, kb/Work PB3582)
 from git_batch import Ancestry  # noqa: E402
-import plan_wave  # noqa: E402  (inflight_file_sets: THE in-flight enumeration; computed_file_set: THE declared set)
+import inflight  # noqa: E402  (inflight_file_sets: THE in-flight enumeration; computed_file_set: THE declared set)
+from reports import Report, ledger_slug, load_reports  # noqa: E402  (THE fleet-report reader)
 import work  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -162,7 +163,7 @@ def commit_work(repo: pathlib.Path, git: Callable[..., Any], graph: Ancestry, re
     patches = iter(git_batch.diff_patches(repo, pairs, WORK_DIR, git=git))
     out = []
     for sha in commits:
-        each = [(plan_wave.work_names(next(names)), flips_in(next(patches))) for _ in sides[sha]]
+        each = [(inflight.work_names(next(names)), flips_in(next(patches))) for _ in sides[sha]]
         notes = subject_ids(graph.subject(sha)) | set.intersection(*(f for _, f in each))
         out.append((notes, set.intersection(*(n for n, _ in each))))
     return out
@@ -189,9 +190,9 @@ def best_group(files: set[str], groups: list[dict[str, Any]]) -> dict[str, Any] 
 
 def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, items: list[dict], rules: dict[str, Any],
           declared_for: Callable[[list[str]], set[str]], git: Callable[..., Any] | None = None,
-          r3_lead: str = work.R3_PROGRAM, reports: list[plan_wave.Report] = ()) -> tuple[list[str], list[str]]:
+          r3_lead: str = work.R3_PROGRAM, reports: list[Report] = ()) -> tuple[list[str], list[str]]:
     """(stops, warnings) for landing `rev` onto `base`. `declared_for(note ids)` computes a declared set the dispatch
-    ledger does not hold; `reports` are the fix-lane reports (plan_wave.load_reports), which bind an in-flight branch
+    ledger does not hold; `reports` are the fix-lane reports (reports.load_reports), which bind an in-flight branch
     to its own dispatch first (identity)."""
     git = git or _git(repo)
     graph = Ancestry.read(repo, [rev], base)   # THE ancestry of this check: the landing, then every in-flight branch
@@ -199,7 +200,7 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
     r3 = {i.get("id") for i in items if r3_lead in (i.get("cluster") or [])}
     status = {i.get("id"): i.get("status") for i in items}
     terminal = lambda n: status.get(n) in work.TERMINAL_STATUSES  # noqa: E731
-    mine = {p for p in plan_wave.changed_files(git, f"{base}...{rev}") if inside(p)}
+    mine = {p for p in inflight.changed_files(git, f"{base}...{rev}") if inside(p)}
     notes = work_notes(git, graph, base, rev)
     # R3 work is attributed PER COMMIT (PB2703): a landing can be MIXED — a branch that merged a predecessor, a train
     # before kb/Work PB3023 — some commits R3 notes, the rest fix lane or tooling — so the R3 work is the commits that
@@ -244,9 +245,9 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
         declared = {f.replace(chr(92), "/") for g in consulted for f in g.get("files", [])}
         computed = unrecorded if unrecorded and not carriers else []
         declared |= declared_for(computed) if computed else set()
-        arms = ([f"recorded in the dispatch ledger for {', '.join(plan_wave.ledger_slug(g) for g in recorded)}"]
+        arms = ([f"recorded in the dispatch ledger for {', '.join(ledger_slug(g) for g in recorded)}"]
                 if recorded else []) + \
-               ([f"the landing's own dispatch {', '.join(plan_wave.ledger_slug(g) for g in carriers)}, which closed "
+               ([f"the landing's own dispatch {', '.join(ledger_slug(g) for g in carriers)}, which closed "
                  f"{', '.join(unrecorded)} on the way"] if carriers else []) + \
                ([f"computed now from the site blocks of {', '.join(computed)}, which no dispatch of this landing "
                  f"records"] if computed else [])
@@ -257,7 +258,7 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
         listed = f"{', '.join(outside[:8])}{' …' if len(outside) > 8 else ''}"
         # a group recorded with NO files declared nothing: its set is UNKNOWN to this check, so a file outside
         # the rest cannot be judged here; it is named, and arm 2 still checks it against every in-flight branch
-        if outside and (unknown := [plan_wave.ledger_slug(g) for g in consulted if not g.get("files")]):
+        if outside and (unknown := [ledger_slug(g) for g in consulted if not g.get("files")]):
             warnings.append(f"R3 work ({', '.join(mine_r3)}) changed {len(outside)} file(s) its declared file set "
                             f"({'; '.join(arms)}) does not name: {listed} — the set is UNKNOWN, not checked: "
                             f"{', '.join(unknown)} recorded no file set (kb/Work PB3263), so the planner never "
@@ -274,7 +275,7 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
 
     meta: dict[str, dict] = {}
     # an answered dispatch (its report exists) is read through its branch, never its declared set (PB2795)
-    busy = plan_wave.inflight_file_sets(git=git, repo=repo, coord_dir=coord_dir, meta=meta, terminal=terminal,
+    busy = inflight.inflight_file_sets(git=git, repo=repo, coord_dir=coord_dir, meta=meta, terminal=terminal,
                                         reports=reports)
     # ONE more read for every in-flight branch git can read; one it cannot (an unborn worktree's zero HEAD) has no
     # commit beyond the base, so depends() reads it as blocking nothing, as an empty worktree
@@ -290,10 +291,10 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
         ids = git_batch.object_ids(repo, [f"{r}:{f}" for r in (rev, their_rev) for f in ordered], git=git)
         return {f for f, mine_id, their_id in zip(ordered, ids, ids[len(ordered):]) if mine_id == their_id}
 
-    report_of: dict[str, plan_wave.Report] = {}            # branch / worktree key -> its NEWEST report
+    report_of: dict[str, Report] = {}            # branch / worktree key -> its NEWEST report
     for r in reports:                                      # oldest first: the last write is the newest
         report_of.update({k: r for k in (r.branch, _key(r.worktree)) if k})
-    by_slug = {plan_wave.ledger_slug(g): g for g in full_ledger}
+    by_slug = {ledger_slug(g): g for g in full_ledger}
 
     def identity(m: dict, files: set[str]) -> tuple[set[str], float, str]:
         """(the notes an in-flight branch works on, its dispatch time, how that is known), bound to ONE dispatch by
@@ -310,7 +311,7 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
         elif subj := work_notes(git, graph, base, m["rev"]):
             their, how = subj, "commit subjects"
         elif g := best_group(files, ledger):
-            their, how = set(g.get("notes", [])), f"dispatch-ledger group {plan_wave.ledger_slug(g)}"
+            their, how = set(g.get("notes", [])), f"dispatch-ledger group {ledger_slug(g)}"
         else:
             their = set()
         at = min([g["at"] for g in ledger if "at" in g and set(g.get("notes", [])) & their]
@@ -560,7 +561,7 @@ def self_test() -> int:
     hdir.mkdir()
     (hdir / "w4b-PB9100-report.md").write_text("Status: DONE" + chr(10) + "Branch: succ-old" + chr(10),
                                                encoding="utf-8", newline=chr(10))
-    h_reports = plan_wave.load_reports(hdir)
+    h_reports = load_reports(hdir)
     expect("H1: a successor holding an OLDER head of the landing branch descends from it: it does not block it",
            check(repo, "origin/main", "pred-new", cdir, items, rules, lambda ids: {"src/A.cs"}, git,
                  reports=h_reports), 0, 0)
@@ -605,7 +606,7 @@ def self_test() -> int:
                                                newline=chr(10))
     expect("PB3186c: ... but its REPORT binds it first, to its own group (w3b, fix lane): passes",
            check(repo, "origin/main", "f-d", cdir, items, rules, never, git,
-                 reports=plan_wave.load_reports(rdir)), 0, 0)
+                 reports=load_reports(rdir)), 0, 0)
     drop("wt-rep")
     scratch.git("branch", "-D", "f-d")
     ledger({"wave": "hand", "letter": "", "hand": True, "notes": ["PB9001"], "files": ["src/C.cs"], "at": 1_000_000},
@@ -623,7 +624,7 @@ def self_test() -> int:
     expect("PB2795: ... until its agent RETURNS: a group its report answers (SPLIT residue included) is read through "
            "its branch, so its untouched declared files are free",
            check(repo, "origin/main", "f-c", cdir, items, rules, never, git,
-                 reports=plan_wave.load_reports(rdir)), 0, 0)
+                 reports=load_reports(rdir)), 0, 0)
     scratch.git("branch", "-D", "f-c")
     drop("wt-start")
 
@@ -801,10 +802,10 @@ def main(argv: list[str] | None = None) -> int:
     repo = pathlib.Path(subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True,
                                        check=True).stdout.strip())
     cdir = coord.coord_dir(a.coord)
-    policy = plan_wave.IndexPolicy.of(cdir)   # the planner's policy: THE index of this tree (kb/Work PB3203)
+    policy = inflight.IndexPolicy.of(cdir)   # the planner's policy: THE index of this tree (kb/Work PB3203)
     stops, warnings = check(repo, a.base, a.rev, cdir, work.load(repo / "kb" / "Work"),
-                            coord.rules(), lambda ids: set(plan_wave.computed_file_set(repo, ids, policy).files),
-                            reports=plan_wave.load_reports(coord.reports_dir(a.coord)))
+                            coord.rules(), lambda ids: set(inflight.computed_file_set(repo, ids, policy).files),
+                            reports=load_reports(coord.reports_dir(a.coord)))
     for w in warnings:
         print(f"⚠ landing check: {w}")
     for s in stops:
