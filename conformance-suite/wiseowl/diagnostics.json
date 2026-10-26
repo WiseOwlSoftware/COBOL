@@ -23485,5 +23485,112 @@
    "2023"
   ],
   "expect": "COBOL1653"
+ },
+ "pb3830-call-on-overflow-85": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014"
+  ],
+  "expect": "COBOL2796"
+ },
+ "pb3830-size-error-binds-inward": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2796"
+ },
+ "pb3830-size-error-reversed-binds-inward": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2796"
+ },
+ "pb3830-overflow-binds-inward": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2796"
+ },
+ "pb3830-exception-binds-inward": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2796"
+ },
+ "pb3830-invalid-key-binds-inward": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2796"
+ },
+ "pb3830-at-end-binds-inward": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2796"
+ },
+ "pb3830-end-of-page-binds-inward": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2796"
+ },
+ "pb3830-search-at-end-binds-inward": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2796"
+ },
+ "pb3830-call-not-on-overflow": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2269"
+ },
+ "pb3830-read-at-end-beside-invalid-key": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2269"
+ },
+ "pb3830-second-on-size-error": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2269"
  }
 }

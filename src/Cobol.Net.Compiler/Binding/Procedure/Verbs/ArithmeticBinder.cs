@@ -4,6 +4,7 @@ using CobolNet.Binding.Bound;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
+using CobolNet.Frontend.Parsing;
 
 namespace CobolNet.Binding.Procedure;
 
@@ -26,7 +27,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     {
         if (add.sendingOperand() is not { Length: > 0 } operands) return host.Corr.BindAddCorresponding(add);   // Format 3 (§14.9.2.2)
         var addends = operands.Select(host.Expr.BindExpr).ToList();
-        var sizeErr = host.BindSizeError(add.arithmeticOnSizeError());
+        var sizeErr = host.BindSizeError(add.conditionalPhrases());
         if (add.arithmeticGivingPhrase() is { } giving)
         {
             // ADD a… [TO b] GIVING c…  →  c = (b +) Σa  (ISO §14.9.2.2 Format 2: the TO operand is an addend,
@@ -70,7 +71,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     {
         if (sub.sendingOperand() is not { Length: > 0 } operands) return host.Corr.BindSubtractCorresponding(sub);   // Format 3 (§14.9.44.2)
         var minuends = operands.Select(host.Expr.BindExpr).ToList();
-        var sizeErr = host.BindSizeError(sub.arithmeticOnSizeError());
+        var sizeErr = host.BindSizeError(sub.conditionalPhrases());
         if (sub.arithmeticGivingPhrase() is { } giving && sub.subtractFromPhrase()?.receiversOrSendingOperand() is { } from)
         {
             Format2SendingOperand("SUBTRACT", "§14.9.44.2", from.receivingArithmeticOperand());
@@ -101,7 +102,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                 + "literal-1 after the verb (ISO §14.9.26.2)");
         var a = host.Expr.BindExpr(aCtx);
         var byOps = mul.multiplyByOperand();
-        var sizeErr = host.BindSizeError(mul.arithmeticOnSizeError());
+        var sizeErr = host.BindSizeError(mul.conditionalPhrases());
         if (mul.arithmeticGivingPhrase() is { } giving && byOps.Length > 0)
         {
             // §14.9.26.2 Format 2: ONE `BY {identifier-2 | literal-2}` sending operand, no ROUNDED.
@@ -126,7 +127,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     {
         if (div.sendingOperand() is not { } aCtx) return DivideShape();
         var a = host.Expr.BindExpr(aCtx);   // INTO: the divisor; BY: the dividend
-        var sizeErr = host.BindSizeError(div.arithmeticOnSizeError());
+        var sizeErr = host.BindSizeError(div.conditionalPhrases());
 
         // DIVIDE … GIVING q REMAINDER r (ISO §14.9.12 Formats 4–5): exactly one GIVING receiver (§14.9.12.2 — identifier-3 carries no ellipsis in either format).
         if (div.divideRemainderPhrase() is { } rem)
@@ -270,7 +271,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             return BuildComputeBoolean(compute, rerouted);
         }
         var rhs = host.Expr.BindExpr(expr);
-        return new BoundCompute(rhs, host.Expr.Receivers(compute.computeStore()), host.BindSizeError(compute.computeOnSizeError()));
+        return new BoundCompute(rhs, host.Expr.Receivers(compute.computeStore()), host.BindSizeError(compute.conditionalPhrases()));
     }
 
     /// <summary>The refusal of a boolean COMPUTE whose right-hand operand is no boolean expression (ISO §14.9.8
@@ -328,7 +329,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         {
             // §8.3.3.6.4 GR4 — "the numeric value '0' … depending on context"; a numeric receiver IS that context.
             return new BoundCompute(new BoundNumLiteral("0"), host.Expr.Receivers(compute.computeStore()),
-                host.BindSizeError(compute.computeOnSizeError()));
+                host.BindSizeError(compute.conditionalPhrases()));
         }
 
         // The COBOL-2002 boolean-operator introduction gate on COMPUTE Format 2 (BooleanOperators2002) fires on
@@ -352,7 +353,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     /// (SR2 — elementary boolean), the ROUNDED / SIZE-ERROR prohibition (F2 has neither), the GR3 store width.</summary>
     private BoundStatement BuildComputeBoolean(Core.ComputeStatementContext compute, BoundBoolExpr rhs)
     {
-        if (compute.computeOnSizeError() is not null)
+        if (ConditionalPhrases.HasFamily(compute.conditionalPhrases(), ConditionalPhraseFamily.SizeError))
             ctx.Edition.Error("COBOL1511", "ON SIZE ERROR may not be specified on a boolean COMPUTE "
                 + "(ISO §14.9.8 Format 2 — no size-error phrase)");
         var targets = new List<Place>();

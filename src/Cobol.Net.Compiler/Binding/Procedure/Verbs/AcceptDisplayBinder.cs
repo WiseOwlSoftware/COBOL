@@ -5,6 +5,7 @@ using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
+using CobolNet.Frontend.Parsing;
 using CobolNet.Editions;
 
 namespace CobolNet.Binding.Procedure;
@@ -204,7 +205,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     private string? ScreenFormatOf(Core.ScreenTailContext? tail, IReadOnlyList<Core.DataReferenceContext> operands)
     {
         if (tail is not null)
-            return tail.screenExceptionPhrases() is not null
+            return ConditionalPhrases.HasFamily(tail.conditionalPhrases(), ConditionalPhraseFamily.Exception)
                 ? "the AT / LINE / COLUMN positioning phrase with an ON EXCEPTION handler appears only in the "
                   + "screen format"
                 : "the AT / LINE / COLUMN positioning phrase appears only in the screen format";

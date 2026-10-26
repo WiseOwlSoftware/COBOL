@@ -345,12 +345,12 @@ close a phrase out of a particular organization or access mode:
 comment and **no strict arm**, so at `--std 2023` strict the compiler accepted source the standard forbids and
 emitted nothing — measured with CLI probes, not inferred. ⚠ §14.9.35.3 SR2 has **two arms** and only the second
 was even commented: the sequential-*organization* arm binds through `SequentialIoBinder.BindRewrite`, which never
-read `rewriteInvalidKeyPhrase()` at all — the phrase was parsed and dropped on the floor, a strictly worse shape
+read REWRITE's INVALID KEY phrase at all — the phrase was parsed and dropped on the floor, a strictly worse shape
 than its relative twin, which at least bound it as dead. Both arms are screened now, and both have a negative
 fixture, because a fix landing only one of them reproduces the very shape that made the rule wrong.
 ⚠ **WRITE was the same drop a third time** (kb/Work PB691). `SequentialIoBinder.BindWrite` never called
-`w.writeInvalidKey()` either, and unlike REWRITE it had no diagnostic at all: the program compiled clean at every
-edition and on both severity axes, and neither imperative ran. It hid because the `writeInvalidKey` sub-rule of
+for WRITE's INVALID KEY phrase either, and unlike REWRITE it had no diagnostic at all: the program compiled clean at every
+edition and on both severity axes, and neither imperative ran. It hid because WRITE's INVALID KEY phrase in
 the grammar was consumed by the **keyed** binder only — the two-arm dispatch with one arm fixed, which is this
 repo's most reproducible defect shape. The mechanical sweep that finds it is *for every I-O statement rule, which
 sub-rules does each binder arm consume?*, and it is now run whenever a phrase gains an organization-conditioned

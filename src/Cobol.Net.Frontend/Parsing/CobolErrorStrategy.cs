@@ -408,6 +408,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // (§8.3.2.2.16), so the suffix arrives here — read from the PARSER STATE, worded by MnemonicNameSlot.
         if (MnemonicSuffixMessage(recognizer, token, stream) is { } mnemonicMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2269, mnemonicMsg, 0));
+        // ⛔ 0e''. A TABLE 12 [NOT] PHRASE THAT NO OPEN STATEMENT MAY TAKE (kb/Work PB3830). The one conditionalPhrases
+        // rule associates a phrase by §14.5.3.3, so a phrase no open statement's general format admits — a second ON
+        // SIZE ERROR, a CALL's NOT ON OVERFLOW, a READ's INVALID KEY beside its AT END — ends every statement and
+        // arrives here; ConditionalPhraseAssociation reads the parser state and names the statement and the reason.
+        // Added after 0e, so SEARCH's own NOT AT END wording (its WHEN-branch advice) wins the shared code.
+        if (ConditionalPhraseAssociation.UnownedPhraseMessage(recognizer.Context, stream, token) is { } phraseMsg)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2269, phraseMsg, 0));
         // ⛔ 0f. AN INLINE METHOD INVOCATION'S EMPTY PARENTHESIS PAIR (kb/Work PB1430). `inlineInvocationSegment`
         // requires its argumentList inside the optional parentheses, so `O :: "M" ( )` arrives here, at the '(' or
         // the ')'. Outranks 0a for the same reason 0d does: the empty pair is the cause wherever the parse gives up.
@@ -878,8 +885,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// {…} [END-SEARCH]</c> (rendered from PDF page 750 / printed folio 720). Three complement shapes, each read
     /// from the parser state:
     /// <list type="bullet">
-    ///   <item>A KEY phrase — the failure is AT the SEARCH context itself (the table operand is complete and the
-    ///         statement's own next element was expected), and the offending token is KEY.</item>
+    ///   <item>A KEY phrase — the offending token is KEY and a SEARCH context with no WHEN phrase yet is on the stack:
+    ///         the table operand is complete, and the failure is at the statement's next element (since the AT END
+    ///         phrase became the shared <c>conditionalPhrases</c> rule, which matches empty, that is inside the first
+    ///         WHEN clause the parse entered, kb/Work PB3830).</item>
     ///   <item>A NOT AT END phrase — a SEARCH context with no WHEN phrase yet is on the stack (the failure is in
     ///         the AT END region, possibly inside its last statement) and the tokens at the failure spell
     ///         <c>NOT [AT] END</c>.</item>
@@ -891,9 +900,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     {
         const string formats = " ISO §14.9.37.2 prints two SEARCH formats and ";
         var ctx = recognizer.Context;
-        if (token.Type == CobolLexer.KEY
-            && ctx is CobolParserCore.SearchStatementContext or CobolParserCore.SearchAllStatementContext)
-            return (ctx is CobolParserCore.SearchAllStatementContext ? "SEARCH ALL" : "SEARCH")
+        if (token.Type == CobolLexer.KEY && NearestSearchBeforeWhen(ctx) is { } keyed)
+            return (keyed is CobolParserCore.SearchAllStatementContext ? "SEARCH ALL" : "SEARCH")
                 + " … KEY:" + formats + "neither has a KEY phrase — the key of a SEARCH ALL is declared by the "
                 + "ASCENDING/DESCENDING KEY phrase of identifier-1's OCCURS clause (§14.9.37.3 SR7), and the "
                 + "Format-2 WHEN phrase names it. Remove the phrase.";
@@ -904,18 +912,12 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
               && IsAtEndAhead(stream, token.TokenIndex);
         // "No WHEN phrase yet" is asked of the WHEN TOKEN, not of the clause context: single-token insertion
         // reports a missing WHEN from INSIDE the just-entered (Format-2) WHEN clause, whose context already exists.
-        if (notAtEnd)
-            for (RuleContext? c = ctx; c is not null; c = c.Parent)
-            {
-                if (c is CobolParserCore.SearchStatementContext s1)
-                    return s1.searchWhenClause().Any(w => w.WHEN() is not null) ? null
-                        : "SEARCH … NOT AT END:" + formats + "each has an AT END phrase alone — there is no NOT "
-                          + "AT END phrase. Test for a hit in a WHEN branch instead.";
-                if (c is CobolParserCore.SearchAllStatementContext s2)
-                    return s2.searchAllWhenClause()?.WHEN() is not null ? null
-                        : "SEARCH ALL … NOT AT END:" + formats + "each has an AT END phrase alone — there is no "
-                          + "NOT AT END phrase. Test for a hit in the WHEN branch instead.";
-            }
+        if (notAtEnd && NearestSearchBeforeWhen(ctx) is { } searching)
+            return searching is CobolParserCore.SearchAllStatementContext
+                ? "SEARCH ALL … NOT AT END:" + formats + "each has an AT END phrase alone — there is no "
+                  + "NOT AT END phrase. Test for a hit in the WHEN branch instead."
+                : "SEARCH … NOT AT END:" + formats + "each has an AT END phrase alone — there is no NOT "
+                  + "AT END phrase. Test for a hit in a WHEN branch instead.";
 
         if (token.Type == CobolLexer.WHEN)
             for (var c = ctx; c is not null; c = c.Parent as ParserRuleContext)
@@ -925,6 +927,21 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                         return "SEARCH ALL with a second WHEN phrase: Format 2 prints exactly ONE WHEN phrase — its "
                             + "ellipsis sits on the [ AND … ] bracket, not on the WHEN brace (ISO §14.9.37.2, with "
                             + "§5.2.7), so a further key condition is written as an AND phrase of the one WHEN.";
+        return null;
+    }
+
+    /// <summary>The nearest SEARCH or SEARCH ALL context on the stack, when its first WHEN phrase has not been read yet
+    /// (the failure is in the region before it: the table operand, VARYING, the AT END phrase); null when the nearest
+    /// one is already in its WHEN phrases, or there is none.</summary>
+    private static ParserRuleContext? NearestSearchBeforeWhen(RuleContext? ctx)
+    {
+        for (RuleContext? c = ctx; c is not null; c = c.Parent)
+        {
+            if (c is CobolParserCore.SearchStatementContext s1)
+                return s1.searchWhenClause().Any(w => w.WHEN() is not null) ? null : s1;
+            if (c is CobolParserCore.SearchAllStatementContext s2)
+                return s2.searchAllWhenClause()?.WHEN() is not null ? null : s2;
+        }
         return null;
     }
 
@@ -1006,8 +1023,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     }
 
     /// <summary>The LAST child when it is a rule context; null when it is a token (nothing to the right of a token
-    /// can be the completed SEARCH ALL).</summary>
-    private static ParserRuleContext? LastRuleChild(ParserRuleContext c) =>
+    /// can be a just-completed statement). Shared with ConditionalPhraseAssociation.UnownedPhraseMessage.</summary>
+    internal static ParserRuleContext? LastRuleChild(ParserRuleContext c) =>
         c.ChildCount > 0 ? c.GetChild(c.ChildCount - 1) as ParserRuleContext : null;
 
     // ── Parse-layer edition-gate rendering (rearch PHASE 02) ──

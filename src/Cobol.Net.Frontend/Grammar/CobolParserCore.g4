@@ -1008,7 +1008,7 @@ statement
 //   [| ON EXCEPTION … |] [| NOT ON EXCEPTION … |] [ END-RECEIVE ]
 // RECEIVED is not in §8.9's reserved list and is not a §8.10 context-sensitive word either — the standard
 // simply never classifies it (recorded as a P14 Step-0 GAP row); matched as cobolWord, which is safe here.
-// ISO 5.2.3 optional word — see the arithmeticOnSizeError note. Measured on page 732: RECEIVE, GIVING,
+// ISO 5.2.3 optional word — see the conditionalPhraseHead note. Measured on page 732: RECEIVE, GIVING,
 // CONTINUE, MESSAGE and RECEIVED carry underline rules; FROM, AFTER and SECONDS carry NONE, so each may be
 // omitted (§8.3.2.4.3: "Within each format, uppercase words that are not underlined are called optional words").
 //
@@ -1027,13 +1027,13 @@ statement
 mcsReceiveStatement
     : RECEIVE FROM? dataReference GIVING dataReference dataReference
       (CONTINUE AFTER? (arithmeticExpression SECONDS? | MESSAGE cobolWord))?
-      mcsExceptionPhrases?
+      conditionalPhrases
       END_RECEIVE?
     ;
 
 // ISO §14.9.38.2 — Format 1 (to-message-server) and Format 2 (message-server-response), merged: they differ
 // only in the RETURNING vs RAISING tail, both optional here, which keeps one rule for one statement.
-// ISO 5.2.3 optional word — see the arithmeticOnSizeError note. Measured on page 756, in BOTH send formats:
+// ISO 5.2.3 optional word — see the conditionalPhraseHead note. Measured on page 756, in BOTH send formats:
 // SEND, FROM, RETURNING and RAISING carry underline rules; TO carries none, so it may be omitted.
 // ⛔ THE SECOND `EXCEPTION` IS AN OPTIONAL WORD HERE TOO — THE THIRD SITE OF ONE RULE (kb/Work PB402, PB407).
 // PB407 relaxed `raisingPhrase` to `LAST EXCEPTION?` on the GOBACK and EXIT Format-2 figures and this INLINE
@@ -1052,16 +1052,8 @@ mcsSendStatement
     : SEND TO? (literal | dataReference) FROM dataReference
       (RETURNING dataReference)?
       (RAISING (EXCEPTION cobolWord | LAST EXCEPTION?))?
-      mcsExceptionPhrases?
+      conditionalPhrases
       END_SEND?
-    ;
-
-// ISO 5.2.6.4: the printed RECEIVE/SEND figures enclose the ON EXCEPTION / NOT ON EXCEPTION pair in CHOICE
-// INDICATORS (verified against the PDF at 700 dpi), so BOTH may be written, each once, IN EITHER ORDER.
-// ISO 5.2.3 optional word: ON is omittable here — see the arithmeticOnSizeError note.
-mcsExceptionPhrases
-    : ON? EXCEPTION statementBlock (NOT ON? EXCEPTION statementBlock)?
-    | NOT ON? EXCEPTION statementBlock (ON? EXCEPTION statementBlock)?
     ;
 
 // ISO §14.9.50.2 — VALIDATE { identifier-1 } …
@@ -1086,9 +1078,60 @@ rollbackFacilityStatement
 //     : IDENTIFIER (IDENTIFIER | literal)*
 //     ;
 
-// Imperative statement (used by AT END, ON EXCEPTION, etc.)
+// The imperative-statement operand of every conditional phrase (§14.5.1), and IF's statement-1 / statement-2.
+// ProcedureFormatPass refuses a conditional statement standing in it (COBOL2796) everywhere but IF.
 statementBlock
     : statement+
+    ;
+
+// ==========================================
+// THE PAIRED CONDITIONAL PHRASES (ISO §14.5.1 Table 12, §14.5.3.3) — ONE RULE FOR EVERY STATEMENT
+// ==========================================
+// ⛔ EVERY Table 12 [NOT] phrase of EVERY statement — ON SIZE ERROR, ON EXCEPTION, ON OVERFLOW, INVALID KEY, AT END,
+// AT END-OF-PAGE, each with its NOT twin, and SEARCH's AT END — is spelled HERE and nowhere else (kb/Work PB3830;
+// owner 2026-10-26: "all COBOL paired conditional phrases should be handled grammatically in the same consistent
+// manner"). A statement that owns such phrases writes `conditionalPhrases` (never `?`: the rule matches empty) at the
+// position its general format prints them. ConditionalPhraseDriftTests holds the owners to Table 12 and holds every
+// phrase keyword to this one rule.
+//
+// WHICH STATEMENT A PHRASE BELONGS TO is §14.5.3.3's rule, decided by the ONE predicate below and nowhere else: "Any
+// phrase encountered is the next phrase of the most-recently preceding unterminated statement with which that phrase
+// may be syntactically associated. If all permitted occurrences of a phrase have already been specified for a given
+// statement, a subsequent occurrence of that phrase is not syntactically associated with that statement." ANTLR's
+// greedy loop supplies "most-recently preceding" (the innermost open statement is asked first); the predicate supplies
+// "may be syntactically associated" — the phrase is in one of the owner's printed general formats together with the
+// phrases already written, and is not one already written (ConditionalPhraseAssociation; a phrase only an earlier
+// edition's format prints still associates, last of all, so the conformance pass names it, and a phrase NO open
+// statement may take is named COBOL2269 by CobolErrorStrategy).
+// So in `SUBTRACT A FROM C ON SIZE ERROR ADD 1 TO D NOT ON SIZE ERROR …` the NOT phrase is the ADD's, the ADD is a
+// conditional statement inside an imperative-statement, and COBOL2796 refuses it; in `READ F AT END ADD 1 TO X NOT
+// AT END …` the ADD cannot take NOT AT END, so it is the READ's.
+// ⚠ The predicate reads `$ctx`, which makes it CONTEXT-DEPENDENT: ANTLR evaluates it only in this rule's own
+// decisions (with this rule's context) and treats it as true when prediction reaches it from an enclosing rule, so an
+// inner statement's prediction never asks an OUTER loop's predicate with the inner context. That is why the loop is
+// here and the owners write the rule bare — an owner-level `conditionalPhrases?` decision would reach the predicate one
+// rule deep, ignore it, and fail the parse at it.
+conditionalPhrases
+    : ({conditionalPhraseAssociates($ctx)}? conditionalPhrase)*
+    ;
+
+// One phrase: §5.2.6.4 choice indicators print each pair as `[| phrase-1 | NOT phrase-1 |]` — each at most once, in
+// either order — which the loop above and the predicate's "already specified" test express for every family at once.
+conditionalPhrase
+    : NOT? conditionalPhraseHead statementBlock
+    ;
+
+// The phrase keywords. ON, AT and KEY are printed WITHOUT an underline in every one of these figures (§5.2.3 optional
+// words — measured per figure with scripts/spec/figure_extract.py: ON on pages 607, 632, 644, 703, 756; KEY on 635,
+// 722, 740, 784, 816), so each may be omitted. CALL's ON OVERFLOW is the COBOL-74-carried phrase of the 85–2014 CALL
+// format (removed 2023, gated by name in VersionConformancePass).
+conditionalPhraseHead
+    : ON? SIZE ERROR
+    | ON? EXCEPTION
+    | ON? OVERFLOW
+    | INVALID KEY?
+    | AT? END
+    | AT? (END_OF_PAGE | EOP)
     ;
 
 // ==========================================
@@ -1164,22 +1207,6 @@ roundingModeName
     | TRUNCATION
     ;
 
-// ISO 5.2.6.4: the ON SIZE ERROR / NOT ON SIZE ERROR pair is enclosed in CHOICE INDICATORS (| bars inside the
-// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER. The
-// reversed order was rejected until 2026-07-19 (our spec transcription had dropped the bars); the shape below
-// matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
-// ISO 5.2.3: ON is printed WITHOUT an underline in every one of these figures, so it is an OPTIONAL WORD
-// that may be written or omitted. Measured, not assumed: scripts/spec/figure_extract.py reads the
-// underline rectangles per word, and ON comes back plain on pages 632 (COMPUTE), 644 (DIVIDE), 703
-// (MULTIPLY), 607 and 756 (ON EXCEPTION). callOnExceptionPhrase already had `ON?`; these did not, so the
-// grammar contradicted itself and rejected `ADD A TO B SIZE ERROR ...` - legal COBOL.
-arithmeticOnSizeError
-    : ON? SIZE ERROR statementBlock
-      (NOT ON? SIZE ERROR statementBlock)?
-    | NOT ON? SIZE ERROR statementBlock
-      (ON? SIZE ERROR statementBlock)?
-    ;
-
 // ==========================================
 // ADD (§14.9.2)
 // ==========================================
@@ -1187,8 +1214,8 @@ arithmeticOnSizeError
 // Format 1 `ADD {identifier-1 | literal-1} … TO {identifier-2 [rounded]} …`, Format 2 `… [TO {identifier-2 |
 // literal-2}] GIVING …` and Format 3 CORRESPONDING. ArithmeticBinder narrows the union per format.
 addStatement
-    : ADD (CORRESPONDING | CORR) dataReference TO receivingIdentifier roundedPhrase? arithmeticOnSizeError? END_ADD?
-    | ADD sendingOperand+ addToPhrase? arithmeticGivingPhrase? arithmeticOnSizeError? END_ADD?
+    : ADD (CORRESPONDING | CORR) dataReference TO receivingIdentifier roundedPhrase? conditionalPhrases END_ADD?
+    | ADD sendingOperand+ addToPhrase? arithmeticGivingPhrase? conditionalPhrases END_ADD?
     ;
 
 addToPhrase
@@ -1200,8 +1227,8 @@ addToPhrase
 // ==========================================
 
 subtractStatement
-    : SUBTRACT (CORRESPONDING | CORR) dataReference FROM receivingIdentifier roundedPhrase? arithmeticOnSizeError? END_SUBTRACT?
-    | SUBTRACT sendingOperand+ subtractFromPhrase? arithmeticGivingPhrase? arithmeticOnSizeError? END_SUBTRACT?
+    : SUBTRACT (CORRESPONDING | CORR) dataReference FROM receivingIdentifier roundedPhrase? conditionalPhrases END_SUBTRACT?
+    | SUBTRACT sendingOperand+ subtractFromPhrase? arithmeticGivingPhrase? conditionalPhrases END_SUBTRACT?
     ;
 
 subtractFromPhrase
@@ -1213,7 +1240,7 @@ subtractFromPhrase
 // ==========================================
 
 multiplyStatement
-    : MULTIPLY sendingOperand BY multiplyByOperand+ arithmeticGivingPhrase? arithmeticOnSizeError? END_MULTIPLY?
+    : MULTIPLY sendingOperand BY multiplyByOperand+ arithmeticGivingPhrase? conditionalPhrases END_MULTIPLY?
     ;
 
 multiplyByOperand
@@ -1228,7 +1255,7 @@ multiplyByOperand
 
 divideStatement
     : DIVIDE sendingOperand (divideIntoPhrase | divideByPhrase)
-      arithmeticGivingPhrase? divideRemainderPhrase? arithmeticOnSizeError? END_DIVIDE?
+      arithmeticGivingPhrase? divideRemainderPhrase? conditionalPhrases END_DIVIDE?
     ;
 
 divideIntoPhrase
@@ -1248,21 +1275,12 @@ divideRemainderPhrase
 // ==========================================
 
 computeStatement
-    : COMPUTE computeStore+ EQUALS arithmeticExpression computeOnSizeError? END_COMPUTE?          // F1 (§14.9.8)
-    | COMPUTE computeStore+ EQUALS booleanExpression computeOnSizeError? END_COMPUTE?  // F2 boolean-compute (§14.9.8 Format 2); superset-parsed (F1 arithmetic is tried first; only a genuine boolean RHS falls here), introduction-gated in VersionConformancePass.VisitComputeStatement → GateBooleanOperators (kb/Work PB157 corrected the stale BindBoolExpr claim here)
+    : COMPUTE computeStore+ EQUALS arithmeticExpression conditionalPhrases END_COMPUTE?          // F1 (§14.9.8)
+    | COMPUTE computeStore+ EQUALS booleanExpression conditionalPhrases END_COMPUTE?  // F2 boolean-compute (§14.9.8 Format 2); superset-parsed (F1 arithmetic is tried first; only a genuine boolean RHS falls here), introduction-gated in VersionConformancePass.VisitComputeStatement → GateBooleanOperators (kb/Work PB157 corrected the stale BindBoolExpr claim here)
     ;
 
 computeStore
     : receivingIdentifier roundedPhrase?
-    ;
-
-// ISO 5.2.6.4 choice indicators — see the arithmeticOnSizeError note: both phrases, each once, any order.
-// ISO 5.2.3 optional word: ON is omittable here — see the arithmeticOnSizeError note.
-computeOnSizeError
-    : ON? SIZE ERROR statementBlock
-      (NOT ON? SIZE ERROR statementBlock)?
-    | NOT ON? SIZE ERROR statementBlock
-      (ON? SIZE ERROR statementBlock)?
     ;
 
 // ==========================================
@@ -1307,7 +1325,7 @@ callStatement
       callAsPhrase?
       callUsingPhrase?
       callReturningPhrase?
-      callExceptionPhrases?
+      conditionalPhrases
       END_CALL?
 
     ;
@@ -1433,23 +1451,6 @@ callByContent
 
 callReturningPhrase
     : RETURNING receivingIdentifier
-    ;
-
-// ISO 5.2.6.4 choice indicators — see the arithmeticOnSizeError note. CALL's ON EXCEPTION / NOT ON EXCEPTION
-// pair carries them in the printed general format (Formats 1 and 2), so both may be written, each at most
-// once, in either order. Held in ONE container rule rather than two independently-optional slots on
-// callStatement, which admitted only the ON-then-NOT order.
-callExceptionPhrases
-    : callOnExceptionPhrase (callNotOnExceptionPhrase)?
-    | callNotOnExceptionPhrase (callOnExceptionPhrase)?
-    ;
-
-callOnExceptionPhrase
-    : ON? (EXCEPTION | OVERFLOW) statementBlock
-    ;
-
-callNotOnExceptionPhrase
-    : NOT ON? (EXCEPTION | OVERFLOW) statementBlock
     ;
 
 // ==========================================
@@ -2100,13 +2101,3 @@ raisingTarget
     : FACTORY OF? cobolWord          // object-class-name-1 with its optional phrase; SR8 of §14.2.2 is the binder's
     | cobolWord                      // exception-name-1 | object-class-name-1 | interface-name-1 — §14.2.2 SR7/SR8/SR9
     ;
-
-// ==========================================
-// REUSABLE EXCEPTION PHRASES
-// ==========================================
-
-// (Deleted 2026-07-19: `exceptionPhrase` / `onExceptionPhrase` / `notOnExceptionPhrase` were DEAD — defined
-// here but referenced by nothing. They were also a trap: `exceptionPhrase` modelled the pair as an exclusive
-// one-of-two, which is exactly the 5.2.6.4 choice-indicator defect repaired across this file, so wiring them
-// up would have reintroduced it. Statements with ON EXCEPTION own their phrase rules — see
-// callExceptionPhrases above and deleteFileOnException in Core/CobolIO.g4.)
