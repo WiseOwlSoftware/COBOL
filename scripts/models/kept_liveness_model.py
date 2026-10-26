@@ -54,6 +54,9 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 LIVENESS = "L"                # the transaction's liveness byte (HostRegionLocks.TransactionLivenessByte)
 LOCK_RECORD_ATTEMPTS = 4      # OfdRegionLocks.LockRecordAttempts
@@ -335,4 +338,5 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

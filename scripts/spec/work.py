@@ -67,6 +67,8 @@ import pathlib
 import re
 import subprocess
 import sys
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 QUEUE = REPO / "docs" / "rearchitecture" / "CONFORMANCE-FIX-QUEUE.md"
@@ -117,7 +119,7 @@ def fm_line(k: str, v) -> str:
 
 def write_note(item: dict, body: str) -> str:
     keys = ["id", "kind", "status", "severity", "area", "wrong_answer", "crashes", "silent",
-            "rejects_legal_source", "under_rejects", "process_only", "blocked", "blocked_by", "spec_refs"]
+            "rejects_legal_source", "under_rejects", "process_only", "blocked_by", "spec_refs"]
     fm = ["---", f'title: "{item["id"]} — {item["summary"][:70]}"']
     fm += [fm_line(k, item[k]) for k in keys]
     fm += ["tags: [cobolsharp, work, " + item["kind"] + "]", "---", "",
@@ -156,7 +158,6 @@ def migrate() -> int:
             "spec_refs": sorted({c for c in CLAUSE.findall(body)})[:12],
             **harm_fields(flags),
         }
-        item["blocked"] = bool(item["blocked_by"])
         (WORK / f'{item["id"]}.md').write_text(write_note(item, "\n" + body.strip() + "\n"), encoding="utf-8", newline="\n")
         written += 1
 
@@ -170,7 +171,7 @@ def migrate() -> int:
              "blocked" if re.search(r"BLOCKED", " ".join(cells), re.I) else "open"
         item = {
             "id": m.group("id"), "kind": "analysis", "status": st, "severity": "MAJOR",
-            "area": "analysis", "summary": summary, "blocked_by": [], "blocked": st == "blocked",
+            "area": "analysis", "summary": summary, "blocked_by": [],
             "spec_refs": sorted({c for c in CLAUSE.findall(m.group(0))})[:6],
             **harm_fields(["process"]),
         }
@@ -199,7 +200,7 @@ def migrate() -> int:
             item = {
                 "id": f"R{n:02d}", "kind": "defect", "status": "open", "severity": "MINOR",
                 "area": "residue", "summary": re.sub(r"\s+", " ", p)[:110],
-                "blocked_by": [], "blocked": False,
+                "blocked_by": [],
                 "spec_refs": sorted({c for c in CLAUSE.findall(p)})[:6], **harm_fields(flags),
             }
             (WORK / f'{item["id"]}.md').write_text(
@@ -209,7 +210,7 @@ def migrate() -> int:
         declared = int(rm.group("n"))
         if declared != len(parts):
             item = {"id": "R00", "kind": "adjudication", "status": "open", "severity": "MINOR",
-                    "area": "residue", "blocked_by": [], "blocked": False, "spec_refs": [],
+                    "area": "residue", "blocked_by": [], "spec_refs": [],
                     "summary": f"the residue block declares {declared} findings but enumerates {len(parts)}",
                     **harm_fields(["process"])}
             (WORK / "R00.md").write_text(write_note(item,
@@ -295,15 +296,57 @@ def parse_frontmatter(text: str) -> dict | None:
     return out
 
 
-def load(work_dir: pathlib.Path = WORK) -> list[dict]:
-    """Every note under `work_dir` (the register; a test passes a fixture directory)."""
-    items = []
+#: The file names of a register entry: `PB<n>.md`, `A<n>.md`, `R<n>.md` (a trailing letter for a split id). A file under
+#: `kb/Work/` with a name like this IS a note; anything else (an index, a README) is not and stays skipped.
+NOTE_FILE = re.compile(r"\A(?:PB|A|R)\d+[a-z]?\.md\Z")
+
+
+def unreadable_why(text: str) -> str:
+    """Why `text` has no frontmatter block (FRONT does not match), naming the first bad line: the file opens with a
+    byte-order mark, or its first line is not the opening `---`, or the block is never closed by a `---` line."""
+    if text.startswith("﻿"):
+        return "the file starts with a byte-order mark, so line 1 is not the opening `---`"
+    first = text.split(chr(10), 1)[0].rstrip(chr(13))
+    if first != "---":
+        return f"line 1 is {first[:60]!r}, not the opening `---`"
+    return "the frontmatter is never closed by a `---` line"
+
+
+def read_note(name: str, text: str) -> tuple[dict | None, str]:
+    """`(the note, "")` for a file whose frontmatter parses; `(None, "")` for a file that is not named like a note (an
+    index, a README: skipped); `(None, why)` for a file NAMED like a note whose frontmatter does not parse (kb/Work
+    PB3654). That last answer is a refusal and never a skip: a damaged note that leaves the register is invisible to
+    `next`, to the planner's `**Sites:**` reader and to the inventory claim gate, and `check` used to call the register
+    "all well-formed" over it (PR #513 merged three such notes, every line prefixed with a backtick)."""
+    d = parse_frontmatter(text)
+    if d is not None:
+        d["_file"] = name
+        return d, ""
+    if NOTE_FILE.match(name):
+        return None, f"{name}: unreadable as a work note — {unreadable_why(text)}"
+    return None, ""
+
+
+def read_notes(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[str]]:
+    """Every note under `work_dir` and a refusal for every file named like a note that is not one (read_note)."""
+    items, refused = [], []
     for p in sorted(work_dir.glob("*.md")):
-        d = parse_frontmatter(p.read_text(encoding="utf-8"))
-        if d is None:
-            continue
-        d["_file"] = p.name
-        items.append(d)
+        note, why = read_note(p.name, p.read_text(encoding="utf-8"))
+        if note is not None:
+            items.append(note)
+        elif why:
+            refused.append(why)
+    return items, refused
+
+
+def load(work_dir: pathlib.Path = WORK) -> list[dict]:
+    """Every note under `work_dir` (the register; a test passes a fixture directory), or `SystemExit` naming each file
+    named like a note that cannot be read: a register missing a note answers `next` wrongly and says nothing, so no
+    reader of it runs on one (kb/Work PB3654). `check` reports the same files without stopping (read_notes)."""
+    items, refused = read_notes(work_dir)
+    if refused:
+        raise SystemExit("⛔ the work register has " + str(len(refused)) + " unreadable note(s):\n      "
+                         + "\n      ".join(refused) + "\n   repair the frontmatter (python scripts/spec/work.py check)")
     return items
 
 
@@ -340,6 +383,21 @@ def check_base_agrees() -> list[str]:
     out = [] if not missing else [
         f"kb/Work.base 'Fix next' does not select on {missing} — an item whose only harm flag is one of those "
         f"is invisible in the view while work.py next ranks it. Update the filter to match HARM_FLAGS."]
+
+    # ⛔ BLOCKED IS DERIVED (kb/Work PB3389): the views read the `blocked` FORMULA, which spells waiting_on's rule in
+    # the Bases language, so it must name the statuses that rule reads (every terminal status, and owner and blocked),
+    # and no view may read a stored `blocked` property, which no note carries any more.
+    formula = re.search(r"^  blocked:\s*'(?P<expr>.*)'\s*$", text, re.M)
+    if formula is None:
+        out.append("kb/Work.base: no `blocked` formula — blocked is derived (kb/Work PB3389), and the views need it")
+    else:
+        silent = [s for s in (*TERMINAL_STATUSES, "owner", "blocked") if f'"{s}"' not in formula.group("expr")]
+        if silent:
+            out.append(f"kb/Work.base: the `blocked` formula does not name the statuses {silent}, which work.py's "
+                       f"waiting_on reads — a note in one of them would show as unblocked (or blocked) there")
+    if re.search(r"(?<![\w.])blocked\s*[=!]=|note\.blocked", text):
+        out.append("kb/Work.base reads a stored `blocked` property; read `formula.blocked` — no note stores it "
+                   "(kb/Work PB3389)")
 
     # ⛔ THE SAME DUPLICATION ONE PROPERTY OVER. Every view of OPEN work spells the terminal statuses out one by
     # one, and `retired` was added to STATUSES after those views were written — so the first retired note went on
@@ -402,11 +460,12 @@ def closes_rows_shape(it: dict) -> list[str]:
     return bad
 
 
-def check() -> int:
-    if not WORK.exists():
-        print(f"⛔ {WORK.relative_to(REPO)} does not exist — run: python scripts/spec/work.py migrate")
-        return 1
-    items, bad = load(), []
+def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[str]]:
+    """`(the notes under work_dir, every problem of the register)`: the unreadable notes (read_notes), each note's own
+    schema, the topology and the site blocks, duplicate ids and, for the repository's OWN register only, the audits
+    that compare it with the rest of the tree (the inventory, the R3 program, the Bases view): a fixture directory
+    (`--work`, the self-test) has none of those to be compared with (kb/Work PB3654)."""
+    items, bad = read_notes(work_dir)
     for it in items:
         for f in ("id", "kind", "status", "area"):
             if not it.get(f):
@@ -433,17 +492,26 @@ def check() -> int:
                        f'`work.py next`. Set one of {list(HARM_FLAGS)}, or process_only: true if it '
                        f'genuinely does nothing to a user\'s program.')
         bad += closes_rows_shape(it)
-    import work_inventory  # noqa: PLC0415  (this directory's)
-
-    bad += work_inventory.live_problems(items, TERMINAL_STATUSES)
     bad += topology_problems(items)
     bad += sites_problems(items)
-    bad += r3_program_problems(items)
     ids = [it.get("id") for it in items]
     for i in set(ids):
         if ids.count(i) > 1:
             bad.append(f"duplicate id {i}")
-    bad += check_base_agrees()
+    if work_dir.resolve() == WORK.resolve():
+        import work_inventory  # noqa: PLC0415  (this directory's)
+
+        bad += work_inventory.live_problems(items, TERMINAL_STATUSES)
+        bad += r3_program_problems(items)
+        bad += check_base_agrees()
+    return items, bad
+
+
+def check(work_dir: pathlib.Path = WORK) -> int:
+    if not work_dir.exists():
+        print(f"⛔ {work_dir} does not exist — run: python scripts/spec/work.py migrate")
+        return 1
+    items, bad = register_problems(work_dir)
     if bad:
         print(f"⛔ {len(bad)} problem(s) in the work register:")
         for b in bad[:20]:
@@ -471,9 +539,10 @@ HARM_FLAGS = ("wrong_answer", "crashes", "rejects_legal_source", "under_rejects"
 
 def actionable(items: list[dict]) -> list[dict]:
     sev = {"BLOCKER": 0, "MAJOR": 1, "MINOR": 2, "OWNER": 3}
+    by_id = {i.get("id"): i for i in items}
     live = [i for i in items if i.get("status") in ("open", "half")
             and any(i.get(f) for f in HARM_FLAGS)
-            and not i.get("process_only") and not i.get("blocked")]
+            and not i.get("process_only") and not waiting_on(i, by_id)]
     return sorted(live, key=lambda i: (sev.get(i.get("severity"), 9), i.get("id", "")))
 
 
@@ -485,11 +554,15 @@ def actionable(items: list[dict]) -> list[dict]:
 # `blocked_by:` orders the campaign. `cluster_order` is the ONE reader of both: `work.py next --cluster`,
 # `plan_wave.py --cluster` and `next_unit.py` all call it, so "ready" means one thing everywhere.
 #
-# ⛔ `blocked:` IS A SECOND SPELLING OF `blocked_by:`, AND THEY DRIFTED. The fix lane skips a note whose flag is
-# true (`.agent-fleet.json` skip_flag), so a flag left true after its blocker landed HIDES a live defect from every
-# work list; two were found that way when this was written (PB1940 after PB2087 landed, PB1956 after PB322). So
-# `check` holds the flag to the list: when `blocked_by` names notes, `blocked` is true exactly while one of them is
-# still open. A flag with an empty list stays legal: it is a note blocked on something that is not a note.
+# ⛔ WHETHER A NOTE IS BLOCKED IS DERIVED, NEVER STORED (kb/Work PB3389). A stored `blocked:` flag was a second spelling
+# of `blocked_by:` and drifted both ways: a flag left true after its blocker landed HID a live defect from every work
+# list (PB1940 after PB2087 landed, PB1956 after PB322), and `check` answered by holding the flag to the list, which made
+# its verdict depend on OTHER notes' status, so a blocker landing ahead of its dependent in the merge queue turned a
+# branch's green check red with no change to the branch (PR 256, 268, 275, 444 and 493 failed CI so).
+# `waiting_on` is the ONE reading: a note waits on each `blocked_by` note that is not terminal (an id the register lacks
+# counts as open), and is held while its `status` is `owner` or `blocked`: a hold on something that is not a note (the
+# owner, a document) is spelled with that status and said in the body. `check` REFUSES a stored `blocked:` key
+# (`topology_problems`), so the old spelling cannot silently stop holding anything.
 #
 # ⭐ `tier:` IS THE OWNER'S ORDER INSIDE A CAMPAIGN (kb/Work PB3423). `blocked_by` says what CANNOT start before
 # something else; a tier says what SHOULD start first among notes that are all ready (PB3420: the owner's ten known
@@ -542,6 +615,15 @@ def open_blockers(it: dict, by_id: dict[str, dict]) -> list[str]:
             if by_id.get(b, {}).get("status") not in TERMINAL_STATUSES]
 
 
+def waiting_on(it: dict, by_id: dict[str, dict]) -> list[str]:
+    """What the note waits on, empty when it is READY: every open `blocked_by` note (open_blockers), then
+    `status: owner` or `status: blocked` when the status holds it (a hold on something that is not a note). THE ONE
+    answer to "is this note blocked" (kb/Work PB3389): `actionable`, `cluster_order`, the ledger and the fix lane's
+    population read it, and no note stores the answer."""
+    held = [f"status: {it['status']}"] if it.get("status") in ("owner", "blocked") else []
+    return open_blockers(it, by_id) + held
+
+
 def cluster_members(items: list[dict], lead: str) -> list[dict]:
     """Every note whose `cluster` list names `lead`, terminal or not — THE membership rule, so `cluster_order` and the
     ledger's lanes (`ledger_plan.py`: the campaign and held clusters of WHAT REMAINS) count one population. A list only: a scalar `cluster: PB2108` would
@@ -558,8 +640,8 @@ def cluster_order(items: list[dict], lead: str) -> dict:
     "blockers_in_cluster"}`: `tier` is the note's EFFECTIVE tier in `lead`, the lowest of its own (`tier_of`) and of
     every open cluster member it blocks, or `None` (ranked after every tiered note); `depth` is 0 for a note no open cluster member
     blocks and one past its deepest open in-cluster blocker otherwise (`None` inside a cycle); `waiting_on` lists every
-    open blocker, in the cluster or not, plus the reason a note is held without one (`status: owner`, `status:
-    blocked`, or `blocked: true` with no `blocked_by`); `ready` is `waiting_on == []`. Ties sort by note number.
+    open blocker, in the cluster or not, plus `status: owner` or `status: blocked` when the status holds the note
+    (`waiting_on` the function, the one reading of "blocked"); `ready` is `waiting_on == []`. Ties sort by note number.
     `named` counts every note that names the cluster, landed or not, so a caller can tell a LANDED cluster (named > 0,
     notes empty) from a misspelled one (named == 0)."""
     by_id = {i.get("id"): i for i in items}
@@ -592,11 +674,7 @@ def cluster_order(items: list[dict], lead: str) -> dict:
 
     rows = []
     for nid, it in members.items():
-        waiting = open_blockers(it, by_id)
-        if it.get("status") in ("owner", "blocked"):
-            waiting.append(f"status: {it['status']}")
-        elif it.get("blocked") and not it.get("blocked_by"):
-            waiting.append("blocked: true (no blocked_by note)")
+        waiting = waiting_on(it, by_id)
         rows.append({"id": nid, "kind": it.get("kind", ""), "status": it.get("status", ""), "area": it.get("area", ""),
                      "title": str(it.get("title", "")), "tier": tier[nid], "depth": depth_of(nid, set()),
                      "ready": not waiting, "waiting_on": waiting,
@@ -606,8 +684,8 @@ def cluster_order(items: list[dict], lead: str) -> dict:
 
 
 def topology_problems(items: list[dict]) -> list[str]:
-    """`blocked_by` names notes that exist, `blocked` agrees with it, open notes form no blocking cycle, `cluster`
-    is a list of names (a lead note's id, or a campaign name such as `user-documentation`), and `tier` is a list of
+    """`blocked_by` names notes that exist, no note stores a `blocked:` flag (it is derived, `waiting_on`), open notes
+    form no blocking cycle, `cluster` is a list of names (a lead note's id, or a campaign name such as `user-documentation`), and `tier` is a list of
     `CAMPAIGN:N` entries, each naming a campaign of the note's own `cluster` list once (a tier ranks the note inside
     that campaign and means nothing outside it)."""
     by_id = {i.get("id"): i for i in items}
@@ -617,6 +695,11 @@ def topology_problems(items: list[dict]) -> list[str]:
         bb, cl = it.get("blocked_by", []), it.get("cluster", [])
         if not isinstance(cl, list) or not all(isinstance(c, str) and c for c in cl):
             bad.append(f"{f}: cluster must be a list of cluster names, got {cl!r}")
+        if "blocked" in it:
+            bad.append(f"{f}: `blocked:` is stored, and whether a note is blocked is DERIVED (kb/Work PB3389): it waits "
+                       f"while a `blocked_by` note is open and is held while its status is owner or blocked, so a "
+                       f"stored copy can only go stale (a stale true hid PB1940 and PB1956; a blocker landing ahead "
+                       f"in the merge queue failed five pull requests' CI) — delete the line")
         if "tier" in it:
             good, malformed = tier_entries(it)
             for e in malformed:
@@ -628,19 +711,10 @@ def topology_problems(items: list[dict]) -> list[str]:
         if not isinstance(bb, list):
             bad.append(f"{f}: blocked_by must be a list of note ids, got {bb!r}")
             continue
-        unknown = [b for b in bb if b not in by_id]
-        for b in unknown:
+        for b in (b for b in bb if b not in by_id):
             bad.append(f"{f}: blocked_by names {b!r}, which is not a kb/Work note id — name the blocking note "
-                       f"(an owner question is a decision note), or keep `blocked: true` with an empty list and "
-                       f"say what blocks it in the body")
-        if unknown or not bb or it.get("status") in TERMINAL_STATUSES:
-            continue
-        still = open_blockers(it, by_id)
-        if bool(it.get("blocked")) != bool(still):
-            bad.append(f"{f}: blocked is {bool(it.get('blocked'))} but its blocked_by {bb} "
-                       + (f"still has {still} open" if still else "have all landed or retired")
-                       + " — set `blocked: " + ("true" if still else "false")
-                       + "` (a stale true hides the note from every work list)")
+                       f"(an owner question is a decision note), or hold the note with `status: blocked` (or "
+                       f"`owner`) and say what blocks it in the body")
     live = {i["id"]: i for i in items if i.get("status") not in TERMINAL_STATUSES and isinstance(i.get("blocked_by"), list)}
     state: dict[str, int] = {}
 
@@ -704,10 +778,11 @@ _MOVES_LINE = re.compile(r"^\*\*Moves or changes:\*\*(.*)$", re.M)
 _R2_MEMBERS = re.compile(r"^r2_members:[ \t]*(.*)$", re.M)
 _CODE_SPAN = re.compile(r"`([^`]+)`")
 _DOC_ID = re.compile(r"`[MPFETN]:([^`\s@]+)")
-#: A path token in a site block ends at whitespace, a quote, a bracket or a separator; a token holding a placeholder,
-#: a glob or an ellipsis is not a path.
+#: A path token in a site block ends at whitespace, a quote, a bracket or a separator. A token holding a placeholder or
+#: an ellipsis is no path and declares nothing; one holding `*` is a GLOB, a sweep over the tracked files it matches
+#: (note_sites, expand_globs; kb/Work PB3721).
 _PATH_CHAR = r"[^\s`'\"()\[\],;|]"
-_NOT_A_PATH = re.compile(r"[<>*{}…]|\.\.\.")
+_PLACEHOLDER = re.compile(r"[<>{}…]|\.\.\.")
 #: The external-repository slices are the notes whose title says so (kb/Work PB2097-PB2104).
 EXTERNAL_SLICE_TITLE = re.compile(r"\A\S+ — external repository slice \d+\b")
 
@@ -763,6 +838,11 @@ class NoteSites:
     #: with a code span; `(§8.7)` for a document's section). A path mentioned bare, with a `:line`, or with a prose
     #: parenthesis is the whole file and is absent here: the partition reads it whole (scripts/arch/source_units.py).
     members: dict[str, tuple[str, ...]] = dataclasses.field(default_factory=dict, hash=False)
+    #: The GLOBS its site blocks name (`scripts/**/*.py`, kb/Work PB3721): a sweep over the tracked files they match,
+    #: which `paths` holds, each claimed whole, only when the claim is read on a tree (`repo`: expand_globs).
+    globs: tuple[str, ...] = ()
+    #: A site block says `none (why)`: the note changes no code file, so a claim of nothing is its declaration.
+    no_code: bool = False
 
     @property
     def fix_lane(self) -> bool:
@@ -831,19 +911,25 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None, repo: pathlib.Pa
     block and only under a campaign root (`roots`, default campaign_domain()'s); a path in prose, a `Gate:` line or a
     tool command, and a bare type name, declare nothing. With `repo` (the tree the claim is planned on), a file's
     members count only when every one of them names a unit that file declares there (_members_located): a stale,
-    misspelt or prose name claims the file WHOLE, never a part of it no code matches (kb/Work PB3670 review R1-3)."""
+    misspelt or prose name claims the file WHOLE, never a part of it no code matches (kb/Work PB3670 review R1-3); and
+    a GLOB a block names (`scripts/**/*.py`: `globs`, always) is a sweep that claims every tracked file it matches
+    whole (expand_globs; added to `paths`, and a file a sweep matches loses any member claim), which is read only on a
+    tree: without `repo`, `paths` holds the literal paths and `globs` the patterns (kb/Work PB3721)."""
     text = text.replace(chr(13) + chr(10), chr(10))
     blocks = _site_blocks(text)
     token = _path_token(roots or campaign_domain().roots)
     paths: set[str] = set()
+    globs: set[str] = set()
     mentions: dict[str, list[tuple[str, ...]]] = {}   # path -> the members each mention names (() = the whole file)
     for b in blocks:
         for m in token.finditer(b):
             raw = m.group(1)
-            if _NOT_A_PATH.search(raw):
+            if _PLACEHOLDER.search(raw):
                 continue
             p = re.split(r"[:#]", raw, maxsplit=1)[0].rstrip(".,:").rstrip("/")
-            if "/" in p:   # a root alone ("src/") is no site
+            if "*" in p:
+                globs.add(p)
+            elif "/" in p:   # a root alone ("src/") is no site
                 paths.add(p)
                 mentions.setdefault(p, []).append(_mention_members(raw, b, m.end()))
     names: list[str] = []
@@ -858,7 +944,36 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None, repo: pathlib.Pa
     members = {p: tuple(sorted({n for ms in each for n in ms})) for p, each in mentions.items() if all(each)}
     if repo is not None:
         members = {p: ms for p, ms in members.items() if _members_located(repo / p, ms)}
-    return NoteSites(tuple(sorted(paths)), tuple(dict.fromkeys(names)), wave, bool(blocks), members)
+        swept = expand_globs(tuple(sorted(globs)), repo)
+        paths |= set(swept)
+        members = {p: ms for p, ms in members.items() if p not in swept}   # a sweep claims each file it matches whole
+    return NoteSites(tuple(sorted(paths)), tuple(dict.fromkeys(names)), wave, bool(blocks), members,
+                     tuple(sorted(globs)), any(_says_none(b) for b in blocks))
+
+
+def expand_globs(globs: tuple[str, ...], repo: pathlib.Path) -> tuple[str, ...]:
+    """The tracked files of `repo` that `globs` match, sorted (kb/Work PB3721): git's own `:(glob)` pathspec, where `*`
+    stays inside a folder and `**/` crosses folders (`scripts/**/*.py` matches `scripts/a.py` too), over the COMMITTED
+    tree, never the filesystem, so a build output or a worktree copy is no match and the answer is the same in CI. A
+    sweep note (PB3637: every `scripts/**/*.py` that calls `sys.stdout.reconfigure`, 71 files) is claimed through its
+    pattern, never through a hand list of the files it rewrites, which would drift."""
+    if not globs:
+        return ()
+    out = subprocess.run(["git", "-C", str(repo), "ls-files", "-z", "--", *(f":(glob){g}" for g in globs)],
+                         capture_output=True, check=True).stdout
+    return tuple(sorted({f for f in out.decode("utf-8").split("\0") if f and not is_build_output(f)}))
+
+
+#: What a site block that changes no code file says after its label: `**Sites:** none (why)`, or the heading form
+#: `## Code site` over a line that opens with None.
+_NONE_AFTER_LABEL = re.compile(r"\A[ \t]*(?:[-*][ \t]+)?none\b", re.I)
+
+
+def _says_none(block: str) -> bool:
+    """Whether a site block declares that the note changes no code file (`none (why)`)."""
+    first, _, rest = block.partition(chr(10))
+    label = _SITE_LABEL.match(first)
+    return bool(_NONE_AFTER_LABEL.match(first[label.end():] if label else rest.lstrip()))
 
 
 #: A member a site block names after its path: an identifier, dotted (`Type.Member`), with an optional `()`; a `~`
@@ -963,7 +1078,15 @@ def sites_problems(items: list[dict]) -> list[str]:
     """SITES_RULE for every open note from SITES_REQUIRED_FROM on (kb/Work PB3263), and for every open note of a
     campaign cluster or that tiers a campaign, whatever its id (campaign_leads, kb/Work PB3640): a note with no site
     block gives the planner's partition nothing to hold or check (kb/Work PB3670: it is planned UNPARTITIONED). A
-    `decision` note changes no file by itself and is exempt."""
+    `decision` note changes no file by itself and is exempt.
+
+    ⛔ A BLOCK THAT NAMES SOMETHING MUST DECLARE IT (kb/Work PB3721). The reader drops a path it cannot claim without a
+    word (a path outside every campaign root, a glob that matches no tracked file), and a note whose block names its
+    files that way declares an EMPTY set, which meets nothing: wave 20261107 planned PB3637 (71 scripts, named by a
+    glob) beside five groups on files it rewrites. So a note held to a site block must also CLAIM something: a path
+    under a campaign root, a glob matching tracked files, or `**Sites:** none (why)`; and every glob it names must
+    match a tracked file. The notes before SITES_REQUIRED_FROM that sit in no campaign keep their old shape (a block
+    naming files outside the roots, 15 of them on 2026-10-25): refusing them would turn the check into a backlog."""
     bad = []
     campaigns = campaign_leads(items)
     for it in items:
@@ -974,11 +1097,21 @@ def sites_problems(items: list[dict]) -> list[str]:
         from_cutover = bool(clusters) and number is not None and int(number.group(1)) >= SITES_REQUIRED_FROM
         if it.get("kind") == "decision" or it.get("status") in TERMINAL_STATUSES or not (from_cutover or in_campaign):
             continue
-        if not note_sites(it.get("_body", "")).declared:
+        sites = note_sites(it.get("_body", ""))
+        if not sites.declared:
             where = (f"names the campaign cluster(s) {', '.join(sorted(campaigns & set(clusters))) or 'it tiers'}"
                      if in_campaign else f"names the cluster(s) {', '.join(clusters)}")
             bad.append(f"{it['_file']}: {where} but declares no site block — {SITES_RULE}; without one the wave "
                        f"planner partitions nothing for it and plans it UNPARTITIONED (kb/Work PB3263, PB3640, PB3670)")
+            continue
+        dead = [g for g in sites.globs if not expand_globs((g,), REPO)]
+        bad += [f"{it['_file']}: its site glob `{g}` matches no tracked file, so it claims nothing (kb/Work PB3721)"
+                for g in dead]
+        if not (sites.paths or sites.no_code or sites.globs):
+            bad.append(f"{it['_file']}: its site block names no file the planner can claim, so the note is planned "
+                       f"UNPARTITIONED beside every group on the files it changes (kb/Work PB3721): name each file "
+                       f"under a campaign root ({', '.join(campaign_domain().roots)}), or a glob over tracked files "
+                       f"such as `scripts/**/*.py`, or write `**Sites:** none (why)` when it changes no code file")
     return bad
 
 
@@ -1243,8 +1376,8 @@ FIXTURE = REPO / "tests" / "version-matrix" / "work-frontmatter-cases.json"
 FIXTURE_REL = "tests/version-matrix/work-frontmatter-cases.json"
 
 
-def reading_view(text: str) -> dict:
-    """What a reader of this register SEES in one note — the normalized answer the reader must give.
+def reading_view(file: str, text: str) -> dict:
+    """What a reader of this register SEES in the file `file` holding `text` — the normalized answer it must give.
 
     Absent and empty are deliberately the same answer for a list (`[]`) and for a scalar (`""`): the register's checks
     ask what a note SAYS, and a key that is missing says exactly as much as a key that is empty. What is NOT
@@ -1252,18 +1385,21 @@ def reading_view(text: str) -> dict:
     fail-open that `kb/Work/PB875` is about.
 
     `terminal` is what the DONE vocabulary (TERMINAL_STATUSES) makes of the status: the register's checks read DONE
-    through it, so it is compared like any field (kb/Work PB3196).
+    through it, so it is compared like any field (kb/Work PB3196). `refusal` is what read_note says of a file that is
+    not a note: empty for an index or a README (skipped), the reason for a file NAMED like a note whose frontmatter
+    does not parse (kb/Work PB3654).
     """
-    d = parse_frontmatter(text)
+    d, refusal = read_note(file, text)
     if d is None:
         return {"note": False, "id": "", "kind": "", "status": "", "terminal": False, "inventory_rows": [],
-                "closes_rows": [], "closes_rows_reason": "", "errors": []}
+                "closes_rows": [], "closes_rows_reason": "", "errors": [], "refusal": refusal}
     scalar = lambda k: (v if isinstance(v := d.get(k, ""), str) else str(v))       # noqa: E731
     lst = lambda k: (v if isinstance(v := d.get(k, []), list) else [])             # noqa: E731
     return {"note": True, "id": scalar("id"), "kind": scalar("kind"), "status": scalar("status"),
             "terminal": scalar("status") in TERMINAL_STATUSES,
             "inventory_rows": lst("inventory_rows"), "closes_rows": lst("closes_rows"),
-            "closes_rows_reason": scalar("closes_rows_reason"), "errors": sorted(d.get("_errors", []))}
+            "closes_rows_reason": scalar("closes_rows_reason"), "errors": sorted(d.get("_errors", [])),
+            "refusal": ""}
 
 
 def _wrapped_list(text: str) -> bool:
@@ -1284,6 +1420,55 @@ def case_findings(fixture: dict, answers: list[dict]) -> list[str]:
     return bad
 
 
+def directory_findings(fixture: dict) -> list[str]:
+    """The fixture's files written into a directory and read as a register (kb/Work PB3654): `register_problems` and
+    `load` refuse each file named like a note that does not parse, `check --work` counts the DIRECTORY's notes (it once
+    checked `kb/Work` whatever `--work` said, so the seam could not witness a refusal), and an index is skipped."""
+    import contextlib  # noqa: PLC0415
+    import io  # noqa: PLC0415
+    import tempfile  # noqa: PLC0415
+
+    bad: list[str] = []
+    with tempfile.TemporaryDirectory(prefix="work-register-cases-") as tmp:
+        everything = pathlib.Path(tmp, "everything")
+        everything.mkdir()
+        refused = {}
+        for c in fixture["cases"]:
+            (everything / c["file"]).write_bytes(c["text"].encode("utf-8"))
+            if c["expect"]["refusal"]:
+                refused[c["file"]] = c["expect"]["refusal"]
+        _, problems = register_problems(everything)
+        bad += [f"register_problems over the fixture directory does not report: {why}"
+                for why in refused.values() if why not in problems]
+        bad += [f"register_problems reports a file that is no refusal of the fixture: {p}"
+                for p in problems if "unreadable as a work note" in p and p not in refused.values()]
+        try:
+            load(everything)
+            bad.append("load() answered a directory holding an unreadable note instead of stopping")
+        except SystemExit as stop:
+            bad += [f"load()'s refusal does not name {name}" for name in refused if name not in str(stop)]
+        good = pathlib.Path(tmp, "good")
+        good.mkdir()
+        (good / "PB1.md").write_bytes(("---" + chr(10) + "id: PB1" + chr(10) + "kind: defect" + chr(10)
+                                       + "status: landed" + chr(10) + "area: x" + chr(10) + "closes_rows: []"
+                                       + chr(10) + 'closes_rows_reason: "none"' + chr(10) + "---" + chr(10)
+                                       + "body" + chr(10)).encode("utf-8"))
+        (good / "README.md").write_bytes(b"not a note")
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = check(good)
+        if code != 0 or "1 work items" not in out.getvalue():
+            bad.append(f"check --work over one good note and an index answered {code}: {out.getvalue().strip()!r}")
+        for name in refused:
+            (good / name).write_bytes(next(c["text"] for c in fixture["cases"] if c["file"] == name).encode("utf-8"))
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = check(good)
+        if code == 0 or not all(name in out.getvalue() for name in refused):
+            bad.append(f"check --work over a directory holding unreadable notes answered {code}: {out.getvalue().strip()!r}")
+    return bad
+
+
 def self_test() -> int:
     """Evaluate `tests/version-matrix/work-frontmatter-cases.json` against `parse_frontmatter`.
 
@@ -1296,7 +1481,7 @@ def self_test() -> int:
         print(f"⛔ fixture not found: {FIXTURE_REL}")
         return 1
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
-    answers = [{"name": c["name"], **reading_view(c["text"])} for c in fixture["cases"]]
+    answers = [{"name": c["name"], **reading_view(c["file"], c["text"])} for c in fixture["cases"]]
     findings = case_findings(fixture, answers)
 
     # POPULATION — the shapes this register actually contains, each of which broke a reader once.
@@ -1305,6 +1490,7 @@ def self_test() -> int:
         "a malformed value reported as an error": any(a["errors"] for a in answers),
         "a file that is not a note": any(not a["note"] for a in answers),
         "CRLF line endings": any("\r\n" in c["text"] for c in fixture["cases"]),
+        "a file named like a note whose frontmatter does not parse": any(a["refusal"] for a in answers),
     }
     findings += [f"the fixture carries no case for {what} — it cannot be measuring that shape"
                  for what, ok in covered.items() if not ok]
@@ -1319,10 +1505,13 @@ def self_test() -> int:
     if len(fixture["cases"]) < 8:
         findings.append(f'{len(fixture["cases"])} case(s) — too few to be measuring the reader')
 
+    findings += directory_findings(fixture)
+
     # FALSIFICATION — the comparison must be able to fail, or "no disagreement" is a statement about nothing.
     corrupted = json.loads(json.dumps(fixture))
     corrupted["cases"][0]["expect"]["id"] = corrupted["cases"][0]["expect"].get("id", "") + "-X"
-    if not case_findings(corrupted, [{"name": c["name"], **reading_view(c["text"])} for c in corrupted["cases"]]):
+    if not case_findings(corrupted, [{"name": c["name"], **reading_view(c["file"], c["text"])}
+                                     for c in corrupted["cases"]]):
         findings.append("a fixture whose expected id is WRONG produced no finding — the comparison is inert")
 
     print(f"cases  : {len(answers)} from {FIXTURE_REL}")
@@ -1345,10 +1534,6 @@ def main() -> int:
     ap.add_argument("--cluster", metavar="LEAD", help="next: the open notes whose `cluster` names LEAD, in blocked_by "
                     "order, whatever their harm flags (a campaign; exit 1 when no note names it)")
     a = ap.parse_args()
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:  # noqa: BLE001
-        pass
     if a.self_test:
         return self_test()
     if a.cmd is None:
@@ -1356,7 +1541,7 @@ def main() -> int:
     if a.cmd == "migrate":
         return migrate()
     if a.cmd == "check":
-        return check()
+        return check(pathlib.Path(a.work))
     if a.cluster and a.cmd != "next":
         ap.error("--cluster goes with next")
     items = load(pathlib.Path(a.work))
@@ -1378,4 +1563,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())

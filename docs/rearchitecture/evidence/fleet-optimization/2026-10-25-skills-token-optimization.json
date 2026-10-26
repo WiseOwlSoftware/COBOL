@@ -1,0 +1,5899 @@
+{
+ "_frozen": "Frozen evidence (kb/Work PB785): written once on 2026-10-25 when the skills token-optimization analysis ended; never edited to stay current.",
+ "experiment": "2026-10-25-skills-token-optimization",
+ "question": "Which of the fixed preamble (skills, briefs, MANDATORY-PRACTICES, CLAUDE.md, memory, tool schemas) each dispatched role pays for and never uses, and what cutting it saves per week.",
+ "window": "telemetry 2026-10-24T22:40Z to 2026-10-25T22:42Z (both accounts, 14.3K api calls); 105 agent transcripts of the operator session 5ea5 (11 workflows, 2026-10-25 11:01-15:41 PDT); 46 loop-unit stream logs; the owner's /plugin Stats tab (7 days)",
+ "prices_usd_per_mtok": {
+  "claude-mythos-5-1": {
+   "in": -18.71357054958571,
+   "cc": 13.683112813399584,
+   "cr": 0.4137225780734635,
+   "out": 46.18821946544085
+  },
+  "claude-opus-5-5": {
+   "in": 3.988188457885179,
+   "cc": 8.000088734648873,
+   "cr": 0.20000556436408023,
+   "out": 19.993864548337733
+  },
+  "claude-sonnet-5-5": {
+   "in": 1.611050559093812,
+   "cc": 3.7763934388712794,
+   "cr": 0.10139733372411995,
+   "out": 10.002718731158946
+  }
+ },
+ "measurement_tables": {
+  "S1_roles_24h_telemetry": {
+   "total_usd": 849.11,
+   "window": "2026-10-24T22:40Z..2026-10-25T22:42Z",
+   "rows": [
+    {
+     "role": "cobol-implementer*",
+     "agents": 57,
+     "events": 4888,
+     "turns_total": 4888,
+     "turns_median": 67,
+     "input": 9776,
+     "cache_write": 11276849,
+     "cache_read": 918869391,
+     "output": 3312259,
+     "usd": 227.21,
+     "share_pct": 26.8,
+     "cr_share_of_usd_pct": 81.0
+    },
+    {
+     "role": "other-session-main:repl_main_thread",
+     "agents": 0,
+     "events": 1082,
+     "turns_total": null,
+     "turns_median": null,
+     "input": 2826,
+     "cache_write": 2513123,
+     "cache_read": 508234252,
+     "output": 793835,
+     "usd": 139.77,
+     "share_pct": 16.5,
+     "cr_share_of_usd_pct": 73.0
+    },
+    {
+     "role": "cobol-implementer",
+     "agents": 27,
+     "events": 2749,
+     "turns_total": 2749,
+     "turns_median": 97,
+     "input": 5498,
+     "cache_write": 5956251,
+     "cache_read": 568687206,
+     "output": 1894341,
+     "usd": 126.66,
+     "share_pct": 14.9,
+     "cr_share_of_usd_pct": 90.0
+    },
+    {
+     "role": "opus-high-short(reviewer|adjudicator|finisher)*",
+     "agents": 67,
+     "events": 1909,
+     "turns_total": 1909,
+     "turns_median": 24,
+     "input": 3824,
+     "cache_write": 6996336,
+     "cache_read": 194423464,
+     "output": 1235986,
+     "usd": 119.59,
+     "share_pct": 14.1,
+     "cr_share_of_usd_pct": 33.0
+    },
+    {
+     "role": "cobol-reviewer",
+     "agents": 31,
+     "events": 772,
+     "turns_total": 772,
+     "turns_median": 22,
+     "input": 1544,
+     "cache_write": 2986706,
+     "cache_read": 77435952,
+     "output": 458940,
+     "usd": 48.57,
+     "share_pct": 5.7,
+     "cr_share_of_usd_pct": 32.0
+    },
+    {
+     "role": "main-session(this orchestrator)",
+     "agents": 0,
+     "events": 413,
+     "turns_total": null,
+     "turns_median": null,
+     "input": 1744,
+     "cache_write": 772833,
+     "cache_read": 154306529,
+     "output": 214723,
+     "usd": 44.75,
+     "share_pct": 5.3,
+     "cr_share_of_usd_pct": 69.0
+    },
+    {
+     "role": "loop-unit-own:enqueue",
+     "agents": 0,
+     "events": 427,
+     "turns_total": null,
+     "turns_median": null,
+     "input": 900,
+     "cache_write": 987682,
+     "cache_read": 63191537,
+     "output": 246527,
+     "usd": 25.47,
+     "share_pct": 3.0,
+     "cr_share_of_usd_pct": 50.0
+    },
+    {
+     "role": "cobol-adjudicator",
+     "agents": 12,
+     "events": 413,
+     "turns_total": 413,
+     "turns_median": 35.0,
+     "input": 826,
+     "cache_write": 1160652,
+     "cache_read": 37744306,
+     "output": 328355,
+     "usd": 23.4,
+     "share_pct": 2.8,
+     "cr_share_of_usd_pct": 32.0
+    },
+    {
+     "role": "cobol-finisher",
+     "agents": 10,
+     "events": 359,
+     "turns_total": 359,
+     "turns_median": 36.0,
+     "input": 718,
+     "cache_write": 1015248,
+     "cache_read": 36441938,
+     "output": 171577,
+     "usd": 18.84,
+     "share_pct": 2.2,
+     "cr_share_of_usd_pct": 39.0
+    },
+    {
+     "role": "loop-unit-own:campaign",
+     "agents": 0,
+     "events": 225,
+     "turns_total": null,
+     "turns_median": null,
+     "input": 450,
+     "cache_write": 584845,
+     "cache_read": 28030354,
+     "output": 115947,
+     "usd": 12.61,
+     "share_pct": 1.5,
+     "cr_share_of_usd_pct": 44.0
+    },
+    {
+     "role": "claude",
+     "agents": 1,
+     "events": 17,
+     "turns_total": 17,
+     "turns_median": 17,
+     "input": 514,
+     "cache_write": 446056,
+     "cache_read": 2884255,
+     "output": 104362,
+     "usd": 11.52,
+     "share_pct": 1.4,
+     "cr_share_of_usd_pct": 5.0
+    },
+    {
+     "role": "loop-unit-own:resume",
+     "agents": 0,
+     "events": 191,
+     "turns_total": null,
+     "turns_median": null,
+     "input": 388,
+     "cache_write": 423926,
+     "cache_read": 18559274,
+     "output": 100843,
+     "usd": 9.12,
+     "share_pct": 1.1,
+     "cr_share_of_usd_pct": 41.0
+    },
+    {
+     "role": "overhead:prompt_suggestion",
+     "agents": 0,
+     "events": 66,
+     "turns_total": null,
+     "turns_median": null,
+     "input": 32474,
+     "cache_write": 31880,
+     "cache_read": 29859267,
+     "output": 1188,
+     "usd": 6.43,
+     "share_pct": 0.8,
+     "cr_share_of_usd_pct": 93.0
+    },
+    {
+     "role": "cobol-clerk",
+     "agents": 11,
+     "events": 220,
+     "turns_total": 220,
+     "turns_median": 19,
+     "input": 440,
+     "cache_write": 1051610,
+     "cache_read": 16387981,
+     "output": 158974,
+     "usd": 5.86,
+     "share_pct": 0.7,
+     "cr_share_of_usd_pct": 56.0
+    },
+    {
+     "role": "cobol-locator*",
+     "agents": 48,
+     "events": 96,
+     "turns_total": 96,
+     "turns_median": 2.0,
+     "input": 192,
+     "cache_write": 1299907,
+     "cache_read": 2840518,
+     "output": 13709,
+     "usd": 5.62,
+     "share_pct": 0.7,
+     "cr_share_of_usd_pct": 10.0
+    },
+    {
+     "role": "loop-unit-own:wave",
+     "agents": 0,
+     "events": 107,
+     "turns_total": null,
+     "turns_median": null,
+     "input": 214,
+     "cache_write": 241106,
+     "cache_read": 12286175,
+     "output": 47599,
+     "usd": 5.34,
+     "share_pct": 0.6,
+     "cr_share_of_usd_pct": 46.0
+    },
+    {
+     "role": "cobol-locator",
+     "agents": 24,
+     "events": 86,
+     "turns_total": 86,
+     "turns_median": 2.0,
+     "input": 172,
+     "cache_write": 873119,
+     "cache_read": 5709297,
+     "output": 55339,
+     "usd": 4.62,
+     "share_pct": 0.5,
+     "cr_share_of_usd_pct": 25.0
+    },
+    {
+     "role": "cobol-refuter",
+     "agents": 2,
+     "events": 59,
+     "turns_total": 59,
+     "turns_median": 29.5,
+     "input": 118,
+     "cache_write": 236926,
+     "cache_read": 5486161,
+     "output": 68530,
+     "usd": 4.36,
+     "share_pct": 0.5,
+     "cr_share_of_usd_pct": 25.0
+    },
+    {
+     "role": "overhead:agent_summary",
+     "agents": 19,
+     "events": 126,
+     "turns_total": 548,
+     "turns_median": 25,
+     "input": 182995,
+     "cache_write": 79238,
+     "cache_read": 13454877,
+     "output": 2511,
+     "usd": 3.54,
+     "share_pct": 0.4,
+     "cr_share_of_usd_pct": 76.0
+    },
+    {
+     "role": "overhead:away_summary",
+     "agents": 0,
+     "events": 26,
+     "turns_total": null,
+     "turns_median": null,
+     "input": 2496,
+     "cache_write": 6409,
+     "cache_read": 12811965,
+     "output": 2670,
+     "usd": 2.68,
+     "share_pct": 0.3,
+     "cr_share_of_usd_pct": 96.0
+    },
+    {
+     "role": "loop-unit-own:meter",
+     "agents": 0,
+     "events": 22,
+     "turns_total": null,
+     "turns_median": null,
+     "input": 44,
+     "cache_write": 352419,
+     "cache_read": 952655,
+     "output": 4372,
+     "usd": 1.55,
+     "share_pct": 0.2,
+     "cr_share_of_usd_pct": 12.0
+    },
+    {
+     "role": "cobol-clerk*",
+     "agents": 1,
+     "events": 36,
+     "turns_total": 36,
+     "turns_median": 36,
+     "input": 72,
+     "cache_write": 157134,
+     "cache_read": 4159367,
+     "output": 35046,
+     "usd": 1.16,
+     "share_pct": 0.1,
+     "cr_share_of_usd_pct": 72.0
+    },
+    {
+     "role": "overhead:compact",
+     "agents": 0,
+     "events": 1,
+     "turns_total": null,
+     "turns_median": null,
+     "input": 2093,
+     "cache_write": 1373,
+     "cache_read": 917961,
+     "output": 10139,
+     "usd": 0.4,
+     "share_pct": 0.0,
+     "cr_share_of_usd_pct": 46.0
+    },
+    {
+     "role": "overhead:web_search_tool",
+     "agents": 2,
+     "events": 3,
+     "turns_total": 72,
+     "turns_median": 36.0,
+     "input": 41130,
+     "cache_write": 0,
+     "cache_read": 0,
+     "output": 4108,
+     "usd": 0.04,
+     "share_pct": 0.0,
+     "cr_share_of_usd_pct": 0.0
+    },
+    {
+     "role": "other-agent*",
+     "agents": 1,
+     "events": 3,
+     "turns_total": 3,
+     "turns_median": 3,
+     "input": 6,
+     "cache_write": 40819,
+     "cache_read": 39222,
+     "output": 3015,
+     "usd": 0.01,
+     "share_pct": 0.0,
+     "cr_share_of_usd_pct": 112.0
+    },
+    {
+     "role": "overhead:web_fetch_apply",
+     "agents": 1,
+     "events": 2,
+     "turns_total": 37,
+     "turns_median": 37,
+     "input": 3763,
+     "cache_write": 0,
+     "cache_read": 0,
+     "output": 2734,
+     "usd": 0.0,
+     "share_pct": 0.0,
+     "cr_share_of_usd_pct": 0.0
+    }
+   ],
+   "note": "* = role INFERRED from model+effort+turn count (no transcript on disk for that agent); unmarked = named by transcript meta or unit-log task_progress"
+  },
+  "S1_account_usd": {
+   "5ea5": 283.5,
+   "c1d7": 565.6
+  },
+  "S1_skillname_usd": {
+   "-": 548.8,
+   "session-start": 8.2,
+   "superpowers:systematic-debugging": 1.2,
+   "workstream": 2.0,
+   "third-party": 267.9,
+   "gate": 2.3,
+   "workflow-authoring": 12.7,
+   "spec-lookup": 0.1,
+   "chrome-browser": 6.0
+  },
+  "S2_fit_check": {
+   "n": 105,
+   "transcript_usd": 233.31,
+   "telemetry_usd": 232.84
+  },
+  "S2_roles_transcripts": [
+   {
+    "role": "claude",
+    "agents": 1,
+    "turns_total": 17,
+    "turns_median": 17,
+    "input": 514,
+    "cache_write": 446056,
+    "cache_read": 2884255,
+    "output": 104362,
+    "usd": 12.11,
+    "ctx1_median": 53117,
+    "baseline_share_of_input_pct": 27.1,
+    "baseline_usd_share_pct": 8.9,
+    "usd_by_component_pct": {
+     "in": -0.1,
+     "cc": 50.4,
+     "cr": 9.9,
+     "out": 39.8
+    },
+    "instr_reads_per_agent": 1.0,
+    "instr_tokens_per_agent": 1373,
+    "instr_files_share_of_input_pct": 0.7,
+    "instr_only_share_of_input_pct": 0.0,
+    "instr_usd_share_pct": 0.2,
+    "all_reads_share_of_input_pct": 12.3,
+    "work_growth_share_pct": 60.6,
+    "first_edit_turn_median": 9,
+    "agents_with_edit": 1,
+    "mp_agents_touching": 1,
+    "mp_tokens_median_per_touching_agent": 98,
+    "mp_agents_whole_cat_persisted": 0,
+    "mp_calls_median": 1,
+    "by_category": {
+     "brief:dispatch-spec/brief": {
+      "reads": 1,
+      "tokens": 1373,
+      "token_turns": 21964
+     },
+     "task:code/other": {
+      "reads": 24,
+      "tokens": 21198,
+      "token_turns": 245928
+     },
+     "task:design-doc": {
+      "reads": 24,
+      "tokens": 12004,
+      "token_turns": 141523
+     }
+    }
+   },
+   {
+    "role": "cobol-adjudicator",
+    "agents": 12,
+    "turns_total": 413,
+    "turns_median": 35.0,
+    "input": 826,
+    "cache_write": 1160652,
+    "cache_read": 37744306,
+    "output": 328355,
+    "usd": 23.4,
+    "ctx1_median": 53566.0,
+    "baseline_share_of_input_pct": 56.9,
+    "baseline_usd_share_pct": 30.8,
+    "usd_by_component_pct": {
+     "in": 0.0,
+     "cc": 39.7,
+     "cr": 32.3,
+     "out": 28.1
+    },
+    "instr_reads_per_agent": 1.08,
+    "instr_tokens_per_agent": 899,
+    "instr_files_share_of_input_pct": 0.9,
+    "instr_only_share_of_input_pct": 0.0,
+    "instr_usd_share_pct": 0.7,
+    "all_reads_share_of_input_pct": 12.7,
+    "work_growth_share_pct": 30.4,
+    "first_edit_turn_median": 23.0,
+    "agents_with_edit": 12,
+    "mp_agents_touching": 0,
+    "mp_tokens_median_per_touching_agent": 0,
+    "mp_agents_whole_cat_persisted": 0,
+    "mp_calls_median": 0,
+    "by_category": {
+     "brief:dispatch-spec/brief": {
+      "reads": 12,
+      "tokens": 10289,
+      "token_turns": 343737
+     },
+     "instr:PROMPT.md": {
+      "reads": 1,
+      "tokens": 499,
+      "token_turns": 11976
+     },
+     "scratch/coord": {
+      "reads": 22,
+      "tokens": 8982,
+      "token_turns": 240779
+     },
+     "task:code/other": {
+      "reads": 133,
+      "tokens": 110308,
+      "token_turns": 2892290
+     },
+     "task:design-doc": {
+      "reads": 9,
+      "tokens": 12846,
+      "token_turns": 253247
+     },
+     "task:kb-note": {
+      "reads": 6,
+      "tokens": 4484,
+      "token_turns": 100631
+     },
+     "task:spec": {
+      "reads": 42,
+      "tokens": 42946,
+      "token_turns": 1113974
+     }
+    }
+   },
+   {
+    "role": "cobol-clerk",
+    "agents": 4,
+    "turns_total": 78,
+    "turns_median": 19.0,
+    "input": 156,
+    "cache_write": 398423,
+    "cache_read": 6408527,
+    "output": 45430,
+    "usd": 2.61,
+    "ctx1_median": 50832.0,
+    "baseline_share_of_input_pct": 58.2,
+    "baseline_usd_share_pct": 40.7,
+    "usd_by_component_pct": {
+     "in": 0.0,
+     "cc": 57.7,
+     "cr": 24.9,
+     "out": 17.4
+    },
+    "instr_reads_per_agent": 0.25,
+    "instr_tokens_per_agent": 270,
+    "instr_files_share_of_input_pct": 0.3,
+    "instr_only_share_of_input_pct": 0.0,
+    "instr_usd_share_pct": 0.2,
+    "all_reads_share_of_input_pct": 14.4,
+    "work_growth_share_pct": 27.3,
+    "first_edit_turn_median": 10.5,
+    "agents_with_edit": 4,
+    "mp_agents_touching": 0,
+    "mp_tokens_median_per_touching_agent": 0,
+    "mp_agents_whole_cat_persisted": 0,
+    "mp_calls_median": 0,
+    "by_category": {
+     "brief:dispatch-spec/brief": {
+      "reads": 1,
+      "tokens": 1080,
+      "token_turns": 19440
+     },
+     "scratch/coord": {
+      "reads": 6,
+      "tokens": 2536,
+      "token_turns": 44265
+     },
+     "task:code/other": {
+      "reads": 32,
+      "tokens": 53561,
+      "token_turns": 765786
+     },
+     "task:kb-note": {
+      "reads": 8,
+      "tokens": 11308,
+      "token_turns": 152948
+     }
+    }
+   },
+   {
+    "role": "cobol-finisher",
+    "agents": 7,
+    "turns_total": 270,
+    "turns_median": 39,
+    "input": 540,
+    "cache_write": 741577,
+    "cache_read": 29962550,
+    "output": 127133,
+    "usd": 14.47,
+    "ctx1_median": 53788,
+    "baseline_share_of_input_pct": 47.3,
+    "baseline_usd_share_pct": 32.1,
+    "usd_by_component_pct": {
+     "in": 0.0,
+     "cc": 41.0,
+     "cr": 41.4,
+     "out": 17.6
+    },
+    "instr_reads_per_agent": 3.71,
+    "instr_tokens_per_agent": 14730,
+    "instr_files_share_of_input_pct": 13.2,
+    "instr_only_share_of_input_pct": 12.9,
+    "instr_usd_share_pct": 11.3,
+    "all_reads_share_of_input_pct": 18.6,
+    "work_growth_share_pct": 34.1,
+    "first_edit_turn_median": 14.5,
+    "agents_with_edit": 6,
+    "mp_agents_touching": 7,
+    "mp_tokens_median_per_touching_agent": 17484,
+    "mp_agents_whole_cat_persisted": 7,
+    "mp_calls_median": 2,
+    "by_category": {
+     "brief:dispatch-spec/brief": {
+      "reads": 5,
+      "tokens": 3211,
+      "token_turns": 95881
+     },
+     "instr:MANDATORY-PRACTICES": {
+      "reads": 14,
+      "tokens": 86610,
+      "token_turns": 3462834
+     },
+     "instr:workstream-templates": {
+      "reads": 7,
+      "tokens": 13291,
+      "token_turns": 498736
+     },
+     "scratch/coord": {
+      "reads": 26,
+      "tokens": 9074,
+      "token_turns": 95524
+     },
+     "task:code/other": {
+      "reads": 87,
+      "tokens": 47549,
+      "token_turns": 1443677
+     },
+     "task:design-doc": {
+      "reads": 4,
+      "tokens": 3684,
+      "token_turns": 93564
+     },
+     "task:kb-note": {
+      "reads": 2,
+      "tokens": 1833,
+      "token_turns": 11661
+     }
+    }
+   },
+   {
+    "role": "cobol-implementer",
+    "agents": 27,
+    "turns_total": 2749,
+    "turns_median": 97,
+    "input": 5498,
+    "cache_write": 5956251,
+    "cache_read": 568687206,
+    "output": 1894341,
+    "usd": 126.22,
+    "ctx1_median": 55265,
+    "baseline_share_of_input_pct": 26.4,
+    "baseline_usd_share_pct": 18.4,
+    "usd_by_component_pct": {
+     "in": 0.0,
+     "cc": 22.6,
+     "cr": 58.1,
+     "out": 19.3
+    },
+    "instr_reads_per_agent": 4.11,
+    "instr_tokens_per_agent": 10995,
+    "instr_files_share_of_input_pct": 5.1,
+    "instr_only_share_of_input_pct": 3.5,
+    "instr_usd_share_pct": 3.9,
+    "all_reads_share_of_input_pct": 19.5,
+    "work_growth_share_pct": 54.1,
+    "first_edit_turn_median": 20,
+    "agents_with_edit": 27,
+    "mp_agents_touching": 22,
+    "mp_tokens_median_per_touching_agent": 2746,
+    "mp_agents_whole_cat_persisted": 16,
+    "mp_calls_median": 2.0,
+    "by_category": {
+     "brief:dispatch-spec/brief": {
+      "reads": 28,
+      "tokens": 91340,
+      "token_turns": 9077220
+     },
+     "instr:MANDATORY-PRACTICES": {
+      "reads": 26,
+      "tokens": 92963,
+      "token_turns": 10323519
+     },
+     "instr:public-skill": {
+      "reads": 10,
+      "tokens": 10894,
+      "token_turns": 716556
+     },
+     "instr:workstream-templates": {
+      "reads": 47,
+      "tokens": 101665,
+      "token_turns": 9098385
+     },
+     "scratch/coord": {
+      "reads": 201,
+      "tokens": 43902,
+      "token_turns": 2827591
+     },
+     "task:code/other": {
+      "reads": 839,
+      "tokens": 662816,
+      "token_turns": 66649414
+     },
+     "task:design-doc": {
+      "reads": 70,
+      "tokens": 39010,
+      "token_turns": 3039286
+     },
+     "task:kb-note": {
+      "reads": 130,
+      "tokens": 82880,
+      "token_turns": 8219555
+     },
+     "task:spec": {
+      "reads": 28,
+      "tokens": 22348,
+      "token_turns": 2043864
+     }
+    }
+   },
+   {
+    "role": "cobol-locator",
+    "agents": 24,
+    "turns_total": 86,
+    "turns_median": 2.0,
+    "input": 172,
+    "cache_write": 873119,
+    "cache_read": 5709297,
+    "output": 55339,
+    "usd": 4.43,
+    "ctx1_median": 53577.0,
+    "baseline_share_of_input_pct": 69.7,
+    "baseline_usd_share_pct": 70.4,
+    "usd_by_component_pct": {
+     "in": 0.0,
+     "cc": 74.4,
+     "cr": 13.1,
+     "out": 12.5
+    },
+    "instr_reads_per_agent": 0.08,
+    "instr_tokens_per_agent": 114,
+    "instr_files_share_of_input_pct": 1.6,
+    "instr_only_share_of_input_pct": 0.0,
+    "instr_usd_share_pct": 0.5,
+    "all_reads_share_of_input_pct": 3.2,
+    "work_growth_share_pct": 27.1,
+    "first_edit_turn_median": 19,
+    "agents_with_edit": 1,
+    "mp_agents_touching": 1,
+    "mp_tokens_median_per_touching_agent": 2139,
+    "mp_agents_whole_cat_persisted": 0,
+    "mp_calls_median": 1,
+    "by_category": {
+     "brief:dispatch-spec/brief": {
+      "reads": 2,
+      "tokens": 2746,
+      "token_turns": 103454
+     },
+     "scratch/coord": {
+      "reads": 1,
+      "tokens": 1393,
+      "token_turns": 50139
+     },
+     "task:code/other": {
+      "reads": 7,
+      "tokens": 3023,
+      "token_turns": 56950
+     }
+    }
+   },
+   {
+    "role": "cobol-refuter",
+    "agents": 2,
+    "turns_total": 59,
+    "turns_median": 29.5,
+    "input": 118,
+    "cache_write": 236926,
+    "cache_read": 5486161,
+    "output": 68530,
+    "usd": 4.36,
+    "ctx1_median": 55388.0,
+    "baseline_share_of_input_pct": 57.0,
+    "baseline_usd_share_pct": 30.2,
+    "usd_by_component_pct": {
+     "in": 0.0,
+     "cc": 43.4,
+     "cr": 25.1,
+     "out": 31.4
+    },
+    "instr_reads_per_agent": 0.0,
+    "instr_tokens_per_agent": 0,
+    "instr_files_share_of_input_pct": 0.0,
+    "instr_only_share_of_input_pct": 0.0,
+    "instr_usd_share_pct": 0.0,
+    "all_reads_share_of_input_pct": 11.8,
+    "work_growth_share_pct": 31.2,
+    "first_edit_turn_median": 27.5,
+    "agents_with_edit": 2,
+    "mp_agents_touching": 0,
+    "mp_tokens_median_per_touching_agent": 0,
+    "mp_agents_whole_cat_persisted": 0,
+    "mp_calls_median": 0,
+    "by_category": {
+     "scratch/coord": {
+      "reads": 4,
+      "tokens": 9244,
+      "token_turns": 145904
+     },
+     "task:code/other": {
+      "reads": 18,
+      "tokens": 10235,
+      "token_turns": 190712
+     },
+     "task:design-doc": {
+      "reads": 6,
+      "tokens": 2038,
+      "token_turns": 34611
+     },
+     "task:spec": {
+      "reads": 13,
+      "tokens": 14142,
+      "token_turns": 303761
+     }
+    }
+   },
+   {
+    "role": "cobol-reviewer",
+    "agents": 28,
+    "turns_total": 712,
+    "turns_median": 23.0,
+    "input": 1424,
+    "cache_write": 2789442,
+    "cache_read": 73848651,
+    "output": 431320,
+    "usd": 45.72,
+    "ctx1_median": 55350.5,
+    "baseline_share_of_input_pct": 51.5,
+    "baseline_usd_share_pct": 31.4,
+    "usd_by_component_pct": {
+     "in": 0.0,
+     "cc": 48.8,
+     "cr": 32.3,
+     "out": 18.9
+    },
+    "instr_reads_per_agent": 1.82,
+    "instr_tokens_per_agent": 4283,
+    "instr_files_share_of_input_pct": 4.0,
+    "instr_only_share_of_input_pct": 1.8,
+    "instr_usd_share_pct": 3.4,
+    "all_reads_share_of_input_pct": 12.0,
+    "work_growth_share_pct": 36.5,
+    "first_edit_turn_median": 17.0,
+    "agents_with_edit": 4,
+    "mp_agents_touching": 5,
+    "mp_tokens_median_per_touching_agent": 438,
+    "mp_agents_whole_cat_persisted": 0,
+    "mp_calls_median": 1,
+    "by_category": {
+     "brief:dispatch-spec/brief": {
+      "reads": 21,
+      "tokens": 66218,
+      "token_turns": 1710435
+     },
+     "instr:project-skill": {
+      "reads": 27,
+      "tokens": 49181,
+      "token_turns": 1268062
+     },
+     "instr:public-skill": {
+      "reads": 3,
+      "tokens": 4534,
+      "token_turns": 77054
+     },
+     "scratch/coord": {
+      "reads": 49,
+      "tokens": 41151,
+      "token_turns": 1026575
+     },
+     "task:code/other": {
+      "reads": 168,
+      "tokens": 221128,
+      "token_turns": 4815837
+     },
+     "task:design-doc": {
+      "reads": 4,
+      "tokens": 1855,
+      "token_turns": 12974
+     },
+     "task:kb-note": {
+      "reads": 13,
+      "tokens": 10673,
+      "token_turns": 219288
+     },
+     "task:spec": {
+      "reads": 11,
+      "tokens": 6393,
+      "token_turns": 94191
+     }
+    }
+   }
+  ],
+  "S2_overall": {
+   "agents": 105,
+   "usd": 233.31,
+   "baseline_usd_share_pct": 24.0,
+   "instr_and_brief_usd_share_pct": 3.56,
+   "instr_only_usd_share_pct": 2.42,
+   "all_file_reads_usd_share_pct": 13.1,
+   "comp_pct": {
+    "in": 0.0,
+    "cc": 33.8,
+    "cr": 45.1,
+    "out": 21.1
+   }
+  },
+  "S2_preamble_files_by_role": [
+   {
+    "role": "claude",
+    "file": "E:/COBOL-coord/scratch/mythos/design-PB3726-brief.md",
+    "agents_reading": 1,
+    "agents_in_role": 1,
+    "reads": 1,
+    "tokens_per_read_median": 1373,
+    "token_turns": 21964
+   },
+   {
+    "role": "cobol-adjudicator",
+    "file": "E:/COBOL-coord/scratch/mythos/adj-20261025/brief.md",
+    "agents_reading": 12,
+    "agents_in_role": 12,
+    "reads": 12,
+    "tokens_per_read_median": 855,
+    "token_turns": 343737
+   },
+   {
+    "role": "cobol-adjudicator",
+    "file": "PROMPT.md",
+    "agents_reading": 1,
+    "agents_in_role": 12,
+    "reads": 1,
+    "tokens_per_read_median": 499,
+    "token_turns": 11976
+   },
+   {
+    "role": "cobol-clerk",
+    "file": "E:/COBOL-coord/scratch/mythos/adj-20261025/clerk-record-brief.md",
+    "agents_reading": 1,
+    "agents_in_role": 4,
+    "reads": 1,
+    "tokens_per_read_median": 1080,
+    "token_turns": 19440
+   },
+   {
+    "role": "cobol-finisher",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "agents_reading": 7,
+    "agents_in_role": 7,
+    "reads": 14,
+    "tokens_per_read_median": 2770,
+    "token_turns": 3462834
+   },
+   {
+    "role": "cobol-finisher",
+    "file": ".claude/skills/workstream/templates/finisher-brief.md",
+    "agents_reading": 7,
+    "agents_in_role": 7,
+    "reads": 7,
+    "tokens_per_read_median": 1893,
+    "token_turns": 498736
+   },
+   {
+    "role": "cobol-finisher",
+    "file": "E:/COBOL-coord/scratch/mythos/conflict-brief-wf_94698d58-de0-2.md",
+    "agents_reading": 1,
+    "agents_in_role": 7,
+    "reads": 1,
+    "tokens_per_read_median": 818,
+    "token_turns": 44199
+   },
+   {
+    "role": "cobol-finisher",
+    "file": "E:/COBOL-coord/scratch/mythos/conflict-brief-1c4-14.md",
+    "agents_reading": 1,
+    "agents_in_role": 7,
+    "reads": 1,
+    "tokens_per_read_median": 574,
+    "token_turns": 21220
+   },
+   {
+    "role": "cobol-finisher",
+    "file": "E:/COBOL-coord/scratch/mythos/conflict-brief-wf_94698d58-de0-1.md",
+    "agents_reading": 1,
+    "agents_in_role": 7,
+    "reads": 1,
+    "tokens_per_read_median": 484,
+    "token_turns": 18374
+   },
+   {
+    "role": "cobol-finisher",
+    "file": "E:/COBOL-coord/scratch/mythos/conflict-brief-500-26.md",
+    "agents_reading": 1,
+    "agents_in_role": 7,
+    "reads": 1,
+    "tokens_per_read_median": 914,
+    "token_turns": 9138
+   },
+   {
+    "role": "cobol-finisher",
+    "file": "E:/COBOL-coord/scratch/mythos/conflict-brief-de0-2-b.md",
+    "agents_reading": 1,
+    "agents_in_role": 7,
+    "reads": 1,
+    "tokens_per_read_median": 422,
+    "token_turns": 2952
+   },
+   {
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "agents_reading": 20,
+    "agents_in_role": 27,
+    "reads": 26,
+    "tokens_per_read_median": 555,
+    "token_turns": 10323519
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "<coord>/scratch/mythos/msg-*.txt (per-agent dispatch spec)",
+    "agents_reading": 27,
+    "agents_in_role": 27,
+    "reads": 28,
+    "tokens_per_read_median": 3363,
+    "token_turns": 9077220
+   },
+   {
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/fix-lane-implementer-brief.md",
+    "agents_reading": 25,
+    "agents_in_role": 27,
+    "reads": 26,
+    "tokens_per_read_median": 3418,
+    "token_turns": 8786509
+   },
+   {
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/implementer-report-template.md",
+    "agents_reading": 19,
+    "agents_in_role": 27,
+    "reads": 20,
+    "tokens_per_read_median": 931,
+    "token_turns": 304864
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "tools/claude-skills/skills/agent-fleet/references/fix_clusters.py",
+    "agents_reading": 1,
+    "agents_in_role": 27,
+    "reads": 2,
+    "tokens_per_read_median": 650,
+    "token_turns": 232790
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "E:/claude-skills/skills/engineering-standards/SKILL.md",
+    "agents_reading": 1,
+    "agents_in_role": 27,
+    "reads": 1,
+    "tokens_per_read_median": 1128,
+    "token_turns": 197400
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "E:/claude-skills/agents/pr-test-analyzer.md",
+    "agents_reading": 2,
+    "agents_in_role": 27,
+    "reads": 2,
+    "tokens_per_read_median": 1579,
+    "token_turns": 89830
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "E:/claude-skills/agents/silent-failure-hunter.md",
+    "agents_reading": 2,
+    "agents_in_role": 27,
+    "reads": 2,
+    "tokens_per_read_median": 1547,
+    "token_turns": 82126
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "tools/claude-skills/skills/agent-fleet/references/fleet_config.py",
+    "agents_reading": 1,
+    "agents_in_role": 27,
+    "reads": 1,
+    "tokens_per_read_median": 943,
+    "token_turns": 78290
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "E:/claude-skills/agents/comment-analyzer.md",
+    "agents_reading": 2,
+    "agents_in_role": 27,
+    "reads": 2,
+    "tokens_per_read_median": 635,
+    "token_turns": 36120
+   },
+   {
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/registrar-brief.md",
+    "agents_reading": 1,
+    "agents_in_role": 27,
+    "reads": 1,
+    "tokens_per_read_median": 66,
+    "token_turns": 7012
+   },
+   {
+    "role": "cobol-locator",
+    "file": "E:/COBOL-coord/scratch/mythos/skills-opt/analyst-brief.md",
+    "agents_reading": 1,
+    "agents_in_role": 24,
+    "reads": 1,
+    "tokens_per_read_median": 1830,
+    "token_turns": 67701
+   },
+   {
+    "role": "cobol-locator",
+    "file": "E:/COBOL-coord/scratch/mythos/skills-opt/measure-brief.md",
+    "agents_reading": 1,
+    "agents_in_role": 24,
+    "reads": 1,
+    "tokens_per_read_median": 917,
+    "token_turns": 35753
+   },
+   {
+    "role": "cobol-reviewer",
+    "file": "<coord>/scratch/mythos/msg-*.txt (per-agent dispatch spec)",
+    "agents_reading": 21,
+    "agents_in_role": 28,
+    "reads": 21,
+    "tokens_per_read_median": 3207,
+    "token_turns": 1710435
+   },
+   {
+    "role": "cobol-reviewer",
+    "file": ".claude/skills/review/SKILL.md",
+    "agents_reading": 24,
+    "agents_in_role": 28,
+    "reads": 27,
+    "tokens_per_read_median": 1867,
+    "token_turns": 1268062
+   },
+   {
+    "role": "cobol-reviewer",
+    "file": "SKILL:brent-tools:review",
+    "agents_reading": 2,
+    "agents_in_role": 28,
+    "reads": 2,
+    "tokens_per_read_median": 1875,
+    "token_turns": 73135
+   },
+   {
+    "role": "cobol-reviewer",
+    "file": "tools/claude-skills/skills/agent-fleet/references/fix_clusters.py",
+    "agents_reading": 1,
+    "agents_in_role": 28,
+    "reads": 1,
+    "tokens_per_read_median": 784,
+    "token_turns": 3919
+   }
+  ],
+  "S3_top_files": [
+   {
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "reads": 40,
+    "agents": 27,
+    "tokens_per_read_median": 555,
+    "token_turns": 13786353,
+    "usd": 2.96,
+    "pct_of_all_agent_input": 1.85,
+    "pct_of_all_agent_usd": 1.27,
+    "role_mix": {
+     "implementer": 26,
+     "finisher": 14
+    }
+   },
+   {
+    "file": "<coord>/scratch/mythos/msg-*.txt (per-agent dispatch spec)",
+    "reads": 49,
+    "agents": 48,
+    "tokens_per_read_median": 3317,
+    "token_turns": 10787655,
+    "usd": 2.4,
+    "pct_of_all_agent_input": 1.45,
+    "pct_of_all_agent_usd": 1.03,
+    "role_mix": {
+     "implementer": 28,
+     "reviewer": 21
+    }
+   },
+   {
+    "file": "kb/Work/PB*.md (task notes)",
+    "reads": 153,
+    "agents": 42,
+    "tokens_per_read_median": 368,
+    "token_turns": 8431476,
+    "usd": 1.54,
+    "pct_of_all_agent_input": 1.13,
+    "pct_of_all_agent_usd": 0.66,
+    "role_mix": {
+     "implementer": 127,
+     "reviewer": 12,
+     "clerk": 6,
+     "adjudicator": 6,
+     "finisher": 2
+    }
+   },
+   {
+    "file": ".claude/skills/workstream/templates/fix-lane-implementer-brief.md",
+    "reads": 26,
+    "agents": 25,
+    "tokens_per_read_median": 3418,
+    "token_turns": 8786509,
+    "usd": 1.54,
+    "pct_of_all_agent_input": 1.18,
+    "pct_of_all_agent_usd": 0.66,
+    "role_mix": {
+     "implementer": 26
+    }
+   },
+   {
+    "file": "specs/ISO_COBOL.md",
+    "reads": 94,
+    "agents": 31,
+    "tokens_per_read_median": 748,
+    "token_turns": 3555790,
+    "usd": 1.13,
+    "pct_of_all_agent_input": 0.48,
+    "pct_of_all_agent_usd": 0.48,
+    "role_mix": {
+     "adjudicator": 42,
+     "implementer": 28,
+     "refuter": 13,
+     "reviewer": 11
+    }
+   },
+   {
+    "file": ".claude/skills/review/SKILL.md",
+    "reads": 27,
+    "agents": 24,
+    "tokens_per_read_median": 1867,
+    "token_turns": 1268062,
+    "usd": 0.65,
+    "pct_of_all_agent_input": 0.17,
+    "pct_of_all_agent_usd": 0.28,
+    "role_mix": {
+     "reviewer": 27
+    }
+   },
+   {
+    "file": "src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs",
+    "reads": 14,
+    "agents": 5,
+    "tokens_per_read_median": 1569,
+    "token_turns": 3335878,
+    "usd": 0.6,
+    "pct_of_all_agent_input": 0.45,
+    "pct_of_all_agent_usd": 0.26,
+    "role_mix": {
+     "implementer": 12,
+     "reviewer": 2
+    }
+   },
+   {
+    "file": "scripts/spec/work.py",
+    "reads": 26,
+    "agents": 6,
+    "tokens_per_read_median": 861,
+    "token_turns": 3619603,
+    "usd": 0.51,
+    "pct_of_all_agent_input": 0.49,
+    "pct_of_all_agent_usd": 0.22,
+    "role_mix": {
+     "implementer": 20,
+     "claude": 4,
+     "clerk": 1,
+     "reviewer": 1
+    }
+   },
+   {
+    "file": "scripts/spec/audit_grammar_optional_words.py",
+    "reads": 14,
+    "agents": 3,
+    "tokens_per_read_median": 644,
+    "token_turns": 1440200,
+    "usd": 0.51,
+    "pct_of_all_agent_input": 0.19,
+    "pct_of_all_agent_usd": 0.22,
+    "role_mix": {
+     "implementer": 7,
+     "finisher": 4,
+     "reviewer": 3
+    }
+   },
+   {
+    "file": "src/Cobol.Net.Runtime/Control/ActivationRelations.cs",
+    "reads": 18,
+    "agents": 7,
+    "tokens_per_read_median": 1502,
+    "token_turns": 2883176,
+    "usd": 0.5,
+    "pct_of_all_agent_input": 0.39,
+    "pct_of_all_agent_usd": 0.22,
+    "role_mix": {
+     "implementer": 14,
+     "reviewer": 4
+    }
+   },
+   {
+    "file": "scripts/merge_drivers.py",
+    "reads": 20,
+    "agents": 7,
+    "tokens_per_read_median": 766,
+    "token_turns": 1419645,
+    "usd": 0.49,
+    "pct_of_all_agent_input": 0.19,
+    "pct_of_all_agent_usd": 0.21,
+    "role_mix": {
+     "finisher": 13,
+     "implementer": 4,
+     "reviewer": 2,
+     "claude": 1
+    }
+   },
+   {
+    "file": "src/Cobol.Net.Compiler/Binding/MoveTable16.cs",
+    "reads": 8,
+    "agents": 3,
+    "tokens_per_read_median": 139,
+    "token_turns": 1486612,
+    "usd": 0.36,
+    "pct_of_all_agent_input": 0.2,
+    "pct_of_all_agent_usd": 0.15,
+    "role_mix": {
+     "implementer": 7,
+     "reviewer": 1
+    }
+   },
+   {
+    "file": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs",
+    "reads": 8,
+    "agents": 4,
+    "tokens_per_read_median": 2903,
+    "token_turns": 2149878,
+    "usd": 0.33,
+    "pct_of_all_agent_input": 0.29,
+    "pct_of_all_agent_usd": 0.14,
+    "role_mix": {
+     "implementer": 5,
+     "clerk": 1,
+     "reviewer": 1,
+     "adjudicator": 1
+    }
+   },
+   {
+    "file": "scripts/orchestrator/queue_facts.py",
+    "reads": 18,
+    "agents": 4,
+    "tokens_per_read_median": 1056,
+    "token_turns": 930797,
+    "usd": 0.29,
+    "pct_of_all_agent_input": 0.13,
+    "pct_of_all_agent_usd": 0.13,
+    "role_mix": {
+     "implementer": 15,
+     "reviewer": 3
+    }
+   },
+   {
+    "file": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs",
+    "reads": 14,
+    "agents": 2,
+    "tokens_per_read_median": 904,
+    "token_turns": 2031626,
+    "usd": 0.29,
+    "pct_of_all_agent_input": 0.27,
+    "pct_of_all_agent_usd": 0.13,
+    "role_mix": {
+     "implementer": 11,
+     "adjudicator": 3
+    }
+   },
+   {
+    "file": "tests/Cobol.Net.Tests.Conformance/MoveEditionDifferentialTests.cs",
+    "reads": 4,
+    "agents": 1,
+    "tokens_per_read_median": 1287,
+    "token_turns": 1178310,
+    "usd": 0.29,
+    "pct_of_all_agent_input": 0.16,
+    "pct_of_all_agent_usd": 0.12,
+    "role_mix": {
+     "implementer": 4
+    }
+   },
+   {
+    "file": "src/Cobol.Net.Compiler/CodeGen/Verbs/CallEmitter.cs",
+    "reads": 11,
+    "agents": 4,
+    "tokens_per_read_median": 1309,
+    "token_turns": 1551630,
+    "usd": 0.27,
+    "pct_of_all_agent_input": 0.21,
+    "pct_of_all_agent_usd": 0.12,
+    "role_mix": {
+     "implementer": 8,
+     "reviewer": 3
+    }
+   },
+   {
+    "file": "docs/CONFORMANCE.md",
+    "reads": 40,
+    "agents": 13,
+    "tokens_per_read_median": 280,
+    "token_turns": 588471,
+    "usd": 0.26,
+    "pct_of_all_agent_input": 0.08,
+    "pct_of_all_agent_usd": 0.11,
+    "role_mix": {
+     "claude": 17,
+     "implementer": 12,
+     "refuter": 5,
+     "adjudicator": 4,
+     "reviewer": 2
+    }
+   },
+   {
+    "file": "docs/rearchitecture/DESIGN-orchestrator-loop.md",
+    "reads": 21,
+    "agents": 7,
+    "tokens_per_read_median": 811,
+    "token_turns": 1166333,
+    "usd": 0.26,
+    "pct_of_all_agent_input": 0.16,
+    "pct_of_all_agent_usd": 0.11,
+    "role_mix": {
+     "implementer": 15,
+     "claude": 4,
+     "finisher": 1,
+     "reviewer": 1
+    }
+   },
+   {
+    "file": "C:/Users/brent/.claude/projects/E--COBOL/memory/reference_archived_cobol_drafts.md",
+    "reads": 2,
+    "agents": 2,
+    "tokens_per_read_median": 2325,
+    "token_turns": 1001391,
+    "usd": 0.24,
+    "pct_of_all_agent_input": 0.13,
+    "pct_of_all_agent_usd": 0.1,
+    "role_mix": {
+     "adjudicator": 1,
+     "implementer": 1
+    }
+   },
+   {
+    "file": ".github/workflows/build-and-test.yml",
+    "reads": 12,
+    "agents": 5,
+    "tokens_per_read_median": 613,
+    "token_turns": 750795,
+    "usd": 0.24,
+    "pct_of_all_agent_input": 0.1,
+    "pct_of_all_agent_usd": 0.1,
+    "role_mix": {
+     "implementer": 7,
+     "reviewer": 3,
+     "finisher": 2
+    }
+   },
+   {
+    "file": "v200112.txt",
+    "reads": 10,
+    "agents": 2,
+    "tokens_per_read_median": 583,
+    "token_turns": 861368,
+    "usd": 0.22,
+    "pct_of_all_agent_input": 0.12,
+    "pct_of_all_agent_usd": 0.1,
+    "role_mix": {
+     "implementer": 6,
+     "adjudicator": 4
+    }
+   },
+   {
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/CallBinder.cs",
+    "reads": 15,
+    "agents": 4,
+    "tokens_per_read_median": 1088,
+    "token_turns": 752140,
+    "usd": 0.21,
+    "pct_of_all_agent_input": 0.1,
+    "pct_of_all_agent_usd": 0.09,
+    "role_mix": {
+     "implementer": 9,
+     "reviewer": 6
+    }
+   },
+   {
+    "file": "docs/VERSION_CHANGE_REFERENCE.md",
+    "reads": 14,
+    "agents": 4,
+    "tokens_per_read_median": 417,
+    "token_turns": 1204638,
+    "usd": 0.21,
+    "pct_of_all_agent_input": 0.16,
+    "pct_of_all_agent_usd": 0.09,
+    "role_mix": {
+     "implementer": 12,
+     "finisher": 2
+    }
+   },
+   {
+    "file": ".claude/skills/workstream/templates/finisher-brief.md",
+    "reads": 7,
+    "agents": 7,
+    "tokens_per_read_median": 1893,
+    "token_turns": 498736,
+    "usd": 0.21,
+    "pct_of_all_agent_input": 0.07,
+    "pct_of_all_agent_usd": 0.09,
+    "role_mix": {
+     "finisher": 7
+    }
+   }
+  ],
+  "S3_totals": {
+   "agents": 105,
+   "agent_input_tokens": 743342647,
+   "agent_usd_transcripts": 233.31
+  },
+  "S4_duplicates": [
+   {
+    "agent": "ab6a84b7735b1e36c",
+    "role": "cobol-clerk",
+    "file": "$n.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 5834,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ab6a84b7735b1e36c",
+    "role": "cobol-clerk",
+    "file": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 916,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad2cd25a2089035b2",
+    "role": "cobol-clerk",
+    "file": "$n.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 3925,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad2cd25a2089035b2",
+    "role": "cobol-clerk",
+    "file": "PB3330.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 1898,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad76f6246200b062f",
+    "role": "cobol-clerk",
+    "file": "kb/Work/$n.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 2417,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad76f6246200b062f",
+    "role": "cobol-clerk",
+    "file": "src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 344,
+    "partial_reads": 0
+   },
+   {
+    "agent": "add586fee2ce1aefa",
+    "role": "cobol-clerk",
+    "file": "C:/Users/brent/.claude/projects/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/tool-results/bsdt7d6y6.txt",
+    "reads": 2,
+    "full_reads": 1,
+    "wasted_tokens": 2661,
+    "partial_reads": 1
+   },
+   {
+    "agent": "add586fee2ce1aefa",
+    "role": "cobol-clerk",
+    "file": "PB3554.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 847,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a6dbb524042afbc7a",
+    "role": "cobol-finisher",
+    "file": "scripts/merge_drivers.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 2182,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a83076db09205eebf",
+    "role": "cobol-finisher",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "reads": 3,
+    "full_reads": 2,
+    "wasted_tokens": 16942,
+    "partial_reads": 1
+   },
+   {
+    "agent": "a07f101bf9c0986b0",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB1046.md",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 494,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a07f101bf9c0986b0",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 12714,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a07f101bf9c0986b0",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs",
+    "reads": 11,
+    "full_reads": 11,
+    "wasted_tokens": 10536,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a07f101bf9c0986b0",
+    "role": "cobol-implementer",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 2065,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a07f101bf9c0986b0",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/DataBinder.cs",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 5322,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a07f101bf9c0986b0",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 552,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a07f101bf9c0986b0",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261501d/build2.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 17,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a07f101bf9c0986b0",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261501d/gen.log",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 214,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a07f101bf9c0986b0",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/GlobalReportScopeTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 522,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a07f101bf9c0986b0",
+    "role": "cobol-implementer",
+    "file": "docs/COBOLNET_REPORT_WRITER_DESIGN.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 1044,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a1b4dcf5c24cf62fa",
+    "role": "cobol-reviewer",
+    "file": "scripts/spec/audit_grammar_optional_words.py",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 8876,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2470eca64a381fdc",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB715.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 393,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2470eca64a381fdc",
+    "role": "cobol-implementer",
+    "file": "scripts/spec/audit_grammar_optional_words.py",
+    "reads": 7,
+    "full_reads": 4,
+    "wasted_tokens": 12488,
+    "partial_reads": 3
+   },
+   {
+    "agent": "a2470eca64a381fdc",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 425,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2470eca64a381fdc",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Conformance/OptionalWordSubsetDriftTests.cs",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 1764,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2470eca64a381fdc",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 92,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2470eca64a381fdc",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB2024.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 497,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a31abf8c3d601d399",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
+    "reads": 6,
+    "full_reads": 5,
+    "wasted_tokens": 3057,
+    "partial_reads": 1
+   },
+   {
+    "agent": "a31abf8c3d601d399",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/wiseowl/diagnostics.json",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 165,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a31abf8c3d601d399",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 1939,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a31abf8c3d601d399",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/LoudGuardTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 190,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a31abf8c3d601d399",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261501b/gate1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 555,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a31abf8c3d601d399",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261501b/gate2.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 239,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3506fe630e2f4b77",
+    "role": "cobol-reviewer",
+    "file": ".claude/skills/review/SKILL.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1052,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3506fe630e2f4b77",
+    "role": "cobol-reviewer",
+    "file": "conformance-suite/cases/8.3.3.3.3-Floating-point-numeric-literals/pb156_float_literal_exact_native.cob",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 181,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 365,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Frontend/Common/CobolLiteral.cs",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 5524,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/ConcatFolder.cs",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 1168,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Frontend/Parsing/LiteralScreen.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 105,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "docs/VERSION_CHANGE_REFERENCE.md",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 3881,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261501e-build.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 77,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 722,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "tests/version-matrix/constructs.json",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 683,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 6344,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/README.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1686,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/TextManipulationTextWordTests.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 1482,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Conformance/LiteralScreenTests.cs",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 938,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "pb1355_library_text_located.out",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 58,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "pb1355c.txt",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 58,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/wiseowl/diagnostics.json",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 289,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261501e/t1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 90,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Conformance/FixedFormLayout.cs",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 594,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "docs/rearchitecture/DESIGN-version-conformance-pipeline.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 113,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3b4adc6f2688323e",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261501e/gate1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 511,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a7d3e9b354b577a58",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB929.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 411,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a7d3e9b354b577a58",
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "reads": 3,
+    "full_reads": 2,
+    "wasted_tokens": 16910,
+    "partial_reads": 1
+   },
+   {
+    "agent": "a7d3e9b354b577a58",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/build.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 395,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a7d3e9b354b577a58",
+    "role": "cobol-implementer",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 2470,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a7d3e9b354b577a58",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/README.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 49,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a7d3e9b354b577a58",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/wiseowl/diagnostics.json",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 208,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a7d3e9b354b577a58",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB1511.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 162,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a7d3e9b354b577a58",
+    "role": "cobol-implementer",
+    "file": "docs/CONFORMANCE.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 828,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a7d3e9b354b577a58",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb3538_sdidi_lane_quotients.cob",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 30,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a7d3e9b354b577a58",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB1253.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 990,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a7d3e9b354b577a58",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/cases/8.8.1.2-Native-standard-binary-and-standard-decimal/pb3538_zero_operand_precision.cob",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 382,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a7d3e9b354b577a58",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/gate1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 147,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a7d3ff7285207928b",
+    "role": "cobol-reviewer",
+    "file": ".claude/skills/review/SKILL.md (after Skill load of same skill)",
+    "reads": 1,
+    "full_reads": 1,
+    "wasted_tokens": 3081,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a8467ddfbba246e25",
+    "role": "cobol-reviewer",
+    "file": ".claude/skills/review/SKILL.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1122,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a8467ddfbba246e25",
+    "role": "cobol-reviewer",
+    "file": "DEVLOG/pending-pb929-pb1522-stale-gap-sweep.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1467,
+    "partial_reads": 0
+   },
+   {
+    "agent": "abde57363af3ef589",
+    "role": "cobol-reviewer",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 148,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad1cc409cc119a185",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB1253.md",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 231,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad1cc409cc119a185",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Oo/NamingConvention.cs",
+    "reads": 3,
+    "full_reads": 2,
+    "wasted_tokens": 319,
+    "partial_reads": 1
+   },
+   {
+    "agent": "ad1cc409cc119a185",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/IdentifierInjectivityTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 665,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad1cc409cc119a185",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB929.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 607,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad1cc409cc119a185",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB1520.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 421,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad1cc409cc119a185",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/gate-r1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 224,
+    "partial_reads": 0
+   },
+   {
+    "agent": "add67d961276ae7fd",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB935.md",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 421,
+    "partial_reads": 0
+   },
+   {
+    "agent": "add67d961276ae7fd",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 780,
+    "partial_reads": 0
+   },
+   {
+    "agent": "add67d961276ae7fd",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Conformance/OptionalWordSubsetDriftTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 252,
+    "partial_reads": 0
+   },
+   {
+    "agent": "add67d961276ae7fd",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/wiseowl/diagnostics.json",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 204,
+    "partial_reads": 0
+   },
+   {
+    "agent": "add67d961276ae7fd",
+    "role": "cobol-implementer",
+    "file": "docs/CONFORMANCE.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 622,
+    "partial_reads": 0
+   },
+   {
+    "agent": "add67d961276ae7fd",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261501f/gate1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 197,
+    "partial_reads": 0
+   },
+   {
+    "agent": "af653f2b7dabbc627",
+    "role": "cobol-reviewer",
+    "file": "src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 675,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a17e34beee39666c5",
+    "role": "cobol-reviewer",
+    "file": "tests/Cobol.Net.Tests.Conformance/DiagnosticPositionTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 571,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a17e34beee39666c5",
+    "role": "cobol-reviewer",
+    "file": "E:/COBOL-coord/scratch/reports/w20261501e-PB1601-report.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 391,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a79fbe696b889f6cb",
+    "role": "cobol-reviewer",
+    "file": "C:/Users/brent/.claude/projects/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/tool-results/b46bapr4p.txt",
+    "reads": 2,
+    "full_reads": 1,
+    "wasted_tokens": 10713,
+    "partial_reads": 1
+   },
+   {
+    "agent": "a80f9631f3ffd1359",
+    "role": "cobol-finisher",
+    "file": "STATUS.md",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 501,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a80f9631f3ffd1359",
+    "role": "cobol-finisher",
+    "file": "tests/Cobol.Net.Tests.Conformance/DiagnosticPositionTests.cs",
+    "reads": 6,
+    "full_reads": 4,
+    "wasted_tokens": 1412,
+    "partial_reads": 2
+   },
+   {
+    "agent": "a80f9631f3ffd1359",
+    "role": "cobol-finisher",
+    "file": "/tmp/f.txt",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 305,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a80f9631f3ffd1359",
+    "role": "cobol-finisher",
+    "file": "E:/COBOL-coord/scratch/reports/w20261501e-PB1601-report.md",
+    "reads": 4,
+    "full_reads": 2,
+    "wasted_tokens": 663,
+    "partial_reads": 2
+   },
+   {
+    "agent": "a80f9631f3ffd1359",
+    "role": "cobol-finisher",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/gate-pb1601.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 400,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ac4004ddd81eabbaa",
+    "role": "cobol-finisher",
+    "file": "STATUS.md",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 475,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ac4004ddd81eabbaa",
+    "role": "cobol-finisher",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 16910,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ac4004ddd81eabbaa",
+    "role": "cobol-finisher",
+    "file": "scripts/merge_drivers.py",
+    "reads": 11,
+    "full_reads": 9,
+    "wasted_tokens": 6048,
+    "partial_reads": 2
+   },
+   {
+    "agent": "ac4004ddd81eabbaa",
+    "role": "cobol-finisher",
+    "file": "tests/Cobol.Net.Tests.Unit/MergeDriverDriftTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1315,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ac4004ddd81eabbaa",
+    "role": "cobol-finisher",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/pb3727-fin/gate.log",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 281,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ac4004ddd81eabbaa",
+    "role": "cobol-finisher",
+    "file": "w20261503b-PB3727-report.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 44,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad750cc15379e7beb",
+    "role": "cobol-finisher",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 15034,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad750cc15379e7beb",
+    "role": "cobol-finisher",
+    "file": "STATUS.md",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 141,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad750cc15379e7beb",
+    "role": "cobol-finisher",
+    "file": "scripts/spec/audit_grammar_optional_words.py",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 642,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad750cc15379e7beb",
+    "role": "cobol-finisher",
+    "file": "scripts/orchestrator/cancel_superseded.py",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 614,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad750cc15379e7beb",
+    "role": "cobol-finisher",
+    "file": ".github/workflows/build-and-test.yml",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 570,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad750cc15379e7beb",
+    "role": "cobol-finisher",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/gate-wf_94698d58-de0-1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 420,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a40915d3bbef85baa",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/msg-w20261502-a.txt",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1234,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a40915d3bbef85baa",
+    "role": "cobol-implementer",
+    "file": ".github/workflows/build-and-test.yml",
+    "reads": 6,
+    "full_reads": 4,
+    "wasted_tokens": 2180,
+    "partial_reads": 2
+   },
+   {
+    "agent": "a40915d3bbef85baa",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/SelfTestDiscoveryDriftTests.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 2502,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a40915d3bbef85baa",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/queue_facts.py",
+    "reads": 8,
+    "full_reads": 7,
+    "wasted_tokens": 6249,
+    "partial_reads": 1
+   },
+   {
+    "agent": "a40915d3bbef85baa",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/ruleset.py",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 594,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a40915d3bbef85baa",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/LandingPipelineDriftTests.cs",
+    "reads": 4,
+    "full_reads": 3,
+    "wasted_tokens": 2689,
+    "partial_reads": 1
+   },
+   {
+    "agent": "a40915d3bbef85baa",
+    "role": "cobol-implementer",
+    "file": "docs/rearchitecture/DESIGN-test-build-ci.md",
+    "reads": 7,
+    "full_reads": 4,
+    "wasted_tokens": 1612,
+    "partial_reads": 3
+   },
+   {
+    "agent": "aba4fbb4e183eb62b",
+    "role": "cobol-reviewer",
+    "file": "scripts/orchestrator/queue_facts.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 534,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aba4fbb4e183eb62b",
+    "role": "cobol-reviewer",
+    "file": ".github/workflows/build-and-test.yml",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 570,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aba4fbb4e183eb62b",
+    "role": "cobol-reviewer",
+    "file": "scripts/orchestrator/ruleset.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 338,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aba4fbb4e183eb62b",
+    "role": "cobol-reviewer",
+    "file": ".claude/skills/review/SKILL.md (after Skill load of same skill)",
+    "reads": 1,
+    "full_reads": 1,
+    "wasted_tokens": 3081,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a04af8360fea9c7a5",
+    "role": "cobol-adjudicator",
+    "file": "tests/Cobol.Net.Tests.Unit/CommitRollbackRefusalWitnessTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 2627,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a04af8360fea9c7a5",
+    "role": "cobol-adjudicator",
+    "file": "src/Cobol.Net.Runtime/Control/RunUnit.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1533,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a04af8360fea9c7a5",
+    "role": "cobol-adjudicator",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 3033,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a0635924022f2f306",
+    "role": "cobol-adjudicator",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1510,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a0635924022f2f306",
+    "role": "cobol-adjudicator",
+    "file": "v200112.txt",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 1407,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a0635924022f2f306",
+    "role": "cobol-adjudicator",
+    "file": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 2090,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a0e0306d17df2f74b",
+    "role": "cobol-adjudicator",
+    "file": "src/Cobol.Net.Runtime/IO/KeyedConnector.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 6218,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a0e0306d17df2f74b",
+    "role": "cobol-adjudicator",
+    "file": "tests/Cobol.Net.Tests.Unit/Store/CommitRollbackRuntimeTests.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 2343,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a0e0306d17df2f74b",
+    "role": "cobol-adjudicator",
+    "file": "scripts/hooks/fleet_active_build.py",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 964,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a0e0306d17df2f74b",
+    "role": "cobol-adjudicator",
+    "file": "E:/COBOL-coord/scratch/mythos/adj-20261025/PB3631.json",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 474,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2d39fafbf64e5878",
+    "role": "cobol-adjudicator",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 3161,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2d39fafbf64e5878",
+    "role": "cobol-adjudicator",
+    "file": "src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 828,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3fbf116f8ba27024",
+    "role": "cobol-adjudicator",
+    "file": "docs/CONFORMANCE.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 2989,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3fbf116f8ba27024",
+    "role": "cobol-adjudicator",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 1076,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3fbf116f8ba27024",
+    "role": "cobol-adjudicator",
+    "file": "src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1518,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a4a775a318f5d448c",
+    "role": "cobol-adjudicator",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 7,
+    "full_reads": 7,
+    "wasted_tokens": 5010,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a4a775a318f5d448c",
+    "role": "cobol-adjudicator",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 2364,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a4a775a318f5d448c",
+    "role": "cobol-adjudicator",
+    "file": "tests/nist/programs/NC211A.cob",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 1317,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a625ff95289202460",
+    "role": "cobol-adjudicator",
+    "file": "src/Cobol.Net.Runtime/IO/SequentialConnector.CommitControl.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 601,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a625ff95289202460",
+    "role": "cobol-adjudicator",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 4414,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a625ff95289202460",
+    "role": "cobol-adjudicator",
+    "file": "docs/rearchitecture/DESIGN-runtime-library.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 616,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a9437faa31d7d19f5",
+    "role": "cobol-refuter",
+    "file": "docs/CONFORMANCE.md",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 289,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a9437faa31d7d19f5",
+    "role": "cobol-refuter",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 2126,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a9e290f5440bcb7b5",
+    "role": "cobol-refuter",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 10,
+    "full_reads": 10,
+    "wasted_tokens": 9422,
+    "partial_reads": 0
+   },
+   {
+    "agent": "acc3bb3001f36b7f5",
+    "role": "cobol-adjudicator",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 6834,
+    "partial_reads": 0
+   },
+   {
+    "agent": "acc3bb3001f36b7f5",
+    "role": "cobol-adjudicator",
+    "file": "tests/Cobol.Net.Tests.Unit/CommitRollbackRefusalWitnessTests.cs",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 3514,
+    "partial_reads": 0
+   },
+   {
+    "agent": "acc3bb3001f36b7f5",
+    "role": "cobol-adjudicator",
+    "file": "E:/COBOL-coord/scratch/mythos/adj-20261025/PB3554.json",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 155,
+    "partial_reads": 0
+   },
+   {
+    "agent": "acc3bb3001f36b7f5",
+    "role": "cobol-adjudicator",
+    "file": "docs/rearchitecture/DESIGN-runtime-library.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 860,
+    "partial_reads": 0
+   },
+   {
+    "agent": "add833ceab41fe91f",
+    "role": "cobol-adjudicator",
+    "file": "src/Cobol.Net.Runtime/Values/Numeric/CobolDec.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 321,
+    "partial_reads": 0
+   },
+   {
+    "agent": "add833ceab41fe91f",
+    "role": "cobol-adjudicator",
+    "file": "E:/COBOL-coord/scratch/mythos/adj-20261025/PB3627.json",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 258,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae6d7a8c0b3421dc6",
+    "role": "cobol-adjudicator",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 2267,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aee5ae751f6ac376f",
+    "role": "cobol-adjudicator",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 586,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/fix-lane-implementer-brief.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 4376,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "scripts/self_tests.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 412,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/ExternalCorpusPopulationDriftTests.cs",
+    "reads": 4,
+    "full_reads": 3,
+    "wasted_tokens": 2107,
+    "partial_reads": 1
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/land_lane.py",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 319,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "scripts/live_tools.py",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 28,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "scripts/temp_names.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 888,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/SelfTestDiscoveryDriftTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 291,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261503a/transform-dry.txt",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 76,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "transform2.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261503a/selftests-all.log",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 199,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3637.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 0,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261503a/build1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 21,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "STATUS.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 170,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2c4506ad5cc0f101",
+    "role": "cobol-implementer",
+    "file": "full.diff",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 209,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a57f69e8fc9b2004e",
+    "role": "cobol-implementer",
+    "file": "scripts/merge_drivers.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 7328,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a57f69e8fc9b2004e",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/PublicAPI.Unshipped.txt",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 228,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a57f69e8fc9b2004e",
+    "role": "cobol-implementer",
+    "file": "scripts/abi_pin.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 887,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a57f69e8fc9b2004e",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/enqueue.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 306,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a57f69e8fc9b2004e",
+    "role": "cobol-implementer",
+    "file": "STATUS.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 94,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a57f69e8fc9b2004e",
+    "role": "cobol-implementer",
+    "file": "inflight2.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 30,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a57f69e8fc9b2004e",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261503b/gate1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 224,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad97081f9a1837aaa",
+    "role": "cobol-reviewer",
+    "file": "E:/COBOL-coord/scratch/reports/w20261503a-PB3637-report.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 41,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad97081f9a1837aaa",
+    "role": "cobol-reviewer",
+    "file": "scripts/orchestrator/orchestrate.ps1",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 632,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a020cd6c5538c5b90",
+    "role": "cobol-reviewer",
+    "file": "E:/COBOL-coord/scratch/reports/w20261504a-PB3389-report.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1662,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3e89537bd9dcb874",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Conformance/DocA1Item103WitnessTests.cs",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 1752,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a3e89537bd9dcb874",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261504d/gate.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 225,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a45d5a30e1755f6a1",
+    "role": "cobol-reviewer",
+    "file": "scripts/orchestrator/orchestrate.ps1",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 2959,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a4e2e40a8bf917c2d",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3710.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 5,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a4e2e40a8bf917c2d",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/landing_measure.py",
+    "reads": 6,
+    "full_reads": 5,
+    "wasted_tokens": 7963,
+    "partial_reads": 1
+   },
+   {
+    "agent": "a4e2e40a8bf917c2d",
+    "role": "cobol-implementer",
+    "file": "DEVLOG/pending-pb3710-re-enqueue-record.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 5,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa291f3dffbc48df4",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3708.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 45,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa291f3dffbc48df4",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/test_orchestrate_lane.ps1",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 666,
+    "partial_reads": 0
+   },
+   {
+    "agent": "abfdb85e14c6cb75b",
+    "role": "cobol-reviewer",
+    "file": ".claude/skills/review/SKILL.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1945,
+    "partial_reads": 0
+   },
+   {
+    "agent": "abfdb85e14c6cb75b",
+    "role": "cobol-reviewer",
+    "file": "scripts/gate_plan.py",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 949,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3389.md",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 385,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3721.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 109,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3654.md",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 277,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "scripts/spec/work.py",
+    "reads": 18,
+    "full_reads": 18,
+    "wasted_tokens": 20071,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/plan_wave.py",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 5473,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "tools/claude-skills/skills/agent-fleet/references/fix_clusters.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 650,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "kb/Work.base",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 804,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "docs/rearchitecture/DESIGN-orchestrator-loop.md",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 4122,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/test_plan_wave.py",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 2790,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "scripts/arch/member_index.py",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 1286,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3720.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 118,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "tests/version-matrix/work-frontmatter-cases.json",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 18,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "scripts/arch/census.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 140,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "scripts/spec/gen_ledger.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 282,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "scripts/arch/file_census_notes.py",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 2039,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "scripts/spec/ledger_plan.py",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 870,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/dummy.txt",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 90,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "DEVLOG/pending-pb3637-one-utf8-switch-for-every-python-entry-point.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 257,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ae20513fd2152592c",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/gate1.log",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 337,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aecfb3272fc3f74a2",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB2665.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 48,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aecfb3272fc3f74a2",
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 11926,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aecfb3272fc3f74a2",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/orchestrate.ps1",
+    "reads": 4,
+    "full_reads": 2,
+    "wasted_tokens": 2989,
+    "partial_reads": 2
+   },
+   {
+    "agent": "aecfb3272fc3f74a2",
+    "role": "cobol-implementer",
+    "file": "docs/rearchitecture/DESIGN-orchestrator-loop.md",
+    "reads": 7,
+    "full_reads": 7,
+    "wasted_tokens": 6078,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aecfb3272fc3f74a2",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/test_ledger_state.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 206,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aecfb3272fc3f74a2",
+    "role": "cobol-implementer",
+    "file": "$r.coord",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 340,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aecfb3272fc3f74a2",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3639.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 314,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aecfb3272fc3f74a2",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/gate.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 197,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aecfb3272fc3f74a2",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/gate2.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 190,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aff61f59fab16d29f",
+    "role": "cobol-implementer",
+    "file": "scripts/merge_drivers.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 98,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aff61f59fab16d29f",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/enqueue.py",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 756,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aff61f59fab16d29f",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/land_lane.py",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 631,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aff61f59fab16d29f",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/queue_facts.py",
+    "reads": 7,
+    "full_reads": 5,
+    "wasted_tokens": 6085,
+    "partial_reads": 2
+   },
+   {
+    "agent": "aff61f59fab16d29f",
+    "role": "cobol-implementer",
+    "file": "scripts/gate_plan.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 153,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aff61f59fab16d29f",
+    "role": "cobol-implementer",
+    "file": "scripts/run_gate_legs.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 390,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aff61f59fab16d29f",
+    "role": "cobol-implementer",
+    "file": "DEVLOG/pending-pb3637-one-utf8-switch-for-every-python-entry-point.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 224,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aff61f59fab16d29f",
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/cancel_superseded.py",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 448,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aff61f59fab16d29f",
+    "role": "cobol-implementer",
+    "file": "scripts/test_held_analyzer_output.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 136,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aff61f59fab16d29f",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/gate2.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 197,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 7202,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "tests/version-matrix/constructs.json",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1524,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/build1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 154,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/Control/ActivationRelations.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 3450,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3605.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 788,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 2956,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/FigurativeAssociation.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 348,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1815,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Conformance/EditionGateArmDriftTests.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 3510,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/wiseowl/diagnostics.json",
+    "reads": 7,
+    "full_reads": 7,
+    "wasted_tokens": 1805,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Frontend/Expressions/CompileTimeExpressionEvaluator.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 3391,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "docs/VERSION_CHANGE_REFERENCE.md",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 706,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 3363,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/FigurativeOperandClassifierDriftTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1615,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/MoveTable16.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 140,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/unit1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 84,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a2a05c29aff97348f",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/gate1.log",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 106,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB2985.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 120,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 11926,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "pa.cob",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 2,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB2463.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 52,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 8,
+    "full_reads": 8,
+    "wasted_tokens": 3015,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/build.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 585,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 3056,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "pa-classes.txt",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 76,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "pe-main.txt",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 132,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "pe.cob",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 43,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/PublicAPI.Unshipped.txt",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 115,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/wiseowl/diagnostics.json",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 146,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/README.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1171,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/cases/_unassigned/pb2463_universal_returning_set_match.cob",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 1665,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/cases/_unassigned/pb2463_universal_returning_set_match.out",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 90,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/cases/14.8.3.3-Elementary-items/pb2985_active_class_returning_universal_invocation.out",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 158,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "docs/COBOLNET_OO_DESIGN.md",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 1274,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/gate.log",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 2795,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261505a/gate-a1.log",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 302,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a82d1cbe0683d038d",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261505a/gate-a2.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 0,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a697fc281cd405abf",
+    "role": "claude",
+    "file": "scripts/self_tests.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 895,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a697fc281cd405abf",
+    "role": "claude",
+    "file": "scripts/prune_worktrees.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 891,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a697fc281cd405abf",
+    "role": "claude",
+    "file": "docs/CONFORMANCE.md",
+    "reads": 17,
+    "full_reads": 17,
+    "wasted_tokens": 3004,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a697fc281cd405abf",
+    "role": "claude",
+    "file": "tests/Cobol.Net.Tests.Unit/MergeDriverDriftTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 348,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a697fc281cd405abf",
+    "role": "claude",
+    "file": "scripts/spec/work.py",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 1659,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a697fc281cd405abf",
+    "role": "claude",
+    "file": "docs/rearchitecture/DESIGN-orchestrator-loop.md",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 2763,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a697fc281cd405abf",
+    "role": "claude",
+    "file": "docs/rearchitecture/DESIGN-test-build-ci.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1800,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a697fc281cd405abf",
+    "role": "claude",
+    "file": "scripts/orchestrator/enqueue.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 931,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a697fc281cd405abf",
+    "role": "claude",
+    "file": "scripts/run_gate_legs.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 516,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a697fc281cd405abf",
+    "role": "claude",
+    "file": "scripts/orchestrator/land_lane.py",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 653,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a06db228b5cf4d9c5",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3676.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 33,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a06db228b5cf4d9c5",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/SidecarColumnLockHostDriftTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1240,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a06db228b5cf4d9c5",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/IO/Sharing/SidecarLockFiles.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 699,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a06db228b5cf4d9c5",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/RegionLocksDriftTests.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 2160,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a06db228b5cf4d9c5",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3632.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 461,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a06db228b5cf4d9c5",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261500b/linux.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 58,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a09905c2955b756f8",
+    "role": "cobol-reviewer",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 594,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a0c2fdb79d618c168",
+    "role": "cobol-reviewer",
+    "file": "Binding/Procedure/Verbs/CallBinder.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 2224,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a1e2ae57ca5c7cf14",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3686.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 8,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a1e2ae57ca5c7cf14",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/Control/ActivationRelations.cs",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 8422,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a1e2ae57ca5c7cf14",
+    "role": "cobol-implementer",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 1050,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a1e2ae57ca5c7cf14",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/cases/14.8.2-Formal-parameters-and-arguments/pb3162_external_prototype_pointer_set_and_pass.out",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 118,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a1e2ae57ca5c7cf14",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261500h/gate1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 250,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3677.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 124,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/CodeGen/Verbs/CallEmitter.cs",
+    "reads": 7,
+    "full_reads": 7,
+    "wasted_tokens": 10069,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/CodeGen/Emit/OperandText.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 3669,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/Control/CallAbi.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1670,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/CodeGen/Roslyn/ReceiverContext.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 31,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/Values/Numeric/CobolDec.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1286,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 1418,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/PublicAPI.Unshipped.txt",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 80,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "docs/COBOLNET_INTERPROGRAM_DESIGN.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 23,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "docs/COBOLNET_NUMERIC_DESIGN.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 205,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "docs/CONFORMANCE.md",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 1248,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/cases/11.9.11-INTERMEDIATE-ROUNDING/pb1510_intermediate_rounding_nearest_even_tie.cob",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 250,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a283be412e3cbd809",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261500c/gate1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 178,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a383171b556b6a6dc",
+    "role": "cobol-reviewer",
+    "file": "src/Cobol.Net.Runtime/IO/Sharing/SidecarLockFiles.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 569,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a383171b556b6a6dc",
+    "role": "cobol-reviewer",
+    "file": "kb/Work/PB3640.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 647,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a383171b556b6a6dc",
+    "role": "cobol-reviewer",
+    "file": "src/Cobol.Net.Runtime/IO/KeyedConnector.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 696,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a383171b556b6a6dc",
+    "role": "cobol-reviewer",
+    "file": "tests/Cobol.Net.Tests.Unit/Store/CommitRollbackRuntimeTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 536,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a68513a270e51993f",
+    "role": "cobol-reviewer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1377,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a68513a270e51993f",
+    "role": "cobol-reviewer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/CallBinder.cs",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 3670,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a68513a270e51993f",
+    "role": "cobol-reviewer",
+    "file": "src/Cobol.Net.Compiler/CodeGen/Verbs/CallEmitter.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1309,
+    "partial_reads": 0
+   },
+   {
+    "agent": "a8eedd9ad0567c806",
+    "role": "cobol-reviewer",
+    "file": "src/Cobol.Net.Runtime/Control/ActivationRelations.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 1242,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa29e3138d5e4fc05",
+    "role": "cobol-reviewer",
+    "file": "E:/COBOL-coord/scratch/reports/w20261500c-PB3677-report.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 103,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa65636156c5bf089",
+    "role": "cobol-reviewer",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 729,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa72e7c633d428180",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3675.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 219,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa72e7c633d428180",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/IO/Sharing/SequentialJournal.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 2928,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa72e7c633d428180",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/FaultHostMedium.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1468,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa72e7c633d428180",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/IO/Sharing/SidecarLockFiles.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1648,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa72e7c633d428180",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/build1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 361,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa72e7c633d428180",
+    "role": "cobol-implementer",
+    "file": "docs/rearchitecture/DESIGN-runtime-library.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 100,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa72e7c633d428180",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/SequentialJournalTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 756,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa72e7c633d428180",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/SequentialCommitControlTests.cs",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 2322,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aa72e7c633d428180",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/claude/gate1.log",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 323,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aac30a7d3ae051a2f",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3678.md",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 388,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aac30a7d3ae051a2f",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/b3678.log",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 181,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aac30a7d3ae051a2f",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/CallBinder.cs",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 3649,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aac30a7d3ae051a2f",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 1750,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aac30a7d3ae051a2f",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 1912,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aac30a7d3ae051a2f",
+    "role": "cobol-implementer",
+    "file": "docs/CONFORMANCE.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 111,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aac30a7d3ae051a2f",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/GroupMoveSenderChannelDriftTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 659,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aac30a7d3ae051a2f",
+    "role": "cobol-implementer",
+    "file": "E:/Temp/gate3678.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 147,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ac921fe0e4ad76106",
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 555,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ac921fe0e4ad76106",
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/implementer-report-template.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 934,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ac921fe0e4ad76106",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Unit/NumericDisplayDecimalTests.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 546,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ac921fe0e4ad76106",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Conformance/AcceptDifferentialTests.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 1082,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ac921fe0e4ad76106",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3513.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 805,
+    "partial_reads": 0
+   },
+   {
+    "agent": "acca5f592c9b64885",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/CallBinder.cs",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 4291,
+    "partial_reads": 0
+   },
+   {
+    "agent": "acca5f592c9b64885",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 1460,
+    "partial_reads": 0
+   },
+   {
+    "agent": "acca5f592c9b64885",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261500g/fin/gate.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 256,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3605.md",
+    "reads": 4,
+    "full_reads": 3,
+    "wasted_tokens": 275,
+    "partial_reads": 1
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB2282.md",
+    "reads": 3,
+    "full_reads": 2,
+    "wasted_tokens": 207,
+    "partial_reads": 1
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs",
+    "reads": 5,
+    "full_reads": 4,
+    "wasted_tokens": 3026,
+    "partial_reads": 1
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "v200112.txt",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 3211,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/Values/MoveValidity.cs",
+    "reads": 4,
+    "full_reads": 2,
+    "wasted_tokens": 1109,
+    "partial_reads": 2
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/MoveTable16.cs",
+    "reads": 4,
+    "full_reads": 1,
+    "wasted_tokens": 1707,
+    "partial_reads": 3
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "MVSPC.cob",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 7,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "VARYBY.cob",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 7,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Conformance/MoveEditionDifferentialTests.cs",
+    "reads": 4,
+    "full_reads": 4,
+    "wasted_tokens": 3111,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs",
+    "reads": 2,
+    "full_reads": 1,
+    "wasted_tokens": 280,
+    "partial_reads": 1
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/Control/ActivationRelations.cs",
+    "reads": 4,
+    "full_reads": 2,
+    "wasted_tokens": 1786,
+    "partial_reads": 2
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/Control/ActivationDescription.cs",
+    "reads": 4,
+    "full_reads": 2,
+    "wasted_tokens": 833,
+    "partial_reads": 2
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Oo/ActivationDescriptions.cs",
+    "reads": 2,
+    "full_reads": 1,
+    "wasted_tokens": 526,
+    "partial_reads": 1
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
+    "reads": 3,
+    "full_reads": 2,
+    "wasted_tokens": 360,
+    "partial_reads": 1
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "docs/VERSION_CHANGE_REFERENCE.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 954,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 738,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB3501.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 250,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261500e/scan2/hits.txt",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 154,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/cases/_unassigned/pb2553_sum_counter_character_cell.cob",
+    "reads": 2,
+    "full_reads": 1,
+    "wasted_tokens": 60,
+    "partial_reads": 1
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Conformance/ZeroLengthLiteralMoveTests.cs",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 612,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "conformance-suite/cases/8.3.3.2-Alphanumeric-literals/pb425_zero_length_literal_move.cob",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 474,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261500e/gate1.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 209,
+    "partial_reads": 0
+   },
+   {
+    "agent": "aed2b48a54ded349a",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261500e/gate2.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 116,
+    "partial_reads": 0
+   },
+   {
+    "agent": "afeab3f26d79a7bb4",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB690.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 2625,
+    "partial_reads": 0
+   },
+   {
+    "agent": "afeab3f26d79a7bb4",
+    "role": "cobol-implementer",
+    "file": "specs/ISO_COBOL.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 3412,
+    "partial_reads": 0
+   },
+   {
+    "agent": "afeab3f26d79a7bb4",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Conformance/DocA1Item103WitnessTests.cs",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 1857,
+    "partial_reads": 0
+   },
+   {
+    "agent": "afeab3f26d79a7bb4",
+    "role": "cobol-implementer",
+    "file": "tests/Cobol.Net.Tests.Conformance/DocA1Item218WitnessTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 702,
+    "partial_reads": 0
+   },
+   {
+    "agent": "afeab3f26d79a7bb4",
+    "role": "cobol-implementer",
+    "file": "kb/Work/PB934.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 89,
+    "partial_reads": 0
+   },
+   {
+    "agent": "afeab3f26d79a7bb4",
+    "role": "cobol-implementer",
+    "file": "E:/COBOL-coord/scratch/mythos/w20261500d/linux.log",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 226,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ab5c86c788486e684",
+    "role": "cobol-finisher",
+    "file": "STATUS.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 116,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ab5c86c788486e684",
+    "role": "cobol-finisher",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 16930,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ab5c86c788486e684",
+    "role": "cobol-finisher",
+    "file": "tests/Cobol.Net.Tests.Unit/SpecTraceabilityInventoryDriftTests.cs",
+    "reads": 6,
+    "full_reads": 6,
+    "wasted_tokens": 1949,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ab5c86c788486e684",
+    "role": "cobol-finisher",
+    "file": "src/Cobol.Net.Runtime/IO/Sharing/SidecarLockFiles.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 876,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ab5c86c788486e684",
+    "role": "cobol-finisher",
+    "file": "tests/Cobol.Net.Tests.Unit/CobolFileLockTests.cs",
+    "reads": 5,
+    "full_reads": 5,
+    "wasted_tokens": 1928,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ab5c86c788486e684",
+    "role": "cobol-finisher",
+    "file": "tests/Cobol.Net.Tests.Unit/TrackedTreeScopeDriftTests.cs",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 670,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ab5c86c788486e684",
+    "role": "cobol-finisher",
+    "file": "DEVLOG/2546-pb3677-an-sdidi-value-crosses-a-call-at-its-own-exponent-not.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 52,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ab5c86c788486e684",
+    "role": "cobol-finisher",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/devlog_add.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 16,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ab5c86c788486e684",
+    "role": "cobol-finisher",
+    "file": "E:/COBOL-coord/scratch/reports/w20261500c-PB3677-report.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 70,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ab5c86c788486e684",
+    "role": "cobol-finisher",
+    "file": "E:/Temp/claude/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/scratchpad/gate.log",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 176,
+    "partial_reads": 0
+   },
+   {
+    "agent": "abcc4058cf15aa409",
+    "role": "cobol-finisher",
+    "file": "STATUS.md",
+    "reads": 3,
+    "full_reads": 3,
+    "wasted_tokens": 390,
+    "partial_reads": 0
+   },
+   {
+    "agent": "abcc4058cf15aa409",
+    "role": "cobol-finisher",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "reads": 3,
+    "full_reads": 2,
+    "wasted_tokens": 16910,
+    "partial_reads": 1
+   },
+   {
+    "agent": "abcc4058cf15aa409",
+    "role": "cobol-finisher",
+    "file": "docs/VERSION_CHANGE_REFERENCE.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 21,
+    "partial_reads": 0
+   },
+   {
+    "agent": "ad0e4ca26e198e663",
+    "role": "cobol-reviewer",
+    "file": "E:/COBOL-coord/scratch/reports/w20261500c-PB3677-report.md",
+    "reads": 2,
+    "full_reads": 2,
+    "wasted_tokens": 408,
+    "partial_reads": 0
+   }
+  ],
+  "S4_duplicates_summary": [
+   {
+    "role": "cobol-finisher",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "agents": 5,
+    "wasted_tokens": 82726,
+    "reads": 12
+   },
+   {
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "agents": 5,
+    "wasted_tokens": 41682,
+    "reads": 11
+   },
+   {
+    "role": "cobol-adjudicator",
+    "file": "specs/ISO_COBOL.md",
+    "agents": 9,
+    "wasted_tokens": 27891,
+    "reads": 40
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "scripts/spec/work.py",
+    "agents": 1,
+    "wasted_tokens": 20071,
+    "reads": 18
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Runtime/Control/ActivationRelations.cs",
+    "agents": 3,
+    "wasted_tokens": 13658,
+    "reads": 12
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs",
+    "agents": 1,
+    "wasted_tokens": 12714,
+    "reads": 5
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "scripts/spec/audit_grammar_optional_words.py",
+    "agents": 1,
+    "wasted_tokens": 12488,
+    "reads": 7
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/queue_facts.py",
+    "agents": 2,
+    "wasted_tokens": 12334,
+    "reads": 15
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "specs/ISO_COBOL.md",
+    "agents": 5,
+    "wasted_tokens": 12012,
+    "reads": 23
+   },
+   {
+    "role": "cobol-refuter",
+    "file": "specs/ISO_COBOL.md",
+    "agents": 2,
+    "wasted_tokens": 11548,
+    "reads": 13
+   },
+   {
+    "role": "cobol-reviewer",
+    "file": "C:/Users/brent/.claude/projects/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/tool-results/b46bapr4p.txt",
+    "agents": 1,
+    "wasted_tokens": 10713,
+    "reads": 2
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs",
+    "agents": 1,
+    "wasted_tokens": 10536,
+    "reads": 11
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs",
+    "agents": 2,
+    "wasted_tokens": 10228,
+    "reads": 11
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "docs/rearchitecture/DESIGN-orchestrator-loop.md",
+    "agents": 2,
+    "wasted_tokens": 10200,
+    "reads": 13
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/CodeGen/Verbs/CallEmitter.cs",
+    "agents": 1,
+    "wasted_tokens": 10069,
+    "reads": 7
+   },
+   {
+    "role": "cobol-clerk",
+    "file": "$n.md",
+    "agents": 2,
+    "wasted_tokens": 9759,
+    "reads": 4
+   },
+   {
+    "role": "cobol-reviewer",
+    "file": "scripts/spec/audit_grammar_optional_words.py",
+    "agents": 1,
+    "wasted_tokens": 8876,
+    "reads": 3
+   },
+   {
+    "role": "cobol-finisher",
+    "file": "scripts/merge_drivers.py",
+    "agents": 2,
+    "wasted_tokens": 8230,
+    "reads": 13
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/landing_measure.py",
+    "agents": 1,
+    "wasted_tokens": 7963,
+    "reads": 6
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/CallBinder.cs",
+    "agents": 2,
+    "wasted_tokens": 7940,
+    "reads": 9
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "scripts/merge_drivers.py",
+    "agents": 2,
+    "wasted_tokens": 7426,
+    "reads": 4
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs",
+    "agents": 1,
+    "wasted_tokens": 6344,
+    "reads": 4
+   },
+   {
+    "role": "cobol-adjudicator",
+    "file": "src/Cobol.Net.Runtime/IO/KeyedConnector.cs",
+    "agents": 1,
+    "wasted_tokens": 6218,
+    "reads": 2
+   },
+   {
+    "role": "cobol-reviewer",
+    "file": ".claude/skills/review/SKILL.md (after Skill load of same skill)",
+    "agents": 2,
+    "wasted_tokens": 6162,
+    "reads": 2
+   },
+   {
+    "role": "cobol-adjudicator",
+    "file": "tests/Cobol.Net.Tests.Unit/CommitRollbackRefusalWitnessTests.cs",
+    "agents": 2,
+    "wasted_tokens": 6141,
+    "reads": 6
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "docs/VERSION_CHANGE_REFERENCE.md",
+    "agents": 3,
+    "wasted_tokens": 5541,
+    "reads": 12
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Frontend/Common/CobolLiteral.cs",
+    "agents": 1,
+    "wasted_tokens": 5524,
+    "reads": 4
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "scripts/orchestrator/plan_wave.py",
+    "agents": 1,
+    "wasted_tokens": 5473,
+    "reads": 6
+   },
+   {
+    "role": "cobol-implementer",
+    "file": "src/Cobol.Net.Compiler/Binding/DataBinder.cs",
+    "agents": 1,
+    "wasted_tokens": 5322,
+    "reads": 6
+   },
+   {
+    "role": "cobol-implementer",
+    "file": ".claude/skills/workstream/templates/fix-lane-implementer-brief.md",
+    "agents": 1,
+    "wasted_tokens": 4376,
+    "reads": 2
+   }
+  ],
+  "S5_totals": {
+   "third_party_usd": 267.9,
+   "pct_of_total": 31.5,
+   "with_agent_fleet_loaded": 263.5,
+   "agent_fleet_sessions_pct_of_total": 31.0
+  },
+  "S5_agent_own_skill_calls": {
+   "cobol-reviewer|brent-tools:review": 2
+  },
+  "S5_main_session_agents_tag": {
+   "agents": 105,
+   "all_third_party": 27,
+   "all_untagged": 77,
+   "mixed": 1
+  },
+  "S5_skill_load_sizes_tokens": {
+   "E:\\COBOL\\.claude\\skills\\session-start": {
+    "loads": 34,
+    "tokens_median": 1173
+   },
+   "E:\\COBOL\\.claude\\skills\\workstream": {
+    "loads": 25,
+    "tokens_median": 6710
+   },
+   "E:\\COBOL\\tools\\claude-skills\\skills\\agent-fleet": {
+    "loads": 23,
+    "tokens_median": 4532
+   },
+   "E:\\COBOL\\.claude\\skills\\gate": {
+    "loads": 1,
+    "tokens_median": 3847
+   },
+   "E:\\COBOL\\tools\\claude-skills\\skills\\review": {
+    "loads": 2,
+    "tokens_median": 1875
+   }
+  },
+  "S5b_skill_load_true_cost": {
+   "brent-tools:agent-fleet": {
+    "loads": 23,
+    "tokens_per_load_median": 4532,
+    "usd_total": 2.57,
+    "pct_of_24h_total": 0.3
+   },
+   "workstream": {
+    "loads": 25,
+    "tokens_per_load_median": 6710,
+    "usd_total": 4.05,
+    "pct_of_24h_total": 0.48
+   },
+   "session-start": {
+    "loads": 34,
+    "tokens_per_load_median": 1173,
+    "usd_total": 0.86,
+    "pct_of_24h_total": 0.1
+   }
+  },
+  "S6_loop_units": [
+   {
+    "kind": "enqueue",
+    "units": 16,
+    "turns_own": 792,
+    "turns_median_per_unit": 41.0,
+    "input": 1678,
+    "cache_write": 2048133,
+    "cache_read": 107467835,
+    "output": 14187,
+    "usd_own": 38.17,
+    "nested_turns": 1239,
+    "usd_nested": 52.53,
+    "result_total_cost_usd": 109.35,
+    "skill_loads": {
+     "SKILL:session-start": 16,
+     "SKILL:workstream": 16,
+     "SKILL:brent-tools:agent-fleet": 14
+    },
+    "instr_reads": {
+     ".claude/skills/workstream/references/landing.md": 14,
+     ".claude/skills/workstream/templates/finisher-brief.md": 6,
+     ".claude/skills/workstream/templates/registrar-brief.md": 2,
+     ".claude/skills/review/SKILL.md": 3,
+     "E:/COBOL-coord/scratch/clerk-brief-enqueue-20261024-1510.md": 1,
+     "E:/COBOL-coord/scratch/conflict-brief-500-20.txt": 1,
+     "E:/COBOL-coord/scratch/conflict-brief-$b.txt": 1,
+     "E:/COBOL-coord/scratch/conflict-brief-worktree-wf_6e0a917c-500-21.txt": 1,
+     "E:/COBOL-coord/scratch/clerk-enqueue-20261025-brief.md": 1,
+     ".claude/agents/cobol-clerk.md": 1
+    }
+   },
+   {
+    "kind": "meter",
+    "units": 10,
+    "turns_own": 57,
+    "turns_median_per_unit": 6.0,
+    "input": 114,
+    "cache_write": 872163,
+    "cache_read": 2489191,
+    "output": 3764,
+    "usd_own": 3.58,
+    "nested_turns": 0,
+    "usd_nested": 0,
+    "result_total_cost_usd": 3.85,
+    "skill_loads": {},
+    "instr_reads": {}
+   },
+   {
+    "kind": "resume",
+    "units": 12,
+    "turns_own": 272,
+    "turns_median_per_unit": 16.0,
+    "input": 546,
+    "cache_write": 704256,
+    "cache_read": 23506168,
+    "output": 6729,
+    "usd_own": 10.47,
+    "nested_turns": 0,
+    "usd_nested": 0,
+    "result_total_cost_usd": 12.98,
+    "skill_loads": {
+     "SKILL:session-start": 9,
+     "SKILL:gate": 1
+    },
+    "instr_reads": {}
+   },
+   {
+    "kind": "campaign",
+    "units": 6,
+    "turns_own": 301,
+    "turns_median_per_unit": 48.5,
+    "input": 602,
+    "cache_write": 755314,
+    "cache_read": 34318634,
+    "output": 5496,
+    "usd_own": 13.02,
+    "nested_turns": 0,
+    "usd_nested": 0,
+    "result_total_cost_usd": 229.45,
+    "skill_loads": {
+     "SKILL:session-start": 6,
+     "SKILL:workstream": 6,
+     "SKILL:brent-tools:agent-fleet": 6
+    },
+    "instr_reads": {
+     ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md": 6
+    }
+   },
+   {
+    "kind": "wave",
+    "units": 2,
+    "turns_own": 107,
+    "turns_median_per_unit": 53.5,
+    "input": 214,
+    "cache_write": 241106,
+    "cache_read": 12286175,
+    "output": 1839,
+    "usd_own": 4.42,
+    "nested_turns": 0,
+    "usd_nested": 0,
+    "result_total_cost_usd": 73.8,
+    "skill_loads": {
+     "SKILL:session-start": 2,
+     "SKILL:workstream": 2,
+     "SKILL:brent-tools:agent-fleet": 2
+    },
+    "instr_reads": {
+     ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md": 2,
+     "tools/claude-skills/skills/agent-fleet/references/concurrency-and-watchdog.md": 1
+    }
+   }
+  ],
+  "S6_main_session_shares": {
+   "sum_ctx": 155661627,
+   "skills_pct_of_input": 3.17,
+   "instr_files_pct_of_input": 8.06,
+   "mp_pct_of_input": 4.27,
+   "baseline_pct_of_input": 19.3
+  },
+  "S6_main_session": {
+   "turns": 414,
+   "input": 1746,
+   "cache_write": 774921,
+   "cache_read": 154884960,
+   "output": 214739,
+   "ctx_first": 72408,
+   "ctx_last": 608998,
+   "usd": 44.08,
+   "skill_loads": [
+    [
+     0,
+     "SKILL:session-start",
+     1173
+    ],
+    [
+     25,
+     "SKILL:workstream",
+     6942
+    ],
+    [
+     26,
+     "SKILL:brent-tools:agent-fleet",
+     4532
+    ],
+    [
+     97,
+     "SKILL:workflow-authoring",
+     0
+    ]
+   ],
+   "top_reads": [
+    [
+     ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+     11786
+    ],
+    [
+     "SKILL:workstream",
+     6942
+    ],
+    [
+     ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+     4883
+    ],
+    [
+     "SKILL:brent-tools:agent-fleet",
+     4532
+    ],
+    [
+     "docs/rearchitecture/DESIGN-orchestrator-loop.md",
+     2791
+    ],
+    [
+     "E:/COBOL-coord/scratch/op/mythos-briefing-20261025.md",
+     1748
+    ],
+    [
+     "C:/Users/brent/.claude/projects/E--COBOL/f20ac06b-f154-4428-9717-2b44eeb312bb/subagents/workflows/wf_b0495e31-d0c/agent-a697fc281cd405abf.meta.json",
+     1551
+    ],
+    [
+     "E:/COBOL-wt/notes-restructure/kb/Work/PB3726.md",
+     1512
+    ]
+   ]
+  },
+  "S6_nested_in_units": {
+   "cobol-finisher": {
+    "turns": 720,
+    "usd": 32.5
+   },
+   "cobol-reviewer": {
+    "turns": 263,
+    "usd": 12.71
+   },
+   "cobol-clerk": {
+    "turns": 256,
+    "usd": 7.32
+   }
+  },
+  "S8_turn1_decomposition_implementer_chars": {
+   "tool_schemas": 71892,
+   "skills_listing": 23614,
+   "memory_md": 20544,
+   "claude_md": 14521,
+   "agent_definition": 4389,
+   "deferred_tool_list": 3617,
+   "environment_block": 2895,
+   "task_prompt": 3261,
+   "git_status": 1059,
+   "attribution": 580,
+   "note": "chars from the first api-request of one cobol-implementer (api-request-shape + api-request-blob); measured ctx1 is ~55K tokens, i.e. ~2.7 chars/token on this JSON-heavy mix, so shares of chars approximate shares of the baseline"
+  },
+  "S7_file_sizes": [
+   {
+    "file": "CLAUDE.md",
+    "bytes": 14571,
+    "tokens": 3643
+   },
+   {
+    "file": "PROMPT.md",
+    "bytes": 6058,
+    "tokens": 1514
+   },
+   {
+    "file": ".claude/agents/cobol-adjudicator.md",
+    "bytes": 1591,
+    "tokens": 398
+   },
+   {
+    "file": ".claude/agents/cobol-clerk.md",
+    "bytes": 1011,
+    "tokens": 253
+   },
+   {
+    "file": ".claude/agents/cobol-finisher.md",
+    "bytes": 2454,
+    "tokens": 614
+   },
+   {
+    "file": ".claude/agents/cobol-implementer.md",
+    "bytes": 2780,
+    "tokens": 695
+   },
+   {
+    "file": ".claude/agents/cobol-locator.md",
+    "bytes": 2081,
+    "tokens": 520
+   },
+   {
+    "file": ".claude/agents/cobol-refuter.md",
+    "bytes": 1659,
+    "tokens": 415
+   },
+   {
+    "file": ".claude/agents/cobol-reviewer.md",
+    "bytes": 5295,
+    "tokens": 1324
+   },
+   {
+    "file": ".claude/skills/architecture-review/SKILL.md",
+    "bytes": 13513,
+    "tokens": 3378
+   },
+   {
+    "file": ".claude/skills/gate/SKILL.md",
+    "bytes": 15956,
+    "tokens": 3989
+   },
+   {
+    "file": ".claude/skills/kb-sync/SKILL.md",
+    "bytes": 6546,
+    "tokens": 1636
+   },
+   {
+    "file": ".claude/skills/land-a-fix/SKILL.md",
+    "bytes": 6865,
+    "tokens": 1716
+   },
+   {
+    "file": ".claude/skills/new-construct/SKILL.md",
+    "bytes": 4563,
+    "tokens": 1141
+   },
+   {
+    "file": ".claude/skills/review/SKILL.md",
+    "bytes": 11936,
+    "tokens": 2984
+   },
+   {
+    "file": ".claude/skills/session-start/SKILL.md",
+    "bytes": 4975,
+    "tokens": 1244
+   },
+   {
+    "file": ".claude/skills/spec-lookup/SKILL.md",
+    "bytes": 3708,
+    "tokens": 927
+   },
+   {
+    "file": ".claude/skills/workstream/SKILL.md",
+    "bytes": 28986,
+    "tokens": 7246
+   },
+   {
+    "file": ".claude/skills/workstream/templates/MANDATORY-PRACTICES.md",
+    "bytes": 67654,
+    "tokens": 16914
+   },
+   {
+    "file": ".claude/skills/workstream/templates/build_lane1_inputs.py",
+    "bytes": 9132,
+    "tokens": 2283
+   },
+   {
+    "file": ".claude/skills/workstream/templates/cloud-adjudicate-brief.md",
+    "bytes": 5756,
+    "tokens": 1439
+   },
+   {
+    "file": ".claude/skills/workstream/templates/dispatch-spec-implementer.md",
+    "bytes": 11373,
+    "tokens": 2843
+   },
+   {
+    "file": ".claude/skills/workstream/templates/finisher-brief.md",
+    "bytes": 7538,
+    "tokens": 1884
+   },
+   {
+    "file": ".claude/skills/workstream/templates/fix-lane-implementer-brief.md",
+    "bytes": 13777,
+    "tokens": 3444
+   },
+   {
+    "file": ".claude/skills/workstream/templates/golden-lane-brief.md",
+    "bytes": 8232,
+    "tokens": 2058
+   },
+   {
+    "file": ".claude/skills/workstream/templates/implementer-brief.md",
+    "bytes": 11730,
+    "tokens": 2932
+   },
+   {
+    "file": ".claude/skills/workstream/templates/implementer-report-template.md",
+    "bytes": 3775,
+    "tokens": 944
+   },
+   {
+    "file": ".claude/skills/workstream/templates/merge_batch.py",
+    "bytes": 7832,
+    "tokens": 1958
+   },
+   {
+    "file": ".claude/skills/workstream/templates/registrar-brief.md",
+    "bytes": 8135,
+    "tokens": 2034
+   },
+   {
+    "file": ".claude/skills/workstream/templates/wf_lane1_draft.js",
+    "bytes": 12350,
+    "tokens": 3088
+   },
+   {
+    "file": ".claude/skills/workstream/templates/wf_lane1_validate.js",
+    "bytes": 6020,
+    "tokens": 1505
+   },
+   {
+    "file": ".claude/skills/workstream/templates/wf_lane3_adjudicate.js",
+    "bytes": 11507,
+    "tokens": 2877
+   },
+   {
+    "file": ".claude/skills/workstream/templates/wf_lane3_refute.js",
+    "bytes": 9846,
+    "tokens": 2462
+   },
+   {
+    "file": ".claude/skills/workstream/templates/wf_r2_review.js",
+    "bytes": 22324,
+    "tokens": 5581
+   },
+   {
+    "file": ".claude/skills/workstream/templates/wf_rolling_wave.js",
+    "bytes": 42747,
+    "tokens": 10687
+   },
+   {
+    "file": "tools/claude-skills/skills/agent-fleet/SKILL.md",
+    "bytes": 18382,
+    "tokens": 4596
+   },
+   {
+    "file": "tools/claude-skills/skills/architecture-audit/SKILL.md",
+    "bytes": 11519,
+    "tokens": 2880
+   },
+   {
+    "file": "tools/claude-skills/skills/automating-agent-guardrails/SKILL.md",
+    "bytes": 8396,
+    "tokens": 2099
+   },
+   {
+    "file": "tools/claude-skills/skills/claude-cloud-sessions/SKILL.md",
+    "bytes": 13916,
+    "tokens": 3479
+   },
+   {
+    "file": "tools/claude-skills/skills/cross-platform/SKILL.md",
+    "bytes": 14716,
+    "tokens": 3679
+   },
+   {
+    "file": "tools/claude-skills/skills/devlog/SKILL.md",
+    "bytes": 12005,
+    "tokens": 3001
+   },
+   {
+    "file": "tools/claude-skills/skills/dotnet-engineering/SKILL.md",
+    "bytes": 10721,
+    "tokens": 2680
+   },
+   {
+    "file": "tools/claude-skills/skills/engineering-standards/SKILL.md",
+    "bytes": 6420,
+    "tokens": 1605
+   },
+   {
+    "file": "tools/claude-skills/skills/performance-diagnosis/SKILL.md",
+    "bytes": 10280,
+    "tokens": 2570
+   },
+   {
+    "file": "tools/claude-skills/skills/review/SKILL.md",
+    "bytes": 8116,
+    "tokens": 2029
+   },
+   {
+    "file": "tools/claude-skills/skills/roslyn-analysis/SKILL.md",
+    "bytes": 12449,
+    "tokens": 3112
+   },
+   {
+    "file": "tools/claude-skills/skills/spec-compliance-audit/SKILL.md",
+    "bytes": 8738,
+    "tokens": 2184
+   },
+   {
+    "file": "tools/claude-skills/skills/spec-oracle/SKILL.md",
+    "bytes": 10581,
+    "tokens": 2645
+   },
+   {
+    "file": "tools/claude-skills/skills/test-gate/SKILL.md",
+    "bytes": 6828,
+    "tokens": 1707
+   },
+   {
+    "file": "tools/claude-skills/skills/variant-analysis/SKILL.md",
+    "bytes": 12110,
+    "tokens": 3028
+   },
+   {
+    "file": "skills/agent-fleet/SKILL.md",
+    "bytes": 18382,
+    "tokens": 4596
+   },
+   {
+    "file": "skills/architecture-audit/SKILL.md",
+    "bytes": 11519,
+    "tokens": 2880
+   },
+   {
+    "file": "skills/automating-agent-guardrails/SKILL.md",
+    "bytes": 8396,
+    "tokens": 2099
+   },
+   {
+    "file": "skills/claude-cloud-sessions/SKILL.md",
+    "bytes": 13741,
+    "tokens": 3435
+   },
+   {
+    "file": "skills/cross-platform/SKILL.md",
+    "bytes": 14716,
+    "tokens": 3679
+   },
+   {
+    "file": "skills/devlog/SKILL.md",
+    "bytes": 12005,
+    "tokens": 3001
+   },
+   {
+    "file": "skills/dotnet-engineering/SKILL.md",
+    "bytes": 10581,
+    "tokens": 2645
+   },
+   {
+    "file": "skills/engineering-standards/SKILL.md",
+    "bytes": 6517,
+    "tokens": 1629
+   },
+   {
+    "file": "skills/performance-diagnosis/SKILL.md",
+    "bytes": 10131,
+    "tokens": 2533
+   },
+   {
+    "file": "skills/review/SKILL.md",
+    "bytes": 8116,
+    "tokens": 2029
+   },
+   {
+    "file": "skills/roslyn-analysis/SKILL.md",
+    "bytes": 12291,
+    "tokens": 3073
+   },
+   {
+    "file": "skills/spec-compliance-audit/SKILL.md",
+    "bytes": 8738,
+    "tokens": 2184
+   },
+   {
+    "file": "skills/spec-oracle/SKILL.md",
+    "bytes": 10425,
+    "tokens": 2606
+   },
+   {
+    "file": "skills/test-gate/SKILL.md",
+    "bytes": 6828,
+    "tokens": 1707
+   },
+   {
+    "file": "skills/variant-analysis/SKILL.md",
+    "bytes": 11930,
+    "tokens": 2982
+   },
+   {
+    "file": "agents/README.md",
+    "bytes": 12077,
+    "tokens": 3019
+   },
+   {
+    "file": "agents/comment-analyzer.md",
+    "bytes": 3185,
+    "tokens": 796
+   },
+   {
+    "file": "agents/pr-test-analyzer.md",
+    "bytes": 7921,
+    "tokens": 1980
+   },
+   {
+    "file": "agents/silent-failure-hunter.md",
+    "bytes": 6579,
+    "tokens": 1645
+   },
+   {
+    "file": "agents/type-design-analyzer.md",
+    "bytes": 5490,
+    "tokens": 1372
+   },
+   {
+    "file": "MEMORY.md",
+    "bytes": 19471,
+    "tokens": 4868
+   }
+  ]
+ },
+ "analyst_spot_checks": {
+  "turn1_tool_schemas_chars_by_role": {
+   "note": "from each role's first api-request-shape in the operator session's subagent transcripts; every role carries the same schemas",
+   "cobol-implementer": {
+    "tools": 16,
+    "chars": 71892,
+    "Artifact": 37943,
+    "PowerShell": 8787,
+    "SendFeedback": 5618,
+    "Bash": 3438,
+    "Grep": 3362,
+    "ReportFindings": 2314,
+    "Read": 2006,
+    "Skill": 1877,
+    "ToolSearch": 1522,
+    "ListAgents": 1227,
+    "Edit": 1037,
+    "StructuredOutput": 970,
+    "Glob": 785,
+    "Write": 694,
+    "DeferredToolPlaceholder": 214,
+    "advisor": 98
+   },
+   "cobol-reviewer": {
+    "tools": 16,
+    "chars": 71604
+   },
+   "cobol-finisher": {
+    "tools": 15,
+    "chars": 70922
+   },
+   "cobol-adjudicator": {
+    "tools": 16,
+    "chars": 72248
+   },
+   "cobol-locator": {
+    "tools": 16,
+    "chars": 71335
+   },
+   "cobol-refuter": {
+    "tools": 16,
+    "chars": 71497
+   },
+   "cobol-clerk": {
+    "tools": 13,
+    "chars": 66632
+   },
+   "never_used_by_any_of_105_agents": [
+    "Artifact",
+    "SendFeedback",
+    "ReportFindings",
+    "ListAgents"
+   ],
+   "never_used_chars": 47102
+  },
+  "practices_executed_per_role": {
+   "note": "agents whose tool calls contain the command or tool; implementer n=27 (median 97 turns), finisher n=7 (39), reviewer n=28 (24), adjudicator n=12 (35)",
+   "cobol-implementer": {
+    "orient.py": 23,
+    "drift_rules.py": 27,
+    "cite.py --check": 19,
+    "LSP tool": 0,
+    "semgrep verify.py": 21,
+    "status_delta.py": 5,
+    "any E:/claude-skills skills|agents path": 25,
+    "MANDATORY-PRACTICES touched": 24,
+    "work.py check": 27,
+    "git stash": 1,
+    "build-local.ps1": 27,
+    "where.py": 15,
+    "render-spec-page": 1,
+    "linux-gate.sh": 5,
+    "Skill tool": 0,
+    "record_verdicts": 9,
+    "generate.py --check": 11,
+    "report template read": 19,
+    "CLAUDE.md read": 3,
+    "fix-lane brief read": 25,
+    "ISO_COBOL.md read": 13
+   },
+   "cobol-finisher": {
+    "MANDATORY-PRACTICES touched": 7,
+    "merge_drivers.py": 6,
+    "build-local.ps1": 5,
+    "drift_rules.py": 2,
+    "work.py check": 2,
+    "record_verdicts": 2,
+    "public skill read": 0,
+    "cite.py --check": 0,
+    "orient.py": 0
+   },
+   "cobol-reviewer": {
+    "review_findings.py": 28,
+    "drift_rules.py": 26,
+    "cite.py --check": 16,
+    "ISO_COBOL.md read": 13,
+    "work.py check": 12,
+    "where.py": 8,
+    "CLAUDE.md read": 6,
+    "MANDATORY-PRACTICES touched": 5,
+    "Skill tool": 2,
+    "public skill read": 1
+   },
+   "cobol-adjudicator": {
+    "cite.py --check": 12,
+    "ISO_COBOL.md read": 11,
+    "everything else": 0
+   },
+   "cobol-clerk": {
+    "work.py check": 4,
+    "everything else": 0
+   },
+   "cobol-locator": {
+    "public skill read": 1,
+    "MANDATORY-PRACTICES": 1,
+    "everything else": 0
+   }
+  },
+  "P10_public_skill_reads_implementers": {
+   "note": "Bash reads of E:/claude-skills paths by the 27 implementers, result length/4 as tokens; orient.py and status_delta.py are the submodule SCRIPTS run (P6, P4), not skill reads",
+   "reads_by_file": {
+    "agent-fleet/references/orient.py": 37,
+    "agent-fleet/references/status_delta.py": 8,
+    "agents/pr-test-analyzer.md": 4,
+    "agents/silent-failure-hunter.md": 4,
+    "agents/comment-analyzer.md": 4,
+    "agent-fleet/references/fix_clusters.py": 3,
+    "engineering-standards/SKILL.md": 2,
+    "dotnet-engineering/SKILL.md": 1,
+    "spec-oracle/SKILL.md": 1,
+    "variant-analysis/SKILL.md": 1
+   },
+   "tokens_by_file": {
+    "orient.py output": 57138,
+    "status_delta.py output": 7086,
+    "pr-test-analyzer.md": 6224,
+    "comment-analyzer.md": 6224,
+    "silent-failure-hunter.md": 6011,
+    "fix_clusters.py": 3982,
+    "engineering-standards/SKILL.md": 1226,
+    "dotnet-engineering/SKILL.md": 98,
+    "spec-oracle/SKILL.md": 98,
+    "variant-analysis/SKILL.md": 98
+   },
+   "implementers_reading_any_public_SKILL_md": 4,
+   "implementers_reading_the_self_review_agent_files": 4,
+   "turn_of_the_agent_file_reads": "159-160 of 197 (the self-review step), in the two agents that read all three",
+   "token_turns_all_claude_skills_reads": 8088738,
+   "usd_cache_read_at_0.20": 1.62
+  },
+  "MANDATORY_PRACTICES_access_shape": {
+   "implementers": "cat → 2 KB harness preview (16 of 22), then grep of row ids; one agent's own grep: '^| (P2|P4|P5|P10|P11|P13|I1|I2|I7|I8|I9|I10|I11|R3) ' — the implementer's row set, enumerated by the agent",
+   "finishers": "cat whole (7 of 7, 2 reads each in 5 agents, median 17484 tokens per read; the finisher's own rows are about 4K tokens)"
+  },
+  "baseline_cost_per_1k_tokens_per_week_usd": {
+   "method": "agent USD/day = 849.1 - main threads (139.8 + 54.1 + 44.8) = 610; baseline 24.0 % of agent USD = 146/day = 1025/week for a 55K-token baseline → 18.6/week per 1K baseline tokens across the agents; main threads add about 4/week per 1K",
+   "per_1k_tokens_agents": 18.6,
+   "per_1k_tokens_main_threads": 4.0,
+   "agent_turns_per_day": 11831,
+   "main_thread_turns_per_day": 2467
+  },
+  "proposals_usd_per_week": {
+   "PB3776 tool schemas Artifact+SendFeedback+ReportFindings+ListAgents (47.1K chars, 12-17K tokens)": "220-310",
+   "PB3777 one rendered dispatch file (brief folded into the spec, overlap removed; 3.4K tokens x 25/27 implementers at turn 2, plus about 2.5K tokens of duplicated text)": "about 90",
+   "PB3779 MEMORY.md index 19.5K chars → about 6K (3.4K tokens, agents + main threads)": "about 75",
+   "owner question: disable the never/rarely used skill listings for this repository (about 12K of 23.6K chars, about 3K tokens)": "about 65",
+   "PB3780 loop units load the overlay only, slimmed (agent-fleet 4.5K + workstream 6.7K → about 2.5K tokens, 46 units/day x ~45 turns)": "about 50",
+   "PB3778 role-sliced practices rendered into the spec and finisher brief (finisher whole-file reads 11 % of its USD; implementer preview+grep turns)": "about 35, plus the rules reaching the agent",
+   "PB3781 CLAUDE.md / PROMPT.md duplicates and stale §5 (about 1.1K tokens)": "about 20",
+   "PB3782 P13 LSP rule dead as dispatched": "0 (a rule in effect)"
+  }
+ }
+}

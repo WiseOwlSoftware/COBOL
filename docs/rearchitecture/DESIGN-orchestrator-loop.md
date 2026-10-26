@@ -740,7 +740,8 @@ mechanisms, in order of how little they trust the model:
 3. **The synthesized handoff** (`checkpoint.py synthesize`): when a unit ends with no valid handoff (a crash, a kill,
    the background-task ceiling, a malformed file) the supervisor writes one from the last checkpoint, the five last
    milestones and the worktrees AS THEY ARE NOW: `outcome: split`, `next_unit: resume`, `synthesized: true`,
-   `branches_pending` for every worktree that holds work. The unit still counts as failed for the breaker, and
+   `branches_pending` for every worktree that holds work or that git could not measure (`ahead_of_main` or `uncommitted`
+   null: an unknown state is never read as clean, and the summary names those branches; kb/Work PB3715). The unit still counts as failed for the breaker, and
    `units.jsonl` records `synthesized (<what was wrong>)`. A READ-ONLY unit (the meter) gets none: it touched no
    branch, so the synthesized `resume` could only re-derive what the work chain's last handoff already holds, and
    `units.jsonl` records `missing` or `invalid` with `environment_failure` (section 4.5). If the SUPERVISOR dies mid-unit (a reboot), `checkpoint.json`
@@ -1062,7 +1063,9 @@ from that measurement and are refit from `units.jsonl` and `usage_report.py` (PB
 ### 9.1 The campaign lane (`--cluster`, kb/Work PB2120)
 
 The fix lane plans from harm: `fix_clusters.py` reads `.agent-fleet.json`, which keeps `kind: defect`, skips
-`blocked` and `process_only` notes, and resolves sites under `src/Cobol.Net.*` only. A CAMPAIGN (the legacy
+`process_only` notes, and resolves sites under `src/Cobol.Net.*` only, over the notes that wait on nothing
+(`plan_wave.ready_notes_view` copies them into a directory of its own: `fix_clusters.py` skips by a stored flag, and
+whether a note is blocked is derived, kb/Work PB3389). A CAMPAIGN (the legacy
 retirement `PB2108`, the architecture review `PB1754`) is `process_only` work in `tests/`, `scripts/`, `.github/`,
 `docs/` and the legacy tree, so before this lane it could be dispatched only by a hand-written `groups.json`. A
 campaign is a named cluster in the register: every note whose `cluster:` list names the lead (a lead note may list
@@ -1071,10 +1074,14 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
 - **Selection** is `work.py`'s `cluster_order(items, lead)`, the one reader of `cluster`, `tier` and `blocked_by` (also
   behind `python scripts/spec/work.py next --cluster <lead> [--json]`): every non-terminal note naming the cluster, of
   any kind, whatever its harm flags, with its tier, its depth in the `blocked_by` topology and what it waits on (open
-  blockers, in the cluster or not; `status: owner` or `blocked`; or `blocked: true` with no `blocked_by`). A note is
-  READY when it waits on nothing. `work.py check` holds the two spellings together: `blocked_by` names notes, `blocked`
-  is true exactly while a named blocker is open (a stale `true` hid PB1940 and PB1956 from every work list), and open
-  notes form no cycle.
+  blockers, in the cluster or not; `status: owner` or `blocked`: `work.waiting_on`). A note is READY when it waits on
+  nothing. Whether a note is blocked is DERIVED and never stored (kb/Work PB3389): a stored `blocked:` flag was a second
+  spelling of `blocked_by`, and it went stale both ways (a stale `true` hid PB1940 and PB1956 from every work list; a
+  blocker landing ahead of its dependent in the merge queue turned the check that held the flag to the list red with no
+  change to the branch, and failed the CI of five pull requests), so `work.py check` refuses the key and `waiting_on` is read by
+  `next`, `cluster_order`, the ledger, the fix lane's population (`plan_wave.ready_notes_view`) and, in the Bases language,
+  `kb/Work.base`'s `blocked` formula. A hold on something that is no note (the owner, a document) is `status: blocked`
+  or `owner`, said in the note's body. `check` also holds `blocked_by` to notes that exist and open notes to no cycle.
 - **The owner's tier** (kb/Work PB3423) orders the READY notes: `tier: ["PB3353:1"]`, a list of `CAMPAIGN:N` entries
   (N a positive integer, 1 first), scoped because a note belongs to several campaigns and the owner's order for one
   says nothing about another; `work.py check` refuses an entry that is not `CAMPAIGN:N`, names a campaign twice or
@@ -1091,7 +1098,17 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   by its chain; when it declares no site block at all its set is empty and it holds nothing (item 1b). `work.py check` (`sites_problems`) refuses an open note filed into any cluster from
   `work.SITES_REQUIRED_FROM` (PB3443) on that has no site block, a `**Sites:**` list or `**Sites:** none (why)`: every
   cluster is a campaign once an operator runs it, so the rule names no campaign. The 198 older notes with none (2026-10-19)
-  stay readable, each an empty set; the open notes of the running campaigns PB3353 and PB3160 were given blocks by hand. A
+  stay readable, each an empty set; the open notes of the running campaigns PB3353 and PB3160 were given blocks by hand.
+  A site that is a GLOB (`scripts/**/*.py`) is a SWEEP (kb/Work PB3721): on a tree (`note_sites(text, repo=...)`) it
+  expands with git's `:(glob)` pathspec over the COMMITTED files (`work.expand_globs`: `*` stays in a folder, `**/`
+  crosses folders) and claims each file it matches WHOLE, even beside a member of one of them, so a note that rewrites
+  seventy scripts holds every group on exactly those files, and the note never lists them by hand (the arm chosen:
+  refusing a glob would force a hand list that drifts from what the sweep touches, the shape CLAUDE.md rule 5 refuses).
+  A glob and a placeholder (`<P>`, `{A,B}`, `...`) differ: a placeholder declares nothing. The reader no longer drops
+  silently what a held note names: `sites_problems` refuses a note held to a block whose block claims nothing (a path
+  outside every campaign root, a glob matching no tracked file) unless it says `**Sites:** none (why)`, and names every
+  glob that matches no tracked file. The campaign roots name `.claude/skills`, `.claude/agents` and `.claude/workflows`
+  (kb/Work PB3720), never `.claude` whole, because `.claude/worktrees` holds whole working copies. A
   group's declared set, the one the partition checks, is its notes' declared sets (files and members) plus its
   primary file, claimed whole unless every note declares a site block and one names it
   (`plan_wave.collision_set`; DESIGN-architecture-review §8.7), for a fix-lane group too. The clusters holding one dependent's blockers MERGE when they share a depth and fit the cap, so the dependent
@@ -1223,7 +1240,7 @@ concurrently with no duplicate), `test_inventory_ratchet.py` (a fabricated reope
 unit's fleet launch refused after `STOP-UNIT`, an attended session's not), `test_adopt_main.py` (section 4.10: the loop adopts a stable main commit, and only that), `test_ledger_state.py` (owed until the current stamp is
 marked, owed again after an input-touching commit, not after an unrelated one; per account, the first mark needs `--url`;
 a landing pushed from another clone is owed while the checkout is behind, and the mark refuses until it is fast-forwarded),
-`account.py --self-test`, `mailbox.py --self-test` (section 15), `test_checkpoint.py` (real linked worktrees: committed, dirty, clean; a synthesized handoff checked
+`account.py --self-test`, `mailbox.py --self-test` (section 15), `test_checkpoint.py` (real linked worktrees: committed, dirty, clean, unreadable; a synthesized handoff checked
 against the schema's required and permitted keys), `test_next_unit.py` (rule 3's unreadable-meter gate on planted `units.jsonl` lines: the run counts only meter units, other units between them neither extend nor break it, a read breaks it, another account's attempts never count, the gate reopens a maximum age after the newest attempt, and an explicit name outranks it; kb/Work PB2665), `test_plan_wave.py` (fixture notes, clusters and reports in a temp directory, rendered through the
 real dispatch-spec template and `check_practices.py`'s same-file rule; the fix lane's whole plan against a golden the pre-campaign planner wrote; the campaign lane's selection, `blocked_by` order, `after:` derivation and waits, and `work.py check`'s topology rules, section 9.1), `test_watch_agent.py` (a transcript with a
 partial last line), `landing_measure.py --self-test` (the per-pull-request landing record, its completion from GitHub and the summary
@@ -1662,9 +1679,25 @@ it never declines (a line is atomic; a stale symbol fails the build, RS0017, as 
 line becomes `src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi` with its comment; `merge_drivers.py --check` holds the
 registry and the attributes together as it does for every driver, and `MergeDriverDriftTests.TheSelfTests_DeclareEveryArm`
 names the new arms: `publicapi: lines each side added are both kept`, `publicapi: a line one side removed is gone`,
-`publicapi: the header stays first and the rest is sorted`, `publicapi: the same line added by both is one line`. The
-landing also sorts the two baselines once (the driver's output order), so the first driven merge changes nothing but
-the merged lines.
+`publicapi: the header stays first and the rest is sorted`, `publicapi: the same line added by both is one line`.
+Corrected at the landing: THE LANDING LEAVES THE BASELINES AS MAIN HAS THEM, unsorted. Until a branch lands, its
+landing merges main in through MAIN's registry (`enqueue.py land` runs main's `merge_drivers`), which defines no driver
+for a name only the branch's registry holds, so git falls back to its line merge; a baseline the branch had sorted met
+every main change to it as a conflict (PR #608 stopped on PB3677's additions to `PublicAPI.Unshipped.txt`). A branch
+that leaves the file as main has it cannot conflict on it: git takes main's side without running any driver. So A NEW
+DRIVER LANDS ALONE, without reformatting the files it governs; their order converges at their first merge in which both
+sides changed them, whose output the driver sorts. `PublicAPI.Shipped.txt` order feeds the runtime ABI pin's
+`runtime-hash` line by line (`RuntimeAbiPinDriftTests.RuntimeHalf`), and a branch that changes Shipped changes the pin,
+so that first merge leaves the pin UNMEASURED and `abi_pin.settle` measures the sorted file. Corrected at
+implementation: the driver's patterns are matched by git's rules in the registry too
+(`merge_drivers.pattern_matches`, which `covered_by_driver` and `--check` read), since `pathlib`'s `match` lets `**`
+span exactly one directory where git lets it span any number. A baseline the driver covers is a file merged by key, so
+the planner's collision rule and the landing's merge-overlap rule (`covered_by_driver`) set it aside as they do the
+catalogues. And a merge reads its ATTRIBUTES from the registry as it reads its driver commands
+(`merge_drivers.attributes_tree`, given to git as `-c attr.tree=…`: the merged-into side's `.gitattributes` followed
+by a `<pattern> merge=<driver>` line per DRIVERS pattern; a later line wins). Without it, a branch cut before this
+landing (its `.gitattributes` still says `merge=union`) merging a main whose baseline the driver sorted got the union: a
+measured branch that added two symbols came out with 31 duplicated lines (RS0025 in the Release build).
 
 ### 16.10 The order, the waves and PB3637
 
@@ -1682,7 +1715,7 @@ arrow is "imports"; a module imports only what is to its left on its line or in 
 
 | Tier | Note | Step | Files claimed whole | Oracle (what proves nothing changed) |
 |---|---|---|---|---|
-| 1 | PB3637 | The UTF-8 switch: one mechanism (`PYTHONUTF8=1` set once, in `python-resolve.{sh,ps1}`, `orchestrate.ps1`, the CI workflow's `env:` and the hooks' environment), every per-script `stdout.reconfigure` deleted, the `--help` drift test | the 71 scripts (the five are among them), the four entry points, one new Unit test | every script's `--help` exits 0 under `PYTHONIOENCODING=cp1252`; the self-test runner GREEN |
+| 1 | PB3637 | The UTF-8 switch: one function, `scripts/standard_streams.py#ensure_utf8`, the first statement of every live Python entry point — in the program, not the environment, by the owner's direction of 2026-10-10 (kb/Work PB1546) and because `PYTHONIOENCODING=cp1252` beats `PYTHONUTF8=1` (measured), so an environment variable cannot pass this row's oracle — every per-script `reconfigure` copy deleted, the `--help` drift test | the live tools' Python files (173, the five among them), `standard_streams.py`, one new Unit test (`ScriptStandardStreamsDriftTests`) | `standard_streams.py --check`: every argparse entry point's `--help` and a usage error exit 0 and 2 under `PYTHONIOENCODING=cp1252`; the self-test runner GREEN |
 | 1 | PB3727 | §16.9, the PublicAPI driver | `scripts/merge_drivers.py`, `.gitattributes`, `MergeDriverDriftTests.cs`, the two baselines | the driver's arms; `merge_drivers.py --check`; a `merge-tree` of the two baselines against the last three landings that touched them reproduces main's result |
 | 2 | PB3728 | §16.3, `plan_wave.py` split by job, `plan()` in stages | `plan_wave.py`, `test_plan_wave.py`, the five new modules, every importer §16.3 names | `test_plan_wave.py` GREEN with 385 checks; `--dry-run` before/after identical; the golden `testdata/plan_wave_default.json` unchanged |
 | 2 | PB3738 | §16.8, CONFORMANCE.md one file per determination | `docs/CONFORMANCE.md`, `docs/conformance/**`, `rendered_views.py`, `.gitignore`, the five readers, `ConformanceRegister.cs`, `session-probe.ps1`, `DOC_INDEX.md`, the briefs and skills that name the file | the render is byte-identical to the file it cut; every citation resolves (`--check`); `audit_annex_a1.py`, `audit_derivations.py`, `gen_ledger.py --check` and `AnnexA1RegisterDriftTests` GREEN with the same counts |
@@ -1697,8 +1730,8 @@ arrow is "imports"; a module imports only what is to its left on its line or in 
 | 11 | PB3737 | §16.7, land_lane split | `land_lane.py`, the five new modules, every importer §16.7 names | the case files GREEN; `status` prints the same lines |
 
 Tier 1's two notes and tier 2's two notes share no file, so each pair runs in one wave; everything else is one note
-per wave. PB3637 goes first because it edits one line in each of the 71 scripts, which every later split would
-otherwise move; it is re-clustered from PB1957 into PB3726 so the loop does not plan it. Cases out before the split
+per wave. PB3637 goes first because it edits each live Python entry point (an import and the call, the copy deleted),
+which every later split would otherwise move; it is re-clustered from PB1957 into PB3726 so the loop does not plan it. Cases out before the split
 (tiers 4–11) because the split's oracle is then a set of files the split only re-imports, and the self-test stops
 being a 900-line block the split has to carry; plan_wave is the exception (its tests are already out), so its split
 comes first and its conversion carries the mechanism. PB3723's measurement is the before; its "after" is the same

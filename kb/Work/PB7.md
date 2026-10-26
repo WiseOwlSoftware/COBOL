@@ -11,7 +11,6 @@ silent: false
 rejects_legal_source: false
 under_rejects: false
 process_only: false
-blocked: false
 blocked_by: []
 spec_refs: [12.3.8.1, 15.21.2, 8.4.3.2.3]
 closes_rows: ["FMT-15.27.2", "FMT-15.65.2", "FMT-15.67.2", "FMT-15.69.2", "FMT-15.73.2", "RV-15.43.4-2"]

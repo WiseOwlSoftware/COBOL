@@ -76,6 +76,8 @@ from typing import Callable
 REPO = Path(__file__).resolve().parents[2]
 sys.path.append(str(Path(__file__).resolve().parents[1] / "spec"))
 import work  # noqa: E402  (note_sites: THE reader of a note's structured sites and names, kb/Work PB3242)
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 RECORD_DIR = Path("docs/rearchitecture/evidence/arch-census")
 SUFFIX = ".members.json.gz"   # gzip: the index names every symbol (about 4.5 MB as text)
@@ -490,6 +492,11 @@ def self_test() -> int:
     # a FIX-LANE note's folder site reserves nothing (kb/Work PB3670): never a whole subsystem
     fs = note_file_set("**Sites:**\n- folder `src/A/`, `src/A/Sym.cs#Sym.Flag`", root, index=no_index, drifted=no_index)
     check("fix-lane-folder-reserves-nothing", (fs["files"], fs["members"]), (["src/A/Sym.cs"], {"src/A/Sym.cs": ["Sym.Flag"]}))
+    # a GLOB site is a sweep over the tracked files it matches, each claimed whole, even beside a member of one of them
+    # (kb/Work PB3721): a fix-lane note that sweeps `src/A/*.cs` holds every group on those files, not on a folder
+    fs = note_file_set("**Sites:**\n- every `src/A/Binder*.cs`, `src/A/Binder.cs#Pending`", root, index=no_index, drifted=no_index)
+    check("glob-sweeps-whole", (fs["files"], fs["members"], fs["sites"]),
+          (["src/A/Binder.Oo.cs", "src/A/Binder.cs"], {}, ["src/A/Binder.Oo.cs", "src/A/Binder.cs"]))
     # a restructuring note's CALLER files are whole: what it moves is re-signed at every call site (kb/Work PB3670)
     fs = note_file_set(move + "- `src/A/Sym.cs#Sym.Flag`\n\n**Moves or changes:** `N.Sym.Flag`", root, index=idx,
                        drifted={})
@@ -537,10 +544,6 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--current", action="store_true", help="find or regenerate the index of this tree (--cache)")
     ap.add_argument("--cache", type=Path, help="with --current: where a regenerated index goes")
     a = ap.parse_args(argv)
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except AttributeError:
-        pass
     if a.self_test:
         return self_test()
     if a.record:
@@ -557,4 +560,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
