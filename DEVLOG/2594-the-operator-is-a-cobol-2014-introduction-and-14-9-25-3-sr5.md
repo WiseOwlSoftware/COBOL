@@ -1,4 +1,4 @@
-## The `<>` operator is a COBOL-2014 introduction, and §14.9.25.3 SR5's edition rows reach a figurative argument BY CONTENT (PB3604, PB3755)
+## Entry 2594 — 2026-10-25 18:28 PDT — The `<>` operator is a COBOL-2014 introduction, and §14.9.25.3 SR5's edition rows reach a figurative argument BY CONTENT (PB3604, PB3755)
 
 Two under-rejects in the edition gates, found by the 2026-10-23 edge sweep (PB3602) and by PB3605's review, both confirmed on
 this build before any change: `IF A <> 3` compiled at `--std 2002` (PB3604), and HIGH-VALUE, LOW-VALUE, QUOTE and ALL "X" passed
@@ -53,3 +53,4 @@ re-verdicted (witnesses moved and added; 3 retirements); GAP 34 -> 34, no row ch
 `closes_rows: []` and the reason.
 
 **Gate:** `build-local` run `000003-20261025T231434Z` at head 3e897dc63: `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half (WSL clone of HEAD) GREEN, Conformance 8,289/18,656, Unit 36,729/38,311, Characterization 8/36 in leg 1. The two earlier gates (`000001`, `000002`) were RED on the one carried case above (first a literal text-name at 85, then the host folding a word text-name's file name to upper case); both are fixed, and the whole local Conformance (18,656) and Unit (38,346) assemblies ran green before the third gate. Every golden added or moved ran in leg 1 (e.g. `SuiteTest_IsNoWorseThanItsVerdictAllows(edition 2014, id pb3755_content_figurative_numeric_edited_formal)` Passed, `WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic(id pb3604-cce-not-equal-operator-below-2014, edition 2002)` Passed).
+
