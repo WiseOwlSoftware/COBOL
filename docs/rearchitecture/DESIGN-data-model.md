@@ -704,6 +704,45 @@ PB570's defect would have had to pass: the word-only matrix was green throughout
 and the clause-less `01 G. 05 A.`) is NOT this pass's rule: that is §13.16.3 SR8's second sentence, screened by
 the `CheckPictureRequired` closing guard; its SR9 VALUE-implied exception is §2.7a, applied one pass EARLIER.
 
+**Every written tree — the TYPE declarations too — and a copy answers for its declaration (kb/Work PB3682).** A TYPEDEF
+template is off `Roots` but its clauses are source (§4.3), and §13.18.57.4 GR1 makes a TYPE subject "as though the data
+description identified by type-name-1 had been coded in place", so the rules above hold of a declaration whether or not
+anything references it. `UsageInheritancePass` therefore walks the roots and then every `DataBinder.AllTypeDecls()`
+template; before this a `TYPEDEF GROUP-USAGE NATIONAL` over a `GROUP-USAGE BIT` subgroup (§13.18.29.3 SR3), a group usage
+its member contradicts (§13.18.60.3 SR2) or cannot describe (SR3), a `WITH NO SIGN` over a signed picture, a VALUE on an
+INDEX member compiled clean unreferenced, and a *valid* template with a picture-less group usage (`01 TG TYPEDEF USAGE
+BINARY-LONG. 05 A.`) was refused outright. The third spelling joins the equivalence above, and
+`UsageInheritanceDriftTests` asserts it over the same matrix: `01 TG TYPEDEF USAGE u. 05 A ⟨pic⟩. 01 V TYPE TG.` gives the
+verdict and the width of the written spellings, and the unreferenced declaration the same refusal.
+A walked template and its subject are one description to the §8.5.3.1 comparison (`StrongTypeModel`), which asks the
+template form and the subject form of one declaration the same questions — a pointer restricted to a STRONG type holds the
+TEMPLATE, the subject holds the copy, and a template whose members missed their group's USAGE or SIGN was a different type
+from its own subject (`SET P TO ADDRESS OF W` refused, COBOLNET0869). `InheritSignClauses` walks the templates for
+the same reason.
+⛔ **A copy takes the application of the walk, not its screens, where the fact is its declaration's.** Every TYPE and SAME AS
+copy runs the walk too (it carries the usage its leaves must take), but a defect INSIDE the copy is reported where the
+description is written — a template by this walk, a SAME AS source as the storage entry it is — so a declaration referenced
+twice draws one diagnostic naming the declaration, not one per reference naming the subject
+(`AnsweredByTypeDeclaration`; the screens are muted through `EditionContext.Muted`, which drops the report and keeps the
+application). A fact whose clause came from OUTSIDE the copy (a group the subject is subordinate to, whose clause
+implied the subject's GROUP-USAGE: `GroupUsagePairIsTheDeclarations`) is a fact of its
+placement and the copy still reports it, and "not strongly typed" (§13.18.29.3 SR1) is the composed subject's alone — a
+TYPEDEF STRONG template is no typed item (§8.5.3.1).
+⛔ **The copies run BEFORE this pass, so they ask the ENTRY, not the completed form.** `DataItem.IsGroup` means "no PICTURE";
+entry bind answers a picture-less usage with a profile before the subordinates are parsed, so `01 G USAGE BINARY-LONG.
+05 A. 05 B.` is not an `IsGroup` until this pass sheds the profile. `ExpandTemplate`, `ExpandType` and `ExpandSameAsEntry`
+ask `DataItem.HasSubordinates` (pinned by `TheDescriptionCopies_AskTheEntry_NotTheCompletedForm`): asking `IsGroup` made a
+SAME AS subject of such a group ONE elementary item a quarter of its source's size (a silent wrong answer), and the same
+read of a template refused it. The same copies read the ANCESTORS of what they copy, and a picture-less leaf has none to
+rewrite: `01 G USAGE BINARY-LONG. 05 E. 01 S SAME AS E.` is legal (§13.18.49.3 SR7: E is elementary, so SR7 asks
+`!HasSubordinates`, never `IsElementary`), and S takes G's usage by §13.18.49.4 GR3 together with the profile entry bind
+synthesized for G and its deferred NATIONAL / BIT mark (`PictureAsWrittenOf`, as the usage walk hands E them). The group
+kind of that ancestor is asked of `ItemCategory.GroupKindsOf`, which answers from `DataItem.IsGroupEntry` (subordinates and
+no PICTURE the program wrote), the same answer as `IsGroup` once this pass has run
+(pinned by `TheGroupKindClassifier_AsksTheEntryForm_NotTheCompletedForm`). A copy of a template this pass already completed (a contained program's TYPE clause over its
+container's GLOBAL declaration, whose bind finished first) arrives with the profile already on its picture-less leaves
+(`PicIsUsageSynthesized`), and the elementary arm leaves such an item alone.
+
 #### 2.7.2 `CheckSignClauses` — ISO §13.18.52.3 SR1/SR2, the SIGN clause's subject (landed; kb/Work PB537)
 
 SR1 admits a SIGN clause only on "a numeric data or screen description entry whose picture character-string
