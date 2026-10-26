@@ -28,12 +28,46 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         public string Code => Descriptor.Code;
     }
 
-    protected override void ReportNoViableAlternative(Parser recognizer, NoViableAltException e)
+    /// <summary>The token indexes the last report covered: every token from where the parser stood through the token
+    /// it named; empty before the first. The strategy is created per parse (<c>Frontend</c>), so this never crosses
+    /// programs.</summary>
+    private (int From, int Through) _lastReported = (-1, -2);
+
+    /// <summary>⛔ ONE REPORT PER FAULT (kb/Work PB3832). A failed adaptive prediction reports the token where every
+    /// alternative died while the parser still stands at the decision's first token, and the recovery resumes THERE:
+    /// after an open <c>IF … ELSE IF … END-IF</c> the parse re-takes the END-IF and the next statement and fails at the
+    /// same token again, so <c>IF LENGTH OF X = 30</c> drew the same COBOL0001 twice where the lone IF draws it once.
+    /// A report carried forward from where the parser stood to the token where the closed construct's own parse dies
+    /// covers the tokens between the same way (the recovery resumes among them). One fault is one diagnostic; a later
+    /// report at a token the last one covered is that fault re-met by the recovery, never a new one.</summary>
+    private bool Reported(OffendingPosition at)
+        => at.Token.TokenIndex >= _lastReported.From && at.Token.TokenIndex <= _lastReported.Through;
+
+    /// <summary>The one report path every Report* override takes: the one-report-per-fault rule, the hints, the position
+    /// the report names, the message. A STRUCTURAL diagnosis of the token where the parser stands (a hint of priority 0
+    /// or less, the convention every guess arm below already reads) is the report; only where the hints there are
+    /// guesses or none is the report carried forward into a construct the prediction closed early
+    /// (<see cref="OffendingPosition.Carried"/>, kb/Work PB3832), and then worded as the failed prediction the same
+    /// failure draws inside an open construct, so a fault draws one message at every depth. Every report kind reads
+    /// its hints off the same position (<see cref="OffendingPosition.Expected"/>, <see cref="OffendingPosition.OpenRules"/>),
+    /// never off an expected set only some kinds carry: a report the one-report rule suppresses can say nothing the
+    /// report it repeats could not (kb/Work PB3832, review R2-1).</summary>
+    private void Report(Parser recognizer, IToken token, RecognitionException? e, ErrorKind kind)
     {
-        var token = e.OffendingToken ?? recognizer.CurrentToken;
-        var message = BuildMessage(recognizer, token, e, ErrorKind.NoViableAlternative);
-        recognizer.NotifyErrorListeners(token, message, e);
+        var at = new OffendingPosition(recognizer, token, IsPredictionFailedAt(e, token));
+        if (Reported(at)) return;
+        var hints = GuessCobolIntent(recognizer, at);
+        if (hints.TrueForAll(h => h.Priority > 0) && at.Carried is { } carried)
+        {
+            if (Reported(carried)) return;
+            (at, kind, hints) = (carried, ErrorKind.NoViableAlternative, GuessCobolIntent(recognizer, carried));
+        }
+        _lastReported = (Math.Min(at.ParserTokenIndex, at.Token.TokenIndex), at.Token.TokenIndex);
+        recognizer.NotifyErrorListeners(at.Token, BuildMessage(at.Token, kind, hints), e);
     }
+
+    protected override void ReportNoViableAlternative(Parser recognizer, NoViableAltException e)
+        => Report(recognizer, e.OffendingToken ?? recognizer.CurrentToken, e, ErrorKind.NoViableAlternative);
 
     /// <summary>⛔ A RESIDUE REFUSED WHERE ITS PREDICTION FAILED IS CONSUMED AS ONE RUN (kb/Work PB3391). When the 0g arm
     /// names the decision's first token as a closed format's residue (<see cref="ClosedFormatResidue"/> with
@@ -53,7 +87,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     {
         if (e is NoViableAltException { OffendingToken: { } word } && IsPredictionFailedAt(e, word)
             && ((ITokenStream)recognizer.InputStream).LT(1).TokenIndex == word.TokenIndex
-            && ClosedFormatResidue(recognizer, word, predictionFailedAt: true) is { } residue)
+            && ClosedFormatResidue(recognizer, new OffendingPosition(recognizer, word), predictionFailedAt: true) is { } residue)
         {
             recognizer.Consume();
             ConsumeUntil(recognizer, GetErrorRecoverySet(recognizer).Subtract(ResidueRunTokens(residue.Production)));
@@ -83,33 +117,20 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     }
 
     protected override void ReportInputMismatch(Parser recognizer, InputMismatchException e)
-    {
-        var token = e.OffendingToken ?? recognizer.CurrentToken;
-        string expected = e.GetExpectedTokens().ToString(recognizer.Vocabulary);
-        var message = BuildMessage(recognizer, token, e, ErrorKind.InputMismatch, expected);
-        recognizer.NotifyErrorListeners(token, message, e);
-    }
+        => Report(recognizer, e.OffendingToken ?? recognizer.CurrentToken, e, ErrorKind.InputMismatch);
 
     protected override void ReportMissingToken(Parser recognizer)
     {
         if (errorRecoveryMode) return;
         BeginErrorCondition(recognizer);
-
-        var token = recognizer.CurrentToken;
-        string expected = GetExpectedTokens(recognizer).ToString(recognizer.Vocabulary);
-        var message = BuildMessage(recognizer, token, null, ErrorKind.MissingToken, expected);
-        recognizer.NotifyErrorListeners(token, message, null);
+        Report(recognizer, recognizer.CurrentToken, null, ErrorKind.MissingToken);
     }
 
     protected override void ReportUnwantedToken(Parser recognizer)
     {
         if (errorRecoveryMode) return;
         BeginErrorCondition(recognizer);
-
-        var token = recognizer.CurrentToken;
-        string expected = GetExpectedTokens(recognizer).ToString(recognizer.Vocabulary);
-        var message = BuildMessage(recognizer, token, null, ErrorKind.UnwantedToken, expected);
-        recognizer.NotifyErrorListeners(token, message, null);
+        Report(recognizer, recognizer.CurrentToken, null, ErrorKind.UnwantedToken);
     }
 
     /// <summary>⛔ A PARENTHESIZED GROUP IS NEVER A RESYNCHRONIZATION POINT (kb/Work PB2152). ISO §8.3.5 4): "Except in
@@ -222,7 +243,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // decides.
         return (IsLiteral(token) || token.Text is [var first, ..] && char.IsAsciiLetter(first))
                && !atn.NextTokens(state, recognizer.Context).Contains(token.Type)
-               && ClosedFormatResidue(recognizer, token, predictionFailedAt: false) is not null;
+               && ClosedFormatResidue(recognizer, new OffendingPosition(recognizer, token), predictionFailedAt: false) is not null;
     }
 
     /// <summary>Per ATN state: does its closure — epsilon edges, every rule call entered, and a call to a rule that can
@@ -271,9 +292,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     private enum ErrorKind { NoViableAlternative, InputMismatch, MissingToken, UnwantedToken }
 
-    private static string BuildMessage(
-        Parser recognizer, IToken token, RecognitionException? e,
-        ErrorKind kind, string? expectedTokens = null)
+    private static string BuildMessage(IToken token, ErrorKind kind, List<DiagnosticHint> hints)
     {
         string baseMsg = kind switch
         {
@@ -283,8 +302,6 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             ErrorKind.UnwantedToken => $"unexpected '{Truncate(token.Text, 40)}'",
             _ => "syntax error"
         };
-
-        var hints = GuessCobolIntent(recognizer, token, expectedTokens, IsPredictionFailedAt(e, token));
 
         if (hints.Count == 0)
             return baseMsg;
@@ -307,12 +324,23 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     // ── COBOL-specific heuristics ──
 
     private static List<DiagnosticHint> GuessCobolIntent(
-        Parser recognizer, IToken token, string? expectedTokens, bool predictionFailedAt)
+        Parser recognizer, OffendingPosition at)
     {
         var hints = new List<DiagnosticHint>();
+        var token = at.Token;
+        bool predictionFailedAt = at.PredictionFailedAt;
         var stream = (ITokenStream)recognizer.InputStream;
         var prev = GetToken(stream, token.TokenIndex - 1);
-        var ruleStack = recognizer.GetRuleInvocationStack().ToArray();
+        // ⛔ The expected set AT the offending token, for every report kind (kb/Work PB3832, review R2-1). It used to be
+        // the text of the exception's set, which a failed prediction never carries, so every guess below that reads it
+        // was silent on the FIRST report of a fault and spoke only on the recovery's repeat at the same token, which the
+        // one-report rule now drops: a missing separator period drew a bare COBOL0001. Each of those guesses says the
+        // token is refused here and something else was wanted, so the set is read only where it does not hold the token
+        // (a failed prediction's walk may take the token and die further on; the parser's own report never holds it).
+        var expected = at.Expected() is { } atToken && !atToken.Contains(token.Type) ? atToken : null;
+        // ⛔ The rules open AT the offending token, never the parser's stack at a rewound decision (kb/Work PB3832);
+        // null when the walk cannot reach the token, and then no arm claims a construct is open or missing.
+        var ruleStack = at.OpenRules();
 
         // 0. Vendor JSON/XML statements are NOT ISO/IEC 1989 constructs (0 spec occurrences; owner decision 2,
         // DEVLOG 581): the hard-reserved JSON/XML lexer tokens can only surface here as a misplaced vendor statement
@@ -330,13 +358,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // UNBRACKETED or stacks inside BRACES (IF's THEN and ELSE arms, EVALUATE's WHEN clause and its WHEN
         // OTHER tail, PERFORM's inline body and its WHEN / WHEN OTHER / WHEN COMMON / FINALLY bodies, SEARCH's
         // and SEARCH ALL's WHEN bodies), and every one of them is now spelled `statementBlock` — a rule that
-        // cannot match empty. So the violation always arrives in the SAME shape: a parse position whose
-        // expected set admits everything that can START a statement block, reached with a token that can start
-        // none of them. That test is computed FROM THE ATN, not from a table of verbs, so a general format
+        // cannot match empty. So the violation always arrives in the SAME shape: at the offending token a statement
+        // block has begun and holds nothing, and ONE statement written there would let the token follow it. That
+        // test is computed FROM THE ATN, not from a table of verbs, so a general format
         // added tomorrow inherits the diagnostic without editing this method — which is the whole reason the
-        // cardinality lives in the grammar rather than in nine bind-time checks.
-        if (IsEmptyRequiredStatementBlock(recognizer, token)
-            && EnclosingStatementName(ruleStack) is { } stmtName)
+        // cardinality lives in the grammar rather than in nine bind-time checks. ⛔ The emptiness is asked of the parse
+        // AT the offending token, never of the parser's position (kb/Work PB3832; OffendingPosition).
+        if (at.EmptyBlockOwner() is { } stmtName)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072,
                 $"The {stmtName} statement's general format shows an imperative-statement here that is not "
                 + "bracketed, so at least one statement shall be specified: brackets are what license an "
@@ -364,16 +392,20 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             if (afterOther?.Type == CobolLexer.EXCEPTION) afterOther = GetToken(stream, otherIndex + 2);
             bool bodyPresent = afterOther is not null
                 && StatementBlockStart(recognizer).Contains(afterOther.Type);
-            hints.Add(bodyPresent
-                ? new(Diagnostics.DiagnosticDescriptors.COBOL2073,
-                    "A WHEN OTHER phrase may be specified at most once, and only after every WHEN phrase: the "
-                    + "general format brackets it as a single phrase FOLLOWING the repeated WHEN group, and an "
-                    + "ellipsis applies only to the portion between the delimiters immediately to its left "
-                    + "(ISO §14.9.13.2 / §14.9.28.2 Format 3, with ISO §5.2.7).", 0)
-                : new(Diagnostics.DiagnosticDescriptors.COBOL2072,
-                    "The WHEN OTHER phrase carries an imperative-statement INSIDE its bracket, so writing the "
-                    + "phrase obliges the statement: brackets license omitting the whole phrase, never emptying "
-                    + "it (ISO §5.2.6.2, with §14.9.13.2 / §14.9.28.2 Format 3).", 0));
+            // A body that is present says the phrase is misplaced only where no parse can take the phrase here: when the
+            // construct the prediction closed takes it, and its parse dies later (`WHEN OTHER IF LENGTH OF X`), the
+            // phrase is in place and the fault is where that parse dies (kb/Work PB3832; OffendingPosition.Carried).
+            if (!(bodyPresent && at.Carried is not null))
+                hints.Add(bodyPresent
+                    ? new(Diagnostics.DiagnosticDescriptors.COBOL2073,
+                        "A WHEN OTHER phrase may be specified at most once, and only after every WHEN phrase: the "
+                        + "general format brackets it as a single phrase FOLLOWING the repeated WHEN group, and an "
+                        + "ellipsis applies only to the portion between the delimiters immediately to its left "
+                        + "(ISO §14.9.13.2 / §14.9.28.2 Format 3, with ISO §5.2.7).", 0)
+                    : new(Diagnostics.DiagnosticDescriptors.COBOL2072,
+                        "The WHEN OTHER phrase carries an imperative-statement INSIDE its bracket, so writing the "
+                        + "phrase obliges the statement: brackets license omitting the whole phrase, never emptying "
+                        + "it (ISO §5.2.6.2, with §14.9.13.2 / §14.9.28.2 Format 3).", 0));
         }
 
         // ⛔ 0c. A WRITTEN SHAPE NO GENERAL FORMAT OF ITS CLAUSE PRINTS (kb/Work PB412, PB421). The grammar
@@ -394,10 +426,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // in ONE shape: the expected set holds a sibling of the offending token's family but not the token. The
         // families are read FROM THE ATN (the FIRST sets of the figurative-word rules), so a format added tomorrow
         // that names one spelling inherits this diagnostic without editing this method.
-        if (FigurativeSpellingMessage(recognizer, token) is { } spellingMsg)
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2418, spellingMsg, -1));   // outranks 0a: the sign-
-            // condition shape fails at an IS / NOT the enclosing statement cannot continue with, which 0a reads as an
-            // empty imperative-statement — the misspelled keyword is the cause, the empty block its symptom.
+        if (FigurativeSpellingMessage(recognizer, token, at) is { } spellingMsg)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2418, spellingMsg, -1));   // outranks 0a: the
+            // misspelled keyword is the cause wherever the parse gives up. (The sign-condition shape fails at an IS / NOT
+            // the enclosing statement cannot continue with; 0a asked the parser's position and read that as an empty
+            // imperative-statement until kb/Work PB3832 made it ask whether one statement would let the token follow.)
         // ⛔ 0e. THE SEARCH PHRASES NO SEARCH FORMAT PRINTS (kb/Work PB446). The two SEARCH rules now spell the
         // two printed formats exactly, so their complement arrives here; each shape is read from the PARSER
         // STATE (the half-built or just-completed SEARCH context), never from a scan for a keyword.
@@ -435,7 +468,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // position is read FROM THE ATN (ClosedFormatResidue), the format and the wording from the ONE table the pass
         // reads, so the refusal is the pass's own — same code, same sentence — and a closed format added tomorrow
         // inherits it.
-        if (ClosedFormatResidue(recognizer, token, predictionFailedAt) is { Format: var closedFormat })
+        if (ClosedFormatResidue(recognizer, at, predictionFailedAt) is { Format: var closedFormat })
             hints.Add(new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
                     Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
                 closedFormat.Refusal(WrittenResidueItem(recognizer, token), ClosedFormats.OwnerName(recognizer.Context)) + ".", 0));
@@ -465,11 +498,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // reference" — false twice over. The hint is deleted.
 
         // 5. STATUS where IDENTIFIER expected
-        if (token.Type == CobolLexer.STATUS && expectedTokens?.Contains("IDENTIFIER") == true)
+        if (token.Type == CobolLexer.STATUS && expected?.Contains(CobolLexer.IDENTIFIER) == true)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0200, "STATUS is a reserved word here. For file status, use 'FILE STATUS IS <data-name>'.", 10));
 
         // 6. PROGRAM where IDENTIFIER expected
-        if (token.Type == CobolLexer.PROGRAM && expectedTokens?.Contains("IDENTIFIER") == true)
+        if (token.Type == CobolLexer.PROGRAM && expected?.Contains(CobolLexer.IDENTIFIER) == true)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0201, "PROGRAM is a reserved word. If this is a paragraph name, it cannot be named PROGRAM.", 10));
 
         // 7. Unrecognized keyword in SPECIAL-NAMES — a GUESS, suppressed once a structural diagnosis has named the
@@ -483,7 +516,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // catches is its POSITION: §13.18.38.2 writes the OCCURS clause's KEY phrases BEFORE INDEXED BY, so a KEY phrase
         // after it finds the entry ready to end. The hint used to claim the clause was "not yet supported" and that a
         // table had been created without a key — false on both counts.
-        if (token.Type is CobolLexer.ASCENDING or CobolLexer.DESCENDING && expectedTokens?.Contains("'.'") == true)
+        if (token.Type is CobolLexer.ASCENDING or CobolLexer.DESCENDING && expected?.Contains(CobolLexer.DOT) == true)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0100, "ASCENDING/DESCENDING KEY is out of place: in an OCCURS clause the KEY phrases are written before INDEXED BY (ISO §13.18.38.2).", 5));
 
         // ⛔ NO "MAY NOT BE SUPPORTED" GUESS KEYED ON A WORD'S SPELLING (kb/Work PB2770). The hints that stood here
@@ -495,14 +528,14 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // 232 deleted COBOL0104-0106 and COBOL0311; a structural hint above (0a-0f) reads the ATN or the parser state.
 
         // 12. THROUGH/THRU in unexpected context
-        if (token.Type is CobolLexer.THROUGH or CobolLexer.THRU && expectedTokens?.Contains("'.'") == true)
+        if (token.Type is CobolLexer.THROUGH or CobolLexer.THRU && expected?.Contains(CobolLexer.DOT) == true)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0300, "THROUGH/THRU is not recognized in this context. Check PERFORM or VALUE THROUGH syntax.", 10));
 
         // 13. A misplaced explicit scope terminator (ISO §14.5.3.2), keyed on the token TYPE and on the statement
         // rules the ATN says can match it (kb/Work PB2770), never on the word's spelling: END-SEARCH closes both SEARCH
         // rules, and a word that closes no statement (END-OF-PAGE, a user word spelled END-…) is no terminator at all.
         var terminator = ScopeTerminator(recognizer, token.Type);
-        if (terminator is not null && !ruleStack.Any(terminator.Statements.Contains))
+        if (terminator is not null && ruleStack is not null && !ruleStack.Any(terminator.Statements.Contains))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0306,
                 $"{terminator.Word} appears without a matching {terminator.StatementName} statement.", 5));
 
@@ -513,24 +546,28 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // first (kb/Work PB412). A word SPELLED like a scope terminator is exempt whether or not it is one: whoever
         // wrote END-INVOKE (no ISO word, kb/Work PB758) or END-OF-PAGE at a sentence end meant to close something,
         // and a missing period is not what went wrong. Here the spelling is the evidence, so the text is the test.
-        if (expectedTokens?.Contains("'.'") == true
+        // ⛔ And a period must be able to let the token follow (OffendingPosition.APeriodLetsTheTokenFollow, kb/Work
+        // PB3832 review R2-1): a period being expected here is not that. `05 A(1)` expects one after A, and no period
+        // lets '(' follow; once every report kind read the expected set, the bare guess told the data division it
+        // lacked "the end of the previous sentence".
+        if (expected?.Contains(CobolLexer.DOT) == true
             && !(token.Text is { } spelled && CobolNames.StartsWith(spelled, "END-"))
-            && hints.TrueForAll(h => h.Priority > 0))
+            && hints.TrueForAll(h => h.Priority > 0)
+            && at.APeriodLetsTheTokenFollow())
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0307, "A period may be missing at the end of the previous sentence.", 25));
 
         // 15. Literal where identifier expected — a GUESS, suppressed once a structural diagnosis has named the rule
         // (priority 0), as 7 and 14 are: at a closed format's residue position the IDENTIFIER in the expected set is
         // the error production's own left edge, so "a data-name is expected here" would contradict 0g (kb/Work PB3373).
-        if (IsLiteral(token) && expectedTokens?.Contains("IDENTIFIER") == true && hints.TrueForAll(h => h.Priority > 0))
+        if (IsLiteral(token) && expected?.Contains(CobolLexer.IDENTIFIER) == true && hints.TrueForAll(h => h.Priority > 0))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0308, "A data-name is expected here, not a literal.", 20));
 
-        // 16. Identifier where literal expected
-        if (IsIdentifier(token) &&
-            (expectedTokens?.Contains("STRINGLIT") == true || expectedTokens?.Contains("INTEGERLIT") == true))
+        // 16. Identifier where literal expected: the expected set holds a whole-literal token (IsLiteral's set)
+        if (IsIdentifier(token) && expected?.And(LiteralTokens).Count > 0)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0309, "A literal value is expected here, not a data-name.", 20));
 
         // 17. Missing BY in INDEXED BY
-        if (token.Type != CobolLexer.BY && expectedTokens?.Contains("'BY'") == true &&
+        if (token.Type != CobolLexer.BY && expected?.Contains(CobolLexer.BY) == true &&
             IsInRule(ruleStack, "dataDescriptionEntry"))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0310, "Missing BY keyword. INDEXED BY requires 'INDEXED BY <index-name>'.", 10));
 
@@ -563,7 +600,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// then exactly what the production would have refused by name: no clause of the list opens with it. The
     /// after-period exclusion below does not apply to it: the decision's own lookahead already tried every path out of
     /// the list, its period included, and none took the tokens written.</para>
-    /// <para><b>The position, from the ATN.</b> ANTLR's own full-context simulation (<see cref="ResidueWalk"/>) re-runs
+    /// <para><b>The position, from the ATN.</b> ANTLR's own full-context simulation (<see cref="ResimulationWalk"/>) re-runs
     /// the parser from its current ATN state and its real invocation stack over the tokens between the parser's current
     /// token and <paramref name="token"/> — the ones a failed adaptive prediction looked past (a decision that read k
     /// tokens before it failed reports the k-th, with the decision's first token still current). If a configuration
@@ -587,21 +624,17 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// the next construct than a stray clause — so the walk also collects, at each period edge it reaches in the
     /// parser's own context, the tokens that may come after the period, and a word among them is left to the
     /// missing-period guess (hint 14).</para></summary>
-    private static Residue? ClosedFormatResidue(Parser recognizer, IToken token, bool predictionFailedAt)
+    private static Residue? ClosedFormatResidue(Parser recognizer, OffendingPosition at, bool predictionFailedAt)
     {
         var atn = recognizer.Atn;
+        var token = at.Token;
         bool refusedWord = predictionFailedAt && token.Type == CobolLexer.IDENTIFIER;
         if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type)) return null;
         var stream = (ITokenStream)recognizer.InputStream;
-        var walk = new ResidueWalk(recognizer);
-        int k = 1;
-        for (; ; k++)
-        {
-            var at = stream.LT(k);
-            if (at.TokenIndex == token.TokenIndex) break;
-            if (at.TokenIndex > token.TokenIndex || at.Type == TokenConstants.EOF || k > MaxResimulatedTokens) return null;
-            if (!walk.Consume(at.Type)) return null;
-        }
+        // The residue is named only where the parse gave up near the parser: a closed construct carried forward, or a
+        // prediction that failed past the bound, is not the place a clause list stands (MaxResimulatedTokens).
+        if (at.CarriedForward || at.Lookahead > MaxResimulatedTokens || at.Walk is not { } walk) return null;
+        int k = at.Lookahead;
         var probe = walk.Probe();
         // A token that may begin what follows the period is the missing period's, unless it HEADS a longer literal: the
         // comma decimal `1,5` begins with INTEGERLIT, but it is one character-string (a comma that no space follows is
@@ -671,8 +704,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     private static IntervalSet? _headerWords;
 
-    /// <summary>The bound on the tokens <see cref="ClosedFormatResidue"/> re-simulates: a prediction that failed further
-    /// ahead than this is not at a clause position anyone would call "the place", and the walk declines.</summary>
+    /// <summary>How far past the parser a closed format's residue may stand (<see cref="ClosedFormatResidue"/>,
+    /// <see cref="WrittenResidueItem"/>): a clause-list prediction that failed further ahead than this is not at a
+    /// position anyone would call the list's place, and the 0g hint says nothing. It bounds that reading only, never the
+    /// <see cref="ResimulationWalk"/>: a dangling decision (the optional END-IF of an <c>IF … ELSE IF … END-IF</c> nest)
+    /// looks ahead to the end of the sentence, and the parse at the token where it failed is read however far that is,
+    /// or the empty-block test went silent past this bound (kb/Work PB3832, review R1-1). The walk costs what the failed
+    /// prediction already spent over the same tokens, on the error path only.</summary>
     private const int MaxResimulatedTokens = 16;
 
     /// <summary>⛔ THE WALK IS ANTLR'S OWN FULL-CONTEXT SIMULATION, NOT A COPY OF IT (kb/Work PB3489). The re-simulation
@@ -689,43 +727,243 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// runtime's <c>ComputeReachSet</c>: once a single alternative remains it returns the moved configurations without
     /// closing them, which serves prediction and defeats a walk with one alternative. So the token step is the loop of
     /// <see cref="Consume"/>, and everything else is the runtime's.</para>
-    /// <para>The answer is then READ off the final configuration set (<see cref="Probe"/>): the closure keeps every
-    /// configuration at a state with a token edge, each with its whole stack, so a call of the error production is a
-    /// frame of some stack, and a period in the parser's own context is a period edge whose stack is one of the
-    /// parser's own (<see cref="_own"/>).</para></summary>
-    private sealed class ResidueWalk : ParserATNSimulator
+    /// <para>The answer is then READ off the final configuration set: the closure keeps every configuration at a state
+    /// with a token edge, each with its whole stack. <see cref="Probe"/> reads the closed-format residue there (a call of
+    /// the error production is a frame of some stack, and a period in the parser's own context is a period edge whose
+    /// stack is one of the parser's own, <see cref="_own"/>); <see cref="Expected"/> and <see cref="EmptyBlockOwner"/>
+    /// read the position of the offending token itself for the hints that used to read the PARSER's position, which a
+    /// failed prediction leaves at the decision's first token, not at the token it reports (kb/Work PB3832).</para></summary>
+    private sealed class ResimulationWalk : ParserATNSimulator
     {
+        /// <summary>A walk re-run from the parser's state to <paramref name="token"/>, or null when no configuration
+        /// takes the tokens before it (a recovery the walk cannot follow, or an SLL prediction that looked past a
+        /// failure the full context would meet first).</summary>
+        public static ResimulationWalk? To(Parser recognizer, IToken token)
+        {
+            var stream = (ITokenStream)recognizer.InputStream;
+            var walk = new ResimulationWalk(recognizer, recognizer.Atn.states[recognizer.State], recognizer.Context);
+            for (int lookahead = 1; ; lookahead++)
+            {
+                var at = stream.LT(lookahead);
+                if (at.TokenIndex == token.TokenIndex) return walk;
+                if (at.TokenIndex > token.TokenIndex || at.Type == TokenConstants.EOF || !walk.Consume(at.Type))
+                    return null;
+            }
+        }
+
+        /// <summary>A walk over <paramref name="closed"/>, a construct the parser has completed, re-run from its rule's
+        /// start in its real context over its own tokens, so every path the parser's prediction did NOT take in it is
+        /// open again; null when the walk cannot take them, or they cross a separator period (a construct closed by its
+        /// period is no candidate: the period is where it ended).</summary>
+        public static ResimulationWalk? Over(Parser recognizer, ParserRuleContext closed)
+        {
+            var stream = (ITokenStream)recognizer.InputStream;
+            var walk = new ResimulationWalk(recognizer, recognizer.Atn.ruleToStartState[closed.RuleIndex], closed);
+            for (int i = closed.Start.TokenIndex; i <= closed.Stop.TokenIndex; i++)
+            {
+                var t = stream.Get(i);
+                if (t.Channel != Lexer.DefaultTokenChannel) continue;
+                if (t.Type is CobolLexer.DOT or TokenConstants.EOF || !walk.Consume(t.Type)) return null;
+            }
+            return walk;
+        }
+
+        /// <summary>Can some configuration at the walk's position take a token of type <paramref name="ttype"/>?</summary>
+        public bool Takes(int ttype) => _configs.Elements.Any(c => TakesToken(c, ttype));
+
+        /// <summary>Can the parse at the walk's position take the tokens <paramref name="ttypes"/>, in order? The walk
+        /// itself does not move.</summary>
+        public bool TakesAll(ReadOnlySpan<int> ttypes)
+        {
+            var configs = _configs;
+            foreach (int ttype in ttypes)
+                if ((configs = Step(configs, ttype)).Count == 0) return false;
+            return true;
+        }
+
+        /// <summary>Every token some configuration at the walk's position can take: the expected set AT the offending
+        /// token, whatever decision the parser itself was rewound to.</summary>
+        public IntervalSet Expected()
+        {
+            var expected = new IntervalSet();
+            foreach (var c in _configs.Elements)
+                for (int i = 0; i < c.state.NumberOfTransitions; i++)
+                    if (c.state.Transition(i) is { IsEpsilon: false } t && t.Label is { } label && t is not NotSetTransition)
+                        expected.AddAll(label);
+            return expected;
+        }
+
+        /// <summary>The names of every rule OPEN at the walk's position: entered before it and not complete. Read off the
+        /// configurations that took the token before the position (<see cref="_entered"/>): the rule of each one's state
+        /// and of every frame on its stack, over all of its paths, where that invocation can still take a token of its
+        /// own (<see cref="Continues"/>). The rule invocation stack AT the offending token, for the hints that ask
+        /// whether a construct is open there (kb/Work PB3832).
+        /// <para>⛔ Never the closed configurations at the position, and never a complete invocation (kb/Work PB3832,
+        /// review R2-2). The closure at the position enters every rule that may BEGIN there, the rule of every statement
+        /// where a statement may begin among them, and none of those has taken a token; and the statement whose
+        /// terminator was the token before stands complete at its rule's end. Counted as open, either put an
+        /// <c>ifStatement</c> on the stack of a stray END-IF (after a complete MOVE; after <c>IF … IF … END-IF END-IF</c>),
+        /// which then found its IF and lost hint 13's COBOL0306: an explicit scope terminator pairs only with an
+        /// UNTERMINATED statement (ISO §14.5.3.2). The parser's own stack, read where it stands at the token, holds
+        /// neither: it enters the one rule its prediction chose, and a rule it completes it returns from.</para></summary>
+        public string[] OpenRuleNames()
+        {
+            var rules = new HashSet<int>();
+            var seen = new HashSet<PredictionContext>();
+            var work = new Stack<PredictionContext>();
+            foreach (var c in _entered)
+            {
+                if (Continues(c.state)) rules.Add(c.state.ruleIndex);
+                work.Push(c.context);
+            }
+            while (work.TryPop(out var stack))
+            {
+                if (!seen.Add(stack)) continue;
+                for (int i = 0; i < stack.Size; i++)
+                {
+                    int returnState = stack.GetReturnState(i);
+                    if (returnState == PredictionContext.EMPTY_RETURN_STATE) continue;
+                    if (Continues(atn.states[returnState])) rules.Add(atn.states[returnState].ruleIndex);
+                    work.Push(stack.GetParent(i));
+                }
+            }
+            return [.. rules.Select(r => CobolParserCore.ruleNames[r])];
+        }
+
+        /// <summary>Can a rule invocation standing at <paramref name="state"/> still take a token of its own: does its
+        /// rule-local next set (which the ATN caches) hold a token, not only the rule's end (EPSILON)?</summary>
+        private bool Continues(ATNState state)
+        {
+            var next = atn.NextTokens(state);
+            return next.Count > (next.Contains(TokenConstants.EPSILON) ? 1 : 0);
+        }
+
+        /// <summary>⛔ THE EMPTY-BLOCK TEST ASKS THE PARSE, NOT THE EXPECTED SET (kb/Work PB3832). The statement whose
+        /// required imperative-statement is EMPTY at the walk's position, named for the message (<c>IF</c>,
+        /// <c>SEARCH ALL</c>), or null when no block is empty there.
+        /// <para>A block is empty exactly when ONE statement written here would let <paramref name="offending"/> follow:
+        /// the walk steps each configuration that can begin a statement over a CONTINUE (the no-operation statement,
+        /// §14.9.9.1, whose general format §14.9.9.2 is the one word) and asks whether the closed result takes the offending token. A block that already holds
+        /// a statement could end where it stands, so a token that may follow one more statement may follow it now and
+        /// would not have failed; a token that may follow no statement at all (<c>OF</c> in <c>IF LENGTH OF X</c>, the
+        /// NOT of <c>IF A NOT &lt;&gt; B</c>) is a fault of what was written, not a missing statement. The test it
+        /// replaces — the expected set holds every statement start and the token is none — is true of both, and of the
+        /// position after a complete statement too.</para>
+        /// <para>The name is read off the stack of the configuration that passes: the frame that returns from
+        /// <c>statementBlock</c> into its caller, then the first enclosing rule named <c>…Statement</c>, so an ON SIZE
+        /// ERROR or AT END phrase is named by its statement. Each stack path is tested on its own, so a merged stack
+        /// names the construct whose block the token actually follows.</para></summary>
+        public string? EmptyBlockOwner(int offending)
+        {
+            foreach (var c in _configs.Elements)
+            {
+                if (c.state.ruleIndex != CobolParserCore.RULE_continueStatement || !TakesToken(c, CobolLexer.CONTINUE)) continue;
+                foreach (var (branch, owner) in BlockPaths(c.context, [], inBlock: false))
+                {
+                    var written = Close([new ATNConfig(c.state, c.alt, branch)]);
+                    if (Step(written, CobolLexer.CONTINUE).Elements.Any(a => TakesToken(a, offending)))
+                        return owner;
+                }
+            }
+            return null;
+        }
+
+        private ATNConfigSet Step(ATNConfigSet configs, int ttype) => Close(Move(configs, ttype));
+
+        /// <summary>Every configuration of <paramref name="configs"/> moved over one token of type
+        /// <paramref name="ttype"/>, not yet closed.</summary>
+        private List<ATNConfig> Move(ATNConfigSet configs, int ttype)
+        {
+            var moved = new List<ATNConfig>();
+            foreach (var c in configs.Elements)
+                for (int i = 0; i < c.state.NumberOfTransitions; i++)
+                    if (GetReachableTarget(c.state.Transition(i), ttype) is { } target)
+                        moved.Add(new ATNConfig(c, target));
+            return moved;
+        }
+
+        private bool TakesToken(ATNConfig c, int ttype)
+        {
+            for (int i = 0; i < c.state.NumberOfTransitions; i++)
+                if (GetReachableTarget(c.state.Transition(i), ttype) is not null) return true;
+            return false;
+        }
+
+        /// <summary>The paths of a CONTINUE configuration's <paramref name="stack"/> on which the CONTINUE would begin a
+        /// statement DIRECTLY in a <c>statementBlock</c> (frames <c>statement</c>, then <c>statementBlock</c>), each as
+        /// the single-path stack down to the frame of the statement that owns the block, above the merged remainder,
+        /// with that statement's name. <paramref name="above"/> holds the return states walked so far, innermost
+        /// first; a path at a sentence or any other statement list is not a block and yields nothing.</summary>
+        private IEnumerable<(PredictionContext Branch, string Owner)> BlockPaths(PredictionContext stack,
+            List<int> above, bool inBlock)
+        {
+            if (above.Count > MaxOwnerFrames) yield break;
+            for (int i = 0; i < stack.Size; i++)
+            {
+                int returnState = stack.GetReturnState(i);
+                if (returnState == PredictionContext.EMPTY_RETURN_STATE) continue;
+                int ruleIndex = atn.states[returnState].ruleIndex;
+                string rule = CobolParserCore.ruleNames[ruleIndex];
+                bool nowInBlock = inBlock;
+                if (!inBlock)
+                {
+                    if (ruleIndex == CobolParserCore.RULE_statementBlock) nowInBlock = true;
+                    else if (ruleIndex != CobolParserCore.RULE_statement || above.Count > 0) continue;
+                }
+                else if (rule.EndsWith(StatementSuffix, StringComparison.Ordinal))
+                {
+                    PredictionContext branch = SingletonPredictionContext.Create(stack.GetParent(i), returnState);
+                    for (int k = above.Count - 1; k >= 0; k--) branch = SingletonPredictionContext.Create(branch, above[k]);
+                    yield return (branch, SplitCamelCase(rule[..^StatementSuffix.Length]).ToUpperInvariant());
+                    continue;
+                }
+                above.Add(returnState);
+                foreach (var found in BlockPaths(stack.GetParent(i), above, nowInBlock)) yield return found;
+                above.RemoveAt(above.Count - 1);
+            }
+        }
+
+        /// <summary>How far above a statement block its owning statement may stand: the block's caller is the statement
+        /// itself or one phrase rule of it (an ON SIZE ERROR, AT END or WHEN rule), so a path that has not met one
+        /// within this many frames is not a block's.</summary>
+        private const int MaxOwnerFrames = 8;
         /// <summary>The stack of each rule context on the parser's real invocation stack: a configuration whose stack is
         /// one of these stands in the parser's own context, not in a rule the walk entered.</summary>
         private readonly Dictionary<PredictionContext, RuleContext> _own = [];
 
         private readonly Dictionary<PredictionContext, int> _frames = [];
 
+        /// <summary>The configurations at the walk's position, closed: every state with a token edge the position can
+        /// reach, each with its whole stack.</summary>
         private ATNConfigSet _configs;
 
-        /// <summary>A walk from the parser's current state and real context. It never predicts, so it never reads a DFA:
-        /// the base constructor only stores the array it is given, and an empty one of the parser's size keeps the walk
-        /// from touching the parser's shared DFA cache at all.</summary>
-        public ResidueWalk(Parser parser)
+        /// <summary>The configurations <see cref="_configs"/> was closed from: those that took the last token (or the
+        /// walk's start, before any): the rules the walk had entered BEFORE its position, never one the closure entered
+        /// at it (<see cref="OpenRuleNames"/>).</summary>
+        private List<ATNConfig> _entered;
+
+        /// <summary>A walk from ATN state <paramref name="start"/> inside the rule context <paramref name="context"/> on
+        /// the parser's real invocation stack. It never predicts, so it never reads a DFA: the base constructor only
+        /// stores the array it is given, and an empty one of the parser's size keeps the walk from touching the parser's
+        /// shared DFA cache at all.</summary>
+        private ResimulationWalk(Parser parser, ATNState start, RuleContext context)
             : base(parser, parser.Atn, new DFA[parser.Atn.NumberOfDecisions], new PredictionContextCache())
         {
             mergeCache = new MergeCache();
-            for (RuleContext? c = parser.Context; c is not null; c = c.Parent)
+            for (RuleContext? c = context; c is not null; c = c.Parent)
                 _own.TryAdd(PredictionContext.FromRuleContext(atn, c), c);
-            _configs = Close([new ATNConfig(atn.states[parser.State], 1, PredictionContext.FromRuleContext(atn, parser.Context))]);
+            _entered = [new ATNConfig(start, 1, PredictionContext.FromRuleContext(atn, context))];
+            _configs = Close(_entered);
         }
 
         /// <summary>Step every configuration over one token of type <paramref name="ttype"/> and close the result;
-        /// false when none can take it.</summary>
+        /// false when none can take it, and the walk then stays where it was.</summary>
         public bool Consume(int ttype)
         {
-            var moved = new List<ATNConfig>();
-            foreach (var c in _configs.Elements)
-                for (int i = 0; i < c.state.NumberOfTransitions; i++)
-                    if (GetReachableTarget(c.state.Transition(i), ttype) is { } target)
-                        moved.Add(new ATNConfig(c, target));
-            _configs = Close(moved);
-            return _configs.Count > 0;
+            var moved = Move(_configs, ttype);
+            if (moved.Count == 0) return false;
+            (_entered, _configs) = (moved, Close(moved));
+            return true;
         }
 
         private ATNConfigSet Close(IEnumerable<ATNConfig> seeds)
@@ -1066,7 +1304,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         {
             if (state is null) continue;
             string rule = recognizer.RuleNames[state.ruleIndex];
-            if (!rule.EndsWith("Statement", StringComparison.Ordinal)) continue;
+            if (!rule.EndsWith(StatementSuffix, StringComparison.Ordinal)) continue;
             for (int i = 0; i < state.NumberOfTransitions; i++)
             {
                 var t = state.Transition(i);
@@ -1112,12 +1350,12 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <summary>The COBOL2418 message when the parser failed ON one spelling of a figurative family at a
     /// position whose general format names a DIFFERENT spelling of that family as its keyword; null otherwise.
     /// A position that admits the figurative constant admits every spelling, so the test cannot fire there.</summary>
-    private static string? FigurativeSpellingMessage(Parser recognizer, IToken token)
+    private static string? FigurativeSpellingMessage(Parser recognizer, IToken token, OffendingPosition at)
     {
         if (SignConditionSpellingMessage(recognizer, token) is { } signMsg) return signMsg;
         var family = FigurativeFamilies(recognizer).FirstOrDefault(f => f.Contains(token.Type));
         if (family is null) return null;
-        var expected = recognizer.GetExpectedTokens();
+        var expected = at.Expected();
         if (expected is null || expected.Contains(token.Type)) return null;
         var wanted = family.ToIntegerList().Where(expected.Contains).ToList();
         if (wanted.Count == 0) return null;
@@ -1185,35 +1423,192 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         return null;
     }
 
-    /// <summary>True when the parser failed AT a position where a statement block was required and had matched
-    /// nothing: the expected set admits every token that can start one, and the offending token starts none.
-    /// <para>The "expected ⊇ FIRST(statementBlock)" direction is what makes this specific — at a position where
-    /// the block is one of several continuations the parse does not fail at all, and at a position inside a
-    /// half-written statement (<c>MOVE TO Y</c>) the expected set is that statement's operand set, not the
-    /// statement-start set.</para></summary>
-    private static bool IsEmptyRequiredStatementBlock(Parser recognizer, IToken token)
+    /// <summary>⛔ THE PARSE AT THE OFFENDING TOKEN — what every hint that infers a cause from parser state reads
+    /// (kb/Work PB3832). Every report but a failed adaptive prediction's stands AT its token, and there the parser's own
+    /// expected set and rule stack answer. A failed prediction reports the token where every alternative died while the
+    /// parser stays at the decision's FIRST token: after an open <c>IF … ELSE IF … END-IF</c> the dangling END-IF
+    /// decision looks ahead through the following statements, so <c>IF LENGTH OF X = 30</c> failed at OF with the parser
+    /// still before the END-IF, inside the inner IF. Read there, the parser's state told the user an IF lacked its
+    /// imperative-statement (and named IF for an empty SEARCH or PERFORM body), and that an END-ADD had no ADD when the
+    /// ADD was written after the decision. So the position is re-simulated to the token (<see cref="ResimulationWalk"/>),
+    /// once per report (every hint and the residue reading share the one walk) and only when a hint asks; when the walk
+    /// cannot reach the token, the answers are null and no hint claims anything about it.</summary>
+    private sealed class OffendingPosition
     {
-        var start = StatementBlockStart(recognizer);
-        if (start.Contains(token.Type)) return false;          // the token CAN start a statement — a later error
-        var expected = recognizer.GetExpectedTokens();
-        if (expected is null) return false;
-        foreach (int t in start.ToIntegerList())
-            if (!expected.Contains(t)) return false;
-        return true;
+        private readonly Parser _recognizer;
+        private ResimulationWalk? _walk;
+        private bool _walked;
+        private int _lookahead;
+        private OffendingPosition? _carried;
+        private bool _carriedAsked;
+
+        /// <summary>The position of <paramref name="token"/>, where the parser reported it;
+        /// <paramref name="predictionFailedAt"/> says a prediction failed AT it (<see cref="IsPredictionFailedAt"/>).</summary>
+        public OffendingPosition(Parser recognizer, IToken token, bool predictionFailedAt = false)
+            => (_recognizer, Token, PredictionFailedAt) = (recognizer, token, predictionFailedAt);
+
+        private OffendingPosition(Parser recognizer, IToken token, ResimulationWalk walk)
+            : this(recognizer, token) => (_walk, _walked, CarriedForward, _carriedAsked) = (walk, true, true, true);
+
+        /// <summary>The token the report names.</summary>
+        public IToken Token { get; }
+
+        /// <summary>Did an adaptive prediction fail AT the token, refused by a semantic predicate (kb/Work PB3391)?</summary>
+        public bool PredictionFailedAt { get; }
+
+        /// <summary>The index of the token the parser stands at.</summary>
+        public int ParserTokenIndex => ((ITokenStream)_recognizer.InputStream).LT(1).TokenIndex;
+
+        /// <summary>Was the report carried forward from where the parser stood into a construct it had closed
+        /// (<see cref="Carried"/>)?</summary>
+        public bool CarriedForward { get; }
+
+        /// <summary>The position the report is carried forward to, or null; computed once, on first use.</summary>
+        public OffendingPosition? Carried
+        {
+            get
+            {
+                if (!_carriedAsked) (_carried, _carriedAsked) = (CarryForward(), true);
+                return _carried;
+            }
+        }
+
+        /// <summary>⛔ THE POSITION A REPORT NAMES: where the parse really failed, not where ANTLR's SLL prediction
+        /// left it (kb/Work PB3832, review R1-2). An optional phrase is a decision whose exit alternative ENDS the
+        /// statement, and SLL prediction does not know what may follow a rule it leaves, so when the phrase's own
+        /// alternative dies further on (<c>ADD 1 TO A ON SIZE ERROR END-ADD</c>: the empty block fails at END-ADD) the
+        /// exit is the one viable alternative: the ADD closes before ON, and the report stands at ON with the parser
+        /// after a complete statement, where a period is expected, so the user was told "A period may be missing"
+        /// about a phrase ISO §14.9.2.2 prints. Inside an open construct the same failure is a failed prediction of the
+        /// enclosing decision, reported where it dies with the parse at that token, and drew the named COBOL2072:
+        /// the message depended on the depth. So where the parser stands AT the reported token and the construct it
+        /// completed just before it (<see cref="LastClosedConstruct"/>) can, re-simulated in full context from its own
+        /// start (<see cref="ResimulationWalk.Over"/>), take that token, the construct was closed early, and the report
+        /// moves to the token where that re-simulation dies, read with the walk at that token: the fault the open
+        /// construct's prediction names. A token the closed construct cannot take is the parser's fault where it
+        /// stands; a re-simulation that reaches the separator period without dying names nothing, and the report
+        /// stays. So does a prediction that failed AT the token (<see cref="IsPredictionFailedAt"/>): a semantic
+        /// predicate refused it (kb/Work PB3391), and the walk, which evaluates none, would take it where the parse
+        /// may not (<c>OBJECT-COMPUTER. XYZ FOO IS.</c> is the 0g refusal of FOO). <see cref="Report"/> carries a report
+        /// only when no structural hint names the token where the parser stands: such a diagnosis is about the token as
+        /// written, and outranks the furthest point some parse reached. The one structural hint that read token
+        /// adjacency as a position fault, a present WHEN OTHER body taken for a misplaced phrase (0b), asks it too.</summary>
+        private OffendingPosition? CarryForward()
+        {
+            var stream = (ITokenStream)_recognizer.InputStream;
+            if (!ParserIsThere || Token.Type == TokenConstants.EOF || PredictionFailedAt) return null;
+            int i = Token.TokenIndex;
+            if (PreviousDefault(stream, ref i) is not { } previous
+                || LastClosedConstruct(_recognizer.Context as ParserRuleContext, previous.TokenIndex) is not { } closed
+                || ResimulationWalk.Over(_recognizer, closed) is not { } walk
+                || !walk.Consume(Token.Type))
+                return null;
+            for (int next = Token.TokenIndex; NextDefault(stream, ref next) is { } t; )
+            {
+                if (!walk.Takes(t.Type)) return new(_recognizer, t, walk);
+                if (t.Type == CobolLexer.DOT || !walk.Consume(t.Type)) break;
+            }
+            return null;
+        }
+
+        /// <summary>The construct the parser completed at token <paramref name="previous"/>, the last token before the
+        /// one it stands at: the last child of the innermost open rule that holds one (a rule entered at the reported
+        /// token holds none yet), when that child is a rule context ending there; null when the last thing written is
+        /// a token of the open rule itself (nothing was closed).</summary>
+        private static ParserRuleContext? LastClosedConstruct(ParserRuleContext? context, int previous)
+        {
+            for (ParserRuleContext? c = context, entered = null; c is not null; entered = c, c = c.Parent as ParserRuleContext)
+            {
+                int last = c.ChildCount - 1;
+                if (last >= 0 && ReferenceEquals(c.GetChild(last), entered)) last--;
+                if (last < 0) continue;
+                return c.GetChild(last) is ParserRuleContext { Start: { } start, Stop: { } stop } closed
+                       && stop.TokenIndex == previous && start.TokenIndex <= stop.TokenIndex
+                    ? closed
+                    : null;
+            }
+            return null;
+        }
+
+        /// <summary>The walk to the token: re-simulated from the parser once, on first use; or, carried forward, the
+        /// walk that found the token.</summary>
+        public ResimulationWalk? Walk
+        {
+            get
+            {
+                if (!_walked) (_walk, _walked) = (ResimulationWalk.To(_recognizer, Token), true);
+                return _walk;
+            }
+        }
+
+        /// <summary>The token's LT index from the parser (1 where the parser stands at it); int.MaxValue when it was
+        /// carried forward, lies behind the parser, or past the end of input.</summary>
+        public int Lookahead
+        {
+            get
+            {
+                if (_lookahead != 0) return _lookahead;
+                var stream = (ITokenStream)_recognizer.InputStream;
+                _lookahead = int.MaxValue;
+                for (int k = 1; !CarriedForward; k++)
+                {
+                    var at = stream.LT(k);
+                    if (at.TokenIndex == Token.TokenIndex) { _lookahead = k; break; }
+                    if (at.TokenIndex > Token.TokenIndex || at.Type == TokenConstants.EOF) break;
+                }
+                return _lookahead;
+            }
+        }
+
+        /// <summary>Does the parser stand AT the token?</summary>
+        private bool ParserIsThere => !CarriedForward && ParserTokenIndex == Token.TokenIndex;
+
+        /// <summary>The tokens the parse could take at the token, or null.</summary>
+        public IntervalSet? Expected() => ParserIsThere ? _recognizer.GetExpectedTokens() : Walk?.Expected();
+
+        /// <summary>The rules open at the token, or null.</summary>
+        public string[]? OpenRules() => ParserIsThere ? _recognizer.GetRuleInvocationStack().ToArray() : Walk?.OpenRuleNames();
+
+        /// <summary>Would a separator period let the parse take the token: does the parse at the token take a period
+        /// and then the token, or a period, the word before the token, and the token? The second reading is the header
+        /// a missing period ran into the statement before it: in <c>MOVE 1 TO A</c> then <c>S2 SECTION.</c> the S2 is a
+        /// second receiving operand, and the parse dies at SECTION, which no period lets follow, while <c>. S2
+        /// SECTION</c> is the next section. A period the position merely admits (<c>05 A(1)</c>: one may end the entry
+        /// after A) is not enough (kb/Work PB3832, review R2-1). Both readings rest on the word before the token being a
+        /// word, so one whose characters no edition's Annex B permits makes neither a reading
+        /// (<see cref="CobolCharacterRepertoire.IsWordAtSomeEdition"/>): the lexer takes a line holding only U+00A0 for a
+        /// word (its word class is a superset, narrowed at bind), and "a period may be missing" after it named a
+        /// paragraph header the source does not hold (the golden <c>pb1660-nbsp-only-line-is-not-blank</c>).</summary>
+        public bool APeriodLetsTheTokenFollow()
+        {
+            if (Walk is not { } walk || Token.Type == TokenConstants.EOF) return false;
+            int i = Token.TokenIndex;
+            var before = PreviousDefault((ITokenStream)_recognizer.InputStream, ref i);
+            if (before is { Type: CobolLexer.IDENTIFIER, Text: { } word } && !CobolCharacterRepertoire.IsWordAtSomeEdition(word))
+                return false;
+            return walk.TakesAll([CobolLexer.DOT, Token.Type])
+                   || before is not null && walk.TakesAll([CobolLexer.DOT, before.Type, Token.Type]);
+        }
+
+        /// <summary>The statement whose required imperative-statement is EMPTY at the token, named from its RULE
+        /// (<c>ifStatement</c> → IF, <c>searchAllStatement</c> → SEARCH ALL), or null. Asked of the parse itself
+        /// (<see cref="ResimulationWalk.EmptyBlockOwner"/>), even when the parser stands at the token: the expected-set
+        /// test it replaces (every statement start expected, the token none) also held after a complete statement and
+        /// after a condition the token wrongly continued (<c>IF A NOT &lt;&gt; B</c>).</summary>
+        public string? EmptyBlockOwner()
+        {
+            var start = StatementBlockStart(_recognizer);
+            if (start.Contains(Token.Type)) return null;   // it CAN start a statement: a later error
+            // A block begun at the token expects every statement start. Where the parser stands at the token, its own
+            // expected set rules that out without a walk: a necessary condition, never the test.
+            if (ParserIsThere && Expected() is { } expected && !start.ToIntegerList().TrueForAll(expected.Contains)) return null;
+            return Walk?.EmptyBlockOwner(Token.Type);
+        }
     }
 
-    /// <summary>The enclosing statement's COBOL name, taken from the rule invocation stack and spelled from the
-    /// RULE NAME rather than a table: <c>ifStatement</c> → IF, <c>searchAllStatement</c> → SEARCH ALL. Null when
-    /// the failure is not inside a statement at all (a bad token at paragraph level), which is what keeps the
-    /// required-imperative arm from firing outside a general format's operand.</summary>
-    private static string? EnclosingStatementName(string[] ruleStack)
-    {
-        const string suffix = "Statement";
-        foreach (string rule in ruleStack)
-            if (rule.Length > suffix.Length && rule.EndsWith(suffix, StringComparison.Ordinal))
-                return SplitCamelCase(rule[..^suffix.Length]).ToUpperInvariant();
-        return null;
-    }
+    /// <summary>The one suffix that marks a statement's grammar rule (<c>ifStatement</c>, <c>searchAllStatement</c>):
+    /// a statement is named from its rule, never from a table.</summary>
+    private const string StatementSuffix = "Statement";
 
     private static string SplitCamelCase(string name)
     {
@@ -1262,8 +1657,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         return set;
     }
 
-    private static bool IsInRule(string[] ruleStack, string ruleName)
-        => ruleStack.Any(r => CobolNames.Same(r, ruleName));
+    private static bool IsInRule(string[]? ruleStack, string ruleName)
+        => ruleStack?.Any(r => CobolNames.Same(r, ruleName)) == true;
 
     private static string Truncate(string? text, int max)
     {
