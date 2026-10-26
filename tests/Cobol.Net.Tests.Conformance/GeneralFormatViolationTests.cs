@@ -74,7 +74,9 @@ public sealed class GeneralFormatViolationTests
     [InlineData("PBGF36", "WRITE R1 FROM W-A FROM W-B", "COBOL0307")]
     // READ (M425) — a written INTO needs its operand; AT END once; KEY only for an indexed file.
     [InlineData("PBGF37", "READ F1 INTO", "COBOL0001")]
-    [InlineData("PBGF38", "READ F1 AT END DISPLAY \"E\" AT END DISPLAY \"F\" END-READ", "COBOL0307")]
+    // The second AT continues the DISPLAY (its screen AT phrase), and that parse dies at END: the same COBOL0001 at END the
+    // statement draws inside an open IF, where it used to draw "A period may be missing" at AT (kb/Work PB3832 review R1-2).
+    [InlineData("PBGF38", "READ F1 AT END DISPLAY \"E\" AT END DISPLAY \"F\" END-READ", "COBOL0001")]
     [InlineData("PBGF39", "READ F1 KEY IS W-A", "COBOLNET0864")]
     // OPEN / CLOSE (M426) — a mode is required, one per file group; CLOSE names a file.
     [InlineData("PBGF40", "OPEN F1", "COBOL0001")]

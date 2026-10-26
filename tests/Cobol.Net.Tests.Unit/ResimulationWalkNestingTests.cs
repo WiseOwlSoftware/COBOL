@@ -34,7 +34,7 @@ namespace CobolNet.Tests.Unit;
 /// mean of the two ratios rounded down, so each sits about three times from it. Depth 3 cannot be measured: the
 /// per-path walk does not answer there in 90 seconds.</para>
 /// </summary>
-public sealed class ResidueWalkNestingTests
+public sealed class ResimulationWalkNestingTests
 {
     private const int MaxSecondToFirstLevelRatio = 6;
 
