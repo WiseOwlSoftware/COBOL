@@ -2681,7 +2681,6 @@ static CobolNet.Runtime.CobolIntrinsics.FractionPart(System.Int128 v, int scale)
 static CobolNet.Runtime.CobolIntrinsics.FractionPartDec(CobolNet.Runtime.CobolRounding mode, CobolNet.Runtime.CobolDec a) -> CobolNet.Runtime.CobolDec
 static CobolNet.Runtime.CobolIntrinsics.FractionPartReal(double v) -> double
 static CobolNet.Runtime.CobolIntrinsics.FromDouble(double d, int scale, CobolNet.Runtime.CobolRounding mode, bool checkedLanding = false) -> System.Int128
-static CobolNet.Runtime.CobolIntrinsics.FromDoubleBounded(double d, int scale, CobolNet.Runtime.CobolRounding mode, System.Int128 max37, bool checkedLanding = false) -> System.Int128
 static CobolNet.Runtime.CobolIntrinsics.IntegerArg(System.Int128 v) -> long
 static CobolNet.Runtime.CobolIntrinsics.IntegerArgDec(CobolNet.Runtime.CobolDec v) -> long
 static CobolNet.Runtime.CobolIntrinsics.IntegerArgReal(double v) -> long
@@ -3641,9 +3640,6 @@ static readonly CobolNet.Runtime.CarrierLanding<T>.Instance -> CobolNet.Runtime.
 static readonly CobolNet.Runtime.CobolCallException.CarriedNames -> string![]!
 static readonly CobolNet.Runtime.CobolDec.E -> CobolNet.Runtime.CobolDec
 static readonly CobolNet.Runtime.CobolDec.Pi -> CobolNet.Runtime.CobolDec
-static readonly CobolNet.Runtime.CobolIntrinsics.CodomainBelowOne37 -> System.Int128
-static readonly CobolNet.Runtime.CobolIntrinsics.CodomainHalfPi37 -> System.Int128
-static readonly CobolNet.Runtime.CobolIntrinsics.CodomainPi37 -> System.Int128
 static readonly CobolNet.Runtime.CobolVarGroup.Empty -> CobolNet.Runtime.CobolVarGroup!
 static readonly CobolNet.Runtime.Collation.CollationElement.Ignorable -> CobolNet.Runtime.Collation.CollationElement
 static readonly CobolNet.Runtime.Exceptions.EcCheckingProfile.None -> CobolNet.Runtime.Exceptions.EcCheckingProfile!

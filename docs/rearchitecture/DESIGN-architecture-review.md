@@ -1225,7 +1225,7 @@ functions).
 *Target types.* `IntrinsicBinder` keeps the name-to-family dispatch and the routing read; one family binder per
 family of (3) (`DateTimeIntrinsicBinder`, `NumericIntrinsicBinder`, `TextIntrinsicBinder`, `NumvalIntrinsicBinder`,
 `LocaleIntrinsicBinder`, `ExceptionIntrinsicBinder`); the catalog becomes data (`intrinsics.json` →
-`IntrinsicCatalog.g.cs`, the pattern of (2)) carrying arity, domain and codomain, the edition windows
+`IntrinsicCatalog.g.cs`, the pattern of (2)) carrying arity and domain, the edition windows
 (`IntroducedIn`/`RemovedIn`) and the argument-schema rows `IntrinsicArgumentRules` screens — so a new function is a
 row plus one family-binder arm. *Seams:* `IntrinsicSig` (the catalog row) and `IIntrinsicFamilyBinder.Bind(IntrinsicSig,
 arguments) → BoundIntrinsicCall`. *Steps:* PB2300, PB2376–PB2381.
@@ -1528,8 +1528,8 @@ two scans give 469 arms in 60 files and 519 in 65): `case Bound…`, `is Bound�
 regex. Other closed hierarchies, each pinned today by a drift test or a `throw`: `Place` (18 sealed kinds and three
 abstract decorators; `PlaceDenotedItemDriftTests` says every kind has an answer), `RefResolution` with `RefOutcome` and
 `DeferredShape` (`RefResolutionDriftTests`), `AccessSegment` (fixed, dynamic, cell), `WindowCoding` and
-`CellWindowCoding`, `AllCount`, `BoundEoOperand` (2), `MoveKind` and `MoveStore`, `SetFormat`, `IntrinsicDomain` and
-`IntrinsicCodomain`. **The numeric carrier is not a hierarchy today**: `NumXCarrier` is an enum
+`CellWindowCoding`, `AllCount`, `BoundEoOperand` (2), `MoveKind` and `MoveStore`, `SetFormat` and `IntrinsicDomain`.
+**The numeric carrier is not a hierarchy today**: `NumXCarrier` is an enum
 (`internal enum NumXCarrier { Scaled, UnsignedWide, Sdidi, Binary64 }`, `CodeGen/Emit/EmitCore.cs:188`) computed from
 three mutually exclusive bools on the record struct `NumX(string Expr, int Scale, bool Dec, bool Real, bool U, bool
 Approximate, int Digits)` (`EmitCore.cs:178-183`), and the enum's totality is already pinned by

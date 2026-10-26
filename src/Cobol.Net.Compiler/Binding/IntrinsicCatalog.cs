@@ -14,20 +14,8 @@ public enum IntrinsicType { Alphanumeric, Boolean, National, Numeric, Integer, I
 /// NUMVAL-C's currency), or a variable-length list (the statistical functions).</summary>
 public enum IntrinsicArity { Fixed, OptionalTrailing, Variadic }
 
-/// <summary>The MATHEMATICALLY BOUNDED codomains a §15.x.4 returned-value rule states, for the §15.4.1 float
-/// family (fix-queue PB65 / RV-15.75.4-1). The family enumerates MECHANICALLY from the rules: a bound belongs
-/// here exactly when the away-from-zero quantization at the working scale can exit it — an OPEN bound
-/// (RANDOM's "less than one", ATAN's ±π/2) or a CLOSED-but-IRRATIONAL one (ASIN's ±π/2, ACOS's π — rounding
-/// <c>asin(1)</c> at scale 9 gives 1.570796327 &gt; π/2, outside even the closed bound). SIN/COS's closed
-/// RATIONAL ±1 is deliberately absent: rounding cannot exceed an exactly-representable bound the double
-/// already respects. FRACTION-PART's (−1, 1) is EAE-derived (§15.42.4 r1 — a fraction part of magnitude 1 is
-/// impossible) rather than stated. The quantizer's ROUNDING itself must stay — it is what recovers
-/// <c>SQRT(10) ** 2</c> = 10 from the binary64 artifact (NIST IF136A) — so the fix is a clamp on the
-/// QUANTIZED value, against Int128 scale-37 constants (<c>CobolIntrinsics.FromDoubleBounded</c>).</summary>
-public enum IntrinsicCodomain { None, UnitOpen, HalfPi, Pi }
-
 /// <summary>The rational VALUE domain a §15.x.3 "The value of argument-1 shall be …" rule states for a §15.4.1
-/// binary64-family row (kb/Work PB952) — the argument-side twin of <see cref="IntrinsicCodomain"/>. §15.3 rule 14
+/// binary64-family row (kb/Work PB952). §15.3 rule 14
 /// makes a value outside it EC-ARGUMENT-FUNCTION, and the renderer screens it on the EXACT operand before the
 /// binary64 conversion (<c>CobolIntrinsics.DomainScaled</c> / <c>DomainDec</c> / <c>DomainReal</c>), because a
 /// correctly-rounded conversion moves a value across the bound. <c>IntrinsicArgumentDomainDriftTests</c> derives
@@ -63,7 +51,6 @@ public readonly record struct IntrinsicSig(
     string ArgKinds, string RuntimeMethod, IntrinsicBind Bind, bool Float,
     int IntroducedIn, int? RemovedIn = null,
     IntrinsicResultRule Result = IntrinsicResultRule.Fixed,
-    IntrinsicCodomain Codomain = IntrinsicCodomain.None,
     IntrinsicDomain Domain = IntrinsicDomain.None, string? DomainRule = null)
 {
     /// <summary>Is the function an intrinsic-function-name of the edition <paramref name="dialectLevel"/> — inside
@@ -155,9 +142,9 @@ public static class IntrinsicCatalog
 
         // ── The 1989 Intrinsic Function Module (IntroducedIn 85 — the NIST IF101A..IF142A surface) ──────────
         // §15.4.1 floating-math family (double + FromDouble quantization; Float: true).
-        Add(new("ACOS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Acos", IntrinsicBind.Runtime, true, 85, Codomain: IntrinsicCodomain.Pi, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§15.8.3 rule 2"));         // §15.8.4 r1: [0, π], π irrational
-        Add(new("ASIN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Asin", IntrinsicBind.Runtime, true, 85, Codomain: IntrinsicCodomain.HalfPi, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§15.10.3 rule 2"));     // §15.10.4 r1: [−π/2, π/2], irrational
-        Add(new("ATAN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Atan", IntrinsicBind.Runtime, true, 85, Codomain: IntrinsicCodomain.HalfPi));     // §15.11.4 r1: (−π/2, π/2), OPEN
+        Add(new("ACOS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Acos", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§15.8.3 rule 2"));    // §15.8
+        Add(new("ASIN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Asin", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.ClosedUnit, DomainRule: "§15.10.3 rule 2"));  // §15.10
+        Add(new("ATAN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Atan", IntrinsicBind.Runtime, true, 85));           // §15.11
         Add(new("COS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Cos", IntrinsicBind.Runtime, true, 85));             // §15.20
         Add(new("SIN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Sin", IntrinsicBind.Runtime, true, 85));             // §15.82
         Add(new("TAN", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Tan", IntrinsicBind.Runtime, true, 85));             // §15.89
@@ -166,7 +153,7 @@ public static class IntrinsicCatalog
         Add(new("LOG10", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log10", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.Positive, DomainRule: "§15.56.3 rule 2"));         // §15.56
         Add(new("ANNUITY", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "ni", "Annuity", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.NonNegative, DomainRule: "§15.9.3 rule 2"));    // §15.9
         Add(new("PRESENT-VALUE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 2, inf, "n", "PresentValue", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.AboveMinusOne, DomainRule: "§15.74.3 rule 2")); // §15.74
-        Add(new("RANDOM", IntrinsicType.Numeric, IntrinsicArity.OptionalTrailing, 0, 1, "i", "Random", IntrinsicBind.Runtime, true, 85, Codomain: IntrinsicCodomain.UnitOpen));        // §15.75.4 r1: [0, 1), OPEN
+        Add(new("RANDOM", IntrinsicType.Numeric, IntrinsicArity.OptionalTrailing, 0, 1, "i", "Random", IntrinsicBind.Runtime, true, 85));      // §15.75
         Add(new("STANDARD-DEVIATION", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "StandardDeviation", IntrinsicBind.Runtime, true, 85)); // §15.86
         Add(new("VARIANCE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "Variance", IntrinsicBind.Runtime, true, 85));          // §15.98
 
@@ -210,7 +197,7 @@ public static class IntrinsicCatalog
         Add(new("EXP", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Exp", IntrinsicBind.Runtime, true, 2002));            // §15.34
         Add(new("EXP10", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Exp10", IntrinsicBind.Runtime, true, 2002));        // §15.35
         Add(new("SIGN", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "n", "SignOf", IntrinsicBind.Runtime, false, 2002));       // §15.81
-        Add(new("FRACTION-PART", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "FractionPart", IntrinsicBind.Runtime, false, 2002, Codomain: IntrinsicCodomain.UnitOpen)); // §15.42.4 r1: |v| < 1 by the EAE (float twin only)
+        Add(new("FRACTION-PART", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "FractionPart", IntrinsicBind.Runtime, false, 2002)); // §15.42
         // BOOLEAN-OF-INTEGER (§15.13) — argument-1's binary value as a boolean item of argument-2 positions
         // (rightmost = low-order digit; zero-filled or TRUNCATED ON THE LEFT — the result is arg-1 mod
         // 2^arg-2, Annex D.10). A boolean function result IS class/category boolean (§15.2 item 2).

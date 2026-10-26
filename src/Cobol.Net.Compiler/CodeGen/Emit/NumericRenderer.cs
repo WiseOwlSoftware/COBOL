@@ -1479,17 +1479,6 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         : x.Dec ? x.Expr
         : null;
 
-    /// <summary><see cref="Landed"/> for a consumer that computes ONLY in the exact <c>Int128</c> lane and has no
-    /// float arm of its own — the NATIVE DIVIDE … REMAINDER subsidiary-quotient kernel (§14.9.12.4 GR7 — kb/Work PB85: a
-    /// FLOAT-LONG dividend was a Roslyn error). A native float lands TRUNCATED at the receiver's float working scale
-    /// (<see cref="ReceiverContext.FloatWorkingScale"/> — the D16 quantizer's one rule), through <see cref="Align"/>'s
-    /// intermediate landing, which RAISES EC-SIZE-OVERFLOW past the carrier (kb/Work PB3019); an unsigned-wide read
-    /// funnels through <see cref="DeU"/>; everything else is <see cref="Landed"/>. The standard-decimal lane does NOT
-    /// use this: its kernel is the SDIDI's, which no Int128 landing may narrow (kb/Work PB3017).</summary>
-    public NumX FixedLane(NumX x, ReceiverContext rcv) =>
-        x.Real && !StandardDecimal ? new NumX(Align(x, rcv.FloatWorkingScale), rcv.FloatWorkingScale)
-        : Landed(DeU(x), rcv);
-
     /// <summary>The value/scale/profile argument run that stores a rendered intermediate into a fixed-point
     /// receiver's <c>NumProfile</c> — the ONE place the carriers are told apart at a store (kb/Work PB84: the
     /// arithmetic store, the numeric MOVE and the INVOKE BY CONTENT expression each spelled it, and the third had
