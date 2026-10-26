@@ -60,7 +60,7 @@ concurrency:
 # and its job uploads them with `if: always()` as artifact test-results-<OS>-<job> (14-day retention) — a
 # red is diagnosable from the artifact without a re-run (kb/Work PB108). The two OSes share shard NAMES, so the
 # artifact name carries both; a Conformance shard's is test-results-<OS>-conformance-<shard>, the exact pattern
-# the conformance-population job downloads. Each such step also sets HARNESS_LOG to
+# the conformance-population job downloads. Each such step also sets WISEOWL_COBOL_HARNESS_LOG to
 # <its results directory>/harness-observations.log and its job uploads that file with the TRX: the test harness's every
 # retry and non-observation of a child process, with the budget, the work it covered and the host's load, so a
 # non-observation on CI is read from the artifact (kb/Work PB3108; CiHarnessLogDriftTests).
@@ -517,7 +517,7 @@ jobs:
       - name: Conformance shard ${{ matrix.shard }}
         shell: bash
         env:
-          HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
         run: |
           set -o pipefail
           python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build \
@@ -569,13 +569,13 @@ jobs:
           dotnet build tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj
       - name: Greenfield unit tests
         env:
-          HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
         run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-unit
       # Characterization gate (rearch P0): COMPARES the committed diagnostic + emitted-C# snapshots. CI must NEVER set
       # WISEOWL_COBOL_UPDATE_SNAPSHOTS (that would rewrite them); a real emit/diagnostic change re-seeds locally under review.
       - name: Greenfield characterization snapshots (behavior-neutrality gate)
         env:
-          HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-unit/harness-observations.log
         run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj --no-build --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-unit
       # The self-tests that read the BUILT assemblies (`SELF-TEST-NEEDS: build`; filter_population.py lists what the
       # Conformance and Unit assemblies discover), which the audits job cannot run (kb/Work PB2563). After the test
@@ -654,7 +654,7 @@ jobs:
       - name: Conformance shard ${{ matrix.shard }}
         shell: bash
         env:
-          HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-${{ matrix.shard }}/harness-observations.log
         run: |
           set -o pipefail
           dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --configuration Release \
@@ -746,7 +746,7 @@ jobs:
         env:
           WISEOWL_COBOL_NIST_STD: "2023"
           WISEOWL_COBOL_NIST_PERMISSIVE: "1"
-          HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-inv1-strong/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-inv1-strong/harness-observations.log
         run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --filter "FullyQualifiedName~NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-inv1-strong
       - name: Upload test results (TRX)
         if: ${{ always() }}
@@ -792,11 +792,11 @@ jobs:
         run: ./scripts/fetch-gnucobol-tests.ps1
       - name: Greenfield unit tests
         env:
-          HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
         run: dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --configuration Release --logger "trx;LogFileName=unit.trx" --results-directory TestResults/${{ runner.os }}-build-test
       - name: Greenfield characterization snapshots (behavior-neutrality gate)
         env:
-          HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-build-test/harness-observations.log
         run: dotnet test tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj --no-build --configuration Release --logger "trx;LogFileName=characterization.trx" --results-directory TestResults/${{ runner.os }}-build-test
       - name: Upload test results (TRX)
         if: ${{ always() }}

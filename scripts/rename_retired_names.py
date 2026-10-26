@@ -33,11 +33,15 @@ rewritten file holds no retired name — the self-test asserts it of every case)
   - the work register's project tag: wiseowl-cobol;
   - the project, assembly, solution and namespace names: WiseOwl.Cobol; an identifier that carried the name (a test's
     compiler field, a class, a scratch prefix): WiseOwlCobol;
-  - a design document's name drops the prefix; every other upper-case prefix (the environment variables) is
-    WISEOWL_COBOL_, and the runtime test's pattern for "a variable the runtime reads" names the two prefixes it keeps;
-  - prose: WiseOwl COBOL; a lower-case name (a semgrep rule id, a scratch folder, a stamp file): wiseowl-cobol; the
-    compiler's upper-case word (a COBOL program a test names after the product): WISEOWL; the legacy one (the NIST
-    SOURCE-COMPUTER name): WISEOWL-COBOL, a COBOL word in every edition.
+  - a design document's name (DOC_STEMS, each a document in the tree) drops the prefix; every other upper-case prefix
+    (the environment variables, `HARNESS_LOG` among them) is WISEOWL_COBOL_, and the runtime test's pattern for "a
+    variable the runtime reads" names the two prefixes it keeps;
+  - prose: the compiler's first name is WiseOwl COBOL, the product it always was; a phrase naming the legacy byte
+    ENGINE (`the legacy <name> engine`, `the deleted <name> engine`, `<name> (the legacy … engine)`) is the legacy
+    engine, never the product, because that engine was never this product; the legacy name alone, which the repository
+    and the project also carried, is the product; a lower-case name (a semgrep rule id, a scratch folder, a stamp
+    file, the repository's tooling): wiseowl-cobol; the compiler's upper-case word (a COBOL program a test names after
+    the product): WISEOWL; the legacy one (the NIST SOURCE-COMPUTER name): WISEOWL-COBOL, a COBOL word in every edition.
 
 WHAT IT NEVER RENAMES OR AUDITS (EXCEPT, the one list): history and frozen records, which keep the spelling of their
 day (CLAUDE.md rule 6; kb/Work PB785) — DEVLOG/, the applied verdict batches under adjudication/, the frozen evidence
@@ -102,18 +106,25 @@ def _ci(word: bytes) -> bytes:
 RETIRED = re.compile(_ci(b"Cobol") + rb"(?:[._-]|\\+\.|\(\?!|\(\?:|\()?" + _ci(b"Net") + b"(?!" + _ci(b"work") + b")|"
                      + _ci(b"Cobol") + _ci(b"Sharp"))
 
-#: The design documents' stems (docs/<prefix>_<stem>.md), the ones in the tree and the ones only prose still names.
+#: The design documents' stems: each is a document in the tree, docs/<stem>.md once renamed (docs/<prefix>_<stem>.md
+#: before). Every OTHER upper-case word after the prefix is an environment variable (`<prefix>_HARNESS_LOG`), which
+#: takes WISEOWL_COBOL_, never a bare name; the self-test refuses a stem with no document, so a variable cannot be
+#: listed here and lose its prefix (kb/Work PB3837 review R1-1).
 DOC_STEMS = (
-    b"ARCHITECTURE", b"CONDITIONS_EXCEPTIONS_DESIGN", b"CONDITIONS_EXCEPTIONS", b"CONTROL_FLOW_DESIGN",
-    b"DATA_MODEL_DESIGN", b"DESIGN", b"FILES_DESIGN", b"HARNESS_LOG", b"INTERPROGRAM_DESIGN", b"INTRINSICS_DESIGN",
-    b"LOCALE_DESIGN", b"NUMERIC_DESIGN", b"OO_DESIGN", b"OO_SLICE_BRIEFS", b"PIPELINE_DESIGN", b"PROJECT_ORG_DESIGN",
-    b"REARCHITECTURE_PLAN", b"REDEFINES_DESIGN", b"REPORT_WRITER_DESIGN", b"REPORTS_DESIGN", b"STRING_OPS_DESIGN",
-    b"VALIDATION_DESIGN",
+    b"ARCHITECTURE", b"CONDITIONS_EXCEPTIONS_DESIGN", b"CONTROL_FLOW_DESIGN", b"DATA_MODEL_DESIGN", b"DESIGN",
+    b"FILES_DESIGN", b"INTERPROGRAM_DESIGN", b"INTRINSICS_DESIGN", b"NUMERIC_DESIGN", b"OO_DESIGN", b"OO_SLICE_BRIEFS",
+    b"PIPELINE_DESIGN", b"PROJECT_ORG_DESIGN", b"REARCHITECTURE_PLAN", b"REDEFINES_DESIGN", b"REPORT_WRITER_DESIGN",
+    b"STRING_OPS_DESIGN", b"VALIDATION_DESIGN",
 )
+#: The names prose gave a design document the tree never held under them (a short form of a DOC_STEMS document, or a
+#: planned `*_DESIGN` one): each is a short form of a DOC_STEMS stem or ends in `_DESIGN` (the self-test checks it).
+PROSE_DOC_STEMS = (b"CONDITIONS_EXCEPTIONS", b"LOCALE_DESIGN", b"REPORTS_DESIGN")
 
 _UP = _OLD.upper()
 _UPL = _LEGACY.upper()
-_STEMS = b"|".join(sorted(DOC_STEMS, key=len, reverse=True))
+_STEMS = b"|".join(sorted(DOC_STEMS + PROSE_DOC_STEMS, key=len, reverse=True))
+#: The legacy product's name in prose, either capitalization of its first half.
+_LEGACY_PROSE = rb"C(?:obol|OBOL)Sharp"
 
 #: (pattern, replacement), applied in this order to the raw bytes of every file in scope, and to every path segment.
 RULES: tuple[tuple[re.Pattern[bytes], bytes], ...] = (
@@ -122,9 +133,10 @@ RULES: tuple[tuple[re.Pattern[bytes], bytes], ...] = (
     (re.compile(rb"(?<=[/\\])" + _LEGACY + rb"(?![A-Za-z0-9_]|\.(?!git\b)[A-Za-z*{`])"), b"COBOL"),
     (re.compile(rb"(?<=--)" + _LEGACY + rb"(?![A-Za-z0-9_])"), b"COBOL"),
     # the legacy engine's projects, solution, driver and folders (deleted from main; LEGACY-ARCHIVE.md keeps them at the
-    # tag): `<name>.Runtime`, `<name>.*`, `<name>.{Compiler,CLI}`, `<name>/Collation/`, `<name>.dll`
+    # tag): `<name>.Runtime`, `<name>.*`, `<name>.{Compiler,CLI}`, `<name>/Collation/`, `<name>.dll`, a quoted
+    # project-name prefix `"<name>."`, a grep's escaped one `<name>\.\(Compiler\|CLI\)`
     (re.compile(_LEGACY.lower() + rb"(?=\.(?:dll|exe)\b)"), b"legacy"),
-    (re.compile(_ci(_LEGACY) + rb"(?=\.[A-Za-z*{`]|/)"), b"Legacy"),
+    (re.compile(_ci(_LEGACY) + rb"(?=\\*\.(?:[A-Za-z*{`\"']|\\\()|/)"), b"Legacy"),
     (re.compile(_UPL + rb"_"), b"WISEOWL_COBOL_"),
     # the work register's project tag, inline or as a YAML list item
     (re.compile(rb"(?<=\[)" + _LEGACY.lower() + rb"(?=[,\]])"), b"wiseowl-cobol"),
@@ -155,7 +167,13 @@ RULES: tuple[tuple[re.Pattern[bytes], bytes], ...] = (
     (re.compile(_OLD.lower()), b"wiseowl-cobol"),
     (re.compile(b"Cobolnet(?=[0-9])"), b"Cobol"),
     (re.compile(b"Cobolnet"), b"WiseOwlCobol"),
-    (re.compile(_LEGACY + b"|COBOLSharp"), b"WiseOwl COBOL"),
+    # prose naming the legacy byte ENGINE (deleted from main) names it the legacy engine, never the product (kb/Work
+    # PB3837 review R1-2); the name alone, which the repository and the project also carried, is the product's
+    (re.compile(rb"(?<=legacy )" + _LEGACY_PROSE + rb" "), b""),                        # the legacy <name> engine
+    (re.compile(_LEGACY_PROSE + rb" \((the legacy [^)\r\n]*)\)"), rb"\1"),              # <name> (the legacy … engine)
+    (re.compile(rb"(?<=legacy engine) \(" + _LEGACY_PROSE + rb"\)"), b""),              # the legacy engine (<name>)
+    (re.compile(_LEGACY_PROSE + rb"(?= (?:engine|compiler|parser)\b)"), b"legacy"),     # the deleted <name> engine
+    (re.compile(_LEGACY_PROSE), b"WiseOwl COBOL"),
     (re.compile(_UPL), b"WISEOWL-COBOL"),
     (re.compile(_LEGACY.lower()), b"wiseowl-cobol"),
 )
@@ -396,7 +414,16 @@ def self_test() -> int:
         (f"tags: [{leg.lower()}, work, defect]\r\ntags:\r\n  - {leg.lower()}\r\n  - spec\r\n",
          "tags: [wiseowl-cobol, work, defect]\r\ntags:\r\n  - wiseowl-cobol\r\n  - spec\r\n", "the project tag (CRLF)"),
         (f"the legacy {leg} engine; {leg.lower()}-skill-doctor.stamp; \"{leg.upper()}\"",
-         "the legacy WiseOwl COBOL engine; wiseowl-cobol-skill-doctor.stamp; \"WISEOWL-COBOL\"", "the legacy name in prose"),
+         "the legacy engine; wiseowl-cobol-skill-doctor.stamp; \"WISEOWL-COBOL\"",
+         "the legacy name in prose is the legacy engine, never the product"),
+        (f"{leg} (the legacy byte-array engine) -> pivot; the deleted legacy engine ({leg}); the deleted {leg} "
+         f"engine; the legacy {leg} compiler; LEGACY_PREFIX = \"{leg}.\"; grep -rn \"{leg}\\.\\(Compiler\\|CLI\\)\"; "
+         f"what {leg} rejects",
+         "the legacy byte-array engine -> pivot; the deleted legacy engine; the deleted legacy engine; the legacy "
+         "compiler; LEGACY_PREFIX = \"Legacy.\"; grep -rn \"Legacy\\.\\(Compiler\\|CLI\\)\"; what WiseOwl COBOL rejects",
+         "an engine phrase reads as the legacy engine, a quoted project prefix as Legacy., the name alone as the product"),
+        (f"{up}_HARNESS_LOG: x; \"{up}_HARNESS_LOG\"", "WISEOWL_COBOL_HARNESS_LOG: x; \"WISEOWL_COBOL_HARNESS_LOG\"",
+         "an environment variable that is not a design document keeps a prefix"),
         ("COBOL network, CobolNumeric, Cobol.Networking", "COBOL network, CobolNumeric, Cobol.Networking",
          "a word that only begins with the letters stays"),
     ]
@@ -406,6 +433,10 @@ def self_test() -> int:
         expect(label + " (no retired name is left)", [m.group() for m in retired_spans(got)], [])
         again, n = rewrite(got)
         expect(label + " (idempotent: a second run changes nothing)", (again, n), (got, 0))
+    expect("every design-document stem is a document in the tree (an environment variable is never one)",
+           [s.decode() for s in DOC_STEMS if not (REPO / "docs" / (s.decode() + ".md")).is_file()], [])
+    expect("every prose-only stem is a short form of a document's stem or a *_DESIGN name",
+           [s.decode() for s in PROSE_DOC_STEMS if not (s.endswith(b"_DESIGN") or s + b"_DESIGN" in DOC_STEMS)], [])
     latin = b"caf\xe9 " + _OLD
     expect("a byte that is not UTF-8 survives", rewrite(latin)[0], b"caf\xe9 WiseOwl.Cobol")
     mark = diagnostic_prefix.RETIRED_MARK.decode()

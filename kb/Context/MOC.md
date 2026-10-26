@@ -16,7 +16,7 @@ The project's history, goals, and engineering doctrine — the "why" behind the 
 ## Notes in this domain
 
 - [[kb/Context/Goals]] — the North Star (D13) and the four non-negotiable process rules + supporting standing rules.
-- [[kb/Context/Project History]] — WiseOwl COBOL (the legacy byte-array engine) → the 2026-06-08 pivot → WiseOwl COBOL → phase-14.
+- [[kb/Context/Project History]] — the legacy byte-array engine → the 2026-06-08 pivot → WiseOwl COBOL → phase-14.
 - [[kb/Context/Doctrine & Anti-Patterns]] — the anti-pattern catalog, the singular-pattern principle, migration phases, session rituals.
 
 ## See also

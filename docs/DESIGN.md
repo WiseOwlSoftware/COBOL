@@ -1808,7 +1808,8 @@ ISO-conforming output under the `LEGACY_DIVERGENT` protocol (`scripts/guard.sh` 
 ### G8 — Cut over
 Cuts 1 and 2 are DONE (kb/Work PB2108–PB2110, R69): the legacy engine is out of the test graph (the differential files became
 pinned goldens, Q13 resolved) and deleted from `main`, preserved at a git tag (`docs/rearchitecture/LEGACY-ARCHIVE.md`). Cut 3
-(the runtime namespace flip, the final architecture/doc pass and the ISO §4.2 conformance document) remains
+(the static runtime façades' deletion, kb/Work PB2349, the final architecture/doc pass and the ISO §4.2 conformance
+document) remains; its namespace flip is done: the product rename made the runtime's root namespace its assembly's, `WiseOwl.Cobol.Runtime` (kb/Work PB3837)
 (`docs/REARCHITECTURE_PLAN.md` PHASE-15).
 > ✔ **Ratified refinement (2026-07-03, `docs/COMPLETION_ROADMAP_COUNCIL.md` Phase 9):** G8 executes as THREE serial cuts. R69
 > (2026-10-06) dropped the greenfield-guard vs legacy-guard equivalence proof that was to precede Cut 1: the one guard has
@@ -1924,7 +1925,7 @@ The new `WiseOwl.Cobol.Frontend.csproj`:
 ### 1.5 Ordered git-mv sequence — executed
 The extraction, the runtime and compiler renames, the new test projects and the solution/script/CI update were executed in
 G0 (Steps 1–5); the tree above is the record. The legacy engine and its test projects were deleted at P15 Cut 2 (kb/Work
-PB2110) and are preserved at a git tag (`docs/rearchitecture/LEGACY-ARCHIVE.md`); the runtime namespace flip is P15 Cut 3.
+PB2110) and are preserved at a git tag (`docs/rearchitecture/LEGACY-ARCHIVE.md`); the product rename made the runtime's root namespace its assembly's, `WiseOwl.Cobol.Runtime` (kb/Work PB3837).
 
 > **`.sln` / config implications, summarized:** central package management means every `.csproj` `PackageReference` is **version-less**; `Directory.Build.props` is the single TFM/lang/nullable/warnings-as-errors source — projects never re-declare those; the `.sln`, the scripts and the CI YAML are the only places project/solution *paths* are hardcoded.
 

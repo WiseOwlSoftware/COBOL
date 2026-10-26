@@ -1928,7 +1928,7 @@ result. Run the long legs ONE AT A TIME.
   ⚠ `paths-ignore` is GONE from the workflow — it made the workflow decline to START, which a required per-commit
   check reads as "blocked forever" — and the same path list now lives in the first job, `changes`, where it decides
   whether the MATRIX runs. A docs-only push therefore still produces a run; it is `changes` + `ci-gate`, seconds.
-- **There is no second compiler to differ against:** the legacy WiseOwl COBOL engine is deleted from `main` (P15 Cut 2, kb/Work PB2110);
+- **There is no second compiler to differ against:** the legacy engine is deleted from `main` (P15 Cut 2, kb/Work PB2110);
   `docs/rearchitecture/LEGACY-ARCHIVE.md` names the tag that preserves it. `guard-fast.sh` is the WiseOwl COBOL NIST leg.
 - **GnuCOBOL external differential — USE IT (owner directive):** `python3 scripts/gnucobol_differential.py --exe
   src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe --report <path>` over the fetched GPL corpus (1323 groups,
@@ -2694,12 +2694,12 @@ result. Run the long legs ONE AT A TIME.
   no-verdict 0** · `guard.sh`'s serial loop **ALL GREEN + audit clean** over a subset covering every verdict class,
   and its evidence branches proven in the failing direction (`COMPILE FAILED` carrying its own reason inline, plus
   `NO MANIFEST ROW`). **ZERO harness observation events across the whole battery** — the only entries in
-  `HARNESS_LOG` are the drift tests' deliberate timeouts.
+  `WISEOWL_COBOL_HARNESS_LOG` are the drift tests' deliberate timeouts.
   ⭐ **THE AUDIT LINE IS THE ONE THAT MATTERS NOW, NOT THE MATCH COUNT.** "353 MATCH" was previously a number a
   human compared against memory, which is exactly how a run at 352 passed as green. The audit compares
   PER-PROGRAM against `tests/nist/corpus.tsv` and fails on a missing, duplicated, stray, or unexpected verdict.
   ⭐ **AND THE HARNESS NOW RECORDS ITS OWN RELIABILITY.** Every retry / non-observation appends to
-  `HARNESS_LOG`, so the determinism evidence §11 A12 asked for accrues on ORDINARY runs instead of
+  `WISEOWL_COBOL_HARNESS_LOG`, so the determinism evidence §11 A12 asked for accrues on ORDINARY runs instead of
   needing dedicated repeat runs. Read that file before believing — or disbelieving — a red.
   ⚠ **THE CONFORMANCE TOTAL MOVED 4164 → 4180 ACROSS ONE SESSION** because each landed fix ships its goldens —
   do not treat any of these as constants. What must hold is **zero failures, zero skipped**, and a per-case
@@ -3325,7 +3325,7 @@ already-derivable coverage; none change the pipeline.
 
 Close the version-correctness program to zero open work and make the greenfield test net self-standing and provably faithful, so the legacy engine could be deleted (R69: it has been, PB2110). Concretely: (1) drive every row of `docs/VERSION_CHANGE_REFERENCE.md` (VCR) to `green`/`GATED` or a written disposition — no `TODO` survives; (2) run the full INV-1 / INV-2 / INV-3 sweeps in both strict and permissive modes, **including golden re-match at `--std 2023` (INV-1-strong at the shipping default edition — the fatal-challenge criterion)**; (3) complete the negative corpus so every registered diagnostic descriptor has ≥1 case, enforced by a registry-coverage unit test; (4) ⛔ **LARGELY DONE 2026-09-06 by kb/Work/PB750, and NOT by a new script** — `scripts/guard.sh`/`guard-fast.sh` themselves now drive `cobol` over the 376-program in-scope corpus (run-only + chain handling already theirs); what remains is the `.ps1` sibling for the OS gap and, if still wanted, widening the population to the full 459-row census; (5) ~~the one-time verdict-diff equivalence proof~~ DROPPED as obsolete by R69 (2026-10-06): the one guard has driven `cobol` since PB750 and no second guard remained to prove it equivalent to; (6) ~~the migration of the 11 `LEGACY_DIVERGENT` ISO citations into a ledger~~ DROPPED: PB2109 retired that exemption list together with the legacy arm.
 
-**OUT of scope (P15):** the `WiseOwl.Cobol.Runtime → WiseOwl.Cobol.Runtime` namespace flip and the §4.2.16 documentation (the legacy engine's deletion has landed, PB2108–PB2110, R69).
+**OUT of scope (P15):** the static runtime façades' deletion (kb/Work PB2349; the namespace flip itself landed with the product rename, kb/Work PB3837) and the §4.2.16 documentation (the legacy engine's deletion has landed, PB2108–PB2110, R69).
 
 ### Exit criteria (the phase is DONE when all hold)
 
@@ -3829,8 +3829,8 @@ No new *positive* NIST goldens are minted in P14 (the corpus is COBOL-85; new po
 Cuts 1 and 2 are DONE: the legacy engine is severed from the build and test graph (Cut 1) and deleted from `main`
 (Cut 2), archived at the annotated git tag `legacy-byte-engine-final` with a WSL reproduction recipe
 (`docs/rearchitecture/LEGACY-ARCHIVE.md`). What the phase still does: remove the SUBSCRIPT lexer mode (Cut 2.5, D10),
-flip the runtime `RootNamespace` from `WiseOwl.Cobol.Runtime` to `WiseOwl.Cobol.Runtime` (routed through the single `RuntimeApi`
-façade so the emitted `using` changes in exactly one place), and publish the complete ISO/IEC 1989:2023 §4.2.16 user
+delete the static runtime façades (kb/Work PB2349; the runtime's root namespace already equals its assembly,
+`WiseOwl.Cobol.Runtime`, since the product rename, kb/Work PB3837), and publish the complete ISO/IEC 1989:2023 §4.2.16 user
 / conformance documentation set (the implementor-defined element list A.1, the processor-dependent claims-and-absences
 A.3, the optional-element claims A.4 including the A.4.10/11/12 rows, nonstandard extensions and any added reserved
 words §4.2.10, archaic §4.2.12 and obsolete §4.2.13 identification, and the §4.2.3/§4.2.4 interaction statements).
@@ -3868,7 +3868,7 @@ guard remained to prove it equivalent to. v1.0 keeps Cut 3 and the §4.2.16 docu
    characterization re-baseline.
 4. **Runtime namespace flipped with emitted code green:** `RootNamespace` is `WiseOwl.Cobol.Runtime`; the `Generated/`
    regenerates clean; a representative program compiles, its `.g.cs` shows the new `using`, and it runs byte-identically
-   to before the flip.
+   to before the flip. MET by the product rename (kb/Work PB3837).
 5. **DOC_INDEX reconciled:** `docs/DOC_INDEX.md` has no rows pointing at deleted docs/scripts, has rows for
    `CONFORMANCE.md` and this phase doc, and the count/preamble is updated.
 
@@ -4005,72 +4005,12 @@ D10.1–D10.5, battery-green at every commit boundary.
 - **Verify (each step):** greenfield battery + `guard.ps1` + INV-1-strong; the D10.1 corpus green; token equivalence is
   NOT the metric (tokens change by design — prove OUTPUT/behavior equivalence). Exit criterion 0 holds when D10.5 lands.
 
-#### CUT 3 — Runtime namespace flip (`WiseOwl.Cobol.Runtime` → `WiseOwl.Cobol.Runtime`)
-This is the only step here that changes emitted code; it is a coordinated flip made trivial by the `RuntimeApi` façade.
-
-- [ ] **Step 8 — Flip the runtime library's own namespace.**
-  - Files: `src/WiseOwl.Cobol.Runtime/WiseOwl.Cobol.Runtime.csproj` — set `<RootNamespace>WiseOwl.Cobol.Runtime</RootNamespace>`
-    and rewrite the banner (drop "renamed from WiseOwl.Cobol.Runtime at G0 … stays WiseOwl.Cobol.Runtime through G0-G7"; state the
-    assembly and root namespace are now coherent). Then rewrite every `namespace WiseOwl.Cobol.Runtime` declaration across
-    `src/WiseOwl.Cobol.Runtime/**/*.cs` to `namespace WiseOwl.Cobol.Runtime` (preserving any sub-namespace suffix, e.g.
-    `WiseOwl.Cobol.Runtime.IO` → `WiseOwl.Cobol.Runtime.IO`). This is a mechanical find/replace of the exact token
-    `namespace WiseOwl.Cobol.Runtime` → `namespace WiseOwl.Cobol.Runtime` plus internal `using WiseOwl.Cobol.Runtime…` → `using
-    WiseOwl.Cobol.Runtime…` within the runtime project itself.
-    - Sub-namespaces: DESIGN-runtime-library §2.8 says "realize the sub-namespaces" at this flip (`.Values/.IO/.Control/
-      .Exceptions/.Intrinsics/.Verbs`). This is an OPEN QUESTION in the design (flat vs sub-namespaced). **Recommended
-      for P15: flip the root token only (keep whatever sub-namespace structure P8's folder reorg left in place).**
-      Deepening the namespace tree beyond the mechanical root flip is optional and, if done, must be reflected in the
-      façade's emitted `using` set (step 9). Do the minimal, provably-one-using flip first; treat sub-namespace
-      deepening as a follow-on only if the façade already emits fully-qualified member names.
-  - Why: DESIGN-runtime-library §2.8 / §4 step 6. Assembly/namespace coherence; the deliberate deferral ends here.
-  - Verify: `dotnet build src/WiseOwl.Cobol.Runtime/WiseOwl.Cobol.Runtime.csproj` succeeds; `grep -rn "namespace WiseOwl.Cobol.Runtime"
-    src/WiseOwl.Cobol.Runtime ; echo "expect: NO hits"`. (The COMPILER will not build yet — it still emits/uses the old
-    namespace until step 9. Do steps 8 and 9 in ONE commit.)
-
-- [ ] **Step 9 — Flip the emitted `using` (one place) + any compiler-side runtime type references.**
-  - Files: the `RuntimeApi` façade (`src/WiseOwl.Cobol.Compiler/CodeGen/.../RuntimeApi.cs`) — the single place that
-    produces the generated program's `using WiseOwl.Cobol.Runtime;` (and every `Cobol*` runtime member name). Flip its
-    emitted namespace constant(s) to `WiseOwl.Cobol.Runtime`. Then fix any direct compile-time references to runtime types
-    inside the compiler (e.g. `using WiseOwl.Cobol.Runtime;` in binder/emitter files that call `ExceptionCatalog`,
-    `CobolEdit.MaskCapacity`, `CobolDate.*`, `RoundingModes`, etc.) — these are `using` swaps to `WiseOwl.Cobol.Runtime`.
-    Find them with `grep -rn "WiseOwl.Cobol.Runtime" src/WiseOwl.Cobol.Compiler`.
-  - Why: DESIGN-runtime-library §2.8: "one file emits the `using`s, so generated `using WiseOwl.Cobol.Runtime;` flips to
-    `using WiseOwl.Cobol.Runtime;` in exactly one place." The façade (P7) is precisely what makes this a one-emitted-change
-    flip instead of corpus-wide churn.
-  - Verify:
-    ```bash
-    dotnet build WiseOwl.Cobol.sln
-    # Compile a representative program and inspect the emitted .g.cs + run it.
-    cat > /tmp/p15.cob <<'EOF'
-    IDENTIFICATION DIVISION.
-    PROGRAM-ID. P15NS.
-    DATA DIVISION.
-    WORKING-STORAGE SECTION.
-    01 WS-N PIC 9(4) VALUE 42.
-    PROCEDURE DIVISION.
-    MAIN.
-        DISPLAY "N=" WS-N.
-        STOP RUN.
-    EOF
-    dotnet src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.dll /tmp/p15.cob --std 2023 -o /tmp/p15.dll --run
-    grep -n "using WiseOwl.Cobol.Runtime\|using WiseOwl.Cobol.Runtime" /tmp/p15.g.cs 2>/dev/null || \
-        grep -rn "using .*Runtime" /tmp  # confirm the .g.cs shows `using WiseOwl.Cobol.Runtime`
-    ```
-    Expected: builds clean; program prints `N=0042`; the emitted `.g.cs` shows `using WiseOwl.Cobol.Runtime` and **no**
-    `using WiseOwl.Cobol.Runtime`; the runtime DLL deployed alongside is `WiseOwl.Cobol.Runtime.dll` (assembly name unchanged —
-    only the namespace moved, so no deployment path changes).
-  - Then the full battery:
-    ```bash
-    dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj
-    dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj
-    pwsh scripts/guard.ps1
-    ```
-    Expected: pass counts == §1 baseline (behavior-neutral: a namespace is a compile-time name only — runtime behavior
-    and emitted-output bytes are identical). If the characterization/emit-snapshot gate (P0) flags the `.g.cs` `using`
-    line as changed, that is the ONE expected, reviewed re-baseline — re-baseline the snapshots in THIS commit with a
-    DEVLOG note ("emit change = runtime namespace flip; gate-1 output goldens prove behavior-neutral").
-  - **COMMIT BOUNDARY** (steps 8 + 9 together — the tree does not build between them). Suggested message:
-    `refactor(wiseowl-cobol)!: P15 Cut 3 — flip runtime RootNamespace WiseOwl.Cobol.Runtime → WiseOwl.Cobol.Runtime via the RuntimeApi façade (one emitted-using change)`
+#### CUT 3 — Runtime namespace flip: DONE by the product rename (kb/Work PB3837)
+The runtime's root namespace equals its assembly, `WiseOwl.Cobol.Runtime`, and the generated program's `using` names
+it through the one `RuntimeApi` façade. kb/Work PB3837 renamed every project, assembly and namespace to
+`WiseOwl.Cobol.*` in one change (`scripts/rename_retired_names.py`), which performed this cut's former steps 8 and 9
+(the runtime's own namespace and the emitted `using`, with the compiler's references to runtime types) and raised the
+runtime major. What remains of the cut is kb/Work PB2349's item 4a, the static runtime façades' deletion.
 
 - [ ] **Step 10 — Regenerate `Generated/` from clean and confirm.**
   - `Generated/` is a build output (gitignored); a from-clean build must regenerate it without error and the emitted

@@ -785,7 +785,7 @@ def leg_env(handshake: dict[str, str], observations: Path) -> dict[str, str]:
     (kb/Work PB3108)."""
     if handshake and set(handshake) != set(HANDSHAKE):
         raise ValueError(f"a partial handshake {sorted(handshake)}: the driver hands all three variables or none")
-    return {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **handshake, "HARNESS_LOG": str(observations)}
+    return {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **handshake, "WISEOWL_COBOL_HARNESS_LOG": str(observations)}
 
 
 # ── a run directory: the gate's pid, its verdict record, and the one way to wait for it (kb/Work PB3536) ──────────
@@ -2088,8 +2088,8 @@ def self_test() -> int:
             "WISEOWL_COBOL_GATE_LEG" not in env and "VSTestTestCaseFilter" not in env and planned["WISEOWL_COBOL_GATE_LEG"] == "1"
             and "VSTestTestCaseFilter" not in planned and partial_refused)
         arm("a leg host writes the harness observation log into the run directory, one file per leg host (PB3108)",
-            env.get("HARNESS_LOG") == str(observations) == planned.get("HARNESS_LOG"), str(env.get(
-                "HARNESS_LOG")))
+            env.get("WISEOWL_COBOL_HARNESS_LOG") == str(observations) == planned.get("WISEOWL_COBOL_HARNESS_LOG"), str(env.get(
+                "WISEOWL_COBOL_HARNESS_LOG")))
 
         # Batched gating (kb/Work PB2515): the shared implementer scope `leg1`, and with no setting the coded default.
         o, h = gate("default-scope", scope=None)

@@ -40,7 +40,7 @@ CASES = [
     ("python scripts/orchestrator/enqueue.py land worktree-agent-abc123", False),   # the landing script itself
     ("cd /e/claude-skills && git push -q origin main", False),
     ("cd /e/COBOL && git push origin HEAD:main", True),
-    ("cd E:/COBOL && git push origin HEAD:main", True),     # the pre-rename folder name is still this repo
+    ("cd E:/COBOL && git push origin HEAD:main", True),     # the Windows form of this repo's path
     ("cd scripts && git push origin main", True),               # a relative cd never leaves the repo
     ("cd /e/COBOL-private && git push origin main", True),      # a sibling of this repo's name (fail closed)
     ("cd /e/Sites/wiseowlsoftware.com && git push origin main", False),

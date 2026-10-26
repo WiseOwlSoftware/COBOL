@@ -85,7 +85,7 @@ FROZEN_BANNER = (
 #   excluded — the legacy engine (Legacy.*), being deleted (kb/Work R69 §1; the Delete program PB2119):
 #              nothing in the census depends on it, so leaving it out changes no number about the product.
 CENSUS_PREFIX = "WiseOwl.Cobol."
-LEGACY_PREFIX = "WiseOwl COBOL."
+LEGACY_PREFIX = "Legacy."
 # The assembly generated programs call: CodeGen/AssemblyPackager.cs copies WiseOwl.Cobol.Runtime.dll beside every compiled
 # program, and the emitter writes calls to it as TEXT, so its members are reached by names inside string literals.
 EMITTED_SURFACE = ["WiseOwl.Cobol.Runtime"]

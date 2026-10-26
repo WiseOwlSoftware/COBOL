@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A NON-OBSERVATION ON CI CAN BE READ AFTERWARDS (kb/Work PB3108; DESIGN-test-build-ci.md §3.10): every step of
-/// <c>.github/workflows/build-and-test.yml</c> that runs <c>dotnet test</c> sets <c>HARNESS_LOG</c> to
+/// <c>.github/workflows/build-and-test.yml</c> that runs <c>dotnet test</c> sets <c>WISEOWL_COBOL_HARNESS_LOG</c> to
 /// <c>harness-observations.log</c> in its own <c>--results-directory</c>, and its job uploads that file (the directory,
 /// or the file by name) with the TRX.
 /// </summary>
@@ -45,7 +45,7 @@ public sealed class CiHarnessLogDriftTests
                 steps:
                   - name: tests
                     env:
-                      HARNESS_LOG: ${{ github.workspace }}/TestResults/x/harness-observations.log
+                      WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/x/harness-observations.log
                     run: dotnet test p.csproj --results-directory TestResults/x
                   - name: Upload
                     uses: ./.github/actions/upload-results
@@ -55,7 +55,7 @@ public sealed class CiHarnessLogDriftTests
                         TestResults/x/harness-observations.log
             """;
         Assert.Equal((1, 0), Count(Good));
-        Assert.Equal((1, 1), Count(Good.Replace("HARNESS_LOG: ${{ github.workspace }}/TestResults/x/harness-observations.log", "OTHER: x", StringComparison.Ordinal)));
+        Assert.Equal((1, 1), Count(Good.Replace("WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/x/harness-observations.log", "OTHER: x", StringComparison.Ordinal)));
         Assert.Equal((1, 1), Count(Good.Replace("/TestResults/x/harness-observations.log", "/TestResults/y/harness-observations.log", StringComparison.Ordinal)));
         Assert.Equal((1, 1), Count(Good.Replace("\n            TestResults/x/harness-observations.log", "", StringComparison.Ordinal)));
         Assert.Equal((1, 0), Count(Good.Replace("path: |\n            TestResults/x/*.trx\n            TestResults/x/harness-observations.log", "path: TestResults/x/", StringComparison.Ordinal)));
@@ -73,7 +73,7 @@ public sealed class CiHarnessLogDriftTests
     private const string WorkflowPath = @"((?:\$\{\{[^}]*\}\}|[^\s$])+)";
     private static readonly Regex ResultsDirectory = new(@"--results-directory\s+" + WorkflowPath, RegexOptions.NonBacktracking);
     private static readonly Regex HarnessLog = new(
-        @"^\s*HARNESS_LOG:\s*\$\{\{\s*github\.workspace\s*\}\}/" + WorkflowPath + @"\s*$", RegexOptions.NonBacktracking);
+        @"^\s*WISEOWL_COBOL_HARNESS_LOG:\s*\$\{\{\s*github\.workspace\s*\}\}/" + WorkflowPath + @"\s*$", RegexOptions.NonBacktracking);
 
     /// <summary>Each job's steps (a step starts at <c>      - </c>), as blocks of lines, comments dropped.</summary>
     private static IEnumerable<List<List<string>>> Jobs(string[] workflow)
@@ -130,9 +130,9 @@ public sealed class CiHarnessLogDriftTests
                 string? results = step.Select(l => ResultsDirectory.Match(l)).FirstOrDefault(m => m.Success)?.Groups[1].Value;
                 string? log = step.Select(l => HarnessLog.Match(l)).FirstOrDefault(m => m.Success)?.Groups[1].Value;
                 if (results is null) offenders.Add($"  {name}: names no --results-directory");
-                else if (log is null) offenders.Add($"  {name}: sets no HARNESS_LOG");
+                else if (log is null) offenders.Add($"  {name}: sets no WISEOWL_COBOL_HARNESS_LOG");
                 else if (log != $"{results}/{LogName}")
-                    offenders.Add($"  {name}: HARNESS_LOG is {log}, not {results}/{LogName}");
+                    offenders.Add($"  {name}: WISEOWL_COBOL_HARNESS_LOG is {log}, not {results}/{LogName}");
                 else if (!uploaded.Any(p => p == $"{results}/" || p == $"{results}/{LogName}"))
                     offenders.Add($"  {name}: its job uploads neither {results}/ nor {results}/{LogName}");
             }
