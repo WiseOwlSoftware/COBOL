@@ -43,3 +43,9 @@ notes had recorded the page-604-versus-page-732 "contradiction", and that readin
 
 **Left as a lead.** A declared data item named MESSAGE, which is not reserved at 2023, is retyped to IDENTIFIER, so
 `CONTINUE [AFTER] MESSAGE RECEIVED` fails. That happens with AFTER written too, so it predates this change.
+
+**Gate.** The first gate stopped RED on the rule catalog (the corrected figure changed FMT-14.9.9.2). The second
+stopped RED on line endings: an inline Python `write_text` had written the note with CRLF line endings. After both
+fixes, run `000003-20261025T235809Z` printed `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN ===`
+with the Linux half (WSL clone of HEAD 506077d0c) GREEN. The new golden, the negative at all four editions,
+`optional_words_mcs` and the three new subset rows all passed in leg 1.
