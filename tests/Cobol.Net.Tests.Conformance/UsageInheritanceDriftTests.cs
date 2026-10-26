@@ -435,7 +435,9 @@ public sealed class UsageInheritanceDriftTests
     /// <summary>The structural pin under <see cref="APicturelessGroupUsage_IsCopiedWithItsSubordinates"/>: the three
     /// description copies run BEFORE the usage walk, so they ask the ENTRY a question that holds then
     /// (<c>DataItem.HasSubordinates</c>), never the COMPLETED form (<c>IsGroup</c>, "no PICTURE") — and an
-    /// <c>IsElementary</c> test beside it is the completed form too, so it is read with HasSubordinates.</summary>
+    /// <c>IsElementary</c> test is the completed form too (a picture-less leaf under a group's usage has no PICTURE
+    /// yet: `01 G USAGE BINARY-LONG. 05 E. 01 S SAME AS E.` was refused as "not elementary", ISO §13.18.49.3 SR7), so the
+    /// only one left is the STRONG screen, which asks both (a written profile is the question there).</summary>
     [Theory]
     [InlineData("ExpandTemplate")]
     [InlineData("ExpandType")]
@@ -450,6 +452,26 @@ public sealed class UsageInheritanceDriftTests
         Assert.DoesNotContain(".IsGroup", body);
         foreach (string line in body.Split('\n').Where(l => l.Contains(".IsElementary") && !l.TrimStart().StartsWith("//")
                      && !l.TrimStart().StartsWith("///")))
+        {
             Assert.Contains("HasSubordinates", line);
+            Assert.Contains("TypedefStrong", line);
+        }
+    }
+
+    /// <summary>The classifier a pass that precedes the usage walk asks about an ANCESTOR (the SAME AS expansion's
+    /// §13.18.49.4 GR3 / GR5 transfer reads the groups data-name-1 is subordinate to) answers from the entry's own form
+    /// (<c>DataItem.IsGroupEntry</c>): the group header still holds the profile entry bind synthesized for its usage, so
+    /// the completed form (<c>IsGroup</c>) read it as no group at all and the clause never crossed (kb/Work PB3682).</summary>
+    [Fact]
+    public void TheGroupKindClassifier_AsksTheEntryForm_NotTheCompletedForm()
+    {
+        string text = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "Binding", "Model", "ItemCategory.cs"));
+        var start = Regex.Match(text, @"^    public static GroupKinds GroupKindsOf\(", RegexOptions.Multiline);
+        Assert.True(start.Success, "GroupKindsOf not found — the pin measured nothing");
+        var end = Regex.Match(text[start.Index..], @"^    \}\s*$", RegexOptions.Multiline);
+        string body = text.Substring(start.Index, end.Index + end.Length);
+        Assert.Contains("IsGroupEntry", body);
+        Assert.DoesNotContain(body.Split('\n').Where(l => !l.TrimStart().StartsWith("//")),
+            l => Regex.IsMatch(l, @"\.IsGroup\b"));
     }
 }

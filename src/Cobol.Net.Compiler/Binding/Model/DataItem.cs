@@ -1016,6 +1016,14 @@ public sealed class DataItem
     /// (<see cref="IsGroup"/>'s remarks): the question a pass that precedes the usage walk asks of a description it copies.</summary>
     public bool HasSubordinates => Children.Count > 0;
 
+    /// <summary>⛔ THE GROUP-ITEM QUESTION IN THE ENTRY'S OWN FORM: the entry has subordinates and no PICTURE the program
+    /// wrote (<see cref="Pic"/> absent, or the profile entry bind synthesized for a picture-less usage,
+    /// <see cref="PicIsUsageSynthesized"/>, which the usage walk sheds). Equal to <see cref="IsGroup"/> once that walk has
+    /// run; before it, true of `01 G USAGE BINARY-LONG. 05 E.` where <see cref="IsGroup"/> is false. The group-kind
+    /// classifier (<c>ItemCategory.GroupKindsOf</c>) asks this, so a pass that precedes the walk — the SAME AS expansion's
+    /// §13.18.49.4 GR3 / GR5 ancestor transfer — sees the enclosing group as the group it is (kb/Work PB3682).</summary>
+    public bool IsGroupEntry => Children.Count > 0 && (Pic is null || PicIsUsageSynthesized);
+
     /// <summary>True for an elementary item (has a PICTURE).</summary>
     public bool IsElementary => Pic is not null;
 

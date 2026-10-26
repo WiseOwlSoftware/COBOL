@@ -51,9 +51,11 @@ internal static class VariableLengthCompatibility
     /// <summary>True for a VARIABLE-LENGTH GROUP (§8.5.1.12.1 sentence 1: "a group item whose data description
     /// has at least one dynamic-length elementary item or dynamic-capacity table as a subordinate item"). The
     /// ONE spelling — <see cref="DataItem.IsImageCapable"/>'s dynamic axis answers the same question about a
-    /// single item, and <c>ReferenceResolver.HasVariableLengthSubordinate</c> is the walk both share.</summary>
+    /// single item, and <c>ReferenceResolver.HasVariableLengthSubordinate</c> is the walk both share. Asked of the
+    /// entry's own form (<see cref="DataItem.IsGroupEntry"/>) so it agrees with <c>ItemCategory.GroupKindsOf</c>, which reads
+    /// it, before the usage walk too (kb/Work PB3682).</summary>
     public static bool IsVariableLength(DataItem item) =>
-        item.IsGroup && ReferenceResolver.HasVariableLengthSubordinate(item);
+        item.IsGroupEntry && ReferenceResolver.HasVariableLengthSubordinate(item);
 
     /// <summary>True for a VARIABLE-LENGTH DATA ITEM (§8.5.1.11.1: "The term variable-length data item refers to
     /// either a dynamic-capacity table or a dynamic-length elementary item") — the ITEM, not a group containing one

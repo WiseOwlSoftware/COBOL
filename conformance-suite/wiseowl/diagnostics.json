@@ -23356,5 +23356,21 @@
    "2023"
   ],
   "expect": "COBOLNET1556"
+ },
+ "pb3682-type-subject-group-usage-from-enclosing-group": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1653"
+ },
+ "pb3682-same-as-subject-group-usage-from-enclosing-group": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1653"
  }
 }
