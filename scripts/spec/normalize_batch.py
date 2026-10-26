@@ -160,7 +160,10 @@ def normalize(doc: dict, name: str, log: list[str], schema: Schema) -> dict:
                     log.append(f"  {name}[{i}] {rec.get('rule-id','?')}: editions {ed!r} -> {spelled!r}")
                     rec["editions"] = spelled
 
-        rec["notes"] = notes
+        # `notes` is written back only when the record named it or normalising produced some: an absent field means
+        # "leave the row's", and an empty one means "erase it" (record_verdicts.merged, kb/Work PB3795).
+        if "notes" in rec or notes:
+            rec["notes"] = notes
         for k in list(rec):
             if k != "rule-id" and k not in ALLOWED:
                 log.append(f"  {name}[{i}] {rec.get('rule-id','?')}: dropped unknown field {k!r}")

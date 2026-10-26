@@ -25,9 +25,14 @@ A batch file is a JSON list of records, or an object with a "records" list (and 
 WITNESSES MERGE; STATEMENTS ARE RESTATED (kb/Work PB959). `code-location` and `test-ref` are SETS of witnesses
 (`inventory_schema.WITNESS_FIELDS`): a record's values are UNIONED with the row's, in the row's order, so a batch
 that names one new witness adds it and a batch that omits the field keeps what the row had. Every other field —
-`verdict`, `editions`, `notes`, `derivation` — is one statement, and the record restates it. Until PB959 both
-witness fields were overwritten too, and a batch that re-typed two of five witnesses deleted the other three with
-nothing anywhere able to see it. A witness now leaves a row only by an explicit RETIREMENT:
+`verdict`, `editions`, `notes`, `derivation` — is one statement (`inventory_schema.STATEMENT_FIELDS`): a record
+that NAMES it restates it, and a record that omits it leaves it as the row has it (kb/Work PB3795, PB3375: until
+then an omitted `notes` was written as empty, and four landings erased 25 rows' forensic prose that way). A
+statement never goes from saying something to saying nothing (`statement_losses`; writing the field empty over a
+non-empty one is refused), and a record that changes the verdict must restate `notes`, whose prose argues the old
+verdict. Until PB959 both witness fields were overwritten too, and a batch that re-typed two of five witnesses
+deleted the other three with nothing anywhere able to see it. A witness now leaves a row only by an explicit
+RETIREMENT:
 
        {"rule-id": "...", ..., "retire-witnesses": "<ref>; <ref>", "retire-reason": "<why each no longer witnesses>"}
 
@@ -71,9 +76,9 @@ import pathlib
 import sys
 from collections import Counter
 
-from inventory_schema import (ADJUDICATED, RETIRED_WITNESS_MARK, WITNESS_FIELDS, load_catalog, load_inventory,
-                              load_schema, resites, retired_symbols_left_in_prose, witness_losses,
-                              witness_shape_error, write_inventory)
+from inventory_schema import (ADJUDICATED, RETIRED_WITNESS_MARK, STATEMENT_FIELDS, WITNESS_FIELDS, load_catalog,
+                              load_inventory, load_schema, prose_of, resites, retired_symbols_left_in_prose,
+                              statement_losses, witness_losses, witness_shape_error, write_inventory)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -143,16 +148,20 @@ def merged(row: dict, rec: dict, schema) -> dict[str, str]:
     Witness fields: the row's witnesses minus the record's retirements, then the record's new ones, deduplicated in
     first-seen order — except that a record which CHANGES the verdict and SUPPLIES a code-location re-sites that
     field (`inventory_schema.resites`: the defect site a PARTIAL row names is not implementation evidence for the
-    CONFORMS record that closes it). A record that omits a witness field keeps what the row had. Statement fields:
-    the record's value (absent = empty, as before PB959). A retirement is appended to `notes` as
-    `retired-witness: <ref> (<reason>)` — the durable mark `audit_witness_loss.py` reads.
+    CONFORMS record that closes it). A record that omits a witness field keeps what the row had.
 
-    A WITNESS-ONLY record (`is_witness_only`: no verdict and no statement field) restates nothing: every statement
-    field keeps the row's value, so the record can be applied on any tree, in any order, any number of times.
+    Statement fields: the record's value when it NAMES the field, the row's when it does not (kb/Work PB3795,
+    PB3375). An omission never changes a statement; only a field the record writes does, and writing one empty over
+    something the row says is refused by `validate` (`inventory_schema.statement_losses`). Until PB3795 an absent
+    field was written as empty, so a record that restated a verdict and forgot `notes` erased the row's forensic
+    prose without a word. A retirement is appended to `notes` as `retired-witness: <ref> (<reason>)` — the durable
+    mark `audit_witness_loss.py` reads.
+
+    A WITNESS-ONLY record (`is_witness_only`: no verdict and no statement field) names no statement field, so every
+    one keeps the row's value and the record can be applied on any tree, in any order, any number of times.
     """
     retire = set(schema.split(rec.get(RETIRE, ""), schema.test_ref_sep))
-    source = row if is_witness_only(rec) else rec
-    out = {f: source.get(f, "") or "" for f in ADJUDICATED if f not in WITNESS_FIELDS}
+    out = {f: (rec[f] if f in rec else row.get(f, "")) or "" for f in STATEMENT_FIELDS}
     for field in WITNESS_FIELDS:
         sep = _sep(field, schema)
         given = schema.split(rec.get(field, ""), sep)
@@ -232,7 +241,20 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         # so requiring the record to restate them would be requiring the very re-typing that used to lose them.
         # The per-reference SYNTAX checks further down stay on the record's own values — those are its claims.
         after = merged(row, rec, schema)
-        retire = schema.split(rec.get(RETIRE, ""), schema.test_ref_sep)
+        # ⛔ A STATEMENT IS NEVER ERASED, AND A RE-ADJUDICATION RESTATES ITS PROSE (kb/Work PB3795, PB3375). An
+        # omitted statement field keeps the row's value (`merged`), so the only way left to blank one is to WRITE it
+        # empty — `inventory_schema.statement_losses` is the one definition of that, which the auditor asks of the
+        # diff as well. And a record that CHANGES the verdict while keeping `notes` would leave the old verdict's
+        # reasoning standing under the new one (a PARTIAL row's defect prose under the CONFORMS that closes it), so
+        # it must restate the prose, as it must re-site the code-location (`resites`).
+        for loss in statement_losses(row, {**row, **after}):
+            bad.append(f"{where}: '{loss.field}' would go from {loss.chars} characters to empty — the record writes it "
+                       f"empty over what the row says; leave the field out to keep it, or restate it")
+        if (row.get("verdict") and verdict != row["verdict"] and "notes" not in rec
+                and prose_of(row.get("notes", ""))):
+            bad.append(f"{where}: verdict {row['verdict']} → {verdict} keeps the row's notes, which argue the old "
+                       f"verdict — restate 'notes' (the prose of the new verdict)")
+        retire =schema.split(rec.get(RETIRE, ""), schema.test_ref_sep)
         if retire and not rec.get(RETIRE_REASON, "").strip():
             bad.append(f"{where}: '{RETIRE}' needs a '{RETIRE_REASON}' — a retired witness is evidence removed, "
                        f"and the row's notes must say why")

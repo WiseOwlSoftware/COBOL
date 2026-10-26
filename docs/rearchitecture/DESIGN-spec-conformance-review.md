@@ -341,7 +341,13 @@ A record sets only the adjudicated fields (plus the two retirement control field
 **Witnesses MERGE; statements are restated (kb/Work PB959).** `code-location` and `test-ref` are sets of
 witnesses (`inventory_schema.WITNESS_FIELDS`): the writer UNIONS a record's values with the row's, so a record that
 names one new test adds it and a record that omits the field keeps what the row had. `verdict`, `editions`,
-`notes` and `derivation` are single statements the record restates. Three refinements, each measured:
+`notes` and `derivation` are single statements (`inventory_schema.STATEMENT_FIELDS`): a record that names one
+restates it and a record that omits one leaves it as the row has it (kb/Work PB3795, PB3375; until then an omitted
+`notes` was written as empty and four landings erased 25 rows' forensic prose with every gate green). A statement
+never goes from saying something to saying nothing (`inventory_schema.statement_losses`, asked by the writer and by
+the auditor: writing a field empty over a non-empty one is refused, and the `derivation` a spec-derived `test-ref`
+replaced is the one excuse), and a record that changes the verdict must restate `notes`, whose prose argues the old
+verdict. Three refinements, each measured:
 
 - **A witness leaves a row only by a named, reasoned retirement** — `"retire-witnesses": "<ref>; <ref>"` plus
   `"retire-reason"`. Each ref must be on the row; the writer drops it and appends `retired-witness: <ref>
@@ -358,8 +364,10 @@ names one new test adds it and a record that omits the field keeps what the row 
 reference RESOLVES and deliberately not how many there are, so until PB959 a batch that subtracted valid evidence
 left every gate green. `scripts/spec/audit_witness_loss.py --check` (run by `build-local.{sh,ps1}` and
 `battery.sh`) compares the inventory with the merge-base with main and is RED on any witness lost without a
-retirement mark or a re-site; `--history` replays the file's git history under the merge rule and
-`--restore-batch` emits the witness-only batch owing back what the old overwrite silently removed.
+retirement mark or a re-site, and on any statement (`notes` prose, `derivation`, `verdict`, `editions`) that went
+from non-empty to empty; `--history` replays the file's git history under the merge rule and `--restore-batch`
+emits the batch owing back what the old overwrite silently removed (witness-only records for the witnesses, full
+records restating the row's own verdict for the erased `notes`).
 
 **A symbol must be in the code, and the prose is read too (kb/Work PB762).** One predicate,
 `SpecTraceabilityInventoryDriftTests.SymbolResolves`, decides whether a `#Symbol` still exists, for a `code-location`
