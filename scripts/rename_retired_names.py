@@ -35,8 +35,9 @@ rewritten file holds no retired name — the self-test asserts it of every case)
     compiler field, a class, a scratch prefix): WiseOwlCobol;
   - a design document's name drops the prefix; every other upper-case prefix (the environment variables) is
     WISEOWL_COBOL_, and the runtime test's pattern for "a variable the runtime reads" names the two prefixes it keeps;
-  - prose: WiseOwl COBOL; a lower-case name (a semgrep rule id, a scratch folder, a stamp file): wiseowl-cobol; an
-    upper-case word (a COBOL program a test names after the product): WISEOWL.
+  - prose: WiseOwl COBOL; a lower-case name (a semgrep rule id, a scratch folder, a stamp file): wiseowl-cobol; the
+    compiler's upper-case word (a COBOL program a test names after the product): WISEOWL; the legacy one (the NIST
+    SOURCE-COMPUTER name): WISEOWL-COBOL, a COBOL word in every edition.
 
 WHAT IT NEVER RENAMES OR AUDITS (EXCEPT, the one list): history and frozen records, which keep the spelling of their
 day (CLAUDE.md rule 6; kb/Work PB785) — DEVLOG/, the applied verdict batches under adjudication/, the frozen evidence
@@ -126,11 +127,14 @@ RULES: tuple[tuple[re.Pattern[bytes], bytes], ...] = (
     # the project, assembly, solution and namespace names
     (re.compile(rb"Cobol\.Net(?![a-z])"), b"WiseOwl.Cobol"),
     (re.compile(_OLD + rb"(?=[A-Za-z0-9_])"), b"WiseOwlCobol"),
-    (re.compile(_OLD + rb"(?=\.CompileAndRun\b| = new\b)"), b"WiseOwlCobol"),
+    # the conformance tests' compiler FIELD, never the namespace: its declaration, a call on it, a ternary choosing it
+    (re.compile(_OLD + rb"(?=\.Compile[A-Za-z]*\(| = new\b)"), b"WiseOwlCobol"),
+    (re.compile(rb"(?<=\? )" + _OLD + rb"(?= :)|(?<= : )" + _OLD + rb"(?=\)\.Compile)"), b"WiseOwlCobol"),
     (re.compile(_OLD), b"WiseOwl.Cobol"),
     (re.compile(rb"cobolNet(?=[A-Za-z0-9_])"), b"wiseOwlCobol"),
     # the design documents drop the prefix; the environment variables take WISEOWL_COBOL_
     (re.compile(_UP + rb"_(?=(?:" + _STEMS + rb")(?![A-Z0-9_]))"), b""),
+    (re.compile(_UP + rb"_(?=\*(?:_DESIGN)?\.md)"), b""),
     (re.compile(rb"COBOL\(\?:NET\)\?_"), b"(?:WISEOWL_)?COBOL_"),
     (re.compile(_UP + rb"_"), b"WISEOWL_COBOL_"),
     # prose, and the remaining spellings
@@ -140,7 +144,7 @@ RULES: tuple[tuple[re.Pattern[bytes], bytes], ...] = (
     (re.compile(b"Cobolnet(?=[0-9])"), b"Cobol"),
     (re.compile(b"Cobolnet"), b"WiseOwlCobol"),
     (re.compile(_LEGACY + b"|COBOLSharp"), b"WiseOwl COBOL"),
-    (re.compile(_UPL), b"WISEOWL_COBOL"),
+    (re.compile(_UPL), b"WISEOWL-COBOL"),
     (re.compile(_LEGACY.lower()), b"wiseowl-cobol"),
 )
 
@@ -338,8 +342,13 @@ def self_test() -> int:
         (f"static readonly {old}Compiler {old} = new(); {old}.CompileAndRun(s); {old}85.Run(); \"{old}_Char_\"",
          "static readonly WiseOwlCobolCompiler WiseOwlCobol = new(); WiseOwlCobol.CompileAndRun(s); "
          "WiseOwlCobol85.Run(); \"WiseOwlCobol_Char_\"", "an identifier that carried the name"),
+        (f"(e == 85 ? {old} : {old}2023).CompileRunAndReadFile(s); (n ? {old}2014 : {old}).CompileAndRun(s)",
+         "(e == 85 ? WiseOwlCobol : WiseOwlCobol2023).CompileRunAndReadFile(s); "
+         "(n ? WiseOwlCobol2014 : WiseOwlCobol).CompileAndRun(s)", "the compiler field chosen by a ternary"),
         (f"docs/{up}_DESIGN.md, [[{up}_REARCHITECTURE_PLAN]], {up}_FILES_DESIGN §3, {up}_OO_SLICE_BRIEFS",
          "docs/DESIGN.md, [[REARCHITECTURE_PLAN]], FILES_DESIGN §3, OO_SLICE_BRIEFS", "the design documents"),
+        (f"the docs/{up}_*.md files and the docs/{up}_*_DESIGN.md corpus",
+         "the docs/*.md files and the docs/*_DESIGN.md corpus", "a glob over the design documents"),
         (f"{up}_CLOCK, {up}_GATE_PLAN, {up}_GATE_PLAN_SHA256, \"{up}_GATE_\", {up}_*, {up}_<NAME>",
          "WISEOWL_COBOL_CLOCK, WISEOWL_COBOL_GATE_PLAN, WISEOWL_COBOL_GATE_PLAN_SHA256, \"WISEOWL_COBOL_GATE_\", "
          "WISEOWL_COBOL_*, WISEOWL_COBOL_<NAME>", "the environment variables, a plan file stem among them"),
@@ -362,7 +371,7 @@ def self_test() -> int:
         (f"tags: [{leg.lower()}, work, defect]\r\ntags:\r\n  - {leg.lower()}\r\n  - spec\r\n",
          "tags: [wiseowl-cobol, work, defect]\r\ntags:\r\n  - wiseowl-cobol\r\n  - spec\r\n", "the project tag (CRLF)"),
         (f"the legacy {leg} engine; {leg.lower()}-skill-doctor.stamp; \"{leg.upper()}\"",
-         "the legacy WiseOwl COBOL engine; wiseowl-cobol-skill-doctor.stamp; \"WISEOWL_COBOL\"", "the legacy name in prose"),
+         "the legacy WiseOwl COBOL engine; wiseowl-cobol-skill-doctor.stamp; \"WISEOWL-COBOL\"", "the legacy name in prose"),
         ("COBOL network, CobolNumeric, Cobol.Networking", "COBOL network, CobolNumeric, Cobol.Networking",
          "a word that only begins with the letters stays"),
     ]
