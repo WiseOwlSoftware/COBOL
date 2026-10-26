@@ -362,14 +362,13 @@ internal sealed class VersionConformancePass
     // wrong answer traded for a false one (kb/Work PB425).
     private void GateMove(BoundMove m)
     {
-        if (Sr5FigurativeText(m.Source) is not { } figText) return;   // not on SR5's list — SR5 does not reach it
+        if (FigurativeAssociation.Sr5FigurativeText(m.Source) is not { } figText) return;   // not on SR5's list — SR5 does not reach it
         foreach (var t in m.Targets)
         {
-            // Exemptions (§14.9.25.3 SR5): a ref-mod receiver (unique elementary alphanumeric), a group receiver
-            // (a conversion-free character copy), a non-numeric receiver, or class index (SR1-errored in the binder).
-            if (t is RefModPlace || t.Item.IsGroup || t.Item.Pic is not { } pic) continue;
-            if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited)) continue;
-            if (pic.Usage is Usage.Index) continue;
+            // Exemptions (§14.9.25.3 SR5): a ref-mod receiver (unique elementary alphanumeric), then the receiver
+            // exemptions FigurativeAssociation.Sr5ReceiverOf holds for every asker of the rows — a group receiver (a
+            // conversion-free character copy), a non-numeric receiver, class index (SR1-errored in the binder).
+            if (t is RefModPlace || FigurativeAssociation.Sr5ReceiverOf(t.Item) is not { } receiver) continue;
             // The IMPLICIT move of a FROM / INTO phrase reaches this gate too (kb/Work PB348 — it is now a
             // BOUND child of the I-O node, so the StatementChildren walk finds it), and the edition report has
             // to name the statement the programmer wrote: `RELEASE R FROM QUOTE` is the removal §14.9.32.4 GR4
@@ -377,46 +376,9 @@ internal sealed class VersionConformancePass
             string where = m.ImplicitOf is { } phrase
                 ? $"MOVE {figText} TO {t.Item.CobolName}, {phrase.Where(t.Item.CobolName)}"
                 : $"MOVE {figText} TO {t.Item.CobolName}";
-            GateSr5(m.Source, pic.Category,
-                    integerReceiver: pic is { Category: PicCategory.Numeric, IsFloat: false, Scale: <= 0 }, where);
+            // The rows are FigurativeAssociation.GateSr5's — ONE body for every asker of the MOVE rules (kb/Work PB3755).
+            FigurativeAssociation.GateSr5(_edition, _sink, m.Source, receiver.Category, receiver.Integer, where);
         }
-    }
-
-    /// <summary>The source spelling §14.9.25.3 SR5's closed list names — "SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL
-    /// "literal", or ALL symbolic-character" — for the members whose prohibition is an EDITION row, or null. SPACE is on
-    /// SR5's list but not here: its prohibition holds at every edition and is the binder's flat refusal
-    /// (MoveValidity.FigurativeRefusal; kb/Work PB3605).</summary>
-    private static string? Sr5FigurativeText(BoundOperand source) => source switch
-    {
-        BoundFigurative { Kind: 'Q' } => "QUOTE",
-        BoundFigurative { Kind: 'H' } => "HIGH-VALUE",
-        BoundFigurative { Kind: 'L' } => "LOW-VALUE",
-        BoundAllLiteral a => $"ALL \"{a.Literal}\"",
-        _ => null,
-    };
-
-    /// <summary>⭐ §14.9.25.3 SR5's THREE EDITION ROWS, in ONE place, for one (SR5-listed sender, numeric or
-    /// numeric-edited receiver) pair — asked by the written MOVE (<see cref="GateMove"/>, per receiving item) and by
-    /// INITIALIZE REPLACING's hypothetical MOVE (<see cref="GateInitialize"/>, per category). Before kb/Work PB879
-    /// the rows lived inline in <see cref="GateMove"/>, which only a bound <c>BoundMove</c> node reaches.
-    /// <para>⛔ §8.3.3.6.3 SR3 IS ASKED FIRST, AND IT IS NOT A §14.9.25.3 SR5 ROW (kb/Work PB422): a multi-character
-    /// <c>ALL literal</c> associated with a numeric or numeric-edited item is SR3's, whose edition edge (removed
-    /// 2002) is not §14.9.25.3 SR5's (removed 2023) — §14.9.25.3 SR5's digit-only exception has no length qualifier, so <c>ALL "57"</c>
-    /// was never SR5's to refuse. The predicate and its row live in <see cref="FigurativeAssociation"/>, shared
-    /// with the relation checkpoint; when SR3 decides the pair no SR5 row is asked of it.</para></summary>
-    private void GateSr5(BoundOperand source, PicCategory receiverCategory, bool integerReceiver, string where)
-    {
-        if (FigurativeAssociation.GateSr3(_edition, _sink, source, receiverCategory, where)) return;
-        if (source is BoundAllLiteral { IsDigitOnly: true } && integerReceiver)
-            // SR5's surviving exception — valid everywhere, obsolete at 2023 (0903; SR5 NOTE / Annex F.2).
-            Check(Constructs.MoveAllDigitIntegerObsolete2023, where);
-        else if (source is BoundFigurative { Kind: 'Q' })
-            // QUOTE→numeric — obsolete 2014 (Annex E.2 item 21) then removed 2023 (dual-window row).
-            Check(Constructs.MoveQuoteNumericObsolete2014, where);
-        else
-            // Every other shape (HIGH-VALUE, LOW-VALUE, a non-digit ALL literal; SPACE never reaches here) — REMOVED by
-            // ISO 2023 (Annex E.2 item 1 bullet 1; 0902 — VCR row 1).
-            Check(Constructs.MoveAlphanumericFigurativeRemoved2023, where);
     }
 
     /// <summary>
@@ -441,10 +403,10 @@ internal sealed class VersionConformancePass
     {
         foreach (var item in ini.Replacing)
         {
-            if (Sr5FigurativeText(item.Sender) is not { } figText) continue;
+            if (FigurativeAssociation.Sr5FigurativeText(item.Sender) is not { } figText) continue;
             foreach (var cat in (ReadOnlySpan<InitializeCategory>)[InitializeCategory.Numeric, InitializeCategory.NumericEdited])
                 if (item.Categories.Contains(cat))
-                    GateSr5(item.Sender,
+                    FigurativeAssociation.GateSr5(_edition, _sink, item.Sender,
                         cat is InitializeCategory.Numeric ? PicCategory.Numeric : PicCategory.NumericEdited,
                         integerReceiver: cat is InitializeCategory.Numeric,
                         $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} … BY {figText} (the MOVE "
@@ -2590,14 +2552,17 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>The relational operator <c>&lt;&gt;</c> — "an abbreviation for NOT EQUAL" (ISO §8.7.5.2 SR11), a special
-        /// character word of §8.3.2.4.2 2) — is a COBOL-2002 introduction (not-equal-operator-2002, kb/Work PB1459): the
-        /// COBOL-85 operators are the GREATER / LESS / EQUAL forms, their symbols and NOT. The one arm that answers for
+        /// character word of §8.3.2.4.2 2) — is a COBOL-2014 introduction (not-equal-operator-2014, kb/Work PB1459,
+        /// PB3604): the COBOL-85 operators are the GREATER / LESS / EQUAL forms, their symbols and NOT, the 2002 text's
+        /// clause 8.7.5.2 ends its abbreviation rules at <c>&lt;=</c>, and Annex D.3 (2002→2014 changes) item 16 of the 2009
+        /// committee draft adds "The symbol &lt;&gt; … as an extended relational operator". The one arm that answers for
         /// every relation condition, because <c>comparisonOperator</c> is the only rule that spells the NOTEQUAL token.
-        /// One Check per operator written; the word forms (<c>NOT EQUAL TO</c>, <c>NOT =</c>) are COBOL-85 and never reach it.</summary>
+        /// One Check per operator written; the word forms (<c>NOT EQUAL TO</c>, <c>NOT =</c>) are COBOL-85 and never reach it.
+        /// The body is <see cref="RelationalOperatorGate"/>, shared with the directive stage: a <c>&gt;&gt;IF</c> relation is
+        /// a fragment this walk never reaches (kb/Work PB3604).</summary>
         public override object? VisitComparisonOperator(CobolParserCore.ComparisonOperatorContext ctx)
         {
-            if (ctx.NOTEQUAL() is not null)
-                _p.Check(Constructs.NotEqualOperator2002, "the relational operator <>");
+            RelationalOperatorGate.Check(_p._edition, _p._sink, ctx);
             return base.VisitChildren(ctx);
         }
 

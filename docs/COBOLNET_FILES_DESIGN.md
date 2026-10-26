@@ -1769,8 +1769,10 @@ the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC
   `ValidityAskedByStatement`: §14.9.20.3 SR4 asks the validity question once per REPLACING CATEGORY
   (`InitializeBinder.CheckReplacingMoveValidity`) and the GR6a/GR6c senders are valid by construction, so the
   per-receiver screens stay silent while (2)–(4) still run. Its edition half, §14.9.25.3 SR5, is asked by
-  `VersionConformancePass.GateInitialize` over `BoundInitialize.Replacing` through the same `GateSr5` rows
-  `GateMove` asks (kb/Work PB879).
+  `VersionConformancePass.GateInitialize` over `BoundInitialize.Replacing` through the same
+  `FigurativeAssociation.GateSr5` rows `GateMove` asks (kb/Work PB879) — and the BY CONTENT activation arm asks them too,
+  `ParameterConformance.GateFigurativeEdition` for a figurative argument into a numeric-edited formal of a CALL, an INVOKE
+  or a user-defined function (§14.8.2.3.3 rule 2 d), kb/Work PB3755).
 - **A statement whose rule says "according to the rules for the MOVE statement" binds a MOVE, even when its
   sender is conceptual (kb/Work PB887).** ACCEPT format 2 (§14.9.1.4 GR6) transfers a clock reading that GR7–GR12
   describe as "an unsigned elementary integer data item of usage display" of 6/8/5/7/8/1 digits

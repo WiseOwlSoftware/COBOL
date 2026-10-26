@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1021_address_identifier_operands
 *> rules: [SR-8.4.3.1.3-10, SR-14.9.23.3-9, SR-14.9.23.3-19]
-*> accept: [2002]
+*> accept: [2014]
 *> source-format: free
 *> portable: unverified
 *>---

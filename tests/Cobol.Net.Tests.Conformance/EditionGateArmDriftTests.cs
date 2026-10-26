@@ -90,12 +90,9 @@ public sealed class EditionGateArmDriftTests
         ["UsageFloatExtended2002"] = UsageFact("USAGE FLOAT-EXTENDED"),
         ["UsageFloatBinary322014"] = UsageFact("USAGE FLOAT-BINARY-32"),
         ["UsageFloatBinary642014"] = UsageFact("USAGE FLOAT-BINARY-64"),
-        // The MOVE figurative-constant category rows (ISO §14.9.25.3 SR5): which of the three edition rows a
-        // MOVE falls under depends on the source figurative crossed with EACH receiver's resolved PICTURE, and a
-        // MOVE's receiver list is a parse fact only in its spelling.
-        ["MoveAllDigitIntegerObsolete2023"] = MoveFact("ALL <digit-literal> into an integer receiver"),
-        ["MoveQuoteNumericObsolete2014"] = MoveFact("QUOTE into a numeric receiver"),
-        ["MoveAlphanumericFigurativeRemoved2023"] = MoveFact("an alphanumeric figurative into a numeric receiver"),
+        // (The MOVE figurative-constant category rows, ISO §14.9.25.3 SR5, are NOT here since kb/Work PB3755: they are
+        // read by FigurativeAssociation.GateSr5, ONE body for the written MOVE, INITIALIZE REPLACING and a BY CONTENT
+        // argument, none of which this pass alone reaches; Sr5EditionRowAskerDriftTests pins that.)
         ["PicExternalFloat2002"] =
             "PicInfo.IsFloatEdited — the external-floating-point PICTURE is identified by the ANALYSED character "
             + "string (the E and its exponent), not by any token the parse tree distinguishes from an ordinary "
@@ -110,11 +107,6 @@ public sealed class EditionGateArmDriftTests
             + "PicInfo.SkeletonGate because the analyzer RECOVERED the category to Alphanumeric and no "
             + "category key could see it)",
     };
-
-    private static string MoveFact(string shape) =>
-        $"the bound MOVE's source figurative crossed with EACH receiver's RESOLVED picture — {shape} is a "
-        + "category question, and the same written statement falls under a different edition row (or none) "
-        + "depending on what its receivers turn out to be";
 
     private static string UsageFact(string spelling) =>
         $"the RESOLVED DataItem's (OwnUsage, Pic.Category, Pic.Usage) — {spelling} reaches an item through TYPE / "
