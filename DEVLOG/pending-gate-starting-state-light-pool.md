@@ -33,3 +33,5 @@ the sentence is derived from it; a self-test arm fails when a bump of `RECORD_SC
 
 Rows re-verdicted: none (all three note `closes_rows: []` with a reason). Registered: nothing new outside the group.
 Docs current: DESIGN-test-build-ci.md (sections 3.14.6, 3.14.12, 3.17.2 step 3 and 3.18), the gate skill, DOC_INDEX.md, plan section 0.
+
+Gate: run `TestResults/build-local/000001-20261026T171056Z` on head a2661792f (the merge with main f3591ec1a): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` with `Linux half (WSL clone of HEAD) GREEN`, 8,490 Conformance, 36,691 Unit and 7 Characterization cases ran, leg 2 left to CI. The first gate of the branch (before the merge) was RED on the citation audit (a prose section sign in the notes and this entry), fixed in c00ff38b6.
