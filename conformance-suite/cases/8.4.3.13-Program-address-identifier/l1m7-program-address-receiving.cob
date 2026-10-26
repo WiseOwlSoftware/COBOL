@@ -21,7 +21,7 @@
       *> same identifier as the receiver, which only SR4 forbids.  Every
       *> SET receiving list parses the program-address-identifier
       *> (kb/Work PB1551), so the receiving chokepoint refuses it by SR4
-      *> (COBOLNET3979); it used to be a syntax error (COBOL0201).
+      *> (COBOL3979); it used to be a syntax error (COBOL0201).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1M7PAR.
        DATA DIVISION.

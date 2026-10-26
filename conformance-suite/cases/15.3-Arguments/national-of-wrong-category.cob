@@ -6,7 +6,7 @@
 *>---
 *> ISO 15.66.3 rule 1: FUNCTION NATIONAL-OF argument-1 shall be of class alphabetic or alphanumeric —
 *> a national argument is the inverse direction (FUNCTION DISPLAY-OF, 15.26). Also exercises the
-*> 15.66.3 rule 2 arm indirectly: argument-2 shall be category national. COBOLNET1546 (P10 wave).
+*> 15.66.3 rule 2 arm indirectly: argument-2 shall be category national. COBOL1546 (P10 wave).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGNOF1P10N.
 DATA DIVISION.

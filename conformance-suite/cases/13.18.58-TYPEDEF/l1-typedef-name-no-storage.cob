@@ -15,7 +15,7 @@
       *> Control in the same source: V, described with TYPE T, IS a data
       *> item with its own storage (§13.18.58.4 GR3), and MOVE "A" TO V
       *> is legal - only the reference to T may be diagnosed.
-      *> Expected diagnostic: COBOLNET1639 undefined-reference (the
+      *> Expected diagnostic: COBOL1639 undefined-reference (the
       *> adjudicator's probe td06storage of the same shape).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1TDS01.

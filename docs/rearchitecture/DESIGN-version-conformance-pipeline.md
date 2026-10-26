@@ -63,7 +63,7 @@ all four (`feedback_one_mechanism_per_job`: one canonical mechanism per job, wit
   VersionConformancePass   ONE dedicated post-bind pass, in TWO arms. The SINGLE owner of all edition gating:
         │                  · syntactic gates → the parse-tree arm re-recognizes the construct → Check
         │                  · semantic gates  → inspect the resolved bound fact (is-group, operand-shape) → Check
-        │                  strict: reject (COBOLNET0900/0902/0903).  permissive: accept-inert / warn.
+        │                  strict: reject (COBOL0900/0902/0903).  permissive: accept-inert / warn.
         │               ── HALT if the pass produced errors ──   ← "no codegen on compile errors"
         ▼
      Emit               PURE codegen from a VALID bound tree. No diagnostics possible here except an ICE.
@@ -84,8 +84,8 @@ is this closed, documented set:
    user-function call are syntactically identical, only the repository-resolved name set separates them, so the
    gate fires at bind on recognition (§2.4).
 2. **Catalog-driven per-NAME windows** — version facts that live in their OWN tables, not constructs.json: the
-   D8 intrinsic IntroducedIn/RemovedIn windows (`IntrinsicCatalog`, COBOLNET1502/1503, + the bespoke TRIM
-   argument-2 window riding BindTrim), the `ExceptionCatalog` EC-name windows (COBOLNET0878 — EcBinder, the USE
+   D8 intrinsic IntroducedIn/RemovedIn windows (`IntrinsicCatalog`, COBOL1502/1503, + the bespoke TRIM
+   argument-2 window riding BindTrim), the `ExceptionCatalog` EC-name windows (COBOL0878 — EcBinder, the USE
    F3 name loop, `>>TURN`), the `PictureAnalyzer` picture-symbol rows (the ≥edition 0899 half of the W2 skeleton
    gate), and the §8.3.3.3.2 / §13.18.40 digit caps (`EditionContext.CheckDigitCapacity`, 0801/0802 —
    `EditionInfo.MaxDigits` is the table; §8.3.3.3.2 caps fixed-point literals at 1–31 digits and §13.18.40.3 SR14
@@ -147,7 +147,7 @@ after parsing — never by a grammar action or a side table keyed on the parse n
   `BoundKeyedStart.Length`, `IBoundRead.Kind`, `IBoundRead.AdvancingOnLock` and `BoundInvoke` are all
   self-identifying, and all five are assigned from a PARSE fact and nothing else — so the bound-tree home bought
   no precision and cost the diagnostic on every path that returned `BoundUnsupported`/`BoundNop` before the node
-  existed. `START NOSUCHF FIRST` at `--std 85` named COBOLNET1639 and no edition; so did `START SDF FIRST` on an
+  existed. `START NOSUCHF FIRST` at `--std 85` named COBOL1639 and no edition; so did `START SDF FIRST` on an
   SD, `START IXF KEY = NOSUCHK WITH LENGTH 3`, `READ NOSUCHF PREVIOUS ADVANCING ON LOCK` (two phrases at once)
   and `INVOKE NOSUCHO "M1"`. A gate belongs on the bound arm only when NO parse rule identifies the construct;
   everything else fires on recognition. `EditionGateArmDriftTests` derives both arms from the pass source and
@@ -210,10 +210,10 @@ folding an orthogonal rule into the edition pass silently widens a charter that 
 | Pass | Axis | Severity | Keyed on | Runs |
 |---|---|---|---|---|
 | `FlagConformancePass` | migration flagging (§7.3.14 FLAG-02 / §7.3.15 FLAG-14) | always Warning | the user's `>>FLAG` directive state, regardless of `--std` | post-bind |
-| `ExpressionFormationPass` | non-edition SYNTAX-RULE conformance (§8.8.1.2 Table 3, §8.8.2 Table 4; the identifier's suffix order, §8.4.2.3.2 / §8.4.3.1.2 Format 3 — COBOLNET2776, kb/Work PB1455) | Error | the parse tree alone — no edition, no directive state | post-bind |
-| `LiteralScreen` (a frontend body, `Frontend/Parsing`; `BinderDriver` runs it on the unit's tree, and the conditional-compilation stage's fragment funnels on each directive operand's tree — lexed apart from the unit, kb/Work PB1616 — with the edition gates of a literal's format only in a compiled branch) | a LITERAL's own syntax rules (§8.3.3.2.3 SR1/SR5/SR6, §8.3.3.4.3 SR1/SR2/SR3, §8.3.3.5.3 SR1/SR4/SR5 — length ≤ 8,191 positions of its class from COBOL-2014 and ≤ 160 below it — the edition-keyed bound `CobolLiteral.MaxPositions`, COBOLNET0814 (kb/Work PB1615); content repertoire of the prefixed formats, COBOLNET2630, kb/Work PB1441; hexadecimal grouping, COBOLNET1635; and §8.3.3.3.2 2), a numeric literal's sign abutting its digits, COBOLNET2155 — kb/Work PB1445) | Error | every literal TOKEN of the raw tree, DEFAULT-mode and SUBSCRIPT-mode twins alike, and every `signedNumericLiteral` / `signedIntegerLiteral` node that carries a sign (a plain walk, not a visitor, so no override can hide a literal — kb/Work PB1393; `LiteralScreenDriftTests` derives the token set from the lexer) | post-bind |
+| `ExpressionFormationPass` | non-edition SYNTAX-RULE conformance (§8.8.1.2 Table 3, §8.8.2 Table 4; the identifier's suffix order, §8.4.2.3.2 / §8.4.3.1.2 Format 3 — COBOL2776, kb/Work PB1455) | Error | the parse tree alone — no edition, no directive state | post-bind |
+| `LiteralScreen` (a frontend body, `Frontend/Parsing`; `BinderDriver` runs it on the unit's tree, and the conditional-compilation stage's fragment funnels on each directive operand's tree — lexed apart from the unit, kb/Work PB1616 — with the edition gates of a literal's format only in a compiled branch) | a LITERAL's own syntax rules (§8.3.3.2.3 SR1/SR5/SR6, §8.3.3.4.3 SR1/SR2/SR3, §8.3.3.5.3 SR1/SR4/SR5 — length ≤ 8,191 positions of its class from COBOL-2014 and ≤ 160 below it — the edition-keyed bound `CobolLiteral.MaxPositions`, COBOL0814 (kb/Work PB1615); content repertoire of the prefixed formats, COBOL2630, kb/Work PB1441; hexadecimal grouping, COBOL1635; and §8.3.3.3.2 2), a numeric literal's sign abutting its digits, COBOL2155 — kb/Work PB1445) | Error | every literal TOKEN of the raw tree, DEFAULT-mode and SUBSCRIPT-mode twins alike, and every `signedNumericLiteral` / `signedIntegerLiteral` node that carries a sign (a plain walk, not a visitor, so no override can hide a literal — kb/Work PB1393; `LiteralScreenDriftTests` derives the token set from the lexer) | post-bind |
 | `DeclinedFacilityPass` | Annex A.4 optional elements this implementation does not claim | Error | the claim register (`docs/CONFORMANCE.md` §5), not the edition | post-bind |
-| `ClosedFormatPass` | a CLOSED general format's residue (§4.2.2 — every error production, `unrecognizedClause` or `unrecognizedDataClause`, the grammar reached, COBOLNET1941/1970/1971, named by its format and § from `ClosedFormats.ByContext`) | Error | the parse tree alone, at every edition and strictness (kb/Work PB829) | post-bind |
+| `ClosedFormatPass` | a CLOSED general format's residue (§4.2.2 — every error production, `unrecognizedClause` or `unrecognizedDataClause`, the grammar reached, COBOL1941/1970/1971, named by its format and § from `ClosedFormats.ByContext`) | Error | the parse tree alone, at every edition and strictness (kb/Work PB829) | post-bind |
 | `LevelNumberPass` | the level-number's own syntax rules (§13.18.33.3 SR2/4/5/6, §13.18.33.4 GR2, §13.16.3 SR1/SR2) | Error | the parse tree alone — the entry's SECTION ancestry and its BODY | **pre-bind** |
 
 **`LevelNumberPass` is the one that runs FIRST, and deliberately.** The others consume the bound model or sit
@@ -227,7 +227,7 @@ makes it impossible for a bind-time failure on the malformed structure to preemp
 **Two axes, one pass, two codes.** A level-number is constrained twice over and the constraints are independent:
 by the SECTION its entry lives in (§13.18.33.3 — four *different* sets; 77 is legal in working-storage and illegal
 in a record area) and by the general FORMAT the entry is written in (§13.18.33.4 GR2's "may be used only as
-described by …" plus §13.16.3 SR1/SR2). `COBOLNET1746` reports the first, `COBOLNET1747` the second, because the
+described by …" plus §13.16.3 SR1/SR2). `COBOL1746` reports the first, `COBOL1747` the second, because the
 user action differs: one says the level-number may not appear here at all, the other says the level-number is fine
 but the entry under it is not the format it requires. The FORMAT is read from the entry BODY and never from the
 level-number — deciding it from the level would make GR2b and GR2c vacuous — so the level-number selects which
@@ -269,8 +269,8 @@ site covers the whole §7.3 family — the directives it consumes, the ones a do
 (`Frontend.LeftDirectives`), and the conditional-compilation directives its own switch handles — because §7.3.2
 gives them ONE general format (`>>compiler-instruction`) and §7.3.3 SR6 opens compiler-instruction with ONE
 compiler-directive word (§8.12). It calls the same `ConstructRegistry.Check` funnel and the same
-`EditionSeverityPolicy`, so the codes are the pass's codes: COBOLNET0900 below the introducing edition,
-COBOLNET0902 at a removing one, COBOLNET0903 at an obsoleting one.
+`EditionSeverityPolicy`, so the codes are the pass's codes: COBOL0900 below the introducing edition,
+COBOL0902 at a removing one, COBOL0903 at an obsoleting one.
 
 **The roster is derived, and that is the load-bearing part.** `constructs.json` rows carry a `directiveWords`
 column; `CompilerDirectiveCatalog` (`Cobol.Net.Editions`) inverts it into the word → row map the stage consults.
@@ -281,7 +281,7 @@ becomes enforced, and the version matrix compiles its `source` at all four editi
 compiler-instruction "as specified in the syntax of each directive", so "may this word head a `>>` line at this
 edition" and "may these words follow it" are two questions with one answer each per directive; the second is the
 row's `directiveOperand` column, and `CompilerDirectiveCatalog.CheckOperand` is its ONE producer —
-**COBOLNET1911** for the whole family. The column is a TOTAL partition, enforced by the generator and by
+**COBOL1911** for the whole family. The column is a TOTAL partition, enforced by the generator and by
 `CompilerDirectiveCatalogDriftTests`: `words` (a closed set from the printed general format — with the optional
 words, whether the choice may be omitted, whether a catalogued directive-name or a user-defined word is
 admissible), `text` (the content is not checked, and the citation says by WHOSE decision — §7.3.19.3 SR2 for
@@ -292,7 +292,7 @@ PRINTED UNDERLINING, never the braces: §7.3.24.2 underlines FIXED and FREE so `
 malformed, while §7.3.17.2/§7.3.18.2/§7.3.21.2/§7.3.23.2 leave `ON` un-underlined, so a bare `>>LEAP-SECOND` is
 conforming (§5.2.3). Before PB794 this rule was written in six stages with six codes and not at all for the seven
 directives the driver consumes, so `>>SOURCE FORMAT UNKNOWN`, `>>LISTING GARBAGE` and `>>PUSH GARBAGE` compiled
-in silence. **COBOLNET0883 and COBOLNET1576 are RETIRED** by that consolidation; COBOLNET1650 keeps only
+in silence. **COBOL0883 and COBOL1576 are RETIRED** by that consolidation; COBOL1650 keeps only
 §7.3.17.3 SR1's placement rule.
 
 **And the directive LINE has one parse.** `CompilerDirectiveLine` (`Cobol.Net.Editions`) owns the indicator with
@@ -306,10 +306,10 @@ and an inline comment and nothing else.
 
 **Why this had to be restructured rather than extended** (kb/Work PB725): the same rule was written down THREE
 times — this funnel in five downstream stages, a hand-rolled `if (dialectLevel < 2002)` with a bespoke code in two
-more (`>>TURN`/COBOLNET0875, `>>PROPAGATE`/COBOLNET0883), and, for a flat `KnownIgnoredDirectives` name set with
+more (`>>TURN`/COBOL0875, `>>PROPAGATE`/COBOL0883), and, for a flat `KnownIgnoredDirectives` name set with
 no edition column, nowhere at all. Eleven ISO directives compiled clean at `--std 85`, an edition that has no
 compiler directives whatsoever, and nothing could have failed, because a name set cannot be wrong about an edition
-it does not record. Consolidating deleted the two bespoke gates (COBOLNET0875 is RETIRED; COBOLNET0883 kept only
+it does not record. Consolidating deleted the two bespoke gates (COBOL0875 is RETIRED; COBOL0883 kept only
 its §7.3.21.2 malformed-operand half, until PB794 retired that too), deleted four byte-identical `BagSink`
 copies, and removed `dialectLevel`/`permissive` from four stage signatures that no longer ask an edition
 question. PB794 then removed the diagnostic channel itself from the PROPAGATE and REF-MOD-ZERO-LENGTH stages,
@@ -346,7 +346,7 @@ the pass's parse-tree arm (`VisitCobolWord`).
 
 **Kept (orthogonal — NOT introduction gates):**
 - The **§8.9 reserved-word funnel**: rejects a *genuine user-word* spelling at/above the edition where the word became
-  reserved (`COBOLNET0901`). Inverse gate (word→reserved), unchanged in behavior; it lives inside the
+  reserved (`COBOL0901`). Inverse gate (word→reserved), unchanged in behavior; it lives inside the
   `VersionConformancePass` (the parse-tree arm's `VisitCobolWord`).
 - The **VALUE/PROPERTY boundary guards** (`CobolData.g4:382/389`): value-operand-loop disambiguation, not an edition gate.
 - The **vendor JSON/XML `COBOL0313` disposition**: a dialect/vendor-extension disposition, not an ISO edition gate. It

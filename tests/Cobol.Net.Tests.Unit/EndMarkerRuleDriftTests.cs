@@ -13,7 +13,7 @@ namespace CobolNet.Tests.Unit;
 /// <c>OoClassTable.Build</c>, END INTERFACE there and again for parameterized skeletons in <c>OoExpansion</c> — while
 /// an interface's method prototypes, every GET/SET PROPERTY method and every PROGRAM / FUNCTION marker were asked by
 /// none of them. No other compiler file may compare an end marker's name, and no other file may report
-/// COBOLNET2793.
+/// COBOL2793.
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class EndMarkerRuleDriftTests

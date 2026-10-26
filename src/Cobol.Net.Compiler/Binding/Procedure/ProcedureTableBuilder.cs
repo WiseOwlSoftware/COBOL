@@ -193,12 +193,12 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17): resolve the debug SUBJECTS now that every
         // nondeclarative procedure is in the pc space — the ALL PROCEDURES / procedure-name legs bind to real
         // trigger points; the data-name / file-name / cd-name subject kinds and the SORT/MERGE cause taxonomy
-        // are staged loud (COBOLNET1571). No-op unless WITH DEBUGGING MODE collected a debug declarative.
+        // are staged loud (COBOL1571). No-op unless WITH DEBUGGING MODE collected a debug declarative.
         FinalizeDebug(pd);
     }
 
     /// <summary>⛔ THE ONE <c>procedure-name</c> OPERAND RESOLUTION for a STATEMENT (kb/Work PB390): resolve, or
-    /// REPORT COBOLNET1639 and return null. Every statement whose general format prints procedure-name — PERFORM,
+    /// REPORT COBOL1639 and return null. Every statement whose general format prints procedure-name — PERFORM,
     /// GO TO (both formats), ALTER, RESUME AT, SORT/MERGE INPUT and OUTPUT PROCEDURE — enters here, so a name that
     /// resolves to nothing is a compile-time DIAGNOSTIC by construction and not a per-site habit.
     /// <para>⛔ THIS EXISTS BECAUSE THE SILENT TWIN WAS USED EIGHT TIMES. Each site turned the null into a
@@ -230,7 +230,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // ⛔ "IDENTIFIES MORE THAN ONE" IS NOT "IDENTIFIES NONE" (kb/Work PB466). Both fail §8.4.2.1's "a
         // reference that uniquely identifies that resource", but they are different rules with different
         // repairs, so the ambiguous case gets its own message and its own code rather than being folded into
-        // COBOLNET1639's "no paragraph or section carries that name", which would be a false statement about
+        // COBOL1639's "no paragraph or section carries that name", which would be a false statement about
         // a program that carries the name twice.
         if (resolved.Ambiguity is { } ambiguity)
         {
@@ -302,7 +302,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
         if (qualifier is not null)
         {
-            if (!sections.TryResolve(qualifier, out var q)) return default;   // no such section → COBOLNET1639
+            if (!sections.TryResolve(qualifier, out var q)) return default;   // no such section → COBOL1639
             // The QUALIFIER itself has to identify one section, and a section-name takes no qualifier of its
             // own (§8.4.2.2.2 format 4), so a duplicated one cannot be repaired by writing more.
             if (sections.IsDuplicated(qualifier))
@@ -468,7 +468,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         if (leading.Length == 0
             || leading[0].statement() is not { Length: 1 } first
             || first[0].useStatement() is not { } use)
-            ctx.Edition.Error("COBOLNET0897", $"declarative section '{name}': the first sentence shall consist "
+            ctx.Edition.Error("COBOL0897", $"declarative section '{name}': the first sentence shall consist "
                 + "of a single USE statement (ISO §14.3 / §14.9.49.3 SR1)");
         else if (use.DEBUGGING() is not null)
         {
@@ -497,7 +497,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // Leading sentences past the USE form an anonymous paragraph at the section start (handler bodies that
         // CCVS writes directly under the section header) — §14.4.3's paragraph-name-OMITTED paragraph, named
         // NOWHERE. ⛔ It used to be registered through AddParagraph under the SECTION's own name (kb/Work PB990), which
-        // declared a paragraph the source never wrote: a legal `PERFORM handler-section` drew COBOLNET2121 "declared 2
+        // declared a paragraph the source never wrote: a legal `PERFORM handler-section` drew COBOL2121 "declared 2
         // times (paragraph 'H' in section 'H'; section 'H')", and §8.3.2.2's one-type-per-word census found the section
         // name used as a paragraph-name.
         AddAnonymousParagraph(leading.Skip(1).ToArray(), info, used);
@@ -543,7 +543,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// (X3.23-1985 debug module, VCR Table 7 row 7.17). <c>ALL PROCEDURES</c> and a bare procedure-name bind to
     /// real trigger points at NONdeclarative procedures (a debugging declarative is never debugged — the '85
     /// ALL PROCEDURES exclusion, DB101A "USE PROCEDURE NOT EXECUTED"). The data-name (incl. ALL REFERENCES OF),
-    /// file-name, and cd-name subject kinds are STAGED — rejected loud COBOLNET1571 (their after-statement /
+    /// file-name, and cd-name subject kinds are STAGED — rejected loud COBOL1571 (their after-statement /
     /// after-I-O trigger insertion and the DEBUG-SUB subscript rendering are not modeled). A SORT/MERGE INPUT/
     /// OUTPUT procedure that is also a debug subject is likewise staged (the SORT INPUT/OUTPUT/MERGE OUTPUT
     /// DEBUG-CONTENTS cause is not modeled — rejecting avoids a silent wrong cause).</summary>
@@ -561,7 +561,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 }
                 else if (t.REFERENCES() is not null)     // ALL REFERENCES OF identifier-1 → data-name subject (staged)
                 {
-                    ctx.Edition.Error("COBOLNET1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
+                    ctx.Edition.Error("COBOL1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
                         + "ON ALL REFERENCES OF a data item (the after-statement data trigger with DEBUG-CONTENTS/"
                         + "DEBUG-SUB rendering) is recognized but not modeled — only ON procedure-name / ALL "
                         + "PROCEDURES is implemented (X3.23-1985 debug module; VCR Table 7 row 7.17)");
@@ -584,7 +584,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                         for (int pc = drange.Start; pc <= drange.End; pc++)
                             AddDebugSubject(pc, section);
                     else
-                        ctx.Edition.Error("COBOLNET1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
+                        ctx.Edition.Error("COBOL1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
                             + $"ON '{nm}' names a file-name, cd-name, or data item (not a procedure-name of this "
                             + "program) — only the ON procedure-name / ALL PROCEDURES leg is modeled; the file / "
                             + "data / communication debug triggers are not (X3.23-1985 debug module; VCR Table 7 row 7.17)");
@@ -601,7 +601,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             foreach (var (name, rng) in SortMergeProcedureRanges(pd))
                 if (Enumerable.Range(rng.Start, rng.End - rng.Start + 1).Any(subjectPcs.Contains))
                 {
-                    ctx.Edition.Error("COBOLNET1571", $"the SORT/MERGE {name} PROCEDURE is also a USE FOR "
+                    ctx.Edition.Error("COBOL1571", $"the SORT/MERGE {name} PROCEDURE is also a USE FOR "
                         + "DEBUGGING subject: the SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS cause is not "
                         + "modeled (only the plain-transfer / fall-through / PERFORM-loop / START-PROGRAM causes "
                         + "are) — X3.23-1985 debug module; VCR Table 7 row 7.17");
@@ -702,7 +702,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 $"declarative section '{sectionName}': USE BEFORE REPORTING", out _, out var group, ctx.Data);
             if (match == ReportGroupResolution.Match.None || group is null)
             {
-                ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE BEFORE REPORTING "
+                ctx.Edition.Error("COBOL0897", $"declarative section '{sectionName}': USE BEFORE REPORTING "
                     + $"'{head}' does not name a report group (ISO §14.9.49.3 SR9)");
                 return null;
             }
@@ -710,7 +710,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // statement within the same procedure division. Format 2 names exactly one group per
             // statement, so only the Duplicate verdict is reachable here.
             if (_useReportGroups.Register(group) == ConstructOperand.Duplicate)
-                ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': report group "
+                ctx.Edition.Error("COBOL0897", $"declarative section '{sectionName}': report group "
                     + $"'{head}' already has a USE BEFORE REPORTING procedure in this procedure "
                     + "division (ISO §14.9.49.3 SR9)");
             return new DeclScope([], null, global, group);
@@ -731,7 +731,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // declaratives portion of a given procedure division. Format 1's brace group takes exactly one
             // alternative per statement, so only the Duplicate verdict is reachable here.
             if (_useModes.Register(m) == ConstructOperand.Duplicate)
-                ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': this open mode already "
+                ctx.Edition.Error("COBOL0897", $"declarative section '{sectionName}': this open mode already "
                     + "has a USE procedure in this procedure division (ISO §14.9.49.3 SR7)");
             return new DeclScope([], m, global, null);
         }
@@ -742,13 +742,13 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             string fname = fn.GetText();
             if (!ctx.Data.FilesByName.TryGetValue(fname, out var file))
             {
-                ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE names unknown "
+                ctx.Edition.Error("COBOL0897", $"declarative section '{sectionName}': USE names unknown "
                     + $"file '{fname}' (ISO §14.9.49)");
                 continue;
             }
             if (file.IsSortMerge)
             {
-                ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE may not name the "
+                ctx.Edition.Error("COBOL0897", $"declarative section '{sectionName}': USE may not name the "
                     + $"sort/merge file '{fname}' (ISO §14.9.49.3 SR2)");
                 continue;
             }
@@ -763,7 +763,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 case ConstructOperand.Repeated:
                     continue;
                 case ConstructOperand.Duplicate:
-                    ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': file '{fname}' "
+                    ctx.Edition.Error("COBOL0897", $"declarative section '{sectionName}': file '{fname}' "
                         + "already has a USE procedure in this procedure division (ISO §14.9.49.3 SR8)");
                     continue;   // §14.9.49.4 GR3 recovery — the FIRST declarative keeps the file
             }
@@ -794,7 +794,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             var fileNames = entry.fileName();
             if (fileNames.Length > 0 && !Runtime.Exceptions.ExceptionCatalog.IsIoName(info.Name))
             {
-                ctx.Edition.Error("COBOLNET0715", $"declarative section '{sectionName}': FILE may be specified "
+                ctx.Edition.Error("COBOL0715", $"declarative section '{sectionName}': FILE may be specified "
                     + $"only with an exception-name beginning 'EC-I-O' — '{info.Name}' does not (ISO §14.9.49.3 SR13)");
                 continue;
             }
@@ -814,13 +814,13 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 string fname = fn.GetText();
                 if (!ctx.Data.FilesByName.TryGetValue(fname, out var file))
                 {
-                    ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE names unknown "
+                    ctx.Edition.Error("COBOL0897", $"declarative section '{sectionName}': USE names unknown "
                         + $"file '{fname}' (ISO §14.9.49)");
                     continue;
                 }
                 if (file.IsSortMerge)
                 {
-                    ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE may not name "
+                    ctx.Edition.Error("COBOL0897", $"declarative section '{sectionName}': USE may not name "
                         + $"the sort/merge file '{fname}' (ISO §14.9.49.3 SR2)");
                     continue;
                 }
@@ -843,7 +843,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 case ConstructOperand.Repeated:
                     return;   // written twice in this one statement — legal, and bound once
                 case ConstructOperand.Duplicate:
-                    ctx.Edition.Error("COBOLNET0716", $"declarative section '{sectionName}': the exception-name/"
+                    ctx.Edition.Error("COBOL0716", $"declarative section '{sectionName}': the exception-name/"
                         + $"file pair '{ec} FILE {file.CobolName}' is already specified in another USE statement "
                         + "of this procedure division (ISO §14.9.49.3 SR14)");
                     return;   // §14.9.49.4 GR3 recovery — the FIRST declarative keeps the pair

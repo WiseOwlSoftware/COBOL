@@ -11,7 +11,7 @@
       *>     [ BY REFERENCE ] { identifier-3 | OMITTED }
       *> (OMITTED underlined; the brace outside the bracket -- 5.2.6.2 / 5.2.6.3), so both
       *> `USING BY REFERENCE OMITTED` and bare `USING OMITTED` are printed spellings.  Before PB757 both
-      *> were COBOL0001 and a method's OPTIONAL formal was COBOLNET0899.
+      *> were COBOL0001 and a method's OPTIONAL formal was COBOL0899.
       *>
       *> DERIVATION OF THE EXPECTED OUTPUT.
       *>   14.9.23.4 GR9: "If an OMITTED phrase is specified or a trailing argument is omitted, the

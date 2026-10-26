@@ -6,7 +6,7 @@
 *>---
       *> ISO 1989:2023 8.3.3.3.3 SR2 (the significand shall be from 1 to 36 digits), SR3 (the exponent shall have a
       *> maximum of four digits), SR4 (a zero significand requires a zero exponent and no negative sign in either
-      *> part): each entry below violates one rule and is COBOLNET1661 (kb/Work PB99 - the five-digit exponent used to
+      *> part): each entry below violates one rule and is COBOL1661 (kb/Work PB99 - the five-digit exponent used to
       *> reach Roslyn as an overflowing C# double literal, CS0594; the others compiled silently). The form is checked
       *> at the ONE numeric-literal normalizer, so the VALUE clause, a level-88 and a statement all report it.
        IDENTIFICATION DIVISION.

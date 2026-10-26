@@ -13,7 +13,7 @@
       *> clause, and 13.18.21.3 SR1/SR2 confirm it is the same clause EOL and EOS abbreviate.
       *> WHY THIS IS A NEGATIVE CASE. The ERASE clause belongs to the DECLINED screen module (Annex
       *> A.4.2 items 8 and 22), and 4.2.7 makes non-support conformant only when it is DIAGNOSED -
-      *> COBOLNET1560 is that diagnosis, and it is what proves the clause was RECOGNIZED rather than
+      *> COBOL1560 is that diagnosis, and it is what proves the clause was RECOGNIZED rather than
       *> mis-parsed. The brace is still a REQUIRED choice (5.2.6.3), so a bare `ERASE` remains a
       *> syntax error; this program writes the shortest LEGAL spelling instead.
        IDENTIFICATION DIVISION.

@@ -17,7 +17,7 @@
       *> integers; §15.64.4 r1: 10^31 − 7·INTEGER(10^31/7) = 3; quantized at scale 9 it needs 40 digits, past Int128) · MEDIAN(2e-9 4e-9 9e-9)=4e-9 · VARIANCE(1 2 3)=2/3
       *> (VARIANCE, §15.98.4: ((1−2)²+0+1)/3), stored truncating into 9V9(5) → 0.66666 · ANNUITY(0, 4)=1/4
       *> (§15.9.4 r1 rate-zero arm) · PRESENT-VALUE(1, 8 8)=8/2+8/4=6 (§15.74.4 r1) ·
-      *> STANDARD-DEVIATION(2 2 2)=√0=0. The four financial/statistical functions were COBOLNET0899-
+      *> STANDARD-DEVIATION(2 2 2)=√0=0. The four financial/statistical functions were COBOL0899-
       *> staged under the standard modes until these SDIDI evaluations existed; this golden is the
       *> unstaging's proof, and the former negative fixture arith-standard-intrinsic-staged.cob
       *> retired with the stage.

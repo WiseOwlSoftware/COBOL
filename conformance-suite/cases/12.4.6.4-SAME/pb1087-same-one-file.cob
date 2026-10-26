@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1087 - a record-area SAME clause naming ONE file; the format prints file-name-1 { file-name-2 } ... so a second file is required.
       *>   cite.py --check 12.4.6.4.4 "A record-area format SAME clause specifies that two or more files referenced by file-name-1, file-name-2" -> OK
-      *> COBOLNET2738 (same-clause-rule). The positive twin is conformance/2002/pb1087_same_clauses_legal.cob.
+      *> COBOL2738 (same-clause-rule). The positive twin is conformance/2002/pb1087_same_clauses_legal.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1087N0.
        ENVIRONMENT DIVISION.

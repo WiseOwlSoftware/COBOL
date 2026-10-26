@@ -10,7 +10,7 @@
       *> §16.2 gives BaseFactoryInterface's New the header `01 outObject usage object reference active-class.
       *> Procedure division returning outObject.` (cite.py: OK §16.2), so New - although PB1548IC inherits it
       *> from BASE and `INVOKE PB1548IC "New" RETURNING O` is legal - cannot be invoked INLINE
-      *> (kb/Work PB1548) -> COBOLNET2140.
+      *> (kb/Work PB1548) -> COBOL2140.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1548IM.
        ENVIRONMENT DIVISION.

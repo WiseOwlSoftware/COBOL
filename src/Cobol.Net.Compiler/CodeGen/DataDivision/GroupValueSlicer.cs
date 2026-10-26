@@ -144,7 +144,7 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
     /// descriptions make of the positions underneath them. For an ALPHANUMERIC group that reading needs no
     /// character/byte reconciliation, because §13.18.63.3 SR14 requires every data item subordinate to an
     /// alphanumeric group item carrying a VALUE to be usage DISPLAY (screened by
-    /// <c>DataBinder.CheckGroupValueDeclarations</c>, COBOLNET1702): the character image IS the byte image for
+    /// <c>DataBinder.CheckGroupValueDeclarations</c>, COBOL1702): the character image IS the byte image for
     /// that whole population.</para>
     ///
     /// <para><b>⛔ TWO UNITS, because a BIT GROUP's area is not made of characters.</b> §13.18.29.4 GR1a makes a
@@ -194,7 +194,7 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
         // neither unit describes it — and no such entry is conforming source: §13.18.63.3 SR14 requires every
         // data item subordinate to an ALPHANUMERIC group item carrying a VALUE to be explicitly or implicitly
         // usage DISPLAY, and a USAGE BIT leaf (or a nested GROUP-USAGE BIT group) is not
-        // (DataBinder.CheckGroupValueDeclarations rejects it, COBOLNET1702); under a NATIONAL group
+        // (DataBinder.CheckGroupValueDeclarations rejects it, COBOL1702); under a NATIONAL group
         // §13.18.29.3 SR3 requires usage national of every subordinate elementary item. Returning null keeps
         // BOTH lanes total over that non-conforming residue rather than slicing a width the members do not
         // tile — never a substitute for the diagnostic, which is stated where the rule is.
@@ -227,7 +227,7 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
     /// <para>⚠ The usage arms below are NOT a Tier-C boundary and are no longer a known gap (they were read as
     /// one, and PB184 was registered against them). §13.18.63.3 SR14 makes a BINARY / PACKED / float / INDEX /
     /// BIT leaf under an ALPHANUMERIC group item carrying a VALUE non-conforming, and
-    /// <c>DataBinder.CheckGroupValueDeclarations</c> now rejects it (COBOLNET1702) — so for that population the
+    /// <c>DataBinder.CheckGroupValueDeclarations</c> now rejects it (COBOL1702) — so for that population the
     /// predicate is answering about source the binder has already screened, and it is kept as the defensive
     /// statement of what a positional character slice can mean. The <c>Class is null</c> arm is the live one: a
     /// shared-storage (REDEFINES-class) subtree is seeded through its BACKING by

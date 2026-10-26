@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> kb/Work PB761 - the UNDER-REJECTION that discharging the COBOLNET0899
+*> kb/Work PB761 - the UNDER-REJECTION that discharging the COBOL0899
 *> national-THROUGH stage would otherwise have opened. While that stage refused
 *> EVERY national THROUGH range, no such range ever reached the VALUE category
 *> funnel, so removing the stage alone would have let alphanumeric literals seed

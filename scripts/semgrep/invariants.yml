@@ -80,7 +80,7 @@ rules:
     message: >-
       COBOLNET_DESIGN §1.4 — an unbound or unsupported construct emits a TRACKED deferral diagnostic plus a runtime
       guard, never a silent TODO no-op. Either implement it, or emit the staged-not-implemented diagnostic
-      (COBOLNET0899) with a `throw new NotImplementedCobolFeature(...)`. Deferral is debt and only an owner decision.
+      (COBOL0899) with a `throw new NotImplementedCobolFeature(...)`. Deferral is debt and only an owner decision.
     # `///` is an XML doc comment — prose that may legitimately *describe* this invariant (NotImplemented.cs's own
     # summary says "never a silent // TODO no-op"). Skip any line whose first non-space is a doc comment.
     pattern-regex: '(?m)^(?!\s*///).*//[ \t]*(TODO|FIXME|HACK|XXX)\b'
@@ -90,11 +90,11 @@ rules:
     languages: [csharp]
     severity: WARNING
     message: >-
-      A raw "COBOLNET####" string literal bypasses DiagnosticCatalog. Every emitted code must be a catalog
+      A raw "COBOL####" string literal bypasses DiagnosticCatalog. Every emitted code must be a catalog
       descriptor (one code = one rule, ISO §, severity, suppress-key) so the drift test can prove the two channels
       agree, and so the next-free calculation (scripts/orchestrator/alloc.py, printed by session-probe) stays sound.
       Add the descriptor and reference it.
-    # Match the BYPASS shape only: a bare code literal passed to an emit API. A plain regex over "COBOLNET####"
+    # Match the BYPASS shape only: a bare code literal passed to an emit API. A plain regex over "COBOL####"
     # is far too broad (633 hits) — it swept up the generated ConstructRegistry, legitimate registry lookups, and
     # comments that merely DISCUSS a past code collision.
     paths:
@@ -109,7 +109,7 @@ rules:
           - pattern: $X.Report($CODE, ...)
       - metavariable-regex:
           metavariable: $CODE
-          regex: '^"COBOLNET\d{4}"$'
+          regex: '^"COBOL\d{4}"$'
 
   # ── Backend neutrality (G4 / DESIGN §1.3) ──────────────────────────────────────────────────────────────────
   - id: cobolnet-bound-node-carries-rendered-text
@@ -158,7 +158,7 @@ rules:
       kb/Work PB1058 / PB1579 - the TEXT of a COBOL integer literal is read through ONE reader,
       Validation.IntegerOperandRules.HostValue (an integerLiteral node) or TryHostValue (a token, a bound literal's
       Text, a constant's integer text), which saturates an over-range value and says so, and which the pre-bind
-      IntegerOperandPass pairs with the COBOLNET2427 implementation-limit screen (ISO 4.5). An int.Parse here took
+      IntegerOperandPass pairs with the COBOL2427 implementation-limit screen (ISO 4.5). An int.Parse here took
       the whole compiler down on PAGE LIMIT / COLUMN / LINAGE 77777777777; an int.TryParse answered "not an integer
       literal" for an 11-digit one and sent it down ANOTHER branch - OCCURS 77777777777 compiled clean, an integer
       constant-name was refused as not an integer, a CONTROL ref-mod literal as not a literal. Read the text through

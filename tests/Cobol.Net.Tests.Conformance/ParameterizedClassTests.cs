@@ -88,7 +88,7 @@ public sealed class ParameterizedClassTests
             IDENTIFICATION DIVISION.
             CLASS-ID. PCSR8 USING ELEM.
             END CLASS PCSR8.
-            """), "COBOLNET2239");
+            """), "COBOL2239");
 
     /// <summary>§11.3.3 SR9 / §11.6.3 SR7: "A given parameter-name shall not appear more than once in a USING
     /// clause."</summary>
@@ -212,7 +212,7 @@ public sealed class ParameterizedClassTests
     public void SkeletonNameOutsideRepository_NamesGr1()
     {
         var errors = ErrorsOf(Box + Holder + Driver("CLASS PCHOLD", "01 R USAGE OBJECT REFERENCE PCHOLD."));
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0813");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0813");
         EditionHarness.AssertHasDiagnostic(errors, "ISO §12.3.8.4 GR1");
     }
 
@@ -249,7 +249,7 @@ public sealed class ParameterizedClassTests
 
     /// <summary>A definition some expansion re-binds is asked through that expansion only, never also as itself
     /// (kb/Work PB2051, train 1053 review): a report that names the class or interface — a duplicate METHOD-ID
-    /// or a duplicate prototype (both COBOLNET0822, the declined Annex A.4.10 item 3), an OBJECT LINKAGE SECTION (COBOLNET1519) — would
+    /// or a duplicate prototype (both COBOL0822, the declined Annex A.4.10 item 3), an OBJECT LINKAGE SECTION (COBOL1519) — would
     /// otherwise sit twice at one position, once naming the expansion and once the definition that emits nothing.
     /// An UNEXPANDED definition is still asked as itself (the pb2051 negatives).</summary>
     [Fact]
@@ -294,11 +294,11 @@ public sealed class ParameterizedClassTests
             END CLASS PCECSK.
             """ + Driver("CLASS PCEB1 CLASS PCECSK INTERFACE PCEISK "
                 + "CLASS PCEX EXPANDS PCECSK USING PCEB1 INTERFACE PCEY EXPANDS PCEISK USING PCEB1"));
-        Assert.Single(errors, e => e.Contains("COBOLNET0822", StringComparison.Ordinal)
+        Assert.Single(errors, e => e.Contains("COBOL0822", StringComparison.Ordinal)
             && e.Contains("a second method named", StringComparison.Ordinal));
-        Assert.Single(errors, e => e.Contains("COBOLNET0822", StringComparison.Ordinal)
+        Assert.Single(errors, e => e.Contains("COBOL0822", StringComparison.Ordinal)
             && e.Contains("a second method prototype named", StringComparison.Ordinal));
-        Assert.Single(errors, e => e.Contains("COBOLNET1519", StringComparison.Ordinal));
+        Assert.Single(errors, e => e.Contains("COBOL1519", StringComparison.Ordinal));
         Assert.DoesNotContain(errors, e => e.Contains("'PCECSK'", StringComparison.Ordinal)
             || e.Contains("'PCEISK'", StringComparison.Ordinal));
     }
@@ -310,7 +310,7 @@ public sealed class ParameterizedClassTests
     {
         var errors = ErrorsOf(Box + Holder
             + Driver("CLASS PCBOX CLASS PCHOLD CLASS PCHB EXPANDS PCHOLD USING PCBOX"), 85);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
         EditionHarness.AssertNoDiagnostic(errors, "COBOL0307");
     }
 }

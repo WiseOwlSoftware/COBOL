@@ -53,7 +53,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
     {
         // The text, then a directive line: the driver asks whether the text so far is inside a statement.
         var (_, bag) = Run(" PROCEDURE DIVISION.\n" + text + "\n >>DEFINE VV AS 1\n");
-        var found = bag.Diagnostics.Where(x => x.Code == "COBOLNET2697").ToArray();
+        var found = bag.Diagnostics.Where(x => x.Code == "COBOL2697").ToArray();
         if (expected is null) Assert.Empty(found);
         else Assert.Contains(expected + " statement", Assert.Single(found).Message);
     }
@@ -63,10 +63,10 @@ public sealed class DirectiveWithinStatementTests : IDisposable
     public void AFinishedStatementEarlierInTheBlock_IsNotCarried()
     {
         var (_, bag) = Run(" PROCEDURE DIVISION.\n COPY cb1.\n DISPLAY A. COPY cb1\n >>DEFINE VV AS 1\n .\n >>DEFINE WW AS 2\n");
-        Assert.Equal([3], bag.Diagnostics.Where(x => x.Code == "COBOLNET2697").Select(x => x.Location.Line).ToArray());   // 0-based
+        Assert.Equal([3], bag.Diagnostics.Where(x => x.Code == "COBOL2697").Select(x => x.Location.Line).ToArray());   // 0-based
     }
 
-    [Theory] // §7.3.3 SR8 b): each is COBOLNET2697, at the directive's own line
+    [Theory] // §7.3.3 SR8 b): each is COBOL2697, at the directive's own line
     [InlineData(" PROCEDURE DIVISION.\n COPY\n >>DEFINE VV AS 1\n cb1.\n", "COPY")]
     [InlineData(" PROCEDURE DIVISION.\n COPY cb1\n >>DEFINE VV AS 1\n .\n", "COPY")]
     [InlineData(" PROCEDURE DIVISION.\n REPLACE ==AA== BY\n >>DEFINE VV AS 1\n ==BB==.\n DISPLAY \"AA\".\n", "REPLACE")]
@@ -75,7 +75,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
     public void DirectiveInsideAStatement_IsDiagnosedByName(string source, string keyword)
     {
         var (_, bag) = Run(source);
-        var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOLNET2697");
+        var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOL2697");
         Assert.Contains(keyword + " statement", d.Message);
         Assert.Equal(2, d.Location.Line);   // 0-based: the directive is the third physical line
     }
@@ -84,7 +84,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
     public void StatementSplitByTwoDirectives_IsReportedAtEach()
     {
         var (_, bag) = Run(" PROCEDURE DIVISION.\n COPY\n >>DEFINE VV AS 1\n >>DEFINE WW AS 2\n cb1.\n");
-        Assert.Equal([2, 3], bag.Diagnostics.Where(x => x.Code == "COBOLNET2697").Select(x => x.Location.Line).ToArray());
+        Assert.Equal([2, 3], bag.Diagnostics.Where(x => x.Code == "COBOL2697").Select(x => x.Location.Line).ToArray());
     }
 
     [Theory] // the converse: a directive BETWEEN statements, or after a finished one, is anywhere else a directive may be
@@ -93,7 +93,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
     [InlineData(" PROCEDURE DIVISION.\n >>DEFINE VV AS 1\n COPY cb1.\n >>IF VV = 1\n DISPLAY \"X\".\n >>END-IF\n")]
     [InlineData(" PROCEDURE DIVISION.\n DISPLAY\n >>DEFINE VV AS 1\n \"X\".\n")]   // §7.3.3 SR8 allows it inside a DISPLAY statement
     public void DirectiveOutsideAStatement_IsNotDiagnosed(string source)
-        => Assert.DoesNotContain(Run(source).Diags.Diagnostics, x => x.Code == "COBOLNET2697");
+        => Assert.DoesNotContain(Run(source).Diags.Diagnostics, x => x.Code == "COBOL2697");
 
     /// <summary>The compilation group as the front end reads it: raw fixed-form text through the §6.5 logical conversion
     /// (which DISCARDS a <c>&gt;&gt;SOURCE FORMAT</c> line, §6.5 1)), the conversion's reference-format map registered with
@@ -120,7 +120,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
     public void SourceFormatDirectiveInsideAStatement_IsDiagnosed(string statement, string keyword, string? pseudoTextRule)
     {
         var (_, bag) = RunConverted("       PROCEDURE DIVISION.\n" + statement);
-        var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOLNET2697");
+        var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOL2697");
         Assert.Contains(keyword + " statement", d.Message);
         Assert.Equal(2, d.Location.Line);   // 0-based: the directive is the third physical line
         if (pseudoTextRule is null) Assert.DoesNotContain("pseudo-text, which", d.Message);
@@ -131,7 +131,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
     public void StatementSplitByTwoSourceFormatDirectives_IsReportedAtEach()
     {
         var (_, bag) = RunConverted("       PROCEDURE DIVISION.\n       COPY\n       >>SOURCE FORMAT FIXED\n       >>SOURCE FORMAT FIXED\n       cb1.\n");
-        Assert.Equal([2, 3], bag.Diagnostics.Where(x => x.Code == "COBOLNET2697").Select(x => x.Location.Line).ToArray());
+        Assert.Equal([2, 3], bag.Diagnostics.Where(x => x.Code == "COBOL2697").Select(x => x.Location.Line).ToArray());
     }
 
     [Fact] // the discarded line of LIBRARY text is asked of the library text's own map
@@ -139,7 +139,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
     {
         var (_, bag) = RunConverted("       PROCEDURE DIVISION.\n       COPY cb2.\n",
             copybook: "       REPLACE ==A== BY\n       >>SOURCE FORMAT FIXED\n       ==B==.\n");
-        var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOLNET2697");
+        var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOL2697");
         Assert.Contains("REPLACE statement", d.Message);
     }
 
@@ -149,5 +149,5 @@ public sealed class DirectiveWithinStatementTests : IDisposable
     [InlineData("       DISPLAY\n       >>SOURCE FORMAT FIXED\n       \"X\".\n")]   // §7.3.3 SR8 allows it inside a DISPLAY statement
     public void SourceFormatDirectiveOutsideAStatement_IsNotDiagnosed(string statement)
         => Assert.DoesNotContain(RunConverted("       PROCEDURE DIVISION.\n" + statement).Diags.Diagnostics,
-            x => x.Code == "COBOLNET2697");
+            x => x.Code == "COBOL2697");
 }

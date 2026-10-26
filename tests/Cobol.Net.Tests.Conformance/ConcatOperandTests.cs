@@ -13,10 +13,10 @@ namespace CobolNet.Tests.Conformance;
 /// constant-name (§13.10.3 SR2) and a symbolic-character (a figurative constant, §12.3.7.4 GR11 a). They are admitted
 /// in EVERY literal position, because the concatenation rule is one grammar alternative of the literal rule.</item>
 /// <item>§8.8.3.3 GR1 is applied to each (accumulated, next) pair: the accumulated operand is a concatenation
-/// expression from the first pair on, so a class mix after two figuratives is §8.8.3.2 SR1's COBOLNET1540.</item>
-/// <item>A word that stands for no literal is COBOLNET2473; a symbolic-character operand in a §12.3.7.3 SR11
-/// SPECIAL-NAMES literal is COBOLNET2474; a numeric constant-name and a figurative with no character value in the
-/// pair's class are SR1's COBOLNET1540; an ALL figurative operand stays COBOLNET1541.</item>
+/// expression from the first pair on, so a class mix after two figuratives is §8.8.3.2 SR1's COBOL1540.</item>
+/// <item>A word that stands for no literal is COBOL2473; a symbolic-character operand in a §12.3.7.3 SR11
+/// SPECIAL-NAMES literal is COBOL2474; a numeric constant-name and a figurative with no character value in the
+/// pair's class are SR1's COBOL1540; an ALL figurative operand stays COBOL1541.</item>
 /// </list>
 /// The positive VALUES are pinned by the <c>2014/pb1406_concat_word_operands</c> golden; this class pins the
 /// verdicts, one diagnostic per case.
@@ -58,17 +58,17 @@ public sealed class ConcatOperandTests
 
     /// <summary>Each refusal arm, with the one code its rule owns.</summary>
     [Theory]
-    [InlineData("01", "two figuratives then national (GR1b, SR1)", "01 W PIC N(4).", "    MOVE SPACE & SPACE & N\"AB\" TO W.", "", "", "COBOLNET1540")]
-    [InlineData("02", "two figuratives then boolean (GR1b, SR1)", "01 W PIC 1(4).", "    MOVE ZERO & ZERO & B\"1\" TO W.", "", "", "COBOLNET1540")]
-    [InlineData("03", "literal class mix after a pair", "01 W PIC X(4).", "    MOVE \"A\" & SPACE & N\"B\" TO W.", "", "", "COBOLNET1540")]
-    [InlineData("04", "numeric constant-name", "01 K CONSTANT AS 5.\n01 W PIC X(4).", "    MOVE \"X\" & K TO W.", "", "", "COBOLNET1540")]
-    [InlineData("05", "symbolic-character in class boolean", "01 W PIC 1(4).", "    MOVE B\"1\" & SYM-A TO W.", Symbolic, "", "COBOLNET1540")]
-    [InlineData("06", "ALL symbolic-character", "01 W PIC X(4).", "    MOVE \"X\" & ALL SYM-A TO W.", Symbolic, "", "COBOLNET1541")]
-    [InlineData("07", "data-name", "01 Y PIC X(2).\n01 W PIC X(4).", "    MOVE \"X\" & Y TO W.", "", "", "COBOLNET2473")]
-    [InlineData("08", "undefined word", "01 W PIC X(4).", "    MOVE \"X\" & NOPE TO W.", "", "", "COBOLNET2473")]
-    [InlineData("09", "constant-name in PROGRAM-ID AS (no table yet)", "01 K CONSTANT AS \"Q\".", "    DISPLAY K.", "", " AS \"P\" & K", "COBOLNET2473")]
-    [InlineData("10", "SR11 CLASS literal-5", "01 W PIC X.", "    DISPLAY W.", SymbolicClause + "\n    CLASS CC IS \"B\" & SYM-A.", "", "COBOLNET2474")]
-    [InlineData("11", "SR11 ALPHABET literal-1", "01 W PIC X.", "    DISPLAY W.", SymbolicClause + "\n    ALPHABET AL IS \"B\" & SYM-A.", "", "COBOLNET2474")]
+    [InlineData("01", "two figuratives then national (GR1b, SR1)", "01 W PIC N(4).", "    MOVE SPACE & SPACE & N\"AB\" TO W.", "", "", "COBOL1540")]
+    [InlineData("02", "two figuratives then boolean (GR1b, SR1)", "01 W PIC 1(4).", "    MOVE ZERO & ZERO & B\"1\" TO W.", "", "", "COBOL1540")]
+    [InlineData("03", "literal class mix after a pair", "01 W PIC X(4).", "    MOVE \"A\" & SPACE & N\"B\" TO W.", "", "", "COBOL1540")]
+    [InlineData("04", "numeric constant-name", "01 K CONSTANT AS 5.\n01 W PIC X(4).", "    MOVE \"X\" & K TO W.", "", "", "COBOL1540")]
+    [InlineData("05", "symbolic-character in class boolean", "01 W PIC 1(4).", "    MOVE B\"1\" & SYM-A TO W.", Symbolic, "", "COBOL1540")]
+    [InlineData("06", "ALL symbolic-character", "01 W PIC X(4).", "    MOVE \"X\" & ALL SYM-A TO W.", Symbolic, "", "COBOL1541")]
+    [InlineData("07", "data-name", "01 Y PIC X(2).\n01 W PIC X(4).", "    MOVE \"X\" & Y TO W.", "", "", "COBOL2473")]
+    [InlineData("08", "undefined word", "01 W PIC X(4).", "    MOVE \"X\" & NOPE TO W.", "", "", "COBOL2473")]
+    [InlineData("09", "constant-name in PROGRAM-ID AS (no table yet)", "01 K CONSTANT AS \"Q\".", "    DISPLAY K.", "", " AS \"P\" & K", "COBOL2473")]
+    [InlineData("10", "SR11 CLASS literal-5", "01 W PIC X.", "    DISPLAY W.", SymbolicClause + "\n    CLASS CC IS \"B\" & SYM-A.", "", "COBOL2474")]
+    [InlineData("11", "SR11 ALPHABET literal-1", "01 W PIC X.", "    DISPLAY W.", SymbolicClause + "\n    ALPHABET AL IS \"B\" & SYM-A.", "", "COBOL2474")]
     public void RefusedOperand_DrawsItsRulesCode(string id, string what, string data, string proc, string special,
         string idAs, string code)
     {

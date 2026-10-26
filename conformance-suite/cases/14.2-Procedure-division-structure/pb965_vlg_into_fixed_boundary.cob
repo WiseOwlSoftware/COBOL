@@ -15,7 +15,7 @@
       *> determining compatibility, the dynamic-capacity table is considered to be the same length as the
       *> corresponding table". VG's VT corresponds to LF's 3-occurrence LT, so VG counts 2+3+2 = 7 against
       *> LF's 7. The compiler used to compare VG's collapsed width (5, one element for VT) and refuse this
-      *> source (COBOLNET1688), and the two RETURNING pairs too (COBOLNET1736) - although 14.8.3.2 applies
+      *> source (COBOL1688), and the two RETURNING pairs too (COBOL1736) - although 14.8.3.2 applies
       *> its length rule only when "neither of them is strongly typed or a variable length group".
       *>
       *> EXPECTED VALUES, DERIVED:

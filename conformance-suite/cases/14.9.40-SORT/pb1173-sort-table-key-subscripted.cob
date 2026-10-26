@@ -8,7 +8,7 @@
       *>   cite.py --check 14.9.40.3 "Key data names shall not be subscripted." -> OK §14.9.40.3 14) b)
       *> `SORT TE ASCENDING KEY TK(1)` used to sort exactly as `KEY TK` — the written subscript was dropped without a
       *> word (DataBinder.KeyReference kept the qualifiers only). It is refused by the one data-name-n shape screen
-      *> (COBOLNET2024), which says the key is written with a subscript.
+      *> (COBOL2024), which says the key is written with a subscript.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1173TS.
        DATA DIVISION.

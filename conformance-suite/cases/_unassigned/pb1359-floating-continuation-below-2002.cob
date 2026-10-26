@@ -7,7 +7,7 @@
       *> The floating literal continuation indicator (ISO 6.2.3.1) is a
       *> COBOL-2002 introduction: COBOL-85 fixed-form source continues
       *> a literal only with the column-7 hyphen. At --std 85 the
-      *> indicator is refused with the introduction band COBOLNET0900
+      *> indicator is refused with the introduction band COBOL0900
       *> (constructs.json floating-literal-continuation-2002; kb/Work
       *> PB1359). The 2002 twin is the positive golden
       *> 2002/pb1359_floating_continuation_fixed.

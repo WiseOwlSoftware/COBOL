@@ -12,7 +12,7 @@
       *> but T's has G's, and FROM (1 1) TO (2 1) differs there - 13.18.63.4 GR12's odometer would
       *> have to carry OUT of T's dimension, which has no ceiling.  kb/Work PB1716: the screen tested
       *> only the OUTERMOST unbounded dimension, so this program compiled clean after a 23-second fill
-      *> that ran to a 64,000,000-element cap.  COBOLNET1946 is reported at every edition; below 2014
+      *> that ran to a 64,000,000-element cap.  COBOL1946 is reported at every edition; below 2014
       *> the OCCURS DYNAMIC introduction gate is reported ALONGSIDE it, not instead of it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1716N1.

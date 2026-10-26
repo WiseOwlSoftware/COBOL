@@ -20,7 +20,7 @@ namespace CobolNet.Tests.Unit;
 /// POP, or PUSH are saved."</item>
 /// <item>§7.3.20.4 GR1 / GR3 — the named directive's, or every directive's, stored state is restored.</item>
 /// <item>§7.3.20.4 GR2 — a named POP with nothing stored is unsuccessful, and "the implementor shall provide a
-/// warning mechanism" (COBOLNET2297; Annex A.1 item 140, REQUIRED).</item>
+/// warning mechanism" (COBOL2297; Annex A.1 item 140, REQUIRED).</item>
 /// </list>
 /// The DRIFT half holds the accounting: every pushable directive is in <see cref="DirectiveStateRegistry"/>, every
 /// directive-state member of <see cref="DirectiveResults"/> is claimed there, and every CARRIED directive has a
@@ -211,11 +211,11 @@ public sealed class DirectiveStateStackTests
             """, bag, "t.cob");
         // line 1: nothing stored; line 4: PUSH ALL stored TURN, so it succeeds; line 5: already restored;
         // line 6: PUSH ALL stored LISTING (a directive with no state still has a save to remove); line 7: gone.
-        var warned = bag.Diagnostics.Where(x => x.Code == "COBOLNET2297").Select(x => x.Location.Line + 1).ToList();
+        var warned = bag.Diagnostics.Where(x => x.Code == "COBOL2297").Select(x => x.Location.Line + 1).ToList();
         Assert.Equal([1, 5, 7], warned);
-        Assert.All(bag.Diagnostics.Where(x => x.Code == "COBOLNET2297"),
+        Assert.All(bag.Diagnostics.Where(x => x.Code == "COBOL2297"),
             x => Assert.Equal(DiagnosticSeverity.Warning, x.Severity));
-        Assert.Contains("§7.3.20.4 GR2", bag.Diagnostics.First(x => x.Code == "COBOLNET2297").Message);
+        Assert.Contains("§7.3.20.4 GR2", bag.Diagnostics.First(x => x.Code == "COBOL2297").Message);
     }
 
     [Fact]

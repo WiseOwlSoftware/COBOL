@@ -25,7 +25,7 @@
       *> subscript on anything.
       *>
       *> ⚠ 2014 AND UP because that is where §15.48 itself begins; below it the NAME
-      *> is rejected first (COBOLNET1502, pinned elsewhere), which is a different
+      *> is rejected first (COBOL1502, pinned elsewhere), which is a different
       *> rule about a different clause.
       *> The accepting side of the PERMISSION is
       *> 2014/l1_repository_bare_intrinsic_names, which writes this same reference

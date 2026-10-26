@@ -13,7 +13,7 @@
       *>   -> OK §13.18.60.3 10)
       *> I1 inherits USAGE INDEX from G (implicit), so it is an index
       *> data item and MOVE 5 TO I1 references it outside the places
-      *> SR10 lists. COBOLNET0809 = MOVE operand of class index.
+      *> SR10 lists. COBOL0809 = MOVE operand of class index.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C04K.
        DATA DIVISION.

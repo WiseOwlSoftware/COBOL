@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> The COBOL-2002 edition gate on USE AFTER EXCEPTION OBJECT (Format 4,
-      *> ISO §14.9.49.2) - COBOLNET0876.  The positive twin
+      *> ISO §14.9.49.2) - COBOL0876.  The positive twin
       *> conformance-suite/cases/14.9.49-USE/pb366_use_exception_object_factory.cob proves
       *> the SAME source is accepted and selects its declaratives at 2002,
       *> 2014 and 2023; this fixture holds the gating diagnostic at 85.

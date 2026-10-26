@@ -36,7 +36,7 @@ using CobolNet.Runtime;
 /// parse-wide / bind-narrow doctrine (stated in <c>CobolExpressions.g4</c> in those words). Screening here is what
 /// lets the diagnostic quote the rule; an ANTLR rule tightened to the printed format could only report an
 /// unexpected token. A WHEN whose shape is not Format 2 at all is reported through the EXISTING
-/// <see cref="StatementValidation.RejectStatementOperand"/> (COBOLNET1757 — "an operand a statement's own syntax
+/// <see cref="StatementValidation.RejectStatementOperand"/> (COBOL1757 — "an operand a statement's own syntax
 /// rules or general format do not admit"), never a fourth code; a PARENTHESIZED condition is unwrapped silently,
 /// so the SR screens still apply to what is inside it.</para>
 /// <para>⛔ SR8 AND SR9 ARE RULES ABOUT THE SUBSCRIPT AS WRITTEN — "shall be subscripted by the first index-name

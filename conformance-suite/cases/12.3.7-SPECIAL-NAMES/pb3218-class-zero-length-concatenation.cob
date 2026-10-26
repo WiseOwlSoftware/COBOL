@@ -7,7 +7,7 @@
 *> kb/Work PB3218 - ISO 12.3.7.3 SR11: literal-5 and literal-6 shall not be a zero-length literal, and
 *> 8.8.3.3 GR2/GR3 make "" & "" a zero-length literal usable wherever a literal of its class may be.  The
 *> CLASS clause compiled it clean and ran on an empty class (IF X IS CZ took the false branch).
-*> Expected: COBOLNET1671 naming SR11.
+*> Expected: COBOL1671 naming SR11.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3218-CZ.
 ENVIRONMENT DIVISION.

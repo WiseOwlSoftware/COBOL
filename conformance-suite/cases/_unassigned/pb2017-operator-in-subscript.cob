@@ -6,7 +6,7 @@
       *>---
       * kb/Work PB2017 - ISO 8.7.1 applies to the operator of a
       * subscript's arithmetic expression (8.4.2.3.2) as to any
-      * other: T (I+1) compiled and ran.  COBOLNET2993.
+      * other: T (I+1) compiled and ran.  COBOL2993.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2017N4.
        DATA DIVISION.

@@ -51,13 +51,13 @@ spec/code citation, but confirm at step start).
    and **active** matrix rows `usage-program-pointer-2002` + `user-word-program-pointer-2002`. The plan's §7 table
    ("2014", row `program-pointer-2014`, test `2014/program_pointer`) and its `{is2014()}?` gate would be a
    **regression** (rejecting valid `--std 2002`). Step 8's real remaining PROGRAM-POINTER scope = only the **restricted
-   `TO program-prototype-name` form** (GR25, staged loud on COBOLNET0899) and the ISO **`ADDRESS OF PROGRAM`** spelling
+   `TO program-prototype-name` form** (GR25, staged loud on COBOL0899) and the ISO **`ADDRESS OF PROGRAM`** spelling
    (§8.4.3.13 — only the non-ISO `SET … TO ENTRY` spelling exists today).
 
 3. **FUNCTION-POINTER surface is DONE too; only its SEMANTICS remain (genuinely 2014). [VERIFIED]**
    Token, `functionPointerUsage` (superset-parsed at every edition), `Usage.FunctionPointer`, the 0900-below-2014
    introduction gate, the 0899 staged-loud rejection (`DiagnosticCatalog.UsageFunctionPointer`), the **pending** row
-   `usage-function-pointer-2014`, and the negative test all exist. The planned new code **COBOLNET1552 is unnecessary**
+   `usage-function-pointer-2014`, and the negative test all exist. The planned new code **COBOL1552 is unnecessary**
    (duplicates the live 0899 gate). Remaining Step-8 work = the runtime function-address carrier + SET **Format 8** +
    **mandatory `TO`** enforcement (ISO requires `FUNCTION-POINTER TO proto`, no brackets — grammar currently parses
    `TO` optional) + `ADDRESS OF FUNCTION` (§8.4.3.12). **Compile-time function prototypes already exist**
@@ -71,13 +71,13 @@ spec/code citation, but confirm at step start).
    band table), `1558`=EXTERNAL type, `1559`=RW PRESENT WHEN/VARYING. **Only 1550/1551/1552 are free** inside the band
    (and `DiagnosticCatalog.cs:93,176` already earmark exactly those three for P12). **P12 must keep 1550/1551/1552 and
    draw the rest from 1561-1599** (39 free; the whole 16xx century is free); honor the single-code **1560 PHASE-13
-   earmark**. Concretely: the plan's `COBOLNET1540/1541` (DYNAMIC LENGTH) and `COBOLNET1545` (external float) **must be
+   earmark**. Concretely: the plan's `COBOL1540/1541` (DYNAMIC LENGTH) and `COBOL1545` (external float) **must be
    renumbered** — those codes are live concat diagnostics with goldens pinning their text.
 
 5. **`>>PROPAGATE` is LIVE in 2023, not removed — the "≤2014" span is wrong (Step 9). [VERIFIED]**
    §7.3.21 is a current 2023 section, listed in the §7.1 directive table and load-bearing in §14.6.13 EC default
    handling; Annex E/F carry no removal. The correct action is an **INTRODUCTION gate** (reject below its introducing
-   edition, almost certainly **2002** — same EC-directive era as `>>TURN`, which is gated at 2002+ via COBOLNET0875;
+   edition, almost certainly **2002** — same EC-directive era as `>>TURN`, which is gated at 2002+ via COBOL0875;
    confirm against the 1989:2002 text, not in-repo) with **no top-end gate**. The code claim is also inverted: the
    directive is already recognized-and-silently-consumed via `KnownIgnoredDirectives` (a directive-name set), NOT a
    `>>DEFINE` variable. **Ownership conflict for the supervisor:** P9 close + `ISO2023_CONFORMANCE_PLAN.md` defer
@@ -194,8 +194,8 @@ SORT/MERGE keys §14.9.40.3 / §14.9.24.3.
   plan's **fallback**: explicit `FLOAT_BINARY_32/64/128`, `FLOAT_DECIMAL_16/34` tokens declared before `IDENTIFIER`
   (same length → first-rule-wins, the existing hyphenated-keyword pattern). Probe tokenization before choosing.
 - **[SCOUT-ONLY] The E-picture is already staged LOUD — nothing silent remains.** `PictureAnalyzer.Analyze` `case 'E'`
-  (PictureAnalyzer.cs:82) → `StagedNotImplemented` COBOLNET0899 at ≥2002 (:91) + `SkeletonGate = PicExternalFloat2002`
-  → COBOLNET0900 below 2002; pinned by `LoudGuardTests.cs:106` + `DataSkeletonEditionTests.cs:47`. Step 7 replaces the
+  (PictureAnalyzer.cs:82) → `StagedNotImplemented` COBOL0899 at ≥2002 (:91) + `SkeletonGate = PicExternalFloat2002`
+  → COBOL0900 below 2002; pinned by `LoudGuardTests.cs:106` + `DataSkeletonEditionTests.cs:47`. Step 7 replaces the
   0899 staging with a live floating-point numeric-edited implementation. The `constructs.json` row description that
   still says "silent-misbind" is stale.
 - **[SCOUT-ONLY] Row-id collision:** the plan's planned NEW row `usage-external-float-pic-2002` collides with the
@@ -253,7 +253,7 @@ SORT/MERGE keys §14.9.40.3 / §14.9.24.3.
   PicInfo.cs:102; reject `PictureAnalyzer.cs:324` → `DiagnosticCatalog.UsageFunctionPointer` (0899, catalog:138);
   gate via `VersionConformancePass.cs:279` → `Constructs.UsageFunctionPointer2014`; **pending** row
   `usage-function-pointer-2014` (constructs.json:407) + `user-word-function-pointer-2014` (active); negative test
-  `function-pointer-staged.cob`. **COBOLNET1552 is unnecessary** (0899 already covers it). Remaining: runtime
+  `function-pointer-staged.cob`. **COBOL1552 is unnecessary** (0899 already covers it). Remaining: runtime
   function-address carrier + run-unit function table + SET Format 8 + mandatory-TO + `ADDRESS OF FUNCTION`.
 - **[VERIFIED] Function prototypes already bindable at compile time:** `BinderDriver.BuildUserFunctionTable` (375-418,
   name-keyed `defs`/`protos`, GR11(a) merge), `BoundUnit.IsPrototype` (165), REPOSITORY `DataBinder.UserFunctionNames`
@@ -289,7 +289,7 @@ spec §14.9.20) — a separate gap, note it.
   NOT a "≤2014" span (which would reject valid 2023 programs). Mechanism: the proven `>>TURN` pattern —
   `Frontend.cs:89` `ConditionalCompilationProcessor.Process(text, leaveTurnDirectives:true)` then `Frontend.cs:103`
   `TurnDirectiveProcessor.Process(text, DialectLevel, diagnostics, sourcePath)` with the edition gate at
-  `TurnDirectiveProcessor.cs:48-53` (COBOLNET0875 below 2002). Remove `PROPAGATE` from `KnownIgnoredDirectives`
+  `TurnDirectiveProcessor.cs:48-53` (COBOL0875 below 2002). Remove `PROPAGATE` from `KnownIgnoredDirectives`
   (ConditionalCompilationProcessor.cs:36) or add a leave-flag, and add a dedicated gated stage.
 - **[VERIFIED] The plan's code claim is inverted.** `ConditionalCompilationProcessor.cs:36` lists `PROPAGATE` in
   `KnownIgnoredDirectives` (a **directive**-name set, doc-comment :29-30), consumed at :136 at every edition — NOT a
@@ -331,7 +331,7 @@ spec §14.9.20) — a separate gap, note it.
   which belongs with Step 8. No `TYPE TO`/restricted-pointer handling exists in `src/`. Fix the same mislabel in
   `ISO2023_CONFORMANCE_PLAN.md:644` + `COBOLNET_DATA_MODEL_DESIGN.md:434`.
 - **[VERIFIED] SAME AS is DONE** (P10 Step 16): `ExpandSameAs` DataBinder.cs:1210 on the ONE `CloneItem` (:1118);
-  `sameAsClause` CobolData.g4:317-319; SRs COBOLNET1555/1556/1557 (DiagnosticCatalog.cs:173-192); golden
+  `sameAsClause` CobolData.g4:317-319; SRs COBOL1555/1556/1557 (DiagnosticCatalog.cs:173-192); golden
   `conformance-suite/cases/13.18.49-SAME-AS/typedef_same_as.cob`; `SameAsTests.cs:14`; row `same-as-clause-2002` active. The plan's §7
   "same-as-2014 (pending)" row does not exist and is not needed. Step 10's commit template "catalogue SAME AS as
   pending" is stale — it's active.
@@ -367,7 +367,7 @@ The plan's `1540-1559` sub-allocation collides wholesale:
 
 **Correction:** keep **1550/1551/1552** (already earmarked P12 in `DiagnosticCatalog.cs:93,176`); take the rest from
 **1561-1599** (39 free; 16xx century fully free); honor the single-code **1560 PHASE-13 earmark** (`PHASE-13-*.md:160`).
-Renumber the plan's `COBOLNET1540/1541` (Step 5) and `COBOLNET1545` (Step 7) — those are live concat codes with goldens
+Renumber the plan's `COBOL1540/1541` (Step 5) and `COBOL1545` (Step 7) — those are live concat codes with goldens
 pinning their text.
 
 ### Registry mechanism (plan line 77 is drift) **[VERIFIED]**
@@ -380,7 +380,7 @@ A new catalog-routed code touches THREE things: the descriptor in `DiagnosticCat
 scripts/gen-diagnostics-doc.ps1` or `COBOLNET_WRITE_DIAGNOSTICS_DOC=1`). Enforced by
 `tests/Cobol.Net.Tests.Unit/DiagnosticRegistryDriftTests.cs` (unique Ids :26; no bare literal for split codes
 0899/1533 :37; doc-in-sync :55). `EditionCodes.cs` holds ONLY 0900-0903. Bare-string emit
-(`Edition.Error("COBOLNETnnnn", …)`) is still legal for non-split codes, but the P10/P11 pattern for new rule-FAMILY
+(`Edition.Error("COBOLnnnn", …)`) is still legal for non-split codes, but the P10/P11 pattern for new rule-FAMILY
 codes is catalog descriptors. Frontend parse layer has its own catalogue (`src/Cobol.Net.Frontend/Diagnostics/
 DiagnosticDescriptors.cs`). **Also fix `PHASE-13-*.md:597`** which carries the same stale "band head 1538" claim.
 

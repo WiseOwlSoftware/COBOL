@@ -35,9 +35,9 @@ tags: [cobolsharp, work, defect]
 > |---|---|
 > | `FUNCTION CURRENT-DATE (1:4)` | COBOL0001 parse error |
 > | `FUNCTION UPPER-CASE("abc") (1:2)` | COBOL0001 parse error |
-> | `CURRENT-DATE (1:8)` (keyword-omitted) | COBOLNET1543 — the group was read as an ARGUMENT LIST |
+> | `CURRENT-DATE (1:8)` (keyword-omitted) | COBOL1543 — the group was read as an ARGUMENT LIST |
 > | `UPPER-CASE("abc") (2:3)` (keyword-omitted) | ⛔ **COMPILED CLEAN, threw at RUN TIME** — the PB7/DA7 wrong-stage family |
-> | `FUNCTION LOCALE-DATE(CURRENT-DATE (1:8))` — **the standard's own §D.14.3.6 example** | COBOLNET1543 |
+> | `FUNCTION LOCALE-DATE(CURRENT-DATE (1:8))` — **the standard's own §D.14.3.6 example** | COBOL1543 |
 >
 > ⚠ **AND THE GRAMMAR TAIL ALONE WOULD HAVE MADE IT WORSE.** With `refModPart` parsing but the binder ignoring
 > it, `FUNCTION UPPER-CASE("abcdefgh") (2:3)` compiled and printed **ABC** instead of BCD — the ref-mod silently
@@ -45,11 +45,11 @@ tags: [cobolsharp, work, defect]
 >
 > **THE FIX, and where each rule lives:**
 > · grammar — `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)? refModPart*`;
-> · §8.4.3.3.3 SR2 (alphanumeric/boolean/national only) — `IntrinsicBinder.ResultRefMod`, **`COBOLNET1629`**;
+> · §8.4.3.3.3 SR2 (alphanumeric/boolean/national only) — `IntrinsicBinder.ResultRefMod`, **`COBOL1629`**;
 > · §8.4.3.2.3 SR6 (a `(` after an argument-PERMITTING function name is ALWAYS the argument list — the
->   standard's own RANDOM trap) — same site, reported as the argument-list error it is (`COBOLNET1543`), not as
+>   standard's own RANDOM trap) — same site, reported as the argument-list error it is (`COBOL1543`), not as
 >   a class error about a ref-mod that was never written;
-> · §8.4.3.3.3 SR3 (no ref-mod of a ref-mod) — **`COBOLNET1630`**, counted in the binder rather than expressed as
+> · §8.4.3.3.3 SR3 (no ref-mod of a ref-mod) — **`COBOL1630`**, counted in the binder rather than expressed as
 >   the grammar's arity, so the function and data-reference sides report the SAME rule;
 > · the two source carriers (parsed `refModPart` · SUBSCRIPT-mode capture) now reduce through ONE reader,
 >   `ReferenceResolver.ReadRefMod` → `RefModSpec`, and the slice reuses `CobolString.RefMod` — so the

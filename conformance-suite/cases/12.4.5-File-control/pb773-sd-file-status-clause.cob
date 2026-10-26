@@ -13,7 +13,7 @@
 *> belongs to three formats at once and so names none of them; SR13 is the rule that speaks for it.
 *> The same holds for ACCESS MODE, LOCK MODE, RESERVE and SHARING - the clause is checked on the
 *> ENTRY, so the SORT statement never has to name the file for the program to be refused (kb/Work PB773).
-*> COBOLNET1900: the subject is the file DESCRIPTION entry, not a key clause.
+*> COBOL1900: the subject is the file DESCRIPTION entry, not a key clause.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB773SDFS.
 ENVIRONMENT DIVISION.

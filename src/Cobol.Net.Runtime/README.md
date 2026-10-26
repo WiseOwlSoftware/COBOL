@@ -123,7 +123,7 @@ than two cache lookups (measured in `tests/Cobol.Net.Benchmarks`).
   another calls `LocaleManager.SetLocale("…")` before the program's entry point — the compiled `Main` needs no change.
 - **Compiler.** `cobol.exe` does not initialize the subsystem: compiling never collates. It reaches it only to
   VALIDATE names at compile time — an `ORDER TABLE` literal through `CollationEngine.TryGetOrderingTable`
-  (COBOLNET1662 when it cannot resolve; a locale tag with CLDR data now resolves) — and that loads on demand. The
+  (COBOL1662 when it cannot resolve; a locale tag with CLDR data now resolves) — and that loads on demand. The
   emitted `__COLLATE` carrier is `LocaleCollation.Current` for the bare `IS LOCALE` phrase.
 - **Hosts / tools.** `CollationEngine.*`, `LocaleManager.*`, `UnicodeNormalizer.*`, `GraphemeBreaker.*`,
   `CollationKeyCache.*` are the public surfaces; `CollationRuntime.Status` reports versions and state.

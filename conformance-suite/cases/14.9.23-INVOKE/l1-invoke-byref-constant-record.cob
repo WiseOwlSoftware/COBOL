@@ -21,7 +21,7 @@
       *> a class of the group). The universal arm is the separate
       *> fixture l1-invoke-byref-constant-record-universal.
       *> Editions: INVOKE and CONSTANT RECORD are both COBOL-2002.
-      *> Expected: COBOLNET1548 (docs/DIAGNOSTICS.md,
+      *> Expected: COBOL1548 (docs/DIAGNOSTICS.md,
       *> constant-as-receiver:
       *> "a data item of a CONSTANT RECORD shall not be specified as a
       *> receiving operand").

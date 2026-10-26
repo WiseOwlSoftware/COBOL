@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1087 - the sort file S1 in a file-area format clause.
       *>   cite.py --check 12.4.6.4.3 "A given file-name that represents a sort or merge file may be specified in one record-area format SAME clause" -> OK
-      *> COBOLNET2738 (same-clause-rule). The positive twin is conformance/2002/pb1087_same_clauses_legal.cob.
+      *> COBOL2738 (same-clause-rule). The positive twin is conformance/2002/pb1087_same_clauses_legal.cob.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1087N5.
        ENVIRONMENT DIVISION.

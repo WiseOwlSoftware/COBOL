@@ -8,7 +8,7 @@
       *>   character floating indicator shall be specified on the same
       *>   line" (cite.py --check: OK §6.2.3.2 3)). The continued line
       *>   ends with * and its continuation line begins with >, so the
-      *>   join spells *> that no line holds: COBOLNET2496 (kb/Work
+      *>   join spells *> that no line holds: COBOL2496 (kb/Work
       *>   PB1493). Before, the text after it vanished as a comment.
 000100 IDENTIFICATION DIVISION.
 000200 PROGRAM-ID. PB1493SP.

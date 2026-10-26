@@ -9,7 +9,7 @@
       *> is an integer function (ISO 15.2 5), so a boolean COMPUTE receiver
       *> may not take it as its whole boolean-expression-1 (ISO 8.8.2: a
       *> boolean expression begins with an identifier that references a
-      *> boolean data item, a boolean literal, ...); COBOLNET1511.
+      *> boolean data item, a boolean literal, ...); COBOL1511.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3565NF.
        DATA DIVISION.

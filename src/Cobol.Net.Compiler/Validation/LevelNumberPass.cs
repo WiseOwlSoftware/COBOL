@@ -147,7 +147,7 @@ internal static class LevelNumberRules
     /// <para>It is what decides whether the condition-name may be omitted, because format 4 is the only one of
     /// the two that brackets the name, and format 4's value-clause is format 5 (a required choice per the
     /// printed figure). The A.4.14 validation facility itself is DECLINED and refused by name at bind
-    /// (COBOLNET1708) — that is a separate verdict about a construct this compiler does not claim, and it must
+    /// (COBOL1708) — that is a separate verdict about a construct this compiler does not claim, and it must
     /// not be pre-empted by an entry-FORMAT message that would be simply wrong about it.</para></summary>
     internal static bool HasContentValidationPhrase(CobolParserCore.DataDescriptionEntryContext entry)
     {

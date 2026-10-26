@@ -14,8 +14,8 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class PrototypeUnitRulesTests
 {
-    private const string PrototypeBody = "COBOLNET2272";
-    private const string PrototypeUnitFormat = "COBOLNET2274";
+    private const string PrototypeBody = "COBOL2272";
+    private const string PrototypeUnitFormat = "COBOL2274";
 
     private static string Prototype(bool function, string name, string options = "", string environment = "",
         string data = "", string procedure = "", bool endMarker = true)

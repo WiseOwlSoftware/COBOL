@@ -27,7 +27,7 @@
       *>   OUTER B 5    the outer program's own names: ordinal 67 =
       *>                X"42" = "B" (12.3.7.4 GR11) and the constant 5.
       *> Before the fix the register was not asked: S1 moved the
-      *>   figurative ALL "B" (refused COBOLNET0902 at 2023) and K
+      *>   figurative ALL "B" (refused COBOL0902 at 2023) and K
       *>   showed the outer constant 5.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3154RO.

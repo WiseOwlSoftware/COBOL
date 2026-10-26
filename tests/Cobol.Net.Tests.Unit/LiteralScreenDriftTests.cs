@@ -10,7 +10,7 @@ namespace CobolNet.Tests.Unit;
 
 /// <summary>
 /// ⛔ A LITERAL'S OWN SYNTAX RULES ARE ASKED ONCE, OF EVERY LITERAL TOKEN, AT ONE SITE (kb/Work PB1393): the §8.3.3
-/// length rule (COBOLNET0814), hexadecimal grouping rule (COBOLNET1635) and content repertoire rule (COBOLNET2630,
+/// length rule (COBOL0814), hexadecimal grouping rule (COBOL1635) and content repertoire rule (COBOL2630,
 /// kb/Work PB1441) live in <c>LiteralScreen</c>, which walks every token of the unit's tree and of each compiler-directive
 /// fragment (kb/Work PB1616), and nowhere else; and
 /// the literal token set (<c>LiteralTokens.Types</c>, shared with the §8.3.5 <c>SeparatorRule</c>) is every token the
@@ -83,16 +83,16 @@ public sealed class LiteralScreenDriftTests
     [InlineData("DiagnosticCatalog.LiteralContentRepertoire", "LiteralScreen.cs")]
     [InlineData("DiagnosticCatalog.HexLiteralDigitGrouping", "LiteralScreen.cs")]
     [InlineData("DiagnosticCatalog.LiteralTooLong", "LiteralScreen.cs")]
-    [InlineData("\"COBOLNET2630\"", "")]
-    [InlineData("\"COBOLNET0814\"", "")]
-    [InlineData("\"COBOLNET1635\"", "")]
+    [InlineData("\"COBOL2630\"", "")]
+    [InlineData("\"COBOL0814\"", "")]
+    [InlineData("\"COBOL1635\"", "")]
     public void LiteralRule_HasOneReportingSite(string needle, string expectedSites)
     {
         char sep = Path.DirectorySeparatorChar;
         var sites = Directory.EnumerateFiles(TestRepo.Src(), "*.cs", SearchOption.AllDirectories)
             .Where(p => p.Contains($"{sep}Cobol.Net.") && !p.Contains($"{sep}obj{sep}") && !p.Contains($"{sep}bin{sep}")
                         // ConstructRegistry.g.cs is DATA, the rendering of constructs.json: the row literal-length-8191-2014
-                        // names COBOLNET0814 as its diagnostic, the way every row names its own (kb/Work PB1615) — it reports nothing.
+                        // names COBOL0814 as its diagnostic, the way every row names its own (kb/Work PB1615) — it reports nothing.
                         && Path.GetFileName(p) is not ("DiagnosticCatalog.cs" or "CobolLiteral.cs" or "ConstructRegistry.g.cs"))
             .Where(p => File.ReadAllText(p).Contains(needle, StringComparison.Ordinal))
             .Select(p => Path.GetFileName(p))

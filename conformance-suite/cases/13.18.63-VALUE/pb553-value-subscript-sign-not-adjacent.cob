@@ -10,7 +10,7 @@
       *> standard does not admit it: ISO §8.3.3.3.2 2) says "A literal shall not contain more than one sign
       *> character. If a sign is used, it shall appear as the leftmost character of the literal." A literal
       *> is ONE character-string, so a space between the sign and the digits makes two things out of one.
-      *> SignedIntegerLiteral.Screen narrows it BY NAME (COBOLNET2155) on the token stream's own indices —
+      *> SignedIntegerLiteral.Screen narrows it BY NAME (COBOL2155) on the token stream's own indices —
       *> ANTLR's GetText() strips the space, so `+ 1` and `+1` are indistinguishable to any caller that goes
       *> to the text. Rejected at every edition that HAS the Format 2 (table) VALUE clause, i.e. 2002 on;
       *> below 2002 the clause itself does not exist and the entry draws the introduction gate instead.

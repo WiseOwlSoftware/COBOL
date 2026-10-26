@@ -19,7 +19,7 @@
       *> non-data-item argument by conformance:cases/15.43.3-Argument-rules/l1-highest-algebraic-literal, and the function
       *> exclusion by conformance:cases/15.43.3-Argument-rules/l1-highest-algebraic-intrinsic-arg (intrinsic) and
       *> conformance:cases/15.43.3-Argument-rules/algebraic-udf-argument (user-defined).
-      *> Expected: COBOLNET1516, the algebraic-family argument diagnostic.
+      *> Expected: COBOL1516, the algebraic-family argument diagnostic.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1HACAT.
        DATA DIVISION.

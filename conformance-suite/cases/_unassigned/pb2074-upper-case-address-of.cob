@@ -8,7 +8,7 @@
       *> UPPER-CASE shall be of class alphabetic, alphanumeric, or
       *> national. ADDRESS OF X creates a unique data item of class
       *> pointer (8.4.3.11.4 GR1), which holds an address and no
-      *> characters, so it is refused (COBOLNET1627) at every edition and
+      *> characters, so it is refused (COBOL1627) at every edition and
       *> under --permissive too (IntrinsicPointerArgumentPermissiveTests):
       *> the migration mode's coercion decodes characters and a pointer
       *> has none. Had it compiled, IntrinsicRenderer's address-identifier

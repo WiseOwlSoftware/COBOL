@@ -17,7 +17,7 @@ namespace CobolNet.Tests.Unit;
 /// <para><c>IN</c> is also the qualification connective (<c>qualification : (OF | IN) cobolWord</c>), and the
 /// parser's greedy <c>dataReferenceSuffix*</c> loop takes the word as a qualifier before any enclosing rule's
 /// optional <c>(IN cobolWord)?</c> is tried. So over an identifier the enclosing phrase is NEVER parsed as such:
-/// §14.9.13.2's range-expression <c>WHEN WS-LO THRU WS-HI IN AL</c> was COBOLNET1639 on 'WS-HI IN AL' for as long
+/// §14.9.13.2's range-expression <c>WHEN WS-LO THRU WS-HI IN AL</c> was COBOL1639 on 'WS-HI IN AL' for as long
 /// as the phrase existed. ISO §8.3.2.2 makes the word's TYPE decide it ("a given user-defined word may be used as
 /// only one type of user-defined word"), so the binder that owns the rule must re-read the last qualifier by
 /// symbol — <c>EvaluateBinder.BindRangeHigh</c> + <c>ReferenceResolver.WithoutTrailingSuffix</c>.</para>

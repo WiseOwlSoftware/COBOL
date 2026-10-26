@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> ISO 1989:2023 13.16.3 SR8 - the PICTURE clause shall not be specified for an item whose usage is
-*> program-pointer (COBOLNET0881).
+*> program-pointer (COBOL0881).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGPP03.
 DATA DIVISION.

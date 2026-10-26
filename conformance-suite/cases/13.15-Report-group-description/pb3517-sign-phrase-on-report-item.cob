@@ -8,7 +8,7 @@
 *> BINARY-SHORT, BINARY-LONG and BINARY-DOUBLE; the DISPLAY line prints no
 *> phrase. 13.15.4 GR2: the USAGE clause of a report group description entry
 *> is "the same clauses as those that are described under the general format
-*> for a data description entry", so the entry draws COBOLNET4733 exactly as
+*> for a data description entry", so the entry draws COBOL4733 exactly as
 *> the same entry does in WORKING-STORAGE (pb3517-sign-phrase-on-non-binary-usage).
 *> Before branch review R1-1 of kb/Work PB3517 the report reader took the usage
 *> word alone: this program compiled clean and printed 005, the phrase ignored.

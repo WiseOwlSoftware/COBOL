@@ -34,7 +34,7 @@
       *> cite.py --check 14.9.20.4 "If the category of a receiving-
       *>   operand is data-pointer" -> OK 4)
       *> Before the fix INITIALIZE ... REPLACING ... BY NULL was refused
-      *> COBOLNET1982 (NULL read as literal-1).
+      *> COBOL1982 (NULL read as literal-1).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1427M.
        DATA DIVISION.

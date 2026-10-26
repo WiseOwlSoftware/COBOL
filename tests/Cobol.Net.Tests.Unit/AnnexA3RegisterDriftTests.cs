@@ -137,14 +137,14 @@ public sealed class AnnexA3RegisterDriftTests
             Assert.False(Placeholder.IsMatch(good), $"the placeholder pattern wrongly fired on '{good}'");
     }
 
-    /// <summary>Every <c>COBOLNET####</c> the register names is a code the compiler really emits. A row that
+    /// <summary>Every <c>COBOL####</c> the register names is a code the compiler really emits. A row that
     /// cites a diagnostic is telling the reader how to OBSERVE the disposition it records — the whole point of
     /// §4.2.6 ¶3's warning mechanism — so a stale code silently converts an observable claim into an
     /// unobservable one, which is the PB292 defect in a different disguise.
     /// <para>⛔ THE ORACLE IS "IS IT EMITTED", NOT "IS IT IN THE CATALOGUE", and the difference was MEASURED
-    /// here: rows 2, 17 and 19 cite COBOLNET0806 and COBOLNET1564, both still emitted as BARE STRING LITERALS from
+    /// here: rows 2, 17 and 19 cite COBOL0806 and COBOL1564, both still emitted as BARE STRING LITERALS from
     /// the binder rather than as <see cref="DiagnosticCatalog"/> descriptors (`OptionsBinder`,
-    /// `DataBinder`/`IntrinsicArgumentRules`; row 45's COBOLNET0822 became a descriptor in kb/Work PB745 and moved to
+    /// `DataBinder`/`IntrinsicArgumentRules`; row 45's COBOL0822 became a descriptor in kb/Work PB745 and moved to
     /// §5, the register of the annex it declines). A catalogue-only test would have gone red on rows that document
     /// the truth, so it would have been weakened or deleted; migrating those descriptors is a separate mechanism, and this register's obligation is
     /// only that its citations are live. <c>DiagnosticRegistryDriftTests</c> owns the catalogue-membership
@@ -157,7 +157,7 @@ public sealed class AnnexA3RegisterDriftTests
         {
             if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}",
                     StringComparison.Ordinal)) continue;
-            foreach (Match m in Regex.Matches(File.ReadAllText(file), @"COBOLNET[0-9]{4}"))
+            foreach (Match m in Regex.Matches(File.ReadAllText(file), @"COBOL[0-9]{4}"))
                 emitted.Add(m.Value);
         }
         Assert.True(emitted.Count >= 200,
@@ -165,7 +165,7 @@ public sealed class AnnexA3RegisterDriftTests
             + "broken and this check would pass on a register full of dangling codes");
 
         var cited = Register()
-            .SelectMany(r => Regex.Matches(r.Note + " " + r.Disposition, @"COBOLNET[0-9]{4}")
+            .SelectMany(r => Regex.Matches(r.Note + " " + r.Disposition, @"COBOL[0-9]{4}")
                 .Select(m => (Row: r, Code: m.Value)))
             .ToList();
         Assert.True(cited.Count >= 4,
@@ -188,10 +188,10 @@ public sealed class AnnexA3RegisterDriftTests
         {
             if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}",
                     StringComparison.Ordinal)) continue;
-            foreach (Match m in Regex.Matches(File.ReadAllText(file), @"COBOLNET[0-9]{4}"))
+            foreach (Match m in Regex.Matches(File.ReadAllText(file), @"COBOL[0-9]{4}"))
                 emitted.Add(m.Value);
         }
-        Assert.DoesNotContain("COBOLNET9999", emitted);
-        Assert.Contains("COBOLNET1778", emitted);
+        Assert.DoesNotContain("COBOL9999", emitted);
+        Assert.Contains("COBOL1778", emitted);
     }
 }

@@ -11,7 +11,7 @@
       *> token; the run's tail once held only one-token literals, so FOO -1 ended at the sign with a bare
       *> "COBOL0307: unexpected '-'. A period may be missing ..." where no period is missing, and FOO
       *> "A" & "B" ended at the ampersand the same way.  The run holds every literal but the reserved
-      *> words now, so the entry draws the one refusal, COBOLNET1941 naming FOO, at every edition:
+      *> words now, so the entry draws the one refusal, COBOL1941 naming FOO, at every edition:
       *> nothing below the error production is diagnosed, so the 2002 concatenation adds nothing at 85.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. N3373DR.

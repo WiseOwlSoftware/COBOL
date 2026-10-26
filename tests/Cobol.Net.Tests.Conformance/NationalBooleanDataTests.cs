@@ -6,10 +6,10 @@ namespace CobolNet.Tests.Conformance;
 
 /// <summary>
 /// NATIONAL (ISO §8.5.2.10, PIC N / USAGE NATIONAL) and BOOLEAN (§8.5.2.5, PIC 1 / USAGE BIT) declaration and
-/// clause facts — Phase 4a M2-DATA-3/4. The declaration band: COBOLNET0881 for the illegal USAGE×PICTURE shapes
-/// (§13.18.60.4 SR5 :22722 / SR12 :22744 / SR20 :22764 and the picture-less elementary forms), COBOLNET0898 for
+/// clause facts — Phase 4a M2-DATA-3/4. The declaration band: COBOL0881 for the illegal USAGE×PICTURE shapes
+/// (§13.18.60.4 SR5 :22722 / SR12 :22744 / SR20 :22764 and the picture-less elementary forms), COBOL0898 for
 /// VALUE category mismatches (§13.18.63 SR5 :23232 / SR10 :23254) and boolean THROUGH (SR29 :23327),
-/// COBOLNET0899 for the NAMED staged legs (national-edited pictures, national-form numerics/boolean, FD national
+/// COBOL0899 for the NAMED staged legs (national-edited pictures, national-form numerics/boolean, FD national
 /// records) and the loud byte-addressed guards (D-N2: REDEFINES / EXTERNAL cells refuse a 2-byte national leaf).
 /// The positive half locks JUSTIFIED (§13.18.32 SR3/GR1-2 :19264–19273), level-88 boolean conditions, national
 /// relation ordering (§8.8.4.2.9/10 :9692–9715), and the group character image (a national/boolean leaf is
@@ -29,7 +29,7 @@ public sealed class NationalBooleanDataTests
             STOP RUN.
         """;
 
-    // ── COBOLNET0881 — the illegal USAGE × PICTURE declaration shapes (ISO §13.18.60.4) ────────────────────
+    // ── COBOL0881 — the illegal USAGE × PICTURE declaration shapes (ISO §13.18.60.4) ────────────────────
 
     public static TheoryData<string, string, string> IllegalUsageShapes() => new()
     {
@@ -52,10 +52,10 @@ public sealed class NationalBooleanDataTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog(pid, wsEntry), 2002);
         Assert.False(ok, $"{shape} must be rejected (ISO §13.18.60.4)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0881");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0881");
     }
 
-    // ── COBOLNET0898 — VALUE clause category mismatches (ISO §13.18.63 SR5/SR10, both directions) ──────────
+    // ── COBOL0898 — VALUE clause category mismatches (ISO §13.18.63 SR5/SR10, both directions) ──────────
 
     public static TheoryData<string, string, string> IllegalValueShapes() => new()
     {
@@ -79,7 +79,7 @@ public sealed class NationalBooleanDataTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog(pid, wsEntry), 2002);
         Assert.False(ok, $"{shape} must be rejected (ISO §13.18.63)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0898");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0898");
     }
 
     // ── §13.18.60.3 SR12 — ALL FIVE PICTURE SHAPES COMPILE at every national-bearing edition ─────────
@@ -87,7 +87,7 @@ public sealed class NationalBooleanDataTests
     /// <summary>⛔ THIS SET USED TO PIN A REFUSAL, and that is why it is written this way now (kb/Work PB646;
     /// the same correction kb/Work PB492 made for national-edited and kb/Work PB327 made for the FD record
     /// below). SR12 admits FIVE picture shapes under usage national — "a boolean, national, national-edited,
-    /// numeric, or numeric-edited data item" — and a GREEN test asserting COBOLNET0899 on three of them read as
+    /// numeric, or numeric-edited data item" — and a GREEN test asserting COBOL0899 on three of them read as
     /// a DECISION that they were not supported ([[green_test_can_hold_a_gap_open]]). They are supported; the
     /// theory enumerates all five, so a shape cannot be dropped from the permission without this failing.</summary>
     public static TheoryData<string, string, string> Sr12Shapes() => new()
@@ -100,7 +100,7 @@ public sealed class NationalBooleanDataTests
     };
 
     /// <summary>Every SR12 shape BINDS at 2002 and at 2023, and each is REJECTED at 85 by the introduction gate
-    /// alone (COBOLNET0900 — the national-data-2002 / national-edited-2002 registry rows). The PAIR of
+    /// alone (COBOL0900 — the national-data-2002 / national-edited-2002 registry rows). The PAIR of
     /// assertions is what distinguishes "live and edition-gated" from "still refused, differently".</summary>
     [Theory]
     [MemberData(nameof(Sr12Shapes))]
@@ -114,7 +114,7 @@ public sealed class NationalBooleanDataTests
         }
         var (ok85, errors85, _) = EditionHarness.CompileFull(Prog(pid + "85", wsEntry), 85);
         Assert.False(ok85, $"{shape} is national data, a COBOL-2002 introduction, and shall be gated at --std 85");
-        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL0900");
     }
 
     /// <summary>An FD record with a national leaf COMPILES AND ROUND-TRIPS, and its disk image is the UTF-16BE
@@ -162,7 +162,7 @@ public sealed class NationalBooleanDataTests
                 STOP RUN.
             """;
         // 2023, not 2002: the observation uses FUNCTION CONVERT (§15.19, introduced by ISO/IEC 1989:2023 —
-        // COBOLNET1502). The SUBJECT is edition-independent (national data is 2002), and the 2002 arm of the
+        // COBOL1502). The SUBJECT is edition-independent (national data is 2002), and the 2002 arm of the
         // record layout is covered by `conformance:cases/14.9.27-OPEN/pb327_national_fd_record`.
         var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
         Assert.True(ok, detail);
@@ -222,10 +222,10 @@ public sealed class NationalBooleanDataTests
         Assert.Contains("GN=[WXYZ] GX=[abcd]", output, StringComparison.Ordinal);
     }
 
-    // ── COBOLNET0844 — boolean relation misuse (ISO §8.8.4.2) ───────────────────────────────────────────────
+    // ── COBOL0844 — boolean relation misuse (ISO §8.8.4.2) ───────────────────────────────────────────────
 
     /// <summary>Boolean operands compare with Format 2 EQUALITY only (§8.8.4.2 F2 :9566–9581); an ordering
-    /// operator on a boolean operand is COBOLNET0844 (§8.8.4.2.2 — F1 SR2/SR3 exclude class boolean
+    /// operator on a boolean operand is COBOL0844 (§8.8.4.2.2 — F1 SR2/SR3 exclude class boolean
     /// :9608–9610).</summary>
     [Fact]
     public void BooleanOrderingRelation_Rejects0844()
@@ -235,11 +235,11 @@ public sealed class NationalBooleanDataTests
             """);
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok, "an ordering relation on boolean operands must be rejected (ISO §8.8.4.2.2)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0844");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
     }
 
     /// <summary>A boolean operand may compare only with another boolean operand (F2 — both operands of class
-    /// boolean); a boolean-vs-alphanumeric relation mix is COBOLNET0844.</summary>
+    /// boolean); a boolean-vs-alphanumeric relation mix is COBOL0844.</summary>
     [Fact]
     public void BooleanVsAlphanumericRelation_Rejects0844()
     {
@@ -248,7 +248,7 @@ public sealed class NationalBooleanDataTests
             """);
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.False(ok, "a boolean-vs-alphanumeric relation must be rejected (ISO §8.8.4.2 F2)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0844");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0844");
     }
 
     // ── Positive facts ──────────────────────────────────────────────────────────────────────────────────────
@@ -391,7 +391,7 @@ public sealed class NationalBooleanDataTests
             MOVE FUNCTION CONVERT(H ANY ANUM HEX) TO HX.
             DISPLAY "H=" HX.
             """);
-        // 2023 for FUNCTION CONVERT (§15.19; COBOLNET1502) — see the sibling test above.
+        // 2023 for FUNCTION CONVERT (§15.19; COBOL1502) — see the sibling test above.
         var (ok, stdout, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
         Assert.True(ok, detail);
         // G is 3 national positions (6 bytes) + 3 DISPLAY boolean positions (3 bytes) + 2 alphanumeric = 11

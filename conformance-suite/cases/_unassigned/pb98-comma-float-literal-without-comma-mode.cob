@@ -6,7 +6,7 @@
 *>---
       *> ISO 1989:2023 12.3.7.4 GR14 a) / 8.3.3.3.2: the comma is the decimal separator of a numeric literal ONLY
       *> under DECIMAL-POINT IS COMMA - the floating-point form's significand included (8.3.3.3.3). Without the
-      *> clause `1,5E+3` (one token since kb/Work PB98) is COBOLNET0895, in a VALUE clause and in a statement.
+      *> clause `1,5E+3` (one token since kb/Work PB98) is COBOL0895, in a VALUE clause and in a statement.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB98NCF.
        DATA DIVISION.

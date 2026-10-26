@@ -10,7 +10,7 @@
       *> (13.18.44.4 GR1) and RB2 follows the same-level 3-bit RB1, sharing
       *> its byte (8.5.1.6.3 rule 1), so RB2 starts at bit 3. Before PB240
       *> the screen could not walk a REDEFINES view and ACCEPTED it unproven
-      *> (COBOLNET1683 now).
+      *> (COBOL1683 now).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB240NB.
        DATA DIVISION.

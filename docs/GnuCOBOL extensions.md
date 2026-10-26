@@ -35,7 +35,7 @@ false conformance claim rather than a mere gap. Mapping the differential's rejec
 | A.4 module | CONFORMANCE.md §5 disposition | Rejections | Reading |
 |---|---|---|---|
 | A.4.2 ACCEPT/DISPLAY screen handling | Not claimed | 57 | Bucket 2 — refusing is conforming |
-| A.4.11 Report Writer | **Partial** | 35 | Mixed — the staged legs are known (COBOLNET0899 band); needs itemizing against the design doc's §5 |
+| A.4.11 Report Writer | **Partial** | 35 | Mixed — the staged legs are known (COBOL0899 band); needs itemizing against the design doc's §5 |
 | A.4.7 File sharing / record locking | **Claimed** | 6 | ✅ **Investigated 2026-07-20 — no bug.** `LOCK MODE IS EXCLUSIVE` is refused, but ISO §12.4.5.9 admits exactly `MANUAL` / `AUTOMATIC`; **EXCLUSIVE is not an ISO lock mode** (bucket 1). The `SHARING WITH …` forms all compile. |
 | A.4.9 Locale support | **Claimed** (PB64 T1–T7; the claim completed by T6, 2026-08-28) | 4 | Implemented — the four GnuCOBOL LOCALE-function cases flipped to agreement at T4 |
 | A.4.13 REWRITE FILE / WRITE FILE | Not claimed | 1 | Bucket 2 |
@@ -78,7 +78,7 @@ regenerate with `--write-baseline` and attribute every changed row in that commi
 | 7 | `ACCEPT … OMITTED` | Accept with no receiving item (screen/keyboard wait) | Parse error at `OMITTED` | **BUCKET 2 (likely)** — the ACCEPT/DISPLAY **screen** module is ISO **A.4.2**, dispositioned *Not claimed* in CONFORMANCE.md §5. If `OMITTED` is part of that module this is a documented optional non-support, not an extension. Verify against §14.9.1. |
 | 7a | `LOCK MODE IS EXCLUSIVE` | A third lock mode beyond the ISO pair | Parse error at `EXCLUSIVE` | **CONFIRMED** vendor extension — ISO §12.4.5.9 admits exactly `MANUAL` / `AUTOMATIC`. Notable because A.4.7 is **Claimed**: verified 2026-07-20 that this is *not* a false claim. |
 | 8 | `DISPLAY … UPON ENVIRONMENT-NAME` / `ACCEPT … FROM ENVIRONMENT` | Read/write process environment variables through the SPECIAL-NAMES device mechanism | Parse error | **NEEDS VERIFICATION** — ISO has `ACCEPT … FROM` device forms; confirm whether the ENVIRONMENT device is ISO or GnuCOBOL |
-| 9 | Non-ISO intrinsic functions (`CONTENT-LENGTH`, `CURRENCY-SYMBOL`, `CONCAT`, …) | GnuCOBOL-supplied intrinsics outside ISO §15 | Rejected with **COBOLNET1501** (unknown intrinsic) — already a *named* diagnostic, not a bare parse error | **CONFIRMED** non-ISO for the ones outside §15; the §15 set must be cross-checked case by case |
+| 9 | Non-ISO intrinsic functions (`CONTENT-LENGTH`, `CURRENCY-SYMBOL`, `CONCAT`, …) | GnuCOBOL-supplied intrinsics outside ISO §15 | Rejected with **COBOL1501** (unknown intrinsic) — already a *named* diagnostic, not a bare parse error | **CONFIRMED** non-ISO for the ones outside §15; the §15 set must be cross-checked case by case |
 | 10 | `JSON GENERATE` / `JSON PARSE`, `XML GENERATE` / `XML PARSE` | Document-format serialization statements (IBM-originated) | Rejected with **COBOL0313**, which names them explicitly as vendor-dialect constructs | **CONFIRMED** non-ISO |
 | 11 | OSVS/IBM special registers: `CURRENT-DATE`, `TIME-OF-DAY`, `WHEN-COMPILED`, `LIN`, `COL` | Vendor special registers, gated in GnuCOBOL by `-std=ibm/osvs/mf` | Rejected | **CONFIRMED** vendor-dialect (GnuCOBOL itself gates them behind a non-ISO `-std`) |
 | 12 | `CALL … BY VALUE literal SIZE IS n` | Explicit operand size on a BY VALUE argument | Parse error | **NEEDS VERIFICATION** — check §14.9.4 for a SIZE phrase |

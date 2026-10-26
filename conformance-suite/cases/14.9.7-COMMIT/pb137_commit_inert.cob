@@ -12,7 +12,7 @@
       *> warning's dead spot - all parse as statements and execute as CONTINUE: the program writes no
       *> APPLY COMMIT clause, and 14.9.7.4 GR1 / 14.9.36.4 GR1 say "If this statement is executed when
       *> there is no active APPLY COMMIT clause, then it has the same effect as a CONTINUE statement with
-      *> no additional phrases" (kb/Work PB3338 provides the facility; the 4.2.6 warning COBOLNET1579 the
+      *> no additional phrases" (kb/Work PB3338 provides the facility; the 4.2.6 warning COBOL1579 the
       *> statements drew while it was declined is retired). Derived: OK then DONE, nothing else.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. CM1.

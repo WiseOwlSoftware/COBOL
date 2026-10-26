@@ -14,7 +14,7 @@ namespace CobolNet.Tests.Conformance;
 ///
 /// <para>The corpus goldens (85/pb2507_function_result_decimal_comma and the two 2023 ones) pin every DISPLAY lane.
 /// What only a C# host can reach is the one text channel a STRICT program cannot: a noninteger function value moved to
-/// a character receiver is refused by §14.9.25.3 SR10 (COBOLNET0819), and <c>--permissive</c> accepts it "as the
+/// a character receiver is refused by §14.9.25.3 SR10 (COBOL0819), and <c>--permissive</c> accepts it "as the
 /// function's literal text" — with TWO receivers the value is first FROZEN in the §15.4 temporary
 /// (<c>SendingValueTemp.Materialize</c>), whose image must be spelled as the un-frozen call is. And the control: a
 /// program WITHOUT the clause keeps the period on every lane, so the fix is the clause's, not a new default.</para>

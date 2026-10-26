@@ -37,7 +37,7 @@ public sealed class AssignConstantNameTests
 
     /// <summary>§12.4.5.2 SR4 — "Literal-1 shall be an alphanumeric literal and shall be neither a figurative constant
     /// nor a zero-length literal" — holds the constant, which is "as if literal-1 … were written" (§13.10.4 GR1), to the
-    /// same rule: a numeric, national or boolean constant, and a zero-length one, each refused with COBOLNET2645 naming
+    /// same rule: a numeric, national or boolean constant, and a zero-length one, each refused with COBOL2645 naming
     /// the constant and what it stands for, at every edition that has constant entries (2002 introduced them).</summary>
     [Theory]
     [InlineData("PB2500N1", "5", "stands for a numeric literal")]
@@ -51,7 +51,7 @@ public sealed class AssignConstantNameTests
         {
             var (ok, errors, _) = EditionHarness.CompileFull(Source(pid + edition, value), edition);
             Assert.False(ok, $"[{pid}] must be REJECTED at --std {edition}");
-            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2645");
+            EditionHarness.AssertHasDiagnostic(errors, "COBOL2645");
             EditionHarness.AssertHasDiagnostic(errors, "the constant-name 'K'");
             EditionHarness.AssertHasDiagnostic(errors, why);
             EditionHarness.AssertHasDiagnostic(errors, "ISO §12.4.5.2 SR4");
@@ -60,14 +60,14 @@ public sealed class AssignConstantNameTests
 
     /// <summary>A constant entry whose own operand was refused (§13.10.3 SR6: a figurative constant is no literal-1 of a
     /// constant entry) reports at the ENTRY; the ASSIGN operand that names it recovers silently — one fault, one report,
-    /// never a second COBOLNET2645 that blames the ASSIGN clause for the entry's error.</summary>
+    /// never a second COBOL2645 that blames the ASSIGN clause for the entry's error.</summary>
     [Fact]
     public void RefusedConstantEntry_ReportsOnce_AtTheEntry()
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Source("PB2500R1", "SPACE"), 2023);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1547");
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET2645");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1547");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL2645");
     }
 
     /// <summary>A word that names NO constant stays device-name-1 — its own spelling is the physical file's name

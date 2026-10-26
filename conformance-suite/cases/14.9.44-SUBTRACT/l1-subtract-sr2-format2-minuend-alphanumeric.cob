@@ -33,7 +33,7 @@
       *> condition and the screen it drives has no edition axis.
       *> NOTE ON THE DIAGNOSTIC.  As with the sending arm, the compiler
       *> reports this through the §8.8.1.1 operand-class screen
-      *> (COBOLNET0844) rather than by SR2's number; the REJECTION is
+      *> (COBOL0844) rather than by SR2's number; the REJECTION is
       *> what SR2 obliges.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1SBSR2C.

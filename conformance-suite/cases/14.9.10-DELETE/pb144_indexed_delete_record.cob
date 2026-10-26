@@ -43,7 +43,7 @@
       *>   IX49    - GR1: the open mode shall be I-O; INPUT gives 49.
       *>
       *> NOTE: no INVALID KEY phrase appears on a sequential-access DELETE
-      *> anywhere below -- 14.9.10.3 SR2 forbids it and COBOLNET1720 now
+      *> anywhere below -- 14.9.10.3 SR2 forbids it and COBOL1720 now
       *> enforces that under strict.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.

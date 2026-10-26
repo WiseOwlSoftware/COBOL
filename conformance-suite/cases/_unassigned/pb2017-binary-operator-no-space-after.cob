@@ -8,7 +8,7 @@
       * space before it but none after it.  (A sign is part of a
       * numeric literal only as the literal's leftmost character,
       * 8.3.3.3.2 2), and an operand cannot follow an operand, so
-      * the minus is the subtraction operator.)  COBOLNET2993.
+      * the minus is the subtraction operator.)  COBOL2993.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2017N2.
        DATA DIVISION.

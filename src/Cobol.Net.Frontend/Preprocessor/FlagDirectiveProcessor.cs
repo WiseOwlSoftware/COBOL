@@ -53,9 +53,9 @@ public static class FlagDirectiveProcessor
 
             // The directive-WORD edition gate already fired at the ONE directive-recognition point
             // (CompilerDirectiveCatalog, from the flag-14-directive-2023 and flag-02-directive-2014 rows'
-            // directiveWords — kb/Work PB725): >>FLAG-14 is a 2023 introduction (COBOLNET0900 below 2023);
-            // >>FLAG-02 is a 2014 introduction that is OBSOLETE at 2023 (COBOLNET0900 below 2014, then the
-            // COBOLNET0903 obsolete WARNING at 2023 — §7.3.14.1 NOTE / §4.2.13: obsolete elements are still
+            // directiveWords — kb/Work PB725): >>FLAG-14 is a 2023 introduction (COBOL0900 below 2023);
+            // >>FLAG-02 is a 2014 introduction that is OBSOLETE at 2023 (COBOL0900 below 2014, then the
+            // COBOL0903 obsolete WARNING at 2023 — §7.3.14.1 NOTE / §4.2.13: obsolete elements are still
             // SUPPORTED and merely flagged, never rejected/removed). This stage collects the options.
 
             if (FlagDirectiveLine.TryParse(directive, operand, out var options, out bool on, out string? error))
@@ -71,7 +71,7 @@ public static class FlagDirectiveProcessor
 
     /// <summary>The SYNTAX-ONLY check of one <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> operand — what ISO §7.2.1
     /// asks of a directive line in an OMITTED conditional-compilation branch ("syntactically correct in the initial source
-    /// text and library text"; kb/Work PB2003): the same parse and the same COBOLNET1622 the compiled directive gets,
+    /// text and library text"; kb/Work PB2003): the same parse and the same COBOL1622 the compiled directive gets,
     /// and nothing applied. <paramref name="word"/> is the directive word (<c>FLAG-02</c> / <c>FLAG-14</c>).</summary>
     internal static void CheckOperand(string word, string operand, DiagnosticBag diagnostics, SourceLocation loc)
     {
@@ -80,7 +80,7 @@ public static class FlagDirectiveProcessor
             ReportMalformed(directive, error, diagnostics, loc);
     }
 
-    /// <summary>The ONE COBOLNET1622 sentence — the compiled directive and its omitted twin say the same thing.</summary>
+    /// <summary>The ONE COBOL1622 sentence — the compiled directive and its omitted twin say the same thing.</summary>
     private static void ReportMalformed(FlagDirective directive, string? error, DiagnosticBag diagnostics, SourceLocation loc) =>
         diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FlagDirectiveMalformed.Code,
             $">>{FlagDirectiveLine.DirectiveWord(directive)} is malformed: {error} "

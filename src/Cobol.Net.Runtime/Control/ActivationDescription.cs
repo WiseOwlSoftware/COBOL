@@ -298,7 +298,7 @@ public sealed record ActivationDescription
     public bool ByValue { get; init; }
 
     /// <summary>How the description reads in a refusal — an EC-OO-UNIVERSAL or CALL-lane message at run time and the
-    /// typed INVOKE's compile-time COBOLNET0828, which quote one relation's text (kb/Work PB2077).</summary>
+    /// typed INVOKE's compile-time COBOL0828, which quote one relation's text (kb/Work PB2077).</summary>
     public override string ToString() => Shape switch
     {
         ActivationShape.Omitted => "OMITTED",

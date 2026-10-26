@@ -69,22 +69,22 @@ P2.
     // procedure-name rule of their own) · §14.9.39.3 SR5/SR6 · §14.9.25.3 SR12 with §14.9.2.3 / §14.9.44.3 SR6.
     [Theory]
     // PERFORM procedure-name-1 and procedure-name-2 — two rules, one shape, BOTH arms (the two-arm defect).
-    [InlineData("PB390D01", "    PERFORM NO-SUCH-PARA.", "COBOLNET1639", "§14.9.28.3 SR12")]
-    [InlineData("PB390D02", "    PERFORM P1 THRU NO-SUCH-PARA.", "COBOLNET1639", "§14.9.28.3 SR13")]
+    [InlineData("PB390D01", "    PERFORM NO-SUCH-PARA.", "COBOL1639", "§14.9.28.3 SR12")]
+    [InlineData("PB390D02", "    PERFORM P1 THRU NO-SUCH-PARA.", "COBOL1639", "§14.9.28.3 SR13")]
     // The discriminating case SR12 exists for: the word IS declared, as something that is not a procedure.
-    [InlineData("PB390D03", "    PERFORM WS-N.", "COBOLNET1639", "declared as a DATA ITEM")]
+    [InlineData("PB390D03", "    PERFORM WS-N.", "COBOL1639", "declared as a DATA ITEM")]
     // GO TO, both formats — the sibling carrier of the same resolution.
-    [InlineData("PB390D04", "    GO TO NO-SUCH-PARA.", "COBOLNET1639", "GO TO 'NO-SUCH-PARA'")]
-    [InlineData("PB390D05", "    GO TO P1 NO-SUCH-PARA DEPENDING ON WS-N.", "COBOLNET1639", "GO TO DEPENDING")]
+    [InlineData("PB390D04", "    GO TO NO-SUCH-PARA.", "COBOL1639", "GO TO 'NO-SUCH-PARA'")]
+    [InlineData("PB390D05", "    GO TO P1 NO-SUCH-PARA DEPENDING ON WS-N.", "COBOL1639", "GO TO DEPENDING")]
     // SET Format 4 (§14.9.39.3 SR6) — the switch-status condition-name, which IS a condition-name.
-    [InlineData("PB390D06", "    SET SW-ON TO TRUE.", "COBOLNET1757", "§14.9.39.3 SR6")]
-    [InlineData("PB390D07", "    SET NOT-DECLARED TO TRUE.", "COBOLNET1639", "is not a condition-name")]
+    [InlineData("PB390D06", "    SET SW-ON TO TRUE.", "COBOL1757", "§14.9.39.3 SR6")]
+    [InlineData("PB390D07", "    SET NOT-DECLARED TO TRUE.", "COBOL1639", "is not a condition-name")]
     // SET Format 3 (§14.9.39.3 SR5) — a name that is not an external-switch mnemonic.
-    [InlineData("PB390D08", "    SET WS-N TO ON.", "COBOLNET1757", "§14.9.39.3 SR5")]
+    [InlineData("PB390D08", "    SET WS-N TO ON.", "COBOL1757", "§14.9.39.3 SR5")]
     // §14.9.25.3 SR12's SECOND half, in all three spellings of the CORRESPONDING operand rule.
-    [InlineData("PB390D09", "    MOVE CORRESPONDING G1(1:3) TO G2.", "COBOLNET1757", "§14.9.25.3 SR12")]
-    [InlineData("PB390D10", "    ADD CORRESPONDING G1(1:3) TO G2.", "COBOLNET1757", "§14.9.2.3 SR6")]
-    [InlineData("PB390D11", "    SUBTRACT CORRESPONDING G1(1:3) FROM G2.", "COBOLNET1757", "§14.9.44.3 SR6")]
+    [InlineData("PB390D09", "    MOVE CORRESPONDING G1(1:3) TO G2.", "COBOL1757", "§14.9.25.3 SR12")]
+    [InlineData("PB390D10", "    ADD CORRESPONDING G1(1:3) TO G2.", "COBOL1757", "§14.9.2.3 SR6")]
+    [InlineData("PB390D11", "    SUBTRACT CORRESPONDING G1(1:3) FROM G2.", "COBOL1757", "§14.9.44.3 SR6")]
     public void DecidedRule_IsACompileTimeError_NamingTheRule_AndNeverTheDeferralWarning(
         string id, string body, string code, string fragment)
     {
@@ -92,8 +92,8 @@ P2.
         Assert.False(ok, "a violated syntax rule shall not compile: " + string.Join("\n", errors));
         Assert.Contains(errors, e => e.Contains(code, StringComparison.Ordinal)
                                      && e.Contains(fragment, StringComparison.Ordinal));
-        // ⛔ THE SEPARATION ITSELF: the source is wrong, so this is never the COBOLNET1756 deferral announce.
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        // ⛔ THE SEPARATION ITSELF: the source is wrong, so this is never the COBOL1756 deferral announce.
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     /// <summary>The RESUME AT arm (ISO §14.9.33) — its procedure-name goes through the same ONE resolution, and
@@ -117,9 +117,9 @@ MAIN.
     STOP RUN.
 """);
         Assert.False(ok);
-        Assert.Contains(errors, e => e.Contains("COBOLNET1639", StringComparison.Ordinal)
+        Assert.Contains(errors, e => e.Contains("COBOL1639", StringComparison.Ordinal)
                                      && e.Contains("RESUME AT 'NO-SUCH-PARA'", StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     /// <summary>ALTER is ANSI X3.23-1985 only (deleted by ISO/IEC 1989:2002), so its two procedure-name
@@ -143,9 +143,9 @@ P2.
     DISPLAY "P2".
 """, edition: 85);
         Assert.False(ok);
-        Assert.Contains(errors, e => e.Contains("COBOLNET1639", StringComparison.Ordinal)
+        Assert.Contains(errors, e => e.Contains("COBOL1639", StringComparison.Ordinal)
                                      && e.Contains(fragment, StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     /// <summary>SEARCH's identifier-1 rules (ISO §14.9.37.3 SR1–SR3, ALL FORMATS; kb/Work PB443) — the same
@@ -166,9 +166,9 @@ P2.
     {
         var (ok, errors, warnings) = Compile(SearchProgram(id, body));
         Assert.False(ok, "a violated syntax rule shall not compile: " + string.Join("\n", errors));
-        Assert.Contains(errors, e => e.Contains("COBOLNET2075", StringComparison.Ordinal)
+        Assert.Contains(errors, e => e.Contains("COBOL2075", StringComparison.Ordinal)
                                      && e.Contains("§14.9.37.3 " + rule, StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     /// <summary>The SEARCH falsification half — every spelling §14.9.37.3 ADMITS, including the two a blanket
@@ -190,9 +190,9 @@ P2.
     {
         var (ok, errors, warnings) = Compile(SearchProgram(id, body));
         Assert.True(ok, string.Join("\n", errors));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET2075", StringComparison.Ordinal)
-                                           || e.Contains("COBOLNET1639", StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL2075", StringComparison.Ordinal)
+                                           || e.Contains("COBOL1639", StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     /// <summary>A program with the table shapes §14.9.37.3 SR1–SR3 are about: an indexed table inside a group,
@@ -242,9 +242,9 @@ MAIN.
     {
         var (ok, errors, warnings) = Compile(Program(id, body));
         Assert.True(ok, string.Join("\n", errors));
-        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1639", StringComparison.Ordinal)
-                                           || e.Contains("COBOLNET1757", StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL1639", StringComparison.Ordinal)
+                                           || e.Contains("COBOL1757", StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     private static (bool Ok, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings) Compile(

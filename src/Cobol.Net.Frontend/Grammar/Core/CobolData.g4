@@ -54,7 +54,7 @@ sortMergeDescriptionClauses
 sortMergeDescriptionClause
     : recordClause
     | dataRecordsClause
-    | unrecognizedDataClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
+    | unrecognizedDataClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
     ;
 
 fileDescriptionClauses
@@ -70,7 +70,7 @@ fileDescriptionClauses
 // follow).
 // ⚠ The first five alternatives are the FILE CONTROL ENTRY's clauses (§12.4.5.1), which no FD format contains.
 // They are SUPERSET-PARSED here so the binder can refuse them BY NAME ("a clause of the file control entry —
-// write it in the SELECT entry", COBOLNET2604) instead of a token error; and which of the three formats an entry
+// write it in the SELECT entry", COBOL2604) instead of a token error; and which of the three formats an entry
 // is — and so which of the other clauses it admits — is decided in ONE place, Binding/FileDescriptionFormats.cs
 // (kb/Work PB1238), whose table FileDescriptionFormatDriftTests holds total over this rule's alternatives.
 fileDescriptionClause
@@ -89,7 +89,7 @@ fileDescriptionClause
     | fileGlobalExternalClause
     | linageClause
     | reportClause
-    | unrecognizedDataClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOLNET1970)
+    | unrecognizedDataClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
     ;
 
 // FORMAT clause (§13.18.24.2, printed general format p403 — RENDERED, not read off the OCR).
@@ -98,9 +98,9 @@ fileDescriptionClause
 // implementation does NOT claim (docs/CONFORMANCE.md §5). A.4.1: "An implementation shall accept the syntax
 // and provide the functionality for an optional element only when support for that language element is
 // claimed by the implementor" — so the clause is parsed in order to be REFUSED BY NAME at bind
-// (DataBinder → COBOLNET1705), never bound and never silently ignored. Compiling it inert would change
+// (DataBinder → COBOL1705), never bound and never silently ignored. Compiling it inert would change
 // which bytes reach the medium (§13.18.24.4 GR1/GR2) — a wrong answer, not a missing facility, which is why
-// this is an Error and not the additive-facility warning band (COBOLNET1560/1578/1579/1580).
+// this is an Error and not the additive-facility warning band (COBOL1560/1578/1579/1580).
 //
 // SHAPE: `FORMAT { | BIT | CHARACTER | NUMERIC | } DATA`. The three alternatives are enclosed in CHOICE
 // INDICATORS (the `|` bars just inside the braces), so §5.2.6.4 makes them ONE OR MORE, each at most once,
@@ -138,11 +138,11 @@ blockContainsClause
 // RECORD clause (§13.18.43) — fixed-length, variable-length, or VARYING forms.
 // ⛔ THE BYTES/CHARACTERS BRACE GROUP IS A PAIR, NOT ONE WORD: §13.18.43.3 SR2 — "The words BYTES and CHARACTERS
 // are synonymous and may be used interchangeably" — and all three printed general formats carry the same brace
-// group. Only CHARACTERS was admitted until kb/Work PB721, so `RECORD CONTAINS 20 BYTES` drew COBOLNET1970
+// group. Only CHARACTERS was admitted until kb/Work PB721, so `RECORD CONTAINS 20 BYTES` drew COBOL1970
 // ("not a clause of the file description entry") at COBOL-2023, where it is legal source: refused.
 // ⚠ THE SPELLING IS A 2023 ADDITION and the EDITION gate is NOT here: Annex E.3.3 item 13 adds BYTES to
 // the §8.10 context-sensitive list at 2023, so `VersionConformancePass.VisitRecordClause` refuses it below
-// that edition (COBOLNET0900, `record-clause-bytes-2023`). The word is admitted by the grammar at every
+// that edition (COBOL0900, `record-clause-bytes-2023`). The word is admitted by the grammar at every
 // edition on purpose — a left-edge predicate cannot steer a mid-alternative token, and a parse-arm gate
 // names the edition instead of throwing a token error. BYTES is also in cobolWord (§8.10: a
 // context-sensitive word outside its format "is treated as a user-defined word"), so `01 BYTES PIC X.`
@@ -241,7 +241,7 @@ linkageSection
 
 // ⛔ THE ENTRY-NAME IS REFUSED A WORD §8.9 RESERVES WHEN THE ENTRY PARSES WITHOUT IT (kb/Work PB845, PB2501). A
 // reservation-gated word reaches dataName through reservedGatedWord, so `05 NATIONAL PIC N(3).` parsed BOTH ways and
-// ANTLR took the name (the optional block's first alternative) — a COBOLNET0901 on a conforming unnamed USAGE NATIONAL
+// ANTLR took the name (the optional block's first alternative) — a COBOL0901 on a conforming unnamed USAGE NATIONAL
 // item (§13.16.3 SR4: no entry-name clause is the filler format; §13.18.60.2: `[ USAGE IS ]` is optional).
 // entryNameHere() refuses the name reading only where the targeted edition reserves the word AND the clause reading
 // parses, so `05 DEFAULT PIC X.` still names DEFAULT and draws the funnel's 0901, and a word an edition leaves free
@@ -263,7 +263,7 @@ dataName
     | PROCEDURE    // NC205A: PROCEDURE used as a data name (77 PROCEDURE-DIVISION PIC X)
     // kb/Work PB137/PB655: a reservation-gated word is never a cobolWord (so operand lists cannot absorb the
     // bare facility verbs), but a DECLARATION naming one must still PARSE — where §8.9 reserves it so the
-    // funnel's targeted COBOLNET0901 can NAME the word instead of a generic parse error (the user-word-commit
+    // funnel's targeted COBOL0901 can NAME the word instead of a generic parse error (the user-word-commit
     // pin), and where §8.9 frees it because this match is what the token-level gate retypes the word for. ⛔ THIS WAS A HAND-WRITTEN LIST OF TWO WORDS (COMMIT/ROLLBACK) and it silently
     // rotted: CRT and CURSOR became reservation-gated with kb/Work PB301 and were never added here, so
     // `01 CRT PIC X.` at --std 2002 answered COBOL0001 "no viable alternative" instead of naming §8.9.
@@ -286,7 +286,7 @@ dataDescriptionBody
 // {AS {arithmetic-expression-1 | BYTE-LENGTH OF data-name-1 | literal-1 | LENGTH OF data-name-2}
 //  | FROM compilation-variable-name-1}.
 // SUPERSET PARSE at every edition — the COBOL-2002 introduction gate is the VersionConformancePass parse arm
-// (VisitConstantEntryBody → constant-entry-2002 → COBOLNET0900 below 2002). LL-disjoint from the clause list
+// (VisitConstantEntryBody → constant-entry-2002 → COBOL0900 below 2002). LL-disjoint from the clause list
 // (no dataDescriptionClause begins with CONSTANT except constantRecordClause, whose SECOND token RECORD
 // separates it) and from renamesClause (RENAMES). The binder (DataBinder.Constants.cs) folds the entry into
 // the compile-time constant table — a constant occupies NO storage (§13.10.4 GR1/GR3: references substitute
@@ -357,7 +357,7 @@ dataDescriptionClauses
 // The replacement is `unrecognizedDataClause` (CobolExpressions.g4), the grammar's error production in the form a
 // level-number may follow (kb/Work PB3390: its run never holds the unsigned integer that may open the next entry):
 // it still RECOGNIZES the word run — which keeps recovery local, one diagnostic per entry instead of a cascade —
-// but `Validation/ClosedFormatPass.cs` REFUSES it BY NAME (COBOLNET1941 for this format) at every edition and
+// but `Validation/ClosedFormatPass.cs` REFUSES it BY NAME (COBOL1941 for this format) at every edition and
 // every strictness. There is no dialect that admits it: a vendor extension is admitted only under the dialect
 // that owns it, never by a catch-all, and this compiler declares no vendor dialect. It is LAST because ANTLR
 // takes the first matching alternative.
@@ -386,15 +386,15 @@ dataDescriptionClause
     | anyLengthClause
     | dynamicLengthClause
     | groupUsageClause   // COBOL-2002 §13.18.29 (kb/Work PB79); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitGroupUsageClause
-    | selectWhenClause   // ISO §13.18.51 — Annex A.4.8 item 2), DECLINED: recognize-only, refused by name at bind (COBOLNET1705)
-    | {is2002()}? validationClause   // ISO §13.16.2 validation-clauses — Annex A.4.14, DECLINED: recognize-only, refused by name at bind (COBOLNET1708); the rule and its rationale are in Grammar/Core/CobolDeclined.g4
-    | unrecognizedDataClause   // ⛔ LAST — the error production above; refused BY NAME by ClosedFormatPass (COBOLNET1941)
+    | selectWhenClause   // ISO §13.18.51 — Annex A.4.8 item 2), DECLINED: recognize-only, refused by name at bind (COBOL1705)
+    | {is2002()}? validationClause   // ISO §13.16.2 validation-clauses — Annex A.4.14, DECLINED: recognize-only, refused by name at bind (COBOL1708); the rule and its rationale are in Grammar/Core/CobolDeclined.g4
+    | unrecognizedDataClause   // ⛔ LAST — the error production above; refused BY NAME by ClosedFormatPass (COBOL1941)
     ;
 
 // ALIGNED clause (ISO §13.18.1.2 — the general format is the single required word `ALIGNED`, underlined).
 // §13.18.1.3 SR1 confines it to "a bit group item or an elementary bit data item" and §13.18.1.4 GR1 makes it
 // align the subject "on the first bit of the first available byte boundary"; both live at the ONE bit-layout
-// site (Binding/Model/BitLayout.cs) and the ONE entry-shape site (DataBinder.BindEntry, COBOLNET1942). The
+// site (Binding/Model/BitLayout.cs) and the ONE entry-shape site (DataBinder.BindEntry, COBOL1942). The
 // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitAlignedClause.
 alignedClause
     : ALIGNED
@@ -404,7 +404,7 @@ alignedClause
 //
 // ⛔ RECOGNIZE-ONLY, the twin of formatClause above: item 2) of Annex A.4.8, an OPTIONAL element this
 // implementation does not claim (docs/CONFORMANCE.md §5), parsed so it can be REFUSED BY NAME at bind
-// (COBOLNET1705). An inert SELECT WHEN would select the WRONG record description entry
+// (COBOL1705). An inert SELECT WHEN would select the WRONG record description entry
 // (§13.18.51.4 GR1/GR2) with a status-45 failure path — a wrong answer, so Error, not the warning band.
 //
 // SHAPE: `SELECT WHEN { condition-name-1 | OTHER }`. Plain braces, NO choice indicators: exactly one of the
@@ -443,7 +443,7 @@ propertyClause
 // landing made that rule the ONE surface and VersionConformancePass ParseArm.VisitExternalizedNamePhrase the
 // ONE COBOL-2002 introduction gate (constructs.json externalized-name-as-2002), so a new AS site is gated by
 // writing `externalizedNamePhrase?` and NOTHING else. §13.18.22.3 SR3 narrows the literal at bind
-// (ExternalizedName.Screen → COBOLNET2156) and §13.18.22.4 GR5 makes it the record's externalized name.
+// (ExternalizedName.Screen → COBOL2156) and §13.18.22.4 GR5 makes it the record's externalized name.
 externalClause
     : IS? EXTERNAL externalizedNamePhrase?
     ;
@@ -456,7 +456,7 @@ basedClause
 
 // CONSTANT RECORD clause (COBOL-2002 §13.18.15) — identifies a STRUCTURED CONSTANT: the record's content is
 // its normal initial content (§13.18.15.4 GR1 — as though INITIALIZE … WITH FILLER ALL TO VALUE THEN TO
-// DEFAULT), and neither the record nor any subordinate may be a receiving operand (SR2 → COBOLNET1548 at
+// DEFAULT), and neither the record nor any subordinate may be a receiving operand (SR2 → COBOL1548 at
 // bind). Structural SRs (§13.18.15 SR1 WS/LS-only; §13.16.3 SR3/SR6/SR13) bind-check in DataBinder.
 constantRecordClause
     : CONSTANT RECORD   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitConstantRecordClause
@@ -472,8 +472,8 @@ anyLengthClause
 // DYNAMIC LENGTH clause (ISO §8.5.1.10 / §13.18.19, COBOL-2014) — a variable-length, minimum-length-zero PIC X or
 // PIC N string. Format: DYNAMIC LENGTH [dynamic-length-structure-name] [LIMIT IS? integer]. UNGATED superset parse
 // (the anyLengthClause pattern); the §13.18.19.3 SR1 (PICTURE exactly one N or X), §13.16.3 SR18 (permitted
-// co-clauses), and the structure-name non-support bind-check in DataBinder (COBOLNET1561/1562/1563), and the
-// COBOL-2014 introduction gate is VersionConformancePass ParseArm.VisitDynamicLengthClause → COBOLNET0900 below
+// co-clauses), and the structure-name non-support bind-check in DataBinder (COBOL1561/1562/1563), and the
+// COBOL-2014 introduction gate is VersionConformancePass ParseArm.VisitDynamicLengthClause → COBOL0900 below
 // 2014. LL-disjoint from occursClause: occursClause always leads with OCCURS (its Format-4 dynamic-capacity
 // alternative has DYNAMIC only as the SECOND token); here DYNAMIC is the leading token, and DYNAMIC appears
 // nowhere else at the start of a dataDescriptionClause — so tokens DYNAMIC/LENGTH/LIMIT need no lexer change.
@@ -520,7 +520,7 @@ typedefClause
 // SAME AS clause (ISO §13.18.49, COBOL-2002): the subject takes the SAME data description as data-name-1's
 // entry, subordinates included (GR1/GR2 — coded in place, minus data-name-1's level/name/CONSTANT RECORD/
 // EXTERNAL/GLOBAL/REDEFINES/SELECT WHEN; subordinate levels renumber). §13.16.3 SR12 composes it only with
-// CONSTANT RECORD / entry-name / EXTERNAL / GLOBAL / level-number / OCCURS — enforced at bind (COBOLNET1555).
+// CONSTANT RECORD / entry-name / EXTERNAL / GLOBAL / level-number / OCCURS — enforced at bind (COBOL1555).
 // The target may be QUALIFIED (OF/IN — data-name-1 is an ordinary data-name reference) but never subscripted
 // (§13.18.49 SR1 — data-name-1 shall not be subject to any OCCURS clause). LL-disjoint from every other
 // dataDescriptionClause (unique leading token SAME; the I-O-CONTROL sameArea rule is a different context).
@@ -563,7 +563,7 @@ pictureLocalePhrase
 // in character-string-1, and SR9 — the rule that types the phrase's literals — enumerates only literal-1,
 // literal-2 and literal-3. This rule used to demand a quoted literal there, so EVERY conforming EDITING phrase
 // was a parse error and the SR8/SR10/SR11 checks were reachable only through a spelling the standard does not
-// define. Parse-wide/bind-narrow: the quoted spelling still PARSES and draws the named COBOLNET2149 at bind
+// define. Parse-wide/bind-narrow: the quoted spelling still PARSES and draws the named COBOL2149 at bind
 // (never a bare ANTLR syntax error), and the insertion literals stay broad so SR8/SR9 violations surface as
 // named bind diagnostics.
 //
@@ -594,7 +594,7 @@ editingLiteral
 // noSignPhrase and the two floatFormatPhrase kinds — are parsed after EVERY usageKeyword, and the binder narrows
 // each to the usages whose line of the §13.18.60.2 figure prints it: ONE table, UsagePhraseRules
 // (Binding/Model/UsagePhrase.cs), read by ONE method, DataBinder.ScreenUsagePhrases, with a named refusal per
-// phrase (COBOLNET4733 SIGNED/UNSIGNED, COBOLNET1565 WITH NO SIGN, COBOLNET1716 endianness, COBOLNET1717
+// phrase (COBOL4733 SIGNED/UNSIGNED, COBOL1565 WITH NO SIGN, COBOL1716 endianness, COBOL1717
 // encoding). The phrases stay OUT of usageKeyword because DataBinder.UsageKeyword derives the canonical keyword
 // from that node's text (a phrase inside it would glue: "BINARY-CHARSIGNED"), and the narrowing is the binder's so
 // the misuse draws a diagnostic naming the usage and the phrase rather than a raw parse error.
@@ -609,8 +609,8 @@ usageClause
     ;
 
 // USAGE PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.2 / GR11 — a COBOL-2023 addition): no trailing sign nibble.
-// Parsed after any usageKeyword; the binder refuses it on any usage but PACKED-DECIMAL (COBOLNET1565, the
-// UsagePhraseRules table) and refuses an 'S' picture with NO SIGN (§13.18.40.3 SR31, COBOLNET1566). WITH is an
+// Parsed after any usageKeyword; the binder refuses it on any usage but PACKED-DECIMAL (COBOL1565, the
+// UsagePhraseRules table) and refuses an 'S' picture with NO SIGN (§13.18.40.3 SR31, COBOL1566). WITH is an
 // optional word (not underlined on the printed page).
 noSignPhrase
     : WITH? NO SIGN
@@ -622,13 +622,13 @@ noSignPhrase
 // that group its semantics — "When enclosed by brackets, zero or more of the alternatives contained within the
 // choice indicators shall be specified, but any single alternative may be specified only once" and "The
 // alternatives may be specified in any order" — which IS the `*` written here plus a binder duplicate screen
-// (COBOLNET1718). The `*` is on the CLAUSE, not inside usageKeyword, and that placement is load-bearing:
+// (COBOL1718). The `*` is on the CLAUSE, not inside usageKeyword, and that placement is load-bearing:
 // DataBinder.UsageKeyword derives the canonical keyword from the usageKeyword node, so a phrase INSIDE it would
 // glue ("FLOAT-BINARY-32HIGH-ORDER-LEFT") and fall to PictureAnalyzer.ParseUsage's internal-error arm — the exact
 // failure that method's own doc comment records for bare `BINARY-CHAR SIGNED` (the W2 loud-guard sweep).
 // Parsed after ANY usageKeyword, like binarySign and noSignPhrase: the binder refuses an endianness-phrase on a
-// usage that is not a standard float (COBOLNET1716, §13.18.60.4 GR19c/d scope it) and an encoding-phrase on
-// anything but FLOAT-DECIMAL-16/-34 (COBOLNET1717, GR20), through the UsagePhraseRules table. The 2014 introduction gate is
+// usage that is not a standard float (COBOL1716, §13.18.60.4 GR19c/d scope it) and an encoding-phrase on
+// anything but FLOAT-DECIMAL-16/-34 (COBOL1717, GR20), through the UsagePhraseRules table. The 2014 introduction gate is
 // VersionConformancePass ParseArm.VisitUsageClause (Constructs.UsageFloatFormatPhrase2014) — NOT a parse-time
 // {is2014()}? predicate: a parse-time edition read is sanctioned only where it decides §8.9 word status, and no
 // word here has another reading (COBOLNET_DESIGN §1.1; kb/Work PB2291, pinned by EditionReadDriftTests).
@@ -680,7 +680,7 @@ usageKeyword
     | INDEX
     | MESSAGE_TAG           // §13.18.60.4 GR9 (COBOL-2023, Annex E.2 item 25) — the MCS message-tag usage. DECLINED
                             // (docs/CONFORMANCE.md §4 item 1 / Annex A.3 item 4): recognize-only, refused BY NAME
-                            // at bind (COBOLNET1943). ⛔ It is in the CLAUSE grammar, not just the reserved-word
+                            // at bind (COBOL1943). ⛔ It is in the CLAUSE grammar, not just the reserved-word
                             // table, because §13.18.60.2 prints `[ USAGE IS ]` as OPTIONAL for every usage: without
                             // an arm here the bare `01 M MESSAGE-TAG.` fell to the §13.16.2 catch-all and bound with
                             // NO usage at all (kb/Work PB487).
@@ -688,7 +688,7 @@ usageKeyword
     | BIT
     | dataPointerUsage       // USAGE POINTER [[TO] type-name] (§13.18.60.2; the operand makes a RESTRICTED data-pointer, GR23; TO is optional, kb/Work PB848)
     | programPointerUsage    // USAGE PROGRAM-POINTER [[TO] prototype] (§13.18.60 GR24/GR25, 2002) — introduction-gated post-bind (VersionConformancePass UsageConstructId)
-    | functionPointerUsage   // USAGE FUNCTION-POINTER [TO] prototype (§13.18.60 GR26, 2014) — the operand is MANDATORY, screened in DataBinder (COBOLNET1958)
+    | functionPointerUsage   // USAGE FUNCTION-POINTER [TO] prototype (§13.18.60 GR26, 2014) — the operand is MANDATORY, screened in DataBinder (COBOL1958)
     | objectReferenceUsage   // USAGE OBJECT REFERENCE [class] (OO/2002) — introduction-gated at BIND time (PicInfo.ParseUsage → ConstructRegistry.Check), like NATIONAL/BIT/POINTER above
     ;
 
@@ -699,7 +699,7 @@ usageKeyword
 // optional word "that may be written to add clarity", so `USAGE POINTER T`, `USAGE FUNCTION-POINTER P` and
 // `USAGE PROGRAM-POINTER P` are conforming spellings. UNDERLINING decides required-vs-optional, never bracketing:
 // the operand's BRACKETS (POINTER's and PROGRAM-POINTER's, not FUNCTION-POINTER's) are a different question,
-// answered in DataBinder (FUNCTION-POINTER's mandatory operand, COBOLNET1958) — so every rule below is the same
+// answered in DataBinder (FUNCTION-POINTER's mandatory operand, COBOL1958) — so every rule below is the same
 // superset `(TO? operand)?` and the binder reads the OPERAND's presence, never the TO token's.
 //
 // ⛔ THE TO-LESS OPERAND MAY NOT SWALLOW THE NEXT CLAUSE. The slot is a bare `cobolWord` at the END of a clause,
@@ -738,7 +738,7 @@ functionPointerUsage
 // SIGNED / UNSIGNED — ISO §13.18.60.2 prints `{ SIGNED | UNSIGNED }` after BINARY-CHAR, BINARY-SHORT, BINARY-LONG
 // and BINARY-DOUBLE only, with SIGNED not underlined (an optional word, so omitting the phrase means SIGNED) and
 // UNSIGNED underlined; §13.18.60.4 GR12 tabulates both ranges. Parsed after any usageKeyword (usageClause above) and
-// refused by the binder on every other usage (COBOLNET4733, the UsagePhraseRules table).
+// refused by the binder on every other usage (COBOL4733, the UsagePhraseRules table).
 binarySign
     : SIGNED
     | UNSIGNED
@@ -748,7 +748,7 @@ binarySign
 // §13.10.3 SR2 — an integer CONSTANT-NAME ("if constant-name-1 is an integer, it may also be used to specify …
 // repetition"; the OCCURS format's integer positions are literal positions, so a constant substitutes there per
 // §13.10.4 GR1/GR3). The constant is resolved at BIND time from the compile-time constant table
-// (DataBinder.Constants.cs) — a cobolWord bound in a program with no such constant rejects loud (COBOLNET1547).
+// (DataBinder.Constants.cs) — a cobolWord bound in a program with no such constant rejects loud (COBOL1547).
 occursClause
     : OCCURS integerOperand (TO integerOperand)? timesKeyword?
       (DEPENDING ON? dataReference)?
@@ -758,10 +758,10 @@ occursClause
     // Format 4 — a DYNAMIC-capacity table (ISO §13.18.38 Format 4, COBOL-2014; D9). LL-disjoint from Format 1/2
     // on the token after OCCURS (DYNAMIC is not an integerLiteral). occursDynamicPhrase* is a SUPERSET parse: the
     // printed once-each, CAPACITY-FROM-TO-INITIALIZED order (§13.18.38.2 with §5.2.1) is enforced at bind time
-    // (DataBinder.Odo.cs#NarrowToDataDivisionFormats, COBOLNET2789; kb/Work PB1265), as is SR28 (COBOLNET1522).
+    // (DataBinder.Odo.cs#NarrowToDataDivisionFormats, COBOL2789; kb/Work PB1265), as is SR28 (COBOL1522).
     // The Format 1/2 alternative above is likewise the union of Formats 1, 2 and 3; the same binder site narrows a
     // data description entry to Formats 1 and 2, and DataBinder.Reports.cs#ReportOccursOf a report group entry to
-    // Format 3. Edition-gated so a pre-2014 probe upgrades to COBOLNET0900.
+    // Format 3. Edition-gated so a pre-2014 probe upgrades to COBOL0900.
     | OCCURS DYNAMIC occursDynamicPhrase* occursKeyClause* (INDEXED BY? indexNameList)?   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitOccursClause (rearch 14g.3)
     ;
 
@@ -783,7 +783,7 @@ indexNameList
 // that set is generated from the §8.9 RESERVED word table. It is therefore read as TEXT, the LOCALE / ATTRIBUTE
 // precedent (`pictureLocaleAhead`). Not edition-gated: the phrase is legal only in a report group description
 // entry, which the binder enforces (DataBinder.Odo.cs#NarrowToDataDivisionFormats refuses it in a data description
-// entry, COBOLNET2789; §13.18.38.2 — the TO/DEPENDING/STEP shape is Format 3), and no other clause
+// entry, COBOL2789; §13.18.38.2 — the TO/DEPENDING/STEP shape is Format 3), and no other clause
 // can begin with a user word here, so there is no earlier-edition reading to protect.
 occursStepPhrase
     : {occursStepAhead()}? cobolWord integerOperand
@@ -863,7 +863,7 @@ valueClause
       (IN cobolWord)?
       valueClauseFalsePhrase?
       // Format 5 (content-validation-entry, ISO §13.18.63.2) — the DECLINED A.4.14 tail
-      // `[IS|ARE] {INVALID|VALID} [WHEN condition-1]`, refused by name with COBOLNET1708 at bind. Written as
+      // `[IS|ARE] {INVALID|VALID} [WHEN condition-1]`, refused by name with COBOL1708 at bind. Written as
       // a tail of the condition-name arm because formats 3 and 5 share their literal/THRU list; the printed
       // format-5 figure differs only in dropping the IS/ARE connective before the list, which this arm's
       // `(IS|ARE)?` already tolerates as a superset. {is2002()}? at the left edge of the optional block: VALID
@@ -887,14 +887,14 @@ valueClauseFalsePhrase
     ;
 
 // One Format-2 table phrase: a literal list, then FROM (subscript-1 …) [TO (subscript-2 …)]. The subscripts are
-// integer literals (SR19), one per OCCURS dimension (SR20/SR21) — validated at bind (COBOLNET1585-1590).
+// integer literals (SR19), one per OCCURS dimension (SR20/SR21) — validated at bind (COBOL1585-1590).
 // ⛔ THE SUBSCRIPTS ARE `signedIntegerLiteral`, NOT `integerLiteral` (kb/Work PB553). §13.18.63.2 Format 2
 // prints these slots as `subscript-1` / `subscript-2`, NOT as `integer-n`, so §5.5 1)'s unsigned-and-nonzero
 // default does not reach them; §13.18.63.3 SR19 — "Subscript-1 and subscript-2 shall be integer numeric
 // literals" — routes through §5.5 2) a) to §8.3.3.3.2, which admits a leading sign. `FROM (+1) TO (+3)` is
 // therefore conforming source and used to be `error COBOL0001: unexpected '+'`. A NEGATIVE or zero subscript
 // still fails, but by §8.4.2.3.4 GR2 ("The value of a subscript shall be a positive integer") through the
-// existing SR20/SR21 range screen's named COBOLNET1586/1587 — never as a parse error.
+// existing SR20/SR21 range screen's named COBOL1586/1587 — never as a parse error.
 valueClauseTablePhrase
     : valueClauseOperand (COMMA? valueClauseOperand)*
       FROM LPAREN valueTableSubscript (COMMA? valueTableSubscript)* RPAREN
@@ -907,7 +907,7 @@ valueClauseTablePhrase
 // (K)` is conforming source and drew COBOL0309 "A literal value is expected here, not a data-name". The grammar
 // cannot tell a constant-name from any other word, so the alternative is `cobolWord` and the BINDER substitutes
 // (DataBinder.TableValueSubscript), refusing a word that is not an integer constant-name by SR19
-// (DiagnosticCatalog.ConstantEntryRule, COBOLNET1547).
+// (DiagnosticCatalog.ConstantEntryRule, COBOL1547).
 valueTableSubscript
     : signedIntegerLiteral
     | cobolWord
@@ -974,7 +974,7 @@ initializeOperandList
 // ⛔ THE `?` ON THE CHOICE IS AN ERROR-RECOVERY AFFORDANCE, NOT A PERMISSION (kb/Work PB415). The printed figure
 // draws `{ ALL | category-name }` inside a plain BRACE, and §5.2.6.3 says "one of the alternatives contained
 // within the braces shall be explicitly specified or is implicitly selected" — so `INITIALIZE X TO VALUE` is NOT
-// conforming source and InitializeBinder rejects it with COBOLNET1981. The rule keeps the optional subrule so the
+// conforming source and InitializeBinder rejects it with COBOL1981. The rule keeps the optional subrule so the
 // REJECTION IS THE NAMED RULE rather than a COBOL0001 "extraneous input 'TO'" that never says which rule was
 // broken; with TO itself optional there is no token the parser could blame. ⛔ Do NOT read the `?` as a licence:
 // the binder's check is the enforcement, and InitializeLaneDriftTests pins that it fires.
@@ -1021,7 +1021,7 @@ initializeCategory
 // at 85, 2002, 2014 or 2023 and has no reserved-words.json row); they were the sole consumer of the hard EDITED
 // lexer token, which shadowed IDENTIFIER and made `01 EDITED PIC X.` a COBOL0001 at every edition. Both are gone.
 // EDITION GATING IS NOT HERE: the words that ISO §8.9 reserves above 85 are admitted unconditionally and named by
-// VersionConformancePass.VisitInitializeStatement (COBOLNET0900 with the per-word constructs.json row), because
+// VersionConformancePass.VisitInitializeStatement (COBOL0900 with the per-word constructs.json row), because
 // this position only ever takes a category-name — no user-defined word can reach it, so there is nothing for a
 // `userWordHere` predicate to disambiguate and a named gate beats a "no viable alternative".
 initializeCategoryName

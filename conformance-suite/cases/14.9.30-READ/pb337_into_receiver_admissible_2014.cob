@@ -34,7 +34,7 @@
       *>  . C: arm b)'s CATEGORY NATIONAL arm on identifier-1, over an FD with two alphanumeric-group
       *>    record descriptions.  It is asserted by COMPILING, not by a displayed value: the claim
       *>    is that a category-national identifier-1 is ADMITTED by arm b), and the corpus runner
-      *>    compiles every enabled program -- a COBOLNET1994 here would fail this case.  The moved
+      *>    compiles every enabled program -- a COBOL1994 here would fail this case.  The moved
       *>    value is deliberately not pinned, because a group-to-national move's result is
       *>    13.18.60.4 GR14's implementor-defined representation territory and not this rule's.
       *>  . D: 14.9.30.3 SR2 satisfied rather than broken -- identifier-1 is a strongly-typed group

@@ -11,7 +11,7 @@
       *>   at 2023, with a user-word gap at 2002/2014, so a reservation
       *>   test recognized these formats at --std 85 and compiled them
       *>   under the 2023 facility's warning. Each edition below 2023
-      *>   answers the introduction gate COBOLNET0900 instead.
+      *>   answers the introduction gate COBOL0900 instead.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB374AM.
        DATA DIVISION.

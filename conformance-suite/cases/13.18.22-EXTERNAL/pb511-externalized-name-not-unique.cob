@@ -12,7 +12,7 @@
       *> keeps those unique inside one source element. With literal-1 writable, two subjects can claim ONE
       *> run-unit cell, and the consequence is not a diagnostic-quality one: the cell is keyed by exactly this
       *> name, so a PIC X(3) record and a PIC X(9) record would silently alias one another's storage.
-      *> COBOLNET2159, at every edition that has the phrase.
+      *> COBOL2159, at every edition that has the phrase.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB511DUP.
        DATA DIVISION.

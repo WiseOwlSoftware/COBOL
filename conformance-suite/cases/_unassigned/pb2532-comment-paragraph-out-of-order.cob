@@ -9,7 +9,7 @@
       *> in that sequence and no rule frees it (derived, not quoted: the
       *> repository holds no ANSI X3.23-1985 text). SECURITY written
       *> before AUTHOR compiled clean. From 2002 both paragraphs are
-      *> removed constructs (COBOLNET0902).
+      *> removed constructs (COBOL0902).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2532NO.
        SECURITY. X.

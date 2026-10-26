@@ -110,7 +110,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
     {
         var (line, ok, lines) = Build(outer, Sort, edition);
         Assert.False(ok);
-        AssertAt(lines, line, 12, "error", "COBOLNET2700");
+        AssertAt(lines, line, 12, "error", "COBOL2700");
     }
 
     [Fact] // the statement nested under an IF is positioned at ITS line, not the IF's
@@ -118,7 +118,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
     {
         var (line, ok, lines) = Build("sort-input", Sort, 2023, nestInIf: true);
         Assert.False(ok);
-        AssertAt(lines, line, 16, "error", "COBOLNET2700");
+        AssertAt(lines, line, 16, "error", "COBOL2700");
     }
 
     [Theory] // the legal twin: the same SORT in a section no SORT / MERGE names as its procedure compiles clean
@@ -128,7 +128,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
     {
         var (_, ok, lines) = Build("none", Sort, edition);
         Assert.True(ok, string.Join("\n", lines));
-        Assert.DoesNotContain(lines, d => d.Contains("COBOLNET2700"));
+        Assert.DoesNotContain(lines, d => d.Contains("COBOL2700"));
     }
 
     // ── §14.9.24.3 SR1 — a MERGE there is a COBOL-2023 removal (Annex E.2 item 20) ───────────────────────────────────
@@ -141,7 +141,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
     {
         var (line, ok, lines) = Build(outer, Merge, 2023);
         Assert.False(ok);
-        AssertAt(lines, line, 12, "error", "COBOLNET1572");
+        AssertAt(lines, line, 12, "error", "COBOL1572");
     }
 
     [Fact] // --permissive turns the removal into a positioned warning; the compile succeeds (the migration mode)
@@ -149,7 +149,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
     {
         var (line, ok, lines) = Build("sort-input", Merge, 2023, permissive: true);
         Assert.True(ok, string.Join("\n", lines));
-        AssertAt(lines, line, 12, "warning", "COBOLNET1572");
+        AssertAt(lines, line, 12, "warning", "COBOL1572");
     }
 
     [Theory] // below 2023 the 2014 standard allowed it: no static diagnostic (EC-SORT-MERGE-ACTIVE is the dynamic net)
@@ -158,7 +158,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
     public void MergeInASortProcedure_BelowTheRemoval_IsAccepted(int edition)
     {
         var (_, ok, lines) = Build("sort-input", Merge, edition);
-        Assert.DoesNotContain(lines, d => d.Contains("COBOLNET1572"));
+        Assert.DoesNotContain(lines, d => d.Contains("COBOL1572"));
         Assert.True(ok, string.Join("\n", lines));
     }
 
@@ -175,14 +175,14 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
     {
         var (line, ok, lines) = Build(outer, verb, 2023);
         Assert.False(ok);
-        AssertAt(lines, line, 12, "error", "COBOLNET1690");
+        AssertAt(lines, line, 12, "error", "COBOL1690");
     }
 
     [Fact] // the legal twin: COMMIT in a section no SORT / MERGE names draws no placement diagnostic
     public void CommitOutsideASortOrMergeProcedure_DrawsNoPlacementDiagnostic()
     {
         var (_, _, lines) = Build("none", Commit, 2023);
-        Assert.DoesNotContain(lines, d => d.Contains("COBOLNET1690"));
+        Assert.DoesNotContain(lines, d => d.Contains("COBOL1690"));
     }
 
     // ── the sibling arms of the same pass: SET / MOVE statement gates and the USAGE data gate ──────────────────────
@@ -207,7 +207,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         var (ok, lines) = CompileProgram("           MOVE 1 TO N.\n           SET P UP BY 1.\n",
             "       01 N PIC 9.\n       01 P USAGE POINTER.\n", 85);
         Assert.False(ok);
-        AssertAt(lines, 9, 12, "error", "COBOLNET0900");   // the SET, not the USAGE POINTER entry at line 6 (also refused)
+        AssertAt(lines, 9, 12, "error", "COBOL0900");   // the SET, not the USAGE POINTER entry at line 6 (also refused)
     }
 
     [Fact] // MOVE HIGH-VALUE TO a numeric item is a 2023 removal (§14.9.25.3 SR5; Annex E.2 item 1); SPACE is no
@@ -217,12 +217,12 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         var (ok, lines) = CompileProgram("           MOVE 1 TO N.\n           MOVE HIGH-VALUE TO N.\n",
             "       01 N PIC 9.\n", 2023);
         Assert.False(ok);
-        AssertAt(lines, 8, 12, "error", "COBOLNET0902");
+        AssertAt(lines, 8, 12, "error", "COBOL0902");
     }
 
     [Theory] // §7.3.10.3 SR3 / SR4 run in the pass, after the directive text is gone: each names the directive's own place
-    [InlineData("UNDEFINE \"AUTHOR\"", "COBOLNET1623")]       // SR3: AUTHOR is in none of §8.9, §8.10, §8.11
-    [InlineData("RESERVE \"DISPLAY\"", "COBOLNET1623")]       // SR4: DISPLAY is a reserved word, not a fresh user word
+    [InlineData("UNDEFINE \"AUTHOR\"", "COBOL1623")]       // SR3: AUTHOR is in none of §8.9, §8.10, §8.11
+    [InlineData("RESERVE \"DISPLAY\"", "COBOL1623")]       // SR4: DISPLAY is a reserved word, not a fresh user word
     public void CobolWordsDirectiveCategoryViolation_NamesTheDirective(string operation, string code)
     {
         string text = "       >>COBOL-WORDS " + operation + "\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB1925W.\n"
@@ -241,7 +241,7 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
     {
         var (ok, lines) = CompileProgram("           CONTINUE.\n", "       01 N PIC 9.\n       01 P USAGE POINTER.\n", 85);
         Assert.False(ok);
-        AssertAt(lines, 6, 8, "error", "COBOLNET0900");
+        AssertAt(lines, 6, 8, "error", "COBOL0900");
     }
 
     // ── the report-SUM arm of the data gates: a SUM counter's own PICTURE gate is positioned at its entry ────────────
@@ -269,9 +269,9 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
             Path.Combine(_dir, name), Path.Combine(_dir, "out.dll"), DialectLevel: 85, CheckOnly: true,
             CopyPaths: [_dir], SourceFormat: InitialReferenceFormat.Fixed));
         Assert.False(r.Success);
-        var gates = r.Errors.Where(d => d.Contains("COBOLNET0900")).ToList();
+        var gates = r.Errors.Where(d => d.Contains("COBOL0900")).ToList();
         Assert.True(gates.Count >= expectedGates, "expected the PICTURE gate(s); got:\n" + string.Join("\n", r.Errors));
         int sumLine = text[..text.IndexOf(sumEntry, StringComparison.Ordinal)].Count(c => c == '\n') + 1;   // the line the entry is written on
-        Assert.All(gates, d => Assert.Contains($"({sumLine},12): error COBOLNET0900", d));
+        Assert.All(gates, d => Assert.Contains($"({sumLine},12): error COBOL0900", d));
     }
 }

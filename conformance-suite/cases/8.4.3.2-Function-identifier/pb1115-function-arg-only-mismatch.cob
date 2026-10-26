@@ -10,7 +10,7 @@
       *> with the same object-class-name, and the FACTORY and ONLY phrases
       *> shall be the same." 8.4.3.2.3 SR13 imports it into a function
       *> activation. W-O is OBJECT REFERENCE N1115OC ONLY and the formal
-      *> is OBJECT REFERENCE N1115OC -> COBOLNET2470. (Before the fix this
+      *> is OBJECT REFERENCE N1115OC -> COBOL2470. (Before the fix this
       *> compiled and ran silently: both sides share one .NET carrier.)
       *> cite.py --check 14.8.2.3.2 "and the FACTORY and ONLY phrases
       *>   shall be the same" -> OK  14.8.2.3.2 3)

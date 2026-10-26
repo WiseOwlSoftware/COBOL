@@ -20,7 +20,7 @@ namespace CobolNet.Editions;
 ///
 /// <para>Now a directive is ONE <c>tests/version-matrix/constructs.json</c> row carrying
 /// <c>directiveWords</c> plus a regen: the word becomes recognized, its introducing edition becomes enforced by
-/// the one COBOLNET0900 producer, and the version matrix compiles its <c>source</c> at all four editions
+/// the one COBOL0900 producer, and the version matrix compiles its <c>source</c> at all four editions
 /// automatically. <c>CompilerDirectiveCatalogDriftTests</c> keeps the roster honest against §7.3 itself.</para>
 /// </summary>
 public static class CompilerDirectiveCatalog
@@ -52,9 +52,9 @@ public static class CompilerDirectiveCatalog
     /// <summary>
     /// The ONE edition gate for a compiler-directive line (§7.3.3 SR6 + §7.3.2): reject <paramref name="word"/>
     /// below its introducing edition and after its removing one, through
-    /// <see cref="ConstructRegistry.Check"/> — COBOLNET0900 for the introduction edge (error on both severity
-    /// axes: no conforming source of the older edition can contain the line), COBOLNET0902 for a removal,
-    /// COBOLNET0903 for an obsolete use. A no-op for an unrecognized word and for every edition at which the
+    /// <see cref="ConstructRegistry.Check"/> — COBOL0900 for the introduction edge (error on both severity
+    /// axes: no conforming source of the older edition can contain the line), COBOL0902 for a removal,
+    /// COBOL0903 for an obsolete use. A no-op for an unrecognized word and for every edition at which the
     /// directive is available.
     /// </summary>
     public static void Check(string word, EditionInfo edition, IDiagnosticSink sink)
@@ -67,7 +67,7 @@ public static class CompilerDirectiveCatalog
     /// THE operand check for a compiler-directive line (kb/Work PB794): §7.3.3 SR6 composes compiler-instruction
     /// "as specified in the syntax of each directive", and for the ten directives whose syntax is a closed word
     /// set that specification is DATA on the row — <see cref="ConstructDialectStatus.DirectiveOperand"/>. One
-    /// producer, <c>COBOLNET1911</c>, for the whole family; before PB794 seven directive lines that violate their
+    /// producer, <c>COBOL1911</c>, for the whole family; before PB794 seven directive lines that violate their
     /// own printed general format were accepted in silence while six stages each wrote the rule again with a code
     /// of its own.
     ///

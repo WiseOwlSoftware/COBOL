@@ -7,7 +7,7 @@
       *> kb/Work PB1404 - 8.3.2.2 list item 2 externalizes "data-names, file-names, and record-names of items described
       *>   with the EXTERNAL attribute", and "all instances of a given name that is externalized to the operating
       *>   environment shall identify the same kind of entity or item". KCF1404 is an EXTERNAL file in PB1404N2 and an
-      *>   EXTERNAL data item in KC1404B: two kinds under one externalized name. COBOLNET2213.
+      *>   EXTERNAL data item in KC1404B: two kinds under one externalized name. COBOL2213.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1404N2.
        ENVIRONMENT DIVISION.

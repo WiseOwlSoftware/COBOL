@@ -33,9 +33,9 @@ for n in (7, 12, 9):
     (REPO / "kb" / "Work" / f"PB{n}.md").write_text("---\nid: x\n---\n", encoding="utf-8", newline="\n")
 (REPO / "kb" / "Work" / "PB99-notes.txt").write_text("not a note", encoding="utf-8", newline="\n")
 (REPO / "src" / "Cobol.Net.Editions" / "Diagnostics" / "DiagnosticCatalog.cs").write_text(
-    'Add("COBOLNET0100", ...); Add("COBOLNET0105", ...);', encoding="utf-8", newline="\n")
-(REPO / "src" / "A" / "X.cs").write_text("// emits COBOLNET0103 and COBOLNET0101", encoding="utf-8", newline="\n")
-(REPO / "src" / "A" / "bin" / "Y.cs").write_text("// COBOLNET9999 lives in bin and is ignored", encoding="utf-8", newline="\n")
+    'Add("COBOL0100", ...); Add("COBOL0105", ...);', encoding="utf-8", newline="\n")
+(REPO / "src" / "A" / "X.cs").write_text("// emits COBOL0103 and COBOL0101", encoding="utf-8", newline="\n")
+(REPO / "src" / "A" / "bin" / "Y.cs").write_text("// COBOL9999 lives in bin and is ignored", encoding="utf-8", newline="\n")
 
 fails = []
 checked = []
@@ -62,24 +62,24 @@ check("code scans (bin ignored)", alloc.code_scans(REPO), (105, 105))
 
 # 2. CLI: peek reserves nothing; allocations advance past truth and past each other
 c1 = TMP / "c1"
-check("peek code", run(c1, "peek", "code"), (0, "COBOLNET0106"))
-check("peek again unchanged", run(c1, "peek", "code"), (0, "COBOLNET0106"))
-check("alloc code 3", run(c1, "code", "3"), (0, "COBOLNET0106-COBOLNET0108"))
-check("alloc code 1", run(c1, "code", "1"), (0, "COBOLNET0109"))
+check("peek code", run(c1, "peek", "code"), (0, "COBOL0106"))
+check("peek again unchanged", run(c1, "peek", "code"), (0, "COBOL0106"))
+check("alloc code 3", run(c1, "code", "3"), (0, "COBOL0106-COBOL0108"))
+check("alloc code 1", run(c1, "code", "1"), (0, "COBOL0109"))
 check("alloc pb 5", run(c1, "pb", "5"), (0, "PB13-PB17"))
 check("alloc devlog", run(c1, "devlog"), (0, "42"))
 check("alloc devlog again", run(c1, "devlog"), (0, "43"))
 rc, line = run(c1, "peek", "code", "--probe")
-check("probe line names the reserved mark", line.endswith("reserved max COBOLNET0109 → next free = COBOLNET0110"), True)
+check("probe line names the reserved mark", line.endswith("reserved max COBOL0109 → next free = COBOL0110"), True)
 
 # 3. truth wins over a stale reservation (a note landed past the reserved mark)
 (REPO / "kb" / "Work" / "PB50.md").write_text("---\n---\n", encoding="utf-8", newline="\n")
 check("truth wins", run(c1, "pb", "1"), (0, "PB51"))
 
 # 4. seed raises, never lowers
-check("seed raises", run(c1, "seed", "code", "500"), (0, "code reserved through COBOLNET0500"))
-check("seed never lowers", run(c1, "seed", "code", "200"), (0, "code reserved through COBOLNET0500"))
-check("after seed", run(c1, "code", "1"), (0, "COBOLNET0501"))
+check("seed raises", run(c1, "seed", "code", "500"), (0, "code reserved through COBOL0500"))
+check("seed never lowers", run(c1, "seed", "code", "200"), (0, "code reserved through COBOL0500"))
+check("after seed", run(c1, "code", "1"), (0, "COBOL0501"))
 
 # 5. a bad count is refused
 check("zero count refused", run(c1, "pb", "0")[0], 2)
@@ -92,7 +92,7 @@ lock.write_text("12345 0\n", encoding="utf-8", newline="\n")
 old = time.time() - coord.LOCK_STALE_S - 5
 os.utime(lock, (old, old))
 t0 = time.monotonic()
-check("stale lock broken", run(c2, "code", "1"), (0, "COBOLNET0106"))
+check("stale lock broken", run(c2, "code", "1"), (0, "COBOL0106"))
 check("stale lock broken promptly", time.monotonic() - t0 < 20, True)
 check("lock released", lock.exists(), False)
 
@@ -119,7 +119,7 @@ check("parallel: no errors", errors, [])
 values = []
 for r in ranges:
     a, b = r.split("-")
-    values += list(range(int(a.removeprefix("COBOLNET")), int(b.removeprefix("COBOLNET")) + 1))
+    values += list(range(int(a.removeprefix("COBOL")), int(b.removeprefix("COBOL")) + 1))
 check("parallel: every allocation returned", len(ranges), 48)
 check("parallel: no value handed out twice", len(values) - len(set(values)), 0)
 check("parallel: dense from truth+1", sorted(values) == list(range(106, 106 + 144)), True)

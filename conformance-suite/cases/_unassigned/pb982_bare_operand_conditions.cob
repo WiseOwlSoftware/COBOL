@@ -9,7 +9,7 @@
       *>
       *> THE RULE. ISO 8.8.4.2.1: "The simple conditions are the relation, boolean, class, condition-name,
       *> switch-status, sign, and omitted-argument conditions." A bare data item that is none of them is
-      *> refused (COBOLNET2318; the negative twins tests/conformance/negative/pb982-*). This golden pins the
+      *> refused (COBOL2318; the negative twins tests/conformance/negative/pb982-*). This golden pins the
       *> bare operands the refusal must NOT reach:
       *>   - a level-88 condition-name (8.8.4.5), bare and under NOT;
       *>   - a one-position boolean item, a simple boolean condition (8.8.4.3) - a 2002 introduction, which is

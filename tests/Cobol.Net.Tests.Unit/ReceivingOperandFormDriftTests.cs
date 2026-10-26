@@ -13,7 +13,7 @@ namespace CobolNet.Tests.Unit;
 /// RULE FROM ONE TABLE (kb/Work PB1551, PB1782 step 1). ISO §8.4.3 writes the exclusion into each identifier format —
 /// §8.4.3.5.3 SR2 (object-view), §8.4.3.6.3 SR1 (EXCEPTION-OBJECT), §8.4.3.7.3 SR1 (NULL), §8.4.3.8.3 SR2 (SELF and
 /// SUPER), §8.4.3.11.3 SR5 / §8.4.3.12.3 SR3 / §8.4.3.13.3 SR4 (the address-identifiers) — so a receiving slot that took
-/// only a data reference refused them as a parse error re-coded to §8.9 (COBOLNET0901 "is a reserved word … cannot be
+/// only a data reference refused them as a parse error re-coded to §8.9 (COBOL0901 "is a reserved word … cannot be
 /// used as a user-defined word"): a rule the program had not broken, which would become SILENT ACCEPTANCE the moment the
 /// identifier tier is widened.
 /// <para>The shape these facts hold: <see cref="NonReceivableForm"/> has one row per member in

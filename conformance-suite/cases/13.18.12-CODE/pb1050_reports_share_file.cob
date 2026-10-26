@@ -7,7 +7,7 @@
       *> portable: unverified
       *>---
       *> kb/Work PB1050 - one file description entry naming SEVERAL reports (ISO 13.18.46). `REPORTS ARE R-A R-B` was
-      *> refused COBOLNET0899 "multiple reports on one file ... not yet implemented".
+      *> refused COBOL0899 "multiple reports on one file ... not yet implemented".
       *>
       *> RULES (cite.py --check, all OK):
       *> 13.18.46.4 GR1: "The presence of more than one report-name-1 indicates that more than one report may be

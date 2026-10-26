@@ -10,7 +10,7 @@
       *> `{ imperative-statement-2 | NEXT SENTENCE }`, 14.9.37.2) and with NO END-SEARCH phrase - 14.9.37.3 SR4:
       *> "If the END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified." At --std 85,
       *> the earliest supported edition: both formats print the phrase in all four editions (ARCHAIC in 2023,
-      *> COBOLNET0903), so there is no edition below its introduction to reject it.
+      *> COBOL0903), so there is no edition below its introduction to reject it.
       *>
       *> EXPECTED OUTPUT, DERIVED FROM THE SPEC AND NOT FROM A RUN:
       *> 14.9.37.4 GR1 a) - "the search operation is terminated immediately; the index being varied by the search

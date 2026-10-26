@@ -7,7 +7,7 @@ namespace CobolNet.Tests.Conformance;
 /// <summary>
 /// Lays a program out in FIXED-form reference format, for a test whose subject is a literal (or any token) too long
 /// for one line. ISO §6.1 3) a) bounds a FREE-form line at 255 character positions ("ranging from a minimum of 0 to a
-/// maximum of 255"; kb/Work PB1496, COBOLNET2653), so an 8,192-position literal written on one free-form line is not
+/// maximum of 255"; kb/Work PB1496, COBOL2653), so an 8,192-position literal written on one free-form line is not
 /// a program the standard allows — the tests that build one programmatically must continue it, as fixed form does
 /// (§6.3.5 / §6.5 4) and 8)): the continued line fills to margin R and ends in the floating literal continuation
 /// indicator, and the continuation line resumes the literal at a quotation symbol. §6.1 2) b): after logical conversion

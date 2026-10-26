@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1129 / PB1050. ISO/IEC 1989:2023 13.18.12.3 SR3: "If the CODE clause is specified for any
       *> report, it shall be specified for each report associated with the same report file." (cite.py OK).
-      *> R-A carries CODE and R-B, on the same file, does not (COBOLNET2713).
+      *> R-A carries CODE and R-B, on the same file, does not (COBOL2713).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1129N4.
        ENVIRONMENT DIVISION.

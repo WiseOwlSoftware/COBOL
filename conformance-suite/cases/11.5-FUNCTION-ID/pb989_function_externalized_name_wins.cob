@@ -14,7 +14,7 @@
       *> GR11 NOTE 2: a specifier with no AS phrase has the function-prototype-name itself as its externalized name, so
       *> `FUNCTION PB989F` asks GR11 a) for a previous definition externalized "PB989F": PB989FX is it - PB989F + 200 = 201.
       *> 8.4.6.7 independently lets the word PB989F name PB989F AS "PB989G"; the standard does not rank the two clauses,
-      *> and the externalized name wins (GnuCOBOL 3.2.0 resolves by externalized name only), with warning COBOLNET2969.
+      *> and the externalized name wins (GnuCOBOL 3.2.0 resolves by externalized name only), with warning COBOL2969.
       *> `FUNCTION PB989H AS "PB989G"` is GR11 a) with literal-5 "PB989G": the definition PB989F AS "PB989G" - 1 + 100 = 101.
       *> Expected: F=0201 then H=0101.
        IDENTIFICATION DIVISION.

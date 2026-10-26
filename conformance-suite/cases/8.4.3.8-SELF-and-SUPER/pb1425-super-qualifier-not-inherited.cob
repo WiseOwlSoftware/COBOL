@@ -7,7 +7,7 @@
       *> kb/Work PB1425. ISO 8.4.3.8.3 SR4: "Object-class-name-1 shall be the name of a class specified in the
       *> INHERITS clause of the containing class definition." PB1425NB INHERITS FROM PB1425NA, so the only
       *> object-class-name-1 its methods may write before OF SUPER is PB1425NA; naming the containing class itself
-      *> (PB1425NB OF SUPER) is refused COBOLNET2777. Below 2002 there is no class definition at all.
+      *> (PB1425NB OF SUPER) is refused COBOL2777. Below 2002 there is no class definition at all.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1425NM.
        ENVIRONMENT DIVISION.

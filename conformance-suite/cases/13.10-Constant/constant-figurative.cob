@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
 *> ISO 1989:2023 13.10.3 SR6 - literal-1 of a constant entry shall not be a figurative constant
-*> (COBOLNET1547).
+*> (COBOL1547).
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEGKC05.
 DATA DIVISION.

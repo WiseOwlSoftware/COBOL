@@ -70,7 +70,7 @@ public sealed class Format3RelationSurfaceDriftTests
         Assert.False(ok, $"{pid}: a pointer-against-alphanumeric relation is refused by ISO §8.8.4.2.3 SR5 at "
             + "EVERY surface that lowers to a relation — this one compiled clean, so the band has moved back "
             + "into one caller of the checkpoint");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0869");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
     }
 
     /// <summary>The ORDERING half of Format 3, at the same surfaces. §8.8.4.2.2 Format 3 prints only
@@ -85,7 +85,7 @@ public sealed class Format3RelationSurfaceDriftTests
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Surface(pid, body), 2023);
         Assert.False(ok, $"{pid}: ISO §8.8.4.2.2 Format 3 prints no ordering operator for a pointer relation");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0869");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL0869");
     }
 
     /// <summary>⛔ THE COMPLEMENT LEG, so the theories above cannot pass by rejecting everything
@@ -129,7 +129,7 @@ public sealed class Format3RelationSurfaceDriftTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2023);
         Assert.False(ok, $"{pid}: ISO §14.9.13.3 SR2 is an EQUALITY — both directions are violations");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2106");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2106");
     }
 
     /// <summary>The count rule is edition-INVARIANT: EVALUATE and its ALSO phrase are COBOL-85 constructs and
@@ -160,7 +160,7 @@ public sealed class Format3RelationSurfaceDriftTests
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, edition);
         Assert.False(ok, $"ISO §14.9.13.3 SR2 is not edition-gated (--std {edition})");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2106");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2106");
     }
 
     /// <summary>ISO §14.9.13.3 SR9 keys on §8.5.1.12.1's definition of a variable-length group — "a group item
@@ -211,6 +211,6 @@ public sealed class Format3RelationSurfaceDriftTests
             + "§14.9.13.3 SR9 does not reach it — " + string.Join(" | ", odoErrors));
         var (okDyn, dynErrors, _) = EditionHarness.CompileFull(dyn, 2023);
         Assert.False(okDyn, "a group with a DYNAMIC LENGTH member IS a variable-length group (§8.5.1.12.1)");
-        EditionHarness.AssertHasDiagnostic(dynErrors, "COBOLNET2107");
+        EditionHarness.AssertHasDiagnostic(dynErrors, "COBOL2107");
     }
 }

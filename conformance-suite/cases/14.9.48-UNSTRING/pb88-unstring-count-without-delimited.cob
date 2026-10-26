@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO 14.9.48.3 SR7: "The DELIMITER IN phrase and the COUNT IN phrase may be specified only if the
-      *> DELIMITED BY phrase is specified." kb/Work PB88: COBOLNET1651 at bind (a run-time stage before).
+      *> DELIMITED BY phrase is specified." kb/Work PB88: COBOL1651 at bind (a run-time stage before).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB88NUNSCNT.
        DATA DIVISION.

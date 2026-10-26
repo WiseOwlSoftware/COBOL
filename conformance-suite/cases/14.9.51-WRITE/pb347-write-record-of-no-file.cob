@@ -9,11 +9,11 @@
 *> WS-REC is a WORKING-STORAGE 01. It is a record description entry but not a logical record OF A FILE,
 *> so §14.9.51.3 SR1 - "The write file is the file referenced by file-name-1 or by the file-name
 *> associated with record-name-1" - has no file to name. This is the arm that used to draw only the
-*> COBOLNET1756 DEFERRAL WARNING: the compiler announced ITS OWN gap for what is the source's error, and
+*> COBOL1756 DEFERRAL WARNING: the compiler announced ITS OWN gap for what is the source's error, and
 *> the program compiled.
 *> §4.2.2 makes the compile-time indication mandatory for "violations of the general formats and the
 *> explicit syntax rules of standard COBOL". The rule is written identically in 1985, 2002 and 2014, so
-*> there is no edition gate and every edition rejects. COBOLNET1757 (kb/Work PB347).
+*> there is no edition gate and every edition rejects. COBOL1757 (kb/Work PB347).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB347N7.
        ENVIRONMENT DIVISION.

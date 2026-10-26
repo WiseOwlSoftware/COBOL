@@ -186,10 +186,10 @@ internal sealed class VersionConformancePass
     /// none), and four arms ask whether a statement lies in it:
     /// <list type="bullet">
     ///   <item>a file-format SORT — "shall not appear … in an input or output procedure" (§14.9.40.3 SR3), at EVERY
-    ///     edition ("SORT already disallowed it", Annex E.2 item 20) — COBOLNET2700, an error always;</item>
+    ///     edition ("SORT already disallowed it", Annex E.2 item 20) — COBOL2700, an error always;</item>
     ///   <item>a MERGE — "in an output procedure of another MERGE statement, or an input or output procedure of a file
     ///     format SORT statement" (§14.9.24.3 SR1). VCR 27 (Annex E.2 item 20): the 2014 standard allowed it with
-    ///     conflicting rules, so at COBOL-2023 it is a REMOVAL — COBOLNET1572, an Error under strict and a Warning under
+    ///     conflicting rules, so at COBOL-2023 it is a REMOVAL — COBOL1572, an Error under strict and a Warning under
     ///     --permissive (EditionSeverityPolicy), matching the version matrix's RemovedConstruct_CompilesPermissive
     ///     contract. Below 2023 the runtime EC-SORT-MERGE-ACTIVE raise (CobolSort.Init, when checking is enabled —
     ///     kb/Work PB1036) is the dynamic net;</item>
@@ -244,7 +244,7 @@ internal sealed class VersionConformancePass
             {
                 if (s is BoundMerge m && InProcedure(paraPc))
                 {
-                    _sink.Report(new EditionDiagnostic("COBOLNET1572", mergeSeverity, "merge-in-sort-merge-proc",
+                    _sink.Report(new EditionDiagnostic("COBOL1572", mergeSeverity, "merge-in-sort-merge-proc",
                         $"MERGE '{m.File.CobolName}' is prohibited in the output procedure of another MERGE or the input "
                         + "or output procedure of a file SORT (ISO §14.9.24; COBOL-2023, Annex E.2 item 20)",
                         $"MERGE '{m.File.CobolName}'", "ISO §14.9.24; Annex E.2 item 20"));
@@ -328,7 +328,7 @@ internal sealed class VersionConformancePass
             // (INVOKE — migrated to the ParseArm in Step 14h.5 with the four I/O phrase gates below. `case
             // BoundInvoke` was BOTH under- and over-inclusive: under, because an INVOKE whose target does not
             // resolve returns before the node exists (measured — `INVOKE NOSUCHO "M1"` at --std 85 named
-            // COBOLNET0823 and no edition); over, because BoundInvoke is ALSO the bound form of a PROPERTY
+            // COBOL0823 and no edition); over, because BoundInvoke is ALSO the bound form of a PROPERTY
             // get/set re-write and of NEW / SELF-NEW (OoBinder), none of which is "the INVOKE statement".)
             case BoundMove mv:
                 GateMove(mv); break;
@@ -353,12 +353,12 @@ internal sealed class VersionConformancePass
     // prohibited before 2023 as well ("The figurative constant SPACE shall not be moved to a numeric or numeric-edited
     // item", ISO/IEC 1989:2002 clause 14.8.24.2 SR5 and the 2009 committee draft; VCR row 7.41 derives the 1985
     // edge), so it is a flat refusal at every edition, MoveValidity.FigurativeRefusal's SR5 arm, asked by the
-    // binder's MOVE chain (MoveTable16.Validity → COBOLNET0819). Sr5FigurativeText therefore does not list it.
+    // binder's MOVE chain (MoveTable16.Validity → COBOL0819). Sr5FigurativeText therefore does not list it.
     // ⛔ IT READS m.Source — THE WRITTEN SENDING OPERAND — NEVER m.Stores[i].Sender. SR5 is a SYNTAX rule over a
     // closed list of figurative constants SPELLED IN THE SOURCE ("SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL
     // "literal", or ALL symbolic-character"); §14.9.25.4 GR2/GR3 substitute the figurative SPACE / ZERO for a
     // zero-length literal as a VALUE, and a zero-length literal is not on SR5's list. Gating the substituted
-    // sender would make `MOVE "" TO PIC 9(3)` — permitted at every edition — a COBOLNET0902 rejection, i.e. a
+    // sender would make `MOVE "" TO PIC 9(3)` — permitted at every edition — a COBOL0902 rejection, i.e. a
     // wrong answer traded for a false one (kb/Work PB425).
     private void GateMove(BoundMove m)
     {
@@ -387,7 +387,7 @@ internal sealed class VersionConformancePass
     /// operand shall be valid" — for the one MOVE rule SR4 reaches that is EDITION-dependent: §14.9.25.3 SR5
     /// (kb/Work PB879). <c>INITIALIZE G REPLACING NUMERIC DATA BY HIGH-VALUE</c> is valid exactly when
     /// <c>MOVE HIGH-VALUE TO &lt;a numeric item&gt;</c> is, so it takes the same three rows at the same edition — before
-    /// this arm it compiled clean at 2023 while the byte-identical explicit MOVE was COBOLNET0902. (SPACE takes no row:
+    /// this arm it compiled clean at 2023 while the byte-identical explicit MOVE was COBOL0902. (SPACE takes no row:
     /// its prohibition holds at every edition, and the binder's MOVE chain refuses it, kb/Work PB3605.)
     /// <para>⛔ ASKED OF THE PHRASE, PER CATEGORY, NOT PER RECEIVER: SR4's receiving operand is "an item of the
     /// specified category", so the pair is valid or invalid before any receiver is walked (the INITIALIZE binder
@@ -463,7 +463,7 @@ internal sealed class VersionConformancePass
     /// fires, and where both answer the PICTURE SHAPE wins because it is the FINER identity: a national-edited
     /// picture is construct <c>national-edited-2002</c> (§8.5.2.11, its own registry row), and its item is ALSO
     /// class and category national (§8.5.2.1 Table 2), so the usage arm would otherwise report a second,
-    /// redundant COBOLNET0900 naming <c>national-data-2002</c> on the same entry (kb/Work PB492).</summary>
+    /// redundant COBOL0900 naming <c>national-data-2002</c> on the same entry (kb/Work PB492).</summary>
     private void GateDataItem(DataItem item, string where)
     {
         using var _ = _sink.At(item);   // the entry's own position, captured when it was bound (kb/Work PB82, PB1925)
@@ -517,7 +517,7 @@ internal sealed class VersionConformancePass
             : pu is Usage.FloatExtended || ou is Usage.FloatExtended ? Constructs.UsageFloatExtended2002
             // The 2014 IEEE interchange floats binary32/64 (LIVE) — the 0900 introduction gate below 2014. The
             // FLOAT-BINARY-128 / FLOAT-DECIMAL-16/34 non-support forms have no construct row: their operative
-            // diagnostic is COBOLNET1564 (processor-dependent non-support, Annex A.3), fired by ParseUsage at every
+            // diagnostic is COBOL1564 (processor-dependent non-support, Annex A.3), fired by ParseUsage at every
             // edition, so a redundant 0900 introduction gate below 2014 would only add noise.
             : pu is Usage.FloatBinary32 || ou is Usage.FloatBinary32 ? Constructs.UsageFloatBinary322014
             : pu is Usage.FloatBinary64 || ou is Usage.FloatBinary64 ? Constructs.UsageFloatBinary642014
@@ -624,9 +624,9 @@ internal sealed class VersionConformancePass
         // this answers "which keyword does this written word denote" - the question every TEXT-recognized
         // §8.9/§8.10 word below asks, and the one a raw string comparison gets wrong (kb/Work PB250).
         private readonly CobolWordsMap _cobolWords = cobolWords;
-        // One COBOLNET0901 per distinct word per compilation (P2.4) — not one per occurrence.
+        // One COBOL0901 per distinct word per compilation (P2.4) — not one per occurrence.
         private HashSet<string>? _flaggedWords;
-        // One COBOLNET1567 per distinct over-long word per compilation (the §8.3.2.1 length ceiling).
+        // One COBOL1567 per distinct over-long word per compilation (the §8.3.2.1 length ceiling).
         private HashSet<string>? _overlongWords;
         // Whether the CURRENT source unit declares SOURCE-COMPUTER … WITH DEBUGGING MODE (the X3.23-1985
         // compile-time debug switch): decides the USE FOR DEBUGGING posture (VCR Table 7 row 7.17) — without it
@@ -704,7 +704,7 @@ internal sealed class VersionConformancePass
         /// and none is PADDING, and the word appears nowhere in the 2023 text (§8.9's list runs PACKED-DECIMAL →
         /// PAGE). Parsed-and-ignored at 85/2002 (a compiler with no blocking model has nothing to pad — the
         /// MULTIPLE FILE / RERUN posture, and NIST SQ216A/SQ217A both write the clause), gated here: the registry row
-        /// carries obsolete 2002 (COBOLNET0903) and removed 2014 (COBOLNET0902), GnuCOBOL's edges, the repository
+        /// carries obsolete 2002 (COBOL0903) and removed 2014 (COBOL0902), GnuCOBOL's edges, the repository
         /// holding no 2002/2014 text (kb/Work PB656; VCR row 7.20).
         /// <para>⛔ THE ABSENCE OF THIS ARM WAS THE DEFECT (kb/Work PB300): the clause parsed at EVERY edition
         /// with nothing reading the rule, so `--std 2023` accepted a clause the targeted standard does not
@@ -780,7 +780,7 @@ internal sealed class VersionConformancePass
         /// <para>The USAGE clause's float FORMAT phrases (endianness-phrase / encoding-phrase, ISO §13.18.60.2
         /// general format) are a COBOL-2014 addition and gate from the SAME override — a disjoint alternative, the
         /// STOP-statement precedent. Recognition-based for the same reason: the phrase is a MODIFIER, and the
-        /// grammar tolerates it after any usageKeyword (the binder narrows — COBOLNET1716/1717/1718), so the
+        /// grammar tolerates it after any usageKeyword (the binder narrows — COBOL1716/1717/1718), so the
         /// resolved Usage enum cannot key it. A below-2014 program that writes it on a standard float usage draws
         /// this gate AND the usage keyword's own (usage-float-binary32-2014 etc.): two distinct 2014 language
         /// elements were written, and Annex A.3 item 18 names the phrase separately from item 17's usages.</para></summary>
@@ -865,7 +865,7 @@ internal sealed class VersionConformancePass
         public override object? VisitPerformStatement(CobolParserCore.PerformStatementContext ctx)
         {
             // The ONE Format-3 discriminator, shared with the binder (PerformFormat.IsFormat3), so the
-            // COBOLNET0900 gate here and the COBOLNET0899 staged-reject there cannot drift apart.
+            // COBOL0900 gate here and the COBOL0899 staged-reject there cannot drift apart.
             if (PerformFormat.IsFormat3(ctx))
                 _p.Check(Constructs.PerformExceptionChecking2023, "the Format-3 (exception-checking) PERFORM");
             return base.VisitChildren(ctx);
@@ -1009,7 +1009,7 @@ internal sealed class VersionConformancePass
         /// it aligns a bit group item or elementary bit data item on the first bit of the first available byte,
         /// §13.18.1.4 GR1). Parse-arm (recognition) like the BASED / ANY LENGTH gates: <c>DataItem.IsAligned</c> is
         /// CLEARED by <c>CheckAlignedClauses</c> on a §13.18.1.3 SR1 violation, so a bound-arm home would drop the
-        /// 0900 on exactly the declaration-error paths. The SR1 subject rule stays bind-time (COBOLNET1942) and the
+        /// 0900 on exactly the declaration-error paths. The SR1 subject rule stays bind-time (COBOL1942) and the
         /// GR1/GR2 layout effect lives at the ONE bit-layout site (kb/Work PB487).</summary>
         public override object? VisitAlignedClause(CobolParserCore.AlignedClauseContext ctx)
         {
@@ -1018,7 +1018,7 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>The GROUP-USAGE clause (ISO §13.18.29) — a COBOL-2002 introduction (a bit group / national group,
-        /// data-model design D20; kb/Work PB79). SR1–SR3 stay in the binder (COBOLNET1653 + the shared §13.18.60.4 GR1
+        /// data-model design D20; kb/Work PB79). SR1–SR3 stay in the binder (COBOL1653 + the shared §13.18.60.4 GR1
         /// leaf conformance); this arm only names the edition.</summary>
         public override object? VisitGroupUsageClause(CobolParserCore.GroupUsageClauseContext ctx)
         {
@@ -1041,7 +1041,7 @@ internal sealed class VersionConformancePass
         /// variable-length, minimum-length-zero PIC X/N elementary string). Parse-arm (recognition) like the ANY
         /// LENGTH gate: <c>DataItem.IsDynamicLength</c> is cleared by the binder on every SR1/SR18 shape violation,
         /// so a bound-arm home would drop the 0900 on exactly the declaration-error paths. The §13.18.19.3 /
-        /// §13.16.3 SR18 shape SRs stay bind-time (DataBinder.BindEntry, COBOLNET1561/1563/2258).</summary>
+        /// §13.16.3 SR18 shape SRs stay bind-time (DataBinder.BindEntry, COBOL1561/1563/2258).</summary>
         public override object? VisitDynamicLengthClause(CobolParserCore.DynamicLengthClauseContext ctx)
         {
             if (InGatedDataEntry(ctx)) _p.Check(Constructs.DynamicLengthItem2014, "the DYNAMIC LENGTH clause");
@@ -1055,7 +1055,7 @@ internal sealed class VersionConformancePass
         /// floating) forms, so a bound-arm gate would drop the 0900 on those paths. NOT <c>InGatedDataEntry</c>-guarded —
         /// unlike BASED/ANY LENGTH, a PICTURE clause legally carries EDITING in the report section too. Fires once per
         /// editing-bearing PICTURE clause; the §13.18.40.3 SR8–SR25 shape rules stay bind-time (PictureAnalyzer,
-        /// COBOLNET1591–1602).</summary>
+        /// COBOL1591–1602).</summary>
         public override object? VisitPictureClause(CobolParserCore.PictureClauseContext ctx)
         {
             if (ctx.editingPhrase().Length > 0) _p.Check(Constructs.PictureEditing2023, "the PICTURE EDITING phrase");
@@ -1073,7 +1073,7 @@ internal sealed class VersionConformancePass
         /// presence of a <c>valueClauseTablePhrase</c>: the binder DROPS the table spec on every §13.18.63.3 SR
         /// violation (no OCCURS, bad subscript, …), so a bound-arm gate would lose the 0900 on those paths — the
         /// TYPEDEF/ANY LENGTH drop-proof lesson. Fires once per written table VALUE; the SR16–SR23 shape rules stay
-        /// bind-time (DataBinder, COBOLNET1585–1590).</summary>
+        /// bind-time (DataBinder, COBOL1585–1590).</summary>
         public override object? VisitValueClause(CobolParserCore.ValueClauseContext ctx)
         {
             if (ctx.valueClauseTablePhrase().Length > 0) _p.Check(Constructs.ValueTableFormat2002, "the Format 2 (table) VALUE clause");
@@ -1099,7 +1099,7 @@ internal sealed class VersionConformancePass
         /// <summary><c>SET condition-name+ TO FALSE</c> (ISO §14.9.39 Format 4's FALSE arm) — a COBOL-2002
         /// introduction on the same derived authority as its VALUE-clause half; COBOL-85's Format 4 carries the
         /// TRUE arm only, which is why the gate keys on the FALSE_ token and not on the statement. Recognition-
-        /// based so it survives the §14.9.39.3 SR7 refusal (COBOLNET2049) the binder may raise on the same
+        /// based so it survives the §14.9.39.3 SR7 refusal (COBOL2049) the binder may raise on the same
         /// statement.</summary>
         public override object? VisitSetBooleanStatement(CobolParserCore.SetBooleanStatementContext ctx)
         {
@@ -1137,7 +1137,7 @@ internal sealed class VersionConformancePass
         /// into the compile-time constant table and produces NO DataItem (a bound-arm gate would have no node
         /// to key on), and a §13.10 SR violation abandons the fold — so recognition is the drop-proof home
         /// (the TYPEDEF lesson). Fires once per written entry; the §13.10 SRs stay bind-time
-        /// (DataBinder.Constants.cs, COBOLNET1547).</summary>
+        /// (DataBinder.Constants.cs, COBOL1547).</summary>
         public override object? VisitConstantEntryBody(CobolParserCore.ConstantEntryBodyContext ctx)
         {
             // The body has two hosts: a data description entry (through its body rule) and a report-section
@@ -1156,7 +1156,7 @@ internal sealed class VersionConformancePass
         /// <summary>The CONSTANT RECORD clause (ISO §13.18.15) — a COBOL-2002 introduction (a structured
         /// constant). Recognition-based like the BASED/ANY LENGTH gates: <c>DataItem.IsConstantRecord</c> is
         /// cleared by the binder on every §13.16.3 SR3/SR6/SR13 shape violation, so a bound-arm home would drop
-        /// the 0900 on exactly the declaration-error paths. The placement SRs stay bind-time (COBOLNET1549).</summary>
+        /// the 0900 on exactly the declaration-error paths. The placement SRs stay bind-time (COBOL1549).</summary>
         public override object? VisitConstantRecordClause(CobolParserCore.ConstantRecordClauseContext ctx)
         {
             if (InGatedDataEntry(ctx)) _p.Check(Constructs.ConstantRecord2002, "the CONSTANT RECORD clause");
@@ -1231,7 +1231,7 @@ internal sealed class VersionConformancePass
 
         /// <summary>The report-group VARYING clause (ISO §13.18.64; P10 Step 13) — a COBOL-2002 introduction
         /// (the repetition-counter half of the 2002 RW modernization). Recognition-based; report-section-exclusive
-        /// rule. The §13.18.64.3 SRs stay bind-time (COBOLNET1559).</summary>
+        /// rule. The §13.18.64.3 SRs stay bind-time (COBOL1559).</summary>
         public override object? VisitReportVaryingClause(CobolParserCore.ReportVaryingClauseContext ctx)
         {
             _p.Check(Constructs.ReportVarying2002, "the VARYING clause (report group description)");
@@ -1293,7 +1293,7 @@ internal sealed class VersionConformancePass
         /// clause loop (<c>lvl is 66 or 88</c> → continue), so a clause mis-attached to one was never gated; and
         /// (2) — the 14g.3-review correction (DEVLOG 736) — a report-group or screen-section entry, which reuse the
         /// SHARED <c>occursClause</c> rule (CobolReportWriter.g4 / CobolScreen.g4) but are bound by neither BindEntry
-        /// nor <c>OdoBindOccursSpec</c> (report groups → COBOLNET0899; screen sections are unbound), so a bare tree
+        /// nor <c>OdoBindOccursSpec</c> (report groups → COBOL0899; screen sections are unbound), so a bare tree
         /// walk over-fired OCCURS DYNAMIC there. A POSITIVE "inside a gated data entry" test reproduces the binder's
         /// exact reach; the four data-only clauses (BASED/TYPE/PROPERTY/TYPEDEF, never shared with report/screen)
         /// always satisfy it, so their behavior is unchanged.</summary>
@@ -1555,7 +1555,7 @@ internal sealed class VersionConformancePass
         /// clauses may follow the period directly): a 2002 relaxation — X3.23-1985 hung MEMORY SIZE / PROGRAM COLLATING
         /// SEQUENCE / SEGMENT-LIMIT off a REQUIRED computer-name (kb/Work PB78). The empty paragraph is legal at every
         /// edition; only a clause without a name is gated. CHARACTER CLASSIFICATION itself BINDS since kb/Work PB64 T5
-        /// (the A.4.9 locale module is implemented; the COBOLNET1518 non-support era is over).
+        /// (the A.4.9 locale module is implemented; the COBOL1518 non-support era is over).
         /// <para>⛔ THE ERROR PRODUCTION IS NO CLAUSE (kb/Work PB3373). A residue run the format does not print
         /// (<c>OBJECT-COMPUTER. "LIT".</c>) parses as an <c>objectComputerClause</c> whose one child is
         /// <c>unrecognizedClause</c>, which ClosedFormatPass refuses by name; counting it here added a false
@@ -1766,11 +1766,11 @@ internal sealed class VersionConformancePass
             // in the targeted edition? §14.9.18.2 is the ONE general format a method's GOBACK is written in, the
             // status phrase was added to it at 2023, and §14.9.18.3 SR6/SR7/SR8 carry no context qualifier at
             // all. Measured before the fix: `GOBACK WITH ERROR STATUS 5.` inside a method compiled clean at
-            // --std 2002 and --std 2014 while the byte-identical statement in a program drew COBOLNET0900.
+            // --std 2002 and --std 2014 while the byte-identical statement in a program drew COBOL0900.
             // ⛔ `.Length > 0`, NOT `is not null`: §14.9.18.2's tail is a CHOICE-INDICATOR group, so
             // gobackStatement carries `(raisingPhrase | statusPhrase)*` and ANTLR's accessor returns an ARRAY —
             // which is never null, so the null test fired this gate on EVERY GOBACK (kb/Work PB407; measured:
-            // a bare `GOBACK.` at --std 2002 drew COBOLNET0900 naming a phrase it did not write). STOP's own
+            // a bare `GOBACK.` at --std 2002 drew COBOL0900 naming a phrase it did not write). STOP's own
             // check above stays a null test because `stopStatement` still writes `(statusPhrase)?`.
             if (ctx.statusPhrase().Length > 0)
                 _p.Check(Constructs.GobackStatus2023, "the GOBACK … WITH NORMAL/ERROR STATUS phrase");
@@ -1881,7 +1881,7 @@ internal sealed class VersionConformancePass
         /// The five COBOL-85 words are ungated.
         /// <para>The gate is HERE and not in the grammar on purpose: a category-name slot can hold nothing but a
         /// category-name, so no user-defined word competes for it and there is nothing for a
-        /// <c>userWordHere</c> predicate to disambiguate — a named COBOLNET0900 that says which edition
+        /// <c>userWordHere</c> predicate to disambiguate — a named COBOL0900 that says which edition
         /// introduced the word beats the "no viable alternative" a grammar predicate would produce.</para></summary>
         public override object? VisitInitializeCategoryName(CobolParserCore.InitializeCategoryNameContext ctx)
         {
@@ -2171,16 +2171,16 @@ internal sealed class VersionConformancePass
         // (`st.FIRST()/st.LAST()`, `kp.startWithLength()`, `readDirection PREVIOUS`, `readAdvancingOnLock`), with
         // no file organization, access mode, USAGE or category anywhere in the decision. So the bound-tree home
         // bought no precision and cost the diagnostic on every path that bails out BEFORE the node is built.
-        // MEASURED at --std 85 before this move: `START NOSUCHF FIRST` → COBOLNET1639 alone; `START SDF FIRST`
-        // on an SD → COBOLNET1692 alone; `START IXF KEY = NOSUCHK WITH LENGTH 3` → COBOLNET1639 + the PB236
-        // deferral alone; `READ NOSUCHF PREVIOUS ADVANCING ON LOCK` → COBOLNET1639 alone. Four statements
+        // MEASURED at --std 85 before this move: `START NOSUCHF FIRST` → COBOL1639 alone; `START SDF FIRST`
+        // on an SD → COBOL1692 alone; `START IXF KEY = NOSUCHK WITH LENGTH 3` → COBOL1639 + the PB236
+        // deferral alone; `READ NOSUCHF PREVIOUS ADVANCING ON LOCK` → COBOL1639 alone. Four statements
         // naming a post-85 construct, four compilations that never named the edition.
         // The where-strings are byte-identical to the bound-arm sites they replace.
 
         /// <summary>The INVOKE statement (ISO §14.9.23) — a COBOL-2002 introduction. <c>invokeStatement</c> is a
         /// dedicated grammar rule reached from exactly one place (<c>StatementBinder</c> → <c>OoBindInvoke</c>),
         /// so presence IS the gate — and recognition fixes both halves of the bound arm's <c>case BoundInvoke</c>:
-        /// an INVOKE whose target resolves to neither a data item nor a class returns COBOLNET0823 before any
+        /// an INVOKE whose target resolves to neither a data item nor a class returns COBOL0823 before any
         /// node exists (it named no edition at --std 85), and <c>BoundInvoke</c> is equally the bound form of a
         /// PROPERTY get/set re-write and of NEW / SELF-NEW, which the where-string called "the INVOKE
         /// statement" (kb/Work PB353).</summary>
@@ -2192,7 +2192,7 @@ internal sealed class VersionConformancePass
         /// they parse at every edition, because §8.9 reserves the two verbs at COBOL-85 for the '85 communication
         /// module and at 2023 for this facility with a user-word gap between, so the reservation predicate they used to
         /// carry recognized the 2023 formats at --std 85 and compiled them under a warning naming the 2023 facility.
-        /// At 2023 the statement is accepted inert by the binder (COBOLNET1578).</summary>
+        /// At 2023 the statement is accepted inert by the binder (COBOL1578).</summary>
         public override object? VisitMcsReceiveStatement(CobolParserCore.McsReceiveStatementContext ctx)
         { _p.Check(Constructs.AsyncMessaging2023, "the RECEIVE statement (asynchronous messaging)"); return base.VisitChildren(ctx); }
 
@@ -2205,7 +2205,7 @@ internal sealed class VersionConformancePass
         /// <para>⛔ IT IS GATED ON RECOGNITION AND IT NOW CAN BE, which is the whole reason the row changed.
         /// The registry row used to read <c>inline-method-invocation-2023</c> and carried its own reason for
         /// staying PENDING: "the identifier(args) form has NO distinctive token (ambiguous with subscripting
-        /// and function-reference), so below 2023 it does not yield a distinct COBOLNET0900". That was true of
+        /// and function-reference), so below 2023 it does not yield a distinct COBOL0900". That was true of
         /// the misnamed shape the grammar had; the REAL construct is led by the §8.7.4 invocation operator
         /// <c>::</c>, which is unambiguous with everything — so a below-2002 inline invocation names the
         /// edition instead of failing as punctuation.</para>

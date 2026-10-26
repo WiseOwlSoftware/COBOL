@@ -44,7 +44,7 @@ public sealed class OoNameResolutionDriftTests
                 + "nodes are the names of already-built returning-item descriptors and class/interface symbols"),
         [Path.Combine("Binding", "Procedure", "Verbs", "OoBinder.cs")] =
             (4, "re-lookup of a receiver's/target's declared ObjectClassName (scope-checked at its data "
-                + "description entry, COBOLNET0813)"),
+                + "description entry, COBOL0813)"),
         [Path.Combine("Binding", "Procedure", "Verbs", "EcBinder.cs")] =
             (3, "the GOBACK §14.9.18.3 SR4 / EXIT §14.9.14.3 SR5 identifier check (RaisingObjectMismatch, kb/Work "
                 + "PB815/PB814): a) / c) the superclass walk from the operand's declared (or containing) class, "

@@ -71,7 +71,7 @@ public sealed class TierCRejectionTests
     /// identifier-1 only "an alphanumeric or national group item or an elementary item described implicitly or
     /// explicitly as usage display or national", and a variable-length group is neither of the two group kinds
     /// it names (§3.11 excludes it from "alphanumeric group item" by name). A SYNTAX rule, so a bind rejection
-    /// (COBOLNET1626) — the runtime Tier-C loud this used to assert was the binder admitting ANY group.</summary>
+    /// (COBOL1626) — the runtime Tier-C loud this used to assert was the binder admitting ANY group.</summary>
     [Fact] public void InspectGroup_BindRejected() => AssertBindRejected("    INSPECT WS-G REPLACING ALL \"A\" BY \"B\".");
     [Fact] public void StringIntoGroup_BindRejected() => AssertBindRejected("    STRING WS-SRC DELIMITED BY SIZE INTO WS-G.");
     [Fact] public void AcceptIntoGroup_BindRejected() => AssertBindRejected("    ACCEPT WS-G.");
@@ -86,7 +86,7 @@ public sealed class TierCRejectionTests
     /// shows from a BASED storage cell (D-SLOT; CONFORMANCE.md A.1 items 56 and 216).
     /// <para>⛔ THE GROUP IS A STRONG TYPEDEF, AND THAT IS FORCED BY THE STANDARD: §13.18.60.3 SR14 admits a
     /// POINTER usage only at level 1 or subordinate to a type declaration that includes the STRONG phrase
-    /// (COBOLNET1724 rejects the ordinary-group spelling). Do NOT relax that screen to simplify a fixture.</para>
+    /// (COBOL1724 rejects the ordinary-group spelling). Do NOT relax that screen to simplify a fixture.</para>
     /// <para>What stays refused is NOT this: comparison and every read-back ask the two-way capability, because
     /// the image is neither injective (an object leaf's placeholder) nor invertible (a pointer's token decodes to
     /// no reference) (<c>DataItem.TransferImageCapable</c>).</para></summary>

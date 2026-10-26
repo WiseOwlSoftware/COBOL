@@ -285,7 +285,7 @@ public sealed class PictureCategoryDriftTests
         string.Concat(picture.Select(c => c switch { '.' => ',', ',' => '.', _ => c }));
 
     private static string Fingerprint(PicInfo pic, string[] diagnostics) =>
-        string.Join(" ", diagnostics.Select(d => System.Text.RegularExpressions.Regex.Match(d, @"COBOLNET\d+").Value).Order())
+        string.Join(" ", diagnostics.Select(d => System.Text.RegularExpressions.Regex.Match(d, @"COBOL\d+").Value).Order())
         + $"|{pic.Category}|{pic.Length}|{pic.Digits}|{pic.Signed}|{pic.IsFloatEdited}";
 
     /// <summary>The floating-point and sign-bearing shapes a short walk over the plain alphabet cannot spell.</summary>

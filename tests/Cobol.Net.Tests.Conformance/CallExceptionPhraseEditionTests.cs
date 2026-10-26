@@ -10,7 +10,7 @@ namespace CobolNet.Tests.Conformance;
 /// CCVS-85 IC222A exercises both phrases: "'ON OVERFLOW' CAN BE USED IN PLACE OF 'ON EXCEPTION'"), valid at
 /// EVERY edition; <c>ON OVERFLOW</c> is the COBOL-74-carried synonym, valid 85–2014 and REMOVED at 2023
 /// (ISO/IEC 1989:2023 Annex E.2 item 1c — "ON OVERFLOW phrase of the CALL statement … ON EXCEPTION gives the
-/// same result"). The pre-fix COBOLNET0881 gate (ON EXCEPTION rejected below 2002) was a mis-derived
+/// same result"). The pre-fix COBOL0881 gate (ON EXCEPTION rejected below 2002) was a mis-derived
 /// introduction edge — no VERSION_CHANGE_REFERENCE row records a 2002 introduction.
 /// </summary>
 public sealed class CallExceptionPhraseEditionTests
@@ -86,12 +86,12 @@ public sealed class CallExceptionPhraseEditionTests
     }
 
     /// <summary>ON OVERFLOW is REMOVED at 2023 (Annex E.2 item 1c; VERSION_CHANGE_REFERENCE row 3) — rejected
-    /// with the targeted COBOLNET0882 diagnostic naming the removal and the fix.</summary>
+    /// with the targeted COBOL0882 diagnostic naming the removal and the fix.</summary>
     [Fact]
     public void OnOverflow_Rejected0882At2023()
     {
         var (ok, diags) = EditionHarness.Compile(CallWith("ON OVERFLOW MOVE \"F\" TO WS-F"), 2023);
         Assert.False(ok, "CALL … ON OVERFLOW must be rejected at --std 2023 (Annex E.2 item 1c)");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0882");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOL0882");
     }
 }

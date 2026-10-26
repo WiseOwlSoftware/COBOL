@@ -38,7 +38,7 @@ using Core = CobolParserCore;
 /// materialized into §14.9.25.4 GR1's intermediate result item (kb/Work PB394), a <b>condition</b> subject's
 /// TRUTH value into a one-position boolean intermediate (§14.9.13.4 GR3 e, kb/Work PB842 / PB912), and a
 /// partial-expression object splices that one value in rather than re-binding the subject — so the statement
-/// hoist is EXACT for every subject, and the narrowed COBOLNET1509 residue stage was deleted with its last
+/// hoist is EXACT for every subject, and the narrowed COBOL1509 residue stage was deleted with its last
 /// two callers.
 /// Emission is
 /// 100% existing surface:
@@ -91,7 +91,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
 
         if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(name, out var fn))
         {
-            ctx.Edition.Error("COBOLNET1505",
+            ctx.Edition.Error("COBOL1505",
                 $"FUNCTION {name.ToUpperInvariant()} is declared in the REPOSITORY paragraph but the compilation "
                 + "group contains neither a FUNCTION-ID definition specified BEFORE this source element nor a "
                 + "FUNCTION-ID … IS PROTOTYPE for it (ISO §12.3.8.4 GR11 a) / b): a definition that follows this "
@@ -119,13 +119,13 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition, Constructs.UserFunctionInvocation2002,
             $"FUNCTION {name.ToUpperInvariant()}");
         // The mandatory `[TO] function-prototype-name-1` operand (§13.18.60.2, unbracketed) is screened at the
-        // declaration (COBOLNET1958); an item missing it has already been reported, so there is no prototype to
+        // declaration (COBOL1958); an item missing it has already been reported, so there is no prototype to
         // take GR4's characteristics from and nothing further to say here.
         if (pointer.Item.Pic?.RestrictedPrototypeName is not { } proto)
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(proto, out var fn))
         {
-            ctx.Edition.Error("COBOLNET1505",
+            ctx.Edition.Error("COBOL1505",
                 $"FUNCTION {name.ToUpperInvariant()}: function-pointer '{name}' is restricted to function-prototype "
                 + $"'{proto.ToUpperInvariant()}', but the compilation group contains neither a FUNCTION-ID "
                 + "definition specified before this source element nor a FUNCTION-ID … IS PROTOTYPE for it (ISO "
@@ -145,7 +145,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         IReadOnlyList<Core.FunctionArgumentContext> argCtxs, BoundFieldOperand? pointer)
     {
         if (fn.Returning is null)
-            // Ill-formed function definition — COBOLNET1507 already reported once at the unit.
+            // Ill-formed function definition — COBOL1507 already reported once at the unit.
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} RETURNING");
 
         // ⛔ THE RESULT TEMPORARY HAS NO CATEGORY RESTRICTION (§8.4.3.2.4 GR1 — the temp's "description, class, and
@@ -158,7 +158,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // dispatch, DISPLAY rendering, the boolean-expression channel and the LENGTH fold), and the CALL-ABI
         // RETURNING delivery (CallEmitter.CrossingOf / CobolArgAdapt.StoreReturn) places the value by the
         // receiver's own crossing form. A list of "named residues" stood here until PB1419 and refused whole
-        // categories of legal source as COBOLNET1510; the CALL path the activation shares had long since
+        // categories of legal source as COBOL1510; the CALL path the activation shares had long since
         // learned every one of them.
 
         // Arguments: one typed operand per argument parse tree, through the SAME BindArgOperand the intrinsic
@@ -181,7 +181,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // missing trailing slot as the omitted carrier (§8.4.3.2.4 GR7), exactly as they do for CALL.
         if (operands.Count > fn.Formals.Count || fn.Formals.Skip(operands.Count).Any(f => !f.Optional))
         {
-            ctx.Edition.Error("COBOLNET1506",
+            ctx.Edition.Error("COBOL1506",
                 $"FUNCTION {name.ToUpperInvariant()} takes {fn.Formals.Count} argument(s); {operands.Count} "
                 + "given — arguments correspond positionally to the function's PROCEDURE DIVISION USING "
                 + "formals, and only trailing OPTIONAL formals may be omitted (ISO §14.8.2.1)");
@@ -227,7 +227,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             if (formal.ByValue && ParameterConformance.ValueArgumentClass(operand)
                     is { } cls and not (CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer))
             {
-                ctx.Edition.Error("COBOLNET1554",
+                ctx.Edition.Error("COBOL1554",
                     $"FUNCTION {name.ToUpperInvariant()} argument {i + 1} is of class "
                     + $"{IntrinsicArgumentRules.ClassNameOf(operand, cls)}; an argument passed to a BY VALUE formal parameter "
                     + "shall be of class numeric, object, or pointer (ISO §8.4.3.2.3 SR10)");
@@ -242,7 +242,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
                     ? err.Feature
                     : "this argument form (ISO §8.4.3.2.3 SR8 admits an identifier, a literal, a boolean "
                       + "expression, or an arithmetic expression)";
-                ctx.Edition.Error("COBOLNET1506",
+                ctx.Edition.Error("COBOL1506",
                     $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: {what} is not yet supported for "
                     + "user-defined function activation");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} argument {i + 1}");
@@ -455,7 +455,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// hoist never double-activates it; no pending growth returns the expression unchanged, so the UDF-free
     /// path costs nothing and the generated source is byte-identical.
     /// <para>⛔ IT REPLACED A REFUSAL, NOT A SILENCE (kb/Work PB437). These two operand positions used to call
-    /// the (since deleted) narrowed residue stage and REJECT the program (COBOLNET1509) while the adjacent
+    /// the (since deleted) narrowed residue stage and REJECT the program (COBOL1509) while the adjacent
     /// first-level FROM and the UNTIL condition accepted the same construct — a capability limit shipped as a
     /// diagnostic, pinned green by two tests. The carrier the condition already used is what the augment and
     /// re-initialization sites needed too.</para></summary>
@@ -477,7 +477,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // means "return from this function", and the prototype's procedure division is one.
         if (ctx.Enclosing.SourceElement is not (SourceElementKind.FunctionDefinition or SourceElementKind.FunctionPrototype))
         {
-            return BoundRejected.Report(ctx.Edition, "COBOLNET0827",
+            return BoundRejected.Report(ctx.Edition, "COBOL0827",
                 "EXIT FUNCTION may be specified only in a function definition (the pre-2023 §14.9.14 "
                 + "function form of the EXIT statement; this is not a function procedure division)");
         }

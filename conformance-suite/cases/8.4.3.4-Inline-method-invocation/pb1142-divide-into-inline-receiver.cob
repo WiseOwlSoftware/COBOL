@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1142 - ISO 8.4.3.4.3 SR1: "Inline method invocation shall not be specified as a
       *> receiving operand." DIVIDE Format 1 (14.9.12.2) prints INTO {identifier-2 [rounded-phrase]}, a
-      *> RECEIVER, so an inline invocation there is illegal (COBOLNET1689). The per-verb Format-1 screen
+      *> RECEIVER, so an inline invocation there is illegal (COBOL1689). The per-verb Format-1 screen
       *> enumerated literal and function-identifier only; the invocation fell through with no receiver
       *> and the emitter CRASHED (InvalidOperationException: Sequence contains no elements). The same
       *> statement with GIVING is Format 2 and legal (2002/pb1142_arithmetic_identifier_operands).

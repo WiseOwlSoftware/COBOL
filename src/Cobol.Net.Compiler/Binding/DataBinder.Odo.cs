@@ -129,7 +129,7 @@ public sealed partial class DataBinder
     /// otherwise specified by the rules of that format" — in that order. A repeated FROM used to bind its last value
     /// in silence.</item>
     /// </list>
-    /// Each violation is COBOLNET2789; the entry still binds (under the failed compile) so its other clauses are
+    /// Each violation is COBOL2789; the entry still binds (under the failed compile) so its other clauses are
     /// checked.</summary>
     private static readonly string[] Format4PhraseNames = ["CAPACITY IN", "FROM", "TO", "INITIALIZED"];
 
@@ -220,7 +220,7 @@ public sealed partial class DataBinder
     /// the entry containing the OCCURS clause. Subsequent specification of data-name-2 shall be subordinate to the
     /// entry containing the OCCURS clause"), narrowed by the WRITTEN qualifiers through the ONE §8.4.2.2 matcher and
     /// counted by the ONE ambiguity verdict (§8.4.2.2.3 SR1). A key that identifies nothing there is SR3's error,
-    /// COBOLNET2353 — it used to be reported by nobody: an unknown key compiled clean and the table SORT then
+    /// COBOL2353 — it used to be reported by nobody: an unknown key compiled clean and the table SORT then
     /// quietly did nothing. The subtree walk, not the name index, because a TYPEDEF clone's members are off the
     /// index and each clone must bind its OWN key (§13.18.58.4 GR1), exactly as its DEPENDING ON does.</para></summary>
     internal void OccursKeyResolve()
@@ -351,14 +351,14 @@ public sealed partial class DataBinder
             // description is PLACED (§8.4.2.2.1 rule 5: the groups superordinate to the subject): a name the declaration
             // and the program do not define may be a sibling of the use site, and an unused library type whose counter
             // each user supplies is legal source. A name the declaration does not define is therefore NOT an error here — the clone
-            // that places it reports it (COBOLNET0851) — and the rules that read the PLACEMENT (SR18/SR21's GLOBAL and
+            // that places it reports it (COBOL0851) — and the rules that read the PLACEMENT (SR18/SR21's GLOBAL and
             // EXTERNAL attributes of the record, SR20's range across the records of one storage area) are the clone's to
             // ask; SR20 and SR22 over the declaration's own entries are asked here.
             bool declaration = InTypeDeclaration(item);
 
             // SR16: 0 ≤ integer-1 < integer-2.
             if (spec.Min < 0 || spec.Min >= spec.Max)
-                Edition.Error("COBOLNET0850", $"OCCURS {spec.Min} TO {spec.Max} on '{subject}': integer-1 shall "
+                Edition.Error("COBOL0850", $"OCCURS {spec.Min} TO {spec.Max} on '{subject}': integer-1 shall "
                     + "be greater than or equal to zero and less than integer-2 (ISO §13.18.38.3 SR16)");
 
             // data-name-1 resolution. A counter under a group the table is ALSO subordinate to is found first:
@@ -382,7 +382,7 @@ public sealed partial class DataBinder
             // A declaration's counter is judged here only when the DECLARATION defines it: an item of the same name
             // elsewhere in the program is not where a use site will find it (§8.4.2.2.1 rule 5 qualifies from the
             // placement), so neither its ambiguity nor its SR17 category is a fact of the declaration (train 1055
-            // review: an unused template beside two unrelated CNTs drew COBOLNET1639).
+            // review: an unused template beside two unrelated CNTs drew COBOL1639).
             if (declaration) tier = tier.Where(c => ReferenceEquals(c.Root, item.Root));
 
             // ⛔ EVERY RULE FROM HERE DOWN IS A FACT OF THE PLACEMENT (kb/Work PB1629): the counter is found from where the
@@ -406,7 +406,7 @@ public sealed partial class DataBinder
                 // A name the report section declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars this clause, of a
                 // section other than the report section, from referring to a report item.
                 if (ReportEntryReferenceRefused($"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers)) continue;
-                Edition.Error("COBOLNET0851", $"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
+                Edition.Error("COBOL0851", $"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
                     + (spec.DependingQualifiers.Count > 0
                         ? "is not defined under the given qualifiers (ISO §8.4.2.2.1: uniqueness shall be established "
                           + "through qualification)"
@@ -429,7 +429,7 @@ public sealed partial class DataBinder
             // group data-name-1 that contains its table (DEPENDING ON the record that holds it) therefore resolved
             // itself without end: the binder died of a stack overflow before these diagnostics reached the user. An
             // integer is elementary, so a recorded link never leads back into a group, and the refused link leaves
-            // the table where an undefined data-name-1 leaves it (COBOLNET0851): Depending unset, the compile failed.
+            // the table where an undefined data-name-1 leaves it (COBOL0851): Depending unset, the compile failed.
             // The predicates are facts of the entries, so a TYPE declaration and its clone refuse the same link even
             // where only one of them REPORTS the fault (DeclarationFact).
             bool notInteger = dep.Pic is not { IsIntegerDescription: true };
@@ -440,7 +440,7 @@ public sealed partial class DataBinder
             // SR17: data-name-1 shall describe an integer — §5.5 2) b) 2., so a trailing-P PIC 99P is one (an index
             // item is NOT an integer data item).
             if (notInteger && !DeclarationFact(dep))
-                Edition.Error("COBOLNET0852", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': data-name-1 "
+                Edition.Error("COBOL0852", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': data-name-1 "
                     + "shall describe an integer (ISO §13.18.38.3 SR17)" + via);
 
             // SR18 / SR21 (kb/Work PB1261): data-name-1 must share the table record's SCOPE and RESIDENCE attributes,
@@ -459,7 +459,7 @@ public sealed partial class DataBinder
             // DataItem.SubscriptArity (a walk written nowhere else: SubscriptAdmissionDriftTests); the fault involves
             // data-name-1 and the innermost table that makes it subscripted.
             if (subscripted && !DeclarationFact(dep, dep.SubscriptLevels()[^1]))
-                Edition.Error("COBOLNET0853", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
+                Edition.Error("COBOL0853", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not be subscripted (ISO §13.18.38.3 SR2)" + via);
 
             // SR1(b)/SR10: "complex ODO" is illegal at every edition — tables may be nested only when the
@@ -467,7 +467,7 @@ public sealed partial class DataBinder
             // nearest enclosing table (DYNAMIC included — `Occurs is not null` let an ODO table nest under OCCURS
             // DYNAMIC, kb/Work PB1260) is the last of the parent's subscript levels.
             if (item.Parent is { SubscriptArity: > 0 } enclosing && !DeclarationFact(enclosing.SubscriptLevels()[^1]))
-                Edition.Error("COBOLNET0854", $"occurs-depending table '{subject}' is subordinate to the "
+                Edition.Error("COBOL0854", $"occurs-depending table '{subject}' is subordinate to the "
                     + $"OCCURS item '{enclosing.SubscriptLevels()[^1].CobolName}': tables may be nested only when the "
                     + "DEPENDING phrase is "
                     + "absent (ISO §13.18.38.3 SR1(b)/SR10)" + via);
@@ -485,7 +485,7 @@ public sealed partial class DataBinder
                     if (item.IsCopiedUnder(placedAt) && a.IsCopiedUnder(placedAt) && a.ClonedFrom is { } source
                         && InRedefinesArea(source))
                         continue;
-                    Edition.Error("COBOLNET0855", $"occurs-depending table '{subject}' lies within a REDEFINES "
+                    Edition.Error("COBOL0855", $"occurs-depending table '{subject}' lies within a REDEFINES "
                         + "area: neither the original nor a redefinition may include an OCCURS DEPENDING ON "
                         + "table (ISO §13.18.44.3 SR5)" + via);
                     break;
@@ -501,7 +501,7 @@ public sealed partial class DataBinder
                     // Followed inside the copy (the table and its follower are both copied members): the declaration's
                     // fact, reported there. The climb goes on, for the entries above the copy are the placement's.
                     if (DeclarationFact(n)) continue;
-                    Edition.Error("COBOLNET0856", $"occurs-depending table '{subject}' is followed by a "
+                    Edition.Error("COBOL0856", $"occurs-depending table '{subject}' is followed by a "
                         + "non-subordinate entry in its record: the subject of an OCCURS DEPENDING ON entry may "
                         + "be followed, within that record, only by data items subordinate to it "
                         + "(ISO §13.18.38.3 SR22)" + via);
@@ -513,7 +513,7 @@ public sealed partial class DataBinder
             // first byte position defined by the data description entry containing the OCCURS clause and the last
             // byte position defined by the record description entry containing that OCCURS clause."
             if (inTableRange && !DeclarationFact(dep))
-                Edition.Error("COBOLNET0857", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
+                Edition.Error("COBOL0857", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not occupy a byte position within the range from the table's first byte "
                     + "position to the last byte position of its record (ISO §13.18.38.3 SR20)"
                     + (ReferenceEquals(dep.Root, item.Root) ? ""
@@ -611,7 +611,7 @@ public sealed partial class DataBinder
     /// <see cref="ReferenceResolver"/> can build a <see cref="CapacityRegisterPlace"/>. The register is NOT a stored
     /// field (no <c>FieldEmitter</c> entry): its value IS the runtime <c>CobolDynTable&lt;T&gt;.Capacity</c>. A
     /// register-name that duplicates an explicit data-name (or another table's register) violates the
-    /// implicit-definition rule → COBOLNET1523. Placement/declaration guards: SR28 FROM ≤ TO (1522); the FILE
+    /// implicit-definition rule → COBOL1523. Placement/declaration guards: SR28 FROM ≤ TO (1522); the FILE
     /// SECTION prohibition §8.5.1.9.1 (1526).
     /// <para>⛔ A FORMAT 1 VALUE ON OR UNDER A DYNAMIC ENTRY IS NOT THIS PASS'S BUSINESS — see the note below the
     /// SR28 guard. It carries no capacity derivation to stage, so there is nothing here to guard (kb/Work
@@ -639,14 +639,14 @@ public sealed partial class DataBinder
             if (fileRecordRoots.Contains(root))
             {
                 using var __ = Edition.At(item.ReferenceSite);
-                Edition.Error("COBOLNET1526", $"OCCURS DYNAMIC on '{subject}': a dynamic-capacity table shall not be "
+                Edition.Error("COBOL1526", $"OCCURS DYNAMIC on '{subject}': a dynamic-capacity table shall not be "
                     + "defined in the FILE SECTION (ISO §8.5.1.9.1)" + ViaReference(item));
             }
 
             // SR28 (:19987): integer-4 (FROM) shall be nonnegative and integer-5 (TO), if both present, shall be
             // GREATER THAN integer-4. (FROM<0 cannot be written — the grammar takes an unsigned integerLiteral.)
             if (spec.InitialCap is { } from && spec.ExpectedMax is { } to && to <= from)
-                Edition.Error("COBOLNET1522", $"OCCURS DYNAMIC FROM {from} TO {to} on '{subject}': the expected "
+                Edition.Error("COBOL1522", $"OCCURS DYNAMIC FROM {from} TO {to} on '{subject}': the expected "
                     + $"capacity (TO integer-5) shall be greater than the minimum capacity (FROM integer-4) "
                     + "(ISO §13.18.38.3 SR28)");
 
@@ -659,7 +659,7 @@ public sealed partial class DataBinder
             //    LOOKS LIKE ONE DOES NOT REACH IT (kb/Work PB500 — this is the SECOND arm of the same two-arm
             //    dispatch the fixed-capacity lane already got right).
             //
-            //    A COBOLNET1528 refusal stood here, citing §13.18.63.4 GR16 ("If an OCCURS clause with the DYNAMIC
+            //    A COBOL1528 refusal stood here, citing §13.18.63.4 GR16 ("If an OCCURS clause with the DYNAMIC
             //    phrase is specified in the same entry as the VALUE clause, or in any entry superordinate to it,
             //    the initial capacity of the associated dynamic-capacity table is calculated according to the
             //    following subrules") and reading its subrule (b) ("If no TO phrase is specified in the VALUE
@@ -756,7 +756,7 @@ public sealed partial class DataBinder
                 || (registers.TryGetValue(capName, out var sameName)
                     && !sameName.TrueForAll(t => ReferenceEquals(t.WrittenDefinition, item.WrittenDefinition))))
             {
-                Edition.Error("COBOLNET1523", $"CAPACITY IN '{capName}' on '{subject}': data-name-3 is implicitly "
+                Edition.Error("COBOL1523", $"CAPACITY IN '{capName}' on '{subject}': data-name-3 is implicitly "
                     + "defined by the OCCURS DYNAMIC entry and shall not duplicate another data-name or "
                     + "CAPACITY register (ISO §13.18.38.3 SR30)");
                 continue;

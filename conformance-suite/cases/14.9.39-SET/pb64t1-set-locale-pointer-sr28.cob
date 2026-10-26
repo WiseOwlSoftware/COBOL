@@ -6,8 +6,8 @@
 *>---
       *> ISO 14.9.39.3 SR28: "Identifier-11 shall reference an elementary data item of category data-pointer." The
       *> save-locale form (Format 12) places a saved-locale HANDLE into the pointer (14.9.39.4 GR26; DESIGN-locale-facility
-      *> L4) - an alphanumeric receiver cannot hold it. COBOLNET1668 (kb/Work PB64 T1; this fixture was PB92's
-      *> documented-non-support refusal of the whole format, COBOLNET1518, until T1 implemented it).
+      *> L4) - an alphanumeric receiver cannot hold it. COBOL1668 (kb/Work PB64 T1; this fixture was PB92's
+      *> documented-non-support refusal of the whole format, COBOL1518, until T1 implemented it).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB64T1SR28.
        DATA DIVISION.

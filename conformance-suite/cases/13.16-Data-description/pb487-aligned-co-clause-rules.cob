@@ -8,11 +8,11 @@
       *> rule and the vendor catch-all swallowed the word.
       *> SR18: "If a DYNAMIC LENGTH clause is specified, the only other clauses permitted are level-number,
       *> entry-name, PICTURE, USAGE, and VALUE."  ALIGNED is not among them, so entry A violates SR18
-      *> (COBOLNET1563) and, separately, 13.18.1.3 SR1 (COBOLNET1942 - an alphanumeric elementary item is
+      *> (COBOL1563) and, separately, 13.18.1.3 SR1 (COBOL1942 - an alphanumeric elementary item is
       *> neither a bit group item nor an elementary bit data item).
       *> SR12: "The SAME AS clause shall not be specified in the same data description entry with any clauses
       *> except CONSTANT RECORD, entry-name, EXTERNAL, GLOBAL, level-number, and OCCURS."  ALIGNED is not among
-      *> them either, so entry C violates SR12 (COBOLNET1555) and SR1 again.
+      *> them either, so entry C violates SR12 (COBOL1555) and SR1 again.
       *> Both rules were `||` chains over whichever decode flags the author remembered - SR12's could not see
       *> ALIGNED, DYNAMIC LENGTH, GROUP-USAGE, PROPERTY, SELECT WHEN or the validation clauses, and SR18's was
       *> short of four more.  They now read ONE clause-presence SET taken from the parse tree, with

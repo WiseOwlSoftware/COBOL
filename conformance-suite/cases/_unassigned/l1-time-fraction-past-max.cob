@@ -11,7 +11,7 @@
       *> fraction of 19 digit positions therefore exceeds the maximum, so the operand is NOT a
       *> time format at all — and §15.41.3 r2 requires that "The content of argument-1 shall be a
       *> time format". The violation is a syntax rule on a literal argument, so it is diagnosed
-      *> at COMPILE time (COBOLNET1631) rather than fabricating a value at run time.
+      *> at COMPILE time (COBOL1631) rather than fabricating a value at run time.
       *> This is the upper half of the pair whose lower half is
       *> conformance:cases/A.1-Implementor-defined-language-element-list/l1_time_fraction_max_digits (18 accepted); together they pin the
       *> documented maximum at exactly 18.

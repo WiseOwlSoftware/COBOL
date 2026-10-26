@@ -45,7 +45,7 @@ public static class CompilerDriver
     /// "An implementation shall provide a warning mechanism that optionally may be invoked by the user at compile time
     /// to indicate use of a nonstandard extension in a compilation group". When set, every use of a syntactically
     /// distinguishable extension of the register (<see cref="Editions.NonstandardExtensionRegister"/>) is named by a
-    /// COBOLNET2894 warning. Orthogonal to <paramref name="DialectLevel"/> and <paramref name="Permissive"/>.</param>
+    /// COBOL2894 warning. Orthogonal to <paramref name="DialectLevel"/> and <paramref name="Permissive"/>.</param>
     /// <param name="NumericDisplay">The form DISPLAY gives a numeric operand (CLI <c>--numeric-display</c>; kb/Work
     /// PB3505, owner decision PB3467). ISO §14.9.11.4 GR1 leaves the device conversion to the implementor (Annex A.1
     /// item 56): the default is <see cref="Binding.NumericDisplayForm.Decimal"/> (the decimal point and a leading

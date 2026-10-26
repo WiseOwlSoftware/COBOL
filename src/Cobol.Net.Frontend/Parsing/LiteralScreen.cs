@@ -16,17 +16,17 @@ namespace CobolNet.Frontend.Parsing;
 /// <list type="bullet">
 /// <item>the LENGTH rule — §8.3.3.2.3 SR1 (alphanumeric, both formats), §8.3.3.4.3 SR1 (boolean, both formats),
 /// §8.3.3.5.3 SR1 (national, both formats): at most 8,191 character positions of the literal's class, 160 below COBOL-2014
-/// (<see cref="CobolLiteral.LengthViolation"/> → <c>COBOLNET0814</c>; the bound is the edition's, <see cref="CobolLiteral.MaxPositions"/>, kb/Work PB1615);</item>
+/// (<see cref="CobolLiteral.LengthViolation"/> → <c>COBOL0814</c>; the bound is the edition's, <see cref="CobolLiteral.MaxPositions"/>, kb/Work PB1615);</item>
 /// <item>the hexadecimal GROUPING rule — §8.3.3.2.3 SR6 (<c>X"…"</c>, pairs) and §8.3.3.5.3 SR5 (<c>NX"…"</c>, groups
 /// of four); a <c>BX"…"</c> literal has none (<see cref="CobolLiteral.HexGroupViolation"/> →
-/// <c>COBOLNET1635</c>);</item>
+/// <c>COBOL1635</c>);</item>
 /// <item>the content REPERTOIRE rule of the prefixed formats — §8.3.3.2.3 SR5 (<c>X"…"</c>) and §8.3.3.5.3 SR4
 /// (<c>NX"…"</c>) hexadecimal digits, §8.3.3.4.3 SR3 (<c>BX"…"</c>) a hexadecimal digit, §8.3.3.4.3 SR2
-/// (<c>B"…"</c>) '0' or '1' (<see cref="CobolLiteral.RepertoireViolation"/> → <c>COBOLNET2630</c>). The lexer delimits
+/// (<c>B"…"</c>) '0' or '1' (<see cref="CobolLiteral.RepertoireViolation"/> → <c>COBOL2630</c>). The lexer delimits
 /// a prefixed literal whatever its content (kb/Work PB1441), so this screen is the only place the rule is asked.</item>
 /// <item>the SIGN rule — §8.3.3.3.2 2), a numeric literal's sign is its leftmost character — over the two grammar
 /// rules that parse a sign as a separate token (<c>signedNumericLiteral</c>, <c>signedIntegerLiteral</c>): a sign
-/// separated from its digits is refused (<c>COBOLNET2155</c>; kb/Work PB1445). Not a token rule, but a rule of the
+/// separated from its digits is refused (<c>COBOL2155</c>; kb/Work PB1445). Not a token rule, but a rule of the
 /// literal as written, so it rides the same walk and every future signed slot is screened with no arm.</item>
 /// </list>
 /// </summary>
@@ -45,7 +45,7 @@ namespace CobolNet.Frontend.Parsing;
 /// lives HERE, in the frontend, below both lanes — the compiler's <c>BinderDriver</c> calls <see cref="Run"/> on the
 /// unit's tree, the conditional-compilation stage on each directive fragment's tree — the same arrangement as
 /// <see cref="CobolNet.Frontend.Expressions.BooleanOperatorGate"/> (kb/Work PB1370), and for the same reason. The
-/// directive lane reported these literals as the evaluator's COBOLNET1619 only along the path it evaluated, so an
+/// directive lane reported these literals as the evaluator's COBOL1619 only along the path it evaluated, so an
 /// omitted branch, a short-circuited operand and the edition gates of the literal's format escaped; one walk of every
 /// parsed fragment closes all three.</para>
 /// <para>⚠ A SUBSCRIPT LIST AND A KEYWORD-OMITTED ARGUMENT LIST ARE PART OF THIS TREE. Since kb/Work PB2113 the tokens

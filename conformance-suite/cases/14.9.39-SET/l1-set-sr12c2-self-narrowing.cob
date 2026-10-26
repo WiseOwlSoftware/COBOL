@@ -26,7 +26,7 @@
       *> object-reference data items are COBOL-2002 constructs; the
       *> rule itself carries no edition condition.
       *> WHY THE .err ASSERTS THE RULE TAG AND NOT THE BARE CODE.
-      *> COBOLNET0867 is emitted from seven distinct sites in the
+      *> COBOL0867 is emitted from seven distinct sites in the
       *> object-reference SET binder, so a bare code cannot say
       *> WHICH of the format-5 obligations rejected the program --
       *> a shipped negative already asserts that bare code for

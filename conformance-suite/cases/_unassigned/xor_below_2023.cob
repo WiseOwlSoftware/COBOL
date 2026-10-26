@@ -8,7 +8,7 @@
       *> (DESIGN-version-conformance-pipeline.md): the parse-time {is2023()}? predicate AND the reverse-signature
       *> ReservedWordEditionHints arm are GONE — XOR parses at all editions (superset) and the introduction gate is
       *> enforced at BIND (BindXorSequence -> Check(LogicalXorOperator2023)) only when the operator is genuinely
-      *> present, so below 2023 it is an exact COBOLNET0900. (XOR as a data-NAME stays a legal user word below 2023.)
+      *> present, so below 2023 it is an exact COBOL0900. (XOR as a data-NAME stays a legal user word below 2023.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. XRB.
        DATA DIVISION.

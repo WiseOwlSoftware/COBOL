@@ -22,7 +22,7 @@ namespace CobolNet.Tests.Conformance;
 /// <para><b>Both directions are pinned here, because the fix is only correct if it moves the VALUE without
 /// moving the DIAGNOSTIC.</b> §14.9.25.3 SR5/SR6/SR7 are SYNTAX rules over a closed list of figurative constants
 /// WRITTEN in the source, and a zero-length literal is not one of them: <c>MOVE "" TO PIC 9(3)</c> must still
-/// compile at every edition (where <c>MOVE SPACE TO PIC 9(3)</c> is COBOLNET0819, kb/Work PB3605), and <c>MOVE B"" TO PIC 9(3)</c>
+/// compile at every edition (where <c>MOVE SPACE TO PIC 9(3)</c> is COBOL0819, kb/Work PB3605), and <c>MOVE B"" TO PIC 9(3)</c>
 /// must still be refused on the BOOLEAN row of Table 16 rather than accepted as figurative ZERO.</para>
 /// </summary>
 public sealed class ZeroLengthLiteralMoveTests
@@ -299,7 +299,7 @@ public sealed class ZeroLengthLiteralMoveTests
             + string.Join("\n", zl.Diagnostics));
         var fig = EditionHarness.Compile(Prog("ZLM09", "01 R-NUM PIC 9(3) VALUE 123.", "MOVE SPACE TO R-NUM."), edition);
         Assert.False(fig.Ok, "the WRITTEN figurative SPACE is refused by §14.9.25.3 SR5 at every edition");
-        EditionHarness.AssertHasDiagnostic(fig.Diagnostics, "COBOLNET0819");
+        EditionHarness.AssertHasDiagnostic(fig.Diagnostics, "COBOL0819");
         EditionHarness.AssertHasDiagnostic(fig.Diagnostics, "§14.9.25.3 SR5");
     }
 
@@ -315,7 +315,7 @@ public sealed class ZeroLengthLiteralMoveTests
     {
         var (ok, diagnostics) = EditionHarness.Compile(Prog(pid, ws, proc), 2014);
         Assert.False(ok, "the zero-length literal's OWN category decides Table 16 (ISO §14.9.25.3 SR10)");
-        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOLNET0819");
+        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOL0819");
     }
 
     // ── GR1 IS ONE STATEMENT WITH GR2/GR3 — for EVERY receiver the rule's set contains (kb/Work PB943) ──────────

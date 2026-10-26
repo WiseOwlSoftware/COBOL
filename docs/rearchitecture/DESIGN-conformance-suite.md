@@ -370,7 +370,7 @@ conformance-suite/
 
 - **Four physical copies** (each inherited test copied into every later edition's folder): four copies drift, and a
   hand-maintained duplicate is what CLAUDE.md rules 4 and 5 forbid.
-- **Keep today's layout and run forward**: cheapest, but the tests stay WiseOwl-specific (COBOLNET codes, the xUnit
+- **Keep today's layout and run forward**: cheapest, but the tests stay WiseOwl-specific (COBOL#### codes, the xUnit
   harness), so no other compiler could run them.
 - **A separate repository**: every compiler fix would become a two-repository change.
 - **A .NET harness**: does not run on z/OS.

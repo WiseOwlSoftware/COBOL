@@ -19,7 +19,7 @@
       *> matches both; rule 5 still requires the explicit qualifier (A
       *> or B) that would establish uniqueness within G, and none is
       *> written.  No other exemption (rules 1-4, 6) applies.
-      *> Expected: COBOLNET1639 (undefined-reference: "an unqualified
+      *> Expected: COBOL1639 (undefined-reference: "an unqualified
       *> ambiguity leaves [the name] unidentified").
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1M7IQX.

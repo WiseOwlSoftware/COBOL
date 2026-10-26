@@ -169,7 +169,7 @@ same-type test. The layout itself (length field, GR19's binary-zero delimiter) i
 materialized: §8.5.1.10.3 leaves the item's location to the implementor, and no WiseOwl COBOL operation gives the item a
 byte image a program can address (a variable-length group has no fixed record window — the record-area image of
 one is the loud `TierCIsland` stage). A physical-structure-name is an implementor set WiseOwl COBOL leaves EMPTY
-(§12.3.7.3 SR32; determination D-DL3 in `docs/CONFORMANCE.md` §3), refused as COBOLNET2257.
+(§12.3.7.3 SR32; determination D-DL3 in `docs/CONFORMANCE.md` §3), refused as COBOL2257.
 
 **Key rule (unifies invariant #1 + #2):** `CharImage` is the ONE case that subsumes *every* string-stored leaf,
 including a numeric-DISPLAY leaf promoted by whole-group use and an image-stored Tier-B binary/packed view. The
@@ -298,7 +298,7 @@ build; there was a predicate that stopped short.
      staged-loud arm). "Variable-length group" is §8.5.1.12.1's defined term — a group with a dynamic-length
      elementary item or a dynamic-CAPACITY table subordinate — so the predicate is
      `ReferenceResolver.HasVariableLengthSubordinate`, the standard's own definition, not a second walk.
-     COBOLNET1698, two negative fixtures (one per side), and the class TIER is set Rejected as well as the
+     COBOL1698, two negative fixtures (one per side), and the class TIER is set Rejected as well as the
      diagnostic raised. The underlying defect was not merely an under-rejection: `StorageFormPass.Classify`
      returns `DynamicString` for an `IsDynamicLength` item BEFORE reaching its Tier-B view arm, so such a view
      kept its OWN disjoint native string — two storages for the one area §13.18.44.4 GR1 defines, MEASURED as a
@@ -308,17 +308,17 @@ build; there was a predicate that stopped short.
      written to hold that claim was asserting on a field its harness never populated. Driven through the whole
      pipeline it FAILS: arm 1b returns before the tier is consulted, so a Rejected class's dynamic-length view
      still classifies as `DynamicString`, and a class dissolved by the nested-anchor loop never reaches the tier
-     loop at all. **What prevents the disjoint storage reaching a user's program is the fatal COBOLNET1698
+     loop at all. **What prevents the disjoint storage reaching a user's program is the fatal COBOL1698
      diagnostic.** The tier is a second, independent verdict at the modelling layer, kept as one; the measured
      behaviour is pinned by `RedefinesClassificationTests` so the claim cannot out-run the code again.
      Citations were repaired in the same change set, and the first repair was itself one-sided:
-     COBOLNET1525 cited "SR5" for the dynamic-CAPACITY case on BOTH sides; the repair read SR5's FOURTH sentence
+     COBOL1525 cited "SR5" for the dynamic-CAPACITY case on BOTH sides; the repair read SR5's FOURTH sentence
      ("Neither the original definition nor the redefinition shall include an occurs-depending table" —
-     COBOLNET0855's rule) and concluded no syntax rule named the case at all. **SR5's FIRST sentence is "The
+     COBOL0855's rule) and concluded no syntax rule named the case at all. **SR5's FIRST sentence is "The
      data description entry for data-name-2 shall not contain an OCCURS clause"**, and OCCURS DYNAMIC is Format
-     4 OF the OCCURS clause, so the OBJECT side is named outright — it is now **COBOLNET1701** per written
+     4 OF the OCCURS clause, so the OBJECT side is named outright — it is now **COBOL1701** per written
      entry, over EVERY OCCURS format (the fixed-OCCURS object had been screened nowhere and compiled clean).
-     COBOLNET1525 is NARROWED to the SUBJECT that is itself a dynamic-capacity table — the one side of the
+     COBOL1525 is NARROWED to the SUBJECT that is itself a dynamic-capacity table — the one side of the
      family no syntax rule names — and cites what actually decides it, §13.18.44.4 GR1's storage association
      against §8.5.1.9.1's "may vary during execution".
   2. **The live Tier-B lane defects** ([[PB180]] ACCEPT's DisplayTextWidth store into a StorageWidth window;
@@ -507,9 +507,9 @@ address was "unrestricted and legal", the opposite of SR2). `StrongTypeModel.IsS
 only the group's own address is a restricted data-pointer (§8.4.3.11.4 GR2). The operand rules of
 `ADDRESS OF identifier-1` live in ONE screen, `AddressOfOperandScreen`, reached from `PtrBinder.BindDataAddress` —
 therefore from every surface (SET sender, CALL / INVOKE argument, relation operand): SR1 second sentence (object /
-factory working-storage and file section → COBOLNET2784, kb/Work PB1062), SR2/SR3/SR6 (object reference, leaf of a
-strong group, CONSTANT RECORD, dynamic-length / dynamic-capacity shapes → COBOLNET2785) and SR4 (a bit item's literal
-subscripts and byte alignment → COBOLNET2786, through `ParameterConformance.BitStartOf`, the one static-start walk
+factory working-storage and file section → COBOL2784, kb/Work PB1062), SR2/SR3/SR6 (object reference, leaf of a
+strong group, CONSTANT RECORD, dynamic-length / dynamic-capacity shapes → COBOL2785) and SR4 (a bit item's literal
+subscripts and byte alignment → COBOL2786, through `ParameterConformance.BitStartOf`, the one static-start walk
 CALL, INVOKE and the function-identifier share). A reference-modified identifier-1 is legal (SR4 a) names it): the
 resolver admits it through the same `ReadScreenedRefMod` as an ordinary reference, and the address is that of its
 leftmost position (`BoundAddressOf.RefMod`, emitted through `CobolString.RefModStartOffset`, the same range test as
@@ -517,7 +517,7 @@ a read). The size that range test measures is identifier-1's CURRENT one (§8.4.
 DEPENDING ON table that is the run-time extent §13.18.38.4 GR8 gives it, carried as `AddressRefMod.CurrentExtent` (the
 `OdoGroupPlace` the resolver built) and rendered by `PlaceRenderer.CurrentPositionsExpr`, whose three arms are the channels
 `SendingGroupValue` reads (kb/Work PB1969), so the address and a read of the same reference cannot disagree. A reference
-modifier with no leftmost-position is refused COBOLNET2876 by `ReferenceResolver.ReadRefMod`, the one reader of the captured
+modifier with no leftmost-position is refused COBOL2876 by `ReferenceResolver.ReadRefMod`, the one reader of the captured
 form, on every surface (§8.4.3.3.2: only the length is bracketed); the receiving chokepoint records any unreported resolver
 refusal on the refusal ledger, so a dropped receiver cannot compile clean (kb/Work PB1407).
 
@@ -596,7 +596,7 @@ ALIGNED (§13.18.1), ANY LENGTH (§13.18.2) and DYNAMIC LENGTH (§13.18.19) were
    observe and whose Format-2 FROM subscripts would address an OCCURS a temp's root never reproduces, ANY
    LENGTH, §13.18.2.3 SR2's linkage-section parameter shape, and BASED — in neither GR-1 exclusion list, so a
    TYPE / SAME AS subject of a based description is based, §13.18.57.4 GR4 only deciding whose clause applies;
-   a composed BASED is placement-screened at the copy site by `ScreenComposedBased`, COBOLNET2510, kb/Work
+   a composed BASED is placement-screened at the copy site by `ScreenComposedBased`, COBOL2510, kb/Work
    PB1300) · `MemberOnly` (a reproduced subordinate
    only — the name, OCCURS, REDEFINES, a nested TYPE/SAME AS reference, the declaration cursor) · `CopyWritten`
    (the copy derives it: `ValueCopiedFrom`, `ExternalFromType`) · `None` (excluded by a named rule, or owned by a
@@ -675,16 +675,16 @@ usage — its own clause, else the nearest enclosing one (a `GROUP-USAGE` clause
 3. **the screens** — `PictureAnalyzer.ScreenUsageAgainstPicture` (§13.18.60.3 SR3 / SR5 / SR12 / SR20), extracted
    from `Analyze` so the written-clause path and the inherited path run the SAME code, plus §13.16.3 SR8's
    prohibition over the ONE set `UsageFamilies.IsPictureless` and §13.18.60.3 SR2's equality check
-   (`COBOLNET1927`, against the nearest enclosing WRITTEN clause, comparing resolved `Usage` members so SR6's
+   (`COBOL1927`, against the nearest enclosing WRITTEN clause, comparing resolved `Usage` members so SR6's
    COMP/COMPUTATIONAL abbreviation and this implementation's BINARY identification are already folded).
 4. **the clause's PHRASES** — `ApplyEffectiveNoSign`, the §13.18.60.2 `PACKED-DECIMAL [ WITH NO SIGN ]` phrase.
    ⛔ **A phrase is part of the USAGE clause, not a clause of its own**, so GR1 hands it down with the word and
-   the SAME site adjudicates both spellings: §13.18.40.3 SR31's `'S'` prohibition (`COBOLNET1566`) and
+   the SAME site adjudicates both spellings: §13.18.40.3 SR31's `'S'` prohibition (`COBOL1566`) and
    §13.18.60.4 GR11's sign-free width (`PicInfo.PackedNoSign`). It runs AFTER `ApplyEffectiveUsage`, because its
    subject is the representation the item really takes. The phrase reaches it on `DataItem.OwnNoSign` — a
    `DescriptionCopyKind.Clause` field, so the TYPE / SAME AS copy carries it and the §13.18.49.4 GR3 ancestor
    transform records it rather than applying it (one adjudication, in this pass, not two). Only the
-   GENERAL-FORMAT half stays at entry bind: which usage WORD the phrase may be written on (`COBOLNET1565`),
+   GENERAL-FORMAT half stays at entry bind: which usage WORD the phrase may be written on (`COBOL1565`),
    which is a fact about the written clause and needs no forest, decided with the clause's other optional phrases
    by the one table `UsagePhraseRules` through `DataBinder.ScreenUsagePhrases` (kb/Work PB3517). Before kb/Work PB570 the whole phrase was a
    BindEntry local adjudicated against the entry's own PICTURE — which a group header has not got — so
@@ -717,7 +717,7 @@ verdict and the width of the written spellings, and the unreferenced declaration
 A walked template and its subject are one description to the §8.5.3.1 comparison (`StrongTypeModel`), which asks the
 template form and the subject form of one declaration the same questions — a pointer restricted to a STRONG type holds the
 TEMPLATE, the subject holds the copy, and a template whose members missed their group's USAGE or SIGN was a different type
-from its own subject (`SET P TO ADDRESS OF W` refused, COBOLNET0869). `InheritSignClauses` walks the templates for
+from its own subject (`SET P TO ADDRESS OF W` refused, COBOL0869). `InheritSignClauses` walks the templates for
 the same reason.
 ⛔ **A copy takes the application of the walk, not its screens, where the fact is its declaration's.** Every TYPE and SAME AS
 copy runs the walk too (it carries the usage its leaves must take), but a defect INSIDE the copy is reported where the
@@ -758,7 +758,7 @@ the entry that WROTE the clause** — entry bind records it (`_signClauseWritten
 also written by the TYPE copy (§13.18.57.4 GR1) and the SAME AS ancestor transform (§13.18.49.4 GR5); screening
 those would report a template once per reference site and refuse a SAME AS of an alphanumeric item under a signed
 group. The report arm screens the printable item where its picture is analyzed (`BindReportEntry`). The former
-float-edited special case (reported under the PICTURE code `COBOLNET1658`) was this rule's numeric-edited arm and
+float-edited special case (reported under the PICTURE code `COBOL1658`) was this rule's numeric-edited arm and
 is gone; the §13.16.3 SR19 LOCALE screen is a different rule and stays.
 
 #### 2.7a `SynthesizeImpliedPictures` — ISO §13.16.3 SR9, the VALUE-implied PICTURE (landed; kb/Work PB504/PB831)
@@ -797,7 +797,7 @@ clone (the emitter lays that one out). The edition gate fires once per SOURCE en
 an item that already has a `Pic` is skipped, so a forest that yields one item twice cannot double-report.
 
 **Edition.** COBOL-85 had no such grant, so the construct row `value-implied-picture-2002` rejects below 2002
-through the canonical `ConstructRegistry.Check` funnel (COBOLNET0900). SR9's boolean and national arms are gated
+through the canonical `ConstructRegistry.Check` funnel (COBOL0900). SR9's boolean and national arms are gated
 a second time and independently by `boolean-data-2002` / `national-data-2002`, the literal forms themselves being
 2002 additions.
 

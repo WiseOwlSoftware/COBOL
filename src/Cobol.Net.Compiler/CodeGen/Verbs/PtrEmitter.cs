@@ -172,7 +172,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         {
             if (based.Class?.BasedPointerField is not { } addr || based.Class is not { } cls)
             {
-                // Unreachable from a compiled program since PB151's bind-time COBOLNET1695 — the belt stays.
+                // Unreachable from a compiled program since PB151's bind-time COBOL1695 — the belt stays.
                 w.Line(LoudStmt($"ALLOCATE '{based.CobolName}' — the based item has no pointer bridge "
                     + $"({based.Class?.RejectReason ?? "unclassified"})"));
                 return;

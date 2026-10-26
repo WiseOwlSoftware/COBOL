@@ -39,15 +39,15 @@ public enum DeclinedAnnex
 
 /// <summary>
 /// A first-class descriptor for one diagnostic (rearch PHASE 02, P2.10 — fixes P8: the compiler emitted codes
-/// as bare string literals, with the <c>COBOLNET0899</c> catch-all spread across ~44 sites and codes reused
+/// as bare string literals, with the <c>COBOL0899</c> catch-all spread across ~44 sites and codes reused
 /// across unrelated rules, so nothing was documentable, suppressible, or drift-bound). A descriptor gives each
 /// diagnostic a STABLE identity (<see cref="Id"/>) independent of its emitted <see cref="Code"/> number, a
 /// documented ISO citation and severity, and a <see cref="SuppressKey"/> family — the raw material for
 /// <c>docs/DIAGNOSTICS.md</c>, <c>--suppress</c>, and the drift test.
 /// </summary>
-/// <param name="Code">The emitted <c>COBOLNETnnnn</c> code. NOT unique across descriptors: several descriptors
-/// deliberately share a code (the <c>COBOLNET0899</c> recognized-not-implemented family; the reused
-/// <c>COBOLNET1533</c> strong-type rules) — the code is what the user sees, <see cref="Id"/> is the identity.</param>
+/// <param name="Code">The emitted <c>COBOLnnnn</c> code. NOT unique across descriptors: several descriptors
+/// deliberately share a code (the <c>COBOL0899</c> recognized-not-implemented family; the reused
+/// <c>COBOL1533</c> strong-type rules) — the code is what the user sees, <see cref="Id"/> is the identity.</param>
 /// <param name="Id">The STABLE, unique kebab-case slug — survives code renumbering; the addressable identity used
 /// by <c>--suppress</c>, the version matrix, and snapshot review.</param>
 /// <param name="Severity">Error | Warning. Uses <see cref="EditionSeverity"/> (the Editions-native two-value
@@ -61,7 +61,7 @@ public enum DeclinedAnnex
 /// <param name="IsoSection">The ISO/IEC 1989:2023 § (or roadmap) citation this diagnostic enforces.</param>
 /// <param name="SuppressKey">The <c>--suppress</c> family key. <see langword="null"/> ⇒ falls back to
 /// <see cref="Code"/> (so an edition-band code, unique per descriptor, is suppressed by its code; the shared
-/// <c>COBOLNET0899</c> family sets this explicitly — e.g. <c>recognized-not-implemented</c> — so a developer can
+/// <c>COBOL0899</c> family sets this explicitly — e.g. <c>recognized-not-implemented</c> — so a developer can
 /// mute all deferred-feature diagnostics as a group without also muting genuine validation errors on the same
 /// code).</param>
 /// <param name="PermissiveInert">The declined element is accepted under <c>--permissive</c> (a warning, not the

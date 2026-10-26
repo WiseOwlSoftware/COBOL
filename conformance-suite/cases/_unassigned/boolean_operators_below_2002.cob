@@ -8,7 +8,7 @@
       *> migration #2 (DESIGN-version-conformance-pipeline.md): the parse-time {is2002()}? tier predicates AND the
       *> reverse-signature ReservedWordEditionHints arms are GONE — the boolean tiers parse at all editions behind the
       *> operand-adjacency boolExprAhead() ENTRY (a plain comparison never enters them — DEVLOG 621), and the gate is
-      *> at BIND (BindPrimaryBoolean -> Check(BooleanOperators2002)), so below 2002 it is an exact COBOLNET0900.
+      *> at BIND (BindPrimaryBoolean -> Check(BooleanOperators2002)), so below 2002 it is an exact COBOL0900.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. BOB.
        DATA DIVISION.

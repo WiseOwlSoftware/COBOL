@@ -15,7 +15,7 @@
       *> ADDRESS OF PROGRAM that §14.9.39.3 SR22 refuses for a restricted receiver (§8.4.3.13.4 GR3 gives only the
       *> program-prototype-name-1 arm a restriction). Both prototypes precede the program and are named in its
       *> REPOSITORY. The conforming spelling is SET PP TO ADDRESS OF PROGRAM PB935X, the positive golden
-      *> 13.18.60-USAGE/pb817_restricted_program_pointer. Refused COBOLNET1959 (prototype-pointer-signature) at
+      *> 13.18.60-USAGE/pb817_restricted_program_pointer. Refused COBOL1959 (prototype-pointer-signature) at
       *> every edition that has the program-pointer.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB935X IS PROTOTYPE.

@@ -53,7 +53,7 @@
       *> or to 14.9.30.4 GR9 between the two editions, so the inventory row
       *> GR-14.9.30.4-9 claims both and both are evidenced. (The RETRY
       *> phrase is a COBOL-2002 introduction; its gating diagnostic below
-      *> 2002 is COBOLNET0900, pinned by negative/retry_below_2002.)
+      *> 2002 is COBOL0900, pinned by negative/retry_below_2002.)
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.

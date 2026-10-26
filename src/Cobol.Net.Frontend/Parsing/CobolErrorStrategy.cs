@@ -337,7 +337,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // cardinality lives in the grammar rather than in nine bind-time checks.
         if (IsEmptyRequiredStatementBlock(recognizer, token)
             && EnclosingStatementName(ruleStack) is { } stmtName)
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2072,
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072,
                 $"The {stmtName} statement's general format shows an imperative-statement here that is not "
                 + "bracketed, so at least one statement shall be specified: brackets are what license an "
                 + "omission (ISO §5.2.6.2), and one alternative of a brace group shall be explicitly specified "
@@ -365,12 +365,12 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             bool bodyPresent = afterOther is not null
                 && StatementBlockStart(recognizer).Contains(afterOther.Type);
             hints.Add(bodyPresent
-                ? new(Diagnostics.DiagnosticDescriptors.COBOLNET2073,
+                ? new(Diagnostics.DiagnosticDescriptors.COBOL2073,
                     "A WHEN OTHER phrase may be specified at most once, and only after every WHEN phrase: the "
                     + "general format brackets it as a single phrase FOLLOWING the repeated WHEN group, and an "
                     + "ellipsis applies only to the portion between the delimiters immediately to its left "
                     + "(ISO §14.9.13.2 / §14.9.28.2 Format 3, with ISO §5.2.7).", 0)
-                : new(Diagnostics.DiagnosticDescriptors.COBOLNET2072,
+                : new(Diagnostics.DiagnosticDescriptors.COBOL2072,
                     "The WHEN OTHER phrase carries an imperative-statement INSIDE its bracket, so writing the "
                     + "phrase obliges the statement: brackets license omitting the whole phrase, never emptying "
                     + "it (ISO §5.2.6.2, with §14.9.13.2 / §14.9.28.2 Format 3).", 0));
@@ -384,7 +384,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // the partially-built statement context actually holds, and the MOVE one is the position of a
         // statement-selecting keyword inside the rule that cannot spell it.
         if (GoToComplementMessage(recognizer, token, stream) is { } goToMsg)
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2172, goToMsg, 0));
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2172, goToMsg, 0));
 
         // ⛔ 0d. A FIGURATIVE SPELLING WHERE A GENERAL FORMAT NAMES ONE KEYWORD (kb/Work PB510). ZERO / ZEROS /
         // ZEROES (and each singular/plural figurative pair) are distinct §8.9 reserved words, one lexer token
@@ -395,24 +395,24 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // families are read FROM THE ATN (the FIRST sets of the figurative-word rules), so a format added tomorrow
         // that names one spelling inherits this diagnostic without editing this method.
         if (FigurativeSpellingMessage(recognizer, token) is { } spellingMsg)
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2418, spellingMsg, -1));   // outranks 0a: the sign-
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2418, spellingMsg, -1));   // outranks 0a: the sign-
             // condition shape fails at an IS / NOT the enclosing statement cannot continue with, which 0a reads as an
             // empty imperative-statement — the misspelled keyword is the cause, the empty block its symptom.
         // ⛔ 0e. THE SEARCH PHRASES NO SEARCH FORMAT PRINTS (kb/Work PB446). The two SEARCH rules now spell the
         // two printed formats exactly, so their complement arrives here; each shape is read from the PARSER
         // STATE (the half-built or just-completed SEARCH context), never from a scan for a keyword.
         if (SearchFormatShapeMessage(recognizer, token, stream) is { } searchMsg)
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2269, searchMsg, 0));
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2269, searchMsg, 0));
         // ⛔ 0e'. A SUBSCRIPT, REFERENCE MODIFICATION OR QUALIFIER ON A MNEMONIC-NAME (kb/Work PB2499). ACCEPT's
         // FROM, DISPLAY's UPON and SET Format 3's receivers are spelled `cobolWord` because a mnemonic-name is a word
         // (§8.3.2.2.16), so the suffix arrives here — read from the PARSER STATE, worded by MnemonicNameSlot.
         if (MnemonicSuffixMessage(recognizer, token, stream) is { } mnemonicMsg)
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2269, mnemonicMsg, 0));
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2269, mnemonicMsg, 0));
         // ⛔ 0f. AN INLINE METHOD INVOCATION'S EMPTY PARENTHESIS PAIR (kb/Work PB1430). `inlineInvocationSegment`
         // requires its argumentList inside the optional parentheses, so `O :: "M" ( )` arrives here, at the '(' or
         // the ')'. Outranks 0a for the same reason 0d does: the empty pair is the cause wherever the parse gives up.
         if (IsEmptyInlineArgumentList(stream, token))
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2994,
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2994,
                 "An inline method invocation's parenthesis pair holds at least one argument: ISO §8.4.3.4.2 brackets "
                 + "the whole parenthesised group but encloses the argument forms in BRACES repeated by the ellipsis "
                 + "inside the one pair, and one alternative of a brace group shall be explicitly specified "
@@ -434,7 +434,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 closedFormat.Refusal(WrittenResidueItem(recognizer, token), ClosedFormats.OwnerName(recognizer.Context)) + ".", 0));
 
         if (token.Type is CobolLexer.CORRESPONDING or CobolLexer.CORR && IsInRule(ruleStack, "moveStatement"))
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2173,
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2173,
                 "Both general formats of the MOVE statement put the whole sending specification directly after "
                 + "the verb — Format 1 is 'MOVE { identifier-1 | literal-1 } TO { identifier-2 } …' and Format 2 "
                 + "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
@@ -442,7 +442,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
         // separated is §8.3.5 rule 5's violation, and SeparatorRule reports it — for every literal token, whether or
-        // not the parse happens to fail there — as COBOLNET2633. The two recovery hints that stood here (COBOL0301 /
+        // not the parse happens to fail there — as COBOL2633. The two recovery hints that stood here (COBOL0301 /
         // COBOL0302) stated that rule a second time, only on a parse error, and only for a quotation-mark delimiter.
 
         // 3. Missing TO in MOVE statement
@@ -453,7 +453,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // COBOL0304 hint that stood here fired when a token's TEXT contained ".MOVE", ".ADD", ".SUBTRACT", ".PERFORM" or
         // ".IF". No COBOL word can carry a period (ISO §8.3.2.1 limits its characters to letters, digits, hyphen and
         // underscore, and NAME_BODY lexes exactly that), so `MAIN-PARA.MOVE` is three tokens and the separator rule
-        // reports the unspaced period (COBOLNET2632); the only tokens whose text could match were literals and
+        // reports the unspaced period (COBOL2632); the only tokens whose text could match were literals and
         // PICTURE strings, where `GO TO "PARA.PERFORM".` answered "the parser is treating it as a qualified
         // reference" — false twice over. The hint is deleted.
 
@@ -1013,7 +1013,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     // ── Parse-layer edition-gate rendering (rearch PHASE 02) ──
 
     /// <summary>Captures the single <see cref="EditionDiagnostic"/> a one-shot <see cref="ConstructRegistry.Check"/>
-    /// reports, so the parse-layer error strategy can reuse the ONE funnel's exact COBOLNET0900 text (display /
+    /// reports, so the parse-layer error strategy can reuse the ONE funnel's exact COBOL0900 text (display /
     /// introduction edition / ISO citation all sourced from the construct's registry row, not hand-copied).</summary>
     private sealed class CaptureSink : IDiagnosticSink
     {
@@ -1092,7 +1092,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 CobolParserCore.RULE_lowValueWord, CobolParserCore.RULE_quoteWord,
             }.Select(r => recognizer.Atn.NextTokens(recognizer.Atn.ruleToStartState[r]))];
 
-    /// <summary>The COBOLNET2418 message when the parser failed ON one spelling of a figurative family at a
+    /// <summary>The COBOL2418 message when the parser failed ON one spelling of a figurative family at a
     /// position whose general format names a DIFFERENT spelling of that family as its keyword; null otherwise.
     /// A position that admits the figurative constant admits every spelling, so the test cannot fire there.</summary>
     private static string? FigurativeSpellingMessage(Parser recognizer, IToken token)

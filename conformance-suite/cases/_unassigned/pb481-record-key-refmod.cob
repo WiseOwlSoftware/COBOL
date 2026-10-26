@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB481 - ISO 12.4.5.12.2 prints RECORD KEY IS data-name-1, and 8.4.3.3.3's NOTE: "where data-name-n
 *> is used in a general format or syntax rule, then reference-modification is not permitted." Refused as
-*> COBOLNET2024, and ONLY that: the refused operand is recorded as written, so the key rules' SR2 row
+*> COBOL2024, and ONLY that: the refused operand is recorded as written, so the key rules' SR2 row
 *> ("references nothing described") no longer adds a second, false verdict. The screen used to call this
 *> captured ref-mod "a subscript" - it now reads the suffixes through the one lexical reader.
        IDENTIFICATION DIVISION.

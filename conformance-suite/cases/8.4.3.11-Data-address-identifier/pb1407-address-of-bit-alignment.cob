@@ -8,7 +8,7 @@
       *> that: a) subscripting and reference modification in identifier-1 consist of only fixed-point numeric literals or
       *> arithmetic expressions in which all operands are fixed-point numeric literals and the exponentiation operator is
       *> not specified; and b) it is aligned on a byte boundary." Each ADDRESS OF below breaks one half and is refused
-      *> COBOLNET2786: B2 starts at bit 3 of its record (b); BX(I) subscripts with a data-name, BX(2 ** 1) with an
+      *> COBOL2786: B2 starts at bit 3 of its record (b); BX(I) subscripts with a data-name, BX(2 ** 1) with an
       *> exponentiation and BX(1)(N:2) positions the slice with a data-name (a). BX(2) and B1 are legal.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1407N4.

@@ -10,7 +10,7 @@
       *> object reference described with the ACTIVE-CLASS phrase." G is a
       *> strongly-typed group (the only legal home of a subordinate object
       *> reference, 13.18.60.3) whose TA is ACTIVE-CLASS, passed BY
-      *> REFERENCE and BY CONTENT to TAKEG: COBOLNET2728 naming SR13 on
+      *> REFERENCE and BY CONTENT to TAKEG: COBOL2728 naming SR13 on
       *> each. (Before the fix both were refused only as the "Tier-C byte
       *> island" - a carrier limit, not the rule.)
        IDENTIFICATION DIVISION.

@@ -17,7 +17,7 @@
       *> The prototype P539S declares TC with the clause on the GROUP; the caller declares TC with it on EACH LEAF,
       *> and the second pair does the same with SYNC LEFT. By GR1 each pair of declarations has the same SYNCHRONIZED
       *> clause on every pair of corresponding elementary items, so they are equivalent and both CALLs are legal
-      *> (before the fix both were refused COBOLNET1688). P539S stores 42 into B1 and 7 into B2.
+      *> (before the fix both were refused COBOL1688). P539S stores 42 into B1 and 7 into B2.
       *> G539 pins "for which this clause is permitted": a group-level VALUE forbids the clause on its subordinates
       *> (13.18.63.3 SR14, cite.py: OK  13.18.63.3 14)), so the group's clause reaches neither leaf and the entry is
       *> legal; its value is the literal "AB".

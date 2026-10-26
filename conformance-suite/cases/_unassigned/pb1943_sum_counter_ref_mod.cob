@@ -24,7 +24,7 @@
       *> 13.18.54.4 GR12: "It is permissible for procedure division statements to alter the content of sum counters"
       *> - a reference-modified counter is also a RECEIVER.
       *>   cite.py: OK  13.18.54.4 12)  (General rules)
-      *> Before the fix every one of these references drew COBOLNET1639 "'CF-T(1:2)' is not defined", naming a rule
+      *> Before the fix every one of these references drew COBOL1639 "'CF-T(1:2)' is not defined", naming a rule
       *> the program had not broken (GR5 declares the name).
       *>
       *> DERIVATION. WS-X = 1234. One GENERATE adds 1234 into CF-T (GR7 c: an identifier addend is added on every

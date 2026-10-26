@@ -12,7 +12,7 @@ namespace CobolNet.Tests.Conformance;
 /// program: §12.3.7.2 prints alphabet-name-clause BEFORE the LOCALE clause and §5.2.1 requires "the sequence given
 /// in the general format", so <c>ALPHABET … IS LOCALE locale-name-2</c> (§12.3.7.3 SR24 — "Locale-name-2 shall be a
 /// locale-name defined by the LOCALE clause") always names a LATER clause. The binder resolved it in source order and
-/// refused it with COBOLNET1664 "no LOCALE clause is in scope"; only the non-format order compiled.</para>
+/// refused it with COBOL1664 "no LOCALE clause is in scope"; only the non-format order compiled.</para>
 /// <para>The CLASS … IN and SYMBOLIC CHARACTERS … IN pairs (alphabet-name-4 / alphabet-name-3 naming an ALPHABET
 /// clause) were already deferred (kb/Work PB110); they are here so all three references stay order-free
 /// together.</para>
@@ -59,7 +59,7 @@ public sealed class SpecialNamesClauseOrderTests
         var (ok, errors, _) = EditionHarness.CompileFull(
             Prog("PB1558UN", "ALPHABET LA IS LOCALE SV", "LOCALE US IS \"en-US\""), 2023);
         Assert.False(ok, "an undeclared locale-name-2 must be REJECTED");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1664: ALPHABET LA IS LOCALE SV: 'SV' is not a locale-name");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1664: ALPHABET LA IS LOCALE SV: 'SV' is not a locale-name");
         EditionHarness.AssertHasDiagnostic(errors, "declared: US");
     }
 }

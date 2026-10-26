@@ -9,7 +9,7 @@
       *> portable: unverified
       *>---
       *> THE NEXT GROUP CLAUSE, EVERY FORM A BODY GROUP, A REPORT HEADING AND A PAGE FOOTING CAN WRITE
-      *> (kb/Work PB957 — the clause was refused by name, COBOLNET0899, at every edition; kb/Work PB951 —
+      *> (kb/Work PB957 — the clause was refused by name, COBOL0899, at every edition; kb/Work PB951 —
       *> `+` was a bare parse error where the standard makes it the word PLUS's synonym).
       *>
       *> THE RULES.

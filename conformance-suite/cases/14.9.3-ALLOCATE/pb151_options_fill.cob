@@ -14,7 +14,7 @@
       *> literal", and "hexadecimal-alphanumeric" is 8.3.3.2.2's FORMAT 2
       *> (X"nn"), not loose wording for "any short quoted literal". This
       *> golden shipped with the format-1 spelling, which is nonconforming
-      *> source; kb/Work PB152 landed the SR1 screen (COBOLNET1727) and
+      *> source; kb/Work PB152 landed the SR1 screen (COBOL1727) and
       *> repaired it. 0x51 IS 'Q', so FILL=QQQ is unchanged byte for byte.
       *> kb/Work PB151 - ISO 14.9.3.4 GR8: with no INITIALIZED phrase the
       *> allocated content "depends on the INITIALIZE clause of the

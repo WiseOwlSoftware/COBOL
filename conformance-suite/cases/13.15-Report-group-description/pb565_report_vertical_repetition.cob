@@ -10,7 +10,7 @@
 *>---
       *> ⛔ A REPORT GROUP DESCRIPTION ENTRY REPEATS ON EITHER AXIS, AND THE VERTICAL ONE IS THE LINE CLAUSE
       *> (kb/Work PB565). The horizontal (COLUMN) half landed first; an OCCURS clause on an entry that contains
-      *> or has subordinate to it a LINE clause was still refused by name (COBOLNET0899), and so was its twin
+      *> or has subordinate to it a LINE clause was still refused by name (COBOL0899), and so was its twin
       *> the multiple LINE clause — conforming source rejected, with §13.18.35.4 GR9 and §13.18.38.4
       *> GR10c/GR10d/GR12c/GR12d unreachable. This golden pins all four, plus the multiple LINE clause, at the
       *> edition that introduced them.

@@ -8,7 +8,7 @@
 *> group (it has a dynamic-length elementary item as a subordinate, 8.5.1.12.1), so it is NOT an alphanumeric group item
 *> (3.11 excludes a variable-length group item by name) and letter c) "An alphanumeric group containing items with a
 *> usage other than display" is not the rule it violates, even though V1 is USAGE BINARY. The .err pins the LETTER,
-*> because every lettered exclusion produces COBOLNET1976 and only the quoted sentence differs (kb/Work PB947).
+*> because every lettered exclusion produces COBOL1976 and only the quoted sentence differs (kb/Work PB947).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB947-COND-VAR-VLG-COMP.
        DATA DIVISION.

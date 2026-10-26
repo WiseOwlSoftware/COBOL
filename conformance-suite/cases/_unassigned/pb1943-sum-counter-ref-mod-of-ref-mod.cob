@@ -9,7 +9,7 @@
       *> A reference-modified sum counter is a reference-modified identifier like any other, so reference-modifying it
       *> again - CF-T (1:3) (2:1) - is the SR3 violation. (The counter's single modification is legal, 8.4.3.3.3 SR1:
       *> 85/pb1943_sum_counter_ref_mod.) Before the fix the counter's name was not found at all and the statement drew
-      *> COBOLNET1639 "'CF-T(1:3)(2:1)' is not defined", the wrong rule.
+      *> COBOL1639 "'CF-T(1:3)(2:1)' is not defined", the wrong rule.
       *>   cite.py: OK  13.18.54.4 5)  (General rules)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1943N1.

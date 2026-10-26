@@ -18,7 +18,7 @@
       *> The literal forms are a COBOL-2002 introduction (constructs row
       *> copy-literal-name-2002, VCR row 7.44, derived): ANSI X3.23-1985's
       *> COPY names its text by a user-defined word only, so the 85 twin
-      *> pb1601-copy-literal-name-below-2002 draws COBOLNET0900.
+      *> pb1601-copy-literal-name-below-2002 draws COBOL0900.
       *> The runner names this directory as a --copy search path.
       *> EXPECTED OUTPUT, DERIVED (why the leg can fail):
       *>   [TXT] literal-1 "pb1355c.txt" contains a period, so it is

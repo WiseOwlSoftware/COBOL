@@ -16,7 +16,7 @@ namespace CobolNet.Tests.Unit;
 /// compiled clean and aborted the run unit.
 /// <para>The shape now: every refusal node is obtainable only through a factory that puts it on the
 /// <see cref="EditionContext"/> refusal ledger, and <c>StatementBinder.BindStatement</c> fails the compile with
-/// COBOLNET2362 when a statement bound a refusal and drew no error. These tests keep the constructors closed and
+/// COBOL2362 when a statement bound a refusal and drew no error. These tests keep the constructors closed and
 /// keep the two old idioms — report-then-no-op, and failure-guarded no-op — out of the binder.</para></summary>
 [Trait("Sweep", "tree")]
 public sealed class RefusalNodeDriftTests
@@ -36,20 +36,20 @@ public sealed class RefusalNodeDriftTests
     }
 
     /// <summary>The ledger's backstop, measured: a refusal bound with no error anywhere fails the compile, and an
-    /// unbuilt shape does not (the funnel announces it as COBOLNET1756 instead).</summary>
+    /// unbuilt shape does not (the funnel announces it as COBOL1756 instead).</summary>
     [Fact]
     public void Refused_WithNoErrorRecorded_FailsTheCompile_Unbuilt_DoesNot()
     {
         var refused = new EditionContext(2023);
         BoundOperandError.Refused(refused, "probe operand");
-        Assert.Contains(refused.Diagnostics, d => d.Contains("COBOLNET2362", StringComparison.Ordinal));
+        Assert.Contains(refused.Diagnostics, d => d.Contains("COBOL2362", StringComparison.Ordinal));
 
         var unbuilt = new EditionContext(2023);
         BoundExprError.Unbuilt(unbuilt, "probe shape");
         Assert.Empty(unbuilt.Diagnostics);
 
         var reported = new EditionContext(2023);
-        reported.Error("COBOLNET1757", "the rule the source broke");
+        reported.Error("COBOL1757", "the rule the source broke");
         BoundBoolError.Refused(reported, "probe boolean");
         BoundRejected.Reported(reported);
         Assert.Single(reported.Diagnostics);
@@ -124,7 +124,7 @@ public sealed class RefusalNodeDriftTests
     {
         const string reportThenNop = """
                     {
-                        ctx.Edition.Error("COBOLNET1637", $"ACCEPT receiver '{DataBinder.WrittenText(dref)}' is an index-name — an "
+                        ctx.Edition.Error("COBOL1637", $"ACCEPT receiver '{DataBinder.WrittenText(dref)}' is an index-name — an "
                             + "index-name is not an identifier (ISO §8.4.3.1.2)");
                         return new BoundNop();   // reported above — not a deferral (kb/Work PB236)
                     }

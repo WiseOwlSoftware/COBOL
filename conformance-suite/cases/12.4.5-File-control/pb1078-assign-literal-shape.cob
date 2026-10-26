@@ -7,7 +7,7 @@
       *> kb/Work PB1078 - ISO 12.4.5.2 SR4: "Literal-1 shall be an
       *>   alphanumeric literal and shall be neither a figurative
       *>   constant nor a zero-length literal." Both refused forms below
-      *>   are COBOLNET2645 at every edition (the zero-length literal used
+      *>   are COBOL2645 at every edition (the zero-length literal used
       *>   to compile and OPEN then answered status 30).
       *> cite.py --check 12.4.5.2 "Literal-1 shall be an alphanumeric
       *>   literal and shall be neither a figurative constant nor a

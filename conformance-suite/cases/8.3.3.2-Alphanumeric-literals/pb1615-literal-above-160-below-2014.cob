@@ -7,7 +7,7 @@
       *> kb/Work PB1615 - below COBOL-2014 the alphanumeric literal
       *> is bounded at 160 positions, not the 8,191 of 8.3.3.2.3 1)
       *> (constructs row literal-length-8191-2014, VCR row 7.43,
-      *> derived). The 200-position literal below draws COBOLNET0814
+      *> derived). The 200-position literal below draws COBOL0814
       *> at --std 85 and --std 2002 - a LENGTH error, so also under
       *> --permissive. The positive twin at 2014 is
       *> pb1615_literal_over_160_positions; the 160-position boundary

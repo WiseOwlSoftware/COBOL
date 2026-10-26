@@ -57,7 +57,7 @@ public sealed class ReferenceOperandArithmeticTests
                 DialectLevel: 2002, Permissive: permissive, SourceFormat: InitialReferenceFormat.Auto));
             Assert.False(r.Success);
             // Both operands are refused by §8.8.1.1 itself, as errors — never handed to the back end.
-            Assert.Equal(2, r.Errors.Count(e => e.Contains("error COBOLNET0844:", StringComparison.Ordinal)));
+            Assert.Equal(2, r.Errors.Count(e => e.Contains("error COBOL0844:", StringComparison.Ordinal)));
             Assert.DoesNotContain(r.Errors, e => e.Contains("backend compilation failed", StringComparison.Ordinal));
             Assert.DoesNotContain(r.Errors, e => e.Contains("digit-decoding", StringComparison.Ordinal));
         }

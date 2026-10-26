@@ -778,7 +778,7 @@ public static partial class CobolIntrinsics
     /// twins project it differently: TEST-NUMVAL-F reports it (r1b.6), while NUMVAL-F's ARGUMENT rules
     /// (§15.69.3) say nothing about magnitude — there the value path's own §8.8.1.5.2 range check disposes
     /// (EC-SIZE-OVERFLOW), so the scan must NOT reject. Native arithmetic (cap 31) has no r1b.6 leg — the rule
-    /// names only the standard modes — and standard-binary (cap 35) is unreachable (COBOLNET0806 rejects
+    /// names only the standard modes — and standard-binary (cap 35) is unreachable (COBOL0806 rejects
     /// ARITHMETIC IS STANDARD-BINARY outright; its SBIDI range joins this map if that ever lands).</param>
     private readonly record struct NvfParse(long ErrPos, bool CapHit, bool Neg, Int128 Unscaled, int Frac, int Exp,
         long CapPos = 0);

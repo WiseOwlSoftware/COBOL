@@ -16,7 +16,7 @@
       *>   record 1 "ABCHELLOXY"    : A=ABC D=HELLO(5) B=XY ; R2 (the character area) = ABCH ; R3 = all 10
       *>   record 2 "SHOR"          : shorter than the fixed run - A=SHO D=""(0) B="R " ; R3 = SHOR (4)
       *>   record 3 "A LONGER LINE" : 13 - 5 = 8 characters to D - A="A L" D="ONGER LI"(8) B=NE ; R3 13
-      *> This used to be refused (COBOLNET1697/1698, then COBOLNET0899), and a single-record FD with a
+      *> This used to be refused (COBOL1697/1698, then COBOL0899), and a single-record FD with a
       *> dynamic-length member aborted the run unit at WRITE.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB981VL.

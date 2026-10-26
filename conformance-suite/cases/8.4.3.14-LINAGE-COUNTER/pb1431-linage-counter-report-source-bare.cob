@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1431 - 8.4.3.14.3 SR1: "LINAGE-COUNTER may be referenced only in procedure division statements."
       *> The bare SOURCE LINAGE-COUNTER OF LPF is the identifier form of the same position and is refused by the
-      *> same rule, under COBOLNET2904 and not under a COBOLNET0899 "does not resolve" sentence about another rule.
+      *> same rule, under COBOL2904 and not under a COBOL0899 "does not resolve" sentence about another rule.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1431BAR.
        ENVIRONMENT DIVISION.

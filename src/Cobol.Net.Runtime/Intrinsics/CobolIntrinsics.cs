@@ -329,7 +329,7 @@ public static partial class CobolIntrinsics
     /// <c>IndexOutOfRangeException</c> — the two-arm dispatch, with neither arm right. Both now assert the
     /// invariant here, so the pair cannot drift and no body invents a value for an empty list.</para>
     /// <para>⚠ IT IS AN ASSERTION, NOT A ROUTINE PATH, and the reachability was measured rather than assumed.
-    /// The written lane is held by the arity gate (<c>IntrinsicBinder</c>, COBOLNET1504 at <c>MinArgs</c>); the
+    /// The written lane is held by the arity gate (<c>IntrinsicBinder</c>, COBOL1504 at <c>MinArgs</c>); the
     /// table(ALL) lane is held by <see cref="Values.Tables.CobolTable.AllArgs{T}"/>, which raises this same
     /// condition on an enumeration over no occurrences. The arity gate ALONE does not hold it —
     /// <c>TableAllPlace.StaticCount</c> is null for an OCCURS DEPENDING or DYNAMIC ALL level, so

@@ -8,7 +8,7 @@
 *> FOR NATIONAL forms (and the bare alphabet-name-2 second word) are COBOL-2002 introductions:
 *> alphabet-name-2 exists to name the sequence for keys of class NATIONAL (14.9.40.3 SR2 +
 *> 14.9.40.4 GR5a) and the national class arrived in 2002. At --std 85 the version-conformance
-*> pass rejects on recognition (COBOLNET0872).
+*> pass rejects on recognition (COBOL0872).
 *>
 *> THIS CASE EXISTS BECAUSE THE GATE BECAME LOAD-BEARING (kb/Work PB678). Until PB678 the binder
 *> resolved and validated alphabet-name-2 and then THREW IT AWAY, so the gate guarded nothing an

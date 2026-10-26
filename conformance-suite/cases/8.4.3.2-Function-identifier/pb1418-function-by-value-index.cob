@@ -9,7 +9,7 @@
       *> corresponding to argument-1 is specified with a BY VALUE phrase,
       *> argument-1 shall be of class numeric, object, or pointer."
       *> 13.18.60.4 GR10: "The class and category of an index data item
-      *> are index." WI is USAGE INDEX -> COBOLNET1554. (Before the fix
+      *> are index." WI is USAGE INDEX -> COBOL1554. (Before the fix
       *> the screen tested the item's storage category, numeric, and the
       *> function ran.)
       *> cite.py --check 8.4.3.2.3 "argument-1 shall be of class numeric,

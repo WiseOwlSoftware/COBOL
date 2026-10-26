@@ -9,7 +9,7 @@
       *> MOVE and COMPARE as whole records - 14.9.25.3 SR2 / 8.8.4.2.3 SR1 permit same-type whole-group operands;
       *> each field is still set individually. STRONG adds only compile-time checks, so the run output is identical
       *> to a hand-written group. A different-type MOVE/compare, a class condition on a strong group, and RENAMES/
-      *> REDEFINES over a strong item are all rejected (COBOLNET1532/1533) - see TypedefStrongTests.
+      *> REDEFINES over a strong item are all rejected (COBOL1532/1533) - see TypedefStrongTests.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. TYPEDEF-STRONG-OK.
        DATA DIVISION.

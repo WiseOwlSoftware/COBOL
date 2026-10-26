@@ -33,8 +33,8 @@ public sealed class IntrinsicPointerArgumentPermissiveTests
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(Fixture(fixture), 2023, permissive: true);
         Assert.False(ok, $"{fixture}: a class-pointer argument has no characters for the --permissive coercion");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1627");
-        Assert.DoesNotContain(errors.Concat(warnings), d => d.Contains("COBOLNET1627", StringComparison.Ordinal)
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1627");
+        Assert.DoesNotContain(errors.Concat(warnings), d => d.Contains("COBOL1627", StringComparison.Ordinal)
                                                              && d.Contains("--permissive", StringComparison.Ordinal));
     }
 
@@ -45,7 +45,7 @@ public sealed class IntrinsicPointerArgumentPermissiveTests
     public void AlphanumericArgument_IsCoercedUnderPermissive()
     {
         var (_, _, warnings) = EditionHarness.CompileFull(Fixture("pb2079-baseconvert-alphanumeric-base"), 2023, permissive: true);
-        Assert.Contains(warnings, w => w.Contains("COBOLNET1627", StringComparison.Ordinal)
+        Assert.Contains(warnings, w => w.Contains("COBOL1627", StringComparison.Ordinal)
                                        && w.Contains("accepted under --permissive", StringComparison.Ordinal));
     }
 }

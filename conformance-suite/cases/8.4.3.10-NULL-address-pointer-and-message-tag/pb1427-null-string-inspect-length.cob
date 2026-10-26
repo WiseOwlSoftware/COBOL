@@ -21,7 +21,7 @@
       *> Before the fix each statement compiled and ran NULL as
       *> LOW-VALUE: STRING stored a NUL character, INSPECT tallied
       *> against it, FUNCTION LENGTH(NULL) answered 1, and NULL = NULL
-      *> crashed the code generator. Each is COBOLNET2576 now.
+      *> crashed the code generator. Each is COBOL2576 now.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1427N1.
        DATA DIVISION.

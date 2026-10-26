@@ -58,7 +58,7 @@ namespace CobolNet.Tests.Unit;
 /// <para><b>Why a construct gate is still recorded.</b> PB2291 found three (<see cref="Verdict.ConstructGate"/>), all
 /// on the declined Annex A.4 surface of <c>CobolDeclined.g4</c>: the §13.16.2 validation clauses, the VALUE clause's
 /// §13.18.63 format-5 phrase and the §12.4.6.3 APPLY COMMIT clause. Below its introducing edition each is refused with a
-/// bare COBOL0001 where D7 wants the conformance pass to name the edition (COBOLNET0900). Moving them needs a
+/// bare COBOL0001 where D7 wants the conformance pass to name the edition (COBOL0900). Moving them needs a
 /// declined-construct row form the version matrix does not have yet (a constructs.json row that is refused by name AT
 /// and after its introduction), so they are pinned here as defects with their verdict rather than left unseen.
 /// Removing one is a change to this table, which is the point: the table is the verdict, and the test keeps it equal

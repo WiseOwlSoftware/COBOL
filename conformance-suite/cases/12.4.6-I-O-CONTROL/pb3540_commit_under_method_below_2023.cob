@@ -6,7 +6,7 @@
 *>---
 *> kb/Work PB3540 - the APPLY COMMIT clause, COMMIT and ROLLBACK are COBOL-2023 additions (Annex E.3.2 item 2), so the
 *> program of its 2023 twin pb3540_commit_rollback_under_method, which carries the clause in the program that INVOKEs
-*> a method, is refused below 2023 at the clause (the closed I-O-CONTROL format of 2002 and 2014, COBOLNET1970).
+*> a method, is refused below 2023 at the clause (the closed I-O-CONTROL format of 2002 and 2014, COBOL1970).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3540N.
        ENVIRONMENT DIVISION.

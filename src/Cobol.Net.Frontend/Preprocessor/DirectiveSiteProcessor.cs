@@ -68,7 +68,7 @@ public static class DirectiveSiteProcessor
             .ToHashSet(CobolNames.Comparer);
 
     /// <summary>⛔ THE ONE JUDGE OF <see cref="DirectivePlacementRule.BeforeFirstCompilationUnit"/> (§7.3.10.3 SR1,
-    /// COBOLNET2652; kb/Work PB1377, PB1373): a directive whose row carries that rule — and a PUSH or POP that names
+    /// COBOL2652; kb/Work PB1377, PB1373): a directive whose row carries that rule — and a PUSH or POP that names
     /// it (§7.3.20.3 SR2, §7.3.22.3 SR2: "shall not be specified where directive-name must not be specified") — written
     /// on a line AFTER <paramref name="firstUnitLine"/> is a placement violation. The line is the boundary the
     /// COBOL-WORDS stage reports, because that stage is the one that reads the unit's header as the group's own
@@ -97,7 +97,7 @@ public static class DirectiveSiteProcessor
 
     /// <summary>Record the position-ruled directive sites on <paramref name="text"/>, record the PUSH/POP ops the
     /// later stages replay (<see cref="DirectiveStateStack"/>), warn for each unsuccessful named POP (§7.3.20.4
-    /// GR2, <c>COBOLNET2297</c> — here, once, because only this stage sees every PUSH/POP of the final text), and
+    /// GR2, <c>COBOL2297</c> — here, once, because only this stage sees every PUSH/POP of the final text), and
     /// blank the lines this stage consumes. Line-count preserving.</summary>
     public static (string Text, IReadOnlyList<DirectiveSite> Sites, IReadOnlyList<DirectiveStackOp> StackOps) Process(
         string text, DiagnosticBag? diagnostics = null, string sourcePath = "<source>", SourceLineMap? lineMap = null)

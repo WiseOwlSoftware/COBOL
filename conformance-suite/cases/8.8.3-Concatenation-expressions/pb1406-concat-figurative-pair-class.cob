@@ -9,7 +9,7 @@
       *> (SPACE & SPACE) & N"AB". By 8.8.3.3 GR1b the inner expression
       *> is class alphanumeric, and it is a concatenation expression,
       *> not a figurative constant - so the outer pair is alphanumeric &
-      *> national, which 8.8.3.2 SR1 forbids: COBOLNET1540. (Classing the
+      *> national, which 8.8.3.2 SR1 forbids: COBOL1540. (Classing the
       *> chain by its first non-figurative operand accepted it.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG1406FPC.

@@ -26,21 +26,21 @@ public sealed class OccursDynamicGuardTests
         """;
 
     /// <summary>§13.18.38 SR28 — integer-5 (TO) shall be greater than integer-4 (FROM); <c>FROM 8 TO 3</c> is a
-    /// declaration error, COBOLNET1522, not a table that opens above its own expected capacity.</summary>
+    /// declaration error, COBOL1522, not a table that opens above its own expected capacity.</summary>
     [Fact]
     public void FromGreaterThanTo_Rejected1522()
     {
         var (ok, diag) = EditionHarness.Compile(Prog(
             "01 WS-TABLE.\n   05 WS-E PIC 9(3) OCCURS DYNAMIC FROM 8 TO 3."), 2014);
         Assert.False(ok, "FROM 8 TO 3 must be rejected (ISO §13.18.38 SR28)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1522");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1522");
     }
 
     /// <summary>⛔ THE TWO SIDES OF A REDEFINES OVER/BY A DYNAMIC-CAPACITY TABLE ARE DIFFERENT RULES, and this
     /// test used to conflate them under one citation and one code (kb/Work PB177 arm C follow-up).
     /// <para>The OBJECT side is named by a SYNTAX RULE: §13.18.44.3 SR5 SENTENCE 1, "The data description entry
     /// for data-name-2 shall not contain an OCCURS clause" — and OCCURS DYNAMIC is Format 4 OF the OCCURS clause
-    /// (§13.18.38), so the dynamic-capacity object is as squarely named as a fixed one. COBOLNET1701. (This
+    /// (§13.18.38), so the dynamic-capacity object is as squarely named as a fixed one. COBOL1701. (This
     /// method's old doc-comment cited "§13.18.44 SR5 — a dynamic-capacity table is out-of-line storage that can
     /// neither be the subject nor the object of a REDEFINES", which is the right clause NUMBER attached to a
     /// storage-model sentence the rule does not contain.)</para></summary>
@@ -50,21 +50,21 @@ public sealed class OccursDynamicGuardTests
         var (ok, diag) = EditionHarness.Compile(Prog(
             "01 WS-TABLE.\n   05 WS-E PIC 9(3) OCCURS DYNAMIC FROM 3.\n   05 WS-R REDEFINES WS-E PIC X(9)."), 2014);
         Assert.False(ok, "a REDEFINES whose data-name-2 carries an OCCURS clause must be rejected (ISO §13.18.44.3 SR5)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1701");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1701");
     }
 
     /// <summary>The SUBJECT side, and the one for which "no syntax rule literally names it" is TRUE: §13.18.38.3
     /// carries no REDEFINES restriction and §13.18.44.3 SR17 does not reach an ELEMENTARY dynamic table
     /// (§8.5.1.12.1 defines "variable-length group" over items SUBORDINATE to the group). What decides it is the
     /// storage model — §13.18.44.4 GR1's fixed association area against §8.5.1.9.1's capacities that "may vary
-    /// during execution". COBOLNET1525, narrowed to exactly this side.</summary>
+    /// during execution". COBOL1525, narrowed to exactly this side.</summary>
     [Fact]
     public void RedefinesByDynamicTable_SubjectSide_Rejected1525()
     {
         var (ok, diag) = EditionHarness.Compile(Prog(
             "01 WS-TABLE.\n   05 WS-E PIC X(9).\n   05 WS-R REDEFINES WS-E PIC 9(3) OCCURS DYNAMIC FROM 3."), 2014);
         Assert.False(ok, "a REDEFINES entry that IS a dynamic-capacity table must be rejected (§13.18.44.4 GR1 / §8.5.1.9.1)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1525");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1525");
     }
 
     /// <summary>⛔ A **FORMAT 1** VALUE ON AN ELEMENTARY DYNAMIC-CAPACITY ENTRY IS CONFORMING SOURCE, and the
@@ -73,7 +73,7 @@ public sealed class OccursDynamicGuardTests
     /// syntax rule (band SR16–SR23); §13.18.63 imports rules across bands ONLY into the later band (GR11, GR17,
     /// GR21, GR24), never back into FORMAT 1. So the capacity is the ordinary §14.6.2.3.2 item-6 / §13.18.38.4
     /// GR16 minimum — here FROM 3 — and §13.18.63.4 GR9 gives every one of those occurrences the value.
-    /// <para>This test replaced a GREEN assertion that the construct was REJECTED (COBOLNET1528, now retired): a
+    /// <para>This test replaced a GREEN assertion that the construct was REJECTED (COBOL1528, now retired): a
     /// passing test pinning a loud stage reads as a decision, and this one was pinning a refusal of legal COBOL
     /// derived from a rule in the wrong band.</para></summary>
     [Fact]
@@ -89,7 +89,7 @@ public sealed class OccursDynamicGuardTests
     /// with the OCCURS carrying a TO (expected) capacity. §13.18.63.4 GR9 covers "an entry that is subordinate to
     /// an OCCURS clause" explicitly, and §14.6.2.3.2 item 6 still opens the table at its MINIMUM capacity — the
     /// expected capacity is a ceiling for EC-BOUND-OVERFLOW (§8.5.1.9.6), never an initial size.
-    /// <para>⛔ THE TWO-ARM WITNESS. The retired COBOLNET1528 refusal fired on this arm only when the OCCURS
+    /// <para>⛔ THE TWO-ARM WITNESS. The retired COBOL1528 refusal fired on this arm only when the OCCURS
     /// carried a TO, so `OCCURS DYNAMIC FROM 2.` compiled and seeded correctly while `OCCURS DYNAMIC FROM 2 TO 10.`
     /// — the same construct, one optional phrase apart — was refused. This test and
     /// <see cref="WellFormedAndGroupSubordinateValue_CompileClean"/> are the pair that keeps the two arms
@@ -107,7 +107,7 @@ public sealed class OccursDynamicGuardTests
     }
 
     /// <summary>§8.5.1.9.1 item 3 (review #6) — a dynamic-capacity table "may be defined in any place, OTHER THAN the
-    /// file section" (its out-of-line storage has no place in a record image). COBOLNET1526.</summary>
+    /// file section" (its out-of-line storage has no place in a record image). COBOL1526.</summary>
     [Fact]
     public void FileSectionDynamicTable_Rejected1526()
     {
@@ -129,13 +129,13 @@ public sealed class OccursDynamicGuardTests
                 STOP RUN.
             """, 2014);
         Assert.False(ok, "OCCURS DYNAMIC in the FILE SECTION must be rejected (ISO §8.5.1.9.1)");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1526");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1526");
     }
 
     /// <summary>§8.5.1.9.1 3) holds on EVERY route a description reaches a file record by, not only the one
     /// written in place (kb/Work PB1604): a dynamic-capacity table arriving through a TYPE clause (whole record or
     /// a subordinate group), through SAME AS, or written in a SORT-MERGE file description is refused with
-    /// COBOLNET1526. This is what makes the record-sizing walks (<c>FileModel.MaxDynamicExtent</c> /
+    /// COBOL1526. This is what makes the record-sizing walks (<c>FileModel.MaxDynamicExtent</c> /
     /// <c>MinRecordSize</c>, <c>RecordLayout.KeyWindowOf</c>) correct in having no dynamic-capacity-table arm:
     /// a route this test does not refuse would let a record be sized without its table.</summary>
     [Theory]
@@ -169,16 +169,16 @@ public sealed class OccursDynamicGuardTests
                 STOP RUN.
             """, 2023);
         Assert.False(ok, "a dynamic-capacity table under a FILE SECTION record must be rejected (ISO §8.5.1.9.1 3))");
-        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1526");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOL1526");
     }
 
     /// <summary>kb/Work PB2988 review R1-1: the <c>--permissive</c> disposition of an ambiguous CAPACITY register
     /// reference (§8.4.2.2.3 SR1, warned, resolved to the first declared register) judges the register it picks like
     /// a unique reference's. When the first declared copy's table is subordinate to a table, §13.18.38.3 SR30 puts
     /// the register inside that table, §8.4.2.3.3 SR3 requires the subscript that §13.18.38.3 SR31 ("Data-name-3 shall
-    /// not be subscripted") forbids, and the reference is COBOLNET2126; when it is not, the reference resolves to it and
+    /// not be subscripted") forbids, and the reference is COBOL2126; when it is not, the reference resolves to it and
     /// runs. Before: the ambiguity arm handed back the place computed for the unique case, null under a table, and
-    /// the user got the internal error COBOLNET2362 instead of the rule.</summary>
+    /// the user got the internal error COBOL2362 instead of the rule.</summary>
     [Theory]
     [InlineData("R11CAP1", "01 ST TYPEDEF.\n   05 R OCCURS 2.\n      10 D PIC X OCCURS DYNAMIC CAPACITY IN DC.\n01 A TYPE ST.\n01 B TYPE ST.")]
     [InlineData("R11CAP2", "01 ST TYPEDEF.\n   05 D PIC X OCCURS DYNAMIC CAPACITY IN DC.\n01 G.\n   05 B TYPE ST OCCURS 2.\n01 A TYPE ST.")]
@@ -187,10 +187,10 @@ public sealed class OccursDynamicGuardTests
         var (ok, errors, warnings) = EditionHarness.CompileFull(CapacityProg(id, entries, "MOVE DC TO W"), 2014,
             permissive: true);
         Assert.False(ok, "the first declared register lies under a table (ISO §13.18.38.3 SR30, SR31)");
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1639");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET2126");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1639");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2126");
         EditionHarness.AssertHasDiagnostic(errors, "'DC': 'DC' is the CAPACITY register");   // the bare reference
-        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET2362");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOL2362");
     }
 
     /// <summary>The legal half of <see cref="Permissive_AmbiguousCapacityRegister_FirstUnderATable_Is2126"/>: the
@@ -254,7 +254,7 @@ public sealed class OccursDynamicGuardTests
     /// cleanly. Guards must not over-restrict the supported surface.
     /// <para>The no-TO half of the pair whose TO half is
     /// <see cref="GroupSubordinateValueWithTo_CompilesAndOpensAtMinimumCapacity"/>: for two years exactly one of
-    /// these two compiled, which is how the retired COBOLNET1528 arm split a single construct in half.</para></summary>
+    /// these two compiled, which is how the retired COBOL1528 arm split a single construct in half.</para></summary>
     [Fact]
     public void WellFormedAndGroupSubordinateValue_CompileClean()
     {

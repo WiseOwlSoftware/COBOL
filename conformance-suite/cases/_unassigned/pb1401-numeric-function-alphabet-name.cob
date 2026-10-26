@@ -9,7 +9,7 @@
       *> display or national. If identifier-1 is a function-identifier, it shall reference an alphanumeric or
       *> national function." SQRT is a NUMERIC function (15.2 item 4), and alphabet-name-1 is named by SR3
       *> alone (SR4's list omits it), so this is the rule's function sentence speaking (kb/Work PB1401).
-      *> COBOLNET2202.
+      *> COBOL2202.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1401NEGSR3.
        ENVIRONMENT DIVISION.

@@ -9,7 +9,7 @@
       *> The implicit PUSH ALL / POP ALL of ISO 14.9.28.4 GR14 belongs
       *> to the exception-checking (Format 3) PERFORM, which is new in
       *> COBOL-2023, so below 2023 the PERFORM ... WHEN statement that
-      *> brackets the >>SOURCE FORMAT is rejected (COBOLNET0900, the
+      *> brackets the >>SOURCE FORMAT is rejected (COBOL0900, the
       *> edition gate); at 85 the >>SOURCE FORMAT directive itself is
       *> also unintroduced.
        IDENTIFICATION DIVISION.

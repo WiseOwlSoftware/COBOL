@@ -19,7 +19,7 @@ namespace CobolNet.Compiler.Oo;
 /// <para>It replaced <c>OoConformance.ConformanceDescriptor</c>, a string compared for equality that could not express
 /// either relation: a group keyed like a <c>PIC X(n)</c> of its width matched one (§9.3.6 3 e) says it does not), a
 /// smaller formal group did not match a larger argument (§14.8.2.2 rule 1 admits it), a national, boolean or
-/// numeric-edited operand had no key at all and was refused at bind (COBOLNET0866), and an ACTIVE-CLASS formal was keyed
+/// numeric-edited operand had no key at all and was refused at bind (COBOL0866), and an ACTIVE-CLASS formal was keyed
 /// by its containing class where §9.3.6 3 d) 4. asks a question of the argument's run-time object.</para>
 /// </summary>
 public static class ActivationDescriptions

@@ -10,7 +10,7 @@
       *> ISO §13.18.63.3 SR35 (VALUE) and §13.18.53.3 SR6 (SOURCE) carry no version proviso, and Annex E lists no
       *> 2014→2023 change to either; what IS edition-bound is the REPETITION VEHICLE they require — §13.15.4 GR3's
       *> "a LINE or COLUMN clause with more than one operand" — and the multiple COLUMN clause, the COLUMNS/ARE
-      *> spellings and the SOURCES spelling are all COBOL-2002 introductions (COBOLNET0900 below 2002; the
+      *> spellings and the SOURCES spelling are all COBOL-2002 introductions (COBOL0900 below 2002; the
       *> version-matrix rows report-multi-column-2002 and report-multi-source-2002 pin those gates).  So COBOL-2002
       *> is the oldest edition at which a conforming multi-operand VALUE or SOURCE clause can be WRITTEN at all,
       *> and this program is the proof that it compiles and runs there — the same source as the 2023 twin's
@@ -23,7 +23,7 @@
       *> The CONTENT assertions therefore live in conformance-suite/cases/13.18.53-SOURCE/pb506_report_value_operand_list, and what
       *> this program asserts at 2002 is that the whole construct is ACCEPTED and the report presents: the
       *> emitter's operand-cycling and VALUE-recipe paths carry no version predicate, so a divergence between the
-      *> editions could only come from a gate, and a gate would show up here as a COBOLNET0900 rejection.
+      *> editions could only come from a gate, and a gate would show up here as a COBOL0900 rejection.
       *>
       *> DERIVATION OF THE EXPECTED OUTPUT.  One INITIATE, two GENERATEs of the same TYPE DE group, one TERMINATE;
       *> nothing is control-broken and nothing is suppressed, so the program simply reaches its final DISPLAY.

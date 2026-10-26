@@ -5,7 +5,7 @@
 *> portable: unverified
 *>---
       *> ISO §7.3.25 — the >>TURN compiler directive, and with it the whole EC checking model, is a
-      *> COBOL-2002 introduction: at --std 85 the version-conformance pass rejects it (COBOLNET0900).
+      *> COBOL-2002 introduction: at --std 85 the version-conformance pass rejects it (COBOL0900).
       *>
       *> THIS IS THE EDITION FLOOR OF §14.9.25.4 GR6 d) 1, not a bare directive test. The rule —
       *>   cite.py --check 14.9.25.4 "Otherwise, if the content of the sending operand would result in a
@@ -19,7 +19,7 @@
       *> MoveAlphanumericSenderTests (checking on, the raise).
       *>
       *> The fixture's only 2002+ construct is the directive: delete the first line and it compiles at 85,
-      *> which is what makes COBOLNET0900 here attributable to the directive and to nothing else.
+      *> which is what makes COBOL0900 here attributable to the directive and to nothing else.
        >>TURN EC-DATA-INCOMPATIBLE CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB844N85.

@@ -7,7 +7,7 @@
       *> The ISO 7.3 compiler-directive FACILITY is a COBOL-2002 introduction - COBOL-85
       *> has no compiler directives at all, so a '>>' line cannot occur in a conforming
       *> COBOL-85 source and every directive word below is the introduction diagnostic
-      *> COBOLNET0900, never a silent consume (kb/Work PB725: >>LISTING, >>PAGE, >>DEFINE,
+      *> COBOL0900, never a silent consume (kb/Work PB725: >>LISTING, >>PAGE, >>DEFINE,
       *> >>CALL-CONVENTION and the >>IF family all compiled CLEAN at --std 85 because the
       *> preprocessor held them in a flat name set with no edition column).
       *>

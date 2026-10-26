@@ -14,7 +14,7 @@
       *> the one pair, and 5.2.6.3 says one alternative of a brace group
       *> "shall be explicitly specified". So a written pair holds at least
       *> one argument, and A1 :: "GETNAME" ( ) is no spelling the format
-      *> prints. It used to compile and run (W=ACCOUNT). COBOLNET2994.
+      *> prints. It used to compile and run (W=ACCOUNT). COBOL2994.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1430N1.
        ENVIRONMENT DIVISION.

@@ -17,7 +17,7 @@
       *>   the record below
       *> violates SR1 and nothing else (level 01, no REDEFINES/BASED/ANY
       *>   LENGTH/BWZ/SYNC,
-      *> the file is never opened or read). COBOLNET1549 =
+      *> the file is never opened or read). COBOL1549 =
       *>   constant-record-rule, SR1 arm.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C04B.

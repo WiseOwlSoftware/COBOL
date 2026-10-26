@@ -6,7 +6,7 @@
 *>---
 *> ISO 8.8.1.1 names numeric data items, numeric literals and the figurative constant ZERO as the operands of an
 *> arithmetic expression; a symbolic-character "defines a figurative constant" (12.3.7.4 GR11 a)) other than ZERO, the
-*> only one 8.3.3.6.3 SR1 a) admits where a literal is restricted to numeric. COBOLNET0844, as for a non-numeric
+*> only one 8.3.3.6.3 SR1 a) admits where a literal is restricted to numeric. COBOL0844, as for a non-numeric
 *> constant-name (kb/Work PB1544: it was "not defined").
 IDENTIFICATION DIVISION.
 PROGRAM-ID. NEG1544D.

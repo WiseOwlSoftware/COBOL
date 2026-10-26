@@ -6,7 +6,7 @@
 *>---
       *> ISO 14.9.4.3 SR15 sentence 1: if the NESTED phrase is specified, literal-1 shall be specified.
       *> An identifier target cannot name a contained program at compile time (kb/Work PB131 pinned the
-      *> long-enforced check; the diagnostic moved off the 0899 staging code to COBOLNET1676).
+      *> long-enforced check; the diagnostic moved off the 0899 staging code to COBOL1676).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB131NI.
        DATA DIVISION.

@@ -7,7 +7,7 @@
       *> kb/Work PB1939 - the edition floor under conformance:cases/14.6.9.2-Moving-a-table/pb1939_dyn_numeric_element_spaces.
       *> A dynamic-capacity table (8.5.1.9; OCCURS Format 4, 13.18.38) is a COBOL-2014 introduction, so at
       *> COBOL-85 and COBOL-2002 the receiving table whose numeric elements the positive case space fills
-      *> (14.6.9.2 2), 14.6.9.4) cannot be declared at all; COBOLNET0900 is the version gate.
+      *> (14.6.9.2 2), 14.6.9.4) cannot be declared at all; COBOL0900 is the version gate.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1939N1.
        DATA DIVISION.

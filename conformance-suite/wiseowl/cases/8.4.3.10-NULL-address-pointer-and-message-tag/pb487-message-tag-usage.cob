@@ -17,9 +17,9 @@
       *> message and a server or requestor.  The class and category of a message-tag data item are message-tag."
       *> That facility is the asynchronous messaging module, a processor-dependent element (4.2.6; Annex A.3
       *> item 4) this implementation does not support - docs/CONFORMANCE.md section 4 item 1.  Its SEND/RECEIVE
-      *> statements are accepted inert (COBOLNET1578) because an inert statement changes nothing observable;
+      *> statements are accepted inert (COBOL1578) because an inert statement changes nothing observable;
       *> the DATA item cannot be, because GR9 fixes its class and category, so an accepted item would bind as
-      *> some OTHER class and every reference to it would answer wrong.  Hence COBOLNET1943, an Error.
+      *> some OTHER class and every reference to it would answer wrong.  Hence COBOL1943, an Error.
       *> ONLY at 2023: MESSAGE-TAG is a COBOL-2023 addition (Annex E.2 item 25) and is not reserved below it,
       *> where the same source is a different program and draws the ordinary introduction gate instead.
        IDENTIFICATION DIVISION.

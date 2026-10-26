@@ -12,7 +12,7 @@
       *> there exactly as it is in a program.
       *> Measured before the fix: this program compiled CLEAN at --std 2002 and
       *> --std 2014, while the byte-identical statement in a program drew
-      *> COBOLNET0900 - the version pass excluded a method context from the status
+      *> COBOL0900 - the version pass excluded a method context from the status
       *> gate, which is the RETURNING gate's exclusion (14.9.18.4 GR4 makes a
       *> method's GOBACK a different statement MEANING) applied to a question about
       *> SYNTAX AVAILABILITY, where it does not belong.

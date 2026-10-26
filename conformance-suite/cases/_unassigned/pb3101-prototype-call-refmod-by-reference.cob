@@ -9,7 +9,7 @@
       *> a program-specifier in the REPOSITORY paragraph") requires "the same ALIGN, BLANK WHEN ZERO, DYNAMIC
       *> LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses". The unique data item 8.4.3.3.4 GR5 creates is
       *> described by no PICTURE clause, so it never conforms to an elementary PIC X(5) formal
-      *> (docs/CONFORMANCE.md D-RM1) -> COBOLNET1688. (Before the fix it ran and printed P:ABCDE.)
+      *> (docs/CONFORMANCE.md D-RM1) -> COBOL1688. (Before the fix it ran and printed P:ABCDE.)
       *> cite.py --check 14.9.4.3 "The rules for conformance specified in 14.8.2, Parameters and 14.8.3,
       *>   Returning items apply" -> OK 14.9.4.3 25)
        IDENTIFICATION DIVISION.

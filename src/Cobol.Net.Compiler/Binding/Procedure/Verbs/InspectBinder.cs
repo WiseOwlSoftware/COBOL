@@ -177,7 +177,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 // integer data item may appear") and SR3 refuses LINE-COUNTER, a constant-name is refused by
                 // §13.10.4 GR1, EXCEPTION-OBJECT by §8.4.3.6.3 SR1. The sending resolver used here before knew
                 // none of them, so a legal PAGE-COUNTER counter fell out as an unresolved name and became a
-                // COBOLNET1756 run-time abort — the chokepoint's other arm, unfixed.
+                // COBOL1756 run-time abort — the chokepoint's other arm, unfixed.
                 if (host.Expr.ResolveReceiving(item.receivingIdentifier()) is not { } counter)
                     return new BoundUnsupported("INSPECT TALLYING count operand");   // the chokepoint reported it — not a deferral (kb/Work PB236)
                 ctx.Validation.CheckInspectTallyCounter(counter);   // SR5 — pure check; binding continues
@@ -405,7 +405,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // refused as "a numeric literal", and with no NULL arm, so the predefined NULL — which is no INSPECT
         // operand (§8.4.3.10.3 SR1) — drew the same wrong reason. The mapping folds a concatenation (§8.8.3.3
         // GR3), decodes each literal class char-correct (the SR4 class mix is recorded by InspectCharOperand and
-        // enforced in BindPhrases — kb/Work PB980), and refuses NULL by the ONE SR1 screen (COBOLNET2576).
+        // enforced in BindPhrases — kb/Work PB980), and refuses NULL by the ONE SR1 screen (COBOL2576).
         if (host.Expr.NonNumericLiteralOperand(c.literal()?.nonNumericLiteral()) is { } litOp)
             return (ScreenZeroLength(litOp, c), false);
         if (c.dataReference() is { } dref)
@@ -428,7 +428,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                         : (host.Expr.AliasOperand(alias), true);
             // ⛔ A KEYWORD-OMITTED FUNCTION-IDENTIFIER IS A FUNCTION HERE TOO (§8.4.3.2.3 SR2; kb/Work PB3665, review
             // lead R1-2), as it is at identifier-1 above: SR2 makes `UPPER-CASE("b")` and `FUNCTION UPPER-CASE("b")` ONE
-            // reference, and the arm below resolved it as a data name and refused legal source as undefined (COBOLNET1639).
+            // reference, and the arm below resolved it as a data name and refused legal source as undefined (COBOL1639).
             // KeywordOmittedFunction yields to a declared data item, so a genuine subscripted reference still binds as data.
             if (host.Intrinsic.KeywordOmittedFunction(dref) is { } kof)
             {

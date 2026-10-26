@@ -18,7 +18,7 @@ namespace CobolNet.Tests.Unit;
 /// <c>BoundNop</c>; what is left on the carrier is the DEFERRAL, and it is announced from the ONE place it
 /// cannot be forgotten — <c>StatementBinder.BindStatement</c>, the single funnel every statement passes
 /// through, which already positions the diagnostic cursor (kb/Work PB82). A new <c>BoundUnsupported</c>
-/// written in any future verb binder inherits COBOLNET1756 by construction; nobody has to remember it, which
+/// written in any future verb binder inherits COBOL1756 by construction; nobody has to remember it, which
 /// is exactly what the per-site habit failed at (two of START's five refusals carried a diagnostic and three
 /// did not).</para>
 /// <para>⛔ WHY THIS IS A GATE AND NOT A GREEN TICK. Three of the four facts here are the ones that would go
@@ -39,10 +39,10 @@ public sealed class StatementDeferralAnnounceDriftTests
     /// unobservable at EVERY stage.
     /// <para>⚠ THE EXEMPLAR IS WHATEVER LEGAL SOURCE THE COMPILER STILL DEFERS, AND IT HAS CHANGED BEFORE: ENTRY until
     /// kb/Work PB909 (a PIN OF THE WRONG KIND, kb/Work PB938 — ISO/IEC 1989 defines no ENTRY statement, now refused
-    /// COBOLNET2269), a table SORT over a REDEFINES view until kb/Work PB1175 and keyed on one until PB599, and a
+    /// COBOL2269), a table SORT over a REDEFINES view until kb/Work PB1175 and keyed on one until PB599, and a
     /// SEARCH ALL of an OCCURS DYNAMIC table nested under another table until kb/Work PB3365 built its per-occurrence
     /// capacity path. When this one is built, replace it with the next (<c>DeferredShape</c>'s census and the open
-    /// notes naming COBOLNET1756 are the places to look), never with an extension.</para></summary>
+    /// notes naming COBOL1756 are the places to look), never with an extension.</para></summary>
     private const string DeferralProgram = """
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB236ANNOUNCE.
@@ -88,7 +88,7 @@ MAIN.
         var (ok, errors, warnings) = Compile(DeferralProgram);
         // The compile SUCCEEDS: a gap in WiseOwl COBOL may not reject a program the standard gives a meaning to.
         Assert.True(ok, string.Join("\n", errors));
-        Assert.Contains(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.Contains(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     /// <summary>The announce carries the STATEMENT's own source position — it rides the ONE diagnostic cursor,
@@ -98,7 +98,7 @@ MAIN.
     public void Deferral_Warning_CarriesTheStatementPosition()
     {
         var (_, _, warnings) = Compile(DeferralProgram);
-        string w = warnings.Single(x => x.Contains("COBOLNET1756", StringComparison.Ordinal));
+        string w = warnings.Single(x => x.Contains("COBOL1756", StringComparison.Ordinal));
         Assert.Contains("pb236.cob(17,", w, StringComparison.Ordinal);   // the INSPECT line, not the program
         Assert.Contains("LINAGE-COUNTER", w, StringComparison.Ordinal);
     }
@@ -108,7 +108,7 @@ MAIN.
     {
         var (ok, errors, warnings) = Compile(ConformingProgram);
         Assert.True(ok, string.Join("\n", errors));
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     /// <summary>The other half of the separation: a violated SYNTAX RULE is an ERROR naming the rule, never
@@ -120,9 +120,9 @@ MAIN.
         var (ok, errors, warnings) = Compile(ConformingProgram.Replace(
             "ADD CORRESPONDING SRC TO DST.", "ADD CORRESPONDING A OF SRC TO DST."));
         Assert.False(ok);
-        Assert.Contains(errors, e => e.Contains("COBOLNET1757", StringComparison.Ordinal)
+        Assert.Contains(errors, e => e.Contains("COBOL1757", StringComparison.Ordinal)
                                      && e.Contains("14.9.2.3 SR6", StringComparison.Ordinal));
-        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1756", StringComparison.Ordinal));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
     private static (bool Ok, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings) Compile(string source)

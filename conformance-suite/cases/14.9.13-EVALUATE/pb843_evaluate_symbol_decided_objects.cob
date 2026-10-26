@@ -13,10 +13,10 @@
       *> (1) 14.9.13.2's range-expression ends `[ IN alphabet-name-1 ]`, and 14.9.13.3 SR3 admits it over
       *>     identifiers: "Alphabet-name-1 may be specified only when the literals or identifiers specified in
       *>     the THROUGH phrase are of class alphabetic, alphanumeric, or national". IN is also the
-      *>     qualification connective, so `WS-HI IN AL` parses as a qualified reference; it was COBOLNET1639.
+      *>     qualification connective, so `WS-HI IN AL` parses as a qualified reference; it was COBOL1639.
       *> (2) 14.9.13.3 SR5: "A selection object is a partial-expression if the leftmost portion of the
       *>     selection object is a relational operator, a class condition without the identifier, ...".
-      *>     A BARE class-name / alphabet-name is that class condition; it bound as identifier-2 (COBOLNET1639
+      *>     A BARE class-name / alphabet-name is that class condition; it bound as identifier-2 (COBOL1639
       *>     "not defined"), and LEADING a combined object it bound as a stand-alone condition.
       *>     SR8: the object "is treated as though it were specified as condition-2, where condition-2 is the
       *>     conditional expression that results from preceding partial-expression-1 by the selection subject".

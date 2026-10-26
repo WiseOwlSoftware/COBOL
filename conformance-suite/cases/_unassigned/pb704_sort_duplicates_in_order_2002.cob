@@ -12,7 +12,7 @@
       *> ONLY way a program can demand 14.9.40.4 GR3's defined order for records equal on every key, so the
       *> workaround was a program whose result GR4 leaves UNDEFINED. ORDER is now a lexer token with a
       *> cobol-words.json nameSlot row (the FORMAT precedent), so the phrase parses at every edition and
-      *> `01 ORDER PIC X.` still draws COBOLNET0901 at 2002+.
+      *> `01 ORDER PIC X.` still draws COBOL0901 at 2002+.
       *>
       *> EXPECTED OUTPUT, DERIVED FROM THE SPEC AND NOT FROM A RUN:
       *>   14.9.40.4 GR8 a) - ASCENDING, so the record with the LOWER key is returned first: every A

@@ -9,7 +9,7 @@
       *> kb/Work PB979 - UNSTRING's receiving areas, stored "according to the rules for the MOVE
       *> statement" (ISO 14.9.48.4 GR11 c) and examined over "the size of the current receiving area"
       *> (GR11 b). Before the fix a reference-modified receiver without DELIMITED BY was staged as
-      *> "not implemented" (COBOLNET1756) and aborted the run unit. Every value is derived from the rules:
+      *> "not implemented" (COBOL1756) and aborted the run unit. Every value is derived from the rules:
       *>
       *> RM1  S = "ABCDEFGHIJ", R = "********": INTO R(2:3) R(6:2) - GR11 b) examines the slice's size,
       *>      3 then 2 ("ABC", "DE"); "FGHIJ" is unexamined with every area acted upon: GR15 b) overflow.

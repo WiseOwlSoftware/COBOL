@@ -11,7 +11,7 @@
 *> applies only "for all other cases not described in Syntax rules 8 and 9".
 *> kb/Work PB878 (closing the SR8 arm kb/Work PB422 measured): the written MOVE skipped every GROUP receiver
 *> before SR8 was asked, so this compiled clean and stored '065 '. MOVE now asks the one 14.9.25.3 chain
-*> (MoveTable16.Validity) for every receiver, as MOVE CORRESPONDING's pairing filter already did. COBOLNET0819.
+*> (MoveTable16.Validity) for every receiver, as MOVE CORRESPONDING's pairing filter already did. COBOL0819.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB878NBG.
        DATA DIVISION.

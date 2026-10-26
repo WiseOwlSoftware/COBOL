@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
 *> kb/Work PB3338: EC-FLOW-ROLLBACK is ACCEPTED as an operand of the TURN directive and of a USE declarative. The
-*> name was refused while the commit and rollback facility was declined (Annex A.4.3 item 3, COBOLNET1710); the
+*> name was refused while the commit and rollback facility was declined (Annex A.4.3 item 3, COBOL1710); the
 *> facility is now provided for the keyed organizations and TransactionControl raises the condition (ISO
 *> 14.9.36.4 GR2). The file keeps its id so the evidence that names it still resolves.
        IDENTIFICATION DIVISION.

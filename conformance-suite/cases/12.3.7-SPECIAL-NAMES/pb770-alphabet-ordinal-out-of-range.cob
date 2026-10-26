@@ -9,7 +9,7 @@
       *> Ordinals are 1-based, so 0 is outside it.
       *>
       *> The .err pins the CONSTRUCT as well as the code. This check DID fire before kb/Work PB770 - through
-      *> the CLASS clause's helper, so it reported `COBOLNET1671: CLASS : the ordinal 0 ... 12.3.7.3 SR17 b2`
+      *> the CLASS clause's helper, so it reported `COBOL1671: CLASS : the ordinal 0 ... 12.3.7.3 SR17 b2`
       *> on a program that has no CLASS clause and under a rule about a different construct. A golden that
       *> only asserted "it is rejected" would have called that green.
      

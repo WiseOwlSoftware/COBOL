@@ -28,7 +28,7 @@ public enum KeyedAccess
 /// That premise is now ENFORCED rather than assumed: until kb/Work PB692 the rule had no check anywhere and
 /// <c>ORGANIZATION IS SEQUENTIAL ACCESS MODE IS RANDOM</c> compiled and ran, so this class's reason for
 /// existing was a comment about source the compiler accepted. <c>DataBinder.BindFileControl</c> screens it on
-/// the file control entry (COBOLNET1858, every edition), which is what makes "a sequential-organization
+/// the file control entry (COBOL1858, every edition), which is what makes "a sequential-organization
 /// connector has no access mode" a fact about every program that reaches the runtime.
 ///
 /// ⛔ INVARIANT (kb/Work PB325) — <b>the OPEN MODE never SELECTS a keyed verb's branch; it is only ever

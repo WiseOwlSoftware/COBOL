@@ -7,7 +7,7 @@
       *> kb/Work PB1029 - ISO 8.4.2.3.3 SR3: "the number of subscripts shall equal the number of OCCURS
       *> clauses in the description of the table element being referenced." WS-E has one OCCURS; the
       *> table(ALL) argument writes two subscripts. That arm of the ALL-subscript binder refused
-      *> WITHOUT a diagnostic (and so did its undefined-name sibling). Expected: COBOLNET2097, the
+      *> WITHOUT a diagnostic (and so did its undefined-name sibling). Expected: COBOL2097, the
       *> resolver's own subscript-count report, at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1029NTA.

@@ -279,7 +279,7 @@ public static partial class CobolIntrinsics
         const int ANUM = 1, HEX = 2, NAT = 3, BYTE = 4;
 
         // §15.19.3 r1: argument-1 shall not be of zero length — the RUNTIME screen (fix-queue PB59 /
-        // AR-15.19.3-1). The bind-time COBOLNET1514 catches only the zero-length LITERAL (ISO 8.5.4's shape 8);
+        // AR-15.19.3-1). The bind-time COBOL1514 catches only the zero-length LITERAL (ISO 8.5.4's shape 8);
         // the other runtime zero-length shapes (a DYNAMIC LENGTH item at length 0, a zero-occurrence ODO group,
         // …) are only visible here. EC-ARGUMENT-FUNCTION + the §15.3 default, the Substitute shape.
         if (arg.Length == 0)

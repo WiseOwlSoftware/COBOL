@@ -8,7 +8,7 @@
       *> The OCCURS DYNAMIC CAPACITY clause and DYNAMIC LENGTH are COBOL-
       *> 2014 additions (8.5.1.9 / 8.5.1.10), and USAGE BIT / PICTURE 1 are
       *> COBOL-2002's, so below 2014 the group is refused by the edition
-      *> gate (COBOLNET0900) before any layout question arises.
+      *> gate (COBOL0900) before any layout question arises.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2818OLD.
        DATA DIVISION.

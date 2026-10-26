@@ -12,7 +12,7 @@
       *> 13.18.60.3 SR12: "An elementary data item with usage national shall be described with a
       *> picture character-string that describes a boolean, national, national-edited, numeric, or
       *> numeric-edited data item." FIVE shapes; the first two of them (national, national-edited) were
-      *> already live and the other three were refused BY NAME at COBOLNET0899 until this landing.
+      *> already live and the other three were refused BY NAME at COBOL0899 until this landing.
       *>
       *> WHAT USAGE NATIONAL CHANGES, AND WHAT IT DOES NOT.
       *>   13.18.40.4 GR1: "When the usage of the subject of the entry is national, each symbol
@@ -119,7 +119,7 @@
       *>
       *> The BYTE image is pinned by conformance:cases/13.18.40-PICTURE/pb646_national_form_numeric_bytes (a REDEFINES
       *> over the same items) and the 85 rejection by
-      *> conformance:cases/13.18.40-PICTURE/pb646-national-form-numeric-at-85 (COBOLNET0900).
+      *> conformance:cases/13.18.40-PICTURE/pb646-national-form-numeric-at-85 (COBOL0900).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB646NF3.
        DATA DIVISION.

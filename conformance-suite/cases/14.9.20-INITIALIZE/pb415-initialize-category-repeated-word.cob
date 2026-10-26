@@ -10,7 +10,7 @@
 *> same ban at two scopes — within ONE category-name, and across the phrase's items — and this program
 *> breaks the first, which only became expressible when category-name became a SET.
 *> The compiler evaluates both against ONE accumulator, so `NUMERIC NUMERIC` here and `NUMERIC … NUMERIC`
-*> in two separate REPLACING items are diagnosed identically (COBOLNET0834).
+*> in two separate REPLACING items are diagnosed identically (COBOL0834).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB415NREP.
        DATA DIVISION.

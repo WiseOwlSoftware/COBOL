@@ -13,7 +13,7 @@
       *> Measured before the fix: each of these reported its other error ALONE at --std 85.
       *> HERE: invokeStatement is its own grammar rule with exactly one use site, so presence IS the
       *> gate. 14.9.23.2 prints the target as identifier-1 / class-name-1; here it resolves to neither a
-      *> data item nor a class of the compilation group, so OoBindInvoke returns COBOLNET0823 before any
+      *> data item nor a class of the compilation group, so OoBindInvoke returns COBOL0823 before any
       *> BoundInvoke exists. Keying on that node was ALSO over-inclusive: BoundInvoke is equally the
       *> bound form of a synthesized PROPERTY get/set and of NEW / SELF-NEW.
        IDENTIFICATION DIVISION.

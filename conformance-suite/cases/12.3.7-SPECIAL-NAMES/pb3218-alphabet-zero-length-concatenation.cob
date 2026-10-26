@@ -10,7 +10,7 @@
 *> literal, and GR3 makes it usable anywhere a literal of that class may be used, so the operand of this
 *> ALPHABET entry is the zero-length literal SR11 bars although neither token is written as one operand of
 *> length zero.  It compiled clean (the screen tested the raw tokens), while the LOCALE clause refused the
-*> same operand.  Expected: COBOLNET1906 naming SR11.
+*> same operand.  Expected: COBOL1906 naming SR11.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3218-AZ.
 ENVIRONMENT DIVISION.

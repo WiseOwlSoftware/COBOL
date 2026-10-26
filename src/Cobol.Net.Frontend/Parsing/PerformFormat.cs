@@ -7,7 +7,7 @@ namespace CobolNet.Frontend.Parsing;
 /// <summary>
 /// ⛔ THE FORMAT-3 PERFORM DECISION, WRITTEN ONCE. An inline PERFORM is Format 3 (exception-checking) iff it carries
 /// any WHEN phrase (ordinary / OTHER / COMMON), a FINALLY phrase, or a [WITH] LOCATION head (ISO §14.9.28.2
-/// Format 3). Every reader asks THIS predicate — the binder's format dispatch, the COBOLNET0900 introduction gate
+/// Format 3). Every reader asks THIS predicate — the binder's format dispatch, the COBOL0900 introduction gate
 /// (<c>VersionConformancePass.VisitPerformStatement</c>) and the front end's §14.9.28.4 GR14 implicit PUSH ALL /
 /// POP ALL placement (<see cref="Preprocessor.ExceptionPerformDirectiveScope"/>) — so the three cannot drift. It
 /// lives in the front end because the last of them runs before binding: the implicit POP ALL must reach the
@@ -28,7 +28,7 @@ public static class PerformFormat
 
     /// <summary>Every loop-control phrase WRITTEN on <paramref name="p"/>, in whichever of the three tree shapes the
     /// grammar gives it: a direct child (the out-of-line <c>PERFORM proc TIMES|UNTIL|VARYING</c> alternatives), the
-    /// THRU form's <c>performOptions</c>, or the inline head's list (a superset: more than one is COBOLNET2117).</summary>
+    /// THRU form's <c>performOptions</c>, or the inline head's list (a superset: more than one is COBOL2117).</summary>
     private static IEnumerable<Antlr4.Runtime.ParserRuleContext> LoopControlPhrases(CobolParserCore.PerformStatementContext p)
     {
         if (p.performUntil() is { } u) yield return u;

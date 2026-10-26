@@ -108,7 +108,7 @@ public sealed class DataClausePlacementDriftTests
     public void MisplacedExternalOrGlobal_IsRefused_AndNeverRegistered(string label, string ws)
     {
         var binder = Bind(label, "WORKING-STORAGE", ws, out var diags);
-        Assert.Contains(diags, d => d.Contains("COBOLNET2404", StringComparison.Ordinal));
+        Assert.Contains(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal));
         Assert.Empty(binder.CallGlobalRoots);
         Assert.Empty(binder.CallExternalBackings);
     }
@@ -119,7 +119,7 @@ public sealed class DataClausePlacementDriftTests
     public void External_OutsideWorkingStorage_IsRefused(string section)
     {
         Bind("EXT" + section, section, "       01  H IS EXTERNAL PIC X(4).\r\n", out var diags);
-        Assert.Contains(diags, d => d.Contains("COBOLNET2404", StringComparison.Ordinal)
+        Assert.Contains(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal)
                                     && d.Contains("§13.18.22.3 SR1", StringComparison.Ordinal));
     }
 
@@ -130,7 +130,7 @@ public sealed class DataClausePlacementDriftTests
     public void Global_AtLevelOne_InEveryAdmittedSection_IsRegistered(string section)
     {
         var binder = Bind("GLB" + section, section, "       01  H IS GLOBAL PIC X(4).\r\n", out var diags);
-        Assert.DoesNotContain(diags, d => d.Contains("COBOLNET2404", StringComparison.Ordinal));
+        Assert.DoesNotContain(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal));
         Assert.Contains(binder.CallGlobalRoots, g => g.CobolName == "H");
     }
 
@@ -141,7 +141,7 @@ public sealed class DataClausePlacementDriftTests
     {
         var binder = Bind("ANCHOR", "WORKING-STORAGE",
             "       01  A IS EXTERNAL PIC X(4).\r\n       01  B REDEFINES A PIC X(4).\r\n", out var diags);
-        Assert.DoesNotContain(diags, d => d.Contains("COBOLNET2404", StringComparison.Ordinal));
+        Assert.DoesNotContain(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal));
         Assert.Single(binder.CallExternalBackings);
         Assert.Equal("A", binder.CallExternalBackings[0].Record.CobolName);
     }
@@ -159,7 +159,7 @@ public sealed class DataClausePlacementDriftTests
     public void OccursAtLevel01Or77_IsRefused(string section, string entry)
     {
         Bind("OCCLVL", section, "       77  N PIC 9.\r\n" + entry + "\r\n", out var diags);
-        Assert.Contains(diags, d => d.Contains("COBOLNET2404", StringComparison.Ordinal)
+        Assert.Contains(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal)
                                     && d.Contains("§13.18.38.3 SR1 a)", StringComparison.Ordinal));
     }
 
@@ -174,7 +174,7 @@ public sealed class DataClausePlacementDriftTests
     public void Based_OutsideItsResidence_IsRefused(string section, string entries, string why)
     {
         var binder = Bind("BASEDOUT" + section, section, entries, out var diags);
-        Assert.Contains(diags, d => d.Contains("COBOLNET2404", StringComparison.Ordinal)
+        Assert.Contains(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal)
                                     && d.Contains("§13.16.3 SR16", StringComparison.Ordinal)
                                     && d.Contains(why, StringComparison.Ordinal));
         Assert.DoesNotContain(binder.ConformanceForest(), i => i.IsBased);
@@ -187,7 +187,7 @@ public sealed class DataClausePlacementDriftTests
     public void Based_InEveryAdmittedResidence_BindsBased(string section, string entries)
     {
         var binder = Bind("BASEDIN" + section, section, entries, out var diags);
-        Assert.DoesNotContain(diags, d => d.Contains("COBOLNET2404", StringComparison.Ordinal));
+        Assert.DoesNotContain(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal));
         Assert.Equal(2, binder.ConformanceForest().Count(i => i.IsBased));
     }
 
@@ -195,7 +195,7 @@ public sealed class DataClausePlacementDriftTests
     public void OccursBelowLevelOne_BindsClean()
     {
         Bind("OCCOK", "WORKING-STORAGE", "       01  G.\r\n           05  A PIC X OCCURS 3.\r\n", out var diags);
-        Assert.DoesNotContain(diags, d => d.Contains("COBOLNET2404", StringComparison.Ordinal));
+        Assert.DoesNotContain(diags, d => d.Contains("COBOL2404", StringComparison.Ordinal));
     }
 
     // ── the subject rules (§13.18.8.3 SR1/SR2, §13.18.32.3 SR3/SR4) ────────────────────────────────────────
@@ -212,7 +212,7 @@ public sealed class DataClausePlacementDriftTests
     public void ClauseOnAnInadmissibleSubject_IsRefused(string ws, string rule)
     {
         Bind("SUBJ", "WORKING-STORAGE", ws, out var diags);
-        Assert.Contains(diags, d => d.Contains("COBOLNET2405", StringComparison.Ordinal)
+        Assert.Contains(diags, d => d.Contains("COBOL2405", StringComparison.Ordinal)
                                     && d.Contains(rule, StringComparison.Ordinal));
     }
 
@@ -227,18 +227,18 @@ public sealed class DataClausePlacementDriftTests
     public void ClauseOnAnAdmissibleSubject_BindsClean(string ws)
     {
         Bind("LEGAL", "WORKING-STORAGE", ws, out var diags);
-        Assert.DoesNotContain(diags, d => d.Contains("COBOLNET2405", StringComparison.Ordinal)
-                                          || d.Contains("COBOLNET2403", StringComparison.Ordinal));
+        Assert.DoesNotContain(diags, d => d.Contains("COBOL2405", StringComparison.Ordinal)
+                                          || d.Contains("COBOL2403", StringComparison.Ordinal));
     }
 
     /// <summary>§13.18.32.3 SR4 — "The JUSTIFIED clause shall not be specified for a dynamic-length elementary
-    /// item." Enforced by §13.16.3 SR18's permitted set (COBOLNET1563), which is the same fact, so
+    /// item." Enforced by §13.16.3 SR18's permitted set (COBOL1563), which is the same fact, so
     /// <c>CheckClauseSubjects</c> carries no second arm; this pins that the fact IS reported.</summary>
     [Fact]
     public void JustifiedOnADynamicLengthItem_IsRefused()
     {
         Bind("JDL", "WORKING-STORAGE", "       01  D PIC X DYNAMIC LENGTH JUSTIFIED.\r\n", out var diags);
-        Assert.Contains(diags, d => d.Contains("COBOLNET1563", StringComparison.Ordinal)
+        Assert.Contains(diags, d => d.Contains("COBOL1563", StringComparison.Ordinal)
                                     && d.Contains("JUSTIFIED", StringComparison.Ordinal));
     }
 

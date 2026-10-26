@@ -50,7 +50,7 @@ public sealed class FlagPopulationTests
             "    MOVE FUNCTION UPPER-CASE(X) TO Y.",
             ">>TURN EC-PROGRAM-NOT-FOUND CHECKING ON",
             "    DISPLAY Y.", "    STOP RUN.");
-        var warnings = Warnings(source, "COBOLNET1620");
+        var warnings = Warnings(source, "COBOL1620");
         Assert.Equal(2, warnings.Count);
         Assert.Contains(warnings, w => AtLine(w, LineOf(source, "EC-PROGRAM CHECKING")));
         Assert.Contains(warnings, w => AtLine(w, LineOf(source, "EC-PROGRAM-NOT-FOUND CHECKING")));
@@ -66,11 +66,11 @@ public sealed class FlagPopulationTests
         string Program(string stmt) => Src([FlagB, ">>TURN EC-PROGRAM CHECKING ON", ..body.Replace("{STMT}", stmt).Split('|')]);
 
         string withCall = Program("    MOVE FUNCTION UPPER-CASE(X) TO Y.");
-        var flagged = Warnings(withCall, "COBOLNET1620");
+        var flagged = Warnings(withCall, "COBOL1620");
         Assert.Single(flagged);
         Assert.True(AtLine(flagged[0], 2), flagged[0]);
 
-        Assert.Empty(Warnings(Program("    MOVE X TO Y."), "COBOLNET1620"));
+        Assert.Empty(Warnings(Program("    MOVE X TO Y."), "COBOL1620"));
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public sealed class FlagPopulationTests
             ">>TURN EC-PROGRAM-ARG-OMITTED CHECKING ON",
             "    MOVE FUNCTION UPPER-CASE(\"a\") TO Y.", "    EXIT PROGRAM.",
             "END PROGRAM INNERP.", "END PROGRAM OUTERP.");
-        var warnings = Warnings(source, "COBOLNET1620");
+        var warnings = Warnings(source, "COBOL1620");
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "EC-PROGRAM-ARG-OMITTED CHECKING")), warnings[0]);
     }
@@ -107,12 +107,12 @@ public sealed class FlagPopulationTests
             ">>TURN EC-PROGRAM CHECKING ON", stmt, "    DISPLAY Y.", "    STOP RUN.");
 
         string source = Program("    MOVE UPPER-CASE(X) TO Y.");
-        var warnings = Warnings(source, "COBOLNET1620");
+        var warnings = Warnings(source, "COBOL1620");
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "EC-PROGRAM CHECKING")), warnings[0]);
 
         // The REPOSITORY paragraph alone is no call.
-        Assert.Empty(Warnings(Program("    MOVE X TO Y."), "COBOLNET1620"));
+        Assert.Empty(Warnings(Program("    MOVE X TO Y."), "COBOL1620"));
     }
 
     [Theory]
@@ -128,7 +128,7 @@ public sealed class FlagPopulationTests
             "DATA DIVISION.", "WORKING-STORAGE SECTION.", "01 X PIC X(3) VALUE \"abc\".", "01 T.",
             "   05 TB OCCURS 5 PIC X.", "01 Y PIC X.", FlagB, "PROCEDURE DIVISION.",
             ">>TURN EC-PROGRAM CHECKING ON", stmt, "    DISPLAY Y.", "    STOP RUN."]);
-        var warnings = Warnings(source, "COBOLNET1620");
+        var warnings = Warnings(source, "COBOL1620");
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "EC-PROGRAM CHECKING")), warnings[0]);
     }
@@ -150,7 +150,7 @@ public sealed class FlagPopulationTests
             ">>TURN EC-PROGRAM-NOT-FOUND CHECKING ON",
             "    DISPLAY Y.",
             "END METHOD GO2.", "END FACTORY.", "END CLASS FLGMETH.");
-        var warnings = Warnings(source, "COBOLNET1620");
+        var warnings = Warnings(source, "COBOL1620");
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "EC-PROGRAM CHECKING")), warnings[0]);
     }
@@ -165,7 +165,7 @@ public sealed class FlagPopulationTests
             ">>TURN EC-ALL CHECKING ON",
             "    MOVE FUNCTION UPPER-CASE(X) TO Y.", "    DISPLAY Y.",
             "END METHOD GO1.", "END FACTORY.", "END CLASS FLGMETF.");
-        var warnings = Warnings(source, "COBOLNET1620");
+        var warnings = Warnings(source, "COBOL1620");
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "EC-ALL CHECKING")), warnings[0]);
     }
@@ -188,11 +188,11 @@ public sealed class FlagPopulationTests
             "PROCEDURE DIVISION.", "END OBJECT.", "END CLASS CFLGPROP.");
 
         string source = Program("    MOVE BAL OF A TO N.");
-        var warnings = Warnings(source, "COBOLNET1620");
+        var warnings = Warnings(source, "COBOL1620");
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "EC-PROGRAM CHECKING")), warnings[0]);
 
-        Assert.Empty(Warnings(Program("    MOVE 1 TO N."), "COBOLNET1620"));
+        Assert.Empty(Warnings(Program("    MOVE 1 TO N."), "COBOL1620"));
     }
 
     // ── FLAG-02 d MOVE-TO-SAME-NAME (§7.3.14.4 GR4 d): flagged when the operands are described by the same DDE and
@@ -207,16 +207,16 @@ public sealed class FlagPopulationTests
     public void MoveToSameName_ReferenceModifiedAlphanumericEditedOperands_AreCategoryAlphanumeric()
     {
         const string entry = "01 AE PIC X(3)BX(3) VALUE \"ABC DEF\".";
-        Assert.Empty(Warnings(MoveProgram(entry, "    MOVE AE(1:3) TO AE(5:3)."), "COBOLNET1620"));
-        Assert.Empty(Warnings(MoveProgram(entry, "    MOVE AE TO AE(5:3)."), "COBOLNET1620"));
-        Assert.Single(Warnings(MoveProgram(entry, "    MOVE AE TO AE."), "COBOLNET1620"));
+        Assert.Empty(Warnings(MoveProgram(entry, "    MOVE AE(1:3) TO AE(5:3)."), "COBOL1620"));
+        Assert.Empty(Warnings(MoveProgram(entry, "    MOVE AE TO AE(5:3)."), "COBOL1620"));
+        Assert.Single(Warnings(MoveProgram(entry, "    MOVE AE TO AE."), "COBOL1620"));
     }
 
     [Fact]
     public void MoveToSameName_SubordinateOdo_IsAPropertyOfTheEntry_NotOfTheReferenceModification()
     {
         const string entries = "01 G.|   05 CNT PIC 9 VALUE 3.|   05 T OCCURS 1 TO 5 DEPENDING ON CNT PIC X.";
-        Assert.Single(Warnings(MoveProgram(entries, "    MOVE G(1:2) TO G(3:2)."), "COBOLNET1620"));
+        Assert.Single(Warnings(MoveProgram(entries, "    MOVE G(1:2) TO G(3:2)."), "COBOL1620"));
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public sealed class FlagPopulationTests
             "01 AE PIC X(3)BX(3) VALUE \"ABC DEF\".", "PROCEDURE DIVISION.",
             ">>FLAG-02 MOVE-TO-SAME-NAME ON", "    MOVE AE TO AE.", "    EXIT PROGRAM.",
             "END PROGRAM INNER1.", "END PROGRAM OUTER1.");
-        var warnings = Warnings(source, "COBOLNET1620");
+        var warnings = Warnings(source, "COBOL1620");
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "MOVE AE TO AE")), warnings[0]);
     }
@@ -248,7 +248,7 @@ public sealed class FlagPopulationTests
             ">>FLAG-14 COMPILE-TIME-ARITHMETIC-EXPRESSIONS ON",
             "01 K1 CONSTANT AS 5 * 2.", "01 K2 CONSTANT AS 7.",
             "PROCEDURE DIVISION.", "    DISPLAY K1 K2.", "    STOP RUN.");
-        var warnings = Warnings(source, "COBOLNET1621");
+        var warnings = Warnings(source, "COBOL1621");
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "K1 CONSTANT")), warnings[0]);
     }
@@ -261,7 +261,7 @@ public sealed class FlagPopulationTests
             ">>FLAG-14 COMPILE-TIME-ARITHMETIC-EXPRESSIONS OFF",
             "01 K1 CONSTANT AS 5 * 2.",
             "PROCEDURE DIVISION.", "    DISPLAY K1.", "    STOP RUN.");
-        Assert.Empty(Warnings(source, "COBOLNET1621"));
+        Assert.Empty(Warnings(source, "COBOL1621"));
     }
 
     // ── FLAG-14 i REF-MOD-ZERO-LENGTH (§7.3.15.4 GR4 i): "A reference modification of a data-item shall be flagged" — the
@@ -277,7 +277,7 @@ public sealed class FlagPopulationTests
             "IDENTIFICATION DIVISION.", "PROGRAM-ID. FLGREFM.", "DATA DIVISION.", "WORKING-STORAGE SECTION.",
             "01 W PIC X(5) VALUE \"HELLO\".", "01 R PIC X(3).", "PROCEDURE DIVISION.",
             ">>TURN EC-BOUND-REF-MOD CHECKING ON", ">>FLAG-14 REF-MOD-ZERO-LENGTH ON", stmt, "    STOP RUN.");
-        var warnings = Warnings(source, "COBOLNET1621");
+        var warnings = Warnings(source, "COBOL1621");
         if (!flagged) { Assert.Empty(warnings); return; }
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "MOVE ")), warnings[0]);
@@ -317,7 +317,7 @@ public sealed class FlagPopulationTests
     public void IoDeclarative_FlagsOnlyTheStatementsThatCanTakeAnInvalidKeyPhrase(string selectTail, string stmt, bool flagged)
     {
         string source = InvalidKeyProgram(selectTail, stmt);
-        var warnings = Warnings(source, "COBOLNET1621");
+        var warnings = Warnings(source, "COBOL1621");
         if (!flagged) { Assert.Empty(warnings); return; }
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, stmt.Trim())), warnings[0]);
@@ -367,7 +367,7 @@ public sealed class FlagPopulationTests
     [InlineData("    IF FS-QUOTE04|        CONTINUE|    END-IF.", "I-O-STATUS-04", 0)]             // an 88 VALUE "0'4"
     public void IoStatus_FlagsEveryConditionThatTestsTheFileStatusItem(string statements, string option, int expected)
     {
-        var warnings = Warnings(StatusProgram(statements.Split('|')), "COBOLNET1621")
+        var warnings = Warnings(StatusProgram(statements.Split('|')), "COBOL1621")
             .Where(w => w.Contains(option, StringComparison.Ordinal)).ToList();
         Assert.Equal(expected, warnings.Count);
     }
@@ -377,7 +377,7 @@ public sealed class FlagPopulationTests
     {
         string source = StatusProgram(
             "    IF FS = \"00\"", "        OR \"04\"", "        CONTINUE", "    END-IF.");
-        var warnings = Warnings(source, "COBOLNET1621");
+        var warnings = Warnings(source, "COBOL1621");
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "OR \"04\"")), warnings[0]);
     }
@@ -399,7 +399,7 @@ public sealed class FlagPopulationTests
         string source = ValueProgram("",
             "01 X PIC 999 BLANK WHEN ZERO VALUE ZERO.",
             "01 Y PIC 999 BLANK WHEN ZERO VALUE 12.");
-        var warnings = Warnings(source, "COBOLNET1621");
+        var warnings = Warnings(source, "COBOL1621");
         Assert.Equal(3, warnings.Count);
         Assert.Equal(2, warnings.Count(w => AtLine(w, LineOf(source, "01 X PIC"))));   // g and l: the figurative ZERO
         Assert.Single(warnings, w => AtLine(w, LineOf(source, "01 Y PIC")));            // j: a literal with no editing symbol
@@ -412,7 +412,7 @@ public sealed class FlagPopulationTests
             "01 X PIC 999 VALUE ZERO.",
             "01 Y PIC 999 VALUE 12.",
             "01 Z PIC 999 BLANK WHEN ZERO.");
-        Assert.Empty(Warnings(source, "COBOLNET1621"));
+        Assert.Empty(Warnings(source, "COBOL1621"));
     }
 
     [Fact]
@@ -420,7 +420,7 @@ public sealed class FlagPopulationTests
     {
         string source = ValueProgram("    CURRENCY SIGN IS \"#\".",
             "01 C PIC #ZZ9.99 VALUE ZERO.");
-        Assert.Equal(2, Warnings(source, "COBOLNET1621").Count);   // g and l
+        Assert.Equal(2, Warnings(source, "COBOL1621").Count);   // g and l
     }
 
     // ── FLAG-14 m WRITE-END-OF-PAGE (§7.3.15.4 GR4 m): "A WRITE statement that allows an END-OF-PAGE phrase when the
@@ -442,7 +442,7 @@ public sealed class FlagPopulationTests
     public void WriteEndOfPage_IsFlaggedUnlessThePositivePhraseIsSpecified(string stmt, bool flagged)
     {
         string source = WriteProgram(stmt);
-        var warnings = Warnings(source, "COBOLNET1621");
+        var warnings = Warnings(source, "COBOL1621");
         if (!flagged) { Assert.Empty(warnings); return; }
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "WRITE OUT-REC")), warnings[0]);
@@ -463,7 +463,7 @@ public sealed class FlagPopulationTests
             "      10 COLUMN + 2 PIC X(3) VALUE \"AB\".",
             "PROCEDURE DIVISION.", "    OPEN OUTPUT RPT.", "    INITIATE R.", "    GENERATE DL.",
             ">>FLAG-02 TERMINATE-WITH-VARYING ON", "    TERMINATE R.", "    CLOSE RPT.", "    STOP RUN.");
-        var warnings = Warnings(source, "COBOLNET1620");
+        var warnings = Warnings(source, "COBOL1620");
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "TERMINATE R")), warnings[0]);
     }
@@ -494,7 +494,7 @@ public sealed class FlagPopulationTests
         string[] first = StatusUnit(statusProgramFirst ? "PS" : "PN", withFileStatus: statusProgramFirst, directive: true);
         string[] second = StatusUnit(statusProgramFirst ? "PN" : "PS", withFileStatus: !statusProgramFirst, directive: false);
         string source = Src(first.Concat(second).ToArray());
-        var warnings = Warnings(source, "COBOLNET1621");
+        var warnings = Warnings(source, "COBOL1621");
         int boundary = LineOf(source, statusProgramFirst ? "PROGRAM-ID. PN." : "PROGRAM-ID. PS.");
         Assert.Equal(2, warnings.Count);
         Assert.All(warnings, w => Assert.True(statusProgramFirst ? WarningLine(w) < boundary : WarningLine(w) > boundary, w));
@@ -518,7 +518,7 @@ public sealed class FlagPopulationTests
             "    IF IS-04 OF FS OF G1", "        CONTINUE", "    END-IF.",
             "    IF IS-04 OF FS OF G2", "        CONTINUE", "    END-IF.",
             "    STOP RUN.");
-        var warnings = Warnings(source, "COBOLNET1621");
+        var warnings = Warnings(source, "COBOL1621");
         Assert.Equal(2, warnings.Count);
         Assert.Contains(warnings, w => AtLine(w, LineOf(source, "IF FS OF G1")));
         Assert.Contains(warnings, w => AtLine(w, LineOf(source, "IF IS-04 OF FS OF G1")));
@@ -541,7 +541,7 @@ public sealed class FlagPopulationTests
             "    IF STAT-04", "        CONTINUE", "    END-IF.",
             "    WRITE LREC.", "    WRITE LREC IN LF.", "    GOBACK.",
             "END PROGRAM FLGINN.", "END PROGRAM FLGOUT.");
-        var warnings = Warnings(source, "COBOLNET1621");
+        var warnings = Warnings(source, "COBOL1621");
         Assert.Equal(4, warnings.Count);
         Assert.Contains(warnings, w => AtLine(w, LineOf(source, "IF WS-STAT")));
         Assert.Contains(warnings, w => AtLine(w, LineOf(source, "IF STAT-04")));
@@ -561,7 +561,7 @@ public sealed class FlagPopulationTests
         // OUT-REC belongs to a LINAGE file in PL and to a file with no LINAGE in PN: only PL's WRITE allows END-OF-PAGE.
         string source = "       >>FLAG-14 WRITE-END-OF-PAGE ON\n"
             + Src(LinageUnit("PL", " LINAGE IS 60 LINES").Concat(LinageUnit("PN", "")).ToArray());
-        var warnings = Warnings(source, "COBOLNET1621");
+        var warnings = Warnings(source, "COBOL1621");
         Assert.Single(warnings);
         Assert.True(WarningLine(warnings[0]) < LineOf(source, "PROGRAM-ID. PN."), warnings[0]);
     }
@@ -578,7 +578,7 @@ public sealed class FlagPopulationTests
             "DATA DIVISION.", "FILE SECTION.", "FD LF LINAGE IS 60 LINES.", "01 REC PIC X(80).",
             "FD PLAINF.", "01 REC PIC X(80).", "PROCEDURE DIVISION.", "MAIN.", ">>FLAG-14 WRITE-END-OF-PAGE ON",
             "    WRITE REC IN LF.", "    WRITE REC IN PLAINF.", "    STOP RUN.");
-        var warnings = Warnings(source, "COBOLNET1621");
+        var warnings = Warnings(source, "COBOL1621");
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "WRITE REC IN LF")), warnings[0]);
     }
@@ -603,7 +603,7 @@ public sealed class FlagPopulationTests
         string[] first = ReportUnit(varyingFirst ? "PV" : "PN", varying: varyingFirst);
         string[] second = ReportUnit(varyingFirst ? "PN" : "PV", varying: !varyingFirst);
         string source = "       >>FLAG-02 TERMINATE-WITH-VARYING ON\n" + Src(first.Concat(second).ToArray());
-        var warnings = Warnings(source, "COBOLNET1620");
+        var warnings = Warnings(source, "COBOL1620");
         Assert.Single(warnings);
         int boundary = LineOf(source, varyingFirst ? "PROGRAM-ID. PN." : "PROGRAM-ID. PV.");
         Assert.True(varyingFirst ? WarningLine(warnings[0]) < boundary : WarningLine(warnings[0]) > boundary, warnings[0]);
@@ -618,7 +618,7 @@ public sealed class FlagPopulationTests
         string source = ValueProgram("",
             "01 A PIC 99 BLANK WHEN ZERO VALUE X\"3132\".",
             "01 B PIC 99 BLANK WHEN ZERO VALUE X\"312E\".");
-        var warnings = Warnings(source, "COBOLNET1621").Where(w => w.Contains("VALUE-EDITING", StringComparison.Ordinal)).ToList();
+        var warnings = Warnings(source, "COBOL1621").Where(w => w.Contains("VALUE-EDITING", StringComparison.Ordinal)).ToList();
         Assert.Single(warnings);
         Assert.True(AtLine(warnings[0], LineOf(source, "01 A PIC")), warnings[0]);
     }

@@ -8,8 +8,8 @@
 *> 2023/w68r_pb1079_external_entry_identity: the file control entry identity check
 *> (ISO 14.8.4.4 -> 12.4.5.3 GR1) raises EC-EXTERNAL-FILE-MISMATCH, and the EC-EXTERNAL
 *> family is new in COBOL-2023 (Annex E.2 item 9) - enabling it by >>TURN at 2002/2014
-*> is COBOLNET0878, never a silent no-op. (At --std 85 the >>TURN directive itself is
-*> refused first, COBOLNET0900 - pinned by the turn-directive registry row.)
+*> is COBOL0878, never a silent no-op. (At --std 85 the >>TURN directive itself is
+*> refused first, COBOL0900 - pinned by the turn-directive registry row.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. W68RNEG1.
        >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON

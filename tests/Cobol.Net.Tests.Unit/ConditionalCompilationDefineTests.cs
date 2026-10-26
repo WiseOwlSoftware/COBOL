@@ -10,7 +10,7 @@ namespace CobolNet.Tests.Unit;
 
 /// <summary>
 /// The <c>&gt;&gt;DEFINE</c> directive (ISO §7.3.11) Wave-D behaviour in <see cref="ConditionalCompilationProcessor"/>:
-/// the §7.3.11.3 SR2 no-OVERRIDE redefinition check (COBOLNET1618), the GR3 OVERRIDE phrase, and the GR4
+/// the §7.3.11.3 SR2 no-OVERRIDE redefinition check (COBOL1618), the GR3 OVERRIDE phrase, and the GR4
 /// <c>AS PARAMETER</c> operating-environment source.
 /// </summary>
 public sealed class ConditionalCompilationDefineTests
@@ -22,7 +22,7 @@ public sealed class ConditionalCompilationDefineTests
         return (outp, bag);
     }
 
-    private static bool Has1618(DiagnosticBag b) => b.Diagnostics.Any(d => d.Code == "COBOLNET1618");
+    private static bool Has1618(DiagnosticBag b) => b.Diagnostics.Any(d => d.Code == "COBOL1618");
 
     [Fact] // SR2 (§7.3.11.3 #2) — a no-OVERRIDE redefinition to a DIFFERENT value is rejected.
     public void Redefine_DifferentValue_NoOverride_Rejected1618()
@@ -151,8 +151,8 @@ public sealed class ConditionalCompilationDefineTests
 
     [Theory] // kb/Work PB1626 — the classification is the SAME at every edition and is not System.Decimal's: a 31-digit value (the
              // fixed-point literal capacity, §8.3.3.3.2) is NUMERIC, so it compares against the numeric literal it spells and is
-             // the SAME value as that literal written in a DEFINE (§7.3.11.3 SR2 raises no COBOLNET1618). Before PB1626 a 29-31
-             // digit value was alphanumeric and ">>IF X > 0" was refused (COBOLNET1619, 'Alphanumeric' vs 'Numeric').
+             // the SAME value as that literal written in a DEFINE (§7.3.11.3 SR2 raises no COBOL1618). Before PB1626 a 29-31
+             // digit value was alphanumeric and ">>IF X > 0" was refused (COBOL1619, 'Alphanumeric' vs 'Numeric').
     [InlineData(2002)]
     [InlineData(2014)]
     [InlineData(2023)]
@@ -184,7 +184,7 @@ public sealed class ConditionalCompilationDefineTests
         try
         {
             var (_, diags) = Run($">>DEFINE {name} AS PARAMETER\n");
-            var d = Assert.Single(diags.Diagnostics, x => x.Code == "COBOLNET1619");
+            var d = Assert.Single(diags.Diagnostics, x => x.Code == "COBOL1619");
             Assert.Contains("32 digit positions", d.Message);
         }
         finally { Environment.SetEnvironmentVariable(name, null); }
@@ -228,7 +228,7 @@ public sealed class ConditionalCompilationDefineTests
         finally { Environment.SetEnvironmentVariable("CN-CC-TEST-PY", null); }
     }
 
-    private static bool Has1619(DiagnosticBag b) => b.Diagnostics.Any(d => d.Code == "COBOLNET1619");
+    private static bool Has1619(DiagnosticBag b) => b.Diagnostics.Any(d => d.Code == "COBOL1619");
 
     [Fact] // ⛔ Ledger C2 — the CLOSED DEFECT: a MULTI-TOKEN arithmetic operand now EVALUATES (§7.3.6) instead of
            // silently binding to its first token. >>DEFINE X AS 2 * 3 + 1 defines 7 (was 2), so >>IF X = 7 matches.
@@ -252,21 +252,21 @@ public sealed class ConditionalCompilationDefineTests
         Assert.Contains("KEEP", text);
     }
 
-    [Fact] // §7.3.3 SR10 — a floating-point literal in a directive operand is a loud COBOLNET1619, not a value.
+    [Fact] // §7.3.3 SR10 — a floating-point literal in a directive operand is a loud COBOL1619, not a value.
     public void Define_FloatLiteral_Rejected1619()
     {
         var (_, diags) = Run(">>DEFINE X AS 1.5E3\n");
         Assert.True(Has1619(diags));
     }
 
-    [Fact] // §7.3.6.2 SR1c — a division by zero in a compile-time arithmetic operand is COBOLNET1619.
+    [Fact] // §7.3.6.2 SR1c — a division by zero in a compile-time arithmetic operand is COBOL1619.
     public void Define_DivByZero_Rejected1619()
     {
         var (_, diags) = Run(">>DEFINE X AS 5 / 0\n");
         Assert.True(Has1619(diags));
     }
 
-    [Fact] // §7.3.13.3 SR11 — an EVALUATE selection object of a different category than the subject is COBOLNET1619.
+    [Fact] // §7.3.13.3 SR11 — an EVALUATE selection object of a different category than the subject is COBOL1619.
     public void Evaluate_ObjectCategoryMismatch_Rejected1619()
     {
         var (_, diags) = Run(">>EVALUATE 5\n>>WHEN \"A\"\nX\n>>END-EVALUATE\n");
@@ -289,7 +289,7 @@ public sealed class ConditionalCompilationDefineTests
         Assert.Contains("LINE-A", text);
 
         var (_, bare) = Run(">>PUSH\nLINE-A\n>>POP\n");
-        Assert.Equal(2, bare.Diagnostics.Count(d => d.Code == "COBOLNET1911"));
+        Assert.Equal(2, bare.Diagnostics.Count(d => d.Code == "COBOL1911"));
     }
 
     [Theory] // every standard §7.3 directive is RECOGNIZED (consumed with its operand), never a stray token.

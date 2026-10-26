@@ -24,7 +24,7 @@
       *> MOVE "klm" TO RB leaves REC2 = klmSTU. RC reads the last seven of REC3's bytes, and a MOVE to
       *> it pads with spaces to its 7 bytes. Every byte is written and read through the alias exactly
       *> as the alphanumeric views see it.
-      *> Before the fix each alias was refused COBOLNET1655 "the record's leaves do not tile the
+      *> Before the fix each alias was refused COBOL1655 "the record's leaves do not tile the
       *> alias's storage window".
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2466H.
