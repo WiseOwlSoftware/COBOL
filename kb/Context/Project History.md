@@ -20,7 +20,7 @@ The narrative record is [[DEVLOG]] (2.6 MB, **DESCENDING** — newest entry firs
 since every other doc reads as current state). See [[kb/Context/Doctrine & Anti-Patterns]].
 
 ## The arc
-The project began as **WiseOwl COBOL**, a COBOL→.NET compiler built around a byte `ProgramState` substrate with a phased
+The project began as **the legacy engine**, a COBOL→.NET compiler built around a byte `ProgramState` substrate with a phased
 pipeline (grammar → semantics → bound tree → IR lowering → CIL emission → runtime), validated against the NIST CCVS
 COBOL-85 suite. That era's scaffolding survives in the `create-*.ps1` scripts (phases 0–21, IR-lowering agents,
 ~75% grammar coverage, ~75% NIST passing). See [[kb/Modernization/Audit Artifacts]].
@@ -48,7 +48,7 @@ records blast radius + gate results.
 > note."*
 
 ## Key concepts
-- WiseOwl COBOL (the legacy byte-array engine, NIST-oracle era) → **2026-06-08 pivot** → WiseOwl COBOL (typed-native, spec-first).
+- the legacy byte-array engine, NIST-oracle era → **2026-06-08 pivot** → WiseOwl COBOL (typed-native, spec-first).
 - DEVLOG/ is the ONLY historical doc: one file per entry, rendered newest first by `scripts/devlog.py render`; real date+time header stamps, completed at the landing by `devlog.py stamp`; one entry per landing on main (kb/Work PB2605, PB3025).
 - Legacy compiler survives only as a differential oracle until G8/P15 cut-over.
 - Doctrine sources: [[PROMPT]], [[CLAUDE]], [[CONSTRAINTS]].

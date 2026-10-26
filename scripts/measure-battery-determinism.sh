@@ -23,8 +23,8 @@ mkdir -p "$OUT"
 # The harness observation log is per-run so a retry or non-observation is attributed to the run that had it.
 for i in $(seq 1 "$RUNS"); do
     echo "=== $LEG run $i/$RUNS ==="
-    export HARNESS_LOG="$OUT/run$i.observations.log"
-    : > "$HARNESS_LOG"
+    export WISEOWL_COBOL_HARNESS_LOG="$OUT/run$i.observations.log"
+    : > "$WISEOWL_COBOL_HARNESS_LOG"
     case "$LEG" in
         guard)
             bash scripts/guard-fast.sh > "$OUT/run$i.log" 2>&1 ;;
@@ -36,7 +36,7 @@ for i in $(seq 1 "$RUNS"); do
                 > "$OUT/run$i.log" 2>&1 ;;
         *) echo "unknown leg: $LEG" >&2; exit 2 ;;
     esac
-    echo "  rc=$?  $(grep -cE 'RETRY|NON-OBSERVATION' "$HARNESS_LOG" 2>/dev/null || echo 0) harness events"
+    echo "  rc=$?  $(grep -cE 'RETRY|NON-OBSERVATION' "$WISEOWL_COBOL_HARNESS_LOG" 2>/dev/null || echo 0) harness events"
 done
 
 echo

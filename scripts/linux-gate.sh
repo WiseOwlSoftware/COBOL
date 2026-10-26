@@ -779,7 +779,7 @@ test_leg() {  # <leg> <project> — `dotnet test --no-build` against the ONE bui
   # re-read the file lost 8 to 14 of 800 lines per run, and the reader's read failed with ENODATA ("No data available");
   # the same run on the Linux filesystem lost none and failed none. HarnessLogTests reads the log beside its writers,
   # and on /mnt/e its read failed (the landing at c89014b6b, kb/Work PB3194).
-  ( cd "$snap" && export HARNESS_LOG="$gate/$leg.observations.log" \
+  ( cd "$snap" && export WISEOWL_COBOL_HARNESS_LOG="$gate/$leg.observations.log" \
       && "${nice_prefix[@]}" "$PY" "$snap/scripts/test_population.py" scrubbed dotnet test "$proj" \
       --no-build --no-restore --logger "trx;LogFileName=$leg.trx" --results-directory "$out" ) > "$out/$leg.log" 2>&1
   rc=$?

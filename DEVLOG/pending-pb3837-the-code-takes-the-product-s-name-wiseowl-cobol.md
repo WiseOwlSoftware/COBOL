@@ -39,7 +39,8 @@ test-refs named tests whose names carried a code in the retired spelling: a `rec
 names and recorded the new (8 rows), and a second restated two DOC-A.1 rows; GAP 31 → 31. The member index re-recorded
 at the renamed head showed six open Delete/Extract notes naming members already gone (PB2173, PB2181, PB2184, PB2186,
 PB2206, PB2296); their lines now say so. The runtime ABI pin: `abi_pin.py bump --runtime-major`, 18 → 19, since every
-public type's full name and the assembly's identity changed.
+public type's full name and the assembly's identity changed; merging main, whose PB3829 had also raised it 18 → 19,
+made it 20 (the counters add) and `abi_pin.py settle` measured the merged surface.
 
 **By hand.** `ModuleRegistrationHostTests` names its module `WiseOwl` (program WISEOWL → `WiseOwl.dll`, the first segment
 of the runtime's namespace), so the sibling probe still finds it by name; `install-autostart.ps1` now moves aside every
@@ -55,6 +56,22 @@ left, and idempotence. Performance: the witness audit reads git's whole-tree ren
 was lost (3.9 s on this change). Duplication: none added. Outside the repository, after landing: each account's
 skill-doctor stamp is read under its new name, the Startup entry is replaced by re-running the installer, and the cloud
 cache moves on its next setup (PB3837's Landing says how).
+
+**Branch review, round 1, and the merge with main.** The merge with main (PB3829) conflicted in the six files both
+changed; each resolved to the rename of main's version (the branch's side of each was exactly the rename of the base),
+the inventory through its keyed merge and the ABI pin through its driver. R1-1: the doc-name rule listed `HARNESS_LOG`,
+which was never a design document, so the harness's log variable had lost its prefix and read as a bare `HARNESS_LOG`
+(a name any host tool may set); it is `WISEOWL_COBOL_HARNESS_LOG` everywhere, and the script's self-test now refuses a
+doc stem with no `docs/<stem>.md`. R1-2: the legacy engine's name in prose had become the product's name in every
+context, so sentences about the deleted engine said the product was that engine (Project History, the plan, the
+inventory schema, the titles of PB2108, PB2111, PB3146 and R69); engine phrases now read "the legacy engine", a quoted
+or escaped project prefix reads `Legacy.`, and the name alone stays the product's (samples and comments that meant the
+compiler). The tree was re-converted by a three-way merge of the old and the new rules' output over each affected
+file, keeping the implementer's hand edits, and the sites no rule can decide were fixed by hand. The sibling sweep found
+a second collapse: the rename mapped both the runtime's old namespace and its old assembly name to one name, so the
+plan's Cut 3 read "flip X to X"; this rename IS that flip, and the plan, DESIGN-runtime-library §2.8, DESIGN.md,
+PROJECT_ORG_DESIGN and PB2349 now say so (PB2349 keeps item 4a, the static façades). The push hook's dead entry for
+the repository's earlier folder name is gone.
 
 **The gate.** Run 1 was RED in the self-tests: the lower-case catch-all had spelled a case-insensitive scrub's test
 input `wiseowl-cobol_gate_leg`; a rule now keeps a lower-case variable's underscore, and the audit also names a binary

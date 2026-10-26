@@ -1,9 +1,9 @@
 # DESIGN — Target Runtime Library Organization (`WiseOwl.Cobol.Runtime`)
 
 Status: EXECUTED (PHASE-08) — §2's target design IS the as-built runtime; §4's migration steps 1–5 are DONE
-(plus the `ExternalSwitches`→`SwitchStore` conversion the §5 hidden-static gate surfaced); step 6 (the G8
-RootNamespace flip + real sub-namespaces) is the ONE remaining item, deferred to G8 Cut 3 behind the compiler's
-`RuntimeApi` façade. §1 records the pre-P8 problems as the rationale; §6's former open questions are resolved
+(plus the `ExternalSwitches`→`SwitchStore` conversion the §5 hidden-static gate surfaced); step 6's RootNamespace
+flip is DONE (kb/Work PB3837, the product rename, through the compiler's `RuntimeApi` façade); its real
+sub-namespaces are the ONE remaining item, deferred to G8 Cut 3 behind the same façade. §1 records the pre-P8 problems as the rationale; §6's former open questions are resolved
 inline. Scope: the organization + API of the greenfield runtime `src/WiseOwl.Cobol.Runtime` that WiseOwl COBOL-generated
 C# programs call. Upholds the HARD INVARIANTS (typed-native only; spec-first; battery green throughout; singular
 pattern; four-editions-in-one; JSON/XML out of scope).
@@ -3498,11 +3498,10 @@ Roslyn with CS0117, while the dispatch asked only whether SOME argument was floa
 `CheckArgumentClasses` warns and binds under `--permissive`, which is exactly the lane these bodies live in.
 
 ### 2.8 Namespace / assembly rename (G8)
-Assembly is already `WiseOwl.Cobol.Runtime`. At G8, `RootNamespace` `WiseOwl.Cobol.Runtime` → **`WiseOwl.Cobol.Runtime`** and the
-sub-namespaces above become real. This is a single coordinated change with the compiler's `RuntimeApi` façade (one
-file emits the `using`s), so generated `using WiseOwl.Cobol.Runtime;` flips to `using WiseOwl.Cobol.Runtime.*;` in exactly one
-place. Until G8 the root namespace stays `WiseOwl.Cobol.Runtime` and the reorg below is **folder-only** (namespaces
-unchanged) to keep the emitted surface byte-stable.
+The assembly and the root namespace are both `WiseOwl.Cobol.Runtime`: the product rename (kb/Work PB3837) made them
+one name in one change, with the compiler's `RuntimeApi` façade (one file emits the `using`s). Realizing the
+sub-namespaces above is a separate change through the same façade; until it is made the reorg below is
+**folder-only** (namespaces unchanged) to keep the emitted surface byte-stable.
 
 ---
 
@@ -3566,9 +3565,10 @@ every pre-P8 static name survives as the emitted-surface shim.
 5. **Clock injection.** Replace `AcceptSource.Now` with `RunUnit.Clock`; the test seam that set `AcceptSource.Now`
    sets `ru.Clock` instead (update the ~handful of date/time conformance fixtures' harness hook). Green when the
    date/time goldens pass.
-6. **G8 namespace flip.** Once the compiler routes runtime references through a single `RuntimeApi` façade, flip
-   `RootNamespace` to `WiseOwl.Cobol.Runtime` and realize the sub-namespaces; update the façade's emitted `using`s in one
-   place. Full battery + a from-clean regen. Decide static-shim retirement here (OPEN QUESTION).
+6. **G8 namespace flip.** The root is DONE: the product rename (kb/Work PB3837) made `RootNamespace`
+   `WiseOwl.Cobol.Runtime` and changed the façade's emitted `using`s in one place. Still to do: realize the
+   sub-namespaces through the same façade, and the static-shim retirement (kb/Work PB2349). Full battery + a
+   from-clean regen.
 
 Each step is a commit with its own DEVLOG entry and a guard-fast/greenfield-suite run (per the process rules).
 

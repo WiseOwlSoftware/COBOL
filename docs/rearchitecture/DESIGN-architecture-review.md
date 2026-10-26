@@ -1600,7 +1600,7 @@ in the same change) is the in-flight file set a wave never touches until the sli
 `PicInfo.RestrictedPrototypeName`, `OoClassTable`, `OoClassSymbol`, `OoRepositoryScope`, `OoExpansion`,
 `OoNameResolution`, `RoslynBackend.Compile`, `BackendOptions`, `CompilerDriver.Options`, `Directory.Build.props`,
 `WiseOwl.Cobol.Runtime.csproj`, the 14 characterization snapshots); the text model (R51, R52, R53; `FILES_DESIGN`
-D29); P15 Cut 3 (the runtime namespace flip at v1.0, and its item 4a: the static runtime facades deleted, emitted code
+D29); P15 Cut 3 (the runtime namespace flip, done by the product rename, kb/Work PB3837, and its item 4a: the static runtime facades deleted, emitted code
 reaching the instances through the captured `RunUnit`, one reviewed re-baseline); the §0.5 deep dives as the subsystem
 SSOTs whose seams §8.1 formalizes (`PIPELINE_DESIGN` D1 and D7; `DESIGN-codegen-backend` §2.2 and §2.3;
 `DESIGN-backend-abstraction` §1 and §2.3 — §8.3 (9) implements §2.3 with its catalogue named `RuntimeMembers`, and

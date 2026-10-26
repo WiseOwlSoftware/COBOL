@@ -120,7 +120,7 @@ The new `WiseOwl.Cobol.Frontend.csproj`:
 ### 1.5 Ordered git-mv sequence — executed
 The extraction, the runtime and compiler renames, the new test projects and the solution/script/CI update were executed in
 G0 (Steps 1–5); the tree above is the record. The legacy engine and its test projects were deleted at P15 Cut 2 (kb/Work
-PB2110) and are preserved at a git tag (`docs/rearchitecture/LEGACY-ARCHIVE.md`); the runtime namespace flip is P15 Cut 3.
+PB2110) and are preserved at a git tag (`docs/rearchitecture/LEGACY-ARCHIVE.md`); the product rename made the runtime's root namespace its assembly's, `WiseOwl.Cobol.Runtime` (kb/Work PB3837).
 
 > **`.sln` / config implications, summarized:** central package management means every `.csproj` `PackageReference` is **version-less**; `Directory.Build.props` is the single TFM/lang/nullable/warnings-as-errors source — projects never re-declare those; the `.sln`, the scripts and the CI YAML are the only places project/solution *paths* are hardcoded.
 
