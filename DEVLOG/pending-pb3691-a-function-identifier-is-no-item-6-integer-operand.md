@@ -35,3 +35,12 @@ The one existing golden that asserted the retracted admission, `da2_function_as_
 other. Row `GR-8.8.4.2.1-6` is re-verdicted by batch with the admission retracted and seven witnesses added; no row closed.
 D-FNUSE gained the relation-condition paragraph, D-RELCLASS retracts its INTEGER-function sentence, the conditions design doc
 follows. GnuCOBOL 3.2 answers not equal for the function pair and accepts a COMP item, so it is no precedent either way.
+
+**Self-review.** Four lenses on the diff: the rule lives once (the shared reader, not a third copy of "usage display or national"),
+every relation surface goes through the one checkpoint (so no sibling arm exists), no hot path changed (a type switch arm), and
+the test side names each refused shape and each admitted complement. The pair matrix caught nothing new; the old golden
+`da2_function_as_text` was the only existing witness of the retracted admission.
+
+**Gate.** `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half (WSL clone of HEAD) GREEN, run
+`000001-20261026T003453Z`: Conformance 8,579 of 18,752, Unit 37,135 of 38,338, Characterization 7 of 36 cases ran; 42 `pb3691`
+cases passed in `leg-1-Conformance.trx`, none failed.
