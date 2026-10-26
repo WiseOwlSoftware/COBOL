@@ -132,8 +132,9 @@ public static class ConditionalPhrases
 /// it belongs to one of the statement's printed general formats TOGETHER WITH everything the statement already wrote
 /// — the phrases (READ's AT END and INVALID KEY are two formats, §14.9.30.2) AND the other syntax elements that only
 /// some of its formats print (<see cref="Selector"/>: READ NEXT, PREVIOUS or ADVANCING ON LOCK is Format 1 only and
-/// KEY IS Format 2 only, §14.9.30.2; WRITE ADVANCING is Format 1 only, §14.9.51.2; a COMPUTE boolean-expression is
-/// Format 2, which prints no SIZE ERROR phrase, §14.9.8.2) — and is not one of the phrases already written.
+/// KEY IS Format 2 only, §14.9.30.2; WRITE ADVANCING is Format 1 only, §14.9.51.2; a COMPUTE boolean-expression that
+/// is no arithmetic expression is Format 2, which prints no SIZE ERROR phrase, §14.9.8.2) — and is not one of the
+/// phrases already written.
 /// <see cref="Owners"/> holds the general formats, one row per owning grammar rule. (Branch review R1-1 of PB3830: a
 /// table of phrase brackets alone let an inner <c>READ g NEXT</c> take the enclosing READ's NOT INVALID KEY.)</para>
 ///
@@ -153,8 +154,18 @@ public static class ConditionalPhraseAssociation
     /// <para>⛔ The element is looked for among the owner's OWN syntax only: its child rules, and the alternative each
     /// bracket child chose (one level down — READ's <c>readLockContentionPhrase</c> → <c>readAdvancingOnLock</c>), never
     /// inside an expression or a nested statement (a function argument may hold a boolean-expression).
-    /// <c>ConditionalPhraseDriftTests</c> holds every selector to that depth in the grammar.</para></summary>
-    public sealed record Selector(int Rule, string Words);
+    /// <c>ConditionalPhraseDriftTests</c> holds every selector to that depth in the grammar.</para>
+    /// <para>⛔ The test is on what the SOURCE wrote, never on which alternative the parser took:
+    /// <see cref="AlsoPrinted"/> answers true for a written element that ALSO reads as syntax of the formats the
+    /// selector would rule out, and such an element selects nothing. (Branch review R2-1 of PB3830: a sole figurative
+    /// ZERO parses through COMPUTE's <c>booleanExpression</c> alternative but is a §8.8.1.1 arithmetic expression, so
+    /// <c>COMPUTE X = ZERO ON SIZE ERROR …</c> was refused and a nested one's phrase moved outward.)</para></summary>
+    public sealed record Selector(int Rule, string Words)
+    {
+        /// <summary>Whether the written element (a context of <see cref="Rule"/>) also reads as syntax the formats
+        /// that do not print this selector print, so writing it rules none of them out. Default: never.</summary>
+        public Func<ParserRuleContext, bool> AlsoPrinted { get; init; } = static _ => false;
+    }
 
     /// <summary>One printed general format's phrase bracket: the phrases it admits, the construct that bounds the
     /// editions printing the format (null: every edition), and <see cref="Unprinted"/>, the selectors it does NOT
@@ -176,7 +187,12 @@ public static class ConditionalPhraseAssociation
     private static readonly Selector ReadAdvancingOnLock = new(Core.RULE_readAdvancingOnLock, "ADVANCING ON LOCK");
     private static readonly Selector ReadKey = new(Core.RULE_readKey, "KEY IS");
     private static readonly Selector WriteAdvancing = new(Core.RULE_writeBeforeAfter, "BEFORE or AFTER ADVANCING");
-    private static readonly Selector BooleanCompute = new(Core.RULE_booleanExpression, "a boolean-expression");
+    // A sole figurative ZERO parses as a booleanExpression yet is a Format 1 arithmetic expression (§8.8.1.1), so it
+    // selects neither COMPUTE format: ComputeFormats is the one reading, shared with ArithmeticBinder's re-route.
+    private static readonly Selector BooleanCompute = new(Core.RULE_booleanExpression, "a boolean-expression")
+    {
+        AlsoPrinted = static e => ComputeFormats.SoleFigurativeZero((Core.BooleanExpressionContext)e) is not null,
+    };
 
     /// <summary>⛔ THE OWNERS: every grammar rule that writes <c>conditionalPhrases</c>, with its general formats' phrase
     /// brackets (the §14.9 general formats, read against Table 12 by <c>ConditionalPhraseDriftTests</c>).</summary>
@@ -188,8 +204,10 @@ public static class ConditionalPhraseAssociation
         [Core.RULE_multiplyStatement] = [Pair(ConditionalPhraseFamily.SizeError)],
         [Core.RULE_divideStatement] = [Pair(ConditionalPhraseFamily.SizeError)],
         // §14.9.8.2: Format 1 (arithmetic-compute) prints the pair; Format 2 (boolean-compute) prints no phrase, so a
-        // COMPUTE whose right side parsed as a boolean-expression owns none. (A sole-identifier boolean right side
-        // parses as Format 1 and is re-routed by operand class in ArithmeticBinder, which names its phrase COBOL1511.)
+        // COMPUTE whose right side is a boolean-expression and no arithmetic expression owns none. A right side both
+        // formats print — a sole identifier (parsed as Format 1) or a sole figurative ZERO (parsed as Format 2,
+        // BooleanCompute.AlsoPrinted) — may be either format, so it owns the pair, and ArithmeticBinder re-routes it
+        // by the receiver's class, naming the phrase COBOL1511 when the statement proves to be Format 2.
         [Core.RULE_computeStatement] = [Pair(ConditionalPhraseFamily.SizeError) with { Unprinted = [BooleanCompute] }],
         // §14.9.4.2 Formats 1 and 2: [| ON EXCEPTION | NOT ON EXCEPTION |]; the 85–2014 format's [ ON OVERFLOW ] alone
         // (ISO/IEC 1989:2002 §14.8.4.1 Format 1 — no NOT ON OVERFLOW at any edition), removed at 2023 (Annex E.2 1c).
@@ -264,17 +282,31 @@ public static class ConditionalPhraseAssociation
     {
         var owner = Owner(phrases);
         return FormatsOf(owner.RuleIndex).Where(f => f.Phrases.Contains(next) && written.All(f.Phrases.Contains)
-            && !f.Unprinted.Any(s => Writes(owner, s.Rule)));
+            && !f.Unprinted.Any(s => Writes(owner, s)));
     }
 
-    /// <summary>Whether the owner's own syntax holds the element <paramref name="rule"/>: a child rule of the owner, or
-    /// the alternative a child bracket rule chose (see <see cref="Selector"/>). The phrases and their imperative
+    /// <summary>Whether the owner's own syntax writes <paramref name="selector"/>: holds its element — a child rule of
+    /// the owner, or the alternative a child bracket rule chose (see <see cref="Selector"/>) — and that element is not
+    /// one the other formats also print (<see cref="Selector.AlsoPrinted"/>). The phrases and their imperative
     /// statements are never looked into.</summary>
-    private static bool Writes(ParserRuleContext owner, int rule) =>
-        owner.children is { } children && children.Any(c => c is ParserRuleContext child
-            and not Core.ConditionalPhrasesContext
-            && (child.RuleIndex == rule
-                || child.children?.Any(g => g is ParserRuleContext grand && grand.RuleIndex == rule) == true));
+    private static bool Writes(ParserRuleContext owner, Selector selector) =>
+        Element(owner, selector.Rule) is { } element && !selector.AlsoPrinted(element);
+
+    /// <summary>The owner's own element of grammar rule <paramref name="rule"/>, or null. Loops, not LINQ: it runs at
+    /// every phrase-keyword lookahead, so it allocates nothing.</summary>
+    private static ParserRuleContext? Element(ParserRuleContext owner, int rule)
+    {
+        if (owner.children is not { } children) return null;
+        foreach (var c in children)
+        {
+            if (c is not ParserRuleContext child || child is Core.ConditionalPhrasesContext) continue;
+            if (child.RuleIndex == rule) return child;
+            if (child.children is not { } grandchildren) continue;
+            foreach (var g in grandchildren)
+                if (g is ParserRuleContext chosen && chosen.RuleIndex == rule) return chosen;
+        }
+        return null;
+    }
 
     /// <summary>Whether some general format of the owning rule, at some edition, prints the phrase <paramref name="kind"/>.</summary>
     public static bool Prints(int ownerRule, ConditionalPhraseKind kind) =>
@@ -310,7 +342,7 @@ public static class ConditionalPhraseAssociation
         var ownerContext = Owner(owner);
         var selectors = FormatsOf(ownerContext.RuleIndex)
             .Where(f => f.Phrases.Contains(kind) && written.All(f.Phrases.Contains))
-            .SelectMany(f => f.Unprinted).Where(s => Writes(ownerContext, s.Rule))
+            .SelectMany(f => f.Unprinted).Where(s => Writes(ownerContext, s))
             .Select(s => s.Words).Distinct().ToList();
         string why = written.Contains(kind)
             ? $"this {name} statement already has its {kind.Words} phrase, and ISO §14.5.3.3: \"If all permitted "

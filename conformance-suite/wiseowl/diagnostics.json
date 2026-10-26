@@ -23628,5 +23628,22 @@
    "2023"
   ],
   "expect": "COBOL2269"
+ },
+ "pb3830-compute-zero-binds-inward": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2796"
+ },
+ "pb3830-compute-all-zero-numeric": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0902"
  }
 }

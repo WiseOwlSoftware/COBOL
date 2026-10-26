@@ -80,3 +80,18 @@ tripped: it spelled the general-format heading itself (it now composes `SpecClau
 the spec directly, it had become a tree-wide sweep without the `Sweep` trait. Gate (run `000002-20261026T202010Z`):
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 9,761/18,908 · Unit 37,202/38,399 ·
 Characterization 7/36 cases ran (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN …`.
+
+Branch review R2-1 found the COMPUTE selector reading the parse instead of the source. It ruled out Format 1 whenever
+the right side parsed as a boolean-expression, and a bare figurative ZERO parses that way although §8.8.1.1 makes it an
+arithmetic expression. Re-probed: `COMPUTE X = ZERO ON SIZE ERROR … NOT ON SIZE ERROR … END-COMPUTE` was refused
+COBOL2269 (main printed F=N), and inside an ADD's ON SIZE ERROR the COMPUTE's NOT ON SIZE ERROR silently went to the
+ADD, while `COMPUTE X = 0` there is refused COBOL2796. A selector now answers what the source wrote:
+`Selector.AlsoPrinted` names an element the other formats also print, and `ComputeFormats.SoleFigurativeZero` is the one
+reading of that right side, asked by the selector and by `ArithmeticBinder`'s re-route alike (the binder's copy is
+deleted). The sweep found a second defect in the same re-route: it built a bare zero, so `COMPUTE X = ALL ZERO` compiled
+clean at 2002–2023 where `ADD ALL ZERO TO X` is COBOL0902 (§8.3.3.6.3 SR1 a)). It now reads the operand through the one
+arithmetic-operand reading (`ExpressionBinder.ComputeZeroOperand`). The other four selectors are keywords no other format
+prints. New: golden `pb3830_compute_zero_size_error` (85–2023), refusals `pb3830-compute-zero-binds-inward` (COBOL2796)
+and `pb3830-compute-all-zero-numeric` (COBOL0902, 2002–2023), a COMPUTE leg in `pb1415_all_zero_numeric_85`, and a
+boolean-receiver ZERO row in `BooleanOperatorTests` (COBOL1511). Inventory batch `pb3830-review-r2-compute-zero` adds
+the witnesses; GAP 31 → 31.
