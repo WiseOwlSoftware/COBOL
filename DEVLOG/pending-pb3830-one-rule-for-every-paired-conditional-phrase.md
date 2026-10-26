@@ -74,3 +74,9 @@ WRITE) to be split by grammar rule or to carry selectors. A mutation that droppe
 goldens: `pb3830_phrase_format_selectors` (85–2023), `pb3830_phrase_format_selectors_2002`, and four COBOL2269
 refusals. The PB3830 harm flags now record the wrong answer, the legal-source rejections and the under-rejections this
 landing fixed (lead R1-2).
+
+The review finisher's first gate (run `000001-20261026T201037Z`) was red on two Unit tree sweeps the new drift test
+tripped: it spelled the general-format heading itself (it now composes `SpecClauseText.GeneralFormatNoun`) and, reading
+the spec directly, it had become a tree-wide sweep without the `Sweep` trait. Gate (run `000002-20261026T202010Z`):
+`=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 9,761/18,908 · Unit 37,202/38,399 ·
+Characterization 7/36 cases ran (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN …`.
