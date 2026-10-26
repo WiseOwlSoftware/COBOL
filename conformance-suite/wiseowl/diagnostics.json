@@ -23592,5 +23592,41 @@
    "2023"
   ],
   "expect": "COBOL2269"
+ },
+ "pb3830-read-next-invalid-key": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2269"
+ },
+ "pb3830-read-key-at-end": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2269"
+ },
+ "pb3830-write-advancing-invalid-key": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2269"
+ },
+ "pb3830-compute-boolean-size-error": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2269"
  }
 }

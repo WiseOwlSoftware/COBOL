@@ -1890,8 +1890,17 @@ ROLE through `PhraseBlocks.Bind` — §5.2.6.4's choice indicators let the two b
 
 **The decision.** `ConditionalPhraseAssociation.Associates` is the predicate's whole body: a phrase joins the statement
 that owns the loop exactly when one of the statement's printed general formats, AT THE TARGET EDITION, admits it
-together with the phrases already written and it is not already written (`Owners`: one row per owning rule, its
-formats' phrase brackets — READ's AT END and INVALID KEY are two formats, so they never meet on one READ). ANTLR's
+together with everything the statement already wrote and it is not already written (`Owners`: one row per owning rule,
+its formats' phrase brackets — READ's AT END and INVALID KEY are two formats, so they never meet on one READ). "Everything
+written" includes the **selectors**, the syntax elements only some of a rule's formats print (`Format.Unprinted`, each a
+`Selector`): READ NEXT, PREVIOUS and ADVANCING ON LOCK are §14.9.30.2 Format 1 only and KEY IS Format 2 only; WRITE
+ADVANCING is §14.9.51.2 Format 1 only; a COMPUTE whose right side parses as a boolean-expression is §14.9.8.2 Format 2,
+which prints no SIZE ERROR phrase. A format whose unprinted selector the statement wrote admits none of its phrases, so
+`READ R INVALID KEY READ G NEXT RECORD NOT INVALID KEY … END-READ` gives the NOT phrase and END-READ to READ R (branch
+review R1-1 of PB3830: a table of phrase brackets alone gave them to READ G, silently). A selector is looked for in the
+owner's own syntax only — a child rule, or the alternative a child bracket rule chose — never inside an expression or a
+nested statement. A rule whose formats print different brackets either splits them across grammar rules (ACCEPT and
+DISPLAY through `screenTail`, DELETE record / file) or carries selectors (READ, WRITE, COMPUTE). ANTLR's
 greedy loop supplies "most-recently preceding": the innermost open statement is asked first, and when it declines,
 its loop ends, the statement ends (§14.5.3.3 2) c), 4) b)) and the next enclosing owner is asked. So `SUBTRACT … ON
 SIZE ERROR ADD 1 TO D NOT ON SIZE ERROR …` gives the NOT phrase to the ADD (COBOL2796 then refuses the ADD as a
@@ -1900,9 +1909,11 @@ READ. **The superset reading, last of all:** a phrase only an earlier edition pr
 ISO/IEC 1989:2002 §14.8.4.1 Format 1) still associates with its statement for the conformance pass to name
 (COBOL0882) — but only when no enclosing open statement may take it at the target edition, so at 2023 `STRING …
 NOT ON OVERFLOW CALL "P" ON OVERFLOW …` is the STRING's (legal), and at 85–2014 the CALL's (COBOL2796). Reading the
-edition here is the one sanctioned phrase-association read of `EditionReadDriftTests`. A phrase NO open statement may
-take — a second ON SIZE ERROR, a CALL's NOT ON OVERFLOW, a READ's INVALID KEY beside its AT END — is a syntax error that
-`CobolErrorStrategy` names COBOL2269 from the parser state (`ConditionalPhraseAssociation.UnownedPhraseMessage`).
+edition here is the one sanctioned phrase-association read of `EditionReadDriftTests`. The superset relaxes the EDITION
+only, never a selector. A phrase NO open statement may take — a second ON SIZE ERROR, a CALL's NOT ON OVERFLOW, a READ's
+INVALID KEY beside its AT END or after its NEXT, a WRITE's INVALID KEY after ADVANCING, a boolean COMPUTE's ON SIZE ERROR
+— is a syntax error that `CobolErrorStrategy` names COBOL2269 from the parser state
+(`ConditionalPhraseAssociation.UnownedPhraseMessage`, which names the selector that ruled the formats out).
 
 **Why a context-dependent predicate, and why the loop lives in the shared rule.** The predicate reads `$ctx`, so ANTLR
 evaluates it only in `conditionalPhrases`' own decisions, with that rule's context; when an inner statement's prediction
@@ -1915,7 +1926,9 @@ in the next element's rule (the empty loop exits), so a hint keyed on the statem
 
 **Held by** `ConditionalPhraseDriftTests`: Table 12's conditional-phrase column, scraped from the transcription, equals
 the owners' phrases at the latest edition statement by statement; exactly the owners write the rule, bare; no other
-rule spells a phrase keyword; every head alternative names one family. The conformance cases of
+rule spells a phrase keyword; every head alternative names one family; every Table 12 statement whose general formats
+(scraped from §14.9) print different phrase brackets is split by rule or carries selectors, and every selector is its
+owner's child rule or a child bracket's alternative. The conformance cases of
 `cases/14.5.3.3-Implicit-scope-termination/` pin each family both ways.
 
 ## 4. Current → target module changes

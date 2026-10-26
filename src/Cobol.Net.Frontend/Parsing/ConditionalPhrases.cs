@@ -129,28 +129,54 @@ public static class ConditionalPhrases
 /// conditionalPhrase)*</c>, so the innermost open statement is asked first (ANTLR's greedy loop: "most-recently
 /// preceding") and takes the phrase exactly when <see cref="Associates"/> says it may; otherwise its loop ends, its
 /// statement ends, and the next enclosing owner is asked. A phrase may be syntactically associated with a statement when
-/// it belongs to one of the statement's printed general formats TOGETHER WITH the phrases already written (READ's AT END
-/// and INVALID KEY are two formats, §14.9.30.2) and is not one of them — <see cref="Owners"/>, the general formats'
-/// phrase brackets, one row per owning grammar rule.</para>
+/// it belongs to one of the statement's printed general formats TOGETHER WITH everything the statement already wrote
+/// — the phrases (READ's AT END and INVALID KEY are two formats, §14.9.30.2) AND the other syntax elements that only
+/// some of its formats print (<see cref="Selector"/>: READ NEXT, PREVIOUS or ADVANCING ON LOCK is Format 1 only and
+/// KEY IS Format 2 only, §14.9.30.2; WRITE ADVANCING is Format 1 only, §14.9.51.2; a COMPUTE boolean-expression is
+/// Format 2, which prints no SIZE ERROR phrase, §14.9.8.2) — and is not one of the phrases already written.
+/// <see cref="Owners"/> holds the general formats, one row per owning grammar rule. (Branch review R1-1 of PB3830: a
+/// table of phrase brackets alone let an inner <c>READ g NEXT</c> take the enclosing READ's NOT INVALID KEY.)</para>
 ///
-/// <para><b>The superset reading, last of all.</b> The grammar parses the superset of every edition (COBOLNET_DESIGN
-/// D7), so a phrase that only an EARLIER edition's format prints (CALL's ON OVERFLOW, removed at 2023) is still
-/// associated with its statement, for VersionConformancePass to refuse by name (COBOL0882) — but ONLY when no
+/// <para><b>The superset reading, last of all — editions only.</b> The grammar parses the superset of every edition
+/// (COBOLNET_DESIGN D7), so a phrase that only an EARLIER edition's format prints (CALL's ON OVERFLOW, removed at 2023)
+/// is still associated with its statement, for VersionConformancePass to refuse by name (COBOL0882) — but ONLY when no
 /// enclosing open statement may take the phrase at the target edition, so the superset never moves a legal program's
-/// phrase to the wrong statement. A phrase no format of any edition admits beside the phrases already written (a NOT
-/// ON OVERFLOW on a CALL; a READ's INVALID KEY after its AT END) associates with nothing and is a syntax error.</para>
+/// phrase to the wrong statement. The superset relaxes the EDITION and nothing else: a phrase no format of any edition
+/// admits beside what the statement already wrote (a NOT ON OVERFLOW on a CALL; a READ's INVALID KEY after its AT END,
+/// or after its NEXT) associates with nothing and is a syntax error, COBOL2269 (<see cref="UnownedPhraseMessage"/>).</para>
 /// </summary>
 public static class ConditionalPhraseAssociation
 {
-    /// <summary>One printed general format's phrase bracket: the phrases it admits, and the construct that bounds the
-    /// editions printing the format (null: every edition).</summary>
-    public sealed record Format(FrozenSet<ConditionalPhraseKind> Phrases, string? Construct = null);
+    /// <summary>A syntax element of the owning statement that some of its general formats print and others do not, so
+    /// that writing it rules those others out: <paramref name="Rule"/> is the element's grammar rule, and
+    /// <paramref name="Words"/> names it as the standard prints it, for COBOL2269's message.
+    /// <para>⛔ The element is looked for among the owner's OWN syntax only: its child rules, and the alternative each
+    /// bracket child chose (one level down — READ's <c>readLockContentionPhrase</c> → <c>readAdvancingOnLock</c>), never
+    /// inside an expression or a nested statement (a function argument may hold a boolean-expression).
+    /// <c>ConditionalPhraseDriftTests</c> holds every selector to that depth in the grammar.</para></summary>
+    public sealed record Selector(int Rule, string Words);
+
+    /// <summary>One printed general format's phrase bracket: the phrases it admits, the construct that bounds the
+    /// editions printing the format (null: every edition), and <see cref="Unprinted"/>, the selectors it does NOT
+    /// print — a statement that wrote one of them is not written in this format, so this format's phrases are not
+    /// its phrases.</summary>
+    public sealed record Format(FrozenSet<ConditionalPhraseKind> Phrases, string? Construct = null)
+    {
+        public IReadOnlyList<Selector> Unprinted { get; init; } = [];
+    }
 
     private static Format Pair(ConditionalPhraseFamily f, string? construct = null) =>
         new(new[] { new ConditionalPhraseKind(f, false), new ConditionalPhraseKind(f, true) }.ToFrozenSet(), construct);
 
     private static Format Positive(ConditionalPhraseFamily f, string? construct = null) =>
         new(new[] { new ConditionalPhraseKind(f, false) }.ToFrozenSet(), construct);
+
+    // The selectors of the owners whose formats print different phrase brackets within ONE grammar rule.
+    private static readonly Selector ReadDirection = new(Core.RULE_readDirection, "NEXT or PREVIOUS");
+    private static readonly Selector ReadAdvancingOnLock = new(Core.RULE_readAdvancingOnLock, "ADVANCING ON LOCK");
+    private static readonly Selector ReadKey = new(Core.RULE_readKey, "KEY IS");
+    private static readonly Selector WriteAdvancing = new(Core.RULE_writeBeforeAfter, "BEFORE or AFTER ADVANCING");
+    private static readonly Selector BooleanCompute = new(Core.RULE_booleanExpression, "a boolean-expression");
 
     /// <summary>⛔ THE OWNERS: every grammar rule that writes <c>conditionalPhrases</c>, with its general formats' phrase
     /// brackets (the §14.9 general formats, read against Table 12 by <c>ConditionalPhraseDriftTests</c>).</summary>
@@ -161,7 +187,10 @@ public static class ConditionalPhraseAssociation
         [Core.RULE_subtractStatement] = [Pair(ConditionalPhraseFamily.SizeError)],
         [Core.RULE_multiplyStatement] = [Pair(ConditionalPhraseFamily.SizeError)],
         [Core.RULE_divideStatement] = [Pair(ConditionalPhraseFamily.SizeError)],
-        [Core.RULE_computeStatement] = [Pair(ConditionalPhraseFamily.SizeError)],   // Format 2's absence is semantic (ArithmeticBinder re-routes F1→F2 by operand class) and named there
+        // §14.9.8.2: Format 1 (arithmetic-compute) prints the pair; Format 2 (boolean-compute) prints no phrase, so a
+        // COMPUTE whose right side parsed as a boolean-expression owns none. (A sole-identifier boolean right side
+        // parses as Format 1 and is re-routed by operand class in ArithmeticBinder, which names its phrase COBOL1511.)
+        [Core.RULE_computeStatement] = [Pair(ConditionalPhraseFamily.SizeError) with { Unprinted = [BooleanCompute] }],
         // §14.9.4.2 Formats 1 and 2: [| ON EXCEPTION | NOT ON EXCEPTION |]; the 85–2014 format's [ ON OVERFLOW ] alone
         // (ISO/IEC 1989:2002 §14.8.4.1 Format 1 — no NOT ON OVERFLOW at any edition), removed at 2023 (Annex E.2 1c).
         [Core.RULE_callStatement] =
@@ -175,10 +204,21 @@ public static class ConditionalPhraseAssociation
         [Core.RULE_mcsSendStatement] = [Pair(ConditionalPhraseFamily.Exception)],
         [Core.RULE_deleteFileStatement] = [Pair(ConditionalPhraseFamily.Exception)],
         [Core.RULE_screenTail] = [Pair(ConditionalPhraseFamily.Exception)],
-        // §14.9.30.2: Format 1 (sequential) [| AT END | NOT AT END |], Format 2 (random) [| INVALID KEY | NOT INVALID KEY |].
-        [Core.RULE_readStatement] = [Pair(ConditionalPhraseFamily.AtEnd), Pair(ConditionalPhraseFamily.InvalidKey)],
-        // §14.9.51.2: Format 1 (sequential) the END-OF-PAGE pair, Format 2 (random) the INVALID KEY pair.
-        [Core.RULE_writeStatement] = [Pair(ConditionalPhraseFamily.EndOfPage), Pair(ConditionalPhraseFamily.InvalidKey)],
+        // §14.9.30.2: Format 1 (sequential) { NEXT | PREVIOUS } … [ ADVANCING ON LOCK | … ] [| AT END | NOT AT END |];
+        // Format 2 (random) … [ KEY IS … ] [| INVALID KEY | NOT INVALID KEY |]. NEXT is the default alternative of
+        // Format 1's braces (§5.2.6.3), so a READ that writes none of the selectors may be either format.
+        [Core.RULE_readStatement] =
+        [
+            Pair(ConditionalPhraseFamily.AtEnd) with { Unprinted = [ReadKey] },
+            Pair(ConditionalPhraseFamily.InvalidKey) with { Unprinted = [ReadDirection, ReadAdvancingOnLock] },
+        ],
+        // §14.9.51.2: Format 1 (sequential) ADVANCING and the END-OF-PAGE pair, Format 2 (random) the INVALID KEY pair
+        // and no ADVANCING.
+        [Core.RULE_writeStatement] =
+        [
+            Pair(ConditionalPhraseFamily.EndOfPage),
+            Pair(ConditionalPhraseFamily.InvalidKey) with { Unprinted = [WriteAdvancing] },
+        ],
         // §14.9.35.2, §14.9.10.2 Format 1 (record), §14.9.41.2.
         [Core.RULE_rewriteStatement] = [Pair(ConditionalPhraseFamily.InvalidKey)],
         [Core.RULE_deleteStatement] = [Pair(ConditionalPhraseFamily.InvalidKey)],
@@ -197,26 +237,44 @@ public static class ConditionalPhraseAssociation
     /// <paramref name="phrases"/> — the parse-time predicate's whole decision.</summary>
     public static bool Associates(Core.ConditionalPhrasesContext phrases, ConditionalPhraseKind next, EditionInfo edition)
     {
-        int owner = OwnerRule(phrases);
-        var written = ConditionalPhrases.KindsOf(phrases).ToList();
-        if (MayAssociate(owner, written, next, edition)) return true;
-        if (!MayAssociate(owner, written, next, edition: null)) return false;
+        if (MayAssociate(phrases, next, edition)) return true;
+        if (!MayAssociate(phrases, next, edition: null)) return false;
         // The superset reading: only when no enclosing open statement may take the phrase by §14.5.3.3 itself.
         for (RuleContext? a = phrases.Parent?.Parent; a is not null; a = a.Parent)
-            if (a is Core.ConditionalPhrasesContext outer
-                && MayAssociate(OwnerRule(outer), ConditionalPhrases.KindsOf(outer).ToList(), next, edition))
+            if (a is Core.ConditionalPhrasesContext outer && MayAssociate(outer, next, edition))
                 return false;
         return true;
     }
 
     /// <summary>The §14.5.3.3 test proper: <paramref name="next"/> is not yet written, and one of the owner's general
     /// formats printed at <paramref name="edition"/> (at ANY edition when null — the superset reading) admits it together
-    /// with every phrase already written.</summary>
-    public static bool MayAssociate(int ownerRule, IReadOnlyCollection<ConditionalPhraseKind> written,
-        ConditionalPhraseKind next, EditionInfo? edition) =>
-        !written.Contains(next)
-        && FormatsOf(ownerRule).Any(f => f.Phrases.Contains(next) && written.All(f.Phrases.Contains)
-            && (f.Construct is null || edition is not { } e || ConstructRegistry.IsAvailable(e, f.Construct)));
+    /// with every phrase already written, and prints every <see cref="Selector"/> the statement wrote.</summary>
+    public static bool MayAssociate(Core.ConditionalPhrasesContext phrases, ConditionalPhraseKind next, EditionInfo? edition)
+    {
+        var written = ConditionalPhrases.KindsOf(phrases).ToList();
+        return !written.Contains(next)
+            && AdmittingFormats(phrases, written, next).Any(f =>
+                f.Construct is null || edition is not { } e || ConstructRegistry.IsAvailable(e, f.Construct));
+    }
+
+    /// <summary>The owner's formats (at any edition) that print <paramref name="next"/> beside every phrase in
+    /// <paramref name="written"/> and print every selector the owner wrote.</summary>
+    private static IEnumerable<Format> AdmittingFormats(Core.ConditionalPhrasesContext phrases,
+        IReadOnlyCollection<ConditionalPhraseKind> written, ConditionalPhraseKind next)
+    {
+        var owner = Owner(phrases);
+        return FormatsOf(owner.RuleIndex).Where(f => f.Phrases.Contains(next) && written.All(f.Phrases.Contains)
+            && !f.Unprinted.Any(s => Writes(owner, s.Rule)));
+    }
+
+    /// <summary>Whether the owner's own syntax holds the element <paramref name="rule"/>: a child rule of the owner, or
+    /// the alternative a child bracket rule chose (see <see cref="Selector"/>). The phrases and their imperative
+    /// statements are never looked into.</summary>
+    private static bool Writes(ParserRuleContext owner, int rule) =>
+        owner.children is { } children && children.Any(c => c is ParserRuleContext child
+            and not Core.ConditionalPhrasesContext
+            && (child.RuleIndex == rule
+                || child.children?.Any(g => g is ParserRuleContext grand && grand.RuleIndex == rule) == true));
 
     /// <summary>Whether some general format of the owning rule, at some edition, prints the phrase <paramref name="kind"/>.</summary>
     public static bool Prints(int ownerRule, ConditionalPhraseKind kind) =>
@@ -242,16 +300,26 @@ public static class ConditionalPhraseAssociation
                 if (d is Core.ConditionalPhrasesContext ended) candidates.Add(ended);
         }
         // Not this rule's error when a candidate may take the phrase: the parse failed for another reason.
-        if (candidates.Any(p => MayAssociate(OwnerRule(p), ConditionalPhrases.KindsOf(p).ToList(), kind, edition: null)))
+        if (candidates.Any(p => MayAssociate(p, kind, edition: null)))
             return null;
         var owner = candidates.FirstOrDefault(p => FormatsOf(OwnerRule(p)).Any(f => f.Phrases.Any(k => k.Family == kind.Family)));
         if (owner is null) return null;
         var written = ConditionalPhrases.KindsOf(owner).ToList();
         string name = StatementName(owner);
+        // The selectors that ruled out every format printing the phrase beside the phrases already written.
+        var ownerContext = Owner(owner);
+        var selectors = FormatsOf(ownerContext.RuleIndex)
+            .Where(f => f.Phrases.Contains(kind) && written.All(f.Phrases.Contains))
+            .SelectMany(f => f.Unprinted).Where(s => Writes(ownerContext, s.Rule))
+            .Select(s => s.Words).Distinct().ToList();
         string why = written.Contains(kind)
             ? $"this {name} statement already has its {kind.Words} phrase, and ISO §14.5.3.3: \"If all permitted "
               + "occurrences of a phrase have already been specified for a given statement, a subsequent occurrence of "
               + "that phrase is not syntactically associated with that statement\""
+            : selectors.Count > 0
+                ? $"this {name} statement specifies {string.Join(" and ", selectors)}, and no general format of the "
+                  + $"{name} statement that prints it also prints the {kind.Words} phrase, so the phrase may not be "
+                  + "syntactically associated with this statement (ISO §14.5.3.3)"
             : Prints(OwnerRule(owner), kind)
                 ? $"no general format of the {name} statement prints the {kind.Words} phrase beside the "
                   + string.Join(" and ", written.Select(w => w.Words)) + " phrase, so it may not be syntactically "
@@ -283,9 +351,11 @@ public static class ConditionalPhraseAssociation
         return "the";
     }
 
-    private static int OwnerRule(Core.ConditionalPhrasesContext phrases) =>
-        (phrases.Parent as ParserRuleContext ?? throw new InvalidOperationException(
-            "conditionalPhrases has no owning rule context")).RuleIndex;
+    private static ParserRuleContext Owner(Core.ConditionalPhrasesContext phrases) =>
+        phrases.Parent as ParserRuleContext ?? throw new InvalidOperationException(
+            "conditionalPhrases has no owning rule context");
+
+    private static int OwnerRule(Core.ConditionalPhrasesContext phrases) => Owner(phrases).RuleIndex;
 
     private static IReadOnlyList<Format> FormatsOf(int ownerRule) =>
         Owners.TryGetValue(ownerRule, out var formats) ? formats

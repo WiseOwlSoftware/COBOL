@@ -11,6 +11,9 @@
       *> reported it nor bound it: the block below was COMPILED AWAY -- the READ succeeded and neither
       *> imperative ran, although 14.9.30.4 GR13 c) transfers control to the NOT INVALID KEY imperative
       *> on a successful read. Under --permissive the phrase is a WARNING and the block does run.
+      *> The READ writes no NEXT: an explicit NEXT is Format 1 by SYNTAX, so the phrase could not be
+      *> syntactically associated with it at all (14.5.3.3; COBOL2269, kb/Work PB3830 review R1-1),
+      *> and this case witnesses the organization rule, which an implied NEXT leaves to the binder.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB334NIK.
        ENVIRONMENT DIVISION.
@@ -29,7 +32,7 @@
        PROCEDURE DIVISION.
        MAIN-P.
            OPEN INPUT SQF
-           READ SQF NEXT RECORD
+           READ SQF RECORD
                NOT INVALID KEY DISPLAY "NIK"
            END-READ
            CLOSE SQF

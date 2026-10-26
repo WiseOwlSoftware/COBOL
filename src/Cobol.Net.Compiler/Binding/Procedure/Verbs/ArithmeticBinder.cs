@@ -350,7 +350,9 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Shared tail for both the direct Format-2 bind and the F1→F2 re-route: receiver conformance
-    /// (SR2 — elementary boolean), the ROUNDED / SIZE-ERROR prohibition (F2 has neither), the GR3 store width.</summary>
+    /// (SR2 — elementary boolean), the ROUNDED / SIZE-ERROR prohibition (F2 has neither), the GR3 store width. Only
+    /// the re-route can reach the SIZE ERROR arm: on the direct Format-2 parse the phrase is never associated with the
+    /// COMPUTE (ConditionalPhraseAssociation's BooleanCompute selector; COBOL2269 at the phrase, kb/Work PB3830).</summary>
     private BoundStatement BuildComputeBoolean(Core.ComputeStatementContext compute, BoundBoolExpr rhs)
     {
         if (ConditionalPhrases.HasFamily(compute.conditionalPhrases(), ConditionalPhraseFamily.SizeError))
