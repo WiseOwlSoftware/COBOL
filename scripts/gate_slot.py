@@ -131,16 +131,20 @@ GATE_CLASSES = (LANDING, IMPLEMENTER)
 @dataclass(frozen=True)
 class Pool:
     """ONE SLOT POOL (kb/Work PB3724): its name, its directory under the slot directory ("" is the slot directory itself),
-    the `GateSettings` key that holds its cap and that cap's coded default. A pool has its own slots, tickets and hold
-    history; the settings file is shared."""
+    the name `set-<name>` and `clear` know its cap by, and that cap's coded default. A pool has its own slots, tickets,
+    hold history AND settings file: its cap is the `cap` key of the `settings.json` in its own directory.
+    ⛔ A pool's settings never go in another pool's file: every worktree reads the gate pool's `settings.json` with ITS
+    OWN copy of this script and refuses a key it does not know (review R1-1 of PB3724), so a key a newer script adds
+    there breaks every gate that has not merged main yet."""
     name: str
     subdir: str
-    cap_key: str
+    cap_name: str
     default_cap: int
+    keys: tuple[str, ...]  # the settings keys its settings.json may carry (a subset of GateSettings.KEYS)
 
 
-GATE_POOL = Pool("gate", "", "cap", DEFAULT_SLOTS)
-LIGHT_POOL = Pool("light", "light", "light_cap", DEFAULT_LIGHT_SLOTS)
+GATE_POOL = Pool("gate", "", "cap", DEFAULT_SLOTS, ("cap", "implementer_scope"))
+LIGHT_POOL = Pool("light", "light", "light-cap", DEFAULT_LIGHT_SLOTS, ("cap",))
 POOLS = (GATE_POOL, LIGHT_POOL)
 #: What a slot holder's children run without (Slot.spawn_kwargs): the persistent build servers that would outlive them.
 BUILD_SERVERS_OFF = {"MSBUILDDISABLENODEREUSE": "1", "UseSharedCompilation": "false"}
@@ -277,10 +281,6 @@ def _now() -> dt.datetime:
     return dt.datetime.now(dt.timezone.utc).astimezone()
 
 
-#: The settings keys that are a pool's cap (`Pool.cap_key`), derived so a new pool is validated with no second list.
-CAP_KEYS = tuple(p.cap_key for p in POOLS)
-
-
 @dataclass(frozen=True)
 class Setting:
     """One shared setting as `set-cap` / `set-implementer-scope` wrote it."""
@@ -300,9 +300,9 @@ class Setting:
 
 
 def _validate(key: str, value: object, until: dt.datetime | None) -> int | str:
-    if key in CAP_KEYS:
+    if key == "cap":
         if not isinstance(value, int) or isinstance(value, bool) or value < 1:
-            raise ValueError(f"the {key.replace('_', ' ')} must be a positive integer, not {value!r}")
+            raise ValueError(f"the cap must be a positive integer, not {value!r}")
         return value
     if value not in SCOPES:
         raise ValueError(f"the implementer scope must be one of {SCOPES}, not {value!r}")
@@ -311,15 +311,14 @@ def _validate(key: str, value: object, until: dt.datetime | None) -> int | str:
 
 @dataclass(frozen=True)
 class GateSettings:
-    """THE SHARED GATE SETTINGS of one slot directory: the cap and the implementer scope, each optional and each
-    with an optional expiry. An absent or expired setting is its DEFAULT. A malformed file is an error, never a
+    """THE SHARED GATE SETTINGS of one POOL's directory (`GateSlots.directory`): the pool's cap and, in the gate pool's
+    directory only, the implementer scope, each optional and each with an optional expiry. An absent or expired setting is its DEFAULT. A malformed file is an error, never a
     silent default: a gate that cannot tell its cap or its population must not start."""
     directory: Path
     cap: Setting | None = None
-    light_cap: Setting | None = None
     implementer_scope: Setting | None = None
 
-    KEYS = (*CAP_KEYS, "implementer_scope")
+    KEYS = ("cap", "implementer_scope")
 
     @classmethod
     def read(cls, directory: Path) -> "GateSettings":
@@ -349,8 +348,8 @@ class GateSettings:
         return cls(directory, **parsed)
 
     def effective_cap(self, pool: Pool = GATE_POOL, now: dt.datetime | None = None) -> int:
-        """`pool`'s cap: its live setting, else its coded default."""
-        s = getattr(self, pool.cap_key)
+        """`pool`'s cap, `self` being the settings of `pool`'s directory: its live setting, else its coded default."""
+        s = self.cap
         return s.value if s is not None and s.live(now or _now()) else pool.default_cap
 
     def effective_scope(self, now: dt.datetime | None = None) -> tuple[str, Setting | None]:
@@ -358,15 +357,17 @@ class GateSettings:
         s = self.implementer_scope
         return (s.value, s) if s is not None and s.live(now or _now()) else (DEFAULT_SCOPE, None)
 
-    def report(self, now: dt.datetime | None = None) -> list[str]:
+    def report(self, pool: Pool = GATE_POOL, now: dt.datetime | None = None) -> list[str]:
+        """`status`'s settings lines for `pool`: its cap, and for the gate pool the implementer scope too."""
         now = now or _now()
-        scope, _ = self.effective_scope(now)
-        return [f"gate-slot: cap {self.effective_cap(GATE_POOL, now)}" + (f" ({self.cap.describe(now)})" if self.cap else
-                                                                          " (the default; no cap set)"),
-                f"gate-slot: light cap {self.effective_cap(LIGHT_POOL, now)}"
-                + (f" ({self.light_cap.describe(now)})" if self.light_cap else " (the default; no light cap set)"),
-                f"gate-slot: implementer scope {scope}" + (
-                    f" ({self.implementer_scope.describe(now)})" if self.implementer_scope else " (the default)")]
+        cap_name = pool.cap_name.replace("-", " ")
+        lines = [f"gate-slot: {cap_name} {self.effective_cap(pool, now)}"
+                 + (f" ({self.cap.describe(now)})" if self.cap else f" (the default; no {cap_name} set)")]
+        if pool is GATE_POOL:
+            scope, _ = self.effective_scope(now)
+            lines.append(f"gate-slot: implementer scope {scope}" + (
+                f" ({self.implementer_scope.describe(now)})" if self.implementer_scope else " (the default)"))
+        return lines
 
     @classmethod
     def write(cls, directory: Path, key: str, value: int | str, until: dt.datetime | None, why: str,
@@ -381,13 +382,14 @@ class GateSettings:
         return cls._store(directory, {key: Setting(value, until, why, set_by, now.isoformat(timespec="seconds"))})
 
     @classmethod
-    def clear(cls, directory: Path, keys: tuple[str, ...]) -> "GateSettings":
-        """Remove settings, so the CODED DEFAULTS (DEFAULT_SLOTS, DEFAULT_LIGHT_SLOTS, DEFAULT_SCOPE) are in force for them at once.
-        Clearing every key replaces the file without reading it: the one repair of a malformed file."""
-        unknown = sorted(set(keys) - set(cls.KEYS))
+    def clear(cls, directory: Path, keys: tuple[str, ...], pool: Pool = GATE_POOL) -> "GateSettings":
+        """Remove settings of `pool`'s directory, so the CODED DEFAULTS (DEFAULT_SLOTS, DEFAULT_LIGHT_SLOTS, DEFAULT_SCOPE)
+        are in force for them at once. Clearing every key of the pool replaces the file without reading it: the one
+        repair of a malformed file."""
+        unknown = sorted(set(keys) - set(pool.keys))
         if unknown or not keys:
-            raise ValueError(f"unknown gate setting(s) {unknown}; clear any of {cls.KEYS}")
-        return cls._store(directory, dict.fromkeys(keys), replace_all=set(keys) == set(cls.KEYS))
+            raise ValueError(f"unknown gate setting(s) {unknown}; clear any of {pool.keys}")
+        return cls._store(directory, dict.fromkeys(keys), replace_all=set(keys) == set(pool.keys))
 
     @classmethod
     def _store(cls, directory: Path, changes: dict[str, Setting | None],
@@ -613,9 +615,9 @@ class SlotState:
 
 class GateSlots:
     """One POOL of the repository's gate cap (kb/Work PB3724): N slots, served in SERVICE order (every landing ticket
-    first, ticket order within each class; kb/Work PB3103). N is read from the shared settings on every poll, never fixed
-    per process (kb/Work PB2514). `root` is the slot directory (where the settings live); the pool's own slots, tickets
-    and hold history are in `directory`, the root itself for the gate pool and a subdirectory for any other."""
+    first, ticket order within each class; kb/Work PB3103). N is read from the pool's settings on every poll, never fixed
+    per process (kb/Work PB2514). `root` is the slot directory; the pool's own slots, tickets, hold history and settings
+    are in `directory`, the root itself for the gate pool and a subdirectory for any other."""
 
     def __init__(self, root: Path, poll_s: float = DEFAULT_POLL_S, pool: Pool = GATE_POOL):
         self.root, self.poll_s, self.pool = root, poll_s, pool
@@ -626,7 +628,7 @@ class GateSlots:
         return cls(slot_dir(repo), poll_s, pool)
 
     def settings(self) -> GateSettings:
-        return GateSettings.read(self.root)
+        return GateSettings.read(self.directory)
 
     def _slot_path(self, k: int) -> Path:
         return self.directory / f"{k}.lock"
@@ -858,12 +860,11 @@ def _cmd_status(args: argparse.Namespace) -> int:
 
 
 def _print_pool(st: SlotState) -> None:
-    """One pool's section of `status`: the gate pool's first, with the settings; the light pool's below it."""
+    """One pool's section of `status`: the gate pool's first; each pool's own settings follow its heading."""
     print(f"gate-slot: {st.directory} — {len(st.held)} slot(s) held, cap {st.cap}, {len(st.waiting)} waiting"
           + ("" if st.pool is GATE_POOL else f" ({st.pool.name} pool, kb/Work PB3724)"))
-    if st.pool is GATE_POOL:
-        for line in st.settings.report():
-            print(line)
+    for line in st.settings.report(st.pool):
+        print(line)
     if st.holds_problem:
         print(f"gate-slot: NO LONG-HOLD FLAGS — {st.holds_problem}")
     for k in range(max([st.cap - 1, *st.held]) + 1):
@@ -879,26 +880,32 @@ def _set_by(args: argparse.Namespace) -> str:
     return args.by or f"{getpass.getuser()}@{platform.node()}"
 
 
-def _cmd_set(args: argparse.Namespace, key: str, value: int | str) -> int:
+#: THE SETTINGS BY THE NAME `set-<name>` AND `clear` KNOW THEM BY: (the pool whose settings.json holds it, its key there),
+#: derived from the pools so a new pool's cap is settable and clearable with no second list to keep.
+SETTING_NAMES = {**{p.cap_name: (p, "cap") for p in POOLS}, "implementer-scope": (GATE_POOL, "implementer_scope")}
+
+
+def _cmd_set(args: argparse.Namespace, name: str, value: int | str) -> int:
     until = parse_until(args.until) if args.until else None
-    settings = GateSettings.write(slot_dir(args.repo), key, value, until, args.why or "", _set_by(args))
-    for line in settings.report():
+    pool, key = SETTING_NAMES[name]
+    settings = GateSettings.write(GateSlots.for_repo(args.repo, pool=pool).directory, key, value, until,
+                                  args.why or "", _set_by(args))
+    for line in settings.report(pool):
         print(line)
     return 0
 
 
-#: `clear`'s names for the settings: each key of GateSettings.KEYS spelled as its subcommand is (`set-cap`,
-#: `set-light-cap`, `set-implementer-scope`), derived so a new key is clearable with no second list to keep.
-CLEAR_NAMES = {k.replace("_", "-"): k for k in GateSettings.KEYS}
-
-
 def _cmd_clear(args: argparse.Namespace) -> int:
-    unknown = [n for n in args.names if n not in CLEAR_NAMES]
+    unknown = [n for n in args.names if n not in SETTING_NAMES]
     if unknown:
-        raise ValueError(f"clear: unknown setting(s) {unknown}; name any of {sorted(CLEAR_NAMES)} (none: all)")
-    keys = tuple(dict.fromkeys(CLEAR_NAMES[n] for n in (args.names or CLEAR_NAMES)))
-    for line in GateSettings.clear(slot_dir(args.repo), keys).report():
-        print(line)
+        raise ValueError(f"clear: unknown setting(s) {unknown}; name any of {sorted(SETTING_NAMES)} (none: all)")
+    chosen = dict.fromkeys(args.names or SETTING_NAMES)
+    for pool in POOLS:
+        keys = tuple(dict.fromkeys(key for n in chosen for p, key in [SETTING_NAMES[n]] if p is pool))
+        if keys:
+            directory = GateSlots.for_repo(args.repo, pool=pool).directory
+            for line in GateSettings.clear(directory, keys, pool).report(pool):
+                print(line)
     return 0
 
 
@@ -1284,9 +1291,10 @@ def self_test() -> int:
             d = slot_dir(repo)
             assert not (d / SETTINGS_FILE).exists(), "the defaults arm must start with no settings file"
             s = GateSettings.read(d)
-            assert (s.effective_cap(), s.effective_cap(LIGHT_POOL), s.effective_scope()) == (3, 2, ("leg1", None)), \
+            light = GateSlots.for_repo(repo, pool=LIGHT_POOL).settings()
+            assert (s.effective_cap(), light.effective_cap(LIGHT_POOL), s.effective_scope()) == (3, 2, ("leg1", None)), \
                 f"the coded defaults are not cap 3, light cap 2 and scope leg1: cap {s.effective_cap()}, " \
-                f"light {s.effective_cap(LIGHT_POOL)}, {s.effective_scope()}"
+                f"light {light.effective_cap(LIGHT_POOL)}, {s.effective_scope()}"
             r = inproc(repo, "status")
             assert r.returncode == 0 and "cap 3 (the default; no cap set)" in r.stdout \
                 and "light cap 2 (the default; no light cap set)" in r.stdout \
@@ -1306,18 +1314,29 @@ def self_test() -> int:
             d = slot_dir(repo)
             GateSettings.write(d, "cap", 1, None, "departed", "self-test")
             GateSettings.write(d, "implementer_scope", "whole", None, "departed", "self-test")
-            GateSettings.write(d, "light_cap", 1, None, "departed", "self-test")
+            ld = d / LIGHT_POOL.subdir
+            GateSettings.write(ld, "cap", 1, None, "departed", "self-test")
             r = inproc(repo, "clear", "implementer-scope")
-            s = GateSettings.read(d)
+            s, ls = GateSettings.read(d), GateSettings.read(ld)
             assert r.returncode == 0 and s.implementer_scope is None and s.effective_scope() == ("leg1", None) \
-                and s.cap is not None and s.effective_cap() == 1 and s.effective_cap(LIGHT_POOL) == 1, \
+                and s.cap is not None and s.effective_cap() == 1 and ls.effective_cap(LIGHT_POOL) == 1, \
                 f"clear implementer-scope: {r.stdout}{r.stderr}{s}"
+            r = inproc(repo, "clear", "light-cap")
+            s, ls = GateSettings.read(d), GateSettings.read(ld)
+            assert r.returncode == 0 and ls.cap is None and ls.effective_cap(LIGHT_POOL) == DEFAULT_LIGHT_SLOTS \
+                and s.cap is not None and "light cap 2 (the default; no light cap set)" in r.stdout, \
+                f"clear light-cap: {r.stdout}{r.stderr}"
+            GateSettings.write(ld, "cap", 1, None, "departed", "self-test")
             r = inproc(repo, "clear")
-            s = GateSettings.read(d)
-            assert r.returncode == 0 and s.cap is None and s.light_cap is None and s.implementer_scope is None \
-                and s.effective_cap(LIGHT_POOL) == DEFAULT_LIGHT_SLOTS \
+            s, ls = GateSettings.read(d), GateSettings.read(ld)
+            assert r.returncode == 0 and s.cap is None and ls.cap is None and s.implementer_scope is None \
+                and ls.effective_cap(LIGHT_POOL) == DEFAULT_LIGHT_SLOTS \
                 and json.loads((d / SETTINGS_FILE).read_text(encoding="utf-8")) == {"schema": SETTINGS_SCHEMA} \
+                and json.loads((ld / SETTINGS_FILE).read_text(encoding="utf-8")) == {"schema": SETTINGS_SCHEMA} \
                 and "cap 3 (the default; no cap set)" in r.stdout, f"clear: {r.stdout}{r.stderr}"
+            (ld / SETTINGS_FILE).write_text("{not json", encoding="utf-8", newline="\n")
+            assert GateSettings.clear(ld, ("cap",), LIGHT_POOL).effective_cap(LIGHT_POOL) == DEFAULT_LIGHT_SLOTS, \
+                "clear did not repair a malformed light settings file"
             plant_settings(repo, "{not json")
             assert GateSettings.clear(d, GateSettings.KEYS).effective_cap() == 3, "clear did not repair a malformed file"
             plant_settings(repo, "{not json")
@@ -1397,6 +1416,13 @@ def self_test() -> int:
             assert r.returncode == 0 and "light cap 3 (set by" in r.stdout, f"set-light-cap failed: {r.stdout}{r.stderr}"
             l3.expect(r"gate-slot: took light slot 3 of 3")
             assert l3.finish() == 0
+            # R1-1 of the PB3724 review: the light cap went to the LIGHT pool's own settings.json, so the gate pool's file --
+            # which every worktree not yet merged with main reads with its OWN copy of this script, refusing any key outside
+            # {schema, cap, implementer_scope} -- still holds only keys that reader knows.
+            gate_keys = set(json.loads((slot_dir(repo) / SETTINGS_FILE).read_text(encoding="utf-8")))
+            light_file = json.loads((slot_dir(repo) / LIGHT_POOL.subdir / SETTINGS_FILE).read_text(encoding="utf-8"))
+            assert gate_keys <= {"schema", "cap", "implementer_scope"} and light_file["cap"]["value"] == 3, \
+                f"the light cap leaked into the gate pool's settings file (keys {sorted(gate_keys)}), or is not in the light pool's: {light_file}"
             st = GateSlots.for_repo(repo).state()
             assert sorted(st.held) == [0] and [w[2].split(" ")[0] for w in st.waiting] == ["heavy"], \
                 f"the light gates touched the gate pool: {st}"
@@ -1478,7 +1504,7 @@ def main(argv: list[str]) -> int:
             p.add_argument("command", nargs=argparse.REMAINDER)
         elif name == "clear":
             p.add_argument("names", nargs="*", metavar="SETTING",
-                           help=f"any of {', '.join(CLEAR_NAMES)}; none named: all. Its coded default "
+                           help=f"any of {', '.join(SETTING_NAMES)}; none named: all. Its coded default "
                                 f"(cap {DEFAULT_SLOTS}, light cap {DEFAULT_LIGHT_SLOTS}, scope {DEFAULT_SCOPE}) is in "
                                 "force at once")
         elif name.startswith("set-"):
@@ -1504,12 +1530,8 @@ def main(argv: list[str]) -> int:
             return _cmd_run(args)
         if args.action == "status":
             return _cmd_status(args)
-        if args.action == "set-cap":
-            return _cmd_set(args, "cap", args.value)
-        if args.action == "set-light-cap":
-            return _cmd_set(args, "light_cap", args.value)
-        if args.action == "set-implementer-scope":
-            return _cmd_set(args, "implementer_scope", args.value)
+        if (args.action or "").startswith("set-"):
+            return _cmd_set(args, args.action.removeprefix("set-"), args.value)
         if args.action == "clear":
             return _cmd_clear(args)
     except ValueError as e:  # malformed settings or a refused value: nothing starts or changes, and it says why
