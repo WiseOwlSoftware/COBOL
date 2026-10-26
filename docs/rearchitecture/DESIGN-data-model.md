@@ -105,9 +105,9 @@ New file `Binding/Model/StorageForm.cs`. A sealed abstract record with one case 
 **value classification** (no C# strings, no emit logic) — the emitter interprets it.
 
 ```csharp
-namespace CobolNet.Binding.Model;
+namespace WiseOwl.Cobol.Binding.Model;
 
-/// The canonical storage representation of an elementary item or table element (COBOLNET_DESIGN §3/§4/§14.4).
+/// The canonical storage representation of an elementary item or table element (DESIGN §3/§4/§14.4).
 /// Computed ONCE by StorageFormPass; init-only on DataItem. Closed set — a new representation is a new case,
 /// and every switch over it is exhaustive (a missing arm is a COMPILE error, not a runtime LoudStmt).
 public abstract record StorageForm
@@ -250,7 +250,7 @@ build; there was a predicate that stopped short.
   SHARE a byte independent receivers. The offsets come from `DataItem.ClassBitOffset`, and every window — in the
   resolver, the INITIALIZE cursor and the MOVE CORRESPONDING cursor — is built by the ONE factory
   `RedefViewPlace.For`; those three each had their own copy of the offset law, which is how the bit unit came to
-  be missing from all three at once. Full derivation in `docs/COBOLNET_DATA_MODEL_DESIGN.md` D19.
+  be missing from all three at once. Full derivation in `docs/DATA_MODEL_DESIGN.md` D19.
 - `RedefinesClass.Tier`/`.Width` become **init-only**, set once by `RedefinesClassifier` (§2.5) — no set-then-overwrite.
 - **Tier-C decision — AS BUILT (Step D, LANDED):** there is no Tier C. A genuine mixed-USAGE REDEFINES pun is
   ADMITTED as Tier B, and `ComputeTier`'s remaining reason arms carry only the boundaries that survive — the

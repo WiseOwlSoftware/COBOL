@@ -1,14 +1,14 @@
 # DESIGN — Target Frontend & Grammar Architecture
 
 Status: DESIGN — substantially implemented. The dead-grammar/JSON-XML deletions, the single-sourced
-context-sensitive word set, the shared-lowest `Cobol.Net.Editions` registry, and the one `VersionConformancePass`
+context-sensitive word set, the shared-lowest `WiseOwl.Cobol.Editions` registry, and the one `VersionConformancePass`
 edition gate are all in the tree; the §8 questions are resolved as decided. Remaining frontend work: completing the
 `Cst/` typed-façade migration (§3.7, paced by the binder track), the D10 SUBSCRIPT-mode removal (§9, scheduled for
 PHASE 15), and the residual preprocessor namespace / `using Core =` alias cleanup.
-Scope: `src/Cobol.Net.Frontend/**` — the ANTLR lexer/parser grammars (`Grammar/**/*.g4`), the hand-written
+Scope: `src/WiseOwl.Cobol.Frontend/**` — the ANTLR lexer/parser grammars (`Grammar/**/*.g4`), the hand-written
 preprocessor (`Preprocessor/`), the parse-stage machinery (`Parsing/`), the diagnostics model
 (`Diagnostics/`), the generated-parser build (`Invoke-Antlr4CSharp.ps1` + the csproj's
-`EnsureGeneratedFiles` target), and the frontend's contract to its ONE consumer, the `Cobol.Net.Compiler` binder.
+`EnsureGeneratedFiles` target), and the frontend's contract to its ONE consumer, the `WiseOwl.Cobol.Compiler` binder.
 
 This document is the decision-complete target for the frontend. It is a companion to
 `docs/rearchitecture/DESIGN-edition-framework.md` (the edition/version framework — this doc owns the
@@ -80,12 +80,12 @@ consumes).
    tree's shape away, so ONE test covers every grammar arm.
    **Worked example (PB350).** §14.9.34.2 prints RETURN's `AT END imperative-statement-1` unbracketed between a
    bracketed `[ NOT AT END … ]` and `[ END-RETURN ]` (rendered from the printed page, folio 708). The grammar
-   wrote `returnAtEndPhrase?` AND `returnAtEndPhrase`'s reversed alternative made the AT END half optional too,
-   so a RETURN with no AT END compiled at all four editions and, at end of data, control fell THROUGH the
+   wrote RETURN's phrases optional (today the shared `conditionalPhrases`, §3.16, which matches empty), so a RETURN
+   with no AT END compiled at all four editions and, at end of data, control fell THROUGH the
    statement onto a record area §14.9.34.4 GR3 leaves undefined — a loop written on RETURN could never terminate
-   from the statement. The screen tests `atEnd is null` after `PhraseBlocks.Split`, which covers BOTH arms;
-   testing the phrase NODE would have left the reversed NOT-only arm compiling (the two-arm dispatch with one
-   arm fixed). ⚠ `readAtEnd` is NOT the same case: §14.9.30.2 prints READ's AT END / NOT AT END pair inside
+   from the statement. The screen tests `atEnd is null` after `PhraseBlocks.Bind` has bound each phrase by its role,
+   which covers every spelling; testing for "no phrase written" would have left the NOT-only spelling compiling (the
+   two-arm dispatch with one arm fixed). ⚠ READ is NOT the same case: §14.9.30.2 prints READ's AT END / NOT AT END pair inside
    brackets WITH choice indicators, which §5.2.6.4 reads as "zero or more", so there the phrase really is
    optional. The asymmetry is why the two pages are measured separately.
    **The check, when writing or reviewing any `?` on a statement PHRASE rule: point at the brackets in the
@@ -146,7 +146,7 @@ The set of tokens that are keywords in context but legal user-defined words else
 **three** physically separate places that must agree by hand:
 - lexer `_dataNameTokens` HashSet — `Core/CobolLexer.g4:30-72` (drives SUBSCRIPT-mode entry);
 - parser `cobolWord` rule — `CobolParserCore.g4:26-73` (admits the word in a name slot);
-- compiler `ReservedWords` table — `src/Cobol.Net.Compiler/Validation/ReservedWords.Table.cs` (the §8.9
+- compiler `ReservedWords` table — `src/WiseOwl.Cobol.Compiler/Validation/ReservedWords.Table.cs` (the §8.9
   reserved-word funnel).
 The comment at `CobolLexer.g4:20-21` literally instructs the maintainer to hand-mirror the two grammar
 copies ("It MUST mirror the parser's cobolWord rule … When adding a token to cobolWord, add it here"). A
@@ -169,22 +169,22 @@ diagnostic for an edition-gated construct as a direct consequence.
 ### 1.5 DialectLevel is double-sourced; edition metadata straddles the assembly seam
 `DialectLevel` is stored independently on `CobolParserCoreBase` (`:17`), on `Frontend`
 (`Frontend.cs:45`), and on the compiler's `EditionContext`. The canonical `ConstructRegistry` lives in
-`Cobol.Net.Compiler`, which the frontend cannot see (Compiler references Frontend, not vice-versa) — so the
+`WiseOwl.Cobol.Compiler`, which the frontend cannot see (Compiler references Frontend, not vice-versa) — so the
 frontend `EditionGateHints` + the preprocessor's `ReferenceFormatProcessor.EditionGates` /
 `CopyProcessor` each carry their **own** copy of the edition metadata and the strict/permissive severity
 policy. Three independent renders of "removed = error strict / warning permissive."
 
 ### 1.6 The binder consumes the tree by string interpretation, not the generated visitor
-The `Cobol.Net.Compiler` binder hand-walks the raw ANTLR context types with **~336 `GetText()` calls** and
+The `WiseOwl.Cobol.Compiler` binder hand-walks the raw ANTLR context types with **~336 `GetText()` calls** and
 string comparisons (dossier; e.g. `DataBinder.cs:155`), rather than the generated typed visitor. ANTLR's
 `-visitor` output is generated (`Invoke-Antlr4CSharp.ps1`, its ANTLR step) but only `EditionValidator` uses it. The raw
 parse-tree shape is thus a wide, un-narrowed, stringly-typed cross-assembly contract with no façade: any
 grammar rule rename ripples into dozens of `GetText()` sites invisibly.
 
 ### 1.7 Namespace/assembly coherence (resolved)
-Generated code emits into namespace `CobolNet.Frontend.Generated`, the same root as the assembly `Cobol.Net.Frontend`
-(RootNamespace `CobolNet.Frontend`); the package name is the csproj's `AntlrNamespace` property. The preprocessor, parsing
-and diagnostics files declare `CobolNet.Frontend.*` (PHASE 01 renamed the stale legacy-assembly namespaces), and `Frontend.cs`
+Generated code emits into namespace `WiseOwl.Cobol.Frontend.Generated`, the same root as the assembly `WiseOwl.Cobol.Frontend`
+(RootNamespace `WiseOwl.Cobol.Frontend`); the package name is the csproj's `AntlrNamespace` property. The preprocessor, parsing
+and diagnostics files declare `WiseOwl.Cobol.Frontend.*` (PHASE 01 renamed the stale legacy-assembly namespaces), and `Frontend.cs`
 is self-contained: the preprocessor and parse machinery, `DiagnosticBag` and `TurnEvent` all live in this assembly.
 
 ### 1.8 Committed build-output caches and brittle two-stage error handling
@@ -223,16 +223,16 @@ binder:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  Cobol.Net.Editions            (NEW lowest assembly — see DESIGN-edition-framework.md)  │
+│  WiseOwl.Cobol.Editions            (NEW lowest assembly — see DESIGN-edition-framework.md)  │
 │    ConstructRegistry · ReservedWords · EditionSeverityPolicy · EditionInfo    │
 │    (generated from constructs.json + reserved-words.json + cobol-words.json)   │
 └───────────────▲───────────────────────────────────────────────▲──────────────┘
                 │ referenced by                                  │ referenced by
 ┌───────────────┴───────────────────────────┐   ┌───────────────┴──────────────┐
-│  Cobol.Net.Frontend                        │   │  Cobol.Net.Compiler          │
-│   Preprocessor/   (ns → CobolNet.Frontend) │   │   Binding/ (via façade only) │
+│  WiseOwl.Cobol.Frontend                        │   │  WiseOwl.Cobol.Compiler          │
+│   Preprocessor/   (ns → WiseOwl.Cobol.Frontend) │   │   Binding/ (via façade only) │
 │   Grammar/        (2 generated units)      │   │ Validation/VersionConformance│
-│   Generated/      (ns → CobolNet.Frontend. │──▶│     Pass (sole edition gate) │
+│   Generated/      (ns → WiseOwl.Cobol.Frontend. │──▶│     Pass (sole edition gate) │
 │                    Generated)              │   │   … consumes Cst façade,     │
 │                                            │   │      not raw contexts        │
 │   Parsing/        (ParseSession, recovery) │   └──────────────────────────────┘
@@ -259,7 +259,7 @@ Key decisions, each expanded below:
   reverse-signature recogniser — `ReservedWordEditionHints` does not exist in the end state. The two
   load-bearing forward-detects survive: the `openClause` `{is2002() || retryPhraseAhead()}?` and the
   `boolExprAhead()`-based boolean-condition ENTRY (§3.2).
-- **D4. Move the canonical edition registry to a shared lowest assembly** (`Cobol.Net.Editions`) both the
+- **D4. Move the canonical edition registry to a shared lowest assembly** (`WiseOwl.Cobol.Editions`) both the
   frontend and compiler reference, deleting the frontend's + preprocessor's metadata/severity copies. (Owned
   by DESIGN-edition-framework.md; this doc specifies the frontend's *consumption*.)
 - **D5. Delete the 5 dead grammars; split the JSON/XML fragment** — move the live
@@ -269,7 +269,7 @@ Key decisions, each expanded below:
   binder consumes — retire the ~336 `GetText()` hand-walks incrementally behind it.
 - **D7. One `Diagnostic` type end-to-end**, one `ParseSession` orchestrator, narrowed exception handling,
   fail-hard portable regen unchanged in behavior but with the package name in an MSBuild property.
-- **D8. Bring the generated-namespace rename forward** to `CobolNet.Frontend.Generated` (it is free and
+- **D8. Bring the generated-namespace rename forward** to `WiseOwl.Cobol.Frontend.Generated` (it is free and
   removes the `using Core =` alias everywhere), and fix the stale `Frontend.cs` banner + preprocessor
   namespaces in the same wave.
 
@@ -804,7 +804,7 @@ Behavior is already correct (portable flat-output regen, fail-hard, `.gitignored
 java+pwsh prerequisites — `Invoke-Antlr4CSharp.ps1`, run by the csproj's `EnsureGeneratedFiles` target). Target
 changes are hygiene:
 
-1. **Package name → MSBuild property (DONE).** The generated namespace `CobolNet.Frontend.Generated` is a csproj property
+1. **Package name → MSBuild property (DONE).** The generated namespace `WiseOwl.Cobol.Frontend.Generated` is a csproj property
    (`AntlrNamespace`) passed to `Invoke-Antlr4CSharp.ps1` as `-PackageName`; this performed the D8 namespace rename with
    one property (the `using Core = CobolParserCore` aliases in consumers are a separate cleanup).
 1a. **One up-to-date decision over every input (DONE, kb/Work PB2719, PB2730).** `EnsureGeneratedFiles` is the only
@@ -839,7 +839,7 @@ changes are hygiene:
 
 ### 3.6 Preprocessor pipeline (namespace + one contract fix)
 
-The preprocessor runs in this order (`Frontend.Normalize` then `Frontend.Preprocess`, `src/Cobol.Net.Frontend/
+The preprocessor runs in this order (`Frontend.Normalize` then `Frontend.Preprocess`, `src/WiseOwl.Cobol.Frontend/
 Pipeline/Frontend.cs`):
 
 ```
@@ -851,7 +851,7 @@ PhysicalLines.Read (line entry: terminators, tabs, --nist archive markers — kb
 
 Every stage after the COPY/conditional-compilation merge is line-count preserving (asserted). Status of the target
 changes:
-1. **Namespace** `CobolNet.Frontend.Preprocessor` (D8) — done.
+1. **Namespace** `WiseOwl.Cobol.Frontend.Preprocessor` (D8) — done.
 2. **One severity policy** (D4) — done: `ReferenceFormatProcessor.ReferenceFormatDiagnostics` asks
    `EditionSeverityPolicy.For` and reads its rows from `ConstructRegistry`; no stage keeps a local `if (permissive)`.
    ⚠ Library text still gets NO `ReferenceFormatDiagnostics` (`CopyProcessor.NormalizeCopybookMapped` passes
@@ -1044,7 +1044,7 @@ reference formats, and the only place source comments are recognized. Its model:
   that opened it, and it stops at the floating literal continuation indicator and at a directive after program text.
   It replaced two scanners that disagreed (a comment strip that assumed "not in a literal" and a
   state scan that treated either quotation symbol as closing). What a literal's delimiters are and what a comment
-  indicator is, it asks `CobolSourceText` (Cobol.Net.Editions, beside `CobolSpace`; kb/Work PB2621): the §8.3.5 5)
+  indicator is, it asks `CobolSourceText` (WiseOwl.Cobol.Editions, beside `CobolSpace`; kb/Work PB2621): the §8.3.5 5)
   opening delimiters with their B/N/X/BX/NX prefixes, the closing delimiter with the §8.3.3.2.3 3) doubled quotation
   symbol as content, and the §6.2.3.1 comment indicator `*>`. The text-word scanner and the directive-line parse ask the
   same reader, so the scan keeps only what is its own: the literal state carried ACROSS a line end (a quotation symbol
@@ -1179,7 +1179,7 @@ code:
 **Contract problem:** the binder reaches into raw generated contexts with ~336 `GetText()` calls. Renaming a
 grammar rule silently breaks dozens of string-keyed walks.
 
-**Target:** a `Cst/` (Concrete-Syntax-Tree façade) namespace in `Cobol.Net.Frontend` that wraps the generated
+**Target:** a `Cst/` (Concrete-Syntax-Tree façade) namespace in `WiseOwl.Cobol.Frontend` that wraps the generated
 contexts in **thin, typed, read-only accessors** — the ONE surface the binder consumes. Not a re-parse: each
 façade type holds the generated context and exposes typed properties instead of positional `GetText()`:
 
@@ -1199,7 +1199,7 @@ public readonly struct DataDescriptionCst(CobolParserCore.DataDescriptionEntryCo
 The façade is generated-context-shaped (1:1 with grammar rules), so it does NOT re-introduce a parallel model
 — it is the *typed reading discipline* over the parse tree. Migration is incremental (§8): the binder can mix
 raw-context and façade access during transition; the end state is that `Grammar/Generated` types are
-`internal` to `Cobol.Net.Frontend` and only `Cst/` types cross the assembly boundary. This makes a grammar
+`internal` to `WiseOwl.Cobol.Frontend` and only `Cst/` types cross the assembly boundary. This makes a grammar
 rule rename a **compile error in one façade file** instead of a silent `GetText()` drift, and it is the
 enabling step for the binder's "consume a typed tree, not strings" reorg.
 
@@ -1217,12 +1217,12 @@ target:
 
 1. **`DiagnosticBag`** (frontend) becomes the ONE diagnostic collector for the whole pipeline; its
    `Diagnostic` carries `{DiagnosticDescriptor, SourceSpan, args}` (code + location + severity structured all
-   the way to the CLI). It moves namespace to `CobolNet.Frontend.Diagnostics` (D8).
+   the way to the CLI). It moves namespace to `WiseOwl.Cobol.Frontend.Diagnostics` (D8).
 2. The compiler-side `EditionContext.Diagnostics`/`Warnings` `List<string>` accumulators are replaced by this
    `DiagnosticBag` (owned by DESIGN-edition-framework.md / DESIGN-driver.md; the frontend provides the type). The
    frontend's descriptor-registry pattern is the template the compiler's 163-code registry adopts.
 3. `DiagnosticDescriptors` is the frontend's registry; construct/edition codes (the COBOL0900 band) are
-   sourced from `Cobol.Net.Editions` so frontend and compiler emit identical wording (one message, two emit
+   sourced from `WiseOwl.Cobol.Editions` so frontend and compiler emit identical wording (one message, two emit
    layers — the EditionGateHints remark's own goal, achieved structurally).
 
 ### 3.9 Error recovery
@@ -1559,7 +1559,7 @@ newly-closed format as the standing witness that the rendering was right.
   un-underlined in the printed format, so a two-word entry is shape-legal as `device-name-1 [IS]
   mnemonic-name-3`. What refuses it is §12.3.7.3 SR8 ("The implementor shall specify the names that are available
   for switch-name-1, feature-name-1, and device-name-1") — a semantic rule over the implementor's name table,
-  `Cobol.Net.Editions/ImplementorNames.cs`, refused at bind as COBOL2241 (kb/Work PB862).
+  `WiseOwl.Cobol.Editions/ImplementorNames.cs`, refused at bind as COBOL2241 (kb/Work PB862).
 - **The §11.2.1 header is BRACKETED, and the grammar now says so for every unit kind.** The OO units always had
   `(IDENTIFICATION DIVISION DOT)?`; the program and function units required the header, so `PROGRAM-ID. X.` as a
   unit's first line was COBOL0001 at every edition. `identificationDivision` now takes the header optionally,
@@ -1614,7 +1614,7 @@ that every USE wrote `statementBlock*`, restoring the zero case. The nine positi
 ON EXCEPTION / AT END / INVALID KEY / ON SIZE ERROR / ON OVERFLOW families already spelled it that way.
 
 **The drift guard, and why it is over the grammar SOURCE.** `RequiredImperativeStatementDriftTests` asserts that
-NO `.g4` under `src/Cobol.Net.Frontend/Grammar/` contains `statementBlock*` or `statementBlock?` (with `//`
+NO `.g4` under `src/WiseOwl.Cobol.Frontend/Grammar/` contains `statementBlock*` or `statementBlock?` (with `//`
 comments stripped, because the prose quotes the forbidden spelling to explain it), plus a population assertion so
 the guard cannot pass vacuously. That makes the NEXT general format automatic: a phrase rule written with the
 zero-admitting quantifier fails the build, which a per-verb list could never do.
@@ -1685,12 +1685,13 @@ shows. It is ACCEPTED, unchanged, and behaves per §14.9.19.4 GR4. That combinat
 question rather than the cardinality slip §3.11 fixes, and refusing it would newly reject source this compiler
 has always compiled; recorded here and in the `.g4` rather than inherited silently from the quantifier.
 
-**The SEARCH formats (kb/Work PB446).** `searchAtEndClause` is `AT? END statementBlock` — the READ/RETURN
-`NOT AT END` arm it used to carry leaked into BOTH SEARCH formats through the shared rule — and
+**The SEARCH formats (kb/Work PB446).** SEARCH's `[ AT END imperative-statement-1 ]` is the shared
+`conditionalPhrases` (§3.16), whose association table gives both SEARCH formats the AT END phrase alone — the READ/RETURN
+`NOT AT END` arm a shared SEARCH rule once carried leaked into BOTH formats — and
 `searchAllStatement` carries exactly ONE `searchAllWhenClause` (Format 2's ellipsis is on the `[ AND … ]`
 bracket) and no KEY phrase (the home-grown `searchAllKeyPhrase` was read by no binder). The complement is a syntax
 error that `CobolErrorStrategy.SearchFormatShapeMessage` re-codes as COBOL2269 from the parser state
-(COBOLNET_CONTROL_FLOW_DESIGN D18). **NEXT SENTENCE stays a `statement` alternative** so that `statementBlock`
+(CONTROL_FLOW_DESIGN D18). **NEXT SENTENCE stays a `statement` alternative** so that `statementBlock`
 spells the printed `{ statement | NEXT SENTENCE }` braces; its POSITION is decided in the binder funnel
 (`StatementBinder.IsNextSentenceArm`), because narrowing it in the grammar would re-parse the illegal
 `IF A NEXT SENTENCE DISPLAY X.` with DISPLAY as the sentence's next statement — a silent change of meaning.
@@ -1823,7 +1824,7 @@ lowercase with Annex C. Three pieces, each in one place:
   one C# member and two words are two (kb/Work PB1965: the host's upper-casing wrote final sigma and sigma alike at
   2023, CS0111). The EXTERNAL-file group, the SR14/SR15 WHEN census, the REPOSITORY specification table and the
   Editions word tables (`CobolWordsMap`, the directive catalog, the §8.10 and implementor-name tables) are keyed by
-  the same comparer: `Cobol.Net.Editions` references the runtime, the foundation layer below it
+  the same comparer: `WiseOwl.Cobol.Editions` references the runtime, the foundation layer below it
   (`DESIGN-architecture-review.md` §8.1), for the fold. A default externalized name and the run-time EXTERNAL
   identities (`BinderDriver.ExternalItemIdentity`, `OoEmitter.SelectFingerprint`'s word segments) are written in the
   word's `UpperFold`, so the ordinal comparison at run time agrees with Annex C.
@@ -1849,7 +1850,9 @@ parse-tree pass, `Compiler/Validation/ProcedureFormatPass.cs`, run right after `
 conditional phrase spells its operand `statementBlock`, which is `statement+`, so `READ F AT END IF X = 1 … NOT AT
 END …` compiled. §14.5.1: a conditional statement is "any statement with a conditional phrase that is not terminated
 by its explicit scope terminator", and an imperative statement may be one only "delimited by its explicit scope
-terminator". The classifier, `Binding/ConditionalStatements.IsConditional`, reads both halves off the parse — a
+terminator". Which statement a [NOT] phrase belongs to is §14.5.3.3's rule (§3.16), so in `SUBTRACT … ON SIZE ERROR ADD
+1 TO D NOT ON SIZE ERROR … END-SUBTRACT` the NOT phrase is the ADD's and the ADD is the conditional statement refused;
+the message then quotes §14.5.3.3 as well (kb/Work PB3830). The classifier, `Binding/ConditionalStatements.IsConditional`, reads both halves off the parse — a
 conditional phrase is written when the statement's OWN syntax holds a `statementBlock`, and the terminator is the
 token `END_` + the statement's Table 12 name (`Table12StatementNames`) — so a new statement rule is classified with
 no edit. The pass screens every `statementBlock` whose parent is not `ifStatement`: IF's statement-1/statement-2 is
@@ -1906,6 +1909,76 @@ CHARACTER clauses). The two slots where a word is also a system-name, ASSIGN's d
 external-locale-name-1, are witnessed like the rest (`pb2500_assign_constant_name`, `pb2500_locale_constant_name`):
 the program's declaration of the word wins (kb/Work PB2500). The `integer-n` positions are `IntegerOperandSlotDriftTests`'s (`integerOperand`).
 
+### 3.16 The paired conditional phrases — one rule, one association decision (kb/Work PB3830)
+
+**The rule.** §14.5.1 Table 12 lists each statement's conditional phrases — [NOT] ON SIZE ERROR (ADD, COMPUTE,
+DIVIDE, MULTIPLY, SUBTRACT), [NOT] ON EXCEPTION (ACCEPT, CALL, DELETE, DISPLAY, RECEIVE, SEND), [NOT] INVALID KEY
+(DELETE, READ, REWRITE, START, WRITE), [NOT] AT END (READ, RETURN; SEARCH's AT END alone), [NOT] ON OVERFLOW (STRING,
+UNSTRING) and [NOT] END-OF-PAGE (WRITE) — and §14.5.3.3 gives ONE association rule for all of them, in the paragraph
+that closes the clause (rendered, PDF page 566: it follows list item 4 unindented): "Any phrase encountered is the next
+phrase of the most-recently preceding unterminated statement with which that phrase may be syntactically associated.
+If all permitted occurrences of a phrase have already been specified for a given statement, a subsequent occurrence
+of that phrase is not syntactically associated with that statement." The owner's requirement (2026-10-26): "all COBOL
+paired conditional phrases should be handled grammatically in the same consistent manner".
+
+**The shape.** ONE rule spells them: `conditionalPhrases : ({conditionalPhraseAssociates($ctx)}? conditionalPhrase)*`,
+`conditionalPhrase : NOT? conditionalPhraseHead statementBlock`, and `conditionalPhraseHead` holds every phrase
+keyword (ON, AT and KEY optional, §5.2.3). Every owning statement writes `conditionalPhrases` bare at the position its
+format prints the phrases (the screen ACCEPT / DISPLAY through `screenTail`, after the positioning phrase). The 18
+per-statement rules it replaced (`arithmeticOnSizeError`, `computeOnSizeError`, `callExceptionPhrases`, `readAtEnd`,
+`readInvalidKey`, `writeAtEndOfPage`, … `searchAtEndClause`) are deleted, and every binder asks for its family
+through the ONE reader, `Frontend/Parsing/ConditionalPhrases` (`KindOf`, `Find`, `HasFamily`), and binds the pair by
+ROLE through `PhraseBlocks.Bind` — §5.2.6.4's choice indicators let the two be written in either order.
+
+**The decision.** `ConditionalPhraseAssociation.Associates` is the predicate's whole body: a phrase joins the statement
+that owns the loop exactly when one of the statement's printed general formats, AT THE TARGET EDITION, admits it
+together with everything the statement already wrote and it is not already written (`Owners`: one row per owning rule,
+its formats' phrase brackets — READ's AT END and INVALID KEY are two formats, so they never meet on one READ). "Everything
+written" includes the **selectors**, the syntax elements only some of a rule's formats print (`Format.Unprinted`, each a
+`Selector`): READ NEXT, PREVIOUS and ADVANCING ON LOCK are §14.9.30.2 Format 1 only and KEY IS Format 2 only; WRITE
+ADVANCING is §14.9.51.2 Format 1 only; a COMPUTE whose right side is a boolean-expression and no arithmetic expression
+is §14.9.8.2 Format 2, which prints no SIZE ERROR phrase. A selector is what the SOURCE wrote, never which alternative
+the parser took: `Selector.AlsoPrinted` names a written element that also reads as syntax of the other formats, and
+such an element selects nothing. The one such element today is a sole figurative ZERO, which parses through COMPUTE's
+boolean-expression alternative but is a §8.8.1.1 arithmetic expression, so `COMPUTE X = ZERO ON SIZE ERROR …` owns its
+phrase; `ComputeFormats.SoleFigurativeZero` is that reading, shared with `ArithmeticBinder`'s re-route to Format 1
+(branch review R2-1 of PB3830: the selector read the parse alternative, refused the legal statement and moved a nested
+COMPUTE's NOT ON SIZE ERROR outward). A format whose unprinted selector the statement wrote admits none of its phrases, so
+`READ R INVALID KEY READ G NEXT RECORD NOT INVALID KEY … END-READ` gives the NOT phrase and END-READ to READ R (branch
+review R1-1 of PB3830: a table of phrase brackets alone gave them to READ G, silently). A selector is looked for in the
+owner's own syntax only — a child rule, or the alternative a child bracket rule chose — never inside an expression or a
+nested statement. A rule whose formats print different brackets either splits them across grammar rules (ACCEPT and
+DISPLAY through `screenTail`, DELETE record / file) or carries selectors (READ, WRITE, COMPUTE). ANTLR's
+greedy loop supplies "most-recently preceding": the innermost open statement is asked first, and when it declines,
+its loop ends, the statement ends (§14.5.3.3 2) c), 4) b)) and the next enclosing owner is asked. So `SUBTRACT … ON
+SIZE ERROR ADD 1 TO D NOT ON SIZE ERROR …` gives the NOT phrase to the ADD (COBOL2796 then refuses the ADD as a
+conditional statement in an imperative-statement, §3.14), while `READ F AT END ADD 1 TO X NOT AT END …` gives it to the
+READ. **The superset reading, last of all:** a phrase only an earlier edition prints (CALL's `ON OVERFLOW`, 85–2014,
+ISO/IEC 1989:2002 §14.8.4.1 Format 1) still associates with its statement for the conformance pass to name
+(COBOL0882) — but only when no enclosing open statement may take it at the target edition, so at 2023 `STRING …
+NOT ON OVERFLOW CALL "P" ON OVERFLOW …` is the STRING's (legal), and at 85–2014 the CALL's (COBOL2796). Reading the
+edition here is the one sanctioned phrase-association read of `EditionReadDriftTests`. The superset relaxes the EDITION
+only, never a selector. A phrase NO open statement may take — a second ON SIZE ERROR, a CALL's NOT ON OVERFLOW, a READ's
+INVALID KEY beside its AT END or after its NEXT, a WRITE's INVALID KEY after ADVANCING, a boolean COMPUTE's ON SIZE ERROR
+— is a syntax error that `CobolErrorStrategy` names COBOL2269 from the parser state
+(`ConditionalPhraseAssociation.UnownedPhraseMessage`, which names the selector that ruled the formats out).
+
+**Why a context-dependent predicate, and why the loop lives in the shared rule.** The predicate reads `$ctx`, so ANTLR
+evaluates it only in `conditionalPhrases`' own decisions, with that rule's context; when an inner statement's prediction
+reaches an OUTER loop's predicate through the follow links it treats it as true instead of asking it with the inner
+context (a context-free predicate would be evaluated there with the wrong context and kill the exit path). For the same
+reason the owners write the rule bare: an owner-level `conditionalPhrases?` decision would reach the predicate one rule
+deep and ignore it. One consequence for error recovery: a syntax error just after an owner's fixed part now surfaces
+in the next element's rule (the empty loop exits), so a hint keyed on the statement walks up to it
+(`CobolErrorStrategy.NearestSearchBeforeWhen`).
+
+**Held by** `ConditionalPhraseDriftTests`: Table 12's conditional-phrase column, scraped from the transcription, equals
+the owners' phrases at the latest edition statement by statement; exactly the owners write the rule, bare; no other
+rule spells a phrase keyword; every head alternative names one family; every Table 12 statement whose general formats
+(scraped from §14.9) print different phrase brackets is split by rule or carries selectors, and every selector is its
+owner's child rule or a child bracket's alternative. The conformance cases of
+`cases/14.5.3.3-Implicit-scope-termination/` pin each family both ways.
+
 ## 4. Current → target module changes
 
 | Action | From | To | Why |
@@ -1928,9 +2001,9 @@ the program's declaration of the word wins (kb/Work PB2500). The `integer-n` pos
 | refactor | `Parsing/CobolParserCoreBase.cs` | add the committed-match `Construct(ConstructId)` action + `ConstructIds` side table; keep only the two forward-detects (`retryPhraseAhead()`, `boolExprAhead()`) | constructs name themselves on match; delete signature table + double-sourced dialect (§3.2, §1.5) |
 | refactor | grammar `{isXXXX()}?` edition predicates | dropped — superset parse + `{Construct(ConstructId.X);}` annotation actions | every construct parses at every `--std`; the pass gates (§3.2) |
 | refactor | `Parsing/CobolErrorStrategy.cs:113` | drop the recogniser call; emit structured `Diagnostic`; host the token-keyed vendor JSON/XML→COBOL0313 hint | edition diagnosis moves to the `VersionConformancePass`; keep structure (§3.2, §3.4, §3.8) |
-| create | — | `Cobol.Net.Editions` assembly | shared lowest layer both Frontend + Compiler reference (§2 D4) — owned by DESIGN-edition-framework.md |
-| move | `EditionGateHints` metadata / preprocessor severity copies | `Cobol.Net.Editions` (`ConstructRegistry`, `EditionSeverityPolicy`) | one edition-metadata + one severity source (§1.5, §3.6) |
-| move | `Diagnostics/DiagnosticBag.cs` ns → `CobolNet.Frontend.Diagnostics` | become the ONE pipeline diagnostic bag | one diagnostic model (§3.8) |
+| create | — | `WiseOwl.Cobol.Editions` assembly | shared lowest layer both Frontend + Compiler reference (§2 D4) — owned by DESIGN-edition-framework.md |
+| move | `EditionGateHints` metadata / preprocessor severity copies | `WiseOwl.Cobol.Editions` (`ConstructRegistry`, `EditionSeverityPolicy`) | one edition-metadata + one severity source (§1.5, §3.6) |
+| move | `Diagnostics/DiagnosticBag.cs` ns → `WiseOwl.Cobol.Frontend.Diagnostics` | become the ONE pipeline diagnostic bag | one diagnostic model (§3.8) |
 | create | — | `Cst/` façade namespace (`DataDescriptionCst`, `StatementCst`, …) | typed narrow contract; retire ~336 `GetText()` walks (§3.7) |
 | edit | `Frontend.cs:135` `catch (Exception)` | `catch (ParseCanceledException)` + `RecognitionException` | stop masking predicate/lexer-action bugs (§3.5) |
 | edit | `Frontend.cs:16` stale banner; `:103-105` throw | correct banner; record internal diagnostic | doc drift + exception-boundary consistency (§1.7, §3.6) |
@@ -1961,7 +2034,7 @@ the `Frontend.cs` catch; fix the stale banner + the line-count `throw`→diagnos
 touches every `using Core =` consumer — a mechanical, compiler-verified sweep. Verify: clean build on
 Windows AND WSL/Linux (portability is the known risk area); battery green.
 
-**M4 — namespace cleanup (preprocessor + parsing) — DONE (PHASE 01).** The front-end files declare `CobolNet.Frontend.*`.
+**M4 — namespace cleanup (preprocessor + parsing) — DONE (PHASE 01).** The front-end files declare `WiseOwl.Cobol.Frontend.*`.
 
 **M5 — single-source word set.** Create `cobol-words.json` from the current `_dataNameTokens` + `cobolWord`
 contents (mechanical extraction), write `gen-cobol-words.ps1` + the `CobolWordsDriftTests`, wire the
@@ -1974,7 +2047,7 @@ full parse of the conformance corpus prove byte-identical tokenization. Highest-
 > `Parsing/CobolLexerWordSet.g.cs` lexer partial (the subscript-trigger set), cross-checked by RW-1 and guarded by
 > `CobolWordsDriftTests`. `.tokens` output is byte-identical to the retired hand-synced sources.
 
-**M6 — `Cobol.Net.Editions` extraction.** (Coordinated with DESIGN-edition-framework.md — that doc owns it; the
+**M6 — `WiseOwl.Cobol.Editions` extraction.** (Coordinated with DESIGN-edition-framework.md — that doc owns it; the
 frontend's part is to consume `EditionInfo`/`ConstructRegistry`/`EditionSeverityPolicy` and delete the
 preprocessor metadata/severity copies.) Verify: version-matrix accept/reject unchanged across all four
 `--std` values.
@@ -2025,7 +2098,7 @@ regression bisects to one step.
 - **R5 (M8, scope creep):** the `Cst/` façade could balloon into a second data model. Mitigation: façade
   types are strictly 1:1 with grammar rules and hold the context (no computed/semantic state) — enforced by
   code review; semantic facts belong to the binder's model, not the façade.
-- **R6 (cross-doc coupling):** M6/M7 depend on `Cobol.Net.Editions` (DESIGN-edition-framework.md). If that assembly
+- **R6 (cross-doc coupling):** M6/M7 depend on `WiseOwl.Cobol.Editions` (DESIGN-edition-framework.md). If that assembly
   slips, M7 blocks. Mitigation: M1–M5 + M8 are independent of it and deliver most of the frontend cleanup;
   sequence M6/M7 after the editions assembly lands.
 
@@ -2078,8 +2151,8 @@ regression bisects to one step.
    version-matrix row now (this design's assumption per hard-invariant 6),
    versus keeping the dead rules quarantined behind a permanent `--enable-vendor-json` flag for a possible
    future vendor-dialect mode. Recommendation: hard-delete; re-add as a real subsystem if ever scoped.
-2. **`Cobol.Net.Editions` assembly boundary (M6).** This design assumes a new lowest assembly both Frontend
-   and Compiler reference. If the owner prefers to keep the registry in `Cobol.Net.Compiler` and instead
+2. **`WiseOwl.Cobol.Editions` assembly boundary (M6).** This design assumes a new lowest assembly both Frontend
+   and Compiler reference. If the owner prefers to keep the registry in `WiseOwl.Cobol.Compiler` and instead
    *inject* the metadata into the frontend at parse time (avoiding a new assembly), M7's construct-id
    annotation still works — `ConstructId` is the only shared type the grammar needs; introduction editions
    are read solely by the `VersionConformancePass`. Which dependency shape?

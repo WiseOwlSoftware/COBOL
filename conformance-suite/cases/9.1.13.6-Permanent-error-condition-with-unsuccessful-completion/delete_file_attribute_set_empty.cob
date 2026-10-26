@@ -10,7 +10,7 @@
        PROGRAM-ID. DELFAES19.
       *> §14.9.10.4 GR19: "The implementor shall define which of the
       *> fixed-file attributes are validated during the execution of the
-      *> DELETE FILE statement." COBOL.NET's definition is THE EMPTY SET
+      *> DELETE FILE statement." WiseOwl COBOL's definition is THE EMPTY SET
       *> (docs/CONFORMANCE.md §7, Annex A.1 item 50 — required and
       *> required to be documented). An empty set is a legal definition:
       *> GR19 requires the implementor to DEFINE the set, never that it

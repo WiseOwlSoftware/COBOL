@@ -14,7 +14,7 @@ is a thin bind-host facade until P9), the backend-neutral **structural `Place`**
 expression renderer). OUTSTANDING: the `Emit/`→`Roslyn/` renderer consolidation + the `NumericRenderer`→
 `ExpressionRenderer` rename (ride P9), and the future **`CilBackend`**.
 
-**Upholds the four owner-locked invariants** (COBOLNET_DESIGN §1.2): typed-native data only; native numerics;
+**Upholds the four owner-locked invariants** (DESIGN §1.2): typed-native data only; native numerics;
 single PC dispatcher; idiomatic/readable C# where the construct allows. **Upholds the dual-backend goal**
 (`project_dual_backend_goal`, SSOT §1.1 / §18 #23): a **backend-neutral bound tree** feeds a **selectable**
 `--backend roslyn|cil`; every semantic decision lives in the binder/bound nodes; the backend only *renders*.
@@ -51,7 +51,7 @@ single PC dispatcher; idiomatic/readable C# where the construct allows. **Uphold
 ## 1. Current problems (grounded in the survey + critique + code)
 
 ### 1.1 The seam is materialized
-`docs/COBOLNET_DESIGN.md` §1.1 and §18 #23 promise `ICodeGenBackend` with `--backend roslyn|cil`. The interface is
+`docs/DESIGN.md` §1.1 and §18 #23 promise `ICodeGenBackend` with `--backend roslyn|cil`. The interface is
 materialized (`CodeGen/ICodeGenBackend.cs`); `RoslynBackend : ICodeGenBackend` is the default backend and the only
 owner of C# syntax knowledge, selected via `BackendFactory.For`. The compile path binds the whole compilation group
 to an immutable `BoundCompilation` (`BinderDriver.Bind`) and then renders it (`RoslynBackend.Emit` → `ProgramEmitter`).
@@ -74,7 +74,7 @@ largest structural blocker for the dimension** and the root of the "smart-emitte
 
 ### 1.3 Dispatch — source-generated and exhaustive
 The emit and analysis walks over the sealed bound hierarchy are a **source-generated exhaustive visitor**
-(`Cobol.Net.Compiler.SourceGen` emits the `IBound*Visitor` interfaces + `Accept`): `StatementEmitter :
+(`WiseOwl.Cobol.Compiler.SourceGen` emits the `IBound*Visitor` interfaces + `Accept`): `StatementEmitter :
 IBoundStatementVisitor<bool>`, `NumericRenderer : IBoundExprVisitor<NumX>`/`IBoundOperandVisitor<NumX>`, and
 `ConditionRenderer` each implement their visitor once. **Adding a bound leaf without a visitor arm is a compile
 error**, not a runtime `LoudStmt` fall-through. The binder's statement dispatch works over *parse* contexts (not the
@@ -174,7 +174,7 @@ SyntaxFactory **nowhere**. Close the untyped-runtime-coupling smell with `Runtim
 ### 2.2 Decision B — `ICodeGenBackend`
 
 ```csharp
-namespace CobolNet.CodeGen;
+namespace WiseOwl.Cobol.CodeGen;
 
 /// The one seam between the backend-neutral BoundCompilation and a target.
 public interface ICodeGenBackend
@@ -224,7 +224,7 @@ table entry is not, kb/Work PB189) stages the Tier-C loud; otherwise it is the s
 `WriteGroupImage` / `WriteFullGroupImage` are those arms. **No consumer may spell `.AsImage()` / `.FromImage(`
 for itself**, and each takes a `context` string so routing through the ONE reader costs no diagnostic quality.
 
-⛔ Enforcement is a SOURCE-LEVEL drift test, `tests/Cobol.Net.Tests.Unit/BoundaryImageChannelTests.cs`, not a
+⛔ Enforcement is a SOURCE-LEVEL drift test, `tests/WiseOwl.Cobol.Tests.Unit/BoundaryImageChannelTests.cs`, not a
 doc-comment — because the law WAS already a doc-comment and four consumers spelled the call anyway, each missing
 a different arm (kb/Work PB178 + PB177). Its allow-list is two entries with written justifications; an addition
 without one is a review failure. Note the trap the cluster was built out of: `IsImageCapable` answers "does the
@@ -235,7 +235,7 @@ See also DESIGN-data-model §2.3's Tier-B section: the window's "Read IS the ima
 `Place` loses `Read()/Write()`. It becomes a pure structural value the backend renders.
 
 ```csharp
-namespace CobolNet.Binding.Model;
+namespace WiseOwl.Cobol.Binding.Model;
 
 public abstract record Place { public abstract DataItem Item { get; } public abstract PicInfo? Pic { get; } }
 

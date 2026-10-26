@@ -9,7 +9,7 @@
       *> kb/Work PB862 + PB716 - what a SPECIAL-NAMES switch-name / feature-name / device-name entry may
       *> consist of (ISO 12.3.7.2, rendered from the printed page, PDF p320 / folio 290), at COBOL-85 where the
       *> entry was introduced.  12.3.7.3 SR8: "The implementor shall specify the names that are available for
-      *> switch-name-1, feature-name-1, and device-name-1."  COBOL.NET's names are ONE table
+      *> switch-name-1, feature-name-1, and device-name-1."  WiseOwl COBOL's names are ONE table
       *> (Binding/ImplementorNames.cs; docs/CONFORMANCE.md section 7, A.1 items 189/190/191), and every entry
       *> below names a row of it in the arm its type allows:
       *>   SWITCH-3 - a switch-name with its mnemonic AND both status phrases, written OFF-first.  The status
@@ -20,7 +20,7 @@
       *>   CSP / C01 - feature-names; declared and not used here (their WRITE ADVANCING rules are pinned by
       *>              FileIoDifferentialTests), because a declaration must be ACCEPTED for every row.
       *> Expected values, from the rules: the switches' initial status comes from the external facility
-      *> (12.3.7.4 GR4 - COBOL.NET's is the COBOL_<SWITCH-NAME> environment variable, absent = OFF), so SW3-OFF
+      *> (12.3.7.4 GR4 - WiseOwl COBOL's is the COBOL_<SWITCH-NAME> environment variable, absent = OFF), so SW3-OFF
       *> and U7-OFF hold at entry; SET SW3 TO ON makes SW3-ON true (14.9.39.4 GR5); the CLASS test is the
       *> control that the paragraph still binds its other clauses.
        IDENTIFICATION DIVISION.

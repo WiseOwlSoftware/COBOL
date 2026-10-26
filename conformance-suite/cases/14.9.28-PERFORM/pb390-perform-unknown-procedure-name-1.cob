@@ -9,7 +9,7 @@
 *> is neither, so the reference identifies no resource (8.4.2.1) and 4.2.2 paragraph 2 puts the verdict in
 *> the COMPILE-TIME mechanism. Before PB390 the binder DECIDED this rule correctly and then returned
 *> BoundUnsupported: the program compiled, an assembly was produced, and the run unit aborted with
-*> NotImplementedCobolFeatureException - telling the programmer COBOL.NET was incomplete when the SOURCE
+*> NotImplementedCobolFeatureException - telling the programmer WiseOwl COBOL was incomplete when the SOURCE
 *> is wrong. The statement sits on a path the flow reaches, but the diagnostic must not depend on that.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB390PERFSR12.

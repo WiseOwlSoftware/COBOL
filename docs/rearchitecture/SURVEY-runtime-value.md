@@ -1,4 +1,4 @@
-# SURVEY — Runtime Value Library (`Cobol.Net.Runtime` : Numeric / Strings / Text / Tables)
+# SURVEY — Runtime Value Library (`WiseOwl.Cobol.Runtime` : Numeric / Strings / Text / Tables)
 
 Status: SURVEY (rearchitecture recon). Scope: the elementary/aggregate **value** kernels a WiseOwl COBOL-generated C#
 program calls — `Values`-to-be folders `Numeric/` (`CobolNum`, `NumProfile`, `CobolDec`, `CobolFloat`, `CobolEdit`,
@@ -143,7 +143,7 @@ for consolidation but **omits these three numeric parsers** (see gap check §8).
 
 - **Compiler → runtime is a genuine compile-time dependency, not just emitted strings.** Beyond the ~60 emitted
   string references the plan tracks, the compiler makes **direct C# calls** into the runtime for constant folding:
-  `CobolEdit.Format` / `CobolEdit.MaskScale` (public), driven by `using CobolNet.Runtime;` in `NumericRenderer`/
+  `CobolEdit.Format` / `CobolEdit.MaskScale` (public), driven by `using WiseOwl.Cobol.Runtime;` in `NumericRenderer`/
   `FieldEmitter`. A namespace rename at G8 breaks these *compiler-side* calls, which the emitter's `RuntimeApi`
   façade (which governs emitted `using`s) does **not** cover. (See gap check §8.4.)
 - **`NumProfile` is re-materialized as a string initializer** by `PicInfo.ProfileInitializer` (`PicInfo.cs:301`) — the
@@ -208,7 +208,7 @@ fields — the current pattern list misses exactly this class of state.
 
 ### 8.4 G8 namespace flip must cover compiler-side direct calls, not just emitted `using`s
 Enumerate the compiler's **direct** compile-time calls into the runtime (`CobolEdit.Format`, `CobolEdit.MaskScale`,
-and any `CobolNet.Runtime.*` invoked from `CodeGen/Emit/*` / `Binding/*`) alongside the emitted string surface. The
+and any `WiseOwl.Cobol.Runtime.*` invoked from `CodeGen/Emit/*` / `Binding/*`) alongside the emitted string surface. The
 `RuntimeApi` façade governs generated `using`s; these compiler-code calls need their own `using` update in the same
 G8 change or the compiler itself won't build.
 
@@ -264,7 +264,7 @@ adequately address the numeric-model coherence and the compile/runtime duplicati
 4. **The G8 namespace flip is scoped to emitted `using`s, but the compiler makes direct compile-time calls into the
    runtime** (`CobolEdit.Format`, `CobolEdit.MaskScale`) for constant folding. `DESIGN-runtime-library §2.8` and
    `PHASE-08 §3` frame the flip entirely around the emitted surface + `RuntimeApi` façade. **Correction:** the flip
-   plan must also list and update the compiler-code `using CobolNet.Runtime;` call sites in `CodeGen/Emit/*`. (Reorg §8.4.)
+   plan must also list and update the compiler-code `using WiseOwl.Cobol.Runtime;` call sites in `CodeGen/Emit/*`. (Reorg §8.4.)
 
 5. **The three numeric-literal parsers are omitted from the literal-dedup list.** `DESIGN-data-model.md §2.8` catches
    triplicated `DecodeCobolString` but not `UnscaledLit`/`UnscaledAtScale`/`TryParseNumeric`. **Add** them to the same

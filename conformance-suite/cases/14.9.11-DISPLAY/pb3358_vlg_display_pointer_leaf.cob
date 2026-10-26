@@ -20,7 +20,7 @@
       *> DISPLAYs here show each group at an extent where its pointer table has NO occurrence, while FUNCTION
       *> LENGTH counts each pointer's 8 positions at a non-zero extent. The pointer positions' own characters (the
       *> NULL image inside the displayed group) are pinned byte for byte by
-      *> tests/Cobol.Net.Tests.Conformance/VariableLengthGroupPointerImageTests.cs, which can spell them.
+      *> tests/WiseOwl.Cobol.Tests.Conformance/VariableLengthGroupPointerImageTests.cs, which can spell them.
       *> Before the fix every DISPLAY below compiled clean and aborted at run time with the Tier-C
       *> "pointer/object-class leaf" refusal (the gate is the group's declared shape, not its current extent), and
       *> a dynamic-capacity table of pointers (WS-H) then failed the backend compile.

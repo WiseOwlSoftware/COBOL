@@ -3,7 +3,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
 /// ⛔ A SECOND HANDLE ON THE SAME OPEN FILE — the deterministic stand-in for a <c>fork</c> in another thread that has not

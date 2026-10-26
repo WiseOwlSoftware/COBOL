@@ -28,7 +28,7 @@ Direction of travel: the target architecture is a SUPERSET grammar where the edi
 edition conformance becomes one pass over the bound tree. Read
 `docs/rearchitecture/DESIGN-version-conformance-pipeline.md` before adding new gates.
 
-`src/Cobol.Net.Frontend/Generated/` is a build output — gitignored, never committed. Edit the `.g4` and build; a
+`src/WiseOwl.Cobol.Frontend/Generated/` is a build output — gitignored, never committed. Edit the `.g4` and build; a
 failed regeneration FAILS the build by design. `java` and `pwsh` are build prerequisites.
 
 ## 2. Parser and emitter ship together

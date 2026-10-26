@@ -1,4 +1,4 @@
-# SURVEY — Runtime IO / Control / Exceptions / Intrinsics (`src/Cobol.Net.Runtime`)
+# SURVEY — Runtime IO / Control / Exceptions / Intrinsics (`src/WiseOwl.Cobol.Runtime`)
 
 Status: SURVEY (rearchitecture review; backfill of the missing IO/Control/Exceptions/Intrinsics survey).
 Scope: the runtime facades WiseOwl COBOL-generated C# calls — file I/O (`IO/`), inter-program + run-unit control

@@ -69,8 +69,8 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 # The assemblies whose execution the map records — keep in step with tools/impact/ImpactRecording.targets.
 PROBED = [
-    "cobol", "Cobol.Net.Compiler", "Cobol.Net.Editions", "Cobol.Net.Frontend", "Cobol.Net.Runtime",
-    "Cobol.Net.Tests.Characterization", "Cobol.Net.Tests.Conformance", "Cobol.Net.Tests.Unit",
+    "cobol", "WiseOwl.Cobol.Compiler", "WiseOwl.Cobol.Editions", "WiseOwl.Cobol.Frontend", "WiseOwl.Cobol.Runtime",
+    "WiseOwl.Cobol.Tests.Characterization", "WiseOwl.Cobol.Tests.Conformance", "WiseOwl.Cobol.Tests.Unit",
 ]
 
 
@@ -215,7 +215,7 @@ def check(m: dict) -> list[str]:
     change to it look like it touches no test."""
     problems = []
     hit = reached_files(m)
-    for prefix in ("src/Cobol.Net.Compiler/", "src/Cobol.Net.Runtime/", "src/Cobol.Net.Frontend/"):
+    for prefix in ("src/WiseOwl.Cobol.Compiler/", "src/WiseOwl.Cobol.Runtime/", "src/WiseOwl.Cobol.Frontend/"):
         if not any(f.startswith(prefix) for f in hit):
             problems.append(f"no test context reached any file under {prefix}")
     if not m["partial"]:
@@ -248,12 +248,12 @@ def self_test() -> int:
     check_("... a name already listed, and another assembly's, stay as recorded", (tests[1][2], tests[2][2]) == ("N.T.Plain", full))
     check_("... and a listed name with no truncation marker adopts nothing",
            adopt_listed_names([["Conformance", "n", full, "N.T", "c", 1.0, False]], {"Conformance": [stem]}) == 0)
-    sample = {"partial": False, "test_bits": [pack(1 << 0)], "entries": [["N.A::M()", [["src/Cobol.Net.Compiler/A.cs", 1, 2]]]]}
+    sample = {"partial": False, "test_bits": [pack(1 << 0)], "entries": [["N.A::M()", [["src/WiseOwl.Cobol.Compiler/A.cs", 1, 2]]]]}
     check_("the watchdog fails a map no test reached the front end or runtime with",
            len(check({**sample, "population": {}})) == 2, check({**sample, "population": {}}))
-    reached = {**sample, "entries": [["N.A::M()", [["src/Cobol.Net.Compiler/A.cs", 1, 2]]],
-                                    ["N.B::M()", [["src/Cobol.Net.Frontend/B.cs", 1, 2]]],
-                                    ["N.C::M()", [["src/Cobol.Net.Runtime/C.cs", 1, 2]]]], "test_bits": [pack(0b111)]}
+    reached = {**sample, "entries": [["N.A::M()", [["src/WiseOwl.Cobol.Compiler/A.cs", 1, 2]]],
+                                    ["N.B::M()", [["src/WiseOwl.Cobol.Frontend/B.cs", 1, 2]]],
+                                    ["N.C::M()", [["src/WiseOwl.Cobol.Runtime/C.cs", 1, 2]]]], "test_bits": [pack(0b111)]}
     check_("... and passes one whose population is whole",
            check({**reached, "population": {"Unit": {"recorded": 3, "listed_but_unrecorded_count": 0}}}) == [])
     check_("... and fails a listed test that was never recorded",
@@ -326,7 +326,7 @@ def record(args: argparse.Namespace, sha: str, store: Path, wt: Path, raw: Path,
                                                        priority=args.priority)):
             print(f"  ⚠ ExternalCorpusPopulationDriftTests will be red in the Unit leg for that reason (see "
                   f"{logs / 'fetch-corpus.log'})")
-        rc = run(["dotnet", "build", "Cobol.Net.sln", "-c", "Debug", "-v", "quiet",
+        rc = run(["dotnet", "build", "WiseOwl.Cobol.sln", "-c", "Debug", "-v", "quiet",
                   f"-p:CustomAfterMicrosoftCommonTargets={targets}"], logs / "build.log", wt, slot,
                  priority=args.priority)
         if rc != 0:
@@ -353,8 +353,8 @@ def record(args: argparse.Namespace, sha: str, store: Path, wt: Path, raw: Path,
         timings["instrument"] = round(time.time() - t1, 1)
 
         # SCRUBBED (§3.14.3): a stray gate handshake or `VSTestTestCaseFilter` would record a PART of an assembly.
-        env = {**scrubbed_env(), "COBOLNET_IMPACT_DIR": str(raw),
-               "COBOLNET_IMPACT_PROBES": str(len(table["entries"])), "COBOLNET_COMPILE_CACHE": "off",
+        env = {**scrubbed_env(), "WISEOWL_COBOL_IMPACT_DIR": str(raw),
+               "WISEOWL_COBOL_IMPACT_PROBES": str(len(table["entries"])), "WISEOWL_COBOL_COMPILE_CACHE": "off",
                "DOTNET_CLI_UI_LANGUAGE": "en"}
         verdicts: dict[str, str] = {}
         listed: dict[str, list[str]] = {}

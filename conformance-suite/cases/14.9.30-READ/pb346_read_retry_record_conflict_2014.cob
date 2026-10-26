@@ -31,7 +31,7 @@
       *>                    zero")                                     = '51'
       *>   30 SECONDS       GR4 b) -> GR2. The implementor "shall specify the
       *>                    maximum meaningful value of arithmetic-
-      *>                    expression-2"; COBOL.NET defines it as ZERO
+      *>                    expression-2"; WiseOwl COBOL defines it as ZERO
       *>                    (Annex A.1 item 166, docs/CONFORMANCE.md §7), so
       *>                    the timeout temporary holds a zero-length period,
       *>                    no attempt is made in it, and the closing

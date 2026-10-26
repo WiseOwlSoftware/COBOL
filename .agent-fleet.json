@@ -7,7 +7,7 @@
   "open_status": "open",
   "closed_status": "landed,retired",
   "min_name": 7,
-  "src": ["src/Cobol.Net.*"],
+  "src": ["src/WiseOwl.Cobol.*"],
   "ext": ".cs,.g4",
   "exclude_dir": ["Generated"],
   "harm": "wrong_answer=8,crashes=4,rejects_legal_source=2,under_rejects=1",

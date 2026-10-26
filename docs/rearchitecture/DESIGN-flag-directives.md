@@ -91,7 +91,7 @@ implementation increment. `[F]` = frontend-inline (no bound residue); `[B]` = bo
 | j VALUE-EDITING | a numeric-edited item whose VALUE is a literal with no editing symbols | `[B]` `GateData`/`DataItem.RawValue` + Pic | 1 | E.2 item 29 |
 | k VALUE-FIG-CON-LENGTH | a figurative constant in a VALUE clause of an item with no specified length | `[B]` `GateData`/`DataItem` (fig word + length model) | 1 | E.2 item 11. GR4 spells it `VALUE-FIG-CON-NO-LENTH` (typo); the accepted word is the figure's `VALUE-FIG-CON-LENGTH` |
 | l VALUE-ZERO | a numeric-edited item whose VALUE specifies figurative ZERO | `[B]` = same as g | 1 | E.2 item 28. Deduped with g |
-| m WRITE-END-OF-PAGE | a WRITE that *allows* END-OF-PAGE (file has LINAGE) but omits the AT EOP phrase — a WRITE with only NOT AT END-OF-PAGE omits it (§14.9.51.3 SR19 names the two phrases separately) | `[B]` `VisitWriteStatement` + File LINAGE, `PhraseBlocks.HasOnBranch` | 1 | E.2 item 19 family (AT-EOP default); GR4 m normative |
+| m WRITE-END-OF-PAGE | a WRITE that *allows* END-OF-PAGE (file has LINAGE) but omits the AT EOP phrase — a WRITE with only NOT AT END-OF-PAGE omits it (§14.9.51.3 SR19 names the two phrases separately) | `[B]` `VisitWriteStatement` + File LINAGE, `ConditionalPhrases.Find` (the positive AT END-OF-PAGE phrase) | 1 | E.2 item 19 family (AT-EOP default); GR4 m normative |
 
 ### 1.2 FLAG-02 (§7.3.14.4 GR4 a–f — ALL + 5 options)
 
@@ -111,7 +111,7 @@ trigger axis (user directive-state vs `--std`), always Warning, and two of its d
 at all (b, c are frontend-only). Bolting per-case `if (flagState.IsOnAt…)` onto VCP's `GateStatement` switch
 would dilute that pass's documented single-responsibility ("sole owner of edition gating", the two-arm
 disjointness invariant) and its "one policy = `ConstructRegistry.Check` funnel" identity. `FlagConformancePass`
-is a sibling post-bind pass in `Cobol.Net.Compiler/Validation`, invoked from `BinderDriver` right after the
+is a sibling post-bind pass in `WiseOwl.Cobol.Compiler/Validation`, invoked from `BinderDriver` right after the
 `BindPipeline.GroupTail()` loop with `(GroupBindContext, FlagState, sink)`.
 
 **D2 — a PARSE-TREE visitor (the source-line reason), reusing the generated ANTLR base visitor.** The flag fold
@@ -134,7 +134,7 @@ binder's) and read the **role off the resolved object** (the `FileModel.Linage`,
 another program or another group would then carry the role (kb/Work PB3288).
 
 **D3 — ONE FlagState, ONE FlagOption catalog, ONE directive-line parser.** A single `FlagState`
-(`Cobol.Net.Compiler/Binding`, cloned from `RefModZeroLengthState` and extended per-option) folds the toggle
+(`WiseOwl.Cobol.Compiler/Binding`, cloned from `RefModZeroLengthState` and extended per-option) folds the toggle
 events to `IsOnAt(siteLine, FlagOption)`; a single `FlagOption` enum + descriptor table enumerates all 17 real
 options across both directives (ALL is a parse-time fan-out, not a stored option); a single `FlagDirectiveLine`
 parser splits `>>FLAG-nn [ALL | opt…] {ON|OFF}` into `(FlagDirective, ISet<FlagOption>, bool On)` and is reused
@@ -173,7 +173,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
 ## 3. The three seams (each an exact copy of a proven template)
 
 1. **COLLECT** — `record FlagEvent(int Line, FlagDirective Which, bool On, IReadOnlyList<FlagOption> Options)`
-   (Options empty ⇒ ALL). New `FlagDirectiveProcessor` (`Cobol.Net.Frontend/Preprocessor`), a line-by-line
+   (Options empty ⇒ ALL). New `FlagDirectiveProcessor` (`WiseOwl.Cobol.Frontend/Preprocessor`), a line-by-line
    clone of `RefModZeroLengthDirectiveProcessor` (blank-not-delete, H3-preserving). ⛔ The introduction gate is
    NOT here: kb/Work PB725 moved every directive's edition check to the ONE point
    `ConditionalCompilationProcessor` recognizes a `>>` word, so this stage takes no dialect at all and
@@ -182,7 +182,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
    way, so legacy callers still consume them) and a new stage call in `Frontend.Preprocess` after the
    REF-MOD-ZERO-LENGTH stage, exposing `Frontend.Directives.FlagEvents`. The frontend-only b/c flags are emitted here-adjacent
    inside `ConditionalCompilationProcessor` from its own in-scan `FlagScanState`.
-2. **THREAD + FOLD** — `FlagState` (`Cobol.Net.Compiler/Binding`): `Build(events)` + `IsOnAt(int siteLine,
+2. **THREAD + FOLD** — `FlagState` (`WiseOwl.Cobol.Compiler/Binding`): `Build(events)` + `IsOnAt(int siteLine,
    FlagOption)` folding "last toggle strictly before the site wins, default OFF" per option, with ALL fan-out
    and `ALL OFF` reset. Threaded `frontend.Directives` (the ONE `DirectiveResults` record, kb/Work PB65) →
    `CompilerDriver` (`emitter.Bind(tree, edition, frontend.Directives)`) → `CSharpEmitter.Bind` →
@@ -206,7 +206,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
 * **Incr 1 — the data/VALUE + report/WRITE options** (parse arm + resolved lookups), delivered as sub-increments:
   * **1a (DONE)** g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO — `VisitDataDescriptionEntry`; numeric-edited via the ONE
     `PictureAnalyzer` (discard edition); figurative ZERO via `FirstDescendant<FigurativeConstantContext>`.
-  * **1c (DONE)** m WRITE-END-OF-PAGE (WRITE + `FileModel.Linage` + no `writeAtEndOfPage`) + FLAG-02 f
+  * **1c (DONE)** m WRITE-END-OF-PAGE (WRITE + `FileModel.Linage` + no AT END-OF-PAGE phrase in its `conditionalPhrases`) + FLAG-02 f
     TERMINATE-WITH-VARYING (TERMINATE + a report whose fields carry `Varyings`) — scope-exact (kb/Work PB3288): the
     WRITE's record-name (qualified or not, through `ResolveItem`) or `FILE file-name` resolves to a file among
     `VisibleFiles()` (the unit's own, then its containers' GLOBAL ones, §13.18.27.4 GR1), and each TERMINATE report-name

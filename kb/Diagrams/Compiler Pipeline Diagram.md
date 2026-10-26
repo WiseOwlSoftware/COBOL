@@ -4,7 +4,7 @@ area: diagrams
 status: draft
 last_updated: 2026-07-23
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - diagram
 ---
 
@@ -30,19 +30,19 @@ flowchart TD
     EMIT["EMIT via ICodeGenBackend\n--backend roslyn|cil"] --> CS[/".g.cs (idiomatic C#)"/]
     CS --> ROS["Roslyn CSharpCompilation"]
     ROS --> ASM[["assembly (.dll + PDB)"]]
-    ASM -.calls.-> RT[("Cobol.Net.Runtime\nCobolNum · CobolString · files · intrinsics")]
+    ASM -.calls.-> RT[("WiseOwl.Cobol.Runtime\nCobolNum · CobolString · files · intrinsics")]
 ```
 
 ## The 6 phases (table)
 
 | # | Phase | Input → Output | Project |
 |---|---|---|---|
-| 1 | Preprocess | text → normalized text | `Cobol.Net.Frontend/Preprocessor` |
-| 2 | Lex | text → token stream | `Cobol.Net.Frontend` (ANTLR lexer) |
-| 3 | Parse | tokens → CST | `Cobol.Net.Frontend` (superset parser) |
-| 4 | Bind | CST → **bound tree** | `Cobol.Net.Compiler/Binding` |
-| 5 | VersionConformancePass | bound tree → gated (HALT on error) | `Cobol.Net.Compiler/Validation` |
-| 6 | Emit | bound tree → C# → assembly | `Cobol.Net.Compiler/CodeGen/Roslyn` |
+| 1 | Preprocess | text → normalized text | `WiseOwl.Cobol.Frontend/Preprocessor` |
+| 2 | Lex | text → token stream | `WiseOwl.Cobol.Frontend` (ANTLR lexer) |
+| 3 | Parse | tokens → CST | `WiseOwl.Cobol.Frontend` (superset parser) |
+| 4 | Bind | CST → **bound tree** | `WiseOwl.Cobol.Compiler/Binding` |
+| 5 | VersionConformancePass | bound tree → gated (HALT on error) | `WiseOwl.Cobol.Compiler/Validation` |
+| 6 | Emit | bound tree → C# → assembly | `WiseOwl.Cobol.Compiler/CodeGen/Roslyn` |
 
 ## Invariants shown
 - **No lowered IR** — one bound tree flows straight to the backend.

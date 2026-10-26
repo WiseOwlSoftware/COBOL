@@ -11,7 +11,7 @@
       *> program-pointer category in class pointer.
       *> It exists because the row it closes had NO test of its own while the prohibition leaked: `MOVE PP TO N`
       *> escaped the binder and died in the BACKEND as a raw Roslyn `CS1503: cannot convert from
-      *> 'CobolNet.Runtime.ProgramPointer' to 'System.Int128'`, an error naming no COBOL rule. The data-pointer
+      *> 'WiseOwl.Cobol.Runtime.ProgramPointer' to 'System.Int128'`, an error naming no COBOL rule. The data-pointer
       *> twin (SR9) is witnessed by pb423-move-pointer-sender / pb423-move-pointer-receiver; this is the arm
       *> those two do not cover.
       *> reject-at names 2002 and later because USAGE PROGRAM-POINTER is post-1985 - at --std 85 the data

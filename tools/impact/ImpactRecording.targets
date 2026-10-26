@@ -4,7 +4,7 @@
     MSBuild's CustomAfterMicrosoftCommonTargets hook, which scripts/spec/record_impact_map.py passes on the command
     line of the build it runs in its OWN detached worktree:
 
-        dotnet build Cobol.Net.sln -c Debug -p:CustomAfterMicrosoftCommonTargets=<repo>/tools/impact/ImpactRecording.targets
+        dotnet build WiseOwl.Cobol.sln -c Debug -p:CustomAfterMicrosoftCommonTargets=<repo>/tools/impact/ImpactRecording.targets
 
     Nothing in the tree imports it, so no gated, battery or shipped build ever contains the probe. It adds:
       * ImpactProbe.cs to every assembly the impact map covers (the compiler, runtime, front end, editions and CLI,
@@ -15,8 +15,8 @@
     tools/impact/ImpactInstrumenter then rewrites the built assemblies to call the probe.
   -->
   <PropertyGroup>
-    <_CobolImpactProbed Condition="'$(MSBuildProjectName)' == 'Cobol.Net.Compiler' or '$(MSBuildProjectName)' == 'Cobol.Net.Runtime' or '$(MSBuildProjectName)' == 'Cobol.Net.Frontend' or '$(MSBuildProjectName)' == 'Cobol.Net.Editions' or '$(MSBuildProjectName)' == 'Cobol.Net.Cli'">true</_CobolImpactProbed>
-    <_CobolImpactTests Condition="'$(MSBuildProjectName)' == 'Cobol.Net.Tests.Conformance' or '$(MSBuildProjectName)' == 'Cobol.Net.Tests.Unit' or '$(MSBuildProjectName)' == 'Cobol.Net.Tests.Characterization'">true</_CobolImpactTests>
+    <_CobolImpactProbed Condition="'$(MSBuildProjectName)' == 'WiseOwl.Cobol.Compiler' or '$(MSBuildProjectName)' == 'WiseOwl.Cobol.Runtime' or '$(MSBuildProjectName)' == 'WiseOwl.Cobol.Frontend' or '$(MSBuildProjectName)' == 'WiseOwl.Cobol.Editions' or '$(MSBuildProjectName)' == 'WiseOwl.Cobol.Cli'">true</_CobolImpactProbed>
+    <_CobolImpactTests Condition="'$(MSBuildProjectName)' == 'WiseOwl.Cobol.Tests.Conformance' or '$(MSBuildProjectName)' == 'WiseOwl.Cobol.Tests.Unit' or '$(MSBuildProjectName)' == 'WiseOwl.Cobol.Tests.Characterization'">true</_CobolImpactTests>
   </PropertyGroup>
 
   <!-- Each assembly carries its OWN internal ImpactProbe; through InternalsVisibleTo a test assembly also sees the
@@ -42,7 +42,7 @@
   <ItemGroup Condition="'$(_CobolImpactTests)' == 'true'">
     <Compile Include="$(MSBuildThisFileDirectory)ImpactTestFramework.cs" Link="_impact\ImpactTestFramework.cs" />
     <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
-      <_Parameter1>CobolNet.Impact.ImpactTestFramework</_Parameter1>
+      <_Parameter1>WiseOwl.Cobol.Impact.ImpactTestFramework</_Parameter1>
       <_Parameter2>$(AssemblyName)</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>

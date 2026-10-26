@@ -50,7 +50,7 @@
       *>   runs (OK §9.1.14 2)). L1/L2 are fatal-class '4x' statuses
       *>   (OK §9.1.13.1 "Certain classes of I-O status values indicate
       *>   fatal exception conditions"): the implementor decides whether
-      *>   the run unit continues; COBOL.NET documents that it continues
+      *>   the run unit continues; WiseOwl COBOL documents that it continues
       *>   at the end of the statement when a FILE STATUS clause is
       *>   present (docs/CONFORMANCE.md, A.1 item 103).
       *> The read-back after each leg re-reads every record written at

@@ -16,7 +16,7 @@
       *>
       *> ⚖ WHAT IT RETURNS IS AN IMPLEMENTOR DETERMINATION, and 15.50.4 r8's closing sentence is what makes it
       *> small: "If argument-1 is physically located where it is defined, LENGTH returns the same value that would
-      *> be returned had the PHYSICAL argument not been specified." COBOL.NET determines that a variable-length
+      *> be returned had the PHYSICAL argument not been specified." WiseOwl COBOL determines that a variable-length
       *> group IS physically located where it is defined - a program has no addressable out-of-line pointer to
       *> observe - so PHYSICAL is semantically transparent. Recorded in docs/CONFORMANCE.md per 4.2.16.
       *> That is the point of the two PAIRS below: each PHYSICAL form must equal its plain form exactly.

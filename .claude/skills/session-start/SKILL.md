@@ -28,7 +28,7 @@ start a list anywhere else** — five registers accumulated by 2026-08-04 and th
 
 ## 2. Read plan §0 — live state, gates and owner decisions
 
-`docs/COBOLNET_REARCHITECTURE_PLAN.md` §0. It owns: where we are, the gates, the open GAPs, owner decisions and
+`docs/REARCHITECTURE_PLAN.md` §0. It owns: where we are, the gates, the open GAPs, owner decisions and
 the campaign narrative. ⛔ **It does NOT own a worklist — `kb/Work/` does, and §0 must never regrow one.** **Trust §0 over any status written anywhere else, including memory and this skill.**
 
 ## 3. Run the probe — never hand-read what a script computes

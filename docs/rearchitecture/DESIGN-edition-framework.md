@@ -7,7 +7,7 @@
 > (introduction / removal / obsolete / behavior-variant), `EditionContext` threading, the version
 > test matrix, and the version-gating audit. Upholds the HARD INVARIANTS (typed-native, spec-first,
 > battery-green-throughout, singular pattern, four editions in one).
-> SSOT cross-refs: `docs/COBOLNET_DESIGN.md` §16 (G0–G8), `docs/VERSION_TEST_MATRIX_DESIGN.md`,
+> SSOT cross-refs: `docs/DESIGN.md` §16 (G0–G8), `docs/VERSION_TEST_MATRIX_DESIGN.md`,
 > `docs/VERSION_CHANGE_REFERENCE.md`.
 
 > **Consumer of these primitives.** This doc owns the version-gating FRAMEWORK PRIMITIVES (`EditionInfo`,
@@ -32,7 +32,7 @@ frontend physically cannot see it. Every duplication below is a symptom of that 
 
 | # | Problem | Evidence |
 |---|---------|----------|
-| P1 | **Registry invisible to the frontend** → the parse-layer re-encodes the same edition metadata. `EditionGateHints` (Frontend, `namespace legacy-root.Parsing`) hand-copies `(Display, IntroducedIn, Citation, RowId)` for ~30 constructs into `Gate` records that already exist as `ConstructDialectStatus` rows. | `src/Cobol.Net.Frontend/Parsing/EditionGateHints.cs:35-63`; the same rows in `Validation/ConstructDialectStatus.cs:60-168` |
+| P1 | **Registry invisible to the frontend** → the parse-layer re-encodes the same edition metadata. `EditionGateHints` (Frontend, `namespace legacy-root.Parsing`) hand-copies `(Display, IntroducedIn, Citation, RowId)` for ~30 constructs into `Gate` records that already exist as `ConstructDialectStatus` rows. | `src/WiseOwl.Cobol.Frontend/Parsing/EditionGateHints.cs:35-63`; the same rows in `Validation/ConstructDialectStatus.cs:60-168` |
 | P2 | **Severity policy reimplemented twice more in the frontend.** `ReferenceFormatProcessor.EditionGates` and `CopyProcessor` each inline `if (permissive) ReportWarning else ReportError` instead of the one `EditionContext.Removed` seam. | `ReferenceFormatProcessor.cs:120-148`; `CopyProcessor` (COPY REPLACING gate) |
 | P3 | **`EditionGateHints` reverse-engineers what the `{isXXXX()}?` gate already knew.** ~30 signatures pattern-match `(offending token, rule-stack, lookahead windows)` to recover the construct identity that the failing predicate discarded. Brittle (empirically derived), and a documented residue of un-mappable cases (`SET…TO objref`). The inline method invocation LEFT that residue with kb/Work PB428: it is no longer predicate-gated at all — it parses at every edition and the `VersionConformancePass` names 2002 on RECOGNITION, which the §8.7.4 `::` token makes unambiguous. | `EditionGateHints.cs:72-175` |
 | P4 | **Two parallel mechanisms for removed / introduction gating** (singular-pattern violation). Most gates route through `ConstructRegistry.Check`, but a handful stay inline with pinned codes: `0816` END-ACCEPT (intro), `0803` ROUNDED MODE (intro), `0810` ALTER / `0811` bare GO TO / `0882` CALL ON OVERFLOW (removed). None are registry rows, so **none enter the version matrix**. | `StatementBinder.Accept.cs:45`, `StatementBinder.cs:1229`, `StatementBinder.AlterSwitches.cs:119,137`, `StatementBinder.Call.cs:176` |
@@ -51,16 +51,16 @@ the `ConstructAvailability` verdict shape; the `pending`-row scheduling mechanis
 
 ## 2. Target design
 
-### 2.1 One new lowest-layer assembly: `Cobol.Net.Editions`
+### 2.1 One new lowest-layer assembly: `WiseOwl.Cobol.Editions`
 
-Create `src/Cobol.Net.Editions/` (namespace `CobolNet.Editions`), referenced by **both** `Frontend`
+Create `src/WiseOwl.Cobol.Editions/` (namespace `WiseOwl.Cobol.Editions`), referenced by **both** `Frontend`
 and `Compiler` (and transitively `Cli`). It depends only on the ANTLR runtime types it needs for the
 parse-layer helper (or, preferably, nothing — see §2.5). This is the single fix for the root cause
 (P1/P2/P7): the registry, reserved words, severity policy, and edition value now sit *below* the
 frontend, so every layer consumes the *same* metadata and the *same* policy.
 
 ```
-Cobol.Net.Editions           (NEW — bottom of the compiler stack)
+WiseOwl.Cobol.Editions           (NEW — bottom of the compiler stack)
   EditionInfo.cs             immutable edition value + capacity
   EditionSeverity.cs         Error | Warning
   EditionSeverityPolicy.cs   the ONE strict/permissive decision
@@ -79,7 +79,7 @@ Cobol.Net.Editions           (NEW — bottom of the compiler stack)
 ### 2.2 `EditionInfo` — the immutable edition value (replaces the edition half of `EditionContext`)
 
 ```csharp
-namespace CobolNet.Editions;
+namespace WiseOwl.Cobol.Editions;
 
 /// The targeted ISO edition + strict/permissive axis. Immutable value — threaded, never a global.
 public readonly record struct EditionInfo(int Year, bool Permissive = false)
@@ -184,7 +184,7 @@ for the migration.
 consts, and (unchanged) `ReservedWords.Table` are **generated**, not hand-maintained:
 
 - Add a Roslyn **incremental source generator** `ConstructRegistryGenerator` in a new
-  `src/Cobol.Net.Editions.SourceGen/` project. It reads `constructs.json` (registered as an
+  `src/WiseOwl.Cobol.Editions.SourceGen/` project. It reads `constructs.json` (registered as an
   `AdditionalFiles` item) and emits `ConstructRegistry.g.cs` (`Entries` list) and `Constructs.g.cs`
   (`public const string LabelRecordsRemoved2002 = "label-records-removed-2002";` … from the ids).
 - The `Display`, `DiagnosticCode`, and `Citation` fields — today only in the C# — move **into
@@ -268,7 +268,7 @@ which absorbs and replaces `EditionValidator`:
 question — a construct ISO does not define at any edition — and §4.2.10 owes the user an answer in three parts:
 documentation that identifies the extensions for which support is claimed (and the reserved words added for them), a
 user-invocable compile-time warning mechanism, and that mechanism flagging only syntactically distinguishable
-extensions. All three are read from ONE table, `NonstandardExtensionRegister` (`Cobol.Net.Editions`,
+extensions. All three are read from ONE table, `NonstandardExtensionRegister` (`WiseOwl.Cobol.Editions`,
 `NonstandardExtension.cs`): a row per extension (id, display, support, origin, standard form, distinguishable, usage
 spellings, reserved words). It is hand-authored C# and not generated JSON because nothing outside the compiler and its
 tests reads it; `docs/CONFORMANCE.md` §3.2 is the documentation half, held equal to it by
@@ -286,8 +286,8 @@ unconditionally through `EditionContext.Removed`) and implementor latitude (`--s
 
 | Action | From | To | Why |
 |--------|------|----|-----|
-| create | — | `src/Cobol.Net.Editions/` (assembly + `CobolNet.Editions` ns) | The shared low layer both Frontend and Compiler reference; root-cause fix for P1/P2/P7. |
-| create | — | `src/Cobol.Net.Editions.SourceGen/` (`ConstructRegistryGenerator`) | Generate registry + id consts from `constructs.json` (P7); single source, auto-checked. |
+| create | — | `src/WiseOwl.Cobol.Editions/` (assembly + `WiseOwl.Cobol.Editions` ns) | The shared low layer both Frontend and Compiler reference; root-cause fix for P1/P2/P7. |
+| create | — | `src/WiseOwl.Cobol.Editions.SourceGen/` (`ConstructRegistryGenerator`) | Generate registry + id consts from `constructs.json` (P7); single source, auto-checked. |
 | split | `Binding/EditionContext.cs` | `Editions/EditionInfo.cs` (immutable value + `MaxDigits`/`CheckDigitCapacity`) **+** `Compiler`'s diagnostic collector implementing `IDiagnosticSink` | End the "edition = diagnostic sink" mislabel (P6); single DialectLevel source (P5). |
 | create | — | `Editions/IDiagnosticSink.cs`, `Editions/EditionDiagnostic.cs`, `Editions/EditionSeverity.cs`, `Editions/EditionSeverityPolicy.cs` | Structured diagnostics + the ONE severity policy consumed by all three emit layers (P2/P4/P6). |
 | move | `Validation/EditionCodes.cs` | `Editions/EditionCodes.cs` | Band constants must be visible to the frontend. |
@@ -299,7 +299,7 @@ unconditionally through `EditionContext.Removed`) and implementor latitude (`--s
 | refactor | `Frontend/Preprocessor/ReferenceFormatProcessor.cs` (`EditionGates` inner class) & `CopyProcessor` | consume `EditionSeverityPolicy` + `ConstructRegistry.Check` over a shared sink; delete the inline `if(permissive)` | One severity policy (P2). |
 | refactor (×5) | inline gates `StatementBinder.Accept.cs:45` (0816), `StatementBinder.cs:1229` (0803), `AlterSwitches.cs:119/137` (0811/0810), `Call.cs:176` (0882) | `constructs.json` rows (pinned codes) + `ConstructRegistry.Check` call sites | Kill the parallel gating mechanism; put them in the matrix (P4). |
 | absorb + delete | `Validation/EditionValidator.cs` | the `VersionConformancePass` (its §8.9 reserved-word funnel moves into the pass) | One edition-gating funnel; shared metadata + sink (P9). |
-| rename | generated ns `legacy-root.Generated` (in assembly `Cobol.Net.Frontend`) | `CobolNet.Frontend.Generated` (the Frontend csproj's one `<AntlrNamespace>` property, passed to `Invoke-Antlr4CSharp.ps1`) | Remove the stale legacy namespace/alias (adjacent cleanup; enables clean `Editions`/`Frontend` refs). |
+| rename | generated ns `legacy-root.Generated` (in assembly `WiseOwl.Cobol.Frontend`) | `WiseOwl.Cobol.Frontend.Generated` (the Frontend csproj's one `<AntlrNamespace>` property, passed to `Invoke-Antlr4CSharp.ps1`) | Remove the stale legacy namespace/alias (adjacent cleanup; enables clean `Editions`/`Frontend` refs). |
 | create | — | `scripts/gen-vcr.ps1` + `VersionBehaviorMatrixTests` | Harness-driven VCR status + behavior-variant gating (P8). |
 | update | `docs/VERSION_CHANGE_REFERENCE.md` | generated output; `docs/DOC_INDEX.md` row | Ledger can no longer go stale (P7/P8). |
 | delete/quarantine | `CobolParserJsonXml.g4`, `CobolExtensionsJsonXml.g4` (jsonStatement/xmlStatement) | vendor axis (out of ISO scope) | Non-ISO; the edition framework must never map them to the 0900 band (already handled as `COBOL0313` — keep that, don't regress). |
@@ -317,7 +317,7 @@ Behavior must stay byte-stable; the `Check` body is copied verbatim, so no diagn
 
 Ordered, each step ends green:
 
-1. **Stand up `Cobol.Net.Editions`, move leaf types.** Move `EditionCodes`, `ConstructDialectStatus`,
+1. **Stand up `WiseOwl.Cobol.Editions`, move leaf types.** Move `EditionCodes`, `ConstructDialectStatus`,
    `ConstructRegistry` (still hand-written `Entries`), `ReservedWords*` into the new assembly. Add
    `EditionInfo`, `IDiagnosticSink`, `EditionSeverity`, `EditionSeverityPolicy`, `EditionDiagnostic`.
    Reference `Editions` from `Frontend` and `Compiler`. **Keep `EditionContext` as a thin adapter**
@@ -412,9 +412,9 @@ behavior.
    `ReservedWordEditionHints` recognizer (metadata registry-driven) covered the residue only until its
    batch landed, then is deleted; the vendor JSON/XML `COBOL0313` disposition
    relocates to `CobolErrorStrategy` as a token-keyed vendor hint.
-3. **Q3 — Assembly boundary? ✅ RESOLVED: dependency-free.** `Cobol.Net.Editions` references no ANTLR runtime;
+3. **Q3 — Assembly boundary? ✅ RESOLVED: dependency-free.** `WiseOwl.Cobol.Editions` references no ANTLR runtime;
    `Check` takes primitives (`EditionInfo` + `IDiagnosticSink`), and any parse-context mapping stays in the
-   frontend. Cleaner layering, as recommended. Its one project reference is `Cobol.Net.Runtime`, the dependency-free
+   frontend. Cleaner layering, as recommended. Its one project reference is `WiseOwl.Cobol.Runtime`, the dependency-free
    foundation layer below it, for the Annex C fold (`CobolNames`) that keys its word tables (kb/Work PB1965).
 4. **Q4 — Scope of the behavior-variant matrix (§2.10)? ⏭ DEFERRED to P3.** Running every construct
    under all four `--std` values and diffing stdout is the P3 version-gating audit / `VersionBehaviorMatrixTests`,
@@ -425,6 +425,6 @@ behavior.
    `CompileDiagnostics`) + retiring the adapter is the optional P7 churn.
 6. **Q6 — General diagnostic-descriptor registry here or a separate dimension? ✅ RESOLVED: seeded HERE, broader
    registry deferred to P7.** The edition band + the `COBOL0899` split + the reused `COBOL1533` live in
-   `Cobol.Net.Editions/Diagnostics/DiagnosticCatalog` (`docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`).
+   `WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog` (`docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`).
    The full every-code→descriptor migration + folding the frontend's parse-layer descriptors / its 3-value
    `DiagnosticSeverity` into this home is the P7 follow-on.

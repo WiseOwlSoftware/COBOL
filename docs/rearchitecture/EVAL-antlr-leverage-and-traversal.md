@@ -86,7 +86,7 @@ usage facts) — instead of a bespoke visitor. Re-enable listener generation and
 
 ### 5. [LOW / evaluate] Pass consolidation & the emitter's size
 19-entry pipeline + a **7,941-line** emitter. Some resolve passes are fusible (no inter-dependency). The large emitter
-is the expected cost of "**bound tree, no lowering IR**" (COBOLNET_DESIGN §2) — complexity that a normal compiler puts
+is the expected cost of "**bound tree, no lowering IR**" (DESIGN §2) — complexity that a normal compiler puts
 in a *lowering* phase lands in the emitter here. **Evaluate at P7** whether a thin lowering step (or a shared visitor
 that hosts the desugars) would shrink and de-risk the emitter, without adopting a heavyweight IR.
 

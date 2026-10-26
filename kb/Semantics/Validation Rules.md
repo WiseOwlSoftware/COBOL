@@ -4,16 +4,16 @@ area: semantics
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs
-  - src/Cobol.Net.Compiler/Validation/FlagConformancePass.cs
-  - src/Cobol.Net.Editions/ConstructDialectStatus.cs
-  - src/Cobol.Net.Editions/ReservedWords.cs
-  - src/Cobol.Net.Editions/EditionSeverityPolicy.cs
-  - src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs
-  - docs/COBOLNET_VALIDATION_DESIGN.md
+  - src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs
+  - src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs
+  - src/WiseOwl.Cobol.Editions/ConstructDialectStatus.cs
+  - src/WiseOwl.Cobol.Editions/ReservedWords.cs
+  - src/WiseOwl.Cobol.Editions/EditionSeverityPolicy.cs
+  - src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs
+  - docs/VALIDATION_DESIGN.md
   - docs/DIAGNOSTICS.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - semantics
 ---
 

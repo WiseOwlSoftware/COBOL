@@ -15,7 +15,7 @@ blocked_by: []
 spec_refs: [8.3.3.2]
 closes_rows: []
 closes_rows_reason: "no inventory row is attributable to this landing — derived by scripts/spec/backfill_closes_rows.py from the inventory's own commit history, re-derivable"
-tags: [cobolsharp, work, defect]
+tags: [wiseowl-cobol, work, defect]
 ---
 
 # PB4 — LANDED (DEVLOG 1119) — a HEXADECIMAL literal was not decoded in FIVE positions

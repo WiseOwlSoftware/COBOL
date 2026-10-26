@@ -28,7 +28,7 @@ What remains:
 | Register | Owns | Authority |
 |---|---|---|
 | **`kb/Work/`** | ⛔ **ALL remaining work** — defects, analyses, adjudications, decisions | **the ONE work register**; `work.py next` is "what now" |
-| `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0 | live state: where we are, gates, open GAPs, owner decisions, campaign narrative | **the only live-state SSOT** — and **NOT a worklist** |
+| `docs/REARCHITECTURE_PLAN.md` §0 | live state: where we are, gates, open GAPs, owner decisions, campaign narrative | **the only live-state SSOT** — and **NOT a worklist** |
 | `tests/version-matrix/constructs.json` | per-construct edition metadata + status | authoritative for CI and drift tests |
 | `docs/rearchitecture/spec-reconciliation/LEDGER.json` | PDF-vs-markdown transcription defects | the reconciliation SSOT — **COMPLETE, 210/210** |
 

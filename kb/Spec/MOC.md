@@ -4,14 +4,14 @@ area: spec
 status: draft
 last_updated: 2026-07-23
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - moc
   - spec
 ---
 
 # 🗺 Spec — Map of Content
 
-The ISO/IEC 1989:2023 specification and how COBOL.NET targets it. The spec ([[specs/ISO_COBOL]]) is the **single
+The ISO/IEC 1989:2023 specification and how WiseOwl COBOL targets it. The spec ([[specs/ISO_COBOL]]) is the **single
 authority** for all syntax, semantics, and behavior.
 
 ## Notes in this domain

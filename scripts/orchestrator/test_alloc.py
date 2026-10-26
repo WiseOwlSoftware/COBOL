@@ -22,7 +22,7 @@ ensure_utf8()
 TMP = scratch_dir("alloc-test-")
 REPO = TMP / "repo"
 (REPO / "kb" / "Work").mkdir(parents=True)
-(REPO / "src" / "Cobol.Net.Editions" / "Diagnostics").mkdir(parents=True)
+(REPO / "src" / "WiseOwl.Cobol.Editions" / "Diagnostics").mkdir(parents=True)
 (REPO / "src" / "A" / "bin").mkdir(parents=True)
 (REPO / "DEVLOG").mkdir()                                     # one file per entry (kb/Work PB3025)
 (REPO / "DEVLOG" / "README.md").write_text("# DEVLOG\n", encoding="utf-8", newline="\n")
@@ -32,7 +32,7 @@ REPO = TMP / "repo"
 for n in (7, 12, 9):
     (REPO / "kb" / "Work" / f"PB{n}.md").write_text("---\nid: x\n---\n", encoding="utf-8", newline="\n")
 (REPO / "kb" / "Work" / "PB99-notes.txt").write_text("not a note", encoding="utf-8", newline="\n")
-(REPO / "src" / "Cobol.Net.Editions" / "Diagnostics" / "DiagnosticCatalog.cs").write_text(
+(REPO / "src" / "WiseOwl.Cobol.Editions" / "Diagnostics" / "DiagnosticCatalog.cs").write_text(
     'Add("COBOL0100", ...); Add("COBOL0105", ...);', encoding="utf-8", newline="\n")
 (REPO / "src" / "A" / "X.cs").write_text("// emits COBOL0103 and COBOL0101", encoding="utf-8", newline="\n")
 (REPO / "src" / "A" / "bin" / "Y.cs").write_text("// COBOL9999 lives in bin and is ignored", encoding="utf-8", newline="\n")

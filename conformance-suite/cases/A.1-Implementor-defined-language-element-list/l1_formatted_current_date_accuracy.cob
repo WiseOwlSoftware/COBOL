@@ -21,7 +21,7 @@
       *> defines the maximum number of digit positions that may be
       *> specified in the decimal fraction portion of the seconds
       *> subfield of a time format; that maximum shall be greater than
-      *> or equal to nine"), which COBOL.NET sets at 18.
+      *> or equal to nine"), which WiseOwl COBOL sets at 18.
       *>
       *> NO LITERAL CLOCK VALUE IS PINNED HERE, AND NONE CAN BE: the
       *> corpus runner injects no environment, so the clock is the

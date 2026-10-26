@@ -46,7 +46,7 @@ account in the coordination directory, and this script prints it after a render 
     scripts/spec/audit_annex_a1.py --json              the A.1 register: items, scope, discharged, remaining
     docs/CONFORMANCE.md §2 · §4 · §5                   A.3 dispositions, the documented-non-support facilities,
                                                        the A.4 optional-module posture
-    docs/COBOLNET_REARCHITECTURE_PLAN.md §0            the `⛔ BATTERY REFERENCE — CURRENT` bullet: number, date,
+    docs/REARCHITECTURE_PLAN.md §0            the `⛔ BATTERY REFERENCE — CURRENT` bullet: number, date,
                                                        tree, and every leg's measured result
     docs/VERSION_CHANGE_REFERENCE.md                   the anchor dispositions (todo · gated · ref-only · pinned)
     tests/version-matrix/constructs.json               the matrix registry size
@@ -116,7 +116,7 @@ INVENTORY_REL = "tests/version-matrix/traceability-inventory.json"
 INVENTORY = REPO / INVENTORY_REL
 CONSTRUCTS = REPO / "tests" / "version-matrix" / "constructs.json"
 CONFORMANCE = REPO / "docs" / "CONFORMANCE.md"
-PLAN = REPO / "docs" / "COBOLNET_REARCHITECTURE_PLAN.md"
+PLAN = REPO / "docs" / "REARCHITECTURE_PLAN.md"
 VCR = REPO / "docs" / "VERSION_CHANGE_REFERENCE.md"
 SUITE_HARNESS = REPO / "conformance-suite" / "harness"
 # The page is the orchestrator's: rendered into the coordination directory beside ledger-published.json, where the
@@ -190,7 +190,7 @@ STAMP_PATHS = (
     "conformance-suite",
     "kb/Work",
     "docs/CONFORMANCE.md",
-    "docs/COBOLNET_REARCHITECTURE_PLAN.md",
+    "docs/REARCHITECTURE_PLAN.md",
     "docs/VERSION_CHANGE_REFERENCE.md",
     ".agent-fleet.json",
 )

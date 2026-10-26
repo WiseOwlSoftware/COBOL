@@ -4,12 +4,12 @@ area: diagrams
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs
-  - src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs
-  - src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs
-  - src/Cobol.Net.Runtime/IO/CobolFile.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs
+  - src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs
+  - src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs
+  - src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - diagram
   - ir
   - runtime
@@ -25,7 +25,7 @@ lookup tables [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Semantic Rules]], 
 runtime class names, and wiki-links checked against the repo).
 
 > **Each section reads:** **Spec mapping** (the ISO construct the node represents) -> **Semantic rules** (invariant
-> binder check vs edition-conditional `VersionConformancePass` gate) -> **Runtime behavior** (the `Cobol.Net.Runtime`
+> binder check vs edition-conditional `VersionConformancePass` gate) -> **Runtime behavior** (the `WiseOwl.Cobol.Runtime`
 > class it calls) -> an **ASCII flow** in the form `BoundX --[ rule / section ]--> runtime behavior (RuntimeClass)`.
 
 ## The pattern (overview)
@@ -33,15 +33,15 @@ runtime class names, and wiki-links checked against the repo).
 ```mermaid
 flowchart LR
     IR["IR node (Bound*)"] --> SEM["Semantic rule\nbinder-invariant OR\nVersionConformancePass gate"]
-    SEM --> RT["Runtime behavior\nCobol.Net.Runtime call"]
+    SEM --> RT["Runtime behavior\nWiseOwl.Cobol.Runtime call"]
     RT --> OUT["observable effect"]
     SPEC["ISO/IEC 1989:2023\nconstruct + section"] -. represents .-> IR
     SPEC -. governs .-> SEM
 ```
 
 **Legend for the ASCII flows:** `BoundNode  --[ semantic rule / ISO section ]-->  runtime behavior (RuntimeClass)`.
-Node names are real `Bound*` record types from `src/Cobol.Net.Compiler/Binding/Bound/`; runtime names are real
-classes from `src/Cobol.Net.Runtime/`.
+Node names are real `Bound*` record types from `src/WiseOwl.Cobol.Compiler/Binding/Bound/`; runtime names are real
+classes from `src/WiseOwl.Cobol.Runtime/`.
 
 ## Node families (jump list)
 
@@ -125,7 +125,7 @@ SizeErrorPhrase             --[ ON SIZE ERROR §14.7.5 ]------->  try/catch(Cobo
 ## Conditions
 *Nodes: `BoundRelational`, `BoundLogical`, `BoundNot`, `BoundCondition88`, `BoundRangeMembership`, `BoundClassCondition`, `BoundUserClassCondition`, `BoundSignCondition`, `BoundSwitchCondition`, `BoundBooleanCondition`*
 
-**Spec mapping.** These leaves of the abstract `BoundCondition` (COBOLNET_DESIGN §11) cover every ISO conditional expression. `BoundRelational` is the relation condition (§8.8.4.2), including the Format-2 boolean relation (§8.8.4.2.2); `BoundLogical`/`BoundNot` are the combined condition (§8.8.4.13 — NOT > AND > OR precedence, short-circuit rules 1–2). `BoundCondition88` is the condition-name test (§8.8.4.5), `BoundRangeMembership` its/EVALUATE THRU range (§14.7.8). `BoundClassCondition` + `BoundUserClassCondition` are the class condition (§8.8.4.4, SPECIAL-NAMES class §12.3.7); `BoundSignCondition` the sign condition (§8.8.4.7, IEEE Format-2 §8.8.4.7.4 GR2); `BoundSwitchCondition` the switch-status condition (§8.8.4.6); `BoundBooleanCondition` the simple boolean condition (§8.8.4.3). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
+**Spec mapping.** These leaves of the abstract `BoundCondition` (DESIGN §11) cover every ISO conditional expression. `BoundRelational` is the relation condition (§8.8.4.2), including the Format-2 boolean relation (§8.8.4.2.2); `BoundLogical`/`BoundNot` are the combined condition (§8.8.4.13 — NOT > AND > OR precedence, short-circuit rules 1–2). `BoundCondition88` is the condition-name test (§8.8.4.5), `BoundRangeMembership` its/EVALUATE THRU range (§14.7.8). `BoundClassCondition` + `BoundUserClassCondition` are the class condition (§8.8.4.4, SPECIAL-NAMES class §12.3.7); `BoundSignCondition` the sign condition (§8.8.4.7, IEEE Format-2 §8.8.4.7.4 GR2); `BoundSwitchCondition` the switch-status condition (§8.8.4.6); `BoundBooleanCondition` the simple boolean condition (§8.8.4.3). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
 
 **Semantic rules.** Most rules are binder-invariant in `ConditionBinder`: a boolean relation admits only EQUAL/NOT EQUAL (§8.8.4.2.2 — no ordering), both operands boolean-valued, a simple boolean condition references only length-1 boolean items (§8.8.4.3 SR1) — all raise `COBOL1511`. Boolean-literal (`B"…"`) and boolean-operator *recognition* is edition-gated in `VersionConformancePass` (2002+). See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
@@ -246,7 +246,7 @@ BoundInspect                       --[ §14.9.22 GR8 shared cycle ]------> scan 
 
 **Semantic rules.** Invariant (binder, `AcceptDisplayBinder`): an ACCEPT receiver of class index is rejected `COBOL0818` (§14.9.1.3 SR1/SR3); `ACCEPT … FROM mnemonic` must be a SPECIAL-NAMES device capable of input (CONSOLE/SYSIN), else `COBOL0817` (SR2); DISPLAY UPON validates against output-capable devices (SR2). Edition-conditional (`VersionConformancePass`): `AcceptFourDigitYear2002` gates `YYYYMMDD`/`YYYYDDD`, and `EndAccept2002` gates `END-ACCEPT`. See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
-**Runtime behavior.** DISPLAY emits `System.Console.Write/WriteLine` (or `Console.Error` for SYSERR). ACCEPT Format-1 calls `AcceptSource.Device(n)` (80-char card-image reads, aligned-left store); Format-2 calls `AcceptSource.Date/Time/...`, each reading `RunUnit.Current.Clock.Now()` via injectable `IClock`/`SystemClock` (COBOLNET_CLOCK pin for deterministic goldens), then stored by the MOVE rules. See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
+**Runtime behavior.** DISPLAY emits `System.Console.Write/WriteLine` (or `Console.Error` for SYSERR). ACCEPT Format-1 calls `AcceptSource.Device(n)` (80-char card-image reads, aligned-left store); Format-2 calls `AcceptSource.Date/Time/...`, each reading `RunUnit.Current.Clock.Now()` via injectable `IClock`/`SystemClock` (WISEOWL_COBOL_CLOCK pin for deterministic goldens), then stored by the MOVE rules. See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
 ```text
 BoundDisplay  --[ §14.9.11 image + UPON routing ]-->  Console.Write/WriteLine | Console.Error  (System.Console)

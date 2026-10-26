@@ -4,12 +4,12 @@ area: spec-lookup
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs
-  - src/Cobol.Net.Runtime/IO/CobolFile.cs
-  - src/Cobol.Net.Runtime/Control/ManagedPointer.cs
-  - src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs
+  - src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs
+  - src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs
+  - src/WiseOwl.Cobol.Runtime/Control/ManagedPointer.cs
+  - src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
   - lookup
   - runtime
@@ -18,7 +18,7 @@ tags:
 # Lookup — Runtime Behavior Mapping
 
 Maps observable **runtime behaviors** to their ISO rule, the bound-tree node that produces them, the governing
-semantic rule, and the [[kb/Runtime/Execution Model]] section. Runtime types live in `Cobol.Net.Runtime`;
+semantic rule, and the [[kb/Runtime/Execution Model]] section. Runtime types live in `WiseOwl.Cobol.Runtime`;
 generated C# calls them (no byte `ProgramState`).
 
 ## Numerics

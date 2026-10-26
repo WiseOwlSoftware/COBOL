@@ -5,10 +5,10 @@
     python scripts/test_held_analyzer_output.py
 
 THE DEFECT. A C# language server (csharp-ls, the LSP tool of MANDATORY-PRACTICES P13) loads the analyzer assembly
-`Cobol.Net.Compiler.SourceGen.dll` straight from the worktree's `bin\\` and keeps it loaded for the life of its session.
+`WiseOwl.Cobol.Compiler.SourceGen.dll` straight from the worktree's `bin\\` and keeps it loaded for the life of its session.
 Windows refuses to OVERWRITE a loaded image, so every later build that had a fresh output to copy there (the landing's
 ABI-pin settle, a finisher's gate) failed with MSB3027/MSB3021 "locked by", as if the branch were broken. The project's
-`MoveAsideHeldOutput` target (src/Cobol.Net.Compiler.SourceGen/Cobol.Net.Compiler.SourceGen.csproj) now deletes the stale
+`MoveAsideHeldOutput` target (src/WiseOwl.Cobol.Compiler.SourceGen/WiseOwl.Cobol.Compiler.SourceGen.csproj) now deletes the stale
 output and, when it is held, renames it aside (a loaded image can be renamed), so the copy succeeds.
 
 THE TEST builds a scratch copy of that project (the repository's own bin and obj are untouched), has a real .NET
@@ -32,8 +32,8 @@ from standard_streams import ensure_utf8  # noqa: E402  (scripts/: every entry p
 from test_population import scrubbed_env  # noqa: E402  (scripts/: the gate-environment scrub, kb/Work PB1718)
 
 REPO = HERE.parent
-PROJECT = REPO / "src" / "Cobol.Net.Compiler.SourceGen" / "Cobol.Net.Compiler.SourceGen.csproj"
-DLL = "Cobol.Net.Compiler.SourceGen.dll"
+PROJECT = REPO / "src" / "WiseOwl.Cobol.Compiler.SourceGen" / "WiseOwl.Cobol.Compiler.SourceGen.csproj"
+DLL = "WiseOwl.Cobol.Compiler.SourceGen.dll"
 TFM = pathlib.Path("bin") / "Debug" / "netstandard2.0"
 OBJ_TFM = pathlib.Path("obj") / "Debug" / "netstandard2.0"
 failures: list[str] = []

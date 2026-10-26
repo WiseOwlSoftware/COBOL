@@ -14,7 +14,7 @@ process_only: false
 blocked_by: []
 spec_refs: [14.6.13.1.1, 14.6.13.1.6, 14.7.4, 15.4.1, 15.9.4]
 closes_rows: ["RV-15.21.3-1", "RV-15.24.4-1", "RV-15.44.4-1"]
-tags: [cobolsharp, work, defect]
+tags: [wiseowl-cobol, work, defect]
 ---
 
 # PB5 — LANDED (DEVLOG 1124) — the float→fixed quantizer saturated at an ORDINARY COBOL magnitude

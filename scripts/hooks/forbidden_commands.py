@@ -100,11 +100,11 @@ for call in GIT_CALLS:
 
 # 2. a push that targets main directly — THIS repo only (another repo reached by `cd`/`-C` has its own rules).
 # "This repo" is recognized by its FOLDER NAME, derived from where this hook lives — never a hard-coded literal: the
-# literal "cobolsharp" silently failed OPEN when the repo became E:\COBOL (2026-09-26). The old name is kept so a
-# path written before the rename is still recognized; a RELATIVE `cd` never leaves the repo.
+# literal of the repo's earlier folder name silently failed OPEN when the repo became E:\COBOL (2026-09-26), so no
+# earlier name is listed (kb/Work PB3837 retired them); a RELATIVE `cd` never leaves the repo.
 _ROOT_DIR = pathlib.Path(__file__).resolve().parents[2]
 _ROOT = _ROOT_DIR.name.lower()
-_THIS_REPO = {_ROOT, "cobol", "cobolsharp"}
+_THIS_REPO = {_ROOT, "cobol"}
 # A path registered in .gitmodules is ANOTHER repository nested under this one (tools/claude-skills is the public
 # skills repo, whose main has no ci-gate), so a push of ITS main is not a push to this repo's main. The folder-name
 # rule below would otherwise catch it, because the submodule's path contains the repo's name (2026-10-06).

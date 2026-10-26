@@ -6,7 +6,7 @@
 *>---
 *> ISO 9.3.5.3 "Parametric polymorphism, sometimes called method overloading, allows methods within a class
 *> to have the same method name, differing in the number and type of parameters"; rule 7 makes it OPTIONAL
-*> and Annex A.4.10 item 3 lists it. COBOL.NET does not claim it: two METHOD-IDs of one name in one class
+*> and Annex A.4.10 item 3 lists it. WiseOwl COBOL does not claim it: two METHOD-IDs of one name in one class
 *> are refused by name with COBOL0822.
 *> This is the FIRST fixture for 0822 - the diagnostic shipped with no negative at all, and its message
 *> cited "ISO 12063", which is not a clause of ISO/IEC 1989:2023 (a stray line anchor;

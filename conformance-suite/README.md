@@ -113,7 +113,7 @@ the others' verdicts; it cannot be combined with `--test`.
 
 ### In WiseOwl COBOL's own gate
 
-WiseOwl COBOL's test assembly `tests/Cobol.Net.Tests.Conformance` runs the suite in-process (design §5, §13 S1c):
+WiseOwl COBOL's test assembly `tests/WiseOwl.Cobol.Tests.Conformance` runs the suite in-process (design §5, §13 S1c):
 `ConformanceSuiteTests` generates the manifests into a directory of its own (`generate.py --out`) and runs every test
 of `suites/wiseowl/manifest.json` (both trees, at every edition each names) through `ConformanceSuiteRunner`, which
 judges exactly as `run.py` does with the WiseOwl adapter, red on FAIL or NO VERDICT; and it compiles every refusal of

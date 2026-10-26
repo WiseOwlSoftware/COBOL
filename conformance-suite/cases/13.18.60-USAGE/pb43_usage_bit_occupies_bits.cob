@@ -10,7 +10,7 @@
       *> is a bit data item. The alignment of a data item described with USAGE BIT is
       *> specified in 8.5.1.6.3." (fix-queue PB43; design D19.)
       *>
-      *> COBOL.NET stored USAGE BIT one '0'/'1' CHARACTER per bit and justified it
+      *> WiseOwl COBOL stored USAGE BIT one '0'/'1' CHARACTER per bit and justified it
       *> with 13.18.40.4 GR14, which really does say "Each boolean character can be
       *> represented in storage as a bit, an alphanumeric character, or a national
       *> character". But GR14 lists the AVAILABLE representations; the USAGE clause

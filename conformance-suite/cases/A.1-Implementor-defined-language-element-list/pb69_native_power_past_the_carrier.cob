@@ -7,7 +7,7 @@
 *>---
       *> PB69 - a native integer power that leaves the Int128 carrier consumed as a VALUE (an argument, a
       *> comparison operand, an arithmetic operand) - and the exact fast path it must not cost. 8.8.1.3 makes
-      *> native arithmetic implementor-defined; COBOL.NET's determination (owner decision 2026-08-03; the
+      *> native arithmetic implementor-defined; WiseOwl COBOL's determination (owner decision 2026-08-03; the
       *> numeric design D3): an integer power is EXACT while it fits the Int128 carrier and the double
       *> approximation past it, and (PB69) that value rides the SDIDI carrier - one arm for a literal and a
       *> data-item exponent, no saturated sentinel anywhere. 15.4.1: under native arithmetic a function's

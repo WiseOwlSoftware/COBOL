@@ -35,7 +35,7 @@ WiseOwl COBOL has not yet made a versioned release. Security fixes are made on t
 
 ## Scope
 
-In scope: the compiler (`src/Cobol.Net.*`, the `cobol` command), the runtime library that compiled programs load,
+In scope: the compiler (`src/WiseOwl.Cobol.*`, the `cobol` command), the runtime library that compiled programs load,
 and the build and CI scripts in this repository.
 
 Out of scope: defects in the logic of a COBOL program you compile (the compiler faithfully compiling an insecure

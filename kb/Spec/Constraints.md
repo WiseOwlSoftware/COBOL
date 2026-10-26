@@ -8,7 +8,7 @@ related_files:
   - docs/CONFORMANCE.md
   - CONSTRAINTS.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - spec
 ---
 

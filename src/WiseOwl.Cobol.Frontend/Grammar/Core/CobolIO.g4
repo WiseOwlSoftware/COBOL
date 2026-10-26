@@ -1,0 +1,1073 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+
+// File I/O statements and file control (INPUT-OUTPUT SECTION).
+// Imported by CobolParserCore.g4 — no options block.
+
+parser grammar CobolIO;
+
+options {
+    tokenVocab = CobolLexer;
+}
+
+// ==========================================
+// INPUT-OUTPUT SECTION
+// ==========================================
+
+inputOutputSection
+    : INPUT_OUTPUT SECTION DOT
+      fileControlParagraph?
+      ioControlParagraph?
+    ;
+
+// FILE-CONTROL.
+fileControlParagraph
+    : FILE_CONTROL DOT fileControlClauseGroup*
+    ;
+
+// ISO §12.4.5.2 SR1: SELECT comes first; all following clauses (including ASSIGN) may appear in
+// ANY ORDER. So ASSIGN is just one of the order-free fileControlClauses, not a fixed-position slot.
+// The SELECT file-name is the file's DEFINITION (§12.4.5.1 general format `SELECT [OPTIONAL] file-name-1`) and
+// the third IsProvableUserWordPosition slot. `reservedGatedWord` is the declaration re-admission the reservation
+// gate needs (kb/Work PB693, the dataName/programName precedent): a §8.9-reserved word is gated OUT of cobolWord
+// at the editions that reserve it, so without this alternative `SELECT DEFAULT …` at --std 2002 answers a raw
+// COBOL0001 instead of the targeted COBOL0901. It sits HERE and not in `fileName`, which every REFERENCE uses
+// — OPEN/CLOSE take file-name LISTS, and re-admitting the word there would let a list absorb the next
+// statement's leading keyword again (the PB693 defect). DataBinder reads `grp.fileName()` null-safely.
+fileControlClauseGroup
+    : SELECT OPTIONAL? (fileName | reservedGatedWord) { declareName(TokenStream.LT(-1)); }   // keywordContinuesHere (kb/Work PB805)
+      fileControlClauses*
+      DOT
+    ;
+
+// ASSIGN [TO] {device-name-1 | literal-1} … [USING data-name-1] | ASSIGN USING data-name-1 (ISO §12.4.5.1, every
+// format). ⛔ THE ELLIPSIS IS ON THE INNER BRACE PAIR (rendered, kb/Work PB829 — folios 312-314), so the TO phrase
+// is a LIST and `assignTarget+` is the general format. What the list MEANS, and which lists are allowed, is the
+// implementor's (§12.4.5.2 SR5): WiseOwl COBOL's determination (docs/CONFORMANCE.md §7 row DOC-A.1-71) is applied BY
+// NAME at bind, in `AssignTargetRule` — never by a one-operand grammar that answered a legal list with COBOL0308.
+assignClause
+    : ASSIGN TO? assignTarget+ (USING dataReference)?
+    | ASSIGN USING dataReference
+    ;
+
+// literal-1 is written as ANY literal token or concatenation expression here — the alphanumeric-only,
+// non-figurative, non-zero-length rule is §12.4.5.2 SR4, screened BY NAME at bind (AssignTargetRule, kb/Work PB1078).
+// A grammar that admitted only STRINGLIT refused the hexadecimal-alphanumeric X"..." literal and a concatenation
+// expression (§8.8.3.3 GR3 "may be used anywhere a literal of that class may be used") anonymously, and admitted ""
+assignTarget
+    : cobolWord
+    | nonNumericLiteral
+    ;
+
+fileControlClauses
+    : assignClause
+    // relativeKeyClause precedes organizationClause: both can begin with RELATIVE (organizationType
+    // has a bare RELATIVE), and `RELATIVE data-name` (KEY is an optional word) is the key clause while
+    // a lone RELATIVE is the organization. Trying the key clause first means `RELATIVE <data-name>`
+    // binds the key; a bare RELATIVE (no following data-name) fails the key clause and falls through to
+    // organizationClause. `ORGANIZATION RELATIVE` is unaffected (it begins with ORGANIZATION).
+    | relativeKeyClause
+    | organizationClause
+    | accessModeClause
+    // recordKeyClause and recordDelimiterClause both begin with RECORD. KEY is an optional word in
+    // recordKeyClause, so disambiguation rests on the operand: DELIMITER is a reserved token
+    // so `RECORD DELIMITER …` cannot satisfy recordKeyClause's dataReference and falls through to
+    // recordDelimiterClause. List recordKeyClause first; the parser back-tracks to the delimiter form.
+    | recordKeyClause
+    | recordDelimiterClause
+    | alternateKeyClause
+    | fileStatusClause
+    | fileReserveClause
+    | paddingCharacterClause
+    // COBOL-2002 file sharing / record locking (ISO §12.4.5.15 / §12.4.5.9) — unique leading tokens
+    // (SHARING / LOCK), ADDITIVE (the DEVLOG 621/622 lesson).
+    | sharingClause   // COBOL-2002; parses at all editions (superset), introduction-gated post-bind by VersionConformancePass ParseArm.VisitSharingClause (rearch 14g.4)
+    | lockModeClause   // LOCK MODE (LOCK/MODE hard-reserved) introduction-gated post-bind by VersionConformancePass ParseArm.VisitLockModeClause (rearch 14g.4)
+    | fileCollatingSequenceClause   // §12.4.5.7 INDEXED per-key collating; parses at all editions (superset), introduction-gated post-bind by VersionConformancePass
+    // ⛔ THE §12.4.5.1 GENERAL FORMATS ARE CLOSED (kb/Work PB829; RENDERED from the printed pages — PDF p342-344 /
+    // folios 312-314). The union of Format 1 (indexed), 2 (relative), 3 (sequential) and 4 (sort-merge) is SELECT
+    // [OPTIONAL] · ASSIGN · ACCESS MODE · ALTERNATE RECORD KEY · collating-sequence-clause · FILE STATUS ·
+    // LOCK MODE · ORGANIZATION · RECORD KEY · RELATIVE KEY · RECORD DELIMITER · RESERVE · SHARING, plus the
+    // COBOL-85 PADDING CHARACTER clause removed at COBOL-2002. Every one of them opens with a reserved word, so
+    // this last alternative — whose first token is an IDENTIFIER — can only ever match source the general format
+    // does not admit. It is NOT a vendor hook (see CobolExpressions.g4#unrecognizedClause).
+    | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
+    ;
+
+// ISO §12.4.5.7 COLLATING SEQUENCE clause — the collating sequence for the record keys of an INDEXED file.
+// Format 1 (file-level): reuses the shared `collatingForPhrase` (FOR ALPHANUMERIC / FOR NATIONAL — §5.2.6.4
+// choice indicators, one-or-more any-order) and the `IS alphabet-name-1 [alphabet-name-2]` form. Format 2
+// (key-level, OF-led): names specific RECORD KEY / ALTERNATE RECORD KEY items and their alphabet-name-3. Parses
+// at all editions (superset); the post-85 FOR-split / national / key-level legs are introduction-gated at bind,
+// and SR1-8 (alphabet class, single file-level clause, key existence, no subscript, single clause per key) are
+// enforced by the binder — the grammar is a permissive shape (the sharing/lock precedent). `OF` disambiguates
+// Format 2 from Format 1; list it first so the parser commits on the OF token.
+// ⛔ FORMAT 2's OPERAND IS A dataReference, NOT A cobolWord (kb/Work PB1075). data-name-1 is a user-defined word
+// that takes qualification wherever a name is not unique (§8.4.2.2.1: "uniqueness shall be established through
+// qualification for each user-defined name explicitly referenced"), so `OF IX-KEY IN IX-REC IS REV` is legal
+// source — the bare-word shape was a parse error on it. The binder captures each operand through the ONE
+// data-name-n capture (DataBinder.ClauseDataName), which refuses SR6's subscript by name, and resolves it to the
+// key ITEM, so two files' same-named keys cannot be confused. The Format 1 FOR phrases stay a `+` superset; their
+// "each alternative at most once" half (§5.2.6.4) is ChoiceIndicators.ForPhrasePair's, shared with the other four
+// clauses that print the same pair (ForPhrasePairDriftTests).
+fileCollatingSequenceClause
+    : COLLATING? SEQUENCE
+      ( OF dataReference+ IS? cobolWord             // Format 2: OF {data-name-1 | record-key-name-1}… IS alphabet-name-3
+      | collatingForPhrase+                         // Format 1: {FOR ALPHANUMERIC | FOR NATIONAL} IS alphabet-name …
+      | IS? cobolWord cobolWord?                    // Format 1: IS alphabet-name-1 [alphabet-name-2]
+      )
+    ;
+
+// COBOL-2002 SHARING clause (ISO §12.4.5.15): the file-connector sharing mode.
+sharingClause
+    : SHARING WITH? sharingMode
+    ;
+sharingMode
+    : ALL OTHER?
+    | NO OTHER?
+    | READ ONLY
+    ;
+
+// COBOL-2002 LOCK MODE clause (ISO §12.4.5.9): MANUAL / AUTOMATIC (no EXCLUSIVE), with an optional
+// single/multiple record-lock granularity.
+// ⛔ MODE IS AN OPTIONAL WORD (§8.3.2.4.3; kb/Work PB695 family 3), so `LOCK IS MANUAL` and the bare
+// `LOCK MANUAL` are conforming source this rule used to refuse with COBOL0001. MEASURED on printed page 355 /
+// folio 325: LOCK's box 86.56–112.03 carries a rule at 87.96–111.07 (90.8% cover) while MODE's box
+// 115.12–144.04 has NO rule under it at all, and neither does IS. LOCK heads no other file-control clause, so
+// dropping MODE introduces no new prediction ambiguity. The COBOL-2002 introduction gate keys on the CLAUSE
+// (VersionConformancePass ParseArm.VisitLockModeClause), never on `ctx.MODE()`, so it survives the omission —
+// probed, `lock85-bare-gated` → COBOL0900.
+lockModeClause
+    : LOCK MODE? IS? (MANUAL | AUTOMATIC) lockOnPhrase?
+    ;
+// §12.4.5.9.2's second half: [ [WITH] LOCK ON [MULTIPLE] {RECORD | RECORDS} ]. WITH is un-underlined (measured
+// p355: its box 251.70–278.69 has no rule; the rule at 283.11–306.22 belongs to the LOCK that follows it).
+// ⛔ ON IS UNDERLINED THERE (83.5% cover: box 311.09–325.35, rule 312.52–324.43), so it is REQUIRED (§5.2.2:
+// keywords "are shown in uppercase and underlined in general formats"); `ON?` admitted `WITH LOCK MULTIPLE
+// RECORDS`, a spelling no edition prints (kb/Work PB755). MULTIPLE is underlined too (95.0%) and optional only
+// because the printed format BRACKETS it.
+lockOnPhrase
+    : WITH? LOCK ON MULTIPLE? (RECORD | RECORDS)
+    ;
+
+fileReserveClause
+    : RESERVE integerOperand (AREA | AREAS)?
+    ;
+
+// PADDING CHARACTER: PADDING [CHARACTER] IS {data-name-1 | literal-1} — the ANSI X3.23-1985 Sequential I-O
+// block-fill character. THE 2023 STANDARD HAS NO SUCH CLAUSE: the file control entry's clauses are
+// §12.4.5.4 (the ACCESS MODE clause) through §12.4.5.15 (the SHARING clause) and none of them is PADDING
+// (§12.4.5.9, which this comment once cited, is the LOCK MODE
+// clause; kb/Work PB159), and the word occurs NOWHERE in the 2023 text — §8.9's list runs PACKED-DECIMAL → PAGE.
+// SUPERSET PARSE at every edition, gated post-bind from 2014 by VersionConformancePass ParseArm
+// .VisitPaddingCharacterClause (registry row `padding-character-removed-2014`, COBOL0902 — an error under
+// strict, a warning with the pre-removal no-op reading under --permissive). Deleting the rule was MEASURED and
+// rejected: NIST SQ216A writes `PADDING CHARACTER IS "9"` and SQ217A the operand form `PADDING PADDING-CHARACTER`
+// (both compiled at --std 85), so the 85/2002 reading has to stay. Nothing is captured on the FileModel and that
+// is deliberate — WiseOwl COBOL has no blocking model, so a stored padding character would be a field nothing reads
+// (feedback_a_dead_lookup_is_also_unverified); the clause is inert in the program's own terms, which is what
+// makes the --permissive migration reading honest.
+// ⛔ TWO ARMS, ONE TOKEN (kb/Work PB300 — the second arm is why a decline may not cost the user the WORD):
+// PADDING is also a `reservationGated` row in tests/version-matrix/cobol-words.json, so `01 PADDING PIC X.` is a
+// legal declaration exactly at 2014/2023, where §8.9 does not reserve the word, and draws a targeted
+// COBOL0901 at 85/2002 through dataName's generated `reservedGatedWord` alternative.
+paddingCharacterClause
+    : PADDING CHARACTER? IS? (literal | dataReference)
+    ;
+
+// ISO §12.4.5.11 RECORD DELIMITER clause: RECORD DELIMITER IS {STANDARD-1 | feature-name-1}. The general
+// format (§12.4.5.11.2, verified against the printed page) underlines RECORD, DELIMITER and STANDARD-1 and
+// leaves IS unmarked, so IS is the only optional word and exactly one alternative of the brace shall be
+// written — which is this rule verbatim. `cobolWord` is feature-name-1's permissive surface.
+// ⛔ PARSED AND *DIAGNOSED*, NOT PARSED AND IGNORED (kb/Work PB292). Until 2026-09-05 nothing anywhere read
+// this rule and the clause compiled clean at every edition on BOTH arms, which left docs/CONFORMANCE.md §2
+// row 26's "Not claimed" unobservable and §4.2.6 ¶3's MANDATORY compile-time warning mechanism unbuilt. The
+// decline now lands at DataBinder.BindFileControl as COBOL1778 (accept-inert Warning) — Annex A.3 item 26
+// for STANDARD-1, Annex A.1 item 150 for feature-name-1. Variable-length records keep the §12.4.5.11.4 GR5
+// implementor framing (4-byte length prefix, Annex A.1 item 151), which §12.4.5.11.4 GR1 keeps invisible to
+// the record area and the record size.
+recordDelimiterClause
+    : RECORD DELIMITER IS? (STANDARD_1 | cobolWord)
+    ;
+
+// ISO §12.4.5.10: the leading "ORGANIZATION IS" is optional — a bare organization type
+// (e.g. a lone SEQUENTIAL) is a valid ORGANIZATION clause.
+organizationClause
+    : (ORGANIZATION IS?)? organizationType
+    ;
+
+// ISO §12.4.5.10.2 prints `{ {LINE|RECORD} SEQUENTIAL | RELATIVE | INDEXED }`; RENDERED (PDF p.357 / folio 327):
+// LINE is underlined, RECORD is NOT — an optional word (§5.2.3), so the RECORD arm is written `RECORD? SEQUENTIAL`
+// and bare SEQUENTIAL is the same alternative (§12.4.5.10.3 GR6). The written-out RECORD word is the 2023 inner
+// choice and is edition-gated by VersionConformancePass.ParseArm.VisitOrganizationClause (kb/Work PB706).
+organizationType
+    : LINE SEQUENTIAL
+    | RECORD? SEQUENTIAL
+    | RELATIVE
+    | INDEXED
+    ;
+
+accessModeClause
+    : ACCESS MODE? IS? accessMode
+    ;
+
+accessMode
+    : SEQUENTIAL
+    | RANDOM
+    | DYNAMIC
+    ;
+
+// ⛔ KEY AND IS ARE OPTIONAL WORDS, RECORD (and ALTERNATE) ARE NOT — measured, not a leniency. §5.2.2: keywords
+// "are shown in uppercase and underlined in general formats"; §8.3.2.4.3: "uppercase words that are not underlined
+// are called optional words". The printed pages (§12.4.5.12.2 = p359, §12.4.5.6.2 = p350) underline RECORD,
+// ALTERNATE and SOURCE and leave KEY and IS plain, so `RECORD IX-FS1-KEY` (CCVS IX103A) is CONFORMING source and
+// `RECORD KEY? IS?` is the format exactly. ⛔ `ALTERNATE RECORD? KEY?` was NOT: RECORD's box 131.86–171.34 carries a
+// rule at 133.25–170.36 (94.0% cover), so `ALTERNATE KEY IS k` — a spelling no edition prints — compiled at exit 0
+// (kb/Work PB756). This comment used to call the no-KEY form "Leniency L3", diagnosed under named-strict modes by
+// a check in the legacy SemanticBuilder; KEY was never required, and that check is gone. Disambiguation from
+// recordDelimiterClause holds: DELIMITER is a reserved token, so `RECORD DELIMITER …` cannot match dataReference
+// and falls through to recordDelimiterClause (likewise RECORD CONTAINS/VARYING in an FD).
+//
+// ⛔ BOTH CLAUSES CARRY A **REQUIRED CHOICE OF TWO KEY FORMS**, each a DISTINCT PARSE ALTERNATIVE the binder
+// captures by its own arm (kb/Work PB358 gave the second its surface; kb/Work PB1099 provides it). The general
+// formats, RENDERED from the printed pages rather than read off the OCR (§12.4.5.12.2 = PDF p359/folio 329,
+// §12.4.5.6.2 = p350/folio 320):
+//     <u>RECORD</u> KEY IS { data-name-1 | record-key-name-1 <u>SOURCE</u> IS { data-name-2 } … }
+//     <u>ALTERNATE</u> <u>RECORD</u> KEY IS { … same brace … } [ WITH <u>DUPLICATES</u> ] [ <u>SUPPRESS</u> WHEN literal-1 ]
+// Underlining measured on both pages: RECORD / ALTERNATE / SOURCE carry rules, KEY and BOTH occurrences of IS
+// do not — so `SOURCE IS?` and the pre-existing `KEY? IS?` are the conforming spellings. The inner
+// `{ data-name-2 } …` brace pair takes the ellipsis, hence `dataReference+` (ONE or more), and §12.4.5.12.4
+// GR2 / §12.4.5.6.4 GR2 say what the repetition MEANS: "Record-key-name-1 defines a record key consisting of
+// the concatenation of all occurrences of data-name-2 in the order specified." Annex A.3 item 40 makes the
+// capability processor-dependent and this implementation provides it (docs/CONFORMANCE.md §2 row 40): the
+// binder's DataBinder.CaptureRecordKeySource reads the phrase and the key is a list of byte windows end to end
+// (docs/FILES_DESIGN.md, "THE SECOND KEY FORM"). It is a post-1985 form, gated once on this shared
+// rule (VersionConformancePass.VisitRecordKeySourcePhrase, record-key-source-2002).
+// ⛔ ONE RULE, USED BY BOTH CLAUSES. A.3 item 40 names RECORD KEY and ALTERNATE RECORD KEY in ONE sentence and
+// the two general formats print the same brace group, so they get ONE shared sub-rule, ONE capture and ONE gate;
+// a change touching only `recordKeyClause` would be this repo's most reproducible defect shape
+// (feedback_two_arm_dispatch) repeating on the clause that already has a twin.
+// The SOURCE arm is listed FIRST so ANTLR tries the more specific alternative first (feedback_grammar_precedence);
+// `dataReference` cannot swallow `SOURCE` in any case, because SOURCE is a reserved token at every edition
+// (tests/version-matrix/reserved-words.json: r85/r2002/r2014/r2023 all true) and is not in `cobolWord`.
+recordKeyClause
+    : RECORD KEY? IS? (recordKeySourcePhrase | dataReference)
+    ;
+
+alternateKeyClause
+    : ALTERNATE RECORD KEY? IS? (recordKeySourcePhrase | dataReference)
+      (WITH? DUPLICATES)?
+      alternateKeySuppressWhen?
+    ;
+
+// ISO §12.4.5.12.2 / §12.4.5.6.2 — the second arm of both clauses' required key-form choice.
+// record-key-name-1 is its OWN name class (§8.3.2.2.24), not a data-name: §8.4.6.2.4 "Scope of
+// record-key-names" gives it file-level scope, and it is DEFINED here rather than referenced, which is why
+// this is a bare `cobolWord` with no qualification or subscript suffix — the printed format shows a plain
+// `record-key-name-1`. data-name-2 keeps the general `dataReference` surface the data-name-1 arm already uses,
+// so an OF/IN-qualified data-name-2 resolves by §8.4.2.2 as data-name-1 does.
+recordKeySourcePhrase
+    : recordKeyName SOURCE IS? dataReference+
+    ;
+
+recordKeyName
+    : cobolWord
+    ;
+
+// ISO §12.4.5.6.2 — SUPPRESS [WHEN] literal-1: alternate-key suppression (a COBOL-2023 addition). literal-1 is the
+// key suppression value: a record's alternate access path is withheld when the key equals literal-1 (§12.4.5.6.4
+// GR6). Fixed order — DUPLICATES precedes SUPPRESS. Parses at all editions (superset); introduction-gated at 2023
+// by VersionConformancePass ParseArm.VisitAlternateKeySuppressWhen (recognition-fire on this dedicated rule, NOT
+// on the WHEN token — so the gate survives the omission; probed, `alt85-suppress-bare-gated` → COBOL0900).
+// ⛔ WHEN IS AN OPTIONAL WORD (§8.3.2.4.3: an un-underlined uppercase word "may be specified at the user's option
+// with no effect on the semantics of the format"; kb/Work PB695 family 3). MEASURED on printed page 350 / folio
+// 320 off the PDF's vector rectangles, not read off the OCR: SUPPRESS carries a rule at x 254.17–299.45 under a
+// box of 252.66–300.40 (94.8% cover) and DUPLICATES one at 95.8%, while WHEN's box 303.50–334.12 has NO
+// horizontal rule anywhere in its band — the nearest ends 4 pt to its left. SUPPRESS stays the required anchor,
+// so the phrase can never match empty, and the operand cannot begin with the WHEN token.
+// ⛔ literal-1 IS A LITERAL POSITION, SO IT IS THE VALUE CLAUSE'S OPERAND RULE, NOT `literal` (kb/Work PB1072).
+// §13.10.3 SR2 lets a constant-name stand "anywhere that a format specifies a literal", and §12.4.5.6.3 SR7 admits
+// every figurative constant, the Format-7 symbolic-character among them — both are spelled as ordinary WORDS, which
+// `literal` refused at parse time (COBOL0309). `valueClauseOperand` is the deliberate superset the data division's
+// ONE literal-position chokepoint (DataBinder.RawValueOperandText) screens by the symbol tables, exactly as it does
+// for the VALUE clause and the PICTURE EDITING phrase (kb/Work PB778).
+alternateKeySuppressWhen
+    : SUPPRESS WHEN? valueClauseOperand
+    ;
+
+// ISO §12.4.5.8.2: only STATUS is a required keyword (FILE STATUS IS data-name-1, STATUS underlined);
+// FILE and IS are optional, so a bare "STATUS data-name" is a valid FILE STATUS clause.
+fileStatusClause
+    : FILE? STATUS IS? dataReference
+    ;
+
+// ISO §12.4.5.13.2 prints `<u>RELATIVE</u> KEY IS data-name-1`: only RELATIVE is underlined (measured, p360), so KEY
+// and IS are optional words (§8.3.2.4.3) and `RELATIVE RL-FR1-KEY` (CCVS RL109A) is CONFORMING source, not a
+// leniency. This comment used to call it "Leniency L2", diagnosed under named-strict modes by a check in the legacy
+// SemanticBuilder; KEY was never required, and that check is gone (kb/Work PB756). The dataReference is captured as
+// the relative key either way, so random/dynamic WRITE/REWRITE/DELETE position correctly.
+relativeKeyClause
+    : RELATIVE KEY? IS? dataReference
+    ;
+
+// I-O-CONTROL. §12.4.6.2 prints `I-O-CONTROL. [[apply-commit-clause].] [[{same-clause}…].]` (rendered, PDF p363 /
+// folio 333): the run of SAME clauses (with COBOL-85's RERUN and MULTIPLE FILE clauses, superset-parsed) is ONE
+// sentence closed by ONE separator period, and the APPLY COMMIT clause, when written, is a sentence of its own (SQ206A
+// writes two SAME clauses before one period). The `DOT?` after every clause is a PUNCTUATION SUPERSET kept so the
+// misplaced period is refused BY NAME rather than as a bare parse error: ClosedFormatPass reads this rule's periods
+// through ParagraphPeriods (a period that splits the sentence → COBOL3407, the closing period missing →
+// COBOL3408; kb/Work PB2727), and ParagraphPeriodDriftTests holds every rule that writes `DOT?` to a row there.
+ioControlParagraph
+    : I_O_CONTROL DOT (ioControlClause DOT?)*
+    ;
+
+// ISO §12.4.6.3.2 — APPLY COMMIT ON [ [ file-name-1 ] [ identifier-1 ] ] … (kb/Work PB3338).
+// ⛔ ON IS AN OPTIONAL WORD (kb/Work PB695 family 3): MEASURED on printed page 363 / folio 333, APPLY's box
+// 145.21–175.84 carries a rule at 143.99–177.13 (100% cover) and COMMIT's 180.64–224.64 one at 182.04–225.22
+// (96.8%), while ON's box 228.49–243.51 has NO horizontal rule in its band at all.
+// ⛔ THE OPERAND LIST MAY BE EMPTY IN THE GRAMMAR (kb/Work PB1096). The format repeats an ALL-OPTIONAL pair, so
+// `APPLY COMMIT.` is a spelling of the format; §12.4.6.3.3 SR4 ("At least one file or data-item shall be
+// specified") is a SYNTAX RULE, checked at bind (DataBinder.BindIoControl), so the empty clause is refused by name
+// rather than by a parse error. file-name-1 and identifier-1 both arrive as dataReference: only the symbol table
+// tells them apart (SR1 vs SR3), so the binder classifies each operand. COMMIT stays the required anchor, so the
+// clause can never match on APPLY alone.
+applyCommitClause
+    : APPLY COMMIT ON? dataReference*
+    ;
+
+ioControlClause
+    : sameClause
+    // The APPLY COMMIT clause (ISO §12.4.6.3; kb/Work PB3338). It must precede unrecognizedClause, which would
+    // otherwise match the bare word APPLY and then die on COMMIT with an unnamed error. {is2023()}? because the whole
+    // commit-and-rollback facility is a COBOL-2023 addition (Annex E.3.2 item 2). ⚠ kb/Work PB2291 VERDICT: a
+    // CONSTRUCT GATE, not word status — APPLY is §8.10 context-sensitive at every edition and no earlier edition
+    // has an APPLY clause, so `APPLY COMMIT` has no other reading below 2023, and the gate turns what the
+    // conformance pass should name (COBOL0900) into a bare COBOL0001. Recorded in EditionReadDriftTests.
+    | {is2023()}? applyCommitClause
+    | multipleFileClause
+    | rerunClause
+    // ⛔ THE §12.4.6.2 GENERAL FORMAT IS CLOSED (kb/Work PB829; RENDERED from the printed page — PDF p363 /
+    // folio 333): `I-O-CONTROL. [[apply-commit-clause].] [[{same-clause}…].]` and nothing else, plus the
+    // COBOL-85 RERUN and MULTIPLE FILE TAPE clauses removed at COBOL-2002 (superset-parsed, removal-gated
+    // post-bind). ⚠ THIS is the alternative kb/Work PB487's sibling sweep missed: it is INLINE, not a named
+    // `xxxClause : genericClause` wrapper, so a grep read by rule NAME skips it. It is NOT a vendor hook (see
+    // CobolExpressions.g4#unrecognizedClause).
+    | unrecognizedClause   // ⛔ LAST — refused BY NAME by ClosedFormatPass (COBOL1970)
+    ;
+
+// ISO §12.4.6.4 SAME clause. In every format only SAME (and RECORD/SORT/SORT-MERGE) is a required word;
+// AREA and FOR are optional words (Format 1 `SAME AREA FOR file-1 …` underlines only SAME), so the
+// "SAME AREA" clause may be written `SAME file-1 file-2` (as SQ206A does). Files may be comma-separated.
+sameClause
+    : SAME (RECORD | SORT | SORT_MERGE)? AREA? FOR? fileName (COMMA? fileName)*
+    ;
+
+// MULTIPLE FILE TAPE clause (obsolete; removed from later standards). Describes several files sharing
+// one physical reel — irrelevant to disk storage, so parsed and ignored.
+multipleFileClause
+    : MULTIPLE FILE TAPE? (CONTAINS? multipleFileTapeEntry (COMMA? multipleFileTapeEntry)*)?
+    ;
+
+multipleFileTapeEntry
+    : fileName (POSITION integerLiteral)?
+    ;
+
+// X3.23-1985 RERUN clause (I-O-CONTROL) — a checkpoint hint stating WHEN rerun records are written; the
+// rerun mechanism itself is implementor-defined, so a null rerun facility accepts and ignores it (parsed
+// and ignored, the MULTIPLE FILE posture). Obsolete '85 element DELETED by ISO 2002 (RERUN is absent from
+// the 2023 text entirely, §8.9 included); the EditionValidator flags it COBOL0902 ≥2002
+// (`rerun-removed-2002`, VCR Table 7 row 7.15).
+//   RERUN [ON {file-name-1 | implementor-name-1}]
+//         EVERY { [END OF] {REEL|UNIT} OF file-name-2
+//               | integer-1 RECORDS [OF file-name-2]
+//               | integer-2 CLOCK-UNITS
+//               | condition-name-1 }
+// The ON operand and condition-name-1 (a switch-status condition) are both plain words → cobolWord.
+rerunClause
+    : RERUN (ON cobolWord)? EVERY rerunEvery
+    ;
+
+rerunEvery
+    : (END OF)? (REEL | UNIT) OF fileName
+    | integerLiteral (RECORDS (OF fileName)? | CLOCK_UNITS)
+    | cobolWord
+    ;
+
+// ==========================================
+// OPEN / CLOSE (§14.9.27, §14.9.6)
+// ==========================================
+
+openStatement
+    : OPEN openClause+
+    ;
+
+openClause
+    : openMode (sharingPhrase)? ({is2002() || retryPhraseAhead()}? retryPhrase)? openFileSpec+   // both phrases superset-parsed, gated at BIND (BindOpen → Check(FileSharingClause2002) / GateRetryIntro → Check(RetryPhrase2002)). SHARING is unambiguous; RETRY sits in the openFileSpec+ name-list, so below 2002 (where RETRY is a legal §8.9 user word) the forward-detect retryPhraseAhead() only enters the phrase on an UNAMBIGUOUS numeric tail (n TIMES | FOR? n SECONDS — an integer can never be a file name) with a file name still to follow; RETRY FOREVER / bare RETRY stay file names (fail-safe).
+    ;
+
+// COBOL-2002 OPEN SHARING phrase (ISO §14.9.27) — overrides the file-control SHARING clause for this OPEN.
+sharingPhrase
+    : SHARING WITH? sharingMode
+    ;
+
+// COBOL-2002 RETRY phrase (ISO §14.7.9) on OPEN / READ / WRITE / REWRITE / DELETE — how to react to a lock.
+retryPhrase
+    : RETRY (arithmeticExpression TIMES | FOR? arithmeticExpression SECONDS | FOREVER)
+    ;
+
+// ⛔ THE LOCK-RETENTION BRACKET, AND ONLY IT — `[ WITH LOCK | WITH NO LOCK ]`. Every printed general format
+// that has this phrase prints it as its OWN plain bracket of exactly two alternatives: READ (§14.9.30.2, PDF
+// p722, Format 1 y=339.26 and Format 2 y=547.48 measured with `figure_geometry.py 722`), WRITE (§14.9.51.2,
+// p815/p816) and REWRITE (§14.9.35.2, p740). `WITH` carries NO underline rule on any of those pages
+// (`figure_extract.py` reports `WITH _LOCK_` / `WITH _NO_ _LOCK_`), so it is an optional word (§5.2.3).
+// Order: WITH? NO LOCK before WITH? LOCK so `WITH NO LOCK` is not shadowed by `WITH LOCK`.
+//
+// ⛔ `IGNORING LOCK` WAS AN ALTERNATIVE HERE UNTIL kb/Work PB331, AND THAT COLLAPSE INVERTED TWO CARDINALITIES
+// AT ONCE. IGNORING LOCK belongs to READ's OTHER bracket (`readLockContentionPhrase` below), which §5.2.6.1
+// makes INDEPENDENT of this one — "a unique combination of possibilities from a series of brackets" — so the
+// merge made the legal `IGNORING LOCK WITH NO LOCK` a syntax error while leaving `ADVANCING ON LOCK RETRY 3
+// TIMES IGNORING LOCK` (three alternatives out of ONE bracket, which §5.2.6.2 admits one of) accepted. It also
+// offered IGNORING LOCK on WRITE and REWRITE, whose printed formats do not have it at all.
+recordLockPhrase
+    : WITH? NO LOCK
+    | WITH? LOCK
+    ;
+
+// Each opened file may carry an obsolete tape phrase (ISO §14.9.27): REVERSED or WITH NO REWIND —
+// vertical/tape positioning hints with no effect on disk files, parsed and ignored.
+openFileSpec
+    : dataReference (REVERSED | WITH? NO REWIND)?
+    ;
+
+openMode
+    : INPUT
+    | OUTPUT
+    | I_O
+    | EXTEND
+    ;
+
+closeStatement
+    : CLOSE closeFilePhrase (closeFilePhrase)*
+    ;
+
+closeFilePhrase
+    : fileName closeOption?
+    ;
+
+closeOption
+    : (REEL | UNIT) (FOR? REMOVAL)?
+    | WITH? NO REWIND
+    | WITH? LOCK
+    ;
+
+// ==========================================
+// READ (§14.9.30 — full expansion)
+// ==========================================
+
+// ⛔ THE PHRASE ORDER BELOW IS THE PRINTED ONE, AND THAT IS A NORMATIVE REQUIREMENT, NOT A STYLE CHOICE.
+// §5.2.1: "The words, phrases, clauses, punctuation, and operands in each general format shall be written in
+// the compilation group in the sequence given in the general format, unless otherwise specified by the rules of
+// that format." The printed READ formats (§14.9.30.2, PDF p722 — RENDERED, not read off the transcription) are:
+//
+//   Format 1 (sequential)  READ f { NEXT | PREVIOUS } RECORD [ INTO id ]
+//                          [ ADVANCING ON LOCK | IGNORING LOCK | retry-phrase ]
+//                          [ WITH LOCK | WITH NO LOCK ]
+//                          [| AT END … | NOT AT END … |]   [ END-READ ]
+//   Format 2 (random)      READ f RECORD [ INTO id ]
+//                          [ IGNORING LOCK | retry-phrase ]
+//                          [ WITH LOCK | WITH NO LOCK ]
+//                          [ KEY IS { data-name-1 | record-key-name-1 } ]
+//                          [| INVALID KEY … | NOT INVALID KEY … |]   [ END-READ ]
+//
+// ⛔ THE KEY PHRASE FOLLOWS THE TWO LOCK BRACKETS; IT PRECEDED THEM HERE UNTIL kb/Work PB331, AND BECAUSE
+// ANTLR takes the first matching alternative in written order, the parser had already passed the `readKey`
+// slot by the time it consumed a lock phrase — so the SPEC SPELLING `READ IXF RECORD WITH NO LOCK KEY IS
+// IX-KEY` was `error COBOL0001: no viable alternative at input 'KEY'` while the unprinted reverse compiled.
+// This rule is the superset of both formats (the format is DECIDED at bind time from the file's organization
+// and access mode — §14.9.30.3 SR6/SR8/SR9 in KeyedIoBinder.BindRead), which is why one ordering has to serve
+// both; the two formats agree on the order of every phrase they share, so the superset is unambiguous.
+//
+// ⛔ THE FILE NAME IS BARE: BOTH FORMATS PRINT `READ file-name-1`, AND NO EDITION PRINTS `READ FILE file-name-1`.
+// The `{ record-name-1 | FILE file-name-1 }` choice belongs to WRITE (§14.9.51.2) and REWRITE (§14.9.35.2) alone,
+// where it is Annex A.4.13's declined element and SequentialIoBinder.DeclinedFilePhrase refuses it by name
+// (COBOL1706). This rule carried a copy of that two-arm head, `READ (fileName | FILE fileName)`, that nothing
+// refused, so `READ FILE F1` compiled clean at every --std and ran as a plain READ (kb/Work PB2728). Without the
+// arm, FILE (a reserved word, never a fileName) is a syntax error here: §5.2.1 admits only the words a general
+// format prints, "in the sequence given in the general format", and neither READ format prints FILE.
+readStatement
+    : READ fileName
+      readDirection?
+      RECORD?
+      readInto?
+      readLockContentionPhrase?   // bracket 1 (§14.9.30.2) — at most ONE of ADVANCING ON LOCK / IGNORING LOCK / retry-phrase
+      recordLockPhrase?           // bracket 2 (§14.9.30.2) — at most ONE of WITH LOCK / WITH NO LOCK; INDEPENDENT of bracket 1 (§5.2.6.1)
+      readKey?
+      conditionalPhrases
+      END_READ?
+
+    ;
+
+// ⛔ BRACKET 1 OF THE READ LOCK OPTIONS — one grammar object for one printed bracket, which is what keeps
+// "at most one of these three" written down in exactly ONE place. §5.2.6.2: a plain bracket admits "the syntax
+// element contained within the brackets or one of the alternatives contained within the brackets"; the printed
+// bracket carries NO choice indicators (`figure_geometry.py 722`: Format 1 y=280.90 h=48.79 over three stacked
+// alternatives, plain stems — contrast the AT END group at y=377.08, which the same tool flags
+// `<-- CHOICE INDICATORS (5.2.6.4)`), so the three alternatives are mutually exclusive.
+//
+// SUPERSET NOTE: Format 2 prints only two alternatives (it has no ADVANCING ON LOCK). The ADVANCING arm's
+// Format-1-only restriction is §14.9.30.3 SR6, enforced at bind time (KeyedIoBinder.BindRead names ADVANCING
+// in its forbidden-phrase list for ACCESS MODE RANDOM), so the parse rule stays the union of both formats.
+readLockContentionPhrase
+    : readAdvancingOnLock
+    | readIgnoringLock
+    | retryPhrase   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated in the VersionConformancePass parse arm (VisitRetryPhrase → Check(RetryPhrase2002))
+    ;
+
+// COBOL-2002 READ … ADVANCING ON LOCK (ISO §14.9.30 GR22): skip-scan locked records on NEXT/PREVIOUS.
+// Introduction-gated in the VersionConformancePass parse arm (VisitReadAdvancingOnLock -> Check(RecordLockPhrase2002)),
+// beside its two printed siblings; it was gated on BoundRead/BoundKeyedRead.AdvancingOnLock until kb/Work PB353,
+// which measured that a READ the binder refuses never builds the node and so never named the edition.
+// `ON` is an OPTIONAL WORD: printed page 722 underlines ADVANCING and LOCK and NOT ON (`figure_extract.py 722`
+// → `_ADVANCING_ ON _LOCK_`), and §5.2.3 makes a non-underlined word one that "may be specified" — so
+// `READ … ADVANCING LOCK` is conforming source. It was rejected `error COBOL0001: missing token before 'LOCK'`
+// until kb/Work PB331 measured the page.
+readAdvancingOnLock
+    : ADVANCING ON? LOCK
+    ;
+
+// COBOL-2002 READ … IGNORING LOCK (ISO §14.9.30 GR12): make the record available even if it is locked.
+// Both words are underlined on p722 (`_IGNORING_ _LOCK_`), so both are required. Introduction-gated in the
+// VersionConformancePass parse arm (VisitReadIgnoringLock → Check(RecordLockPhrase2002)), which is where its
+// former host `recordLockPhrase` gates the retention bracket — the split must not lose the 2002 gate.
+readIgnoringLock
+    : IGNORING LOCK
+    ;
+
+// The Format-1 direction, printed as BRACES: `READ file-name-1 { NEXT | PREVIOUS } RECORD` (§14.9.30.2, PDF
+// p722). NEXT is NOT underlined there (`figure_extract.py 722`) and PREVIOUS is, so by §5.2.6.3 the NEXT
+// alternative "contains only optional words" and is "the default … selected unless another alternative is
+// explicitly specified" — which is why the whole rule is optional at the call site and why §14.9.30.3 SR8/SR9
+// say the NEXT phrase is implied.
+// ⛔ `RECORD` IS NOT PART OF THIS RULE. It is the statement's own optional word, printed ONCE after the braces,
+// and `readStatement` already carries it. Writing it here as well put ONE optional word in TWO places, and the
+// grammar then accepted it TWICE: `READ SQF NEXT RECORD RECORD … END-READ` compiled clean (kb/Work PB331's
+// sweep of §14.9.30.2 — the same figure whose lock brackets that note repaired).
+readDirection
+    : NEXT | PREVIOUS
+    ;
+
+readInto
+    : INTO receivingIdentifier
+    ;
+
+readKey
+    : KEY IS? dataReference
+    ;
+
+// ==========================================
+// WRITE (§14.9.51 — full expansion)
+// ==========================================
+// ⛔ THE CLAUSE NUMBER HERE READ "§14.9.46" UNTIL 2026-09-02, AND §14.9.46 IS THE **TERMINATE** STATEMENT
+// (`cite.py --check 14.9.46` → "TERMINATE statement"). The WRITE statement is §14.9.51
+// (`--check 14.9.51.1` → "The WRITE statement releases a logical record for an output or input-output
+// file."). The same file's BODY comments cite §14.9.51 correctly throughout — the header was the one stale
+// copy, which is exactly CLAUDE.md rule 1's inherited-citation failure: never re-derived, and it propagated
+// into the A.4.13 module survey. Its REWRITE twin below carried the same defect.
+//
+// `FILE fileName` is a DISTINCT parse alternative because it is Annex A.4.13's optional element (item 2),
+// which this implementation does NOT claim — the binder needs to SEE the arm to refuse it by name
+// (SequentialIoBinder.DeclinedFilePhrase → COBOL1706). Both printed formats — Format 1 (sequential) and
+// Format 2 (random) — carry the same `{ record-name-1 | FILE file-name-1 }` choice, so ONE alternative
+// serves both and the sequential/keyed reroute below inherits the refusal.
+
+writeStatement
+    : WRITE (recordName | FILE fileName)
+      recordFromPhrase?
+      writeBeforeAfter?
+      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
+      (recordLockPhrase)?   // introduction-gated in the VersionConformancePass parse arm (VisitRecordLockPhrase → Check(RecordLockPhrase2002))
+      conditionalPhrases
+      END_WRITE?
+
+    ;
+
+// ⛔ THE `FROM { identifier-1 | literal-1 }` PHRASE OF WRITE, REWRITE AND RELEASE IS ONE RULE (kb/Work PB2650).
+// §14.9.51.2, §14.9.35.2 and §14.9.32.2 print the same phrase, and each statement's general rules make it the same
+// implicit MOVE to record-name-1 (§14.9.51.4 GR5 a), §14.9.35.4 GR7 a), §14.9.32.4 GR4 a)), so its operand is MOVE's
+// sending operand, function-identifier included (fix-queue PB10; kb/Work PB2114). One rule is what lets the phrase's
+// edition edge (literal-1 is post-1985: VersionConformancePass.ParseArm.VisitRecordFromPhrase) be asked once: it was
+// three copies, and the gate sat on RELEASE's alone while WRITE and REWRITE took a literal at --std 85.
+// Each verb's OWN syntax rules for the phrase are its row in FromPhraseRules (MoveBinder.BindFromPhrase).
+recordFromPhrase
+    : FROM sendingOperand
+    ;
+
+// ⛔ THIS RULE READ `writeAdvancePhrase writeAdvancePhrase?` — THE WHOLE PHRASE REPEATED — UNTIL kb/Work PB712,
+// and it was wrong in BOTH directions: it REJECTED the only spelling §14.9.51.2 prints for the combination
+// (`WRITE R BEFORE AFTER ADVANCING 4 LINES` → COBOL0001 "no viable alternative at input 'AFTER'") and ACCEPTED
+// a two-ADVANCING-operand form the standard never prints and its general rules cannot interpret
+// (`WRITE R BEFORE ADVANCING 4 LINES AFTER ADVANCING 0 LINES`). The 2023 introduction gate fired correctly on
+// the second phrase, which is exactly what kept the over-acceptance invisible: the EDITION was checked, so the
+// SPELLING never was.
+//
+// MEASURED off the canonical PDF, not read from the transcription (`python scripts/spec/clause_page.py
+// 14.9.51.2` → PDF page 815, printed folio 785; `python scripts/render-spec-page.py 815`). Format 1's
+// print-control phrase is ONE optional bracket:
+//
+//     [  { | BEFORE | }  ADVANCING  { { identifier-2 | integer-1 } [ LINE | LINES ] } ]
+//        { |  AFTER | }             { { mnemonic-name-1 | PAGE }                    }
+//
+// The choice indicators — the `|` bars — enclose ONLY the two WORDS. `ADVANCING` and the whole operand group sit
+// OUTSIDE them, inside the single bracket, ONCE. ISO §5.2.6.4: "When enclosed by braces, one or more of the
+// alternatives contained within the choice indicators shall be specified, but any single alternative shall be
+// specified only once. … The alternatives may be specified in any order." So the four printed spellings are
+// `BEFORE ADVANCING …`, `AFTER ADVANCING …`, `BEFORE AFTER ADVANCING …` and `AFTER BEFORE ADVANCING …` —
+// always ONE `ADVANCING`, ONE operand. `ADVANCING`, `LINE` and `LINES` are NOT underlined: optional words.
+//
+// The combined form is a COBOL-2023 addition (Annex §E.3.3 item 2, "Both BEFORE and AFTER are allowed together
+// in WRITE ADVANCING") and is introduction-gated on the CO-OCCURRENCE OF THE TWO WORDS in
+// VersionConformancePass.VisitWriteBeforeAfter — never on a second phrase, which no longer exists. §14.9.51.3
+// SR17 then forbids PAGE with the pair (StatementValidation.CheckWriteBeforeAfterPage). A single BEFORE or a
+// single AFTER is edition-invariant (85+).
+// identifier-2 is an IDENTIFIER, so it admits §8.4.3.1.2 Format 1 (a function-identifier) and Format 4 (an inline
+// method invocation), functionCall first because it is keyword-led (kb/Work PB1421's sibling sweep: the arms were
+// missing, so `AFTER ADVANCING FUNCTION INTEGER(X) LINES` was a parse error). §14.9.51.3 SR14's "an integer data
+// item" is then asked of the function's temporary item (§8.4.3.2.4 GR1) by the ONE operand-class screen.
+// ⚠ `(LINE | LINES)?` FOLLOWS THE dataReference ARM TOO, A SUPERSET: mnemonic-name-1 also parses as a dataReference,
+// and the printed `{ mnemonic-name-1 | PAGE }` alternative carries no LINE/LINES. Only the symbol table tells the two
+// apart, so SequentialIoBinder.BindAdvancing refuses the word on its mnemonic arm (COBOL2269, kb/Work PB1189).
+writeBeforeAfter
+    : (BEFORE AFTER? | AFTER BEFORE?) ADVANCING?
+      ( PAGE
+      | (functionCall | inlineMethodInvocation | dataReference | integerLiteral | literal) (LINE | LINES)?
+      )
+    ;
+
+recordName
+    : dataReference
+    ;
+
+// ==========================================
+// REWRITE (§14.9.35)
+// ==========================================
+// ⛔ THIS HEADER READ "§14.9.36" UNTIL 2026-09-02, AND §14.9.36 IS THE **ROLLBACK** STATEMENT
+// (`cite.py --check 14.9.36` → "ROLLBACK statement"). REWRITE is §14.9.35 (`--check 14.9.35.1` → "The
+// REWRITE statement logically replaces a record existing in a mass storage file."). The WRITE twin above
+// carried the identical defect — one stale citation written down twice.
+//
+// `RECORD` is an OPTIONAL WORD of §14.9.35.2's printed general format (RENDERED, PDF p710: `REWRITE
+// { record-name-1 | FILE file-name-1 } RECORD [ FROM … ]`, with RECORD NOT underlined). It was absent from
+// this rule, so `REWRITE REC RECORD FROM WS` — legal source at every edition, on the MANDATORY record-name
+// arm — was rejected outright. That is an under-accept independent of A.4.13 and is fixed here rather than
+// only on the FILE arm, because half a fix on a two-arm construct is the shape that keeps coming back
+// (feedback_two_arm_dispatch). WRITE's two formats carry NO such word — do not mirror it there.
+
+rewriteStatement
+    : REWRITE (recordName | FILE fileName) RECORD?
+      recordFromPhrase?
+      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
+      (recordLockPhrase)?   // introduction-gated in the VersionConformancePass parse arm (VisitRecordLockPhrase → Check(RecordLockPhrase2002))
+      conditionalPhrases
+      END_REWRITE?
+
+    ;
+
+// ==========================================
+// DELETE RECORD (§14.9.10)
+// ==========================================
+
+deleteStatement
+    : DELETE fileName RECORD?
+      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
+      conditionalPhrases
+      END_DELETE?
+
+    ;
+
+// ==========================================
+// DELETE FILE (§14.9.10 — COBOL 2023)
+// ==========================================
+
+deleteFileStatement
+    : DELETE FILE OVERRIDE? fileName
+      // §14.9.10.2 Format 2's {file-name-1}… repetition (kb/Work PB134; GR12 — as-if one statement per
+      // name). A phrase keyword (RETRY …) ends the list through the ONE generated `{!keywordContinuesHere()}?`
+      // on cobolWord's keyword alternatives (kb/Work PB805) — this loop's follow set holds the RETRY / ON
+      // EXCEPTION / END-DELETE phrases — never through the five-word hand predicate that stood here.
+      fileName*
+      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
+      conditionalPhrases
+      END_DELETE?
+
+    ;
+
+// COBOL-2002 UNLOCK statement (ISO §14.9.47): release all this-connector record locks on the file.
+unlockStatement
+    : UNLOCK fileName (RECORD | RECORDS)?
+    ;
+
+// ==========================================
+// START (§14.9.41)
+// ==========================================
+
+startStatement
+    : START fileName
+      (FIRST | LAST | startKeyPhrase)?
+      conditionalPhrases
+      END_START?
+
+    ;
+
+// ISO §14.9.41.2 prints `KEY relational-operator { data-name-1 | record-key-name-1 }` — the operator carries NO
+// brackets on the printed page (measured at 600 dpi, PDF page 784 / printed folio 754), so it is REQUIRED
+// whenever the KEY phrase is written. It was `comparisonOperator?` under a comment asserting "the operator may
+// be omitted (then EQUAL is assumed)" on a §14.9.41 citation, and §14.9.41.4 GR15 says the opposite of what that
+// comment claimed: EQUAL is implied only "If the KEY phrase is not specified" — never when the operator alone
+// is. So `START f KEY IS K` compiled and ran, an UNDER-REJECTION of a spelling the format does not print
+// (kb/Work PB332). The separate `IS?` went with it: every `comparisonOperator` alternative already absorbs its
+// own leading IS (§8.8.4.2.2), so the outer one added nothing but `KEY IS IS = K`.
+// The operand SET is a different question — `comparisonOperator` is the condition language's whole operator
+// list, wider than the §8.8.4.2 general-relation format SR3 admits here (kb/Work PB333).
+startKeyPhrase
+    : KEY comparisonOperator dataReference startWithLength?   // WITH LENGTH introduction-gated in the VersionConformancePass parse arm (VisitStartWithLength → Check(StartWithLength2002))
+    ;
+
+// ISO §14.9.41.2 prints `[ WITH LENGTH arithmetic-expression-1 ]` with LENGTH underlined and WITH NOT
+// underlined (measured off the vector rectangles — `figure_extract.py 784` → `[ WITH _LENGTH_ … ]`, confirmed on
+// the 600 dpi render of PDF page 784 / printed folio 754; the transcription's own figure note says the same).
+// §5.2.3 makes a non-underlined uppercase word an OPTIONAL word that "may be written to add clarity", so
+// `START f KEY IS >= K LENGTH 3` is conforming source; it was rejected `COBOL0001: missing token before '3'`
+// with a COBOL0306/COBOL0307 cascade behind it until kb/Work PB332. The whole PHRASE stays optional at its use
+// site — that is the printed bracket — and LENGTH remains required inside it.
+startWithLength
+    : WITH? LENGTH arithmeticExpression
+    ;
+
+// ==========================================
+// SORT (§14.9.40)
+// ==========================================
+
+// SORT Format 1 (file sort): requires USING/GIVING or INPUT/OUTPUT PROCEDURE
+// SORT Format 2 (table sort, §14.9.40): no USING/GIVING — in-place sort
+// Disambiguation deferred to semantic layer (file vs table target).
+// The key-phrase list is `*`, not `+` (kb/Work PB846): the printed Format 2 BRACKETS the KEY phrase, and
+// §14.9.40.3 SR15 — "The KEY phrase may be omitted only if the description of the table referenced by data-name-2
+// contains a KEY phrase" — is a rule about the RESOLVED table, so it is screened in SortBinder (with Format 1's
+// braced at-least-one), never by the parser. MERGE has no table format, so mergeKeyPhrase+ is correct as it is.
+// Neither SORT nor MERGE has an explicit scope terminator: Table 12 (§14.5.1) leaves both cells of their rows empty,
+// and END-SORT / END-MERGE occur nowhere in ISO/IEC 1989:2023 — so `SORT … END-SORT` is the ordinary syntax error and
+// both words are user-defined words (kb/Work PB758; R58 removed END-INVOKE on the same ISO text).
+sortStatement
+    : SORT sortFileName
+      sortKeyPhrase*
+      sortDuplicatesPhrase?
+      sortCollatingPhrase?
+      ( ( sortUsingPhrase | sortInputProcedurePhrase )
+        ( sortGivingPhrase | sortOutputProcedurePhrase ) )?
+    ;
+
+sortFileName
+    : dataReference
+    ;
+
+sortKeyPhrase
+    : ON? (ASCENDING | DESCENDING) KEY? dataReferenceList?
+    ;
+
+// [ WITH DUPLICATES IN ORDER ] (ISO §14.9.40.2, Formats 1 and 2 — the phrase that buys §14.9.40.4 GR3's defined
+// release order for records equal on every key, in place of GR4's undefined one).
+// ⛔ MEASURED ON THE PRINTED PAGE, not inferred (kb/Work PB704): of the four words only DUPLICATES carries an
+// underline rule, so WITH, IN and ORDER are all OPTIONAL words (§5.2.3) and every subset spelling is conforming.
+// ⛔ ORDER IS A TOKEN HERE AND MAY NOT BORROW `cobolWord` (kb/Work PB704, the PB693 shape;
+// DESIGN-frontend-grammar "A KEYWORD SLOT MAY NOT BORROW cobolWord"). §8.9 reserves ORDER from 2002, and the
+// funnel checks IDENTIFIER occurrences POSITION-BLIND, so while the word arrived through the user-word rule this
+// whole phrase was answered with `'ORDER' is a reserved word … and cannot be used as a user-defined word` at
+// 2002/2014/2023 — the only phrase that can demand GR3 was unusable. The token also ends an under-rejection the
+// name slot allowed: `WITH DUPLICATES IN <any word>` no longer parses, which is what §5.2.3 requires.
+sortDuplicatesPhrase
+    : WITH? DUPLICATES IN? ORDER?
+    ;
+
+sortCollatingPhrase
+    // COLLATING is an OPTIONAL word (kb/Work PB1139): the printed formats (§14.9.40.2, §14.9.24.2) underline only
+    // SEQUENCE in `COLLATING SEQUENCE`, and §5.2.2 / §5.2.3 make the underlining — not the absence of brackets — what
+    // requires a word. `SEQUENCE alphabet-name` (the CCVS85 suite's ST139A spelling) is therefore the standard's own
+    // form, not a leniency to flag; the retired CBL3617/CBL3618 premise ("unbracketed so required") was the
+    // misreading, and both codes are retired (kb/Work PB756).
+    // COLLATING SEQUENCE {IS alphabet-name-1 [alphabet-name-2] | {FOR ALPHANUMERIC IS alphabet-name-1 |
+    // FOR NATIONAL IS alphabet-name-2}…} (ISO §14.9.40.2 / §14.9.24.2). alphabet-name-2 + the FOR forms
+    // are the 2002 national class — gated on recognition (VisitSortCollatingPhrase).
+    : COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord (cobolWord)?)
+    ;
+
+// The ONE FOR-class collating subrule (ISO §12.3.6.2 OBJECT-COMPUTER / §14.9.40.2 SORT — the PROGRAM
+// COLLATING SEQUENCE clause
+// and the SORT/MERGE COLLATING SEQUENCE phrase share it).
+// ⛔ FOR IS AN OPTIONAL WORD IN EVERY FORMAT THAT PRINTS THIS PHRASE (kb/Work PB695) — measured, not inferred,
+// because this ONE rule serves three of them: OBJECT-COMPUTER §12.3.6.2 (folio 285 rules {ALPHANUMERIC,
+// CLASSIFICATION, LOCALE, NATIONAL, OBJECT-COMPUTER., SEQUENCE, SYSTEM-DEFAULT, USER-DEFAULT}), the file-control
+// COLLATING SEQUENCE clause §12.4.5.7.2 (folio 322 rules {ALPHANUMERIC, NATIONAL, OF, SEQUENCE}) and SORT/MERGE
+// §14.9.40.2 (folio 745 rules {ALPHANUMERIC, …, NATIONAL, SEQUENCE, …}). FOR appears in none of the three, so
+// relaxing the shared rule accepts no illegal source at any of its sites.
+collatingForPhrase
+    : FOR? (ALPHANUMERIC | NATIONAL) IS? cobolWord
+    ;
+
+sortUsingPhrase
+    : USING dataReferenceList
+    ;
+
+sortGivingPhrase
+    : GIVING dataReferenceList
+    ;
+
+sortInputProcedurePhrase
+    : INPUT PROCEDURE IS? procedureName ((THRU | THROUGH) procedureName)?
+    ;
+
+sortOutputProcedurePhrase
+    : OUTPUT PROCEDURE IS? procedureName ((THRU | THROUGH) procedureName)?
+    ;
+
+// ==========================================
+// MERGE (§14.9.24)
+// ==========================================
+
+mergeStatement
+    : MERGE mergeFileName
+      mergeKeyPhrase+
+      sortCollatingPhrase?
+      mergeUsingPhrase
+      ( mergeGivingPhrase | mergeOutputProcedurePhrase )?
+    ;
+
+mergeFileName
+    : dataReference
+    ;
+
+mergeKeyPhrase
+    : ON? (ASCENDING | DESCENDING) KEY? dataReferenceList
+    ;
+
+mergeUsingPhrase
+    : USING dataReferenceList
+    ;
+
+mergeGivingPhrase
+    : GIVING dataReferenceList
+    ;
+
+mergeOutputProcedurePhrase
+    : OUTPUT PROCEDURE IS? procedureName ((THRU | THROUGH) procedureName)?
+    ;
+
+// ==========================================
+// RETURN (§14.9.34)
+// ==========================================
+
+// ⛔ §14.9.34.2 prints `AT END imperative-statement-1` WITHOUT brackets (rendered, PDF p738), so RETURN's AT END is
+// REQUIRED — but the phrase stays inside the optional `conditionalPhrases` on purpose: the binder names the omission
+// (StatementValidation.ScreenOmittedRequiredPhrase from SortBinder.BindReturn, COBOL1850; kb/Work PB350), which
+// a parse error could not. SR4 lets AT END and NOT AT END be written in reversed order. READ is NOT the same case:
+// §14.9.30.2 brackets its pair with choice indicators, so there both phrases really are optional.
+returnStatement
+    : RETURN fileName RECORD?
+      (INTO receivingIdentifier)?
+      conditionalPhrases
+      END_RETURN?
+
+    ;
+
+// ==========================================
+// RELEASE (§14.9.32)
+// ==========================================
+
+releaseStatement
+    : RELEASE dataReference
+      recordFromPhrase?   // the one FROM phrase rule, defined beside writeStatement (kb/Work PB2650)
+
+    ;
+
+// ==========================================
+// STRING (§14.9.43)
+// ==========================================
+
+stringStatement
+    : STRING stringSendingPhrase+ stringIntoPhrase stringWithPointer? conditionalPhrases END_STRING?
+    ;
+
+// ── The two STRING/UNSTRING SENDING-operand shapes, named ONCE each ──────────────────────────────────────
+// The general formats distinguish them, so the grammar does too rather than repeating an alternative list in
+// four productions:
+//   §14.9.48.2  `UNSTRING identifier-1`               -> an IDENTIFIER only; a literal sender is not admitted.
+//   §14.9.43.2  `STRING {identifier-1 | literal-1}`   -> an identifier OR a literal.
+// The sender is therefore a strict SUBSET of the operand, and strUnstrOperand says so by referencing it.
+//
+// DA4: functionCall is FIRST in the sender — §8.4.3.1.2 Format 1 makes a function-identifier an IDENTIFIER, so
+// every "identifier-N" SENDING position admits one. It is keyword-led (FUNCTION …), so it can never be shadowed
+// by dataReference (ANTLR takes the first matching alternative). §8.4.3.2.3 SR1 bars a function-identifier only
+// from a RECEIVING operand, which is why the INTO phrases below are untouched. A keyword-OMITTED function (a
+// repository name + parens) still parses as a dataReference and is resolved by the binder's
+// KeywordOmittedFunction path — unchanged.
+strUnstrSender
+    : functionCall | inlineMethodInvocation | dataReference
+    ;
+
+strUnstrOperand
+    : strUnstrSender | literal | figurativeConstant
+    ;
+
+stringSendingPhrase
+    : strUnstrOperand delimitedByPhrase?
+    ;
+
+delimitedByPhrase
+    : DELIMITED BY? (ALL)? (strUnstrOperand | SIZE)
+    ;
+
+stringIntoPhrase
+    : INTO receivingIdentifier
+    ;
+
+stringWithPointer
+    : WITH? POINTER receivingIdentifier
+    ;
+
+// ==========================================
+// UNSTRING (§14.9.48)
+// ==========================================
+
+unstringStatement
+    : UNSTRING strUnstrSender
+      unstringDelimiterPhrase?
+      unstringIntoPhrase
+      unstringWithPointer?
+      unstringTallying?
+      conditionalPhrases
+      END_UNSTRING?
+    ;
+
+unstringDelimiterPhrase
+    : DELIMITED BY? unstringDelimiterItem (OR unstringDelimiterItem)*
+    ;
+
+unstringDelimiterItem
+    : (ALL)? strUnstrOperand
+    ;
+
+// ⛔ ONE INTO, THEN THE REPEATED RECEIVER GROUP (kb/Work PB1183). §14.9.48.2 prints `INTO { identifier-4
+// [ DELIMITER IN identifier-5 ] [ COUNT IN identifier-6 ] } …`: the ellipsis follows the BRACED group, so it repeats
+// the receivers and never the keyword. `unstringStatement` once read `unstringIntoPhrase+`, which admitted
+// `INTO A INTO B` — a spelling no edition prints — at every --std; the repetition lives in `unstringIntoTarget+`.
+unstringIntoPhrase
+    : INTO unstringIntoTarget+
+    ;
+
+unstringIntoTarget
+    : receivingIdentifier
+      (DELIMITER IN? receivingIdentifier)?
+      (COUNT IN? receivingIdentifier)?
+    ;
+
+unstringWithPointer
+    : WITH? POINTER receivingIdentifier
+    ;
+
+unstringTallying
+    : TALLYING IN? receivingIdentifier
+    ;
+
+// ==========================================
+// INSPECT (§14.9.22 — COBOL-85)
+// ==========================================
+
+// identifier-1 admits a FUNCTION-IDENTIFIER, but only in Format 1 (PB10). §8.4.3.1.2 Format 1 makes a
+// function-identifier an IDENTIFIER, so every identifier-N position admits one unless a syntax rule excludes it —
+// and §8.4.3.2.3 SR1 excludes it from a RECEIVING operand. INSPECT is FORMAT-DEPENDENT here, which is why the
+// grammar cannot decide it alone: identifier-1 is SENDING only in Format 1 (TALLYING). §14.9.22.4 GR1 concedes
+// only that "for purposes of determining its length, identifier-1 is treated as a sending data item" — a scoped
+// concession that would be unnecessary if it were generally sending — and GR7 has each match "tallied (format 1)
+// or replaced by literal-3 (format 2)", while GR20 makes format 4 execute AS a format 2 over the same
+// identifier-1. So Formats 2/3/4 MODIFY it and bar a function-identifier. ⛔ THE BINDER SCREENS PER FORMAT
+// (InspectBinder, COBOL1632); widening the grammar alone would ACCEPT ILLEGAL SOURCE.
+// The function-identifier is an added ALTERNATIVE beside dataReference rather than a shared operand rule, so
+// the generated .dataReference() accessor stays; unifying it is kb/Work PB2114.
+inspectStatement
+    : INSPECT BACKWARD? (functionCall | inlineMethodInvocation | dataReference)
+      ( inspectTallyingPhrase inspectReplacingPhrase?
+      | inspectReplacingPhrase
+      | inspectConvertingPhrase )
+    ;
+
+// ----- TALLYING -----
+
+inspectTallyingPhrase
+    : TALLYING inspectTallyingItem+
+    ;
+
+// ⛔ THE TALLYING-PHRASE AS PRINTED (§14.9.22.2, the page rendered from the PDF — kb/Work PB1125):
+//   { identifier-2 FOR { CHARACTERS [abp] | ALL { {identifier-3|literal-1} [abp] } … | LEADING { … } … } … } …
+// ONE FOR per identifier-2 (the outer ellipsis repeats `identifier-2 FOR …`, the middle one repeats the selected
+// CHARACTERS/ALL/LEADING phrase, the inner one the operand), and the adjective is REQUIRED on the first operand of a
+// phrase — only the operands AFTER it are bare. The grammar used to spell `identifier-2 (FOR phrase+)+` with an
+// adjective-less alternative at every position, so `N FOR ALL "A" FOR ALL "B"` and `N FOR "A"` were accepted.
+inspectTallyingItem
+    : receivingIdentifier FOR inspectCountPhrase+
+    ;
+
+// ALL/LEADING are transitive across the bare operands that follow them (GR 10), so a
+// count phrase lists the operands after its adjective: "FOR LEADING ""S"" ""S"" ""T""" is three
+// operands. That bare form is ambiguous with the next counter in multi-counter TALLYING
+// ("c1 FOR ALL x  c2 FOR ALL y"): a greedy parser swallows c2 as a pattern of c1. The
+// IsBareInspectOperand() predicate resolves it — a data-name immediately followed by FOR
+// is the next counter, and a phrase ADJECTIVE (ALL/LEADING/CHARACTERS …) begins the next phrase, so a bare
+// operand declines both and the operand loop ends.
+inspectCountPhrase
+    : CHARACTERS inspectDelimiters?
+    | (ALL | LEADING | FIRST | TRAILING) inspectCountOperand ({IsBareInspectOperand()}? inspectCountOperand)*
+    ;
+
+// ⛔ EVERY INSPECT OPERAND AFTER identifier-1 IS A SENDING OPERAND. §14.9.22.2 writes each as `identifier-n |
+// literal-n` — the TALLYING pattern, both sides of a REPLACING pair, both CONVERTING operands and the BEFORE/AFTER
+// delimiters; identifier-1, the item inspected, is the only receiver and is its own rule. So each is the one
+// `sendingOperand` (kb/Work PB2114), function-identifier included (fix-queue PB45: `INSPECT S TALLYING N FOR ALL
+// FUNCTION TRIM(X)` was a parse error). The figurative constants arrive through its `literal` arm. FUNCTION heads
+// no other alternative, so the function arm cannot meet the {IsBareInspectOperand()}? bare form above.
+inspectCountOperand
+    : sendingOperand inspectDelimiters?
+    ;
+
+// ----- REPLACING -----
+
+inspectReplacingPhrase
+    : REPLACING inspectReplacingItem+
+    ;
+
+// ⛔ THE REPLACING-PHRASE AS PRINTED (§14.9.22.2 — kb/Work PB1125): CHARACTERS, ALL, LEADING and FIRST are all
+// underlined and sit in ONE choice, so the adjective is REQUIRED on the first pair of an ALL/LEADING/FIRST phrase
+// and only the pairs AFTER it are bare (GR16's transitivity); a CHARACTERS phrase repeats nothing. The grammar used
+// to make the adjective optional at every pair, so `REPLACING "A" BY "Z"` and a bare pair after CHARACTERS parsed.
+inspectReplacingItem
+    : CHARACTERS BY sendingOperand inspectDelimiters?
+    | (ALL | LEADING | FIRST | TRAILING) inspectReplacingPair ({IsBareInspectReplacingPair()}? inspectReplacingPair)*
+    ;
+
+inspectReplacingPair
+    : sendingOperand BY sendingOperand inspectDelimiters?
+    ;
+
+// ----- CONVERTING -----
+
+// The after-before-phrase is ONE rule (§5.2.6.4's choice indicators: AFTER and BEFORE each at most once, in either
+// order) — the same inspectDelimiters the TALLYING and REPLACING phrases use. CONVERTING used to spell its own
+// `inspectBeforeAfterPhrase*`, which let BEFORE or AFTER repeat (the last one silently won).
+inspectConvertingPhrase
+    : CONVERTING sendingOperand
+      TO sendingOperand
+      inspectDelimiters?
+    ;
+
+inspectDelimiters
+    : BEFORE INITIAL_? sendingOperand (AFTER INITIAL_? sendingOperand)?
+    | AFTER INITIAL_? sendingOperand (BEFORE INITIAL_? sendingOperand)?
+    ;

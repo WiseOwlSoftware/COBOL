@@ -3,7 +3,7 @@
 generate-grapheme-table.py — build WiseOwl COBOL's DERIVED grapheme-cluster property table from Unicode Character
 Database data (the data the UAX #29 extended-grapheme-cluster rules read).
 
-    python scripts/unicode/generate-grapheme-table.py [--data data/unicode] [--out src/Cobol.Net.Runtime/Unicode/Segmentation/Data]
+    python scripts/unicode/generate-grapheme-table.py [--data data/unicode] [--out src/WiseOwl.Cobol.Runtime/Unicode/Segmentation/Data]
 
 Inputs (pinned, committed under data/unicode/, Unicode License — data/unicode/LICENSE-UNICODE.txt; provenance in
 data/unicode/SOURCES.md):
@@ -97,7 +97,7 @@ def parse_property(path: str, prop_filter=None):
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--data", default="data/unicode")
-    ap.add_argument("--out", default="src/Cobol.Net.Runtime/Unicode/Segmentation/Data")
+    ap.add_argument("--out", default="src/WiseOwl.Cobol.Runtime/Unicode/Segmentation/Data")
     args = ap.parse_args()
 
     p_gcb = os.path.join(args.data, "GraphemeBreakProperty.txt")

@@ -16,6 +16,8 @@
       *>   88 C4 VALUE ALL ZERO over V4 = 0   -> C4 TRUE
       *>   ADD ALL ZERO TO N (N = 5)          -> 005
       *>   IF ALL ZEROS IS POSITIVE (0 > 0)   -> NOT POS
+      *>   COMPUTE N = ALL ZERO (N = 5)       -> 000 (kb/Work PB3830 R2-1:
+      *>     the COMPUTE re-route reads its operand through the same gate)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1415AZ.
        DATA DIVISION.
@@ -44,4 +46,6 @@
            ELSE
                DISPLAY "NOT POS"
            END-IF
+           COMPUTE N = ALL ZERO
+           DISPLAY N
            STOP RUN.

@@ -1,0 +1,21 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+namespace WiseOwl.Cobol.Editions;
+
+/// <summary>
+/// The report channel <see cref="ConstructRegistry.Check"/> writes to — layer-neutral so BOTH
+/// <c>WiseOwl.Cobol.Frontend</c> (the preprocessor / parse-layer error strategy) and <c>WiseOwl.Cobol.Compiler</c>
+/// (the binder/validator, via the <c>EditionContext</c> adapter) can receive the SAME structured edition
+/// diagnostic. This ends the duplicate strict/permissive severity logic each layer used to carry.
+/// </summary>
+public interface IDiagnosticSink
+{
+    /// <summary>Record one edition diagnostic. Passed <c>in</c> (a readonly-struct value; no copy).</summary>
+    void Report(in EditionDiagnostic diagnostic);
+
+    /// <summary>The diagnostic cursor (kb/Work PB82) — the RESULTANT-text position of the construct being processed,
+    /// stamped onto every diagnostic reported while it is set. Positioned through
+    /// <see cref="DiagnosticCursorExtensions.At(IDiagnosticSink, int, int)"/>. The default is a no-op: a sink whose
+    /// diagnostics carry their own fixed position (the frontend's per-directive bag sinks) has no cursor to keep.</summary>
+    DiagnosticCursor Cursor { get => default; set { } }
+}
