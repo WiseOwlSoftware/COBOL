@@ -1,4 +1,4 @@
-## PB3575: every diagnostic code is COBOL####, one prefix and one number space
+## Entry 2623 — 2026-10-26 12:15 PDT — PB3575: every diagnostic code is COBOL####, one prefix and one number space
 
 The owner decided on 2026-10-23 that the diagnostic code prefix COBOLNET#### becomes COBOL#### with every number kept
 (kb/Work PB3575), and on 2026-10-26 ~10:55 PDT said: "All the error codes are incorrect because days ago I ordered
@@ -69,3 +69,4 @@ whatever the compiler printed. Four rules now cover those shapes, plus the hyphe
 word. A bare literal passed to any other call stays, because it is a name (the COBOL program of
 `ModuleRegistrationHostTests`). Run over the pre-rename main, the script now converts all nine string sites the first
 pass converted by hand. What it still leaves is prose and names.
+
