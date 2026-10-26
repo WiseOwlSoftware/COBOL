@@ -373,6 +373,9 @@ GUI_CASES = [
     ("pwsh -c './x.md'", True),
     ("cmd /c start x.md", True),
     ("cat x.md", False),
+    # Bash execs a file in command position (a shebang script), it hands no document to ShellExecute (branch review R2-3)
+    ("./app.cs", False),
+    ("./scripts/run.js", False),
     ("git commit -q -m 'open x.md in the viewer'", False),
     ("python scripts/x.py --out x.json", False),
     ("chrome --headless --print-to-pdf=x.pdf x.html", False),                 # a headless browser draws no window
@@ -416,6 +419,32 @@ GUI_PS_CASES = [
     ("$p = [Diagnostics.Process]::Start('" + OBS + "')", True),
     ("New-Object -ComObject Shell.Application", True),
     ("New-Object -ComObject 'WScript.Shell'", True),
+    # the call and dot-source operators RUN a parenthesized string as the command (branch review R2-1)
+    ('& ("obsidian")', True),
+    ("& ('obsidian')", True),
+    ('& ("' + OBS + '")', True),
+    ('. ("obsidian")', True),
+    ('& $("obsidian")', True),
+    ('& ("explorer") .', True),
+    ("& ('ii') x.md", True),
+    ('& (("obsidian"))', True),
+    ("Start-Job { & ('obsidian') }", True),
+    ('& ("git") status', False),
+    ('& ("dotnet") build', False),
+    # Start-Process's positional -ArgumentList (position 1) is re-read like the named one (branch review R2-2)
+    ('Start-Process cmd -NoNewWindow "/c start x.md"', True),
+    ('Start-Process cmd -NoNewWindow "/c x.md"', True),
+    ('Start-Process cmd -NoNewWindow "/c","start","x.md"', True),
+    ('Start-Process cmd "/c start obsidian" -NoNewWindow', True),
+    ("saps cmd -NoNewWindow '/c start x.md'", True),
+    ('Start-Process cmd -NoNewWindow "/c dir"', False),
+    ('Start-Process cmd -NoNewWindow "/c","dir"', False),
+    ('Start-Process git -NoNewWindow "status"', False),
+    # a PowerShell statement that starts with a variable is an expression: a property named like an extension is no
+    # document (branch review R2-3), while `&` runs the variable's value
+    ("$resp.json", False),
+    ("$data.json | ConvertTo-Json", False),
+    ("& $resp.json", True),
     # false refusals the branch review found (R1-3): a non-shell console tool is handed data, and a string in a PowerShell
     # expression is no command
     ("Start-Process git -NoNewWindow -ArgumentList 'clone','https://github.com/x/y' -Wait", False),

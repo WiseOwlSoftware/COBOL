@@ -14,7 +14,10 @@ A step launches a GUI when it is, in this order of check:
      walked into steps of their own;
   3. a DOCUMENT run in command position (`& ./x.md`, `.\report.html`, `cmd /c x.md`): PowerShell and cmd.exe hand a file
      that is no program to ShellExecute, which opens its associated application exactly as `Invoke-Item` does
-     (`DOCUMENT_EXTENSIONS`; branch review R1-1);
+     (`DOCUMENT_EXTENSIONS`; branch review R1-1). The step's own shell decides: Bash execs the file (a shebang script
+     `./app.cs` is no launch) and a PowerShell statement that starts with a variable (`$resp.json`) is an expression, not a
+     command, unless the call operator runs it (R2-3). The call and dot-source operators also run a parenthesized string
+     as the command NAME (`& ("obsidian")`, `. ('C:/.../Obsidian.exe')`), so the string stands in the command word (R2-1);
   4. `Start-Process` / `saps` / PowerShell's `start` alias / cmd.exe's `start`, which launch ANYTHING (a document or a URL
      opens its associated application): refused unless the target is a console tool (`CONSOLE_TOOLS`) AND the command
      says it opens no window (`-NoNewWindow`, `-WindowStyle Hidden`, cmd's `/b`), has no `-Verb` (`-Verb RunAs` is a UAC
@@ -22,7 +25,8 @@ A step launches a GUI when it is, in this order of check:
      arguments are re-read as a command (`Start-Process cmd -ArgumentList '/c','start','x.md'` is `cmd /c start x.md`,
      whose `start` is refused), and a SHELL (`cmd`, `pwsh`, `bash` ...) is also refused when any of its arguments names a
      launcher, a start verb or a desktop application, because a shell may take its arguments as a command in a form the
-     parser cannot tell (`pwsh Start-Process x.md`; branch review R1-2). A non-shell console tool (`git clone <url>`,
+     parser cannot tell (`pwsh Start-Process x.md`; branch review R1-2). Start-Process's positional second argument is its
+     -ArgumentList, so `Start-Process cmd -NoNewWindow "/c start x.md"` is read like the named form (R2-2). A non-shell console tool (`git clone <url>`,
      `python x.py open`) is handed data, so its arguments are no launch;
   5. the library forms of the same act: `[System.Diagnostics.Process]::Start`, `New-Object -ComObject Shell.Application`
      (and `WScript.Shell`), Python's `os.startfile` / `webbrowser.open` among a Python command's words.
@@ -79,6 +83,11 @@ _START_SWITCH = ("loaduserprofile", "nonewwindow", "passthru", "wait", "usenewen
 _PS_DOTNET_START = re.compile(r"\[(?:system\.)?diagnostics\.process\]::start\b", re.I)
 _PY_LAUNCH = re.compile(r"\bos\.startfile\b|\bwebbrowser\.(?:open|get)\b")
 _QUOTED = re.compile(r"'[^']*'|\"[^\"]*\"")
+# the words an argument string holds, as the console tool will see them (`'/c','start','x.md'`, `"/c start x.md"`)
+_ARG_WORDS = re.compile(r"[\s,;'\"@()]+")
+# a PowerShell expression that is one quoted string, `("obsidian")` / `$("obsidian")`: the command NAME when the call or
+# dot-source operator runs it (`& ("obsidian")`), a plain string anywhere else
+_PS_STRING_EXPR = re.compile(r"^\$?\(+\s*(['\"])(.*)\1\s*\)+$", re.S)
 
 HOW = ("A dispatched agent starts no desktop application (owner order 2026-10-25, kb/Work PB3798: an agent launched "
        "Obsidian over and over on the owner's screen). Read the file or run the console tool directly; a background "
@@ -150,13 +159,15 @@ def _start_refusal(words: tuple[str, ...], shell: str) -> str | None:
                 elif value == "windowstyle":
                     quiet = quiet or v.lower() in ("hidden", "h", "hi", "hid", "hidd", "hidde")
                 elif value == "argumentlist":
-                    rest.extend(t for t in re.split(r"[\s,;'\"@()]+", v) if t)
+                    rest.extend(t for t in _ARG_WORDS.split(v) if t)
         elif w and w != '""' and w != "''" and target is None and not w.startswith("/"):
             target = w
-        elif w.startswith("/") and len(w) > 2:
+        elif w.startswith("/") and len(w) > 2 and target is None:
             pass                                                            # cmd.exe's other flags (`/min`, `/d dir`)
         else:
-            rest.append(w)
+            # past the target a word is the tool's positional -ArgumentList (position 1: `Start-Process cmd "/c start x.md"`),
+            # whatever it starts with, so it is re-read below like the named -ArgumentList
+            rest.extend(t for t in _ARG_WORDS.split(w) if t)
         i += 1
     if target is None:
         return "no target program is named"
@@ -172,7 +183,7 @@ def _start_refusal(words: tuple[str, ...], shell: str) -> str | None:
                 return f"its arguments hand `{token}` to the shell `{target}`, which opens a desktop application"
     # the tool and its arguments, read as the command the tool runs (`cmd /c x.md`, `pwsh -c Start-Process x.md`)
     for st in sl.steps(" ".join([target, *rest]), None, shell):
-        why = refusal(st, shell)
+        why = refusal(st)
         if why:
             return f"handed to `{target}` it is a launch: {why}"
     return None
@@ -184,17 +195,28 @@ def _extension(word: str) -> str:
     return base.rsplit(".", 1)[1] if "." in base.strip(".") else ""
 
 
-def refusal(step: sl.Step, shell: str = sl.BASH) -> str | None:
-    """Why this step starts a desktop GUI application, or None. The text names the offending form. `shell` is the
-    shell whose syntax the step was parsed in."""
+def refusal(step: sl.Step) -> str | None:
+    """Why this step starts a desktop GUI application, or None. The text names the offending form. The step's own
+    `shell` decides the syntax rules that differ (a payload of `cmd /c` inside a Bash call is cmd.exe's)."""
+    shell = step.shell
     words = step.words
     if shell == sl.POWERSHELL and step.substitution and step.text.lstrip()[:1] in ("'", '"'):
-        return None                             # `('obsidian')`: a string in a PowerShell expression, no command
+        return None                             # `('obsidian')`: a string in a PowerShell expression, no command ...
     k = _command_word(words)
     if k is None:
         return None
+    called = k > 0 and words[k - 1] == "&"
+    if shell == sl.POWERSHELL and words[k] == "." and k + 1 < len(words):
+        k, called = k + 1, True                 # dot-source operator: the next word is the command it runs
+    if shell == sl.POWERSHELL and called and (m := _PS_STRING_EXPR.match(words[k])):
+        # ... unless the call / dot-source operator runs it: `& ("obsidian")` and `. ('C:/.../Obsidian.exe')` name the
+        # program (branch review R2-1), so the string stands in the command word
+        words = (*words[:k], m.group(2), *words[k + 1:])
+    elif shell == sl.POWERSHELL and not called and words[k].startswith("$"):
+        return None                             # `$resp.json`: an expression statement (a property read), no command
     name = sl.program(words[k])
-    if _extension(words[k]) in DOCUMENT_EXTENSIONS:
+    if shell != sl.BASH and _extension(words[k]) in DOCUMENT_EXTENSIONS:
+        # PowerShell and cmd.exe hand a non-program to ShellExecute; Bash execs the file (a shebang script, or an error)
         return f"`{words[k]}` is a document, and running it opens the application associated with its extension"
     if name in LAUNCHERS:
         return f"`{words[k]}` opens its operand in the associated desktop application"
