@@ -1,4 +1,4 @@
-## PB3829: a ROUNDED store of ACOS, ASIN, ATAN, RANDOM or FRACTION-PART rounds like any other value; the codomain clamp is gone
+## Entry 2624 — 2026-10-26 13:33 PDT — PB3829: a ROUNDED store of ACOS, ASIN, ATAN, RANDOM or FRACTION-PART rounds like any other value; the codomain clamp is gone
 
 **The defect (fifth fuzz night, owner-approved fix).** `COMPUTE R ROUNDED = FUNCTION ACOS(-1)` into `PIC 9V9999`
 stored 3.1415 where §14.7.4.3 r4 gives 3.1416, while `FUNCTION ACOS(-1) + 0` stored 3.1416. Re-probed on this branch's
@@ -53,3 +53,4 @@ the standard-decimal arm all round once. Two more places shortened a value befor
 **Left as a lead:** native NUMVAL-F into a fixed-point receiver lands its exact parse at `max(scale, 9)` with
 truncation before the ROUNDED decision (AWAY-FROM-ZERO of NUMVAL-F("0.12340000000001") into four places stores 0.1234,
 NUMVAL 0.1235); that is CONFORMANCE.md DOC-A.1-92's documented NUMVAL-F determination and open PB624's arm.
+
