@@ -313,22 +313,53 @@ public sealed partial class SequentialConnector : IJournalData
 
     /// <summary>The covered WRITE's first change, under the entry mutex its lock test holds (<see cref="JournalAppend"/>): the state
     /// at the last COMMIT had no file (a ROLLBACK removed it, 2.2.2.7) — the transaction begins with no file at its start and the
-    /// WRITE creates the file again, as its OPEN did; otherwise the transaction begins and its <c>L</c> is read at this first
-    /// append.</summary>
-    private void BeginAppending()
+    /// WRITE creates the file again, as its OPEN did (<see cref="CreateTheFileAgain"/>); otherwise the transaction begins and its
+    /// <c>L</c> is read at this first append. Returns the failing I-O status, or null; throws on a refusal (R5: '30').</summary>
+    private string? BeginAppending()
     {
-        var journal = Journal;
-        if (_fileRemoved)
-        {
-            journal ??= Transactions.Begin(HostPath, SequentialJournal.StartState.Absent);
-            _writer = OpenWriter(FileMode.Append);
-            _fileRemoved = false;
-            if (!ResumeRunUnitFileLock()) throw new IOException($"the file lock of '{HostPath}' cannot be published again");   // R5: '30'
-            return;
-        }
-        journal = Transactions.Begin(HostPath, SequentialJournal.StartState.Present);
+        if (_fileRemoved) return CreateTheFileAgain();
+        var journal = Transactions.Begin(HostPath, SequentialJournal.StartState.Present);
         _writer!.Flush();
         journal.NoteFirstAppend(_held!.Length);
+        return null;
+    }
+
+    /// <summary>⛔ THE WRITE THAT CREATES THE FILE AGAIN AFTER THE RUN UNIT'S ROLLBACK REMOVED IT (§14.9.36.4 GR3, <i>"restored to the
+    /// state they were in at the execution of the last COMMIT statement or the start of the run unit"</i>, a state with no file;
+    /// DESIGN-runtime-library.md 2.2.2.14; kb/Work PB3492, PB3635; the keyed twin is <c>KeyedConnector.CreateTheFileAgain</c>). The
+    /// ROLLBACK released this connector's file lock of a file not open at the last COMMIT (§9.1.15) and reversed only this run
+    /// unit's own changes, so a file another run unit has made at the path since is protected from this one (§9.1.17): the WRITE
+    /// is refused '30' (§9.1.13.6 item 1), never appended to it. The presence probe and the creating handle are one decision
+    /// under the entry mutex the lock test holds, and the handle is opened <see cref="FileMode.CreateNew"/>, so a file made
+    /// between the probe and the open (by a run unit whose OPEN takes no entry mutex) is refused rather than adopted.
+    /// <para>An unsuccessful creation leaves the connector on no file (<see cref="_fileRemoved"/> stays set). The journal this WRITE
+    /// began is WITHDRAWN when the file was not created (2.2.2.14: the file is as the journal's start says,
+    /// <see cref="SequentialTransactions.Withdraw"/>); otherwise it is left to item 8's ROLLBACK (§14.6.13.1.3 8), the '30' being
+    /// fatal), which removes the file this WRITE made. Returns the failing I-O status, or null.</para></summary>
+    private string? CreateTheFileAgain()
+    {
+        SequentialJournal? begun = null;
+        bool created = false;
+        string? refused = null;
+        try
+        {
+            if (HostFile.Probe(HostPath) is not FilePresence.Absent) return FileStatusCode.PermanentError;
+            if (Journal is null) begun = Transactions.Begin(HostPath, SequentialJournal.StartState.Absent);
+            _ = TakeHeld(FileMode.CreateNew, FileAccess.ReadWrite, HostShare);   // refuses a file made since the probe
+            created = true;
+            _writer = OpenWriter(FileMode.Append);   // over the handle just taken: HeldStream answers this OPEN's own
+            if (!ResumeRunUnitFileLock()) refused = FileStatusCode.PermanentError;   // R5: the Table 19 column cannot be published again
+        }
+        catch (IOException e) { refused = FileStatusCode.ForWriteFailure(e); }   // '34' / '30'
+        catch (UnauthorizedAccessException) { refused = FileStatusCode.PermanentError; }
+        if (refused is null)
+        {
+            _fileRemoved = false;
+            return null;
+        }
+        if (created) ((IJournalData)this).Release();   // the file this WRITE made stands for item 8's ROLLBACK; the connector leaves it
+        else if (begun is not null) Transactions.Withdraw(begun);
+        return refused;
     }
 
     /// <summary>⛔ THE OVERWRITE'S STEP (2.2.2.3, 2.2.2.5 R2), before <see cref="OverwriteInPlace(Stream, long, ReadOnlySpan{byte}, string, bool)"/>
@@ -348,7 +379,11 @@ public sealed partial class SequentialConnector : IJournalData
         if (journal is null)
         {
             if (JournalLockTest(null, HoldsTheRecord, underMutex: true,
-                    () => journal = Transactions.Begin(HostPath, SequentialJournal.StartState.Present)) is { } refused)
+                    () =>
+                    {
+                        journal = Transactions.Begin(HostPath, SequentialJournal.StartState.Present);
+                        return null;
+                    }) is { } refused)
                 return refused;
         }
         else if (sharing && JournalLockTest(journal.Id, HoldsTheRecord, underMutex: false) is { } held)
@@ -388,8 +423,10 @@ public sealed partial class SequentialConnector : IJournalData
     /// <paramref name="underMutex"/> the attempt holds the entry mutex — and <paramref name="proceed"/>, the first change, runs
     /// under it, so no other transaction begins between the test and the change — and gives it back before any wait, so a
     /// waiting statement never keeps another run unit's entry step out. Returns '51' (a RETRY's exhaustion status: '51', or
-    /// FOREVER's '52' for the run unit's own holding), or null when the statement proceeds; throws on a refusal (R5: '30').</summary>
-    private string? JournalLockTest(int? ownId, Func<SequentialJournal.Holding, bool> held, bool underMutex, Action? proceed = null) =>
+    /// FOREVER's '52' for the run unit's own holding), the status <paramref name="proceed"/> answered when the first change was
+    /// refused (no conflict, so no RETRY: <see cref="CreateTheFileAgain"/>'s '30'), or null when the statement proceeds; throws on
+    /// a refusal (R5: '30').</summary>
+    private string? JournalLockTest(int? ownId, Func<SequentialJournal.Holding, bool> held, bool underMutex, Func<string?>? proceed = null) =>
         JournalLockTest(ownId, held, underMutex ? EntryMutexUse.ForTheAttempt : EntryMutexUse.None, proceed, out _);
 
     /// <summary>How one attempt of the journal lock test holds the entry mutex.</summary>
@@ -406,7 +443,7 @@ public sealed partial class SequentialConnector : IJournalData
         UntilTheRelease,
     }
 
-    private string? JournalLockTest(int? ownId, Func<SequentialJournal.Holding, bool> held, EntryMutexUse use, Action? proceed,
+    private string? JournalLockTest(int? ownId, Func<SequentialJournal.Holding, bool> held, EntryMutexUse use, Func<string?>? proceed,
         out RegionLocks? kept)
     {
         int? runUnitsOwn = Transactions.Of(HostPath)?.Id;
@@ -422,7 +459,7 @@ public sealed partial class SequentialConnector : IJournalData
             try
             {
                 if (SequentialJournal.Enter(Medium, HostPath, ownId, mutex).Conflict(held, runUnitsOwn) is { } conflict) return conflict;
-                proceed?.Invoke();
+                if (proceed?.Invoke() is { } refused) return RetryAttempt.InRunUnit(refused);   // a refusal that is no conflict: the statement's own status
                 if (use == EntryMutexUse.UntilTheRelease) (keep, mutex) = (mutex, null);
                 return RetryAttempt.InRunUnit(FileStatusCode.Success);
             }

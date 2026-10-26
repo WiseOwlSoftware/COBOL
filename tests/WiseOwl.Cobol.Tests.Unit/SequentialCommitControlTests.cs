@@ -376,6 +376,74 @@ public sealed class SequentialCommitControlTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
+    /// <summary>⛔ A FILE ANOTHER RUN UNIT MAKES AT THE PATH AFTER A ROLLBACK REMOVED THIS CONNECTOR'S IS NOT THIS WRITE'S TO USE
+    /// (kb/Work PB3635; the keyed twin is <c>KeyedConnector.CreateTheFileAgain</c>). The ROLLBACK released the file lock of a file not
+    /// open at the last COMMIT (§9.1.15) and reversed only this run unit's own changes (§14.9.36.4 GR3), so what another run unit
+    /// then creates there is protected from this one (§9.1.17): the WRITE that would create the file again answers '30' (§9.1.13.6
+    /// item 1), never appends to the other's file, and the later ROLLBACK or COMMIT leaves that file as its creator wrote it.</summary>
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void A_write_creating_the_file_again_meets_a_file_another_run_unit_made_meanwhile_30(bool line, bool commit)
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            var a = new Unit(f, covered: true, line: line);
+            Ok(a.Open(FileOpenMode.Output));
+            Ok(a.Write("A1"));
+            OkRollback(a);
+            Assert.False(File.Exists(f));   // §14.9.36.4 GR3: the state at the start of the run unit had no file
+            var b = new Unit(f, covered: false, line: line);
+            Ok(b.Open(FileOpenMode.Output));
+            Ok(b.Write("B1"));
+            Ok(b.Close());
+            Assert.Equal("30", a.Write("A2"));   // §9.1.13.6 item 1: the file is another run unit's now
+            if (commit) Assert.True(a.Commit()); else Assert.True(a.Rollback());
+            a.Reg.CloseAll();
+            Assert.Equal(Show(Bytes("B1", line)), Show(State(f)));
+            AssertNoLitter(f);
+            NextEntry(f, line);
+            Assert.Equal(Show(Bytes("B1", line)), Show(State(f)));
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>The same window with the other run unit's file still OPEN: the refused WRITE withdraws the journal it began
+    /// (2.2.2.14: an unsuccessful creation that did not affect the file leaves no transaction), so no <c>txn-</c> litter stands and
+    /// a later run unit's OPEN EXTEND settles nothing of it and finds the other run unit's file.</summary>
+    [Fact]
+    public void A_write_creating_the_file_again_meets_a_file_another_run_unit_holds_open_30_and_leaves_no_journal()
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            var a = new Unit(f, covered: true);
+            Ok(a.Open(FileOpenMode.Output));
+            Ok(a.Write("A1"));
+            OkRollback(a);
+            var b = new Unit(f, covered: false);
+            Ok(b.Open(FileOpenMode.Output));
+            Ok(b.Write("B1"));
+            Assert.Equal("30", a.Write("A2"));
+            AssertNoLitter(f);
+            Ok(b.Close());
+            var c = new Unit(f, covered: false);
+            Ok(c.Open(FileOpenMode.Extend));
+            Ok(c.Close());
+            Assert.Equal("B1", File.ReadAllText(f, Encoding.Latin1));
+            Assert.True(a.Rollback());
+            a.Reg.CloseAll();
+            Assert.Equal("B1", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
     // ── The connector's own state, the lock test and the run unit's end ────────────────────────────────────────
 
     [Fact]
