@@ -13,7 +13,7 @@ namespace CobolNet.Tests.Unit;
 /// strategy's closed-format walk (<c>CobolErrorStrategy.ClosedFormatResidue</c>), which re-simulates the tokens the
 /// failed prediction read, kept one call stack per path. Every argument reaches a function-identifier along many call
 /// paths, so the distinct stacks multiplied with each nested argument list: one or two levels answered at once, three
-/// did not answer in 90 seconds. The walk now runs on ANTLR's own full-context simulator (<c>ResidueWalk</c>), whose
+/// did not answer in 90 seconds. The walk now runs on ANTLR's own full-context simulator (<c>ResimulationWalk</c>), whose
 /// graph-structured stacks merge the paths after every token.
 /// <para>⛔ The witness is ALLOCATION, never the clock (kb/Work PB1590): the bytes the compiling thread allocates while
 /// it checks the program, at depths 0, 1 and 2. A count of configurations cannot serve: ANTLR's configuration set merges

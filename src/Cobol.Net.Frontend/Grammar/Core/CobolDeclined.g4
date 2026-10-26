@@ -112,14 +112,16 @@ validationClause
 //                              alphabet-name-1 | class-name-1 }
 // RENDERED (PDF p412 / folio 382): CLASS and the five class-name keywords are underlined; IS is not (§5.2.3
 // optional word); the braces are a plain required choice with NO choice indicators — exactly one alternative.
-// ⚠ BOOLEAN IS NOT GIVEN AN ARM HERE, and the reason is no longer the one this comment used to give. It said
-// "BOOLEAN HAS NO LEXER TOKEN"; it does — CobolLexer.g4 declares it, and ReservedWords.Table makes it reserved
-// at 2002+ — so at those editions it does NOT arrive as an IDENTIFIER and cobolWord's own
-// {userWordHere("BOOLEAN")}? arm does not match it. The posture is unchanged and still costs nothing, because
-// the clause is refused AS A WHOLE whichever arm matched (permissive INSIDE the declined construct, exact at
-// its edges — §4.2.7 / A.4.1, see the header): at 2002+ `CLASS IS BOOLEAN` is a plain syntax error inside a
-// construct this compiler declines, and below 2002 the word is a user word the class-name-1 arm takes. If the
-// VALIDATE clause is ever implemented, this rule gains the BOOLEAN arm with it.
+// ⛔ EVERY PRINTED KEYWORD IS AN ARM, BOOLEAN INCLUDED (kb/Work PB3831). BOOLEAN used to be left out, on the
+// premise that a syntax error inside a declined construct costs nothing. It did cost something: BOOLEAN has a
+// lexer token and is reserved at 2002+, so cobolWord does not admit it there, the parse failed at the operand,
+// and the error listener answered COBOLNET0901 ("'BOOLEAN' is a reserved word ... cannot be used as a
+// user-defined word") — a FALSE statement, since §13.18.11.2 prints BOOLEAN as the clause's own keyword —
+// instead of the declined-facility refusal COBOLNET1708 every other operand draws. A keyword the arms omit
+// does not fall into "permissive inside": it falls to cobolWord, and cobolWord refuses a reserved word. The
+// same mechanism hit FORMAT in validateStatusStage (kb/Work PB693) and the class condition's BOOLEAN (kb/Work
+// PB857). DeclinedFacilityDriftTests.EveryPrintedKeyword_IsAnArmOfItsRule derives each declined rule's keywords
+// from its cited general format in specs/ISO_COBOL.md on every run, so the next omission fails there.
 // ⚠ THIS IS NOT THE CLASS CONDITION'S LIST. §13.18.11.2's brace group and §8.8.4.4.2's are different formats
 // of different constructs that happen to share four keywords — `className` (Core/CobolExpressions.g4) is the
 // condition's ONE list, and ClassConditionTableDriftTests exempts this rule BY NAME with that reason.
@@ -135,6 +137,7 @@ validateClassOperand
     | ALPHABETIC
     | ALPHABETIC_LOWER
     | ALPHABETIC_UPPER
+    | BOOLEAN
     | cobolWord
     ;
 
