@@ -2201,8 +2201,16 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   its I-O files (`EcBinder.IoFilesOf`), so EC-I-O checking for one of them raises EC-I-O-PERMANENT-ERROR through
   `__IoCheckEc` exactly as at any input-output statement; a refused file of ANOTHER element has no file description
   here, so its condition is declared with no file and only a directive naming no file enables it
-  (`SequentialIoEmitter.EmitForeignFileIoCheck`), and with no declarative qualifying DOC-A.1-103 decides
-  (`CobolFile.TerminateOnRefusalWithoutStatusItem`). The refusal leaves the connector in permanent error until its
+  (`SequentialIoEmitter.EmitForeignFileIoCheck`). **The executing element's format 1 USE procedures apply to another
+  element's refused file as they do to any input-output statement's file, with or without checking (§14.9.49.4 GR4,
+  GR6 a)-e)): the file-name tier when the element names the file (a containing element's GLOBAL file) and the open-mode
+  tier by the file's open mode** - format 1 selection follows the I-O status, never EC checking (§14.6.13.1.1: *"if
+  checking for EC-I-O exception conditions is not enabled, there is no link between EC-I-O exception conditions and I-O
+  status values"*, NOTE 1: *"I-O status indicators are always enabled and cannot be turned off"*), and GR6's open-mode
+  phrases name no element (kb/Work PB3554). With checking not enabled the foreign arm therefore writes the same plain
+  hook as an own file's (`SequentialIoEmitter.EmitPlainIoCheck`: the question, `__IoCheck`, item 8's ROLLBACK, the RESUME
+  transfer), and the run unit then continues when a declarative ran or an element gives the file a FILE STATUS item; with
+  no declarative qualifying DOC-A.1-103 decides (`CobolFile.TerminateOnRefusalWithoutStatusItem`). The refusal leaves the connector in permanent error until its
   CLOSE. A refused COMMIT saves no data item; a refused ROLLBACK still restores them. GR1 is asked before GR2: with no active clause both
   statements are CONTINUE wherever they run. EC-FLOW-COMMIT and EC-FLOW-ROLLBACK are read at the statement's entry;
   EC-FLOW-APPLY-COMMIT (§12.4.6.3.4 GR3/GR4, Table 13's *"Invocation of a runtime element with an APPLY COMMIT clause in
@@ -2213,7 +2221,8 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   `TransactionControlTests` (the refusing medium at every operation of a COMMIT, two files, item 8, the flow
   conditions, retirement), `CommitRollbackRefusalWitnessTests` (the same refusals through a COMPILED program: the
   own-file and foreign-file arms in every combination of a USE procedure, a FILE STATUS clause and EC-I-O checking,
-  and item 8 after an ordinary statement's fatal status), the `pb3338_ec_flow_apply_commit_under_*` goldens (the
+  the foreign arm's open-mode and file-name format 1 declaratives with checking off and on, and item 8 after an
+  ordinary statement's fatal status), the `pb3338_ec_flow_apply_commit_under_*` goldens (the
   activation latch through compiled CALLs) and the `pb3338_apply_commit_*` goldens. Sequential files under APPLY COMMIT (§9.1.18.2 admits *"any type of file on a mass
   storage device"*) are kb/Work PB3340: the sequential organization has no ledger, and its commit facility is a separate design
   that must give a sequential transaction the same scope — 2.2.2, the transaction journal.
