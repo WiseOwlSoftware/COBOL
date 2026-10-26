@@ -8,7 +8,7 @@ namespace CobolNet.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE GATE CAP IS FIFO AND NEVER LEAKS A SLOT (kb/Work PB1720; DESIGN-test-build-ci.md §3.14.6):
-/// <c>scripts/gate_slot.py --self-test</c> declares all twelve arms — FIFO order (a later waiter never overtakes a live
+/// <c>scripts/gate_slot.py --self-test</c> declares all fourteen arms — FIFO order (a later waiter never overtakes a live
 /// earlier ticket, and a re-gate queues last), a killed holder releases its slot, a dead waiter leaves the queue, an
 /// orphaned tree is killed on Windows or keeps its slot until it exits on Linux, the slots are shared across
 /// worktrees, ⛔ ONE SHARED CAP (kb/Work PB2514: a raise written by <c>gate_slot.py set-cap</c> in one worktree reaches
@@ -17,8 +17,11 @@ namespace CobolNet.Tests.Unit;
 /// setting the cap is 3 and the implementer scope is <c>leg1</c>), <c>gate_slot.py clear</c> returning to them, and
 /// ⛔ LANDING GATES FIRST (kb/Work PB3103: a gate <c>enqueue.py land</c> starts is served before every waiting
 /// implementer gate, FIFO within each class, the cap unchanged), and ⛔ LONG HOLDS FLAGGED, NEVER KILLED (kb/Work
-/// PB3310: <c>status</c> flags a slot held far past the median of its kind's recorded holds) — and its ALL GREEN line counts exactly the arms it
-/// declares; the self-test runner runs it.
+/// PB3310: <c>status</c> flags a slot held far past the median of its kind's recorded holds), ⛔ A LIGHT POOL (kb/Work
+/// PB3724: a gate whose whole job is script self-tests, the inert lane's Linux half, takes a slot of its own pool with
+/// its own cap, tickets and hold history while the gate pool is full, and <c>status</c> lists both pools) and ⛔ A
+/// WAITING GATE SAYS WHY (kb/Work PB3724: a later landing ticket served first is named, and so is what the gate next in
+/// line waits for) — and its ALL GREEN line counts exactly the arms it declares; the self-test runner runs it.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -59,6 +62,8 @@ public sealed class GateSlotDriftTests
         "clear returns one setting or both to the coded defaults, and repairs a malformed file",
         "landing gates first: a landing ticket is served before every implementer ticket, FIFO within each class",
         "a hold far past the median of its kind's recorded holds is flagged by status, never killed",
+        "the light pool: a light gate takes a light slot at once while the gate pool is full, with its own cap, tickets and hold history, and status lists both pools",
+        "a waiting gate says why a later ticket is served first (landing before implementer) and what the gate next in line waits for",
     ];
 
     private static readonly Regex ArmCall = new(@"^\s*arm\(""(?<label>[^""]+)""", RegexOptions.Multiline);
