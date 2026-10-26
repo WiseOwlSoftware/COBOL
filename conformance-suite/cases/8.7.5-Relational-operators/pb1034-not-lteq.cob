@@ -7,8 +7,9 @@
       *> kb/Work PB1034. ISO 1989:2023 8.8.4.2.2 Format 1: IS <= carries no [NOT] (rendered page PDF p217), so
       *> `NOT <=` is no alternative of the format - the sibling of pb1034-not-gteq on the other OR-EQUAL symbol.
       *> The standard spells that comparison IS > (or IS GREATER THAN). Written without the optional IS, `A NOT`
-      *> ends the condition at the bare operand A and the NOT starts no statement, so this arm is refused by the
-      *> IF statement's own diagnostic (COBOLNET2072); with IS (pb1034-not-gteq) it is a parse error.
+      *> ends the condition at the bare operand A and the NOT starts no statement, so the parse fails at NOT
+      *> (COBOL0001), as it does with IS (pb1034-not-gteq). The IF's statement is present, so this is no
+      *> missing imperative-statement: COBOLNET2072 used to claim one here (kb/Work PB3832).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1034NEG2.
        DATA DIVISION.
