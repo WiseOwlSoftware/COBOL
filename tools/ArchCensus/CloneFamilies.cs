@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CobolNet.Tools.ArchCensus;
+namespace WiseOwl.Cobol.Tools.ArchCensus;
 
 /// <summary>
 /// Type-2 clone families over the authored census documents: every method, constructor, operator, accessor, local

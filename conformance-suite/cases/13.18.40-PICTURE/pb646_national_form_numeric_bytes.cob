@@ -11,7 +11,7 @@
       *> GR8: "National characters shall be represented in the storage of the computer as characters of
       *> a uniform size equal to or a multiple of the size of characters in the computer's alphanumeric
       *> character set. Each implementor shall specify the size and representation of characters stored
-      *> for usage NATIONAL." COBOL.NET pins TWO bytes per national character position, UTF-16 big-endian
+      *> for usage NATIONAL." WiseOwl COBOL pins TWO bytes per national character position, UTF-16 big-endian
       *> (data-model design D-N1); this golden is where that determination is OBSERVED rather than
       *> asserted, through the byte surfaces 13.18.44 REDEFINES and 14.9.3 the record area.
       *>

@@ -4,15 +4,15 @@ area: semantics
 status: draft
 last_updated: 2026-07-24
 related_files:
-  - src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs
-  - src/Cobol.Net.Editions/ReservedWords.cs
-  - src/Cobol.Net.Editions/ReservedWords.Table.cs
-  - src/Cobol.Net.Frontend/Parsing/CobolParserCoreBase.cs
-  - src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4
-  - src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4
+  - src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs
+  - src/WiseOwl.Cobol.Editions/ReservedWords.cs
+  - src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs
+  - src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs
+  - src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4
+  - src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4
   - tests/version-matrix/reserved-words.json
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - semantics
   - editions
   - grammar
@@ -21,7 +21,7 @@ tags:
 
 # Version Gating & Reserved Words — design alternatives
 
-**Why COBOL.NET recognizes the *union* of all four editions in one grammar and resolves "which edition is this
+**Why WiseOwl COBOL recognizes the *union* of all four editions in one grammar and resolves "which edition is this
 legal in?" in a pass + data tables — rather than by version-gating the grammar or shipping four grammars.** This is
 the *decision record*; the *implementation* lives in [[kb/Semantics/Passes]] (the pass, its two arms, the funnel).
 

@@ -4,14 +4,14 @@ area: semantics
 status: draft
 last_updated: 2026-07-23
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - semantics
   - moc
 ---
 
 # 🗺 Semantics — Map of Content
 
-How the bound tree is validated and how edition rules are enforced — the diagnostics layer of COBOL.NET.
+How the bound tree is validated and how edition rules are enforced — the diagnostics layer of WiseOwl COBOL.
 
 ## Notes in this domain
 

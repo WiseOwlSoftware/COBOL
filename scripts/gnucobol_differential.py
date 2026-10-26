@@ -292,7 +292,7 @@ def diff_baseline(base: dict[str, tuple[str, str]], results: list[dict], path: s
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument('--exe', default='src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe')
+    ap.add_argument('--exe', default='src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe')
     ap.add_argument('--src', default='tests/external/gnucobol/tests/testsuite.src')
     ap.add_argument('--only', default='')
     ap.add_argument('--jobs', type=int, default=max(2, (os.cpu_count() or 4) - 2))

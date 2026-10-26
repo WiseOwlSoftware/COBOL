@@ -49,7 +49,7 @@
       *> standard: "BINARY-CHAR SIGNED | -128 (assuming an 8-bit
       *> twos-complement representation)".
       *>
-      *> THE DETERMINATION THIS FILE PINS.  COBOL.NET provides the
+      *> THE DETERMINATION THIS FILE PINS.  WiseOwl COBOL provides the
       *> NATIVE TWO'S-COMPLEMENT band of each usage's byte width:
       *>     BINARY-CHAR   SIGNED   -128 .. +127
       *>     BINARY-CHAR   UNSIGNED 0 .. 255

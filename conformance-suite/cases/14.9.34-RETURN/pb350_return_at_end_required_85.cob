@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §14.9.34.2 at --std 85 — the SAME mandatory AT END phrase, at the OLDEST edition COBOL.NET
+      *> ISO §14.9.34.2 at --std 85 — the SAME mandatory AT END phrase, at the OLDEST edition WiseOwl COBOL
       *> compiles. The rule is a property of the printed general format, which brackets [ NOT AT END … ] and
       *> [ END-RETURN ] and leaves the AT END line unbracketed; §5.2.6.2 makes brackets the only convention
       *> that makes a portion omissible, so nothing about the rule is edition-dependent and COBOL1850

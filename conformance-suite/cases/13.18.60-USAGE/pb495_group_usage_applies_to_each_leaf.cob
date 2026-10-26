@@ -18,12 +18,12 @@
       *> EXPECTED VALUES, DERIVED — every width is fixed by the usage, not by any picture:
       *>   BINARY-CHAR/-SHORT/-LONG/-DOUBLE = 1/2/4/8 bytes. §13.18.60.4 GR12 fixes the minimum ranges
       *>     (-2**7..2**7, -2**15..2**15, -2**31..2**31, -2**63..2**63 signed) and GR21 leaves the length to
-      *>     the implementor; COBOL.NET's determination is the two's-complement width that exactly spans each
+      *>     the implementor; WiseOwl COBOL's determination is the two's-complement width that exactly spans each
       *>     range (docs/CONFORMANCE.md — 1, 2, 4 and 8 bytes).
       *>   FLOAT-SHORT / FLOAT-LONG = 4/8 bytes. §13.18.60.4 GR13 leaves "the size and permitted range" to the
-      *>     implementor with float-short <= float-long; COBOL.NET maps them to IEEE binary32 / binary64.
+      *>     implementor with float-short <= float-long; WiseOwl COBOL maps them to IEEE binary32 / binary64.
       *>   INDEX = 8 bytes. §13.18.60.4 GR10 leaves an index data item's representation to the implementor;
-      *>     COBOL.NET's is the 8-byte occurrence number.
+      *>     WiseOwl COBOL's is the 8-byte occurrence number.
       *>   The GROUP's byte length is the sum of its leaves: G-TWO holds two BINARY-SHORT items = 4.
       *>   The DISPLAY images on the V= line are the same derivation read as DIGIT POSITIONS: GR12's
       *>     minimum ranges span 3 / 5 / 10 / 19 decimal digits for binary-char/-short/-long/-double, so a

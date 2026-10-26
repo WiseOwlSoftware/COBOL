@@ -89,7 +89,7 @@ CASE_TREES = re.compile(r"\bs_suiteCases\s*=\s*new\([^{]*\{([^}]*)\}")
 PUBLIC_STRING = re.compile(r"\bpublic\s+static\s+string\s+(\w+)\s*\(")
 #: Where a test writes a repo path: a helper call `TestRepo.X(` (`X(` inside TestRepo itself: `BARE_CALL`) or a
 #: `Path.Combine(`. The arguments are read with balanced parentheses (`path_args`), never by a regex over them: an
-#: argument is itself a call (`TestRepo.Src(Path.Combine("Cobol.Net.Frontend", "Grammar"))`, kb/Work PB3112).
+#: argument is itself a call (`TestRepo.Src(Path.Combine("WiseOwl.Cobol.Frontend", "Grammar"))`, kb/Work PB3112).
 HELPER_OPEN = re.compile(r"\bTestRepo\.(\w+)\(")
 COMBINE_OPEN = re.compile(r"\bPath\.Combine\(")
 CALL_OPEN = re.compile(HELPER_OPEN.pattern + "|" + COMBINE_OPEN.pattern)
@@ -355,7 +355,7 @@ class Sources:
             if p is not None:
                 calls.append((m.start(), after, p.strip("/")))
         # A method that wraps one read, `static string Read(params string[] parts) => File.ReadAllText(TestRepo.At(parts))`,
-        # spells the path at its CALLERS (`Read("src", "Cobol.Net.Compiler", "X.cs")`): a caller reads the wrapper's path
+        # spells the path at its CALLERS (`Read("src", "WiseOwl.Cobol.Compiler", "X.cs")`): a caller reads the wrapper's path
         # (what its body spells before the parameter) and its own arguments. The body's own read, a directory the
         # callers narrow, is replaced by theirs (kb/Work PB3112: V59ImagePredicateDriftTests read CallEmitter.cs unseen).
         wrapped, out = {}, []

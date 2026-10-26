@@ -8,7 +8,7 @@
       *> kb/Work PB177 arm A. THE OO METHOD BOUNDARY'S GROUP-IMAGE CROSSING.
       *>
       *> §14.2.3 GR8: "If the argument is passed by reference, the activated runtime element operates as if the
-      *> formal parameter occupies the same storage area as the argument" - which COBOL.NET realizes through the
+      *> formal parameter occupies the same storage area as the argument" - which WiseOwl COBOL realizes through the
       *> generated AsImage()/FromImage() round trip. §14.9.23.4 GR8 delivers the RETURNING item the same way.
       *> So every leaf value the invoker sets must come back byte-identical, whatever the leaf's usage.
       *>

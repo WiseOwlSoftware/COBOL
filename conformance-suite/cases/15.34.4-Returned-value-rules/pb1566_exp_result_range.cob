@@ -11,7 +11,7 @@
       *> of e raised to the power of the argument"; 15.35.1 the same of
       *> 10. Under native arithmetic 15.4.1 makes "the characteristics
       *> and representation of the returned value" the implementor's,
-      *> and COBOL.NET's is binary64 (CONFORMANCE.md DOC-A.1-92); 14.7.5
+      *> and WiseOwl COBOL's is binary64 (CONFORMANCE.md DOC-A.1-92); 14.7.5
       *> case 5 then makes a value outside that range the size error
       *> condition (checked, DOC-A.1-179), EC-SIZE-OVERFLOW when
       *> "farther from zero" and EC-SIZE-UNDERFLOW when "nearer to zero

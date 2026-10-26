@@ -1,5 +1,5 @@
 # Create-AuditArtifacts.ps1
-# Run from CobolSharp root
+# Run from WiseOwl COBOL root
 
 $folders = @(
     "audit",
@@ -14,9 +14,9 @@ foreach ($f in $folders) {
 
 # --- Modernization Ledger Template ---
 $modernizationLedger = @"
-# CobolSharp Modernization Ledger
+# WiseOwl COBOL Modernization Ledger
 
-> Single source of truth for all remaining work across the CobolSharp pipeline.
+> Single source of truth for all remaining work across the WiseOwl COBOL pipeline.
 
 ## 0. Context
 
@@ -76,7 +76,7 @@ Set-Content -Path "audit\plans\ModernizationLedgerTemplate.md" -Value $moderniza
 
 # --- NIST Enablement Roadmap ---
 $nistRoadmap = @"
-# CobolSharp NIST Enablement Roadmap
+# WiseOwl COBOL NIST Enablement Roadmap
 
 ## 0. Current State
 

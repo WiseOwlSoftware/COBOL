@@ -11,7 +11,7 @@
       *> data-item format of the VALUE clause. A PICTURE clause is implied
       *> as follows: a) if the literal is alphanumeric, 'PICTURE
       *> X(length)'."
-      *> COBOL.NET does not implement the implied PICTURE today: this
+      *> WiseOwl COBOL does not implement the implied PICTURE today: this
       *> program compiles no field for W and then emits C# referencing it
       *> (CS0103, "The name 'W' does not exist in the current context") --
       *> an uncompilable-backend failure on LEGAL source, found while

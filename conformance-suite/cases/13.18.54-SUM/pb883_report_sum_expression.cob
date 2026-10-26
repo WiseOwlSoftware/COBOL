@@ -20,7 +20,7 @@
       *>
       *> ⚠ DETERMINATION — WHAT THE SUM CLAUSE'S ROUNDED PHRASE ROUNDS.  13.18.54.4 GR4 says "the content of the
       *> sum counter is computed according to the general rules for the COMPUTE statement with the ROUNDED
-      *> phrase".  COBOL.NET reads that as governing the ACCUMULATION of each addend into the counter (GR3's
+      *> phrase".  WiseOwl COBOL reads that as governing the ACCUMULATION of each addend into the counter (GR3's
       *> implicit ADD/COMPUTE).  The rejected reading is that it governs GR4's subsequent MOVE of the counter to
       *> the printable item: GR1 derives the counter's digits, integral AND fractional, from that item's own
       *> PICTURE, so that transfer is always scale-identical and the phrase could never change any result — a

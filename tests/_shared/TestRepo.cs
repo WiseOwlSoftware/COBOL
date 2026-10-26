@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>
 /// THE repo-root locator for every test project — one rule, one place.
@@ -9,8 +9,8 @@ namespace CobolNet.Tests.Shared;
 /// <remarks>
 /// <para>
 /// Before this type there were SIXTEEN private <c>RepoRoot()</c> walkers across five test projects, answering the
-/// same question with FIVE different sentinels: <c>Cobol.Net.sln</c>, <c>tests/version-matrix</c>,
-/// <c>tests/nist</c>, <c>src/Cobol.Net.Compiler</c> and <c>PROMPT.md</c>. Every one of those is a PROXY for "the
+/// same question with FIVE different sentinels: <c>WiseOwl.Cobol.sln</c>, <c>tests/version-matrix</c>,
+/// <c>tests/nist</c>, <c>src/WiseOwl.Cobol.Compiler</c> and <c>PROMPT.md</c>. Every one of those is a PROXY for "the
 /// repo root", and each proxy is a separate way for the answer to drift: move or rename any one of them and only
 /// the tests keyed on that proxy break, silently and locally. That is the duplication anti-pattern the DA wave
 /// recorded as <c>feedback_one_rule_one_place</c> — a single construct failing usually means one rule was written
@@ -28,7 +28,7 @@ internal static class TestRepo
     /// The repository root, located once per test assembly.
     /// </summary>
     /// <remarks>
-    /// The marker is <c>Cobol.Net.sln</c> — the one file that genuinely defines the root rather than merely
+    /// The marker is <c>WiseOwl.Cobol.sln</c> — the one file that genuinely defines the root rather than merely
     /// living at it — CORROBORATED by the co-presence of <c>src/</c> and <c>tests/</c>. The corroboration is not
     /// ceremony: a lone <c>.sln</c> can be copied anywhere (a build drop, a packaging staging directory), and a
     /// walker that accepted it would resolve to a tree with no sources in it, then fail with a file-not-found
@@ -59,7 +59,7 @@ internal static class TestRepo
     public static string TargetFramework { get; } = new DirectoryInfo(AppContext.BaseDirectory).Name;
 
     /// <summary>A path inside a <c>src/</c> project's build output for THIS configuration and framework —
-    /// <c>SrcBin("Cobol.Net.Cli", "cobol.exe")</c>.</summary>
+    /// <c>SrcBin("WiseOwl.Cobol.Cli", "cobol.exe")</c>.</summary>
     public static string SrcBin(string project, params string[] segments) =>
         Src([project, "bin", Configuration, TargetFramework, .. segments]);
 
@@ -109,7 +109,7 @@ internal static class TestRepo
     {
         for (var d = new DirectoryInfo(AppContext.BaseDirectory); d is not null; d = d.Parent)
         {
-            if (File.Exists(Path.Combine(d.FullName, "Cobol.Net.sln"))
+            if (File.Exists(Path.Combine(d.FullName, "WiseOwl.Cobol.sln"))
                 && Directory.Exists(Path.Combine(d.FullName, "src"))
                 && Directory.Exists(Path.Combine(d.FullName, "tests")))
             {
@@ -119,6 +119,6 @@ internal static class TestRepo
 
         throw new InvalidOperationException(
             $"repo root not found above '{AppContext.BaseDirectory}' — looked for a directory holding "
-            + "Cobol.Net.sln alongside src/ and tests/.");
+            + "WiseOwl.Cobol.sln alongside src/ and tests/.");
     }
 }

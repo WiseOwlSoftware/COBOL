@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    WiseOwl.Cobol.Compiler — the greenfield COBOL→C# compiler LIBRARY (blank-slate rewrite, owner directive
+    2026-06-08). Bind → emit typed-native C# → Roslyn. There is NO byte-array storage substrate: a COBOL record
+    is a .NET record, a COBOL elementary item is a native .NET field. See docs/DESIGN.md.
+
+    Split out of the old exe at G0 (§17): the CLI shell is now WiseOwl.Cobol.Cli (producing cobol.exe); this library
+    is what the CLI and the tests reference. RootNamespace is the single token WiseOwl.Cobol; the shared front-end's
+    namespaces were renamed to WiseOwl.Cobol.Frontend.* at rearchitecture PHASE 01 (no longer a G8 big-bang).
+
+    Front-end reuse (no byte-array substrate): the proven preprocessor + ANTLR lexer/parser live
+    in WiseOwl.Cobol.Frontend; we consume ONLY its public front-end (preprocessing + parse tree).
+  -->
+  <PropertyGroup>
+    <RootNamespace>WiseOwl.Cobol</RootNamespace>
+    <AssemblyName>WiseOwl.Cobol.Compiler</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="WiseOwl.Cobol.Tests.Unit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Front-end only: preprocessor + ANTLR lexer/parser + parse-tree (CobolParserCore) context types
+         (namespaces WiseOwl.Cobol.Frontend.*). -->
+    <ProjectReference Include="..\WiseOwl.Cobol.Frontend\WiseOwl.Cobol.Frontend.csproj" />
+    <!-- The edition/diagnostics leaf (rearch PHASE 02): the ONE home for ConstructRegistry / ReservedWords /
+         EditionInfo / EditionSeverityPolicy / the diagnostic descriptors, referenced by both Frontend and
+         Compiler so edition metadata + the severity policy are single-sourced below the frontend. -->
+    <ProjectReference Include="..\WiseOwl.Cobol.Editions\WiseOwl.Cobol.Editions.csproj" />
+    <!-- The runtime the GENERATED programs call: referenced so it is built + lands next to the compiler, where
+         RoslynBackend deploys a copy beside each compiled program. -->
+    <ProjectReference Include="..\WiseOwl.Cobol.Runtime\WiseOwl.Cobol.Runtime.csproj" />
+    <!-- Roslyn: generate + compile C# at runtime. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Build-time source generator: emits the exhaustive I{Root}Visitor<T> + Accept<T> over the [BoundNode]
+         hierarchy (PHASE-07 Step 6). Analyzer-only — never a runtime dependency. -->
+    <ProjectReference Include="..\WiseOwl.Cobol.Compiler.SourceGen\WiseOwl.Cobol.Compiler.SourceGen.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

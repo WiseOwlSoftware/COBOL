@@ -18,7 +18,7 @@
 #            Wall-clock becomes the POLE (Conformance), not the SUM. Each is population-checked afterwards:
 #            its trx must hold every discovered case exactly once (scripts/test_population.py, kb/Work PB1718).
 #   PHASE 2  guard-fast                       — REBUILDS the `cobol` CLI, whose closure includes
-#                                               Cobol.Net.Frontend and the whole greenfield compiler. Must not
+#                                               WiseOwl.Cobol.Frontend and the whole greenfield compiler. Must not
 #                                               overlap phase 1. It first proves its verdicts still MEAN what
 #                                               they say (its self-tests, scripts/guard-verify.sh's evidence-rule
 #                                               witnesses among them: §3.10 corollary 3, kb/Work/PB473).
@@ -39,8 +39,8 @@
 set -u
 # ⛔ THE BATTERY RUNS COLD (kb/Work PB985; DESIGN-test-build-ci §3.12): the Conformance runner's compiled-program
 # cache is for RE-GATES after a test-only fix; the comprehensive gate recompiles every program from scratch, so
-# it is never the cache that is being measured. `COBOLNET_COMPILE_CACHE=on bash scripts/battery.sh` overrides.
-export COBOLNET_COMPILE_CACHE="${COBOLNET_COMPILE_CACHE:-off}"
+# it is never the cache that is being measured. `WISEOWL_COBOL_COMPILE_CACHE=on bash scripts/battery.sh` overrides.
+export WISEOWL_COBOL_COMPILE_CACHE="${WISEOWL_COBOL_COMPILE_CACHE:-off}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
 . scripts/python-resolve.sh   # "$PY": the ONE interpreter every python leg below runs (kb/Work PB1637)
 OUT="${1:-${TMPDIR:-/tmp}/battery-$(date +%Y%m%d-%H%M%S)}"
@@ -111,6 +111,12 @@ PREFIX=$?
 note "$(printf '%-16s %s' 'diag prefix:' "$(grep -E '^=== DIAGNOSTIC PREFIX' "$OUT/citations.log" | tail -1)")"
 [ "$PREFIX" -eq 0 ] || { note "diag prefix:     ⛔ a code spelled with the former prefix — see $OUT/citations.log"; RC=1; }
 
+# ⛔ AND THE PRODUCT'S NAME, WiseOwl.Cobol (kb/Work PB3837), the gate driver's RETIRED NAMES audit.
+"$PY" scripts/rename_retired_names.py --check >> "$OUT/citations.log" 2>&1
+RETIRED=$?
+note "$(printf '%-16s %s' 'retired names:' "$(grep -E '^=== RETIRED NAMES' "$OUT/citations.log" | tail -1)")"
+[ "$RETIRED" -eq 0 ] || { note "retired names:   ⛔ a path or line spells a retired name — see $OUT/citations.log"; RC=1; }
+
 # ⛔ THE EXTERNAL CORPUS, BY THE GATE'S OWN RULE (kb/Work PB2611). The GPL GnuCOBOL corpus is git-ignored and per
 # worktree, and two legs below measure it: phase 1's Unit (ExternalCorpusPopulationDriftTests) and phase 3 (the
 # differential). Battery #89 ran in a fresh worktree with no fetch here, so both were red for a reason that was not the
@@ -126,7 +132,7 @@ if [ "${SKIP_TESTS:-0}" != "1" ] || [ "${SKIP_DIFF:-0}" != "1" ]; then
 fi
 
 el "=== PHASE 0: build the solution (once) ==="
-if ! dotnet build Cobol.Net.sln -v quiet > "$OUT/build.log" 2>&1; then
+if ! dotnet build WiseOwl.Cobol.sln -v quiet > "$OUT/build.log" 2>&1; then
     note "BUILD: FAILED — see $OUT/build.log"; tail -20 "$OUT/build.log"; exit 1
 fi
 note "BUILD: ok"
@@ -134,17 +140,17 @@ note "BUILD: ok"
 if [ "${SKIP_TESTS:-0}" != "1" ]; then
     el "=== PHASE 1: Conformance ∥ Unit ∥ Characterization (independent --no-build assemblies) ==="
     # ⛔ SCRUBBED (kb/Work PB1718; DESIGN-test-build-ci §3.14.3): every run goes through `test_population.py
-    # scrubbed`, which drops the gate's leg handshake (COBOLNET_GATE_*) and the MSBuild properties that filter a run
+    # scrubbed`, which drops the gate's leg handshake (WISEOWL_COBOL_GATE_*) and the MSBuild properties that filter a run
     # from the environment (VSTest*, RunSettingsFilePath) — a stray one would make this whole-assembly run a PART.
     # Every leg writes a TRX (kb/Work PB1573): at --verbosity quiet the console log carries only the verdict line,
     # so the TRX is the ONLY record of a failing test's message and stack — and the population check below reads it.
-    "$PY" scripts/test_population.py scrubbed dotnet test tests/Cobol.Net.Tests.Conformance --no-build --verbosity quiet \
+    "$PY" scripts/test_population.py scrubbed dotnet test tests/WiseOwl.Cobol.Tests.Conformance --no-build --verbosity quiet \
         --logger "trx;LogFileName=conformance.trx" --results-directory "$OUT" > "$OUT/conformance.log" 2>&1 &
     P_CONF=$!
-    "$PY" scripts/test_population.py scrubbed dotnet test tests/Cobol.Net.Tests.Unit --no-build --verbosity quiet \
+    "$PY" scripts/test_population.py scrubbed dotnet test tests/WiseOwl.Cobol.Tests.Unit --no-build --verbosity quiet \
         --logger "trx;LogFileName=unit.trx" --results-directory "$OUT" > "$OUT/unit.log" 2>&1 &
     P_UNIT=$!
-    "$PY" scripts/test_population.py scrubbed dotnet test tests/Cobol.Net.Tests.Characterization --no-build --verbosity quiet \
+    "$PY" scripts/test_population.py scrubbed dotnet test tests/WiseOwl.Cobol.Tests.Characterization --no-build --verbosity quiet \
         --logger "trx;LogFileName=characterization.trx" --results-directory "$OUT" > "$OUT/characterization.log" 2>&1 &
     P_CHAR=$!
     wait $P_CONF; RC_CONF=$?
@@ -161,7 +167,7 @@ if [ "${SKIP_TESTS:-0}" != "1" ]; then
         v=$(grep -E "^(Passed!|Failed!)" "$OUT/$leg.log" | tail -1)
         note "$(printf '%-16s %s' "$leg:" "${v:-NO VERDICT LINE — the leg produced no result, which is a FAILURE}")"
         [ -n "$v" ] || RC=1
-        "$PY" scripts/test_population.py check --label "$asm" --project "tests/Cobol.Net.Tests.$asm" \
+        "$PY" scripts/test_population.py check --label "$asm" --project "tests/WiseOwl.Cobol.Tests.$asm" \
             --save-listing "$OUT/$leg.list.txt" --trx "$OUT/$leg.trx" > "$OUT/$leg.population.log" 2>&1
         PRC=$?
         p=$(grep -E '^=== POPULATION ' "$OUT/$leg.population.log" | tail -1)
@@ -194,7 +200,7 @@ fi
 
 if [ "${SKIP_DIFF:-0}" != "1" ]; then
     el "=== PHASE 3: GnuCOBOL external differential ==="
-    "$PY" scripts/gnucobol_differential.py --exe src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe \
+    "$PY" scripts/gnucobol_differential.py --exe src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe \
         --report "$OUT/gnucobol-report.json" > "$OUT/gnucobol.log" 2>&1
     note "$(printf '%-16s %s' 'gnucobol:' "$(grep -E '^cases run:' "$OUT/gnucobol.log" | tail -1)")"
     grep -E '^  (AGREE|WE_)' "$OUT/gnucobol.log" | sed 's/^/                 /' | tee -a "$SUMMARY"

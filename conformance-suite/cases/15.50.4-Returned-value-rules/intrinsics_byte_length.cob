@@ -7,8 +7,8 @@
 *>---
       *> ISO §15.14 BYTE-LENGTH — the byte-counting twin of FUNCTION LENGTH (§15.50); the D7 distinction
       *> (P11 Step 7). A COMPILE-TIME FOLD. Per-usage byte widths are IMPLEMENTOR-DEFINED (§13.18.60);
-      *> COBOL.NET's pinned widths (docs/rearchitecture/PHASE-11-scout-notes.md spec:byte-length +
-      *> COBOLNET_INTRINSICS_DESIGN): DISPLAY = 1 byte/position, NATIONAL = 2 bytes/position (UTF-16),
+      *> WiseOwl COBOL's pinned widths (docs/rearchitecture/PHASE-11-scout-notes.md spec:byte-length +
+      *> INTRINSICS_DESIGN): DISPLAY = 1 byte/position, NATIONAL = 2 bytes/position (UTF-16),
       *> BINARY(COMP) = StorageWidth (S9(4) -> 2), PACKED(COMP-3) = digits/2+1 (S9(5) -> 3), BINARY-CHAR = 1.
       *> The national probe proves BYTE-LENGTH != LENGTH (6 vs 3).
        IDENTIFICATION DIVISION.

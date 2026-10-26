@@ -1546,7 +1546,7 @@ INITIALIZE { identifier-1 } ... [ WITH FILLER ]
 
 Suggested note text: "**Figure notes (14.9.20.2 general format).** INITIALIZE, FILLER, ALL, VALUE, REPLACING, BY and DEFAULT are underlined in the printed standard (required words). WITH, TO (in both `TO VALUE` and `THEN TO DEFAULT`), THEN (in both `THEN REPLACING` and `THEN TO DEFAULT`) and DATA are printed **without** underlines — they are optional words per 8.3.1.1.2 and may be omitted. Hence `INITIALIZE X FILLER`, `INITIALIZE X ALL VALUE`, `INITIALIZE X REPLACING NUMERIC BY 0` and `INITIALIZE X DEFAULT` are all legal."
 
-Actionable follow-up beyond the transcription: src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4 lines 567 and 578 make TO mandatory and must become optional (`(ALL | initializeCategory)? TO? VALUE` and `THEN? TO? DEFAULT`), with an edition-gate sweep and goldens covering `INITIALIZE X ALL VALUE` and `INITIALIZE X DEFAULT`.
+Actionable follow-up beyond the transcription: src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4 lines 567 and 578 make TO mandatory and must become optional (`(ALL | initializeCategory)? TO? VALUE` and `THEN? TO? DEFAULT`), with an edition-gate sweep and goldens covering `INITIALIZE X ALL VALUE` and `INITIALIZE X DEFAULT`.
 
 ### p668 · missing-heading · **structural**
 

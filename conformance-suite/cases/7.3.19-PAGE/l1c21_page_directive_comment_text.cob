@@ -30,7 +30,7 @@
       *> Expected output, derived:
       *>   "BEFORE PAGE" — the first DISPLAY.
       *>   "AFTER PAGE"  — the directive between the two DISPLAYs is
-      *>     documentation only (§7.3.19.4 GR1/GR3; COBOL.NET produces
+      *>     documentation only (§7.3.19.4 GR1/GR3; WiseOwl COBOL produces
       *>     no source listing), so its "STOP RUN." text is not a
       *>     statement and execution reaches the second DISPLAY.
        >>PAGE Start: "unbalanced quote; 'apos (a+b)=c/d*e-f, x.y

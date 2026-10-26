@@ -19,6 +19,12 @@ tag the tree holds:
 All five are members of `CobolSharp.sln` at the tag. The shared front end (`src/Cobol.Net.Frontend`) and the editions
 leaf (`src/Cobol.Net.Editions`) at the tag are the ones the engine builds against.
 
+This page names the tree AS IT IS AT THE TAG, so it keeps the names the tag holds; it is history, and the one current
+page that may (`scripts/rename_retired_names.py`, `EXCEPT`). Everywhere else the product's earlier names are retired
+(kb/Work PB3837): the work register and the documents call these projects `Legacy.Compiler`, `Legacy.Runtime`,
+`Legacy.CLI` and `Legacy.Tests.*` (`src/Legacy.*`), and the driver `legacy.dll`; the front end and the editions leaf are
+`src/WiseOwl.Cobol.Frontend` and `src/WiseOwl.Cobol.Editions` on `main`.
+
 ## How to run it (WSL or Linux)
 
 ```bash

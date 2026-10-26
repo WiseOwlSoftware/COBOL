@@ -46,7 +46,7 @@ fixer rewrote the report, else read the writer report in ${SCRATCH}/reports/${sl
 refused program's refuse-at editions and expect text).
 RULES. Do NOT write anything inside E:\\COBOL; do NOT run dotnet build/test; do NOT edit any draft .out or refusal —
 the expected values are SPEC-DERIVED and refuter-upheld; if the compiler disagrees, the compiler is the suspect.
-Compiler: E:\\COBOL\\.claude\\worktrees\\lane3-pin-5fe593a0\\src\\Cobol.Net.Cli\\bin\\Debug\\net10.0\\cobol.exe (a PINNED build of battery-green tree 5fe593a0 — landings cannot move it under you; never use the main tree's exe).
+Compiler: E:\\COBOL\\.claude\\worktrees\\lane3-pin-5fe593a0\\src\\WiseOwl.Cobol.Cli\\bin\\Debug\\net10.0\\cobol.exe (a PINNED build of battery-green tree 5fe593a0 — landings cannot move it under you; never use the main tree's exe).
 FOR EACH POSITIVE DRAFT: copy the .cob to a fresh scratch dir under ${SCRATCH}/run/${slug}/<name>/ and run
   cobol.exe <id>.cob --std <each edition of its header's accept> --run
 capturing stdout+stderr. Compare stdout to the draft .out: trailing whitespace per line and the final newline are

@@ -5,7 +5,7 @@
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 WS-RESULT       PIC 9(5) VALUE 0.
-       01 WS-NAME         PIC X(20) VALUE "cobolsharp".
+       01 WS-NAME         PIC X(20) VALUE "wiseowl-cobol".
 
        PROCEDURE DIVISION.
            DISPLAY "=== Phase 6 Demo: Production Quality ===".
@@ -20,7 +20,7 @@
            DISPLAY "   Step through COBOL in VS/VS Code".
 
            DISPLAY "3. NuGet packaging:".
-           DISPLAY "   dotnet tool install -g CobolSharp".
+           DISPLAY "   dotnet tool install -g WiseOwl COBOL".
 
            DISPLAY "4. Intrinsic functions work end-to-end:".
            COMPUTE WS-RESULT = FUNCTION SQRT(256).

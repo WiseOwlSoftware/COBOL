@@ -4,13 +4,13 @@ area: compiler
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Frontend/Pipeline/Frontend.cs
-  - src/Cobol.Net.Compiler/CompilerDriver.cs
-  - src/Cobol.Net.Compiler/Binding/BinderDriver.cs
-  - src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs
-  - src/Cobol.Net.Compiler/CodeGen/RoslynBackend.cs
+  - src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs
+  - src/WiseOwl.Cobol.Compiler/CompilerDriver.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs
+  - src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs
+  - src/WiseOwl.Cobol.Compiler/CodeGen/RoslynBackend.cs
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - compiler
   - spec
 ---
@@ -23,7 +23,7 @@ which rules and constraints it enforces, and the IR nodes / semantic rules it co
 
 ## Overview
 
-COBOL.NET runs **6 conceptual phases** (see [[kb/Compiler/Pipeline]]). Mapped onto the classic
+WiseOwl COBOL runs **6 conceptual phases** (see [[kb/Compiler/Pipeline]]). Mapped onto the classic
 lex→parse→AST→IR→validate→optimize→codegen→runtime frame, two collapses matter:
 
 - **AST-building and IR-generation are one step** — `Bind` produces the typed **bound tree**, which is *both* the AST
@@ -49,7 +49,7 @@ lex→parse→AST→IR→validate→optimize→codegen→runtime frame, two coll
 **Description.** Turns raw source into a single normalized token-ready text: reference-format normalization,
 conditional compilation, COPY/REPLACE expansion, and NIST placeholder fixups. Runs before the lexer sees anything.
 
-- **Related source files:** `src/Cobol.Net.Frontend/Pipeline/Frontend.cs` (`Preprocess`); `Preprocessor/ReferenceFormatProcessor.cs`, `ConditionalCompilationProcessor.cs`, `CopyProcessor.cs`, `NistPreprocessor.cs`, `TurnDirectiveProcessor.cs`, `FlagDirectiveProcessor.cs`, `CobolWordsDirectiveProcessor.cs`, `RefModZeroLengthDirectiveProcessor.cs`, `PropagateDirectiveProcessor.cs`.
+- **Related source files:** `src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs` (`Preprocess`); `Preprocessor/ReferenceFormatProcessor.cs`, `ConditionalCompilationProcessor.cs`, `CopyProcessor.cs`, `NistPreprocessor.cs`, `TurnDirectiveProcessor.cs`, `FlagDirectiveProcessor.cs`, `CobolWordsDirectiveProcessor.cs`, `RefModZeroLengthDirectiveProcessor.cs`, `PropagateDirectiveProcessor.cs`.
 - **Related notes:** [[kb/Compiler/Phases]] · [[kb/Spec/Constraints]]
 - **ISO constructs handled:** COPY / REPLACE (§7.2); `>>DEFINE`/`>>IF`/`>>EVALUATE` conditional compilation (§7.2.1); `>>TURN` (§7.3.13), `>>COBOL-WORDS` (§7.3.10), `>>FLAG-02`/`>>FLAG-14` (§7.3.14/.15), `>>REF-MOD-ZERO-LENGTH` (§7.3.23). See [[kb/Spec/Lookup/Construct Catalogue]] §13.
 - **ISO rules enforced:** fixed vs free reference format and the column-7 indicator (§6); directive edition gates fire here because only the column-aware pass sees the indicator (VCR rows 2/94).
@@ -61,7 +61,7 @@ conditional compilation, COPY/REPLACE expansion, and NIST placeholder fixups. Ru
 **Description.** The ANTLR `CobolLexer` (case-insensitive) tokenizes the normalized text using 4 modes
 (`DEFAULT`/`PICMODE`/`SUBSCRIPT`/`COMMENT_MODE`), then two rewriters retype tokens.
 
-- **Related source files:** `src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4`; `Parsing/ZeroTokenRewriter.cs` (`ZERO→ZERO_ARITH`), `Parsing/CobolWordsRewriter.cs` (`>>COBOL-WORDS` synonyms), `Parsing/CobolKeywordTokens.cs`, `Parsing/CobolLexerWordSet.g.cs`.
+- **Related source files:** `src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4`; `Parsing/ZeroTokenRewriter.cs` (`ZERO→ZERO_ARITH`), `Parsing/CobolWordsRewriter.cs` (`>>COBOL-WORDS` synonyms), `Parsing/CobolKeywordTokens.cs`, `Parsing/CobolLexerWordSet.g.cs`.
 - **Related notes:** [[kb/Compiler/Phases]] · [[kb/Spec/Lookup/Keywords]]
 - **ISO constructs handled:** lexical elements — COBOL words, literals (alphanumeric/national/boolean/numeric), PICTURE character-strings, separators, the `*>` comment (§8.3).
 - **ISO rules enforced:** word-formation (§8.3.2, incl. the 2023 63-character word length, §8.3.2.1); PICTURE captured as a single token (PICMODE); the subscript-vs-grouping `(` disambiguation via SUBSCRIPT mode (§8.4.2 references).
@@ -73,7 +73,7 @@ conditional compilation, COPY/REPLACE expansion, and NIST placeholder fixups. Ru
 **Description.** The **superset** `CobolParserCore` (recognizes the union of all editions) parses tokens into a pure
 syntactic **CST**, two-stage (SLL bail → LL recover). No edition predicates in the grammar (save two forward-detects).
 
-- **Related source files:** `src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4` + `Grammar/Core/*.g4` (9 fragments); `Parsing/CobolParserCoreBase.cs`, `Parsing/CobolErrorStrategy.cs`, `Parsing/CobolErrorListener.cs`.
+- **Related source files:** `src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4` + `Grammar/Core/*.g4` (9 fragments); `Parsing/CobolParserCoreBase.cs`, `Parsing/CobolErrorStrategy.cs`, `Parsing/CobolErrorListener.cs`.
 - **Related notes:** [[kb/Compiler/Phases]] · [[kb/Diagrams/Grammar Hierarchy]] · [[kb/Spec/Lookup/Grammar]]
 - **ISO constructs handled:** the full grammar surface — the four **divisions** (§11–§14), **sections**, **paragraphs**, **statements**, **expressions/conditions** (§8.8), **data-description** (§13), and OO/Report Writer/Screen. See [[kb/Spec/Lookup/Grammar]] and the 9 fragments in [[kb/Compiler/Phases]].
 - **ISO rules enforced:** context-free syntax only; formats/phrases of each statement (§14.9.x), data clauses (§13.18.x).
@@ -86,7 +86,7 @@ syntactic **CST**, two-stage (SLL bail → LL recover). No edition predicates in
 the AST and the IR. It resolves every reference to a `Place`, types and categorizes every operand, and classifies each
 statement. Edition-agnostic (a closed exception ledger aside).
 
-- **Related source files:** `src/Cobol.Net.Compiler/Binding/BinderDriver.cs`, `BindSession.cs`, `DataBinder*.cs`, `ReferenceResolver.cs`, `Procedure/` (StatementBinder + `Verbs/*Binder.cs`), `Binding/Bound/BoundTree.cs`, `Binding/Model/{Place,DataItem,PicInfo,StorageForm}.cs`, `Binding/Passes/{BindPipeline,StorageFormPass,UsageCollectionPass}.cs`; visitor generator `src/Cobol.Net.Compiler.SourceGen/BoundVisitorGenerator.cs`.
+- **Related source files:** `src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs`, `BindSession.cs`, `DataBinder*.cs`, `ReferenceResolver.cs`, `Procedure/` (StatementBinder + `Verbs/*Binder.cs`), `Binding/Bound/BoundTree.cs`, `Binding/Model/{Place,DataItem,PicInfo,StorageForm}.cs`, `Binding/Passes/{BindPipeline,StorageFormPass,UsageCollectionPass}.cs`; visitor generator `src/WiseOwl.Cobol.Compiler.SourceGen/BoundVisitorGenerator.cs`.
 - **Related notes:** [[kb/IR/Node Types]] · [[kb/IR/Data Flow]] · [[kb/IR/Control Flow]] · [[kb/Spec/Lookup/IR Mapping]]
 - **ISO constructs handled:** every construct becomes a bound node — data items → `DataItem`/`record struct` (§13.16 PICTURE/USAGE/OCCURS/REDEFINES); statements → `Bound*` (§14.9.x); expressions/conditions → `BoundExpr`/`BoundCondition` (§8.8); references → `Place` (§8.4.2). Full node map: [[kb/Spec/Lookup/IR Mapping]].
 - **ISO rules enforced (edition-invariant):** reference qualification/subscript resolution (§8.4.2.2); category assignment & PICTURE analysis (§13.16); MOVE class legality (§14.9.25.3 SR1, `MoveBinder`, COBOL0809); condition precedence (§8.8.4.2); digit-capacity (§8.8, COBOL0801/0802); REDEFINES 4-tier legality (§13.16). See [[kb/Spec/Lookup/Semantic Rules]].
@@ -98,7 +98,7 @@ statement. Edition-agnostic (a closed exception ledger aside).
 **Description.** `VersionConformancePass` — the **sole edition gate** — runs as the bind manifest's terminal pass, in
 two arms, and **halts before emit** on any error. `FlagConformancePass` runs after as an orthogonal warning axis.
 
-- **Related source files:** `src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs`, `Validation/FlagConformancePass.cs`; `Binding/EditionContext.cs`; `src/Cobol.Net.Editions/{ConstructRegistry,ConstructDialectStatus,EditionInfo,EditionSeverityPolicy,ReservedWords}.cs`.
+- **Related source files:** `src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs`, `Validation/FlagConformancePass.cs`; `Binding/EditionContext.cs`; `src/WiseOwl.Cobol.Editions/{ConstructRegistry,ConstructDialectStatus,EditionInfo,EditionSeverityPolicy,ReservedWords}.cs`.
 - **Related notes:** [[kb/Semantics/Passes]] · [[kb/Semantics/Validation Rules]] · [[kb/Diagrams/Semantic Rule Flow]]
 - **ISO constructs handled:** every edition-varying construct (see the full inventory [[kb/Spec/Lookup/Construct Catalogue]] — 183 constructs × edition).
 - **ISO rules enforced:** introduction gating (§ per construct → COBOL0900); removal gating (Annex F/VCR → 0902); §8.9 reserved-word funnel (→ 0901); obsolete/archaic flags (Annex F → 0903); the §4 conformance posture (documented non-support → 1560 band / 1518); external-file consistency (§9.1/§12.4 → 1573/1575/1624); migration flags §7.3.14/.15 (→ 1620/1621). See [[kb/Spec/Lookup/Semantic Rules]].
@@ -107,7 +107,7 @@ two arms, and **halts before emit** on any error. `FlagConformancePass` runs aft
 
 ## Phase 5 — Optimization (delegated)
 
-**Description.** COBOL.NET performs **no bespoke optimization pass**. Because the Roslyn backend emits idiomatic C#,
+**Description.** WiseOwl COBOL performs **no bespoke optimization pass**. Because the Roslyn backend emits idiomatic C#,
 optimization is delegated to the **C# compiler** (constant folding, dead-code, etc.) and the **.NET JIT** (inlining,
 register allocation). The only bound→bound normalization is small desugaring folded inside binder verbs
 (MOVE CORRESPONDING, PERFORM VARYING AFTER, condition-names) — not a separate optimizing tree.
@@ -123,7 +123,7 @@ register allocation). The only bound→bound normalization is small desugaring f
 typed-native **C# source** (`.g.cs`) via a decomposed emitter and compiles it with Roslyn to an assembly. Control flow
 is emitted as the **PC dispatcher**. (A future CIL backend does its own private lowering.)
 
-- **Related source files:** `src/Cobol.Net.Compiler/CodeGen/ICodeGenBackend.cs`, `RoslynBackend.cs`, `CSharpEmitter.cs`, `ProgramEmitter.cs`, `StatementEmitter.cs`, `DispatchEmitter.cs`, `EcEmitter.cs`, `CodeGen/DataDivision/*`, `CodeGen/Verbs/*`, `CodeGen/Roslyn/{PlaceRenderer,RuntimeApi,FigurativeConstants}.cs`, `AssemblyPackager.cs`; driver `CompilerDriver.cs`.
+- **Related source files:** `src/WiseOwl.Cobol.Compiler/CodeGen/ICodeGenBackend.cs`, `RoslynBackend.cs`, `CSharpEmitter.cs`, `ProgramEmitter.cs`, `StatementEmitter.cs`, `DispatchEmitter.cs`, `EcEmitter.cs`, `CodeGen/DataDivision/*`, `CodeGen/Verbs/*`, `CodeGen/Roslyn/{PlaceRenderer,RuntimeApi,FigurativeConstants}.cs`, `AssemblyPackager.cs`; driver `CompilerDriver.cs`.
 - **Related notes:** [[kb/IR/Control Flow]] (dispatcher) · [[kb/Diagrams/Runtime Behavior Flow]] · [[kb/Architecture/Module Overview]]
 - **ISO constructs handled:** every verb/expression is rendered — arithmetic (§14.9), MOVE (§14.9.25), control flow (§14.4/§14.9.14–.28), files (§14.9 I-O), CALL/INVOKE (§14.9.4/.23), Report Writer (§13.18). Node → render map: [[kb/Spec/Lookup/IR Mapping]].
 - **ISO rules enforced:** faithful lowering of PC control flow (GO TO/PERFORM THRU/ALTER, §14.9.17/.28/.3); paragraph fall-through (§14.4); DECLARATIVES/USE firing (§14.5).
@@ -132,10 +132,10 @@ is emitted as the **PC dispatcher**. (A future CIL backend does its own private 
 
 ## Phase 7 — Runtime integration
 
-**Description.** The generated C# calls into **`Cobol.Net.Runtime`** for all value/behavior semantics. Typed-native —
+**Description.** The generated C# calls into **`WiseOwl.Cobol.Runtime`** for all value/behavior semantics. Typed-native —
 no byte `ProgramState`; byte images are transient at file/CODE-SET boundaries only.
 
-- **Related source files:** `src/Cobol.Net.Runtime/Values/*` (`CobolNum`, `CobolString`, `CobolDynTable`), `Verbs/*` (`CobolInspect`, `CobolStringOps`), `IO/*` (`CobolFile`, connectors, `CobolSort`), `Intrinsics/*` (`CobolIntrinsics`, `CobolDate`), `Control/*` (`ManagedPointer`, `RunUnit`, signals), `Exceptions/*` (`ExceptionCatalog`, `ExceptionState`).
+- **Related source files:** `src/WiseOwl.Cobol.Runtime/Values/*` (`CobolNum`, `CobolString`, `CobolDynTable`), `Verbs/*` (`CobolInspect`, `CobolStringOps`), `IO/*` (`CobolFile`, connectors, `CobolSort`), `Intrinsics/*` (`CobolIntrinsics`, `CobolDate`), `Control/*` (`ManagedPointer`, `RunUnit`, signals), `Exceptions/*` (`ExceptionCatalog`, `ExceptionState`).
 - **Related notes:** [[kb/Runtime/Execution Model]] · [[kb/Spec/Lookup/Runtime Mapping]]
 - **ISO constructs handled:** runtime behavior of numerics (§8.8.1), strings (§14.9.21/.38/.42), files (§14.9 I-O, §9.1.13 status), intrinsics (§15), interprogram (§14.9.4), OO INVOKE (§14.9.23), EC engine (§14.6.12 Table 13), Report Writer (§13.18).
 - **ISO rules enforced:** ROUNDED (§14.7.4) + ON SIZE ERROR (§14.6.6) via the `TryStore` funnel; FILE STATUS state machines (§9.1.13); condition evaluation & short-circuit (§8.8.4); EC hierarchy/fatality (§14.6.12).

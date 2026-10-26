@@ -60,7 +60,7 @@ with tempfile.TemporaryDirectory() as tmp:
         ("quoted target with a space", f'cd "{S}" && dotnet build', [spaced]),
         ("single-quoted target", f"cd '{S}' && dotnet build", [spaced]),
         ("relative target", "cd sub && dotnet build", [main / "sub"]),
-        ("no location change", "dotnet build Cobol.Net.sln > b.log 2>&1; echo EXIT=$?", [main]),
+        ("no location change", "dotnet build WiseOwl.Cobol.sln > b.log 2>&1; echo EXIT=$?", [main]),
         ("cd with no argument is home", "cd && dotnet build", [home]),
         ("cd - returns", f"cd {W} && cd - && dotnet build", [main]),
         ("cd -P option", f"cd -P {W} && dotnet build", [wt]),

@@ -14,7 +14,7 @@ process_only: false
 blocked_by: []
 spec_refs: [13.14, 13.18.53, 15.75.2, 15.81.2, 15.88.2, 8.11, 8.3.2.4.1, 8.4.3.2.3, 8.9]
 closes_rows: ["FMT-15.65.2", "FMT-15.81.2"]
-tags: [cobolsharp, work, defect]
+tags: [wiseowl-cobol, work, defect]
 ---
 
 # PB9 — LANDED (DEVLOG 1133) — a RESERVED intrinsic name in the KEYWORD-OMITTED form

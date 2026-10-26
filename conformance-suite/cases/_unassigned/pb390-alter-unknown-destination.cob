@@ -9,7 +9,7 @@
 *> scoped to 85. The rule is the general one: 8.4.2.1 - a statement's reference shall uniquely identify a
 *> resource - with 8.4.6.1's scope for paragraph-names and section-names. Both ALTER operands now enter
 *> the ONE procedure-name resolution, so neither can fail in silence; before PB390 an unknown destination
-*> compiled and aborted the run unit claiming COBOL.NET had not implemented a feature.
+*> compiled and aborted the run unit claiming WiseOwl COBOL had not implemented a feature.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB390ALTERDST.
 PROCEDURE DIVISION.

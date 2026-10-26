@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> AN INTEGER-N BEYOND THE IMPLEMENTATION LIMIT (kb/Work PB1058). COBOL.NET
+      *> AN INTEGER-N BEYOND THE IMPLEMENTATION LIMIT (kb/Work PB1058). WiseOwl COBOL
       *> binds the integer-n of a data description (a PAGE or LINAGE line count,
       *> a COLUMN, an OCCURS size) into its own model as a 32-bit integer, so a
       *> value above 2,147,483,647 is beyond this implementation's limit —

@@ -2,7 +2,7 @@
 
 Status: DESIGN (rearchitecture dimension). Author: rearchitecture review. Date: 2026-07-07.
 Scope: the harness/build/CI machinery that KEEPS THE BATTERY GREEN through the clean-slate rearchitecture of
-`src/Cobol.Net.*`, plus the diagnostic-code registry, the characterization strategy, and the roadmap/DEVLOG
+`src/WiseOwl.Cobol.*`, plus the diagnostic-code registry, the characterization strategy, and the roadmap/DEVLOG
 discipline that make each phase resumable and behavior-neutral.
 
 This dimension underpins every other rearchitecture dimension: none of the god-class splits, pass-pipeline
@@ -17,16 +17,16 @@ was rearchitected first, to compare against committed goldens, and the engine is
 ### 1.1 Test projects (four, two stacks)
 | Project | Files | Role |
 |---|---|---|
-| `tests/Cobol.Net.Tests.Conformance` | ~80 `.cs` | ACTIVE greenfield net: differential feature tests (`*DifferentialTests.cs`), `NistDifferentialTests` (the corpus goldens, `[MemberData]` over `corpus.tsv` — see §3.2), `VersionMatrixTests`, `ConformanceSuiteTests`, `EditionHarness`, `CompilerUnderTest`/`CutRunner`. Those three theory-heavy families are **PARTITIONED across xUnit collections** — §3.11. |
-| `tests/Cobol.Net.Tests.Unit` | ~17 `.cs` | Greenfield unit: runtime kernels, `ConstructRegistryDriftTests`, `ReservedWordsDriftTests`, `CheckOnlyCompileTests`, CLI parser, `EditionContextTests`. |
+| `tests/WiseOwl.Cobol.Tests.Conformance` | ~80 `.cs` | ACTIVE greenfield net: differential feature tests (`*DifferentialTests.cs`), `NistDifferentialTests` (the corpus goldens, `[MemberData]` over `corpus.tsv` — see §3.2), `VersionMatrixTests`, `ConformanceSuiteTests`, `EditionHarness`, `CompilerUnderTest`/`CutRunner`. Those three theory-heavy families are **PARTITIONED across xUnit collections** — §3.11. |
+| `tests/WiseOwl.Cobol.Tests.Unit` | ~17 `.cs` | Greenfield unit: runtime kernels, `ConstructRegistryDriftTests`, `ReservedWordsDriftTests`, `CheckOnlyCompileTests`, CLI parser, `EditionContextTests`. |
 
 ### 1.2 The differential oracle (the load-bearing risk)
-`CompilerUnderTest.cs` defines `CobolNetCompiler` (drives `CompilerDriver`) and `CutRunner`. The ~60
+`CompilerUnderTest.cs` defines `WiseOwlCobolCompiler` (drives `CompilerDriver`) and `CutRunner`. The ~60
 `*DifferentialTests.cs` compile each source with WiseOwl COBOL and compare its normalized stdout
 (`CutRunner.Normalize` = the guard's `normalize()`: drop CR, per-line trailing-trim) with a committed golden under
 `tests/differential/` (`DifferentialGolden.Assert`, one mode). Those goldens were recorded once from the legacy
 engine; the live legacy comparison, its bake and verify modes and the conformance project's `ProjectReference`s
-to `CobolSharp.*` were removed by kb/Work PB2108 (R69), so a new golden is spec-derived and never baked.
+to `Legacy.*` were removed by kb/Work PB2108 (R69), so a new golden is spec-derived and never baked.
 
 `NistDifferentialTests` is DIFFERENT and safe: it compares WiseOwl COBOL output to committed goldens
 (`tests/nist/valid/*.txt`), not to a live legacy run. Its program set and every chain's predecessors come from
@@ -36,9 +36,9 @@ the two NIST legs run one population by construction (kb/Work PB925, PB3383); `C
 keep the derivation in place and the script's `--self-test` proves it.
 
 ### 1.3 Guard scripts (bash, Linux-only NIST loop, over the WiseOwl COBOL CLI)
-⛔ **The NIST leg drives `cobol` (`src/Cobol.Net.Cli`), not the legacy CLI** — since kb/Work/PB750, which found
-that the guards had hard-coded the legacy engine's `cobolsharp.dll`. That binary's project
-graph was the legacy engine plus `Cobol.Net.Frontend`; `Cobol.Net.Compiler` — the Roslyn code
+⛔ **The NIST leg drives `cobol` (`src/WiseOwl.Cobol.Cli`), not the legacy CLI** — since kb/Work/PB750, which found
+that the guards had hard-coded the legacy engine's `legacy.dll`. That binary's project
+graph was the legacy engine plus `WiseOwl.Cobol.Frontend`; `WiseOwl.Cobol.Compiler` — the Roslyn code
 generator that IS WiseOwl COBOL — is not in it, so the leg was structurally blind to every greenfield codegen defect
 and each battery's headline `guard NIST: 353 MATCH` was a true statement about the ORACLE. Battery #58 is the
 demonstration: `NC215A` printed a wrong answer (PB741) that `NistDifferentialTests_P0` caught and the guard's
@@ -50,9 +50,9 @@ met every file the programs before it had left: once the keyed-store engine's wr
 "equivalence proof", which was RELATIVE (two guards sharing a hole agreed: kb/Work PB473) where the audit below is
 ABSOLUTE.
 - `scripts/guard-compiler.sh` — ⭐ **the ONE place that answers "which compiler is this gate measuring?"**,
-  sourced by the guard: `cobol` (src/Cobol.Net.Cli), the only compiler any gate drives since the legacy engine's
+  sourced by the guard: `cobol` (src/WiseOwl.Cobol.Cli), the only compiler any gate drives since the legacy engine's
   retirement (kb/Work R69, PB2109). `guard_assert_compiler_identity` reads the resolved CLI's own `.deps.json` — the
-  build's record of its project graph — and REFUSES to run when the closure does not contain `Cobol.Net.Compiler`,
+  build's record of its project graph — and REFUSES to run when the closure does not contain `WiseOwl.Cobol.Compiler`,
   so a path typo, a stale bin dir or a project rename can never silently point the gate at another binary.
   `--self-test` proves the refusal fires (on synthetic manifests, so it needs no second compiler); `guard-verify.sh`
   runs it too.
@@ -240,7 +240,7 @@ thing that proves the ALLOW arm — three of this hook's four defects were it fa
    characterization harness cannot snapshot the bound tree independently of emission.
 8. **Roslyn reference set uncached** ⇒ the in-process battery pays ~180 `MetadataReference.CreateFromFile` per
    compile (thousands of times per run).
-9. **Roadmap SSOT was a 100 KB `resume-prompt.md`** (since absorbed into `docs/COBOLNET_REARCHITECTURE_PLAN.md` and deleted) — excellent for session resume, but there is no compact,
+9. **Roadmap SSOT was a 100 KB `resume-prompt.md`** (since absorbed into `docs/REARCHITECTURE_PLAN.md` and deleted) — excellent for session resume, but there is no compact,
    phase-structured, exit-criteria-bearing rearchitecture roadmap doc that a future engineer resumes the
    MIGRATION (not the feature drive) from.
 
@@ -266,13 +266,13 @@ A rearchitecture phase is "behavior-neutral" iff, in order of authority:
 Gates (1) and (2) are hard (red = stop). Gate (3) is a reviewed diff, never auto-accepted, never silently drifting.
 
 ### 3.1 Test project taxonomy (target)
-Collapse to a coherent, layered set under one namespace root `CobolNet.Tests.*`:
+Collapse to a coherent, layered set under one namespace root `WiseOwl.Cobol.Tests.*`:
 
 | Project | Replaces | Contents |
 |---|---|---|
-| `tests/Cobol.Net.Tests.Unit` | (kept) | Pure unit: runtime kernels, binder/emitter component units, CLI/driver, drift tests. Fast, no Roslyn where avoidable. |
-| `tests/Cobol.Net.Tests.Conformance` | (kept, refocused) | End-to-end program behavior: NIST goldens, per-edition corpus, version matrix, negative corpus. Compares to COMMITTED goldens only — no live second compiler. |
-| `tests/Cobol.Net.Tests.Characterization` | NEW | The behavior-neutrality harness: diagnostic snapshots + emitted-C# snapshots (gates 2 & 3) over a fixed "characterization corpus". Runs on every phase. |
+| `tests/WiseOwl.Cobol.Tests.Unit` | (kept) | Pure unit: runtime kernels, binder/emitter component units, CLI/driver, drift tests. Fast, no Roslyn where avoidable. |
+| `tests/WiseOwl.Cobol.Tests.Conformance` | (kept, refocused) | End-to-end program behavior: NIST goldens, per-edition corpus, version matrix, negative corpus. Compares to COMMITTED goldens only — no live second compiler. |
+| `tests/WiseOwl.Cobol.Tests.Characterization` | NEW | The behavior-neutrality harness: diagnostic snapshots + emitted-C# snapshots (gates 2 & 3) over a fixed "characterization corpus". Runs on every phase. |
 
 Rationale: `ConformanceSuiteTests` is the one suite runner (it replaced `CorpusRunnerTests`, kb/Work PB3177); the legacy `ConformanceTests` runner and its `GreenfieldOnly`/`LegacyDivergent` skip sets were deleted with the legacy test projects (PB2110).
 
@@ -332,7 +332,7 @@ compared with `tests/nist/valid-files/<TEST>/<file>`, and the two sets must be E
 a golden no longer written and one different byte are each red. 150 programs write one or more: the sequential,
 relative and indexed files of the SQ/RL/IX/ST/SM/IC families, the OBSQ chain, the RW report files. The next
 program that writes a second file is graded with no change anywhere.
-- **Two arms, one rule.** `NistRunner`/`NistOutputs` (`tests/Cobol.Net.Tests.Conformance/NistRunner.cs`, graded by
+- **Two arms, one rule.** `NistRunner`/`NistOutputs` (`tests/WiseOwl.Cobol.Tests.Conformance/NistRunner.cs`, graded by
   `NistDifferentialTests`) and `guard-verdict.sh#guard_files_apply` (called by `guard-run-group.sh`, so CI's `guard` job
   grades the same files). `NistWrittenFilesTests` and the `guard-verify.sh --self-test` cases are the
   twins that make every way of being wrong red; each was shown RED against the code before it.
@@ -354,16 +354,16 @@ program that writes a second file is graded with no change anywhere.
 - **The population includes the 15 guard-asserted `pending` rows.** `OBSQ1A` and `SQ106A` … `SQ227A` have a golden and
   were run by the guard only; the first Linux run of the written-files arm failed on them for having no golden to
   grade against, and the differential now runs them as green rows (they match on both hosts).
-- **Re-capture** after a deliberate format change: `COBOLNET_UPDATE_NIST_FILES=1 dotnet test … --filter
+- **Re-capture** after a deliberate format change: `WISEOWL_COBOL_UPDATE_NIST_FILES=1 dotnet test … --filter
   NistDifferentialTests`, then review `git diff tests/nist/valid-files` — the same discipline as
-  `COBOLNET_UPDATE_SNAPSHOTS`.
+  `WISEOWL_COBOL_UPDATE_SNAPSHOTS`.
 - **A `TERMINATES` row is graded for files too** (review round 1 of PB804; the owner's PB3353 requirement that the abnormal paths are covered as fully as the success paths). Its run ends abnormally by declaration, and what it had written by then — the closed data files, the print file, the console output — is graded with the same rule: a run that exits non-zero has NO report to separate out, so `NistRunner` returns every file it wrote (print file included) and its console output whenever it printed anything (`NistRunResult.Written`), and `guard_files_apply` is called with an empty report name on the termination arm. ST146A is the witness: `xxxxx014.txt` (SQ-FS1, closed before the end), `xxxxx015.txt` and its partial `st146a.txt` have goldens. `NC401M` terminates before it writes any file, so it has no directory.
 
-### 3.3 The characterization harness (`Cobol.Net.Tests.Characterization`)
+### 3.3 The characterization harness (`WiseOwl.Cobol.Tests.Characterization`)
 The behavior-neutrality proof the rearchitecture needs. Structure:
 
 ```
-tests/Cobol.Net.Tests.Characterization/
+tests/WiseOwl.Cobol.Tests.Characterization/
   CharacterizationCorpus.cs      # discovers tests/characterization/**/*.cob (+ per-file .std directive)
   DiagnosticSnapshotTests.cs     # gate (2)
   EmittedCSharpSnapshotTests.cs  # gate (3)
@@ -392,7 +392,7 @@ public sealed record ProbeResult(
 - `EmittedCSharpSnapshotTests` emits the C# for each `positive/*.cob` and asserts equality with
   `Snapshots/<name>.g.cs.txt` (line-ending normalized). Roslyn is NOT invoked — this snapshots the emitter output
   string, which is cheap and deterministic.
-- Re-baselining: `COBOLNET_UPDATE_SNAPSHOTS=1 dotnet test …/Characterization` rewrites the `Snapshots/` files. This
+- Re-baselining: `WISEOWL_COBOL_UPDATE_SNAPSHOTS=1 dotnet test …/Characterization` rewrites the `Snapshots/` files. This
   is a DELIBERATE, reviewed action (the diff shows in the PR). Gate (1) — output goldens — proves any re-baseline
   is behavior-preserving. Never run in CI; CI always compares.
 
@@ -401,9 +401,9 @@ emitter, so the first snapshot is "how the emitter emits today." Every subsequen
 review-re-baseline). This is the missing "prove I changed nothing" gate.
 
 ### 3.4 Oracle bake-out: converting the differential net to goldens (the G8-survival migration)
-The ~60 `*DifferentialTests.cs` currently assert `cobolnet == legacy` at RUN time. Before the legacy engine is
+The ~60 `*DifferentialTests.cs` currently assert `wiseowl-cobol == legacy` at RUN time. Before the legacy engine is
 deleted, run a ONE-TIME bake that freezes the legacy output as a committed golden, then rewrite each test to assert
-`cobolnet == golden`.
+`wiseowl-cobol == golden`.
 
 Mechanism:
 1. Add `CutRunner`-driven `DifferentialBakeTool` (a `[Fact(Skip=…)]`-gated maintenance test, or a small
@@ -414,7 +414,7 @@ Mechanism:
    protected void AssertMatchesGolden(string source, string goldenName, int edition = 85)
        => Assert.Equal(ReadGolden(goldenName), Cn.CompileAndRun(source).stdout);
    ```
-   The legacy `ICompilerUnderTest`/`LegacyCompiler` and the `CobolNet==Legacy` asserts are deleted.
+   The legacy `ICompilerUnderTest`/`LegacyCompiler` and the `WiseOwl.Cobol==Legacy` asserts are deleted.
 3. A `divergent`-style escape hatch stays for the handful of legacy-non-conforming cases (already tracked in
    `LegacyDivergent`) — those goldens are hand-authored to the ISO value.
 
@@ -427,7 +427,7 @@ path. What retired with the engine (kb/Work PB2109) was the legacy arm of `guard
 exemption list, not the leg.
 **This bake is a PREREQUISITE gate for G8 and for retiring the legacy CI job.**
 
-### 3.5 Diagnostic-code registry (`Cobol.Net.Diagnostics`)
+### 3.5 Diagnostic-code registry (`WiseOwl.Cobol.Diagnostics`)
 A first-class subsystem (also required by the Editions dimension). Minimal shape:
 
 ```csharp
@@ -452,14 +452,14 @@ public readonly record struct Diagnostic(
 - `DiagnosticRegistryDriftTests` (in `Tests.Unit`): every `Diag.*` descriptor has a unique code; every code emitted
   anywhere in the compiler is a registered descriptor (a source-scan or a runtime-collected set). Mirrors the
   existing `ConstructRegistryDriftTests` discipline.
-- A build step (or a `[Fact]` that writes when `COBOLNET_UPDATE_DOCS=1`) generates `docs/DIAGNOSTICS.md` from the
+- A build step (or a `[Fact]` that writes when `WISEOWL_COBOL_UPDATE_DOCS=1`) generates `docs/DIAGNOSTICS.md` from the
   catalogue — the single human-readable code table understandability #1 asks for.
 
 This makes gate (2) precise (snapshots key on stable codes) and lets the version matrix and `--suppress` target a
 rule.
 
 **The wire encoding of a diagnostic is part of the diagnostic** (`kb/Work/PB899`). A message carries its ISO
-citation, so it carries non-ASCII — `(ISO §11.10.3 SR5–6)` holds U+00A7 and U+2013. `CobolNet.Runtime.IO.StandardStreams.EnsureUtf8()`
+citation, so it carries non-ASCII — `(ISO §11.10.3 SR5–6)` holds U+00A7 and U+2013. `WiseOwl.Cobol.Runtime.IO.StandardStreams.EnsureUtf8()`
 is the ONE place that rule is written down, and BOTH process entries call it: `Program.Main` in the CLI before it
 parses an argument, and `ProgramTable.RunModule` for a compiled program's `Main` (never a host entry such as
 `RunMain`, whose host owns its console: kb/Work PB3193). The run-unit entry is where it used to live ALONE, so every
@@ -512,7 +512,7 @@ identical on both OSes (NIST now runs in-process, closing smell #5). `Generated/
 checkout (a failed regen fails the build — keep).
 
 ### 3.9 Roadmap SSOT + DEVLOG discipline
-- **`docs/COBOLNET_REARCHITECTURE_PLAN.md`** (the master plan) — the resumable migration SSOT / ROADMAP: an ordered
+- **`docs/REARCHITECTURE_PLAN.md`** (the master plan) — the resumable migration SSOT / ROADMAP: an ordered
   P0–P16 phase index, per-phase exit criteria (universal clause: "gates (1) & (2) green; gate (3) either unchanged or
   reviewed-re-baselined in this change set"), a top STATE banner naming the current phase, and the owner-decisions
   table. This is what a future engineer resumes the REARCH from; the plan §0 banner is the feature-drive live
@@ -520,7 +520,7 @@ checkout (a failed regen fails the build — keep).
 - **DEVLOG/** — one file per entry (§3.17.4, kb/Work PB3025), rendered descending; a real timestamp; one entry per
   landing on main, checked by `enqueue.py land` and CI through `python scripts/devlog.py check`, kb/Work PB2605) per the existing
   `feedback_devlog*` memories. Each rearch phase commit references its ROADMAP phase id.
-- **`docs/DOC_INDEX.md`** — add rows for `COBOLNET_REARCHITECTURE_PLAN.md` (the migration SSOT / ROADMAP),
+- **`docs/DOC_INDEX.md`** — add rows for `REARCHITECTURE_PLAN.md` (the migration SSOT / ROADMAP),
   `DIAGNOSTICS.md`, this doc, and the sibling `DESIGN-*` / `PHASE-*` docs; keep the "one canonical doc per subsystem" rule.
 
 ### 3.10 THE VERDICT-EVIDENCE INVARIANT (the instrument gate — plan §11 A12/A12b/A12c/A12d/A12e)
@@ -597,10 +597,10 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 
 | site | what it does now |
 |---|---|
-| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** Replaced six copies of "start `dotnet`, wait N s, return whatever came back" (`CutRunner.RunExit`, `AcceptDifferentialTests.AcceptRun`, `CobolNetTestBase.CompileAndRun`, three in `EndToEndTestBase`) plus a seventh found by its own drift guard (`BinderDecompositionTests`, which read both streams synchronously and then read `ExitCode` without checking `WaitForExit`'s result). A run that does not complete raises `HarnessNonObservationException` — it never returns partial output for a caller to compare. Retries **once, serialized**, first: that is re-attempting a measurement that did not complete, not re-rolling a failed assertion. A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`: files up to 1 MiB kept by content, larger ones by length and write time; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input): a killed COBOL program has already created and rewritten files, and IX216A's OPEN EXTEND of an absent OPTIONAL file answered 00 instead of 05 over the leftovers of its killed first attempt (kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it; `guard-fast.sh`'s serial re-observation already restarts in a fresh `mktemp` directory. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `COBOLNET_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units, so a program or a script gets one unit and `run.py` over a suite gets one per round of its compiles and runs (the two-runner drift test observes it once per edition, `--jobs` stated). The unit stays the floor for one program: 120 s against a recorded cost of at most 9.3 s for one suite test's compile and run and 7.0 s and 3.8 s for the two single-program tests PB3108 names, a multiple of 13 to 32 for load. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`: `/proc/stat` and `/proc/loadavg`, `GetSystemTimes`), so load is told from a hang. Every retry and non-observation is appended to `COBOLNET_HARNESS_LOG`, which the local gate (`run_gate_legs.py`'s `leg_env`) and every CI test step (`CiHarnessLogDriftTests`) point into their results directory and the Linux gate (`linux-gate.sh`'s `test_leg`) into its own directory on the Linux filesystem, copying it into `TestResults/linux-gate` as it ends (`remove_gate`: that directory is a Windows drive mounted over 9P, where an append beside a reader of the same file lost lines and the read failed with ENODATA, measured 2026-10-24, kb/Work PB3194), and CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
+| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** Replaced six copies of "start `dotnet`, wait N s, return whatever came back" (`CutRunner.RunExit`, `AcceptDifferentialTests.AcceptRun`, `WiseOwlCobolTestBase.CompileAndRun`, three in `EndToEndTestBase`) plus a seventh found by its own drift guard (`BinderDecompositionTests`, which read both streams synchronously and then read `ExitCode` without checking `WaitForExit`'s result). A run that does not complete raises `HarnessNonObservationException` — it never returns partial output for a caller to compare. Retries **once, serialized**, first: that is re-attempting a measurement that did not complete, not re-rolling a failed assertion. A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`: files up to 1 MiB kept by content, larger ones by length and write time; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input): a killed COBOL program has already created and rewritten files, and IX216A's OPEN EXTEND of an absent OPTIONAL file answered 00 instead of 05 over the leftovers of its killed first attempt (kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it; `guard-fast.sh`'s serial re-observation already restarts in a fresh `mktemp` directory. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `WISEOWL_COBOL_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units, so a program or a script gets one unit and `run.py` over a suite gets one per round of its compiles and runs (the two-runner drift test observes it once per edition, `--jobs` stated). The unit stays the floor for one program: 120 s against a recorded cost of at most 9.3 s for one suite test's compile and run and 7.0 s and 3.8 s for the two single-program tests PB3108 names, a multiple of 13 to 32 for load. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`: `/proc/stat` and `/proc/loadavg`, `GetSystemTimes`), so load is told from a hang. Every retry and non-observation is appended to `WISEOWL_COBOL_HARNESS_LOG`, which the local gate (`run_gate_legs.py`'s `leg_env`) and every CI test step (`CiHarnessLogDriftTests`) point into their results directory and the Linux gate (`linux-gate.sh`'s `test_leg`) into its own directory on the Linux filesystem, copying it into `TestResults/linux-gate` as it ends (`remove_gate`: that directory is a Windows drive mounted over 9P, where an append beside a reader of the same file lost lines and the read failed with ENODATA, measured 2026-10-24, kb/Work PB3194), and CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
 | `ProcessObservationDriftTests` | Keeps the extraction collapsed (the `TestRepoDriftTests` pattern): no test source may start a process under its own bounded wait. Plus five behavioural facts, including "a process that never finishes RAISES instead of returning empty output" and "`Observe` reports a timeout with an **empty** stdout" — if that ever returns content, the defect is back. |
 | `scripts/guard-nist-audit.sh` | The population + manifest + expectation audit, consumed by the guard so the rule is written once. A plain `divergent` row expects `MATCH` (PB750) and a `TERMINATES` row expects `TERMINATES <EC>` (PB1955), the second set asked of `guard-population.sh`; a verdict word it does not know (the retired `LEGACY DIVERGENT` included) is an UNRECOGNIZED finding. `--self-test` proves all sixteen checks can fail, including the two `divergent` arms and the five TERMINATES arms. `guard-fast.sh` runs it, with `guard-population.sh --self-test` and `guard-verify.sh --self-test`, before every guard run. |
-| `scripts/guard-compiler.sh` | ⭐ **THE one answer to "which compiler is this gate measuring?"** (kb/Work/PB750): `cobol`. `guard_assert_compiler_identity` reads the resolved CLI's own `.deps.json` and REFUSES to run when the closure does not contain `Cobol.Net.Compiler`. Earned by the guards hard-coding the legacy CLI, so `guard NIST: 353 MATCH` measured the ORACLE for the whole rearchitecture and battery #58's NC215A wrong answer was invisible to it. `--self-test` (discovered by `scripts/self_tests.py`, and run by `guard-verify.sh` too) proves the refusal fires on synthetic manifests. |
+| `scripts/guard-compiler.sh` | ⭐ **THE one answer to "which compiler is this gate measuring?"** (kb/Work/PB750): `cobol`. `guard_assert_compiler_identity` reads the resolved CLI's own `.deps.json` and REFUSES to run when the closure does not contain `WiseOwl.Cobol.Compiler`. Earned by the guards hard-coding the legacy CLI, so `guard NIST: 353 MATCH` measured the ORACLE for the whole rearchitecture and battery #58's NC215A wrong answer was invisible to it. `--self-test` (discovered by `scripts/self_tests.py`, and run by `guard-verify.sh` too) proves the refusal fires on synthetic manifests. |
 | `scripts/guard-compile.sh` | The compile invocation for one NIST program, written once (`cobol` needs `--nist NAME` because its parser binds the next token). Called by the guard's parallel compile and its serial re-observation retry, two call sites that would otherwise each have had to be kept in step by hand. |
 | `scripts/guard-verdict.sh` | ⭐ **THE evidence rules for the NIST guard, written ONCE and sourced by its one program runner** (`feedback_one_rule_one_place`). `guard_compile_verdict` (compile arm), `guard_output_verdict` (run + compare arms: normalization, candidate resolution, the FAIL*/footer rules, the verdict), `guard_preserve` (keep a non-MATCH's evidence). It reports through `GUARD_VERDICT` / `GUARD_CLASS` (`match` · `regression` · `no-verdict`) so each caller keeps its own recording and counting, and every function is option-local (`local -`) and returns 0: a scoring routine that can abort a `set -e` caller is not a scoring routine. **The comparison materializes both normalized sides into real files** — corollary 5 — and reads `diff`'s exit status explicitly. |
 | `scripts/guard-baselines.sh` | ⭐ **THE baseline-cleanliness audit, written ONCE and called by the guard** (`feedback_one_rule_one_place`). Empty / `FAIL*` / non-zero-footer baselines are refused, unless the program is declared `CCVS-DEFECT` in `tests/nist/corpus.tsv` — the same declaration, read from the same file, that `CorpusManifestTests.GoldensCarryingACcvsFailure_AreExactlyTheDeclaredCcvsDefects` states as a set equality. The complement is audited here too (a declaration with nothing to describe is a defect). Exits with the FAILURE COUNT, so each caller keeps its own aggregation. |
@@ -742,7 +742,7 @@ the sharded leg, and it was re-run locally against the split tree: 349+349+349+1
 §3.11 ended with the parallelism lever exhausted and "reduce the WORK" as the one left. The largest repeated work
 is the lander's whole-Conformance re-gate after a TEST-ONLY fix (a probe template, a stale test-ref, a pinned
 expectation — the dominant cause of trains 46–48's first-gate reds): ~7,900 cases recompiled although no compiler
-or runtime bit changed. `tests/Cobol.Net.Tests.Conformance/CompiledProgramCache.cs` makes that re-gate reuse every
+or runtime bit changed. `tests/WiseOwl.Cobol.Tests.Conformance/CompiledProgramCache.cs` makes that re-gate reuse every
 compiled program. **A hit still RUNS the program** — runtime behaviour is what a case checks; only the compile is
 skipped.
 
@@ -757,7 +757,7 @@ program — a green verdict about code that no longer exists — so the key is e
 
 | axis | how it is keyed | proof (`CompiledProgramCacheDriftTests`) |
 |---|---|---|
-| the compiler's own bits | SHA-256 of every non-framework assembly in `Cobol.Net.Compiler`'s reference closure (compiler, front end, editions, runtime, Roslyn, ANTLR) and of the runtime every program is compiled against and deployed with (`AssemblyPackager.RuntimePath`, the ReadyToRun image of §3.16, which is not the assembly loaded in-process) + the exact shared-framework build + culture + working directory (`CompiledProgramCache.ToolFiles`) | a byte flipped in one closure assembly, and in the deployed runtime, changes the fingerprint; every loaded `Cobol.Net.*` product assembly is in the closure |
+| the compiler's own bits | SHA-256 of every non-framework assembly in `WiseOwl.Cobol.Compiler`'s reference closure (compiler, front end, editions, runtime, Roslyn, ANTLR) and of the runtime every program is compiled against and deployed with (`AssemblyPackager.RuntimePath`, the ReadyToRun image of §3.16, which is not the assembly loaded in-process) + the exact shared-framework build + culture + working directory (`CompiledProgramCache.ToolFiles`) | a byte flipped in one closure assembly, and in the deployed runtime, changes the fingerprint; every loaded `WiseOwl.Cobol.*` product assembly is in the closure |
 | every compile option | **reflection** over `CompilerDriver.Options`, rendered per TYPE; an unknown type THROWS | every property is flipped by type-derived value and must change the key — an option added tomorrow is covered with no edit |
 | the source | its full path and its content hash | an edit misses; the same text at another path misses |
 | copybooks, probes, environment | the compiler's OWN record, `CompilerDriver.Result.Inputs` (below), re-verified on every lookup | an edited copybook misses; a copybook that newly SHADOWS the one found misses; a `>>DEFINE … PARAMETER` variable set/changed misses |
@@ -767,13 +767,13 @@ program — a green verdict about code that no longer exists — so the key is e
 **`CompilationInputs` — the compiler states its own inputs.** The one structural change to the product: every
 AMBIENT read a compilation makes — the source and copybook reads, every copybook-search probe (including the ones
 that found nothing — an absent answer is an input), the NIST default-library probe, a directive's environment
-variable, the WHEN-COMPILED clock — goes through `src/Cobol.Net.Frontend/Pipeline/CompilationInputs.cs`, which
+variable, the WHEN-COMPILED clock — goes through `src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs`, which
 performs the read AND records it; `CompilerDriver.Result.Inputs` carries the record and `Result.OutputFiles` every
 file the compile wrote (the backend and the packager report their own writes). That is the dependency list any
 incremental build needs (the `gcc -MD` shape), not a test-only affordance; the cache re-derives nothing. The
 WHEN-COMPILED stamp is captured LAZILY (still once per compilation), so only a compilation that renders it depends on
 the clock. Two source-form drift tests keep "complete" true: an ambient-read API anywhere in
-`Cobol.Net.Compiler`/`Frontend`/`Editions` outside `CompilationInputs.cs` is red unless its line says why it is not
+`WiseOwl.Cobol.Compiler`/`Frontend`/`Editions` outside `CompilationInputs.cs` is red unless its line says why it is not
 a compilation input (the compiler's own deployment, its own output), and the compiler may expose no public mutable
 static. A third keeps the SCOPE true: the one direct `CompilerDriver.Compile` in the Conformance assembly is
 `CompiledProgramCache.CompileCold`.
@@ -793,16 +793,16 @@ same key every run; the run directory stays per-case. With the cache OFF it writ
 before, so a cold run keeps the historical layout.
 
 **Store, concurrency, eviction.** Default store `.cache/compiled-programs/` under the worktree root (git-ignored):
-parallel worktrees never share one, and a removed worktree takes its store with it (`COBOLNET_COMPILE_CACHE_DIR`
+parallel worktrees never share one, and a removed worktree takes its store with it (`WISEOWL_COBOL_COMPILE_CACHE_DIR`
 relocates it). Entries (`entries/<key>.json`) name content-addressed, Brotli-compressed blobs (`blobs/<sha>`) — the
 1.8 MB runtime every program deploys is stored once. Every write is temp-file-then-rename, so parallel test
 collections and parallel test hosts only ever see whole files; a torn or evicted entry is a MISS, never an error —
 correctness never depends on the cache. Once per test process, under an exclusive lock file, a store over its cap
-(`COBOLNET_COMPILE_CACHE_MAX_MB`, default 4096) drops its least-recently-used half and every blob no survivor
+(`WISEOWL_COBOL_COMPILE_CACHE_MAX_MB`, default 4096) drops its least-recently-used half and every blob no survivor
 names (blobs younger than ten minutes are spared for a concurrent writer), and staged sources untouched for a week
 go. Each process appends its hit/miss tally to `stats.log`.
 
-**The switch.** `COBOLNET_COMPILE_CACHE=off` disables it, `=on` forces it. Unset, it is ON for local gates
+**The switch.** `WISEOWL_COBOL_COMPILE_CACHE=off` disables it, `=on` forces it. Unset, it is ON for local gates
 (`build-local`, the lander) and OFF under CI (`CI` set — GitHub Actions always sets it); `scripts/battery.sh`
 exports `off`, so **the battery and CI run COLD** (PB985 obligation 4 — the owner may decide otherwise).
 
@@ -853,7 +853,7 @@ The recorder instead rides the test run itself, in its own RECORDING build, and 
 | `tools/impact/ImpactInstrumenter` (Mono.Cecil) | rewrites each covered assembly once: every method with sequence points calls `ImpactProbe.Hit(id)` on entry, `id` being its entry in the probe table — its file and the LINE RANGES it owns (its sequence points, merged across the lines between two of them unless another method's point lies between, so braces, `else` lines and comments belong to it and a lambda's body to the lambda); members with no sequence points are charged to a TYPE-LEVEL entry; `implies` names each entry's type-chain static constructors; every `Process.Start` is redirected to the probe's twin |
 | `ImpactProbe` | one byte store per hit into the array of the running CONTEXT, an `AsyncLocal` every assembly's copy shares through `AppContext` data; a hit with no context lands in an AMBIENT array. In a child process (a compiled COBOL program loading the instrumented runtime) it records for the process and writes a hits file at exit, which the redirected `Process.Start` queued on the starting test |
 | `ImpactTestFramework` | xunit's own framework with the message bus wrapped: `ITestCollectionStarting` / `ITestClassStarting` / `ITestStarting` install a fresh context synchronously on the flow about to run it (the same `TestRunner.RunAsync` then awaits the test, so the context flows into constructor, body and every task it starts, while parallel tests keep their own); `…Finished` saves it with the children folded in. A `BeforeAfterTestAttribute` cannot do this — it is handed only the `MethodInfo`, which cannot tell a theory's rows apart, and the corpus theories are ~3,400 of the ~9,300 Conformance tests. It DERIVES from the gate's `GateTestFramework` (§3.14.3), so a recording build still names one framework |
-| `scripts/spec/record_impact_map.py` | a DETACHED worktree at the commit, the recording build, the instrumenter, each test assembly once with `COBOLNET_COMPILE_CACHE=off` (a cache hit skips the compiler and would record nothing for it), and the merge into `<git common dir>/cobol-impact/<sha>.json.gz` — shared by every worktree of the repository. Its watchdog fails the recording when a listed test was never recorded or no test reached the compiler, front end or runtime; a recorded test takes the name the gate knows it by (`adopt_listed_names`: the vstest adapter truncates a long theory row's display name with `···`, xunit's own name is the full one), and the map is written beside its name and renamed into it, so a reader never opens half a file. `--self-test` covers both |
+| `scripts/spec/record_impact_map.py` | a DETACHED worktree at the commit, the recording build, the instrumenter, each test assembly once with `WISEOWL_COBOL_COMPILE_CACHE=off` (a cache hit skips the compiler and would record nothing for it), and the merge into `<git common dir>/cobol-impact/<sha>.json.gz` — shared by every worktree of the repository. Its watchdog fails the recording when a listed test was never recorded or no test reached the compiler, front end or runtime; a recorded test takes the name the gate knows it by (`adopt_listed_names`: the vstest adapter truncates a long theory row's display name with `···`, xunit's own name is the full one), and the map is written beside its name and renamed into it, so a reader never opens half a file. `--self-test` covers both |
 | `scripts/spec/impact_store.py` | THE ONE HOME OF THE STORE (kb/Work PB3663): its location (`<git common dir>/cobol-impact`), the map's schema and bitset codec, which paths are documentation, **which map serves a base** (`nearest`) and how the store is bounded (`prune`, `clean_work`). The recorder, the lookup and the loop's recorder lane each carried a copy of these before |
 | `scripts/orchestrator/impact_lane.py` | THE LOOP RECORDS A MAP FOR EVERY MAIN COMMIT IT ADOPTS (owner 2026-10-24, kb/Work PB3663; `DESIGN-orchestrator-loop.md` §4.10): `request` (called by `adopt_main.py adopt`) starts one DETACHED worker at BelowNormal or coalesces to the newest commit; the worker holds the recorder's gate slot; a failed recording posts to the operator's mailbox and shows in every adoption line until one succeeds; `measure` reports the share of gate plans a map served |
 | `scripts/spec/impacted_tests.py` | the lookup: `analyse()` → the change's TIERS (below) and its tier-0a facts (the test methods it adds, the corpus goldens it touches), which `scripts/gate_plan.py` computes in-process to assemble the plan (§3.14.2); `--base <cut point> --plan <file>` writes the same analysis as JSON for inspection. M11 deleted its selection (kb/Work PB1717): its last stdout line is ALWAYS the whole-assembly filter `FullyQualifiedName~.`, map or no map, until M13 deletes that line and `--plus` with every caller (§3.14.9) |
@@ -1056,14 +1056,14 @@ because the raw name is not stable (`b7`):
   (kb/Work PB3112, `drift_rules.path_expr`): literals, `TestRepo.Root`, a class constant (`const string`,
   `static readonly string`; never a local or a parameter, which is another method's; a constant may name a later one however long the chain, resolved pass by pass to a fixed point bounded by the declaration count, kb/Work PB3645), a nested `Path.Combine(..)` or
   `TestRepo.X(..)`, up to the first argument it cannot spell. 62 of the 391 drift tests read a path the earlier
-  single-level regex missed (`TestRepo.Src(Path.Combine("Cobol.Net.Frontend", "Grammar"))`, `Path.Combine(TestRepo.Root,
+  single-level regex missed (`TestRepo.Src(Path.Combine("WiseOwl.Cobol.Frontend", "Grammar"))`, `Path.Combine(TestRepo.Root,
   GrammarDir)`, `Path.Combine("src", ..)`; five grammar-scanning classes governed no grammar file). A method that wraps
   one read (`Read(params string[] parts) => File.ReadAllText(TestRepo.At(parts))`) is read at its CALLERS, whose
   literals spell the path (only the arguments bound to the parameters the body's path carries: for
   `AssertDeclares(string script, params string[] cases)` the `script`, never the `cases`); the body's own directory read is replaced by theirs unless some use of the wrapper (a method
   group, `nameof`) spells none. That narrowing is exact, so three classes that were read as sweeps of `src` or
   `scripts/spec` are specific to the files they name and lose the `Sweep` trait, and one (`LevelNumberArmDriftTests`,
-  which enumerates `src/Cobol.Net.Compiler`) gains it. A drift test that reads the repo and spells no path at all
+  which enumerates `src/WiseOwl.Cobol.Compiler`) gains it. A drift test that reads the repo and spells no path at all
   (`TestRepo.At(tree)` from a theory's parameter) governs no file, so `drift_rules.py --check` refuses it
   (`blind`): spell the trees with literals. With that check the index sees every read a drift test makes, and the
   tier-0c cost cap (instances three to five of PB3112: a load-skewed sample, a case never re-timed) decides only the
@@ -1101,7 +1101,7 @@ because the raw name is not stable (`b7`):
   `docs/README.md` survives deleting `docs/sub/README.md` and a bare word is no path. Of the six most recent
   file-deleting commits on main, five then promote nothing beyond their governed classes, and the sixth (cf9c85914)
   promotes the inventory's classes on a real break: its code-location
-  `src/Cobol.Net.Runtime/IO/IndexedConnector.WholeStore.cs#StoreHolds` names the deleted file. A removed identifier that survives elsewhere in
+  `src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.WholeStore.cs#StoreHolds` names the deleted file. A removed identifier that survives elsewhere in
   its file (in a comment) is not seen; a member declared in a deleted file of a `partial` type is not seen; a register
   outside the drift tests' named files is not read.
   `TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")`.
@@ -1186,7 +1186,7 @@ run as `linux gate <its results directory>`; `gate_plan.previous_gates`) with ho
 many of them name a case discovered here (`{"keys": 0, "listed": 0}` for a source that left none). Every plan the gate
 driver or the CLI writes carries both, and the plan summary prints them. `sha256` is the SHA-256 of the canonical JSON of every
 other field: the plan's identity on the verdict line and in the identity records. The handshake digest
-`COBOLNET_GATE_PLAN_SHA256` is the SHA-256 of the file's BYTES, which `gate_plan.py` prints as its last stdout line.
+`WISEOWL_COBOL_GATE_PLAN_SHA256` is the SHA-256 of the file's BYTES, which `gate_plan.py` prints as its last stdout line.
 **The leg function:** `LegOf(case) = 1` if `NameKey(case.DisplayName)` is a
 leg-1 key, `2` if it is a leg-2 key, and `1` if it is neither — total over every name, so a case the plan never
 heard of runs in leg 1, never nowhere. Display names are the key's source because they are the one identity the
@@ -1227,11 +1227,11 @@ glob, as `TestPartitioning.cs` is) holds `GateNameKey` (the name key, mirroring 
 reader, `GateTestFramework : XunitTestFramework`, whose executor runs `testCases.Where(c => plan.LegOf(c) == leg)`,
 and the two orderers (landed, kb/Work PB1719):
 - **The framework attribute is written by `tests/Directory.Build.props`**, for every project with `IsTestProject`,
-  as an MSBuild `AssemblyAttribute` (`Xunit.TestFrameworkAttribute("CobolNet.Gate.GateTestFramework",
+  as an MSBuild `AssemblyAttribute` (`Xunit.TestFrameworkAttribute("WiseOwl.Cobol.Gate.GateTestFramework",
   "$(AssemblyName)")`): xunit resolves the framework by ASSEMBLY name, which a linked source file cannot spell, and
   on any miss it silently runs its default framework — every case, no filter. `GateLegDriftTests` arm (4) checks it
   in each gated assembly.
-- **The plan names an assembly by its key**: the test assembly's name without `Cobol.Net.Tests.` (`Conformance`,
+- **The plan names an assembly by its key**: the test assembly's name without `WiseOwl.Cobol.Tests.` (`Conformance`,
   `Unit`, `Characterization`), as the impact map and `gate_plan.py --list` do.
 - **The orderers are installed by the executor's assembly runner**, after xunit reads the assembly's own orderer
   attributes and only under a plan, so a run with no handshake keeps xunit's order exactly (an orderer attribute
@@ -1245,7 +1245,7 @@ and the two orderers (landed, kb/Work PB1719):
   defect in that code — refuses the run the same way as a bad handshake below; the executor never throws.
 
 **The environment handshake** — three variables, all written by the driver:
-`COBOLNET_GATE_PLAN` (the plan file), `COBOLNET_GATE_LEG` (`1` or `2`) and `COBOLNET_GATE_PLAN_SHA256` (the driver's
+`WISEOWL_COBOL_GATE_PLAN` (the plan file), `WISEOWL_COBOL_GATE_LEG` (`1` or `2`) and `WISEOWL_COBOL_GATE_PLAN_SHA256` (the driver's
 digest of that file).
 - **None set** (the battery, CI, a gate with no plan, an IDE): every case, xunit's order, exactly as today. An
   EMPTY value counts as unset (Windows cannot hold an empty environment variable at all).
@@ -1255,7 +1255,7 @@ digest of that file).
   other than `1` or `2`, a plan of another schema, one that names no entry for this assembly or puts one key in both
   legs: the executor
   reports EVERY case as an `ExecutionErrorTestCase` naming the cause
-  (`GATE ENVIRONMENT INCOMPLETE: COBOLNET_GATE_LEG is set but COBOLNET_GATE_PLAN_SHA256 is not`). The run is RED, never
+  (`GATE ENVIRONMENT INCOMPLETE: WISEOWL_COBOL_GATE_LEG is set but WISEOWL_COBOL_GATE_PLAN_SHA256 is not`). The run is RED, never
   a silent whole or partial run (measured on the real hosts, evidence `m12`: each of eight partial or stale
   environments gave `Failed!` and exit 1; vstest keeps one failed result per test METHOD, because the error cases of
   one method share its id, so Characterization's 35 cases show 4 failed results). A developer who exports two of the variables by hand to reproduce a leg therefore
@@ -1265,7 +1265,7 @@ digest of that file).
   cases): MSBuild imports every environment variable as a property, so `VSTestTestCaseFilter=FullyQualifiedName~Snapshot`
   ran 31 cases, and `RunSettingsFilePath` (or `VSTestSetting`) naming a runsettings file with a `TestCaseFilter` did
   the same — in the run AND in `--list-tests`, so a population listed in the caller's environment is blind to them.
-  The rule is written once, `test_population.py`'s `is_scrubbed`: the prefixes `COBOLNET_GATE_` and `VSTest`, and
+  The rule is written once, `test_population.py`'s `is_scrubbed`: the prefixes `WISEOWL_COBOL_GATE_` and `VSTest`, and
   `RunSettingsFilePath`, case-insensitively. A python caller passes `env=scrubbed_env()` (`record_impact_map.py`,
   `filter_population.py`; the driver merges its handshake over the scrubbed environment); every other caller runs
   `python scripts/test_population.py scrubbed dotnet test …` — `battery.sh`, `gen-vcr.ps1`,
@@ -1283,7 +1283,7 @@ digest of that file).
 **Each leg host writes its IDENTITY RECORD** into the gate's run directory — the plan's directory — as
 `leg-<n>-<assembly key>.json`, before it runs a case (written to a temporary name and moved into place): `schema`
 1, `assembly`, `leg`, `plan_sha256` (the digest it verified), `plan_content_sha256` (the plan's own `sha256`),
-`test_assembly` (file, MVID and SHA-256), `product_assemblies` (the SHA-256 of every `Cobol.Net.*`, `CobolSharp.*` and
+`test_assembly` (file, MVID and SHA-256), `product_assemblies` (the SHA-256 of every `WiseOwl.Cobol.*`, `Legacy.*` and
 `cobol.dll` beside the test assembly: the compiler under test), `received` (how many discovered cases the host was
 handed) and `runs` (the name key of every case it runs, in run order). The recording build's `ImpactTestFramework`
 derives from `GateTestFramework` — overriding only its one extension point, `WrapMessageBus` — and the recording
@@ -1439,7 +1439,7 @@ since a truncated argument can cut the root off; the root is matched as TEXT in 
 forms, never through the host's path rules, and Unit's witness plants a Windows, a POSIX and the host's own root, so
 the arm is proven on each OS CI runs), so every gated assembly carries a `GateLegDriftTests` with those
 two arms; Unit's also holds (1), (2), (3)'s population half, (6), the handshake arms and (4)'s structural half over
-every test `.csproj`; (6) every `dotnet test` caller scrubs `COBOLNET_GATE_*`, `VSTest*` and `RunSettingsFilePath`
+every test `.csproj`; (6) every `dotnet test` caller scrubs `WISEOWL_COBOL_GATE_*`, `VSTest*` and `RunSettingsFilePath`
 (`test_population.py audit-callers`, §3.14.3) — the driver included, which merges its own handshake over the
 scrubbed environment. Each arm is one test method named for its number, so the mechanisms that land them separately
 merge by union.
@@ -1739,13 +1739,13 @@ above. The rejected design and both reviews are in the DEVLOG entry that pivoted
 
 | id | mechanism | files | acceptance (measured, never asserted) | depends on | size |
 |---|---|---|---|---|---|
-| M6 | after warm-up the lexer performs no ATN simulation (§3.14.5); kb/Work PB1715 | `src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4` and the predicate and action methods it calls; `tests/Cobol.Net.Tests.Unit/LexerDfaCacheDriftTests.cs`; this section | token streams of every suite source identical before/after (one-time differential, recorded in the DEVLOG); `LexerDfaCacheDriftTests` red on a planted predicate at the left edge AND on one placed after a common prefix's first character; zero ATN simulation on re-lexing the suite's ASCII sources (the one EOF transition per input ANTLR never caches is reported, not counted); the non-ASCII residual reported; `b2` at 12 threads ≥ 8× today's 1-thread wall, CPU utilisation ≥ 70 % (measured 55× and 21 %: the utilisation limit is now the workstation GC, §3.14.5); whole battery green | — | 140–200 turns |
-| M7 | SR23 before the table-value fill; the fill bounded by the phrase (§3.14.5); defect note: id allocated by the orchestrator | `src/Cobol.Net.Compiler/Binding/Model/TableValuePlan.cs` (`TableValueOdometer.Resolve`), `DataBinder.ResolveTableValues`; battery summary top-5 report in `scripts/battery.sh` | the pb505 program rejects with `COBOL1946` in < 1 s through the CLI (was 29.6 s); both tests keep their assertions; every Format 2 VALUE golden unchanged; the battery summary lists the five slowest tests | — | 60–100 turns |
-| M11 | the order plan: `NameKey`, tiers 0a/0u/1–3, the budgets and the collection cap (§3.13, §3.14.2); the NARROWING deleted — LANDED (kb/Work PB1717: b4 first red 0.32 %, b7 one tier-0u case and a 15.3 s floor; tier 0a corrected to ADDED test methods) | `scripts/spec/impacted_tests.py` (selection code DELETED — its filter line is always the whole-assembly filter until M13 deletes the line; `--plan` added), `scripts/gate_plan.py`, `tests/Cobol.Net.Tests.Unit/ImpactedTestsDriftTests.cs`, kb/Work PB1712 (closed) | `--self-test` covers every tier arm, `NameKey`, the unknown budget, the collection cap and the no-map / no-timings / stale-map / empty-leg-1 / whole-assembly-in-leg-1 arms; the filter line is the whole-assembly filter for a base WITH a map; `b4` re-run through the new script reproduces cheapest-first on 68b X (first red ≤ 1 % of the work); `b7` re-run through it: a golden appended to the 85 manifest leaves ONE tier-0u case and a leg-1 floor ≤ 16 s | — | 110–160 turns |
+| M6 | after warm-up the lexer performs no ATN simulation (§3.14.5); kb/Work PB1715 | `src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4` and the predicate and action methods it calls; `tests/WiseOwl.Cobol.Tests.Unit/LexerDfaCacheDriftTests.cs`; this section | token streams of every suite source identical before/after (one-time differential, recorded in the DEVLOG); `LexerDfaCacheDriftTests` red on a planted predicate at the left edge AND on one placed after a common prefix's first character; zero ATN simulation on re-lexing the suite's ASCII sources (the one EOF transition per input ANTLR never caches is reported, not counted); the non-ASCII residual reported; `b2` at 12 threads ≥ 8× today's 1-thread wall, CPU utilisation ≥ 70 % (measured 55× and 21 %: the utilisation limit is now the workstation GC, §3.14.5); whole battery green | — | 140–200 turns |
+| M7 | SR23 before the table-value fill; the fill bounded by the phrase (§3.14.5); defect note: id allocated by the orchestrator | `src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs` (`TableValueOdometer.Resolve`), `DataBinder.ResolveTableValues`; battery summary top-5 report in `scripts/battery.sh` | the pb505 program rejects with `COBOL1946` in < 1 s through the CLI (was 29.6 s); both tests keep their assertions; every Format 2 VALUE golden unchanged; the battery summary lists the five slowest tests | — | 60–100 turns |
+| M11 | the order plan: `NameKey`, tiers 0a/0u/1–3, the budgets and the collection cap (§3.13, §3.14.2); the NARROWING deleted — LANDED (kb/Work PB1717: b4 first red 0.32 %, b7 one tier-0u case and a 15.3 s floor; tier 0a corrected to ADDED test methods) | `scripts/spec/impacted_tests.py` (selection code DELETED — its filter line is always the whole-assembly filter until M13 deletes the line; `--plan` added), `scripts/gate_plan.py`, `tests/WiseOwl.Cobol.Tests.Unit/ImpactedTestsDriftTests.cs`, kb/Work PB1712 (closed) | `--self-test` covers every tier arm, `NameKey`, the unknown budget, the collection cap and the no-map / no-timings / stale-map / empty-leg-1 / whole-assembly-in-leg-1 arms; the filter line is the whole-assembly filter for a base WITH a map; `b4` re-run through the new script reproduces cheapest-first on 68b X (first red ≤ 1 % of the work); `b7` re-run through it: a golden appended to the 85 manifest leaves ONE tier-0u case and a leg-1 floor ≤ 16 s | — | 110–160 turns |
 | M14 | ONE population check for every whole-assembly run, and the handshake scrub (§3.14.3–4) | `scripts/test_population.py` + `--self-test`; `scripts/battery.sh` (PHASE 1 population check; scrub); `.github/workflows/build-and-test.yml` (`conformance-population` runs the tool on the shard trx files; the inline `grep -c` block DELETED; scrub); `gen-vcr.ps1`, `gen-diagnostics-doc.ps1`, `scripts/spec/record_verdicts.py`, `scripts/spec/record_impact_map.py` (scrub); `GateLegDriftTests` (6); `docs/DRIFT_RULES.md`. As landed, the arm-(6) scan also found `build-local.ps1`/`.sh`, `guard.sh`, `guard-fast.sh`, `measure-battery-determinism.sh` and `filter_population.py` (scrubbed), the scrub grew the VSTest channel, the two other `--list-tests` parsers were folded into the tool's, and `FilterPopulationGuardDriftTests` recognises the new shard shape | the self-test's arms (short, over, skipped, definitions vs results); the battery's PHASE 1 prints each assembly's population line and is red on a planted dropped case; CI's guard red on a planted shard overlap that keeps the count; `b8`'s two inputs pass | — | 60–100 turns |
-| M12 | the in-assembly leg filter, the handshake and the identity records (§3.14.3) — LANDED (kb/Work PB1719, evidence `m12`: no handshake, 35 / 29,715 / 9,319 definitions = `--list-tests`; a plan from `gate_plan.py` ran Characterization in one leg and Unit 28,754 + 961 and Conformance 5,069 + 4,250, each leg exactly its plan's cases, union = `--list-tests`, five identity records; eight partial or stale handshakes each `Failed!`, exit 1; a recording at its head recorded 39,100 tests, the gate's 9,319 + 29,746 + 35, with the watchdog clean) | `tests/_shared/GateLegs.cs` + `GateLegAudit.cs` (linked by the existing `_shared` glob, so no `.csproj` changes), `tests/Directory.Build.props` (the framework attribute, by assembly name), `tools/impact/ImpactTestFramework.cs` + `ImpactRecording.targets` (`IMPACT_RECORDING`), `tests/Cobol.Net.Tests.Unit/ParenTokenTwinDriftTests.cs` (repository-relative path argument), `GateLegDriftTests` (1), (2), (4), (5) in Unit and (4), (5) in Conformance and Characterization | with no handshake every assembly's count and verdict are unchanged; with a full one, each leg's trx definitions are exactly its leg's cases and the two legs' union equals `--list-tests`; each partial handshake (one variable, two, missing file, digest mismatch, bad leg) makes every case an execution error and the run RED; each leg writes its identity record; a planted non-permutation throws; no display name carries the repository root; a recording at HEAD still records every test (the recorder's watchdog) | M11 (the plan format) | 130–190 turns |
-| M2 | the cross-worktree gate cap, FIFO (§3.14.6) — LANDED (kb/Work PB1720: the tool in train 71; N measured by M13's landing, evidence `m13`: one implementer gate 1.24x and 1.30x of the lander's quiet Conformance leg, two 1.58x and 1.52x, three 1.56x; the owner set `DEFAULT_SLOTS = 3` on 2026-10-10, kb/Work PB2514) | `scripts/gate_slot.py` + `--self-test`; `tests/Cobol.Net.Tests.Unit/GateSlotDriftTests.cs` | the self-test's five arms (FIFO order included), on Windows and on Linux; N measured: the lander's whole-Conformance leg ≤ 1.25× quiet with N implementer gates, their builds included | — | 90–130 turns |
-| M13 | the ordered gate: driver, modes, worktree lock, run directory, fail-fast, and the wiring that deletes the selection interface (§3.14.1, §3.14.3–4) — LANDED (kb/Work PB1721, evidence `m13`: a real implementer gate GREEN with every population equal to `--list-tests`, 9,321 / 29,728 / 35; a planted leg-1 red stopped the gate after leg 1 11.7 s into the legs with 5,402 Conformance and 817 Unit cases named NOT RUN; a real lander-mode gate ran one leg with no slot; `check_practices.py` green with no `impacted_tests` pattern; the self-test's 22 arms each seen RED on a planted defect. Corrected on the way: a slot holder's children run with persistent build servers OFF (§3.14.6), the gate's audit list moved into the driver, and a defect in the driver still ends in one `NOT RUN` verdict line) | `scripts/run_gate_legs.py` (takes the slot, §3.14.6), `scripts/spec/record_impact_map.py` (the recorder takes a slot too, and spawns every child through `Slot.spawn_kwargs`), `scripts/build-local.ps1` + `.sh` (`-Filter` removed, a lander or implementer mode required (one shape since PB3022)\|implementer` required, `Leg` replaced); `scripts/spec/impacted_tests.py` (the filter line and `--plus` DELETED); `GateLegDriftTests` (3); in the SAME change every caller of either interface: `.claude/skills/workstream/templates/MANDATORY-PRACTICES.md` (I1, I2, I7), `implementer-brief.md`, `fix-lane-implementer-brief.md`, `dispatch-spec-implementer.md`, `lander-train-brief.md` and `lander-brief.md` (the lander mode), `.claude/skills/workstream/check_practices.py` (its required `impacted_tests\.py --base` patterns), `.claude/skills/workstream/SKILL.md`, `.claude/agents/cobol-implementer.md`, `.claude/skills/gate/SKILL.md`, `scripts/hooks/test_forbidden_commands.py` (its `-Filter` fixture), `tests/Cobol.Net.Tests.Unit/ImpactedTestsDriftTests.cs`, `docs/DRIFT_RULES.md`, `docs/DOC_INDEX.md`, plan §9, README, CONTRIBUTING, the PR template | the self-test's arms (§3.14.4 (3)); a real gate on a planted red in a leg-1 test stops after leg 1 with the remainder named; a real green gate's population equals `--list-tests` for all three assemblies; a real lander-mode gate runs one leg with no slot; `check_practices.py` green with no `impacted_tests` pattern left; over the next train, each implementer gate's time to first red, whole wall and green-path barrier cost (leg 1's wall beyond its share of the work, plus the extra host starts) are recorded, against the lander's single leg | M11, M12, M14, M2 | 170–220 turns |
+| M12 | the in-assembly leg filter, the handshake and the identity records (§3.14.3) — LANDED (kb/Work PB1719, evidence `m12`: no handshake, 35 / 29,715 / 9,319 definitions = `--list-tests`; a plan from `gate_plan.py` ran Characterization in one leg and Unit 28,754 + 961 and Conformance 5,069 + 4,250, each leg exactly its plan's cases, union = `--list-tests`, five identity records; eight partial or stale handshakes each `Failed!`, exit 1; a recording at its head recorded 39,100 tests, the gate's 9,319 + 29,746 + 35, with the watchdog clean) | `tests/_shared/GateLegs.cs` + `GateLegAudit.cs` (linked by the existing `_shared` glob, so no `.csproj` changes), `tests/Directory.Build.props` (the framework attribute, by assembly name), `tools/impact/ImpactTestFramework.cs` + `ImpactRecording.targets` (`IMPACT_RECORDING`), `tests/WiseOwl.Cobol.Tests.Unit/ParenTokenTwinDriftTests.cs` (repository-relative path argument), `GateLegDriftTests` (1), (2), (4), (5) in Unit and (4), (5) in Conformance and Characterization | with no handshake every assembly's count and verdict are unchanged; with a full one, each leg's trx definitions are exactly its leg's cases and the two legs' union equals `--list-tests`; each partial handshake (one variable, two, missing file, digest mismatch, bad leg) makes every case an execution error and the run RED; each leg writes its identity record; a planted non-permutation throws; no display name carries the repository root; a recording at HEAD still records every test (the recorder's watchdog) | M11 (the plan format) | 130–190 turns |
+| M2 | the cross-worktree gate cap, FIFO (§3.14.6) — LANDED (kb/Work PB1720: the tool in train 71; N measured by M13's landing, evidence `m13`: one implementer gate 1.24x and 1.30x of the lander's quiet Conformance leg, two 1.58x and 1.52x, three 1.56x; the owner set `DEFAULT_SLOTS = 3` on 2026-10-10, kb/Work PB2514) | `scripts/gate_slot.py` + `--self-test`; `tests/WiseOwl.Cobol.Tests.Unit/GateSlotDriftTests.cs` | the self-test's five arms (FIFO order included), on Windows and on Linux; N measured: the lander's whole-Conformance leg ≤ 1.25× quiet with N implementer gates, their builds included | — | 90–130 turns |
+| M13 | the ordered gate: driver, modes, worktree lock, run directory, fail-fast, and the wiring that deletes the selection interface (§3.14.1, §3.14.3–4) — LANDED (kb/Work PB1721, evidence `m13`: a real implementer gate GREEN with every population equal to `--list-tests`, 9,321 / 29,728 / 35; a planted leg-1 red stopped the gate after leg 1 11.7 s into the legs with 5,402 Conformance and 817 Unit cases named NOT RUN; a real lander-mode gate ran one leg with no slot; `check_practices.py` green with no `impacted_tests` pattern; the self-test's 22 arms each seen RED on a planted defect. Corrected on the way: a slot holder's children run with persistent build servers OFF (§3.14.6), the gate's audit list moved into the driver, and a defect in the driver still ends in one `NOT RUN` verdict line) | `scripts/run_gate_legs.py` (takes the slot, §3.14.6), `scripts/spec/record_impact_map.py` (the recorder takes a slot too, and spawns every child through `Slot.spawn_kwargs`), `scripts/build-local.ps1` + `.sh` (`-Filter` removed, a lander or implementer mode required (one shape since PB3022)\|implementer` required, `Leg` replaced); `scripts/spec/impacted_tests.py` (the filter line and `--plus` DELETED); `GateLegDriftTests` (3); in the SAME change every caller of either interface: `.claude/skills/workstream/templates/MANDATORY-PRACTICES.md` (I1, I2, I7), `implementer-brief.md`, `fix-lane-implementer-brief.md`, `dispatch-spec-implementer.md`, `lander-train-brief.md` and `lander-brief.md` (the lander mode), `.claude/skills/workstream/check_practices.py` (its required `impacted_tests\.py --base` patterns), `.claude/skills/workstream/SKILL.md`, `.claude/agents/cobol-implementer.md`, `.claude/skills/gate/SKILL.md`, `scripts/hooks/test_forbidden_commands.py` (its `-Filter` fixture), `tests/WiseOwl.Cobol.Tests.Unit/ImpactedTestsDriftTests.cs`, `docs/DRIFT_RULES.md`, `docs/DOC_INDEX.md`, plan §9, README, CONTRIBUTING, the PR template | the self-test's arms (§3.14.4 (3)); a real gate on a planted red in a leg-1 test stops after leg 1 with the remainder named; a real green gate's population equals `--list-tests` for all three assemblies; a real lander-mode gate runs one leg with no slot; `check_practices.py` green with no `impacted_tests` pattern left; over the next train, each implementer gate's time to first red, whole wall and green-path barrier cost (leg 1's wall beyond its share of the work, plus the extra host starts) are recorded, against the lander's single leg | M11, M12, M14, M2 | 170–220 turns |
 
 M6, M7, M11, M14 and M2 are independent and may run in parallel groups; M12 follows M11; M13 lands last, with M2's N
 in the same train so no implementer runs a whole-population gate uncapped. ⛔ **Nothing deletes an interface its
@@ -1871,12 +1871,12 @@ outside a directory it already owns, and any `rmtree(ignore_errors=True)` in sel
 About a hundred test classes made a directory in the temp directory and removed it with `try { Directory.Delete(dir,
 recursive: true); } catch { }`; the witness tests that loaded the program they compiled into the test host
 (`LoadFromAssemblyPath`, `Assembly.LoadFrom`) kept its file mapped, so every one of their deletes failed on Windows, in
-silence, and a test host the gate ends at its first red runs no cleanup at all: 16,096 `CobolNet_Tests_*` directories
-in one host's temp directory on 2026-10-23 (17,331 old-layout `CobolNet_*` directories untouched for over 3 hours were
+silence, and a test host the gate ends at its first red runs no cleanup at all: 16,096 `WiseOwlCobol_Tests_*` directories
+in one host's temp directory on 2026-10-23 (17,331 old-layout `WiseOwlCobol_*` directories untouched for over 3 hours were
 removed by hand when this landed). Now `ScratchDirectory.Create(prefix)` makes every scratch directory under ONE
-directory per test host, `<temp>/cobolnet-tests/<pid>-<id>`, beside `<pid>-<id>.lock`, which the host holds exclusively
+directory per test host, `<temp>/wiseowl-cobol-tests/<pid>-<id>`, beside `<pid>-<id>.lock`, which the host holds exclusively
 (`FileShare.None`, an flock on Linux) until its process ends; `Remove(dir)` deletes a directory whole, read-only entries
-included, and reports what it cannot (`HarnessLog.ReportLeft`: standard error and `COBOLNET_HARNESS_LOG`), never
+included, and reports what it cannot (`HarnessLog.ReportLeft`: standard error and `WISEOWL_COBOL_HARNESS_LOG`), never
 throwing from a `finally` or a `Dispose`; the host's directory goes at exit, and every host's first `Create` REAPS each
 host directory whose lock is free or gone, holding that lock while it removes the directory (deleted on close), so a
 starting host can never lose its directory to a reaper. `LoadAssembly(path)` loads a compiled program from its bytes,
@@ -1917,7 +1917,7 @@ is a non-zero exit and a hang is bounded by the budget place, never by a clock. 
 deleted from a self-test, which still exits 0, so a Unit drift test names the arms it requires and
 `SelfTestArmSource.AssertDeclares` finds each label among the script's string literals (implicitly concatenated
 literals joined; an f-string arm named as its source spells it). A drift test that ran the self-test again did so under
-the test harness's fixed 120 s per-process budget (`COBOLNET_RUN_TIMEOUT_MS`), and under a lander's gate beside the WSL
+the test harness's fixed 120 s per-process budget (`WISEOWL_COBOL_RUN_TIMEOUT_MS`), and under a lander's gate beside the WSL
 Linux gate each went past it with every arm passing: `GateSlotDriftTests` (train 1055), then
 `SelfTestDiscoveryDriftTests`, the landing lease's drift test (retired since, kb/Work PB3024) and `GateLegDriftTests`'
 two driver tests (train 1058;
@@ -2164,12 +2164,12 @@ misses (the rule of section 3.14.1, ORDER, DON'T SKIP).
 
 **Owner decision 2026-10-07:** "Build the COBOL runtime ReadyToRun for both the gates and the shipped WiseOwl.COBOL
 package (rebuilt automatically whenever runtime code changes)?" — "Yes, gates and package". Every Conformance case
-runs its compiled program as a child process, `dotnet <prog>.dll`, with `Cobol.Net.Runtime.dll` beside it, so the
+runs its compiled program as a child process, `dotnet <prog>.dll`, with `WiseOwl.Cobol.Runtime.dll` beside it, so the
 JIT compiling the runtime's methods was paid at every program start; the w1033 gate-speed diagnosis put the child at
 60–75 % of a case's single-thread cost.
 
 **The mechanism (one producer, one selector, two guards):**
-- **Producer: `src/Cobol.Net.Runtime/Cobol.Net.Runtime.csproj`.** After its own compile, target
+- **Producer: `src/WiseOwl.Cobol.Runtime/WiseOwl.Cobol.Runtime.csproj`.** After its own compile, target
   `CobolRuntimeReadyToRunImages` runs the SDK's ReadyToRun publish of the same project once per platform in
   `CobolRuntimeReadyToRunIdentifiers` (the root `Directory.Build.props`: `win-x64;linux-x64`, the operating systems
   CI runs on), in Release whatever the outer configuration, framework-dependent, into `bin/ReadyToRun/<rid>/`, the
@@ -2181,10 +2181,10 @@ JIT compiling the runtime's methods was paid at every program start; the w1033 g
   fetches the crossgen2 pack and each platform's runtime pack (`DisableTransitiveFrameworkReferenceDownloads` keeps
   it to `Microsoft.NETCore.App`).
 - **Flow.** Target `_CobolReadyToRunContent` adds each image as a content item linked at
-  `ReadyToRun/<rid>/Cobol.Net.Runtime.dll`, so it reaches the output of every referencing project (the compiler,
+  `ReadyToRun/<rid>/WiseOwl.Cobol.Runtime.dll`, so it reaches the output of every referencing project (the compiler,
   the CLI, the three test hosts) and the CLI's publish output, which is what the `WiseOwl.COBOL` tool package packs
   (`PackAsTool` publishes, then packs; DESIGN-USER-DOCUMENTATION §6).
-- **Selector: `src/Cobol.Net.Compiler/CodeGen/AssemblyPackager.cs#RuntimePath`.** This platform's image
+- **Selector: `src/WiseOwl.Cobol.Compiler/CodeGen/AssemblyPackager.cs#RuntimePath`.** This platform's image
   (`ReadyToRunPlatform`: the operating-system family and processor architecture, which is what decides whether an
   image's native code is usable, not `RuntimeInformation.RuntimeIdentifier`, which a distribution-built .NET reports as
   e.g. `ubuntu.26.04-x64`); on a platform with no image, the portable assembly beside the compiler, the same source
@@ -2192,7 +2192,7 @@ JIT compiling the runtime's methods was paid at every program start; the w1033 g
   is dropped from the reference set) and `Package` deploys it, so a program runs with the file it was compiled
   against. The compiled-program cache keys on it (`CompiledProgramCache.ToolFiles`, §3.12), because it is not the
   assembly loaded into the test host.
-- **Guard 1: `CobolAssertReadyToRunRuntimePublished`** in `src/Cobol.Net.Cli/Cobol.Net.Cli.csproj` fails a CLI publish
+- **Guard 1: `CobolAssertReadyToRunRuntimePublished`** in `src/WiseOwl.Cobol.Cli/WiseOwl.Cobol.Cli.csproj` fails a CLI publish
   that would ship without any declared platform's image.
 - **Guard 2: `ReadyToRunRuntimeDriftTests`** (Unit) reads the PE headers rather than the build's naming: the runtime
   the compiler deploys is this platform's ReadyToRun image (managed native header present, machine field equal to
@@ -2204,7 +2204,7 @@ JIT compiling the runtime's methods was paid at every program start; the w1033 g
   drift test's arms require the portable assembly under `IMPACT_RECORDING`.
 
 **What the gate certifies.** The gates' programs load the Release ReadyToRun runtime, not the Debug build of it: the
-same image the package ships. `src/Cobol.Net.Runtime` has no `Debug.Assert`, and CI's Windows Conformance shards
+same image the package ships. `src/WiseOwl.Cobol.Runtime` has no `Debug.Assert`, and CI's Windows Conformance shards
 already ran Release, so no check is lost; the Debug portable assembly is still what the test hosts load in-process.
 
 **Measured** (2026-10-07, this host shared with other gates; probe `E:\COBOL-coord\scratch\w1033x\startup.py`:
@@ -2217,7 +2217,7 @@ outputs equal to the golden in both arms):
 | run 2 | 102.8 ms | 76.5 ms (−26 %) |
 | quieter host, an earlier pair | 83.2 ms | 60.4 ms (−27 %) |
 
-Build cost (probe `buildcost.py`: `dotnet build Cobol.Net.sln -c Debug` with node reuse and the compiler server off,
+Build cost (probe `buildcost.py`: `dotnet build WiseOwl.Cobol.sln -c Debug` with node reuse and the compiler server off,
 as the gate slot runs it, three rounds): a change to a runtime source costs 8.5–11.5 s with the images against
 4.3–7.1 s without, about **+4 s** (two Release compiles and two crossgens, in parallel); a no-op build is unchanged
 (2.3–4.6 s either way). A clean restore also downloads the crossgen2 pack and the two runtime packs once.
@@ -2345,7 +2345,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    two branches append to, the runtime ABI pin (`RuntimeAbi.pin`, which `scripts/abi_pin.py` measures: the counters
    two branches each raised add, the merged surface's hashes are measured on the merged tree before the merge commit;
    that measuring build, like every build in a worktree after its agent has returned, is not blocked by a session's
-   C# language server holding the source generator `Cobol.Net.Compiler.SourceGen.dll` from `bin\`: the generator
+   C# language server holding the source generator `WiseOwl.Cobol.Compiler.SourceGen.dll` from `bin\`: the generator
    project's `MoveAsideHeldOutput` target renames a held output aside before the copy, and
    `scripts/test_held_analyzer_output.py` rebuilds it with a real process holding it, kb/Work PB3674),
    and the public-API baselines (`src/**/PublicAPI.*.txt`, `cobol-keyed-publicapi`, kb/Work PB3727: a SET of symbol
@@ -2439,7 +2439,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    the former direct-push landing script — `devlog.py check` (exactly one new entry file, stamped and well-formed), `work.py check` (the register audit, run by the merged
    head's own `scripts/spec/work.py`: a note main gained after the branch's gate meets a rule the branch added there, never first in the
    merge group's CI, PB3389), `rename_diagnostic_prefix.py --check` (the DIAGNOSTIC PREFIX audit, run by the merged head's own copy for the same
-   reason: a branch cut before the codes became `COBOL####` that merges main cleanly meets it here, never first in CI's `audits` job, PB3575)
+   reason: a branch cut before the codes became `COBOL####` that merges main cleanly meets it here, never first in CI's `audits` job, PB3575),
+   `rename_retired_names.py --check` (the RETIRED NAMES audit, the same shape for the same reason: a branch cut before the code took the
+   product's name, WiseOwl.Cobol, PB3837)
    and `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`, then the R3 file-set
    partition, PB2118) — then `gh pr create` (title = the branch's one-line subject, body = the forensic message) and
    `gh pr merge --merge-queue`-equivalent (`gh pr merge --auto`) so the PR joins the queue. Done. No lease, no local
@@ -2447,7 +2449,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    (DESIGN-orchestrator-loop.md section 4.9 step 4, kb/Work PB3527): on every tick it reads the merge queue's entries
    and the head's required check-runs (`queue_facts.py`) and, past a 10-minute grace, re-runs a stuck check, then
    closes, reopens and re-queues the pull request, then asks the operator. A HOST-I-O group (a file of its set under
-   `src/Cobol.Net.Runtime/IO/`) runs the Linux unit and conformance legs from WSL at its own gate (MANDATORY-PRACTICES I8;
+   `src/WiseOwl.Cobol.Runtime/IO/`) runs the Linux unit and conformance legs from WSL at its own gate (MANDATORY-PRACTICES I8;
    `make_dispatch_specs.host_io`, kb/Work PB3381: wave 1118's PB3333 was refused at its landing by 31 NIST RL programs that
    differ on Linux, 2.6 h after its DONE), and CI's merge group runs all of them. Every gate row (the rare gate above) hands
    its gate to `run_gate_legs.py`, which takes the slot, and `enqueue.py` runs no row while one would not (PB3104; the
@@ -2548,7 +2550,7 @@ only whole-population run.
   `WaitForExit(n)` after their streams' EOF became the unbounded wait (and left `ProcessObservationDriftTests`'
   exemptions); the interpreter probes take the harness budget. `NoWallClockAssertionDriftTests.NoTestSetsALiteralTimeLimit`
   fails on a new literal limit in any shape. What remains is the ONE harness budget rule (`ObservationBudget`,
-  kb/Work PB3108: one 120 s unit, `COBOLNET_RUN_TIMEOUT_MS`, per serial step of the work the process was started to
+  kb/Work PB3108: one 120 s unit, `WISEOWL_COBOL_RUN_TIMEOUT_MS`, per serial step of the work the process was started to
   do), a hang guard whose expiry is a named non-observation, never a value.
 
 #### 3.17.4 Conflict-free landing files — the tree holds SOURCES, views are RENDERED (PB3025, PB3026)
@@ -2863,15 +2865,15 @@ leg).
 
 | Action | From | To | Why |
 |---|---|---|---|
-| create | — | `tests/Cobol.Net.Tests.Characterization/` (+ `tests/characterization/`, `Snapshots/`) | The behavior-neutrality harness (gates 2 & 3) — the missing "prove I changed nothing" proof for every refactor phase. |
+| create | — | `tests/WiseOwl.Cobol.Tests.Characterization/` (+ `tests/characterization/`, `Snapshots/`) | The behavior-neutrality harness (gates 2 & 3) — the missing "prove I changed nothing" proof for every refactor phase. |
 | create | — | `tests/nist/corpus.tsv` | The source of the green NIST set + chains, and of the guard's population: it replaced all three copies, the last the serial guard's `NIST_TESTS` (kb/Work PB925, PB3383). |
-| create | — | `src/Cobol.Net.Compiler/Diagnostics/` (`DiagnosticDescriptor`, `Diag`, `Diagnostic`, `Severity`) | Registry so codes are addressable, snapshot-keyable, doc-generable, suppress-targetable. |
-| (exists) | — | `docs/COBOLNET_REARCHITECTURE_PLAN.md` | Resumable migration SSOT + roadmap with per-phase exit criteria = battery-green gate (the master plan already in the repo). |
+| create | — | `src/WiseOwl.Cobol.Compiler/Diagnostics/` (`DiagnosticDescriptor`, `Diag`, `Diagnostic`, `Severity`) | Registry so codes are addressable, snapshot-keyable, doc-generable, suppress-targetable. |
+| (exists) | — | `docs/REARCHITECTURE_PLAN.md` | Resumable migration SSOT + roadmap with per-phase exit criteria = battery-green gate (the master plan already in the repo). |
 | create | — | `docs/DIAGNOSTICS.md` (generated) | The single human-readable code table (understandability #1). |
 | create | — | `tools/DifferentialBakeTool` (or a skip-gated maintenance test) | One-time freeze of legacy output → committed goldens (the G8-survival bake). |
 | create | — | `scripts/guard.ps1` | Cross-platform authoritative guard (Windows parity for the regression). |
 | split | `NistDifferentialTests.cs` (318 `[InlineData]`) | `[MemberData]` over `corpus.tsv` + a thin theory | Remove the hand-maintained green list; single source of truth. |
-| refactor | ~60 `*DifferentialTests.cs` (assert `cobolnet==legacy`) | golden-comparison base (`AssertMatchesGolden`) + `tests/differential/**/*.out` | Sever the oracle coupling so the net survives G8. |
+| refactor | ~60 `*DifferentialTests.cs` (assert `wiseowl-cobol==legacy`) | golden-comparison base (`AssertMatchesGolden`) + `tests/differential/**/*.out` | Sever the oracle coupling so the net survives G8. |
 | refactor | `EditionContext.Error(code,msg)` string-concat; 161 bare codes | `sink.Report(Diag.X, args)` | Route all diagnostics through the registry. |
 | split | `COBOL0899` (~47 sites) | distinct unimplemented-feature descriptors behind a tracked list | One code = one rule; snapshot precision. |
 | move | `CompilerUnderTest.LegacyCompiler` / `ICompilerUnderTest` | DELETE after the bake | Legacy oracle gone once goldens are baked. |
@@ -2891,12 +2893,12 @@ The rearchitecture proceeded so the net was STRENGTHENED before it was relied on
 
 - **Phase R0 — Net-first (do BEFORE any refactor).**
   1. Land `corpus.tsv` + `CorpusManifestTests`; repoint `NistDifferentialTests` at it (behavior identical, coverage
-     unchanged — pure de-duplication). 2. Stand up `Cobol.Net.Tests.Characterization` and SEED `Snapshots/` from the
+     unchanged — pure de-duplication). 2. Stand up `WiseOwl.Cobol.Tests.Characterization` and SEED `Snapshots/` from the
      CURRENT emitter (captures "today's behavior"). 3. Cache the Roslyn reference set (safe, pure speed). 4. Land the
      diagnostic registry + `DiagnosticSnapshotTests` seeded from today's output. After R0 the battery can prove
      behavior-neutrality; no compiler behavior changed.
 - **Phase R1 — Bake the oracle (DONE).** The legacy output was committed as `tests/differential/**/*.out` and the differential
-  base rewritten to golden comparison, so the `cobolnet==legacy` asserts are gone and the net is self-standing.
+  base rewritten to golden comparison, so the `wiseowl-cobol==legacy` asserts are gone and the net is self-standing.
 - **Phases R2…Rn — the actual rearchitecture** (god-class splits, pass pipeline, storage-form unification, per the
   sibling DESIGN-* docs). EACH phase: run the full battery; gates (1)+(2) MUST stay green; gate (3) stays green or
   is reviewed-re-baselined IN THE SAME change set (with a DEVLOG note citing the intended emit change and the
@@ -2918,7 +2920,7 @@ errors stays on the Release/CI build; the drift tests (`ConstructRegistry`, `Res
    and representative (one program per feature family), not the whole NIST set.
 2. **Bake faithfulness.** If the bake captures a legacy output that WiseOwl COBOL already diverges from (an
    intended ISO fix), the golden would wrongly pin the legacy value. MITIGATION: bake only cases where the
-   differential test is currently GREEN (cobolnet already == legacy); a currently-red/skip differential case is
+   differential test is currently GREEN (wiseowl-cobol already == legacy); a currently-red/skip differential case is
    hand-authored to the ISO value and marked `divergent`.
 3. **Two runtimes side-by-side until G8.** The conformance project references both runtimes; a program loads only
    its own. Low risk (proven today) but the characterization/probe path must use the greenfield driver ONLY.
@@ -2934,7 +2936,7 @@ errors stays on the Release/CI build; the drift tests (`ConstructRegistry`, `Res
 
 ## 7. Open questions for the owner
 
-1. **Snapshot tooling:** hand-rolled `Assert.Equal(File)` + `COBOLNET_UPDATE_SNAPSHOTS` env, or adopt Verify
+1. **Snapshot tooling:** hand-rolled `Assert.Equal(File)` + `WISEOWL_COBOL_UPDATE_SNAPSHOTS` env, or adopt Verify
    (`Verify.Xunit`)? Verify gives received/verified diffing + review workflow for free but adds a dependency. Lean:
    hand-rolled (zero new deps, matches the repo's existing golden-file idiom) unless you want the Verify UX.
 2. **Characterization corpus size:** one program per feature family (~120 programs, fast) vs. snapshot the full NIST
@@ -2946,7 +2948,7 @@ errors stays on the Release/CI build; the drift tests (`ConstructRegistry`, `Res
 4. **`--suppress` granularity:** per-code, per-family, or per-descriptor `SuppressKey`? Affects the registry shape;
    default proposed is per-code with an optional family key.
 5. **Migration-SSOT vs resume-prompt.md ownership — RESOLVED (2026-07-07):** the migration roadmap is the standalone
-   `docs/COBOLNET_REARCHITECTURE_PLAN.md` (since 2026-07-19 THE ONE consolidated plan incl. the §0 live banner);
+   `docs/REARCHITECTURE_PLAN.md` (since 2026-07-19 THE ONE consolidated plan incl. the §0 live banner);
    the feature-drive state ALSO lives there now — `resume-prompt.md` was absorbed into it and DELETED (2026-07-19).
 6. **Do we snapshot the runtime deploy?** The runtime DLL is copied per emit; characterization ignores it. Confirm
    the runtime is out of the neutrality scope (it is typed-native and separately unit-tested) — assumed yes.

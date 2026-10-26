@@ -1,7 +1,7 @@
 > # ADOPTED DESIGN — the locale facility is being IMPLEMENTED (owner decision, 2026-08-18)
 > Drafted 2026-08-09 by the wf_fdd1492c probe-sweep fleet's PB64 design agent; reviewed and adopted by the main
 > line on 2026-08-18 when the owner answered the four reserved questions (§15). Registered in
-> `docs/COBOLNET_DESIGN.md` §0.5 and `docs/DOC_INDEX.md`. kb/Work/PB64.md owns the item.
+> `docs/DESIGN.md` §0.5 and `docs/DOC_INDEX.md`. kb/Work/PB64.md owns the item.
 >
 > **The four owner decisions (2026-08-18), verbatim of record — they supersede council decision 3 (2026-07-03):**
 > - **Q1 — IMPLEMENT the A.4.9 locale module.** WiseOwl COBOL claims support for Annex A.4.9 items 1–13 as each
@@ -19,7 +19,7 @@
 >   (CONFORMANCE.md §2 A.3 item 25 and §7 carry that sentence.)
 >
 > **⚙ 2026-08-18, the owner's COLLATION guidance (kb/Work PB101):** the collation realization is WiseOwl COBOL's OWN
-> DERIVED CLDR/UCA engine (`src/Cobol.Net.Runtime/Collation/`, README there) — a table generated from the pinned
+> DERIVED CLDR/UCA engine (`src/WiseOwl.Cobol.Runtime/Collation/`, README there) — a table generated from the pinned
 > CLDR release-48-2 root collation + UCD 17.0.0 data, embedded in the runtime, with its own NFD — and NOT .NET's
 > ICU `CompareInfo`, which this design first drafted as the realization. Measured reason: the host's bundled ICU
 > lags Unicode (the development host's predates 16.0), so an INDEXED file's key order or a SORT's output would
@@ -38,7 +38,7 @@
 
 Status: **ADOPTED — IN IMPLEMENTATION (T1 first; §12 sequences the seven increments).** Drafted 2026-08-09,
 adopted 2026-08-18. Owns `kb/Work/PB64.md` and its 42 traceability-inventory rows.
-Repo path: `docs/rearchitecture/DESIGN-locale-facility.md`; registered in `docs/COBOLNET_DESIGN.md` §0.5 and
+Repo path: `docs/rearchitecture/DESIGN-locale-facility.md`; registered in `docs/DESIGN.md` §0.5 and
 `docs/DOC_INDEX.md` (CLAUDE.md rule 6).
 
 Scope: the **whole** locale facility the standard defines — Annex A.4.9 items 1–13 plus the rules the module
@@ -53,8 +53,8 @@ plus the `ORDER TABLE` clause (§15.85, A.4.9 item 11 + A.3 item 25), the six `E
 Companion docs — this one defers to them, never duplicates them:
 `DESIGN-frontend-grammar.md` (superset parse / construct-id annotation), `DESIGN-version-conformance-pipeline.md`
 (the one edition gate), `DESIGN-edition-framework.md` (`constructs.json`, reserved/context-sensitive words),
-`DESIGN-runtime-library.md` (`RunUnit` state ownership), `COBOLNET_DATA_MODEL_DESIGN.md` (PICTURE/category),
-`COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` (EC raise/declarative machinery), `COBOLNET_INTRINSICS_DESIGN.md`
+`DESIGN-runtime-library.md` (`RunUnit` state ownership), `DATA_MODEL_DESIGN.md` (PICTURE/category),
+`CONDITIONS_EXCEPTIONS_DESIGN.md` (EC raise/declarative machinery), `INTRINSICS_DESIGN.md`
 (the intrinsic catalog + renderer).
 
 > **Every semantic claim below carries a clause validated with `python scripts/spec/cite.py --check`.** About
@@ -97,7 +97,7 @@ Companion docs — this one defers to them, never duplicates them:
 
 ## 1. Current state — MEASURED, not assumed
 
-Every row below is a run of the prebuilt `E:/COBOL/src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe`
+Every row below is a run of the prebuilt `E:/COBOL/src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe`
 (2026-08-09 18:24) on a probe with a unique PROGRAM-ID, `--std 2023` unless stated. Console output is verbatim.
 
 | # | Surface (A.4.9 item) | Probe | Measured result |
@@ -1205,8 +1205,8 @@ on the author's machine and fail in CI — a failure mode this repo has already 
 
 | Module | Change |
 |---|---|
-| `Cobol.Net.Frontend/Grammar/**` | G1–G5 (§5); delete the `computerAttributes` sink |
-| `Cobol.Net.Frontend/Parsing/CobolParserCoreBase.cs` | `localeClauseAhead()` stays; add the analogous OBJECT-COMPUTER predicate if needed |
+| `WiseOwl.Cobol.Frontend/Grammar/**` | G1–G5 (§5); delete the `computerAttributes` sink |
+| `WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs` | `localeClauseAhead()` stays; add the analogous OBJECT-COMPUTER predicate if needed |
 | `Compiler/Binding/DataBinder.Switches.cs` | LOCALE clause arm: declare instead of reject; ALPHABET `IS LOCALE`; ORDER TABLE |
 | `Compiler/Binding/CollatingModel.cs` | `LocaleCollatingSpec`; `AlphabetDef.HasCodedCharacterSet` |
 | `Compiler/Binding/Model/LocaleRef.cs`, `LocaleSymbol.cs` | NEW |

@@ -1,0 +1,30 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+namespace WiseOwl.Cobol.Editions;
+
+/// <summary>
+/// The edition-gating diagnostics band COBOL0900–0999 (VERSION_TEST_MATRIX_DESIGN "Phase-2 implementation
+/// plan" P2.3; verified unused before allocation). Pre-band codes are KEPT where tests/history pin them:
+/// 0801/0802 (digit capacity), 0873 (DATA RECORDS FD+SD), 0810/0811 (ALTER / bare GO TO), 0882 (CALL ON
+/// OVERFLOW) — those sites migrate their SEVERITY policy onto the ONE removed-construct seam
+/// (<see cref="EditionSeverityPolicy"/>) without renumbering.
+/// </summary>
+public static class EditionCodes
+{
+    /// <summary>Construct requires COBOL-YYYY — introduction gating, validator-visible. Error on both axes
+    /// (there is nothing to run: the targeted edition has no semantics for the construct).</summary>
+    public const string Introduction = "COBOL0900";
+
+    /// <summary>Word reserved in COBOL-YYYY used as a user-defined word (ISO §8.9). Error strict / warning
+    /// permissive (via the removed-construct severity seam — the reserved-word check is an interval-encoded
+    /// removal of the SPELLING from the user-word space).</summary>
+    public const string ReservedWord = "COBOL0901";
+
+    /// <summary>Construct removed in COBOL-YYYY. Error strict / warning permissive (via the removed-construct
+    /// severity seam; permissive preserves the pre-removal semantics).</summary>
+    public const string RemovedConstruct = "COBOL0902";
+
+    /// <summary>Obsolete/archaic-element flag (ISO §4.2.12 archaic / §4.2.13 obsolete). Warning, always —
+    /// the element is still conforming in the targeted edition.</summary>
+    public const string ObsoleteFlag = "COBOL0903";
+}

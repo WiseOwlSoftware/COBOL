@@ -9,7 +9,7 @@
       *> ISO 13.18.19.2, read off the printed page (PDF p427 / folio 397). The format is
       *>     DYNAMIC LENGTH [ dynamic-length-structure-name-1 ] [ LIMIT IS integer-1 ]
       *> and the underlines fall on DYNAMIC and LIMIT ALONE. LENGTH and IS are printed plain, so
-      *> 8.3.2.4.3 makes `DYNAMIC LIMIT 30` the same clause as `DYNAMIC LENGTH LIMIT IS 30`; COBOL.NET
+      *> 8.3.2.4.3 makes `DYNAMIC LIMIT 30` the same clause as `DYNAMIC LENGTH LIMIT IS 30`; WiseOwl COBOL
       *> required the LENGTH and answered COBOL0001. DYNAMIC stays the required anchor and heads no other
       *> data-description clause, so the relaxation adds no ambiguity, and the COBOL-2014 introduction
       *> gate keys on the CLAUSE context (VersionConformancePass.VisitDynamicLengthClause), not on the

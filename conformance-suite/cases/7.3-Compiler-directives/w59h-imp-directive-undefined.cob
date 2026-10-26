@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1536 Q1 / R43 item 3 - Annex A.1 item 30 (the IMP
       *> directive's syntax and general rules) is conditioned on the
-      *> implementor defining an IMP directive, and COBOL.NET defines none:
+      *> implementor defining an IMP directive, and WiseOwl COBOL defines none:
       *> docs/CONFORMANCE.md section 7 records item 30 as "Condition
       *> absent.".
       *>   cite.py --check 7.3.3 "The compiler-directive word 'IMP' is

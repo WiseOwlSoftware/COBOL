@@ -3,7 +3,7 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace CobolNet.Tests.Shared;
+namespace WiseOwl.Cobol.Tests.Shared;
 
 /// <summary>The host's cumulative processor times at one moment, in the operating system's own ticks: the ticks its
 /// processors spent idle and the ticks they spent in all.</summary>

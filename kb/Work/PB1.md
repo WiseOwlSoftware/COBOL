@@ -23,7 +23,7 @@ closes_rows: ["AR-15.10.3-1", "AR-15.11.3-1", "AR-15.19.3-2", "AR-15.19.3-3", "A
   "FMT-15.77.2", "FMT-15.78.2", "FMT-15.79.2", "FMT-15.8.2", "RV-15.16.4-1", "RV-15.18.4-4", "RV-15.70.4-1",
   "RV-15.70.4-2", "RV-15.71.4-2", "RV-15.71.4-3", "RV-15.72.4-3", "RV-15.75.4-2", "RV-15.76.4-1",
   "RV-15.78.4-1"]
-tags: [cobolsharp, work, defect]
+tags: [wiseowl-cobol, work, defect]
 ---
 
 # PB1 — LANDED — the CLASS half (DEVLOG 1117); a named residue stays open
@@ -82,7 +82,7 @@ tags: [cobolsharp, work, defect]
 > in `src/` is one equality test:
 >
 > ```
-> src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:267
+> src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:267
 >     if (sig.ArgKinds == "p" && args.Count > 0 && args.All(IsStringOperand))
 > ```
 >

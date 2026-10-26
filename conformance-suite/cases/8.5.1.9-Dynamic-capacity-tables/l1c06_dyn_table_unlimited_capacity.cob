@@ -34,7 +34,7 @@
       *>     capacity)
       *> The table below has neither FROM nor TO: nothing in the
       *>   declaration bounds it, so
-      *> only the implementor's maximum capacity (COBOL.NET:
+      *> only the implementor's maximum capacity (WiseOwl COBOL:
       *>   1,073,741,823 occurrences,
       *> docs/CONFORMANCE.md DOC-A.1-61) limits growth - far above the
       *>   values used here.

@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB531 / PB532 - THE PICTURE CHARACTER-STRING'S OWN SHAPE, at the earliest edition COBOL.NET
+      *> kb/Work PB531 / PB532 - THE PICTURE CHARACTER-STRING'S OWN SHAPE, at the earliest edition WiseOwl COBOL
       *> compiles.  Both rules are ALL FORMATS and read identically at 85, 2002, 2014 and 2023, so this is the
       *> single positive witness; the negatives below it pin each refusal.
       *>

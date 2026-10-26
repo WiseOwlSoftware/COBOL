@@ -1,0 +1,192 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Editions.Diagnostics;
+using WiseOwl.Cobol.Frontend.Generated;
+
+namespace WiseOwl.Cobol.Binding;
+
+using Core = CobolParserCore;
+
+/// <summary>
+/// The ONE screen for the literal of an <c>AS</c> externalized-name phrase (grammar rule
+/// <c>externalizedNamePhrase</c>).
+///
+/// <para>ISO §8.3.2.2 2) is the rule the phrase realizes: <i>"For any externalized user-defined words for which
+/// the AS phrase is specified, the content of the literal specified in that AS phrase is a name that is
+/// externalized to the operating environment. The implementor defines the formation and mapping rules of these
+/// names."</i> Every clause that prints the phrase then restates ONE syntax rule about that literal, in the same
+/// words: §11.10.3 SR1 (PROGRAM-ID), §11.5.3 SR1 (FUNCTION-ID), §11.6.3 SR1 (INTERFACE-ID), §11.7.3 SR1
+/// (METHOD-ID) and §12.3.8.3 SR2 (the REPOSITORY specifiers) all read <i>"Literal-1 shall be an alphanumeric
+/// literal or a national literal and shall be neither a figurative constant nor a zero-length literal"</i>.
+/// Six clauses, one rule — so one screen, and a new AS site gets it by calling this rather than by growing a
+/// seventh copy.</para>
+///
+/// <para>⚠ §11.3.3 SR1 (CLASS-ID) is the ONE deliberate asymmetry, verified against the PRINTED page (ISO PDF
+/// p.264): it reads <i>"Literal-1 shall be an alphanumeric literal or a national literal and shall not be a
+/// figurative constant"</i> — the zero-length exclusion the other five carry is ABSENT. It is honoured exactly,
+/// through <paramref name="rejectZeroLength"/>; nothing here may "tidy" the standard into symmetry.</para>
+///
+/// <para>A hexadecimal literal IS §8.3.3.2 Format 2 of an alphanumeric one (the PB130 determination on the CALL
+/// twin), and a §8.8.3 concatenation expression folds FIRST because §8.8.3.3 GR3 makes it "equivalent to a
+/// literal of the same class and value". The fold is NOT collating-independent: the rule excludes a figurative
+/// constant AS literal-1, but a concatenation operand may be one (§8.8.3.2 SR1), and a HIGH-/LOW-VALUE operand
+/// takes the collating sequence of the context — so every caller names its <see cref="LiteralEnvironment"/>
+/// (the id paragraphs, screened before any table exists, pass <see cref="LiteralEnvironment.Unscoped"/>;
+/// kb/Work PB1406).</para>
+///
+/// <para>The operand may be a CONSTANT-NAME (kb/Work PB2588): §13.10.3 SR2 — "constant-name-1 may be used anywhere
+/// that a format specifies a literal of the class and category of constant-name-1" — and §13.10.4 GR1 — "as if
+/// literal-1 or the text represented by compilation-variable-name-1 were written where constant-name-1 is written".
+/// The caller hands the screen the constant reading of its own phase (<see cref="ConstantReading"/>: the data bind's
+/// <c>DataBinder.ReadConstant</c>, or <see cref="PreBindConstants.Read"/> before it), and the constant's literal is
+/// then held to the SAME rules as a written one — its class (alphanumeric or national), the zero-length exclusion and
+/// the formation rule — so a constant-name is never a second path with rules of its own.</para>
+/// </summary>
+internal static class ExternalizedName
+{
+    /// <summary>The operand as written — the literal, or the constant-name — for a message's source-shaped prefix.</summary>
+    public static string Written(Core.ExternalizedNamePhraseContext phrase) =>
+        phrase.literal()?.GetText() ?? phrase.cobolWord().GetText();
+
+    /// <summary>The value an AS phrase gives, WITHOUT diagnosing — for a reader that must know the externalized name
+    /// but is not the phrase's screen (OoRepositoryScope, kb/Work PB974). Null for any operand <see cref="Screen"/>
+    /// would reject, so both agree on which names exist. <paramref name="dialectLevel"/> is the edition's year, whose
+    /// spelling the name is formed in (kb/Work PB2840), as the screen forms it.</summary>
+    public static string? Peek(Core.ExternalizedNamePhraseContext phrase, Func<string, ConstantReading> constants,
+        int dialectLevel) =>
+        Screen(phrase, constants, new EditionContext(dialectLevel), DiagnosticCatalog.ExternalizedNameLiteral, "", "", "",
+            LiteralEnvironment.Unscoped, rejectZeroLength: true);
+
+    /// <summary>Screen one AS phrase's operand against its clause's syntax rule and return the externalized name it
+    /// FORMS (see <see cref="Form"/>), or null (having reported) on violation.</summary>
+    /// <param name="phrase">The <c>externalizedNamePhrase</c>.</param>
+    /// <param name="constants">What a constant-name operand stands for in the caller's phase.</param>
+    /// <param name="edition">The diagnostic sink; the caller has already positioned it.</param>
+    /// <param name="code">The reporting descriptor — the OWNING clause's, never a shared one, so a message
+    /// still names the paragraph the rule belongs to.</param>
+    /// <param name="where">The source-shaped prefix of every message, e.g. <c>PROGRAM-ID 'X' AS "Y"</c>.</param>
+    /// <param name="tag">The literal's name in its own clause — "literal-1" everywhere but the REPOSITORY
+    /// specifiers, where §12.3.8.2 numbers them literal-1 … literal-5.</param>
+    /// <param name="rule">The citation appended to every message, e.g. <c>ISO §11.10.3 SR1</c>.</param>
+    /// <param name="env">The literal environment a concatenation-expression literal folds in.</param>
+    /// <param name="rejectZeroLength">False ONLY for §11.3.3 SR1 (CLASS-ID), which omits the exclusion.</param>
+    public static string? Screen(
+        Core.ExternalizedNamePhraseContext phrase, Func<string, ConstantReading> constants, EditionContext edition,
+        DiagnosticDescriptor code, string where, string tag, string rule, LiteralEnvironment env,
+        bool rejectZeroLength = true)
+    {
+        void Reject(string why) => edition.Error(code, $"{where}: {why}");
+
+        ConcatFolder.Folded? operand;
+        if (phrase.cobolWord() is { } word)
+        {
+            var reading = constants(word.GetText());
+            switch (reading.Kind)
+            {
+                case ConstantReadingKind.NotAConstant:
+                    Reject($"{ConstantReading.NotAConstantMessage(tag, word.GetText())} ({rule})");
+                    return null;
+                case ConstantReadingKind.Refused:
+                    return null;   // the constant entry reported its own fault
+            }
+            if (reading.Value.Category is not (PicCategory.Alphanumeric or PicCategory.National))
+            {
+                Reject($"{tag} is the constant-name '{word.GetText()}', which stands for a "
+                       + $"{reading.Value.Category.ToString().ToLowerInvariant()} literal; {rule} admits an "
+                       + "alphanumeric or national literal (ISO §13.10.3 SR2 admits a constant-name only where a "
+                       + "literal of its class and category is specified)");
+                return null;
+            }
+            operand = reading.Value;
+        }
+        else operand = LiteralOperand(phrase.literal(), edition, Reject, where, tag, rule, env);
+        if (operand is not { } value) return null;
+        if (rejectZeroLength && value.Value.Length == 0)
+        {
+            Reject($"{tag} shall not be a zero-length literal ({rule})");
+            return null;
+        }
+        return Form(value.Value, edition, where, tag, rejectZeroLength);
+    }
+
+    /// <summary>A WRITTEN literal operand's class, category and value, or null (having reported) when the clause's
+    /// rule refuses it: a numeric, figurative, boolean or NULL operand, or a concatenation that folds to any class but
+    /// alphanumeric or national.</summary>
+    private static ConcatFolder.Folded? LiteralOperand(Core.LiteralContext lit, EditionContext edition,
+        Action<string> reject, string where, string tag, string rule, LiteralEnvironment env)
+    {
+        if (lit.nonNumericLiteral() is not { } nn)
+        {
+            reject($"{tag} shall be an alphanumeric or national literal — a numeric literal is not an "
+                   + $"externalized name ({rule})");
+            return null;
+        }
+        if (nn.figurativeConstant() is not null)
+        {
+            reject($"{tag} shall not be a figurative constant ({rule})");
+            return null;
+        }
+        // The predefined NULL is an identifier, not a literal (kb/Work PB1427) — the ONE §8.4.3.10.3 SR1 refusal, not
+        // the boolean-literal verdict the last arm below would have given it.
+        if (nn.predefinedNull() is not null)
+        {
+            PredefinedNullRule.Report(edition, $"{where}: {tag}, which shall be an alphanumeric or national literal "
+                + $"({rule}),");
+            return null;
+        }
+        if (nn.concatenationExpression() is { } ce)
+        {
+            var folded = ConcatFolder.Fold(ce, edition, env);
+            if (folded.Category is not (PicCategory.Alphanumeric or PicCategory.National))
+            {
+                reject($"{tag} folds to a {folded.Category.ToString().ToLowerInvariant()} literal; {rule} "
+                       + "admits an alphanumeric or national literal");
+                return null;
+            }
+            return folded;
+        }
+        // One literal token, decoded by the ONE decoder a constant entry's literal-1 also takes.
+        var token = DataBinder.LiteralTokenValue(nn, where);
+        if (token.Category == PicCategory.Boolean)
+        {
+            reject($"{tag} shall be an alphanumeric or national literal — a boolean literal is not an "
+                   + $"externalized name ({rule})");
+            return null;
+        }
+        return token;
+    }
+
+    /// <summary>§8.3.2.2 2)'s FORMATION half — "the content of the literal specified in that AS phrase is a name
+    /// that is externalized to the operating environment. The implementor defines the formation and mapping rules
+    /// of these names." — applied through the ONE rule every externalized name takes
+    /// (<see cref="WiseOwl.Cobol.Runtime.ExternalizedNames.FormInEdition"/>, DOC-A.1-68): leading and trailing spaces are not
+    /// part of the name. The run-time CALL / CANCEL / program-address / INVOKE side forms its target through the
+    /// same function, which is why <c>PROGRAM-ID. S AS "trail  "</c> is now reached by <c>CALL "trail"</c> and by
+    /// <c>CALL "trail  "</c> alike (kb/Work PB1539). Removing the spaces is reported as a WARNING (COBOL2642),
+    /// because the name the program is known by is not the literal as written. A literal of spaces ONLY forms the
+    /// zero-length name, which nothing can name; where the clause itself refuses a zero-length literal
+    /// (<paramref name="zeroLengthRefused"/> — every clause but §11.3.3's CLASS-ID) the formation rule refuses it
+    /// too (COBOL2643) rather than create a program no CALL can reach.</summary>
+    private static string? Form(string written, EditionContext edition, string where, string tag,
+        bool zeroLengthRefused)
+    {
+        // The edition's spelling too (kb/Work PB2840): the name registered is the one a CALL literal of the same
+        // edition forms, so the two meet whichever Annex C the edition is under.
+        string formed = WiseOwl.Cobol.Runtime.ExternalizedNames.FormInEdition(written, edition.Edition.Year);
+        if (!WiseOwl.Cobol.Runtime.ExternalizedNames.HasFormationSpaces(written)) return formed;
+        if (formed.Length == 0 && zeroLengthRefused)
+        {
+            edition.Error(DiagnosticCatalog.ExternalizedNameAllSpaces,
+                $"{where}: {tag} is all spaces, and an externalized name is formed without its leading and trailing "
+                + "spaces, so it forms the zero-length name, which no CALL, CANCEL or INVOKE can name (ISO §8.3.2.2; "
+                + "the formation rule is documented as DOC-A.1-68)");
+            return null;
+        }
+        edition.Warning(DiagnosticCatalog.ExternalizedNameSpaces,
+            $"{where}: {tag} has leading or trailing spaces, which are not part of an externalized name — the name "
+            + $"externalized is \"{formed}\" (ISO §8.3.2.2; the formation rule is documented as DOC-A.1-68)");
+        return formed;
+    }
+}

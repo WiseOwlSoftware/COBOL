@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    WiseOwl.Cobol.Editions — the LOWEST-layer leaf of the compiler stack (rearchitecture PHASE 02,
+    docs/rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md +
+    docs/rearchitecture/DESIGN-edition-framework.md). It is the ONE home for the four-compilers-in-one
+    edition machinery — the immutable EditionInfo value (the single DialectLevel source), the construct
+    registry + reserved-word table (generated from tests/version-matrix/constructs.json /
+    reserved-words.json), the ONE EditionSeverityPolicy strict/permissive decision, and the structured
+    IDiagnosticSink / EditionDiagnostic channel — referenced by BOTH WiseOwl.Cobol.Frontend and
+    WiseOwl.Cobol.Compiler so neither has to reverse-engineer or duplicate edition metadata.
+
+    Dependency direction: Runtime <- Editions <- Frontend <- Compiler <- Cli. Editions references ONLY the
+    runtime foundation (DESIGN-architecture-review §8.1 layer 0, itself dependency-free), for the ONE Annex C
+    fold of a COBOL word (CobolNames, kb/Work PB1965) that keys its word tables; it references no ANTLR
+    runtime and no parse type (DESIGN-edition-framework Open Q3) — it must stay below Frontend,
+    so it cannot use the frontend's SourceLocation/DiagnosticBag. TargetFramework(net10.0) / LangVersion(14)
+    / Nullable / ImplicitUsings / TreatWarningsAsErrors are all inherited from the repo-root
+    Directory.Build.props — do NOT restate them here.
+  -->
+  <PropertyGroup>
+    <RootNamespace>WiseOwl.Cobol.Editions</RootNamespace>
+    <AssemblyName>WiseOwl.Cobol.Editions</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="WiseOwl.Cobol.Tests.Unit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WiseOwl.Cobol.Runtime\WiseOwl.Cobol.Runtime.csproj" />
+  </ItemGroup>
+
+</Project>

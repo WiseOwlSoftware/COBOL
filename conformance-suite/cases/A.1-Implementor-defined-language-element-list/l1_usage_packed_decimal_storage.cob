@@ -44,7 +44,7 @@
       *> NOSGN - the WITH NO SIGN branch: every nibble is a digit and there is no sign nibble
       *>     at all, so 1234 is exactly X"12" X"34" -> ORD 19 and 53. If the phrase were
       *>     ignored the two bytes would be X"01" X"23" (ORD 2 and 36) plus a third.
-      *> ALIGN - GR11's "alignment" obligation. COBOL.NET's determination is NO alignment: the
+      *> ALIGN - GR11's "alignment" obligation. WiseOwl COBOL's determination is NO alignment: the
       *>     packed leaf starts at the next byte with no implicit FILLER, so X(1) + S9(4)
       *>     PACKED-DECIMAL is 1 + 3 = 4. An implementation aligning it would answer more.
       *> RT - the same bytes decode back to the same value, sign included, and leave the

@@ -54,7 +54,7 @@
     Prove the two rules above by DRIVING THEM, over a synthetic archive in a temporary sandbox: no network,
     no repository state touched. A check that has never been observed failing is not evidence
     (`feedback_green_gates_arent_evidence`), so the self-test asserts the FAILURE branch preserves the prior
-    corpus, not merely that the success branch works. `ExternalCorpusFetchTests` (tests/Cobol.Net.Tests.Unit)
+    corpus, not merely that the success branch works. `ExternalCorpusFetchTests` (tests/WiseOwl.Cobol.Tests.Unit)
     runs it, and so must anyone changing the extraction.
 #>
 [CmdletBinding()]
@@ -192,7 +192,7 @@ function Invoke-SelfTest {
         if ($Condition) { Write-Host "  ok   $What" } else { Write-Host "  FAIL $What"; $script:selfTestFail++ }
     }
 
-    $sandbox = Join-Path ([IO.Path]::GetTempPath()) ('cobolnet-pb897-' + [guid]::NewGuid().ToString('N'))
+    $sandbox = Join-Path ([IO.Path]::GetTempPath()) ('wiseowl-cobol-pb897-' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Force -Path $sandbox | Out-Null
     try {
         $candidates = Get-TarCandidates

@@ -1,6 +1,6 @@
 {
-  "cobolnet-bound-node-carries-rendered-text": 3,
-  "cobolnet-no-biginteger": 44,
-  "cobolnet-no-decimal": 2,
-  "cobolnet-raw-diagnostic-code-literal": 225
+  "wiseowl-cobol-bound-node-carries-rendered-text": 3,
+  "wiseowl-cobol-no-biginteger": 44,
+  "wiseowl-cobol-no-decimal": 2,
+  "wiseowl-cobol-raw-diagnostic-code-literal": 225
 }

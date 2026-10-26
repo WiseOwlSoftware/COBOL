@@ -18,7 +18,7 @@
       *> specified: "If any form of standard arithmetic is in effect, a
       *> standard intermediate data item of the form appropriate to that
       *> mode of arithmetic is used. Otherwise, an implementor-defined
-      *> intermediate data item is used."  COBOL.NET's is a scaled
+      *> intermediate data item is used."  WiseOwl COBOL's is a scaled
       *> Int128 - a 128-bit two's-complement unscaled value with a
       *> compile-time decimal scale.
       *>

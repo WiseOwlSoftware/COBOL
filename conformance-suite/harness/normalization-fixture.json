@@ -4,7 +4,7 @@
     "its expected output are compared after line ends become LF (CR LF, CR, LF, NEL, LS, PS and FF: the line ends",
     ".NET's String.ReplaceLineEndings reads), each line loses its trailing spaces (spaces only) and trailing line ends",
     "are dropped. The rule exists in two languages by nature, run.py's normalize() and CutRunner.Normalize in",
-    "tests/Cobol.Net.Tests.Conformance/CompilerUnderTest.cs, and ConformanceSuiteRunnerDriftTests holds BOTH to every",
+    "tests/WiseOwl.Cobol.Tests.Conformance/CompilerUnderTest.cs, and ConformanceSuiteRunnerDriftTests holds BOTH to every",
     "case below, so the two runners of the suite compare outputs on one basis."
   ],
   "cases": [

@@ -29,7 +29,7 @@
       *> HIGH  - r2 upper bound, INSIDE: 65 536 is the last position = U+FFFF -> ORD 65536.
       *> OVER  - r2 upper bound, OUTSIDE: 65 537 exceeds the number of positions, so §15.3 sets
       *>         EC-ARGUMENT-FUNCTION and, checking being disabled, "the implementor defines the result of the
-      *>         function reference" (Annex A.1 item 90). COBOL.NET's determination is the ZERO VALUE OF THE
+      *>         function reference" (Annex A.1 item 90). WiseOwl COBOL's determination is the ZERO VALUE OF THE
       *>         RETURNED TYPE - numeric 0, alphanumeric/national spaces - which for the one-character
       *>         CHAR-NATIONAL is ONE NATIONAL SPACE, recorded at CONFORMANCE.md §7 item 90 -> ORD 33.
       *>         The load-bearing half of this leg is not the 33 but that it is NOT 65537's character.

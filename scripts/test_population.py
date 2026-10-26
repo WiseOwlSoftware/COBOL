@@ -28,7 +28,7 @@ THE QUESTION, answered as multisets of display names:
 
 ⛔ THE SCRUB (§3.14.3). Three channels can make a whole-assembly `dotnet test` run a PART of its assembly while
 exiting 0, and every one of them is an ENVIRONMENT variable:
-  COBOLNET_GATE_*          the gate's leg handshake (`COBOLNET_GATE_PLAN`, `_LEG`, `_PLAN_SHA256`): only the gate
+  WISEOWL_COBOL_GATE_*          the gate's leg handshake (`WISEOWL_COBOL_GATE_PLAN`, `_LEG`, `_PLAN_SHA256`): only the gate
                            driver may hand it to a test host;
   VSTest*                  MSBuild imports every environment variable as a property, and the VSTest target reads
                            `VSTestTestCaseFilter`, `VSTestSetting`, `VSTestListTests`, … — MEASURED 2026-09-28:
@@ -79,17 +79,17 @@ RAN_OUTCOMES = frozenset({"Passed", "Failed"})
 RC_EXACT, RC_RED, RC_ERROR = 0, 1, 2
 
 #: THE GATED ASSEMBLIES — every whole-population run's three test projects, by the key the plan, the impact map and
-#: the identity records name them with (the test assembly's name without `Cobol.Net.Tests.`). Their one statement:
+#: the identity records name them with (the test assembly's name without `WiseOwl.Cobol.Tests.`). Their one statement:
 #: the gate driver, the impact recorder and `impacted_tests.py` read it from here.
 GATED_ASSEMBLIES = {
-    "Conformance": "tests/Cobol.Net.Tests.Conformance",
-    "Unit": "tests/Cobol.Net.Tests.Unit",
-    "Characterization": "tests/Cobol.Net.Tests.Characterization",
+    "Conformance": "tests/WiseOwl.Cobol.Tests.Conformance",
+    "Unit": "tests/WiseOwl.Cobol.Tests.Unit",
+    "Characterization": "tests/WiseOwl.Cobol.Tests.Characterization",
 }
 
 #: The gate's leg handshake (§3.14.3): written by the gate driver alone.
-HANDSHAKE = ("COBOLNET_GATE_PLAN", "COBOLNET_GATE_LEG", "COBOLNET_GATE_PLAN_SHA256")
-_SCRUBBED_PREFIXES = ("COBOLNET_GATE_", "VSTEST")
+HANDSHAKE = ("WISEOWL_COBOL_GATE_PLAN", "WISEOWL_COBOL_GATE_LEG", "WISEOWL_COBOL_GATE_PLAN_SHA256")
+_SCRUBBED_PREFIXES = ("WISEOWL_COBOL_GATE_", "VSTEST")
 _SCRUBBED_NAMES = frozenset({"RUNSETTINGSFILEPATH"})
 
 
@@ -486,15 +486,15 @@ def self_test() -> int:
         arm("the listing parser keeps 4-space-indented names verbatim", body == Counter({"A.B": 1, "C.D  ": 1}),
             str(body))
 
-        scrubbed = ["COBOLNET_GATE_PLAN", "cobolnet_gate_leg", "COBOLNET_GATE_PLAN_SHA256", "VSTestTestCaseFilter",
+        scrubbed = ["WISEOWL_COBOL_GATE_PLAN", "wiseowl_cobol_gate_leg", "WISEOWL_COBOL_GATE_PLAN_SHA256", "VSTestTestCaseFilter",
                     "VSTestSetting", "vstest_host_debug", "RunSettingsFilePath"]
-        kept = ["COBOLNET_COMPILE_CACHE", "PATH", "RUNSETTINGS", "COBOLNET_GATE"]
+        kept = ["WISEOWL_COBOL_COMPILE_CACHE", "PATH", "RUNSETTINGS", "WISEOWL_COBOL_GATE"]
         arm("the scrub rule names the handshake, VSTest* and RunSettingsFilePath (any case), nothing else",
             all(map(is_scrubbed, scrubbed)) and not any(map(is_scrubbed, kept)) and all(map(is_scrubbed, HANDSHAKE)))
-        planted = {**os.environ, "COBOLNET_GATE_LEG": "1", "VSTestTestCaseFilter": "X~Y", "W71D_KEEP": "kept"}
+        planted = {**os.environ, "WISEOWL_COBOL_GATE_LEG": "1", "VSTestTestCaseFilter": "X~Y", "W71D_KEEP": "kept"}
         probe = subprocess.run([sys.executable, __file__, "scrubbed", sys.executable, "-c",
                                 "import os; print(sorted(k for k in os.environ if k.upper() in "
-                                "('COBOLNET_GATE_LEG', 'VSTESTTESTCASEFILTER', 'W71D_KEEP')))"],
+                                "('WISEOWL_COBOL_GATE_LEG', 'VSTESTTESTCASEFILTER', 'W71D_KEEP')))"],
                                env=planted, capture_output=True, text=True)
         arm("`scrubbed <command>` runs the command without a planted handshake or VSTest variable",
             probe.returncode == 0 and probe.stdout.strip() == "['W71D_KEEP']", probe.stdout + probe.stderr)
@@ -518,8 +518,8 @@ def self_test() -> int:
             "scripts/NOTES.md": "run dotnet test tests/X by hand\n",
             ".github/workflows/bad.yml": "jobs:\n  a:\n    env:\n      VSTestTestCaseFilter: x\n    steps:\n"
                                         "      - run: dotnet test tests/X\n"
-                                        "      - run: echo \"COBOLNET_GATE_LEG=1\" >> $GITHUB_ENV\n",
-            ".github/workflows/good.yml": "jobs:\n  a:\n    env:\n      COBOLNET_NIST_STD: '2023'\n    steps:\n"
+                                        "      - run: echo \"WISEOWL_COBOL_GATE_LEG=1\" >> $GITHUB_ENV\n",
+            ".github/workflows/good.yml": "jobs:\n  a:\n    env:\n      WISEOWL_COBOL_NIST_STD: '2023'\n    steps:\n"
                                          "      - run: dotnet test tests/X\n",
         }
         for rel, text in files.items():

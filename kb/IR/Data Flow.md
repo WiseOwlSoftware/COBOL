@@ -4,14 +4,14 @@ area: ir
 status: draft
 last_updated: 2026-07-23
 related_files:
-  - src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs
-  - src/Cobol.Net.Compiler/Binding/Model/DataItem.cs
-  - src/Cobol.Net.Compiler/Binding/Model/Place.cs
-  - src/Cobol.Net.Compiler/Binding/Passes/StorageFormPass.cs
-  - docs/COBOLNET_DATA_MODEL_DESIGN.md
-  - docs/COBOLNET_REDEFINES_DESIGN.md
+  - src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs
+  - src/WiseOwl.Cobol.Compiler/Binding/Passes/StorageFormPass.cs
+  - docs/DATA_MODEL_DESIGN.md
+  - docs/REDEFINES_DESIGN.md
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - ir
 ---
 
@@ -19,7 +19,7 @@ tags:
 
 COBOL data maps to **typed-native C#** — a COBOL record *is* a `record struct`, an elementary item *is* a native
 field; there is no byte substrate (`byte[]` is confined to a genuine Tier-C REDEFINES or a file boundary). Design:
-[[docs/COBOLNET_DATA_MODEL_DESIGN]] + [[docs/rearchitecture/DESIGN-data-model]]. See
+[[docs/DATA_MODEL_DESIGN]] + [[docs/rearchitecture/DESIGN-data-model]]. See
 [[kb/Architecture/High-Level Design]].
 
 ## PIC → .NET type (elementary items)

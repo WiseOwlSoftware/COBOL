@@ -1,0 +1,65 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+namespace WiseOwl.Cobol.Runtime;
+
+/// <summary>
+/// A data-pointer VALUE: a byte(character)-granular window position inside one <see cref="StorageCell"/>
+/// (ISO §8.5.2.6 — a data pointer identifies a storage address; §14.9.39 Format 10 moves it by bytes).
+/// Structural equality via <see cref="ManagedPointer.SameTarget"/>: same cell, same offset. The pointer also records the
+/// cell's <see cref="StorageCell.Generation"/> at the moment it was taken (kb/Work PB1216): once that life of the
+/// storage has ended — FREE, the end of the activation that owned it, a CANCEL — the address is no longer a valid
+/// address of storage (§13.18.5.4 GR4), which <c>CobolPtr.Deref</c> tests.
+/// </summary>
+public sealed class CellPointer(StorageCell cell, long offset, int generation) : ManagedPointer
+{
+    /// <summary>A pointer into the cell's CURRENT life.</summary>
+    public CellPointer(StorageCell cell, long offset) : this(cell, offset, cell.Generation) { }
+
+    /// <summary>The <see cref="StorageCell.Generation"/> this pointer was taken in.</summary>
+    public int Generation { get; } = generation;
+
+    /// <summary>The addressed storage cell.</summary>
+    public StorageCell Cell { get; } = cell;
+
+    /// <summary>The character-position offset into <see cref="Cell"/> (0-based; byte = character in the
+    /// alphanumeric/zoned character model).</summary>
+    public long Offset { get; } = offset;
+
+    /// <summary>True for the storage of a formal whose argument was OMITTED (ISO §14.9.4.4 GR11; kb/Work PB2087 —
+    /// <see cref="CobolArgAdapt.Area"/>): the formal's carrier answers <see cref="IsNull"/>, which is the
+    /// omitted-argument condition every formal's presence test reads (§8.8.4.8.4 GR1), while its description still
+    /// windows a real cell — so an unchecked reference reads blank storage, the documented GR12 leniency, instead of
+    /// a null dereference.</summary>
+    public bool OmittedArgument { get; init; }
+
+    /// <summary>⛔ THE COMPONENT ORDINAL THE ADDRESSED AREA BEGINS AT (kb/Work PB2094). A variable-length group's
+    /// dynamic-length items and dynamic-capacity tables have no character positions in <see cref="StorageCell.Ref"/>:
+    /// they ride the cell's slots, numbered in storage order across the WHOLE cell (ISO §8.5.1.10.3: "Dynamic-length
+    /// elementary items may be physically located in memory within the record they are subordinate to, or they may be
+    /// located elsewhere in the computer's memory"). An area that begins inside a record — a subordinate group passed
+    /// BY REFERENCE — therefore begins at a component ordinal as well as at a character offset, and a description laid
+    /// over the area (an area formal, §14.2.3 GR8) numbers its own components from here, exactly as it displaces its
+    /// character positions by <see cref="Offset"/>. Zero for an area that holds no component or begins at the cell's
+    /// first one, and for every pointer a statement computes (ADDRESS OF, SET … UP BY), which address bytes.</summary>
+    public int DynBase { get; init; }
+
+    /// <summary>The §8.5.1.12 atoms of the variable-length group whose storage this area is (kb/Work PB2094), or null for
+    /// any other area. A description of another shape cannot be laid over the area — its components would name other
+    /// slots — so <see cref="CobolArgAdapt.Area(CellPointer?, bool, int, GroupAtom[]?, Func{StorageCell}?)"/> lays a
+    /// formal over it only when the formal describes that storage or a prefix of it (<see cref="GroupCompatibility.LaysOver"/>).</summary>
+    public GroupAtom[]? Shape { get; init; }
+
+    /// <summary>⛔ THE POSITIONS THE ADDRESSED ARGUMENT OCCUPIES FROM <see cref="Offset"/>, when they end before the
+    /// cell's identifier does (kb/Work PB2077 review round 3): a reference-modified argument whose length is a run-time
+    /// value (ISO §8.4.3.3.4 GR5: "a subset of the data item referenced by identifier-1") states its EVALUATED length
+    /// here. Such a slice's compile-time conformance was proved on its maximum extent (docs/CONFORMANCE.md D-RM1 a)), so
+    /// at run time it can be shorter than a group formal. <see cref="CobolArgAdapt.Area(CellPointer?, bool, int, GroupAtom[]?, Func{StorageCell}?)"/>
+    /// therefore lays a formal over the area only when the formal's positions fit within this extent: every slice at
+    /// least as long as the formal is shared storage (§14.2.3 GR8), and a shorter one gets a fresh copy instead of a
+    /// formal that reads and writes past the slice. Null for every other area (the extent then runs to the end of the
+    /// cell) and for every pointer a statement computes.</summary>
+    public int? Extent { get; init; }
+
+    /// <inheritdoc/>
+    public override bool IsNull => OmittedArgument;
+}

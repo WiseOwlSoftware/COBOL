@@ -8,12 +8,12 @@ related_files:
   - Directory.Packages.props
   - global.json
   - nuget.config
-  - Cobol.Net.sln
-  - src/Cobol.Net.Frontend/Cobol.Net.Frontend.csproj
-  - src/Cobol.Net.Frontend/Invoke-Antlr4CSharp.ps1
+  - WiseOwl.Cobol.sln
+  - src/WiseOwl.Cobol.Frontend/WiseOwl.Cobol.Frontend.csproj
+  - src/WiseOwl.Cobol.Frontend/Invoke-Antlr4CSharp.ps1
   - scripts/guard-fast.sh
 tags:
-  - cobolsharp
+  - wiseowl-cobol
   - compiler
 ---
 
@@ -36,7 +36,7 @@ prerequisites** on every platform.
   (kb/Work PB2719): it runs when `Generated/` is absent or any generation input is newer — every `Grammar/**/*.g4`
   (the `AntlrGrammar` item), the generator script, the `<AntlrJar>`, and `obj/antlr-generation.stamp`, which the
   `WriteAntlrGenerationStamp` target rewrites only when the namespace or jar path changes. So a warm tree regenerates
-  on a namespace, jar or tool-flag change exactly as a fresh checkout does. The namespace `CobolNet.Frontend.Generated`
+  on a namespace, jar or tool-flag change exactly as a fresh checkout does. The namespace `WiseOwl.Cobol.Frontend.Generated`
   is single-sourced from the csproj `<AntlrNamespace>` property. The target runs `BeforeTargets=BeforeCompile` and
   removes the generated files from `Compile` and appends them on every build, so the SDK's ordered hash of `@(Compile)`
   (`CoreCompileInputs.cache`) is the same on a fresh checkout's first build and every later one: a second build of
@@ -50,8 +50,8 @@ prerequisites** on every platform.
   dirs using the *platform* separator). Lexer generates first; the parser's `-lib` inputs (imported `Core/*.g4` +
   `CobolLexer.tokens`) stage under `obj/antlr-lib/`.
 
-## Solution project list (`Cobol.Net.sln`)
-Greenfield `Cobol.Net.*`: **Frontend**, **Editions** (shared lowest leaf), **Compiler**, **Compiler.SourceGen**
+## Solution project list (`WiseOwl.Cobol.sln`)
+Greenfield `WiseOwl.Cobol.*`: **Frontend**, **Editions** (shared lowest leaf), **Compiler**, **Compiler.SourceGen**
 (source generator), **Cli** (exe `cobol`), **Runtime**, and tests **Unit / Conformance / Characterization**. The legacy
 engine is deleted from `main` (`docs/rearchitecture/LEGACY-ARCHIVE.md`). See
 [[kb/Architecture/Module Overview]].

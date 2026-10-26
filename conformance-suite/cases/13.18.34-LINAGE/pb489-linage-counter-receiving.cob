@@ -10,7 +10,7 @@
 *> ⛔ THE OUTCOME WAS ALREADY RIGHT AND THE SENTENCE WAS WRONG (kb/Work PB489). The receiving chokepoint
 *> screened LINE-COUNTER with a rule-citing rejection and PAGE-COUNTER with a correctly-labelled
 *> not-yet-implemented, while LINAGE-COUNTER — the only one of the three that is flatly illegal as a receiver —
-*> had no arm and inherited the catch-all, so this source was refused as "a reference shape COBOL.NET does not
+*> had no arm and inherited the catch-all, so this source was refused as "a reference shape WiseOwl COBOL does not
 *> yet implement as a receiver" (COBOL0899). A user reads that as a promise and files a request; a future
 *> implementer reads it as a gap to close and would make illegal source compile. The rule that forbids it was
 *> named nowhere in the compiler.

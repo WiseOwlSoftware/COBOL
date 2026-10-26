@@ -14,7 +14,7 @@
       *> clause shall not be specified in a data description entry that: a) Has a level-number of 01, 66, 77, or
       *> 88". This fixture previously wrote `01 T PIC 9 OCCURS 3 TIMES INDEXED BY IX.`, which is ILLEGAL COBOL —
       *> a negative fixture must be legal in every respect EXCEPT the rule under test, or its rejection is not
-      *> attributable to §15.44.3 r1. COBOL.NET does not enforce SR1a today (no level-01 OCCURS screen exists
+      *> attributable to §15.44.3 r1. WiseOwl COBOL does not enforce SR1a today (no level-01 OCCURS screen exists
       *> under src/), so the illegal form reached the class screen and passed for the wrong reason; it would
       *> change meaning the day that screen lands.
       *>   python scripts/spec/cite.py --check 13.18.38.3 "The OCCURS clause shall not be specified in a data
