@@ -401,7 +401,9 @@ public sealed class ClosedFormatReservedWordTests
 
     /// <summary>A stray token right before a superset-parsed period is deleted as it would be before a required one
     /// (kb/Work PB3370): the paragraph keeps its period, and the error in the NEXT paragraph is still reported rather
-    /// than swallowed by a recovery several divisions up.</summary>
+    /// than swallowed by a recovery several divisions up. The stray ')' draws the bare "unexpected ')'": a period is
+    /// written right after it, and none written before it would let it follow, so the guess "A period may be missing"
+    /// (COBOL0307) it drew while a period merely being expected sufficed is gone (kb/Work PB3832, review R2-1).</summary>
     [Theory]
     [InlineData("SOURCE-COMPUTER. XYZ ) .")]
     [InlineData("OBJECT-COMPUTER. XYZ ) .")]
@@ -413,7 +415,7 @@ public sealed class ClosedFormatReservedWordTests
             + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF.\n       01 R PIC X.\n" + Proc);
         Assert.True(errors.Count == 2, $"expected two diagnostics, got:\n{string.Join("\n", errors)}");
         Assert.Contains("(5,", errors[0]);
-        Assert.Contains("error COBOL0307: unexpected ')'", errors[0]);
+        Assert.Contains("error COBOL0001: unexpected ')'", errors[0]);
         Assert.Contains("(8,", errors[1]);
         Assert.DoesNotContain(errors, e => e.Contains("COBOL3408"));
     }

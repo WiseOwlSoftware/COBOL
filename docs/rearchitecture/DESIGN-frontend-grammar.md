@@ -1659,7 +1659,18 @@ take (`STOP RUN` then a paragraph name), leaves the report where it stands; so d
 predicate at the token (the walk evaluates none), and so does a structural hint (priority 0 or less) at the token where
 the parser stands, which diagnoses the token as written; only a guess or no hint gives way. The WHEN OTHER arm (0b) asks
 the same question before it reads a present body as a misplaced phrase (COBOL2073). The report covers every token from the parser's position through
-the one it names, and a later report among them is the recovery re-meeting it. COBOL2073 fires on a WHEN OTHER phrase whose position
+the one it names, and a later report among them is the recovery re-meeting it.
+**What the one report reads (review R2).** Since the repeat is dropped, the first report must say everything it could:
+every hint reads the position's expected set (`OffendingPosition.Expected`) for every report kind, never the text of
+an exception's set, which a failed prediction does not carry. The expected-set guesses (the missing period COBOL0307,
+STATUS / PROGRAM where a data-name stands, a literal where a data-name stands or the reverse, a KEY phrase after INDEXED BY,
+a stray THRU, a missing BY) each say the token is refused there, so they read the set only where it does not hold the token. A
+missing separator period after a statement (ISO §14.5.1), a failed prediction at the next header, drew a bare
+COBOL0001 until they did (R2-1). The rules open at the token, read off the walk (`ResimulationWalk.OpenRuleNames`), are
+the invocations entered BEFORE it and still able to take a token: never a rule the closure enters at the token (every
+statement rule, where a statement may begin) and never one its last token completed (the IF an END-IF just closed).
+Counted, either gave a stray scope terminator its statement, and hint 13's COBOL0306 fell silent (R2-2, ISO §14.5.3.2).
+COBOL2073 fires on a WHEN OTHER phrase whose position
 is wrong, separated from an EMPTY WHEN OTHER body by one token of lookahead past OTHER (and past PERFORM Format
 3's un-underlined optional EXCEPTION). The wholly empty inline `PERFORM … END-PERFORM`, which fails on
 `performStatement`'s own alternatives decision with the parser still before PERFORM, draws COBOL2072 since the

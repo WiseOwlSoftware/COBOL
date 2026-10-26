@@ -2173,7 +2173,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "l1c04-bwz-not-numeric-operand": {
   "refuse-at": [
@@ -2495,7 +2495,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307: unexpected ')'"
+  "expect": "COBOL0001: unexpected ')'"
  },
  "l1c17-paren-not-delimiting": {
   "refuse-at": [
@@ -4480,7 +4480,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb1125-inspect-converting-before-twice": {
   "refuse-at": [
@@ -4489,7 +4489,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb1125-inspect-replacing-bare-pair-after-characters": {
   "refuse-at": [
@@ -4498,7 +4498,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb1125-inspect-replacing-without-adjective": {
   "refuse-at": [
@@ -4525,7 +4525,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb1127-inspect-boolean-figurative-not-zero": {
   "refuse-at": [
@@ -5342,7 +5342,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307: unexpected 'INTO'"
+  "expect": "COBOL0001: unexpected 'INTO'"
  },
  "pb1185-national-unstring-delimiter-at-85": {
   "refuse-at": [
@@ -7111,7 +7111,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb1298-or-page-without-page-limit": {
   "refuse-at": [
@@ -8120,7 +8120,7 @@
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb1373-cobol-words-fresh-word-too-long": {
   "refuse-at": [
@@ -8972,7 +8972,7 @@
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb1446-leading-zeros-count-toward-literal-size": {
   "refuse-at": [
@@ -14060,7 +14060,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb331-read-record-word-twice": {
   "refuse-at": [
@@ -17149,7 +17149,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb488-usage-clause-on-level-88": {
   "refuse-at": [
@@ -19666,7 +19666,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb716-special-names-bare-word": {
   "refuse-at": [
