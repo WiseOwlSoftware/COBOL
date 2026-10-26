@@ -1,4 +1,4 @@
-## PB3770: the build guard reads where an agent was launched, and a scratch probe's project graph, instead of guessing both
+## Entry 2614 — 2026-10-26 10:13 PDT — PB3770: the build guard reads where an agent was launched, and a scratch probe's project graph, instead of guessing both
 
 The mailbox note of the Mythos lane (20261025-135010) said a read-only PB3631 adjudicator waited about 90 minutes for a
 quiet window: `scripts/hooks/fleet_active_build.py` refused its scratch probe build while sibling agents were live.
@@ -28,3 +28,4 @@ driven end to end with this session's live fleet, allows the adjudicator's probe
 section 1.7. No inventory row (process tooling). Self-review (silent failure, test coverage, comments): the one
 `except OSError` that returns "" is the documented UNKNOWN path and denies; the in-tree arm still reads no project
 graph (unchanged).
+
