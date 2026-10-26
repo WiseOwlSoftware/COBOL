@@ -1,4 +1,4 @@
-## The loop records an impact map for every main commit it adopts, and a map serves a base file by file (PB3663)
+## Entry 2612 — 2026-10-25 21:43 PDT — The loop records an impact map for every main commit it adopts, and a map serves a base file by file (PB3663)
 
 The owner decided on 2026-10-24 that the loop records an impact map automatically for every main commit it adopts, so that
 leg 1 of a gate runs what a change reaches instead of the cheapest slice of everything. Under batched gating (PB2515) leg 1
@@ -62,3 +62,4 @@ Conformance 8,346/18,832, Unit 36,641/38,371, Characterization 7/36 cases ran, `
 own: the line-endings audit (five self-test writers lacked `newline=`) and `HostWitnessTraitDriftTests` (the new drift test reads
 the tree and so carries the `Sweep` trait the drift-rule index names it for). The gate's own plan read `map none`: the lane
 that this change adds had never run.
+
