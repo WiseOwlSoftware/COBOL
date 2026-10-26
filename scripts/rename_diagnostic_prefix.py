@@ -35,6 +35,7 @@ and the three files that own the rule: the decision note that quotes the owner's
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -73,19 +74,40 @@ BINARY_PROBE = 8192
 #: The old code spelling, for counting the distinct codes a run converted.
 OLD_CODE = re.compile(rb"COBOLNET([0-9]{4})")
 
+#: ⛔ A witness the traceability inventory records as RETIRED keeps the spelling it was retired under: the mark
+#: (`retired-witness: <ref>`, its text read from the inventory schema, the one place it is defined) is what lets
+#: `audit_witness_loss.py` excuse the loss of `<ref>`, so re-spelling the ref would turn a recorded retirement back into
+#: an unexcused loss. The rename re-spelled 14 witnesses (test names and one anchor that carried a code); they went
+#: through `record_verdicts.py` as a batch that retired the old spelling, never as a hand edit of the inventory.
+RETIRED_MARK = json.loads((REPO / "tests" / "version-matrix" / "inventory-schema.json").read_text(encoding="utf-8"))[
+    "notes"]["retired-witness-mark"].encode("utf-8")
+PROTECTED = re.compile(re.escape(RETIRED_MARK) + rb"\s*\S+")
+
 
 def excluded(path: str) -> bool:
     """Whether the repo-relative `path` is one EXCEPT sets aside (the drift test's TreeScope.Except, the same rule)."""
     return any(path.startswith(e) if e.endswith("/") else path == e for e in EXCEPT)
 
 
-def rewrite(data: bytes) -> tuple[bytes, int]:
-    """`data` with every rule applied, and the number of substitutions made."""
+def _apply(data: bytes) -> tuple[bytes, int]:
     total = 0
     for pattern, replacement in RULES:
         data, n = pattern.subn(replacement, data)
         total += n
     return data, total
+
+
+def rewrite(data: bytes) -> tuple[bytes, int]:
+    """`data` with every rule applied outside the PROTECTED spans, and the number of substitutions made."""
+    parts: list[bytes] = []
+    total = pos = 0
+    for m in PROTECTED.finditer(data):
+        seg, n = _apply(data[pos:m.start()])
+        parts += [seg, m.group()]
+        total += n
+        pos = m.end()
+    seg, n = _apply(data[pos:])
+    return b"".join(parts + [seg]), total + n
 
 
 @dataclass
@@ -164,6 +186,11 @@ def self_test() -> int:
     expect("bytes outside a match survive (CRLF kept)", rewrite(crlf)[0], b"line one COBOL0899\r\nline two\r\n")
     latin = b"caf\xe9 " + old.encode() + b"2014"
     expect("a byte that is not UTF-8 survives", rewrite(latin)[0], b"caf\xe9 COBOL2014")
+    mark = RETIRED_MARK.decode()
+    notes = f"{old}1934 is the code. {mark} unit:T.X_Is{old}1934 (renamed) and {mark}  unit:T.Y_Is{old}1935."
+    expect("a retired witness keeps its spelling; the prose around it does not",
+           rewrite(notes.encode())[0].decode(),
+           f"COBOL1934 is the code. {mark} unit:T.X_Is{old}1934 (renamed) and {mark}  unit:T.Y_Is{old}1935.")
     expect("history is never rewritten", [excluded(p) for p in
            ("DEVLOG/2600-x.md", "adjudication/a/b.json", "docs/rearchitecture/evidence/x.json", "kb/Work/PB3575.md")],
            [True] * 4)

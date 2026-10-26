@@ -22,6 +22,13 @@ finisher brief's CONFLICT arm now says so. `DiagnosticCodePrefixDriftTests` (a t
 code-shaped use of the old prefix outside `EXCEPT`, holds its scope's exceptions equal to the script's list, and fires
 on every planted shape.
 
+**The inventory's witnesses.** Fourteen witnesses of the traceability inventory carried a code inside a test name or
+an anchor (`ZeroWhereNoRulePermitsIt_IsCOBOL2386`, six `PictureCompositionTests` methods, `BinderDriver.cs#COBOL1507`).
+The first gate stopped on WITNESS LOSS (14 unexcused against the base): the rename had re-spelled them in the JSON by
+hand. They now go through `record_verdicts.py` as one batch (14 records, 14 rows changed, GAP 31 → 31) that retires
+each old spelling and records the new one, and the script never re-spells a `retired-witness:` mark, the record that
+excuses the loss (its self-test and the drift test both pin that).
+
 **By hand**, where the rules cannot decide: `alloc.py` prints `COBOL####` for the code kind (the reservations are bare
 numbers, so `alloc.json` needs no conversion) and scans whole words only; `test_alloc.py`; the adapter drift test
 now checks the three series of the two prefixes by number (`SeriesOf`); `ConditionNameSubjectClassDriftTests` reads a
