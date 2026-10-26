@@ -1623,10 +1623,13 @@ cannot start.
   and a gate that runs neither queued for it anyway: on 2026-10-25 a notes-only gate (the INERT lane, §3.18), whose only
   slot work is about a minute of script self-tests in a WSL clone of HEAD, waited ten minutes behind the implementers' full
   gates. The slot directory therefore holds TWO POOLS (`gate_slot.Pool`, `GATE_POOL` and `LIGHT_POOL`), each with its own
-  slot files, ticket queue (service order within it as above), cap and hold history (`light/`): the GATE pool is the one
-  above, and the LIGHT pool's cap is the coded default `DEFAULT_LIGHT_SLOTS = 2` (an implementor's choice, not an owner
-  decision: it adds at most two script-test runs beside the full gates), departed from by the shared setting `light_cap`
-  (`gate_slot.py set-light-cap N [--until ISO]`; `clear light-cap` removes it). `Host.take_slot(label, say, pool)` takes the
+  slot files, ticket queue (service order within it as above), cap, hold history and settings file (`light/`): the GATE
+  pool is the one above, and the LIGHT pool's cap is the coded default `DEFAULT_LIGHT_SLOTS = 2` (an implementor's choice,
+  not an owner decision: it adds at most two script-test runs beside the full gates), departed from by the `cap` key of
+  `light/settings.json` (`gate_slot.py set-light-cap N [--until ISO]`; `clear light-cap` removes it). ⛔ A pool's settings
+  live in its OWN directory, never as a new key of the gate pool's `settings.json`: every worktree reads that file with its
+  own copy of `gate_slot.py` and refuses a key it does not know, so a key added there would stop every gate in every
+  worktree not yet merged with main (the PB3724 review, R1-1; the self-test's light-pool arm pins it). `Host.take_slot(label, say, pool)` takes the
   pool its work follows: `Gate._inert` takes a LIGHT slot, the full lane's gate a GATE slot, and `gate_slot.py run --pool
   light|gate` wraps a command in either. No gate holds both, so neither pool waits on the other. `status` prints both
   pools. A waiting gate also says WHY it waits: a count that rises while it waits (`k ahead` 0, 1, 2, 0) is a landing

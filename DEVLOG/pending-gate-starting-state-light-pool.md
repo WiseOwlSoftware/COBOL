@@ -20,7 +20,11 @@ Windows (it is tolerated, since the pid file outranks the record), and a launche
 INERT lane did not need a full slot but took one for its Linux script self-tests (about a minute, PB3646), so every
 kb/Work, DEVLOG or owner-decision landing queued behind the implementers' builds. `gate_slot.py` now has two pools (`Pool`):
 the gate pool as before and a LIGHT pool (`light/`, own slot files, tickets, cap and hold history, coded default 2, an
-implementor's choice the owner changes with `set-light-cap N`). `Gate._inert` takes a light slot; nothing holds both pools, so
+implementor's choice the owner changes with `set-light-cap N`, stored in `light/settings.json`: the branch review's one
+blocking finding was that a `light_cap` key in the gate pool's shared `settings.json` is refused by the older
+`gate_slot.py` every worktree not yet merged with main still runs, which would have stopped their gates; each pool now
+keeps its own settings file and the self-test pins that the gate pool's file holds only the keys the older reader
+knows). `Gate._inert` takes a light slot; nothing holds both pools, so
 neither can wait on the other; `status` prints both; `run --pool` wraps a command in either. The log now explains itself: a
 gate waiting while its `k ahead` rises is told which later landing ticket is served first (PB3103), and the gate next in
 line says it waits for the first released slot. Arms: `gate_slot.py --self-test` grew from 12 to 14 (light pool; explanation),
