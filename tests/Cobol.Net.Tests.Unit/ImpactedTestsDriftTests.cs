@@ -45,7 +45,8 @@ public sealed class ImpactedTestsDriftTests
         AssertSelfTest(TestRepo.Scripts("spec", "impacted_tests.py"),
             "a mapped file (file level) puts its tests in tier 2", "an UNMAPPED (new) src file puts every test in tier 1",
             "a known file no test executed", "an ambient-only file", "a grammar file", "a props file",
-            "a runtime data file", "a new file's test methods are all tier 0a",
+            "a runtime data file", "a public-API analyzer baseline is data a test may read",
+            "a new file's test methods are all tier 0a",
             // kb/Work PB3190: an EDITED test method is tier 0a too, read from a real diff
             "tier 0a holds an edited test method: a changed line inside an existing test body",
             "tier 0a holds an edited test method: a line deleted from an existing test body",
@@ -63,7 +64,15 @@ public sealed class ImpactedTestsDriftTests
             "a replayed deletion of a test file names no test",
             "a hunk inside a reached method puts its tests in tier 1", "code inserted between methods is a declaration change",
             "a changed static constructor", "no map for the base puts every test in tier 1",
-            "a documentation-only older map is used", "a STALE map is returned for its durations",
+            // kb/Work PB3663: the map that serves a base is chosen by the files that differ between its commit's tree and the
+            // base's, never by age, and a file in that difference is taken at the file level
+            "a map older than the base by documentation only describes it exactly",
+            "a map older than the base by OTHER source files still attributes a file the trees share by line range",
+            "a file that differs between the map's commit and the base is taken at the file level",
+            "a hunk inside a method only the ambient array reached (a finalizer) cannot be attributed",
+            "a file the map has never seen, new since its commit, puts every test in tier 1",
+            "a map recorded AFTER the base serves it", "a map named with --map is served by the same comparison",
+            "a map file that cannot be read (torn by a killed recorder, or pruned meanwhile) leaves the plan unaimed",
             // tier 0d: the drift tests governing a changed file (kb/Work PB3531), and those of a register citing what
             // the change removes (kb/Work PB3131)
             "a changed file names every drift test the index says governs it",
@@ -92,7 +101,7 @@ public sealed class ImpactedTestsDriftTests
             "tier 0a: an added or edited test method, a touched golden and a previous red",
             "tiers 2 and 3 never enter leg 1",
             "tier 0u: unknown cases are charged the median", "a partition-renamed row keeps its timing",
-            "no map: every case is tier 1", "a stale map", "no timings: leg 1 is tier 0a alone",
+            "no map: every case is tier 1", "an unattributable change under a map: every case tier 1","no timings: leg 1 is tier 0a alone",
             "an empty leg 1 makes the assembly one leg", "an assembly whose whole recorded time fits the collection cap",
             "leg 2 runs collections longest first", "cases sharing a truncated name share one key",
             "a theory listed as one case", "leg_of is total", "a --list-tests output reads back as its display names",
