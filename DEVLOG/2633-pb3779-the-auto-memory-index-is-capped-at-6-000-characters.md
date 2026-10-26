@@ -1,4 +1,4 @@
-## PB3779: the auto-memory index is capped at 6,000 characters and the cap is printed at every session start
+## Entry 2633 — 2026-10-26 16:17 PDT — PB3779: the auto-memory index is capped at 6,000 characters and the cap is printed at every session start
 
 The memory index (`MEMORY.md`) is in the turn-1 request of every dispatched agent and is re-read on every turn of every
 session: 17,394 chars today (19.5K when the Mythos analysis of 2026-10-25 measured it, about 4.9K tokens a turn, about
@@ -23,3 +23,4 @@ key, an absent index and a non-UTF-8 one. There is no new drift test: the file l
 the probe line is the instrument.
 
 Rows re-verdicted: none (process tooling; the note claims no inventory row). No compiler code changed.
+
