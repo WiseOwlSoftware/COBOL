@@ -55,3 +55,12 @@ left, and idempotence. Performance: the witness audit reads git's whole-tree ren
 was lost (3.9 s on this change). Duplication: none added. Outside the repository, after landing: each account's
 skill-doctor stamp is read under its new name, the Startup entry is replaced by re-running the installer, and the cloud
 cache moves on its next setup (PB3837's Landing says how).
+
+**The gate.** Run 1 was RED in the self-tests: the lower-case catch-all had spelled a case-insensitive scrub's test
+input `wiseowl-cobol_gate_leg`; a rule now keeps a lower-case variable's underscore, and the audit also names a binary
+file that spells a retired name instead of passing over it. Run 2 (leg 1 held the whole population) was RED on five:
+the foreign-module CALL case's item that holds the runtime's name grew past its PICTURE (X(17) to X(21)); a
+differential golden keyed by its source's hash moved to its new key; `EmittedGlobalNameDriftTests` now names the
+captured root `WiseOwl`; the landing pipeline's arm names; and the architecture census re-recorded at the renamed head.
+Run 3: `=== BUILD-LOCAL GATE: GREEN — Conformance 18,832/18,832 · Unit 38,392/38,392 · Characterization 36/36 cases ran
+(skipped 0) in 1 of 1 leg(s) · Linux half (WSL clone of HEAD) GREEN … run 000003-20261026T204806Z) ===`.
