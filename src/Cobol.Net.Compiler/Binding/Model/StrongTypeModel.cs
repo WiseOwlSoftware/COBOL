@@ -40,8 +40,9 @@ public static class StrongTypeModel
     /// class-condition same-type gates restrict (ISO §8.5.3.3: only group items may be strongly typed;
     /// §14.9.25.3 SR2 / §8.8.4.2.3 SR1 / §8.8.4.4.3 SR1). An elementary leaf subordinate to a strong group is
     /// NOT strongly typed, so its individual MOVE / comparison is unrestricted (a strong record is still built
-    /// up field by field).</summary>
-    public static bool IsStrongGroup(DataItem item) => item.IsGroup && StrongRoot(item) is not null;
+    /// up field by field). Asked of the entry's own form (<see cref="DataItem.IsGroupEntry"/>) so it agrees with
+    /// <c>ItemCategory.GroupKindsOf</c>, which reads it, before the usage walk too (kb/Work PB3682).</summary>
+    public static bool IsStrongGroup(DataItem item) => item.IsGroupEntry && StrongRoot(item) is not null;
 
     /// <summary>True when the item is part of any strongly-typed subtree (a strong group OR a leaf subordinate
     /// to one) — backs the §13.18.57.3 SR3/SR4 "in whole or in part" declaration checks (a RENAMES / REDEFINES
