@@ -2,6 +2,12 @@ RULES FOR EVERY ORCHESTRATOR UNIT (docs/rearchitecture/DESIGN-orchestrator-loop.
 these rules before the unit's own text). You are one bounded unit of an unattended loop in a FRESH headless session; the
 supervisor starts the next unit after you end.
 - First load the `session-start` skill, then read the previous handoff {PREV_HANDOFF} (absent on a first run).
+- Skills and references (kb/Work PB3780): a unit loads `session-start` and, where its own text says so, the `workstream`
+  overlay, and NOTHING else: never `agent-fleet` (its text is re-read on every turn and the overlay states it in project
+  terms), and no dispatched agent loads a skill at all. Read the one reference file the job needs, once: a wave unit
+  planning a chain, a successor or a campaign reads `.claude/skills/workstream/references/rolling-wave.md`; the enqueue
+  unit reads `.claude/skills/workstream/references/landing.md`; a resume unit that is unsure how the loop works reads
+  `tools/claude-skills/skills/agent-fleet/references/orchestrator-loop.md`.
 - Before EACH new step, and IMMEDIATELY before any Workflow call or implementer/finisher dispatch, check whether
   {STOP_UNIT} exists. If it does, start no new step and launch no fleet (the dispatch guard refuses it in a loop unit):
   finish the current step, write the handoff and end. With a fleet in flight the current step IS supervising it: never
