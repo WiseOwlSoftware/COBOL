@@ -21716,6 +21716,37 @@
   ],
   "expect": "COBOL1959"
  },
+ "pb3817-initialize-replacing-object-reference-class": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0867"
+ },
+ "pb3817-initialize-replacing-restricted-program-pointer": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1959"
+ },
+ "pb3817-initialize-replacing-restricted-function-pointer": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1959"
+ },
+ "pb3817-initialize-replacing-restricted-data-pointer": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0869"
+ },
  "pb94-value-alphanumeric-on-numeric": {
   "refuse-at": [
    "85",
