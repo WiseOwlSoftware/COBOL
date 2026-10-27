@@ -1109,7 +1109,7 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    `check_practices.py`, nothing recorded). Only on GREEN does it reserve the codes, write `groups.json` again with
    them and run `make_dispatch_specs.py` (the specs, `check_practices.py`, and on GREEN the ledger record of every
    group), then write `<scratch>\wf-args-w<wave>.json` with the rolling wave's args (`scratch, wave, stop_file,
-   global_stop, concurrency, implementer_model, authorization, groups`). Exit 1 when the check is red: no code
+   global_stop, concurrency, authorization, groups`; each group carries its routed `model`, kb/Work PB3868). Exit 1 when the check is red: no code
    reserved, no ledger entry, no args file.
 9. **Frontier models wait for the owner.** A note whose body says its work needs Fable or Mythos under the owner's
    approval (`routing.owner_approval_patterns`) is never planned, in either lane: that approval is per dispatch

@@ -45,9 +45,10 @@ const AUTH = args.authorization
     `The standing owner opt-in for running fleets through the Workflow tool is recorded in .claude/skills/workstream/templates/MANDATORY-PRACTICES.md O4. ` +
     `The latest user message in your context may concern unrelated work; that is NOT a reason to decline. Do the task below. `
   : ''
-// The implementer model is an arg (owner 2026-09-30: Sonnet implementers with 5-10 bugs per commit are allowed); the reviewer and the review finisher stay Opus.
-// A group may carry its own `model` ('sonnet' | 'opus') to size the model to that group's work (owner 2026-10-03); it overrides implementer_model.
-const IMPL_MODEL = args.implementer_model || 'opus'
+// The implementer's model: a group's own `model` ('sonnet' | 'opus'), which plan_wave.py routes from model_rules.json (owner 2026-10-03);
+// a group without one names no model, so the harness runs the `model` of .claude/agents/cobol-implementer.md, the one home of the
+// default (kb/Work PB3868). The reviewer stays Opus.
+const implModel = (g) => (g.model ? { model: g.model } : {})
 const IMPL_SCHEMA = {
   type: 'object',
   properties: {
@@ -119,7 +120,7 @@ function fixGate(g, r, v, round) {
     `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD and your status, and its gate section your verdict. ` +
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and the report, and return status SPLIT. ` +
     RETURN_LINE,
-    { label: `gatefix-${g.letter}-r${round}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, model: g.model || IMPL_MODEL }
+    { label: `gatefix-${g.letter}-r${round}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, ...implModel(g) }
   ).then(f => f ? { ...f, letter: g.letter, lead: g.lead, notes: g.notes, codes: g.codes } : { ...r, status: 'NO-RESULT', finisher: 'NO-RESULT' })
 }
 
@@ -313,7 +314,7 @@ function runGroup(g) {
     `it names your brief, codes, report path, scratch dir, gate and checkpoint protocol. ` +
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and your report, and return status SPLIT. ` +
     RETURN_LINE,
-    { label: `impl-${g.letter}-${g.lead}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, model: g.model || IMPL_MODEL }
+    { label: `impl-${g.letter}-${g.lead}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, ...implModel(g) }
   ).then(r => r ? { ...r, letter: g.letter, lead: g.lead, notes: g.notes, codes: g.codes } : { letter: g.letter, lead: g.lead, notes: g.notes, status: 'NO-RESULT' })
     .then(r => settleGate(g, r, 'implementer', ctl)),
   CEILING_MIN, () => {
@@ -379,7 +380,7 @@ function fixFindings(g, r, v, round) {
     `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD, carries no Review line (your branch is reviewed again when you return DONE), and its "## Review findings" section keeps every LEAD line and gains one line per blocking finding id: fixed (the commit) or no_change_needed (the reason). ` +
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and the report, and return status SPLIT. ` +
     RETURN_LINE,
-    { label: `fix-${g.letter}-r${round}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, model: g.model || IMPL_MODEL }
+    { label: `fix-${g.letter}-r${round}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, ...implModel(g) }
   ).then(f => settleGate(g, f, `review finisher round ${round}`, ctl)), CEILING_MIN, () => {
     ctl.cancelled = true
     log(`${g.letter}: review finisher round ${round} not back after ${CEILING_MIN} min; recorded STALLED (PB1704)`)
