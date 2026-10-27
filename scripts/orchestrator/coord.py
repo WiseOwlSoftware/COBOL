@@ -123,6 +123,7 @@ def reports_dir(override: str | None = None) -> pathlib.Path:
 AGENTS_DIR = REPO / ".claude" / "agents"
 _FRONTMATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---", re.DOTALL)
 _MAX_TURNS = re.compile(r"^maxTurns:\s*(\d+)\s*$", re.MULTILINE)
+_MODEL = re.compile(r"^model:\s*([A-Za-z0-9._-]+)\s*$", re.MULTILINE)
 
 
 def agent_turn_cap(role: str, agents_dir: pathlib.Path | None = None) -> int:
@@ -134,6 +135,18 @@ def agent_turn_cap(role: str, agents_dir: pathlib.Path | None = None) -> int:
     if cap is None:
         raise ValueError(f"{path}: no frontmatter `maxTurns:` (the role's turn cap, kb/Work PB3701)")
     return int(cap.group(1))
+
+
+def agent_model(role: str, agents_dir: pathlib.Path | None = None) -> str:
+    """The `model` of the role `role` (`cobol-implementer`): the role's default model, read from its agent definition, the
+    one home the harness also reads when an `agent()` call names no model. The planner routes a group away from it only by
+    model_rules.json's `routing.opus_when` (kb/Work PB3868). Raises ValueError when the file has no frontmatter `model`."""
+    path = (agents_dir or AGENTS_DIR) / f"{role}.md"
+    front = _FRONTMATTER.match(path.read_text(encoding="utf-8"))
+    model = _MODEL.search(front.group(1)) if front else None
+    if model is None:
+        raise ValueError(f"{path}: no frontmatter `model:` (the role's default model, kb/Work PB3868)")
+    return model.group(1)
 
 
 #: A fix-lane report's file name, `w<wave><letter>-PB<lead>-report.md` (in reports_dir): the wave number, the group

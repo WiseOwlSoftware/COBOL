@@ -126,7 +126,7 @@ CAP_COPIES = [
     ('.claude/skills/workstream/templates/MANDATORY-PRACTICES.md', r'implementer (\d+) \(raised from', ('cobol-implementer',)),
     ('.claude/skills/workstream/templates/MANDATORY-PRACTICES.md', r'read-only (\d+), implementer', ('cobol-adjudicator', 'cobol-refuter')),
     ('.claude/skills/workstream/templates/MANDATORY-PRACTICES.md', r'finisher transcript \(cap (\d+)\)', ('cobol-finisher',)),
-    ('.claude/skills/workstream/templates/MANDATORY-PRACTICES.md', r'`cobol-implementer` \(Opus, high, (\d+) turns\)', ('cobol-implementer',)),
+    ('.claude/skills/workstream/templates/MANDATORY-PRACTICES.md', r'`cobol-implementer` \(Sonnet by default, Opus where routed \(P1\), high, (\d+) turns\)', ('cobol-implementer',)),
     ('.claude/skills/workstream/templates/MANDATORY-PRACTICES.md', r'`cobol-finisher` \(Opus, high, (\d+) turns', ('cobol-finisher',)),
     ('.claude/skills/workstream/references/cost-law-and-budget.md', r'\| implementer \| \*\*(\d+) turns\*\*', ('cobol-implementer',)),
     ('.claude/skills/workstream/references/cost-law-and-budget.md', r'read-only agent[^|]*\| \*\*(\d+) turns\*\*', ('cobol-adjudicator', 'cobol-refuter')),
