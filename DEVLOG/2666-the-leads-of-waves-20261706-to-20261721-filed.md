@@ -1,4 +1,4 @@
-## The leads of waves 20261706 to 20261721, filed
+## Entry 2666 — 2026-10-27 13:08 PDT — The leads of waves 20261706 to 20261721, filed
 
 The enqueue unit's lead-filing clerk filed the new defects and non-blocking review leads of the reports of waves 20261706
 to 20261721 as 27 notes, PB3942 to PB3968, one per mechanism (campaign: the reports' own "note-ready" lists). Every lead was
@@ -25,3 +25,4 @@ the cross-reference. PB3941 R1-1 (a TypeError on a list value) is fixed on its o
 Not filed: the PB3837 "owner-side after landing" bullet (an owner action), PB3575 R1-2, PB3554 R1-2 and R1-3, PB3635
 R2-2, R2-3, R1-2 and R1-3, PB3514 R1-2 and R1-3, and PB3569 R1-2 (all fixed in their own branches); PB3554 and PB3635
 new-defect lists otherwise empty.
+
