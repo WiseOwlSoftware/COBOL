@@ -704,14 +704,21 @@ def rearms(cdir: pathlib.Path, unreadable: list[str] | None = None) -> dict[str,
 
 def drop_stale_rearms(cdir: pathlib.Path, rows: list[dict[str, Any]], say: Say) -> dict[str, dict[str, Any]]:
     """The pending re-arms still at their branch's surveyed tip. One whose branch moved (a new commit: the lane treats
-    it as a new head anyway) or left the survey is deleted and said; the rest are returned for `candidates`."""
+    it as a new head anyway), left the survey, or reads LANDED (its work is on main: nothing is left to land, and the
+    queue owns no pull request of it, kb/Work PB3609) is deleted and said; the rest are returned for `candidates`."""
     unreadable: list[str] = []
     pending = rearms(cdir, unreadable)
     for p in unreadable:
         say(f"land lane: {p} is not a re-arm record; left out (its branch waits for a new head): inspect it")
     tips = {r["name"]: r["tip"] for r in rows}
+    landed = {r["name"] for r in rows if r["state"] == "LANDED"}
     for branch, rec in list(pending.items()):
-        if tips.get(branch) != rec["head"]:
+        if branch in landed:
+            rearm_path(cdir, branch).unlink(missing_ok=True)
+            del pending[branch]
+            say(f"land lane: {branch}: its work is on main (the survey reads it LANDED); the re-arm at "
+                f"{rec['head'][:12]} is dropped")
+        elif tips.get(branch) != rec["head"]:
             rearm_path(cdir, branch).unlink(missing_ok=True)
             del pending[branch]
             where = f"at {str(tips[branch])[:12]}" if branch in tips else "no longer surveyed"
@@ -894,8 +901,9 @@ def watch_queue(cdir: pathlib.Path, branches: dict[str, list[dict[str, Any]]], r
             say("land lane: queue watch: GitHub's facts were not observed this tick; nothing read")
         return
     import prune_worktrees  # noqa: PLC0415  (scripts/: it imports this module back, lazily)
-    # A branch whose work is on main reads LANDED here even while the survey still calls it IN FLIGHT (touched inside
-    # --min-age, as a just-merged branch is): its pull request is merged, not closed by hand.
+    # A branch whose work is on main reads LANDED here by its CONTENT, even where the survey's state is not LANDED (a
+    # dirty worktree reads DECISION, a merged branch with no commit of its own IN FLIGHT while fresh: prune_worktrees.
+    # lifecycle, kb/Work PB3609): its pull request is merged, not closed by hand.
     states = {r["name"]: "LANDED" if r.get("content") in prune_worktrees.LANDED_CONTENT else r.get("state")
               for r in rows}
     for branch, atts in branches.items():
@@ -1212,6 +1220,8 @@ def rearm_hold(rec: dict[str, Any], row: dict[str, Any] | None) -> str:
                 "through review)")
     if not row.get("worktree"):
         return "the survey names no worktree for it, so the next tick does NOT land it (the re-arm waits for one)"
+    if row.get("state") == "LANDED":
+        return "its work is on main (the survey reads it LANDED): the next tick drops the re-arm, there is nothing to land"
     if row.get("state") in QUEUE_OWNED:
         return (f"the survey reads it {row['state']}: the queue owns its pull request, so the next tick does NOT land "
                 "it (the queue watch acts on it)")
@@ -1847,12 +1857,37 @@ def self_test() -> int:
         rec12 = {"head": "r1"}
         arms = {"launch": row("w12c", "WAITING TO LAND", "r1"), "no worktree": {**row("w12c", "WAITING TO LAND", "r1"),
                                                                               "worktree": ""},
-                "queue": row("w12c", "ENQUEUED", "r1"), "moved": row("w12c", "WAITING TO LAND", "r2"), "gone": None}
+                "queue": row("w12c", "ENQUEUED", "r1"), "moved": row("w12c", "WAITING TO LAND", "r2"), "gone": None,
+                "landed": row("w12c", "LANDED", "r1")}
         agree = {k: (bool(candidates([r] if r else [], [], {}, {"w12c": rec12})),
                      rearm_effect(rec12, r) == "the next tick lands it again at this head") for k, r in arms.items()}
         expect("candidates() launches a re-arm exactly when the status line promises it (no worktree: neither)",
                agree == {"launch": (True, True), **{k: (False, False) for k in arms if k != "launch"}}
                and "no worktree" in rearm_effect(rec12, arms["no worktree"]), str(agree))
+        # 12d. kb/Work PB3609: the lane's view of a MERGED branch. On 2026-10-24 the lane started `enqueue.py land` on a
+        #      branch whose pull request had merged 14 minutes before, 0 commits ahead of main: the enqueue unit had
+        #      re-armed it before a reboot, and the survey read the merged branch IN FLIGHT (touched inside --min-age), so
+        #      no hold applied. The survey now reads it LANDED: the re-arm is DROPPED (not held as "the queue owns it",
+        #      which is wrong for a merged branch), and the status line before the drop says why.
+        landed_effect = rearm_effect(rec12, arms["landed"])
+        expect("the status line of a re-armed LANDED branch names its work on main, never the queue's ownership",
+               "on main" in landed_effect and "drops the re-arm" in landed_effect and "queue" not in landed_effect,
+               landed_effect)
+        c12d = fresh("rearm-landed")
+        f12d = Fake([row("w12d", "WAITING TO LAND", "m1"), row("w12e", "WAITING TO LAND", "n1")])
+        f12d.tick(c12d)
+        for b, h in (("w12d", "m1"), ("w12e", "n1")):
+            finish(c12d, b, 0, "ENQUEUED", end_head=h)
+        f12d.live.clear()
+        collect(c12d, ["w12d", "w12e"], say=lambda s: None)
+        f12d.rows = [row("w12d", "LANDED", "m1"), row("w12e", "WAITING TO LAND", "n1")]   # PR of w12d merged
+        rearm(c12d, "w12d", "re-armed before the reboot", say=said.append, tip_for=lambda wt: "m1")
+        rearm(c12d, "w12e", "re-armed by hand", say=said.append, tip_for=lambda wt: "n1")
+        expect("a re-armed branch whose work is on main is not launched and its re-arm is dropped, said; a re-arm of "
+               "a branch still to land is untouched",
+               f12d.tick(c12d) == ["w12e"] and not rearm_path(c12d, "w12d").exists()
+               and any("w12d" in ln and "its work is on main" in ln and "dropped" in ln for ln in f12d.said),
+               f"{f12d.started} {f12d.said}")
 
         # 14. THE QUEUE WATCH (kb/Work PB3527): each pull request the lane queued, followed into the merge queue from a
         #     stubbed reader of GitHub's facts, on a planted clock; PR #385's shape is a ci-gate check-run in progress
