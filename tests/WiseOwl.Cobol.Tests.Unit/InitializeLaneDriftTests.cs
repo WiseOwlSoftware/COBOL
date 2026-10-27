@@ -89,6 +89,27 @@ public sealed class InitializeLaneDriftTests
             + "UsageCollectionPass.InitAct and BoundStores.InitStores.");
     }
 
+    /// <summary>⛔ AN <c>InitializeSetFrom</c> IS THE IMPLICIT SET OF §14.9.20.4 GR4, SO IT IS BUILT ONLY BEHIND THE
+    /// ONE SET-RULE SCREEN OF ITS RECEIVER (kb/Work PB3817). The phrase-level category check cannot see a restricted
+    /// pointer's type or signature, or an object reference's class; those are the receiver's, so each construction
+    /// site has to ask <c>ScreenImplicitSet</c> in the same expression. A second construction site that skips it is
+    /// the regression this pins (INITIALIZE … REPLACING PROGRAM-POINTER DATA BY an unrestricted pointer compiled
+    /// clean into a restricted one).</summary>
+    [Fact]
+    public void EveryInitializeSetFromConstruction_IsGuardedByTheImplicitSetScreen()
+    {
+        string code = CodeOf(BinderPath);
+        var sites = Regex.Matches(code, @"new\s+InitializeSetFrom\s*\(");
+        Assert.True(sites.Count >= 1, "the INITIALIZE binder no longer constructs InitializeSetFrom — the scan is blind.");
+        foreach (Match site in sites)
+        {
+            string before = code[Math.Max(0, site.Index - 400)..site.Index];
+            Assert.True(before.Contains("ScreenImplicitSet(", StringComparison.Ordinal),
+                "an InitializeSetFrom is constructed without SetBinder.ScreenImplicitSet in the same expression: the implicit "
+                + "SET of §14.9.20.4 GR4 must be held to its receiver's §14.9.39.3 SR12/SR19/SR20/SR22 rules (kb/Work PB3817).");
+        }
+    }
+
     /// <summary>The action records declared in <c>BoundInitialize.cs</c> — read from the source rather than by
     /// reflection so the test names the file a contributor has to edit, and so a record added but not yet
     /// referenced anywhere still counts.</summary>
