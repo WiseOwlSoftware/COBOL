@@ -192,7 +192,7 @@ cols = ["workflow", "wave", "group", "lead", "attempt_no", "later_attempts", "ar
         "landed_ancestry", "commit_evidence", "chain_landed_anc", "notes_reported", "notes_verified_landed", "chain_notes", "notes_list", "date"]
 rows.sort(key=lambda r: r["start"])
 with open(os.path.join(D, "results.csv"), "w", newline="", encoding="utf-8") as f:
-    w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
+    w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore", lineterminator=chr(10))
     w.writeheader()
     w.writerows(rows)
 print("groups", len(rows), "unassigned impl agents", len(unassigned))
