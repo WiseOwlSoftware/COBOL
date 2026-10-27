@@ -2103,7 +2103,7 @@ def self_test() -> int:
             and 2 not in o.legs_invoked and not any(k[0] == 2 for k in h.envs)
             and o.not_run == {"Conformance": 4, "Unit": 4} and "GATE: GREEN" not in o.line
             and o.line.startswith(f"{VERDICT}{LEG1_ONLY}: GREEN") and "until 2999-01-01" in o.line
-            and json.loads(next((root / "leg1" / "runs").iterdir()).joinpath(VERDICT_FILE).read_text(
+            and json.loads(run_dirs(root / "leg1" / "runs")[-1].joinpath(VERDICT_FILE).read_text(
                 encoding="utf-8"))["leg1_only"] is True, o.line)
         o, _ = gate("leg1-red", scope="leg1", plant={"red-leg1"})
         arm("scope leg1: a red in leg 1 is LEG 1 ONLY: RED, exit 1",
@@ -2161,7 +2161,7 @@ def self_test() -> int:
             and h2.events[-1] == "publish" and o2.timings_store.startswith("published 4 ")
             and said("to the shared timings store"), f"{o.timings_store} | {o2.timings_store}")
         o, h = gate("publish-fails", plant={"publish"})
-        rec = json.loads(next((root / "publish-fails" / "runs").iterdir()).joinpath(VERDICT_FILE).read_text(
+        rec = json.loads(run_dirs(root / "publish-fails" / "runs")[-1].joinpath(VERDICT_FILE).read_text(
             encoding="utf-8"))
         arm("a failed publish to the timings store is reported and recorded, and the verdict is unaffected (GREEN)",
             o.verdict == "GREEN" and said("timings store was NOT updated")
@@ -2234,7 +2234,7 @@ def self_test() -> int:
         arm("ONE SHAPE (kb/Work PB3022): every gate takes a slot, runs its audits before it and stops at a red in "
             "leg 1; there is no mode",
             h.slots_taken == 1 and h.events[:3] == ["audits", "fetch", "slot"] and o.verdict == f"{LEG1_ONLY}: RED"
-            and "mode" not in o.line and "mode" not in json.loads(next((root / "one-shape" / "runs").iterdir())
+            and "mode" not in o.line and "mode" not in json.loads(run_dirs(root / "one-shape" / "runs")[-1]
                                                                   .joinpath(VERDICT_FILE).read_text(encoding="utf-8"))
             and f"leg 2 left to {LEG2_OWNER}" in o.line, o.line)
         o, _ = gate("crash", plant={"crash"})
