@@ -509,6 +509,14 @@ UPSTREAM_SECTIONS = ("Minimal test case", "Environment", "Observed result", "Exp
 #: The longest fenced block a record may carry. A minimal repro is a few dozen lines; a longer block is a program lifted
 #: from the other project's GPL testsuite, which the owner forbids committing (PB3838, standing requirement 3).
 UPSTREAM_MAX_FENCE_LINES = 60
+#: The `## Draft issue` section is the text an owner approves for publication (PB3838, standing requirement 2), so it
+#: OPENS with its one-line title, `**Title:** ...` followed by a blank line: an instruction to the filer put ahead of
+#: it, or a title wrapped onto a second line, would be copied into the posted issue (PB3838 tier 4 review, R1-1 and R1-3).
+_DRAFT_TITLE = re.compile(r"\A\s*\*\*Title:\*\*[ \t]+\S[^\n]*\n[ \t]*(\n|\Z)")
+#: ⛔ A CORRECTION IS APPLIED IN PLACE. A note that states a correction beside the text it contradicts ("where it
+#: differs, this paragraph governs") leaves the uncorrected sentence in the sections a filer copies (PB3838 tier 4
+#: review, R1-1): the phrase is how such a note announces itself, so it is refused rather than read around.
+_UNAPPLIED_CORRECTION = re.compile(r"this paragraph governs", re.IGNORECASE)
 _FENCE = re.compile(r"^[ \t]*```")
 _SECTION_HEADING = re.compile(r"^(#{1,2})[ \t]+(.*?)\s*$")
 _SPEC_REF = re.compile(r"\A[0-9A-Z][0-9A-Za-z.]*\Z")
@@ -606,6 +614,14 @@ def upstream_problems(it: dict) -> list[str]:
             need(f"has no `## {name}` section (the bar's eight items, PB3838)")
         elif not text.strip():
             need(f"has an empty `## {name}` section")
+        elif name == "Draft issue" and not _DRAFT_TITLE.match(text):
+            need("has a `## Draft issue` section that does not open with its one-line `**Title:** ...` followed by a "
+                 "blank line: the section is the text published as the issue, so nothing precedes the title and the "
+                 "title does not wrap (apply a correction to the draft's own text instead)")
+    if _UNAPPLIED_CORRECTION.search(body):
+        need("states a correction that `governs` text it contradicts: apply the correction in place, in every section "
+             "it touches (Observed, Expected, Fix site, Draft issue), so no section a filer copies still says the "
+             "corrected thing")
     for n in fence_lengths(body):
         if n > UPSTREAM_MAX_FENCE_LINES:
             need(f"carries a fenced block of {n} lines (the cap is {UPSTREAM_MAX_FENCE_LINES}): a minimal repro is "
@@ -1657,7 +1673,8 @@ def _upstream_fixture(**changes: str | None) -> str:
     lines = ["---", *(f"{k}: {v}" for k, v in fm.items()), "---", "", "# PB9100 — a record", ""]
     fence = "`" * 3
     for i, name in enumerate(UPSTREAM_SECTIONS):
-        text = changes.get(f"section_{i}", f"{fence}{nl}MOVE A TO B.{nl}{fence}" if i == 0 else "stated")
+        default = {0: f"{fence}{nl}MOVE A TO B.{nl}{fence}", 7: f"**Title:** a title{nl}{nl}stated"}.get(i, "stated")
+        text = changes.get(f"section_{i}", default)
         if text is not None:
             lines += [f"## {name}", "", text, ""]
     return nl.join(lines)
@@ -1690,6 +1707,14 @@ def upstream_findings() -> list[str]:
         ("no observed result", {"section_2": None}, "no `## Observed result` section"),
         ("an empty fix-site section", {"section_5": ""}, "empty `## Fix site` section"),
         ("a pasted testsuite-sized program", {"section_0": long_block}, "fenced block of"),
+        ("a filer's instruction ahead of the draft's title",
+         {"section_7": f"**Corrected before filing:** delete X.{chr(10)}{chr(10)}**Title:** t{chr(10)}{chr(10)}body"},
+         "does not open with its one-line `**Title:**"),
+        ("a draft title wrapped onto a second line", {"section_7": f"**Title:** a long{chr(10)}title{chr(10)}{chr(10)}b"},
+         "does not open with its one-line `**Title:**"),
+        ("a draft with no title", {"section_7": "body only"}, "does not open with its one-line `**Title:**"),
+        ("a correction stated beside the text it contradicts",
+         {"section_2": "Corrected: X. Where it differs, this paragraph governs."}, "apply the correction in place"),
     ]
     with tempfile.TemporaryDirectory(prefix="work-upstream-cases-") as tmp:
         for n, (name, changes, expect) in enumerate(cases):
