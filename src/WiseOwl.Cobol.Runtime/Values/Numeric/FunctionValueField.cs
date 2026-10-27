@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <list type="bullet">
 ///   <item><b>The argument's own description</b> (<see cref="OfItem"/>, <see cref="OfLiteral"/>): ABS, MAX, MIN, an odd
 ///         count's MEDIAN and a single argument's MEAN RETURN THE CONTENT of an argument (§15.7.1 for ABS, §15.59.4 1)
-///         and §15.63.4 r1 for the selections), so the temporary is a copy of that argument's item: <c>FUNCTION MAX(U S)</c>
+///         and §15.63.4 1) for the selections), so the temporary is a copy of that argument's item: <c>FUNCTION MAX(U S)</c>
 ///         shows the greater item exactly as <c>DISPLAY</c> of that item does, and ABS keeps the argument's description with
 ///         the sign made positive.</item>
 ///   <item><b>The description of the value</b> (<see cref="OfValue"/>): every other exact function, and an arithmetic
@@ -66,9 +66,10 @@ public readonly struct FunctionValueField
     {
         // The description is fixed when the temporary is made - its sign position follows the value's sign THEN, so ABS of a
         // negative expression is a signed item holding the magnitude, as GnuCOBOL's is. A value of more than 38 digits has no
-        // Int128 unscaled form to show an item by; its text is composed from the value.
+        // Int128 unscaled form to show an item by; its text is composed from the value, and the description it keeps is the
+        // sign position alone (DeviceText), so ABS of a negative 54-digit expression is still a signed item.
         NumProfile described = CobolNum.ReturnedValueProfile(value, out string digits);
-        return digits.Length <= 38 ? new(Shape.Item, value, described) : new(Shape.Value, value, default);
+        return new(digits.Length <= 38 ? Shape.Item : Shape.Value, value, described);
     }
 
     /// <summary>The temporary is a function's binary64 result: it shows the shortest round-trip image and orders by the value that
@@ -90,8 +91,8 @@ public readonly struct FunctionValueField
         _ => new(_shape, new CobolDec(Int128.Abs(_value.Sig), _value.Exp), _item),
     };
 
-    /// <summary>§15.59.4 r1 - the content of the FIRST argument having the greatest value (a later argument of equal value does
-    /// not replace it, so the temporary is the first one's item).</summary>
+    /// <summary>§15.59.4 1) - the content of the argument having the greatest value; 2) - the leftmost one when several are equal
+    /// (a later argument of equal value does not replace it, so the temporary is the first one's item).</summary>
     public static FunctionValueField Max(params FunctionValueField[] arguments)
     {
         CobolIntrinsics.RequireArguments(arguments.Length, "MAX");   // an ALL subscript over no occurrence (§15.3)
@@ -101,7 +102,7 @@ public readonly struct FunctionValueField
         return best;
     }
 
-    /// <summary>§15.63.4 r1 - the content of the FIRST argument having the least value.</summary>
+    /// <summary>§15.63.4 1) - the content of the argument having the least value; 2) - the leftmost one when several are equal.</summary>
     public static FunctionValueField Min(params FunctionValueField[] arguments)
     {
         CobolIntrinsics.RequireArguments(arguments.Length, "MIN");
@@ -137,7 +138,7 @@ public readonly struct FunctionValueField
     {
         Shape.Float => _image!,
         Shape.Item => CobolNum.DisplayDecimal(_value.ToUnscaled(_item.FractionDigits, CobolRounding.Truncation), _item, commaMode),
-        _ => CobolNum.DeviceFunctionText(_value, commaMode),
+        _ => CobolNum.DeviceFunctionText(_value, _item.Signed, commaMode),
     };
 
     private static NumProfile Described(int digits, int scale, bool signed) => new()

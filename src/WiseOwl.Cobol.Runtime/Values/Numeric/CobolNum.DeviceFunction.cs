@@ -18,9 +18,14 @@ public static partial class CobolNum
     /// </summary>
     /// <param name="value">The exact returned value (an SDIDI, which carries any scale the value has).</param>
     /// <param name="commaMode">The unit's decimal separator (§12.3.7.4 GR14 a).</param>
-    public static string DeviceFunctionText(CobolDec value, bool commaMode)
+    public static string DeviceFunctionText(CobolDec value, bool commaMode) =>
+        DeviceFunctionText(value, signedItem: value.Sig < 0, commaMode);
+
+    /// <summary>The same text for a temporary whose sign position was fixed when it was made: <paramref name="signedItem"/> is true for
+    /// the magnitude an ABS holds in a copy of a negative value's item, which shows <c>+</c> (GnuCOBOL's signed temporary).</summary>
+    internal static string DeviceFunctionText(CobolDec value, bool signedItem, bool commaMode)
     {
-        NumProfile temporary = ReturnedValueProfile(value, out string digits);
+        NumProfile temporary = ReturnedValueProfile(value, out string digits) with { Signed = signedItem };
         return Compose(value.Sig < 0, digits, temporary, commaMode);
     }
 
