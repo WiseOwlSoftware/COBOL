@@ -1201,7 +1201,8 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   (`groups.group_requirements`): by every campaign its notes' `cluster:` lists name, so a fix-lane wave that plans a
   campaign member, and a finisher of a campaign branch, carry the requirement exactly as a `--cluster` wave does (the
   campaign that wave runs binds all its groups). The planner writes each requirement, verbatim, into that group's spec
-  `body` (as an `OWNER REQUIREMENT` sentence), its `groups.json` entry and its args entry (`requirements`: `{campaign
+  `body` (under one `OWNER REQUIREMENTS` lead-in per campaign, each requirement numbered; a spec says each rule once, PB3777,
+  so the lead-in is never repeated before every requirement), its `groups.json` entry and its args entry (`requirements`: `{campaign
   lead: [requirement]}`); `check_practices.py` refuses a rendered spec that lacks one its own group declares; and
   `wf_rolling_wave.js` hands the branch reviewer the group's dispatch spec and the requirements
   (`reviewerRequirements(g)`), so a branch lacking one is a finding (category `requirement`) instead of a CLEAN. A prose section rather than a frontmatter list, because a requirement is a sentence with commas

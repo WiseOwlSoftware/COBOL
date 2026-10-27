@@ -41,6 +41,17 @@ case in a plugin that does not ship its skill; `claude plugin validate` passes f
 changes for it yet (its `.claude/settings.json` already enables `brent-tools` alone). The note stays open with the commit, the
 patch and the steps that remain.
 
+**Review round 1 (R1-1, blocking, fixed).** The once-check ran over every rendered spec, but
+`groups.requirements_text` rendered each standing campaign requirement behind the same 64-character clause ("the branch reviewer
+raises a finding when your branch lacks it"), so any campaign group with two or more requirements rendered a spec the check
+refused and `make_dispatch_specs.py` exited 1 (re-rendering the real groups files: the PB3852 campaign, the PB3330 campaign, six
+of them). `test_plan_wave.py` 7c3 had checked only a spec with no or one requirement. Fix at the root: the renderer states one
+`OWNER REQUIREMENTS` lead-in per campaign and numbers each requirement after it, verbatim; the lead-in names its campaign in both
+clauses the once-check splits at, so two campaigns in one spec do not repeat it either. Pinned in section 9a: a two-requirement
+campaign and a two-campaign spec state no sentence twice, and a campaign's requirements stated twice are still refused. Sweep: every
+real groups file under the coordination scratch re-rendered with the planner's bodies re-stated by the new renderer, none states a
+sentence twice (the three that stay red are pre-existing O2 claim collisions of 2026-09 waves).
+
 **Self-review.** Architecture: one file per role's instruction, one checker function per rule (`repeated_sentences`,
 `overlay_problems`), no wrapper left behind. Full code: the guard's implementer arm refuses a template brief; `overlay_problems` resolves
 a base reference by its full path so a bare name is not misread. Performance: nothing on a hot path. Duplication: the gate paragraph, the
