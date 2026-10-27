@@ -376,6 +376,253 @@ public sealed class SequentialCommitControlTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
+    /// <summary>⛔ A FILE ANOTHER RUN UNIT MAKES AT THE PATH AFTER A ROLLBACK REMOVED THIS CONNECTOR'S IS NOT THIS WRITE'S TO USE
+    /// (kb/Work PB3635; the keyed twin is <c>KeyedConnector.CreateTheFileAgain</c>). The ROLLBACK released the file lock of a file not
+    /// open at the last COMMIT (§9.1.15) and reversed only this run unit's own changes (§14.9.36.4 GR3), so what another run unit
+    /// then creates there is protected from this one (§9.1.17): the WRITE that would create the file again answers '30' (§9.1.13.6
+    /// item 1), never appends to the other's file, and the later ROLLBACK or COMMIT leaves that file as its creator wrote it.</summary>
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void A_write_creating_the_file_again_meets_a_file_another_run_unit_made_meanwhile_30(bool line, bool commit)
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            var a = new Unit(f, covered: true, line: line);
+            Ok(a.Open(FileOpenMode.Output));
+            Ok(a.Write("A1"));
+            OkRollback(a);
+            Assert.False(File.Exists(f));   // §14.9.36.4 GR3: the state at the start of the run unit had no file
+            var b = new Unit(f, covered: false, line: line);
+            Ok(b.Open(FileOpenMode.Output));
+            Ok(b.Write("B1"));
+            Ok(b.Close());
+            Assert.Equal("30", a.Write("A2"));   // §9.1.13.6 item 1: the file is another run unit's now
+            if (commit) Assert.True(a.Commit()); else Assert.True(a.Rollback());
+            a.Reg.CloseAll();
+            Assert.Equal(Show(Bytes("B1", line)), Show(State(f)));
+            AssertNoLitter(f);
+            NextEntry(f, line);
+            Assert.Equal(Show(Bytes("B1", line)), Show(State(f)));
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>The same window with the other run unit's file still OPEN: the refused WRITE withdraws the journal it began
+    /// (2.2.2.14: an unsuccessful creation that did not affect the file leaves no transaction), so no <c>txn-</c> litter stands and
+    /// a later run unit's OPEN EXTEND settles nothing of it and finds the other run unit's file.</summary>
+    [Fact]
+    public void A_write_creating_the_file_again_meets_a_file_another_run_unit_holds_open_30_and_leaves_no_journal()
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            var a = new Unit(f, covered: true);
+            Ok(a.Open(FileOpenMode.Output));
+            Ok(a.Write("A1"));
+            OkRollback(a);
+            var b = new Unit(f, covered: false);
+            Ok(b.Open(FileOpenMode.Output));
+            Ok(b.Write("B1"));
+            Assert.Equal("30", a.Write("A2"));
+            AssertNoLitter(f);
+            Ok(b.Close());
+            var c = new Unit(f, covered: false);
+            Ok(c.Open(FileOpenMode.Extend));
+            Ok(c.Close());
+            Assert.Equal("B1", File.ReadAllText(f, Encoding.Latin1));
+            Assert.True(a.Rollback());
+            a.Reg.CloseAll();
+            Assert.Equal("B1", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>A medium that makes <paramref name="f"/> with <paramref name="content"/> once, just before the first
+    /// <paramref name="operation"/> (a <c>kind name</c> log entry) after <paramref name="armed"/> answers true: another run unit's
+    /// OPEN OUTPUT (which takes no entry mutex) landing between this run unit's presence probe and the handle that creates the file.</summary>
+    private static FaultHostMedium MakingTheFile(string f, string content, string operation, Func<bool>? armed = null)
+    {
+        bool made = false;
+        return new()
+        {
+            BeforeOperation = op =>
+            {
+                if (made || op != operation || armed?.Invoke() == false) return;
+                made = true;
+                File.WriteAllText(f, content, Encoding.Latin1);
+            },
+        };
+    }
+
+    /// <summary>⛔ THE SEQUENTIAL WRITE'S CREATING HANDLE REFUSES A FILE ANOTHER RUN UNIT MADE AFTER THE PRESENCE PROBE (kb/Work PB3635,
+    /// review finding R1-2 of the first round): the probe under the entry mutex found no file, and the other run unit's OPEN OUTPUT
+    /// (which takes none) made one before this WRITE's handle opened. The handle is opened <see cref="FileMode.CreateNew"/>, so the
+    /// WRITE answers '30' (§9.1.13.6 item 1), the other run unit's file is as it wrote it (§9.1.17), and the journal the WRITE began
+    /// is withdrawn (2.2.2.14), with no <c>txn-</c> file left.</summary>
+    [Fact]
+    public void A_write_creating_the_file_again_meets_a_file_made_between_the_probe_and_the_handle_30()
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            bool armed = false;
+            var a = new Unit(f, covered: true, MakingTheFile(f, "B1", "open f.dat", () => armed));
+            Ok(a.Open(FileOpenMode.Output));
+            Ok(a.Write("A1"));
+            OkRollback(a);
+            Assert.False(File.Exists(f));
+            armed = true;
+            Assert.Equal("30", a.Write("A2"));
+            Assert.Equal("B1", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+            Assert.True(a.Rollback());
+            a.Reg.CloseAll();
+            Assert.Equal("B1", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>⛔ AN OPEN THAT CREATES THE FILE TAKES A HANDLE THAT REFUSES A FILE MADE SINCE ITS PRESENCE PROBE, AND IS MADE AGAIN OVER
+    /// THE FILE THAT STANDS (kb/Work PB3635, review finding R1-1 of the first round; <c>FileConnector.Open</c>). Another run unit's OPEN
+    /// OUTPUT takes no entry mutex, so a file can appear between the probe and the handle. The OPEN of the absent OPTIONAL file
+    /// (§14.9.27.4 GR17) then meets an existing one: it is the OPEN of an existing file — '00', not '05' — and neither truncates the
+    /// other run unit's records (I-O) nor adopts them as its own creation (EXTEND), which a covered run unit's ROLLBACK would remove
+    /// with the file (§14.9.36.4 GR3 restores only this run unit's own changes). Both ends of the order are checked: the records
+    /// before the ROLLBACK or COMMIT, and the file after.</summary>
+    [Theory]
+    [InlineData(FileOpenMode.IO, false, false)]
+    [InlineData(FileOpenMode.IO, true, false)]
+    [InlineData(FileOpenMode.IO, true, true)]
+    [InlineData(FileOpenMode.Extend, false, false)]
+    [InlineData(FileOpenMode.Extend, true, false)]
+    [InlineData(FileOpenMode.Extend, true, true)]
+    public void An_open_creating_the_optional_file_meets_a_file_made_meanwhile_and_opens_it(FileOpenMode mode, bool covered, bool commit)
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            // The first writable handle on the file: the covered OPEN's kept handle or the uncovered creating handle.
+            var medium = MakingTheFile(f, "B1", covered || mode is FileOpenMode.Extend ? "open f.dat" : "aux f.dat");
+            var a = new Unit(f, covered, medium, optional: true);
+            Ok(a.Open(mode));   // '00': the file that stands is opened, not created ('05' is the OPEN of an absent OPTIONAL file)
+            Assert.True(medium.Log.Count > 0);
+            if (mode is FileOpenMode.IO)
+            {
+                Ok(a.Read(out string image));
+                Assert.Equal("B1", image);
+            }
+            else
+            {
+                Ok(a.Write("A1"));
+            }
+            if (covered) { if (commit) OkCommit(a); else OkRollback(a); }
+            Ok(a.Close());
+            a.Reg.CloseAll();
+            string expected = mode is FileOpenMode.IO || covered && !commit ? "B1" : "B1A1";
+            Assert.Equal(expected, File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>The same window for an OPEN OUTPUT under commit control: the OPEN is made again over the file that stands, so it
+    /// REPLACES it (§14.9.27.4 GR18) after the capture of its records, and the run unit's ROLLBACK restores them
+    /// (§14.9.36.4 GR3: the state at the last COMMIT, which includes the file the other run unit made before this OPEN
+    /// replaced it) rather than removing the file as a creation of its own; its COMMIT keeps the replacement.</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_covered_open_output_meets_a_file_made_between_the_probe_and_the_handle(bool commit)
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            var medium = MakingTheFile(f, "B1", "open f.dat");
+            var a = new Unit(f, covered: true, medium);
+            Ok(a.Open(FileOpenMode.Output));
+            Ok(a.Write("A1"));
+            Ok(a.Close());
+            if (commit) OkCommit(a); else OkRollback(a);
+            a.Reg.CloseAll();
+            Assert.Equal(commit ? "A1" : "B1", File.ReadAllText(f, Encoding.Latin1));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>A path that is made again after every attempt's probe answers the last attempt's '30' (§9.1.13.6 item 1): at most
+    /// <c>FileConnector.MaxFileMadeRetries</c> retries (three attempts), the journals each withdrew leaving no <c>txn-</c> file, and the other run unit's
+    /// file untouched.</summary>
+    [Fact]
+    public void An_open_whose_creation_is_met_by_a_new_file_at_every_attempt_answers_30_and_leaves_nothing()
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        try
+        {
+            int attempts = 0;
+            var medium = new FaultHostMedium
+            {
+                // Each attempt's entry step finds the path empty again (the other run unit removed its file), so its probe answers
+                // Absent, and the other run unit makes the file again before the creating handle opens.
+                OnEntryMutex = () => File.Delete(f),
+                BeforeOperation = op =>
+                {
+                    if (op != "open f.dat") return;
+                    attempts++;
+                    File.WriteAllText(f, "B1", Encoding.Latin1);
+                },
+            };
+            var a = new Unit(f, covered: true, medium, optional: true);
+            Assert.Equal("30", a.Open(FileOpenMode.Extend));
+            Assert.Equal(3, attempts);
+            Assert.Equal("B1", File.ReadAllText(f, Encoding.Latin1));
+            a.Reg.CloseAll();
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>⛔ A DIRECTORY AT THE PATH IS NOT A FILE MADE MEANWHILE (kb/Work PB3635, review finding R2-1): the presence probe answers
+    /// Absent for a directory, the creating handle (<see cref="FileMode.CreateNew"/>) is refused with an access error on Windows and
+    /// with <c>EEXIST</c> on Unix, and both hosts answer §14.9.27.4 GR3's '37' on the one attempt, covered or not, leaving no journal.</summary>
+    [Theory]
+    [InlineData(FileOpenMode.Output, false)]
+    [InlineData(FileOpenMode.Output, true)]
+    [InlineData(FileOpenMode.IO, false)]
+    [InlineData(FileOpenMode.IO, true)]
+    [InlineData(FileOpenMode.Extend, false)]
+    [InlineData(FileOpenMode.Extend, true)]
+    public void An_open_creating_the_file_meets_a_directory_at_the_path_37_at_once(FileOpenMode mode, bool covered)
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        Directory.CreateDirectory(f);
+        try
+        {
+            int attempts = 0;
+            var medium = new FaultHostMedium { BeforeOperation = op => { if (op == "open f.dat") attempts++; } };
+            var a = new Unit(f, covered, medium, optional: true);
+            Assert.Equal("37", a.Open(mode));
+            Assert.True(attempts <= 1, $"the OPEN was made again: {attempts} creating handles");
+            a.Reg.CloseAll();
+            Assert.True(Directory.Exists(f));
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
     // ── The connector's own state, the lock test and the run unit's end ────────────────────────────────────────
 
     [Fact]
