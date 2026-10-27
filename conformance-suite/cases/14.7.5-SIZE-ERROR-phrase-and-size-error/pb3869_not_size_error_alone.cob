@@ -43,6 +43,11 @@
       *> REM: 150 / 4 = 37.5, quotient 37 (PIC 99) and remainder
       *> 150 - 37 * 4 = 2 (14.9.12.4 rules 6 and 7): both fit, F=N.
       *> EDIT: 123 into PIC Z9 keeps its low-order digits 23, F=-.
+      *> CORR: ADD CORRESPONDING is one implied ADD per pair (14.9.2.4
+      *> rule 5): P is 9 + 1 = 10, past PIC 9 (P=0), Q is 5 + 1 = 6 as it
+      *> would have been alone, and the statement met a size error: F=-.
+      *> SUBS: ADD 1 TO TE(I) with TE(2) = 9 identifies the receiver at
+      *> run time and stores 0 there: TE is 909, F=-.
       *> BOTH: ON and NOT ON SIZE ERROR together are the two-phase
       *> statement: 9 + 1 leaves X=9 and runs the ON phrase, F=S.
       *>
@@ -61,6 +66,15 @@
        01 REM   PIC 9 VALUE 0.
        01 E     PIC Z9.
        01 F     PIC X VALUE "-".
+       01 G1.
+          05 P  PIC 9 VALUE 9.
+          05 Q2 PIC 99 VALUE 5.
+       01 G2.
+          05 P  PIC 9 VALUE 1.
+          05 Q2 PIC 99 VALUE 1.
+       01 TAB.
+          05 TE PIC 9 OCCURS 3 TIMES VALUE 9.
+       01 I     PIC 9 VALUE 2.
        PROCEDURE DIVISION.
            MOVE "-" TO F.
            ADD 1 TO X NOT ON SIZE ERROR MOVE "N" TO F END-ADD.
@@ -99,6 +113,14 @@
            COMPUTE E = 123 NOT ON SIZE ERROR MOVE "N" TO F
            END-COMPUTE.
            DISPLAY "EDIT E=" E " F=" F.
+           MOVE "-" TO F.
+           ADD CORRESPONDING G2 TO G1
+               NOT ON SIZE ERROR MOVE "N" TO F
+           END-ADD.
+           DISPLAY "CORR P=" P OF G1 " Q=" Q2 OF G1 " F=" F.
+           MOVE "-" TO F.
+           ADD 1 TO TE (I) NOT ON SIZE ERROR MOVE "N" TO F END-ADD.
+           DISPLAY "SUBS TE=" TE (1) TE (2) TE (3) " F=" F.
            MOVE 9 TO X.
            MOVE "-" TO F.
            ADD 1 TO X ON SIZE ERROR MOVE "S" TO F
