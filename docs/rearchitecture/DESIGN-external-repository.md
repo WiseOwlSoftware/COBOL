@@ -1054,11 +1054,16 @@ the group.
        a group prototype's origin is the group (so a group name is still classified once), a decoded prototype's is its
        record and `ReferencedPrototypes` index. A decoded `P` is a member of its own, placed by `PrototypeSignatures.Same`
        over its DECODED signature, never by the group's `P`.
-    2. *Decoded members join the refinement, not a one-shot lookup.* `Classify` gains `Admit(decodedPointers)`: it
-       presents every decoded prototype those pointers reach (the whole `ReferencedPrototypes` graph, so a recursive
-       record is classified as the coarsest stable partition, PB3101) and runs the same refinement until a round splits
-       nothing, re-stamping every pointer it holds. Adding members never splits an existing group block (a block splits
-       only by its members' own signatures, and a group member's does not change), so no group pointer's identity moves.
+    2. *Decoded members join the refinement, not a one-shot lookup.* `Classify` gains `Admit(decodedPointers)`: it adds
+       every decoded prototype those pointers reach (the whole `ReferencedPrototypes` graph, so a recursive record is
+       classified as the coarsest stable partition, PB3101) and then RE-RUNS the refinement over ALL members of the
+       namespace from ONE starting block, group members first in their original order, until a round splits nothing,
+       re-stamping every pointer it holds. It never appends the new members to the blocks the group's run left: today's
+       `Present` only adds to the first block and `Refine` only splits, so an incremental admit would give a decoded `B`
+       whose signature is `Same` as the group's `B` a block of its own (`TO B #2`), two types for one signature, against
+       §13.18.60.4 GR25 (kb/Work PB1086 review R2-1). Because the re-run starts from one block with the group members
+       first, each block a group member founds keeps its founder and so its spelling, and no group pointer's identity
+       moves; a decoded member lands in the block of every member whose signature is `Same` as its own.
     3. *Identities stay unique per block.* A block founded by a decoded member is spelled `TO <name>` only when no other
        block already has that spelling, else `TO <name> #<k>` (`k` its founding order), so two different signatures
        never share an identity string and `PrototypeSignatures.SameType` (string equality of identities) stays "same
