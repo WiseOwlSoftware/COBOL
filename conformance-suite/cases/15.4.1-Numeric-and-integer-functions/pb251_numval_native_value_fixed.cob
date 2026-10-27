@@ -23,7 +23,7 @@
       *> Int128 carrier, and 15.67.3 r3 permits i = 31, so the only ws safe for EVERY conforming argument is 7 -
       *> while NUMVAL("0.123456789") needs 9. The carrier is the fix; a bigger floor is not.
       *>
-      *> RAW/RAWC/CV: the receiver-less DISPLAY channel - the item-92 text form of the value at its own scale.
+      *> RAW/RAWC/CV: the receiver-less DISPLAY channel - the exact value in the temporary item it describes (item 92, kb/Work PB3514).
       *> OPD:   THE LEG A RECEIVER DOES NOT PROTECT. The receiver bounds the STATEMENT result, not an OPERAND's
       *>        precision: r1 fixes NUMVAL("0.1234567") at 1234567 x 10**-7, so x 10**7 is 1234567 exactly in a
       *>        PIC 9(9) receiver whose own scale is 0.

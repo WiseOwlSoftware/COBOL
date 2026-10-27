@@ -1,12 +1,12 @@
 A-S=[EC-OVERFLOW-STRING             ]
 A-L=[ ]
-A-LL=1
+A-LL=000000001
 A-N=[ ]
-A-NL=1
+A-NL=000000001
 A-T=[                                                               ]
 B-S=[EC-USER-NOLOC                  ]
 B-L=[ ]
-B-LL=1
+B-LL=000000001
 B-N=[ ]
-B-NL=1
+B-NL=000000001
 B-T=[                                                               ]

@@ -54,6 +54,17 @@ public sealed class NumericDisplayFormDriftTests
     }
 
     [Fact]
+    public void ANumericFunctionsDeviceForm_IsAskedForByAsDeviceString_AndNowhereElse()
+    {
+        // kb/Work PB3514: DISPLAY writes a numeric function's returned value by the description of its temporary
+        // (FunctionDeviceText); MOVE, STRING and the comparisons keep DOC-A.1-92's literal form (AsString), so the form is
+        // reached from the one entry the option is read through and from no other.
+        Assert.Equal(["OperandText.cs"], Readers(@"\bFunctionDeviceText\.Of\("));
+        Assert.Equal(["RuntimeApi.cs"], Readers(@"nameof\(CobolNum\.DeviceFunctionText\)"));
+        Assert.Equal(["RuntimeApi.cs"], Readers(@"nameof\(FunctionValueField\)"));
+    }
+
+    [Fact]
     public void TheAcceptReader_IsAskedForFromTheAcceptEmitterAndNamedFromOneFacadeMethod()
     {
         // ACCEPT's decimal reader is spelled in the façade and asked for by the ACCEPT emitter's one numeric arm, the arm that

@@ -250,7 +250,10 @@ public sealed class SizeErrorDispositionTests
 
     /// <summary>The native carrier's receiverless-lane raise (§8.8.1 alignment past the Int128 escape boundary —
     /// <c>CobolNum.RescaleEscape</c>, kb/Work PB69's "stays loud") is the same condition and takes the same
-    /// disposition: a subscript expression whose alignment overflows terminates loudly, not with a stack trace.</summary>
+    /// disposition: a subscript expression whose alignment overflows terminates loudly, not with a stack trace.
+    /// The statement that reaches the lane is a numeric CONDITION: DISPLAY of a selecting function no longer aligns its
+    /// arguments - it shows the selected argument's own item (kb/Work PB3514), so <c>DISPLAY FUNCTION MAX(BIG F)</c> prints
+    /// BIG whole where it used to terminate for a value that is perfectly representable.</summary>
     [Fact]
     public void NativeReceiverlessOverflow_TerminatesLoudly()
     {
@@ -266,7 +269,7 @@ public sealed class SizeErrorDispositionTests
                    PROCEDURE DIVISION.
                    MAIN-P.
                        DISPLAY "BEFORE".
-                       DISPLAY FUNCTION MAX(BIG F).
+                       IF FUNCTION MAX(BIG F) > 0 DISPLAY "POSITIVE" END-IF.
                        DISPLAY "AFTER".
                        STOP RUN.
             """;

@@ -202,6 +202,12 @@ public sealed record BoundNumLiteral(string Text, BinaryFloatCarrier? Carrier = 
     /// is required "even though a particular reference … might yield an integer value" (kb/Work PB1421).</summary>
     public IntrinsicType? FunctionType { get; init; }
 
+    /// <summary>The name of the folded function (<c>LENGTH</c>, <c>HIGHEST-ALGEBRAIC</c> …), set where the fold is made
+    /// (<c>IntrinsicBinder.Folded</c>); null for a literal the source wrote. DISPLAY's device form asks it: a fold GnuCOBOL
+    /// makes too (<see cref="FunctionDeviceForm.Literal"/>) shows as the literal it is, and any other folded value shows as the
+    /// returned value of the call it replaced (kb/Work PB3514).</summary>
+    public string? FoldedFunction { get; init; }
+
     /// <summary>The decimal separator the source wrote the literal with — see
     /// <see cref="BoundNumericLiteral.DecimalSeparator"/>, which <c>IntrinsicBinder.OperandOf</c> carries it to
     /// (kb/Work PB1643).</summary>
@@ -501,6 +507,9 @@ public sealed record BoundNumericLiteral(string Text) : BoundOperand
 
     /// <summary>The folded function's §15.2 type — see <see cref="BoundNumLiteral.FunctionType"/>.</summary>
     public IntrinsicType? FunctionType { get; init; }
+
+    /// <summary>The folded function's name - see <see cref="BoundNumLiteral.FoldedFunction"/>.</summary>
+    public string? FoldedFunction { get; init; }
 
     /// <summary>The decimal separator the SOURCE wrote this literal with: the comma under DECIMAL-POINT IS COMMA
     /// (ISO §12.3.7.4 GR14 a): "The character written in numeric literals to represent the decimal separator shall
