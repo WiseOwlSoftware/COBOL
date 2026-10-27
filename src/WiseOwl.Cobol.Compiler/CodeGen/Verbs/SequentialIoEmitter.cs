@@ -80,9 +80,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // true when an applicable procedure ran and completed normally (§14.9.24.4 GR7 a), GR12 a)/b)). A
             // not-normal completion never reaches the declaration: the notNormalLabel jump and the RESUME transfer
             // above it have already left.
-            void Completed(string expr, string? into = null)
+            void Completed(string expr)
             {
-                if ((into ?? useCompletedVar) is { } name) w.Line($"bool {name} = {expr};   // an applicable USE procedure ran and completed normally");
+                if (useCompletedVar is { } name) w.Line($"bool {name} = {expr};   // an applicable USE procedure ran and completed normally");
             }
             // §14.6.13.1.2 #1: a declarative that executes a RESUME does not complete normally. The ≥ 0 arm above
             // each of these already leaves the statement (a transfer of control), so the arm this adds is the
@@ -118,35 +118,18 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // GR20c) — no declarative runs, and the plain path has no EC to raise, so the hook is a no-op (item 1
             // processes the condition, so item 8 is never reached: Item8Applies).
             if (onExceptionHandled) { Completed("false"); return default; }
-            if (ecState.Active)
+            // The plain format 1 hook: the question, the selection, item 8's ROLLBACK and the RESUME transfer, written once
+            // (EmitPlainIoCheck) for this file and for another element's (EmitForeignFileIoCheck). The termination below
+            // turns on whether a procedure ran, so the answer is captured when the file has no FILE STATUS clause.
+            var plain = EmitPlainIoCheck(FileKeyExpr(file), Item8Question(), atEndHandled, invalidKeyHandled, useCompletedVar,
+                needRan: file.FileStatusName is null);
+            if (plain.EcId is { } plainId)
             {
-                // The EC-model __IoCheck returns the declarative's RESUME action — consumed exactly like the
-                // __IoCheckEc arm (the old void call discarded it, swallowing RESUME AT — kb/Work PB141).
-                string? item8 = Item8Question();
-                int id = ctx.Names.NextEc();
-                w.Line($"int __ior{id} = __IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
-                EmitItem8Rollback(item8);
-                w.Line(dispatch.ResumeTransfer($"__ior{id}"));
-                NotNormal(id);
-                Completed($"__ior{id} == DispatchResult.Normal");
-                return new UseHookResult(notNormalLabel is not null, null, Uncovered($"__ior{id} == DispatchResult.NoHandler"));
+                NotNormal(plainId);
+                Completed($"__ior{plainId} == DispatchResult.Normal");
+                return new UseHookResult(notNormalLabel is not null, null, Uncovered($"__ior{plainId} == DispatchResult.NoHandler"));
             }
-            // The non-EC form cannot report a resume action, and it does not need to: RESUME is a §14.9.33 statement
-            // of the EC model, so a group without it has no declarative that can end in one. It answers only whether
-            // a procedure ran (and, returning, completed normally) — discarded except by the SORT/MERGE transfers.
-            string call = $"__IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")})";
-            string? plainItem8 = Item8Question();
-            string? ranVar = useCompletedVar;
-            if (ranVar is null && file.FileStatusName is null)
-            {
-                // The termination below turns on whether a procedure ran, so the answer is captured rather than discarded.
-                ranVar = $"__ran{ctx.Names.NextEc()}";
-                Completed(call, ranVar);
-            }
-            else if (useCompletedVar is not null) Completed(call);
-            else w.Line($"{call};");
-            EmitItem8Rollback(plainItem8);
-            return new UseHookResult(false, null, Uncovered(ranVar is null ? null : $"!{ranVar}"));
+            return new UseHookResult(false, null, Uncovered(plain.RanVar is null ? null : $"!{plain.RanVar}"));
 
             // ⛔ A FATAL I-O STATUS WITH NEITHER A FILE STATUS CLAUSE NOR AN APPLICABLE USE PROCEDURE TERMINATES THE RUN
             // UNIT (kb/Work PB322 E, Annex A.1 item 103, docs/CONFORMANCE.md DOC-A.1-103). §9.1.13.1 leaves the action
@@ -172,6 +155,42 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             }
         }
     }
+
+    /// <summary>⛔ THE PLAIN FORMAT 1 HOOK, WRITTEN ONCE (kb/Work PB3554): the selection of a statement's USE procedure by the
+    /// file's I-O status where no EC-I-O name is enabled for it at the statement — the <c>__IoCheck</c> call (the file-name
+    /// tier, the open-mode tier and the GR4 b) outward GLOBAL walk of §14.9.49.4, whichever file it is asked about), item
+    /// 8's ROLLBACK after it (<paramref name="item8"/>, <see cref="EmitItem8Question"/>'s bool or null: after the
+    /// declarative, before the transfer) and the RESUME transfer. Used by <see cref="EmitUseHook"/> for the statement's own
+    /// file and by <see cref="EmitForeignFileIoCheck"/> for another element's, so the two cannot drift.
+    /// <para>The EC-model <c>__IoCheck</c> returns the declarative's RESUME action, consumed exactly like the
+    /// <c>__IoCheckEc</c> arm's (the old void call discarded it, swallowing RESUME AT — kb/Work PB141); the id of its
+    /// <c>__ior</c> variable is the result's <see cref="PlainIoCheck.EcId"/>. The non-EC form cannot report a resume
+    /// action and does not need to: RESUME is a §14.9.33 statement of the EC model, so a group without it has no declarative
+    /// that can end in one. It answers only whether a procedure ran (and, returning, completed normally): captured into
+    /// <paramref name="ranVar"/> (else a generated <see cref="PlainIoCheck.RanVar"/> when <paramref name="needRan"/>), and
+    /// discarded when neither is wanted.</para></summary>
+    private PlainIoCheck EmitPlainIoCheck(string fileKey, string? item8, bool atEnd, bool invalidKey, string? ranVar, bool needRan)
+    {
+        var w = ctx.Writer;
+        string call = $"__IoCheck({fileKey}, {(atEnd ? "true" : "false")}, {(invalidKey ? "true" : "false")})";
+        if (ecState.Active)
+        {
+            int id = ctx.Names.NextEc();
+            w.Line($"int __ior{id} = {call};");
+            EmitItem8Rollback(item8);
+            w.Line(dispatch.ResumeTransfer($"__ior{id}"));
+            return new PlainIoCheck(id, null);
+        }
+        if (ranVar is null && needRan) ranVar = $"__ran{ctx.Names.NextEc()}";
+        if (ranVar is not null) w.Line($"bool {ranVar} = {call};   // an applicable USE procedure ran and completed normally");
+        else w.Line($"{call};");
+        EmitItem8Rollback(item8);
+        return new PlainIoCheck(null, ranVar);
+    }
+
+    /// <summary>What <see cref="EmitPlainIoCheck"/> left behind: the <c>__ior</c> id under the EC model, else the bool that
+    /// a procedure ran (null when not wanted).</summary>
+    private readonly record struct PlainIoCheck(int? EcId, string? RanVar);
 
     /// <summary>The EC-I-O raise of one statement on one file: the <c>__IoCheckEc</c> call under the statement's mask for
     /// the file and the transfer a declarative's RESUME asks for. Returns the call's id (<c>__ior</c>id). The literals
@@ -249,21 +268,47 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// <summary>⛔ A FATAL I-O STATUS ON A FILE THIS ELEMENT DOES NOT DESCRIBE (kb/Work PB3338, review finding w1154a
     /// R1-3): the file of another element's APPLY COMMIT clause whose COMMIT or ROLLBACK the medium refused, named at run
     /// time by <paramref name="fileKeyExpr"/>. Its EC-I-O condition is raised through <c>__IoCheckEc</c> when checking for
-    /// it is enabled at the statement by a directive that names no file (<see cref="EcEmitter.IoMaskFor"/> of no file;
-    /// §7.3.25.4 GR6/GR8 scope a FILE phrase to the files it names, all of this element). Item 8's ROLLBACK is emitted in
-    /// both arms (<see cref="Item8Applies"/>). Returns the C# test that no declarative qualified, or null when checking is
-    /// not enabled.</summary>
-    public string? EmitForeignFileIoCheck(string fileKeyExpr)
+    /// it is enabled at the statement for it: by a directive that names no file (<see cref="EcEmitter.IoMaskFor"/> of no
+    /// file) or, when this element can name the file (<paramref name="named"/>, a container's GLOBAL file), by the
+    /// directives that name it too (<see cref="EcEmitter.IoMaskFor"/> of the file; §7.3.25.4 GR6/GR8: "if file-name-1 is
+    /// specified, checking is enabled only for exception conditions associated with that file-name"). Item 8's ROLLBACK
+    /// is emitted in both arms (<see cref="Item8Applies"/>).
+    /// <para>⛔ THIS ELEMENT'S FORMAT 1 DECLARATIVES APPLY TO THE FOREIGN FILE WITH OR WITHOUT CHECKING (kb/Work PB3554).
+    /// Format 1 USE selection follows the I-O status, never EC checking (§14.6.13.1.1: "if checking for EC-I-O exception
+    /// conditions is not enabled, there is no link between EC-I-O exception conditions and I-O status values"; its NOTE 1,
+    /// "I-O status indicators are always enabled and cannot be turned off"), and the candidates are the declaratives of the
+    /// source element that contains the statement and then its containers' GLOBAL ones (§14.9.49.4 GR4 a), b)), among which
+    /// GR6 a) runs a file-name USE when its condition occurs and GR6 b)-e) an open-mode USE for "any file open in the I-O
+    /// mode" (and the other modes), a phrase that names no element. So with checking not enabled the plain format 1 hook
+    /// (<see cref="EmitPlainIoCheck"/>, the one <see cref="EmitUseHook"/> writes for an own file) selects it, the
+    /// file-name tier when this element names the file (a containing element's GLOBAL file) and the open-mode tier by the
+    /// file's open mode; only a unit with no format 1 declarative has nothing to select.</para>
+    /// Returns the C# test that no declarative qualified (the run unit then ends under DOC-A.1-103 unless an element gives
+    /// the file a FILE STATUS item), or null when nothing could qualify.</summary>
+    public string? EmitForeignFileIoCheck(string fileKeyExpr, FileModel? named = null)
     {
-        if (ec.IoMaskFor(null) is not (not 0 and var mask))
+        if (ec.IoMaskFor(named) is not (not 0 and var mask))
         {
-            EmitItem8Rollback(EmitItem8Question(fileKeyExpr, "false"));   // no declarative: question and ROLLBACK adjacent
-            return null;
+            string item8 = EmitItem8Question(fileKeyExpr, "false");
+            if (!dispatch.UseDecls)
+            {
+                EmitItem8Rollback(item8);   // no declarative: question and ROLLBACK adjacent
+                return null;
+            }
+            var plain = EmitPlainIoCheck(fileKeyExpr, item8, atEnd: false, invalidKey: false, ranVar: null, needRan: true);
+            return plain.EcId is { } plainId ? $"__ior{plainId} == DispatchResult.NoHandler" : $"!{plain.RanVar}";
         }
-        int id = EmitIoCheckEc(fileKeyExpr, null, mask, atEnd: false, invalidKey: false, onException: false,
+        int id = EmitIoCheckEc(fileKeyExpr, named, mask, atEnd: false, invalidKey: false, onException: false,
             verbDisposes: false, successArm: false);
         return $"__ior{id} == DispatchResult.NoHandler";
     }
+
+    /// <summary>Does a directive that NAMES <paramref name="file"/> (a container's GLOBAL file this element can name) make
+    /// the checking of its refusal differ from the checking of an unnamed foreign file — a different EC-I-O mask or
+    /// WITH LOCATION mask at the statement (§7.3.25.4 GR6/GR8)? Only then does the refusal of that file need its own arm
+    /// (<see cref="EmitForeignFileIoCheck"/> with <c>named</c>); otherwise the unnamed foreign arm is byte-identical.</summary>
+    public bool ForeignFileCheckedApart(FileModel file) =>
+        ec.IoMaskFor(file) != ec.IoMaskFor(null) || ec.IoLocMaskFor(file) != ec.IoLocMaskFor(null);
 
     /// <summary>⛔ THE ONE RENDERING OF DOC-A.1-103's ABNORMAL TERMINATION (kb/Work PB322 E, PB2700): a FATAL I-O status
     /// (§9.1.13.1) on a file whose unsuccessful statement nothing covered ends the run unit through
