@@ -68,6 +68,10 @@ WiseOwl.Cobol.Runtime.FigurativeSender.BooleanCharacters = 3 -> WiseOwl.Cobol.Ru
 WiseOwl.Cobol.Runtime.FigurativeSender.Other = 0 -> WiseOwl.Cobol.Runtime.FigurativeSender
 WiseOwl.Cobol.Runtime.FigurativeSender.Space = 2 -> WiseOwl.Cobol.Runtime.FigurativeSender
 WiseOwl.Cobol.Runtime.FigurativeSender.Zero = 1 -> WiseOwl.Cobol.Runtime.FigurativeSender
+WiseOwl.Cobol.Runtime.FunctionValueField
+WiseOwl.Cobol.Runtime.FunctionValueField.Abs() -> WiseOwl.Cobol.Runtime.FunctionValueField
+WiseOwl.Cobol.Runtime.FunctionValueField.DeviceText(bool commaMode) -> string!
+WiseOwl.Cobol.Runtime.FunctionValueField.FunctionValueField() -> void
 WiseOwl.Cobol.Runtime.HostLanding
 WiseOwl.Cobol.Runtime.IO.FileConnector.StartPositioned() -> string!
 WiseOwl.Cobol.Runtime.IO.FileConnector.Unsuccessful(string! status) -> string!
@@ -191,6 +195,8 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.IntegerPartU(System.UInt128 v, int 
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.SignOfU(System.UInt128 v) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.SumScaled(params System.Int128[]! xs) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolNames.HasEditionSpelling(int dialectLevel) -> bool
+static WiseOwl.Cobol.Runtime.CobolNum.DeviceFunctionText(System.Int128 unscaled, int scale, bool commaMode) -> string!
+static WiseOwl.Cobol.Runtime.CobolNum.DeviceFunctionText(WiseOwl.Cobol.Runtime.CobolDec value, bool commaMode) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.DisplayDecimal(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile receiver, bool commaMode) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.DisplayDecimal(string! image, in WiseOwl.Cobol.Runtime.NumProfile receiver, bool commaMode) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.DisplayDecimalU(System.UInt128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile receiver, bool commaMode) -> string!
@@ -221,6 +227,15 @@ static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.get 
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowRollbackChecking.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.EndsActivation(ref bool ended) -> bool
 static WiseOwl.Cobol.Runtime.ExternalizedNames.FormInEdition(string? value, int dialectLevel) -> string!
+static WiseOwl.Cobol.Runtime.FunctionValueField.Max(params WiseOwl.Cobol.Runtime.FunctionValueField[]! arguments) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.Median(params WiseOwl.Cobol.Runtime.FunctionValueField[]! arguments) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.Min(params WiseOwl.Cobol.Runtime.FunctionValueField[]! arguments) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfDigits(WiseOwl.Cobol.Runtime.CobolDec value, int digits) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloat(double value) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloatItem(WiseOwl.Cobol.Runtime.CobolDec exactValue, string! image) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfItem(WiseOwl.Cobol.Runtime.CobolDec value, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfLiteral(WiseOwl.Cobol.Runtime.CobolDec value, int digits, int scale, bool signed) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfValue(WiseOwl.Cobol.Runtime.CobolDec value) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.HostLanding.Dec(System.Int128 unscaled, int scale) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.HostLanding.Decimal(System.Int128 unscaled, int scale) -> decimal
 static WiseOwl.Cobol.Runtime.HostLanding.Integer(System.Int128 unscaled, int scale) -> System.Int128

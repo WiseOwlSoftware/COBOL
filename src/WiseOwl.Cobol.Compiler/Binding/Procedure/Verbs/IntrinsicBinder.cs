@@ -229,7 +229,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// Required, so a new position states which it is.</summary>
     public static BoundOperand OperandOf(BoundExpr e, bool functionValue) => e switch
     {
-        BoundNumLiteral l => new BoundNumericLiteral(l.Text) { FunctionValue = l.FunctionValue, FunctionType = l.FunctionType, DecimalSeparator = l.DecimalSeparator },   // a folded function (LENGTH …) keeps saying so, and its type
+        BoundNumLiteral l => new BoundNumericLiteral(l.Text) { FunctionValue = l.FunctionValue, FunctionType = l.FunctionType, FoldedFunction = l.FoldedFunction, DecimalSeparator = l.DecimalSeparator },   // a folded function (LENGTH …) keeps saying so, and its type
         // A user-function result temp (M2-UDF-1). ⚠ Nothing here can tell it from a numeric data item whose grouping
         // parentheses the expression binder dropped: `(C)` binds to C's BoundNumRef. A position whose operand is an
         // arithmetic expression by SHAPE wraps the bound expression itself (ConditionBinder.CompoundOperand, kb/Work
@@ -2700,7 +2700,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// classifier (<see cref="IntrinsicResultType.IsIntegerOperand(BoundOperand)"/>) answers from the type
     /// (kb/Work PB1421: `GO TO … DEPENDING ON FUNCTION HIGHEST-ALGEBRAIC(E)`, E PIC ZZ9, compiled).</summary>
     private static BoundExpr Folded(IntrinsicSig sig, List<BoundOperand> args, BoundExpr fold) =>
-        fold is BoundNumLiteral l ? l with { FunctionType = IntrinsicResultType.Resolve(sig, args) } : fold;
+        fold is BoundNumLiteral l ? l with { FunctionType = IntrinsicResultType.Resolve(sig, args), FoldedFunction = sig.Name } : fold;
 
     private BoundExpr BindAlgebraicFold(IntrinsicSig sig, List<BoundOperand> args)
     {
