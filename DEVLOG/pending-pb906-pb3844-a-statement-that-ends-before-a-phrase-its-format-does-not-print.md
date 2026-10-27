@@ -67,4 +67,7 @@ kind-naming hint needs a new code, and the codes returned unused are the pool's 
 (environment), before the gate. `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's
 whole-population run: Conformance 11,669 · Unit 996 ... — Conformance 7,287/18,956 · Unit 37,460/38,456 · Characterization
 36/36 cases ran (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN · slot 1 of 4 ... run
-000001-20261027T001256Z ===` at 453afb1ba.
+000001-20261027T001256Z ===` at 453afb1ba. After review round 1 the gate again: `=== BUILD-LOCAL GATE: LEG 1 ONLY
+(batched gating, PB2515): GREEN — ... Conformance 6,123/18,963 · Unit 37,213/38,456 · Characterization 36/36 ... Linux half
+(WSL clone of HEAD) GREEN · slot 2 of 4 ... ===`, run 000001-20261027T004146Z at 4e50c3dae (PBHT44-51 Passed in
+leg-1-Conformance.trx).
