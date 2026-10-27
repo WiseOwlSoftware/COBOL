@@ -49,9 +49,14 @@ public sealed class WindowsConsoleDeviceTests
     private const string DisplayProgram = """
         IDENTIFICATION DIVISION.
         PROGRAM-ID. CONDISP.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+            SYSERR IS ERROR-DEVICE.
         PROCEDURE DIVISION.
         P1.
             DISPLAY N"Grüße €".
+            DISPLAY N"Fehler ß" UPON ERROR-DEVICE.
             STOP RUN.
         """;
 
@@ -129,11 +134,13 @@ public sealed class WindowsConsoleDeviceTests
 
     // DOC-A.1-59: the standard display device carries UTF-8 on a byte stream and the repertoire through the console's
     // wide-character interface on a console, and no case changes the console's code pages: stdout and stderr on the
-    // console with stdin redirected (a), stdout redirected to a file with stderr still on the console (b), and all three
-    // on the console (c).
+    // console with stdin redirected (a), stdout redirected to a file with stderr still on the console (b), stderr
+    // redirected with stdout still on the console (c: the other half of the per-handle rule), and all three on the
+    // console (d).
     [Theory]
     [InlineData("console")]
     [InlineData("stdout-redirected")]
+    [InlineData("stderr-redirected")]
     [InlineData("stdin-console")]
     public void A_program_leaves_the_console_code_pages_as_it_found_them(string arm)
     {
@@ -143,30 +150,40 @@ public sealed class WindowsConsoleDeviceTests
         {
             NonCobolElement.CompileCobol(dir, "CONDISP", DisplayProgram);
             NonCobolElement.CompileCSharp(dir, "CPPROBE", CodePageProbe, "CONDISP");
-            string captured = Path.Combine(dir, "stdout.txt");
+            string captured = Path.Combine(dir, "captured.txt");
             string run = Dll(dir, "CONDISP");
             string body = arm switch
             {
                 "console" => run + " <nul",
                 "stdout-redirected" => run + $" <nul >\"{captured}\"",
+                "stderr-redirected" => run + $" <nul 2>\"{captured}\"",
                 _ => run,
             };
 
             var (text, probes) = RunOnConsole(dir, body, "");
 
             Assert.Equal((437, 437), probes[1]);
-            if (arm == "stdout-redirected")
+            // The stream that is redirected carries UTF-8 whatever the console's code page is ("Grüße €" is the bytes
+            // 47 72 C3 BC C3 9F 65 20 E2 82 AC; "Fehler ß" is 46 65 68 6C 65 72 20 C3 9F), decoded strictly so an
+            // invalid sequence fails here; the stream that is still the console shows its characters as typed, NOT
+            // narrowed to code page 437.
+            (string onFile, string onFileHex, string onConsole) = arm switch
             {
-                // A redirected stream carries UTF-8 whatever the console's code page is: "Grüße €" is the bytes
-                // 47 72 C3 BC C3 9F 65 20 E2 82 AC (decoded strictly, so an invalid sequence fails here).
+                "stdout-redirected" => ("Grüße €", "4772C3BCC39F6520E282AC", "Fehler ß"),
+                "stderr-redirected" => ("Fehler ß", "4665686C657220C39F", "Grüße €"),
+                _ => ("", "", ""),
+            };
+            if (onFile.Length > 0)
+            {
                 byte[] bytes = File.ReadAllBytes(captured);
-                Assert.Equal("Grüße €", new UTF8Encoding(false, throwOnInvalidBytes: true).GetString(bytes).TrimEnd('\r', '\n'));
-                Assert.Equal("4772C3BCC39F6520E282AC", Convert.ToHexString(bytes.Where(b => b is not (0x0D or 0x0A)).ToArray()));
+                Assert.Equal(onFile, new UTF8Encoding(false, throwOnInvalidBytes: true).GetString(bytes).TrimEnd('\r', '\n'));
+                Assert.Equal(onFileHex, Convert.ToHexString(bytes.Where(b => b is not (0x0D or 0x0A)).ToArray()));
+                Assert.Contains(onConsole, text);
             }
             else
             {
-                // On the console the characters reach the screen as typed: they are NOT narrowed to code page 437.
                 Assert.Contains("Grüße €", text);
+                Assert.Contains("Fehler ß", text);
             }
         }
         finally { ScratchDirectory.Remove(dir); }
