@@ -62,7 +62,7 @@
       *> element of the FUNCTION RANDOM sequence (15.75.3 rule 5: each
       *> reference without an argument returns the next number). Seeded
       *> the same, the NOT-only statement and the phraseless one store
-      *> the same R and leave the same next element: SAME=Y.
+      *> the same R and leave the same next element: OKAY=Y.
       *>
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3869NOTONLY.
@@ -92,7 +92,7 @@
        01 RS    PIC 99 VALUE 0.
        01 RD1   PIC 9V9(8) VALUE 0.
        01 RD2   PIC 9V9(8) VALUE 0.
-       01 SAME  PIC X VALUE "N".
+       01 OKAY  PIC X VALUE "N".
        PROCEDURE DIVISION.
            MOVE "-" TO F.
            ADD 1 TO X NOT ON SIZE ERROR MOVE "N" TO F END-ADD.
@@ -158,7 +158,7 @@
            COMPUTE RD2 = FUNCTION RANDOM (7).
            COMPUTE RS = FUNCTION RANDOM * 1000.
            COMPUTE RD2 = FUNCTION RANDOM.
-           IF RR = RS AND RD1 = RD2 MOVE "Y" TO SAME.
-           DISPLAY "RAND SAME=" SAME.
+           IF RR = RS AND RD1 = RD2 MOVE "Y" TO OKAY.
+           DISPLAY "RAND OKAY=" OKAY.
            STOP RUN.
        END PROGRAM PB3869NOTONLY.
