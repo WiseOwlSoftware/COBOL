@@ -71,3 +71,10 @@ places; goldens L16 (two-record FD, `MA` reads `A1Z1`), L17 (SAME RECORD AREA pe
 `14.9.36-ROLLBACK/pb3697_rollback_restores_boolean_item_verbatim` (2023: a display and a national boolean item restored,
 their REDEFINES views read `ABCD` and `ABCDEFGH`; the below-2023 negative is `pb3338_apply_commit_below_2023`). The drift test
 requires every `EmitImageInto` call to spell `storesIntoOwnItem` and the verbatim store to avoid `StorageCharacters`.
+
+**ABI pin repinned (no bump).** The review finisher's gate was RED in `RuntimeAbiPinDriftTests.TheCallAbi_IsPinnedBesideTheBoundaryLayout`:
+the boundary-layout fixture's boolean formal (`PIC 1(4)`) lands a GROUP sender through `StorageCharacters`, which now converts the
+decoded characters, so the emitted landing lambda reads `CobolBool.FromCharacters(CobolString.Store(__s.Characters, 4))` where it read
+`CobolBool.Store(__s.Characters, 4, justifiedRight: false)`. Diffing the fixture's emitted C# on main and on this branch showed that
+single token difference. The two compute the same landing (fit to 4, a space or a short tail becomes boolean zero either way), so
+nothing a caller and a callee must agree on moved: `python scripts/abi_pin.py repin` (boundary-hash 110D13CC647FE8B3), not a call-ABI bump.
