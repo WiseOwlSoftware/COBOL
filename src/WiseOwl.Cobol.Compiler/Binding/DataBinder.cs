@@ -1751,7 +1751,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>Map the LOCK MODE clause (ISO §12.4.5.9): MANUAL / AUTOMATIC + single/MULTIPLE granularity.</summary>
     private static LockModeInfo MapLockMode(Core.LockModeClauseContext lm) =>
         new(lm.AUTOMATIC() is not null ? LockKind.Automatic : LockKind.Manual,
-            lm.lockOnPhrase()?.MULTIPLE() is not null);
+            lm.lockOnPhrase()?.multipleKeyword() is not null);
 
     /// <summary>A FILE-CONTROL key reference: the base word plus its IN/OF qualifier words in written order
     /// (innermost first, ISO §8.4.2.2). A raw <c>GetText()</c> would glue qualifiers into the lookup key

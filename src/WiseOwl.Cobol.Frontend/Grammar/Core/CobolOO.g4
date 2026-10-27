@@ -127,16 +127,6 @@ methodName
     : cobolWord
     ;
 
-// The word METHOD of the END METHOD marker (§10.7.2) and of EXIT METHOD (removed at 2023 by Annex E.2 item 1; read under --permissive). ISO §8.9 reserves METHOD at
-// 2002/2014 but NOT at 2023 (kb/Work PB2623), so a 2023 program may declare a data item METHOD, and the §8.9
-// reservation gate (ReservationGateRewriter) then retypes EVERY METHOD token of the group to IDENTIFIER —
-// including the keyword of the marker. The keyword position is where the format spells the word, so it accepts
-// the retyped spelling through the ONE word-text predicate (wordAhead, so a >>COBOL-WORDS synonym steers it too).
-methodKeyword
-    : METHOD
-    | {wordAhead("METHOD")}? IDENTIFIER
-    ;
-
 // METHOD-ID. GET|SET PROPERTY prop-name — the explicit property-accessor selector (§10.6 :12810-12814;
 // §11.7 SR6/SR7 shape checks are pass-1, COBOL0842).
 methodPropertySelector
