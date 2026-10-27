@@ -20123,7 +20123,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: unexpected 'MULTIPLE'"
+  "expect": "COBOL0001: missing token before 'MULTIPLE'"
  },
  "pb756-alternate-record-omitted": {
   "refuse-at": [
@@ -23744,6 +23744,43 @@
    "2023"
   ],
   "expect": "COBOL0902"
+ },
+ "pb3846-all-zero-in-expression": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0902"
+ },
+ "pb3846-value-list-all-zero-signed": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0902"
+ },
+ "pb3794-message-reserved-85-2002": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOL0901: 'MESSAGE' is a reserved word"
+ },
+ "pb3794-multiple-reserved-at-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0901: 'MULTIPLE' is a reserved word"
+ },
+ "pb3794-order-reserved-from-2002": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0901: 'ORDER' is a reserved word"
  },
  "pb3760_parenthesized_literal_group_formal_refused": {
   "refuse-at": [

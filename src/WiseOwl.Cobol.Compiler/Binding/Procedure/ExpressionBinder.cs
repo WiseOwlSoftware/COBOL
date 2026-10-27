@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
@@ -365,11 +366,12 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>⛔ THE ONE §8.3.3.6.3 SR1 a) test: "If the literal is restricted to a numeric literal, the only
     /// figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase." The grammar has a distinct
     /// <c>ALL zeroWord</c> alternative, so <c>zeroWord()</c> alone also answers true for <c>ALL ZERO</c>. The ALL
-    /// test is part of the rule (kb/Work PB218), and every numeric-restricted literal position asks it here: the
-    /// arithmetic operand, CALL §14.9.4.3 SR23 and INVOKE §14.9.23.3 SR16 (kb/Work PB1631). ⚠ The ALL half has
-    /// an EDITION edge (kb/Work PB1415, VCR Table 7 row 7.28): at 85 the word ALL before ZERO is redundant, so
-    /// the arithmetic operand routes <c>ALL ZERO</c> through <see cref="FigurativeAssociation.GateAllZeroAsNumeric"/>;
-    /// the CALL and INVOKE positions are COBOL-2002 constructs, where this strict test and the gate agree.</summary>
+    /// test is part of the rule (kb/Work PB218), and the numeric-restricted literal positions of CALL §14.9.4.3 SR23
+    /// and INVOKE §14.9.23.3 SR16 ask it here (kb/Work PB1631). ⚠ The ALL half has an EDITION edge (kb/Work PB1415,
+    /// VCR Table 7 row 7.28): at 85 the word ALL before ZERO is redundant, so the arithmetic operand does not ask this
+    /// strict test — <see cref="ZeroOperand"/> routes <c>ALL ZERO</c> through
+    /// <see cref="FigurativeAssociation.GateAllZeroAsNumeric"/> (kb/Work PB3846); the CALL and INVOKE positions are
+    /// COBOL-2002 constructs, where this strict test and the gate agree.</summary>
     internal static bool IsNumericRestrictedZero(Core.FigurativeConstantContext? fig) =>
         fig?.zeroWord() is not null && fig.ALL() is null;
 
@@ -1169,6 +1171,25 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         NonNumericInNumericContext(zero, zero.GetText(), positionRule: null)
         ?? throw new InvalidOperationException("a sole figurative ZERO right side has no nonnumeric-literal node");
 
+    /// <summary>⛔ THE ONE NUMERIC READING OF THE FIGURATIVE ZERO AS AN ARITHMETIC OPERAND (ISO §8.8.1.1: "the
+    /// figurative constant ZERO (ZEROS, ZEROES)"), for both forms the parse gives it: the figurative-constant node of a
+    /// sole operand (<c>ADD ZERO TO X</c>, <c>COMPUTE X = ALL ZERO</c>, through <see cref="NonNumericInNumericContext"/>)
+    /// and the <c>[ALL] ZERO_ARITH</c> primary that an operator or a parenthesis beside it makes (<c>1 + ALL ZERO</c>,
+    /// through <see cref="BindPrimary"/>; kb/Work PB3846). The value is 0 either way (§8.3.3.6.4 GR4). ALL is
+    /// §8.3.3.6.2 Format 1's optional word, and §8.3.3.6.3 SR1 a) ("If the literal is restricted to a numeric literal,
+    /// the only figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase") gives it an EDITION
+    /// edge (kb/Work PB1415, VCR Table 7 row 7.28: redundant at 85, COBOL0902 from 2002), asked here through the ONE
+    /// gate the VALUE clause asks, so the two forms cannot disagree.</summary>
+    /// <param name="spelling">The operand as written, for the diagnostic (<c>ALL ZEROS</c>).</param>
+    /// <param name="where">The position clause suffix (see <see cref="NonNumericInNumericContext"/>), or empty.</param>
+    private BoundNumLiteral ZeroOperand(bool writtenAll, string spelling, string where)
+    {
+        if (writtenAll)
+            FigurativeAssociation.GateAllZeroAsNumeric(ctx.Edition.Edition, ctx.Edition.Sink,
+                $"figurative constant '{spelling}' as an arithmetic operand{where}");
+        return new BoundNumLiteral("0");
+    }
+
     /// <summary>⛔ THE ONE <c>nonNumericLiteral</c> → NUMERIC-CONTEXT reading (ISO §8.8.1.1), the numeric-side twin
     /// of <see cref="NonNumericLiteralOperand"/>. Returns null when the node is absent (so the caller falls back to
     /// its numeric literal), the constant zero for figurative ZERO — the ONE figurative §8.8.1.1 admits — and a
@@ -1213,15 +1234,9 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             // `ZERO()` are non-null and the old `fig.zeroWord() is not null` arm admitted it. Measured before the
             // fix: `IF ALL ZEROS IS POSITIVE` compiled clean and evaluated `0 > 0`, under a comment quoting the
             // very rule that bars it — a citation enforcing nothing is worse than no citation.
-            if (IsNumericRestrictedZero(fig)) return new BoundNumLiteral("0");
-            // ALL ZERO: the ALL half has an edition edge (kb/Work PB1415, VCR Table 7 row 7.28) — redundant at 85,
-            // COBOL0902 from 2002 — asked through the ONE gate the VALUE clause asks; the operand is ZERO either way.
+            // ZERO with or without ALL: the ALL half's edition edge is ZeroOperand's (kb/Work PB1415, PB3846).
             if (fig.zeroWord() is not null)
-            {
-                FigurativeAssociation.GateAllZeroAsNumeric(ctx.Edition.Edition, ctx.Edition.Sink,
-                    $"figurative constant '{ConcatFolder.Spelling(fig)}' as an arithmetic operand{where}");
-                return new BoundNumLiteral("0");
-            }
+                return ZeroOperand(writtenAll: fig.ALL() is not null, ConcatFolder.Spelling(fig), where);
             // The bare BoundExprError here carried no diagnostic and rendered as a RUNTIME NotImplemented —
             // the wrong stage for a syntax-rule violation (kb/Work PB155).
             ctx.Edition.Error("COBOL0844", $"figurative constant '{ConcatFolder.Spelling(fig)}' is not a numeric "
@@ -1326,7 +1341,9 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     private BoundExpr BindPrimary(Core.PrimaryExpressionContext pe, OperandContext context)
     {
         if (pe.numericLiteral() is { } num) return NumericLiteralExpr(num.GetText());
-        if (pe.ZERO_ARITH() is not null) return new BoundNumLiteral("0");
+        if (pe.ZERO_ARITH() is { } zero)
+            return ZeroOperand(writtenAll: pe.ALL() is not null,
+                (pe.ALL() is null ? "" : "ALL ") + ZeroTokenRewriter.WrittenWord(zero.Symbol), where: "");
         if (pe.dataReference() is { } dref) return RefExpr(dref, context);
         if (pe.arithmeticExpression() is { } paren) return BindExprCore(paren, context);
         // The two §8.4.3.1.2 identifier formats that are NOT a data-name reference — Format 1 (a FUNCTION call,
