@@ -6,9 +6,10 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// A configuration-section table tells a name THIS source element declares from one a CONTAINING element handed down
-/// (ISO §8.4.6.1; kb/Work PB3347): a switch condition-name the element declares itself competes with its own level-88
-/// of the spelling under §8.4.2.2.1, while an inherited one yields to it.
+/// A configuration-section table tells the source element that declared a name from the ones it came down through
+/// (ISO §8.4.6.1; §8.4.6.2.1 3; kb/Work PB3347): a switch condition-name declared in the SAME element as a level-88 of
+/// the spelling competes with it under §8.4.2.2.1, one declared in a nearer element hides it, one a tier farther out
+/// yields to it.
 /// </summary>
 public sealed class ConfigurationNamesTests
 {
@@ -24,9 +25,10 @@ public sealed class ConfigurationNamesTests
         containee.InheritFrom(container);
 
         Assert.True(containee.Declares("S-ON"));
-        Assert.False(containee.DeclaresOwn("S-ON"));   // only the container declared it
-        Assert.True(containee.DeclaresOwn("OWN"));
-        Assert.True(container.DeclaresOwn("S-ON"));
+        Assert.Equal(1, containee.ContainmentDepth("S-ON"));   // only the container declared it
+        Assert.Equal(0, containee.ContainmentDepth("OWN"));
+        Assert.Equal(0, container.ContainmentDepth("S-ON"));
+        Assert.Equal(-1, containee.ContainmentDepth("NOPE"));
     }
 
     [Fact]
@@ -38,7 +40,7 @@ public sealed class ConfigurationNamesTests
         containee.TryAdd("S-ON", 2);
         containee.InheritFrom(container);   // the containee's own declaration wins (§12.3.4 GR1)
 
-        Assert.True(containee.DeclaresOwn("S-ON"));
+        Assert.Equal(0, containee.ContainmentDepth("S-ON"));
         Assert.True(containee.TryPeek("S-ON", out int value));
         Assert.Equal(2, value);
     }
@@ -50,18 +52,34 @@ public sealed class ConfigurationNamesTests
         container.TryAdd("S-ON", 1);
         var containee = NewTable();
         containee.InheritFrom(container);
-        Assert.False(containee.DeclaresOwn("S-ON"));
+        Assert.Equal(1, containee.ContainmentDepth("S-ON"));
 
         containee.Set("S-ON", 3);
 
-        Assert.True(containee.DeclaresOwn("S-ON"));
+        Assert.Equal(0, containee.ContainmentDepth("S-ON"));
     }
 
     [Fact]
-    public void ANameIsCaseInsensitive_ForTheOwnQuestionToo()
+    public void ADepthCountsEveryLevelADeclarationCameDown()
+    {
+        var outer = NewTable();
+        outer.TryAdd("S-ON", 1);
+        var middle = NewTable();
+        middle.InheritFrom(outer);
+        var inner = NewTable();
+        inner.InheritFrom(middle);
+
+        Assert.Equal(0, outer.ContainmentDepth("S-ON"));
+        Assert.Equal(1, middle.ContainmentDepth("S-ON"));
+        Assert.Equal(2, inner.ContainmentDepth("S-ON"));
+        Assert.Equal(2, inner.InheritedDepths.Single(e => e.Key == "S-ON").Value);
+    }
+
+    [Fact]
+    public void ANameIsCaseInsensitive_ForTheDepthQuestionToo()
     {
         var table = NewTable();
         table.TryAdd("S-On", 1);
-        Assert.True(table.DeclaresOwn("s-ON"));
+        Assert.Equal(0, table.ContainmentDepth("s-ON"));
     }
 }

@@ -1194,10 +1194,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                     ? new BoundCondition88(parent, cond,
                         ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, dref.Start.Line))
                     : Unresolved(parentAnswer, $"condition-name '{cond.Name}' (unresolvable conditional variable)"));
-        // A switch-status condition-name — asked AFTER level-88 because a level-88 of the spelling is the §8.4.6.1 own item
-        // that a CONTAINER's switch name yields to; a switch THIS element declares beside a level-88 of the spelling
-        // never gets here, ConditionOf having refused the pair as non-unique (§8.4.2.2.1; kb/Work PB3347). BEFORE the
-        // abbreviated-carry fallback.
+        // A switch-status condition-name — asked AFTER level-88 because a level-88 of the spelling in a nearer element is
+        // the §8.4.6.1 own item that a CONTAINER's switch name yields to; a switch declared in the SAME element as a
+        // level-88 of the spelling never gets here, ConditionOf having refused the pair as non-unique (§8.4.2.2.1;
+        // kb/Work PB3347). BEFORE the abbreviated-carry fallback.
         if (inner is { } swx && SoleDataRef(swx) is { } swr && host.Alter.SwitchCondOf(swr) is { } swCond)
             return BareOperandAnalysis.OfCondition(BareOperandForm.SwitchStatus, swCond);
         // ⛔ §13.16.3 SR23's NEGATIVE side (kb/Work PB567): a declared level-88 written under qualifiers its
@@ -1635,12 +1635,14 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // reference is now resolved here more than once — the SEARCH ALL Format-2 screen asks which level-88 a
         // WHEN operand names BEFORE the condition binds it (§14.9.37.3 SR9/SR11 are about that very 88) — and the
         // ambiguity is one fact about one reference, not one per asker.
-        // ⛔ A SWITCH CONDITION-NAME THIS ELEMENT DECLARES IS ONE MORE CANDIDATE (kb/Work PB3347): it is the same type of
-        // user-defined word as a level-88 (§8.3.2.2.4) and takes no qualifier, so an unqualified reference to a spelling
-        // both declare is non-unique (§8.4.2.2.1 1, §8.4.2.2.3 SR1) — the 88 used to win silently ("NC211A regression
-        // guard"), so `IF S-ON` read the level-88 for an OFF switch. A qualified reference names the 88 alone (SR5), and
-        // a switch only a CONTAINER declared yields to this element's own item (§8.4.6.1), both in the one predicate.
-        bool switchCompetes = ctx.Data.OwnSwitchConditionCompetes(dref);
+        // ⛔ A SWITCH CONDITION-NAME DECLARED IN THE 88'S OWN SOURCE ELEMENT IS ONE MORE CANDIDATE (kb/Work PB3347): it is
+        // the same type of user-defined word as a level-88 (§8.3.2.2.4) and takes no qualifier, so an unqualified
+        // reference to a spelling both declare is non-unique (§8.4.2.2.1 1, §8.4.2.2.3 SR1) — the 88 used to win silently
+        // ("NC211A regression guard"), so `IF S-ON` read the level-88 for an OFF switch. A qualified reference names the
+        // 88 alone (SR5). "The same element" is a TIER (a container's switch beside a container's GLOBAL 88 is the same
+        // pair, kb/Work PB3347 review R1-1), and an 88 of a NEARER element is the item the reference names (§8.4.6.2.1 3 a,
+        // §8.4.6.1): both in the one predicate.
+        bool switchCompetes = ctx.Data.SwitchConditionCompetes(dref, matches);
         int candidates = matches.Count + (switchCompetes ? 1 : 0);
         if (candidates > 1 && _condDiagnosed.Add(dref))
         {

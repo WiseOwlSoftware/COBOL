@@ -29,9 +29,14 @@ internal sealed class ConfigurationNames<T>(UserWordKind kind,
 {
     private readonly Dictionary<string, T> _entries = new(CobolNames.Comparer);
 
-    /// <summary>The names <see cref="InheritFrom"/> took from a containing element, still unredeclared here: the rest
-    /// of <see cref="_entries"/> is this source element's OWN declarations (§8.4.6.1).</summary>
-    private readonly HashSet<string> _inherited = new(CobolNames.Comparer);
+    /// <summary>The containment distance of each name <see cref="InheritFrom"/> took from a containing element, still
+    /// unredeclared here: 1 for the direct container's own declaration, one more per level it came down. A name absent
+    /// here but in <see cref="_entries"/> is this source element's OWN declaration (§8.4.6.1).</summary>
+    private readonly Dictionary<string, int> _inherited = new(CobolNames.Comparer);
+
+    /// <summary>The inherited names with their containment distances: the tier a same-spelled name declared in a
+    /// NEARER source element hides them at (§8.4.6.2.1 3); <c>DataBinder.DropShadowedConstants</c>).</summary>
+    public IEnumerable<KeyValuePair<string, int>> InheritedDepths => _inherited;
 
     public int Count => _entries.Count;
 
@@ -62,12 +67,13 @@ internal sealed class ConfigurationNames<T>(UserWordKind kind,
     /// asks, never a reference's resolution (that is <see cref="TryUse"/>).</summary>
     public bool Declares(string name) => _entries.ContainsKey(name);
 
-    /// <summary>Does THIS source element's own configuration section declare <paramref name="name"/>? False for a
-    /// name only a CONTAINING element declared (<see cref="InheritFrom"/>): §8.4.6.1 makes a reference in the
-    /// containee to such a name yield to an identically spelled item the containee describes, while a name the
-    /// referring element declares itself competes with that item under §8.4.2.2.1's uniqueness rule
-    /// (kb/Work PB3347). Records nothing.</summary>
-    public bool DeclaresOwn(string name) => _entries.ContainsKey(name) && !_inherited.Contains(name);
+    /// <summary>⭐ THE CONTAINMENT TIER OF <paramref name="name"/> (§8.4.6.2.1 3): -1 when it is not declared, 0 when THIS
+    /// source element's own configuration section declares it, n when only the n-th containing element did
+    /// (<see cref="InheritFrom"/>). The ONE answer to "which source element declared this name", read to weigh the name
+    /// against an identically spelled item of the data division (<c>DataBinder.SwitchConditionCompetes</c>, kb/Work PB3347)
+    /// and a symbolic-character against a nearer data-, condition- or index-name (kb/Work PB3154). Records nothing.</summary>
+    public int ContainmentDepth(string name) =>
+        !_entries.ContainsKey(name) ? -1 : _inherited.GetValueOrDefault(name);
 
     /// <summary>The entry named <paramref name="name"/>, read WITHOUT recording a use: for a declaration's own
     /// duplicate check and for a predicate whose caller resolves the reference afterwards through
@@ -75,15 +81,12 @@ internal sealed class ConfigurationNames<T>(UserWordKind kind,
     public bool TryPeek(string name, [MaybeNullWhen(false)] out T value) => _entries.TryGetValue(name, out value);
 
     /// <summary>Take every entry of a CONTAINING element's table this one does not declare (§12.3.4 GR1; the
-    /// containee's own declaration, where one is possible, wins). <paramref name="inherited"/>, when given, is told
-    /// each name actually taken (the symbolic-characters' containment tier, kb/Work PB3154).</summary>
-    public void InheritFrom(ConfigurationNames<T> container, Action<string>? inherited = null)
+    /// containee's own declaration, where one is possible, wins), each one level farther out
+    /// than the container had it.</summary>
+    public void InheritFrom(ConfigurationNames<T> container)
     {
         foreach (var (k, v) in container._entries)
             if (_entries.TryAdd(k, v))
-            {
-                _inherited.Add(k);
-                inherited?.Invoke(k);
-            }
+                _inherited[k] = container._inherited.GetValueOrDefault(k) + 1;
     }
 }
