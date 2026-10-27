@@ -19,11 +19,19 @@
       *> 3. A CALL THE BINDER FOLDS INTO A LITERAL IS MEASURED AS THAT LITERAL'S FIELD. FUNCTION LENGTH(W-X) is 3 and the standard admits
       *>    it as a function-identifier argument (§8.4.3.2.1 makes it a data item, §15.50.3 r1 admits any); GnuCOBOL refuses the folded
       *>    literal, and here its field has one digit position, so the length of that field is 1.
+      *> 4. A COPY OF A USAGE NATIONAL ARGUMENT IS ITS ITEM'S POSITIONS AND ITS ITEM'S BYTES (review R1-1 of the PB3951 branch). MIN and MAX
+      *>    return the CONTENT of an argument, so the temporary is a copy of that national item: FUNCTION LENGTH counts national character
+      *>    positions (§15.50.4 r2: 5 for PIC S9(5) USAGE NATIONAL, 6 once SIGN IS LEADING SEPARATE adds a character position, §13.18.52.4 GR6) and
+      *>    FUNCTION BYTE-LENGTH the bytes of those positions (§15.14.4 r1: two per position, 10 and 12), exactly as for the item itself. GnuCOBOL
+      *>    3.2.0 calls its national support unfinished and answers 10 to both, for the item and for its copy.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3951B.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 W-X PIC X(3) VALUE "abc".
+       01 NN PIC S9(5) USAGE NATIONAL VALUE -12.
+       01 NU PIC 9(5) USAGE NATIONAL VALUE 12.
+       01 NS PIC S9(5) USAGE NATIONAL SIGN IS LEADING SEPARATE VALUE -12.
        PROCEDURE DIVISION.
            DISPLAY "SQRT=" FUNCTION LENGTH(FUNCTION SQRT(4))
            DISPLAY "PI=" FUNCTION LENGTH(FUNCTION PI)
@@ -33,4 +41,10 @@
            DISPLAY "NEG-2-63M=" FUNCTION LENGTH(FUNCTION NUMVAL("-9223372036854775809"))
            DISPLAY "FOLDED=" FUNCTION LENGTH(FUNCTION LENGTH(W-X))
            DISPLAY "BYTE-FOLDED=" FUNCTION BYTE-LENGTH(FUNCTION BYTE-LENGTH(W-X))
+           DISPLAY "NAT-MIN=" FUNCTION LENGTH(FUNCTION MIN(NN NU))
+           DISPLAY "BYTE-NAT-MIN=" FUNCTION BYTE-LENGTH(FUNCTION MIN(NN NU))
+           DISPLAY "NAT-MAX=" FUNCTION LENGTH(FUNCTION MAX(NN NU))
+           DISPLAY "BYTE-NAT-MAX=" FUNCTION BYTE-LENGTH(FUNCTION MAX(NN NU))
+           DISPLAY "NAT-SEP=" FUNCTION LENGTH(FUNCTION MIN(NS NU))
+           DISPLAY "BYTE-NAT-SEP=" FUNCTION BYTE-LENGTH(FUNCTION MIN(NS NU))
            STOP RUN.

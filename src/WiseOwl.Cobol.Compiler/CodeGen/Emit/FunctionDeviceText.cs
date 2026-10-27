@@ -146,9 +146,11 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
             // its exact value (the one float-item lift) and shows its own DISPLAY image.
             case BoundFieldOperand { Place: { DenotedItem: not null, Item.IsGroup: false, Item.Pic: { Category: PicCategory.Numeric } pic } place }:
                 NumX read = num.AsNum(a, ReceiverContext.None);
+                // The copy's length is the item's own, by the one reading the binder gives FUNCTION LENGTH(field) and BYTE-LENGTH(field):
+                // positions (§15.50.4 r2/r3) and bytes (§15.14.4 r1) differ for a usage-national item.
                 return pic.IsFloat
-                    ? RuntimeApi.FunctionFieldOfFloatItem(num.DecOperand(read), place.Item.ProfileName, OperandText.AsTransferString(a, num, "DISPLAY of"))
-                    : RuntimeApi.FunctionFieldOfItem(num.DecOperand(read), place.Item.ProfileName);
+                    ? RuntimeApi.FunctionFieldOfFloatItem(num.DecOperand(read), place.Item.ProfileName, OperandText.AsTransferString(a, num, "DISPLAY of"), place.Item.ByteWidth)
+                    : RuntimeApi.FunctionFieldOfItem(num.DecOperand(read), place.Item.ProfileName, ItemLength.Positions(place.Item), place.Item.ByteWidth);
             default:
                 // An arithmetic expression (GnuCOBOL evaluates it into a temporary), a register, an index: described by its value.
                 return RuntimeApi.FunctionFieldOfValue(num.DecOperand(num.AsNum(a, ReceiverContext.None)));

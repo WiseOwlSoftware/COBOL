@@ -29,16 +29,6 @@ public static partial class CobolNum
         return Compose(value.Sig < 0, digits, temporary, commaMode);
     }
 
-    /// <summary>The bytes an item occupies in a record image: <see cref="NumProfile.StorageLength"/> for a binary, packed or floating-point form,
-    /// and for the zoned form its digit run plus a separate-sign position (the digit run IS its own byte form; an over-punched sign occupies no
-    /// position of its own). The runtime statement of what <c>FUNCTION BYTE-LENGTH</c> counts for a numeric item (ISO §15.14.4 r1 - "the length of
-    /// argument-1 in number of bytes"), read by <see cref="FunctionValueField.ByteLength"/> for the temporary that copies an argument's item
-    /// (kb/Work PB3951). It is a static method and not a property of <see cref="NumProfile"/> on purpose: a record struct prints every public
-    /// property, so a new one would move the codec images the runtime ABI pin hashes.</summary>
-    internal static int ImageWidth(in NumProfile item) =>
-        item.StorageLength > 0 ? item.StorageLength
-        : item.Digits + (item.Signed && item.SignKind is NumericSign.LeadingSeparate or NumericSign.TrailingSeparate ? 1 : 0);
-
     /// <summary>The same text for a returned value carried as a scaled integer (<c>unscaled</c> at <paramref name="scale"/> fraction
     /// digits, the native exact lanes') - the value lifted to an SDIDI with no rounding, then <see cref="DeviceFunctionText(CobolDec, bool)"/>.</summary>
     public static string DeviceFunctionText(Int128 unscaled, int scale, bool commaMode) =>

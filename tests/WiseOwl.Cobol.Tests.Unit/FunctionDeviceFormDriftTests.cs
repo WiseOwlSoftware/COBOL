@@ -105,7 +105,7 @@ public sealed class FunctionDeviceFormDriftTests
         string renderer = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
         int lengthArm = renderer.IndexOf("FunctionDeviceText.IsNumericFunctionResult(ic.Args[0])", StringComparison.Ordinal);
         Assert.True(lengthArm >= 0, "the renderer's LENGTH / BYTE-LENGTH arm asks the one predicate FunctionDeviceText.IsNumericFunctionResult");
-        Assert.Contains("RuntimeApi.FunctionFieldLength(new FunctionDeviceText(num).Field(ic.Args[0]))", renderer[lengthArm..], StringComparison.Ordinal);
+        Assert.Contains("RuntimeApi.FunctionFieldLength(new FunctionDeviceText(num).Field(ic.Args[0]), bytes: sig.RuntimeMethod is \"ByteLength\")", renderer[lengthArm..], StringComparison.Ordinal);
         Assert.True(lengthArm < renderer.IndexOf("AnyRealArgument(ic) && IntrinsicArgumentRules.ArgumentRunIsAllNumeric", StringComparison.Ordinal),
             "the length arm runs BEFORE the float-lane routing: a binary64 argument (SQRT) is no reason to leave it");
     }

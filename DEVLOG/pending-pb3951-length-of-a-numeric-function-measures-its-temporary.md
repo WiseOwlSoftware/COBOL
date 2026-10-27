@@ -14,7 +14,7 @@ the function-identifier the data item the evaluation produces, §15.4 puts the v
 no other consumer used, was a second answer to a question the three shapes already answer.
 
 **The fix is one item asked two questions.** `FunctionValueField` (PB3514) gains `ByteLength`: a copied argument's image width
-(`CobolNum.ImageWidth`: a packed argument's bytes, a binary one's, a SIGN SEPARATE one's extra position), a literal's digits written plus
+(the compiler's own `DataItem.ByteWidth` and `ItemLength.Positions` ride on `OfItem`: a packed argument's bytes, a binary one's, a SIGN SEPARATE one's extra position), a literal's digits written plus
 a sign position when one was written, DATE-OF-INTEGER's 8 and DAY-OF-INTEGER's 7, the 4-byte, 8-byte or DISPLAY item a value describes
 (`CobolNum.ReturnedValueProfile` now also returns the bytes, because its `Digits` is the position count DISPLAY pads to, 9 or 20), and 8 for
 a binary64. `IntrinsicBinder.FunctionResultLength` no longer folds a width: every numeric or integer function result (and a folded literal)
@@ -34,7 +34,7 @@ Under a standard arithmetic mode the binary64 functions are SDIDI values and tak
 **One bug found on the way and fixed with it.** The first cut put the length arm after the renderer's `AnyRealArgument` routing, so
 `LENGTH(FUNCTION SQRT(4))` failed to compile (`CobolIntrinsics.LengthReal`); the arm now runs first and the drift test pins the order. The
 runtime ABI pin moved when the size was first written as a `NumProfile` property (a record struct prints every public property, and the pin
-hashes codec images of its text), so it is `CobolNum.ImageWidth`, a static method.
+hashes codec images of its text), so the item's length is stated by the compiler (the one reading `LENGTH(field)` uses) and passed to `OfItem`.
 
 **Goldens.** `pb3951_length_of_numeric_function_result` (2014, 2023; the 47 lines are identical to cobc), `..._not_copied` (2002 to 2023),
 the negative `pb3951_length_of_abs_below_2014` (COBOL1502), and `pb1398_length_of_function_result` updated from 30 to the new sizes;
@@ -46,3 +46,12 @@ nested call is evaluated at run time, as GnuCOBOL evaluates it. Duplication: `Ov
 own struct and was left alone (it is a digit-run size for a move, not an item's bytes).
 
 **Gate** (run `TestResults/build-local/000002-20261027T222345Z`, head `7bb441c1a`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 643/19,151 · Unit 27,742/38,125 · Characterization 36/36 cases ran · Linux half (WSL clone of HEAD) GREEN ===`. The first gate (run 000001) was RED on the DOC CITATIONS audit: a golden comment quoted §15.50.3 r1's words under §8.4.3.2.1, fixed in `7bb441c1a`. Leg 1 ran the seven new conformance cases (`pb3951_length_of_numeric_function_result` at 2014 and 2023, `..._not_copied` at 2002, 2014, 2023, the negative `pb3951_length_of_abs_below_2014` at 85 and 2002, all Passed) and `FunctionDeviceTextTests`' new byte rows. `scripts/semgrep/verify.py` PASS, no rule's count rose.
+
+**Review round 1 (R1-1, fixed).** The first cut sized a copied argument from its `NumProfile` (`CobolNum.ImageWidth`), which does not say a
+USAGE NATIONAL position is two bytes: `FUNCTION BYTE-LENGTH(FUNCTION ABS(NN))` over `PIC S9(5) USAGE NATIONAL` answered 5 where the item itself
+is 10 (and 6 for 12 with SIGN SEPARATE). `FunctionValueField` now carries positions (`Length`, §15.50.4 r2/r3) and bytes (`ByteLength`, §15.14.4 r1)
+apart; the compiler passes the argument item's own `ItemLength.Positions` and `DataItem.ByteWidth` to `OfItem`, its `ByteWidth` to `OfFloatItem`, and
+the renderer reads `Length` for LENGTH and `ByteLength` for BYTE-LENGTH. The second statement of an item's width in the runtime
+(`CobolNum.ImageWidth`) is deleted. Pinned by `pb3951_length_of_numeric_function_result_not_copied` (national and SIGN SEPARATE national rows: 5/10, 6/12;
+GnuCOBOL's unfinished national support answers 10 to both) and `FunctionDeviceTextTests.ACopyOfANationalArgumentHasPositionsAndBytes`. R1-2 (the
+design doc named `NumProfile.ImageWidth`) is fixed in `docs/INTRINSICS_DESIGN.md`.

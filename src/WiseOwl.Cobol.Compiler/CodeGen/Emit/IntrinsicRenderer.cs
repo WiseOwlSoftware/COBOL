@@ -57,7 +57,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // and never from a width of ours; the argument's value only fills the field, so a binary64 argument (SQRT) is no reason to
         // leave this arm for the float lane below. The binder sends every such argument here (IntrinsicBinder.FunctionResultLength).
         if (sig.RuntimeMethod is "Length" or "ByteLength" && FunctionDeviceText.IsNumericFunctionResult(ic.Args[0]))
-            return new NumX(RuntimeApi.FunctionFieldLength(new FunctionDeviceText(num).Field(ic.Args[0])), 0);
+            return new NumX(RuntimeApi.FunctionFieldLength(new FunctionDeviceText(num).Field(ic.Args[0]), bytes: sig.RuntimeMethod is "ByteLength"), 0);
         // A string-class function result in a NUMERIC context reaches here only under --permissive (the binder's
         // §8.8.1.1 screen rejects it under strict conformance — kb/Work PB68): the DA6 leniency, the same
         // digit-character decode an alphanumeric DATA ITEM gets there (CobolNum.FromAlphanumeric over the

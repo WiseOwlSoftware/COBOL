@@ -597,12 +597,14 @@ function's text is `CobolNum.DeviceFunctionText` of its value: a scaled integer 
 result keeps the shortest round-trip image (`CobolFloat.Display`), as a floating-point item does (PB3505). The value path
 reads the call at `ReceiverContext.None`, so the text never depends on a receiver (PB3839).
 
-**The same temporary is what LENGTH and BYTE-LENGTH measure (PB3951).** `FunctionValueField.ByteLength` is the size of the item the field
-describes: `OfItem` the argument item's `NumProfile.ImageWidth` (a packed argument's bytes, a binary one's, a SIGN SEPARATE one's extra
-position), `OfLiteral` the literal's digits plus a sign position when one was written, `OfDigits` the fixed 8 or 7, `OfValue` the 4-byte or 8-byte
+**The same temporary is what LENGTH and BYTE-LENGTH measure (PB3951).** `FunctionValueField.Length` (positions, §15.50.4) and
+`FunctionValueField.ByteLength` (bytes, §15.14.4 r1) are the size of the item the field describes: `OfItem` and `OfFloatItem` take the argument
+item's own length from the compiler (`ItemLength.Positions` and `DataItem.ByteWidth`, the one reading `LENGTH(field)` and `BYTE-LENGTH(field)`
+use; a packed argument's bytes, a binary one's, a SIGN SEPARATE one's extra position, and for a USAGE NATIONAL argument positions that are half
+the bytes), never re-derived from the `NumProfile`, which does not say a national position is two bytes. `OfLiteral` the literal's digits plus a sign position when one was written, `OfDigits` the fixed 8 or 7, `OfValue` the 4-byte or 8-byte
 binary item or the DISPLAY digits `CobolNum.ReturnedValueProfile` derives (its `storageBytes` out value, because the profile's `Digits` is the
 position count DISPLAY pads to, 9 or 20), `OfFloat` 8. The binder sends the argument of a numeric or integer function to the runtime
-(`IntrinsicBinder.FunctionResultLength`) and the renderer's first arm reads the field (`FunctionDeviceText.Field`), before any float-lane
+(`IntrinsicBinder.FunctionResultLength`) and the renderer's first arm reads the field (`FunctionDeviceText.Field`: `Length` for LENGTH, `ByteLength` for BYTE-LENGTH), before any float-lane
 routing: a LENGTH of `SQRT(...)` is the 8 bytes of a binary64, never the lane's concern. GnuCOBOL's 38- to 96-digit temporary for a binary64
 and its GMP digit estimate are not copied (DOC-A.1-92). `LENGTH(FUNCTION LENGTH(X))` is the folded literal's own field, 1 byte for 5.
 
