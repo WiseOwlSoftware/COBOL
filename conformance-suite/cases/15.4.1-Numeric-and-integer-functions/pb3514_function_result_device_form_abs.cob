@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> kb/Work PB3514 (DOC-A.1-92), the functions the 2002 and 2014 editions added to the device-form matrix of
-      *> pb3514_function_result_device_form. ABS (§15.7.4 r1: "the absolute value of argument-1") returns the argument's
+      *> pb3514_function_result_device_form. ABS (§15.7.1: "returns the absolute value of the argument") returns the argument's
       *> CONTENT magnitude in a copy of the argument's item, so the temporary has the argument's description and its sign
       *> position: ABS of a signed item shows a leading `+` (a signed item always shows its sign), ABS of an unsigned
       *> item shows none, and ABS of a negative LITERAL is a signed field of the digits written. A nested function is the
