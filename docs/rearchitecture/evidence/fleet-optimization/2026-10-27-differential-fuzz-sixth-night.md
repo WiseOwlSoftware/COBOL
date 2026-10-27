@@ -68,7 +68,7 @@ found the register silent: PB1147 and PB441 quote the same sentence and line for
 - **C3, fz06606:** after a true COBOL2269 the compiler emits a second 2269 and a false COBOL0901 ("'END-ACCEPT' is a
   reserved word"). Appended to open note PB3843 as a witness (a new code in its recovery cascade).
 - **C3:** COBOL1694 on a POINTER operand also cites §13.18.60.3 SR10, the index-data-item rule (fz01875); wording only.
-- **C2, fz01068:** COBOL0864's wording blames sequential access, open lead PB3569's text, although the refusal is right.
+- **C2, fz01068:** COBOL0864's wording names sequential access, the wording landed PB3569 chose on purpose (docs/CONFORMANCE.md D-READ-KEY-ACCESS); the refusal is right. No finding.
 - **B1:** `TEST-NUMVAL("")` and `TEST-NUMVAL-F("")` return 1 (a zero-length literal is legal, §8.3.3.1; rule c) gives
   LENGTH+1); GnuCOBOL reads "" as one space and returns 2. A new witness of the TEST-NUMVAL family, WiseOwl correct.
 - **B1, fz00328:** a MOVE into the item's own REDEFINES is an overlap the standard leaves undefined (§14.6.10 1)).
