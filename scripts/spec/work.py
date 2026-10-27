@@ -646,6 +646,7 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
                        f'genuinely does nothing to a user\'s program.')
         bad += closes_rows_shape(it)
         bad += upstream_problems(it)
+        bad += frontier_model_shape(it)
     bad += topology_problems(items)
     bad += sites_problems(items)
     ids = [it.get("id") for it in items]
@@ -1046,6 +1047,27 @@ def _site_blocks(text: str) -> list[str]:
 @functools.lru_cache(maxsize=None)
 def _path_token(roots: tuple[str, ...]) -> re.Pattern[str]:
     return re.compile(r"(?<![\w/.-])((?:" + "|".join(map(re.escape, roots)) + r")/" + _PATH_CHAR + "+)")
+
+
+@functools.lru_cache(maxsize=1)
+def frontier_models() -> frozenset[str]:
+    """model_rules.json `routing.frontier` (coord.frontier_models, the one reader of model_rules.json): the values a
+    note's `frontier_model:` may take."""
+    sys.path.append(str(REPO / "scripts" / "orchestrator"))
+    import coord  # noqa: PLC0415
+    return coord.frontier_models()
+
+
+def frontier_model_shape(it: dict) -> list[str]:
+    """`frontier_model:`, when present, names one frontier family (model_rules.json `routing.frontier`). It is the ONE
+    signal that a note's work runs on a frontier model under the owner's per-dispatch approval (MANDATORY-PRACTICES P1):
+    the planner holds such a note (plan_wave.py item 8). A regex over the body decided it before, and held every note
+    that recorded an approval the owner gave in the Mythos session (kb/Work PB3941)."""
+    fm = it.get("frontier_model")
+    if fm is None or fm in frontier_models():
+        return []
+    return [f'{it["_file"]}: frontier_model is {fm!r}, not one of {sorted(frontier_models())} — name the frontier model '
+            f'the note\'s work runs on, or drop the field when it runs on the default models']
 
 
 @functools.lru_cache(maxsize=1)
@@ -1732,6 +1754,15 @@ def self_test() -> int:
 
     findings += directory_findings(fixture)
     findings += upstream_findings()
+
+    # `frontier_model:` names a frontier family or is absent (kb/Work PB3941): every family is accepted, and a value
+    # that is none (the alias `opus`, a dated id) is refused, so a typo can never leave a frontier note unheld.
+    findings += [f"frontier_model_shape refuses the frontier family {m!r}"
+                 for m in sorted(frontier_models()) if frontier_model_shape({"_file": "PB1.md", "frontier_model": m})]
+    findings += [f"frontier_model_shape accepts {m!r}, which is no frontier family" for m in ("opus", "claude-mythos-5-1")
+                 if not frontier_model_shape({"_file": "PB1.md", "frontier_model": m})]
+    if not frontier_models() or frontier_model_shape({"_file": "PB1.md"}):
+        findings.append("frontier_model_shape: no frontier family is configured, or a note with no field is refused")
 
     # FALSIFICATION — the comparison must be able to fail, or "no disagreement" is a statement about nothing.
     corrupted = json.loads(json.dumps(fixture))
