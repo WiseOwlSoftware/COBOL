@@ -1,4 +1,4 @@
-## PB3817 — INITIALIZE REPLACING stored a pointer or object reference no written SET would admit into a restricted receiver
+## Entry 2658 — 2026-10-27 10:51 PDT — PB3817 — INITIALIZE REPLACING stored a pointer or object reference no written SET would admit into a restricted receiver
 
 **What was wrong.** `INITIALIZE pp REPLACING PROGRAM-POINTER DATA BY PU`, with `pp` a restricted program-pointer (TO a prototype) and `PU`
 unrestricted, compiled clean and stored an address that §13.18.60.4 GR25 forbids the item to hold. §14.9.20.4 GR4 makes that store "SET
@@ -25,3 +25,4 @@ directions, a STRONG group holding one of each, then a CALL through the stored p
 **Self-review.** Architecture: the rule lives in the SET binder beside the three it reuses, the INITIALIZE binder asks and does not copy.
 Silent failure: a refused receiver returns no action and the error is reported, so no half-built store reaches the emitter. Sibling sweep: the
 only `InitializeSetFrom` constructor is the one changed; the other receiving positions (SET, MOVE, CALL RETURNING) were already screened.
+
