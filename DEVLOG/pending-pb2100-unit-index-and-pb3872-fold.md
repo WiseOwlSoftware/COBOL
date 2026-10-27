@@ -42,7 +42,9 @@ mechanisms, and this change lands the one the rest stand on, the module's header
   the `[CobolUnit]` record set, the row encoding round-tripped over names holding `:` and `\`, malformed rows refused, the
   typed outcomes for a non-assembly, a plain assembly, a malformed row and the unit cap, no handle left on the file);
   `RuntimeAbiPinDriftTests` states schema 2; the 14 characterization snapshots re-baselined (a `{COMPILER-VERSION}` token
-  beside the runtime's).
+  beside the runtime's); `RuntimeApiGuardTests` (the ratchet that every emitted runtime name routes through `RuntimeApi`)
+  found the renderer's `typeof`/`nameof`-anchored names bare and now lists `RepositoryAttributeRenderer.cs` as an anchored
+  writer beside the façade, with the reason (a rename of an attribute member still breaks that file at compile time).
 
 **Left open in PB2100, and why this is a first part.** `HasSignatures` is written only with the signature attributes, which
 do not exist yet, so it is never written and decodes false (the design makes it true exactly for `--repository-update on`).
