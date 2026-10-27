@@ -1071,9 +1071,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 // SAME RECORD AREA clause may: the shared character area holds the record too (§12.4.6.4.4 GR2;
                 // the READ twin of the released-record rule, kb/Work PB1195). It takes the CURRENT RECORD, not the
                 // area image: an out-of-line file's area image is cut to its own character width, which is not the record.
-                if (AreaCharacterViewFor(file, area.Item) is { } peerChars) EmitImageInto(peerChars, currentRecord);
+                if (AreaCharacterViewFor(file, area.Item) is { } peerChars) EmitImageInto(peerChars, currentRecord, storesIntoOwnItem: false);
             }
-            else EmitImageInto(area, areaImage);
+            else EmitImageInto(area, areaImage, storesIntoOwnItem: file.AreaHasOneDescription);
         }
         foreach (var record in file.OutOfLineRecords)
             if (refs.ResolveItem(record) is { } place)
@@ -1255,7 +1255,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// expression or null — never re-read from the record area after the statement.</summary>
     internal void EmitReleasedRecordAlsoAvailable(FileModel file, Place released, string releasedRecord, string? extents)
     {
-        if (AreaCharacterViewFor(file, released.Item) is { } chars) EmitImageInto(chars, releasedRecord);
+        if (AreaCharacterViewFor(file, released.Item) is { } chars) EmitImageInto(chars, releasedRecord, storesIntoOwnItem: false);
         foreach (var record in file.OutOfLineRecordsOfArea(released.Item))
             if (refs.ResolveItem(record) is { } place)
                 EmitOutOfLineInto(place, releasedRecord, extents ?? "null");
@@ -1263,8 +1263,15 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
 
     /// <summary>Store a read record image into the FD record area: a character-image group distributes via FromImage;
     /// an elementary record decodes the image into its own representation through
-    /// <see cref="ReceivingStore.StorageArea"/> (kb/Work PB1556).</summary>
-    public void EmitImageInto(Place record, string imageExpr)
+    /// <see cref="ReceivingStore.StorageArea"/> (kb/Work PB1556).
+    /// <para>⛔ <paramref name="storesIntoOwnItem"/> is whether the image is a STORE of characters into the record's own
+    /// item (D-B5 converts a boolean item's characters, <see cref="ReceivingStore.StorageArea"/>) or the BYTES of storage
+    /// other descriptions share (<see cref="ReceivingStore.VerbatimStorageArea"/>): true only for a READ / RETURN into an
+    /// area with one description (<see cref="FileModel.AreaHasOneDescription"/>). A shared area (a multi-record FD, a SAME
+    /// RECORD AREA peer's view, the "also available" store of a released record) and an APPLY COMMIT restore (§14.9.36.4
+    /// GR3, back to the state at the last COMMIT) hold bytes another description reads, so converting them would rewrite
+    /// that description's content (kb/Work PB3697, review R1-1 and R1-2).</para></summary>
+    public void EmitImageInto(Place record, string imageExpr, bool storesIntoOwnItem)
     {
         var w = ctx.Writer;
         // A character-image group record distributes the read image into its typed leaves via the generated FromImage.
@@ -1296,7 +1303,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // defined to be the national space character" — a byte-level space pad would manufacture U+2020 instead.
         var item = record.Item;
         string area = item.Pic is { Usage: Usage.National } ? imageExpr : RuntimeApi.StrStore(imageExpr, $"{item.ByteWidth}");
-        w.Line(ReceivingStore.StorageArea(record, area, ReceivingStore.StoragePositions(record)));
+        string positions = ReceivingStore.StoragePositions(record);
+        w.Line(storesIntoOwnItem
+            ? ReceivingStore.StorageArea(record, area, positions)
+            : ReceivingStore.VerbatimStorageArea(record, area, positions));
     }
 
     /// <summary>After an I/O verb, store the file's two-character I-O status into its FILE STATUS item (ISO §9.1.13),

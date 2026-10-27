@@ -194,25 +194,23 @@ public static partial class CobolIntrinsics
         return m;
     }
 
-    /// <summary>SUM (§15.88.4): Σ arguments, at the common scale, EXACT in Int128 or not at all —
-    /// <paramref name="fn"/> names the COBOL function whose equivalent arithmetic expression is being evaluated,
-    /// because this body serves TWO of them: §15.88.4's own Σ and the numerator of §15.60.4's <c>Σ / n</c>
-    /// (the renderer emits <c>SumScaled("MEAN", …)</c> for MEAN — <c>IntrinsicRenderer</c>'s MeanScaled arm).</summary>
+    /// <summary>SUM (§15.88.4): Σ arguments, at the common scale, EXACT in Int128 or not at all. (MEAN's numerator is
+    /// not this body's: MEAN is the SDIDI quotient in every mode, kb/Work PB3860 - <see cref="MeanDec"/>.)</summary>
     /// <remarks>The accumulator is <c>checked</c> under ONE try for the whole loop (entering a try region is free;
     /// a per-iteration guard would not be). §15.88.3 r1 admits any class-numeric argument list, so the aligned
     /// values are bounded only by <see cref="NumericRenderer"/>'s PER-ARGUMENT escape — which says nothing about
     /// their SUM: three aligned 38-digit arguments exceed the carrier while each one passes. See
     /// <see cref="SizeEscape"/> for why a wrap is never the answer (kb/Work PB252).</remarks>
-    public static Int128 SumScaled(string fn, params Int128[] xs)
+    public static Int128 SumScaled(params Int128[] xs)
     {
-        RequireArguments(xs.Length, fn);
+        RequireArguments(xs.Length, "SUM");
         try
         {
             Int128 s = 0;
             foreach (var x in xs) s = checked(s + x);
             return s;
         }
-        catch (OverflowException) { return SizeEscape(fn); }
+        catch (OverflowException) { return SizeEscape("SUM"); }
     }
 
     /// <summary>RANGE (§15.76.4 r1): <c>FUNCTION MAX − FUNCTION MIN</c>, at the common scale. The SUBTRACTION is
