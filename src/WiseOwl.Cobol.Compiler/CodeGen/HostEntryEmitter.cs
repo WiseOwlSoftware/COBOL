@@ -40,21 +40,15 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
     Func<DataBinder, DataEmitter> dataEmitterFor)
 {
     /// <summary>The units that publish a host entry: every outermost unit, except a prototype whose definition the same
-    /// group compiles (that definition's entry is the one class for the name — DESIGN-external-repository §7.2).</summary>
+    /// group compiles (that definition's entry is the one class for the name — DESIGN-external-repository §7.2). The pairing
+    /// is by the Annex C fold (<see cref="ExternalizedNames.Same"/>, the one mapping rule, ISO §8.3.2.2 2)): a prototype
+    /// <c>psub</c> beside a definition <c>PSUB</c> is one externalized name (kb/Work PB3872). Nothing else is withheld: every
+    /// outermost unit publishes its entry, and so its repository record (§7.2); a group item
+    /// <see cref="PublishedRecordEmitter.Renders"/> refuses is an internal compiler error in <c>EmitEntry</c>, never a
+    /// missing entry (the binder admits no such shape since kb/Work PB3273: COBOL0853, COBOL0854).</summary>
     internal static IEnumerable<BoundUnit> EntryUnits(IReadOnlyList<BoundUnit> units) =>
         units.Where(u => u.Parent is null && !(u.IsPrototype && units.Any(d => d is { Parent: null, IsPrototype: false }
-            && d.IsFunction == u.IsFunction && string.Equals(d.ExternalizedName, u.ExternalizedName, StringComparison.Ordinal)))
-            && Published(u));
-
-    /// <summary>Whether every GROUP formal and RETURNING item of the unit has a published record
-    /// (<see cref="PublishedRecordEmitter.Renders"/>). A unit with one that has none publishes no entry at all. No legal
-    /// source reaches that today (kb/Work PB3273): a variable-length group whose members the data model's law refuses
-    /// (<see cref="DataItem.CurrentExtentTransferImageCapable"/>: an occurs-depending table beneath an OCCURS item) is itself
-    /// refused by the binder (COBOL0853, COBOL0854), so DOC-A.1-141 states no group restriction. A shape the binder
-    /// admits and the law refuses would need its row in DOC-A.1-141 before it could stay withheld.</summary>
-    private static bool Published(BoundUnit u) =>
-        u.Data.LinkageFormals.Select(f => (DataItem?)f.Item).Append(u.Data.LinkageReturning)
-            .All(d => d is not { IsGroup: true } || PublishedRecordEmitter.Renders(d));
+            && d.IsFunction == u.IsFunction && ExternalizedNames.Same(d.ExternalizedName, u.ExternalizedName))));
 
     /// <summary>Emit the host-entry class of every <see cref="EntryUnits"/> unit, each named by the one allocator in the
     /// module namespace's type scope (<paramref name="moduleTypes"/> — the names the module already declares there).</summary>
@@ -122,6 +116,10 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
         // A group formal's published record struct, named `<word>_Record` in the class's member scope (§4.3 "Names").
         string Record(DataItem group)
         {
+            if (!PublishedRecordEmitter.Renders(group))
+                throw new InvalidOperationException($"HostEntryEmitter: {(unit.IsFunction ? "function" : "program")} '{unit.Name}' has the group "
+                    + $"'{group.CobolName}' as a formal or RETURNING item, which PublishedRecordEmitter.Renders refuses; the binder admits no such "
+                    + "shape (kb/Work PB3273), so a DOC-A.1-141 row and a compile-time refusal must precede any withholding (DESIGN-external-repository §7.2).");
             string name = CsNames.Allocate($"{DataItem.Sanitize(group.CobolName ?? "FILLER")}_Record", members);
             records.Add((group, name));
             return name;
