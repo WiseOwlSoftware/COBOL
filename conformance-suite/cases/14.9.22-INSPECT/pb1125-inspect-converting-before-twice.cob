@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1125 - ISO 14.9.22.2 general formats (rendered from the PDF, folio 643-644): the after-before-phrase's choice indicators allow each of BEFORE and AFTER at most once; CONVERTING used a
       *> separate repeatable rule where the last BEFORE silently won.
-      *> Expected: a syntax error (COBOL0001) at every edition.
+      *> Expected: a syntax error (COBOL2269: the INSPECT statement ends before a phrase its format does not print there) at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG1125G4.
        DATA DIVISION.
