@@ -89,14 +89,15 @@ public sealed class FloatQuantizeHeadroomDriftTests
     }
 
     /// <summary>
-    /// ⛔ THE BLAST RADIUS IS MEASURED, NOT ASSERTED. The cap BINDS only past <c>38 − floor</c> integer digits; below
-    /// that the floor still wins and the working scale is byte-identical to the pre-PB13 <c>max(Scale, floor)</c>.
+    /// ⛔ THE BLAST RADIUS IS MEASURED, NOT ASSERTED. The cap BINDS only past <c>38 − floor</c> integer digits (32 for the
+    /// SDIDI landing's floor of 6, <see cref="ReceiverContext.SdidiLandingScaleFloor"/>); below that the floor still wins and
+    /// the working scale is byte-identical to the uncapped <c>max(Scale, floor)</c>.
     /// That is why landing PB13 moved no ordinary-picture behaviour — and this test is what keeps that true, so a
     /// future change to the rule cannot quietly re-scale every money field in the corpus.
     /// </summary>
     [Theory]
     [MemberData(nameof(LegalPictureShapes))]
-    public void BelowThirtyIntegerDigits_TheRuleIsUnchangedFromTheOldFloor(int intDigits, int scale)
+    public void BelowTheCapsBindingDigits_TheRuleIsTheUncappedMaxOfScaleAndFloor(int intDigits, int scale)
     {
         if (intDigits > ReceiverContext.IntermediateDigits - ReceiverContext.SdidiLandingScaleFloor) return;
         Assert.Equal(Math.Max(scale, ReceiverContext.SdidiLandingScaleFloor),

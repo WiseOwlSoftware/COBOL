@@ -58,3 +58,15 @@ documents were rewritten to the present state; no history narrative was added in
 argument past decimal128) raises a size error rather than defaulting; the reject projection still returns the section 15.3 default under
 EC-ARGUMENT-FUNCTION with checking off, unchanged. Tests: the unit tests that pinned the deleted `Int128` projection were rewritten to pin the
 SDIDI value (not deleted), `CarrierLandingFormTests` now asserts the NUMVAL family has no `case` in `RenderNum` rather than a checked-landing flag.
+
+**Review round 1 (R1-1, blocking).** The MAX/MIN fix left the receiver's headroom cap standing: `WorkingScale(s)` caps at 38 minus the
+receiver's integer digits, so `MAX(0.000000000000001 0)` into `PIC 9(24)V9` ROUNDED MODE AWAY-FROM-ZERO (cap 14 below s 15) and
+`MAX(0.000000001 0)` into `PIC 9(30)V9` (cap 8 below 9) still truncated the selection before the receiver's rounding and stored 0.0 where
+NUMVAL-F of the same text stored 0.1 (owed 0.1: §15.59.4 1) the content of an argument, §14.7.4.3 the one rounding). Fixed at the root: a
+MAX/MIN whose common argument scale exceeds the receiver's headroom (`IntrinsicRenderer.SelectionPastReceiverHeadroom`, asked of the same
+`RoundsAtItsScale` / `WorkingScale` the landing uses) takes the SDIDI selection (`MaxDec` / `MinDec`) in every mode, which holds the selected
+argument at its own digits and rounds once at the store; `RenderDec`'s early-out asks the same predicate so the two cannot disagree. Golden
+legs D1-D7 were added to `pb3839_max_min_round_once` (both caps, MIN, TOWARD-GREATER, truncation, a negative TOWARD-LESSER, a nested `* 1`
+form); D1-D4, D6 and D7 fail on the reviewed head (0.0 and +0.0) and pass now. Leads R1-2 (the drift test grounded in the standard-mode
+sentence of §15.4.1; it now states the owner determination for native) and R1-3 (a theory name and remark naming the deleted float floor)
+were fixed in files this change touches.

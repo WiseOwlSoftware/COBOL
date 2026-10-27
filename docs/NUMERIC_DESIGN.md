@@ -467,7 +467,9 @@ where `floor` is the landing's own choice. The float family and `**` no longer l
 (kb/Work PB3829: `FloatLanding` quantizes at the receiver's own scale), and the NUMVAL family has none (kb/Work PB251,
 PB3839: the SDIDI carries it); what remains is the landing of an SDIDI intermediate into the `Int128` lane
 (`SdidiLandingScaleFloor` = 6) and MAX / MIN's receiver-bound selection (`WorkingScale(s)` with the common argument scale
-as the floor, kb/Work PB3839: a selected value must reach a ROUNDED receiver with every digit it has). One method
+as the floor, kb/Work PB3839: a selected value must reach a ROUNDED receiver with every digit it has; when the receiver's
+headroom cap would fall below that common scale — a receiver of more than `38 − s` integer digits — the selection takes the
+SDIDI instead, `IntrinsicRenderer.SelectionPastReceiverHeadroom`, so the cap never truncates it). One method
 parameterised by the floor — NOT one rule per family, because the defect is a property of the working-scale-then-rescale
 SHAPE and not of which function produced the value, and a per-family copy is exactly how PB5 fixed the float clamp while
 leaving `Numval`/`NumvalF` clamping at `long.MaxValue`.

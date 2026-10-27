@@ -186,6 +186,16 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         if (sig.RuntimeMethod is "MaxScaled" or "MinScaled" or "OrdMax" or "OrdMin" or "MedianScaled"
             && AnyRealArgument(ic) && !AllRealArguments(ic) && RenderDec(ic) is { } decSelection)
             return decSelection;
+        // ⛔ A SELECTION THE RECEIVER'S INT128 HEADROOM WOULD CUT RIDES THE SDIDI TOO (kb/Work PB3839, review R1-1). MAX/MIN
+        // land the selected value at the receiver-bound working scale, which ReceiverContext.WorkingScale caps at
+        // 38 - receiver integer digits; a receiver wide enough to push that cap below the arguments' common scale
+        // truncated the selection BEFORE the receiver's ROUNDED phrase saw it (MAX(0.000000001 0) into PIC 9(30)V9
+        // ROUNDED MODE AWAY-FROM-ZERO stored 0.0 where NUMVAL-F of the same text stores 0.1) - the double rounding and
+        // the receiver-dependent value this note removes, left standing at the cap. The SDIDI holds the selected
+        // argument exactly at its own digits whatever the receiver, and its store rounds once.
+        if (sig.RuntimeMethod is "MaxScaled" or "MinScaled" && SelectionPastReceiverHeadroom(ic)
+            && RenderDec(ic) is { } decHeadroom)
+            return decHeadroom;
         // ⛔ AND THE LANE IS A FACT ABOUT THE ARGUMENT RUN, NOT ABOUT ONE ARGUMENT (kb/Work PB635).
         // `AnyRealArgument` answers "is any argument floating"; the question this dispatch has to answer is "does
         // the WHOLE argument run render in binary64", because FloatBody converts EVERY argument through Dbl. For
@@ -266,7 +276,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 // reference giving a different value to a different receiver, which §15.59.4 r1 ("the content of the
                 // argument-1 having the greatest value") does not allow. The receiver-bound result keeps the
                 // store-cap (§14.9.25.4 GR6 high-order truncation semantics, the receiver's own capacity finishing
-                // the job: the headroom cap is what keeps every digit a receiver can hold below the cap); a
+                // the job). A selection whose common scale s EXCEEDS the receiver's headroom never reaches this arm:
+                // SelectionPastReceiverHeadroom routes it to the SDIDI above, so the cap below never cuts a digit of
+                // the selected value (review R1-1: the cap truncated it before the receiver's ROUNDED phrase). A
                 // receiverless/float context keeps the common scale and stays LOUD past the escape boundary — a
                 // capped value inside a comparison would silently compare the wrong number (PB13's
                 // receiver-blind-scale lesson, applied in both directions). A FLOATING-POINT edited receiver is the
@@ -1043,6 +1055,16 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 : new IntrinsicCarrierRules.AlignedOperand(x.Digits, x.Scale, ic.Args[i] is BoundFieldOperand { Place: TableAllPlace }))
             .ToList());
 
+    /// <summary>Would landing this MAX/MIN selection at its arguments' common scale overrun the receiver-bound Int128 headroom
+    /// (<see cref="ReceiverContext.WorkingScale"/>)? Then the landing would truncate the selected value before the receiver's
+    /// ROUNDED phrase, so the selection takes the SDIDI instead (kb/Work PB3839, review R1-1). Asked only of a fixed-point
+    /// receiver (<see cref="ReceiverContext.RoundsAtItsScale"/>, the same test the landing uses) and an all-exact list; a
+    /// float argument has its own lanes.</summary>
+    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the RAW operands' scales.</remarks>
+    private bool SelectionPastReceiverHeadroom(BoundIntrinsicCall ic) =>
+        ic.Sig.RuntimeMethod is "MaxScaled" or "MinScaled" && num.Receiver.RoundsAtItsScale && !AnyRealArgument(ic)
+        && Operands(ic).Select(x => x.Scale).DefaultIfEmpty(0).Max() is var s && num.Receiver.WorkingScale(s) < s;
+
     /// <summary>Does any argument arrive on the SDIDI carrier (a native integer power — kb/Work PB69)?</summary>
     /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question; the rendered text is discarded.</remarks>
     private bool AnyDecRaw(BoundIntrinsicCall ic) => Operands(ic).Any(x => x.Dec);
@@ -1144,7 +1166,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // only thing that keeps this early-out from returning null under native.
         bool alwaysSdidi = IntrinsicCarrierRules.CrossAlignedNativeArms.Contains(m) || StandardValueFixedByRule.Contains(m)
             || IntrinsicCarrierRules.ReturnsExactParse(m);
-        if (!alwaysSdidi && !AnyDecOrRealRaw(ic) && !ArgumentRoundsAtLift(ic)) return null;
+        if (!alwaysSdidi && !AnyDecOrRealRaw(ic) && !ArgumentRoundsAtLift(ic) && !SelectionPastReceiverHeadroom(ic)) return null;
 
         string mode = num.IntermediateMode;
         return m switch

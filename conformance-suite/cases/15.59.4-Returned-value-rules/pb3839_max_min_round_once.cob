@@ -17,6 +17,11 @@
       *> B: a receiver with MORE places than the argument scale and one with FEWER (the cap never loses a digit the
       *>    receiver can hold). C: a 24-digit integer argument beside a 15-place one - the wide selected value still
       *>    reaches a PIC 9(24) receiver whole, and the 0.5 selected by MIN rounds to 1 there (nearest-away, r4).
+      *> D: a receiver WIDE enough that its Int128 landing headroom (38 less its integer digits) is below the arguments'
+      *>    common scale - 24 integer digits leave 14 places for a 15-place argument, 30 integer digits leave 8 for a
+      *>    9-place one. The selected 0.000000000000001 (resp. 0.000000001) must still reach the receiver's ROUNDED phrase
+      *>    whole (review R1-1): AWAY-FROM-ZERO and TOWARD-GREATER owe 0.1, TOWARD-LESSER of the negative owes -0.1, and
+      *>    the unrounded statement truncates to 0.0 - the same value a narrow receiver gets (A, B).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3839MAXMIN.
        DATA DIVISION.
@@ -31,6 +36,14 @@
        01 NA   PIC S9V9(8)    VALUE -0.12345.
        01 BIG  PIC 9(24)      VALUE 123456789012345678901234.
        01 SM   PIC 9V9(15)    VALUE 0.5.
+       01 TINY15 PIC 9V9(15)   VALUE 0.000000000000001.
+       01 TINY9  PIC 9V9(9)    VALUE 0.000000001.
+       01 NTINY  PIC S9V9(15)  VALUE -0.000000000000001.
+       01 ONE    PIC 9         VALUE 1.
+       01 ZERO0  PIC S9        VALUE 0.
+       01 W24    PIC 9(24)V9.
+       01 W30    PIC 9(30)V9.
+       01 WS24   PIC S9(24)V9  SIGN LEADING SEPARATE.
        PROCEDURE DIVISION.
            COMPUTE R2 ROUNDED MODE AWAY-FROM-ZERO = FUNCTION MAX(A B).
            DISPLAY "A1=" R2.
@@ -60,5 +73,19 @@
            DISPLAY "C2=" RB.
            MOVE FUNCTION MAX(A B) TO R2.
            DISPLAY "C3=" R2.
+           COMPUTE W24 ROUNDED MODE AWAY-FROM-ZERO = FUNCTION MAX(TINY15 ZERO0).
+           DISPLAY "D1=" W24.
+           COMPUTE W24 ROUNDED MODE AWAY-FROM-ZERO = FUNCTION MIN(TINY15 ONE).
+           DISPLAY "D2=" W24.
+           COMPUTE W30 ROUNDED MODE AWAY-FROM-ZERO = FUNCTION MAX(TINY9 ZERO0).
+           DISPLAY "D3=" W30.
+           COMPUTE W30 ROUNDED MODE TOWARD-GREATER = FUNCTION MIN(TINY9 ONE).
+           DISPLAY "D4=" W30.
+           COMPUTE W24 = FUNCTION MAX(TINY15 ZERO0).
+           DISPLAY "D5=" W24.
+           COMPUTE WS24 ROUNDED MODE TOWARD-LESSER = FUNCTION MIN(NTINY ZERO0).
+           DISPLAY "D6=" WS24.
+           COMPUTE WS24 ROUNDED MODE AWAY-FROM-ZERO = FUNCTION MIN(NTINY ZERO0) * 1.
+           DISPLAY "D7=" WS24.
            STOP RUN.
        END PROGRAM PB3839MAXMIN.

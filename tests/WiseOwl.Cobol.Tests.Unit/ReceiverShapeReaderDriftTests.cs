@@ -11,9 +11,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ A NUMERIC FUNCTION'S VALUE MAY NOT DEPEND ON THE SHAPE OF ITS RECEIVER, AND THE PLACES THAT READ THE RECEIVER ARE A
 /// CLOSED, JUSTIFIED SET (kb/Work PB3839).
 /// <para>
-/// §15.4.1 makes "the returned value ... the same for all instances of a given function within a single execution of the
-/// runtime element so long as the value and order of the arguments, the collating sequence, and the locale are unchanged",
-/// and the receiver is none of those. NUMVAL-F broke it for months because its arm tested the receiver
+/// The standard states the rule for the standard modes only: §15.4.1 "the returned value is the same for all instances of a
+/// given function within a single execution of the runtime element so long as the value and order of the arguments, the
+/// collating sequence, and the locale are unchanged" opens "When standard-decimal arithmetic or standard-binary arithmetic is
+/// in effect", and for native arithmetic it leaves "the characteristics and representation of the returned value" to the
+/// implementor. The receiver is none of the listed inputs, and this compiler's determination for NATIVE (owner, kb/Work
+/// PB3839; CLAUDE.md "consistent with ourselves") is the same: one reference, one value, whatever receives it.
+/// NUMVAL-F broke it for months because its arm tested the receiver
 /// (<c>Receiver.Real || Receiver.Receiverless</c>) to choose between a binary64 and an <c>Int128</c> parse truncated at the
 /// receiver-capped working scale: <c>DISPLAY</c> and a COMP-2 got the full value, a fixed-point receiver got nine places and
 /// then rounded them again, and ROUNDED MODE AWAY-FROM-ZERO of NUMVAL-F("0.12340000000001") into a <c>PIC 9V9(4)</c> stored
@@ -41,7 +45,8 @@ public sealed class ReceiverShapeReaderDriftTests
             "MAX / MIN: whether a receiver-bound result may be landed (store-cap) or must stay loud on the escape check",
         ["WorkingScale"] =
             "MAX / MIN: the receiver-bound result lands at the common argument scale widened to the receiver's and capped at its "
-            + "Int128 headroom, so the selected value reaches a ROUNDED receiver with every digit it has (kb/Work PB3839)",
+            + "Int128 headroom, and SelectionPastReceiverHeadroom asks whether that cap would cut the selection - then the SDIDI "
+            + "carries it - so the selected value reaches a ROUNDED receiver with every digit it has (kb/Work PB3839, review R1-1)",
         ["Scale"] =
             "MEAN's quotient scale, max(receiver scale, sum scale + 1, 6): OPEN. The quotient's digits past the receiver scale are "
             + "truncated at that working scale before the receiver's rounding mode sees them, so MEAN is the one function whose "
@@ -66,8 +71,9 @@ public sealed class ReceiverShapeReaderDriftTests
         var unjustified = read.Except(Readers.Keys).OrderBy(x => x, StringComparer.Ordinal).ToList();
         Assert.True(unjustified.Count == 0,
             "IntrinsicRenderer now reads ReceiverContext member(s) [" + string.Join(", ", unjustified) + "] with no entry in "
-            + "ReceiverShapeReaderDriftTests.Readers. A function's value must not depend on its receiver (§15.4.1: the returned "
-            + "value is the same for all instances of a given function); write down why this read decides a LANDING and not a "
+            + "ReceiverShapeReaderDriftTests.Readers. A function's value must not depend on its receiver (the PB3839 owner "
+            + "determination, self-consistency: §15.4.1 leaves the NATIVE returned value implementor-defined, and the "
+            + "implementor's choice is one value per reference); write down why this read decides a LANDING and not a "
             + "value, or remove it (kb/Work PB3839).");
         var stale = Readers.Keys.Except(read).OrderBy(x => x, StringComparer.Ordinal).ToList();
         Assert.True(stale.Count == 0,
