@@ -213,6 +213,32 @@ public sealed class SizeErrorDispositionTests
         Assert.Equal(verdict, stdout.Trim());
     }
 
+    /// <summary>kb/Work PB3869, review R1-2 — the REMAINDER store of a NOT-only DIVIDE is a resultant store like the
+    /// quotient's: a remainder past identifier-4 is a size error condition (§14.9.12.4 6) c)), so its low-order digit lands
+    /// and the NOT phrase is ignored; one that fits runs the phrase. R is PIC 9, Q is PIC 99.</summary>
+    [Theory]
+    [InlineData("DIVIDE 59 BY 30 GIVING Q REMAINDER R", "Q=01 R=9 F=-")]     // remainder 29 does not fit PIC 9
+    [InlineData("DIVIDE 66 BY 30 GIVING Q REMAINDER R", "Q=02 R=6 F=N")]     // remainder 6 fits
+    public void NotSizeErrorAlone_DivideRemainder_DetectsASizeErrorInTheRemainder(string statement, string verdict)
+    {
+        var (exit, stdout, _) = Run($$"""
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PB3869REM.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 Q  PIC 99 VALUE 7.
+               01 R  PIC 9 VALUE 0.
+               01 F  PIC X VALUE "-".
+               PROCEDURE DIVISION.
+               MAIN-P.
+                   {{statement}} NOT ON SIZE ERROR MOVE "N" TO F END-DIVIDE.
+                   DISPLAY "Q=" Q " R=" R " F=" F.
+                   STOP RUN.
+            """);
+        Assert.Equal(0, exit);
+        Assert.Equal(verdict, stdout.Trim());
+    }
+
     /// <summary>kb/Work PB3869 — the same statement with EC-SIZE checking ENABLED: with no size error condition the NOT
     /// phrase runs (§14.7.5's closing paragraph); with one, no SIZE ERROR phrase being written, §14.6.13.1.3 #7 ends the
     /// run unit naming EC-SIZE-TRUNCATION and the NOT phrase is ignored.</summary>

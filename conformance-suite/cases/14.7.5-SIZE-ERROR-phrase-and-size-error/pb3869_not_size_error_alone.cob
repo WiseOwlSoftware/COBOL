@@ -50,6 +50,19 @@
       *> run time and stores 0 there: TE is 909, F=-.
       *> BOTH: ON and NOT ON SIZE ERROR together are the two-phase
       *> statement: 9 + 1 leaves X=9 and runs the ON phrase, F=S.
+      *> REMOV: 59 / 30 has quotient 1 and remainder 59 - 1 * 30 = 29
+      *> (14.9.12.4 rules 6 and 7); 29 is past the PIC 9 remainder, a
+      *> size error condition while storing into a resultant (rule 6 c:
+      *> "unless storing the value would cause a size error condition"),
+      *> so the statement met one and NOT is ignored, F=-. With checking
+      *> not enabled the disposition is DOC-A.1-70's, as for the
+      *> quotient: the low-order digit lands, R=9.
+      *> RAND: the initial evaluation is done ONCE (14.7.7 rule 4 a) and
+      *> the statement is the phraseless one, so it consumes exactly one
+      *> element of the FUNCTION RANDOM sequence (15.75.3 rule 5: each
+      *> reference without an argument returns the next number). Seeded
+      *> the same, the NOT-only statement and the phraseless one store
+      *> the same R and leave the same next element: SAME=Y.
       *>
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3869NOTONLY.
@@ -75,6 +88,11 @@
        01 TAB.
           05 TE PIC 9 OCCURS 3 TIMES VALUE 9.
        01 I     PIC 9 VALUE 2.
+       01 RR    PIC 99 VALUE 0.
+       01 RS    PIC 99 VALUE 0.
+       01 RD1   PIC 9V9(8) VALUE 0.
+       01 RD2   PIC 9V9(8) VALUE 0.
+       01 SAME  PIC X VALUE "N".
        PROCEDURE DIVISION.
            MOVE "-" TO F.
            ADD 1 TO X NOT ON SIZE ERROR MOVE "N" TO F END-ADD.
@@ -127,5 +145,20 @@
                NOT ON SIZE ERROR MOVE "N" TO F
            END-ADD.
            DISPLAY "BOTH X=" X " F=" F.
+           MOVE "-" TO F.
+           DIVIDE 59 BY 30 GIVING Q REMAINDER REM
+               NOT ON SIZE ERROR MOVE "N" TO F
+           END-DIVIDE.
+           DISPLAY "REMOV Q=" Q " R=" REM " F=" F.
+           COMPUTE RD1 = FUNCTION RANDOM (7).
+           COMPUTE RR = FUNCTION RANDOM * 1000
+               NOT ON SIZE ERROR MOVE "N" TO F
+           END-COMPUTE.
+           COMPUTE RD1 = FUNCTION RANDOM.
+           COMPUTE RD2 = FUNCTION RANDOM (7).
+           COMPUTE RS = FUNCTION RANDOM * 1000.
+           COMPUTE RD2 = FUNCTION RANDOM.
+           IF RR = RS AND RD1 = RD2 MOVE "Y" TO SAME.
+           DISPLAY "RAND SAME=" SAME.
            STOP RUN.
        END PROGRAM PB3869NOTONLY.

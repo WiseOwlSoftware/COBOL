@@ -189,7 +189,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 using (w.Block($"if (!{ecState.SizeErrVar})"))
                     GuardedStore(true, d.Remainder, _ => StoreArith(d.Remainder, remainder, CobolRounding.Truncation));
             else
-                brackets.Receive(d.Remainder, null, () => StoreArith(d.Remainder, remainder, CobolRounding.Truncation));   // REMAINDER has no ROUNDED phrase
+                // REMAINDER has no ROUNDED phrase. Unchecked, the store merely lands; under a NOT-only phrase it also DETECTS
+                // (DetectingStore): a remainder that does not fit identifier-4 is a size error condition (§14.9.12.4 6) c)).
+                GuardedStore(false, d.Remainder, _ => StoreArith(d.Remainder, remainder, CobolRounding.Truncation));
         });
 
     /// <summary>The forms identifier-3 of <c>DIVIDE ... REMAINDER</c> can take, as far as its SUBSIDIARY QUOTIENT is
@@ -397,8 +399,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     public void EmitCompute(BoundCompute c)
         => EmitArith(c.SizeError, ise =>
         {
-            if (c.Targets.Count > 1)
+            if (c.Targets.Count > 1 || DetectsSizeError)
             {
+                // A statement written with ONLY a NOT ON SIZE ERROR phrase takes this arm for its one receiver too: its
+                // receiver runs twice on a size error (DetectingStore), so the right-hand side has to be materialized
+                // once, here, or the second run evaluates it again (FUNCTION RANDOM; kb/Work PB3869, review R1-1).
                 // ONE initial evaluation (§14.7.7 GR4 + NOTE 3): the RHS renders ONCE — at the widest receiver
                 // scale so no receiver-visible digit is lost — is materialized, and every receiver stores from the
                 // temp with its own ROUNDED mode. Re-rendering per receiver would re-read senders a prior
@@ -558,14 +563,19 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// in an intermediate data item", then b) "Item identification for the receiving data items is done as each data item is
     /// accessed unless it was already done in step a". Two things make the order observable, and either one materializes:
     /// more than one receiver (NOTE 3 — a receiver that shares storage with a sender must not change the value the receivers
-    /// after it store), and a receiver that identifies at run time
+    /// after it store), a statement whose receiver runs twice (<see cref="DetectsSizeError"/>), and a receiver that identifies at run time
     /// (<see cref="PlaceIdentification.IdentifiesAtRunTime(Place)"/>; kb/Work PB3261): a store renders as
     /// <c>&lt;receiver&gt; = &lt;value&gt;</c> and C# evaluates the receiver's address first, so
     /// <c>COMPUTE N(I) = FUNCTION NUMVAL(X(1:L))</c> range-tested I before the reference modifier, and the in-place
     /// <c>ADD FUNCTION NUMVAL(X(1:L)) TO N(I)</c> read N(I) before the operand written to its left, selecting
     /// EC-BOUND-SUBSCRIPT where §14.9.49.4 GR11 selects the first condition in the order of evaluation.</summary>
-    private static bool MaterializesInitialEvaluation(IReadOnlyList<Receiver> targets) =>
-        targets.Count > 1 || PlaceIdentification.IdentifiesAtRunTime(targets[0].Place);
+    private bool MaterializesInitialEvaluation(IReadOnlyList<Receiver> targets) =>
+        targets.Count > 1 || DetectsSizeError || PlaceIdentification.IdentifiesAtRunTime(targets[0].Place);
+
+    /// <summary>Is the statement being emitted written with ONLY a NOT ON SIZE ERROR phrase (and no EC-SIZE checking)? Each
+    /// receiver then runs twice on a size error (<see cref="DetectingStore"/>), so the initial evaluation is materialized
+    /// whatever the receiver count: ONE evaluation (§14.7.7 4) a)), never one per run (kb/Work PB3869).</summary>
+    private bool DetectsSizeError => ecState.SizeErrDetectVar is not null;
 
     /// <summary>Materialize a rendered sender/initial-evaluation into a local temp (ISO §14.7.7 GR4 + NOTE 3 —
     /// ONE initial evaluation; results independent of sender/receiver storage overlap). Inlining the expression
