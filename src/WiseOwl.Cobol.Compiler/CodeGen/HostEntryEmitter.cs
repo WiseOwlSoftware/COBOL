@@ -143,6 +143,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
         w.Line($"/// <summary>{kind} {unit.Name} (ISO §14.2.3 13), DESIGN-external-repository §4.3): activates the "
             + $"{(unit.IsFunction ? "function" : "program")} through the run unit's activation boundary (§14.9.4.4 3)) as "
             + "a CALL statement naming it does, landing each argument exactly or refusing it.</summary>");
+        w.Line(RepositoryAttributeRenderer.UnitRecord(unit));
         using (w.Block($"public static class {className}"))
         {
             foreach (var (field, init) in profiles)

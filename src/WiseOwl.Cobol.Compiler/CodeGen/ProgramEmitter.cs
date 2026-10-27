@@ -97,7 +97,8 @@ internal sealed class ProgramEmitter
         // named System, WiseOwl or CobolNum (whose namespace Cobol.System … is a member of Cobol) captures neither
         // (CS0234 / CS0118 on legal source otherwise). The assembly attribute precedes the namespace (C# requires it).
         var ns = CsNames.ModuleNamespaceOf(assemblySimpleName);
-        w.Line(RuntimeApi.ModuleRecordAttribute(ns.RegistrarClrName));
+        w.Line(RepositoryAttributeRenderer.ModuleRecord(ns.RegistrarClrName,
+            RepositoryAttributeRenderer.IndexOf(HostEntryEmitter.EntryUnits(units)), comp.Edition, hasSignatures: false));
         w.Line($"namespace {ns.CsName};");
         w.Line();
         // ⛔ Every namespace imported here is listed in CsNames.ImportedNamespaces, whose types' simple names no C# name

@@ -2,6 +2,7 @@
 *REMOVED*WiseOwl.Cobol.Runtime.MoveSending.Binary64.get -> double
 *REMOVED*WiseOwl.Cobol.Runtime.MoveSending.Deconstruct(out string! Characters, out bool Group, out bool Fill, out bool Numeric, out System.Int128 Unscaled, out int Scale, out double? Real, out string? StorageImage) -> void
 *REMOVED*WiseOwl.Cobol.Runtime.MoveSending.MoveSending(string! Characters, bool Group = false, bool Fill = false, bool Numeric = false, System.Int128 Unscaled = default(System.Int128), int Scale = 0, double? Real = null, string? StorageImage = null) -> void
+*REMOVED*const WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion = 1 -> int
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolArgAdapt.WithValueSending(WiseOwl.Cobol.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null) -> WiseOwl.Cobol.Runtime.CobolArg
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolDec.FromDouble(double d) -> WiseOwl.Cobol.Runtime.CobolDec
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.NumvalF(string! text, int scale, bool commaMode = false, int digitCap = 31, bool checkedLanding = false) -> System.Int128
@@ -137,6 +138,129 @@ WiseOwl.Cobol.Runtime.ReceivingReferences
 WiseOwl.Cobol.Runtime.ReceivingReferences.Element(int component, int occurrence) -> WiseOwl.Cobol.Runtime.ReceivingReferences?
 WiseOwl.Cobol.Runtime.ReceivingReferences.From(int offset) -> WiseOwl.Cobol.Runtime.ReceivingReferences!
 WiseOwl.Cobol.Runtime.ReceivingReferences.Within(int from, int to) -> bool
+WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CompilerVersion.get -> string?
+WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CompilerVersion.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.Edition.get -> int
+WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.Edition.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.HasSignatures.get -> bool
+WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.HasSignatures.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.Units.get -> string![]?
+WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.Units.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.CobolUnitAttribute(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind kind, string! name, string! externalizedName) -> void
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.ExternalizedName.get -> string!
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.Kind.get -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute.Name.get -> string!
+WiseOwl.Cobol.Runtime.Repository.PassingMode
+WiseOwl.Cobol.Runtime.Repository.PassingMode.Reference = 0 -> WiseOwl.Cobol.Runtime.Repository.PassingMode
+WiseOwl.Cobol.Runtime.Repository.PassingMode.Value = 1 -> WiseOwl.Cobol.Runtime.Repository.PassingMode
+WiseOwl.Cobol.Runtime.Repository.RepositoryCategory
+WiseOwl.Cobol.Runtime.Repository.RepositoryCategory.Alphanumeric = 1 -> WiseOwl.Cobol.Runtime.Repository.RepositoryCategory
+WiseOwl.Cobol.Runtime.Repository.RepositoryCategory.Boolean = 5 -> WiseOwl.Cobol.Runtime.Repository.RepositoryCategory
+WiseOwl.Cobol.Runtime.Repository.RepositoryCategory.FunctionPointer = 9 -> WiseOwl.Cobol.Runtime.Repository.RepositoryCategory
+WiseOwl.Cobol.Runtime.Repository.RepositoryCategory.Group = 0 -> WiseOwl.Cobol.Runtime.Repository.RepositoryCategory
+WiseOwl.Cobol.Runtime.Repository.RepositoryCategory.National = 4 -> WiseOwl.Cobol.Runtime.Repository.RepositoryCategory
+WiseOwl.Cobol.Runtime.Repository.RepositoryCategory.Numeric = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositoryCategory
+WiseOwl.Cobol.Runtime.Repository.RepositoryCategory.NumericEdited = 3 -> WiseOwl.Cobol.Runtime.Repository.RepositoryCategory
+WiseOwl.Cobol.Runtime.Repository.RepositoryCategory.ObjectReference = 6 -> WiseOwl.Cobol.Runtime.Repository.RepositoryCategory
+WiseOwl.Cobol.Runtime.Repository.RepositoryCategory.Pointer = 7 -> WiseOwl.Cobol.Runtime.Repository.RepositoryCategory
+WiseOwl.Cobol.Runtime.Repository.RepositoryCategory.ProgramPointer = 8 -> WiseOwl.Cobol.Runtime.Repository.RepositoryCategory
+WiseOwl.Cobol.Runtime.Repository.RepositoryGroupUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryGroupUsage.Bit = 1 -> WiseOwl.Cobol.Runtime.Repository.RepositoryGroupUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryGroupUsage.National = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositoryGroupUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryGroupUsage.None = 0 -> WiseOwl.Cobol.Runtime.Repository.RepositoryGroupUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.AssemblyReferences.get -> System.Collections.Generic.IReadOnlyList<string!>!
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.CallAbi.get -> int
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.CompilerVersion.get -> string?
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.Dispose() -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.Edition.get -> int
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.HasSignatures.get -> bool
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.Metadata.get -> System.Reflection.Metadata.MetadataReader!
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.Registrar.get -> string?
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.RuntimeVersion.get -> string!
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.SchemaVersion.get -> int
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.Units.get -> System.Collections.Generic.IReadOnlyList<WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow>!
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.Deconstruct(out WiseOwl.Cobol.Runtime.Repository.RepositoryIndex? Index, out WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure Failure, out string? Detail) -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.Detail.get -> string?
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.Detail.init -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.Equals(WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome other) -> bool
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.Failure.get -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.Failure.init -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.Index.get -> WiseOwl.Cobol.Runtime.Repository.RepositoryIndex?
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.Index.init -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.RepositoryIndexOutcome() -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.RepositoryIndexOutcome(WiseOwl.Cobol.Runtime.Repository.RepositoryIndex? Index, WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure Failure, string? Detail) -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryLiteralClass
+WiseOwl.Cobol.Runtime.Repository.RepositoryLiteralClass.Alphanumeric = 0 -> WiseOwl.Cobol.Runtime.Repository.RepositoryLiteralClass
+WiseOwl.Cobol.Runtime.Repository.RepositoryLiteralClass.Boolean = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositoryLiteralClass
+WiseOwl.Cobol.Runtime.Repository.RepositoryLiteralClass.National = 1 -> WiseOwl.Cobol.Runtime.Repository.RepositoryLiteralClass
+WiseOwl.Cobol.Runtime.Repository.RepositoryNumericDisplay
+WiseOwl.Cobol.Runtime.Repository.RepositoryNumericDisplay.Decimal = 0 -> WiseOwl.Cobol.Runtime.Repository.RepositoryNumericDisplay
+WiseOwl.Cobol.Runtime.Repository.RepositoryNumericDisplay.Digits = 1 -> WiseOwl.Cobol.Runtime.Repository.RepositoryNumericDisplay
+WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix
+WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix.None = 0 -> WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix
+WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix.Signed16 = 4 -> WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix
+WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix.Signed32 = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix
+WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix.Unsigned16 = 3 -> WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix
+WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix.Unsigned32 = 1 -> WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix
+WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
+WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.Malformed = 3 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
+WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.NoRepositoryRecord = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
+WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.None = 0 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
+WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.NotManagedAssembly = 1 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
+WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.TooManyUnits = 4 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Class = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.ClrMethod = 10 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.ClrType = 9 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Expansion = 8 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Function = 1 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.FunctionPrototype = 5 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Interface = 3 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.ParameterizedClass = 6 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.ParameterizedInterface = 7 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Program = 0 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.ProgramPrototype = 4 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Deconstruct(out WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind Kind, out string! ExternalizedName, out string! Word) -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow other) -> bool
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ExternalizedName.get -> string!
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ExternalizedName.init -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Kind.get -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Kind.init -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.RepositoryUnitRow() -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.RepositoryUnitRow(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind Kind, string! ExternalizedName, string! Word) -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Word.get -> string!
+WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Word.init -> void
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.Binary = 1 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.BinaryChar = 22 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.BinaryDouble = 25 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.BinaryLong = 24 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.BinaryShort = 23 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.Bit = 9 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.Comp5 = 3 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.Display = 0 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.Double = 5 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.Float = 4 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.FloatBinary128 = 19 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.FloatBinary32 = 17 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.FloatBinary64 = 18 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.FloatDecimal16 = 20 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.FloatDecimal34 = 21 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.FloatExtended = 16 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.FloatLong = 15 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.FloatShort = 14 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.FunctionPointer = 12 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.Index = 6 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.MessageTag = 13 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.National = 8 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.ObjectReference = 7 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.Packed = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.Pointer = 10 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
+WiseOwl.Cobol.Runtime.Repository.RepositoryUsage.ProgramPointer = 11 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUsage
 WiseOwl.Cobol.Runtime.RunUnitEndedException
 WiseOwl.Cobol.Runtime.RunUnitEndedException.Abnormal.get -> bool
 WiseOwl.Cobol.Runtime.RunUnitEndedException.ExitStatus.get -> long
@@ -148,10 +272,14 @@ const WiseOwl.Cobol.Runtime.ActivationCategory.FigurativeBoolean = "figurative-b
 const WiseOwl.Cobol.Runtime.ActivationCategory.FigurativeSpace = "figurative-space" -> string!
 const WiseOwl.Cobol.Runtime.ActivationDescription.ExternalRestrictionPrefix = "EXTERNAL TO " -> string!
 const WiseOwl.Cobol.Runtime.CobolNum.NestedQuotientGuardDigits = 14 -> int
+const WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion = 2 -> int
+const WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.MaxUnits = 65536 -> int
 override WiseOwl.Cobol.Runtime.CobolDecWithPrecision.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.IO.KeySegment.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.ObjectReferenceOperand.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.Occurrence.ToString() -> string!
+override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.GetHashCode() -> int
+override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.GetHashCode() -> int
 override sealed WiseOwl.Cobol.Runtime.IO.KeyedConnector.AbandonOpen() -> void
 override sealed WiseOwl.Cobol.Runtime.IO.KeyedConnector.CloseCore() -> string!
 override sealed WiseOwl.Cobol.Runtime.IO.KeyedConnector.InvalidateFilePosition() -> void
@@ -294,6 +422,14 @@ static WiseOwl.Cobol.Runtime.ProgramTable.ClassHalfPath(string! externalizedName
 static WiseOwl.Cobol.Runtime.ProgramTable.ClassPath(string! externalizedName) -> string!
 static WiseOwl.Cobol.Runtime.ProgramTable.ContainedPath(string! containerPath, string! name) -> string!
 static WiseOwl.Cobol.Runtime.ProgramTable.OutermostPath(string! externalizedName) -> string!
+static WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.EncodeUnit(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind kind, string! externalizedName, string! word) -> string!
+static WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.Open(System.IO.Stream! stream) -> WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome
+static WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.Open(string! path) -> WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome
+static WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.TryDecodeUnit(string! row, out WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow unit) -> bool
+static WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.operator !=(WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome left, WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome right) -> bool
+static WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.operator ==(WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome left, WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome right) -> bool
+static WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.operator !=(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow left, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow right) -> bool
+static WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.operator ==(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow left, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow right) -> bool
 static WiseOwl.Cobol.Runtime.SwitchStore.IsVariableName(string! variableName) -> bool
 static WiseOwl.Cobol.Runtime.SwitchStore.Names.get -> System.Collections.Generic.IReadOnlyList<string!>!
 static WiseOwl.Cobol.Runtime.UniversalGroupCarrier.WriteBackFixed(object? box, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal, string! image, WiseOwl.Cobol.Runtime.ReceivingReferences? received) -> object!
@@ -304,3 +440,7 @@ static WiseOwl.Cobol.Runtime.UniversalGroupCarrier.WriteBackVariable(object? box
 ~override WiseOwl.Cobol.Runtime.IO.KeySegment.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.ObjectReferenceOperand.ToString() -> string
+~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.Equals(object obj) -> bool
+~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
+~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
+~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
