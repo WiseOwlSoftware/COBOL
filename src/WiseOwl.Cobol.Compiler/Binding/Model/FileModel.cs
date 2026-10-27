@@ -943,6 +943,18 @@ public sealed class FileModel
     public DataItem? AreaRecord => Records.Count == 0 ? null
         : Records.Where(r => !IsOutOfLineRecord(r)).MaxBy(Model.RecordLayout.PhysicalWidth) ?? Records[0];
 
+    /// <summary>Whether <see cref="AreaRecord"/> is the ONLY description of this file's record area: the file has one
+    /// record and no record-area SAME clause shares the area with another file's records (§13.18.33.4 GR3: multiple
+    /// level 1 entries of an FD are implicit redefinitions of the same area; §12.4.6.4.4 GR2: so are a SAME RECORD
+    /// AREA peer's), and the file is not EXTERNAL (§13.18.22.4 GR4 b): the data of an external file's records "may be
+    /// accessed by any runtime element in the run unit that describes the same file and records as external", and this
+    /// compiler binds that area to ONE run-unit cell every describing element reads, so another element's complete
+    /// redefinition of it (GR6) reads what this element's READ deposits. A READ / RETURN into an area with one description
+    /// is a STORE into the record's own item, so a boolean record converts the characters it receives (determination
+    /// D-B5, kb/Work PB3697); into a shared area the bytes are every description's, and no record's conversion may
+    /// rewrite what the others read.</summary>
+    public bool AreaHasOneDescription => Records.Count == 1 && !IsExternal && !SameRecordAreaPeers.Any();
+
     /// <summary>⛔ DETERMINATION D-WRT1 (docs/CONFORMANCE.md §3, kb/Work PB1907) — THE ONE ANSWER to "does a WRITE or
     /// REWRITE of <paramref name="record"/> transfer bytes that extend outside the end of record-name-1?", the
     /// premise of §14.9.51.4 GR13 and §14.9.35.4 GR15 (Annex A.2 items 64 and 49), whose content those rules leave
