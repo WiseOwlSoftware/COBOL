@@ -38,7 +38,7 @@ param(
   [string]$Repo = (Split-Path $PSScriptRoot -Parent),
   [string]$RunDir = '',                                # default: <repo>/conformance-suite/results/fuzz-<stamp>
   [string[]]$ModelOption = @(),                        # MODEL:KEY=VALUE, passed to the harness's --model-option
-  [string]$Log = (Join-Path ([IO.Path]::GetTempPath()) 'fuzz-night.log'),
+  [string]$Log = '',                                   # default: <run directory>/wrapper.log, beside the harness's own files
   [switch]$NoFastForward,                              # leave the checkout as it is (default: fast-forward it to origin/main first)
   [int]$PollSeconds = 10,
   [double]$GameThreshold = 30,   # percent of a 3D engine, per process
@@ -112,11 +112,13 @@ function Stop-OllamaRunner {
 
 # ---- start the run -------------------------------------------------------------------------------------------
 Set-Location $Repo
+if (-not $RunDir) { $RunDir = Join-Path $Repo ("conformance-suite/results/fuzz-{0:yyyyMMdd-HHmmss}" -f (Get-Date)) }
+New-Item -ItemType Directory -Force -Path $RunDir | Out-Null
+if (-not $Log) { $Log = Join-Path $RunDir 'wrapper.log' }
 if (-not $NoFastForward) {
   $ff = git merge --ff-only -q origin/main 2>&1
   if ($LASTEXITCODE -ne 0) { Log "could not fast-forward $Repo to origin/main (the run uses the checkout as it is): $($ff -join ' ')" }
 }
-if (-not $RunDir) { $RunDir = Join-Path $Repo ("conformance-suite/results/fuzz-{0:yyyyMMdd-HHmmss}" -f (Get-Date)) }
 $pausePath = Get-PausePath $RunDir
 $hargs = Get-HarnessArguments -Model $Model -Hours $Hours -Jobs $Jobs -Seed $Seed -Cobol $Cobol -RunDir $RunDir -ModelOption $ModelOption
 Log "starting: $PY $($hargs -join ' ') (checkout at $(git rev-parse --short HEAD))"
