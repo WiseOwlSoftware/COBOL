@@ -31,8 +31,9 @@ each as a terminal RUNNER_ERROR row (three programs at 22:05 on 2026-10-22). The
     rewritten for PAUSE_STALE_SECONDS belongs to a wrapper that died, so the run goes on and says so) and REMOVES it on resume;
   - a worker WAITS for it to clear before every generation (`PauseGate.wait`), so no new request starts during a pause;
   - a generation that fails while it exists, or whose failure says Ollama's runner failed or restarted (`runner_failed`),
-    is asked AGAIN once after the pause (`lossless`); a failure outside a pause that is not a runner failure, or a second
-    failure, is the terminal RUNNER_ERROR it always was;
+    is asked AGAIN once after the pause (`lossless`; a runner failure with no pause first waits RUNNER_SETTLE_SECONDS for the
+    runner to restart); a failure outside a pause that is not a runner failure, or a second failure, is the terminal
+    RUNNER_ERROR it always was;
   - every pause and resume is appended to `<run dir>/pauses.jsonl`, so the report counts paused time and re-queued
     generations as pauses, not as the model's failures (`read_pauses`).
 Nothing is suspended: the compiles and runs of programs already generated are CPU work and finish.
@@ -88,6 +89,8 @@ PAUSE_LOG = "pauses.jsonl"
 PAUSE_POLL_SECONDS = 2.0
 #: The wrapper rewrites PAUSE every poll (10 s by default); a file this old is abandoned.
 PAUSE_STALE_SECONDS = 300.0
+#: A runner failure with no pause (Ollama's runner crashed and restarts on the next request): the wait before the one new try.
+RUNNER_SETTLE_SECONDS = 15.0
 
 #: What a model call raises: our OllamaError (a RuntimeError), a refused or reset connection, a timeout (all OSError).
 MODEL_ERRORS = (RuntimeError, OSError)
@@ -160,6 +163,21 @@ def runner_failed(e: BaseException) -> bool:
     return isinstance(e, (urllib.error.URLError, ConnectionError))
 
 
+#: What Ollama says when the runner PROCESS died or its connection broke, however else the message is worded.
+RUNNER_DEATH_MARKERS = ("llama-server process has terminated", "forcibly closed", "unexpected EOF", "connection reset",
+                        "an error was encountered while running the model")
+
+
+def repeat_abort(err: str) -> bool:
+    """True when `err` is Ollama stopping a reply that fell into a repeating loop ('prediction aborted, token repeat limit
+    reached'): the model's degenerate reply, not a failure of the server. The caller records the message as the reply and
+    treats it as a reply with no program. A message that also names the runner's death is the runner's failure, never a
+    verdict on the model (one end-to-end run, 2026-10-26, recorded an aborted reply on a generation asked again after its
+    runner was ended; the message was not kept, so whether Ollama words a restart that way is unknown: this rule makes the
+    answer harmless, and the aborted reply's message is now the recorded reply)."""
+    return "prediction aborted" in err and not any(m in err for m in RUNNER_DEATH_MARKERS)
+
+
 def read_reply(lines: Any, start: float) -> tuple[str, float, str, int]:
     """The reply of Ollama's NDJSON stream (one JSON object per line, one per token) → (content, seconds, done_reason,
     thinking characters). Returns at once, closing the stream, when the EnumerationWatch cuts the reply."""
@@ -172,10 +190,8 @@ def read_reply(lines: Any, start: float) -> tuple[str, float, str, int]:
         chunk = json.loads(raw)
         if chunk.get("error"):
             err = str(chunk["error"])
-            if "prediction aborted" in err:
-                # Ollama stopped a reply that fell into a repeating loop ("token repeat limit reached"): the model's reply,
-                # degenerate, not a failure of the harness or the server. The caller treats it as a reply with no program.
-                return "", time.monotonic() - start, ABORTED, 0
+            if repeat_abort(err):
+                return err[:300], time.monotonic() - start, ABORTED, 0
             raise OllamaError(f"ollama error after the reply began: {err[:300]!r}")
         message = chunk.get("message") or {}
         thinking += len(message.get("thinking") or "")
@@ -216,8 +232,8 @@ def ollama_chat(model: str, messages: list[dict[str, str]], temperature: float, 
             if attempt == 0 and b"think" in msg:
                 body.pop("think")
                 continue
-            if b"prediction aborted" in msg:
-                return "", time.monotonic() - start, ABORTED, 0
+            if repeat_abort(msg.decode("utf-8", "replace")):
+                return msg.decode("utf-8", "replace"), time.monotonic() - start, ABORTED, 0
             raise OllamaError(f"ollama HTTP {e.code}: {msg!r}", e.code) from None
         except http.client.HTTPException as e:
             # a chunked stream the server closed before its last chunk (the runner died mid-reply)
@@ -266,24 +282,33 @@ class PauseGate:
                  say: Callable[[str], None] = print) -> None:
         self.path = run_dir / PAUSE_FILE
         self.log = run_dir / PAUSE_LOG
-        self.poll, self.stale_after, self._now, self._sleep, self._say = poll, stale_after, now, sleep, say
+        self.poll, self.stale_after, self.sleep, self._now, self._say = poll, stale_after, sleep, now, say
         self._lock = threading.Lock()
         self._since: float | None = None        # when this gate first saw the live PAUSE it is in
         self._warned = False
+        self._unreadable_since: float | None = None
 
     def _live(self, now: float) -> bool:
         try:
             age = now - self.path.stat().st_mtime
         except FileNotFoundError:
-            self._warned = False
+            self._warned, self._unreadable_since = False, None
             return False
-        except OSError:
-            return True                         # the wrapper is rewriting it: still a pause
+        except OSError as e:
+            # The wrapper is replacing the file at this instant (Windows refuses a stat then): still a pause. A file that stays
+            # unreadable as long as a lease lasts is as dead as a lease nobody renews.
+            self._unreadable_since = self._unreadable_since if self._unreadable_since is not None else now
+            if now - self._unreadable_since <= self.stale_after:
+                return True
+            age = now - self._unreadable_since
+            phrase = f"has been unreadable for {age:.0f} s ({e})"
+        else:
+            self._unreadable_since = None
+            phrase = f"was last rewritten {age:.0f} s ago"
         if age > self.stale_after:
             if not self._warned:
                 self._warned = True
-                self._say(f"{self.path} was last rewritten {age:.0f} s ago: the wrapper that made it stopped, so it is "
-                          "ignored and the run goes on")
+                self._say(f"{self.path} {phrase}: the wrapper that made it stopped, so it is ignored and the run goes on")
             return False
         self._warned = False
         return True
@@ -308,7 +333,7 @@ class PauseGate:
 
     def wait(self) -> None:
         while self.active():
-            self._sleep(self.poll)
+            self.sleep(self.poll)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -335,18 +360,23 @@ def read_pauses(run_dir: Path) -> Pauses:
     return Pauses(count, seconds, inside)
 
 
-def lossless(gate: PauseGate, call: Callable[[], Any], requeued: Callable[[BaseException], None]) -> Any:
+def lossless(gate: PauseGate, call: Callable[[], Any], requeued: Callable[[BaseException], None],
+             settle: float = RUNNER_SETTLE_SECONDS) -> Any:
     """`call()` after the pause, and ONCE MORE if it fails while a pause is on or with a runner failure (module docstring):
-    `requeued(error)` is told of the first failure. A failure outside a pause that is no runner failure, or the second
-    failure, propagates: it is a RUNNER_ERROR."""
+    `requeued(error)` is told of the first failure. A runner failure outside a pause waits `settle` seconds first, for the
+    runner to restart. A failure outside a pause that is no runner failure, or the second failure, propagates: it is a
+    RUNNER_ERROR."""
     for retry in (False, True):
         gate.wait()
         try:
             return call()
         except MODEL_ERRORS as e:
-            if retry or not (gate.active() or runner_failed(e)):
+            paused = gate.active()
+            if retry or not (paused or runner_failed(e)):
                 raise
             requeued(e)
+            if not paused:
+                gate.sleep(settle)
     raise AssertionError("unreachable")
 
 
@@ -440,6 +470,14 @@ def _stub_behaviors(server: http.server.HTTPServer) -> dict[str, Callable[[_Stub
         h.send({"error": "prediction aborted, token repeat limit reached"})
         h.end()
 
+    def aborted_runner_died(h: _StubOllama, _b: dict[str, Any]) -> None:
+        h.begin()
+        h.send({"error": "prediction aborted: llama-server process has terminated: exit status 0xffffffff"})
+        h.end()
+
+    def aborted_http(h: _StubOllama, _b: dict[str, Any]) -> None:
+        h.fail(500, "prediction aborted, token repeat limit reached")
+
     def cut(h: _StubOllama, _b: dict[str, Any]) -> None:
         h.begin()
         h.send({"message": {"content": "IDENT"}, "done": False})
@@ -452,7 +490,7 @@ def _stub_behaviors(server: http.server.HTTPServer) -> dict[str, Callable[[_Stub
             ok(h, body)
 
     return {"ok": ok, "endless": endless, "length": length, "error_line": error_line, "repeat_limit": repeat_limit,
-            "cut": cut, "think_refused": think_refused,
+            "aborted_runner_died": aborted_runner_died, "aborted_http": aborted_http, "cut": cut, "think_refused": think_refused,
             "http500": lambda h, _b: h.fail(500, "an error was encountered while running the model"),
             "http400": lambda h, _b: h.fail(400, "invalid options")}
 
@@ -556,9 +594,14 @@ def self_test() -> int:
               and got[0] == "```cobol\nWORKING-STORAGE SECTION.\n01 WS-ARG1 PIC X(10) VALUE \"ARG 1\".\n01 WS-ARG2 PIC X(10) VALUE \"ARG 2\".\n"
               and server.client_left and not server.sent_all,  # type: ignore[attr-defined]
               (got, server.client_left, server.sent_all))  # type: ignore[attr-defined]
-        got = chat("repeat_limit")
-        check("chat: Ollama's own repeat-limit abort is a reply with no program, done_reason aborted",
-              isinstance(got, tuple) and got[0] == "" and got[2] == ABORTED, got)
+        got, got_http = chat("repeat_limit"), chat("aborted_http")
+        died = chat("aborted_runner_died")
+        check("chat: Ollama's own repeat-limit abort, as an error line or an HTTP error, is a reply with no program, done_reason "
+              "aborted, its message the recorded reply; one that names the runner's death is a runner failure, not a verdict "
+              "on the model",
+              isinstance(got, tuple) and "token repeat limit" in got[0] and got[2] == ABORTED
+              and isinstance(got_http, tuple) and "token repeat limit" in got_http[0] and got_http[2] == ABORTED
+              and isinstance(died, OllamaError) and runner_failed(died), (got, got_http, died))
         check("chat: the two cut shapes are one failure shape", set(DEGENERATE_REASONS) == {DEGENERATE, ABORTED})
         err_line, err_cut, err500, err400 = chat("error_line"), chat("cut"), chat("http500"), chat("http400")
         check("chat: an error line after the reply began, a stream cut before its last chunk and an HTTP 500 are runner failures "
@@ -639,12 +682,31 @@ def self_test() -> int:
         check("pause: a run killed inside a pause reads as open", read_pauses(run) == Pauses(1, 0.0, True))
         check("pause: a run that never paused reads as none", read_pauses(run / "nowhere") == Pauses(0, 0.0, False))
 
+        class Locked:
+            """A PAUSE that cannot be statted (the wrapper is replacing it; or a permission that never comes right)."""
+            def stat(self) -> os.stat_result:
+                raise PermissionError("locked")
+
+        said3: list[str] = []
+        gate3 = PauseGate(run / "g3", poll=1.0, stale_after=60.0, now=lambda: clock[0], sleep=lambda _s: None, say=said3.append)
+        (run / "g3").mkdir()
+        gate3.path = Locked()  # type: ignore[assignment]
+        first = gate3.active()
+        clock[0] += 30
+        second = gate3.active()
+        clock[0] += 31
+        third = gate3.active()
+        check("pause: a PAUSE that cannot be read counts as a pause for as long as a lease lasts, then as a dead wrapper's, said once",
+              (first, second, third) == (True, True, False) and gate3.active() is False
+              and sum("unreadable" in s for s in said3) == 1 and read_pauses(run / "g3") == Pauses(1, 61.0, False),
+              (first, second, third, said3, read_pauses(run / "g3")))
+
         # ── lossless (kb/Work PB3561 item 1): the second gate's PAUSE is created by the first call's failure, as the wrapper
         # creates it before it ends the runner, and removed when the gate has polled once
         (run / "g2").mkdir()
         polls: list[float] = []
         gate2 = PauseGate(run / "g2", poll=1.0, stale_after=1e9, now=lambda: clock[0],
-                          sleep=lambda s: (polls.append(s), gate2.path.unlink())[0], say=lambda _m: None)
+                          sleep=lambda s: (polls.append(s), gate2.path.unlink(missing_ok=True))[0], say=lambda _m: None)
 
         def scripted(*outcomes: object, pause_on_first: bool = False) -> tuple[Callable[[], Any], list[str]]:
             calls: list[str] = []
@@ -679,9 +741,11 @@ def self_test() -> int:
         check("lossless: any failure while PAUSE exists is re-queued, a timeout too",
               outcome_of(call, requeues) == "again" and requeues == [timed_out])
         requeues.clear()
+        polls.clear()
         call, calls = scripted(runner_down, "again")
-        check("lossless: a runner failure outside a pause is also asked again once (the runner restarted)",
-              outcome_of(call, requeues) == "again" and len(calls) == 2 and requeues == [runner_down])
+        check("lossless: a runner failure outside a pause is also asked again once, after the settle for the runner to restart",
+              outcome_of(call, requeues) == "again" and len(calls) == 2 and requeues == [runner_down]
+              and polls == [RUNNER_SETTLE_SECONDS], (calls, requeues, polls))
         for name, failure in (("a timeout", TimeoutError("t")), ("a refused request", OllamaError("ollama HTTP 400: x", 400)),
                               ("an unrelated RuntimeError", RuntimeError("x"))):
             requeues.clear()

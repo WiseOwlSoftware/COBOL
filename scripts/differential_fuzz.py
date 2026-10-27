@@ -1110,7 +1110,9 @@ class Fuzz:
                 if attempt == self.s.repairs:
                     rec.update(verdict="NO_PROGRAM", reason=why, truncated=done == "length")
                     return rec
-                messages += [{"role": "assistant", "content": reply}, {"role": "user", "content": retry_request(done)}]
+                # (an aborted reply's text is Ollama's message, recorded in the reply file, never the model's turn)
+                messages += [{"role": "assistant", "content": "" if done == ABORTED else reply},
+                             {"role": "user", "content": retry_request(done)}]
                 continue
             if attempt:
                 rec["repairs"] = attempt
@@ -2083,6 +2085,23 @@ def self_test() -> int:
               and "PB9001" in outputs["forced"][1] and "PB9005" in outputs["forced"][1], outputs["forced"])
         check("cadence: a bake-off is not a run and is never refused", outputs["bake-off"][0] == "exit 2" and outputs["bake-off"][1] == "",
               outputs["bake-off"])
+    # --model-option (kb/Work PB3537): a bad item and an option for a model the run does not use are argparse errors, before anything starts
+    option_errors: dict[str, str] = {}
+    for case, argv in (("key", ["--model", "m", "--count", "1", "--model-option", "m:top_k=3"]),
+                       ("unused", ["--bake-off", "a,b", "--count", "1", "--model-option", "c:repeat_penalty=1.1"]),
+                       ("ok", ["--bake-off", "a,b", "--count", "1", "--cobol", "no-such-cobol.exe", "--model-option", "b:repeat_penalty=1.1"])):
+        err = io.StringIO()
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+            try:
+                main(argv)
+                code: object = 0
+            except SystemExit as e:
+                code = e.code
+        option_errors[case] = f"{code}|{err.getvalue()}"
+    check("options: --model-option with an unknown key, or for a model the run does not use, is refused with the item named; a valid one for a model of the bake-off is accepted (the run then stops at the missing compiler)",
+          option_errors["key"].startswith("2|") and "--model-option 'm:top_k=3'" in option_errors["key"]
+          and option_errors["unused"].startswith("2|") and "names c, which this run does not use (it runs a, b)" in option_errors["unused"]
+          and option_errors["ok"].startswith("2|") and "compiler not found" in option_errors["ok"], option_errors)
     print("self-test " + ("PASSED" if rc == 0 else "FAILED"))
     return rc
 

@@ -81,12 +81,12 @@ function Start-FuzzPause {
     # grace for a worker that was between its check and its request, and then the runner is ended at once (the model's
     # VRAM is free for the game). The generations in flight fail, see PAUSE, and are asked again after it (fuzz_ollama.py).
     # `ollama stop` is not used: it waits for the generations in flight, which kept the GPU pegged for minutes on 2026-10-22.
-    param([string]$PausePath, [string]$Game, [int]$GraceSeconds, [scriptblock]$EndRunner, [scriptblock]$Sleep, [scriptblock]$Log)
+    param([string]$PausePath, [string]$Game, [int]$GraceSeconds, [scriptblock]$EndRunner, [scriptblock]$Sleep, [scriptblock]$Say)
     Set-Content -Path $PausePath -Value "paused for $Game" -Encoding utf8NoBOM
-    & $Log "GAME detected: $Game -> PAUSE written ($PausePath); the runner ends in $GraceSeconds s"
+    & $Say "GAME detected: $Game -> PAUSE written ($PausePath); the runner ends in $GraceSeconds s"
     & $Sleep $GraceSeconds
     $ended = & $EndRunner
-    & $Log "Ollama's runner ended ($ended process(es)); the GPU is the game's, and the harness asks its generations again after the pause"
+    & $Say "Ollama's runner ended ($ended process(es)); the GPU is the game's, and the harness asks its generations again after the pause"
 }
 
 function Send-PauseBeat {
@@ -96,7 +96,7 @@ function Send-PauseBeat {
 }
 
 function Stop-FuzzPause {
-    param([string]$PausePath, [int]$QuietSeconds, [scriptblock]$Log)
+    param([string]$PausePath, [int]$QuietSeconds, [scriptblock]$Say)
     Remove-Item -LiteralPath $PausePath -Force -ErrorAction SilentlyContinue
-    & $Log "no game load for $QuietSeconds s -> PAUSE removed; the harness's generations resume and Ollama reloads the model on the first request"
+    & $Say "no game load for $QuietSeconds s -> PAUSE removed; the harness's generations resume and Ollama reloads the model on the first request"
 }
