@@ -135,7 +135,7 @@ public static partial class CobolEdit
         var m = FloatMask.Parse(picture, commaMode, edits);
         // An unchecked store never acts on Inexact: PROHIBITED is a request to raise, and this one cannot; the
         // rounding kernel lands it truncated (DOC-A.1-70), the same as every unchecked fixed-point store.
-        string image = FormatFloatCore(sig, exp10, m, mode, blankWhenZero, out var outcome);
+        string image = FormatFloatCore(NormalizeFloat(sig, exp10, m, mode), m, blankWhenZero, out var outcome);
         if (outcome == FloatStoreOutcome.Overflow)
             ExceptionState.FloatOverflowError($"the value {sig}E{exp10} is farther from zero than the picture {picture} permits");
         return commaMode ? SwapSeparators(image) : image;
@@ -169,7 +169,7 @@ public static partial class CobolEdit
     private static bool TryFormatFloatCore(BigInteger sig, int exp10, string picture, out string image, CobolRounding mode, bool blankWhenZero, bool commaMode, EditRule[]? edits)
     {
         var m = FloatMask.Parse(picture, commaMode, edits);
-        string img = FormatFloatCore(sig, exp10, m, mode, blankWhenZero, out var outcome);
+        string img = FormatFloatCore(NormalizeFloat(sig, exp10, m, mode), m, blankWhenZero, out var outcome);
         image = commaMode ? SwapSeparators(img) : img;
         return outcome == FloatStoreOutcome.Ok;
     }
@@ -193,15 +193,31 @@ public static partial class CobolEdit
     /// the mask's capacity, and a value just under the underflow bound that rounds up to the smallest
     /// representable nonzero is that value and not a size error. A MOVE passes TRUNCATION (§14.6.8.4 rule 2) and
     /// never carries.</para></summary>
-    private static string FormatFloatCore(BigInteger sig, int exp10, in FloatMask m, CobolRounding mode, bool blankWhenZero, out FloatStoreOutcome outcome)
+    private static string FormatFloatCore(in NormalizedFloat n, in FloatMask m, bool blankWhenZero, out FloatStoreOutcome outcome)
     {
-        outcome = FloatStoreOutcome.Ok;
-        // BLANK WHEN ZERO (§13.18.8.4 GR1) tests THE VALUE BEING STORED, here and at the underflow arm below —
-        // the only two ways this form stores zero, since normalization leaves the significand's leading digit
-        // nonzero and its truncation therefore cannot produce a zero (kb/Work PB566 sweep). Otherwise rule 8's
-        // zero image: all significand and exponent digits zero, both signs positive.
-        if (sig.IsZero)
+        outcome = n.Outcome;
+        // BLANK WHEN ZERO (§13.18.8.4 GR1) tests THE VALUE BEING STORED, here and at the underflow arm of
+        // NormalizeFloat — the only two ways this form stores zero, since normalization leaves the significand's
+        // leading digit nonzero and its truncation therefore cannot produce a zero (kb/Work PB566 sweep). Otherwise
+        // rule 8's zero image: all significand and exponent digits zero, both signs positive.
+        if (n.Zero)
             return blankWhenZero ? new string(' ', m.Length) : RenderFloat(m, negative: false, new string('0', m.SigDigits), 0);
+        return RenderFloat(m, n.Negative, n.Significand.ToString(System.Globalization.CultureInfo.InvariantCulture).PadLeft(m.SigDigits, '0'), n.Exponent);
+    }
+
+    /// <summary>A value as the floating-point numeric-edited item holds it: the sign, the <c>SigDigits</c>-digit
+    /// significand and the exponent that keeps the value, or zero (<see cref="Zero"/>). On overflow it is the pinned
+    /// saturated image's content (all nines at the maximum exponent); on underflow it is zero (§14.9.25.4 GR6 d) 4 b).</summary>
+    private readonly record struct NormalizedFloat(bool Zero, bool Negative, Int128 Significand, int Exponent,
+        FloatStoreOutcome Outcome);
+
+    /// <summary>⛔ THE ONE NORMALIZATION OF A VALUE INTO A FLOATING-POINT EDITED ITEM'S SHAPE (§14.6.8.4 GR1), shared by
+    /// the store (<see cref="FormatFloatCore"/>) and by <see cref="TruncateToFloatShape"/>, which asks what the item
+    /// WOULD hold for a value without writing an image (kb/Work PB2923). Rounds the dropped digits by
+    /// <paramref name="mode"/>, then decides the outcome against the exponent's capacity.</summary>
+    private static NormalizedFloat NormalizeFloat(BigInteger sig, int exp10, in FloatMask m, CobolRounding mode)
+    {
+        if (sig.IsZero) return new NormalizedFloat(true, false, 0, 0, FloatStoreOutcome.Ok);
         bool negative = sig.Sign < 0, inexact = false;
         BigInteger a = BigInteger.Abs(sig);
         int d = DigitCount(a);
@@ -227,20 +243,32 @@ public static partial class CobolEdit
             }
         }
         int maxExp = m.MaxExp;
-        if (e > maxExp)
-        {
-            outcome = FloatStoreOutcome.Overflow;
-            return RenderFloat(m, negative, new string('9', m.SigDigits), maxExp);   // the pinned saturated image
-        }
-        if (e < -maxExp)
-        {
-            outcome = FloatStoreOutcome.Underflow;
-            // §14.9.25.4 GR6 d) 4 b: a value nearer to zero than the receiver permits "is treated as zero" — so
-            // the value BEING STORED is zero and §13.18.8.4 GR1 blanks.
-            return blankWhenZero ? new string(' ', m.Length) : RenderFloat(m, negative: false, new string('0', m.SigDigits), 0);
-        }
-        if (inexact) outcome = FloatStoreOutcome.Inexact;
-        return RenderFloat(m, negative, s.ToString().PadLeft(m.SigDigits, '0'), e);
+        if (e > maxExp)   // the pinned saturated image
+            return new NormalizedFloat(false, negative, Pow10.AsWide(m.SigDigits) - 1, maxExp, FloatStoreOutcome.Overflow);
+        // §14.9.25.4 GR6 d) 4 b: a value nearer to zero than the receiver permits "is treated as zero" — so
+        // the value BEING STORED is zero and §13.18.8.4 GR1 blanks.
+        if (e < -maxExp) return new NormalizedFloat(true, false, 0, 0, FloatStoreOutcome.Underflow);
+        return new NormalizedFloat(false, negative, (Int128)s, e, inexact ? FloatStoreOutcome.Inexact : FloatStoreOutcome.Ok);
+    }
+
+    /// <summary>⛔ THE VALUE A FLOATING-POINT NUMERIC-EDITED ITEM HOLDS FOR <paramref name="value"/> UNDER TRUNCATION — the
+    /// shape ISO §14.9.12.4 6) c) asks of the subsidiary quotient of <c>DIVIDE ... GIVING identifier-3 REMAINDER</c> when
+    /// identifier-3 is such an item (kb/Work PB2923): "derived from the quotient by truncation of digits at the least
+    /// significant end and that has the same number of digits and the same decimal point location as the data item
+    /// referenced by identifier-3". A floating-point item has no fixed decimal point location, only a significand of
+    /// <c>SigDigits</c> digits normalized so that its leading digit is nonzero (§14.6.8.4 1)), so the quotient keeps its own
+    /// leading <c>SigDigits</c> digits at its own exponent: +9.99E+99 holds 1/3000 as 3.33E-04, not as the 0.00 a fixed
+    /// scale would leave. It is <see cref="FormatFloatStore(CobolDec, string, CobolRounding, bool, bool, EditRule[])"/>'s
+    /// own normalization (<see cref="NormalizeFloat"/>) with the image left unwritten, so the subsidiary quotient and the
+    /// stored one cannot disagree about the item's shape: a value past the exponent's range is the pinned saturated
+    /// content and one nearer to zero than the item can hold is zero, exactly as the store leaves them.</summary>
+    public static CobolDec TruncateToFloatShape(CobolDec value, string picture, bool commaMode = false, EditRule[]? edits = null)
+    {
+        var m = FloatMask.Parse(picture, commaMode, edits);
+        var n = NormalizeFloat(value.Sig, value.Exp, m, CobolRounding.Truncation);
+        if (n.Zero) return new CobolDec(0, 0);
+        // The mask's own SigScale is the significand's decimal point location: value = ±S × 10^(E − SigScale).
+        return new CobolDec(n.Negative ? -n.Significand : n.Significand, n.Exponent - m.SigScale);
     }
 
     /// <summary>Render a normalized significand digit string and exponent into the mask (dot-canonical).</summary>
@@ -321,7 +349,7 @@ public static partial class CobolEdit
         if (ExceptionState.DataIncompatibleChecking)
         {
             // The image's own digits fit the mask, so the round trip drops none and the mode is moot.
-            string expected = FormatFloatCore(negative ? -s : s, e - m.SigScale, m, CobolRounding.Truncation, blankWhenZero, out _);
+            string expected = FormatFloatCore(NormalizeFloat(negative ? -s : s, e - m.SigScale, m, CobolRounding.Truncation), m, blankWhenZero, out _);
             if (expected != image)
                 ExceptionState.DataIncompatibleError(
                     $"the content '{image}' is not a possible result of editing into {picture} (a de-editing MOVE, ISO 14.6.13.2 rule 4)");

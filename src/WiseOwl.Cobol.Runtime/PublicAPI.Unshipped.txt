@@ -282,3 +282,6 @@ static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassReturning(bool enabledI
 static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassFormalViolation(WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> string?
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassFormal(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.NumvalF(string! text, int scale, bool commaMode = false, int digitCap = 31, bool checkedLanding = false) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolEdit.TruncateToFloatShape(WiseOwl.Cobol.Runtime.CobolDec value, string! picture, bool commaMode = false, WiseOwl.Cobol.Runtime.CobolEdit.EditRule[]? edits = null) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolFloat.TruncatedToFormat(WiseOwl.Cobol.Runtime.CobolDec quotient, bool single) -> double
+static WiseOwl.Cobol.Runtime.CobolFloat.TruncatedToSingle(double quotient) -> double
