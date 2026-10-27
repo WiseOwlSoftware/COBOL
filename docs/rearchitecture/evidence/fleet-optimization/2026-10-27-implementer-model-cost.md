@@ -37,9 +37,11 @@ Over the whole month (landing not measurable before 10-17): Sonnet 379 groups, 0
 note; Opus 410 groups, 0.296 per group, 0.17 per landed note. Retries (attempt-1 groups from 10-07): Sonnet 34 of 283
 re-dispatched (12 %), the retries going 22 to Sonnet and 26 to Opus; Opus 37 of 222 (17 %).
 
-**Like for like.** `runtime/io` is the one area with enough groups of both since 10-17: Sonnet 35 groups, DONE 97 %,
-landed 100 %, 0.16 points per note; Opus 19 groups, DONE 84 %, landed 95 %, 0.21 per note. From 10-07 Sonnet is cheaper
-per note in 10 of 13 shared areas, on 3 to 13 groups a cell.
+**Like for like.** Two areas have groups of both since 10-17. `runtime/io` (Sonnet 35 groups, Opus 19): Sonnet DONE 97 %,
+landed 100 %, 0.16 points per note; Opus DONE 84 %, landed 95 %, 0.21 per note. `tests/conformance-suite` (Sonnet 5, Opus
+6) goes the OTHER way: Sonnet 0.165 points per note against Opus 0.138 (0.165 against 0.146 with retries charged in). From
+10-07 Sonnet is cheaper per note in 12 of 13 shared areas by the implementer-and-rework cost, and in 9 of 13 with each
+lead note's later retries charged back; the cells hold 3 to 13 groups each, so no one area decides.
 
 ## Confounds
 
@@ -51,6 +53,20 @@ per note in 10 of 13 shared areas, on 3 to 13 groups a cell.
 - **Not counted:** landing-lane runs, a merge-queue bounce fixed by a finisher outside the group's workflow, and the
   orchestrator's time. The reviews run Opus in both arms, a fixed cost of about 0.10 points a group.
 - "Notes landed" counts a note whose status is now landed or retired.
+
+## Reproduce
+
+The scripts read their inputs from their own directory. From a checkout at the measured `origin/main`:
+
+1. `python extract.py` walks the Workflow transcript directories under the Claude config directory and writes
+   `all_agents.json` (every agent: label, model per message, counted tokens, result).
+2. `git log origin/main --format='%H|%cI|%P|%s' > gitlog.txt` and `git rev-list origin/main > mainshas.txt` (this record:
+   origin/main deae52c90, 8,539 commits).
+3. `python analyze.py` joins them with `kb/Work` and writes `rows.json` and `results.csv`; `stats.py`, `stats2.py` and
+   `stats3.py` print the tables from `rows.json`.
+
+`all_agents.json`, `rows.json` and the two git listings are not committed (8 MB, and derivable); `results.csv` is the
+committed result. The transcripts may be pruned, so a re-measure covers the waves since the last one.
 
 ## Decision
 
