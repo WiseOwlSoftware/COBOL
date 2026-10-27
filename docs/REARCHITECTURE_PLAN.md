@@ -693,7 +693,9 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   session-probe/`work.py next` — it simply no longer gates the adjudication lane.
   ② Run fully autonomously, no permission pauses;
   only D13-class spec decisions are owner-reserved. ③ ALL subagents run Opus 5
-  (`CLAUDE_CODE_SUBAGENT_MODEL` is set persistently; also pass `model:'opus'` in workflow scripts).**
+  (`CLAUDE_CODE_SUBAGENT_MODEL` is set persistently; also pass `model:'opus'` in workflow scripts).** Superseded by
+  MANDATORY-PRACTICES P1: the mechanical roles run Sonnet (owner 2026-09-27) and `cobol-implementer` runs Sonnet by
+  default, Opus where routed (owner 2026-10-27, kb/Work PB3868).
   **WHERE THE CAMPAIGN STANDS (all numbers COMPUTED — run the probe):** the 2026-08-09 triage
   (DEVLOG 1255, evidence frozen in `docs/rearchitecture/backlog-triage-2026-08-09.json`) probed all
   331 backlog rows with a 14-group probe+refute fleet: 114 verified fixed by the earlier waves, the
