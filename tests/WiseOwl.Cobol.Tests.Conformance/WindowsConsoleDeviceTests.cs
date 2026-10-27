@@ -126,7 +126,8 @@ public sealed class WindowsConsoleDeviceTests
 
             var (text, probes) = RunOnConsole(dir, Dll(dir, "CONACC"), "€中Eé\r");
 
-            Assert.Contains("8365 20014 70 234", text);
+            // ORD's value DISPLAYs in its device form, nine digits, as GnuCOBOL 3.2 shows it (kb/Work PB3514).
+            Assert.Contains("000008365 000020014 000000070 000000234", text);
             Assert.Equal((437, 437), probes[1]);   // and the console's code pages are still the shell's
         }
         finally { ScratchDirectory.Remove(dir); }
@@ -151,7 +152,7 @@ public sealed class WindowsConsoleDeviceTests
 
             var (text, probes) = RunOnConsole(dir, Dll(dir, "CONACC"), "\u001a\r");
 
-            Assert.Contains("33 33 33 33", text);
+            Assert.Contains("000000033 000000033 000000033 000000033", text);   // ORD's device form (PB3514)
             Assert.Equal((437, 437), probes[1]);
         }
         finally { ScratchDirectory.Remove(dir); }
