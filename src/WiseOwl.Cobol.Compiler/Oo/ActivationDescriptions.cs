@@ -210,7 +210,8 @@ public static class ActivationDescriptions
     /// <summary>The description of a BY CONTENT / BY VALUE argument that has NO STORAGE, as the sending operand ISO
     /// §14.8.2.3.3 rule 2 names — the one description the relation (<c>ActivationRelations.CallArgumentViolation</c>) is
     /// asked of, at bind time (<c>ParameterConformance.ContentConformanceReason</c>) and at run time alike: a nonnumeric literal is its category's Table 16 row; a
-    /// numeric literal (and a BY VALUE literal bound as an expression, §14.9.4.4 GR8) the numeric row of its own digits;
+    /// numeric literal the numeric row of its own digits (the binder binds every written one, BY VALUE included, as a
+    /// <see cref="BoundNumericLiteral"/>, §14.9.4.4 GR8, so a computed operand is never one: <c>(3)</c> is an expression, kb/Work PB3760);
     /// a figurative constant or an ALL literal an alphanumeric value of any category, ZERO also a numeric COMPUTE sender
     /// (§8.8.1.1), and the §14.9.25.3 SR5 / SR6 / SR7 senders read apart (SPACE; ZERO; an ALL literal of boolean
     /// characters); a
@@ -227,9 +228,6 @@ public static class ActivationDescriptions
             ActivationCategory.OfFigurative(MoveTable16.FigurativeSenderOf(value)), Table16Category.None),
         BoundStringLiteral s => Value(ActivationShape.Literal, CategoryName(s.Category), MoveTable16.SenderPosition(s).Heading),
         BoundNumericLiteral n => Value(ActivationShape.Literal, ActivationCategory.Numeric, MoveTable16.SenderPosition(n).Heading),
-        BoundComputedOperand ce when Gr8ArgumentLiteral.NumericText(ce.Expr) is { } text =>
-            Value(ActivationShape.Literal, ActivationCategory.Numeric,
-                MoveTable16.SenderPosition(new BoundNumericLiteral(text)).Heading),
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: not PicCategory.Numeric } ic } character =>
             Value(ActivationShape.Literal, CategoryName(ic.ResultCategory), MoveTable16.SenderPosition(character).Heading),
         // ⛔ A NUMERIC FUNCTION'S VALUE IS A VALUE A MOVE SENDS, NOT AN ARITHMETIC EXPRESSION (kb/Work PB3613): §15.4 puts the returned

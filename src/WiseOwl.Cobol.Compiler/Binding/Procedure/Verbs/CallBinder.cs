@@ -375,7 +375,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // `01 F FLOAT-LONG VALUE 1.5` reached a `PIC S9(3)V99` BY VALUE formal as 001.00, where
                 // §14.2.3 GR10 requires "a COMPUTE statement without the ROUNDED phrase" ⇒ 001.50). The
                 // reduction is the SAME one the BY CONTENT arm runs, from the SAME helper.
-                var (vLit, _, _, vDref, _, vArith) = ConditionBinder.ReduceArgument(
+                var (vLit, _, vSoleNum, vDref, _, vArith) = ConditionBinder.ReduceArgument(
                     byValue.literal(), null, null, byValue.arithmeticExpression());
                 if (vLit is { } vlit)
                 {
@@ -386,6 +386,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     Sr23LiteralIsNumeric(vlit, "BY VALUE");
                     args.Add(new BoundCallArg(CobolPassMode.Value, null, host.Expr.NullAdmittingOperand(vlit)));
                 }
+                // literal-2 written as a sole numeric literal, its sign included (§8.3.3.3.2 rule 2): the literal operand
+                // the BY CONTENT and keyword-less spellings bind (kb/Work PB3760). Bound as an expression it was a computed
+                // operand a reader had to recover the literal from, and that recovery could not tell `(3)` from 3.
+                else if (vSoleNum is { } vnum)
+                    args.Add(new BoundCallArg(CobolPassMode.Value, null, host.Expr.NumericLiteralOperand(vnum)));
                 else if (vDref is not null && host.Expr.LiteralAliasOf(vDref) is { IsNumeric: false } valueAlias)
                 {
                     // A non-numeric constant-name or a symbolic-character is literal-2 (kb/Work PB1544), and SR23 is
@@ -481,7 +486,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // resolution (kb/Work PB1544; it drew COBOL1639 "not defined").
                 if (formatTwo && host.Expr.LiteralAliasOf(bare) is { } bareAlias)
                 {
-                    var kMode = Gr9BareLiteralMode(calleeFormals, args.Count);
+                    var kMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
                     if (kMode is CobolPassMode.Value) Sr23AliasIsNumeric(bareAlias, "a BY VALUE formal parameter");
                     args.Add(new BoundCallArg(kMode, null, host.Expr.AliasOperand(bareAlias)));
                     continue;
@@ -544,7 +549,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // MODE is the mechanism, not a side effect of the copy-out (kb/Work PB238: this arm hard-coded
                 // Content and the VALUE outcome happened only because a Content literal has no storage to copy
                 // back to — right by accident, and it would not have survived a change to the copy-out).
-                var bLitMode = Gr9BareLiteralMode(calleeFormals, args.Count);
+                var bLitMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
                 // §14.9.4.3 SR23's SECOND subject — "or its corresponding formal parameter is specified with
                 // the BY VALUE phrase" — which had no reachable arm at all before the mode was derived here.
                 if (bLitMode is CobolPassMode.Value) Sr23LiteralIsNumeric(bLit, "a BY VALUE formal parameter");
@@ -565,14 +570,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 if (!formatTwo && !BareNeedsFormat2(nbl.GetText())) return BoundRejected.Reported(ctx.Edition);
                 if (host.Expr.NullAdmittingOperand(nbl) is not { } nblOp)
                     return new BoundUnsupported($"CALL USING argument '{nbl.GetText()}'");
-                var nblMode = Gr9BareLiteralMode(calleeFormals, args.Count);
+                var nblMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
                 if (nblMode is CobolPassMode.Value) Sr23LiteralIsNumeric(nbl, "a BY VALUE formal parameter");
                 args.Add(new BoundCallArg(nblMode, null, nblOp));
             }
             else if (bareArg.SoleNumericLiteral is { } nNum)
             {
                 if (!formatTwo && !BareNeedsFormat2(nNum)) return BoundRejected.Reported(ctx.Edition);
-                args.Add(new BoundCallArg(Gr9BareLiteralMode(calleeFormals, args.Count), null,
+                args.Add(new BoundCallArg(Gr9NonIdentifierMode(calleeFormals, args.Count), null,
                     host.Expr.NumericLiteralOperand(nNum)));
             }
             else if (bareArg.Arith is { } bArith)
@@ -595,7 +600,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     continue;
                 }
                 if (!formatTwo && !BareNeedsFormat2(bArith.GetText())) return BoundRejected.Reported(ctx.Edition);
-                args.Add(ExpressionArg(bArith, CobolPassMode.Content));
+                // §14.9.4.4 GR9 b) for an arithmetic-expression-1 as for a literal-2: "When the BY VALUE phrase is specified or
+                // implied for the corresponding formal parameter, BY VALUE is assumed" (the BY VALUE brace prints
+                // arithmetic-expression-1). It was hard-coded BY CONTENT, so `USING (7)` against a BY VALUE formal drew
+                // §14.9.4.3 SR19's mode mismatch (COBOL1687) on conforming source. SR22 then screens the value's class.
+                var exprMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
+                var exprArg = ExpressionArg(bArith, exprMode);
+                if (exprMode is CobolPassMode.Value && exprArg.Value is { } exprValue) ValueClassScreen(exprValue, bArith.GetText());
+                args.Add(exprArg);
             }
         }
 
@@ -645,7 +657,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 
         // A KEYWORD-LESS function-/method-identifier (Format 1's identifier-2, Format 2's GR9). It is never "a data item
         // defined in the file, working-storage, local-storage, or linkage section" (SR3), so GR9 a)2 assumes BY CONTENT
-        // and GR9 b) BY VALUE when the corresponding formal is BY VALUE (the literal's rule, Gr9BareLiteralMode), whose
+        // and GR9 b) BY VALUE when the corresponding formal is BY VALUE (the literal's rule, Gr9NonIdentifierMode), whose
         // SR22 class screen then applies; Format 1's prevailing mode (GR5) must be BY CONTENT.
         BoundStatement? AddBareTemporaryArg(BoundOperand operand, string text)
         {
@@ -654,7 +666,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     $"CALL … USING {text}: a function-identifier or inline method invocation references a temporary, not a "
                     + "data item defined in the file, working-storage, local-storage, or linkage section (ISO §14.9.4.3 SR3), "
                     + "so it can cross only BY CONTENT");
-            var temporaryMode = formatTwo ? Gr9BareLiteralMode(calleeFormals, args.Count) : CobolPassMode.Content;
+            var temporaryMode = formatTwo ? Gr9NonIdentifierMode(calleeFormals, args.Count) : CobolPassMode.Content;
             if (temporaryMode is CobolPassMode.Value) ValueClassScreen(operand, text);
             args.Add(OperandArg(operand, temporaryMode));
             return null;
@@ -667,12 +679,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 ? new BoundCallArg(argMode, temp, null)
                 : new BoundCallArg(argMode, null, operand);
 
-        // §14.9.4.4 GR9 for a keyword-less LITERAL-2 (or a constant-name, which substitutes one): a literal is
-        // never "a data item defined in the file, working-storage, local-storage, or linkage section", so it
-        // never meets Syntax rule 3 — GR9 a)2 gives BY CONTENT, and GR9 b) gives BY VALUE whenever the
+        // §14.9.4.4 GR9 for a keyword-less argument that is not an identifier of storage: LITERAL-2 (or a constant-name,
+        // which substitutes one), a function's or invocation's temporary, and ARITHMETIC-EXPRESSION-1 (kb/Work PB3760).
+        // None is "a data item defined in the file, working-storage, local-storage, or linkage section", so none
+        // meets Syntax rule 3 — GR9 a)2 gives BY CONTENT, and GR9 b) gives BY VALUE whenever the
         // CORRESPONDING FORMAL is BY VALUE. Without a known formal (no AS NESTED — the program-prototype
         // registry is P13) GR9 has nothing to read, and BY CONTENT is the format's own omitted-phrase default.
-        static CobolPassMode Gr9BareLiteralMode(IReadOnlyList<LinkageFormal>? formals, int pos) =>
+        static CobolPassMode Gr9NonIdentifierMode(IReadOnlyList<LinkageFormal>? formals, int pos) =>
             formals is not null && pos < formals.Count && formals[pos].ByValue
                 ? CobolPassMode.Value : CobolPassMode.Content;
 
