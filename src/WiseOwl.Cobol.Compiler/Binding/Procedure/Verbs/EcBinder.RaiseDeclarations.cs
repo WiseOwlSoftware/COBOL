@@ -181,8 +181,9 @@ internal sealed partial class EcBinder
         BoundSort so => so.Using.Concat(so.Giving),
         BoundMerge mg => mg.Using.Concat(mg.Giving),
         // A COMMIT or ROLLBACK the medium refuses raises EC-I-O-PERMANENT-ERROR for the refused file (docs/CONFORMANCE.md
-        // §5, A.4.3 (a)): this element's files under commit control (kb/Work PB3338, review finding w1154a R1-3).
-        BoundCommitRollback cr => cr.Files,
+        // §5, A.4.3 (a)): this element's files under commit control (kb/Work PB3338, review finding w1154a R1-3), and the
+        // GLOBAL files of its containers it can name, whose checking a directive naming one decides (kb/Work PB3554).
+        BoundCommitRollback cr => cr.Files.Concat(cr.ForeignFiles),
         _ => [],
     };
 
@@ -228,9 +229,10 @@ internal sealed partial class EcBinder
         new(s => s is BoundRelease, ["EC-FLOW-RELEASE", "EC-SORT-MERGE-ACTIVE", "EC-SORT-MERGE-RELEASE"]),
         // COMMIT / ROLLBACK (kb/Work PB3338). PRECISE: the run unit's TransactionControl raises EC-FLOW-COMMIT /
         // EC-FLOW-ROLLBACK at the statement's entry (§14.9.7.4 GR2, §14.9.36.4 GR2). A refused file of this element's
-        // clause is an I-O file of the statement (IoFilesOf); a refused file of ANOTHER element's clause has no FileModel
-        // here, so its EC-I-O-PERMANENT-ERROR (the one condition a refusal raises, '30') is declared with no file, and
-        // only a directive naming no file enables it (review finding w1154a R1-3).
+        // clause is an I-O file of the statement (IoFilesOf), and so is a container's GLOBAL file this element can name
+        // (BoundCommitRollback.ForeignFiles, kb/Work PB3554); a refused file of ANOTHER element's clause this element cannot
+        // name has no FileModel here, so its EC-I-O-PERMANENT-ERROR (the one condition a refusal raises, '30') is declared
+        // with no file, and only a directive naming no file enables it (review finding w1154a R1-3).
         new(s => s is BoundCommitRollback { IsCommit: true }, ["EC-FLOW-COMMIT", "EC-I-O-PERMANENT-ERROR"]),
         new(s => s is BoundCommitRollback { IsCommit: false }, ["EC-FLOW-ROLLBACK", "EC-I-O-PERMANENT-ERROR"]),
         // §14.6.13.1.3 item 8's ROLLBACK (kb/Work PB3544): a fatal status on a file under commit control executes "a
