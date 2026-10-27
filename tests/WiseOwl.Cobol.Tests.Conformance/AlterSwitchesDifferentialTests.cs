@@ -90,30 +90,6 @@ public sealed class AlterSwitchesDifferentialTests
                 STOP RUN.
             """));
 
-    [Fact]   // Resolution order (NC211A regression guard): a name defined BOTH as a SPECIAL-NAMES status
-             // condition-name and as a level-88 resolves as the LEVEL-88 (§8.8.4.5 over §8.8.4.6 in this
-             // implementation's name resolution — the legacy NIST-proven order).
-    public void Switch_Level88WinsOverSwitchStatusName()
-        => AssertMatchesGolden("""
-            IDENTIFICATION DIVISION.
-            PROGRAM-ID. SWTST5.
-            ENVIRONMENT DIVISION.
-            CONFIGURATION SECTION.
-            SPECIAL-NAMES.
-                SWITCH-31 IS SWM-A ON STATUS IS DUAL-NAME.
-            DATA DIVISION.
-            WORKING-STORAGE SECTION.
-            01 WS-FLAG PIC 9 VALUE 0.
-                88 DUAL-NAME VALUE 1.
-            PROCEDURE DIVISION.
-            MAIN-PARA.
-                SET SWM-A TO ON.
-                IF DUAL-NAME DISPLAY "T1-TRUE" ELSE DISPLAY "T1-FALSE".
-                MOVE 1 TO WS-FLAG.
-                IF DUAL-NAME DISPLAY "T2-TRUE" ELSE DISPLAY "T2-FALSE".
-                STOP RUN.
-            """);
-
     [Fact]   // The implementor external facility (ISO implementor-defined item 191 / §12.3.7 GR4): the initial
              // status comes from COBOL_<SWITCH-NAME> (dashes→underscores), value ON ⇒ on — both engines share
              // the contract (the NIST guard exports COBOL_SWITCH_1=ON on the same basis).

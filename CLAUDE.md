@@ -46,7 +46,7 @@ Owner-emphasized, each earned by a correction. These nine are the SSOT; `PROMPT.
    Grammar changes are pre-authorized. Prompt only for genuine owner decisions — one at a time, as a bare question.
 
 8. **⛔ THERE IS EXACTLY ONE WORK REGISTER — `kb/Work/` — AND YOU MAY NOT CREATE ANOTHER.** One note per item
-   (`kind:` defect · analysis · adjudication · decision), tracked in git, frontmatter carrying `status`,
+   (`kind:` defect · analysis · adjudication · decision · upstream), tracked in git, frontmatter carrying `status`,
    `severity`, `area`, the harm flags, `inventory_rows` (the traceability-inventory rows the note CLAIMS while
    it is open) and `closes_rows` (the rows its landing CLOSED, with a `closes_rows_reason:` when it closed none);
    the forensic prose lives in the note body. `kb/Work.base` is the view.
@@ -109,7 +109,7 @@ comprehensive pass once the design settles (`PROMPT.md` §4).
 - **Names:** the code carries the product's name, `WiseOwl.Cobol` (owner, kb/Work PB3837); the product's earlier names
   live only in history, and `scripts/rename_retired_names.py --check` (the RETIRED NAMES audit) refuses them elsewhere.
   Implementor environment variables are `WISEOWL_COBOL_*`.
-- **The work register:** **`kb/Work/`** — ONE note per item (defect · analysis · adjudication · decision),
+- **The work register:** **`kb/Work/`** — ONE note per item (defect · analysis · adjudication · decision · upstream),
   tracked in git, with the forensic prose in the note body. `kb/Work.base` is the view; **`Fix next`** ranks
   on what a defect DOES to a user's program, not on its severity label. `python scripts/spec/work.py next`
   prints it and session-probe shows it every session. ⛔ It replaced FIVE overlapping registers, three of
