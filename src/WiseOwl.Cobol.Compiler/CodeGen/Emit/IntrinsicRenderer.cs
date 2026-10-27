@@ -982,7 +982,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// in source order by <c>CobolTable.ArgConcat</c> — the ONE array a <c>params T[]</c> body binds to.</summary>
     /// <param name="lead">When given, renders the list's FIRST argument (the operand at <paramref name="from"/>, or
     /// the first element that operand's table(ALL) enumerates) — a leading argument with its own intake.</param>
-    private string? ArgArray(BoundIntrinsicCall ic, int from, string csType, Func<BoundOperand, string> render,
+    internal string? ArgArray(BoundIntrinsicCall ic, int from, string csType, Func<BoundOperand, string> render,
         Func<BoundOperand, string>? lead = null)
     {
         if (!ic.Args.Skip(from).Any(a => a is BoundFieldOperand { Place: TableAllPlace })) return null;

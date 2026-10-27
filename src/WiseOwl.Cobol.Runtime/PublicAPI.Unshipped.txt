@@ -282,3 +282,18 @@ static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassReturning(bool enabledI
 static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassFormalViolation(WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> string?
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassFormal(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.NumvalF(string! text, int scale, bool commaMode = false, int digitCap = 31, bool checkedLanding = false) -> System.Int128
+WiseOwl.Cobol.Runtime.FunctionValueField
+WiseOwl.Cobol.Runtime.FunctionValueField.Abs() -> WiseOwl.Cobol.Runtime.FunctionValueField
+WiseOwl.Cobol.Runtime.FunctionValueField.DeviceText(bool commaMode) -> string!
+WiseOwl.Cobol.Runtime.FunctionValueField.FunctionValueField() -> void
+static WiseOwl.Cobol.Runtime.CobolNum.DeviceFunctionText(System.Int128 unscaled, int scale, bool commaMode) -> string!
+static WiseOwl.Cobol.Runtime.CobolNum.DeviceFunctionText(WiseOwl.Cobol.Runtime.CobolDec value, bool commaMode) -> string!
+static WiseOwl.Cobol.Runtime.FunctionValueField.Max(params WiseOwl.Cobol.Runtime.FunctionValueField[]! arguments) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.Median(params WiseOwl.Cobol.Runtime.FunctionValueField[]! arguments) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.Min(params WiseOwl.Cobol.Runtime.FunctionValueField[]! arguments) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfDigits(WiseOwl.Cobol.Runtime.CobolDec value, int digits) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloat(double value) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfItem(WiseOwl.Cobol.Runtime.CobolDec value, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfLiteral(WiseOwl.Cobol.Runtime.CobolDec value, int digits, int scale, bool signed) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfValue(WiseOwl.Cobol.Runtime.CobolDec value) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloatImage(double value, string! image) -> WiseOwl.Cobol.Runtime.FunctionValueField
