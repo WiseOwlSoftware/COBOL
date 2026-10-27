@@ -148,6 +148,60 @@ internal static class RuntimeApi
     public static string NumDisplayDecimal(string value, string profile, bool commaMode, bool u = false) =>
         $"{nameof(CobolNum)}.{(u ? nameof(CobolNum.DisplayDecimalU) : nameof(CobolNum.DisplayDecimal))}({value}, {profile}, {(commaMode ? "true" : "false")})";
 
+    // ── A numeric function's returned value under DISPLAY's decimal device form (kb/Work PB3514, DOC-A.1-92) ─────────────
+
+    /// <summary>The device text of a returned value carried as a scaled integer - <c>CobolNum.DeviceFunctionText(unscaled, scale, commaMode)</c>:
+    /// the temporary's description derived from the value (GnuCOBOL 3.2.0's <c>cob_alloc_field</c>).</summary>
+    public static string FunctionDeviceTextScaled(string unscaled, int scale, bool commaMode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.DeviceFunctionText)}({unscaled}, {scale}, {(commaMode ? "true" : "false")})";
+
+    /// <summary>The same for an SDIDI returned value - <c>CobolNum.DeviceFunctionText(value, commaMode)</c>.</summary>
+    public static string FunctionDeviceTextDec(string value, bool commaMode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.DeviceFunctionText)}({value}, {(commaMode ? "true" : "false")})";
+
+    /// <summary>The element type of a selecting function's argument array (<c>FunctionValueField</c>).</summary>
+    public const string FunctionFieldType = nameof(FunctionValueField);
+
+    /// <summary>The characters DISPLAY writes for a <c>FunctionValueField</c> expression.</summary>
+    public static string FunctionFieldText(string field, bool commaMode) =>
+        $"({field}).{nameof(FunctionValueField.DeviceText)}({(commaMode ? "true" : "false")})";
+
+    /// <summary>An argument that is a data item: the temporary copies the item's description.</summary>
+    public static string FunctionFieldOfItem(string value, string profile) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfItem)}({value}, {profile})";
+
+    /// <summary>An argument that is a numeric literal: the temporary copies the literal's field.</summary>
+    public static string FunctionFieldOfLiteral(string value, int digits, int scale, bool signed) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfLiteral)}({value}, {digits}, {scale}, {(signed ? "true" : "false")})";
+
+    /// <summary>A result that is an unsigned DISPLAY integer of a fixed digit count (DATE-OF-INTEGER, DAY-OF-INTEGER).</summary>
+    public static string FunctionFieldOfDigits(string value, int digits) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfDigits)}({value}, {digits})";
+
+    /// <summary>A result or argument the value alone describes.</summary>
+    public static string FunctionFieldOfValue(string value) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfValue)}({value})";
+
+    /// <summary>A binary64 function result.</summary>
+    public static string FunctionFieldOfFloat(string value) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloat)}({value})";
+
+    /// <summary>A floating-point item argument, with the image its own DISPLAY writes.</summary>
+    public static string FunctionFieldOfFloatImage(string value, string image) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloatImage)}({value}, {image})";
+
+    /// <summary>ABS: the argument's description holding the magnitude.</summary>
+    public static string FunctionFieldAbs(string field) => $"({field}).{nameof(FunctionValueField.Abs)}()";
+
+    /// <summary>MAX over argument fields (<paramref name="arguments"/>: the comma list or one array expression).</summary>
+    public static string FunctionFieldMax(string arguments) => $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.Max)}({arguments})";
+
+    /// <summary>MIN over argument fields.</summary>
+    public static string FunctionFieldMin(string arguments) => $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.Min)}({arguments})";
+
+    /// <summary>MEDIAN over argument fields.</summary>
+    public static string FunctionFieldMedian(string arguments) => $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.Median)}({arguments})";
+
     /// <summary>Encode an unscaled value as the BYTES the item occupies at a byte boundary — the record/group
     /// image, a file record, a SORT key window, a Tier-B REDEFINES backing (<c>CobolNum.FormatImage</c>,
     /// DESIGN §14.4). Zoned items render exactly as <see cref="NumFormatDisplay"/>; BINARY and PACKED

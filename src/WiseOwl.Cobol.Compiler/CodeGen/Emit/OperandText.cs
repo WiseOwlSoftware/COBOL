@@ -384,6 +384,11 @@ internal static class OperandText
         form is NumericDisplayForm.Decimal
         && op is BoundFieldOperand { Place: { Item.IsGroup: false, Item.Pic: { Category: PicCategory.Numeric, IsFloat: false } } and not RefModPlace } field
             ? FieldAsString(field.Place, deSign: false, SendingRef.Normal, deviceComma: num.UnitDecimalPointIsComma)
+        // A numeric FUNCTION's returned value is a temporary data item (§15.4) with an implementor-defined description (§15.4.1),
+        // shown by the description GnuCOBOL gives it (FunctionDeviceText, DOC-A.1-92; kb/Work PB3514). Under `digits` it keeps
+        // DOC-A.1-92's literal form, like every operand the option leaves alone.
+        : form is NumericDisplayForm.Decimal && FunctionDeviceText.Of(op, num) is { } function
+            ? function
             : AsTransferString(op, num, context);
 
     /// <param name="context">Names the operation in the Tier-C loud message — the same parameter
