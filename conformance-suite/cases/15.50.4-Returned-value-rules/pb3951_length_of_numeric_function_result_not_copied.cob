@@ -17,7 +17,7 @@
       *>    by one for -9223372036854775808 (20 there). The DISPLAY item here is exactly the value's 19 digits, and the value past
       *>    2**63 in magnitude, which fits no 8-byte binary item, is that DISPLAY item.
       *> 3. A CALL THE BINDER FOLDS INTO A LITERAL IS MEASURED AS THAT LITERAL'S FIELD. FUNCTION LENGTH(W-X) is 3 and the standard admits
-      *>    it as a function-identifier argument (§8.4.3.2.1: "a data item of any class or category"); GnuCOBOL refuses the folded
+      *>    it as a function-identifier argument (§8.4.3.2.1 makes it a data item, §15.50.3 r1 admits any); GnuCOBOL refuses the folded
       *>    literal, and here its field has one digit position, so the length of that field is 1.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3951B.
