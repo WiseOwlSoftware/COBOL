@@ -17,9 +17,26 @@ ensure_utf8()
 
 HOOK = pathlib.Path(__file__).with_name("dispatch_guard.py")
 REPO = pathlib.Path(__file__).resolve().parents[2]
-BRIEF = REPO / ".claude" / "skills" / "workstream" / "templates" / "fix-lane-implementer-brief.md"
 FINISHER = REPO / ".claude" / "skills" / "workstream" / "templates" / "finisher-brief.md"
+RENDERER = REPO / ".claude" / "skills" / "workstream" / "make_dispatch_specs.py"
 TMP = scratch_dir("test-dispatch-guard-")
+
+# The implementer's ONE instruction file is a RENDERED spec (kb/Work PB3777: no template brief remains for it), so the
+# admitted implementer cases name a spec the real renderer wrote and check_practices passes.
+COORD = TMP / "coord"   # rule 0 reads STOP-UNIT there, and the spec's report path is in its scratch\reports: never the real coordination directory from a test
+COORD.mkdir()
+(TMP / "groups.json").write_text(json.dumps({
+    "wave": "1", "base": "abc", "scratch": str(TMP), "stop_file": str(TMP / "STOP-w1"),
+    "groups": [{"letter": "b", "slug": "w1b", "group": "G", "notes": "PB1", "lead": "PB1", "codes": "COBOL0001",
+                "root": "one root", "files": "`kb/Work/PB1.md`", "body": "the notes", "file_set": ["scripts/hooks/x.py"]}]}),
+    encoding="utf-8", newline="\n")
+rendered = subprocess.run([sys.executable, str(RENDERER), str(TMP / "groups.json"), "--no-record"],
+                          capture_output=True, text=True, timeout=300, encoding="utf-8", errors="replace",
+                          env={k: v for k, v in os.environ.items() if k != "COBOL_LOOP_UNIT"} | {"COBOL_COORD_DIR": str(COORD)})
+SPEC = TMP / "msg-w1-b.txt"
+if not SPEC.is_file() or "=== PRACTICES CHECK: GREEN ===" not in rendered.stdout:
+    print("FAIL: the renderer wrote no spec check_practices passes:\n" + (rendered.stdout + rendered.stderr)[-1500:])
+    sys.exit(1)
 
 WITH_SKILL = TMP / "with.jsonl"
 WITH_SKILL.write_text(json.dumps({"type": "tool_use", "name": "Skill", "input": {"skill": "workstream"}}) + "\n",
@@ -37,10 +54,12 @@ def agent(role: str, prompt: str, transcript: pathlib.Path) -> dict:
 
 
 CASES = [
-    ("implementer, skill not loaded", agent("cobol-implementer", f"Follow {BRIEF}", WITHOUT_SKILL), True),
+    ("implementer, skill not loaded", agent("cobol-implementer", f"Follow {SPEC}", WITHOUT_SKILL), True),
     ("implementer, inline brief", agent("cobol-implementer", "Fix PB1 and PB2 as follows ...", WITH_SKILL), True),
     ("implementer, unchecked rendered spec", agent("cobol-implementer", f"Follow {BAD_SPEC}", WITH_SKILL), True),
-    ("implementer, template brief, skill loaded", agent("cobol-implementer", f"Follow {BRIEF}", WITH_SKILL), False),
+    ("implementer, rendered spec, skill loaded", agent("cobol-implementer", f"Follow {SPEC}", WITH_SKILL), False),
+    # kb/Work PB3777: a template brief is no instruction file for an implementer (the finisher's is the one that remains)
+    ("implementer, a finisher's template brief", agent("cobol-implementer", f"Follow {FINISHER}", WITH_SKILL), True),
     # kb/Work PB3023: the finisher is the judgment role that lands (the lander retired with the train)
     ("finisher, skill not loaded", agent("cobol-finisher", f"Follow {FINISHER}", WITHOUT_SKILL), True),
     ("finisher, inline brief", agent("cobol-finisher", "Resolve the conflict in x.cs and land it", WITH_SKILL), True),
@@ -54,8 +73,6 @@ CASES = [
 ]
 
 
-COORD = TMP / "coord"   # rule 0 reads STOP-UNIT there: never the real coordination directory from a test
-COORD.mkdir()
 # The cases choose the session kind themselves (UNIT_ENV adds COBOL_LOOP_UNIT), so the caller's own kind never leaks in:
 # a gate run inside a loop unit (an enqueue unit's finisher has COBOL_LOOP_UNIT=enqueue) made the "attended session" case a loop
 # unit and turned this self-test red on a correct hook (kb/Work PB2702).
@@ -75,7 +92,7 @@ fails = [(n, e) for n, p, e in CASES if blocked(p) != e]
 # a practices check that gives no verdict in time REFUSES the dispatch (never passes it): a planted 1 us wait expires
 # before the check can start, on a brief that would otherwise pass
 expired = subprocess.run([sys.executable, str(HOOK)], capture_output=True, text=True, timeout=180,
-                         input=json.dumps(agent("cobol-implementer", f"Follow {BRIEF}", WITH_SKILL)),
+                         input=json.dumps(agent("cobol-implementer", f"Follow {SPEC}", WITH_SKILL)),
                          env=dict(ENV, COBOL_DISPATCH_CHECK_WAIT_S="0.000001"))
 if not (expired.returncode == 2 and "gave no verdict within" in expired.stderr):
     fails.append(("a practices check with no verdict in time refuses the dispatch", True))
@@ -89,7 +106,7 @@ WRITES_NONE = [
     ("a write-capable hand dispatch", agent("general-purpose", "Author PB2296 step 1 by hand", WITH_SKILL)),
     ("a dispatch naming only its brief file", agent("general-purpose", f"Your brief is {HAND_BRIEF}. Read it first.",
                                                      WITH_SKILL)),
-    ("an admitted implementer", agent("cobol-implementer", f"Follow {BRIEF} for PB2296", WITH_SKILL)),
+    ("an admitted implementer", agent("cobol-implementer", f"Follow {SPEC} for PB2296", WITH_SKILL)),
     ("an admitted Workflow", {"tool_name": "Workflow", "transcript_path": str(WITH_SKILL),
                               "tool_input": {"script": "wf_rolling_wave.js",
                                              "args": {"groups": [{"letter": "a", "notes": ["PB2296"]}]}}}),
@@ -115,7 +132,7 @@ def blocked_env(payload: dict, env: dict) -> bool:
 UNIT_ENV = dict(ENV, COBOL_LOOP_UNIT="wave")
 STOP_CASES = [
     ("loop unit after STOP-UNIT: Workflow refused", WF_OK, UNIT_ENV, True),
-    ("loop unit after STOP-UNIT: implementer refused", agent("cobol-implementer", f"Follow {BRIEF}", WITH_SKILL), UNIT_ENV, True),
+    ("loop unit after STOP-UNIT: implementer refused", agent("cobol-implementer", f"Follow {SPEC}", WITH_SKILL), UNIT_ENV, True),
     ("loop unit after STOP-UNIT: finisher refused", agent("cobol-finisher", f"Follow {FINISHER}", WITH_SKILL), UNIT_ENV, True),
     ("loop unit after STOP-UNIT: a read-only role passes", agent("cobol-refuter", "Refute this", WITH_SKILL), UNIT_ENV, False),
     ("attended session, the loop's STOP-UNIT present: Workflow passes", WF_OK, ENV, False),

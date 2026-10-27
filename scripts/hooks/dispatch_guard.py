@@ -11,8 +11,9 @@ learning this." A sentence in CLAUDE.md or memory was already there and was skip
   1. Agent (cobol-implementer or cobol-finisher) and Workflow calls need a Skill call for `workstream` earlier in THIS
      session's transcript (or a /workstream command). The skill is what carries the mandatory practices.
   2. An Agent call for cobol-implementer or cobol-finisher must name, in its prompt, a RENDERED spec
-     (`msg-w<wave>-<letter>.txt`, from make_dispatch_specs.py) or a brief under workstream/templates, and
-     check_practices.py must print `=== PRACTICES CHECK: GREEN ===` over it. A hand-written inline brief is refused.
+     (`msg-w<wave>-<letter>.txt`, from make_dispatch_specs.py: the implementer's ONE instruction file, kb/Work PB3777) or,
+     for a finisher, a brief under workstream/templates, and check_practices.py must print
+     `=== PRACTICES CHECK: GREEN ===` over it. A hand-written inline brief is refused.
 
 Read-only and mechanical roles (refuter, adjudicator, clerk, locator, Explore, general-purpose) pass rule 2; rule 1
 applies to Workflow always. Exit 2 blocks the call and returns stderr to the agent. Anything unparseable passes (a
@@ -61,6 +62,8 @@ CHECK_WAIT_ENV = "COBOL_DISPATCH_CHECK_WAIT_S"
 CHECK_WAIT_S = float(os.environ.get(CHECK_WAIT_ENV) or 60)
 TEMPLATES = REPO / ".claude" / "skills" / "workstream" / "templates"
 JUDGMENT_ROLES = {"cobol-implementer", "cobol-finisher"}
+#: The role whose ONLY instruction file is a rendered spec: no template brief remains for it (kb/Work PB3777).
+IMPLEMENTER = "cobol-implementer"
 LOADED = re.compile(
     r'"skill"\s*:\s*"(?:[\w-]+:)?workstream"'                     # a Skill tool call
     r'|<command-name>/?workstream</command-name>'                  # the user typed /workstream
@@ -107,12 +110,13 @@ if tool == "Agent":
     prompt = args.get("prompt", "")
     paths = [pathlib.Path(p) for p in re.findall(r"(?:[A-Za-z]:[\\/]|/)[^\s\"'`<>|]+?\.(?:txt|md)", prompt)]
     specs = [p for p in paths if re.fullmatch(r"msg-w[\w-]+\.txt", p.name) and p.is_file()]
-    briefs = [p for p in paths if p.is_file() and TEMPLATES.resolve() in p.resolve().parents]
+    briefs = [p for p in paths if role != IMPLEMENTER and p.is_file() and TEMPLATES.resolve() in p.resolve().parents]
     if not specs and not briefs:
         block(f"a {role} brief must point at a RENDERED spec (`msg-w<wave>-<letter>.txt` written by "
-              ".claude/skills/workstream/make_dispatch_specs.py) or at a brief under .claude/skills/workstream/"
-              "templates, with the substitutions in the prompt. A hand-written inline brief is how the mandatory "
-              "practices get dropped (MANDATORY-PRACTICES O1, O9).")
+              ".claude/skills/workstream/make_dispatch_specs.py)"
+              + ("" if role == IMPLEMENTER else " or at a brief under .claude/skills/workstream/templates, with the "
+                 "substitutions in the prompt")
+              + ". A hand-written inline brief is how the mandatory practices get dropped (MANDATORY-PRACTICES O1, O9).")
     cmd = [sys.executable, str(CHECK)] + ([str(p) for p in specs] if specs else [])
     try:
         out = subprocess.run(cmd, capture_output=True, text=True, timeout=CHECK_WAIT_S, encoding="utf-8",

@@ -309,7 +309,10 @@ Each iteration, in this order:
 
 ### 4.1 What every unit prompt says
 
-- Load the `session-start` skill first; read the previous handoff the prompt names.
+- Load the `session-start` skill first; read the previous handoff the prompt names. A unit loads those skills only
+  (`workstream` where its own text says so): never the public base `agent-fleet`, whose 4.5K tokens would ride each of
+  a unit's about 45 turns. The `workstream` overlay orders no base load; it names the reference file each unit kind
+  reads once (`units/common.md`; `check_practices.py` `overlay_problems`, kb/Work PB3780).
 - Before EACH new step, check for `STOP-UNIT`; if it exists, finish the step, write the handoff and end (for a
   `wave` with a Workflow in flight: section 3.1).
 - End by writing `{HANDOFF}` that validates against `handoff.schema.json`.
@@ -323,7 +326,7 @@ Each iteration, in this order:
   starts `wf_rolling_wave.js` with the args file `plan_wave.py` wrote.
 - A role's turn cap has ONE home, the `maxTurns` of its `.claude/agents/<role>.md` (the number the harness enforces;
   kb/Work PB3701). `make_dispatch_specs.py` renders the implementer's into every spec's `Turn cap` line
-  (`coord.agent_turn_cap`), the implementer briefs type no number, and `check_practices.py` (`turn_cap_copies`, in the
+  (`coord.agent_turn_cap`), the implementer spec template types no number, and `check_practices.py` (`turn_cap_copies`, in the
   gate's FLEET PRACTICES audit and CI) refuses any other statement of a cap that differs from its role's `maxTurns`.
 
 ### 4.2 Permission mode under a headless session
