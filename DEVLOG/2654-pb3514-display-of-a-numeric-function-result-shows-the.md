@@ -1,4 +1,4 @@
-## PB3514: DISPLAY of a numeric function result shows the temporary by its description, as GnuCOBOL does
+## Entry 2654 — 2026-10-26 20:35 PDT — PB3514: DISPLAY of a numeric function result shows the temporary by its description, as GnuCOBOL does
 
 `DISPLAY FUNCTION ABS(S)` printed `12.50` where GnuCOBOL 3.2.0 prints `+00012.50`, `NUMVAL("12.50")` printed `12.50` where it prints
 `00000012.5`, and `MAX(U S)` printed `12.50` where it prints `00012.50` (kb/Work PB3514, adjudicated 2026-10-25: a defect by the
@@ -73,3 +73,4 @@ digits; cobc's extra leading zero is the pinned non-copy). (3) The leftmost-of-e
 LENGTH does not. `NUMVAL-F` of a text TEST-NUMVAL-F rejects but GnuCOBOL accepts (`"1.5E2"`) answers 0 here, 150 there.
 
 Gate: see the report (leg 1 plus the Linux half).
+
