@@ -85,20 +85,21 @@ public sealed class CobolIntrinsicsMinValueTests
         Assert.Equal("EC-SIZE-OVERFLOW", Assert.Throws<CobolSizeError>(() => CobolIntrinsics.Truncate(big, -1)).EcName);
     }
 
-    // ── The NUMVAL-F shift (Rescaled) and the binary32 feed: the scan's magnitude is non-negative, so MinValue is
+    // ── The NUMVAL-F SDIDI lift and the binary32 feed: the scan's magnitude is non-negative, so MinValue is
     //    unreachable — measured here at the largest significand the cap admits, so the claim is a test, not a hope ──
 
     private const string ThirtyFourNines = "9999999999999999999999999999999999";
 
     [Fact]
-    public void NumvalF_AtTheLargestAdmittedSignificand_RaisesAtAScaleThatLeavesTheCarrier()
+    public void NumvalFDec_AtTheLargestAdmittedSignificand_IsExact_EitherSign()
     {
-        // 10^34 − 1 shifted by +5 digits exceeds Int128: the CHECKED landing RAISES (kb/Work PB2967), either sign.
-        Assert.Equal("EC-SIZE-TRUNCATION", Assert.Throws<CobolSizeError>(
-            () => CobolIntrinsics.NumvalF(ThirtyFourNines, 5, digitCap: 34, checkedLanding: true)).EcName);
-        Assert.Equal("EC-SIZE-TRUNCATION", Assert.Throws<CobolSizeError>(
-            () => CobolIntrinsics.NumvalF("-" + ThirtyFourNines, 5, digitCap: 34, checkedLanding: true)).EcName);
-        Assert.Equal(Int128.Parse(ThirtyFourNines), CobolIntrinsics.NumvalF(ThirtyFourNines, 0, digitCap: 34, checkedLanding: true));
+        // 10^34 - 1 is the largest significand the 34-digit cap admits; the SDIDI holds it exactly in either sign, and an
+        // unscaled landing at scale 5 (which would leave the Int128 carrier) is the RECEIVER's size condition, never the
+        // function's value (kb/Work PB3839).
+        Assert.Equal(Int128.Parse(ThirtyFourNines),
+            CobolIntrinsics.NumvalFDec(CobolRounding.NearestAwayFromZero, ThirtyFourNines, digitCap: 34).ToUnscaled(0, CobolRounding.Truncation));
+        Assert.Equal(-Int128.Parse(ThirtyFourNines),
+            CobolIntrinsics.NumvalFDec(CobolRounding.NearestAwayFromZero, "-" + ThirtyFourNines, digitCap: 34).ToUnscaled(0, CobolRounding.Truncation));
     }
 
     [Fact]
