@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// receiver-capped working scale: <c>DISPLAY</c> and a COMP-2 got the full value, a fixed-point receiver got nine places and
 /// then rounded them again, and ROUNDED MODE AWAY-FROM-ZERO of NUMVAL-F("0.12340000000001") into a <c>PIC 9V9(4)</c> stored
 /// 0.1234 where NUMVAL stored 0.1235. MAX and MIN had the sibling: a selected value truncated at a coarser receiver's scale
-/// before the receiver's ROUNDED phrase saw it. No runtime test can see a function that reads its receiver and happens to
+/// before the receiver's ROUNDED phrase saw it, and MEAN a quotient cut at the receiver's scale (kb/Work PB3860). No runtime test can see a function that reads its receiver and happens to
 /// agree for ordinary pictures; this reads the renderer.
 /// </para>
 /// <para>
@@ -47,12 +47,6 @@ public sealed class ReceiverShapeReaderDriftTests
             "MAX / MIN: the receiver-bound result lands at the common argument scale widened to the receiver's and capped at its "
             + "Int128 headroom, and SelectionPastReceiverHeadroom asks whether that cap would cut the selection - then the SDIDI "
             + "carries it - so the selected value reaches a ROUNDED receiver with every digit it has (kb/Work PB3839, review R1-1)",
-        ["Scale"] =
-            "MEAN's quotient scale, max(receiver scale, sum scale + 1, 6): OPEN. The quotient's digits past the receiver scale are "
-            + "truncated at that working scale before the receiver's rounding mode sees them, so MEAN is the one function whose "
-            + "value still depends on its receiver (filed from the PB3839 report; remove this entry and the next when it lands)",
-        ["Rounding"] =
-            "MEAN's quotient mode, the other half of the OPEN entry above",
     };
 
     private static string RendererCode()
@@ -82,18 +76,21 @@ public sealed class ReceiverShapeReaderDriftTests
     }
 
     /// <summary>The functions whose value is the exact parse of their argument
-    /// (<see cref="IntrinsicCarrierRules.ExactParseFunctions"/>) have no <c>RenderNum</c> arm of their own - an arm is where a
-    /// receiver test lives - and an SDIDI arm in <c>RenderDec</c>, the one body every mode, channel and receiver shares.</summary>
+    /// (<see cref="IntrinsicCarrierRules.ExactParseFunctions"/>) or the SDIDI quotient of their equivalent arithmetic expression
+    /// (<see cref="IntrinsicCarrierRules.SdidiQuotientFunctions"/>, kb/Work PB3860) have no <c>RenderNum</c> arm of their own - an
+    /// arm is where a receiver test lives - and an SDIDI arm in <c>RenderDec</c>, the one body every mode, channel and receiver
+    /// shares.</summary>
     [Fact]
-    public void TheExactParseFunctions_HaveNoArmOfTheirOwn_AndOneSdidiBody()
+    public void TheReceiverIndependentSdidiFunctions_HaveNoArmOfTheirOwn_AndOneSdidiBody()
     {
         string code = RendererCode();
         Assert.True(IntrinsicCarrierRules.ExactParseFunctions.Count >= 3);
-        foreach (string method in IntrinsicCarrierRules.ExactParseFunctions)
+        Assert.True(IntrinsicCarrierRules.SdidiQuotientFunctions.Count >= 1);
+        foreach (string method in IntrinsicCarrierRules.ExactParseFunctions.Concat(IntrinsicCarrierRules.SdidiQuotientFunctions))
         {
             Assert.DoesNotContain($"case \"{method}\"", code, StringComparison.Ordinal);
             Assert.True(Regex.IsMatch(code, $"\"{method}\"\\s*(=>|when)"),
-                $"RenderDec has no SDIDI arm for {method}, which IntrinsicCarrierRules.ReturnsExactParse routes to it");
+                $"RenderDec has no SDIDI arm for {method}, which IntrinsicCarrierRules.ReturnsExactParse / ReturnsSdidiQuotient routes to it");
         }
     }
 }
