@@ -16,7 +16,7 @@ using Core = CobolParserCore;
 /// COMPLETE procedure table, which it reads through host edges (Paragraphs/ParaSections/CurrentSection —
 /// the §8.4.2.2 in-section-first save/mutate/restore preserved verbatim; the ALTER prepass reads the table
 /// through <c>ctx.Table</c> since the 10t ProcedureTableBuilder hoist). <c>SwitchCondOf</c> keeps the
-/// level-88-first caller contract (NC211A). The five bound types stayed in
+/// level-88-first caller contract (a container's switch name yields to the element's own level-88, §8.4.6.1; kb/Work PB3347). The five bound types stayed in
 /// <c>Binding/Bound/BoundAlterSwitches.cs</c> — BoundAlter/BoundGoToAlterable are VersionConformancePass
 /// gate anchors.</summary>
 internal sealed class SetAlterBinder(BinderContext ctx)
@@ -173,8 +173,9 @@ internal sealed class SetAlterBinder(BinderContext ctx)
 
     /// <summary>The switch-status condition a bare unsubscripted reference names (ISO §8.8.4.6; §8.4.4.2 Format 1
     /// SR1 — the condition-name shall be associated with a switch-name in SPECIAL-NAMES), else null. The CALLER
-    /// must have tried level-88 resolution FIRST (<see cref="ConditionOf"/>): a name defined as both resolves as
-    /// the level-88 (legacy resolution order; NC211A regression guard).
+    /// must have tried level-88 resolution FIRST (<see cref="ConditionBinder.ConditionOf"/>): it counts a switch
+    /// THIS element declares as a candidate beside the level-88s and refuses the non-unique pair (§8.4.2.2.1 1,
+    /// §8.4.2.2.3 SR1; kb/Work PB3347), and a switch only a CONTAINER declared yields to the level-88 below.
     /// <para>A switch-status condition-name a CONTAINING element declares yields to the referring element's own item
     /// of that spelling (§8.4.6.1: "a source element's reference to such a name, even when it is a different type of
     /// user-defined word, is to the item which that source element describes"; kb/Work PB3153 review w1085d R1-1): a

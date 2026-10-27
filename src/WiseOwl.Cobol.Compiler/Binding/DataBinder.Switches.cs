@@ -29,8 +29,9 @@ public sealed partial class DataBinder
 
     /// <summary>Switch-status condition-names (case-insensitive) → (implementor switch-name, posited-ON) (ISO
     /// §12.3.7 GR2; §8.4.4.2 Format 1 SR1 — the condition-name shall be associated with a switch-name in
-    /// SPECIAL-NAMES). Consulted by the condition binder AFTER level-88 resolution (NC211A defines a name as BOTH;
-    /// the level-88 wins).</summary>
+    /// SPECIAL-NAMES). Consulted by the condition binder AFTER level-88 resolution: a switch name declared in the
+    /// same source element as a level-88 of the spelling counts as one more candidate of an unqualified reference, and a
+    /// nearer 88 hides it (<see cref="SwitchConditionCompetes"/>, §8.4.2.2.1, §8.4.6.1; kb/Work PB3347).</summary>
     internal ConfigurationNames<(string ImplementorName, bool IsOn)> SwitchConditions =>
         field ??= new(UserWordKind.ConditionName, RecordConfigurationNameUse);
 
@@ -294,11 +295,6 @@ public sealed partial class DataBinder
     /// predicate alike, so they cannot disagree.</summary>
     private bool HidesSymbolic(string word) => _shadowedSymbolics.Contains(word) || ActiveMethodDeclares(word);
 
-    /// <summary>The containment distance of each INHERITED symbolic-character — 1 for the direct container's own
-    /// SPECIAL-NAMES entry, one more per level it came down (<see cref="InheritConfiguration"/>); a name absent here is
-    /// this unit's own. The tier <see cref="DropShadowedConstants"/> weighs against a same-spelled name's.</summary>
-    private readonly Dictionary<string, int> _inheritedSymbolics = new(CobolNames.Comparer);
-
     /// <summary>The inherited symbolic-characters a nearer declaration hides (<see cref="DropShadowedConstants"/>).
     /// Hidden by <see cref="HidesSymbolic"/>, never removed from <see cref="SymbolicCharacters"/>: a contained
     /// unit inherits the whole table from this one, and this unit's local name hides nothing from it.</summary>
@@ -501,7 +497,7 @@ public sealed partial class DataBinder
     /// table still missing: a contained program's <c>MOVE SYM-A TO Y</c> naming its container's symbolic-character
     /// was COBOL1639 "not defined" (kb/Work PB3154's sweep; §8.4.6.1 lists symbolic-character among the names a
     /// configuration section declares for "any source element contained within that source element"). Each one
-    /// carries its containment distance (<see cref="_inheritedSymbolics"/>), so a nearer declaration of the spelling
+    /// carries its containment distance (<see cref="ConfigurationNames{T}.InheritedDepths"/>), so a nearer declaration of the spelling
     /// hides it (<see cref="DropShadowedConstants"/>; kb/Work PB3154 review R1-1).
     /// §11.9.4 GR1's OPTIONS inheritance rides the same call.
     /// <para>⚠ One sibling still lives elsewhere: EVERY SPECIAL-NAMES mnemonic-name — the switch mnemonics SET reads
@@ -523,8 +519,7 @@ public sealed partial class DataBinder
         UserClasses.InheritFrom(container.UserClasses);
         Alphabets.InheritFrom(container.Alphabets);
         NationalAlphabets.InheritFrom(container.NationalAlphabets);
-        SymbolicCharacters.InheritFrom(container.SymbolicCharacters,   // §8.4.6.1 (kb/Work PB3154), each with its tier
-            k => _inheritedSymbolics[k] = container._inheritedSymbolics.GetValueOrDefault(k) + 1);
+        SymbolicCharacters.InheritFrom(container.SymbolicCharacters);   // §8.4.6.1 (kb/Work PB3154), each with its tier
         OrderTables.InheritFrom(container.OrderTables);
         DynamicLengthStructures.InheritFrom(container.DynamicLengthStructures);
         Locales.InheritFrom(container.Locales);   // §12.3.7.4 GR1 — locale-names reach contained units

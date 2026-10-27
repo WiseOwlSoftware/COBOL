@@ -8811,6 +8811,26 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return matches.TrueForAll(IsTypeDeclarationCondition) ? [] : matches;
     }
 
+    /// <summary>⛔ THE OTHER HALF OF THE §8.4.2.2.1 UNIQUENESS COUNT OF A CONDITION-NAME REFERENCE (kb/Work PB3347): does
+    /// the written reference ALSO name a switch-status condition-name (§12.3.7.4 GR2) declared in the SAME source element
+    /// as the level-88 <paramref name="matches"/> it reaches? A switch's condition-name and a level-88 are the same type
+    /// of user-defined word (§8.3.2.2.4), so declaring both is legal, but two items of one element sharing a spelling
+    /// are non-unique: "Qualification of a user-defined name is required unless … No other name has the identical
+    /// spelling" (§8.4.2.2.1 1). The switch condition-name has no hierarchy and takes no qualifier (§8.8.4.6.2), so only
+    /// a reference with NO suffix at all — no qualifier, subscript or reference modifier — can mean it, and such a
+    /// reference counts it as one more candidate beside the level-88s (§8.4.2.2.3 SR1).
+    /// <para>"Same source element" is a TIER comparison (§8.4.6.2.1 3): <see cref="DeclaringDepth"/> places the 88
+    /// (this element's own, or a container's GLOBAL one n levels out) and
+    /// <see cref="ConfigurationNames{T}.ContainmentDepth"/> places the switch, so a container's switch beside a
+    /// container's GLOBAL 88 is the same pair, and an 88 NEARER than the switch is the item the reference names
+    /// (§8.4.6.1 "to the item which that source element describes", kb/Work PB3153). The switch is never the nearer
+    /// one: only the outermost program of a unit declares a configuration section (COBOL1643, §12.3.3 SR1) and every
+    /// other element reads it from there. Pure: it reports nothing.</para></summary>
+    internal bool SwitchConditionCompetes(Core.DataReferenceContext dref, IReadOnlyList<Condition88> matches) =>
+        matches.Count != 0 && dref.dataReferenceSuffix().Length == 0
+        && dref.cobolWord()?.GetText() is { } name
+        && SwitchConditions.ContainmentDepth(name) == DeclaringDepth(matches[0].Parent);   // matches is one tier (NearestDeclaring)
+
     /// <summary>The one qualifier walk: <paramref name="firstQualifiable"/> is the innermost entry a qualifier may
     /// name; <paramref name="member"/> locates the record for the file-name qualifier.</summary>
     private bool QualifierChainMatchesFrom(DataItem? firstQualifiable, DataItem member, IReadOnlyList<string> qualifiers)

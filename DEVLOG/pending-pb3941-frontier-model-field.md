@@ -24,3 +24,9 @@ reason, so their holds are unchanged.
 beside an approval, with no field, plans exactly as a note without that body. With the old regex put back, that check
 alone fails. The wave unit fixed this on its own branch and launched no fleet, as its unit rules require when a planner
 defect makes the plan unusable. The next wave can plan PB3869.
+
+Bringing main in met PB3838's `upstream` note kind in `work.py`'s register check, and both checks run there now. An
+upstream record describes another project's defect and plans none of our work, so `frontier_model` joins the planning
+fields such a record may not carry. The branch review's one lead is fixed too: `frontier_model_shape` tested membership
+on any value, so a list such as `[mythos]` raised a TypeError that stopped `work.py check`. It now refuses any value that
+is not a family name by naming the note, and the self-test holds a list and a number to that.
