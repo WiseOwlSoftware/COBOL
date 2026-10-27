@@ -427,6 +427,12 @@ internal sealed class EcState
     /// <summary>The current EC-SIZE name local while emitting a checked arithmetic body (else null) — the
     /// <c>&gt;&gt;TURN EC-SIZE</c> half of the interlock.</summary>
     public string? SizeErrEcVar { get; set; }
+
+    /// <summary>The statement's "a size error condition existed" flag while emitting an arithmetic statement written with
+    /// ONLY a NOT ON SIZE ERROR phrase and no EC-SIZE checking (else null) — the phrase detects the condition and never
+    /// disposes of it (ISO §14.7.5; kb/Work PB3869), so each receiver's store goes through
+    /// <c>ArithmeticEmitter.DetectingStore</c> instead of the checked shape that <see cref="SizeErrVar"/> drives.</summary>
+    public string? SizeErrDetectVar { get; set; }
 }
 
 /// <summary>The inter-program emission state of the unit being emitted (INTERPROGRAM_DESIGN D1–D5).</summary>
