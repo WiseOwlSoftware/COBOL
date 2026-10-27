@@ -1,4 +1,4 @@
-## PB1086: the external-repository design made current, so slices 4, 5, 7 and 8 can be built from it
+## Entry 2669 — 2026-10-27 14:03 PDT — PB1086: the external-repository design made current, so slices 4, 5, 7 and 8 can be built from it
 
 The owner asked the Mythos lane on 2026-10-27 to take up kb/Work PB1086, the §8.13 external repository, which holds 18
 of the inventory's 31 GAP rows. The design (`docs/rearchitecture/DESIGN-external-repository.md`, approved 2026-10-05)
@@ -66,3 +66,4 @@ Smaller corrections in the same edit: the stale "slice 3 open" text, §21 item 3
 existed. `docs/CONFORMANCE.md` §3 gains the D-R3 bullet that slice 6 shipped COBOL2969 without. The register fixes:
 PB2104 is `blocked_by: ["PB2103"]`, PB1086's 2026-10-23 "PB2104 ready" gets a dated correction, and the open slice
 notes' Scope lines now match the design.
+
