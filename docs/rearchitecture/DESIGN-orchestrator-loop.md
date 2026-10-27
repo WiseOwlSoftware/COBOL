@@ -97,6 +97,11 @@ every coordination tool, never an assumption:
   `account.py --seed-check` (run by `tooling_check.py` at every session start) says what is missing. The Chrome bridge
   is the named pipe `claude-mcp-browser-bridge-<Windows user>`, per Windows user, so one pairing serves either account;
   the page it reads is whichever claude.ai account the browser is signed into, which the `meter` unit checks.
+- **The auto-memory index is capped** (kb/Work PB3779). `<config dir>/projects/<main checkout's repo key>/memory/MEMORY.md`
+  is in the turn-1 request of every agent and re-read on every turn of every session, so it holds only the anchors, the
+  START HERE lines (`start-session.ps1` restarts read them) and the standing rules, under 6,000 chars; each dated
+  decision, resume note and lane handoff is one line in `project_history_index.md`. `account.py --memory-index` prints
+  the size (exit 1 over the cap) and `session-probe.ps1` shows it at every start, because a cap nobody sees drifts back.
 - **Telemetry is per MACHINE.** Every account's user settings export to the one sink (`otlp_sink.py`, 127.0.0.1:4318,
   `~\.claude\telemetry`), and each `api_request` event names its account in `user.account_uuid`. A consumer that needs
   one account's spend filters on it (`budget.py`, `usage_report.py --account-uuid`).
