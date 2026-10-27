@@ -15222,6 +15222,12 @@
   ],
   "expect": "COBOL0803"
  },
+ "pb3954_exact_quotient_places_below_2014": {
+  "refuse-at": [
+   "2002"
+  ],
+  "expect": "COBOL0803"
+ },
  "pb388-goback-raising-level2-name": {
   "refuse-at": [
    "2002",
