@@ -48,4 +48,8 @@ message implements GR19's two cases, not a paraphrase of the old text. Performan
 Duplication: the phrase list that SR6 and the KEY check both need is one helper. Silent failure: the refusal is an error
 at every edition and never rerouted to a sequential read.
 
-**Gate.** (filled by the gate line below)
+**Gate.** Run `TestResults/build-local/000001-20261027T005759Z` at HEAD 8d929f328:
+`=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — ... Conformance 6,100/18,998 · Unit 37,108/38,456 ·
+Characterization 36/36 cases ran ... Linux half (WSL clone of HEAD) GREEN ...`. The twelve goldens (three cases at four
+editions) and `ReadKeyFormatTests` are all `outcome="Passed"` in `leg-1-Conformance.trx`. `semgrep/verify.py` PASS
+(`raw-diagnostic-code-literal` 225 to 225). `generate.py --check` GREEN, `work.py check` OK.
