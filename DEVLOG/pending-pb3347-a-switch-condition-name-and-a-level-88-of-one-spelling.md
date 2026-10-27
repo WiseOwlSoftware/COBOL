@@ -16,15 +16,17 @@ referenced): clean, right. `s3` (switch in the outer SPECIAL-NAMES, 88 in the co
 
 **The fix.** Three parts, one root (the 88 won because nothing counted the switch as a candidate):
 - `ConfigurationNames` now tells a name the element declares from one `InheritFrom` took from a container
-  (`DeclaresOwn`), where before both lived in one dictionary.
-- `DataBinder.OwnSwitchConditionCompetes` is the other half of the §8.4.2.2.1 count beside
+  (`ContainmentDepth`: 0 own, n the n-th container's), where before both lived in one dictionary; the symbolic-characters'
+  private copy of the same tier (`_inheritedSymbolics`) is deleted in favour of it.
+- `DataBinder.SwitchConditionCompetes` is the other half of the §8.4.2.2.1 count beside
   `QualifiedConditionCandidates`: a reference with no suffix at all (no qualifier, subscript or reference modifier) to a
-  spelling this element's own SPECIAL-NAMES declares as a switch condition-name counts the switch as one more candidate.
+  spelling a SPECIAL-NAMES switch condition-name declared in the same source element as the level-88 counts the switch
+  as one more candidate.
   `ConditionBinder.ConditionOf`, the one resolution every condition position reads (IF, EVALUATE, PERFORM UNTIL, SEARCH
   WHEN, SET condition-name TO TRUE), reports the existing COBOL1639 (warning plus the first level-88 under `--permissive`),
   once per source reference. A qualified reference names the level-88 alone (§8.4.2.2.3 SR5); a switch name only a
   container declared still yields to the element's own item (§8.4.6.1, `ReferenceResolver.DescribesOwnItem`,
-  unchanged). No new diagnostic code; COBOL5254-COBOL5256 are returned.
+  unchanged), but a container's switch beside that container's GLOBAL level-88 is the same pair one tier out and counts. No new diagnostic code; COBOL5254-COBOL5256 are returned.
 - The "level-88 wins / NC211A regression guard" ordering rationale in `ConditionBinder.AnalyzeBareOperand`,
   `SetAlterBinder.SwitchCondOf` and `DataBinder.SwitchConditions` is rewritten to the real rule, and the test that pinned
   the wrong answer (`Switch_Level88WinsOverSwitchStatusName`, with its golden) is deleted.
@@ -52,6 +54,16 @@ may not write a CONFIGURATION SECTION, COBOL1643).
 **Every position.** One probe program refuses the pair at `IF NOT S-ON`, `IF (S-ON)`, `IF S-ON AND V = 2`, `PERFORM UNTIL
 S-ON`, `EVALUATE TRUE WHEN S-ON` and `SET S-ON TO TRUE` (six COBOL1639, one each), and accepts `IF S-ON OF V`: all reach
 `ConditionOf`.
+
+**Review round 1.** The reviewer found that the first cut counted only the referring element's OWN switch, so a
+contained program's `IF S-ON` over a container switch plus a container GLOBAL `88 S-ON` bound the 88 silently (READ-88
+with the switch OFF) while the same reference in the container drew COBOL1639 (R1-1, `OUTERG`/`INNERG`). Reading B said the
+pair is non-unique in the element that declares both, and §8.4.6.2.1 3) b) 2 makes a contained reference reach the
+containing element's items, so "own" was too narrow: the comparison is of the two items' containment tiers. The predicate
+now compares `ConfigurationNames.ContainmentDepth` with `DataBinder.DeclaringDepth`; new refusal golden
+`pb3347-container-switch-condition-name-beside-global-level88` (COBOL1639 at all four editions). R1-2 (the NIST goldens for
+NC174A, NC211A, NC254A not routed into leg 1 by the impact map) sits in a file this round does not change and is left
+for the clerk.
 
 **Self-review.** Architecture: the count lives in one predicate beside `QualifiedConditionCandidates`; `FlagConformancePass`
 reads only the pure level-88 set and is unaffected. Full code: the first leg-1 run was RED on my own new golden (GOBACK in
