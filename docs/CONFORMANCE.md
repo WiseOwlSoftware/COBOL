@@ -307,16 +307,27 @@ of an unsupported facility.
   MOVE and every statement that MOVEs (READ INTO, MOVE CORRESPONDING, INITIALIZE ... REPLACING BOOLEAN DATA, a CALL
   argument landed by §14.2.3 GR9, the element MOVE of a variable-length group MOVE between corresponding dynamic-capacity
   tables, §14.6.9.2), a reference-modified boolean receiver, STRING into a USAGE DISPLAY boolean item (§14.9.43.4 GR3 a)),
-  a group sender into a USAGE DISPLAY boolean item (§14.9.25.4 GR4's alphanumeric move, which now zero-fills where it
-  space-filled), and COMPUTE's boolean result. **The exemptions:** a GROUP sender into a USAGE BIT item is
-  §14.9.25.4 GR4's move with "no conversion of data from one form of internal representation to another", so the
-  sender's BYTES fill the receiving area and the item's bits are the first bits of those bytes (`MOVE GA TO BB` with GA
-  holding `1A` stores the bits of x"31", `00110`); every bit pattern is a valid boolean value, so DISPLAY and the operators
-  agree there without a character conversion. The same GR4 move into a USAGE NATIONAL boolean item fits the sender's bytes to
-  the item's UTF-16BE pairs and decodes them as national characters (`MOVE GN TO BN` with GN holding `N"101"` stores `101`);
-  the conversion applies to characters, never to that byte image. Content the character store never sees stays undefined
-  (§14.6.13.2 1)) and the operators tolerate it: a GROUP receiver (GR4 moves bytes, so `MOVE "A1Z" TO G` leaves `A1Z` in a
-  boolean member) and a REDEFINES view of other storage. VALUE cannot reach it (§13.18.63.3 SR10: the literals of a boolean item's VALUE clause are boolean
+  a group sender into a USAGE DISPLAY or USAGE NATIONAL boolean item (§14.9.25.4 GR4's alphanumeric move; into a display
+  item it zero-fills where it used to space-fill), a READ or RETURN into an elementary boolean record area that no other
+  description shares (§14.9.30.4 GR13 c); §14.9.34.4 GR3; a record area shared with another record of the FD
+  (§13.18.33.4 GR3) or with a SAME RECORD AREA peer (§12.4.6.4.4 GR2) holds the record's bytes for every description and a
+  READ leaves them as they are, as the restore of an APPLY COMMIT item does, §14.9.36.4 GR3), and COMPUTE's boolean result. **The GR4 arm converts the DECODED characters, never the
+  bytes:** GR4 has "no conversion of data from one form of internal representation to another", so the sender's BYTES
+  fill the receiving area unchanged, and the item's characters are then decoded from them (a national item's UTF-16BE
+  pairs, `ReceivingStore.StorageCharacters`) and converted like any other character store (`MOVE GN TO BN` with GN holding
+  `N"101"` stores `101`; `MOVE GA TO BN` with GA holding `A1Z1` stores `0000`, because the pairs x4131 x5A31 x2020 x2020
+  are no national `1`). Converting the bytes before decoding them is the defect PB3666's review R1-1 removed. **The one
+  exemption is USAGE BIT:** a GROUP sender into a USAGE BIT item leaves the item's bits the first bits of the sender's bytes
+  (`MOVE GA TO BB` with GA holding `1A` stores the bits of x"31", `00110`), and every bit pattern is a valid boolean value,
+  so DISPLAY and the operators agree there without a character conversion. Every STORE into a boolean item converts its
+  characters. That includes a GR4 group move (the decoded characters of a national or display receiver; a USAGE BIT
+  receiver's bits are all valid) and a READ or RETURN into an elementary record area that no other description shares. A
+  boolean item can still hold a character other than 0 or 1 only through another description of the same storage, which no
+  store into the item reaches: a group receiver (GR4 moves the group's bytes), a REDEFINES view, a record area shared with
+  another record of its file or with a SAME RECORD AREA peer (a READ or RETURN fills the area's bytes), an APPLY COMMIT
+  restore (ROLLBACK returns the saved image), or storage shared through a BY REFERENCE argument,
+  EXTERNAL, BASED or ADDRESS OF. That content is undefined (§14.6.13.2 1)), and the boolean operators read such a position
+  as zero. (`MOVE "A1Z" TO G` leaves `A1Z` in a boolean member of the group G.) VALUE cannot reach it (§13.18.63.3 SR10: the literals of a boolean item's VALUE clause are boolean
   literals), UNSTRING refuses a boolean receiver (§14.9.48.3 SR4) and a .NET host's string landing into a boolean formal is
   REFUSED when it holds a character other than `0` or `1` (`HostLanding.RequireClass`). Written once, in
   `CobolBool.FromCharacters` and its fitting store `CobolBool.Store` (`RuntimeApi.StrStoreBoolean` is the only emitter of
