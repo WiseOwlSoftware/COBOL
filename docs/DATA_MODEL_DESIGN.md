@@ -794,7 +794,7 @@ The one fitting store, `CobolBool.Store` (emitted only by `RuntimeApi.StrStoreBo
 character to zero) and then fits with boolean zeros; a reference-modified slice and a STRING image convert through
 `CobolBool.FromCharacters`, and every storage-area store (a GR4 group move into an elementary receiver, a READ or RETURN into an
 elementary record area that no other description shares) converts through the same entry point in `ReceivingStore.StorageCharacters`; a shared record area
-(a multi-record FD, a SAME RECORD AREA peer, the "also available" store of a released record) and an APPLY COMMIT restore deposit the image's bytes through
+(a multi-record FD, a SAME RECORD AREA peer, an EXTERNAL file's run-unit area, the "also available" store of a released record) and an APPLY COMMIT restore deposit the image's bytes through
 `ReceivingStore.VerbatimStorageArea`, and `SequentialIoEmitter.EmitImageInto` names which of the two each caller is (`storesIntoOwnItem`, `FileModel.AreaHasOneDescription`). GR4 fixes only that the receiving AREA takes the sender's BYTES;
 the receiver's characters are decoded from those bytes (a national item's UTF-16BE pairs, `NatReadWindow`) and THEN converted, so the conversion
 is of the decoded characters, never of the bytes (converting the bytes turned `N"101"` into garbage, PB3666 review R1-1). The one exemption is the USAGE BIT

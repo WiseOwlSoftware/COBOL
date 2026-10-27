@@ -69,6 +69,12 @@
 *>   L17 the same through a SAME RECORD AREA clause (cite.py --check 12.4.6.4.4 "This is equivalent to an implicit
 *>       redefinition of the area with records aligned on the leftmost byte position" -> OK 2)): READ FS2 (record
 *>       SB PIC 1(8)) makes the record available in the area FS1's record SA PIC X(4) describes too, so SA reads A1Z1.
+*>   L18 the same record READ into an EXTERNAL file FX whose one record RX is PIC 1(8), then a CALLed program that
+*>       describes the same file and record as external with the redefinition RA2 PIC X(8) (13.18.22.4 GR4 b) -> data
+*>       "may be accessed by any runtime element in the run unit that describes the same file and records as external";
+*>       GR6 lets the second element add its own complete redefinition of the record). The area is one cell for the run
+*>       unit, so RA2 reads the record the READ made available, A1Z1B101, and the READ must not rewrite it to the
+*>       boolean positions RX alone would show. L14's file is not external and has no other description, so it converts.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3666CC.
        ENVIRONMENT DIVISION.
@@ -80,6 +86,7 @@
            SELECT FM ASSIGN TO "PB3666L14.DAT".
            SELECT FS1 ASSIGN TO "PB3666L14.DAT".
            SELECT FS2 ASSIGN TO "PB3666L14.DAT".
+           SELECT FX ASSIGN TO "PB3666L14.DAT".
        I-O-CONTROL.
            SAME RECORD AREA FOR FS1 FS2.
        DATA DIVISION.
@@ -97,6 +104,8 @@
        01 SA PIC X(4).
        FD FS2.
        01 SB PIC 1(8).
+       FD FX IS EXTERNAL.
+       01 RX PIC 1(8).
        WORKING-STORAGE SECTION.
        01 SX-AB  PIC X(2) VALUE "AB".
        01 SX-MIX PIC X(5) VALUE "1A0B1".
@@ -192,4 +201,25 @@
            READ FS2
            DISPLAY "L17 " SA
            CLOSE FS1 FS2
+           OPEN INPUT FX
+           READ FX
+           CALL "PB3666XB"
+           CLOSE FX
            STOP RUN.
+
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB3666XB.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FX ASSIGN TO "PB3666L14.DAT".
+       DATA DIVISION.
+       FILE SECTION.
+       FD FX IS EXTERNAL.
+       01 RX2 PIC 1(8).
+       01 RA2 PIC X(8).
+       PROCEDURE DIVISION.
+           DISPLAY "L18 " RA2
+           GOBACK.
+       END PROGRAM PB3666XB.
+       END PROGRAM PB3666CC.

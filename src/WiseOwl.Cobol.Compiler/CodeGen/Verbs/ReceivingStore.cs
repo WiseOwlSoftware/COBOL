@@ -165,7 +165,8 @@ internal static class ReceivingStore
     /// <see cref="StorageArea"/> and by <c>MoveEmitter.GroupRecord</c>, whose receiving record exists only as a value
     /// (kb/Work PB2587), so a group move decodes its receiver one way whether the receiver is a place or a record, and a
     /// READ or RETURN into an elementary record area that no other description shares (§14.9.30.4 GR13 c); §14.9.34.4
-    /// GR3; <see cref="FileModel.AreaHasOneDescription"/>) rides the same store. A shared area and an APPLY COMMIT restore
+    /// GR3; <see cref="FileModel.AreaHasOneDescription"/>) rides the same store. A shared area (an EXTERNAL file's
+    /// run-unit area too, §13.18.22.4 GR4 b)) and an APPLY COMMIT restore
     /// take <see cref="VerbatimStorageArea"/> instead.
     /// <para>⛔ THE CONVERSION IS OF THE DECODED CHARACTERS, never of the bytes. §14.9.25.4 GR4 has "no conversion of data
     /// from one form of internal representation to another", so the receiving AREA takes the sender's bytes unchanged (a
