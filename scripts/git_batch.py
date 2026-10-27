@@ -5,6 +5,7 @@
     graph = git_batch.Ancestry.read(repo, tips)              # every commit beyond origin/main the tips reach
     graph.beyond(tip)                                        # `git rev-list <tip> ^origin/main`, from memory
     graph.on_base(tip)                                       # `git merge-base --is-ancestor <tip> origin/main`
+    graph.on_base_line(tip)                                  # `git rev-list --first-parent origin/main` holds <tip>
     git_batch.resolve(repo, names)                           # `git rev-parse --verify -q <name>^{commit}`, each
     git_batch.diff_names(repo, [(commit, parent), ...])      # `git diff --name-only --no-renames <parent> <commit>`
     git_batch.diff_patches(repo, [(commit, parent), ...])    # `git diff -U0 --no-renames <parent> <commit>`
@@ -32,6 +33,11 @@ WHAT EACH READER GUARANTEES
                A missing base excludes nothing (a repository that never fetched origin/main: every commit is beyond
                it), as `git rev-list <tip>` with no exclusion would. Its answers hold for the tips it read and every
                commit they reach; `extend` reads more tips into the same graph.
+  on_base_line one `git rev-list --first-parent <base>`, read once and held: the commits of the base's OWN line (what a
+               merge-queue landing leaves: each pull request's commits sit on the merge commit's second parent, never on
+               this line). A branch whose tip is on it was cut from the base, or fast-forwarded to it, and has no commit
+               of its own; a branch whose pull request merged has its tip off it (kb/Work PB3609). Read lazily, so a
+               caller that never asks pays no process.
   diff_names / diff_patches
                one `git diff-tree --stdin --always -r --no-renames` over `<commit> <parent>` lines, so each pair
                gets exactly one header line (its commit) in input order, even when its diff is empty; a pair's
@@ -206,6 +212,7 @@ class Ancestry:
         self._names: dict[str, str | None] = dict(names or {})
         self._beyond: dict[str, frozenset[str]] = {}
         self._base_tree: str | None = None
+        self._base_line: frozenset[str] | None = None
 
     @classmethod
     def read(cls, repo: pathlib.Path | str, tips: Iterable[str], base: str = BASE) -> "Ancestry":
@@ -282,6 +289,16 @@ class Ancestry:
     def on_base(self, commit: str) -> bool:
         """`commit` (a tip this graph read, or a commit one reaches) is the base or an ancestor of it."""
         return self._full(commit) not in self._parents
+
+    def on_base_line(self, commit: str) -> bool:
+        """`commit` is on the base's first-parent line (`git rev-list --first-parent <base>`): a commit of the base's own
+        history, as opposed to one a merged branch brought in through a merge commit's second parent. False when the
+        base names no commit. The line is read once, in one process."""
+        if self._base_line is None:
+            base = self.sha(self.base) if self.base and self.repo is not None else None
+            self._base_line = (frozenset(_checked(self.repo, "rev-list", "--first-parent", base).split())
+                               if base else frozenset())
+        return self._full(commit) in self._base_line
 
     def is_ancestor(self, ancestor: str, commit: str) -> bool:
         """`git merge-base --is-ancestor <ancestor> <commit>` for two names this graph read: from memory when `ancestor`
@@ -426,6 +443,15 @@ def self_test() -> int:
               nobase.beyond(nobase.sha("side")) == set(repo.git("rev-list", "side").split()))
         fake = Ancestry.of({"c2": ("c1",), "c1": ()})
         check("Ancestry.of: a known parent map, no git", fake.beyond("c2") == {"c1", "c2"} and fake.on_base("c0"))
+        onmain = Ancestry.read(r, ["side", "empty"], base="main")   # main holds the merge: `side` is its second parent
+        line = set(repo.git("rev-list", "--first-parent", "main").split())
+        every = repo.git("rev-list", "main").split()
+        check("Ancestry.on_base_line: `rev-list --first-parent <base>` holds it; a merged branch's own commit is off it",
+              all(onmain.on_base_line(c) == (c in line) for c in every) and onmain.on_base_line(merge)
+              and onmain.on_base_line(root) and onmain.sha("side") in every and not onmain.on_base_line("side")
+              and not onmain.on_base_line("empty"), (line, every))
+        check("Ancestry.on_base_line: a missing base, or a graph with no repository, holds nothing",
+              not nobase.on_base_line(nobase.sha("side")) and not fake.on_base_line("c1"))
 
         pairs = [(merge, p) for p in graph.parents(merge)] + [(empty, merge), (root, EMPTY_TREE)]
         names = diff_names(r, pairs)
