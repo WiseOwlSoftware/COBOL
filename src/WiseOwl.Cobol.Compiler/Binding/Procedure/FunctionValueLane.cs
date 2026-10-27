@@ -27,8 +27,9 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// <para><b>The argument-level facts are read from the BOUND TREE</b> by <see cref="ArgumentCarrier"/>, a visitor over
 /// the same two interfaces <c>NumericRenderer</c> implements — so a bound node added tomorrow is a COMPILE error here
 /// as it is there — following <c>NumericRenderer.CombineCore</c> and <c>Power</c> for the arithmetic around a float.
-/// A function whose value is fixed by its definition (NUMVAL, NUMVAL-C) is SDIDI-carried in every mode, and a nested
-/// cross-aligning call (SUM, RANGE, MEAN, MEDIAN, MIDRANGE) is SDIDI-carried when <see cref="IntrinsicCarrierRules.AlignmentMayLeaveCarrier"/>
+/// A function whose value is the exact parse of its argument (NUMVAL, NUMVAL-C, NUMVAL-F; <see cref="IntrinsicCarrierRules.ReturnsExactParse"/>) is SDIDI-carried in every mode, as is MEAN, the SDIDI quotient of its equivalent expression, for a list with no binary64 operand
+/// (<see cref="IntrinsicCarrierRules.ReturnsSdidiQuotient"/>, kb/Work PB3860); and a nested
+/// cross-aligning call (SUM, RANGE, MEDIAN, MIDRANGE) is SDIDI-carried when <see cref="IntrinsicCarrierRules.AlignmentMayLeaveCarrier"/>
 /// says its aligned arguments may leave the <c>Int128</c> carrier (the digit bounds of the field and literal arguments
 /// are read here as the renderer reads them; an argument whose bound only the renderer's arithmetic knows is unproven,
 /// as it is there). What it cannot see is a run-time fact (a wide exact intermediate that overflows to the SDIDI, a
@@ -88,9 +89,9 @@ internal static class FunctionValueLane
     private static CarrierKind Of(BoundIntrinsicCall call)
     {
         var sig = call.Sig;
-        // NUMVAL / NUMVAL-C return the SDIDI in EVERY mode — RenderNum's first arm, ahead of the mode dispatch and of
-        // whatever their arguments are (the value is fixed by the function's definition).
-        if (IntrinsicCarrierRules.ValueFixedByDefinition(sig.RuntimeMethod)) return CarrierKind.Dec;
+        // NUMVAL / NUMVAL-C / NUMVAL-F return the SDIDI in EVERY mode — RenderNum's first arm, ahead of the mode dispatch and of
+        // whatever their arguments are (the value is the exact parse of the argument: by definition for NUMVAL and NUMVAL-C, by the PB3839 determination for NUMVAL-F).
+        if (IntrinsicCarrierRules.ReturnsExactParse(sig.RuntimeMethod)) return CarrierKind.Dec;
         // A function of a non-numeric result (reachable in a numeric context only under --permissive) is an exact value
         // (RenderNum's alphanumeric-decode arm). ⛔ AN INTEGER FUNCTION IS NOT EXEMPT (kb/Work PB3268, review R3-1):
         // RenderNum has no integer early-out, so INTEGER(1.5E0) computes FloorDec on the SDIDI, a SUM over wide integer
@@ -108,11 +109,14 @@ internal static class FunctionValueLane
         // The SDIDI lane precedes the float lane: an SDIDI-carried argument (a floating-point literal, ...) is computed
         // on the SDIDI by a function that has a body for it (RenderNum's `AnyDecRaw(ic) && RenderDec(ic)` arm).
         if (anyDec && sdidiBody) return OnSdidiBody(sig.RuntimeMethod);
-        // A cross-aligning arm (SUM / RANGE / MEAN / MEDIAN / MIDRANGE) whose aligned arguments may leave the Int128 carrier
+        // A cross-aligning arm (SUM / RANGE / MEDIAN / MIDRANGE) whose aligned arguments may leave the Int128 carrier
         // takes the SDIDI (RenderNum's PB621 arm) — ahead of the float lane, whatever the arithmetic around it.
         if (IntrinsicCarrierRules.CrossAlignedNativeArms.Contains(sig.RuntimeMethod)
             && IntrinsicCarrierRules.AlignmentMayLeaveCarrier(sig.RuntimeMethod, args.Select(a => a.Aligned).ToList()))
             return OnSdidiBody(sig.RuntimeMethod);
+        // MEAN is the SDIDI quotient of its equivalent expression for every list with no binary64 operand (RenderNum's
+        // PB3860 arm); a list with one keeps the float lane below, as there.
+        if (IntrinsicCarrierRules.ReturnsSdidiQuotient(sig.RuntimeMethod) && !anyReal) return OnSdidiBody(sig.RuntimeMethod);
         // A mixed selection list rides the SDIDI too (RenderNum's selection arm).
         if (Selections.Contains(sig.RuntimeMethod) && anyReal && !allReal && sdidiBody) return OnSdidiBody(sig.RuntimeMethod);
         if (sig.Float) return CarrierKind.ApproximateReal;

@@ -760,7 +760,7 @@ public sealed class HostEntryTests
             NonCobolElement.CompileCSharp(dir, "H7HOST", NationalVarHost, "H7PROGS", "H7PROGS");
             var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H7HOST.dll"), dir);
             Assert.Equal(
-                "IN 05 4 14\n" +
+                "IN 05 000000004 000000014\n" +
                 "NM-OK\n" +
                 "NT2-OK\n" +
                 "OUT 5 [xyz] ab,de,lm", stdout);

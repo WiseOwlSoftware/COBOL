@@ -13,7 +13,8 @@
       *> NATIVE alone and STANDARD-DECIMAL alone are each legal at
       *> 2014/2023 (2014/l1c01_arithmetic_clause_forms); writing both is
       *> the only defect. The second phrase is an unexpected token in
-      *> the OPTIONS paragraph: parse error COBOL0307.
+      *> the OPTIONS paragraph: parse error COBOL0001 (no period
+      *> written before it lets it follow, kb/Work PB3832).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C01I.
        OPTIONS.

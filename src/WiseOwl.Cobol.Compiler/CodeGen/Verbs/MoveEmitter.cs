@@ -985,7 +985,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// Measured: <c>MOVE FUNCTION NUMVAL-C("$0.123456789") TO PIC S9(4)V9(9)</c> stored 0.123456000 while
     /// COMPUTE stored the exact value — §15.68.4 r1 carries no channel qualification. The scale mirrors
     /// <c>ArithmeticEmitter.ScaleOf</c> (a numeric-edited receiver's scale is its MASK's) and the digits
-    /// <c>ArithmeticEmitter.IntDigitsOf</c> (from <c>DigitPositions</c>, never the '9' count — under-counting
+    /// <c>ReceiverContext.Of</c>'s integer-digit rule (from <c>DigitPositions</c>, never the '9' count — under-counting
     /// breaks the PB13 saturation-is-visible invariant).</summary>
     private ReceiverContext SenderContext(DataItem target)
     {
@@ -993,6 +993,6 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // The ONE receiver-scale rule (RuntimeApi.ReceiverScaleOf — PB64 T6: this copy and ArithmeticEmitter's
         // both fell to pic.Scale = 0 for a format-2 LOCALE item, silently truncating a fractional sender).
         int scale = pic.ReceiverScale();
-        return ReceiverContext.None with { Scale = scale, IntegerDigits = Math.Max(0, pic.DigitPositions - scale), MoveSender = true };
+        return ReceiverContext.None with { Scale = scale, IntegerDigits = Math.Max(0, pic.DigitPositions - scale) };
     }
 }

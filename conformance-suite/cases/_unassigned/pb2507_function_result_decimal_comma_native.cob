@@ -6,17 +6,20 @@
 *> portable: unverified
 *>---
       *> kb/Work PB2507, the native-arithmetic and folded lanes (the base
-      *> cases are 85/pb2507_function_result_decimal_comma).  A numeric
-      *> function's returned value used as text is the LITERAL FORM of the
-      *> value (CONFORMANCE.md DOC-A.1-92, 15.4.1 / 14.9.11.4 GR1), and
-      *> 12.3.7.4 GR14 a) makes the comma the character "written in
-      *> numeric literals to represent the decimal separator" under
-      *> DECIMAL-POINT IS COMMA.  Two lanes share the rule:
-      *>   ABS is a run-time call: scale of the argument, so ABS(N) of an
-      *>     S9V99 item holding -1,5 is 1,50; ABS(-1,5) is 1,5.
+      *> cases are 85/pb2507_function_result_decimal_comma).  DISPLAY of a
+      *> numeric function's returned value shows the description of its
+      *> temporary (CONFORMANCE.md DOC-A.1-92, kb/Work PB3514; 15.4.1 /
+      *> 14.9.11.4 GR1), and 12.3.7.4 GR14 a) makes the comma the
+      *> character "written in numeric literals to represent the decimal
+      *> separator" under DECIMAL-POINT IS COMMA.  Two lanes share the
+      *> rule:
+      *>   ABS is a run-time call that copies its argument's item: ABS(N)
+      *>     of an S9V99 item holding -1,5 is +1,50; ABS(-1,5) copies the
+      *>     literal's signed field: +1,5.
       *>   HIGHEST-ALGEBRAIC / LOWEST-ALGEBRAIC of a PIC 9V99 / S9V99 item
-      *>     are FOLDED at compile time (15.43.4 r2 / 15.58.4 r2): 9,99
-      *>     and -9,99, the literal form with the comma.
+      *>     are FOLDED at compile time (15.43.4 r2 / 15.58.4 r2) and GnuCOBOL
+      *>     evaluates them at run time, so the value describes the item:
+      *>     0000009,99 and -0000009,99, with the comma.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2507N.
        ENVIRONMENT DIVISION.

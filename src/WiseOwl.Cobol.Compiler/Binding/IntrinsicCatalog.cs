@@ -22,6 +22,30 @@ public enum IntrinsicArity { Fixed, OptionalTrailing, Variadic }
 /// the column from the standard's own rule text, so a new row with such a rule cannot omit it.</summary>
 public enum IntrinsicDomain { None, ClosedUnit, NonNegative, Positive, AboveMinusOne }
 
+/// <summary>⛔ THE DESCRIPTION OF A NUMERIC FUNCTION'S RETURNED-VALUE ITEM, as DISPLAY shows it under
+/// <c>--numeric-display decimal</c> (kb/Work PB3514; ISO §15.4 puts the returned value in "a temporary elementary data
+/// item" and §15.4.1 leaves its characteristics to the implementor, so CLAUDE.md rule 1's precedence adopts the description
+/// GnuCOBOL 3.2.0 gives each function's temporary; docs/CONFORMANCE.md DOC-A.1-92). One column, so the next function is
+/// automatic: <see cref="Value"/> is right for every function whose temporary GnuCOBOL derives from the value alone
+/// (<c>CobolNum.DeviceFunctionText</c>), and a function that is anything else says so on its row.
+/// <c>FunctionDeviceFormDriftTests</c> pins the set of rows that say so.</summary>
+public enum FunctionDeviceForm
+{
+    /// <summary>The temporary is described by the returned value alone (<c>cob_alloc_field</c>): ordinary integer and
+    /// numeric functions, the default.</summary>
+    Value,
+    /// <summary>The returned value IS the content of an argument (§15.7.1 ABS, §15.59.4 1) MAX, §15.63.4 1) MIN,
+    /// §15.61 MEDIAN, §15.60 MEAN of one argument), so the temporary is a copy of that argument's item
+    /// (<c>FunctionValueField</c>); a MEAN of several arguments is a computed value (<see cref="Value"/>).</summary>
+    Argument,
+    /// <summary>The temporary is an UNSIGNED DISPLAY item of exactly <see cref="IntrinsicSig.DeviceDigits"/> digit
+    /// positions (DATE-OF-INTEGER, DAY-OF-INTEGER).</summary>
+    FixedDigits,
+    /// <summary>The call FOLDS at bind time into a numeric literal (LENGTH, BYTE-LENGTH of a fixed item - the two folds
+    /// GnuCOBOL makes too), which DISPLAY shows as written; an unfolded call (a run-time length) is <see cref="Value"/>.</summary>
+    Literal,
+}
+
 /// <summary>How a catalog row binds: <see cref="Runtime"/> — a runtime body; <see cref="Fold"/> — a
 /// compile-time fold; <see cref="Deferred"/> — the renderer's never-hit backstop (P11 drove the backlog to
 /// zero and it stays only so an unregistered row fails LOUD).
@@ -51,7 +75,8 @@ public readonly record struct IntrinsicSig(
     string ArgKinds, string RuntimeMethod, IntrinsicBind Bind, bool Float,
     int IntroducedIn, int? RemovedIn = null,
     IntrinsicResultRule Result = IntrinsicResultRule.Fixed,
-    IntrinsicDomain Domain = IntrinsicDomain.None, string? DomainRule = null)
+    IntrinsicDomain Domain = IntrinsicDomain.None, string? DomainRule = null,
+    FunctionDeviceForm DeviceForm = FunctionDeviceForm.Value, int DeviceDigits = 0)
 {
     /// <summary>Is the function an intrinsic-function-name of the edition <paramref name="dialectLevel"/> — inside
     /// its D8 window [<see cref="IntroducedIn"/>, <see cref="RemovedIn"/>)? The REPOSITORY's <c>FUNCTION ALL
@@ -163,13 +188,13 @@ public static class IntrinsicCatalog
         Add(new("INTEGER-PART", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "n", "Truncate", IntrinsicBind.Runtime, false, 85)); // §15.49
         Add(new("MOD", IntrinsicType.Integer, IntrinsicArity.Fixed, 2, 2, "ii", "ModScaled", IntrinsicBind.Runtime, false, 85));      // §15.64
         Add(new("REM", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "nn", "RemScaled", IntrinsicBind.Runtime, false, 85));      // §15.77
-        Add(new("MAX", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "p", "MaxScaled", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsUniformArguments));  // §15.59.1
-        Add(new("MIN", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "p", "MinScaled", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsUniformArguments));  // §15.63.1
+        Add(new("MAX", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "p", "MaxScaled", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsUniformArguments, DeviceForm: FunctionDeviceForm.Argument));  // §15.59.1
+        Add(new("MIN", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "p", "MinScaled", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsUniformArguments, DeviceForm: FunctionDeviceForm.Argument));  // §15.63.1
         Add(new("ORD-MAX", IntrinsicType.Integer, IntrinsicArity.Variadic, 1, inf, "p", "OrdMax", IntrinsicBind.Runtime, false, 85)); // §15.71
         Add(new("ORD-MIN", IntrinsicType.Integer, IntrinsicArity.Variadic, 1, inf, "p", "OrdMin", IntrinsicBind.Runtime, false, 85)); // §15.72
         Add(new("SUM", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "SumScaled", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.IntegerFollowsAllArguments));  // §15.88.1
-        Add(new("MEAN", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "MeanScaled", IntrinsicBind.Runtime, false, 85)); // §15.60
-        Add(new("MEDIAN", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "MedianScaled", IntrinsicBind.Runtime, false, 85)); // §15.61
+        Add(new("MEAN", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "MeanScaled", IntrinsicBind.Runtime, false, 85, DeviceForm: FunctionDeviceForm.Argument)); // §15.60
+        Add(new("MEDIAN", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "MedianScaled", IntrinsicBind.Runtime, false, 85, DeviceForm: FunctionDeviceForm.Argument)); // §15.61
         Add(new("MIDRANGE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "MidrangeScaled", IntrinsicBind.Runtime, false, 85)); // §15.62
         Add(new("RANGE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "RangeScaled", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.IntegerFollowsAllArguments)); // §15.76.1
         Add(new("NUMVAL", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "s", "Numval", IntrinsicBind.Runtime, false, 85));       // §15.67
@@ -178,7 +203,7 @@ public static class IntrinsicCatalog
         // Character family + LENGTH/ORD.
         Add(new("CHAR", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "i", "Char", IntrinsicBind.Runtime, false, 85));      // §15.15
         Add(new("ORD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "Ord", IntrinsicBind.Runtime, false, 85));             // §15.70
-        Add(new("LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "Length", IntrinsicBind.Fold, false, 85));          // §15.50 (D7 compile-time fold)
+        Add(new("LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "Length", IntrinsicBind.Fold, false, 85, DeviceForm: FunctionDeviceForm.Literal));          // §15.50 (D7 compile-time fold)
         Add(new("LOWER-CASE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "LowerCase", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1)); // §15.57.1
         Add(new("UPPER-CASE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "UpperCase", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1)); // §15.97.1
         Add(new("REVERSE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "Reverse", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1)); // §15.78.1
@@ -186,8 +211,8 @@ public static class IntrinsicCatalog
         // Date/time family (CobolDate; integer date form §15.5.2).
         Add(new("CURRENT-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "CurrentDate", IntrinsicBind.Runtime, false, 85)); // §15.21
         Add(new("WHEN-COMPILED", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "WhenCompiled", IntrinsicBind.Fold, false, 85));  // §15.99 (compile-time constant, r2)
-        Add(new("DATE-OF-INTEGER", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "DateOfInteger", IntrinsicBind.Runtime, false, 85)); // §15.22
-        Add(new("DAY-OF-INTEGER", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "DayOfInteger", IntrinsicBind.Runtime, false, 85));   // §15.24
+        Add(new("DATE-OF-INTEGER", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "DateOfInteger", IntrinsicBind.Runtime, false, 85, DeviceForm: FunctionDeviceForm.FixedDigits, DeviceDigits: 8)); // §15.22
+        Add(new("DAY-OF-INTEGER", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "DayOfInteger", IntrinsicBind.Runtime, false, 85, DeviceForm: FunctionDeviceForm.FixedDigits, DeviceDigits: 7));   // §15.24
         Add(new("INTEGER-OF-DATE", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "IntegerOfDate", IntrinsicBind.Runtime, false, 85)); // §15.46
         Add(new("INTEGER-OF-DAY", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "IntegerOfDay", IntrinsicBind.Runtime, false, 85));   // §15.47
 
@@ -209,7 +234,7 @@ public static class IntrinsicCatalog
         // representation), 2 bytes/position for NATIONAL (UTF-16, D-N1), the binary/packed StorageWidth,
         // 4/8 for the float trio, 8 for index/pointer/object-reference carriers. Runtime-length shapes
         // (ref-mod / ODO / ANY LENGTH) stay loud by name (§15.14.4 r2/r5, the LENGTH discipline).
-        Add(new("BYTE-LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "ByteLength", IntrinsicBind.Fold, false, 2002));   // §15.14 (byte size ≠ FUNCTION LENGTH, D7); the runtime body serves the runtime-length shapes (PB61)
+        Add(new("BYTE-LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "ByteLength", IntrinsicBind.Fold, false, 2002, DeviceForm: FunctionDeviceForm.Literal));   // §15.14 (byte size ≠ FUNCTION LENGTH, D7); the runtime body serves the runtime-length shapes (PB61)
         // CHAR-NATIONAL (§15.16) — the national twin of CHAR: the character at the 1-based ordinal position of
         // the NATIONAL program collating sequence (native UTF-16 order; a non-native ALPHABET … FOR NATIONAL
         // sequence rides the CollateNat/__COLLATE_NAT channel, P10 Step 4). Result class national (§15.16.1).
@@ -310,7 +335,7 @@ public static class IntrinsicCatalog
         // former "provisional pending the matrix wave" caveat is retired; NUMVAL-F/TEST-NUMVAL-F moved OUT
         // of this block to 2002 (the COBOL Consortium's COBOL 2002 introduction names them as 2002 additions),
         // and LOCALE-TIME-FROM-SECONDS/SECONDS-PAST-MIDNIGHT moved IN from 2002. ──────────────────────────
-        Add(new("ABS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "AbsScaled", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.IntegerFollowsArgument1));     // §15.7.1
+        Add(new("ABS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "AbsScaled", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.IntegerFollowsArgument1, DeviceForm: FunctionDeviceForm.Argument));     // §15.7.1
         Add(new("COMBINED-DATETIME", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "in", "CombinedDatetime", IntrinsicBind.Runtime, false, 2014)); // §15.17
         // ⚠ The FORMATTED-* family's result type follows argument-1 — the FORMAT literal (§15.38.1/§15.39.1/
         // §15.40.1/§15.41.1) — so FUNCTION FORMATTED-DATE(N"YYYYMMDD" D) is a NATIONAL function even though the

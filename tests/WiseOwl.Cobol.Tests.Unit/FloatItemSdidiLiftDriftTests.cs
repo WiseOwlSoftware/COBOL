@@ -60,8 +60,10 @@ public sealed class FloatItemSdidiLiftDriftTests
         Assert.True(offenders.Count == 0, "A shortest-round-trip lift is for an implementor-defined approximation only (kb/Work PB1606): "
             + string.Join("; ", offenders));
         // In the runtime: the non-integer power of the r2e development, and the sending operand of a CALL's BY CONTENT function
-        // value (MoveSending.ExactValue: its Approximate flag is stated by the activating element, never inferred).
-        var runtime = Callers("WiseOwl.Cobol.Runtime", "CobolDec.FromApproximation(", "CobolIntrinsics.RealArgs.cs", "CallAbi.cs");
+        // value (MoveSending.ExactValue: its Approximate flag is stated by the activating element, never inferred), and the
+        // temporary of a function's binary64 RESULT that DISPLAY orders and shows (FunctionValueField.OfFloat, kb/Work PB3514:
+        // a floating-point ITEM argument arrives with its exact lift, OfFloatItem, and never reaches this one).
+        var runtime = Callers("WiseOwl.Cobol.Runtime", "CobolDec.FromApproximation(", "CobolIntrinsics.RealArgs.cs", "CallAbi.cs", "FunctionValueField.cs");
         Assert.True(runtime.Count == 0, "CobolDec.FromApproximation lifts a function's or a power's binary64 approximation, never a data item: "
             + string.Join("; ", runtime));
     }

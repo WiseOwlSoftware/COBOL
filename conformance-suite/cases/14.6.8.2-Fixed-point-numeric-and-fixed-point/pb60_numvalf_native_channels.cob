@@ -5,22 +5,25 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB60 (RV-15.69.4-2) - NUMVAL-F under NATIVE arithmetic follows the FLOAT family's documented
-      *> determination (CONFORMANCE.md item 92): 15.69.4 r2 makes the native returned value "an approximation
-      *> of the numeric value represented by argument-1", and this compiler carries an approximated returned
-      *> value as binary64 unless a FIXED-POINT arithmetic receiver quantizes it. The receiver-less channels
-      *> rode the Int128 projection at the ws-9 floor before this landing, so DISPLAY of NUMVAL-F("5E+30")
-      *> printed the saturation sentinel 170141183460469231731687303715.884105727, "5E+30" = "9E+30" was TRUE,
-      *> a COMP-2 receiver got 1.7E+29, and NUMVAL-F("1.5E-12") was 0 in every one of them - the
-      *> RenderFloat Receiverless/Real arm (PB13) had never been swept to this member.
-      *> RAW/RAWS/RAW1: receiver-less DISPLAY renders the binary64 through the ONE CobolFloat.Display a COMP-2
-      *>        item uses (shortest round-trip). EQ/GT: relations compare natively in binary64 (8.8.4.2.4).
-      *> F8/F8S: a COMP-2 receiver keeps the full binary64. CM: a FIXED arithmetic receiver keeps the EXACT
-      *>        Int128 parse at the receiver-capped working scale (1.5E-8 x 10**8 = 1.5, exact). MV/MVS/MV20: a
-      *>        MOVE sender ALSO keeps the exact parse - the receiver's scale is known (ReceiverContext.MoveSender)
-      *>        and MOVE lands the parsed decimal digit-for-digit: 1500, 0.000000015 (the binary64 route would
-      *>        land 14 through a multiply-then-truncate), and all twenty digits of a 20-digit argument.
-      *> ARG/SUB: as an argument to MAX (the real-argument route) and as a subscript.
+      *> PB60 (RV-15.69.4-2), re-derived by PB3839 - NUMVAL-F under NATIVE arithmetic: 15.69.4 r2 makes the
+      *> native returned value "an approximation of the numeric value represented by argument-1" and 15.4.1
+      *> leaves "the characteristics and representation of the returned value" to the implementor, so the
+      *> digits are the implementor's. This compiler's determination (CONFORMANCE.md item 92) is the ONE value
+      *> that is also r3's: the EXACT parse, the SDIDI NUMVAL already returns, in every channel - so a
+      *> receiver can no longer change it. Before PB3839 the same reference was a binary64 in the receiver-less
+      *> channels, an Int128 parse truncated at max(receiver scale, 9) for a fixed-point receiver (which then
+      *> rounded the truncation AGAIN) and a binary64 for a COMP-2, so ROUNDED MODE AWAY-FROM-ZERO of
+      *> NUMVAL-F("0.12340000000001") into 9V9(4) stored 0.1234 where NUMVAL stores 0.1235.
+      *> RAW/RAWS/RAW1: receiver-less DISPLAY renders the exact value in the temporary item it describes (item 92, kb/Work PB3514)
+      *>        (5 x 10**30 is 31 digits; 15 x 10**-13 has 13 fraction digits). EQ/GT: a relation compares the
+      *>        exact values (8.8.4.2.4): 5E+30 and 9E+30 differ.
+      *> F8/F8S: a COMP-2 receiver converts the exact decimal ONCE, and COMPUTE with no ROUNDED phrase truncates
+      *>        (14.7.4.3 r2, CONFORMANCE.md item 81): the nearest binary64 of 1.5E-12 lies above it, so the
+      *>        truncated neighbour 1.4999999999999999E-12 is stored - exactly what COMPUTE F8 = 0.0000000000015
+      *>        stores. CM: a FIXED arithmetic receiver gets the exact parse (1.5E-8 x 10**8 = 1.5, exact).
+      *> MV/MVS/MV20: a MOVE sender lands the parsed decimal digit-for-digit: 1500, 0.000000015, and all twenty
+      *>        digits of a 20-digit argument.
+      *> ARG/SUB: as an argument to MAX and as a subscript.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB60NVFNATIVE.
        DATA DIVISION.

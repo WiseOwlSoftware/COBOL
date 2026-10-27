@@ -14,11 +14,11 @@
       *> value represented by argument-1" - r2 grants NATIVE arithmetic only an approximation).
       *> RAW/RAWC/RAWF: the receiver-less DISPLAY channel - before this landing the standard-mode value
       *>        rode the native Int128 projection at the item-92 working scale (1.234567 / 1234.567890 /
-      *>        0.001234567); the item-92 text form renders the SDIDI at its own scale.
+      *>        0.001234567); DISPLAY shows the SDIDI value in the temporary item it describes (item 92, kb/Work PB3514).
       *> N34:   a 34-digit argument is legal under SD (15.67.3 r4) and exact (8.8.1.5.2's 34 digits) - the
       *>        native projection saturated its Int128 rescale and printed 170141183460469231731687303715884.105727.
       *> F40:   NUMVAL-F's E-exponent lifts through the ONE 8.8.1.5.2 r2 range check; 1E+40 is in range.
-      *> SC:    the SDIDI keeps the parsed scale (1.500), the item-92 form.
+      *> SC:    the SDIDI keeps the parsed value (1.5: the trailing zeros of the scale are the text channels', item 92).
       *> NG/SP: 15.67.4 r2 - CR or a minus sign negates; leading/embedded-before-digit spaces ignored (r2).
       *> MM/C35: the reject projections are the native twins' - "-12-" conforms to neither r1 format and a
       *>        35th digit exceeds the r4 cap; both are EC-ARGUMENT-FUNCTION, checking off -> the 15.3 default 0.

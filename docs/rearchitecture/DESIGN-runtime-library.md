@@ -2201,8 +2201,19 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   its I-O files (`EcBinder.IoFilesOf`), so EC-I-O checking for one of them raises EC-I-O-PERMANENT-ERROR through
   `__IoCheckEc` exactly as at any input-output statement; a refused file of ANOTHER element has no file description
   here, so its condition is declared with no file and only a directive naming no file enables it
-  (`SequentialIoEmitter.EmitForeignFileIoCheck`), and with no declarative qualifying DOC-A.1-103 decides
-  (`CobolFile.TerminateOnRefusalWithoutStatusItem`). The refusal leaves the connector in permanent error until its
+  (`SequentialIoEmitter.EmitForeignFileIoCheck`); a container's GLOBAL file the element CAN name (`BoundCommitRollback.ForeignFiles`)
+  is an I-O file of the statement too, so a directive that names it (`>>TURN EC-I-O KF CHECKING ON` or `OFF`, §7.3.25.4 GR6,
+  GR8: *"checking is enabled only for exception conditions associated with that file-name"*) decides its checking in an arm
+  keyed to that file (`TransactionEmitter.EmitStatement`, `SequentialIoEmitter.ForeignFileCheckedApart`). **The executing element's format 1 USE procedures apply to another
+  element's refused file as they do to any input-output statement's file, with or without checking (§14.9.49.4 GR4,
+  GR6 a)-e)): the file-name tier when the element names the file (a containing element's GLOBAL file) and the open-mode
+  tier by the file's open mode** - format 1 selection follows the I-O status, never EC checking (§14.6.13.1.1: *"if
+  checking for EC-I-O exception conditions is not enabled, there is no link between EC-I-O exception conditions and I-O
+  status values"*, NOTE 1: *"I-O status indicators are always enabled and cannot be turned off"*), and GR6's open-mode
+  phrases name no element (kb/Work PB3554). With checking not enabled the foreign arm therefore writes the same plain
+  hook as an own file's (`SequentialIoEmitter.EmitPlainIoCheck`: the question, `__IoCheck`, item 8's ROLLBACK, the RESUME
+  transfer), and the run unit then continues when a declarative ran or an element gives the file a FILE STATUS item; with
+  no declarative qualifying DOC-A.1-103 decides (`CobolFile.TerminateOnRefusalWithoutStatusItem`). The refusal leaves the connector in permanent error until its
   CLOSE. A refused COMMIT saves no data item; a refused ROLLBACK still restores them. GR1 is asked before GR2: with no active clause both
   statements are CONTINUE wherever they run. EC-FLOW-COMMIT and EC-FLOW-ROLLBACK are read at the statement's entry;
   EC-FLOW-APPLY-COMMIT (§12.4.6.3.4 GR3/GR4, Table 13's *"Invocation of a runtime element with an APPLY COMMIT clause in
@@ -2213,7 +2224,8 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   `TransactionControlTests` (the refusing medium at every operation of a COMMIT, two files, item 8, the flow
   conditions, retirement), `CommitRollbackRefusalWitnessTests` (the same refusals through a COMPILED program: the
   own-file and foreign-file arms in every combination of a USE procedure, a FILE STATUS clause and EC-I-O checking,
-  and item 8 after an ordinary statement's fatal status), the `pb3338_ec_flow_apply_commit_under_*` goldens (the
+  the foreign arm's open-mode and file-name format 1 declaratives with checking off and on, and item 8 after an
+  ordinary statement's fatal status), the `pb3338_ec_flow_apply_commit_under_*` goldens (the
   activation latch through compiled CALLs) and the `pb3338_apply_commit_*` goldens. Sequential files under APPLY COMMIT (§9.1.18.2 admits *"any type of file on a mass
   storage device"*) are kb/Work PB3340: the sequential organization has no ledger, and its commit facility is a separate design
   that must give a sequential transaction the same scope — 2.2.2, the transaction journal.
@@ -3230,15 +3242,37 @@ store: a READ or START answers as for an absent OPTIONAL file ('10', '23'), a RE
 physical-file state stops claiming the removed file (`PhysicalFileTable.ForgetFile`). Its next WRITE, at its last check (so a
 WRITE the empty file refuses creates nothing), creates the file again as its OPEN did — under the entry mutex, a new START `A`
 journal, the creating handle, the empty store, the column resumed (`KeyedConnector.WriteCreatingTheFileAgain`) — and runs
-inside its store's statement; a file another run unit made at the path meanwhile is not the WRITE's to replace ('30'). A run
+inside its store's statement; a file another run unit made at the path meanwhile is not the WRITE's to replace ('30': the
+presence probe, then a creating handle taken `FileMode.CreateNew`, so a file made after the probe — another run unit's OPEN OUTPUT
+takes no entry mutex — is refused too; kb/Work PB3635). A run
 unit that writes nothing more leaves no file (its normal end commits nothing and its implicit CLOSE keeps nothing). The
 sequential twin gives its column back at the removal too (`SequentialConnector`'s `IJournalData.Release`, resumed by
-`BeginAppending`): a SHARING WITH ALL OTHER writer's ROLLBACK was refused '30' on Windows, where the column is a handle on the
+`SequentialConnector.CreateTheFileAgain`): a SHARING WITH ALL OTHER writer's ROLLBACK was refused '30' on Windows, where the column is a handle on the
 file (witness `unit:SequentialCommitControlTests`' `A_writer_under_all_other_whose_file_a_rollback_removed_creates_it_again_at_its_next_write`).
+The twin's creation is the same decision under the entry mutex the lock test holds (`BeginAppending` → `CreateTheFileAgain`): the
+presence probe, a `CreateNew` handle, the Table 19 column published again. A WRITE that finds a file at the path (another run
+unit's, held open or closed, committed or rolled back after) is refused '30' and appends to nothing and replaces nothing; the
+journal it began is withdrawn when it created no file, and left to item 8's ROLLBACK when it did (witnesses
+`unit:SequentialCommitControlTests`' `A_write_creating_the_file_again_meets_a_file_another_run_unit_*`,
+`unit:CommitRollbackRuntimeTests`' `A_keyed_write_creating_the_file_again_*`, and the `CreateNew` guard `unit:FileCreatedAgainDriftTests`).
 **An unsuccessful OPEN** that began the journal and did not affect the file — refused before its handle
 created the file, a capture refused before its `K`, a creation refused and undone (`KeyedStore.FileReplaced` false) —
 WITHDRAWS it (`SequentialJournal.Withdraw`: `D R` and the retirement; §14.9.27.4 GR25, *"the file is not affected"*), so the
-kept transaction stands as the CLOSE left it; one that did affect it leaves the journal for item 8's ROLLBACK. **The entry
+kept transaction stands as the CLOSE left it; one that did affect it leaves the journal for item 8's ROLLBACK (both organizations,
+one rule: `FileConnector.WithdrawWhatTheOpenBegan`, over `_begunByOpen` and `_openChangedFile`; the sequential connector sets
+the first in `BeginCoveredOpen` and the second where its handle creates the file or truncates it). **An OPEN that creates the
+file is the same decision as the WRITE that creates it again** (kb/Work PB3635): OUTPUT of an absent file and I-O or EXTEND of an
+absent OPTIONAL one (§14.9.27.4 GR17, GR18) take the handle `FileMode.CreateNew` when the one presence probe said Absent (not when
+it said Unauthorized: the file may be there and OUTPUT replaces it) — `SequentialConnector.OpenCore` / `HeldWriteStream` /
+`OpenReader(creates)`, `KeyedConnector.LockCreating(newFileOnly)`. A file another run unit's OPEN OUTPUT made between the probe and
+the handle is refused (`HostFile.IsAlreadyExists(e, path)`: the host's EEXIST on a path that names no directory; a directory at the
+path, which the probe answers Absent for, is `HostFile.IsDirectoryInTheWay` and '37' on every host), and `FileConnector.Open` makes
+the OPEN again from its entry step (at most two such retries, counted apart from PB3482's one share-mode retry): the unsuccessful attempt withdrew its journal, the new probe finds the
+file, and the OPEN is that of an EXISTING file — OUTPUT captures and replaces it, I-O and EXTEND open it ('00', not '05'); the
+attempts running out answer '30'. Witnesses `unit:SequentialCommitControlTests`' `An_open_creating_the_optional_file_meets_*`,
+`A_covered_open_output_meets_*`, `An_open_whose_creation_is_met_by_a_new_file_at_every_attempt_*` and
+`unit:CommitRollbackRuntimeTests`' `A_keyed_open_creating_the_file_meets_*` interleave the second run unit through the test
+medium's `BeforeOperation` seam. **The entry
 step of 2.2.2.8** runs at every writable OPEN of either organization (`FileConnector.EnterPhysicalFile`, one listing) and at
 every DELETE FILE, a covered one's and an uncovered one's (`FileRegistry.JournalHoldsAgainstDelete`), so a dead owner's
 capture is settled before 2.2.1.10's dead-owner step reads the restored store and before an uncovered DELETE FILE removes a
@@ -3392,11 +3426,14 @@ one host surface of §4.4), which registers the program's module and activates i
 `ProgramTable.RunMain(path)`, the same boundary as `RunModule` without the registration, is shipped surface no route calls.
 **The process's own state belongs to the entry that IS the process (kb/Work PB3163, PB3193).** `RunModule` and the
 `cobol` CLI's `Main` are the only writers of the process exit code and the only callers of
-`IO.StandardStreams.EnsureUtf8` (UTF-8 standard output and error, and a UTF-8 reader over a redirected standard input,
-DOC-A.1-59 and DOC-A.1-1); `RunMain`, `RunUnit.Run`, a host entry's activation and a CALL into a module write neither, so a run unit a host
+`IO.StandardStreams.EnsureUtf8` (the UTF-16 repertoire on every standard stream, decided per handle: UTF-8 over a
+redirected stream, the console's wide-character interface on a Windows console, and **never a console code-page
+change**, so the parent shell's console keeps the code pages it had and an interactive ACCEPT keeps a character outside
+the console's input code page, with the console's Ctrl+Z end-of-input kept by `IO.ConsoleInputReader`; kb/Work PB3294; DOC-A.1-59 and DOC-A.1-1); `RunMain`, `RunUnit.Run`, a host entry's activation and a CALL into a module write neither, so a run unit a host
 embeds DISPLAYs through the host's `Console.Out` / `Console.Error` as the host configured them and leaves the host's
 exit code and console as it found them. `ProcessStateOwnerDriftTests` (Unit) holds each process-owned write to its
-owner; `RunUnitHostExitCodeTests` and `RunUnitHostConsoleTests` (Conformance) are the host-side witnesses.
+owner; `RunUnitHostExitCodeTests` and `RunUnitHostConsoleTests` (Conformance) are the host-side witnesses, and
+`WindowsConsoleDeviceTests` (Conformance, on a windowless Windows pseudoconsole) witnesses the process-entry side.
 `ProgramRegistry` → **`ProgramTable`** (an instance owned by `RunUnit`; the name "Registry" is reserved for the
 process-level nothing-here). The name-resolution / state-model / CANCEL / sibling-module-probe logic is ported
 verbatim onto the instance. `ExternalStore` and `CobolModule`→`ModuleStack` move off statics onto `RunUnit`. The CALL-

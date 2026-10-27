@@ -920,6 +920,14 @@
   ],
   "expect": "COBOL1708"
  },
+ "declined-validate-class-boolean": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1708"
+ },
  "declined-validate-default": {
   "refuse-at": [
    "2002",
@@ -2165,7 +2173,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "l1c04-bwz-not-numeric-operand": {
   "refuse-at": [
@@ -2487,7 +2495,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307: unexpected ')'"
+  "expect": "COBOL2269: unexpected ')'"
  },
  "l1c17-paren-not-delimiting": {
   "refuse-at": [
@@ -3687,7 +3695,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL2072"
+  "expect": "COBOL0001"
  },
  "pb1036-sort-merge-turn-at-85": {
   "refuse-at": [
@@ -4472,7 +4480,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL2269"
  },
  "pb1125-inspect-converting-before-twice": {
   "refuse-at": [
@@ -4481,7 +4489,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL2269"
  },
  "pb1125-inspect-replacing-bare-pair-after-characters": {
   "refuse-at": [
@@ -4490,7 +4498,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL2269"
  },
  "pb1125-inspect-replacing-without-adjective": {
   "refuse-at": [
@@ -4517,7 +4525,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL2269"
  },
  "pb1127-inspect-boolean-figurative-not-zero": {
   "refuse-at": [
@@ -5334,7 +5342,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307: unexpected 'INTO'"
+  "expect": "COBOL2269: unexpected 'INTO'"
  },
  "pb1185-national-unstring-delimiter-at-85": {
   "refuse-at": [
@@ -7103,7 +7111,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb1298-or-page-without-page-limit": {
   "refuse-at": [
@@ -8112,7 +8120,7 @@
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb1373-cobol-words-fresh-word-too-long": {
   "refuse-at": [
@@ -8964,7 +8972,7 @@
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb1446-leading-zeros-count-toward-literal-size": {
   "refuse-at": [
@@ -14052,7 +14060,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL2269"
  },
  "pb331-read-record-word-twice": {
   "refuse-at": [
@@ -14061,7 +14069,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL2269"
  },
  "pb331-read-two-from-one-lock-bracket": {
   "refuse-at": [
@@ -14079,7 +14087,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL2269"
  },
  "pb331-write-ignoring-lock": {
   "refuse-at": [
@@ -14088,7 +14096,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL2269"
  },
  "pb332-start-key-needs-operator": {
   "refuse-at": [
@@ -14172,6 +14180,42 @@
    "2023"
   ],
   "expect": "COBOL0864"
+ },
+ "pb3569-read-invalid-key-sequential-access": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1720"
+ },
+ "pb3569-read-key-sequential-access-default": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "the file's access mode is SEQUENTIAL (the ACCESS MODE clause is not specified, so sequential access is assumed, ISO §12.4.5.5.3 GR1), so the NEXT phrase is implied (ISO §14.9.30.3 SR8)"
+ },
+ "pb3569-read-key-sequential-access-written": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "the file's access mode is SEQUENTIAL, so the NEXT phrase is implied (ISO §14.9.30.3 SR8) and the READ is a sequential read (ISO §14.9.30.4 GR19)"
+ },
+ "pb3569-read-next-key": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "this statement specifies NEXT; those phrases make a sequential read (ISO §14.9.30.4 GR19)"
  },
  "pb334-read-not-invalid-key-sequential-org": {
   "refuse-at": [
@@ -14492,6 +14536,12 @@
    "2023"
   ],
   "expect": "COBOL1837"
+ },
+ "pb3468-figurative-constant-boolean-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900"
  },
  "pb347-release-refmod-record": {
   "refuse-at": [
@@ -15153,6 +15203,24 @@
    "2014"
   ],
   "expect": "COBOL0878"
+ },
+ "pb3839_numval_f_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL1502"
+ },
+ "pb2923_divide_remainder_float_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900"
+ },
+ "pb3860_mean_rounded_mode_below_2014": {
+  "refuse-at": [
+   "2002"
+  ],
+  "expect": "COBOL0803"
  },
  "pb388-goback-raising-level2-name": {
   "refuse-at": [
@@ -17141,7 +17209,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL0001"
  },
  "pb488-usage-clause-on-level-88": {
   "refuse-at": [
@@ -19658,7 +19726,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL2269"
  },
  "pb716-special-names-bare-word": {
   "refuse-at": [
@@ -20096,7 +20164,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL2269"
  },
  "pb758-merge-end-merge-is-not-a-terminator": {
   "refuse-at": [

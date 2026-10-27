@@ -148,6 +148,60 @@ internal static class RuntimeApi
     public static string NumDisplayDecimal(string value, string profile, bool commaMode, bool u = false) =>
         $"{nameof(CobolNum)}.{(u ? nameof(CobolNum.DisplayDecimalU) : nameof(CobolNum.DisplayDecimal))}({value}, {profile}, {(commaMode ? "true" : "false")})";
 
+    // ── A numeric function's returned value under DISPLAY's decimal device form (kb/Work PB3514, DOC-A.1-92) ─────────────
+
+    /// <summary>The device text of a returned value carried as a scaled integer - <c>CobolNum.DeviceFunctionText(unscaled, scale, commaMode)</c>:
+    /// the temporary's description derived from the value (GnuCOBOL 3.2.0's <c>cob_alloc_field</c>).</summary>
+    public static string FunctionDeviceTextScaled(string unscaled, int scale, bool commaMode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.DeviceFunctionText)}({unscaled}, {scale}, {(commaMode ? "true" : "false")})";
+
+    /// <summary>The same for an SDIDI returned value - <c>CobolNum.DeviceFunctionText(value, commaMode)</c>.</summary>
+    public static string FunctionDeviceTextDec(string value, bool commaMode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.DeviceFunctionText)}({value}, {(commaMode ? "true" : "false")})";
+
+    /// <summary>The element type of a selecting function's argument array (<c>FunctionValueField</c>).</summary>
+    public const string FunctionFieldType = nameof(FunctionValueField);
+
+    /// <summary>The characters DISPLAY writes for a <c>FunctionValueField</c> expression.</summary>
+    public static string FunctionFieldText(string field, bool commaMode) =>
+        $"({field}).{nameof(FunctionValueField.DeviceText)}({(commaMode ? "true" : "false")})";
+
+    /// <summary>An argument that is a data item: the temporary copies the item's description.</summary>
+    public static string FunctionFieldOfItem(string value, string profile) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfItem)}({value}, {profile})";
+
+    /// <summary>An argument that is a numeric literal: the temporary copies the literal's field.</summary>
+    public static string FunctionFieldOfLiteral(string value, int digits, int scale, bool signed) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfLiteral)}({value}, {digits}, {scale}, {(signed ? "true" : "false")})";
+
+    /// <summary>A result that is an unsigned DISPLAY integer of a fixed digit count (DATE-OF-INTEGER, DAY-OF-INTEGER).</summary>
+    public static string FunctionFieldOfDigits(string value, int digits) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfDigits)}({value}, {digits})";
+
+    /// <summary>A result or argument the value alone describes.</summary>
+    public static string FunctionFieldOfValue(string value) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfValue)}({value})";
+
+    /// <summary>A binary64 function result.</summary>
+    public static string FunctionFieldOfFloat(string value) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloat)}({value})";
+
+    /// <summary>A floating-point item argument: its exact value as the one SDIDI lift gives it, and the image its own DISPLAY writes.</summary>
+    public static string FunctionFieldOfFloatItem(string exactValue, string image) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloatItem)}({exactValue}, {image})";
+
+    /// <summary>ABS: the argument's description holding the magnitude.</summary>
+    public static string FunctionFieldAbs(string field) => $"({field}).{nameof(FunctionValueField.Abs)}()";
+
+    /// <summary>MAX over argument fields (<paramref name="arguments"/>: the comma list or one array expression).</summary>
+    public static string FunctionFieldMax(string arguments) => $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.Max)}({arguments})";
+
+    /// <summary>MIN over argument fields.</summary>
+    public static string FunctionFieldMin(string arguments) => $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.Min)}({arguments})";
+
+    /// <summary>MEDIAN over argument fields.</summary>
+    public static string FunctionFieldMedian(string arguments) => $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.Median)}({arguments})";
+
     /// <summary>Encode an unscaled value as the BYTES the item occupies at a byte boundary — the record/group
     /// image, a file record, a SORT key window, a Tier-B REDEFINES backing (<c>CobolNum.FormatImage</c>,
     /// DESIGN §14.4). Zoned items render exactly as <see cref="NumFormatDisplay"/>; BINARY and PACKED
@@ -1009,9 +1063,18 @@ internal static class RuntimeApi
     /// <summary>⛔ THE BOOLEAN-receiver store (§14.6.8.6 — "after any necessary conversion", boolean-ZERO pad, explicit
     /// justification) — <c>CobolBool.Store</c>: each sending character converts to a boolean position ('1' to one, every
     /// other character to zero, determination D-B5, kb/Work PB3666) and the result is fitted with boolean zeros. Every
-    /// emitter that stores CHARACTERS into a boolean item asks THIS. Content it does not reach stays undefined
-    /// (§14.6.13.2 1)) and the operators tolerate it: a GROUP receiver's byte image (GR4 has no conversion) and a
-    /// REDEFINES view of other storage.</summary>
+    /// emitter that stores CHARACTERS into a boolean item asks THIS (a storage-area store, a GR4 group move or a READ, asks
+    /// <c>ReceivingStore.StorageCharacters</c>, which converts through <c>BoolFromCharacters</c>). The determination, word
+    /// for word in docs/DATA_MODEL_DESIGN.md D19 and docs/CONFORMANCE.md D-B5, pinned by
+    /// <c>BooleanStoreDeterminationDriftTests</c>:
+    /// <para>Every STORE into a boolean item converts its characters. That includes a GR4 group move (the decoded
+    /// characters of a national or display receiver; a USAGE BIT receiver's bits are all valid) and a READ or RETURN into
+    /// an elementary record area that no other description shares. A boolean item can still hold a character other than 0
+    /// or 1 only through another description of the same storage, which no store into the item reaches: a group receiver
+    /// (GR4 moves the group's bytes), a REDEFINES view, a record area shared with another record of its file or with a
+    /// SAME RECORD AREA peer (a READ or RETURN fills the area's bytes), an APPLY COMMIT restore (ROLLBACK returns the
+    /// saved image), or storage shared through a BY REFERENCE argument, EXTERNAL, BASED or ADDRESS OF. That
+    /// content is undefined (§14.6.13.2 1)), and the boolean operators read such a position as zero.</para></summary>
     public static string StrStoreBoolean(string value, string width, bool justifiedRight) =>
         $"{nameof(CobolBool)}.{nameof(CobolBool.Store)}({value}, {width}, justifiedRight: {(justifiedRight ? "true" : "false")})";
 
@@ -2895,6 +2958,12 @@ internal static class RuntimeApi
     /// GIVING receiver's scale and capped at its digit count, <see cref="NumCapDigits"/>'s twin on <c>CobolDec</c>.</summary>
     public static string DecSubsidiaryQuotient(string quotient, int scale, int digits) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.SubsidiaryQuotient)}({quotient}, {scale}, {digits})";
+
+    /// <summary>The subsidiary quotient (§14.9.12.4 6) c), kb/Work PB2923) of a FLOATING-POINT numeric-edited identifier-3: the
+    /// SDIDI quotient as that item holds it under truncation, <c>CobolEdit.TruncateToFloatShape</c> -
+    /// <paramref name="cfgArgs"/> is <c>EmitContext.EditCfg</c>, as for the item's store.</summary>
+    public static string EditTruncateToFloatShape(PicInfo pic, string quotient, string cfgArgs) =>
+        $"{nameof(CobolEdit)}.{nameof(CobolEdit.TruncateToFloatShape)}({quotient}, {Emit.EmitText.CsLiteral(pic.EditMask!)}{cfgArgs})";
 
     /// <summary>The COMPILE-TIME WHEN-COMPILED stamp format (a typed passthrough like <see cref="EditCompose"/>):
     /// the §15.99.3 r2 compilation timestamp is baked as a constant with the SAME runtime formatter the

@@ -8,13 +8,14 @@
       *> kb/Work PB2507, the STANDARD-DECIMAL lane (8.8.1.5): the function's
       *> value is an SDIDI intermediate, rendered through CobolDec's own
       *> text entry rather than the fixed-point one, and the rule is the
-      *> same one: the LITERAL FORM of the value (CONFORMANCE.md DOC-A.1-92)
-      *> with the program's decimal separator, the comma under
+      *> same one: the description of the returned value's temporary
+      *> (CONFORMANCE.md DOC-A.1-92, kb/Work PB3514) shown with the
+      *> program's decimal separator, the comma under
       *> DECIMAL-POINT IS COMMA (12.3.7.4 GR14 a).  A second lane that
       *> forgot the clause would print periods here while the native lane
       *> (2023/pb2507_function_result_decimal_comma_native) printed commas.
-      *>   MAX(X Y) = 2,25    ABS(N) = 1,50    SUM(X Y) = 3,75
-      *>   NUMVAL("-1,5") = -1,5
+      *>   MAX(X Y) = 2,25 (X's and Y's PIC 9V99)    ABS(N) = +1,50
+      *>   SUM(X Y) = 0000003,75    NUMVAL("-1,5") = -00000001,5
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2507S.
        OPTIONS.
