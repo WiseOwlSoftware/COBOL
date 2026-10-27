@@ -993,6 +993,6 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // The ONE receiver-scale rule (RuntimeApi.ReceiverScaleOf — PB64 T6: this copy and ArithmeticEmitter's
         // both fell to pic.Scale = 0 for a format-2 LOCALE item, silently truncating a fractional sender).
         int scale = pic.ReceiverScale();
-        return ReceiverContext.None with { Scale = scale, IntegerDigits = Math.Max(0, pic.DigitPositions - scale), MoveSender = true };
+        return ReceiverContext.None with { Scale = scale, IntegerDigits = Math.Max(0, pic.DigitPositions - scale) };
     }
 }

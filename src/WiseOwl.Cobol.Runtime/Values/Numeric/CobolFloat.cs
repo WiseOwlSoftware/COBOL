@@ -339,7 +339,7 @@ public static class CobolFloat
 
     /// <summary>The §14.7.5 case-3 size error of a float→fixed FINAL TRANSFER whose value no fixed-point receiver can
     /// hold because the <see cref="Int128"/> carrier cannot (kb/Work PB2967) — the ONE raise
-    /// <see cref="ToScaled"/> and the checked <c>CobolIntrinsics.FromDouble</c> / <c>NumvalF</c> landings share.
+    /// <see cref="ToScaled"/> and the checked <c>CobolIntrinsics.FromDouble</c> landing share.
     /// EC-SIZE-TRUNCATION is the condition no-phrase rule 4 names; the SDIDI lane's
     /// <c>CobolDec.ToUnscaledChecked</c> raises the same one for the same fact.</summary>
     internal static CobolSizeError BeyondCarrier() =>
