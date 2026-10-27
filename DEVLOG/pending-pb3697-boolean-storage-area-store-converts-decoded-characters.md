@@ -1,0 +1,55 @@
+## PB3697: every storage-area store into a boolean item converts the decoded characters, and the three texts of the rule are one sentence
+
+PB3666 (determination D-B5) made every store of characters into a boolean item convert them, `'1'` to one and anything else
+to zero, so DISPLAY, comparisons and the boolean operators agree. Its text named two paths that leave non-boolean content in
+an item (a group receiver, a REDEFINES view) and two exemptions; the DATA_MODEL_DESIGN.md D19 paragraph, D-B5 and the
+`StrStoreBoolean` summary each repeated a version of that list, and PB3666's own review fix added a third bypass nobody wrote
+down. The adjudication (mythos lane, 2026-10-25) found a fourth and recommended closing the code, not lengthening the list.
+
+**Re-probe on a fresh build (all reproduced).** `MOVE GA TO BN` with GA holding `A1Z1` and BN `PIC 1(4) USAGE NATIONAL` left four
+CJK characters in BN (DISPLAY showed them, `BN = ZERO` was false, `B-NOT BN` gave 1111). A READ of `A1Z1B101` into an
+elementary `PIC 1(8)` record area showed `A1Z1B101` and `B-NOT` gave 10101010; into a national `PIC 1(4)` record it showed four
+CJK characters. A CALL BY REFERENCE of `PIC X(4)` into a boolean LINKAGE item shows `A1Z1`: another description of the same
+storage, which no store reaches.
+
+**The fix is at the one place a storage area is decoded.** §14.9.25.4 GR4 (checked with `cite.py`) has "no conversion of data
+from one form of internal representation to another", so the receiving AREA takes the sender's bytes unchanged. What the
+boolean item then holds is the characters those bytes decode to, and converting those is D-B5's normalization of undefined
+content (§14.6.13.2 1)), not a representation conversion. Converting the raw bytes before decoding was PB3666's review R1-1 defect
+(`N"101"` became three CJK characters). `ReceivingStore.StorageCharacters` now decodes (the new private `DecodedStorage`:
+national UTF-16BE pairs, USAGE BIT packed bits, else the bytes) and, for a display or national boolean item, converts the
+decoded characters through `RuntimeApi.BoolFromCharacters`; USAGE BIT is exempt because every bit pattern is valid. The
+callers did not change: `StorageArea` (the GR4 group move into an elementary place), `MoveEmitter.GroupRecord` (the
+record-value receiver) and the READ / RETURN elementary record area (§14.9.30.4 GR13 c), §14.9.34.4 GR3) all decode through it,
+so one arm closes the whole-item national group move and the READ / RETURN into an elementary boolean record, display and
+national. `ReceivingStore.Characters` lost its boolean arm (`AreaHoldsCharacters` guarded it): its only boolean callers are
+those storage-area flows, the fit pads with spaces, and the conversion makes every space a boolean zero, which is the §14.6.8.6
+zero fill, so converting there too would have converted twice. `SliceStorageArea` decodes through `DecodedStorage` because the
+splice in `PlaceRenderer.Write` already converts a boolean slice.
+**PB3698 folded in (the same members).** The note asked `SliceStorageArea` to call `AreaHoldsCharacters` instead of spelling
+the `Usage.National or Usage.Bit` test, and a drift test to pin the predicate to the decoding arms. Both are done:
+`EveryStoreIntoABooleanItem_ConvertsItsCharacters` now requires the predicate's one spelling, the slice arm's call to it,
+`DecodedStorage`'s two decoding arms, the conversion arm in `StorageCharacters` and the absence of a boolean store in
+`Characters`. PB3698 is landed.
+
+**One text.** The determination sentence is now word for word in `RuntimeApi.StrStoreBoolean`, DATA_MODEL_DESIGN.md D19 and
+CONFORMANCE.md D-B5 (the "Two things bypass it", "Two exemptions" and "The exemptions" wording and the national exemption are
+gone; the BY REFERENCE, EXTERNAL, BASED and ADDRESS OF aliases are named as the same class as REDEFINES). The new
+`BooleanStoreDeterminationDriftTests` pins the sentence in all three places and that the old wording does not return. It is its
+own class because reading two documents makes a drift class a tree-wide sweep (`drift_rules.py` reads any path above three
+segments that way), and that put the first gate RED in `HostWitnessTraitDriftTests`; keeping it apart leaves
+`ReceivingStoreDriftTests` a specific rule.
+
+**Golden.** `pb3666_boolean_receiver_converts_characters` gained L13 (the group `A1Z1` into a national boolean: 0000, `B-NOT`
+1111), L14 (a READ of `A1Z1B101` into an elementary `PIC 1(8)`: 01010101, `B-NOT` 10101010; a second READ takes AT END) and L15
+(the same record into a national `PIC 1(4)` record: 0000, 1111); the expected values are computed from the rule (A, Z and B are
+no `'1'`; the pairs x4131 x5A31 x4231 x3031 are no national `'1'`). The below-2002 negative is unchanged. Sibling sweep of
+every other writer of characters into a boolean item (elementary MOVE, slice, STRING, ACCEPT, INITIALIZE, MOVE CORRESPONDING,
+a CALL BY CONTENT formal, COMPUTE, table element, group move to BIT): all convert; UNSTRING and VALUE cannot reach a boolean
+item, and a figurative constant is refused at bind time (§14.9.25.3 SR7).
+
+**Self-review.** No new silent catch; the `Characters` doc no longer promises a boolean arm; the XML docs of
+`StorageCharacters`, `DecodedStorage`, `AreaHoldsCharacters` and `StorageArea` name the decoded-characters rule; semgrep
+`verify.py` PASS with no count raised.
+
+**Gate.** Run 1 was RED (`HostWitnessTraitDriftTests`, described above). Run `000002-20261027T012224Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN … Linux half (WSL clone of HEAD) GREEN` (Conformance 5,809 / Unit 37,211 / Characterization 36 cases ran, leg 2 left to CI).
