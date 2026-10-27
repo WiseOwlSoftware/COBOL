@@ -49,9 +49,54 @@
 *>       another", so the sending BYTES (UTF-16BE pairs) fill the receiving area and BN holds the national characters
 *>       101, not the characters the bytes would convert to if they were read as 8-bit characters: BN is 101 and
 *>       B-NOT BN is 010. The conversion applies to characters only, never to that byte image (review R1-1).
+*>   L13 kb/Work PB3697: a GROUP sender GA4 holding the alphanumeric "A1Z1" into the USAGE NATIONAL boolean item BQ
+*>       (PIC 1(4)). GR4 fills BQ's storage with the sending BYTES, unconverted (x41 x31 x5A x31 and four spaces fit its
+*>       eight bytes); BQ's characters are those bytes read as UTF-16BE pairs (x4131 x5A31 x2020 x2020), none of which is
+*>       the national '1', so D-B5 converts each to boolean zero: BQ is 0000 and B-NOT BQ is 1111. Left unconverted
+*>       the four CJK characters would sit in the item, and DISPLAY, a comparison and the operators would disagree.
+*>   L14 a READ of the eight characters A1Z1B101 into an ELEMENTARY boolean record area RB (PIC 1(8)): 14.9.30.4 GR13 c)
+*>       makes the record "available in the record area", the same storage-area store as the group move, so the
+*>       characters convert: A 1 Z 1 B 1 0 1 give 01010101 and B-NOT RB is 10101010. A second READ finds the file at
+*>       its end, so the AT END phrase runs and no store is made.
+*>   L15 the same record READ into the USAGE NATIONAL boolean record RQ (PIC 1(4), eight bytes): its four pairs are
+*>       x4131 x5A31 x4231 x3031, none the national '1', so RQ is 0000 and B-NOT RQ is 1111.
+*>   L16 the same record READ into a file with TWO record descriptions, MA PIC X(4) and MB PIC 1(8): 13.18.33.4 GR3
+*>       (cite.py --check 13.18.33.4 "Multiple level 1 entries subordinate to a FD or SD entry represent implicit
+*>       redefinitions of the same area" -> OK 3)) makes MA a description of the same area the record fills, so the
+*>       record's characters are MA's and the READ must not rewrite them to boolean positions: MA reads A1Z1 (the
+*>       first four characters of A1Z1B101). A boolean MB holding the other characters is the undefined content of
+*>       14.6.13.2 1), reached through another description of its storage (review R1-1).
+*>   L17 the same through a SAME RECORD AREA clause (cite.py --check 12.4.6.4.4 "This is equivalent to an implicit
+*>       redefinition of the area with records aligned on the leftmost byte position" -> OK 2)): READ FS2 (record
+*>       SB PIC 1(8)) makes the record available in the area FS1's record SA PIC X(4) describes too, so SA reads A1Z1.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3666CC.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FA ASSIGN TO "PB3666L14.DAT".
+           SELECT FB ASSIGN TO "PB3666L14.DAT".
+           SELECT FQ ASSIGN TO "PB3666L14.DAT".
+           SELECT FM ASSIGN TO "PB3666L14.DAT".
+           SELECT FS1 ASSIGN TO "PB3666L14.DAT".
+           SELECT FS2 ASSIGN TO "PB3666L14.DAT".
+       I-O-CONTROL.
+           SAME RECORD AREA FOR FS1 FS2.
        DATA DIVISION.
+       FILE SECTION.
+       FD FA.
+       01 RA PIC X(8).
+       FD FB.
+       01 RB PIC 1(8).
+       FD FQ.
+       01 RQ PIC 1(4) USAGE NATIONAL.
+       FD FM.
+       01 MA PIC X(4).
+       01 MB PIC 1(8).
+       FD FS1.
+       01 SA PIC X(4).
+       FD FS2.
+       01 SB PIC 1(8).
        WORKING-STORAGE SECTION.
        01 SX-AB  PIC X(2) VALUE "AB".
        01 SX-MIX PIC X(5) VALUE "1A0B1".
@@ -69,6 +114,11 @@
        01 GN.
           05 GN1 PIC N(3) VALUE N"101".
        01 BN PIC 1(3) USAGE NATIONAL.
+       01 GA4.
+          05 GA4-1 PIC X(4) VALUE "A1Z1".
+       01 BQ PIC 1(4) USAGE NATIONAL.
+       01 RB8 PIC 1(8).
+       01 RQ4 PIC 1(4) USAGE NATIONAL.
        01 RV PIC 1(3) USAGE NATIONAL.
        01 BD PIC 1(5).
        01 BB PIC 1(5) USAGE BIT.
@@ -114,4 +164,32 @@
            MOVE GN TO BN
            COMPUTE RV = B-NOT BN
            DISPLAY "L12 " BN " not " RV
+           MOVE GA4 TO BQ
+           COMPUTE RQ4 = B-NOT BQ
+           DISPLAY "L13 " BQ " not " RQ4
+           OPEN OUTPUT FA
+           MOVE "A1Z1B101" TO RA
+           WRITE RA
+           CLOSE FA
+           OPEN INPUT FB
+           READ FB
+           DISPLAY "L14 " RB
+           COMPUTE RB8 = B-NOT RB
+           DISPLAY "L14 not " RB8
+           READ FB AT END DISPLAY "L14 at end"
+           CLOSE FB
+           OPEN INPUT FQ
+           READ FQ
+           DISPLAY "L15 " RQ
+           COMPUTE RQ4 = B-NOT RQ
+           DISPLAY "L15 not " RQ4
+           CLOSE FQ
+           OPEN INPUT FM
+           READ FM
+           DISPLAY "L16 " MA
+           CLOSE FM
+           OPEN INPUT FS1 FS2
+           READ FS2
+           DISPLAY "L17 " SA
+           CLOSE FS1 FS2
            STOP RUN.
