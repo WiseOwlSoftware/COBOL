@@ -67,7 +67,9 @@ public readonly struct FunctionValueField
         // The description is fixed when the temporary is made - its sign position follows the value's sign THEN, so ABS of a
         // negative expression is a signed item holding the magnitude, as GnuCOBOL's is. A value of more than 38 digits has no
         // Int128 unscaled form to show an item by; its text is composed from the value, and the description it keeps is the
-        // sign position alone (DeviceText), so ABS of a negative 54-digit expression is still a signed item.
+        // sign position alone (DeviceText), so ABS of a negative 54-digit expression is still a signed item. The value is
+        // a CobolDec (34 significant digits): an argument expression past the Int128 window reached it lowered to that image
+        // (docs/CONFORMANCE.md DOC-A.1-123, kb/Work PB3953), and this member shows the image it was given, as a determination.
         NumProfile described = CobolNum.ReturnedValueProfile(value, out string digits);
         return new(digits.Length <= 38 ? Shape.Item : Shape.Value, value, described);
     }
