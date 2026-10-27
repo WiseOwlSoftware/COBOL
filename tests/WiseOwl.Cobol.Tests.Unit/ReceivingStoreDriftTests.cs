@@ -70,12 +70,14 @@ public sealed class ReceivingStoreDriftTests
             + "(ISO §14.9.25.4 GR4; kb/Work PB3512):\n" + string.Join("\n", offenders));
     }
 
-    /// <summary>kb/Work PB3666, determination D-B5 — EVERY STORE OF CHARACTERS INTO A BOOLEAN ITEM CONVERTS THEM. ISO §14.6.8.6
+    /// <summary>kb/Work PB3666, PB3697, determination D-B5 — EVERY STORE OF CHARACTERS INTO A BOOLEAN ITEM CONVERTS THEM. ISO §14.6.8.6
     /// transfers "after any necessary conversion, into the corresponding boolean positions"; the implementation converts
     /// each character ('1' to boolean one, every other to zero) in <c>CobolBool.FromCharacters</c>, so DISPLAY of the item and
     /// the boolean operators over it cannot disagree. The fitting store <c>CobolBool.Store</c> is emitted ONLY by
-    /// <c>RuntimeApi.StrStoreBoolean</c>; the sites that fit by another rule (a reference-modified slice's splice, a STRING image,
-    /// a GR4 group move into a USAGE DISPLAY boolean item) convert through the same two entry points. A new emitter that
+    /// <c>RuntimeApi.StrStoreBoolean</c>; the sites that fit by another rule convert through the same two entry points: a
+    /// reference-modified slice's splice, a STRING image, and every storage-area store (a GR4 group move into an elementary
+    /// item, a READ or RETURN into an elementary record area) in <c>ReceivingStore.StorageCharacters</c>, which converts the
+    /// DECODED characters of a display or national boolean item and leaves a USAGE BIT item alone. A new emitter that
     /// deposits characters into a boolean item and spells <c>CobolString.Store(..., pad: '0')</c> itself would leave
     /// <c>AB000</c> in the item again. Goldens: <c>pb3666_boolean_receiver_converts_characters</c>.</summary>
     [Fact]
@@ -99,15 +101,41 @@ public sealed class ReceivingStoreDriftTests
         Assert.Contains("nameof(CobolBool.Store)", runtimeApi);
         Assert.Contains("nameof(CobolBool.FromCharacters)", runtimeApi);
         string verbs(string f) => File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", f));
-        Assert.Contains("RuntimeApi.StrStoreBoolean(", verbs("ReceivingStore.cs"));      // a GR4 group move into a USAGE DISPLAY boolean item
-        // ...and ONLY one whose area holds characters: a national boolean's area is UTF-16BE pairs and a BIT one's packed
-        // bytes, which are not characters to convert (review R1-1: N"101" became three CJK characters). Golden: the L12 line.
-        Assert.Contains("AreaHoldsCharacters(target)", verbs("ReceivingStore.cs"));
-        Assert.Contains("is not { Usage: Usage.National or Usage.Bit }", verbs("ReceivingStore.cs"));
+        // A storage-area store (a GR4 group move into an elementary item, a READ or RETURN into an elementary record area)
+        // converts the DECODED characters of a boolean item, display or national, in ONE place: StorageCharacters
+        // (kb/Work PB3697). It converts the characters the area decodes to, never the area's bytes (review R1-1 of PB3666:
+        // N"101" became three CJK characters); a USAGE BIT item is exempt, every bit pattern being valid.
+        string home = verbs("ReceivingStore.cs");
+        string storageCharacters = Between(home, "public static string StorageCharacters(", "private static string DecodedStorage(");
+        Assert.Contains("RuntimeApi.BoolFromCharacters(", storageCharacters);
+        Assert.Contains("Category: PicCategory.Boolean, Usage: not Usage.Bit", storageCharacters);
+        Assert.Contains("DecodedStorage(item, area, positions)", storageCharacters);
+        // The representation decode and the pass-through test are one pair: the decoding arms are the complement of
+        // AreaHoldsCharacters, and the reference-modified arm asks the predicate rather than spelling it (kb/Work PB3698).
+        string decoded = Between(home, "private static string DecodedStorage(", "public static string ContentCharacters(");
+        Assert.Contains("{ Usage: Usage.National }", decoded);
+        Assert.Contains("{ Usage: Usage.Bit }", decoded);
+        Assert.Contains("is not { Usage: Usage.National or Usage.Bit }", Between(home, "private static bool AreaHoldsCharacters(", ";"));
+        Assert.Single(Regex.Matches(home, Regex.Escape("is not { Usage: Usage.National or Usage.Bit }")));
+        Assert.Contains("AreaHoldsCharacters(item)", Between(home, "public static string SliceStorageArea(", "public static string StorageBytes("));
+        // ...and the fitting store itself has no boolean arm: it would convert a second time, and a caller that fits
+        // characters into a boolean item asks StrStoreBoolean (below), not Characters.
+        Assert.DoesNotContain("RuntimeApi.StrStoreBoolean(", Between(home, "public static string Characters(", "private static bool AreaHoldsCharacters("));
         Assert.Contains("RuntimeApi.StrStoreBoolean(", verbs("MoveEmitter.cs"));         // the elementary MOVE
         Assert.Contains("RuntimeApi.BoolFromCharacters(", verbs("StringEmitter.cs"));    // STRING into a USAGE DISPLAY boolean item
         Assert.Contains("RuntimeApi.BoolFromCharacters(",
             File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Roslyn", "PlaceRenderer.cs")));   // a reference-modified boolean slice
+    }
+
+    /// <summary>The text of <paramref name="source"/> from the first <paramref name="from"/> to the next
+    /// <paramref name="to"/> after it, failing loudly when either marker moved so a scan over it cannot pass vacuously.</summary>
+    private static string Between(string source, string from, string to)
+    {
+        int start = source.IndexOf(from, StringComparison.Ordinal);
+        Assert.True(start >= 0, $"ReceivingStore.cs no longer spells '{from}'");
+        int end = source.IndexOf(to, start + from.Length, StringComparison.Ordinal);
+        Assert.True(end >= 0, $"ReceivingStore.cs no longer spells '{to}' after '{from}'");
+        return source.Substring(start, end - start);
     }
 
     [Fact]
