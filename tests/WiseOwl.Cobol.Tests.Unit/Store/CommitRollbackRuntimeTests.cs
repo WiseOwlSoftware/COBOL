@@ -1740,6 +1740,43 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ A KEYED WRITE THAT WOULD CREATE THE FILE AGAIN MEETS A FILE ANOTHER RUN UNIT MADE AT THE PATH MEANWHILE (kb/Work
+    /// PB3635; the sequential twin is <c>SequentialConnector.CreateTheFileAgain</c>): the ROLLBACK released the file lock of a file not
+    /// open at the last COMMIT (§9.1.15) and reversed only this run unit's own changes (§14.9.36.4 GR3), so what the other run unit
+    /// created there is protected from this one (§9.1.17): the WRITE answers '30' (§9.1.13.6 item 1) and the later COMMIT or ROLLBACK
+    /// leaves the other's file as its creator wrote it, no journal left.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, false)]
+    [InlineData(FileOrg.Relative, true)]
+    [InlineData(FileOrg.Indexed, false)]
+    [InlineData(FileOrg.Indexed, true)]
+    public void A_keyed_write_creating_the_file_again_meets_a_file_another_run_unit_made_meanwhile_30(FileOrg org, bool commit)
+    {
+        string host = Tmp($"pb3635-again-{org}-{commit}");
+        try
+        {
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: true);
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Write(a, org, 2, "A002"));
+            Assert.Null(a.Rollback());
+            Assert.False(File.Exists(host));   // GR3: the state at the start of the run unit had no file
+            var b = Open(host, org, commit: false, FileOpenMode.Output, name: "B");
+            Assert.Equal("00", Write(b, org, 3, "B003", name: "B"));
+            b.Close("B");
+            Assert.Equal("00", b.Status("B"));
+            Assert.Equal("30", Write(a, org, 4, "A004"));
+            Assert.Null(commit ? a.Commit() : a.Rollback());
+            a.CloseAll();
+            var expected = new string?[10];
+            expected[3] = Rec(3, "B003");
+            Assert.Equal(expected, StateOf(host, org));
+            AssertNoJournalLeft(host);
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>The same decision where the file a connector's CLOSE kept is not there at the re-OPEN (kb/Work PB3493's sibling arms,
     /// the absent OPTIONAL file of §14.9.27.4 GR13 on INPUT and of GR17 on I-O): what the CLOSE kept belonged to a file that was
     /// removed outside the run unit, so the OPEN ('05') retires it (kb/Work PB3576) instead of attaching beside it, and a later OPEN of the file made
