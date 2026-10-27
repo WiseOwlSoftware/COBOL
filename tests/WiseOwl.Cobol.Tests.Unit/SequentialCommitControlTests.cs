@@ -562,7 +562,7 @@ public sealed class SequentialCommitControlTests
     }
 
     /// <summary>A path that is made again after every attempt's probe answers the last attempt's '30' (§9.1.13.6 item 1): at most
-    /// <c>FileConnector.MaxFileMadeRetries</c> retries (three attempts), the journals each withdrew leaving no <c>txn-</c> file, and the other run unit's
+    /// <c>FileConnector.MaxPathChangedRetries</c> retries (three attempts), the journals each withdrew leaving no <c>txn-</c> file, and the other run unit's
     /// file untouched.</summary>
     [Fact]
     public void An_open_whose_creation_is_met_by_a_new_file_at_every_attempt_answers_30_and_leaves_nothing()
