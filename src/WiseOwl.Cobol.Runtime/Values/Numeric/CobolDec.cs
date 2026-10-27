@@ -1172,9 +1172,10 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         var n = sig * System.Numerics.BigInteger.Pow(10, k);
         var q = ISqrt(n);
         bool exact = q * q == n;
-        // An EXACT root is held at the preferred exponent, half the operand's rounded down (ISO §15.84.4 r2 takes SQRT's
-        // definition from ISO/IEC 60559 5.4.1, as the zero above does), not padded to the 36 digits the scaling gives:
-        // `SQRT (4)` is 2, not 2000…0E-35 (kb/Work PB3954; ToPreferredExponent).
+        // An EXACT root is held at the preferred exponent, half the operand's rounded down (ISO §15.84.4 r2: "rounded to 34
+        // digits according to the rules for standard-decimal arithmetic", which Annex D.18.2.1 says take SQRT's definition from
+        // ISO/IEC 60559; the zero above is held there too), not padded to the 36 digits the scaling gives: `SQRT (4)` is 2,
+        // not 2000…0E-35 (kb/Work PB3954; ToPreferredExponent).
         int exp = (v.Exp - k) / 2;
         UInt128 root = (UInt128)q;
         if (exact) root = ToPreferredExponent(root, ref exp, (int)Math.Floor(v.Exp / 2.0));
