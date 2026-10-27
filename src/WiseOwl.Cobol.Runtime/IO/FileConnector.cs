@@ -958,21 +958,63 @@ public abstract class FileConnector
     /// run units is Table 19 itself, and it admitted the request — then the refusal is the share mode over-restricting
     /// (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>: an INPUT opener that still owes its transaction's writes
     /// holds a handle open for writing, which <see cref="FileShare.Read"/> refuses), and the OPEN is made again, from the
-    /// start, with the share mode that admits it. A refusal the column also made is '61' on the first attempt.</para></summary>
+    /// start, with the share mode that admits it. A refusal the column also made is '61' on the first attempt.</para>
+    /// <para>⛔ AND AGAIN WHEN THE FILE THE OPEN DECIDED TO CREATE WAS MADE BY ANOTHER RUN UNIT MEANWHILE (kb/Work PB3635). An OPEN
+    /// that creates the file (<c>OPEN OUTPUT</c> of an absent file, <c>OPEN I-O</c> or <c>EXTEND</c> of an absent OPTIONAL one,
+    /// §14.9.27.4 GR17, GR18) decides on the ONE presence probe and then takes a handle opened <see cref="FileMode.CreateNew"/>, which
+    /// refuses a file made since (<see cref="HostFile.IsAlreadyExists"/>): a creation never replaces, adopts or journals as its own
+    /// the file of a run unit whose OPEN takes no entry mutex. The refused attempt is an unsuccessful OPEN (§14.9.27.4 GR25: the file
+    /// is not affected, the journal it began withdrawn) and the OPEN is made again from its entry step, so its probe finds the file
+    /// that stands and it is the OPEN of an EXISTING file — the order in which the two run units' OPENs would have run one after the
+    /// other. At most <see cref="MaxFileMadeRetries"/> times, so a path that is created and removed over and over answers the
+    /// last attempt's '30' (§9.1.13.6 item 1).</para></summary>
     public string Open(FileOpenMode mode)
     {
-        string status = OpenOnce(mode, ownedWritesAdmitted: false, out bool refusedAfterTheColumnWasHeld);
-        return refusedAfterTheColumnWasHeld ? OpenOnce(mode, ownedWritesAdmitted: true, out _) : status;
+        bool ownedWritesAdmitted = false;
+        int filesMadeMeanwhile = 0;
+        while (true)
+        {
+            string status = OpenOnce(mode, ownedWritesAdmitted, out var again);
+            switch (again)
+            {
+                case OpenAgain.WithOwnedWritesAdmitted when !ownedWritesAdmitted:
+                    ownedWritesAdmitted = true;
+                    break;
+                case OpenAgain.FileMadeMeanwhile when filesMadeMeanwhile < MaxFileMadeRetries:
+                    filesMadeMeanwhile++;
+                    break;
+                default:
+                    return status;
+            }
+        }
     }
 
-    /// <summary>One attempt of <see cref="Open"/>. <paramref name="refusedAfterTheColumnWasHeld"/> is true when the attempt
-    /// answered '61' from the host's share mode with the Table 19 column held and a posture that yields
-    /// (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>) still to try; the connector is then exactly as an
+    /// <summary>The most times one <see cref="Open"/> is made again for <see cref="OpenAgain.FileMadeMeanwhile"/>, counted apart from
+    /// the one <see cref="OpenAgain.WithOwnedWritesAdmitted"/> asks for: the two reasons are independent, so a bound shared between
+    /// them would answer '61' to a share-mode refusal only because a file was made twice before it. At most
+    /// 1 + <see cref="MaxFileMadeRetries"/> + 1 attempts in all.</summary>
+    private const int MaxFileMadeRetries = 2;
+
+    /// <summary>Why an unsuccessful <see cref="OpenOnce"/> asks to be made again.</summary>
+    private enum OpenAgain
+    {
+        /// <summary>It answers its own status.</summary>
+        No,
+        /// <summary>The host's share mode refused what Table 19 admitted (kb/Work PB3482).</summary>
+        WithOwnedWritesAdmitted,
+        /// <summary>The creating handle met a file another run unit made since the presence probe (kb/Work PB3635).</summary>
+        FileMadeMeanwhile,
+    }
+
+    /// <summary>One attempt of <see cref="Open"/>. <paramref name="again"/> is <see cref="OpenAgain.WithOwnedWritesAdmitted"/> when the
+    /// attempt answered '61' from the host's share mode with the Table 19 column held and a posture that yields
+    /// (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>) still to try, and <see cref="OpenAgain.FileMadeMeanwhile"/> when its
+    /// creating handle met a file made since the probe; the connector is then exactly as an
     /// unsuccessful OPEN leaves it, a file lock its CLOSE under commit control kept back on the kept column
     /// (<see cref="RunUnitFileLock.Revert"/>), which the second attempt replaces again (<see cref="RunUnitFileLock.Amend"/>).</summary>
-    private string OpenOnce(FileOpenMode mode, bool ownedWritesAdmitted, out bool refusedAfterTheColumnWasHeld)
+    private string OpenOnce(FileOpenMode mode, bool ownedWritesAdmitted, out OpenAgain again)
     {
-        refusedAfterTheColumnWasHeld = false;
+        again = OpenAgain.No;
         if (IsOpen) return Status = PermanentErrorReplay() ?? FileStatusCode.FileAlreadyOpen;   // §9.1.13.1 (kb/Work PB1541) before '41'
         // ⛔ THE ENTRY STEP RUNS BEFORE THE PRESENCE PROBE (DESIGN-runtime-library.md 2.2.2.8; kb/Work PB3340): settling a dead
         // run unit's transaction can create or remove the physical file (a creation rolled back removes it, a DELETE FILE rolled
@@ -987,7 +1029,7 @@ public abstract class FileConnector
             (Mode, ModeKnown) = (mode, true);   // a FAILED open still records the attempted mode (GR6b "being opened")
             return Status = entered;
         }
-        try { return OpenOnceEntered(mode, ownedWritesAdmitted, out refusedAfterTheColumnWasHeld); }
+        try { return OpenOnceEntered(mode, ownedWritesAdmitted, out again); }
         finally { LeaveEntry(); }
     }
 
@@ -1012,6 +1054,26 @@ public abstract class FileConnector
 
     /// <summary>The entry mutex a covered OPEN holds from its entry step to its end (<see cref="EnterPhysicalFile"/>).</summary>
     private protected RegionLocks? EntryMutex { get; private set; }
+
+    /// <summary>The run unit's transaction journal on the file, when THIS OPEN began it (a creation's START <c>A</c>, an OPEN OUTPUT's
+    /// capture), until the OPEN ends: an unsuccessful OPEN that did not affect the file withdraws it
+    /// (<see cref="WithdrawWhatTheOpenBegan"/>, §14.9.27.4 GR25).</summary>
+    private protected SequentialJournal? _begunByOpen;
+
+    /// <summary>Whether this OPEN changed the physical file: its handle created it, or its creation or truncation replaced what it
+    /// held. An unsuccessful OPEN that did is not withdrawn: its journal stands, and item 8's ROLLBACK (§14.6.13.1.3 8), the
+    /// statement's '30' being fatal) restores the file from it.</summary>
+    private protected bool _openChangedFile;
+
+    /// <summary>⛔ AN UNSUCCESSFUL OPEN WITHDRAWS THE JOURNAL IT BEGAN WHEN IT DID NOT AFFECT THE FILE (§14.9.27.4 GR25, <i>"If the
+    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; DESIGN-runtime-library.md 2.2.2.14): no
+    /// transaction began on it, and a transaction that stood before the OPEN stands as it was. One rule in one place for both
+    /// organizations (kb/Work PB3635). Clears what the OPEN recorded of its journal.</summary>
+    private protected void WithdrawWhatTheOpenBegan()
+    {
+        if (_begunByOpen is { } begun && !_openChangedFile) Transactions.Withdraw(begun);
+        (_begunByOpen, _openChangedFile) = (null, false);
+    }
 
     /// <summary>⛔ THE ENTRY STEP AT EVERY WRITABLE OPEN of a file of ANY organization (DESIGN-runtime-library.md 2.2.2.8, 2.2.2.14),
     /// run before the presence probe (<see cref="OpenOnce"/>): the lock directory is listed for transaction journals — a live
@@ -1057,9 +1119,9 @@ public abstract class FileConnector
     internal virtual RemovalGiveBack? GiveBackForRemoval() => null;
 
     /// <summary>The OPEN attempt after its entry step (<see cref="OpenOnce"/>).</summary>
-    private string OpenOnceEntered(FileOpenMode mode, bool ownedWritesAdmitted, out bool refusedAfterTheColumnWasHeld)
+    private string OpenOnceEntered(FileOpenMode mode, bool ownedWritesAdmitted, out OpenAgain again)
     {
-        refusedAfterTheColumnWasHeld = false;
+        again = OpenAgain.No;
         _ownedWritesAdmitted = ownedWritesAdmitted;
         Mode = mode;
         ModeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
@@ -1169,6 +1231,16 @@ public abstract class FileConnector
         {
             s = SharingFacilityInEffect ? FileStatusCode.FileSharingConflict : FileStatusCode.PermanentError;
         }
+        // A creating arm's CreateNew handle met a file another run unit made since the probe (kb/Work PB3635): the OPEN is made
+        // again over it (Open). Only a creating arm takes such a handle, so no other refusal reads as this one; if the attempts
+        // run out the status stands, §9.1.13.6 item 1's '30'.
+        catch (IOException e) when (HostFile.IsAlreadyExists(e, HostPath))
+        {
+            (s, again) = (FileStatusCode.PermanentError, OpenAgain.FileMadeMeanwhile);
+        }
+        // A DIRECTORY has the path's name (the probe answers Absent for one, HostFile.Probe): Unix refuses the creating handle with
+        // EEXIST where Windows throws UnauthorizedAccessException, and both are §14.9.27.4 GR3's '37' (review finding R2-1).
+        catch (IOException e) when (HostFile.IsDirectoryInTheWay(e, HostPath)) { s = FileStatusCode.PermissionDenied; }
         catch (IOException) { s = FileStatusCode.PermanentError; }
         // §9.1.13.6 item 1's '30' — "a permanent error exists and no further information is available". Since
         // §12.4.5.3 GR3 b) made the host path a RUNTIME VALUE (the content of data-name-1), an arbitrary string can
@@ -1202,10 +1274,11 @@ public abstract class FileConnector
             // unit's connector, so a '61' that the host's share mode alone made is the posture over-restricting only when the
             // writer that refused it is a connector's that owes writes (an INPUT opener whose transaction stands, which it
             // published with its column), and not a reader beside the request or a program outside the protocol (kb/Work PB3499).
-            refusedAfterTheColumnWasHeld = s == FileStatusCode.FileSharingConflict && _runUnitLock is { } column
+            if (s == FileStatusCode.FileSharingConflict && _runUnitLock is { } column
                 && !ownedWritesAdmitted && HostFile.ShareModesAreMandatory
                 && FileLockPosture.WhenOwedWritesAreAdmitted(HostSharing) != FileLockPosture.OfSharingMode(HostSharing)
-                && column.AnotherOwesWrites();
+                && column.AnotherOwesWrites())
+                again = OpenAgain.WithOwnedWritesAdmitted;
             try { AbandonOpen(); }
             catch (IOException) { }   // the status above stands (§14.9.27.4 GR25 — the unsuccessful OPEN's own)
             // §9.1.15 — only a SUCCESSFUL opening establishes the lock; §14.9.27.4 GR25 — what a CLOSE under commit
