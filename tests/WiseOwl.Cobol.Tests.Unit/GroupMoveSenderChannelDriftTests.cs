@@ -140,6 +140,32 @@ public sealed class GroupMoveSenderChannelDriftTests
         Assert.DoesNotContain("OperandOf(host.Expr.BindExpr(ax)", call);
     }
 
+    /// <summary>⛔ A WRITTEN NUMERIC LITERAL IS STATED BY THE OPERAND'S KIND, AND NO READER RECOVERS ONE FROM A COMPUTED OPERAND
+    /// (kb/Work PB3760; §14.9.4.4 GR8, §8.4.3.2.4 GR5). The expression binder drops grouping parentheses, so a reader that took a
+    /// <c>BoundComputedOperand</c> over a <c>BoundNumLiteral</c> (or its negation) for "the literal" read <c>(3)</c> as 3: a CALL
+    /// and a user function stored it into a plain-group formal, and the INVOKE lane passed bind and failed in the code generator.
+    /// Each lane binds the parse tree's sole numeric literal as a <c>BoundNumericLiteral</c> instead - the CALL BY VALUE arm (its
+    /// former expression arm was why the recovery existed) and the function-prototype activation argument, which also wraps a
+    /// parenthesized or compound argument as the computed operand it is.</summary>
+    [Fact]
+    public void WrittenLiteral_IsTheOperandKind_NoReaderRecoversOneFromAnExpression()
+    {
+        var recoverers = CompilerSources()
+            .Where(f => Regex.IsMatch(StripComments(File.ReadAllText(f)),
+                @"BoundComputedOperand\s+\w+\s+when\s+[^:]*\b(BoundNumLiteral|BoundNegate|NumericText)\b"))
+            .Select(Path.GetFileName).Order().ToList();
+        Assert.True(recoverers.Count == 0, "a reader recovers a numeric literal from a computed operand, which cannot tell (3) "
+            + "from 3; bind the literal as a BoundNumericLiteral where the parse tree still shows it: " + string.Join(", ", recoverers));
+        Assert.DoesNotContain(CompilerSources(), f => StripComments(File.ReadAllText(f)).Contains("Gr8ArgumentLiteral", System.StringComparison.Ordinal));
+        string call = Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "CallBinder.cs");
+        Assert.Matches(@"var\s*\(\s*vLit\s*,\s*_\s*,\s*vSoleNum\s*,", call);
+        Assert.Contains("host.Expr.NumericLiteralOperand(vnum)", call);
+        string intrinsic = Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs");
+        Assert.Matches(@"if\s*\(\s*activationArgument\s*&&\s*a\.arithmeticExpression\(\)\s*is\s*\{\s*\}\s*ax\s*\)", intrinsic);
+        Assert.Contains("SoleOperand.NumericLiteral(ax)", intrinsic);
+        Assert.Contains("return host.Cond.CompoundOperand(ax);", intrinsic);
+    }
+
     /// <summary>"Is this a group operation?" - a group that is not a bit or national group acting as an elementary item - is
     /// <c>DataItem.IsPlainGroup</c> and written nowhere else (kb/Work PB3613): the INVOKE binder's guard, the CALL and INVOKE
     /// emitters and the MOVE classifier ask the one property, so the binder's routing and the emitter's arm cannot disagree.</summary>

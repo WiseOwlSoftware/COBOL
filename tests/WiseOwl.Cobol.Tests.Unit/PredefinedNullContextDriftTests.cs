@@ -40,7 +40,7 @@ public sealed class PredefinedNullContextDriftTests
             + "subject/object pair (§14.9.13.3 SR7 a))",
         ["InitializeBinder.cs"] = "a sending operand in an INITIALIZE statement",
         ["IntrinsicBinder.cs"] = "an argument in a function-prototype format function activation (BindArgOperand's "
-            + "nullAdmitting leg, which only UdfBinder sets)",
+            + "activationArgument leg, which only UdfBinder sets)",
     };
 
     private static string StripLineComments(string text, string marker) =>
@@ -86,14 +86,14 @@ public sealed class PredefinedNullContextDriftTests
     {
         var producers = new List<string>();
         var callers = new HashSet<string>();
-        var nullAdmittingSetters = new List<string>();
+        var activationArgumentSetters = new List<string>();
         foreach (var file in CompilerSources())
         {
             string name = Path.GetFileName(file);
             string code = StripLineComments(File.ReadAllText(file), "//");
             if (code.Contains("BoundPredefinedNull.Instance", StringComparison.Ordinal)) producers.Add(name);
             if (Regex.IsMatch(code, @"\bNullAdmittingOperand\(") && name != "ExpressionBinder.cs") callers.Add(name);
-            if (code.Contains("nullAdmitting: true", StringComparison.Ordinal)) nullAdmittingSetters.Add(name);
+            if (code.Contains("activationArgument: true", StringComparison.Ordinal)) activationArgumentSetters.Add(name);
         }
         Assert.Equal(["ExpressionBinder.cs"], producers);
         var unlisted = callers.Except(Sr1Callers.Keys).Order().ToList();
@@ -102,7 +102,7 @@ public sealed class PredefinedNullContextDriftTests
             + "context: " + string.Join(", ", unlisted) + ". NULL may be written only in the contexts SR1 a)/b) "
             + "enumerate; bind every other slot through NonNumericLiteralOperand, which refuses it (COBOL2576).");
         Assert.True(stale.Count == 0, "an SR1 allowance has no caller any more — remove it: " + string.Join(", ", stale));
-        Assert.Equal(["UdfBinder.cs"], nullAdmittingSetters);
+        Assert.Equal(["UdfBinder.cs"], activationArgumentSetters);
     }
 
     /// <summary>The §8.4.3.10.3 SR1 refusal has ONE text: every COBOL2576 report goes through
