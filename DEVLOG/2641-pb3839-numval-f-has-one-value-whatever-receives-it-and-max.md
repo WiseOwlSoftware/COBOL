@@ -1,4 +1,4 @@
-## PB3839: NUMVAL-F has one value whatever receives it, and MAX and MIN no longer truncate before the receiver rounds
+## Entry 2641 — 2026-10-26 17:56 PDT — PB3839: NUMVAL-F has one value whatever receives it, and MAX and MIN no longer truncate before the receiver rounds
 
 `ROUNDED MODE AWAY-FROM-ZERO` of `FUNCTION NUMVAL-F("0.12340000000001")` into a `PIC 9V9(4)` stored 0.1234 where NUMVAL, and
 GnuCOBOL's NUMVAL-F, store 0.1235 (kb/Work PB3839, owner decision 2026-10-26: "We should always be consistent with ourself barring an
@@ -70,3 +70,4 @@ legs D1-D7 were added to `pb3839_max_min_round_once` (both caps, MIN, TOWARD-GRE
 form); D1-D4, D6 and D7 fail on the reviewed head (0.0 and +0.0) and pass now. Leads R1-2 (the drift test grounded in the standard-mode
 sentence of §15.4.1; it now states the owner determination for native) and R1-3 (a theory name and remark naming the deleted float floor)
 were fixed in files this change touches.
+
