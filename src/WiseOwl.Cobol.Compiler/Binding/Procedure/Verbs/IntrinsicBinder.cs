@@ -2989,6 +2989,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             if (WiseOwl.Cobol.Frontend.Expressions.SoleOperand.NumericLiteral(ax) is { } literal)
                 return host.Expr.NumericLiteralOperand(literal);
+            // GROUPING-PAREN-ONLY: a primaryExpression's own parenthesis is the arithmetic grouping one (a function's argument
+            // list is FNARG_LPAREN inside functionCall, a subscript REF_LPAREN inside dataReference), and only it makes (3) an expression.
             if (WiseOwl.Cobol.Frontend.Expressions.SoleOperand.Primary(ax) is not { } primary || primary.LPAREN() is not null)
                 return host.Cond.CompoundOperand(ax);
         }
