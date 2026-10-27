@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.CodeGen.Emit;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -54,9 +55,13 @@ public sealed class IntrinsicRealArgDriftTests
         // A label list runs from `case` to `:` or to a `when` guard; each quoted name inside it is an arm.
         // ⛔ The name class includes DIGITS (kb/Work R18): `[A-Za-z]+` could not see a method like `Exp10`,
         // so any digit-bearing arm was structurally invisible to this guard — the PB21 under-count shape again.
+        // ⛔ PLUS THE SDIDI-QUOTIENT FUNCTIONS (kb/Work PB3860): MEAN has no arm in the switch (its native value is the SDIDI
+        // quotient, RenderDec's MeanDec), but a binary64 operand still routes it to MeanReal through RealMethod, so its
+        // counterpart is owed exactly as an arm's is.
         return [.. Regex.Matches(body, @"case\s+(?<lbl>""[A-Za-z0-9]+""(?:\s+or\s+""[A-Za-z0-9]+"")*)\s*(?::|when\b)")
             .SelectMany(m => Regex.Matches(m.Groups["lbl"].Value, @"""(?<n>[A-Za-z0-9]+)""")
-                                  .Select(x => x.Groups["n"].Value))];
+                                  .Select(x => x.Groups["n"].Value))
+            .Concat(IntrinsicCarrierRules.SdidiQuotientFunctions)];
     }
 
     private static HashSet<string> RealBodies() =>
