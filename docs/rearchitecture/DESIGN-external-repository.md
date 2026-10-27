@@ -1060,7 +1060,7 @@ the group.
        namespace from ONE starting block, group members first in their original order, until a round splits nothing,
        re-stamping every pointer it holds. It never appends the new members to the blocks the group's run left: today's
        `Present` only adds to the first block and `Refine` only splits, so an incremental admit would give a decoded `B`
-       whose signature is `Same` as the group's `B` a block of its own (`TO B #2`), two types for one signature, against
+       whose signature is `Same` as the group's `B` a block of its own (`DECODED <k> TO B` beside `TO B`), two types for one signature, against
        §13.18.60.4 GR25 (kb/Work PB1086 review R2-1). Because the re-run starts from one block with the group members
        first, each block a group member founds keeps its founder and so its spelling, and no group pointer's identity
        moves; a decoded member lands in the block of every member whose signature is `Same` as its own.
