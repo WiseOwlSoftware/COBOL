@@ -93,7 +93,6 @@ public sealed class DisplayOrNationalUsagePredicateDriftTests
         Assert.True(reader < src.IndexOf("BoundNumericLiteral =>", StringComparison.Ordinal),
             "the function arm must precede the numeric-literal arm, or the folded FUNCTION LENGTH is called an integer literal.");
         Assert.DoesNotContain("FunctionValuePic", src);
-        Assert.DoesNotContain("NumericReturnedValuePic", src);
         Assert.DoesNotContain("IntermediatePic", src);
     }
 

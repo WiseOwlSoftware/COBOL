@@ -51,6 +51,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         var sig = ic.Sig;
         if (sig.Bind == IntrinsicBind.Deferred || sig.RuntimeMethod.Length == 0)
             return new NumX(EmitText.LoudValue("long", $"FUNCTION {sig.Name} (catalogued, not yet implemented)"), 0);
+        // ⛔ LENGTH / BYTE-LENGTH OF A NUMERIC OR INTEGER FUNCTION MEASURE ITS RETURNED-VALUE TEMPORARY, BEFORE ANY CARRIER ROUTING (kb/Work PB3951).
+        // §8.4.3.2.1: a function-identifier references the temporary data item the evaluation produces (§15.4), and §15.50.4 r3 / §15.14.4 r1
+        // measure that item in bytes. It is the item DISPLAY shows (FunctionValueField, DOC-A.1-92), so its length is read from that field
+        // and never from a width of ours; the argument's value only fills the field, so a binary64 argument (SQRT) is no reason to
+        // leave this arm for the float lane below. The binder sends every such argument here (IntrinsicBinder.FunctionResultLength).
+        if (sig.RuntimeMethod is "Length" or "ByteLength" && FunctionDeviceText.IsNumericFunctionResult(ic.Args[0]))
+            return new NumX(RuntimeApi.FunctionFieldLength(new FunctionDeviceText(num).Field(ic.Args[0])), 0);
         // A string-class function result in a NUMERIC context reaches here only under --permissive (the binder's
         // §8.8.1.1 screen rejects it under strict conformance — kb/Work PB68): the DA6 leniency, the same
         // digit-character decode an alphanumeric DATA ITEM gets there (CobolNum.FromAlphanumeric over the
