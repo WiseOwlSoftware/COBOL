@@ -1,4 +1,4 @@
-## PB3941: the frontier-model hold reads a field, not prose, and the owner's approved fix PB3869 can be planned again
+## Entry 2667 — 2026-10-27 13:19 PDT — PB3941: the frontier-model hold reads a field, not prose, and the owner's approved fix PB3869 can be planned again
 
 The owner approved the fix of PB3869 at about 10:10 PDT, in the Mythos session. PB3869 is a wrong answer: an arithmetic
 statement with only a NOT ON SIZE ERROR phrase takes the SIZE ERROR phrase's disposition. The operator's handoff told
@@ -30,3 +30,4 @@ upstream record describes another project's defect and plans none of our work, s
 fields such a record may not carry. The branch review's one lead is fixed too: `frontier_model_shape` tested membership
 on any value, so a list such as `[mythos]` raised a TypeError that stopped `work.py check`. It now refuses any value that
 is not a family name by naming the note, and the self-test holds a list and a number to that.
+
