@@ -70,6 +70,7 @@ WiseOwl.Cobol.Runtime.FigurativeSender.Space = 2 -> WiseOwl.Cobol.Runtime.Figura
 WiseOwl.Cobol.Runtime.FigurativeSender.Zero = 1 -> WiseOwl.Cobol.Runtime.FigurativeSender
 WiseOwl.Cobol.Runtime.FunctionValueField
 WiseOwl.Cobol.Runtime.FunctionValueField.Abs() -> WiseOwl.Cobol.Runtime.FunctionValueField
+WiseOwl.Cobol.Runtime.FunctionValueField.ByteLength.get -> long
 WiseOwl.Cobol.Runtime.FunctionValueField.DeviceText(bool commaMode) -> string!
 WiseOwl.Cobol.Runtime.FunctionValueField.FunctionValueField() -> void
 WiseOwl.Cobol.Runtime.HostLanding
@@ -232,7 +233,7 @@ static WiseOwl.Cobol.Runtime.FunctionValueField.Median(params WiseOwl.Cobol.Runt
 static WiseOwl.Cobol.Runtime.FunctionValueField.Min(params WiseOwl.Cobol.Runtime.FunctionValueField[]! arguments) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfDigits(WiseOwl.Cobol.Runtime.CobolDec value, int digits) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloat(double value) -> WiseOwl.Cobol.Runtime.FunctionValueField
-static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloatItem(WiseOwl.Cobol.Runtime.CobolDec exactValue, string! image) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloatItem(WiseOwl.Cobol.Runtime.CobolDec exactValue, in WiseOwl.Cobol.Runtime.NumProfile item, string! image) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfItem(WiseOwl.Cobol.Runtime.CobolDec value, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfLiteral(WiseOwl.Cobol.Runtime.CobolDec value, int digits, int scale, bool signed) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfValue(WiseOwl.Cobol.Runtime.CobolDec value) -> WiseOwl.Cobol.Runtime.FunctionValueField

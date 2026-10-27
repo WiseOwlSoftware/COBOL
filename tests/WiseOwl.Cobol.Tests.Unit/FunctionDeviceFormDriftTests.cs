@@ -88,6 +88,28 @@ public sealed class FunctionDeviceFormDriftTests
         Assert.Contains("FoldedFunction = l.FoldedFunction", binder, StringComparison.Ordinal);
     }
 
+    /// <summary>⛔ LENGTH AND BYTE-LENGTH OF A NUMERIC FUNCTION MEASURE THE TEMPORARY DISPLAY SHOWS, AND NOTHING ELSE (kb/Work PB3951). The binder sends
+    /// the argument to the renderer, whose first arm reads <c>FunctionValueField.ByteLength</c> of the field <c>FunctionDeviceText</c> builds, so
+    /// the catalog column above decides the SIZE of a function's temporary as it decides its text and a function added tomorrow needs no edit. A
+    /// width of the binder's own (the S9(30) item the first implementation measured) would be a second answer to the question the three shapes answer.</summary>
+    [Fact]
+    public void TheLengthOfANumericFunctionIsTheLengthOfTheTemporaryDisplayShows()
+    {
+        string binder = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs"));
+        int arm = binder.IndexOf("private BoundExpr FunctionResultLength(", StringComparison.Ordinal);
+        Assert.True(arm >= 0, "IntrinsicBinder.FunctionResultLength is the one arm for a function-identifier argument of LENGTH and BYTE-LENGTH");
+        string body = binder[arm..binder.IndexOf("/// <summary>A bare-word argument that names a TYPE", arm, StringComparison.Ordinal)];
+        Assert.DoesNotContain("SendingValueTemp", body, StringComparison.Ordinal);   // no fixed returned-value width
+        Assert.Contains("new BoundIntrinsicCall(sig, args, PicCategory.Numeric)", body, StringComparison.Ordinal);
+
+        string renderer = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
+        int lengthArm = renderer.IndexOf("FunctionDeviceText.IsNumericFunctionResult(ic.Args[0])", StringComparison.Ordinal);
+        Assert.True(lengthArm >= 0, "the renderer's LENGTH / BYTE-LENGTH arm asks the one predicate FunctionDeviceText.IsNumericFunctionResult");
+        Assert.Contains("RuntimeApi.FunctionFieldLength(new FunctionDeviceText(num).Field(ic.Args[0]))", renderer[lengthArm..], StringComparison.Ordinal);
+        Assert.True(lengthArm < renderer.IndexOf("AnyRealArgument(ic) && IntrinsicArgumentRules.ArgumentRunIsAllNumeric", StringComparison.Ordinal),
+            "the length arm runs BEFORE the float-lane routing: a binary64 argument (SQRT) is no reason to leave it");
+    }
+
     /// <summary>The determination is documented: DOC-A.1-92 names every function whose row says otherwise.</summary>
     [Fact]
     public void TheDeterminationNamesEveryFunctionThatSaysOtherwise()

@@ -2244,29 +2244,31 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// its bytes, which the renderer's ByteLength arm turns into 1 per alphanumeric position, 2 per national position
     /// (D-N1) and ceil(positions / 8) per boolean (§15.14.4 r4 — the item "does not occupy an integral number of
     /// bytes").</item>
-    /// <item>INTEGER (item 5), NUMERIC (item 4): a compile-time constant — the length of the §15.4 temporary
-    /// (<see cref="SendingValueTemp.NumericReturnedValuePic"/>), the item a statement stores the value in
-    /// (§15.4.1 leaves "the characteristics and representation of the returned value" to the implementor under native
-    /// arithmetic; docs/CONFORMANCE.md DOC-A.1-92). Its length is §15.50.4 r3's alphanumeric positions / §15.14.4 r1's
-    /// bytes, the same number for a DISPLAY item.</item>
+    /// <item>INTEGER (item 5), NUMERIC (item 4): a RUNTIME length too — the bytes of the §15.4 temporary
+    /// (<c>FunctionValueField.ByteLength</c>, rendered through <c>FunctionDeviceText.Field</c>). §15.4.1 leaves "the
+    /// characteristics and representation of the returned value" to the implementor under native arithmetic, so the
+    /// precedence of CLAUDE.md rule 1 gives them to GnuCOBOL 3.2.0, and the temporary is ONE item that DISPLAY shows and LENGTH
+    /// measures: a copy of the argument ABS, MAX, MIN, an odd MEDIAN and a single MEAN return, a fixed-width integer
+    /// (DATE-OF-INTEGER, DAY-OF-INTEGER), or the item the value describes (a 4-byte or 8-byte binary item, or its DISPLAY digits).
+    /// So <c>FUNCTION LENGTH(FUNCTION ABS(S))</c> is the size of S, not the fixed S9(30) the first implementation gave every
+    /// numeric function (kb/Work PB3951; docs/CONFORMANCE.md DOC-A.1-92). Its length is §15.50.4 r3's alphanumeric
+    /// positions / §15.14.4 r1's bytes, the same number for a non-national item.</item>
     /// <item>INDEX (item 6): a class-index item (§8.5.2.8 item 2), whose length is the index carrier's — the same
     /// <see cref="PicInfo.IndexItem"/> a USAGE INDEX data item has.</item>
     /// </list></summary>
     /// <remarks>The argument is a <see cref="BoundComputedOperand"/> over the call, or the literal the binder FOLDED a
     /// constant function to (<see cref="BoundNumericLiteral.FunctionValue"/> — <c>FUNCTION LENGTH(FUNCTION LENGTH(X))</c>);
-    /// the fold's value is an integer or numeric one, so it takes the numeric arm.</remarks>
+    /// the fold's value is an integer or numeric one, so it takes the numeric arm: a folded literal is the numeric
+    /// literal's own field (<c>FunctionDeviceText.Field</c>).</remarks>
     private BoundExpr FunctionResultLength(IntrinsicSig sig, List<BoundOperand> args, bool bytes)
     {
-        var fnOperand = args[0];
-        if (fnOperand is BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric
-                or PicCategory.National or PicCategory.Boolean } })
-            return new BoundIntrinsicCall(sig, args, PicCategory.Numeric);   // runtime length over the nested result image
-        var pic = fnOperand is BoundComputedOperand { Expr: BoundIntrinsicCall fn }
-                  && IntrinsicResultType.Resolve(fn.Sig, fn.Args) is IntrinsicType.Index
-            ? PicInfo.IndexItem
-            : SendingValueTemp.NumericReturnedValuePic(fnOperand);
-        var item = new DataItem { Level = 1, CobolName = "__FN-RESULT", CsName = "__fnResult", Pic = pic };
-        return new BoundNumLiteral((bytes ? item.ByteWidth : ItemLength.Positions(item)).ToString());
+        // An INDEX result is the index carrier, a compile-time constant. Every other result, string or numeric, is measured at run time.
+        if (args[0] is BoundComputedOperand { Expr: BoundIntrinsicCall fn } && IntrinsicResultType.Resolve(fn.Sig, fn.Args) is IntrinsicType.Index)
+        {
+            var item = new DataItem { Level = 1, CobolName = "__FN-RESULT", CsName = "__fnResult", Pic = PicInfo.IndexItem };
+            return new BoundNumLiteral((bytes ? item.ByteWidth : ItemLength.Positions(item)).ToString());
+        }
+        return new BoundIntrinsicCall(sig, args, PicCategory.Numeric);   // the renderer measures the result image (string) or the temporary (FunctionDeviceText)
     }
 
     /// <summary>A bare-word argument that names a TYPE (§15.50.3 r1 / §15.14.3 r1: "… a based entry, a type-name,
