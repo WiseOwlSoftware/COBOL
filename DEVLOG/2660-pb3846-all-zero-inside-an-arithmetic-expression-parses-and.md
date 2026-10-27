@@ -1,4 +1,4 @@
-## PB3846: ALL ZERO inside an arithmetic expression parses, and meets the same edition gate as ADD ALL ZERO
+## Entry 2660 — 2026-10-27 11:11 PDT — PB3846: ALL ZERO inside an arithmetic expression parses, and meets the same edition gate as ADD ALL ZERO
 
 `COMPUTE X = 1 + ALL ZERO` drew a bare COBOL0001 at every edition (wave 20261720, group B). The re-probe on this branch's
 base found the whole operand-position family failing the same way: `ALL ZERO + 1`, `1 + (ALL ZERO)`, `- ALL ZEROS`,
@@ -36,3 +36,4 @@ DESIGN-frontend-grammar §7 said the pass was "still incomplete" for cases PB50 
 describes the current pass and the ALL rule.
 
 Gate: see the report (leg 1 plus the Linux half).
+
