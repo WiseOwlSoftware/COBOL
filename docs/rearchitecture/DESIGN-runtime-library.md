@@ -3407,7 +3407,7 @@ one host surface of §4.4), which registers the program's module and activates i
 `IO.StandardStreams.EnsureUtf8` (the UTF-16 repertoire on every standard stream, decided per handle: UTF-8 over a
 redirected stream, the console's wide-character interface on a Windows console, and **never a console code-page
 change**, so the parent shell's console keeps the code pages it had and an interactive ACCEPT keeps a character outside
-the console's input code page; kb/Work PB3294; DOC-A.1-59 and DOC-A.1-1); `RunMain`, `RunUnit.Run`, a host entry's activation and a CALL into a module write neither, so a run unit a host
+the console's input code page, with the console's Ctrl+Z end-of-input kept by `IO.ConsoleInputReader`; kb/Work PB3294; DOC-A.1-59 and DOC-A.1-1); `RunMain`, `RunUnit.Run`, a host entry's activation and a CALL into a module write neither, so a run unit a host
 embeds DISPLAYs through the host's `Console.Out` / `Console.Error` as the host configured them and leaves the host's
 exit code and console as it found them. `ProcessStateOwnerDriftTests` (Unit) holds each process-owned write to its
 owner; `RunUnitHostExitCodeTests` and `RunUnitHostConsoleTests` (Conformance) are the host-side witnesses, and

@@ -37,3 +37,27 @@ in its comments: a child started without `STARTF_USESTDHANDLES` takes the test h
 pseudoconsole, and closing the pseudoconsole straight after the child exits drops the output it has not rendered yet, so
 each script ends with a sentinel line the run waits for. The inventory rows DOC-A.1-1 and DOC-A.1-59 stay CONFORMS and
 gain the witnesses (a witness-only batch); the note closes no row.
+
+Branch review, round 1 (one blocking finding, R1-1, and one lead, R1-2). R1-1 was right and the first fix had a hole: an
+interactive console read through `ReadConsoleW` (what `Console.InputEncoding = Encoding.Unicode` selects) never turns
+Ctrl+Z into end-of-input, which the console's own `ReadFile` read does, so `ACCEPT` typed as Ctrl+Z, Enter stored the
+character U+001A (ORD 27) and a program reading until end-of-input never saw the end. Re-measured on this build through
+the pseudoconsole with a plain C# reader: the `ReadFile` arm reads a lone Ctrl+Z line and a Ctrl+Z-then-text line as
+end-of-input and discards the line, and the wide-character arm returns U+001A. Fix at the root: `ConsoleInputReader`
+(new, `IO/ConsoleInputReader.cs`), a `TextReader` over the console's reader that overrides only `Read` and `Peek`, so
+every other read is built on the one rule: U+001A as the first character of a line is end of input and the rest of the
+line is discarded; elsewhere it is an ordinary character; the next read asks the console again. `EnsureUtf8` wraps
+`Console.In` in it exactly when it moved an interactive Windows console to `Encoding.Unicode`. Witnesses:
+`WindowsConsoleDeviceTests.Accept_from_an_interactive_console_ends_the_input_at_Ctrl_Z` (ORD 33 33 33 33; with the wrap
+commented out it fails with the substring missing, run to confirm) and `ConsoleInputReaderTests` (Unit, three facts
+over a `StringReader`, so the rule is pinned on every platform). DOC-A.1-1 states the signal.
+
+R1-2 (the lead) sat in the same method and is fixed with it: the old single `try` set the input and output encodings
+together and its catch turned every handle into a byte stream, so a refusal of the OUTPUT setter after the input setter
+had already moved stdin to code page 1200 installed a UTF-8 reader over a stream that then read UTF-16. The directions
+are now tried apart through `TryApply` (a setter that throws has not applied its encoding), and its comment says what
+the guard really covers: the Unix output setter's flush of the writers it replaces, and a policy that refuses the console;
+a Windows wide-character encoding never asks the console. Also fixed in the helper this branch added: the pseudoconsole
+output thread caught `IOException` only, so a run that TIMED OUT (the `finally` disposes the handle under the reading
+thread) raised an unhandled `ObjectDisposedException` on a thread and crashed the whole test host instead of reporting the
+`TimeoutException` (found while measuring the hung wide-character read); it now catches both.

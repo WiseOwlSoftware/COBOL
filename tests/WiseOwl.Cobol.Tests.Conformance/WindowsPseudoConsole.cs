@@ -169,7 +169,10 @@ internal static class WindowsPseudoConsole
                         }
                     }
                 }
-                catch (IOException) { /* the pseudoconsole closed its end: end of output */ }
+                // The pseudoconsole closed its end (end of output), or a run that timed out disposed the handle under this
+                // thread (the finally below): either way there is no more output, and an unhandled exception on a thread
+                // would take the whole test host down with it instead of reporting the TimeoutException.
+                catch (Exception e) when (e is IOException or ObjectDisposedException) { }
             }) { IsBackground = true, Name = "pseudoconsole-output" };
             reader.Start();
 
