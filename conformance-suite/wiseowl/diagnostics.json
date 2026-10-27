@@ -14501,6 +14501,12 @@
   ],
   "expect": "COBOL1837"
  },
+ "pb3468-figurative-constant-boolean-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900"
+ },
  "pb347-release-refmod-record": {
   "refuse-at": [
    "85",
