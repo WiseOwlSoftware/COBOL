@@ -37,4 +37,8 @@ leg binds once (no second bind of the argument); no allocation added on an emitt
 receiver-less expression or numeric function value reaching a numeric formal arrives as zero (`(1.25 + 0)` under --permissive,
 `FUNCTION MAX(W 0)` strict), pre-existing on main.
 
-**Gate:** see the landing record.
+**Gate:** run `000001-20261027T173638Z` was RED on two drift tests (`ParenTokenTwinDriftTests` wanted the new grouping-paren test
+marked GROUPING-PAREN-ONLY; `SpecTraceabilityInventoryDriftTests` found GR-14.9.4.4-9 still citing the renamed `Gr9BareLiteralMode`,
+re-sited by a second record_verdicts batch); run `000002-20261027T175125Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+PB2515): GREEN` (Conformance 1,400 · Unit 6,384 · Characterization 36 in leg 1; Linux half (WSL clone of HEAD) GREEN), every
+pb3760 golden and the drift pin among them.
