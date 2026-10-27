@@ -1,4 +1,4 @@
-## PB3347: a switch condition-name and a level-88 of one spelling in one source element are non-unique, and `IF S-ON` is refused
+## Entry 2664 — 2026-10-27 12:30 PDT — PB3347: a switch condition-name and a level-88 of one spelling in one source element are non-unique, and `IF S-ON` is refused
 
 **The defect.** `SWITCH-1 ON STATUS IS S-ON` in SPECIAL-NAMES plus `88 S-ON VALUE 1` under a data item of the same
 program compiled clean, and the unqualified `IF S-ON` bound the level-88 and printed ON for an OFF switch. The
@@ -73,3 +73,4 @@ wording was deleted at its three sites rather than reworded in a fourth.
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 2b5b3bc08, Linux half (WSL clone of HEAD)
 GREEN; the first run (RED, the GOBACK golden) is described above.
+
