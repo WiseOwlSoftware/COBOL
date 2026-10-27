@@ -59,8 +59,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// over a FLOAT-LONG pair at 1E308 and a <c>PIC 9(3)</c> pair 5 + 10 left the second at 10. It also passed no
     /// <c>outermost</c>, so its final transfer was not the one an explicit ADD makes.</para></summary>
     public void StoreInPlace(Receiver r, string op, NumX value, bool inSizeError)
-        => GuardedStore(inSizeError, r.Place, () =>
-            StoreArith(r.Place, num.Combine(num.FieldNum(r.Place), op, value, RcvFor(r, inSizeError), outermost: true), r.Rounding));
+        => GuardedStore(inSizeError, r.Place, checkedForm =>
+            StoreArith(r.Place, num.Combine(num.FieldNum(r.Place), op, value, RcvFor(r, checkedForm), outermost: true), r.Rounding));
 
     /// <summary>GIVING arithmetic: the value is computed once and stored into each receiver, rounded by that
     /// receiver's own ROUNDED mode (ISO §14.7.5 rule 4 — one value, stored left-to-right into each resultant).</summary>
@@ -78,7 +78,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // ONE initial evaluation (§14.7.7 GR4 + NOTE 3): materialized with several receivers so a receiver
             // aliasing a sender cannot change the value the remaining receivers store.
             if (MaterializesInitialEvaluation(targets)) v = Snapshot(v);
-            foreach (var r in targets) GuardedStore(ise, r.Place, () => StoreArith(r.Place, v, r.Rounding));
+            foreach (var r in targets) GuardedStore(ise, r.Place, _ => StoreArith(r.Place, v, r.Rounding));
         });
 
     /// <summary><c>MULTIPLY a BY b GIVING r…</c> (ISO §14.9.26): the product is each receiver's FINAL TRANSFER, so — like the
@@ -97,8 +97,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             NumX ax = num.Render(a, opRcv), bx = num.Render(b, opRcv);
             if (MaterializesInitialEvaluation(targets)) { ax = Snapshot(ax); bx = Snapshot(bx); }
             foreach (var r in targets)
-                GuardedStore(ise, r.Place, () =>
-                    StoreArith(r.Place, num.Combine(ax, "*", bx, RcvFor(r, ise), outermost: true), r.Rounding));
+                GuardedStore(ise, r.Place, checkedForm =>
+                    StoreArith(r.Place, num.Combine(ax, "*", bx, RcvFor(r, checkedForm), outermost: true), r.Rounding));
         });
 
     public void EmitDivide(IReadOnlyList<Receiver> targets, BoundExpr? dividend, BoundExpr divisor, SizeErrorPhrase? sizeErr)
@@ -126,8 +126,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 // ROUNDED mode (§14.9.12.4 / §14.7.4). Operand sub-divisions (rendered above at :75-76) stay nested.
                 // Each receiver's quotient can raise its OWN size error (a PROHIBITED-inexact at r's scale) —
                 // guarded per receiver so the raise does not abandon the receivers to its right (PB129).
-                GuardedStore(ise, r.Place, () =>
-                    StoreArith(r.Place, FinalQuotient(q, divisorX, RcvFor(r, ise)), r.Rounding));
+                GuardedStore(ise, r.Place, checkedForm =>
+                    StoreArith(r.Place, FinalQuotient(q, divisorX, RcvFor(r, checkedForm)), r.Rounding));
             }
         });
 
@@ -181,13 +181,13 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 num.Combine(subsidiary, "*", divisor, rcv, keepWide: true), rcv);   // GR7: dividend − subsidiaryQuotient × divisor
             // The quotient STORE sees the UNCAPPED quotient, so an over-wide one raises ITS size error (§14.7.5); the
             // cap applies to the REMAINDER's subsidiary quotient only (GR6c, kb/Work PB129).
-            GuardedStore(ise, d.Quotient.Place, () => StoreArith(d.Quotient.Place,
+            GuardedStore(ise, d.Quotient.Place, _ => StoreArith(d.Quotient.Place,
                 quotientFor(d.Quotient.Rounding), d.Quotient.Rounding));
             // GR6c stores identifier-4 only "if the size error condition is not raised" — gated on the
             // statement's flag when checking is on (the quotient's raise leaves the remainder untouched).
             if (ise)
                 using (w.Block($"if (!{ecState.SizeErrVar})"))
-                    GuardedStore(true, d.Remainder, () => StoreArith(d.Remainder, remainder, CobolRounding.Truncation));
+                    GuardedStore(true, d.Remainder, _ => StoreArith(d.Remainder, remainder, CobolRounding.Truncation));
             else
                 brackets.Receive(d.Remainder, null, () => StoreArith(d.Remainder, remainder, CobolRounding.Truncation));   // REMAINDER has no ROUNDED phrase
         });
@@ -417,8 +417,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                     string rootOp = root.Op.ToString();
                     NumX ax = Snapshot(num.Render(root.Left, rcv)), bx = Snapshot(num.Render(root.Right, rcv));
                     foreach (var r in c.Targets)
-                        GuardedStore(ise, r.Place, () =>
-                            StoreArith(r.Place, num.Combine(ax, rootOp, bx, RcvFor(r, ise), outermost: true), r.Rounding));
+                        GuardedStore(ise, r.Place, checkedForm =>
+                            StoreArith(r.Place, num.Combine(ax, rootOp, bx, RcvFor(r, checkedForm), outermost: true), r.Rounding));
                     return;
                 }
                 // An exact WIDE value (a nested product past the Int128 carrier, kb/Work PB1900) is snapshotted AS ITSELF and
@@ -426,8 +426,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 // every digit, and each receiver's ROUNDED phrase sees them. Any other value settles to itself.
                 NumX v = Snapshot(num.Render(c.Rhs, rcv, keepWide: true));
                 foreach (var r in c.Targets)
-                    GuardedStore(ise, r.Place, () =>
-                        StoreArith(r.Place, num.Settle(v, RcvFor(r, ise), outermost: true), r.Rounding));
+                    GuardedStore(ise, r.Place, checkedForm =>
+                        StoreArith(r.Place, num.Settle(v, RcvFor(r, checkedForm), outermost: true), r.Rounding));
                 return;
             }
             foreach (var r in c.Targets)
@@ -439,11 +439,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 if (MaterializesInitialEvaluation(c.Targets))
                 {
                     NumX v = Snapshot(num.Render(c.Rhs, RcvFor(r, ise), outermost: true));
-                    GuardedStore(ise, r.Place, () => StoreArith(r.Place, v, r.Rounding));
+                    GuardedStore(ise, r.Place, _ => StoreArith(r.Place, v, r.Rounding));
                 }
                 else
-                    GuardedStore(ise, r.Place, () =>
-                        StoreArith(r.Place, num.Render(c.Rhs, RcvFor(r, ise), outermost: true), r.Rounding));
+                    GuardedStore(ise, r.Place, checkedForm =>
+                        StoreArith(r.Place, num.Render(c.Rhs, RcvFor(r, checkedForm), outermost: true), r.Rounding));
             }
         });
 
@@ -459,7 +459,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             var (carrier, value) = NumericRenderer.IntakeCarrier(
                 num.Render(p.Value, ReceiverContext.None with { InSizeError = ise }));
             var position = new NumX(RuntimeApi.PositionValueOf(carrier, value.Expr, value.Scale, p.RefMod), 0);
-            GuardedStore(ise, p.Temp, () => StoreArith(p.Temp, position, CobolRounding.Truncation));
+            GuardedStore(ise, p.Temp, _ => StoreArith(p.Temp, position, CobolRounding.Truncation));
         });
 
     /// <summary>The size-error catch pair (kb/Work PB129 — factored so the outer statement try and every
@@ -484,13 +484,49 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// PB129): §14.7.7 r4b makes a raised size error PER-RECEIVER — "processing proceeds to the next resulting
     /// data item to the right" — and §14.7.5 storing rule 2 requires the untouched receivers to hold the values
     /// they would have had. The old single statement-wide try let one receiver's PROHIBITED/overflow raise
-    /// abandon every receiver to its right. The unchecked fast path is byte-identical to before.</summary>
-    private void GuardedStore(bool inSizeError, Place receiver, Action emitOne)
-        => brackets.Receive(receiver, inSizeError ? ecState.SizeErrVar : null, () =>
+    /// abandon every receiver to its right. The unchecked fast path is byte-identical to before.
+    /// <para><paramref name="emitOne"/> emits the receiver's compute+store in the form its argument names: CHECKED
+    /// (the receiver's final transfer renders checked and <see cref="StoreArith"/> latches the flag) or the plain
+    /// unchecked statement. A statement with a size error flag asks for the checked form only; a statement written with
+    /// ONLY a NOT ON SIZE ERROR phrase asks for both (<see cref="DetectingStore"/>).</para></summary>
+    private void GuardedStore(bool inSizeError, Place receiver, Action<bool> emitOne)
+    {
+        if (ecState.SizeErrDetectVar is { } seen) { DetectingStore(seen, receiver, emitOne); return; }
+        brackets.Receive(receiver, inSizeError ? ecState.SizeErrVar : null, () =>
         {
-            if (!inSizeError) { emitOne(); return; }
-            using (ctx.Writer.Block("try")) emitOne();
+            if (!inSizeError) { emitOne(false); return; }   // the unchecked fast path
+            using (ctx.Writer.Block("try")) emitOne(true);
             WriteSizeCatches(ecState.SizeErrVar!, ecState.SizeErrEcVar);
+        });
+    }
+
+    /// <summary>⛔ ONE RECEIVER OF A STATEMENT WRITTEN WITH ONLY A NOT ON SIZE ERROR PHRASE (ISO §14.7.5, kb/Work PB3869).
+    /// The phrase DETECTS and never DISPOSES: with a size error condition and no SIZE ERROR phrase the statement takes the
+    /// no-phrase disposition and "a NOT SIZE ERROR phrase ... is ignored" (§14.7.5 no-phrase paragraph), while with no
+    /// size error condition control "is transferred to ... the NOT SIZE ERROR phrase" (its closing paragraph) - so the
+    /// statement has to learn whether the condition existed, and the disposition has to stay the phraseless one
+    /// (docs/CONFORMANCE.md DOC-A.1-70: the low-order digits land, a quotient that cannot be formed ends the run unit).
+    /// The receiver therefore runs its CHECKED form first, which changes nothing when the condition exists (the
+    /// receiver is left unchanged), and when it raised one - the checked landing failed, or a size error was thrown or an
+    /// intermediate overflowed - the UNCHECKED form runs from the same state, landing what the phraseless statement lands,
+    /// or raising what it raises (a zero divisor ends the run unit). The statement's <paramref name="seen"/> flag records
+    /// that the condition existed, for the NOT phrase's test.</summary>
+    private void DetectingStore(string seen, Place receiver, Action<bool> emitOne)
+        => brackets.Receive(receiver, null, () =>
+        {
+            var w = ctx.Writer;
+            string attempt = $"__sizeErr{ctx.Names.NextSizeErr()}";
+            w.Line($"bool {attempt} = false;");
+            ecState.SizeErrVar = attempt;
+            using (w.Block("try")) emitOne(true);
+            w.Line($"catch (CobolSizeError) {{ {attempt} = true; }}");
+            w.Line($"catch (global::System.OverflowException) {{ {attempt} = true; }}");
+            ecState.SizeErrVar = null;
+            using (w.Block($"if ({attempt})"))
+            {
+                w.Line($"{seen} = true;");
+                emitOne(false);
+            }
         });
 
     /// <summary>The <see cref="ReceiverContext"/> a statement with several resultants renders its once-evaluated
@@ -549,7 +585,9 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// flag is set by any per-receiver overflow (<c>TryStore</c> false — phase b, the other receivers still store,
     /// rule 2) or by a <c>CobolSizeError</c> raised during evaluation (e.g. a zero divisor — phase a, no receiver
     /// changes, rule 4); the ON / NOT ON SIZE ERROR imperative then runs once. With no phrase the stores run
-    /// unchecked (the plain <c>Store</c> path) — behavior unchanged.
+    /// unchecked (the plain <c>Store</c> path) — behavior unchanged. With ONLY a NOT ON SIZE ERROR phrase (and no EC-SIZE
+    /// checking) the statement is the phraseless one, whose receivers merely DETECT the condition so that the NOT imperative
+    /// runs when it did not exist (<see cref="DetectingStore"/>; §14.7.5, kb/Work PB3869).
     /// </summary>
     public void EmitArith(SizeErrorPhrase? sizeErr, Action<bool> emitStores)
     {
@@ -563,6 +601,20 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
 
         string flag = $"__sizeErr{ctx.Names.NextSizeErr()}";
         w.Line($"bool {flag} = false;");
+        // ⛔ ONLY A NOT ON SIZE ERROR PHRASE, AND NO EC-SIZE CHECKING (kb/Work PB3869): the statement is the phraseless one.
+        // §14.7.5's no-phrase paragraph ends "If a NOT SIZE ERROR phrase is specified, it is ignored" - the size error
+        // condition's disposition is the one of a statement with no phrase (DOC-A.1-70), and the phrase never turns the
+        // CHECKED shape on (that shape's disposition is "the receiver stays unchanged and the SIZE ERROR phrase runs", which
+        // is ON SIZE ERROR's). The phrase still has to learn whether the condition existed, since the closing paragraph
+        // transfers to it when none did: each receiver's store DETECTS (DetectingStore) and the operands render unchecked.
+        if (ecSize.Count == 0 && sizeErr?.OnError is null)
+        {
+            ecState.SizeErrDetectVar = flag;
+            emitStores(false);
+            ecState.SizeErrDetectVar = null;
+            using (w.Block($"if (!{flag})")) Statements.EmitStatementList(sizeErr!.NotOnError!);
+            return;
+        }
         string? ecnVar = null;
         if (ecSize.Count > 0)
         {
