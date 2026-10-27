@@ -341,31 +341,33 @@ public sealed partial class SequentialConnector : IJournalData
     /// between the probe and the open (by a run unit whose OPEN takes no entry mutex) is refused rather than adopted.
     /// <para>An unsuccessful creation leaves the connector on no file (<see cref="_fileRemoved"/> stays set). The journal this WRITE
     /// began is WITHDRAWN when the file was not created (2.2.2.14: the file is as the journal's start says,
-    /// <see cref="SequentialTransactions.Withdraw"/>); otherwise it is left to item 8's ROLLBACK (§14.6.13.1.3 8; the '30' is
+    /// <see cref="FileConnector.WithdrawWhatTheOpenBegan"/>, the rule of an unsuccessful OPEN); otherwise it is left to item 8's ROLLBACK (§14.6.13.1.3 8; the '30' is
     /// fatal), which removes the file this WRITE made. Returns the failing I-O status, or null.</para></summary>
     private string? CreateTheFileAgain()
     {
-        SequentialJournal? begun = null;
-        bool created = false;
         string? refused = null;
+        (_begunByOpen, _openChangedFile) = (null, false);
         try
         {
-            if (HostFile.Probe(HostPath) is not FilePresence.Absent) return FileStatusCode.PermanentError;
-            if (Journal is null) begun = Transactions.Begin(HostPath, SequentialJournal.StartState.Absent);
-            _ = TakeHeld(FileMode.CreateNew, FileAccess.ReadWrite, HostShare);   // refuses a file made since the probe
-            created = true;
+            if (HostFile.Probe(HostPath) is not FilePresence.Absent) return refused = FileStatusCode.PermanentError;
+            if (Journal is null) _begunByOpen = Transactions.Begin(HostPath, SequentialJournal.StartState.Absent);
+            _ = TakeHeld(FileMode.CreateNew, FileAccess.ReadWrite, HostShare);   // refuses a file made since the probe; sets _openChangedFile
             _writer = OpenWriter(FileMode.Append);   // over the handle just taken: HeldStream answers this OPEN's own
             if (!ResumeRunUnitFileLock()) refused = FileStatusCode.PermanentError;   // R5: the Table 19 column cannot be published again
         }
         catch (IOException e) { refused = FileStatusCode.ForWriteFailure(e); }   // '34' / '30'
         catch (UnauthorizedAccessException) { refused = FileStatusCode.PermanentError; }
-        if (refused is null)
+        finally
         {
-            _fileRemoved = false;
-            return null;
+            bool created = _openChangedFile;   // TakeHeld(CreateNew) made the file: it stands for item 8's ROLLBACK
+            if (refused is null) (_begunByOpen, _openChangedFile) = (null, false);   // the journal this WRITE began is the run unit's transaction now
+            else
+            {
+                WithdrawWhatTheOpenBegan();   // the one rule (FileConnector): the journal stands only when the file was changed
+                if (created) ((IJournalData)this).Release();   // the connector leaves the file this WRITE made
+            }
         }
-        if (created) ((IJournalData)this).Release();   // the file this WRITE made stands for item 8's ROLLBACK; the connector leaves it
-        else if (begun is not null) Transactions.Withdraw(begun);
+        if (refused is null) _fileRemoved = false;
         return refused;
     }
 

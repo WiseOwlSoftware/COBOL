@@ -327,8 +327,20 @@ public static class HostFile
     /// OPEN is made again from its start over the file that stands (<c>FileConnector.Open</c>). Windows reports
     /// <c>ERROR_FILE_EXISTS</c> (80) or <c>ERROR_ALREADY_EXISTS</c> (183) as the HRESULT <c>0x8007xxxx</c>; .NET on Unix surfaces
     /// <c>EEXIST</c> (<see cref="UnixAlreadyExists"/>) as the raw errno. The host's own words, as <see cref="IsSharingRefusal"/> reads
-    /// them.</summary>
-    internal static bool IsAlreadyExists(IOException refusal) => refusal.HResult switch
+    /// them.
+    /// <para>⛔ A FILE, NEVER A DIRECTORY (review finding R2-1): the presence probe answers Absent for a directory at the path
+    /// (<see cref="Probe"/>), so a creating arm's <see cref="FileMode.CreateNew"/> handle can meet one, and Unix reports that as the
+    /// same <c>EEXIST</c> a file made meanwhile gets, where Windows reports <c>UnauthorizedAccessException</c>. That refusal is
+    /// <see cref="IsDirectoryInTheWay"/>'s, never a race to make the OPEN again for.</para></summary>
+    internal static bool IsAlreadyExists(IOException refusal, string hostPath) => IsExistsRefusal(refusal) && !Directory.Exists(hostPath);
+
+    /// <summary>Did a creating handle fail because a DIRECTORY has the path's name (<see cref="IsAlreadyExists"/>'s other half)? Windows
+    /// answers that with <see cref="UnauthorizedAccessException"/>, which the OPEN maps to §14.9.27.4 GR3's '37'; Unix answers
+    /// <c>EEXIST</c>, which this classifies so the OPEN reaches the same '37' on both hosts (the status an OPEN of a directory has
+    /// always had).</summary>
+    internal static bool IsDirectoryInTheWay(IOException refusal, string hostPath) => IsExistsRefusal(refusal) && Directory.Exists(hostPath);
+
+    private static bool IsExistsRefusal(IOException refusal) => refusal.HResult switch
     {
         unchecked((int)0x80070050) or unchecked((int)0x800700B7) => true,
         int errno when !OperatingSystem.IsWindows() => errno == UnixAlreadyExists,

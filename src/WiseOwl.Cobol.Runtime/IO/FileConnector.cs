@@ -966,12 +966,13 @@ public abstract class FileConnector
     /// the file of a run unit whose OPEN takes no entry mutex. The refused attempt is an unsuccessful OPEN (§14.9.27.4 GR25: the file
     /// is not affected, the journal it began withdrawn) and the OPEN is made again from its entry step, so its probe finds the file
     /// that stands and it is the OPEN of an EXISTING file — the order in which the two run units' OPENs would have run one after the
-    /// other. At most <see cref="MaxAttempts"/> attempts in all, so a path that is created and removed over and over answers the
+    /// other. At most <see cref="MaxFileMadeRetries"/> times, so a path that is created and removed over and over answers the
     /// last attempt's '30' (§9.1.13.6 item 1).</para></summary>
     public string Open(FileOpenMode mode)
     {
         bool ownedWritesAdmitted = false;
-        for (int attempt = 1; ; attempt++)
+        int filesMadeMeanwhile = 0;
+        while (true)
         {
             string status = OpenOnce(mode, ownedWritesAdmitted, out var again);
             switch (again)
@@ -979,7 +980,8 @@ public abstract class FileConnector
                 case OpenAgain.WithOwnedWritesAdmitted when !ownedWritesAdmitted:
                     ownedWritesAdmitted = true;
                     break;
-                case OpenAgain.FileMadeMeanwhile when attempt < MaxAttempts:
+                case OpenAgain.FileMadeMeanwhile when filesMadeMeanwhile < MaxFileMadeRetries:
+                    filesMadeMeanwhile++;
                     break;
                 default:
                     return status;
@@ -987,9 +989,11 @@ public abstract class FileConnector
         }
     }
 
-    /// <summary>The most attempts one <see cref="Open"/> makes: the first, the one <see cref="OpenAgain.WithOwnedWritesAdmitted"/>
-    /// asks for and the one <see cref="OpenAgain.FileMadeMeanwhile"/> asks for.</summary>
-    private const int MaxAttempts = 3;
+    /// <summary>The most times one <see cref="Open"/> is made again for <see cref="OpenAgain.FileMadeMeanwhile"/>, counted apart from
+    /// the one <see cref="OpenAgain.WithOwnedWritesAdmitted"/> asks for: the two reasons are independent, so a bound shared between
+    /// them would answer '61' to a share-mode refusal only because a file was made twice before it. At most
+    /// 1 + <see cref="MaxFileMadeRetries"/> + 1 attempts in all.</summary>
+    private const int MaxFileMadeRetries = 2;
 
     /// <summary>Why an unsuccessful <see cref="OpenOnce"/> asks to be made again.</summary>
     private enum OpenAgain
@@ -1230,10 +1234,13 @@ public abstract class FileConnector
         // A creating arm's CreateNew handle met a file another run unit made since the probe (kb/Work PB3635): the OPEN is made
         // again over it (Open). Only a creating arm takes such a handle, so no other refusal reads as this one; if the attempts
         // run out the status stands, §9.1.13.6 item 1's '30'.
-        catch (IOException e) when (HostFile.IsAlreadyExists(e))
+        catch (IOException e) when (HostFile.IsAlreadyExists(e, HostPath))
         {
             (s, again) = (FileStatusCode.PermanentError, OpenAgain.FileMadeMeanwhile);
         }
+        // A DIRECTORY has the path's name (the probe answers Absent for one, HostFile.Probe): Unix refuses the creating handle with
+        // EEXIST where Windows throws UnauthorizedAccessException, and both are §14.9.27.4 GR3's '37' (review finding R2-1).
+        catch (IOException e) when (HostFile.IsDirectoryInTheWay(e, HostPath)) { s = FileStatusCode.PermissionDenied; }
         catch (IOException) { s = FileStatusCode.PermanentError; }
         // §9.1.13.6 item 1's '30' — "a permanent error exists and no further information is available". Since
         // §12.4.5.3 GR3 b) made the host path a RUNTIME VALUE (the content of data-name-1), an arbitrary string can

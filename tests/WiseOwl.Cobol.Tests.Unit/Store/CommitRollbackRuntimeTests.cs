@@ -1829,6 +1829,42 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); TryDelete(other); }
     }
 
+    /// <summary>⛔ A DIRECTORY AT THE PATH IS NOT A FILE MADE MEANWHILE (kb/Work PB3635, review finding R2-1). The presence probe answers
+    /// Absent for a directory (<c>HostFile.Probe</c>), so a creating OPEN takes a <see cref="FileMode.CreateNew"/> handle on it: Windows
+    /// refuses with an access error and Unix with <c>EEXIST</c>, the host's word for a FILE made meanwhile. Both hosts answer §14.9.27.4
+    /// GR3's '37' as before, at once: no OPEN is made again (one journal begun for the one attempt, none left), on every organization.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, FileOpenMode.Output, true)]
+    [InlineData(FileOrg.Relative, FileOpenMode.Output, false)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Output, true)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Output, false)]
+    [InlineData(FileOrg.Relative, FileOpenMode.IO, true)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.IO, false)]
+    [InlineData(FileOrg.Relative, FileOpenMode.Extend, true)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Extend, false)]
+    public void A_keyed_open_creating_the_file_meets_a_directory_at_the_path_37_at_once(FileOrg org, FileOpenMode mode, bool covered)
+    {
+        string host = Tmp($"pb3635-dir-{org}-{mode}-{covered}");
+        Directory.CreateDirectory(host);
+        try
+        {
+            int begun = 0;
+            var medium = new FaultHostMedium
+            {
+                BeforeOperation = op => { if (op.StartsWith("transient ", StringComparison.Ordinal)) begun++; },
+            };
+            var a = new FileRegistry { Medium = medium };
+            Declare(a, host, org, commit: covered, optional: true);
+            a.OpenStatic("F", mode);
+            Assert.Equal("37", a.Status("F"));   // §14.9.27.4 GR3 on both hosts
+            Assert.True(begun <= 1, $"the OPEN was made again: {begun} journals begun");
+            a.CloseAll();
+            AssertNoJournalLeft(host);
+            Assert.True(Directory.Exists(host));
+        }
+        finally { try { Directory.Delete(host, recursive: true); } catch (IOException) { } }
+    }
+
     /// <summary>The same decision where the file a connector's CLOSE kept is not there at the re-OPEN (kb/Work PB3493's sibling arms,
     /// the absent OPTIONAL file of §14.9.27.4 GR13 on INPUT and of GR17 on I-O): what the CLOSE kept belonged to a file that was
     /// removed outside the run unit, so the OPEN ('05') retires it (kb/Work PB3576) instead of attaching beside it, and a later OPEN of the file made

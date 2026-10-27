@@ -77,10 +77,14 @@ public sealed class FileCreatedAgainDriftTests
     {
         string file = TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "FileConnector.cs");
         string entered = BodyOf(file, "private string OpenOnceEntered(FileOpenMode mode, bool ownedWritesAdmitted, out OpenAgain again)");
-        Assert.Contains("catch (IOException e) when (HostFile.IsAlreadyExists(e))", entered, StringComparison.Ordinal);
+        Assert.Contains("catch (IOException e) when (HostFile.IsAlreadyExists(e, HostPath))", entered, StringComparison.Ordinal);
         Assert.Contains("OpenAgain.FileMadeMeanwhile", entered, StringComparison.Ordinal);
+        // A directory at the path (the probe answers Absent for one) is Unix's EEXIST too, and is '37' as on Windows (review R2-1): it
+        // is classified before it can read as a file made meanwhile.
+        Assert.Contains("catch (IOException e) when (HostFile.IsDirectoryInTheWay(e, HostPath)) { s = FileStatusCode.PermissionDenied; }",
+            entered, StringComparison.Ordinal);
         string open = BodyOf(file, "public string Open(FileOpenMode mode)");
-        Assert.Contains("OpenAgain.FileMadeMeanwhile when attempt < MaxAttempts", open, StringComparison.Ordinal);
+        Assert.Contains("OpenAgain.FileMadeMeanwhile when filesMadeMeanwhile < MaxFileMadeRetries", open, StringComparison.Ordinal);
     }
 
     [Fact]

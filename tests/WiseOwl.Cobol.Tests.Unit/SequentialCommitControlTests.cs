@@ -562,7 +562,7 @@ public sealed class SequentialCommitControlTests
     }
 
     /// <summary>A path that is made again after every attempt's probe answers the last attempt's '30' (§9.1.13.6 item 1): at most
-    /// <c>FileConnector.MaxAttempts</c> attempts, the journals each withdrew leaving no <c>txn-</c> file, and the other run unit's
+    /// <c>FileConnector.MaxFileMadeRetries</c> retries (three attempts), the journals each withdrew leaving no <c>txn-</c> file, and the other run unit's
     /// file untouched.</summary>
     [Fact]
     public void An_open_whose_creation_is_met_by_a_new_file_at_every_attempt_answers_30_and_leaves_nothing()
@@ -589,6 +589,35 @@ public sealed class SequentialCommitControlTests
             Assert.Equal(3, attempts);
             Assert.Equal("B1", File.ReadAllText(f, Encoding.Latin1));
             a.Reg.CloseAll();
+            AssertNoLitter(f);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>⛔ A DIRECTORY AT THE PATH IS NOT A FILE MADE MEANWHILE (kb/Work PB3635, review finding R2-1): the presence probe answers
+    /// Absent for a directory, the creating handle (<see cref="FileMode.CreateNew"/>) is refused with an access error on Windows and
+    /// with <c>EEXIST</c> on Unix, and both hosts answer §14.9.27.4 GR3's '37' on the one attempt, covered or not, leaving no journal.</summary>
+    [Theory]
+    [InlineData(FileOpenMode.Output, false)]
+    [InlineData(FileOpenMode.Output, true)]
+    [InlineData(FileOpenMode.IO, false)]
+    [InlineData(FileOpenMode.IO, true)]
+    [InlineData(FileOpenMode.Extend, false)]
+    [InlineData(FileOpenMode.Extend, true)]
+    public void An_open_creating_the_file_meets_a_directory_at_the_path_37_at_once(FileOpenMode mode, bool covered)
+    {
+        string dir = ScratchDirectory.Create("scc-");
+        string f = Path.Combine(dir, "f.dat");
+        Directory.CreateDirectory(f);
+        try
+        {
+            int attempts = 0;
+            var medium = new FaultHostMedium { BeforeOperation = op => { if (op == "open f.dat") attempts++; } };
+            var a = new Unit(f, covered, medium, optional: true);
+            Assert.Equal("37", a.Open(mode));
+            Assert.True(attempts <= 1, $"the OPEN was made again: {attempts} creating handles");
+            a.Reg.CloseAll();
+            Assert.True(Directory.Exists(f));
             AssertNoLitter(f);
         }
         finally { ScratchDirectory.Remove(dir); }

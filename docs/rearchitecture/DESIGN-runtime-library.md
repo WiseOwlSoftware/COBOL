@@ -3265,8 +3265,9 @@ file is the same decision as the WRITE that creates it again** (kb/Work PB3635):
 absent OPTIONAL one (§14.9.27.4 GR17, GR18) take the handle `FileMode.CreateNew` when the one presence probe said Absent (not when
 it said Unauthorized: the file may be there and OUTPUT replaces it) — `SequentialConnector.OpenCore` / `HeldWriteStream` /
 `OpenReader(creates)`, `KeyedConnector.LockCreating(newFileOnly)`. A file another run unit's OPEN OUTPUT made between the probe and
-the handle is refused (`HostFile.IsAlreadyExists`), and `FileConnector.Open` makes the OPEN again from its entry step (at most
-three attempts in all with the share-mode retry of PB3482): the unsuccessful attempt withdrew its journal, the new probe finds the
+the handle is refused (`HostFile.IsAlreadyExists(e, path)`: the host's EEXIST on a path that names no directory; a directory at the
+path, which the probe answers Absent for, is `HostFile.IsDirectoryInTheWay` and '37' on every host), and `FileConnector.Open` makes
+the OPEN again from its entry step (at most two such retries, counted apart from PB3482's one share-mode retry): the unsuccessful attempt withdrew its journal, the new probe finds the
 file, and the OPEN is that of an EXISTING file — OUTPUT captures and replaces it, I-O and EXTEND open it ('00', not '05'); the
 attempts running out answer '30'. Witnesses `unit:SequentialCommitControlTests`' `An_open_creating_the_optional_file_meets_*`,
 `A_covered_open_output_meets_*`, `An_open_whose_creation_is_met_by_a_new_file_at_every_attempt_*` and

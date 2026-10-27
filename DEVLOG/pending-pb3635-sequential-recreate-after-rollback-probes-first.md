@@ -41,5 +41,14 @@ Witnesses: `SequentialCommitControlTests` (`An_open_creating_the_optional_file_m
 `An_open_whose_creation_is_met_by_a_new_file_at_every_attempt_*`), `CommitRollbackRuntimeTests.A_keyed_open_creating_the_file_meets_*`
 (eight rows). An uncovered keyed OPEN opens through the host directly, so no seam reaches it; `FileCreatedAgainDriftTests` pins it.
 
+Review round 2. R2-1 (blocking): on Unix a `CreateNew` handle on a DIRECTORY fails with the same `EEXIST` as a file made meanwhile, and the
+presence probe answers Absent for a directory by design, so every creating OPEN retried three times and answered `30` on Linux where
+Windows (and the code before this note) answered `37`. `HostFile.IsAlreadyExists(e, path)` now excludes a directory and the new
+`HostFile.IsDirectoryInTheWay` maps it to `37` on both hosts; witnesses `An_open_creating_the_file_meets_a_directory_at_the_path_37_at_once`
+(sequential, six rows) and `A_keyed_open_creating_the_file_meets_a_directory_at_the_path_37_at_once` (keyed, eight rows), which the Linux
+gate runs against the real `EEXIST`. R2-2: the two retry reasons are counted apart (`MaxFileMadeRetries`), so the bound is the documented
+one and a share-mode refusal is not answered `61` because a file was made twice first. R2-3: the sequential WRITE re-creation now keeps its
+journal in `_begunByOpen`/`_openChangedFile` and withdraws through `FileConnector.WithdrawWhatTheOpenBegan`, as its keyed twin does.
+
 **Goldens.** None: the abnormal path is two-run-unit and host-state dependent, so it is covered by the Unit harness. Rows re-verdicted:
 none (the note claimed no inventory row; `closes_rows: []` with its reason). Design doc DESIGN-runtime-library.md 2.2.2.14 updated.
