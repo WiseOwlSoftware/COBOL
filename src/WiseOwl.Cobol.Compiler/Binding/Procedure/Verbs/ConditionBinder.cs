@@ -447,8 +447,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// BOTH legs: the CALL copy once recovered only the arithmetic leg, and "AB" then bound as nothing (PB238).</para>
     /// <para>It used to be written twice, <c>CallBinder.Gr8Classify</c> and an inline block in
     /// <c>OoBinder.OoBindInvocationArg</c>, and only the INVOKE copy folded a sole numeric literal. Pure: it reads
-    /// parse contexts, resolves nothing and reports nothing. The BOUND-tree twin, a literal recovered from a bound
-    /// expression (<c>BY VALUE -1.5E-3</c> arrives as a negation), is <see cref="Gr8ArgumentLiteral"/>.</para></summary>
+    /// parse contexts, resolves nothing and reports nothing. It has NO bound-tree twin, and must not regain one (kb/Work
+    /// PB3760): the expression binder drops grouping parentheses, so a literal "recovered" from a bound expression took
+    /// <c>(3)</c> for the literal 3. Each lane binds the <see cref="ArgumentOperand.SoleNumericLiteral"/> this answers as the
+    /// literal operand (<c>-1.5E-3</c>, which the expression binder takes as a negation, included).</para></summary>
     internal static ArgumentOperand ReduceArgument(Core.LiteralContext? literal, Core.DataReferenceContext? reference,
         Core.BooleanExpressionContext? boolExpr, Core.ArithmeticExpressionContext? arith)
     {

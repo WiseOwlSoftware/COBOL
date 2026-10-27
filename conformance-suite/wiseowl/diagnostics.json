@@ -23713,5 +23713,35 @@
    "2023"
   ],
   "expect": "COBOL0902"
+ },
+ "pb3760_parenthesized_literal_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1688"
+ },
+ "pb3760_invoke_parenthesized_literal_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0828"
+ },
+ "pb3760_function_parenthesized_literal_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2470"
+ },
+ "pb3760_literal_and_expression_arguments_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900"
  }
 }
