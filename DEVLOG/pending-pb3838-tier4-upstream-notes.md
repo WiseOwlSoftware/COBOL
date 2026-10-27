@@ -45,10 +45,18 @@ the NUMVAL-C locale test, the EBCDIC alphabet name); `current-date-empty-argumen
 has none); `dynamic-length-clause-not-supported` and `occurs-dynamic-not-supported--constant-subscript` reclassified to
 implementor latitude (optional elements, 4.2.7); and the two ICE duplicates above.
 
-**Two process defects from the tier 1 review** are filed with them: PB3938 (the GPL size guard counts only CLOSED backtick
-fences, so an unclosed or tilde-fenced program passes) and PB3939 (`upstream_findings` documents a `check_base_agrees` call it
-never makes, so the three `Work.base` arms have no falsifying self-test case). Until PB3938 is fixed, every filed note keeps its
-fenced programs closed with backticks and within the 60-line cap.
+**Two process defects from the tier 1 review** were filed with them and are fixed in this branch: PB3938 (the GPL size guard
+counted only CLOSED backtick fences, so an unclosed or tilde-fenced program passed) and PB3939 (`upstream_findings` documented
+a `check_base_agrees` call it never made, so the three `Work.base` arms had no falsifying self-test case). PB3967, which main's
+lead clerk filed for the same two leads, lands with them. `work.py` now reads every note body through ONE fence tracker,
+`fenced_blocks` (backtick and tilde fences, CommonMark's closing rule, an unclosed block reported and refused), which
+`body_sections` and the size guard share in place of the two toggles that drifted; `check_base_agrees` takes the file it
+reads, and `upstream_findings` runs it over the shipped `kb/Work.base` and over a copy with each of the kind's three arms
+removed. Every new self-test case is killed by a mutant of the rule it guards.
+
+**Bringing main in** conflicted only in `register_problems`, where this branch's merge of pb3941 and pb3941's own final merge
+called `frontier_model_shape` and `upstream_problems` in opposite orders; main's order is kept, with main's non-string refusal
+in `frontier_model_shape` and this branch's tier 4 draft-title and unapplied-correction guards.
 
 **Where the evidence lives.** Records, repros, the refuters' reruns and the generator (`gen.py`, `corrections.py`) are in
 `E:\COBOL-coord\scratch\op\pb3838\` (the generator under `file\`), outside git on one machine; the notes carry the programs and

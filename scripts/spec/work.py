@@ -365,18 +365,18 @@ HEADING_STATUS = re.compile(r"^#\s+\S+\s+—\s+(?P<status>[A-Z][A-Z\- ]*?)\s+—
 HEADING_ALIASES = {"closed": "landed", "fixed": "landed", "done": "landed"}
 
 
-def check_base_agrees() -> list[str]:
+def check_base_agrees(base: pathlib.Path = REPO / "kb" / "Work.base") -> list[str]:
     """`kb/Work.base`'s **Fix next** filter shall select on the same harm flags as :data:`HARM_FLAGS`.
 
     ⛔ THE PREDICATE IS WRITTEN TWICE AND CANNOT BE WRITTEN ONCE — `work.py` is Python and the Bases view is a
     YAML expression Obsidian evaluates, with no import between them. Both copies read `wrong_answer or crashes`
     and both were wrong the same way, which is what hid nine open items; CLAUDE.md advertises the two as "the
     same list", so a reader has no way to notice when they stop being it. Since the copies must exist, this
-    holds them together.
+    holds them together. `base` is the shipped file; `--self-test` passes a doctored copy (kb/Work PB3939).
     """
-    base = REPO / "kb" / "Work.base"
     if not base.exists():
-        return [f"{base.relative_to(REPO)} is missing — the Fix next view is half the register's UI"]
+        return [f"{base.relative_to(REPO) if base.is_relative_to(REPO) else base} is missing — the Fix next view is "
+                f"half the register's UI"]
     text = base.read_text(encoding="utf-8")
     m = re.search(r"name:\s*Fix next\s*\n\s*filters:\s*\n(?P<body>(?:\s{6,}.*\n)+)", text)
     if m is None:
@@ -517,21 +517,54 @@ _DRAFT_TITLE = re.compile(r"\A\s*\*\*Title:\*\*[ \t]+\S[^\n]*\n[ \t]*(\n|\Z)")
 #: differs, this paragraph governs") leaves the uncorrected sentence in the sections a filer copies (PB3838 tier 4
 #: review, R1-1): the phrase is how such a note announces itself, so it is refused rather than read around.
 _UNAPPLIED_CORRECTION = re.compile(r"this paragraph governs", re.IGNORECASE)
-_FENCE = re.compile(r"^[ \t]*```")
+#: A fence line: a run of three or more backticks or tildes (CommonMark 0.31 section 4.5, fenced code blocks), with
+#: whatever follows it. Any indentation is accepted, so a fence inside a list item counts too: the guard below would
+#: rather see one fence too many than miss a block (kb/Work PB3938).
+_FENCE = re.compile(r"^[ \t]*(?P<run>`{3,}|~{3,})(?P<rest>.*)$")
 _SECTION_HEADING = re.compile(r"^(#{1,2})[ \t]+(.*?)\s*$")
 _SPEC_REF = re.compile(r"\A[0-9A-Z][0-9A-Za-z.]*\Z")
 
 
+def fenced_blocks(body: str) -> tuple[set[int], list[tuple[int, bool]]]:
+    """THE ONE FENCE TRACKER of a note body (kb/Work PB3938): `(the indexes of the lines a fenced block opens, holds or
+    closes, every block as (its line count, whether it closed))`.
+
+    ⛔ ONE TRACKER, BECAUSE TWO DRIFTED. `body_sections` and the GPL size guard each kept their own toggle on a
+    backtick-only pattern, so a tilde fence was invisible to both (its program uncounted, its `## ` lines read as
+    headings) and a block whose closing fence was missing was never counted at all. A fence opens on three or more
+    backticks or tildes (a backtick fence's info string holds no backtick) and closes only on a run of the SAME
+    character at least as long with nothing after it (CommonMark 0.31 section 4.5); a block still open at the end of
+    the body is reported, unclosed, with its lines so far."""
+    inside: set[int] = set()
+    blocks: list[tuple[int, bool]] = []
+    run: str | None = None
+    n = 0
+    for i, line in enumerate(body.splitlines()):
+        m = _FENCE.match(line)
+        if run is None:
+            if m and not (m["run"][0] == "`" and "`" in m["rest"]):
+                run, n = m["run"], 0
+                inside.add(i)
+            continue
+        inside.add(i)
+        if m and m["run"][0] == run[0] and len(m["run"]) >= len(run) and not m["rest"].strip():
+            blocks.append((n, True))
+            run = None
+        else:
+            n += 1
+    if run is not None:
+        blocks.append((n, False))
+    return inside, blocks
+
+
 def body_sections(body: str) -> dict[str, str]:
     """The `## ` sections of a note body as `{heading text: the lines under it up to the next heading of level 1 or 2}`
-    (a `#` line inside a fenced block is no heading)."""
+    (a `#` line inside a fenced block, as :func:`fenced_blocks` reads them, is no heading)."""
+    fenced, _ = fenced_blocks(body)
     out: dict[str, list[str]] = {}
     cur: str | None = None
-    fenced = False
-    for line in body.splitlines():
-        if _FENCE.match(line):
-            fenced = not fenced
-        elif not fenced and (h := _SECTION_HEADING.match(line)):
+    for i, line in enumerate(body.splitlines()):
+        if i not in fenced and (h := _SECTION_HEADING.match(line)):
             cur = h.group(2) if len(h.group(1)) == 2 else None
             if cur is not None:
                 out.setdefault(cur, [])
@@ -539,22 +572,6 @@ def body_sections(body: str) -> dict[str, str]:
         if cur is not None:
             out[cur].append(line)
     return {k: chr(10).join(v) for k, v in out.items()}
-
-
-def fence_lengths(body: str) -> list[int]:
-    """The line count of every fenced block of `body`."""
-    out: list[int] = []
-    n: int | None = None
-    for line in body.splitlines():
-        if _FENCE.match(line):
-            if n is None:
-                n = 0
-            else:
-                out.append(n)
-                n = None
-        elif n is not None:
-            n += 1
-    return out
 
 
 def upstream_problems(it: dict) -> list[str]:
@@ -622,7 +639,10 @@ def upstream_problems(it: dict) -> list[str]:
         need("states a correction that `governs` text it contradicts: apply the correction in place, in every section "
              "it touches (Observed, Expected, Fix site, Draft issue), so no section a filer copies still says the "
              "corrected thing")
-    for n in fence_lengths(body):
+    for n, closed in fenced_blocks(body)[1]:
+        if not closed:
+            need(f"has an unclosed fence ({n} lines to the end of the note): close it, so the size guard and the "
+                 f"sections after it read the note as it renders")
         if n > UPSTREAM_MAX_FENCE_LINES:
             need(f"carries a fenced block of {n} lines (the cap is {UPSTREAM_MAX_FENCE_LINES}): a minimal repro is "
                  f"smaller, and a long block is how GPL testsuite text gets committed")
@@ -1690,7 +1710,8 @@ def upstream_findings() -> list[str]:
     import tempfile  # noqa: PLC0415
 
     bad: list[str] = []
-    long_block = "`" * 3 + chr(10) + chr(10).join("X" for _ in range(UPSTREAM_MAX_FENCE_LINES + 1)) + chr(10) + "`" * 3
+    nl, fence = chr(10), "`" * 3
+    long_block = fence + nl + nl.join("X" for _ in range(UPSTREAM_MAX_FENCE_LINES + 1)) + nl + fence
     cases: list[tuple[str, dict, str]] = [
         ("a well-formed record", {}, ""),
         ("process_only false", {"process_only": "false"}, "process_only: true"),
@@ -1719,6 +1740,21 @@ def upstream_findings() -> list[str]:
         ("a draft with no title", {"section_7": "body only"}, "does not open with its one-line `**Title:**"),
         ("a correction stated beside the text it contradicts",
          {"section_2": "Corrected: X. Where it differs, this paragraph governs."}, "apply the correction in place"),
+        # ⛔ THE FENCE SYNTAX THE GUARD MUST SEE (kb/Work PB3938): every way Markdown fences a block, so a program can
+        # hide in none of them, and the `## ` lines inside one are never read as the record's sections.
+        ("a short repro in a tilde fence", {"section_0": f"~~~{nl}MOVE A TO B.{nl}~~~"}, ""),
+        ("a testsuite-sized program in a tilde fence", {"section_0": long_block.replace("`", "~")}, "fenced block of"),
+        ("an unclosed fence", {"section_7": f"**Title:** t{nl}{nl}{fence}{nl}MOVE A TO B."}, "has an unclosed fence"),
+        ("a testsuite-sized program in an unclosed fence",
+         {"section_7": f"**Title:** t{nl}{nl}{long_block.removesuffix(fence)}"}, "fenced block of"),
+        ("a tilde block holding a section heading",
+         {"section_0": f"~~~{nl}## Observed result{nl}X{nl}~~~", "section_2": None}, "no `## Observed result` section"),
+        ("a long fence not closed by a shorter run", {"section_0": f"`{long_block}`".replace(f"{nl}X{nl}", f"{nl}{fence}{nl}", 1)},
+         "fenced block of"),
+        ("a tilde fence not closed by backticks",
+         {"section_0": f"~~~{nl}{fence}{nl}{chr(10).join('X' for _ in range(UPSTREAM_MAX_FENCE_LINES))}{nl}~~~"},
+         "fenced block of"),
+        ("a backtick run whose info string holds a backtick is no fence", {"section_1": f"{fence}a`b{fence}"}, ""),
     ]
     with tempfile.TemporaryDirectory(prefix="work-upstream-cases-") as tmp:
         for n, (name, changes, expect) in enumerate(cases):
@@ -1742,6 +1778,24 @@ def upstream_findings() -> list[str]:
         _, problems = register_problems(d)
         if not any("upstream_project on a note of kind 'defect'" in p for p in problems):
             bad.append(f"an upstream_* field on a defect note is not refused: {problems}")
+
+        # ⛔ THE VIEWS ARE PART OF THE KIND (kb/Work PB3939): the shipped kb/Work.base agrees with the exclusions, and a
+        # copy with each of the kind's three arms removed in turn is refused by name, so a later edit of
+        # check_base_agrees that stops testing one of them fails here rather than passing in silence.
+        shipped = REPO / "kb" / "Work.base"
+        bad += [f"the shipped kb/Work.base: {p}" for p in check_base_agrees(shipped)]
+        text = shipped.read_text(encoding="utf-8") if shipped.exists() else ""
+        for arm, cut, expect in (
+                ("the Upstream records view", 'kind == "upstream"', "no `Upstream records` view"),
+                ("the exclusion from Open but no harm flag set", 'kind != "upstream"', "does not exclude"),
+                ("the upstream_ref property", "note.upstream_ref:", "no `note.upstream_ref` property")):
+            if cut not in text:
+                bad.append(f"kb/Work.base has no {cut!r}, so the case removing {arm} measures nothing")
+                continue
+            doctored = pathlib.Path(tmp, "Work.base")
+            doctored.write_bytes(text.replace(cut, "REMOVED-BY-SELF-TEST").encode("utf-8"))
+            if not any(expect in p for p in check_base_agrees(doctored)):
+                bad.append(f"check_base_agrees does not refuse kb/Work.base without {arm} (no problem names {expect!r})")
     return bad
 
 
