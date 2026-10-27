@@ -132,8 +132,11 @@ public abstract class KeyedConnector : FileConnector
     /// that arm ONLY: an arm with no file (an absent OPTIONAL one on INPUT) locks nothing.
     /// <para><paramref name="create"/> is §14.9.27.4 GR17/GR18's creation — the OUTPUT arm and the absent
     /// OPTIONAL I-O/EXTEND arms — and is the only difference between the arms, because the store's own
-    /// truncation is <see cref="PagedFile.Create"/>'s. <paramref name="access"/> is <see cref="Lock"/>'s.</para></summary>
-    private void TakeFileLock(bool create, FileAccess access)
+    /// truncation is <see cref="PagedFile.Create"/>'s. <paramref name="access"/> is <see cref="Lock"/>'s.
+    /// <paramref name="newFileOnly"/> is the creation of <see cref="CreateTheFileAgain"/>: the handle is taken
+    /// <see cref="FileMode.CreateNew"/> and refused when the path names a file, so a file another run unit made between that WRITE's
+    /// presence probe and this handle (an OPEN OUTPUT takes no entry mutex) is never replaced by the empty store (kb/Work PB3635).</para></summary>
+    private void TakeFileLock(bool create, FileAccess access, bool newFileOnly)
     {
         _store?.Dispose();   // no arm takes it twice; belt-and-braces so a future one cannot leak
         // ⛔ THE CONNECTOR'S OWN RE-OPEN TAKES BACK THE HANDLE ITS CLOSE UNDER COMMIT CONTROL KEPT when that handle is the
@@ -150,7 +153,8 @@ public abstract class KeyedConnector : FileConnector
         }
         else
         {
-            var taken = HostFile.OpenConnectorStore(HostPath, create ? FileMode.OpenOrCreate : FileMode.Open, access, HostShare);
+            var taken = HostFile.OpenConnectorStore(HostPath, !create ? FileMode.Open : newFileOnly ? FileMode.CreateNew : FileMode.OpenOrCreate,
+                access, HostShare);
             _store = taken;
             // Taken ONCE: the store's pages are read and written positionally through it (never through the stream's
             // buffer, kb/Work PB2660), and it is the handle the store mutex and this connector's record locks are held by.
@@ -368,7 +372,8 @@ public abstract class KeyedConnector : FileConnector
     /// <summary>The creation of <see cref="WriteCreatingTheFileAgain"/>, under the entry mutex: the journal begun with no file at its
     /// start (START <c>A</c>, <see cref="JournalCreation"/>), the creating handle taken and the empty store created
     /// (<see cref="LockCreating"/>, <see cref="Attach"/>), and the Table 19 column published again. A file another run unit made at
-    /// the path meanwhile is not this WRITE's to replace: '30' (§9.1.13.6), as for any refusal. An unsuccessful creation leaves the
+    /// the path meanwhile is not this WRITE's to replace: '30' (§9.1.13.6) from the presence probe, or from the creating handle
+    /// (<see cref="FileMode.CreateNew"/>) for one made after it, as for any refusal. An unsuccessful creation leaves the
     /// connector on no file, the journal withdrawn when the file was not created and otherwise left to item 8's ROLLBACK, which
     /// removes it. Returns the failing I-O status, or null.</summary>
     private string? CreateTheFileAgain()
@@ -381,7 +386,7 @@ public abstract class KeyedConnector : FileConnector
             _ = Detach();   // the placeholder
             (_begunByOpen, _openChangedFile) = (null, false);
             refused = HostFile.Probe(HostPath) is FilePresence.Absent
-                ? JournalCreation() ?? LockCreating() ?? Attach(create: true)
+                ? JournalCreation() ?? LockCreating(newFileOnly: true) ?? Attach(create: true)
                 : FileStatusCode.PermanentError;
             if (refused is null && !ResumeRunUnitFileLock()) refused = FileStatusCode.PermanentError;
         }
@@ -410,9 +415,9 @@ public abstract class KeyedConnector : FileConnector
 
     /// <summary>The creating arms' file lock (<see cref="Lock"/>): a handle taken with the creating mode creates the file, which
     /// this OPEN has then changed (<see cref="_openChangedFile"/>).</summary>
-    private string? LockCreating()
+    private string? LockCreating(bool newFileOnly = false)
     {
-        var refused = Lock(create: true);
+        var refused = Lock(create: true, newFileOnly);
         if (refused is null) _openChangedFile = true;
         return refused;
     }
@@ -497,7 +502,7 @@ public abstract class KeyedConnector : FileConnector
     /// the physical format can hold (<see cref="FormatHolds"/>): one it cannot is §14.9.27.4 GR10's fixed file attribute
     /// conflict, '39', answered before any file is touched (GR25, <i>"If the execution of the OPEN statement is
     /// unsuccessful, the file is not affected"</i>). Returns the failing I-O status, or null.</summary>
-    private string? Lock(bool create)
+    private string? Lock(bool create, bool newFileOnly = false)
     {
         if (!FormatHolds()) return FileStatusCode.FixedAttributeConflict;
         // While the run unit's transaction on the file STANDS and a handle its CLOSE under commit control kept is WRITABLE,
@@ -511,7 +516,7 @@ public abstract class KeyedConnector : FileConnector
         // refused by the share mode, with its column held, and made again with FileLockPosture.WhenOwedWritesAreAdmitted
         // (FileConnector.Open, kb/Work PB3482), which the connector's column says by owing writes (FileConnector.OwesWrites, kb/Work PB3499).
         var access = HandleAccess(Mode);
-        try { TakeFileLock(create, access); }
+        try { TakeFileLock(create, access, newFileOnly); }
         catch (IOException refusal) when (HostFile.IsSharingRefusal(refusal) && _kept is { Handle: { } kept, Adopted: false })
         {
             // The handle this connector kept at its CLOSE under commit control may refuse the new one's share mode (§9.1.15
@@ -526,7 +531,7 @@ public abstract class KeyedConnector : FileConnector
             _kept = _kept with { Handle = null };
             _givenBack = kept;
             GiveBack(kept);
-            TakeFileLock(create, access);
+            TakeFileLock(create, access, newFileOnly);
         }
         return null;
     }
