@@ -3025,6 +3025,32 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SGC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G SIGN IS LEADING SEPARATE.\n  05 C PIC S9(3) COMP.\n  05 D PIC S9(3).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
   {
+   "id": "report-sign-without-separate-2002",
+   "status": "active",
+   "description": "A SIGN clause without SEPARATE CHARACTER in a REPORT GROUP description entry (kb/Work PB3683). ANSI X3.23-1985 required the SEPARATE phrase there; ISO/IEC 1989:2002 Annex F.2 item 123 QUOTES the change: 'SIGN clause in a report description entry. The SEPARATE phrase is no longer required in a report description entry and the SIGN clause may be specified at the group level.' (item 115's bullet: 'SIGN clause does not require SEPARATE phrase in report section'). The 2023 text of 13.18.52.4 GR5 gives the clause without SEPARATE an implementor-defined representation and 13.18.52.3 SR1 admits 'a numeric report group description entry whose picture character-string contains the symbol S'. Gated in ONE place, DataBinder.ScreenReportSignClauses (once per written entry).",
+   "display": "a SIGN clause without SEPARATE CHARACTER in a report group description entry",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO/IEC 1989:2002 Annex F.2 item 123 (post-ballot text v200112.txt line 44299); ISO §13.18.52.3 SR1, §13.18.52.4 GR5 (2023 text)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "VCR row 7.40 (85->2002: a report group entry's SIGN clause no longer requires SEPARATE CHARACTER)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RSNS.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"RSNS.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WN PIC S9(3) VALUE -5.\nREPORT SECTION.\nRD R1 PAGE LIMIT IS 10 LINES.\n01 DA TYPE DETAIL LINE PLUS 1.\n    02 COLUMN 1 PIC S9(3) SOURCE WN SIGN LEADING.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+  },
+  {
+   "id": "report-group-sign-2002",
+   "status": "active",
+   "description": "A SIGN clause on a report group description entry that is a GROUP, i.e. has subordinate entries (kb/Work PB3683). ANSI X3.23-1985 admitted the clause only on an elementary report entry; ISO/IEC 1989:2002 Annex F.2 item 123 QUOTES the change: 'the SIGN clause may be specified at the group level' in a report description entry. The 2023 text of 13.18.52.3 SR1 admits 'an alphanumeric group item, national group item, or strongly-typed group item', which a report group entry with subordinates is, and 13.15.3 does not restrict it. Gated in ONE place, DataBinder.ScreenReportSignClauses (once per written entry).",
+   "display": "a SIGN clause on a report group description entry that is a group",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO/IEC 1989:2002 Annex F.2 item 123 (post-ballot text v200112.txt line 44299); ISO §13.18.52.3 SR1 (2023 text)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "VCR row 7.40 (85->2002: a report group entry's SIGN clause may be specified at the group level)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RGSN.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"RGSN.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WN PIC S9(3) VALUE -5.\nREPORT SECTION.\nRD R1 PAGE LIMIT IS 10 LINES.\n01 DA TYPE DETAIL LINE PLUS 1 SIGN LEADING SEPARATE.\n    02 COLUMN 1 PIC S9(3) SOURCE WN.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+  },
+  {
    "id": "call-returning-2002",
    "description": "CALL ... RETURNING status-item, ISO 14.9.4 - the RETURNING phrase is a 2002 introduction (folded from the inline CallBinder gate, Exec Step E).",
    "display": "CALL ... RETURNING",

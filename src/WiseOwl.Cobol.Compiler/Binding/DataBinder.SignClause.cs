@@ -1,10 +1,14 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Cst;
+using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding;
+
+using Core = CobolParserCore;
 
 /// <summary>
 /// The SIGN clause's two placement rules — <b>ISO §13.18.52.3 SR1</b> ("The SIGN clause may be specified only
@@ -88,6 +92,36 @@ public sealed partial class DataBinder
         if (SignedSubordinatesTheClauseReaches(group).FirstOrDefault(d => d.Pic!.Usage is not Usage.Display) is { } other)
             ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.SignGroupNondisplaySubordinate2002,
                 $"{where} over '{other.CobolName ?? "FILLER"}' (USAGE {UsageFamilies.UsageWord(other.Pic!.Usage)})");
+    }
+
+    /// <summary>⛔ THE COBOL-85 REPORT GROUP DESCRIPTION ENTRY'S SIGN CLAUSE IS NARROWER (kb/Work PB3683) — the report twin
+    /// of <see cref="GateGroupSignSubordinates"/>. The 2023 text lets a report group description entry carry the clause
+    /// with SEPARATE CHARACTER optional (§13.18.52.3 SR1 admits "a numeric report group description entry whose picture
+    /// character-string contains the symbol 'S'" and §13.18.52.4 GR5 gives the clause without SEPARATE an
+    /// implementor-defined representation) and on a group entry ("an alphanumeric group item, national group item, or
+    /// strongly-typed group item"). ISO/IEC 1989:2002 Annex F.2 item 123 QUOTES both as COBOL-2002 introductions: "SIGN
+    /// clause in a report description entry. The SEPARATE phrase is no longer required in a report description entry
+    /// and the SIGN clause may be specified at the group level." (post-ballot text v200112.txt; item 115's bullet:
+    /// "SIGN clause does not require SEPARATE phrase in report section"). So at --std 85 an entry that writes a SIGN
+    /// clause without SEPARATE, and a report group entry that is a GROUP and writes one, are each refused through its
+    /// construct row. Asked ONCE per WRITTEN entry over the flat entry array (the <see cref="ScreenReportEntryClausePresence"/>
+    /// shape), never per §13.18.38 replay; the 2023 subject rules (SR1/SR2 for an elementary entry) are
+    /// <see cref="SignClauseElementaryDefect"/>'s, asked by the walk where the printable item's picture is known.</summary>
+    private void ScreenReportSignClauses(Core.ReportGroupEntryContext[] entries, ReportModel model)
+    {
+        if (Edition.DialectLevel >= 2002) return;
+        for (int i = 0; i < entries.Length; i++)
+        {
+            var ge = entries[i];
+            var sign = ge.reportGroupClause().Select(c => c.signClause()).FirstOrDefault(s => s is not null);
+            if (sign is null) continue;
+            string where = $"RD '{model.Name}' entry '{ge.dataName().NameOrNull() ?? "FILLER"}'";
+            using var _ = Edition.At(ge);
+            if (sign.SEPARATE() is null)
+                ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.ReportSignWithoutSeparate2002, where);
+            if (IsReportGroupEntry(entries, i))
+                ConstructRegistry.Check(Edition.Edition, Edition.Sink, Constructs.ReportGroupSign2002, where);
+        }
     }
 
     /// <summary>A numeric data description entry whose WRITTEN picture character-string contains the symbol 'S' — the
