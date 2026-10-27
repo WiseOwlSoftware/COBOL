@@ -20,8 +20,8 @@ internal static class IntrinsicCarrierRules
     /// </summary>
     /// <remarks>
     /// <para>Under a standard mode §15.4.1 r1 makes each of these equal its equivalent arithmetic expression
-    /// (§15.60.4 MEAN, §15.61.4 MEDIAN, §15.62.4 MIDRANGE, §15.64.4 MOD, §15.76.4 RANGE, §15.77.4 REM,
-    /// §15.88.4 SUM), and each argument converts to the SDIDI INDIVIDUALLY (§8.8.1.5.2 r1) — so no common scale is
+    /// (§15.61.4 MEDIAN, §15.62.4 MIDRANGE, §15.64.4 MOD, §15.76.4 RANGE, §15.77.4 REM, §15.88.4 SUM; MEAN, §15.60.4, is
+    /// the SDIDI quotient in EVERY mode, so it belongs to <see cref="SdidiQuotientFunctions"/> and not to this set), and each argument converts to the SDIDI INDIVIDUALLY (§8.8.1.5.2 r1) — so no common scale is
     /// ever formed. The NATIVE arms instead align first, on the Int128 carrier, and alignment MULTIPLIES: a
     /// 31-digit integer beside a scale-18 item needs 49 digits, so <c>NumericRenderer.Align</c>'s per-argument
     /// escape raises EC-SIZE-OVERFLOW where the SDIDI holds the answer exactly. That makes "does this arm
@@ -31,7 +31,7 @@ internal static class IntrinsicCarrierRules
     /// mechanism, the arm nobody swept (feedback_two_arm_dispatch). It is a SET rather than an <c>is … or …</c>
     /// pattern so that <c>ExactCarrierBoundaryDriftTests</c> can hold it against the switch itself: the test reads
     /// <c>IntrinsicRenderer.cs</c>, collects the case labels of every arm whose body calls
-    /// <c>IntrinsicRenderer.AlignedArgs</c> / <c>IntrinsicRenderer.AlignedArgsEx</c> or <c>NumericRenderer.Align(x, s)</c> against a
+    /// <c>IntrinsicRenderer.AlignedArgs</c> or <c>NumericRenderer.Align(x, s)</c> against a
     /// COMMON scale, and fails if any of them is missing here. A new aligning arm is therefore routed
     /// automatically or the build goes red — it can no longer be forgotten.</para>
     /// <para>MAX / MIN / ORD-MAX / ORD-MIN are deliberately ABSENT: <c>IntrinsicRenderer.RawArgPairs</c> aligns each argument
@@ -44,8 +44,33 @@ internal static class IntrinsicCarrierRules
         "ModScaled", "RemScaled",                                   // §15.64.4 / §15.77.4 — Align(a, s), Align(b, s)
         "SumScaled", "RangeScaled",                                 // §15.88.4 / §15.76.4 — AlignedArgs
         "MedianScaled", "MidrangeScaled",                           // §15.61.4 / §15.62.4 — AlignedArgs
-        "MeanScaled",                                               // §15.60.4 — AlignedArgsEx
     }.ToFrozenSet(StringComparer.Ordinal);
+
+    /// <summary>
+    /// ⛔ THE FUNCTIONS WHOSE RETURNED VALUE IS THE SDIDI QUOTIENT OF THEIR EQUIVALENT ARITHMETIC EXPRESSION IN EVERY ARITHMETIC
+    /// MODE, CHANNEL AND RECEIVER (kb/Work PB3860). Asked by <c>IntrinsicRenderer.RenderNum</c> (native, for an argument list with
+    /// no binary64 operand), by <c>IntrinsicRenderer.RenderDec</c> and by <c>FunctionValueLane</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>MEAN's equivalent arithmetic expression ends in a division, <c>((argument-11 + … + argument-1n) / n)</c>
+    /// (§15.60.4 r1), and a quotient is the one operation whose digits are not finite: under a standard mode §15.4.1 r1 makes
+    /// the value that expression's SDIDI value, and under native arithmetic §15.4.1 makes it "an implementor-defined
+    /// approximation of the value of that expression". The native arm chose that approximation from the RECEIVER - the
+    /// quotient was cut at max(receiver scale, sum scale + 1, 6) places and the receiver's own ROUNDED phrase then rounded
+    /// the cut - so one reference held two values: <c>MEAN(1E-8 and nineteen zeros)</c> is 5E-10 and
+    /// <c>COMPUTE R ROUNDED MODE AWAY-FROM-ZERO</c> into <c>PIC S9V99</c> stored 0.00 where the one rounding of 5E-10 is 0.01.
+    /// The implementor's determination (owner, 2026-10-26, kb/Work PB3839 / PB3860: "always be consistent with ourself
+    /// barring an explicit requirement differently") is the standard-mode value in every mode, so no receiver can change it.</para>
+    /// <para>A function belongs here only when its equivalent expression DIVIDES by a count or a value that makes the quotient
+    /// inexact: MEDIAN and MIDRANGE halve, and the halving is exact at the common argument scale plus one
+    /// (<see cref="CrossAlignedNativeArms"/>), so they have no receiver-dependent digit to remove. A binary64 operand keeps the
+    /// float lane, whose one value IS the double (<c>ReceiverShapeReaderDriftTests.Readers</c>, <c>FloatLanding</c>).</para>
+    /// </remarks>
+    internal static readonly FrozenSet<string> SdidiQuotientFunctions = new[] { "MeanScaled" }.ToFrozenSet(StringComparer.Ordinal);
+
+    /// <summary>Is this function's value the SDIDI quotient of its equivalent arithmetic expression whatever receives it
+    /// (<see cref="SdidiQuotientFunctions"/>)?</summary>
+    internal static bool ReturnsSdidiQuotient(string runtimeMethod) => SdidiQuotientFunctions.Contains(runtimeMethod);
 
     /// <summary>
     /// ⛔ THE FUNCTIONS WHOSE RETURNED VALUE IS THE EXACT PARSE OF THEIR STRING ARGUMENT IN EVERY ARITHMETIC MODE AND IN
@@ -91,9 +116,9 @@ internal static class IntrinsicCarrierRules
     /// sum of the magnitudes the function adds, each bounded by its aligned digits, exceeds
     /// <see cref="Int128.MaxValue"/>. THE ONE READER of the question: <c>IntrinsicRenderer.RenderNum</c> asks it of the
     /// RAW operands it is about to render, and <c>FunctionValueLane</c>'s prediction asks it of the same facts read from the bound tree, so
-    /// the carrier a nested SUM / RANGE / MEAN / MEDIAN / MIDRANGE answers on is predicted by the rule that picks it.</summary>
+    /// the carrier a nested SUM / RANGE / MEDIAN / MIDRANGE answers on is predicted by the rule that picks it.</summary>
     /// <remarks>
-    /// <para>Which magnitudes are added is a property of the FUNCTION: SUM and MEAN add every argument (a table(ALL)
+    /// <para>Which magnitudes are added is a property of the FUNCTION: SUM adds every argument (a table(ALL)
     /// argument, whose run-time count is unknown, is charged 9 more digits); RANGE subtracts two; MEDIAN and
     /// MIDRANGE add two and halve through ×10; MOD and REM align a pair and return one of them.</para>
     /// <para>The aligned value's own digits are an UPPER bound by construction: an argument's unscaled digits plus
@@ -104,7 +129,7 @@ internal static class IntrinsicCarrierRules
         // 0.1194939, which needs 39 digits of the dividend, and the SDIDI body keeps 34 — it would answer an
         // approximation SILENTLY where the native arm refuses LOUDLY (EC-SIZE-OVERFLOW at the carrier). The summing
         // family's value, in contrast, is as large as its arguments, so every digit a receiver can store (≤ 31) lies
-        // inside the SDIDI's 34. (PB621 names SUM, RANGE, MEAN, MEDIAN and MIDRANGE only.)
+        // inside the SDIDI's 34. (PB621 names SUM, RANGE, MEAN, MEDIAN and MIDRANGE only; MEAN left this family with PB3860.)
         if (runtimeMethod is "ModScaled" or "RemScaled") return false;
         if (operands.Count == 0 || operands.Any(x => x is null)) return false;
         var xs = operands.Select(x => x!.Value).ToList();
@@ -112,7 +137,7 @@ internal static class IntrinsicCarrierRules
         // ⛔ THE BOUND IS ON THE VALUE, NOT ON THE WIDEST ARGUMENT PLUS A DIGIT COUNT. Argument i, aligned to the common
         // scale, is below 10^D_i (D_i its unscaled digits plus the scale gap — a table(ALL) argument stands for an
         // unknown number of elements, so it is charged nine more digits); the function's value is bounded by the sum of
-        // the magnitudes it adds: every argument for SUM and MEAN, the two largest for RANGE, and those two times ten
+        // the magnitudes it adds: every argument for SUM, the two largest for RANGE, and those two times ten
         // for MEDIAN and MIDRANGE (added, then halved through ×10). `9(29)` beside `V9(9)` is 38 + 9 digits of two
         // values whose sum is 1.0000000010e38 — the Int128 carrier holds it, and the old "widest + digits of n"
         // allowance sent it to the SDIDI, which keeps 34 digits (kb/Work PB621's review follow-up).
@@ -120,7 +145,7 @@ internal static class IntrinsicCarrierRules
             .OrderByDescending(t => t).ToList();
         UInt128? bound = runtimeMethod switch
         {
-            "SumScaled" or "MeanScaled" => SumOf(terms),
+            "SumScaled" => SumOf(terms),
             "RangeScaled" => SumOf(terms.Take(2)),
             _ => SumOf(terms.Take(2)) is { } two && two <= UInt128.MaxValue / 10 ? two * 10 : null,   // MEDIAN / MIDRANGE
         };
