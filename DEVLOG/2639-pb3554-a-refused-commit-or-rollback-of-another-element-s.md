@@ -1,4 +1,4 @@
-## PB3554: a refused COMMIT or ROLLBACK of another element's file reaches the executing element's format 1 USE procedures with or without checking
+## Entry 2639 — 2026-10-26 17:51 PDT — PB3554: a refused COMMIT or ROLLBACK of another element's file reaches the executing element's format 1 USE procedures with or without checking
 
 A COMMIT or ROLLBACK the medium refuses for a file of another element's APPLY COMMIT clause ran the executing element's
 open-mode USE procedure (`USE AFTER ERROR ON I-O`) when EC-I-O checking was on, and no USE procedure at all when it was
@@ -43,3 +43,4 @@ ROLLBACK ran before the transfer, and (branch review round 1) the containing ele
 that has none. 87 of 87 pass in the class. No golden: a refused COMMIT needs the fault-injecting
 medium, which the conformance suite cannot drive (the same holds for PB3338 and PB3542-PB3544). Docs: DESIGN-runtime-library
 2.2.1.10 and CONFORMANCE A.4.3 determination (a) state the rule. Inventory rows: none claimed, none closed.
+
