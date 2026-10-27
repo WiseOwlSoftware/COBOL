@@ -14181,6 +14181,15 @@
   ],
   "expect": "COBOL0864"
  },
+ "pb3569-read-invalid-key-sequential-access": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1720"
+ },
  "pb3569-read-key-sequential-access-default": {
   "refuse-at": [
    "85",
@@ -14188,7 +14197,7 @@
    "2014",
    "2023"
   ],
-  "expect": "the KEY phrase makes this a random READ (ISO §14.9.30.4 GR19), but the file's access mode is SEQUENTIAL (the ACCESS MODE clause is not specified, so sequential access is assumed, ISO §12.4.5.5.3 GR1)"
+  "expect": "the file's access mode is SEQUENTIAL (the ACCESS MODE clause is not specified, so sequential access is assumed, ISO §12.4.5.5.3 GR1), so the NEXT phrase is implied (ISO §14.9.30.3 SR8)"
  },
  "pb3569-read-key-sequential-access-written": {
   "refuse-at": [
@@ -14197,7 +14206,7 @@
    "2014",
    "2023"
   ],
-  "expect": "the KEY phrase makes this a random READ (ISO §14.9.30.4 GR19), but the file's access mode is SEQUENTIAL, where a READ makes available the next logical record (ISO §14.9.30.1)"
+  "expect": "the file's access mode is SEQUENTIAL, so the NEXT phrase is implied (ISO §14.9.30.3 SR8) and the READ is a sequential read (ISO §14.9.30.4 GR19)"
  },
  "pb3569-read-next-key": {
   "refuse-at": [

@@ -13,26 +13,27 @@ statement did not contain). Probes at 85/2002/2014/2023: default access, `ACCESS
 reach the binder (the parser refuses them, COBOL2269, PB3830). GnuCOBOL 3.2.0 accepts every one of the sequential shapes
 with the warning "KEY ignored with sequential READ".
 
-**The analysis question (is Format 2 legal under sequential access?), answered.** No syntax rule says so either way:
-§14.9.30.3 SR8 (NEXT implied under ACCESS MODE SEQUENTIAL) and SR6 sit under Format 1. The statement has no meaning in
-the standard, derived from three rules: GR19 makes a READ with a KEY phrase and no NEXT or PREVIOUS a random read;
-§14.9.30.1 says a READ under sequential access "makes available the next logical record"; §12.4.5.5.3 GR2 has such a
-file's records "accessed in the sequence dictated by the file organization" (GR1: sequential when the clause is absent),
-and GR3 and GR4 are what admit random access. The refusal stays, now a documented determination
-(docs/CONFORMANCE.md D-READ-KEY-ACCESS). The alternative, GnuCOBOL's ignored key, would read a different record than the
-KEY phrase selects, which CLAUDE.md rule 1 does not allow as latitude. Every citation ran through `cite.py --check`.
+**The analysis question (is Format 2 legal under sequential access?), answered.** The READ binder already reads SR8 as
+selecting the format of a READ on a SEQUENTIAL-access file: it binds `ReadKind.Next` for it, and the INVALID KEY screen
+on a sequential-organization READ words its refusal "SR8 + GR19 make every READ ... a Format-1 read". The KEY refusal
+states that one reading: §14.9.30.3 SR8 supplies the NEXT phrase when neither NEXT nor PREVIOUS is specified and ACCESS
+MODE SEQUENTIAL is specified (§12.4.5.5.3 GR1: sequential when the clause is absent), §14.9.30.4 GR19 makes an implicit
+NEXT a sequential read, and §14.9.30.2 prints the KEY phrase in Format 2 only; GR3 and GR4 of §12.4.5.5.3 are what admit
+reading by key. The refusal stays, a documented determination (docs/CONFORMANCE.md D-READ-KEY-ACCESS). The alternative,
+GnuCOBOL's ignored key, would read a different record than the KEY phrase selects, which CLAUDE.md rule 1 does not
+allow as latitude. Every citation ran through `cite.py --check`.
 
 **The fix.** `StatementValidation.CheckReadKeyFormat` is the one check, beside its SR10 sibling `CheckReadKeyOrganization`
 and called from `KeyedIoBinder.BindRead` after it. It has two messages. A sequential-read phrase beside KEY: the message
 names exactly the phrases the statement wrote (`NEXT`, `ADVANCING / PREVIOUS`, ...), from the one list SR6 itself
 names, now `StatementValidation.WrittenSequentialReadPhrases`, shared with `CheckReadRandomAccessPhrases`. A SEQUENTIAL
 file and none of those phrases: the message names the access mode, says when it is assumed because the clause is absent,
-and names no phrase. An ACCESS MODE RANDOM file is not asked, since SR6 has already named the words (COBOL1720). No new
+and names the implied NEXT and no phrase the statement wrote. An ACCESS MODE RANDOM file is not asked, since SR6 has already named the words (COBOL1720). No new
 diagnostic code was needed (COBOL5233-COBOL5235 returned): it stays COBOL0864, and the one raw literal moved from the
 binder to `StatementValidation`.
 
 **Goldens.** `conformance-suite/cases/14.9.30-READ/pb3569-read-key-sequential-access-default`, `...-written` and
-`pb3569-read-next-key`, each refused at 85/2002/2014/2023 with the wording as `expect` in `diagnostics.json`; the legal
+`pb3569-read-next-key` and `pb3569-read-invalid-key-sequential-access` (COBOL1720), each refused at 85/2002/2014/2023 with the wording as `expect` in `diagnostics.json`; the legal
 twin on RANDOM and DYNAMIC files is the existing `l1_read_key_of_reference`. `ReadKeyFormatTests` pins the messages at
 every edition (what each names, what it must not name), the RANDOM and DYNAMIC acceptance, and that
 `RANDOM ... NEXT KEY` draws SR6's COBOL1720 once and no COBOL0864.
@@ -41,7 +42,17 @@ every edition (what each names, what it must not name), the RANDOM and DYNAMIC a
 
 **Sibling sweep.** The sequential-organization READ arm refuses any KEY through the same SR10 check, whose message was
 already exact; no other diagnostic in `src` lists a fixed set of READ phrases. `READ f INVALID KEY` with no KEY phrase on
-a sequential-access file stays accepted (it selects no record; the emitter binds the phrase dead, the CCVS leniency).
+a sequential-access keyed file was accepted (dead phrase, "CCVS leniency") while the sequential-organization arm
+refused it by SR8 + GR19: fixed in review round 1 (lead R1-2, I9), see below.
+
+**Review round 1.** R1-1 (blocking): the first message said the KEY phrase "makes this a random READ (GR19)" and the
+doc said SR8 sits under Format 1 and does not reach the statement, the opposite reading of SR8 from the one the binder
+(`ReadKind.Next`) and the INVALID KEY screen use. The message, the three goldens' headers and `expect` text, the doc
+and `ReadKeyFormatTests` now state the binder's reading: SR8's implied NEXT, GR19's sequential read, no KEY phrase in
+it. R1-2 (lead, same file): `KeyedIoBinder.BindRead` now screens INVALID KEY / NOT INVALID KEY on a READ that binds
+sequential and has no KEY phrase (COBOL1720 through `ScreenForbiddenPhrase`: an error under strict, a warning under
+`--permissive` with the bind unchanged), the same seam and wording as `SequentialIoBinder.BindRead`; golden
+`pb3569-read-invalid-key-sequential-access` and `ReadKeyFormatTests` pin it, with the RANDOM and DYNAMIC twins accepted.
 
 **Self-review.** Architecture: one check, one phrase list, one raw literal moved rather than added. Full code: the
 message implements GR19's two cases, not a paraphrase of the old text. Performance: bind-time, a handful of booleans.
