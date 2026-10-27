@@ -998,12 +998,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
                     + (GroupFormal(a) is not null ? OperandText.NonElementaryMoveSender(s, num, "CALL argument") : CsLiteral(s.Value))
                     + "), null)";
-            // ⛔ ONE NUMERIC-ARGUMENT FUNNEL for both non-place arms (kb/Work PB263 + PB264). A numeric literal
-            // reaches this switch in EITHER bound shape — BY CONTENT and a bare Format-2 argument bind it as
-            // BoundNumericLiteral, while BY VALUE binds it as a BoundComputedOperand wrapping a BoundNumLiteral
-            // (CallBinder's byValue arm goes through BindByValueExpr) — and the two arms used to derive a
-            // carrier and a scale EACH. They disagreed, so ONE rule ("a numeric literal argument crosses with
-            // its exact value") produced three different wrong answers depending on how it was spelled.
+            // ⛔ ONE NUMERIC-ARGUMENT FUNNEL (kb/Work PB263 + PB264, PB3760). A written numeric literal reaches this switch
+            // in ONE bound shape, BoundNumericLiteral, in every mode: the binder states §14.9.4.4 GR8's answer by the operand's
+            // kind (BoundCallArg), so a BoundComputedOperand is an arithmetic expression - `(3)` included, whose grouping
+            // parentheses the expression binder dropped - and takes the expression arm below. A reader here that recovered a
+            // literal from a computed operand sent `(3)` into a plain-group formal as a numeric cell (its overpunched image).
             // ⛔ …EXCEPT INTO A KNOWN FORMAL OF ANOTHER CATEGORY (kb/Work PB1113): an elementary one took the MOVE leg
             // above, and a GROUP formal is §14.9.25.4 GR4's non-elementary move - "as if it were an alphanumeric to
             // alphanumeric elementary move ... no conversion" - so the literal crosses as a MOVE of it to the group stores
@@ -1014,8 +1013,6 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({OperandText.NonElementaryMoveSender(n, num, "CALL argument")}), null)";
             case BoundNumericLiteral n:
                 return NumericArgText(a.Mode, n.Text, ctx.SignEncoding);
-            case BoundComputedOperand ce when Gr8ArgumentLiteral.NumericText(ce.Expr) is { } ct:
-                return NumericArgText(a.Mode, ct, ctx.SignEncoding);
             // ⛔ A CHARACTER-VALUED INTRINSIC FUNCTION-IDENTIFIER CROSSES ON THE STRING CHANNEL (kb/Work PB1418).
             // `FUNCTION F(FUNCTION UPPER-CASE(X))` binds its argument as a computed operand over an alphanumeric
             // BoundIntrinsicCall, and the arithmetic arm below rendered it as a NUMBER — the callee's PIC X(4)
@@ -1267,15 +1264,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     private static string Forwarded(OmittedProbe? formal, string built) =>
         formal is null ? built : $"({OmittedTest(formal)} ? ManagedPointer.Null : {built})";
 
-    // The COMPILE-TIME numeric-literal text of an argument expression is `Gr8ArgumentLiteral.NumericText`
-    // (Binding/Bound/BoundCall.cs). ⛔ It used to be a PRIVATE COPY here, and the binder's §14.8.2.3.3
-    // conformance screen needed the same answer (kb/Work PB165) — the emitted carrier and the conformance
-    // verdict must agree about what §14.9.4.4 GR8 says an argument IS, so the reduction has exactly one home.
-    // Its negate arm is why: at a LITERAL position the sign is part of the token, but inside an ARITHMETIC
-    // EXPRESSION — which is what a BY VALUE argument binds as — a leading '−' before the FLOATING-POINT form
-    // is taken by `unaryExpression` first, so `BY VALUE -1.234E-5` arrives as BoundNegate(BoundNumLiteral)
-    // while `BY VALUE -0.00001234` arrives bare. Matching only the bare shape truncated the signed spelling
-    // at the receiver-less working scale (−0.00001234 crossed as −0.000012 — measured).
+    // ⛔ WHETHER AN ARGUMENT IS A NUMERIC LITERAL IS THE BINDER'S STATEMENT, NEVER A RECOVERY FROM A BOUND EXPRESSION (kb/Work
+    // PB165, PB3760): the emitted carrier and the §14.8.2.3.3 conformance verdict must agree about what §14.9.4.4 GR8 says an
+    // argument IS, and both read the operand's kind. A literal's sign is inside it (§8.3.3.3.2 rule 2), and the parse-tree
+    // reduction that says so (ConditionBinder.SoleNumLiteral) also sees what the bound tree cannot: `-1.234E-5` (a lexer
+    // spelling the expression binder takes as BoundNegate(BoundNumLiteral)) is one literal, and `(3)` is an expression.
 
     /// <summary>⛔ THE ONE numeric-LITERAL argument carrier build, for every notation and every pass mode
     /// (kb/Work PB263 + PB264). A numeric literal argument crosses as the <c>(unscaled value, scale)</c> pair

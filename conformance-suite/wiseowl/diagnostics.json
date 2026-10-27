@@ -23808,5 +23808,71 @@
    "2023"
   ],
   "expect": "COBOL1639: the condition-name 'S-ON' does not uniquely identify a level-88"
+ },
+ "pb3683-report-sign-without-separate-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: a SIGN clause without SEPARATE CHARACTER in a report group description entry requires COBOL-2002"
+ },
+ "pb3683-report-group-sign-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: a SIGN clause on a report group description entry that is a group requires COBOL-2002"
+ },
+ "pb3760_parenthesized_literal_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1688"
+ },
+ "pb3760_invoke_parenthesized_literal_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0828"
+ },
+ "pb3760_function_parenthesized_literal_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2470"
+ },
+ "pb3760_literal_and_expression_arguments_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900"
+ },
+ "pb3760_grouped_literal_before_boolean_argument_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1688"
+ },
+ "pb3760_invoke_grouped_literal_before_boolean_argument_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0828"
+ },
+ "pb3760_grouped_nonnumeric_literal_argument_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1511"
  }
 }

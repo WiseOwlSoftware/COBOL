@@ -429,10 +429,18 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <param name="Reference">The identifier the operand consists of: the written <c>dataReference</c>, or the sole one
     /// of the arithmetic operand.</param>
     /// <param name="Bool">A genuine boolean expression (one that carries a boolean operator), else null.</param>
-    /// <param name="Arith">The arithmetic operand, the one an operator-free boolean node held included.</param>
+    /// <param name="Arith">The arithmetic operand, the one an operator-free boolean node held bare included. Its sole shapes
+    /// (a function-identifier, an OO identifier, a keyword-omitted function) are GR8's identifiers.</param>
+    /// <param name="Grouped">The CONTENT of the grouping parentheses an operator-free boolean node held an arithmetic
+    /// operand in, else null. The argument is "an arithmetic expression enclosed in parentheses" (§8.8.1.1), so it does
+    /// not consist merely of a single identifier or literal: no sole shape is read of it, and every lane binds it as the
+    /// computed operand it is (<see cref="CompoundOperand"/>), never as the literal or identifier it encloses. The
+    /// boolean node holds no context for the parenthesized expression itself, which is why it is a field of its own and
+    /// <see cref="Arith"/> is then null (kb/Work PB3760 review R1-1).</param>
     internal readonly record struct ArgumentOperand(
         Core.LiteralContext? Literal, Core.NonNumericLiteralContext? NonNumericLiteral, string? SoleNumericLiteral,
-        Core.DataReferenceContext? Reference, Core.BooleanExpressionContext? Bool, Core.ArithmeticExpressionContext? Arith);
+        Core.DataReferenceContext? Reference, Core.BooleanExpressionContext? Bool, Core.ArithmeticExpressionContext? Arith,
+        Core.ArithmeticExpressionContext? Grouped);
 
     /// <summary>⛔ THE ONE PARSE-TREE REDUCTION OF AN ACTIVATION ARGUMENT, ISO §14.9.4.4 GR8 (CALL) and §14.9.23.4 GR4
     /// (INVOKE), the same sentence: "An argument that consists merely of a single identifier or literal is regarded as
@@ -443,24 +451,43 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <c>booleanExpression</c> subsumes both, its leaf being <c>valueOperand</c> (<c>arithmeticExpression |
     /// nonNumericLiteral</c>). The predicate's scan runs to the statement's period, so in <c>USING BY CONTENT "AB"
     /// BY CONTENT B1 B-AND B2</c> the first argument reaches the boolean node on the second one's operator. A boolean
-    /// node with no boolean operator therefore reduces to its bare <c>valueOperand</c> (<see cref="UnwrapBareBool"/>),
+    /// node with no boolean operator therefore reduces to its bare <c>valueOperand</c> (its <see cref="SoleFactor"/>),
     /// BOTH legs: the CALL copy once recovered only the arithmetic leg, and "AB" then bound as nothing (PB238).</para>
     /// <para>It used to be written twice, <c>CallBinder.Gr8Classify</c> and an inline block in
     /// <c>OoBinder.OoBindInvocationArg</c>, and only the INVOKE copy folded a sole numeric literal. Pure: it reads
-    /// parse contexts, resolves nothing and reports nothing. The BOUND-tree twin, a literal recovered from a bound
-    /// expression (<c>BY VALUE -1.5E-3</c> arrives as a negation), is <see cref="Gr8ArgumentLiteral"/>.</para></summary>
+    /// parse contexts, resolves nothing and reports nothing. It has NO bound-tree twin, and must not regain one (kb/Work
+    /// PB3760): the expression binder drops grouping parentheses, so a literal "recovered" from a bound expression took
+    /// <c>(3)</c> for the literal 3. Each lane binds the <see cref="ArgumentOperand.SoleNumericLiteral"/> this answers as the
+    /// literal operand (<c>-1.5E-3</c>, which the expression binder takes as a negation, included).</para>
+    /// <para>⛔ THE REDUCTION NEVER CROSSES A GROUPING PARENTHESIS. A condition may unwrap one (§8.8.4.2.1: parentheses
+    /// around a simple condition change nothing, which is <see cref="UnwrapBareBool"/>'s job); an argument may not, because
+    /// GR8's test is what the argument CONSISTS of. <c>(3)</c> and <c>(N)</c> held in the boolean node's
+    /// <c>( booleanExpression )</c> factor are the arithmetic expression <see cref="ArgumentOperand.Grouped"/> names, as they
+    /// are when no later B-operator steers them there; unwrapped, <c>(3)</c> was the literal 3 into a plain-group formal and
+    /// <c>(N)</c> crossed BY REFERENCE, so the callee's store reached N (kb/Work PB3760 review R1-1). A parenthesized
+    /// NONNUMERIC operand stays the boolean expression it is written as: <c>(B"1")</c> is "a boolean expression enclosed in
+    /// parentheses" (§8.8.2), never literal-2.</para></summary>
     internal static ArgumentOperand ReduceArgument(Core.LiteralContext? literal, Core.DataReferenceContext? reference,
         Core.BooleanExpressionContext? boolExpr, Core.ArithmeticExpressionContext? arith)
     {
         var nonNumeric = literal?.nonNumericLiteral();
-        if (boolExpr is not null && UnwrapBareBool(boolExpr) is { } bare)
+        Core.ArithmeticExpressionContext? grouped = null;
+        if (boolExpr is not null && SoleFactor(boolExpr) is { } factor)
         {
-            boolExpr = null;
-            arith = bare.arithmeticExpression();
-            nonNumeric = bare.nonNumericLiteral();
+            if (factor.valueOperand() is { } bare)
+            {
+                boolExpr = null;
+                arith = bare.arithmeticExpression();
+                nonNumeric = bare.nonNumericLiteral();
+            }
+            else if (factor.booleanExpression() is { } inner && UnwrapBareBool(inner)?.arithmeticExpression() is { } content)
+            {
+                boolExpr = null;
+                grouped = content;
+            }
         }
         string? soleNumeric = arith is not null ? SoleNumLiteral(arith) : null;
-        return new(literal, nonNumeric, soleNumeric, reference ?? SoleDataReference(arith), boolExpr, arith);
+        return new(literal, nonNumeric, soleNumeric, reference ?? SoleDataReference(arith), boolExpr, arith, grouped);
     }
 
     /// <summary>The single leaf <c>valueOperand</c> of a B-op-FREE boolean expression (walking single-child
@@ -469,9 +496,19 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// the predicate's scan is condition-shaped and may fire on a B-operator that belongs elsewhere in the
     /// statement, so a parse tree reaching a boolean alternative is not proof of a boolean expression. A
     /// non-null result means "this operand carries NO boolean operator and is a bare operand" — reduce it and
-    /// bind it through the ordinary channel. Every activation argument reaches it through
-    /// <see cref="ReduceArgument"/> (fix-queue PB46, kb/Work PB613).</remarks>
-    internal static Core.ValueOperandContext? UnwrapBareBool(Core.BooleanExpressionContext ctx)
+    /// bind it through the ordinary channel. An activation argument is reduced by <see cref="ReduceArgument"/>
+    /// instead, which stops at the grouping parentheses this walks through (fix-queue PB46, kb/Work PB613, PB3760).</remarks>
+    internal static Core.ValueOperandContext? UnwrapBareBool(Core.BooleanExpressionContext ctx) =>
+        SoleFactor(ctx) switch
+        {
+            { } f when f.valueOperand() is { } vo => vo,
+            { } f when f.booleanExpression() is { } inner => UnwrapBareBool(inner),   // ( … ) group
+            _ => null,   // a B-NOT factor carries a B-op
+        };
+
+    /// <summary>The ONE <c>booleanFactor</c> of a boolean expression with no binary or shift operator, else null — the
+    /// node <see cref="UnwrapBareBool"/> walks through and <see cref="ReduceArgument"/> stops at.</summary>
+    private static Core.BooleanFactorContext? SoleFactor(Core.BooleanExpressionContext ctx)
     {
         var xor = ctx.booleanXorTerm();
         if (xor.Length != 1) return null;
@@ -480,14 +517,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         var shift = and[0].booleanShiftTerm();
         // A bare operand has a single shift term with NO shift suffix (a shift op means it is a real expression).
         if (shift.Length != 1 || shift[0].booleanShiftSuffix().Length != 0) return null;
-        return UnwrapFactor(shift[0].booleanFactor());
-    }
-
-    private static Core.ValueOperandContext? UnwrapFactor(Core.BooleanFactorContext f)
-    {
-        if (f.valueOperand() is { } vo) return vo;
-        if (f.booleanExpression() is { } inner) return UnwrapBareBool(inner);   // ( … ) group
-        return null;   // B-NOT factor — has a B-op, never reaches here
+        return shift[0].booleanFactor();
     }
 
     /// <summary>The carried subject + relational operator for ABBREVIATED COMBINED RELATION CONDITIONS (ISO §8.8.4.12).
