@@ -38,13 +38,12 @@ public static partial class CobolIntrinsics
     /// (EXP10(30)). The domain-edge −∞ of LOG(0)/LOG10(0) is a real §15.55.3/§15.56.3 violation and is caught at the
     /// FUNCTION BODY (see <see cref="Float.Log"/>), never here — so this saturation cannot mask it. (CA24.)
     /// <para>
-    /// ⛔ <b><paramref name="scale"/> IS NOT FREE — IT MUST BE <c>ReceiverContext.FloatWorkingScale</c> (PB13).</b>
-    /// The cap keeps a value that FITS the receiver inside the <see cref="Int128"/> carrier at the working scale, so
-    /// the checked landing's raise past the carrier (kb/Work PB2967) is exactly "does not fit any receiver". That is
-    /// a property of the CALLER, not of this function — it cannot be checked here, because a scaled unscaled-value
-    /// carries no receiver. <c>CobolFloat.ToScaled</c> gets the same guarantee for free by landing AT the
-    /// receiver's scale; this one lands at a WORKING scale, and a later rescale down is what used to hide the
-    /// saturation sentinel this landing no longer produces.
+    /// ⛔ <b><paramref name="scale"/> IS NOT FREE — IT MUST BE THE RECEIVER'S OWN SCALE (<c>ReceiverContext.FloatLanding</c>,
+    /// kb/Work PB3829).</b> Landing AT the receiver's scale keeps a value that FITS the receiver inside the
+    /// <see cref="Int128"/> carrier, so the checked landing's raise past the carrier (kb/Work PB2967) is exactly "does
+    /// not fit any receiver". That is a property of the CALLER, not of this function — it cannot be checked here,
+    /// because a scaled unscaled-value carries no receiver; a landing at a WORKING scale above the receiver's, and a
+    /// later rescale down, is what used to hide the saturation sentinel this landing no longer produces.
     /// </para>
     /// </summary>
     /// <remarks>
@@ -92,11 +91,9 @@ public static partial class CobolIntrinsics
     /// reach"; that followed from taking the only emitter lever to be the working SCALE. The actual lever is
     /// WHETHER TO QUANTIZE AT ALL, and using it makes this function's saturation correct as it stands:
     /// <list type="number">
-    ///   <item><b>With a receiver</b> — <c>ReceiverContext.FloatWorkingScale</c> caps the working scale at the
-    ///         receiver's Int128 headroom (ws ≤ 38 − integer digits). A value that fits can no longer saturate,
-    ///         and a value that does not saturates to a sentinel that still exceeds the receiver's capacity after
-    ///         the rescale — so the store RAISES the size error (§14.7.5 case 5: a native intermediate out of its
-    ///         implementor-defined range). <c>COMPUTE R = FUNCTION EXP(700)</c> into <c>PIC 9(31)</c> now reports
+    ///   <item><b>With a receiver</b> — <c>ReceiverContext.FloatLanding</c> quantizes at the receiver's own scale, so
+    ///         a value that fits can no longer saturate, and a value that does not raises the size error at the
+    ///         landing (§14.7.5 case 5: a native intermediate out of its implementor-defined range). <c>COMPUTE R = FUNCTION EXP(700)</c> into <c>PIC 9(31)</c> now reports
     ///         SIZE ERROR where it used to store a saturated value silently. Nothing here had to change.</item>
     ///   <item><b>With no receiver</b> — the render never reaches this function. §15.4.1 leaves "the
     ///         characteristics and representation of the returned value" to the implementor under native
@@ -107,7 +104,8 @@ public static partial class CobolIntrinsics
     /// </list>
     /// ⚠ So this function is NOT the place to add a raise. Doing so would convert an EC-SIZE-TRUNCATION that the
     /// capacity check already reports correctly into an EC-SIZE-OVERFLOW with different fatality, for no gain.
-    /// What keeps the guarantee true is <c>FloatQuantizeHeadroomDriftTests</c>, which proves both invariants over
+    /// What keeps the guarantee true for the Int128 working-scale landing that remains (the SDIDI intermediate,
+    /// <c>ReceiverContext.WorkingScale</c>) is <c>FloatQuantizeHeadroomDriftTests</c>, which proves both invariants over
     /// every legal picture shape and fails if a caller hand-rolls the working scale again.
     /// </para>
     /// </remarks>

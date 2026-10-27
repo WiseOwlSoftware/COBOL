@@ -22,11 +22,21 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <summary>
     /// Structured diagnostic hint with a COBOL-level code and priority.
     /// Lower priority values sort first (higher importance).
+    /// <para>A hint is STRUCTURAL (priority 0 or less) when it names the cause from the parser state or the ATN, and a
+    /// GUESS (priority above 0) when it infers one from a token's kind or its neighbours. A guess that a structural
+    /// diagnosis would contradict or restate stands behind <see cref="HasStructuralHint"/> (<c>GO TO DEPENDING ON X.</c>
+    /// read "at least one procedure-name is required. A period may be missing", kb/Work PB412); one that adds to it
+    /// does not (the OCCURS KEY phrase after INDEXED BY, hint 8, completes the closed-format refusal of 0g).</para>
     /// </summary>
     private readonly record struct DiagnosticHint(Diagnostics.DiagnosticDescriptor Descriptor, string Message, int Priority)
     {
         public string Code => Descriptor.Code;
+
+        public bool IsStructural => Priority <= 0;
     }
+
+    /// <summary>Has a structural hint named the cause (<see cref="DiagnosticHint.IsStructural"/>)?</summary>
+    private static bool HasStructuralHint(List<DiagnosticHint> hints) => hints.Exists(h => h.IsStructural);
 
     /// <summary>The token indexes the last report covered: every token from where the parser stood through the token
     /// it named; empty before the first. The strategy is created per parse (<c>Frontend</c>), so this never crosses
@@ -57,7 +67,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var at = new OffendingPosition(recognizer, token, IsPredictionFailedAt(e, token));
         if (Reported(at)) return;
         var hints = GuessCobolIntent(recognizer, at);
-        if (hints.TrueForAll(h => h.Priority > 0) && at.Carried is { } carried)
+        if (!HasStructuralHint(hints) && at.Carried is { } carried)
         {
             if (Reported(carried)) return;
             (at, kind, hints) = (carried, ErrorKind.NoViableAlternative, GuessCobolIntent(recognizer, carried));
@@ -480,6 +490,27 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 + "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
                 + "CORRESPONDING phrase after a sending operand (ISO §14.9.25.2).", 0));
 
+        // ⛔ 0h. A WORD THE STATEMENT JUST WRITTEN DOES NOT PRINT HERE (kb/Work PB906). A statement the parser has ended
+        // and a word that no statement, phrase or entry can take after it (not a scope terminator, which hint 13
+        // names with the statement it lacks) are a statement written with a phrase its general formats do not print
+        // there: an unprinted phrase (`WRITE R IGNORING LOCK`), a second alternative of a bracket that admits one
+        // (`READ … ADVANCING ON LOCK RETRY 3 TIMES`), a phrase out of its sequence (`READ … KEY IS K WITH NO LOCK`),
+        // an unprinted second occurrence (`WRITE … BEFORE ADVANCING 4 LINES AFTER ADVANCING 0`). The parser reports the
+        // word because the statement ended and the sentence cannot go on, and hint 14 used to read that as a missing
+        // period — a guess about punctuation that sent the reader to the previous sentence — wherever the word could
+        // also be a paragraph-name. It is a STRUCTURAL answer, read from the statement the parser completed
+        // (OffendingPosition.StatementThatEndedBefore, whose re-simulation over every path shows the statement itself
+        // cannot take the word, and which names the statement whose own syntax prints the word, the IF of a second
+        // ELSE) and from the fact that no period lets the sentence that starts at the word follow
+        // (OffendingPosition.APeriodLetsTheSentenceFollow), so the sentence is never a missing period's.
+        if (!HasStructuralHint(hints) && expected is not null && ScopeTerminator(recognizer, token.Type) is null
+            && !at.APeriodLetsTheSentenceFollow() && at.StatementThatEndedBefore() is { } endedStatement)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2269,
+                $"The {endedStatement} statement ends before this token: no general format of {endedStatement} "
+                + "prints it after what is written, and no missing period would let it begin the next sentence. The "
+                + "words, phrases, clauses, punctuation, and operands in each general format shall be written in the "
+                + "compilation group in the sequence given in the general format (ISO §5.2.1).", 0));
+
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
         // separated is §8.3.5 rule 5's violation, and SeparatorRule reports it — for every literal token, whether or
         // not the parse happens to fail there — as COBOL2633. The two recovery hints that stood here (COBOL0301 /
@@ -509,7 +540,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // rule (priority 0): 0g names the closed format a stray reserved word violates, and this sentence would only
         // restate it vaguely (kb/Work PB2533).
         if (IsInRule(ruleStack, "specialNamesParagraph") && !IsIdentifier(token) && !IsLiteral(token)
-            && hints.TrueForAll(h => h.Priority > 0))
+            && !HasStructuralHint(hints))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0305, "Unexpected token in SPECIAL-NAMES. Check implementor-name or mnemonic-name syntax.", 15));
 
         // 8. ASCENDING/DESCENDING KEY where the entry can only end (kb/Work PB1266). KEY is supported; what this
@@ -546,20 +577,26 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // first (kb/Work PB412). A word SPELLED like a scope terminator is exempt whether or not it is one: whoever
         // wrote END-INVOKE (no ISO word, kb/Work PB758) or END-OF-PAGE at a sentence end meant to close something,
         // and a missing period is not what went wrong. Here the spelling is the evidence, so the text is the test.
-        // ⛔ And a period must be able to let the token follow (OffendingPosition.APeriodLetsTheTokenFollow, kb/Work
-        // PB3832 review R2-1): a period being expected here is not that. `05 A(1)` expects one after A, and no period
-        // lets '(' follow; once every report kind read the expected set, the bare guess told the data division it
-        // lacked "the end of the previous sentence".
+        // ⛔ And a period must be able to let the SENTENCE that starts at the token follow
+        // (OffendingPosition.APeriodLetsTheSentenceFollow, kb/Work PB906, PB3832 review R2-1): a period being expected
+        // here is not that. `05 A(1)` expects one after A, and no period lets '(' follow; `WRITE R IGNORING LOCK.`
+        // lets the word IGNORING follow a period (a paragraph-name may be spelled so), and no period lets the LOCK after
+        // it follow it. A guess about punctuation is false when the written words are a phrase the statement before
+        // them does not print; hint 0h names that.
         if (expected?.Contains(CobolLexer.DOT) == true
             && !(token.Text is { } spelled && CobolNames.StartsWith(spelled, "END-"))
-            && hints.TrueForAll(h => h.Priority > 0)
-            && at.APeriodLetsTheTokenFollow())
+            && !HasStructuralHint(hints)
+            && at.APeriodLetsTheSentenceFollow())
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0307, "A period may be missing at the end of the previous sentence.", 25));
 
         // 15. Literal where identifier expected — a GUESS, suppressed once a structural diagnosis has named the rule
         // (priority 0), as 7 and 14 are: at a closed format's residue position the IDENTIFIER in the expected set is
         // the error production's own left edge, so "a data-name is expected here" would contradict 0g (kb/Work PB3373).
-        if (IsLiteral(token) && expected?.Contains(CobolLexer.IDENTIFIER) == true && hints.TrueForAll(h => h.Priority > 0))
+        // ⛔ And "not a literal" is true only where NO literal is expected: `SET X TO "A"` expects a data-name AND a
+        // numeric literal (§14.9.39.2 Format 1), so the written nonnumeric literal is refused for its kind, and the
+        // sentence told the user a literal was not allowed there (kb/Work PB906, the fifth fuzz night's fz02341).
+        if (IsLiteral(token) && expected?.Contains(CobolLexer.IDENTIFIER) == true && expected.And(LiteralTokens).Count == 0
+            && !HasStructuralHint(hints))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0308, "A data-name is expected here, not a literal.", 20));
 
         // 16. Identifier where literal expected: the expected set holds a whole-literal token (IsLiteral's set)
@@ -575,7 +612,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (IsInRule(ruleStack, "fileControlParagraph") &&
             !IsIdentifier(token) && !IsLiteral(token) &&
             token.Type is not (CobolLexer.SELECT or CobolLexer.ASSIGN or CobolLexer.FILE_CONTROL)
-            && hints.TrueForAll(h => h.Priority > 0))
+            && !HasStructuralHint(hints))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0312,
                 "Unexpected token in FILE-CONTROL paragraph. Check SELECT/ASSIGN TO syntax.",
                 10));
@@ -1569,25 +1606,101 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// <summary>The rules open at the token, or null.</summary>
         public string[]? OpenRules() => ParserIsThere ? _recognizer.GetRuleInvocationStack().ToArray() : Walk?.OpenRuleNames();
 
-        /// <summary>Would a separator period let the parse take the token: does the parse at the token take a period
-        /// and then the token, or a period, the word before the token, and the token? The second reading is the header
-        /// a missing period ran into the statement before it: in <c>MOVE 1 TO A</c> then <c>S2 SECTION.</c> the S2 is a
-        /// second receiving operand, and the parse dies at SECTION, which no period lets follow, while <c>. S2
-        /// SECTION</c> is the next section. A period the position merely admits (<c>05 A(1)</c>: one may end the entry
-        /// after A) is not enough (kb/Work PB3832, review R2-1). Both readings rest on the word before the token being a
+        /// <summary>Would a separator period let the SENTENCE that starts at the token follow: does the parse at the
+        /// token take a period, the token and the rest of the sentence up to its separator period (at most
+        /// <see cref="MaxResimulatedTokens"/> tokens of it), or a period, the word before the token and then the same?
+        /// The second reading is the header a missing period ran into the statement before it: in <c>MOVE 1 TO A</c>
+        /// then <c>S2 SECTION.</c> the S2 is a second receiving operand, and the parse dies at SECTION, which no period
+        /// lets follow, while <c>. S2 SECTION</c> is the next section. A period the position merely admits (<c>05
+        /// A(1)</c>: one may end the entry after A) is not enough (kb/Work PB3832, review R2-1), and neither is a
+        /// period that lets the TOKEN follow: a word several context-sensitive words may be spelled (IGNORING, RETRY,
+        /// PREVIOUS …) is a legal paragraph-name, so <c>WRITE R IGNORING LOCK.</c> took the period as missing because
+        /// <c>. IGNORING</c> parses, and the LOCK after it, which no paragraph header takes, decides it (kb/Work PB906).
+        /// Both readings rest on the word before the token being a
         /// word, so one whose characters no edition's Annex B permits makes neither a reading
         /// (<see cref="CobolCharacterRepertoire.IsWordAtSomeEdition"/>): the lexer takes a line holding only U+00A0 for a
         /// word (its word class is a superset, narrowed at bind), and "a period may be missing" after it named a
         /// paragraph header the source does not hold (the golden <c>pb1660-nbsp-only-line-is-not-blank</c>).</summary>
-        public bool APeriodLetsTheTokenFollow()
+        public bool APeriodLetsTheSentenceFollow()
         {
             if (Walk is not { } walk || Token.Type == TokenConstants.EOF) return false;
+            var stream = (ITokenStream)_recognizer.InputStream;
             int i = Token.TokenIndex;
-            var before = PreviousDefault((ITokenStream)_recognizer.InputStream, ref i);
+            var before = PreviousDefault(stream, ref i);
             if (before is { Type: CobolLexer.IDENTIFIER, Text: { } word } && !CobolCharacterRepertoire.IsWordAtSomeEdition(word))
                 return false;
-            return walk.TakesAll([CobolLexer.DOT, Token.Type])
-                   || before is not null && walk.TakesAll([CobolLexer.DOT, before.Type, Token.Type]);
+            var sentence = SentenceTypesFrom(stream, Token);
+            return walk.TakesAll([CobolLexer.DOT, .. sentence])
+                   || before is not null && walk.TakesAll([CobolLexer.DOT, before.Type, .. sentence]);
+        }
+
+        /// <summary>The token types of the sentence that starts at <paramref name="first"/>: from it through the
+        /// separator period that ends it, or <see cref="MaxResimulatedTokens"/> tokens, or the end of the input.</summary>
+        private static int[] SentenceTypesFrom(ITokenStream stream, IToken first)
+        {
+            var types = new List<int> { first.Type };
+            int index = first.TokenIndex;
+            while (types.Last() != CobolLexer.DOT && types.Count < MaxResimulatedTokens
+                   && NextDefault(stream, ref index) is { } next)
+                types.Add(next.Type);
+            return [.. types];
+        }
+
+        /// <summary>⛔ THE STATEMENT THE PARSER COMPLETED JUST BEFORE THE TOKEN, WHEN IT CANNOT TAKE THE TOKEN (kb/Work
+        /// PB906), named from its rule (<c>writeStatement</c> → WRITE) as <see cref="ResimulationWalk.EmptyBlockOwner"/>
+        /// names one; or null. The parser stands at the token (a prediction that failed earlier, or at the token, speaks
+        /// of another place), the construct it closed last (<see cref="LastClosedConstruct"/>) ends at the token before
+        /// it and holds a statement ending there, and that construct, re-simulated in full context from its own start
+        /// over every path (<see cref="ResimulationWalk.Over"/>), cannot take the token. A construct that CAN take it was
+        /// closed early by an SLL prediction that did not know what may follow (<see cref="CarryForward"/>): the phrase
+        /// is the format's, and the fault lies further on.
+        /// <para><b>Which statement is named.</b> The innermost of the statement that ended and the statements still open
+        /// around it whose format prints the token AFTER a statement it holds (<see cref="TokensAfterANestedStatement"/>):
+        /// a second ELSE after <c>IF c DISPLAY "A" ELSE DISPLAY "B"</c> follows a complete DISPLAY, but the format that
+        /// prints ELSE, once, is the IF's, and naming DISPLAY would send the reader to the wrong statement. A token no
+        /// enclosing statement prints there (a misspelled word, an unprinted phrase) is the innermost statement's,
+        /// wherever else the enclosing one prints it: the <c>&gt;</c> of <c>IF c MOVE 1 TO A &gt; 2</c> belongs to the
+        /// IF's condition, which the MOVE follows, so the IF has not ended and the MOVE has (review R1-1).</para></summary>
+        public string? StatementThatEndedBefore()
+        {
+            if (!ParserIsThere || PredictionFailedAt || Token.Type == TokenConstants.EOF) return null;
+            var stream = (ITokenStream)_recognizer.InputStream;
+            int i = Token.TokenIndex;
+            if (PreviousDefault(stream, ref i) is not { } previous
+                || LastClosedConstruct(_recognizer.Context as ParserRuleContext, previous.TokenIndex) is not { } closed
+                || StatementEndingAt(closed, previous.TokenIndex) is not { } ended
+                || ResimulationWalk.Over(_recognizer, closed) is not { } walk
+                || walk.Consume(Token.Type))
+                return null;
+            for (ParserRuleContext? c = ended; c is not null; c = c.Parent as ParserRuleContext)
+                if (IsStatementRule(c.RuleIndex) && TokensAfterANestedStatement(c.RuleIndex).Contains(Token.Type))
+                    return StatementName(c);
+            return StatementName(ended);
+        }
+
+        /// <summary>The statement's name as the standard names it: from its rule (<c>ifStatement</c> → IF), and where
+        /// the grammar spells a statement's formats as rules of their own under a statement rule (<c>setStatement</c> →
+        /// <c>setIndexStatement</c>, one per SET format), the rule that dispatches them (SET, never SET INDEX).</summary>
+        private static string StatementName(ParserRuleContext context)
+        {
+            while (context.Parent is ParserRuleContext parent && IsStatementRule(parent.RuleIndex)) context = parent;
+            string rule = CobolParserCore.ruleNames[context.RuleIndex];
+            return SplitCamelCase(rule[..^StatementSuffix.Length]).ToUpperInvariant();
+        }
+
+        /// <summary>The innermost statement rule context at or below <paramref name="context"/> whose last token is
+        /// <paramref name="last"/> (the last child that holds a token, down), or null.</summary>
+        private static ParserRuleContext? StatementEndingAt(ParserRuleContext context, int last)
+        {
+            if (context.Stop is not { } stop || stop.TokenIndex != last || context.Start.TokenIndex > last) return null;
+            for (int k = context.ChildCount - 1; k >= 0; k--)
+            {
+                if (context.GetChild(k) is not ParserRuleContext child) break;   // a token ends the context: nothing deeper
+                if (child.Stop is not { } childStop || childStop.TokenIndex != last || child.Start.TokenIndex > last) continue;
+                if (StatementEndingAt(child, last) is { } deeper) return deeper;
+                break;
+            }
+            return IsStatementRule(context.RuleIndex) ? context : null;
         }
 
         /// <summary>The statement whose required imperative-statement is EMPTY at the token, named from its RULE
@@ -1609,6 +1722,70 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <summary>The one suffix that marks a statement's grammar rule (<c>ifStatement</c>, <c>searchAllStatement</c>):
     /// a statement is named from its rule, never from a table.</summary>
     private const string StatementSuffix = "Statement";
+
+    /// <summary>Is the grammar rule a statement's (<c>writeStatement</c>)? The dispatcher <c>statement</c> and
+    /// <c>statementBlock</c> are not.</summary>
+    private static bool IsStatementRule(int rule)
+        => CobolParserCore.ruleNames[rule].EndsWith(StatementSuffix, StringComparison.Ordinal);
+
+    /// <summary>⛔ THE TOKENS A STATEMENT'S OWN FORMAT PRINTS AFTER A STATEMENT IT HOLDS (kb/Work PB906, review R1-1): for
+    /// every call a rule of the statement's own syntax (the statement's rule and every rule it calls except another
+    /// statement, and the dispatcher and block rules that lead to every statement) makes to a nested statement or block,
+    /// the tokens that may follow the call there, continued through the end of the rule it stands in into the rule that
+    /// called that one, up to the statement's own end. For IF these are ELSE and END-IF, for PERFORM and EVALUATE
+    /// their END-x and WHEN, for the conditional phrases the NOT ... phrase and END-x; the tokens of the condition
+    /// before the nested statement (<c>=</c>, <c>AND</c>, <c>&gt;</c>) are not. A token in the set is one the
+    /// statement can still be waiting for once the statement it holds is complete, so a second ELSE is the IF's; a token
+    /// outside it is no enclosing statement's but the complete statement's own. Read from the ATN once per rule, so a
+    /// phrase added to a format tomorrow is in it.</summary>
+    private static IntervalSet TokensAfterANestedStatement(int statementRule)
+        => AfterNestedStatementTokenSets.GetOrAdd(statementRule, AfterNestedStatementTokenSet);
+
+    private static readonly ConcurrentDictionary<int, IntervalSet> AfterNestedStatementTokenSets = new();
+
+    /// <summary>The ATN's states grouped by the rule they belong to, built once: the ATN is a static of the generated parser.</summary>
+    private static readonly Lazy<ILookup<int, ATNState>> StatesByRule = new(
+        static () => CobolParserCore._ATN.states.Where(s => s is not null).ToLookup(s => s.ruleIndex));
+
+    private static bool IsStatementOrDispatcher(int rule)
+        => IsStatementRule(rule) || rule is CobolParserCore.RULE_statement or CobolParserCore.RULE_statementBlock;
+
+    private static IntervalSet AfterNestedStatementTokenSet(int statementRule)
+    {
+        var atn = CobolParserCore._ATN;
+        // the rules of the statement's own syntax, the calls each makes to a rule of it (the way back up from a rule's
+        // end) and the calls to a nested statement or block
+        var own = new HashSet<int> { statementRule };
+        var callsTo = new Dictionary<int, List<RuleTransition>>();
+        var nested = new List<RuleTransition>();
+        for (var work = new Stack<int>([statementRule]); work.TryPop(out int rule); )
+            foreach (var state in StatesByRule.Value[rule])
+                for (int i = 0; i < state.NumberOfTransitions; i++)
+                {
+                    if (state.Transition(i) is not RuleTransition call) continue;
+                    int callee = call.target.ruleIndex;
+                    if (IsStatementOrDispatcher(callee)) { nested.Add(call); continue; }
+                    if (!callsTo.TryGetValue(callee, out var callers)) callsTo[callee] = callers = [];
+                    callers.Add(call);
+                    if (own.Add(callee)) work.Push(callee);
+                }
+        var set = new IntervalSet();
+        var visited = new HashSet<ATNState>();
+        var tails = new Stack<ATNState>(nested.Select(call => call.followState));
+        while (tails.TryPop(out var from))
+        {
+            if (!visited.Add(from)) continue;
+            var next = atn.NextTokens(from);
+            set.AddAll(next);
+            // the rule may end here: what follows its caller follows the nested statement too, up to the statement's own end
+            if (next.Contains(TokenConstants.EPSILON) && from.ruleIndex != statementRule
+                && callsTo.TryGetValue(from.ruleIndex, out var up))
+                foreach (var call in up) tails.Push(call.followState);
+        }
+        set.Remove(TokenConstants.EPSILON);
+        set.SetReadonly(true);
+        return set;
+    }
 
     private static string SplitCamelCase(string name)
     {
