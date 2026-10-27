@@ -40,4 +40,8 @@ statements call it, every `SubsidiaryForm` has its arm). Rows re-verdicted: none
 
 **Self-review.** Architecture: one shape per form, the old pair gone, no second former of the quotient. Full code: a quotient the format cannot
 hold is the format's largest finite value (the store of the same quotient is the size error); a float-edited quotient nearer to zero than the
-item holds is zero, as its store leaves it. Duplication: `ReceiverContext.Of` replaced the hand-built context. Left open: nothing in the slice.
+item holds is zero, as its store leaves it. Duplication: `ReceiverContext.Of` replaced the hand-built context. Left open: nothing in the slice. A native statement with a
+FLOAT dividend forms the remainder in binary64 (DOC-A.1-123, as for a fixed-point identifier-3 before), so `DIVIDE DIVD BY 3 GIVING FE REMAINDER R5`
+with DIVD = 10.0 leaves +00000.009999 where STANDARD-DECIMAL gives the exact 0.01: the documented native technique, not a new rule.
+
+**Gate.** Run `TestResults/build-local/000002-20261027T010208Z` on head `033b3f1c0`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 6,001/18,965 · Unit 36,613/37,946 · Characterization 36/36 … · Linux half (WSL clone of HEAD) GREEN ===`. The first gate (run `000001-20261027T004711Z`) was RED for two reasons of mine, both fixed: the FE golden gave a numeric-edited item a VALUE, which is COBOL-2023 only (the leg now starts it by MOVE), and CONFORMANCE.md named the item by its row-key token in prose (`AnnexA1RegisterDriftTests`). `semgrep verify` unchanged (BigInteger 44 -> 44; the new code reads Int128/UInt128).
