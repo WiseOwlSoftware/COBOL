@@ -1396,15 +1396,77 @@ internal sealed class StatementValidation(DataBinder data)
         bool next, bool previous)
     {
         if (file.AccessMode != FileAccessMode.Random) return true;
+        if (WrittenSequentialReadPhrases(advancing, atEnd, notAtEnd, next, previous) is not { Length: > 0 } present)
+            return true;
+        ScreenForbiddenPhrase(true, present, "READ",
+            "a file whose file control entry specifies ACCESS MODE RANDOM", "ISO §14.9.30.3 SR6");
+        return false;
+    }
+
+    /// <summary>The phrases ISO §14.9.30.3 SR6 lists, which only a sequential (Format 1) READ prints —
+    /// "ADVANCING, AT END, NEXT, NOT AT END, or PREVIOUS" — as the statement wrote them, joined with " / ", or
+    /// null when it wrote none. ⛔ THE ONE LIST: <see cref="CheckReadRandomAccessPhrases"/> (SR6 itself) and
+    /// <see cref="CheckReadKeyFormat"/> (the same phrases beside a KEY phrase) both name what the statement
+    /// ACTUALLY wrote from it, so the two diagnostics cannot disagree about which words make a READ sequential
+    /// (kb/Work PB3569).</summary>
+    private static string? WrittenSequentialReadPhrases(bool advancing, bool atEnd, bool notAtEnd, bool next,
+        bool previous)
+    {
         var present = new List<string>();
         if (advancing) present.Add("ADVANCING");
         if (atEnd) present.Add("AT END");
         if (notAtEnd) present.Add("NOT AT END");
         if (next) present.Add("NEXT");
         if (previous) present.Add("PREVIOUS");
-        if (present.Count == 0) return true;
-        ScreenForbiddenPhrase(true, string.Join(" / ", present), "READ",
-            "a file whose file control entry specifies ACCESS MODE RANDOM", "ISO §14.9.30.3 SR6");
+        return present.Count == 0 ? null : string.Join(" / ", present);
+    }
+
+    /// <summary>⛔ THE ONE ENFORCEMENT OF "A READ WITH A KEY PHRASE IS A FORMAT 2 (RANDOM) READ" (kb/Work PB3569),
+    /// asked of an INDEXED file after <see cref="CheckReadKeyOrganization"/> (SR10) has passed. ISO §14.9.30.2
+    /// prints the KEY phrase in Format 2 only, and Format 2 prints none of the phrases ADVANCING, AT END, NEXT,
+    /// NOT AT END or PREVIOUS; §14.9.30.4 GR19: "An implicit or explicit NEXT phrase or a PREVIOUS phrase results
+    /// in a sequential read: otherwise, the read is a random read and the rules for format 2 apply." The statement
+    /// is refused in either of two ways, and the message names the one that applies, never the other:
+    /// <list type="number">
+    /// <item><b>It writes a sequential-read phrase beside the KEY phrase</b> (<c>READ f NEXT KEY IS k</c>): the
+    /// message names every such phrase the statement wrote, from the list SR6 itself names.</item>
+    /// <item><b>It writes none and the file's access mode is SEQUENTIAL</b> (written, or assumed when the ACCESS
+    /// MODE clause is absent, §12.4.5.5.3 GR1): ⛔ <b>THE READING IS THE ONE THE BINDER AND ITS SIBLING SCREEN
+    /// ALREADY USE.</b> §14.9.30.3 SR8 ("If neither the NEXT phrase nor the PREVIOUS phrase is specified and ACCESS
+    /// MODE SEQUENTIAL is specified in the file control entry for file-name-1, the NEXT phrase is implied")
+    /// supplies the NEXT phrase, GR19 makes a statement with an implicit NEXT a sequential read, and a sequential
+    /// read has no KEY phrase to bind. That is how <c>KeyedIoBinder.BindRead</c> chooses <see cref="ReadKind.Next"/>
+    /// and how the INVALID KEY screen on a sequential-organization READ words its refusal
+    /// (<see cref="DiagnosticCatalog.IoPhraseForbiddenHere"/>: "SR8 + GR19 make every READ ... a Format-1 read"), so
+    /// the two diagnostics cannot explain the same shape by contradictory readings of SR8 and GR19. The statement
+    /// has no phrase in it that is wrong: the FILE is the wrong mode for it, so the message names the access mode
+    /// and the implied NEXT, never a phrase the statement wrote. Random retrieval needs ACCESS MODE RANDOM
+    /// (§12.4.5.5.3 GR3) or DYNAMIC (GR4: "accessed sequentially, randomly, or both").</item></list>
+    /// An ACCESS MODE RANDOM file is not asked: <see cref="CheckReadRandomAccessPhrases"/> has already named every
+    /// sequential-read phrase against SR6 (a warning under <c>--permissive</c> with the bind unchanged, so the
+    /// KEY phrase still binds as the random read it is), and a second diagnostic for the same words would only
+    /// repeat it. A hard error at every edition, where the INVALID KEY screen is a strict-error/permissive-warning
+    /// seam: a dead INVALID KEY arm selects no record, so tolerating it changes nothing the program reads, but the
+    /// KEY phrase selects the record, and binding the implied-NEXT read would silently read a different one
+    /// (GnuCOBOL does exactly that: "KEY ignored with sequential READ"). Returns true when the statement
+    /// conforms.</summary>
+    public bool CheckReadKeyFormat(FileModel file, bool advancing, bool atEnd, bool notAtEnd, bool next,
+        bool previous)
+    {
+        if (file.AccessMode == FileAccessMode.Random) return true;
+        string? refusal = WrittenSequentialReadPhrases(advancing, atEnd, notAtEnd, next, previous) is { } phrases
+            ? $"the KEY phrase belongs to the random READ (Format 2), whose general format prints none of the phrases "
+                + $"ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS (ISO §14.9.30.2), and this statement specifies {phrases}; "
+                + "those phrases make a sequential read (ISO §14.9.30.4 GR19), which has no KEY phrase"
+            : file.AccessMode == FileAccessMode.Sequential
+                ? "the file's access mode is SEQUENTIAL"
+                    + (file.AccessModeWritten ? "" : " (the ACCESS MODE clause is not specified, so sequential access is assumed, ISO §12.4.5.5.3 GR1)")
+                    + ", so the NEXT phrase is implied (ISO §14.9.30.3 SR8) and the READ is a sequential read (ISO §14.9.30.4 GR19), "
+                    + "which has no KEY phrase: the KEY phrase belongs to the random READ (Format 2, ISO §14.9.30.2); specify "
+                    + "ACCESS MODE IS RANDOM, or DYNAMIC to read both ways (ISO §12.4.5.5.3 GR3, GR4)"
+                : null;
+        if (refusal is null) return true;
+        data.Edition.Error("COBOL0864", $"READ … KEY on '{file.CobolName}': {refusal}");
         return false;
     }
 
