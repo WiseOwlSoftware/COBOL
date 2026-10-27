@@ -29,6 +29,10 @@ internal sealed class ConfigurationNames<T>(UserWordKind kind,
 {
     private readonly Dictionary<string, T> _entries = new(CobolNames.Comparer);
 
+    /// <summary>The names <see cref="InheritFrom"/> took from a containing element, still unredeclared here: the rest
+    /// of <see cref="_entries"/> is this source element's OWN declarations (§8.4.6.1).</summary>
+    private readonly HashSet<string> _inherited = new(CobolNames.Comparer);
+
     public int Count => _entries.Count;
 
     /// <summary>The declared names, in declaration order (a diagnostic's "declared:" list).</summary>
@@ -38,7 +42,11 @@ internal sealed class ConfigurationNames<T>(UserWordKind kind,
     public bool TryAdd(string name, T value) => _entries.TryAdd(name, value);
 
     /// <summary>Declare <paramref name="name"/>, replacing an INHERITED entry of the same name.</summary>
-    public void Set(string name, T value) => _entries[name] = value;
+    public void Set(string name, T value)
+    {
+        _entries[name] = value;
+        _inherited.Remove(name);
+    }
 
     /// <summary>Resolve a REFERENCE to <paramref name="name"/> in this type's position, and record it as a use of the
     /// word as this table's type in the census of the source element <paramref name="site"/> lies in (§8.3.2.2).
@@ -54,6 +62,13 @@ internal sealed class ConfigurationNames<T>(UserWordKind kind,
     /// asks, never a reference's resolution (that is <see cref="TryUse"/>).</summary>
     public bool Declares(string name) => _entries.ContainsKey(name);
 
+    /// <summary>Does THIS source element's own configuration section declare <paramref name="name"/>? False for a
+    /// name only a CONTAINING element declared (<see cref="InheritFrom"/>): §8.4.6.1 makes a reference in the
+    /// containee to such a name yield to an identically spelled item the containee describes, while a name the
+    /// referring element declares itself competes with that item under §8.4.2.2.1's uniqueness rule
+    /// (kb/Work PB3347). Records nothing.</summary>
+    public bool DeclaresOwn(string name) => _entries.ContainsKey(name) && !_inherited.Contains(name);
+
     /// <summary>The entry named <paramref name="name"/>, read WITHOUT recording a use: for a declaration's own
     /// duplicate check and for a predicate whose caller resolves the reference afterwards through
     /// <see cref="TryUse"/>.</summary>
@@ -65,6 +80,10 @@ internal sealed class ConfigurationNames<T>(UserWordKind kind,
     public void InheritFrom(ConfigurationNames<T> container, Action<string>? inherited = null)
     {
         foreach (var (k, v) in container._entries)
-            if (_entries.TryAdd(k, v)) inherited?.Invoke(k);
+            if (_entries.TryAdd(k, v))
+            {
+                _inherited.Add(k);
+                inherited?.Invoke(k);
+            }
     }
 }

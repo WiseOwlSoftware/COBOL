@@ -65,7 +65,7 @@ public static partial class ReferenceFormatProcessor
             FixedFormLine.ContinuationIndicator => LineKind.Continuation,
             'D' or 'd' => LineKind.Debugging,                   // COBOL-85's debugging line
             _ when !ccvsIndicators => LineKind.NotAnIndicator,
-            'S' or 's' or 'Y' or 'y' or 'P' or 'p' or 'J' or 'j' or 'H' or 'h' or 'E' or 'e' or 'U' or 'u' => LineKind.CcvsExcluded,
+            'S' or 's' or 'Y' or 'y' or 'P' or 'p' or 'J' or 'j' or 'H' or 'h' or 'E' or 'e' or 'U' or 'u' or 'B' or 'b' => LineKind.CcvsExcluded,
             _ => LineKind.Source,                               // CCVS: a primary-configuration line
         };
 
@@ -137,6 +137,15 @@ public static partial class ReferenceFormatProcessor
                 // key offsets away from the fixed-width FILE-RECORD-INFO work area the records are written
                 // through. The test's own working-storage key images use the 'T' form, so 'T' is the active
                 // configuration (kept as ordinary code) and 'U' is the excluded alternate.
+                //
+                // 'A'/'B' are the matched pair of the SWITCH-STATUS tests (NC174A, NC211A, NC254A): the 'A' lines are
+                // the configuration of an implementor WITH external switches (the SPECIAL-NAMES switch entries and the
+                // IF on their status condition-names), the 'B' lines what a processor WITHOUT them substitutes ("SWITCHES
+                // NOT IMPLEMENTED", and in NC211A level-88 entries spelling the very condition-names the A lines declare
+                // as switch status names). WiseOwl COBOL implements switches (§12.3.7.4 GR2), so 'A' is the active
+                // configuration (kept as ordinary code) and 'B' the excluded alternate: kept, NC211A's B level-88s and
+                // its SPECIAL-NAMES switch names are one condition-name declared twice, which §8.4.2.2.1 refuses on an
+                // unqualified reference (kb/Work PB3347).
                 case LineKind.CcvsExcluded:
                     _builder.Discard(site);
                     break;

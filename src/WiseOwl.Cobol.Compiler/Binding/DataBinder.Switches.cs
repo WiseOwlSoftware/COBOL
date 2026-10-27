@@ -29,8 +29,9 @@ public sealed partial class DataBinder
 
     /// <summary>Switch-status condition-names (case-insensitive) → (implementor switch-name, posited-ON) (ISO
     /// §12.3.7 GR2; §8.4.4.2 Format 1 SR1 — the condition-name shall be associated with a switch-name in
-    /// SPECIAL-NAMES). Consulted by the condition binder AFTER level-88 resolution (NC211A defines a name as BOTH;
-    /// the level-88 wins).</summary>
+    /// SPECIAL-NAMES). Consulted by the condition binder AFTER level-88 resolution: a switch name THIS element
+    /// declares counts as one more candidate of an unqualified level-88 reference (<see cref="OwnSwitchConditionCompetes"/>,
+    /// §8.4.2.2.1; kb/Work PB3347), and one a CONTAINER declared yields to the element's own level-88 (§8.4.6.1).</summary>
     internal ConfigurationNames<(string ImplementorName, bool IsOn)> SwitchConditions =>
         field ??= new(UserWordKind.ConditionName, RecordConfigurationNameUse);
 
