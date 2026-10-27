@@ -23744,5 +23744,23 @@
    "2023"
   ],
   "expect": "COBOL0902"
+ },
+ "pb3347-switch-condition-name-ambiguous-if": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1639: the condition-name 'S-ON' does not uniquely identify a level-88"
+ },
+ "pb3347-switch-condition-name-ambiguous-set": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1639: the condition-name 'S-ON' does not uniquely identify a level-88"
  }
 }

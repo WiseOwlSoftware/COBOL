@@ -8796,6 +8796,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return matches.TrueForAll(IsTypeDeclarationCondition) ? [] : matches;
     }
 
+    /// <summary>⛔ THE OTHER HALF OF THE §8.4.2.2.1 UNIQUENESS COUNT OF A CONDITION-NAME REFERENCE (kb/Work PB3347): does
+    /// the written reference ALSO name a switch-status condition-name that THIS source element's SPECIAL-NAMES declares
+    /// (§12.3.7.4 GR2)? A switch's condition-name and a level-88 are the same type of user-defined word (§8.3.2.2.4), so
+    /// declaring both spellings in one element is legal, but the name is then non-unique and "<i>Qualification of a
+    /// user-defined name is required unless … No other name has the identical spelling</i>" (§8.4.2.2.1 1); the switch
+    /// condition-name has no hierarchy and takes no qualifier (§8.8.4.6.2), so only a reference with NO suffix at all —
+    /// no qualifier, subscript or reference modifier — can mean it, and such a reference counts it as one more
+    /// candidate beside <see cref="QualifiedConditionCandidates"/>' level-88s (§8.4.2.2.3 SR1). A switch name only a
+    /// CONTAINING element declared is no competitor: §8.4.6.1 makes the reference "to the item which that source element
+    /// describes" (<see cref="ReferenceResolver.DescribesOwnItem"/>, kb/Work PB3153). Pure: it reports nothing.</summary>
+    internal bool OwnSwitchConditionCompetes(Core.DataReferenceContext dref) =>
+        dref.dataReferenceSuffix().Length == 0
+        && dref.cobolWord()?.GetText() is { } name && SwitchConditions.DeclaresOwn(name);
+
     /// <summary>The one qualifier walk: <paramref name="firstQualifiable"/> is the innermost entry a qualifier may
     /// name; <paramref name="member"/> locates the record for the file-name qualifier.</summary>
     private bool QualifierChainMatchesFrom(DataItem? firstQualifiable, DataItem member, IReadOnlyList<string> qualifiers)
