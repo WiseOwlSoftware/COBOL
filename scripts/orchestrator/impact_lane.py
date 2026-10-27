@@ -477,10 +477,17 @@ def self_test() -> int:
               "could not decide" in request(elsewhere, cdir, s8, start=fake_start, alive=fake_alive), True)
         # 8b. the worker's liveness is read from the OS: a Python whose command line names this script is the worker, a
         # Python that does not (a pid the OS reused) and a dead pid are not
-        nap = "import time; time.sleep(120)"
-        worker = subprocess.Popen([sys.executable, "-c", nap, WORKER_MARK], stdin=subprocess.DEVNULL)
-        stranger = subprocess.Popen([sys.executable, "-c", nap], stdin=subprocess.DEVNULL)
+        # Each child says `ready` once Python runs, and the checks wait for it: Popen returns when execve closes the
+        # child's close-on-exec pipe, before Linux has set the new image's argument area, so /proc/<pid>/cmdline can still
+        # read EMPTY (kb/Work PB3973: 55 to 78 of 300 spawns under WSL), and an unreadable command line reads as alive.
+        nap = "import time; print('ready', flush=True); time.sleep(120)"
+        worker = subprocess.Popen([sys.executable, "-c", nap, WORKER_MARK], stdin=subprocess.DEVNULL,
+                                  stdout=subprocess.PIPE, text=True)
+        stranger = subprocess.Popen([sys.executable, "-c", nap], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                    text=True)
         try:
+            for child in (worker, stranger):
+                child.stdout.readline()
             check("a live Python naming impact_lane.py is the worker", worker_alive({"worker": {"pid": worker.pid}}), True)
             check("a live Python that does not is a stranger on a reused pid, not the worker",
                   worker_alive({"worker": {"pid": stranger.pid}}), False)
@@ -489,9 +496,10 @@ def self_test() -> int:
             check("a dead worker's pid is not alive", worker_alive({"worker": {"pid": worker.pid}}), False)
             check("no worker registered is not alive", (worker_alive({}), worker_alive({"worker": None})), (False, False))
         finally:
-            stranger.kill()
-            stranger.wait()
-            worker.kill()
+            for child in (stranger, worker):
+                child.kill()
+                child.wait()
+                child.stdout.close()
         # 9. measure: the share of gate plans a map served, per run directory's start
         wt = tmp / "wt"
         for run, state in (("000001-20261024T100000Z", "none"), ("000002-20261025T100000Z", "exact"), ("000003-20261025T110000Z", "nearest"),
