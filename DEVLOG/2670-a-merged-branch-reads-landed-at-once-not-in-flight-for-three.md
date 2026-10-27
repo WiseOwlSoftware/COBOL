@@ -1,4 +1,4 @@
-## A merged branch reads LANDED at once, not IN FLIGHT for three hours (PB3609)
+## Entry 2670 — 2026-10-27 14:06 PDT — A merged branch reads LANDED at once, not IN FLIGHT for three hours (PB3609)
 
 `prune_worktrees.lifecycle` gave a MERGED or LANDED branch the state LANDED only when it was idle past `--min-age`; a branch
 whose pull request had just merged read `IN FLIGHT, touched N min ago` for three hours. The survey is what the session probe,
@@ -34,3 +34,4 @@ Limit: a branch whose own commits were fast-forwarded into main directly (before
 reads by its age, as before. No merge-queue landing has that shape.
 
 Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN ... Conformance 78/19,119 · Unit 5,558/38,102 · Characterization 36/36 ... Linux half (WSL clone of HEAD) GREEN` at 98557350c (run 000001-20261027T203255Z). The three script self-tests (`prune_worktrees.py`, `land_lane.py`, `git_batch.py --self-test`) were run directly, GREEN: leg 1 does not run them (CI does).
+
