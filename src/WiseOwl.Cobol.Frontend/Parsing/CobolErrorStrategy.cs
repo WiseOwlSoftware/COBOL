@@ -1655,10 +1655,12 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// closed early by an SLL prediction that did not know what may follow (<see cref="CarryForward"/>): the phrase
         /// is the format's, and the fault lies further on.
         /// <para><b>Which statement is named.</b> The innermost of the statement that ended and the statements still open
-        /// around it whose OWN syntax prints the token somewhere (<see cref="OwnSyntaxTokens"/>): a second ELSE after
-        /// <c>IF c DISPLAY "A" ELSE DISPLAY "B"</c> follows a complete DISPLAY, but the format that prints ELSE, once, is
-        /// the IF's, and naming DISPLAY would send the reader to the wrong statement. A token no enclosing statement
-        /// prints either (a misspelled word, an unprinted phrase) is the innermost statement's.</para></summary>
+        /// around it whose format prints the token AFTER a statement it holds (<see cref="TokensAfterANestedStatement"/>):
+        /// a second ELSE after <c>IF c DISPLAY "A" ELSE DISPLAY "B"</c> follows a complete DISPLAY, but the format that
+        /// prints ELSE, once, is the IF's, and naming DISPLAY would send the reader to the wrong statement. A token no
+        /// enclosing statement prints there (a misspelled word, an unprinted phrase) is the innermost statement's,
+        /// wherever else the enclosing one prints it: the <c>&gt;</c> of <c>IF c MOVE 1 TO A &gt; 2</c> belongs to the
+        /// IF's condition, which the MOVE follows, so the IF has not ended and the MOVE has (review R1-1).</para></summary>
         public string? StatementThatEndedBefore()
         {
             if (!ParserIsThere || PredictionFailedAt || Token.Type == TokenConstants.EOF) return null;
@@ -1671,7 +1673,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 || walk.Consume(Token.Type))
                 return null;
             for (ParserRuleContext? c = ended; c is not null; c = c.Parent as ParserRuleContext)
-                if (IsStatementRule(c.RuleIndex) && OwnSyntaxTokens(c.RuleIndex).Contains(Token.Type))
+                if (IsStatementRule(c.RuleIndex) && TokensAfterANestedStatement(c.RuleIndex).Contains(Token.Type))
                     return StatementName(c);
             return StatementName(ended);
         }
@@ -1726,40 +1728,61 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static bool IsStatementRule(int rule)
         => CobolParserCore.ruleNames[rule].EndsWith(StatementSuffix, StringComparison.Ordinal);
 
-    /// <summary>⛔ THE TOKENS A STATEMENT'S OWN SYNTAX CAN MATCH (kb/Work PB906): the token edges of the statement's rule
-    /// and of every rule it calls except another statement (and the dispatcher and block rules that lead to every
-    /// statement), so the phrase words of its general formats — through <c>conditionalPhrases</c>, <c>readKey</c>,
-    /// <c>writeBeforeAfter</c> and the other phrase rules — are in it, and the words of a statement it merely contains
-    /// are not. Read from the ATN once per rule, so a phrase added to a format tomorrow is in it.</summary>
-    private static IntervalSet OwnSyntaxTokens(int statementRule)
-        => OwnSyntaxTokenSets.GetOrAdd(statementRule, OwnSyntaxTokenSet);
+    /// <summary>⛔ THE TOKENS A STATEMENT'S OWN FORMAT PRINTS AFTER A STATEMENT IT HOLDS (kb/Work PB906, review R1-1): for
+    /// every call a rule of the statement's own syntax (the statement's rule and every rule it calls except another
+    /// statement, and the dispatcher and block rules that lead to every statement) makes to a nested statement or block,
+    /// the tokens that may follow the call there, continued through the end of the rule it stands in into the rule that
+    /// called that one, up to the statement's own end. For IF these are ELSE and END-IF, for PERFORM and EVALUATE
+    /// their END-x and WHEN, for the conditional phrases the NOT ... phrase and END-x; the tokens of the condition
+    /// before the nested statement (<c>=</c>, <c>AND</c>, <c>&gt;</c>) are not. A token in the set is one the
+    /// statement can still be waiting for once the statement it holds is complete, so a second ELSE is the IF's; a token
+    /// outside it is no enclosing statement's but the complete statement's own. Read from the ATN once per rule, so a
+    /// phrase added to a format tomorrow is in it.</summary>
+    private static IntervalSet TokensAfterANestedStatement(int statementRule)
+        => AfterNestedStatementTokenSets.GetOrAdd(statementRule, AfterNestedStatementTokenSet);
 
-    private static readonly ConcurrentDictionary<int, IntervalSet> OwnSyntaxTokenSets = new();
+    private static readonly ConcurrentDictionary<int, IntervalSet> AfterNestedStatementTokenSets = new();
 
     /// <summary>The ATN's states grouped by the rule they belong to, built once: the ATN is a static of the generated parser.</summary>
     private static readonly Lazy<ILookup<int, ATNState>> StatesByRule = new(
         static () => CobolParserCore._ATN.states.Where(s => s is not null).ToLookup(s => s.ruleIndex));
 
-    private static IntervalSet OwnSyntaxTokenSet(int statementRule)
+    private static bool IsStatementOrDispatcher(int rule)
+        => IsStatementRule(rule) || rule is CobolParserCore.RULE_statement or CobolParserCore.RULE_statementBlock;
+
+    private static IntervalSet AfterNestedStatementTokenSet(int statementRule)
     {
-        var set = new IntervalSet();
-        var visited = new HashSet<int> { statementRule };
-        var work = new Stack<int>([statementRule]);
-        while (work.TryPop(out int rule))
+        var atn = CobolParserCore._ATN;
+        // the rules of the statement's own syntax, the calls each makes to a rule of it (the way back up from a rule's
+        // end) and the calls to a nested statement or block
+        var own = new HashSet<int> { statementRule };
+        var callsTo = new Dictionary<int, List<RuleTransition>>();
+        var nested = new List<RuleTransition>();
+        for (var work = new Stack<int>([statementRule]); work.TryPop(out int rule); )
             foreach (var state in StatesByRule.Value[rule])
                 for (int i = 0; i < state.NumberOfTransitions; i++)
                 {
-                    var transition = state.Transition(i);
-                    if (transition is RuleTransition call)
-                    {
-                        int callee = call.target.ruleIndex;
-                        if (!IsStatementRule(callee) && callee is not (CobolParserCore.RULE_statement or CobolParserCore.RULE_statementBlock)
-                            && visited.Add(callee))
-                            work.Push(callee);
-                    }
-                    else if (!transition.IsEpsilon && transition is not NotSetTransition && transition.Label is { } label)
-                        set.AddAll(label);
+                    if (state.Transition(i) is not RuleTransition call) continue;
+                    int callee = call.target.ruleIndex;
+                    if (IsStatementOrDispatcher(callee)) { nested.Add(call); continue; }
+                    if (!callsTo.TryGetValue(callee, out var callers)) callsTo[callee] = callers = [];
+                    callers.Add(call);
+                    if (own.Add(callee)) work.Push(callee);
                 }
+        var set = new IntervalSet();
+        var visited = new HashSet<ATNState>();
+        var tails = new Stack<ATNState>(nested.Select(call => call.followState));
+        while (tails.TryPop(out var from))
+        {
+            if (!visited.Add(from)) continue;
+            var next = atn.NextTokens(from);
+            set.AddAll(next);
+            // the rule may end here: what follows its caller follows the nested statement too, up to the statement's own end
+            if (next.Contains(TokenConstants.EPSILON) && from.ruleIndex != statementRule
+                && callsTo.TryGetValue(from.ruleIndex, out var up))
+                foreach (var call in up) tails.Push(call.followState);
+        }
+        set.Remove(TokenConstants.EPSILON);
         set.SetReadonly(true);
         return set;
     }
