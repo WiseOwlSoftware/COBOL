@@ -133,7 +133,7 @@ public readonly record struct BoundaryItem(NumProfile? Num, int Length = CobolAr
     /// <see cref="Landing"/> only, and is never compared (the check runs only when both sides enable it).</summary>
     public bool IsStated => Num is not null || Length != CobolArg.Unstated || Description is not null;
 
-    /// <summary>⛔ ISO §14.2.3 GR9's SECOND REGIME AND GR10 AT A RUN-TIME-LOCATED CALL (kb/Work PB2549, PB2587): the argument
+    /// <summary>⛔ ISO §14.2.3 GR9's SECOND REGIME AND GR10 AT A RUN-TIME-LOCATED CALL, AND A COMPUTED BY CONTENT VALUE IN THE FIRST (kb/Work PB2549, PB2587, PB3969): the argument
     /// <paramref name="arg"/> landed into "a data item with the same description and the same number of bytes as the formal
     /// parameter" — by "a COMPUTE statement without the ROUNDED phrase" when this formal is numeric, by "otherwise, a MOVE
     /// statement" when it is a non-numeric elementary item — so the activated element reads the allocated record "as if it

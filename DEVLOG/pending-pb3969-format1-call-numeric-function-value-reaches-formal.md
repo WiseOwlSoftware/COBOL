@@ -24,3 +24,10 @@ signature is known land at the caller and were already right.
 Golden `pb3969_format1_numeric_function_value` (accepted from COBOL-85: BY CONTENT is an 85 rule, so no program is refused
 below it, hence no negative); five facts in `ComputedArgumentSendingTests`. Docs: CONFORMANCE D-B4, INTERPROGRAM_DESIGN. The note
 claimed no inventory row and closes none. Self-review found nothing further.
+
+Branch review round 1 found the unswept sibling: a numeric function the binder folds to a literal (`FUNCTION LENGTH`) took the
+literal arm of `CallEmitter.ElementarySending`, whose sending was not marked Computed, so a Format-1 `CALL "P" USING BY CONTENT
+FUNCTION LENGTH(W2)` showed `5   ` in a PIC 9(4) formal. `ElementarySending` now marks a `BoundNumericLiteral { FunctionValue: true }`
+Computed (`RuntimeApi.MoveSendingNew(computed:)`); the golden gained program PB3969E (LENGTH of a numeric and an alphanumeric item
+into PIC 9(4): 0005, 0003). The activation-boundary doc comments now say a computed BY CONTENT argument is landed in GR9's first
+regime too.
