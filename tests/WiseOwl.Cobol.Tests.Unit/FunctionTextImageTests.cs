@@ -17,6 +17,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// in different formats — the optimization would be USER-VISIBLE. These facts pin the one rule; the golden
 /// `da2_function_as_text` pins that both compiler paths actually reach it.
 /// </para>
+/// <para>
+/// ⚠ THIS IS THE TEXT CHANNEL'S FORM: MOVE to a character receiver, STRING, INSPECT, a text comparison and DISPLAY under
+/// `--numeric-display digits`. DISPLAY under the default `decimal` shows the returned value by the description of its temporary
+/// (kb/Work PB3514, `FunctionDeviceTextTests`), as it shows any numeric data item (DOC-A.1-56); a MOVE of a numeric item has
+/// §14.9.25.4 GR6's digits there too, so the two channels differ for a function exactly as they differ for an item.
+/// </para>
 /// </summary>
 public sealed class FunctionTextImageTests
 {

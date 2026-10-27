@@ -37,10 +37,14 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } ic } => new FunctionDeviceText(num).CallText(ic),
         // FUNCTION LENGTH / BYTE-LENGTH of a variable-length group: the binder's arithmetic sum, the run-time LENGTH GnuCOBOL does not fold.
         BoundComputedOperand { Expr: BoundBinary sum } => new FunctionDeviceText(num).ValueText(num.Render(sum, ReceiverContext.None)),
-        BoundNumericLiteral { FunctionValue: true, FoldedFunction: { } folded } lit when !FoldsToLiteral(folded) =>
+        // A folded value written as a floating-point literal (the algebraic extreme of a floating-point item: 999E+999) is a
+        // floating-point value, which keeps the image a floating-point literal has.
+        BoundNumericLiteral { FunctionValue: true, FoldedFunction: { } folded } lit when !FoldsToLiteral(folded) && !IsFloatingPoint(lit.Text) =>
             new FunctionDeviceText(num).ValueText(num.AsNum(lit, ReceiverContext.None)),
         _ => null,
     };
+
+    private static bool IsFloatingPoint(string literal) => literal.AsSpan().IndexOfAny('E', 'e') >= 0;
 
     /// <summary>Does GnuCOBOL fold this function's call into a literal, so that DISPLAY shows the literal (LENGTH, BYTE-LENGTH)?</summary>
     private static bool FoldsToLiteral(string function) =>
@@ -116,10 +120,12 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
                 return CallField(nested);
             case BoundNumericLiteral lit:
                 return LiteralField(lit);
-            case BoundFieldOperand { Place: { Item.IsGroup: false, Item.Pic: { Category: PicCategory.Numeric } pic } place } when place is not RefModPlace:
+            // A whole data item (a reference-modified slice is no declared item, Place.DenotedItem); a floating-point item orders by
+            // its exact value (the one float-item lift) and shows its own DISPLAY image.
+            case BoundFieldOperand { Place: { DenotedItem: not null, Item.IsGroup: false, Item.Pic: { Category: PicCategory.Numeric } pic } place }:
                 NumX read = num.AsNum(a, ReceiverContext.None);
                 return pic.IsFloat
-                    ? RuntimeApi.FunctionFieldOfFloatImage(NumericRenderer.Real(read), OperandText.AsTransferString(a, num, "DISPLAY of"))
+                    ? RuntimeApi.FunctionFieldOfFloatItem(num.DecOperand(read), OperandText.AsTransferString(a, num, "DISPLAY of"))
                     : RuntimeApi.FunctionFieldOfItem(num.DecOperand(read), place.Item.ProfileName);
             default:
                 // An arithmetic expression (GnuCOBOL evaluates it into a temporary), a register, an index: described by its value.
@@ -134,7 +140,7 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
     {
         string value = num.DecOperand(num.AsNum(lit, ReceiverContext.None));
         string text = lit.Text;
-        if (text.AsSpan().IndexOfAny('E', 'e') >= 0) return RuntimeApi.FunctionFieldOfValue(value);
+        if (IsFloatingPoint(text)) return RuntimeApi.FunctionFieldOfValue(value);
         bool signed = text.Length > 0 && text[0] is '+' or '-';
         string magnitude = signed ? text[1..] : text;
         int point = magnitude.IndexOf('.');

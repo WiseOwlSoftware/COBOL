@@ -12,6 +12,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// DECIMAL-POINT IS COMMA, so the image carries the comma — which is GnuCOBOL 3.2's separator for these values too
 /// (the precedence order of CLAUDE.md rule 1: the standard leaves the choice, GnuCOBOL decides).
 ///
+/// <para>⚠ THE DISPLAY LINE OF EACH EXPECTATION IS THE DEVICE FORM (kb/Work PB3514, DOC-A.1-92): DISPLAY shows ABS(N)'s temporary,
+/// a copy of N's signed item holding the magnitude, as it shows an item (<c>+1,50</c>); the MOVE lines keep the literal form,
+/// whose sign GR6a drops. Both spell the separator the program's.</para>
+///
 /// <para>The corpus goldens (85/pb2507_function_result_decimal_comma and the two 2023 ones) pin every DISPLAY lane.
 /// What only a C# host can reach is the one text channel a STRICT program cannot: a noninteger function value moved to
 /// a character receiver is refused by §14.9.25.3 SR10 (COBOL0819), and <c>--permissive</c> accepts it "as the
@@ -54,20 +58,21 @@ public sealed class FunctionTextDecimalPointTests
     public void UnderDecimalPointIsComma_TheFrozenTemporaryAndTheCallAgree_OnTheComma()
     {
         // One receiver renders the call; two receivers freeze it into the §15.4 temporary first. The temporary
-        // is a 9-fraction-digit working item, so its literal form carries nine digits (PB1007) — in the comma.
-        Assert.Equal("[1,50        ]\n[1,500000000 ][1,500000000 ]\n1,50\n", Run(comma: true));
+        // is a 9-fraction-digit working item, so its literal form carries nine digits (PB1007) — in the comma. DISPLAY of the
+        // call is the device form of ABS(N)'s temporary, a copy of N's signed item holding the magnitude (PB3514): +1,50.
+        Assert.Equal("[1,50        ]\n[1,500000000 ][1,500000000 ]\n+1,50\n", Run(comma: true));
     }
 
     [Fact]
     public void UnderStandardDecimal_TheSdidiLaneAgrees()
     {
-        Assert.Equal("[1,50        ]\n[1,500000000 ][1,500000000 ]\n1,50\n",
+        Assert.Equal("[1,50        ]\n[1,500000000 ][1,500000000 ]\n+1,50\n",
             Run(comma: true, options: "OPTIONS. ARITHMETIC IS STANDARD-DECIMAL."));
     }
 
     [Fact]
     public void WithoutTheClause_EveryLaneKeepsThePeriod()
     {
-        Assert.Equal("[1.50        ]\n[1.500000000 ][1.500000000 ]\n1.50\n", Run(comma: false));
+        Assert.Equal("[1.50        ]\n[1.500000000 ][1.500000000 ]\n+1.50\n", Run(comma: false));
     }
 }

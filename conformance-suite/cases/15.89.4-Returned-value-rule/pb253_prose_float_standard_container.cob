@@ -18,8 +18,9 @@
       *> HAND-DERIVED: TINY is the exact scale-20 value 1E-20. For that argument sin x = x - x**3/6 and
       *> tan x = x + x**3/3 with |x**3/3| ~ 3.3E-61, some 25 decades below the ULP of x (~1.6E-36), so each
       *> binary64 result IS x. The conversion of a function's approximation (15.4.1) is the shortest round-trip decimal
-      *> identity, so the SDIDI is exactly 1E-20 and its 15.4.1 item-92 text is the fixed-point digit string
-      *> 0.00000000000000000001 — never the binary64 E-notation "1E-20" the un-contained value printed. The
+      *> identity, so the SDIDI is exactly 1E-20 and its 15.4.1 item-92 text is a fixed-point digit string
+      *> (DISPLAY: .00000000000000000001, the item that value describes, kb/Work PB3514; the text channels:
+      *> 0.00000000000000000001) — never the binary64 E-notation "1E-20" the un-contained value printed. The
       *> scale-20 store of that SDIDI is exact: unscaled 1, DISPLAY image 19 zeros then the overpunched +1.
       *> The MOVE-source and arithmetic-receiver channels must then agree, per 15.4.1's "the returned value is
       *> the same for all instances of a given function within a single execution of the runtime element so

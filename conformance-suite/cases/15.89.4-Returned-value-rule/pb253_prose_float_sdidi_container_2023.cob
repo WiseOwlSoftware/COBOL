@@ -18,7 +18,8 @@
       *> HAND-DERIVED: TINY is the exact scale-20 value 1E-20; for that argument the binary64 sin/tan/atan
       *> results ARE x (the x**3/3 term is ~25 decades below x's ULP), and the conversion of a function's approximation (15.4.1) into the SDIDI is
       *> the shortest round-trip decimal identity, so the SDIDI is exactly 1E-20 and its
-      *> item-92 text is 0.00000000000000000001, never the binary64 E-notation "1E-20".
+      *> item-92 text is a fixed-point digit string (DISPLAY: .00000000000000000001, the item that value describes, kb/Work PB3514;
+      *> the text channels: 0.00000000000000000001), never the binary64 E-notation "1E-20".
       *> ACOS(1) / ASIN(0) / LOG(1) / LOG10(1) are 0 exactly and COS(0) is 1 exactly.
       *> The large-magnitude leg pins 15.4.1's invariant instead of an implementor-defined digit string: "the
       *> returned value is the same for all instances of a given function within a single execution of the

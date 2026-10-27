@@ -186,9 +186,9 @@ internal static class RuntimeApi
     public static string FunctionFieldOfFloat(string value) =>
         $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloat)}({value})";
 
-    /// <summary>A floating-point item argument, with the image its own DISPLAY writes.</summary>
-    public static string FunctionFieldOfFloatImage(string value, string image) =>
-        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloatImage)}({value}, {image})";
+    /// <summary>A floating-point item argument: its exact value as the one SDIDI lift gives it, and the image its own DISPLAY writes.</summary>
+    public static string FunctionFieldOfFloatItem(string exactValue, string image) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloatItem)}({exactValue}, {image})";
 
     /// <summary>ABS: the argument's description holding the magnitude.</summary>
     public static string FunctionFieldAbs(string field) => $"({field}).{nameof(FunctionValueField.Abs)}()";
