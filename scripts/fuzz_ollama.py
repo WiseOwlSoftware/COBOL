@@ -415,7 +415,12 @@ class _StubOllama(http.server.BaseHTTPRequestHandler):
         try:
             self.server.behaviors[body["model"]](self, body)  # type: ignore[attr-defined]
         finally:
-            self.server.finished.set()  # type: ignore[attr-defined]
+            # A COUNT of handlers that returned, never one shared flag: the previous request's handler can still be in this
+            # finally when the next request starts, and a flag it set after the next request cleared it read as the next
+            # handler's end (kb/Work PB3867: 1 run in 8 on Linux).
+            with self.server.handled_cv:  # type: ignore[attr-defined]
+                self.server.handled += 1  # type: ignore[attr-defined]
+                self.server.handled_cv.notify_all()  # type: ignore[attr-defined]
 
     def begin(self) -> None:
         self.send_response(200)
@@ -577,7 +582,8 @@ def self_test() -> int:
     # ── the chat, against a stub Ollama
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), _StubOllama)
     server.requests = []  # type: ignore[attr-defined]
-    server.finished = threading.Event()  # type: ignore[attr-defined]
+    server.handled = 0  # type: ignore[attr-defined]
+    server.handled_cv = threading.Condition()  # type: ignore[attr-defined]
     server.client_left = False  # type: ignore[attr-defined]
     server.sent_all = False  # type: ignore[attr-defined]
     server.behaviors = _stub_behaviors(server)  # type: ignore[attr-defined]
@@ -586,7 +592,6 @@ def self_test() -> int:
     threading.Thread(target=server.serve_forever, daemon=True).start()
 
     def chat(model: str, **kw: Any) -> tuple[str, float, str, int] | OllamaError:
-        server.finished.clear()  # type: ignore[attr-defined]
         try:
             return ollama_chat(model, [{"role": "user", "content": "x"}], 0.3, host=host, timeout=30, **kw)
         except OllamaError as e:
@@ -605,7 +610,10 @@ def self_test() -> int:
         check("chat: a reply Ollama cut at the token cap says so, with the thinking it spent counted",
               isinstance(got, tuple) and got[0] == "partial" and got[2] == "length" and got[3] == 3, got)
         got = chat("endless")
-        server.finished.wait(30)  # type: ignore[attr-defined]  # a hang guard for the stub's thread, never a verdict
+        # Every request so far, this one included (its body was recorded before it answered), has a handler that returned:
+        # the stub then knows whether the client left. A hang guard for the stub's thread, never a verdict.
+        with server.handled_cv:  # type: ignore[attr-defined]
+            server.handled_cv.wait_for(lambda: server.handled >= len(server.requests), 30)  # type: ignore[attr-defined]
         check("chat: an enumeration is cut by the harness (done_reason degenerate, the head and the window's first lines kept) "
               "and the connection is closed, so Ollama stops generating instead of running to the cap",
               isinstance(got, tuple) and got[2] == DEGENERATE
