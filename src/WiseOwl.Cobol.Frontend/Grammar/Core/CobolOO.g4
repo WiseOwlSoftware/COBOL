@@ -200,9 +200,9 @@ invokeUsing
 // ⚠ THE PREDICATE'S SCAN IS CONDITION-SHAPED AND CAN OVER-REACH HERE, BY DESIGN OF THE SHARED MECHANISM. It runs
 // to the statement's period, so in `USING BY CONTENT N + 1 BY CONTENT B1 B-AND B2` the FIRST argument's decision
 // already sees the SECOND argument's B-AND and takes this alternative. That is harmless and deliberately left
-// harmless: the binder reduces a B-operator-FREE booleanExpression back to its bare `valueOperand` (the same
-// UnwrapBareBool reduction BindPrimaryBoolean uses), so the predicate decides only which NODE an operand parses
-// into, never what it MEANS. Narrowing the scan to the argument boundary would tighten a SHARED condition
+// harmless: the binder reduces a B-operator-FREE booleanExpression back to its bare `valueOperand`
+// (ConditionBinder.ReduceArgument, which keeps a parenthesized operand the expression it is — kb/Work PB3760), so
+// the predicate decides only which NODE an operand parses into, never what it MEANS. Narrowing the scan to the argument boundary would tighten a SHARED condition
 // predicate for a local reason — the DEVLOG-621 lesson — and would buy nothing the reduction does not already
 // guarantee.
 // ⛔ THREE ARMS, AND PB130 RELAXED ONLY ONE OF THEM (kb/Work PB695 family 3 — the repo's most reproducible

@@ -296,7 +296,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // The grammar parses BY CONTENT wide (both formats share this rule). The reduction is
                 // §14.9.4.4 GR8's and lives in ONE place, ConditionBinder.ReduceArgument (kb/Work PB238: the BY
                 // VALUE arm below and both keyword-less arms read it; kb/Work PB613: so does every INVOKE argument).
-                var (cLit, cBareLit, _, cDref, cBool, cArith) = ConditionBinder.ReduceArgument(
+                var (cLit, cBareLit, _, cDref, cBool, cArith, cGrouped) = ConditionBinder.ReduceArgument(
                     byContent.literal(), null,
                     byContent.booleanExpression(), byContent.arithmeticExpression());
                 // A bare word that stands for a literal — a constant-name (§13.10.4 GR1) or a symbolic-character
@@ -306,7 +306,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // §14.9.4.2 FORMAT 1's BY CONTENT IS `{ identifier-2 } …` AND NOTHING ELSE. An expression operand
                 // is legal only under Format 2, which the AS phrase selects — so accepting one here without that
                 // phrase would admit illegal source, the exact trade this item refused to make in the grammar.
-                if (!formatTwo && (cBool is not null || cLit is not null || cAlias is not null
+                // The literal and the parenthesized expression an operator-free boolean node held are literal-2 and
+                // arithmetic-expression-1 exactly as their written spellings are (kb/Work PB3760 review R1-1).
+                if (!formatTwo && (cBool is not null || cLit is not null || cBareLit is not null || cAlias is not null
+                                   || cGrouped is not null
                                    || (cArith is not null && cDref is null && !IsSoleIdentifierExpression(cArith)))
                     && !Format1VendorSpelling(
                         $"CALL … USING BY CONTENT {byContent.GetText()}: an expression operand belongs to the "
@@ -338,6 +341,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // Format-2 arithmetic-expression-1 (or a sole function-/method-identifier, GR8): bind through the
                     // ONE expression path and pass its value.
                     args.Add(ExpressionArg(cax, CobolPassMode.Content));
+                // `(3)` or `(N)` an operator-free boolean node held inside its grouping parentheses: arithmetic-expression-1,
+                // bound as the computed operand it is, never as the literal or identifier it encloses (kb/Work PB3760 review R1-1).
+                else if (cGrouped is { } cgx)
+                    args.Add(OperandArg(host.Cond.CompoundOperand(cgx), CobolPassMode.Content));
                 else if (cBool is { } cbx)
                     args.Add(BooleanContentArg(cbx));
                 else
@@ -375,7 +382,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // `01 F FLOAT-LONG VALUE 1.5` reached a `PIC S9(3)V99` BY VALUE formal as 001.00, where
                 // §14.2.3 GR10 requires "a COMPUTE statement without the ROUNDED phrase" ⇒ 001.50). The
                 // reduction is the SAME one the BY CONTENT arm runs, from the SAME helper.
-                var (vLit, _, vSoleNum, vDref, _, vArith) = ConditionBinder.ReduceArgument(
+                var (vLit, _, vSoleNum, vDref, _, vArith, _) = ConditionBinder.ReduceArgument(
                     byValue.literal(), null, null, byValue.arithmeticExpression());
                 if (vLit is { } vlit)
                 {
@@ -600,15 +607,18 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     continue;
                 }
                 if (!formatTwo && !BareNeedsFormat2(bArith.GetText())) return BoundRejected.Reported(ctx.Edition);
-                // §14.9.4.4 GR9 b) for an arithmetic-expression-1 as for a literal-2: "When the BY VALUE phrase is specified or
-                // implied for the corresponding formal parameter, BY VALUE is assumed" (the BY VALUE brace prints
-                // arithmetic-expression-1). It was hard-coded BY CONTENT, so `USING (7)` against a BY VALUE formal drew
-                // §14.9.4.3 SR19's mode mismatch (COBOL1687) on conforming source. SR22 then screens the value's class.
-                var exprMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
-                var exprArg = ExpressionArg(bArith, exprMode);
-                if (exprMode is CobolPassMode.Value && exprArg.Value is { } exprValue) ValueClassScreen(exprValue, bArith.GetText());
-                args.Add(exprArg);
+                AddBareExpressionArg(ExpressionOperand(bArith), bArith.GetText());
             }
+            // `(3)` or `(N)` an operator-free boolean node held inside its grouping parentheses: arithmetic-expression-1,
+            // never the literal or identifier it encloses (§14.9.4.4 GR8, §8.8.1.1; kb/Work PB3760 review R1-1). Bound as
+            // the expression it is, it takes GR9 a)2's BY CONTENT, so a callee's store never reaches N.
+            else if (bareArg.Grouped is { } bGrouped)
+            {
+                if (!formatTwo && !BareNeedsFormat2(a.GetText())) return BoundRejected.Reported(ctx.Edition);
+                AddBareExpressionArg(host.Cond.CompoundOperand(bGrouped), a.GetText());
+            }
+            else
+                return new BoundUnsupported($"CALL USING argument '{a.GetText()}'");
         }
 
         // ⛔ ONE BOOLEAN VALUE CHANNEL for the CALL side, mirroring BoundInvokeArg.ContentBool exactly
@@ -636,6 +646,19 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // the place crossing); an intrinsic function's computed value crosses as an operand (CallEmitter.ArgText).
         BoundCallArg ExpressionArg(Core.ArithmeticExpressionContext ax, CobolPassMode argMode) =>
             OperandArg(ExpressionOperand(ax), argMode);
+
+
+        // §14.9.4.4 GR9 b) for an arithmetic-expression-1 as for a literal-2: "When the BY VALUE phrase is specified or
+        // implied for the corresponding formal parameter, BY VALUE is assumed" (the BY VALUE brace prints
+        // arithmetic-expression-1). It was hard-coded BY CONTENT, so `USING (7)` against a BY VALUE formal drew
+        // §14.9.4.3 SR19's mode mismatch (COBOL1687) on conforming source. SR22 then screens the value's class.
+        void AddBareExpressionArg(BoundOperand operand, string written)
+        {
+            var exprMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
+            var exprArg = OperandArg(operand, exprMode);
+            if (exprMode is CobolPassMode.Value && exprArg.Value is { } exprValue) ValueClassScreen(exprValue, written);
+            args.Add(exprArg);
+        }
 
         BoundOperand ExpressionOperand(Core.ArithmeticExpressionContext ax) =>
             ConditionBinder.SoleFunctionCall(ax) is { } sfc ? host.Intrinsic.IntrinsicOperand(sfc)

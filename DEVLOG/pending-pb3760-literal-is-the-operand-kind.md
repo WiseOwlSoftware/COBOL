@@ -42,3 +42,20 @@ marked GROUPING-PAREN-ONLY; `SpecTraceabilityInventoryDriftTests` found GR-14.9.
 re-sited by a second record_verdicts batch); run `000002-20261027T175125Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
 PB2515): GREEN` (Conformance 1,400 · Unit 6,384 · Characterization 36 in leg 1; Linux half (WSL clone of HEAD) GREEN), every
 pb3760 golden and the drift pin among them.
+
+**Review round 1 (R1-1, BLOCKING) — the parse-tree reduction still unwrapped grouping parentheses.** A LATER argument's B-operator
+sends `boolExprAhead()` over the whole statement, so an earlier argument is parsed in a boolean-expression node, and
+`ConditionBinder.ReduceArgument` unwrapped that node's `( booleanExpression )` factor to its bare operand. Re-probed on the branch
+build: `CALL ... USING BY CONTENT (3) BY CONTENT B1V B-AND B2V` into a group formal stored `3     `, the INVOKE twin likewise, and the
+CONFORMING `CALL ... AS NESTED USING (N) B1V B-AND B2V` passed N BY REFERENCE, so the callee's `MOVE 77` reached N, where §14.9.4.4
+9) a) 2. assumes BY CONTENT for an argument that is no identifier (`N AFTER 77`; without the B-AND `N AFTER 05`). Two siblings
+showed on the way: `("AB") B1V B-AND B2V` passed the literal "AB" (without the B-AND it is a syntax error), and Format 1's screen did
+not count a literal the boolean node held. Fix at the one reduction: it stops at a grouping parenthesis (`SoleFactor` is the node
+both readings walk; `UnwrapBareBool` keeps crossing them for conditions, where §8.8.4.2.1 makes them immaterial). The parenthesized
+arithmetic operand is `ArgumentOperand.Grouped`, with no sole literal or reference, bound as the computed operand by every lane (CALL
+BY CONTENT, keyword-less with GR9's mode, INVOKE, the inline form, the NULL receiver's screen); a parenthesized nonnumeric operand
+stays the boolean expression it is written as (§8.8.2) and is refused as a boolean operand (COBOL1511). Goldens:
+`pb3760_grouped_argument_before_boolean_argument` (run: (N) and ((N)) stay 05, the bare N becomes 77, CALL and INVOKE),
+`pb3760_grouped_literal_before_boolean_argument_refused` (COBOL1688), `pb3760_invoke_grouped_literal_before_boolean_argument_refused`
+(COBOL0828), `pb3760_grouped_nonnumeric_literal_argument_refused` (COBOL1511). Batch `batch-pb3760-r1.json`: 4 rows, +7 test-ref,
+GAP 31 → 31.
