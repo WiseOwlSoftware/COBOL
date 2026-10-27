@@ -79,7 +79,7 @@
            DISPLAY "C1=" R4.
            COMPUTE R4 ROUNDED MODE AWAY-FROM-ZERO = FUNCTION NUMVAL-F("0.12340000000001") * 1.
            DISPLAY "C2=" R4.
-      *> D: DISPLAY, the item-92 text form of the exact value at its own scale.
+      *> D: DISPLAY, the exact value in the temporary item it describes (item 92, kb/Work PB3514: trailing zeros dropped, a 9- or 20-position item or its own digits).
            DISPLAY "D1=" FUNCTION NUMVAL-F("0.12340000000001").
            DISPLAY "D2=" FUNCTION NUMVAL-F("5E+30").
            DISPLAY "D3=" FUNCTION NUMVAL-F("1.5E-12").

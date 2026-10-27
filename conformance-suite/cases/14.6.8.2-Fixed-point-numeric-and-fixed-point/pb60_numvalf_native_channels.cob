@@ -14,7 +14,7 @@
       *> channels, an Int128 parse truncated at max(receiver scale, 9) for a fixed-point receiver (which then
       *> rounded the truncation AGAIN) and a binary64 for a COMP-2, so ROUNDED MODE AWAY-FROM-ZERO of
       *> NUMVAL-F("0.12340000000001") into 9V9(4) stored 0.1234 where NUMVAL stores 0.1235.
-      *> RAW/RAWS/RAW1: receiver-less DISPLAY renders the exact value at its own scale, the item-92 text form
+      *> RAW/RAWS/RAW1: receiver-less DISPLAY renders the exact value in the temporary item it describes (item 92, kb/Work PB3514)
       *>        (5 x 10**30 is 31 digits; 15 x 10**-13 has 13 fraction digits). EQ/GT: a relation compares the
       *>        exact values (8.8.4.2.4): 5E+30 and 9E+30 differ.
       *> F8/F8S: a COMP-2 receiver converts the exact decimal ONCE, and COMPUTE with no ROUNDED phrase truncates
