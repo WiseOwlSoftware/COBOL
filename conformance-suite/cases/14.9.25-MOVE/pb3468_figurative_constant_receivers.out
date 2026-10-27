@@ -1,0 +1,17 @@
+ZERO X=[00000] XE=[00 00] XS=[000/000] B=[00000] BU=[00000]
+ZERO N=[00000] NE=[00 00]
+SPACE X=[     ] XE=[     ] XS=[   /   ]
+SPACE N=[     ] NE=[     ]
+QUOTE X=["""""] XE=["" ""] XS=["""/"""]
+QUOTE N=["""""] NE=["" ""]
+ALL-AB X=[ABABA] XE=[AB AB] XS=[ABA/BAB]
+ALL-AB N=[ABABA] NE=[AB AB]
+ALL-B10 B=[10101] BU=[10101]
+HIGH-VALUE X=filled
+HIGH-VALUE XE=filled around the insertion
+HIGH-VALUE XS=filled around the insertion
+HIGH-VALUE N=filled
+LOW-VALUE X=filled
+LOW-VALUE XE=filled around the insertion
+LOW-VALUE XS=filled around the insertion
+LOW-VALUE N=filled
