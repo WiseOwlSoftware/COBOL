@@ -389,12 +389,13 @@ public sealed partial class SequentialConnector : FileConnector
     /// file as UTF-16 or UTF-8: framing would count decoded chars, not bytes, and every byte anchor a REWRITE or a
     /// START uses would drift. The ONE byte-order-mark rule is the LINE SEQUENTIAL file's (DOC-A.1-115 (b)), and it
     /// is applied to the channel by <see cref="NextFrame"/> alone.</para></summary>
-    private StreamReader OpenReader()
+    private StreamReader OpenReader(bool creates)
     {
         // Under commit control the reader is built over the handle the connector KEEPS until the COMMIT or ROLLBACK
-        // (DESIGN-runtime-library.md 2.2.2.4), from its start, and leaves it open at the CLOSE (HeldStream).
+        // (DESIGN-runtime-library.md 2.2.2.4), from its start, and leaves it open at the CLOSE (HeldStream). An I-O OPEN of an
+        // absent OPTIONAL file (GR17) creates it through that handle, which refuses a file made since the probe (kb/Work PB3635).
         var stream = CommitControlled
-            ? AtStart(HeldStream(Mode == FileOpenMode.IO ? FileMode.OpenOrCreate : FileMode.Open))
+            ? AtStart(HeldStream(Mode != FileOpenMode.IO ? FileMode.Open : creates ? FileMode.CreateNew : FileMode.OpenOrCreate))
             : Medium.OpenConnectorStream(HostPath, FileMode.Open, HostAccess(Mode), HostShare,
                 Mode == FileOpenMode.IO ? FileOptions.None : FileOptions.SequentialScan);
         StreamReader r;
@@ -415,7 +416,8 @@ public sealed partial class SequentialConnector : FileConnector
     }
 
     /// <summary>⛔ THE ONE SPELLING OF THIS CONNECTOR'S WRITE HANDLE — the OUTPUT arm
-    /// (<see cref="FileMode.Create"/>) and the EXTEND arm (<see cref="FileMode.Append"/>). The role
+    /// (<see cref="FileMode.Create"/>) and the EXTEND arm (<see cref="FileMode.Append"/>), each <see cref="FileMode.CreateNew"/>
+    /// instead when the OPEN creates the file from an absent presence probe (kb/Work PB3635). The role
     /// decides plain-versus-repositioning from the posture; this decides the newline, the encoding and the
     /// buffer, once. The writer's buffer IS the connector's input-output areas (ISO §12.4.5.14.3 GR1;
     /// <see cref="HostFile.InputOutputAreaBuffer"/>) — the handle beneath it holds none (kb/Work PB643) — so a
@@ -1129,6 +1131,13 @@ public sealed partial class SequentialConnector : FileConnector
         // §14.9.27.4 GR3, so on every mode that consults this an Unauthorized probe has become '37' and can
         // never be read here as "unavailable" (kb/Work PB323).
         bool exists = presence is FilePresence.Present;
+        // ⛔ A CREATION DECIDED ON AN ABSENT PROBE TAKES A HANDLE THAT REFUSES A FILE MADE SINCE (kb/Work PB3635): another run unit's
+        // OPEN OUTPUT takes no entry mutex, so a file can appear between the one presence probe and the handle, and a creation that
+        // replaced or adopted it would lose or journal as its own a file that is not this OPEN's. The refusal makes the OPEN again
+        // over the file that stands (FileConnector.Open). Not for an OUTPUT whose presence the host could not tell (Unauthorized, an
+        // unlistable directory): the file may be there, and OUTPUT replaces it.
+        bool absent = presence is FilePresence.Absent;
+        (_begunByOpen, _openChangedFile) = (null, false);
         // ⛔ UNDER COMMIT CONTROL an OPEN OUTPUT of an existing file CAPTURES it and a creation begins its transaction
         // (DESIGN-runtime-library.md 2.2.2.2, 2.2.2.5 R4), under the entry mutex the entry step took, before the host
         // truncates or creates anything.
@@ -1148,7 +1157,7 @@ public sealed partial class SequentialConnector : FileConnector
                     // physical file — and handed down by the registry as HostShare (kb/Work PB740). It is never
                     // decided here: the Table-19 registry is the in-run-unit arbiter and the handle's share mode
                     // is the file lock against OTHER RUN UNITS, and a boolean cannot be both.
-                    _reader = OpenReader();
+                    _reader = OpenReader(creates: false);
                     NoticeIfLayoutDisagrees();
                     // OPEN INPUT … REVERSED: the count its position needs is taken HERE, inside the OPEN's try,
                     // so a host failure is this OPEN's '30' (see _reversedRecordCount).
@@ -1160,7 +1169,7 @@ public sealed partial class SequentialConnector : FileConnector
                     // (its existing-side column group is `extend I-O output`), so the OUTPUT writer takes the
                     // same posture-derived role the EXTEND writer does — a second writer is possible here too
                     // (kb/Work PB740; the anchoring rule itself is PB739's).
-                    _writer = OpenWriter(FileMode.Create);
+                    _writer = OpenWriter(absent ? FileMode.CreateNew : FileMode.Create);
                     // OPEN OUTPUT truncates, so the physical file holds no records and the shared mint restarts
                     // at 0. §14.9.51.4 GR17 is the sequential-organization rule for it: "The successor
                     // relationship of a sequential file is established by the order of execution of WRITE
@@ -1203,7 +1212,7 @@ public sealed partial class SequentialConnector : FileConnector
                     // difference off the POSTURE — a handle whose file lock admits another writer gets the
                     // repositioning stream — so a clause-less pair the arbiter permits is covered by the same
                     // rule as a SHARING WITH ALL OTHER pair (kb/Work PB740).
-                    _writer = OpenWriter(FileMode.Append);
+                    _writer = OpenWriter(absent ? FileMode.CreateNew : FileMode.Append);   // an absent OPTIONAL file is created (GR17)
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;
 
@@ -1221,10 +1230,10 @@ public sealed partial class SequentialConnector : FileConnector
                     if (!exists && !IsOptional) return FileStatusCode.FileNotFound;
                     // create empty, then close — an auxiliary handle, not the connector's stream
                     // (under commit control the kept handle OpenReader takes creates it: HeldStream)
-                    if (!exists && !CommitControlled) using (Medium.OpenAuxiliary(HostPath, FileMode.Create, FileAccess.Write)) { }
+                    if (!exists && !CommitControlled) using (Medium.OpenAuxiliary(HostPath, FileMode.CreateNew, FileAccess.Write)) { }
                     // ReadWrite access and NO FileOptions.SequentialScan for this mode — both decided once, in
                     // OpenReader, the one spelling of the read handle.
-                    _reader = OpenReader();
+                    _reader = OpenReader(creates: !exists);
                     NoticeIfLayoutDisagrees();
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;
@@ -1265,7 +1274,10 @@ public sealed partial class SequentialConnector : FileConnector
             {
                 _reader = null;
                 _writer = null;
-                AbandonHeld();
+                // The journal this OPEN began goes with its handle when the OPEN did not affect the file (§14.9.27.4 GR25;
+                // kb/Work PB3635): a refused creation leaves no transaction, and a retried OPEN begins its own.
+                try { AbandonHeld(); }
+                finally { WithdrawWhatTheOpenBegan(); }
             }
             return;
         }
