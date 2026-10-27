@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// then created the file empty and adopted it, so an OPEN INPUT / I-O / EXTEND answered success over a file that was never there, and
 /// a covered OPEN journaled a file that did not exist as present. The OPEN is unsuccessful instead (§14.9.27.4 GR25: the file is not
 /// affected) and is made again from its entry step, so its probe finds the file gone and the order is the one in which the other run
-/// unit's removal ran first: §9.1.13.6 item 5's '35' for a non-optional file, GR17's '05' creation for an OPTIONAL one on I-O or EXTEND,
+/// unit's removal ran first: §9.1.13.6 item 5's '35' for a non-optional file, §14.9.27.4 GR17's '05' creation for an OPTIONAL one on I-O or EXTEND,
 /// GR13's '05' for an OPTIONAL INPUT, GR18's creation for OUTPUT.
 /// <para>The removal is made at the exact point between the probe and the handle, with no timing: the Table 19 column request
 /// (<see cref="ColumnRequestLog.Before"/>) of a present file's OPEN runs after the probe and before the organization's body in every
