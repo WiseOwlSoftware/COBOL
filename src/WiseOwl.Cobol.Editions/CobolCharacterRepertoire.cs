@@ -103,6 +103,12 @@ public static partial class CobolCharacterRepertoire
         return WordCharacterPosition.NotPermitted;
     }
 
+    /// <summary>Are <paramref name="word"/>'s characters where SOME edition's Annex B permits them (<see cref="Violation"/>
+    /// is null at 2023 or at 2014, whose table 2002 shares; COBOL-85's basic repertoire is a subset of both)? A word
+    /// no edition admits is no COBOL word whatever edition is targeted, so a reading of the source that takes it for
+    /// one is no reading the standard has (the parse layer's missing-period guess, kb/Work PB3832).</summary>
+    public static bool IsWordAtSomeEdition(string word) => Violation(word, 2023) is null || Violation(word, 2014) is null;
+
     /// <summary>The first Annex B violation in <paramref name="word"/> at <paramref name="dialectLevel"/> — a
     /// character outside the repertoire, a B.3 item 2 character first, or a B.3 item 3 character first or last — as
     /// the diagnostic's message; null when every character is where Annex B permits it. Hyphen and underscore never
