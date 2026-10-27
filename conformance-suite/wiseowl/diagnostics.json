@@ -20123,7 +20123,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: unexpected 'MULTIPLE'"
+  "expect": "COBOL0001: missing token before 'MULTIPLE'"
  },
  "pb756-alternate-record-omitted": {
   "refuse-at": [
@@ -23760,5 +23760,119 @@
    "2023"
   ],
   "expect": "COBOL0902"
+ },
+ "pb3794-message-reserved-85-2002": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOL0901: 'MESSAGE' is a reserved word"
+ },
+ "pb3794-multiple-reserved-at-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0901: 'MULTIPLE' is a reserved word"
+ },
+ "pb3794-order-reserved-from-2002": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0901: 'ORDER' is a reserved word"
+ },
+ "pb3347-switch-condition-name-ambiguous-if": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1639: the condition-name 'S-ON' does not uniquely identify a level-88"
+ },
+ "pb3347-switch-condition-name-ambiguous-set": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1639: the condition-name 'S-ON' does not uniquely identify a level-88"
+ },
+ "pb3347-container-switch-condition-name-beside-global-level88": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1639: the condition-name 'S-ON' does not uniquely identify a level-88"
+ },
+ "pb3683-report-sign-without-separate-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: a SIGN clause without SEPARATE CHARACTER in a report group description entry requires COBOL-2002"
+ },
+ "pb3683-report-group-sign-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: a SIGN clause on a report group description entry that is a group requires COBOL-2002"
+ },
+ "pb3760_parenthesized_literal_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1688"
+ },
+ "pb3760_invoke_parenthesized_literal_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0828"
+ },
+ "pb3760_function_parenthesized_literal_group_formal_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2470"
+ },
+ "pb3760_literal_and_expression_arguments_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900"
+ },
+ "pb3760_grouped_literal_before_boolean_argument_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1688"
+ },
+ "pb3760_invoke_grouped_literal_before_boolean_argument_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0828"
+ },
+ "pb3760_grouped_nonnumeric_literal_argument_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1511"
  }
 }

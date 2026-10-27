@@ -85,7 +85,6 @@
     "meter_max_age_hours": 3
   },
   "routing": {
-    "default": "sonnet",
     "allowed": [
       "sonnet",
       "opus"
@@ -111,11 +110,12 @@
       ],
       "failed_attempts_at_least": 2
     },
-    "owner_approval_patterns": [
-      "(?i)\\b(mythos|fable)\\b[\\s\\S]{0,160}?\\bapprov"
+    "frontier": [
+      "fable",
+      "mythos"
     ],
-    "_owner_approval_why": "A note whose body says its work needs a frontier model (Fable, Mythos) under the owner's approval is never planned: that approval is per dispatch (MANDATORY-PRACTICES P1), which an unattended wave cannot obtain, so the planner lists the note as waiting and the attended session asks. First case: PB2118, R1's authorship (kb/Work R69 section 4, PB2120, 2026-10-07).",
-    "_why": "Opus where the work is design-heavy (OO, grammar), where a note says a design question is open, or where a note has already failed twice (a note that fails twice is a task-spec problem, kb/Work PB1981). Opus also for the legacy-retirement cuts (CI and gate wiring carry the CI invariant) and the architecture review's R0/R1 items (kb/Work R69). Fable and Mythos are never values here: each needs explicit owner approval per dispatch (owner 2026-10-02; R69 2026-10-06)."
+    "_frontier_why": "The frontier families: the values a kb/Work note's `frontier_model:` field may take (work.py check). A note whose work runs on one of them is never planned: that approval is per dispatch (MANDATORY-PRACTICES P1), which an unattended wave cannot obtain, so the planner lists the note as waiting and the attended session asks. First case: PB2118, R1's authorship (kb/Work R69 section 4, PB2120, 2026-10-07). The FIELD decides: a regex over the body (`(mythos|fable)` within 160 characters of `approv`) decided it until 2026-10-27, and it held every note that recorded an owner approval given in the Mythos session, the owner-approved wrong-answer fix PB3869 among them (kb/Work PB3941).",
+    "_why": "The implementer's DEFAULT model is the `model` of .claude/agents/cobol-implementer.md (coord.agent_model; the one home, which the harness also reads), Sonnet since the owner's decision of 2026-10-27 (kb/Work PB3868: from 2026-10-17, where landing is measurable, Sonnet groups cost 0.16 weekly points per landed note against Opus's 0.27, reviews, fix rounds, finishers and retries charged in, and landed 95 % against 94 %). These rules route a group to Opus: where the work is design-heavy (OO, grammar), where a note says a design question is open, or where a note has already failed twice (a note that fails twice is a task-spec problem, kb/Work PB1981). Opus also for the legacy-retirement cuts (CI and gate wiring carry the CI invariant) and the architecture review's R0/R1 items (kb/Work R69). Fable and Mythos are never values here: each needs explicit owner approval per dispatch (owner 2026-10-02; R69 2026-10-06)."
   },
   "cost": {
     "r2": {
@@ -262,7 +262,6 @@
     "max_groups_source": "waves 1011-1015 ran 5 to 7 groups; the budget is the governor, this bounds one wave's groups",
     "codes_per_group": 3,
     "concurrency": 6,
-    "implementer_model": "sonnet",
     "orchestrator_model": "opus"
   }
 }

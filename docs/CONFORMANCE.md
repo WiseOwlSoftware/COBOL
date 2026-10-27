@@ -271,9 +271,11 @@ of an unsupported facility.
   the standard gives no representation, so the determination follows the literal, not the engine. The same characters cross
   a CALL ... AS NESTED, a Format-1 CALL and an INVOKE argument BY CONTENT into a plain-group formal; a function-identifier is a
   MOVE sender (§14.9.25.4 GR1), so §14.8.2.2 rule 2 admits it there (only an arithmetic expression, which is no MOVE sender, is
-  refused; so is the same function or item ENCLOSED IN PARENTHESES, `(FUNCTION MIN(N 3))` or `(N)`, which is no longer an argument
-  that "consists merely of a single identifier or literal", §14.9.4.4 GR8, whatever tree the binder reduces it to: kb/Work PB3678,
-  `pb3678_parenthesized_function_group_formal_refused`). An ITEM sends its storage image (a signed DISPLAY item its overpunched sign), which D-B3's codec already gives.
+  refused; so is the same function, item or numeric literal ENCLOSED IN PARENTHESES, `(FUNCTION MIN(N 3))`, `(N)` or `(3)`, which is
+  no longer an argument that "consists merely of a single identifier or literal", §14.9.4.4 GR8, whatever tree the binder reduces it
+  to: kb/Work PB3678, `pb3678_parenthesized_function_group_formal_refused`; kb/Work PB3760,
+  `pb3760_parenthesized_literal_group_formal_refused` and its INVOKE and user-defined function siblings. A literal's sign is part of
+  it, §8.3.3.3.2 rule 2, so `-3` is still the literal and `(-3)` an expression). An ITEM sends its storage image (a signed DISPLAY item its overpunched sign), which D-B3's codec already gives.
   Written once, in `OperandText.NonElementaryMoveSender`, whose digit rule is `CobolNum.GroupDigits`; witnessed by
   `conformance:wiseowl/cases/14.9.25-MOVE/pb3570_numeric_literal_group_move`,
   `conformance:wiseowl/cases/14.9.25-MOVE/pb3570_floating_literal_group_move`,
@@ -1633,11 +1635,20 @@ of an unsupported facility.
   to which the SIGN clause applies" to be USAGE DISPLAY. The 2023 §13.18.52.3 keeps neither restriction. At `--std 85`
   each is refused with COBOL0900 through its construct row (`sign-group-unsigned-subordinates-2002`,
   `sign-group-nondisplay-subordinate-2002`; `DataBinder.GateGroupSignSubordinates`); at 2002 and later the 2023
-  rules and D-SIGN1 apply. The 2002 edge is DERIVED (the repo holds no 1985 or 2002 text) and stated in the VCR row
-  so it can be overturned. A subordinate that writes its own SIGN clause is outside the group's reach (§13.18.52.4
+  rules and D-SIGN1 apply. The 2002 edge of the first restriction is QUOTED (ISO/IEC 1989:2002 Annex F.2 item 124:
+  "A sign clause may be specified on any group item. Formerly, the group had to contain at least one numeric item.");
+  the second is DERIVED and stated in the VCR row so it can be overturned. A subordinate that writes its own SIGN clause is outside the group's reach (§13.18.52.4
   GR2/GR3), so `01 G SIGN LEADING SEPARATE. 05 C PIC S9(3) COMP SIGN TRAILING.` is refused for C's own clause
   (§13.18.52.3 SR2, COBOL2422), never twice. Witnessed by `conformance:cases/13.18.52-SIGN/pb1319_sign_group_subjects_2002`,
   `conformance:cases/13.18.52-SIGN/pb1319-sign-group-unsigned-85` and `conformance:cases/13.18.52-SIGN/pb1319-sign-group-comp-85`.
+  **The report arm (kb/Work PB3683).** A report group description entry's SIGN clause is narrower at 85 in two ways,
+  both QUOTED from ISO/IEC 1989:2002 Annex F.2 item 123 ("The SEPARATE phrase is no longer required in a report
+  description entry and the SIGN clause may be specified at the group level"): the clause needs SEPARATE CHARACTER, and
+  it is written on an elementary entry only. Each is refused at `--std 85` with COBOL0900 through its construct row
+  (`report-sign-without-separate-2002`, `report-group-sign-2002`; `DataBinder.ScreenReportSignClauses`, once per
+  written entry); at 2002 and later §13.18.52.3 SR1 and §13.18.52.4 GR5 apply. Witnessed by
+  `conformance:cases/13.18.52-SIGN/pb3683_report_sign_2002`, `conformance:cases/13.18.52-SIGN/pb3683-report-sign-without-separate-85`
+  and `conformance:cases/13.18.52-SIGN/pb3683-report-group-sign-85`.
 
 - **NUMVAL-F — a space may not SPLIT the exponent's `n` (§15.69.3 r1/r5 · §15.95.4 r1 b) 1; kb/Work PB256).**
   §15.69.3 r5 says "Leading and trailing spaces in argument-1 are ignored. Embedded spaces in argument-1 are
@@ -1767,7 +1778,7 @@ of an unsupported facility.
   at 2002 and 2014, a user-defined word at 85 (no OO) and at 2023. The standard still SPELLS METHOD in the END METHOD
   marker (§10.7.2; `cite.py --check 10.7.2 "METHOD, and INTERFACE are underlined"` → OK) and in EXIT METHOD (`cite.py --check E.2 "EXIT METHOD statement"` → OK; the 2002 and 2014 statement,
   removed at 2023); those keyword positions read the word whether or not the program also declares a data item of that
-  name (`methodKeyword`, `CobolOO.g4`). ⚠ DETERMINATION (owner may overturn): the standard's own text decides — a
+  name (`methodKeyword`, generated into `CobolWords.g4` from the row's `keywordWhereFree` determination in `cobol-words.json`, the rule MESSAGE, MULTIPLE and ORDER share; kb/Work PB3794). ⚠ DETERMINATION (owner may overturn): the standard's own text decides — a
   word its list does not reserve is not reserved (§4.2.8, §8.3.2.1 rule 1) — so the alternative, treating the
   omission as a typo and keeping METHOD reserved at 2023, would be an added reserved word that §4.2.10 3) obliges this
   document to list, and would refuse a program the standard permits. Pinned by `conformance:cases/_unassigned/pb2623_method_is_a_user_word_at_2023`,

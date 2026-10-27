@@ -52,6 +52,12 @@ frontmatter is snake_case, and `kb/Work.base` addresses a property as `note.<key
 at best need quoting and at worst read as an operator. Checked against the inventory by `work_inventory.py` (the
 landed-note and the closed-row halves); the SHAPE half is :func:`closes_rows_shape` here.
 
+⭐ `kind: upstream` — A RECORD OF ANOTHER PROJECT'S DEFECT (kb/Work PB3838), the register's newest kind. GnuCOBOL's
+departures from ISO and its defects, found by our differentials, are kept as notes carrying a minimal repro, the exact
+command, the observed result, a checked ISO citation and a draft report, so an issue or a patch can be filed later.
+:func:`upstream_problems` holds each to that bar and keeps it OUT of every list of our work (`process_only`, no
+cluster or tier); `--self-test` runs :func:`upstream_findings` over it.
+
 ⛔ AND THE READER ITSELF IS A GATE: `parse_frontmatter` is THE reader of the register — there is no second one — and
 `--self-test` holds it to `tests/version-matrix/work-frontmatter-cases.json`, the shapes the register has contained, each
 of which broke a reader once (`kb/Work/PB875`: a list WRAPPED across two lines was truncated here and discarded by the
@@ -75,7 +81,7 @@ QUEUE = REPO / "docs" / "rearchitecture" / "CONFORMANCE-FIX-QUEUE.md"
 PLAN = REPO / "docs" / "REARCHITECTURE_PLAN.md"
 WORK = REPO / "kb" / "Work"
 
-KINDS = {"defect", "analysis", "adjudication", "decision"}
+KINDS = {"defect", "analysis", "adjudication", "decision", "upstream"}
 STATUSES = {"open", "half", "landed", "owner", "blocked", "retired"}
 #: The statuses that mean an item is DONE — the ONE vocabulary every reader of the register asks (kb/Work PB3196:
 #: the R0 census and the note generator each read the status their own way, and the census's own copy held four
@@ -399,6 +405,20 @@ def check_base_agrees() -> list[str]:
         out.append("kb/Work.base reads a stored `blocked` property; read `formula.blocked` — no note stores it "
                    "(kb/Work PB3389)")
 
+    # ⭐ THE `upstream` KIND (kb/Work PB3838) has its own view and is nobody's deferred work: `Upstream records` lists
+    # the kind, `Open but no harm flag set` (the complement of Fix next, which an upstream record would otherwise
+    # fill) excludes it, and every upstream_* field is a displayed property (UPSTREAM_KEYS, so the next one is automatic).
+    views = {v.group("name"): v.group("body")
+             for v in re.finditer(r"^    name:\s*(?P<name>.+?)\s*\n(?P<body>(?:(?!  - type:).*\n)+)", text, re.M)}
+    if 'kind == "upstream"' not in views.get("Upstream records", ""):
+        out.append("kb/Work.base: no `Upstream records` view selecting `kind == \"upstream\"` — the record of another "
+                   "project's defects (kb/Work PB3838) has no place to be read")
+    if 'kind != "upstream"' not in views.get("Open but no harm flag set", ""):
+        out.append("kb/Work.base: `Open but no harm flag set` does not exclude `kind != \"upstream\"` — an upstream "
+                   "record is a note about another project and would be listed there as our deferred work (PB3838)")
+    out += [f"kb/Work.base: no `note.{k}` property (displayName) — the Upstream records view cannot label it"
+            for k in UPSTREAM_KEYS if f"note.{k}:" not in text]
+
     # ⛔ THE SAME DUPLICATION ONE PROPERTY OVER. Every view of OPEN work spells the terminal statuses out one by
     # one, and `retired` was added to STATUSES after those views were written — so the first retired note went on
     # showing in "Open but no harm flag set" as though it were open, while `work.py next` (status in open/half)
@@ -460,6 +480,139 @@ def closes_rows_shape(it: dict) -> list[str]:
     return bad
 
 
+# ── the `upstream` kind: a record of ANOTHER implementation's defect (kb/Work PB3838) ────────────────────────────
+#
+# ⭐ WHY A KIND, NOT A DEFECT. Our two differentials find GnuCOBOL's departures from ISO and its outright defects, and the
+# findings lived as counted prose in evidence documents, with the witness programs in git-ignored run directories on one
+# machine (kb/Work PB3838). An `upstream` note is the record that survives them: a minimal repro, the exact `cobc`
+# command, the observed result, a checked ISO citation, our compiler's result, the fix site in the other project's
+# source and the state of the report, to the owner's eight-item bar (PB3838). It is a note about a GnuCOBOL user, never
+# about ours, so it is kept OUT of every list that plans our work by ONE rule, checked below: it is `process_only`
+# (`actionable`, `next`, the ledger's compiler-work counts and the fuzz cadence's open-note rule already read that flag,
+# and its harm flags describe the GnuCOBOL user) and it is in no cluster, tier or blocking chain (so no campaign lane,
+# planner or `next --cluster` ever offers it). `kb/Work.base` carries the matching view (`check_base_agrees`).
+UPSTREAM_CLASSES = ("crash", "wrong-output", "rejects-legal-source", "accepts-forbidden-source",
+                    "not-implemented-at-run-time", "feature-missing")
+UPSTREAM_STATUSES = ("unreported", "reported", "fixed-upstream", "declined", "duplicate")
+#: The upstream states that end the matter: the note's own `status` is then terminal (and only then).
+UPSTREAM_DONE = ("fixed-upstream", "declined", "duplicate")
+UPSTREAM_EDITIONS = ("1985", "2002", "2014", "2023")
+#: The edition whose behaviour only the newest standard requires: a request for a feature, never a bug against a release
+#: that claims an older `-std` (PB3838, item 4 of the bar).
+UPSTREAM_FEATURE_EDITION = "2023"
+UPSTREAM_KEYS = ("upstream_project", "upstream_version", "upstream_class", "upstream_status", "upstream_edition",
+                 "upstream_ref")
+#: The body sections that carry the bar's eight items, by the words each `## ` heading opens with. The class (item 5)
+#: is `upstream_class`, and the checked citation (item 4) is also `spec_refs`.
+UPSTREAM_SECTIONS = ("Minimal test case", "Environment", "Observed result", "Expected result", "Our compiler",
+                     "Fix site", "Upstream state", "Draft issue")
+#: The longest fenced block a record may carry. A minimal repro is a few dozen lines; a longer block is a program lifted
+#: from the other project's GPL testsuite, which the owner forbids committing (PB3838, standing requirement 3).
+UPSTREAM_MAX_FENCE_LINES = 60
+_FENCE = re.compile(r"^[ \t]*```")
+_SECTION_HEADING = re.compile(r"^(#{1,2})[ \t]+(.*?)\s*$")
+_SPEC_REF = re.compile(r"\A[0-9A-Z][0-9A-Za-z.]*\Z")
+
+
+def body_sections(body: str) -> dict[str, str]:
+    """The `## ` sections of a note body as `{heading text: the lines under it up to the next heading of level 1 or 2}`
+    (a `#` line inside a fenced block is no heading)."""
+    out: dict[str, list[str]] = {}
+    cur: str | None = None
+    fenced = False
+    for line in body.splitlines():
+        if _FENCE.match(line):
+            fenced = not fenced
+        elif not fenced and (h := _SECTION_HEADING.match(line)):
+            cur = h.group(2) if len(h.group(1)) == 2 else None
+            if cur is not None:
+                out.setdefault(cur, [])
+            continue
+        if cur is not None:
+            out[cur].append(line)
+    return {k: chr(10).join(v) for k, v in out.items()}
+
+
+def fence_lengths(body: str) -> list[int]:
+    """The line count of every fenced block of `body`."""
+    out: list[int] = []
+    n: int | None = None
+    for line in body.splitlines():
+        if _FENCE.match(line):
+            if n is None:
+                n = 0
+            else:
+                out.append(n)
+                n = None
+        elif n is not None:
+            n += 1
+    return out
+
+
+def upstream_problems(it: dict) -> list[str]:
+    """What is wrong with one note as an `upstream` record, or (for any other kind) with an `upstream_*` key it carries.
+
+    ⛔ THE BAR IS CHECKED, NOT HOPED FOR: a record that cannot yet meet the owner's eight items (PB3838) stays in the
+    harvest and is never filed half, so a note missing one is refused here rather than waved through as "partial". What
+    is checked is what the note alone can show: the structured fields, the eight body sections non-empty, a spelled
+    citation, the GPL size guard on fenced blocks, and the planning exclusion. Whether the citation is the right clause
+    is `cite.py --check`'s, and whether the repro reduces further is the refuter's; no script decides either."""
+    f = it["_file"]
+    if it.get("kind") != "upstream":
+        return [f"{f}: {k} on a note of kind {it.get('kind')!r} — the upstream_* fields belong to `kind: upstream` "
+                f"records only (kb/Work PB3838)" for k in UPSTREAM_KEYS if k in it]
+    bad: list[str] = []
+
+    def need(why: str) -> None:
+        bad.append(f"{f}: upstream record {why} (kb/Work PB3838)")
+
+    if it.get("process_only") is not True:
+        need("must set `process_only: true`: it describes a defect in another project, so it ranks nothing in our Fix "
+             "next and is counted as no compiler work of ours")
+    for k in ("cluster", "tier", "blocked_by", "inventory_rows", "closes_rows", "frontier_model"):
+        if it.get(k):
+            need(f"names `{k}`, which plans or claims OUR work: a record sits outside every campaign, tier, blocking "
+                 f"chain, inventory row and dispatch (relate it with `related:` instead)")
+    for k in ("upstream_project", "upstream_version"):
+        if not isinstance(it.get(k), str) or not it[k].strip():
+            need(f"has no `{k}` (the project and the exact release the repro was run on)")
+    for k, allowed in (("upstream_class", UPSTREAM_CLASSES), ("upstream_status", UPSTREAM_STATUSES),
+                       ("upstream_edition", UPSTREAM_EDITIONS)):
+        if it.get(k) not in allowed:
+            need(f"has {k} {it.get(k)!r}, not one of {list(allowed)}")
+    if it.get("upstream_edition") == UPSTREAM_FEATURE_EDITION and it.get("upstream_class") != "feature-missing":
+        need(f"claims edition {UPSTREAM_FEATURE_EDITION} with class {it.get('upstream_class')!r}: a behaviour only the "
+             f"newest edition requires is a feature request (class `feature-missing`), never a bug against a release "
+             f"that claims an older -std")
+    refs = it.get("spec_refs")
+    if not isinstance(refs, list) or not refs or not all(isinstance(r, str) and _SPEC_REF.match(r) for r in refs):
+        need(f"has `spec_refs` {refs!r}: it names the ISO clause(s) the expected result rests on, as clause numbers "
+             f"(each validated with `python scripts/spec/cite.py --check`)")
+    ref = it.get("upstream_ref")
+    if it.get("upstream_status") == "unreported" and ref:
+        need(f"is `unreported` but carries upstream_ref {ref!r}")
+    elif it.get("upstream_status") in UPSTREAM_STATUSES[1:] and not ref:
+        need(f"is `{it.get('upstream_status')}` but has no `upstream_ref` (the ticket or patch link)")
+    if it.get("upstream_status") in UPSTREAM_STATUSES:
+        done = it.get("upstream_status") in UPSTREAM_DONE
+        if done != (it.get("status") in TERMINAL_STATUSES):
+            need(f"has upstream_status {it.get('upstream_status')!r} but status {it.get('status')!r}: the note is "
+                 f"terminal exactly when the matter is ended upstream ({list(UPSTREAM_DONE)})")
+    body = it.get("_body", "")
+    sections = body_sections(body)
+    for name in UPSTREAM_SECTIONS:
+        text = next((t for h, t in sections.items() if h.lower().startswith(name.lower())), None)
+        if text is None:
+            need(f"has no `## {name}` section (the bar's eight items, PB3838)")
+        elif not text.strip():
+            need(f"has an empty `## {name}` section")
+    for n in fence_lengths(body):
+        if n > UPSTREAM_MAX_FENCE_LINES:
+            need(f"carries a fenced block of {n} lines (the cap is {UPSTREAM_MAX_FENCE_LINES}): a minimal repro is "
+                 f"smaller, and a long block is how GPL testsuite text gets committed")
+    return bad
+
+
 def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[str]]:
     """`(the notes under work_dir, every problem of the register)`: the unreadable notes (read_notes), each note's own
     schema, the topology and the site blocks, duplicate ids and, for the repository's OWN register only, the audits
@@ -492,6 +645,8 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
                        f'`work.py next`. Set one of {list(HARM_FLAGS)}, or process_only: true if it '
                        f'genuinely does nothing to a user\'s program.')
         bad += closes_rows_shape(it)
+        bad += frontier_model_shape(it)
+        bad += upstream_problems(it)
     bad += topology_problems(items)
     bad += sites_problems(items)
     ids = [it.get("id") for it in items]
@@ -892,6 +1047,29 @@ def _site_blocks(text: str) -> list[str]:
 @functools.lru_cache(maxsize=None)
 def _path_token(roots: tuple[str, ...]) -> re.Pattern[str]:
     return re.compile(r"(?<![\w/.-])((?:" + "|".join(map(re.escape, roots)) + r")/" + _PATH_CHAR + "+)")
+
+
+@functools.lru_cache(maxsize=1)
+def frontier_models() -> frozenset[str]:
+    """model_rules.json `routing.frontier` (coord.frontier_models, the one reader of model_rules.json): the values a
+    note's `frontier_model:` may take."""
+    sys.path.append(str(REPO / "scripts" / "orchestrator"))
+    import coord  # noqa: PLC0415
+    return coord.frontier_models()
+
+
+def frontier_model_shape(it: dict) -> list[str]:
+    """`frontier_model:`, when present, names one frontier family (model_rules.json `routing.frontier`). It is the ONE
+    signal that a note's work runs on a frontier model under the owner's per-dispatch approval (MANDATORY-PRACTICES P1):
+    the planner holds such a note (plan_wave.py item 8). A regex over the body decided it before, and held every note
+    that recorded an approval the owner gave in the Mythos session (kb/Work PB3941)."""
+    fm = it.get("frontier_model")
+    # Any value but a string (a list, a number) is refused by name: a membership test on it would raise and stop
+    # `work.py check` instead of naming the note.
+    if fm is None or (isinstance(fm, str) and fm in frontier_models()):
+        return []
+    return [f'{it["_file"]}: frontier_model is {fm!r}, not one of {sorted(frontier_models())} — name the frontier model '
+            f'the note\'s work runs on, or drop the field when it runs on the default models']
 
 
 @functools.lru_cache(maxsize=1)
@@ -1469,6 +1647,79 @@ def directory_findings(fixture: dict) -> list[str]:
     return bad
 
 
+def _upstream_fixture(**changes: str | None) -> str:
+    """One well-formed `upstream` note as text; `changes` replaces a frontmatter line by key (a `None` drops it) or a
+    body section's text by `section_<index into UPSTREAM_SECTIONS>` (a `None` drops the whole section)."""
+    nl = chr(10)
+    fm = {"id": "PB9100", "kind": "upstream", "status": "open", "area": "tooling/upstream", "wrong_answer": "true",
+          "process_only": "true", "spec_refs": '["14.9.25"]', "upstream_project": "GnuCOBOL", "upstream_version": "3.2.0",
+          "upstream_class": "wrong-output", "upstream_status": "unreported", "upstream_edition": "2014",
+          "upstream_ref": "", "cluster": "[]", "blocked_by": "[]", "inventory_rows": "[]"}
+    fm = {k: v for k, v in {**fm, **{k: v for k, v in changes.items() if not k.startswith("section_")}}.items()
+          if v is not None}
+    lines = ["---", *(f"{k}: {v}" for k, v in fm.items()), "---", "", "# PB9100 — a record", ""]
+    fence = "`" * 3
+    for i, name in enumerate(UPSTREAM_SECTIONS):
+        text = changes.get(f"section_{i}", f"{fence}{nl}MOVE A TO B.{nl}{fence}" if i == 0 else "stated")
+        if text is not None:
+            lines += [f"## {name}", "", text, ""]
+    return nl.join(lines)
+
+
+def upstream_findings() -> list[str]:
+    """The `upstream` kind held to its own rules (kb/Work PB3838), the drift test of the kind: a well-formed record passes
+    `register_problems`; each way of failing the bar is reported by name; the record is outside `actionable` and every
+    cluster; and the shipped `kb/Work.base` and the planner-facing exclusions agree (check_base_agrees)."""
+    import tempfile  # noqa: PLC0415
+
+    bad: list[str] = []
+    long_block = "`" * 3 + chr(10) + chr(10).join("X" for _ in range(UPSTREAM_MAX_FENCE_LINES + 1)) + chr(10) + "`" * 3
+    cases: list[tuple[str, dict, str]] = [
+        ("a well-formed record", {}, ""),
+        ("process_only false", {"process_only": "false"}, "process_only: true"),
+        ("a cluster", {"cluster": '["PB3838"]'}, "names `cluster`"),
+        ("a claimed inventory row", {"inventory_rows": '["AR-1.1-1"]'}, "names `inventory_rows`"),
+        ("a frontier model", {"frontier_model": "mythos"}, "names `frontier_model`"),
+        ("no version", {"upstream_version": None}, "no `upstream_version`"),
+        ("an unknown class", {"upstream_class": "bug"}, "upstream_class 'bug'"),
+        ("an unknown status", {"upstream_status": "filed"}, "upstream_status 'filed'"),
+        ("a 2023-only behaviour filed as a bug", {"upstream_edition": "2023"}, "feature request"),
+        ("a 2023-only behaviour filed as a feature", {"upstream_edition": "2023", "upstream_class": "feature-missing"}, ""),
+        ("no citation", {"spec_refs": "[]"}, "has `spec_refs`"),
+        ("reported with no ticket", {"upstream_status": "reported"}, "no `upstream_ref`"),
+        ("reported with a ticket", {"upstream_status": "reported", "upstream_ref": "https://example.test/t/1"}, ""),
+        ("unreported with a ticket", {"upstream_ref": "https://example.test/t/1"}, "is `unreported` but carries"),
+        ("declined upstream but open here", {"upstream_status": "declined", "upstream_ref": "t/2"}, "terminal exactly when"),
+        ("declined upstream and retired here", {"upstream_status": "declined", "upstream_ref": "t/2", "status": "retired"}, ""),
+        ("no observed result", {"section_2": None}, "no `## Observed result` section"),
+        ("an empty fix-site section", {"section_5": ""}, "empty `## Fix site` section"),
+        ("a pasted testsuite-sized program", {"section_0": long_block}, "fenced block of"),
+    ]
+    with tempfile.TemporaryDirectory(prefix="work-upstream-cases-") as tmp:
+        for n, (name, changes, expect) in enumerate(cases):
+            d = pathlib.Path(tmp, str(n))
+            d.mkdir()
+            (d / "PB9100.md").write_bytes(_upstream_fixture(**changes).encode("utf-8"))
+            items, problems = register_problems(d)
+            if expect == "" and problems:
+                bad.append(f"upstream case {name!r}: a well-formed record was refused: {problems}")
+            elif expect and not any(expect in p for p in problems):
+                bad.append(f"upstream case {name!r}: no problem names {expect!r}; got {problems}")
+        d = pathlib.Path(tmp, "good")
+        d.mkdir()
+        (d / "PB9100.md").write_bytes(_upstream_fixture().encode("utf-8"))
+        items = load(d)
+        if actionable(items):
+            bad.append("an upstream record that sets a harm flag is ACTIONABLE — it describes another project's user")
+        if cluster_order(items, "PB3838")["named"]:
+            bad.append("an upstream record is a member of a cluster")
+        (d / "PB9101.md").write_bytes(_upstream_fixture(id="PB9101", kind="defect").encode("utf-8"))
+        _, problems = register_problems(d)
+        if not any("upstream_project on a note of kind 'defect'" in p for p in problems):
+            bad.append(f"an upstream_* field on a defect note is not refused: {problems}")
+    return bad
+
+
 def self_test() -> int:
     """Evaluate `tests/version-matrix/work-frontmatter-cases.json` against `parse_frontmatter`.
 
@@ -1506,6 +1757,18 @@ def self_test() -> int:
         findings.append(f'{len(fixture["cases"])} case(s) — too few to be measuring the reader')
 
     findings += directory_findings(fixture)
+    findings += upstream_findings()
+
+    # `frontier_model:` names a frontier family or is absent (kb/Work PB3941): every family is accepted, and a value
+    # that is none (the alias `opus`, a dated id, a LIST such as `[mythos]`, which must be refused by name rather than
+    # raise a TypeError that stops `work.py check`) is refused, so a typo can never leave a frontier note unheld.
+    findings += [f"frontier_model_shape refuses the frontier family {m!r}"
+                 for m in sorted(frontier_models()) if frontier_model_shape({"_file": "PB1.md", "frontier_model": m})]
+    findings += [f"frontier_model_shape accepts {m!r}, which is no frontier family"
+                 for m in ("opus", "claude-mythos-5-1", ["mythos"], 5)
+                 if not frontier_model_shape({"_file": "PB1.md", "frontier_model": m})]
+    if not frontier_models() or frontier_model_shape({"_file": "PB1.md"}):
+        findings.append("frontier_model_shape: no frontier family is configured, or a note with no field is refused")
 
     # FALSIFICATION — the comparison must be able to fail, or "no disagreement" is a statement about nothing.
     corrupted = json.loads(json.dumps(fixture))

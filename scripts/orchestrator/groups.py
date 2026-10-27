@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any, Mapping, Sequence
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
+import coord  # noqa: E402  (agent_model: the implementer's default model, from its agent definition)
 from reports import Report  # noqa: E402
 from inflight import Claim  # noqa: E402
 from clusters import Note, cluster_claim  # noqa: E402
@@ -106,9 +107,9 @@ def choose_model(g: Group, notes: dict[str, Note], reports: list[Report], rules:
                 return "opus", f"{nid}: an open design question ({pat})"
         if attempts(nid, reports) >= ow["failed_attempts_at_least"]:
             return "opus", f"{nid} already attempted {attempts(nid, reports)} times without landing"
-    model = rt["default"]
+    model = coord.agent_model("cobol-implementer")
     if model not in rt["allowed"]:
-        raise SystemExit(f"⛔ model_rules.json routing.default {model!r} is not in routing.allowed")
+        raise SystemExit(f"⛔ the model of .claude/agents/cobol-implementer.md, {model!r}, is not in model_rules.json routing.allowed")
     return model, "default"
 
 

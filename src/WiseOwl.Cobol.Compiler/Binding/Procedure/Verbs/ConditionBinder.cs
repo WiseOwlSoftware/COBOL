@@ -429,10 +429,18 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <param name="Reference">The identifier the operand consists of: the written <c>dataReference</c>, or the sole one
     /// of the arithmetic operand.</param>
     /// <param name="Bool">A genuine boolean expression (one that carries a boolean operator), else null.</param>
-    /// <param name="Arith">The arithmetic operand, the one an operator-free boolean node held included.</param>
+    /// <param name="Arith">The arithmetic operand, the one an operator-free boolean node held bare included. Its sole shapes
+    /// (a function-identifier, an OO identifier, a keyword-omitted function) are GR8's identifiers.</param>
+    /// <param name="Grouped">The CONTENT of the grouping parentheses an operator-free boolean node held an arithmetic
+    /// operand in, else null. The argument is "an arithmetic expression enclosed in parentheses" (§8.8.1.1), so it does
+    /// not consist merely of a single identifier or literal: no sole shape is read of it, and every lane binds it as the
+    /// computed operand it is (<see cref="CompoundOperand"/>), never as the literal or identifier it encloses. The
+    /// boolean node holds no context for the parenthesized expression itself, which is why it is a field of its own and
+    /// <see cref="Arith"/> is then null (kb/Work PB3760 review R1-1).</param>
     internal readonly record struct ArgumentOperand(
         Core.LiteralContext? Literal, Core.NonNumericLiteralContext? NonNumericLiteral, string? SoleNumericLiteral,
-        Core.DataReferenceContext? Reference, Core.BooleanExpressionContext? Bool, Core.ArithmeticExpressionContext? Arith);
+        Core.DataReferenceContext? Reference, Core.BooleanExpressionContext? Bool, Core.ArithmeticExpressionContext? Arith,
+        Core.ArithmeticExpressionContext? Grouped);
 
     /// <summary>⛔ THE ONE PARSE-TREE REDUCTION OF AN ACTIVATION ARGUMENT, ISO §14.9.4.4 GR8 (CALL) and §14.9.23.4 GR4
     /// (INVOKE), the same sentence: "An argument that consists merely of a single identifier or literal is regarded as
@@ -443,24 +451,43 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <c>booleanExpression</c> subsumes both, its leaf being <c>valueOperand</c> (<c>arithmeticExpression |
     /// nonNumericLiteral</c>). The predicate's scan runs to the statement's period, so in <c>USING BY CONTENT "AB"
     /// BY CONTENT B1 B-AND B2</c> the first argument reaches the boolean node on the second one's operator. A boolean
-    /// node with no boolean operator therefore reduces to its bare <c>valueOperand</c> (<see cref="UnwrapBareBool"/>),
+    /// node with no boolean operator therefore reduces to its bare <c>valueOperand</c> (its <see cref="SoleFactor"/>),
     /// BOTH legs: the CALL copy once recovered only the arithmetic leg, and "AB" then bound as nothing (PB238).</para>
     /// <para>It used to be written twice, <c>CallBinder.Gr8Classify</c> and an inline block in
     /// <c>OoBinder.OoBindInvocationArg</c>, and only the INVOKE copy folded a sole numeric literal. Pure: it reads
-    /// parse contexts, resolves nothing and reports nothing. The BOUND-tree twin, a literal recovered from a bound
-    /// expression (<c>BY VALUE -1.5E-3</c> arrives as a negation), is <see cref="Gr8ArgumentLiteral"/>.</para></summary>
+    /// parse contexts, resolves nothing and reports nothing. It has NO bound-tree twin, and must not regain one (kb/Work
+    /// PB3760): the expression binder drops grouping parentheses, so a literal "recovered" from a bound expression took
+    /// <c>(3)</c> for the literal 3. Each lane binds the <see cref="ArgumentOperand.SoleNumericLiteral"/> this answers as the
+    /// literal operand (<c>-1.5E-3</c>, which the expression binder takes as a negation, included).</para>
+    /// <para>⛔ THE REDUCTION NEVER CROSSES A GROUPING PARENTHESIS. A condition may unwrap one (§8.8.4.2.1: parentheses
+    /// around a simple condition change nothing, which is <see cref="UnwrapBareBool"/>'s job); an argument may not, because
+    /// GR8's test is what the argument CONSISTS of. <c>(3)</c> and <c>(N)</c> held in the boolean node's
+    /// <c>( booleanExpression )</c> factor are the arithmetic expression <see cref="ArgumentOperand.Grouped"/> names, as they
+    /// are when no later B-operator steers them there; unwrapped, <c>(3)</c> was the literal 3 into a plain-group formal and
+    /// <c>(N)</c> crossed BY REFERENCE, so the callee's store reached N (kb/Work PB3760 review R1-1). A parenthesized
+    /// NONNUMERIC operand stays the boolean expression it is written as: <c>(B"1")</c> is "a boolean expression enclosed in
+    /// parentheses" (§8.8.2), never literal-2.</para></summary>
     internal static ArgumentOperand ReduceArgument(Core.LiteralContext? literal, Core.DataReferenceContext? reference,
         Core.BooleanExpressionContext? boolExpr, Core.ArithmeticExpressionContext? arith)
     {
         var nonNumeric = literal?.nonNumericLiteral();
-        if (boolExpr is not null && UnwrapBareBool(boolExpr) is { } bare)
+        Core.ArithmeticExpressionContext? grouped = null;
+        if (boolExpr is not null && SoleFactor(boolExpr) is { } factor)
         {
-            boolExpr = null;
-            arith = bare.arithmeticExpression();
-            nonNumeric = bare.nonNumericLiteral();
+            if (factor.valueOperand() is { } bare)
+            {
+                boolExpr = null;
+                arith = bare.arithmeticExpression();
+                nonNumeric = bare.nonNumericLiteral();
+            }
+            else if (factor.booleanExpression() is { } inner && UnwrapBareBool(inner)?.arithmeticExpression() is { } content)
+            {
+                boolExpr = null;
+                grouped = content;
+            }
         }
         string? soleNumeric = arith is not null ? SoleNumLiteral(arith) : null;
-        return new(literal, nonNumeric, soleNumeric, reference ?? SoleDataReference(arith), boolExpr, arith);
+        return new(literal, nonNumeric, soleNumeric, reference ?? SoleDataReference(arith), boolExpr, arith, grouped);
     }
 
     /// <summary>The single leaf <c>valueOperand</c> of a B-op-FREE boolean expression (walking single-child
@@ -469,9 +496,19 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// the predicate's scan is condition-shaped and may fire on a B-operator that belongs elsewhere in the
     /// statement, so a parse tree reaching a boolean alternative is not proof of a boolean expression. A
     /// non-null result means "this operand carries NO boolean operator and is a bare operand" — reduce it and
-    /// bind it through the ordinary channel. Every activation argument reaches it through
-    /// <see cref="ReduceArgument"/> (fix-queue PB46, kb/Work PB613).</remarks>
-    internal static Core.ValueOperandContext? UnwrapBareBool(Core.BooleanExpressionContext ctx)
+    /// bind it through the ordinary channel. An activation argument is reduced by <see cref="ReduceArgument"/>
+    /// instead, which stops at the grouping parentheses this walks through (fix-queue PB46, kb/Work PB613, PB3760).</remarks>
+    internal static Core.ValueOperandContext? UnwrapBareBool(Core.BooleanExpressionContext ctx) =>
+        SoleFactor(ctx) switch
+        {
+            { } f when f.valueOperand() is { } vo => vo,
+            { } f when f.booleanExpression() is { } inner => UnwrapBareBool(inner),   // ( … ) group
+            _ => null,   // a B-NOT factor carries a B-op
+        };
+
+    /// <summary>The ONE <c>booleanFactor</c> of a boolean expression with no binary or shift operator, else null — the
+    /// node <see cref="UnwrapBareBool"/> walks through and <see cref="ReduceArgument"/> stops at.</summary>
+    private static Core.BooleanFactorContext? SoleFactor(Core.BooleanExpressionContext ctx)
     {
         var xor = ctx.booleanXorTerm();
         if (xor.Length != 1) return null;
@@ -480,14 +517,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         var shift = and[0].booleanShiftTerm();
         // A bare operand has a single shift term with NO shift suffix (a shift op means it is a real expression).
         if (shift.Length != 1 || shift[0].booleanShiftSuffix().Length != 0) return null;
-        return UnwrapFactor(shift[0].booleanFactor());
-    }
-
-    private static Core.ValueOperandContext? UnwrapFactor(Core.BooleanFactorContext f)
-    {
-        if (f.valueOperand() is { } vo) return vo;
-        if (f.booleanExpression() is { } inner) return UnwrapBareBool(inner);   // ( … ) group
-        return null;   // B-NOT factor — has a B-op, never reaches here
+        return shift[0].booleanFactor();
     }
 
     /// <summary>The carried subject + relational operator for ABBREVIATED COMBINED RELATION CONDITIONS (ISO §8.8.4.12).
@@ -1194,8 +1224,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                     ? new BoundCondition88(parent, cond,
                         ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, dref.Start.Line))
                     : Unresolved(parentAnswer, $"condition-name '{cond.Name}' (unresolvable conditional variable)"));
-        // A switch-status condition-name — resolved AFTER level-88 (NC211A: a name defined as both → the 88
-        // wins), BEFORE the abbreviated-carry fallback.
+        // A switch-status condition-name — asked AFTER level-88 because a level-88 of the spelling in a nearer element is
+        // the §8.4.6.1 own item that a CONTAINER's switch name yields to; a switch declared in the SAME element as a
+        // level-88 of the spelling never gets here, ConditionOf having refused the pair as non-unique (§8.4.2.2.1;
+        // kb/Work PB3347). BEFORE the abbreviated-carry fallback.
         if (inner is { } swx && SoleDataRef(swx) is { } swr && host.Alter.SwitchCondOf(swr) is { } swCond)
             return BareOperandAnalysis.OfCondition(BareOperandForm.SwitchStatus, swCond);
         // ⛔ §13.16.3 SR23's NEGATIVE side (kb/Work PB567): a declared level-88 written under qualifiers its
@@ -1633,18 +1665,29 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // reference is now resolved here more than once — the SEARCH ALL Format-2 screen asks which level-88 a
         // WHEN operand names BEFORE the condition binds it (§14.9.37.3 SR9/SR11 are about that very 88) — and the
         // ambiguity is one fact about one reference, not one per asker.
-        if (matches.Count > 1 && _condDiagnosed.Add(dref))
+        // ⛔ A SWITCH CONDITION-NAME DECLARED IN THE 88'S OWN SOURCE ELEMENT IS ONE MORE CANDIDATE (kb/Work PB3347): it is
+        // the same type of user-defined word as a level-88 (§8.3.2.2.4) and takes no qualifier, so an unqualified
+        // reference to a spelling both declare is non-unique (§8.4.2.2.1 1, §8.4.2.2.3 SR1) — the 88 used to win silently
+        // ("NC211A regression guard"), so `IF S-ON` read the level-88 for an OFF switch. A qualified reference names the
+        // 88 alone (SR5). "The same element" is a TIER (a container's switch beside a container's GLOBAL 88 is the same
+        // pair, kb/Work PB3347 review R1-1), and an 88 of a NEARER element is the item the reference names (§8.4.6.2.1 3 a,
+        // §8.4.6.1): both in the one predicate.
+        bool switchCompetes = ctx.Data.SwitchConditionCompetes(dref, matches);
+        int candidates = matches.Count + (switchCompetes ? 1 : 0);
+        if (candidates > 1 && _condDiagnosed.Add(dref))
         {
+            string others = switchCompetes ? " and a SPECIAL-NAMES switch condition-name" : "";
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning(DiagnosticCatalog.UndefinedReference,
-                    $"the condition-name '{DataBinder.WrittenText(dref)}' matches {matches.Count} level-88 declarations "
+                    $"the condition-name '{DataBinder.WrittenText(dref)}' matches {matches.Count} level-88 declarations{others} "
                     + "(ISO §8.4.2.2 — qualification shall establish uniqueness); --permissive resolves to "
                     + "the first declaration");
             else
                 ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
                     $"the condition-name '{DataBinder.WrittenText(dref)}' does not uniquely identify a level-88 — "
-                    + $"{matches.Count} declarations match (ISO §8.4.2.2 Format 2 — qualification shall "
-                    + "establish uniqueness). Qualify by the conditional variable or its containing groups");
+                    + $"{candidates} declarations match{(switchCompetes ? " (the level-88 and a SPECIAL-NAMES switch condition-name, which takes no qualifier, ISO §8.8.4.6.2)" : "")}"
+                    + " (ISO §8.4.2.2 Format 2 — qualification shall establish uniqueness). Qualify by the conditional "
+                    + "variable or its containing groups");
         }
         // §13.7.3 SR4 e): a condition-name of a linkage item is referenceable exactly when its conditional variable
         // is — the same decision the data-name arm asks (ReferenceResolver.ScreenLinkageReference), once per reference.

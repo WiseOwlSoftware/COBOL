@@ -239,6 +239,8 @@ public static class Constructs
     public const string SyncOnGroup2023 = "sync-on-group-2023";
     public const string SignGroupUnsignedSubordinates2002 = "sign-group-unsigned-subordinates-2002";
     public const string SignGroupNondisplaySubordinate2002 = "sign-group-nondisplay-subordinate-2002";
+    public const string ReportSignWithoutSeparate2002 = "report-sign-without-separate-2002";
+    public const string ReportGroupSign2002 = "report-group-sign-2002";
     public const string CallReturning2002 = "call-returning-2002";
     public const string CallAsPhrase2002 = "call-as-phrase-2002";
     public const string GobackBare2002 = "goback-bare-2002";

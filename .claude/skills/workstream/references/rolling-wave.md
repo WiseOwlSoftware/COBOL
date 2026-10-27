@@ -82,8 +82,9 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   once, not once per cluster. It is a FRESH agent, not a longer transcript, because of the quadratic cost law (`references/cost-law-and-budget.md`):
   the cap exists because the sixth defect in one transcript costs more than a new agent, and the successor keeps the
   cheap part (the learned context) without the expensive part (the long transcript).
-- **Args:** `{ scratch, wave, stop_file, global_stop, concurrency (6), implementer_model ('opus'; 'sonnet' when the owner allows it; a group's own `model` overrides it, so one wave can mix Sonnet and Opus groups),
-  groups: [{ letter, lead, notes, codes, after? }], review_fix_rounds (2), reviewer_ceiling_min (90) }`.
+- **Args:** `{ scratch, wave, stop_file, global_stop, concurrency (6),
+  groups: [{ letter, lead, notes, codes, model?, after? }], review_fix_rounds (2), reviewer_ceiling_min (90) }`. A group's `model` is the planner's
+  routing (P1, kb/Work PB3868); a group without one runs the `model` of `.claude/agents/cobol-implementer.md`, so one wave can mix Sonnet and Opus groups.
 - **Return payloads are capped** (kb/Work PB1912, owner 2026-10-02): an implementer's `summary` is at most 900 characters,
   `leads` at most 6 of at most 500, and a finisher's final text at most 25 lines, because everything an agent returns is
   re-read by the orchestrator on every later turn. The detail lives in the report file. Experiment pending: compare the
