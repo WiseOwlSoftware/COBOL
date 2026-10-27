@@ -127,36 +127,6 @@ public sealed class ReceivingStoreDriftTests
             File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Roslyn", "PlaceRenderer.cs")));   // a reference-modified boolean slice
     }
 
-    /// <summary>kb/Work PB3697 — THE BOOLEAN-STORE DETERMINATION IS ONE TEXT. Three places state which stores convert a boolean
-    /// item's characters and which content a store cannot reach (the <c>RuntimeApi.StrStoreBoolean</c> summary, the D19 paragraph
-    /// of <c>DATA_MODEL_DESIGN.md</c>, determination D-B5 of <c>CONFORMANCE.md</c>); they had drifted into three different
-    /// lists of bypasses, each wrong. Each now carries the sentence below, word for word (comment markers, backticks and
-    /// line breaks aside), so a fourth bypass is added to all three or to none.</summary>
-    [Fact]
-    public void TheBooleanStoreDetermination_IsOneText_InAllThreePlaces()
-    {
-        const string text = "Every STORE into a boolean item converts its characters. That includes a GR4 group move (the decoded "
-            + "characters of a national or display receiver; a USAGE BIT receiver's bits are all valid) and a READ or RETURN into an "
-            + "elementary record area. A boolean item can still hold a character other than 0 or 1 only through another description of "
-            + "the same storage, which no store into the item reaches: a group receiver (GR4 moves the group's bytes), a REDEFINES "
-            + "view, or storage shared through a BY REFERENCE argument, EXTERNAL, BASED or ADDRESS OF. That content is undefined "
-            + "(§14.6.13.2 1)), and the boolean operators read such a position as zero.";
-        string Normalized(string path) => Regex.Replace(
-            Regex.Replace(File.ReadAllText(path), @"///|</?para>|`", " "), @"\s+", " ");
-        var places = new Dictionary<string, string>
-        {
-            ["RuntimeApi.cs (StrStoreBoolean)"] = TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Roslyn", "RuntimeApi.cs"),
-            ["DATA_MODEL_DESIGN.md (D19)"] = TestRepo.Docs("DATA_MODEL_DESIGN.md"),
-            ["CONFORMANCE.md (D-B5)"] = TestRepo.Docs("CONFORMANCE.md"),
-        };
-        foreach (var (place, path) in places)
-            Assert.True(Normalized(path).Contains(text, StringComparison.Ordinal),
-                $"{place} no longer carries the boolean-store determination word for word (kb/Work PB3697).");
-        // The old wording named two bypasses and two exemptions; none of it may come back.
-        foreach (var (place, path) in places)
-            Assert.DoesNotMatch(@"Two things bypass|Two exemptions|The exemptions:", File.ReadAllText(path));
-    }
-
     /// <summary>The text of <paramref name="source"/> from the first <paramref name="from"/> to the next
     /// <paramref name="to"/> after it, failing loudly when either marker moved so a scan over it cannot pass vacuously.</summary>
     private static string Between(string source, string from, string to)

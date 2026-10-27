@@ -797,7 +797,7 @@ elementary record area) converts through the same entry point in `ReceivingStore
 the receiver's characters are decoded from those bytes (a national item's UTF-16BE pairs, `NatReadWindow`) and THEN converted, so the conversion
 is of the decoded characters, never of the bytes (converting the bytes turned `N"101"` into garbage, PB3666 review R1-1). The one exemption is the USAGE BIT
 item, whose bits are the first bits of the sender's bytes and are all valid. A new emitter that deposits characters into a boolean item
-asks `StrStoreBoolean` (or `BoolFromCharacters`), never `StrStoreAligned`; `ReceivingStoreDriftTests` pins the structure and the text of the determination above.
+asks `StrStoreBoolean` (or `BoolFromCharacters`), never `StrStoreAligned`; `ReceivingStoreDriftTests` pins the structure and `BooleanStoreDeterminationDriftTests` the text of the determination above.
 
 #### The architecture: V59's numeric byte forms, one granularity finer
 
