@@ -1487,6 +1487,7 @@ public sealed partial class DataBinder
             ScreenReportLineClauses(run, model);
             ScreenReportColumnClauses(run, model);
             ScreenReportEntryClausePresence(run, model);
+            ScreenReportSignClauses(run, model);
             ScreenReportVaryingClauses(run, model);
         }
         BindReportSectionEntries(entries, runs, model);
@@ -2275,8 +2276,7 @@ public sealed partial class DataBinder
             var ge = entries[i];
             int.TryParse(ge.levelNumber().GetText(), out int level);
             if (level == 1) groupKind = WrittenGroupKind(ge);
-            bool elementary = i + 1 >= entries.Length
-                || !int.TryParse(entries[i + 1].levelNumber().GetText(), out int next) || next <= level;
+            bool elementary = !IsReportGroupEntry(entries, i);
             bool column = false, source = false, value = false, sum = false, picture = false, groupIndicate = false,
                 justifiedOrBwz = false, type = false, line = false;
             foreach (var c in ge.reportGroupClause())
@@ -3454,7 +3454,16 @@ public sealed partial class DataBinder
         return false;
     }
 
-    /// <summary>True when <paramref name="self"/> "is subordinate to an entry with a LINE clause" — the
+    /// <summary>True when the entry at <paramref name="self"/> is a report GROUP — the entry after it is subordinate to it
+    /// (§13.15.4 GR1: "The report group is defined by this entry and all its subordinate entries"); otherwise it is
+    /// ELEMENTARY. The ONE reader of that fact for the flat screens (<see cref="ScreenReportEntryClausePresence"/>,
+    /// <see cref="ScreenReportSignClauses"/>), over one run of the flat entry array.</summary>
+    private static bool IsReportGroupEntry(Core.ReportGroupEntryContext[] entries, int self) =>
+        int.TryParse(entries[self].levelNumber().GetText(), out int level)
+        && self + 1 < entries.Length
+        && int.TryParse(entries[self + 1].levelNumber().GetText(), out int next) && next > level;
+
+    /// <summary>True when <paramref name="self"/> "is subordinate to an entry with a LINE clause"— the
     /// qualifier ISO §13.18.38.3 SR25d and §13.18.38.4 GR10b/GR12b attach to the COLUMN legs. An ANCESTOR is a
     /// preceding entry with a strictly lower level-number, taken innermost-first (the §13.15 level hierarchy).</summary>
     private static bool SubordinateToLineClause(Core.ReportGroupEntryContext[] entries, int self)

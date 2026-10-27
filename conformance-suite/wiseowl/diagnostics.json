@@ -23713,5 +23713,17 @@
    "2023"
   ],
   "expect": "COBOL0902"
+ },
+ "pb3683-report-sign-without-separate-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: a SIGN clause without SEPARATE CHARACTER in a report group description entry requires COBOL-2002"
+ },
+ "pb3683-report-group-sign-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: a SIGN clause on a report group description entry that is a group requires COBOL-2002"
  }
 }
