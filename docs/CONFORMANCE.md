@@ -2181,6 +2181,34 @@ of an unsupported facility.
   `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_property`,
   `conformance:cases/14.9.37-SEARCH/pb3365-search-nested-dynamic-no-occurrence`.
 
+- **D-R3 — which function a REPOSITORY `FUNCTION F` specifier names when its externalized name and its word name two
+  different functions** (kb/Work PB989, PB2102; owner decision 2026-10-05; `docs/rearchitecture/DESIGN-external-repository.md`
+  §8.3). §12.3.8.4 GR11 takes the details by EXTERNALIZED name: a) "if the externalized name of the function prototype
+  is the externalized name of a function definition specified previously in the same compilation group" (11) a)), b) a
+  function prototype definition of that externalized name, c) the external repository (GR11 NOTE 2: the externalized
+  name is literal-5, or the word itself without AS). §12.3.8.3 SR10 states LEGALITY with alternatives one of which is the
+  WORD — "the name of a function definition specified previously in this compilation group" and "the name of a function
+  prototype specified in this compilation group" (10)) — and §8.4.6.7 lets the user-function-name be referenced "in the
+  REPOSITORY paragraph of any source element that follows that function definition". With `FUNCTION-ID. FX AS "F"` and
+  `FUNCTION-ID. F AS "G"` both ahead of `FUNCTION F`, the two clauses name different functions and the standard does
+  not rank them; CLAUDE.md rule 1's order settles it by GnuCOBOL, whose 3.2.0 resolves by externalized name only
+  (measured 2026-10-05). **WiseOwl COBOL:** (1) GR11 a) then b) by externalized name; whichever hits names the
+  function. (2) When both miss, the function the WORD names: the definition specified before the referencing element
+  whose user-function-name is F (its externalized name, "G", is what is activated), else the function prototype of that
+  name. (3) Whenever step 1 selects a function and a DIFFERENT function carries the word F and is visible to the element,
+  the externalized name is used, as GnuCOBOL does, and the compiler warns **COBOL2969** naming both. Legal source is
+  never rejected: a specifier legal only by SR10's word alternative or §8.4.6.7 takes step 2. GR11 c) — the external
+  repository — is not yet implemented (kb/Work PB1086; design slice 7, kb/Work PB2103), so a specifier that steps 1 and
+  2 miss has no details today; slice 7 adds the repository entry recorded under the word as the last step-2 alternative
+  and extends step 3 to a function in the repository. Witnesses:
+  `conformance:cases/11.5-FUNCTION-ID/pb989_function_externalized_name_wins`,
+  `conformance:cases/11.5-FUNCTION-ID/pb989_function_prototype_externalized_name`,
+  `conformance:cases/8.3.2.2-User-defined-words/pb303_as_externalized_name`,
+  `conformance-test:RepositoryDetailsOrderTests.ExternalizedNameWins_AndTheFunctionThatOnlyTheWordNamesIsReported`,
+  `conformance-test:RepositoryDetailsOrderTests.AnAsLiteralThatNamesTheOtherFunction_SelectsItWithoutAWarning`,
+  `conformance-test:RepositoryDetailsOrderTests.APrototypeAndItsDefinition_AreOneFunction_AndDrawNoWarning`,
+  `unit:GroupRepositoryOrderDriftTests`.
+
 ### 3.1 Implementor behavior in Annex A.2 undefined cases (kb/Work PB1907)
 
 Annex A.2 lists situations whose results the standard leaves undefined, and §4.4 2) says that "A COBOL run unit that
