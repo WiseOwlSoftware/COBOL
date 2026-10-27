@@ -25,7 +25,7 @@ The fix, at the one place the rule belongs:
 - The lane's view: `land_lane.drop_stale_rearms` drops (and says it drops) the re-arm of a branch that reads LANDED, and
   `rearm_hold` says the work is on main rather than that the queue owns it. The self-test replays the 2026-10-24 shape (12d).
 
-Goldens (all self-tests, run by the gate's script-self-test cases): `prune_worktrees.py --self-test` gains `merged-own` (one
+Goldens (all script self-tests, which CI runs): `prune_worktrees.py --self-test` gains `merged-own` (one
 commit merged by a `--no-ff` merge, touched a minute ago: LANDED, kept by `--apply`), `merged-bare` and `merged-ff` (IN FLIGHT
 while fresh, LANDED once idle), a dirty fresh merged branch (IN FLIGHT); a mutation of the rule back to the old `not fresh`
 turns five checks red. `git_batch.py --self-test` gains the `on_base_line` arms; `land_lane.py --self-test` gains 12d.
