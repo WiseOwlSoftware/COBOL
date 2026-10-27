@@ -1,4 +1,4 @@
-## PB3946 — an OPEN of a file found present takes a handle that refuses to create one, and is made again when the file was removed meanwhile
+## Entry 2675 — 2026-10-27 15:51 PDT — PB3946 — an OPEN of a file found present takes a handle that refuses to create one, and is made again when the file was removed meanwhile
 
 PB3635 closed the made-meanwhile race for creations (`FileMode.CreateNew` after an Absent probe). PB3946 is the opposite direction: an OPEN INPUT, I-O or EXTEND that found the file present took a handle opened `OpenOrCreate` (covered sequential `HeldWriteStream`, I-O `OpenReader`), or `Append` (uncovered sequential EXTEND), so a file another run unit removed between the probe and the handle was created empty and adopted: the OPEN answered '00' over a file that was never there, and a covered OPEN journaled it as present. Every other arm answered '30' where §9.1.13.6 item 5 gives '35' and GR13/GR17 give '05'.
 
@@ -9,3 +9,4 @@ PB3635 closed the made-meanwhile race for creations (`FileMode.CreateNew` after 
 **Tests.** `FileRemovedMeanwhileTests` (4 modes x covered x optional x 3 organizations, and the bound: three attempts then '30', nothing created); `FileCreatedAgainDriftTests` updated for `FileTaking` and `OpenAgain.FileRemovedMeanwhile`, plus `EveryOpenOrCreateOfTheIoLayerIsOneThatMeansIt`, which pins each remaining `OpenOrCreate` to its reason. No COBOL golden: the race has no source-level spelling.
 
 **Rows.** None claimed or closed (`closes_rows: []`).
+
