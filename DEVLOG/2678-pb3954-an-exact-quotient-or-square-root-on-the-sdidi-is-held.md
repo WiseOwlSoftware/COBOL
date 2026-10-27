@@ -1,4 +1,4 @@
-## PB3954: an exact quotient or square root on the SDIDI is held at the preferred exponent, not padded to 34 digits
+## Entry 2678 — 2026-10-27 16:35 PDT — PB3954: an exact quotient or square root on the SDIDI is held at the preferred exponent, not padded to 34 digits
 
 **Mechanism.** `CobolDec.Div` pre-scales every numerator so the integer quotient has 34 to 36 digits, then rounds. An EXACT
 quotient (`6 / 3`, `(1 + 2 + 3) / 3`) therefore came out as `2000...0E-33`, and `CobolDec.Sqrt` padded an exact root the same
@@ -21,3 +21,4 @@ design); `Ln 1` and `Exp 0` keep exponent 0 (60559 5.4.1 does not govern them).
 `15.60.4-Returned-value-rule/pb3954_exact_quotient_places` (accepted from 2014) and
 `pb3954_exact_quotient_places_below_2014` (refused at 2002, COBOL0803). No golden printed the padded form, so none changed.
 `docs/NUMERIC_DESIGN.md` states the rule beside the zero-result rule. No inventory row is closed (`closes_rows: []`).
+
