@@ -5,7 +5,7 @@ twelve read-only Opus adjudicator slices over 260 signatures (1,773 programs): 1
 42 latitude, 17 not comparable, 11 uninitialized, 7 model errors and one WiseOwl defect. No program of a landed note
 regressed, the thirteen notes that gated the run and the fifth night's PB3829 to PB3832 included.
 
-The defect, filed `status: owner` for the owner's approval (standing instruction 2026-10-24): an arithmetic statement
+The defect, filed for the owner (standing instruction 2026-10-24) and approved for fixing on 2026-10-27: an arithmetic statement
 written with only `NOT ON SIZE ERROR` takes the SIZE ERROR phrase's disposition with checking off. `DIVIDE 1 BY 0 GIVING Q
 NOT ON SIZE ERROR ...` continues with Q unchanged, and `ADD 1 TO X` (PIC 9 VALUE 9) keeps 9 while its phraseless twin stores
 0; §14.7.5 says the NOT phrase is then "ignored" and the no-phrase rules apply (kb/Work PB3869). One side observation became

@@ -7,7 +7,7 @@ repeats. Raw data: `E:\COBOL\conformance-suite\results\fuzz-20261026-225310\` (`
 scratchpad) and are described inline. Nothing here changed a golden or the compiler.
 
 **The owner's instruction** (2026-10-24, standing for every night): "run the fuzz analysis and report its findings. Do not
-begin fixing any fuzz identified issues without my explicit approval". The one finding is filed `status: owner` (PB3869).
+begin fixing any fuzz identified issues without my explicit approval". The one finding, PB3869, was filed `status: owner`; the owner approved its fix on 2026-10-27 at about 10:10 PDT ("Approve fixing PB3869; hand it to the operator").
 
 **What gated this run.** The owner required the thirteen notes of the evening of 2026-10-26 to land before the run (PB3537,
 PB3561, PB3839, PB906, PB3468, PB3569, PB2923, PB3514, PB3554, PB3635, PB3294, PB3697, PB3860); the last, PB3514, landed as
