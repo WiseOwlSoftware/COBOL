@@ -90,6 +90,9 @@ public sealed class ParseRecoveryHintTruthTests
     [InlineData("PBHT35", "STOP RUN", "P2.", "P2")]
     [InlineData("PBHT36", "IF W-N = 0 MOVE 1 TO W-N", "S2 SECTION.", "SECTION")]
     [InlineData("PBHT37", "IF W-N = 0 DISPLAY \"A\" ELSE IF W-N = 2 DISPLAY \"B\" END-IF DISPLAY \"C\"", "S2 SECTION.", "SECTION")]
+    // a context-sensitive word is a legal paragraph-name, so this header IS the next sentence (kb/Work PB906): the
+    // negative of PBHT42, whose IGNORING is followed by a LOCK no paragraph header takes
+    [InlineData("PBHT38", "CONTINUE", "IGNORING.", "IGNORING")]
     public void AMissingSeparatorPeriod_IsNamedOnTheFaultsOneReport(string pid, string statement, string header, string near)
     {
         var (ok, diagnostics) = EditionHarness.Compile($"""
@@ -109,6 +112,31 @@ public sealed class ParseRecoveryHintTruthTests
         Assert.False(ok, $"{pid}: '{statement}' lacks the period that ends its sentence, and it compiled");
         Assert.Equal(["COBOL0307"], Codes(diagnostics));
         EditionHarness.AssertHasDiagnostic(diagnostics, $"cannot parse construct near '{near}'. A period may be missing");
+    }
+
+    /// <summary>A COMPLETE statement followed by a word its general formats do not print there is that statement written
+    /// with an unprinted phrase, a bracket's second alternative, a repeated phrase or a phrase out of its sequence
+    /// (ISO §5.2.1), and the diagnostic says so: COBOL2269 naming the statement, never "A period may be missing" (kb/Work
+    /// PB906). The hint blamed punctuation wherever the word could ALSO be a paragraph-name (<c>WRITE R IGNORING
+    /// LOCK.</c>: <c>. IGNORING</c> parses, and only the LOCK after it fails), so the period must let the whole next
+    /// sentence follow before it is called missing. The statement named is the one whose own syntax prints the word
+    /// (PBHT44: the IF of a second ELSE, not the DISPLAY before it), and a SET format is named SET (PBHT45).</summary>
+    [Theory]
+    [InlineData("PBHT41", "MOVE 1 TO W-N ROUNDED", "MOVE", "ROUNDED")]
+    [InlineData("PBHT42", "CONTINUE IGNORING LOCK", "CONTINUE", "IGNORING")]
+    [InlineData("PBHT43", "ADD 1 TO W-N ROUNDED ROUNDED", "ADD", "ROUNDED")]
+    [InlineData("PBHT44", "IF W-N = 1 DISPLAY \"A\" ELSE DISPLAY \"B\" ELSE DISPLAY \"C\" END-IF", "IF", "ELSE")]
+    [InlineData("PBHT45", "SET IX UP BY 1 DOWN BY 1", "SET", "DOWN")]
+    [InlineData("PBHT46", "IF W-N = 1 MOVE 1 TO W-N ROUNDED END-IF", "MOVE", "ROUNDED")]
+    public void AStatementFollowedByAPhraseItsFormatDoesNotPrint_NamesTheStatement_NotAMissingPeriod(
+        string pid, string statement, string named, string near)
+    {
+        var (ok, diagnostics) = EditionHarness.Compile(Program(pid, statement), 2023);
+        Assert.False(ok, $"{pid}: '{statement}' writes a phrase its format does not print there, and it compiled");
+        Assert.Equal("COBOL2269", Codes(diagnostics).First());
+        EditionHarness.AssertHasDiagnostic(diagnostics, $"unexpected '{near}'. The {named} statement ends before this token: "
+            + $"no general format of {named} prints it after what is written");
+        EditionHarness.AssertNoDiagnostic(diagnostics, "A period may be missing");
     }
 
     private static string[] Codes(IEnumerable<string> diagnostics) =>
