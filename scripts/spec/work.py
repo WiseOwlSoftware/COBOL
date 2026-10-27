@@ -569,10 +569,10 @@ def upstream_problems(it: dict) -> list[str]:
     if it.get("process_only") is not True:
         need("must set `process_only: true`: it describes a defect in another project, so it ranks nothing in our Fix "
              "next and is counted as no compiler work of ours")
-    for k in ("cluster", "tier", "blocked_by", "inventory_rows", "closes_rows"):
+    for k in ("cluster", "tier", "blocked_by", "inventory_rows", "closes_rows", "frontier_model"):
         if it.get(k):
             need(f"names `{k}`, which plans or claims OUR work: a record sits outside every campaign, tier, blocking "
-                 f"chain and inventory row (relate it with `related:` instead)")
+                 f"chain, inventory row and dispatch (relate it with `related:` instead)")
     for k in ("upstream_project", "upstream_version"):
         if not isinstance(it.get(k), str) or not it[k].strip():
             need(f"has no `{k}` (the project and the exact release the repro was run on)")
@@ -645,6 +645,7 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
                        f'`work.py next`. Set one of {list(HARM_FLAGS)}, or process_only: true if it '
                        f'genuinely does nothing to a user\'s program.')
         bad += closes_rows_shape(it)
+        bad += frontier_model_shape(it)
         bad += upstream_problems(it)
     bad += topology_problems(items)
     bad += sites_problems(items)
@@ -1046,6 +1047,29 @@ def _site_blocks(text: str) -> list[str]:
 @functools.lru_cache(maxsize=None)
 def _path_token(roots: tuple[str, ...]) -> re.Pattern[str]:
     return re.compile(r"(?<![\w/.-])((?:" + "|".join(map(re.escape, roots)) + r")/" + _PATH_CHAR + "+)")
+
+
+@functools.lru_cache(maxsize=1)
+def frontier_models() -> frozenset[str]:
+    """model_rules.json `routing.frontier` (coord.frontier_models, the one reader of model_rules.json): the values a
+    note's `frontier_model:` may take."""
+    sys.path.append(str(REPO / "scripts" / "orchestrator"))
+    import coord  # noqa: PLC0415
+    return coord.frontier_models()
+
+
+def frontier_model_shape(it: dict) -> list[str]:
+    """`frontier_model:`, when present, names one frontier family (model_rules.json `routing.frontier`). It is the ONE
+    signal that a note's work runs on a frontier model under the owner's per-dispatch approval (MANDATORY-PRACTICES P1):
+    the planner holds such a note (plan_wave.py item 8). A regex over the body decided it before, and held every note
+    that recorded an approval the owner gave in the Mythos session (kb/Work PB3941)."""
+    fm = it.get("frontier_model")
+    # Any value but a string (a list, a number) is refused by name: a membership test on it would raise and stop
+    # `work.py check` instead of naming the note.
+    if fm is None or (isinstance(fm, str) and fm in frontier_models()):
+        return []
+    return [f'{it["_file"]}: frontier_model is {fm!r}, not one of {sorted(frontier_models())} — name the frontier model '
+            f'the note\'s work runs on, or drop the field when it runs on the default models']
 
 
 @functools.lru_cache(maxsize=1)
@@ -1631,7 +1655,8 @@ def _upstream_fixture(**changes: str | None) -> str:
           "process_only": "true", "spec_refs": '["14.9.25"]', "upstream_project": "GnuCOBOL", "upstream_version": "3.2.0",
           "upstream_class": "wrong-output", "upstream_status": "unreported", "upstream_edition": "2014",
           "upstream_ref": "", "cluster": "[]", "blocked_by": "[]", "inventory_rows": "[]"}
-    fm = {k: v for k, v in {**fm, **{k: v for k, v in changes.items() if k in fm}}.items() if v is not None}
+    fm = {k: v for k, v in {**fm, **{k: v for k, v in changes.items() if not k.startswith("section_")}}.items()
+          if v is not None}
     lines = ["---", *(f"{k}: {v}" for k, v in fm.items()), "---", "", "# PB9100 — a record", ""]
     fence = "`" * 3
     for i, name in enumerate(UPSTREAM_SECTIONS):
@@ -1654,6 +1679,7 @@ def upstream_findings() -> list[str]:
         ("process_only false", {"process_only": "false"}, "process_only: true"),
         ("a cluster", {"cluster": '["PB3838"]'}, "names `cluster`"),
         ("a claimed inventory row", {"inventory_rows": '["AR-1.1-1"]'}, "names `inventory_rows`"),
+        ("a frontier model", {"frontier_model": "mythos"}, "names `frontier_model`"),
         ("no version", {"upstream_version": None}, "no `upstream_version`"),
         ("an unknown class", {"upstream_class": "bug"}, "upstream_class 'bug'"),
         ("an unknown status", {"upstream_status": "filed"}, "upstream_status 'filed'"),
@@ -1732,6 +1758,17 @@ def self_test() -> int:
 
     findings += directory_findings(fixture)
     findings += upstream_findings()
+
+    # `frontier_model:` names a frontier family or is absent (kb/Work PB3941): every family is accepted, and a value
+    # that is none (the alias `opus`, a dated id, a LIST such as `[mythos]`, which must be refused by name rather than
+    # raise a TypeError that stops `work.py check`) is refused, so a typo can never leave a frontier note unheld.
+    findings += [f"frontier_model_shape refuses the frontier family {m!r}"
+                 for m in sorted(frontier_models()) if frontier_model_shape({"_file": "PB1.md", "frontier_model": m})]
+    findings += [f"frontier_model_shape accepts {m!r}, which is no frontier family"
+                 for m in ("opus", "claude-mythos-5-1", ["mythos"], 5)
+                 if not frontier_model_shape({"_file": "PB1.md", "frontier_model": m})]
+    if not frontier_models() or frontier_model_shape({"_file": "PB1.md"}):
+        findings.append("frontier_model_shape: no frontier family is configured, or a note with no field is refused")
 
     # FALSIFICATION — the comparison must be able to fail, or "no disagreement" is a statement about nothing.
     corrupted = json.loads(json.dumps(fixture))

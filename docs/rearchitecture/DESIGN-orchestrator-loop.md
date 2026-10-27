@@ -1111,10 +1111,14 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    group), then write `<scratch>\wf-args-w<wave>.json` with the rolling wave's args (`scratch, wave, stop_file,
    global_stop, concurrency, authorization, groups`; each group carries its routed `model`, kb/Work PB3868). Exit 1 when the check is red: no code
    reserved, no ledger entry, no args file.
-9. **Frontier models wait for the owner.** A note whose body says its work needs Fable or Mythos under the owner's
-   approval (`routing.owner_approval_patterns`) is never planned, in either lane: that approval is per dispatch
-   (MANDATORY-PRACTICES P1) and an unattended wave cannot ask, and routing it to Opus would pre-empt the owner's
-   choice. It is printed as waiting; the attended session asks. First case: PB2118, R1's authorship (R69 section 4).
+9. **Frontier models wait for the owner.** A note whose work runs on Fable or Mythos says so in its frontmatter,
+   `frontier_model: fable | mythos` (the families are `routing.frontier`; `work.py check` refuses any other value),
+   and is never planned, in either lane: that approval is per dispatch (MANDATORY-PRACTICES P1) and an unattended
+   wave cannot ask, and routing it to Opus would pre-empt the owner's choice. It is printed as waiting, naming the
+   model; the attended session asks. The field decides, never the body's prose: a regex over the body decided it
+   until 2026-10-27 and held every note that recorded an approval the owner gave in the Mythos session, the
+   owner-approved wrong-answer fix PB3869 among them (kb/Work PB3941). First case: PB2118, R1's authorship (R69
+   section 4).
 
 Measured on 2026-10-04 against the repository after train 1015 (budget 3 points): eight groups in two trains,
 finishers first (PB244 from wave 1013's split, PB480 and PB1112 from wave 1013's not-started pair, PB1940 from
