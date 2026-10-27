@@ -17,7 +17,7 @@ groups.json:
                                       # absent is claimed whole; kb/Work PB3670), recorded in the ledger with them
      "pred": "",          # optional: predecessor-branch / resume instruction, rendered into the spec
      "after": "K"}        # optional: SAME-FILE SUCCESSOR of group K — ignored here; wf_rolling_wave.js runs this group
-                          # only after K returns and hands it K's branch and report (workstream SKILL §2)
+                          # only after K returns and hands it K's branch and report (workstream references/rolling-wave.md)
   ]
 }
 Refuses (exit 2, nothing written) a groups file whose `scratch` or `stop_file` is not a fleet path (coord.scratch_problem,

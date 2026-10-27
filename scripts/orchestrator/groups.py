@@ -206,10 +206,16 @@ def campaign_requirements(note_text: str) -> list[str]:
 
 
 def requirements_text(campaign: str, requirements: Sequence[str]) -> str:
-    """One campaign's requirements as a group's spec body states them. The text of each requirement is carried
-    verbatim, which is what check_practices.py looks for in every rendered spec."""
-    return "".join(f" ⛔ OWNER REQUIREMENT (campaign {campaign}, standing; the branch reviewer raises a finding when "
-                   f"your branch lacks it): {r}" for r in requirements)
+    """One campaign's requirements as a group's spec body states them: ONE OWNER REQUIREMENTS lead-in for the campaign,
+    then each requirement numbered and carried verbatim, which is what check_practices.py looks for in every rendered
+    spec. The lead-in is stated once per campaign, never once per requirement: a spec says each rule once
+    (check_practices.repeated_sentences, kb/Work PB3777), and a fixed prefix repeated before every one of a campaign's
+    requirements is the same sentence twice (review R1-1 of wave 20261709). The lead-in names its campaign in each of
+    its clauses, because the once-check splits at `;` and `:`: a clause that did not would repeat across two campaigns."""
+    if not requirements:
+        return ""
+    return (f" ⛔ OWNER REQUIREMENTS (campaign {campaign}, standing; the branch reviewer raises a finding when your "
+            f"branch lacks one of campaign {campaign}'s): " + " ".join(f"({i}) {r}" for i, r in enumerate(requirements, 1)))
 
 
 def group_requirements(groups: Sequence[Group], cluster_of: Mapping[str, Any], notes_dir: pathlib.Path,
