@@ -366,11 +366,12 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>⛔ THE ONE §8.3.3.6.3 SR1 a) test: "If the literal is restricted to a numeric literal, the only
     /// figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase." The grammar has a distinct
     /// <c>ALL zeroWord</c> alternative, so <c>zeroWord()</c> alone also answers true for <c>ALL ZERO</c>. The ALL
-    /// test is part of the rule (kb/Work PB218), and every numeric-restricted literal position asks it here: the
-    /// arithmetic operand, CALL §14.9.4.3 SR23 and INVOKE §14.9.23.3 SR16 (kb/Work PB1631). ⚠ The ALL half has
-    /// an EDITION edge (kb/Work PB1415, VCR Table 7 row 7.28): at 85 the word ALL before ZERO is redundant, so
-    /// the arithmetic operand routes <c>ALL ZERO</c> through <see cref="FigurativeAssociation.GateAllZeroAsNumeric"/>;
-    /// the CALL and INVOKE positions are COBOL-2002 constructs, where this strict test and the gate agree.</summary>
+    /// test is part of the rule (kb/Work PB218), and the numeric-restricted literal positions of CALL §14.9.4.3 SR23
+    /// and INVOKE §14.9.23.3 SR16 ask it here (kb/Work PB1631). ⚠ The ALL half has an EDITION edge (kb/Work PB1415,
+    /// VCR Table 7 row 7.28): at 85 the word ALL before ZERO is redundant, so the arithmetic operand does not ask this
+    /// strict test — <see cref="ZeroOperand"/> routes <c>ALL ZERO</c> through
+    /// <see cref="FigurativeAssociation.GateAllZeroAsNumeric"/> (kb/Work PB3846); the CALL and INVOKE positions are
+    /// COBOL-2002 constructs, where this strict test and the gate agree.</summary>
     internal static bool IsNumericRestrictedZero(Core.FigurativeConstantContext? fig) =>
         fig?.zeroWord() is not null && fig.ALL() is null;
 

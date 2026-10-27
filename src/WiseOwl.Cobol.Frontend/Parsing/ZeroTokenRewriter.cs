@@ -176,7 +176,8 @@ public static class ZeroTokenRewriter
 
     /// <summary>The word the program wrote for a <c>ZERO_ARITH</c> token — <c>ZERO</c>, <c>ZEROS</c> or <c>ZEROES</c> as
     /// spelled — for a diagnostic: the token's own text is the numeric <c>"0"</c> the rewrite gave it, and the rewrite
-    /// keeps the original token's source span (<see cref="ReplaceWithZeroArith"/>).</summary>
+    /// keeps the original token's source span (<see cref="ReplaceWithZeroArith"/>). A token with no source span (none
+    /// the lexer produced) is spelled <c>ZERO</c>, the word's §8.9 name: the spelling only words a message.</summary>
     public static string WrittenWord(IToken zeroArith) =>
         zeroArith.InputStream is { } input && zeroArith.StartIndex >= 0 && zeroArith.StopIndex >= zeroArith.StartIndex
             ? input.GetText(Antlr4.Runtime.Misc.Interval.Of(zeroArith.StartIndex, zeroArith.StopIndex))
