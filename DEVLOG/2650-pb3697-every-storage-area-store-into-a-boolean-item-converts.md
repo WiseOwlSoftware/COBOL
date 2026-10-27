@@ -1,4 +1,4 @@
-## PB3697: every storage-area store into a boolean item converts the decoded characters, and the three texts of the rule are one sentence
+## Entry 2650 — 2026-10-26 19:47 PDT — PB3697: every storage-area store into a boolean item converts the decoded characters, and the three texts of the rule are one sentence
 
 PB3666 (determination D-B5) made every store of characters into a boolean item convert them, `'1'` to one and anything else
 to zero, so DISPLAY, comparisons and the boolean operators agree. Its text named two paths that leave non-boolean content in
@@ -80,3 +80,4 @@ single token difference. The two compute the same landing (fit to 4, a space or 
 nothing a caller and a callee must agree on moved: `python scripts/abi_pin.py repin` (boundary-hash 110D13CC647FE8B3), not a call-ABI bump.
 
 Review round 2 (R2-1): `FileModel.AreaHasOneDescription` counted a second record and a SAME RECORD AREA peer but not an EXTERNAL file, whose record area is one run-unit cell every describing runtime element reads (§13.18.22.4 GR4 b)). A READ into the one boolean record of such a file converted the shared bytes, and a CALLed element that redefines the record as `PIC X(8)` read `01010101` for the record `A1Z1B101`. The predicate now also requires `!IsExternal`, so the READ takes `ReceivingStore.VerbatimStorageArea`; golden L18 of `pb3666_boolean_receiver_converts_characters` (expected `A1Z1B101`, from GR4 b)), the drift test pins the predicate, and DATA_MODEL D19 names the EXTERNAL area among the shared areas.
+
