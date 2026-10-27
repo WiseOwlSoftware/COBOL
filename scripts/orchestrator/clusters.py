@@ -47,6 +47,8 @@ class Note:
     rows: list[str]
     body: str
     harm: int = 0
+    frontier_model: str = ""  # `frontier_model:`, the frontier model its work runs on under the owner's per-dispatch
+                              # approval (MANDATORY-PRACTICES P1; the planner holds it, kb/Work PB3941); "" for none
 
 
 def harm_weights() -> dict[str, int]:
@@ -64,7 +66,7 @@ def note_of(text: str, stem: str, harm_weights: dict[str, int]) -> Note | None:
     rows = fm.get("inventory_rows") or []
     return Note(str(fm.get("id") or stem), str(fm.get("status", "")), str(fm.get("area", "")), str(fm.get("title", "")),
                 list(rows) if isinstance(rows, list) else [], str(fm.get("_body", "")),
-                sum(w for k, w in harm_weights.items() if fm.get(k) is True))
+                sum(w for k, w in harm_weights.items() if fm.get(k) is True), str(fm.get("frontier_model") or ""))
 
 
 def load_notes(work_dir: pathlib.Path, harm_weights: dict[str, int]) -> dict[str, Note]:

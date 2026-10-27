@@ -127,16 +127,6 @@ methodName
     : cobolWord
     ;
 
-// The word METHOD of the END METHOD marker (§10.7.2) and of EXIT METHOD (removed at 2023 by Annex E.2 item 1; read under --permissive). ISO §8.9 reserves METHOD at
-// 2002/2014 but NOT at 2023 (kb/Work PB2623), so a 2023 program may declare a data item METHOD, and the §8.9
-// reservation gate (ReservationGateRewriter) then retypes EVERY METHOD token of the group to IDENTIFIER —
-// including the keyword of the marker. The keyword position is where the format spells the word, so it accepts
-// the retyped spelling through the ONE word-text predicate (wordAhead, so a >>COBOL-WORDS synonym steers it too).
-methodKeyword
-    : METHOD
-    | {wordAhead("METHOD")}? IDENTIFIER
-    ;
-
 // METHOD-ID. GET|SET PROPERTY prop-name — the explicit property-accessor selector (§10.6 :12810-12814;
 // §11.7 SR6/SR7 shape checks are pass-1, COBOL0842).
 methodPropertySelector
@@ -200,9 +190,9 @@ invokeUsing
 // ⚠ THE PREDICATE'S SCAN IS CONDITION-SHAPED AND CAN OVER-REACH HERE, BY DESIGN OF THE SHARED MECHANISM. It runs
 // to the statement's period, so in `USING BY CONTENT N + 1 BY CONTENT B1 B-AND B2` the FIRST argument's decision
 // already sees the SECOND argument's B-AND and takes this alternative. That is harmless and deliberately left
-// harmless: the binder reduces a B-operator-FREE booleanExpression back to its bare `valueOperand` (the same
-// UnwrapBareBool reduction BindPrimaryBoolean uses), so the predicate decides only which NODE an operand parses
-// into, never what it MEANS. Narrowing the scan to the argument boundary would tighten a SHARED condition
+// harmless: the binder reduces a B-operator-FREE booleanExpression back to its bare `valueOperand`
+// (ConditionBinder.ReduceArgument, which keeps a parenthesized operand the expression it is — kb/Work PB3760), so
+// the predicate decides only which NODE an operand parses into, never what it MEANS. Narrowing the scan to the argument boundary would tighten a SHARED condition
 // predicate for a local reason — the DEVLOG-621 lesson — and would buy nothing the reduction does not already
 // guarantee.
 // ⛔ THREE ARMS, AND PB130 RELAXED ONLY ONE OF THEM (kb/Work PB695 family 3 — the repo's most reproducible

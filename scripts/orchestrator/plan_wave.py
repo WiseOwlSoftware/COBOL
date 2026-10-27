@@ -61,8 +61,8 @@ cost the orchestrator a hand-written groups.json; this computes it.
    (below); --dry-run peeks and reserves nothing, and writes nothing. The planner
    allocates no lead ids: the enqueue unit's clerk takes them from `alloc.py pb <n>` when it files the landed reports'
    leads (units/enqueue.md step 5; kb/Work PB3023 retired the train's lead-id blocks).
-8. A note whose body says it needs a frontier model under the owner's approval (model_rules.json
-   routing.owner_approval_patterns) is never planned: it is listed as waiting (MANDATORY-PRACTICES P1).
+8. A note whose `frontier_model:` field names a frontier model (model_rules.json `routing.frontier`) is never planned:
+   it is listed as waiting (MANDATORY-PRACTICES P1). The field decides, never the body's prose (kb/Work PB3941).
 
 9. --drain (the owner's drain: "do not schedule new work items but continue all necessary work to get in-process work
    to main", 2026-10-13; kb/Work PB3150) plans only the finishers of STARTED work: every review-FINDINGS finisher, a
@@ -483,11 +483,14 @@ def plan_held(s: PlanState) -> None:
                                 f"started by hand): it is finishing the branch, and a finisher for {nid} would "
                                 f"cherry-pick the same commits again; it is planned again once the lock is gone")
                 taken.add(nid)
-    # A note that needs a frontier model under the owner's per-dispatch approval is never planned (MANDATORY-PRACTICES
-    # P1): an unattended wave cannot ask, and routing it to Opus would pre-empt the owner's choice.
+    # A note whose work runs on a frontier model (its `frontier_model:` field) is never planned (MANDATORY-PRACTICES P1):
+    # that approval is per dispatch, an unattended wave cannot ask, and routing it to Opus would pre-empt the owner's
+    # choice. The FIELD decides, never the body's prose: a body names Mythos and approval together whenever the owner
+    # approved anything in the Mythos session, and that prose held the owner-approved PB3869 (kb/Work PB3941).
     for nid in sorted(s.leads - taken, key=work.id_order):
-        if any(re.search(pat, s.notes[nid].body) for pat in s.rules["routing"]["owner_approval_patterns"]):
-            waiting[nid] = "needs the owner's approval of a frontier model for this dispatch (P1): ask in the attended session"
+        if model := s.notes[nid].frontier_model:
+            waiting[nid] = (f"its work runs on {model} (frontier_model), which needs the owner's approval for this "
+                            f"dispatch (P1): ask in the attended session")
             taken.add(nid)
 
 
@@ -1101,7 +1104,7 @@ def main(argv: list[str] | None = None) -> int:
         return rc
     args = {"scratch": str(scratch), "wave": wave, "stop_file": str(stop_file), "global_stop": str(coord.global_stop(a.coord)),
             "concurrency": rules["wave"]["concurrency"],
-            "implementer_model": rules["wave"]["implementer_model"], "authorization": a.authorization,
+            "authorization": a.authorization,
             "groups": [{k: j[k] for k in ("letter", "lead", "notes", "codes", "model", "after", "requirements") if k in j}
                        for j in gjson]}
     afile = scratch / f"wf-args-w{wave}.json"

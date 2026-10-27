@@ -529,7 +529,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             ReportByValueLiteral(subject, ConcatFolder.Spelling(byValueLit));
             return false;
         }
-        var (_, nonNumCtx, _, dref, boolCtx, arithCtx) = ConditionBinder.ReduceArgument(arg.Literal, arg.Ref, arg.Bool, arg.Arith);
+        var (_, nonNumCtx, _, dref, boolCtx, arithCtx, groupedCtx) = ConditionBinder.ReduceArgument(arg.Literal, arg.Ref, arg.Bool, arg.Arith);
         bool explicitReference = arg.ByReferenceWritten;
         // A constant-name or symbolic-character is literal-2 unless BY REFERENCE makes it identifier-3 (§13.10.3 SR2;
         // the typed lane's reading, kb/Work PB1137, PB1544).
@@ -571,7 +571,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         if (boolCtx is { } bx) return host.Cond.BindBoolExpr(bx) is not BoundBoolError;
         if (nonNumCtx is not null)
             return ZeroLengthLiteralAdmitted(host.Expr.NullAdmittingOperand(nonNumCtx), nonNumCtx.GetText(), subject);
-        if (arithCtx is { } ax)
+        // A parenthesized expression the boolean node held (Grouped) is arithmetic-expression-1 like any other.
+        if ((arithCtx ?? groupedCtx) is { } ax)
         {
             // A sole function-identifier BY VALUE is identifier-5 of the function's class (SR15).
             var expr = host.Expr.BindExpr(ax);
@@ -1217,10 +1218,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // is `valueOperand`, and the predicate's scan runs to the statement's period, so in
         // `USING BY CONTENT N + 1 BY CONTENT B1 B-AND B2` the FIRST argument reaches the boolean node on the
         // strength of the SECOND argument's B-AND. The reduction is what makes that harmless: a boolean node
-        // carrying NO boolean operator reduces to its bare `valueOperand` (ConditionBinder.UnwrapBareBool — the
-        // same reduction BindPrimaryBoolean uses) and rides exactly the arm it would have without the predicate.
+        // carrying NO boolean operator reduces to its bare `valueOperand` and rides exactly the arm it would have
+        // without the predicate — never across a grouping parenthesis, so `(3)` stays arithmetic-expression-1
+        // (`groupedCtx`, kb/Work PB3760 review R1-1).
         // §14.9.23.4 GR4 is §14.9.4.4 GR8's sentence, and both are asked of the ONE reduction (kb/Work PB613).
-        var (_, nonNumCtx, soleNum, soleRef, boolCtx, arithCtx) =
+        var (_, nonNumCtx, soleNum, soleRef, boolCtx, arithCtx, groupedCtx) =
             ConditionBinder.ReduceArgument(arg.Literal, arg.Ref, arg.Bool, arg.Arith);
         BoundNumericLiteral? writtenLit = arg.Literal?.numericLiteral() is { } numericLit ? host.Expr.NumericLiteralOperand(numericLit.GetText()) : null;
         // A SOLE numeric literal is a literal wherever it parsed. The grammar's own `literal` alternative wins
@@ -1454,15 +1456,18 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 { ContentBool = bound };
         }
 
-        if (arithCtx is { } ax && (explicitContent || impliedContent))   // a SOLE reference / numeric literal / inline invocation was taken above
+        // A SOLE reference / numeric literal / inline invocation was taken above. A parenthesized expression the boolean
+        // node held (Grouped) has no sole shape at all: `(3)` and `(FUNCTION F(X))` are arithmetic-expression-1, as they
+        // are when no later B-operator steers them into that node (§14.9.23.4 GR4, §8.8.1.1; kb/Work PB3760 review R1-1).
+        if ((arithCtx ?? groupedCtx) is { } ax && (explicitContent || impliedContent))
         {
             var expr = host.Expr.BindExpr(ax);
             // A SOLE function-identifier is a MOVE sender, not an arithmetic expression (kb/Work PB3613): whatever tree the
             // binder lowered it to, the description and the emitter's group arm must read it as the function value it is.
-            bool functionValue = ConditionBinder.SoleFunctionCall(ax) is not null;
+            bool functionValue = arithCtx is not null && ConditionBinder.SoleFunctionCall(arithCtx) is not null;
             if (host.Params.ContentConformanceReason(formal, LiteralArg(new BoundComputedOperand(expr) { FunctionValue = functionValue })) is { } aErr)
             {
-                Err($"BY CONTENT arithmetic-expression argument '{ax.GetText()}' for formal "
+                Err($"BY CONTENT arithmetic-expression argument '{arg.Bool?.GetText() ?? ax.GetText()}' for formal "
                     + $"'{formal.CobolName}': {aErr}");
                 return null;
             }
