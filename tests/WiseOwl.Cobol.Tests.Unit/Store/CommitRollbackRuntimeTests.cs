@@ -1740,6 +1740,95 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ A KEYED WRITE THAT WOULD CREATE THE FILE AGAIN MEETS A FILE ANOTHER RUN UNIT MADE AT THE PATH MEANWHILE (kb/Work
+    /// PB3635; the sequential twin is <c>SequentialConnector.CreateTheFileAgain</c>): the ROLLBACK released the file lock of a file not
+    /// open at the last COMMIT (§9.1.15) and reversed only this run unit's own changes (§14.9.36.4 GR3), so what the other run unit
+    /// created there is protected from this one (§9.1.17): the WRITE answers '30' (§9.1.13.6 item 1) and the later COMMIT or ROLLBACK
+    /// leaves the other's file as its creator wrote it, no journal left.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, false)]
+    [InlineData(FileOrg.Relative, true)]
+    [InlineData(FileOrg.Indexed, false)]
+    [InlineData(FileOrg.Indexed, true)]
+    public void A_keyed_write_creating_the_file_again_meets_a_file_another_run_unit_made_meanwhile_30(FileOrg org, bool commit)
+    {
+        string host = Tmp($"pb3635-again-{org}-{commit}");
+        try
+        {
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: true);
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Write(a, org, 2, "A002"));
+            Assert.Null(a.Rollback());
+            Assert.False(File.Exists(host));   // GR3: the state at the start of the run unit had no file
+            var b = Open(host, org, commit: false, FileOpenMode.Output, name: "B");
+            Assert.Equal("00", Write(b, org, 3, "B003", name: "B"));
+            b.Close("B");
+            Assert.Equal("00", b.Status("B"));
+            Assert.Equal("30", Write(a, org, 4, "A004"));
+            Assert.Null(commit ? a.Commit() : a.Rollback());
+            a.CloseAll();
+            var expected = new string?[10];
+            expected[3] = Rec(3, "B003");
+            Assert.Equal(expected, StateOf(host, org));
+            AssertNoJournalLeft(host);
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>⛔ A KEYED OPEN THAT CREATES THE FILE MEETS A FILE ANOTHER RUN UNIT MADE BETWEEN ITS PRESENCE PROBE AND ITS CREATING
+    /// HANDLE (kb/Work PB3635, review finding R1-1 of the first round; <c>FileConnector.Open</c>, <c>KeyedConnector.LockCreating</c>).
+    /// The covered OPEN has begun its journal with no file at its start when the other run unit's OPEN OUTPUT (which takes no entry
+    /// mutex) makes the file: the creating handle is <see cref="FileMode.CreateNew"/>, refuses it, the journal is withdrawn, and the OPEN
+    /// is made again over the file that stands. OPEN OUTPUT then REPLACES it after the capture of its records (§14.9.27.4 GR18), so the
+    /// run unit's ROLLBACK restores them (§14.9.36.4 GR3) rather than removing the file as a creation of its own, and its COMMIT keeps
+    /// the replacement; the OPEN of an absent OPTIONAL file (GR17) opens the file that stands, '00', and the ROLLBACK leaves its records.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, FileOpenMode.Output, false)]
+    [InlineData(FileOrg.Relative, FileOpenMode.Output, true)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Output, false)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Output, true)]
+    [InlineData(FileOrg.Relative, FileOpenMode.IO, false)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.IO, false)]
+    [InlineData(FileOrg.Relative, FileOpenMode.Extend, false)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Extend, false)]
+    public void A_keyed_open_creating_the_file_meets_a_file_made_meanwhile_and_opens_it(FileOrg org, FileOpenMode mode, bool commit)
+    {
+        string host = Tmp($"pb3635-open-{org}-{mode}-{commit}");
+        string other = host + ".other";
+        try
+        {
+            var b = Open(other, org, commit: false, FileOpenMode.Output, name: "B");
+            Assert.Equal("00", Write(b, org, 3, "B003", name: "B"));
+            b.Close("B");
+            b.CloseAll();
+            bool made = false;
+            var medium = new FaultHostMedium
+            {
+                BeforeOperation = op =>
+                {
+                    if (made || !op.StartsWith("transient ", StringComparison.Ordinal)) return;
+                    made = true;   // the covered OPEN's journal began with no file at its start; the other run unit's file lands now
+                    File.Copy(other, host);
+                },
+            };
+            var a = new FileRegistry { Medium = medium };
+            Declare(a, host, org, commit: true, optional: true);
+            a.OpenStatic("F", mode);
+            Assert.True(made);
+            Assert.Equal("00", a.Status("F"));   // the file that stands is opened or replaced; '05' is the OPEN of an absent OPTIONAL file
+            if (mode is FileOpenMode.Output) Assert.Equal("00", Write(a, org, 4, "A004"));
+            Assert.Null(commit ? a.Commit() : a.Rollback());
+            a.CloseAll();
+            var expected = new string?[10];
+            if (commit) expected[4] = Rec(4, "A004"); else expected[3] = Rec(3, "B003");
+            Assert.Equal(expected, StateOf(host, org));
+            AssertNoJournalLeft(host);
+        }
+        finally { TryDelete(host); TryDelete(other); }
+    }
+
     /// <summary>The same decision where the file a connector's CLOSE kept is not there at the re-OPEN (kb/Work PB3493's sibling arms,
     /// the absent OPTIONAL file of §14.9.27.4 GR13 on INPUT and of GR17 on I-O): what the CLOSE kept belonged to a file that was
     /// removed outside the run unit, so the OPEN ('05') retires it (kb/Work PB3576) instead of attaching beside it, and a later OPEN of the file made
