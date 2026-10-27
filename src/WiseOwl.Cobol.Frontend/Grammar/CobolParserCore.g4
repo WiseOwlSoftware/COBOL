@@ -1020,13 +1020,18 @@ statement
 // format. Page 634 is also the page with the demonstrable defect (its own statement name unruled, corrected in
 // specs/ISO_COBOL.md as C2), so it cannot overrule page 732's internally consistent rules. Nor is `CONTINUE 5`
 // meaningless here: the brace selects `arithmetic-expression-1 [SECONDS]` or `MESSAGE RECEIVED`, and the two stay
-// apart without the plain words — MESSAGE is not reserved at 2023 (§8.9), so a data item may bear the name, but
-// RECEIVED can follow no arithmetic expression, so the parser's lookahead tells the arms apart by the word after
-// MESSAGE. The CONTINUE statement keeps its own AFTER and SECONDS
+// apart without the plain words. The CONTINUE statement keeps its own AFTER and SECONDS
 // (CobolControlFlow.g4 `continueStatement`, page 634 as printed).
+// ⛔ MESSAGE IS READ THROUGH `messageKeyword`, NEVER AS THE BARE TOKEN (kb/Work PB3794). §8.9 does not reserve MESSAGE
+// at 2023 (it lists MESSAGE-TAG), so a 2023 program may declare a data item MESSAGE, and the token-level reservation
+// gate (ReservationGateRewriter) then retypes EVERY MESSAGE token of the group to IDENTIFIER, this phrase's keyword
+// included: `MESSAGE cobolWord` never saw its first token and `CONTINUE AFTER MESSAGE RECEIVED` failed at RECEIVED.
+// The generated keyword rule reads the token or the retyped spelling (cobol-words.json `keywordWhereFree`). With
+// such a data item both arms begin with the same IDENTIFIER, and the word after it parts them: RECEIVED can follow
+// no arithmetic expression, while `MESSAGE + 1` or `MESSAGE SECONDS` is the data item in arithmetic-expression-1.
 mcsReceiveStatement
     : RECEIVE FROM? dataReference GIVING dataReference dataReference
-      (CONTINUE AFTER? (arithmeticExpression SECONDS? | MESSAGE cobolWord))?
+      (CONTINUE AFTER? (arithmeticExpression SECONDS? | messageKeyword cobolWord))?
       conditionalPhrases
       END_RECEIVE?
     ;
