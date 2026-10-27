@@ -46,12 +46,29 @@ mechanisms, and this change lands the one the rest stand on, the module's header
   found the renderer's `typeof`/`nameof`-anchored names bare and now lists `RepositoryAttributeRenderer.cs` as an anchored
   writer beside the façade, with the reason (a rename of an attribute member still breaks that file at compile time).
 
+**PB2100, the restricted-pointer classes (design 6.4 parts 1-3).** `PrototypeSignatureClasses` keyed its members by the
+externalized name alone, which is right inside one group (one externalized name, one program, ISO 8.3.2.2) and wrong the
+moment a second source of prototypes exists: a decoded prototype `P` met the group's `P` and took its class whatever its
+decoded signature, typing the pointer by NAME, which 13.18.60.4 GR25 forbids. Members are now keyed by origin and name
+(`PrototypeKey`; `RestrictedPrototype.Origin` null for the group, a `PrototypeOrigin` for a decoded record, compared by
+reference); `Admit(decodedPointers)` adds the decoded prototypes and the whole graph their signatures reach, then RE-RUNS
+the refinement over every member of both namespaces from ONE starting block, group members first in their original order
+(an incremental append would give a decoded `B` whose signature is `Same` as the group's `B` a block of its own: two types
+for one signature); a block a decoded member founds is spelled `DECODED k TO name`, `k` the founder's admission number from
+1, so no group spelling (`TO name`) and no `EXTERNAL TO` can equal it whatever an `AS` literal holds. `Classify` is the same
+`Take`/`Run` over the group's pointers, so every group identity is what it was. `PrototypeSignatureClassesTests` (seven
+Facts) drives the class directly over five bound signatures, because no source reaches a decoded prototype until the reader
+and codec exist: a decoded prototype of the group's signature joins the group's block and moves no group identity; one named
+like a group prototype with another signature is not the group's type; two decoded `X` of different records get two
+identities and one record's `X`, in another case, is one member; a group prototype named `DECODED 1 TO B` or `B #1` never
+shares an identity with a decoded block; an unadmitted decoded prototype and a group pointer given to `Admit` are refused.
+
 **Left open in PB2100, and why this is a first part.** `HasSignatures` is written only with the signature attributes, which
 do not exist yet, so it is never written and decodes false (the design makes it true exactly for `--repository-update on`).
 Not yet written: the rest of the attribute family and `RepositoryVocabulary`, `RepositoryRecord` with `Of(BoundUnit)` and its
-inverse, the description attributes on host entries and OO types with `--repository-update`, `RepositoryReader`, and
-`PrototypeSignatureClasses` keyed by origin and name (design 6.4 parts 1-3, the subtle part). Classes and interfaces are not
-yet units of the index either (their `[CobolUnit]` comes with the OO emission). The note says so and stays open.
+inverse (which rebuilds `RestrictedPrototype` from `ReferencedPrototypes` and calls `Admit`), the description attributes on
+host entries and OO types with `--repository-update`, `RepositoryReader`, and the 17.2 corpus tests. Classes and interfaces
+are not yet units of the index either (their `[CobolUnit]` comes with the OO emission). The note says so and stays open.
 
 **Self-review.** Architecture: one writer of attribute text, one reader of the index, one definition of the row encoding;
 no C# text in a bound node. Code: the cap and the escapes are tested at their edges; `Open(Stream)` catches only the
