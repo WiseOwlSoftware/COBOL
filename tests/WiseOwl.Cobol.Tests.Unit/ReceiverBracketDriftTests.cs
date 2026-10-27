@@ -121,7 +121,7 @@ public sealed class ReceiverBracketDriftTests
             string line = lines[i].Trim();
             if (line.StartsWith("//") || line.StartsWith("///") || !line.Contains("GuardedStore(")) continue;
             if (line.Contains("private void GuardedStore(")) continue;
-            if (!Regex.IsMatch(line, @"GuardedStore\((ise|true|false|inSizeError),[A-Za-z.]+, (checkedForm|_) =>"))
+            if (!Regex.IsMatch(line, @"GuardedStore\((ise|true|false|inSizeError), [A-Za-z.]+, (checkedForm|_) =>"))
                 bare.Add($"ArithmeticEmitter.cs:{i + 1}: {line}");
         }
         Assert.True(bare.Count == 0,
