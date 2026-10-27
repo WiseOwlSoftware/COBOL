@@ -271,9 +271,11 @@ of an unsupported facility.
   the standard gives no representation, so the determination follows the literal, not the engine. The same characters cross
   a CALL ... AS NESTED, a Format-1 CALL and an INVOKE argument BY CONTENT into a plain-group formal; a function-identifier is a
   MOVE sender (§14.9.25.4 GR1), so §14.8.2.2 rule 2 admits it there (only an arithmetic expression, which is no MOVE sender, is
-  refused; so is the same function or item ENCLOSED IN PARENTHESES, `(FUNCTION MIN(N 3))` or `(N)`, which is no longer an argument
-  that "consists merely of a single identifier or literal", §14.9.4.4 GR8, whatever tree the binder reduces it to: kb/Work PB3678,
-  `pb3678_parenthesized_function_group_formal_refused`). An ITEM sends its storage image (a signed DISPLAY item its overpunched sign), which D-B3's codec already gives.
+  refused; so is the same function, item or numeric literal ENCLOSED IN PARENTHESES, `(FUNCTION MIN(N 3))`, `(N)` or `(3)`, which is
+  no longer an argument that "consists merely of a single identifier or literal", §14.9.4.4 GR8, whatever tree the binder reduces it
+  to: kb/Work PB3678, `pb3678_parenthesized_function_group_formal_refused`; kb/Work PB3760,
+  `pb3760_parenthesized_literal_group_formal_refused` and its INVOKE and user-defined function siblings. A literal's sign is part of
+  it, §8.3.3.3.2 rule 2, so `-3` is still the literal and `(-3)` an expression). An ITEM sends its storage image (a signed DISPLAY item its overpunched sign), which D-B3's codec already gives.
   Written once, in `OperandText.NonElementaryMoveSender`, whose digit rule is `CobolNum.GroupDigits`; witnessed by
   `conformance:wiseowl/cases/14.9.25-MOVE/pb3570_numeric_literal_group_move`,
   `conformance:wiseowl/cases/14.9.25-MOVE/pb3570_floating_literal_group_move`,
