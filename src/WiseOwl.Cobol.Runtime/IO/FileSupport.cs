@@ -321,6 +321,32 @@ public static class HostFile
         _ => false,
     };
 
+    /// <summary>⛔ THE ONE HOST CLASSIFICATION OF A REFUSAL AS "A FILE IS THERE ALREADY" (kb/Work PB3635): did a handle opened
+    /// <see cref="FileMode.CreateNew"/> fail because the path names a file? That is what an OPEN that decided on its presence probe to
+    /// CREATE the file meets when another run unit made it between the probe and the handle: the file is that run unit's, and the
+    /// OPEN is made again from its start over the file that stands (<c>FileConnector.Open</c>). Windows reports
+    /// <c>ERROR_FILE_EXISTS</c> (80) or <c>ERROR_ALREADY_EXISTS</c> (183) as the HRESULT <c>0x8007xxxx</c>; .NET on Unix surfaces
+    /// <c>EEXIST</c> (<see cref="UnixAlreadyExists"/>) as the raw errno. The host's own words, as <see cref="IsSharingRefusal"/> reads
+    /// them.
+    /// <para>⛔ A FILE, NEVER A DIRECTORY (review finding R2-1): the presence probe answers Absent for a directory at the path
+    /// (<see cref="Probe"/>), so a creating arm's <see cref="FileMode.CreateNew"/> handle can meet one, and Unix reports that as the
+    /// same <c>EEXIST</c> a file made meanwhile gets, where Windows reports <c>UnauthorizedAccessException</c>. That refusal is
+    /// <see cref="IsDirectoryInTheWay"/>'s, never a race to make the OPEN again for.</para></summary>
+    internal static bool IsAlreadyExists(IOException refusal, string hostPath) => IsExistsRefusal(refusal) && !Directory.Exists(hostPath);
+
+    /// <summary>Did a creating handle fail because a DIRECTORY has the path's name (<see cref="IsAlreadyExists"/>'s other half)? Windows
+    /// answers that with <see cref="UnauthorizedAccessException"/>, which the OPEN maps to §14.9.27.4 GR3's '37'; Unix answers
+    /// <c>EEXIST</c>, which this classifies so the OPEN reaches the same '37' on both hosts (the status an OPEN of a directory has
+    /// always had).</summary>
+    internal static bool IsDirectoryInTheWay(IOException refusal, string hostPath) => IsExistsRefusal(refusal) && Directory.Exists(hostPath);
+
+    private static bool IsExistsRefusal(IOException refusal) => refusal.HResult switch
+    {
+        unchecked((int)0x80070050) or unchecked((int)0x800700B7) => true,
+        int errno when !OperatingSystem.IsWindows() => errno == UnixAlreadyExists,
+        _ => false,
+    };
+
     /// <summary>Is the PRESENT physical file at <paramref name="hostPath"/> held open by a handle this call does
     /// not own — §9.1.13.9 2)'s <i>"that physical file is currently open by another file connector"</i>, asked of
     /// the host for a connector that is not this run unit's (kb/Work PB860)?

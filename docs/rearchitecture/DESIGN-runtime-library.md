@@ -3242,15 +3242,37 @@ store: a READ or START answers as for an absent OPTIONAL file ('10', '23'), a RE
 physical-file state stops claiming the removed file (`PhysicalFileTable.ForgetFile`). Its next WRITE, at its last check (so a
 WRITE the empty file refuses creates nothing), creates the file again as its OPEN did — under the entry mutex, a new START `A`
 journal, the creating handle, the empty store, the column resumed (`KeyedConnector.WriteCreatingTheFileAgain`) — and runs
-inside its store's statement; a file another run unit made at the path meanwhile is not the WRITE's to replace ('30'). A run
+inside its store's statement; a file another run unit made at the path meanwhile is not the WRITE's to replace ('30': the
+presence probe, then a creating handle taken `FileMode.CreateNew`, so a file made after the probe — another run unit's OPEN OUTPUT
+takes no entry mutex — is refused too; kb/Work PB3635). A run
 unit that writes nothing more leaves no file (its normal end commits nothing and its implicit CLOSE keeps nothing). The
 sequential twin gives its column back at the removal too (`SequentialConnector`'s `IJournalData.Release`, resumed by
-`BeginAppending`): a SHARING WITH ALL OTHER writer's ROLLBACK was refused '30' on Windows, where the column is a handle on the
+`SequentialConnector.CreateTheFileAgain`): a SHARING WITH ALL OTHER writer's ROLLBACK was refused '30' on Windows, where the column is a handle on the
 file (witness `unit:SequentialCommitControlTests`' `A_writer_under_all_other_whose_file_a_rollback_removed_creates_it_again_at_its_next_write`).
+The twin's creation is the same decision under the entry mutex the lock test holds (`BeginAppending` → `CreateTheFileAgain`): the
+presence probe, a `CreateNew` handle, the Table 19 column published again. A WRITE that finds a file at the path (another run
+unit's, held open or closed, committed or rolled back after) is refused '30' and appends to nothing and replaces nothing; the
+journal it began is withdrawn when it created no file, and left to item 8's ROLLBACK when it did (witnesses
+`unit:SequentialCommitControlTests`' `A_write_creating_the_file_again_meets_a_file_another_run_unit_*`,
+`unit:CommitRollbackRuntimeTests`' `A_keyed_write_creating_the_file_again_*`, and the `CreateNew` guard `unit:FileCreatedAgainDriftTests`).
 **An unsuccessful OPEN** that began the journal and did not affect the file — refused before its handle
 created the file, a capture refused before its `K`, a creation refused and undone (`KeyedStore.FileReplaced` false) —
 WITHDRAWS it (`SequentialJournal.Withdraw`: `D R` and the retirement; §14.9.27.4 GR25, *"the file is not affected"*), so the
-kept transaction stands as the CLOSE left it; one that did affect it leaves the journal for item 8's ROLLBACK. **The entry
+kept transaction stands as the CLOSE left it; one that did affect it leaves the journal for item 8's ROLLBACK (both organizations,
+one rule: `FileConnector.WithdrawWhatTheOpenBegan`, over `_begunByOpen` and `_openChangedFile`; the sequential connector sets
+the first in `BeginCoveredOpen` and the second where its handle creates the file or truncates it). **An OPEN that creates the
+file is the same decision as the WRITE that creates it again** (kb/Work PB3635): OUTPUT of an absent file and I-O or EXTEND of an
+absent OPTIONAL one (§14.9.27.4 GR17, GR18) take the handle `FileMode.CreateNew` when the one presence probe said Absent (not when
+it said Unauthorized: the file may be there and OUTPUT replaces it) — `SequentialConnector.OpenCore` / `HeldWriteStream` /
+`OpenReader(creates)`, `KeyedConnector.LockCreating(newFileOnly)`. A file another run unit's OPEN OUTPUT made between the probe and
+the handle is refused (`HostFile.IsAlreadyExists(e, path)`: the host's EEXIST on a path that names no directory; a directory at the
+path, which the probe answers Absent for, is `HostFile.IsDirectoryInTheWay` and '37' on every host), and `FileConnector.Open` makes
+the OPEN again from its entry step (at most two such retries, counted apart from PB3482's one share-mode retry): the unsuccessful attempt withdrew its journal, the new probe finds the
+file, and the OPEN is that of an EXISTING file — OUTPUT captures and replaces it, I-O and EXTEND open it ('00', not '05'); the
+attempts running out answer '30'. Witnesses `unit:SequentialCommitControlTests`' `An_open_creating_the_optional_file_meets_*`,
+`A_covered_open_output_meets_*`, `An_open_whose_creation_is_met_by_a_new_file_at_every_attempt_*` and
+`unit:CommitRollbackRuntimeTests`' `A_keyed_open_creating_the_file_meets_*` interleave the second run unit through the test
+medium's `BeforeOperation` seam. **The entry
 step of 2.2.2.8** runs at every writable OPEN of either organization (`FileConnector.EnterPhysicalFile`, one listing) and at
 every DELETE FILE, a covered one's and an uncovered one's (`FileRegistry.JournalHoldsAgainstDelete`), so a dead owner's
 capture is settled before 2.2.1.10's dead-owner step reads the restored store and before an uncovered DELETE FILE removes a
