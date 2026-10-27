@@ -18,7 +18,7 @@
 # which adjudication>"`, and writes it as the `# Last recorded:` line below.
 #
 # Tab-separated, sorted by id; a leading # is a comment. Columns: id<TAB>tier<TAB>verdict
-# Last recorded: battery #90 at main f5fec711b (2026-10-15): 1 per-case flip, syn_definition:37 AGREE_REJECT -> WE_ACCEPT_THEY_REJECT, ruled EXPECTED: PROGRAM-ID. short. is ISO-legal (8.10: SHORT is context-sensitive only in the DYNAMIC LENGTH STRUCTURE clause; 11.10.2 program-name-1; 8.3.2.2.21); at #89 it failed in the C# backend (a rejects-legal-source defect, fixed since); kb/Work PB3187
+# Last recorded: battery #91 at main 0fc3b47c8 (2026-10-27): 1 per-case flip, run_misc:2376 (PERFORM VARYING BY phrase omitted) WE_ACCEPT_THEY_REJECT -> AGREE_REJECT, ruled EXPECTED: the BY phrase is omissible only from 2002 (14.9.28.4 GR12; VCR row 7.42, construct perform-varying-by-omitted-2002), so COBOL0900 at --std 85 is landed PB2282's intended effect and cobc -std=cobol85 refuses it too; kb/Work PB3871
 configuration:105	ISO_PINNED	AGREE_REJECT
 configuration:126	DEFAULT_DIALECT	AGREE_REJECT
 configuration:147	DEFAULT_DIALECT	WE_REJECT_THEY_ACCEPT
@@ -725,7 +725,7 @@ run_misc:2288	DEFAULT_DIALECT	AGREE_ACCEPT
 run_misc:23	DEFAULT_DIALECT	WE_REJECT_THEY_ACCEPT
 run_misc:2311	DEFAULT_DIALECT	AGREE_ACCEPT
 run_misc:2337	DEFAULT_DIALECT	AGREE_ACCEPT
-run_misc:2376	ISO_PINNED	WE_ACCEPT_THEY_REJECT
+run_misc:2376	ISO_PINNED	AGREE_REJECT
 run_misc:2407	DEFAULT_DIALECT	AGREE_ACCEPT
 run_misc:2430	DEFAULT_DIALECT	AGREE_ACCEPT
 run_misc:2453	DEFAULT_DIALECT	AGREE_ACCEPT
