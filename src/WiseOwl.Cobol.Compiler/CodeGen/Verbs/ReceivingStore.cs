@@ -32,21 +32,18 @@ internal static class ReceivingStore
     public static string Characters(DataItem target, string sendingChars, string width) =>
         target.IsDynamicLength
             ? RuntimeApi.DynStore(sendingChars, target.DynMaxSize.ToString())
-            // A USAGE DISPLAY boolean receiver's storage area IS its boolean characters (StorageCharacters' pass-through
-            // arm), so the area a GR4 group move fits takes the boolean store: converted, zero filled, never space
-            // filled (§14.6.8.6; D-B5, kb/Work PB3666). A USAGE BIT receiver's area is its packed BYTES and a USAGE
-            // NATIONAL one's its UTF-16BE pairs (StorageBytes): neither is characters, and converting the bytes as
-            // characters turned a national N"101" group image into three CJK characters (PB3666 review R1-1), so they
-            // keep the byte fit.
-            : target.OperandPic is { Category: PicCategory.Boolean } && AreaHoldsCharacters(target)
-                ? RuntimeApi.StrStoreBoolean(sendingChars, width, target.Justified)
-                : RuntimeApi.StrStoreAligned(sendingChars, width, target.Justified);
+            // ⛔ A BOOLEAN receiver is never stored through here: the area a GR4 group move fits is decoded and converted
+            // to boolean positions by StorageCharacters (D-B5, kb/Work PB3666, PB3697), and an elementary character
+            // MOVE takes MoveEmitter.CharacterStore's StrStoreBoolean. The fit here pads with spaces and the
+            // conversion makes every space a boolean zero, which is the §14.6.8.6 zero fill.
+            : RuntimeApi.StrStoreAligned(sendingChars, width, target.Justified);
 
     /// <summary>Whether <paramref name="item"/>'s storage AREA (the bytes a GR4 group move fits, <see cref="StorageBytes"/>)
-    /// IS its characters — the pass-through arm of <see cref="StorageCharacters"/>, which decodes a NATIONAL item's
-    /// UTF-16BE pairs and a USAGE BIT item's packed bits and takes every other string-backed item's bytes as they are.
-    /// Only such an area can be converted as characters; asked by <see cref="Characters"/>' boolean arm and written as
-    /// the complement of <c>StorageCharacters</c>' decoding arms so the two cannot drift apart (kb/Work PB3666, review R1-1).</summary>
+    /// IS its characters — the pass-through arm of <see cref="DecodedStorage"/>, which decodes a NATIONAL item's UTF-16BE
+    /// pairs and a USAGE BIT item's packed bits and takes every other string-backed item's bytes as they are. The ONE
+    /// spelling of that test, asked by <see cref="SliceStorageArea"/>; <see cref="DecodedStorage"/>' decoding arms are
+    /// its complement, pinned by <c>ReceivingStoreDriftTests.EveryStoreIntoABooleanItem_ConvertsItsCharacters</c>
+    /// (kb/Work PB3698).</summary>
     private static bool AreaHoldsCharacters(DataItem item) =>
         item.OperandPic is not { Usage: Usage.National or Usage.Bit };
 
@@ -79,16 +76,34 @@ internal static class ReceivingStore
     /// a NATIVE numeric carrier (zoned, radix-2, BCD, IEEE — any byte form, including the national-form numeric
     /// of §13.18.60.3 SR12, whose decoded characters are its zoned digit run) through
     /// <see cref="Emit.NumericRenderer.CarrierOfImage"/>, the ONE crossing decode. Every string-backed shape —
-    /// alphanumeric [edited], numeric-edited, display boolean, a StoreAsImage numeric, a Tier-B view or a
-    /// numeric image place (whose Write IS the decode) — stores the characters as they are.
+    /// alphanumeric [edited], numeric-edited, a StoreAsImage numeric, a Tier-B view or a numeric image place
+    /// (whose Write IS the decode) — stores the characters as they are; a BOOLEAN item (display or national) converts
+    /// the decoded characters to boolean positions first (D-B5, <see cref="StorageCharacters"/>).
     /// <para>It used to be written twice and right neither time: the MOVE arm decoded a BINARY / PACKED receiver
     /// with the ZONED parser (<c>StoreDisplay</c>, so the bytes 00 07 moved into <c>PIC 9(4) COMP</c> read as 0)
     /// and a float receiver did not compile (CS1503); the READ arm handled only the national and character
     /// shapes, so an elementary numeric record did not compile at all (CS0029).</para></summary>
-    public static string StorageArea(Place target, string area, string positions)
+    public static string StorageArea(Place target, string area, string positions) =>
+        WriteDecoded(target, StorageCharacters(target.Item, area, positions));
+
+    /// <summary>⛔ THE VERBATIM STORAGE-IMAGE STORE — <see cref="StorageArea"/> for an area that is another description of
+    /// storage the item shares, so the item takes the image's decoded characters EXACTLY and no boolean conversion
+    /// is applied (kb/Work PB3697, review R1-1 and R1-2). D-B5 converts every STORE of characters into a boolean item; a
+    /// record area shared with other records (§13.18.33.4 GR3: every level-1 entry of the file implicitly redefines the
+    /// same area; §12.4.6.4.4 GR2: so does a SAME RECORD AREA peer's) holds the record's BYTES for all of them, and
+    /// converting the widest record's characters would overwrite what the others read; an APPLY COMMIT restore
+    /// (§14.9.36.4 GR3) returns the item to the image saved at the last COMMIT, which a REDEFINES view may hold as
+    /// any characters. Such content reaches the boolean item through another description of its storage and is
+    /// undefined (§14.6.13.2 1)). A USAGE BIT or numeric item decodes exactly as <see cref="StorageArea"/> does: only the
+    /// boolean conversion differs.</summary>
+    public static string VerbatimStorageArea(Place target, string area, string positions) =>
+        WriteDecoded(target, DecodedStorage(target.Item, area, positions));
+
+    /// <summary>The write half both storage-area stores share: a NATIVE numeric carrier takes its decoded characters
+    /// through <c>NumericRenderer.CarrierOfImage</c>, every other shape stores them as they are.</summary>
+    private static string WriteDecoded(Place target, string chars)
     {
         var item = target.Item;
-        string chars = StorageCharacters(item, area, positions);
         bool nativeNumeric = item.Pic is { Category: PicCategory.Numeric } && !item.StoreAsImage
             && target is not RedefViewPlace and not NumericImagePlace;
         return PlaceRenderer.Write(target, nativeNumeric ? Emit.NumericRenderer.CarrierOfImage(chars, item) : chars);
@@ -106,10 +121,12 @@ internal static class ReceivingStore
     public static string SliceStorageArea(RefModPlace slice, string area)
     {
         var item = slice.Item;
-        if (item.OperandPic is not { Usage: Usage.National or Usage.Bit }) return PlaceRenderer.Write(slice, area);
+        if (AreaHoldsCharacters(item)) return PlaceRenderer.Write(slice, area);
         string positions = $"global::System.Math.Max(0, {PlaceRenderer.SliceLength(slice)})";
+        // DecodedStorage, not StorageCharacters: the splice (PlaceRenderer.Write) converts a boolean slice's characters
+        // itself, for every store into it, so converting here too would do the same work twice (D-B5).
         return PlaceRenderer.Write(slice,
-            StorageCharacters(item, RuntimeApi.StrStoreAligned(area, StorageBytes(item, positions), false), positions));
+            DecodedStorage(item, RuntimeApi.StrStoreAligned(area, StorageBytes(item, positions), false), positions));
     }
 
     /// <summary>The BYTES <paramref name="positions"/> positions of <paramref name="item"/>'s usage occupy — a C# int
@@ -142,12 +159,36 @@ internal static class ReceivingStore
         item.OperandPic is { Usage: Usage.Bit } bitPic ? bitPic.Length : NationalWindow.WindowPositionsOf(item) ?? item.ImageWidth;
 
     /// <summary>The CHARACTERS of an elementary item whose storage holds the bytes <paramref name="area"/> — the decode
-    /// half of <see cref="StorageArea"/> for every carrier that is not a native numeric cell: a NATIONAL item's UTF-16BE
-    /// pairs through <c>CobolBits.NatReadWindow</c> (D-N1), a USAGE BIT item's packed bits through
-    /// <c>CobolBits.Unpack</c>, every other string-backed item the bytes as they are. Asked by <see cref="StorageArea"/>
-    /// and by <c>MoveEmitter.RecordValue</c>, whose receiving record exists only as a value (kb/Work PB2587), so a group
-    /// move decodes its receiver one way whether the receiver is a place or a record.</summary>
-    public static string StorageCharacters(DataItem item, string area, string positions) => item.OperandPic switch
+    /// half of <see cref="StorageArea"/> for every carrier that is not a native numeric cell: the representation decode
+    /// of <see cref="DecodedStorage"/>, and for a BOOLEAN item the conversion of those decoded characters to boolean
+    /// positions ('1' to one, every other character to zero — determination D-B5, kb/Work PB3666, PB3697). Asked by
+    /// <see cref="StorageArea"/> and by <c>MoveEmitter.GroupRecord</c>, whose receiving record exists only as a value
+    /// (kb/Work PB2587), so a group move decodes its receiver one way whether the receiver is a place or a record, and a
+    /// READ or RETURN into an elementary record area that no other description shares (§14.9.30.4 GR13 c); §14.9.34.4
+    /// GR3; <see cref="FileModel.AreaHasOneDescription"/>) rides the same store. A shared area (an EXTERNAL file's
+    /// run-unit area too, §13.18.22.4 GR4 b)) and an APPLY COMMIT restore
+    /// take <see cref="VerbatimStorageArea"/> instead.
+    /// <para>⛔ THE CONVERSION IS OF THE DECODED CHARACTERS, never of the bytes. §14.9.25.4 GR4 has "no conversion of data
+    /// from one form of internal representation to another", so the receiving AREA takes the sender's bytes unchanged (a
+    /// national item's UTF-16BE pairs, a display item's characters); what the item then HOLDS is characters, and a
+    /// boolean item holding a character other than '0' or '1' is content §14.6.13.2 1) leaves undefined. D-B5 normalizes
+    /// that content at every store, so a group move into <c>PIC 1(4) USAGE NATIONAL</c> agrees with the same move into
+    /// its reference-modified slice and with a display boolean (kb/Work PB3697). Converting the raw bytes before
+    /// decoding was the PB3666 review R1-1 defect (<c>N"101"</c> became three CJK characters). A USAGE BIT item is
+    /// exempt: every bit pattern is a valid boolean value, so its decode is already '0' and '1'.</para></summary>
+    public static string StorageCharacters(DataItem item, string area, string positions)
+    {
+        string chars = DecodedStorage(item, area, positions);
+        return item.OperandPic is { Category: PicCategory.Boolean, Usage: not Usage.Bit }
+            ? RuntimeApi.BoolFromCharacters(chars)
+            : chars;
+    }
+
+    /// <summary>The REPRESENTATION decode of an elementary item's storage <paramref name="area"/>, before any boolean
+    /// conversion: a NATIONAL item's UTF-16BE pairs through <c>CobolBits.NatReadWindow</c> (D-N1), a USAGE BIT item's
+    /// packed bits through <c>CobolBits.Unpack</c>, every other string-backed item the bytes as they are (the
+    /// <see cref="AreaHoldsCharacters"/> pass-through).</summary>
+    private static string DecodedStorage(DataItem item, string area, string positions) => item.OperandPic switch
     {
         { Usage: Usage.National } => RuntimeApi.NatReadWindow(area, "0", positions),
         { Usage: Usage.Bit } => RuntimeApi.BitsUnpack(area, positions),
