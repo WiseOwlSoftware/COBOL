@@ -100,7 +100,8 @@ try {
     $py = Get-Content (Join-Path $PSScriptRoot 'fuzz_ollama.py') -Raw
     Check 'fuzz_ollama.py spells the pause file the way the wrapper does' ([regex]::Match($py, '(?m)^PAUSE_FILE = "([^"]+)"').Groups[1].Value) $script:PauseFileName
     Check 'fuzz_ollama.py spells the lease mark the way the wrapper does' ([regex]::Match($py, '(?m)^LEASE_MARK = "([^"]+)"').Groups[1].Value) $script:LeaseMark
-    Check 'the wrapper looks for PAUSE in the run directory' (Get-PausePath 'E:/run') (Join-Path 'E:/run' $script:PauseFileName)
+    # A run directory on THIS host: Join-Path resolves the drive, and a CI runner has no E: (merge group of #676 RED).
+    Check 'the wrapper looks for PAUSE in the run directory' (Get-PausePath $tmp) (Join-Path $tmp $script:PauseFileName)
 
     # ---- the lib reads nothing it was not passed. PowerShell scopes DYNAMICALLY: a lib parameter named $Log once shadowed the
     # wrapper's own $Log for the function that logs, and the first real poll died with "Cannot evaluate parameter 'Path'"
