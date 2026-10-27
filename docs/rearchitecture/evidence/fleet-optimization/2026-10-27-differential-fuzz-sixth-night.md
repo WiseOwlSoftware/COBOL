@@ -75,6 +75,12 @@ found the register silent: PB1147 and PB441 quote the same sentence and line for
 - **A1:** `""` is a zero-length literal in concatenation and STRING too (§8.3.3.1); GnuCOBOL's one space is its side.
 - **D1:** a new GnuCOBOL-side member: the table-format VALUE `VALUE IS 0 FROM (1) TO (10)` (§13.18.63.2), refused with
   "unexpected FROM" (2 programs). cobc again crashed on a program that CALLs itself (9 programs).
+- **D2, GnuCOBOL 3.2 stricter than the standard, four members no earlier record names (one program each; each probed
+  under WSL by the slice):** a separator comma in `BYTE-LENGTH(WS-NAT, PHYSICAL)` is refused although §5.2.8 lets a comma
+  stand wherever a separator space does; `PIC S9(3)V9(20) BINARY` (23 digits) is refused by GnuCOBOL's 18-digit binary
+  limit where §13.18.40.3 14) allows 1 through 31; `FUNCTION CURRENT-DATE()` with an empty argument list is refused; and
+  the national-literal format `N"YYYYMMDD"` of INTEGER-OF-FORMATTED-DATE is refused (§15.39.3 1) allows it; the
+  alphanumeric literal compiles). WiseOwl accepts all four, correctly.
 - **N1:** every `NO_PROGRAM` row is a model reply cut off at 6,000 tokens (one by Ollama's repeat limit) whose saved
   program both compilers refuse; the one `WE_HANG` is the program's own PERFORM/GO TO loop.
 
