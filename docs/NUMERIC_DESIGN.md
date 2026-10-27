@@ -828,8 +828,8 @@ quotient truncated to those digits at its own exponent: `CobolEdit.TruncateToFlo
 performs (`NormalizeFloat`, shared with `FormatFloatCore`, so a value past the exponent's range is the pinned saturated
 content and one nearer to zero than the item holds is zero, as the store leaves them). A BINARY floating-point identifier-3
 (COMP-1/2, FLOAT-SHORT/-LONG ...) has a format, and its subsidiary quotient is the quotient truncated toward zero into it:
-`CobolFloat.TruncatedToFormat` for an SDIDI quotient (an exact comparison, never a second rounding) and, for a native
-binary64 quotient, the value itself (binary64) or `CobolFloat.TruncatedToSingle` (binary32); the remainder is then the SDIDI
+`FloatResultant` under TRUNCATION (the item's own store landing, kb/Work PB1196: an SDIDI quotient exactly, a native
+binary64 quotient as itself for binary64 or truncated to binary32); the remainder is then the SDIDI
 expression (standard-decimal) or the binary64 one (native, DOC-A.1-123). A floating-point identifier-3 takes
 `CarriedSubsidiaryQuotient` in every mode, because the Int128 kernel truncates at a scale it does not have. ⛔ The stored
 quotient is `FinalQuotient`, the one former `DIVIDE ... GIVING` itself uses (§14.9.12.4 5) b), 6) b)), and the subsidiary

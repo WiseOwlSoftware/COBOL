@@ -202,8 +202,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         /// <summary>A floating-point numeric-edited item: a significand of a fixed digit count at the quotient's own
         /// exponent (§13.18.40.4 13) b)).</summary>
         FloatEdited,
-        /// <summary>A binary floating-point usage (COMP-1/2, FLOAT-SHORT/-LONG/-EXTENDED, FLOAT-BINARY-*, FLOAT-DECIMAL-*,
-        /// all carried as binary32 or binary64): a format.</summary>
+        /// <summary>A binary floating-point usage (COMP-1/2, FLOAT-SHORT/-LONG/-EXTENDED, FLOAT-BINARY-32/-64; the wider
+        /// FLOAT-BINARY-128 and FLOAT-DECIMAL-16/-34 are refused at the data description, COBOL1564): a format.</summary>
         BinaryFloat,
     }
 
@@ -336,24 +336,25 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         return new NumX(sq, 0, Dec: true);
     }
 
-    /// <summary>The subsidiary quotient for a BINARY floating-point identifier-3 (ISO §14.9.12.4 6) c)): the quotient
-    /// truncated toward zero into the item's format. A native binary64 quotient is already a binary64 value, so a
-    /// binary64 item takes it as it is and a binary32 item its truncation (<c>CobolFloat.TruncatedToSingle</c>), and the
-    /// remainder is formed in binary64 (DOC-A.1-123). An SDIDI quotient truncates into the format exactly
-    /// (<c>CobolFloat.TruncatedToFormat</c>) and the format's value is lifted back into the SDIDI by the ONE float lift, so
-    /// the remainder is the standard-decimal expression GR7 gives.</summary>
+    /// <summary>The subsidiary quotient for a BINARY floating-point identifier-3 (ISO §14.9.12.4 6) c)): the quotient as the
+    /// item holds it under truncation, which is the ONE transfer of an arithmetic value into a floating-point resultant,
+    /// <c>FloatResultant</c> under implied TRUNCATION (§14.7.4.3 10): "rounded to the nearest value nearer to zero that can
+    /// be represented in the resultant identifier") - the very landing the item's own store performs when the statement
+    /// has no ROUNDED phrase, so the subsidiary quotient and the stored one cannot disagree (kb/Work PB2923, PB1196). A
+    /// native binary64 quotient stays binary64 and the remainder is formed in binary64 (DOC-A.1-123); an SDIDI quotient
+    /// lands exactly and the format's value is lifted back into the SDIDI by the ONE float lift, so the remainder is the
+    /// standard-decimal expression GR7 gives.</summary>
     private NumX BinaryFloatSubsidiary(NumX truncated, PicInfo pic)
     {
         var w = ctx.Writer;
         string sq = $"__sq{ctx.Names.NextStoreTmp()}";
+        string held = RuntimeApi.FloatResultantStore(truncated, CobolRounding.Truncation, pic.IsSingle);
         if (truncated.Real)
         {
-            if (!pic.IsSingle) return truncated;
-            w.Line($"double {sq} = {RuntimeApi.FloatTruncatedToSingle(truncated.Expr)};");
+            w.Line($"double {sq} = {held};");
             return new NumX(sq, 0, Real: true);
         }
-        string inFormat = RuntimeApi.FloatTruncatedToFormat(num.DecOperand(truncated), pic.IsSingle);
-        w.Line($"CobolDec {sq} = {num.DecOperand(new NumX(inFormat, 0, Real: true))};");
+        w.Line($"CobolDec {sq} = {num.DecOperand(new NumX(held, 0, Real: true))};");
         return new NumX(sq, 0, Dec: true);
     }
 

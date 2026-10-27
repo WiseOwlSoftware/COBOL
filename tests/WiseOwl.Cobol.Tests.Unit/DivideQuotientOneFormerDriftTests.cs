@@ -56,6 +56,18 @@ public sealed class DivideQuotientOneFormerDriftTests
     }
 
     [Fact]
+    public void ABinaryFloatSubsidiaryQuotientIsTheItemsOwnTruncatingStore()
+    {
+        // ISO 14.7.4.3 10): the landing of an arithmetic value into a floating-point resultant under TRUNCATION is ONE
+        // mechanism (FloatResultant, kb/Work PB1196). The subsidiary quotient of a binary floating-point identifier-3 is that
+        // very landing, so it cannot disagree with what the item holds (kb/Work PB2923); a second truncation routine is the
+        // duplicate this guard refuses.
+        string text = string.Join(Environment.NewLine, Code());
+        string arm = Between(text, "private NumX BinaryFloatSubsidiary(", "public void EmitComputeBoolean(");
+        Assert.Contains("RuntimeApi.FloatResultantStore(truncated, CobolRounding.Truncation", arm, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void EverySubsidiaryFormHasItsOwnArm()
     {
         string text = string.Join(Environment.NewLine, Code());
