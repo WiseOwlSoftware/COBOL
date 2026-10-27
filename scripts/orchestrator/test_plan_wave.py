@@ -1960,12 +1960,21 @@ def r3_plant(pid, site):
             "blocked_by": ["PB2118", "PB2417"], "cluster": ["PB2119"], "_body": body}
 
 
+# The test-file case is drawn from the live slice file set, never typed: a slice that lands takes its rows' files out
+# of the set (NonCobolActivatorReturnTests.cs left it when slice 3 made the test a host of the entries), and a typed
+# path would then test nothing (kb/Work PB1086's 2026-10-27 design pass).
+OPEN_TEST = next((p for p in sorted(REAL_SET) if p.startswith("tests/") and p.endswith(".cs")), None)
+check("an open slice holds a C# test file to plant on", OPEN_TEST is not None, True)
 for pid, site in (("PB9991", "src/WiseOwl.Cobol.Compiler/Binding/BindSession.cs"),
                   ("PB9992", "src/WiseOwl.Cobol.Compiler/Binding/GroupRepository.cs"),
                   ("PB9993", "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs"),
-                  ("PB9994", "tests/WiseOwl.Cobol.Tests.Conformance/NonCobolActivatorReturnTests.cs")):
+                  ("PB9994", OPEN_TEST or "tests/none.cs")):
     hit = [m for m in work.r3_program_problems(REAL + [r3_plant(pid, site)], REAL_SET) if m.startswith(pid)]
     check(f"a planted R3 note on {site.rsplit('/', 1)[-1]} must wait for an open slice", bool(hit), True)
+LANDED_TEST = "tests/WiseOwl.Cobol.Tests.Conformance/NonCobolActivatorReturnTests.cs"   # its design row is landed
+check("a planted R3 note on a LANDED row's file waits for no slice",
+      [m for m in work.r3_program_problems(REAL + [r3_plant("PB9997", LANDED_TEST)], REAL_SET)
+       if m.startswith("PB9997") and "slice" in m], [])
 
 # PB2197 (the R1 landing's CI red): the existence rule reads the COMMITTED tree, so a build output that exists in a built
 # checkout and not in CI's never decides it; a note naming a generated parser file must name the grammar it comes from.
