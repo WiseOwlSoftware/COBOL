@@ -1523,7 +1523,7 @@ of an unsupported facility.
   for a binary floating-point item, the quotient truncated toward zero into the item's format (binary32 for COMP-1,
   FLOAT-SHORT and FLOAT-BINARY-32, binary64 for every other; a quotient the format holds is itself). The remainder is GR7's
   expression over that subsidiary quotient: the SDIDI expression under STANDARD-DECIMAL, the binary64 one natively
-  (DOC-A.1-123). **The stored quotient is never derived from the subsidiary quotient** (§14.9.12.4 6) b) forms and stores it,
+  (A.1 item 123). **The stored quotient is never derived from the subsidiary quotient** (§14.9.12.4 6) b) forms and stores it,
   as §14.9.12.4 5) b) does for the statement without REMAINDER): it keeps all its digits and its exponent, rounded by the
   receiver's mode. The same adjudication measured GnuCOBOL 3.2 truncating a FLOAT-LONG subsidiary quotient at a fixed 17
   fraction digits (FLOAT-SHORT 8), so for a quotient below 1E-17 it leaves the whole dividend as the remainder; this

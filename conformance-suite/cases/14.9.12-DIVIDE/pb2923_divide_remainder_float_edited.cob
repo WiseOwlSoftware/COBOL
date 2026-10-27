@@ -41,7 +41,7 @@
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 FE   PIC +9.99E+99.
-       01 FE1  PIC +9.99E+9 VALUE 2.0E0.
+       01 FE1  PIC +9.99E+9.
        01 HUGE PIC 9(25) VALUE 3000000000000000000000000.
        01 BIG  PIC 9(13) VALUE 5000000000000.
        01 R2   PIC 9V99.
@@ -64,6 +64,7 @@
            DISPLAY "A7 [" FE "] [" R5 "]".
            DIVIDE 0 BY 3 GIVING FE REMAINDER R5.
            DISPLAY "A8 [" FE "] [" R5 "]".
+           MOVE 2 TO FE1.
            MOVE 7 TO R5.
            DIVIDE BIG BY 1 GIVING FE1 REMAINDER R5
                ON SIZE ERROR DISPLAY "A9 SIZE ERROR"
