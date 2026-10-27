@@ -1844,8 +1844,9 @@ public sealed class CommitRollbackRuntimeTests
     [InlineData(FileOrg.Indexed, FileOpenMode.Extend, false)]
     public void A_keyed_open_creating_the_file_meets_a_directory_at_the_path_37_at_once(FileOrg org, FileOpenMode mode, bool covered)
     {
-        string host = Tmp($"pb3635-dir-{org}-{mode}-{covered}");
-        Directory.CreateDirectory(host);
+        string dir = Tmp($"pb3635-dir-{org}-{mode}-{covered}");
+        string host = Path.Combine(dir, "F.dat");
+        Directory.CreateDirectory(host);   // the directory IS the file's path
         try
         {
             int begun = 0;
@@ -1862,7 +1863,7 @@ public sealed class CommitRollbackRuntimeTests
             AssertNoJournalLeft(host);
             Assert.True(Directory.Exists(host));
         }
-        finally { try { Directory.Delete(host, recursive: true); } catch (IOException) { } }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>The same decision where the file a connector's CLOSE kept is not there at the re-OPEN (kb/Work PB3493's sibling arms,
