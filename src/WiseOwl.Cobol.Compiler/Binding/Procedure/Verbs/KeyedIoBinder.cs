@@ -38,9 +38,11 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     /// <summary>Bind a READ of a RELATIVE/INDEXED file. The format decision follows the syntax rules: an explicit
     /// NEXT/PREVIOUS is sequential (GR19); ACCESS SEQUENTIAL implies NEXT (SR8); ACCESS DYNAMIC implies NEXT only
     /// when an AT END / NOT AT END phrase is present — otherwise it is a Format-2 random read (SR9); ACCESS RANDOM
-    /// is always Format 2 and forbids NEXT/PREVIOUS/AT END (SR6). A KEY phrase is Format 2 (random, GR19) whatever
-    /// the access mode, so it is refused beside a sequential-read phrase and on a SEQUENTIAL file
-    /// (<c>StatementValidation.CheckReadKeyFormat</c>, kb/Work PB3569).</summary>
+    /// is always Format 2 and forbids NEXT/PREVIOUS/AT END (SR6). The KEY phrase is printed in Format 2 only, so it
+    /// is refused beside a sequential-read phrase and on a SEQUENTIAL file, where SR8's implied NEXT makes the READ
+    /// sequential (GR19) — the same reading the <c>kind</c> switch below binds
+    /// (<c>StatementValidation.CheckReadKeyFormat</c>, kb/Work PB3569). The INVALID KEY / NOT INVALID KEY bracket is
+    /// Format 2 only too, so it is screened on a READ that binds sequential (PB3569's sibling arm).</summary>
     public BoundStatement BindRead(Core.ReadStatementContext r, FileModel file)
     {
         // Bracket 1 of §14.9.30.2 — [ADVANCING ON LOCK | IGNORING LOCK | retry-phrase] (kb/Work PB331).
@@ -86,6 +88,19 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             _ => previous ? ReadKind.Previous : ReadKind.Next,
         };
 
+        // The INVALID KEY / NOT INVALID KEY bracket is printed in Format 2 only (§14.9.30.2), and a READ that binds
+        // sequential (an explicit or SR8/SR9-implied NEXT, or PREVIOUS: GR19) is a Format-1 read, so writing the
+        // bracket on one is never conforming source — the SAME screen, with the SAME seam and wording, as the
+        // sequential-organization arm (SequentialIoBinder.BindRead): an error under strict, a warning under
+        // --permissive with the bind UNCHANGED (the CCVS-85 corpus misplaces the phrase), the INVALID arm dead in
+        // the status-first branches. A KEY phrase beside a sequential read is CheckReadKeyFormat's refusal below,
+        // which names the KEY phrase, so it is not screened a second time here (kb/Work PB3569 review lead R1-2).
+        if (kind != ReadKind.Random && r.readKey() is null
+            && ConditionalPhrases.FirstOf(r.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey) is { } misplaced)
+            ctx.Validation.ScreenForbiddenPhrase(true, ConditionalPhrases.KindOf(misplaced).Words, "READ",
+                "a file whose READ is a Format-1 sequential read (the NEXT phrase written or implied, SR8, SR9)",
+                "ISO §14.9.30.2 Format 1 · §14.9.30.4 GR19");
+
         int keyIndex = -1;   // the prime record key (GR31) / the relative key item (GR29) when no KEY phrase
         if (r.readKey()?.dataReference() is { } keyRef)
         {
@@ -101,9 +116,10 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             // IDENTITY answer, never START's SR6 b) generic screen (kb/Work PB354).
             if (ctx.Validation.CheckReadKeyOrganization(file))
             {
-                // ⛔ The KEY phrase makes the READ Format 2 (random, §14.9.30.4 GR19): a sequential-read phrase written
-                // beside it, or a SEQUENTIAL file for it to read, is refused by the ONE check that names which of the
-                // two it is (kb/Work PB3569) — never by a message that lists phrases the statement did not write.
+                // ⛔ The KEY phrase is printed in Format 2 (random) only: a sequential-read phrase written beside it, or
+                // a SEQUENTIAL file whose SR8-implied NEXT makes the READ sequential (GR19), is refused by the ONE
+                // check that names which of the two it is (kb/Work PB3569) — never by a message that lists phrases the
+                // statement did not write.
                 // Refused and reported, the bind continues with the default key of reference, as SR10's refusal above.
                 if (!ctx.Validation.CheckReadKeyFormat(file, contention?.readAdvancingOnLock() is not null,
                         atEnd is not null, notAtEnd is not null, next, previous))

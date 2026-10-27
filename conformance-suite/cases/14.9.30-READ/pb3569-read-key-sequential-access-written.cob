@@ -1,19 +1,18 @@
       *>--- conformance-case
       *> id: pb3569-read-key-sequential-access-written
-      *> rules: [GR-14.9.30.4-19, GR-12.4.5.5.3-2, FMT-14.9.30.2]
+      *> rules: [SR-14.9.30.3-8, GR-14.9.30.4-19, FMT-14.9.30.2]
       *> source-format: fixed
       *> portable: unverified
       *>---
       *> kb/Work PB3569. The same rule as pb3569-read-key-sequential-
       *> access-default, with ACCESS MODE IS SEQUENTIAL WRITTEN: ISO
-      *> 14.9.30.4 GR19 makes a READ with a KEY phrase and no NEXT or
-      *> PREVIOUS a random read; ISO 14.9.30.1 gives a READ under
-      *> sequential access the job of making "available the next logical
-      *> record"; ISO 12.4.5.5.3 GR2 has such a file's records "accessed in
-      *> the sequence dictated by the file organization" (each citation
-      *> through cite.py --check). The refusal is COBOL0864 at every
-      *> edition and names the access mode without the "not specified"
-      *> clause the default spelling carries, and no phrase: the statement
+      *> 14.9.30.3 SR8 implies the NEXT phrase when neither NEXT nor
+      *> PREVIOUS is specified and ACCESS MODE SEQUENTIAL is specified,
+      *> and ISO 14.9.30.4 GR19 makes an implicit NEXT a sequential read,
+      *> which has no KEY phrase (each citation through cite.py --check).
+      *> The refusal is COBOL0864 at every edition and names the access
+      *> mode without the "not specified" clause the default spelling
+      *> carries, and the implied NEXT, and no phrase: the statement
       *> writes none of NEXT, PREVIOUS, ADVANCING, AT END or NOT AT END.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3569B.
