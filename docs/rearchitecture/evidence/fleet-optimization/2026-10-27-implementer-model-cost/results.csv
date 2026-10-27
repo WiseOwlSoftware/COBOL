@@ -1,0 +1,790 @@
+workflow,wave,group,lead,attempt_no,later_attempts,area,sev,branch,model,turns,tokens,points,status,review_rounds,review_pts,fix_rounds,fix_pts,fix_models,finisher_passes,finisher_pts,total_pts,retry_pts,landed_ancestry,commit_evidence,chain_landed_anc,notes_reported,notes_verified_landed,chain_notes,notes_list,date
+wf_64598402-07e,?,wf_64598402-07e:A,PB1469,1,0,binding/validation,MAJOR,,opus,220,494539,0.309,NORESULT,0,0,0,0,,0,0,0.309,0,n,n,n,0,0,0,,2026-09-27
+wf_64598402-07e,65,w65b,PB1491,1,0,frontend/preprocessor,MAJOR,worktree-wf_64598402-07e-2,opus,181,359856,0.225,DONE,0,0,0,0,,0,0,0.225,0,n,n,n,2,2,2,PB1491 PB1493,2026-09-27
+wf_64598402-07e,65,w65c,PB1142,1,0,binder/verbs,MAJOR,worktree-wf_64598402-07e-3,opus,185,329858,0.206,DONE,0,0,0,0,,0,0,0.206,0,n,n,n,1,1,1,PB1142,2026-09-27
+wf_64598402-07e,65,w65d,PB1150,1,0,runtime/io,MAJOR,worktree-wf_64598402-07e-4,opus,131,287313,0.18,DONE,0,0,0,0,,0,0,0.18,0,n,n,n,2,2,2,PB1150 PB1542,2026-09-27
+wf_64598402-07e,65,w65e,PB1401,1,3,codegen/conditions,MAJOR,worktree-wf_64598402-07e-5,opus,194,429968,0.269,SPLIT,0,0,0,0,,0,0,0.269,0.358,n,y,y,2,2,5,PB1401 PB1466,2026-09-27
+wf_64598402-07e,65,w65f,PB1230,1,0,binding/data-division,MAJOR,worktree-wf_64598402-07e-6,opus,138,263735,0.165,DONE,0,0,0,0,,0,0,0.165,0,n,n,n,1,1,1,PB1230,2026-09-27
+wf_0d973fc0-26b,66,w66g,PB1475,1,0,binding/types,MAJOR,worktree-wf_0d973fc0-26b-1,opus,174,356563,0.223,DONE,0,0,0,0,,0,0,0.223,0,n,n,n,3,3,3,PB1166 PB1300 PB1475,2026-09-27
+wf_0d973fc0-26b,?,wf_0d973fc0-26b:H,PB1370,1,0,frontend/expressions,MAJOR,,opus,220,443814,0.277,NORESULT,0,0,0,0,,0,0,0.277,0,n,y,n,0,0,0,,2026-09-27
+wf_0d973fc0-26b,66,w66j,PB1244,1,0,runtime/io,MAJOR,worktree-wf_0d973fc0-26b-4,opus,122,255111,0.159,DONE,0,0,0,0,,0,0,0.159,0,n,n,n,2,2,2,PB1244 PB1245,2026-09-27
+wf_0d973fc0-26b,66,w66k,PB1128,1,0,codegen/verbs,MAJOR,worktree-wf_0d973fc0-26b-5,opus,208,407535,0.255,DONE,0,0,0,0,,0,0,0.255,0,n,y,n,3,3,3,PB1126 PB1128 PB908,2026-09-27
+wf_0d973fc0-26b,66,w66l,PB1380,1,0,compiler/binding,MAJOR,worktree-wf_0d973fc0-26b-6,opus,136,278781,0.174,DONE,0,0,0,0,,0,0,0.174,0,n,n,n,1,1,1,PB1380,2026-09-27
+wf_475f7239-eda,67,w67m,PB1352,1,0,frontend/text-manipulation,MAJOR,worktree-wf_475f7239-eda-1,opus,148,342004,0.214,SPLIT,0,0,0,0,,0,0,0.214,0,n,n,n,3,3,3,PB1067 PB1352 PB1543,2026-09-27
+wf_475f7239-eda,67,w67n,PB1468,1,0,binding/validation,MAJOR,worktree-wf_475f7239-eda-2,opus,204,371572,0.232,SPLIT,0,0,0,0,,0,0,0.232,0,n,y,n,4,4,4,PB1427 PB1467 PB1468 PB1469,2026-09-27
+wf_475f7239-eda,67,w67o,PB1144,1,1,runtime/tables,MAJOR,worktree-wf_475f7239-eda-3,opus,175,395531,0.247,SPLIT,0,0,0,0,,0,0,0.247,0.267,n,y,n,5,5,6,PB1144 PB1267 PB1269 PB1410 PB1411,2026-09-27
+wf_475f7239-eda,67,w67p,PB1168,1,0,runtime/io,MAJOR,worktree-wf_475f7239-eda-4,opus,204,466246,0.291,DONE,0,0,0,0,,0,0,0.291,0,n,y,n,6,6,6,PB1168 PB1190 PB1512 PB1514 PB1540 PB322,2026-09-27
+wf_475f7239-eda,?,wf_475f7239-eda:Q,PB1064,1,0,codegen/oo,MAJOR,,opus,220,445355,0.278,NORESULT,0,0,0,0,,0,0,0.278,0,n,n,n,0,0,0,,2026-09-27
+wf_8b2b0670-764,?,wf_8b2b0670-764:R,PB1079,1,2,codegen/oo,MINOR,,opus,53,177251,0.111,NORESULT,0,0,0,0,,0,0,0.111,0.29,n,n,y,0,0,6,,2026-09-28
+wf_8b2b0670-764,?,wf_8b2b0670-764:S,PB1390,1,2,frontend/grammar,MAJOR,,opus,48,149237,0.093,NORESULT,0,0,0,0,,0,0,0.093,0.24,n,n,y,0,0,6,,2026-09-28
+wf_8b2b0670-764,?,wf_8b2b0670-764:T,PB1401,2,2,codegen/conditions,MAJOR,,opus,40,139191,0.087,NORESULT,0,0,0,0,,0,0,0.087,0.271,n,n,y,0,0,4,,2026-09-28
+wf_8b2b0670-764,?,wf_8b2b0670-764:U,PB1213,1,3,binding/data-division,MAJOR,,opus,46,130524,0.082,NORESULT,0,0,0,0,,0,0,0.082,0.473,n,y,y,0,0,5,,2026-09-28
+wf_8b2b0670-764,?,wf_8b2b0670-764:V,PB1130,1,2,runtime/report,MAJOR,,opus,40,161136,0.101,NORESULT,0,0,0,0,,0,0,0.101,0.383,n,n,n,0,0,5,,2026-09-28
+wf_8b2b0670-764,?,wf_8b2b0670-764:W,PB1069,1,2,runtime/control,MINOR,,opus,41,165075,0.103,NORESULT,0,0,0,0,,0,0,0.103,0.217,n,y,y,0,0,3,,2026-09-28
+wf_bf025bee-c67,?,wf_bf025bee-c67:R,PB1079,2,1,codegen/oo,MINOR,worktree-wf_bf025bee-c67-1,opus,2,26721,0.017,BLOCKED,0,0,0,0,,0,0,0.017,0.273,y,n,y,0,0,6,,2026-09-28
+wf_bf025bee-c67,?,wf_bf025bee-c67:S,PB1390,2,1,frontend/grammar,MAJOR,worktree-wf_bf025bee-c67-2,opus,2,26875,0.017,BLOCKED,0,0,0,0,,0,0,0.017,0.223,y,n,y,0,0,6,,2026-09-28
+wf_bf025bee-c67,?,wf_bf025bee-c67:T,PB1401,3,1,codegen/conditions,MAJOR,worktree-wf_bf025bee-c67-3,opus,2,26586,0.017,BLOCKED,0,0,0,0,,0,0,0.017,0.254,y,n,y,0,0,4,,2026-09-28
+wf_bf025bee-c67,?,wf_bf025bee-c67:U,PB1213,2,2,binding/data-division,MAJOR,worktree-wf_bf025bee-c67-4,opus,2,26738,0.017,BLOCKED,0,0,0,0,,0,0,0.017,0.456,y,y,y,0,0,5,,2026-09-28
+wf_bf025bee-c67,?,wf_bf025bee-c67:V,PB1130,2,1,runtime/report,MAJOR,,opus,117,328256,0.205,NORESULT,0,0,0,0,,0,0,0.205,0.178,n,n,n,0,0,5,,2026-09-28
+wf_bf025bee-c67,?,wf_bf025bee-c67:W,PB1069,2,1,runtime/control,MINOR,worktree-wf_bf025bee-c67-6,opus,2,26336,0.016,BLOCKED,0,0,0,0,,0,0,0.016,0.201,y,y,y,0,0,3,,2026-09-28
+wf_bf025bee-c67,?,wf_bf025bee-c67:X,PB1355,1,2,frontend/text-manipulation,MAJOR,worktree-wf_bf025bee-c67-7,opus,2,27110,0.017,BLOCKED,0,0,0,0,,0,0,0.017,0.408,y,y,y,0,0,5,,2026-09-28
+wf_bf025bee-c67,?,wf_bf025bee-c67:Y,PB1427,1,2,frontend/grammar,MAJOR,,opus,149,328891,0.206,NORESULT,0,0,0,0,,0,0,0.206,0.409,n,y,n,0,0,5,,2026-09-28
+wf_bf025bee-c67,?,wf_bf025bee-c67:U2,PB1445,1,0,binding/literals,MAJOR,,opus,146,297708,0.186,NORESULT,0,0,0,0,,0,0,0.186,0,n,y,n,0,0,0,,2026-09-28
+wf_bf025bee-c67,?,wf_bf025bee-c67:Z,PB1084,1,2,binder/repository,MAJOR,worktree-wf_bf025bee-c67-10,opus,2,28430,0.018,BLOCKED,0,0,0,0,,0,0,0.018,0.397,y,y,y,0,0,5,,2026-09-28
+wf_e9a82a33-6b6,68,w68r,PB1079,3,0,codegen/oo,MINOR,worktree-wf_e9a82a33-6b6-1,opus,204,437152,0.273,DONE,0,0,0,0,,0,0,0.273,0,n,n,n,6,6,6,PB1064 PB1079 PB1132 PB1138 PB1405 PB1500,2026-09-28
+wf_e9a82a33-6b6,68,w68s,PB1390,3,0,frontend/grammar,MAJOR,worktree-wf_e9a82a33-6b6-2,opus,193,356962,0.223,DONE,0,0,0,0,,0,0,0.223,0,n,y,n,6,6,6,PB1162 PB1370 PB1371 PB1390 PB1392 PB1413,2026-09-28
+wf_e9a82a33-6b6,68,w68t,PB1401,4,0,codegen/conditions,MAJOR,worktree-wf_e9a82a33-6b6-3,opus,193,406755,0.254,SPLIT,0,0,0,0,,0,0,0.254,0,n,n,n,4,4,4,PB1401 PB1432 PB1465 PB1477,2026-09-28
+wf_e9a82a33-6b6,?,wf_e9a82a33-6b6:U,PB1213,3,1,binding/data-division,MAJOR,,opus,220,423201,0.265,NORESULT,0,0,0,0,,0,0,0.265,0.191,n,y,n,0,0,5,,2026-09-28
+wf_e9a82a33-6b6,68,w68v,PB1130,3,0,runtime/report,MAJOR,worktree-wf_e9a82a33-6b6-5,opus,146,285392,0.178,DONE,0,0,0,0,,0,0,0.178,0,n,n,n,5,5,5,PB1130 PB1131 PB1186 PB1187 PB1247,2026-09-28
+wf_e9a82a33-6b6,68,w68w,PB1069,3,0,runtime/control,MINOR,worktree-wf_e9a82a33-6b6-6,opus,169,322175,0.201,SPLIT,0,0,0,0,,0,0,0.201,0,n,y,n,3,3,3,PB1069 PB1178 PB1532,2026-09-28
+wf_e9a82a33-6b6,68,w68x,PB1355,2,1,frontend/text-manipulation,MAJOR,worktree-wf_e9a82a33-6b6-7,opus,215,455574,0.285,DONE,0,0,0,0,,0,0,0.285,0.123,n,y,n,5,5,5,PB1353 PB1355 PB1356 PB1357 PB1358,2026-09-28
+wf_e9a82a33-6b6,68,w68v2,PB1272,1,0,runtime/report-writer,MAJOR,worktree-wf_e9a82a33-6b6-8,opus,199,435515,0.272,DONE,0,0,0,0,,0,0,0.272,0,n,n,n,9,9,9,PB1130 PB1131 PB1186 PB1187 PB1188 PB1247 PB1272 PB1296 PB1297,2026-09-28
+wf_e9a82a33-6b6,?,wf_e9a82a33-6b6:Y,PB1427,2,1,frontend/grammar,MAJOR,,opus,220,400009,0.25,NORESULT,0,0,0,0,,0,0,0.25,0.159,n,n,n,0,0,5,,2026-09-28
+wf_e9a82a33-6b6,68,w68z,PB1084,2,1,binder/repository,MAJOR,worktree-wf_e9a82a33-6b6-10,opus,210,435164,0.272,DONE,0,0,0,0,,0,0,0.272,0.125,n,n,n,5,5,5,PB1047 PB1084 PB1100 PB1243 PB1381,2026-09-28
+wf_e9a82a33-6b6,?,wf_e9a82a33-6b6:V3,PB1509,1,1,codegen/report,MAJOR,worktree-wf_e9a82a33-6b6-11,opus,3,30555,0.019,DISCHARGED,0,0,0,0,,0,0,0.019,0.241,y,y,y,0,0,5,,2026-09-28
+wf_64d3a01e-a3d,69,w69x,PB1355,3,0,frontend/text-manipulation,MAJOR,worktree-wf_64d3a01e-a3d-1,opus,95,197031,0.123,DONE,0,0,0,0,,0,0,0.123,0,n,n,n,4,4,4,PB1355 PB1356 PB1357 PB1358,2026-09-28
+wf_64d3a01e-a3d,69,w69z,PB1084,3,0,binder/repository,MAJOR,worktree-wf_64d3a01e-a3d-2,opus,111,200181,0.125,DONE,0,0,0,0,,0,0,0.125,0,n,n,n,5,5,5,PB1047 PB1084 PB1100 PB1243 PB1381,2026-09-28
+wf_64d3a01e-a3d,69,w69y,PB1427,3,0,frontend/grammar,MAJOR,worktree-wf_64d3a01e-a3d-3,opus,118,253990,0.159,DONE,0,0,0,0,,0,0,0.159,0,n,n,n,5,5,5,PB1035 PB1171 PB1193 PB1427 PB939,2026-09-28
+wf_ae05e6d0-c50,70,w70u,PB1213,4,0,binding/data-division,MAJOR,worktree-wf_ae05e6d0-c50-1,opus,172,305429,0.191,DONE,0,0,0,0,,0,0,0.191,0,n,n,n,5,5,5,PB1088 PB1213 PB1273 PB1284 PB1579,2026-09-28
+wf_ae05e6d0-c50,70,w70a,PB1471,1,0,binding/conditions,MAJOR,worktree-wf_ae05e6d0-c50-2,opus,161,329869,0.206,SPLIT,0,0,0,0,,0,0,0.206,0,n,y,n,6,6,6,PB1466 PB1471 PB1665 PB617 PB954 PB960,2026-09-28
+wf_ae05e6d0-c50,70,w70v3,PB1509,2,0,codegen/report,MAJOR,worktree-wf_ae05e6d0-c50-3,opus,184,386149,0.241,DONE,0,0,0,0,,0,0,0.241,0,n,n,n,5,5,5,PB1234 PB1305 PB1509 PB1560 PB1666,2026-09-28
+wf_ae05e6d0-c50,70,w70b,PB1362,1,0,frontend/reference-format,MAJOR,worktree-wf_ae05e6d0-c50-4,opus,206,430962,0.269,SPLIT,0,0,0,0,,0,0,0.269,0,n,y,n,3,3,3,PB1361 PB1362 PB1494,2026-09-28
+wf_ae05e6d0-c50,?,wf_ae05e6d0-c50:C,PB1117,1,0,runtime/exceptions,MAJOR,,opus,220,437715,0.274,NORESULT,0,0,0,0,,0,0,0.274,0,n,n,n,0,0,0,,2026-09-28
+wf_ae05e6d0-c50,70,w70i,PB1683,1,0,process/tooling,MAJOR,worktree-wf_ae05e6d0-c50-6,opus,188,464548,0.29,DONE,0,0,0,0,,0,0,0.29,0,n,n,n,1,1,1,PB1683,2026-09-28
+wf_ae05e6d0-c50,?,wf_ae05e6d0-c50:U2,PB1238,1,2,binding/io,MAJOR,,opus,220,401201,0.251,NORESULT,0,0,0,0,,0,0,0.251,0.406,n,y,n,0,0,1,,2026-09-28
+wf_abca681e-f94,?,wf_abca681e-f94:U2,PB1238,2,1,binding/io,MAJOR,,opus,220,402549,0.252,NORESULT,0,0,0,0,,0,0,0.252,0.154,n,y,n,0,0,1,,2026-09-28
+wf_db98f9ed-c65,71,w71a,PB1715,1,0,frontend/lexer,MAJOR,worktree-wf_db98f9ed-c65-1,opus,186,346470,0.217,DONE,0,0,0,0,,0,0,0.217,0,n,n,n,1,1,1,PB1715,2026-09-29
+wf_db98f9ed-c65,71,w71b,PB1716,1,0,binding/data,MAJOR,worktree-wf_db98f9ed-c65-2,opus,103,209544,0.131,DONE,0,0,0,0,,0,0,0.131,0,n,n,n,1,1,1,PB1716,2026-09-29
+wf_db98f9ed-c65,71,w71c,PB1717,1,0,process/tooling,MINOR,worktree-wf_db98f9ed-c65-3,opus,147,350297,0.219,DONE,0,0,0,0,,0,0,0.219,0,n,n,n,2,2,2,PB1712 PB1717,2026-09-29
+wf_db98f9ed-c65,71,w71d,PB1718,1,0,process/tooling,MINOR,worktree-wf_db98f9ed-c65-4,opus,165,341893,0.214,DONE,0,0,0,0,,0,0,0.214,0,n,n,n,1,1,1,PB1718,2026-09-29
+wf_db98f9ed-c65,71,w71e,PB1720,1,0,process/tooling,MINOR,worktree-wf_db98f9ed-c65-5,opus,95,214354,0.134,DONE,0,0,0,0,,0,0,0.134,0,n,y,n,1,1,1,PB1720,2026-09-29
+wf_db98f9ed-c65,71,w71f,PB1719,1,1,process/tooling,MINOR,worktree-wf_db98f9ed-c65-6,opus,143,296526,0.185,DONE,0,0,0,0,,0,0,0.185,0.125,n,y,n,3,3,4,PB1712 PB1717 PB1719,2026-09-29
+wf_10d5c11f-c83,72,w72g,PB1719,2,0,process/tooling,MINOR,worktree-wf_10d5c11f-c83-1,opus,105,199488,0.125,DONE,0,0,0,0,,0,0,0.125,0,n,n,n,2,2,2,PB1719 PB1732,2026-09-29
+wf_10d5c11f-c83,72,w72h,PB1721,1,0,process/tooling,MINOR,worktree-wf_10d5c11f-c83-2,opus,194,453007,0.283,DONE,0,0,0,0,,0,0,0.283,0,n,n,n,3,3,3,PB1719 PB1720 PB1721,2026-09-29
+wf_1a52c830-9ba,?,wf_1a52c830-9ba:A,PB1394,1,1,frontend/lexer,MAJOR,,opus,220,469120,0.293,NORESULT,0,0,0,0,,0,0,0.293,0.057,n,n,n,0,0,4,,2026-09-29
+wf_1a52c830-9ba,?,wf_1a52c830-9ba:B,PB1163,1,1,runtime/io,MAJOR,,opus,220,387253,0.242,NORESULT,0,0,0,0,,0,0,0.242,0.044,n,n,n,0,0,5,,2026-09-29
+wf_1a52c830-9ba,73,w73c,PB1185,1,0,codegen/string,MAJOR,worktree-wf_1a52c830-9ba-3,opus,212,387491,0.242,DONE,0,0,0,0,,0,0,0.242,0,n,n,n,5,5,5,PB1153 PB1185 PB1199 PB1318 PB1655,2026-09-29
+wf_1a52c830-9ba,?,wf_1a52c830-9ba:D,PB1539,1,1,runtime,MAJOR,,opus,220,405748,0.254,NORESULT,0,0,0,0,,0,0,0.254,0.269,n,n,n,0,0,4,,2026-09-29
+wf_1a52c830-9ba,73,w73e,PB1115,1,0,binder/call,MAJOR,worktree-wf_1a52c830-9ba-5,opus,166,442690,0.277,SPLIT,0,0,0,0,,0,0,0.277,0,n,y,n,2,2,2,PB1112 PB1115,2026-09-29
+wf_1a52c830-9ba,73,w73f,PB1238,3,0,binding/io,MAJOR,worktree-wf_1a52c830-9ba-6,opus,143,246434,0.154,SPLIT,0,0,0,0,,0,0,0.154,0,n,n,n,1,1,1,PB1083,2026-09-29
+wf_1a89bce7-298,73,w73a2,PB1394,2,0,frontend/lexer,MAJOR,worktree-wf_1a89bce7-298-1,opus,50,91647,0.057,DONE,0,0,0,0,,0,0,0.057,0,n,n,n,4,4,4,PB1162 PB1394 PB1441 PB1728,2026-09-29
+wf_1a89bce7-298,73,w73b2,PB1163,2,0,runtime/io,MAJOR,worktree-wf_1a89bce7-298-2,opus,34,70028,0.044,SPLIT,0,0,0,0,,0,0,0.044,0,n,n,n,5,5,5,PB1077 PB1163 PB1194 PB1237 PB1290,2026-09-29
+wf_1a89bce7-298,73,w73d2,PB1539,2,0,runtime,MAJOR,worktree-wf_1a89bce7-298-3,opus,203,429690,0.269,SPLIT,0,0,0,0,,0,0,0.269,0,n,n,n,4,4,4,PB1069 PB1119 PB1460 PB1539,2026-09-29
+wf_69250a68-60b,1001,w1001a,PB1160,1,0,codegen/exceptions,MAJOR,worktree-wf_69250a68-60b-1,sonnet,263,643145,0.161,SPLIT,0,0,0,0,,0,0,0.161,0,n,n,n,4,4,4,PB1121 PB1122 PB1160 PB1761,2026-10-01
+wf_69250a68-60b,1001,w1001b,PB1572,1,0,codegen,MAJOR,worktree-wf_69250a68-60b-2,sonnet,308,692234,0.173,DONE,0,0,0,0,,0,0,0.173,0,n,y,n,4,4,4,PB1527 PB1572 PB1653 PB1781,2026-10-01
+wf_69250a68-60b,1001,w1001c,PB1494,1,0,frontend/preprocessor,MAJOR,worktree-wf_69250a68-60b-3,sonnet,235,646853,0.162,DONE,0,0,0,0,,0,0,0.162,0,n,n,n,6,6,6,PB1359 PB1492 PB1494 PB1640 PB1690 PB1758,2026-10-01
+wf_69250a68-60b,1001,w1001d,PB1233,1,0,codegen,MAJOR,worktree-wf_69250a68-60b-4,sonnet,216,601680,0.15,SPLIT,0,0,0,0,,0,0,0.15,0,n,n,n,3,3,3,PB1233 PB1466 PB1665,2026-10-01
+wf_65f24d0d-e1c,1002,w1002a,PB1907,1,3,conformance/undefined-results,MINOR,worktree-wf_65f24d0d-e1c-1,sonnet,92,249626,0.062,DONE,0,0,0,0,,0,0,0.062,0.252,n,n,n,1,1,1,PB1907,2026-10-02
+wf_65f24d0d-e1c,1002,w1002b,PB1907,2,2,conformance/undefined-results,MINOR,worktree-wf_65f24d0d-e1c-2,sonnet,122,301290,0.075,DONE,0,0,0,0,,0,0,0.075,0.177,n,n,n,0,0,1,,2026-10-02
+wf_65f24d0d-e1c,1002,w1002c,PB1907,3,1,conformance/undefined-results,MINOR,worktree-wf_65f24d0d-e1c-3,sonnet,126,347349,0.087,DONE,0,0,0,0,,0,0,0.087,0.09,n,n,n,1,1,1,PB1907,2026-10-02
+wf_65f24d0d-e1c,1002,w1002d,PB1907,4,0,conformance/undefined-results,MINOR,worktree-wf_65f24d0d-e1c-4,sonnet,124,358542,0.09,DONE,0,0,0,0,,0,0,0.09,0,n,n,n,1,1,1,PB1907,2026-10-02
+wf_5aceadb5-9cf,1003,w1003a,PB1094,1,0,runtime/io,MAJOR,worktree-wf_5aceadb5-9cf-1,sonnet,221,550581,0.138,DONE,0,0,0,0,,0,0,0.138,0,n,n,n,1,1,1,PB1094,2026-10-03
+wf_5aceadb5-9cf,1003,w1003b,PB1140,1,0,codegen/sort,MAJOR,worktree-wf_5aceadb5-9cf-2,sonnet,148,359571,0.09,DONE,0,0,0,0,,0,0,0.09,0,n,n,n,2,2,2,PB1140 PB749,2026-10-03
+wf_5aceadb5-9cf,1003,w1003c,PB1040,1,0,runtime/call,MINOR,worktree-wf_5aceadb5-9cf-3,sonnet,172,373445,0.093,SPLIT,0,0,0,0,,0,0,0.093,0,n,n,n,1,1,1,PB1040,2026-10-03
+wf_5aceadb5-9cf,1003,w1003d,PB1660,1,0,frontend/preprocessor,MINOR,worktree-wf_5aceadb5-9cf-4,sonnet,187,428700,0.107,DONE,0,0,0,0,,0,0,0.107,0,n,n,n,3,3,3,PB1660 PB1705 PB1802,2026-10-03
+wf_dcad84e5-95b,1004,w1004a,PB1095,1,0,binder/special-names,MINOR,worktree-wf_dcad84e5-95b-1,sonnet,268,592143,0.148,DONE,0,0,0,0,,0,0,0.148,0,n,n,n,6,6,6,PB1082 PB1095 PB1403 PB1537 PB791 PB990,2026-10-03
+wf_dcad84e5-95b,1004,w1004b,PB1368,1,1,frontend/conditional-compilation,MAJOR,worktree-wf_dcad84e5-95b-2,sonnet,257,539659,0.135,SPLIT,0,0,0,0,,0,0,0.135,0.303,n,y,n,5,5,9,PB1360 PB1384 PB1533 PB1538 PB807,2026-10-03
+wf_dcad84e5-95b,1004,w1004c,PB1175,1,0,binder/sort,MAJOR,worktree-wf_dcad84e5-95b-3,sonnet,358,903627,0.226,DONE,0,0,0,0,,0,0,0.226,0,n,n,n,6,6,6,PB1052 PB1055 PB1139 PB1173 PB1175 PB994,2026-10-03
+wf_dcad84e5-95b,1004,w1004d,PB1398,1,0,binder/intrinsics,MINOR,worktree-wf_dcad84e5-95b-4,sonnet,169,458171,0.115,DONE,0,0,0,0,,0,0,0.115,0,n,n,n,4,4,4,PB1398 PB1472 PB1662 PB1913,2026-10-03
+wf_dcad84e5-95b,1004,w1004e,PB1226,1,0,frontend/grammar,MINOR,worktree-wf_dcad84e5-95b-5,sonnet,228,508521,0.127,DONE,0,0,0,0,,0,0,0.127,0,n,y,n,5,5,5,PB1059 PB1226 PB1248 PB1287 PB1298,2026-10-03
+wf_ccb5717f-ed8,1005,w1005a,PB1706,1,0,binding/report-writer,MAJOR,worktree-wf_ccb5717f-ed8-1,sonnet,252,578228,0.145,SPLIT,0,0,0,0,,0,0,0.145,0,n,n,n,5,5,5,PB1050 PB1129 PB1220 PB1285 PB1706,2026-10-03
+wf_ccb5717f-ed8,1005,w1005b,PB1372,1,0,frontend/lexer,MAJOR,worktree-wf_ccb5717f-ed8-2,sonnet,199,477809,0.119,SPLIT,0,0,0,0,,0,0,0.119,0,n,n,n,4,4,4,PB1372 PB1459 PB1669 PB1915,2026-10-03
+wf_ccb5717f-ed8,1005,w1005c,PB1423,1,0,binder/functions,MAJOR,worktree-wf_ccb5717f-ed8-3,sonnet,228,545871,0.136,DONE,0,0,0,0,,0,0,0.136,0,n,n,n,3,3,3,PB1164 PB1419 PB1423,2026-10-03
+wf_ccb5717f-ed8,1005,w1005d,PB1668,1,1,binding,MINOR,worktree-wf_ccb5717f-ed8-4,sonnet,218,570825,0.143,DONE,0,0,0,0,,0,0,0.143,0.033,n,y,n,4,4,4,PB1034 PB1391 PB1464 PB1668,2026-10-03
+wf_ccb5717f-ed8,1005,w1005e,PB1271,1,2,binding/report-writer,MINOR,worktree-wf_ccb5717f-ed8-5,sonnet,200,462809,0.116,SPLIT,0,0,0,0,,0,0,0.116,0.614,n,y,n,4,4,10,PB1279 PB1448 PB1450 PB1454,2026-10-03
+wf_701c07b5-943,1006,w1006a,PB480,1,3,oo/universal,MINOR,worktree-wf_701c07b5-943-1,opus,182,484050,0.303,SPLIT,0,0,0,0,,0,0,0.303,0.834,n,y,n,2,2,8,PB1113 PB1498,2026-10-03
+wf_701c07b5-943,1006,w1006b,PB1271,2,1,binding/report-writer,MINOR,worktree-wf_701c07b5-943-2,opus,231,440475,0.275,SPLIT,0,0,0,0,,0,0,0.275,0.339,n,n,n,4,4,6,PB1054 PB1890 PB1933 PB574,2026-10-03
+wf_701c07b5-943,1006,w1006c,PB1368,2,0,frontend/conditional-compilation,MAJOR,worktree-wf_701c07b5-943-3,opus,219,485168,0.303,SPLIT,0,0,0,0,,0,0,0.303,0,n,n,n,4,4,4,PB1227 PB1228 PB1232 PB1368,2026-10-03
+wf_701c07b5-943,1006,w1006d,PB1144,2,0,runtime/tables,MAJOR,worktree-wf_701c07b5-943-4,opus,210,427558,0.267,DONE,0,0,0,0,,0,0,0.267,0,n,n,n,2,2,2,PB1118 PB1144,2026-10-03
+wf_a08557c7-e3e,1007,w1007a,PB1271,3,0,binding/report-writer,MINOR,worktree-wf_a08557c7-e3e-1,opus,251,543013,0.339,DONE,0,0,0,0,,0,0,0.339,0,n,n,n,2,2,2,PB1271 PB1904,2026-10-03
+wf_a08557c7-e3e,1007,w1007b,PB480,2,2,oo/universal,MINOR,worktree-wf_a08557c7-e3e-2,opus,178,455514,0.285,SPLIT,0,0,0,0,,0,0,0.285,0.549,n,y,n,3,3,6,PB1063 PB1116 PB1383,2026-10-03
+wf_a08557c7-e3e,1007,w1007c,PB1231,1,0,binding/data-division,MINOR,worktree-wf_a08557c7-e3e-3,opus,214,440283,0.275,DONE,0,0,0,0,,0,0,0.275,0,n,n,n,3,3,3,PB1225 PB1226 PB1231,2026-10-03
+wf_a08557c7-e3e,1007,w1007d,PB1402,1,1,frontend/lexer,MAJOR,worktree-wf_a08557c7-e3e-4,opus,225,449734,0.281,DONE,0,0,0,0,,0,0,0.281,0.067,n,y,n,1,1,2,PB1402,2026-10-03
+wf_852bf30e-d78,1008,w1008a,PB1668,2,0,binding,MINOR,worktree-wf_852bf30e-d78-1,sonnet,50,131040,0.033,DONE,0,0,0,0,,0,0,0.033,0,n,n,n,4,4,4,PB1034 PB1391 PB1464 PB1668,2026-10-03
+wf_852bf30e-d78,1008,w1008b,PB1946,1,0,binder/oo,MINOR,worktree-wf_852bf30e-d78-2,sonnet,90,246938,0.062,DONE,0,0,0,0,,0,0,0.062,0,n,n,n,1,1,1,PB1946,2026-10-03
+wf_95c12ab7-24e,1009,w1009a,PB1306,1,0,binding/report-writer,MINOR,worktree-wf_95c12ab7-24e-1,sonnet,273,666000,0.167,SPLIT,0,0,0,0,,0,0,0.167,0,n,n,n,5,5,5,PB1049 PB1292 PB1306 PB1316 PB1456,2026-10-03
+wf_95c12ab7-24e,1009,w1009b,PB1399,1,0,binder/set,MINOR,worktree-wf_95c12ab7-24e-2,sonnet,207,545738,0.136,DONE,0,0,0,0,,0,0,0.136,0,n,n,n,6,6,6,PB1399 PB1417 PB1452 PB1929 PB610 PB777,2026-10-03
+wf_95c12ab7-24e,1009,w1009c,PB1901,1,0,binding,MAJOR,worktree-wf_95c12ab7-24e-3,sonnet,209,457488,0.114,DONE,0,0,0,0,,0,0,0.114,0,n,n,n,3,3,3,PB1420 PB1901 PB658,2026-10-03
+wf_cc9b3412-580,1010,w1010a,PB1294,1,0,binding/report-writer,MINOR,worktree-wf_cc9b3412-580-1,sonnet,273,782967,0.196,DONE,0,0,0,0,,0,0,0.196,0,n,n,n,2,2,2,PB1294 PB1947,2026-10-03
+wf_cc9b3412-580,1010,w1010b,PB1412,1,0,binder/conditions,MINOR,worktree-wf_cc9b3412-580-2,sonnet,106,363036,0.091,DONE,0,0,0,0,,0,0,0.091,0,n,n,n,1,1,1,PB1412,2026-10-03
+wf_ceebf598-c82,1011,w1011a,PB1527,1,0,codegen,MAJOR,worktree-wf_ceebf598-c82-1,sonnet,202,428049,0.107,SPLIT,0,0,0,0,,0,0,0.107,0,n,n,n,4,4,4,PB1180 PB1181 PB1182 PB1527,2026-10-04
+wf_ceebf598-c82,1011,w1011b,PB1948,1,0,frontend/grammar,MINOR,worktree-wf_ceebf598-c82-2,sonnet,276,623560,0.156,SPLIT,0,0,0,0,,0,0,0.156,0,n,n,n,5,5,5,PB1219 PB1304 PB1948 PB608 PB986,2026-10-04
+wf_ceebf598-c82,1011,w1011c,PB1051,1,0,binder/oo,MINOR,worktree-wf_ceebf598-c82-3,sonnet,225,555244,0.139,SPLIT,0,0,0,0,,0,0,0.139,0,n,n,n,3,3,3,PB1051 PB1251 PB1497,2026-10-04
+wf_ceebf598-c82,1011,w1011e,PB1270,1,1,binding/report-writer,MINOR,worktree-wf_ceebf598-c82-4,sonnet,227,603735,0.151,DONE,0,0,0,0,,0,0,0.151,0.118,n,n,n,6,6,10,PB1222 PB1224 PB1270 PB1288 PB1289 PB1298,2026-10-04
+wf_ceebf598-c82,1011,w1011b2,PB1087,1,0,binder/io,MINOR,worktree-wf_ceebf598-c82-5,sonnet,249,517542,0.129,DONE,0,0,0,0,,0,0,0.129,0,n,n,n,10,10,10,PB1087 PB1219 PB1242 PB1262 PB1280 PB1283 PB1304 PB1948 PB608 PB986,2026-10-04
+wf_61172edf-587,1012,w1012f,PB1167,1,1,binder/data-linkage,MINOR,worktree-wf_61172edf-587-1,sonnet,229,525509,0.131,SPLIT,0,0,0,0,,0,0,0.131,0.119,n,n,n,3,3,6,PB1249 PB1250 PB1523,2026-10-04
+wf_61172edf-587,1012,w1012g,PB1270,2,0,binding/report-writer,MINOR,worktree-wf_61172edf-587-2,sonnet,201,471671,0.118,DONE,0,0,0,0,,0,0,0.118,0,n,n,n,5,5,5,PB1270 PB1295 PB1299 PB1474 PB1687,2026-10-04
+wf_61172edf-587,1012,w1012h,PB322,1,2,process/traceability,MINOR,worktree-wf_61172edf-587-3,sonnet,266,494497,0.124,SPLIT,0,0,0,0,,0,0,0.124,0.284,n,y,n,4,4,10,PB1473 PB1922 PB599 PB995,2026-10-04
+wf_61172edf-587,1012,w1012j,PB1133,1,0,binder/program,MINOR,worktree-wf_61172edf-587-4,sonnet,278,547417,0.137,DONE,0,0,0,0,,0,0,0.137,0,n,n,n,5,5,5,PB1133 PB1303 PB1404 PB1424 PB1507,2026-10-04
+wf_61172edf-587,1012,w1012k,PB1375,1,0,compiler/validation,MINOR,worktree-wf_61172edf-587-5,sonnet,240,565037,0.141,DONE,0,0,0,0,,0,0,0.141,0,n,n,n,2,2,2,PB1375 PB1376,2026-10-04
+wf_49d7e2da-ea4,1013,w1013l,PB1167,2,0,binder/data-linkage,MINOR,worktree-wf_49d7e2da-ea4-1,sonnet,208,477031,0.119,SPLIT,0,0,0,0,,0,0,0.119,0,n,n,n,3,3,3,PB1167 PB1499 PB1502,2026-10-04
+wf_49d7e2da-ea4,1013,w1013m,PB322,2,1,process/traceability,MINOR,worktree-wf_49d7e2da-ea4-2,sonnet,276,652174,0.163,SPLIT,0,0,0,0,,0,0,0.163,0.121,n,n,n,1,1,6,PB322,2026-10-04
+wf_49d7e2da-ea4,1013,w1013n,PB244,1,2,codegen,MINOR,worktree-wf_49d7e2da-ea4-3,sonnet,215,501567,0.125,SPLIT,0,0,0,0,,0,0,0.125,0.26,n,y,n,1,1,2,PB1937,2026-10-04
+wf_49d7e2da-ea4,1013,w1013p,PB1246,1,0,binding/data-division,MINOR,worktree-wf_49d7e2da-ea4-4,sonnet,248,597141,0.149,DONE,0,0,0,0,,0,0,0.149,0,n,n,n,6,6,6,PB1134 PB1212 PB1217 PB1246 PB1293 PB917,2026-10-04
+wf_998803fe-99c,1014,w1014r,PB1402,2,0,frontend/lexer,MAJOR,worktree-wf_998803fe-99c-1,sonnet,136,267258,0.067,DONE,0,0,0,0,,0,0,0.067,0,n,n,n,2,2,2,PB1402 PB1944,2026-10-04
+wf_998803fe-99c,1014,w1014s,PB1425,1,5,frontend/grammar,MAJOR,worktree-wf_998803fe-99c-2,opus,207,430222,0.269,SPLIT,0,0,0,0,,0,0,0.269,1.303,n,y,n,6,6,12,PB1416 PB1425 PB1426 PB1455 PB611 PB974,2026-10-04
+wf_998803fe-99c,1014,w1014u,PB1136,1,1,binder/oo,MINOR,worktree-wf_998803fe-99c-3,opus,272,492689,0.308,DONE,0,0,0,0,,0,0,0.308,0.485,n,n,y,5,5,6,PB1136 PB1165 PB1275 PB1429 PB1932,2026-10-04
+wf_dcb48a76-667,1015,w1015v,PB1955,1,0,tooling/guard,MAJOR,worktree-wf_dcb48a76-667-1,opus,129,298145,0.186,DONE,0,0,0,0,,0,0,0.186,0,n,y,n,2,1,1,PB1955 PB1957,2026-10-04
+wf_dcb48a76-667,1015,w1015x,PB1407,1,1,binder/pointers,MAJOR,worktree-wf_dcb48a76-667-2,sonnet,171,454938,0.114,DONE,0,0,0,0,,0,0,0.114,0.088,n,y,n,4,4,6,PB1062 PB1407 PB665 PB816,2026-10-04
+wf_dcb48a76-667,1015,w1015y,PB1263,1,0,binding/data-division,MINOR,worktree-wf_dcb48a76-667-3,opus,188,400429,0.25,SPLIT,0,0,0,0,,0,0,0.25,0,n,n,n,4,4,4,PB1261 PB1263 PB1265 PB1674,2026-10-04
+wf_dcb48a76-667,1015,w1015z,PB1274,1,0,binder/oo,MINOR,worktree-wf_dcb48a76-667-4,opus,255,507749,0.317,DONE,0,0,0,0,,0,0,0.317,0,n,n,n,6,6,6,PB1020 PB1274 PB1449 PB1503 PB1505 PB1582,2026-10-04
+wf_dcb48a76-667,1015,w1015c,PB351,1,0,grammar,MINOR,worktree-wf_dcb48a76-667-5,opus,173,367644,0.23,DONE,0,0,0,0,,0,0,0.23,0,n,n,n,3,3,3,PB1146 PB351 PB937,2026-10-04
+wf_dcb48a76-667,1015,w1015w,PB322,3,0,process/traceability,MINOR,worktree-wf_dcb48a76-667-6,sonnet,226,482520,0.121,DONE,0,0,0,0,,0,0,0.121,0,n,y,n,7,6,6,PB1422 PB1531 PB165 PB1756 PB1955 PB1957 PB322,2026-10-04
+wf_dcb48a76-667,1015,w1015z2,PB988,1,0,binder/structure,MINOR,worktree-wf_dcb48a76-667-7,opus,225,433180,0.271,SPLIT,0,0,0,0,,0,0,0.271,0,n,n,n,7,7,7,PB1020 PB1274 PB1449 PB1503 PB1505 PB1582 PB988,2026-10-04
+wf_a4d90677-e09,?,wf_a4d90677-e09:A,PB1264,1,1,binding/data-division,MAJOR,,sonnet,92,229249,0.057,NORESULT,0,0,0,0,,0,0,0.057,0.038,n,n,n,0,0,3,,2026-10-05
+wf_a4d90677-e09,?,wf_a4d90677-e09:B,PB1123,1,1,codegen/verbs,MAJOR,,sonnet,72,208104,0.052,NORESULT,0,0,0,0,,0,0,0.052,0.087,n,n,n,0,0,2,,2026-10-05
+wf_a4d90677-e09,?,wf_a4d90677-e09:C,PB806,1,1,compiler/directives,MINOR,,sonnet,79,231230,0.058,NORESULT,0,0,0,0,,0,0,0.058,0.047,n,n,n,0,0,4,,2026-10-05
+wf_a4d90677-e09,?,wf_a4d90677-e09:D,PB1425,2,4,frontend/grammar,MAJOR,,opus,98,239706,0.15,NORESULT,0,0,0,0,,0,0,0.15,1.153,n,y,n,0,0,7,,2026-10-05
+wf_a4d90677-e09,?,wf_a4d90677-e09:E,PB1110,1,1,runtime/numeric,MAJOR,,sonnet,82,206262,0.052,NORESULT,0,0,0,0,,0,0,0.052,0.045,n,n,n,0,0,1,,2026-10-05
+wf_a4d90677-e09,?,wf_a4d90677-e09:F,PB1191,1,1,runtime/io,MAJOR,,sonnet,76,228895,0.057,NORESULT,0,0,0,0,,0,0,0.057,0.034,n,n,n,0,0,1,,2026-10-05
+wf_80c785b7-d71,1018,w1018a,PB1264,2,0,binding/data-division,MAJOR,worktree-wf_80c785b7-d71-1,sonnet,54,150281,0.038,DONE,0,0,0,0,,0,0,0.038,0,n,n,n,3,3,3,PB1260 PB1264 PB1266,2026-10-05
+wf_80c785b7-d71,1018,w1018b,PB1123,2,0,codegen/verbs,MAJOR,worktree-wf_80c785b7-d71-2,sonnet,164,348692,0.087,DONE,0,0,0,0,,0,0,0.087,0,n,n,n,2,2,2,PB1123 PB1128,2026-10-05
+wf_80c785b7-d71,1018,w1018c,PB806,2,0,compiler/directives,MINOR,worktree-wf_80c785b7-d71-3,sonnet,75,188381,0.047,DONE,0,0,0,0,,0,0,0.047,0,n,n,n,4,4,4,PB1363 PB1364 PB1367 PB806,2026-10-05
+wf_80c785b7-d71,1018,w1018d,PB1425,3,3,frontend/grammar,MAJOR,worktree-wf_80c785b7-d71-4,opus,197,382907,0.239,SPLIT,0,0,0,0,,0,0,0.239,0.914,n,y,n,5,5,7,PB1197 PB1425 PB1446 PB1967 PB758,2026-10-05
+wf_80c785b7-d71,1018,w1018e,PB1110,2,0,runtime/numeric,MAJOR,worktree-wf_80c785b7-d71-5,sonnet,74,179371,0.045,DONE,0,0,0,0,,0,0,0.045,0,n,n,n,1,1,1,PB1110,2026-10-05
+wf_80c785b7-d71,1018,w1018f,PB1191,2,0,runtime/io,MAJOR,worktree-wf_80c785b7-d71-6,sonnet,57,135864,0.034,DONE,0,0,0,0,,0,0,0.034,0,n,n,n,1,1,1,PB1191,2026-10-05
+wf_80c785b7-d71,1018,w1018g,PB1529,1,0,codegen,MAJOR,worktree-wf_80c785b7-d71-7,sonnet,140,266974,0.067,DONE,0,0,0,0,,0,0,0.067,0,n,n,n,1,1,1,PB1529,2026-10-05
+wf_80c785b7-d71,1018,w1018h,PB1179,1,0,codegen/string,MAJOR,worktree-wf_80c785b7-d71-8,sonnet,77,164656,0.041,DONE,0,0,0,0,,0,0,0.041,0,n,n,n,1,1,1,PB1179,2026-10-05
+wf_f7e4c8a0-d77,1019,w1019a,PB1425,4,2,frontend/grammar,MAJOR,worktree-wf_f7e4c8a0-d77-1,opus,231,496003,0.31,DONE,0,0,0,0,,0,0,0.31,0.604,n,y,n,2,2,4,PB1197 PB1425,2026-10-05
+wf_f7e4c8a0-d77,1019,w1019b,PB1365,1,0,frontend/directives,MAJOR,worktree-wf_f7e4c8a0-d77-2,sonnet,96,206153,0.052,DONE,0,0,0,0,,0,0,0.052,0,n,n,n,1,1,1,PB1365,2026-10-05
+wf_f7e4c8a0-d77,1019,w1019c,PB1407,2,0,binder/pointers,MAJOR,worktree-wf_f7e4c8a0-d77-3,sonnet,150,351135,0.088,DONE,0,0,0,0,,0,0,0.088,0,n,n,n,3,3,3,PB1407 PB1458 PB1969,2026-10-05
+wf_f7e4c8a0-d77,1019,w1019d,PB1301,1,0,binding/data-division,MINOR,worktree-wf_f7e4c8a0-d77-4,opus,191,462100,0.289,SPLIT,0,0,0,0,,0,0,0.289,0,n,n,n,3,3,3,PB1301 PB1302 PB1476,2026-10-05
+wf_f7e4c8a0-d77,1019,w1019e,PB1525,1,1,binding,MAJOR,worktree-wf_f7e4c8a0-d77-5,sonnet,232,453917,0.113,SPLIT,0,0,0,0,,0,0,0.113,0.137,n,n,n,4,4,7,PB1089 PB529 PB533 PB819,2026-10-05
+wf_f7e4c8a0-d77,1019,w1019f,PB643,1,1,binder/file-control,MINOR,worktree-wf_f7e4c8a0-d77-6,opus,222,421532,0.263,SPLIT,0,0,0,0,,0,0,0.263,0.23,n,n,n,4,4,5,PB1183 PB746 PB755 PB756,2026-10-05
+wf_f7e4c8a0-d77,1019,w1019g,PB1373,1,0,frontend/directives,MAJOR,worktree-wf_f7e4c8a0-d77-7,sonnet,159,399720,0.1,DONE,0,0,0,0,,0,0,0.1,0,n,n,n,2,2,2,PB1373 PB2003,2026-10-05
+wf_f7e4c8a0-d77,1019,w1019d2,PB514,1,0,binding/data-division,MINOR,worktree-wf_f7e4c8a0-d77-8,opus,197,415161,0.259,DONE,0,0,0,0,,0,0,0.259,0,n,y,n,9,9,9,PB1301 PB1302 PB1476 PB1650 PB1744 PB486 PB487 PB514 PB516,2026-10-05
+wf_b3526bdd-e0d,1020,w1020a,PB1525,2,0,binding,MAJOR,worktree-wf_b3526bdd-e0d-1,sonnet,218,549828,0.137,DONE,0,0,0,0,,0,0,0.137,0,n,n,n,3,3,3,PB1525 PB855 PB876,2026-10-05
+wf_b3526bdd-e0d,1020,w1020b,PB643,2,0,binder/file-control,MINOR,worktree-wf_b3526bdd-e0d-2,opus,189,368260,0.23,DONE,0,0,0,0,,0,0,0.23,0,n,n,n,1,1,1,PB643,2026-10-05
+wf_b3526bdd-e0d,1020,w1020c,PB1425,5,1,frontend/grammar,MAJOR,worktree-wf_b3526bdd-e0d-3,opus,217,452701,0.283,SPLIT,0,0,0,0,,0,0,0.283,0.321,n,y,n,1,1,3,PB1425,2026-10-05
+wf_b3526bdd-e0d,1020,w1020d,PB1544,1,0,binding,MINOR,worktree-wf_b3526bdd-e0d-4,sonnet,246,493150,0.123,SPLIT,0,0,0,0,,0,0,0.123,0,n,y,n,4,4,4,PB1431 PB1470 PB2018 PB543,2026-10-05
+wf_b3526bdd-e0d,1020,w1020e,PB2003,1,0,preprocessor,MINOR,worktree-wf_b3526bdd-e0d-5,sonnet,38,89515,0.022,DONE,0,0,0,0,,0,0,0.022,0,n,n,n,2,2,2,PB1373 PB2003,2026-10-05
+wf_b3526bdd-e0d,1020,w1020f,PB1374,1,0,frontend/directives,MAJOR,worktree-wf_b3526bdd-e0d-6,sonnet,94,198627,0.05,DONE,0,0,0,0,,0,0,0.05,0,n,n,n,1,1,1,PB1374,2026-10-05
+wf_b3526bdd-e0d,1020,w1020g,PB1073,1,0,binder/io,MINOR,worktree-wf_b3526bdd-e0d-7,sonnet,167,404566,0.101,DONE,0,0,0,0,,0,0,0.101,0,n,n,n,2,2,2,PB1073 PB773,2026-10-05
+wf_b3526bdd-e0d,1020,w1020h,PB1281,1,0,frontend/cst,MINOR,worktree-wf_b3526bdd-e0d-8,opus,201,345369,0.216,DONE,0,0,0,0,,0,0,0.216,0,n,n,n,5,5,5,PB1252 PB1281 PB1309 PB1949 PB734,2026-10-05
+wf_79ef30e1-cd1,1021,w1021a,PB1425,6,0,frontend/grammar,MAJOR,worktree-wf_79ef30e1-cd1-1,opus,191,512878,0.321,DONE,0,0,0,0,,0,0,0.321,0,n,y,n,3,3,3,PB1425 PB1551 PB1783,2026-10-05
+wf_79ef30e1-cd1,1021,w1021b,PB1415,1,0,binder/data,MINOR,worktree-wf_79ef30e1-cd1-2,opus,203,378608,0.237,SPLIT,0,0,0,0,,0,0,0.237,0,n,n,n,5,5,5,PB1039 PB1415 PB1755 PB781 PB858,2026-10-05
+wf_79ef30e1-cd1,1021,w1021c,PB387,1,1,tests/overlenient,MINOR,worktree-wf_79ef30e1-cd1-3,opus,266,465712,0.291,SPLIT,0,0,0,0,,0,0,0.291,0.258,n,y,n,3,3,4,PB1060 PB1421 PB434,2026-10-05
+wf_79ef30e1-cd1,1021,w1021d,PB480,3,1,oo/universal,MINOR,worktree-wf_79ef30e1-cd1-4,opus,222,500101,0.313,SPLIT,0,0,0,0,,0,0,0.313,0.236,n,y,n,3,3,3,PB1112 PB1780 PB480,2026-10-05
+wf_79ef30e1-cd1,1021,w1021e,PB1408,1,0,binder/pointers,MINOR,worktree-wf_79ef30e1-cd1-5,sonnet,173,360518,0.09,DONE,0,0,0,0,,0,0,0.09,0,n,n,n,3,3,3,PB1282 PB1408 PB609,2026-10-05
+wf_79ef30e1-cd1,1021,w1021f,PB1221,1,0,frontend/grammar,MINOR,worktree-wf_79ef30e1-cd1-6,opus,140,297701,0.186,DONE,0,0,0,0,,0,0,0.186,0,n,n,n,1,1,1,PB1221,2026-10-05
+wf_79ef30e1-cd1,1021,w1021b2,PB1042,1,0,binder/data,MINOR,worktree-wf_79ef30e1-cd1-7,opus,241,514411,0.322,DONE,0,0,0,0,,0,0,0.322,0,n,n,n,6,6,6,PB1039 PB1042 PB1415 PB1755 PB781 PB858,2026-10-05
+wf_79ef30e1-cd1,1021,w1021b3,PB517,1,1,frontend/grammar,MINOR,worktree-wf_79ef30e1-cd1-9,opus,6,40246,0.025,SPLIT,0,0,0,0,,0,0,0.025,0.233,y,n,y,0,0,5,,2026-10-05
+wf_4f556902-4c1,1022,w1022a,PB2087,1,2,runtime/call-boundary,MAJOR,worktree-wf_4f556902-4c1-1,opus,182,447866,0.28,SPLIT,0,0,0,0,,0,0,0.28,0.63,n,n,n,0,0,2,,2026-10-06
+wf_6c8adff0-fec,1023,w1023a,PB2087,2,1,runtime/call-boundary,MAJOR,worktree-wf_6c8adff0-fec-1,opus,223,566437,0.354,SPLIT,0,0,0,0,,0,0,0.354,0.276,n,n,n,1,1,2,PB2089,2026-10-06
+wf_048cd110-3c5,1024,w1024a,PB2087,3,0,runtime/call-boundary,MAJOR,worktree-wf_048cd110-3c5-1,opus,187,441299,0.276,DONE,0,0,0,0,,0,0,0.276,0,n,n,n,1,1,1,PB2087,2026-10-06
+wf_4e45e7bd-8f8,1025,w1025a,PB2108,1,0,build/ci,MINOR,worktree-wf_4e45e7bd-8f8-1,opus,166,446485,0.279,DONE,0,0,0,0,,0,0,0.279,0,n,n,n,2,2,2,PB2108 PB2109,2026-10-07
+wf_71adb89f-039,1026,w1026c,PB2115,1,0,architecture,INFO,worktree-wf_71adb89f-039-1,opus,180,388980,0.243,DONE,0,0,0,0,,0,0,0.243,0,n,n,n,1,1,1,PB2115,2026-10-07
+wf_71adb89f-039,1026,w1026d,PB2116,1,0,architecture,INFO,worktree-wf_71adb89f-039-2,opus,180,318120,0.199,DONE,0,0,0,0,,0,0,0.199,0,n,n,n,1,1,1,PB2116,2026-10-07
+wf_71adb89f-039,1026,w1026e,PB2117,1,0,architecture/performance,INFO,worktree-wf_71adb89f-039-3,opus,185,363500,0.227,DONE,0,0,0,0,,0,0,0.227,0,n,n,n,1,1,1,PB2117,2026-10-07
+wf_71adb89f-039,1026,w1026f,PB2120,1,0,process/tooling,MINOR,worktree-wf_71adb89f-039-4,opus,179,361396,0.226,DONE,0,0,0,0,,0,0,0.226,0,n,n,n,1,1,1,PB2120,2026-10-07
+wf_4e45e7bd-8f8,1025,w1025b,PB2110,1,1,build/legacy,MINOR,worktree-wf_4e45e7bd-8f8-2,opus,20,103704,0.065,BLOCKED,0,0,0,0,,0,0,0.065,0.133,n,n,n,2,2,6,PB2108 PB2109,2026-10-07
+wf_cc85cba6-2a8,1027,w1027b,PB2110,2,0,build/legacy,MINOR,worktree-wf_cc85cba6-2a8-1,opus,110,212835,0.133,DONE,0,0,0,0,,0,0,0.133,0,n,n,n,4,4,4,PB1861 PB2110 PB2113 PB2114,2026-10-07
+wf_f31b7069-6ff,1028,w1028a,PB2111,1,0,docs,MINOR,worktree-wf_f31b7069-6ff-1,sonnet,163,515556,0.129,DONE,0,0,0,0,,0,0,0.129,0,n,n,n,4,4,4,PB166 PB1918 PB2111 PB717,2026-10-07
+wf_f31b7069-6ff,1028,w1028b,PB2112,1,0,build/layout,MINOR,worktree-wf_f31b7069-6ff-2,sonnet,45,116591,0.029,DONE,0,0,0,0,,0,0,0.029,0,n,n,n,1,1,1,PB2112,2026-10-07
+wf_f31b7069-6ff,1028,w1028d,PB2114,1,0,frontend/grammar,MINOR,worktree-wf_f31b7069-6ff-4,opus,222,401772,0.251,DONE,0,0,0,0,,0,0,0.251,0,n,n,n,1,1,1,PB2114,2026-10-07
+wf_8fac763c-fe5,1029,w1029c,PB2113,1,0,frontend/grammar,MAJOR,worktree-wf_8fac763c-fe5-1,opus,204,584489,0.365,SPLIT,0,0,0,0,,0,0,0.365,0,n,n,n,2,2,2,PB1968 PB2113,2026-10-07
+wf_0dd6ed15-c42,1030,w1030a,PB2152,1,0,architecture,MAJOR,worktree-wf_0dd6ed15-c42-1,opus,130,283343,0.177,SPLIT,0,0,0,0,,0,0,0.177,0,n,n,n,1,1,1,PB2152,2026-10-07
+wf_12f44c89-8ac,1031,w1031a,PB387,2,0,tests/overlenient,MINOR,worktree-wf_12f44c89-8ac-1,opus,185,412707,0.258,DONE,0,0,0,0,,0,0,0.258,0,n,n,n,2,2,2,PB387 PB434,2026-10-07
+wf_12f44c89-8ac,1031,w1031b,PB480,4,0,oo/universal,MINOR,worktree-wf_12f44c89-8ac-2,opus,134,377060,0.236,SPLIT,0,0,0,0,,0,0,0.236,0,n,n,n,1,1,1,PB480,2026-10-07
+wf_12f44c89-8ac,1031,w1031c,PB517,2,0,frontend/grammar,MINOR,worktree-wf_12f44c89-8ac-3,opus,240,373440,0.233,SPLIT,0,0,0,0,,0,0,0.233,0,n,n,n,5,5,5,PB2093 PB2098 PB517 PB545 PB552,2026-10-07
+wf_12f44c89-8ac,1031,w1031d,PB1229,1,0,frontend,MINOR,worktree-wf_12f44c89-8ac-4,sonnet,63,163778,0.041,DONE,0,0,0,0,,0,0,0.041,0,n,n,n,1,1,1,PB1229,2026-10-07
+wf_12f44c89-8ac,1031,w1031e,PB397,1,0,binder/placement,MINOR,worktree-wf_12f44c89-8ac-5,sonnet,149,334263,0.084,DONE,0,0,0,0,,0,0,0.084,0,n,n,n,1,1,1,PB397,2026-10-07
+wf_12f44c89-8ac,1031,w1031f,PB989,1,0,binder/repository,MINOR,worktree-wf_12f44c89-8ac-6,sonnet,231,559520,0.14,DONE,0,0,0,0,,0,0,0.14,0,n,n,n,2,2,2,PB2102 PB989,2026-10-07
+wf_12f44c89-8ac,1031,w1031g,PB1189,1,0,binder/file-io,MINOR,worktree-wf_12f44c89-8ac-7,opus,227,424225,0.265,DONE,0,0,0,0,,0,0,0.265,0,n,n,n,6,6,6,PB1189 PB1291 PB2040 PB347 PB600 PB666,2026-10-07
+wf_12f44c89-8ac,1031,w1031h,PB812,1,0,validation,MINOR,worktree-wf_12f44c89-8ac-8,opus,228,409788,0.256,DONE,0,0,0,0,,0,0,0.256,0,n,n,n,5,5,5,PB1545 PB1567 PB733 PB812 PB895,2026-10-07
+wf_19837670-9d4,1032,w1032a,PB667,1,2,binder/file-control,MINOR,worktree-wf_19837670-9d4-1,opus,128,338910,0.212,SPLIT,0,0,0,0,,0,0,0.212,0.292,n,y,y,4,4,5,PB1902 PB1941 PB666 PB667,2026-10-07
+wf_19837670-9d4,1032,w1032b,PB2076,1,0,oo/universal,MINOR,worktree-wf_19837670-9d4-2,opus,133,329780,0.206,DONE,0,0,0,0,,0,0,0.206,0,n,n,n,1,1,1,PB2076,2026-10-07
+wf_19837670-9d4,1032,w1032c,PB1353,1,0,frontend/text-manipulation,MAJOR,worktree-wf_19837670-9d4-3,sonnet,130,308924,0.077,DONE,0,0,0,0,,0,0,0.077,0,n,n,n,2,2,2,PB1353 PB1670,2026-10-07
+wf_19837670-9d4,1032,w1032d,PB1508,1,0,grammar/options,MINOR,worktree-wf_19837670-9d4-4,opus,149,298931,0.187,SPLIT,0,0,0,0,,0,0,0.187,0,n,y,n,1,1,1,PB1508,2026-10-07
+wf_19837670-9d4,1032,w1032e,PB1045,1,0,binding,MINOR,worktree-wf_19837670-9d4-5,opus,125,257147,0.161,SPLIT,0,0,0,0,,0,0,0.161,0,n,y,n,1,1,1,PB1045,2026-10-07
+wf_19837670-9d4,1032,w1032f,PB1430,1,0,frontend/grammar,MINOR,worktree-wf_19837670-9d4-6,opus,136,256018,0.16,SPLIT,0,0,0,0,,0,0,0.16,0,n,y,n,1,1,1,PB1430,2026-10-07
+wf_19837670-9d4,1032,w1032g,PB833,1,1,runtime/io,MAJOR,worktree-wf_19837670-9d4-7,sonnet,4,33622,0.008,SPLIT,0,0,0,0,,0,0,0.008,0.1,y,n,y,0,0,1,,2026-10-07
+wf_19837670-9d4,1032,w1032h,PB165,1,3,binding,MINOR,worktree-wf_19837670-9d4-8,opus,5,35168,0.022,SPLIT,0,0,0,0,,0,0,0.022,0.888,y,y,y,0,0,6,,2026-10-07
+wf_06d34704-41b,1033,w1033a,PB833,2,0,runtime/io,MAJOR,worktree-wf_06d34704-41b-1,sonnet,171,399488,0.1,DONE,0,0,0,0,,0,0,0.1,0,n,n,n,1,1,1,PB833,2026-10-07
+wf_06d34704-41b,1033,w1033b,PB165,2,2,binding,MINOR,worktree-wf_06d34704-41b-2,opus,153,401832,0.251,SPLIT,0,0,0,0,,0,0,0.251,0.637,n,y,n,3,3,6,PB2095 PB2096 PB2280,2026-10-07
+wf_06d34704-41b,1033,w1033c,PB244,2,1,codegen,MINOR,worktree-wf_06d34704-41b-3,sonnet,181,451913,0.113,DONE,0,0,0,0,,0,0,0.113,0.147,n,n,n,0,0,1,,2026-10-07
+wf_06d34704-41b,1033,w1033d,PB1457,1,0,binding/validation,MINOR,worktree-wf_06d34704-41b-4,sonnet,84,153485,0.038,DONE,0,0,0,0,,0,0,0.038,0,n,n,n,1,1,1,PB1457,2026-10-07
+wf_06d34704-41b,1033,w1033e,PB311,1,0,tests/conformance,MINOR,worktree-wf_06d34704-41b-5,sonnet,52,121371,0.03,DONE,0,0,0,0,,0,0,0.03,0,n,n,n,1,1,1,PB311,2026-10-07
+wf_06d34704-41b,1033,w1033f,PB947,1,0,binding/data-division,MINOR,worktree-wf_06d34704-41b-6,sonnet,79,158829,0.04,DONE,0,0,0,0,,0,0,0.04,0,n,n,n,1,1,1,PB947,2026-10-07
+wf_06d34704-41b,1033,w1033g,PB2466,1,0,binding,MINOR,worktree-wf_06d34704-41b-7,opus,101,239431,0.15,DONE,0,0,0,0,,0,0,0.15,0,n,n,n,2,2,2,PB1902 PB2466,2026-10-07
+wf_06d34704-41b,1033,w1033h,PB1939,1,0,runtime/tables,MAJOR,worktree-wf_06d34704-41b-8,opus,146,259028,0.162,DONE,0,0,0,0,,0,0,0.162,0,n,n,n,2,2,2,PB1939 PB2004,2026-10-07
+wf_3fe29228-bf0,1034,w1034a,PB165,3,1,binding,MINOR,worktree-wf_3fe29228-bf0-1,opus,263,537727,0.336,SPLIT,0,0,0,0,,0,0,0.336,0.301,n,y,n,2,2,3,PB1940 PB2094,2026-10-07
+wf_3fe29228-bf0,1034,w1034b,PB244,3,0,codegen,MINOR,worktree-wf_3fe29228-bf0-2,sonnet,253,587234,0.147,DONE,0,0,0,0,,0,0,0.147,0,n,n,n,1,1,1,PB244,2026-10-07
+wf_3fe29228-bf0,1034,w1034c,PB1931,1,0,runtime/call,MAJOR,worktree-wf_3fe29228-bf0-3,sonnet,130,321327,0.08,DONE,0,0,0,0,,0,0,0.08,0,n,n,n,2,2,2,PB1931 PB2079,2026-10-07
+wf_3fe29228-bf0,1034,w1034d,PB2073,1,0,binder/oo,MINOR,worktree-wf_3fe29228-bf0-4,sonnet,232,462471,0.116,DONE,0,0,0,0,,0,0,0.116,0,n,n,n,1,1,1,PB2073,2026-10-07
+wf_3fe29228-bf0,1034,w1034e,PB1966,1,0,frontend/preprocessor,MINOR,worktree-wf_3fe29228-bf0-5,sonnet,155,311147,0.078,DONE,0,0,0,0,,0,0,0.078,0,n,n,n,2,2,2,PB1914 PB1966,2026-10-07
+wf_3fe29228-bf0,1034,w1034f,PB1071,1,0,codegen/storage,MINOR,worktree-wf_3fe29228-bf0-6,sonnet,192,381545,0.095,DONE,0,0,0,0,,0,0,0.095,0,n,n,n,2,2,2,PB1071 PB927,2026-10-07
+wf_3fe29228-bf0,1034,w1034g,PB2103,1,0,binder/repository,MINOR,worktree-wf_3fe29228-bf0-7,sonnet,154,374032,0.094,DONE,0,0,0,0,,0,0,0.094,0,n,n,n,1,1,1,PB2464,2026-10-07
+wf_3fe29228-bf0,1034,w1034h,PB1570,1,0,runtime/sort,MAJOR,worktree-wf_3fe29228-bf0-8,sonnet,89,181003,0.045,DONE,0,0,0,0,,0,0,0.045,0,n,n,n,1,1,1,PB1570,2026-10-07
+wf_0fcd236e-93c,1037,w1037a,PB165,4,0,binding,MINOR,worktree-wf_0fcd236e-93c-1,opus,185,481696,0.301,SPLIT,0,0,0,0,,0,0,0.301,0,n,n,n,1,1,1,PB165,2026-10-08
+wf_0fcd236e-93c,1037,w1037b,PB1954,1,0,binding/report-writer,MINOR,worktree-wf_0fcd236e-93c-2,opus,201,396592,0.248,DONE,0,0,0,0,,0,0,0.248,0,n,n,n,3,3,3,PB1954 PB2071 PB2516,2026-10-08
+wf_0fcd236e-93c,1037,w1037c,PB1027,1,0,runtime/io,MAJOR,worktree-wf_0fcd236e-93c-3,sonnet,210,463588,0.116,DONE,0,0,0,0,,0,0,0.116,0,n,n,n,2,2,2,PB1027 PB1664,2026-10-08
+wf_0fcd236e-93c,1037,w1037d,PB2499,1,0,binder/accept-display,MINOR,worktree-wf_0fcd236e-93c-4,opus,148,266311,0.166,DONE,0,0,0,0,,0,0,0.166,0,n,n,n,1,1,1,PB2499,2026-10-08
+wf_0fcd236e-93c,1037,w1037e,PB2517,1,0,binder/data,MINOR,worktree-wf_0fcd236e-93c-5,sonnet,84,182501,0.046,DONE,0,0,0,0,,0,0,0.046,0,n,n,n,1,1,1,PB2517,2026-10-08
+wf_0fcd236e-93c,1037,w1037f,PB2518,1,0,binder/data,MINOR,worktree-wf_0fcd236e-93c-6,sonnet,118,213995,0.053,DONE,0,0,0,0,,0,0,0.053,0,n,n,n,1,1,1,PB2518,2026-10-08
+wf_0fcd236e-93c,1037,w1037g,PB2513,1,0,binder/report-writer,MINOR,worktree-wf_0fcd236e-93c-7,sonnet,232,454516,0.114,DONE,0,0,0,0,,0,0,0.114,0,n,n,n,6,6,6,PB1927 PB1934 PB1943 PB2513 PB2519 PB2520,2026-10-08
+wf_0fcd236e-93c,1037,w1037h,PB1643,1,0,binder/display,MINOR,worktree-wf_0fcd236e-93c-8,sonnet,242,455870,0.114,SPLIT,0,0,0,0,,0,0,0.114,0,n,n,n,2,2,2,PB1643 PB1930,2026-10-08
+wf_dc000831-c97,1038,w1038a,PB1470,1,1,binding/validation,MINOR,worktree-wf_dc000831-c97-1,sonnet,14,72983,0.018,SPLIT,0,0,0,0,,0,0,0.018,0.288,y,n,y,0,0,2,,2026-10-08
+wf_dc000831-c97,1038,w1038b,PB667,2,1,binder/file-control,MINOR,worktree-wf_dc000831-c97-2,opus,5,50141,0.031,SPLIT,0,0,0,0,,0,0,0.031,0.261,y,n,y,0,0,2,,2026-10-08
+wf_dc000831-c97,1038,w1038c,PB2097,1,2,runtime/registration,MINOR,worktree-wf_dc000831-c97-3,opus,5,36962,0.023,SPLIT,0,0,0,0,,0,0,0.023,0.529,y,y,y,0,0,2,,2026-10-08
+wf_dc000831-c97,1038,w1038d,PB1900,1,1,runtime/numeric,MAJOR,worktree-wf_dc000831-c97-4,sonnet,3,34122,0.009,SPLIT,0,0,0,0,,0,0,0.009,0.112,y,n,y,0,0,2,,2026-10-08
+wf_dc000831-c97,1038,w1038e,PB2506,1,0,frontend/lexer,MINOR,worktree-wf_dc000831-c97-5,opus,5,37621,0.024,SPLIT,0,0,0,0,,0,0,0.024,0,y,n,y,0,0,0,,2026-10-08
+wf_dc000831-c97,1038,w1038f,PB2489,1,1,codegen/oo,MAJOR,worktree-wf_dc000831-c97-6,sonnet,5,36958,0.009,SPLIT,0,0,0,0,,0,0,0.009,0.062,y,n,y,0,0,2,,2026-10-08
+wf_dc000831-c97,1038,w1038g,PB2497,1,1,codegen,MINOR,worktree-wf_dc000831-c97-7,opus,5,37315,0.023,SPLIT,0,0,0,0,,0,0,0.023,0.258,y,y,y,0,0,1,,2026-10-08
+wf_dc000831-c97,1038,w1038a2,PB2078,1,1,binder/oo-property,MINOR,worktree-wf_dc000831-c97-8,opus,5,37534,0.023,SPLIT,0,0,0,0,,0,0,0.023,0.22,y,n,y,0,0,3,,2026-10-08
+wf_2d68bf0d-aa5,1039,w1039a,PB1470,2,0,binding/validation,MINOR,worktree-wf_2d68bf0d-aa5-1,opus,239,460492,0.288,DONE,0,0,0,0,,0,0,0.288,0,n,n,n,2,2,2,PB1470 PB1544,2026-10-08
+wf_2d68bf0d-aa5,1039,w1039b,PB667,3,0,binder/file-control,MINOR,worktree-wf_2d68bf0d-aa5-2,opus,177,417940,0.261,SPLIT,0,0,0,0,,0,0,0.261,0,n,n,n,2,2,2,PB1942 PB667,2026-10-08
+wf_2d68bf0d-aa5,1039,w1039c,PB2097,2,1,runtime/registration,MINOR,worktree-wf_2d68bf0d-aa5-3,opus,147,366590,0.229,SPLIT,0,0,0,0,,0,0,0.229,0.3,n,y,n,1,1,2,PB2549,2026-10-08
+wf_2d68bf0d-aa5,1039,w1039d,PB2489,2,0,codegen/oo,MAJOR,worktree-wf_2d68bf0d-aa5-4,sonnet,113,246389,0.062,DONE,0,0,0,0,,0,0,0.062,0,n,n,n,2,2,2,PB2489 PB2554,2026-10-08
+wf_2d68bf0d-aa5,1039,w1039e,PB845,1,0,frontend/grammar,MINOR,worktree-wf_2d68bf0d-aa5-5,opus,204,443419,0.277,DONE,0,0,0,0,,0,0,0.277,0,n,n,n,4,4,4,PB2292 PB2501 PB2506 PB845,2026-10-08
+wf_2d68bf0d-aa5,1039,w1039f,PB850,1,0,binding/model,MINOR,worktree-wf_2d68bf0d-aa5-6,opus,144,307582,0.192,SPLIT,0,0,0,0,,0,0,0.192,0,n,n,n,1,1,1,PB850,2026-10-08
+wf_2d68bf0d-aa5,1039,w1039g,PB1900,2,0,runtime/numeric,MAJOR,worktree-wf_2d68bf0d-aa5-7,sonnet,201,448453,0.112,DONE,0,0,0,0,,0,0,0.112,0,n,n,n,2,2,2,PB1900 PB289,2026-10-08
+wf_2d68bf0d-aa5,1039,w1039a2,PB2078,2,0,binder/oo-property,MINOR,worktree-wf_2d68bf0d-aa5-8,opus,145,351969,0.22,DONE,0,0,0,0,,0,0,0.22,0,n,n,n,3,3,3,PB1470 PB1544 PB2078,2026-10-08
+wf_f81d4530-668,1041,w1041a,PB2230,1,0,architecture,MINOR,worktree-wf_f81d4530-668-1,opus,82,189699,0.119,DONE,0,0,0,0,,0,0,0.119,0,n,n,n,5,5,5,PB2230 PB2231 PB2232 PB2233 PB2234,2026-10-08
+wf_f81d4530-668,1041,w1041b,PB2190,1,0,architecture,MINOR,worktree-wf_f81d4530-668-2,opus,49,108141,0.068,DONE,0,0,0,0,,0,0,0.068,0,n,n,n,3,3,3,PB1821 PB2189 PB2190,2026-10-08
+wf_f81d4530-668,1041,w1041c,PB2168,1,0,architecture,MINOR,worktree-wf_f81d4530-668-3,opus,32,92158,0.058,DONE,0,0,0,0,,0,0,0.058,0,n,n,n,1,1,1,PB2168,2026-10-08
+wf_f81d4530-668,1041,w1041d,PB2169,1,0,architecture,MINOR,worktree-wf_f81d4530-668-4,opus,39,104144,0.065,DONE,0,0,0,0,,0,0,0.065,0,n,n,n,1,0,0,PB2169,2026-10-08
+wf_f81d4530-668,1041,w1041e,PB2179,1,0,architecture,MINOR,worktree-wf_f81d4530-668-5,opus,34,76475,0.048,DONE,0,0,0,0,,0,0,0.048,0,n,n,n,1,1,1,PB2179,2026-10-08
+wf_f81d4530-668,1041,w1041f,PB2187,1,0,architecture,MINOR,worktree-wf_f81d4530-668-6,opus,36,89030,0.056,DONE,0,0,0,0,,0,0,0.056,0,n,n,n,1,1,1,PB2187,2026-10-08
+wf_f81d4530-668,1041,w1041g,PB2193,1,0,architecture,MINOR,worktree-wf_f81d4530-668-7,opus,57,103168,0.064,DONE,0,0,0,0,,0,0,0.064,0,n,n,n,1,1,1,PB2193,2026-10-08
+wf_f81d4530-668,1041,w1041h,PB2194,1,0,architecture,MINOR,worktree-wf_f81d4530-668-8,opus,85,168498,0.105,DONE,0,0,0,0,,0,0,0.105,0,n,n,n,1,1,1,PB2194,2026-10-08
+wf_eb1fc3a8-908,1042,w1042a,PB1722,1,0,binding/data,MAJOR,worktree-wf_eb1fc3a8-908-1,opus,229,475515,0.297,SPLIT,0,0,0,0,,0,0,0.297,0,n,n,n,2,2,2,PB1722 PB1952,2026-10-08
+wf_eb1fc3a8-908,1042,w1042b,PB2587,1,0,codegen/call,MAJOR,worktree-wf_eb1fc3a8-908-2,opus,179,432829,0.271,SPLIT,0,0,0,0,,0,0,0.271,0,n,n,n,1,1,1,PB2587,2026-10-08
+wf_eb1fc3a8-908,1042,w1042c,PB2496,1,0,codegen,MINOR,worktree-wf_eb1fc3a8-908-3,opus,151,481466,0.301,SPLIT,0,0,0,0,,0,0,0.301,0,n,n,n,1,1,1,PB2496,2026-10-08
+wf_eb1fc3a8-908,1042,w1042d,PB2660,1,0,runtime/io,MAJOR,worktree-wf_eb1fc3a8-908-4,opus,175,474965,0.297,DONE,0,0,0,0,,0,0,0.297,0,n,n,n,2,2,2,PB2660 PB754,2026-10-08
+wf_eb1fc3a8-908,1042,w1042e,PB2631,1,0,runtime/values,MAJOR,worktree-wf_eb1fc3a8-908-5,sonnet,248,494689,0.124,DONE,0,0,0,0,,0,0,0.124,0,n,y,n,4,4,4,PB2630 PB2632 PB2633 PB648,2026-10-08
+wf_eb1fc3a8-908,1042,w1042f,PB2507,1,0,runtime/functions,MINOR,worktree-wf_eb1fc3a8-908-6,sonnet,209,434646,0.109,DONE,0,0,0,0,,0,0,0.109,0,n,n,n,3,3,3,PB2507 PB2640 PB2641,2026-10-08
+wf_eb1fc3a8-908,1042,w1042g,PB2617,1,0,codegen,MINOR,worktree-wf_eb1fc3a8-908-7,sonnet,168,394087,0.099,DONE,0,0,0,0,,0,0,0.099,0,n,n,n,3,3,3,PB2616 PB2617 PB2643,2026-10-08
+wf_eb1fc3a8-908,1042,w1042h,PB2639,1,0,runtime/values,MINOR,worktree-wf_eb1fc3a8-908-8,sonnet,194,424045,0.106,DONE,0,0,0,0,,0,0,0.106,0,n,n,n,2,2,2,PB2638 PB2639,2026-10-08
+wf_2ca5e648-fef,1043,w1043a,PB2188,1,0,architecture,MINOR,worktree-wf_2ca5e648-fef-1,opus,62,158628,0.099,DONE,0,0,0,0,,0,0,0.099,0,n,n,n,5,5,5,PB2188 PB2191 PB2192 PB2196 PB2201,2026-10-08
+wf_2ca5e648-fef,1043,w1043b,PB2163,1,0,architecture,MINOR,worktree-wf_2ca5e648-fef-2,opus,147,306945,0.192,DONE,0,0,0,0,,0,0,0.192,0,n,n,n,1,1,1,PB2163,2026-10-08
+wf_2ca5e648-fef,1043,w1043c,PB2167,1,0,architecture,MINOR,worktree-wf_2ca5e648-fef-3,opus,63,117704,0.074,DONE,0,0,0,0,,0,0,0.074,0,n,n,n,1,1,1,PB2167,2026-10-08
+wf_2ca5e648-fef,1043,w1043d,PB2174,1,0,architecture,MINOR,worktree-wf_2ca5e648-fef-4,opus,74,152565,0.095,SPLIT,0,0,0,0,,0,0,0.095,0,n,n,n,1,1,1,PB2174,2026-10-08
+wf_2ca5e648-fef,1043,w1043e,PB2199,1,0,architecture,MINOR,worktree-wf_2ca5e648-fef-5,opus,58,103886,0.065,DONE,0,0,0,0,,0,0,0.065,0,n,n,n,1,1,1,PB2199,2026-10-08
+wf_2ca5e648-fef,1043,w1043f,PB2200,1,0,architecture,MINOR,worktree-wf_2ca5e648-fef-6,opus,109,193918,0.121,DONE,0,0,0,0,,0,0,0.121,0,n,n,n,1,1,1,PB2200,2026-10-08
+wf_2ca5e648-fef,1043,w1043g,PB2207,1,0,architecture,MINOR,worktree-wf_2ca5e648-fef-7,opus,61,107021,0.067,DONE,0,0,0,0,,0,0,0.067,0,n,n,n,1,1,1,PB2207,2026-10-08
+wf_2ca5e648-fef,1043,w1043h,PB2208,1,0,architecture,MINOR,worktree-wf_2ca5e648-fef-8,opus,34,101504,0.063,DONE,0,0,0,0,,0,0,0.063,0,n,n,n,1,1,1,PB2208,2026-10-08
+wf_03fdfe4f-4ae,1045,w1045a,PB1941,1,4,binder/data,MINOR,worktree-wf_03fdfe4f-4ae-1,opus,174,388713,0.243,SPLIT,0,0,0,0,,0,0,0.243,0.826,n,y,n,2,2,6,PB2465 PB2511,2026-10-08
+wf_03fdfe4f-4ae,1045,w1045b,PB2097,3,0,runtime/registration,MINOR,worktree-wf_03fdfe4f-4ae-2,opus,258,479935,0.3,DONE,0,0,0,0,,0,0,0.3,0,n,n,n,1,1,1,PB2097,2026-10-08
+wf_03fdfe4f-4ae,1045,w1045c,PB2497,2,0,codegen,MINOR,worktree-wf_03fdfe4f-4ae-3,opus,169,412567,0.258,DONE,0,0,0,0,,0,0,0.258,0,n,n,n,1,1,1,PB2497,2026-10-08
+wf_03fdfe4f-4ae,1045,w1045d,PB2689,1,0,runtime/values,MAJOR,worktree-wf_03fdfe4f-4ae-4,opus,229,442160,0.276,DONE,0,0,0,0,,0,0,0.276,0,n,n,n,3,3,3,PB2689 PB2693 PB701,2026-10-08
+wf_03fdfe4f-4ae,1045,w1045e,PB2074,1,0,codegen/intrinsics,MINOR,worktree-wf_03fdfe4f-4ae-5,opus,172,349042,0.218,DONE,0,0,0,0,,0,0,0.218,0,n,n,n,3,3,3,PB2074 PB2629 PB2631,2026-10-08
+wf_03fdfe4f-4ae,1045,w1045f,PB2553,1,0,codegen/report-writer,MINOR,worktree-wf_03fdfe4f-4ae-6,opus,172,388332,0.243,DONE,0,0,0,0,,0,0,0.243,0,n,n,n,2,2,2,PB2553 PB2691,2026-10-08
+wf_03fdfe4f-4ae,1045,w1045g,PB2697,1,0,runtime/values,MAJOR,worktree-wf_03fdfe4f-4ae-7,opus,121,230751,0.144,DONE,0,0,0,0,,0,0,0.144,0,n,n,n,2,2,2,PB2647 PB2697,2026-10-09
+wf_03fdfe4f-4ae,1045,w1045h,PB1951,1,0,binder/sort,MINOR,worktree-wf_03fdfe4f-4ae-8,opus,155,336741,0.21,DONE,0,0,0,0,,0,0,0.21,0,n,n,n,2,2,2,PB1951 PB1956,2026-10-09
+wf_8750e914-ee4,1047,w1047a,PB1941,2,3,binder/data,MINOR,worktree-wf_8750e914-ee4-1,opus,160,301281,0.188,SPLIT,0,0,0,0,,0,0,0.188,0.638,n,y,n,3,3,6,PB1965 PB2465 PB2511,2026-10-09
+wf_8750e914-ee4,1047,w1047b,PB2692,1,0,runtime/io,MAJOR,worktree-wf_8750e914-ee4-2,opus,228,489757,0.306,DONE,0,0,0,0,,0,0,0.306,0,n,n,n,3,3,3,PB2692 PB2748 PB2751,2026-10-09
+wf_8750e914-ee4,1047,w1047c,PB2761,1,0,runtime/collation,MINOR,worktree-wf_8750e914-ee4-3,opus,170,339779,0.212,DONE,0,0,0,0,,0,0,0.212,0,n,n,n,3,3,3,PB2761 PB2765 PB2772,2026-10-09
+wf_8750e914-ee4,1047,w1047e,PB1928,1,0,binding/conditions,MINOR,worktree-wf_8750e914-ee4-4,opus,195,351969,0.22,DONE,0,0,0,0,,0,0,0.22,0,n,n,n,4,4,4,PB1928 PB1935 PB2468 PB2734,2026-10-09
+wf_f5004fff-e3b,1049,w1049a,PB1941,3,2,binder/data,MINOR,worktree-wf_f5004fff-e3b-1,opus,62,151134,0.094,SPLIT,0,0,0,0,,0,0,0.094,0.544,n,y,n,1,1,3,PB2844,2026-10-09
+wf_f5004fff-e3b,1049,w1049e,PB2739,1,0,frontend/preprocessor,MINOR,worktree-wf_f5004fff-e3b-2,sonnet,63,197424,0.049,DONE,0,0,0,0,,0,0,0.049,0,n,n,n,1,1,1,PB2739,2026-10-09
+wf_4151e8da-91b,1051,w1051a,PB2695,1,1,runtime/tables,MINOR,worktree-wf_4151e8da-91b-1,sonnet,216,442133,0.111,SPLIT,0,0,0,0,,0,0,0.111,0.023,n,y,n,1,1,1,PB2695,2026-10-10
+wf_4151e8da-91b,1051,w1051b,PB2843,1,0,runtime,MAJOR,worktree-wf_4151e8da-91b-2,opus,238,458350,0.286,DONE,0,0,0,0,,0,0,0.286,0,n,n,n,4,4,4,PB2741 PB2745 PB2839 PB2843,2026-10-10
+wf_4151e8da-91b,1051,w1051c,PB2834,1,1,runtime/io,MINOR,worktree-wf_4151e8da-91b-3,sonnet,201,386618,0.097,SPLIT,0,0,0,0,,0,0,0.097,0.023,n,y,n,2,2,2,PB2834 PB2848,2026-10-10
+wf_4151e8da-91b,1051,w1051d,PB2588,1,1,frontend/grammar,MINOR,worktree-wf_4151e8da-91b-4,opus,212,448723,0.28,SPLIT,0,0,0,0,,0,0,0.28,0.259,n,y,n,2,2,3,PB2729 PB2773,2026-10-10
+wf_4151e8da-91b,1051,w1051e,PB2833,1,0,binding/data-division,MAJOR,worktree-wf_4151e8da-91b-5,sonnet,196,380660,0.095,SPLIT,0,0,0,0,,0,0,0.095,0,n,y,n,2,2,2,PB2548 PB2833,2026-10-10
+wf_4151e8da-91b,1051,w1051f,PB2846,1,0,codegen,MINOR,worktree-wf_4151e8da-91b-6,sonnet,235,608721,0.152,DONE,0,0,0,0,,0,0,0.152,0,n,n,n,2,2,2,PB2281 PB2846,2026-10-10
+wf_0cae47bc-172,1052,w1052a,PB1941,4,1,binder/data,MINOR,worktree-wf_0cae47bc-172-1,opus,170,441732,0.276,SPLIT,0,0,0,0,,0,0,0.276,0.268,n,y,n,1,1,2,PB1941,2026-10-10
+wf_0cae47bc-172,1052,w1052b,PB2484,1,0,runtime/io,MAJOR,worktree-wf_0cae47bc-172-2,sonnet,125,384010,0.096,DONE,0,0,0,0,,0,0,0.096,0,n,n,n,1,1,1,PB2484,2026-10-10
+wf_0cae47bc-172,1052,w1052c,PB2618,1,0,codegen,MINOR,worktree-wf_0cae47bc-172-3,sonnet,89,183001,0.046,DONE,0,0,0,0,,0,0,0.046,0,n,n,n,1,1,1,PB2618,2026-10-10
+wf_0cae47bc-172,1052,w1052d,PB2694,1,0,codegen/arithmetic,MAJOR,worktree-wf_0cae47bc-172-4,sonnet,62,165237,0.041,DONE,0,0,0,0,,0,0,0.041,0,n,n,n,1,1,1,PB2694,2026-10-10
+wf_0cae47bc-172,1052,w1052e,PB2698,1,0,runtime/values,MINOR,worktree-wf_0cae47bc-172-5,sonnet,164,382376,0.096,DONE,0,0,0,0,,0,0,0.096,0,n,n,n,1,1,1,PB2698,2026-10-10
+wf_0cae47bc-172,1052,w1052f,PB2764,1,0,runtime/collation,MINOR,worktree-wf_0cae47bc-172-6,sonnet,121,247372,0.062,DONE,0,0,0,0,,0,0,0.062,0,n,n,n,1,1,1,PB2764,2026-10-10
+wf_0cae47bc-172,1052,w1052g,PB2771,1,0,runtime/control,MINOR,worktree-wf_0cae47bc-172-7,sonnet,85,174814,0.044,DONE,0,0,0,0,,0,0,0.044,0,n,n,n,1,1,1,PB2771,2026-10-10
+wf_0cae47bc-172,1052,w1052h,PB2841,1,0,runtime,MINOR,worktree-wf_0cae47bc-172-8,sonnet,64,170705,0.043,DONE,0,0,0,0,,0,0,0.043,0,n,n,n,1,1,1,PB2841,2026-10-10
+wf_4151e8da-91b,1051,w1051g,PB1688,1,2,frontend/preprocessor,MINOR,worktree-wf_4151e8da-91b-7,sonnet,5,37045,0.009,SPLIT,0,0,0,0,,0,0,0.009,0.313,y,y,y,0,0,3,,2026-10-10
+wf_4151e8da-91b,1051,w1051h,PB2463,1,2,runtime/oo,MINOR,worktree-wf_4151e8da-91b-8,opus,5,37399,0.023,SPLIT,0,0,0,0,,0,0,0.023,0.325,y,y,y,0,0,1,,2026-10-10
+wf_8d59ef7b-0cb,1053,w1053a,PB1941,5,0,binder/data,MINOR,worktree-wf_8d59ef7b-0cb-1,opus,190,428927,0.268,DONE,0,0,0,0,,0,0,0.268,0,n,n,n,2,2,2,PB1941 PB2051,2026-10-10
+wf_8d59ef7b-0cb,1053,w1053b,PB2588,2,0,frontend/grammar,MINOR,worktree-wf_8d59ef7b-0cb-2,opus,214,414258,0.259,SPLIT,0,0,0,0,,0,0,0.259,0,n,y,n,3,3,3,PB2588 PB2729 PB2773,2026-10-10
+wf_8d59ef7b-0cb,1053,w1053c,PB1688,2,1,frontend/preprocessor,MINOR,worktree-wf_8d59ef7b-0cb-3,opus,177,423207,0.265,SPLIT,0,0,0,0,,0,0,0.265,0.048,n,y,n,3,3,3,PB1671 PB1688 PB1801,2026-10-10
+wf_8d59ef7b-0cb,1053,w1053d,PB2463,2,1,runtime/oo,MINOR,worktree-wf_8d59ef7b-0cb-4,opus,157,427507,0.267,SPLIT,0,0,0,0,,0,0,0.267,0.058,n,y,n,1,1,1,PB2463,2026-10-10
+wf_8d59ef7b-0cb,1053,w1053e,PB2834,2,0,runtime/io,MINOR,worktree-wf_8d59ef7b-0cb-5,sonnet,48,92806,0.023,SPLIT,0,0,0,0,,0,0,0.023,0,n,y,n,0,0,0,,2026-10-10
+wf_8d59ef7b-0cb,1053,w1053f,PB2548,1,1,binder/data,MINOR,worktree-wf_8d59ef7b-0cb-6,sonnet,58,138987,0.035,SPLIT,0,0,0,0,,0,0,0.035,0.082,n,y,n,0,0,2,,2026-10-10
+wf_8d59ef7b-0cb,1053,w1053g,PB2695,2,0,runtime/tables,MINOR,worktree-wf_8d59ef7b-0cb-7,sonnet,27,92525,0.023,DONE,0,0,0,0,,0,0,0.023,0,n,n,n,1,1,1,PB2695,2026-10-10
+wf_8d59ef7b-0cb,1053,w1053h,PB2847,1,1,runtime,MINOR,worktree-wf_8d59ef7b-0cb-8,sonnet,94,227809,0.057,SPLIT,0,0,0,0,,0,0,0.057,0.03,n,y,n,1,1,1,PB2847,2026-10-10
+wf_6f53c0b7-a74,1055,w1055a,PB2727,1,0,frontend/grammar,MINOR,worktree-wf_6f53c0b7-a74-1,opus,188,350759,0.219,DONE,0,0,0,0,,0,0,0.219,0,n,n,n,4,4,4,PB2588 PB2727 PB2729 PB2773,2026-10-11
+wf_6f53c0b7-a74,1055,w1055b,PB1688,3,0,frontend/preprocessor,MINOR,worktree-wf_6f53c0b7-a74-2,opus,37,76776,0.048,DONE,0,0,0,0,,0,0,0.048,0,n,n,n,3,3,3,PB1671 PB1688 PB1801,2026-10-11
+wf_6f53c0b7-a74,1055,w1055c,PB2463,3,0,runtime/oo,MINOR,worktree-wf_6f53c0b7-a74-3,opus,44,92155,0.058,DONE,0,0,0,0,,0,0,0.058,0,n,n,n,1,1,1,PB2463,2026-10-11
+wf_6f53c0b7-a74,1055,w1055d,PB2848,1,0,runtime,MINOR,worktree-wf_6f53c0b7-a74-4,opus,52,126738,0.079,DONE,0,0,0,0,,0,0,0.079,0,n,n,n,2,2,2,PB2834 PB2848,2026-10-11
+wf_6f53c0b7-a74,1055,w1055e,PB2548,2,0,binder/data,MINOR,worktree-wf_6f53c0b7-a74-5,opus,64,131734,0.082,DONE,0,0,0,0,,0,0,0.082,0,n,n,n,2,2,2,PB2548 PB2833,2026-10-11
+wf_6f53c0b7-a74,1055,w1055f,PB2847,2,0,runtime,MINOR,worktree-wf_6f53c0b7-a74-6,sonnet,32,118816,0.03,DONE,0,0,0,0,,0,0,0.03,0,n,n,n,1,1,1,PB2847,2026-10-11
+wf_8f6c2cfa-5a7,1056,w1056a,PB2917,1,0,runtime/io,MINOR,worktree-wf_8f6c2cfa-5a7-1,sonnet,159,422848,0.106,DONE,0,0,0,0,,0,0,0.106,0,n,y,n,2,2,2,PB2917 PB2936,2026-10-11
+wf_8f6c2cfa-5a7,1056,w1056b,PB2920,1,0,codegen/oo,MINOR,worktree-wf_8f6c2cfa-5a7-2,sonnet,84,187379,0.047,DONE,0,0,0,0,,0,0,0.047,0,n,n,n,1,1,1,PB2920,2026-10-11
+wf_8f6c2cfa-5a7,1056,w1056c,PB2918,1,0,runtime/values,MINOR,worktree-wf_8f6c2cfa-5a7-3,sonnet,130,280398,0.07,DONE,0,0,0,0,,0,0,0.07,0,n,n,n,1,1,1,PB2918,2026-10-11
+wf_8f6c2cfa-5a7,1056,w1056d,PB2919,1,0,runtime/values,MINOR,worktree-wf_8f6c2cfa-5a7-4,sonnet,132,219729,0.055,DONE,0,0,0,0,,0,0,0.055,0,n,n,n,1,1,1,PB2919,2026-10-11
+wf_8f6c2cfa-5a7,1056,w1056e,PB2938,1,0,runtime/strings,MINOR,worktree-wf_8f6c2cfa-5a7-5,sonnet,116,300515,0.075,DONE,0,0,0,0,,0,0,0.075,0,n,n,n,1,1,1,PB2938,2026-10-11
+wf_8f6c2cfa-5a7,1056,w1056f,PB2818,1,0,codegen/data,MAJOR,worktree-wf_8f6c2cfa-5a7-6,sonnet,122,299093,0.075,DONE,0,0,0,0,,0,0,0.075,0,n,n,n,1,1,1,PB2818,2026-10-11
+wf_51120f68-12c,1056,w1056g,PB2840,1,0,binder/oo,MINOR,worktree-wf_51120f68-12c-1,sonnet,136,290291,0.073,DONE,0,0,0,0,,0,0,0.073,0,n,n,n,2,2,2,PB2840 PB2845,2026-10-11
+wf_51120f68-12c,1056,w1056h,PB1938,1,0,binding/move,MINOR,worktree-wf_51120f68-12c-2,sonnet,64,189712,0.047,DONE,0,0,0,0,,0,0,0.047,0,n,n,n,1,1,1,PB1938,2026-10-11
+wf_a8f62efa-167,?,wf_a8f62efa-167:A,PB2982,1,1,frontend/reference-format,MINOR,,sonnet,9,92778,0.023,NORESULT,0,0,0,0,,0,0,0.023,0.085,n,n,n,0,0,3,,2026-10-11
+wf_a8f62efa-167,?,wf_a8f62efa-167:B,PB2965,1,1,compiler/intrinsics,MINOR,,sonnet,6,49861,0.012,NORESULT,0,0,0,0,,0,0,0.012,0.055,n,n,n,0,0,1,,2026-10-11
+wf_a8f62efa-167,?,wf_a8f62efa-167:C,PB2966,1,1,compiler/numeric,MINOR,,sonnet,4,43097,0.011,NORESULT,0,0,0,0,,0,0,0.011,0.052,n,n,n,0,0,1,,2026-10-11
+wf_a8f62efa-167,?,wf_a8f62efa-167:D,PB2967,1,1,runtime/numeric,MAJOR,,sonnet,3,41889,0.01,NORESULT,0,0,0,0,,0,0,0.01,0.077,n,n,n,0,0,1,,2026-10-11
+wf_a8f62efa-167,?,wf_a8f62efa-167:E,PB2986,1,1,frontend/preprocessor,MINOR,,sonnet,4,42464,0.011,NORESULT,0,0,0,0,,0,0,0.011,0.037,n,n,n,0,0,1,,2026-10-11
+wf_a8f62efa-167,?,wf_a8f62efa-167:F,PB2990,1,1,frontend/preprocessor,MINOR,,sonnet,4,60458,0.015,NORESULT,0,0,0,0,,0,0,0.015,0.032,n,n,n,0,0,1,,2026-10-11
+wf_ba3ffb9d-2e5,1059,w1059a,PB2982,2,0,frontend/reference-format,MINOR,worktree-wf_ba3ffb9d-2e5-1,sonnet,147,340838,0.085,DONE,0,0,0,0,,0,0,0.085,0,n,n,n,3,3,3,PB2490 PB2982 PB2983,2026-10-11
+wf_ba3ffb9d-2e5,1059,w1059b,PB2965,2,0,compiler/intrinsics,MINOR,worktree-wf_ba3ffb9d-2e5-2,sonnet,109,221058,0.055,DONE,0,0,0,0,,0,0,0.055,0,n,n,n,1,1,1,PB2965,2026-10-11
+wf_ba3ffb9d-2e5,1059,w1059c,PB2966,2,0,compiler/numeric,MINOR,worktree-wf_ba3ffb9d-2e5-3,sonnet,80,207973,0.052,DONE,0,0,0,0,,0,0,0.052,0,n,n,n,1,1,1,PB2966,2026-10-11
+wf_ba3ffb9d-2e5,1059,w1059d,PB2967,2,0,runtime/numeric,MAJOR,worktree-wf_ba3ffb9d-2e5-4,sonnet,103,309739,0.077,DONE,0,0,0,0,,0,0,0.077,0,n,n,n,1,1,1,PB2967,2026-10-11
+wf_ba3ffb9d-2e5,1059,w1059e,PB2986,2,0,frontend/preprocessor,MINOR,worktree-wf_ba3ffb9d-2e5-5,sonnet,54,146270,0.037,DONE,0,0,0,0,,0,0,0.037,0,n,n,n,1,1,1,PB2986,2026-10-11
+wf_ba3ffb9d-2e5,1059,w1059f,PB2990,2,0,frontend/preprocessor,MINOR,worktree-wf_ba3ffb9d-2e5-6,sonnet,53,126858,0.032,DONE,0,0,0,0,,0,0,0.032,0,n,n,n,1,1,1,PB2990,2026-10-11
+wf_ba3ffb9d-2e5,1059,w1059g,PB2991,1,0,runtime/control,MINOR,worktree-wf_ba3ffb9d-2e5-7,sonnet,87,185937,0.046,DONE,0,0,0,0,,0,0,0.046,0,n,n,n,1,1,1,PB2991,2026-10-11
+wf_ba3ffb9d-2e5,1059,w1059h,PB2964,1,0,compiler/intrinsics,MAJOR,worktree-wf_ba3ffb9d-2e5-8,sonnet,146,305545,0.076,DONE,0,0,0,0,,0,0,0.076,0,n,n,n,3,3,3,PB2498 PB2589 PB2964,2026-10-11
+wf_aba5c7ac-b61,1062,w1062a,PB2987,1,1,process/tooling,MINOR,worktree-wf_aba5c7ac-b61-1,opus,161,388363,0.243,DONE,0,0,0,0,,0,0,0.243,0.165,n,n,n,2,2,2,PB2987 PB3025,2026-10-11
+wf_aba5c7ac-b61,1062,w1062b,PB3022,1,0,process/gates,MAJOR,worktree-wf_aba5c7ac-b61-2,opus,181,464703,0.29,SPLIT,0,0,0,0,,0,0,0.29,0,n,n,n,0,0,0,,2026-10-11
+wf_aba5c7ac-b61,1062,w1062c,PB3024,1,1,process/ci,MAJOR,worktree-wf_aba5c7ac-b61-3,opus,151,334302,0.209,DONE,0,0,0,0,,0,0,0.209,0.5,n,y,y,2,2,4,PB3023 PB3024,2026-10-11
+wf_aba5c7ac-b61,1062,w1062d,PB3026,1,0,process/tooling,MINOR,worktree-wf_aba5c7ac-b61-4,sonnet,125,267356,0.067,DONE,0,0,0,0,,0,0,0.067,0,n,n,n,1,1,1,PB3026,2026-10-11
+wf_aba5c7ac-b61,1062,w1062e,PB3027,1,0,process/tooling,MAJOR,worktree-wf_aba5c7ac-b61-5,opus,142,334412,0.209,DONE,0,0,0,0,,0,0,0.209,0,n,n,n,1,1,1,PB3027,2026-10-11
+wf_aba5c7ac-b61,1062,w1062f,PB3029,1,1,process/tooling,MAJOR,worktree-wf_aba5c7ac-b61-6,opus,146,272686,0.17,DONE,0,0,0,0,,0,0,0.17,0.277,y,y,y,1,1,1,PB3029,2026-10-11
+wf_aba5c7ac-b61,1062,w1062a2,PB3023,1,1,process/tooling,MAJOR,worktree-wf_aba5c7ac-b61-7,opus,168,440182,0.275,DONE,0,0,0,0,,0,0,0.275,0.603,n,n,n,4,4,4,PB2987 PB3016 PB3023 PB3025,2026-10-11
+wf_aba5c7ac-b61,1062,w1062c2,PB3028,1,1,process/tooling,MINOR,worktree-wf_aba5c7ac-b61-8,sonnet,98,239849,0.06,DONE,0,0,0,0,,0,0,0.06,0.341,n,y,n,2,2,2,PB3024 PB3028,2026-10-11
+wf_7ea6bc1f-05f,1064,w1064a,PB2987,2,0,process/tooling,MINOR,worktree-wf_7ea6bc1f-05f-1,opus,105,264771,0.165,DONE,0,0,0,0,,0,0,0.165,0,n,n,n,2,2,2,PB2987 PB3025,2026-10-12
+wf_7ea6bc1f-05f,1064,w1064c2,PB3028,2,0,process/tooling,MINOR,worktree-wf_7ea6bc1f-05f-2,opus,108,241871,0.151,DONE,2,0.126,1,0.063,opus,0,0,0.341,0,n,n,n,1,1,1,PB3028,2026-10-12
+wf_7ea6bc1f-05f,1064,w1064f,PB3029,2,0,process/tooling,MAJOR,worktree-wf_7ea6bc1f-05f-3,opus,67,136414,0.085,DONE,2,0.136,1,0.055,opus,0,0,0.277,0,y,y,y,1,1,1,PB3029,2026-10-12
+wf_7ea6bc1f-05f,1064,w1064a2,PB3023,2,0,process/tooling,MAJOR,worktree-wf_7ea6bc1f-05f-6,opus,196,350727,0.219,DONE,2,0.211,1,0.173,opus,0,0,0.603,0,n,n,n,4,4,4,PB2987 PB3016 PB3023 PB3025,2026-10-12
+wf_6aff6ee0-819,1068,w1068a,PB3024,2,0,process/ci,MAJOR,worktree-wf_6aff6ee0-819-1,opus,164,390353,0.244,DONE,2,0.158,1,0.098,opus,0,0,0.5,0,y,n,y,3,3,3,PB3024 PB3095 PB3096,2026-10-12
+wf_d63f7207-db5,1069,w1069a,PB3018,1,0,compiler/numeric,MINOR,worktree-wf_d63f7207-db5-1,sonnet,180,409642,0.102,DONE,2,0.149,1,0.02,sonnet,0,0,0.271,0,y,n,y,3,3,3,PB3017 PB3018 PB3019,2026-10-12
+wf_d63f7207-db5,1069,w1069b,PB3030,1,0,compiler/intrinsics,MAJOR,worktree-wf_d63f7207-db5-2,opus,221,432460,0.27,SPLIT,0,0,0,0,,0,0,0.27,0,n,n,n,2,2,2,PB2921 PB2988,2026-10-12
+wf_d63f7207-db5,?,wf_d63f7207-db5:C,PB2690,1,3,runtime/values,MINOR,worktree-wf_d63f7207-db5-3,sonnet,104,240911,0.06,DONE,0,0,0,0,,0,0,0.06,1.704,y,n,y,1,1,1,PB2690,2026-10-12
+wf_d63f7207-db5,1069,w1069d,PB3031,1,1,frontend/reference-format,MINOR,worktree-wf_d63f7207-db5-4,sonnet,61,123841,0.031,DONE,1,0.064,0,0,,0,0,0.095,0.084,y,n,y,1,1,1,PB3031,2026-10-12
+wf_d63f7207-db5,1069,w1069e,PB2502,1,0,binder/file-io,MINOR,worktree-wf_d63f7207-db5-5,sonnet,96,196330,0.049,DONE,3,0.169,2,0.037,sonnet,0,0,0.254,0,y,n,y,1,1,1,PB2502,2026-10-12
+wf_d63f7207-db5,1069,w1069f,PB2842,1,0,runtime/io,MINOR,worktree-wf_d63f7207-db5-6,sonnet,63,182680,0.046,DONE,2,0.122,1,0.033,sonnet,0,0,0.201,0,y,n,y,1,1,1,PB2842,2026-10-12
+wf_d63f7207-db5,1069,w1069g,PB2720,1,0,frontend/grammar,MINOR,worktree-wf_d63f7207-db5-9,opus,193,374702,0.234,DONE,3,0.2,2,0.144,opus,0,0,0.578,0,y,n,y,2,2,2,PB2720 PB374,2026-10-12
+wf_d63f7207-db5,1069,w1069h,PB2721,1,0,frontend/grammar,MINOR,worktree-wf_d63f7207-db5-18,opus,143,295071,0.184,DONE,1,0.081,0,0,,0,0,0.265,0,y,n,y,2,2,2,PB2721 PB2732,2026-10-12
+wf_1ce5d560-43a,1069,w1069l,PB3103,1,0,process/orchestrator,MAJOR,worktree-wf_1ce5d560-43a-1,opus,159,438266,0.274,DONE,3,0.221,2,0.146,opus,0,0,0.641,0,y,n,y,1,1,1,PB3103,2026-10-12
+wf_2ac06936-a0f,1069,w1069m,PB3104,1,0,orchestrator/landing,MAJOR,worktree-wf_2ac06936-a0f-1,opus,75,200572,0.125,DONE,2,0.081,1,0.046,opus,0,0,0.253,0,y,n,y,1,1,1,PB3104,2026-10-12
+wf_787860dd-104,1070,w1070a,PB546,1,2,codegen/data-division,MAJOR,worktree-wf_787860dd-104-1,opus,194,384155,0.24,SPLIT,0,0,0,0,,0,0,0.24,0.621,y,n,y,3,3,4,PB2921 PB2988 PB546,2026-10-13
+wf_787860dd-104,1070,w1070b,PB3017,1,0,compiler/numeric,MINOR,worktree-wf_787860dd-104-2,sonnet,48,125324,0.031,DONE,2,0.114,1,0.015,sonnet,0,0,0.16,0,y,n,y,3,3,3,PB3017 PB3018 PB3019,2026-10-13
+wf_787860dd-104,1070,w1070c,PB3109,1,0,runtime/io-sharing,MAJOR,worktree-wf_787860dd-104-3,sonnet,90,226098,0.057,DONE,1,0.051,0,0,,0,0,0.107,0,y,n,y,1,1,1,PB3109,2026-10-13
+wf_787860dd-104,1070,w1070d,PB2077,1,1,oo/universal,MINOR,worktree-wf_787860dd-104-4,opus,232,499435,0.312,DONE,2,0.149,1,0.098,opus,0,0,0.56,0.45,y,n,y,2,2,2,PB2077 PB3098,2026-10-13
+wf_787860dd-104,1070,w1070e,PB2099,1,8,runtime/host-surface,MINOR,worktree-wf_787860dd-104-5,sonnet,192,487590,0.122,SPLIT,0,0,0,0,,0,0,0.122,2.147,y,n,y,3,3,4,PB1037 PB1762 PB3102,2026-10-13
+wf_787860dd-104,1070,w1070f,PB2495,1,0,binder/oo,MINOR,worktree-wf_787860dd-104-6,opus,132,293806,0.184,DONE,2,0.117,1,0.076,opus,0,0,0.377,0,y,n,y,1,1,1,PB2495,2026-10-13
+wf_787860dd-104,1070,w1070g,PB2623,1,0,editions,MINOR,worktree-wf_787860dd-104-12,sonnet,113,206457,0.052,DONE,1,0.08,0,0,,0,0,0.131,0,y,n,y,1,1,1,PB2623,2026-10-13
+wf_76dbe266-f46,1070,w1070h,PB1616,1,0,frontend/preprocessor,MINOR,worktree-wf_76dbe266-f46-1,sonnet,133,303394,0.076,DONE,2,0.136,1,0.015,sonnet,0,0,0.227,0,y,n,y,1,1,1,PB1616,2026-10-13
+wf_4959cab1-c5a,1071,w1071a,PB2077,2,0,oo/universal,MINOR,worktree-wf_4959cab1-c5a-1,opus,139,302296,0.189,DONE,2,0.149,1,0.112,opus,0,0,0.45,0,y,n,y,1,1,1,PB2077,2026-10-13
+wf_4959cab1-c5a,1071,w1071b,PB546,2,1,codegen/data-division,MAJOR,worktree-wf_4959cab1-c5a-2,opus,53,108136,0.068,DONE,2,0.212,1,0.121,opus,0,0,0.401,0.22,y,n,y,3,3,4,PB2921 PB2988 PB546,2026-10-13
+wf_4959cab1-c5a,1071,w1071c,PB2099,2,7,runtime/host-surface,MINOR,worktree-wf_4959cab1-c5a-3,opus,69,140392,0.088,DONE,1,0.143,0,0,,0,0,0.231,1.916,y,n,y,3,3,4,PB1037 PB1762 PB3102,2026-10-13
+wf_4959cab1-c5a,1071,w1071d,PB3031,2,0,frontend/reference-format,MINOR,worktree-wf_4959cab1-c5a-4,sonnet,19,76138,0.019,DONE,1,0.065,0,0,,0,0,0.084,0,y,n,y,1,1,1,PB3031,2026-10-13
+wf_4959cab1-c5a,1071,w1071e,PB3121,1,0,binder/scope,MINOR,worktree-wf_4959cab1-c5a-5,opus,138,327826,0.205,SPLIT,0,0,0,0,,0,0,0.205,0,n,y,n,1,1,1,PB3121,2026-10-13
+wf_4959cab1-c5a,1071,w1071f,PB3120,1,0,binder/types,MINOR,worktree-wf_4959cab1-c5a-6,sonnet,117,232607,0.058,DONE,3,0.166,2,0.051,sonnet,0,0,0.275,0,y,n,y,1,1,1,PB3120,2026-10-13
+wf_4959cab1-c5a,1071,w1071g,PB2017,1,0,frontend/separators,MINOR,worktree-wf_4959cab1-c5a-8,sonnet,161,325527,0.081,DONE,1,0.093,0,0,,0,0,0.174,0,y,n,y,1,1,1,PB2017,2026-10-13
+wf_4959cab1-c5a,1071,w1071h,PB2532,1,0,frontend/grammar,MINOR,worktree-wf_4959cab1-c5a-12,opus,94,244563,0.153,DONE,1,0.058,0,0,,0,0,0.21,0,y,n,y,1,1,1,PB2532,2026-10-13
+wf_aeccbdce-140,1071,w1071x,PB3107,1,0,orchestrator/landing,MAJOR,worktree-wf_aeccbdce-140-1,opus,129,402309,0.251,DONE,2,0.128,1,0.054,opus,0,0,0.433,0,y,n,y,2,2,2,PB3107 PB3123,2026-10-13
+wf_dfc118ad-872,1072,w1072b,PB2937,1,0,binder/oo,MINOR,worktree-wf_dfc118ad-872-2,opus,195,479005,0.299,DONE,2,0.165,1,0.085,opus,0,0,0.549,0,y,y,y,2,2,2,PB2937 PB3121,2026-10-13
+wf_dfc118ad-872,1072,w1072c,PB2690,2,2,runtime/values,MINOR,worktree-wf_dfc118ad-872-3,opus,218,523524,0.327,DONE,2,0.155,1,0.141,opus,0,0,0.623,1.081,y,n,y,1,1,1,PB2690,2026-10-13
+wf_dfc118ad-872,1072,w1072d,PB3132,1,1,binding/words,MINOR,worktree-wf_dfc118ad-872-4,sonnet,116,262834,0.066,DONE,1,0.079,0,0,,0,0,0.145,0.254,y,n,y,2,2,2,PB3132 PB3133,2026-10-13
+wf_dfc118ad-872,1072,w1072e,PB3128,1,0,oo/activation,MINOR,worktree-wf_dfc118ad-872-5,opus,150,335551,0.21,DONE,2,0.138,1,0.076,opus,0,0,0.424,0,y,n,y,1,1,1,PB3128,2026-10-13
+wf_dfc118ad-872,1072,w1072a2,PB2921,1,3,codegen/oo,MINOR,worktree-wf_dfc118ad-872-7,opus,98,180242,0.113,DONE,1,0.119,0,0,,0,0,0.232,0.819,y,n,y,3,3,5,PB2921 PB2988 PB546,2026-10-13
+wf_c1f971f7-279,1072,w1072f,PB3129,1,0,oo/conformance,MAJOR,worktree-wf_c1f971f7-279-1,opus,123,261145,0.163,DONE,2,0.118,1,0.13,opus,0,0,0.411,0,y,n,y,1,1,1,PB3129,2026-10-13
+wf_c6c6fa26-b3b,1073,w1073b,PB3132,2,0,binding/words,MINOR,worktree-wf_c6c6fa26-b3b-2,sonnet,50,120485,0.03,DONE,3,0.17,2,0.054,sonnet,0,0,0.254,0,y,n,y,2,2,2,PB3132 PB3133,2026-10-14
+wf_c6c6fa26-b3b,1073,w1073a2,PB2921,2,2,codegen/oo,MINOR,worktree-wf_c6c6fa26-b3b-3,opus,90,175282,0.11,DONE,1,0.06,0,0,,0,0,0.169,0.65,y,n,y,2,2,5,PB2921 PB2988,2026-10-14
+wf_c1f971f7-279,1072,w1072g,PB2586,1,0,binding,MINOR,worktree-wf_c1f971f7-279-5,sonnet,67,210428,0.053,DONE,2,0.113,1,0.023,sonnet,0,0,0.189,0,y,n,y,1,1,1,PB2586,2026-10-14
+wf_619cbe77-e99,1074,w1074a,PB546,3,0,codegen/data-division,MAJOR,worktree-wf_619cbe77-e99-1,opus,160,351403,0.22,SPLIT,0,0,0,0,,0,0,0.22,0,y,n,y,2,2,2,PB2921 PB3030,2026-10-14
+wf_619cbe77-e99,1074,w1074a2,PB2921,3,1,codegen/oo,MINOR,worktree-wf_619cbe77-e99-2,opus,100,180949,0.113,DONE,2,0.18,1,0.132,opus,0,0,0.425,0.225,y,n,y,4,4,5,PB2921 PB2988 PB3030 PB546,2026-10-14
+wf_d289834a-bf8,1076,w1076a,PB2921,4,0,codegen/oo,MINOR,worktree-wf_d289834a-bf8-1,opus,104,216038,0.135,DONE,1,0.09,0,0,,0,0,0.225,0,y,n,y,3,3,3,PB2921 PB2988 PB3132,2026-10-14
+wf_84f0c364-28e,1077,w1077a,PB2690,3,1,runtime/values,MINOR,worktree-wf_84f0c364-28e-1,opus,186,467048,0.292,DONE,2,0.205,1,0.142,opus,0,0,0.638,0.443,y,n,y,1,1,1,PB2690,2026-10-14
+wf_84f0c364-28e,1077,w1077b,PB3127,1,1,runtime/activation,MINOR,worktree-wf_84f0c364-28e-2,opus,183,421541,0.263,SPLIT,0,0,0,0,,0,0,0.263,0.057,n,n,y,1,1,1,PB3127,2026-10-14
+wf_84f0c364-28e,1077,w1077c,PB3154,1,1,binding/oo,MINOR,worktree-wf_84f0c364-28e-3,opus,128,288025,0.18,DONE,3,0.227,2,0.214,opus,0,0,0.621,0.185,y,n,y,2,2,2,PB2160 PB3154,2026-10-14
+wf_84f0c364-28e,1077,w1077d,PB3156,1,0,binder,MINOR,worktree-wf_84f0c364-28e-4,sonnet,174,405158,0.101,DONE,1,0.076,0,0,,0,0,0.178,0,y,n,y,1,1,1,PB3156,2026-10-14
+wf_84f0c364-28e,1077,w1077e,PB2099,3,6,runtime/host-surface,MINOR,worktree-wf_84f0c364-28e-5,opus,118,276118,0.173,SPLIT,0,0,0,0,,0,0,0.173,1.743,n,n,y,0,0,1,,2026-10-14
+wf_84f0c364-28e,1077,w1077f,PB2722,1,0,frontend/grammar,MINOR,worktree-wf_84f0c364-28e-6,opus,155,361922,0.226,DONE,1,0.089,0,0,,0,0,0.315,0,y,n,y,1,1,1,PB2722,2026-10-14
+wf_84f0c364-28e,1077,w1077g,PB2728,1,0,frontend/grammar,MINOR,worktree-wf_84f0c364-28e-8,opus,74,136204,0.085,DONE,1,0.044,0,0,,0,0,0.129,0,y,n,y,1,1,1,PB2728,2026-10-14
+wf_84f0c364-28e,1077,w1077h,PB2740,1,0,frontend/preprocessor,MINOR,worktree-wf_84f0c364-28e-11,sonnet,91,235102,0.059,DONE,1,0.076,0,0,,0,0,0.134,0,y,n,y,1,1,1,PB2740,2026-10-14
+wf_15ec6338-3a0,1078,w1078a,PB2690,4,0,runtime/values,MINOR,worktree-wf_15ec6338-3a0-1,opus,58,146730,0.092,DONE,2,0.177,1,0.175,opus,0,0,0.443,0,y,n,y,1,1,1,PB2690,2026-10-14
+wf_15ec6338-3a0,1078,w1078b,PB3101,1,4,binder/oo,MAJOR,worktree-wf_15ec6338-3a0-2,opus,161,428205,0.268,SPLIT,0,0,0,0,,0,0,0.268,1.364,n,n,y,0,0,3,,2026-10-14
+wf_15ec6338-3a0,1078,w1078c,PB2099,4,5,runtime/host-surface,MINOR,worktree-wf_15ec6338-3a0-3,opus,118,319005,0.199,SPLIT,0,0,0,0,,0,0,0.199,1.544,n,n,y,0,0,1,,2026-10-14
+wf_15ec6338-3a0,1078,w1078d,PB3154,2,0,binding/oo,MINOR,worktree-wf_15ec6338-3a0-4,opus,56,146413,0.092,DONE,1,0.094,0,0,,0,0,0.185,0,y,n,y,1,1,1,PB3154,2026-10-14
+wf_15ec6338-3a0,1078,w1078e,PB3158,1,0,binder,MAJOR,worktree-wf_15ec6338-3a0-5,sonnet,112,230802,0.058,DONE,1,0.059,0,0,,0,0,0.117,0,y,n,y,1,1,1,PB3158,2026-10-14
+wf_15ec6338-3a0,1078,w1078f,PB3147,1,0,frontend/reference-format,MINOR,worktree-wf_15ec6338-3a0-6,opus,222,488482,0.305,DONE,1,0.099,0,0,,0,0,0.404,0,y,n,y,1,1,1,PB3147,2026-10-14
+wf_15ec6338-3a0,1078,w1078g,PB3153,1,1,binding/words,MINOR,worktree-wf_15ec6338-3a0-10,opus,197,402629,0.252,DONE,3,0.192,2,0.224,opus,0,0,0.667,0.385,y,n,y,1,1,2,PB3153,2026-10-14
+wf_15ec6338-3a0,1078,w1078h,PB934,1,0,codegen,MINOR,worktree-wf_15ec6338-3a0-11,sonnet,24,96677,0.024,DISCHARGED,1,0.029,0,0,,0,0,0.053,0,y,n,y,2,2,2,PB3102 PB934,2026-10-14
+wf_d7290860-b44,1079,w1079a,PB3101,2,3,binder/oo,MAJOR,worktree-wf_d7290860-b44-1,opus,132,307044,0.192,SPLIT,0,0,0,0,,0,0,0.192,1.172,n,n,y,1,1,3,PB613,2026-10-15
+wf_d7290860-b44,1079,w1079b,PB2099,5,4,runtime/host-surface,MINOR,worktree-wf_d7290860-b44-2,opus,179,414394,0.259,SPLIT,0,0,0,0,,0,0,0.259,1.285,n,n,y,0,0,1,,2026-10-15
+wf_5579bfb3-423,1080,w1080a,PB3101,3,2,binder/oo,MAJOR,worktree-wf_5579bfb3-423-1,opus,138,391948,0.245,SPLIT,0,0,0,0,,0,0,0.245,0.927,n,n,y,0,0,2,,2026-10-15
+wf_5579bfb3-423,1080,w1080b,PB2099,6,3,runtime/host-surface,MINOR,worktree-wf_5579bfb3-423-2,opus,197,416960,0.261,SPLIT,0,0,0,0,,0,0,0.261,1.024,n,n,y,0,0,1,,2026-10-15
+wf_5579bfb3-423,1080,w1080c,PB3161,1,0,orchestrator/branch-lifecycle,MAJOR,worktree-wf_5579bfb3-423-3,sonnet,58,135397,0.034,DONE,1,0.062,0,0,,0,0,0.095,0,y,n,y,1,1,1,PB3161,2026-10-15
+wf_5579bfb3-423,1080,w1080d,PB3166,1,0,codegen/bit,MAJOR,worktree-wf_5579bfb3-423-4,sonnet,95,230215,0.058,DONE,2,0.101,1,0.013,sonnet,0,0,0.171,0,y,n,y,1,1,1,PB3166,2026-10-15
+wf_5579bfb3-423,1080,w1080e,PB3164,1,0,binder/oo,MAJOR,worktree-wf_5579bfb3-423-5,opus,119,301412,0.188,DONE,1,0.082,0,0,,0,0,0.27,0,y,n,y,1,1,1,PB3164,2026-10-15
+wf_5579bfb3-423,1080,w1080f,PB3163,1,0,runtime/control,MAJOR,worktree-wf_5579bfb3-423-6,sonnet,48,133100,0.033,DONE,2,0.101,1,0.015,sonnet,0,0,0.149,0,y,n,y,1,1,1,PB3163,2026-10-15
+wf_5579bfb3-423,1080,w1080g,PB3165,1,1,binder/oo,MAJOR,worktree-wf_5579bfb3-423-13,sonnet,56,142635,0.036,DONE,2,0.108,1,0.017,sonnet,0,0,0.161,0.081,y,n,y,1,1,1,PB3165,2026-10-15
+wf_638c1a7b-ad7,1081,w1081x,PB3180,1,0,tooling,MAJOR,worktree-wf_638c1a7b-ad7-1,opus,54,153770,0.096,DONE,1,0.041,0,0,,0,0,0.137,0,y,n,y,1,1,1,PB3180,2026-10-15
+wf_c0ed6078-78e,1082,w1082a,PB3101,4,1,binder/oo,MAJOR,worktree-wf_c0ed6078-78e-1,opus,191,467210,0.292,DONE,2,0.199,1,0.129,opus,0,0,0.62,0.307,y,n,y,1,1,2,PB3101,2026-10-15
+wf_c0ed6078-78e,1082,w1082b,PB2099,7,2,runtime/host-surface,MINOR,worktree-wf_c0ed6078-78e-2,opus,233,418899,0.262,SPLIT,0,0,0,0,,0,0,0.262,0.762,n,n,y,0,0,1,,2026-10-15
+wf_c0ed6078-78e,1082,w1082c,PB3160,1,0,tests/conformance-suite,INFO,worktree-wf_c0ed6078-78e-3,sonnet,35,111981,0.028,DONE,2,0.084,1,0.013,sonnet,0,0,0.125,0,y,n,y,0,0,0,,2026-10-15
+wf_9b740cf9-198,1083,w1083a,PB3181,1,0,tooling,MINOR,worktree-wf_9b740cf9-198-1,opus,156,413738,0.259,DONE,0,0,0,0,,0,0,0.259,0,y,n,y,2,2,2,PB3125 PB3181,2026-10-15
+wf_f560587e-74d,1084,w1084b,PB656,1,0,frontend/words,MINOR,worktree-wf_f560587e-74d-1,opus,137,279675,0.175,DONE,1,0.08,0,0,,0,0,0.255,0,y,n,y,1,1,1,PB656,2026-10-15
+wf_f560587e-74d,1084,w1084c,PB241,1,0,tests,MINOR,worktree-wf_f560587e-74d-2,opus,121,260165,0.163,DONE,1,0.092,0,0,,0,0,0.254,0,y,n,y,2,2,2,PB241 PB2505,2026-10-15
+wf_9b740cf9-198,1083,w1083b,PB2807,1,0,tooling,MINOR,worktree-wf_9b740cf9-198-2,opus,146,395930,0.247,DONE,2,0.167,1,0.105,opus,0,0,0.519,0,y,n,y,8,8,8,PB2614 PB2701 PB2795 PB2807 PB3040 PB3125 PB3181 PB3186,2026-10-15
+wf_f560587e-74d,1084,w1084d,PB55,1,0,process/denominator,MAJOR,worktree-wf_f560587e-74d-5,opus,208,407443,0.255,DONE,2,0.116,1,0.07,opus,0,0,0.441,0,y,n,y,1,1,1,PB55,2026-10-15
+wf_f560587e-74d,1084,w1084e,PB359,1,0,io,MINOR,worktree-wf_f560587e-74d-6,opus,107,235860,0.147,DONE,2,0.147,1,0.113,opus,0,0,0.408,0,y,n,y,1,1,1,PB359,2026-10-15
+wf_d6f41ebf-faa,1085,w1085a,PB2099,8,1,runtime/host-surface,MINOR,worktree-wf_d6f41ebf-faa-1,opus,168,327196,0.204,SPLIT,0,0,0,0,,0,0,0.204,0.558,n,n,y,0,0,1,,2026-10-15
+wf_d6f41ebf-faa,1085,w1085b,PB3127,2,0,runtime/activation,MINOR,worktree-wf_d6f41ebf-faa-2,opus,28,91606,0.057,DISCHARGED,0,0,0,0,,0,0,0.057,0,y,n,y,0,0,0,,2026-10-15
+wf_d6f41ebf-faa,1085,w1085c,PB3165,2,0,binder/oo,MAJOR,worktree-wf_d6f41ebf-faa-3,opus,62,130359,0.081,DONE,0,0,0,0,,0,0,0.081,0,y,n,y,1,1,1,PB3165,2026-10-15
+wf_d6f41ebf-faa,1085,w1085e,PB3187,1,0,process/battery,MINOR,worktree-wf_d6f41ebf-faa-4,sonnet,14,65551,0.016,DONE,1,0.033,0,0,,0,0,0.05,0,y,n,y,1,1,1,PB3187,2026-10-15
+wf_d6f41ebf-faa,1085,w1085f,PB3168,1,1,frontend/reference-format,MINOR,worktree-wf_d6f41ebf-faa-5,sonnet,96,224023,0.056,DONE,1,0.06,0,0,,0,0,0.116,0.24,y,n,y,1,1,1,PB3168,2026-10-15
+wf_d6f41ebf-faa,1085,w1085d,PB3153,2,0,binding/words,MINOR,worktree-wf_d6f41ebf-faa-7,opus,117,234532,0.147,DONE,2,0.146,1,0.092,opus,0,0,0.385,0,y,n,y,2,2,2,PB3153 PB3165,2026-10-15
+wf_f560587e-74d,1084,w1084f,PB1177,1,0,codegen/sort,MINOR,worktree-wf_f560587e-74d-12,opus,199,433965,0.271,DONE,3,0.271,2,0.372,opus,0,0,0.913,0,y,n,y,1,1,1,PB1177,2026-10-15
+wf_f560587e-74d,1084,w1084g,PB651,1,1,tests/conformance,MINOR,worktree-wf_f560587e-74d-14,opus,178,479021,0.299,DONE,2,0.151,1,0.135,opus,0,0,0.586,0.179,y,n,y,1,1,1,PB651,2026-10-15
+wf_f560587e-74d,1084,w1084h,PB1804,1,0,frontend/reference-format,MAJOR,worktree-wf_f560587e-74d-20,opus,51,141941,0.089,DISCHARGED,1,0.033,0,0,,0,0,0.122,0,y,n,y,1,1,1,PB1804,2026-10-15
+wf_591115e7-d3f,1089,w1089a,PB2922,1,0,process/tooling,MINOR,worktree-wf_591115e7-d3f-1,opus,102,241462,0.151,DONE,2,0.132,1,0.07,opus,0,0,0.353,0,y,n,y,1,1,1,PB2922,2026-10-16
+wf_b14ea906-c69,1090,w1090a,PB3242,1,0,tooling,MAJOR,worktree-wf_b14ea906-c69-1,opus,130,327440,0.205,DONE,2,0.125,1,0.084,opus,0,0,0.414,0,y,n,y,4,4,4,PB2423 PB2678 PB3203 PB3242,2026-10-16
+wf_00451f9d-3d9,1091,w1091e,PB370,1,2,tests/conformance,MINOR,worktree-wf_00451f9d-3d9-1,opus,174,365945,0.229,DONE,2,0.105,1,0.043,opus,0,0,0.377,1.122,y,n,y,1,1,1,PB370,2026-10-16
+wf_00451f9d-3d9,1091,w1091f,PB1012,1,0,binder/oo,MINOR,worktree-wf_00451f9d-3d9-2,opus,74,173958,0.109,DISCHARGED,1,0.048,0,0,,0,0,0.156,0,y,n,y,1,1,1,PB1012,2026-10-16
+wf_e3f5e138-3a8,1093,w1093a,PB3101,5,0,binder/oo,MAJOR,worktree-wf_e3f5e138-3a8-1,opus,29,84579,0.053,DONE,2,0.178,1,0.076,opus,0,0,0.307,0,y,n,y,2,2,2,PB3101 PB3127,2026-10-16
+wf_e3f5e138-3a8,1093,w1093b,PB2099,9,0,runtime/host-surface,MINOR,worktree-wf_e3f5e138-3a8-2,opus,245,530585,0.332,DONE,2,0.16,1,0.067,opus,0,0,0.558,0,y,n,y,1,1,1,PB2099,2026-10-16
+wf_e3f5e138-3a8,1093,w1093c,PB3168,2,0,frontend/reference-format,MINOR,worktree-wf_e3f5e138-3a8-3,opus,30,82469,0.052,DONE,2,0.116,1,0.072,opus,0,0,0.24,0,y,n,y,1,1,1,PB3168,2026-10-16
+wf_e3f5e138-3a8,1093,w1093d,PB651,2,0,tests/conformance,MINOR,worktree-wf_e3f5e138-3a8-4,sonnet,20,84822,0.021,DONE,1,0.141,1,0.016,sonnet,0,0,0.179,0,y,n,y,1,1,1,PB651,2026-10-16
+wf_e3f5e138-3a8,1093,w1093e,PB3220,1,0,binding/data-division,MINOR,worktree-wf_e3f5e138-3a8-5,sonnet,106,285013,0.071,DONE,2,0.135,1,0.042,sonnet,0,0,0.248,0,y,n,y,2,2,2,PB3219 PB3220,2026-10-16
+wf_9c1febe0-ebf,1092,w1092c,PB2730,1,0,architecture,MINOR,worktree-wf_9c1febe0-ebf-1,opus,73,166442,0.104,DONE,1,0.049,0,0,,0,0,0.154,0,y,n,y,2,2,2,PB2719 PB2730,2026-10-16
+wf_00451f9d-3d9,1091,w1091g,PB160,1,0,docs,MINOR,worktree-wf_00451f9d-3d9-5,opus,60,138621,0.087,DONE,1,0.041,0,0,,0,0,0.128,0,y,n,y,1,1,1,PB160,2026-10-16
+wf_00451f9d-3d9,1091,w1091h,PB442,1,0,tests/conformance,MINOR,worktree-wf_00451f9d-3d9-8,opus,249,494838,0.309,DONE,2,0.173,1,0.117,opus,0,0,0.6,0,y,n,y,2,1,1,PB2181 PB442,2026-10-16
+wf_9c1febe0-ebf,1092,w1092d,PB3209,1,0,architecture,MINOR,worktree-wf_9c1febe0-ebf-4,opus,93,239800,0.15,DONE,1,0.057,0,0,,0,0,0.207,0,y,n,y,2,2,2,PB3204 PB3209,2026-10-16
+wf_00451f9d-3d9,1091,w1091i,PB228,1,0,tests/arithmetic,MINOR,worktree-wf_00451f9d-3d9-14,opus,68,175734,0.11,DONE,1,0.046,0,0,,0,0,0.156,0,y,n,y,1,1,1,PB228,2026-10-16
+wf_9c1febe0-ebf,1092,w1092e,PB2291,1,1,grammar,MINOR,worktree-wf_9c1febe0-ebf-7,opus,126,310813,0.194,DONE,3,0.161,2,0.146,opus,0,0,0.501,0.277,y,n,y,1,1,1,PB2291,2026-10-16
+wf_00451f9d-3d9,1091,w1091j,PB243,1,0,codegen/tests,MINOR,worktree-wf_00451f9d-3d9-19,opus,93,199403,0.125,DONE,1,0.054,0,0,,0,0,0.178,0,y,n,y,1,1,1,PB243,2026-10-16
+wf_ff4f514b-355,1095,w1095d,PB259,1,0,process/traceability,MINOR,worktree-wf_ff4f514b-355-1,opus,77,160402,0.1,DONE,3,0.131,2,0.087,opus,0,0,0.318,0,y,n,y,1,1,1,PB259,2026-10-16
+wf_ff4f514b-355,1095,w1095e,PB578,1,0,runtime/io,MINOR,worktree-wf_ff4f514b-355-2,opus,120,281132,0.176,DONE,1,0.075,0,0,,0,0,0.251,0,y,n,y,1,1,1,PB578,2026-10-16
+wf_9c1febe0-ebf,1092,w1092f,PB2754,1,0,architecture,MINOR,worktree-wf_9c1febe0-ebf-16,opus,96,270573,0.169,DONE,2,0.146,1,0.055,opus,0,0,0.37,0,y,n,y,1,1,1,PB2754,2026-10-16
+wf_ff4f514b-355,1095,w1095f,PB603,1,0,runtime/io,MINOR,worktree-wf_ff4f514b-355-8,opus,115,253945,0.159,DONE,1,0.065,0,0,,0,0,0.223,0,y,n,y,1,1,1,PB603,2026-10-16
+wf_ff4f514b-355,1095,w1095g,PB661,1,0,docs/conformance,MINOR,worktree-wf_ff4f514b-355-14,opus,72,164803,0.103,DONE,1,0.051,0,0,,0,0,0.154,0,y,n,y,1,1,1,PB661,2026-10-16
+wf_9c1febe0-ebf,1092,w1092g,PB2758,1,0,architecture,MINOR,worktree-wf_9c1febe0-ebf-22,opus,115,236421,0.148,DONE,1,0.051,0,0,,0,0,0.199,0,y,n,y,1,1,1,PB2758,2026-10-16
+wf_ff4f514b-355,1095,w1095h,PB963,1,0,runtime/exceptions,MINOR,worktree-wf_ff4f514b-355-19,opus,82,148802,0.093,DONE,1,0.046,0,0,,0,0,0.139,0,y,n,y,1,1,1,PB963,2026-10-16
+wf_ff4f514b-355,1095,w1095i,PB1099,1,1,process/traceability,MINOR,worktree-wf_ff4f514b-355-20,opus,261,615760,0.385,DONE,3,0.227,2,0.253,opus,0,0,0.865,0.284,y,n,y,1,1,2,PB1099,2026-10-16
+wf_ff4f514b-355,1095,w1095j,PB1400,1,0,binder/expressions,MINOR,worktree-wf_ff4f514b-355-23,opus,108,233767,0.146,DONE,3,0.157,2,0.172,opus,0,0,0.475,0,y,n,y,1,1,1,PB1400,2026-10-16
+wf_123a85e2-640,1096,w1096b,PB2291,2,0,grammar,MINOR,worktree-wf_123a85e2-640-1,opus,44,93331,0.058,DONE,2,0.133,1,0.086,opus,0,0,0.277,0,y,n,y,1,1,1,PB2291,2026-10-16
+wf_123a85e2-640,1096,w1096d,PB3233,1,0,binding/validation,MINOR,worktree-wf_123a85e2-640-7,opus,102,199453,0.125,DONE,1,0.056,0,0,,0,0,0.181,0,y,n,y,1,1,1,PB3233,2026-10-16
+wf_123a85e2-640,1096,w1096e,PB2621,1,0,architecture,MINOR,worktree-wf_123a85e2-640-10,opus,112,283635,0.177,DONE,1,0.066,0,0,,0,0,0.243,0,y,n,y,1,1,1,PB2621,2026-10-16
+wf_b8d64994-aa8,1097,w1097d,PB1551,1,0,binder/verbs,MINOR,worktree-wf_b8d64994-aa8-1,opus,243,562356,0.351,DONE,3,0.264,2,0.233,opus,0,0,0.848,0,y,n,y,2,2,2,PB1008 PB1551,2026-10-16
+wf_b8d64994-aa8,1097,w1097e,PB780,1,2,spec/inventory,MINOR,worktree-wf_b8d64994-aa8-2,opus,164,356015,0.223,SPLIT,0,0,0,0,,0,0,0.223,0.631,n,y,y,0,0,1,,2026-10-16
+wf_123a85e2-640,1096,w1096f,PB2762,1,0,architecture,MINOR,worktree-wf_123a85e2-640-13,opus,56,141388,0.088,DISCHARGED,1,0.032,0,0,,0,0,0.12,0,y,n,y,2,2,2,PB2762 PB2765,2026-10-16
+wf_123a85e2-640,1096,w1096g,PB2766,1,0,architecture,MINOR,worktree-wf_123a85e2-640-16,opus,97,222975,0.139,DONE,1,0.057,0,0,,0,0,0.196,0,y,n,y,1,1,1,PB2766,2026-10-16
+wf_b8d64994-aa8,1097,w1097f,PB694,1,0,binder,MINOR,worktree-wf_b8d64994-aa8-3,opus,87,188019,0.118,DONE,1,0.053,0,0,,0,0,0.17,0,y,n,y,1,1,1,PB694,2026-10-16
+wf_d588a65b-0ab,1098,w1098a,PB3196,1,0,architecture,MINOR,worktree-wf_d588a65b-0ab-1,opus,67,183094,0.114,DONE,3,0.195,1,0.06,opus,0,0,0.369,0,y,n,y,2,2,2,PB2099 PB3196,2026-10-16
+wf_d588a65b-0ab,1098,w1098b,PB3197,1,0,architecture,MINOR,worktree-wf_d588a65b-0ab-2,opus,100,215988,0.135,DONE,2,0.113,0,0,,0,0,0.248,0,y,n,y,2,2,2,PB3193 PB3197,2026-10-16
+wf_d588a65b-0ab,1098,w1098c,PB3268,1,2,binding,MAJOR,worktree-wf_d588a65b-0ab-3,sonnet,157,405672,0.101,DONE,3,0.218,2,0.136,sonnet,0,0,0.455,0.879,y,n,y,1,1,1,PB3268,2026-10-16
+wf_123a85e2-640,1096,w1096h,PB2770,1,0,frontend/diagnostics,MINOR,worktree-wf_123a85e2-640-19,opus,84,204298,0.128,DONE,2,0.091,1,0.056,opus,0,0,0.274,0,y,n,y,1,1,1,PB2770,2026-10-16
+wf_b8d64994-aa8,1097,w1097g,PB298,1,0,codegen,MINOR,worktree-wf_b8d64994-aa8-6,opus,70,199500,0.125,DONE,2,0.09,1,0.053,opus,0,0,0.267,0,y,n,y,1,1,1,PB298,2026-10-16
+wf_b8d64994-aa8,1097,w1097h,PB867,1,0,runtime/exceptions,MINOR,worktree-wf_b8d64994-aa8-15,opus,63,142161,0.089,DONE,1,0.057,0,0,,0,0,0.146,0,y,n,y,1,1,1,PB867,2026-10-16
+wf_b8d64994-aa8,1097,w1097i,PB227,1,0,tests/runtime,MINOR,worktree-wf_b8d64994-aa8-20,opus,55,137151,0.086,DONE,1,0.039,0,0,,0,0,0.125,0,y,n,y,1,1,1,PB227,2026-10-16
+wf_b8d64994-aa8,1097,w1097j,PB229,1,0,binding,MINOR,worktree-wf_b8d64994-aa8-24,opus,101,272910,0.171,DONE,1,0.082,0,0,,0,0,0.252,0,y,n,y,1,1,1,PB229,2026-10-16
+wf_e3902303-54c,?,wf_e3902303-54c:C,PB3198,1,1,architecture,MINOR,,opus,82,235719,0.147,NORESULT,0,0,0,0,,0,0,0.147,0.465,n,n,y,0,0,3,,2026-10-16
+wf_eaee9626-dc5,?,wf_eaee9626-dc5:B,PB780,2,1,spec/inventory,MINOR,,opus,111,260067,0.163,NORESULT,0,0,0,0,,0,0,0.163,0.468,n,y,y,0,0,1,,2026-10-16
+wf_eaee9626-dc5,?,wf_eaee9626-dc5:F,PB242,1,1,io,MINOR,,opus,72,151110,0.094,NORESULT,0,0,0,0,,0,0,0.094,0.108,n,n,y,0,0,1,,2026-10-16
+wf_7bb8ec7e-39f,1101,w1101a,PB3198,2,0,architecture,MINOR,worktree-wf_7bb8ec7e-39f-1,opus,55,162721,0.102,DONE,3,0.168,2,0.195,opus,0,0,0.465,0,y,n,y,3,3,3,PB1725 PB1736 PB3198,2026-10-16
+wf_7bb8ec7e-39f,1101,w1101b,PB780,3,0,spec/inventory,MINOR,worktree-wf_7bb8ec7e-39f-2,opus,166,336450,0.21,DONE,2,0.146,1,0.111,opus,0,0,0.468,0,y,y,y,1,1,1,PB780,2026-10-16
+wf_0119da77-f35,1102,w1102e,PB258,1,0,process/traceability,MAJOR,worktree-wf_0119da77-f35-1,opus,67,163704,0.102,DONE,1,0.045,0,0,,0,0,0.147,0,y,n,y,1,1,1,PB258,2026-10-16
+wf_0119da77-f35,1102,w1102f,PB370,2,1,tests/conformance,MINOR,worktree-wf_0119da77-f35-4,opus,201,405650,0.254,DONE,3,0.195,2,0.256,opus,0,0,0.704,0.418,y,n,y,1,1,1,PB370,2026-10-16
+wf_7bb8ec7e-39f,1101,w1101c,PB242,2,0,io,MINOR,worktree-wf_7bb8ec7e-39f-14,opus,39,87441,0.055,DONE,1,0.053,0,0,,0,0,0.108,0,y,n,y,1,1,1,PB242,2026-10-16
+wf_cec72c3d-616,1103,w1103c,PB3293,1,0,runtime/collation,MINOR,worktree-wf_cec72c3d-616-1,opus,159,304151,0.19,DONE,1,0.07,0,0,,0,0,0.26,0,y,n,y,1,1,1,PB3293,2026-10-16
+wf_098e73ce-fb1,1105,w1105b,PB3149,1,0,spec/exception-catalog,MINOR,worktree-wf_098e73ce-fb1-1,opus,94,184946,0.116,DONE,1,0.061,0,0,,0,0,0.176,0,y,y,y,3,2,2,PB3149 PB3306 PB779,2026-10-17
+wf_098e73ce-fb1,1105,w1105c,PB3234,1,0,binding/validation,MINOR,worktree-wf_098e73ce-fb1-2,sonnet,114,299727,0.075,DONE,2,0.107,1,0.016,sonnet,0,0,0.198,0,y,n,y,2,2,2,PB3234 PB3288,2026-10-17
+wf_098e73ce-fb1,1105,w1105d,PB3232,1,0,binding,MINOR,worktree-wf_098e73ce-fb1-3,sonnet,180,340921,0.085,DONE,2,0.125,1,0.015,sonnet,0,0,0.225,0,y,n,y,2,2,2,PB3232 PB3287,2026-10-17
+wf_098e73ce-fb1,1105,w1105e,PB3191,1,0,binder/conditions,MINOR,worktree-wf_098e73ce-fb1-4,sonnet,96,188738,0.047,DONE,1,0.057,0,0,,0,0,0.104,0,y,n,y,1,1,1,PB3191,2026-10-17
+wf_098e73ce-fb1,1105,w1105f,PB3270,1,0,binding,MAJOR,worktree-wf_098e73ce-fb1-5,sonnet,137,228634,0.057,DONE,1,0.085,0,0,,0,0,0.142,0,y,n,y,1,1,1,PB3270,2026-10-17
+wf_098e73ce-fb1,1105,w1105g,PB3254,1,0,binding/data-division,MINOR,worktree-wf_098e73ce-fb1-6,sonnet,68,156908,0.039,DONE,1,0.045,0,0,,0,0,0.084,0,y,n,y,1,1,1,PB3254,2026-10-17
+wf_01e2943e-c55,1104,w1104c,PB3172,1,0,tests/version-matrix,MINOR,worktree-wf_01e2943e-c55-1,opus,102,221103,0.138,DONE,1,0.054,0,0,,0,0,0.193,0,y,n,y,1,1,1,PB3172,2026-10-17
+wf_098e73ce-fb1,1105,w1105h,PB3273,1,3,runtime/host-surface,MINOR,worktree-wf_098e73ce-fb1-9,sonnet,92,237838,0.059,DONE,1,0.059,0,0,,0,0,0.118,0.563,y,y,y,2,2,2,PB3139 PB3273,2026-10-17
+wf_01e2943e-c55,1104,w1104c2,PB3173,1,0,tests/version-matrix,MINOR,worktree-wf_01e2943e-c55-3,opus,130,362450,0.227,DONE,2,0.127,1,0.116,opus,0,0,0.47,0,y,n,y,2,2,2,PB3172 PB3173,2026-10-17
+wf_cec72c3d-616,1103,w1103d,PB3167,1,0,binder/bit,MINOR,worktree-wf_cec72c3d-616-4,opus,141,320982,0.201,DONE,2,0.165,1,0.098,opus,0,0,0.464,0,y,n,y,1,1,1,PB3167,2026-10-17
+wf_01e2943e-c55,1104,w1104c3,PB3174,1,0,tests/conformance-suite,MINOR,worktree-wf_01e2943e-c55-6,opus,165,413719,0.259,DONE,2,0.161,1,0.128,opus,0,0,0.547,0,y,n,y,3,3,3,PB3172 PB3173 PB3174,2026-10-17
+wf_0119da77-f35,1102,w1102g,PB3261,1,0,codegen,MAJOR,worktree-wf_0119da77-f35-13,opus,186,405856,0.254,DONE,2,0.14,1,0.087,opus,0,0,0.481,0,y,n,y,2,2,2,PB3261 PB370,2026-10-17
+wf_01e2943e-c55,1104,w1104c4,PB3175,1,0,tests/conformance-suite,MINOR,worktree-wf_01e2943e-c55-12,opus,163,396419,0.248,DONE,2,0.132,1,0.106,opus,0,0,0.485,0,y,n,y,4,4,4,PB3172 PB3173 PB3174 PB3175,2026-10-17
+wf_3c440b32-c7b,1106,w1106a,PB1099,2,0,process/traceability,MINOR,worktree-wf_3c440b32-c7b-1,opus,65,143603,0.09,DONE,2,0.142,1,0.052,opus,0,0,0.284,0,y,n,y,2,2,2,PB1099 PB3313,2026-10-17
+wf_3c440b32-c7b,1106,w1106b,PB3311,1,1,process/orchestrator,MINOR,worktree-wf_3c440b32-c7b-2,sonnet,58,181919,0.045,DONE,0,0,0,0,,0,0,0.045,0.174,y,n,y,1,1,1,PB3311,2026-10-17
+wf_3c440b32-c7b,1106,w1106c,PB3139,1,2,binder/oo-conformance,MINOR,worktree-wf_3c440b32-c7b-3,opus,182,399047,0.249,SPLIT,0,0,0,0,,0,0,0.249,0.597,n,y,y,0,0,2,,2026-10-17
+wf_01e2943e-c55,1104,w1104c5,PB3176,1,0,tests/conformance-suite,MINOR,worktree-wf_01e2943e-c55-18,opus,120,330916,0.207,DONE,3,0.164,2,0.17,opus,0,0,0.541,0,y,n,y,5,5,5,PB3172 PB3173 PB3174 PB3175 PB3176,2026-10-17
+wf_01e2943e-c55,1104,w1104c6,PB3177,1,2,tests/conformance-suite,MINOR,worktree-wf_01e2943e-c55-24,opus,225,496785,0.31,SPLIT,0,0,0,0,,0,0,0.31,0.884,y,y,y,5,5,7,PB3172 PB3173 PB3174 PB3175 PB3176,2026-10-17
+wf_1d501e4a-c06,1107,w1107b,PB3177,2,1,tests/conformance-suite,MINOR,worktree-wf_1d501e4a-c06-1,opus,238,486304,0.304,DONE,3,0.211,2,0.169,opus,0,0,0.684,0.2,y,n,y,1,1,2,PB3177,2026-10-17
+wf_9e52adb3-fa2,1108,w1108a,PB1784,1,0,binder/oo,MINOR,worktree-wf_9e52adb3-fa2-1,opus,157,318427,0.199,DONE,3,0.212,2,0.172,opus,0,0,0.583,0,y,n,y,2,2,2,PB1784 PB745,2026-10-17
+wf_9e52adb3-fa2,1108,w1108b,PB3268,2,1,binding,MAJOR,worktree-wf_9e52adb3-fa2-10,opus,86,198444,0.124,DONE,3,0.201,2,0.211,opus,0,0,0.536,0.343,y,n,y,1,1,1,PB3268,2026-10-17
+wf_1d501e4a-c06,1107,w1107a,PB370,3,0,tests/conformance,MINOR,worktree-wf_1d501e4a-c06-10,opus,87,260067,0.163,DONE,2,0.138,1,0.117,opus,0,0,0.418,0,y,n,y,1,1,1,PB370,2026-10-17
+wf_9e52adb3-fa2,1108,w1108c,PB1636,1,0,conformance/derivations,MAJOR,worktree-wf_9e52adb3-fa2-19,opus,49,134677,0.084,SPLIT,0,0,0,0,,0,0,0.084,0,y,n,y,0,0,0,,2026-10-17
+wf_9e52adb3-fa2,1108,w1108d,PB438,1,0,codegen/perform,MINOR,worktree-wf_9e52adb3-fa2-20,opus,6,39526,0.025,SPLIT,0,0,0,0,,0,0,0.025,0,y,n,y,0,0,0,,2026-10-17
+wf_9e52adb3-fa2,1108,w1108e,PB464,1,0,spec/interpretation,MINOR,worktree-wf_9e52adb3-fa2-21,opus,5,37751,0.024,SPLIT,0,0,0,0,,0,0,0.024,0,y,n,y,0,0,0,,2026-10-17
+wf_9e52adb3-fa2,1108,w1108f,PB573,1,0,frontend/grammar,MINOR,worktree-wf_9e52adb3-fa2-22,opus,5,38473,0.024,SPLIT,0,0,0,0,,0,0,0.024,0,y,n,y,0,0,0,,2026-10-17
+wf_9e52adb3-fa2,1108,w1108g,PB929,1,1,process/traceability,MAJOR,worktree-wf_9e52adb3-fa2-23,opus,5,38234,0.024,SPLIT,0,0,0,0,,0,0,0.024,0.331,y,y,y,0,0,4,,2026-10-17
+wf_8292bded-d7c,1109,w1109a,PB3177,3,0,tests/conformance-suite,MINOR,worktree-wf_8292bded-d7c-1,opus,104,202485,0.127,DONE,1,0.073,0,0,,0,0,0.2,0,y,n,y,2,2,2,PB3177 PB370,2026-10-17
+wf_8292bded-d7c,1109,w1109b,PB3311,2,0,process/orchestrator,MINOR,worktree-wf_8292bded-d7c-2,opus,71,177421,0.111,DONE,1,0.063,0,0,,0,0,0.174,0,y,n,y,1,1,1,PB3311,2026-10-17
+wf_426911b7-4eb,1110,w1110a,PB3339,1,1,runtime/io,BLOCKER,worktree-wf_426911b7-4eb-1,opus,154,447500,0.28,DONE,2,0.172,1,0.104,opus,0,0,0.556,0.343,y,n,y,1,1,1,PB3339,2026-10-17
+wf_71ab13ab-689,1111,w1111a,PB3268,3,0,binding,MAJOR,worktree-wf_71ab13ab-689-1,opus,91,231422,0.145,DONE,2,0.143,1,0.056,opus,0,0,0.343,0,y,n,y,1,1,1,PB3268,2026-10-17
+wf_71ab13ab-689,1111,w1111b,PB3139,2,1,binder/oo-conformance,MINOR,worktree-wf_71ab13ab-689-2,opus,209,427520,0.267,SPLIT,0,0,0,0,,0,0,0.267,0.33,n,n,y,1,1,2,PB3342,2026-10-17
+wf_71ab13ab-689,1111,w1111c,PB3339,2,0,runtime/io,BLOCKER,worktree-wf_71ab13ab-689-3,opus,67,129806,0.081,DONE,2,0.163,1,0.099,opus,0,0,0.343,0,y,n,y,1,1,1,PB3339,2026-10-17
+wf_71ab13ab-689,1111,w1111d,PB3286,1,0,binding/data-division,MINOR,worktree-wf_71ab13ab-689-4,sonnet,185,510071,0.128,SPLIT,0,0,0,0,,0,0,0.128,0,n,n,n,4,4,4,PB3216 PB3218 PB3222 PB3286,2026-10-17
+wf_71ab13ab-689,1111,w1111e,PB3253,1,0,binding/data-division,MINOR,worktree-wf_71ab13ab-689-5,sonnet,82,172864,0.043,DONE,1,0.06,0,0,,0,0,0.103,0,y,n,y,1,1,1,PB3253,2026-10-17
+wf_71ab13ab-689,1111,w1111f,PB3226,1,0,binding,MAJOR,worktree-wf_71ab13ab-689-6,sonnet,89,220662,0.055,DONE,2,0.104,1,0.014,sonnet,0,0,0.174,0,y,n,y,2,2,2,PB3226 PB3228,2026-10-17
+wf_71ab13ab-689,1111,w1111g,PB3237,1,0,codegen,MINOR,worktree-wf_71ab13ab-689-11,sonnet,50,139154,0.035,DONE,3,0.137,2,0.035,sonnet,0,0,0.206,0,y,n,y,1,1,1,PB3237,2026-10-17
+wf_71ab13ab-689,1111,w1111h,PB3224,1,0,binding,MINOR,worktree-wf_71ab13ab-689-23,sonnet,107,255447,0.064,DONE,1,0.065,0,0,,0,0,0.129,0,y,n,y,2,2,2,PB3224 PB3225,2026-10-17
+wf_fd382c69-29a,1112,w1112a,PB3192,1,0,binder/oo,MAJOR,worktree-wf_fd382c69-29a-1,opus,139,341570,0.213,DONE,2,0.19,1,0.102,opus,0,0,0.506,0,y,n,y,5,5,5,PB3192 PB3216 PB3218 PB3222 PB3286,2026-10-17
+wf_fd382c69-29a,1112,w1112b,PB1136,2,0,binder/oo,MINOR,worktree-wf_fd382c69-29a-2,opus,211,465091,0.291,DONE,2,0.142,1,0.053,opus,0,0,0.485,0,y,n,y,2,2,2,PB1136 PB3257,2026-10-17
+wf_902e004c-98f,1113,w1113a,PB3353,1,0,runtime/io,MAJOR,worktree-wf_902e004c-98f-1,sonnet,37,121068,0.03,DONE,1,0.055,0,0,,0,0,0.085,0,y,n,y,0,0,0,,2026-10-18
+wf_282af1dc-5c8,1114,w1114a,PB3139,3,0,binder/oo-conformance,MINOR,worktree-wf_282af1dc-5c8-1,opus,81,192268,0.12,DONE,2,0.164,1,0.046,opus,0,0,0.33,0,y,n,y,2,2,2,PB3139 PB3342,2026-10-18
+wf_968a1070-783,1115,w1115a,PB284,1,0,process/denominator,MAJOR,worktree-wf_968a1070-783-1,sonnet,170,398309,0.1,DONE,3,0.194,2,0.055,sonnet,0,0,0.349,0,y,n,y,1,1,1,PB284,2026-10-18
+wf_968a1070-783,1115,w1115b,PB762,1,0,process/traceability,MINOR,worktree-wf_968a1070-783-2,sonnet,182,437641,0.109,DONE,2,0.105,1,0.016,sonnet,0,0,0.23,0,y,n,y,1,1,1,PB762,2026-10-18
+wf_968a1070-783,1115,w1115c,PB1515,1,0,runtime/io,MINOR,worktree-wf_968a1070-783-3,sonnet,137,312219,0.078,DONE,1,0.07,0,0,,0,0,0.148,0,y,n,y,1,1,1,PB1515,2026-10-18
+wf_968a1070-783,1115,w1115d,PB3314,1,0,runtime/io-sharing,MINOR,worktree-wf_968a1070-783-4,sonnet,110,261194,0.065,DONE,2,0.081,1,0.017,sonnet,0,0,0.163,0,y,n,y,1,1,1,PB3314,2026-10-18
+wf_968a1070-783,1115,w1115e,PB2849,1,1,codegen,MINOR,worktree-wf_968a1070-783-5,sonnet,93,178762,0.045,DONE,0,0,0,0,,0,0,0.045,0.068,y,n,y,1,1,1,PB2849,2026-10-18
+wf_968a1070-783,1115,w1115f,PB674,1,0,editions,MINOR,worktree-wf_968a1070-783-6,sonnet,127,246176,0.062,DONE,2,0.108,1,0.013,sonnet,0,0,0.183,0,y,n,y,1,1,1,PB674,2026-10-18
+wf_968a1070-783,1115,w1115g,PB996,1,0,docs/citations,MINOR,worktree-wf_968a1070-783-8,opus,156,316161,0.198,DONE,1,0.07,0,0,,0,0,0.268,0,y,n,y,1,1,1,PB996,2026-10-18
+wf_968a1070-783,1115,w1115h,PB1925,1,1,validation,MINOR,worktree-wf_968a1070-783-18,sonnet,101,200718,0.05,DONE,3,0.159,2,0.036,sonnet,0,0,0.246,0.111,y,n,y,1,1,1,PB1925,2026-10-18
+wf_673ae116-5e4,1116,w1116a,PB1925,2,0,validation,MINOR,worktree-wf_673ae116-5e4-1,sonnet,30,91825,0.023,DONE,1,0.088,0,0,,0,0,0.111,0,y,n,y,1,1,1,PB1925,2026-10-18
+wf_673ae116-5e4,1116,w1116b,PB3359,1,0,orchestrator/planning,MINOR,worktree-wf_673ae116-5e4-2,sonnet,73,161971,0.04,DONE,3,0.109,2,0.042,sonnet,0,0,0.192,0,y,n,y,3,3,3,PB3114 PB3359 PB3360,2026-10-18
+wf_673ae116-5e4,1116,w1116c,PB2849,2,0,codegen,MINOR,worktree-wf_673ae116-5e4-3,sonnet,27,81878,0.02,DONE,1,0.048,0,0,,0,0,0.068,0,y,n,y,1,1,1,PB2849,2026-10-18
+wf_938f9825-cf4,1117,w1117a,PB2533,1,0,frontend/grammar,MINOR,worktree-wf_938f9825-cf4-1,opus,138,361711,0.226,DONE,1,0.097,0,0,,0,0,0.323,0,y,n,y,1,1,1,PB2533,2026-10-18
+wf_938f9825-cf4,1117,w1117b,PB2777,1,0,runtime/io,MINOR,worktree-wf_938f9825-cf4-2,opus,105,249298,0.156,DONE,2,0.103,1,0.038,opus,0,0,0.297,0,y,n,y,1,1,1,PB2777,2026-10-18
+wf_938f9825-cf4,1117,w1117c,PB320,1,0,process/traceability,MINOR,worktree-wf_938f9825-cf4-3,sonnet,56,152190,0.038,DONE,3,0.103,2,0.031,sonnet,0,0,0.172,0,y,n,y,1,1,1,PB320,2026-10-18
+wf_938f9825-cf4,1117,w1117d,PB604,1,0,process/traceability,MINOR,worktree-wf_938f9825-cf4-4,sonnet,57,139542,0.035,DONE,1,0.039,0,0,,0,0,0.074,0,y,n,y,1,1,1,PB604,2026-10-18
+wf_938f9825-cf4,1117,w1117e,PB671,1,0,runtime/file-locking,MINOR,worktree-wf_938f9825-cf4-5,sonnet,127,312488,0.078,DONE,2,0.117,1,0.022,sonnet,0,0,0.217,0,y,n,y,2,2,2,PB671 PB707,2026-10-18
+wf_938f9825-cf4,1117,w1117f,PB675,1,0,tests/conformance-suite,MINOR,worktree-wf_938f9825-cf4-6,sonnet,87,181100,0.045,DONE,1,0.046,1,0.014,sonnet,0,0,0.106,0,y,n,y,1,1,1,PB675,2026-10-18
+wf_938f9825-cf4,1117,w1117g,PB680,1,0,tests/conformance-suite,MINOR,worktree-wf_938f9825-cf4-12,sonnet,108,203562,0.051,DONE,3,0.145,2,0.039,sonnet,0,0,0.235,0,y,n,y,1,1,1,PB680,2026-10-18
+wf_938f9825-cf4,1117,w1117h,PB700,1,0,binder,MINOR,worktree-wf_938f9825-cf4-23,sonnet,53,145971,0.036,DONE,2,0.093,1,0.015,sonnet,0,0,0.144,0,y,n,y,1,1,1,PB700,2026-10-18
+wf_14a1e62b-326,1118,w1118a,PB3331,1,2,runtime/io,BLOCKER,worktree-wf_14a1e62b-326-1,opus,162,506264,0.316,DONE,3,0.272,2,0.285,opus,0,0,0.874,1.189,y,n,y,1,1,4,PB3331,2026-10-18
+wf_25c91241-1f8,1119,w1119a,PB3370,1,0,frontend/grammar,MINOR,worktree-wf_25c91241-1f8-1,opus,151,366900,0.229,DONE,2,0.137,1,0.064,opus,0,0,0.429,0,y,n,y,1,1,1,PB3370,2026-10-18
+wf_25c91241-1f8,1119,w1119b,PB722,1,0,process/traceability,MINOR,worktree-wf_25c91241-1f8-2,sonnet,77,171320,0.043,DONE,3,0.138,2,0.041,sonnet,0,0,0.223,0,y,n,y,1,1,1,PB722,2026-10-18
+wf_25c91241-1f8,1119,w1119c,PB804,1,0,tests/nist-guard,MAJOR,worktree-wf_25c91241-1f8-3,sonnet,173,414812,0.104,DONE,3,0.161,2,0.055,sonnet,0,0,0.32,0,y,n,y,1,1,1,PB804,2026-10-18
+wf_25c91241-1f8,1119,w1119d,PB822,1,0,docs,MINOR,worktree-wf_25c91241-1f8-4,sonnet,78,167909,0.042,DONE,2,0.099,1,0.02,sonnet,0,0,0.161,0,y,n,y,1,1,1,PB822,2026-10-18
+wf_25c91241-1f8,1119,w1119e,PB870,1,0,traceability,MINOR,worktree-wf_25c91241-1f8-5,sonnet,148,275425,0.069,DONE,3,0.162,2,0.044,sonnet,0,0,0.274,0,y,n,y,1,1,1,PB870,2026-10-18
+wf_25c91241-1f8,1119,w1119f,PB1154,1,2,binder/diagnostics,MINOR,worktree-wf_25c91241-1f8-6,sonnet,145,305930,0.076,DONE,1,0.083,0,0,,0,0,0.16,0.389,n,y,y,1,1,1,PB1154,2026-10-18
+wf_25c91241-1f8,1119,w1119g,PB1563,1,0,runtime/io,MAJOR,worktree-wf_25c91241-1f8-21,sonnet,116,256724,0.064,DONE,3,0.178,2,0.049,sonnet,0,0,0.292,0,y,n,y,1,1,1,PB1563,2026-10-18
+wf_14a1e62b-326,1118,w1118a2,PB3332,1,0,runtime/io,BLOCKER,worktree-wf_14a1e62b-326-3,opus,170,527674,0.33,DONE,1,0.111,1,0.164,opus,0,0,0.604,0,y,n,y,2,2,2,PB3331 PB3332,2026-10-18
+wf_25c91241-1f8,1119,w1119h,PB1571,1,0,runtime/sort,MINOR,worktree-wf_25c91241-1f8-30,sonnet,84,170110,0.043,DONE,3,0.163,2,0.04,sonnet,0,0,0.245,0,y,n,y,1,1,1,PB1571,2026-10-18
+wf_14a1e62b-326,1118,w1118a3,PB3333,1,0,runtime/io,BLOCKER,worktree-wf_14a1e62b-326-6,opus,229,578521,0.362,DONE,2,0.243,1,0.173,opus,0,0,0.778,0,y,n,y,4,4,4,PB2755 PB3331 PB3332 PB3333,2026-10-18
+wf_14a1e62b-326,1118,w1118a4,PB3334,1,0,runtime/io,BLOCKER,worktree-wf_14a1e62b-326-13,opus,224,685078,0.428,DONE,2,0.256,2,0.343,opus,0,0,1.026,0,y,n,y,9,9,9,PB2129 PB2222 PB2342 PB2753 PB2755 PB3331 PB3332 PB3333 PB3334,2026-10-18
+wf_ebc64425-1e2,1120,w1120a,PB1154,2,1,binder/diagnostics,MINOR,worktree-wf_ebc64425-1e2-1,sonnet,44,116533,0.029,SPLIT,0,0,0,0,,0,0,0.029,0.36,n,n,y,0,0,1,,2026-10-18
+wf_ebc64425-1e2,1120,w1120b,PB3365,1,1,binder/search,MAJOR,worktree-wf_ebc64425-1e2-2,sonnet,168,385420,0.096,SPLIT,0,0,0,0,,0,0,0.096,0.301,n,y,y,1,1,1,PB3365,2026-10-18
+wf_ebc64425-1e2,?,wf_ebc64425-1e2:C,PB3358,1,1,codegen,MAJOR,worktree-wf_ebc64425-1e2-3,sonnet,118,294668,0.074,SPLIT,0,0,0,0,,0,0,0.074,0.12,n,n,y,1,1,1,PB3358,2026-10-18
+wf_ebc64425-1e2,1120,w1120d,PB3273,2,2,runtime/host-surface,MINOR,worktree-wf_ebc64425-1e2-4,sonnet,135,397687,0.099,SPLIT,0,0,0,0,,0,0,0.099,0.464,n,n,y,0,0,1,,2026-10-18
+wf_ebc64425-1e2,1120,w1120e,PB3355,1,1,binding,MAJOR,worktree-wf_ebc64425-1e2-5,sonnet,129,328145,0.082,SPLIT,0,0,0,0,,0,0,0.082,0.096,n,y,y,1,1,1,PB3355,2026-10-18
+wf_b390c138-faf,1121,w1121a,PB3273,3,1,runtime/host-surface,MINOR,worktree-wf_b390c138-faf-1,opus,103,247868,0.155,DONE,1,0.117,0,0,,0,0,0.272,0.192,y,n,y,1,1,1,PB3273,2026-10-18
+wf_b390c138-faf,1121,w1121c,PB1154,3,0,binder/diagnostics,MINOR,worktree-wf_b390c138-faf-2,opus,37,88992,0.056,DONE,3,0.181,2,0.123,opus,0,0,0.36,0,y,n,y,1,1,1,PB1154,2026-10-18
+wf_b390c138-faf,1121,w1121d,PB3355,2,0,binding,MAJOR,worktree-wf_b390c138-faf-3,sonnet,28,70076,0.018,DONE,1,0.079,0,0,,0,0,0.096,0,y,y,y,1,1,1,PB3355,2026-10-18
+wf_b390c138-faf,1121,w1121e,PB3365,2,0,binder/search,MAJOR,worktree-wf_b390c138-faf-4,sonnet,22,83583,0.021,DONE,3,0.213,2,0.067,sonnet,0,0,0.301,0,y,y,y,1,1,1,PB3365,2026-10-18
+wf_a49f0036-841,1122,w1122a,PB3331,2,1,runtime/io,BLOCKER,worktree-wf_a49f0036-841-1,opus,31,108252,0.068,DONE,3,0.248,2,0.205,opus,0,0,0.521,0.668,y,n,y,2,2,4,PB3331 PB3332,2026-10-18
+wf_14a1e62b-326,1118,w1118a5,PB3335,1,0,runtime/io,BLOCKER,worktree-wf_14a1e62b-326-19,opus,250,542028,0.339,DONE,1,0.022,0,0,,0,0,0.36,0,y,y,y,9,9,9,PB2129 PB2222 PB2342 PB2753 PB3331 PB3332 PB3333 PB3334 PB3335,2026-10-18
+wf_14a1e62b-326,1118,w1118a6,PB3336,1,0,runtime/io,MAJOR,worktree-wf_14a1e62b-326-25,opus,152,369848,0.231,DONE,1,0.117,1,0.178,opus,0,0,0.526,0,y,y,y,10,10,10,PB2129 PB2222 PB2342 PB2753 PB3331 PB3332 PB3333 PB3334 PB3335 PB3336,2026-10-18
+wf_2ae0707b-b3d,1123,w1123b,PB3331,3,0,runtime/io,BLOCKER,worktree-wf_2ae0707b-b3d-1,opus,159,450196,0.281,DONE,2,0.203,1,0.183,opus,0,0,0.668,0,y,n,y,4,4,4,PB3331 PB3332 PB3333 PB3334,2026-10-18
+wf_a9b99ef7-02b,1124,w1124a,PB3273,4,0,runtime/host-surface,MINOR,worktree-wf_a9b99ef7-02b-1,opus,35,105942,0.066,DONE,1,0.126,0,0,,0,0,0.192,0,y,n,y,1,1,1,PB3273,2026-10-18
+wf_9b787306-369,1125,w1125a,PB3381,1,0,process/orchestrator,MAJOR,worktree-wf_9b787306-369-1,opus,140,374373,0.234,DONE,3,0.239,2,0.224,opus,0,0,0.697,0,y,n,y,1,1,1,PB3381,2026-10-18
+wf_e873df80-6b5,1126,w1126b,PB3373,1,0,frontend/grammar,MINOR,worktree-wf_e873df80-6b5-1,opus,162,550997,0.344,DONE,2,0.157,1,0.148,opus,0,0,0.649,0,y,n,y,1,1,1,PB3373,2026-10-18
+wf_e873df80-6b5,1126,w1126c,PB1587,1,0,runtime/io,MINOR,worktree-wf_e873df80-6b5-2,sonnet,137,356264,0.089,DONE,2,0.112,1,0.015,sonnet,0,0,0.217,0,y,n,y,1,1,1,PB1587,2026-10-18
+wf_e873df80-6b5,1126,w1126d,PB1603,1,0,runtime/report-writer,MINOR,worktree-wf_e873df80-6b5-3,sonnet,66,169364,0.042,DONE,2,0.126,1,0.021,sonnet,0,0,0.19,0,y,n,y,1,1,1,PB1603,2026-10-18
+wf_e873df80-6b5,1126,w1126e,PB1629,1,0,diagnostics,MINOR,worktree-wf_e873df80-6b5-4,sonnet,108,233364,0.058,DONE,3,0.164,2,0.051,sonnet,0,0,0.274,0,y,n,y,1,1,1,PB1629,2026-10-18
+wf_e873df80-6b5,1126,w1126f,PB1840,1,0,runtime/io,MINOR,worktree-wf_e873df80-6b5-5,sonnet,104,253383,0.063,DONE,2,0.13,1,0.034,sonnet,0,0,0.227,0,y,n,y,1,1,1,PB1840,2026-10-18
+wf_e873df80-6b5,1126,w1126g,PB1880,1,0,tests/conformance-suite,MINOR,worktree-wf_e873df80-6b5-6,sonnet,182,391147,0.098,DONE,2,0.14,1,0.021,sonnet,0,0,0.259,0,y,n,y,1,1,1,PB1880,2026-10-18
+wf_e873df80-6b5,1126,w1126h,PB1917,1,0,tests/conformance-suite,MINOR,worktree-wf_e873df80-6b5-26,sonnet,48,125362,0.031,DONE,1,0.047,0,0,,0,0,0.079,0,y,n,y,1,1,1,PB1917,2026-10-18
+wf_a0f69701-089,1128,w1128a,PB3420,1,0,runtime/io,MAJOR,worktree-wf_a0f69701-089-1,sonnet,51,137904,0.034,DONE,1,0.048,0,0,,0,0,0.083,0,y,n,y,1,0,0,PB3420,2026-10-19
+wf_a0f69701-089,1128,w1128b,PB3358,2,0,codegen,MAJOR,worktree-wf_a0f69701-089-2,sonnet,36,103782,0.026,DONE,1,0.094,0,0,,0,0,0.12,0,y,n,y,1,1,1,PB3358,2026-10-19
+wf_a0f69701-089,1128,w1128c,PB3394,1,0,tooling/orchestrator,MINOR,worktree-wf_a0f69701-089-3,sonnet,21,62871,0.016,DONE,1,0.046,1,0.013,sonnet,0,0,0.075,0,y,y,y,3,3,3,PB3114 PB3263 PB3395,2026-10-19
+wf_6b86238b-6eb,1129,w1129a,PB3388,1,0,runtime/io,MAJOR,worktree-wf_6b86238b-6eb-1,sonnet,73,203190,0.051,DONE,2,0.103,1,0.021,sonnet,0,0,0.175,0,y,n,y,1,1,1,PB3388,2026-10-19
+wf_6b86238b-6eb,1129,w1129b,PB3390,1,0,frontend/grammar,MINOR,worktree-wf_6b86238b-6eb-2,opus,172,481427,0.301,DONE,1,0.105,0,0,,0,0,0.405,0,y,n,y,1,1,1,PB3390,2026-10-19
+wf_6b86238b-6eb,1129,w1129c,PB3391,1,0,frontend/grammar,MINOR,worktree-wf_6b86238b-6eb-3,opus,90,298919,0.187,DONE,1,0.08,0,0,,0,0,0.267,0,y,n,y,1,1,1,PB3391,2026-10-19
+wf_6b86238b-6eb,1129,w1129d,PB3396,1,0,runtime/io,MINOR,worktree-wf_6b86238b-6eb-4,sonnet,84,224260,0.056,DONE,2,0.107,1,0.038,sonnet,0,0,0.201,0,y,n,y,1,1,1,PB3396,2026-10-19
+wf_6b86238b-6eb,1129,w1129e,PB3416,1,0,runtime/io,MINOR,worktree-wf_6b86238b-6eb-5,sonnet,85,189147,0.047,DONE,2,0.13,1,0.039,sonnet,0,0,0.217,0,y,n,y,1,1,1,PB3416,2026-10-19
+wf_6b86238b-6eb,1129,w1129f,PB2485,1,0,tests/conformance-suite,MINOR,worktree-wf_6b86238b-6eb-6,sonnet,110,239197,0.06,DONE,1,0.068,1,0.021,sonnet,0,0,0.148,0,y,n,y,1,1,1,PB2485,2026-10-19
+wf_6b86238b-6eb,1129,w1129g,PB2500,1,0,spec/latitude,MINOR,worktree-wf_6b86238b-6eb-19,sonnet,105,214031,0.054,DONE,1,0.077,0,0,,0,0,0.131,0,y,n,y,1,1,1,PB2500,2026-10-19
+wf_6b86238b-6eb,1129,w1129h,PB2503,1,0,process/traceability,INFO,worktree-wf_6b86238b-6eb-23,sonnet,71,159787,0.04,DONE,2,0.093,1,0.017,sonnet,0,0,0.15,0,y,n,y,1,1,1,PB2503,2026-10-19
+wf_bf536e03-d89,1130,w1130a,PB3424,1,0,codegen,MINOR,worktree-wf_bf536e03-d89-1,sonnet,99,238362,0.06,DONE,3,0.206,2,0.06,sonnet,0,0,0.326,0,y,n,y,1,1,1,PB3424,2026-10-19
+wf_65e0b527-80e,1131,w1131a,PB2512,1,0,binder/sort,INFO,worktree-wf_65e0b527-80e-1,sonnet,98,221578,0.055,DONE,2,0.111,1,0.023,sonnet,0,0,0.189,0,y,n,y,1,1,1,PB2512,2026-10-19
+wf_65e0b527-80e,1131,w1131b,PB3372,1,0,runtime/io,MINOR,worktree-wf_65e0b527-80e-2,sonnet,72,209311,0.052,DONE,2,0.108,1,0.019,sonnet,0,0,0.179,0,y,n,y,1,1,1,PB3372,2026-10-19
+wf_65e0b527-80e,1131,w1131c,PB3382,1,0,runtime/io,MINOR,worktree-wf_65e0b527-80e-3,sonnet,50,143212,0.036,DONE,1,0.057,0,0,,0,0,0.092,0,y,n,y,1,1,1,PB3382,2026-10-19
+wf_65e0b527-80e,1131,w1131d,PB3383,1,0,tests/nist,MINOR,worktree-wf_65e0b527-80e-4,opus,159,394129,0.246,DONE,1,0.097,0,0,,0,0,0.343,0,y,n,y,2,2,2,PB3383 PB925,2026-10-19
+wf_65e0b527-80e,1131,w1131e,PB3385,1,0,tests/nist,MINOR,worktree-wf_65e0b527-80e-5,sonnet,48,123024,0.031,DONE,1,0.058,0,0,,0,0,0.089,0,y,n,y,1,1,1,PB3385,2026-10-19
+wf_65e0b527-80e,1131,w1131f,PB3114,1,0,process/orchestrator,MINOR,worktree-wf_65e0b527-80e-6,opus,163,360085,0.225,DONE,1,0.094,0,0,,0,0,0.319,0,y,n,y,2,2,2,PB3114 PB3394,2026-10-19
+wf_65e0b527-80e,1131,w1131g,PB3263,1,0,tooling/orchestrator,MINOR,worktree-wf_65e0b527-80e-17,opus,139,326464,0.204,DONE,2,0.106,1,0.062,opus,0,0,0.372,0,y,n,y,1,1,1,PB3263,2026-10-19
+wf_65e0b527-80e,1131,w1131h,PB3369,1,0,orchestrator/planning,MINOR,worktree-wf_65e0b527-80e-18,sonnet,55,120094,0.03,DONE,1,0.043,0,0,,0,0,0.073,0,y,n,y,1,1,1,PB3369,2026-10-19
+wf_e6de1845-04e,1132,w1132a,PB3350,1,0,runtime/io,MINOR,worktree-wf_e6de1845-04e-1,sonnet,90,212748,0.053,DONE,2,0.116,1,0.02,sonnet,0,0,0.19,0,y,n,y,1,1,1,PB3350,2026-10-20
+wf_e6de1845-04e,1132,w1132b,PB3392,1,0,scripts/orchestrator,MINOR,worktree-wf_e6de1845-04e-2,sonnet,26,92191,0.023,DONE,1,0.043,0,0,,0,0,0.066,0,y,n,y,1,1,1,PB3392,2026-10-20
+wf_e6de1845-04e,1132,w1132c,PB3410,1,0,runtime/io,MINOR,worktree-wf_e6de1845-04e-3,sonnet,34,100165,0.025,DONE,1,0.042,0,0,,0,0,0.067,0,y,n,y,1,1,1,PB3410,2026-10-20
+wf_e6de1845-04e,1132,w1132d,PB3411,1,0,docs,MINOR,worktree-wf_e6de1845-04e-4,sonnet,21,60273,0.015,DISCHARGED,1,0.038,0,0,,0,0,0.053,0,y,n,y,1,1,1,PB3411,2026-10-20
+wf_e6de1845-04e,1132,w1132e,PB3414,1,0,runtime/io,MINOR,worktree-wf_e6de1845-04e-5,sonnet,63,178030,0.045,DONE,1,0.059,0,0,,0,0,0.103,0,y,n,y,1,1,1,PB3414,2026-10-20
+wf_e6de1845-04e,1132,w1132f,PB3415,1,0,runtime/io,MINOR,worktree-wf_e6de1845-04e-6,opus,34,119890,0.075,DONE,1,0.048,0,0,,0,0,0.123,0,y,n,y,1,1,1,PB3415,2026-10-20
+wf_e6de1845-04e,1132,w1132g,PB3438,1,0,tests/conformance,MINOR,worktree-wf_e6de1845-04e-9,sonnet,43,98442,0.025,DONE,2,0.078,1,0.015,sonnet,0,0,0.117,0,y,n,y,1,1,1,PB3438,2026-10-20
+wf_e6de1845-04e,1132,w1132h,PB3455,1,0,process/register,MINOR,worktree-wf_e6de1845-04e-12,sonnet,35,100316,0.025,DONE,1,0.038,0,0,,0,0,0.063,0,y,n,y,1,1,1,PB3455,2026-10-20
+wf_5b092cc6-8b9,1133,w1133a,PB3337,1,1,runtime/io,BLOCKER,worktree-wf_5b092cc6-8b9-1,opus,162,626073,0.391,SPLIT,0,0,0,0,,0,0,0.391,0.908,n,y,y,0,0,1,,2026-10-20
+wf_5b092cc6-8b9,1133,w1133b,PB3441,1,0,codegen,MINOR,worktree-wf_5b092cc6-8b9-2,sonnet,255,606525,0.152,DONE,2,0.182,1,0.021,sonnet,0,0,0.355,0,y,n,y,1,1,1,PB3441,2026-10-20
+wf_6fa84a9d-fb8,1134,w1134a,PB3463,1,0,process/fleet,MINOR,worktree-wf_6fa84a9d-fb8-1,sonnet,79,163020,0.041,DONE,1,0.056,0,0,,0,0,0.097,0,y,n,y,0,0,0,,2026-10-20
+wf_6fa84a9d-fb8,1134,w1134b,PB3458,1,0,runtime/io,MINOR,worktree-wf_6fa84a9d-fb8-2,sonnet,74,177911,0.044,DONE,2,0.117,1,0.021,sonnet,0,0,0.183,0,y,n,y,2,2,2,PB3458 PB3459,2026-10-20
+wf_6fa84a9d-fb8,1134,w1134c,PB3457,1,0,runtime/io,MINOR,worktree-wf_6fa84a9d-fb8-3,sonnet,27,77086,0.019,DONE,1,0.038,0,0,,0,0,0.058,0,y,n,y,1,1,1,PB3457,2026-10-20
+wf_6fa84a9d-fb8,1134,w1134d,PB3461,1,0,kb/register,MINOR,worktree-wf_6fa84a9d-fb8-4,sonnet,22,79354,0.02,DONE,1,0.036,0,0,,0,0,0.055,0,y,n,y,1,1,1,PB3461,2026-10-20
+wf_77673db8-de5,1135,w1135a,PB3466,1,0,frontend/parser,MAJOR,worktree-wf_77673db8-de5-1,opus,75,150856,0.094,DISCHARGED,1,0.044,0,0,,0,0,0.138,0,y,n,y,1,1,1,PB3466,2026-10-20
+wf_722bb28c-219,1136,w1136a,PB3473,1,0,process/tooling,MINOR,worktree-wf_722bb28c-219-1,sonnet,70,150283,0.038,DONE,3,0.166,2,0.047,sonnet,0,0,0.251,0,y,n,y,2,2,2,PB3152 PB3473,2026-10-20
+wf_722bb28c-219,1136,w1136c,PB3471,1,0,tests,MINOR,worktree-wf_722bb28c-219-2,sonnet,75,197315,0.049,DONE,1,0.08,0,0,,0,0,0.129,0,y,n,y,1,1,1,PB3471,2026-10-20
+wf_722bb28c-219,1136,w1136d,PB3472,1,0,tests,MINOR,worktree-wf_722bb28c-219-3,sonnet,48,106067,0.027,DONE,1,0.05,0,0,,0,0,0.076,0,y,n,y,1,1,1,PB3472,2026-10-20
+wf_316f7d48-4e6,1137,w1137a,PB3337,2,0,runtime/io,BLOCKER,worktree-wf_316f7d48-4e6-1,opus,133,411816,0.257,DONE,3,0.312,2,0.338,opus,0,0,0.908,0,y,n,y,1,1,1,PB3337,2026-10-21
+wf_36fbfc86-472,1140,w1140a,PB1278,1,0,docs/conformance,MINOR,worktree-wf_36fbfc86-472-1,opus,123,326688,0.204,SPLIT,0,0,0,0,,0,0,0.204,0,n,y,n,2,2,2,PB1278 PB3460,2026-10-21
+wf_36fbfc86-472,1140,w1140b,PB3484,1,0,runtime/io,LOW,worktree-wf_36fbfc86-472-2,sonnet,125,378071,0.095,DONE,2,0.154,1,0.051,sonnet,0,0,0.299,0,y,n,y,2,2,2,PB3480 PB3484,2026-10-21
+wf_36fbfc86-472,1140,w1140c,PB3482,1,0,runtime/io,MEDIUM,worktree-wf_36fbfc86-472-3,sonnet,149,457754,0.114,DONE,1,0.122,0,0,,0,0,0.237,0,y,n,y,1,1,1,PB3482,2026-10-21
+wf_36fbfc86-472,1140,w1140d,PB3483,1,0,runtime/io,MEDIUM,worktree-wf_36fbfc86-472-4,sonnet,102,308461,0.077,DONE,1,0.102,0,0,,0,0,0.179,0,y,n,y,1,1,1,PB3483,2026-10-21
+wf_36fbfc86-472,1140,w1140e,PB3478,1,0,tests,MINOR,worktree-wf_36fbfc86-472-5,sonnet,53,152609,0.038,DONE,2,0.106,1,0.018,sonnet,0,0,0.162,0,y,n,y,1,1,1,PB3478,2026-10-21
+wf_36fbfc86-472,1140,w1140f,PB3479,1,0,tests,LOW,worktree-wf_36fbfc86-472-6,sonnet,57,158009,0.04,DONE,2,0.103,1,0.021,sonnet,0,0,0.163,0,y,n,y,1,1,1,PB3479,2026-10-21
+wf_36fbfc86-472,1140,w1140g,PB3481,1,0,tests,LOW,worktree-wf_36fbfc86-472-15,sonnet,71,210760,0.053,DONE,1,0.054,0,0,,0,0,0.107,0,y,n,y,1,1,1,PB3481,2026-10-21
+wf_36fbfc86-472,1140,w1140h,PB3485,1,0,runtime/io,LOW,worktree-wf_36fbfc86-472-20,sonnet,145,352643,0.088,DONE,1,0.079,0,0,,0,0,0.167,0,y,n,y,1,1,1,PB3485,2026-10-21
+wf_31aba3ec-d06,1141,w1141a,PB3338,1,2,compiler/validation,MAJOR,worktree-wf_31aba3ec-d06-1,opus,219,502675,0.314,SPLIT,0,0,0,0,,0,0,0.314,1.311,y,n,y,0,0,2,,2026-10-21
+wf_31aba3ec-d06,1141,w1141b,PB3493,1,0,runtime/io,LOW,worktree-wf_31aba3ec-d06-2,sonnet,174,470485,0.118,SPLIT,0,0,0,0,,0,0,0.118,0,y,n,y,2,2,2,PB3493 PB3494,2026-10-21
+wf_31aba3ec-d06,1141,w1141c,PB3491,1,0,codegen/control-flow,MAJOR,worktree-wf_31aba3ec-d06-3,sonnet,72,142851,0.036,DONE,1,0.059,0,0,,0,0,0.095,0,y,n,y,1,1,1,PB3491,2026-10-21
+wf_99ebf84c-a15,1142,w1142a,PB3498,1,0,runtime/io,LOW,worktree-wf_99ebf84c-a15-1,sonnet,107,372745,0.093,DONE,1,0.076,0,0,,0,0,0.17,0,y,y,y,1,1,1,PB3498,2026-10-22
+wf_e2f98690-1d4,1145,w1145a,PB3489,1,0,parser/grammar,MAJOR,worktree-wf_e2f98690-1d4-1,opus,48,142596,0.089,DONE,1,0.076,0,0,,0,0,0.166,0,y,n,y,1,1,1,PB3489,2026-10-22
+wf_c29d004c-1b9,1146,w1146a,PB3505,1,0,runtime/display,MAJOR,worktree-wf_c29d004c-1b9-1,sonnet,247,755064,0.189,DONE,1,0.158,0,0,,0,0,0.346,0,y,n,y,1,1,1,PB3505,2026-10-22
+wf_8c44feac-62f,1147,w1147a,PB3510,1,0,binder/data,MAJOR,worktree-wf_8c44feac-62f-1,opus,86,309135,0.193,DONE,1,0.1,0,0,,0,0,0.293,0,y,n,y,1,1,1,PB3510,2026-10-22
+wf_8c44feac-62f,1147,w1147b,PB3511,1,0,codegen/control-flow,MAJOR,worktree-wf_8c44feac-62f-2,opus,112,319485,0.2,DONE,2,0.141,1,0.079,opus,0,0,0.42,0,y,n,y,1,1,1,PB3511,2026-10-22
+wf_8c44feac-62f,1147,w1147c,PB3512,1,0,codegen/move,MAJOR,worktree-wf_8c44feac-62f-3,opus,121,348566,0.218,DONE,2,0.152,1,0.109,opus,0,0,0.479,0,y,n,y,1,1,1,PB3512,2026-10-22
+wf_f768a41c-d72,1148,w1148a,PB3517,1,0,binder/data,MINOR,worktree-wf_f768a41c-d72-1,opus,159,477395,0.298,DONE,2,0.164,1,0.12,opus,0,0,0.582,0,y,n,y,1,1,1,PB3517,2026-10-22
+wf_e7a39afd-286,1149,w1149a,PB3523,1,0,tooling/fuzz,MAJOR,worktree-wf_e7a39afd-286-1,opus,171,626705,0.392,DONE,2,0.166,1,0.104,opus,0,0,0.662,0,y,n,y,1,1,1,PB3523,2026-10-22
+wf_79d63bf1-b34,1150,w1150a,PB3527,1,0,tooling/landing,MAJOR,worktree-wf_79d63bf1-b34-1,opus,187,632193,0.395,DONE,1,0.139,1,0.179,opus,0,0,0.712,0,y,n,y,2,2,2,PB3526 PB3527,2026-10-22
+wf_79d63bf1-b34,1150,w1150b,PB3531,1,0,tooling/gates,MINOR,worktree-wf_79d63bf1-b34-2,opus,150,457940,0.286,DONE,2,0.151,1,0.087,opus,0,0,0.525,0,y,n,y,1,1,1,PB3531,2026-10-22
+wf_79d63bf1-b34,1150,w1150c,PB3530,1,0,tooling/spec-figures,MINOR,worktree-wf_79d63bf1-b34-3,opus,163,475210,0.297,DONE,2,0.17,1,0.188,opus,0,0,0.656,0,y,n,y,1,1,1,PB3530,2026-10-22
+wf_331128da-8bc,1151,w1151a,PB3338,2,1,compiler/validation,MAJOR,worktree-wf_331128da-8bc-1,opus,216,538422,0.337,SPLIT,0,0,0,0,,0,0,0.337,0.974,y,n,y,0,0,2,,2026-10-22
+wf_c19bd7b9-9a1,1152,w1152a,PB3536,1,0,tooling/orchestration,MAJOR,worktree-wf_c19bd7b9-9a1-1,opus,158,557882,0.349,DONE,2,0.216,1,0.204,opus,0,0,0.769,0,y,n,y,1,1,1,PB3536,2026-10-22
+wf_e05cc4a3-4db,1154,w1154a,PB3338,3,0,compiler/validation,MAJOR,worktree-wf_e05cc4a3-4db-1,opus,241,661431,0.413,DONE,2,0.288,1,0.272,opus,0,0,0.974,0,y,n,y,2,2,2,PB1096 PB3338,2026-10-23
+wf_61ac0ea4-54b,1155,w1155a,PB3108,1,0,tests/harness,MAJOR,worktree-wf_61ac0ea4-54b-1,opus,141,439834,0.275,DONE,1,0.111,0,0,,0,0,0.386,0,y,n,y,1,1,1,PB3108,2026-10-23
+wf_31caed77-bdf,1153,w1153a,PB3538,1,0,codegen/arithmetic,MAJOR,worktree-wf_31caed77-bdf-1,opus,214,679551,0.425,DONE,3,0.276,2,0.413,opus,0,0,1.114,0,y,n,y,1,1,1,PB3538,2026-10-23
+wf_13bd6785-cb2,1156,w1156a,PB3542,1,0,codegen/io,MAJOR,worktree-wf_13bd6785-cb2-1,opus,153,476702,0.298,DONE,1,0.124,0,0,,0,0,0.422,0,y,n,y,3,3,3,PB3542 PB3543 PB3544,2026-10-23
+wf_13bd6785-cb2,1156,w1156b,PB3549,1,0,runtime/io,MAJOR,worktree-wf_13bd6785-cb2-2,opus,98,379185,0.237,DONE,1,0.114,0,0,,0,0,0.351,0,y,n,y,1,1,1,PB3549,2026-10-23
+wf_37d4041f-6f7,1157,w1157a,PB3340,1,1,runtime/io,MAJOR,worktree-wf_37d4041f-6f7-1,opus,150,438615,0.274,SPLIT,0,0,0,0,,0,0,0.274,0.343,y,y,y,1,1,1,PB3541,2026-10-23
+wf_37d4041f-6f7,1157,w1157b,PB3540,1,0,runtime/control,MAJOR,worktree-wf_37d4041f-6f7-2,sonnet,122,431461,0.108,DONE,1,0.124,0,0,,0,0,0.232,0,y,n,y,1,1,1,PB3540,2026-10-23
+wf_37d4041f-6f7,1157,w1157c,PB3533,1,0,runtime/io,MINOR,worktree-wf_37d4041f-6f7-3,opus,145,463716,0.29,DONE,1,0.109,0,0,,0,0,0.399,0,y,n,y,1,1,1,PB3533,2026-10-23
+wf_37d4041f-6f7,1157,w1157d,PB3566,1,0,binder/data/value + editions,MINOR,worktree-wf_37d4041f-6f7-4,sonnet,161,463345,0.116,DONE,2,0.128,1,0.03,sonnet,0,0,0.273,0,y,n,y,3,3,3,PB3555 PB3566 PB3567,2026-10-23
+wf_37d4041f-6f7,1157,w1157e,PB3499,1,0,runtime/io,LOW,worktree-wf_37d4041f-6f7-5,sonnet,135,487890,0.122,DONE,2,0.135,1,0.023,sonnet,0,0,0.28,0,y,n,y,1,1,1,PB3499,2026-10-23
+wf_37d4041f-6f7,1157,w1157f,PB3513,1,0,runtime/accept,MAJOR,worktree-wf_37d4041f-6f7-6,sonnet,137,461421,0.115,DONE,1,0.083,0,0,,0,0,0.199,0,y,n,y,1,1,1,PB3513,2026-10-23
+wf_37d4041f-6f7,1157,w1157g,PB3562,1,0,codegen/move,MAJOR,worktree-wf_37d4041f-6f7-9,sonnet,184,544869,0.136,DONE,1,0.11,0,0,,0,0,0.247,0,y,n,y,1,1,1,PB3562,2026-10-23
+wf_37d4041f-6f7,1157,w1157h,PB3563,1,0,binder/usage-collection + codegen/renames,MAJOR,worktree-wf_37d4041f-6f7-14,sonnet,92,264560,0.066,DONE,3,0.207,2,0.064,sonnet,0,0,0.338,0,y,n,y,1,1,1,PB3563,2026-10-23
+wf_37d4041f-6f7,1157,w1157i,PB3564,1,0,codegen/group-image,MAJOR,worktree-wf_37d4041f-6f7-21,sonnet,182,633411,0.158,DONE,3,0.327,2,0.132,sonnet,0,0,0.617,0,y,n,y,1,1,1,PB3564,2026-10-23
+wf_37d4041f-6f7,1157,w1157j,PB3565,1,0,binder/arithmetic,MAJOR,worktree-wf_37d4041f-6f7-22,sonnet,104,304709,0.076,DONE,1,0.077,0,0,,0,0,0.153,0,y,n,y,1,1,1,PB3565,2026-10-23
+wf_37d4041f-6f7,1157,w1157k,PB3568,1,0,binder/statements/unsupported-facility,MINOR,worktree-wf_37d4041f-6f7-25,sonnet,169,458235,0.115,DONE,1,0.103,0,0,,0,0,0.218,0,y,n,y,1,1,1,PB3568,2026-10-23
+wf_f6f89a51-99e,20261024,w20261024a,PB3340,2,0,runtime/io,MAJOR,worktree-wf_f6f89a51-99e-1,opus,145,548710,0.343,SPLIT,0,0,0,0,,0,0,0.343,0,y,n,y,0,0,0,,2026-10-23
+wf_f6f89a51-99e,20261024,w20261024b,PB3597,1,0,codegen/initialize,LOW,worktree-wf_f6f89a51-99e-2,sonnet,223,621638,0.155,DONE,1,0.128,0,0,,0,0,0.284,0,y,n,y,1,1,1,PB3597,2026-10-23
+wf_f6f89a51-99e,20261024,w20261024c,PB3570,1,0,codegen/move,MINOR,worktree-wf_f6f89a51-99e-3,sonnet,218,588410,0.147,DONE,2,0.148,1,0.031,sonnet,0,0,0.326,0,y,n,y,2,2,2,PB3570 PB3587,2026-10-23
+wf_f6f89a51-99e,20261024,w20261024d,PB3586,1,0,codegen/function,MAJOR,worktree-wf_f6f89a51-99e-4,sonnet,80,204476,0.051,DONE,2,0.117,1,0.022,sonnet,0,0,0.19,0,y,n,y,1,1,1,PB3586,2026-10-23
+wf_f6f89a51-99e,20261024,w20261024a2,PB670,1,0,runtime/io/sharing,MINOR,worktree-wf_f6f89a51-99e-15,sonnet,192,535977,0.134,DONE,3,0.273,2,0.088,sonnet,0,0,0.495,0,y,n,y,1,1,1,PB670,2026-10-23
+wf_d9c13039-e34,20261025,w20261025a,PB3584,1,0,tooling/self-tests,MINOR,worktree-wf_d9c13039-e34-1,opus,231,585171,0.366,DONE,1,0.145,0,0,,0,0,0.511,0,y,n,y,1,1,1,PB3584,2026-10-23
+wf_f6f89a51-99e,20261024,w20261024a3,PB3578,1,0,runtime/io,LOW,worktree-wf_f6f89a51-99e-26,sonnet,181,540036,0.135,DONE,2,0.209,1,0.046,sonnet,0,0,0.39,0,y,n,y,2,2,2,PB3576 PB3578,2026-10-24
+wf_d9c13039-e34,20261025,w20261025a2,PB3582,1,0,tooling/self-tests,MINOR,worktree-wf_d9c13039-e34-4,opus,158,540517,0.338,GATE-PENDING,1,0.127,0,0,,0,0,0.465,0,y,n,y,1,1,1,PB3582,2026-10-24
+wf_0e51b14b-ced,20261026,w20261026a,PB3247,1,0,tooling/ci-parity,MINOR,worktree-wf_0e51b14b-ced-1,opus,117,315530,0.197,DONE,1,0.092,0,0,,0,0,0.289,0,y,n,y,1,1,1,PB3247,2026-10-24
+wf_0e51b14b-ced,20261026,w20261026b,PB2878,1,1,process/gates,MINOR,worktree-wf_0e51b14b-ced-2,opus,152,589712,0.369,SPLIT,0,0,0,0,,0,0,0.369,0.299,n,n,y,0,0,3,,2026-10-24
+wf_0e51b14b-ced,20261026,w20261026c,PB3112,1,1,tests/gate,MAJOR,worktree-wf_0e51b14b-ced-3,opus,43,211704,0.132,SPLIT,0,0,0,0,,0,0,0.132,0.236,y,n,y,0,0,1,,2026-10-24
+wf_0e51b14b-ced,20261026,w20261026d,PB3131,1,0,gate/planning,MINOR,worktree-wf_0e51b14b-ced-4,opus,104,310322,0.194,DONE,2,0.167,1,0.172,opus,0,0,0.532,0,y,n,y,2,2,2,PB3131 PB3603,2026-10-24
+wf_0e51b14b-ced,20261026,w20261026e,PB3140,1,0,ci,MINOR,worktree-wf_0e51b14b-ced-5,opus,104,266467,0.167,DONE,1,0.07,0,0,,0,0,0.236,0,y,n,y,1,1,1,PB3140,2026-10-24
+wf_0e51b14b-ced,20261026,w20261026c2,PB3155,1,0,tests/gate,MAJOR,worktree-wf_0e51b14b-ced-6,opus,95,318410,0.199,DONE,1,0.083,0,0,,0,0,0.282,0,y,n,y,2,2,2,PB3155 PB3184,2026-10-24
+wf_0e51b14b-ced,20261026,w20261026c3,PB3190,1,0,tests/gate,MAJOR,worktree-wf_0e51b14b-ced-13,opus,113,333720,0.209,DONE,2,0.168,1,0.147,opus,0,0,0.523,0,y,n,y,1,1,1,PB3190,2026-10-24
+wf_d9c13039-e34,20261025,w20261025a3,PB3585,1,0,tooling/self-tests,MINOR,worktree-wf_d9c13039-e34-10,opus,108,261077,0.163,DONE,1,0.047,0,0,,0,0,0.211,0,y,n,y,1,1,1,PB3585,2026-10-24
+wf_c925aaba-f76,20261027,w20261027b,PB1014,1,0,codegen/oo,MAJOR,worktree-wf_c925aaba-f76-1,sonnet,160,460655,0.115,DONE,2,0.168,1,0.032,sonnet,0,0,0.316,0,y,n,y,2,2,2,PB1014 PB3246,2026-10-24
+wf_c925aaba-f76,20261027,w20261027c,PB637,1,0,codegen/intrinsics,MAJOR,worktree-wf_c925aaba-f76-2,sonnet,107,302620,0.076,DONE,2,0.164,1,0.047,sonnet,0,0,0.286,0,y,n,y,1,1,1,PB637,2026-10-24
+wf_c925aaba-f76,20261027,w20261027d,PB1626,1,0,frontend/conditional-compilation,MINOR,worktree-wf_c925aaba-f76-3,sonnet,86,239268,0.06,DONE,1,0.076,0,0,,0,0,0.135,0,y,n,y,1,1,1,PB1626,2026-10-24
+wf_c925aaba-f76,20261027,w20261027e,PB1606,1,0,runtime/numeric,MAJOR,worktree-wf_c925aaba-f76-4,sonnet,245,633209,0.158,DONE,3,0.242,2,0.083,sonnet,0,0,0.483,0,y,n,y,1,1,1,PB1606,2026-10-24
+wf_c925aaba-f76,20261027,w20261027f,PB1746,1,0,runtime/report-writer,MINOR,worktree-wf_c925aaba-f76-5,sonnet,180,469079,0.117,DONE,2,0.138,1,0.027,sonnet,0,0,0.282,0,y,n,y,1,1,1,PB1746,2026-10-24
+wf_c925aaba-f76,20261027,w20261027g,PB1909,1,0,conformance/undefined-results,MINOR,worktree-wf_c925aaba-f76-6,sonnet,107,303744,0.076,DONE,1,0.077,0,0,,0,0,0.153,0,y,n,y,1,1,1,PB1909,2026-10-24
+wf_c925aaba-f76,20261027,w20261027h,PB1910,1,0,conformance/undefined-results,MINOR,worktree-wf_c925aaba-f76-9,sonnet,199,671391,0.168,DONE,2,0.154,1,0.046,sonnet,0,0,0.368,0,y,n,y,1,1,1,PB1910,2026-10-24
+wf_0e51b14b-ced,?,wf_0e51b14b-ced:C4,PB3194,1,0,tests/gate,MAJOR,worktree-wf_0e51b14b-ced-24,opus,91,285435,0.178,BLOCKED,0,0,0,0,,0,0,0.178,0,n,n,n,0,0,0,,2026-10-24
+wf_42255de2-426,20261028,w20261028a,PB3492,1,0,runtime/io,MEDIUM,worktree-wf_42255de2-426-1,opus,211,729341,0.456,DONE,2,0.232,1,0.357,opus,0,0,1.045,0,y,n,y,1,1,1,PB3492,2026-10-24
+wf_42255de2-426,20261028,w20261028b,PB3497,1,0,runtime/io,LOW,worktree-wf_42255de2-426-2,sonnet,130,379145,0.095,DONE,1,0.082,0,0,,0,0,0.177,0,y,n,y,2,2,2,PB3497 PB3501,2026-10-24
+wf_42255de2-426,20261028,w20261028c,PB3518,1,0,runtime/io,LOW,worktree-wf_42255de2-426-3,sonnet,49,167676,0.042,DONE,2,0.105,1,0.029,sonnet,0,0,0.176,0,y,n,y,1,1,1,PB3518,2026-10-24
+wf_c3d0ab06-0af,20261029,w20261029a,PB3112,2,0,tests/gate,MAJOR,worktree-wf_c3d0ab06-0af-1,sonnet,104,387860,0.097,DONE,2,0.115,1,0.024,sonnet,0,0,0.236,0,y,n,y,1,1,1,PB3112,2026-10-24
+wf_c3d0ab06-0af,20261029,w20261029b,PB3610,1,0,landing/merge,MAJOR,worktree-wf_c3d0ab06-0af-2,sonnet,168,513567,0.128,DONE,2,0.143,1,0.021,sonnet,0,0,0.293,0,y,n,y,1,1,1,PB3610,2026-10-24
+wf_c3d0ab06-0af,20261029,w20261029c,PB3611,1,0,orchestrator/planner,MINOR,worktree-wf_c3d0ab06-0af-3,sonnet,43,128109,0.032,DONE,1,0.046,0,0,,0,0,0.078,0,y,n,y,1,1,1,PB3611,2026-10-24
+wf_c3d0ab06-0af,20261029,w20261029d,PB3439,1,0,tooling/ci-parity,MINOR,worktree-wf_c3d0ab06-0af-4,sonnet,21,75283,0.019,DISCHARGED,1,0.04,0,0,,0,0,0.058,0,y,n,y,1,1,1,PB3439,2026-10-24
+wf_c3d0ab06-0af,20261029,w20261029a2,PB2878,2,0,process/gates,MINOR,worktree-wf_c3d0ab06-0af-14,sonnet,197,550288,0.138,DONE,1,0.161,0,0,,0,0,0.299,0,y,n,y,3,3,3,PB2878 PB3295 PB720,2026-10-24
+wf_c3d0ab06-0af,20261029,w20261029a3,PB3612,1,0,landing/enqueue,MAJOR,worktree-wf_c3d0ab06-0af-22,sonnet,178,755693,0.189,DONE,2,0.163,1,0.024,sonnet,0,0,0.376,0,y,n,y,1,1,1,PB3612,2026-10-24
+wf_1973801d-4fe,20261030,w20261030a,PB3628,1,0,tooling/orchestrator,MAJOR,worktree-wf_1973801d-4fe-1,sonnet,60,266378,0.067,DONE,1,0.052,0,0,,0,0,0.118,0,y,n,y,1,1,1,PB3628,2026-10-24
+wf_1973801d-4fe,20261030,w20261030b,PB2699,1,0,tooling,MAJOR,worktree-wf_1973801d-4fe-2,sonnet,53,260054,0.065,DONE,2,0.111,1,0.028,sonnet,0,0,0.204,0,y,n,y,1,1,1,PB2699,2026-10-24
+wf_1973801d-4fe,20261030,w20261030c,PB3625,1,0,orchestrator/planner,MAJOR,worktree-wf_1973801d-4fe-3,sonnet,39,119678,0.03,DONE,1,0.055,0,0,,0,0,0.085,0,y,n,y,1,1,1,PB3625,2026-10-24
+wf_1973801d-4fe,20261030,w20261030d,PB3275,1,0,tooling/landing,MAJOR,worktree-wf_1973801d-4fe-4,sonnet,36,163652,0.041,DONE,1,0.069,0,0,,0,0,0.11,0,y,n,y,1,1,1,PB3275,2026-10-24
+wf_1973801d-4fe,20261030,w20261030e,PB3310,1,0,tooling/gate,MAJOR,worktree-wf_1973801d-4fe-5,sonnet,88,332579,0.083,DONE,1,0.077,0,0,,0,0,0.16,0,y,n,y,1,1,1,PB3310,2026-10-24
+wf_1973801d-4fe,20261030,w20261030a2,PB3267,1,0,tooling/orchestrator,MAJOR,worktree-wf_1973801d-4fe-10,sonnet,43,158995,0.04,DONE,1,0.054,0,0,,0,0,0.093,0,y,n,y,1,1,1,PB3267,2026-10-24
+wf_1973801d-4fe,20261030,w20261030c2,PB3170,1,0,orchestrator/planner,MAJOR,worktree-wf_1973801d-4fe-18,sonnet,89,311046,0.078,DONE,2,0.104,1,0.025,sonnet,0,0,0.207,0,y,n,y,1,1,1,PB3170,2026-10-24
+wf_1973801d-4fe,20261030,w20261030b2,PB2974,1,0,tooling,MAJOR,worktree-wf_1973801d-4fe-23,sonnet,48,181959,0.045,DONE,2,0.097,1,0.031,sonnet,0,0,0.174,0,y,n,y,1,1,1,PB2974,2026-10-24
+wf_f39d3ad7-d92,20261031,w20261031a,PB3446,1,1,scripts/orchestrator,low,worktree-wf_f39d3ad7-d92-1,sonnet,41,189284,0.047,SPLIT,0,0,0,0,,0,0,0.047,0.439,n,n,y,0,0,4,,2026-10-24
+wf_f39d3ad7-d92,20261031,w20261031b,PB3476,1,0,scripts/orchestrator,MINOR,worktree-wf_f39d3ad7-d92-2,sonnet,138,467253,0.117,DONE,2,0.148,1,0.02,sonnet,0,0,0.285,0,y,n,y,4,4,4,PB3474 PB3476 PB3652 PB3653,2026-10-24
+wf_f39d3ad7-d92,20261031,w20261031c,PB3509,1,0,process/tooling,MAJOR,worktree-wf_f39d3ad7-d92-3,sonnet,65,247251,0.062,SPLIT,0,0,0,0,,0,0,0.062,0,y,n,y,1,1,1,PB3509,2026-10-24
+wf_f39d3ad7-d92,20261031,w20261031d,PB3639,1,1,orchestrator/landing-lane,MAJOR,worktree-wf_f39d3ad7-d92-4,sonnet,62,220776,0.055,SPLIT,0,0,0,0,,0,0,0.055,0.163,y,n,y,2,2,2,PB3639 PB3651,2026-10-24
+wf_f39d3ad7-d92,20261031,w20261031e,PB3647,1,0,docs/process,TRIVIAL,worktree-wf_f39d3ad7-d92-5,sonnet,73,267731,0.067,DONE,2,0.112,1,0.026,sonnet,0,0,0.204,0,y,n,y,3,3,3,PB3315 PB3324 PB3647,2026-10-24
+wf_f39d3ad7-d92,20261031,w20261031f,PB3662,1,0,orchestrator/landing-lane,MINOR,worktree-wf_f39d3ad7-d92-6,sonnet,46,221804,0.055,SPLIT,0,0,0,0,,0,0,0.055,0,n,n,n,0,0,0,,2026-10-24
+wf_f39d3ad7-d92,20261031,w20261031g,PB3636,1,0,tooling/register,MAJOR,worktree-wf_f39d3ad7-d92-7,sonnet,3,37296,0.009,SPLIT,0,0,0,0,,0,0,0.009,0,y,n,y,0,0,0,,2026-10-24
+wf_6ffe8083-b46,20261032,w20261032a,PB538,1,0,frontend/grammar,MINOR,worktree-wf_6ffe8083-b46-1,opus,272,667741,0.417,DONE,1,0.131,0,0,,0,0,0.549,0,y,n,y,7,7,7,PB1319 PB3162 PB3280 PB493 PB494 PB538 PB539,2026-10-25
+wf_6ffe8083-b46,20261032,w20261032b,PB547,1,0,binding/model,MAJOR,worktree-wf_6ffe8083-b46-2,sonnet,143,382547,0.096,DONE,1,0.092,0,0,,0,0,0.188,0,y,n,y,1,1,1,PB547,2026-10-25
+wf_6ffe8083-b46,20261032,w20261032c,PB2508,1,0,binder/display,INFO,worktree-wf_6ffe8083-b46-3,sonnet,67,163797,0.041,DONE,1,0.063,0,0,,0,0,0.104,0,y,n,y,1,1,1,PB2508,2026-10-25
+wf_6ffe8083-b46,20261032,w20261032d,PB3598,1,0,codegen/group-image,MEDIUM,worktree-wf_6ffe8083-b46-4,sonnet,117,390751,0.098,DONE,2,0.129,1,0.038,sonnet,0,0,0.265,0,y,n,y,1,1,1,PB3598,2026-10-25
+wf_6ffe8083-b46,20261032,w20261032e,PB3613,1,0,codegen/move,MINOR,worktree-wf_6ffe8083-b46-5,sonnet,151,371322,0.093,DONE,2,0.196,1,0.06,sonnet,0,0,0.349,0,y,n,y,1,1,1,PB3613,2026-10-25
+wf_6ffe8083-b46,20261032,w20261032f,PB3630,1,0,runtime/io,MAJOR,worktree-wf_6ffe8083-b46-6,sonnet,46,175674,0.044,DONE,1,0.08,0,0,,0,0,0.124,0,y,n,y,1,1,1,PB3630,2026-10-25
+wf_6ffe8083-b46,20261032,w20261032g,PB3632,1,0,runtime/io,MINOR,worktree-wf_6ffe8083-b46-14,sonnet,64,221271,0.055,DONE,2,0.104,1,0.023,sonnet,0,0,0.182,0,y,n,y,1,1,1,PB3632,2026-10-25
+wf_6ffe8083-b46,20261032,w20261032h,PB3614,1,0,runtime/io,MINOR,worktree-wf_6ffe8083-b46-17,sonnet,49,140636,0.035,DONE,1,0.049,0,0,,0,0,0.085,0,y,n,y,1,1,1,PB3614,2026-10-25
+wf_3d8aaed0-6cd,20261100,w20261100a,PB3670,1,0,orchestrator/planning,MAJOR,worktree-wf_3d8aaed0-6cd-1,opus,224,705833,0.441,DONE,2,0.194,1,0.127,opus,0,0,0.762,0,y,n,y,1,1,1,PB3670,2026-10-25
+wf_ae6946ad-ce4,20261101,w20261101a,PB3664,1,0,runtime/edit,MAJOR,worktree-wf_ae6946ad-ce4-1,sonnet,58,226994,0.057,DONE,1,0.08,0,0,,0,0,0.137,0,y,n,y,1,1,1,PB3664,2026-10-25
+wf_17b59ed2-4ae,20261102,w20261102a,PB3665,1,0,binder/string,MINOR,worktree-wf_17b59ed2-4ae-1,sonnet,142,418510,0.105,DONE,2,0.173,1,0.037,sonnet,0,0,0.316,0,y,n,y,1,1,1,PB3665,2026-10-25
+wf_5669d89a-9c0,20261104,w20261104a,PB3145,1,0,landing/pipeline,MINOR,worktree-wf_5669d89a-9c0-1,sonnet,63,243227,0.061,DONE,1,0.072,1,0.059,sonnet,0,0,0.191,0,y,n,y,2,2,2,PB3145 PB3662,2026-10-25
+wf_5669d89a-9c0,20261104,w20261104b,PB3250,1,0,tooling/orchestrator,MINOR,worktree-wf_5669d89a-9c0-2,sonnet,52,163196,0.041,DONE,1,0.042,0,0,,0,0,0.083,0,y,n,y,1,1,1,PB3250,2026-10-25
+wf_5669d89a-9c0,20261104,w20261104c,PB3645,1,0,tooling/drift-rules,MINOR,worktree-wf_5669d89a-9c0-3,sonnet,28,90846,0.023,DONE,1,0.048,0,0,,0,0,0.071,0,y,n,y,1,1,1,PB3645,2026-10-25
+wf_31ff392c-682,20261105,w20261105a,PB3666,1,0,codegen/move,MINOR,worktree-wf_31ff392c-682-1,sonnet,143,405865,0.101,DONE,2,0.16,1,0.036,sonnet,0,0,0.298,0,y,n,y,1,1,1,PB3666,2026-10-25
+wf_5669d89a-9c0,20261104,w20261104a2,PB3648,1,0,process/gates,MINOR,worktree-wf_5669d89a-9c0-13,sonnet,211,587896,0.147,DONE,2,0.19,1,0.049,sonnet,0,0,0.387,0,y,n,y,4,4,4,PB3646 PB3648 PB3649 PB3661,2026-10-25
+wf_12e98f2a-957,20261106,w20261106a,PB3446,2,0,scripts/orchestrator,low,worktree-wf_12e98f2a-957-1,opus,205,485007,0.303,DONE,1,0.136,0,0,,0,0,0.439,0,y,n,y,4,4,4,PB3446 PB3638 PB3641 PB3650,2026-10-25
+wf_12e98f2a-957,20261106,w20261106b,PB3640,1,0,orchestrator/planner,MAJOR,worktree-wf_12e98f2a-957-2,opus,96,292910,0.183,DONE,2,0.147,1,0.136,opus,0,0,0.466,0,y,n,y,2,2,2,PB3509 PB3640,2026-10-25
+wf_12e98f2a-957,20261106,w20261106c,PB3639,2,0,orchestrator/landing-lane,MAJOR,worktree-wf_12e98f2a-957-3,opus,39,95976,0.06,DONE,1,0.103,0,0,,0,0,0.163,0,y,n,y,2,2,2,PB3639 PB3651,2026-10-25
+wf_5669d89a-9c0,20261104,w20261104a3,PB3660,1,0,tooling/orchestrator,MINOR,worktree-wf_5669d89a-9c0-19,sonnet,97,299309,0.075,DONE,1,0.077,0,0,,0,0,0.152,0,y,n,y,2,2,2,PB3644 PB3660,2026-10-25
+wf_6e0a917c-500,20261107,w20261107a,PB3704,1,0,process/dispatch,MAJOR,worktree-wf_6e0a917c-500-1,sonnet,57,147167,0.037,DONE,1,0.064,0,0,,0,0,0.101,0,y,n,y,2,2,2,PB3704 PB3711,2026-10-25
+wf_6e0a917c-500,20261107,w20261107b,PB3701,1,0,process/dispatch,MAJOR,worktree-wf_6e0a917c-500-2,sonnet,56,204496,0.051,DONE,1,0.06,0,0,,0,0,0.111,0,y,n,y,1,1,1,PB3701,2026-10-25
+wf_6e0a917c-500,20261107,w20261107c,PB3118,1,0,process/tooling,MINOR,worktree-wf_6e0a917c-500-3,sonnet,168,512102,0.128,DONE,2,0.158,1,0.024,sonnet,0,0,0.31,0,y,n,y,6,6,6,PB3118 PB3695 PB3696 PB3699 PB3700 PB3712,2026-10-25
+wf_6e0a917c-500,20261107,w20261107d,PB3113,1,0,orchestrator/landing,MINOR,worktree-wf_6e0a917c-500-4,sonnet,177,557911,0.139,DONE,2,0.191,1,0.042,sonnet,2,0.163,0.536,0,y,n,y,5,5,5,PB3113 PB3157 PB3642 PB3674 PB3714,2026-10-25
+wf_6e0a917c-500,20261107,w20261107e,PB3386,1,0,scripts/orchestrator,MINOR,worktree-wf_6e0a917c-500-5,sonnet,135,426585,0.107,DONE,2,0.139,1,0.015,sonnet,0,0,0.26,0,y,n,y,4,4,4,PB3386 PB3404 PB3409 PB3713,2026-10-25
+wf_6e0a917c-500,20261107,w20261107f,PB3367,1,0,process/landing,MINOR,worktree-wf_6e0a917c-500-6,sonnet,101,347395,0.087,DONE,1,0.089,0,0,,0,0,0.176,0,y,n,y,2,2,2,PB3367 PB3693,2026-10-25
+wf_6e0a917c-500,20261107,w20261107h,PB3643,1,0,process/landing,MINOR,worktree-wf_6e0a917c-500-9,sonnet,60,243306,0.061,DONE,2,0.086,1,0.023,sonnet,0,0,0.17,0,y,n,y,1,1,1,PB3643,2026-10-25
+wf_ba46c1d4-922,20261500,w20261500a,PB3675,1,0,runtime/io,MINOR,worktree-wf_ba46c1d4-922-1,sonnet,57,207541,0.052,DONE,1,0.065,0,0,,0,0,0.117,0,y,n,y,1,1,1,PB3675,2026-10-25
+wf_ba46c1d4-922,20261500,w20261500b,PB3676,1,0,runtime/io,MINOR,worktree-wf_ba46c1d4-922-2,sonnet,34,152355,0.038,DONE,1,0.043,0,0,,0,0,0.081,0,y,n,y,1,1,1,PB3676,2026-10-25
+wf_ba46c1d4-922,20261500,w20261500c,PB3677,1,0,codegen/call,MINOR,worktree-wf_ba46c1d4-922-3,sonnet,131,407705,0.102,DONE,1,0.085,0,0,,1,0.129,0.316,0,y,n,y,1,1,1,PB3677,2026-10-25
+wf_ba46c1d4-922,20261500,w20261500d,PB3681,1,0,runtime/io,MAJOR,worktree-wf_ba46c1d4-922-4,sonnet,45,133555,0.033,DONE,1,0.071,0,0,,0,0,0.105,0,y,n,y,1,1,1,PB3681,2026-10-25
+wf_ba46c1d4-922,20261500,w20261500e,PB3605,1,0,editions/constructs,MINOR,worktree-wf_ba46c1d4-922-9,opus,241,584781,0.365,DONE,1,0.125,0,0,,0,0,0.49,0,y,n,y,2,2,2,PB2282 PB3605,2026-10-25
+wf_ba46c1d4-922,20261500,w20261500f,PB3573,1,0,runtime/accept,MINOR,worktree-wf_ba46c1d4-922-10,sonnet,63,155405,0.039,DONE,1,0.063,0,0,,0,0,0.102,0,y,n,y,1,1,1,PB3573,2026-10-25
+wf_ba46c1d4-922,20261500,w20261500g,PB3678,1,0,binding/expressions,MINOR,worktree-wf_ba46c1d4-922-15,sonnet,105,289161,0.072,DONE,2,0.139,1,0.029,sonnet,0,0,0.241,0,y,n,y,1,1,1,PB3678,2026-10-25
+wf_1341dc87-1c4,20261501,w20261501a,PB929,2,0,process/traceability,MAJOR,worktree-wf_1341dc87-1c4-1,sonnet,163,459464,0.115,DONE,2,0.174,1,0.042,sonnet,0,0,0.331,0,y,n,y,5,4,4,PB1253 PB1511 PB1520 PB1522 PB929,2026-10-25
+wf_1341dc87-1c4,20261501,w20261501b,PB498,1,0,binding/data-division,MINOR,worktree-wf_1341dc87-1c4-2,sonnet,112,268320,0.067,DONE,1,0.077,0,0,,0,0,0.144,0,y,n,y,2,2,2,PB498 PB508,2026-10-25
+wf_ba46c1d4-922,20261500,w20261500h,PB3686,1,0,binding/calls,MINOR,worktree-wf_ba46c1d4-922-16,sonnet,64,172491,0.043,DONE,1,0.078,0,0,,0,0,0.121,0,y,n,y,1,1,1,PB3686,2026-10-25
+wf_75065889-ec7,20261700,w20261700a,PB3308,1,0,process/ci,MAJOR,worktree-wf_75065889-ec7-1,opus,106,373513,0.233,DONE,1,0.123,0,0,,0,0,0.356,0,y,n,y,1,1,1,PB3308,2026-10-25
+wf_1341dc87-1c4,20261501,w20261501c,PB715,1,0,scripts/grammar,MINOR,worktree-wf_1341dc87-1c4-8,opus,97,349004,0.218,DONE,1,0.09,0,0,,0,0,0.309,0,y,n,y,1,1,1,PB715,2026-10-25
+wf_1341dc87-1c4,20261501,w20261501d,PB1046,1,0,binder/reportwriter,MINOR,worktree-wf_1341dc87-1c4-11,sonnet,146,408342,0.102,DONE,1,0.08,0,0,,0,0,0.182,0,y,n,y,1,1,1,PB1046,2026-10-25
+wf_1341dc87-1c4,20261501,w20261501e,PB1601,1,0,frontend/preprocessor,MINOR,worktree-wf_1341dc87-1c4-14,sonnet,197,508683,0.127,DONE,1,0.109,0,0,,2,0.166,0.401,0,y,n,y,2,2,2,PB1601 PB1615,2026-10-25
+wf_1341dc87-1c4,20261501,w20261501f,PB935,1,0,binding,MINOR,worktree-wf_1341dc87-1c4-17,sonnet,93,213765,0.053,DONE,1,0.07,0,0,,0,0,0.123,0,y,n,y,1,1,1,PB935,2026-10-25
+wf_2d429f45-650,20261502,w20261502a,PB3769,1,0,ci/merge-queue,MAJOR,worktree-wf_2d429f45-650-1,opus,87,275552,0.172,DONE,1,0.076,0,0,,0,0,0.249,0,y,n,y,1,1,1,PB3769,2026-10-25
+wf_94698d58-de0,20261503,w20261503a,PB3637,1,0,tooling/scripts,MINOR,worktree-wf_94698d58-de0-1,opus,175,440236,0.275,DONE,1,0.101,0,0,,1,0.071,0.447,0,y,n,y,4,4,4,PB1546 PB1651 PB1726 PB3637,2026-10-25
+wf_94698d58-de0,20261503,w20261503b,PB3727,1,0,tooling/merge,MAJOR,worktree-wf_94698d58-de0-2,opus,104,308832,0.193,DONE,1,0.073,0,0,,2,0.194,0.459,0,y,n,y,1,1,1,PB3727,2026-10-25
+wf_57cbefcc-359,20261701,w20261701a,PB3741,1,0,process/dispatch,MINOR,worktree-wf_57cbefcc-359-1,sonnet,33,94016,0.024,DONE,1,0.037,0,0,,0,0,0.061,0,y,n,y,1,1,1,PB3741,2026-10-25
+wf_57cbefcc-359,20261701,w20261701b,PB3749,1,0,runtime/io,MINOR,worktree-wf_57cbefcc-359-2,sonnet,23,86063,0.022,DONE,1,0.049,0,0,,0,0,0.07,0,y,n,y,1,1,1,PB3749,2026-10-25
+wf_a588e886-609,20261504,w20261504a,PB3389,1,0,scripts/spec,MINOR,worktree-wf_a588e886-609-1,sonnet,194,508190,0.127,DONE,3,0.212,2,0.078,sonnet,0,0,0.417,0,y,n,y,3,3,3,PB3389 PB3654 PB3721,2026-10-25
+wf_a588e886-609,20261504,w20261504b,PB3744,1,0,orchestrator/doc,MINOR,worktree-wf_a588e886-609-2,sonnet,59,173268,0.043,DONE,1,0.061,0,0,,1,0.061,0.165,0,y,n,y,2,2,2,PB3716 PB3744,2026-10-25
+wf_a588e886-609,20261504,w20261504c,PB2665,1,0,process/tooling,MINOR,worktree-wf_a588e886-609-3,sonnet,101,355849,0.089,DONE,1,0.085,0,0,,1,0.069,0.244,0,y,n,y,1,1,1,PB2665,2026-10-25
+wf_a84d4142-f4e,20261505,w20261505a,PB2985,1,0,runtime/oo,MAJOR,worktree-wf_a84d4142-f4e-1,sonnet,133,387639,0.097,DONE,2,0.189,1,0.06,sonnet,0,0,0.346,0,y,n,y,1,1,1,PB2985,2026-10-25
+wf_a84d4142-f4e,20261505,w20261505b,PB3604,1,0,editions/constructs,MINOR,worktree-wf_a84d4142-f4e-2,sonnet,221,610580,0.153,DONE,1,0.109,0,0,,1,0.055,0.317,0,y,n,y,2,2,2,PB3604 PB3755,2026-10-25
+wf_a588e886-609,20261504,w20261504d,PB3750,1,0,tests/conformance,MINOR,worktree-wf_a588e886-609-6,sonnet,23,95601,0.024,DONE,1,0.036,0,0,,0,0,0.06,0,y,n,y,1,1,1,PB3750,2026-10-25
+wf_a588e886-609,20261504,w20261504f,PB3708,1,0,tooling/test,MINOR,worktree-wf_a588e886-609-9,sonnet,29,87228,0.022,DONE,1,0.038,0,0,,0,0,0.06,0,y,n,y,1,1,1,PB3708,2026-10-25
+wf_a588e886-609,20261504,w20261504g,PB3710,1,0,tooling/landing-measure,MINOR,worktree-wf_a588e886-609-12,sonnet,39,122446,0.031,DONE,2,0.105,1,0.022,sonnet,0,0,0.158,0,y,n,y,1,1,1,PB3710,2026-10-25
+wf_a588e886-609,20261504,w20261504h,PB3715,1,0,tooling/checkpoint,MINOR,worktree-wf_a588e886-609-18,sonnet,42,134081,0.034,DONE,1,0.04,0,0,,0,0,0.074,0,y,n,y,1,1,1,PB3715,2026-10-25
+wf_a84d4142-f4e,20261505,w20261505c,PB3751,1,0,grammar/optional-words,MINOR,worktree-wf_a84d4142-f4e-8,opus,170,461262,0.288,DONE,1,0.082,0,0,,0,0,0.37,0,y,n,y,1,1,1,PB3751,2026-10-25
+wf_a84d4142-f4e,20261505,w20261505d,PB3682,1,0,binding/data,MINOR,worktree-wf_a84d4142-f4e-11,sonnet,275,733983,0.183,DONE,2,0.216,1,0.068,sonnet,0,0,0.468,0,y,n,y,1,1,1,PB3682,2026-10-25
+wf_a84d4142-f4e,20261505,w20261505e,PB3691,1,0,binder/relation,MINOR,worktree-wf_a84d4142-f4e-14,sonnet,146,402485,0.101,DONE,1,0.095,0,0,,0,0,0.196,0,y,n,y,1,1,1,PB3691,2026-10-26
+wf_f2cc2e8e-92d,20261702,w20261702a,PB3728,1,0,orchestrator/planner,MAJOR,worktree-wf_f2cc2e8e-92d-1,opus,222,735716,0.46,DONE,1,0.134,0,0,,0,0,0.594,0,y,n,y,1,1,1,PB3728,2026-10-26
+wf_3fef8479-1cf,?,wf_3fef8479-1cf:A,PB3707,1,1,tooling/gate,MINOR,,sonnet,106,374343,0.094,NORESULT,0,0,0,0,,0,0,0.094,0.239,n,n,y,0,0,3,,2026-10-26
+wf_3fef8479-1cf,?,wf_3fef8479-1cf:B,PB3789,1,0,process/register-view,MINOR,,sonnet,128,300403,0.075,NORESULT,0,0,0,0,,0,0,0.075,0,n,n,n,0,0,0,,2026-10-26
+wf_3fef8479-1cf,20261703,w20261703c,PB3770,1,0,tooling/hooks,MAJOR,worktree-wf_3fef8479-1cf-3,sonnet,77,242417,0.061,DONE,1,0.053,0,0,,0,0,0.113,0,y,n,y,1,1,1,PB3770,2026-10-26
+wf_89ef0013-791,20261704,w20261704a,PB3663,1,0,tooling/gate,MAJOR,worktree-wf_89ef0013-791-1,sonnet,260,759902,0.19,DONE,1,0.11,0,0,,0,0,0.3,0,y,n,y,1,1,1,PB3663,2026-10-26
+wf_89ef0013-791,20261704,w20261704b,PB3793,1,0,docs/oo-design,MINOR,worktree-wf_89ef0013-791-2,sonnet,27,86126,0.022,DONE,1,0.05,0,0,,0,0,0.071,0,y,n,y,1,1,1,PB3793,2026-10-26
+wf_89ef0013-791,20261704,w20261704c,PB3795,1,0,process/inventory-records,MAJOR,worktree-wf_89ef0013-791-3,sonnet,81,244955,0.061,DONE,2,0.121,1,0.034,sonnet,0,0,0.216,0,y,n,y,2,2,2,PB3375 PB3795,2026-10-26
+wf_de9b57e5-dc5,20261705,w20261705a,PB3798,1,0,process/guardrails,MAJOR,worktree-wf_de9b57e5-dc5-1,sonnet,49,162042,0.041,DONE,3,0.174,2,0.06,sonnet,0,0,0.275,0,y,n,y,1,1,1,PB3798,2026-10-26
+wf_89ef0013-791,20261704,w20261704d,PB3748,1,0,process/landing,MINOR,worktree-wf_89ef0013-791-6,sonnet,141,392269,0.098,DONE,1,0.08,0,0,,0,0,0.178,0,y,n,y,2,2,2,PB3673 PB3748,2026-10-26
+wf_89ef0013-791,20261704,w20261704e,PB3709,1,0,tooling/test,TRIVIAL,worktree-wf_89ef0013-791-12,sonnet,22,82086,0.021,DONE,1,0.04,0,0,,0,0,0.061,0,y,n,y,1,1,1,PB3709,2026-10-26
+wf_89ef0013-791,20261704,w20261704f,PB3787,1,0,ci/merge-queue,MINOR,worktree-wf_89ef0013-791-15,sonnet,47,191685,0.048,DONE,1,0.082,0,0,,0,0,0.13,0,y,n,y,1,1,1,PB3787,2026-10-26
+wf_f738b288-4ba,20261703,w20261703a,PB3707,2,0,tooling/gate,MINOR,worktree-wf_f738b288-4ba-1,sonnet,38,120295,0.03,DONE,2,0.174,1,0.036,sonnet,0,0,0.239,0,y,n,y,3,3,3,PB3707 PB3717 PB3724,2026-10-26
+wf_d45a8f51-1cd,20261706,w20261706a,PB3575,1,0,diagnostics/catalog,MINOR,worktree-wf_d45a8f51-1cd-1,opus,164,476054,0.298,DONE,2,0.159,1,0.144,opus,0,0,0.6,0,y,n,y,1,1,1,PB3575,2026-10-26
+wf_426be72c-f33,20261707,w20261707a,PB3829,1,0,runtime/intrinsics,MAJOR,worktree-wf_426be72c-f33-1,opus,255,647940,0.405,DONE,1,0.138,0,0,,0,0,0.543,0,y,n,y,2,2,2,PB3829 PB65,2026-10-26
+wf_426be72c-f33,20261707,w20261707b,PB3831,1,0,frontend/grammar,MINOR,worktree-wf_426be72c-f33-2,opus,184,620764,0.388,DONE,3,0.325,2,0.572,opus,1,0.087,1.373,0,y,n,y,2,2,2,PB3831 PB3832,2026-10-26
+wf_426be72c-f33,20261707,w20261707c,PB3830,1,0,grammar,MINOR,worktree-wf_426be72c-f33-3,opus,253,891778,0.557,DONE,3,0.288,2,0.431,opus,0,0,1.276,0,y,n,y,1,1,1,PB3830,2026-10-26
+wf_8dcba0c7-90a,20261708,w20261708a,PB3837,1,0,tooling/naming,MINOR,worktree-wf_8dcba0c7-90a-1,opus,257,700398,0.438,DONE,2,0.185,1,0.185,opus,0,0,0.807,0,y,n,y,4,4,4,PB2412 PB2413 PB2414 PB3837,2026-10-26
+wf_5c017902-6f0,20261709,w20261709a,PB3788,1,0,process/skills,MINOR,worktree-wf_5c017902-6f0-1,sonnet,205,610864,0.153,DONE,2,0.161,1,0.035,sonnet,0,0,0.349,0,y,n,y,2,2,2,PB3777 PB3780,2026-10-26
+wf_5c017902-6f0,20261709,w20261709b,PB3779,1,0,process/orchestrator,MINOR,worktree-wf_5c017902-6f0-2,sonnet,63,246374,0.062,DONE,1,0.077,0,0,,0,0,0.138,0,y,n,y,1,1,1,PB3779,2026-10-26
+wf_8f6f9b6c-5d5,20261711,w20261711a,PB3537,1,0,tooling/fuzz,MINOR,worktree-wf_8f6f9b6c-5d5-1,sonnet,190,671538,0.168,DONE,2,0.144,1,0.037,sonnet,0,0,0.349,0,y,n,y,2,2,2,PB3537 PB3561,2026-10-26
+wf_8f6f9b6c-5d5,20261711,w20261711b,PB3839,1,0,codegen/intrinsics,MAJOR,worktree-wf_8f6f9b6c-5d5-2,sonnet,241,703565,0.176,DONE,2,0.158,1,0.043,sonnet,0,0,0.377,0,y,n,y,2,2,2,PB3839 PB624,2026-10-26
+wf_8f6f9b6c-5d5,20261711,w20261711c,PB906,1,0,frontend/diagnostics,MINOR,worktree-wf_8f6f9b6c-5d5-3,sonnet,190,547236,0.137,DONE,2,0.145,1,0.038,sonnet,0,0,0.32,0,y,n,y,2,2,2,PB3844 PB906,2026-10-26
+wf_8f6f9b6c-5d5,20261711,w20261711d,PB3468,1,0,conformance/fuzz,MINOR,worktree-wf_8f6f9b6c-5d5-4,sonnet,138,356596,0.089,DONE,1,0.081,0,0,,0,0,0.17,0,y,n,y,1,1,1,PB3468,2026-10-26
+wf_54c325cf-a4e,20261712,w20261712a,PB3554,1,0,codegen/io,MINOR,worktree-wf_54c325cf-a4e-1,sonnet,57,235536,0.059,DONE,2,0.184,1,0.065,sonnet,0,0,0.308,0,y,n,y,1,1,1,PB3554,2026-10-26
+wf_54c325cf-a4e,20261712,w20261712b,PB3635,1,0,runtime/io,MEDIUM,worktree-wf_54c325cf-a4e-2,sonnet,86,264682,0.066,DONE,3,0.277,2,0.124,sonnet,0,0,0.467,0,y,n,y,1,1,1,PB3635,2026-10-26
+wf_206681c5-6cf,20261714,w20261714b,PB2923,1,0,codegen/arithmetic,MINOR,worktree-wf_206681c5-6cf-1,sonnet,167,551848,0.138,DONE,2,0.158,1,0.036,sonnet,0,0,0.332,0,y,n,y,1,1,1,PB2923,2026-10-27
+wf_17452aee-3ca,20261715,w20261715b,PB3569,1,0,binder/io,MINOR,worktree-wf_17452aee-3ca-1,sonnet,125,372183,0.093,DONE,2,0.16,1,0.052,sonnet,0,0,0.305,0,y,n,y,1,1,1,PB3569,2026-10-27
+wf_6239343b-6e0,20261716,w20261716a,PB3294,1,0,runtime/io,MINOR,worktree-wf_6239343b-6e0-1,sonnet,128,363599,0.091,DONE,2,0.141,1,0.042,sonnet,0,0,0.274,0,y,n,y,1,1,1,PB3294,2026-10-27
+wf_6239343b-6e0,20261716,w20261716b,PB3697,1,0,docs/boolean,MINOR,worktree-wf_6239343b-6e0-2,sonnet,94,312276,0.078,DONE,3,0.202,2,0.09,sonnet,0,0,0.371,0,y,n,y,2,2,2,PB3697 PB3698,2026-10-27
+wf_6239343b-6e0,20261716,w20261716c,PB3514,1,0,runtime/display,MINOR,worktree-wf_6239343b-6e0-3,sonnet,328,987851,0.247,DONE,2,0.173,1,0.035,sonnet,0,0,0.455,0,y,n,y,1,1,1,PB3514,2026-10-27
+wf_d7d387d1-c82,20261717,w20261717a,PB3860,1,0,codegen/intrinsics,MAJOR,worktree-wf_d7d387d1-c82-1,sonnet,176,427624,0.107,DONE,1,0.129,0,0,,0,0,0.236,0,y,n,y,1,1,1,PB3860,2026-10-27

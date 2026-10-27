@@ -74,7 +74,7 @@ effort, turn cap, 1-hour prompt cache and — for the read-only roles — a hook
 `make_dispatch_specs.py <groups.json>`, which records each group in the dispatch ledger once `check_practices.py` is GREEN. `concurrency` workers pull groups from one
 queue and a freed slot refills at once; a DONE branch is reviewed on its branch by one read-only `cobol-reviewer` and the loop's landing lane lands it only when
 stamped `Review: CLEAN` at its head; a same-file successor (`after:`) merges its predecessor's final branch; nothing is held and no lander exists (kb/Work PB3023,
-PB3381). **Args:** `{ scratch, wave, stop_file, global_stop, concurrency (6), implementer_model ('opus'; a group's own `model` overrides it), groups: [{ letter,
+PB3381). **Args:** `{ scratch, wave, stop_file, global_stop, concurrency (6), groups: [{ letter,
 lead, notes, codes, after? }], review_fix_rounds (2), reviewer_ceiling_min (90) }`. **Return payloads are capped** (kb/Work PB1912): an implementer's `summary` is
 at most 900 characters, `leads` at most 6 of at most 500, a finisher's final text at most 25 lines; the detail lives in the report file. `check_practices.py
 <groups.json>` refuses two groups whose claims meet on any file or member unless one declares `after:` the other (`inflight.collision`, kb/Work PB3670, PB3696).
