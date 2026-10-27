@@ -18,7 +18,9 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// field holding its STORAGE image as of the last COMMIT (or the activation): <c>__CommitSave</c> renders
 /// <see cref="OperandText.RecordAreaImage"/> into it and <c>__CommitRestore</c> stores it back through
 /// <see cref="SequentialIoEmitter.EmitImageInto"/> — the one record-area channel and its receiving inverse, arm for arm,
-/// which carry every usage and shape a record area can have. The usage pass makes each such group take the image round
+/// which carry every usage and shape a record area can have. The restore deposits the saved image VERBATIM
+/// (<c>storesIntoOwnItem: false</c>, <see cref="ReceivingStore.VerbatimStorageArea"/>): it returns the item to the state it was
+/// in at the COMMIT (§14.9.36.4 GR3), so a boolean item is not re-converted (kb/Work PB3697). The usage pass makes each such group take the image round
 /// trip and each elementary item a character channel (<c>UsageCollectionPass.Collect</c>).</para>
 /// </summary>
 internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs, SequentialIoEmitter seqIo)
@@ -40,7 +42,7 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
         using (w.Block("private void __CommitRestore()   // ISO §14.9.36.4 GR3: the data items are restored"))
             for (int i = 0; i < clause.Items.Count; i++)
                 if (refs.ResolveItem(clause.Items[i]) is { } place)
-                    seqIo.EmitImageInto(place, $"__commitImage{i}");
+                    seqIo.EmitImageInto(place, $"__commitImage{i}", storesIntoOwnItem: false);
         // The refused file of a COMMIT or ROLLBACK is told to the program by its I-O status in the element that describes
         // it (DESIGN-runtime-library.md 2.2.1.10, "What the program is told"): true when this element stored it.
         using (w.Block("private bool __CommitStatus(string __file)"))
