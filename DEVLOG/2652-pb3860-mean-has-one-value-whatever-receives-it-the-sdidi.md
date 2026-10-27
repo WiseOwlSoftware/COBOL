@@ -1,4 +1,4 @@
-## PB3860: MEAN has one value whatever receives it, the SDIDI quotient in every arithmetic mode
+## Entry 2652 — 2026-10-26 19:58 PDT — PB3860: MEAN has one value whatever receives it, the SDIDI quotient in every arithmetic mode
 
 `COMPUTE R2 ROUNDED MODE AWAY-FROM-ZERO = FUNCTION MEAN(0.00000001 and nineteen zeros)` stored +0.00 where the one rounding of the mean, 5E-10,
 is +0.01 (kb/Work PB3860, the sibling PB3839's review left open; owner decision 2026-10-26: "We should always be consistent with ourself barring
@@ -35,3 +35,4 @@ modes always did (`2.000000000000000000000000000000000`), because `CobolDec.Div`
 IEEE 754 preferred exponent: filed as a lead, not changed here, since the representation of every SDIDI quotient is read by many goldens. The sibling sweep
 (SUM, RANGE, MEDIAN, MIDRANGE, ABS, FRACTION-PART, VARIANCE, STANDARD-DEVIATION, PRESENT-VALUE into a 2-place AWAY-FROM-ZERO receiver) found no other
 function whose value depends on its receiver.
+
