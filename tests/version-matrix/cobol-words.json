@@ -1,5 +1,5 @@
 {
- "_comment": "GENERATED-INPUT / hand-curated single source for the context-sensitive word set (rearchitecture PHASE 04, Group A). Each word: 'token' = the lexer token name (ANTLR spelling, '_' where the COBOL word has '-'; a trailing '_' avoids a generator clash, e.g. FULL_ = 'FULL'); 'nameSlot' = the token appears in the parser cobolWord rule (admitted in a user-defined-name slot); 'subscriptTrigger' = the token is in the lexer _dataNameTokens set (a '(' after it enters SUBSCRIPT mode); 'note' = context/provenance. scripts/gen-cobol-words.ps1 emits src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4 (cobolWord) + src/WiseOwl.Cobol.Frontend/Parsing/CobolLexerWordSet.g.cs (_dataNameTokens) from this file, ordinally sorted; CobolWordsDriftTests asserts the two generated artifacts equal this file (both directions) and cross-checks reserved-words.json. Rows are captured AS-IS to preserve today's behavior byte-for-byte (the two known asymmetries — BIT nameSlot-only, the six functionName-collision words subscriptTrigger-only — are ledgered as follow-up FU-1). The RESERVATION GATE IS DERIVED, NEVER DECLARED HERE (kb/Work PB693): a nameSlot word that ISO 8.9 reserves at any edition gets `{!reservedHere(...)}?` on its cobolWord alternative plus the inverse-gated reservedGatedWord twin, computed by the generator from reserved-words.json - there is no per-row flag to forget, and 8.3.2.1 rule 1 (reserved words shall not be used as user-defined words) therefore holds by construction. CONTENT-FILTER RULE: never print this file's word list into a conversation stream.",
+ "_comment": "GENERATED-INPUT / hand-curated single source for the context-sensitive word set (rearchitecture PHASE 04, Group A). Each word: 'token' = the lexer token name (ANTLR spelling, '_' where the COBOL word has '-'; a trailing '_' avoids a generator clash, e.g. FULL_ = 'FULL'); 'nameSlot' = the token appears in the parser cobolWord rule (admitted in a user-defined-name slot); 'subscriptTrigger' = the token is in the lexer _dataNameTokens set (a '(' after it enters SUBSCRIPT mode); 'keywordWhereFree' (optional) = the DETERMINATION, with its citation, that a general format spells this reservation-gated word as a keyword at an edition where 8.9 leaves it free, so a program may both declare the word and write that format: the generator then emits the word's keyword rule (TOKEN | {wordAhead(\"WORD\")}? IDENTIFIER, named <word>Keyword) and the hand grammar spells the word ONLY through it, because the token-level gate retypes every occurrence of a declared free word (kb/Work PB2623, PB3794); 'note' = context/provenance. scripts/gen-cobol-words.ps1 emits src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4 (cobolWord, reservedGatedWord and the keyword rules) + src/WiseOwl.Cobol.Frontend/Parsing/CobolLexerWordSet.g.cs (_dataNameTokens, the gated token set) from this file, ordinally sorted; CobolWordsDriftTests asserts the two generated artifacts equal this file (both directions) and cross-checks reserved-words.json. Rows are captured AS-IS to preserve today's behavior byte-for-byte (the two known asymmetries — BIT nameSlot-only, the six functionName-collision words subscriptTrigger-only — are ledgered as follow-up FU-1). The RESERVATION GATE IS DERIVED, NEVER DECLARED HERE (kb/Work PB693): a nameSlot word that ISO 8.9 reserves at any edition is never a cobolWord alternative; its only name home is the reservedGatedWord definition rule, and ReservationGateRewriter retypes it to IDENTIFIER where 8.9 leaves it free and the program declares it (kb/Work PB655). The set is computed by the generator from reserved-words.json - there is no per-row flag to forget, and 8.3.2.1 rule 1 (reserved words shall not be used as user-defined words) therefore holds by construction. CONTENT-FILTER RULE: never print this file's word list into a conversation stream.",
  "words": [
   {
    "token": "ACTIVE_CLASS",
@@ -713,7 +713,8 @@
    "token": "MESSAGE",
    "nameSlot": true,
    "subscriptTrigger": true,
-   "note": "the CONTINUE AFTER MESSAGE RECEIVED phrase (ISO 14.9.31). Reserved 85/2002; USER WORD at 2014/2023 — the reverse direction from the others. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for Wave H does not break its legal user-word use (the RAISE/RESUME/SCREEN precedent)."
+   "keywordWhereFree": "ISO 14.9.31.2 prints CONTINUE AFTER MESSAGE RECEIVED in the RECEIVE statement of COBOL-2023, and the 2023 8.9 list does not reserve MESSAGE, so a 2023 program may declare it AND write the phrase (kb/Work PB3794)",
+   "note": "the CONTINUE AFTER MESSAGE RECEIVED phrase (ISO 14.9.31). Reserved 85/2002; USER WORD at 2014/2023 — the reverse direction from the others. A nameSlot row so the hard lexer token added for Wave H does not break its legal user-word use: RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b), and since the 2023 RECEIVE still spells it, its keyword position reads the retyped spelling through the generated messageKeyword rule (keywordWhereFree)."
   },
   {
    "token": "MESSAGE_TAG",
@@ -725,6 +726,7 @@
    "token": "METHOD",
    "nameSlot": true,
    "subscriptTrigger": true,
+   "keywordWhereFree": "ISO 10.6.1 prints END METHOD (and 10.7.2 the METHOD end marker) at COBOL-2023, and the 2023 8.9 list does not reserve METHOD (it names METHOD-ID); EXIT METHOD, removed at 2023 by Annex E.2 item 1, still spells it under --permissive (kb/Work PB2623)",
    "note": "ISO 8.9 reserves it at 2002/2014 only (the 2023 list does not contain it, kb/Work PB2623; the END METHOD marker, 10.7.2, spells it as a keyword in that position), so it is a legal user-defined word at 85 and 2023; the lexer token refused it at 85 as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
@@ -737,6 +739,7 @@
    "token": "MULTIPLE",
    "nameSlot": true,
    "subscriptTrigger": true,
+   "keywordWhereFree": "ISO 12.4.5.9.2 prints WITH LOCK ON [MULTIPLE] RECORDS in the LOCK MODE clause, a 2002 introduction, and 8.9 reserves MULTIPLE at 85 only: 8.10 lists it as the context-sensitive word of the LOCK ON phrase (kb/Work PB3794)",
    "note": "ISO 8.9 reserves it at 85 only, so it is a legal user-defined word at 2002/2014/2023; the lexer token refused it there as a raw parse error until kb/Work PB655. RESERVATION-GATED by the derived gate (gen-cobol-words.ps1 step 4b) where 8.9 reserves it."
   },
   {
@@ -821,6 +824,7 @@
    "token": "ORDER",
    "nameSlot": true,
    "subscriptTrigger": true,
+   "keywordWhereFree": "ISO 14.9.40.2 prints [WITH DUPLICATES IN ORDER] in the SORT statement, accepted at every edition (FMT-14.9.40.2), and reserved-words.json leaves ORDER free at 85 (kb/Work PB3794)",
    "note": "the SORT DUPLICATES phrase optional word (14.9.40.2 [ WITH DUPLICATES IN ORDER ]) and the SPECIAL-NAMES ORDER TABLE clause keyword (12.3.7.2). ORDER gained a lexer token when kb/Work PB704 showed a keyword slot may not borrow cobolWord: the 8.9 funnel checks IDENTIFIER position-blind, so the phrase was rejected COBOL0901 at every edition from 2002. ReservedWords.Table has ORDER r85=false, reserved 2002+, so this nameSlot row is what keeps a COBOL-85 data item NAMED Order legal while the derived reservation gate and the 8.9 funnel name it above 85 - the FORMAT precedent exactly. subscriptTrigger=true because a table may be named Order and neither ORDER-bearing format is followed by a left parenthesis"
   },
   {

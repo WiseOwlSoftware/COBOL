@@ -101,7 +101,7 @@ localeClause
 // Recognizing the clause at every --std is what lets the version pass answer below 2002 with the explanatory
 // `order-table-2002` introduction gate rather than a parse error.
 orderTableClause
-    : ORDER TABLE cobolWord IS? specialNamesLiteral
+    : orderKeyword TABLE cobolWord IS? specialNamesLiteral
     ;
 
 // ⛔ A SPECIAL-NAMES LITERAL POSITION WHOSE ONLY WORD IS A CONSTANT-NAME (kb/Work PB1942): literal-5 / literal-6 of the
