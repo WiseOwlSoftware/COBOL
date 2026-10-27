@@ -192,7 +192,7 @@ internal sealed class FaultHostMedium : IHostMedium
         Open("open", hostPath, mode, access, share, options);
 
     public Stream OpenConnectorWriteStream(string hostPath, FileMode mode, FileAccess access, FileShare share) =>
-        HostFile.WriteStreamOf(mode, access, share, (hostMode, options) => Open("open", hostPath, hostMode, access, share, options));
+        HostFile.WriteStreamOf(mode, share, (hostMode, options) => Open("open", hostPath, hostMode, access, share, options));
 
     public FileStream OpenAuxiliary(string hostPath, FileMode mode, FileAccess access)
     {
