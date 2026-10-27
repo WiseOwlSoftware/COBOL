@@ -126,20 +126,47 @@ public abstract class KeyedConnector : FileConnector
     internal override FileAccess HostAccess(FileOpenMode mode) =>
         mode is FileOpenMode.Input ? FileAccess.Read : FileAccess.ReadWrite;
 
+    /// <summary>⛔ WHAT THE ONE PRESENCE PROBE DECIDED FOR THE HANDLE THE FILE LOCK TAKES (kb/Work PB3946, PB3635): the host mode of
+    /// that handle is a fact of the probe, never of whichever arm happens to take it, so a file made or removed between the probe
+    /// and the handle is refused by the handle itself and the OPEN is made again (<see cref="FileConnector.Open"/>).</summary>
+    private enum FileTaking
+    {
+        /// <summary>A PRESENT file an INPUT, I-O or EXTEND OPEN reads or extends: <see cref="FileMode.Open"/>. The only taking that
+        /// may take back the handle a CLOSE under commit control kept.</summary>
+        Existing,
+        /// <summary>A PRESENT file an OPEN OUTPUT replaces (§14.9.27.4 GR18): <see cref="FileMode.Open"/>; the store's creation
+        /// truncates it (<see cref="PagedFile.Create"/>), and the handle is a new one beside the kept one (kb/Work PB3493).</summary>
+        Replacing,
+        /// <summary>A creation decided on an ABSENT probe: <see cref="FileMode.CreateNew"/> (kb/Work PB3635).</summary>
+        Creating,
+        /// <summary>An OPEN OUTPUT whose presence the host could not tell (an unlistable directory): <see cref="FileMode.OpenOrCreate"/>,
+        /// because the file may be there and OUTPUT replaces it.</summary>
+        Unprobed,
+    }
+
+    private static FileMode HostModeOf(FileTaking taking) => taking switch
+    {
+        FileTaking.Existing or FileTaking.Replacing => FileMode.Open,
+        FileTaking.Creating => FileMode.CreateNew,
+        _ => FileMode.OpenOrCreate,
+    };
+
     /// <summary>Take the file lock: the connector's own handle on the physical file, carrying
     /// <see cref="FileConnector.HostShare"/> — the posture the registry derived and handed down immediately
     /// before this body ran. Called by <see cref="OpenCore"/> on every arm that has a physical file to hold, and by
     /// that arm ONLY: an arm with no file (an absent OPTIONAL one on INPUT) locks nothing.
-    /// <para><paramref name="create"/> is §14.9.27.4 GR17/GR18's creation — the OUTPUT arm and the absent
-    /// OPTIONAL I-O/EXTEND arms — and is the only difference between the arms, because the store's own
-    /// truncation is <see cref="PagedFile.Create"/>'s. <paramref name="access"/> is <see cref="Lock"/>'s.
-    /// <paramref name="newFileOnly"/> is every creation decided on an ABSENT presence probe — an OPEN's (OUTPUT of an absent file,
-    /// I-O or EXTEND of an absent OPTIONAL one) and <see cref="CreateTheFileAgain"/>'s: the handle is taken
-    /// <see cref="FileMode.CreateNew"/> and refused when the path names a file, so a file another run unit made between that probe
-    /// and this handle (an OPEN OUTPUT takes no entry mutex) is never adopted or replaced by the empty store (kb/Work PB3635); the
-    /// OPEN is made again over it (<see cref="FileConnector.Open"/>), the WRITE answers '30'. An OUTPUT whose presence the host could
-    /// not tell (an unlistable directory) keeps <see cref="FileMode.OpenOrCreate"/>: the file may be there and OUTPUT replaces it.</para></summary>
-    private void TakeFileLock(bool create, FileAccess access, bool newFileOnly)
+    /// <para><paramref name="taking"/> is what the ONE presence probe decided (<see cref="FileTaking"/>), and the handle's host mode is
+    /// its alone: a creation decided on an ABSENT probe — an OPEN's (OUTPUT of an absent file, I-O or EXTEND of an absent OPTIONAL
+    /// one) and <see cref="CreateTheFileAgain"/>'s — takes <see cref="FileMode.CreateNew"/>, refused when the path names a file, so a
+    /// file another run unit made between that probe and this handle (an OPEN OUTPUT takes no entry mutex) is never adopted or
+    /// replaced by the empty store (kb/Work PB3635); a file the probe found PRESENT takes <see cref="FileMode.Open"/>, refused when
+    /// the path names none, so a file another run unit removed between the probe and the handle is never created empty and adopted
+    /// (kb/Work PB3946). Either refusal makes the OPEN again over the path as it now stands (<see cref="FileConnector.Open"/>); the
+    /// WRITE of <see cref="CreateTheFileAgain"/> answers '30'. Only an OUTPUT whose presence the host could not tell (an unlistable
+    /// directory) takes <see cref="FileMode.OpenOrCreate"/>: the file may be there and OUTPUT replaces it. The store's own truncation
+    /// is <see cref="PagedFile.Create"/>'s, so a replacing OUTPUT differs from an existing arm by the kept handle alone.
+    /// <paramref name="access"/> is <see cref="Lock"/>'s.</para></summary>
+    private void TakeFileLock(FileTaking taking, FileAccess access)
     {
         _store?.Dispose();   // no arm takes it twice; belt-and-braces so a future one cannot leak
         // ⛔ THE CONNECTOR'S OWN RE-OPEN TAKES BACK THE HANDLE ITS CLOSE UNDER COMMIT CONTROL KEPT when that handle is the
@@ -149,15 +176,14 @@ public abstract class KeyedConnector : FileConnector
         // connector's fields change. ⛔ NEVER FOR A CREATION: an OPEN that creates the file takes a handle of its own and makes the
         // new store through it beside the kept one (Recreate), so that a creation which is refused leaves the kept state as the
         // CLOSE left it (§14.9.27.4 GR25; kb/Work PB3493).
-        if (!create && _kept is { Handle: { } kept, Adopted: false } && kept.Share == HostShare && kept.Stream.CanWrite == (access != FileAccess.Read))
+        if (taking is FileTaking.Existing && _kept is { Handle: { } kept, Adopted: false } && kept.Share == HostShare && kept.Stream.CanWrite == (access != FileAccess.Read))
         {
             _kept = _kept with { Adopted = true };
             (_store, _handle, _regions) = (kept.Stream, kept.Handle, kept.Regions);
         }
         else
         {
-            var taken = HostFile.OpenConnectorStore(HostPath, !create ? FileMode.Open : newFileOnly ? FileMode.CreateNew : FileMode.OpenOrCreate,
-                access, HostShare);
+            var taken = HostFile.OpenConnectorStore(HostPath, HostModeOf(taking), access, HostShare);
             _store = taken;
             // Taken ONCE: the store's pages are read and written positionally through it (never through the stream's
             // buffer, kb/Work PB2660), and it is the handle the store mutex and this connector's record locks are held by.
@@ -266,15 +292,15 @@ public abstract class KeyedConnector : FileConnector
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
                 }
-                if ((Lock(create: false) ?? Attach(create: false)) is { } refusedInput) return refusedInput;   // §9.1.15 — the lock, before the store is read through it
+                if ((Lock(FileTaking.Existing) ?? Attach(create: false)) is { } refusedInput) return refusedInput;   // §9.1.15 — the lock, before the store is read through it
                 break;
             case FileOpenMode.Output:
                 // §14.9.27.4 GR18 — OUTPUT creates the physical file: a new, EMPTY store (kb/Work PB754). Under commit control an
                 // EXISTING file is captured first (R4, through this OPEN's own handle) and an absent one's creation journaled
                 // before the handle creates it (R1): 2.2.2.14.
                 var refusedOutput = exists
-                    ? Lock(create: true) ?? JournalCapture() ?? Attach(create: true)
-                    : JournalCreation() ?? LockCreating(newFileOnly: presence is FilePresence.Absent) ?? Attach(create: true);
+                    ? Lock(FileTaking.Replacing) ?? JournalCapture() ?? Attach(create: true)
+                    : JournalCreation() ?? LockCreating(presence is FilePresence.Absent ? FileTaking.Creating : FileTaking.Unprobed) ?? Attach(create: true);
                 if (refusedOutput is not null) return refusedOutput;
                 break;
             case FileOpenMode.IO:
@@ -284,7 +310,7 @@ public abstract class KeyedConnector : FileConnector
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     // Created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17): the file the lock just created has no bytes,
                     // and the adoption of a file of no bytes through a writable handle creates the empty store.
-                    if ((JournalCreation() ?? LockCreating(newFileOnly: true)) is { } refusedCreated) return refusedCreated;
+                    if ((JournalCreation() ?? LockCreating(FileTaking.Creating)) is { } refusedCreated) return refusedCreated;
                     // The file the kept state belonged to is not there (it was removed or renamed away outside the run unit): the
                     // file this OPEN created is a different one, and nothing of the kept store describes it. The OPEN handed the
                     // kept state to the registry before this body (RetireWhatWasKeptOfAnotherFile), whole, so a refused handle
@@ -293,7 +319,7 @@ public abstract class KeyedConnector : FileConnector
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
                 }
-                if ((Lock(create: false) ?? Attach(create: false)) is { } refused) return refused;
+                if ((Lock(FileTaking.Existing) ?? Attach(create: false)) is { } refused) return refused;
                 break;
         }
         FpiValid = mode is FileOpenMode.Input or FileOpenMode.IO;
@@ -382,7 +408,7 @@ public abstract class KeyedConnector : FileConnector
             _ = Detach();   // the placeholder
             (_begunByOpen, _openChangedFile) = (null, false);
             refused = HostFile.Probe(HostPath) is FilePresence.Absent
-                ? JournalCreation() ?? LockCreating(newFileOnly: true) ?? Attach(create: true)
+                ? JournalCreation() ?? LockCreating(FileTaking.Creating) ?? Attach(create: true)
                 : FileStatusCode.PermanentError;
             if (refused is null && !ResumeRunUnitFileLock()) refused = FileStatusCode.PermanentError;
         }
@@ -411,9 +437,9 @@ public abstract class KeyedConnector : FileConnector
 
     /// <summary>The creating arms' file lock (<see cref="Lock"/>): a handle taken with the creating mode creates the file, which
     /// this OPEN has then changed (<see cref="_openChangedFile"/>).</summary>
-    private string? LockCreating(bool newFileOnly)
+    private string? LockCreating(FileTaking taking)
     {
-        var refused = Lock(create: true, newFileOnly);
+        var refused = Lock(taking);
         if (refused is null) _openChangedFile = true;
         return refused;
     }
@@ -498,7 +524,7 @@ public abstract class KeyedConnector : FileConnector
     /// the physical format can hold (<see cref="FormatHolds"/>): one it cannot is §14.9.27.4 GR10's fixed file attribute
     /// conflict, '39', answered before any file is touched (GR25, <i>"If the execution of the OPEN statement is
     /// unsuccessful, the file is not affected"</i>). Returns the failing I-O status, or null.</summary>
-    private string? Lock(bool create, bool newFileOnly = false)
+    private string? Lock(FileTaking taking)
     {
         if (!FormatHolds()) return FileStatusCode.FixedAttributeConflict;
         // While the run unit's transaction on the file STANDS and a handle its CLOSE under commit control kept is WRITABLE,
@@ -512,7 +538,7 @@ public abstract class KeyedConnector : FileConnector
         // refused by the share mode, with its column held, and made again with FileLockPosture.WhenOwedWritesAreAdmitted
         // (FileConnector.Open, kb/Work PB3482), which the connector's column says by owing writes (FileConnector.OwesWrites, kb/Work PB3499).
         var access = HandleAccess(Mode);
-        try { TakeFileLock(create, access, newFileOnly); }
+        try { TakeFileLock(taking, access); }
         catch (IOException refusal) when (HostFile.IsSharingRefusal(refusal) && _kept is { Handle: { } kept, Adopted: false })
         {
             // The handle this connector kept at its CLOSE under commit control may refuse the new one's share mode (§9.1.15
@@ -527,7 +553,7 @@ public abstract class KeyedConnector : FileConnector
             _kept = _kept with { Handle = null };
             _givenBack = kept;
             GiveBack(kept);
-            TakeFileLock(create, access, newFileOnly);
+            TakeFileLock(taking, access);
         }
         return null;
     }

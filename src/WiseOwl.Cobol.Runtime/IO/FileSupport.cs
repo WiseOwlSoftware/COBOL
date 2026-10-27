@@ -340,6 +340,14 @@ public static class HostFile
     /// always had).</summary>
     internal static bool IsDirectoryInTheWay(IOException refusal, string hostPath) => IsExistsRefusal(refusal) && Directory.Exists(hostPath);
 
+    /// <summary>⛔ THE ONE HOST CLASSIFICATION OF A REFUSAL AS "NO FILE IS THERE" (kb/Work PB3946, the opposite direction of
+    /// <see cref="IsAlreadyExists"/>): did a handle opened <see cref="FileMode.Open"/> fail because the path names no file — or its
+    /// directory is gone? That is what an OPEN that decided on its presence probe to USE an existing file meets when another run unit
+    /// removed it between the probe and the handle, and the OPEN is made again from its start over the path as it now stands
+    /// (<c>FileConnector.Open</c>). .NET reports the host's <c>ERROR_FILE_NOT_FOUND</c> / <c>ERROR_PATH_NOT_FOUND</c> and Unix's
+    /// <c>ENOENT</c> as these two types on every host, so the type is the host's own word.</summary>
+    internal static bool IsRemoved(IOException refusal) => refusal is FileNotFoundException or DirectoryNotFoundException;
+
     private static bool IsExistsRefusal(IOException refusal) => refusal.HResult switch
     {
         unchecked((int)0x80070050) or unchecked((int)0x800700B7) => true,
@@ -815,24 +823,28 @@ public static class HostFile
     /// literal here (kb/Work PB2758): a writer whose record locks are published to other run units through this
     /// handle reads as well as writes (<c>SequentialConnector.HostAccess</c>, kb/Work PB2692).</para></summary>
     public static Stream OpenConnectorWriteStream(string hostPath, FileMode mode, FileAccess access, FileShare share) =>
-        WriteStreamOf(mode, access, share, (hostMode, options) => new FileStream(hostPath, hostMode, access,
+        WriteStreamOf(mode, share, (hostMode, options) => new FileStream(hostPath, hostMode, access,
             share, bufferSize: 1, options));
 
     /// <summary>⛔ THE ONE DECISION OF <see cref="OpenConnectorWriteStream"/> — the repositioning <see cref="SharedAppendStream"/>
     /// or the plain stream, the host mode and the position — over a handle <paramref name="open"/> takes with the host mode and
     /// options it is given, so a medium that opens its own handles (the fault-injecting test medium of
     /// docs/rearchitecture/DESIGN-runtime-library.md 2.2.2.12, <see cref="IHostMedium"/>) gets the same write stream.</summary>
-    internal static Stream WriteStreamOf(FileMode mode, FileAccess access, FileShare share, Func<FileMode, FileOptions, FileStream> open) =>
+    internal static Stream WriteStreamOf(FileMode mode, FileShare share, Func<FileMode, FileOptions, FileStream> open) =>
         FileLockPosture.AdmitsAnotherWriter(share)
-            ? new SharedAppendStream(open(HostWriteMode(mode, access), FileOptions.None))
-            : AtEndWhenAppending(open(HostWriteMode(mode, access), FileOptions.SequentialScan), mode);
+            ? new SharedAppendStream(open(HostWriteMode(mode), FileOptions.None))
+            : AtEndWhenAppending(open(HostWriteMode(mode), FileOptions.SequentialScan), mode);
 
     /// <summary>The <see cref="FileMode"/> a write stream is opened with: .NET refuses <see cref="FileMode.Append"/>
     /// for any access but bare <see cref="FileAccess.Write"/>, so a writer that also reads (kb/Work PB2692) opens the
-    /// file as <see cref="FileMode.OpenOrCreate"/>, Append's own creation rule, and is positioned at the end by
-    /// <see cref="AtEndWhenAppending"/> (the plain arm) or by every write (<see cref="SharedAppendStream"/>).</summary>
-    private static FileMode HostWriteMode(FileMode mode, FileAccess access) =>
-        mode == FileMode.Append && access != FileAccess.Write ? FileMode.OpenOrCreate : mode;
+    /// file as <see cref="FileMode.Open"/> and is positioned at the end by <see cref="AtEndWhenAppending"/> (the plain arm) or by
+    /// every write (<see cref="SharedAppendStream"/>).
+    /// <para>⛔ <see cref="FileMode.Append"/> IS THE EXTEND OF A FILE THE PROBE FOUND PRESENT, never a creation (a creation decided on an
+    /// absent probe is <see cref="FileMode.CreateNew"/>, kb/Work PB3635): .NET's Append and the Open+seek spelling of a reading
+    /// writer alike are therefore host mode Open, which refuses a file removed since the probe so the OPEN is made again
+    /// (<see cref="HostFile.IsRemoved"/>, kb/Work PB3946) instead of creating the file empty and answering success.</para></summary>
+    private static FileMode HostWriteMode(FileMode mode) =>
+        mode == FileMode.Append ? FileMode.Open : mode;
 
     /// <summary>Position an appending writer at the end of the file, as <see cref="FileMode.Append"/> does at open.</summary>
     private static FileStream AtEndWhenAppending(FileStream stream, FileMode mode)
