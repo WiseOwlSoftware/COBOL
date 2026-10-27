@@ -1,4 +1,4 @@
-## PB2923: DIVIDE ... REMAINDER's subsidiary quotient has identifier-3's own shape, so a floating-point receiver keeps its digits and its exponent
+## Entry 2647 — 2026-10-26 18:52 PDT — PB2923: DIVIDE ... REMAINDER's subsidiary quotient has identifier-3's own shape, so a floating-point receiver keeps its digits and its exponent
 
 `DIVIDE 1 BY 3E24 GIVING FE ROUNDED REMAINDER R2` with `FE PIC +9.99E+99` stored `+0.00E+00` and left R2 = 1.00, the whole dividend, where
 the statement without REMAINDER stores `+3.33E-25` (kb/Work PB2923; the owner, 2026-10-26: "Fix the root causes, never simply making the
@@ -49,3 +49,4 @@ with DIVD = 10.0 leaves +00000.009999 where STANDARD-DECIMAL gives the exact 0.0
 **Gate (after branch review round 1).** Run `TestResults/build-local/000001-20261027T012729Z` on head `f01b804f6`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 5,302/18,967 · Unit 36,732/37,991 · Characterization 36/36 … · Linux half (WSL clone of HEAD) GREEN ===`. The review's blocking finding R1-1 (the binary-float arm had written a second truncation routine beside `FloatResultant`) is fixed as above; its lead R1-2 (FLOAT-BINARY-128 / FLOAT-DECIMAL-* are refused, COBOL1564) is corrected in `ArithmeticEmitter.SubsidiaryForm` and CONFORMANCE.md.
 
 **Gate (implementer, before the review).** Run `TestResults/build-local/000002-20261027T010208Z` on head `033b3f1c0`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 6,001/18,965 · Unit 36,613/37,946 · Characterization 36/36 … · Linux half (WSL clone of HEAD) GREEN ===`. The first gate (run `000001-20261027T004711Z`) was RED for two reasons of mine, both fixed: the FE golden gave a numeric-edited item a VALUE, which is COBOL-2023 only (the leg now starts it by MOVE), and CONFORMANCE.md named the item by its row-key token in prose (`AnnexA1RegisterDriftTests`). `semgrep verify` unchanged (BigInteger 44 -> 44; the new code reads Int128/UInt128).
+
