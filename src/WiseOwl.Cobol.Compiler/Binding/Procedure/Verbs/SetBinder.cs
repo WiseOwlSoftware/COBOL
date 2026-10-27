@@ -723,6 +723,35 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         }
     }
 
+    /// <summary>⛔ THE §14.9.39.3 VERDICT FOR A STORE THAT IS AN IMPLICIT SET, NOT A WRITTEN ONE — INITIALIZE …
+    /// REPLACING <c>{DATA|PROGRAM|FUNCTION}-POINTER | OBJECT-REFERENCE</c> DATA BY identifier-2 (kb/Work PB3817).
+    /// §14.9.20.4 GR4 makes the store, per receiving operand, "SET receiving-operand TO sending-operand", so the
+    /// receiver's own restriction is asked at the receiver: §13.18.60.4 GR23/GR25/GR26 say a restricted pointer "shall
+    /// contain only the predefined address NULL or the address of" its type, and SR19/SR20/SR22 are where a SET is held
+    /// to it; the object-reference receiver's class description is held by SR10/SR12 (<c>OoConformance</c>).
+    /// The phrase-level category check (SR4) cannot ask it, because the receivers of
+    /// <c>INITIALIZE g REPLACING PROGRAM-POINTER</c> are the group's program-pointers, each restricted (or not) on its own.
+    /// The data-pointer arm is <see cref="PtrBinder.ScreenPointerReceiverRestriction"/>, the Format-7 route's own; the
+    /// program-pointer and function-pointer arms are <see cref="PointerAssignmentReason"/>, the Format-8/9 routes'; the
+    /// object-reference arm is <c>OoBinder.ScreenObjectRefAssignment</c>, the Format-5 route's.
+    /// A NULL sender never reaches here (it is a <c>BoundPredefinedNull</c>, not a place). True when the store is valid;
+    /// otherwise the error is reported and false returned.</summary>
+    internal bool ScreenImplicitSet(Place receiver, Place sender, string statement)
+    {
+        string recvName = receiver.Item.CobolName ?? "FILLER";
+        if (receiver.Item.Pic?.Category is PicCategory.Pointer)
+            return host.Ptr.ScreenPointerReceiverRestriction(receiver, recvName,
+                StrongTypeModel.PointerRestriction(sender.Item), sender.Item.CobolName ?? "FILLER", addressSender: false);
+        if (receiver.Item.Pic is { Category: PicCategory.ObjectReference } rpic
+            && sender.Item.Pic is { Category: PicCategory.ObjectReference } spic)
+            return host.Oo.ScreenObjectRefAssignment(spic, rpic,
+                $"{statement} — the implicit SET '{recvName}' TO '{sender.Item.CobolName}' (ISO §14.9.20.4 GR4)");
+        if (PointerAssignmentReason(receiver.Item, sender.Item) is not { } why) return true;
+        ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature,
+            $"{statement} — the implicit SET '{recvName}' TO '{sender.Item.CobolName}' (ISO §14.9.20.4 GR4): {why}");
+        return false;
+    }
+
     /// <summary>SET function-pointer assignment (ISO §14.9.39.2 Format 8; §14.9.39.3 SR20 — every target AND the
     /// sender shall be category function-pointer, the sender may be the predefined address NULL, and "the
     /// function-prototypes associated with identifier-12 and identifier-13 shall have the same signature"): the
