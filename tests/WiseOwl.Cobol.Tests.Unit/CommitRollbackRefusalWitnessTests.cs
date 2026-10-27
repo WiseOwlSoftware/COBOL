@@ -45,7 +45,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// is the condition's exception processing; item 8's ROLLBACK follows it), so it sees '30' and 'CHGD'. With checking not
 /// enabled the run unit continues when a FILE STATUS clause or a USE procedure covers the statement and terminates
 /// abnormally when neither does (DOC-A.1-103); with checking enabled the run unit terminates abnormally, with no
-/// declarative by §14.6.13.1.3 rule 7 and after a declarative for the condition by rule 5, whose trace entry is then the
+/// declarative by §14.6.13.1.3 rule 7, after a declarative naming the condition (format 3) by rule 5, and after a format 1
+/// declarative (selected by the I-O status, rule 3 and §9.1.13.1) by rule 7, whose trace entry is then the
 /// last. An abnormal termination's rollback restores the files (§14.6.12, §9.1.18.5), so in every case the record the
 /// program wrote is absent from the file afterwards: the refused COMMIT committed nothing.</para>
 /// </summary>
@@ -273,30 +274,57 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
     /// statement's file, with or without checking (§14.9.49.4 GR4 a), GR6 a)-d)): the open-mode tier (<c>USE ... ON
     /// I-O</c>, by the file's open mode), the file-name tier (<c>USE ... ON KF</c> for the containing element's GLOBAL
     /// file), each with and without the describing element's FILE STATUS clause, the open-mode tier with checking
-    /// enabled (the declarative runs, then the condition is fatal, §14.6.13.1.3 rule 5), and the open-mode tier ending
-    /// in <c>RESUME AT</c> (item 8's ROLLBACK is before the transfer).</summary>
+    /// enabled (a format 1 declarative names no exception-name, so rule 5 does not select it: the I-O status selects it under
+    /// rule 3 and §9.1.13.1, then the fatal condition ends the run unit under rule 7, §14.6.13.1.3), and the open-mode tier ending
+    /// in <c>RESUME AT</c> (item 8's ROLLBACK is before the transfer), the file-name tier with checking enabled by a
+    /// directive that NAMES the file (<c>&gt;&gt;TURN EC-I-O KF CHECKING ON</c>, §7.3.25.4 GR6: "if file-name-1 is
+    /// specified, checking is enabled only for exception conditions associated with that file-name") and with checking
+    /// enabled for every file and disabled for the file by a directive naming it (GR8), and the containing element's own
+    /// <c>USE GLOBAL</c> declarative (§14.9.49.4 GR4 b)), which the executing element's refused COMMIT or ROLLBACK
+    /// reaches when the executing element has none.</summary>
     public enum ForeignCover
     {
         StatusItem, Nothing, CheckingWithStatusItem, CheckingWithExceptionUse,
         OpenModeUseWithStatusItem, OpenModeUseNoStatusItem, GlobalFileUseWithStatusItem, GlobalFileUseNoStatusItem,
         CheckingWithOpenModeUse, OpenModeUseResumeAt,
+        NamedFileCheckingWithStatusItem, NamedFileCheckingNoStatusItem, NamedFileCheckingOffUnderGeneralOn,
+        ContainerGlobalUseNoStatusItem, ContainerGlobalUseWithStatusItem,
     }
 
+    /// <summary>Checking for the EC-I-O condition is enabled at the statement for the refused file, by a directive naming
+    /// no file or naming the file (§7.3.25.4 GR6).</summary>
     private static bool ForeignChecking(ForeignCover c) =>
-        c is ForeignCover.CheckingWithStatusItem or ForeignCover.CheckingWithExceptionUse or ForeignCover.CheckingWithOpenModeUse;
+        c is ForeignCover.CheckingWithStatusItem or ForeignCover.CheckingWithExceptionUse or ForeignCover.CheckingWithOpenModeUse
+            or ForeignCover.NamedFileCheckingWithStatusItem or ForeignCover.NamedFileCheckingNoStatusItem;
+
+    /// <summary>The directives that precede the contained program: they govern only its statements (§7.3.25.4 GR5/GR6).</summary>
+    private static string ForeignDirectives(ForeignCover c) => c switch
+    {
+        ForeignCover.CheckingWithStatusItem or ForeignCover.CheckingWithExceptionUse or ForeignCover.CheckingWithOpenModeUse =>
+            ">>TURN EC-I-O CHECKING ON\n",
+        ForeignCover.NamedFileCheckingWithStatusItem or ForeignCover.NamedFileCheckingNoStatusItem =>
+            ">>TURN EC-I-O KF CHECKING ON\n",
+        ForeignCover.NamedFileCheckingOffUnderGeneralOn => ">>TURN EC-I-O CHECKING ON\n>>TURN EC-I-O KF CHECKING OFF\n",
+        _ => "",
+    };
 
     /// <summary>The describing (containing) element gives the file a FILE STATUS clause.</summary>
     private static bool ForeignStatusItem(ForeignCover c) =>
-        c is not (ForeignCover.Nothing or ForeignCover.OpenModeUseNoStatusItem or ForeignCover.GlobalFileUseNoStatusItem);
+        c is not (ForeignCover.Nothing or ForeignCover.OpenModeUseNoStatusItem or ForeignCover.GlobalFileUseNoStatusItem
+            or ForeignCover.NamedFileCheckingNoStatusItem or ForeignCover.ContainerGlobalUseNoStatusItem);
 
     private static bool ForeignGlobalFile(ForeignCover c) =>
-        c is ForeignCover.GlobalFileUseWithStatusItem or ForeignCover.GlobalFileUseNoStatusItem;
+        c is ForeignCover.GlobalFileUseWithStatusItem or ForeignCover.GlobalFileUseNoStatusItem
+            or ForeignCover.NamedFileCheckingWithStatusItem or ForeignCover.NamedFileCheckingNoStatusItem
+            or ForeignCover.NamedFileCheckingOffUnderGeneralOn;
 
     /// <summary>The run unit continues: the describing element stored the status (<see cref="ForeignCover.StatusItem"/>) or
     /// a format 1 declarative ran with checking off (DOC-A.1-103 terminates only when neither covers the status).</summary>
     private static bool ForeignContinues(ForeignCover c) =>
         c is ForeignCover.StatusItem or ForeignCover.OpenModeUseWithStatusItem or ForeignCover.OpenModeUseNoStatusItem
-            or ForeignCover.GlobalFileUseWithStatusItem or ForeignCover.GlobalFileUseNoStatusItem or ForeignCover.OpenModeUseResumeAt;
+            or ForeignCover.GlobalFileUseWithStatusItem or ForeignCover.GlobalFileUseNoStatusItem or ForeignCover.OpenModeUseResumeAt
+            or ForeignCover.NamedFileCheckingOffUnderGeneralOn
+            or ForeignCover.ContainerGlobalUseNoStatusItem or ForeignCover.ContainerGlobalUseWithStatusItem;
 
     /// <summary>The element <c>id</c> with APPLY COMMIT ON KF W calls its contained <c>id</c>S, which has no clause and
     /// executes the statement; the TURN directive, when present, precedes the contained program, so it governs only that
@@ -309,12 +337,18 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
             ForeignCover.CheckingWithExceptionUse => Declaratives("USE AFTER EXCEPTION CONDITION EC-I-O.", suse),
             ForeignCover.OpenModeUseWithStatusItem or ForeignCover.OpenModeUseNoStatusItem or ForeignCover.CheckingWithOpenModeUse =>
                 Declaratives("USE AFTER STANDARD ERROR PROCEDURE ON I-O.", suse),
-            ForeignCover.GlobalFileUseWithStatusItem or ForeignCover.GlobalFileUseNoStatusItem =>
+            ForeignCover.GlobalFileUseWithStatusItem or ForeignCover.GlobalFileUseNoStatusItem
+                or ForeignCover.NamedFileCheckingWithStatusItem or ForeignCover.NamedFileCheckingNoStatusItem
+                or ForeignCover.NamedFileCheckingOffUnderGeneralOn =>
                 Declaratives("USE AFTER STANDARD ERROR PROCEDURE ON KF.", suse),
             ForeignCover.OpenModeUseResumeAt =>
                 Declaratives("USE AFTER STANDARD ERROR PROCEDURE ON I-O.", suse + "\nRESUME AT S-END."),
             _ => "",
         };
+        // The containing element's own GLOBAL declarative; the executing element has none (§14.9.49.4 GR4 b)).
+        string containerDeclaratives = cover is ForeignCover.ContainerGlobalUseNoStatusItem or ForeignCover.ContainerGlobalUseWithStatusItem
+            ? Declaratives("USE GLOBAL AFTER STANDARD ERROR PROCEDURE ON I-O.", suse)
+            : "";
         return $"""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. {id}.
@@ -332,7 +366,7 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
             LINKAGE SECTION.
             01 LG PIC X(240).
             PROCEDURE DIVISION USING LG.
-            MAIN-P.
+            {containerDeclaratives}MAIN-P.
             {Changes(org)}
             CALL "{id}S" USING LG P.
             {Note("CALL", "FS", "W")}
@@ -340,7 +374,7 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
             {Note("CLOSE", "FS")}
             {Reread(org)}
             GOBACK.
-            {(ForeignChecking(cover) ? ">>TURN EC-I-O CHECKING ON\n" : "")}IDENTIFICATION DIVISION.
+            {ForeignDirectives(cover)}IDENTIFICATION DIVISION.
             PROGRAM-ID. {id}S.
             DATA DIVISION.
             WORKING-STORAGE SECTION.
@@ -368,13 +402,16 @@ public sealed class CommitRollbackRefusalWitnessTests : WiseOwlCobolTestBase
         {
             // The describing element stored '30' (TransactionControl.Refused), so DOC-A.1-103 continues; item 8 restores.
             ForeignCover.StatusItem => [.. before, verb, "CALL -- INIT", .. Reopened(fileStatus: true)],
-            ForeignCover.CheckingWithExceptionUse or ForeignCover.CheckingWithOpenModeUse =>
+            ForeignCover.CheckingWithExceptionUse or ForeignCover.CheckingWithOpenModeUse
+                or ForeignCover.NamedFileCheckingWithStatusItem or ForeignCover.NamedFileCheckingNoStatusItem =>
                 [.. before, "SUSE EC-I-O-PERMANENT-ERROR"],
             // With checking off no condition is raised (EXCEPTION-STATUS is blank, §14.6.13.1.1) and the format 1 declarative
             // runs by the file's status (§14.9.49.4 GR6); a declarative ran, so the run unit continues with or without a
             // FILE STATUS clause (DOC-A.1-103) and item 8's ROLLBACK follows it, before any transfer.
             ForeignCover.OpenModeUseWithStatusItem or ForeignCover.OpenModeUseNoStatusItem
-                or ForeignCover.GlobalFileUseWithStatusItem or ForeignCover.GlobalFileUseNoStatusItem =>
+                or ForeignCover.GlobalFileUseWithStatusItem or ForeignCover.GlobalFileUseNoStatusItem
+                or ForeignCover.NamedFileCheckingOffUnderGeneralOn
+                or ForeignCover.ContainerGlobalUseNoStatusItem or ForeignCover.ContainerGlobalUseWithStatusItem =>
                 [.. before, "SUSE ", verb, "CALL -- INIT", .. Reopened(fs)],
             ForeignCover.OpenModeUseResumeAt => [.. before, "SUSE ", "CALL -- INIT", .. Reopened(fs)],
             _ => before,

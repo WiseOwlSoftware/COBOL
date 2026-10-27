@@ -20,8 +20,26 @@ returns the "no declarative ran" test and `TransactionEmitter` terminates only w
 file a FILE STATUS item. The checking-on arm is unchanged. The emitted text of every existing hook is identical
 (same lines, same name allocation order).
 
+Branch review round 1, R1-1 (blocking): the foreign arm chose checking on or off from the directives that name NO file,
+so `>>TURN EC-I-O KF CHECKING ON` naming the container's GLOBAL file was ignored for a refused COMMIT of KF, while every
+other statement on KF honors it (§7.3.25.4 GR6, GR8: checking is enabled or disabled "only for exception conditions
+associated with that file-name"). With the fix of this branch that turned a termination into a continuation: the format 1
+declarative ran, item 8's ROLLBACK followed and the run unit went on, where checking was enabled for the file and §14.6.13.1.3
+rule 7 ends it. Root cause: a refused file of another element had no FileModel in the statement, so no directive naming it
+could be folded. `BoundCommitRollback` now carries `ForeignFiles`, the containers' GLOBAL files under commit control that the
+element can name (`FilesByName`, §13.18.27.4 GR1); `EcBinder.IoFilesOf` names them, so the checking fold sees the pairs
+(EC-I-O, file), and `TransactionEmitter.EmitStatement` writes an arm keyed to the file for each one whose checking a naming
+directive changes (`SequentialIoEmitter.ForeignFileCheckedApart`); every other program emits the same text as before. New
+witnesses: `NamedFileChecking*` (checking enabled by a directive naming the file, with and without a FILE STATUS item: the
+declarative runs and the run unit ends) and `NamedFileCheckingOffUnderGeneralOn` (checking on for every file, off for KF:
+the declarative runs and the run unit continues), all red before the fix (12 of 12), plus `ContainerGlobalUse*` (R1-2: the
+container's `USE GLOBAL` declarative runs for a refusal in an executing element with none, GR4 b)). R1-3: a format 1
+declarative names no exception-name, so §14.6.13.1.3 rule 5 does not select it; the I-O status does (rule 3, §9.1.13.1) and
+rule 7 ends the run unit; the test remarks, this entry and the note carry that citation now.
+
 Witnesses: the open-mode and file-name tiers with and without a FILE STATUS item, the open-mode tier with checking on
-(the declarative runs, then rule 5's termination), and a declarative ending in RESUME AT, whose trace shows item 8's
-ROLLBACK ran before the transfer. 67 of 67 pass in the class. No golden: a refused COMMIT needs the fault-injecting
+(a format 1 declarative names no exception-name, so it runs under rule 3 and §9.1.13.1 and the run unit ends under rule 7 of §14.6.13.1.3, not rule 5), and a declarative ending in RESUME AT, whose trace shows item 8's
+ROLLBACK ran before the transfer, and (branch review round 1) the containing element's own `USE GLOBAL` declarative reached from an executing element
+that has none. 87 of 87 pass in the class. No golden: a refused COMMIT needs the fault-injecting
 medium, which the conformance suite cannot drive (the same holds for PB3338 and PB3542-PB3544). Docs: DESIGN-runtime-library
 2.2.1.10 and CONFORMANCE A.4.3 determination (a) state the rule. Inventory rows: none claimed, none closed.

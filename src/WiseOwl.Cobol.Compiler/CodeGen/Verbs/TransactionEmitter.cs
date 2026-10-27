@@ -87,7 +87,8 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
     /// and FILE STATUS item, EC-I-O-PERMANENT-ERROR through the file's exception processing — this element's USE
     /// procedures for a file of its own clause (<see cref="BoundCommitRollback.Files"/>, which carry the statement's
     /// (EC-I-O, file) checking), and for another element's file the condition under the checking a directive naming no
-    /// file enabled, else DOC-A.1-103's termination when no declarative ran and no element gives it a FILE STATUS item —
+    /// file (or, for a container's GLOBAL file this element can name, a directive naming it) enabled, else DOC-A.1-103's
+    /// termination when no declarative ran and no element gives it a FILE STATUS item —
     /// with §14.6.13.1.3 item 8's unconditional ROLLBACK where checking for the condition is not enabled, after the
     /// declarative and before any transfer (the one rule, <c>SequentialIoEmitter.Item8Applies</c>). The executing
     /// element's format 1 USE procedures apply to another element's refused file as they do to any input-output
@@ -113,18 +114,27 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
                 first = false;
             }
             // Another element's file: its own element stored the status (TransactionControl.Refused). The condition is
-            // raised in THIS element when a directive naming no file enabled it here (§7.3.25.4 GR6/GR8 scope a FILE
-            // phrase to this element's files), and this element's format 1 declaratives are selected by the status with or
+            // raised in THIS element when a directive naming no file enabled it here, or one naming the file when this
+            // element can name it (§7.3.25.4 GR6/GR8 scope a FILE phrase to the files it names), and this element's format 1
+            // declaratives are selected by the status with or
             // without it (SequentialIoEmitter.EmitForeignFileIoCheck, PB3554); when none qualified, DOC-A.1-103 decides.
             // Item 8's ROLLBACK is the check's (SequentialIoEmitter.Item8Applies), before that termination.
-            void Foreign()
+            void Foreign(FileModel? named)
             {
                 string terminate = $"{RuntimeApi.TerminateOnRefusalWithoutStatusItem(refused, CsLiteral(verb))};";
-                if (seqIo.EmitForeignFileIoCheck(refused) is { } noHandler) w.Line($"if ({noHandler}) {terminate}");
+                if (seqIo.EmitForeignFileIoCheck(refused, named) is { } noHandler) w.Line($"if ({noHandler}) {terminate}");
                 else w.Line(terminate);
             }
-            if (first) Foreign();
-            else using (w.Block("else")) Foreign();
+            // A container's GLOBAL file this element can name, whose checking a directive naming it decides apart from the
+            // unnamed foreign file's (§7.3.25.4 GR6/GR8): its own arm, keyed like an own file's.
+            foreach (var named in n.ForeignFiles)
+            {
+                if (!seqIo.ForeignFileCheckedApart(named)) continue;
+                using (w.Block($"{(first ? "" : "else ")}if ({refused} == {FileKeyExpr(named)})")) Foreign(named);
+                first = false;
+            }
+            if (first) Foreign(null);
+            else using (w.Block("else")) Foreign(null);
         }
     }
 }

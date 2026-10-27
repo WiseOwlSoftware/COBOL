@@ -2201,7 +2201,10 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   its I-O files (`EcBinder.IoFilesOf`), so EC-I-O checking for one of them raises EC-I-O-PERMANENT-ERROR through
   `__IoCheckEc` exactly as at any input-output statement; a refused file of ANOTHER element has no file description
   here, so its condition is declared with no file and only a directive naming no file enables it
-  (`SequentialIoEmitter.EmitForeignFileIoCheck`). **The executing element's format 1 USE procedures apply to another
+  (`SequentialIoEmitter.EmitForeignFileIoCheck`); a container's GLOBAL file the element CAN name (`BoundCommitRollback.ForeignFiles`)
+  is an I-O file of the statement too, so a directive that names it (`>>TURN EC-I-O KF CHECKING ON` or `OFF`, §7.3.25.4 GR6,
+  GR8: *"checking is enabled only for exception conditions associated with that file-name"*) decides its checking in an arm
+  keyed to that file (`TransactionEmitter.EmitStatement`, `SequentialIoEmitter.ForeignFileCheckedApart`). **The executing element's format 1 USE procedures apply to another
   element's refused file as they do to any input-output statement's file, with or without checking (§14.9.49.4 GR4,
   GR6 a)-e)): the file-name tier when the element names the file (a containing element's GLOBAL file) and the open-mode
   tier by the file's open mode** - format 1 selection follows the I-O status, never EC checking (§14.6.13.1.1: *"if
