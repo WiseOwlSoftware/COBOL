@@ -16,6 +16,8 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 ///   ZERO preceded by  +, -, *, /, **   → rewrite to ZERO_ARITH
 ///   ZERO between a grouping ( and )    → rewrite (<c>(ZERO)</c>, a parenthesized arithmetic expression)
 ///   ZERO beside the ref-mod :          → rewrite (a reference-modification position or length)
+///   ALL ZERO in any of those positions → rewrite the ZERO; the ALL stays, and the parser's arm reads it
+///                                        (§8.3.3.6.2 Format 1's optional word; kb/Work PB3846)
 ///
 /// All other ZERO tokens are left unchanged — they remain figurative constants
 /// for VALUE, MOVE, comparison, and other non-arithmetic contexts.
@@ -117,9 +119,16 @@ public static class ZeroTokenRewriter
             if (token.Type is not (CobolLexer.ZERO or CobolLexer.ZEROS or CobolLexer.ZEROES))
                 continue;
 
-            // The nearest non-hidden token on each side (-1 at either end of the stream, which no set contains).
-            int nextType = GetAdjacentTokenType(tokens, i, forward: true);
-            int prevType = GetAdjacentTokenType(tokens, i, forward: false);
+            // The nearest non-hidden token on each side (-1 at either end of the stream, which no set contains). On
+            // the left, a written ALL is the figurative constant's own optional word (§8.3.3.6.2 Format 1, `[ALL]
+            // ZERO`), never its context, so the context is the token before it: `1 + ALL ZERO`, `- ALL ZERO` and
+            // `(ALL ZERO)` are arithmetic exactly as `1 + ZERO` is, and the parser's `ALL? ZERO_ARITH` arm carries
+            // the ALL to the binder's edition gate (kb/Work PB3846). On the right the ZERO is the word's last token.
+            int nextType = TypeAt(tokens, AdjacentIndex(tokens, i, forward: true));
+            int prev = AdjacentIndex(tokens, i, forward: false);
+            if (TypeAt(tokens, prev) == CobolLexer.ALL)
+                prev = AdjacentIndex(tokens, prev, forward: false);
+            int prevType = TypeAt(tokens, prev);
             if (FollowingArithmeticContext.Contains(nextType) || PrecedingArithmeticContext.Contains(prevType)
                 || IsParenthesizedAlone(prevType, nextType))
                 ReplaceWithZeroArith(tokens, i);
@@ -139,11 +148,13 @@ public static class ZeroTokenRewriter
         prevType == CobolLexer.LPAREN && nextType == CobolLexer.RPAREN;
 
     /// <summary>
-    /// Finds the nearest non-hidden token in the given direction and returns its type.
+    /// Finds the nearest non-hidden token in the given direction and returns its index.
     /// Returns -1 if no such token exists (beginning/end of stream).
     /// </summary>
-    private static int GetAdjacentTokenType(IList<IToken> tokens, int index, bool forward)
+    private static int AdjacentIndex(IList<IToken> tokens, int index, bool forward)
     {
+        if (index < 0)
+            return -1;
         int step = forward ? 1 : -1;
         int pos = index + step;
 
@@ -153,12 +164,24 @@ public static class ZeroTokenRewriter
             if (t.Type == TokenConstants.EOF)
                 return -1;
             if (t.Channel == Lexer.DefaultTokenChannel)
-                return t.Type;
+                return pos;
             pos += step;
         }
 
         return -1;
     }
+
+    /// <summary>The type of the token at <paramref name="index"/>, or -1 (which no context set contains) for none.</summary>
+    private static int TypeAt(IList<IToken> tokens, int index) => index < 0 ? -1 : tokens[index].Type;
+
+    /// <summary>The word the program wrote for a <c>ZERO_ARITH</c> token — <c>ZERO</c>, <c>ZEROS</c> or <c>ZEROES</c> as
+    /// spelled — for a diagnostic: the token's own text is the numeric <c>"0"</c> the rewrite gave it, and the rewrite
+    /// keeps the original token's source span (<see cref="ReplaceWithZeroArith"/>). A token with no source span (none
+    /// the lexer produced) is spelled <c>ZERO</c>, the word's §8.9 name: the spelling only words a message.</summary>
+    public static string WrittenWord(IToken zeroArith) =>
+        zeroArith.InputStream is { } input && zeroArith.StartIndex >= 0 && zeroArith.StopIndex >= zeroArith.StartIndex
+            ? input.GetText(Antlr4.Runtime.Misc.Interval.Of(zeroArith.StartIndex, zeroArith.StopIndex))
+            : "ZERO";
 
     /// <summary>
     /// Replaces the token at the given index with a ZERO_ARITH virtual token
