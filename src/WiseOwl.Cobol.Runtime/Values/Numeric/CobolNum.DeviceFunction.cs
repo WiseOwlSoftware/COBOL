@@ -25,9 +25,19 @@ public static partial class CobolNum
     /// the magnitude an ABS holds in a copy of a negative value's item, which shows <c>+</c> (GnuCOBOL's signed temporary).</summary>
     internal static string DeviceFunctionText(CobolDec value, bool signedItem, bool commaMode)
     {
-        NumProfile temporary = ReturnedValueProfile(value, out string digits) with { Signed = signedItem };
+        NumProfile temporary = ReturnedValueProfile(value, out string digits, out _) with { Signed = signedItem };
         return Compose(value.Sig < 0, digits, temporary, commaMode);
     }
+
+    /// <summary>The bytes an item occupies in a record image: <see cref="NumProfile.StorageLength"/> for a binary, packed or floating-point form,
+    /// and for the zoned form its digit run plus a separate-sign position (the digit run IS its own byte form; an over-punched sign occupies no
+    /// position of its own). The runtime statement of what <c>FUNCTION BYTE-LENGTH</c> counts for a numeric item (ISO §15.14.4 r1 - "the length of
+    /// argument-1 in number of bytes"), read by <see cref="FunctionValueField.ByteLength"/> for the temporary that copies an argument's item
+    /// (kb/Work PB3951). It is a static method and not a property of <see cref="NumProfile"/> on purpose: a record struct prints every public
+    /// property, so a new one would move the codec images the runtime ABI pin hashes.</summary>
+    internal static int ImageWidth(in NumProfile item) =>
+        item.StorageLength > 0 ? item.StorageLength
+        : item.Digits + (item.Signed && item.SignKind is NumericSign.LeadingSeparate or NumericSign.TrailingSeparate ? 1 : 0);
 
     /// <summary>The same text for a returned value carried as a scaled integer (<c>unscaled</c> at <paramref name="scale"/> fraction
     /// digits, the native exact lanes') - the value lifted to an SDIDI with no rounding, then <see cref="DeviceFunctionText(CobolDec, bool)"/>.</summary>
@@ -51,7 +61,11 @@ public static partial class CobolNum
     /// </summary>
     /// <param name="value">The exact returned value.</param>
     /// <param name="digits">The magnitude's digits after the trailing fraction zeros are dropped (unpadded).</param>
-    internal static NumProfile ReturnedValueProfile(CobolDec value, out string digits)
+    /// <param name="storageBytes">The bytes the temporary occupies, which is what <c>FUNCTION LENGTH</c> and <c>FUNCTION BYTE-LENGTH</c> of the
+    /// call answer (§15.50.4 r3, §15.14.4 r1; kb/Work PB3951): 4 for the 4-byte binary item, 8 for the 8-byte one, otherwise the DISPLAY item's
+    /// digit count (its sign is carried in the last digit and takes no position). The profile's <c>Digits</c> cannot say which, because it is
+    /// the digit POSITIONS DISPLAY pads to (9 or 20 for a binary item).</param>
+    internal static NumProfile ReturnedValueProfile(CobolDec value, out string digits, out int storageBytes)
     {
         bool negative = value.Sig < 0;
         digits = CobolDec.UAbs(value.Sig).ToString(CultureInfo.InvariantCulture);
@@ -72,9 +86,11 @@ public static partial class CobolNum
         int positions = bits < 33 - sign && scale < 10 ? 9
                       : bits < 65 - sign && scale < 19 ? 20
                       : 0;
+        int shown = Math.Max(positions, Math.Max(digits.Length, scale));
+        storageBytes = positions switch { 9 => 4, 20 => 8, _ => shown };
         return new NumProfile
         {
-            Digits = Math.Max(positions, Math.Max(digits.Length, scale)),
+            Digits = shown,
             FractionDigits = scale,
             Signed = negative,
             SignKind = NumericSign.LeadingSeparate,
