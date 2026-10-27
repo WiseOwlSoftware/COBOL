@@ -1744,11 +1744,17 @@ def self_test() -> int:
         # name the record is the runner. Both are real processes, started here and ended in the `finally`.
         c10b = fresh("reused-pid")
         rec10b = {"id": "000001-x", "branch": "w10b", "_path": str(c10b / "attempts" / "000001-x.json")}
-        sleeper = "import time; time.sleep(600)"
-        stranger = subprocess.Popen([sys.executable, "-c", sleeper], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        # Each sleeper says `ready` once Python runs, and the check waits for it: Popen returns when execve closes the
+        # child's close-on-exec pipe, before Linux has set the new image's argument area, so /proc/<pid>/cmdline can still
+        # read EMPTY (kb/Work PB3973), and an unreadable command line reads as alive: the stranger would look like a runner.
+        sleeper = "import time; print('ready', flush=True); time.sleep(600)"
+        stranger = subprocess.Popen([sys.executable, "-c", sleeper], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                    text=True)
         runner = subprocess.Popen([sys.executable, "-c", sleeper, "run", rec10b["_path"]], stdin=subprocess.DEVNULL,
-                                  stdout=subprocess.DEVNULL)
+                                  stdout=subprocess.PIPE, text=True)
         try:
+            for proc in (stranger, runner):
+                proc.stdout.readline()
             expect("a live Python process that is not the runner holds the recorded pid (a reused id): not alive; the "
                    "process whose command line names the record is",
                    not runner_alive({**rec10b, "pid": stranger.pid}) and runner_alive({**rec10b, "pid": runner.pid}),
@@ -1757,6 +1763,7 @@ def self_test() -> int:
             for proc in (stranger, runner):
                 proc.kill()
                 proc.wait()
+                proc.stdout.close()
         real_command = coord.process_command
         coord.process_command = lambda pid: ""          # a Python whose command line cannot be read: unknown, so alive
         try:
