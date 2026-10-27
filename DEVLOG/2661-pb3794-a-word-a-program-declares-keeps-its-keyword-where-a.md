@@ -1,4 +1,4 @@
-## PB3794: a word a program declares keeps its keyword where a format still spells it (MESSAGE, MULTIPLE, ORDER, METHOD)
+## Entry 2661 — 2026-10-27 11:52 PDT — PB3794: a word a program declares keeps its keyword where a format still spells it (MESSAGE, MULTIPLE, ORDER, METHOD)
 
 **Mechanism.** The §8.9 reservation gate works on tokens: when a program declares a word that §8.9 leaves free at
 the compile edition, `ReservationGateRewriter` retypes EVERY occurrence of that word to `IDENTIFIER` and parses
@@ -38,3 +38,4 @@ column, but the error now reads `missing token before 'MULTIPLE'` instead of `un
 
 **Rows.** None re-verdicted. FMT-14.9.31.2 (DOCUMENTED-NON-SUPPORT), FMT-12.4.5.9.2, FMT-14.9.40.2, GR-14.9.40.4-3,
 SR-8.3.2.1-1 and SR-8.3.2.1-3 gain the new witnesses (batch w20261720a-PB3794, GAP 31 → 31).
+
