@@ -6,13 +6,16 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE FILE A WRITE CREATES AGAIN AFTER ITS RUN UNIT'S ROLLBACK REMOVED IT IS ONE DECISION IN EVERY ORGANIZATION: A PRESENCE PROBE
-/// UNDER THE ENTRY MUTEX, THEN A HANDLE TAKEN <c>FileMode.CreateNew</c> (kb/Work PB3635; DESIGN-runtime-library.md 2.2.2.14). A file
-/// another run unit made at the path since the ROLLBACK is that run unit's (§9.1.17), so the WRITE answers '30' (§9.1.13.6 item 1)
-/// rather than appending to it, replacing it or journaling it as its own creation. The probe alone leaves a window — another run unit's
-/// OPEN OUTPUT takes no entry mutex — which only a creating handle that refuses an existing file closes, so a creation spelled
-/// <c>Append</c>, <c>OpenOrCreate</c> or <c>Create</c> is the defect again. The behavioural witnesses (SequentialCommitControlTests,
-/// CommitRollbackRuntimeTests) cover the probe's half; this guards the half no deterministic test can reach.
+/// ⛔ EVERY CREATION DECIDED ON AN ABSENT PRESENCE PROBE TAKES A HANDLE OPENED <c>FileMode.CreateNew</c>, IN EVERY ORGANIZATION (kb/Work
+/// PB3635; DESIGN-runtime-library.md 2.2.2.14). Two creations are decided that way: the WRITE that creates the file again after its run
+/// unit's ROLLBACK removed it, and the OPEN that creates it (OUTPUT of an absent file, I-O or EXTEND of an absent OPTIONAL one,
+/// §14.9.27.4 GR17, GR18). A file another run unit made at the path since the ROLLBACK is that run unit's (§9.1.17), so the WRITE answers
+/// '30' (§9.1.13.6 item 1) rather than appending to it, replacing it or journaling it as its own creation; a file made between an OPEN's
+/// probe and its handle is met by an OPEN that is made again over it (<c>FileConnector.Open</c>). The probe alone leaves a window —
+/// another run unit's OPEN OUTPUT takes no entry mutex — which only a creating handle that refuses an existing file closes, so a creation
+/// spelled <c>Append</c>, <c>OpenOrCreate</c> or <c>Create</c> is the defect again. The behavioural witnesses (SequentialCommitControlTests,
+/// CommitRollbackRuntimeTests) interleave the second run unit through the fault-injecting medium's <c>BeforeOperation</c> seam wherever the
+/// medium opens the handle; this guards the arms no seam reaches (an uncovered keyed OPEN opens through the host directly).
 /// </summary>
 public sealed class FileCreatedAgainDriftTests
 {
@@ -45,5 +48,48 @@ public sealed class FileCreatedAgainDriftTests
         Assert.Contains("LockCreating(newFileOnly: true)", again, StringComparison.Ordinal);
         string handle = BodyOf(file, "private void TakeFileLock(bool create, FileAccess access, bool newFileOnly)");
         Assert.Contains("newFileOnly ? FileMode.CreateNew : FileMode.OpenOrCreate", handle, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheSequentialOpenCreatesThroughACreateNewHandleWhenTheProbeSaidAbsent()
+    {
+        string body = BodyOf(TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "SequentialConnector.cs"), "protected override string OpenCore(FileOpenMode mode, FilePresence presence)");
+        Assert.Contains("bool absent = presence is FilePresence.Absent;", body, StringComparison.Ordinal);
+        Assert.Contains("OpenWriter(absent ? FileMode.CreateNew : FileMode.Create)", body, StringComparison.Ordinal);
+        Assert.Contains("OpenWriter(absent ? FileMode.CreateNew : FileMode.Append)", body, StringComparison.Ordinal);
+        Assert.Contains("OpenAuxiliary(HostPath, FileMode.CreateNew, FileAccess.Write)", body, StringComparison.Ordinal);
+        Assert.Contains("OpenReader(creates: !exists)", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheKeyedOpenCreatesThroughACreateNewHandleWhenTheProbeSaidAbsent()
+    {
+        string file = TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "KeyedConnector.cs");
+        string body = BodyOf(file, "protected sealed override string OpenCore(FileOpenMode mode, FilePresence presence)");
+        Assert.Contains("LockCreating(newFileOnly: presence is FilePresence.Absent)", body, StringComparison.Ordinal);
+        Assert.Contains("LockCreating(newFileOnly: true)", body, StringComparison.Ordinal);
+        string creating = BodyOf(file, "private string? LockCreating(bool newFileOnly)");
+        Assert.Contains("Lock(create: true, newFileOnly)", creating, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AnOpenWhoseCreatingHandleMeetsAFileIsMadeAgainOverIt()
+    {
+        string file = TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "FileConnector.cs");
+        string entered = BodyOf(file, "private string OpenOnceEntered(FileOpenMode mode, bool ownedWritesAdmitted, out OpenAgain again)");
+        Assert.Contains("catch (IOException e) when (HostFile.IsAlreadyExists(e))", entered, StringComparison.Ordinal);
+        Assert.Contains("OpenAgain.FileMadeMeanwhile", entered, StringComparison.Ordinal);
+        string open = BodyOf(file, "public string Open(FileOpenMode mode)");
+        Assert.Contains("OpenAgain.FileMadeMeanwhile when attempt < MaxAttempts", open, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AnUnsuccessfulOpenWithdrawsTheJournalItBeganInBothOrganizations()
+    {
+        string sequential = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "SequentialConnector.cs"));
+        string keyed = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "KeyedConnector.cs"));
+        Assert.Contains("WithdrawWhatTheOpenBegan();", sequential, StringComparison.Ordinal);
+        Assert.Contains("WithdrawWhatTheOpenBegan();", keyed, StringComparison.Ordinal);
+        Assert.DoesNotContain("Transactions.Withdraw(begun)", keyed, StringComparison.Ordinal);   // the one rule is FileConnector's
     }
 }

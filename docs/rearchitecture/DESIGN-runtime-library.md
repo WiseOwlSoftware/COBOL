@@ -3246,7 +3246,20 @@ journal it began is withdrawn when it created no file, and left to item 8's ROLL
 **An unsuccessful OPEN** that began the journal and did not affect the file — refused before its handle
 created the file, a capture refused before its `K`, a creation refused and undone (`KeyedStore.FileReplaced` false) —
 WITHDRAWS it (`SequentialJournal.Withdraw`: `D R` and the retirement; §14.9.27.4 GR25, *"the file is not affected"*), so the
-kept transaction stands as the CLOSE left it; one that did affect it leaves the journal for item 8's ROLLBACK. **The entry
+kept transaction stands as the CLOSE left it; one that did affect it leaves the journal for item 8's ROLLBACK (both organizations,
+one rule: `FileConnector.WithdrawWhatTheOpenBegan`, over `_begunByOpen` and `_openChangedFile`; the sequential connector sets
+the first in `BeginCoveredOpen` and the second where its handle creates the file or truncates it). **An OPEN that creates the
+file is the same decision as the WRITE that creates it again** (kb/Work PB3635): OUTPUT of an absent file and I-O or EXTEND of an
+absent OPTIONAL one (§14.9.27.4 GR17, GR18) take the handle `FileMode.CreateNew` when the one presence probe said Absent (not when
+it said Unauthorized: the file may be there and OUTPUT replaces it) — `SequentialConnector.OpenCore` / `HeldWriteStream` /
+`OpenReader(creates)`, `KeyedConnector.LockCreating(newFileOnly)`. A file another run unit's OPEN OUTPUT made between the probe and
+the handle is refused (`HostFile.IsAlreadyExists`), and `FileConnector.Open` makes the OPEN again from its entry step (at most
+three attempts in all with the share-mode retry of PB3482): the unsuccessful attempt withdrew its journal, the new probe finds the
+file, and the OPEN is that of an EXISTING file — OUTPUT captures and replaces it, I-O and EXTEND open it ('00', not '05'); the
+attempts running out answer '30'. Witnesses `unit:SequentialCommitControlTests`' `An_open_creating_the_optional_file_meets_*`,
+`A_covered_open_output_meets_*`, `An_open_whose_creation_is_met_by_a_new_file_at_every_attempt_*` and
+`unit:CommitRollbackRuntimeTests`' `A_keyed_open_creating_the_file_meets_*` interleave the second run unit through the test
+medium's `BeforeOperation` seam. **The entry
 step of 2.2.2.8** runs at every writable OPEN of either organization (`FileConnector.EnterPhysicalFile`, one listing) and at
 every DELETE FILE, a covered one's and an uncovered one's (`FileRegistry.JournalHoldsAgainstDelete`), so a dead owner's
 capture is settled before 2.2.1.10's dead-owner step reads the restored store and before an uncovered DELETE FILE removes a

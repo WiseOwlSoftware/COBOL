@@ -148,7 +148,8 @@ public sealed partial class SequentialConnector : IJournalData
     /// transaction if none stands (START <c>P</c>) and CAPTURES the file while the transaction is in its base phase (R4) — the
     /// truncation is the writer's, after it (<see cref="HeldWriteStream"/>); an OPEN that CREATES the file (OUTPUT of an absent
     /// file, EXTEND or I-O of an absent OPTIONAL one) begins the transaction with no file at its start (START <c>A</c>). Throws
-    /// on a refusal: the OPEN answers '30' with the file unaffected.</summary>
+    /// on a refusal: the OPEN answers '30' with the file unaffected. A journal this OPEN begins is <see cref="FileConnector._begunByOpen"/>
+    /// until the OPEN ends, withdrawn by an unsuccessful one that did not change the file (<see cref="AbandonOpen"/>).</summary>
     private void BeginCoveredOpen(FileOpenMode mode, bool exists)
     {
         _fileRemoved = false;
@@ -156,11 +157,11 @@ public sealed partial class SequentialConnector : IJournalData
         if (exists)
         {
             if (mode is not FileOpenMode.Output) return;
-            journal ??= Transactions.Begin(HostPath, SequentialJournal.StartState.Present);
+            journal ??= _begunByOpen = Transactions.Begin(HostPath, SequentialJournal.StartState.Present);
             journal.Capture(SequentialJournal.CaptureVerb.OpenOutput, HeldStream(FileMode.Open));
         }
         else if (mode is FileOpenMode.Output || IsOptional && mode is FileOpenMode.Extend or FileOpenMode.IO)
-            journal ??= Transactions.Begin(HostPath, SequentialJournal.StartState.Absent);
+            journal ??= _begunByOpen = Transactions.Begin(HostPath, SequentialJournal.StartState.Absent);
     }
 
     // ── The kept handle ─────────────────────────────────────────────────────────────────────────────────────────
@@ -188,11 +189,14 @@ public sealed partial class SequentialConnector : IJournalData
         }
     }
 
-    /// <summary>Open the covered connector's handle on the medium.</summary>
+    /// <summary>Open the covered connector's handle on the medium. A handle taken <see cref="FileMode.CreateNew"/> made the file, which
+    /// the OPEN that took it has then changed (<see cref="FileConnector._openChangedFile"/>); one the path already names is refused
+    /// (<see cref="HostFile.IsAlreadyExists"/>).</summary>
     private FileStream TakeHeld(FileMode mode, FileAccess access, FileShare share)
     {
         _held = Medium.OpenConnectorStream(HostPath, mode, access, share, FileOptions.None);
         _heldShare = share;
+        if (mode is FileMode.CreateNew) _openChangedFile = true;
         return _held;
     }
 
@@ -205,14 +209,17 @@ public sealed partial class SequentialConnector : IJournalData
 
     /// <summary>The covered writer's stream over the kept handle (2.2.2.4): an OUTPUT re-open TRUNCATES it (after the capture,
     /// <see cref="BeginCoveredOpen"/>), an EXTEND re-open writes at its end, and a posture that admits another writer gets the
-    /// repositioning stream (<see cref="HostFile.WriteStreamOf"/>, the one decision).</summary>
+    /// repositioning stream (<see cref="HostFile.WriteStreamOf"/>, the one decision). <see cref="FileMode.CreateNew"/> is a creation
+    /// decided on an absent presence probe (an OUTPUT, or an EXTEND of an absent OPTIONAL file): the handle refuses a file made since
+    /// (kb/Work PB3635), where every other mode adopts or creates the file.</summary>
     private Stream HeldWriteStream(FileMode mode)
     {
-        var held = HeldStream(FileMode.OpenOrCreate);
+        var held = HeldStream(mode is FileMode.CreateNew ? FileMode.CreateNew : FileMode.OpenOrCreate);
         if (mode == FileMode.Create)
         {
             held.SetLength(0);
             held.Position = 0;
+            _openChangedFile = true;   // the file's bytes are the OPEN's now: its journal stands for item 8's ROLLBACK
         }
         return HostFile.WriteStreamOf(mode == FileMode.Create ? FileMode.Open : mode, held.CanRead ? FileAccess.ReadWrite : FileAccess.Write,
             _heldShare, (_, _) => held);
@@ -334,7 +341,7 @@ public sealed partial class SequentialConnector : IJournalData
     /// between the probe and the open (by a run unit whose OPEN takes no entry mutex) is refused rather than adopted.
     /// <para>An unsuccessful creation leaves the connector on no file (<see cref="_fileRemoved"/> stays set). The journal this WRITE
     /// began is WITHDRAWN when the file was not created (2.2.2.14: the file is as the journal's start says,
-    /// <see cref="SequentialTransactions.Withdraw"/>); otherwise it is left to item 8's ROLLBACK (§14.6.13.1.3 8), the '30' being
+    /// <see cref="SequentialTransactions.Withdraw"/>); otherwise it is left to item 8's ROLLBACK (§14.6.13.1.3 8; the '30' is
     /// fatal), which removes the file this WRITE made. Returns the failing I-O status, or null.</para></summary>
     private string? CreateTheFileAgain()
     {
