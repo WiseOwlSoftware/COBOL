@@ -3,7 +3,7 @@
 // </auto-generated>
 #nullable enable
 #pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to
-[assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(1, "{RUNTIME-VERSION}", {CALL-ABI}, Registrar = "Cobol.p.__CobolModule")]
+[assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(2, "{RUNTIME-VERSION}", {CALL-ABI}, Registrar = "Cobol.p.__CobolModule", CompilerVersion = "{COMPILER-VERSION}", Edition = 2002, Units = new string[] { "0:CHAR-TYPEDEF:CHAR-TYPEDEF" })]
 namespace Cobol.p;
 
 using global::System;                    // Int128 — the wide arithmetic carrier (numeric design D1)
@@ -75,6 +75,7 @@ internal sealed class _PRG_CHAR_TYPEDEF : ICobolProgram
 }
 
 /// <summary>PROGRAM-ID CHAR-TYPEDEF (ISO §14.2.3 13), DESIGN-external-repository §4.3): activates the program through the run unit's activation boundary (§14.9.4.4 3)) as a CALL statement naming it does, landing each argument exactly or refusing it.</summary>
+[global::WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute(global::WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Program, "CHAR-TYPEDEF", "CHAR-TYPEDEF")]
 public static class CHAR_TYPEDEF
 {
     public static void Call()
