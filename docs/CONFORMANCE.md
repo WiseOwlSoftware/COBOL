@@ -1671,6 +1671,15 @@ of an unsupported facility.
   the one exponent loop in `CobolIntrinsics.Exact.cs#NvfScan`; pinned by
   `conformance:cases/15.95.4-Returned-value-rule/pb256_test_numval_f_spaces`.
 
+- **NUMVAL-F — the exponent's sign is REQUIRED, and a text without it is refused, not read (§15.69.3 r1 · §15.3 r14 ·
+  DOC-A.1-90; kb/Work PB3952).** §15.69.3 r1's figure puts the exponent's `+`/`-` in braces (a required choice, unlike
+  the bracketed optional leading sign), so `"1.5E2"` and `"1.5e2"` do not conform. GnuCOBOL's NUMVAL-F is lenient and reads
+  `"1.5E2"` as 150; the standard is silent on no part of it (the rule speaks), so CLAUDE.md rule 1's GnuCOBOL tier does not
+  apply, and the function is not made lenient. `FUNCTION TEST-NUMVAL-F("1.5E2")` is 5 (the digit where the sign belongs),
+  and a NUMVAL-F reference with that argument sets EC-ARGUMENT-FUNCTION; with checking off its result is DOC-A.1-90's zero
+  value of the numeric type (0), in every receiver and every channel (one `CobolIntrinsics.Exact.cs#NvfScan` serves the
+  value twins and TEST-NUMVAL-F). Pinned by `conformance:cases/15.69.3-Argument-rules/pb3952_numval_f_exponent_sign_required`.
+
 - **D-TFD1 — TEST-FORMATTED-DATETIME with an argument-2 SHORTER than the format answers
   `FUNCTION LENGTH(argument-2) + 1` (§15.92.4 r1; kb/Work PB255).** The shape is reachable — §15.92.3 places no
   size rule on argument-2 and the compiler applies none — and §15.92.4 r1 is silent on it: it answers with "the

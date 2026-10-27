@@ -35,6 +35,8 @@ public sealed class TestNumvalFPositionTests
     // r1b after digits — unchanged behavior, guarded here.
     [InlineData("1.5X", 4)]
     [InlineData("1E2", 3)]      // §15.69.3: the sign is REQUIRED once E is written
+    [InlineData("1.5E2", 5)]    // kb/Work PB3952: GnuCOBOL reads this as 150; the standard refuses it, and NUMVAL-F rides this same scan
+    [InlineData("1.5e2", 5)]    // the same with a lowercase e
     [InlineData("0 1E+2", 3)]   // r1b.1 — the spec's own embedded-space example
     [InlineData("1 2E+3", 3)]   // the same, one position along
     // ⛔ THE EXPONENT-SPACE DETERMINATION (kb/Work PB256; docs/CONFORMANCE.md §3). §15.69.3 r1's figure draws n
