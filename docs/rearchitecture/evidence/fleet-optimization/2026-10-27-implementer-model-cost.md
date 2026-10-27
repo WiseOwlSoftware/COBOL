@@ -56,7 +56,10 @@ lead note's later retries charged back; the cells hold 3 to 13 groups each, so n
 
 ## Reproduce
 
-The scripts read their inputs from their own directory. From a checkout at the measured `origin/main`:
+The scripts read their inputs from their own directory, and two paths are fixed in them: `analyze.py` reads the note
+statuses from `E:\COBOL\kb\Work` (the main checkout, whatever directory the scripts run from), and `extract.py` walks the
+two Claude config directories it names (`C:\Users\brent\.claude` and `.claude-acct2`). Bring the main checkout to the
+`origin/main` being measured first, and edit those paths on another machine. Then:
 
 1. `python extract.py` walks the Workflow transcript directories under the Claude config directory and writes
    `all_agents.json` (every agent: label, model per message, counted tokens, result).
