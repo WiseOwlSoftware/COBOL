@@ -2147,10 +2147,17 @@ regression bisects to one step.
   ⚠ The FUNCTION of `ADDRESS [OF] FUNCTION word` (§8.4.3.12.2) heads no function-identifier — its operand is a
   prototype name or identifier-1 — so the lexer does NOT retype the `(` after that word: it is identifier-1's
   subscript or reference modifier (`_functionIsAddressOperand`, kb/Work PB1416).
-  ⚠ **The rewriter is still the standing answer to "where does figurative ZERO become arithmetic", and it is
-  still incomplete** — a bare `COMPUTE X = ZERO` and a `TB(ZERO + 1)` subscript are the positions no adjacency
-  arm reaches (`kb/Work/PB51.md`, `kb/Work/PB50.md`). Retiring the pass in favour of a `primaryExpression`
-  alternative is the structural candidate recorded there, with the ambiguity survey it requires.
+  ⚠ **The rewriter is the standing answer to "where does figurative ZERO become arithmetic".** The one position no
+  adjacency arm reaches, a SOLE ZERO with no operator or paren pair beside it (`COMPUTE X = ZERO`, `ADD ZERO TO X`),
+  keeps its figurative token and is read as the arithmetic zero by the binder (`ComputeFormats.SoleFigurativeZero`,
+  kb/Work PB51; `ExpressionBinder.NonNumericInNumericContext`); a subscript or ref-mod ZERO is rewritten by its
+  operator or the ref-mod COLON (kb/Work PB50). ⛔ **The word ALL before ZERO is the figurative constant's own
+  optional word** (§8.3.3.6.2 Format 1, `[ALL] ZERO`), so the pass reads the left-hand context past it (`1 + ALL
+  ZERO`, `- ALL ZERO`, `(ALL ZERO)`), and `primaryExpression`'s arm is `ALL? ZERO_ARITH`, which carries the ALL to the
+  binder's §8.3.3.6.3 SR1 a) edition gate (`ExpressionBinder.ZeroOperand`, the one numeric reading of the figurative
+  ZERO for both of its parse forms: accepted at 85, COBOL0902 from 2002; kb/Work PB3846). A VALUE-list operand the
+  pass marked arithmetic because a signed literal follows it (`88 C VALUE ALL ZERO -5`) is still the figurative, and
+  `DataBinder.RewrittenAllZeroRawText` reads it as the written `ALL ZERO`.
 - **The five preprocessor stages and their order** — correct per the TURN-anchoring hazard analysis; only
   namespaces + the injected severity policy change.
 - **SUBSCRIPT lexer mode existence** — the `x(i)`/`(a+b)` disambiguation genuinely needs it; we dedup its
