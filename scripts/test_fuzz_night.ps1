@@ -71,7 +71,7 @@ try {
     $endRunner = { $order.Add("end-runner (PAUSE exists: $(Test-Path -LiteralPath $pause))"); return 2 }
     $sleep = { param($s) $order.Add("grace $s") }
     $say = { param($m) $said.Add($m) }
-    Start-FuzzPause -PausePath $pause -Game 'Diablo IV (pid 100, 3D 91 %)' -GraceSeconds 5 -EndRunner $endRunner -Sleep $sleep -Log $say
+    Start-FuzzPause -PausePath $pause -Game 'Diablo IV (pid 100, 3D 91 %)' -GraceSeconds 5 -EndRunner $endRunner -Sleep $sleep -Say $say
     Check 'the pause writes PAUSE first, waits the grace, and only then ends the runner' ($order -join '; ') 'grace 5; end-runner (PAUSE exists: True)'
     Check 'PAUSE says what the game was' ((Get-Content -LiteralPath $pause -Raw) -match 'Diablo IV') $true
     Check 'the pause is logged' (($said -join ' ') -match 'PAUSE written' -and ($said -join ' ') -match '2 process') $true
@@ -84,9 +84,9 @@ try {
     Send-PauseBeat -PausePath (Join-Path $tmp 'nowhere/PAUSE')
     Check 'a beat with no PAUSE is not an error' $true $true
     $said.Clear()
-    Stop-FuzzPause -PausePath $pause -QuietSeconds 120 -Log $say
+    Stop-FuzzPause -PausePath $pause -QuietSeconds 120 -Say $say
     Check 'the resume removes PAUSE and says so' "$(Test-Path -LiteralPath $pause) $($said -join ' ' -match 'PAUSE removed')" 'False True'
-    Stop-FuzzPause -PausePath $pause -QuietSeconds 120 -Log $say
+    Stop-FuzzPause -PausePath $pause -QuietSeconds 120 -Say $say
     Check 'a resume with no PAUSE is not an error' $true $true
 
     # ---- the wrapper and the harness agree on the PAUSE file and on the run directory
@@ -99,6 +99,50 @@ try {
     $py = Get-Content (Join-Path $PSScriptRoot 'fuzz_ollama.py') -Raw
     Check 'fuzz_ollama.py spells the pause file the way the wrapper does' ([regex]::Match($py, '(?m)^PAUSE_FILE = "([^"]+)"').Groups[1].Value) $script:PauseFileName
     Check 'the wrapper looks for PAUSE in the run directory' (Get-PausePath 'E:/run') (Join-Path 'E:/run' $script:PauseFileName)
+
+    # ---- the lib reads nothing it was not passed. PowerShell scopes DYNAMICALLY: a lib parameter named $Log once shadowed the
+    # wrapper's own $Log for the function that logs, and the first real poll died with "Cannot evaluate parameter 'Path'"
+    # (found by running the wrapper, 2026-10-26; this self-test drove the pure functions only).
+    $ast = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'fuzz_night_lib.ps1'), [ref]$null, [ref]$null)
+    $nodes = { param($type) $ast.FindAll({ param($n) $n -is $type }, $true) }
+    $ambient = @()
+    foreach ($fn in (& $nodes ([System.Management.Automation.Language.FunctionDefinitionAst]))) {
+        $declared = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+        foreach ($p in @($fn.Parameters) + @($fn.Body.ParamBlock.Parameters)) { if ($p) { [void]$declared.Add($p.Name.VariablePath.UserPath) } }
+        foreach ($a in $fn.Body.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] }, $true)) {
+            if ($a.Left -is [System.Management.Automation.Language.VariableExpressionAst]) { [void]$declared.Add($a.Left.VariablePath.UserPath) }
+        }
+        foreach ($f in $fn.Body.FindAll({ param($n) $n -is [System.Management.Automation.Language.ForEachStatementAst] }, $true)) { [void]$declared.Add($f.Variable.VariablePath.UserPath) }
+        foreach ($v in $fn.Body.FindAll({ param($n) $n -is [System.Management.Automation.Language.VariableExpressionAst] }, $true)) {
+            $name = $v.VariablePath.UserPath
+            if ($v.VariablePath.IsScript -or $name -in @('_', 'null', 'true', 'false')) { continue }
+            if (-not $declared.Contains($name)) { $ambient += "$($fn.Name): `$$name" }
+        }
+    }
+    Check 'every function of the lib reads only its parameters, its own locals and $script: names' (($ambient | Select-Object -Unique) -join ', ') ''
+    Check 'the guard sees the lib''s functions (a net over nothing is no net)' ((& $nodes ([System.Management.Automation.Language.FunctionDefinitionAst])).Count -ge 8) $true
+
+    # ---- the wrapper parses, and every lib function it calls takes every parameter it passes (the wrapper itself needs a GPU and
+    # a console, so this is the only thing that holds its calls to the lib short of a run)
+    $mainErrors = $null
+    $main = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'fuzz_night.ps1'), [ref]$null, [ref]$mainErrors)
+    Check 'fuzz_night.ps1 parses' $mainErrors.Count 0
+    $libParams = @{}
+    foreach ($fn in (& $nodes ([System.Management.Automation.Language.FunctionDefinitionAst]))) {
+        $libParams[$fn.Name] = @((@($fn.Parameters) + @($fn.Body.ParamBlock.Parameters)) | Where-Object { $_ } | ForEach-Object { $_.Name.VariablePath.UserPath })
+    }
+    $called = @(); $unknown = @()
+    foreach ($c in $main.FindAll({ param($n) $n -is [System.Management.Automation.Language.CommandAst] }, $true)) {
+        $cmd = $c.GetCommandName()
+        if (-not $cmd -or -not $libParams.ContainsKey($cmd)) { continue }
+        $called += $cmd
+        foreach ($el in $c.CommandElements) {
+            if ($el -is [System.Management.Automation.Language.CommandParameterAst] -and $libParams[$cmd] -notcontains $el.ParameterName) { $unknown += "$cmd -$($el.ParameterName)" }
+        }
+    }
+    Check 'the wrapper passes only parameters its lib functions declare' ($unknown -join ', ') ''
+    Check 'the wrapper uses the lib''s whole surface: the poll, the three pause actions, the pause path and the harness arguments' `
+        ((@('Invoke-WatchPoll', 'Start-FuzzPause', 'Send-PauseBeat', 'Stop-FuzzPause', 'Get-PausePath', 'Get-HarnessArguments', 'New-WatchState') | Where-Object { $called -notcontains $_ }) -join ', ') ''
 }
 finally {
     Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue

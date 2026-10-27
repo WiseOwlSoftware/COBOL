@@ -55,7 +55,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'fuzz_night_lib.ps1')
 . (Join-Path $PSScriptRoot 'python-resolve.ps1')    # $PY: the one interpreter the scripts run (kb/Work PB1637, PB3197)
 
-function Log([string]$m) { $line = "{0:yyyy-MM-dd HH:mm:ss} {1}" -f (Get-Date), $m; Write-Host $line; Add-Content -Path $Log -Value $line }
+function Log([string]$m) { $line = "{0:yyyy-MM-dd HH:mm:ss} {1}" -f (Get-Date), $m; Write-Host $line; Add-Content -Path $script:Log -Value $line }
 
 function Get-ProcessTree([int[]]$roots) {
   # the processes below $roots (inclusive), found by parentage
@@ -77,6 +77,7 @@ function Get-OllamaPids {
   Get-ProcessTree $roots
 }
 
+$script:emptyPolls = 0
 function Get-GpuLoad {
   # @{ pid = max 3D utilization percent } for this poll; the counter's instance name carries the pid
   $r = @{}
@@ -84,6 +85,12 @@ function Get-GpuLoad {
     # SilentlyContinue: a process that vanished between enumeration and read gives one INVALID sample (Status <> 0),
     # which must not discard the whole poll; such samples are skipped
     $samples = (Get-Counter '\GPU Engine(*)\Utilization Percentage' -ErrorAction SilentlyContinue).CounterSamples
+    if ($samples) { $script:emptyPolls = 0 }
+    else {
+      # a watcher that sees nothing would never see a game: say so at the first empty poll and every 60th after it
+      $script:emptyPolls++
+      if ($script:emptyPolls % 60 -eq 1) { Log "the GPU counters returned no samples (empty poll $script:emptyPolls): a game would go unseen" }
+    }
     foreach ($s in $samples) {
       if ($s.Status -ne 0) { continue }
       if ($s.InstanceName -notmatch 'engtype_3d') { continue }
@@ -105,7 +112,10 @@ function Stop-OllamaRunner {
 
 # ---- start the run -------------------------------------------------------------------------------------------
 Set-Location $Repo
-if (-not $NoFastForward) { git merge --ff-only -q origin/main 2>$null }
+if (-not $NoFastForward) {
+  $ff = git merge --ff-only -q origin/main 2>&1
+  if ($LASTEXITCODE -ne 0) { Log "could not fast-forward $Repo to origin/main (the run uses the checkout as it is): $($ff -join ' ')" }
+}
 if (-not $RunDir) { $RunDir = Join-Path $Repo ("conformance-suite/results/fuzz-{0:yyyyMMdd-HHmmss}" -f (Get-Date)) }
 $pausePath = Get-PausePath $RunDir
 $hargs = Get-HarnessArguments -Model $Model -Hours $Hours -Jobs $Jobs -Seed $Seed -Cobol $Cobol -RunDir $RunDir -ModelOption $ModelOption
@@ -116,20 +126,24 @@ $proc = Start-Process -FilePath $PY -ArgumentList $hargs -WorkingDirectory $Repo
 Log "harness pid $($proc.Id); pause file $pausePath; watching the GPU every $PollSeconds s (game = 3D engine > $GameThreshold % for $GameSamples polls; resume after $QuietSeconds s quiet)"
 
 $state = New-WatchState
+# The actions are CLOSURES: a script block runs in its caller's scope, where a lib function's own parameter of the same name
+# ($QuietSeconds in Invoke-WatchPoll) would shadow the value, and a lib parameter once shadowed $Log and failed the first
+# real poll (the self-test holds the lib to reading nothing it was not passed).
 $act = @{
-  Pause  = { param($game) Start-FuzzPause -PausePath $pausePath -Game $game -GraceSeconds $GraceSeconds -EndRunner { Stop-OllamaRunner } -Sleep { param($s) Start-Sleep -Seconds $s } -Log { param($m) Log $m } }
-  Beat   = { Send-PauseBeat -PausePath $pausePath }
-  Resume = { Stop-FuzzPause -PausePath $pausePath -QuietSeconds $QuietSeconds -Log { param($m) Log $m } }
+  Pause  = { param($game) Start-FuzzPause -PausePath $pausePath -Game $game -GraceSeconds $GraceSeconds -EndRunner { Stop-OllamaRunner } -Sleep { param($s) Start-Sleep -Seconds $s } -Say { param($m) Log $m } }.GetNewClosure()
+  Beat   = { Send-PauseBeat -PausePath $pausePath }.GetNewClosure()
+  Resume = { Stop-FuzzPause -PausePath $pausePath -QuietSeconds $QuietSeconds -Say { param($m) Log $m } }.GetNewClosure()
 }
 $nameOf = { param($processId) try { (Get-Process -Id $processId -ErrorAction Stop).ProcessName } catch { $null } }
 # Ctrl+C is read by THIS script (the harness, sharing the console, also receives it and writes its report on the way
 # out); the wrapper then stops whatever is left of the harness tree and ends. Without this, Ctrl+C only reached the child.
-[Console]::TreatControlCAsInput = $true
+# With no console (a redirected run) there is no key to read: the wrapper then simply sleeps, and ends when the harness does.
+$readsKeys = try { [Console]::TreatControlCAsInput = $true; $true } catch { $false }
 function SleepOrInterrupt([int]$seconds) {
   # returns $true when Ctrl+C was pressed during the wait
   $until = (Get-Date).AddSeconds($seconds)
   while ((Get-Date) -lt $until) {
-    while ([Console]::KeyAvailable) {
+    while ($readsKeys -and [Console]::KeyAvailable) {
       $k = [Console]::ReadKey($true)
       if ($k.Key -eq 'C' -and ($k.Modifiers -band [ConsoleModifiers]::Control)) { return $true }
     }
@@ -150,7 +164,7 @@ try {
   }
   if ($proc.HasExited) { Log "harness exited with code $($proc.ExitCode); the morning reads report.md in $RunDir" }
 } finally {
-  [Console]::TreatControlCAsInput = $false
+  if ($readsKeys) { [Console]::TreatControlCAsInput = $false }
   Remove-Item -LiteralPath $pausePath -Force -ErrorAction SilentlyContinue
   if (-not $proc.HasExited) {
     Log "watcher ending: stopping the harness tree"
