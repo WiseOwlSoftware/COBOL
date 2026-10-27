@@ -147,7 +147,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         else if (AnyDecRaw(ic) && RenderDec(ic) is { } decNative)
             return decNative;
         // ⛔ A CROSS-ALIGNING ARM WHOSE ALIGNED ARGUMENTS PROVABLY CANNOT STAY IN THE Int128 CARRIER TAKES THE SDIDI
-        // (kb/Work PB621; the Int128 half of the boundary PB252 made honest). SUM / RANGE / MEAN / MEDIAN / MIDRANGE
+        // (kb/Work PB621; the Int128 half of the boundary PB252 made honest). SUM / RANGE / MEDIAN / MIDRANGE (MEAN left them with PB3860, below)
         // align every argument to the LIST's maximum scale, and alignment multiplies: ±1.7e30 beside a
         // PIC SV9(8) item needs 39 digits aligned, so the native arm answered EC-SIZE-OVERFLOW for RANGE = 3.4e30 —
         // a value its PIC S9(31) receiver holds. The value is representable; only the carrier's width was the
@@ -162,6 +162,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         if (IntrinsicCarrierRules.CrossAlignedNativeArms.Contains(sig.RuntimeMethod) && AlignmentMayLeaveCarrier(ic)
             && RenderDec(ic) is { } wideAligned)
             return wideAligned;
+        // ⛔ MEAN'S VALUE IS THE SDIDI QUOTIENT UNDER NATIVE ARITHMETIC TOO (kb/Work PB3860). §15.60.4 r1's equivalent arithmetic
+        // expression ends in a division; under a standard mode the value is that expression's SDIDI value (§15.4.1 r1) and
+        // under native arithmetic §15.4.1 leaves "an implementor-defined approximation". The approximation this arm used to
+        // choose came from the RECEIVER: the quotient was cut at max(receiver scale, sum scale + 1, 6) places and the
+        // receiver's ROUNDED phrase then rounded the cut, so COMPUTE R2 ROUNDED MODE AWAY-FROM-ZERO = MEAN(1E-8 and nineteen
+        // zeros) stored 0.00 where the one rounding of 5E-10 is 0.01, and DISPLAY showed the cut value. The determination is
+        // the standard-mode value in every mode and channel (the PB3839 owner determination: one reference, one value), which
+        // the receiver then rounds ONCE (§14.7.4.3). A list with a binary64 operand keeps the float lane below: its one value
+        // IS a double, and the landing is the float family's own (ReceiverContext.FloatLanding).
+        if (IntrinsicCarrierRules.ReturnsSdidiQuotient(sig.RuntimeMethod) && !AnyRealArgument(ic)
+            && RenderDec(ic) is { } sdidiQuotient)
+            return sdidiQuotient;
         if (sig.Float) return RenderFloat(ic, sig.RuntimeMethod);
         // (The float lane's precondition is IntrinsicArgumentRules.ArgumentRunIsAllNumeric — an argument run binary64
         // can carry — and its trigger is a binary64 operand at a §15.3 TYPE-10 position: AnyRealArgument reads the
@@ -296,10 +308,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "SumScaled":                                                   // §15.88 — Σ at the common scale
             {
                 var (argList, s) = AlignedArgs(ic);
-                // SumScaled is the ONE exact body serving two §15.4.1 EAEs — §15.88.4's Σ and §15.60.4's
-                // numerator — so it is told which function it is evaluating, for the D1 size-error message. A
-                // body serving exactly one function (RangeScaled, MedianScaled, …) names itself instead.
-                return new NumX(RuntimeApi.Intrinsic("SumScaled", $"\"{sig.Name}\", {argList}"), s);
+                return new NumX(RuntimeApi.Intrinsic("SumScaled", argList), s);
             }
             case "RangeScaled":                                                 // §15.76 — MAX − MIN at the common scale
             {
@@ -311,27 +320,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 var (argList, s) = AlignedArgs(ic);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, argList), s + 1);
             }
-            case "MeanScaled":                                                  // §15.60 — Σ/n with the ÷ discipline of §8.8.1
-            {
-                // (Under a STANDARD mode MEAN never reaches here — it is a CrossAlignedNativeArms member, so RenderDec evaluates the
-                // §15.60.4 equivalent arithmetic expression on the SDIDI carrier, kb/Work PB62 / RV-15.60.4-1.)
-                var (argList, s, _) = AlignedArgsEx(ic);
-                // Quotient quantized at ws = max(Receiver.Scale, s+1, 6): the receiver's scale when known, never
-                // below the sum's own resolution + 1, with a fraction floor for receiver-less (scale-0) contexts.
-                int ws = Math.Max(Math.Max(num.Receiver.Scale, s + 1), 6);
-                // Same mode rule as NumericRenderer.Divide: AT the receiver scale the one exact RoundDiv applies
-                // the receiver's mode; above it, truncate and let the receiver store round once (§14.7.4).
-                CobolRounding mode = ws == num.Receiver.Scale ? num.Receiver.Rounding : CobolRounding.Truncation;
-                // The divisor is the number of ARGUMENTS — a compile-time count unless a table(ALL) argument
-                // ranges over a runtime count (ISO §15.3; kb/Work PB62), in which case the enumerated list is
-                // bound ONCE (CobolTable.With) and both the sum and the count read it.
-                if (StaticArgCount(ic) is { } n)
-                    return new NumX(RuntimeApi.NumDivide(false, RuntimeApi.Intrinsic("SumScaled", $"\"{sig.Name}\", {argList}"),
-                        s.ToString(), n.ToString(), "0", ws.ToString(), mode), ws);
-                string xs = NextWithVar();
-                return new NumX(RuntimeApi.With(argList, xs,
-                    RuntimeApi.NumDivide(false, RuntimeApi.Intrinsic("SumScaled", $"\"{sig.Name}\", {xs}"), s.ToString(), $"{xs}.Length", "0", ws.ToString(), mode)), ws);
-            }
+            // (MEAN, §15.60, has NO arm in this switch: its value is the SDIDI quotient of its equivalent arithmetic expression in
+            // every arithmetic mode and for every receiver, IntrinsicCarrierRules.SdidiQuotientFunctions, so RenderNum hands it to
+            // RenderDec's MeanDec before this switch - kb/Work PB3860. An arm here is where a receiver-scale read lives.)
             case "OrdMax" or "OrdMin":                                          // §15.71/72 — 1-based ordinal, tie = first
             {
                 // Pure selection with NO result rescale — every legal argument list has its defined ordinal
@@ -812,7 +803,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// numeric argument in this renderer originates HERE, so one landing covers all of them and the NEXT arm
     /// added is covered without anyone remembering to (feedback_change_the_dispatch_not_the_callers). Landing
     /// early also gives the SDIDI a compile-time <c>Scale</c>, so it participates in
-    /// <see cref="AlignedArgsEx"/>'s common-scale maximum instead of contributing the placeholder 0 and dragging
+    /// <see cref="AlignedArgs"/>'s common-scale maximum instead of contributing the placeholder 0 and dragging
     /// the whole argument list down to integer alignment.</para>
     /// <para>⚠ THE SCALE IS A CHOICE, AND IT IS AN IMPLEMENTOR'S CHOICE — NO CLAUSE PRESCRIBES IT. An SDIDI carries
     /// its exponent at RUN time, so there is no compile-time scale to preserve; the value lands through the same
@@ -1021,19 +1012,6 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         return RuntimeApi.Intrinsic(method, $"{prefix}{(lead ?? render)(ic.Args[0])}, {mid}{tail}");
     }
 
-    /// <summary>The number of arguments a call's list stands for when it is a compile-time fact — every table(ALL)
-    /// argument with fixed ranges counted as its elements; null when an ALL ranges over a runtime count.</summary>
-    private static long? StaticArgCount(BoundIntrinsicCall ic)
-    {
-        long n = 0;
-        foreach (var a in ic.Args)
-        {
-            if (a is BoundFieldOperand { Place: TableAllPlace all }) { if (all.StaticCount is not { } k) return null; n += k; }
-            else n++;
-        }
-        return n;
-    }
-
     /// <summary>A fresh name for a <c>CobolTable.With</c> binding — nested bindings must not shadow.</summary>
     private string NextWithVar() => $"__xs{_withSerial++}";
     private int _withSerial;
@@ -1136,7 +1114,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// unscaled landing whose fixed working scale truncated sub-microscale operands to zero.
     /// </summary>
     /// <remarks>
-    /// <para>Routing, in ONE line: <c>CrossAlignedNativeArms ∪ StandardValueFixedByRule ∪ ReturnsExactParse</c> route here for EVERY
+    /// <para>Routing, in ONE line: <c>CrossAlignedNativeArms ∪ StandardValueFixedByRule ∪ ReturnsExactParse ∪ ReturnsSdidiQuotient</c> route here for EVERY
     /// argument shape, and everything else routes here only when a RAW argument is Dec or float — or, for an
     /// <see cref="EquivalentExpressionUnaryArms"/> member, when the argument's lift would ROUND
     /// (<see cref="ArgumentRoundsAtLift"/>, kb/Work PB2965). The remaining NON-aligning exact-EAE functions with an
@@ -1153,9 +1131,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private NumX? RenderDec(BoundIntrinsicCall ic)
     {
         string m = ic.Sig.RuntimeMethod;
-        // ⛔ THREE SETS, ONE DECISION (kb/Work PB252): CrossAlignedNativeArms is STRUCTURAL (the native arm
+        // ⛔ FOUR SETS, ONE DECISION (kb/Work PB252, PB3860): CrossAlignedNativeArms is STRUCTURAL (the native arm
         // cross-aligns, so alignment can need more digits than the Int128 carrier holds),
-        // StandardValueFixedByRule is the cited-exception half, and ReturnsExactParse is the NUMVAL family.
+        // StandardValueFixedByRule is the cited-exception half, ReturnsExactParse is the NUMVAL family and
+        // ReturnsSdidiQuotient is MEAN, whose inexact quotient may not depend on its receiver.
         // Between them they replace the inline `alwaysDec` name chain, and ExactCarrierBoundaryDriftTests derives
         // the first from this switch.
         // ⛔ THE NUMVAL FAMILY REACHES HERE IN EVERY MODE AND CHANNEL (kb/Work PB251, PB3839): RenderNum consults
@@ -1165,7 +1144,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // resolved to r3's exact value. Their argument is a STRING, so AnyDecOrRealRaw is false and the set is the
         // only thing that keeps this early-out from returning null under native.
         bool alwaysSdidi = IntrinsicCarrierRules.CrossAlignedNativeArms.Contains(m) || StandardValueFixedByRule.Contains(m)
-            || IntrinsicCarrierRules.ReturnsExactParse(m);
+            || IntrinsicCarrierRules.ReturnsExactParse(m) || IntrinsicCarrierRules.ReturnsSdidiQuotient(m);
         if (!alwaysSdidi && !AnyDecOrRealRaw(ic) && !ArgumentRoundsAtLift(ic) && !SelectionPastReceiverHeadroom(ic)) return null;
 
         string mode = num.IntermediateMode;
@@ -1331,23 +1310,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <remarks>INTAKE(ALIGNED) — every argument rescaled UP to the argument list's common maximum scale on the <c>Int128</c> carrier — no digit is lost, but the list's headroom is.</remarks>
     private (string ArgList, int Scale) AlignedArgs(BoundIntrinsicCall ic)
     {
-        var (argList, s, _) = AlignedArgsEx(ic);
-        return (argList, s);
-    }
-
-    /// <summary>As <see cref="AlignedArgs"/>, also reporting whether any argument rendered FLOATING (Real) —
-    /// the MEAN standard-arithmetic branch keys on it (a float statistics argument keeps the pre-existing
-    /// native rendering).</summary>
-    /// <remarks>INTAKE(ALIGNED) — as <see cref="AlignedArgs"/> — same contract.</remarks>
-    private (string ArgList, int Scale, bool AnyReal) AlignedArgsEx(BoundIntrinsicCall ic)
-    {
-        // A table(ALL) operand renders as its ELEMENT here (the index variable inside) — right for the scale and
-        // the Real flag; the list itself enumerates through ArgArray (kb/Work PB62).
+        // A table(ALL) operand renders as its ELEMENT here (the index variable inside) — right for the scale;
+        // the list itself enumerates through ArgArray (kb/Work PB62).
         var xs = Operands(ic).ToList();
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
         string list = ArgArray(ic, 0, "Int128", a => NumericRenderer.Align(num.AsNum(a, num.Receiver), s))
                       ?? string.Join(", ", xs.Select(x => NumericRenderer.Align(x, s)));
-        return (list, s, xs.Any(x => x.Real));
+        return (list, s);
     }
 
     /// <summary>The variadic arguments UNALIGNED — parallel value/scale arrays for the selection family

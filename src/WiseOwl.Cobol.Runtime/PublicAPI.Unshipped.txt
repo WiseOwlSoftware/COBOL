@@ -5,6 +5,7 @@
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolArgAdapt.WithValueSending(WiseOwl.Cobol.Runtime.CobolArg arg, System.Func<string!, string!>? storageImage = null) -> WiseOwl.Cobol.Runtime.CobolArg
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolDec.FromDouble(double d) -> WiseOwl.Cobol.Runtime.CobolDec
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.NumvalF(string! text, int scale, bool commaMode = false, int digitCap = 31, bool checkedLanding = false) -> System.Int128
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.SumScaled(string! fn, params System.Int128[]! xs) -> System.Int128
 WiseOwl.Cobol.Runtime.ActivationDescription.AnyLengthClauses.get -> string?
 WiseOwl.Cobol.Runtime.ActivationDescription.AnyLengthClauses.init -> void
 WiseOwl.Cobol.Runtime.ActivationDescription.ClausePhrases.get -> string![]?
@@ -192,6 +193,7 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.IntegerArgSaturatingReal(double v) 
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.IntegerArgUnboundedDec(WiseOwl.Cobol.Runtime.CobolDec v) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.IntegerPartU(System.UInt128 v, int scale) -> System.UInt128
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.SignOfU(System.UInt128 v) -> long
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.SumScaled(params System.Int128[]! xs) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolNames.HasEditionSpelling(int dialectLevel) -> bool
 static WiseOwl.Cobol.Runtime.CobolNum.DeviceFunctionText(System.Int128 unscaled, int scale, bool commaMode) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.DeviceFunctionText(WiseOwl.Cobol.Runtime.CobolDec value, bool commaMode) -> string!
