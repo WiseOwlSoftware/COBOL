@@ -1,4 +1,4 @@
-## PB3468: the fuzz signature OUTPUT_DIFFERS:14.9.25 is not a compiler defect; every row is GnuCOBOL's, the standard's "undefined", or a documented WiseOwl decision, and the figurative-constant receivers get their witness
+## Entry 2636 — 2026-10-26 17:05 PDT — PB3468: the fuzz signature OUTPUT_DIFFERS:14.9.25 is not a compiler defect; every row is GnuCOBOL's, the standard's "undefined", or a documented WiseOwl decision, and the figurative-constant receivers get their witness
 
 The note asked whether the differential fuzzer's smoke-run-3 signature `OUTPUT_DIFFERS:14.9.25` ("MOVE of figurative
 constants into boolean, alphanumeric and national items") was the compiler's, GnuCOBOL's or neither's. Its sources were
@@ -32,3 +32,4 @@ Rows re-verdicted: none (the note claimed none and closes none). `kb/Work/PB3468
 classes. A lead for the fuzz triage: a program that displays storage no statement has written is undefined by §A.2 19
 and accounts for eight of these 17 rows, so the triage could set such programs aside before a reader spends time on
 them.
+
