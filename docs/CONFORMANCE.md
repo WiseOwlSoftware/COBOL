@@ -708,6 +708,31 @@ of an unsupported facility.
   `conformance:cases/13.18.63-VALUE/pb577_odo_value_initial_state` (the initial-state occasion — the maximum, GR6 as written),
   `conformance:cases/13.18.63-VALUE/pb577_odo_value_initialize` lines L1/L2 (the INITIALIZE occasion with the DEPENDING item
   outside — the current value) and L3 (inside — the maximum, plus GR6's last-sentence ordering).
+- **D-READ-KEY-ACCESS — a READ with a KEY phrase on a file whose access mode is SEQUENTIAL is refused** (kb/Work
+  PB3569; COBOL0864, every edition). *The question:* does ISO bar a Format 2 READ on an indexed file in sequential
+  access mode? No syntax rule says so: §14.9.30.3 SR8 (NEXT implied under ACCESS MODE SEQUENTIAL) and SR6 sit under
+  Format 1, and nothing is printed for the reverse. *The determination:* the standard assigns such a statement no
+  meaning, and the refusal is derived from three rules, not from a list of phrases. §14.9.30.4 GR19: "An implicit or
+  explicit NEXT phrase or a PREVIOUS phrase results in a sequential read: otherwise, the read is a random read and the
+  rules for format 2 apply" makes a READ with a KEY phrase (and no NEXT or PREVIOUS) a random read. §14.9.30.1: "For
+  sequential access, the READ statement makes available the next logical record from a file. For random access, the
+  READ statement makes available a specified record". §12.4.5.5.3 GR2 has a sequential-mode file's records "accessed
+  in the sequence dictated by the file organization", with GR1 assuming sequential access when the ACCESS MODE clause
+  is absent; GR3 and GR4 are what permit random access (RANDOM, and DYNAMIC: "accessed sequentially, randomly, or
+  both"). The KEY phrase selects a record, so the alternatives to a refusal are a random read the file's mode does not
+  admit or a sequential read that ignores the key; the second is GnuCOBOL's ("KEY ignored with sequential READ", a
+  warning) and reads a different record than the program asked for, so it is not taken (CLAUDE.md rule 1: GnuCOBOL
+  settles implementor latitude only, and silently changing which record is read is a wrong answer). The message names
+  the file's access mode (and, when the clause is absent, that sequential access is assumed) and no phrase. A KEY
+  phrase beside NEXT, PREVIOUS or ADVANCING ON LOCK is a different refusal (Format 2 prints none of them,
+  §14.9.30.2), named with exactly the phrases written; AT END and NOT AT END beside KEY are refused by the parser
+  (COBOL2269, kb/Work PB3830). `READ f INVALID KEY` with no KEY phrase on a sequential-access file stays accepted: the
+  phrase selects no record, and the emitter binds it dead on a sequential read (the CCVS leniency). Witnesses
+  `conformance:cases/14.9.30-READ/pb3569-read-key-sequential-access-default`,
+  `conformance:cases/14.9.30-READ/pb3569-read-key-sequential-access-written`,
+  `conformance:cases/14.9.30-READ/pb3569-read-next-key`; the legal twin on RANDOM and DYNAMIC files is
+  `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/l1_read_key_of_reference`; the messages are pinned by
+  `conformance-test:ReadKeyFormatTests`.
 - **I-O status '0x' case equivalence** (E.2 item 17): the low-order status digit for a non-'00' successful
   completion is implementor-dependent; WiseOwl COBOL reports the specific '0x' value (e.g. '04', '05', '07') rather
   than collapsing to '00'.
