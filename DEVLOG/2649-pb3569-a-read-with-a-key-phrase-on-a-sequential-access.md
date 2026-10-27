@@ -1,4 +1,4 @@
-## PB3569: a READ with a KEY phrase on a sequential-access indexed file is refused for its access mode, not for phrases it did not write
+## Entry 2649 — 2026-10-26 19:23 PDT — PB3569: a READ with a KEY phrase on a sequential-access indexed file is refused for its access mode, not for phrases it did not write
 
 Wave 20261715 group B, under the owner's standing campaign rules ("Fix the root causes, never simply making the
 diagnostic pass"; "Always be consistent with ourselves barring an explicit requirement differently").
@@ -60,3 +60,4 @@ Duplication: the phrase list that SR6 and the KEY check both need is one helper.
 at every edition and never rerouted to a sequential read.
 
 **Gate.** Run `TestResults/build-local/000001-20261027T012610Z` at HEAD f59724564 (review round 1 fixes; the first run, `000001-20261027T005759Z` at 8d929f328, preceded them): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN - ... Conformance 5,416/19,010 · Unit 37,236/38,500 · Characterization 36/36 cases ran ... Linux half (WSL clone of HEAD) GREEN ...`. The sixteen goldens (four cases at four editions) and `ReadKeyFormatTests` are all `outcome="Passed"` in `leg-1-Conformance.trx`. `semgrep/verify.py` PASS (`raw-diagnostic-code-literal` 225 to 225). `generate.py --check` GREEN, `work.py check` OK.
+
