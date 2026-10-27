@@ -1,11 +1,11 @@
-A1=[habcxy] 6
-A2=[habcxyz] 7
-A3=[habcx] 5
+A1=[habcxy] 000000006
+A2=[habcxyz] 000000007
+A3=[habcx] 000000005
 B1=[habcx  ]
 B2=[Qmm12z]
 B3 NE
 B4 EQ
-S=[habcxy] 6
+S=[habcxy] 000000006
 C1=[hZZx98] 3
-S=[hZZx98] 6
+S=[hZZx98] 000000006
 C2=[hZZx98] 3

@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1125 - ISO 14.9.22.2 general formats (rendered from the PDF, folio 643-644): the tallying-phrase prints ONE `identifier-2 FOR` per counter; a second FOR for the same counter is not a
       *> continuation of the phrase (the operands of ALL/LEADING continue, the FOR does not).
-      *> Expected: a syntax error (COBOL0307) at every edition.
+      *> Expected: a syntax error (COBOL2269: the INSPECT statement ends before a phrase its format does not print there) at every edition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG1125G1.
        DATA DIVISION.

@@ -202,6 +202,12 @@ public sealed record BoundNumLiteral(string Text, BinaryFloatCarrier? Carrier = 
     /// is required "even though a particular reference … might yield an integer value" (kb/Work PB1421).</summary>
     public IntrinsicType? FunctionType { get; init; }
 
+    /// <summary>The name of the folded function (<c>LENGTH</c>, <c>HIGHEST-ALGEBRAIC</c> …), set where the fold is made
+    /// (<c>IntrinsicBinder.Folded</c>); null for a literal the source wrote. DISPLAY's device form asks it: a fold GnuCOBOL
+    /// makes too (<see cref="FunctionDeviceForm.Literal"/>) shows as the literal it is, and any other folded value shows as the
+    /// returned value of the call it replaced (kb/Work PB3514).</summary>
+    public string? FoldedFunction { get; init; }
+
     /// <summary>The decimal separator the source wrote the literal with — see
     /// <see cref="BoundNumericLiteral.DecimalSeparator"/>, which <c>IntrinsicBinder.OperandOf</c> carries it to
     /// (kb/Work PB1643).</summary>
@@ -501,6 +507,9 @@ public sealed record BoundNumericLiteral(string Text) : BoundOperand
 
     /// <summary>The folded function's §15.2 type — see <see cref="BoundNumLiteral.FunctionType"/>.</summary>
     public IntrinsicType? FunctionType { get; init; }
+
+    /// <summary>The folded function's name - see <see cref="BoundNumLiteral.FoldedFunction"/>.</summary>
+    public string? FoldedFunction { get; init; }
 
     /// <summary>The decimal separator the SOURCE wrote this literal with: the comma under DECIMAL-POINT IS COMMA
     /// (ISO §12.3.7.4 GR14 a): "The character written in numeric literals to represent the decimal separator shall
@@ -1557,8 +1566,14 @@ public sealed record BoundImplicitSeries(IReadOnlyList<BoundStatement> Members) 
 /// A COMMIT or ROLLBACK the medium refuses raises EC-I-O-PERMANENT-ERROR for the refused file (docs/CONFORMANCE.md §5,
 /// A.4.3 (a)), so these are the statement's I-O files: <c>EcBinder.IoFilesOf</c> gives each its (EC-I-O, file) pairs,
 /// and checking enabled for one of them reaches the statement's exception processing (kb/Work PB3338, review finding
-/// w1154a R1-3: with no entry there the mask was always 0, PB1036's shape).</summary>
-public sealed record BoundCommitRollback(bool IsCommit, IReadOnlyList<FileModel> Files) : BoundStatement;
+/// w1154a R1-3: with no entry there the mask was always 0, PB1036's shape).
+/// <para><paramref name="ForeignFiles"/>: the files of ANOTHER element's clause that this element can name — the
+/// GLOBAL file-names of its containers (§13.18.27.4 GR1, <c>FilesByName</c>) under commit control there. Their refusal
+/// is told by the describing element, but a TURN directive of THIS element that names one enables checking "only for
+/// exception conditions associated with that file-name" (§7.3.25.4 GR6, GR8), so each is an I-O file of the statement
+/// for <c>EcBinder.IoFilesOf</c> too (kb/Work PB3554, review finding w20261712a R1-1).</para></summary>
+public sealed record BoundCommitRollback(bool IsCommit, IReadOnlyList<FileModel> Files, IReadOnlyList<FileModel> ForeignFiles)
+    : BoundStatement;
 
 /// <summary><c>NEXT SENTENCE</c> (ISO §14.9.19.4 GR4 in an IF's THEN phrase and GR6 in its ELSE phrase — ONE
 /// node for both, since the two rules state the same transfer and nothing downstream may diverge on the arm; also

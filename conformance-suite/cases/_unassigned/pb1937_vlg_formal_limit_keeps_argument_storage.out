@@ -1,7 +1,7 @@
 HANDLED EC-DATA-INCOMPATIBLE
 W3 [...]
-A [HabcdefghF] 8
+A [HabcdefghF] 000000008
 LG [HabcdefghF]
-C [HabcdefghF] 8
+C [HabcdefghF] 000000008
 W3 [ab ]
-E [HabF] 2
+E [HabF] 000000002

@@ -65,7 +65,7 @@ public sealed class FunctionValueLaneDriftTests
     /// compiler.model, compiler.binding never reaches compiler.codegen, and no tolerated row covers either direction
     /// between <c>WiseOwl.Cobol.Binding.Procedure</c> and <c>WiseOwl.Cobol.CodeGen.Emit</c>). The lane once imported
     /// <c>IntrinsicRenderer.CrossAlignedNativeArms</c> and <c>EmitText.UnscaledLit</c> while the renderer imported the
-    /// lane's <c>ValueFixedByDefinition</c> and <c>AlignmentMayLeaveCarrier</c>: a namespace cycle between the binder and
+    /// lane's <c>ReturnsExactParse</c> and <c>AlignmentMayLeaveCarrier</c>: a namespace cycle between the binder and
     /// the code generator. The shared rules now live in <see cref="IntrinsicCarrierRules"/> and
     /// <c>NumericLiteral.TryUnscaledParts</c>; this holds every file of both namespaces to it.</summary>
     [Fact]
@@ -96,8 +96,9 @@ public sealed class FunctionValueLaneDriftTests
         Assert.DoesNotContain("using WiseOwl.Cobol.Binding;", rules, StringComparison.Ordinal);
     }
 
-    /// <summary>The two other function sets the prediction shares with the renderer
-    /// (<see cref="IntrinsicCarrierRules.CrossAlignedNativeArms"/>, <see cref="IntrinsicCarrierRules.ValueFixedByDefinition"/>) route a call
+    /// <summary>The other function sets the prediction shares with the renderer
+    /// (<see cref="IntrinsicCarrierRules.CrossAlignedNativeArms"/>, <see cref="IntrinsicCarrierRules.ReturnsExactParse"/>,
+    /// <see cref="IntrinsicCarrierRules.SdidiQuotientFunctions"/>) route a call
     /// to its SDIDI body, so each member needs one in <see cref="FunctionValueLane.NativeSdidiBodies"/> - else the
     /// prediction would name a lane the renderer cannot take (kb/Work PB3268, review R2-1).</summary>
     [Fact]
@@ -108,11 +109,15 @@ public sealed class FunctionValueLaneDriftTests
         foreach (string arm in crossAligned)
             Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(arm),
                 $"CrossAlignedNativeArms names {arm}, which has no native SDIDI body in NativeSdidiBodies");
-        foreach (string arm in new[] { "Numval", "NumvalC" })
+        foreach (string arm in new[] { "Numval", "NumvalC", "NumvalF" })
         {
-            Assert.True(IntrinsicCarrierRules.ValueFixedByDefinition(arm), $"{arm} is a value-fixed-by-definition function (§15.67.4 r1 / §15.68.4 r1)");
+            Assert.True(IntrinsicCarrierRules.ReturnsExactParse(arm), $"{arm} returns the exact parse of its argument (§15.67.4 r1 / §15.68.4 r1 by definition, §15.69.4 r2/r3 by the PB3839 determination)");
             Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(arm), $"{arm} has no native SDIDI body in NativeSdidiBodies");
         }
+        Assert.True(IntrinsicCarrierRules.SdidiQuotientFunctions.Count > 0);
+        foreach (string arm in IntrinsicCarrierRules.SdidiQuotientFunctions)
+            Assert.True(FunctionValueLane.NativeSdidiBodies.Contains(arm),
+                $"SdidiQuotientFunctions names {arm}, which has no native SDIDI body in NativeSdidiBodies (kb/Work PB3860)");
     }
 
     [Fact]

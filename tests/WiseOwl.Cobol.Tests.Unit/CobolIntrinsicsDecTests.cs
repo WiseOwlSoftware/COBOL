@@ -160,7 +160,7 @@ public sealed class CobolIntrinsicsDecTests
 
         Assert.Equal(CobolIntrinsics.MaxScaled(exact), CobolIntrinsics.MaxDec(dec).ToUnscaled(2, CobolRounding.Truncation));
         Assert.Equal(CobolIntrinsics.MinScaled(exact), CobolIntrinsics.MinDec(dec).ToUnscaled(2, CobolRounding.Truncation));
-        Assert.Equal(CobolIntrinsics.SumScaled("SUM", exact), CobolIntrinsics.SumDec(m, dec).ToUnscaled(2, CobolRounding.Truncation));
+        Assert.Equal(CobolIntrinsics.SumScaled(exact), CobolIntrinsics.SumDec(m, dec).ToUnscaled(2, CobolRounding.Truncation));
         Assert.Equal(CobolIntrinsics.RangeScaled(exact), CobolIntrinsics.RangeDec(m, dec).ToUnscaled(2, CobolRounding.Truncation));
         // Median/Midrange: the exact bodies return at scale s+1 (the ×10/2 discipline) — compare there.
         Assert.Equal(CobolIntrinsics.MedianScaled(exact), CobolIntrinsics.MedianDec(m, dec).ToUnscaled(3, CobolRounding.Truncation));
@@ -215,24 +215,27 @@ public sealed class CobolIntrinsicsDecTests
         Assert.Equal("EC-SIZE-OVERFLOW", ex.EcName);
     }
 
-    /// <summary>The drift half for this family: on the shared fixed-point domain the SDIDI projection, landed
-    /// at the native projection's working scale, is digit-identical to the native projection — the two
-    /// arithmetic modes read ONE scan and cannot disagree about a conforming argument's value.</summary>
+    /// <summary>The drift half for this family: on the shared fixed-point domain the three SDIDI projections
+    /// are digit-identical, and there is no second (scaled-<c>Int128</c>) projection left to disagree with
+    /// (kb/Work PB251, PB3839): the arithmetic modes read ONE scan and cannot disagree about a conforming argument's
+    /// value.</summary>
     [Theory]
     [InlineData("12.5")]
     [InlineData("-0.001")]
     [InlineData("1234567.891")]
     [InlineData("12.5CR")]
     [InlineData(" + 7 ")]
-    public void NumvalFamily_DecAgreesWithNative_OnTheSharedDomain(string text)
+    public void NumvalFamily_IsOneProjection_OnTheSharedDomain(string text)
     {
-        // ⛔ NUMVAL AND NUMVAL-C NO LONGER HAVE A NATIVE TWIN TO AGREE WITH (kb/Work PB251): §15.67.4 r1 /
-        // §15.68.4 r1 fix the returned value with no arithmetic-mode qualification, so ONE projection serves every
-        // mode and the agreement question is answered by construction. What is still worth asserting of it is
-        // that the value is the parsed one at its OWN scale — no working scale, no receiver.
+        // ⛔ NO MEMBER OF THE FAMILY HAS A NATIVE TWIN TO AGREE WITH (kb/Work PB251, PB3839): §15.67.4 r1 /
+        // §15.68.4 r1 fix the returned value of NUMVAL and NUMVAL-C with no arithmetic-mode qualification, and NUMVAL-F's
+        // §15.69.4 r2 approximation is resolved to r3's exact value, so ONE projection serves every mode and the
+        // agreement question is answered by construction. What is still worth asserting is that the three read one
+        // scan: the value is the parsed one at its OWN scale — no working scale, no receiver.
         AssertDec(CobolIntrinsics.NumvalDec(text), CobolIntrinsics.NumvalCDec(text, "¤"));
         if (!text.Contains("CR"))   // NUMVAL-F has no CR form (§15.69.3 r1)
-            Assert.Equal(CobolIntrinsics.NumvalF(text, 9), CobolIntrinsics.NumvalFDec(Nafz, text).ToUnscaled(9, CobolRounding.Truncation));
+            Assert.Equal(CobolIntrinsics.NumvalDec(text).ToUnscaled(9, CobolRounding.Truncation),
+                         CobolIntrinsics.NumvalFDec(Nafz, text).ToUnscaled(9, CobolRounding.Truncation));
     }
 
     /// <summary>The reject projections are SHARED: a non-conforming argument yields the §15.3 default (0)
@@ -245,7 +248,6 @@ public sealed class CobolIntrinsicsDecTests
     {
         AssertDec(D(0, 0), CobolIntrinsics.NumvalDec(text, digitCap: 34));
         AssertDec(D(0, 0), CobolIntrinsics.NumvalCDec(text, "¤", digitCap: 34));
-        Assert.Equal((System.Int128)0, CobolIntrinsics.NumvalF(text, 9, digitCap: 34));
         AssertDec(D(0, 0), CobolIntrinsics.NumvalFDec(Nafz, text));
     }
 }

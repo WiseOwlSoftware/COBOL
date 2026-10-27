@@ -23,9 +23,14 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// same name (an empty USING / INTO / FROM, two modes for one file, REPLACING before TALLYING) is pinned as
 /// refused.</para>
 ///
-/// <para>Each refused row names the code the compiler gives today. Several are the bare parse codes
-/// (COBOL0001 "no viable alternative", COBOL0307 "unexpected") rather than a code that names the rule; a change
-/// that names the rule instead updates the row's code, which is the point of pinning it.</para>
+/// <para>Each refused row names the code the compiler gives today. Several are the bare parse code COBOL0001
+/// ("cannot parse construct" / "unexpected") rather than a code that names the rule; a change that names the rule
+/// instead updates the row's code, which is the point of pinning it. The rows that repeat or misplace a phrase
+/// (PBGF03, 05, 18, 21, 24, 27, 36) drew COBOL0307 "A period may be missing" until kb/Work PB3832's review (R2-1), then
+/// the bare COBOL0001 (a period was expected after the complete statement, but none written there lets the stray
+/// phrase word follow), and since kb/Work PB906 they draw COBOL2269: the statement ENDS before a phrase no general
+/// format of it prints there (ISO §5.2.1), named with the statement whose own syntax prints the word (the IF of a
+/// second ELSE, PBGF05). PBGF15 and PBGF38 are COBOL2269 for another reason (§14.5.3.3, kb/Work PB3830).</para>
 /// </summary>
 public sealed class GeneralFormatViolationTests
 {
@@ -33,10 +38,10 @@ public sealed class GeneralFormatViolationTests
     // ACCEPT / DISPLAY (M412) — FROM and UPON take a mnemonic-name or a device word, never a data item.
     [InlineData("PBGF01", "ACCEPT W-A FROM W-B", "COBOL0817")]
     [InlineData("PBGF02", "DISPLAY W-A UPON W-B", "COBOL0817")]
-    [InlineData("PBGF03", "ACCEPT W-A FROM DATE WITH NO ADVANCING", "COBOL0307")]
+    [InlineData("PBGF03", "ACCEPT W-A FROM DATE WITH NO ADVANCING", "COBOL2269")]
     // IF (M413) — condition-1 and statement-1 are unbracketed; ELSE is one bracketed phrase.
     [InlineData("PBGF04", "IF DISPLAY \"X\" END-IF", "COBOL0001")]
-    [InlineData("PBGF05", "IF W-N = 1 DISPLAY \"A\" ELSE DISPLAY \"B\" ELSE DISPLAY \"C\" END-IF", "COBOL0307")]
+    [InlineData("PBGF05", "IF W-N = 1 DISPLAY \"A\" ELSE DISPLAY \"B\" ELSE DISPLAY \"C\" END-IF", "COBOL2269")]
     [InlineData("PBGF06", "IF W-N = 1 END-IF", "COBOL2072")]
     // EVALUATE (M414) — a WHEN phrase needs its selection object; WHEN OTHER is one trailing phrase.
     [InlineData("PBGF07", "EVALUATE W-N WHEN DISPLAY \"X\" END-EVALUATE", "COBOL0001")]
@@ -50,19 +55,19 @@ public sealed class GeneralFormatViolationTests
     [InlineData("PBGF15", "STRING W-A DELIMITED BY SIZE INTO W-B ON OVERFLOW DISPLAY \"1\" ON OVERFLOW DISPLAY \"2\" END-STRING", "COBOL2269")]   // named since kb/Work PB3830 (§14.5.3.3)
     // UNSTRING (M417) — INTO is unbracketed; TALLYING is one bracketed phrase.
     [InlineData("PBGF16", "UNSTRING W-A DELIMITED BY \",\" END-UNSTRING", "COBOL0001")]
-    [InlineData("PBGF18", "UNSTRING W-A DELIMITED BY \",\" INTO W-B W-C TALLYING IN W-N TALLYING IN W-K END-UNSTRING", "COBOL0307")]
+    [InlineData("PBGF18", "UNSTRING W-A DELIMITED BY \",\" INTO W-B W-C TALLYING IN W-N TALLYING IN W-K END-UNSTRING", "COBOL2269")]
     // INSPECT (M418) — FOR and BY are required words; Format 3 puts TALLYING before REPLACING.
     [InlineData("PBGF19", "INSPECT W-A TALLYING W-N ALL \",\"", "COBOL0001")]
     [InlineData("PBGF20", "INSPECT W-A REPLACING ALL \",\" \".\"", "COBOL0001")]
-    [InlineData("PBGF21", "INSPECT W-A REPLACING ALL \",\" BY \".\" TALLYING W-N FOR ALL \",\"", "COBOL0307")]
+    [InlineData("PBGF21", "INSPECT W-A REPLACING ALL \",\" BY \".\" TALLYING W-N FOR ALL \",\"", "COBOL2269")]
     // CALL (M419) — a written USING needs an argument; RETURNING takes an identifier; USING is written once.
     [InlineData("PBGF22", "CALL \"PBSUB\" USING", "COBOL0001")]
     [InlineData("PBGF23", "CALL \"PBSUB\" RETURNING 5", "COBOL0308")]
-    [InlineData("PBGF24", "CALL \"PBSUB\" USING W-A USING W-B", "COBOL0307")]
+    [InlineData("PBGF24", "CALL \"PBSUB\" USING W-A USING W-B", "COBOL2269")]
     // SET (M420) — a receiving operand is required; UP BY / DOWN BY is one brace choice over index-names.
     [InlineData("PBGF25", "SET TO 5", "COBOL0001")]
     [InlineData("PBGF26", "SET W-N UP BY 1", "COBOL2112")]
-    [InlineData("PBGF27", "SET IX UP BY 1 DOWN BY 1", "COBOL0307")]
+    [InlineData("PBGF27", "SET IX UP BY 1 DOWN BY 1", "COBOL2269")]
     // SORT / MERGE (M422, M423) — the file format's ON … KEY phrase is a brace group, data-name-1 unbracketed.
     [InlineData("PBGF28", "SORT SW USING F1 GIVING F2", "COBOL1757")]
     [InlineData("PBGF29", "SORT SW ON ASCENDING KEY USING F1 GIVING F2", "COBOL1757")]
@@ -71,7 +76,7 @@ public sealed class GeneralFormatViolationTests
     // WRITE (M424) — a written FROM needs its operand, once; ADVANCING takes an integer or identifier.
     [InlineData("PBGF34", "WRITE R1 FROM", "COBOL0001")]
     [InlineData("PBGF35", "WRITE R1 AFTER ADVANCING \"A\" LINES", "COBOL2365")]
-    [InlineData("PBGF36", "WRITE R1 FROM W-A FROM W-B", "COBOL0307")]
+    [InlineData("PBGF36", "WRITE R1 FROM W-A FROM W-B", "COBOL2269")]
     // READ (M425) — a written INTO needs its operand; AT END once; KEY only for an indexed file.
     [InlineData("PBGF37", "READ F1 INTO", "COBOL0001")]
     [InlineData("PBGF38", "READ F1 AT END DISPLAY \"E\" AT END DISPLAY \"F\" END-READ", "COBOL2269")]   // named since kb/Work PB3830 (§14.5.3.3)

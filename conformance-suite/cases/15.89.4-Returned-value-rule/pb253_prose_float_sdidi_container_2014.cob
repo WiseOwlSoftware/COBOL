@@ -24,7 +24,8 @@
       *> argument x, sin x = x - x**3/6, tan x = x + x**3/3 and atan x = x - x**3/3, and |x**3/3| ~ 3.3E-61 is
       *> some 25 decades below the ULP of x (~1.6E-36), so each rounds to x itself in binary64. The conversion of a function's
       *> implementor-defined approximation (15.4.1) is the shortest round-trip decimal identity, so the SDIDI is exactly 1E-20
-      *> and its 15.4.1 item-92 text is the fixed-point digit string 0.00000000000000000001 — NEVER the
+      *> and its 15.4.1 item-92 text is a fixed-point digit string (DISPLAY: .00000000000000000001, the 20-position item
+      *> that value describes, kb/Work PB3514; the text channels: 0.00000000000000000001) — NEVER the
       *> binary64 E-notation "1E-20" the un-contained value printed.
       *> COS(0) = 1 exactly, and ACOS(1) / ASIN(0) / LOG(1) / LOG10(1) are 0 exactly (each an exact
       *> binary64 result), so their SDIDI texts are "1" and "0".
