@@ -45,9 +45,12 @@ public sealed class FileCreatedAgainDriftTests
         string file = TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "KeyedConnector.cs");
         string again = BodyOf(file, "private string? CreateTheFileAgain()");
         Assert.Contains("HostFile.Probe(HostPath) is FilePresence.Absent", again, StringComparison.Ordinal);
-        Assert.Contains("LockCreating(newFileOnly: true)", again, StringComparison.Ordinal);
-        string handle = BodyOf(file, "private void TakeFileLock(bool create, FileAccess access, bool newFileOnly)");
-        Assert.Contains("newFileOnly ? FileMode.CreateNew : FileMode.OpenOrCreate", handle, StringComparison.Ordinal);
+        Assert.Contains("LockCreating(FileTaking.Creating)", again, StringComparison.Ordinal);
+        string handle = BodyOf(file, "private void TakeFileLock(FileTaking taking, FileAccess access)");
+        Assert.Contains("HostModeOf(taking)", handle, StringComparison.Ordinal);
+        string mapping = BodyOf(file, "private static FileMode HostModeOf(FileTaking taking)");
+        Assert.Contains("FileTaking.Creating => FileMode.CreateNew", mapping, StringComparison.Ordinal);
+        Assert.Contains("FileTaking.Existing or FileTaking.Replacing => FileMode.Open", mapping, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -66,10 +69,10 @@ public sealed class FileCreatedAgainDriftTests
     {
         string file = TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "KeyedConnector.cs");
         string body = BodyOf(file, "protected sealed override string OpenCore(FileOpenMode mode, FilePresence presence)");
-        Assert.Contains("LockCreating(newFileOnly: presence is FilePresence.Absent)", body, StringComparison.Ordinal);
-        Assert.Contains("LockCreating(newFileOnly: true)", body, StringComparison.Ordinal);
-        string creating = BodyOf(file, "private string? LockCreating(bool newFileOnly)");
-        Assert.Contains("Lock(create: true, newFileOnly)", creating, StringComparison.Ordinal);
+        Assert.Contains("LockCreating(presence is FilePresence.Absent ? FileTaking.Creating : FileTaking.Unprobed)", body, StringComparison.Ordinal);
+        Assert.Contains("LockCreating(FileTaking.Creating)", body, StringComparison.Ordinal);
+        string creating = BodyOf(file, "private string? LockCreating(FileTaking taking)");
+        Assert.Contains("Lock(taking)", creating, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -84,7 +87,46 @@ public sealed class FileCreatedAgainDriftTests
         Assert.Contains("catch (IOException e) when (HostFile.IsDirectoryInTheWay(e, HostPath)) { s = FileStatusCode.PermissionDenied; }",
             entered, StringComparison.Ordinal);
         string open = BodyOf(file, "public string Open(FileOpenMode mode)");
-        Assert.Contains("OpenAgain.FileMadeMeanwhile when filesMadeMeanwhile < MaxFileMadeRetries", open, StringComparison.Ordinal);
+        Assert.Contains("OpenAgain.FileMadeMeanwhile or OpenAgain.FileRemovedMeanwhile when pathChangedMeanwhile < MaxPathChangedRetries",
+            open, StringComparison.Ordinal);
+    }
+
+    /// <summary>⛔ THE OPPOSITE DIRECTION (kb/Work PB3946): an OPEN that found the file PRESENT takes a handle that REFUSES to create one, and
+    /// the refusal makes the OPEN again over the path as it now stands (<c>FileConnector.Open</c>). The behavioural witness is
+    /// FileRemovedMeanwhileTests, which removes the file between the probe and the handle through the host's column request; this pins
+    /// the classification and the host mode the sequential arms share.</summary>
+    [Fact]
+    public void AnOpenOfAPresentFileTakesAHandleThatRefusesToCreateIt()
+    {
+        string connector = TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "FileConnector.cs");
+        string entered = BodyOf(connector, "private string OpenOnceEntered(FileOpenMode mode, bool ownedWritesAdmitted, out OpenAgain again)");
+        Assert.Contains("catch (IOException e) when (presence is FilePresence.Present && HostFile.IsRemoved(e))", entered, StringComparison.Ordinal);
+        Assert.Contains("OpenAgain.FileRemovedMeanwhile", entered, StringComparison.Ordinal);
+        string sequential = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "SequentialConnector.cs"));
+        Assert.Contains("HeldStream(creates ? FileMode.CreateNew : FileMode.Open)", sequential, StringComparison.Ordinal);
+        string support = TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "FileSupport.cs");
+        Assert.Contains("mode == FileMode.Append ? FileMode.Open : mode",
+            File.ReadAllText(support), StringComparison.Ordinal);
+    }
+
+    /// <summary>⛔ EVERY OpenOrCreate OF THE I/O LAYER IS ONE THAT MEANS IT (kb/Work PB3946): an OPEN OUTPUT whose presence the host could not
+    /// tell (the keyed <c>Unprobed</c> taking, the covered sequential <c>Create</c>), and the two restores of a capture, which create the
+    /// file the run unit's DELETE FILE or rolled-back creation removed (<c>IJournalData.Writable(create)</c>). Any other is a handle that
+    /// creates the file a present-file OPEN meant to use. A new site updates this table with its reason.</summary>
+    [Fact]
+    public void EveryOpenOrCreateOfTheIoLayerIsOneThatMeansIt()
+    {
+        string io = Path.GetDirectoryName(TestRepo.Src("WiseOwl.Cobol.Runtime", "IO", "FileConnector.cs"))!;
+        var found = new SortedDictionary<string, int>(StringComparer.Ordinal);
+        foreach (string file in Directory.EnumerateFiles(io, "*.cs", SearchOption.AllDirectories))
+        {
+            int count = File.ReadAllLines(file)
+                .Count(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal) && l.Contains("FileMode.OpenOrCreate", StringComparison.Ordinal));
+            if (count > 0) found[Path.GetRelativePath(io, file).Replace(Path.DirectorySeparatorChar, '/')] = count;
+        }
+        Assert.Equal(
+            ["KeyedConnector.cs=1", "SequentialConnector.CommitControl.cs=2", "Sharing/SequentialJournal.cs=1"],
+            found.Select(kv => $"{kv.Key}={kv.Value}"));
     }
 
     [Fact]

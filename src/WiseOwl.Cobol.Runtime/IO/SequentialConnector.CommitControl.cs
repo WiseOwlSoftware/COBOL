@@ -209,20 +209,28 @@ public sealed partial class SequentialConnector : IJournalData
 
     /// <summary>The covered writer's stream over the kept handle (2.2.2.4): an OUTPUT re-open TRUNCATES it (after the capture,
     /// <see cref="BeginCoveredOpen"/>), an EXTEND re-open writes at its end, and a posture that admits another writer gets the
-    /// repositioning stream (<see cref="HostFile.WriteStreamOf"/>, the one decision). <see cref="FileMode.CreateNew"/> is a creation
-    /// decided on an absent presence probe (an OUTPUT, or an EXTEND of an absent OPTIONAL file): the handle refuses a file made since
-    /// (kb/Work PB3635), where every other mode adopts or creates the file.</summary>
+    /// repositioning stream (<see cref="HostFile.WriteStreamOf"/>, the one decision). The handle's host mode is the presence probe's
+    /// (kb/Work PB3946, PB3635): <see cref="FileMode.CreateNew"/> is a creation decided on an absent probe (an OUTPUT, or an EXTEND of
+    /// an absent OPTIONAL file), refusing a file made since; <see cref="FileMode.Append"/> is the EXTEND of a file found present, whose
+    /// handle is <see cref="FileMode.Open"/> and refuses a file removed since, where creating it would adopt a file that was never
+    /// there (the OPEN is made again, <see cref="FileConnector.Open"/>); <see cref="FileMode.Create"/> is an OUTPUT, whose handle of a
+    /// PRESENT file the capture took already (<see cref="BeginCoveredOpen"/>) and which otherwise meets a presence the host could not
+    /// tell, where the file may be there and OUTPUT replaces it.</summary>
     private Stream HeldWriteStream(FileMode mode)
     {
-        var held = HeldStream(mode is FileMode.CreateNew ? FileMode.CreateNew : FileMode.OpenOrCreate);
+        var held = HeldStream(mode switch
+        {
+            FileMode.CreateNew => FileMode.CreateNew,
+            FileMode.Create => FileMode.OpenOrCreate,
+            _ => FileMode.Open,
+        });
         if (mode == FileMode.Create)
         {
             held.SetLength(0);
             held.Position = 0;
             _openChangedFile = true;   // the file's bytes are the OPEN's now: its journal stands for item 8's ROLLBACK
         }
-        return HostFile.WriteStreamOf(mode == FileMode.Create ? FileMode.Open : mode, held.CanRead ? FileAccess.ReadWrite : FileAccess.Write,
-            _heldShare, (_, _) => held);
+        return HostFile.WriteStreamOf(mode == FileMode.Create ? FileMode.Open : mode, _heldShare, (_, _) => held);
     }
 
     /// <summary>Count through the covered connector's own handle (which refuses another handle under a share mode that admits no
