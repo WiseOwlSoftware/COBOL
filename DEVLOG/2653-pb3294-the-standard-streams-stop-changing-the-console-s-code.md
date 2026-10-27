@@ -1,4 +1,4 @@
-## PB3294 — the standard streams stop changing the console's code pages, and an interactive Windows console ACCEPT keeps every character
+## Entry 2653 — 2026-10-26 20:34 PDT — PB3294 — the standard streams stop changing the console's code pages, and an interactive Windows console ACCEPT keeps every character
 
 `StandardStreams.EnsureUtf8` reached the Windows console through the code-page setters, and that was two defects with one
 root. (1) Its input arm decoded only a REDIRECTED standard input, so an interactive console kept its input code page and
@@ -61,3 +61,4 @@ a Windows wide-character encoding never asks the console. Also fixed in the help
 output thread caught `IOException` only, so a run that TIMED OUT (the `finally` disposes the handle under the reading
 thread) raised an unhandled `ObjectDisposedException` on a thread and crashed the whole test host instead of reporting the
 `TimeoutException` (found while measuring the hung wide-character read); it now catches both.
+
