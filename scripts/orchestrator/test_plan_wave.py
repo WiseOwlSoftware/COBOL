@@ -30,7 +30,7 @@ from inflight import (Claim, InFlight, IndexPolicy, SLICE_OWNER, branch_replays,
 from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_clusters, closed_by_branch,  # noqa: E402
                       declare_fix_lane, lift_tiers, load_fix_clusters, load_notes, ready_notes_view)
 from groups import (Group, as_group_json, attempts, body_of, campaign_requirements, group_cost,  # noqa: E402
-                    group_requirements, landing_cost)
+                    group_requirements, landing_cost, requirements_text)
 from dispatch_ledger import (held_by_dispatch, partition_record, partition_summary, record_dispatch,  # noqa: E402
                              record_partition, release_dispatch)
 sys.path.insert(0, str(HERE.parent))
@@ -1332,9 +1332,9 @@ check("`always` (the campaign a --cluster wave runs) binds every group, before t
       group_requirements([rg, rg_other], member_of, RQDIR, ["PB950"]),
       [{"PB950": REQS, "PB951": ["Second campaign's own rule."]}, {"PB950": REQS}])
 rj = as_group_json(rg, "77", notes, "COBOL0001-COBOL0003", bound[0])
-check("a requirement reaches the group's spec body, one OWNER REQUIREMENT sentence each, per campaign",
-      (all(r in rj["body"] and "OWNER REQUIREMENT (campaign PB950" in rj["body"] for r in REQS),
-       "OWNER REQUIREMENT (campaign PB951" in rj["body"], rj["body"].count("OWNER REQUIREMENT")), (True, True, 3))
+check("a requirement reaches the group's spec body, verbatim and numbered, under ONE OWNER REQUIREMENTS lead-in per campaign",
+      (all(f"({i}) {r}" in rj["body"] for i, r in enumerate(REQS, 1)), "OWNER REQUIREMENTS (campaign PB950" in rj["body"],
+       "OWNER REQUIREMENTS (campaign PB951" in rj["body"], rj["body"].count("OWNER REQUIREMENT")), (True, True, True, 2))
 check("the group entry carries its requirements for the practices check and the reviewer", rj["requirements"], bound[0])
 check("a plan with no campaign requirements says none",
       ("OWNER REQUIREMENT" in as_group_json(rg, "77", notes, "COBOL0001-COBOL0003")["body"],
@@ -1345,6 +1345,15 @@ rfile = TMP / "req-groups.json"
 rfile.write_text(JSON.dumps(dict(CFG77, groups=[rj])), encoding="utf-8", newline="\n")
 check("the rendered spec carries every requirement (check_practices.py finds none missing)",
       check_practices.specs_missing_requirements(rfile, [rspec]), [])
+# Review R1-1 of wave 20261709: the lead-in used to be repeated before EVERY requirement, so a campaign group with two or
+# more requirements rendered a spec the PB3777 once-check refused and make_dispatch_specs.py could not dispatch the wave.
+check("a spec rendered for a campaign group with two or more requirements states no sentence twice (PB3777)",
+      (len(REQS) >= 2, check_practices.repeated_sentences(rspec.read_text(encoding="utf-8")),
+       [m for m in check_practices.check(rspec, []) if "PB3777" in m]), (True, [], []))
+rdup = TMP / "msg-w77-dup.txt"
+rdup.write_text(rspec.read_text(encoding="utf-8") + "\n" + requirements_text("PB950", REQS) + "\n", encoding="utf-8", newline="\n")
+check("... and the once-check still refuses a spec that states one campaign's requirements twice",
+      [m.startswith("PB3777: states twice: the branch reviewer raises a finding") for m in check_practices.check(rdup, []) if "PB3777" in m], [True])
 nospec = TMP / "msg-w77-req-without.txt"
 nospec.write_text(mds.render(CFG77, gjson[0], FILES(gjson[0])), encoding="utf-8", newline="\n")
 check("a spec rendered without them is refused, naming each requirement",
