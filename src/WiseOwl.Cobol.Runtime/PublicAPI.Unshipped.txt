@@ -92,9 +92,11 @@ WiseOwl.Cobol.Runtime.IO.KeySegment.Offset.init -> void
 WiseOwl.Cobol.Runtime.ManagedPointer<T>.Watch(WiseOwl.Cobol.Runtime.ManagedPointer! area) -> void
 WiseOwl.Cobol.Runtime.MoveSending.Approximate.get -> bool
 WiseOwl.Cobol.Runtime.MoveSending.Approximate.init -> void
-WiseOwl.Cobol.Runtime.MoveSending.Deconstruct(out string! Characters, out bool Group, out bool Fill, out bool Numeric, out System.Int128 Unscaled, out int Scale, out double? Real, out string? StorageImage, out bool Approximate) -> void
+WiseOwl.Cobol.Runtime.MoveSending.Computed.get -> bool
+WiseOwl.Cobol.Runtime.MoveSending.Computed.init -> void
+WiseOwl.Cobol.Runtime.MoveSending.Deconstruct(out string! Characters, out bool Group, out bool Fill, out bool Numeric, out System.Int128 Unscaled, out int Scale, out double? Real, out string? StorageImage, out bool Approximate, out bool Computed) -> void
 WiseOwl.Cobol.Runtime.MoveSending.ExactValue.get -> WiseOwl.Cobol.Runtime.CobolDec
-WiseOwl.Cobol.Runtime.MoveSending.MoveSending(string! Characters, bool Group = false, bool Fill = false, bool Numeric = false, System.Int128 Unscaled = default(System.Int128), int Scale = 0, double? Real = null, string? StorageImage = null, bool Approximate = false) -> void
+WiseOwl.Cobol.Runtime.MoveSending.MoveSending(string! Characters, bool Group = false, bool Fill = false, bool Numeric = false, System.Int128 Unscaled = default(System.Int128), int Scale = 0, double? Real = null, string? StorageImage = null, bool Approximate = false, bool Computed = false) -> void
 WiseOwl.Cobol.Runtime.ObjectReferenceOperand
 WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Classes.get -> System.Collections.Generic.IReadOnlyList<string!>?
 WiseOwl.Cobol.Runtime.ObjectReferenceOperand.Classes.init -> void
