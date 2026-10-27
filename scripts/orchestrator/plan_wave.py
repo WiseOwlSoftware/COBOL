@@ -1101,7 +1101,7 @@ def main(argv: list[str] | None = None) -> int:
         return rc
     args = {"scratch": str(scratch), "wave": wave, "stop_file": str(stop_file), "global_stop": str(coord.global_stop(a.coord)),
             "concurrency": rules["wave"]["concurrency"],
-            "implementer_model": rules["wave"]["implementer_model"], "authorization": a.authorization,
+            "authorization": a.authorization,
             "groups": [{k: j[k] for k in ("letter", "lead", "notes", "codes", "model", "after", "requirements") if k in j}
                        for j in gjson]}
     afile = scratch / f"wf-args-w{wave}.json"
