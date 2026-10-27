@@ -2069,12 +2069,13 @@ def self_test() -> int:
     # The run cadence (kb/Work PB3523): a fixture register with one note of each kind that must and must not hold a run.
     with tempfile.TemporaryDirectory() as td3:
         reg = Path(td3)
-        for nid, status, tags, process_only in (("PB9001", "open", "[work, defect, fuzz]", "false"), ("PB9002", "landed", "[work, defect, fuzz]", "false"),
-                                                ("PB9003", "open", "[work, analysis, fuzz]", "true"), ("PB9004", "open", "[work, defect]", "false"),
-                                                ("PB9005", "owner", "[work, defect, fuzz]", "false"), ("PB9006", "retired", "[fuzz]", "false")):
-            (reg / f"{nid}.md").write_text(f'---\ntitle: "{nid} — a fixture note"\nid: {nid}\nkind: defect\nstatus: {status}\n'
+        for nid, status, tags, process_only, kind in (("PB9001", "open", "[work, defect, fuzz]", "false", "defect"), ("PB9002", "landed", "[work, defect, fuzz]", "false", "defect"),
+                                                      ("PB9003", "open", "[work, analysis, fuzz]", "true", "defect"), ("PB9004", "open", "[work, defect]", "false", "defect"),
+                                                      ("PB9005", "owner", "[work, defect, fuzz]", "false", "defect"), ("PB9006", "retired", "[fuzz]", "false", "defect"),
+                                                      ("PB9007", "open", "[work, upstream, fuzz]", "true", "upstream")):   # kb/Work PB3838: a record of a GnuCOBOL defect holds no run
+            (reg / f"{nid}.md").write_text(f'---\ntitle: "{nid} — a fixture note"\nid: {nid}\nkind: {kind}\nstatus: {status}\n'
                                            f"process_only: {process_only}\ntags: {tags}\n---\n\n# {nid}\n", encoding="utf-8", newline="\n")
-        check("cadence: an open note tagged fuzz that is a compiler defect holds the next run, whatever its non-terminal status; a landed or retired one, a process-only one and an untagged one do not",
+        check("cadence: an open note tagged fuzz that is a compiler defect holds the next run, whatever its non-terminal status; a landed or retired one, a process-only one (an upstream record of a GnuCOBOL defect, kb/Work PB3838, included) and an untagged one do not",
               [it["id"] for it in open_fuzz_notes(reg)] == ["PB9001", "PB9005"], [it.get("id") for it in open_fuzz_notes(reg)])
         missing = str(reg / "no-such-cobol.exe")
         saved_work = WORK_DIR

@@ -140,7 +140,7 @@ tests/                               the populations above
 specs/ISO_COBOL.md                   the standard, transcribed to Markdown and searchable
 docs/DESIGN.md                       the design, with one deep-dive document per subsystem beside it
 docs/CONFORMANCE.md                  every implementor-defined choice, with its reasons
-kb/Work/                             the work register: one note per defect, analysis or decision
+kb/Work/                             the work register: one note per defect, analysis, decision or upstream record
 DEVLOG/                              the history, one file per landing
 scripts/                             the gate, the specification tools, the generators
 ```
