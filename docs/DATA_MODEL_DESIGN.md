@@ -786,18 +786,20 @@ or implied "is an **alphanumeric group item**"; §13.16.4 GR1 implies GROUP-USAG
 `FUNCTION LENGTH(G)` is **§15.50.4 r3** — character positions, = **1** — not r1's boolean positions. Misreading
 "bit group item" as "a group of bit items" is the same error as misreading GR14, one level up.
 
-⛔ **EVERY STORE OF CHARACTERS INTO A BOOLEAN ITEM CONVERTS THEM, SO THE CARRIER HOLDS ONLY `'0'` AND `'1'` UNLESS A STORE BYPASSES
-THE CHARACTER STORE (kb/Work PB3666, determination D-B5 in `CONFORMANCE.md` §3).** Two things bypass it and leave undefined content
-(§14.6.13.2 1)), so the boolean operators keep their tolerance of a position outside `{'0','1'}`: a GROUP receiver (GR4 moves bytes,
-with no conversion) and a REDEFINES view over other storage. A MOVE of an alphanumeric or national operand to a boolean item is Table 16 "Yes", and §14.6.8.6
+⛔ **EVERY STORE OF CHARACTERS INTO A BOOLEAN ITEM CONVERTS THEM, SO THE CARRIER HOLDS ONLY `'0'` AND `'1'` UNLESS ANOTHER DESCRIPTION OF
+THE SAME STORAGE PUT SOMETHING ELSE THERE (kb/Work PB3666, PB3697, determination D-B5 in `CONFORMANCE.md` §3).** Every STORE into a boolean item converts its characters. That includes a GR4 group move (the decoded characters of a national or display receiver; a USAGE BIT receiver's bits are all valid) and a READ or RETURN into an elementary record area that no other description shares. A boolean item can still hold a character other than 0 or 1 only through another description of the same storage, which no store into the item reaches: a group receiver (GR4 moves the group's bytes), a REDEFINES view, a record area shared with another record of its file or with a SAME RECORD AREA peer (a READ or RETURN fills the area's bytes), an APPLY COMMIT restore (ROLLBACK returns the saved image), or storage shared through a BY REFERENCE argument, EXTERNAL, BASED or ADDRESS OF. That content is undefined (§14.6.13.2 1)), and the boolean operators read such a position as zero.
+A MOVE of an alphanumeric or national operand to a boolean item is Table 16 "Yes", and §14.6.8.6
 transfers "after any necessary conversion", but the standard names no conversion of a character that is not a boolean one.
-The one store, `CobolBool.Store` (emitted only by `RuntimeApi.StrStoreBoolean`), converts each character (`'1'` to one, every other
+The one fitting store, `CobolBool.Store` (emitted only by `RuntimeApi.StrStoreBoolean`), converts each character (`'1'` to one, every other
 character to zero) and then fits with boolean zeros; a reference-modified slice and a STRING image convert through
-`CobolBool.FromCharacters`, and a GR4 group move into a USAGE DISPLAY boolean item takes the same store through
-`ReceivingStore.Characters`. Two exemptions: the group sender into a USAGE BIT item, whose receiving area is the sender's BYTES
-(GR4, "no conversion"; every bit is valid), and the same move into a USAGE NATIONAL boolean item, whose area is UTF-16BE pairs
-decoded by `NatReadWindow` — converting the pairs as characters turns the item into garbage (review R1-1), so it keeps the byte fit. A new emitter that deposits characters into a boolean item
-asks `StrStoreBoolean` (or `BoolFromCharacters`), never `StrStoreAligned`.
+`CobolBool.FromCharacters`, and every storage-area store (a GR4 group move into an elementary receiver, a READ or RETURN into an
+elementary record area that no other description shares) converts through the same entry point in `ReceivingStore.StorageCharacters`; a shared record area
+(a multi-record FD, a SAME RECORD AREA peer, an EXTERNAL file's run-unit area, the "also available" store of a released record) and an APPLY COMMIT restore deposit the image's bytes through
+`ReceivingStore.VerbatimStorageArea`, and `SequentialIoEmitter.EmitImageInto` names which of the two each caller is (`storesIntoOwnItem`, `FileModel.AreaHasOneDescription`). GR4 fixes only that the receiving AREA takes the sender's BYTES;
+the receiver's characters are decoded from those bytes (a national item's UTF-16BE pairs, `NatReadWindow`) and THEN converted, so the conversion
+is of the decoded characters, never of the bytes (converting the bytes turned `N"101"` into garbage, PB3666 review R1-1). The one exemption is the USAGE BIT
+item, whose bits are the first bits of the sender's bytes and are all valid. A new emitter that deposits characters into a boolean item
+asks `StrStoreBoolean` (or `BoolFromCharacters`), never `StrStoreAligned`; `ReceivingStoreDriftTests` pins the structure and `BooleanStoreDeterminationDriftTests` the text of the determination above.
 
 #### The architecture: V59's numeric byte forms, one granularity finer
 
