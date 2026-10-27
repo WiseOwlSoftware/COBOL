@@ -12,8 +12,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// location as the data item referenced by identifier-3". A floating-point item has no fixed decimal point, so the
 /// quotient is truncated INTO ITS SHAPE: a floating-point numeric-edited item keeps its significand's digits at the
 /// quotient's own exponent (<see cref="CobolEdit.TruncateToFloatShape"/>), and a binary floating-point item the value of
-/// its format nearest the quotient without passing it (<see cref="CobolFloat.TruncatedToFormat"/>,
-/// <see cref="CobolFloat.TruncatedToSingle"/>). Expected values are worked from the rule by hand, not read from the code.
+/// its format nearest the quotient without passing it - the landing the item's own store performs under implied TRUNCATION
+/// (<see cref="FloatResultant"/>, ISO §14.7.4.3 10)). Expected values are worked from the rule by hand, not read from the code.
 /// </summary>
 public sealed class FloatSubsidiaryQuotientTests
 {
@@ -61,13 +61,13 @@ public sealed class FloatSubsidiaryQuotientTests
     [Fact]
     public void ABinary64Item_HoldsTheFormatValueNearestTheQuotientWithoutPassingIt()
     {
-        Assert.Equal(Math.BitDecrement(0.1), CobolFloat.TruncatedToFormat(Dec("1", -1), single: false));
-        Assert.Equal(Math.BitIncrement(-0.1), CobolFloat.TruncatedToFormat(Dec("-1", -1), single: false));
+        Assert.Equal(Math.BitDecrement(0.1), FloatResultant.FromDec(Dec("1", -1), CobolRounding.Truncation, false));
+        Assert.Equal(Math.BitIncrement(-0.1), FloatResultant.FromDec(Dec("-1", -1), CobolRounding.Truncation, false));
         // 0.3333333333333333333: the nearest binary64 (0.33333333333333331483) is below it, so it is already the truncation.
-        Assert.Equal(1.0 / 3.0, CobolFloat.TruncatedToFormat(Dec("3333333333333333333", -19), single: false));
+        Assert.Equal(1.0 / 3.0, FloatResultant.FromDec(Dec("3333333333333333333", -19), CobolRounding.Truncation, false));
         // A quotient the format holds exactly is itself.
-        Assert.Equal(0.5, CobolFloat.TruncatedToFormat(Dec("5", -1), single: false));
-        Assert.Equal(0.0, CobolFloat.TruncatedToFormat(Dec("0", 0), single: false));
+        Assert.Equal(0.5, FloatResultant.FromDec(Dec("5", -1), CobolRounding.Truncation, false));
+        Assert.Equal(0.0, FloatResultant.FromDec(Dec("0", 0), CobolRounding.Truncation, false));
     }
 
     [Fact]
@@ -75,28 +75,28 @@ public sealed class FloatSubsidiaryQuotientTests
     {
         // 2/3: the nearest binary32 is 0.666666686534881591796875 (11184811 x 2^-24, above); the truncation is the one
         // below it, 0.66666662693023681640625 = 11184810 x 2^-24.
-        Assert.Equal(11184810.0 / 16777216.0, CobolFloat.TruncatedToFormat(Dec("6666666666666666666", -19), single: true));
-        Assert.Equal(-11184810.0 / 16777216.0, CobolFloat.TruncatedToFormat(Dec("-6666666666666666666", -19), single: true));
+        Assert.Equal(11184810.0 / 16777216.0, FloatResultant.FromDec(Dec("6666666666666666666", -19), CobolRounding.Truncation, true));
+        Assert.Equal(-11184810.0 / 16777216.0, FloatResultant.FromDec(Dec("-6666666666666666666", -19), CobolRounding.Truncation, true));
         // 10/3: the nearest binary32 (13981013 x 2^-22 = 3.3333332538604736328125) is already below.
-        Assert.Equal(13981013.0 / 4194304.0, CobolFloat.TruncatedToFormat(Dec("3333333333333333333", -18), single: true));
+        Assert.Equal(13981013.0 / 4194304.0, FloatResultant.FromDec(Dec("3333333333333333333", -18), CobolRounding.Truncation, true));
     }
 
     [Fact]
     public void AQuotientBeyondTheFormat_IsTheFormatsLargestFiniteValue()
     {
-        Assert.Equal(double.MaxValue, CobolFloat.TruncatedToFormat(Dec("1", 400), single: false));
-        Assert.Equal(-(double)float.MaxValue, CobolFloat.TruncatedToFormat(Dec("-1", 60), single: true));
-        Assert.Equal((double)float.MaxValue, CobolFloat.TruncatedToSingle(1e300));
+        Assert.Equal(double.MaxValue, FloatResultant.FromDec(Dec("1", 400), CobolRounding.Truncation, false));
+        Assert.Equal(-(double)float.MaxValue, FloatResultant.FromDec(Dec("-1", 60), CobolRounding.Truncation, true));
+        Assert.Equal((double)float.MaxValue, FloatResultant.FromReal(1e300, CobolRounding.Truncation, true));
     }
 
     [Fact]
     public void ABinary64QuotientNarrowedToBinary32_TruncatesTowardZero()
     {
         // 0.6666666666666666 (binary64) narrows to the nearest binary32 0.66666668653..., one ulp above it.
-        Assert.Equal(11184810.0 / 16777216.0, CobolFloat.TruncatedToSingle(2.0 / 3.0));
-        Assert.Equal(-11184810.0 / 16777216.0, CobolFloat.TruncatedToSingle(-2.0 / 3.0));
-        Assert.Equal(0.5, CobolFloat.TruncatedToSingle(0.5));
-        Assert.Equal(0.0, CobolFloat.TruncatedToSingle(0.0));
-        Assert.True(double.IsNaN(CobolFloat.TruncatedToSingle(double.NaN)));
+        Assert.Equal(11184810.0 / 16777216.0, FloatResultant.FromReal(2.0 / 3.0, CobolRounding.Truncation, true));
+        Assert.Equal(-11184810.0 / 16777216.0, FloatResultant.FromReal(-2.0 / 3.0, CobolRounding.Truncation, true));
+        Assert.Equal(0.5, FloatResultant.FromReal(0.5, CobolRounding.Truncation, true));
+        Assert.Equal(0.0, FloatResultant.FromReal(0.0, CobolRounding.Truncation, true));
+        Assert.True(double.IsNaN(FloatResultant.FromReal(double.NaN, CobolRounding.Truncation, true)));
     }
 }

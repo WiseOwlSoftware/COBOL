@@ -183,55 +183,6 @@ public static class CobolFloat
         return r;
     }
 
-    // ── THE SUBSIDIARY QUOTIENT OF A BINARY FLOATING-POINT IDENTIFIER-3 (kb/Work PB2923) ────────────────────
-
-    /// <summary>⛔ THE VALUE A BINARY FLOATING-POINT ITEM HOLDS FOR A QUOTIENT TRUNCATED INTO ITS FORMAT: the format's
-    /// value nearest <paramref name="quotient"/> without passing it, toward zero (binary32 when
-    /// <paramref name="single"/>, else binary64), as a binary64. ISO §14.9.12.4 6) c) derives the subsidiary quotient of
-    /// <c>DIVIDE ... GIVING identifier-3 REMAINDER</c> from the quotient "by truncation of digits at the least significant
-    /// end" to "the same number of digits and the same decimal point location as" identifier-3 (kb/Work PB2923). A binary
-    /// floating-point item has neither a digit count nor a fixed point, only a format, so the quotient truncated into
-    /// that format IS its shape; the conversion that STORES the quotient (<see cref="StoreChecked(CobolDec,bool)"/>)
-    /// rounds to nearest and so can pass the quotient by one unit in the last place, which a remainder formed from the
-    /// stored value would inherit. The comparison is EXACT (<see cref="ExactRatio"/>), never a second rounding. A quotient
-    /// beyond the format's range is the format's largest finite value (the store of the same quotient is the size error).</summary>
-    public static double TruncatedToFormat(CobolDec quotient, bool single)
-    {
-        if (quotient.Sig == 0) return 0.0;
-        if (single)
-        {
-            float f = quotient.ToSingle();
-            if (float.IsInfinity(f)) return f > 0 ? float.MaxValue : -float.MaxValue;
-            if (PassesTowardZero((double)f, quotient)) f = f > 0 ? MathF.BitDecrement(f) : MathF.BitIncrement(f);
-            return f;
-        }
-        double d = quotient.ToDouble();
-        if (double.IsInfinity(d)) return d > 0 ? double.MaxValue : -double.MaxValue;
-        return PassesTowardZero(d, quotient) ? (d > 0 ? Math.BitDecrement(d) : Math.BitIncrement(d)) : d;
-    }
-
-    /// <summary>The binary64 twin of <see cref="TruncatedToFormat(CobolDec, bool)"/> for a quotient the native lane
-    /// already holds as a binary64 (a binary64 identifier-3 holds it as it is): the value truncated toward zero into
-    /// binary32, as a binary64. Binary32 is the only format narrower than the carrier, so no format flag is needed.</summary>
-    public static double TruncatedToSingle(double quotient)
-    {
-        if (!double.IsFinite(quotient)) return quotient;
-        float f = (float)quotient;
-        if (float.IsInfinity(f)) return f > 0 ? float.MaxValue : -float.MaxValue;
-        return Math.Abs((double)f) > Math.Abs(quotient) ? (f > 0 ? MathF.BitDecrement(f) : MathF.BitIncrement(f)) : f;
-    }
-
-    /// <summary>Is the finite <paramref name="candidate"/> farther from zero than <paramref name="quotient"/>, exactly?
-    /// <c>|candidate × 10^(−Exp)| &gt; |Sig|</c> over the integers: <see cref="ExactRatio"/> is the candidate's value at the
-    /// quotient's own decimal exponent as a numerator over a positive denominator.</summary>
-    private static bool PassesTowardZero(double candidate, CobolDec quotient)
-    {
-        if (candidate == 0) return false;
-        var (num, den) = ExactRatio(candidate, -quotient.Exp);
-        var magnitude = num.Sign < 0 ? -num : num;
-        return magnitude > den * CobolDec.UAbs(quotient.Sig);
-    }
-
     // ── THE ONE binary64 → scaled-integer landing (kb/Work PB623) ────────────────────────────────────────────
 
     /// <summary>The EXACT value of a finite binary64 at <paramref name="scale"/> fraction digits, rounded per

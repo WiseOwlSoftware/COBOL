@@ -2902,16 +2902,6 @@ internal static class RuntimeApi
     public static string EditTruncateToFloatShape(PicInfo pic, string quotient, string cfgArgs) =>
         $"{nameof(CobolEdit)}.{nameof(CobolEdit.TruncateToFloatShape)}({quotient}, {Emit.EmitText.CsLiteral(pic.EditMask!)}{cfgArgs})";
 
-    /// <summary>The subsidiary quotient (§14.9.12.4 6) c), kb/Work PB2923) of a BINARY floating-point identifier-3 whose
-    /// quotient is an SDIDI value: truncated toward zero into the item's format, as a binary64 -
-    /// <c>CobolFloat.TruncatedToFormat</c>.</summary>
-    public static string FloatTruncatedToFormat(string quotient, bool single) =>
-        $"{nameof(CobolFloat)}.{nameof(CobolFloat.TruncatedToFormat)}({quotient}, {(single ? "true" : "false")})";
-
-    /// <summary>The subsidiary quotient of a binary32 identifier-3 whose quotient is a binary64 - <c>CobolFloat.TruncatedToSingle</c>.</summary>
-    public static string FloatTruncatedToSingle(string quotient) =>
-        $"{nameof(CobolFloat)}.{nameof(CobolFloat.TruncatedToSingle)}({quotient})";
-
     /// <summary>The COMPILE-TIME WHEN-COMPILED stamp format (a typed passthrough like <see cref="EditCompose"/>):
     /// the §15.99.3 r2 compilation timestamp is baked as a constant with the SAME runtime formatter the
     /// generated CURRENT-DATE call uses.</summary>

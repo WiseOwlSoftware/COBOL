@@ -23,8 +23,10 @@ identifier-3 takes `CarriedSubsidiaryQuotient` in every arithmetic mode; the quo
 forms its quotient with too, and each form has its arm: fixed point as before (`CobolDec.SubsidiaryQuotient` / `CobolNum.CapDigits`); a
 float-edited item takes `CobolEdit.TruncateToFloatShape`, which is the store's own normalization (`NormalizeFloat`, extracted from
 `FormatFloatCore` so the subsidiary quotient and the stored quotient cannot disagree about range, overflow or underflow); a binary float takes
-`CobolFloat.TruncatedToFormat` (the format value nearest an SDIDI quotient without passing it, compared exactly through `ExactRatio`, never a
-second rounding) or, when the native lane already holds a binary64 quotient, that value itself (`TruncatedToSingle` for binary32). The remainder
+`FloatResultant` under TRUNCATION (`RuntimeApi.FloatResultantStore`, the ONE landing of an arithmetic value into a floating-point resultant, kb/Work PB1196:
+the landing the item's own store performs without ROUNDED, so the subsidiary quotient and the stored one cannot disagree; branch review round 1 found
+the first version had written a second truncation routine, `CobolFloat.TruncatedToFormat`, and it is deleted with its two RuntimeApi entries and
+two PublicAPI lines). The remainder
 is GR7's expression over it: SDIDI under standard-decimal, binary64 natively (DOC-A.1-123). `EmitDivideRemainder` also builds its receiver context
 with `ReceiverContext.Of` (it hand-built a copy that dropped the float-edited flag, the PB2694 pattern), and `IntDigitsOf` and
 `SubsidiaryDigitsOf` are deleted. Determination in docs/CONFORMANCE.md section 3: the subsidiary quotient is identifier-3's own shape; ISO decides
