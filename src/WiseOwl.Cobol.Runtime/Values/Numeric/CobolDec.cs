@@ -946,9 +946,38 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         UInt128 num = UAbs(a.Sig);
         int scaleUp = PreScale(num, den);
         var (q, rem) = ScaledQuotient(num, scaleUp, den);
+        int exp = a.Exp - scaleUp - b.Exp;
+
+        // ⛔ AN EXACT QUOTIENT IS HELD AT THE PREFERRED EXPONENT, NOT PADDED TO 34 DIGITS (kb/Work PB3954). ISO §8.8.1.5.3
+        // performs division as ISO/IEC 60559:2020 5.4.1 does, whose exact result takes the exponent nearest the preferred
+        // one that the format holds — the dividend's less the divisor's (the zero dividend above) — and only an INEXACT
+        // quotient fills the 34 digits. The pre-scale gives q 34–36 digits whatever the value, so without this `6 / 3` is
+        // 2000…0E-33 and DISPLAY, a function's places (CobolDecWithPrecision.Own) and the working scale of a quotient nested
+        // over it all read 33 places the value does not have. A zero remainder makes the quotient exact; a nonzero one, or
+        // a nonzero digit Round34Wide drops, keeps all 34 digits.
+        if (rem == 0) q = ToPreferredExponent(q, ref exp, a.Exp - b.Exp);
 
         // q < 10^37 by construction → fits Int128. Round to 34 digits, folding the division remainder into sticky.
-        return Round34Wide(0, q, negative, a.Exp - scaleUp - b.Exp, mode, extraSticky: rem != 0, jam: jam);
+        return Round34Wide(0, q, negative, exp, mode, extraSticky: rem != 0, jam: jam);
+    }
+
+    /// <summary>⛔ THE ONE EXACT-RESULT REDUCTION (kb/Work PB3954): the exact magnitude <paramref name="mag"/> ×
+    /// 10^<paramref name="exp"/> moves toward ISO/IEC 60559:2020 5.4.1's <paramref name="preferred"/> exponent by dropping
+    /// trailing zero digits — exact, so the value is unchanged — and stops at the preferred exponent or at its last
+    /// nonzero digit. An exact result whose exponent is already at or past the preferred one comes back untouched (the
+    /// format cannot hold it nearer). Only a result KNOWN exact comes here: every digit of an inexact one is significant.
+    /// The twin of <see cref="AddSigned"/>'s sum reduction, which reaches the same exponent from the other side (zeros
+    /// appended).</summary>
+    private static UInt128 ToPreferredExponent(UInt128 mag, ref int exp, int preferred)
+    {
+        while (exp < preferred && mag != 0)
+        {
+            (UInt128 quotient, UInt128 digit) = UInt128.DivRem(mag, 10);   // one division per dropped digit
+            if (digit != 0) break;
+            mag = quotient;
+            exp++;
+        }
+        return mag;
     }
 
     /// <summary>The pre-scale <see cref="Div"/> gives the numerator so the integer quotient has 34–36 significant
@@ -1143,7 +1172,13 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         var n = sig * System.Numerics.BigInteger.Pow(10, k);
         var q = ISqrt(n);
         bool exact = q * q == n;
-        return Round34((Int128)q, (v.Exp - k) / 2, sticky: !exact, mode);
+        // An EXACT root is held at the preferred exponent, half the operand's rounded down (ISO §15.84.4 r2 takes SQRT's
+        // definition from ISO/IEC 60559 5.4.1, as the zero above does), not padded to the 36 digits the scaling gives:
+        // `SQRT (4)` is 2, not 2000…0E-35 (kb/Work PB3954; ToPreferredExponent).
+        int exp = (v.Exp - k) / 2;
+        UInt128 root = (UInt128)q;
+        if (exact) root = ToPreferredExponent(root, ref exp, (int)Math.Floor(v.Exp / 2.0));
+        return Round34((Int128)root, exp, sticky: !exact, mode);
     }
 
     /// <summary>The exact floor integer square root (Newton over <see cref="System.Numerics.BigInteger"/> —
