@@ -1,4 +1,4 @@
-# Workstream cost law, turn caps, grouping and the concurrency budget (SKILL.md §2, full text apart from the rolling wave and command chaining, which stay in SKILL.md)
+# Workstream cost law, turn caps, grouping and the concurrency budget (SKILL.md §2, full text apart from the rolling wave, which is in rolling-wave.md, and command chaining, which stays in SKILL.md)
 
 > ⛔ **Owner standing instruction (2026-09-02).** Twenty-eight concurrent Opus agents burned ~20% of a session window
 > in eleven minutes; ~fifty exhausted a window in ~2.5 h; two cutoffs in one day (the reset hour is NOT fixed — read it

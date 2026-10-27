@@ -9,7 +9,7 @@ finished, CLEAN predecessor off main behind its same-file successor (wave 1118: 
 hours) was never seen to run. This runs the script itself, as the Workflow runtime does (its body as an async function
 of `args`, `agent`, `parallel`, `log` and `phase`), against scripted agent results keyed by each agent's label, and
 checks the ORDER of what happened. Expected results come from the rules (MANDATORY-PRACTICES O2 and I10, the workstream
-skill section 2), never from what the script does:
+references/rolling-wave.md), never from what the script does:
   1. a predecessor reviewed CLEAN is in `ready` before its successor's implementer starts, and the successor is handed
      the predecessor's FINAL branch and head;
   2. a successor waits for the predecessor's whole review loop, and merges the review FINISHER's branch when one ran;

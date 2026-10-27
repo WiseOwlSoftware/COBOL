@@ -30,7 +30,7 @@ from inflight import (Claim, InFlight, IndexPolicy, SLICE_OWNER, branch_replays,
 from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_clusters, closed_by_branch,  # noqa: E402
                       declare_fix_lane, lift_tiers, load_fix_clusters, load_notes, ready_notes_view)
 from groups import (Group, as_group_json, attempts, body_of, campaign_requirements, group_cost,  # noqa: E402
-                    group_requirements, landing_cost)
+                    group_requirements, landing_cost, requirements_text)
 from dispatch_ledger import (held_by_dispatch, partition_record, partition_summary, record_dispatch,  # noqa: E402
                              record_partition, release_dispatch)
 sys.path.insert(0, str(HERE.parent))
@@ -897,11 +897,11 @@ check("a fleet stop is STOP-<scope>", coord.fleet_stop(pathlib.Path("S"), "loop"
 # 7c2. THE TURN CAP HAS ONE HOME (kb/Work PB3701). Expected from the rule: the implementer's cap is the `maxTurns` of
 #      .claude/agents/cobol-implementer.md (the number the harness enforces); a rendered spec says exactly it, in both
 #      places the template names it, and check_practices refuses a spec that says another, a statement elsewhere that
-#      differs from its role's maxTurns, a statement whose text is gone, and an implementer brief that types a number.
+#      differs from its role's maxTurns, a statement whose text is gone, and a spec template that types a number.
 IMPL_CAP = coord.agent_turn_cap("cobol-implementer")
 spec0 = (specs or [""])[0]
 check("a rendered spec's turn cap is the implementer's maxTurns, at both places",
-      (f"\nTurn cap {IMPL_CAP} — at the cap" in spec0, f"pass the {IMPL_CAP}-turn cap" in spec0, "{turn_cap}" in spec0),
+      (f"\nTurn cap {IMPL_CAP} — at the cap" in spec0, f"of the {IMPL_CAP}-turn cap" in spec0, "{turn_cap}" in spec0),
       (True, True, False))
 check("check_practices accepts a rendered spec whose Turn cap is the maxTurns",
       [m for m in check_practices.check(spec_file, [check_practices.RENDERED_TURN_CAP]) if "Turn cap" in m],
@@ -909,6 +909,17 @@ check("check_practices accepts a rendered spec whose Turn cap is the maxTurns",
 spec_file.write_text(spec0.replace(f"Turn cap {IMPL_CAP} —", f"Turn cap {IMPL_CAP - 180} —"), encoding="utf-8", newline="\n")
 check("... and refuses it when it says 220 (the retired figure)",
       len(check_practices.check(spec_file, [check_practices.RENDERED_TURN_CAP])), 1)
+spec_file.write_text(spec0, encoding="utf-8", newline="\n")
+# 7c3. A SPEC SAYS EACH RULE ONCE (kb/Work PB3777). Expected from the rule: the implementer's instruction file is ONE file
+#      whose paragraphs state each rule once, so a rendered spec repeats no sentence of SENTENCE_MIN characters or more and
+#      check_practices refuses a spec that does (the spec and brief it replaced carried the checkpoint protocol, the gate,
+#      the DEVLOG entry, I9, the citation rule and the STOP rule twice).
+check("a rendered spec states no sentence twice", check_practices.repeated_sentences(spec0), [])
+twice = "orientation (grep/read) was 46 % of every implementer's tokens in waves 45–57, re-deriving what earlier waves had already learned."
+check("... and the sentence this test repeats is one the spec states", twice in " ".join(spec0.split()), True)
+spec_file.write_text(spec0 + "\n" + twice + "\n", encoding="utf-8", newline="\n")
+check("... and check_practices refuses a spec that states a sentence twice",
+      [m.startswith("PB3777: states twice: orientation") for m in check_practices.check(spec_file, []) if "PB3777" in m], [True])
 spec_file.write_text(spec0, encoding="utf-8", newline="\n")
 check("every statement of a cap in the tree matches its role's maxTurns", check_practices.turn_cap_copies(), [])
 CAPREPO = TMP / "caprepo"
@@ -920,16 +931,34 @@ p5.write_text(p5.read_text(encoding="utf-8").replace(f"implementer {IMPL_CAP} (r
               encoding="utf-8", newline="\n")
 fb = CAPREPO / ".claude/skills/workstream/templates/finisher-brief.md"
 fb.write_text(fb.read_text(encoding="utf-8").replace("Turn cap", "Cap of"), encoding="utf-8", newline="\n")
-brief = CAPREPO / ".claude/skills/workstream/templates/fix-lane-implementer-brief.md"
+brief = CAPREPO / ".claude/skills/workstream/templates/dispatch-spec-implementer.md"
 brief.write_text(brief.read_text(encoding="utf-8") + "\nA HARD CAP of 220 turns.\n", encoding="utf-8", newline="\n")
 rules_copy = CAPREPO / check_practices.NUMBERLESS_CAP_FILES[0]
 rules_copy.write_text(rules_copy.read_text(encoding="utf-8").replace("inside the implementer's turn cap", "inside the 220-turn cap"), encoding="utf-8", newline="\n")
 drift = check_practices.turn_cap_copies(CAPREPO)
-check("a copy that differs, a copy whose text is gone, a typed number in a brief and a typed cap in the rules file are each refused",
+check("a copy that differs, a copy whose text is gone, a typed number in the spec template and a typed cap in the rules file are each refused",
       (any(f"states 220 turns for cobol-implementer, whose maxTurns is {IMPL_CAP}" in m for m in drift),
        any("finisher-brief.md: no statement matching" in m for m in drift),
-       any("fix-lane-implementer-brief.md: types a turn cap" in m for m in drift),
+       any("dispatch-spec-implementer.md: types a turn cap" in m for m in drift),
        any("model_rules.json: types a turn cap ('220-turn cap')" in m for m in drift), len(drift)), (True, True, True, True, 4))
+# 7c4. THE LOOP UNITS LOAD THE OVERLAY ONLY (kb/Work PB3780). Expected from the rule: every unit loads the workstream overlay and
+#      re-reads it on each of about 45 turns, so it must not order its base skill's load, must stay under SKILL_MAX_BYTES and
+#      must send a reader only to reference files that exist (the base's by its full submodule path, its own by references/<file>);
+#      the overlays loaded for one job each (gate, review, spec-lookup) still name their base. Each arm is seen refused on a plant.
+WS_SKILL = (coord.REPO / ".claude/skills/workstream/SKILL.md").read_text(encoding="utf-8")
+check("the real workstream overlay orders no base load, fits its size and names only files that exist",
+      check_practices.overlay_problems("workstream", WS_SKILL), [])
+check("... an overlay that orders its base's load by the Skill tool, or by a Read of its SKILL.md, is refused",
+      [len(check_practices.overlay_problems("workstream", WS_SKILL + t)) for t in
+       ("\nInvoke `brent-tools:agent-fleet` (Skill tool) before reading on.", "\nRead `tools/claude-skills/skills/agent-fleet/SKILL.md` instead.")], [1, 1])
+check("... an overlay over its size is refused", len(check_practices.overlay_problems(
+    "workstream", WS_SKILL + "x" * check_practices.SKILL_MAX_BYTES)), 1)
+check("... an overlay naming a reference file that does not exist (its own, or the base's) is refused",
+      [len(check_practices.overlay_problems("workstream", WS_SKILL + t)) for t in
+       ("\nSee references/no-such-file.md.", "\nSee tools/claude-skills/skills/agent-fleet/references/no-such-file.md.")], [1, 1])
+check("... a gate, review or spec-lookup overlay still has to name its base skill",
+      (check_practices.overlay_problems("gate", "no base named here"), check_practices.overlay_problems("gate", "Invoke `brent-tools:test-gate`")),
+      (["gate overlay does not invoke its brent-tools base skill first"], []))
 # 7d. A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381; MANDATORY-PRACTICES I8). Expected from the
 #     rule: a file under src/WiseOwl.Cobol.Runtime/IO/ (either separator) makes a group host-I-O, a compiler or other runtime
 #     file does not; the file set is the group's file_set list, else (absent or empty) what its notes declare; a
@@ -1303,9 +1332,9 @@ check("`always` (the campaign a --cluster wave runs) binds every group, before t
       group_requirements([rg, rg_other], member_of, RQDIR, ["PB950"]),
       [{"PB950": REQS, "PB951": ["Second campaign's own rule."]}, {"PB950": REQS}])
 rj = as_group_json(rg, "77", notes, "COBOL0001-COBOL0003", bound[0])
-check("a requirement reaches the group's spec body, one OWNER REQUIREMENT sentence each, per campaign",
-      (all(r in rj["body"] and "OWNER REQUIREMENT (campaign PB950" in rj["body"] for r in REQS),
-       "OWNER REQUIREMENT (campaign PB951" in rj["body"], rj["body"].count("OWNER REQUIREMENT")), (True, True, 3))
+check("a requirement reaches the group's spec body, verbatim and numbered, under ONE OWNER REQUIREMENTS lead-in per campaign",
+      (all(f"({i}) {r}" in rj["body"] for i, r in enumerate(REQS, 1)), "OWNER REQUIREMENTS (campaign PB950" in rj["body"],
+       "OWNER REQUIREMENTS (campaign PB951" in rj["body"], rj["body"].count("OWNER REQUIREMENT")), (True, True, True, 2))
 check("the group entry carries its requirements for the practices check and the reviewer", rj["requirements"], bound[0])
 check("a plan with no campaign requirements says none",
       ("OWNER REQUIREMENT" in as_group_json(rg, "77", notes, "COBOL0001-COBOL0003")["body"],
@@ -1316,6 +1345,15 @@ rfile = TMP / "req-groups.json"
 rfile.write_text(JSON.dumps(dict(CFG77, groups=[rj])), encoding="utf-8", newline="\n")
 check("the rendered spec carries every requirement (check_practices.py finds none missing)",
       check_practices.specs_missing_requirements(rfile, [rspec]), [])
+# Review R1-1 of wave 20261709: the lead-in used to be repeated before EVERY requirement, so a campaign group with two or
+# more requirements rendered a spec the PB3777 once-check refused and make_dispatch_specs.py could not dispatch the wave.
+check("a spec rendered for a campaign group with two or more requirements states no sentence twice (PB3777)",
+      (len(REQS) >= 2, check_practices.repeated_sentences(rspec.read_text(encoding="utf-8")),
+       [m for m in check_practices.check(rspec, []) if "PB3777" in m]), (True, [], []))
+rdup = TMP / "msg-w77-dup.txt"
+rdup.write_text(rspec.read_text(encoding="utf-8") + "\n" + requirements_text("PB950", REQS) + "\n", encoding="utf-8", newline="\n")
+check("... and the once-check still refuses a spec that states one campaign's requirements twice",
+      [m.startswith("PB3777: states twice: the branch reviewer raises a finding") for m in check_practices.check(rdup, []) if "PB3777" in m], [True])
 nospec = TMP / "msg-w77-req-without.txt"
 nospec.write_text(mds.render(CFG77, gjson[0], FILES(gjson[0])), encoding="utf-8", newline="\n")
 check("a spec rendered without them is refused, naming each requirement",
