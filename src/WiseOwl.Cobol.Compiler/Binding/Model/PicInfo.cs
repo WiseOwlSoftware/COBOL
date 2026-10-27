@@ -724,12 +724,15 @@ public sealed record PicInfo(
     /// <summary>The ONE PicInfo-keyed receiver-scale rule (kb/Work PB64 T6 — it was written twice, in
     /// <c>MoveEmitter.SenderContext</c> and <c>ArithmeticEmitter.ScaleOf</c>, and both copies silently fell to
     /// <c>Scale</c> = 0 for a locale item, truncating a fractional sender; kb/Work PB1685 moved it HERE so the
-    /// report-writer SUM binder asks the same question the emitters do): a floating-point edited receiver has no
-    /// fixed scale (0 — the caller's form dispatch never uses it); a format-2 (LOCALE) receiver's scale is the
+    /// report-writer SUM binder asks the same question the emitters do): a format-2 (LOCALE) receiver's scale is the
     /// picture's digits right of '.' (<see cref="Scale"/> — the analyzer set it; there is no mask); a masked
     /// numeric-edited receiver's is the MASK's (<c>CobolEdit.MaskScale</c> — an edited PicInfo's own
-    /// <see cref="Scale"/> is 0); everything else <see cref="Scale"/>. A float-edited receiver rides the mask arm
-    /// too — its significand scale drives the working scale of an intermediate landing.</summary>
+    /// <see cref="Scale"/> is 0); everything else <see cref="Scale"/>. ⛔ A FLOATING-POINT edited receiver rides the
+    /// mask arm too, and what it answers is a WORKING-SCALE HINT, not a decimal point location: the item has no fixed
+    /// scale (its <see cref="Scale"/> is 0), its value is a significand at its own exponent, and the hint only sizes an
+    /// intermediate's landing (<see cref="WiseOwl.Cobol.CodeGen.ReceiverContext.FloatEdited"/>). A rule that needs the item's
+    /// SHAPE - DIVIDE ... REMAINDER's subsidiary quotient, §14.9.12.4 6) c) - asks the form first
+    /// (<c>ArithmeticEmitter.SubsidiaryShapeOf</c>), never this scale (kb/Work PB2923).</summary>
     public int ReceiverScale() =>
         LocaleEdit is not null ? Scale
         : this is { Category: PicCategory.NumericEdited, EditMask: { } mask }
