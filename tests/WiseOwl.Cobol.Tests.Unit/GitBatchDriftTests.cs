@@ -97,6 +97,8 @@ public sealed class GitBatchDriftTests
             "Ancestry: a tip that names no commit raises (never 'on the base')",
             "Ancestry: a missing base excludes nothing (every commit the tip reaches)",
             "Ancestry.of: a known parent map, no git",
+            "Ancestry.on_base_line: `rev-list --first-parent <base>` holds it; a merged branch's own commit is off it",
+            "Ancestry.on_base_line: a missing base, or a graph with no repository, holds nothing",
             "diff_names: one block per pair, empty diffs included, as `git diff --name-only` per pair",
             "diff_patches: each pair's -U0 patch of the pathspec, as `git diff -U0` per pair",
             "object_ids: each `<rev>:<path>` as `rev-parse -q --verify` answers it ('' when absent)",

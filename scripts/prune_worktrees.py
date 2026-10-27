@@ -18,7 +18,8 @@ who acts next:
                    writes `claude agent <id> (pid N)`; a lock with no pid was placed by hand and counts as live), a
                    dispatch-ledger wave group still in flight names it (`<coord>/inflight-groups.json`, the planner's
                    ledger, read through inflight.inflight_file_sets; the branch name starts with the group's slug
-                   `w<wave><letter>`), or it was touched in the last --min-age minutes (its HEAD reflog or STATUS.md).
+                   `w<wave><letter>`), or it was touched in the last --min-age minutes (its HEAD reflog or STATUS.md) and its work is not on
+                   main (a branch whose work landed reads LANDED whatever its age, below).
                    Nobody touches it.
                    A branch with NO clean stamp at its tip (no report, a FINDINGS stamp, or a finished report WAITING
                    FOR REVIEW) whose tip is contained in a fix-lane branch that is IN FLIGHT, waiting or STOPPED, or whose
@@ -104,8 +105,13 @@ who acts next:
                    one GraphQL read, the merge queue's entries included, plus the jobs API for an unresolved required
                    check-run); offline, unauthenticated or with no gh it is a non-observation and the lifecycle is
                    git-only (never a claim that nothing is queued).
-  LANDED           its work is on main by content (MERGED or LANDED below) and its worktree holds nothing uncommitted:
-                   `--apply` deletes it.
+  LANDED           its work is on main by content (MERGED or LANDED below), whatever its age, and its worktree holds
+                   nothing uncommitted: `--apply` deletes it once it is idle --min-age minutes (a fresher one is kept and
+                   said: `LANDED, kept`). The age guards the DELETION, never the classification, so a branch whose pull
+                   request just merged reads LANDED at once, not IN FLIGHT for three hours (kb/Work PB3609). "Merged"
+                   alone is not "its work landed": a MERGED branch whose tip is a commit of origin/main's own first-parent
+                   line (cut from main a moment ago, or fast-forwarded to it: no commit of its own, `Row.on_main_line`)
+                   carries no work, and stays IN FLIGHT while fresh (touched in the last --min-age minutes).
   DECISION         everything else: a person or the operator decides — land it (via a finisher when SPLIT), or ABANDON it
                    with the decision recorded in its kb/Work note — and then it is deleted. Each row prints its evidence.
 
@@ -490,6 +496,9 @@ class Row:
                                             # None = it names no head of this branch (kb/Work PB3181)
     carrier: str = ''               # contained(): the branch it lands THROUGH; its IN FLIGHT is that branch's, and
                                     # nobody works on THIS one (owned() excludes it; kb/Work PB3311 review R1-1)
+    on_main_line: bool = False      # a MERGED row's tip is a commit of origin/main's OWN first-parent line (Ancestry.on_base_line):
+                                    # cut from main or fast-forwarded to it, no commit of its own, so "merged" says nothing
+                                    # about its work (kb/Work PB3609); False for every other content class
     waits_on: str = ''              # carrying_findings(): the branch whose unanswered FINDINGS it carries, or that a
                                     # TORN findings file holding it names first; it lands after that one is answered
                                     # (or the file repaired), and nobody works on THIS one either (owned() excludes it)
@@ -743,8 +752,14 @@ def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours:
         return ('IN FLIGHT', touched) if fresh else (
             'DECISION', f'detached worktree at {row.last_commit}, idle {row.age_min / 60:.1f} h'
             + (f', {row.dirty} uncommitted path(s)' if row.dirty else '') + ': remove it when no fleet reads it')
-    if row.content in LANDED_CONTENT and not fresh and not row.dirty:
-        return 'LANDED', f'{row.content}{f" ({row.how})" if row.how else ""}: its work is on main; --apply deletes it'
+    # LANDED is "its work is on main", so it needs a branch that HAD work: LANDED content (not an ancestor, yet merging it
+    # changes nothing) always did, and a MERGED tip off main's own line is a commit a pull request brought in. A MERGED tip ON
+    # that line (a branch cut from main a moment ago, or fast-forwarded to it) carries nothing, so the age alone keeps it
+    # IN FLIGHT while it is fresh. The age guards DELETION, never the classification: a merged branch touched a minute ago
+    # reads LANDED and `apply` keeps it until --min-age (kb/Work PB3609).
+    if row.content in LANDED_CONTENT and not row.dirty and (not fresh or not row.on_main_line):
+        return 'LANDED', (f'{row.content}{f" ({row.how})" if row.how else ""}: its work is on main; --apply deletes it'
+                          + (f' once it is idle {min_age} min ({touched})' if fresh else ''))
     rep = row.report
     if row.content not in LANDED_CONTENT and rep and rep.finished:
         # A FINISHED report (reports.Report.finished) decides the branch only where it COVERS the tip: its HEAD is the
@@ -883,7 +898,8 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
             stamps += [worktree_git_dir(t.path) / 'logs' / 'HEAD', pathlib.Path(t.path) / 'STATUS.md']
             dirty = uncommitted(t.path)
         return Row(b, kind, absent, lost, len(graph.beyond(tip)), t.path if t else None, t.lock if t else None, dirty,
-                   age_minutes(*stamps), last, newest_report(reports, b, t.path if t else None), how=how, tip=tip)
+                   age_minutes(*stamps), last, newest_report(reports, b, t.path if t else None), how=how, tip=tip,
+                   on_main_line=kind == 'MERGED' and graph.on_base_line(tip))
 
     shown = {}
     valid = sorted({sha for t in detached if t.head and (sha := graph.sha(t.head))})
@@ -1307,8 +1323,14 @@ def apply(rows: list[Row], *, repo=REPO, include_locked: bool = False, abandon: 
     Returns the count removed."""
     def hand_locked(r: Row) -> bool:
         return r.lock == '' and r.content in LANDED_CONTENT and not r.dirty and r.age_min >= min_age
-    doomed = [r for r in rows if r.content != 'DETACHED' and (
-        r.state == 'LANDED' or (include_locked and r.state == 'IN FLIGHT' and hand_locked(r)))]
+    doomed = []
+    for r in rows:
+        if r.content == 'DETACHED':
+            continue
+        if r.state == 'LANDED' and r.age_min < min_age:   # the age guards the deletion: an agent may still use the worktree
+            say(f'LANDED, kept: {r.name} touched {r.age_min:.0f} min ago (under --min-age {min_age})')
+        elif r.state == 'LANDED' or (include_locked and r.state == 'IN FLIGHT' and hand_locked(r)):
+            doomed.append(r)
     by_name = {r.name: r for r in rows}
     for b in abandon:
         r = by_name.get(b)
@@ -1433,6 +1455,21 @@ def self_test() -> int:
         commit('d.json', keyed('a', 'c', 'y', 'x'), 'main holds x, beside its own y')
         scratch.git('push', '-q', 'origin', 'main')
         scratch.git('fetch', '-q', 'origin')
+        # kb/Work PB3609: MERGED, and TOUCHED A MINUTE AGO (the survey ages every reflog but the FRESH ones below).
+        # `merged-own` had one commit of its own that a pull request merged (a merge commit, as the merge queue leaves it):
+        # its tip is off main's first-parent line, so its work is on main and it reads LANDED at once. `merged-bare` was cut
+        # from main with no commit, and `merged-ff` was cut from an older main and fast-forwarded to the newer: each is
+        # an ancestor of main with no commit of its own, so "merged" says nothing about work and the age keeps it IN FLIGHT.
+        scratch.git('switch', '-q', '-c', 'merged-own', 'main')
+        commit('src/MO.cs', 'class MergedOwnX {}\n', 'merged-own: its one commit')
+        scratch.git('switch', '-q', 'main')
+        scratch.git('merge', '-q', '--no-ff', '-m', 'Merge pull request #1 from merged-own', 'merged-own')
+        scratch.git('push', '-q', 'origin', 'main')
+        scratch.git('fetch', '-q', 'origin')
+        scratch.git('branch', 'merged-bare', 'main')
+        scratch.git('switch', '-q', '-c', 'merged-ff', 'merged')
+        scratch.git('merge', '-q', '--ff-only', 'main')
+        scratch.git('switch', '-q', 'main')
         # unlanded with no report (DECISION), unlanded with a DONE report (WAITING TO LAND), a SPLIT report (DECISION),
         # a DONE report whose lead note is already landed (superseded: DECISION), a DONE report 30 h old (stale:
         # DECISION), a DONE report followed by a commit no report describes (resumed since: DECISION, whatever the
@@ -1832,7 +1869,7 @@ def self_test() -> int:
         # age everything but `fresh` past --min-age: the branch reflogs, each worktree's HEAD log
         common = repo / '.git'
         for p in list((common / 'logs').rglob('*')):
-            if p.is_file() and p.name != 'fresh':
+            if p.is_file() and p.name not in ('fresh', 'merged-own', 'merged-bare', 'merged-ff'):
                 os.utime(p, (hours(10), hours(10)))
         for d in (common / 'worktrees').iterdir():
             os.utime(d / 'logs' / 'HEAD', (hours(10), hours(10)))
@@ -1842,7 +1879,8 @@ def self_test() -> int:
         terminal = lambda n: n == 'PB4'  # noqa: E731
         rows = {r.name: r for r in survey(repo, reports=report_index(rdir, terminal), slugs={'w9999a'}, min_age=180,
                                           stale_hours=24, live=live, coord_dir=landed_coord, prs=None)}
-        want = {'merged': 'LANDED', 'landed-content': 'LANDED', 'key-landed': 'LANDED', 'orphan': 'DECISION', 'done-branch': 'WAITING TO LAND',
+        want = {'merged': 'LANDED', 'merged-own': 'LANDED', 'merged-bare': 'IN FLIGHT', 'merged-ff': 'IN FLIGHT',
+                'landed-content': 'LANDED', 'key-landed': 'LANDED', 'orphan': 'DECISION', 'done-branch': 'WAITING TO LAND',
                 'split-branch': 'DECISION', 'w9999a-ledger': 'IN FLIGHT', 'fresh': 'IN FLIGHT', 'superseded': 'DECISION',
                 'stale-done': 'DECISION', 'resumed': 'DECISION',
                 'dirty-merged': 'DECISION', 'agent-live': 'IN FLIGHT', 'agent-dead': 'LANDED', '(detached) pin': 'DECISION',
@@ -1904,6 +1942,21 @@ def self_test() -> int:
         check('1 commit(s) since the report' in rows['resumed'].why,
               f'a commit after the report that no report describes is a DECISION, counted: {rows["resumed"].why}')
         check(rows['landed-content'].content == 'LANDED', 'a branch re-applied on main classifies LANDED by content')
+        # kb/Work PB3609: a merged branch touched a minute ago reads LANDED when it carried work (its tip is off main's
+        # own line), IN FLIGHT when it carried none (cut from main, or fast-forwarded to it)
+        check(all(rows[b].content == 'MERGED' and rows[b].age_min < 180 for b in ('merged-own', 'merged-bare', 'merged-ff'))
+              and not rows['merged-own'].on_main_line
+              and all(rows[b].on_main_line for b in ('merged', 'merged-bare', 'merged-ff')),
+              'the fixture: three merged branches touched a minute ago; only merged-own has a commit of its own')
+        check('idle 180 min' in rows['merged-own'].why and 'touched' in rows['merged-own'].why,
+              f'a fresh LANDED row says why --apply keeps it: {rows["merged-own"].why}')
+        check(not any(rows[b].why.startswith('MERGED') for b in ('merged-bare', 'merged-ff')),
+              'a merged branch with no commit of its own reads by its age, not by "its work is on main"')
+        idle_bare = dataclasses.replace(rows['merged-bare'], age_min=999.0)
+        check(lifecycle(idle_bare, in_flight_slugs=set(), min_age=180, live=live)[0] == 'LANDED',
+              'a merged branch with no commit of its own reads LANDED once it is idle (the age guard, as before)')
+        check(lifecycle(dataclasses.replace(rows['merged-own'], dirty=1), in_flight_slugs=set(), min_age=180, live=live)[0]
+              == 'IN FLIGHT', 'a fresh merged branch with uncommitted edits is not LANDED: its worktree holds work')
         check('no fix-lane report' in rows['orphan'].why,
               'a suffixed report name is invisible (coord.REPORT_NAME), and a name below the header binds nothing')
         check('SPLIT' in rows['split-branch'].why, 'a DECISION row names its report status')
@@ -2306,9 +2359,9 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 77 · 23 in flight · 6 waiting for review · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 80 · 25 in flight · 6 waiting for review · '
                                                       '13 waiting to land · 1 stopped · 2 enqueued · 0 not queued · '
-                                                      '0 bounced · 6 landed'),
+                                                      '0 bounced · 7 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
         r0 = dataclasses.replace(rows['orphan'], lock='')
@@ -2350,6 +2403,8 @@ def self_test() -> int:
         left = set(scratch.git('branch', '--format=%(refname:short)').split())
         check(n == 7, f'--apply removed {n}, want 7 (6 LANDED + orphan): {out}')
         check(not {'merged', 'landed-content', 'agent-dead', 'orphan', 'carried', 'picked', 'key-landed'} & left, f'LANDED/abandoned branches remain: {sorted(left)}')
+        check('merged-own' in left and any('LANDED, kept: merged-own touched' in l for l in out),
+              f'--apply keeps a LANDED branch touched inside --min-age, and says so (kb/Work PB3609): {out}')
         check({b for b, s in want.items() if s != 'LANDED' and b != 'orphan' and not b.startswith('(')} <= left,
               f'a branch neither landed nor recorded abandoned was removed: {sorted(left)}')
         check(any('no kb/Work note records' in l and 'split-branch' in l for l in out),
