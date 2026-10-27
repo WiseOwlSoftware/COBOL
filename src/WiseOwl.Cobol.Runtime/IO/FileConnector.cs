@@ -973,7 +973,7 @@ public abstract class FileConnector
     /// adopt it, an OPEN INPUT / I-O / EXTEND of a file that was never there, and a covered OPEN would journal it as present), which
     /// refuses a file removed since the probe (<see cref="HostFile.IsRemoved"/>). The refused attempt is an unsuccessful OPEN (GR25) and
     /// the OPEN is made again from its entry step, so its probe finds the file gone and the answer is the one the removal, run first,
-    /// would have given: '35' for a non-optional INPUT / I-O / EXTEND (§9.1.13.6 item 5), the OPTIONAL file's '05' (GR13, GR17), the
+    /// would have given: '35' for a non-optional INPUT / I-O / EXTEND (§9.1.13.6 item 5), the OPTIONAL file's '05' (§14.9.27.4 GR13, GR17), the
     /// creation of an OUTPUT (GR18). The two directions share one bound: a path whose answer goes stale at every attempt is the same
     /// race, and the last attempt's '30' stands.</para></summary>
     public string Open(FileOpenMode mode)
