@@ -173,7 +173,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         using var order = host.ArgOrder.Open();
         var operands = new List<BoundOperand?>();
         foreach (var a in argCtxs)
-            operands.Add(a.OMITTED() is not null ? null : host.Intrinsic.BindArgOperand(a, nullAdmitting: true));
+            operands.Add(a.OMITTED() is not null ? null : host.Intrinsic.BindArgOperand(a, activationArgument: true));
 
         // Positional correspondence (§14.8.2.1): one argument per USING formal, "with the exception of trailing
         // formal parameters that are specified with an OPTIONAL phrase in the procedure division header of the
