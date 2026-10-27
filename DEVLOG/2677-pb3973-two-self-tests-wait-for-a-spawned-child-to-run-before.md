@@ -1,4 +1,4 @@
-## PB3973: two self-tests wait for a spawned child to run before they read its command line
+## Entry 2677 — 2026-10-27 16:12 PDT — PB3973: two self-tests wait for a spawned child to run before they read its command line
 
 A notes-only gate went red on Linux in `impact_lane.py --self-test`, the check that a live Python that is not the
 worker reads as a stranger. The same branch was green one gate before and one gate after. The cause is a race in the
@@ -10,3 +10,4 @@ deliberately, so the stranger read as the worker.
 The spawned sleepers now print `ready` once Python runs, and the check reads that line first: 0 of 300 spawns read
 empty after it. `land_lane.py`'s test 10b had the same shape and gets the same fix. The other self-tests that spawn a
 child already wait for a handshake or only check that it ended.
+
