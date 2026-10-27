@@ -766,14 +766,23 @@ B-operator). `ConditionBinder.ReduceArgument` is therefore THE reduction, shared
 VALUE arm, the keyword-less argument (reduced ONCE, before its shape is dispatched) and every INVOKE argument
 (§14.9.23.4 GR4 is the same sentence; kb/Work PB613): it unwraps an operator-free boolean node to its bare
 `valueOperand` — **both** legs, `arithmeticExpression | nonNumericLiteral` — recovers a sole `dataReference` from an
-expression node and names a sole numeric literal. Only the residue binds as an expression. A keyword-less
+expression node and names a sole numeric literal. Only the residue binds as an expression. **The bound operand's
+KIND then carries GR8's answer to every reader (kb/Work PB3760):** every lane — BY CONTENT, BY VALUE, keyword-less,
+INVOKE, and a user-defined function's argument (§8.4.3.2.4 GR5 asks the same "a literal, an arithmetic expression"
+question, through `IntrinsicBinder.BindArgOperand`'s `activationArgument` leg) — binds the sole numeric literal, its
+sign included (§8.3.3.3.2 rule 2), as a `BoundNumericLiteral`, and the residue as a `BoundComputedOperand`. No reader
+recovers a literal from a bound expression: the expression binder drops grouping parentheses, so `(3)` binds to the
+`BoundNumLiteral` 3 binds to, and the reduction that once did (`Gr8ArgumentLiteral`, deleted) took `(3)` for the
+literal into a plain-group formal (§14.8.2.2 rule 2 refuses an expression there). A keyword-less
 identifier or literal that reached the boolean node on a later argument's B-operator therefore takes GR9's mode
 like any other; the boolean arm used to pass such an identifier BY CONTENT.
 
 The MODE then comes from GR9, never from the copy-out: a keyword-less argument that meets §14.9.4.3 SR3 is
 identifier-2 and takes BY REFERENCE (9a1); one that does not — a literal, a constant-name (which §13.10.4 GR1
-substitutes a literal for), an object property — takes BY CONTENT (9a2); and a BY VALUE formal makes it BY VALUE
-(9b) whatever the argument is. §14.9.4.3 SR20's carve-out is the object-property leg: "BY CONTENT may be omitted
+substitutes a literal for), an object property, a function's temporary, an arithmetic expression — takes BY CONTENT
+(9a2); and a BY VALUE formal makes it BY VALUE (9b) whatever the argument is (`CallBinder.Gr9NonIdentifierMode` for
+every non-identifier shape; a keyword-less expression was hard-coded BY CONTENT and drew COBOL1687 against a BY VALUE
+formal until kb/Work PB3760). §14.9.4.3 SR20's carve-out is the object-property leg: "BY CONTENT may be omitted
 when identifier-4 is an object property", so a bare property reference is a SENDING occurrence (SR17) and
 `ReferenceResolver.IsObjectPropertyReference` routes it to Content — binding it BY REFERENCE made
 `BoundStores` classify the occurrence ReadWrite and invoke the §8.4.3.9.4 SET accessor. SR23 ("literal-2 shall be

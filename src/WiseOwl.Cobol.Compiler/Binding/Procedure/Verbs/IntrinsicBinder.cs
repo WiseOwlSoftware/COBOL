@@ -2908,19 +2908,28 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// index-name reads its occurrence number, §13.18.38); anything arithmetic binds through <c>BindExpr</c>
     /// and wraps as a computed operand (<see cref="OperandOf"/>). OMITTED is barred for an intrinsic argument
     /// (§8.4.3.2 SR7); an unconsumed phrase word is a loud named operand — never a silent skip (§1.4).
-    /// <para><paramref name="nullAdmitting"/> is true ONLY for a function-prototype activation (UdfBinder): §8.4.3.10.3
-    /// SR1 a) admits the predefined NULL "as an argument in … a function-prototype format function activation", and an
-    /// intrinsic-function argument is no such context (§8.4.3.2.2 distinguishes intrinsic-function-name-1 from
-    /// function-prototype-name-1), so every intrinsic keeps the ONE SR1 refusal, COBOL2576 (kb/Work PB1427).</para></summary>
-    internal BoundOperand BindArgOperand(Core.FunctionArgumentContext a, bool nullAdmitting = false)
+    /// <para><paramref name="activationArgument"/> is true ONLY for a function-prototype activation (UdfBinder), the one
+    /// position where the argument crosses to a formal parameter, and it decides two things an intrinsic argument does not:
+    /// <list type="bullet">
+    /// <item>§8.4.3.10.3 SR1 a) admits the predefined NULL "as an argument in … a function-prototype format function
+    /// activation", and an intrinsic-function argument is no such context (§8.4.3.2.2 distinguishes intrinsic-function-name-1
+    /// from function-prototype-name-1), so every intrinsic keeps the ONE SR1 refusal, COBOL2576 (kb/Work PB1427).</item>
+    /// <item>§8.4.3.2.4 GR5 decides the manner of passing by whether the argument "is a literal, an arithmetic expression"
+    /// or an identifier, so the operand's KIND must say which, as a CALL argument's does (kb/Work PB3760; §14.9.4.4 GR8,
+    /// <c>BoundCallArg</c>): a sole numeric literal, its sign included, is the literal operand, and an expression that is
+    /// not a sole unparenthesized primary is the computed operand it is (<c>ConditionBinder.CompoundOperand</c>, kb/Work
+    /// PB3678's CALL door). Mapped through <see cref="OperandOf"/>, <c>(3)</c> came back as the literal 3 and <c>(N)</c> as
+    /// the item N, because the expression binder drops grouping parentheses.</item>
+    /// </list></para></summary>
+    internal BoundOperand BindArgOperand(Core.FunctionArgumentContext a, bool activationArgument = false)
     {
         var before = host.ArgOrder.Mark;
-        var operand = BindArgOperandCore(a, nullAdmitting);
+        var operand = BindArgOperandCore(a, activationArgument);
         host.ArgOrder.Record(operand, before);   // §8.4.3.2.4 GR2 — the window settles the order (ArgumentOrder)
         return operand;
     }
 
-    private BoundOperand BindArgOperandCore(Core.FunctionArgumentContext a, bool nullAdmitting)
+    private BoundOperand BindArgOperandCore(Core.FunctionArgumentContext a, bool activationArgument)
     {
         if (a.OMITTED() is not null)
         {
@@ -2942,7 +2951,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (a.nonNumericLiteral() is { } nn)
             // Asked of the parse node first, so an ordinary literal is bound ONCE (by NonNumericOperand) and its
             // screens report once.
-            return nullAdmitting && nn.predefinedNull() is not null
+            return activationArgument && nn.predefinedNull() is not null
                 ? host.Expr.NullAdmittingOperand(nn)!
                 : NonNumericOperand(nn);
         // §8.4.3.2.3 SR8 — "a boolean expression" as an argument (kb/Work PB65, FMT-15.45.2): bound through the ONE
@@ -2973,6 +2982,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // An argument is NOT an §8.8.1.1 arithmetic expression: its legality comes from this function's own §15.x
         // ARGUMENT RULE, and the string functions admit alphanumeric data. The named entry says so at the call
         // site — TRIM / SUBSTITUTE / FIND-STRING / CONVERT over a PIC X item are legal (DA6).
+        // A function-prototype activation's argument is a literal, an identifier or an arithmetic expression by its WRITTEN
+        // shape (§8.4.3.2.4 GR5; kb/Work PB3760), asked of the parse tree: the bound one has lost the parentheses. A sole
+        // figurative ZERO keeps the path below (SoleOperand.NumericLiteral answers a written numeric literal only).
+        if (activationArgument && a.arithmeticExpression() is { } ax)
+        {
+            if (WiseOwl.Cobol.Frontend.Expressions.SoleOperand.NumericLiteral(ax) is { } literal)
+                return host.Expr.NumericLiteralOperand(literal);
+            // GROUPING-PAREN-ONLY: a primaryExpression's own parenthesis is the arithmetic grouping one (a function's argument
+            // list is FNARG_LPAREN inside functionCall, a subscript REF_LPAREN inside dataReference), and only it makes (3) an expression.
+            if (WiseOwl.Cobol.Frontend.Expressions.SoleOperand.Primary(ax) is not { } primary || primary.LPAREN() is not null)
+                return host.Cond.CompoundOperand(ax);
+        }
         return OperandOf(host.Expr.BindFunctionArgumentExpr(a.arithmeticExpression()), functionValue: false);
     }
 
