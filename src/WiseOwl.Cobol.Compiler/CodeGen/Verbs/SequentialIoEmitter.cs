@@ -268,9 +268,11 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// <summary>⛔ A FATAL I-O STATUS ON A FILE THIS ELEMENT DOES NOT DESCRIBE (kb/Work PB3338, review finding w1154a
     /// R1-3): the file of another element's APPLY COMMIT clause whose COMMIT or ROLLBACK the medium refused, named at run
     /// time by <paramref name="fileKeyExpr"/>. Its EC-I-O condition is raised through <c>__IoCheckEc</c> when checking for
-    /// it is enabled at the statement by a directive that names no file (<see cref="EcEmitter.IoMaskFor"/> of no file;
-    /// §7.3.25.4 GR6/GR8 scope a FILE phrase to the files it names, all of this element). Item 8's ROLLBACK is emitted in
-    /// both arms (<see cref="Item8Applies"/>).
+    /// it is enabled at the statement for it: by a directive that names no file (<see cref="EcEmitter.IoMaskFor"/> of no
+    /// file) or, when this element can name the file (<paramref name="named"/>, a container's GLOBAL file), by the
+    /// directives that name it too (<see cref="EcEmitter.IoMaskFor"/> of the file; §7.3.25.4 GR6/GR8: "if file-name-1 is
+    /// specified, checking is enabled only for exception conditions associated with that file-name"). Item 8's ROLLBACK
+    /// is emitted in both arms (<see cref="Item8Applies"/>).
     /// <para>⛔ THIS ELEMENT'S FORMAT 1 DECLARATIVES APPLY TO THE FOREIGN FILE WITH OR WITHOUT CHECKING (kb/Work PB3554).
     /// Format 1 USE selection follows the I-O status, never EC checking (§14.6.13.1.1: "if checking for EC-I-O exception
     /// conditions is not enabled, there is no link between EC-I-O exception conditions and I-O status values"; its NOTE 1,
@@ -283,9 +285,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// file's open mode; only a unit with no format 1 declarative has nothing to select.</para>
     /// Returns the C# test that no declarative qualified (the run unit then ends under DOC-A.1-103 unless an element gives
     /// the file a FILE STATUS item), or null when nothing could qualify.</summary>
-    public string? EmitForeignFileIoCheck(string fileKeyExpr)
+    public string? EmitForeignFileIoCheck(string fileKeyExpr, FileModel? named = null)
     {
-        if (ec.IoMaskFor(null) is not (not 0 and var mask))
+        if (ec.IoMaskFor(named) is not (not 0 and var mask))
         {
             string item8 = EmitItem8Question(fileKeyExpr, "false");
             if (!dispatch.UseDecls)
@@ -296,10 +298,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             var plain = EmitPlainIoCheck(fileKeyExpr, item8, atEnd: false, invalidKey: false, ranVar: null, needRan: true);
             return plain.EcId is { } plainId ? $"__ior{plainId} == DispatchResult.NoHandler" : $"!{plain.RanVar}";
         }
-        int id = EmitIoCheckEc(fileKeyExpr, null, mask, atEnd: false, invalidKey: false, onException: false,
+        int id = EmitIoCheckEc(fileKeyExpr, named, mask, atEnd: false, invalidKey: false, onException: false,
             verbDisposes: false, successArm: false);
         return $"__ior{id} == DispatchResult.NoHandler";
     }
+
+    /// <summary>Does a directive that NAMES <paramref name="file"/> (a container's GLOBAL file this element can name) make
+    /// the checking of its refusal differ from the checking of an unnamed foreign file — a different EC-I-O mask or
+    /// WITH LOCATION mask at the statement (§7.3.25.4 GR6/GR8)? Only then does the refusal of that file need its own arm
+    /// (<see cref="EmitForeignFileIoCheck"/> with <c>named</c>); otherwise the unnamed foreign arm is byte-identical.</summary>
+    public bool ForeignFileCheckedApart(FileModel file) =>
+        ec.IoMaskFor(file) != ec.IoMaskFor(null) || ec.IoLocMaskFor(file) != ec.IoLocMaskFor(null);
 
     /// <summary>⛔ THE ONE RENDERING OF DOC-A.1-103's ABNORMAL TERMINATION (kb/Work PB322 E, PB2700): a FATAL I-O status
     /// (§9.1.13.1) on a file whose unsuccessful statement nothing covered ends the run unit through
