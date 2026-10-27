@@ -321,6 +321,20 @@ public static class HostFile
         _ => false,
     };
 
+    /// <summary>⛔ THE ONE HOST CLASSIFICATION OF A REFUSAL AS "A FILE IS THERE ALREADY" (kb/Work PB3635): did a handle opened
+    /// <see cref="FileMode.CreateNew"/> fail because the path names a file? That is what an OPEN that decided on its presence probe to
+    /// CREATE the file meets when another run unit made it between the probe and the handle: the file is that run unit's, and the
+    /// OPEN is made again from its start over the file that stands (<c>FileConnector.Open</c>). Windows reports
+    /// <c>ERROR_FILE_EXISTS</c> (80) or <c>ERROR_ALREADY_EXISTS</c> (183) as the HRESULT <c>0x8007xxxx</c>; .NET on Unix surfaces
+    /// <c>EEXIST</c> (<see cref="UnixAlreadyExists"/>) as the raw errno. The host's own words, as <see cref="IsSharingRefusal"/> reads
+    /// them.</summary>
+    internal static bool IsAlreadyExists(IOException refusal) => refusal.HResult switch
+    {
+        unchecked((int)0x80070050) or unchecked((int)0x800700B7) => true,
+        int errno when !OperatingSystem.IsWindows() => errno == UnixAlreadyExists,
+        _ => false,
+    };
+
     /// <summary>Is the PRESENT physical file at <paramref name="hostPath"/> held open by a handle this call does
     /// not own — §9.1.13.9 2)'s <i>"that physical file is currently open by another file connector"</i>, asked of
     /// the host for a connector that is not this run unit's (kb/Work PB860)?

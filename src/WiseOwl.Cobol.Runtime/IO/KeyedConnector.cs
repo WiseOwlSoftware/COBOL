@@ -133,9 +133,12 @@ public abstract class KeyedConnector : FileConnector
     /// <para><paramref name="create"/> is §14.9.27.4 GR17/GR18's creation — the OUTPUT arm and the absent
     /// OPTIONAL I-O/EXTEND arms — and is the only difference between the arms, because the store's own
     /// truncation is <see cref="PagedFile.Create"/>'s. <paramref name="access"/> is <see cref="Lock"/>'s.
-    /// <paramref name="newFileOnly"/> is the creation of <see cref="CreateTheFileAgain"/>: the handle is taken
-    /// <see cref="FileMode.CreateNew"/> and refused when the path names a file, so a file another run unit made between that WRITE's
-    /// presence probe and this handle (an OPEN OUTPUT takes no entry mutex) is never replaced by the empty store (kb/Work PB3635).</para></summary>
+    /// <paramref name="newFileOnly"/> is every creation decided on an ABSENT presence probe — an OPEN's (OUTPUT of an absent file,
+    /// I-O or EXTEND of an absent OPTIONAL one) and <see cref="CreateTheFileAgain"/>'s: the handle is taken
+    /// <see cref="FileMode.CreateNew"/> and refused when the path names a file, so a file another run unit made between that probe
+    /// and this handle (an OPEN OUTPUT takes no entry mutex) is never adopted or replaced by the empty store (kb/Work PB3635); the
+    /// OPEN is made again over it (<see cref="FileConnector.Open"/>), the WRITE answers '30'. An OUTPUT whose presence the host could
+    /// not tell (an unlistable directory) keeps <see cref="FileMode.OpenOrCreate"/>: the file may be there and OUTPUT replaces it.</para></summary>
     private void TakeFileLock(bool create, FileAccess access, bool newFileOnly)
     {
         _store?.Dispose();   // no arm takes it twice; belt-and-braces so a future one cannot leak
@@ -271,7 +274,7 @@ public abstract class KeyedConnector : FileConnector
                 // before the handle creates it (R1): 2.2.2.14.
                 var refusedOutput = exists
                     ? Lock(create: true) ?? JournalCapture() ?? Attach(create: true)
-                    : JournalCreation() ?? LockCreating() ?? Attach(create: true);
+                    : JournalCreation() ?? LockCreating(newFileOnly: presence is FilePresence.Absent) ?? Attach(create: true);
                 if (refusedOutput is not null) return refusedOutput;
                 break;
             case FileOpenMode.IO:
@@ -281,7 +284,7 @@ public abstract class KeyedConnector : FileConnector
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     // Created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17): the file the lock just created has no bytes,
                     // and the adoption of a file of no bytes through a writable handle creates the empty store.
-                    if ((JournalCreation() ?? LockCreating()) is { } refusedCreated) return refusedCreated;
+                    if ((JournalCreation() ?? LockCreating(newFileOnly: true)) is { } refusedCreated) return refusedCreated;
                     // The file the kept state belonged to is not there (it was removed or renamed away outside the run unit): the
                     // file this OPEN created is a different one, and nothing of the kept store describes it. The OPEN handed the
                     // kept state to the registry before this body (RetireWhatWasKeptOfAnotherFile), whole, so a refused handle
@@ -302,15 +305,8 @@ public abstract class KeyedConnector : FileConnector
 
     // ── The whole file's changes under commit control: the run unit's transaction journal (2.2.2.14; kb/Work PB3492) ──
 
-    /// <summary>The run unit's transaction journal on the file, when THIS OPEN began it (<see cref="JournalCreation"/>,
-    /// <see cref="JournalCapture"/>), until the OPEN ends: an unsuccessful OPEN that did not affect the file withdraws it
-    /// (<see cref="AbandonOpen"/>).</summary>
-    private SequentialJournal? _begunByOpen;
-
-    /// <summary>Whether this OPEN changed the physical file: its handle created the file, or its creation replaced the store
-    /// (<see cref="KeyedStore.FileReplaced"/>). An unsuccessful OPEN that did is not withdrawn: its journal stands, and item 8's
-    /// ROLLBACK (§14.6.13.1.3 8), the statement's '30' being fatal) restores the file from it.</summary>
-    private bool _openChangedFile;
+    // The journal this OPEN began (JournalCreation, JournalCapture) and whether the OPEN changed the file (its handle created it, or its
+    // creation replaced the store, KeyedStore.FileReplaced) are FileConnector's: _begunByOpen, _openChangedFile, WithdrawWhatTheOpenBegan.
 
     /// <summary>⛔ A CREATION UNDER COMMIT CONTROL IS JOURNALED BEFORE THE FILE EXISTS (2.2.2.2 (e), 2.2.2.5 R1, 2.2.2.14): an OPEN that
     /// creates an absent file — OUTPUT, or I-O or EXTEND of an OPTIONAL one (§14.9.27.4 GR17, GR18) — begins the run unit's
@@ -359,7 +355,7 @@ public abstract class KeyedConnector : FileConnector
     }
 
     /// <summary>⛔ A WRITE THROUGH A CONNECTOR WHOSE FILE THE ROLLBACK REMOVED (<see cref="_fileRemoved"/>) CREATES IT AGAIN, AS ITS OPEN
-    /// DID (§14.9.27.4 GR17, GR18; the sequential twin is <c>SequentialConnector.BeginAppending</c>), then runs
+    /// DID (§14.9.27.4 GR17, GR18; the sequential twin is <c>SequentialConnector.CreateTheFileAgain</c>), then runs
     /// <paramref name="write"/> against the file it created, inside the statement of its store (2.2.1.7: a connector with no file
     /// entered none). Each organization's WRITE calls it at its last check before the record is released, so a WRITE the
     /// absent file refuses (its record rules, its keys, its locks) creates nothing.</summary>
@@ -398,7 +394,7 @@ public abstract class KeyedConnector : FileConnector
                 (_fileRemoved, OptionalAbsent) = (false, false);
                 return null;
             }
-            if (_begunByOpen is { } begun && !_openChangedFile) Transactions.Withdraw(begun);
+            WithdrawWhatTheOpenBegan();
             try { _ = Detach(); }
             catch (IOException) { }
             finally { ReleaseFileLock(); }
@@ -415,7 +411,7 @@ public abstract class KeyedConnector : FileConnector
 
     /// <summary>The creating arms' file lock (<see cref="Lock"/>): a handle taken with the creating mode creates the file, which
     /// this OPEN has then changed (<see cref="_openChangedFile"/>).</summary>
-    private string? LockCreating(bool newFileOnly = false)
+    private string? LockCreating(bool newFileOnly)
     {
         var refused = Lock(create: true, newFileOnly);
         if (refused is null) _openChangedFile = true;
@@ -752,8 +748,7 @@ public abstract class KeyedConnector : FileConnector
         // ⛔ A journal this OPEN began for its creation or capture is WITHDRAWN when the file was not affected (§14.9.27.4 GR25,
         // "If the execution of the OPEN statement is unsuccessful, the file is not affected"; 2.2.2.14): no transaction began on
         // it, and a kept transaction stands as the CLOSE left it. One whose file the OPEN changed stands for item 8's ROLLBACK.
-        if (_begunByOpen is { } begun && !_openChangedFile) Transactions.Withdraw(begun);
-        (_begunByOpen, _openChangedFile) = (null, false);
+        WithdrawWhatTheOpenBegan();
         // A re-OPEN that ADOPTED the handle its CLOSE under commit control kept gives it back to the kept state unchanged,
         // its liveness byte with it (§14.9.27.4 GR25); the kept column lock this OPEN replaced goes back to the kept state
         // (and its old column) in FileConnector.Open, after this (TryRestoreKeptFileLock).
