@@ -28,12 +28,15 @@ free the GPU at once, ENDS Ollama's runner process. Every generation in flight t
 encountered while running the model`, a refused connection, a stream cut mid-reply), and until PB3561 the harness recorded
 each as a terminal RUNNER_ERROR row (three programs at 22:05 on 2026-10-22). The protocol is a file, `<run dir>/PAUSE`:
   - the wrapper CREATES it before it ends the runner, REWRITES it on every poll while the pause lasts (a lease: a PAUSE not
-    rewritten for PAUSE_STALE_SECONDS belongs to a wrapper that died, so the run goes on and says so) and REMOVES it on resume;
+    rewritten for PAUSE_STALE_SECONDS belongs to a wrapper that died, so the run goes on and says so) and REMOVES it on resume.
+    Only the wrapper's PAUSE is a lease: its first line starts LEASE_MARK ("lease:"). A PAUSE made by hand (an empty file
+    will do) has no wrapper to die, so it holds until it is removed;
   - a worker WAITS for it to clear before every generation (`PauseGate.wait`), so no new request starts during a pause;
-  - a generation that fails while it exists, or whose failure says Ollama's runner failed or restarted (`runner_failed`),
-    is asked AGAIN once after the pause (`lossless`; a runner failure with no pause first waits RUNNER_SETTLE_SECONDS for the
-    runner to restart); a failure outside a pause that is not a runner failure, or a second failure, is the terminal
-    RUNNER_ERROR it always was;
+  - a generation that fails while it exists is the pause's doing, not the model's: it is asked AGAIN after the pause, as
+    often as pauses end it (`lossless`; every ask waits for the PAUSE to clear first, so a pause costs no retry budget). A
+    failure outside a pause whose text says Ollama's runner failed or restarted (`runner_failed`) is asked again ONCE, after
+    RUNNER_SETTLE_SECONDS for the runner to restart, whatever pauses came before; a failure outside a pause that is not a
+    runner failure, or a second runner failure, is the terminal RUNNER_ERROR it always was;
   - every pause and resume is appended to `<run dir>/pauses.jsonl`, so the report counts paused time and re-queued
     generations as pauses, not as the model's failures (`read_pauses`).
 Nothing is suspended: the compiles and runs of programs already generated are CPU work and finish.
@@ -89,6 +92,8 @@ PAUSE_LOG = "pauses.jsonl"
 PAUSE_POLL_SECONDS = 2.0
 #: The wrapper rewrites PAUSE every poll (10 s by default); a file this old is abandoned.
 PAUSE_STALE_SECONDS = 300.0
+#: The first line of the wrapper's PAUSE starts with this; fuzz_night_lib.ps1 spells it the same (its self-test holds the two).
+LEASE_MARK = "lease:"
 #: A runner failure with no pause (Ollama's runner crashed and restarts on the next request): the wait before the one new try.
 RUNNER_SETTLE_SECONDS = 15.0
 
@@ -305,6 +310,8 @@ class PauseGate:
         else:
             self._unreadable_since = None
             phrase = f"was last rewritten {age:.0f} s ago"
+            if age > self.stale_after and not self._leased():
+                return True         # made by hand: nobody renews it and nobody abandoned it
         if age > self.stale_after:
             if not self._warned:
                 self._warned = True
@@ -312,6 +319,14 @@ class PauseGate:
             return False
         self._warned = False
         return True
+
+    def _leased(self) -> bool:
+        """Whether the PAUSE is the wrapper's (its first line starts LEASE_MARK), the only kind that expires."""
+        try:
+            with self.path.open(encoding="utf-8", errors="replace") as f:
+                return f.readline().startswith(LEASE_MARK)
+        except OSError:
+            return True             # cannot be read and was not rewritten: as dead as an abandoned lease
 
     def _append(self, record: dict[str, Any]) -> None:
         with self.log.open("a", encoding="utf-8", newline="\n") as f:
@@ -362,22 +377,25 @@ def read_pauses(run_dir: Path) -> Pauses:
 
 def lossless(gate: PauseGate, call: Callable[[], Any], requeued: Callable[[BaseException], None],
              settle: float = RUNNER_SETTLE_SECONDS) -> Any:
-    """`call()` after the pause, and ONCE MORE if it fails while a pause is on or with a runner failure (module docstring):
-    `requeued(error)` is told of the first failure. A runner failure outside a pause waits `settle` seconds first, for the
-    runner to restart. A failure outside a pause that is no runner failure, or the second failure, propagates: it is a
-    RUNNER_ERROR."""
-    for retry in (False, True):
+    """`call()` after the pause, asked AGAIN whenever a pause ends it, and ONCE MORE if the runner fails outside a pause
+    (module docstring): `requeued(error)` is told of every failure that is asked again. A failure under a pause is the
+    pause's doing and costs no retry budget (every ask waits for the PAUSE to clear first, so this is no busy loop); a runner
+    failure outside a pause waits `settle` seconds for the runner to restart and is the one retry the model is allowed. A
+    failure outside a pause that is no runner failure, or the second runner failure, propagates: it is a RUNNER_ERROR."""
+    runner_retried = False
+    while True:
         gate.wait()
         try:
             return call()
         except MODEL_ERRORS as e:
-            paused = gate.active()
-            if retry or not (paused or runner_failed(e)):
+            if gate.active():
+                requeued(e)
+                continue
+            if runner_retried or not runner_failed(e):
                 raise
+            runner_retried = True
             requeued(e)
-            if not paused:
-                gate.sleep(settle)
-    raise AssertionError("unreachable")
+            gate.sleep(settle)
 
 
 # ── self-test ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -649,7 +667,7 @@ def self_test() -> int:
 
         def touch(g: PauseGate) -> None:
             """What the wrapper does on every poll: create or rewrite PAUSE (its mtime is the lease)."""
-            g.path.write_text("paused\n", encoding="utf-8", newline="\n")
+            g.path.write_text(LEASE_MARK + " paused\n", encoding="utf-8", newline="\n")
             os.utime(g.path, (clock[0], clock[0]))
 
         def sleeper(seconds: float) -> None:
@@ -708,12 +726,12 @@ def self_test() -> int:
         gate2 = PauseGate(run / "g2", poll=1.0, stale_after=1e9, now=lambda: clock[0],
                           sleep=lambda s: (polls.append(s), gate2.path.unlink(missing_ok=True))[0], say=lambda _m: None)
 
-        def scripted(*outcomes: object, pause_on_first: bool = False) -> tuple[Callable[[], Any], list[str]]:
+        def scripted(*outcomes: object, pause_on: tuple[int, ...] = ()) -> tuple[Callable[[], Any], list[str]]:
             calls: list[str] = []
 
             def call() -> Any:
                 calls.append("call")
-                if pause_on_first and len(calls) == 1:
+                if len(calls) in pause_on:
                     touch(gate2)
                 outcome = outcomes[len(calls) - 1]
                 if isinstance(outcome, BaseException):
@@ -729,7 +747,7 @@ def self_test() -> int:
 
         runner_down = OllamaError("ollama HTTP 500: an error was encountered while running the model", 500)
         requeues: list[BaseException] = []
-        call, calls = scripted(runner_down, ("reply", 1.0, "stop", 0), pause_on_first=True)
+        call, calls = scripted(runner_down, ("reply", 1.0, "stop", 0), pause_on=(1,))
         got = outcome_of(call, requeues)
         check("lossless: a generation that fails while PAUSE exists is asked again once the pause is over, and its second "
               "answer is the result; the re-queue is reported",
@@ -737,7 +755,7 @@ def self_test() -> int:
               (got, calls, requeues, polls))
         timed_out = TimeoutError("timed out")
         requeues.clear()
-        call, calls = scripted(timed_out, "again", pause_on_first=True)
+        call, calls = scripted(timed_out, "again", pause_on=(1,))
         check("lossless: any failure while PAUSE exists is re-queued, a timeout too",
               outcome_of(call, requeues) == "again" and requeues == [timed_out])
         requeues.clear()
@@ -755,8 +773,39 @@ def self_test() -> int:
         requeues.clear()
         second = OllamaError("ollama HTTP 500: again", 500)
         call, calls = scripted(runner_down, second)
-        check("lossless: a second failure is terminal, after exactly one re-queue",
+        check("lossless: a second runner failure outside a pause is terminal, after exactly one re-queue",
               outcome_of(call, requeues) is second and len(calls) == 2 and requeues == [runner_down])
+        # Review R1-1: a pause costs no retry budget, so a retry that a SECOND pause kills is asked again too
+        requeues.clear()
+        call, calls = scripted(runner_down, runner_down, ("reply", 1.0, "stop", 0), pause_on=(1, 2))
+        check("lossless: a generation killed by a pause and again by a second pause is asked a third time and keeps its program "
+              "(review R1-1: the first pause used up the only retry, the second recorded a RUNNER_ERROR)",
+              outcome_of(call, requeues) == ("reply", 1.0, "stop", 0) and len(calls) == 3 and requeues == [runner_down] * 2,
+              (calls, requeues))
+        requeues.clear()
+        polls.clear()
+        call, calls = scripted(runner_down, runner_down, "again", pause_on=(1,))
+        check("lossless: the runner's own one retry survives an earlier pause (a pause, then a runner failure outside it, then the answer)",
+              outcome_of(call, requeues) == "again" and len(calls) == 3 and requeues == [runner_down] * 2
+              and polls == [1.0, RUNNER_SETTLE_SECONDS], (calls, requeues, polls))
+        requeues.clear()
+        call, calls = scripted(runner_down, runner_down, second, pause_on=(1,))
+        check("lossless: after a pause the second runner failure outside a pause is still terminal",
+              outcome_of(call, requeues) is second and len(calls) == 3 and requeues == [runner_down] * 2, (calls, requeues))
+
+        # Review R1-3: only the wrapper's PAUSE is a lease; one made by hand holds until it is removed
+        (run / "g4").mkdir()
+        gate4 = PauseGate(run / "g4", poll=1.0, stale_after=60.0, now=lambda: clock[0], sleep=lambda _s: None, say=lambda _m: None)
+        gate4.path.write_text("", encoding="utf-8", newline="\n")
+        os.utime(gate4.path, (clock[0], clock[0]))
+        clock[0] += 3600
+        by_hand = gate4.active()
+        touch_path = gate4.path
+        touch_path.write_text(LEASE_MARK + " paused for a game\n", encoding="utf-8", newline="\n")
+        os.utime(touch_path, (clock[0] - 3600, clock[0] - 3600))
+        check("pause: a PAUSE made by hand (empty, an hour old) still pauses, and the wrapper's (first line 'lease:') of the same age is "
+              "dead (review R1-3: the printed 'create PAUSE' line promised a pause that ended after five minutes)",
+              by_hand is True and gate4.active() is False, (by_hand,))
     print("self-test " + ("PASSED" if rc == 0 else "FAILED"))
     return rc
 
