@@ -13,6 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// value (<c>CobolNum.DeviceFunctionText</c>), and ABS, MAX, MIN, MEDIAN and MEAN of one argument return a COPY of an argument's
 /// item (<c>FunctionValueField</c>). The expected strings below are what <c>cobc -x -std=default</c> 3.2.0 printed for the same
 /// values (probe matrix in the PB3514 report), EXCEPT the rows marked NOT COPIED, where GnuCOBOL shows a figure the value does not have.
+/// The last section pins the same temporary's LENGTH (kb/Work PB3951).
 /// </summary>
 public sealed class FunctionDeviceTextTests
 {
@@ -173,4 +174,88 @@ public sealed class FunctionDeviceTextTests
         Assert.Equal("00000000", FunctionValueField.OfDigits(Dec("0"), 8).DeviceText(false));
         Assert.Equal("0000000", FunctionValueField.OfDigits(Dec("0"), 7).DeviceText(false));
     }
+
+    // ── The temporary's LENGTH (kb/Work PB3951): FUNCTION LENGTH / BYTE-LENGTH of a numeric function measure the item DISPLAY shows ────────
+    // ISO §8.4.3.2.1 + §15.4 make the function-identifier that temporary data item, §15.50.4 r3 / §15.14.4 r1 measure it, and §15.4.1 leaves
+    // its representation to the implementor, so GnuCOBOL 3.2.0's sizes are the answers (the probe matrix of the PB3951 report; the rows
+    // marked NOT COPIED are the same two deliberate departures as DISPLAY's).
+
+    private static NumProfile Packed(int digits, int scale) => new()
+    {
+        Digits = digits, FractionDigits = scale, Signed = true, Truncation = NumericTruncation.PackedDecimal,
+        ByteForm = NumericByteForm.Packed, StorageLength = digits / 2 + 1,
+    };
+
+    /// <summary>A copy of an argument's item is that item's bytes: its image width, whatever its usage.</summary>
+    [Fact]
+    public void ACopyOfAnArgumentIsTheBytesOfItsItem()
+    {
+        Assert.Equal(7, FunctionValueField.OfItem(Dec("-12.5"), Item(7, 2, signed: true)).Abs().ByteLength);                                 // S9(5)V99
+        Assert.Equal(8, FunctionValueField.OfItem(Dec("-12.5"), Item(7, 2, signed: true, NumericSign.TrailingSeparate)).ByteLength);          // SIGN TRAILING SEPARATE
+        Assert.Equal(7, FunctionValueField.OfItem(Dec("12.5"), Item(7, 2, signed: false)).ByteLength);                                       // unsigned: no sign position
+        Assert.Equal(5, FunctionValueField.OfItem(Dec("5.25"), Packed(9, 2)).ByteLength);                                                    // S9(7)V99 COMP-3
+        Assert.Equal(2, FunctionValueField.OfItem(Dec("-3"), new NumProfile { Digits = 4, FractionDigits = 0, Signed = true, Truncation = NumericTruncation.BinaryCapacity, ByteForm = NumericByteForm.Binary, StorageLength = 2 }).ByteLength);
+        Assert.Equal(4, FunctionValueField.OfFloatItem(Dec("-1.5"), new NumProfile { Digits = 0, FractionDigits = 0, Signed = true, Truncation = NumericTruncation.BinaryCapacity, ByteForm = NumericByteForm.Ieee32, StorageLength = 4 }, "-1.5").Abs().ByteLength);
+    }
+
+    /// <summary>The selection returns the winner's temporary, so its length is the winner's, not the loser's or the largest.</summary>
+    [Fact]
+    public void ASelectionIsTheWinnersBytes()
+    {
+        FunctionValueField packed = FunctionValueField.OfItem(Dec("5.25"), Packed(9, 2));
+        FunctionValueField display = FunctionValueField.OfItem(Dec("-12.5"), Item(7, 2, signed: true));
+        Assert.Equal(5, FunctionValueField.Max(packed, display).ByteLength);
+        Assert.Equal(7, FunctionValueField.Min(packed, display).ByteLength);
+        Assert.Equal(7, FunctionValueField.Max(display, FunctionValueField.OfItem(Dec("-12.5"), Packed(9, 2))).ByteLength);   // equal: the leftmost wins (§15.59.4 2)
+        Assert.Equal(5, FunctionValueField.Median(display, packed, FunctionValueField.OfLiteral(Dec("9"), 1, 0, signed: false)).ByteLength);
+    }
+
+    /// <summary>A literal's field has a position for every digit written and one for a sign written; DATE-OF-INTEGER and DAY-OF-INTEGER are
+    /// unsigned DISPLAY integers of eight and seven digits.</summary>
+    [Fact]
+    public void ALiteralAndAFixedWidthTemporaryAreTheirDigits()
+    {
+        Assert.Equal(5, FunctionValueField.OfLiteral(Dec("-12.5"), 4, 2, signed: true).ByteLength);    // -12.50
+        Assert.Equal(4, FunctionValueField.OfLiteral(Dec("12.5"), 4, 2, signed: false).ByteLength);    // 12.50
+        Assert.Equal(4, FunctionValueField.OfLiteral(Dec("7"), 3, 0, signed: true).ByteLength);        // +007
+        Assert.Equal(8, FunctionValueField.OfDigits(Dec("16010101"), 8).ByteLength);
+        Assert.Equal(7, FunctionValueField.OfDigits(Dec("0"), 7).ByteLength);
+    }
+
+    /// <summary>The item a value describes (<c>CobolNum.ReturnedValueProfile</c>): the 4-byte binary item under 2**31 (2**32 unsigned) with at
+    /// most 9 fraction digits, the 8-byte one under 2**63 (2**64) with at most 18, otherwise the DISPLAY item of exactly its digits.</summary>
+    [Theory]
+    [InlineData("0", 4)]
+    [InlineData("12.50", 4)]
+    [InlineData("-13", 4)]
+    [InlineData("2147483647", 4)]
+    [InlineData("4294967295", 4)]              // 32 bits unsigned: still the 4-byte item
+    [InlineData("4294967296", 8)]
+    [InlineData("-2147483648", 8)]             // 32 bits negative: past the 4-byte item
+    [InlineData("0.123456789", 4)]             // scale 9
+    [InlineData("0.1234567891", 8)]            // scale 10
+    [InlineData("0.123456789012345678", 8)]    // scale 18
+    [InlineData("9223372036854775808", 8)]     // 64 bits unsigned
+    [InlineData("-9223372036854775808", 19)]   // NOT COPIED: 64 bits negative is a DISPLAY item of its 19 digits (GnuCOBOL's GMP estimate says 20)
+    [InlineData("18446744073709551616", 20)]
+    [InlineData("0.1234567890123456789", 19)]  // scale 19: a DISPLAY item of its digits
+    [InlineData("12345678901234567890123", 23)]
+    [InlineData("123456789012345678901234567890123456789", 39)]   // past the 38 digits an Int128 holds: still its own digits
+    public void TheValueDescribesTheBytes(string value, int bytes) =>
+        Assert.Equal(bytes, FunctionValueField.OfValue(Dec(value)).ByteLength);
+
+    /// <summary>ABS holds the magnitude in a copy of the temporary: the same item, so the same bytes (a value temporary keeps its size, the
+    /// sign position is the item's).</summary>
+    [Fact]
+    public void AbsKeepsTheTemporarysBytes()
+    {
+        Assert.Equal(4, FunctionValueField.OfValue(Dec("-13")).Abs().ByteLength);
+        Assert.Equal(8, FunctionValueField.OfValue(Dec("-4294967297")).Abs().ByteLength);
+        Assert.Equal(8, FunctionValueField.OfFloat(-0.1).Abs().ByteLength);
+    }
+
+    /// <summary>NOT COPIED: a binary64 result is the 8 bytes of a binary64 item; GnuCOBOL gives it a DISPLAY temporary of 38 to 96 digits
+    /// (kb/Work PB3505 declined that image for DISPLAY too).</summary>
+    [Fact]
+    public void ABinary64ResultIsEightBytes() => Assert.Equal(8, FunctionValueField.OfFloat(2.5).ByteLength);
 }

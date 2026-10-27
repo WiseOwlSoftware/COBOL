@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ THE INTERMEDIATE THAT HANDS A NUMERIC FUNCTION'S VALUE TO SEVERAL USES IS DESCRIBED FOR THAT VALUE, NEVER A FIXED
 /// S9(21)V9(9) (kb/Work PB3268): the §15.4.1 float family is held on a binary64 under native arithmetic and on a
 /// fixed-point item under a decimal-engine mode, over EVERY <c>Float: true</c> catalog row, and
-/// <c>SendingValueTemp.FunctionValuePic</c> is read only by the questions asked of the returned-value item itself.
+/// <c>SendingValueTemp.FunctionValuePic</c> is read only by the question asked of the nominal returned-value item (IN-ARITHMETIC-RANGE).
 /// </summary>
 /// <remarks>
 /// <para><b>The rule.</b> ISO §14.9.25.4 GR1 writes a function-identifier's single evaluation as "MOVE a TO temp /
@@ -138,13 +138,13 @@ public sealed class FunctionValueIntermediateDriftTests : WiseOwlCobolTestBase
     [Fact]
     public void TheReturnedValueItemDescription_IsReadOnlyByTheQuestionsAskedOfTheItem()
     {
-        // FunctionValuePic / NumericReturnedValuePic are the §15.4 returned-value item (LENGTH, BYTE-LENGTH,
-        // IN-ARITHMETIC-RANGE). A statement's intermediate is SendingValueTemp.IntermediatePic's.
+        // FunctionValuePic is the NOMINAL §15.4 returned-value item whose extremes IN-ARITHMETIC-RANGE reads. FUNCTION LENGTH and
+        // BYTE-LENGTH do NOT read it: they measure the temporary DISPLAY shows, FunctionValueField (kb/Work PB3951), so the
+        // IntrinsicBinder is no longer a reader. A statement's intermediate is SendingValueTemp.IntermediatePic's.
         var allowed = new[]
         {
             Path.Combine("Binding", "Procedure", "SendingValueTemp.cs"),
             Path.Combine("Binding", "AlgebraicRange.cs"),
-            Path.Combine("Binding", "Procedure", "Verbs", "IntrinsicBinder.cs"),
         };
         var readers = new List<string>();
         string root = TestRepo.Src("WiseOwl.Cobol.Compiler");
@@ -159,13 +159,13 @@ public sealed class FunctionValueIntermediateDriftTests : WiseOwlCobolTestBase
                 string code = line.TrimStart();
                 if (code.StartsWith("//", StringComparison.Ordinal)) continue;
                 if (code.Contains("SendingValueTemp.FunctionValuePic", StringComparison.Ordinal)
-                    || code.Contains("SendingValueTemp.NumericReturnedValuePic", StringComparison.Ordinal))
+                    || code.Contains("SendingValueTemp.IntegerFunctionValuePic", StringComparison.Ordinal))
                     readers.Add(rel);
             }
         }
         Assert.True(readers.Count == 0,
-            "the S9(21)V9(9) returned-value item description is asked for outside the three places that ask a question of "
-            + "the ITEM (kb/Work PB3268) — a statement's intermediate is described by SendingValueTemp.IntermediatePic:\n  "
+            "the S9(21)V9(9) returned-value item description is asked for outside the two places that ask a question of "
+            + "the ITEM (kb/Work PB3268, PB3951) — a statement's intermediate is described by SendingValueTemp.IntermediatePic:\n  "
             + string.Join("\n  ", readers.Distinct()));
     }
 
