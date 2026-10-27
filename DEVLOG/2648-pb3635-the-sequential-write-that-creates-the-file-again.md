@@ -1,4 +1,4 @@
-## PB3635: the sequential WRITE that creates the file again after a ROLLBACK probes for another run unit's file first
+## Entry 2648 — 2026-10-26 19:20 PDT — PB3635: the sequential WRITE that creates the file again after a ROLLBACK probes for another run unit's file first
 
 **What the re-probe showed.** A run unit with a record or line sequential file under APPLY COMMIT writes, ROLLBACKs (the file did not
 exist at the last COMMIT, so the ROLLBACK removes it, §14.9.36.4 GR3) and, with the connector still open, WRITEs again; the WRITE
@@ -52,3 +52,4 @@ journal in `_begunByOpen`/`_openChangedFile` and withdraws through `FileConnecto
 
 **Goldens.** None: the abnormal path is two-run-unit and host-state dependent, so it is covered by the Unit harness. Rows re-verdicted:
 none (the note claimed no inventory row; `closes_rows: []` with its reason). Design doc DESIGN-runtime-library.md 2.2.2.14 updated.
+
