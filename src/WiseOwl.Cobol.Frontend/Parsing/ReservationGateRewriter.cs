@@ -29,6 +29,11 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// nothing is retyped: no name slot can take the
 /// keyword token, a reference fails with the targeted COBOL0901 (<see cref="CobolParserCoreBase.ReservedUserWordViolation"/>)
 /// and a declaration draws it from the funnel.</para>
+/// <para><b>Its keyword occurrences are retyped too.</b> The retype is by word, so where a format still spells the
+/// declared free word as a keyword (MESSAGE in the 2023 RECEIVE's CONTINUE phrase, METHOD in END METHOD), that keyword
+/// arrives as <c>IDENTIFIER</c> as well. Such a word's row carries the <c>keywordWhereFree</c> determination and the
+/// grammar reads it only through its generated <c>&lt;word&gt;Keyword</c> rule, which accepts the token or the retyped
+/// spelling (kb/Work PB2623, PB3794; <c>CobolWordsDriftTests</c> re-derives the 2023 members from the standard).</para>
 /// <para><b>Why DECLARED, not merely free.</b> The union grammar still spells the word's constructs at editions
 /// that lack them, so the named edition gate can answer (<c>GOBACK.</c> at COBOL-85 → "requires COBOL-2002"), and
 /// the migration mode (<c>--permissive</c>) admits a word the edition added while it is ALSO that edition's
