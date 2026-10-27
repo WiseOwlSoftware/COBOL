@@ -1772,6 +1772,18 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         }
     }
 
+    /// <summary>⛔ THE ONE REPORT OF §14.9.39.3 SR10/SR12's OBJECT-REFERENCE STORE — a sender object reference into a
+    /// receiver one, as a written SET Format 5 (<see cref="OoBindSetObjectRef"/>) and as the implicit SET of
+    /// INITIALIZE … REPLACING OBJECT-REFERENCE (<c>SetBinder.ScreenImplicitSet</c>, §14.9.20.4 GR4; kb/Work PB3817) both
+    /// ask it, so the two statements cannot answer differently. <paramref name="statement"/> is the text the message
+    /// opens with. True when the pair conforms; otherwise COBOL0867 is reported and false returned.</summary>
+    internal bool ScreenObjectRefAssignment(PicInfo sender, PicInfo receiver, string statement)
+    {
+        if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, sender, receiver) is not { } werr) return true;
+        ctx.Edition.Error("COBOL0867", $"{statement}: {werr}");
+        return false;
+    }
+
     /// <summary>SET Format 5 core (§14.9.39; D-U7) — shared by the grammar's NULL/SELF/SUPER-sender rule
     /// and BindSetTo's SEMANTIC re-route (a dataReference sender parses as the Format-1 shape). Rules, all
     /// COBOL0867: every target an object-reference item (SR8 :31298); SUPER sender rejected (SR9
@@ -1914,9 +1926,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 // guard was a second, weaker copy of that rule.
                 string senderName = senderRef is null ? sender.Text : senderItem.CobolName ?? sender.Text;
                 foreach (var tp in targets)
-                    if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, spic, tp.Item.Pic!) is { } werr)
-                        ctx.Edition.Error("COBOL0867",
-                            $"SET '{tp.Item.CobolName}' TO '{senderName}': {werr}");
+                    ScreenObjectRefAssignment(spic, tp.Item.Pic!, $"SET '{tp.Item.CobolName}' TO '{senderName}'");
                 src = sp;
             }
             // SR13's class-name-1 sender is a source reference and takes the §8.4.6.4 scope (PB365).
