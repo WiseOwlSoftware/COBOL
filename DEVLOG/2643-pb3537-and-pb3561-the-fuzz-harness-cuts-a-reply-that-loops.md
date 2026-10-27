@@ -1,4 +1,4 @@
-## PB3537 and PB3561: the fuzz harness cuts a reply that loops, and a pause for a game loses no program
+## Entry 2643 — 2026-10-26 18:06 PDT — PB3537 and PB3561: the fuzz harness cuts a reply that loops, and a pause for a game loses no program
 
 Two tooling defects of one root, the model's side of `scripts/differential_fuzz.py`, fixed together in a new module,
 `scripts/fuzz_ollama.py` (the streaming chat to Ollama, the watch for a looping reply, the PAUSE file), and a tracked
@@ -67,3 +67,4 @@ old rule cover two pauses, a pause then a runner failure, and a pause then two r
 named the row's first re-ask even when the failing generation was a later repair round's; it names that generation's own. R1-3:
 the printed instruction to create PAUSE by hand promised a pause that ended after five minutes; only the wrapper's PAUSE (first
 line `lease:`, spelled once in each language and held equal by `test_fuzz_night.ps1`) expires.
+
