@@ -335,6 +335,55 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
             $"a host-entry argument not stated by CallEmitter.Described: {a}"));
     }
 
+    /// <summary>⛔ ONE HOST ENTRY PER EXTERNALIZED NAME (DESIGN-external-repository §7.2; kb/Work PB3872). A group holding a
+    /// prototype and its definition publishes the definition's entry only, and the two pair by the Annex C fold
+    /// (<c>ExternalizedNames.Same</c>; ISO §8.3.2.2 2): every source element naming one externalized name refers to the same instance), so a
+    /// prototype <c>psub</c> beside a definition <c>PSUB</c> publishes ONE class — the definition's, spelled as written.</summary>
+    [Fact]
+    public void APrototype_BesideItsDefinition_PairsByTheAnnexCFold_AndPublishesOneEntry()
+    {
+        const string source = """
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. psub IS PROTOTYPE.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 A PIC 9(4).
+               PROCEDURE DIVISION USING A.
+               END PROGRAM psub.
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PMAIN.
+               ENVIRONMENT DIVISION.
+               CONFIGURATION SECTION.
+               REPOSITORY. PROGRAM psub.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 W PIC 9(4) VALUE 7.
+               PROCEDURE DIVISION.
+                   CALL psub USING W.
+                   STOP RUN.
+               END PROGRAM PMAIN.
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PSUB.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 B PIC 9(4).
+               PROCEDURE DIVISION USING B.
+                   DISPLAY "PSUB " B.
+                   GOBACK.
+               END PROGRAM PSUB.
+               """;
+        // The main program is the first definition; the prototype is not one.
+        var (ok, stdout, detail) = CompileAndRun(source, dialectLevel: 2023);
+        Assert.True(ok, detail);
+        Assert.Equal("PSUB 0007", stdout);
+        var root = CSharpSyntaxTree.ParseText(File.ReadAllText(Path.Combine(TempDir, "prog.g.cs"))).GetRoot();
+        var entries = root.DescendantNodes().OfType<ClassDeclarationSyntax>()
+            .Where(c => c.Members.OfType<MethodDeclarationSyntax>().Any(m => m.Identifier.Text == "Call")
+                        && c.Modifiers.Any(SyntaxKind.StaticKeyword))
+            .Select(c => c.Identifier.Text).Order().ToArray();
+        Assert.Equal(["PMAIN", "PSUB"], entries);
+    }
+
     /// <summary>The §17.3 collision fixture: words a published name could collide with — a word twice in one record
     /// (F in S1 and S2, beside the record's own F), F beside F-2, words spelling the record's own members
     /// (<c>AsImage</c>, <c>FromImage</c>, <c>Equals</c>, <c>ToString</c>, <c>GetHashCode</c>), a member spelling its
