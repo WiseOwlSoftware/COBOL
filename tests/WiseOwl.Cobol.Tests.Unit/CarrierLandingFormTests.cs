@@ -116,22 +116,22 @@ public sealed class CarrierLandingFormTests
         Assert.Equal(CobolIntrinsics.FromDouble(2.5, 0, CobolRounding.Truncation), CobolIntrinsics.FromDouble(2.5, 0, CobolRounding.Truncation, checkedLanding: true));   // inside: one function
     }
 
-    // ── the native exact family's two landings ───────────────────────────────────────────────────────────────
+    // ── the NUMVAL family has no scaled-Int128 landing at all ──────────────────────────────────────────────
 
-    /// <summary>NUMVAL-F("5E+30") at working scale 9 is 5×10^39 — past the carrier: checked RAISES, unchecked
-    /// keeps the low-order digits (all zero, so 0 — what a MOVE into PIC V9(9) / PIC 9(5) must store, §14.6.8.2 r4).
-    /// <para>⛔ NUMVAL AND NUMVAL-C ARE NOT HERE, AND THAT IS THE POINT (kb/Work PB251). §15.67.4 r1 / §15.68.4 r1
-    /// fix their returned value with no arithmetic-mode qualification, so they have no scaled-<c>Int128</c>
-    /// projection to land at all — the SDIDI carries every §15.67.3 r3-conforming argument exactly, and a
-    /// 31-digit significand that USED to keep only its low 29 digits × 10^9 here is now simply the value.
-    /// NUMVAL-F keeps this landing because §15.69.4 r2 grants its native value an approximation.</para></summary>
+    /// <summary>NUMVAL-F("5E+30") at a working scale of 9 would be 5×10^39 — past the carrier, which is why the old
+    /// scaled-<c>Int128</c> projection needed a checked and an unchecked landing form. There is no such projection now.
+    /// <para>⛔ THE WHOLE NUMVAL FAMILY HAS NO LANDING TO GET WRONG (kb/Work PB251, PB3839). §15.67.4 r1 / §15.68.4 r1 fix
+    /// the returned value of NUMVAL and NUMVAL-C with no arithmetic-mode qualification, and NUMVAL-F's §15.69.4 r2
+    /// approximation is resolved to r3's exact value, so all three render on the SDIDI carrier, which holds every
+    /// conforming argument exactly: a 31-digit significand that USED to keep only its low 29 digits × 10^9 is
+    /// simply the value, and 5E+30 is 5×10^30 whatever receiver reads it.</para></summary>
     [Fact]
-    public void NumvalFamily_PastTheCarrier_FollowsTheLanding()
+    public void NumvalFamily_PastTheCarrier_IsTheExactValue_WithNoLanding()
     {
-        Assert.Equal("EC-SIZE-TRUNCATION", Assert.Throws<CobolSizeError>(
-            () => CobolIntrinsics.NumvalF("5E+30", 9, checkedLanding: true)).EcName);
-        Assert.Equal(Int128.Zero, CobolIntrinsics.NumvalF("5E+30", 9));
-        Assert.Equal(Int128.Parse("-1000000000000000"), CobolIntrinsics.NumvalF("-1E+6", 9));   // inside: unchanged
+        Assert.Equal(Int128.Parse("5000000000000000000000000000000"),
+            CobolIntrinsics.NumvalFDec(CobolRounding.NearestAwayFromZero, "5E+30").ToUnscaled(0, CobolRounding.Truncation));
+        Assert.Equal(Int128.Parse("-1000000"),
+            CobolIntrinsics.NumvalFDec(CobolRounding.NearestAwayFromZero, "-1E+6").ToUnscaled(0, CobolRounding.Truncation));
         // The same 31-digit argument through the ONE NUMVAL projection: exact, with no landing to choose.
         Assert.Equal(Int128.Parse("1234567890123456789012345678901"),
             CobolIntrinsics.NumvalDec("1234567890123456789012345678901").ToUnscaled(0, CobolRounding.Truncation));
@@ -307,15 +307,14 @@ public sealed class CarrierLandingFormTests
         Assert.Contains("nameof(CobolFloat.ToScaledIntermediate)", src);
     }
 
-    /// <summary>The quantizer / exact-family renders that reach the runtime with a working scale carry the ONE
-    /// <c>CheckedFlag</c> — <c>FromDouble</c>, native <c>**</c>, NUMVAL-F. A site that
-    /// renders <c>FromDouble(...)</c> or a NUMVAL-F value call without it lands a no-phrase store on the sentinel
-    /// again.
-    /// <para>⛔ NUMVAL AND NUMVAL-C ARE NO LONGER ON THIS LIST, AND THE SECOND HALF ASSERTS THEY DO NOT COME BACK
-    /// (kb/Work PB251). §15.67.4 r1 / §15.68.4 r1 fix their returned value with no arithmetic-mode qualification,
-    /// so they render on the SDIDI carrier in every mode and have no working scale to land at — which is a
-    /// STRONGER statement than carrying the flag, because there is no landing left to get wrong. NUMVAL-F keeps
-    /// both because §15.69.4 r2 grants its native value an approximation.</para></summary>
+    /// <summary>The quantizer renders that reach the runtime with a working scale carry the ONE
+    /// <c>CheckedFlag</c> — <c>FromDouble</c> and native <c>**</c>. A site that renders <c>FromDouble(...)</c> without
+    /// it lands a no-phrase store on the sentinel again.
+    /// <para>⛔ THE NUMVAL FAMILY IS NOT ON THIS LIST, AND THE SECOND HALF ASSERTS IT DOES NOT COME BACK
+    /// (kb/Work PB251, PB3839). §15.67.4 r1 / §15.68.4 r1 fix the returned value of NUMVAL and NUMVAL-C with no
+    /// arithmetic-mode qualification, and NUMVAL-F's §15.69.4 r2 approximation is resolved to r3's exact value, so
+    /// all three render on the SDIDI carrier in every mode and have no working scale to land at, which is a
+    /// STRONGER statement than carrying the flag, because there is no landing left to get wrong.</para></summary>
     [Fact]
     public void EveryWorkingScaleRender_CarriesTheCheckedFlag()
     {
@@ -324,22 +323,13 @@ public sealed class CarrierLandingFormTests
         foreach (Match m in Regex.Matches(ir + nr, @"RuntimeApi\.Intrinsic\(""FromDouble"",[^;]*;"))
             Assert.True(m.Value.Contains("{CheckedFlag}", StringComparison.Ordinal),
                 $"a FromDouble render without the landing form (kb/Work PB77): {m.Value}");
-        // NUMVAL-F: the value render (not the TEST- validator, which returns a position, scale 0) — the case arm
-        // from its label to the next case label.
-        foreach (string name in new[] { "NumvalF" })
-        {
-            int at = ir.IndexOf($"case \"{name}\":", StringComparison.Ordinal);
-            Assert.True(at >= 0, $"the {name} value render is gone from IntrinsicRenderer — re-point this guard.");
-            int next = ir.IndexOf("case \"", at + 8, StringComparison.Ordinal);
-            string arm = ir[at..(next < 0 ? ir.Length : next)];
-            Assert.True(arm.Contains("{CheckedFlag}", StringComparison.Ordinal),
-                $"the {name} value render lacks the landing form (kb/Work PB77): {arm}");
-        }
-        // ⛔ AND NUMVAL / NUMVAL-C HAVE NO WORKING-SCALE RENDER AT ALL (kb/Work PB251). A `case "Numval"` here
-        // would mean a compile-time scale had come back for a value §15.67.4 r1 fixes — the defect that printed
-        // 0.123456 for FUNCTION NUMVAL("0.1234567"). Asserting its ABSENCE is what keeps the removal permanent;
-        // asserting the flag on a resurrected arm would only make the wrong answer well-formed.
-        foreach (string name in new[] { "Numval", "NumvalC" })
+        // ⛔ NUMVAL / NUMVAL-C / NUMVAL-F HAVE NO WORKING-SCALE RENDER AT ALL (kb/Work PB251, PB3839). A
+        // `case "Numval"` here would mean a compile-time scale had come back for a value §15.67.4 r1 fixes, the defect
+        // that printed 0.123456 for FUNCTION NUMVAL("0.1234567"); a `case "NumvalF"` would be the one that stored
+        // 0.1234 for ROUNDED MODE AWAY-FROM-ZERO of NUMVAL-F("0.12340000000001") into 9V9(4). Asserting the ABSENCE is
+        // what keeps the removal permanent; asserting the flag on a resurrected arm would only make the wrong answer
+        // well-formed.
+        foreach (string name in new[] { "Numval", "NumvalC", "NumvalF" })
             Assert.DoesNotContain($"case \"{name}\":", ir, StringComparison.Ordinal);
     }
 

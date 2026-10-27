@@ -650,8 +650,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // decimal lane; a float ITEM, a float literal carrier or a float receiver keeps the whole expression in
         // binary64 exactly as before (the approximation then stays a double beside it). GnuCOBOL, the precedent where
         // the ISO text is silent, evaluates every intrinsic result as a decimal.
-        // Every producer of an Approximate Real is IntrinsicRenderer.RenderFloatNative / NUMVAL-F's receiver-less arm
-        // and Power's non-integer arm; FloatItemLane is the ONE statement of "does a float operand own this lane".
+        // Every producer of an Approximate Real is IntrinsicRenderer.RenderFloatNative and Power's non-integer arm;
+        // FloatItemLane is the ONE statement of "does a float operand own this lane".
         if (!StandardDecimal && !FloatItemLane(a, b))
         {
             a = LiftApproximation(a);
@@ -1318,7 +1318,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         //   · It is the ROOT of PB32's receiver-shape defect: `A ** 2` was binary64 under DISPLAY / an IF subject
         //     and exact under COMPUTE, routing FUNCTION MOD to a DIFFERENT BODY (930000008 vs 930000007). A
         //     function's value must not depend on the SHAPE of its receiver (§15.4).
-        //   · PB32's fix left the RECEIVER-BEARING arm forcing pscale = FloatWorkingScale (≥ 9) onto a result
+        //   · PB32's fix left the RECEIVER-BEARING arm forcing pscale = the then-current float working scale (≥ 9) onto a result
         //     that is an INTEGER by construction, so the ×10⁹ landing pushed a 30-digit exact power past Int128
         //     inside PowNativeInt, whose double fallback then SATURATED — and FUNCTION MOD consumed the sentinel:
         //     `COMPUTE R = FUNCTION MOD(A ** 2, B)` printed 320612800 (13657001 owed) into S9(9)/S9(18)/S9(28)
