@@ -28,6 +28,10 @@
 *>   C  MAX(W 0) into PIC S9(4)V99 COMP                   -> +0001.25
 *>   D  INTEGER(W) = 1 into PIC X(5): the MOVE of an integer function value, left-aligned and space filled (14.6.8.5)  -> 1 plus four spaces
 *>   M  MOVE FUNCTION INTEGER(W) TO X5, the same record the CALL's formal holds -> 1 plus four spaces
+*>   E  LENGTH(W2) = 5 (W2 is PIC S9(3)V99, 5 positions) into PIC 9(4): a function the binder FOLDS to a literal is still a
+*>      returned value (15.4.1) and lands as a COMPUTE into the formal -> 0005 (review R1-1: it reached the formal as the
+*>      literal's one-digit image, "5   ", invalid numeric content)
+*>   E  LENGTH(X3) = 3 into PIC 9(4)                      -> 0003
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB3969M.
 DATA DIVISION.
@@ -35,6 +39,8 @@ WORKING-STORAGE SECTION.
 01 W PIC S9V99 VALUE 1.25.
 01 N PIC S9V99 VALUE -1.25.
 01 X5 PIC X(5).
+01 W2 PIC S9(3)V99 VALUE 0.
+01 X3 PIC X(3) VALUE "ABC".
 PROCEDURE DIVISION.
 MAIN.
     CALL "PB3969A" USING BY CONTENT FUNCTION MAX(W 0)
@@ -43,6 +49,8 @@ MAIN.
     CALL "PB3969B" USING BY CONTENT FUNCTION MAX(W 0)
     CALL "PB3969C" USING BY CONTENT FUNCTION MAX(W 0)
     CALL "PB3969D" USING BY CONTENT FUNCTION INTEGER(W)
+    CALL "PB3969E" USING BY CONTENT FUNCTION LENGTH(W2)
+    CALL "PB3969E" USING BY CONTENT FUNCTION LENGTH(X3)
     MOVE FUNCTION INTEGER(W) TO X5
     DISPLAY "M [" X5 "]"
     STOP RUN.
@@ -86,4 +94,14 @@ PROCEDURE DIVISION USING LF.
     DISPLAY "D [" LF "]"
     EXIT PROGRAM.
 END PROGRAM PB3969D.
+
+IDENTIFICATION DIVISION.
+PROGRAM-ID. PB3969E.
+DATA DIVISION.
+LINKAGE SECTION.
+01 LF PIC 9(4).
+PROCEDURE DIVISION USING LF.
+    DISPLAY "E [" LF "]"
+    EXIT PROGRAM.
+END PROGRAM PB3969E.
 END PROGRAM PB3969M.
