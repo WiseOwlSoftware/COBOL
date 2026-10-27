@@ -1,4 +1,4 @@
-## PB3838 tier 1: an `upstream` note kind records another project's defects to a checked bar
+## Entry 2663 — 2026-10-27 12:19 PDT — PB3838 tier 1: an `upstream` note kind records another project's defects to a checked bar
 
 **Why.** GnuCOBOL's departures from ISO and its defects, which our two differentials find every night, lived as counted prose in
 evidence documents; the witness programs sat in git-ignored run directories on one machine. The owner asked (2026-10-26) for
@@ -34,3 +34,4 @@ finding that cannot meet the bar stays in the harvest.
 the kind in the planner. Duplication: the bar's section and class vocabularies are module constants read by the check, the
 fixture and the Bases check. Gap noted for the next tier: `check` cannot run `cite.py --check` on `spec_refs` (it validates the
 spelling only); the harvest's refuter does that before a record is filed.
+
