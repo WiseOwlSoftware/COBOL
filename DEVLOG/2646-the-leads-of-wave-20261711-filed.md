@@ -1,4 +1,4 @@
-## The leads of wave 20261711, filed
+## Entry 2646 — 2026-10-26 18:26 PDT — The leads of wave 20261711, filed
 
 The operator lane filed the leads of wave 20261711 (owner authorization, campaign PB3852). PB3861: a nonnumeric literal where
 only a numeric literal or an identifier is admitted draws the bare COBOL0001 since PB906's fix silenced hint 15; the fix
@@ -12,3 +12,4 @@ candidate record, with the repro and the WiseOwl golden that pins our result. PB
 reference modification is `WS-SRC (1:WS-LEN)`, a run-time length, not the literal `WS-SRC (1:5)`. Two review leads were
 not filed: w20261711b R1-2 and R1-3 (the drift tests' prose) were already fixed on main by the group's round-2 commit
 c3df83b51.
+
