@@ -883,6 +883,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// EXCEPT at a §15.3 type-6 position, where it is INTEGRAL: an SDIDI operand becomes its integer on the SDIDI, a
     /// float or a fractional fixed-point operand lands at scale 0 through the type-6 intake (a scale-0 fixed-point
     /// integer passes as it stands), a float past the Int128 carrier raising rather than changing its value.</para>
+    /// <para>⛔ THE ONE EXCEPTION TO "NOTHING TRUNCATED" IS AN ARITHMETIC EXPRESSION PAST THE Int128 WINDOW (kb/Work PB3953).
+    /// <c>num.AsNum</c> settles the exact 256-bit intermediate of a nested product or power of 39 to 77 digits
+    /// (<c>NumX.Wide</c>) into the SDIDI by round-to-odd, because no function body consumes the wide form
+    /// (<c>ExactWideSettlementDriftTests</c> closes the list of consumers that do), so the function answers from the 34-digit
+    /// image: <c>ABS (BIG * BIG * K3)</c> of 18-, 18- and 3-digit items shows <c>…100000</c> where the product ends
+    /// <c>…000999</c>. That is the determination docs/CONFORMANCE.md DOC-A.1-123 records, pinned by
+    /// <c>pb3953_function_argument_past_int128</c>; an expression within 38 digits arrives exact.</para>
     /// </remarks>
     private NumX RawArg(BoundIntrinsicCall ic, int i)
     {
