@@ -393,9 +393,10 @@ public sealed partial class SequentialConnector : FileConnector
     {
         // Under commit control the reader is built over the handle the connector KEEPS until the COMMIT or ROLLBACK
         // (DESIGN-runtime-library.md 2.2.2.4), from its start, and leaves it open at the CLOSE (HeldStream). An I-O OPEN of an
-        // absent OPTIONAL file (GR17) creates it through that handle, which refuses a file made since the probe (kb/Work PB3635).
+        // absent OPTIONAL file (GR17) creates it through that handle, which refuses a file made since the probe (kb/Work PB3635); every
+        // other OPEN found the file present and takes it FileMode.Open, which refuses a file removed since (kb/Work PB3946).
         var stream = CommitControlled
-            ? AtStart(HeldStream(Mode != FileOpenMode.IO ? FileMode.Open : creates ? FileMode.CreateNew : FileMode.OpenOrCreate))
+            ? AtStart(HeldStream(creates ? FileMode.CreateNew : FileMode.Open))
             : Medium.OpenConnectorStream(HostPath, FileMode.Open, HostAccess(Mode), HostShare,
                 Mode == FileOpenMode.IO ? FileOptions.None : FileOptions.SequentialScan);
         StreamReader r;

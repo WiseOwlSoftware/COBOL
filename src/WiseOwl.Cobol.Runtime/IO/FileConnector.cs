@@ -966,12 +966,20 @@ public abstract class FileConnector
     /// the file of a run unit whose OPEN takes no entry mutex. The refused attempt is an unsuccessful OPEN (§14.9.27.4 GR25: the file
     /// is not affected, the journal it began withdrawn) and the OPEN is made again from its entry step, so its probe finds the file
     /// that stands and it is the OPEN of an EXISTING file — the order in which the two run units' OPENs would have run one after the
-    /// other. At most <see cref="MaxFileMadeRetries"/> times, so a path that is created and removed over and over answers the
-    /// last attempt's '30' (§9.1.13.6 item 1).</para></summary>
+    /// other. At most <see cref="MaxPathChangedRetries"/> times, so a path that is created and removed over and over answers the
+    /// last attempt's '30' (§9.1.13.6 item 1).</para>
+    /// <para>⛔ AND AGAIN WHEN THE FILE THE OPEN DECIDED TO USE WAS REMOVED MEANWHILE (kb/Work PB3946, the opposite direction). An OPEN
+    /// that found the file PRESENT takes a handle opened <see cref="FileMode.Open"/> (<c>OpenOrCreate</c> would create the file empty and
+    /// adopt it, an OPEN INPUT / I-O / EXTEND of a file that was never there, and a covered OPEN would journal it as present), which
+    /// refuses a file removed since the probe (<see cref="HostFile.IsRemoved"/>). The refused attempt is an unsuccessful OPEN (GR25) and
+    /// the OPEN is made again from its entry step, so its probe finds the file gone and the answer is the one the removal, run first,
+    /// would have given: '35' for a non-optional INPUT / I-O / EXTEND (§9.1.13.6 item 5), the OPTIONAL file's '05' (GR13, GR17), the
+    /// creation of an OUTPUT (GR18). The two directions share one bound: a path whose answer goes stale at every attempt is the same
+    /// race, and the last attempt's '30' stands.</para></summary>
     public string Open(FileOpenMode mode)
     {
         bool ownedWritesAdmitted = false;
-        int filesMadeMeanwhile = 0;
+        int pathChangedMeanwhile = 0;
         while (true)
         {
             string status = OpenOnce(mode, ownedWritesAdmitted, out var again);
@@ -980,8 +988,8 @@ public abstract class FileConnector
                 case OpenAgain.WithOwnedWritesAdmitted when !ownedWritesAdmitted:
                     ownedWritesAdmitted = true;
                     break;
-                case OpenAgain.FileMadeMeanwhile when filesMadeMeanwhile < MaxFileMadeRetries:
-                    filesMadeMeanwhile++;
+                case OpenAgain.FileMadeMeanwhile or OpenAgain.FileRemovedMeanwhile when pathChangedMeanwhile < MaxPathChangedRetries:
+                    pathChangedMeanwhile++;
                     break;
                 default:
                     return status;
@@ -989,11 +997,12 @@ public abstract class FileConnector
         }
     }
 
-    /// <summary>The most times one <see cref="Open"/> is made again for <see cref="OpenAgain.FileMadeMeanwhile"/>, counted apart from
+    /// <summary>The most times one <see cref="Open"/> is made again for <see cref="OpenAgain.FileMadeMeanwhile"/> or
+    /// <see cref="OpenAgain.FileRemovedMeanwhile"/>, counted apart from
     /// the one <see cref="OpenAgain.WithOwnedWritesAdmitted"/> asks for: the two reasons are independent, so a bound shared between
     /// them would answer '61' to a share-mode refusal only because a file was made twice before it. At most
-    /// 1 + <see cref="MaxFileMadeRetries"/> + 1 attempts in all.</summary>
-    private const int MaxFileMadeRetries = 2;
+    /// 1 + <see cref="MaxPathChangedRetries"/> + 1 attempts in all.</summary>
+    private const int MaxPathChangedRetries = 2;
 
     /// <summary>Why an unsuccessful <see cref="OpenOnce"/> asks to be made again.</summary>
     private enum OpenAgain
@@ -1004,6 +1013,8 @@ public abstract class FileConnector
         WithOwnedWritesAdmitted,
         /// <summary>The creating handle met a file another run unit made since the presence probe (kb/Work PB3635).</summary>
         FileMadeMeanwhile,
+        /// <summary>The handle of an OPEN that found the file present met a path that names none now (kb/Work PB3946).</summary>
+        FileRemovedMeanwhile,
     }
 
     /// <summary>One attempt of <see cref="Open"/>. <paramref name="again"/> is <see cref="OpenAgain.WithOwnedWritesAdmitted"/> when the
@@ -1241,6 +1252,14 @@ public abstract class FileConnector
         // A DIRECTORY has the path's name (the probe answers Absent for one, HostFile.Probe): Unix refuses the creating handle with
         // EEXIST where Windows throws UnauthorizedAccessException, and both are §14.9.27.4 GR3's '37' (review finding R2-1).
         catch (IOException e) when (HostFile.IsDirectoryInTheWay(e, HostPath)) { s = FileStatusCode.PermissionDenied; }
+        // The probe found the file PRESENT and the handle (FileMode.Open) found no file: another run unit removed it meanwhile
+        // (kb/Work PB3946). The OPEN is made again, its probe now finding what the removal left; if the attempts run out the status
+        // stands, §9.1.13.6 item 1's '30'. A creating arm's handle is never refused as missing (CreateNew, OpenOrCreate), and an
+        // OPEN that found the file absent or unobservable is not this race.
+        catch (IOException e) when (presence is FilePresence.Present && HostFile.IsRemoved(e))
+        {
+            (s, again) = (FileStatusCode.PermanentError, OpenAgain.FileRemovedMeanwhile);
+        }
         catch (IOException) { s = FileStatusCode.PermanentError; }
         // §9.1.13.6 item 1's '30' — "a permanent error exists and no further information is available". Since
         // §12.4.5.3 GR3 b) made the host path a RUNTIME VALUE (the content of data-name-1), an arbitrary string can
