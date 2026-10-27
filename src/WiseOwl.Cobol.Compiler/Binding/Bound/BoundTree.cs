@@ -1332,7 +1332,10 @@ public sealed record Receiver(Place Place, CobolRounding Rounding);
 /// <summary>An ON SIZE ERROR phrase on an arithmetic statement (ISO §14.7.5): the imperative run when a size error
 /// occurs (<paramref name="OnError"/>) and/or the imperative run when none does (<paramref name="NotOnError"/>);
 /// either may be absent. A null <c>SizeError</c> on an arithmetic node means the statement has no phrase (the checked
-/// path is not emitted — its behavior is unchanged).</summary>
+/// path is not emitted — its behavior is unchanged). ⛔ A phrase object is NOT "the SIZE ERROR phrase is written": one
+/// holding only <paramref name="NotOnError"/> is the phraseless statement whose NOT imperative runs when no size error
+/// condition occurred (§14.7.5: "If a NOT SIZE ERROR phrase is specified, it is ignored" for a size error with no SIZE
+/// ERROR phrase) — the disposition asks <c>OnError is not null</c> (<c>ArithmeticEmitter.EmitArith</c>, kb/Work PB3869).</summary>
 public sealed record SizeErrorPhrase(IReadOnlyList<BoundStatement>? OnError, IReadOnlyList<BoundStatement>? NotOnError);
 
 /// <summary>An ARITHMETIC statement (ISO §14.7.5's ADD / COMPUTE / DIVIDE / MULTIPLY / SUBTRACT, incl. CORRESPONDING)
