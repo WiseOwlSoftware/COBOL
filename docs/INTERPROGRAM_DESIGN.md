@@ -766,7 +766,15 @@ B-operator). `ConditionBinder.ReduceArgument` is therefore THE reduction, shared
 VALUE arm, the keyword-less argument (reduced ONCE, before its shape is dispatched) and every INVOKE argument
 (§14.9.23.4 GR4 is the same sentence; kb/Work PB613): it unwraps an operator-free boolean node to its bare
 `valueOperand` — **both** legs, `arithmeticExpression | nonNumericLiteral` — recovers a sole `dataReference` from an
-expression node and names a sole numeric literal. Only the residue binds as an expression. **The bound operand's
+expression node and names a sole numeric literal. Only the residue binds as an expression. **It never unwraps a
+grouping parenthesis (kb/Work PB3760 review R1-1):** GR8 asks what the argument CONSISTS of, so an operand the boolean
+node holds inside its `( booleanExpression )` factor — `(3)`, `(N)`, `((N))` — is the arithmetic expression §8.8.1.1
+names ("an arithmetic expression enclosed in parentheses"), handed to every lane as `ArgumentOperand.Grouped` and bound
+as the computed operand it is (`ConditionBinder.CompoundOperand`), exactly as when no later B-operator steers it into
+that node; a parenthesized nonnumeric operand stays the boolean expression it is written as (§8.8.2, "a boolean
+expression enclosed in parentheses"), so `("AB")` is refused as a boolean operand. Unwrapped, `(N)` crossed BY
+REFERENCE and the callee's store reached N. (A condition still unwraps them: `UnwrapBareBool` serves §8.8.4.2.1, where
+parentheses around a simple condition change nothing.) **The bound operand's
 KIND then carries GR8's answer to every reader (kb/Work PB3760):** every lane — BY CONTENT, BY VALUE, keyword-less,
 INVOKE, and a user-defined function's argument (§8.4.3.2.4 GR5 asks the same "a literal, an arithmetic expression"
 question, through `IntrinsicBinder.BindArgOperand`'s `activationArgument` leg) — binds the sole numeric literal, its

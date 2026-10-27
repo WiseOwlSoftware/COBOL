@@ -23774,5 +23774,29 @@
    "85"
   ],
   "expect": "COBOL0900"
+ },
+ "pb3760_grouped_literal_before_boolean_argument_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1688"
+ },
+ "pb3760_invoke_grouped_literal_before_boolean_argument_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0828"
+ },
+ "pb3760_grouped_nonnumeric_literal_argument_refused": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1511"
  }
 }
