@@ -1,4 +1,4 @@
-## PB3777, PB3780: an implementer reads one instruction file, a loop unit loads the overlay only; PB3788's public half is prepared and waits for the owner's push
+## Entry 2638 — 2026-10-26 17:45 PDT — PB3777, PB3780: an implementer reads one instruction file, a loop unit loads the overlay only; PB3788's public half is prepared and waits for the owner's push
 
 The skills and brief token-optimization campaign (cluster PB3776), wave 20261709 group A. The owner, 2026-10-26 ~14:50,
 on the Mythos measurement of 2026-10-25: "get it back from Mythos and act on it". All three notes are process tooling; none
@@ -64,3 +64,4 @@ whole-population run: Conformance 10,123 · Unit 1,378 … Conformance 8,801/18,
 RETIRED NAMES, WORK REGISTER and SELF-TESTS audits GREEN, the self-tests covering `test_plan_wave.py` 468/468,
 `test_dispatch_guard.py` 25/25 and `test_rolling_wave.py` 42/42). No C# changed, so no conformance case was added and the
 `semgrep/verify.py` counts cannot move.
+
