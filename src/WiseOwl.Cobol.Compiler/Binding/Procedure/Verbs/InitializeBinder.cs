@@ -639,7 +639,16 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             return q is InitializeQualification.ViaReplacing
                 ? ReplacementFor(cat, spec) switch
                 {
-                    BoundFieldOperand { Place: var sp } => new InitializeSetFrom(cur.ToPlace(), sp),   // GR4 + GR6b
+                    // GR4 + GR6b. ⛔ THE RECEIVER'S OWN RESTRICTION IS ASKED HERE, AT THE RECEIVER (kb/Work PB3817):
+                    // SR4 can only ask the phrase's category ("an item of the specified category"), and this is the
+                    // first place the restricted program-/function-/data-pointer receiver is in hand. §13.18.60.4
+                    // GR23/GR25/GR26 forbid it to hold anything but NULL or an address of its type; the implicit SET
+                    // is the store GR4 describes, so §14.9.39.3 SR19/SR20/SR22 hold it, and SR10/SR12 an object
+                    // reference's class (SetBinder.ScreenImplicitSet).
+                    BoundFieldOperand { Place: var sp } =>
+                        host.Set.ScreenImplicitSet(cur.ToPlace(), sp,
+                            $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY '{sp.Item.CobolName}'")
+                            ? new InitializeSetFrom(cur.ToPlace(), sp) : null,
                     // `REPLACING … BY NULL` (kb/Work PB1427): GR4's SET receiving-operand TO NULL — the same
                     // action the GR6c default gives, written this time rather than implied.
                     BoundPredefinedNull => new InitializeSetNull(cur.ToPlace()),
@@ -817,7 +826,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// SET statement with identifier-2 as the sending operand and an item of the specified category as the
     /// receiving operand shall be valid". §14.9.39's pointer and object-reference formats admit only a sending
     /// operand of the receiver's own category, so category agreement is the NECESSARY condition, checked here
-    /// (an object-reference pair's §9.3.8.2 class conformance is the OO lane's, and is not re-stated).
+    /// (the receiver-specific rules — a restricted pointer's type or signature, an object reference's class — are
+    /// asked per RECEIVING OPERAND by <c>SetBinder.ScreenImplicitSet</c>, at the store; kb/Work PB3817).
     /// <para>It is checked at BIND time rather than left to the backend because <see cref="InitializeSetFrom"/>
     /// renders the SET statement's own straight copy: a mismatched sender would otherwise reach Roslyn as a
     /// CS-level type error on emitted code, which names no COBOL rule.</para></summary>
