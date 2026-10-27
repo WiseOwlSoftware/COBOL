@@ -15168,6 +15168,12 @@
   ],
   "expect": "COBOL0878"
  },
+ "pb3839_numval_f_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL1502"
+ },
  "pb388-goback-raising-level2-name": {
   "refuse-at": [
    "2002",

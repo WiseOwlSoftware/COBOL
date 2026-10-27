@@ -1557,8 +1557,14 @@ public sealed record BoundImplicitSeries(IReadOnlyList<BoundStatement> Members) 
 /// A COMMIT or ROLLBACK the medium refuses raises EC-I-O-PERMANENT-ERROR for the refused file (docs/CONFORMANCE.md §5,
 /// A.4.3 (a)), so these are the statement's I-O files: <c>EcBinder.IoFilesOf</c> gives each its (EC-I-O, file) pairs,
 /// and checking enabled for one of them reaches the statement's exception processing (kb/Work PB3338, review finding
-/// w1154a R1-3: with no entry there the mask was always 0, PB1036's shape).</summary>
-public sealed record BoundCommitRollback(bool IsCommit, IReadOnlyList<FileModel> Files) : BoundStatement;
+/// w1154a R1-3: with no entry there the mask was always 0, PB1036's shape).
+/// <para><paramref name="ForeignFiles"/>: the files of ANOTHER element's clause that this element can name — the
+/// GLOBAL file-names of its containers (§13.18.27.4 GR1, <c>FilesByName</c>) under commit control there. Their refusal
+/// is told by the describing element, but a TURN directive of THIS element that names one enables checking "only for
+/// exception conditions associated with that file-name" (§7.3.25.4 GR6, GR8), so each is an I-O file of the statement
+/// for <c>EcBinder.IoFilesOf</c> too (kb/Work PB3554, review finding w20261712a R1-1).</para></summary>
+public sealed record BoundCommitRollback(bool IsCommit, IReadOnlyList<FileModel> Files, IReadOnlyList<FileModel> ForeignFiles)
+    : BoundStatement;
 
 /// <summary><c>NEXT SENTENCE</c> (ISO §14.9.19.4 GR4 in an IF's THEN phrase and GR6 in its ELSE phrase — ONE
 /// node for both, since the two rules state the same transfer and nothing downstream may diverge on the arm; also

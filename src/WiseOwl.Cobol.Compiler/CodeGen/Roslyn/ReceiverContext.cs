@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <summary>
 /// The RECEIVER a numeric render is computed FOR (P7 Step 3; DESIGN-codegen-backend §2.5): the receiving item's
 /// scale (the division/power working scale, ISO §8.8.1/§14.7.4), its INTEGER-DIGIT CAPACITY (the float
-/// quantization headroom — see <see cref="FloatWorkingScale"/>), whether it is a floating-point receiver (the
+/// landing headroom — see <see cref="WorkingScale"/>), whether it is a floating-point receiver (the
 /// whole RHS then evaluates in IEEE binary64 — D16), its ROUNDED mode, and whether the statement runs under ON
 /// SIZE ERROR / EC-SIZE checking (a division renders the checked <c>DivideOrThrow</c>, a sum
 /// <c>AddChecked</c>; ISO §14.7.5). Passed BY PARAMETER into every public numeric-render entry — replacing the
@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// negative. <b>0 means "no integer-digit constraint"</b>, which is true both of a receiver-less context
 /// (<see cref="None"/>) and of an all-fraction receiver such as <c>PIC V9(9)</c>; the two want the same working
 /// scale, so one encoding serves both. Over-counting is SAFE and under-counting is not (see
-/// <see cref="FloatWorkingScale"/>), which is why the count is taken from <c>DigitPositions</c> — the measure
+/// <see cref="WorkingScale"/>), which is why the count is taken from <c>DigitPositions</c> — the measure
 /// that includes Z/*/floating-sign/P positions — rather than from the '9' count.
 /// </param>
 /// <param name="Receiverless">
@@ -31,16 +31,6 @@ namespace WiseOwl.Cobol.CodeGen;
 /// also has no integer digits, but it does have a scale that defines a quantization, and only a genuinely
 /// receiver-less render may keep the float family's value in binary64
 /// (<c>IntrinsicRenderer.RenderFloat</c> / <c>NumericRenderer.Power</c>, PB13).
-/// </param>
-/// <param name="MoveSender">
-/// True when this receiver-less render is a MOVE SOURCE whose receiver's scale and capacity are KNOWN
-/// (<c>MoveEmitter.SenderContext</c> — <see cref="Receiverless"/> stays true because the MOVE emitter owns the
-/// landing). It exists for the one family that has BOTH an exact form and an approximation license — NUMVAL-F
-/// under native arithmetic (kb/Work PB60 / RV-15.69.4-2): a MOVE sender keeps the exact Int128 parse at the
-/// receiver's scale (the parsed decimal lands digit-for-digit), while a genuinely scale-less receiver-less
-/// context (a relation operand, a text operand, an argument, a subscript) takes the float family's binary64.
-/// The float family itself does not consult it — its value HAS no exact form, so its MOVE landing is binary64
-/// through <c>CobolFloat.ToScaled</c> / <c>ToScaledUnchecked</c> either way.
 /// </param>
 /// <param name="FloatEdited">
 /// True when the resultant identifier is a FLOATING-POINT numeric-edited item (data-model design D21 /
@@ -52,7 +42,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// </param>
 internal readonly record struct ReceiverContext(
     int Scale, bool Real, CobolRounding Rounding, bool InSizeError, int IntegerDigits = 0,
-    bool Receiverless = false, bool MoveSender = false, bool FloatEdited = false)
+    bool Receiverless = false, bool FloatEdited = false)
 {
     /// <summary>The receiver-less context: scale 0, no capacity, not floating, TRUNCATION, no size-error checking.</summary>
     public static readonly ReceiverContext None =
@@ -104,10 +94,6 @@ internal readonly record struct ReceiverContext(
     /// so any value below 10³⁸ is representable (numeric design D1 — the "Int128 escape boundary").</summary>
     public const int IntermediateDigits = PicInfo.ScaledCarrierDigits;
 
-    /// <summary>The float floor: a receiver-less or coarse-scaled context still quantizes a transcendental to at
-    /// least 9 fraction digits, which is what makes <c>SQRT(2)</c> useful at scale 0 (deep-dive D1).</summary>
-    public const int FloatScaleFloor = 9;
-
     /// <summary>
     /// The floor <c>NumericRenderer.Landed</c> uses when it lands an SDIDI intermediate into the exact
     /// <c>Int128</c> lane for a VALUE-SEMANTICS consumer that supplies no scale of its own (an intrinsic argument,
@@ -117,19 +103,19 @@ internal readonly record struct ReceiverContext(
     /// <c>NumvalScaleFloor</c>, it read as though §15.67/§15.68/§15.69 prescribed a 6-digit working scale. They
     /// prescribe no working scale at all: §15.67.4 r1 / §15.68.4 r1 fix the returned value as "the numeric value
     /// represented by argument-1" with no arithmetic-mode qualification, so NUMVAL and NUMVAL-C render on the
-    /// SDIDI carrier in every mode and never consult this constant; §15.69.4 r2's approximation licence puts
-    /// NUMVAL-F on the float lane, whose floor is <see cref="FloatScaleFloor"/>. What remains is an IMPLEMENTOR
+    /// SDIDI carrier in every mode and never consult this constant, and neither does NUMVAL-F, whose §15.69.4 r2
+    /// approximation licence is resolved to r3's exact value (kb/Work PB3839). What remains is an IMPLEMENTOR
     /// choice for the one landing with no receiver to derive a scale from — the <see cref="WorkingScale"/> CAP
     /// above it is a correctness requirement, this floor is not.</para>
     /// </summary>
     public const int SdidiLandingScaleFloor = 6;
 
     /// <summary>
-    /// The WORKING SCALE a float→fixed quantization (<c>CobolIntrinsics.FromDouble</c>) uses for this receiver —
-    /// the ONE place that rule is written down (feedback_one_rule_one_place). It is the ≥9 float floor, CAPPED so
-    /// that the scaled value still fits the <c>Int128</c> carrier: <c>ws ≤ 38 − IntegerDigits</c>.
+    /// The WORKING SCALE an SDIDI intermediate lands at in the exact <c>Int128</c> lane for this receiver (the ONE place
+    /// that rule is written down, feedback_one_rule_one_place): the receiver's scale, never below
+    /// <paramref name="floor"/>, CAPPED so that the scaled value still fits the carrier: <c>ws ≤ 38 − IntegerDigits</c>.
     /// <para>
-    /// ⛔ <b>THE CAP IS A CORRECTNESS REQUIREMENT, NOT A TUNING KNOB (fix-queue PB13).</b> The quantizer lands the
+    /// ⛔ <b>THE CAP IS A CORRECTNESS REQUIREMENT, NOT A TUNING KNOB (fix-queue PB13).</b> A landing puts the
     /// value at this working scale and SATURATES at <c>Int128.MaxValue</c>; the store then rescales ws→receiver
     /// scale, which DIVIDES the saturation sentinel back down and so destroys the very evidence the receiver's
     /// digit-capacity check exists to see. With a flat <c>ws = max(Scale, 9)</c> a <c>PIC 9(31)</c> receiver
@@ -152,26 +138,16 @@ internal readonly record struct ReceiverContext(
     /// costs fraction digits, which is why the count is deliberately generous.
     /// </para>
     /// <para>
-    /// The cap only BINDS for receivers with more than 29 integer digits (below that, 38 − IntegerDigits ≥ 9 and
-    /// the floor wins), so it is behaviour-neutral for every ordinary picture. It can never fall below the
+    /// The cap only BINDS for receivers with more than 38 − <paramref name="floor"/> integer digits (below that the
+    /// floor wins), so it is behaviour-neutral for every ordinary picture. It can never fall below the
     /// receiver's own scale for a legal picture: §13.18.40.3 SR14 caps digit positions at 31, so
     /// 38 − IntegerDigits ≥ 38 − 31 = 7 ≥ Scale whenever IntegerDigits + Scale ≤ 31.
     /// </para>
-    /// </summary>
-    public int FloatWorkingScale => WorkingScale(FloatScaleFloor);
-
-    /// <summary>
-    /// <see cref="FloatWorkingScale"/> generalised by the family's own fraction-digit FLOOR — the float family
-    /// uses <see cref="FloatScaleFloor"/>, the SDIDI value-semantics landing <see cref="SdidiLandingScaleFloor"/>.
-    /// The floor is the only thing that differs between them; the CAP is the same Int128-headroom argument, because
-    /// the defect is a property of the working-scale-then-rescale shape and not of which function produced the
-    /// value. Keeping them one method is what stopped the NUMVAL family being swept a second time — PB5 fixed the
-    /// float clamp and left <c>Numval</c>/<c>NumvalF</c> clamping at <c>long.MaxValue</c>, so
-    /// <c>FUNCTION NUMVAL-F("1E+20")</c> returned 9223372036.
     /// <para>⛔ A FLOOR IS A CHOICE AND MUST NEVER BE READ AS A FUNCTION'S RULE (kb/Work PB251): the NUMVAL floor
     /// that used to be listed here was never §15.67's — the family has no working scale at all — and the name
     /// alone kept a truncating native lane looking spec-derived. Every floor passed here is an implementor choice
-    /// under §8.8.1.2 / §15.4.1; the cap is the only part the standard forces.</para>
+    /// under §8.8.1.2 / §15.4.1; the cap is the only part the standard forces. (The float family has no floor of its
+    /// own: its value lands at the receiver's own scale, <see cref="FloatLanding"/>.)</para>
     /// </summary>
     public int WorkingScale(int floor)
     {
@@ -257,12 +233,10 @@ internal readonly record struct ReceiverContext(
     /// phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION had been specified".
     /// </para>
     /// <para>
-    /// ⚠ <c>NUMVAL-F</c> DELIBERATELY DOES NOT CONSULT THIS DECISION, AND THAT IS NOT DRIFT.
-    /// <c>IntrinsicRenderer</c>'s <c>NumvalF</c> arm lands an EXACT decimal parse at
-    /// <see cref="FloatWorkingScale"/> for a fixed receiver (§15.69.4 r2's approximation licence + kb/Work PB60):
-    /// its source carries MORE precision than a binary64, not less, so "keep the binary64" would LOSE digits
-    /// there rather than save them. Its nested arm has PB653's shape and PB653's cure does not fit it, so the
-    /// lead is filed on its own.
+    /// ⚠ <c>NUMVAL-F</c> DOES NOT CONSULT THIS DECISION, AND THAT IS NOT DRIFT (kb/Work PB3839). Its value is not a
+    /// binary64: §15.69.4 r2 grants native arithmetic "an approximation" and the implementor's determination is r3's
+    /// exact value in every mode and channel (<c>IntrinsicCarrierRules.ReturnsExactParse</c>), so a fixed-point
+    /// receiver rounds it ONCE at its own scale and a floating-point receiver converts it once, through the SDIDI landing.
     /// </para>
     /// </summary>
     public FloatLandingDecision FloatLanding(bool finalTransfer) =>
