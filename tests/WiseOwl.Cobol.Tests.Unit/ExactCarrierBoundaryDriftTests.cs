@@ -62,7 +62,7 @@ public sealed class ExactCarrierBoundaryDriftTests
     };
 
     /// <summary>The closed set of exact-carrier value entries: they take and return CARRIER values only (an
-    /// <c>Int128</c> or an <c>Int128[]</c>, plus the optional COBOL function name a shared body is told), so every
+    /// <c>Int128</c> or an <c>Int128[]</c>), so every
     /// one of them evaluates a §15.4.1 equivalent arithmetic expression on the D1 intermediate. Entries taking a
     /// scale, a count or a <c>double</c> are a different class (a rescale or a landing) and guard elsewhere.</summary>
     private static List<MethodInfo> ExactCarrierEntries() =>
@@ -70,8 +70,7 @@ public sealed class ExactCarrierBoundaryDriftTests
             .Where(m => m.ReturnType == typeof(Int128))
             .Where(m => m.GetParameters().Length > 0)
             .Where(m => m.GetParameters().All(p => p.ParameterType == typeof(Int128)
-                                                || p.ParameterType == typeof(Int128[])
-                                                || p.ParameterType == typeof(string)))
+                                                || p.ParameterType == typeof(Int128[])))
             .Where(m => m.GetParameters().Any(p => p.ParameterType == typeof(Int128)
                                                 || p.ParameterType == typeof(Int128[])))];
 
@@ -121,7 +120,7 @@ public sealed class ExactCarrierBoundaryDriftTests
     {
         // Three arguments each individually inside the carrier whose SUM is not: the shape RescaleEscape's
         // per-argument bound cannot see, and the one PB252 measured from COBOL source.
-        "SUM" => CobolIntrinsics.SumScaled("SUM", Max / 2, Max / 2, Max / 2),
+        "SUM" => CobolIntrinsics.SumScaled(Max / 2, Max / 2, Max / 2),
         // A positive maximum less a negative minimum — the difference is up to twice the larger operand.
         "RANGE" => CobolIntrinsics.RangeScaled(Max, Int128.MinValue + 1),
         // The ×10 / ×5 that keeps the halving exact spends a decimal digit of headroom (PB32).
@@ -141,8 +140,8 @@ public sealed class ExactCarrierBoundaryDriftTests
     [Fact]
     public void JustInsideTheBoundary_TheExactCarrierStillAnswersExactly()
     {
-        Assert.Equal(Max, CobolIntrinsics.SumScaled("SUM", Max - 1, 1));
-        Assert.Equal(Max, CobolIntrinsics.SumScaled("MEAN", Max - 3, 1, 1, 1));
+        Assert.Equal(Max, CobolIntrinsics.SumScaled(Max - 1, 1));
+        Assert.Equal(Max, CobolIntrinsics.SumScaled(Max - 3, 1, 1, 1));
         Assert.Equal(Max, CobolIntrinsics.RangeScaled(Max, 0));
         Int128 tenth = Max / 10;
         Assert.Equal(tenth * 10, CobolIntrinsics.MedianScaled(tenth));               // odd ⇒ middle × 10
@@ -207,12 +206,12 @@ public sealed class ExactCarrierBoundaryDriftTests
 
     /// <summary>The case labels of every native-switch arm that cross-aligns its arguments to ONE common scale,
     /// read from the switch itself.</summary>
-    /// <remarks>AlignedArgs/AlignedArgsEx take the LIST to one common scale; <c>NumericRenderer.Align(x, s)</c>
+    /// <remarks>AlignedArgs takes the LIST to one common scale; <c>NumericRenderer.Align(x, s)</c>
     /// is the pairwise form MOD/REM use. <c>RawArgPairs</c> is deliberately NOT here — it rescales each argument
     /// to its OWN scale (an identity), which is why MAX/MIN/ORD-MAX/ORD-MIN are pure selection (PB65).</remarks>
     private static HashSet<string> CrossAligningArmsInTheSwitch() =>
         new(ArmsOf(ExactSwitchBody())
-                .Where(a => Regex.IsMatch(a.Body, @"\bAlignedArgs(Ex)?\(")
+                .Where(a => Regex.IsMatch(a.Body, @"\bAlignedArgs\(")
                          || a.Body.Contains("NumericRenderer.Align(", StringComparison.Ordinal))
                 .SelectMany(a => a.Labels),
             StringComparer.Ordinal);
@@ -224,7 +223,7 @@ public sealed class ExactCarrierBoundaryDriftTests
     public void EveryCrossAligningNativeArm_IsRoutedToTheSdidiUnderAStandardMode()
     {
         var inSwitch = CrossAligningArmsInTheSwitch();
-        Assert.True(inSwitch.Count >= 7,
+        Assert.True(inSwitch.Count >= 6,       // MOD · REM · SUM · RANGE · MEDIAN · MIDRANGE (MEAN left with PB3860)
             $"only {inSwitch.Count} cross-aligning arms found ({string.Join(", ", inSwitch.Order())}) — the scan "
             + "has stopped seeing the switch and would pass with the routing set empty");
 
@@ -272,7 +271,7 @@ public sealed class ExactCarrierBoundaryDriftTests
     /// reach this arm. <c>IntArg</c>/<c>ArgInt</c> deliberately do not match (<c>\b</c> stops <c>Arg(</c> from
     /// matching inside <c>IntArg(</c>), and neither does the string channel's <c>Str(</c>.</summary>
     private static readonly Regex FractionBearingIntake =
-        new(@"\b(?:Arg|RawArg)\(ic,\s*\d+\)|\bAlignedArgs(?:Ex)?\(|\bRawArgPairs\(", RegexOptions.Compiled);
+        new(@"\b(?:Arg|RawArg)\(ic,\s*\d+\)|\bAlignedArgs\(|\bRawArgPairs\(", RegexOptions.Compiled);
 
     /// <summary>The arm labels of <c>RenderDec</c>'s expression switch — <c>"Name" =&gt;</c> and
     /// <c>"Name" when … =&gt;</c> — read from the switch itself, bounded by its own <c>_ =&gt; null,</c>.</summary>
@@ -370,7 +369,7 @@ public sealed class ExactCarrierBoundaryDriftTests
     private static List<string> UnaryExactArms() =>
         [.. ArmsOf(ExactSwitchBody())
              .Where(a => Regex.Matches(a.Body, @"\bArg\(ic,\s*0\)").Count >= 1
-                      && !Regex.IsMatch(a.Body, @"\bArg\(ic,\s*[1-9]\)|\bAlignedArgs(Ex)?\(|\bRawArgPairs\(|\bNumericRenderer\.Align\("))
+                      && !Regex.IsMatch(a.Body, @"\bArg\(ic,\s*[1-9]\)|\bAlignedArgs\(|\bRawArgPairs\(|\bNumericRenderer\.Align\("))
              .SelectMany(a => a.Labels)
              .Distinct(StringComparer.Ordinal)];
 
