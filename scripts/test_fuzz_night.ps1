@@ -74,6 +74,7 @@ try {
     Start-FuzzPause -PausePath $pause -Game 'Diablo IV (pid 100, 3D 91 %)' -GraceSeconds 5 -EndRunner $endRunner -Sleep $sleep -Say $say
     Check 'the pause writes PAUSE first, waits the grace, and only then ends the runner' ($order -join '; ') 'grace 5; end-runner (PAUSE exists: True)'
     Check 'PAUSE says what the game was' ((Get-Content -LiteralPath $pause -Raw) -match 'Diablo IV') $true
+    Check 'PAUSE starts with the lease mark, so the harness lets it expire if this wrapper dies' ((Get-Content -LiteralPath $pause -TotalCount 1).StartsWith($script:LeaseMark)) $true
     Check 'the pause is logged' (($said -join ' ') -match 'PAUSE written' -and ($said -join ' ') -match '2 process') $true
     Check 'the pause does not use `ollama stop` (it waits for the generations in flight) or suspend the harness' `
         (((Get-Content (Join-Path $PSScriptRoot 'fuzz_night.ps1') -Raw) + (Get-Content (Join-Path $PSScriptRoot 'fuzz_night_lib.ps1') -Raw)) -match '(?m)^\s*[^#\r\n]*(&\s*ollama\s+stop|NtSuspendProcess)') $false
@@ -98,6 +99,7 @@ try {
     Check 'the harness script is the first argument' $harnessArgs[0] 'scripts/differential_fuzz.py'
     $py = Get-Content (Join-Path $PSScriptRoot 'fuzz_ollama.py') -Raw
     Check 'fuzz_ollama.py spells the pause file the way the wrapper does' ([regex]::Match($py, '(?m)^PAUSE_FILE = "([^"]+)"').Groups[1].Value) $script:PauseFileName
+    Check 'fuzz_ollama.py spells the lease mark the way the wrapper does' ([regex]::Match($py, '(?m)^LEASE_MARK = "([^"]+)"').Groups[1].Value) $script:LeaseMark
     Check 'the wrapper looks for PAUSE in the run directory' (Get-PausePath 'E:/run') (Join-Path 'E:/run' $script:PauseFileName)
 
     # ---- the lib reads nothing it was not passed. PowerShell scopes DYNAMICALLY: a lib parameter named $Log once shadowed the

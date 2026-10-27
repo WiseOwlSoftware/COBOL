@@ -8,6 +8,9 @@
 # The name of the pause file in the run directory, as fuzz_ollama.py's PAUSE_FILE spells it (the self-test holds the two
 # to one spelling).
 $script:PauseFileName = 'PAUSE'
+# The first line of the PAUSE this wrapper writes starts with this. The harness lets only such a PAUSE expire when it is not
+# rewritten (fuzz_ollama.py's LEASE_MARK): a PAUSE made by hand has no wrapper to die and holds until it is removed.
+$script:LeaseMark = 'lease:'
 
 function Get-PausePath([string]$RunDir) { Join-Path $RunDir $script:PauseFileName }
 
@@ -82,7 +85,7 @@ function Start-FuzzPause {
     # VRAM is free for the game). The generations in flight fail, see PAUSE, and are asked again after it (fuzz_ollama.py).
     # `ollama stop` is not used: it waits for the generations in flight, which kept the GPU pegged for minutes on 2026-10-22.
     param([string]$PausePath, [string]$Game, [int]$GraceSeconds, [scriptblock]$EndRunner, [scriptblock]$Sleep, [scriptblock]$Say)
-    Set-Content -Path $PausePath -Value "paused for $Game" -Encoding utf8NoBOM
+    Set-Content -Path $PausePath -Value "$($script:LeaseMark) paused for $Game" -Encoding utf8NoBOM
     & $Say "GAME detected: $Game -> PAUSE written ($PausePath); the runner ends in $GraceSeconds s"
     & $Sleep $GraceSeconds
     $ended = & $EndRunner

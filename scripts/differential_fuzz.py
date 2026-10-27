@@ -59,9 +59,10 @@ count names the shape. `--model-option MODEL:repeat_penalty=1.1` (and `repeat_la
 model.
 
 A PAUSE LOSES NO PROGRAM (kb/Work PB3561; scripts/fuzz_ollama.py has the protocol, scripts/fuzz_night.ps1 the wrapper). The run
-prints its PAUSE file, `<run dir>/PAUSE`. While it exists no generation starts; a generation that fails while it exists, or with a
-runner failure, is asked again once after it is gone, and only a second failure, or a failure outside a pause that is no runner
-failure, is the row's RUNNER_ERROR. The report counts the pauses, the minutes paused and the generations asked again, so the morning
+prints its PAUSE file, `<run dir>/PAUSE` (create it, empty, to pause the run by hand; it holds until you remove it, while the
+wrapper's `lease:` PAUSE expires after five minutes unrewritten). While it exists no generation starts; a generation that fails
+while it exists is asked again after it is gone, as often as pauses end it; a runner failure outside a pause is asked again once;
+only a second runner failure, or a failure outside a pause that is no runner failure, is the row's RUNNER_ERROR. The report counts the pauses, the minutes paused and the generations asked again, so the morning
 reads a pause as a pause. The run's wall clock keeps counting through one (`--hours` is a deadline).
 
 THE MECHANICS ARE THE CONFORMANCE SUITE'S, NOT A SECOND COPY. Each program is compiled and run through
@@ -1083,19 +1084,25 @@ class Fuzz:
         # how the 2026-10-20 bake-off lost two fifths of its refusals. One both compilers refuse is the model's slip and goes
         # back with both compilers' first diagnostics (WiseOwl's cite the standard). The verdict is the last program's;
         # every earlier one is kept as <name>.r<k>.cob for diagnosis.
+        this_generation: list[str] = []         # why THIS generation was asked again (the row's lists cover every one)
+
         def requeued(e: BaseException) -> None:
             rec["requeued"] = rec.get("requeued", 0) + 1
             rec.setdefault("requeue_reasons", []).append(str(e)[:200])
+            this_generation.append(str(e)[:200])
 
         for attempt in range(self.s.repairs + 1):
-            # One generation, after any pause and asked again once if a pause or a runner restart killed it: a PAUSE loses no
-            # program (kb/Work PB3561). A failure that is neither, or the second one, is the row's RUNNER_ERROR.
+            # One generation, after any pause and asked again as often as a pause ends it, and once if the runner restarted: a
+            # PAUSE loses no program (kb/Work PB3561). A failure that is neither, or the second runner failure, is the row's
+            # RUNNER_ERROR.
+            this_generation.clear()
             try:
                 reply, secs, done, thinking = lossless(
                     self.pause, lambda: ollama_chat(self.s.model, messages, self.s.temperature, options=self.model_options),
                     requeued)
             except MODEL_ERRORS as e:
-                again = f" (the generation was asked again once, after: {rec['requeue_reasons'][0]})" if rec.get("requeued") else ""
+                again = (f" (the generation was asked again {'once' if len(this_generation) == 1 else f'{len(this_generation)} times'}, "
+                         f"after: {this_generation[0]})") if this_generation else ""
                 rec.update(verdict="RUNNER_ERROR", reason=f"model: {e}{again}")
                 return rec
             rec["model_seconds"] = round(rec["model_seconds"] + secs, 1)
@@ -1177,8 +1184,8 @@ class Fuzz:
         total = self.s.count if self.s.count is not None else 10 ** 9
         print(f"model {self.s.model} · {len(self.seeds)} seed clauses under {self.s.prefixes} · jobs {self.s.jobs} · "
               f"{'count ' + str(self.s.count) if self.s.count is not None else f'{self.s.hours} h'} · out {self.out}", flush=True)
-        print(f"pause: create {self.pause.path} to pause the run (generations wait, a request that fails meanwhile is asked "
-              "again); remove it to resume", flush=True)
+        print(f"pause: create {self.pause.path} (empty) to pause the run by hand (generations wait, a request that fails "
+              "meanwhile is asked again); remove it to resume. The wrapper's own PAUSE starts 'lease:' and expires when not rewritten", flush=True)
         try:
             with ThreadPoolExecutor(max_workers=self.s.jobs) as pool:
                 pending = set()
@@ -2031,6 +2038,15 @@ def self_test() -> int:
           rec_down["verdict"] == "RUNNER_ERROR" and rec_down["requeued"] == 1 and calls == ["model", "model"]
           and rec_down["reason"].startswith("model: ollama HTTP 500") and "asked again once, after: ollama HTTP 500" in rec_down["reason"]
           and rec_down["_pauses"].count == 0, (rec_down, calls))
+    rec_twice, calls, asked, _options = stubbed_one(agree, [fails_during_pause, fails_during_pause])
+    check("run: a generation two pauses end is asked a third time and judged, both counted (review R1-1: the second pause used to record a RUNNER_ERROR)",
+          rec_twice["verdict"] == "AGREE" and rec_twice["requeued"] == 2 and calls == ["model"] * 3 + ["they", "we"]
+          and rec_twice["_pauses"].count == 2 and "reason" not in rec_twice, (rec_twice, calls))
+    rec_later, calls, asked, _options = stubbed_one({"they": gnu_refuses, "we": changing}, [fails_during_pause, fixed_reply, TimeoutError("timed out")])
+    check("run: the reason of a RUNNER_ERROR speaks of the generation that failed: an earlier round's generation that a pause ended "
+          "is counted on the row but not named as this one's (review R1-2)",
+          rec_later["verdict"] == "RUNNER_ERROR" and rec_later["reason"] == "model: timed out" and rec_later["requeued"] == 1
+          and calls == ["model", "model", "they", "we", "model"], (rec_later.get("reason"), rec_later.get("requeued"), calls))
     rec_timeout, calls, asked, _options = stubbed_one(agree, [TimeoutError("timed out"), "never"])
     check("run: a timeout outside a pause is no runner restart: one call, RUNNER_ERROR 'model: timed out', nothing asked again",
           rec_timeout["verdict"] == "RUNNER_ERROR" and rec_timeout["reason"] == "model: timed out" and "requeued" not in rec_timeout

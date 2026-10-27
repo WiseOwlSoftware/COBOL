@@ -23,10 +23,11 @@ and `repeat_last_n` set Ollama's repetition options for one model.
 generations in flight failed with HTTP 500 and the harness recorded each as a terminal `RUNNER_ERROR` (three lost at 22:05
 on 2026-10-22). The protocol is now a file, `<run dir>/PAUSE`: the wrapper writes it first, then ends the runner (after a
 5-second grace), rewrites it on every poll and removes it after 120 quiet seconds; a worker waits for it before every
-generation, and a generation that fails while it exists, or with a runner failure, is asked again once after it. Only a
-failure outside a pause that is no runner failure, or a second failure, is the row's `RUNNER_ERROR`, and it names both. The
-rewriting is a lease: a PAUSE not rewritten for 300 seconds belongs to a dead wrapper and is ignored with a message, so a
-killed wrapper cannot hang the night (checked end to end: the wrapper killed mid-pause). `pauses.jsonl` and the report count
+generation, and a generation that fails while it exists is asked again after it, as often as pauses end it, while a
+runner failure outside a pause is asked again once. Only a failure outside a pause that is no runner failure, or a second
+runner failure, is the row's `RUNNER_ERROR`, and it names the generation's own re-asks. The wrapper's rewriting is a lease
+(its PAUSE starts `lease:`): a PAUSE not rewritten for 300 seconds belongs to a dead wrapper and is ignored with a message, so a
+killed wrapper cannot hang the night; a PAUSE made by hand has no mark and holds until removed (checked end to end: the wrapper killed mid-pause). `pauses.jsonl` and the report count
 the pauses, the minutes and the generations asked again, so the morning reads a pause as a pause. The wrapper left session
 scratch for `scripts/`: its pure logic is `scripts/fuzz_night_lib.ps1`, with the self-test `scripts/test_fuzz_night.ps1`.
 
@@ -57,3 +58,12 @@ the wrapper's default log, a fixed name in the machine-wide temp directory; the 
 (`wrapper.log`). The second gate, run `000002-20261027T002209Z` at `f457da1a0`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
 gating, PB2515): GREEN — … Conformance 7,426/18,924 · Unit 37,268/38,399 · Characterization 36/36 cases ran (skipped 0) in 1
 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN …`.
+
+**Branch review round 1.** One blocking finding, two leads, all fixed in the files already changed. R1-1: `lossless` spent its
+single retry on the first pause, so a generation a second pause killed (the owner alt-tabs, the retries start, the game is
+heavy again) became a terminal `RUNNER_ERROR`, the loss PB3561 exists to prevent. A pause now costs no budget (every ask waits
+for the PAUSE first, so it is no busy loop) and the runner-restart retry is its own single allowance; checks seen to fail on the
+old rule cover two pauses, a pause then a runner failure, and a pause then two runner failures. R1-2: the `RUNNER_ERROR` reason
+named the row's first re-ask even when the failing generation was a later repair round's; it names that generation's own. R1-3:
+the printed instruction to create PAUSE by hand promised a pause that ended after five minutes; only the wrapper's PAUSE (first
+line `lease:`, spelled once in each language and held equal by `test_fuzz_night.ps1`) expires.
