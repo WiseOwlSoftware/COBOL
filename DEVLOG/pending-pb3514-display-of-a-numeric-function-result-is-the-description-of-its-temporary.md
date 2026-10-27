@@ -61,6 +61,14 @@ description rule. Silent failure: an unknown shape falls to the value's descript
 missing row; the drift test pins the set of rows against the renderer's cases and DOC-A.1-92. Comments: the stale "literal form"
 remarks in the pb2507, pb253 and da2 goldens were rewritten.
 
+**Review round 1 (finisher).** One blocking finding and two leads, all fixed. (1) `FunctionDeviceText.ArgField` sent every folded literal to
+`LiteralField`, including a call the binder folds that GnuCOBOL does not (HIGHEST-/LOWEST-ALGEBRAIC), while `Of` described the same fold by
+its value at top level: `ABS(FUNCTION HIGHEST-ALGEBRAIC(S))` showed `999` where DISPLAY of the call shows `000000999`. One predicate,
+`IsUnfoldedByGnuCobol`, now serves the top level and the argument arm; golden `pb3514_function_result_device_form_folded_wide` (eight lines
+identical to cobc 3.2.0). (2) `FunctionValueField.OfValue` kept no description past 38 digits, so ABS of a negative wide expression lost its
+sign position; the value shape now keeps the sign position (`CobolNum.DeviceFunctionText(value, signedItem, comma)`), same golden (37 and 39
+digits; cobc's extra leading zero is the pinned non-copy). (3) The leftmost-of-equal rule is cited as the spec numbers it, 15.59.4 2) and 15.63.4 2).
+
 **Leads.** `FUNCTION LENGTH(FUNCTION ABS(S))` is 30 here where GnuCOBOL's is the temporary's size (7): DISPLAY adopts the description,
 LENGTH does not. `NUMVAL-F` of a text TEST-NUMVAL-F rejects but GnuCOBOL accepts (`"1.5E2"`) answers 0 here, 150 there.
 

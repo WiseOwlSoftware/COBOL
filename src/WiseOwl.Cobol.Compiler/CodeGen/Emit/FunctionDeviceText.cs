@@ -39,12 +39,18 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
         BoundComputedOperand { Expr: BoundBinary sum } => new FunctionDeviceText(num).ValueText(num.Render(sum, ReceiverContext.None)),
         // A folded value written as a floating-point literal (the algebraic extreme of a floating-point item: 999E+999) is a
         // floating-point value, which keeps the image a floating-point literal has.
-        BoundNumericLiteral { FunctionValue: true, FoldedFunction: { } folded } lit when !FoldsToLiteral(folded) && !IsFloatingPoint(lit.Text) =>
+        BoundNumericLiteral { FunctionValue: true } lit when IsUnfoldedByGnuCobol(lit) =>
             new FunctionDeviceText(num).ValueText(num.AsNum(lit, ReceiverContext.None)),
         _ => null,
     };
 
     private static bool IsFloatingPoint(string literal) => literal.AsSpan().IndexOfAny('E', 'e') >= 0;
+
+    /// <summary>Is this literal a call the binder FOLDED that GnuCOBOL leaves a call (the ALGEBRAIC family), so that it is a function's
+    /// returned value described by its value? A floating-point value keeps the image a floating-point literal has, and LENGTH and
+    /// BYTE-LENGTH are the literals GnuCOBOL folds them to. One predicate for the top-level call and for an argument (kb/Work PB3514).</summary>
+    private static bool IsUnfoldedByGnuCobol(BoundNumericLiteral lit) =>
+        lit.FoldedFunction is { } folded && !FoldsToLiteral(folded) && !IsFloatingPoint(lit.Text);
 
     /// <summary>Does GnuCOBOL fold this function's call into a literal, so that DISPLAY shows the literal (LENGTH, BYTE-LENGTH)?</summary>
     private static bool FoldsToLiteral(string function) =>
@@ -118,6 +124,10 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
         {
             case BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } nested }:
                 return CallField(nested);
+            // A call the binder folded that GnuCOBOL does not fold (the ALGEBRAIC family) is a function's returned value, described
+            // by its value exactly as Of() describes it at top level; one GnuCOBOL folds (LENGTH) is the literal it folded to.
+            case BoundNumericLiteral { FunctionValue: true } lit when IsUnfoldedByGnuCobol(lit):
+                return ValueField(num.AsNum(lit, ReceiverContext.None));
             case BoundNumericLiteral lit:
                 return LiteralField(lit);
             // A whole data item (a reference-modified slice is no declared item, Place.DenotedItem); a floating-point item orders by

@@ -588,7 +588,7 @@ asks `FunctionDeviceText.Of`. MOVE, STRING, INSPECT and the comparisons ask `Ope
 form (a numeric item has two channels the same way: §14.9.25.4 GR6 fixes what a MOVE sends). `FunctionDeviceText` builds, for a
 selecting function, ONE `FunctionValueField` per argument — the value and its description, each argument read once, a nested
 function handing its caller the temporary it made (`ABS(INTEGER(X))` copies INTEGER's SIGNED item) — and the runtime picks
-(`FunctionValueField.Max` / `Min` / `Median`, the first of equal values winning as in §15.59.4 r1 / §15.63.4 r1). Every other
+(`FunctionValueField.Max` / `Min` / `Median`, the leftmost of equal values winning as in §15.59.4 2) / §15.63.4 2)). Every other
 function's text is `CobolNum.DeviceFunctionText` of its value: a scaled integer and an SDIDI reach the same rule. A binary64
 result keeps the shortest round-trip image (`CobolFloat.Display`), as a floating-point item does (PB3505). The value path
 reads the call at `ReceiverContext.None`, so the text never depends on a receiver (PB3839).
