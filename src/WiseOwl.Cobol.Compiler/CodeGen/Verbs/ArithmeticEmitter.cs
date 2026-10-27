@@ -722,10 +722,10 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         p.Item.Pic is { } pic ? pic.ReceiverScale() : 0;
 
     /// <summary>The receiver's INTEGER digit positions — <see cref="ReceiverContext.IntegerDigits"/>, which caps
-    /// the float quantization working scale (PB13). Measured from <c>DigitPositions</c> (ISO §13.18.40.3 SR14 —
+    /// the Int128 working scale (PB13). Measured from <c>DigitPositions</c> (ISO §13.18.40.3 SR14 —
     /// '9' plus Z/*/floating-sign/P positions), never from the '9' count alone: for a numeric-EDITED receiver
     /// <c>Digits</c> counts only '9', so <c>PIC ZZZ9</c> would report 1 integer digit where it holds 4, and
-    /// UNDER-counting is the one direction that breaks <see cref="ReceiverContext.FloatWorkingScale"/>'s
+    /// UNDER-counting is the one direction that breaks <see cref="ReceiverContext.WorkingScale"/>'s
     /// saturation-is-visible invariant. A place with no PICTURE (a float item, an index) reports 0 = unconstrained;
     /// a float receiver never reaches the quantizer at all.</summary>
     private int IntDigitsOf(Place p) =>
