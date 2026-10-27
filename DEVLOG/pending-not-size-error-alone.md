@@ -32,3 +32,15 @@ phraseless one.
 **Sibling sweep.** CALL with only NOT ON EXCEPTION (missing program: terminates like the phraseless CALL), STRING and
 UNSTRING with only NOT ON OVERFLOW, READ with only NOT AT END or NOT INVALID KEY: each probed on the branch build, none
 shares the defect, because only the arithmetic phrase selects a checked shape.
+
+
+**Review round 1 (two blocking findings, both fixed).** R1-1: a NOT-only receiver runs twice on a size error
+(`DetectingStore`), and the single-receiver arms rendered the right-hand side inline into each run, so
+`COMPUTE R = FUNCTION RANDOM * 1000 NOT ON SIZE ERROR ...` consumed two elements of the sequence (§14.7.7 4) a): one
+initial evaluation). `MaterializesInitialEvaluation` now answers true for a detecting statement (`DetectsSizeError`) and
+`EmitCompute` takes its materializing arm, the one a multi-receiver COMPUTE already used, so the operands evaluate once
+and each run reads the snapshot. R1-2: the REMAINDER store of a detecting `DIVIDE ... REMAINDER` bypassed
+`DetectingStore` (`brackets.Receive` direct), so a remainder past identifier-4 left the flag clear and the NOT phrase
+ran; it now goes through `GuardedStore` (§14.9.12.4 6) c)). Witnesses: golden rows REMOV and RAND (the NOT-only
+statement stores what the phraseless one stores and leaves the same next RANDOM element), and
+`NotSizeErrorAlone_DivideRemainder_DetectsASizeErrorInTheRemainder`.
