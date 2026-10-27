@@ -132,6 +132,31 @@ public sealed class WindowsConsoleDeviceTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
+    // DOC-A.1-1: reading the console through its wide-character interface must keep the console's own end-of-input
+    // signal. Ctrl+Z at the start of a line ends the input: the receiver is left as spaces (AcceptSource.Device: the
+    // unfilled remainder of a transfer at end-of-input): ORD of a space is 33, where the character U+001A would be 27
+    // (its code unit plus one, item 188), and the run completes instead of waiting for more keys. The console's own
+    // read of the same keys returned end-of-input (measured through a pseudoconsole); the wide-character read returned
+    // U+001A until ConsoleInputReader restored the signal. The reader's finer cases are in ConsoleInputReaderTests.
+    [Fact]
+    public void Accept_from_an_interactive_console_ends_the_input_at_Ctrl_Z()
+    {
+        if (!OperatingSystem.IsWindows()) return;   // no console code page elsewhere (see the class remarks)
+        string dir = ScratchDirectory.Create("conctlz");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "CONACC", AcceptProgram.Replace("{0}", "X(4)"));
+            NonCobolElement.CompileCobol(dir, "CONDISP", DisplayProgram);
+            NonCobolElement.CompileCSharp(dir, "CPPROBE", CodePageProbe, "CONDISP");
+
+            var (text, probes) = RunOnConsole(dir, Dll(dir, "CONACC"), "\u001a\r");
+
+            Assert.Contains("33 33 33 33", text);
+            Assert.Equal((437, 437), probes[1]);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
     // DOC-A.1-59: the standard display device carries UTF-8 on a byte stream and the repertoire through the console's
     // wide-character interface on a console, and no case changes the console's code pages: stdout and stderr on the
     // console with stdin redirected (a), stdout redirected to a file with stderr still on the console (b), stderr

@@ -33,7 +33,9 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// one mechanism, and .NET offers the way out: a console handle whose encoding is UTF-16 (code page 1200) is read and
 /// written with <c>ReadConsoleW</c> / <c>WriteConsoleW</c>, the console's wide-character interface, and the setter skips
 /// the code-page call for 1200. So a Windows console handle gets <see cref="Encoding.Unicode"/> and carries the whole
-/// repertoire with the console's code pages as the shell left them. A Unix terminal has no such shared OS state (the
+/// repertoire with the console's code pages as the shell left them. That interface does not carry the console's
+/// end-of-input signal (Ctrl+Z at the start of a line), so the interactive input is read through
+/// <see cref="ConsoleInputReader"/>, which restores it. A Unix terminal has no such shared OS state (the
 /// setter records the encoding in the process only), so it keeps the terminal's locale on input and carries UTF-8 on
 /// output, as before.
 /// </para>
@@ -102,28 +104,26 @@ public static class StandardStreams
 
         // The console handles first (see the class remarks: the setter below re-creates the console's writers, and a
         // redirected handle's explicit writer must be installed after it). Standard input before anything has read from
-        // it, so no character is buffered under another decoding.
-        try
+        // it, so no character is buffered under another decoding. The two directions are tried apart, because a refusal
+        // in one leaves the other exactly as it was (a setter that throws has not applied its encoding), and the
+        // fallback below must describe the handle's real state.
+        bool windows = OperatingSystem.IsWindows();
+        if (windows && !inRedirected)
         {
-            if (OperatingSystem.IsWindows())
+            if (TryApply(() => Console.InputEncoding = Encoding.Unicode))
             {
-                if (!inRedirected) Console.InputEncoding = Encoding.Unicode;
-                if (!outRedirected || !errRedirected) Console.OutputEncoding = Encoding.Unicode;
+                // ReadConsoleW hands Ctrl+Z to the program as a character, where the console's own read ends the input.
+                Console.SetIn(new ConsoleInputReader(Console.In));
             }
-            else if (!outRedirected || !errRedirected)
+            else
             {
-                Console.OutputEncoding = utf8;
+                inRedirected = true;
             }
         }
-        catch (IOException)
+        if (!outRedirected || !errRedirected)
         {
-            // The console refused its encoding. The streams are still ours to encode: carry them as byte streams.
-            inRedirected = outRedirected = errRedirected = true;
-        }
-        catch (System.Security.SecurityException)
-        {
-            // Same: the handle exists but the policy refuses. The explicit writers below need no privilege.
-            inRedirected = outRedirected = errRedirected = true;
+            if (!TryApply(() => Console.OutputEncoding = windows ? Encoding.Unicode : utf8))
+                outRedirected = errRedirected = true;
         }
 
         // ⚠ The explicit readers and writers are not a second mechanism: they are the SAME rule applied to a byte stream.
@@ -146,5 +146,17 @@ public static class StandardStreams
             try { Console.SetError(new StreamWriter(Console.OpenStandardError(), utf8) { AutoFlush = true }); }
             catch (IOException) { /* no such standard handle: nothing to encode (a Windows service) */ }
         }
+    }
+
+    /// <summary>Apply one console encoding. False when the console refuses it, and then nothing has changed (a setter that
+    /// throws has not applied its encoding): the stream is carried as a byte stream by the explicit reader or writer
+    /// instead. A Windows wide-character encoding never asks the console (the setter skips the code-page call for
+    /// UTF-16), so what this guards is the Unix output setter, which flushes the console writers it replaces, and a
+    /// policy that refuses the console to this process.</summary>
+    private static bool TryApply(Action apply)
+    {
+        try { apply(); return true; }
+        catch (IOException) { return false; }
+        catch (System.Security.SecurityException) { return false; }
     }
 }
