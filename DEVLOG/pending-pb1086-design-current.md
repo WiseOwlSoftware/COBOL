@@ -5,7 +5,9 @@ of the inventory's 31 GAP rows. The design (`docs/rearchitecture/DESIGN-external
 had been sitting under three weeks of code changes. A read-only review written at main d23857d7f found 151 references
 still current, and 5 renamed, 3 moved, 4 gone and 16 that had changed shape. Its verdict was that slice 4 (PB2100) could
 not be implemented from the document without improvising. This change re-verifies those findings against main 832e5f512
-and corrects the design in one edit. It touches documents and kb/Work notes only.
+and corrects the design in one edit. It touches documents and kb/Work notes, plus one test fix in
+`scripts/orchestrator/test_plan_wave.py`: its R3 slice-wait case now draws its test file from the live slice set,
+because the §12 rewrite changed which files that set holds.
 
 The serious finding was a rule the document would have regressed. The approved §6.4 typed a restricted program-pointer
 or function-pointer by its prototype's IDENTITY, and §12 deleted `PrototypeSignatureClasses` in slice 7 so that two
@@ -13,7 +15,10 @@ groups would "compare record identities". §13.18.60.4 GR25 types such a pointer
 (`cite.py --check` OK), and PB2464, PB2495, PB3101, PB3120 and PB3162 put that rule in the code. Built as written,
 slice 7 would have typed pointers by name across units. The design now adopts the code. The record carries the
 restriction name and the prototype's full signature, and the decoder stamps the pointer through the decoding group's
-classes. Slice 7 keeps the classes, because their partition refinement is what minimizes a recursive signature. It
+classes. The tree's `PrototypeSignatureClasses.Identity` answers a name it has seen without consulting the signature, so slice 4
+also re-keys the class by origin and name, admits decoded prototypes into its refinement and keeps block identities
+unique; the round-trip test then fails on a record that dropped a referenced prototype's formal. Slice 7 keeps the
+classes, because their partition refinement is what minimizes a recursive signature. It
 replaces the group-local founder name with a canonical identity, a hash of the minimized signature graph that every
 group computes the same way, and a drift test holds that identity equal to `PrototypeSignatures.Same`. It also deletes
 the null-signature state PB3162 spread into the runtime. Those changes alter the description text and remove public
@@ -43,10 +48,11 @@ compares externalized names ordinally, so a prototype `psub` beside a definition
 
 Three determinations are recorded in §19. (a) User-manual text stays with kb/Work PB1610, as slice 3's did.
 (b) Every fault on the way to an activation is one of the CALL's own conditions (§14.9.4.4 GR3 b) and c), both
-`--check` OK). A program is located when it is registered, so every registrar fault is EC-PROGRAM-NOT-FOUND. A
-registered program whose class cannot be loaded or initialized is EC-PROGRAM-RESOURCES. The old §11.2 sentence saying
-a class-load failure was NOT-FOUND, pinned by a named test, was false on both counts: that test pins a module that
-does not load, and `n.Factory` failures escape today. That is slice 5's work, recorded in PB2101. (c) Multi-unit tests
+`--check` OK), as `docs/CONFORMANCE.md` DOC-A.1-14 / -89 already determine them under CLAUDE.md rule 1. Every
+registrar fault, and a registered program whose class or a dependency fails to load at instance creation, is
+EC-PROGRAM-NOT-FOUND, so one missing assembly never gives a different condition depending on when the CLR loads it;
+EC-PROGRAM-RESOURCES stays the stack check. The old §11.2 sentence named a test that pins a module that does not
+load, not a class-load failure, and `n.Factory` failures escape today. That is slice 5's work, recorded in PB2101. (c) Multi-unit tests
 are WiseOwl conformance cases. A new `build` header field and a `compile-unit` adapter operation let a case compile
 several units into its working directory, which is already the default repository and the application directory.
 Slice 5 lands the mechanism.

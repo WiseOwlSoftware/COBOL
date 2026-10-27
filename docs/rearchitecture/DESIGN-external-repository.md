@@ -793,8 +793,17 @@ a definition publish the same record shape from one `RepositoryRecord.Of(BoundUn
    compiler's boundary layout — each boundary item's crossing form, carrier type and width — that the entry was
    emitted with; compared exactly) — all three compared: REPO-7, §11.3, §15.4.
 2. `CompilerVersion`, `Edition` — named in diagnostics; never compared.
-3. The per-assembly index: `Units` (kind-tagged externalized names of every unit the assembly publishes) and
-   `Registrar` (the `__CobolModule` full name) — the locator's answers. §17.4 asserts the index equals the record set.
+3. The per-assembly index: `Units` (kind-tagged externalized names of every unit the assembly publishes, each with its
+   word) and `Registrar` (the `__CobolModule` full name) — the locator's answers. §17.4 asserts the index equals the
+   record set. **Encoding:** `Units` is a `string[]` named argument of `[CobolRepository]`, one element per published
+   unit in the record order of §6.5, each `<kind>:<externalized name>:<word>` — `<kind>` the `RepositoryUnitKind`
+   value in decimal (§6.2 rule 1), `<externalized name>` as formed (DOC-A.1-68's formation, so the locator compares it
+   by the Annex C fold), `<word>` the unit's user-defined word (the program-name, user-function-name, class-name or
+   interface-name as declared), with every `:` and `\` inside either name written `\:` and `\\` so the three fields
+   split unambiguously. The word field is what §7.4's word rows read and what `FunctionByWord` (§8.3, D-R3 step 2)
+   answers from without opening a unit's attributes; it equals `[CobolUnit]`'s `name` argument, and §17.4's test
+   asserts that too. `RepositoryIndex` is the one reader of this encoding and `RepositoryAttributeRenderer` its one
+   writer.
 4. Data-names and the publishing unit's words: recorded for diagnostics, for the host surface and for `IdentityScope`
    decoding; no comparator reads them (§6.3).
 5. An expansion's triple, key and placement; a skeleton's source, resolutions and compile state (§10.5).
@@ -1033,10 +1042,30 @@ the group.
     `ReferencedPrototypes`, whose own restricted-pointer formals index other `ReferencedPrototypes` rows, so a recursive
     prototype records as a finite graph).
   - The decoder rebuilds what the binder builds: `DataItem.RestrictedPrototype` =
-    `RestrictedPrototype(Function, ExternalizedName, the decoded CalleeSignature)`, then stamps
-    `DataItem.PointerRestrictionIdentity` through the decoding group's `PrototypeSignatureClasses` — `Identity(...)`
-    already places a prototype no stamped pointer names into the class whose founder has its signature, or founds one —
-    so a decoded pointer and a group pointer of one signature get one identity. Nothing compares the name.
+    `RestrictedPrototype(Function, ExternalizedName, the decoded CalleeSignature)`. It may NOT then stamp through
+    `PrototypeSignatureClasses.Identity` as the class stands in the tree: `Namespace.Identity`
+    (`PrototypeSignatureClasses.cs`, the `_members.TryGetValue(externalizedName, …)` arm) answers a name it has already
+    classified with that name's class WITHOUT consulting the signature it is handed, so a decoded prototype `P` meets the
+    group's `P` and takes its class whatever its decoded signature — typing the pointer by NAME, which GR25 forbids, and
+    making a round trip that dropped or changed a `ReferencedPrototypes` formal pass unseen. The key is right inside one
+    group (§8.3.2.2: one externalized name, one program) and wrong the moment a second source of prototypes exists.
+    **Slice 4 changes the class (kb/Work PB2100), in three parts:**
+    1. *Members are keyed by origin and name.* `Namespace._members` is keyed by `PrototypeKey(Origin, ExternalizedName)`:
+       a group prototype's origin is the group (so a group name is still classified once), a decoded prototype's is its
+       record and `ReferencedPrototypes` index. A decoded `P` is a member of its own, placed by `PrototypeSignatures.Same`
+       over its DECODED signature, never by the group's `P`.
+    2. *Decoded members join the refinement, not a one-shot lookup.* `Classify` gains `Admit(decodedPointers)`: it
+       presents every decoded prototype those pointers reach (the whole `ReferencedPrototypes` graph, so a recursive
+       record is classified as the coarsest stable partition, PB3101) and runs the same refinement until a round splits
+       nothing, re-stamping every pointer it holds. Adding members never splits an existing group block (a block splits
+       only by its members' own signatures, and a group member's does not change), so no group pointer's identity moves.
+    3. *Identities stay unique per block.* A block founded by a decoded member is spelled `TO <name>` only when no other
+       block already has that spelling, else `TO <name> #<k>` (`k` its founding order), so two different signatures
+       never share an identity string and `PrototypeSignatures.SameType` (string equality of identities) stays "same
+       block". (Slice 7's canonical identity replaces the spelling, and this part with it.)
+    So a decoded pointer and a group pointer share an identity exactly when their prototypes' signatures are `Same`.
+    Nothing compares the name. `PrototypePointerTypeDriftTests` gains the case: a decoded prototype named like a group
+    prototype of another signature gets another identity.
   - *Slice 7 replaces the group-local founder name by a canonical, group-independent signature identity, and keeps the
     class.* The founder's name (`TO <founder>`) is comparable only between descriptions compiled in one group (PB2464's
     residue): group A describes a method's `RETURNING PROGRAM-POINTER TO P1` as `TO P1`, a separately compiled group B
@@ -1253,7 +1282,8 @@ IS the externalized name under `ExternalizedNames`' fold (DOC-A.1-68).
    `w66g-pb1475-strong-type-dpc-differs`) were therefore non-conforming as written; slice 6 gave each a program
    prototype definition of its callee ahead of every other unit (§10.6.2 SR1), which keeps each test's subject — a
    prototype-checked CALL, pointer or argument — under GR10 b) (the expectation files hold codes and output, not line
-   positions, so none needed re-pinning; §21 slice 5 is not involved).2. GR10 b): a program PROTOTYPE definition in the group (prototypes precede all other units, §10.6.2 SR1).
+   positions, so none needed re-pinning; §21 slice 5 is not involved).
+2. GR10 b): a program PROTOTYPE definition in the group (prototypes precede all other units, §10.6.2 SR1).
 3. GR10 c): `MetadataRepositoryProvider.Program(externalizedName)` → the first entry of `P:name` in the search order,
    its signature decoded from that entry's host-entry `Call` method (§5.3).
 4. None → REPO-1; the prototype is not registered (a CALL through it is COBOL1760).
@@ -1701,21 +1731,31 @@ unit** — its name matches a node a module's committed registration created. So
   `EnsureRegistered()`, which today propagates as the registrar's own exception: there it is a
   `CobolCallException` EC-PROGRAM-NOT-FOUND naming the module and the fault, R48's run-unit-ending result at the host
   door (§4.3) and the abnormal termination of §14.6.12 under `Main`.
-- *Located, but the activation cannot be set up → EC-PROGRAM-RESOURCES.* The checked resources are the
-  implementor's to define (GR3 c)); DOC-A.1-14 / -89 define one today, the stack an activation needs. The approved text
-  of this subsection said a program class that fails to load inside the instance creation is EC-PROGRAM-NOT-FOUND and
-  that `FunctionLocateResourceWitnessTests` pins it; both halves were false — the witness pins a module that does not
-  load (not located), and the landed `ProgramTable.CallProgram` lets a failure of `n.Factory(…)` escape as the CLR's own
-  exception, an escaping fatal of a kind the standard does not name. Slice 5 makes the CLR's load and initialization
-  failures of a REGISTERED program's class — `TypeLoadException`, `TypeInitializationException`, `FileNotFoundException`
-  / `FileLoadException` / `BadImageFormatException` for a dependency, `MissingMemberException` — the second checked
-  resource, "the activated program's code can be loaded and initialized": EC-PROGRAM-RESOURCES with the loader's
-  message, the activation not successful, execution continuing per GR3 h). An exception the program's own code throws
-  while it executes is not a resource and keeps its own meaning. DOC-A.1-14 and -89 are rewritten in slice 5 to name
-  both checked resources, with a witness for each (a module whose program class's static initializer throws; one whose
-  dependency assembly is missing).
+- *A registered program whose CODE cannot be loaded is not located either → EC-PROGRAM-NOT-FOUND.* The approved text of
+  this subsection said a program class that fails to load inside the instance creation is EC-PROGRAM-NOT-FOUND and
+  that `FunctionLocateResourceWitnessTests` pins it. The classification was right and the witness claim was not: the
+  witness pins a MODULE that does not load, and the landed `ProgramTable.CallProgram` lets a failure of `n.Factory(…)`
+  escape as the CLR's own exception, an escaping fatal of a kind the standard does not name. The answer is already
+  recorded: GR3 c)'s checked resources are the implementor's, so CLAUDE.md rule 1 sends the question to GnuCOBOL, and
+  DOC-A.1-14 (CALL) and DOC-A.1-89 (a function; item 102, a method) take GnuCOBOL's answer — "A module file that
+  exists but cannot be loaded (a truncated or foreign image, or a dependency the registrar itself needs) or whose
+  registrar throws … has therefore NOT been located", EC-PROGRAM-NOT-FOUND, as libcob's resolver sets it for a module
+  found but not loadable. The CLR loads a program's class and its dependencies lazily, so the SAME missing or broken
+  assembly can fail inside the registrar or later inside `n.Factory(…)`; the condition must not depend on when the CLR
+  happens to load it. Slice 5 therefore catches the CLR's load and initialization failures at the instance creation —
+  `TypeLoadException`, `TypeInitializationException`, `FileNotFoundException` / `FileLoadException` /
+  `BadImageFormatException` for a dependency, `MissingMemberException` — and raises EC-PROGRAM-NOT-FOUND
+  (EC-FUNCTION-NOT-FOUND for a function) with the loader's message as the reason, the activation not successful,
+  execution continuing per GR3 h): the program's code is not available, so it is treated as not located, exactly as a
+  module the probe cannot load is. An exception the program's own code throws while it executes is not a load failure
+  and keeps its own meaning. DOC-A.1-14 / -89 need no new determination; slice 5 adds this case to their text and a
+  witness for it (a registered program whose dependency assembly is missing; one whose class's static initializer
+  throws).
+- *Located, and the activation's resources are not available → EC-PROGRAM-RESOURCES* — only where DOC-A.1-14 / -89 and
+  the standard put it: the ONE checked resource is the stack an activation needs (`ActivationStack.IsAvailable`,
+  kb/Work PB2659). This design adds no other.
 - *Never an escaping fatal of another kind.* No fault between the CALL and the first statement of the activated program
-  leaves the boundary as anything but these two conditions.
+  leaves the boundary as anything but these conditions.
 
 ### 11.3 Collision and version skew at run time
 Step 2 finding two different assemblies carrying one `kind:name` → EC-PROGRAM-NOT-FOUND naming both; an assembly whose
@@ -1765,7 +1805,7 @@ with open work opens with that work and states its landed part after it, because
 | `ProgramEmitter.EmitEntryWrapper` (`public static class __CobolModule` in the global namespace with a public `Register()`; always `Main`) | **landed, slice 1 (the library form slice 3):** the one-segment `namespace Cobol.<S>` (§4.5); `[assembly: CobolRepository(schema, runtimeVersion, callAbi, Registrar)]` (`RuntimeApi.ModuleRecordAttribute`); `Register` private, `EnsureRegistered()` the one public member (through `RegisterModule`; the emitted `Main` calls it, so no path registers a module twice); `Main` only with a main unit (`ProgramEmitter.MainUnit`), a library otherwise; `global::` on every foreign name | `ProgramTable.ProbeSiblingModule`, `RoslynBackend.Compile`, `AssemblyPackager.Package` |
 | `RuntimeApi.ModuleRecordAttribute` (slice 1: the assembly record's C# text) | slice 4: MOVES into `RepositoryAttributeRenderer`, the one place attribute syntax is written (§3.9), and is deleted from `RuntimeApi`; the record gains `Units`, `HasSignatures`, `CompilerVersion`, `Edition` | `ProgramEmitter` (its one caller) |
 | `CobolRepositoryAttribute` (`CurrentSchemaVersion = 1`, `Registrar` only) | slice 4: `CurrentSchemaVersion = 2` and the named properties above (§6.6); the rest of the attribute family and the schema enums of §6.2 rule 1 beside it; `RepositoryIndex` (§7.4) | `PublicAPI.Unshipped.txt` |
-| `ProgramTable` (`_probedModules` keyed by name; `ProbeSiblingModule` loads `<name>.dll` and calls a global `__CobolModule.Register`; a linear `_order` scan for rule 4; `CallProgram`/`Cancel` take a non-null `callerPath`) | Slice 5: `ProbeSiblingModule` over `RepositoryLocator` / `RepositoryIndex` (§11.2: no case-insensitive scan, no reflection read of the record); the per-kind `CallName` dictionary; `RuntimeFeatures.DynamicProbe`; the §11.2 classification (a registrar fault reached through `EnsureRegistered()` is EC-PROGRAM-NOT-FOUND; a registered program whose class cannot be loaded or initialized at `n.Factory(…)` is EC-PROGRAM-RESOURCES, DOC-A.1-14 / -89). Already landed — slice 1: `RegisterModule(registrar, runtimeVersion, callAbi, register)` (one registration set per run unit, the version refusal, staged commit refusing a duplicate outermost name, §11.2); `_probedNames` / `_probeFailure` keyed by `ProbeKey` (the kind letter and the name, kb/Work PB2847); the probe reads `Registrar` from the record. Slice 3: `callerPath` is `string?` in `CallProgram` and `Cancel`, and the null arm (`CallFromHost`) is the outermost boundary that turns a STOP RUN or a run-unit-terminating fatal condition into R48's `RunUnitEndedException(ExitStatus, Abnormal)` after the §14.6.11 actions | `ProgramRegistry`, `RuntimeFeatures` (new), `RunUnit` |
+| `ProgramTable` (`_probedModules` keyed by name; `ProbeSiblingModule` loads `<name>.dll` and calls a global `__CobolModule.Register`; a linear `_order` scan for rule 4; `CallProgram`/`Cancel` take a non-null `callerPath`) | Slice 5: `ProbeSiblingModule` over `RepositoryLocator` / `RepositoryIndex` (§11.2: no case-insensitive scan, no reflection read of the record); the per-kind `CallName` dictionary; `RuntimeFeatures.DynamicProbe`; the §11.2 classification (a registrar fault reached through `EnsureRegistered()` is EC-PROGRAM-NOT-FOUND; a registered program whose class or a dependency cannot be loaded or initialized at `n.Factory(…)` is EC-PROGRAM-NOT-FOUND with the loader's message, as DOC-A.1-14 / -89 classify a module that cannot be loaded). Already landed — slice 1: `RegisterModule(registrar, runtimeVersion, callAbi, register)` (one registration set per run unit, the version refusal, staged commit refusing a duplicate outermost name, §11.2); `_probedNames` / `_probeFailure` keyed by `ProbeKey` (the kind letter and the name, kb/Work PB2847); the probe reads `Registrar` from the record. Slice 3: `callerPath` is `string?` in `CallProgram` and `Cancel`, and the null arm (`CallFromHost`) is the outermost boundary that turns a STOP RUN or a run-unit-terminating fatal condition into R48's `RunUnitEndedException(ExitStatus, Abnormal)` after the §14.6.11 actions | `ProgramRegistry`, `RuntimeFeatures` (new), `RunUnit` |
 | `ProgramRegistry` (public; XML remarks calling it the "emitted-surface shim", a facade whose members "forward") | **landed, slice 3:** `[EditorBrowsable(Never)]` on the type; remarks state that it is the generated code's ABI over the ambient run unit, callable from generated code in other assemblies, with no contract for a hand-written caller (§4.4) | — |
 | `ProgramEmitter.Emit` (the outermost-unit loop emits a program class per definition and skips prototypes) | Slice 4: each host entry's record attributes when `RepositoryUpdate`; the assembly attribute's index and the `[CobolUnit]`s always; `HostEntryEmitter.EntryUnits` pairs a prototype with its definition by DOC-A.1-68's one mapping rule, the Annex C fold (kb/Work PB3872), and `HostEntryEmitter.Published` is deleted (§7.2). Slice 8: skeleton → `[CobolSkeleton]` class; expansion → §10.5's steps. Already landed, slice 3: every outermost program, function and prototype → its host-entry class (§4.3) through `HostEntryEmitter` and `PublishedRecordEmitter` | `HostEntryEmitter`, `RepositoryAttributeRenderer` (new), `CompilerDriver` (an expansion assembly is a second emission, slice 8) |
 | `DataBinder.Unique` (private; the internal record struct's member names, unseeded: a subordinate `AsImage` or `Equals` drew CS0102) and `DataItem.Sanitize` | **landed for the internal scopes (kb/Work PB2098), and for the published ones in slice 3:** `CsNames.Allocate(baseName, scope)`: the Sanitized base, then the smallest free `_n`, over a scope seeded with the emitter's own members in that scope and the imported type names (§4.5) — the ONE allocator for internal and published names. `NameAllocator` (the `__`-prefixed temporaries, which no COBOL word can spell) is unchanged | `DataBinder` (every `Unique` caller), `RecordStructEmitter`, `HostEntryEmitter`, `PublishedRecordEmitter`, `OoEmitter` |
@@ -1777,7 +1817,7 @@ with open work opens with that work and states its landed part after it, because
 | `BoundCallProgram.CalleeSignatureKnown` (one flag for "checked at bind time" and "cannot differ at run time"; `CallEmitter.DescribesOperands` / `LandsAtRunTime`) | slice 7: split into `CalleeSignatureKnown` and `CalleeCompiledHere`; a site whose callee is compiled elsewhere describes its operands for GR3 d) (§4.2) | `CallBinder`, `UdfBinder`, `CallEmitter` |
 | `ObjectRefDescriptor(Kind, Name, Factory, Only, Formal)`; `ActivationDescriptions.Of`'s `ObjectName` / `ObjectClasses` / `ObjectInterfaces` as folded WORDS (PB2463) | slice 8: `+ Target`; `ClrTypeName` over `Target`; the description's class facts become folded EXTERNALIZED names (a call-ABI bump, §6.4) | `PictureAnalyzer`/`DataBinder` (sets `Target`), `OoClassTable.SetOperand`, `OoEmitter.OoReturnClrType`, `OoConformance`, `SetBinder` Format 5 |
 | `DescriptionClauses` and `ActivationDescriptions` (the DYNAMIC LENGTH clause and phrase) compare a dynamic-length structure by its folded NAME; `ClassRaisingCovered` | slice 7: the structure DEFINITION key (§6.4), inside slice 7's call-ABI bump; slice 8: `RaisingTarget.Target` | `StrongTypeModel`, `OoConformance`, `RaisingTarget` |
-| **landed (kb/Work PB2464, PB2495, PB3101, PB3120, PB3162):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (stamped by `DataBinder.ResolveRestrictedPrototypes` / `PrototypeSignatureClasses.Classify` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.RestrictionIdentity` and `SameType`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms, `PrototypeSignatureClasses` (one per `BindSession`: the coarsest stable partition of the group's prototypes by `PrototypeSignatures.Same`; a class's identity its founder's externalized name, `TO name`) — a restricted program- or function-pointer's TYPE is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.Clauses` by every relation; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4: the decoder rebuilds `RestrictedPrototype` from `ReferencedPrototypes` and stamps through the decoding group's classes (§6.4). Slice 7: `PrototypeSignatureClasses` STAYS — it is where recursive signatures are minimized — and partitions the group's prototypes plus every decoded and repository-resolved prototype; a class's identity becomes `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` of the minimized signature graph, group-independent, held to `Same` by `SignatureIdentityDriftTests`; call-ABI and runtime-major bump. (This row used to say the class is DELETED in slice 7 and that two groups "compare record identities": done literally, that types restricted pointers by prototype NAME across units, which GR25 forbids.) | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
+| **landed (kb/Work PB2464, PB2495, PB3101, PB3120, PB3162):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (stamped by `DataBinder.ResolveRestrictedPrototypes` / `PrototypeSignatureClasses.Classify` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.RestrictionIdentity` and `SameType`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms, `PrototypeSignatureClasses` (one per `BindSession`: the coarsest stable partition of the group's prototypes by `PrototypeSignatures.Same`; a class's identity its founder's externalized name, `TO name`) — a restricted program- or function-pointer's TYPE is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.Clauses` by every relation; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4: the decoder rebuilds `RestrictedPrototype` from `ReferencedPrototypes`, and `PrototypeSignatureClasses` keys members by origin and name, admits decoded prototypes into its refinement (`Admit`) and keeps identities unique per block, so a decoded pointer is classified by its decoded SIGNATURE (§6.4; the name-keyed `Identity` arm would type it by name). Slice 7: `PrototypeSignatureClasses` STAYS — it is where recursive signatures are minimized — and partitions the group's prototypes plus every decoded and repository-resolved prototype; a class's identity becomes `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` of the minimized signature graph, group-independent, held to `Same` by `SignatureIdentityDriftTests`; call-ABI and runtime-major bump. (This row used to say the class is DELETED in slice 7 and that two groups "compare record identities": done literally, that types restricted pointers by prototype NAME across units, which GR25 forbids.) | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
 | `OoClassTable.Build`; `OoClassSymbol.IsStandard` (`ctx is null`) and `Ctx`; `OoRepositoryScope` (classes/interfaces) | slice 8: `+ Import(symbol)` by identity, `IsParameterized` for imported skeletons; `IsStandard` → `Origin`; `OoRepositoryScope` → `IdentityScope` (+ prototypes, structures; reverse map) | `OoNameResolution`, `OoEmitter.EmitClassUnit` (skips imported), `ResolveOverrides`, `OoExpansion` |
 | `OoExpansion.Expand(tree, classes, interfaces, edition, words)` | slice 8: resolver-driven; imported skeletons re-parsed under their recorded `CompileState` with recorded resolutions; the `ExpansionKey`; import by key; placement (4a)/(4b); stale detection (REPO-9 with the referencing assemblies); publishes keys and skeleton records (§10.5) | `BinderDriver`, `FragmentParse.ParseTokens` (a `CompileState` parameter), the binder's option-dependent arms, `CompilerDriver`, `RepositoryIndex` (`AssemblyRef` listing) |
 | `DataBinder.BindDeclarations` REPOSITORY loop (never resolved) | slice 7: `ResolveRepositorySpecifiers` in `BinderDriver.BindUnitData` for every specifier at its position | `BinderDriver`, `OoDriver.BindClassData` |
@@ -1945,10 +1985,12 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   callee rebuilt after its caller), or `[PAY.cob > PAY, PAY.cob > PAY - Copy, {self}]`. Every step's file is in `files`
   (the generator's existing check). The generator (`harness/generate.py`, the ONE reader of headers) validates the field
   — a step naming an undeclared file, an output named twice before `{self}` is compiled, `build` outside
-  `wiseowl/cases/` — and writes it into the manifest entry. The runner (`harness/run.py`) executes the steps in order
-  in the case's one fresh working directory through a new adapter operation `compile-unit` (WiseOwl:
-  `["{cobol}", "{unit}", "--std", "{std}", "--source-format", "{source-format}", "-o", "{output}.dll"]`), then the
-  case's own compile and run as today. Every step's output lands in the working directory, which is the default
+  `wiseowl/cases/` — and writes it into the manifest entry. The runner (`harness/run.py`) executes the steps in list
+  order in the case's one fresh working directory: each declared file through a new adapter operation `compile-unit`
+  (WiseOwl: `["{cobol}", "{unit}", "--std", "{std}", "--source-format", "{source-format}", "-o", "{output}.dll"]`),
+  and `{self}` through the case's own `compile` operation AT ITS PLACE IN THE LIST — not deferred to the end — so steps
+  after it compile against, and overwrite outputs beside, the already-built program (the stale-caller case: CALLEE
+  v1, then the caller, then CALLEE v2 into the same `CALLEE.dll`). The run follows the last step, as today. Every step's output lands in the working directory, which is the default
   repository search space (D1, §9.3: the output directory) and the run unit's application directory (§11.4), so no
   repository option is written per case; a step that needs one (`--repository-update off`, `--repository-check off`, a
   second directory) takes it from `wiseowl/options.json`, keyed `<id>` for the case and `<id>/<step file>` for a step.
@@ -2004,7 +2046,7 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   in both, a lenient adoption when not, ON EXCEPTION taking the former (slice 7); a module whose registrar throws,
   reached through the probe and through a host's `EnsureRegistered()` → EC-PROGRAM-NOT-FOUND naming the fault; a
   registered program whose class's static initializer throws, and one whose dependency assembly is missing →
-  EC-PROGRAM-RESOURCES (§11.2); a version-1 module beside the caller → EC-PROGRAM-NOT-FOUND with "schema v1" (§6.6); a
+  EC-PROGRAM-NOT-FOUND with the loader's message (§11.2, DOC-A.1-14 / -89); a version-1 module beside the caller → EC-PROGRAM-NOT-FOUND with "schema v1" (§6.6); a
   missing callee → EC-PROGRAM-NOT-FOUND; two different assemblies
   carrying one name → EC-PROGRAM-NOT-FOUND naming both; a runtime-major-skewed and a call-ABI-skewed assembly → naming
   both versions, through the probe and through `EnsureRegistered`; a second module carrying an already-registered
@@ -2030,7 +2072,12 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   `RestrictedTypeDecl` and `RestrictedPrototypeName` set aside (the synthesized `==`, so `_digitPositions` and every
   future member are seen), `EditingRules` element-wise, the two restriction names equal as written (one scope), and
   `SameRestriction` / `PrototypeSignatures.SameType` true; and the decoded pointer's `PointerRestrictionIdentity` equals
-  the original's.
+  the original's — after the decoded prototypes were ADMITTED as members of their own (§6.4, keyed by origin), so the
+  identity says "same block by signature", never "same name". Beside it, for every `ReferencedPrototypes` row,
+  `PrototypeSignatures.Same(original prototype's signature, decoded signature)` holds. A record that dropped, reordered
+  or changed a formal of a referenced prototype FAILS both: `Same` compares the formal count, modes and descriptions,
+  and the decoded prototype founds a block of its own whose identity differs (part 3). The perturbation test pins it:
+  a fixture record with one `ReferencedPrototypes` formal removed must fail the round trip.
 - **Parameter types** (slice 4; §17.3's host-entry Fact, which needs the records): each host entry's parameter and
   return types equal `HostSurface.TypeOf` of the DECODED descriptions.
 - The converse: every `PicInfo` constructor parameter and init property (reflection over the type, including init-only
@@ -2220,9 +2267,13 @@ description (§4.3); the forward-reference reading of SR14 — the output being 
 - **(a) User-manual text stays with kb/Work PB1610**, as slice 3's did: slices 5 and 7 write their text into §9.4 and
   record it in PB1610; no slice creates `docs/manual/` (§9.4).
 - **(b) A fault on the way to an activation is one of the CALL's own conditions** (§14.9.4.4 GR3 b) / c), §8.4.3.2.4
-  GR6 b) / c)): not located — every registrar fault included — is EC-PROGRAM-NOT-FOUND (EC-FUNCTION-NOT-FOUND) with its
-  reason; located (registered) but its class cannot be loaded or initialized is EC-PROGRAM-RESOURCES; never an escaping
-  fatal of another kind (§11.2; slice 5).
+  GR6 b) / c)), as `docs/CONFORMANCE.md` DOC-A.1-14 and DOC-A.1-89 already determine them under CLAUDE.md rule 1
+  (GR3 c)'s checked resources are the implementor's; GnuCOBOL's resolver sets EC-PROGRAM-NOT-FOUND for a module found
+  but not loadable): a program whose code cannot be made available — no file, a file or dependency that does not load,
+  a refused module, EVERY registrar fault, and a registered program whose class or dependency fails to load or
+  initialize at instance creation — is not located, EC-PROGRAM-NOT-FOUND (EC-FUNCTION-NOT-FOUND) with its reason, so
+  one missing assembly never gives a different condition depending on when the CLR loads it; EC-PROGRAM-RESOURCES
+  stays where those rows put it, the activation's stack; never an escaping fatal of another kind (§11.2; slice 5).
 - **(c) Multi-unit repository tests are WiseOwl conformance cases** under `conformance-suite/wiseowl/cases`, through
   the suite's `build` field and `compile-unit` adapter operation, which slice 5 lands (§17.1).
 - **The type of a restricted program- or function-pointer stays its SIGNATURE** (§13.18.60.4 GR25 / GR26, as
@@ -2250,7 +2301,7 @@ specifier's literal is literal-4; §12.3.8.4 GR11 c) is run into b)'s paragraph 
   not emitted") are corrected to §8 here — every prototype is resolved with a signature, from the group or from the
   repository, and checked at compile time (slice 7); the sibling-module probe paragraph to §11.2 (slice 1 wrote the
   registrar attribute, the one registration set, `EnsureRegistered` and the version and call-ABI refusal; slice 5 the
-  index, the locator, the feature switch, the host-composed run unit and the NOT-FOUND / RESOURCES classification);
+  index, the locator, the feature switch, the host-composed run unit and the NOT-FOUND classification of load faults);
   the operand description of a CALL whose callee is compiled elsewhere (§4.2, slice 7); and the document gains the
   host entry as a caller of the D2 boundary (§4.3, slice 3). Its D1 (the `ManagedPointer` accessor carrier) and D2
   (`ICobolProgram`/`CobolArg` as the uniform ABI) stand as written.
@@ -2269,8 +2320,10 @@ specifier's literal is literal-4; §12.3.8.4 GR11 c) is run into b)'s paragraph 
 - `docs/DESIGN.md` §0.5 (the row for this document) and §9/§10's condensed views (one sentence each pointing
   at §4/§8/§10 here); `docs/DOC_INDEX.md` (the row).
 - `docs/CONFORMANCE.md` DOC-A.1-66/-67/-138/-161/-162: §9.4's text; DOC-A.1-68 unchanged. §3's **D-R3** bullet: written
-  2026-10-27 for slice 6's group arms (COBOL2969), extended by slice 7 to the repository arms. DOC-A.1-14 and -89: the
-  second checked resource of §11.2 (slice 5). DOC-A.1-141 (landed, slice 3): §9.4's text, replacing the `ICobolProgram.Call(CobolArg[])` mechanism and its "no argument-count
+  2026-10-27 for slice 6's group arms (COBOL2969), extended by slice 7 to the repository arms. DOC-A.1-14 and -89: their
+  not-located determination extended to a registered program whose code fails to load at instance creation, and to
+  a registrar fault reached through `EnsureRegistered()` (§11.2; slice 5); their one checked resource, the stack,
+  unchanged. DOC-A.1-141 (landed, slice 3): §9.4's text, replacing the `ICobolProgram.Call(CobolArg[])` mechanism and its "no argument-count
   check" (kb/Work PB1149's GR13 half). DOC-A.1-65, -116 and -167: the host activates through the generated entry and
   composes a run unit through `EnsureRegistered()`; their mentions of `__CobolModule.Register()`,
   `ProgramRegistry.CallProgram` and `ICobolProgram.Call` go (DOC-A.1-116 is kb/Work PB1253's item-116 row), and
@@ -2365,7 +2418,8 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    OO classes, their factory types, methods (the carrier of PB2087's triple), accessors and interfaces, and
    `RepositoryReader` (§7.4's compiler half), whose failures are typed outcomes (REPO-3/-4/-5/-7's conditions,
    allocated by slice 7, §14). The restricted-pointer and object-reference records of §6.4 (the decoder rebuilds
-   `DataItem.RestrictedPrototype` and stamps through the decoding group's `PrototypeSignatureClasses`).
+   `DataItem.RestrictedPrototype`; `PrototypeSignatureClasses` keyed by origin and name, with `Admit` and unique block
+   identities, so a decoded pointer is typed by its decoded signature).
    `HostEntryEmitter`: `EntryUnits` pairs by `ExternalizedNames.Same` (kb/Work PB3872) and `Published` is deleted, a
    `Renders` refusal an internal error (§7.2). `--repository-update on|off` (`Options.RepositoryUpdate`,
    `BackendOptions.RepositoryUpdate`; `HasSignatures`), with the `BackendOptions.AssemblyName` remark corrected. Tests:
@@ -2382,8 +2436,9 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    reflection read of the record gone); the per-kind `CallName` dictionary; the feature switch, the disabled-probe
    reason and the trim/AOT tests including the host-composed application (`IsTrimmable`, §15.5); determination (b) of
    §19 — a registrar fault reached through a host's or the emitted `Main`'s `EnsureRegistered()` is
-   EC-PROGRAM-NOT-FOUND with its reason, and a registered program whose class cannot be loaded or initialized at
-   `n.Factory(…)` is EC-PROGRAM-RESOURCES, with DOC-A.1-14 / -89 rewritten and a witness for each; the multi-unit case
+   EC-PROGRAM-NOT-FOUND with its reason, and so is a registered program whose class or a dependency cannot be loaded
+   or initialized at `n.Factory(…)` (DOC-A.1-14 / -89's existing determination, their text extended to the case, a
+   witness for each); the multi-unit case
    shape of §17.1 (`build`, `compile-unit`, the per-step option and diagnostic keys) with DESIGN-conformance-suite.md
    corrected to it; the run-time cases of §17.1 marked slice 5. Docs: INTERPROGRAM's probe paragraph (index-based);
    the manual's trimmed/AOT paragraph, into §9.4 and recorded in kb/Work PB1610. Depends on 4 (the `Units` index and
