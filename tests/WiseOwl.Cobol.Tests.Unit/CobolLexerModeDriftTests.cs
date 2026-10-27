@@ -250,6 +250,37 @@ public sealed class CobolLexerModeDriftTests
         Assert.DoesNotContain("ZERO", names);
     }
 
+    /// <summary>kb/Work PB3846 — the word ALL before ZERO is §8.3.3.6.2 Format 1's optional word, so the context that
+    /// decides is the token BEFORE the ALL: each operand position (right, left, parenthesised, unary, ref-mod) rewrites
+    /// the ZERO and keeps the ALL for the parser's <c>ALL? ZERO_ARITH</c> arm. Before, a ZERO whose left neighbour was
+    /// ALL was never rewritten, and <c>1 + ALL ZERO</c> was a bare COBOL0001.</summary>
+    [Theory]
+    [InlineData("COMPUTE N = 1 + ALL ZERO")]
+    [InlineData("COMPUTE N = ALL ZEROS + 1")]
+    [InlineData("COMPUTE N = (ALL ZEROES)")]
+    [InlineData("COMPUTE N = - ALL ZERO")]
+    [InlineData("COMPUTE N = 2 ** ALL ZERO")]
+    [InlineData("MOVE T(2:ALL ZERO) TO X")]
+    public void AllZero_InAnArithmeticPosition_IsRewrittenPastTheAll(string src)
+    {
+        string[] names = RewrittenTokenNames(src);
+        int z = Array.IndexOf(names, "ZERO_ARITH");
+        Assert.True(z > 0, $"no ZERO_ARITH in [{string.Join(" ", names)}]");
+        Assert.Equal("ALL", names[z - 1]);
+        Assert.DoesNotContain(names, n => n is "ZERO" or "ZEROS" or "ZEROES");
+    }
+
+    /// <summary>The converse: an ALL ZERO no operator, colon or enclosing paren pair touches keeps its figurative
+    /// token, so a comparison, a MOVE or an INSPECT operand still reads the figurative constant.</summary>
+    [Theory]
+    [InlineData("IF A = ALL ZERO")]
+    [InlineData("MOVE ALL ZEROS TO A")]
+    [InlineData("INSPECT A REPLACING ALL ZERO BY SPACE")]
+    [InlineData("COMPUTE N = ALL ZERO")]
+    [InlineData("IF (A = ALL ZERO)")]
+    public void AllZero_OutsideAnArithmeticPosition_StaysFigurative(string src) =>
+        Assert.DoesNotContain("ZERO_ARITH", RewrittenTokenNames(src));
+
     /// <summary>A reference modifier written directly after a ZERO-ARGUMENT function name is delimited by
     /// FNARG parens too — the lexer cannot know the arity, which is why <c>refModPart</c> accepts both flavours
     /// — so a ZERO in one of its positions has no arithmetic paren beside it. §8.4.3.3.3 SR4 makes both
