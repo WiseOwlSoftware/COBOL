@@ -1064,20 +1064,24 @@ the group.
        §13.18.60.4 GR25 (kb/Work PB1086 review R2-1). Because the re-run starts from one block with the group members
        first, each block a group member founds keeps its founder and so its spelling, and no group pointer's identity
        moves; a decoded member lands in the block of every member whose signature is `Same` as its own.
-    3. *Identities stay unique per block.* The spelling `TO <name>` is RESERVED for the group's own prototype names: a
-       block whose founder is a group member is spelled `TO <founder>` as today, and a block founded by a decoded member
-       is spelled `TO <name>` only when `<name>` is no group prototype's name, else `TO <name> #<k>`, `k` the founder's
-       ADMISSION order (its position in the order `Admit` added decoded members, fixed before the re-run, so it does not
-       depend on the round a block splits off in). Reserving by group NAME, not by "a spelling some block already has",
-       matters because the re-run can found a decoded block a round before the group block of the same name splits off
-       (group `A`→`X`, `B`→`Y`, `X` ≠ `Y`, plus a decoded `B` of another signature: kb/Work PB1086 review R3-1); it
-       keeps two different signatures from sharing an identity string, so `PrototypeSignatures.SameType` (string
-       equality of identities) stays "same block". (Slice 7's canonical identity replaces the spelling, and this part
-       with it.)
+    3. *Identities are unique by construction, not by collision rules.* A block founded by a group member is spelled
+       `TO <founder>` as today, so no group pointer's identity changes. A block founded by a decoded member is spelled
+       `DECODED <k> TO <name>`, `k` the founder's ADMISSION number (its position in the order `Admit` added decoded
+       members, unique across the namespace and fixed before the re-run, so it does not depend on the round a block
+       splits off in or on any name). The two kinds cannot meet: every group spelling begins `TO `, every decoded one
+       begins `DECODED `, and neither is the runtime's reserved `EXTERNAL TO ` (`ActivationDescription.ExternalRestrictionPrefix`, until slice 7 deletes it), whatever an `AS` literal holds (an externalized name may contain spaces and `#`,
+       `ExternalizedName.Screen`, so any spelling that only appended a marker to `TO <name>` could be forged by a group
+       prototype `AS "B #1"`: kb/Work PB1086 review R4-1). Two decoded spellings differ in `k`; two group spellings
+       differ in their founder's externalized name, which names one program in the group (§8.3.2.2). So two blocks
+       never share an identity string and `PrototypeSignatures.SameType` (string equality of identities) stays "same
+       block". The rules this replaces (reserving names, numbering collisions) each needed a new case per collision
+       found (review R3-1, R4-1). (Slice 7's canonical identity replaces the spelling, and this part with it.)
     So a decoded pointer and a group pointer share an identity exactly when their prototypes' signatures are `Same`.
     Nothing compares the name. `PrototypePointerTypeDriftTests` gains the cases: a decoded prototype named like a group
     prototype of another signature gets another identity, including when its block is founded in an earlier round than
-    the group block of that name (the R3-1 shape).
+    the group block of that name (the R3-1 shape); a group prototype `AS "DECODED 1 TO B"` or `AS "B #1"` never shares
+    an identity with a decoded block (the R4-1 shape); two decoded prototypes of one name and different signatures
+    get two identities.
   - *Slice 7 replaces the group-local founder name by a canonical, group-independent signature identity, and keeps the
     class.* The founder's name (`TO <founder>`) is comparable only between descriptions compiled in one group (PB2464's
     residue): group A describes a method's `RETURNING PROGRAM-POINTER TO P1` as `TO P1`, a separately compiled group B
