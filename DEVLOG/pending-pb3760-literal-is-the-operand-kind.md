@@ -59,3 +59,6 @@ stays the boolean expression it is written as (§8.8.2) and is refused as a bool
 `pb3760_grouped_literal_before_boolean_argument_refused` (COBOL1688), `pb3760_invoke_grouped_literal_before_boolean_argument_refused`
 (COBOL0828), `pb3760_grouped_nonnumeric_literal_argument_refused` (COBOL1511). Batch `batch-pb3760-r1.json`: 4 rows, +7 test-ref,
 GAP 31 → 31.
+Round-1 gate, run `000001-20261027T185043Z` at `e59657dfb`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg
+2 left to CI's whole-population run` (Conformance 6,941 · Unit 36,616 · Characterization 36 in leg 1; Linux half (WSL clone of HEAD)
+GREEN), the four new goldens at every accepting and refusing edition among them.
