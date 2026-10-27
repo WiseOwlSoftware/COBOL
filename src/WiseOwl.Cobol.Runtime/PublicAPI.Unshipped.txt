@@ -282,3 +282,5 @@ static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassReturning(bool enabledI
 static WiseOwl.Cobol.Runtime.ActivationRelations.ActiveClassFormalViolation(WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> string?
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassFormal(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.NumvalF(string! text, int scale, bool commaMode = false, int digitCap = 31, bool checkedLanding = false) -> System.Int128
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.SumScaled(string! fn, params System.Int128[]! xs) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.SumScaled(params System.Int128[]! xs) -> System.Int128

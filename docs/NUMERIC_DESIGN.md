@@ -190,7 +190,8 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >     nothing about their sum. The helpers are now named for the OPERATION they guard — `ExactAdd` / `ExactSub` /
 >     `ExactMul` over the one `SizeEscape` — rather than for MEDIAN's halving, which is what made them look
 >     inapplicable to their siblings; `ExactCarrierBoundaryDriftTests` now closes the set by reflection.
->   MEAN's one inexact division evaluates in SDIDI form (IntrinsicRenderer), making the spec's
+>   MEAN's one inexact division evaluates in SDIDI form in EVERY mode (IntrinsicRenderer; native arithmetic too since
+  kb/Work PB3860, `IntrinsicCarrierRules.SdidiQuotientFunctions`, so the quotient is never cut at a receiver's scale), making the spec's
 >   §15.4.1 NOTE-2 relation `FUNCTION MEAN(a b c) = (a+b+c)/3` TRUE. The prose-approximation family (SQRT/trig/
 >   log/E/PI) has no EAE, so its VALUE is implementor-defined in every mode (§15.4.1 last ¶) — but never its
 >   CONTAINER: under a standard mode the returned value **is itself contained in an SDIDI** (§15.4.1: "the
@@ -1183,9 +1184,9 @@ clause text and fails if a new member is silently exempted.
    `CobolDec.DivTruncatedToOdd`, D2) and an exponentiation take the SDIDI (`CobolDec.MulToOdd` / `DivToOdd`) as before; an unknown bound is the `Int128` carrier's own, 39 digits (kb/Work PB3538: the checked multiply it used to take at
    the summed scale raised the size error when the SCALE left the carrier), so a native product never wraps. The old emitter
    multiplied unchecked and `PIC 9V9(30)` × `PIC 9V9(30)` — a legal statement, §14.7.7 r2 a) caps the COMPOSITE — stored a
-   wrapped product. The same bound drives `IntrinsicCarrierRules.AlignmentMayLeaveCarrier` (the one reader, in `compiler.bound`; the renderer and the bind-time lane prediction both ask it): SUM / RANGE / MEAN / MEDIAN /
+   wrapped product. The same bound drives `IntrinsicCarrierRules.AlignmentMayLeaveCarrier` (the one reader, in `compiler.bound`; the renderer and the bind-time lane prediction both ask it): SUM / RANGE / MEDIAN /
    MIDRANGE align every argument to the list's maximum scale, and when the SUM of the magnitudes the function adds (each
-   bounded by its aligned digits: every argument for SUM / MEAN, the two largest for RANGE, ×10 for MEDIAN / MIDRANGE)
+   bounded by its aligned digits: every argument for SUM, the two largest for RANGE, ×10 for MEDIAN / MIDRANGE)
    passes `Int128.MaxValue` the call goes to its SDIDI body (`SumDec` …) instead of raising for a value the receiver
    holds — its 34 NEAREST-rounded digits are §15.4.1's implementor-defined approximation, not an exact value
    (`9(29)` beside `V9(9)` sums to 1.0000000010e38, which the carrier holds, and is NOT routed) (MOD / REM are deliberately NOT routed: their value is a difference of nearly equal magnitudes — MOD(9E30,
