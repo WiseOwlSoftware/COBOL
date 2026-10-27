@@ -63,6 +63,12 @@ def campaign(rules_doc: dict[str, Any] | None = None) -> CampaignDomain:
                           frozenset(cfg["exclude_dir"]))
 
 
+def frontier_models(rules_doc: dict[str, Any] | None = None) -> frozenset[str]:
+    """THE frontier families of model_rules.json `routing.frontier`: the values a kb/Work note's `frontier_model:` may
+    take (work.py check), each dispatched only under the owner's per-dispatch approval (MANDATORY-PRACTICES P1)."""
+    return frozenset((rules_doc or rules())["routing"]["frontier"])
+
+
 def family(model: str) -> str:
     """A model id or alias ('claude-sonnet-5-5', 'sonnet', 'claude-opus-5-5[1m]', 'claude-mythos-5-1') -> 'sonnet' | 'opus' |
     'haiku' | 'fable' | 'mythos' | ''. Fable and Mythos are priced at their own rate (model_rules.json; kb/Work R69)."""

@@ -692,13 +692,24 @@ for drain in (False, True):
            for i, w in (("PB77", "w1075a"), ("PB7", "w1075b"))], [(False, True), (False, True)])
     check(f"{mode}: the held unseen lead's branch is no judgment row (R2-1)", "owner-task" in ph["unlanded_without_note"],
           False)
-# The frontier-model hold reads the leads too: an unseen lead whose body needs Mythos under the owner's approval waits.
+# The frontier-model hold reads the leads too: an unseen lead whose `frontier_model:` names Mythos waits.
 fm_notes = dict(dr_notes)
-fm_notes["PB77"] = dataclasses.replace(dr_notes["PB77"], body="This needs Mythos, under the owner's per-dispatch approval.")
+fm_notes["PB77"] = dataclasses.replace(dr_notes["PB77"], frontier_model="mythos")
 pf = pw.plan(fm_notes, CLUSTERS, HALF, dr_reports, lambda b: DR_CLASS.get(b, "ABSENT"), DR_UNLANDED, RULES,
              budget_points=100, carrier=DR_CARRIER.get)
 check("an unseen lead that needs the owner's frontier-model approval waits (R2-1)",
-      (any("PB77" in g.notes for g in pf["groups"]), "owner's approval" in pf["waiting"].get("PB77", "")), (False, True))
+      (any("PB77" in g.notes for g in pf["groups"]), "runs on mythos" in pf["waiting"].get("PB77", "")), (False, True))
+# THE FIELD DECIDES, NEVER THE PROSE (kb/Work PB3941): PB3869's body recorded the owner's approval "in chat (Mythos session
+# ef566665): \"Approve fixing PB3869\"", and the body regex that decided the hold until then held that owner-approved
+# wrong-answer fix out of every wave. A note with no field is planned exactly as it would be with no such prose.
+fp_notes = dict(dr_notes)
+fp_notes["PB77"] = dataclasses.replace(dr_notes["PB77"], body='The owner APPROVED the fix, in chat (Mythos session '
+                                       'ef566665): "Approve fixing PB77; hand it to the operator." Fable reviewed it.')
+pfp, pbase = (pw.plan(n, CLUSTERS, HALF, dr_reports, lambda b: DR_CLASS.get(b, "ABSENT"), DR_UNLANDED, RULES,
+                      budget_points=100, carrier=DR_CARRIER.get) for n in (fp_notes, dr_notes))
+check("a body that names Mythos beside an approval, with no frontier_model field, holds nothing (PB3941)",
+      ([g.notes for g in pfp["groups"]], pfp["waiting"].get("PB77")), ([g.notes for g in pbase["groups"]],
+                                                                      pbase["waiting"].get("PB77")))
 # unlanded_branch_notes is unfiltered: an id that is no lead (a landed note, a typo) leaves its branch a judgment row
 pj = pw.plan(dr_notes, CLUSTERS, HALF, dr_reports, lambda b: DR_CLASS.get(b, "ABSENT"),
              {**DR_UNLANDED, "worktree-wf_dr-8": ["PB4242"]}, RULES, budget_points=100, carrier=DR_CARRIER.get)
@@ -1088,11 +1099,12 @@ for rel in ("src/Lib/Alpha.cs", "src/Lib/Beta.cs", "scripts/gamma.py", "tests/De
     (TMP / "campaign" / rel).write_text("// fixture\n", encoding="utf-8", newline="\n")
 
 
-def cnote(nid, cluster=("PB901",), blocked_by=(), body="", status="open", kind="defect"):
+def cnote(nid, cluster=("PB901",), blocked_by=(), body="", status="open", kind="defect", frontier_model=""):
     bb = ", ".join(blocked_by)
+    fm = f"frontier_model: {frontier_model}\n" if frontier_model else ""
     (CW / f"{nid}.md").write_text(
         f'---\ntitle: "{nid} — campaign step"\nid: {nid}\nkind: {kind}\nstatus: {status}\narea: build/ci\n'
-        f"wrong_answer: false\nprocess_only: true\n"
+        f"wrong_answer: false\nprocess_only: true\n{fm}"
         f"blocked_by: [{bb}]\ncluster: [{', '.join(cluster)}]\n---\n\n# {nid}\n\n{body}\n", encoding="utf-8", newline="\n")
 
 
@@ -1103,7 +1115,8 @@ cnote("PB904", blocked_by=("PB901", "PB902"), body="- **Code site:** tests/Delta
 # PB905 names no site in a site block: what its prose discusses, and its Gate: line, declare nothing (kb/Work PB3242)
 cnote("PB905", blocked_by=("PB903",), body="Then sweep the docs; it discusses `src/Lib/Alpha.cs` and scripts/gamma.py.\n\n"
                                            "**Gate:** `python scripts/gamma.py --check`")
-cnote("PB906", body="Author = Mythos 5.1, only after the owner's explicit\napproval for this dispatch.", kind="analysis")
+cnote("PB906", body="Author = Mythos 5.1, only after the owner's explicit\napproval for this dispatch.", kind="analysis",
+      frontier_model="mythos")
 cnote("PB907", cluster=("OTHER",), body="**Sites:**\n- `src/Lib/Alpha.cs`")
 cnote("PB908", status="landed", body="**Sites:**\n- `src/Lib/Alpha.cs`")
 cnote("PB909", status="owner", body="Waits for the owner.")
