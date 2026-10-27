@@ -48,3 +48,16 @@ own-versus-inherited fact.
 alphabet- and class-names against a data-name of one spelling are already COBOL2692 (a different type of user-defined
 word), probed unchanged. A switch condition-name re-declared by a contained program cannot arise (a contained program
 may not write a CONFIGURATION SECTION, COBOL1643).
+
+**Every position.** One probe program refuses the pair at `IF NOT S-ON`, `IF (S-ON)`, `IF S-ON AND V = 2`, `PERFORM UNTIL
+S-ON`, `EVALUATE TRUE WHEN S-ON` and `SET S-ON TO TRUE` (six COBOL1639, one each), and accepts `IF S-ON OF V`: all reach
+`ConditionOf`.
+
+**Self-review.** Architecture: the count lives in one predicate beside `QualifiedConditionCandidates`; `FlagConformancePass`
+reads only the pure level-88 set and is unaffected. Full code: the first leg-1 run was RED on my own new golden (GOBACK in
+the contained program is COBOL-2002+, so the 85 leg refused it); the program now ends with EXIT PROGRAM. Performance: the
+predicate runs only after a level-88 matched, one dictionary and one set lookup. Duplication: none, the old "88 wins"
+wording was deleted at its three sites rather than reworded in a fourth.
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 2b5b3bc08, Linux half (WSL clone of HEAD)
+GREEN; the first run (RED, the GOBACK golden) is described above.
