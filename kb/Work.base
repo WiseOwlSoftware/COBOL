@@ -41,6 +41,19 @@ properties:
     displayName: Closed rows
   formula.harm:
     displayName: Harm
+  # The `upstream` kind's structured fields (work.py UPSTREAM_KEYS; kb/Work PB3838).
+  note.upstream_status:
+    displayName: Upstream state
+  note.upstream_class:
+    displayName: Upstream class
+  note.upstream_edition:
+    displayName: ISO edition
+  note.upstream_project:
+    displayName: Project
+  note.upstream_version:
+    displayName: Version
+  note.upstream_ref:
+    displayName: Ticket
 views:
   # ⛔ THE ONLY VIEW THAT DECIDES WHAT TO WORK ON. Ranked by what the defect DOES to a user's program, never by
   # its severity label: PB24 (FUNCTION LENGTH silently wrong) and PB39 (rule-id numbering, zero wrong answers)
@@ -85,12 +98,15 @@ views:
   # ⚠ ITS OLD NAME WAS A CLAIM IT COULD NOT SUPPORT. "Open but nobody gets a wrong answer" tested only
   # wrong_answer and crashes, so every item that merely REJECTS LEGAL SOURCE was parked here under a heading
   # asserting it was harmless. The filter is now the exact complement of Fix next.
+  # An `upstream` record (kb/Work PB3838) describes a defect in ANOTHER project and is not our deferred work, so it is
+  # not listed here; it has its own view below. `work.py check` asserts this filter names the kind.
   - type: table
     name: Open but no harm flag set
     filters:
       and:
         - status != "landed"
         - status != "retired"
+        - 'kind != "upstream"'
         - 'wrong_answer == false'
         - 'crashes == false'
         - 'rejects_legal_source == false'
@@ -98,6 +114,20 @@ views:
     order: [id, kind, severity, area, harm]
     sort:
       - property: kind
+        direction: ASC
+  # ⭐ THE UPSTREAM RECORDS (kb/Work PB3838): GnuCOBOL's departures from ISO and its defects, each a note carrying a
+  # minimal repro, the exact cobc command, the observed result, a checked ISO citation and the draft report. A view of
+  # RECORDS to file when the owner approves the text, never of our work (every one is `process_only`).
+  - type: table
+    name: Upstream records
+    filters:
+      and:
+        - 'kind == "upstream"'
+    order: [id, upstream_status, upstream_project, upstream_class, upstream_edition, upstream_version, upstream_ref, area]
+    sort:
+      - property: upstream_status
+        direction: ASC
+      - property: id
         direction: ASC
   - type: table
     name: Analyses (§11 backlog)
