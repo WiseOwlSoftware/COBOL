@@ -23745,6 +23745,22 @@
   ],
   "expect": "COBOL0902"
  },
+ "pb3846-all-zero-in-expression": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0902"
+ },
+ "pb3846-value-list-all-zero-signed": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0902"
+ },
  "pb3347-switch-condition-name-ambiguous-if": {
   "refuse-at": [
    "85",
