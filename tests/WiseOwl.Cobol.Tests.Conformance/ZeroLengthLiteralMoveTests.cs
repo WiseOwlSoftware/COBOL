@@ -178,7 +178,7 @@ public sealed class ZeroLengthLiteralMoveTests
             DISPLAY "LEN=" FUNCTION LENGTH(D-DYN).
             DISPLAY "NU=[" R-NUM "]".
             """);
-        Assert.Equal("LEN=0\nNU=[   ]", Run(src, 2014));
+        Assert.Equal("LEN=000000000\nNU=[   ]", Run(src, 2014));   // LENGTH of a run-time-length item: DISPLAY's device form (PB3514)
     }
 
     // ── GR1's zero-length-ITEM clause — the runtime half of the same substitution ─────────────────────────────

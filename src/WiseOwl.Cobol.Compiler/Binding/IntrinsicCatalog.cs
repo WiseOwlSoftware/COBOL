@@ -34,7 +34,7 @@ public enum FunctionDeviceForm
     /// <summary>The temporary is described by the returned value alone (<c>cob_alloc_field</c>): ordinary integer and
     /// numeric functions, the default.</summary>
     Value,
-    /// <summary>The returned value IS the content of an argument (§15.7.4 r1 ABS, §15.59.4 r1 MAX, §15.63.4 r1 MIN,
+    /// <summary>The returned value IS the content of an argument (§15.7.1 ABS, §15.59.4 1) MAX, §15.63.4 1) MIN,
     /// §15.61 MEDIAN, §15.60 MEAN of one argument), so the temporary is a copy of that argument's item
     /// (<c>FunctionValueField</c>); a MEAN of several arguments is a computed value (<see cref="Value"/>).</summary>
     Argument,

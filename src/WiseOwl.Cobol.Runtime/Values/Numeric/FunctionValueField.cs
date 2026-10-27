@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// function's temporary, and it is one of THREE shapes:</para>
 /// <list type="bullet">
 ///   <item><b>The argument's own description</b> (<see cref="OfItem"/>, <see cref="OfLiteral"/>): ABS, MAX, MIN, an odd
-///         count's MEDIAN and a single argument's MEAN RETURN THE CONTENT of an argument (§15.7.4 r1 for ABS, §15.59.4 r1
+///         count's MEDIAN and a single argument's MEAN RETURN THE CONTENT of an argument (§15.7.1 for ABS, §15.59.4 1)
 ///         and §15.63.4 r1 for the selections), so the temporary is a copy of that argument's item: <c>FUNCTION MAX(U S)</c>
 ///         shows the greater item exactly as <c>DISPLAY</c> of that item does, and ABS keeps the argument's description with
 ///         the sign made positive.</item>
@@ -71,15 +71,17 @@ public readonly struct FunctionValueField
         return digits.Length <= 38 ? new(Shape.Item, value, described) : new(Shape.Value, value, default);
     }
 
-    /// <summary>The temporary is a binary64 value: it shows the shortest round-trip image and orders by its exact value.</summary>
-    public static FunctionValueField OfFloat(double value) => OfFloatImage(value, CobolFloat.Display(value));
+    /// <summary>The temporary is a function's binary64 result: it shows the shortest round-trip image and orders by the value that
+    /// image names (<c>CobolDec.FromApproximation</c>, the lift of an engine-produced approximation).</summary>
+    public static FunctionValueField OfFloat(double value) =>
+        new(Shape.Float, CobolDec.FromApproximation(value), default, CobolFloat.Display(value));
 
-    /// <summary>A floating-point ITEM argument: it orders by its exact value and shows the image its own DISPLAY writes
-    /// (a binary32 item's shortest binary32 round-trip, not its binary64 widening).</summary>
-    public static FunctionValueField OfFloatImage(double value, string image) =>
-        new(Shape.Float, CobolDec.FromApproximation(value), default, image);
+    /// <summary>A floating-point ITEM argument: it orders by its exact value (<paramref name="exactValue"/>, the data item's one
+    /// SDIDI lift, never an approximation) and shows the image its own DISPLAY writes (a binary32 item's shortest binary32
+    /// round-trip, not its binary64 widening).</summary>
+    public static FunctionValueField OfFloatItem(CobolDec exactValue, string image) => new(Shape.Float, exactValue, default, image);
 
-    /// <summary>The same description holding the magnitude of the value (§15.7.4 r1 - ABS returns the absolute value of its
+    /// <summary>The same description holding the magnitude of the value (§15.7.1 - ABS returns the absolute value of its
     /// argument; GnuCOBOL stores it in a copy of the argument's item, so the sign stays a position of the item and shows
     /// <c>+</c> in a signed one).</summary>
     public FunctionValueField Abs() => _shape switch
@@ -92,6 +94,7 @@ public readonly struct FunctionValueField
     /// not replace it, so the temporary is the first one's item).</summary>
     public static FunctionValueField Max(params FunctionValueField[] arguments)
     {
+        CobolIntrinsics.RequireArguments(arguments.Length, "MAX");   // an ALL subscript over no occurrence (§15.3)
         FunctionValueField best = arguments[0];
         for (int i = 1; i < arguments.Length; i++)
             if (CobolDec.Compare(arguments[i]._value, best._value) > 0) best = arguments[i];
@@ -101,6 +104,7 @@ public readonly struct FunctionValueField
     /// <summary>§15.63.4 r1 - the content of the FIRST argument having the least value.</summary>
     public static FunctionValueField Min(params FunctionValueField[] arguments)
     {
+        CobolIntrinsics.RequireArguments(arguments.Length, "MIN");
         FunctionValueField best = arguments[0];
         for (int i = 1; i < arguments.Length; i++)
             if (CobolDec.Compare(arguments[i]._value, best._value) < 0) best = arguments[i];
@@ -112,6 +116,7 @@ public readonly struct FunctionValueField
     /// values, a value with no item of its own.</summary>
     public static FunctionValueField Median(params FunctionValueField[] arguments)
     {
+        CobolIntrinsics.RequireArguments(arguments.Length, "MEDIAN");
         var sorted = (FunctionValueField[])arguments.Clone();
         for (int i = 1; i < sorted.Length; i++)   // insertion sort: stable, and the lists are short
         {

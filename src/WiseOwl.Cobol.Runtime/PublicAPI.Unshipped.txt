@@ -296,4 +296,4 @@ static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloat(double value) -> WiseOwl
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfItem(WiseOwl.Cobol.Runtime.CobolDec value, in WiseOwl.Cobol.Runtime.NumProfile item) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfLiteral(WiseOwl.Cobol.Runtime.CobolDec value, int digits, int scale, bool signed) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfValue(WiseOwl.Cobol.Runtime.CobolDec value) -> WiseOwl.Cobol.Runtime.FunctionValueField
-static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloatImage(double value, string! image) -> WiseOwl.Cobol.Runtime.FunctionValueField
+static WiseOwl.Cobol.Runtime.FunctionValueField.OfFloatItem(WiseOwl.Cobol.Runtime.CobolDec exactValue, string! image) -> WiseOwl.Cobol.Runtime.FunctionValueField

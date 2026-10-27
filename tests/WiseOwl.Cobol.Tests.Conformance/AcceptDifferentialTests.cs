@@ -89,7 +89,7 @@ public sealed class AcceptDifferentialTests
                 ACCEPT WS-X.
                 DISPLAY FUNCTION ORD(WS-X(1:1)) " " FUNCTION ORD(WS-X(2:1)) " " FUNCTION ORD(WS-X(3:1)).
             """),
-            expected: "234 91 8365",
+            expected: "000000234 000000091 000008365",
             stdin: "éZ€\n",
             dialect: 2023);
 
@@ -684,7 +684,7 @@ public sealed class AcceptDifferentialTests
                 DISPLAY FUNCTION ORD(WS-R(1:1)) " " FUNCTION ORD(WS-R(2:1)).
                 DISPLAY WS-G-A.
             """),
-            expected: "1234\n5 211\nabc",
+            expected: "1234\n000000005 000000211\nabc",
             stdin: "1234",
             dialect: 2023);
 
@@ -797,7 +797,7 @@ public sealed class AcceptDifferentialTests
             END PROGRAM ACCPB3128L.
             END PROGRAM ACCPB3128R.
             """,
-            expected: "ABKLMNOPQR]10]Aqrstu]",
+            expected: "ABKLMNOPQR]000000010]Aqrstu]",
             stdin: "KLMNOPQRSTUV\nqrstuvwx\n",
             dialect: 2014);
 
