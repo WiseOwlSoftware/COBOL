@@ -985,7 +985,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// Measured: <c>MOVE FUNCTION NUMVAL-C("$0.123456789") TO PIC S9(4)V9(9)</c> stored 0.123456000 while
     /// COMPUTE stored the exact value — §15.68.4 r1 carries no channel qualification. The scale mirrors
     /// <c>ArithmeticEmitter.ScaleOf</c> (a numeric-edited receiver's scale is its MASK's) and the digits
-    /// <c>ArithmeticEmitter.IntDigitsOf</c> (from <c>DigitPositions</c>, never the '9' count — under-counting
+    /// <c>ReceiverContext.Of</c>'s integer-digit rule (from <c>DigitPositions</c>, never the '9' count — under-counting
     /// breaks the PB13 saturation-is-visible invariant).</summary>
     private ReceiverContext SenderContext(DataItem target)
     {
