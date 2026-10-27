@@ -819,6 +819,22 @@ BINARY-CAPACITY item (COMP-5, BINARY-CHAR ... BINARY-DOUBLE), which owns its who
 the quotient such an item holds is the full quotient, and capping it at the PICTURE's digits made the remainder of
 `DIVIDE 123456 BY 7 GIVING Q REMAINDER R` into `Q PIC 9(4) COMP-5` 70004 instead of 4.
 
+**The subsidiary quotient is identifier-3's SHAPE under truncation, one arm per form (kb/Work PB2923;
+`ArithmeticEmitter.SubsidiaryShapeOf`, `SubsidiaryForm`).** §14.9.12.4 6) c) gives it "the same number of digits and the same
+decimal point location as" identifier-3, which only a fixed-point item has in the sense the old (scale, digit cap) pair
+modelled. A FIXED-POINT identifier-3 keeps that pair (above). A FLOATING-POINT numeric-edited identifier-3 (`PIC +9.99E+99`)
+has a significand of `SigDigits` digits at an exponent and no decimal point location, so its subsidiary quotient is the
+quotient truncated to those digits at its own exponent: `CobolEdit.TruncateToFloatShape`, the very normalization its store
+performs (`NormalizeFloat`, shared with `FormatFloatCore`, so a value past the exponent's range is the pinned saturated
+content and one nearer to zero than the item holds is zero, as the store leaves them). A BINARY floating-point identifier-3
+(COMP-1/2, FLOAT-SHORT/-LONG ...) has a format, and its subsidiary quotient is the quotient truncated toward zero into it:
+`CobolFloat.TruncatedToFormat` for an SDIDI quotient (an exact comparison, never a second rounding) and, for a native
+binary64 quotient, the value itself (binary64) or `CobolFloat.TruncatedToSingle` (binary32); the remainder is then the SDIDI
+expression (standard-decimal) or the binary64 one (native, DOC-A.1-123). A floating-point identifier-3 takes
+`CarriedSubsidiaryQuotient` in every mode, because the Int128 kernel truncates at a scale it does not have. ⛔ The stored
+quotient is `FinalQuotient`, the one former `DIVIDE ... GIVING` itself uses (§14.9.12.4 5) b), 6) b)), and the subsidiary
+quotient is derived FROM it, never the other way round (`DivideQuotientOneFormerDriftTests` keeps both true).
+
 ### Mixed float/fixed arithmetic and the COMP-1/COMP-2 capacity bypass.
 
 Type-classify each arithmetic sub-expression: if any operand is float-usage, the sub-expression evaluates in `double` (IEEE), and the final store to a fixed-point receiver converts double→CobolInt at the receiver scale with the ROUNDED mode (legacy StoreArithmeticResult guards `if Usage is Comp1/Comp2 skip scaling`). A pure-fixed sub-expression stays Int128. The 31-digit composite limit applies only to the non-float operands (rule 2b). COMP-5 stores in its exact native width and bounds by two's-complement (binary-wrap), not by digit count.
