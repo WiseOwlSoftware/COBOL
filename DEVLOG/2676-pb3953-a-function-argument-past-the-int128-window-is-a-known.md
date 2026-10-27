@@ -1,4 +1,4 @@
-## PB3953: a function argument past the Int128 window is a known departure from GnuCOBOL, and the note stays open
+## Entry 2676 — 2026-10-27 16:10 PDT — PB3953: a function argument past the Int128 window is a known departure from GnuCOBOL, and the note stays open
 
 PB3953 asked whether an arithmetic expression used as a function argument is covered by the native-arithmetic latitude of
 DOC-A.1-123, or should be exact to the 77-digit lane a COMPUTE has. Re-probe on a fresh build: `FUNCTION ABS (BIG * BIG * BIG)`
@@ -33,3 +33,4 @@ the 39-digit image are gone, and the fix adds its own. `pb3953_function_argument
 Found on the way and not fixed (another mechanism): an `EVALUATE` subject that is an arithmetic expression is held in a
 `S9(21)V9(17)` temporary, so `EVALUATE BIG * BIG WHEN 1 ... WHEN BIG * BIG` (a 36-digit subject) takes OTHER where the second WHEN
 equals the subject; without the first WHEN it is exact. It is a lead in the implementer's report.
+
