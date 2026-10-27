@@ -27,9 +27,11 @@ Witnesses: `WindowsConsoleDeviceTests` (Conformance) runs real programs on a rea
 pseudoconsole created by the new `WindowsPseudoConsole` helper (`CreatePseudoConsole`; a pipe cannot reach either
 defect). Each case puts the console in code page 437 and asserts a code-page probe reads 437 before the program runs, so
 a green cannot mean the defect was never exercised. Cases: ACCEPT into `PIC N(4)` and `PIC X(4)` keeps `8365 20014 70
-234` (ORD is the code-unit value plus one, item 188); a DISPLAY program with stdin redirected, with stdout redirected to a
-file (the bytes are strict UTF-8) and with all three handles on the console leaves the probe at 437/437; the `cobol`
-command rejecting a program prints its section sign and en dash to the console whole and leaves 437/437. All six fail on
+234` (ORD is the code-unit value plus one, item 188); a DISPLAY program (to standard output and UPON SYSERR) with stdin
+redirected, with stdout redirected to a file, with stderr redirected to a file (the bytes are strict UTF-8, and the
+other stream shows its characters on the console) and with all three handles on the console leaves the probe at
+437/437; the `cobol` command rejecting a program prints its section sign and en dash to the console whole and leaves
+437/437. The first six were run against the old tree (the stderr case was added after) and all fail on
 the old tree (`Actual: (437, 65001)`; the ORD line missing) and pass on the new one. Two traps in the helper are recorded
 in its comments: a child started without `STARTF_USESTDHANDLES` takes the test host's redirected pipes instead of the
 pseudoconsole, and closing the pseudoconsole straight after the child exits drops the output it has not rendered yet, so
