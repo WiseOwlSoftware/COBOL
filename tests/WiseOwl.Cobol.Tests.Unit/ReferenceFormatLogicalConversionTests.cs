@@ -71,6 +71,8 @@ public sealed class ReferenceFormatLogicalConversionTests
     [InlineData('X', false, true, "DISPLAY \"L\".")]
     [InlineData('E', true, false, "")]                 // CCVS: an excluded alternate line (discarded)
     [InlineData('X', true, false, "DISPLAY \"L\".")]   // CCVS: a primary-configuration line
+    [InlineData('B', true, false, "")]                 // CCVS: the switches-not-implemented alternate of the A/B pair (kb/Work PB3347)
+    [InlineData('A', true, false, "DISPLAY \"L\".")]   // CCVS: its primary configuration, switches implemented
     [InlineData('D', false, false, "<debug>DISPLAY \"L\".")]   // COBOL-85's debugging line, with or without --nist
     public void IndicatorArea_OnlyFixedIndicators_OutsideNist(char indicator, bool ccvs, bool diagnosed, string line)
     {

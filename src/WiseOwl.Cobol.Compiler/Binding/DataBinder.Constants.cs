@@ -225,7 +225,7 @@ public sealed partial class DataBinder
                 _constants.Bound.Remove(name);
                 _inheritedConstants.Remove(name);
             }
-        foreach (var (name, depth) in _inheritedSymbolics)
+        foreach (var (name, depth) in SymbolicCharacters.InheritedDepths)
             if (DeclaredNearerThan(name, depth)) _shadowedSymbolics.Add(name);
     }
 
