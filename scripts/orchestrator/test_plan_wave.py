@@ -1277,6 +1277,22 @@ check("PB3638: a finisher takes its notes' tier; inside one tier the finishers k
 check("PB3638: the fix lane passes no tiers, so its order is the one check 2 holds", [g.notes for g in p["groups"]][:3],
       [list(FIN), ["PB4"], ["PB13"]])
 check("PB3638: model_rules.json states the owner's one link per chain", LIVE_RULES["wave"]["links_per_chain"], 1)
+# THE IMPLEMENTER'S DEFAULT MODEL HAS ONE HOME (kb/Work PB3868). Expected from the owner's decision of 2026-10-27: the
+# implementer runs Sonnet unless model_rules.json's routing.opus_when sends a group to Opus, and the default is the `model` of
+# .claude/agents/cobol-implementer.md, which the harness reads when a group names no model; model_rules.json states no copy
+# (the retired routing.default and wave.implementer_model), so the planner, the ledger and the harness cannot disagree.
+check("PB3868: the implementer's default model is Sonnet, from its agent definition", coord.agent_model("cobol-implementer"), "sonnet")
+check("PB3868: the default is a model the routing allows", coord.agent_model("cobol-implementer") in LIVE_RULES["routing"]["allowed"], True)
+check("PB3868: model_rules.json states no second copy of the default",
+      ("default" in LIVE_RULES["routing"], "implementer_model" in LIVE_RULES["wave"]), (False, False))
+AGDIR = TMP / "agents-pb3868"
+AGDIR.mkdir()
+(AGDIR / "cobol-implementer.md").write_text("---" + chr(10) + "name: cobol-implementer" + chr(10) + "maxTurns: 400" + chr(10) + "---" + chr(10) + "body" + chr(10), encoding="utf-8", newline=chr(10))
+try:
+    coord.agent_model("cobol-implementer", AGDIR)
+    check("PB3868: a definition with no model is refused, never defaulted", "returned a model", "ValueError")
+except ValueError:
+    check("PB3868: a definition with no model is refused, never defaulted", True, True)
 tp3 = pw.plan(notes, CLUSTERS, HALF, reports, lambda b: CLASS.get(b, "ABSENT"), UNLANDED, LIVE_RULES,
               budget_points=100, tiers={"PB14": 1})
 check("PB3638: under the live rules no dispatched group follows another (one link per chain)",

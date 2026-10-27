@@ -828,11 +828,11 @@ def inputs_text(inputs: dict) -> str:
                      f'is not checked out here)')
     if rules:
         w, c, cal = rules["wave"], rules["cost"], rules["calibration"]["tokens_per_point"]
-        m = w["implementer_model"]
+        m = inputs["implementer_model"]
         items.append(f'the planner (<span class="mono">model_rules.json</span> <span class="mono">wave</span>): '
                      f'{n(w["max_notes_per_group"])} notes per group (a campaign\'s and a held cluster\'s groups are counted '
                      f'at this cap, a lower bound: a campaign clusters by the sites its notes name), {n(w["max_groups"])} groups '
-                     f'per wave, implementers on {e(m)}')
+                     f'per wave, implementers on {e(m)} unless routed to Opus (the default is <span class="mono">.claude/agents/cobol-implementer.md</span>\'s model)')
         items.append(f'the cost constants (<span class="mono">cost</span>, <span class="mono">calibration</span>): a group '
                      f'{n(c["per_group_tokens"][m])} + {n(c["per_note_tokens"][m])} tokens per note at {n(cal[m])} {e(m)} '
                      f'tokens per weekly point; a landing {n(c["landing_tokens"])} at {n(cal[c["landing_model"]])} '
@@ -1302,11 +1302,11 @@ def self_test() -> int:
     cells = re.findall(r'<td class="r">(.*?)</td>', est)
     check("a missing input renders UNMEASURED, never a number",
           bool(cells) and all(c == UNMEASURED for c in cells), str(cells)[:300])
-    rules = {"wave": {"max_notes_per_group": 5, "max_groups": 8, "implementer_model": "sonnet"},
+    rules = {"wave": {"max_notes_per_group": 5, "max_groups": 8},
              "cost": {"per_group_tokens": {"sonnet": 400000}, "per_note_tokens": {"sonnet": 240000},
                       "landing_tokens": 96000, "landing_model": "opus"},
              "calibration": {"tokens_per_point": {"sonnet": 4000000, "opus": 1600000}}}
-    full = {"rules": rules, "fix_groups": {"clusters": [{"notes": [{"id": "PB9001"}]}], "unsited": []},
+    full = {"rules": rules, "implementer_model": "sonnet", "fix_groups": {"clusters": [{"notes": [{"id": "PB9001"}]}], "unsited": []},
             "rate": {"per_h": 2.0, "changes": 4, "window_h": 2.0, "landings": 1, "median_min": 30.0,
                      "source": "pull requests through the merge queue", "median_measures": "DONE → on main, per change"},
             "burn": {"per_h": 3.0, "from_pct": 0.0, "to_pct": 3.0, "hours": 1.0, "account": "t"}}

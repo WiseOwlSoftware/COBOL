@@ -75,11 +75,13 @@ function lastVerdictAgent(prompt) {
 }
 const events = []
 const prompts = {}
+const models = {}
 const queues = Object.fromEntries(Object.entries(scenario.agents).map(([k, v]) => [k, [...v]]))
 async function agent(prompt, opts) {
   const label = opts.label
   events.push('start:' + label)
   ;(prompts[label] = prompts[label] || []).push(prompt)
+  ;(models[label] = models[label] || []).push('model' in opts ? opts.model : '(none)')
   await new Promise(r => setImmediate(r))
   let res
   if (label.startsWith('finished-')) res = { exit: 0, line: '=== REPORT: FINISHED ===' }
@@ -98,7 +100,7 @@ const log = m => events.push('log:' + m)
 const phase = () => {}
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
 const out = await new AsyncFunction('args', 'agent', 'parallel', 'log', 'phase', src)(scenario.args, agent, parallel, log, phase)
-console.log(JSON.stringify({ out, events, prompts }))
+console.log(JSON.stringify({ out, events, prompts, models }))
 """
 
 fails: list[str] = []
@@ -165,7 +167,7 @@ def run(tmp: pathlib.Path, name: str, scenario: dict, findings: list | None = No
                        env={**os.environ, "HARNESS_ELSEWHERE": str(scratch)})   # the gate's reader runs from here
     if p.returncode != 0:
         fails.append(f"{name}: node exited {p.returncode}: {p.stderr.strip()[-800:]}")
-        return {"out": {"ready": [], "results": [], "leads": []}, "events": [], "prompts": {}}
+        return {"out": {"ready": [], "results": [], "leads": []}, "events": [], "prompts": {}, "models": {}}
     return json.loads(p.stdout.strip().splitlines()[-1])
 
 
@@ -198,6 +200,20 @@ def main() -> int:
               at(ev, "log:A: DONE; 1 branch(es) reviewed CLEAN") < at(ev, "start:impl-B-PB2"), ev)
         check("1: both branches are ready, the predecessor first",
               [x["branch"] for x in r["out"]["ready"]] == ["bA", "bB"], r["out"]["ready"])
+
+        # THE IMPLEMENTER'S MODEL (kb/Work PB3868). Expected from the rule (MANDATORY-PRACTICES P1): a group's own `model`
+        # (the planner's routing) is passed to its implementer; a group without one passes NO model, so the harness runs
+        # the `model` of .claude/agents/cobol-implementer.md, the default's one home; the reviewer is Opus either way.
+        rm = run(tmp, "models", {"args": args([{"letter": "A", "lead": "PB1", "notes": "PB1", "codes": "C1"},
+                                              {"letter": "B", "lead": "PB2", "notes": "PB2", "codes": "C2", "model": "opus"}]),
+                                "agents": {"impl-A-PB1": [impl("bA", "a1")], "w9a-review-r1": [review("CLEAN", "a1")],
+                                           "impl-B-PB2": [impl("bB", "b1")], "w9b-review-r1": [review("CLEAN", "b1")]}})
+        m = rm["models"]
+        check("PB3868: a group without a model passes none to its implementer (the agent definition's default runs)",
+              m.get("impl-A-PB1") == ["(none)"], m)
+        check("PB3868: a group's routed model is passed to its implementer", m.get("impl-B-PB2") == ["opus"], m)
+        check("PB3868: the reviewer runs Opus whatever the group's model",
+              (m.get("w9a-review-r1"), m.get("w9b-review-r1")) == (["opus"], ["opus"]), m)
         bp = (pr.get("impl-B-PB2") or [""])[0]
         check("1: the successor merges the predecessor's reviewed head and is told it lands on its own",
               "merge_drivers.py merge bA" in bp and "head a1" in bp and "lands ON ITS OWN" in bp and "landed-via-predecessor" not in bp, bp)
