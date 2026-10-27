@@ -2,6 +2,9 @@
  "pb1525_flag_extensions_changes_nothing": {
   "flag-extensions": "on"
  },
+ "pb3514_function_result_digits_form": {
+  "numeric-display": "digits"
+ },
  "pb3505_display_comp5_beyond_picture_digits": {
   "numeric-display": "digits"
  },

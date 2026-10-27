@@ -375,15 +375,22 @@ internal static class OperandText
     /// Annex A.1 item 56, docs/CONFORMANCE.md DOC-A.1-56; kb/Work PB3505, owner decision PB3467). A fixed-point numeric
     /// ELEMENTARY item under <see cref="NumericDisplayForm.Decimal"/> shows its value with the decimal point at the scale
     /// and a signed item's leading sign (<c>CobolNum.DisplayDecimal</c>), the form of the program's decimal separator;
-    /// under <see cref="NumericDisplayForm.Digits"/> it is the digit image, and every other operand — an alphanumeric or
-    /// edited item, a group (its storage image), a float, a literal, a figurative, a function result (DOC-A.1-92's own
-    /// form) — is <see cref="AsTransferString"/>'s, whatever the option says.
+    /// under <see cref="NumericDisplayForm.Digits"/> it is the digit image. The returned value of a numeric FUNCTION is a
+    /// temporary data item (§15.4) and shows by the description its function gives it under <c>decimal</c>
+    /// (<see cref="FunctionDeviceText"/>, DOC-A.1-92, kb/Work PB3514); under <c>digits</c> it keeps DOC-A.1-92's literal form.
+    /// Every other operand — an alphanumeric or edited item, a group (its storage image), a float, a literal, a figurative —
+    /// is <see cref="AsTransferString"/>'s, whatever the option says.
     /// <para>⛔ DISPLAY ONLY. <see cref="AsString"/> serves MOVE and the other character uses of a numeric item, whose
     /// results §14.9.25.4 GR6 fixes, and keeps the digit image there; this method is the one place the option is read.</para></summary>
     public static string AsDeviceString(BoundOperand op, NumericRenderer num, NumericDisplayForm form, string context) =>
         form is NumericDisplayForm.Decimal
         && op is BoundFieldOperand { Place: { Item.IsGroup: false, Item.Pic: { Category: PicCategory.Numeric, IsFloat: false } } and not RefModPlace } field
             ? FieldAsString(field.Place, deSign: false, SendingRef.Normal, deviceComma: num.UnitDecimalPointIsComma)
+        // A numeric FUNCTION's returned value is a temporary data item (§15.4) with an implementor-defined description (§15.4.1),
+        // shown by the description GnuCOBOL gives it (FunctionDeviceText, DOC-A.1-92; kb/Work PB3514). Under `digits` it keeps
+        // DOC-A.1-92's literal form, like every operand the option leaves alone.
+        : form is NumericDisplayForm.Decimal && FunctionDeviceText.Of(op, num) is { } function
+            ? function
             : AsTransferString(op, num, context);
 
     /// <param name="context">Names the operation in the Tier-C loud message — the same parameter

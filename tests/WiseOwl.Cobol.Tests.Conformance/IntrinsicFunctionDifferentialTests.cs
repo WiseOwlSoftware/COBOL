@@ -1306,7 +1306,7 @@ public sealed class IntrinsicFunctionDifferentialTests
                 DISPLAY FUNCTION SMALLEST-ALGEBRAIC(X-INT).
                 DISPLAY FUNCTION SMALLEST-ALGEBRAIC(X-FRAC).
                 DISPLAY FUNCTION SMALLEST-ALGEBRAIC(X-PSCL).
-            """), "1\n0.001\n100", 2023);
+            """), "000000001\n000000.001\n000000100", 2023);   // DISPLAY's device form of the value's own temporary (PB3514)
 
     [Fact]
     public void Concatenate_NotAnIsoFunction_1501()

@@ -189,7 +189,7 @@ public sealed class BitRunImageDriftTests
         var (okP, outP, detailP) = compiler.CompileAndRun(plain);
         Assert.True(okA, detailA);
         Assert.True(okP, detailP);
-        string roundTrip = " ORD=" + string.Join(",", Enumerable.Repeat("91", width));
+        string roundTrip = " ORD=" + string.Join(",", Enumerable.Repeat("000000091", width));   // ORD's temporary, DISPLAY's device form (PB3514)
         Assert.EndsWith(roundTrip + "]", Normalize(outP));
         Assert.EndsWith(roundTrip + "]", Normalize(outA));
         Assert.Equal(Normalize(outP), Normalize(outA));

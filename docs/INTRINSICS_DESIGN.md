@@ -570,6 +570,34 @@ keeps the exact Int128 selection (`MaxAt` / `MinAt`, PB65's D1). The arithmetic 
 RANGE / MIDRANGE — genuine equivalent arithmetic expressions) keeps the D16 native float lane a float operand
 selects. Golden `pb65_selection_mixed_carriers`.
 
+### A numeric function's returned value is a temporary item, and DISPLAY shows it by that item's description (PB3514, DOC-A.1-92).
+
+§15.4 puts a function's returned value in "a temporary elementary data item"; DISPLAY shows a numeric data item by its
+description (DOC-A.1-56, `CobolNum.DisplayDecimal`); §15.4.1 leaves the description to the implementor under native
+arithmetic and §14.9.11.4 GR1 leaves the device conversion to the implementor, so CLAUDE.md rule 1's precedence adopts
+GnuCOBOL 3.2.0's. **One catalog column** (`IntrinsicSig.DeviceForm`, `FunctionDeviceForm`) says which of GnuCOBOL's shapes a
+function's temporary has, and its DEFAULT is the shape of every function nobody has special-cased, so a function added tomorrow
+needs no edit: `Value` (the description `cob_alloc_field` derives from the value alone — `CobolNum.ReturnedValueProfile`),
+`Argument` (ABS, MAX, MIN, MEDIAN, MEAN of one argument: a COPY of the argument whose content is returned), `FixedDigits`
+(DATE-OF-INTEGER's eight and DAY-OF-INTEGER's seven digits) and `Literal` (LENGTH / BYTE-LENGTH, the two calls GnuCOBOL folds
+too). `FunctionDeviceFormDriftTests` holds the set of rows that say otherwise against the renderer's cases, the binder's fold
+and DOC-A.1-92.
+
+**One reader**: `OperandText.AsDeviceString` — the entry the `--numeric-display` option is read through, and DISPLAY's alone —
+asks `FunctionDeviceText.Of`. MOVE, STRING, INSPECT and the comparisons ask `OperandText.AsString` and keep DOC-A.1-92's literal
+form (a numeric item has two channels the same way: §14.9.25.4 GR6 fixes what a MOVE sends). `FunctionDeviceText` builds, for a
+selecting function, ONE `FunctionValueField` per argument — the value and its description, each argument read once, a nested
+function handing its caller the temporary it made (`ABS(INTEGER(X))` copies INTEGER's SIGNED item) — and the runtime picks
+(`FunctionValueField.Max` / `Min` / `Median`, the first of equal values winning as in §15.59.4 r1 / §15.63.4 r1). Every other
+function's text is `CobolNum.DeviceFunctionText` of its value: a scaled integer and an SDIDI reach the same rule. A binary64
+result keeps the shortest round-trip image (`CobolFloat.Display`), as a floating-point item does (PB3505). The value path
+reads the call at `ReceiverContext.None`, so the text never depends on a receiver (PB3839).
+
+Two things GnuCOBOL does are not copied because each shows a figure the value does not have: its 9-position 4-byte temporary cuts
+a 10-digit value's high-order digit, and its DISPLAY temporary takes its digit count from a GMP size estimate that can exceed
+the true count by one (a leading zero). The positions are `max(container positions, the value's digits)`.
+Goldens `pb3514_function_result_device_form*` and `wiseowl/14.9.11-DISPLAY/pb3514_function_result_digits_form`.
+
 ### The binary64 lane is entered on the ARGUMENT RUN, not on one argument (PB635).
 
 `RenderFloat`'s body converts **every** argument through one binary64 conversion, so the lane is only enterable
