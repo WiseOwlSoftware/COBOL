@@ -137,6 +137,122 @@ public sealed class CobolWordsDriftTests
             + "declaration with no COBOL0901 (the funnel reports high-confidence rows only)");
     }
 
+    /// <summary>The tokens whose <c>cobol-words.json</c> row carries the <c>keywordWhereFree</c> determination.</summary>
+    internal static HashSet<string> KeywordWhereFreeTokens()
+    {
+        using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("cobol-words.json")));
+        return doc.RootElement.GetProperty("words").EnumerateArray()
+            .Where(e => e.TryGetProperty("keywordWhereFree", out var v) && v.GetString() is { Length: > 0 })
+            .Select(e => e.GetProperty("token").GetString()!)
+            .ToHashSet(StringComparer.Ordinal);
+    }
+
+    /// <summary>The generated keyword rule's name for <paramref name="token"/>: <c>METHOD</c> → <c>methodKeyword</c>,
+    /// <c>MESSAGE_TAG</c> → <c>messageTagKeyword</c> (gen-cobol-words.ps1 step 5c).</summary>
+    internal static string KeywordRuleName(string token)
+    {
+        var parts = token.TrimEnd('_').ToLowerInvariant().Split('_');
+        return parts[0] + string.Concat(parts.Skip(1).Select(p => char.ToUpperInvariant(p[0]) + p[1..])) + "Keyword";
+    }
+
+    /// <summary>⛔ A GATED WORD A FORMAT SPELLS WHERE §8.9 LEAVES IT FREE READS ITS KEYWORD THROUGH ONE GENERATED RULE
+    /// (kb/Work PB2623, PB3794). The token-level gate retypes EVERY occurrence of a declared free word to IDENTIFIER, so
+    /// such a format's keyword position must accept the retyped spelling: <c>01 MESSAGE PIC 9.</c> then <c>CONTINUE
+    /// AFTER MESSAGE RECEIVED</c> at 2023 was a parse error. The generated rules are exactly the
+    /// <c>keywordWhereFree</c> rows, each of the one shape <c>TOKEN | {wordAhead("WORD")}? IDENTIFIER</c>, and each on a
+    /// word the derived gate holds (a word it never retypes needs none).</summary>
+    [Fact]
+    public void KeywordRules_Are_Generated_From_The_KeywordWhereFree_Rows()
+    {
+        var rows = KeywordWhereFreeTokens();
+        Assert.NotEmpty(rows);
+        string g4 = File.ReadAllText(GeneratedWordsG4()).Replace("\r\n", "\n");
+        var generated = Regex.Matches(g4, @"^([a-z][A-Za-z0-9]*Keyword)\n((?:    [^\n]*\n?)*?)    ;", RegexOptions.Multiline)
+            .ToDictionary(m => m.Groups[1].Value, m => m.Groups[2].Value, StringComparer.Ordinal);
+        var expected = rows.ToDictionary(KeywordRuleName, t => t, StringComparer.Ordinal);
+        var missing = expected.Keys.Where(r => !generated.ContainsKey(r)).Order(StringComparer.Ordinal).ToList();
+        var stray = generated.Keys.Where(r => !expected.ContainsKey(r)).Order(StringComparer.Ordinal).ToList();
+        Assert.True(missing.Count == 0 && stray.Count == 0,
+            $"keyword rule drift: missing [{string.Join(",", missing)}] stray [{string.Join(",", stray)}] — re-run scripts/gen-cobol-words.ps1");
+        foreach (var (rule, token) in expected)
+            Assert.Equal($"    : {token}\n    | {{wordAhead(\"{ToWord(token)}\")}}? IDENTIFIER\n", generated[rule]);
+        var gated = DerivedGateSet();
+        var ungated = rows.Where(t => !gated.Contains(t)).Order(StringComparer.Ordinal).ToList();
+        Assert.True(ungated.Count == 0, $"keywordWhereFree on word(s) the gate never retypes: [{string.Join(",", ungated)}]");
+    }
+
+    /// <summary>The (rule, token) pairs of <paramref name="grammar"/> that spell one of <paramref name="tokens"/> as
+    /// a bare token — comments and actions removed, a label (<c>op=TOKEN</c>) and a quantifier read through.</summary>
+    internal static IEnumerable<string> BareTokenSpellings(string grammar, IReadOnlySet<string> tokens)
+    {
+        string text = UserWordSlotDriftTests.StripActions(UserWordSlotDriftTests.Comment.Replace(grammar, ""));
+        foreach (Match m in UserWordSlotDriftTests.Rule.Matches(text))
+            foreach (var word in Regex.Split(m.Groups[2].Value, @"[\s()|=~]+"))
+                if (word.TrimEnd('?', '*', '+') is { Length: > 0 } t && tokens.Contains(t))
+                    yield return $"{m.Groups[1].Value}:{t}";
+    }
+
+    /// <summary>⛔ THE OBLIGATION: the hand-written grammar spells a <c>keywordWhereFree</c> word ONLY through its
+    /// keyword rule. A bare token is the PB3794 defect itself — the position never sees the retyped IDENTIFIER — and
+    /// the next format to spell the word must not be able to reintroduce it.</summary>
+    [Fact]
+    public void A_KeywordWhereFree_Word_Is_Spelled_Only_Through_Its_Keyword_Rule()
+    {
+        var tokens = KeywordWhereFreeTokens();
+        var files = UserWordSlotDriftTests.ParserGrammars()
+            .Where(f => !Path.GetFileName(f).Equals("CobolWords.g4", StringComparison.Ordinal)).ToList();
+        Assert.True(files.Count >= 10, $"only {files.Count} hand-written parser grammar file(s) found — the scan is blind");
+        var bare = files.SelectMany(f => BareTokenSpellings(File.ReadAllText(f), tokens))
+            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
+        Assert.True(bare.Count == 0,
+            $"rule:token [{string.Join(", ", bare)}] spell a keywordWhereFree word as its bare token; a program that declares "
+            + "the word has it retyped to IDENTIFIER there (ReservationGateRewriter) — spell it through its <word>Keyword rule");
+        string all = string.Join("\n", files.Select(File.ReadAllText));
+        var unused = tokens.Select(KeywordRuleName).Where(r => !Regex.IsMatch(all, $@"\b{r}\b"))
+            .Order(StringComparer.Ordinal).ToList();
+        Assert.True(unused.Count == 0, $"keyword rule(s) [{string.Join(",", unused)}] spelled by no format — drop the determination");
+    }
+
+    /// <summary>Prove the spelling guard can FAIL: a bare token is reported (labelled and quantified too), the keyword
+    /// rule and a comment are not.</summary>
+    [Fact]
+    public void TheSpellingGuard_ReportsABareToken_AndPassesTheKeywordRule()
+    {
+        const string grammar = "parser grammar Probe;\noptions { tokenVocab = CobolLexer; }\n"
+            + "receivePhrase\n    : CONTINUE (MESSAGE cobolWord | arithmeticExpression)   // MESSAGE in a comment\n    ;\n"
+            + "lockPhrase : LOCK ON w=MULTIPLE? RECORDS ;\n"
+            + "fixedPhrase\n    : CONTINUE messageKeyword cobolWord { note(\"MESSAGE\"); }\n    ;\n";
+        var tokens = new HashSet<string>(["MESSAGE", "MULTIPLE"], StringComparer.Ordinal);
+        Assert.Equal(["receivePhrase:MESSAGE", "lockPhrase:MULTIPLE"], BareTokenSpellings(grammar, tokens).ToArray());
+    }
+
+    /// <summary>⛔ THE DETERMINATIONS ARE RE-DERIVED FROM THE STANDARD WHERE THE STANDARD IS IN THE REPOSITORY. A gated
+    /// word that COBOL-2023 does not reserve (§8.9) yet underlines in a general format of <c>specs/ISO_COBOL.md</c>, and a
+    /// gated word §8.10 lists as context-sensitive ("If a context-sensitive word is used where the context-sensitive word
+    /// is permitted in the general format, the word is treated as a keyword; otherwise it is treated as a user-defined
+    /// word"), is a word a program may declare AND write in its format, so its row must carry
+    /// <c>keywordWhereFree</c>. METHOD, MESSAGE and MULTIPLE are found this way; the earlier editions' texts are not in
+    /// the repository, so a determination for them (ORDER in the COBOL-85 SORT) stands on its row's citation.</summary>
+    [Fact]
+    public void Every_Gated_Word_A_2023_Format_Spells_Where_Section89_Frees_It_Carries_The_Determination()
+    {
+        var gated = DerivedGateSet();
+        var reserved = LoadReservedIntervals();
+        string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md"));
+        var underlinedFree = gated.Where(t => !reserved[ToWord(t)][3]
+                && spec.Contains($"<u>{ToWord(t)}</u>", StringComparison.Ordinal)).ToHashSet(StringComparer.Ordinal);
+        var contextSensitive = gated.Where(t => LoadContextSensitive().Contains(ToWord(t))).ToHashSet(StringComparer.Ordinal);
+        Assert.True(underlinedFree.Count >= 3 && contextSensitive.Count >= 1,
+            $"the oracle found {underlinedFree.Count} underlined free word(s) and {contextSensitive.Count} context-sensitive "
+            + "gated word(s) — fewer than the three (METHOD, MESSAGE, MULTIPLE) it was written against: the scan is blind");
+        var rows = KeywordWhereFreeTokens();
+        var lacking = underlinedFree.Union(contextSensitive).Where(t => !rows.Contains(t)).Order(StringComparer.Ordinal).ToList();
+        Assert.True(lacking.Count == 0,
+            $"gated word(s) [{string.Join(",", lacking)}] are spelled by a 2023 general format (or are §8.10 context-sensitive) "
+            + "where §8.9 leaves them free, but their cobol-words.json row carries no keywordWhereFree determination — a "
+            + "program that declares the word cannot write that format (kb/Work PB3794)");
+    }
+
     /// <summary>The lexer's runtime <c>_dataNameTokens</c> set equals the JSON <c>subscriptTrigger=true</c> tokens.
     /// This reads the ONE real compiled set (the hand-written HashSet was deleted from CobolLexer.g4 @members).</summary>
     [Fact]

@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// The END METHOD half is the corpus golden <c>2023/pb2623_method_is_a_user_word_at_2023</c>. This class holds the
 /// half the strict corpus cannot reach: EXIT METHOD survives only under <c>--permissive</c> at 2023, and a program
 /// that declares a data item METHOD has EVERY METHOD token retyped to a user word by the §8.9 reservation gate, so the
-/// keyword position (<c>methodKeyword</c>, CobolOO.g4) must still read it.
+/// keyword position (<c>methodKeyword</c>, generated into CobolWords.g4 from the row's <c>keywordWhereFree</c> determination) must still read it.
 /// </remarks>
 public sealed class MethodUserWordTests
 {

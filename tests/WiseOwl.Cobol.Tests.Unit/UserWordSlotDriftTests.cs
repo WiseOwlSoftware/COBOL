@@ -36,12 +36,12 @@ public sealed class UserWordSlotDriftTests
         ["screenColumnClause"] = "the keyword MINUS has no lexer token (the declined screen module, kb/Work PB260)",
     };
 
-    private static readonly Regex Comment = new(@"//[^\n]*|/\*.*?\*/", RegexOptions.Singleline | RegexOptions.CultureInvariant);
+    internal static readonly Regex Comment = new(@"//[^\n]*|/\*.*?\*/", RegexOptions.Singleline | RegexOptions.CultureInvariant);
 
     /// <summary>A rule head at the start of a line: a lower-case rule name, its optional <c>[args]</c>,
     /// <c>returns [..]</c> and <c>locals [..]</c>, then ':' and the body to the rule's ';'. Actions are removed first, so
     /// the only ';' left in the text end a rule or a grammar/import statement (which has no ':' and so never matches).</summary>
-    private static readonly Regex Rule = new(
+    internal static readonly Regex Rule = new(
         @"^([a-z][A-Za-z0-9_]*)\s*(?:\[[^\]]*\]\s*)?(?:returns\s*\[[^\]]*\]\s*)?(?:locals\s*\[[^\]]*\]\s*)?:(.*?);",
         RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.CultureInvariant);
 
@@ -63,7 +63,7 @@ public sealed class UserWordSlotDriftTests
     /// <summary>Replaces each brace block (an action, a predicate, an <c>options</c> body) with <c>PRED</c> when a '?'
     /// follows it (a semantic predicate) and with nothing otherwise. Braces nest (a predicate may call a method whose
     /// argument is a brace-free string), so the scan counts depth.</summary>
-    private static string StripActions(string text)
+    internal static string StripActions(string text)
     {
         var sb = new System.Text.StringBuilder(text.Length);
         for (int i = 0; i < text.Length; i++)
@@ -82,7 +82,7 @@ public sealed class UserWordSlotDriftTests
         return sb.ToString();
     }
 
-    private static IEnumerable<string> ParserGrammars() =>
+    internal static IEnumerable<string> ParserGrammars() =>
         Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar"), "*.g4", SearchOption.AllDirectories)
             .Where(f => !Path.GetFileName(f).Contains("Lexer", StringComparison.Ordinal));
 

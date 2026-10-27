@@ -146,8 +146,11 @@ lockModeClause
 // keywords "are shown in uppercase and underlined in general formats"); `ON?` admitted `WITH LOCK MULTIPLE
 // RECORDS`, a spelling no edition prints (kb/Work PB755). MULTIPLE is underlined too (95.0%) and optional only
 // because the printed format BRACKETS it.
+// ⛔ MULTIPLE through `multipleKeyword` (kb/Work PB3794): §8.9 reserves it at 85 only and §8.10 lists it as the
+// context-sensitive word of the LOCK ON phrase, so a 2002+ program may declare a data item MULTIPLE, whereupon the
+// token-level reservation gate retypes every MULTIPLE token, this keyword included, to IDENTIFIER.
 lockOnPhrase
-    : WITH? LOCK ON MULTIPLE? (RECORD | RECORDS)
+    : WITH? LOCK ON multipleKeyword? (RECORD | RECORDS)
     ;
 
 fileReserveClause
@@ -365,7 +368,7 @@ sameClause
 // MULTIPLE FILE TAPE clause (obsolete; removed from later standards). Describes several files sharing
 // one physical reel — irrelevant to disk storage, so parsed and ignored.
 multipleFileClause
-    : MULTIPLE FILE TAPE? (CONTAINS? multipleFileTapeEntry (COMMA? multipleFileTapeEntry)*)?
+    : multipleKeyword FILE TAPE? (CONTAINS? multipleFileTapeEntry (COMMA? multipleFileTapeEntry)*)?
     ;
 
 multipleFileTapeEntry
@@ -784,8 +787,10 @@ sortKeyPhrase
 // whole phrase was answered with `'ORDER' is a reserved word … and cannot be used as a user-defined word` at
 // 2002/2014/2023 — the only phrase that can demand GR3 was unusable. The token also ends an under-rejection the
 // name slot allowed: `WITH DUPLICATES IN <any word>` no longer parses, which is what §5.2.3 requires.
+// ⛔ AND IT IS READ THROUGH `orderKeyword` (kb/Work PB3794): the phrase is in the COBOL-85 SORT, where ORDER is free
+// (reserved-words.json), and the token-level reservation gate retypes every ORDER of a program that declares it.
 sortDuplicatesPhrase
-    : WITH? DUPLICATES IN? ORDER?
+    : WITH? DUPLICATES IN? orderKeyword?
     ;
 
 sortCollatingPhrase
