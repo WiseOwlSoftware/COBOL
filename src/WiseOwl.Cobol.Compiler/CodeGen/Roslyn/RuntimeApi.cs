@@ -2896,6 +2896,12 @@ internal static class RuntimeApi
     public static string DecSubsidiaryQuotient(string quotient, int scale, int digits) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.SubsidiaryQuotient)}({quotient}, {scale}, {digits})";
 
+    /// <summary>The subsidiary quotient (§14.9.12.4 6) c), kb/Work PB2923) of a FLOATING-POINT numeric-edited identifier-3: the
+    /// SDIDI quotient as that item holds it under truncation, <c>CobolEdit.TruncateToFloatShape</c> -
+    /// <paramref name="cfgArgs"/> is <c>EmitContext.EditCfg</c>, as for the item's store.</summary>
+    public static string EditTruncateToFloatShape(PicInfo pic, string quotient, string cfgArgs) =>
+        $"{nameof(CobolEdit)}.{nameof(CobolEdit.TruncateToFloatShape)}({quotient}, {Emit.EmitText.CsLiteral(pic.EditMask!)}{cfgArgs})";
+
     /// <summary>The COMPILE-TIME WHEN-COMPILED stamp format (a typed passthrough like <see cref="EditCompose"/>):
     /// the §15.99.3 r2 compilation timestamp is baked as a constant with the SAME runtime formatter the
     /// generated CURRENT-DATE call uses.</summary>
