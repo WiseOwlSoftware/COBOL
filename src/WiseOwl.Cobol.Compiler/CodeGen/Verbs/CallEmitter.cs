@@ -460,7 +460,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     ///   <item>a figurative constant or ALL literal — one occurrence, flagged for repetition to the receiver's size
     ///     (§8.3.3.6.4 GR2), ZERO also as the value 0;</item>
     ///   <item>an arithmetic expression, a function-identifier or a boolean expression — read back from the cell it was
-    ///     evaluated into ONCE (§14.9.4.4 GR3 a)), never evaluated again (<c>CobolArgAdapt.WithValueSending</c>).</item>
+    ///     evaluated into ONCE (§14.9.4.4 GR3 a)), never evaluated again (<c>CobolArgAdapt.WithValueSending</c>); a NUMERIC
+    ///     value is marked <c>MoveSending.Computed</c> (kb/Work PB3969): it has no representation of its own (§15.4.1), so the
+    ///     boundary lands it through the formal in GR9's first regime too, never handing the formal the cell's image.</item>
     /// </list>
     /// Nothing for an argument with no MOVE to send — omitted, BY REFERENCE or BY VALUE, a pointer, an address-identifier,
     /// NULL — or whose formal the site knows (then it performed the MOVE itself, <see cref="MovedFormal"/>).</summary>

@@ -711,7 +711,13 @@ public sealed class ProgramTable
     /// (<see cref="BoundaryItem.Land"/>), the landing the activating element performs itself whenever it knows the formal,
     /// with the CALL statement's own EC-SIZE-TRUNCATION state (<paramref name="checking"/>). An omitted argument (§14.9.4.4
     /// GR11) has nothing to send, and a BY REFERENCE one is GR8's shared storage. The caller's array is never written: the
-    /// landed arguments are a copy, made only when one changes.</summary>
+    /// landed arguments are a copy, made only when one changes.
+    /// <para>⛔ …EXCEPT THAT A COMPUTED VALUE HAS NOTHING TO MOVE "WITHOUT CONVERSION" (kb/Work PB3969): a BY CONTENT argument
+    /// whose <see cref="MoveSending.Computed"/> is set - a numeric function's returned value - has no representation of its own
+    /// (§15.4.1), so the untouched crossing the first regime describes would hand the formal's adapter the value's 38-digit
+    /// container image (<c>CALL "Q" USING BY CONTENT FUNCTION MAX(W 0)</c>, W 1.25, showed <c>+0.00</c> in a PIC S9V99 formal). It
+    /// lands through the formal in both regimes, as a BY VALUE one does, so the formal holds the value
+    /// <c>MOVE FUNCTION MAX(W 0) TO formal</c> or a COMPUTE would give it.</para></summary>
     private static CobolArg[] LandArguments(CobolArg[] args, BoundaryItem[] formals, bool specifiedProgram, bool checking)
     {
         CobolArg[]? landed = null;
@@ -719,7 +725,7 @@ public sealed class ProgramTable
         {
             var a = args[i];
             if (a.Carrier.IsNull || formals[i].Landing is null) continue;
-            if (!(a.Mode is CobolPassMode.Value || a.Mode is CobolPassMode.Content && specifiedProgram)) continue;
+            if (!(a.Mode is CobolPassMode.Value || a.Mode is CobolPassMode.Content && (specifiedProgram || a.Sending is { Computed: true }))) continue;
             var to = formals[i].Land(a, checking);
             if (to == a) continue;
             landed ??= (CobolArg[])args.Clone();
