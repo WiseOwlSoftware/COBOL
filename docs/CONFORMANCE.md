@@ -308,8 +308,10 @@ of an unsupported facility.
   argument landed by §14.2.3 GR9, the element MOVE of a variable-length group MOVE between corresponding dynamic-capacity
   tables, §14.6.9.2), a reference-modified boolean receiver, STRING into a USAGE DISPLAY boolean item (§14.9.43.4 GR3 a)),
   a group sender into a USAGE DISPLAY or USAGE NATIONAL boolean item (§14.9.25.4 GR4's alphanumeric move; into a display
-  item it zero-fills where it used to space-fill), a READ or RETURN into an elementary boolean record area (§14.9.30.4
-  GR13 c); §14.9.34.4 GR3), and COMPUTE's boolean result. **The GR4 arm converts the DECODED characters, never the
+  item it zero-fills where it used to space-fill), a READ or RETURN into an elementary boolean record area that no other
+  description shares (§14.9.30.4 GR13 c); §14.9.34.4 GR3; a record area shared with another record of the FD
+  (§13.18.33.4 GR3) or with a SAME RECORD AREA peer (§12.4.6.4.4 GR2) holds the record's bytes for every description and a
+  READ leaves them as they are, as the restore of an APPLY COMMIT item does, §14.9.36.4 GR3), and COMPUTE's boolean result. **The GR4 arm converts the DECODED characters, never the
   bytes:** GR4 has "no conversion of data from one form of internal representation to another", so the sender's BYTES
   fill the receiving area unchanged, and the item's characters are then decoded from them (a national item's UTF-16BE
   pairs, `ReceivingStore.StorageCharacters`) and converted like any other character store (`MOVE GN TO BN` with GN holding
@@ -319,9 +321,11 @@ of an unsupported facility.
   (`MOVE GA TO BB` with GA holding `1A` stores the bits of x"31", `00110`), and every bit pattern is a valid boolean value,
   so DISPLAY and the operators agree there without a character conversion. Every STORE into a boolean item converts its
   characters. That includes a GR4 group move (the decoded characters of a national or display receiver; a USAGE BIT
-  receiver's bits are all valid) and a READ or RETURN into an elementary record area. A boolean item can still hold a
-  character other than 0 or 1 only through another description of the same storage, which no store into the item reaches: a
-  group receiver (GR4 moves the group's bytes), a REDEFINES view, or storage shared through a BY REFERENCE argument,
+  receiver's bits are all valid) and a READ or RETURN into an elementary record area that no other description shares. A
+  boolean item can still hold a character other than 0 or 1 only through another description of the same storage, which no
+  store into the item reaches: a group receiver (GR4 moves the group's bytes), a REDEFINES view, a record area shared with
+  another record of its file or with a SAME RECORD AREA peer (a READ or RETURN fills the area's bytes), an APPLY COMMIT
+  restore (ROLLBACK returns the saved image), or storage shared through a BY REFERENCE argument,
   EXTERNAL, BASED or ADDRESS OF. That content is undefined (§14.6.13.2 1)), and the boolean operators read such a position
   as zero. (`MOVE "A1Z" TO G` leaves `A1Z` in a boolean member of the group G.) VALUE cannot reach it (§13.18.63.3 SR10: the literals of a boolean item's VALUE clause are boolean
   literals), UNSTRING refuses a boolean receiver (§14.9.48.3 SR4) and a .NET host's string landing into a boolean formal is

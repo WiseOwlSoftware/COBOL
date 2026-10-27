@@ -22,7 +22,7 @@ decoded characters through `RuntimeApi.BoolFromCharacters`; USAGE BIT is exempt 
 callers did not change: `StorageArea` (the GR4 group move into an elementary place), `MoveEmitter.GroupRecord` (the
 record-value receiver) and the READ / RETURN elementary record area (§14.9.30.4 GR13 c), §14.9.34.4 GR3) all decode through it,
 so one arm closes the whole-item national group move and the READ / RETURN into an elementary boolean record, display and
-national. `ReceivingStore.Characters` lost its boolean arm (`AreaHoldsCharacters` guarded it): its only boolean callers are
+national (the READ / RETURN only while no other description shares the area: see the review round below). `ReceivingStore.Characters` lost its boolean arm (`AreaHoldsCharacters` guarded it): its only boolean callers are
 those storage-area flows, the fit pads with spaces, and the conversion makes every space a boolean zero, which is the §14.6.8.6
 zero fill, so converting there too would have converted twice. `SliceStorageArea` decodes through `DecodedStorage` because the
 splice in `PlaceRenderer.Write` already converts a boolean slice.
@@ -53,3 +53,21 @@ item, and a figurative constant is refused at bind time (§14.9.25.3 SR7).
 `verify.py` PASS with no count raised.
 
 **Gate.** Run 1 was RED (`HostWitnessTraitDriftTests`, described above). Run `000002-20261027T012224Z`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN … Linux half (WSL clone of HEAD) GREEN` (Conformance 5,809 / Unit 37,211 / Characterization 36 cases ran, leg 2 left to CI).
+
+**Branch review round 1 (two blocking findings, both correct).** The first cut converted in `StorageCharacters`, which every
+caller of `StorageArea` reaches, and two callers do not store characters into the item. R1-1: a READ / RETURN fills the record
+AREA, the widest record's view of storage every record of the FD implicitly redefines (§13.18.33.4 GR3) and a SAME RECORD AREA
+peer shares (§12.4.6.4.4 GR2), so with `01 RA PIC X(4)` and `01 RB PIC 1(8)` the read of `A1Z1B101` left `RA` showing `0101`
+(main: `A1Z1`). R1-2: the ROLLBACK restore of an APPLY COMMIT item (`TransactionEmitter` through `EmitImageInto`) returns the
+item to its saved image (§14.9.36.4 GR3), so a REDEFINES view `XQ PIC X(4)` of `BQ PIC 1(4)` read `0000` instead of the `ABCD`
+it held at the COMMIT. Both were callers my sweep of "every writer of characters into a boolean item" never listed, because
+they deposit an IMAGE, not characters. Fix at the root: `ReceivingStore.VerbatimStorageArea` (the representation decode, no
+boolean conversion) beside `StorageArea`, both over one private `WriteDecoded`; `SequentialIoEmitter.EmitImageInto` takes
+`storesIntoOwnItem` at every call: true only for a READ / RETURN into an area with ONE description
+(`FileModel.AreaHasOneDescription`: one record, no SAME RECORD AREA peer), false for a shared area, the peer view, the "also
+available" store of a released record and the restore. So the single-record READ keeps the adjudication's conversion (L14,
+L15) and the shared cases keep the bytes. The determination sentence names the shared area and the restore in all three
+places; goldens L16 (two-record FD, `MA` reads `A1Z1`), L17 (SAME RECORD AREA peer, `SA` reads `A1Z1`) and the new
+`14.9.36-ROLLBACK/pb3697_rollback_restores_boolean_item_verbatim` (2023: a display and a national boolean item restored,
+their REDEFINES views read `ABCD` and `ABCDEFGH`; the below-2023 negative is `pb3338_apply_commit_below_2023`). The drift test
+requires every `EmitImageInto` call to spell `storesIntoOwnItem` and the verbatim store to avoid `StorageCharacters`.

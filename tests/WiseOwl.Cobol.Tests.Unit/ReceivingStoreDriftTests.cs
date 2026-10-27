@@ -121,6 +121,21 @@ public sealed class ReceivingStoreDriftTests
         // ...and the fitting store itself has no boolean arm: it would convert a second time, and a caller that fits
         // characters into a boolean item asks StrStoreBoolean (below), not Characters.
         Assert.DoesNotContain("RuntimeApi.StrStoreBoolean(", Between(home, "public static string Characters(", "private static bool AreaHoldsCharacters("));
+        // A record area is a STORE into the record's own item only when no other description shares it (review R1-1 and
+        // R1-2 of PB3697): the verbatim store never converts, and the one image channel names which of the two it is at
+        // every call, so a restore (ROLLBACK), a shared area's READ and an "also available" store cannot convert.
+        string verbatim = Between(home, "public static string VerbatimStorageArea(", "private static string WriteDecoded(");
+        Assert.Contains("DecodedStorage(target.Item, area, positions)", verbatim);
+        Assert.DoesNotContain("StorageCharacters(", verbatim);
+        string seqIo = verbs("SequentialIoEmitter.cs");
+        Assert.Contains("ReceivingStore.VerbatimStorageArea(", Between(seqIo, "public void EmitImageInto(", "public void EmitStoreFileStatus("));
+        var imageCalls = Regex.Matches(seqIo + verbs("TransactionEmitter.cs") + verbs("SortEmitter.cs") + verbs("KeyedIoEmitter.cs"),
+            @"(?<!void )EmitImageInto\([^;]*;");
+        Assert.NotEmpty(imageCalls);
+        foreach (Match call in imageCalls)
+            Assert.Contains("storesIntoOwnItem:", call.Value);
+        Assert.Single(Regex.Matches(seqIo, Regex.Escape("storesIntoOwnItem: file.AreaHasOneDescription")));
+        Assert.Contains("storesIntoOwnItem: false", verbs("TransactionEmitter.cs"));
         Assert.Contains("RuntimeApi.StrStoreBoolean(", verbs("MoveEmitter.cs"));         // the elementary MOVE
         Assert.Contains("RuntimeApi.BoolFromCharacters(", verbs("StringEmitter.cs"));    // STRING into a USAGE DISPLAY boolean item
         Assert.Contains("RuntimeApi.BoolFromCharacters(",

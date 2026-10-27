@@ -20,9 +20,11 @@ public sealed class BooleanStoreDeterminationDriftTests
     private const string Determination =
         "Every STORE into a boolean item converts its characters. That includes a GR4 group move (the decoded "
         + "characters of a national or display receiver; a USAGE BIT receiver's bits are all valid) and a READ or RETURN into an "
-        + "elementary record area. A boolean item can still hold a character other than 0 or 1 only through another description of "
-        + "the same storage, which no store into the item reaches: a group receiver (GR4 moves the group's bytes), a REDEFINES "
-        + "view, or storage shared through a BY REFERENCE argument, EXTERNAL, BASED or ADDRESS OF. That content is undefined "
+        + "elementary record area that no other description shares. A boolean item can still hold a character other than 0 or 1 "
+        + "only through another description of the same storage, which no store into the item reaches: a group receiver (GR4 moves "
+        + "the group's bytes), a REDEFINES view, a record area shared with another record of its file or with a SAME RECORD AREA "
+        + "peer (a READ or RETURN fills the area's bytes), an APPLY COMMIT restore (ROLLBACK returns the saved image), or storage "
+        + "shared through a BY REFERENCE argument, EXTERNAL, BASED or ADDRESS OF. That content is undefined "
         + "(§14.6.13.2 1)), and the boolean operators read such a position as zero.";
 
     private static IReadOnlyDictionary<string, string> Places => new Dictionary<string, string>
