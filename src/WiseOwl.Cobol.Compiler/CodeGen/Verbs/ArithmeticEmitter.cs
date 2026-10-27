@@ -127,14 +127,25 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 // Each receiver's quotient can raise its OWN size error (a PROHIBITED-inexact at r's scale) —
                 // guarded per receiver so the raise does not abandon the receivers to its right (PB129).
                 GuardedStore(ise, r.Place, () =>
-                    StoreArith(r.Place, num.Combine(q, "/", divisorX, RcvFor(r, ise), outermost: true), r.Rounding));
+                    StoreArith(r.Place, FinalQuotient(q, divisorX, RcvFor(r, ise)), r.Rounding));
             }
         });
 
+    /// <summary>⛔ THE ONE FORMER OF A DIVIDE QUOTIENT AS THE FINAL TRANSFER INTO A RESULTANT (ISO §14.9.12.4 1) and 5) b) /
+    /// 6) b): "The quotient is then formed as specified in General rule 1 and stored in identifier-3 as specified in 14.7.7")
+    /// - <c>DIVIDE ... GIVING</c> and <c>DIVIDE ... GIVING ... REMAINDER</c> store the SAME quotient, because both ask this
+    /// method, so adding the REMAINDER phrase cannot change what identifier-3 holds (kb/Work PB2923: the REMAINDER arm used
+    /// to form it a second way, at the receiver's fixed scale, which a floating-point identifier-3 does not have). The
+    /// subsidiary quotient of GR6 c) is derived FROM this quotient and never the other way round
+    /// (<see cref="CarriedSubsidiaryQuotient"/>).</summary>
+    private NumX FinalQuotient(NumX dividend, NumX divisor, ReceiverContext into) =>
+        num.Combine(dividend, "/", divisor, into, outermost: true);
+
     /// <summary><c>DIVIDE … GIVING q REMAINDER r</c> (ISO §14.9.12.4 GR6 and GR7): the remainder is defined from the
-    /// INTERMEDIATE quotient TRUNCATED at the quotient receiver's scale — even when the stored quotient is ROUNDED
-    /// — as <c>remainder = dividend − (subsidiary quotient × divisor)</c>; the subtraction aligns scales exactly.
-    /// The quotient stores with its OWN rounding (recomputed at the receiver's mode when not truncation).
+    /// INTERMEDIATE quotient TRUNCATED into identifier-3's SHAPE (<see cref="SubsidiaryShapeOf"/>) - even when the stored
+    /// quotient is ROUNDED - as <c>remainder = dividend − (subsidiary quotient × divisor)</c>; the subtraction aligns
+    /// scales exactly. The quotient stores with its OWN rounding (recomputed at the receiver's mode when not truncation),
+    /// formed by the very <see cref="FinalQuotient"/> the statement without REMAINDER stores.
     /// <para>⛔ ONE KERNEL PER LANE, AND THE SDIDI LANE'S IS THE SDIDI'S (kb/Work PB3017). GR1 makes the quotient "the
     /// result of the arithmetic expression (dividend / divisor)" under standard-decimal arithmetic and GR7 makes the
     /// remainder "(dividend - (subsidiary-quotient * divisor))", both SDIDI expressions, and GR6 c) derives the
@@ -144,21 +155,24 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// (or a saturated sentinel quotient) where §8.8.1.5.2 1) rounds it into the SDIDI and the quotient fits the
     /// receiver. The SDIDI lane now forms the quotient, the subsidiary quotient and the remainder on
     /// <c>CobolDec</c>, from the OPERANDS as they are (<see cref="NumericRenderer.DecOperand"/> lifts each); the native
-    /// lane keeps the exact Int128 kernel for two scaled operands, whose intermediate range is checked (§14.7.5 5)), and
-    /// divides a binary64 or SDIDI operand as it is (<see cref="CarriedSubsidiaryQuotient"/>, kb/Work PB3829).</para></summary>
+    /// lane keeps the exact Int128 kernel for two scaled operands and a FIXED-POINT identifier-3, whose intermediate range
+    /// is checked (§14.7.5 5)), and divides a binary64 or SDIDI operand as it is (<see cref="CarriedSubsidiaryQuotient"/>,
+    /// kb/Work PB3829). A FLOATING-POINT identifier-3 (a float item, a floating-point numeric-edited item) has no fixed
+    /// scale for that kernel to truncate at, so in EVERY mode it takes <see cref="CarriedSubsidiaryQuotient"/> (kb/Work
+    /// PB2923).</para></summary>
     public void EmitDivideRemainder(BoundDivideRemainder d)
         => EmitArith(d.SizeError, ise =>
         {
             var w = ctx.Writer;
-            int qs = ScaleOf(d.Quotient.Place);
-            // The senders render FOR the quotient receiver (its scale governs the intermediate, GR6c/GR7);
+            var shape = SubsidiaryShapeOf(d.Quotient.Place);
+            // The senders render FOR the quotient receiver (its scale governs the intermediate, GR6c/GR7) - by the ONE
+            // context rule, ReceiverContext.Of, so a floating-point numeric-edited identifier-3 is flagged as such and
+            // a nested quotient in an operand is not cut at its mask's working-scale hint (kb/Work PB2694, PB2923);
             // pre-P7.3 they rendered under the previous statement's leftover Target* state (H1).
-            var rcv = new ReceiverContext(qs, d.Quotient.Place.Item.Pic is { IsFloat: true },
-                CobolRounding.Truncation, ise, IntDigitsOf(d.Quotient.Place));
-            int qDigits = SubsidiaryDigitsOf(d.Quotient.Place);
-            var (dividend, divisor, subsidiary, quotientFor) = num.StandardDecimal
-                ? CarriedSubsidiaryQuotient(d, Snapshot(num.Render(d.Dividend, rcv)), Snapshot(num.Render(d.Divisor, rcv)), ise, qs, qDigits)
-                : NativeSubsidiaryQuotient(d, rcv, ise, qs, qDigits);
+            var rcv = ReceiverContext.Of(d.Quotient.Place.Item.Pic, CobolRounding.Truncation, ise);
+            var (dividend, divisor, subsidiary, quotientFor) = num.StandardDecimal || shape.Form != SubsidiaryForm.FixedPoint
+                ? CarriedSubsidiaryQuotient(d, Snapshot(num.Render(d.Dividend, rcv)), Snapshot(num.Render(d.Divisor, rcv)), ise, shape)
+                : NativeSubsidiaryQuotient(d, rcv, ise, shape);
             // The back-multiply rides Combine — the native product's digit-bound arms, the Dec lane under a standard
             // mode - instead of a raw C# splice whose Int128 product wrapped silently (PB129). A product past the Int128
             // carrier is the exact wide form, KEPT exact into the subtraction (keepWide) so the remainder is formed from
@@ -178,21 +192,60 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 brackets.Receive(d.Remainder, null, () => StoreArith(d.Remainder, remainder, CobolRounding.Truncation));   // REMAINDER has no ROUNDED phrase
         });
 
-    /// <summary>The native lane of <see cref="EmitDivideRemainder"/>: two scaled senders (an unsigned-wide read funnels
-    /// through Widen) divide in the exact Int128 kernel, and the subsidiary quotient is a DIRECT kernel call at EXACTLY
-    /// the receiver scale — not the renderer's working-scale promotion, which yields the quotient at the dividend's
-    /// higher scale and poisons the remainder multiply. A sender on the binary64 or SDIDI carrier goes to
-    /// <see cref="CarriedSubsidiaryQuotient"/> instead, which divides it as it is.
+    /// <summary>The forms identifier-3 of <c>DIVIDE ... REMAINDER</c> can take, as far as its SUBSIDIARY QUOTIENT is
+    /// concerned (ISO §14.9.12.4 6) c)).</summary>
+    private enum SubsidiaryForm
+    {
+        /// <summary>A fixed-point numeric or numeric-edited item (or a PICTURE-less one): a decimal point location and a
+        /// digit count.</summary>
+        FixedPoint,
+        /// <summary>A floating-point numeric-edited item: a significand of a fixed digit count at the quotient's own
+        /// exponent (§13.18.40.4 13) b)).</summary>
+        FloatEdited,
+        /// <summary>A binary floating-point usage (COMP-1/2, FLOAT-SHORT/-LONG/-EXTENDED, FLOAT-BINARY-*, FLOAT-DECIMAL-*,
+        /// all carried as binary32 or binary64): a format.</summary>
+        BinaryFloat,
+    }
+
+    /// <summary>⛔ IDENTIFIER-3'S SHAPE UNDER TRUNCATION - the ONE description of what "the same number of digits and the same
+    /// decimal point location as the data item referenced by identifier-3" (ISO §14.9.12.4 6) c)) means for each form of
+    /// identifier-3 (kb/Work PB2923). It replaced a (scale, digit cap) pair that every form was forced into: a
+    /// floating-point numeric-edited item took its mask's working-scale HINT as a decimal point location it does not
+    /// have, so a quotient below 0.005 truncated to zero in <c>+9.99E+99</c> and the remainder became the whole dividend.
+    /// <para><see cref="SubsidiaryForm.FixedPoint"/> carries <see cref="Scale"/> (the receiver-scale rule,
+    /// <see cref="ScaleOf"/>) and <see cref="Digits"/> (the digits the receiver's store KEEPS, §14.9.12.4 6) c) / kb/Work
+    /// PB129): a PICTURE-truncating item keeps its PICTURE's digit positions, and a BINARY-CAPACITY item (COMP-5,
+    /// BINARY-CHAR ... BINARY-DOUBLE) keeps its whole container (§13.18.60.4 GR12 / DOC-A.1-208), so it has no cap (0) - the
+    /// quotient it holds is the full quotient, and a PICTURE-digit cap turned <c>DIVIDE 123456 BY 7 GIVING Q REMAINDER
+    /// R</c> into R = 70004 for <c>Q PIC 9(4) COMP-5</c> (the stored Q is 17636, so the remainder is 4; kb/Work PB3017).
+    /// The two floating forms carry the item's <see cref="Pic"/> and nothing else: their shape is the item's own.</para></summary>
+    private readonly record struct SubsidiaryShape(SubsidiaryForm Form, PicInfo? Pic, int Scale = 0, int Digits = 0);
+
+    private SubsidiaryShape SubsidiaryShapeOf(Place p) => p.Item.Pic switch
+    {
+        { IsFloatEdited: true } pic => new(SubsidiaryForm.FloatEdited, pic),
+        { IsFloat: true } pic => new(SubsidiaryForm.BinaryFloat, pic),
+        null => new(SubsidiaryForm.FixedPoint, null),
+        { Truncation: NumericTruncation.BinaryCapacity } pic => new(SubsidiaryForm.FixedPoint, pic, ScaleOf(p)),
+        { } pic => new(SubsidiaryForm.FixedPoint, pic, ScaleOf(p), pic.DigitPositions),
+    };
+
+    /// <summary>The native lane of <see cref="EmitDivideRemainder"/> for a FIXED-POINT identifier-3: two scaled senders
+    /// (an unsigned-wide read funnels through Widen) divide in the exact Int128 kernel, and the subsidiary quotient is a
+    /// DIRECT kernel call at EXACTLY the receiver scale — not the renderer's working-scale promotion, which yields the
+    /// quotient at the dividend's higher scale and poisons the remainder multiply. A sender on the binary64 or SDIDI
+    /// carrier goes to <see cref="CarriedSubsidiaryQuotient"/> instead, which divides it as it is.
     /// Both senders are materialized (§14.9.12.4 GR5 — one item identification/evaluation): each appears in SEVERAL
     /// emitted expressions (kernel call(s) + the remainder back-multiply), and the quotient stores BEFORE the
     /// remainder is formed — a quotient receiver aliasing a sender must not poison the remainder.</summary>
     private (NumX Dividend, NumX Divisor, NumX Subsidiary, Func<CobolRounding, NumX> QuotientFor) NativeSubsidiaryQuotient(
-        BoundDivideRemainder d, ReceiverContext rcv, bool ise, int qs, int qDigits)
+        BoundDivideRemainder d, ReceiverContext rcv, bool ise, SubsidiaryShape shape)
     {
         var w = ctx.Writer;
+        int qs = shape.Scale, qDigits = shape.Digits;
         NumX dividendX = num.Render(d.Dividend, rcv), divisorX = num.Render(d.Divisor, rcv);
         if (dividendX.Real || dividendX.Dec || divisorX.Real || divisorX.Dec)
-            return CarriedSubsidiaryQuotient(d, Snapshot(dividendX), Snapshot(divisorX), ise, qs, qDigits);
+            return CarriedSubsidiaryQuotient(d, Snapshot(dividendX), Snapshot(divisorX), ise, shape);
         NumX dividend = Snapshot(NumericRenderer.DeU(dividendX)),
              divisor = Snapshot(NumericRenderer.DeU(divisorX));
         // The SUBSIDIARY quotient is truncated to the GIVING receiver's digits/scale (ISO §14.9.12 GR6c).
@@ -211,16 +264,21 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             : new NumX(RuntimeApi.NumDivide(ise, dividend.Expr, $"{dividend.Scale}", divisor.Expr, $"{divisor.Scale}", $"{qs}", mode), qs));
     }
 
-    /// <summary>The quotient of <see cref="EmitDivideRemainder"/> for the STANDARD-DECIMAL lane (kb/Work PB3017) and for a
-    /// NATIVE sender that is a binary64 (a FLOAT-LONG item, a float function's returned value) or an SDIDI value (a float
-    /// literal, a NUMVAL value): the quotient is the SAME division the statement without REMAINDER performs,
-    /// <c>Combine(dividend, "/", divisor)</c> as the final transfer into identifier-3 (§14.9.12.4 1): under standard-decimal
-    /// "the result of the arithmetic expression (dividend / divisor)"), and the subsidiary quotient is that quotient
-    /// truncated (§14.9.12.4 6) c): "a subsidiary quotient is developed that is signed and derived from the quotient by
+    /// <summary>The quotient of <see cref="EmitDivideRemainder"/> for the STANDARD-DECIMAL lane (kb/Work PB3017), for a
+    /// FLOATING-POINT identifier-3 in every mode (kb/Work PB2923), and for a NATIVE sender that is a binary64 (a
+    /// FLOAT-LONG item, a float function's returned value) or an SDIDI value (a float literal, a NUMVAL value): the
+    /// quotient is the SAME division the statement without REMAINDER performs, <see cref="FinalQuotient"/> as the final
+    /// transfer into identifier-3 (§14.9.12.4 1): under standard-decimal "the result of the arithmetic expression
+    /// (dividend / divisor)"), and the subsidiary quotient is that quotient truncated into identifier-3's shape
+    /// (§14.9.12.4 6) c): "a subsidiary quotient is developed that is signed and derived from the quotient by
     /// truncation of digits at the least significant end and that has the same number of digits and the same decimal
-    /// point location as the data item referenced by identifier-3"). A quotient on the SDIDI or binary64 carrier is formed
-    /// ONCE and the store rounds it by the receiver's mode; one the division already landed at identifier-3's scale is
-    /// formed again at the receiver's mode when that is not TRUNCATION.
+    /// point location as the data item referenced by identifier-3"; <see cref="SubsidiaryShapeOf"/>). A quotient on the
+    /// SDIDI or binary64 carrier is formed ONCE and the store rounds it by the receiver's mode; one the division already
+    /// landed at identifier-3's scale is formed again at the receiver's mode when that is not TRUNCATION.
+    /// <para>⛔ THE STORED QUOTIENT IS NEVER DERIVED FROM THE SUBSIDIARY ONE (§14.9.12.4 6) b) forms and stores the quotient;
+    /// 6) c) only feeds the remainder). A floating-point identifier-3 stores the quotient with all its digits and
+    /// exponent, and its subsidiary quotient is the shape arm's (<see cref="FloatEditedSubsidiary"/>,
+    /// <see cref="BinaryFloatSubsidiary"/>).</para>
     /// <para>⛔ NO SENDER IS QUANTIZED BEFORE THE DIVISION (kb/Work PB3829's sweep). The native lane used to land such a sender
     /// TRUNCATED at the receiver's float working scale first, so the ROUNDED decision saw a value already cut:
     /// <c>DIVIDE FL BY 1 GIVING Q ROUNDED MODE AWAY-FROM-ZERO REMAINDER R</c> with FL = 0.12340000000001 stored 0.1234
@@ -228,35 +286,75 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// REMAINDER R</c> with FB = 0.30000000000001 stored 0.3000 where the quotient 0.2999999999999 truncates to 0.2999.
     /// One quotient, one rounding, whichever format of DIVIDE asks for it.</para></summary>
     private (NumX Dividend, NumX Divisor, NumX Subsidiary, Func<CobolRounding, NumX> QuotientFor) CarriedSubsidiaryQuotient(
-        BoundDivideRemainder d, NumX dividend, NumX divisor, bool ise, int qs, int qDigits)
+        BoundDivideRemainder d, NumX dividend, NumX divisor, bool ise, SubsidiaryShape shape)
+    {
+        var pic = d.Quotient.Place.Item.Pic;
+        NumX QuotientAt(CobolRounding mode) => FinalQuotient(dividend, divisor, ReceiverContext.Of(pic, mode, ise));
+        NumX truncated = Snapshot(QuotientAt(CobolRounding.Truncation));
+        NumX subsidiary = shape.Form switch
+        {
+            SubsidiaryForm.FloatEdited => FloatEditedSubsidiary(truncated, shape.Pic!),
+            SubsidiaryForm.BinaryFloat => BinaryFloatSubsidiary(truncated, shape.Pic!),
+            _ => FixedPointSubsidiary(truncated, ise, shape),
+        };
+        return (dividend, divisor, subsidiary,
+            mode => mode == CobolRounding.Truncation || truncated.Dec || truncated.Real ? truncated : QuotientAt(mode));
+    }
+
+    /// <summary>The subsidiary quotient for a FIXED-POINT identifier-3: the quotient truncated at its scale and capped at its
+    /// digits (kb/Work PB129, PB3017).</summary>
+    private NumX FixedPointSubsidiary(NumX truncated, bool ise, SubsidiaryShape shape)
     {
         var w = ctx.Writer;
-        var pic = d.Quotient.Place.Item.Pic;
-        NumX QuotientAt(CobolRounding mode) =>
-            num.Combine(dividend, "/", divisor, ReceiverContext.Of(pic, mode, ise), outermost: true);
-        NumX truncated = Snapshot(QuotientAt(CobolRounding.Truncation));
+        int qs = shape.Scale, qDigits = shape.Digits;
         string sq = $"__sq{ctx.Names.NextStoreTmp()}";
-        NumX subsidiary;
         if (truncated.Dec)
         {
             w.Line($"CobolDec {sq} = {RuntimeApi.DecSubsidiaryQuotient(truncated.Expr, qs, qDigits)};");
-            subsidiary = new NumX(sq, 0, Dec: true);
+            return new NumX(sq, 0, Dec: true);
         }
-        else
+        // A binary64 quotient lands at identifier-3's scale by truncation (the checked form under ON SIZE ERROR /
+        // EC-SIZE, as the scaled kernel's DivideOrThrow); a scaled one is already there. Either is then capped at
+        // identifier-3's digits (kb/Work PB129).
+        string atScale = truncated.Real
+            ? RuntimeApi.FloatToScaled(truncated.Expr, $"{qs}", CobolRounding.Truncation, ise)
+            : truncated.Scale == qs ? truncated.Expr
+            : throw new InvalidOperationException(
+                $"DIVIDE REMAINDER: a final-transfer quotient at scale {truncated.Scale}, not identifier-3's {qs}");
+        w.Line($"Int128 {sq} = {RuntimeApi.NumCapDigits(atScale, qDigits)};");
+        return new NumX(sq, qs, Digits: qDigits);
+    }
+
+    /// <summary>The subsidiary quotient for a FLOATING-POINT numeric-edited identifier-3 (ISO §14.9.12.4 6) c)): the quotient
+    /// as the item holds it under truncation, <c>CobolEdit.TruncateToFloatShape</c> - its significand's digits at the
+    /// quotient's own exponent (§13.18.40.4 13) b), §14.6.8.4 1)), the normalization its store performs. An SDIDI value
+    /// (<c>CobolDec</c>, exact), whatever carrier the quotient arrived on, so the back-multiply keeps every digit.</summary>
+    private NumX FloatEditedSubsidiary(NumX truncated, PicInfo pic)
+    {
+        string sq = $"__sq{ctx.Names.NextStoreTmp()}";
+        ctx.Writer.Line($"CobolDec {sq} = {RuntimeApi.EditTruncateToFloatShape(pic, num.DecOperand(truncated), EditCfg(pic))};");
+        return new NumX(sq, 0, Dec: true);
+    }
+
+    /// <summary>The subsidiary quotient for a BINARY floating-point identifier-3 (ISO §14.9.12.4 6) c)): the quotient
+    /// truncated toward zero into the item's format. A native binary64 quotient is already a binary64 value, so a
+    /// binary64 item takes it as it is and a binary32 item its truncation (<c>CobolFloat.TruncatedToSingle</c>), and the
+    /// remainder is formed in binary64 (DOC-A.1-123). An SDIDI quotient truncates into the format exactly
+    /// (<c>CobolFloat.TruncatedToFormat</c>) and the format's value is lifted back into the SDIDI by the ONE float lift, so
+    /// the remainder is the standard-decimal expression GR7 gives.</summary>
+    private NumX BinaryFloatSubsidiary(NumX truncated, PicInfo pic)
+    {
+        var w = ctx.Writer;
+        string sq = $"__sq{ctx.Names.NextStoreTmp()}";
+        if (truncated.Real)
         {
-            // A binary64 quotient lands at identifier-3's scale by truncation (the checked form under ON SIZE ERROR /
-            // EC-SIZE, as the scaled kernel's DivideOrThrow); a scaled one is already there. Either is then capped at
-            // identifier-3's digits (kb/Work PB129).
-            string atScale = truncated.Real
-                ? RuntimeApi.FloatToScaled(truncated.Expr, $"{qs}", CobolRounding.Truncation, ise)
-                : truncated.Scale == qs ? truncated.Expr
-                : throw new InvalidOperationException(
-                    $"DIVIDE REMAINDER: a final-transfer quotient at scale {truncated.Scale}, not identifier-3's {qs}");
-            w.Line($"Int128 {sq} = {RuntimeApi.NumCapDigits(atScale, qDigits)};");
-            subsidiary = new NumX(sq, qs, Digits: qDigits);
+            if (!pic.IsSingle) return truncated;
+            w.Line($"double {sq} = {RuntimeApi.FloatTruncatedToSingle(truncated.Expr)};");
+            return new NumX(sq, 0, Real: true);
         }
-        return (dividend, divisor, subsidiary,
-            mode => mode == CobolRounding.Truncation || truncated.Dec || truncated.Real ? truncated : QuotientAt(mode));
+        string inFormat = RuntimeApi.FloatTruncatedToFormat(num.DecOperand(truncated), pic.IsSingle);
+        w.Line($"CobolDec {sq} = {num.DecOperand(new NumX(inFormat, 0, Real: true))};");
+        return new NumX(sq, 0, Dec: true);
     }
 
     /// <summary>COMPUTE Format 2 — boolean-compute (ISO §14.9.8): render the boolean RHS ONCE at the §14.9.8.4
@@ -720,29 +818,6 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // The ONE receiver-scale rule (PicInfo.ReceiverScale; PB64 T6 — this copy and MoveEmitter's
         // SenderContext were the same rule written twice, and both fell to pic.Scale = 0 for a LOCALE item).
         p.Item.Pic is { } pic ? pic.ReceiverScale() : 0;
-
-    /// <summary>The receiver's INTEGER digit positions — <see cref="ReceiverContext.IntegerDigits"/>, which caps
-    /// the Int128 working scale (PB13). Measured from <c>DigitPositions</c> (ISO §13.18.40.3 SR14 —
-    /// '9' plus Z/*/floating-sign/P positions), never from the '9' count alone: for a numeric-EDITED receiver
-    /// <c>Digits</c> counts only '9', so <c>PIC ZZZ9</c> would report 1 integer digit where it holds 4, and
-    /// UNDER-counting is the one direction that breaks <see cref="ReceiverContext.WorkingScale"/>'s
-    /// saturation-is-visible invariant. A place with no PICTURE (a float item, an index) reports 0 = unconstrained;
-    /// a float receiver never reaches the quantizer at all.</summary>
-    private int IntDigitsOf(Place p) =>
-        p.Item.Pic is { } pic ? Math.Max(0, pic.DigitPositions - ScaleOf(p)) : 0;
-
-    /// <summary>The digit count of the subsidiary quotient's cap (§14.9.12.4 6) c): "the same number of digits ... as the
-    /// data item referenced by identifier-3", kb/Work PB129) - the digits the receiver's store KEEPS, and 0 (no cap)
-    /// when the store keeps them all. A PICTURE-truncating item keeps its PICTURE's digit positions. A BINARY-CAPACITY
-    /// item (COMP-5, BINARY-CHAR ... BINARY-DOUBLE) keeps its whole container (§13.18.60.4 GR12 / DOC-A.1-208): the quotient it
-    /// holds is the full quotient, and a PICTURE-digit cap turned `DIVIDE 123456 BY 7 GIVING Q REMAINDER R` into
-    /// R = 70004 for `Q PIC 9(4) COMP-5` (the stored Q is 17636, so the remainder is 4) — kb/Work PB3017.</summary>
-    private static int SubsidiaryDigitsOf(Place p) => p.Item.Pic switch
-    {
-        null => 0,
-        { Truncation: NumericTruncation.BinaryCapacity } => 0,
-        { } pic => pic.DigitPositions,
-    };
 
     /// <summary>A positionless boolean pattern repeated to <paramref name="width"/> positions and truncated
     /// on the right (ISO §8.3.3.6.4 GR2 — "repeated as necessary"); compile-time, the pattern is a bound
