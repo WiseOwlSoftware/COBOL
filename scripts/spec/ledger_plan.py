@@ -241,7 +241,7 @@ def estimate(sizes: list[int] | None, inputs: dict) -> dict:
     from groups import group_cost, landing_cost  # noqa: PLC0415  (the planner's cost rule, never a copy)
     w = rules["wave"]
     groups = len(sizes)
-    points = (sum(group_cost(w["implementer_model"], k, rules) for k in sizes)
+    points = (sum(group_cost(inputs["implementer_model"], k, rules) for k in sizes)
               + landing_cost(rules) * groups)
     rate, burn = inputs.get("rate"), inputs.get("burn")
     hours = groups / rate["per_h"] if rate and rate["per_h"] > 0 else None
@@ -297,7 +297,8 @@ def estimate_inputs() -> dict:
     burn = measure_burn(readings, budget.week_start(now, acct.weekly_reset))
     if burn:
         burn["account"] = acct.name
-    return {"rules": rules, "fix_groups": fix_groups, "rate": rate, "burn": burn}
+    return {"rules": rules, "implementer_model": coord.agent_model("cobol-implementer"), "fix_groups": fix_groups,
+            "rate": rate, "burn": burn}
 
 
 # ── the slices and the gates ────────────────────────────────────────────────────────────────────────────────────
@@ -438,12 +439,12 @@ def self_test() -> int:
     check("register_counts before inventory_rows existed",
           register_counts([{"id": "PB1", "status": "open", "kind": "defect"}], {"R-1"})["gap_holders"], None)
 
-    rules = {"wave": {"max_notes_per_group": 5, "max_groups": 8, "implementer_model": "sonnet"},
+    rules = {"wave": {"max_notes_per_group": 5, "max_groups": 8},
              "cost": {"per_group_tokens": {"sonnet": 400000}, "per_note_tokens": {"sonnet": 240000},
                       "landing_tokens": 96000, "landing_model": "opus"},
              "calibration": {"tokens_per_point": {"sonnet": 4000000, "opus": 1600000}}}
     fg = {"clusters": [{"notes": [{"id": "PB9001"}]}], "unsited": ["PB9008"]}
-    full = {"rules": rules, "fix_groups": fg, "rate": {"per_h": 2.0}, "burn": {"per_h": 3.0}}
+    full = {"rules": rules, "implementer_model": "sonnet", "fix_groups": fg, "rate": {"per_h": 2.0}, "burn": {"per_h": 3.0}}
     est = bucket_estimates(rem, full)["compiler"]
     # fix lane: PB9001 (a cluster of 1), PB9008 (unsited), PB9002 (not clustered: blocked -> a chunk of 1) = 3 groups
     # points: 3 x (400k + 240k) / 4M + 3 landings x 96k / 1.6M = 0.48 + 0.18

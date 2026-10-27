@@ -559,9 +559,17 @@ unaryExpression
 // so they still reach `objectView`. The qualified `K OF SUPER` is a data reference too (`selfAndSuper` is SELF | SUPER),
 // and the resolver refuses it here by §8.4.3.8.3 SR3 when K is a class-name. A receiving position never parses an
 // expression, so §8.4.3.8.3 SR2 / §8.4.3.5.3 SR2 are not widened by this.
+//
+// ⛔ THE ARITHMETIC ZERO TAKES ITS OPTIONAL ALL (kb/Work PB3846). §8.8.1.1 admits "the figurative constant ZERO (ZEROS,
+// ZEROES)" as an operand, and §8.3.3.6.2 Format 1 prints that figurative constant as `[ ALL ] ZERO`, so `1 + ALL ZERO`
+// is an arithmetic expression whose operand is written with the word ALL. ZeroTokenRewriter reads the context that
+// decides past the ALL (the ZERO's neighbour on the left is the ALL, not the operator), and the arm carries the ALL
+// so the binder asks §8.3.3.6.3 SR1 a)'s edition gate of it (ExpressionBinder.ZeroOperand, the one numeric reading of
+// the figurative ZERO, shared with `ADD ALL ZERO TO X`): accepted at 85, COBOL0902 from 2002. Before, the arm was the
+// bare token, and `1 + ALL ZERO`, `ALL ZERO + 1`, `- ALL ZERO` and `(ALL ZERO)` were a bare COBOL0001.
 primaryExpression
     : numericLiteral
-    | ZERO_ARITH                       // figurative ZERO rewritten by token rewriter in arithmetic context
+    | ALL? ZERO_ARITH                  // figurative [ALL] ZERO the token rewriter marks arithmetic (kb/Work PB3846)
     | functionCall
     | inlineMethodInvocation           // §8.4.3.1.2 Format 4 (§8.4.3.4) — the Format-1 twin above
     | dataReference
