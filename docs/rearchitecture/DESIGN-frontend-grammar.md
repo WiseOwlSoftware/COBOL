@@ -964,7 +964,8 @@ reference formats, and the only place source comments are recognized. Its model:
   EVALUATE lines included (§7.3.16.3 1), §7.3.13.3 2) each put the operand entirely on its line).
 - **The indicator area holds a §6.2.2 fixed indicator or it is diagnosed** (kb/Work PB1494): `*` `/` `-` space, and
   COBOL-85's debugging `D`; anything else is COBOL2616 and the line is read as source. The NIST CCVS column-7
-  conventions (S/Y debugging, P/J/H/E/U excluded alternates, any other letter a primary-configuration line) are a
+  conventions (S/Y debugging, P/J/H/E/U/B excluded alternates — B being the switches-not-implemented half of the
+  A/B switch-status pair, kb/Work PB3347 — any other letter a primary-configuration line) are a
   DIALECT — `ccvsIndicators`, on only under `--nist` (`FixedFormConverter.KindOf`). The obsolete comment-entry reading
   of AUTHOR … REMARKS applies only inside an IDENTIFICATION DIVISION (`_inIdentificationDivision`).
   The edition-scoped questions are decided by LATER stages and the registry, not by this pass (kb/Work PB1802, owner
