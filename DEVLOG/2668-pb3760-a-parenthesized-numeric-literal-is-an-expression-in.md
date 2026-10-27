@@ -1,4 +1,4 @@
-## PB3760: a parenthesized numeric literal is an expression in every activation lane; the bound operand's kind states GR8's answer
+## Entry 2668 — 2026-10-27 13:22 PDT — PB3760: a parenthesized numeric literal is an expression in every activation lane; the bound operand's kind states GR8's answer
 
 **The defect.** `CALL "X" AS NESTED USING BY CONTENT (3)` into a plain-group formal compiled and stored `3`, and `(-3)` stored `L`
 (the overpunched -3). `Gr8ArgumentLiteral.NumericText` recovered a literal from a computed operand so that `BY VALUE -1.234E-5`
@@ -62,3 +62,4 @@ GAP 31 → 31.
 Round-1 gate, run `000001-20261027T185043Z` at `e59657dfb`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg
 2 left to CI's whole-population run` (Conformance 6,941 · Unit 36,616 · Characterization 36 in leg 1; Linux half (WSL clone of HEAD)
 GREEN), the four new goldens at every accepting and refusing edition among them.
+
