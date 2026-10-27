@@ -5,8 +5,8 @@ docs/rearchitecture/evidence/fleet-optimization/2026-10-20-differential-fuzz.md)
 
     python scripts/differential_fuzz.py --model qwen3-coder:30b --count 40 [--jobs 3] [--clauses 14.9,15] [--out DIR]
     python scripts/differential_fuzz.py --model qwen3-coder:30b --hours 8 --jobs 4           # an overnight run
-    python scripts/differential_fuzz.py --bake-off qwen3-coder:30b,qwen3.6:35b --count 20
-    python scripts/differential_fuzz.py --report DIR                                           # re-render DIR/report.md
+    python scripts/differential_fuzz.py --bake-off qwen3-coder:30b,qwen3.6:35b --count 20 [--model-option MODEL:repeat_penalty=1.1]
+    python scripts/differential_fuzz.py --report DIR                                         # re-render DIR/report.md
     python scripts/differential_fuzz.py --self-test
 
 THE RUN CADENCE (the owner's standing rule, 2026-10-22 ~12:15 PDT: "We fix all compiler bugs diagnosed by each fuzz test
@@ -49,6 +49,22 @@ saved 12 % of the generations; the declined seeds were 10 % of the second night'
 What remains is the model writing constructs it does not know (the report writer, OO, SORT and MERGE files, SET's rarer
 formats), which a prompt has not been shown to fix.
 
+A DEGENERATE REPLY IS CUT, NOT PAID FOR (kb/Work PB3537; the mechanism, its measured threshold and its witness are in
+scripts/fuzz_ollama.py). The reply is streamed, and one that falls into an enumeration loop (a hundred and fifty lines that differ
+only by a counter: data items WS-ARG1 … WS-ARG309) is closed and recorded as a degenerate reply, never run to the 6,000-token cap.
+It yields no program (what precedes the cut is the front of one the model did not finish), the model is asked for a shorter
+program, and a program that ends so is NO_PROGRAM with the reason "degenerate enumeration". `degenerate_replies` on the row, a line
+of the report and a column of the bake-off table count them per model, with Ollama's own repeat-limit aborts, so the model-failure
+count names the shape. `--model-option MODEL:repeat_penalty=1.1` (and `repeat_last_n`) sets Ollama's repetition options for one
+model.
+
+A PAUSE LOSES NO PROGRAM (kb/Work PB3561; scripts/fuzz_ollama.py has the protocol, scripts/fuzz_night.ps1 the wrapper). The run
+prints its PAUSE file, `<run dir>/PAUSE` (create it, empty, to pause the run by hand; it holds until you remove it, while the
+wrapper's `lease:` PAUSE expires after five minutes unrewritten). While it exists no generation starts; a generation that fails
+while it exists is asked again after it is gone, as often as pauses end it; a runner failure outside a pause is asked again once;
+only a second runner failure, or a failure outside a pause that is no runner failure, is the row's RUNNER_ERROR. The report counts the pauses, the minutes paused and the generations asked again, so the morning
+reads a pause as a pause. The run's wall clock keeps counting through one (`--hours` is a deadline).
+
 THE MECHANICS ARE THE CONFORMANCE SUITE'S, NOT A SECOND COPY. Each program is compiled and run through
 `conformance-suite/adapters/<compiler>.json` by the harness's own `Run.operation` (conformance-suite/harness/run.py), so the
 command lines, the crash exit codes, the locale pin and the hang guard are the suite's. On Windows the GnuCOBOL steps cross
@@ -58,7 +74,8 @@ on Windows, under WSL"). Both compilers run the 2014 edition, the latest GnuCOBO
 THE VERDICT CLASSES, per program (one JSON line each in `results.jsonl`, appended as the run goes so a kill loses nothing):
   BOTH_REJECT      neither compiler compiled it after every correction, or a correction drew the same first diagnostics
                    as the round before it (`stopped_early`): the model's program, not a lead. Counted against the model.
-  NO_PROGRAM       the reply held no program, or was cut off, after every correction: counted against the model.
+  NO_PROGRAM       the reply held no program, was cut off, or degenerated into an enumeration loop that the harness (or
+                   Ollama) ended, after every correction: counted against the model.
   BOTH_HANG        both compilers' compiles or programs exceeded the hang guard: the model's program (an unsigned PERFORM
                    VARYING counter, a loop that changes neither bound), not a lead. Counted against the model (kb/Work PB3490).
   THEY_REJECT      WiseOwl compiled it, GnuCOBOL refused: a lead — GnuCOBOL 3.2 lacks the construct, or WiseOwl accepts a
@@ -109,8 +126,6 @@ import time
 import traceback
 import types
 import typing
-import urllib.error
-import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
@@ -123,15 +138,15 @@ sys.path.insert(0, str(REPO / "scripts" / "spec"))
 import config as suite_config  # noqa: E402
 import run as suite_run  # noqa: E402
 from spec_headings import GENERAL_FORMAT_NOUN  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
+from fuzz_ollama import (ABORTED, DEGENERATE, DEGENERATE_FORMS, DEGENERATE_LINES, DEGENERATE_REASONS, MODEL_ERRORS,  # noqa: E402
+                         NUM_CTX, NUM_PREDICT, OllamaError, PauseGate, lossless, ollama_chat, parse_model_options,
+                         read_pauses, unload)  # — the model's side: the streaming chat, the degenerate-reply watch, the PAUSE file
 from standard_streams import ensure_utf8  # noqa: E402
 
 SPEC = REPO / "specs" / "ISO_COBOL.md"
-OLLAMA = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 EDITION = "2014"            # the latest edition GnuCOBOL 3.2 has a dialect for; pinned on both compilers
 SOURCE_FORMAT = "free"
 HANG_GUARD = 90.0           # seconds per process: a generous limit, never a time expectation
-NUM_PREDICT = 6000          # output tokens per reply; an 80-line free-format program is well under 2000
-NUM_CTX = 16384             # the context Ollama gives the model: the whole exchange, every correction included
 REPORT_EVERY = 25
 DEFAULT_CLAUSES = ("14.9", "15", "13.18", "8.8")   # statements, intrinsic functions, data description clauses, arithmetic
 #: the spec's own heading shape (one definition for the markdown transcription; the PDF's is clause_page.index)
@@ -753,50 +768,7 @@ def seed_text(number: str, title: str, body: str, budget: int = CLAUSE_BUDGET) -
     return head + text + (f"\n\n[{', '.join(dropped)}: omitted to fit the prompt]" if dropped else "")
 
 
-# ── the model ─────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-def ollama_chat(model: str, messages: list[dict[str, str]], temperature: float, keep_alive: str = "10m",
-                timeout: float = 600.0) -> tuple[str, float, str, int]:
-    """One chat completion over `messages` → (content, seconds, done_reason, thinking characters). `done_reason` is
-    Ollama's: "stop" for a finished reply, "length" when NUM_PREDICT cut it off (the first smoke runs lost every program that
-    way: a 3000-token cap and fixed-form indentation). A model that rejects the `think` field is asked again without it (the
-    2026-10-03 spike). A model that thinks despite `think: false` (MiniMax M3.1 Flash on a full-size prompt, 2026-10-20: 28,000
-    characters of thinking, every output token spent, empty content) is visible through the thinking length."""
-    body: dict[str, Any] = {"model": model, "stream": False, "think": False, "keep_alive": keep_alive,
-                            "messages": messages,
-                            "options": {"temperature": temperature, "num_ctx": NUM_CTX, "num_predict": NUM_PREDICT}}
-    for attempt in (0, 1):
-        start = time.monotonic()
-        req = urllib.request.Request(f"{OLLAMA}/api/chat", json.dumps(body).encode("utf-8"),
-                                     {"Content-Type": "application/json"})
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as r:
-                reply = json.loads(r.read())
-            message = reply["message"]
-            return (message["content"].replace("<|eot|>", ""), time.monotonic() - start, reply.get("done_reason", "stop"),
-                    len(message.get("thinking") or ""))
-        except urllib.error.HTTPError as e:
-            msg = e.read()[:300]
-            if attempt == 0 and b"think" in msg:
-                body.pop("think")
-                continue
-            if b"prediction aborted" in msg:
-                # Ollama stopped a reply that fell into a repeating loop ("token repeat limit reached"): the model's reply,
-                # degenerate, not a failure of the harness or the server. The caller treats it as a reply with no program.
-                return "", time.monotonic() - start, "aborted", 0
-            raise RuntimeError(f"ollama HTTP {e.code}: {msg!r}") from None
-    raise AssertionError("unreachable")
-
-
-def unload(model: str) -> None:
-    """Free the GPU: a request with keep_alive 0 unloads the model (the GPU is shared with the owner's other work)."""
-    try:
-        req = urllib.request.Request(f"{OLLAMA}/api/generate", json.dumps({"model": model, "keep_alive": 0}).encode(),
-                                     {"Content-Type": "application/json"})
-        urllib.request.urlopen(req, timeout=60).read()
-    except (urllib.error.URLError, OSError):
-        pass
-
+# ── the reply ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 def extract_program(reply: str) -> str | None:
     """The fenced block of a reply that holds a PROCEDURE DIVISION (the longest, when several do), or the reply itself
@@ -1041,6 +1013,9 @@ class Settings:
     seed: int = 20261020   # shuffles the seed clauses deterministically, so a short run samples every area (the first
                            # 40-program run walked the spec in order and never left §8.8); `in_order` keeps the spec's order
     in_order: bool = False
+    #: Ollama options per model tag (`--model-option MODEL:KEY=VALUE`, fuzz_ollama.MODEL_OPTION_TYPES): a sampler setting
+    #: that damps a model's repetition belongs to that model, so a bake-off gives each its own (kb/Work PB3537)
+    model_options: dict[str, dict[str, float | int]] = dataclasses.field(default_factory=dict)
 
 
 class Fuzz:
@@ -1066,6 +1041,8 @@ class Fuzz:
         self.they = load_compiler("gnucobol", self.out, work / "gnucobol", {}, s.keep)
         self.deadline = time.monotonic() + s.hours * 3600 if s.hours else None
         self.done = 0
+        self.model_options = s.model_options.get(s.model, {})
+        self.pause = PauseGate(self.out)      # the wrapper's PAUSE file (kb/Work PB3561)
 
     def seed_for(self, i: int) -> tuple[str, str, str, int]:
         n = len(self.seeds)
@@ -1107,24 +1084,42 @@ class Fuzz:
         # how the 2026-10-20 bake-off lost two fifths of its refusals. One both compilers refuse is the model's slip and goes
         # back with both compilers' first diagnostics (WiseOwl's cite the standard). The verdict is the last program's;
         # every earlier one is kept as <name>.r<k>.cob for diagnosis.
+        this_generation: list[str] = []         # why THIS generation was asked again (the row's lists cover every one)
+
+        def requeued(e: BaseException) -> None:
+            rec["requeued"] = rec.get("requeued", 0) + 1
+            rec.setdefault("requeue_reasons", []).append(str(e)[:200])
+            this_generation.append(str(e)[:200])
+
         for attempt in range(self.s.repairs + 1):
+            # One generation, after any pause and asked again as often as a pause ends it, and once if the runner restarted: a
+            # PAUSE loses no program (kb/Work PB3561). A failure that is neither, or the second runner failure, is the row's
+            # RUNNER_ERROR.
+            this_generation.clear()
             try:
-                reply, secs, done, thinking = ollama_chat(self.s.model, messages, self.s.temperature)
-            except (RuntimeError, urllib.error.URLError, OSError, TimeoutError) as e:
-                rec.update(verdict="RUNNER_ERROR", reason=f"model: {e}")
+                reply, secs, done, thinking = lossless(
+                    self.pause, lambda: ollama_chat(self.s.model, messages, self.s.temperature, options=self.model_options),
+                    requeued)
+            except MODEL_ERRORS as e:
+                again = (f" (the generation was asked again {'once' if len(this_generation) == 1 else f'{len(this_generation)} times'}, "
+                         f"after: {this_generation[0]})") if this_generation else ""
+                rec.update(verdict="RUNNER_ERROR", reason=f"model: {e}{again}")
                 return rec
             rec["model_seconds"] = round(rec["model_seconds"] + secs, 1)
+            if done in DEGENERATE_REASONS:
+                rec["degenerate_replies"] = rec.get("degenerate_replies", 0) + 1
             (self.programs / f"{name}.reply{attempt}.txt").write_text(reply, encoding="utf-8", newline="\n")
             program = extract_program(reply)
-            if program is None or done == "length":
+            # A reply cut short (the token cap, or an enumeration the watch ended) never yields a program: what precedes the cut
+            # may hold a PROCEDURE DIVISION, but it is the front of a program the model did not finish.
+            if program is None or done == "length" or done in DEGENERATE_REASONS:
                 why = cut_off_reason(done, thinking, len(reply))
                 if attempt == self.s.repairs:
                     rec.update(verdict="NO_PROGRAM", reason=why, truncated=done == "length")
                     return rec
-                ask = ("Your reply was cut off before the program ended. Reply with a SHORTER complete program: at most 50 lines, "
-                       "no indentation, a few data items, one ```cobol fenced block." if done == "length" else
-                       "That reply had no COBOL program. Reply with exactly one complete program in one ```cobol fenced block.")
-                messages += [{"role": "assistant", "content": reply}, {"role": "user", "content": ask}]
+                # (an aborted reply's text is Ollama's message, recorded in the reply file, never the model's turn)
+                messages += [{"role": "assistant", "content": "" if done == ABORTED else reply},
+                             {"role": "user", "content": retry_request(done)}]
                 continue
             if attempt:
                 rec["repairs"] = attempt
@@ -1183,12 +1178,14 @@ class Fuzz:
     def run(self) -> None:
         (self.out / "run.json").write_text(json.dumps({**dataclasses.asdict(self.s), "out": str(self.out),
                                                        "seeds": len(self.seeds), "declined_seeds": self.declined_seeds,
-                                                       "edition": EDITION,
+                                                       "edition": EDITION, "pause_file": str(self.pause.path),
                                                        "started": datetime.now(timezone.utc).isoformat(timespec="seconds")},
                                                       indent=1), encoding="utf-8", newline="\n")
         total = self.s.count if self.s.count is not None else 10 ** 9
         print(f"model {self.s.model} · {len(self.seeds)} seed clauses under {self.s.prefixes} · jobs {self.s.jobs} · "
               f"{'count ' + str(self.s.count) if self.s.count is not None else f'{self.s.hours} h'} · out {self.out}", flush=True)
+        print(f"pause: create {self.pause.path} (empty) to pause the run by hand (generations wait, a request that fails "
+              "meanwhile is asked again); remove it to resume. The wrapper's own PAUSE starts 'lease:' and expires when not rewritten", flush=True)
         try:
             with ThreadPoolExecutor(max_workers=self.s.jobs) as pool:
                 pending = set()
@@ -1209,15 +1206,33 @@ class Fuzz:
 
 def cut_off_reason(done: str, thinking_chars: int, content_chars: int) -> str:
     """Why a reply yielded no program: cut off at the output cap, with the thinking that spent the cap named when the content
-    is empty (a model that ignores `think: false`), or simply no program in it."""
-    if done == "aborted":
+    is empty (a model that ignores `think: false`), or simply no program in it. An enumeration loop is named as its own
+    shape (kb/Work PB3537), whoever ended it: the harness's watch or Ollama's repeat limit."""
+    if done == ABORTED:
         return "Ollama aborted the reply: the model fell into a repeating loop (token repeat limit reached)"
+    if done == DEGENERATE:
+        return (f"degenerate enumeration: the model fell into a repeating loop (the last {DEGENERATE_LINES} lines held at most "
+                f"{DEGENERATE_FORMS} distinct forms once their counters are ignored); the harness ended the reply early, "
+                f"before the {NUM_PREDICT}-token cap")
     if done != "length":
         return "no COBOL program in the reply"
     if thinking_chars and not content_chars:
         return (f"the model spent all {NUM_PREDICT} output tokens thinking ({thinking_chars} characters; think=false was not "
                 "honoured) and wrote no content")
     return f"the reply was cut off at {NUM_PREDICT} tokens"
+
+
+def retry_request(done: str) -> str:
+    """What the model is told after a reply that held no program, by how the reply ended: cut at the token cap, ended as an
+    enumeration loop (either way it is asked for a SHORTER program), or simply without a program."""
+    if done == "length":
+        return ("Your reply was cut off before the program ended. Reply with a SHORTER complete program: at most 50 lines, "
+                "no indentation, a few data items, one ```cobol fenced block.")
+    if done in DEGENERATE_REASONS:
+        return ("Your reply fell into a long list of near-identical lines and was stopped. Reply with a SHORTER complete "
+                "program: at most 50 lines, no indentation, a few data items with different names and purposes, no list of "
+                "numbered items, one ```cobol fenced block.")
+    return "That reply had no COBOL program. Reply with exactly one complete program in one ```cobol fenced block."
 
 
 #: A diagnostic line whose SEVERITY is error: an optional location (GnuCOBOL's "fz00609.cob:18:", the C compiler's
@@ -1364,12 +1379,21 @@ def render_report(rows: list[dict[str, Any]], out: Path) -> str:
     repaired = sum(1 for r in rows if r.get("repairs") and r["verdict"] not in MODEL_FAILURE_CLASSES)
     first = first_attempt_usable(rows)
     early = sum(1 for r in rows if r.get("stopped_early"))
+    degenerate = sum(r.get("degenerate_replies", 0) for r in rows)
+    degenerate_rows = sum(1 for r in rows if r.get("degenerate_replies"))
+    requeued_rows = [r for r in rows if r.get("requeued")]
+    pauses = read_pauses(out)
     lines = [f"# Differential fuzz — triage report", "",
              f"Programs: {n} · judged: {judged} · usable: {judged - failed} ({(judged - failed) / judged:.0%} of judged; "
              f"{repaired} of them after a repair round) · usable on the first attempt: {first} ({first / judged:.0%} of judged) · "
              f"the model's failures: {failed} ({early} ended early on a repeated diagnostic) · GnuCOBOL alone refused "
              f"(THEY_REJECT leads): {counts.get('THEY_REJECT', 0)}" if judged else f"Programs: {n}",
              f"Model seconds per program (median): {sorted(model_secs)[len(model_secs) // 2]:.0f}" if model_secs else "",
+             f"Degenerate replies ended early (an enumeration loop, by the harness's watch or Ollama's repeat limit): {degenerate} "
+             f"in {degenerate_rows} programs" if degenerate else None,
+             f"Pauses: {pauses.count} ({pauses.seconds / 60:.0f} min paused{', the run ended inside one' if pauses.open else ''}) · "
+             f"generations asked again after a pause or a runner restart: {sum(r['requeued'] for r in requeued_rows)} in "
+             f"{len(requeued_rows)} programs (pauses, not the model's failures)" if pauses.count or requeued_rows else None,
              "", "| Class | Count |", "|---|---|"]
     lines += [f"| {k} | {v} |" for k, v in sorted(counts.items(), key=lambda kv: -kv[1])]
     lines += ["", "⛔ TRIAGE RULE: the spec decides (CLAUDE.md rule 1). GnuCOBOL is a net: an OUTPUT_DIFFERS row says the",
@@ -1450,12 +1474,14 @@ def bake_off(models: list[str], base: Settings) -> None:
     for m in models:
         s = dataclasses.replace(base, model=m, out=base.out / re.sub(r"[^A-Za-z0-9_.-]", "_", m))
         Fuzz(s).run()
-        table.append((m, *bake_off_score(read_results(s.out))))
-    lines = ["# Bake-off", "", "| Model | Programs | Usable | Usable on the first attempt | Model failures (both refuse, no program, or both hang) | GnuCOBOL alone refuses | Median model s | Lead rows |",
-             "|---|---|---|---|---|---|---|---|"]
-    for m, n, usable, judged, both, theirs, med, leads, first in table:
-        lines.append(f"| {m} | {n} | {usable}/{judged} ({usable / judged:.0%}) | {first}/{judged} ({first / judged:.0%}) | {both} | {theirs} | {med:.0f} | {leads} |"
-                     if judged else f"| {m} | {n} | 0/0 | 0/0 | 0 | 0 | - | {leads} |")
+        table.append((m, bake_off_score(read_results(s.out))))
+    lines = ["# Bake-off", "", "| Model | Programs | Usable | Usable on the first attempt | Model failures (both refuse, no program, or both hang) | Degenerate replies (enumeration loops, ended early) | GnuCOBOL alone refuses | Median model s | Lead rows |",
+             "|---|---|---|---|---|---|---|---|---|"]
+    for m, sc in table:
+        lines.append(f"| {m} | {sc.programs} | {sc.usable}/{sc.judged} ({sc.usable / sc.judged:.0%}) | {sc.first_attempt}/{sc.judged} "
+                     f"({sc.first_attempt / sc.judged:.0%}) | {sc.model_failures} | {sc.degenerate_replies} | {sc.gnucobol_alone_refuses} | "
+                     f"{sc.median_model_seconds:.0f} | {sc.leads} |"
+                     if sc.judged else f"| {m} | {sc.programs} | 0/0 | 0/0 | 0 | {sc.degenerate_replies} | 0 | - | {sc.leads} |")
     text = "\n".join(lines) + "\n"
     (base.out / "bake-off.md").write_text(text, encoding="utf-8", newline="\n")
     print(text)
@@ -1467,17 +1493,28 @@ def first_attempt_usable(rows: list[dict[str, Any]]) -> int:
     return sum(1 for r in rows if r["verdict"] != "RUNNER_ERROR" and r["verdict"] not in MODEL_FAILURE_CLASSES and not r.get("repairs"))
 
 
-def bake_off_score(rows: list[dict[str, Any]]) -> tuple[int, int, int, int, int, float, int, int]:
-    """(programs, usable, judged, model failures (MODEL_FAILURE_CLASSES: BOTH_REJECT, NO_PROGRAM, BOTH_HANG), GnuCOBOL-alone-
-    refuses, median model seconds, lead rows, usable on the first attempt) of one model's run."""
+class BakeOffScore(typing.NamedTuple):
+    """One model's bake-off run, scored (`bake_off_score`)."""
+    programs: int
+    usable: int
+    judged: int
+    model_failures: int              # MODEL_FAILURE_CLASSES: BOTH_REJECT, NO_PROGRAM, BOTH_HANG
+    gnucobol_alone_refuses: int
+    median_model_seconds: float
+    leads: int
+    first_attempt: int               # usable without a correction round
+    degenerate_replies: int          # replies ended as an enumeration loop (kb/Work PB3537), by the harness or by Ollama
+
+
+def bake_off_score(rows: list[dict[str, Any]]) -> BakeOffScore:
     judged = [r for r in rows if r["verdict"] != "RUNNER_ERROR"]
     usable = [r for r in judged if r["verdict"] not in MODEL_FAILURE_CLASSES]
     both = sum(1 for r in judged if r["verdict"] in MODEL_FAILURE_CLASSES)
     theirs = sum(1 for r in judged if r["verdict"] == "THEY_REJECT")
     secs = sorted(r["model_seconds"] for r in rows if "model_seconds" in r)
     leads = sum(1 for r in rows if r["verdict"] in LEAD_CLASSES)
-    return (len(rows), len(usable), len(judged), both, theirs, secs[len(secs) // 2] if secs else float("nan"), leads,
-            first_attempt_usable(rows))
+    return BakeOffScore(len(rows), len(usable), len(judged), both, theirs, secs[len(secs) // 2] if secs else float("nan"), leads,
+                        first_attempt_usable(rows), sum(r.get("degenerate_replies", 0) for r in rows))
 
 
 # ── self-test ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1708,7 +1745,14 @@ def self_test() -> int:
     check("seeds: 15.6 Summary of functions (a table) is not a seed, and a structural title at two components is a clause and stays one (15.3 Arguments, 15.4 Returned values)",
           "15.6" not in by_number and by_number.get("15.3") == "Arguments" and by_number.get("15.4") == "Returned values", {k: by_number.get(k) for k in ("15.6", "15.3", "15.4")})
     check("cut off: a reply Ollama aborted for a repeating loop is the model's failure, named",
-          "repeating loop" in cut_off_reason("aborted", 0, 0))
+          "repeating loop" in cut_off_reason(ABORTED, 0, 0))
+    check("cut off: a reply the harness ended as an enumeration is its own NO_PROGRAM reason, 'degenerate enumeration', naming the "
+          "measured window and that it ended before the token cap (kb/Work PB3537); either kind of loop asks for a shorter program",
+          cut_off_reason(DEGENERATE, 0, 5000).startswith("degenerate enumeration: ")
+          and f"{DEGENERATE_LINES} lines held at most {DEGENERATE_FORMS} distinct forms" in cut_off_reason(DEGENERATE, 0, 5000)
+          and f"before the {NUM_PREDICT}-token cap" in cut_off_reason(DEGENERATE, 0, 5000)
+          and retry_request(DEGENERATE) == retry_request(ABORTED) != retry_request("length") != retry_request("stop")
+          and "SHORTER" in retry_request(DEGENERATE) and "SHORTER" in retry_request("length") and "SHORTER" not in retry_request("stop"))
     check("prompt: the system prompt carries the example, every function of the edition, the 2023 additions as errors, no DELETE FILE rule, and nothing unfilled",
           EXAMPLES["statement"] in sp and all(f in sp for f in real) and "{functions}" not in sp and "{added}" not in sp
           and "FUNCTION CONCAT, FUNCTION CONVERT" in sp and "the DELETE FILE statement" in sp and "DELETE FILE it" not in sp
@@ -1793,7 +1837,24 @@ def self_test() -> int:
           and "## Survivors: 3 programs in 2 signatures" in rep and "OUTPUT_LATITUDE:14.9.11" not in rep and "BOTH_HANG:14.9.28" not in rep
           and "## Display-form latitude: 1 programs (not survivors)" in rep and "- clause 14.9.11 (DISPLAY): 1 — fz00006" in rep, rep)
     check("bake-off: the score is the usable share, with both-refuse and GnuCOBOL-alone counts beside it, and the share usable on the first attempt (a repaired THEY_REJECT is usable, not first-attempt)",
-          bake_off_score(rows) == (9, 5, 8, 3, 1, 9, 3, 4), bake_off_score(rows))
+          bake_off_score(rows) == (9, 5, 8, 3, 1, 9, 3, 4, 0), bake_off_score(rows))
+    with tempfile.TemporaryDirectory() as td4:
+        paused_run = Path(td4)
+        (paused_run / "pauses.jsonl").write_text(json.dumps({"at": "2026-10-26T21:00:00+00:00", "event": "pause"}) + "\n"
+                                                 + json.dumps({"at": "2026-10-26T21:02:00+00:00", "event": "resume", "seconds": 120.0}) + "\n",
+                                                 encoding="utf-8", newline="\n")
+        loop_rows = [{"id": "fz00010", "clause": "13.18", "title": "OCCURS", "verdict": "NO_PROGRAM", "model_seconds": 20,
+                      "reason": cut_off_reason(DEGENERATE, 0, 900), "degenerate_replies": 4},
+                     {"id": "fz00011", "clause": "13.18", "title": "VALUE", "verdict": "AGREE", "model_seconds": 9, "repairs": 1,
+                      "degenerate_replies": 1, "requeued": 2, "requeue_reasons": ["ollama HTTP 500: x", "ollama HTTP 500: y"]},
+                     {"id": "fz00012", "clause": "15.3", "title": "ABS", "verdict": "AGREE", "model_seconds": 5}]
+        paused_report = render_report(loop_rows, paused_run)
+    check("report: degenerate replies (the harness's cuts and Ollama's aborts) and pauses each have a line saying what they are; a run that had neither has neither line (kb/Work PB3537, PB3561)",
+          "Degenerate replies ended early (an enumeration loop, by the harness's watch or Ollama's repeat limit): 5 in 2 programs" in paused_report
+          and "Pauses: 1 (2 min paused) · generations asked again after a pause or a runner restart: 2 in 1 programs (pauses, not the model's failures)" in paused_report
+          and "Degenerate replies" not in rep and "Pauses:" not in rep and "| NO_PROGRAM | 1 |" in paused_report, paused_report[:900])
+    check("bake-off: the score counts the degenerate replies per model, so the model-failure count names the shape (kb/Work PB3537)",
+          bake_off_score(loop_rows).degenerate_replies == 5 and bake_off_score(loop_rows).model_failures == 1, bake_off_score(loop_rows))
     hang_row = {"id": "fz01771", "clause": "14.9.28", "title": "PERFORM", "verdict": "WE_HANG", "signature": "WE_HANG:14.9.28", "model_seconds": 9,
                 "we": {"compiled": True, "codes": [], "first_error": "", "run_rc": None, "crashed": False, "hung": True, "output": "", "runner_error": ""},
                 "they": {"compiled": True, "first_error": "", "run_rc": None, "hung": True, "output": "", "runner_error": ""}}
@@ -1872,20 +1933,33 @@ def self_test() -> int:
         remove_tree(stale.parent)
     check("observe_fresh: an earlier attempt's work directory is removed before the program is staged again (the first PB3488 bake-off lost 3 of 20 programs to FileExistsError)",
           staged == [False], staged)
-    def stubbed_one(sides: dict[str, Any]) -> tuple[dict[str, Any], list[str], list[str]]:
+    fixed_reply = ("```cobol\nIDENTIFICATION DIVISION.\nPROGRAM-ID. FUZZ.\nPROCEDURE DIVISION.\nDISPLAY WS-X\nSTOP RUN.\n```", 1.0, "stop", 0)
+
+    def stubbed_one(sides: dict[str, Any], script: list[Any] | None = None, model_options: dict[str, float | int] | None = None,
+                    ) -> tuple[dict[str, Any], list[str], list[str], list[Any]]:
         """Fuzz._one over a stubbed model (one fixed program, line 4 "DISPLAY WS-X") and stubbed compilers: sides[name](k) is
-        that compiler's Observation of its k-th compile. Returns the row, the calls in order and every user message sent."""
+        that compiler's Observation of its k-th compile. `script` is what the model answers, call by call: a reply tuple, an
+        exception to raise, or a function of the run's PauseGate returning one of those (it may create the PAUSE file, as the
+        wrapper does); the fixed program once it runs out. The run's PAUSE gate polls without sleeping, and the poll is the wrapper's resume
+        (it removes the file). Returns the row, the calls in order, every user message sent and the options each call got."""
         one_dir = Path(__file__).resolve().parent.parent / "conformance-suite" / "results" / "self-test-one"
         remove_tree(one_dir)
         (one_dir / "programs").mkdir(parents=True)
         calls: list[str] = []
         asked: list[str] = []
+        options_seen: list[Any] = []
         seen = {"they": 0, "we": 0}
+        steps = list(script or [])
 
-        def chat(_model: str, messages: list[dict[str, str]], _temperature: float) -> tuple[str, float, str, int]:
+        def chat(_model: str, messages: list[dict[str, str]], _temperature: float, options: Any = None) -> tuple[str, float, str, int]:
             calls.append("model")
             asked.append(messages[-1]["content"])
-            return "```cobol\nIDENTIFICATION DIVISION.\nPROGRAM-ID. FUZZ.\nPROCEDURE DIVISION.\nDISPLAY WS-X\nSTOP RUN.\n```", 1.0, "stop", 0
+            options_seen.append(options)
+            step = steps.pop(0) if steps else fixed_reply
+            step = step(gate) if callable(step) else step
+            if isinstance(step, BaseException):
+                raise step
+            return step
 
         def fresh(run: Any, _entry: dict[str, Any], _name: str) -> Observation:
             calls.append(run.name)
@@ -1895,24 +1969,27 @@ def self_test() -> int:
         saved_chat, saved_fresh = ollama_chat, observe_fresh
         try:
             globals()["ollama_chat"], globals()["observe_fresh"] = chat, fresh
+            gate = PauseGate(one_dir, sleep=lambda _s: gate.path.unlink(missing_ok=True), say=lambda _m: None)
             fake = types.SimpleNamespace(s=types.SimpleNamespace(model="m", temperature=0.3, repairs=3, keep=True), out=one_dir,
                                          programs=one_dir / "programs", we=types.SimpleNamespace(name="we", work=one_dir / "w"),
-                                         they=types.SimpleNamespace(name="they", work=one_dir / "t"),
+                                         they=types.SimpleNamespace(name="they", work=one_dir / "t"), pause=gate,
+                                         model_options=model_options or {},
                                          system_prompts={family: f"sys {family}" for family in EXAMPLES})
             row = Fuzz._one(fake, 0, "fz00000", "14.9.25", "MOVE statement", "body", 0, {"id": "fz00000"})  # type: ignore[arg-type]
+            row["_pauses"] = read_pauses(one_dir)
         finally:
             globals()["ollama_chat"], globals()["observe_fresh"] = saved_chat, saved_fresh
             remove_tree(one_dir)
-        return row, calls, asked
+        return row, calls, asked, options_seen
 
     gnu_refuses = lambda k: Observation(False, 1, f"fz00000.cob:4: error: 'WS-X{k}' is not defined", [])  # noqa: E731
     # R1-1: a WiseOwl crash on a program GnuCOBOL refused ends the rounds as WE_CRASH; it is never sent back for a correction.
-    rec_crash, calls, _asked = stubbed_one({"they": gnu_refuses, "we": lambda k: Observation(False, -1, "crash", [], crashed=True)})
+    rec_crash, calls, _asked, _options = stubbed_one({"they": gnu_refuses, "we": lambda k: Observation(False, -1, "crash", [], crashed=True)})
     check("run: a WiseOwl crash on a program GnuCOBOL refused is WE_CRASH after ONE round (review R1-1: it was sent back and lost), and no refusal round is recorded",
           rec_crash["verdict"] == "WE_CRASH" and calls == ["model", "they", "we"] and rec_crash["repairs"] == 0
           and rec_crash["repair_rounds"] == [], (rec_crash.get("verdict"), calls))
     same = lambda k: Observation(False, 1, "fz00000.cob(4,1): error COBOL1639: 'WS-X' is not defined", ["COBOL1639"])  # noqa: E731
-    rec_same, calls, asked = stubbed_one({"they": gnu_refuses, "we": same})
+    rec_same, calls, asked, _options = stubbed_one({"they": gnu_refuses, "we": same})
     check("run: a correction that draws the same first diagnostics from both compilers ends the rounds there, BOTH_REJECT and stopped_early, after one correction rather than three (kb/Work PB3523 item 4)",
           rec_same["verdict"] == "BOTH_REJECT" and rec_same.get("stopped_early") is True and rec_same["repairs"] == 1
           and calls == ["model", "they", "we"] * 2, (rec_same.get("verdict"), rec_same.get("stopped_early"), calls))
@@ -1923,11 +2000,60 @@ def self_test() -> int:
     check("run: the correction sent to the model quotes the refused source line beside each compiler's diagnostic (kb/Work PB3523 item 2)",
           len(asked) == 2 and asked[1].count("    > line 4: DISPLAY WS-X") == 2, asked[1:])
     changing = lambda k: Observation(False, 1, f"fz00000.cob({k},1): error COBOL000{k}: unexpected", [f"COBOL000{k}"])  # noqa: E731
-    rec_changing, calls, _asked = stubbed_one({"they": gnu_refuses, "we": changing})
+    rec_changing, calls, _asked, _options = stubbed_one({"they": gnu_refuses, "we": changing})
     check("run: a program whose first diagnostic changes every round keeps the whole budget of three corrections (four rounds recorded, not stopped early)",
           rec_changing["verdict"] == "BOTH_REJECT" and "stopped_early" not in rec_changing and rec_changing["repairs"] == 3
           and calls == ["model", "they", "we"] * 4 and [r["code"] for r in rec_changing["repair_rounds"]] == ["COBOL0001", "COBOL0002", "COBOL0003", "COBOL0004"],
           (rec_changing.get("verdict"), calls))
+    # A degenerate reply (kb/Work PB3537): the front of a program, cut where the harness's watch ended an enumeration
+    front = ("```cobol\nIDENTIFICATION DIVISION.\nPROGRAM-ID. FUZZ.\nPROCEDURE DIVISION.\nDISPLAY 1\nDISPLAY 1\n", 3.0, DEGENERATE, 0)
+    agree = {"they": lambda k: ok_run, "we": lambda k: ok_run}
+    rec_loop, calls, asked, _options = stubbed_one(agree, [front] * 4)
+    check("run: replies that are all enumeration loops end as NO_PROGRAM 'degenerate enumeration' after the four generations, none compiled "
+          "although the cut front holds a PROCEDURE DIVISION, every one counted, each correction asking for a SHORTER program",
+          rec_loop["verdict"] == "NO_PROGRAM" and rec_loop["reason"].startswith("degenerate enumeration: ") and rec_loop["degenerate_replies"] == 4
+          and rec_loop["truncated"] is False and calls == ["model"] * 4 and asked[1:] == [retry_request(DEGENERATE)] * 3, (rec_loop, calls, asked))
+    rec_once, calls, asked, _options = stubbed_one(agree, [front, ("", 1.0, ABORTED, 0)])
+    check("run: a loop the harness cut and one Ollama aborted are each counted, each corrected, and the program that follows is judged "
+          "(AGREE after two corrections); a clean run records no count",
+          rec_once["verdict"] == "AGREE" and rec_once["degenerate_replies"] == 2 and rec_once["repairs"] == 2
+          and calls == ["model"] * 3 + ["they", "we"] and asked[1] == asked[2] == retry_request(DEGENERATE)
+          and "degenerate_replies" not in stubbed_one(agree)[0], (rec_once, calls))
+
+    def fails_during_pause(gate: PauseGate) -> BaseException:
+        """What the wrapper does: PAUSE first, then the runner is ended and the generation in flight fails."""
+        gate.path.write_text("paused\n", encoding="utf-8", newline="\n")
+        return OllamaError("ollama HTTP 500: an error was encountered while running the model", 500)
+
+    rec_pause, calls, asked, _options = stubbed_one(agree, [fails_during_pause])
+    check("run: a generation that fails while PAUSE exists is not a verdict: the program waits for the pause to end, asks again and is "
+          "judged (AGREE), the row says it was asked again, and the pause is logged (kb/Work PB3561 items 1 and 3)",
+          rec_pause["verdict"] == "AGREE" and rec_pause["requeued"] == 1 and "HTTP 500" in rec_pause["requeue_reasons"][0]
+          and calls == ["model", "model", "they", "we"] and rec_pause["_pauses"].count == 1 and not rec_pause["_pauses"].open
+          and "reason" not in rec_pause, (rec_pause, calls))
+    down = OllamaError("ollama HTTP 500: an error was encountered while running the model", 500)
+    rec_down, calls, asked, _options = stubbed_one(agree, [down, down])
+    check("run: a runner failure outside a pause is asked again once, and a second one is the row's RUNNER_ERROR, naming both failures "
+          "(kb/Work PB3561 item 1: only a failure outside a pause, or a second failure, records RUNNER_ERROR)",
+          rec_down["verdict"] == "RUNNER_ERROR" and rec_down["requeued"] == 1 and calls == ["model", "model"]
+          and rec_down["reason"].startswith("model: ollama HTTP 500") and "asked again once, after: ollama HTTP 500" in rec_down["reason"]
+          and rec_down["_pauses"].count == 0, (rec_down, calls))
+    rec_twice, calls, asked, _options = stubbed_one(agree, [fails_during_pause, fails_during_pause])
+    check("run: a generation two pauses end is asked a third time and judged, both counted (review R1-1: the second pause used to record a RUNNER_ERROR)",
+          rec_twice["verdict"] == "AGREE" and rec_twice["requeued"] == 2 and calls == ["model"] * 3 + ["they", "we"]
+          and rec_twice["_pauses"].count == 2 and "reason" not in rec_twice, (rec_twice, calls))
+    rec_later, calls, asked, _options = stubbed_one({"they": gnu_refuses, "we": changing}, [fails_during_pause, fixed_reply, TimeoutError("timed out")])
+    check("run: the reason of a RUNNER_ERROR speaks of the generation that failed: an earlier round's generation that a pause ended "
+          "is counted on the row but not named as this one's (review R1-2)",
+          rec_later["verdict"] == "RUNNER_ERROR" and rec_later["reason"] == "model: timed out" and rec_later["requeued"] == 1
+          and calls == ["model", "model", "they", "we", "model"], (rec_later.get("reason"), rec_later.get("requeued"), calls))
+    rec_timeout, calls, asked, _options = stubbed_one(agree, [TimeoutError("timed out"), "never"])
+    check("run: a timeout outside a pause is no runner restart: one call, RUNNER_ERROR 'model: timed out', nothing asked again",
+          rec_timeout["verdict"] == "RUNNER_ERROR" and rec_timeout["reason"] == "model: timed out" and "requeued" not in rec_timeout
+          and calls == ["model"], (rec_timeout, calls))
+    _row, _calls, _asked, options_seen = stubbed_one(agree, model_options={"repeat_penalty": 1.1, "repeat_last_n": 64})
+    check("run: the model's own Ollama options reach its generations (--model-option)",
+          options_seen == [{"repeat_penalty": 1.1, "repeat_last_n": 64}], options_seen)
     check("refusal key: GnuCOBOL's message family drops the file, the line, the quoted names and the numbers; WiseOwl's code must repeat too, and a broad code with a new GnuCOBOL family is a new error",
           gnucobol_family("a.cob:4: error: 'WS-T' not indexed") == gnucobol_family("b.cob:19: error: 'X2' not indexed") == "error: '_' not indexed"
           and refusal_key({"code": "COBOL0001", "message": "m", "gnucobol": "a.cob:3: error: syntax error, unexpected Identifier"})
@@ -1975,6 +2101,23 @@ def self_test() -> int:
               and "PB9001" in outputs["forced"][1] and "PB9005" in outputs["forced"][1], outputs["forced"])
         check("cadence: a bake-off is not a run and is never refused", outputs["bake-off"][0] == "exit 2" and outputs["bake-off"][1] == "",
               outputs["bake-off"])
+    # --model-option (kb/Work PB3537): a bad item and an option for a model the run does not use are argparse errors, before anything starts
+    option_errors: dict[str, str] = {}
+    for case, argv in (("key", ["--model", "m", "--count", "1", "--model-option", "m:top_k=3"]),
+                       ("unused", ["--bake-off", "a,b", "--count", "1", "--model-option", "c:repeat_penalty=1.1"]),
+                       ("ok", ["--bake-off", "a,b", "--count", "1", "--cobol", "no-such-cobol.exe", "--model-option", "b:repeat_penalty=1.1"])):
+        err = io.StringIO()
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+            try:
+                main(argv)
+                code: object = 0
+            except SystemExit as e:
+                code = e.code
+        option_errors[case] = f"{code}|{err.getvalue()}"
+    check("options: --model-option with an unknown key, or for a model the run does not use, is refused with the item named; a valid one for a model of the bake-off is accepted (the run then stops at the missing compiler)",
+          option_errors["key"].startswith("2|") and "--model-option 'm:top_k=3'" in option_errors["key"]
+          and option_errors["unused"].startswith("2|") and "names c, which this run does not use (it runs a, b)" in option_errors["unused"]
+          and option_errors["ok"].startswith("2|") and "compiler not found" in option_errors["ok"], option_errors)
     print("self-test " + ("PASSED" if rc == 0 else "FAILED"))
     return rc
 
@@ -2031,6 +2174,9 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--report", help="re-render DIR/report.md from DIR/results.jsonl and exit")
     ap.add_argument("--force-open-notes", action="store_true",
                     help="start a run although kb/Work notes from an earlier fuzz run are open (they are listed)")
+    ap.add_argument("--model-option", action="append", default=[], metavar="MODEL:KEY=VALUE",
+                    help="an Ollama option for one model, repeatable (repeat_penalty=FLOAT, repeat_last_n=INT): damps a model "
+                         "that falls into enumeration loops, without touching the others of a bake-off")
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args(argv)
     if a.self_test:
@@ -2042,6 +2188,14 @@ def main(argv: list[str]) -> int:
         ap.error("--model or --bake-off is required")
     if a.count is None and a.hours is None:
         ap.error("--count or --hours is required")
+    models = [m.strip() for m in a.bake_off.split(",") if m.strip()] if a.bake_off else [a.model]
+    try:
+        model_options = parse_model_options(a.model_option)
+    except ValueError as e:
+        ap.error(str(e))
+    unused = sorted(set(model_options) - set(models))
+    if unused:
+        ap.error(f"--model-option names {', '.join(unused)}, which this run does not use (it runs {', '.join(models)})")
     if not a.bake_off and not cadence_gate(WORK_DIR, a.force_open_notes):
         return EXIT_OPEN_NOTES
     if not Path(a.cobol).exists():
@@ -2049,9 +2203,10 @@ def main(argv: list[str]) -> int:
     out = Path(a.out) if a.out else SUITE / "results" / f"fuzz-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
     s = Settings(model=a.model or "", out=out, jobs=a.jobs, count=a.count, hours=a.hours,
                  prefixes=tuple(p.strip() for p in a.clauses.split(",") if p.strip()), temperature=a.temperature,
-                 cobol_exe=str(Path(a.cobol).resolve()), keep=a.keep, repairs=max(0, a.repairs), seed=a.seed, in_order=a.in_order)
+                 cobol_exe=str(Path(a.cobol).resolve()), keep=a.keep, repairs=max(0, a.repairs), seed=a.seed, in_order=a.in_order,
+                 model_options=model_options)
     if a.bake_off:
-        bake_off([m.strip() for m in a.bake_off.split(",") if m.strip()], s)
+        bake_off(models, s)
     else:
         Fuzz(s).run()
     print(f"report: {out / 'report.md'}")
