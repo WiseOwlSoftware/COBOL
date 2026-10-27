@@ -40,10 +40,11 @@
       *> REL/MV20/MAX/SUM/SUB/MVX/MVED/EVAL: the value flows through every channel at its own scale - a relation,
       *>        a MOVE at 20 fraction digits, an intrinsic argument, an addition, a subscript, a DISPLAY text
       *>        operand, a numeric-edited MOVE and an EVALUATE subject. Same lines as the SD golden prints.
-      *> RAWF:  THE CONTRAST THAT MUST NOT MOVE. 15.69.4 r2 gives NUMVAL-F - and only NUMVAL-F - "an
-      *>        approximation" under native arithmetic, which is why r3 has to state the standard-decimal value
-      *>        separately. So NUMVAL-F keeps the float family's determination here (CONFORMANCE.md item 92) and
-      *>        prints the binary64 shortest-round-trip image, where the SD golden prints 41 exact digits.
+      *> RAWF:  15.69.4 r2 gives NUMVAL-F - and only NUMVAL-F - "an approximation" under native arithmetic,
+      *>        which is why r3 has to state the standard-decimal value separately. The approximation is the
+      *>        implementor's to choose (15.4.1) and this compiler chooses r3's value (PB3839, CONFORMANCE.md
+      *>        item 92), so it prints the same 41 exact digits the SD golden prints - no receiver, no mode, no
+      *>        channel changes the value. (Before PB3839 this line printed the binary64 image 1E+40.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB251NVNAT.
        DATA DIVISION.

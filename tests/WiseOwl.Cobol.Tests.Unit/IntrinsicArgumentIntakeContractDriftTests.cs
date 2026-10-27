@@ -131,7 +131,8 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
     /// ⛔ THE NUMVAL FAMILY DOES NOT REACH THE LANDING INTAKE AT ALL. §15.67.4 r1 / §15.68.4 r1 fix the returned
     /// value with no arithmetic-mode qualification, and §15.4.1's implementor latitude reaches only a function
     /// whose definition does NOT otherwise specify it — so NUMVAL and NUMVAL-C render on the SDIDI carrier in
-    /// EVERY mode and no compile-time working scale exists for them. This asserts the shape that makes that true:
+    /// EVERY mode and no compile-time working scale exists for them. NUMVAL-F (§15.69.4 r2's approximation licence,
+    /// resolved to the exact parse by kb/Work PB3839) joins them. This asserts the shape that makes that true:
     /// their dispatch stands BEFORE the arithmetic-mode branch, and no <c>WorkingScale</c> call is left in the
     /// renderer at all. (A working scale in this file is what truncated
     /// <c>DISPLAY FUNCTION NUMVAL("0.1234567")</c> to 0.123456.)
@@ -142,12 +143,12 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
         string src = RendererSource();
         Assert.DoesNotContain("WorkingScale(ReceiverContext.SdidiLandingScaleFloor)", src, StringComparison.Ordinal);
 
-        int fixedArm = src.IndexOf("IntrinsicCarrierRules.ValueFixedByDefinition(sig.RuntimeMethod) && RenderDec(ic)", StringComparison.Ordinal);
+        int fixedArm = src.IndexOf("IntrinsicCarrierRules.ReturnsExactParse(sig.RuntimeMethod) && RenderDec(ic)", StringComparison.Ordinal);
         int modeBranch = src.IndexOf("if (num.StandardDecimal)", StringComparison.Ordinal);
-        Assert.True(fixedArm > 0, "the §15.4.1 value-fixed-by-definition arm is gone from IntrinsicRenderer");
+        Assert.True(fixedArm > 0, "the §15.4.1 exact-parse arm is gone from IntrinsicRenderer");
         Assert.True(modeBranch > 0, "IntrinsicRenderer no longer branches on the arithmetic mode");
         Assert.True(fixedArm < modeBranch,
-            "the NUMVAL/NUMVAL-C arm must run BEFORE the arithmetic-mode dispatch — §15.67.4 r1 carries no mode "
+            "the NUMVAL/NUMVAL-C/NUMVAL-F arm must run BEFORE the arithmetic-mode dispatch — §15.67.4 r1 carries no mode "
             + "qualification, so putting it inside the standard branch is the PB251 defect returning");
     }
 }
