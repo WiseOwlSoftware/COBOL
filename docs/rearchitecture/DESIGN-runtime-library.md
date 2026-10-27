@@ -3392,11 +3392,14 @@ one host surface of §4.4), which registers the program's module and activates i
 `ProgramTable.RunMain(path)`, the same boundary as `RunModule` without the registration, is shipped surface no route calls.
 **The process's own state belongs to the entry that IS the process (kb/Work PB3163, PB3193).** `RunModule` and the
 `cobol` CLI's `Main` are the only writers of the process exit code and the only callers of
-`IO.StandardStreams.EnsureUtf8` (UTF-8 standard output and error, and a UTF-8 reader over a redirected standard input,
-DOC-A.1-59 and DOC-A.1-1); `RunMain`, `RunUnit.Run`, a host entry's activation and a CALL into a module write neither, so a run unit a host
+`IO.StandardStreams.EnsureUtf8` (the UTF-16 repertoire on every standard stream, decided per handle: UTF-8 over a
+redirected stream, the console's wide-character interface on a Windows console, and **never a console code-page
+change**, so the parent shell's console keeps the code pages it had and an interactive ACCEPT keeps a character outside
+the console's input code page; kb/Work PB3294; DOC-A.1-59 and DOC-A.1-1); `RunMain`, `RunUnit.Run`, a host entry's activation and a CALL into a module write neither, so a run unit a host
 embeds DISPLAYs through the host's `Console.Out` / `Console.Error` as the host configured them and leaves the host's
 exit code and console as it found them. `ProcessStateOwnerDriftTests` (Unit) holds each process-owned write to its
-owner; `RunUnitHostExitCodeTests` and `RunUnitHostConsoleTests` (Conformance) are the host-side witnesses.
+owner; `RunUnitHostExitCodeTests` and `RunUnitHostConsoleTests` (Conformance) are the host-side witnesses, and
+`WindowsConsoleDeviceTests` (Conformance, on a windowless Windows pseudoconsole) witnesses the process-entry side.
 `ProgramRegistry` → **`ProgramTable`** (an instance owned by `RunUnit`; the name "Registry" is reserved for the
 process-level nothing-here). The name-resolution / state-model / CANCEL / sibling-module-probe logic is ported
 verbatim onto the instance. `ExternalStore` and `CobolModule`→`ModuleStack` move off statics onto `RunUnit`. The CALL-
