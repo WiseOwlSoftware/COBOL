@@ -430,21 +430,23 @@ public static partial class CobolIntrinsics
     // effect" — the SDIDI (§8.8.1.5.2, 34 digits). §15.67.4 r1 / §15.68.4 r1 fix that value with no latitude
     // ("the numeric value represented by argument-1"), and §15.69.4 r3 says it outright for NUMVAL-F ("If
     // standard-decimal arithmetic is in effect, the returned value is the numeric value represented by
-    // argument-1" — where r2 grants native arithmetic only an approximation). So the standard-mode value is the
-    // scan's (sign, unscaled, frac[, exp]) lifted to CobolDec EXACTLY at the parsed scale — no working scale, no
-    // receiver, no ≥6/≥9 floor. Before these landed the standard-mode value rode the NATIVE Int128 projection at
+    // argument-1" — where r2 grants native arithmetic only an approximation, which the implementor resolves to the
+    // same exact value: kb/Work PB3839). So the value is the scan's (sign, unscaled, frac[, exp]) lifted to
+    // CobolDec EXACTLY at the parsed scale in EVERY mode — no working scale, no receiver, no ≥6/≥9 floor. Before these landed the standard-mode value rode the NATIVE Int128 projection at
     // the item-92 working scale: a receiver-less DISPLAY of NUMVAL("1.2345678") printed 1.234567, and a 34-digit
     // argument (legal under the r4 cap) rescaled past the Int128 carrier and rendered a SATURATION artifact
     // (170141183460469231731687303715884.105727) as if it were the value. The digit cap keeps the significand
     // ≤34 digits, which Int128 carries exactly, so the lift itself never rounds; NUMVAL-F's E-exponent can reach
     // past decimal128's range and passes through the ONE §8.8.1.5.2 r2 range check (CobolDec.FromParsed).
     //
-    // ⛔ NUMVAL AND NUMVAL-C REACH HERE UNDER **NATIVE** ARITHMETIC TOO (kb/Work PB251). §15.4.1's closing
+    // ⛔ THE WHOLE FAMILY REACHES HERE UNDER **NATIVE** ARITHMETIC TOO (kb/Work PB251, PB3839). §15.4.1's closing
     // sentence withdraws the implementor latitude "unless otherwise specified in the function definition", and
-    // §15.67.4 r1 / §15.68.4 r1 specify it — with no arithmetic-mode qualification — so their native value is the
-    // parsed value exactly, and only the REPRESENTATION is the implementor's. NUMVAL-F is the one that does NOT:
-    // §15.69.4 r2 grants native and standard-binary "an approximation", which is why r3 has to state the
-    // standard-decimal value separately and why NumvalFDec is a standard-mode-only body.
+    // §15.67.4 r1 / §15.68.4 r1 specify it — with no arithmetic-mode qualification — so the native value of NUMVAL
+    // and NUMVAL-C is the parsed value exactly, and only the REPRESENTATION is the implementor's. NUMVAL-F is the
+    // one whose definition leaves the native value an approximation (§15.69.4 r2, which is why r3 states the
+    // standard-decimal value separately); the implementor's determination is the SAME exact value, because every
+    // other approximation made the value depend on the receiver (an Int128 truncation at a receiver-capped working
+    // scale for a fixed-point receiver, a binary64 for the rest) and rounded a fixed-point receiver's value twice.
     //
     // ⛔ ONE digitCap CONVENTION FOR THE WHOLE FAMILY: the omitted default is the NATIVE cap 31 (§15.67.3 r3), and
     // the emitter NAMES the cap exactly when the mode's cap differs (IntrinsicRenderer.DigitCapFlag, keyed on
@@ -473,7 +475,9 @@ public static partial class CobolIntrinsics
         return CobolDec.From(p.Neg ? -p.Unscaled : p.Unscaled, p.Frac);
     }
 
-    /// <summary>NUMVAL-F under STANDARD-DECIMAL arithmetic — §15.69.4 r3's exact value as an SDIDI:
+    /// <summary>NUMVAL-F's value in EVERY arithmetic mode (§15.69.4 r3's exact value as an SDIDI; native and
+    /// standard-binary arithmetic are granted "an approximation" by r2, which the implementor resolves to the same value so
+    /// the function has one value in every channel, kb/Work PB3839):
     /// significand × 10^(exponent − fraction digits), through the §8.8.1.5.2 r2 range check (a 4-digit
     /// E-exponent can exceed decimal128's ±6144 adjusted exponent — EC-SIZE-OVERFLOW / UNDERFLOW, the same
     /// disposition every SDIDI operation result gets). <paramref name="mode"/> is the INTERMEDIATE ROUNDING
@@ -485,64 +489,7 @@ public static partial class CobolIntrinsics
         return CobolDec.FromParsed(p.Neg ? -p.Unscaled : p.Unscaled, p.Exp - p.Frac, mode);
     }
 
-    /// <summary>Shift an exact unscaled value by <paramref name="shift"/> decimal places. Past the <c>Int128</c>
-    /// carrier the LANDING decides (kb/Work PB77 — the two-form rule every carrier now follows, PB74's
-    /// <c>CobolDec.ToUnscaledChecked</c>/<c>ToUnscaled</c> being the first): a CHECKED landing (ON SIZE ERROR /
-    /// EC-SIZE checking) RAISES <see cref="CobolFloat.BeyondCarrier"/> (EC-SIZE-TRUNCATION, §14.7.5 case 3) instead
-    /// of wrapping — and, since kb/Work PB2967, instead of saturating: the saturated sentinel only reached a size
-    /// error where the receiver's capacity was smaller than the carrier (the emitter caps the working scale at the
-    /// receiver's headroom for that), and a 16-byte COMP-5 receiver's capacity IS the carrier, so it stored the
-    /// sentinel and took NOT ON SIZE ERROR; an UNCHECKED landing (a MOVE sender — §14.6.8.2 r4; the
-    /// no-phrase store — §14.6.13.1.3 item 8) keeps the LOW-ORDER digits through <c>CobolNum.RescaleStoreCap</c>
-    /// (the digits a ≤38-digit store could never use are dropped BEFORE the multiply), because a truncating store
-    /// has no check to expose a sentinel and truncating one stored garbage (<c>MOVE FUNCTION NUMVAL-F("5E+30") TO
-    /// PIC 9(5)</c> stored 03715, the low digits of <c>Int128.MaxValue</c>; §14.6.8.2 r4 says 00000).
-    /// ⚠ <c>Pow10.AsWide</c> itself WRAPS past 10³⁸ (its fallback loop is unchecked), so the exponent is bounded
-    /// BEFORE the call — without that guard a large <c>E±nn</c> would multiply by a wrapped power and produce a
-    /// plausible wrong value rather than a saturated one.</summary>
-    /// <remarks><paramref name="unscaled"/> is the scan's NON-NEGATIVE magnitude (the caller applies the sign after),
-    /// below 10^digitCap with the cap at most 34, so <see cref="Int128.MinValue"/> is unreachable today; the test
-    /// still reads the MinValue-safe <see cref="CobolDec.UAbs"/> so the bound does not rest on that reachability
-    /// (kb/Work PB2698).</remarks>
-    private static Int128 Rescaled(Int128 unscaled, int shift, bool checkedLanding)
-    {
-        if (unscaled == 0) return Int128.Zero;
-        if (shift == 0) return unscaled;
-        if (shift < 0) return -shift > 38 ? Int128.Zero : unscaled / Pow10.AsWide(-shift);
-        if (!checkedLanding) return CobolNum.RescaleStoreCap(unscaled, 0, shift, CobolRounding.Truncation);
-        // The CHECKED landing RAISES past the carrier, it never saturates (kb/Work PB2967): the sentinel is invisible to a
-        // receiver as wide as the carrier (a 16-byte COMP-5), exactly as for CobolFloat.ToScaled.
-        if (shift > 38) throw CobolFloat.BeyondCarrier();
-        Int128 limit = Int128.MaxValue / Pow10.AsWide(shift);
-        if (CobolDec.UAbs(unscaled) > (UInt128)limit) throw CobolFloat.BeyondCarrier();   // UAbs, not Int128.Abs: total over MinValue (kb/Work PB2698)
-        return unscaled * Pow10.AsWide(shift);
-    }
-
-    /// <summary>NUMVAL-F (§15.69, COBOL-2014+): the floating NUMVAL — a signed mantissa (with an optional decimal
-    /// point) and an optional <c>E±exponent</c> (1..4 exponent digits). Parsed exactly to (unscaled, effective
-    /// scale) then rescaled to the emitter's working <paramref name="scale"/> (native arithmetic ⇒ the §15.69.4 r2
-    /// approximation license). Malformed content → EC-ARGUMENT-FUNCTION and the §15.3 default 0. Space placement
-    /// follows §15.69.3 r5 exactly — the value path and TEST-NUMVAL-F share ONE scan (PB60).</summary>
-    /// <param name="digitCap">§15.69.3 r2/r3. ⚠ NUMVAL-F caps the digits of the SIGNIFICAND, not of the whole
-    /// literal — the exponent's own 1..4 digits do not count toward it (fix-queue PB34).</param>
-    /// <remarks>⛔ ONE SCAN, TWO PROJECTIONS (fix-queue PB60): the value is a projection of the SAME positional
-    /// <see cref="NvfScan"/> that answers §15.95 TEST-NUMVAL-F. The old body opened with
-    /// <c>text.Replace(" ", "")</c> — deleting exactly the spaces §15.69.3 r5's except-clause makes ILLEGAL
-    /// ("Embedded spaces … are ignored EXCEPT between the first numeric digit and the last digit that precedes
-    /// a letter 'E'"), so <c>NUMVAL-F("1 2")</c> valued 12 while TEST-NUMVAL-F correctly reported the error —
-    /// the two halves of one rule disagreeing. §15.69.4 r2's approximation license governs only the RESCALE of
-    /// a CONFORMING argument, never admission. Int128 + the saturating shared shift per <see cref="Rescaled"/>
-    /// (PB13's sweep — the old long clamp returned 9223372036 for NUMVAL-F("1E+20")).</remarks>
-    /// <param name="checkedLanding">The landing's form past the carrier — see <see cref="Rescaled"/> (kb/Work PB77).</param>
-    public static Int128 NumvalF(string text, int scale, bool commaMode = false, int digitCap = 31, bool checkedLanding = false)
-    {
-        NvfParse p = NvfScan(text, commaMode, digitCap);
-        if (p.ErrPos != 0) return NumvalFReject(p, text, digitCap);
-        Int128 r = Rescaled(p.Unscaled, scale + p.Exp - p.Frac, checkedLanding);
-        return p.Neg ? -r : r;
-    }
-
-    /// <summary>NUMVAL-F's value converted ONCE into a BINARY32 receiver (ISO §14.6.8.3 rule 2: "in a manner
+    /// <summary>NUMVAL-F's value converted ONCE into a BINARY32 receiver of an ACCEPT device transfer (ISO §14.6.8.3 rule 2: "in a manner
     /// consistent with the specifications of ISO/IEC 60559:2020" — one correctly rounded conversion; kb/Work
     /// PB1110): <see cref="CobolFloat.ScaledToSingle"/> of the scan's exact (significand, scale). Narrowing
     /// <see cref="NumvalFDouble"/> would round twice — a text a hair above a binary32 midpoint lands ON that
@@ -559,18 +506,14 @@ public static partial class CobolIntrinsics
         return CobolFloat.ScaledToSingle(p.Neg ? -p.Unscaled : p.Unscaled, p.Frac - p.Exp);
     }
 
-    /// <summary>NUMVAL-F under NATIVE arithmetic in a receiver-less or float-receiver context — the §15.69.4 r2
-    /// approximation ("the returned value is an approximation of the numeric value represented by argument-1")
-    /// carried as binary64, exactly the FLOAT family's documented determination (CONFORMANCE.md item 92;
-    /// <c>IntrinsicRenderer.RenderFloat</c>'s Receiverless/Real arm, PB13): the returned value IS a binary64 and
-    /// the Int128 quantization exists only to land it in a FIXED-POINT arithmetic receiver, whose scale defines
-    /// it. ⛔ THIS ARM WAS NEVER SWEPT TO NUMVAL-F (fix-queue PB60 / RV-15.69.4-2): the receiver-less channels
-    /// rode the Int128 projection at the ws-9 floor, so <c>DISPLAY FUNCTION NUMVAL-F("5E+30")</c> printed the
-    /// saturation sentinel 170141183460469231731687303715.884105727, <c>NUMVAL-F("5E+30") = NUMVAL-F("9E+30")</c>
-    /// was TRUE, a COMP-2 receiver got 1.7E+29, and <c>NUMVAL-F("1.5E-12")</c> was 0 in every one of them.
-    /// The conversion is ONE correctly-rounded <c>double.Parse</c> of the scan's canonical
-    /// <c>[-]digits E exp</c> — never a multiply chain of two roundings; a magnitude past binary64 is ±Infinity,
-    /// the same disposition the float family's EXP(1000) has. Same scan, same reject projection as the twins.</summary>
+    /// <summary>NUMVAL-F's value as the ONE correctly rounded binary64 of the scan's exact (significand, scale): the text
+    /// of an ACCEPT device transfer into a binary64 receiver (<see cref="IO.AcceptSource.DeviceFloat"/>), where the record
+    /// IS the NUMVAL-F argument format and no function-reference lands it. ⛔ THE FUNCTION REFERENCE DOES NOT USE IT
+    /// (kb/Work PB3839): <c>FUNCTION NUMVAL-F</c> returns <see cref="NumvalFDec"/>'s exact value in every channel, and a
+    /// COMP-2 receiver converts that exact value once, so the binary64 here and the one the receiver stores are the
+    /// same number. The conversion is ONE <c>double.Parse</c> of the scan's canonical <c>[-]digits E exp</c> — never a
+    /// multiply chain of two roundings; a magnitude past binary64 is ±Infinity. Same scan, same reject projection as the
+    /// twins.</summary>
     public static double NumvalFDouble(string text, bool commaMode = false, int digitCap = 31)
     {
         NvfParse p = NvfScan(text, commaMode, digitCap);
@@ -581,7 +524,7 @@ public static partial class CobolIntrinsics
             System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture);
     }
 
-    /// <summary>The §15.69 reject projection — shared by <see cref="NumvalF"/>, <see cref="NumvalFDouble"/> and
+    /// <summary>The §15.69 reject projection — shared by <see cref="NumvalFSingle"/>, <see cref="NumvalFDouble"/> and
     /// <see cref="NumvalFDec"/> (see <see cref="NumvalReject"/>).</summary>
     private static Int128 NumvalFReject(NvfParse p, string text, int digitCap) =>
         p.CapHit
