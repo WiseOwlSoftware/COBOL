@@ -87,9 +87,13 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
     /// and FILE STATUS item, EC-I-O-PERMANENT-ERROR through the file's exception processing — this element's USE
     /// procedures for a file of its own clause (<see cref="BoundCommitRollback.Files"/>, which carry the statement's
     /// (EC-I-O, file) checking), and for another element's file the condition under the checking a directive naming no
-    /// file enabled, else DOC-A.1-103's termination when no element gives it a FILE STATUS item — with §14.6.13.1.3
-    /// item 8's unconditional ROLLBACK where checking for the condition is not enabled, after the declarative and before
-    /// any transfer (the one rule, <c>SequentialIoEmitter.Item8Applies</c>).</summary>
+    /// file enabled, else DOC-A.1-103's termination when no declarative ran and no element gives it a FILE STATUS item —
+    /// with §14.6.13.1.3 item 8's unconditional ROLLBACK where checking for the condition is not enabled, after the
+    /// declarative and before any transfer (the one rule, <c>SequentialIoEmitter.Item8Applies</c>). The executing
+    /// element's format 1 USE procedures apply to another element's refused file as they do to any input-output
+    /// statement's file, with or without checking (§14.9.49.4 GR4, GR6 a)-e)): the file-name tier when the element names
+    /// the file (a containing element's GLOBAL file) and the open-mode tier by the file's open mode
+    /// (<c>SequentialIoEmitter.EmitForeignFileIoCheck</c>, kb/Work PB3554).</summary>
     public void EmitStatement(BoundCommitRollback n)
     {
         var w = ctx.Writer;
@@ -110,8 +114,9 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
             }
             // Another element's file: its own element stored the status (TransactionControl.Refused). The condition is
             // raised in THIS element when a directive naming no file enabled it here (§7.3.25.4 GR6/GR8 scope a FILE
-            // phrase to this element's files); otherwise, or when no declarative qualified, DOC-A.1-103 decides. Item 8's
-            // ROLLBACK is the check's (SequentialIoEmitter.Item8Applies), before that termination.
+            // phrase to this element's files), and this element's format 1 declaratives are selected by the status with or
+            // without it (SequentialIoEmitter.EmitForeignFileIoCheck, PB3554); when none qualified, DOC-A.1-103 decides.
+            // Item 8's ROLLBACK is the check's (SequentialIoEmitter.Item8Applies), before that termination.
             void Foreign()
             {
                 string terminate = $"{RuntimeApi.TerminateOnRefusalWithoutStatusItem(refused, CsLiteral(verb))};";
