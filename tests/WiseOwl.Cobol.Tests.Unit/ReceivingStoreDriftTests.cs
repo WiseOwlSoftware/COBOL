@@ -136,6 +136,10 @@ public sealed class ReceivingStoreDriftTests
             Assert.Contains("storesIntoOwnItem:", call.Value);
         Assert.Single(Regex.Matches(seqIo, Regex.Escape("storesIntoOwnItem: file.AreaHasOneDescription")));
         Assert.Contains("storesIntoOwnItem: false", verbs("TransactionEmitter.cs"));
+        // ...and the one-description predicate counts every sharer: a second record, a SAME RECORD AREA peer and an EXTERNAL
+        // file's run-unit area, which another runtime element describes too (§13.18.22.4 GR4 b; review R2-1 of PB3697).
+        string fileModel = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "FileModel.cs"));
+        Assert.Contains("public bool AreaHasOneDescription => Records.Count == 1 && !IsExternal && !SameRecordAreaPeers.Any();", fileModel);
         Assert.Contains("RuntimeApi.StrStoreBoolean(", verbs("MoveEmitter.cs"));         // the elementary MOVE
         Assert.Contains("RuntimeApi.BoolFromCharacters(", verbs("StringEmitter.cs"));    // STRING into a USAGE DISPLAY boolean item
         Assert.Contains("RuntimeApi.BoolFromCharacters(",
