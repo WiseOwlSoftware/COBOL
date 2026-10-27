@@ -309,7 +309,10 @@ Each iteration, in this order:
 
 ### 4.1 What every unit prompt says
 
-- Load the `session-start` skill first; read the previous handoff the prompt names.
+- Load the `session-start` skill first; read the previous handoff the prompt names. A unit loads those skills only
+  (`workstream` where its own text says so): never the public base `agent-fleet`, whose 4.5K tokens would ride each of
+  a unit's about 45 turns. The `workstream` overlay orders no base load; it names the reference file each unit kind
+  reads once (`units/common.md`; `check_practices.py` `overlay_problems`, kb/Work PB3780).
 - Before EACH new step, check for `STOP-UNIT`; if it exists, finish the step, write the handoff and end (for a
   `wave` with a Workflow in flight: section 3.1).
 - End by writing `{HANDOFF}` that validates against `handoff.schema.json`.
@@ -323,7 +326,7 @@ Each iteration, in this order:
   starts `wf_rolling_wave.js` with the args file `plan_wave.py` wrote.
 - A role's turn cap has ONE home, the `maxTurns` of its `.claude/agents/<role>.md` (the number the harness enforces;
   kb/Work PB3701). `make_dispatch_specs.py` renders the implementer's into every spec's `Turn cap` line
-  (`coord.agent_turn_cap`), the implementer briefs type no number, and `check_practices.py` (`turn_cap_copies`, in the
+  (`coord.agent_turn_cap`), the implementer spec template types no number, and `check_practices.py` (`turn_cap_copies`, in the
   gate's FLEET PRACTICES audit and CI) refuses any other statement of a cap that differs from its role's `maxTurns`.
 
 ### 4.2 Permission mode under a headless session
@@ -1198,7 +1201,8 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   (`groups.group_requirements`): by every campaign its notes' `cluster:` lists name, so a fix-lane wave that plans a
   campaign member, and a finisher of a campaign branch, carry the requirement exactly as a `--cluster` wave does (the
   campaign that wave runs binds all its groups). The planner writes each requirement, verbatim, into that group's spec
-  `body` (as an `OWNER REQUIREMENT` sentence), its `groups.json` entry and its args entry (`requirements`: `{campaign
+  `body` (under one `OWNER REQUIREMENTS` lead-in per campaign, each requirement numbered; a spec says each rule once, PB3777,
+  so the lead-in is never repeated before every requirement), its `groups.json` entry and its args entry (`requirements`: `{campaign
   lead: [requirement]}`); `check_practices.py` refuses a rendered spec that lacks one its own group declares; and
   `wf_rolling_wave.js` hands the branch reviewer the group's dispatch spec and the requirements
   (`reviewerRequirements(g)`), so a branch lacking one is a finding (category `requirement`) instead of a CLEAN. A prose section rather than a frontmatter list, because a requirement is a sentence with commas
