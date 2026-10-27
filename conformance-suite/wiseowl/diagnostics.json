@@ -23874,5 +23874,12 @@
    "2023"
   ],
   "expect": "COBOL1511"
+ },
+ "pb3953_function_argument_below_2014": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOL1502"
  }
 }
