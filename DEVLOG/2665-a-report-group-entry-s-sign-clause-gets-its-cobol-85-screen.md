@@ -1,4 +1,4 @@
-## A report group entry's SIGN clause gets its COBOL-85 screen (PB3683)
+## Entry 2665 — 2026-10-27 12:50 PDT — A report group entry's SIGN clause gets its COBOL-85 screen (PB3683)
 
 PB1319 gave the data description entry's SIGN clause a COBOL-85 subject screen and left the report arm to a note.
 PB3683 asked for the 1985 report-writer wording, which the repository did not hold. The archived post-ballot text of
@@ -25,3 +25,4 @@ table, computed before the run), negatives `pb3683-report-sign-without-separate-
 
 **Not fixed, registered.** Annex F.2 item 115 also lists FILLER in the report section, the `+`/`-` symbols for PLUS/MINUS
 and arithmetic-expression/ROUNDED SOURCE as 2002 introductions; all three still compile clean at --std 85.
+
