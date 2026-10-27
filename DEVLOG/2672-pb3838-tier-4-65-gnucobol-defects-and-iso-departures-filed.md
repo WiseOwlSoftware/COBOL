@@ -1,4 +1,4 @@
-## PB3838 tier 4: 65 GnuCOBOL defects and ISO departures filed as `upstream` notes
+## Entry 2672 — 2026-10-27 14:26 PDT — PB3838 tier 4: 65 GnuCOBOL defects and ISO departures filed as `upstream` notes
 
 The owner's order (2026-10-27 ~11:25 PDT, "File the surviving GnoCobol records") turned the tier 3 output into the register's
 first `upstream` notes. A clerk generated them from the harvest's record files with a script that parses each record's ten
@@ -83,3 +83,4 @@ summary no longer describes text the draft lacks. Every probe a corrected senten
 for this round. The root cause, a correction stated beside the text it contradicts, is now refused by `work.py`
 (`upstream_problems`): a Draft issue opens with its one-line `**Title:**` and a blank line, and no note says a paragraph
 "governs" its other text; four self-test cases prove both arms can fail.
+
