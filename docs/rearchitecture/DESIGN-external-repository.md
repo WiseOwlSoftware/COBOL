@@ -2229,7 +2229,7 @@ description (§4.3); the forward-reference reading of SR14 — the output being 
   PB2464 landed it): the record carries the full signature, and slice 7 makes the class identity a group-independent
   canonical key over the minimized signature graph rather than deleting the classes (§6.4); the approved text's
   "compared by identity" is withdrawn because it would have regressed GR25.
-- **A CALL whose callee is compiled elsewhere describes its operands for GR3 d)** — GR10 b) as well as c), and the
+- **A CALL whose callee is compiled elsewhere describes its operands for §14.9.4.4 GR3 d)** — §12.3.8.4 GR10 b) as well as c), and the
   function twin (§4.2; slice 7). It settles the question kb/Work PB2097 carried to PB2103.
 - **The schema's enums are the runtime's own persisted vocabulary**, structured values are flattened, nullability is
   presence, and a method's attributes sit on the carrier of PB2087's parameter triple (§6.2); `RepositoryIndex` and
