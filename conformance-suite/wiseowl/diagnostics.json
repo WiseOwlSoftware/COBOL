@@ -2495,7 +2495,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: unexpected ')'"
+  "expect": "COBOL2269: unexpected ')'"
  },
  "l1c17-paren-not-delimiting": {
   "refuse-at": [
@@ -4480,7 +4480,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL2269"
  },
  "pb1125-inspect-converting-before-twice": {
   "refuse-at": [
@@ -4489,7 +4489,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL2269"
  },
  "pb1125-inspect-replacing-bare-pair-after-characters": {
   "refuse-at": [
@@ -4498,7 +4498,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL2269"
  },
  "pb1125-inspect-replacing-without-adjective": {
   "refuse-at": [
@@ -4525,7 +4525,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL2269"
  },
  "pb1127-inspect-boolean-figurative-not-zero": {
   "refuse-at": [
@@ -5342,7 +5342,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: unexpected 'INTO'"
+  "expect": "COBOL2269: unexpected 'INTO'"
  },
  "pb1185-national-unstring-delimiter-at-85": {
   "refuse-at": [
@@ -14060,7 +14060,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL2269"
  },
  "pb331-read-record-word-twice": {
   "refuse-at": [
@@ -14069,7 +14069,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL2269"
  },
  "pb331-read-two-from-one-lock-bracket": {
   "refuse-at": [
@@ -14087,7 +14087,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL2269"
  },
  "pb331-write-ignoring-lock": {
   "refuse-at": [
@@ -14096,7 +14096,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOL2269"
  },
  "pb332-start-key-needs-operator": {
   "refuse-at": [
@@ -14180,6 +14180,33 @@
    "2023"
   ],
   "expect": "COBOL0864"
+ },
+ "pb3569-read-key-sequential-access-default": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "the KEY phrase makes this a random READ (ISO §14.9.30.4 GR19), but the file's access mode is SEQUENTIAL (the ACCESS MODE clause is not specified, so sequential access is assumed, ISO §12.4.5.5.3 GR1)"
+ },
+ "pb3569-read-key-sequential-access-written": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "the KEY phrase makes this a random READ (ISO §14.9.30.4 GR19), but the file's access mode is SEQUENTIAL, where a READ makes available the next logical record (ISO §14.9.30.1)"
+ },
+ "pb3569-read-next-key": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "this statement specifies NEXT; those phrases make a sequential read (ISO §14.9.30.4 GR19)"
  },
  "pb334-read-not-invalid-key-sequential-org": {
   "refuse-at": [
@@ -19672,7 +19699,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL2269"
  },
  "pb716-special-names-bare-word": {
   "refuse-at": [
@@ -20110,7 +20137,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL2269"
  },
  "pb758-merge-end-merge-is-not-a-terminator": {
   "refuse-at": [

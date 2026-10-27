@@ -1679,6 +1679,20 @@ test reads the offending token's position (`AWhollyEmptyInlinePerform_IsRejected
 of IF, ELSE, EVALUATE WHEN, PERFORM, SEARCH WHEN and every paired conditional phrase draws COBOL2072 naming its own
 statement, and a block whose first statement fails inside it draws the lone statement's one diagnostic instead.
 
+**A statement that ends before a phrase its format does not print (kb/Work PB906, PB3844).** The missing-period guess
+(COBOL0307) asks whether a period lets the SENTENCE that starts at the token follow (`OffendingPosition.APeriodLetsTheSentenceFollow`:
+the token and the rest of the sentence through its separator period, at most sixteen tokens), not only the token. A
+context-sensitive word (IGNORING, RETRY, PREVIOUS ...) is a legal paragraph-name, so `WRITE R IGNORING LOCK.` took `. IGNORING`
+for a new paragraph and sent the reader to the previous sentence; only the LOCK after it fails. Where the parser stands at a token
+right after a statement it completed, that statement (re-simulated over every path, `OffendingPosition.StatementThatEndedBefore`)
+cannot take the token, no period lets the sentence follow, and the token is no scope terminator (COBOL0306 names that), the
+fault is a phrase the statement's general formats do not print there: hint 0h draws COBOL2269 naming the statement and citing ISO
+§5.2.1, an unprinted phrase, a bracket's second alternative, a repeated or out-of-sequence phrase alike. The statement named
+is the innermost one whose OWN syntax prints the word (`CobolErrorStrategy.OwnSyntaxTokens`, read from the ATN: the IF of a second
+ELSE, not the DISPLAY before it; a SET format is named SET). The literal-for-data-name guess (COBOL0308) is silent where a literal is
+also expected (`SET X TO "A"` expects an arithmetic-expression too, §14.9.39.2 Format 1): "not a literal" was false there.
+`ParseRecoveryHintTruthTests` pins both directions (PBHT38 a context-sensitive paragraph-name is a missing period; PBHT41-46).
+
 **⚠ DETERMINATION (owner-overturnable).** The two IF formats stay ONE grammar rule, so `END_IF?` also admits
 `IF X = 1 NEXT SENTENCE END-IF` — a Format-2 body under a Format-1 terminator that no single printed format
 shows. It is ACCEPTED, unchanged, and behaves per §14.9.19.4 GR4. That combination is a cross-format latitude

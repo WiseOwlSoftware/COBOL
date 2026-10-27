@@ -38,7 +38,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     /// <summary>Bind a READ of a RELATIVE/INDEXED file. The format decision follows the syntax rules: an explicit
     /// NEXT/PREVIOUS is sequential (GR19); ACCESS SEQUENTIAL implies NEXT (SR8); ACCESS DYNAMIC implies NEXT only
     /// when an AT END / NOT AT END phrase is present — otherwise it is a Format-2 random read (SR9); ACCESS RANDOM
-    /// is always Format 2 and forbids NEXT/PREVIOUS/AT END (SR6).</summary>
+    /// is always Format 2 and forbids NEXT/PREVIOUS/AT END (SR6). A KEY phrase is Format 2 (random, GR19) whatever
+    /// the access mode, so it is refused beside a sequential-read phrase and on a SEQUENTIAL file
+    /// (<c>StatementValidation.CheckReadKeyFormat</c>, kb/Work PB3569).</summary>
     public BoundStatement BindRead(Core.ReadStatementContext r, FileModel file)
     {
         // Bracket 1 of §14.9.30.2 — [ADVANCING ON LOCK | IGNORING LOCK | retry-phrase] (kb/Work PB331).
@@ -99,9 +101,13 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             // IDENTITY answer, never START's SR6 b) generic screen (kb/Work PB354).
             if (ctx.Validation.CheckReadKeyOrganization(file))
             {
-                if (kind != ReadKind.Random)
-                    ctx.Edition.Error("COBOL0864", $"READ … KEY on '{file.CobolName}' is a Format-2 phrase and "
-                        + "cannot combine with NEXT/PREVIOUS/AT END (ISO §14.9.30 general formats)");
+                // ⛔ The KEY phrase makes the READ Format 2 (random, §14.9.30.4 GR19): a sequential-read phrase written
+                // beside it, or a SEQUENTIAL file for it to read, is refused by the ONE check that names which of the
+                // two it is (kb/Work PB3569) — never by a message that lists phrases the statement did not write.
+                // Refused and reported, the bind continues with the default key of reference, as SR10's refusal above.
+                if (!ctx.Validation.CheckReadKeyFormat(file, contention?.readAdvancingOnLock() is not null,
+                        atEnd is not null, notAtEnd is not null, next, previous))
+                    keyIndex = -1;
                 // SR11's record-key-name-1 arm (kb/Work PB1099): a SOURCE-form key is named by its record-key-name
                 // and by nothing else, so the name is asked BEFORE the operand is read as a data-name.
                 else if (RecordKeyNameOf(file, keyRef, $"READ on '{file.CobolName}': KEY IS") is var (use, rki) && use is not RecordKeyNameUse.None)
