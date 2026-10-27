@@ -19,7 +19,7 @@ guess asked about ONE token. The LOCK after it is what no paragraph header takes
 2. Hint 0h: the fault is a statement written with a phrase its formats do not print there (an unprinted phrase, a bracket's
    second alternative, a repeat, a phrase out of sequence). `OffendingPosition.StatementThatEndedBefore` finds the statement
    the parser completed just before the token, re-simulates it over every path (`ResimulationWalk.Over`) to show it cannot
-   take the token, and names the innermost statement whose OWN syntax prints the word (`OwnSyntaxTokens`, read from the ATN
+   take the token, and names the innermost statement whose format prints the word AFTER a statement it holds (`TokensAfterANestedStatement`, read from the ATN
    with the nested statements left out): a second ELSE names the IF, not the DISPLAY before it, and a SET format is named
    SET. The hint is COBOL2269 (statement-format-shape), cites ISO §5.2.1, and fires only where no structural hint stands and
    the token is no scope terminator (COBOL0306 names that). It is a structural answer: no new code was needed
@@ -51,6 +51,17 @@ other set in this file. Full code: `Over` is the re-simulation `CarryForward` al
 prediction closed early (`ADD ... ON SIZE ERROR END-ADD`) is never named. Performance: error path only; the own-syntax
 sets are computed once per statement rule. Comments: the hint-14 doc and the DESIGN paragraph say the sentence, not the
 token. Left as it was: the false COBOL0306 "END-x without a matching x" that follows a true diagnosis (PB3843).
+
+**Review round 1 (R1-1).** The set that chose the named statement was every token the enclosing statement's syntax can
+match ANYWHERE, conditions included, so `IF c MOVE 1 TO A > 2 END-IF` named the IF ("The IF statement ends before this
+token") for a `>` that belongs to the IF's condition, which the MOVE follows: the IF had not ended and the MOVE had, and the
+same stray `>` after a top-level MOVE named MOVE. The set is now the tokens an enclosing statement's format prints AFTER a
+statement it holds (`TokensAfterANestedStatement`: the follow of each nested-statement call in the statement's own rules,
+continued through the end of a rule into its caller up to the statement's end, from `ATN.NextTokens`): ELSE and END-IF for
+IF, END-PERFORM, WHEN and the conditional phrases for the others. A second ELSE still names the IF (PBHT44); the `>`, `=` and
+`AND` of a condition after a complete MOVE name the MOVE inside IF, PERFORM UNTIL and EVALUATE alike, as at top level
+(PBHT47-51). R1-2 (a nonnumeric literal where only a numeric one is admitted now draws the bare COBOL0001) stays a lead: a
+kind-naming hint needs a new code, and the codes returned unused are the pool's again.
 
 **Gate.** Whole Conformance 18,956/18,956 and whole Unit green but the two absent-corpus `ExternalCorpusPopulationDriftTests`
 (environment), before the gate. `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's

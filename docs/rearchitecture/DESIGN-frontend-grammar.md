@@ -1688,8 +1688,10 @@ right after a statement it completed, that statement (re-simulated over every pa
 cannot take the token, no period lets the sentence follow, and the token is no scope terminator (COBOL0306 names that), the
 fault is a phrase the statement's general formats do not print there: hint 0h draws COBOL2269 naming the statement and citing ISO
 §5.2.1, an unprinted phrase, a bracket's second alternative, a repeated or out-of-sequence phrase alike. The statement named
-is the innermost one whose OWN syntax prints the word (`CobolErrorStrategy.OwnSyntaxTokens`, read from the ATN: the IF of a second
-ELSE, not the DISPLAY before it; a SET format is named SET). The literal-for-data-name guess (COBOL0308) is silent where a literal is
+is the innermost one whose format prints the word AFTER a statement it holds (`CobolErrorStrategy.TokensAfterANestedStatement`, read
+from the ATN: the tokens that may follow a nested statement or block, through the end of the rules of the statement's own syntax: the
+IF of a second ELSE, not the DISPLAY before it; a SET format is named SET); a word an enclosing statement prints only before its
+nested statement (the `>` of an IF's condition after `IF c MOVE 1 TO A > 2`) ends no enclosing statement, so the nested one is named. The literal-for-data-name guess (COBOL0308) is silent where a literal is
 also expected (`SET X TO "A"` expects an arithmetic-expression too, §14.9.39.2 Format 1): "not a literal" was false there.
 `ParseRecoveryHintTruthTests` pins both directions (PBHT38 a context-sensitive paragraph-name is a missing period; PBHT41-46).
 

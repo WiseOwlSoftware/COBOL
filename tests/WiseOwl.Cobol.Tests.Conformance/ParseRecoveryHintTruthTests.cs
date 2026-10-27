@@ -120,7 +120,9 @@ public sealed class ParseRecoveryHintTruthTests
     /// PB906). The hint blamed punctuation wherever the word could ALSO be a paragraph-name (<c>WRITE R IGNORING
     /// LOCK.</c>: <c>. IGNORING</c> parses, and only the LOCK after it fails), so the period must let the whole next
     /// sentence follow before it is called missing. The statement named is the one whose own syntax prints the word
-    /// (PBHT44: the IF of a second ELSE, not the DISPLAY before it), and a SET format is named SET (PBHT45).</summary>
+    /// (PBHT44: the IF of a second ELSE, not the DISPLAY before it) when its format prints the word AFTER a statement it
+    /// holds, the nested statement itself when the enclosing format prints it only before one (PBHT47-50: the
+    /// operators of an IF's condition), and a SET format is named SET (PBHT45).</summary>
     [Theory]
     [InlineData("PBHT41", "MOVE 1 TO W-N ROUNDED", "MOVE", "ROUNDED")]
     [InlineData("PBHT42", "CONTINUE IGNORING LOCK", "CONTINUE", "IGNORING")]
@@ -128,6 +130,13 @@ public sealed class ParseRecoveryHintTruthTests
     [InlineData("PBHT44", "IF W-N = 1 DISPLAY \"A\" ELSE DISPLAY \"B\" ELSE DISPLAY \"C\" END-IF", "IF", "ELSE")]
     [InlineData("PBHT45", "SET IX UP BY 1 DOWN BY 1", "SET", "DOWN")]
     [InlineData("PBHT46", "IF W-N = 1 MOVE 1 TO W-N ROUNDED END-IF", "MOVE", "ROUNDED")]
+    // a token the enclosing statement prints only BEFORE the statement it holds (its condition's operators) is not the
+    // enclosing statement's to end before: the nested statement is the one that ended (kb/Work PB906, review R1-1)
+    [InlineData("PBHT47", "IF W-N = 1 MOVE 1 TO W-N > 2 END-IF", "MOVE", ">")]
+    [InlineData("PBHT48", "PERFORM UNTIL W-N = 1 MOVE 1 TO W-N > 2 END-PERFORM", "MOVE", ">")]
+    [InlineData("PBHT49", "EVALUATE W-N WHEN 1 MOVE 1 TO W-N = 2 END-EVALUATE", "MOVE", "=")]
+    [InlineData("PBHT50", "IF W-N = 1 MOVE 1 TO W-N AND W-N END-IF", "MOVE", "AND")]
+    [InlineData("PBHT51", "MOVE 1 TO W-N > 2", "MOVE", ">")]
     public void AStatementFollowedByAPhraseItsFormatDoesNotPrint_NamesTheStatement_NotAMissingPeriod(
         string pid, string statement, string named, string near)
     {
