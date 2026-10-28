@@ -1056,8 +1056,10 @@ def history(t: Triage, c: Collected, work_dir: pathlib.Path, args) -> int:
     hist = fh.load_history()
     known = {n["run_id"]: n["night"] for n in hist["nights"]}
     night = known.get(t.run_id, max(known.values(), default=0) + 1)
-    rec = fh.night_record(t.run, night, [v for _s, v in c.verdicts], fh.defects_of(items, t.run_id) + args.defect,
-                          args.judge_commit)
+    prior = next((n for n in hist["nights"] if n["run_id"] == t.run_id), {})
+    rec = fh.night_record(t.run, night, [v for _s, v in c.verdicts],
+                          prior.get("defects", []) + fh.defects_of(items, t.run_id) + args.defect,
+                          args.judge_commit or prior.get("judge"), prior.get("evidence"))
     missing = [d for d in rec["defects"] if d not in {i["id"] for i in items}]
     if missing:
         print("⛔ no kb/Work note for " + ", ".join(missing))
@@ -1068,11 +1070,13 @@ def history(t: Triage, c: Collected, work_dir: pathlib.Path, args) -> int:
         return 0
     hist = fh.upsert(hist, rec)
     fh.write_history(hist)
+    ctx = fh.context(hist, items)
     out = pathlib.Path(args.out) if args.out else pathlib.Path(t.coord) / "scratch" / "fuzz-summary.html"
-    out.write_text(fh.render(hist, items), encoding="utf-8", newline=NL)
-    print(f"wrote {posix(fh.HISTORY)} and {posix(out)}")
+    out.write_text(fh.render_html(ctx), encoding="utf-8", newline=NL)
+    ledger = fh.write_markdown(ctx, hist.get("artifact"))
+    print("wrote " + ", ".join(posix(p) for p in [fh.HISTORY, out, *ledger]))
     print(f"next: publish {posix(out)} to the Artifact {hist.get('artifact') or '(none yet: publish it, then record its URL as `artifact` in the history)'}"
-          ", and commit the history with the night's filing")
+          ", and commit the history, FUZZ-LEDGER.md and docs/fuzz-ledger/ with the night's filing")
     return 0
 
 
