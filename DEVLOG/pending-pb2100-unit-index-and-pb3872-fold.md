@@ -170,7 +170,8 @@ slice that changes that file next (`work.py check`). The self-review (silent-fai
 that names no factory type, or an interface record that names one, is `Malformed` rather than read as a class without factory
 methods (`RepositoryReaderTests.AClassRecordTheRendererCannotHaveWritten_IsMalformed`, with the missing factory type, the
 factory method that does not say so and the formal on a CLR method without `[CobolMethod]`). Gate: run 000002-20261028T030809Z
-at c24278e25, `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half GREEN; the hardening commit re-gated after it.
+at c24278e25, `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half GREEN; run 000003-20261028T031610Z at a1f8d823e (the
+hardening), `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half GREEN; the note's Landing section re-gated after it.
 
 **Self-review.** Architecture: one writer of attribute text, one reader of the index, one definition of the row encoding;
 no C# text in a bound node. Code: the cap and the escapes are tested at their edges; `Open(Stream)` catches only the
