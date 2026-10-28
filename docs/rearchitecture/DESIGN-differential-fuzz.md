@@ -193,15 +193,46 @@ count of notes to write, and only under `--write`. Every note is rendered and ch
 refusal leaves the register as it was. The operator then runs `python scripts/spec/work.py check`, commits the notes and
 lands the branch; filing the notes upstream (tier 6 of PB3838) stays owner-gated.
 
-## 6. Tests and drift
+## 6. The cumulative history and its page
+
+The owner asked on 2026-10-28 for a running summary of every night, published as an Artifact and "maintained automatically as
+an artifact of each fuzz testing run" (kb/Work PB4006). Two pieces make it:
+
+- **The history,** `docs/rearchitecture/evidence/differential-fuzz-history.json`, one record per night, tracked because the run
+  directories are git-ignored and the triage directories are coordination scratch. A record holds the run's own numbers (run.json,
+  report.md's headline and survivor line, the harness classes of results.jsonl), the adjudicators' verdict tally (signatures and
+  programs per verdict) and the ids of the WiseOwl notes the night filed. It never stores a status. The file also carries
+  `artifact`, the one Artifact URL the page is published to (https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g).
+- **The page,** rendered by `scripts/fuzz_history.py render` from the history and the register: the steps of §2 to §5 in plain
+  words, the totals, the programs per night, the WiseOwl defects per night, the verdict mix, and every WiseOwl defect with its
+  CURRENT status and every GnuCOBOL record, both read from kb/Work when the page is rendered. It states that it is
+  machine-generated and names the command and the history file. Its charts are inline SVG drawn by the script: no library, no
+  data in the page that the script did not compute.
+
+**The step.** The last step of every morning, after `file --write` and on the same branch: `python scripts/fuzz_triage.py history
+--triage <dir> --judge-commit <sha> --write`. It refuses a triage that `collect` does not pass (a problem or an undecided
+signature), finds the night's WiseOwl notes in the register by the run id in their `source` (`--defect` adds one whose source
+does not name it, and every id must be a note), records the night (a re-run replaces its own record), and writes the page to
+`<coord>/scratch/fuzz-summary.html`. The session then publishes that file to the `artifact` URL with the Artifact tool, the only
+publisher (a script cannot publish), and commits the history with the night's filing.
+
+**Backfill.** Nights 1 to 7 were recorded on 2026-10-28 from their run directories and, for nights 3 to 7, the verdict files that
+survived in the triaging sessions' scratch. Nights 1 and 2 were triaged before verdict files existed, so their records carry no
+tally (`verdicts: null`) and the page marks them "by hand". Night 1's report.md was regenerated after PB3490 changed the
+classes, so its survivor counts are that file's, not the first-night record's.
+
+## 7. Tests and drift
 
 `scripts/test_fuzz_triage.py` (discovered by `scripts/self_tests.py`; it needs no build or git) drives the tool on a fabricated
 run and proves the arms listed in its docstring: rescoring, slicing, the briefs (no unfilled placeholder, no night-specific
 literal, the vocabulary, dispositions and bar sections held equal to the tool's, the Workflow script's brief names held equal to
 the tool's), the verdict rules, the refute plan, and every reason `file` holds a record, the witness path, the no-op re-file and
-the write-nothing-on-refusal rule.
+the write-nothing-on-refusal rule. `scripts/test_fuzz_history.py` proves the history: a run's numbers read from a fabricated run
+directory, the tally, the upsert that replaces a night's own record, the defect lookup by run id, a page that renders every night
+and states it is machine-generated, a status shown as the register has it, and the verdict colours held equal to the verdict
+vocabulary.
 
-## 7. Alternatives rejected
+## 8. Alternatives rejected
 
 - **One script per job (the earlier nights' shape).** Each night copied the previous night's scratch set and retargeted it by
   hand; a lesson survived only if the next session found it, and a scratchpad's end lost the tooling.
