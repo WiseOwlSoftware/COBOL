@@ -1267,6 +1267,39 @@ internal sealed class VersionConformancePass
         {
             if (ctx.SOURCES() is not null || ctx.ARE() is not null || ctx.reportValueOperand().Length > 1)
                 _p.Check(Constructs.ReportMultiSource2002, "the multiple SOURCE operand / SOURCES clause forms (report group description)");
+            // The COBOL-85 operand is `identifier-1` alone (kb/Work PB3964): any other operand — an arithmetic
+            // expression, a function, a literal, even a parenthesized identifier — is §13.18.53.2's
+            // arithmetic-expression-1, and so is the rounded phrase (§13.18.53.3 SR3). The SUM clause shares the
+            // operand production but not this clause's edition history, so it is not asked here.
+            if (ctx.reportValueOperand().Any(o => SoleOperand.DataRef(o.arithmeticExpression()) is null))
+                _p.Check(Constructs.ReportSourceExpression2002, "an arithmetic expression or function as a SOURCE operand (report group description)");
+            if (ctx.roundedPhrase() is not null)
+                _p.Check(Constructs.ReportSourceRounded2002, "the ROUNDED phrase of the SOURCE clause (report group description)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The word FILLER as a report group description entry's name (ISO §13.18.20.3 SR3, §13.18.20.4 GR1;
+        /// kb/Work PB3964): ANSI X3.23-1985's entry is <c>level-number [data-name-1]</c>, an unnamed entry written by
+        /// omitting the name, and ISO/IEC 1989:2002 Annex F.2 item 53 allows FILLER "in the report section". The data
+        /// description entry's FILLER is COBOL-85 and is not asked (<c>dataDescriptionEntry</c> is another rule).
+        /// Fires once per written entry; report-section-exclusive rule, so recognition is the drop-proof home.</summary>
+        public override object? VisitReportGroupEntry(CobolParserCore.ReportGroupEntryContext ctx)
+        {
+            if (ctx.dataName()?.FILLER() is not null)
+                _p.Check(Constructs.ReportFiller2002, "the word FILLER as a report group description entry name");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The '+' symbol for PLUS in a relative LINE or NEXT GROUP operand (ISO §13.18.35.3 SR1, §13.18.37.3
+        /// SR2: "PLUS and + are synonyms"; kb/Work PB3964): ANSI X3.23-1985 prints the word alone and ISO/IEC 1989:2002
+        /// Annex F.2 item 115 lists "PLUS or MINUS can be the symbol '+' or '-'". The ONE production
+        /// <c>reportRelativeSign</c> is every relative operand's spelling (kb/Work PB951), so ONE visit is every clause's
+        /// gate. A COLUMN operand is not asked: its relative form is whole a 2002 introduction, gated at the clause
+        /// (<c>VisitReportColumnClause</c>), and a second COBOL0900 would say the same thing twice.</summary>
+        public override object? VisitReportRelativeSign(CobolParserCore.ReportRelativeSignContext ctx)
+        {
+            if (ctx.PLUS() is not null && ctx.Parent is not CobolParserCore.ReportColumnOperandContext)
+                _p.Check(Constructs.ReportPlusSymbol2002, "the '+' symbol for PLUS in a relative report operand");
             return base.VisitChildren(ctx);
         }
 

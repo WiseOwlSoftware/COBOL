@@ -6495,23 +6495,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // a §8.3.2.2 use. In one element the two cannot coexist (COBOL2692), so the order decides nothing there.
             : ConstantValueRawText(op) is { } constantRaw ? NormalizeIfNumericLiteral(constantRaw)
             : SymbolicValueRawText(op) is { } rawBare ? rawBare
-            : RewrittenAllZeroRawText(op) is { } allZero ? allZero
             : NormalizeIfNumericLiteral(op.GetText());
     }
-
-    /// <summary>The raw text of a VALUE operand that is the figurative <c>ALL ZERO</c> (<c>ZEROS</c>, <c>ZEROES</c>)
-    /// the token rewriter marked arithmetic, else null. A signed literal after it in an operand list (<c>88 C VALUE ALL
-    /// ZERO -5</c>) is an operator to the rewriter, so the parse gives the operand as the <c>ALL? ZERO_ARITH</c> primary
-    /// (kb/Work PB3846), whose own text is the glued <c>ALL0</c> no reader knows (the C# backend refused it, CS0103).
-    /// It is still §8.3.3.6.2 Format 1's figurative constant written with ALL, so it reads as the written figurative
-    /// (<c>ALLZEROS</c>, the text the <c>figurativeConstant</c> parse of the same operand gives), and the VALUE
-    /// clause's category screen asks its §8.3.3.6.3 SR1 a) gate of it exactly as for <c>VALUE ALL ZERO</c>. The bare
-    /// word keeps the numeric <c>"0"</c> its text already is: without ALL it is the numeric value 0 (§8.3.3.6.4 GR4).</summary>
-    private static string? RewrittenAllZeroRawText(Core.ValueClauseOperandContext op) =>
-        op.unaryExpression() is { } u && u.addOp() is null && u.primaryExpression() is { } pe
-        && pe.ALL() is not null && pe.ZERO_ARITH() is { } zero
-            ? "ALL" + WiseOwl.Cobol.Frontend.Parsing.ZeroTokenRewriter.WrittenWord(zero.Symbol)
-            : null;
 
     /// <summary>THE literal-position predicate for a VALUE operand (kb/Work PB732), PURE — no folding, no
     /// diagnostics, so a caller may ask about an operand it will not read.

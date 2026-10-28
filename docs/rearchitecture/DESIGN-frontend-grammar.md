@@ -2169,9 +2169,13 @@ regression bisects to one step.
   binder's §8.3.3.6.3 SR1 a) edition gate (`ExpressionBinder.ZeroOperand`, the numeric reading of the figurative
   ZERO for both of its parse forms: accepted at 85, COBOL0902 from 2002; kb/Work PB3846; a direct-shape subscript or
   ref-mod position is read by `ReferenceResolver.BindPosition` as `PositionConstant(0)` and asks the same gate through
-  `FigurativeAssociation.GateAllZeroAsArithmeticOperand`; kb/Work PB3960). A VALUE-list operand the
-  pass marked arithmetic because a signed literal follows it (`88 C VALUE ALL ZERO -5`) is still the figurative, and
-  `DataBinder.RewrittenAllZeroRawText` reads it as the written `ALL ZERO`.
+  `FigurativeAssociation.GateAllZeroAsArithmeticOperand`; kb/Work PB3960). ⛔ **A sign touching the digits of the
+  next literal is that literal's sign, never the ZERO's operator** (kb/Work PB3962): §8.7.1 makes a binary operator a
+  character "preceded by a space and followed by a space", and §8.3.3.3.2 2) makes a sign the "leftmost character of
+  the literal", so `DISPLAY ZERO -1`, `CALL "P" USING ZERO +1` and `88 C VALUE ALL ZERO -5` are operand lists of two
+  operands and keep the figurative (`ZeroTokenRewriter.IsSignOfNextLiteral`, read off the token positions). The
+  rewriter used to read the sign as an operator and the list no longer parsed; the VALUE-list reader that patched one
+  such list after the parse (`DataBinder.RewrittenAllZeroRawText`) is deleted.
 - **The five preprocessor stages and their order** — correct per the TURN-anchoring hazard analysis; only
   namespaces + the injected severity policy change.
 - **SUBSCRIPT lexer mode existence** — the `x(i)`/`(a+b)` disambiguation genuinely needs it; we dedup its
