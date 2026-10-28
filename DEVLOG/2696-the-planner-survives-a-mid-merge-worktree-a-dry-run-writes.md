@@ -1,4 +1,4 @@
-## The planner survives a mid-merge worktree, a dry run writes nothing, and a wave and a campaign are planned in one directory
+## Entry 2696 — 2026-10-28 11:37 PDT — The planner survives a mid-merge worktree, a dry run writes nothing, and a wave and a campaign are planned in one directory
 
 Wave 20261737 group A, the three open PB1957 notes on the wave planner (`scripts/orchestrator/plan_wave.py`,
 `inflight.py`, `test_plan_wave.py`).
@@ -31,3 +31,4 @@ group runs beside everything. It passes on the current planner.
 
 `docs/rearchitecture/DESIGN-orchestrator-loop.md` carries both rules (the coordination-directory table, the planner's
 outputs, the units read). The three notes are landed with `closes_rows: []` (process tooling, no inventory row).
+
