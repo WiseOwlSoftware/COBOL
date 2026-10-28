@@ -31,3 +31,5 @@ COLUMNS, SUM with an expression or ROUNDED) still compile clean at 85; they are 
 Self-review (architecture, full code, performance, duplication): the sign test reads token positions already in hand (no text
 re-scan); the relative-sign gate is one visit of the one shared production, not a copy per clause; the SOURCE form test reuses
 `SoleOperand.DataRef`, the reduction the binder's classifier uses.
+
+Gate (batched, leg 1 plus the Linux half): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on head e727195b3, run 000001-20261028T011525Z; the added goldens (`pb3962_figurative_zero_before_a_signed_literal` at 85, 2002, 2014 and 2023; the four `pb3964-report-*-85` refusals) all Passed in `leg-1-Conformance.trx`; Linux half (WSL clone of HEAD) GREEN; `semgrep/verify.py` PASS.
