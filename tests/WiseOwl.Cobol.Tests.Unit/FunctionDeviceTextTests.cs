@@ -179,7 +179,7 @@ public sealed class FunctionDeviceTextTests
     }
 
     // ── The temporary's LENGTH (kb/Work PB3951): FUNCTION LENGTH / BYTE-LENGTH of a numeric function measure the item DISPLAY shows ────────
-    // ISO §8.4.3.2.1 + §15.4 make the function-identifier that temporary data item, §15.50.4 r3 / §15.14.4 r1 measure it, and §15.4.1 leaves
+    // ISO §8.4.3.2.1 + §15.4 make the function-identifier that temporary data item, §15.50.4 r2 / r3 and §15.14.4 r1 measure it, and §15.4.1 leaves
     // its representation to the implementor, so GnuCOBOL 3.2.0's sizes are the answers (the probe matrix of the PB3951 report; the rows
     // marked NOT COPIED are the same two deliberate departures as DISPLAY's).
 

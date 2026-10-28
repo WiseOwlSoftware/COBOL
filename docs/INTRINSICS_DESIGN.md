@@ -391,7 +391,7 @@ r1), so the arm is the item the TYPE describes, never a list of the three string
 national or boolean result keeps a RUNTIME length over its string image (BYTE-LENGTH: 1 byte per alphanumeric position,
 2 per national position — D-N1 — and ceil(positions / 8) per boolean, §15.14.4 r4, the renderer's `ByteLength` arm over
 `ByteLengthNational` / `ByteLengthBoolean`); an integer or numeric result is the §15.4 temporary DISPLAY shows (kb/Work PB3951):
-the renderer's first `Length` / `ByteLength` arm reads `FunctionValueField.ByteLength` of the field `FunctionDeviceText.Field` builds
+the renderer's first `Length` / `ByteLength` arm reads `FunctionValueField.Length` (LENGTH) or `.ByteLength` (BYTE-LENGTH) of the field `FunctionDeviceText.Field` builds
 (`FunctionDeviceText.IsNumericFunctionResult` is the one predicate the binder and the renderer share), so the size follows
 the function's `DeviceForm` row and its value exactly as the DISPLAY text does — the bytes of a copied argument (ABS, MAX, MIN, odd MEDIAN,
 single MEAN), 8 and 7 for DATE-OF-INTEGER and DAY-OF-INTEGER, otherwise the 4-byte, 8-byte or DISPLAY item the value describes
