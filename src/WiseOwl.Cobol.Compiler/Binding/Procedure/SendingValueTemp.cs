@@ -201,12 +201,14 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <see cref="PicInfo.ScaledCarrierDigits"/> IS STILL HELD (review R1-1 of the first landing): the expression is
     /// frozen because a later part of the statement may change an operand (GR3 "evaluated at the beginning"; §8.4.3.2.4
     /// GR2 for a frozen function argument), and leaving it un-hoisted re-read the changed operand, where the
-    /// S9(21)V9(17) item it replaced held every value that fits. The item takes the expression's own FRACTION digits
-    /// (a sum of scales is exact, so a cut fraction is a different number at ANY magnitude) and the carrier's remaining
-    /// positions as integer digits, so it holds whole every value of at most that many integer digits — the digits a
-    /// product of two 31-digit amounts rarely uses, however wide its bound. A value that really has more digits than the
-    /// carrier holds is cut, as every fixed-point intermediate is (the limit kb/Work PB3268 records; the lead is a wide
-    /// intermediate item).</para>
+    /// S9(21)V9(17) item it replaced held every value that fits. When the bound's integer and fraction digits together
+    /// pass the carrier, the item is a SUPERSET OF THAT ITEM ON BOTH AXES (review R1-1 of the first landing, then its
+    /// round 1): the integer digits keep priority up to the bound (the order <see cref="ShapedPic"/> and
+    /// <c>ReceiverContext.WorkingScale</c> keep) but never below the 17 fraction digits the old item held, and the
+    /// fraction takes what the integer part leaves — so <c>PIC 9V9(19)</c> times <c>PIC 9V9(19)</c> (bound 2 + 38) is
+    /// S9(2)V9(36) and holds 12 whole, where cutting the integer part to keep all 38 fraction digits held 2. A value
+    /// that really has more digits than the carrier holds is cut, as every fixed-point intermediate is (the limit
+    /// kb/Work PB3268 records; the lead is a wide intermediate item).</para>
     /// Any other value (an expression with a quotient, a power or a function in it, a function value itself) keeps
     /// <see cref="ValueOperandPic"/>, the widest scaled item with the returned-value item's 21 integer digits.</summary>
     private static PicInfo ValueOperandPicOf(BoundOperand c)
@@ -219,8 +221,10 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         int scale = extent.Scale;
         if (integer + scale > PicInfo.ScaledCarrierDigits)
         {
-            scale = Math.Min(scale, PicInfo.ScaledCarrierDigits - 1);
-            integer = PicInfo.ScaledCarrierDigits - scale;
+            // Integer digits keep priority (ShapedPic's order), but never at the cost of the ReturnedFractionDigits
+            // the S9(21)V9(17) hold this replaced kept: the item is a superset of it on BOTH axes.
+            integer = Math.Min(integer, PicInfo.ScaledCarrierDigits - Math.Min(scale, ReturnedFractionDigits));
+            scale = Math.Min(scale, PicInfo.ScaledCarrierDigits - integer);
         }
         int digits = integer + scale;
         return new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: scale, Signed: true);
