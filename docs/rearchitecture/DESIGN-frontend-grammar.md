@@ -2166,8 +2166,10 @@ regression bisects to one step.
   operator or the ref-mod COLON (kb/Work PB50). ⛔ **The word ALL before ZERO is the figurative constant's own
   optional word** (§8.3.3.6.2 Format 1, `[ALL] ZERO`), so the pass reads the left-hand context past it (`1 + ALL
   ZERO`, `- ALL ZERO`, `(ALL ZERO)`), and `primaryExpression`'s arm is `ALL? ZERO_ARITH`, which carries the ALL to the
-  binder's §8.3.3.6.3 SR1 a) edition gate (`ExpressionBinder.ZeroOperand`, the one numeric reading of the figurative
-  ZERO for both of its parse forms: accepted at 85, COBOL0902 from 2002; kb/Work PB3846). A VALUE-list operand the
+  binder's §8.3.3.6.3 SR1 a) edition gate (`ExpressionBinder.ZeroOperand`, the numeric reading of the figurative
+  ZERO for both of its parse forms: accepted at 85, COBOL0902 from 2002; kb/Work PB3846; a direct-shape subscript or
+  ref-mod position is read by `ReferenceResolver.BindPosition` as `PositionConstant(0)` and asks the same gate through
+  `FigurativeAssociation.GateAllZeroAsArithmeticOperand`; kb/Work PB3960). A VALUE-list operand the
   pass marked arithmetic because a signed literal follows it (`88 C VALUE ALL ZERO -5`) is still the figurative, and
   `DataBinder.RewrittenAllZeroRawText` reads it as the written `ALL ZERO`.
 - **The five preprocessor stages and their order** — correct per the TURN-anchoring hazard analysis; only
