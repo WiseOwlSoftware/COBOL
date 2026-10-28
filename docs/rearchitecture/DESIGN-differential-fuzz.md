@@ -198,8 +198,10 @@ lands the branch; filing the notes upstream (tier 6 of PB3838) stays owner-gated
 The owner asked on 2026-10-28 for a running summary of every night, published as an Artifact and "maintained automatically as
 an artifact of each fuzz testing run" (kb/Work PB4006). Two pieces make it:
 
-- **The history,** `docs/rearchitecture/evidence/differential-fuzz-history.json`, one record per night, tracked because the run
-  directories are git-ignored and the triage directories are coordination scratch. A record holds the run's own numbers (run.json,
+- **The history,** `conformance-suite/fuzz-history.json`, one record per night, tracked because the run
+  directories are git-ignored and the triage directories are coordination scratch. It is not under `docs/.../evidence/`, whose
+  JSON files are frozen records (the EVIDENCE SUPERSESSION audit holds each to a `_frozen` banner): this file grows every night.
+  A record holds the run's own numbers (run.json,
   report.md's headline and survivor line, the harness classes of results.jsonl), the adjudicators' verdict tally (signatures and
   programs per verdict) and the ids of the WiseOwl notes the night filed. It never stores a status. The file also carries
   `artifact`, the one Artifact URL the page is published to (https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g).
