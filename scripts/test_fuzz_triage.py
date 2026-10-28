@@ -28,6 +28,7 @@ import io
 import json
 import pathlib
 import re
+import subprocess
 import sys
 import unittest.mock
 
@@ -119,14 +120,18 @@ LONG = NL.join(f"       DISPLAY {n}." for n in range(70))
 CITE = {"clause": "14.9.4.4", "text": "the EC-PROGRAM-RECURSIVE-CALL exception condition is set to exist"}
 
 
-def record_md(program=PROGRAM, title="**Title:** cobc 3.2 misbehaves on DEMO", env="`cobc -std=cobol2014 -x demo.cob`") -> str:
+CITE2 = {"clause": "14.9.4.3", "text": "Literal-1 shall be an alphanumeric or national literal and shall not be a zero-length literal"}
+
+
+def record_md(program=PROGRAM, title="**Title:** cobc 3.2 misbehaves on DEMO", env="`cobc -std=cobol2014 -x demo.cob`",
+              expected="§14.9.4.4 GR 3) f): the exception is set to exist.") -> str:
     fence = "```"
     return NL.join([
         "# demo-family", "", "## Summary", "", "cobc 3.2 does something wrong.", "",
         "## Minimal test case", "", "Free reference format.", "", f"{fence}cobol", program.rstrip(), fence, "",
         "## Environment", "", env, "",
         "## Observed result", "", "```", "unknown (signal)", "```", "exit code 139", "",
-        "## Expected result (per ISO)", "", "14.9.4.4 GR 3) f): the exception is set to exist.", "",
+        "## Expected result (per ISO)", "", expected, "",
         "## Our compiler", "", "Compiles; exit 0.", "",
         "## Fix site", "", "`cobc/typeck.c`, function `cb_check_conformance`.", "",
         "## Upstream state", "", "Unreported; tracker not yet searched.", "",
@@ -294,7 +299,8 @@ def triage_with_records(t: ft.Triage, fams: dict[str, dict]) -> ft.Collected:
             put(t.dir / f"records/{fam}.md", record_md())
             put(t.dir / f"records/{fam}.cob", o.get("cob", PROGRAM))
         if o.get("refute", True):
-            refs.append(dict({"family": fam, "outcome": "UPHELD", "why": "re-ran"}, **o.get("refute_over", {})))
+            refs.append(dict({"family": fam, "outcome": "UPHELD", "citations": [CITE], "why": "re-ran"},
+                             **o.get("refute_over", {})))
         if o.get("refuted_md", True) and (o.get("refute_over", {}).get("outcome", "UPHELD") != "OVERTURNED"):
             put(t.dir / f"refuted/{fam}.md", o.get("md") or record_md())
     put(t.dir / "adj/A1/verdicts-A1.jsonl", jsonl(verdicts))
@@ -343,8 +349,16 @@ def arm_refute_and_filing(root: pathlib.Path, t: ft.Triage) -> None:
         "a corrected copy whose program differs from the repro": ({"md": record_md(program=PROGRAM + "DISPLAY 1.")}, "equal to the repro"),
         "a record without a cobc command": ({"md": record_md(env="run it")}, "cobc command"),
         "a Draft issue without its title line": ({"md": record_md(title="no title here")}, "Title"),
-        "a citation that does not check": ({"up": {"citations": [{"clause": "14.9.4.4", "text": "words the clause lacks"}]}}, "citation"),
-        "a clause that does not exist": ({"up": {"citations": [{"clause": "99.99", "text": "x"}]}}, "citation"),
+        "a refuter citation that does not check":
+            ({"refute_over": {"citations": [{"clause": "14.9.4.4", "text": "words the clause lacks"}]}}, "does not check"),
+        "a refuter citation of a clause that does not exist":
+            ({"refute_over": {"citations": [{"clause": "99.99", "text": "x"}]}}, "does not check"),
+        "a refutation line with no citations": ({"refute_over": {"citations": []}}, "no `citations`"),
+        # PB3972 review R1-2: the filed record is the REFUTER's copy, so its clauses are checked, not the adjudicator's
+        "a corrected copy citing a clause the refuter did not list":
+            ({"md": record_md(expected="§14.9.4.4 and §14.9.4.3 say so.")}, "§14.9.4.3"),
+        "a refuter citation the corrected copy never names":
+            ({"refute_over": {"citations": [CITE, CITE2]}}, "not named in the record's Expected result"),
         "a refutation outcome that is none": ({"refute_over": {"outcome": "MAYBE"}}, "outcome"),
         "edition 2023 as a crash": ({"up": {"edition": "2023"}}, "bar refuses"),
         "an unknown RECLASSIFY class": ({"refute_over": {"outcome": "RECLASSIFY", "class": "slow"}}, "class"),
@@ -362,6 +376,11 @@ def arm_refute_and_filing(root: pathlib.Path, t: ft.Triage) -> None:
           f3.drafts and f3.drafts[0].cls == "wrong-output" and f3.drafts[0].edition == "2002", str(f3.held))
     check("FILING: the class flag follows the refuter's class",
           "wrong_answer: true" in ft.render_note(f3.drafts[0], "PB9101", "d") and "crashes: false" in ft.render_note(f3.drafts[0], "PB9101", "d"))
+
+    # the refuter found the more specific rule: the note's spec_refs are the refuter's checked clauses, not the adjudicator's
+    f3b = file_one({"refute_over": {"citations": [CITE2]}, "md": record_md(expected="§14.9.4.3 SR 2): the literal is not empty.")})
+    check("FILING: spec_refs come from the refutation line's citations of the corrected copy",
+          f3b.drafts and f3b.drafts[0].spec_refs == ["14.9.4.3"] and not f3b.held, str(f3b.held))
 
     # write: the allocator's ids, the files, the witnesses
     f = file_one({})
@@ -381,6 +400,17 @@ def arm_refute_and_filing(root: pathlib.Path, t: ft.Triage) -> None:
     check("FILING: another run's ids are added to the Witnesses section, ids only",
           after.rstrip().endswith("- fuzz-20990202-000000: fz00099") and "- fuzz-20990101-000000: fz00020 fz00021" in after
           and wk.upstream_problems(wk.read_note("PB9101.md", after)[0]) == [])
+
+    # PB3972 review R1-3: one mechanism seen under two signatures in ONE run gives all of both signatures' ids
+    f5b = ft.Filing(witnesses=[("PB9101", "THEY_REJECT:15.66", ["fz00010", "fz00011"]),
+                               ("PB9101", "THEY_FAIL_RUN:15.66", ["fz00020", "fz00011", "fz00030"])])
+    ft.write_filing(f5b, work, "2026-10-27", lambda n: [], "fuzz-20990303-000000")
+    after2 = (work / "PB9101.md").read_text(encoding="utf-8")
+    check("FILING: two witnesses of one note in one run keep every id, once",
+          "- fuzz-20990303-000000: fz00010 fz00011 fz00020 fz00030" in after2
+          and after2.count("fuzz-20990303-000000") == 1, after2[-300:])
+    ft.write_filing(f5b, work, "2026-10-27", lambda n: [], "fuzz-20990303-000000")
+    check("FILING: filing the same witnesses again is a no-op", (work / "PB9101.md").read_text(encoding="utf-8") == after2)
 
     c3 = triage_with_records(t, {"fam-w": {"up": {"disposition": "witness", "note": "PB9101"}},
                                  "fam-v": {"up": {"disposition": "witness", "note": "PB1"}},
@@ -403,15 +433,30 @@ def arm_refute_and_filing(root: pathlib.Path, t: ft.Triage) -> None:
 
 
 def arm_helpers() -> None:
+    wk = ft._work()
     text = "a\n```cobol\nX\n  Y\n```\nb\n~~~\nZ\n~~~\n```\nopen"
-    check("HELPERS: fence_blocks reads closed backtick and tilde blocks and ignores an unclosed one",
-          ft.fence_blocks(text) == ["X\n  Y", "Z"], str(ft.fence_blocks(text)))
+    check("HELPERS: the register's fence tracker reads closed backtick and tilde blocks and ignores an unclosed one",
+          wk.fenced_block_texts(text) == ["X\n  Y", "Z"], str(wk.fenced_block_texts(text)))
+    # PB3972 review R1-4: a backtick run whose info string holds a backtick opens no fence (CommonMark 0.31 section 4.5);
+    # the tool used to keep its own tracker that disagreed, and now asks work.py's, the one
+    odd = "```a`b\n```cobol\nPROG\n```\n"
+    check("HELPERS: a backtick info string with a backtick opens no fence, as work.py's tracker reads it",
+          wk.fenced_block_texts(odd) == ["PROG"] and wk.fenced_blocks(odd)[1] == [(1, True)], str(wk.fenced_block_texts(odd)))
+    check("HELPERS: the tool keeps no fence tracker or section lookup of its own",
+          not hasattr(ft, "fence_blocks") and not hasattr(ft, "section") and not hasattr(ft, "draft_title"))
+    check("HELPERS: the Draft issue title is work.py's",
+          wk.draft_title("**Title:** one line\n\nbody") == "one line" and wk.draft_title("**Title:** one line\nbody") is None
+          and wk.draft_title("preface\n**Title:** t\n\nb") is None)
     check("HELPERS: same_program ignores trailing blanks and surrounding blank lines", ft.same_program("A \nB\n\n", "\nA\nB"))
     check("HELPERS: same_program tells a different program", not ft.same_program("A", "B"))
     s = "## Witnesses\n\n- r1: fz1\n\n## Other\n\nx\n"
     t2 = ft.add_witness("---\nx: 1\n---\n# T\n\n" + s, "r2", ["fz2"])
     check("HELPERS: add_witness appends inside an existing Witnesses section before the next heading",
           t2.index("- r2: fz2") < t2.index("## Other") and t2.index("- r1: fz1") < t2.index("- r2: fz2"), t2)
+    t3 = ft.add_witness(t2, "r1", ["fz1", "fz9"])
+    check("HELPERS: add_witness appends the missing ids to the run's own bullet (R1-3) and nothing else",
+          "- r1: fz1 fz9\n" in t3 and t3.count("- r1:") == 1 and ft.add_witness(t3, "r1", ["fz9", "fz1"]) == t3
+          and "- r2: fz2" in t3, t3)
     check("HELPERS: add_witness creates the section when the note has none",
           ft.add_witness("# T\n\ntext\n", "r", ["fz1"]).rstrip().endswith("## Witnesses\n\n- r: fz1"))
     fake = unittest.mock.Mock(return_value=unittest.mock.Mock(stdout="PB10-PB12\n"))
@@ -457,6 +502,58 @@ def arm_cli(root: pathlib.Path, run: pathlib.Path) -> None:
         rc = ft.main(["render", "--triage", str(t2)])
     check("CLI: render re-renders the briefs", rc == 0)
 
+    # PB3972 review R1-5: verify reports a repro it could not re-run, and goes on to the next
+    t = ft.load_triage(t2)
+    defect = {"signature": "WE_REJECT:x", "count": 1, "verdict": "WISEOWL-DEFECT", "harm": "rejects legal source",
+              "rule": "§14.9.4.4", "code_site": "a.cs:1"}
+    put(t.dir / "probes-ok.cob", PROGRAM)
+    put(t.dir / "adj/A1/verdicts-A1.jsonl", jsonl([dict(defect, repro=str(t.dir / "absent.cob")),
+                                                    dict(defect, signature="WE_REJECT:y", repro=str(t.dir / "probes-ok.cob")),
+                                                    dict(defect, signature="WE_REJECT:z", repro=str(t.dir / "probes-ok.cob"))]))
+    calls = []
+
+    def hang(cmd, **kw):
+        calls.append(cmd)
+        raise subprocess.TimeoutExpired(cmd, kw.get("timeout", 0))
+
+    with unittest.mock.patch.object(ft.subprocess, "run", hang), contextlib.redirect_stdout(io.StringIO()):
+        n, problems = ft.verify(t, ft.collect(t))
+    check("CLI: verify counts every defect, reports the missing repro and the compile timeout, and runs the next repro",
+          n == 3 and len(calls) == 2 and len(problems) == 3 and "does not exist" in problems[0]
+          and all("outlived" in p for p in problems[1:]), str((n, calls, problems)))
+    buf = io.StringIO()
+    with unittest.mock.patch.object(ft.subprocess, "run", hang), contextlib.redirect_stdout(buf):
+        rc = ft.main(["verify", "--triage", str(t2)])
+    check("CLI: verify exits 1 when a repro could not be re-run", rc == 1 and "PROBLEM" in buf.getvalue())
+    put(t.dir / "adj/A1/verdicts-A1.jsonl", "")
+
+
+def arm_triage_directory(root: pathlib.Path, run: pathlib.Path) -> None:
+    """PB3972 review R1-1: the read-only roles cannot write inside a git tree, and a run directory is inside one."""
+    coord = root / "coord"
+    d = ft.triage_directory(None, run, str(coord))
+    check("TRIAGE DIR: the default is <coord>/scratch/fuzz-triage/<run id>, beside the fleet's other files",
+          d == (coord / "scratch" / "fuzz-triage" / run.name).resolve(), str(d))
+    in_repo_run = REPO / "conformance-suite" / "results" / "fuzz-20990101-000000"
+    d2 = ft.triage_directory(None, in_repo_run, str(coord))
+    check("TRIAGE DIR: a run directory inside the repository still gets a triage directory outside every checkout",
+          not d2.is_relative_to(REPO) and d2.name == in_repo_run.name, str(d2))
+    check("TRIAGE DIR: an explicit --triage inside the repository is refused",
+          raises(lambda: ft.triage_directory(str(in_repo_run / "triage"), run, str(coord)), SystemExit))
+    check("TRIAGE DIR: prepare refuses it before writing anything",
+          raises(lambda: ft.prepare(run, None, None, in_repo_run / "triage", str(coord)), SystemExit)
+          and not in_repo_run.exists())
+    check("TRIAGE DIR: a relative --triage is refused (a drive-relative path names the wrong directory)",
+          raises(lambda: ft.triage_directory("triage", run, str(coord)), SystemExit))
+    # the hook that makes the rule: the real read-only guard refuses a write inside the repository, passes the default
+    hook = HERE / "hooks" / "readonly_repo.py"
+    refused = subprocess.run([sys.executable, str(hook)], capture_output=True, text=True, input=json.dumps(
+        {"tool_input": {"file_path": str(in_repo_run / "triage" / "adj" / "C1" / "verdicts-C1.jsonl")}}))
+    passed = subprocess.run([sys.executable, str(hook)], capture_output=True, text=True, input=json.dumps(
+        {"tool_input": {"file_path": str(d2 / "adj" / "C1" / "verdicts-C1.jsonl")}}))
+    check("TRIAGE DIR: readonly_repo.py refuses the old default and passes the new one",
+          refused.returncode == 2 and passed.returncode == 0, f"{refused.returncode} {passed.returncode} {passed.stderr[:200]}")
+
 
 def run() -> int:
     root = scratch_dir("fuzz-triage-test-")
@@ -469,6 +566,7 @@ def run() -> int:
         arm_verdicts(t)
         arm_refute_and_filing(root, t)
         arm_cli(root, r)
+        arm_triage_directory(root, r)
     finally:
         remove_tree(root)
     print("SELF-TEST: " + (f"FAIL {FAILURES}" if FAILURES else "PASS"))

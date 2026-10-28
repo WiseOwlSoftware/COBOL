@@ -89,7 +89,8 @@ The record `<<TRIAGE>>/records/<family>.md` has these `##` sections, in this ord
   from GnuCOBOL's GPL testsuite.
 - `Environment`: the cobc version string, the OS (WSL2 Ubuntu), the full command and flags, how the program was run.
 - `Observed result`: cobc's diagnostic or the program's output, and the exit code, verbatim.
-- `Expected result (per ISO)`: the clause and rule (each in `citations`), the edition (does the rule exist in
+- `Expected result (per ISO)`: the clause and rule, each written `§<clause>` and each in `citations` (the tool holds a
+  record whose `§` clauses and `citations` differ), the edition (does the rule exist in
   `<<EDITION>>`? `docs/VERSION_CHANGE_REFERENCE.md`), a short quote. Legal source must be proved legal from the spec, not
   from WiseOwl accepting it.
 - `Our compiler`: our result on the same program (on the fresh judge; write codes as `COBOL####`).
