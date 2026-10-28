@@ -43,7 +43,7 @@
       *> SUB: 3 - 5 = -2 into a signed PIC S9 fits: N=-2 and F=N.
       *> REM: 150 / 4 = 37.5, quotient 37 (PIC 99) and remainder 150 -
       *> 37 * 4 = 2 (14.9.12.4 rules 6 and 7): both fit, F=N.
-      *> EDIT: 123 is past PIC Z9: E keeps its VALUE 5, F=-.
+      *> EDIT: 123 is past PIC Z9: E keeps the 5 moved to it, F=-.
       *> CORR: ADD CORRESPONDING is one implied ADD per pair (14.9.2.4
       *> rule 5): P is 9 + 1 = 10, past PIC 9 (P keeps 9), Q is 5 + 1 =
       *> 6 as it would have been alone, and the statement met a size
@@ -79,7 +79,7 @@
        01 NE    PIC -9.
        01 Q     PIC 99 VALUE 7.
        01 REM   PIC 9 VALUE 0.
-       01 E     PIC Z9 VALUE 5.
+       01 E     PIC Z9.
        01 F     PIC X VALUE "-".
        01 G1.
           05 P  PIC 9 VALUE 9.
@@ -129,6 +129,7 @@
                NOT ON SIZE ERROR MOVE "N" TO F
            END-DIVIDE.
            DISPLAY "REM Q=" Q " R=" REM " F=" F.
+           MOVE 5 TO E.
            MOVE "-" TO F.
            COMPUTE E = 123 NOT ON SIZE ERROR MOVE "N" TO F
            END-COMPUTE.
