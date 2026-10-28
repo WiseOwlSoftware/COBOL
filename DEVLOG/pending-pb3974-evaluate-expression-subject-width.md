@@ -19,16 +19,23 @@ for a function value).
 digits and the scale of an expression of `+`, `-`, `*`, unary minus, numeric literals and fixed-point items: a sum below
 10^i and 10^j is below 10^(max(i, j)+1), a product is below 10^(i+j) with the scales added. That is a mathematical bound, so it
 copies none of `NumericRenderer`'s carrier rules. `SendingValueTemp.ValueOperandPicOf` builds the fixed-point item of exactly
-those digits. A value past the 38-digit scaled carrier has no intermediate item; `Materialize` answers null and the expression
-stays un-hoisted, evaluated again at each WHEN (a function-free expression of data items yields the same value each time, where
-a value cut to fit would compare a different one, the same decision `OfPlace` makes for a variable-length group). An expression
-holding a quotient, a power or a function keeps the 21 + 17 item, the residual: its width is not a bound anyone states.
+those digits. An extent past the 38-digit scaled carrier is still held (branch review R1-1): the first cut left such an
+expression un-hoisted, evaluated again at each WHEN, but the bound is an upper bound and not the value, and the freeze exists
+because a later part of the statement can change an operand. `FUNCTION SUM(WS-B * WS-B * WS-B, FUNCTION RVBMP(WS-B))`
+(WS-B PIC 9(15), RVBMP adds 1 to WS-B) printed 33 instead of 14, and `EVALUATE WS-B * WS-B * WS-B WHEN FUNCTION RVBMP(WS-B)
+WHEN 8` took WHEN 27 instead of WHEN 8; the S9(21)V9(17) hold they replaced answered both. So `ValueOperandPicOf` always answers an
+item: the expression's own fraction digits (a sum of scales is exact) and the carrier's remaining positions as integer digits,
+which holds whole every value that fits. A value of more than 38 digits is cut, the residual shared with PB3268 (a wide
+intermediate item). An expression holding a quotient, a power or a function keeps the 21 + 17 item, the residual: its width is
+not a bound anyone states.
 Sibling arms: `ArgumentOrder`'s frozen function argument holds an arithmetic expression through the same `Materialize` path and is
 fixed with it (`COMPUTE R = FUNCTION MAX(BIG * BIG, T(FUNCTION MIN(1 2)))` stores the whole 30-digit product); the MOVE, INVOKE
 and SET holders carry function values and character text; the subscript temporary is a saturated integer position.
 
-**Witnesses.** Golden `14.9.13-EVALUATE/pb3974_evaluate_expression_subject_width` (nine EVALUATEs at every edition: 30-digit
-products, a negative product, a 24-digit fraction, a 31-digit sum, two subjects, a range object, a 45-digit product that stays
-un-hoisted, and an unequal control; the values are exact arithmetic of the items); no negative, since the change refuses no
-source. Unit theories `ExpressionExtentTests`. Docs: `DESIGN-binder-bound-tree.md` (the intermediate's description).
+**Witnesses.** Golden `14.9.13-EVALUATE/pb3974_evaluate_expression_subject_width` (ten EVALUATEs at every edition: 30-digit
+products, a negative product, a 24-digit fraction, a 31-digit sum, two subjects, a range object, a 39-digit bound over a
+30-digit value, a 24-fraction-digit value under a 54-digit bound, and an unequal control; the values are exact arithmetic of
+the items) and `pb3974_expression_subject_frozen_past_carrier` (from 2002: the review's two UDF scenarios at a 45-digit bound,
+`FUNCTION SUM` = 14 and the EVALUATE taking WHEN 8); no negative, since the change refuses no source. The 45-digit VALUE
+(`BIG * BIG * BIG`) the first cut's golden held through the un-hoisted path is cut by the 38-digit item and is the residual. Unit theories `ExpressionExtentTests`. Docs: `DESIGN-binder-bound-tree.md` (the intermediate's description).
 `kb/Work/PB3974` flips to landed with `closes_rows: []` (no inventory row claimed it).

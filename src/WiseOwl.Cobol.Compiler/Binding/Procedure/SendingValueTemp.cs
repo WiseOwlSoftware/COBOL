@@ -177,7 +177,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     ///     <see cref="ValueOperandPicOf"/> — the item an arithmetic expression's own extent describes
     ///     (<see cref="ExpressionExtent"/>, kb/Work PB3974), else <see cref="ValueOperandPic"/>.</item>
     /// </list></summary>
-    private PicInfo? IntermediatePic(BoundOperand c, ValueUse use)
+    private PicInfo IntermediatePic(BoundOperand c, ValueUse use)
     {
         bool integer = IntrinsicResultType.IsIntegerOperand(c);
         if (integer && use.AsText) return IntegerFunctionValuePic;
@@ -196,23 +196,34 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// compares and passes on the very number the un-hoisted expression yields (§14.9.13.4 GR3 c) assigns the subject "a
     /// numeric value according to the rules for evaluating an arithmetic expression" and GR4 a) 6. compares THAT):
     /// `EVALUATE BIG * BIG WHEN BIG * BIG` over PIC 9(18) took WHEN OTHER through <see cref="ValueOperandPic"/>, which
-    /// keeps 21 of the product's 36 integer digits. ⛔ AN EXACT VALUE PAST THE <c>Int128</c> CARRIER'S
-    /// <see cref="PicInfo.ScaledCarrierDigits"/> HAS NO INTERMEDIATE ITEM, so it answers null and the expression stays
-    /// un-hoisted (as a variable-length group does, <see cref="OfPlace"/>): re-evaluating a pure data-item expression at each
-    /// WHEN yields the same value, where a held value cut to fit would compare a different one. Any other value (an
-    /// expression with a quotient, a power or a function in it, a function value itself) keeps
+    /// keeps 21 of the product's 36 integer digits.
+    /// <para>⛔ THE BOUND IS AN UPPER BOUND, NEVER THE VALUE, SO AN EXTENT PAST THE <c>Int128</c> CARRIER'S
+    /// <see cref="PicInfo.ScaledCarrierDigits"/> IS STILL HELD (review R1-1 of the first landing): the expression is
+    /// frozen because a later part of the statement may change an operand (GR3 "evaluated at the beginning"; §8.4.3.2.4
+    /// GR2 for a frozen function argument), and leaving it un-hoisted re-read the changed operand, where the
+    /// S9(21)V9(17) item it replaced held every value that fits. The item takes the expression's own FRACTION digits
+    /// (a sum of scales is exact, so a cut fraction is a different number at ANY magnitude) and the carrier's remaining
+    /// positions as integer digits, so it holds whole every value of at most that many integer digits — the digits a
+    /// product of two 31-digit amounts rarely uses, however wide its bound. A value that really has more digits than the
+    /// carrier holds is cut, as every fixed-point intermediate is (the limit kb/Work PB3268 records; the lead is a wide
+    /// intermediate item).</para>
+    /// Any other value (an expression with a quotient, a power or a function in it, a function value itself) keeps
     /// <see cref="ValueOperandPic"/>, the widest scaled item with the returned-value item's 21 integer digits.</summary>
-    private static PicInfo? ValueOperandPicOf(BoundOperand c)
+    private static PicInfo ValueOperandPicOf(BoundOperand c)
     {
         if (c is not BoundComputedOperand { Expr: var expression and not BoundIntrinsicCall }
             || ExpressionExtent.Of(expression) is not { } extent)
             return ValueOperandPic;
         // ShapedPic's own floor: an item of no integer digits (a value below 1) still has one integer position.
         int integer = Math.Max(extent.IntegerDigits, 1);
-        int digits = integer + extent.Scale;
-        return digits > PicInfo.ScaledCarrierDigits
-            ? null
-            : new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: extent.Scale, Signed: true);
+        int scale = extent.Scale;
+        if (integer + scale > PicInfo.ScaledCarrierDigits)
+        {
+            scale = Math.Min(scale, PicInfo.ScaledCarrierDigits - 1);
+            integer = PicInfo.ScaledCarrierDigits - scale;
+        }
+        int digits = integer + scale;
+        return new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: scale, Signed: true);
     }
 
     /// <summary>True when <paramref name="c"/> is a function whose returned value the renderer produces as a binary64
@@ -680,7 +691,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // edited) showed the binary expansion where `MOVE FUNCTION PI TO W3` shows the shortest round-trip decimal.
         if (cat is PicCategory.Numeric)
         {
-            if (IntermediatePic(c, use) is not { } pic) return null;   // an exact expression past the carrier: un-hoisted
+            var pic = IntermediatePic(c, use);
             return new TempModel(
                 new DataItem { Level = 1, CobolName = "__SENDVAL-FN", CsName = "__sendvalFn", Pic = pic },
                 DynLimit: 0, FunctionValue: true, Approximation: pic.IsFloat && IsBinary64Approximation(c));
