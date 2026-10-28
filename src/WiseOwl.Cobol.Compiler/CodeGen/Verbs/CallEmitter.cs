@@ -204,7 +204,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// signature of the activated program (<see cref="BoundCallProgram.CalleeSignatureKnown"/> false, so no argument carries
     /// the <see cref="BoundCallArg.Formal"/> <see cref="LandedForFormal"/> lands into) and passes some argument BY CONTENT or
     /// BY VALUE. GR10 fills every BY VALUE record by "a COMPUTE statement without the ROUNDED phrase", and GR9 every BY
-    /// CONTENT one whose program the activating element has a program-specifier for — which program a CALL by data-name or
+    /// CONTENT one whose program the activating element has a program-specifier for, or whose value is a COMPUTED numeric
+    /// (<c>MoveSending.Computed</c>, kb/Work PB3969: a function's returned value has no representation for GR9's first regime
+    /// to move "without conversion") — which program a CALL by data-name or
     /// through a program-pointer reaches is known only at run time — so the site states its program-specifiers and its
     /// EC-SIZE-TRUNCATION state, and <c>ProgramTable.CallProgram</c> lands each argument through the formal's registered
     /// carrier.</summary>
@@ -215,7 +217,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// describes its operands (<see cref="DescribesOperands"/>) or leaves its crossings to the activation boundary
     /// (<see cref="LandsAtRunTime"/>): the externalized names of the activating element's §12.3.8.2 program-specifiers (its
     /// own and its containers', §12.3.8.3). When the element writes none every program it can reach is on rule 1's lane, so
-    /// a site with crossings to land states the EMPTY array (the runtime still lands its BY VALUE arguments, GR10) and one
+    /// a site with crossings to land states the EMPTY array (the runtime still lands its BY VALUE arguments, GR10, and its computed BY CONTENT ones, kb/Work PB3969) and one
     /// with none states nothing. A site that states nothing (null) has no argument for the runtime to land: it held the
     /// signature and landed every argument at compile time, or it passes every argument BY REFERENCE.</summary>
     private string ProgramSpecifiersText(bool landsAtRunTime) => ctx.Data.ProgramSpecifiers.Count > 0
@@ -446,9 +448,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         return landsAtRunTime ? WithMoveSending(a, built, approximateReal) : built;
     }
 
-    /// <summary>⛔ THE ACTIVATING ELEMENT'S HALF OF §14.2.3 GR9's MOVE AT A SITE THAT CANNOT SEE THE FORMAL (kb/Work PB2587):
-    /// the BY CONTENT argument <paramref name="a"/>'s <c>CobolArg</c> (<paramref name="built"/>) with its
-    /// <c>Sending</c> stated — what a MOVE's SENDER decides, rendered from the argument's own description, for the activated
+    /// <summary>⛔ THE ACTIVATING ELEMENT'S HALF OF §14.2.3 GR9's MOVE AT A SITE THAT CANNOT SEE THE FORMAL (kb/Work PB2587), AND
+    /// THE MARK THAT LANDS A COMPUTED VALUE IN GR9's FIRST REGIME TOO (kb/Work PB3969): the BY CONTENT
+    /// argument <paramref name="a"/>'s <c>CobolArg</c> (<paramref name="built"/>) with its <c>Sending</c> stated — what a MOVE's SENDER decides, rendered from the argument's own description, for the activated
     /// unit's <c>MoveLanding</c> to apply the receiver's half to when the program reached is one the element has a
     /// program-specifier for and the formal is a non-numeric elementary item (<c>ProgramTable.LandArguments</c>):
     /// <list type="bullet">
@@ -456,11 +458,14 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     ///     (<see cref="OperandText.NonElementaryMoveSender"/>), flagged so the receiver neither converts nor edits;</item>
     ///   <item>an elementary item or literal — its characters as a MOVE sends them (<see cref="OperandText.AsString"/>,
     ///     the operational sign dropped — GR6 a)) and, for a numeric or numeric-edited one (de-edited, GR5), its value,
-    ///     which a numeric-edited receiver edits;</item>
+    ///     which a numeric-edited receiver edits; a numeric function the binder folded to a literal
+    ///     (FUNCTION LENGTH) is also marked <c>MoveSending.Computed</c>;</item>
     ///   <item>a figurative constant or ALL literal — one occurrence, flagged for repetition to the receiver's size
     ///     (§8.3.3.6.4 GR2), ZERO also as the value 0;</item>
     ///   <item>an arithmetic expression, a function-identifier or a boolean expression — read back from the cell it was
-    ///     evaluated into ONCE (§14.9.4.4 GR3 a)), never evaluated again (<c>CobolArgAdapt.WithValueSending</c>).</item>
+    ///     evaluated into ONCE (§14.9.4.4 GR3 a)), never evaluated again (<c>CobolArgAdapt.WithValueSending</c>); a NUMERIC
+    ///     value is marked <c>MoveSending.Computed</c> (kb/Work PB3969): it has no representation of its own (§15.4.1), so the
+    ///     boundary lands it through the formal in GR9's first regime too, never handing the formal the cell's image.</item>
     /// </list>
     /// Nothing for an argument with no MOVE to send — omitted, BY REFERENCE or BY VALUE, a pointer, an address-identifier,
     /// NULL — or whose formal the site knows (then it performed the MOVE itself, <see cref="MovedFormal"/>).</summary>
@@ -520,10 +525,14 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             _ => false,
         };
         if (!numeric) return RuntimeApi.MoveSendingNew(chars, image);
+        // ⛔ A NUMERIC FUNCTION THE BINDER FOLDED TO A LITERAL (FUNCTION LENGTH) IS STILL A FUNCTION'S RETURNED VALUE (kb/Work PB3969):
+        // it has no representation of its own (§15.4.1), so it is marked Computed exactly as the evaluated-cell arm marks one
+        // (CobolArgAdapt.WithValueSending) and the boundary lands it through the formal, not as the literal's one-digit image.
+        bool computed = op is BoundNumericLiteral { FunctionValue: true };
         NumX x = num.AsNum(op, ReceiverContext.None, SendingRef.MoveToNumeric);
-        return x.Real ? RuntimeApi.MoveSendingNew(chars, image, real: x.Expr)
-            : x.Dec ? RuntimeApi.MoveSendingNew(chars, image)
-            : RuntimeApi.MoveSendingNew(chars, image, value: (x.Expr, x.Scale));
+        return x.Real ? RuntimeApi.MoveSendingNew(chars, image, real: x.Expr, computed: computed)
+            : x.Dec ? RuntimeApi.MoveSendingNew(chars, image, computed: computed)
+            : RuntimeApi.MoveSendingNew(chars, image, value: (x.Expr, x.Scale), computed: computed);
     }
 
     /// <summary>⛔ THE ACTIVATING ELEMENT'S §14.2.3 GR9/GR10 COMPUTE (kb/Work PB640) — wrapped around EVERY
