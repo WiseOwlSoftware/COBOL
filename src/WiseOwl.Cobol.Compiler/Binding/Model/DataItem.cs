@@ -740,10 +740,13 @@ public sealed class DataItem
     /// own level, in declaration order (ISO §13.18.44.3 SR7: "Multiple redefinitions of the same storage area shall each
     /// specify as data-name-2 the data-name of the entry that originally defined the area"; NOTE 1: "If data-name-2 is not
     /// unique, no ambiguity of reference exists because of the required placement of the REDEFINES clause"): the NEAREST one
-    /// that is not itself a redefinition, or null when every candidate is (SR7's own violation). The ONE statement of the
-    /// placement rule, asked by the binder and by the repository decoder (kb/Work PB1280, PB2100).</summary>
-    public static DataItem? OriginalDefinition(IEnumerable<DataItem> precedingSameNamed) =>
-        precedingSameNamed.LastOrDefault(s => s.RedefinesTargetName is null);
+    /// that is not itself a redefinition; when every candidate is a redefinition (SR7's own violation, COBOL1656: an error
+    /// strict, a warning under --permissive with the chain semantics), the nearest candidate; null only when there is none.
+    /// The ONE statement of the placement rule, BOTH halves, asked by the binder and by the repository decoder, so a record
+    /// the renderer writes for any program the compiler accepts decodes to the entry the binder linked (kb/Work PB1280,
+    /// PB2100).</summary>
+    public static DataItem? RedefinedEntry(IReadOnlyList<DataItem> precedingSameNamed) =>
+        precedingSameNamed.LastOrDefault(s => s.RedefinesTargetName is null) ?? precedingSameNamed.LastOrDefault();
 
     /// <summary>True when the item shares its storage area by one of the file section's IMPLICIT redefinitions
     /// (§13.18.33.4 GR3 / §12.4.6.4.4 GR2) rather than by a written REDEFINES clause.</summary>

@@ -896,8 +896,10 @@ naming a forbidden object is refused, never a cycle. The object is recorded by i
 index the attribute ordinals number) beside its word, and decoded from the position, never by looking the word up: the word
 of `DEPENDING ON N OF B` is `N`, and the first `N` of the record may be another item that the admission also admits, so a
 lookup by name decoded a counter the binder never linked (the review of kb/Work PB2100, finding R1-1). A REDEFINES object is
-found by the binder's own placement rule, `DataItem.OriginalDefinition` (§13.18.44.3 SR7 and NOTE 1: the nearest preceding
-same-named sibling that is not itself a redefinition), since the placement makes its word unambiguous; the round trip
+found by the binder's own placement rule, `DataItem.RedefinedEntry` (§13.18.44.3 SR7 and NOTE 1: the nearest preceding
+same-named sibling that is not itself a redefinition, else the nearest one, the chain COBOL1656 admits under --permissive),
+since the placement makes its word unambiguous; both halves of the rule are that one function, so a record written for any
+program the compiler accepts decodes to the entry the binder linked; the round trip
 (`RepositoryCodecTests.Same`) compares both links as positions in the tree. `Based` (§13.18.5) and `AlignedAsLevelOne` are recorded because the
 description copy carries them. `TypedefStrong` replaces `DeclaresStrongType`, which is derived from it. RAISING kinds are the
 persisted `RepositoryRaisingKind`, and a program's whole RAISING phrase rides `BoundProgram.Raising`. A record the decoder

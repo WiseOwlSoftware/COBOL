@@ -303,7 +303,7 @@ public sealed class RepositoryCodecTests
 
     /// <summary>Both links of <see cref="AmbiguousNamesSource"/> decode to the entry the binder resolved — the second N (the
     /// one in B) and the first X: the record names a DEPENDING ON object by its position in the description's tree, and the
-    /// decoder finds a REDEFINES object by the binder's own placement rule (<see cref="DataItem.OriginalDefinition"/>).</summary>
+    /// decoder finds a REDEFINES object by the binder's own placement rule (<see cref="DataItem.RedefinedEntry"/>).</summary>
     [Fact]
     public void AQualifiedDependingOnObject_AndARepeatedRedefinesName_DecodeToTheBoundEntries()
     {
@@ -318,6 +318,46 @@ public sealed class RepositoryCodecTests
         Assert.Same(rdf.Children[0], rdf.Children[1].RedefinesTarget);
         Assert.Same(rdf.Children[0], rdf.Children[2].RedefinesTarget);
         Assert.Equal(["RTQUAL"], RoundTripAll(comp));
+    }
+
+    /// <summary>A REDEFINES chain ISO §13.18.44.3 SR7 forbids ("Multiple redefinitions of the same storage area shall each
+    /// specify as data-name-2 the data-name of the entry that originally defined the area") is COBOL1656, an error strict
+    /// and a warning under --permissive, where the binder links the nearest same-named candidate because every candidate is
+    /// itself a redefinition. The renderer publishes that link, so the decoder asks the same rule, both halves
+    /// (<see cref="DataItem.RedefinedEntry"/>), and decodes `C` over `B`, never refusing a record of an accepted program.</summary>
+    [Fact]
+    public void APermissiveRedefinesChain_DecodesToTheBoundEntry()
+    {
+        var comp = Bind("""
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. RCHAIN.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 REC.
+                  05 A PIC X(4).
+                  05 B REDEFINES A PIC 9(4).
+                  05 C REDEFINES B PIC X(4).
+               PROCEDURE DIVISION USING REC.
+                   GOBACK.
+               END PROGRAM RCHAIN.
+               """, 2023, permissive: true);
+        var bound = comp.Units.Single(u => u.Name == "RCHAIN").Data.LinkageFormals[0].Item;
+        Assert.Same(bound.Children[1], bound.Children[2].RedefinesTarget);
+        var decoded = RepositoryCodec.Decode(RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RCHAIN")), comp.SignatureClasses);
+        var rec = decoded.Formals[0].Item;
+        Assert.Same(rec.Children[0], rec.Children[1].RedefinesTarget);
+        Assert.Same(rec.Children[1], rec.Children[2].RedefinesTarget);
+        Assert.Equal(["RCHAIN"], RoundTripAll(comp));
+
+        // The one record the rule leaves undecodable is one no compilation writes: a word naming no preceding sibling.
+        var record = RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RCHAIN"));
+        var d = record.Formals[0].Description;
+        var unnamed = record with
+        {
+            Formals = new([record.Formals[0] with { Description = d with { Children = new([d.Children[0], d.Children[1], d.Children[2] with { RedefinesTarget = "Z" }]) } }]),
+        };
+        var e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(unnamed, comp.SignatureClasses));
+        Assert.Contains("'C' REDEFINES 'Z', which names no preceding sibling", e.Message);
     }
 
     [Fact]
@@ -561,22 +601,22 @@ public sealed class RepositoryCodecTests
         }
     }
 
-    internal static BoundCompilation Bind(string source, int edition)
+    internal static BoundCompilation Bind(string source, int edition, bool permissive = false)
     {
         string path = Path.Combine(Path.GetTempPath(), $"repocodec_{Guid.NewGuid():N}.cob");
         File.WriteAllText(path, source);
-        try { return BindFile(path, edition, InitialReferenceFormat.Auto); }
+        try { return BindFile(path, edition, InitialReferenceFormat.Auto, permissive); }
         finally { FileHarness.TryDelete(path); }
     }
 
-    internal static BoundCompilation BindFile(string path, int edition, InitialReferenceFormat format)
+    internal static BoundCompilation BindFile(string path, int edition, InitialReferenceFormat format, bool permissive = false)
     {
         var diags = new DiagnosticBag();
         var frontend = new CnFrontend { InitialFormat = format, DialectLevel = edition };
         frontend.AddCopySearchPath(Path.GetDirectoryName(path)!);   // the suite's library: the case's own directory
         var tree = frontend.Parse(path, diags);
         Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
-        var context = new EditionContext(edition);
+        var context = new EditionContext(edition, permissive);
         var comp = new CSharpEmitter().Bind(tree!, context, frontend.Directives);
         Assert.False(context.HasErrors, string.Join("\n", context.Diagnostics));
         return comp;
