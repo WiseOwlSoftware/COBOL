@@ -192,7 +192,9 @@ failed the same test against the old code. The placement rule the binder states 
 positions in the tree for every formal it round-trips, so the whole corpus checks them from now on. R1-2: a
 `CliParserTests` case for `--repository-update` (default on, both spellings, case, refusals, no swallowed flag) and
 `RunCompile` gets back its own summary. R1-3: the README option table lists `--repository-update`. Design 6.1 and its
-table of read members say how the object is recorded.
+table of read members say how the object is recorded. Gate: run 000002-20261028T191256Z at a0d9cf7cd,
+`LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half (WSL clone of HEAD) GREEN; the four Facts above `Passed` in its
+leg-1-Unit.trx.
 
 **Self-review.** Architecture: one writer of attribute text, one reader of the index, one definition of the row encoding;
 no C# text in a bound node. Code: the cap and the escapes are tested at their edges; `Open(Stream)` catches only the
