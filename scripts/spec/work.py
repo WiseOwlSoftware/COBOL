@@ -512,7 +512,7 @@ UPSTREAM_MAX_FENCE_LINES = 60
 #: The `## Draft issue` section is the text an owner approves for publication (PB3838, standing requirement 2), so it
 #: OPENS with its one-line title, `**Title:** ...` followed by a blank line: an instruction to the filer put ahead of
 #: it, or a title wrapped onto a second line, would be copied into the posted issue (PB3838 tier 4 review, R1-1 and R1-3).
-_DRAFT_TITLE = re.compile(r"\A\s*\*\*Title:\*\*[ \t]+\S[^\n]*\n[ \t]*(\n|\Z)")
+_DRAFT_TITLE = re.compile(r"\A\s*\*\*Title:\*\*[ \t]+(?P<title>\S[^\n]*)\n[ \t]*(\n|\Z)")
 #: ⛔ A CORRECTION IS APPLIED IN PLACE. A note that states a correction beside the text it contradicts ("where it
 #: differs, this paragraph governs") leaves the uncorrected sentence in the sections a filer copies (PB3838 tier 4
 #: review, R1-1): the phrase is how such a note announces itself, so it is refused rather than read around.
@@ -537,24 +537,40 @@ def fenced_blocks(body: str) -> tuple[set[int], list[tuple[int, bool]]]:
     the body is reported, unclosed, with its lines so far."""
     inside: set[int] = set()
     blocks: list[tuple[int, bool]] = []
+    for first, last, lines, closed in _scan_fences(body):
+        inside.update(range(first, last + 1))
+        blocks.append((len(lines), closed))
+    return inside, blocks
+
+
+def fenced_block_texts(body: str) -> list[str]:
+    """The text inside every CLOSED fenced block of a note body, in order, as :func:`fenced_blocks` reads the fences (the
+    one tracker: a reader that needs a block's lines, as `scripts/fuzz_triage.py` does to match a repro, asks here)."""
+    return [chr(10).join(lines) for _first, _last, lines, closed in _scan_fences(body) if closed]
+
+
+def _scan_fences(body: str) -> list[tuple[int, int, list[str], bool]]:
+    """Every fenced block of `body` as `(index of its opening fence line, index of its last line, the lines between the
+    fences, whether a closing fence ended it)`: the loop :func:`fenced_blocks` and :func:`fenced_block_texts` share."""
+    out: list[tuple[int, int, list[str], bool]] = []
     run: str | None = None
-    n = 0
-    for i, line in enumerate(body.splitlines()):
+    first = 0
+    held: list[str] = []
+    last = -1
+    for last, line in enumerate(body.splitlines()):
         m = _FENCE.match(line)
         if run is None:
             if m and not (m["run"][0] == "`" and "`" in m["rest"]):
-                run, n = m["run"], 0
-                inside.add(i)
+                run, first, held = m["run"], last, []
             continue
-        inside.add(i)
         if m and m["run"][0] == run[0] and len(m["run"]) >= len(run) and not m["rest"].strip():
-            blocks.append((n, True))
+            out.append((first, last, held, True))
             run = None
         else:
-            n += 1
+            held.append(line)
     if run is not None:
-        blocks.append((n, False))
-    return inside, blocks
+        out.append((first, last, held, False))
+    return out
 
 
 def body_sections(body: str) -> dict[str, str]:
@@ -572,6 +588,20 @@ def body_sections(body: str) -> dict[str, str]:
         if cur is not None:
             out[cur].append(line)
     return {k: chr(10).join(v) for k, v in out.items()}
+
+
+def section_named(sections: dict[str, str], name: str) -> str | None:
+    """The text of the `## ` section whose heading opens with `name` (case-insensitive; the bar's words, as
+    :data:`UPSTREAM_SECTIONS` names them), or None: the ONE lookup of a bar section, used by :func:`upstream_problems` and
+    by the tools that build an `upstream` record (`scripts/fuzz_triage.py`)."""
+    return next((t for h, t in sections.items() if h.lower().startswith(name.lower())), None)
+
+
+def draft_title(draft_issue: str) -> str | None:
+    """The one-line title a `## Draft issue` section opens with, or None when it does not open with `**Title:** ...`
+    followed by a blank line (the shape :func:`upstream_problems` demands)."""
+    m = _DRAFT_TITLE.match(draft_issue)
+    return m["title"].strip() if m else None
 
 
 def upstream_problems(it: dict) -> list[str]:
@@ -626,7 +656,7 @@ def upstream_problems(it: dict) -> list[str]:
     body = it.get("_body", "")
     sections = body_sections(body)
     for name in UPSTREAM_SECTIONS:
-        text = next((t for h, t in sections.items() if h.lower().startswith(name.lower())), None)
+        text = section_named(sections, name)
         if text is None:
             need(f"has no `## {name}` section (the bar's eight items, PB3838)")
         elif not text.strip():
