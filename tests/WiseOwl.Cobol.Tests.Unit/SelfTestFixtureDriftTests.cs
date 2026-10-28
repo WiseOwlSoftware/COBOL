@@ -34,7 +34,13 @@ public sealed class SelfTestFixtureDriftTests
     /// names this class for each one); the audit itself narrows to <c>live_tools.ROOTS</c> at run time.</summary>
     private static readonly TreeScope PythonScripts = new(Under: ["scripts/", ".claude/", "conformance-suite/harness/"], Kinds: [".py"]);
 
-    private static readonly Regex GitLiteral = new(@"[""']git[""']", RegexOptions.Compiled);
+    /// <summary>The two environment scrubs, each defined only at its home (kb/Work PB3821): the git child's, which drops
+    /// git's repository-selection variables, and <c>dotnet test</c>'s, which drops the gate's handshake and the VSTest
+    /// filters (kb/Work PB1718).</summary>
+    private static readonly (string Name, string Home)[] EnvironmentScrubs =
+        [("git_env", Fixture), ("scrubbed_env", "scripts/test_population.py")];
+
+    private static readonly Regex GitLiteral =new(@"[""']git[""']", RegexOptions.Compiled);
     private static readonly Regex InitLiteral = new(@"[""']init[""']", RegexOptions.Compiled);
     private static readonly Regex LocalEnvVarsLiteral = new(@"[""']--local-env-vars[""']", RegexOptions.Compiled);
     private static readonly Regex OwnIdentityOrMaintenance = new(
@@ -120,7 +126,9 @@ public sealed class SelfTestFixtureDriftTests
     /// The rules the fixture owns are written once: the repository-selection variables are read only through
     /// <c>scratch_repo.local_env_vars</c> (gate_slot.py's <c>drop_git_local_env</c> and self_tests.py's
     /// <c>_scrubbed_env</c> were two more copies), and the identity and the no-maintenance settings are declared only
-    /// there (self_tests.py's private global config imports them).
+    /// there (self_tests.py's private global config imports them). The git child's environment is
+    /// <c>scratch_repo.git_env</c> and the <c>dotnet test</c> scrub is <c>test_population.scrubbed_env</c>: two jobs,
+    /// each defined once, and named apart so a caller cannot take the wrong one for its twin (kb/Work PB3821).
     /// </summary>
     [Fact]
     public void TheFixturesRules_AreWrittenOnce()
@@ -133,9 +141,14 @@ public sealed class SelfTestFixtureDriftTests
         {
             string text = File.ReadAllText(TestRepo.At(rel));
             if (LocalEnvVarsLiteral.IsMatch(text))
-                copies.Add($"{rel}: runs `git rev-parse --local-env-vars` itself (use scratch_repo.isolate or scrubbed_env)");
+                copies.Add($"{rel}: runs `git rev-parse --local-env-vars` itself (use scratch_repo.isolate or git_env)");
             if (OwnIdentityOrMaintenance.IsMatch(text))
                 copies.Add($"{rel}: declares its own self-test identity or maintenance settings (import scratch_repo's)");
+            foreach ((string name, string home) in EnvironmentScrubs)
+            {
+                if (rel != home && Regex.IsMatch(text, $@"^\s*def {name}\(", RegexOptions.Multiline))
+                    copies.Add($"{rel}: defines `{name}`, which {home} owns (a second environment scrub, or the twin's name)");
+            }
         }
 
         Assert.True(copies.Count == 0, "a second copy of a rule the scratch-repository fixture owns:\n" + string.Join("\n", copies));
