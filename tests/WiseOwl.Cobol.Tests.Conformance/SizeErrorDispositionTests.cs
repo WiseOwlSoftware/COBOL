@@ -197,7 +197,8 @@ public sealed class SizeErrorDispositionTests
 
     /// <summary>kb/Work PB3869 (retired) — the same NOT-only statement over a RESULT past its receiver, checking off, on
     /// every receiver store (fixed-point, edited, float) and both value lanes. DOC-A.1-70's determination for a statement
-    /// carrying a NOT SIZE ERROR phrase (§14.6.13.1.3 item 8, following GnuCOBOL): the resultant keeps its value and the
+    /// carrying a NOT SIZE ERROR phrase (§14.6.13.1.3 item 8, following GnuCOBOL, whose COMP-5 / COMP-X / COMP-N exemption is its own error, kb/Work PB3989): the
+    /// resultant keeps its value and the
     /// NOT imperative is skipped; a result that fits lands and the imperative runs (§14.7.5's closing paragraph). A holds
     /// 7 and E holds 0 before each statement; the displays are the verdict.</summary>
     [Theory]
