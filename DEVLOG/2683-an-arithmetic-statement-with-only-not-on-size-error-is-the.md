@@ -1,4 +1,4 @@
-## An arithmetic statement with only NOT ON SIZE ERROR is the phraseless statement (PB3869)
+## Entry 2683 — 2026-10-27 17:48 PDT — An arithmetic statement with only NOT ON SIZE ERROR is the phraseless statement (PB3869)
 
 **Defect (fuzz run fuzz-20261026-225310, owner-approved 2026-10-27).** `EmitArith` took the checked path whenever the
 `SizeErrorPhrase` object existed, and a phrase holding only `NotOnError` exists. The checked shape's disposition (the
@@ -44,3 +44,4 @@ and each run reads the snapshot. R1-2: the REMAINDER store of a detecting `DIVID
 ran; it now goes through `GuardedStore` (§14.9.12.4 6) c)). Witnesses: golden rows REMOV and RAND (the NOT-only
 statement stores what the phraseless one stores and leaves the same next RANDOM element), and
 `NotSizeErrorAlone_DivideRemainder_DetectsASizeErrorInTheRemainder`.
+
