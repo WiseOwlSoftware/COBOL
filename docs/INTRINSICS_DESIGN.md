@@ -390,11 +390,15 @@ r1), so the arm is the item the TYPE describes, never a list of the three string
 (and BYTE-LENGTH did not match at all, so every function argument was refused as "a numeric literal"): an alphanumeric,
 national or boolean result keeps a RUNTIME length over its string image (BYTE-LENGTH: 1 byte per alphanumeric position,
 2 per national position — D-N1 — and ceil(positions / 8) per boolean, §15.14.4 r4, the renderer's `ByteLength` arm over
-`ByteLengthNational` / `ByteLengthBoolean`); an integer or numeric result is the §15.4 temporary
-(`SendingValueTemp.NumericReturnedValuePic` — the ONE description of the returned-value item that LENGTH, BYTE-LENGTH
-and IN-ARITHMETIC-RANGE ask about; the intermediate a statement hoist stores the value in is a different item, described
-for the value by `SendingValueTemp.IntermediatePic`, kb/Work PB3268), S9(30) DISPLAY, 30 positions and 30 bytes
-(DOC-A.1-92); an index result is the index carrier, 8. A result the binder FOLDED to a literal (`FUNCTION
+`ByteLengthNational` / `ByteLengthBoolean`); an integer or numeric result is the §15.4 temporary DISPLAY shows (kb/Work PB3951):
+the renderer's first `Length` / `ByteLength` arm reads `FunctionValueField.Length` (LENGTH) or `.ByteLength` (BYTE-LENGTH) of the field `FunctionDeviceText.Field` builds
+(`FunctionDeviceText.IsNumericFunctionResult` is the one predicate the binder and the renderer share), so the size follows
+the function's `DeviceForm` row and its value exactly as the DISPLAY text does — the bytes of a copied argument (ABS, MAX, MIN, odd MEDIAN,
+single MEAN), 8 and 7 for DATE-OF-INTEGER and DAY-OF-INTEGER, otherwise the 4-byte, 8-byte or DISPLAY item the value describes
+(`CobolNum.ReturnedValueProfile`), 8 for a binary64; the call is evaluated at run time and the next function needs no edit
+(DOC-A.1-92; the nominal S9(30) / S9(21)V9(9) `SendingValueTemp.FunctionValuePic` now serves IN-ARITHMETIC-RANGE alone);
+the intermediate a statement hoist stores the value in is a different item, described
+for the value by `SendingValueTemp.IntermediatePic`, kb/Work PB3268; an index result is the index carrier, 8. A result the binder FOLDED to a literal (`FUNCTION
 LENGTH(FUNCTION LENGTH(X))`) is not a literal the source wrote: `BoundNumLiteral.FunctionValue` /
 `BoundNumericLiteral.FunctionValue` carry that origin from the ONE point every bound function result passes
 (`BindIntrinsicCore`) to every syntax rule that asks "is this operand a literal" (kb/Work PB1662). What the catch-all
@@ -592,6 +596,17 @@ function handing its caller the temporary it made (`ABS(INTEGER(X))` copies INTE
 function's text is `CobolNum.DeviceFunctionText` of its value: a scaled integer and an SDIDI reach the same rule. A binary64
 result keeps the shortest round-trip image (`CobolFloat.Display`), as a floating-point item does (PB3505). The value path
 reads the call at `ReceiverContext.None`, so the text never depends on a receiver (PB3839).
+
+**The same temporary is what LENGTH and BYTE-LENGTH measure (PB3951).** `FunctionValueField.Length` (positions, §15.50.4) and
+`FunctionValueField.ByteLength` (bytes, §15.14.4 r1) are the size of the item the field describes: `OfItem` and `OfFloatItem` take the argument
+item's own length from the compiler (`ItemLength.Positions` and `DataItem.ByteWidth`, the one reading `LENGTH(field)` and `BYTE-LENGTH(field)`
+use; a packed argument's bytes, a binary one's, a SIGN SEPARATE one's extra position, and for a USAGE NATIONAL argument positions that are half
+the bytes), never re-derived from the `NumProfile`, which does not say a national position is two bytes. `OfLiteral` the literal's digits plus a sign position when one was written, `OfDigits` the fixed 8 or 7, `OfValue` the 4-byte or 8-byte
+binary item or the DISPLAY digits `CobolNum.ReturnedValueProfile` derives (its `storageBytes` out value, because the profile's `Digits` is the
+position count DISPLAY pads to, 9 or 20), `OfFloat` 8. The binder sends the argument of a numeric or integer function to the runtime
+(`IntrinsicBinder.FunctionResultLength`) and the renderer's first arm reads the field (`FunctionDeviceText.Field`: `Length` for LENGTH, `ByteLength` for BYTE-LENGTH), before any float-lane
+routing: a LENGTH of `SQRT(...)` is the 8 bytes of a binary64, never the lane's concern. GnuCOBOL's 38- to 96-digit temporary for a binary64
+and its GMP digit estimate are not copied (DOC-A.1-92). `LENGTH(FUNCTION LENGTH(X))` is the folded literal's own field, 1 byte for 5.
 
 Two things GnuCOBOL does are not copied because each shows a figure the value does not have: its 9-position 4-byte temporary cuts
 a 10-digit value's high-order digit, and its DISPLAY temporary takes its digit count from a GMP size estimate that can exceed

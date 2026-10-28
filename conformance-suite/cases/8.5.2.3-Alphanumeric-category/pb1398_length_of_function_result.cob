@@ -17,8 +17,12 @@
       *>   boolean (item 2, implicit usage bit) - positions, and 8 to
       *>     the byte rounded up by 15.14.4 r4: 16 -> 2, 9 -> 2, 8 -> 1;
       *>   integer (item 5) and numeric (item 4) - the 15.4 temporary
-      *>     the implementor describes in 15.4.1, S9(30) (30, 30), which
-      *>     a nested LENGTH / BYTE-LENGTH result is as well.
+      *>     the implementor describes in 15.4.1: the item DISPLAY shows
+      *>     (kb/Work PB3951, DOC-A.1-92), here the 4-byte item an
+      *>     integer date and a value under 2**31 are (4, 4); a nested
+      *>     LENGTH / BYTE-LENGTH result is the folded literal's field,
+      *>     one digit position (1, 1). pb3951_length_of_numeric_
+      *>     function_result carries the sizes of every function shape.
       *> The index function has its own golden (2023). Before the fix
       *> every line but the first two drew COBOL1627 "argument-1 is
       *> a numeric literal".
@@ -48,8 +52,10 @@
                FUNCTION LENGTH(FUNCTION INTEGER-OF-DATE(20240101)).
            DISPLAY "IN-B "
                FUNCTION BYTE-LENGTH(FUNCTION INTEGER-OF-DATE(20240101)).
-           DISPLAY "NU-L " FUNCTION LENGTH(FUNCTION SQRT(4)).
-           DISPLAY "NU-B " FUNCTION BYTE-LENGTH(FUNCTION SQRT(4)).
+           DISPLAY "NU-L "
+               FUNCTION LENGTH(FUNCTION NUMVAL("12.5")).
+           DISPLAY "NU-B "
+               FUNCTION BYTE-LENGTH(FUNCTION NUMVAL("12.5")).
            DISPLAY "NE-L " FUNCTION LENGTH(FUNCTION LENGTH(W-X)).
            DISPLAY "NE-B "
                FUNCTION BYTE-LENGTH(FUNCTION BYTE-LENGTH(W-X)).
