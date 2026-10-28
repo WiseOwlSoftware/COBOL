@@ -36,8 +36,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class FileHarnessOneHomeDriftTests
 {
-    private static readonly string[] TestAssemblies =
-        ["WiseOwl.Cobol.Tests.Unit", "WiseOwl.Cobol.Tests.Conformance", "WiseOwl.Cobol.Tests.Characterization"];
+    /// <summary>The three gated test assemblies' C# sources, COMMITTED (kb/Work PB3814): never a walk of the directories
+    /// from the file system, which enters every running test host's <c>bin/</c> and <c>obj/</c>.</summary>
+    private static readonly TreeScope TestAssemblySources = new(
+        Under: ["tests/WiseOwl.Cobol.Tests.Unit/", "tests/WiseOwl.Cobol.Tests.Conformance/", "tests/WiseOwl.Cobol.Tests.Characterization/"],
+        Kinds: [".cs"]);
 
     /// <summary>A unique file name: <c>Guid.NewGuid()</c> and a <c>.dat</c> or <c>.txt</c> literal end on one line.</summary>
     private static readonly Regex UniqueHostName = new(@"Guid\.NewGuid\(\).*\.(dat|txt)""", RegexOptions.Compiled);
@@ -135,11 +138,9 @@ public sealed class FileHarnessOneHomeDriftTests
     }
 
     private static IEnumerable<(string Path, string Text)> SourceFiles() =>
-        TestAssemblies.SelectMany(a => Directory.EnumerateFiles(TestRepo.Tests(a), "*.cs", SearchOption.AllDirectories))
-            .Where(p => !p.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
-                && !p.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
-                && Path.GetFileName(p) != "FileHarnessOneHomeDriftTests.cs")
-            .Select(p => (Path.GetRelativePath(TestRepo.Root, p), File.ReadAllText(p)));
+        TrackedTree.Files(TestAssemblySources)
+            .Where(rel => Path.GetFileName(rel) != "FileHarnessOneHomeDriftTests.cs")
+            .Select(rel => (rel, File.ReadAllText(TestRepo.At(rel.Split('/')))));
 
     private static IEnumerable<string> InlineHostPaths(string path, string text)
     {

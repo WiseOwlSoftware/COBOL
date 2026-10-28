@@ -31,14 +31,18 @@ public sealed class NoWallClockAssertionDriftTests
         @"(Elapsed(Milliseconds|Ticks)?|Elapsed\.Total\w+|TotalMilliseconds|TotalSeconds)\s*[<>]=?|[<>]=?\s*\w*\.Elapsed",
         RegexOptions.Compiled);
 
+    /// <summary>The test sources this sweep reads: the COMMITTED C# under <c>tests/</c> (kb/Work PB3814), never a walk
+    /// of the directory from the file system, which enters every running test host's <c>bin/</c> and <c>obj/</c>.</summary>
+    private static readonly TreeScope TestSourceScope = new(Under: ["tests/"], Kinds: [".cs"]);
+
+    private static IEnumerable<string> TestSources() => TrackedTree.Files(TestSourceScope).Select(rel => TestRepo.At(rel.Split('/')));
+
     [Fact]
     public void NoTestComparesAWallClockReading()
     {
         var root = TestRepo.Root;
-        var offenders = Directory.EnumerateFiles(TestRepo.Tests(), "*.cs", SearchOption.AllDirectories)
-            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
-                     && !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
-                     && !f.EndsWith(nameof(NoWallClockAssertionDriftTests) + ".cs"))
+        var offenders = TestSources()
+            .Where(f => !f.EndsWith(nameof(NoWallClockAssertionDriftTests) + ".cs"))
             .SelectMany(f => File.ReadLines(f).Select((line, i) => (f, i, line)))
             .Where(x => ElapsedComparison.IsMatch(x.line))
             .Select(x => $"{Path.GetRelativePath(root, x.f)}:{x.i + 1}: {x.line.Trim()}")
@@ -63,10 +67,8 @@ public sealed class NoWallClockAssertionDriftTests
     [Fact]
     public void NoTestSetsALiteralTimeLimit()
     {
-        var offenders = Directory.EnumerateFiles(TestRepo.Tests(), "*.cs", SearchOption.AllDirectories)
-            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
-                     && !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
-                     && !LimitExempt.Contains(Path.GetFileName(f)))
+        var offenders = TestSources()
+            .Where(f => !LimitExempt.Contains(Path.GetFileName(f)))
             .SelectMany(f => File.ReadLines(f).Select((line, i) => (f, i, line)))
             .Where(x => LiteralLimit.IsMatch(x.line))
             .Select(x => $"{Path.GetRelativePath(TestRepo.Root, x.f)}:{x.i + 1}: {x.line.Trim()}")
