@@ -249,7 +249,8 @@ jobs:
   # with this job (no `needs`): it cancels each unfinished merge-group run whose head commit no current queue entry
   # heads, never its own and never a live entry's, and cancels NOTHING when the queue cannot be read whole
   # (scripts/orchestrator/cancel_superseded.py, whose self-test holds every arm). It is the ONE job with `actions:
-  # write`, and its step is `continue-on-error`: housekeeping never decides a verdict (LandingPipelineDriftTests). ──
+  # write`, and EVERY step of it is `continue-on-error` (the script runs only when the checkout succeeded, and a failed
+  # checkout is said as a warning): housekeeping never decides a verdict (LandingPipelineDriftTests, kb/Work PB3820). ──
   supersede:
     name: supersede (cancel the merge-group runs the queue replaced)
     if: github.event_name == 'merge_group'
@@ -259,17 +260,20 @@ jobs:
       contents: read          # the sparse checkout of the script
       pull-requests: read     # the merge queue's entries (GraphQL mergeQueue), each a pull request
     steps:
-      - uses: actions/checkout@v7
+      - id: checkout
+        uses: actions/checkout@v7
+        continue-on-error: true
         with:
           submodules: false
           # scripts/standard_streams.py: every orchestrator script imports its one UTF-8 switch (kb/Work PB3637)
           # SparseCheckoutDriftTests (kb/Work PB3787) holds this list: every file the job runs, and every module those
-          # import as they start, must be listed, or the continue-on-error step cancels nothing while the run stays green
+          # import as they start, must be listed, or the continue-on-error script step cancels nothing while the run stays green
           sparse-checkout: |
             scripts/orchestrator
             scripts/standard_streams.py
           sparse-checkout-cone-mode: false
       - name: Cancel the superseded merge-group runs (cancel_superseded.py)
+        if: steps.checkout.outcome == 'success'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -277,6 +281,12 @@ jobs:
           RUN_ID: ${{ github.run_id }}
           SHA: ${{ github.sha }}
         run: python3 scripts/orchestrator/cancel_superseded.py --repo "$REPO" --run-id "$RUN_ID" --sha "$SHA"
+      - name: Say that the checkout failed, so nothing was cancelled
+        if: steps.checkout.outcome != 'success'
+        continue-on-error: true
+        env:
+          CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+        run: echo "::warning::supersede - the checkout ended $CHECKOUT_OUTCOME, so no superseded merge-group run was cancelled; housekeeping never decides a verdict (kb/Work PB3820)"
 
   # ── ⛔ THE STATIC AUDITS — ON EVERY PUSH, DOCS-ONLY PUSHES INCLUDED (kb/Work/PB1574). A wrong clause number is
   # the one defect class no test can fail on (`// MOVE (§14.9.24)` compiles; §14.9.24 is MERGE), so CLAUDE.md

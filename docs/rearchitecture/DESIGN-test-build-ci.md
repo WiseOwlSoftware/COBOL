@@ -2503,10 +2503,12 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    created at the moment of supersession, so they are what sweeps the runs they replaced. ⛔ It cancels NOTHING when
    the queue cannot be read whole (a failed or malformed read, no queue, more entries than one page), reads empty, or
    does not hold the run's own head commit (a read taken before GitHub recorded the group, or the run is itself
-   superseded); each is a warning annotation. Every outcome exits 0 and the step is `continue-on-error`: housekeeping
-   never decides a verdict. A cancelled superseded run fails its own `ci-gate`, on a commit no entry heads any more,
+   superseded); each is a warning annotation. Every outcome exits 0 and EVERY step of the job is `continue-on-error`
+   (the checkout too, kb/Work PB3820: the script step runs only when `steps.checkout.outcome == 'success'`, and a failed
+   checkout is said as a warning annotation by a step of its own): housekeeping never decides a verdict, and the job
+   stays a `needs` of `ci-gate` because the drift check above wires every job. A cancelled superseded run fails its own `ci-gate`, on a commit no entry heads any more,
    which the queue no longer reads. ⛔ The job checks out only `scripts/orchestrator` and `scripts/standard_streams.py`
-   (a sparse checkout) and its step is `continue-on-error`, so a module its scripts import that the list leaves out
+   (a sparse checkout) and its script step is `continue-on-error`, so a module its scripts import that the list leaves out
    would make it cancel nothing while the run stays green (kb/Work PB3637 added `standard_streams.py` by hand):
    `SparseCheckoutDriftTests` (kb/Work PB3787) reads the closure of every sparse-checkout job of the workflow and
    refuses a file it runs or imports that the list does not cover (§3.17.8).
@@ -2768,7 +2770,7 @@ by every gate's self-tests and CI's `audits` job). Landed with kb/Work PB3107: `
 landing is held to a record of its own tree. Landed with kb/Work PB3769:
 `TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse` (the `supersede` job runs on `merge_group` alone
 with no `needs`, runs `cancel_superseded.py` with the run's id and head commit, is the only job with `actions: write`,
-is `continue-on-error` and a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
+has every step `continue-on-error` (kb/Work PB3820: the checkout too, the script gated on the checkout's outcome, a failed checkout said as a warning; `StepsThatCanFailTheJob` is the step reader, held by its own arms) and is a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
 are declared), the supersession rule of §3.17.2 step 4. Landed with kb/Work PB3787: `SparseCheckoutDriftTests` (reader:
 `SparseCheckoutAudit`): every workflow job whose checkout has a `sparse-checkout` list (`supersede`, `dotnet-sdk-cache`)
 lists each repository file its steps name, each file its local action names, and each repository module a Python script
