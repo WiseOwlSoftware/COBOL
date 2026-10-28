@@ -1,4 +1,4 @@
-## PB3960: a figurative ZERO in a reference-modification position meets the compile-time range screen
+## Entry 2684 — 2026-10-27 18:41 PDT — PB3960: a figurative ZERO in a reference-modification position meets the compile-time range screen
 
 **Re-probe.** On the wave's build `DISPLAY T(ZERO:2)` and `DISPLAY T(2:ZERO)` over `PIC X(4)` compiled clean (they abort at run
 time with EC-BOUND-REF-MOD), while `T(0:2)` and `T(2:0)` were refused COBOL2670. The spelling variants ZEROS and ZEROES
@@ -43,3 +43,4 @@ Performance: no new allocation on the hot path (a record struct field and a cons
 
 **Docs.** VCR Table 7 row 7.28 and DESIGN-frontend-grammar.md now name the resolver's position walk as the third asker of the
 one ALL ZERO gate (review lead R1-2).
+
