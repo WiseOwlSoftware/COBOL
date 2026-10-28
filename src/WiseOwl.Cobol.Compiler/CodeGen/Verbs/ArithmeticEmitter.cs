@@ -561,7 +561,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <summary>⛔ IS THE INITIAL EVALUATION MATERIALIZED BEFORE THE FIRST RECEIVER IS STORED? ISO §14.7.7 rule 4 orders an
     /// arithmetic statement: a) "The initial evaluation of the statement is done and the result of this operation is placed
     /// in an intermediate data item", then b) "Item identification for the receiving data items is done as each data item is
-    /// accessed unless it was already done in step a". Two things make the order observable, and either one materializes:
+    /// accessed unless it was already done in step a". Three things make the order observable, and any one materializes:
     /// more than one receiver (NOTE 3 — a receiver that shares storage with a sender must not change the value the receivers
     /// after it store), a statement whose receiver runs twice (<see cref="DetectsSizeError"/>), and a receiver that identifies at run time
     /// (<see cref="PlaceIdentification.IdentifiesAtRunTime(Place)"/>; kb/Work PB3261): a store renders as
