@@ -74,7 +74,7 @@ public sealed class ExactWideSettlementDriftTests
     {
         string arithmetic = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "ArithmeticEmitter.cs"));
         Assert.Contains("keepWide: true", arithmetic);
-        Assert.Contains("num.Settle(v, RcvFor(r, checkedForm), outermost: true)", arithmetic);
+        Assert.Contains("num.Settle(v, RcvFor(r, ise), outermost: true)", arithmetic);
         // The REMAINDER back-multiply is kept exact only as the operand of the Combine that settles the remainder.
         Assert.Contains("num.Combine(dividend, \"-\",", arithmetic);
         Assert.Contains("num.Combine(subsidiary, \"*\", divisor, rcv, keepWide: true), rcv)", arithmetic);

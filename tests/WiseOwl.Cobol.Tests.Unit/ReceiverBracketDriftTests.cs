@@ -121,7 +121,7 @@ public sealed class ReceiverBracketDriftTests
             string line = lines[i].Trim();
             if (line.StartsWith("//") || line.StartsWith("///") || !line.Contains("GuardedStore(")) continue;
             if (line.Contains("private void GuardedStore(")) continue;
-            if (!Regex.IsMatch(line, @"GuardedStore\((ise|true|false|inSizeError), [A-Za-z.]+, (checkedForm|_) =>"))
+            if (!Regex.IsMatch(line, @"GuardedStore\((ise|true|inSizeError), [A-Za-z.]+, \(\) =>"))
                 bare.Add($"ArithmeticEmitter.cs:{i + 1}: {line}");
         }
         Assert.True(bare.Count == 0,
@@ -129,7 +129,7 @@ public sealed class ReceiverBracketDriftTests
             + "(kb/Work PB2078):\n" + string.Join("\n", bare));
         string src = string.Join('\n', lines);
         Assert.Contains("brackets.Receive(receiver,", src);
-        Assert.Contains("GuardedStore(false, d.Remainder,", src);   // PB3869: the unchecked remainder store detects under a NOT-only phrase
+        Assert.Contains("brackets.Receive(d.Remainder,", src);
     }
 
     [Fact]
