@@ -90,7 +90,6 @@ import os
 import re
 import shutil
 import statistics
-import subprocess
 import sys
 import tempfile
 from collections import defaultdict
@@ -100,7 +99,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent / "spec"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import impacted_tests  # noqa: E402
-from live_tools import ROOTS as LIVE_ROOTS  # noqa: E402 — the one list of the live tools' trees
+import live_tools  # noqa: E402 — the one list of the live tools' trees, and the one listing of them
 from test_population import (GATED_ASSEMBLIES, LISTED_MARK, TRX_NS, PopulationError, UnreadableTrx,  # noqa: E402
                              parse_listing, trx_root)
 from standard_streams import ensure_utf8  # noqa: E402
@@ -314,10 +313,8 @@ def previous_gates(worktree: Path, previous: Path | None) -> tuple[Timings, dict
 def audit_trx_writers(repo: Path) -> tuple[list[str], list[str]]:
     """(the live tools that write a trx file, each with its TRX_WRITERS row; the offenders): a writer with no row, a row
     whose tool is gone or writes no trx file, and a row whose results directory its tool never names."""
-    listed = subprocess.run(["git", "ls-files", "-z", "--", *LIVE_ROOTS], cwd=repo, check=True, capture_output=True,
-                            text=True, encoding="utf-8").stdout.split("\0")
-    writers = sorted(f for f in listed if f and (repo / f).is_file()
-                     and TRX_LOGGER_MARK in (repo / f).read_text(encoding="utf-8", errors="replace"))
+    writers = [f for f in live_tools.tracked(repo)
+               if TRX_LOGGER_MARK in (repo / f).read_text(encoding="utf-8", errors="replace")]
     seen = [f"  writer  {f}  {TRX_WRITERS[f][0] or '-'}  {TRX_WRITERS[f][1]}" for f in writers if f in TRX_WRITERS]
     bad = [f"  {f}: writes a trx file and has no row in gate_plan.TRX_WRITERS — say whether its reds are tier 0a of "
            f"the next gate" for f in writers if f not in TRX_WRITERS]
@@ -341,10 +338,8 @@ XML_PARSER_RE = re.compile("Element" + "Tree|mini" + "dom|l" + "xml|xml[.]sax|fr
 def audit_trx_readers(repo: Path) -> tuple[list[str], list[str]]:
     """(the live tools that name the trx schema, each marked reader or not; the offenders): every live tool that names the
     trx schema AND imports an XML parser, other than TRX_READER, reads a trx file itself."""
-    listed = subprocess.run(["git", "ls-files", "-z", "--", *LIVE_ROOTS], cwd=repo, check=True, capture_output=True,
-                            text=True, encoding="utf-8").stdout.split("\0")
     seen, bad = [], []
-    for f in sorted(x for x in listed if x.endswith((".py", ".sh", ".ps1")) and (repo / x).is_file()):
+    for f in live_tools.tracked(repo, (".py", ".sh", ".ps1")):
         text = (repo / f).read_text(encoding="utf-8", errors="replace")
         if TRX_SCHEMA_MARK not in text:
             continue

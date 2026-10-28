@@ -67,10 +67,10 @@ the tools it runs). Contents:
 | `scratch\dryrun-<pid>\` | the supervisor under `-DryRun -Unit` | that dry run's own steer (`handoff.operator.json`, section 4.8), never in the machine-wide TEMP (kb/Work PB2922); removed when the run ends, and one a killed run left is reaped by the next supervisor start |
 | `scratch\` | the units and their fleets | the fleet scratch directory (`{SCRATCH}`): specs, `groups.json`, the Workflow args, and `reports\`, which `plan_wave.py` reads for finishers; it persists across units |
 | `land-lane\` | `land_lane.py` (the supervisor's tick, its detached runners, the enqueue unit's `collect` and `rearm`, the operator's `clear-halt`) | the landing lane's state (section 4.9): `attempts\<id>.json` (one per `enqueue.py land` run: branch, head, log, runner pid, exit code, verdict, end head, collected), `survey.json` (the last tick's branch survey, which `next_unit.py` reads), `rearm\<branch>.json` (the enqueue unit's re-arm of a branch at its tip: one more attempt at an unchanged head), `HALT` (a run ended QUEUE NOT ACTIVE) and `tick.lock` |
-| `clusters-open.json`, `clusters-half.json` | `plan_wave.py` | the latest `fix_clusters.py --json` views it planned from |
-| `clusters-campaign-<lead>.json` | `plan_wave.py --cluster` | the latest campaign view it planned from: the open and half clusters, `deps` and `waiting` (section 9.1) |
+| `clusters-open.json`, `clusters-half.json` | `plan_wave.py` (not `--dry-run`) | the latest `fix_clusters.py --json` views it planned from |
+| `clusters-campaign-<lead>.json` | `plan_wave.py --cluster` (not `--dry-run`) | the latest campaign view it planned from: the open and half clusters, `deps` and `waiting` (section 9.1) |
 | `inflight-groups.json` | `make_dispatch_specs.py`, for every group it renders once its `check_practices.py` run is GREEN (a RED render records nothing, kb/Work PB3114; the planner's waves, which it runs, and a hand-planned wave alike), through `dispatch_ledger.record_dispatch`, an upsert keyed on (wave, letter); `plan_wave.py --release` | the dispatch ledger: every rendered group whose notes are not all landed or retired, with its slug, notes, exact file set and when it was first recorded (`at`, kept by a re-render, kb/Work PB3392); every plan's file-set partition reads it (section 9 item 1b), so a dispatched group is in flight before its agent has a worktree or a commit, and the landing check (`landing_check.py`, run by `enqueue.py land`) reads it for a landing's declared set, its dispatch order and an in-flight branch's identity (the ONE group its report names, else the one that best covers its diff); a wave entry never expires and an aborted one is released with `plan_wave.py --release <wave|group|note>`. It is never written from a scrape of a prompt (kb/Work PB3186: the dispatch guard's retired recorder took every note id a brief mentioned); an entry with `hand: true` or a non-numeric wave is ignored by every reader and dropped by the next record (`coord.ledger_groups`; section 9.1; kb/Work PB2118 Drafts 7–10) |
-| `member-index/<treeKey>.members.json.gz` | `plan_wave.py --cluster` (`member_index.current`) | the member index regenerated for the planner's own tree when no committed record has its `treeKey`: the planner never plans on a stale index (kb/Work PB2118 Draft 9) |
+| `member-index/<treeKey>.members.json.gz` | `plan_wave.py --cluster` (`member_index.current`), not `--dry-run` | the member index regenerated for the planner's own tree when no committed record has its `treeKey`: the planner never plans on a stale index (kb/Work PB2118 Draft 9). A `--dry-run` only reads this cache and regenerates into its own temporary directory (`IndexPolicy.record_dir`, kb/Work PB3803) |
 | `scratch/train<label>-manifest.json` | the retired train landers (none written since kb/Work PB3023) | a past train's members; `prune_worktrees.py` still reads the landed ones (`train_heads`) to classify the branches those trains carried |
 | `units.jsonl` | the supervisor | one line per unit (section 4.5) |
 | `OWNER-QUESTIONS.md` | the supervisor | questions only the owner can answer; the loop stops after writing one |
@@ -989,7 +989,9 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    unit every one of them matches (a stale, misspelt or prose name claims the file whole, `work._members_located`); an in-flight worktree's or branch's from the units its
    ACTUAL diff touches in each file another claim shares (`inflight.inflight_units`: both sides of every hunk, read
    from one `git diff-tree --stdin -p -U0` and two `git cat-file` batches, plus one `git diff -U0 HEAD` per worktree
-   with an uncommitted shared edit); a ledger group's from its recorded `members`. An EMPTY set (no note declares a
+   with an uncommitted shared edit, each diff's pathspec bounded by `inflight.bounded_pathspec`: past `PATHSPEC_CHARS` it
+   is no pathspec and `shared_hunks` keeps the shared files, so a worktree in the middle of a merge holding thousands
+   of changed paths never overruns the command line, kb/Work PB3786); a ledger group's from its recorded `members`. An EMPTY set (no note declares a
    site block and no primary file was located, or a dispatch the ledger recorded with no files) meets NOTHING, in
    flight and within the wave: PB3263's rule (an unknown set meets its subsystem, the notes' `area:`) reserved a whole
    subsystem for such a note and held unrelated fixes for hours (wave w20261032's groups A and B recorded 234 and 222
@@ -1095,7 +1097,8 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    PEEKED codes, check GREEN (item 8). The planner allocates no lead ids (the enqueue unit's clerk takes them when it
    files the landed reports' leads, kb/Work PB3023). No DEVLOG number is planned: an entry is written unnumbered
    (`DEVLOG/pending-<slug>.md`) and numbered when it lands, by `devlog.py stamp`, which takes it from `alloc.py devlog`
-   (kb/Work PB3025). `--dry-run` peeks everything and writes nothing.
+   (kb/Work PB3025). `--dry-run` peeks everything and writes nothing: the cluster views, the campaign's view and a member
+   index it must regenerate go to a temporary directory the run removes, never into the coordination directory (kb/Work PB3803).
 8. **Outputs** (not in `--dry-run`). A PLAN THAT DOES NOT END GREEN CHANGES NO SHARED STATE (kb/Work PB3114). Before
    it plans, the planner refuses (exit 2) a `--scratch`, `--stop-file` or `--reports` that is not a fleet path
    (`coord.scratch_problem`, `fleet_stop_problem`, `absolute_problem`: absolute on this host, the scratch outside the
@@ -1557,7 +1560,7 @@ registry, no plug-in. Sorted order makes the insertion point of a new case its n
 meet only when their names are adjacent — PB3723's append-point conflict, which met every pair, becomes a rare one.
 
 **Discovery, the gate, CI and reuse change nothing.** `scripts/self_tests.py`'s rule (b) already runs every tracked
-`test_*.py` under `scripts/` bare, recursively (`tracked_scripts` is `git ls-files` over `live_tools.ROOTS`), so a
+`test_*.py` under `scripts/` bare, recursively (`discover` lists them through `live_tools.tracked`, the one `git ls-files` over `live_tools.ROOTS`), so a
 case file is found the day it is added; `fixtures.py` and `selftest_cases.py` handle no `--self-test` and are not
 named `test_*`, so neither runs alone. The gate's selftests leg, `linux-gate.sh`'s leg, CI's `audits` and
 `windows-self-tests` jobs run the runner and name nothing. Reuse (PB2914) traces what each file reads; a change to

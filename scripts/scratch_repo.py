@@ -123,8 +123,10 @@ def local_env_vars() -> list[str]:
     return _LOCAL_ENV_VARS
 
 
-def scrubbed_env(base: Mapping[str, str] | None = None) -> dict[str, str]:
-    """`base` (default: this process's environment) without git's repository-selection variables (kb/Work PB1719)."""
+def git_env(base: Mapping[str, str] | None = None) -> dict[str, str]:
+    """`base` (default: this process's environment) without git's repository-selection variables (kb/Work PB1719): the one
+    environment a git child of a self-test or an audit runs under. NOT the dotnet-test scrub (`test_population.scrubbed_env`,
+    kb/Work PB1718), which drops the gate's leg handshake and the VSTest filters; the two jobs are unrelated (kb/Work PB3821)."""
     drop = set(local_env_vars())
     return {k: v for k, v in (os.environ if base is None else base).items() if k not in drop}
 
@@ -232,7 +234,7 @@ class ScratchRepo:
         scrubbed environment plus `env`, output captured. `when` (seconds since the epoch) dates a commit or a merge
         the command makes, as its author and its committer, for a self-test that orders commits by time."""
         where = Path(cwd) if cwd is not None else self.path
-        environment = scrubbed_env()
+        environment = git_env()
         if env:
             environment.update(env)
         if when is not None:
@@ -414,15 +416,10 @@ def _audit_tree(rel: str, tree: ast.Module) -> tuple[list[str], int]:
 def audit(repo: Path = REPO) -> list[str]:
     """Every finding of every tracked Python file under live_tools.ROOTS but this one, and one more when it read no
     self-test code at all: a net over nothing (no tracked file listed, a scope rule that matches nothing) is no net."""
-    out = subprocess.run(["git", "ls-files", "-z", "--", *live_tools.ROOTS], cwd=repo, check=True,
-                         capture_output=True, env=scrubbed_env()).stdout
     findings: list[str] = []
     scopes = 0
-    for rel in sorted(p for p in out.decode("utf-8").split("\0") if p.endswith(".py") and p != THIS):
-        path = repo / rel
-        if not path.is_file():      # deleted in the working tree, not yet in the index: nothing to read
-            continue
-        found, read = _audit_tree(rel, ast.parse(path.read_text(encoding="utf-8"), filename=rel))
+    for rel in (p for p in live_tools.tracked(repo, (".py",), git_env()) if p != THIS):
+        found, read = _audit_tree(rel, ast.parse((repo / rel).read_text(encoding="utf-8"), filename=rel))
         findings += found
         scopes += read
     if scopes == 0:
