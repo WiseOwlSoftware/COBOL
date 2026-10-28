@@ -66,7 +66,8 @@ merges cleanly, as it would without a driver, the file merges; else the file the
 A NEW DRIVER LANDS ALONE (kb/Work PB3727, PB3825; DESIGN-orchestrator-loop.md section 16.9): until the branch that adds a driver
 lands, its landing merges main in through MAIN's registry, which has no such driver, so the files the driver governs merge
 by git's line merge. `--check` therefore refuses a branch that changes a file a DRIVERS pattern governs while origin/main's
-`.gitattributes` does not yet give that pattern that driver, unless the file is main's bytes (`new_driver_files`).
+`.gitattributes` does not yet give that pattern that driver (and the merge base's did not either: a driver main re-pointed since
+the cut is main's change), unless the file is main's bytes (`new_driver_files`).
 
 THE MERGE (`merge`): `git merge --no-commit` with the drivers, then `abi_pin.settle` when the pin says UNMEASURED, then
 the merge commit. The settle writes only the files abi_pin.OWNED names; `prune_worktrees.mechanical` (the review's
@@ -639,16 +640,23 @@ def new_driver_files(repo: pathlib.Path, main: str = MAIN_REF) -> tuple[list[str
     out of the merge queue. A file left as main has it cannot conflict: git takes main's side and runs no driver.
 
     "The branch changed" is `merge-base(HEAD, main)..HEAD`, so a main that moved since is not the branch's change, and a
-    file the branch changed back to main's bytes passes. The reason is not None when the check could not run (no `main`
+    file the branch changed back to main's bytes passes. A driver is the branch's to add only when the merge base's
+    `.gitattributes` did not give the pattern it either: a branch cut before main renamed or re-pointed a driver still
+    declares the old one, and adds none. The reason is not None when the check could not run (no `main`
     ref in this checkout, as in CI's, or no merge base in a shallow one): the caller says so and never reads it as a pass."""
     if git(repo, "rev-parse", "--verify", "-q", f"{main}^{{commit}}").returncode != 0:
         return [], f"{main} is not in this checkout"
     base = git(repo, "merge-base", "HEAD", main)
     if base.returncode != 0 or not base.stdout.strip():
         return [], f"HEAD and {main} have no merge base in this checkout"
-    shown = git(repo, "show", f"{main}:.gitattributes")
-    assigned = attribute_drivers(shown.stdout if shown.returncode == 0 else "")
-    new = [(p, d.name) for d in DRIVERS for p in d.patterns if assigned.get(p) != d.name]
+    def attributes(rev: str) -> dict[str, str]:
+        shown = git(repo, "show", f"{rev}:.gitattributes")
+        return attribute_drivers(shown.stdout if shown.returncode == 0 else "")
+    assigned, at_base = attributes(main), attributes(base.stdout.strip())
+    # NEW is the pair THE BRANCH added: neither main's attributes nor the merge base's gave the pattern that driver. A pair
+    # the base had and main since renamed, re-pointed or removed is main's change the branch has not merged yet: the remedy
+    # there is to merge main in, never to revert the branch's own change (branch review R1-2).
+    new = [(p, d.name) for d in DRIVERS for p in d.patterns if assigned.get(p) != d.name and at_base.get(p) != d.name]
     if not new:
         return [], None
 
@@ -1073,6 +1081,17 @@ def self_test() -> int:
         expect("new driver: a main that moved since the branch was cut is not the branch's change (the diff starts at the "
                "merge base): the baseline the branch left alone but main changed is no finding",
                new_driver_files(nd.path, "main") == ([], None))
+        # branch review R1-2: main re-points a pattern that a branch cut earlier still declares under the driver the base gave it
+        rp = ScratchRepo.init(root / "repointed-driver")
+        rp.commit("base", {".gitattributes": f"src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi{NL}", api: api_main})
+        rp.git("switch", "-q", "-c", "topic")
+        rp.commit("topic: changes the baseline", {api: f"#nullable enable{NL}a{NL}b{NL}"})
+        rp.git("switch", "-q", "main")
+        rp.commit("main re-points the pattern to another driver", {".gitattributes": f"src/**/PublicAPI.*.txt merge=union{NL}"})
+        rp.git("switch", "-q", "topic")
+        expect("new driver: a pattern main re-pointed since the branch was cut (the base gave it the driver the branch still "
+               "declares) is main's change, not a driver the branch adds: no finding",
+               new_driver_files(rp.path, "main") == ([], None), str(new_driver_files(rp.path, "main")))
         expect("new driver: where the checkout has no such ref (CI's has no origin/main) the answer is a REASON, never a "
                "silent pass",
                new_driver_files(nd.path, "origin/main")[0] == [] and "origin/main is not in this checkout" in (new_driver_files(nd.path, "origin/main")[1] or ""))

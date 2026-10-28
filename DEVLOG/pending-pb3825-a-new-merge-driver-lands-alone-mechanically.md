@@ -14,3 +14,10 @@ arms cover the refusal, the byte-for-byte pass, a driver main already assigns, a
 missing ref. Replaying the check with the commit before PB3727 as main flags both baselines of both runtime projects and the
 ABI pin, the bounce's exact shape. DESIGN-orchestrator-loop.md 16.9 and DESIGN-test-build-ci.md 3.17.2 name the check.
 No inventory rows (process tooling).
+
+Branch review round 1. (R1-1, blocking) The Linux half of the gate read a different main: a `--shared` clone's `origin/main` is the
+source repository's local `main`, which nothing advances, so the test leg's `--check` in the clone could judge a branch differently
+from the Windows half. `linux-gate.sh`'s `pin_origin_main` sets both clones' `origin/main` to the tree's sha (deleting it where the
+tree has none, so the check says NOT CHECKED); three self-test checks cover the stale ref, the pin and the absent ref. (R1-2, lead)
+A pattern is NEW only when the merge base's attributes did not give it that driver either, so a branch cut before main re-pointed a
+driver is no longer refused as if it added one; a sixth `new driver:` self-test arm covers it.
