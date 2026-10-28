@@ -1,4 +1,4 @@
-## PB3330 close-out: the keyed store engine meets the owner's bar, and the docs stop calling it unfinished
+## Entry 2704 — 2026-10-28 13:15 PDT — PB3330 close-out: the keyed store engine meets the owner's bar, and the docs stop calling it unfinished
 
 PB3330 was the campaign lead the owner opened on 2026-10-17. It covered the whole-store model, which read every relative and
 indexed file into memory at OPEN and wrote it back whole, at CLOSE and after every changing statement under `SHARING WITH ALL
@@ -29,3 +29,4 @@ docs/CONFORMANCE.md called Annex A.4.3 Partial while §5 claims it (since PB3492
 bullets no longer call PB3340 open, and DESIGN-USER-DOCUMENTATION.md notes that the keyed-file chapter's prerequisite has landed.
 
 No code changed, so no golden was added and no inventory row moved: `closes_rows: []` with its reason.
+
