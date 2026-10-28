@@ -1,4 +1,4 @@
-## PB3820: the merge-group `supersede` job's checkout can no longer fail the verdict
+## Entry 2692 — 2026-10-28 10:52 PDT — PB3820: the merge-group `supersede` job's checkout can no longer fail the verdict
 
 Re-probe on this build: `.github/workflows/build-and-test.yml` still had `continue-on-error: true` on the `supersede` job's
 script step only. The job is a `needs` of `ci-gate`, whose verdict whitelists `success` and `skipped`, so a failed
@@ -19,3 +19,4 @@ The drift test `TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse
 holds the text, `false`, an empty body). Mutation probe: removing the checkout's `continue-on-error` turns the test red
 naming `checkout`. DESIGN-test-build-ci.md 3.17.2 step 4 and 3.17.8, and the `cancel_superseded.py` docstring, now say every
 step. No inventory row is claimed or closed.
+
