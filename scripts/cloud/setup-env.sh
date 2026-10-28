@@ -17,12 +17,17 @@
 # prompts disabled". `claude --cloud` attaches ONE repository; the claude.ai/code page attaches both ("+" beside the
 # repo chip, or the link https://claude.ai/code?repositories=WiseOwlSoftware/COBOL,BrentRector/COBOL-private).
 #
-# What the VM lacks that this repo needs (everything else — git, python3, java 21 for ANTLR — is pre-installed):
-#   * .NET 10 SDK — the version CI builds with (DOTNET_SDK_VERSION below, which global.json's 10.0.100 and
-#                   rollForward latestMinor accept; kb/Work PB3308)
-#   * pwsh        — the Frontend's ANTLR generation, session-probe.ps1, fetch-gnucobol-tests.ps1
-#   * `python`    — the LATEST CPython (3.14, the owner's standard 2026-09-24, same as the dev box); every hook and
-#                   doc command spells it `python`, and the scripts need >= 3.12 (PEP 701 f-strings)
+# What the VM lacks that this repo needs, every one at the version toolchain.env names (kb/Work PB4007: CI and every
+# host run the same, latest versions), installed the way CI installs it (scripts/install-tool.sh's block below):
+#   * the .NET SDK — the version CI builds with (global.json's 10.0.100 and rollForward latestMinor accept it)
+#   * the JDK      — the Frontend's ANTLR generation (the image's own java 21 stays behind it on PATH)
+#   * pwsh         — the ANTLR generation, session-probe.ps1, fetch-gnucobol-tests.ps1
+#   * gh, jq       — the landing and orchestrator scripts
+#   * `python`     — toolchain.env's CPython through uv; every hook and doc command spells it `python`, and
+#                    scripts/python-resolve.sh accepts no other version
+# So the network allowlist also needs download.oracle.com (the JDK) and GitHub's release downloads (github.com and
+# release-assets.githubusercontent.com: pwsh, gh, jq, uv and uv's CPython builds).
+# git is the image's: the session-start check (scripts/hooks/tooling_check.py) says whether it is the manifest's.
 # Per-CLONE work (the specs-private submodule, the git-ignored GnuCOBOL corpus under tests/external/) is NOT done
 # here: this script's result is SNAPSHOTTED and reused while the repo is cloned fresh per session, so the
 # SessionStart hook (scripts/hooks/session_start.py) does it on every cloud session. What this script owns is making
@@ -45,130 +50,192 @@ log() { echo "[setup-env] $*"; }
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/setup-env.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
-DOTNET_DIR=/usr/share/dotnet
-
-# ── apt index refresh, in parallel with the SDK download (the dotnet apt fallback needs it) ──────────────────────
-( export DEBIAN_FRONTEND=noninteractive; apt-get update -qq || log "WARN: apt-get update failed" ) &
-APT_PID=$!
-
-# ── .NET SDK: the version CI builds with, installed the way CI installs it (kb/Work PB3308), Ubuntu's dotnet-sdk-10.0
-#    as the fallback. This script runs before the repository is cloned, so it cannot call scripts/install-dotnet-sdk.sh:
-#    the block between the markers is a copy of that script's, and DotnetSdkInstallDriftTests keeps the two identical. ──
-# >>> dotnet-sdk-install (kept byte-identical in scripts/install-dotnet-sdk.sh and scripts/cloud/setup-env.sh)
+# ── The tools, at toolchain.env's versions, installed the way CI installs them. This script runs before the repository
+#    is cloned, so it cannot read toolchain.env or call scripts/install-tool.sh: the two blocks between the markers are
+#    copies of theirs, and ToolchainManifestDriftTests and DotnetSdkInstallDriftTests keep each one identical. ──────────
+# >>> toolchain (kept byte-identical in toolchain.env and scripts/cloud/setup-env.sh)
 DOTNET_SDK_VERSION=10.0.403
-# The feeds, in order: the CDN the aka.ms links front, then the feed dotnet-install itself falls back to.
+PYTHON_VERSION=3.15.2
+JDK_VERSION=27.0.1
+PWSH_VERSION=7.6.9
+GIT_VERSION=2.56.0
+GH_VERSION=2.103.3
+JQ_VERSION=1.8.2
+UV_VERSION=0.13.6
+SEMGREP_VERSION=1.182.1
+SEMGREP_PYTHON_VERSION=3.14.10
+CI_LINUX_IMAGE=ubuntu-26.04
+CI_WINDOWS_IMAGE=windows-2025-vs2026
+# <<< toolchain
+
+# >>> tool-install (kept byte-identical in scripts/install-tool.sh and scripts/cloud/setup-env.sh)
+# The tools this installs; and the .NET SDK's feeds, in order: the CDN the aka.ms links front, then the feed
+# dotnet-install itself falls back to. Every other tool has one publisher.
+TOOL_INSTALLABLE="dotnet-sdk jdk pwsh gh jq uv"
 DOTNET_SDK_FEEDS="https://builds.dotnet.microsoft.com/dotnet https://ci.dot.net/public"
 
-# dotnet_sdk_archive: this host's SDK archive name (dotnet-sdk-<version>-<os>-<arch>.<tar.gz|zip>), or a non-zero
-# return naming the host no archive serves.
-dotnet_sdk_archive() {
-  local os ext arch
-  case "$(uname -s)" in
-    Linux) os=linux ext=tar.gz ;;
-    MINGW*|MSYS*|CYGWIN*) os=win ext=zip ;;
-    *) echo "dotnet-sdk: no SDK archive for the OS $(uname -s)" >&2; return 1 ;;
-  esac
-  case "$(uname -m)" in
-    x86_64|amd64) arch=x64 ;;
-    aarch64|arm64) arch=arm64 ;;
-    *) echo "dotnet-sdk: no SDK archive for the machine $(uname -m)" >&2; return 1 ;;
-  esac
-  echo "dotnet-sdk-$DOTNET_SDK_VERSION-$os-$arch.$ext"
+# tool_version <tool>: TOOL_V, the version toolchain.env names for <tool> (its <TOOL>_VERSION), or a non-zero return
+# naming the missing name. It forks nothing (nor does tool_spec): a fork costs a loaded Windows host most of a second.
+tool_version() {
+  local var="${1^^}"
+  var="${var//-/_}_VERSION"
+  TOOL_V=${!var:-}
+  if [ -z "$TOOL_V" ]; then echo "install-tool: toolchain.env names no $var for '$1'" >&2; return 1; fi
 }
 
-# dotnet_sdk_fetch <url> <file>: download <url> to <file>. A transient failure is retried: curl's own retries take a
-# timeout and an HTTP 408, 429 or 5xx, and this loop a transfer that broke off (curl exit 18, 56, ...). A refusal is
-# not retried, since asking again gets the same answer: curl exit 22 (an HTTP error, a 404 or a 409 among them, that
-# curl's retries did not clear) or 37 (a file:// feed without the file).
-dotnet_sdk_fetch() {
+# tool_spec <tool>: this host's release of <tool>, as TOOL_V (the version), TOOL_FEEDS (the publisher's bases, in
+# order), TOOL_ASSET (the file to download), TOOL_PATH (its path under a feed), TOOL_SUMS (the path, under the same feed,
+# of the checksum file that names it), TOOL_ALGO (sha256 or sha512) and TOOL_EXE (the executable the install provides).
+# Each asset name is the publisher's own (checked against its release on 2026-10-28). The host is bash's own OSTYPE and
+# HOSTTYPE (linux-gnu or msys, x86_64 or aarch64). A non-zero return names a host no release serves.
+tool_spec() {
+  local tool="$1" os arch ext exe="" triple
+  tool_version "$tool" || return 1
+  case "$OSTYPE" in
+    linux*) os=linux ext=tar.gz ;;
+    msys*|cygwin*) os=windows ext=zip exe=.exe ;;
+    *) echo "install-tool: no $tool release for the OS $OSTYPE" >&2; return 1 ;;
+  esac
+  case "$HOSTTYPE" in
+    x86_64|amd64) arch=x64 triple=x86_64 ;;
+    aarch64|arm64) arch=arm64 triple=aarch64 ;;
+    *) echo "install-tool: no $tool release for the machine $HOSTTYPE" >&2; return 1 ;;
+  esac
+  TOOL_ALGO=sha256 TOOL_EXE="${tool%-sdk}$exe"
+  case "$tool" in
+    dotnet-sdk)  # dotnet-sdk-<v>-<linux|win>-<x64|arm64>.<tar.gz|zip>, beside its <asset>.sha512
+      TOOL_FEEDS=$DOTNET_SDK_FEEDS TOOL_ALGO=sha512
+      if [ "$os" = windows ]; then TOOL_ASSET="dotnet-sdk-$TOOL_V-win-$arch.zip"; else TOOL_ASSET="dotnet-sdk-$TOOL_V-linux-$arch.tar.gz"; fi
+      TOOL_PATH="Sdk/$TOOL_V/$TOOL_ASSET" TOOL_SUMS="Sdk/$TOOL_V/$TOOL_ASSET.sha512" ;;
+    jdk)         # Oracle JDK: <major>/archive/jdk-<v>_<linux|windows>-<x64|aarch64>_bin.<tar.gz|zip>, beside its <asset>.sha256
+      TOOL_FEEDS="https://download.oracle.com/java" TOOL_EXE="java$exe"
+      TOOL_ASSET="jdk-${TOOL_V}_${os}-${arch/arm64/aarch64}_bin.$ext"
+      TOOL_PATH="${TOOL_V%%.*}/archive/$TOOL_ASSET" TOOL_SUMS="${TOOL_V%%.*}/archive/$TOOL_ASSET.sha256" ;;
+    pwsh)        # powershell-<v>-linux-<arch>.tar.gz or PowerShell-<v>-win-<arch>.zip, listed in the release's hashes.sha256
+      TOOL_FEEDS="https://github.com/PowerShell/PowerShell/releases/download"
+      if [ "$os" = windows ]; then TOOL_ASSET="PowerShell-$TOOL_V-win-$arch.zip"; else TOOL_ASSET="powershell-$TOOL_V-linux-$arch.tar.gz"; fi
+      TOOL_PATH="v$TOOL_V/$TOOL_ASSET" TOOL_SUMS="v$TOOL_V/hashes.sha256" ;;
+    gh)          # gh_<v>_<linux|windows>_<amd64|arm64>.<tar.gz|zip>, listed in gh_<v>_checksums.txt
+      TOOL_FEEDS="https://github.com/cli/cli/releases/download"
+      TOOL_ASSET="gh_${TOOL_V}_${os}_${arch/x64/amd64}.$ext"
+      TOOL_PATH="v$TOOL_V/$TOOL_ASSET" TOOL_SUMS="v$TOOL_V/gh_${TOOL_V}_checksums.txt" ;;
+    jq)          # the executable itself, jq-<linux|windows>-<amd64|arm64>[.exe], listed in sha256sum.txt
+      TOOL_FEEDS="https://github.com/jqlang/jq/releases/download"
+      TOOL_ASSET="jq-${os}-${arch/x64/amd64}$exe"
+      TOOL_PATH="jq-$TOOL_V/$TOOL_ASSET" TOOL_SUMS="jq-$TOOL_V/sha256sum.txt" ;;
+    uv)          # uv-<x86_64|aarch64>-unknown-linux-gnu.tar.gz or uv-<…>-pc-windows-msvc.zip, listed in sha256.sum
+      TOOL_FEEDS="https://github.com/astral-sh/uv/releases/download"
+      if [ "$os" = windows ]; then TOOL_ASSET="uv-$triple-pc-windows-msvc.zip"; else TOOL_ASSET="uv-$triple-unknown-linux-gnu.tar.gz"; fi
+      TOOL_PATH="$TOOL_V/$TOOL_ASSET" TOOL_SUMS="$TOOL_V/sha256.sum" ;;
+    *) echo "install-tool: '$tool' is not a tool this script installs (it installs: $TOOL_INSTALLABLE)" >&2; return 1 ;;
+  esac
+  # The witnesses' local feeds (--self-test) stand in for the publisher's; nothing else sets this.
+  if [ -n "${INSTALL_TOOL_FEEDS:-}" ]; then TOOL_FEEDS=$INSTALL_TOOL_FEEDS; fi
+}
+
+# tool_fetch <url> <file>: download <url> to <file>. A transient failure is retried: curl's own retries take a timeout
+# and an HTTP 408, 429 or 5xx, and this loop a transfer that broke off (curl exit 18, 56, ...). A refusal is not
+# retried, since asking again gets the same answer: curl exit 22 (an HTTP error, a 404 or a 409 among them, that curl's
+# retries did not clear) or 37 (a file:// feed without the file).
+tool_fetch() {
   local attempt rc
   for attempt in 1 2 3; do
     curl -fsSL --retry 2 --retry-delay 5 -o "$2" "$1"; rc=$?
     case "$rc" in 0) return 0 ;; 22|37) return 1 ;; esac
-    echo "dotnet-sdk: $1: curl exit $rc (attempt $attempt of 3)" >&2
+    echo "install-tool: $1: curl exit $rc (attempt $attempt of 3)" >&2
     if [ "$attempt" -lt 3 ]; then sleep 5; fi
   done
   return 1
 }
 
-# dotnet_sdk_install <install-dir> <work-dir>: install DOTNET_SDK_VERSION into <install-dir>, downloading into
-# <work-dir>. A feed that refuses the archive or its `.sha512`, or serves an archive whose SHA-512 differs from its
-# `.sha512`, hands over to the next feed. Only a complete unpack writes the marker `.dotnet-sdk-<version>.complete`,
-# so an interrupted install is redone, never trusted. Returns non-zero, naming every feed, when none served the archive.
-dotnet_sdk_install() {
-  local dir="$1" work="$2" name feed url want got marker
-  marker="$dir/.dotnet-sdk-$DOTNET_SDK_VERSION.complete"
-  if [ -f "$marker" ]; then echo "dotnet-sdk: $DOTNET_SDK_VERSION is already installed in $dir"; return 0; fi
-  name=$(dotnet_sdk_archive) || return 1
-  for feed in $DOTNET_SDK_FEEDS; do
-    url="$feed/Sdk/$DOTNET_SDK_VERSION/$name"
-    echo "dotnet-sdk: downloading $url"
-    if ! dotnet_sdk_fetch "$url" "$work/$name" || ! dotnet_sdk_fetch "$url.sha512" "$work/$name.sha512"; then
-      echo "dotnet-sdk: $feed did not serve $name; trying the next feed" >&2
+# tool_checksum <checksum-file> <asset>: the hash a publisher's checksum file gives <asset>. A list names the asset
+# after its hash (`<hash>  <name>` or `<hash> *<name>`); a file for one asset may hold the hash alone. PowerShell's
+# hashes.sha256 is UTF-16 with a byte-order mark and CRLF line ends, so the NULs, carriage returns and mark bytes go
+# first (every checksum file is ASCII otherwise).
+tool_checksum() {
+  local text hash
+  text=$(LC_ALL=C tr -d '\000\r\357\273\277\376\377' < "$1")
+  hash=$(printf '%s\n' "$text" | awk -v a="$2" '{ n = $NF; sub(/^\*/, "", n) } NF >= 2 && n == a { print $1; exit }')
+  if [ -z "$hash" ]; then hash=$(printf '%s\n' "$text" | awk 'NF { c++; h = $1 } END { if (c == 1) print h }'); fi
+  printf '%s' "$hash"
+}
+
+# tool_install <tool> <install-dir> <work-dir>: install <tool>'s manifest version into <install-dir>, downloading into
+# <work-dir>. A feed that refuses the asset or its checksum file, or serves an asset whose hash differs from the one the
+# checksum file gives it, hands over to the next feed. Only a complete unpack writes the marker
+# `.<tool>-<version>.complete`, which records where in <install-dir> the executable is (`.` for the top), so an
+# interrupted install is redone, never trusted. Returns non-zero, naming every feed, when none served the asset.
+tool_install() {
+  local tool="$1" dir="$2" work="$3" feed got want marker bin
+  tool_spec "$tool" || return 1
+  marker="$dir/.$tool-$TOOL_V.complete"
+  if [ -f "$marker" ]; then echo "$tool: $TOOL_V is already installed in $dir"; return 0; fi
+  for feed in $TOOL_FEEDS; do
+    echo "$tool: downloading $feed/$TOOL_PATH"
+    if ! tool_fetch "$feed/$TOOL_PATH" "$work/$TOOL_ASSET" || ! tool_fetch "$feed/$TOOL_SUMS" "$work/$TOOL_ASSET.sums"; then
+      echo "$tool: $feed did not serve $TOOL_ASSET and its checksum; trying the next feed" >&2
       continue
     fi
-    want=$(cat "$work/$name.sha512") && want=${want%%[[:space:]]*} || want=""
-    got=$(sha512sum "$work/$name") && got=${got%%[[:space:]]*} || got=""
+    want=$(tool_checksum "$work/$TOOL_ASSET.sums" "$TOOL_ASSET")
+    got=$("${TOOL_ALGO}sum" "$work/$TOOL_ASSET") && got=${got%%[[:space:]]*} || got=""
     if [ -z "$want" ] || [ "${want,,}" != "${got,,}" ]; then
-      echo "dotnet-sdk: $name from $feed does not match its .sha512 (want '${want:0:16}…', got '${got:0:16}…'); trying the next feed" >&2
+      echo "$tool: $TOOL_ASSET from $feed does not match its $TOOL_ALGO (want '${want:0:16}…', got '${got:0:16}…'); trying the next feed" >&2
       continue
     fi
-    if ! mkdir -p "$dir"; then echo "dotnet-sdk: cannot create $dir" >&2; return 1; fi
-    case "$name" in
-      *.zip) unzip -q -o "$work/$name" -d "$dir" ;;
-      *) tar -xzf "$work/$name" -C "$dir" ;;
-    esac || { echo "dotnet-sdk: unpacking $name into $dir failed" >&2; return 1; }
-    rm -f "$work/$name" "$work/$name.sha512"
-    : > "$marker" || { echo "dotnet-sdk: cannot write $marker" >&2; return 1; }
-    echo "dotnet-sdk: $DOTNET_SDK_VERSION installed in $dir from $feed"
+    if ! mkdir -p "$dir"; then echo "$tool: cannot create $dir" >&2; return 1; fi
+    case "$TOOL_ASSET" in
+      *.zip) unzip -q -o "$work/$TOOL_ASSET" -d "$dir" ;;
+      *.tar.gz) tar -xzf "$work/$TOOL_ASSET" -C "$dir" ;;
+      *) cp "$work/$TOOL_ASSET" "$dir/$TOOL_EXE" ;;
+    esac || { echo "$tool: unpacking $TOOL_ASSET into $dir failed" >&2; return 1; }
+    rm -f "$work/$TOOL_ASSET" "$work/$TOOL_ASSET.sums"
+    # The shallowest file named TOOL_EXE: the top for the SDK, pwsh and jq, jdk-<v>/bin for the JDK, a bin or a
+    # platform directory for gh and uv.
+    bin=$(cd "$dir" && find . -maxdepth 4 -type f -name "$TOOL_EXE" | awk -F/ '{ print NF "\t" $0 }' | sort -n | head -1 | cut -f2-)
+    if [ -z "$bin" ]; then echo "$tool: $TOOL_ASSET holds no $TOOL_EXE" >&2; return 1; fi
+    chmod +x "$dir/$bin"   # PowerShell's tarball and jq's bare executable arrive without the bit
+    bin=$(dirname "$bin") && bin=${bin#./}
+    printf '%s\n' "$bin" > "$marker" || { echo "$tool: cannot write $marker" >&2; return 1; }
+    echo "$tool: $TOOL_V installed in $dir from $feed"
     return 0
   done
-  echo "dotnet-sdk: no feed served $name (tried, in order: $DOTNET_SDK_FEEDS)" >&2
+  echo "$tool: no feed served $TOOL_ASSET (tried, in order: $TOOL_FEEDS)" >&2
   return 1
 }
-# <<< dotnet-sdk-install
 
-install_dotnet() {
-  if dotnet_sdk_install "$DOTNET_DIR" "$WORK" >"$WORK/dotnet-sdk.log" 2>&1; then
-    log "dotnet sdk $DOTNET_SDK_VERSION ok"
-  else
-    log "WARN: the pinned SDK $DOTNET_SDK_VERSION did not install (tail below); falling back to Ubuntu's dotnet-sdk-10.0"
-    tail -5 "$WORK/dotnet-sdk.log" 2>/dev/null
-    wait "$APT_PID" 2>/dev/null
-    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq dotnet-sdk-10.0 >/dev/null \
-      && DOTNET_DIR=/usr/lib/dotnet && log "apt dotnet-sdk-10.0 ok" \
-      || { log "ERROR: no .NET 10 SDK installed"; return 1; }
-  fi
-  ln -sf "$DOTNET_DIR/dotnet" /usr/local/bin/dotnet
-  # apphosts (pwsh below, any dotnet tool) locate the runtime through this file when DOTNET_ROOT is unset.
-  mkdir -p /etc/dotnet && echo "$DOTNET_DIR" > /etc/dotnet/install_location
+# tool_bin <tool> <install-dir>: the directory under <install-dir> that holds the installed tool's executable, read from
+# its marker (an empty marker, as an install before the marker recorded it wrote, means the top). Non-zero when the
+# manifest's version is not installed there.
+tool_bin() {
+  local marker bin
+  tool_spec "$1" || return 1
+  marker="$2/.$1-$TOOL_V.complete"
+  if [ ! -f "$marker" ]; then echo "install-tool: $1 $TOOL_V is not installed in $2" >&2; return 1; fi
+  bin=$(head -1 "$marker")
+  case "$bin" in ""|.) printf '%s\n' "$2" ;; *) printf '%s\n' "$2/$bin" ;; esac
 }
-install_dotnet || true
-wait "$APT_PID" 2>/dev/null || true
+# <<< tool-install
 
-# ── python = the latest CPython 3.14. Ubuntu 24.04 packages stop at 3.12, and the image's own /usr/local/bin/python{,3}
-#    → python3.11 sits AHEAD of /usr/bin on PATH (the first smoke session, 2026-09-24, failed 3 Unit tests on it: the
-#    scripts use PEP 701 f-strings). uv comes from PyPI (default allowlist) and installs a standalone CPython 3.14;
-#    fallback = the newest /usr/bin/python3.N with N >= 12. Both names in /usr/local/bin point at the result, and the
-#    repo's only third-party imports (PyMuPDF for the spec renderers, fontTools, PyYAML for tooling_check.py) go into it. ─────────────────────────
-PYVER=3.14
-PY=""
-if python3 -m pip install -q --break-system-packages --root-user-action=ignore uv >"$WORK/uv-install.log" 2>&1 \
-   && UV_PYTHON_INSTALL_DIR=/opt/uv-python python3 -m uv python install "$PYVER" >>"$WORK/uv-install.log" 2>&1; then
-  PY=$(UV_PYTHON_INSTALL_DIR=/opt/uv-python python3 -m uv python find --managed-python "$PYVER" 2>/dev/null)
-fi
-if [ -z "$PY" ]; then
-  log "WARN: uv could not install CPython $PYVER (tail below); falling back to the newest system python3.12+"
-  tail -5 "$WORK/uv-install.log" 2>/dev/null
-  PY=$(ls /usr/bin/python3.[0-9]* 2>/dev/null | grep -E '/python3\.[0-9]+$' | sort -t. -k2 -n | tail -1)
-  [ -n "$PY" ] && [ "${PY##*.}" -ge 12 ] || { log "WARN: no python3.12+ found (${PY:-none})"; PY=""; }
-fi
-if [ -n "$PY" ]; then
-  ln -sf "$PY" /usr/local/bin/python && ln -sf "$PY" /usr/local/bin/python3 && log "python -> $PY"
-  python -m pip install -q --break-system-packages --root-user-action=ignore --no-warn-script-location \
-      PyMuPDF fonttools pyyaml >"$WORK/pip-deps.log" 2>&1 \
-    && log "PyMuPDF + fontTools + PyYAML ok" || { log "WARN: pip deps failed"; tail -5 "$WORK/pip-deps.log"; }
-fi
+DOTNET_DIR=/usr/share/dotnet
+TOOLS=/opt/wiseowl-toolchain
+# install_tool <tool> <dir> <exe>: install <tool> into <dir> and link its <exe> into /usr/local/bin (ahead of the image's
+# own on PATH). A failure warns: the session still starts, and its readiness check names the missing tool.
+install_tool() {
+  local bin
+  if tool_install "$1" "$2" "$WORK" > "$WORK/$1.log" 2>&1 && bin=$(tool_bin "$1" "$2"); then
+    ln -sf "$bin/$3" "/usr/local/bin/$3" && log "$1 $TOOL_V ok"
+  else
+    log "WARN: $1 did not install (tail below)"; tail -5 "$WORK/$1.log" 2>/dev/null; return 1
+  fi
+}
+install_tool dotnet-sdk "$DOTNET_DIR" dotnet || true
+# apphosts (any dotnet tool) locate the runtime through this file when DOTNET_ROOT is unset.
+mkdir -p /etc/dotnet && echo "$DOTNET_DIR" > /etc/dotnet/install_location
+install_tool jdk "$TOOLS/jdk-$JDK_VERSION" java || true
+install_tool pwsh "$TOOLS/pwsh-$PWSH_VERSION" pwsh || true
+install_tool gh "$TOOLS/gh-$GH_VERSION" gh || true
+install_tool jq "$TOOLS/jq-$JQ_VERSION" jq || true
+install_tool uv "$TOOLS/uv-$UV_VERSION" uv || true
 
 cat > /etc/profile.d/dotnet.sh <<EOF
 export DOTNET_ROOT=$DOTNET_DIR
@@ -177,13 +244,23 @@ export DOTNET_NOLOGO=1
 export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 EOF
 
-# ── pwsh as a .NET global tool (NuGet is on the default allowlist; avoids adding the Microsoft apt feed, whose
-#    dotnet packages conflict with Ubuntu's) ──────────────────────────────────────────────────────────────────────
-if command -v dotnet >/dev/null; then
-  export DOTNET_ROOT=$DOTNET_DIR DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
-  dotnet tool install PowerShell --tool-path /usr/local/share/dotnet-tools >"$WORK/pwsh-install.log" 2>&1 \
-    && ln -sf /usr/local/share/dotnet-tools/pwsh /usr/local/bin/pwsh && log "pwsh ok" \
-    || { log "WARN: pwsh install failed"; tail -5 "$WORK/pwsh-install.log"; }
+# ── python = toolchain.env's CPython, uv-managed. The image's own /usr/local/bin/python{,3} → python3.11 sits AHEAD of
+#    /usr/bin on PATH (the first smoke session, 2026-09-24, failed 3 Unit tests on it), so both names in /usr/local/bin
+#    point at the manifest's interpreter, and the repo's only third-party imports (PyMuPDF for the spec renderers,
+#    fontTools, PyYAML for tooling_check.py) go into it. No other interpreter stands in when the install fails: the
+#    gate scripts accept only the manifest's (scripts/python-resolve.sh). ─────────────────────────────────────────────
+PY=""
+if UV_PYTHON_INSTALL_DIR=/opt/uv-python uv python install "$PYTHON_VERSION" >"$WORK/uv-python.log" 2>&1; then
+  PY=$(UV_PYTHON_INSTALL_DIR=/opt/uv-python uv python find --managed-python "$PYTHON_VERSION" 2>/dev/null)
+fi
+if [ -n "$PY" ]; then
+  ln -sf "$PY" /usr/local/bin/python && ln -sf "$PY" /usr/local/bin/python3 && log "python $PYTHON_VERSION -> $PY"
+  python -m pip install -q --break-system-packages --root-user-action=ignore --no-warn-script-location \
+      PyMuPDF fonttools pyyaml >"$WORK/pip-deps.log" 2>&1 \
+    && log "PyMuPDF + fontTools + PyYAML ok" || { log "WARN: pip deps failed"; tail -5 "$WORK/pip-deps.log"; }
+else
+  log "WARN: uv could not install CPython $PYTHON_VERSION (tail below); the gate scripts will refuse to run"
+  tail -5 "$WORK/uv-python.log" 2>/dev/null
 fi
 
 # ── the GnuCOBOL 3.2 corpus tarball, pre-cached (pinned: the same URL + SHA-256 as scripts/fetch-gnucobol-tests.ps1,
@@ -227,9 +304,14 @@ if not any(h.get("command") == cmd for e in entries for h in e.get("hooks", []))
 p.write_text(json.dumps(s, indent=2) + "\n", encoding="utf-8")
 EOF
 
+
 # ── report (visible in the session's setup log) ──────────────────────────────────────────────────────────────────
 log "dotnet: $(dotnet --version 2>&1 | head -1)"
-log "pwsh:   $(pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()' 2>&1 | head -1)"
-log "python: $(python --version 2>&1)"
 log "java:   $(java -version 2>&1 | head -1)"
+log "pwsh:   $(pwsh --version 2>&1 | head -1)"
+log "python: $(python --version 2>&1)"
+log "gh:     $(gh --version 2>&1 | head -1)"
+log "jq:     $(jq --version 2>&1)"
+log "uv:     $(uv --version 2>&1)"
+log "git:    $(git --version 2>&1) (the image's; toolchain.env names $GIT_VERSION)"
 exit 0
