@@ -23929,5 +23929,12 @@
    "2002"
   ],
   "expect": "COBOL1502"
+ },
+ "pb3951_length_of_abs_below_2014": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOL1502"
  }
 }

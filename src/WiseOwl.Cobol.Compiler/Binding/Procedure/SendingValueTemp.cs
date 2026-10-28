@@ -42,8 +42,8 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 ///     and representation of the returned value are defined by the implementor". A NUMERIC result lands in an
 ///     item DESCRIBED FOR ITS VALUE AND ITS RECEIVERS (<see cref="IntermediatePic"/>, kb/Work PB3268) — a binary64
 ///     for the float family, the widest receiver's fixed-point description otherwise — and never in the fixed
-///     S9(21)V9(9) of <see cref="FunctionValuePic"/>, which describes the returned-value item <c>FUNCTION
-///     LENGTH</c> measures: that cut a receiver's fraction digits past 9 off a value `MOVE FUNCTION PI TO Q1`
+///     S9(21)V9(9) of <see cref="FunctionValuePic"/>, the nominal returned-value item whose extremes
+///     IN-ARITHMETIC-RANGE reads: that cut a receiver's fraction digits past 9 off a value `MOVE FUNCTION PI TO Q1`
 ///     keeps. An alphanumeric / national / boolean result has a
 ///     run-time length and lands in a run-time-length item.</item>
 /// </list>
@@ -87,15 +87,16 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// fraction is carried because a scale-0 temp would TRUNCATE, turning a legal non-integer result into a
     /// different value. 9 is also the working scale an intrinsic renders at when no receiver widens it
     /// (<c>ReceiverContext</c>).</para>
-    /// <para>⛔ IT IS THE RETURNED-VALUE ITEM'S DESCRIPTION (DOC-A.1-92: what <c>FUNCTION LENGTH</c> measures, what
-    /// IN-ARITHMETIC-RANGE tests) AND NOT THE INTERMEDIATE THAT
-    /// CARRIES A VALUE TO ITS RECEIVERS: that item is described for the value and its receivers
-    /// (<see cref="IntermediatePic"/>, kb/Work PB3268), because a receiver of more than 9 fraction digits is owed
-    /// the digits a single-receiver MOVE stores.</para>
+    /// <para>⛔ IT IS THE NOMINAL RETURNED-VALUE ITEM (DOC-A.1-92: the extremes IN-ARITHMETIC-RANGE tests) AND NEITHER THE
+    /// TEMPORARY <c>FUNCTION LENGTH</c> MEASURES NOR THE INTERMEDIATE THAT CARRIES A VALUE TO ITS RECEIVERS. The temporary
+    /// whose size LENGTH answers is the one DISPLAY shows, <c>FunctionValueField</c>, whose description follows the function
+    /// and its value (kb/Work PB3951), so no one item's extremes exist and the class condition reads this nominal one. The
+    /// intermediate is described for the value and its receivers (<see cref="IntermediatePic"/>, kb/Work PB3268), because a
+    /// receiver of more than 9 fraction digits is owed the digits a single-receiver MOVE stores.</para>
     /// <para>⛔ ITS USAGE DISPLAY IS THE IMPLEMENTOR'S REPRESENTATION, NEVER A §15.2 DESCRIPTION (kb/Work PB3691;
     /// docs/CONFORMANCE.md D-FNUSE). §15.4.1 leaves "the characteristics and representation of the returned value" to
     /// the implementor and §15.2 4), 5) and 6) state no usage for a numeric, integer or index function's item; the
-    /// representation here only SIZES that item (what <c>FUNCTION LENGTH</c> measures, DOC-A.1-92). The question
+    /// representation here only gives that nominal item its digit capacity (DOC-A.1-92). The question
     /// "described … as usage display or national" that §8.8.4.2.5, §14.9.43.3 SR1 and §14.9.22.3 SR2 ask is asked of the
     /// operand AS WRITTEN, through <c>IntrinsicSig.ImplicitUsageOf</c> (<see cref="IntrinsicArgumentRules.FunctionIsNotDisplayOrNational"/>),
     /// and no admission rule reads this description (<c>DisplayOrNationalUsagePredicateDriftTests</c>).</para></summary>
@@ -115,18 +116,6 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// directly, with no fraction digits (kb/Work PB1007).</summary>
     internal static readonly PicInfo IntegerFunctionValuePic =
         new(PicCategory.Numeric, Usage.Display, Length: 30, Digits: 30, Scale: 0, Signed: true);
-
-    /// <summary>⛔ THE ONE DESCRIPTION OF A NUMERIC OR INTEGER FUNCTION-IDENTIFIER'S RETURNED-VALUE ITEM (§15.4 — "a
-    /// temporary elementary data item"; §8.4.3.2.1 — the function-identifier "references the unique data item that
-    /// results from the evaluation of a function"): <see cref="IntegerFunctionValuePic"/> for an INTEGER function
-    /// (§15.2 item 5, resolved per call by the ONE <see cref="IntrinsicResultType"/> reader), otherwise
-    /// <see cref="FunctionValuePic"/>. The LENGTH / BYTE-LENGTH folds that measure the item
-    /// (<c>IntrinsicBinder.FunctionResultLength</c>, kb/Work PB1398) and the IN-ARITHMETIC-RANGE extremes
-    /// (<c>AlgebraicRange.OfFunctionReturnedValue</c>) read it here, so the item the value is ASKED ABOUT cannot be
-    /// two different items. The intermediate a statement STORES the value in to hand it to several uses is
-    /// <see cref="IntermediatePic"/>'s.</summary>
-    internal static PicInfo NumericReturnedValuePic(BoundOperand c) =>
-        IntrinsicResultType.IsIntegerOperand(c) ? IntegerFunctionValuePic : FunctionValuePic;
 
     /// <summary>How a materialized value is going to be read — the one fact, besides the function itself, that
     /// decides the description of a NUMERIC function's intermediate (<see cref="IntermediatePic"/>). The default is a
@@ -151,8 +140,8 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     internal static readonly PicInfo Binary64ReturnedValuePic = PicInfo.FloatItem(Usage.FloatLong);
 
     /// <summary>⛔ THE ONE DESCRIPTION OF THE INTERMEDIATE RESULT ITEM THAT HOLDS A NUMERIC FUNCTION'S VALUE FOR ITS
-    /// USES (kb/Work PB3268). It is a different item from the §15.4 returned-value item whose SIZE
-    /// <c>FUNCTION LENGTH</c> asks (<see cref="NumericReturnedValuePic"/>, DOC-A.1-92's S9(21)V9(9)): §14.9.25.4 GR1's
+    /// USES (kb/Work PB3268). It is a different item from the nominal returned-value item
+    /// IN-ARITHMETIC-RANGE asks about (<see cref="FunctionValuePic"/>, DOC-A.1-92's S9(21)V9(9)): §14.9.25.4 GR1's
     /// equivalence — "MOVE a TO temp / MOVE temp TO b / MOVE temp TO c" — makes the intermediate an item "provided by
     /// the implementor" whose job is to hand EVERY receiver the value `MOVE a TO that receiver` would, and §15.4.1's
     /// "the returned value is the same for all instances of a given function" forbids a function's value depending
@@ -279,8 +268,8 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     }
 
     /// <summary>The intermediate of an INTEGER function's value (§15.2 item 5 — "no digits to the right of the decimal
-    /// point") for every use but text: the whole <c>Int128</c> carrier at scale 0. The returned-value item's 30 digits
-    /// (<see cref="IntegerFunctionValuePic"/>) are what <c>FUNCTION LENGTH</c> measures, not a bound on the value: INTEGER
+    /// point") for every use but text: the whole <c>Int128</c> carrier at scale 0. The nominal returned-value item's 30 digits
+    /// (<see cref="IntegerFunctionValuePic"/>) are IN-ARITHMETIC-RANGE's extremes, not a bound on the value: INTEGER
     /// of a PIC S9(31) item, or SUM over PIC 9(31) elements, is a 31-digit integer that `MOVE … TO R3` stores whole into a
     /// PIC S9(31) receiver, so the intermediate of `MOVE … TO R1 R2` dropped its leading digit (kb/Work PB3268: §14.9.25.4
     /// GR1's temp is "an intermediate result item provided by the implementor", and it must hand each receiver the value
