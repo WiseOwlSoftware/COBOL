@@ -6,9 +6,9 @@
 
 This page tracks a nightly test called **differential fuzzing**. An AI model picks sections of the standard at random, each one defining a COBOL statement, built-in function, data-description clause or kind of expression, and writes small test programs that use what that section defines. Both compilers run every one of those thousands of programs. When the two give different answers, at least one of them is wrong, or the standard allows both answers. Each disagreement is then settled by reading the standard itself, never by trusting either compiler. The totals below run from 2026-10-20 to 2026-10-27.
 
-> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Built 2026-10-28 13:29 Pacific Daylight Time. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
+> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Built 2026-10-28 15:58 Pacific Daylight Time. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
 
-**7** nights of testing · **39,906** test programs written and run · **11,307** on which the two compilers disagreed · **23** bugs found in WiseOwl · **21** of those bugs fixed · **72** bugs recorded in GnuCOBOL
+**7** nights of testing · **39,906** test programs written and run · **11,307** on which the two compilers disagreed · **24** bugs found in WiseOwl · **22** of those bugs fixed · **72** bugs recorded in GnuCOBOL
 
 ## How a night of testing works
 
@@ -91,8 +91,10 @@ Groups of disagreements / programs in them. "Both allowed by the standard" means
 | Night 6 | [PB3869](kb/Work/PB3869.md) | not a bug after all | retired | an arithmetic statement written with ONLY a NOT ON SIZE ERROR phrase keeps an overflowing receiver unchanged and continues, checking off: §14.6.13.… |
 | Night 7 | [PB3996](kb/Work/PB3996.md) | compiler bug | **open** | a Format 1 CALL accepts OMITTED with no diagnostic: `CALL \"P\" USING W OMITTED`, `USING BY REFERENCE OMITTED` and `USING BY CONTENT W OMITTED` com… |
 | Night 7 | [PB3997](kb/Work/PB3997.md) | compiler bug | **open** | a VALUE literal outside a fixed-width binary usage's range is accepted with no diagnostic: BINARY-CHAR VALUE 255 / -129, BINARY-CHAR UNSIGNED VALUE… |
+| Run of 2026-10-22 | [PB3537](kb/Work/PB3537.md) | test-harness bug | landed | the fuzz harness spends the whole 6,000-token cap on a reply that degenerates into an enumeration loop (hundreds of data items differing only by a… |
+| Run of 2026-10-22 | [PB3538](kb/Work/PB3538.md) | compiler bug | landed | a COMPUTE with four or more chained divisions (A / B / B / B / B), or a product of quotients ((A / B) * (A / B) * (A / B)), ends the run unit with… |
 
-Every note a night filed on the WiseOwl side. Only compiler bugs count in the totals above. "landed" means the fix is in the compiler; "open" means it is waiting to be fixed; "retired" means closer study showed it was not a bug after all.
+Every note the testing filed on the WiseOwl side, including a run that stopped before a full night ("Run of" its date). Only compiler bugs count in the totals above. "landed" means the fix is in the compiler; "open" means it is waiting to be fixed; "retired" means closer study showed it was not a bug after all.
 
 ## Bugs recorded in GnuCOBOL
 
