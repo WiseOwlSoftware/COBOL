@@ -61,7 +61,7 @@ internal static class RepositoryReader
         {
             return Fail(RepositoryReadFailure.Malformed, e.Message);
         }
-        catch (BadImageFormatException e)
+        catch (Exception e) when (e is BadImageFormatException or InvalidOperationException or ArgumentException)   // a hostile blob, as RepositoryIndex.Open catches it (§15.3)
         {
             return Fail(RepositoryReadFailure.Malformed, e.Message);
         }
