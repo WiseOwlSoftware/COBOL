@@ -23,6 +23,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import fuzz_history as fh  # noqa: E402
 import fuzz_triage as ft  # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
 
 FAILS: list[str] = []
 
@@ -90,7 +91,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    from standard_streams import ensure_utf8
-
     ensure_utf8()
     raise SystemExit(main())

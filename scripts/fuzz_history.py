@@ -29,7 +29,9 @@ import pathlib
 import re
 import sys
 
-HERE = pathlib.Path(__file__).resolve().parent
+from standard_streams import ensure_utf8
+
+HERE =pathlib.Path(__file__).resolve().parent
 REPO = HERE.parent
 HISTORY = REPO / "conformance-suite" / "fuzz-history.json"
 RUN_ID = re.compile(r"fuzz-\d{8}-\d{6}")
@@ -404,7 +406,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    from standard_streams import ensure_utf8
-
     ensure_utf8()
     raise SystemExit(main())
