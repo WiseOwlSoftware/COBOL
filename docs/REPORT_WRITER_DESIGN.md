@@ -22,8 +22,13 @@ flagged as a `VERSION_CHANGE_REFERENCE.md` follow-up row. The '85 clause surface
 2002 RW additions ARE (the VersionConformancePass parse arm, 0900 below 2002): PRESENT WHEN (§13.18.41 F1),
 VARYING (§13.18.64), the multiple/relative COLUMN forms + COL/COLS/COLUMNS/NUMBERS/ARE spellings (§13.18.14 F1
 — the '85 form was exactly `COLUMN NUMBER IS integer-1`), and the multiple-LINE form + LINES/NUMBERS/ARE
-spellings (§13.18.35 F1). Matrix rows `report-present-when-2002` / `report-varying-2002` /
-`report-multi-column-2002` (+ `report-multi-line-2002` pending).
+spellings (§13.18.35 F1), and (kb/Work PB3964; VCR row 7.45, quoted from ISO/IEC 1989:2002 Annex F.2 items 53 and 115)
+the word FILLER as a report group entry's name (`VisitReportGroupEntry`), the `+` symbol for PLUS in a relative LINE or
+NEXT GROUP operand (`VisitReportRelativeSign`; COLUMN's relative form is gated whole by the COLUMN row) and a SOURCE
+operand that is not a bare identifier, or its ROUNDED phrase (`VisitReportSourceClause`). Matrix rows
+`report-present-when-2002` / `report-varying-2002` / `report-multi-column-2002` / `report-multi-source-2002` /
+`report-multi-line-2002` / `report-filler-2002` / `report-plus-symbol-2002` / `report-source-expression-2002` /
+`report-source-rounded-2002`.
 
 ## 1. Architecture (ONE mechanism — compose-at-presentation)
 
