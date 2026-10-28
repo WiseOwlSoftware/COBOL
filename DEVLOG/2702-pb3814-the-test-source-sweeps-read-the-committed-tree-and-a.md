@@ -1,4 +1,4 @@
-## PB3814: the test-source sweeps read the committed tree, and a drift test refuses a walk of tests/ from the file system
+## Entry 2702 — 2026-10-28 12:43 PDT — PB3814: the test-source sweeps read the committed tree, and a drift test refuses a walk of tests/ from the file system
 
 PB3677's merge group failed on `SpecTraceabilityInventoryDriftTests.EveryTestRef_ResolvesToARealTest`: it resolved a
 `unit:` test-ref with `Directory.GetFiles(tests/WiseOwl.Cobol.Tests.Unit, "<Class>.cs", AllDirectories)`, which enters
@@ -54,3 +54,4 @@ the report registers them as a lead.
 `closes_rows: []`: process tooling, no inventory row.
 
 **Gate.** `build-local` leg 1 on b76dfe383 (run 000001-20261028T173732Z): `LEG 1 ONLY (batched gating, PB2515): GREEN`, Unit 5,538/38,218 and Conformance 43/19,251 ran, Linux half (WSL clone of HEAD) GREEN; the guard, its twin and `EveryTestRef_ResolvesToARealTest` all Passed in `leg-1-Unit.trx`. Self-review: the guard reads a root spelled in the call, not one assigned first (named above); the `src/` walks are registered as a lead; no new allocation of diagnostic codes.
+
