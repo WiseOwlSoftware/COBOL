@@ -353,6 +353,17 @@ on_signal() {
   exit "$1"
 }
 
+# THE CLONE'S origin/main IS THE TREE'S (kb/Work PB3825, branch review R1-1). A `--shared` clone of the tree's repository has
+# the SOURCE repository's local `main` branch as its refs/remotes/origin/main, and nothing advances a local `main`; the tree's
+# own origin/main (what the Windows half and the landing read) is usually ahead. A tool that reads origin/main inside the clone
+# (merge_drivers.py --check, which MergeDriverDriftTests runs in the test legs) would measure a different main than the Windows
+# half and turn the gate RED for a branch cut from a newer origin/main. So each clone's origin/main is set to the tree's sha (the
+# clone reads the same object store), and DELETED when the tree has none: a tool then says "not checked", never reads local `main`.
+pin_origin_main() {   # <clone> <the tree's origin/main sha, or empty>
+  if [ -n "$2" ]; then git -C "$1" update-ref refs/remotes/origin/main "$2"
+  else git -C "$1" update-ref -d refs/remotes/origin/main; fi
+}
+
 # The hand-off, measured with stand-ins for uname, wsl.exe and cygpath (shell functions, so no fake program and no
 # setting is needed, and it runs the same on every host): a Windows host hands every argument to WSL verbatim and
 # returns WSL's status; a host with no WSL is NOT RUN, never RED; a Linux host does not hand off.
@@ -555,6 +566,24 @@ busy.1,ended.2,"
   got="$( df() { return 1; }; check_disk /x; echo "started" )"
   check "a filesystem df cannot measure is NOT RUN [disk], never assumed roomy" "$got" \
         "=== LINUX GATE: NOT RUN [disk] (cannot measure the free space of the filesystem holding /x: df -Pk gave no number) ==="
+  # THE CLONE'S origin/main IS THE TREE'S (kb/Work PB3825 R1-1): the source's local `main` is one commit behind the tree's
+  # origin/main, as it is whenever nothing has advanced it; the clone inherits the stale one until pin_origin_main sets it.
+  pin="$st_root/pin"; mkdir -p "$pin" && git init -q -b main "$pin/src" \
+    && git -C "$pin/src" -c user.name=t -c user.email=t@t commit -q --allow-empty -m one \
+    && stale="$(git -C "$pin/src" rev-parse HEAD)" \
+    && git -C "$pin/src" -c user.name=t -c user.email=t@t commit -q --allow-empty -m two \
+    && ahead="$(git -C "$pin/src" rev-parse HEAD)" \
+    && git -C "$pin/src" update-ref refs/remotes/origin/main "$ahead" \
+    && git -C "$pin/src" reset -q --hard "$stale" \
+    && git clone -q --shared --no-checkout "$pin/src" "$pin/clone"
+  check "a --shared clone's origin/main is the SOURCE's local main, not the tree's origin/main (the defect the pin answers)" \
+        "$(git -C "$pin/clone" rev-parse refs/remotes/origin/main)" "$stale"
+  pin_origin_main "$pin/clone" "$ahead"
+  check "pin_origin_main sets the clone's origin/main to the tree's, so a tool reads the same main as the Windows half" \
+        "$(git -C "$pin/clone" rev-parse refs/remotes/origin/main)" "$ahead"
+  pin_origin_main "$pin/clone" ""
+  check "a tree with no origin/main leaves the clone none, never the source's local main" \
+        "$(git -C "$pin/clone" rev-parse --verify -q refs/remotes/origin/main || echo none)" "none"
   if [ "$fails" -eq 0 ]; then echo "=== LINUX-GATE SELF-TEST: GREEN ==="; exit 0; fi
   echo "=== LINUX-GATE SELF-TEST: RED ($fails) ==="; exit 1
 fi
@@ -654,15 +683,16 @@ reap_gates "$GATES_ROOT" "$(basename "$tree")"
 check_disk "$GATES_ROOT"
 begin_gate "$GATES_ROOT" "$tree"
 rm -rf "$out"; mkdir -p "$out"
+main_sha="$(wgit rev-parse --verify --quiet origin/main 2>/dev/null | tr -d '\r')"
 if ! git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$snap" > "$out/clone.log" 2>&1 \
-   || ! git -C "$snap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1; then
+   || ! git -C "$snap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1 \
+   || ! pin_origin_main "$snap" "$main_sha" >> "$out/clone.log" 2>&1; then
   echo "=== LINUX GATE: NOT RUN [tree] (could not clone HEAD ${head:0:9} into $snap; see TestResults/linux-gate/clone.log) ==="; exit 2
 fi
 corpus_red=""
 echo "linux-gate: Linux clone of HEAD ${head:0:9} at $snap"
 # THE INERT LANE (kb/Work PB2878): the change is HEAD against its merge base with the tree's origin/main (the clone
 # shares the object store, so that commit resolves in it). No origin/main, or a change git cannot list, is the full lane.
-main_sha="$(wgit rev-parse --verify --quiet origin/main 2>/dev/null | tr -d '\r')"
 lane_base="$( [ -n "$main_sha" ] && git -C "$snap" merge-base HEAD "$main_sha" 2>/dev/null )"
 if [ "$targeted" = 1 ]; then
   # The Windows half decided the lane before it started this one (run_gate_legs.py).
@@ -859,7 +889,8 @@ if [ "$targeted" = 1 ]; then
   # runs them on Linux on every event.
   :
 elif git -c safe.directory='*' clone --quiet --shared --no-checkout "$common" "$auditsnap" >> "$out/clone.log" 2>&1 \
-   && git -C "$auditsnap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1; then
+   && git -C "$auditsnap" -c advice.detachedHead=false checkout --quiet "$head" >> "$out/clone.log" 2>&1 \
+   && pin_origin_main "$auditsnap" "$main_sha" >> "$out/clone.log" 2>&1; then
   selftests_leg selftests "$auditsnap" > "$out/selftests.result" 2>&1 &
   audit_built_legs &
 else

@@ -72,6 +72,7 @@ public sealed class MergeDriverDriftTests
             "new driver: the same file back at main's bytes passes",
             "new driver: a changed file whose driver main's attributes already assign, and a file no pattern governs",
             "new driver: a main that moved since the branch was cut is not the branch's change",
+            "new driver: a pattern main re-pointed since the branch was cut",
             "new driver: where the checkout has no such ref (CI's has no origin/main) the answer is a REASON",
             "check: the registry and this repository's .gitattributes agree",
         ]);
