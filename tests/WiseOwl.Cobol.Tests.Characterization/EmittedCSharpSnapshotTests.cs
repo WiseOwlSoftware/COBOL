@@ -36,6 +36,14 @@ public sealed class EmittedCSharpSnapshotTests
         $"""(CobolRepositoryAttribute\(\d+, |RegisterModule\("[^"]*", )"{Regex.Escape(RuntimeAbi.Version.ToString())}", {RuntimeAbi.CallAbi}(?=, )""",
         RegexOptions.CultureInvariant);
 
+    /// <summary>What a snapshot holds in place of the compiler's own version (the record's <c>CompilerVersion</c>: the
+    /// compiler assembly's version, which every package version bump raises beside the runtime's; named in diagnostics and
+    /// never compared, DESIGN-external-repository §5.4 item 2).</summary>
+    private const string CompilerVersionToken = "{COMPILER-VERSION}";
+
+    /// <summary>The record's compiler-version stamp: a dotted numeric version.</summary>
+    private static readonly Regex CompilerStamp = new("(CompilerVersion = )\"[0-9]+(\\.[0-9]+){1,3}\"", RegexOptions.CultureInvariant);
+
     public static IEnumerable<object[]> Positive() => CharacterizationCorpus.Positive();
 
     [Theory]
@@ -48,6 +56,7 @@ public sealed class EmittedCSharpSnapshotTests
             + string.Join("; ", probe.Diagnostics));
         Assert.NotNull(probe.EmittedCSharp);
         string file = System.IO.Path.Combine(CharacterizationCorpus.SnapshotDir, $"{name}.{edition}.g.cs.txt");
-        Snapshot.Assert(file, VersionStamp.Replace(probe.EmittedCSharp!, $"$1\"{RuntimeVersionToken}\", {CallAbiToken}"));
+        string text = VersionStamp.Replace(probe.EmittedCSharp!, $"$1\"{RuntimeVersionToken}\", {CallAbiToken}");
+        Snapshot.Assert(file, CompilerStamp.Replace(text, $"$1\"{CompilerVersionToken}\""));
     }
 }

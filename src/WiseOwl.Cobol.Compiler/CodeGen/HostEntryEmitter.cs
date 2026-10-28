@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
@@ -32,29 +33,26 @@ namespace WiseOwl.Cobol.CodeGen;
 /// leave — and decodes it only when the class test NUMERIC is true of it (ISO §8.8.4.4.4 3) n);
 /// <see cref="HostLanding.TryDecode"/>). A native cell could not hold such content to be refused.</para>
 /// </summary>
+/// <param name="repositoryUpdate">Whether each entry carries its unit's signature attributes (<c>--repository-update on</c>,
+/// DESIGN-external-repository §6.2, §9.1): the record <see cref="RepositoryCodec.Of"/> writes, transcribed by
+/// <see cref="RepositoryAttributeRenderer"/> onto the class, the <c>Call</c> parameters and its return value.</param>
 /// <param name="atoms">The module's one §8.5.1.12 atom table (<c>ProgramEmitter._atoms</c>, emitted after the entries): the
 /// shape a variable-length record's area states, so the activated program's formal is laid over it.</param>
 /// <param name="dataEmitterFor">A unit's data-division emitter, which states the DESCRIPTION'S fresh cell of a formal
 /// (<see cref="DataEmitter.FreshArea"/>) for a record the host builds an area of.</param>
-internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? classes, GroupAtomTable atoms,
+internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? classes, GroupAtomTable atoms, bool repositoryUpdate,
     Func<DataBinder, DataEmitter> dataEmitterFor)
 {
     /// <summary>The units that publish a host entry: every outermost unit, except a prototype whose definition the same
-    /// group compiles (that definition's entry is the one class for the name — DESIGN-external-repository §7.2).</summary>
+    /// group compiles (that definition's entry is the one class for the name — DESIGN-external-repository §7.2). The pairing
+    /// is by the Annex C fold (<see cref="ExternalizedNames.Same"/>, the one mapping rule, ISO §8.3.2.2 2)): a prototype
+    /// <c>psub</c> beside a definition <c>PSUB</c> is one externalized name (kb/Work PB3872). Nothing else is withheld: every
+    /// outermost unit publishes its entry, and so its repository record (§7.2); a group item
+    /// <see cref="PublishedRecordEmitter.Renders"/> refuses is an internal compiler error in <c>EmitEntry</c>, never a
+    /// missing entry (the binder admits no such shape since kb/Work PB3273: COBOL0853, COBOL0854).</summary>
     internal static IEnumerable<BoundUnit> EntryUnits(IReadOnlyList<BoundUnit> units) =>
         units.Where(u => u.Parent is null && !(u.IsPrototype && units.Any(d => d is { Parent: null, IsPrototype: false }
-            && d.IsFunction == u.IsFunction && string.Equals(d.ExternalizedName, u.ExternalizedName, StringComparison.Ordinal)))
-            && Published(u));
-
-    /// <summary>Whether every GROUP formal and RETURNING item of the unit has a published record
-    /// (<see cref="PublishedRecordEmitter.Renders"/>). A unit with one that has none publishes no entry at all. No legal
-    /// source reaches that today (kb/Work PB3273): a variable-length group whose members the data model's law refuses
-    /// (<see cref="DataItem.CurrentExtentTransferImageCapable"/>: an occurs-depending table beneath an OCCURS item) is itself
-    /// refused by the binder (COBOL0853, COBOL0854), so DOC-A.1-141 states no group restriction. A shape the binder
-    /// admits and the law refuses would need its row in DOC-A.1-141 before it could stay withheld.</summary>
-    private static bool Published(BoundUnit u) =>
-        u.Data.LinkageFormals.Select(f => (DataItem?)f.Item).Append(u.Data.LinkageReturning)
-            .All(d => d is not { IsGroup: true } || PublishedRecordEmitter.Renders(d));
+            && d.IsFunction == u.IsFunction && ExternalizedNames.Same(d.ExternalizedName, u.ExternalizedName))));
 
     /// <summary>Emit the host-entry class of every <see cref="EntryUnits"/> unit, each named by the one allocator in the
     /// module namespace's type scope (<paramref name="moduleTypes"/> — the names the module already declares there).</summary>
@@ -122,6 +120,10 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
         // A group formal's published record struct, named `<word>_Record` in the class's member scope (§4.3 "Names").
         string Record(DataItem group)
         {
+            if (!PublishedRecordEmitter.Renders(group))
+                throw new InvalidOperationException($"HostEntryEmitter: {(unit.IsFunction ? "function" : "program")} '{unit.Name}' has the group "
+                    + $"'{group.CobolName}' as a formal or RETURNING item, which PublishedRecordEmitter.Renders refuses; the binder admits no such "
+                    + "shape (kb/Work PB3273), so a DOC-A.1-141 row and a compile-time refusal must precede any withholding (DESIGN-external-repository §7.2).");
             string name = CsNames.Allocate($"{DataItem.Sanitize(group.CobolName ?? "FILLER")}_Record", members);
             records.Add((group, name));
             return name;
@@ -145,6 +147,15 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
         w.Line($"/// <summary>{kind} {unit.Name} (ISO §14.2.3 13), DESIGN-external-repository §4.3): activates the "
             + $"{(unit.IsFunction ? "function" : "program")} through the run unit's activation boundary (§14.9.4.4 3)) as "
             + "a CALL statement naming it does, landing each argument exactly or refusing it.</summary>");
+        // The unit's repository record (DESIGN-external-repository §6.2 "Anchoring"): its identity always; with
+        // --repository-update on, its signature too — the unit facts on [CobolUnit], the record's tables on the class,
+        // each formal's tree on its own Call parameter (formals and records are both in LINKAGE order) and the RETURNING
+        // item's on the return value.
+        var record = repositoryUpdate ? RepositoryCodec.Of(unit) : null;
+        w.Line(RepositoryAttributeRenderer.UnitRecord(RepositoryCodec.KindOf(unit), unit.Name, unit.ExternalizedName, record));
+        if (record is not null)
+            foreach (string attribute in RepositoryAttributeRenderer.TableRecords(record))
+                w.Line(attribute);
         using (w.Block($"public static class {className}"))
         {
             foreach (var (field, init) in profiles)
@@ -155,7 +166,10 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
                 foreach (string line in recordText.ToString().TrimEnd('\n').Split('\n'))
                     w.Line(line);
             string returnType = returning is null ? "void" : returning.CsType;
-            string signature = string.Join(", ", formals.Select(ParameterText));
+            string signature = string.Join(", ", formals.Select((f, i) =>
+                (record is null ? "" : RepositoryAttributeRenderer.FormalRecord(record.Formals[i]) + " ") + ParameterText(f)));
+            if (record?.Returning is { } returningRecord)
+                w.Line(RepositoryAttributeRenderer.ReturningRecord(returningRecord));
             using (w.Block($"public static {returnType} Call({signature})"))
                 EmitCallBody(unit, formals, returning, w);
             if (!unit.IsFunction)

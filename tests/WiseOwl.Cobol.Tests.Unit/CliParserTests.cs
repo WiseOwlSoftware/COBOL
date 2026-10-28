@@ -117,6 +117,24 @@ public sealed class CliParserTests
         Assert.NotEmpty(Errors("a.cob", "--numeric-display", "--run"));
     }
 
+    /// <summary>⛔ <c>--repository-update</c> (DESIGN-external-repository §9.1, §7.1, REPO-8; kb/Work PB2100) — whether the module
+    /// carries its units' signatures for a later compilation's REPOSITORY paragraph to bind against. An ABSENT option is
+    /// <c>on</c>, <c>off</c> writes a module with no signature, and anything else is a CLI argument error, as for
+    /// <c>--sign-encoding</c>; the option must not swallow a following flag.</summary>
+    [Fact]
+    public void RepositoryUpdate_DefaultsToOn_SelectsOff_AndRejectsAnythingElse()
+    {
+        Assert.True(Resolve("a.cob").RepositoryUpdate);
+        Assert.True(Resolve("a.cob", "--repository-update", "on").RepositoryUpdate);
+        Assert.False(Resolve("a.cob", "--repository-update", "off").RepositoryUpdate);
+        Assert.False(Resolve("a.cob", "--repository-update=off").RepositoryUpdate);
+        Assert.True(Resolve("a.cob", "--repository-update=ON").RepositoryUpdate);
+        Assert.False(Resolve("a.cob", "--repository-update", "OFF").RepositoryUpdate);
+        Assert.Contains(Errors("a.cob", "--repository-update", "yes"), m => m.Contains("--repository-update must be one of"));
+        Assert.Contains(Errors("a.cob", "--repository-update", "1"), m => m.Contains("--repository-update must be one of"));
+        Assert.NotEmpty(Errors("a.cob", "--repository-update", "--run"));
+    }
+
     /// <summary>kb/Work PB1362 — <c>--source-format</c>: ISO §7.3.24.3 2) "The default reference format of a
     /// compilation group is fixed form", so an ABSENT option is fixed form; <c>free</c> and <c>auto</c> are the
     /// §4.2.10 3) selection of the nonstandard behavior; anything else is a CLI argument error.</summary>
