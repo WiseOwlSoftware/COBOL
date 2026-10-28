@@ -10,16 +10,19 @@ It proves, on a FABRICATED run directory in the shapes scripts/differential_fuzz
   TALLY     signatures and programs per verdict;
   NOTES     the night's notes are found by the run id in their `source` (defect and adjudication notes only); each note's
             kind is read from the register (compiler bug, test-harness bug, settled question, retired), a defect's from
-            its declared sites (product code or not) and only a site-less older note's from its area; a GnuCOBOL record
-            counts only when the fuzzing produced it and it is not retired;
+            its declared sites (product code or not), a site-less one only from the closed legacy record, and a defect
+            nothing classifies is REFUSED; a GnuCOBOL record counts only when the fuzzing produced it and it is not retired;
   UPSERT    a re-recorded night replaces its own record and the nights stay in order;
   PAGE      every night is rendered, the page says it is machine-generated, a status is shown as the register has it, only
             compiler bugs reach the totals, a finding from a run that is not a recorded night is counted and listed by
             its date, the facts it states come from the records, and a tally reaches the page;
   MARKDOWN  FUZZ-LEDGER.md carries the same content, links each note, names its chart files, and each chart file is a
             standalone SVG;
-  HISTORY   `fuzz_triage.py history` refuses an unfinished triage, a note id the register lacks and a new defect with no
-            declared sites, numbers a new night
+  SYNC      the page and FUZZ-LEDGER.md are written by one writer with one ledger version, which names the content and not
+            the time; mark-published refuses a page that is not main's version and records the one it is; status names
+            current, PUBLISH OWED and REGENERATE OWED;
+  HISTORY   `fuzz_triage.py history` refuses an unfinished triage, a note id the register lacks and a defect nothing
+            classifies, numbers a new night
             after the last, keeps a re-run's own number and its stored notes, and writes nothing without --write;
   VOCAB     the page's verdict list equals the triage tool's vocabulary, so no verdict reaches the page without a colour.
 """
@@ -69,8 +72,10 @@ ITEMS = [
      "_body": "**Sites:** `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#Bind`"},
     {"id": "PB9002", "kind": "upstream", "status": "open", "title": "x", "source": f"the triage of {RUN}",
      "upstream_project": "GnuCOBOL", "filed": "2026-10-28"},
-    {"id": "PB9003", "kind": "defect", "status": "landed", "area": "codegen", "title": "PB9003 — Defect: older", "source": OLD},
-    {"id": "PB9004", "kind": "defect", "status": "landed", "area": "tooling/fuzz", "title": "PB9004 — harness", "source": OLD},
+    {"id": "PB9003", "kind": "defect", "status": "landed", "area": "codegen", "title": "PB9003 — Defect: older", "source": OLD,
+     "_body": "**Sites:** `src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs`"},
+    {"id": "PB9004", "kind": "defect", "status": "landed", "area": "tooling/fuzz", "title": "PB9004 — harness", "source": OLD,
+     "_body": "**Sites:** none (a harness setting, no code file)"},
     {"id": "PB9005", "kind": "adjudication", "status": "landed", "area": "grammar", "title": "PB9005 — settled", "source": OLD},
     {"id": "PB9006", "kind": "defect", "status": "retired", "area": "arithmetic", "title": "PB9006 — RETIRED — x", "source": OLD},
     {"id": "PB9007", "kind": "upstream", "status": "open", "title": "y", "source": "the owner decision PB1",
@@ -81,17 +86,22 @@ ITEMS = [
     # a diagnostic defect no user program sees (process_only) is still a compiler bug when its sites are the product's
     {"id": "PB9009", "kind": "defect", "status": "landed", "area": "frontend/diagnostics", "process_only": True,
      "title": "PB9009 — message", "source": OLD, "_body": "**Sites:** `src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs`"},
-    # a note from before sites were required, under a non-product area
-    {"id": "PB9010", "kind": "defect", "status": "landed", "area": "process/fuzz", "title": "PB9010 — legacy", "source": OLD},
+    # a note from before sites were required: only the closed LEGACY_KINDS record classifies it (patched in below)
+    {"id": "PB9010", "kind": "defect", "status": "landed", "area": "codegen", "title": "PB9010 — legacy", "source": OLD},
     # a compiler bug from a run the history holds no night for (kb/Work PB4010 R2-2)
     {"id": "PB9011", "kind": "defect", "status": "landed", "area": "codegen", "title": "PB9011 — short run",
      "source": f"the aborted run {SHORT}", "_body": "**Sites:** `src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs`"},
 ]
+#: A site block naming only a member declares no path (review R1-1): nothing classifies it, so it is refused, never guessed.
+MEMBER_ONLY = {"id": "PB9012", "kind": "defect", "status": "open", "area": "binding", "title": "PB9012 — members",
+               "source": "filed by hand",
+               "_body": "**Sites:** `DataBinder.Bind`"}
+LEGACY = {"PB9010": "harness"}
 
 
 def main() -> int:
     by = {i["id"]: i for i in ITEMS}
-    with tempfile.TemporaryDirectory() as tmp:
+    with unittest.mock.patch.object(fh, "LEGACY_KINDS", LEGACY), tempfile.TemporaryDirectory() as tmp:
         root = pathlib.Path(tmp)
         run = fabricated_run(root, RUN)
         s = fh.run_stats(run)
@@ -114,9 +124,14 @@ def main() -> int:
 
         expect("NOTES by run id, defect and adjudication only", fh.defects_of(ITEMS, RUN) == ["PB9001"], fh.defects_of(ITEMS, RUN))
         kinds = {d: fh.finding_kind(by[d]) for d in ("PB9001", "PB9004", "PB9005", "PB9006", "PB9008", "PB9009", "PB9010")}
-        expect("NOTES kinds: declared sites decide, a site-less note by its area", kinds == {
+        expect("NOTES kinds: declared sites decide, a site-less note only by the closed legacy record", kinds == {
             "PB9001": "compiler", "PB9004": "harness", "PB9005": "settled", "PB9006": "retired", "PB9008": "harness",
             "PB9009": "compiler", "PB9010": "harness"}, kinds)
+        try:
+            fh.finding_kind(MEMBER_ONLY)
+            expect("NOTES refuses a defect nothing classifies (a block naming only members)", False, "classified")
+        except SystemExit as e:
+            expect("NOTES refuses a defect nothing classifies (a block naming only members)", "PB9012" in str(e), str(e))
         expect("NOTES a GnuCOBOL record counts only from the fuzzing", [i["id"] for i in ITEMS if fh.from_fuzzing(i)] == ["PB9002"])
 
         rec = fh.night_record(run, 2, verdicts, ["PB9001"], "abc1234")
@@ -155,20 +170,45 @@ def main() -> int:
         expect("MARKDOWN writes the ledger and its charts", (root / "FUZZ-LEDGER.md").read_text(encoding="utf-8") == md
                and len(written) == 4)
 
+        # SYNC: the Artifact and FUZZ-LEDGER.md are one rendering with one ledger version (owner 2026-10-28, PB4010)
+        art = hist["artifact"]
+        version = fh.ledger_version(ctx, art)
+        expect("SYNC the version names the content, not the time it was drawn",
+               version == fh.ledger_version(fh.context(hist, ITEMS, now="2026-10-29 09:00 PDT"), art))
+        moved = fh.upsert(hist, {**rec, "judged": 6})
+        expect("SYNC a change of content changes the version", fh.ledger_version(fh.context(moved, ITEMS), art) != version)
+        sync = root / "sync"
+        got, paths = fh.write_ledger(ctx, art, sync / "page.html", root=sync)
+        ledger = (sync / "FUZZ-LEDGER.md").read_text(encoding="utf-8")
+        expect("SYNC one writer stamps both renderings with one version", got == version and len(paths) == 5
+               and fh.version_of((sync / "page.html").read_text(encoding="utf-8")) == version
+               and fh.version_of(ledger) == version, (got, version, len(paths)))
+        rc = fh.mark_published(sync / "page.html", art, "Ledger version 000000000000, built x.", coord_override=str(root))
+        expect("SYNC mark-published refuses a page that is not main's version", rc == 1
+               and not (root / fh.PUBLISHED).exists())
+        rc = fh.mark_published(sync / "page.html", art, ledger, coord_override=str(root))
+        record = fh.published_record(str(root))
+        expect("SYNC mark-published records main's version", rc == 0 and record.get("version") == version
+               and record.get("url") == art, record)
+        status = {"current": fh.sync_status(ledger, record, version), "publish": fh.sync_status(ledger, {}, version),
+                  "regenerate": fh.sync_status(ledger, record, "ffffffffffff")}
+        expect("SYNC status names each state", "current" in status["current"] and "PUBLISH OWED" in status["publish"]
+               and "REGENERATE OWED" in status["regenerate"], status)
+
         # HISTORY: the subcommand, on a history file of its own
         hfile = root / "fuzz-history.json"
         fh.write_history({"artifact": None, "nights": [{**older, "night": 1}]}, hfile)
         t = types.SimpleNamespace(run=run, run_id=RUN, coord=str(root))
         done = types.SimpleNamespace(verdicts=[("A1", v) for v in verdicts], problems=[], undecided={})
         args = types.SimpleNamespace(defect=[], judge_commit="abc1234", out=str(root / "page.html"), write=False)
-        fake_work = types.SimpleNamespace(load=lambda _d: ITEMS)
-        with unittest.mock.patch.object(fh, "HISTORY", hfile), unittest.mock.patch.object(ft, "_work", lambda: fake_work):
+        fake_work = types.SimpleNamespace(load=lambda _d: [*ITEMS, MEMBER_ONLY], note_sites=fh.register().note_sites)
+        with unittest.mock.patch.object(fh, "HISTORY", hfile), unittest.mock.patch.object(fh, "register", lambda: fake_work):
             rc = ft.history(t, types.SimpleNamespace(verdicts=[], problems=["x"], undecided={}), root, args)
             expect("HISTORY refuses an unfinished triage", rc == 1)
             rc = ft.history(t, done, root, types.SimpleNamespace(**{**vars(args), "defect": ["PB0000"]}))
             expect("HISTORY refuses a note the register lacks", rc == 1)
-            rc = ft.history(t, done, root, types.SimpleNamespace(**{**vars(args), "defect": ["PB9010"]}))
-            expect("HISTORY refuses a new defect with no declared sites", rc == 1)
+            rc = ft.history(t, done, root, types.SimpleNamespace(**{**vars(args), "defect": ["PB9012"]}))
+            expect("HISTORY refuses a defect whose site block names no path, glob or `none`", rc == 1)
             rc = ft.history(t, done, root, args)
             expect("HISTORY writes nothing without --write", rc == 0 and len(fh.load_history(hfile)["nights"]) == 1)
             with unittest.mock.patch.object(fh, "write_markdown", lambda *_a, **_k: []):

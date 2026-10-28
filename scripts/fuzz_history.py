@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 """fuzz_history.py — THE CUMULATIVE RECORD OF THE DIFFERENTIAL-FUZZ NIGHTS AND THE PAGE RENDERED FROM IT (kb/Work PB4006).
 
-    python scripts/fuzz_history.py render [--out <file.html>]     # the summary page, from the history and the register
+    python scripts/fuzz_history.py render [--out <file.html>]     # the page AND FUZZ-LEDGER.md, one ledger version
+    python scripts/fuzz_history.py mark-published [--page <html>] # after publishing main's version to the Artifact
+    python scripts/fuzz_history.py status                         # is the Artifact in sync with main's FUZZ-LEDGER.md?
     python scripts/fuzz_history.py show                           # the history, one line per night
     python scripts/test_fuzz_history.py                           # the self-test (discovered by scripts/self_tests.py)
 
 A night enters the history through `python scripts/fuzz_triage.py history --triage <dir> --write`, the last step of
 every morning's triage (docs/rearchitecture/DESIGN-differential-fuzz.md §6): it reads the run directory, the triage's
 verdict files and the register, and writes one record into HISTORY, a tracked file, because the run directories are
-git-ignored and the triage directories are coordination scratch. `render` then draws the page the morning session
-publishes to the one Artifact whose URL HISTORY carries (`artifact`). The page is machine-generated and says so: no
-number on it is typed by hand, and every status on it is read from kb/Work at render time.
+git-ignored and the triage directories are coordination scratch. It (and `render`) draws the HTML page and FUZZ-LEDGER.md
+together, both stamped with one ledger version; once that FUZZ-LEDGER.md is on main, the session publishes the page to
+the one Artifact whose URL HISTORY carries (`artifact`) and runs `mark-published`, which refuses a page that is not main's
+version, so the Artifact and the repository file never show different ledgers. The page is machine-generated and says
+so: no number on it is typed by hand, and every status on it is read from kb/Work at render time.
 
 What a record holds and where each field comes from:
   run       run.json (model, seed, start, edition) and report.md's headline (programs, usable, survivors)
@@ -23,10 +27,12 @@ from __future__ import annotations
 import argparse
 import collections
 import datetime
+import hashlib
 import html
 import json
 import pathlib
 import re
+import subprocess
 import sys
 
 from standard_streams import ensure_utf8
@@ -103,33 +109,46 @@ FINDING_KINDS = {"compiler": "compiler bug", "harness": "test-harness bug", "set
 #: The product's code: a defect whose declared sites reach under it is a compiler bug (kb/Work PB4010).
 PRODUCT_ROOT = "src/"
 
-#: The areas of the notes filed before `fuzz_triage.py history` required declared sites (kb/Work PB4010): the only
-#: notes `finding_kind` reads by area. Every top-level area the register files non-product defects under.
-LEGACY_HARNESS_AREAS = ("tooling", "docs", "tests", "process", "orchestrator", "scripts", "ci")
+#: The fuzz defects filed before `fuzz_triage.py history` required a site block, with what each one is (kb/Work PB4010).
+#: A CLOSED record, never extended: a defect not named here must declare its sites, and `finding_kind` refuses one that
+#: does not. Their landings predate the src/ rename, so no site block could be backfilled from them.
+LEGACY_KINDS = {**dict.fromkeys(("PB3490", "PB3523"), "harness"),
+                **dict.fromkeys(("PB3489", "PB3491", "PB3510", "PB3511", "PB3512", "PB3517", "PB3538", "PB3562", "PB3563",
+                                 "PB3564", "PB3566", "PB3567", "PB3568", "PB3570"), "compiler")}
 
 
-def _work():
+def register():
+    """scripts/spec/work.py, the register's one reader (of notes and of their site blocks)."""
     sys.path.insert(0, str(HERE / "spec"))
-    import work  # noqa: PLC0415  (the register's one reader)
+    import work  # noqa: PLC0415
     return work
 
 
-def declared_sites(it: dict):
-    """The note's declared sites (work.note_sites, the register's one reader of them), from its body."""
-    return _work().note_sites(str(it.get("_body", "")))
+def site_kind(it: dict) -> str | None:
+    """"compiler" when the defect's declared sites (work.note_sites) name a path or glob under the product's code, "harness"
+    when they name only others or `none (why)`, its LEGACY_KINDS entry when it has no site block; None when nothing says:
+    no block, or a block naming only types and members (which declares no path: the same bar as work.sites_problems)."""
+    sites = register().note_sites(str(it.get("_body", "")))
+    named = (*sites.paths, *sites.globs)
+    if named:
+        return "compiler" if any(p.startswith(PRODUCT_ROOT) for p in named) else "harness"
+    if sites.no_code:
+        return "harness"
+    return LEGACY_KINDS.get(str(it.get("id")))
 
 
 def finding_kind(it: dict) -> str:
-    """A defect is a compiler bug when its declared sites reach the product's code, a harness bug when they do not. A note
-    with no site block predates that requirement and is read by its area's first segment."""
+    """What a note is on the page: retired, a settled question, or a defect classified by `site_kind`. A defect nothing
+    classifies stops the render, naming it: it is never guessed into either count."""
     if it.get("status") == "retired":
         return "retired"
     if it.get("kind") == "adjudication":
         return "settled"
-    sites = declared_sites(it)
-    if sites.declared:
-        return "compiler" if any(p.startswith(PRODUCT_ROOT) for p in sites.paths) else "harness"
-    return "harness" if str(it.get("area", "")).split("/")[0].strip() in LEGACY_HARNESS_AREAS else "compiler"
+    kind = site_kind(it)
+    if kind is None:
+        raise SystemExit(f"⛔ {it.get('id', '(a note missing from the register)')}: no **Sites:** block naming a path, a glob or "
+                         "`none (why)`, so the fuzz ledger cannot tell a compiler bug from a harness bug (kb/Work PB4010)")
+    return kind
 
 
 def unrecorded_runs(history: dict, items: list[dict]) -> list[tuple[dict, str]]:
@@ -198,7 +217,7 @@ INTRO = (
 STAMP = ("This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished "
          "automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history "
          "file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read "
-         "from the project's work tracker at the moment the page is built. Built {now}.")
+         "from the project's work tracker at the moment the page is built. Ledger version {version}, built {now}.")
 STEPS = (
     ("Write test programs", "For {hours} hours, an AI model running on a local graphics card works through sections of the "
      "COBOL standard chosen at random ({sections} sections covering the statements, built-in functions, data-description "
@@ -264,7 +283,7 @@ def context(history: dict, items: list[dict], now: str | None = None) -> dict:
     triaged = [n for n in nights if n.get("verdicts")]
     shown = [v for v, _c, _n in VERDICTS if any(v in n["verdicts"] for n in triaged)]
     fill = {"first": night_date(nights[0]) if nights else "", "last": night_date(nights[-1]) if nights else "",
-            "now": now or datetime.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z"),
+            "now": now or datetime.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z"), "version": "",
             "hours": " or ".join(f"{h:g}" for h in hours) or "several",
             "sections": f"about {sections[-1]:,}" if sections else "many",
             "untallied": (" and ".join(untallied) + (" were" if len(untallied) > 1 else " was") + " reviewed before these "
@@ -562,13 +581,114 @@ def write_markdown(ctx: dict, artifact: str | None, root: pathlib.Path | None = 
     return out
 
 
+# ── keeping the Artifact and FUZZ-LEDGER.md in sync (owner 2026-10-28, kb/Work PB4010) ──────────────────────────────
+# The two are ONE rendering: `write_ledger` draws both from one context and stamps both with the same LEDGER VERSION, a
+# digest of the content alone (the Markdown and its charts drawn with an empty stamp), so it names what the page shows,
+# never when it was drawn. The Artifact is published from main's FUZZ-LEDGER.md only: `mark-published` refuses a page
+# whose version is not the version on origin/main, and records the one it published; `status` (session-probe prints it)
+# says when the Artifact lags main or main's file lags the register.
+
+VERSION = re.compile(r"[Ll]edger version ([0-9a-f]{12})")
+PAGE_NAME = "fuzz-summary.html"
+PUBLISHED = "fuzz-ledger-published.json"
+MAIN_REF = "origin/main"
+NEXT_STEPS = ("next: commit conformance-suite/fuzz-history.json, FUZZ-LEDGER.md and docs/fuzz-ledger/ and land them; once they "
+              "are on main, publish {page} to the Artifact {artifact} and run `python scripts/fuzz_history.py mark-published "
+              "--page {page}` (the Artifact must show the ledger version FUZZ-LEDGER.md carries on main)")
+
+
+def ledger_version(ctx: dict, artifact: str | None) -> str:
+    blank = {**ctx, "fill": {**ctx["fill"], "now": "", "version": ""}}
+    md, files = render_markdown(blank, artifact)
+    digest = hashlib.sha256(md.encode("utf-8"))
+    for name in sorted(files):
+        digest.update(name.encode("utf-8") + b"\0" + files[name].encode("utf-8"))
+    return digest.hexdigest()[:12]
+
+
+def write_ledger(ctx: dict, artifact: str | None, page: pathlib.Path,
+                 root: pathlib.Path | None = None) -> tuple[str, list[pathlib.Path]]:
+    """THE ONE WRITER of both renderings: the HTML page at `page` and FUZZ-LEDGER.md with its charts under `root`, stamped
+    with one ledger version; (version, paths written)."""
+    version = ledger_version(ctx, artifact)
+    ctx = {**ctx, "fill": {**ctx["fill"], "version": version}}
+    page.parent.mkdir(parents=True, exist_ok=True)
+    page.write_text(render_html(ctx), encoding="utf-8", newline="\n")
+    return version, [page, *write_markdown(ctx, artifact, root)]
+
+
+def version_of(text: str) -> str | None:
+    m = VERSION.search(text)
+    return m.group(1) if m else None
+
+
+def _coord():
+    sys.path.insert(0, str(HERE / "orchestrator"))
+    import coord  # noqa: PLC0415
+    return coord
+
+
+def default_page(coord_override: str | None = None) -> pathlib.Path:
+    return _coord().coord_dir(coord_override or None) / "scratch" / PAGE_NAME
+
+
+def main_ledger(repo: pathlib.Path = REPO, fetch: bool = False) -> str:
+    """FUZZ-LEDGER.md as origin/main carries it."""
+    if fetch:
+        subprocess.run(["git", "-C", str(repo), "fetch", "-q", "origin", "main"], check=True)
+    out = subprocess.run(["git", "-C", str(repo), "show", f"{MAIN_REF}:{LEDGER_MD.relative_to(REPO).as_posix()}"],
+                         capture_output=True, text=True, encoding="utf-8")
+    if out.returncode:
+        raise SystemExit(f"⛔ cannot read FUZZ-LEDGER.md on {MAIN_REF}: {out.stderr.strip()}")
+    return out.stdout
+
+
+def published_record(coord_override: str | None = None) -> dict:
+    path = _coord().coord_dir(coord_override or None) / PUBLISHED
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
+def mark_published(page: pathlib.Path, url: str, main_text: str, coord_override: str | None = None) -> int:
+    """Record that the Artifact now shows `page`, refusing unless `page` is the ledger version main's FUZZ-LEDGER.md is."""
+    have, want = version_of(page.read_text(encoding="utf-8")), version_of(main_text)
+    if not have or have != want:
+        print(f"⛔ {page.as_posix()} is ledger version {have or '(none)'}, FUZZ-LEDGER.md on {MAIN_REF} is {want or '(none)'}: "
+              "the Artifact must show what main carries. Render from a checkout at main (or land the render), publish that "
+              "page, then mark it")
+        return 1
+    path = _coord().coord_dir(coord_override or None) / PUBLISHED
+    record = {"url": url, "version": have, "published_at": datetime.datetime.now().astimezone().isoformat(timespec="seconds")}
+    path.write_text(json.dumps(record, indent=1) + "\n", encoding="utf-8", newline="\n")
+    print(f"marked: the Artifact {url} shows ledger version {have}, the version on {MAIN_REF}")
+    return 0
+
+
+def sync_status(main_text: str, published: dict, fresh: str) -> str:
+    """One line: is the Artifact the version main carries, and is main's file the version the register gives now?"""
+    on_main, shown = version_of(main_text), published.get("version")
+    if on_main is None:
+        return (f"fuzz ledger: ⚠ REGENERATE OWED — FUZZ-LEDGER.md on {MAIN_REF} carries no ledger version (a render now is "
+                f"{fresh}): `fuzz_history.py render` on a branch, land it, then publish and mark")
+    if shown != on_main:
+        return (f"fuzz ledger: ⛔ PUBLISH OWED — FUZZ-LEDGER.md on {MAIN_REF} is version {on_main}, the Artifact shows "
+                f"{shown or 'no recorded version'}: render at main, publish the page, `fuzz_history.py mark-published`")
+    if fresh != on_main:
+        return (f"fuzz ledger: ⚠ REGENERATE OWED — the register moved since main's FUZZ-LEDGER.md (version {on_main}; a "
+                f"render now is {fresh}): `fuzz_history.py render` on a branch, land it, then publish and mark")
+    return f"fuzz ledger: current — the Artifact and FUZZ-LEDGER.md on {MAIN_REF} are version {on_main}"
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    r = sub.add_parser("render", help="render the summary page and the repository's FUZZ-LEDGER.md")
-    r.add_argument("--out", help="the HTML file to write (default: print to standard output)")
-    r.add_argument("--markdown", action="store_true", help="also write FUZZ-LEDGER.md and docs/fuzz-ledger/*.svg")
-    r.add_argument("--work", default=str(REPO / "kb" / "Work"), help="the register directory")
+    r = sub.add_parser("render", help="write the summary page AND FUZZ-LEDGER.md with its charts, one ledger version")
+    r.add_argument("--out", help=f"the HTML page to write (default: <coord>/scratch/{PAGE_NAME})")
+    m = sub.add_parser("mark-published", help="record that the Artifact shows --page, which must be main's ledger version")
+    m.add_argument("--page", help=f"the HTML page just published (default: <coord>/scratch/{PAGE_NAME})")
+    m.add_argument("--url", help="the Artifact (default: the history's `artifact`)")
+    sub.add_parser("status", help="one line: is the Artifact in sync with main's FUZZ-LEDGER.md, and main's with the register")
+    for p in (r, sub.choices["status"]):
+        p.add_argument("--work", default=str(REPO / "kb" / "Work"), help="the register directory")
     sub.add_parser("show", help="print the history, one line per night")
     args = ap.parse_args(argv)
     history = load_history()
@@ -578,15 +698,17 @@ def main(argv: list[str] | None = None) -> int:
                   f"notes {','.join(n['defects']) or '-'}  verdicts {'yes' if n.get('verdicts') else 'no'}")
         print(f"artifact: {history.get('artifact')}")
         return 0
-    ctx = context(history, _work().load(pathlib.Path(args.work)))
-    page = render_html(ctx)
-    if args.out:
-        pathlib.Path(args.out).write_text(page, encoding="utf-8", newline="\n")
-        print(f"wrote {args.out}")
-    else:
-        print(page)
-    if args.markdown:
-        print("wrote " + ", ".join(p.relative_to(REPO).as_posix() for p in write_markdown(ctx, history.get("artifact"))))
+    if args.cmd == "mark-published":
+        page = pathlib.Path(args.page) if args.page else default_page()
+        return mark_published(page, args.url or history.get("artifact"), main_ledger(fetch=True))
+    ctx = context(history, register().load(pathlib.Path(args.work)))
+    if args.cmd == "status":
+        print(sync_status(main_ledger(), published_record(), ledger_version(ctx, history.get("artifact"))))
+        return 0
+    page = pathlib.Path(args.out) if args.out else default_page()
+    version, written = write_ledger(ctx, history.get("artifact"), page)
+    print("wrote " + ", ".join(p.as_posix() for p in written) + f" (ledger version {version})")
+    print(NEXT_STEPS.format(page=page.as_posix(), artifact=history.get("artifact")))
     return 0
 
 
