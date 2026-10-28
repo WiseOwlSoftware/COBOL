@@ -294,8 +294,9 @@ code {{ font:12px var(--mono); }}
   and government software is still written in. It is being built largely by AI coding agents working under one engineer's
   supervision, and its goal is to follow the international COBOL standard, ISO/IEC 1989, exactly. <b>GnuCOBOL</b> is the
   established free, open-source COBOL compiler, maintained for more than twenty years.</p>
-  <p>This page tracks a nightly test called <b>differential fuzzing</b>: a computer writes thousands of small, random COBOL
-  programs, and both compilers run every one of them. When the two give different answers, at least one of them is wrong, or
+  <p>This page tracks a nightly test called <b>differential fuzzing</b>. An AI model picks sections of the standard at random,
+  each one defining a COBOL statement, built-in function, data-description clause or kind of expression, and writes small
+  test programs that use what that section defines. Both compilers run every one of those thousands of programs. When the two give different answers, at least one of them is wrong, or
   the standard allows both answers. Each disagreement is then settled by reading the standard itself, never by trusting
   either compiler. The totals below run from {first} to {last}.</p>
   <div class="stamp">This page is machine-generated. A script (<code>scripts/fuzz_history.py</code>) rebuilds it and it is
@@ -307,9 +308,11 @@ code {{ font:12px var(--mono); }}
 <section>
   <h2>How a night of testing works</h2>
   <ol class="steps">
-    <li><b>Write test programs.</b> For eight hours, an AI model running on a local graphics card is handed one rule of the
-    COBOL standard at a time and asked to write a short program that uses it. If GnuCOBOL cannot compile a program, the model
-    sees the error messages and gets up to three tries to fix it.</li>
+    <li><b>Write test programs.</b> For eight hours, an AI model running on a local graphics card works through sections of
+    the COBOL standard chosen at random (about 230 sections covering the statements, built-in functions, data-description
+    clauses and expressions). For each section it reads that section's text and writes a few short programs that use what the
+    section defines. If GnuCOBOL cannot compile a program, the model sees the error messages and gets up to three tries to fix
+    it.</li>
     <li><b>Run them on both compilers.</b> Every program is compiled and run by WiseOwl and by GnuCOBOL. When both produce the
     same output, the program is set aside. Every difference is kept: one compiler refuses the program, the outputs differ, or
     one crashes or never finishes. Programs that differ in the same way are grouped together.</li>
