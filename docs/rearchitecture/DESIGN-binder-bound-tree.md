@@ -633,8 +633,7 @@ digits between them than the 38-digit carrier holds; the WIDEST receiver's fixed
 values (`ValueUse.MovedTo`, `ShapedPic` over `PicInfo.WidestReceiving`: the GR1 `MOVE a TO temp` with temp described
 as the largest receiver), 21 integer + 17 fraction digits for a value read as
 an operand (an EVALUATE subject, a frozen argument), and the returned-value item's S9(21)V9(9) only for a value read as
-text in a character formal. It is not the fixed S9(21)V9(9) (`FunctionValuePic`) the returned-value item has for
-`FUNCTION LENGTH`: that description cut `MOVE FUNCTION PI TO Q1 Q2` (PIC 9V9(15)) to 3.141592653000000 where `MOVE
+text in a character formal. It is not the fixed S9(21)V9(9) (`FunctionValuePic`), the nominal returned-value item IN-ARITHMETIC-RANGE reads: that description cut `MOVE FUNCTION PI TO Q1 Q2` (PIC 9V9(15)) to 3.141592653000000 where `MOVE
 FUNCTION PI TO Q3` stores 3.141592653589793. A NUMERIC function's temporary is flagged
 `DataItem.FunctionValueSeparator` (the decimal separator its literal form is written with, PB2507: the materializing unit's), and `OperandText`'s field image renders a flagged item in DOC-A.1-92's literal
 form — so `MOVE temp TO b` stores in a CHARACTER receiver what `MOVE a TO b` stores (kb/Work PB1007: the
