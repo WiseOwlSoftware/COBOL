@@ -3515,6 +3515,58 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRMO1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT RPT ASSIGN TO \"vmrmo1.rpt\".\nDATA DIVISION.\nFILE SECTION.\nFD RPT REPORT IS R-1.\nREPORT SECTION.\nRD R-1 PAGE LIMIT IS 20 LINES.\n01 D-1 TYPE DE.\n   03 LINE PLUS 1.\n      05 COLUMN 1 PIC X(2) OCCURS 3 TIMES STEP 3 VALUE \"OK\".\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT RPT.\n    INITIATE R-1.\n    GENERATE D-1.\n    TERMINATE R-1.\n    CLOSE RPT.\n    STOP RUN.\n"
   },
   {
+   "id": "report-filler-2002",
+   "status": "active",
+   "description": "The word FILLER as the entry name of a REPORT GROUP description entry (kb/Work PB3964). ANSI X3.23-1985's report group description entry is `level-number [data-name-1]`: an unnamed entry is written by OMITTING the name. ISO/IEC 1989:2002 Annex F.2 item 53 QUOTES the change: 'FILLER. FILLER is allowed in the report section.' (item 115's bullet: 'FILLER allowed in report section'). The 2023 text is 13.18.20.3 SR3, 'If the entry-name clause is specified in a data description entry or a report group description entry, either data-name-1 or FILLER shall be specified', with 13.18.20.4 GR1 'The word FILLER may be used to name a data, report, or screen item'. FILLER in a data description entry is COBOL-85 and is not gated. Gated by recognition, VersionConformancePass ParseArm.VisitReportGroupEntry, once per written entry.",
+   "display": "the word FILLER as the entry name of a report group description entry",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO/IEC 1989:2002 Annex F.2 (substantive changes not affecting existing programs), item 53 (post-ballot text v200112.txt); ISO §13.18.20.3 SR3, §13.18.20.4 GR1 (2023 text)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "VCR row 7.45 (85->2002: FILLER may name a report group description entry)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RFIL.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"RFIL.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WN PIC S9(3) VALUE -5.\nREPORT SECTION.\nRD R1 PAGE LIMIT IS 10 LINES.\n01 DA TYPE DETAIL LINE PLUS 1.\n    02 FILLER COLUMN 1 PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+  },
+  {
+   "id": "report-plus-symbol-2002",
+   "status": "active",
+   "description": "The symbol '+' for the word PLUS in a relative LINE or NEXT GROUP operand of a report group description entry (kb/Work PB3964). ANSI X3.23-1985 prints the relative operand as the word PLUS alone; ISO/IEC 1989:2002 Annex F.2 item 115 QUOTES the change: 'PLUS or MINUS can be the symbol '+' or '-', respectively'. The 2023 text is 13.18.35.3 SR1 (LINE), 13.18.37.3 SR2 (NEXT GROUP) and 13.18.14.3 SR2 (COLUMN): 'PLUS and + are synonyms.' No MINUS operand exists in any of the three 2023 formats, so '-' names nothing to gate (the grammar refuses it at every edition). The COLUMN clause's relative operand is itself a 2002 form and is gated whole by report-multi-column-2002. Gated by recognition, VersionConformancePass ParseArm.VisitReportRelativeSign, once per written symbol.",
+   "display": "the '+' symbol for PLUS in a relative LINE or NEXT GROUP operand (report group description)",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO/IEC 1989:2002 Annex F.2 (substantive changes not affecting existing programs), item 115 (post-ballot text v200112.txt); ISO §13.18.35.3 SR1, §13.18.37.3 SR2, §13.18.14.3 SR2 (2023 text)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "VCR row 7.45 (85->2002: '+' is a synonym of PLUS in a report group's relative operands)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RPLS.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"RPLS.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WN PIC S9(3) VALUE -5.\nREPORT SECTION.\nRD R1 PAGE LIMIT IS 10 LINES.\n01 DA TYPE DETAIL LINE + 1.\n    02 COLUMN 1 PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+  },
+  {
+   "id": "report-source-expression-2002",
+   "status": "active",
+   "description": "An arithmetic expression, a function or any operand other than a bare identifier in the SOURCE clause of a report group description entry (kb/Work PB3964). ANSI X3.23-1985's format is `SOURCE IS identifier-1`; ISO/IEC 1989:2002 Annex F.2 item 115 QUOTES the change: 'SOURCE allows arithmetic expressions and functions and a ROUNDED phrase'. The 2023 text is 13.18.53.2 (`{ identifier-1 | arithmetic-expression-1 }`) and 13.18.53.3 SR3 ('If arithmetic-expression-1 or the ROUNDED phrase is specified, the entry shall define either a numeric data item or a numeric-edited data item'). A parenthesized identifier is an arithmetic expression (SoleOperand.DataRef). Gated by recognition, VersionConformancePass ParseArm.VisitReportSourceClause, once per written clause; the SUM clause has its own forms and is not this row's.",
+   "display": "an arithmetic expression or function as a SOURCE operand (report group description)",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO/IEC 1989:2002 Annex F.2 (substantive changes not affecting existing programs), item 115 (post-ballot text v200112.txt); ISO §13.18.53.2, §13.18.53.3 SR3 (2023 text)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "VCR row 7.45 (85->2002: SOURCE takes an arithmetic expression or a function)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RSEX.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"RSEX.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WN PIC S9(3) VALUE -5.\nREPORT SECTION.\nRD R1 PAGE LIMIT IS 10 LINES.\n01 DA TYPE DETAIL LINE PLUS 1.\n    02 COLUMN 1 PIC S9(3) SOURCE WN + 1.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+  },
+  {
+   "id": "report-source-rounded-2002",
+   "status": "active",
+   "description": "The ROUNDED phrase of the SOURCE clause of a report group description entry (kb/Work PB3964). ANSI X3.23-1985's SOURCE clause has no rounded phrase; ISO/IEC 1989:2002 Annex F.2 item 115 QUOTES the change: 'SOURCE allows arithmetic expressions and functions and a ROUNDED phrase'. The 2023 text is 13.18.53.2 (`[ rounded-phrase ]`) with 13.18.53.3 SR3 and 13.18.53.4 GR2. Gated by recognition, VersionConformancePass ParseArm.VisitReportSourceClause, once per written clause.",
+   "display": "the ROUNDED phrase of the SOURCE clause (report group description)",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO/IEC 1989:2002 Annex F.2 (substantive changes not affecting existing programs), item 115 (post-ballot text v200112.txt); ISO §13.18.53.2, §13.18.53.3 SR3, §13.18.53.4 GR2 (2023 text)",
+   "introducedIn": 2002,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "VCR row 7.45 (85->2002: SOURCE takes a ROUNDED phrase)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RSRD.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"RSRD.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WN PIC S9(3) VALUE -5.\nREPORT SECTION.\nRD R1 PAGE LIMIT IS 10 LINES.\n01 DA TYPE DETAIL LINE PLUS 1.\n    02 COLUMN 1 PIC S9(3) SOURCE WN ROUNDED.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+  },
+  {
    "id": "user-word-underscore-2002",
    "status": "active",
    "description": "The UNDERSCORE as a character of a COBOL word (a user-defined word here) — ISO §8.3.2.1: \"Each character of a COBOL word … shall be selected from the set of basic letters, basic digits, extended letters, and the basic special characters hyphen and underscore. The hyphen or underscore shall not appear as the first or last character in such words.\" A COBOL-2002 introduction: the '85 word character set has the hyphen only. Parsed at EVERY edition (superset-parse / bind-narrow) so the below-2002 rejection is this named gate rather than a raw `no viable alternative`. fix-queue R02.",

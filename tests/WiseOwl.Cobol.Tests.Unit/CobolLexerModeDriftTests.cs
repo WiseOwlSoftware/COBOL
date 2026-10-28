@@ -281,6 +281,31 @@ public sealed class CobolLexerModeDriftTests
     public void AllZero_OutsideAnArithmeticPosition_StaysFigurative(string src) =>
         Assert.DoesNotContain("ZERO_ARITH", RewrittenTokenNames(src));
 
+    /// <summary>kb/Work PB3962 — a sign TOUCHING the digits of the next literal is that literal's sign (§8.7.1: a binary
+    /// operator is "preceded by a space and followed by a space"; §8.3.3.3.2 2): the sign is "the leftmost character of
+    /// the literal"), so the ZERO before it is a list operand and keeps its figurative token, whatever the list is.</summary>
+    [Theory]
+    [InlineData("DISPLAY ZERO -1")]
+    [InlineData("DISPLAY A ZEROS +1 B")]
+    [InlineData("ADD ZERO -1 TO N")]
+    [InlineData("88 C VALUE ZEROES -1.5")]
+    [InlineData("88 C VALUE ALL ZERO -5")]
+    [InlineData("88 C VALUE ZERO -1.5E3")]
+    [InlineData("88 C VALUE ZERO -,5")]
+    public void Zero_BeforeASignTouchingItsLiteral_StaysFigurative(string src) =>
+        Assert.DoesNotContain("ZERO_ARITH", RewrittenTokenNames(src));
+
+    /// <summary>The converse of the sign rule: a sign with a separator space after it IS the §8.7.1 operator (the
+    /// digits are not touched), and an operator on the ZERO's LEFT is an operator whatever follows.</summary>
+    [Theory]
+    [InlineData("COMPUTE N = ZERO - 1")]
+    [InlineData("COMPUTE N = ZERO + 1")]
+    [InlineData("COMPUTE N = ZERO -N")]
+    [InlineData("COMPUTE N = 5 - ZERO -1")]
+    [InlineData("DISPLAY 1 + ZERO")]
+    public void Zero_BesideAnOperator_IsStillRewritten(string src) =>
+        Assert.Contains("ZERO_ARITH", RewrittenTokenNames(src));
+
     /// <summary>A reference modifier written directly after a ZERO-ARGUMENT function name is delimited by
     /// FNARG parens too — the lexer cannot know the arity, which is why <c>refModPart</c> accepts both flavours
     /// — so a ZERO in one of its positions has no arithmetic paren beside it. §8.4.3.3.3 SR4 makes both

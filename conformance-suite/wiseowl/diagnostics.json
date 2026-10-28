@@ -23936,5 +23936,29 @@
    "2002"
   ],
   "expect": "COBOL1502"
+ },
+ "pb3964-report-filler-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: the word FILLER as the entry name of a report group description entry requires COBOL-2002"
+ },
+ "pb3964-report-plus-symbol-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: the '+' symbol for PLUS in a relative LINE or NEXT GROUP operand (report group description) requires COBOL-2002"
+ },
+ "pb3964-report-source-expression-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: an arithmetic expression or function as a SOURCE operand (report group description) requires COBOL-2002"
+ },
+ "pb3964-report-source-rounded-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: the ROUNDED phrase of the SOURCE clause (report group description) requires COBOL-2002"
  }
 }
