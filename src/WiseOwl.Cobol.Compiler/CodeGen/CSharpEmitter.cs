@@ -35,8 +35,10 @@ public sealed partial class CSharpEmitter
     /// <summary>Render typed-native C# from an already-bound immutable <see cref="BoundCompilation"/> (the emit
     /// half of the bind/emit split) — a fresh <see cref="ProgramEmitter"/> per call; the compilation carries
     /// everything emission needs (incl. the OO class table + interface forests), so the emit side reads NO
-    /// bind-host state.</summary>
-    internal string EmitBound(BoundCompilation comp, string assemblySimpleName, WiseOwl.Cobol.Frontend.CompilationInputs? inputs = null)
-        => new ProgramEmitter(inputs).Emit(comp, assemblySimpleName);
+    /// bind-host state. <paramref name="repositoryUpdate"/> is <c>--repository-update</c> (DESIGN-external-repository §9.1):
+    /// whether the module carries its units' signature attributes.</summary>
+    internal string EmitBound(BoundCompilation comp, string assemblySimpleName, WiseOwl.Cobol.Frontend.CompilationInputs? inputs = null,
+        bool repositoryUpdate = true)
+        => new ProgramEmitter(inputs).Emit(comp, assemblySimpleName, repositoryUpdate);
 
 }
