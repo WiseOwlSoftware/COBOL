@@ -37,12 +37,12 @@ def fabricated_run(root: pathlib.Path, run_id: str) -> pathlib.Path:
     run = root / run_id
     run.mkdir()
     (run / "run.json").write_text(json.dumps({"model": "m", "seed": 7, "started": "2026-10-28T04:00:00+00:00",
-                                              "hours": 8.0, "edition": "2014"}), encoding="utf-8")
+                                              "hours": 8.0, "edition": "2014"}), encoding="utf-8", newline="\n")
     (run / "report.md").write_text("# Differential fuzz — triage report\n\nPrograms: 5 · judged: 5 · usable: 3 (60% of judged)"
                                    " · usable on the first attempt: 2 (40% of judged) · GnuCOBOL alone refused (THEY_REJECT"
-                                   " leads): 1\n\n## Survivors: 3 programs in 2 signatures\n", encoding="utf-8")
+                                   " leads): 1\n\n## Survivors: 3 programs in 2 signatures\n", encoding="utf-8", newline="\n")
     rows = [{"verdict": v} for v in ("AGREE", "AGREE", "OUTPUT_DIFFERS", "WE_REJECT", "THEY_REJECT")]
-    (run / "results.jsonl").write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+    (run / "results.jsonl").write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8", newline="\n")
     return run
 
 
