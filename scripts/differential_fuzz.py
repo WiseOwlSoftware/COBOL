@@ -17,6 +17,11 @@ then the judge (`--cobol`) rebuilt from that main, and only then the next run. T
 the register does not call terminal, `work.TERMINAL_STATUSES`), and names those notes; `--force-open-notes` starts it
 anyway and names them. A bake-off, `--report` and `--self-test` are not runs and are never refused (kb/Work PB3523).
 
+THE MORNING'S TRIAGE is ONE tool in the tree, scripts/fuzz_triage.py (kb/Work PB3972; docs/rearchitecture/DESIGN-differential-fuzz.md):
+it takes this run directory and the judge as arguments, slices the survivors, renders the adjudicators' briefs, and files an
+upheld GnuCOBOL-side verdict as an `upstream` note (kb/Work PB3838). The Workflow that runs the agents is
+.claude/workflows/fuzz-triage.js.
+
 WHAT THE MODEL IS FOR, AND WHAT IT IS NOT. The owner's rule (2026-10-03, kept by every local-model experiment since): the
 ISO spec decides (CLAUDE.md rule 1); a local model produces LEADS, and nothing it writes enters `kb/Work/`, a golden or the
 conformance suite without a Claude or human check against the standard. Here the model needs no judgment at all: it only
