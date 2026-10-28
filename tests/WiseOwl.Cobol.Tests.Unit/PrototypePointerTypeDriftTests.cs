@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Tests.Shared;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -31,6 +34,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>RestrictedPrototypeName</c>. Behaviour is pinned by <c>conformance:cases/_unassigned/pb2464_prototype_pointer_signature_type</c>,
 /// <c>conformance:cases/_unassigned/pb2464_function_pointer_signature_type</c> and the negative
 /// <c>pb2464-typed-pointer-signature-mismatch</c>.</para>
+/// <para>A pointer decoded from another group's repository record is held to the same rule end to end
+/// (<see cref="ADecodedPointer_IsTypedByItsPrototypesSignature_NeverByItsName"/>; DESIGN-external-repository §6.4).</para>
 /// <para>Proven to FAIL before it was trusted: <see cref="ThePatternThisTestKeysOn_FiresOnThePB2464Defect"/> feeds the
 /// matcher the exact line the tree carried and asserts it is caught, and feeds it the repaired line and the signature
 /// readers and asserts they are not.</para>
@@ -260,6 +265,92 @@ public sealed class PrototypePointerTypeDriftTests
         MemberAccessExpressionSyntax member => member.Name.Identifier.Text,
         _ => null,
     };
+
+    // ── decoded identities (DESIGN-external-repository §6.4 part 3; kb/Work PB2100) ─────────────────────────────────────
+
+    /// <summary>The importing group: a prototype PA of one signature and a program holding a pointer restricted to it.</summary>
+    private const string Importer = """
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PA IS PROTOTYPE.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 X PIC 9(4).
+               PROCEDURE DIVISION USING X.
+               END PROGRAM PA.
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. GHOLD.
+               ENVIRONMENT DIVISION.
+               CONFIGURATION SECTION.
+               REPOSITORY.
+                   PROGRAM PA.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 PT IS TYPEDEF USAGE PROGRAM-POINTER TO PA.
+               01 P TYPE PT.
+               PROCEDURE DIVISION.
+                   GOBACK.
+               END PROGRAM GHOLD.
+               """;
+
+    /// <summary>A publishing group: <paramref name="prototype"/> with a formal of <paramref name="picture"/>, and a program
+    /// PUB whose formal is a program-pointer restricted to it.</summary>
+    private static string Publisher(string prototype, string picture) => $"""
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. {prototype} IS PROTOTYPE.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 X PIC {picture}.
+               PROCEDURE DIVISION USING X.
+               END PROGRAM {prototype}.
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PUB.
+               ENVIRONMENT DIVISION.
+               CONFIGURATION SECTION.
+               REPOSITORY.
+                   PROGRAM {prototype}.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 PT IS TYPEDEF USAGE PROGRAM-POINTER TO {prototype}.
+               LINKAGE SECTION.
+               01 L TYPE PT.
+               PROCEDURE DIVISION USING L.
+                   GOBACK.
+               END PROGRAM PUB.
+               """;
+
+    /// <summary>A pointer read from ANOTHER group's published record (rendered into a module and read back,
+    /// <c>RepositoryReader</c>) and decoded into the importing group (<c>RepositoryCodec.Decode</c>, which admits its
+    /// prototype into the group's signature classes) is typed by its prototype's SIGNATURE, never by its name (ISO
+    /// §13.18.60.4 GR25: "the address of a program with the same signature as that identified by the specified
+    /// program-prototype-name"): a prototype named otherwise with the group's signature shares the group pointer's identity,
+    /// one named like the group's prototype with another signature gets another, and two such records decoded in turn keep
+    /// one identity each.</summary>
+    [Fact]
+    public void ADecodedPointer_IsTypedByItsPrototypesSignature_NeverByItsName()
+    {
+        var importer = RepositoryCodecTests.Bind(Importer, 2023);
+        var held = importer.Units.Single(u => u.Name == "GHOLD").Data.WorkingStorageRoots.Single(r => r.CobolName == "P");
+        DataItem DecodedPointer(string prototype, string picture)
+        {
+            var publisher = RepositoryCodecTests.Bind(Publisher(prototype, picture), 2023);
+            var record = RepositoryReaderTests.ReadLibrary([RepositoryCodec.Of(publisher.Units.Single(u => u.Name == "PUB"))]).Single();
+            return RepositoryCodec.Decode(record, importer.SignatureClasses).Formals.Single().Item;
+        }
+
+        var sameSignature = DecodedPointer("PB", "9(4)");
+        Assert.Equal(held.PointerRestrictionIdentity, sameSignature.PointerRestrictionIdentity);
+        Assert.True(PrototypeSignatures.SameType(held, sameSignature), "a decoded pointer of the group's signature is not the group pointer's type");
+
+        var sameName = DecodedPointer("PA", "X(2)");
+        Assert.NotEqual(held.PointerRestrictionIdentity, sameName.PointerRestrictionIdentity);
+        Assert.False(PrototypeSignatures.SameType(held, sameName), "a decoded pointer named like the group's prototype took its type");
+        Assert.StartsWith("DECODED ", sameName.PointerRestrictionIdentity, StringComparison.Ordinal);
+
+        var again = DecodedPointer("PA", "S9(3)");
+        Assert.NotEqual(sameName.PointerRestrictionIdentity, again.PointerRestrictionIdentity);
+        Assert.NotEqual(held.PointerRestrictionIdentity, again.PointerRestrictionIdentity);
+        Assert.Equal(held.PointerRestrictionIdentity, sameSignature.PointerRestrictionIdentity);   // no admission moved a group identity
+    }
 
     [Fact]
     public void ThePatternThisTestKeysOn_FiresOnThePB2464Defect()
