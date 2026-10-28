@@ -58,7 +58,8 @@ cost the orchestrator a hand-written groups.json; this computes it.
 6. COST per group from model_rules.json; groups are taken in rank order while they fit (a group that does not fit is
    skipped and a smaller later one may still fit; a successor only with its predecessor), plus each group's landing (kb/Work PB3023).
 7. Codes (three per group) come from alloc.py, reserved only after the specs rendered on the PEEKED codes check GREEN
-   (below); --dry-run peeks and reserves nothing, and writes nothing. The planner
+   (below); --dry-run peeks and reserves nothing, and writes nothing (not the cluster views, the campaign's view or a
+   regenerated member index either: they go to a temporary directory it removes, kb/Work PB3803). The planner
    allocates no lead ids: the enqueue unit's clerk takes them from `alloc.py pb <n>` when it files the landed reports'
    leads (units/enqueue.md step 5; kb/Work PB3023 retired the train's lead-id blocks).
 8. A note whose `frontier_model:` field names a frontier model (model_rules.json `routing.frontier`) is never planned:
@@ -157,12 +158,14 @@ ledger entry, no args file.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import dataclasses
 import json
 import pathlib
 import re
 import subprocess
 import sys
+import tempfile
 import time
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -846,6 +849,13 @@ def finished_main(path: pathlib.Path) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Plan (and, without --dry-run, render) a wave; the exit code. It owns the lifetime of the temporary directory a dry
+    run plans in (kb/Work PB3803)."""
+    with contextlib.ExitStack() as stack:
+        return plan_main(argv, stack)
+
+
+def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--wave", default="next", help="the wave number, or next (default): the allocator's next wave "
                     "number (alloc.py wave: one past the highest seen in the reports, the dispatch ledger and the DEVLOG, "
@@ -928,14 +938,20 @@ def main(argv: list[str] | None = None) -> int:
     else:
         budget_points = a.budget_points
     notes = load_notes(REPO / "kb" / "Work", harm_weights())
+    # A DRY RUN WRITES NOTHING (kb/Work PB3803): every file the planning itself makes (the cluster views, the campaign's
+    # view, a member index it must regenerate) goes to a temporary directory `stack` removes, never into the
+    # coordination directory, which a dry run only reads. A real run records them in `cdir`.
+    made = pathlib.Path(stack.enter_context(tempfile.TemporaryDirectory(prefix="plan-wave-dry-"))) if a.dry_run else cdir
+
     def fix_clusters(status: str, given: str | None) -> list[dict[str, Any]]:
         if given:
             return json.loads(pathlib.Path(given).read_text(encoding="utf-8"))["clusters"]
-        return run_fix_clusters(status, cdir / f"clusters-{status}.json", rules)["clusters"]
+        return run_fix_clusters(status, made / f"clusters-{status}.json", rules)["clusters"]
 
     deps, waiting, campaign, tiers = None, {}, "", {}
     # THE declared set of a note, one index policy for every plan (kb/Work PB3203): THE index of this tree
-    declared = declared_sets(REPO, IndexPolicy.of(cdir, regenerate=not a.no_index_regenerate))
+    declared = declared_sets(REPO, IndexPolicy.of(cdir, regenerate=not a.no_index_regenerate,
+                                                        record_dir=made / "member-index" if a.dry_run else None))
     if a.cluster:
         view = work.cluster_order(work.load(), a.cluster)
         if not view["named"]:
@@ -949,7 +965,7 @@ def main(argv: list[str] | None = None) -> int:
         tiers = {r["id"]: r["tier"] for r in view["notes"]}   # the effective tiers: the placement order (PB3638)
         clusters, half_clusters, deps, waiting = campaign_clusters(view, notes, texts, rules, load_fix_clusters(), REPO,
                                                                    declared)
-        coord.write_json(cdir / f"clusters-campaign-{a.cluster}.json",
+        coord.write_json(made / f"clusters-campaign-{a.cluster}.json",
                          {"cluster": a.cluster, "open": clusters, "half": half_clusters, "deps": deps, "waiting": waiting})
         campaign = f" — CAMPAIGN {a.cluster}"
         a.authorization += (f"; this wave runs the campaign lane for the kb/Work cluster {a.cluster} that the "
