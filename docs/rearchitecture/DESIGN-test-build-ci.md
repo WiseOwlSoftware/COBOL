@@ -872,7 +872,10 @@ method's owned lines reaches the tests that executed that method; a comment-or-b
 ordinary method reaches the tests that reached any same-named method of the file's types (overload capture); a
 DECLARATION change (an override, virtual, operator, conversion, extension method, field, property, constant, a type
 with a base list or an attribute, or any removed or changed line no method owns) reaches every test that executed
-the file plus every test that executed a file naming one of its outermost types; a static constructor's change
+the file plus every test that executed a file naming one of its outermost types, BESIDE the direct hits of the
+file's other hunks (a signature change next to edited method bodies keeps those bodies' tests in tier 1; reading
+stopped at the first declaration hunk until PB3869's bounce, which put every one of them in tier 2, outside leg 1);
+a static constructor's change
 reaches every test that touched its type. A test's reach is its own recorded context plus its class's and its
 collection's (constructors, fixtures). The test assemblies are recorded too, so an edited theory harness reaches
 exactly the rows that executed it (an edited test METHOD is also tier 0a, §3.14.2). From that:

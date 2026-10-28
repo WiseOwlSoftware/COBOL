@@ -45,3 +45,16 @@ ran; it now goes through `GuardedStore` (§14.9.12.4 6) c)). Witnesses: golden r
 statement stores what the phraseless one stores and leaves the same next RANDOM element), and
 `NotSizeErrorAlone_DivideRemainder_DetectsASizeErrorInTheRemainder`.
 
+
+**The merge queue bounced it (PR #716, run 40612629630), and the gate's tiers explain why the local gate did not.**
+Twelve CCVS85 programs (NC106A, NC170A-NC173A, NC175A-NC177A, NC202A, NC203A, NC251A, NC253A) print FAIL* where their
+goldens print PASS: every failing test is a statement written with ONLY a NOT ON SIZE ERROR phrase, and the CCVS expects
+its receivers UNCHANGED on a size error (`DIVIDE .01 INTO 15.44` into `PIC 99V99` keeps 15.44; this branch stores the
+phraseless low-order digits, 44.00). GnuCOBOL 3.2 agrees with the CCVS (`cobc/typeck.c`: any `[NOT] SIZE ERROR` phrase
+sets `COB_STORE_KEEP_ON_OVERFLOW`). That is the branch's intended semantics, not an emitter slip, so the disposition is
+held for the owner (§14.6.13.1.3 item 8 leaves the receiver to the implementor; §14.7.5 says the NOT phrase "is ignored").
+The local gate never ran those programs because `impacted_tests.reach_cs` stopped at the first hunk outside a method
+(GuardedStore's signature) and took the whole file at the file level, so the tests that executed the changed method
+bodies fell from tier 1 to tier 2, which leg 1 never runs: 75 Conformance cases were tier 1 where 1,850 are. It now
+reads every hunk and adds the file level beside the direct hits; replayed on this branch's change, leg 1 holds NC203A,
+one of the twelve (self-test arm "a declaration hunk beside a method-body hunk", DESIGN-test-build-ci.md §3.13).

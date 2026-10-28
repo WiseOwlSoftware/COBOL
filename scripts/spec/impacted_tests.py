@@ -21,7 +21,8 @@ How a changed C# file reaches tests:
   * a hunk that only touches blank or comment lines reaches nothing;
   * any other hunk — outside every method: a new member, a signature, a constant, an enum value, a field, an
     attribute, a `using` — reaches every test that executed ANY code in the file, plus every test that executed a
-    file NAMING a type the file declares (tier 2: constants and enum values are compiled INTO their consumers);
+    file NAMING a type the file declares (tier 2: constants and enum values are compiled INTO their consumers),
+    beside — never instead of — the tier 1 of the file's other hunks that land inside a method;
   * without `--base` (files named on the command line) every file is taken at that file level.
 A changed TEST file reaches tests the same way (the test assemblies are recorded too): an edited harness — a helper
 a test calls — is tier 1 for the rows that executed it. It also names the tier-0a facts only the diff knows: the
@@ -554,21 +555,30 @@ def reach_cs(ix: MapIndex, path: str, status: str, base: str | None, reach: Reac
     if base is None or status != "M":
         declaration_change(ix, path, base, reach, "named without a diff" if base is None else f"status {status}")
         return
-    mask = 0
+    # ⛔ EVERY hunk is read, and a declaration hunk ADDS the file level to the method-body hunks' direct hits — never
+    # replaces them. Returning at the first declaration hunk demoted the tests that executed a changed method BODY to
+    # tier 2 (the widening contains them), which leg 1 never runs: PB3869's branch changed GuardedStore's signature
+    # beside the bodies of EmitArith, EmitCompute and DetectingStore, 75 Conformance cases were tier 1 instead of 1,850,
+    # and the NIST programs those bodies broke (NC203A among them, otherwise in leg 1) reached only the merge group.
+    mask, declarations = 0, []
     for h in hunks(base, path):
         ids = method_ids(ix, path, h)
         if ids is None:
-            declaration_change(ix, path, base, reach, f"a change at line {h.old_start} outside every method")
-            return
-        mask |= ids
+            declarations.append(h.old_start)
+        else:
+            mask |= ids
     reach.direct |= mask
     reach.widened |= ix.expand(mask)
     if bad := ambient_only(ix, mask):
         reach.every_tier1.append(f"{len(bad)} changed method(s) executed only OUTSIDE every test's context "
                                  f"(e.g. {bad[0]}) — cannot attribute them")
+    if declarations:
+        declaration_change(ix, path, base, reach, f"a change at line {declarations[0]} outside every method")
     names = sorted({ix.entries[i][0].split("::")[-1].split("(")[0] for i in bit_ids(mask)})
-    reach.notes.append(f"{path}: {len(names)} changed method(s) {', '.join(names[:6])}"
-                       + (" …" if len(names) > 6 else "") if names else f"{path}: comments and blank lines only")
+    if names:
+        reach.notes.append(f"{path}: {len(names)} changed method(s) {', '.join(names[:6])}" + (" …" if len(names) > 6 else ""))
+    elif not declarations:
+        reach.notes.append(f"{path}: comments and blank lines only")
 
 
 def ambient_only(ix: MapIndex, mask: int) -> list[str]:
@@ -902,6 +912,10 @@ def map_service_arms(check) -> None:
         served("a file that differs between the map's commit and the base is taken at the file level: every test that "
                "executed any method of it is tier 1", a_moved, a_path, text([*a_edited[:30], "    int y = 1;", *a_edited[31:]]),
                "nearest", {a_path, b_path}, {"N.T.M1": 1, "N.T.M2": 1, "N.T.M3": 3})
+        served("a declaration hunk beside a method-body hunk adds the file level and keeps the body's direct hit: the "
+               "method's tests tier 1, the file's other tests tier 2 (PB3869's bounce)",
+               docs, a_path, text([*a_edited[:24], "    int x25 = 99;", *a_edited[25:]]), "documentation-only drift", set(),
+               {"N.T.M1": 1, "N.T.M2": 2, "N.T.M3": 3})
         served("a hunk inside a method only the ambient array reached (a finalizer) cannot be attributed: every test is tier 1",
                docs, a_path, text([*a_lines[:42], "    int x43 = 99;", *a_lines[43:]]), "documentation-only drift", set(),
                {"N.T.M1": 1, "N.T.M2": 1, "N.T.M3": 1}, every_tier1=True)
