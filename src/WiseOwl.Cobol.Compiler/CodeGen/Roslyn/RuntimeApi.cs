@@ -2472,11 +2472,13 @@ internal static class RuntimeApi
 
     /// <summary>A sending operand the activating element states for its argument (<see cref="MoveSending"/>; kb/Work PB2587):
     /// <paramref name="characters"/> always, the flags and the value only when set, so the common case reads as itself.
+    /// <paramref name="computed"/> marks a numeric function's returned value that the binder folded to a literal
+    /// (<see cref="MoveSending.Computed"/>, kb/Work PB3969).
     /// <para>⛔ <paramref name="image"/> IS REQUIRED, AND NULL IS AN ANSWER (kb/Work PB3587): it is the sender's representation
     /// when that is not its characters (<see cref="MoveSending.StorageImage"/>; <c>OperandText.StorageImageIfDiffers</c>), so a
     /// producer of a sending operand cannot be written without deciding whether a plain-group formal reads something else.</para></summary>
     public static string MoveSendingNew(string characters, string? image, bool group = false, bool fill = false,
-        (string Unscaled, int Scale)? value = null, string? real = null)
+        (string Unscaled, int Scale)? value = null, string? real = null, bool computed = false)
     {
         var parts = new List<string> { characters };
         if (image is not null) parts.Add($"{nameof(MoveSending.StorageImage)}: {image}");
@@ -2485,6 +2487,7 @@ internal static class RuntimeApi
         if (value is not null || real is not null) parts.Add($"{nameof(MoveSending.Numeric)}: true");
         if (value is { } v) parts.Add($"{nameof(MoveSending.Unscaled)}: (Int128)({v.Unscaled}), {nameof(MoveSending.Scale)}: {v.Scale}");
         if (real is not null) parts.Add($"{nameof(MoveSending.Real)}: (double)({real})");
+        if (computed) parts.Add($"{nameof(MoveSending.Computed)}: true");
         return $"new {nameof(MoveSending)}({string.Join(", ", parts)})";
     }
 
