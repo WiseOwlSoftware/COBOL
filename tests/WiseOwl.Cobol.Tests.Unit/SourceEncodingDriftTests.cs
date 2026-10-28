@@ -36,15 +36,24 @@ public sealed class SourceEncodingDriftTests
 {
     private static readonly byte[] Bom = [0xEF, 0xBB, 0xBF];
 
-    /// <summary>The directory of a tree the <see cref="Scopes"/> table names. Each tree is spelled by its own helper
-    /// call, so the drift-rule index (scripts/spec/drift_rules.py) sees the two trees this class reads and plans it for
-    /// a change to a file under either (kb/Work PB3112: a root taken from the theory's parameter named nothing, so the
-    /// class governed no file, and the index's `--check` now refuses a class like that).</summary>
-    private static string TreeRoot(string tree) => tree switch
+    /// <summary>The three populations the <see cref="Scopes"/> table names, each a declared scope of the COMMITTED tree
+    /// (kb/Work PB3814, PB3531): the drift-rule index (scripts/spec/drift_rules.py) sees the trees this class reads and
+    /// plans it for a change to a file under either (kb/Work PB3112: a root taken from the theory's parameter named
+    /// nothing, so the class governed no file), and a walk of the directory from the file system, which enters every
+    /// running test host's <c>bin/</c> and <c>obj/</c>, is never made.</summary>
+    private static readonly TreeScope SrcGrammars = new(Under: ["src/"], Kinds: [".g4"]);
+
+    private static readonly TreeScope SrcSources = new(Under: ["src/"], Kinds: [".cs"]);
+
+    private static readonly TreeScope TestSources = new(Under: ["tests/"], Kinds: [".cs"]);
+
+    /// <summary>The tracked files of a Scopes row, as repo-root-relative paths.</summary>
+    private static IReadOnlyList<string> Population(string tree, string pattern) => (tree, pattern) switch
     {
-        "src" => TestRepo.Src(),
-        "tests" => TestRepo.Tests(),
-        _ => throw new ArgumentOutOfRangeException(nameof(tree), tree, "a tree the Scopes table names"),
+        ("src", "*.g4") => TrackedTree.Files(SrcGrammars),
+        ("src", "*.cs") => TrackedTree.Files(SrcSources),
+        ("tests", "*.cs") => TrackedTree.Files(TestSources),
+        _ => throw new ArgumentOutOfRangeException(nameof(pattern), $"{tree} {pattern}", "a row the Scopes table names"),
     };
 
     /// <summary>Source trees whose files shall not begin with a byte-order mark, with why it matters. The test
@@ -63,17 +72,14 @@ public sealed class SourceEncodingDriftTests
     {
         var offenders = new List<string>();
         byte[] head = new byte[3];   // hoisted: CA2014 forbids a stackalloc inside the loop
-        string root = TreeRoot(tree);
-        foreach (string f in Directory.EnumerateFiles(root, pattern, SearchOption.AllDirectories))
+        foreach (string rel in Population(tree, pattern))
         {
-            string rel = Path.GetRelativePath(root, f).Replace('\\', '/');
-            // Generated/ and obj/ are BUILD OUTPUTS (feedback_generated_parser_is_a_build_output) — the tool
-            // that writes them chooses their encoding, and they are never committed.
-            if (rel.Contains("/obj/") || rel.Contains("/bin/") || rel.Contains("Generated/")
-                || rel.EndsWith(".g.cs", StringComparison.Ordinal)) continue;
+            // Generated/ is a BUILD OUTPUT (feedback_generated_parser_is_a_build_output) — the tool that writes it
+            // chooses its encoding, and the generated C# (.g.cs) the same.
+            if (rel.Contains("Generated/") || rel.EndsWith(".g.cs", StringComparison.Ordinal)) continue;
 
-            using var s = File.OpenRead(f);
-            if (s.Read(head, 0, 3) == 3 && head.AsSpan().SequenceEqual(Bom)) offenders.Add(rel);
+            using var s = File.OpenRead(TestRepo.At(rel.Split('/')));
+            if (s.Read(head, 0, 3) == 3 && head.AsSpan().SequenceEqual(Bom)) offenders.Add(rel[(tree.Length + 1)..]);
         }
 
         Assert.True(offenders.Count == 0,
@@ -93,8 +99,7 @@ public sealed class SourceEncodingDriftTests
     public void TheScanSeesFiles(string tree, string pattern, string why)
     {
         _ = why;
-        string root = TreeRoot(tree);
-        int n = Directory.EnumerateFiles(root, pattern, SearchOption.AllDirectories).Count();
-        Assert.True(n > 0, $"the {pattern} scan found no files under {root} — the scan is broken");
+        int n = Population(tree, pattern).Count;
+        Assert.True(n > 0, $"the {pattern} scan found no tracked files under {tree}/ — the scan is broken");
     }
 }
