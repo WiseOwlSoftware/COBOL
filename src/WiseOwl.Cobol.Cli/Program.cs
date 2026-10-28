@@ -248,7 +248,6 @@ internal static class Program
         return 0;
     }
 
-    /// <summary>Compile per the resolved options, print diagnostics, and map the outcome to a POSIX exit code.</summary>
     /// <summary>The spellings <c>--repository-update</c> accepts.</summary>
     internal static readonly string[] RepositoryUpdateSpellings = ["on", "off"];
 
@@ -260,6 +259,7 @@ internal static class Program
         return value is not null && (!update || string.Equals(value, "on", StringComparison.OrdinalIgnoreCase));   // not a COBOL word: a command-line option value
     }
 
+    /// <summary>Compile per the resolved options, print diagnostics, and map the outcome to a POSIX exit code.</summary>
     private static int RunCompile(CliOptions options)
     {
         var result = CompilerDriver.Compile(new CompilerDriver.Options(

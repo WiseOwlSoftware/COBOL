@@ -274,6 +274,52 @@ public sealed class RepositoryCodecTests
         Assert.Equal(["ROMAIN", "ROI", "ROC"], RoundTripAll(comp));
     }
 
+    // A formal whose OCCURS DEPENDING ON object is QUALIFIED because its name is not unique in the record (ISO §8.4.2.2.3
+    // SR1: "uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of reference"),
+    // and one whose REDEFINES chain repeats a name: `X REDEFINES X` names the first X, and so does `C REDEFINES X`
+    // (§13.18.44.3 SR7: "Multiple redefinitions of the same storage area shall each specify as data-name-2 the data-name of
+    // the entry that originally defined the area"; NOTE 1: "If data-name-2 is not unique, no ambiguity of reference exists
+    // because of the required placement of the REDEFINES clause"). A record that keeps either link as a bare word decodes it
+    // to whichever entry of that name a lookup meets first (kb/Work PB978's shape), so the decoded twin is not the bound item.
+    internal const string AmbiguousNamesSource = """
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. RTQUAL.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 REC.
+                  05 A.
+                     10 N PIC 99.
+                  05 B.
+                     10 N PIC 99.
+                  05 T PIC X OCCURS 1 TO 10 DEPENDING ON N OF B.
+               01 RDF.
+                  05 X PIC X(4).
+                  05 X REDEFINES X PIC 9(4).
+                  05 C REDEFINES X PIC X(4).
+               PROCEDURE DIVISION USING REC RDF.
+                   GOBACK.
+               END PROGRAM RTQUAL.
+               """;
+
+    /// <summary>Both links of <see cref="AmbiguousNamesSource"/> decode to the entry the binder resolved — the second N (the
+    /// one in B) and the first X: the record names a DEPENDING ON object by its position in the description's tree, and the
+    /// decoder finds a REDEFINES object by the binder's own placement rule (<see cref="DataItem.OriginalDefinition"/>).</summary>
+    [Fact]
+    public void AQualifiedDependingOnObject_AndARepeatedRedefinesName_DecodeToTheBoundEntries()
+    {
+        var comp = Bind(AmbiguousNamesSource, 2023);
+        var unit = comp.Units.Single(u => u.Name == "RTQUAL");
+        var record = RepositoryCodec.Of(unit);
+        Assert.Equal(4, record.Formals[0].Description.Children[2].Table!.DependingEntry);   // REC 0, A 1, N 2, B 3, N 4
+        var decoded = RepositoryCodec.Decode(record, comp.SignatureClasses);
+        var t = decoded.Formals[0].Item.Children[2];
+        Assert.Same(decoded.Formals[0].Item.Children[1].Children[0], t.OccursSpec!.Depending);
+        var rdf = decoded.Formals[1].Item;
+        Assert.Same(rdf.Children[0], rdf.Children[1].RedefinesTarget);
+        Assert.Same(rdf.Children[0], rdf.Children[2].RedefinesTarget);
+        Assert.Equal(["RTQUAL"], RoundTripAll(comp));
+    }
+
     [Fact]
     public void TwoEncodingsOfOneUnit_AreEqual()
     {
@@ -355,11 +401,32 @@ public sealed class RepositoryCodecTests
         var cyclic = record with
         {
             Formals = new([.. record.Formals.Select(f => f == g1
-                ? f with { Description = f.Description with { Children = new([f.Description.Children[0], table with { Table = table.Table! with { Depending = "G1" } }]) } }
+                ? f with { Description = f.Description with { Children = new([f.Description.Children[0], table with { Table = table.Table! with { Depending = "G1", DependingEntry = 0 } }]) } }
                 : f)]),
         };
         e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(cyclic, comp.SignatureClasses));
         Assert.Contains("DEPENDING ON 'G1'", e.Message);
+        Assert.Contains("SR17", e.Message);
+
+        // The DEPENDING ON object's position and its word are one fact written twice: a record whose two disagree, that
+        // names a word of the record with no position, or a position past the tree is one the renderer cannot have written.
+        foreach (var (occurs, detail) in new (OccursRecord, string)[]
+        {
+            (table.Table! with { DependingEntry = 0 }, "which entry 0 ('G1') is not"),
+            (table.Table! with { DependingEntry = null }, "with entry none"),
+            (table.Table! with { Depending = RepositoryCodec.OutsideTheRecord }, "DEPENDING ON '<outside>' with entry 1"),
+            (table.Table! with { DependingEntry = 9 }, "index 9"),
+        })
+        {
+            var malformed = record with
+            {
+                Formals = new([.. record.Formals.Select(f => f == g1
+                    ? f with { Description = f.Description with { Children = new([f.Description.Children[0], table with { Table = occurs }]) } }
+                    : f)]),
+            };
+            e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(malformed, comp.SignatureClasses));
+            Assert.Contains(detail, e.Message);
+        }
     }
 
     // ── the shared round-trip check (also the corpus enumeration's) ─────────────────────────────────────────────────
@@ -452,8 +519,19 @@ public sealed class RepositoryCodecTests
         var xs = DataItem.DescendantsOf(x).Prepend(x).ToList();
         var ys = DataItem.DescendantsOf(y).Prepend(y).ToList();
         Assert.True(xs.Count == ys.Count, $"{at}: {xs.Count} entries vs {ys.Count}");
-        for (int i = 0; i < xs.Count; i++) SameEntry($"{at} / {xs[i].CobolName}", xs[i], ys[i]);
+        for (int i = 0; i < xs.Count; i++)
+        {
+            SameEntry($"{at} / {xs[i].CobolName}", xs[i], ys[i]);
+            // The links between entries are positions in the tree (an object outside it is -1 on both sides).
+            Assert.True(Link(xs, xs[i].OccursSpec?.Depending) == Link(ys, ys[i].OccursSpec?.Depending),
+                $"{at} / {xs[i].CobolName}: DEPENDING ON entry {Link(xs, xs[i].OccursSpec?.Depending)} vs {Link(ys, ys[i].OccursSpec?.Depending)}");
+            Assert.True(Link(xs, xs[i].RedefinesTarget) == Link(ys, ys[i].RedefinesTarget),
+                $"{at} / {xs[i].CobolName}: REDEFINES entry {Link(xs, xs[i].RedefinesTarget)} vs {Link(ys, ys[i].RedefinesTarget)}");
+        }
     }
+
+    private static int Link(List<DataItem> entries, DataItem? target) =>
+        target is null ? -1 : entries.FindIndex(e => ReferenceEquals(e, target));
 
     /// <summary>§6.3's normalization of <c>PicInfo</c>: record equality with the four restriction members and the editing
     /// rules set aside, the rules element-wise, the restriction names equal as written (one scope), and the restrictions

@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Runtime.Repository;
 /// ONCE for every attribute that carries a description: <see cref="CobolDescriptionAttribute"/> (a formal's or the
 /// returning item's tree), <see cref="CobolTypeDeclarationAttribute"/> and <see cref="CobolPrototypeDescriptionAttribute"/>.
 /// A non-nullable field the renderer does not write reads as its default; a nullable field of the record is written exactly
-/// when the record has a value (<see cref="Occurs"/>, <see cref="DynStructure"/>, <see cref="TypeDeclaration"/>,
+/// when the record has a value (<see cref="Occurs"/>, <see cref="OccursDependingEntry"/>, <see cref="DynStructure"/>, <see cref="TypeDeclaration"/>,
 /// <see cref="DigitPositions"/>, <see cref="CurrencyClass"/>, every nullable string); and a structured member exists exactly
 /// when its PRESENCE MARKER is written: <see cref="Category"/> for the elementary entry's PICTURE / USAGE profile,
 /// <see cref="OccursMax"/> for the OCCURS clause, <see cref="ClauseCharacterString"/> for the PICTURE clause identity,
@@ -51,6 +51,9 @@ public abstract class CobolDescriptionFieldsAttribute(int ordinal, int parent) :
     public int OccursMax { get; set; }
     /// <summary>The DEPENDING ON object, a word of the record or <c>&lt;outside&gt;</c>.</summary>
     public string? OccursDepending { get; set; }
+    /// <summary>The preorder index of the DEPENDING ON object's entry in this tree (present exactly when the object is a word
+    /// of the record): its identity, since a non-unique name is written qualified.</summary>
+    public int OccursDependingEntry { get; set; }
     /// <summary>A DYNAMIC-capacity table.</summary>
     public bool OccursDynamic { get; set; }
     /// <summary>A DYNAMIC table's CAPACITY data-name.</summary>

@@ -159,11 +159,15 @@ internal sealed record DescriptionRecord(
     string? TypeName, bool Strong, bool External, bool IsTypedef, bool TypedefStrong, bool IsExternalTypedef, bool ExternalFromType,
     int? TypeDeclaration, RepositoryGroupUsage GroupUsage, PicRecord? Pic, RecordList<DescriptionRecord> Children);
 
-/// <summary>The structured OCCURS clause (ISO §13.18.38; <c>OccursSpec</c>): the bounds, the DEPENDING ON object as a word
-/// of the record (or <see cref="RepositoryCodec.OutsideTheRecord"/>), and a DYNAMIC table's capacity phrases. The KEY and
-/// INDEXED BY phrases are not recorded: no comparator or host type reads them (§6.3).</summary>
-internal sealed record OccursRecord(int Min, int Max, string? Depending, bool Dynamic, string? Capacity, int? InitialCapacity,
-    int? ExpectedMax, bool Initialized);
+/// <summary>The structured OCCURS clause (ISO §13.18.38; <c>OccursSpec</c>): the bounds, the DEPENDING ON object, and a
+/// DYNAMIC table's capacity phrases. The object is <see cref="Depending"/>, its data-name (or
+/// <see cref="RepositoryCodec.OutsideTheRecord"/>), and <see cref="DependingEntry"/>, the preorder index of its entry in the
+/// description's tree (the root 0), present exactly when the object is in the record: the word alone is not an identity,
+/// because a DEPENDING ON object whose name is not unique is written qualified (ISO §8.4.2.2.3 SR1) and the record keeps no
+/// qualifiers (§6.2 "Anchoring"; kb/Work PB2100). The KEY and INDEXED BY phrases are not recorded: no comparator or host type
+/// reads them (§6.3).</summary>
+internal sealed record OccursRecord(int Min, int Max, string? Depending, int? DependingEntry, bool Dynamic, string? Capacity,
+    int? InitialCapacity, int? ExpectedMax, bool Initialized);
 
 /// <summary>
 /// <c>PicInfo</c> BY VALUE — every member (§6.1). The two restriction NAMES are kept as written by the publishing element

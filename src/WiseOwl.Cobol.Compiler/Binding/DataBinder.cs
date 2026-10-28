@@ -7487,8 +7487,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 var preceding = scope.TakeWhile(s => !ReferenceEquals(s, item))
                     .Where(s => CobolNames.Same(s.CobolName, tname)
                         && (item.Parent is not null || s.Section == item.Section)).ToList();
-                item.SetRedefinition(preceding.LastOrDefault(s => s.RedefinesTargetName is null) ?? preceding.LastOrDefault(),
-                    RedefinitionKind.Clause);
+                item.SetRedefinition(DataItem.OriginalDefinition(preceding) ?? preceding.LastOrDefault(), RedefinitionKind.Clause);
                 // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
                 // silent cross-scope bind to an object/program item) — §13.18.44.3 SR.
                 if (written && item.RedefinesTarget is null && item.Parent is null && OoRootOwner.ContainsKey(item.Root))

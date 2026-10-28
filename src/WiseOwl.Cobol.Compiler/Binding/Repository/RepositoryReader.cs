@@ -290,7 +290,8 @@ internal static class RepositoryReader
         Occurs: f.Present(nameof(CobolDescriptionFieldsAttribute.Occurs)),
         Table: f.Has(nameof(CobolDescriptionFieldsAttribute.OccursMax))
             ? new OccursRecord(f.Number(nameof(CobolDescriptionFieldsAttribute.OccursMin)), f.Number(nameof(CobolDescriptionFieldsAttribute.OccursMax)),
-                f.Text(nameof(CobolDescriptionFieldsAttribute.OccursDepending)), f.Flag(nameof(CobolDescriptionFieldsAttribute.OccursDynamic)),
+                f.Text(nameof(CobolDescriptionFieldsAttribute.OccursDepending)), f.Present(nameof(CobolDescriptionFieldsAttribute.OccursDependingEntry)),
+                f.Flag(nameof(CobolDescriptionFieldsAttribute.OccursDynamic)),
                 f.Text(nameof(CobolDescriptionFieldsAttribute.OccursCapacity)), f.Present(nameof(CobolDescriptionFieldsAttribute.OccursInitialCapacity)),
                 f.Present(nameof(CobolDescriptionFieldsAttribute.OccursExpectedMax)), f.Flag(nameof(CobolDescriptionFieldsAttribute.OccursInitialized)))
             : null,

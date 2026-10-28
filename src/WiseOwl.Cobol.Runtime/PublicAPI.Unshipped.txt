@@ -242,6 +242,8 @@ WiseOwl.Cobol.Runtime.Repository.CobolDescriptionFieldsAttribute.OccursCapacity.
 WiseOwl.Cobol.Runtime.Repository.CobolDescriptionFieldsAttribute.OccursCapacity.set -> void
 WiseOwl.Cobol.Runtime.Repository.CobolDescriptionFieldsAttribute.OccursDepending.get -> string?
 WiseOwl.Cobol.Runtime.Repository.CobolDescriptionFieldsAttribute.OccursDepending.set -> void
+WiseOwl.Cobol.Runtime.Repository.CobolDescriptionFieldsAttribute.OccursDependingEntry.get -> int
+WiseOwl.Cobol.Runtime.Repository.CobolDescriptionFieldsAttribute.OccursDependingEntry.set -> void
 WiseOwl.Cobol.Runtime.Repository.CobolDescriptionFieldsAttribute.OccursDynamic.get -> bool
 WiseOwl.Cobol.Runtime.Repository.CobolDescriptionFieldsAttribute.OccursDynamic.set -> void
 WiseOwl.Cobol.Runtime.Repository.CobolDescriptionFieldsAttribute.OccursExpectedMax.get -> int
