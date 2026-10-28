@@ -205,12 +205,21 @@ WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix.Signed16 = 4 -> WiseOwl.Cobol.
 WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix.Signed32 = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix
 WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix.Unsigned16 = 3 -> WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix
 WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix.Unsigned32 = 1 -> WiseOwl.Cobol.Runtime.Repository.RepositoryPrefix
+WiseOwl.Cobol.Runtime.Repository.RepositoryRaisingKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryRaisingKind.ExceptionName = 0 -> WiseOwl.Cobol.Runtime.Repository.RepositoryRaisingKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryRaisingKind.Interface = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositoryRaisingKind
+WiseOwl.Cobol.Runtime.Repository.RepositoryRaisingKind.ObjectClass = 1 -> WiseOwl.Cobol.Runtime.Repository.RepositoryRaisingKind
 WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
 WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.Malformed = 3 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
 WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.NoRepositoryRecord = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
 WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.None = 0 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
 WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.NotManagedAssembly = 1 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
 WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure.TooManyUnits = 4 -> WiseOwl.Cobol.Runtime.Repository.RepositoryReadFailure
+WiseOwl.Cobol.Runtime.Repository.RepositorySynchronized
+WiseOwl.Cobol.Runtime.Repository.RepositorySynchronized.Left = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositorySynchronized
+WiseOwl.Cobol.Runtime.Repository.RepositorySynchronized.None = 0 -> WiseOwl.Cobol.Runtime.Repository.RepositorySynchronized
+WiseOwl.Cobol.Runtime.Repository.RepositorySynchronized.Right = 3 -> WiseOwl.Cobol.Runtime.Repository.RepositorySynchronized
+WiseOwl.Cobol.Runtime.Repository.RepositorySynchronized.Unqualified = 1 -> WiseOwl.Cobol.Runtime.Repository.RepositorySynchronized
 WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
 WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Class = 2 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind
 WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.ClrMethod = 10 -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind

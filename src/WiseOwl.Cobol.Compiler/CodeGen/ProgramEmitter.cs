@@ -295,7 +295,7 @@ internal sealed class ProgramEmitter
         _ecState.Propagation = AutomaticPropagation.Of(data.AutomaticPropagation, inMethod: false);
         // §14.6.13.1.5 items 1 and 3 — this element's header RAISING census (kb/Work PB1121), read by every GOBACK /
         // EXIT … RAISING LAST EXCEPTION and by the activator's pickup, PROPAGATE ON or not.
-        _ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(unit.Bound.RaisingObjects ?? [], _ecState.OoClasses);
+        _ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(unit.Bound.Raising ?? [], _ecState.OoClasses);
         // A containing program with USE … GLOBAL declaratives makes this unit's I-O hooks walk outward on a
         // no-local-match (ISO §14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.
         _dispatchState.OuterGlobalUse = ChainHasGlobalUse(unit.Parent);

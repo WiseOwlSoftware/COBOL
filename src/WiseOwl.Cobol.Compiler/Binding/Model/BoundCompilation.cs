@@ -32,6 +32,9 @@ using Core = CobolParserCore;
 /// the module's repository record names it (DESIGN-external-repository §5.4 item 2).</param>
 /// <param name="AnyFiles">Any unit/class declares files or declaratives (drives the IO using + the run-unit-start
 /// FileInit; the §14.6.11 termination CloseAll is runtime-side in ProgramTable.RunMain, run-unit-scoped).</param>
+/// <param name="SignatureClasses">The group's restricted-pointer signature classes (<c>BindSession.SignatureClasses</c>,
+/// ISO §13.18.60.4 GR25 / GR26): the one partition a decoded repository record's prototypes are admitted into
+/// (<see cref="PrototypeSignatureClasses.Admit"/>; DESIGN-external-repository §6.4 part 2; kb/Work PB2100).</param>
 internal sealed record BoundCompilation(
     Core.CompilationUnitContext Tree,
     IReadOnlyList<BoundUnit> Units,
@@ -42,4 +45,5 @@ internal sealed record BoundCompilation(
     TurnState Turn,
     bool EcActive,
     bool AnyFiles,
-    int Edition);
+    int Edition,
+    PrototypeSignatureClasses SignatureClasses);

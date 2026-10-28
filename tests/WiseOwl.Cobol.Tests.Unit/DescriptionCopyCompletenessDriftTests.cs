@@ -237,6 +237,12 @@ public sealed class DescriptionCopyCompletenessDriftTests
             string text = File.ReadAllText(f);
             if (f.EndsWith("DataBinder.cs", StringComparison.Ordinal))
                 text = text.Replace(MethodBody(text, "private static void CopyEntryDescription("), "{}");
+            // The repository codec's decoder builds an entry from a PERSISTED record (DescriptionRecord), not from another
+            // DataItem: it copies no description, it translates one, and its completeness is the round trip's and the
+            // converse drift test's to hold (DESIGN-external-repository §6.3, §17.2; RepositoryCodecTests,
+            // RepositoryRecordConverseDriftTests; kb/Work PB2100).
+            if (f.EndsWith("RepositoryCodec.cs", StringComparison.Ordinal))
+                text = text.Replace(MethodBody(text, "private DataItem Item("), "{}");
             findings.AddRange(HandCopies(text).Select(h => $"{Path.GetFileName(f)}: {h}"));
         }
         Assert.True(findings.Count == 0,
