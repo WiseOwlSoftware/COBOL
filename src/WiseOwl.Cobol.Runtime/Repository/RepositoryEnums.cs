@@ -166,6 +166,19 @@ public enum RepositoryRaisingKind
     Interface = 2,
 }
 
+/// <summary>Whether a method of a class or an interface is a property accessor (ISO §11.7.2: <c>METHOD-ID. {GET | SET}
+/// PROPERTY property-name-1</c>, or the accessor a PROPERTY clause implies, ISO §13.18.42), as persisted.</summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
+public enum RepositoryAccessor
+{
+    /// <summary>An ordinary method (a method-name).</summary>
+    None = 0,
+    /// <summary>A get property method.</summary>
+    Get = 1,
+    /// <summary>A set property method.</summary>
+    Set = 2,
+}
+
 /// <summary>The SYNCHRONIZED clause of a described item (ISO §13.18.55.2: <c>{SYNCHRONIZED | SYNC} [LEFT | RIGHT]</c>), as
 /// persisted. The three forms are three different clauses, which §8.5.3.1 compares ("the same … SYNCHRONIZED … clauses"),
 /// so the phrase is recorded, never collapsed to a flag (kb/Work PB538).</summary>

@@ -119,9 +119,34 @@ two tree sweeps (`CobolNameFoldDriftTests`: the option value's case-blind compar
 the self-review widened the reader's catch to what `RepositoryIndex.Open` catches from a hostile blob. Run 000003 at
 8e7d3c05c: `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half GREEN, the 24 added cases `Passed`.
 
-**Left open in PB2100.** The OO arm: the class half of `RepositoryRecord` (`ClassRecord`, `MethodRecord`), the
-`[CobolUnit]` of classes and interfaces, `CobolMethodAttribute` and `CobolPropertyAttribute` on classes, factory types,
-methods, accessors and interfaces; 17.4's backend-independence fixture (a `MetadataBuilder` writer); 17.2's SR2-pair Fact;
+**PB2100, the OO arm (wave 20261734 group A).** The predecessor's thirteen commits cherry-picked cleanly onto main
+40b853db4 and re-gated GREEN (run 000001-20261028T021719Z). Re-probe: before this part a class or an interface carried no
+`[CobolUnit]` and no `Units` row, so a module holding only classes published nothing the repository could find, and no
+method's description was anywhere in metadata; ISO §8.13 lists "the type of the source unit - program, function, class, or
+interface", "the object properties of the source unit, if any" and "the methods contained in the source unit, if any, and
+details about the method's externalized name, parameters, returning item, and entry convention". After: `cobol oo.cob` (the
+codec's new OO fixture) writes `[CobolUnit(Class, "ROC", "RO-CLASS", …, BaseIdentity = "BASE", Implements = …, FactoryType =
+"__FACTORY_ROC")]`, a `[CobolProperty]` per property on the type of its accessors, and `[CobolMethod]` on each method,
+accessor and interface prototype with its formals on the carriers, and the program still prints `R= 0000002.50 TAG=ROC1`.
+The fix is the model first: `ClassRecord`, `PropertyRecord`, `MethodRecord` and `RepositoryRecord.Class`, written by
+`RepositoryCodec.Of(OoClassUnit)` / `Of(OoInterfaceSymbol, DataBinder)`; the renderer and the reader transcribe it
+(`UnitRecord`'s class facts, `MethodRecord`, `PropertyRecords`; `RepositoryReader.Class` / `Methods`, the factory read from
+the type `FactoryType` names). Two corrections of design 6.1 came with it. A method's formals are described in the METHOD's
+scope, so the codec's type-name lookup became the binder's one lookup (`DataBinder.TryFindTypeDecl`, ISO §11.7.4 GR5) for every
+record, programs included, instead of a dictionary of the element's own declarations; the fixture's `LK-M TYPE MT`, MT a
+method-local TYPEDEF, names its own row. And an accessor's externalized name is its property's (ISO §12.3.8.4 GR2: "Literal-5
+is the externalized name known to the operating environment for a method that implements the named property"), its `Name`
+the roster's `__GET_<P>`; a property record carries `IsFactory` and is derived from the accessors. `OoSignatureOf` takes the
+method's record and puts the formal's attributes on the carrier, the triple's first parameter (design 6.2 "Anchoring");
+covariant adapters and the presented inherited prototypes of an interface pass none and carry no `[CobolMethod]`. The reader
+also refuses an undefined `RepositoryUnitKind` in a constructor argument (`Fields.FixedKind`), which it had cast unchecked.
+Tests: `RepositoryCodecTests.AClassAndAnInterfaceRecord_StateTheFactsSection813Lists` and every method round-tripped
+(`RoundTripAll` through `OoRecordsOf`); `RepositoryReaderTests.ACompiledClassAndInterface_ReadBack_EqualToTheCodecsOf` (and
+`off`: the index rows stay, no signature attribute); `RepositoryRoundTripCorpusTests` publishes every class and interface of
+the corpus through metadata (it asserts more than 300 class and 50 interface records); the accessor pair in
+`RepositoryVocabularyDriftTests`. All 28,806 unit drift cases and the 36 characterization cases pass (no snapshot holds a class).
+
+**Left open in PB2100.** 17.4's backend-independence fixture (a `MetadataBuilder` writer); 17.2's SR2-pair Fact;
 `HostEntryShapeDriftTests`' totality Fact; and the decoded-identity cases of `PrototypePointerTypeDriftTests`. The note
 says so and stays open.
 

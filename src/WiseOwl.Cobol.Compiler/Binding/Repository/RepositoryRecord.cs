@@ -41,12 +41,56 @@ namespace WiseOwl.Cobol.Binding.Repository;
 /// <see cref="DescriptionRecord.DynStructure"/> (§6.4).</param>
 /// <param name="ReferencedPrototypes">The prototypes a restricted program- or function-pointer of the record names, each with
 /// its FULL signature (§6.4), indexed by <see cref="PicRecord.RestrictedPrototype"/>.</param>
+/// <param name="Class">The facts of a class or an interface (§8.13 "the object properties of the source unit, if any" and
+/// "the methods contained in the source unit, if any, and details about the method's externalized name, parameters,
+/// returning item, and entry convention"); null for a program, a function and a prototype. A class's or an interface's
+/// record has no formals, returning item or RAISING phrase of its own (its methods have them), and its tables are the ones
+/// its methods' descriptions index.</param>
 internal sealed record RepositoryRecord(
     RepositoryUnitKind Kind, string Name, string ExternalizedName,
     string EntryConvention, bool DecimalPointIsComma, RecordList<CurrencyRecord> Currencies,
     RecordList<RaisingRecord> Raising, RecordList<FormalRecord> Formals, DescriptionRecord? Returning,
     RecordList<DescriptionRecord> TypeDeclarations, RecordList<StructureRecord> DynamicLengthStructures,
-    RecordList<PrototypeRecord> ReferencedPrototypes);
+    RecordList<PrototypeRecord> ReferencedPrototypes, ClassRecord? Class = null);
+
+/// <summary>What a class or an interface publishes beside its unit facts (§6.1; ISO §8.13): its place in the inheritance
+/// graph as externalized identities (§6.4), its object properties and its methods. For an interface, <paramref name="Implements"/>
+/// is the INHERITS list (ISO §11.6.2) and the class-only facts are their defaults.</summary>
+/// <param name="Final">CLASS-ID … IS FINAL (ISO §11.3.4 GR3).</param>
+/// <param name="BaseIdentity">The superclass's externalized name (ISO §11.3.4 GR2; the standard class BASE included), or null.</param>
+/// <param name="Implements">The interfaces the object IMPLEMENTS (ISO §11.8.2), or an interface INHERITS, in the order written.</param>
+/// <param name="FactoryImplements">The interfaces the factory IMPLEMENTS (ISO §11.4.2), in the order written.</param>
+/// <param name="FactoryType">The CLR type name of the class's factory (§6.2 "Anchoring": the factory is its own type), or
+/// null for an interface.</param>
+/// <param name="Properties">The object and factory properties, each from its accessors (ISO §13.18.42; §11.7.2).</param>
+/// <param name="Methods">The methods: the object methods, then the factory methods, each in roster order.</param>
+internal sealed record ClassRecord(bool Final, string? BaseIdentity, RecordList<string> Implements, RecordList<string> FactoryImplements,
+    string? FactoryType, RecordList<PropertyRecord> Properties, RecordList<MethodRecord> Methods);
+
+/// <summary>One object property (ISO §8.13 "the object properties of the source unit"; §13.18.42): its name, the externalized
+/// name its accessors carry (ISO §12.3.8.4 GR2), the half it belongs to and which accessors it has.</summary>
+internal sealed record PropertyRecord(string Name, string ExternalizedName, bool IsFactory, bool Get, bool Set);
+
+/// <summary>One method of a class or an interface (ISO §8.13 "details about the method's externalized name, parameters,
+/// returning item, and entry convention"). <paramref name="Formals"/> and <paramref name="Returning"/> are described exactly
+/// as a program's (§6.2 "Anchoring": on the carrier parameter of each formal and on the return value) and index the class
+/// record's tables. <paramref name="ClrName"/> is the CLR method the attributes sit on (its metadata name, never an
+/// attribute argument).</summary>
+/// <param name="Name">The method-name, or an accessor's implementor-defined name (ISO §11.7.4 GR1 a)).</param>
+/// <param name="ExternalizedName">The method's externalized name (ISO §11.7.4 GR1 b)); an accessor's is its property's.</param>
+/// <param name="IsFactory">A factory method (ISO §11.4).</param>
+/// <param name="Accessor">A get or set property method, or neither (ISO §11.7.2).</param>
+/// <param name="PropertyName">The property an accessor gets or sets.</param>
+/// <param name="Override">The method overrides a superclass method (ISO §11.7.2 OVERRIDE).</param>
+/// <param name="Final">METHOD-ID … IS FINAL.</param>
+/// <param name="EntryConvention">The entry convention (ISO §8.13).</param>
+/// <param name="Raising">The PROCEDURE DIVISION header's RAISING phrase (ISO §14.2.1), each element an identity (§6.4).</param>
+/// <param name="Formals">The formal parameters by position.</param>
+/// <param name="Returning">The returning item's description, if any.</param>
+/// <param name="ClrName">The CLR method that implements it.</param>
+internal sealed record MethodRecord(string Name, string ExternalizedName, bool IsFactory, RepositoryAccessor Accessor, string? PropertyName,
+    bool Override, bool Final, string EntryConvention, RecordList<RaisingRecord> Raising, RecordList<FormalRecord> Formals,
+    DescriptionRecord? Returning, string ClrName);
 
 /// <summary>One currency symbol a source unit defines and its currency string (ISO §12.3.7.4 GR13; §8.13), with the class of
 /// the literal that defined it (§12.3.7.3 SR28).</summary>

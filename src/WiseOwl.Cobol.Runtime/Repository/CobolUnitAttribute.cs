@@ -59,4 +59,25 @@ public sealed class CobolUnitAttribute(RepositoryUnitKind kind, string name, str
 
     /// <summary>Each RAISING element's FACTORY phrase.</summary>
     public bool[]? RaisingFactory { get; set; }
+
+    // The facts of a class or an interface (§6.1 ClassRecord), written only with the signatures. Every other class identity
+    // is its externalized name (DESIGN-external-repository §6.4); the factory is a CLR type of its own, named here by its
+    // type name in this type's namespace, never by a System.Type (§6.2 "Anchoring").
+
+    /// <summary>CLASS-ID … IS FINAL (ISO §11.3.4 GR3: the class shall not be a superclass).</summary>
+    public bool Final { get; set; }
+
+    /// <summary>The externalized name of the class's superclass (its INHERITS clause, ISO §11.3.2); absent for an interface.</summary>
+    public string? BaseIdentity { get; set; }
+
+    /// <summary>The externalized names of the interfaces the class's object IMPLEMENTS (ISO §11.8.2), or that an interface
+    /// INHERITS (ISO §11.6.2), in the order written.</summary>
+    public string[]? Implements { get; set; }
+
+    /// <summary>The externalized names of the interfaces the class's FACTORY IMPLEMENTS (ISO §11.4.2), in the order written.</summary>
+    public string[]? FactoryImplements { get; set; }
+
+    /// <summary>The name of the CLR type that is the class's factory, in this type's namespace; its methods carry the
+    /// factory methods' <see cref="CobolMethodAttribute"/>s and its own <see cref="CobolPropertyAttribute"/>s.</summary>
+    public string? FactoryType { get; set; }
 }

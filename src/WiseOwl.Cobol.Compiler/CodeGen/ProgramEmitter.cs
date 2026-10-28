@@ -81,7 +81,7 @@ internal sealed class ProgramEmitter
     {
         _ecState.Active = comp.EcActive;
         _ecState.OoClasses = comp.OoClasses;
-        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.OoAdapters);
+        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.OoAdapters, repositoryUpdate);
         var units = comp.Units;
         var classes = comp.ClassUnits;
         bool anyFiles = comp.AnyFiles;
@@ -100,7 +100,8 @@ internal sealed class ProgramEmitter
         // (CS0234 / CS0118 on legal source otherwise). The assembly attribute precedes the namespace (C# requires it).
         var ns = CsNames.ModuleNamespaceOf(assemblySimpleName);
         w.Line(RepositoryAttributeRenderer.ModuleRecord(ns.RegistrarClrName,
-            RepositoryAttributeRenderer.IndexOf(HostEntryEmitter.EntryUnits(units)), comp.Edition, hasSignatures: repositoryUpdate));
+            RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, HostEntryEmitter.EntryUnits(units)), comp.Edition,
+            hasSignatures: repositoryUpdate));
         w.Line($"namespace {ns.CsName};");
         w.Line();
         // ⛔ Every namespace imported here is listed in CsNames.ImportedNamespaces, whose types' simple names no C# name

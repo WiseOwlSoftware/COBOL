@@ -10,12 +10,18 @@ namespace WiseOwl.Cobol.Binding.Repository;
 
 /// <summary>
 /// ⛔ THE ONE TRANSLATION BETWEEN A BOUND UNIT AND ITS REPOSITORY RECORD (ISO §8.13; docs/rearchitecture/
-/// DESIGN-external-repository.md §6.1, §6.3, §6.4; kb/Work PB2100). <see cref="Of"/> writes a program's, a function's or a
-/// prototype's record from the bound unit — its formals and returning item as description TREES, every type declaration,
-/// dynamic-length structure and referenced prototype those descriptions name as rows of the record's own tables (§6.2 rule
-/// 4) — and <see cref="Decode"/> binds a record back into a throw-away forest of <see cref="DataItem"/>s, so every comparator
-/// and derived quantity answers on the decoded twin exactly as on the bound item (§6.3's invariant, held by the round-trip
-/// test over the corpus, §17.2).
+/// DESIGN-external-repository.md §6.1, §6.3, §6.4; kb/Work PB2100). <see cref="Of(BoundUnit)"/> writes a program's, a
+/// function's or a prototype's record from the bound unit — its formals and returning item as description TREES, every type
+/// declaration, dynamic-length structure and referenced prototype those descriptions name as rows of the record's own tables
+/// (§6.2 rule 4) — and <see cref="Of(OoClassUnit)"/> / <see cref="Of(OoInterfaceSymbol, DataBinder)"/> a class's or an
+/// interface's, whose methods are described the same way and share the record's tables (ISO §8.13 "the methods contained in
+/// the source unit, if any, and details about the method's externalized name, parameters, returning item, and entry
+/// convention"). <see cref="Decode"/> binds a record back into a throw-away forest of <see cref="DataItem"/>s, so every
+/// comparator and derived quantity answers on the decoded twin exactly as on the bound item (§6.3's invariant, held by the
+/// round-trip test over the corpus, §17.2).
+/// <para>A TYPE clause's type-name is resolved where the entry that writes it is declared, through the binder's ONE
+/// type-name lookup (<see cref="DataBinder.TryFindTypeDecl"/>): a program's in its own element, a method's in its method
+/// first (ISO §11.7.4 GR5).</para>
 /// <para><b>Restricted program- and function-pointers are typed by SIGNATURE</b> (ISO §13.18.60.4 GR25: "A restricted
 /// program-pointer shall contain only the predefined address NULL or the address of a program with the same signature as
 /// that identified by the specified program-prototype-name", and GR26 its function-pointer twin). The record keeps the
@@ -57,16 +63,57 @@ internal static class RepositoryCodec
     public static RepositoryRecord Of(BoundUnit unit)
     {
         var data = unit.Data;
-        var encoder = new Encoder(data.OoClasses, data.TypeDecls);
-        var formals = encoder.Formals(data.LinkageFormals);
-        var returning = data.LinkageReturning is { } r ? encoder.Describe(r, r) : null;
-        var currencies = data.CurrencySigns.OrderBy(c => c.Key)
-            .Select(c => new CurrencyRecord(c.Key, c.Value.Text, Persisted(c.Value.LiteralClass)));
-        var raising = (unit.Bound?.Raising ?? []).Select(t => new RaisingRecord(Persisted(t.Kind), encoder.Identity(t), t.Factory));
+        var encoder = new Encoder(data.OoClasses);
+        var scope = new TypeScope(data, Scope.Program);
+        var formals = List(data.LinkageFormals.Select(f => encoder.Formal(f.Item, f.Position, f.ByValue, f.Optional, scope)));
+        var returning = data.LinkageReturning is { } r ? encoder.Describe(r, r, scope) : null;
         return new RepositoryRecord(KindOf(unit), unit.Name, unit.ExternalizedName, CobolEntryConvention,
-            data.DecimalPointIsComma, List(currencies), List(raising), formals, returning,
+            data.DecimalPointIsComma, Currencies(data), encoder.Raising(unit.Bound?.Raising ?? []), formals, returning,
             encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes);
     }
+
+    /// <summary>The record of a class (ISO §8.13; §6.1 <see cref="ClassRecord"/>): its unit facts from the class's ENVIRONMENT
+    /// DIVISION (which applies to its methods, ISO §11.3), its superclass and the interfaces its object and its factory
+    /// implement as externalized identities (§6.4), its object properties, and every object and factory method the class
+    /// itself declares, each described in its own method's scope.</summary>
+    public static RepositoryRecord Of(OoClassUnit cls)
+    {
+        var symbol = cls.Symbol;
+        var encoder = new Encoder(cls.Data.OoClasses);
+        RecordList<MethodRecord> methods = List(symbol.Methods.Select(m => encoder.Method(m, cls.Data))
+            .Concat(symbol.FactoryMethods.Select(m => encoder.Method(m, cls.FactoryData))));
+        var facts = new ClassRecord(symbol.IsFinal, symbol.Base?.ExternalizedName, List(symbol.Implements.Select(i => i.ExternalizedName)),
+            List(symbol.FactoryImplements.Select(i => i.ExternalizedName)), symbol.FactoryCsName, PropertiesOf(methods), methods);
+        return new RepositoryRecord(RepositoryUnitKind.Class, symbol.Name, symbol.ExternalizedName, CobolEntryConvention,
+            cls.Data.DecimalPointIsComma, Currencies(cls.Data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
+            encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts);
+    }
+
+    /// <summary>The record of an interface (ISO §8.13; §6.1): the interfaces it INHERITS (ISO §11.6.2) as identities, and its
+    /// own method prototypes, each described in its own scope of <paramref name="data"/> (the interface's bound forest).</summary>
+    public static RepositoryRecord Of(OoInterfaceSymbol iface, DataBinder data)
+    {
+        var encoder = new Encoder(data.OoClasses);
+        RecordList<MethodRecord> methods = List(iface.Prototypes.Select(m => encoder.Method(m, data)));
+        var facts = new ClassRecord(Final: false, BaseIdentity: null, List(iface.Inherits.Select(i => i.ExternalizedName)),
+            RecordList<string>.Empty, FactoryType: null, PropertiesOf(methods), methods);
+        return new RepositoryRecord(RepositoryUnitKind.Interface, iface.Name, iface.ExternalizedName, CobolEntryConvention,
+            data.DecimalPointIsComma, Currencies(data), RecordList<RaisingRecord>.Empty, RecordList<FormalRecord>.Empty, null,
+            encoder.TypeDeclarations, encoder.Structures, encoder.Prototypes, facts);
+    }
+
+    /// <summary>The currency symbols the source unit defines and their currency strings (ISO §8.13), ordered by symbol.</summary>
+    private static RecordList<CurrencyRecord> Currencies(DataBinder data) => List(data.CurrencySigns.OrderBy(c => c.Key)
+        .Select(c => new CurrencyRecord(c.Key, c.Value.Text, Persisted(c.Value.LiteralClass))));
+
+    /// <summary>The object properties of a class or an interface (ISO §8.13; §13.18.42), each the accessors of one property
+    /// of one half, in the order its first accessor appears; its externalized name is the one its accessors carry (ISO
+    /// §12.3.8.4 GR2).</summary>
+    private static RecordList<PropertyRecord> PropertiesOf(RecordList<MethodRecord> methods) => List(methods
+        .Where(m => m.Accessor is not RepositoryAccessor.None)
+        .GroupBy(m => (m.IsFactory, Property: CobolNames.Fold(m.PropertyName!)))
+        .Select(g => new PropertyRecord(g.First().PropertyName!, g.First().ExternalizedName, g.Key.IsFactory,
+            g.Any(m => m.Accessor is RepositoryAccessor.Get), g.Any(m => m.Accessor is RepositoryAccessor.Set))));
 
     /// <summary>Bind <paramref name="record"/> into a throw-away forest (§6.3) and admit its referenced prototypes into
     /// <paramref name="classes"/> (§6.4 part 2), so every decoded restricted pointer carries the identity of its
@@ -82,10 +129,17 @@ internal static class RepositoryCodec
 
     private static RecordList<T> List<T>(IEnumerable<T> items) => new([.. items]);
 
+    /// <summary>Where a description's type-names resolve: the forest that declares the entry and the source element within
+    /// it (a method's own scope, or the element's), read through the binder's ONE lookup (ISO §11.7.4 GR5; kb/Work PB3192).</summary>
+    private readonly record struct TypeScope(DataBinder Data, Scope Scope)
+    {
+        public DataItem? Find(string typeName) => Data.TryFindTypeDecl(typeName, Scope, out var declaration) ? declaration : null;
+    }
+
     /// <summary>The encoder of one record: its tables, filled as the descriptions name their rows (an index is assigned
     /// before a row is described, so a type or a prototype that names itself through a restricted pointer records as a
-    /// finite graph).</summary>
-    private sealed class Encoder(OoClassTable? classes, IReadOnlyDictionary<string, DataItem> typeDecls)
+    /// finite graph). A class's methods share one encoder, so their descriptions index one set of tables.</summary>
+    private sealed class Encoder(OoClassTable? classes)
     {
         private readonly Dictionary<DataItem, int> _typeIndex = new(ReferenceEqualityComparer.Instance);
         private readonly List<DescriptionRecord?> _types = [];
@@ -100,13 +154,32 @@ internal static class RepositoryCodec
 
         public RecordList<PrototypeRecord> Prototypes => List(_prototypes.Select(p => p!));
 
-        public RecordList<FormalRecord> Formals(IReadOnlyList<LinkageFormal> formals) =>
-            List(formals.Select(f => new FormalRecord(f.Position, f.Item.CobolName ?? "", f.ByValue ? PassingMode.Value : PassingMode.Reference,
-                f.Optional, Describe(f.Item, f.Item))));
+        /// <summary>One formal parameter (§8.13: its description, its manner of receiving and OPTIONAL).</summary>
+        public FormalRecord Formal(DataItem item, int position, bool byValue, bool optional, TypeScope scope) =>
+            new(position, item.CobolName ?? "", byValue ? PassingMode.Value : PassingMode.Reference, optional, Describe(item, item, scope));
+
+        /// <summary>A PROCEDURE DIVISION header's RAISING phrase, each element an identity (§6.4).</summary>
+        public RecordList<RaisingRecord> Raising(IEnumerable<RaisingTarget> raising) =>
+            List(raising.Select(t => new RaisingRecord(Persisted(t.Kind), Identity(t), t.Factory)));
+
+        /// <summary>One method of a class or an interface, its formals and returning item described in the method's own scope of
+        /// <paramref name="data"/> (the half that declares it). An accessor's externalized name is its property's (ISO
+        /// §12.3.8.4 GR2: "Literal-5 is the externalized name known to the operating environment for a method that
+        /// implements the named property"); an OVERRIDE is the bound fact (<see cref="OoMethodSymbol.OverrideOf"/>), which the
+        /// emitted method's CLR <c>override</c> is too.</summary>
+        public MethodRecord Method(OoMethodSymbol m, DataBinder data)
+        {
+            var scope = new TypeScope(data, new Scope(m.DataScope));
+            var binding = m.Binding ?? throw new InvalidOperationException($"RepositoryCodec: the method '{m.SourceName}' has no bound signature");
+            return new MethodRecord(m.Name, m.Accessor == '\0' ? m.ExternalizedName : m.PropertyName!, m.IsFactory,
+                PersistedAccessor(m.Accessor), m.PropertyName, Override: m.OverrideOf is not null, m.IsFinal, CobolEntryConvention,
+                Raising(m.Raising), List(binding.Formals.Select(f => Formal(f.Item, f.Position, f.ByValue, f.Optional, scope))),
+                binding.Returning is { } r ? Describe(r, r, scope) : null, m.CsName);
+        }
 
         /// <summary>One entry and its subordinates; <paramref name="root"/> is the record's level-1 entry, the scope an OCCURS
-        /// DEPENDING ON object is named in.</summary>
-        public DescriptionRecord Describe(DataItem d, DataItem root) => new(
+        /// DEPENDING ON object is named in, and <paramref name="scope"/> where its type-names resolve.</summary>
+        public DescriptionRecord Describe(DataItem d, DataItem root, TypeScope scope) => new(
             Level: d.Level, Name: d.CobolName, RedefinesTarget: d.RedefinesTargetName, Occurs: d.Occurs,
             Table: d.OccursSpec is { } spec ? Table(spec, root) : null,
             Justified: d.Justified, BlankWhenZero: d.BlankWhenZero, Synchronized: Persisted(d.Synchronized),
@@ -115,10 +188,10 @@ internal static class RepositoryCodec
             DynStructure: d.DynStructure is { } s ? StructureOf(s) : null,
             TypeName: d.TypeName, Strong: d.StrongType, External: d.HasExternalClause, IsTypedef: d.IsTypedef,
             TypedefStrong: d.TypedefStrong, IsExternalTypedef: d.IsExternalTypedef, ExternalFromType: d.ExternalFromType,
-            TypeDeclaration: d.TypeName is { } typeName && typeDecls.TryGetValue(typeName, out var declaration)
-                ? TypeDeclarationOf(declaration) : null,
-            GroupUsage: Persisted(d.GroupUsage), Pic: d.Pic is { } p ? Pic(d, p) : null,
-            Children: List(d.Children.Select(c => Describe(c, root))));
+            TypeDeclaration: d.TypeName is { } typeName && scope.Find(typeName) is { } declaration
+                ? TypeDeclarationOf(declaration, scope) : null,
+            GroupUsage: Persisted(d.GroupUsage), Pic: d.Pic is { } p ? Pic(d, p, scope) : null,
+            Children: List(d.Children.Select(c => Describe(c, root, scope))));
 
         /// <summary>The identity of a RAISING element (§6.4): an exception-name as written, a class or an interface by the
         /// externalized name it resolved to in the publishing element (the partition left out every element that did not
@@ -143,7 +216,7 @@ internal static class RepositoryCodec
             return false;
         }
 
-        private PicRecord Pic(DataItem d, PicInfo p)
+        private PicRecord Pic(DataItem d, PicInfo p, TypeScope scope)
         {
             var named = p.LocaleEdit?.Locale.Named;
             var objectRef = p.ObjectRef;
@@ -151,9 +224,9 @@ internal static class RepositoryCodec
                 Category: Persisted(p.Category), Usage: Persisted(p.Usage), Length: p.Length, Digits: p.Digits, Scale: p.Scale,
                 Signed: p.Signed, SignKind: p.SignKind, IsRecovery: p.IsRecovery,
                 RestrictedTypeName: p.RestrictedTypeName,
-                RestrictedTypeDeclaration: p.RestrictedTypeDecl is { } decl ? TypeDeclarationOf(decl) : null,
+                RestrictedTypeDeclaration: p.RestrictedTypeDecl is { } decl ? TypeDeclarationOf(decl, scope) : null,
                 RestrictedPrototypeName: p.RestrictedPrototypeName,
-                RestrictedPrototype: d.RestrictedPrototype is { } prototype ? PrototypeOf(prototype) : null,
+                RestrictedPrototype: d.RestrictedPrototype is { } prototype ? PrototypeOf(prototype, scope) : null,
                 PackedNoSign: p.PackedNoSign, FloatLittleEndian: p.FloatLittleEndian, IsFloatEdited: p.IsFloatEdited,
                 EditMask: p.EditMask, CurrencyString: p.CurrencyString,
                 CurrencyClass: p.CurrencyClass is { } currencyClass ? Persisted(currencyClass) : null,
@@ -180,13 +253,13 @@ internal static class RepositoryCodec
             _ => classes?.Find(d.Value.Name)?.ExternalizedName,
         };
 
-        private int TypeDeclarationOf(DataItem declaration)
+        private int TypeDeclarationOf(DataItem declaration, TypeScope scope)
         {
             if (_typeIndex.TryGetValue(declaration, out int index)) return index;
             index = _types.Count;
             _typeIndex.Add(declaration, index);
             _types.Add(null);
-            _types[index] = Describe(declaration, declaration);
+            _types[index] = Describe(declaration, declaration, scope);
             return index;
         }
 
@@ -199,7 +272,9 @@ internal static class RepositoryCodec
             return index;
         }
 
-        private int PrototypeOf(RestrictedPrototype prototype)
+        /// <summary>A referenced prototype's row. Its formals' type-names are looked up in <paramref name="scope"/>, the
+        /// referencing entry's, because a <see cref="RestrictedPrototype"/> does not carry the prototype unit's own forest.</summary>
+        private int PrototypeOf(RestrictedPrototype prototype, TypeScope scope)
         {
             var key = (prototype.Origin, prototype.Function, CobolNames.Fold(prototype.ExternalizedName));
             if (_prototypeIndex.TryGetValue(key, out int index)) return index;
@@ -210,8 +285,9 @@ internal static class RepositoryCodec
             _prototypes[index] = new PrototypeRecord(index,
                 prototype.Function ? RepositoryUnitKind.FunctionPrototype : RepositoryUnitKind.ProgramPrototype,
                 prototype.ExternalizedName, signature is not null,
-                signature is null ? RecordList<FormalRecord>.Empty : Formals(signature.Formals),
-                signature?.Returning is { } r ? Describe(r, r) : null);
+                signature is null ? RecordList<FormalRecord>.Empty
+                    : List(signature.Formals.Select(f => Formal(f.Item, f.Position, f.ByValue, f.Optional, scope))),
+                signature?.Returning is { } r ? Describe(r, r, scope) : null);
             return index;
         }
     }
@@ -239,6 +315,8 @@ internal static class RepositoryCodec
             DataItem[] types = [.. record.TypeDeclarations.Select(Root)];
             var prototypes = record.ReferencedPrototypes.Select(p => (Record: p, Formals: Formals(p.Formals),
                 Returning: p.Returning is { } pr ? Root(pr) : null)).ToList();
+            DecodedMethod[] methods = [.. (record.Class?.Methods ?? RecordList<MethodRecord>.Empty).Select(m =>
+                new DecodedMethod(m, Formals(m.Formals), m.Returning is { } mr ? Root(mr) : null))];
 
             foreach (var (pointer, declaration) in _typeReferences)
                 pointer.Pic = pointer.Pic! with { RestrictedTypeDecl = At(types, declaration, "a RestrictedTypeDeclaration") };
@@ -251,7 +329,7 @@ internal static class RepositoryCodec
                 pointer.RestrictedPrototype = At(restricted, prototype, "a RestrictedPrototype");
                 RestrictedPointers.Add(pointer);
             }
-            return new DecodedRecord(formals, returning, types, restricted);
+            return new DecodedRecord(formals, returning, types, restricted, methods);
         }
 
         private List<LinkageFormal> Formals(RecordList<FormalRecord> formals) =>
@@ -349,9 +427,18 @@ internal static class RepositoryCodec
 internal sealed class RepositoryRecordException(string message) : Exception(message);
 
 /// <summary>A record bound into its throw-away forest (§6.3): the formals and the returning item as a CALL's callee
-/// signature, the type declarations and the referenced prototypes as the record's tables decoded.</summary>
+/// signature, the type declarations and the referenced prototypes as the record's tables decoded, and a class's or an
+/// interface's methods with theirs.</summary>
 internal sealed record DecodedRecord(IReadOnlyList<LinkageFormal> Formals, DataItem? Returning,
-    IReadOnlyList<DataItem> TypeDeclarations, IReadOnlyList<RestrictedPrototype> Prototypes)
+    IReadOnlyList<DataItem> TypeDeclarations, IReadOnlyList<RestrictedPrototype> Prototypes, IReadOnlyList<DecodedMethod> Methods)
+{
+    /// <summary>The decoded signature, in the shape <see cref="PrototypeSignatures.Same"/> compares.</summary>
+    public CalleeSignature Signature => new(Formals, Returning);
+}
+
+/// <summary>One method of a decoded class or interface record: its record and its formals and returning item bound into the
+/// record's throw-away forest.</summary>
+internal sealed record DecodedMethod(MethodRecord Record, IReadOnlyList<LinkageFormal> Formals, DataItem? Returning)
 {
     /// <summary>The decoded signature, in the shape <see cref="PrototypeSignatures.Same"/> compares.</summary>
     public CalleeSignature Signature => new(Formals, Returning);

@@ -304,3 +304,61 @@ public sealed class CobolPrototypeDescriptionAttribute(int prototype, int formal
     /// <summary>The position of the formal, or <see cref="ReturningItem"/>.</summary>
     public int Formal { get; } = formal;
 }
+
+/// <summary>One method of a class or an interface (ISO §8.13 "the methods contained in the source unit, if any, and details
+/// about the method's externalized name, parameters, returning item, and entry convention"), on the CLR method that
+/// implements it: an object method on the class's type, a factory method on its factory type, a prototype on the
+/// interface. Its formals are the <see cref="CobolFormalAttribute"/>s on the parameters that carry them and its returning
+/// item the return value's <see cref="CobolDescriptionAttribute"/>s (§6.2 "Anchoring"); a CLR method without this attribute
+/// is no COBOL method (a covariant-return adapter) and a reader skips it.</summary>
+/// <param name="name">The method-name, or the implementor-defined name of a property accessor (ISO §11.7.4 GR1 a)).</param>
+/// <param name="externalizedName">The method's externalized name (ISO §11.7.4 GR1 b)); an accessor's is its property's
+/// (ISO §12.3.8.4 GR2: "Literal-5 is the externalized name known to the operating environment for a method that implements
+/// the named property").</param>
+[EditorBrowsable(EditorBrowsableState.Never)]
+[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+public sealed class CobolMethodAttribute(string name, string externalizedName) : Attribute
+{
+    /// <summary>The method-name.</summary>
+    public string Name { get; } = name;
+    /// <summary>The externalized name.</summary>
+    public string ExternalizedName { get; } = externalizedName;
+    /// <summary>A factory method (ISO §11.4).</summary>
+    public bool IsFactory { get; set; }
+    /// <summary>A get or set property method (ISO §11.7.2), or neither.</summary>
+    public RepositoryAccessor Accessor { get; set; }
+    /// <summary>The property an accessor gets or sets.</summary>
+    public string? PropertyName { get; set; }
+    /// <summary>The method overrides a method of a superclass (ISO §11.7.2 OVERRIDE).</summary>
+    public bool Override { get; set; }
+    /// <summary>METHOD-ID … IS FINAL (ISO §11.7.2).</summary>
+    public bool Final { get; set; }
+    /// <summary>The method's entry convention (ISO §8.13).</summary>
+    public string? EntryConvention { get; set; }
+    /// <summary>The kind of each element of the method's RAISING phrase (ISO §14.2.1); parallel to
+    /// <see cref="RaisingIdentity"/> and <see cref="RaisingFactory"/> (§6.2 rule 3).</summary>
+    public RepositoryRaisingKind[]? RaisingKind { get; set; }
+    /// <summary>Each RAISING element's identity (DESIGN-external-repository §6.4).</summary>
+    public string[]? RaisingIdentity { get; set; }
+    /// <summary>Each RAISING element's FACTORY phrase.</summary>
+    public bool[]? RaisingFactory { get; set; }
+}
+
+/// <summary>One object property of a class or an interface (ISO §8.13 "the object properties of the source unit, if any";
+/// ISO §13.18.42), on the CLR type whose methods are its accessors: the class's type for an object property, the factory
+/// type for a factory property.</summary>
+/// <param name="name">The property-name.</param>
+/// <param name="externalizedName">The property's externalized name, which its accessors carry (ISO §12.3.8.4 GR2).</param>
+[EditorBrowsable(EditorBrowsableState.Never)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, Inherited = false, AllowMultiple = true)]
+public sealed class CobolPropertyAttribute(string name, string externalizedName) : Attribute
+{
+    /// <summary>The property-name.</summary>
+    public string Name { get; } = name;
+    /// <summary>The externalized name.</summary>
+    public string ExternalizedName { get; } = externalizedName;
+    /// <summary>The property has a get property method.</summary>
+    public bool Get { get; set; }
+    /// <summary>The property has a set property method.</summary>
+    public bool Set { get; set; }
+}

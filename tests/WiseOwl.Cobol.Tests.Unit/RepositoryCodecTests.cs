@@ -123,6 +123,153 @@ public sealed class RepositoryCodecTests
         Assert.True(RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RTTWO")).Formals[1].Optional);
     }
 
+    // A class and an interface whose records cover what ISO §8.13 lists for them: "the object properties of the source unit"
+    // (an object property from a PROPERTY clause, a factory property, an interface's GET PROPERTY prototype) and "the methods
+    // contained in the source unit, if any, and details about the method's externalized name, parameters, returning item, and
+    // entry convention" (a BY VALUE formal and a RETURNING item, an OPTIONAL formal, a factory method returning an object
+    // reference); the superclass and the implemented interface as identities, an AS name, DECIMAL-POINT IS COMMA; and a
+    // method formal typed by the object's TYPEDEF and one typed by the METHOD's own (ISO §11.7.4 GR5: the method's
+    // declaration is the one its word refers to).
+    internal const string OoSource = """
+               IDENTIFICATION DIVISION.
+               INTERFACE-ID. ROI.
+               PROCEDURE DIVISION.
+               METHOD-ID. SCALE.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 LK-N PIC S9(5)V99 COMP-3.
+               01 LK-R PIC S9(7)V99 COMP-3.
+               PROCEDURE DIVISION USING BY VALUE LK-N RETURNING LK-R.
+               END METHOD SCALE.
+               METHOD-ID. GET PROPERTY TAG.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 LK-T PIC X(4).
+               PROCEDURE DIVISION RETURNING LK-T.
+               END METHOD.
+               END INTERFACE ROI.
+
+               IDENTIFICATION DIVISION.
+               CLASS-ID. ROC AS "RO-CLASS" INHERITS FROM BASE.
+               ENVIRONMENT DIVISION.
+               CONFIGURATION SECTION.
+               SPECIAL-NAMES.
+                   DECIMAL-POINT IS COMMA.
+               REPOSITORY.
+                   CLASS BASE
+                   INTERFACE ROI.
+               IDENTIFICATION DIVISION.
+               FACTORY.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 F-COUNT PIC 9(4) VALUE 0 PROPERTY.
+               PROCEDURE DIVISION.
+               METHOD-ID. MAKE.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 LK-O USAGE OBJECT REFERENCE ROC.
+               PROCEDURE DIVISION RETURNING LK-O.
+                   INVOKE SELF "NEW" RETURNING LK-O.
+                   ADD 1 TO F-COUNT.
+                   GOBACK.
+               END METHOD MAKE.
+               END FACTORY.
+               IDENTIFICATION DIVISION.
+               OBJECT. IMPLEMENTS ROI.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 OT TYPEDEF.
+                  05 OT-A PIC X(2).
+                  05 OT-B PIC 9(3).
+               01 TAG PIC X(4) VALUE "ROC1" PROPERTY.
+               PROCEDURE DIVISION.
+               METHOD-ID. SCALE.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 LK-N PIC S9(5)V99 COMP-3.
+               01 LK-R PIC S9(7)V99 COMP-3.
+               PROCEDURE DIVISION USING BY VALUE LK-N RETURNING LK-R.
+                   COMPUTE LK-R = LK-N * 2.
+                   GOBACK.
+               END METHOD SCALE.
+               METHOD-ID. FILL-IN.
+               DATA DIVISION.
+               LOCAL-STORAGE SECTION.
+               01 MT TYPEDEF PIC X(6).
+               LINKAGE SECTION.
+               01 LK-G TYPE OT.
+               01 LK-M TYPE MT.
+               PROCEDURE DIVISION USING LK-G OPTIONAL LK-M.
+                   MOVE "AB" TO OT-A OF LK-G.
+                   MOVE 7 TO OT-B OF LK-G.
+                   GOBACK.
+               END METHOD FILL-IN.
+               END OBJECT.
+               END CLASS ROC.
+
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. ROMAIN.
+               ENVIRONMENT DIVISION.
+               CONFIGURATION SECTION.
+               REPOSITORY.
+                   CLASS ROC AS "RO-CLASS"
+                   INTERFACE ROI
+                   PROPERTY TAG.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 O USAGE OBJECT REFERENCE ROC.
+               01 I USAGE OBJECT REFERENCE ROI.
+               01 N PIC S9(5)V99 COMP-3 VALUE 1.25.
+               01 R PIC S9(7)V99 COMP-3.
+               01 R-D PIC -9(7).99.
+               PROCEDURE DIVISION.
+                   INVOKE ROC "MAKE" RETURNING O.
+                   SET I TO O.
+                   INVOKE I "SCALE" USING BY VALUE N RETURNING R.
+                   MOVE R TO R-D.
+                   DISPLAY "R=" R-D " TAG=" TAG OF I.
+                   STOP RUN.
+               END PROGRAM ROMAIN.
+        """;
+
+    [Fact]
+    public void AClassAndAnInterfaceRecord_StateTheFactsSection813Lists()
+    {
+        var comp = Bind(OoSource, 2023);
+        var records = OoRecordsOf(comp).Select(r => r.Record).ToList();
+        var iface = records.Single(r => r.Kind == WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Interface);
+        var cls = records.Single(r => r.Kind == WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Class);
+
+        Assert.Equal(("ROI", "ROI"), (iface.Name, iface.ExternalizedName));
+        Assert.Equal(["SCALE", "TAG"], iface.Class!.Methods.Select(m => m.ExternalizedName));
+        Assert.Equal(WiseOwl.Cobol.Runtime.Repository.PassingMode.Value, iface.Class.Methods[0].Formals.Single().Mode);
+        Assert.NotNull(iface.Class.Methods[0].Returning);
+        Assert.Equal(new PropertyRecord("TAG", "TAG", IsFactory: false, Get: true, Set: false), iface.Class.Properties.Single());
+        Assert.Null(iface.Class.FactoryType);
+
+        Assert.Equal(("ROC", "RO-CLASS"), (cls.Name, cls.ExternalizedName));
+        Assert.True(cls.DecimalPointIsComma);
+        var c = cls.Class!;
+        Assert.Equal("BASE", c.BaseIdentity);
+        Assert.Equal(["ROI"], c.Implements);
+        Assert.Empty(c.FactoryImplements);
+        Assert.Equal(comp.ClassUnits.Single().Symbol.FactoryCsName, c.FactoryType);
+        Assert.Equal([new PropertyRecord("TAG", "TAG", false, true, true), new PropertyRecord("F-COUNT", "F-COUNT", true, true, true)], c.Properties);
+        // The object roster, then the factory roster; an accessor carries its property's externalized name (ISO §12.3.8.4 GR2).
+        Assert.Equal([("SCALE", false), ("FILL-IN", false), ("TAG", false), ("TAG", false), ("MAKE", true), ("F-COUNT", true), ("F-COUNT", true)],
+            c.Methods.Select(m => (m.ExternalizedName, m.IsFactory)));
+        Assert.All(c.Methods, m => Assert.Equal(RepositoryCodec.CobolEntryConvention, m.EntryConvention));
+        var fill = c.Methods.Single(m => m.Name == "FILL-IN");
+        Assert.True(fill.Formals[1].Optional);
+        Assert.Equal(["OT", "MT"], cls.TypeDeclarations.Select(t => t.Name!));
+        Assert.Equal(0, fill.Formals[0].Description.TypeDeclaration);   // OT, the object's
+        Assert.Equal(1, fill.Formals[1].Description.TypeDeclaration);   // MT, the method's own
+        Assert.Equal(WiseOwl.Cobol.Runtime.ObjectReferenceKind.ObjectClass, c.Methods.Single(m => m.Name == "MAKE").Returning!.Pic!.ObjectRefKind);
+        Assert.Equal("RO-CLASS", c.Methods.Single(m => m.Name == "MAKE").Returning!.Pic!.ObjectRefIdentity);
+
+        Assert.Equal(["ROMAIN", "ROI", "ROC"], RoundTripAll(comp));
+    }
+
     [Fact]
     public void TwoEncodingsOfOneUnit_AreEqual()
     {
@@ -213,8 +360,8 @@ public sealed class RepositoryCodecTests
 
     // ── the shared round-trip check (also the corpus enumeration's) ─────────────────────────────────────────────────
 
-    /// <summary>Round-trip every outermost program, function and prototype unit of <paramref name="comp"/>; returns the
-    /// names checked.</summary>
+    /// <summary>Round-trip every outermost program, function and prototype unit of <paramref name="comp"/>, and every method
+    /// of every class and interface (<see cref="OoRecordsOf"/>); returns the names checked.</summary>
     internal static IReadOnlyList<string> RoundTripAll(BoundCompilation comp)
     {
         var names = new List<string>();
@@ -223,7 +370,35 @@ public sealed class RepositoryCodecTests
             RoundTrip(unit, comp.SignatureClasses);
             names.Add(unit.Name);
         }
+        foreach (var (record, methods) in OoRecordsOf(comp))
+        {
+            var decoded = RepositoryCodec.Decode(record, comp.SignatureClasses);
+            Assert.Equal(methods.Count, decoded.Methods.Count);
+            for (int i = 0; i < methods.Count; i++)
+                RoundTrip($"{record.Name} {methods[i].SourceName}", methods[i].Binding!.Formals.Select(f => (f.Item, f.Position, f.ByValue, f.Optional)).ToList(),
+                    methods[i].Binding!.Returning, decoded.Methods[i].Formals, decoded.Methods[i].Returning);
+            names.Add(record.Name);
+        }
         return names;
+    }
+
+    /// <summary>Every interface's and every class's record (<see cref="RepositoryCodec.Of(OoInterfaceSymbol, DataBinder)"/>,
+    /// <see cref="RepositoryCodec.Of(OoClassUnit)"/>), each with the methods its record lists in their order — the object
+    /// roster, then the factory roster — after checking that two encodings of it are equal.</summary>
+    internal static IEnumerable<(RepositoryRecord Record, IReadOnlyList<OoMethodSymbol> Methods)> OoRecordsOf(BoundCompilation comp)
+    {
+        foreach (var iface in comp.OoClasses.Interfaces)
+        {
+            var record = RepositoryCodec.Of(iface, comp.InterfaceData[iface]);
+            Assert.Equal(record, RepositoryCodec.Of(iface, comp.InterfaceData[iface]));
+            yield return (record, iface.Prototypes);
+        }
+        foreach (var cls in comp.ClassUnits)
+        {
+            var record = RepositoryCodec.Of(cls);
+            Assert.Equal(record, RepositoryCodec.Of(cls));
+            yield return (record, [.. cls.Symbol.Methods, .. cls.Symbol.FactoryMethods]);
+        }
     }
 
     /// <summary>§6.3's invariant for one unit: <c>Decode(Of(unit))</c> is indistinguishable from the unit's LINKAGE to every
@@ -234,23 +409,32 @@ public sealed class RepositoryCodecTests
         Assert.Equal(record, RepositoryCodec.Of(unit));
         var decoded = RepositoryCodec.Decode(record, classes);
         var formals = unit.Data.LinkageFormals;
-        Assert.Equal(formals.Count, decoded.Formals.Count);
-        for (int i = 0; i < formals.Count; i++)
-        {
-            Assert.Equal(formals[i].ByValue, decoded.Formals[i].ByValue);
-            Assert.Equal(formals[i].Optional, decoded.Formals[i].Optional);
-            Assert.Equal(formals[i].Position, decoded.Formals[i].Position);
-            Same(unit, formals[i].Item, decoded.Formals[i].Item);
-        }
-        Assert.Equal(unit.Data.LinkageReturning is null, decoded.Returning is null);
-        if (unit.Data.LinkageReturning is { } returning) Same(unit, returning, decoded.Returning!);
+        RoundTrip(unit.Name, formals.Select(f => (f.Item, f.Position, f.ByValue, f.Optional)).ToList(), unit.Data.LinkageReturning,
+            decoded.Formals, decoded.Returning);
         Assert.True(PrototypeSignatures.Same(new CalleeSignature(formals, unit.Data.LinkageReturning), decoded.Signature),
             $"{unit.Name}: the decoded signature is not the same as the unit's (PrototypeSignatures.Same)");
     }
 
-    private static void Same(BoundUnit unit, DataItem x, DataItem y)
+    /// <summary>§6.3's invariant for one signature (a unit's or a method's): each decoded formal and the decoded returning
+    /// item are indistinguishable from the bound ones.</summary>
+    private static void RoundTrip(string at, IReadOnlyList<(DataItem Item, int Position, bool ByValue, bool Optional)> formals, DataItem? returning,
+        IReadOnlyList<LinkageFormal> decodedFormals, DataItem? decodedReturning)
     {
-        string at = $"{unit.Name} {x.CobolName}";
+        Assert.Equal(formals.Count, decodedFormals.Count);
+        for (int i = 0; i < formals.Count; i++)
+        {
+            Assert.Equal(formals[i].ByValue, decodedFormals[i].ByValue);
+            Assert.Equal(formals[i].Optional, decodedFormals[i].Optional);
+            Assert.Equal(formals[i].Position, decodedFormals[i].Position);
+            Same(at, formals[i].Item, decodedFormals[i].Item);
+        }
+        Assert.Equal(returning is null, decodedReturning is null);
+        if (returning is not null) Same(at, returning, decodedReturning!);
+    }
+
+    private static void Same(string unit, DataItem x, DataItem y)
+    {
+        string at = $"{unit} {x.CobolName}";
         Assert.True(OoConformance.SignatureDifference(x, y, "original", "decoded") is null,
             $"{at}: {OoConformance.SignatureDifference(x, y, "original", "decoded")}");
         Assert.True(OoConformance.SignatureDifference(y, x, "decoded", "original") is null,
