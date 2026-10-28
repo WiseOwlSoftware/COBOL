@@ -12,7 +12,8 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 ///
 /// Arithmetic context is detected by adjacency (<see cref="PrecedingArithmeticContext"/>,
 /// <see cref="FollowingArithmeticContext"/>, <see cref="IsParenthesizedAlone"/>):
-///   ZERO followed by  +, -, *, /, **   → rewrite to ZERO_ARITH
+///   ZERO followed by  +, -, *, /, **   → rewrite to ZERO_ARITH, unless the +/- touches the digits of the next
+///                                        literal: that is the literal's sign (<see cref="IsSignOfNextLiteral"/>)
 ///   ZERO preceded by  +, -, *, /, **   → rewrite to ZERO_ARITH
 ///   ZERO between a grouping ( and )    → rewrite (<c>(ZERO)</c>, a parenthesized arithmetic expression)
 ///   ZERO beside the ref-mod :          → rewrite (a reference-modification position or length)
@@ -124,18 +125,49 @@ public static class ZeroTokenRewriter
             // ZERO`), never its context, so the context is the token before it: `1 + ALL ZERO`, `- ALL ZERO` and
             // `(ALL ZERO)` are arithmetic exactly as `1 + ZERO` is, and the parser's `ALL? ZERO_ARITH` arm carries
             // the ALL to the binder's edition gate (kb/Work PB3846). On the right the ZERO is the word's last token.
-            int nextType = TypeAt(tokens, AdjacentIndex(tokens, i, forward: true));
+            int next = AdjacentIndex(tokens, i, forward: true);
+            int nextType = TypeAt(tokens, next);
             int prev = AdjacentIndex(tokens, i, forward: false);
             if (TypeAt(tokens, prev) == CobolLexer.ALL)
                 prev = AdjacentIndex(tokens, prev, forward: false);
             int prevType = TypeAt(tokens, prev);
-            if (FollowingArithmeticContext.Contains(nextType) || PrecedingArithmeticContext.Contains(prevType)
-                || IsParenthesizedAlone(prevType, nextType))
+            if ((FollowingArithmeticContext.Contains(nextType) && !IsSignOfNextLiteral(tokens, next))
+                || PrecedingArithmeticContext.Contains(prevType) || IsParenthesizedAlone(prevType, nextType))
                 ReplaceWithZeroArith(tokens, i);
         }
 
         // Reset the stream position so the parser reads from the beginning.
         tokenStream.Seek(0);
+    }
+
+    /// <summary>
+    /// The token at <paramref name="index"/> is a <c>+</c> or <c>-</c> that is the sign of the numeric literal touching
+    /// its right, not an arithmetic operator (kb/Work PB3962). §8.7.1 makes the binary operators characters "that shall
+    /// be preceded by a space and followed by a space", so a sign with no space before the digits of the next literal
+    /// is no binary operator, and §8.3.3.3.2 2) makes it the literal's own: "If a sign is used, it shall appear as the
+    /// leftmost character of the literal". The figurative ZERO before it is therefore not an operand of that sign:
+    /// <c>DISPLAY ZERO -1</c>, <c>CALL "P" USING ZERO +1</c> and the VALUE list <c>88 C VALUE ZERO -1</c> are operand
+    /// lists of two operands, and the ZERO keeps its figurative identity (§8.3.3.6.4 GR4: the value 0 or the character
+    /// '0' "depending on context"). It is still the operand of an operator written with its space (<c>ZERO - 1</c>,
+    /// whose digits are not touched) and of any operator on its LEFT. The test reads the token positions, the character
+    /// facts the lexer's default mode does not keep (outside a list region it lexes the sign and the digits as two
+    /// tokens, <c>SignedLiteralCanStart</c>); the touching digits are an integer, a decimal, a floating-point literal or
+    /// the integer part of a DECIMAL-POINT IS COMMA one (<c>-1,5</c>, <c>-,5</c>).
+    /// </summary>
+    private static bool IsSignOfNextLiteral(IList<IToken> tokens, int index)
+    {
+        if (index < 0 || tokens[index].Type is not (CobolLexer.PLUS or CobolLexer.MINUS))
+            return false;
+        int literal = AdjacentIndex(tokens, index, forward: true);
+        if (literal < 0 || tokens[literal].StartIndex != tokens[index].StopIndex + 1)
+            return false;
+        int type = tokens[literal].Type;
+        if (type is CobolLexer.INTEGERLIT or CobolLexer.DECIMALLIT || LiteralTokens.FloatingPointTypes.Contains(type))
+            return true;
+        // `-,5`: the DECIMAL-POINT IS COMMA literal that opens with its decimal point (§12.3.7.4 GR14 a)).
+        int fraction = type == CobolLexer.COMMA ? AdjacentIndex(tokens, literal, forward: true) : -1;
+        return fraction >= 0 && tokens[fraction].Type == CobolLexer.INTEGERLIT
+            && tokens[fraction].StartIndex == tokens[literal].StopIndex + 1;
     }
 
     /// <summary>
