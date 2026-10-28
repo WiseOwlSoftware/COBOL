@@ -150,7 +150,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         new([new FormalRecord(0, "E", PassingMode.Reference, false, description)]), null,
         RecordList<DescriptionRecord>.Empty, RecordList<StructureRecord>.Empty, RecordList<PrototypeRecord>.Empty);
 
-    private static readonly Dictionary<string, RepositoryRecord> Fixtures = new()
+    internal static readonly Dictionary<string, RepositoryRecord> Fixtures = new()
     {
         ["plain"] = Unit("PLAIN", Elementary(Numeric)),
         // A PICTURE clause identity whose DECIMAL-POINT IS COMMA state is null, and one whose state is false (presence, not value).

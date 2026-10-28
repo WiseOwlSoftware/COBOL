@@ -112,13 +112,17 @@ public sealed class RepositoryCodecTests
         Assert.Equal(WiseOwl.Cobol.Runtime.Repository.PassingMode.Value, record.Formals[8].Mode);
         Assert.NotNull(record.Returning);
         // The type declarations the descriptions name are rows: T1 (F3's type and F5's restriction), PT (F4's type) and
-        // DT (F5's type); PRTA, which F4 and PRTA's own P name, is one prototype row naming itself.
-        Assert.Equal(["DT", "PT", "T1"], record.TypeDeclarations.Select(t => t.Name!).Order(StringComparer.Ordinal));
+        // DT (F5's type); PRTA, which F4 and PRTA's own P name, is one prototype row naming itself — and PP, the type of
+        // PRTA's formal P, which PRTA declares and RTONE does not (§8.13 "type declarations required for the description of
+        // parameters"): a referenced prototype's formals are described with ITS declarations (DataItem.TypeDeclaration).
+        Assert.Equal(["DT", "PP", "PT", "T1"], record.TypeDeclarations.Select(t => t.Name!).Order(StringComparer.Ordinal));
         int t1 = record.TypeDeclarations.Select((t, i) => (t, i)).Single(x => x.t.Name == "T1").i;
+        int pp = record.TypeDeclarations.Select((t, i) => (t, i)).Single(x => x.t.Name == "PP").i;
         Assert.Equal(t1, record.Formals[2].Description.TypeDeclaration);
         Assert.Single(record.ReferencedPrototypes);
         Assert.Equal(0, record.Formals[3].Description.Pic!.RestrictedPrototype);
         Assert.Equal(0, record.ReferencedPrototypes[0].Formals[1].Description.Pic!.RestrictedPrototype);
+        Assert.Equal(pp, record.ReferencedPrototypes[0].Formals[1].Description.TypeDeclaration);
         Assert.Equal(t1, record.Formals[4].Description.Pic!.RestrictedTypeDeclaration);
         Assert.True(RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RTTWO")).Formals[1].Optional);
     }

@@ -9,7 +9,8 @@ namespace WiseOwl.Cobol.Binding.Repository;
 
 /// <summary>
 /// ⛔ THE REPOSITORY RECORD OF ONE PUBLISHED UNIT (ISO §8.13; docs/rearchitecture/DESIGN-external-repository.md §6.1; kb/Work
-/// PB2100): what the external repository holds about a program, a function or a prototype, in the PERSISTED vocabulary
+/// PB2100): what the external repository holds about a program, a function, a prototype, a class or an interface, in the
+/// PERSISTED vocabulary
 /// (<c>WiseOwl.Cobol.Runtime.Repository</c>'s enums, §6.2 rule 1), so the attribute renderer and the reader are pure
 /// transcriptions of it and the ONE translation between the compiler's own types and what is persisted is
 /// <see cref="RepositoryCodec.Of"/> and its inverse <see cref="RepositoryCodec.Decode"/>.

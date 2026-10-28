@@ -903,9 +903,12 @@ Factory, Only, Formal)`), so the converse drift test (§17.2) can demand a field
 importer's mapping); `ObjectRefIdentity` the externalized name it resolved to in the publishing element (§6.4).
 `ClassRecord` carries the base and implements identities, the properties and both rosters, the object methods then the
 factory methods, each in roster order (`RepositoryCodec.Of(OoClassUnit)`, `RepositoryCodec.Of(OoInterfaceSymbol,
-DataBinder)`, kb/Work PB2100). **Corrections the OO arm made.** A method's formals are described in the METHOD's own
-scope (`DataBinder.TryFindTypeDecl` with the method's `Scope`, ISO §11.7.4 GR5), so a formal typed by a method-local
-TYPEDEF names its own row; the codec's type-name lookup is that one binder lookup for every unit. An accessor's
+DataBinder)`, kb/Work PB2100). **Corrections the OO arm made.** A description's `TypeDeclaration` row is the declaration
+the BINDER resolved where the TYPE clause was written (`DataItem.TypeDeclaration`, set by `DataBinder.ExpandType` beside `TypeName`
+from the one lookup `DataBinder.TryFindTypeDecl`, and carried by the description copy), never a second lookup by name in
+the codec: a method's formal typed by a method-local TYPEDEF names that declaration (ISO §11.7.4 GR5), and a referenced
+prototype's formal typed by the prototype's own TYPEDEF names the prototype's, which the publishing unit's scope does not
+hold (the codec's first form resolved it there and left the row out). An accessor's
 `ExternalizedName` is its property's (ISO §12.3.8.4 GR2: "Literal-5 is the externalized name known to the operating
 environment for a method that implements the named property"; D-R5), while `Name` keeps the implementor-defined roster
 name (`__GET_<P>`). A property record carries `IsFactory` (a factory's WORKING-STORAGE may hold a PROPERTY clause) and is
@@ -2168,7 +2171,8 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   (§8.5.3.1) — makes some comparator fail; a perturbation of a DATA-NAME or of intermediate grouping makes none fail
   (§13.7.3 SR2).
 - For every §10.6.2 SR2/SR3 pair in the corpus (pb1115 included): `PrototypeSignatures.Same(Decode(Of(prototype)),
-  Decode(Of(definition)))` holds, and `Same` against the in-group bound pair agrees.
+  Decode(Of(definition)))` holds, and `Same` against the in-group bound pair agrees (landed:
+  `RepositoryRoundTripCorpusTests.PrototypeDefinitionPairs`, over the one enumeration `RepositoryRoundTripCorpusTests.Corpus`).
 - **Boundary layout:** a fixture of (usage, picture, group shape) rows covering every byte form, width and crossing
   arm is rendered by BOTH halves of the boundary — the compiler's `CrossingOf` / `FormalCrossing` arm,
   `FormalCarrierType`, `RegisteredFormal`/`RegisteredReturning` profile and width, and the runtime codecs' image of a
@@ -2202,7 +2206,9 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   and two identities do not.
 - **Every outermost unit has its entry** (slice 4, `HostEntryShapeDriftTests`, §7.2): over §17.2's corpus, each
   outermost unit except a prototype its group defines has exactly one host-entry class and one record, and a prototype
-  and its definition whose externalized names differ only in case are one (kb/Work PB3872).
+  and its definition whose externalized names differ only in case are one (kb/Work PB3872). Landed as
+  `EveryOutermostUnitOfTheCorpus_PublishesExactlyOneEntryAndRecord`, which also holds every class and interface to exactly
+  one `[CobolUnit]` on its type and the module's `Units` index to the units in emission order.
 - **The host entry is a caller:** a Roslyn-analysis test over the emitted corpus asserts that every host-entry `Call`
   body consists of exactly the parts §4.3 lists — `EnsureRegistered` (definitions only), one `HostLanding` landing per
   formal and the alias grouping, one `CobolArg` per formal from the CALL lane's renderer, exactly one
@@ -2240,8 +2246,13 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   error; a fixture provoking CS1718 (`IF B = B`, legal source) asserts a clean compile (§10.2).
 
 ### 17.4 Backend-independence
-Slice 4. A fixture record rendered (a) by `RepositoryAttributeRenderer` through `RoslynBackend` and (b) by
-`MetadataBuilder` + `CustomAttributeEncoder` decodes equal; `Units` equals the record set.
+Slice 4, **landed (kb/Work PB2100, `RepositoryBackendIndependenceTests`)**. A fixture record set (the encoding fixtures,
+the codec's program group, a class, an interface and their program) rendered (a) by `RepositoryAttributeRenderer` through
+Roslyn and (b) by `MetadataBuilder` + the ECMA-335 custom-attribute encoders decodes equal; `Units` equals the record set.
+What makes (b) a second backend rather than a second statement of the encoding: the renderer has two layers. Its
+`…Attribute` / `…Attributes` members turn a record into `AttributeApplication` values (type, constructor arguments, named
+arguments in order) and hold every rule of §6.2; its `…Record` members spell those values as C# (`CSharp`), and the
+metadata writer encodes the same values. A `CilBackend` takes the first layer as it is.
 
 ### 17.5 Trim and AOT tests
 `WiseOwl.Cobol.Runtime` builds analyzer-clean. A caller is published trimmed with the probe switch ON and
@@ -2423,7 +2434,7 @@ green when the slices it depends on have landed, each carrying the sibling-docum
 (CLAUDE.md rule 6). The work items are `kb/Work/` notes filed after approval (CLAUDE.md rule 8), one per slice; their
 REPO-n codes are allocated with `scripts/orchestrator/alloc.py code N` by the slice that first reports them (§14). The
 dependency graph has no cycle: 1 and 2 and 6 stand alone; 3 needs 1, 2 and kb/Work PB2087; 4 needs 3; 5 needs 4; 7
-needs 4, 5 and 6; 8 needs 7. Landed: 1, 2, 3, 6. Each open slice's list below is complete as of the 2026-10-27
+needs 4, 5 and 6; 8 needs 7. Landed: 1, 2, 3, 4, 6. Each open slice's list below is complete as of the 2026-10-27
 currency pass; a slice that finds it is not makes the restructuring and corrects this list (CLAUDE.md rule 5).
 
 1. **Namespace, registration and the version guard — LANDED (kb/Work PB2097).** `CsNames.ModuleNamespaceOf`;
@@ -2487,7 +2498,7 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    lands kb/Work PB1149's GR13 half and R48's run-unit-ended result, and PB1253's item-116 row. Depends on 1, on 2 (the
    published names), and on kb/Work PB2087 whole — its item 5 carries the strongly-typed groups with pointer or object
    leaves (and closes PB1940), so every program has a complete host entry the day the slice lands.
-4. **The schema, the renderer, the reader** (kb/Work PB2100). In the runtime: the attribute family of §6.2 and its
+4. **The schema, the renderer, the reader — LANDED (kb/Work PB2100).** In the runtime: the attribute family of §6.2 and its
    persisted enum vocabulary (rule 1), `CobolRepositoryAttribute` at schema version 2 with `Units`, `HasSignatures`,
    `CompilerVersion`, `Edition` (§6.6), and `RepositoryIndex` (the prefetched header, `Units` and `AssemblyRef` read,
    with §15.2's read caps as typed outcomes; §7.4), public with `[EditorBrowsable(Never)]` and recorded in

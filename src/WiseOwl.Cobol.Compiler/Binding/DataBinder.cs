@@ -3869,6 +3869,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // nested strong reference walks THIS item's ancestor chain. TypeName also anchors the §8.5.3 same-type
         // test (see DataItem.TypeAnchor).
         item.TypeName = typeName;
+        item.TypeDeclaration = template;   // the declaration the one lookup resolved (DataItem.TypeDeclaration)
         item.StrongType = strong;
         // §13.18.57.4 GR2 d): a GROUP type's subject "is aligned as though it were a level 1 item" — so a bit
         // group typed after a same-level bit item starts at the first bit of a byte (§8.5.1.6.3), not inside the
@@ -4186,6 +4187,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             to.DynStructure = from.DynStructure;   // … and so does its dynamic-length-structure-name (kb/Work PB829)
         }
         to.TypeName ??= from.TypeName;     // a data-name-1 declared with TYPE carries its type identity (§8.5.3)
+        to.TypeDeclaration ??= from.TypeDeclaration;   // … and the declaration that identity names
         to.StrongType |= from.StrongType;
     }
 
