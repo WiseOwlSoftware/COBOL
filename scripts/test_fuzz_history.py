@@ -142,7 +142,7 @@ def main() -> int:
         again = fh.upsert(hist, {**rec, "judged": 99})
         expect("UPSERT replaces its own record", len(again["nights"]) == 2 and again["nights"][1]["judged"] == 99, again["nights"])
 
-        ctx = fh.context(hist, ITEMS, now="2026-10-28 12:00 PDT")
+        ctx = fh.context(hist, ITEMS)
         page = fh.render_html(ctx)
         expect("PAGE renders every night", "Night 1" in page and "Night 2" in page)
         expect("PAGE states it is machine-generated", "machine-generated" in page and "fuzz_history.py" in page)
@@ -173,8 +173,9 @@ def main() -> int:
         # SYNC: the Artifact and FUZZ-LEDGER.md are one rendering with one ledger version (owner 2026-10-28, PB4010)
         art = hist["artifact"]
         version = fh.ledger_version(ctx, art)
-        expect("SYNC the version names the content, not the time it was drawn",
-               version == fh.ledger_version(fh.context(hist, ITEMS, now="2026-10-29 09:00 PDT"), art))
+        expect("SYNC equal content renders equal bytes (the tracked file carries no time)",
+               fh.rendered_markdown(ctx, art) == fh.rendered_markdown(fh.context(hist, ITEMS), art)
+               and version in fh.rendered_markdown(ctx, art))
         moved = fh.upsert(hist, {**rec, "judged": 6})
         expect("SYNC a change of content changes the version", fh.ledger_version(fh.context(moved, ITEMS), art) != version)
         sync = root / "sync"
@@ -183,17 +184,26 @@ def main() -> int:
         expect("SYNC one writer stamps both renderings with one version", got == version and len(paths) == 5
                and fh.version_of((sync / "page.html").read_text(encoding="utf-8")) == version
                and fh.version_of(ledger) == version, (got, version, len(paths)))
-        rc = fh.mark_published(sync / "page.html", art, "Ledger version 000000000000, built x.", coord_override=str(root))
+        expect("SYNC the written FUZZ-LEDGER.md is the rendered one", ledger == fh.rendered_markdown(ctx, art))
+        rc = fh.mark_published(sync / "page.html", art, "Ledger version 000000000000.", coord_override=str(root))
         expect("SYNC mark-published refuses a page that is not main's version", rc == 1
                and not (root / fh.PUBLISHED).exists())
         rc = fh.mark_published(sync / "page.html", art, ledger, coord_override=str(root))
         record = fh.published_record(str(root))
         expect("SYNC mark-published records main's version", rc == 0 and record.get("version") == version
                and record.get("url") == art, record)
-        status = {"current": fh.sync_status(ledger, record, version), "publish": fh.sync_status(ledger, {}, version),
-                  "regenerate": fh.sync_status(ledger, record, "ffffffffffff")}
+        moved_md = fh.rendered_markdown(fh.context(moved, ITEMS), art)
+        status = {"current": fh.sync_status(ledger, record, art, ledger),
+                  "publish": fh.sync_status(ledger, {}, art, ledger),
+                  "elsewhere": fh.sync_status(ledger, {**record, "url": "https://example.invalid/other"}, art, ledger),
+                  "regenerate": fh.sync_status(ledger, record, art, moved_md),
+                  "hand-edit": fh.sync_status(ledger.replace("Night 1", "Night one", 1), record, art, ledger),
+                  "unversioned": fh.sync_status("no stamp", record, art, ledger),
+                  "behind": fh.sync_status(ledger, record, art, None)}
         expect("SYNC status names each state", "current" in status["current"] and "PUBLISH OWED" in status["publish"]
-               and "REGENERATE OWED" in status["regenerate"], status)
+               and "PUBLISH OWED" in status["elsewhere"] and "another Artifact" in status["elsewhere"]
+               and "REGENERATE OWED" in status["regenerate"] and "REGENERATE OWED" in status["hand-edit"]
+               and "REGENERATE OWED" in status["unversioned"] and "UNCHECKED" in status["behind"], status)
 
         # HISTORY: the subcommand, on a history file of its own
         hfile = root / "fuzz-history.json"
@@ -209,6 +219,15 @@ def main() -> int:
             expect("HISTORY refuses a note the register lacks", rc == 1)
             rc = ft.history(t, done, root, types.SimpleNamespace(**{**vars(args), "defect": ["PB9012"]}))
             expect("HISTORY refuses a defect whose site block names no path, glob or `none`", rc == 1)
+            rc = ft.history(t, done, root, types.SimpleNamespace(**{**vars(args), "defect": ["PB9002"]}))
+            expect("HISTORY refuses a note that is no finding (an upstream record)", rc == 1)
+            before = hfile.read_text(encoding="utf-8")
+            with unittest.mock.patch.object(fh, "register", lambda: types.SimpleNamespace(
+                    load=lambda _d: [*ITEMS, {**MEMBER_ONLY, "source": f"the aborted run {SHORT}"}],
+                    note_sites=fake_work.note_sites)):
+                rc = ft.history(t, done, root, types.SimpleNamespace(**{**vars(args), "write": True}))
+            expect("HISTORY refuses an unclassifiable note from a run with no night, writing nothing", rc == 1
+                   and hfile.read_text(encoding="utf-8") == before)
             rc = ft.history(t, done, root, args)
             expect("HISTORY writes nothing without --write", rc == 0 and len(fh.load_history(hfile)["nights"]) == 1)
             with unittest.mock.patch.object(fh, "write_markdown", lambda *_a, **_k: []):

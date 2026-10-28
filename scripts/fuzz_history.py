@@ -139,15 +139,20 @@ def site_kind(it: dict) -> str | None:
 
 def finding_kind(it: dict) -> str:
     """What a note is on the page: retired, a settled question, or a defect classified by `site_kind`. A defect nothing
-    classifies stops the render, naming it: it is never guessed into either count."""
+    classifies stops the render, naming it, and so does a note the register lacks or one that is no finding (an analysis,
+    a decision): it is never guessed into either count."""
+    if "kind" not in it:
+        raise SystemExit(f"⛔ {it['id']}: a night lists it but the register has no such note")
+    if not is_finding(it):
+        raise SystemExit(f"⛔ {it['id']}: a night lists it but it is a `{it['kind']}` note, not a defect or an adjudication")
     if it.get("status") == "retired":
         return "retired"
     if it.get("kind") == "adjudication":
         return "settled"
     kind = site_kind(it)
     if kind is None:
-        raise SystemExit(f"⛔ {it.get('id', '(a note missing from the register)')}: no **Sites:** block naming a path, a glob or "
-                         "`none (why)`, so the fuzz ledger cannot tell a compiler bug from a harness bug (kb/Work PB4010)")
+        raise SystemExit(f"⛔ {it['id']}: no **Sites:** block naming a path, a glob or `none (why)`, so the fuzz ledger cannot "
+                         "tell a compiler bug from a harness bug (kb/Work PB4010)")
     return kind
 
 
@@ -217,7 +222,7 @@ INTRO = (
 STAMP = ("This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished "
          "automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history "
          "file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read "
-         "from the project's work tracker at the moment the page is built. Ledger version {version}, built {now}.")
+         "from the project's work tracker at the moment the page is built. Ledger version {version}.")
 STEPS = (
     ("Write test programs", "For {hours} hours, an AI model running on a local graphics card works through sections of the "
      "COBOL standard chosen at random ({sections} sections covering the statements, built-in functions, data-description "
@@ -269,12 +274,12 @@ MARK = {"judged": "nc", "usable": "accent", "surv": "warn", **{c: c for _v, c, _
 E = html.escape
 
 
-def context(history: dict, items: list[dict], now: str | None = None) -> dict:
+def context(history: dict, items: list[dict]) -> dict:
     """Everything either rendering shows, computed once from the history and the register."""
     by_id = {i["id"]: i for i in items}
     nights = history["nights"]
-    findings = [(n, d, finding_kind(by_id.get(d, {}))) for n in nights for d in n["defects"]] + [
-        (r, d, finding_kind(by_id.get(d, {}))) for r, d in unrecorded_runs(history, items)]
+    findings = [(n, d, finding_kind(by_id.get(d, {"id": d}))) for n in nights for d in n["defects"]] + [
+        (r, d, finding_kind(by_id.get(d, {"id": d}))) for r, d in unrecorded_runs(history, items)]
     compiler = [d for _n, d, k in findings if k == "compiler"]
     upstream = [i for i in items if from_fuzzing(i)]
     hours = sorted({n["hours"] for n in nights if n.get("hours")})
@@ -283,7 +288,7 @@ def context(history: dict, items: list[dict], now: str | None = None) -> dict:
     triaged = [n for n in nights if n.get("verdicts")]
     shown = [v for v, _c, _n in VERDICTS if any(v in n["verdicts"] for n in triaged)]
     fill = {"first": night_date(nights[0]) if nights else "", "last": night_date(nights[-1]) if nights else "",
-            "now": now or datetime.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z"), "version": "",
+            "version": "",
             "hours": " or ".join(f"{h:g}" for h in hours) or "several",
             "sections": f"about {sections[-1]:,}" if sections else "many",
             "untallied": (" and ".join(untallied) + (" were" if len(untallied) > 1 else " was") + " reviewed before these "
@@ -598,7 +603,7 @@ NEXT_STEPS = ("next: commit conformance-suite/fuzz-history.json, FUZZ-LEDGER.md 
 
 
 def ledger_version(ctx: dict, artifact: str | None) -> str:
-    blank = {**ctx, "fill": {**ctx["fill"], "now": "", "version": ""}}
+    blank = {**ctx, "fill": {**ctx["fill"], "version": ""}}
     md, files = render_markdown(blank, artifact)
     digest = hashlib.sha256(md.encode("utf-8"))
     for name in sorted(files):
@@ -649,7 +654,8 @@ def published_record(coord_override: str | None = None) -> dict:
 
 
 def mark_published(page: pathlib.Path, url: str, main_text: str, coord_override: str | None = None) -> int:
-    """Record that the Artifact now shows `page`, refusing unless `page` is the ledger version main's FUZZ-LEDGER.md is."""
+    """Record that the Artifact `url` (always the history's `artifact`, the one FUZZ-LEDGER.md links) now shows `page`,
+    refusing unless `page` is the ledger version main's FUZZ-LEDGER.md is."""
     have, want = version_of(page.read_text(encoding="utf-8")), version_of(main_text)
     if not have or have != want:
         print(f"⛔ {page.as_posix()} is ledger version {have or '(none)'}, FUZZ-LEDGER.md on {MAIN_REF} is {want or '(none)'}: "
@@ -663,19 +669,36 @@ def mark_published(page: pathlib.Path, url: str, main_text: str, coord_override:
     return 0
 
 
-def sync_status(main_text: str, published: dict, fresh: str) -> str:
-    """One line: is the Artifact the version main carries, and is main's file the version the register gives now?"""
+def sync_status(main_text: str, published: dict, artifact: str | None, fresh_md: str | None) -> str:
+    """One line: does the Artifact (the history's `artifact`) show the version main's FUZZ-LEDGER.md carries, and is main's
+    file exactly what a render gives now? `fresh_md` is that render, or None when the checkout is not at main (a checkout
+    behind main would report drift that main does not have, kb/Work PB2987): then the second question is not asked."""
     on_main, shown = version_of(main_text), published.get("version")
+    regenerate = "`fuzz_history.py render` on a branch, land it, then publish and mark"
     if on_main is None:
-        return (f"fuzz ledger: ⚠ REGENERATE OWED — FUZZ-LEDGER.md on {MAIN_REF} carries no ledger version (a render now is "
-                f"{fresh}): `fuzz_history.py render` on a branch, land it, then publish and mark")
-    if shown != on_main:
-        return (f"fuzz ledger: ⛔ PUBLISH OWED — FUZZ-LEDGER.md on {MAIN_REF} is version {on_main}, the Artifact shows "
-                f"{shown or 'no recorded version'}: render at main, publish the page, `fuzz_history.py mark-published`")
-    if fresh != on_main:
-        return (f"fuzz ledger: ⚠ REGENERATE OWED — the register moved since main's FUZZ-LEDGER.md (version {on_main}; a "
-                f"render now is {fresh}): `fuzz_history.py render` on a branch, land it, then publish and mark")
+        return f"fuzz ledger: ⚠ REGENERATE OWED — FUZZ-LEDGER.md on {MAIN_REF} carries no ledger version: {regenerate}"
+    if shown != on_main or published.get("url") != artifact:
+        where = "" if published.get("url") in (None, artifact) else f" (the record names another Artifact, {published['url']})"
+        return (f"fuzz ledger: ⛔ PUBLISH OWED — FUZZ-LEDGER.md on {MAIN_REF} is version {on_main}, the Artifact {artifact} "
+                f"shows {shown or 'no recorded version'}{where}: render at main, publish the page, `fuzz_history.py mark-published`")
+    if fresh_md is None:
+        return (f"fuzz ledger: published version {on_main} is main's; whether the register moved since is UNCHECKED (this "
+                f"checkout is not at {MAIN_REF})")
+    if fresh_md != main_text:
+        return (f"fuzz ledger: ⚠ REGENERATE OWED — a render now (version {version_of(fresh_md)}) differs from FUZZ-LEDGER.md on "
+                f"{MAIN_REF} (version {on_main}): {regenerate}")
     return f"fuzz ledger: current — the Artifact and FUZZ-LEDGER.md on {MAIN_REF} are version {on_main}"
+
+
+def rendered_markdown(ctx: dict, artifact: str | None) -> str:
+    """FUZZ-LEDGER.md exactly as `write_ledger` would write it (it carries no time, so equal content is equal bytes)."""
+    return render_markdown({**ctx, "fill": {**ctx["fill"], "version": ledger_version(ctx, artifact)}}, artifact)[0]
+
+
+def at_main(repo: pathlib.Path = REPO) -> bool:
+    heads = [subprocess.run(["git", "-C", str(repo), "rev-parse", ref], capture_output=True, text=True).stdout.strip()
+             for ref in ("HEAD", MAIN_REF)]
+    return bool(heads[0]) and heads[0] == heads[1]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -684,8 +707,7 @@ def main(argv: list[str] | None = None) -> int:
     r = sub.add_parser("render", help="write the summary page AND FUZZ-LEDGER.md with its charts, one ledger version")
     r.add_argument("--out", help=f"the HTML page to write (default: <coord>/scratch/{PAGE_NAME})")
     m = sub.add_parser("mark-published", help="record that the Artifact shows --page, which must be main's ledger version")
-    m.add_argument("--page", help=f"the HTML page just published (default: <coord>/scratch/{PAGE_NAME})")
-    m.add_argument("--url", help="the Artifact (default: the history's `artifact`)")
+    m.add_argument("--page", help=f"the HTML page just published to the history's `artifact` (default: <coord>/scratch/{PAGE_NAME})")
     sub.add_parser("status", help="one line: is the Artifact in sync with main's FUZZ-LEDGER.md, and main's with the register")
     for p in (r, sub.choices["status"]):
         p.add_argument("--work", default=str(REPO / "kb" / "Work"), help="the register directory")
@@ -700,11 +722,15 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.cmd == "mark-published":
         page = pathlib.Path(args.page) if args.page else default_page()
-        return mark_published(page, args.url or history.get("artifact"), main_ledger(fetch=True))
-    ctx = context(history, register().load(pathlib.Path(args.work)))
+        if not history.get("artifact"):
+            raise SystemExit("⛔ the history names no `artifact`: publish the page once, record its URL in the history, land it")
+        return mark_published(page, history["artifact"], main_ledger(fetch=True))
     if args.cmd == "status":
-        print(sync_status(main_ledger(), published_record(), ledger_version(ctx, history.get("artifact"))))
+        fresh = (rendered_markdown(context(history, register().load(pathlib.Path(args.work))), history.get("artifact"))
+                 if at_main() else None)
+        print(sync_status(main_ledger(), published_record(), history.get("artifact"), fresh))
         return 0
+    ctx = context(history, register().load(pathlib.Path(args.work)))
     page = pathlib.Path(args.out) if args.out else default_page()
     version, written = write_ledger(ctx, history.get("artifact"), page)
     print("wrote " + ", ".join(p.as_posix() for p in written) + f" (ledger version {version})")

@@ -22,7 +22,11 @@ FUZZ-LEDGER.md together, and both carry one ledger version, a digest of the cont
 file only: `fuzz_history.py mark-published` refuses a page whose version is not FUZZ-LEDGER.md's on origin/main and records the
 version it published. `fuzz_history.py status` is a new session-probe line that reports current, PUBLISH OWED or REGENERATE OWED
 (a fuzz note's status moved since main's file was drawn). `render --markdown` is gone, so one rendering cannot be written
-without the other.
+without the other. The round-2 review closed the gaps: the stamp no longer carries a build time, so a render that changes
+nothing leaves the tracked file byte-identical and `status` compares main's file with a fresh render byte for byte (a hand edit
+shows). `status` also requires the record to name the history's Artifact, and checks drift only in a checkout at origin/main
+(one behind main would report drift main does not have). `history` now draws the whole page before writing anything, so a note
+it cannot show writes nothing.
 
 The self-test gains the classification, refusal and SYNC cases. DESIGN-differential-fuzz.md section 6 and the fuzz-triage workflow's
 step list state the new order: render, land, publish, mark.
