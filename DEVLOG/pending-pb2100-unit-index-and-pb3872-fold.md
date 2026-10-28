@@ -188,13 +188,26 @@ link decoded by name, REDEFINES: the decoder took the nearest preceding same-nam
 REDEFINES X.` decoded `C` over the second `X`, where §13.18.44.3 SR7 ("Multiple redefinitions of the same storage area shall
 each specify as data-name-2 the data-name of the entry that originally defined the area") and NOTE 1 make it the first; it also
 failed the same test against the old code. The placement rule the binder states (kb/Work PB1280) became ONE function,
-`DataItem.OriginalDefinition`, which the binder and the decoder now both ask. `RepositoryCodecTests.Same` compares both links as
+`DataItem.RedefinedEntry`, which the binder and the decoder now both ask. `RepositoryCodecTests.Same` compares both links as
 positions in the tree for every formal it round-trips, so the whole corpus checks them from now on. R1-2: a
 `CliParserTests` case for `--repository-update` (default on, both spellings, case, refusals, no swallowed flag) and
 `RunCompile` gets back its own summary. R1-3: the README option table lists `--repository-update`. Design 6.1 and its
 table of read members say how the object is recorded. Gate: run 000002-20261028T191256Z at a0d9cf7cd,
 `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half (WSL clone of HEAD) GREEN; the four Facts above `Passed` in its
 leg-1-Unit.trx.
+
+**The branch review's second round (wave 20261739 group A, finisher).** R1-1 (blocking): the first round made the REDEFINES
+placement rule one function, but only its first half. The binder linked `DataItem.OriginalDefinition(preceding) ??
+preceding.LastOrDefault()`, so the fallback for the case where every same-named candidate is itself a redefinition (the
+§13.18.44.3 SR7 chain COBOL1656 reports, an error strict and a warning under --permissive) lived only in the binder. For `05 A.
+05 B REDEFINES A. 05 C REDEFINES B.` compiled --permissive, the renderer published `C` over `B` and the decoder refused the
+record ("'C' REDEFINES 'B', which no preceding sibling originally defines"), against design 6.3's round-trip invariant. The
+function is now `DataItem.RedefinedEntry` and holds both halves; the binder and the decoder both ask it, and the decoder
+refuses only a word that names no preceding sibling. `RepositoryCodecTests.APermissiveRedefinesChain_DecodesToTheBoundEntry`
+binds the chain --permissive, decodes `C` over `B`, round-trips it, and refuses a perturbed record whose word names no
+sibling; it failed against the old decoder rule. Sweep: the clause pass in `DataBinder` is the only REDEFINES resolver (the
+other two `SetRedefinition` writers are the file section's implicit redefinitions), and every other `RedefinesTargetName is
+null` filter in `src/` is a storage walk.
 
 **Self-review.** Architecture: one writer of attribute text, one reader of the index, one definition of the row encoding;
 no C# text in a bound node. Code: the cap and the escapes are tested at their edges; `Open(Stream)` catches only the

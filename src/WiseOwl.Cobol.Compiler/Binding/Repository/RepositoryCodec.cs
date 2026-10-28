@@ -408,11 +408,11 @@ internal static class RepositoryCodec
             foreach (var childRecord in r.Children)
             {
                 var child = Item(childRecord, item);
-                // The object is found by the binder's own placement rule (§13.18.44.3 SR7, NOTE 1): the nearest preceding
-                // same-named sibling that is not itself a redefinition, never merely the nearest same-named one.
+                // The object is found by the binder's own placement rule, both halves (§13.18.44.3 SR7, NOTE 1): the nearest
+                // preceding same-named sibling that is not itself a redefinition, else (a --permissive SR7 chain) the nearest.
                 if (child.RedefinesTargetName is { } target)
-                    child.SetRedefinition(DataItem.OriginalDefinition(item.Children.Where(c => c.CobolName is { } w && CobolNames.Same(w, target)))
-                        ?? throw Malformed($"'{child.CobolName}' REDEFINES '{target}', which no preceding sibling originally defines"), RedefinitionKind.Clause);
+                    child.SetRedefinition(DataItem.RedefinedEntry([.. item.Children.Where(c => c.CobolName is { } w && CobolNames.Same(w, target))])
+                        ?? throw Malformed($"'{child.CobolName}' REDEFINES '{target}', which names no preceding sibling"), RedefinitionKind.Clause);
                 item.AddMember(child);
             }
             return item;
