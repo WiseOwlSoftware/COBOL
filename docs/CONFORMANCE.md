@@ -31,7 +31,7 @@ associated exception condition is raised (§14.6.13.1.1 licenses this). **SCREEN
 at every edition where the words are reserved — because Annex A.4.1 admits an optional element's syntax
 "only when support for that language element is claimed", which is a prohibition on ACCEPTING and not a
 licence to accept-and-flag. The A.4.8 (FORMAT / SELECT WHEN, **COBOL1705**) and A.4.13 (WRITE / REWRITE
-FILE, **COBOL1706**) declines are refusals for the same reason. Commit and rollback (A.4.3, **Partial**) is
+FILE, **COBOL1706**) declines are refusals for the same reason. Commit and rollback (A.4.3, **Claimed**) is
 **provided for every organization §9.1.18.2 admits** — RELATIVE and INDEXED files in the keyed store engine, SEQUENTIAL
 and LINE SEQUENTIAL files (the print stream included) in a transaction journal — complete for the sequential
 and keyed organizations alike: an OPEN OUTPUT that replaces a RELATIVE or INDEXED file, a DELETE FILE that removes one and an OPEN that creates one are journaled in the same transaction journal (the keyed CAPTURE of DESIGN-runtime-library.md 2.2.2.14, kb/Work PB3492), so a ROLLBACK restores such a file as at the last COMMIT (§14.9.36.4 GR3; the NOTE under §14.9.10.4 GR15) and a DELETE FILE after a CLOSE under commit control proceeds (§5, A.4.3; §4 item 2).
