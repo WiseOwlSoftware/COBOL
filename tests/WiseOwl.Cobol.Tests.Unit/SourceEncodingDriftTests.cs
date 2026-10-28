@@ -74,10 +74,8 @@ public sealed class SourceEncodingDriftTests
         byte[] head = new byte[3];   // hoisted: CA2014 forbids a stackalloc inside the loop
         foreach (string rel in Population(tree, pattern))
         {
-            // Generated/ is a BUILD OUTPUT (feedback_generated_parser_is_a_build_output) — the tool that writes it
-            // chooses its encoding, and the generated C# (.g.cs) the same.
-            if (rel.Contains("Generated/") || rel.EndsWith(".g.cs", StringComparison.Ordinal)) continue;
-
+            // The population is the COMMITTED tree (a build output is never in it), and the committed generated sources
+            // (.g.cs) are held to the same BOM-less convention (review R1-2 of PB3814).
             using var s = File.OpenRead(TestRepo.At(rel.Split('/')));
             if (s.Read(head, 0, 3) == 3 && head.AsSpan().SequenceEqual(Bom)) offenders.Add(rel[(tree.Length + 1)..]);
         }
