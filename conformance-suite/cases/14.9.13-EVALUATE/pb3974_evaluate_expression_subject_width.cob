@@ -40,11 +40,15 @@
       *>     WHEN 1 is false, WHEN BIG * BIG * ONE9 is true.
       *> S9  A NEGATIVE control: A * B * C is not A * B * C - 1 or + 1, so the last
       *>     WHEN OTHER is taken - an exact hold does not make unequal values equal.
-      *> S10 SM * SM * BIG * BIG has 24 fraction digits: BIG squared is
-      *>     999999999999998000000000000001, times 1E-24 is 999999.999999998000000000000001.
-      *>     The fraction is exact (scales add), so the hold keeps all 24 digits and takes
-      *>     the carrier's remaining positions as integer digits: WHEN 999999.999999998 is
-      *>     false, the same expression true.
+      *> S10 P * Q, P and Q PIC 9V9(19) holding 3 and 4, has an UPPER BOUND of 2 integer
+      *>     + 38 fraction digits, past the carrier.  The hold keeps the 17 fraction digits
+      *>     the old item held and gives every other position to the integer part up to its
+      *>     bound: S9(2)V9(36).  The value is 12: WHEN 2 is false (a hold that cut the
+      *>     integer part to keep all 38 fraction digits held 2 and took it), WHEN P * Q
+      *>     is true.
+      *> S11 CC * DD, both PIC 9(10)V9(15) holding 12345 and 10000, has a 20 + 30 digit
+      *>     bound: S9(20)V9(18).  The value is 123450000: WHEN 23450000 (the value cut
+      *>     to 8 integer digits) is false, WHEN CC * DD is true.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3974EV.
        DATA DIVISION.
@@ -56,6 +60,10 @@
        01 N1   PIC S9(15) VALUE -999999999999999.
        01 SM   PIC V9(12) VALUE 0.000000000001.
        01 ONE9 PIC 9(9) VALUE 1.
+       01 P    PIC 9V9(19) VALUE 3.
+       01 Q    PIC 9V9(19) VALUE 4.
+       01 CC   PIC 9(10)V9(15) VALUE 12345.
+       01 DD   PIC 9(10)V9(15) VALUE 10000.
        PROCEDURE DIVISION.
        MAIN-PARA.
            EVALUATE A * B * C
@@ -130,12 +138,20 @@
               WHEN OTHER
                  DISPLAY "S9=OTHER"
            END-EVALUATE
-           EVALUATE SM * SM * BIG * BIG
-              WHEN 999999.999999998
-                 DISPLAY "S10=ROUNDED"
-              WHEN SM * SM * BIG * BIG
+           EVALUATE P * Q
+              WHEN 2
+                 DISPLAY "S10=CUT-2"
+              WHEN P * Q
                  DISPLAY "S10=EXACT"
               WHEN OTHER
                  DISPLAY "S10=OTHER"
+           END-EVALUATE
+           EVALUATE CC * DD
+              WHEN 23450000
+                 DISPLAY "S11=CUT"
+              WHEN CC * DD
+                 DISPLAY "S11=EXACT"
+              WHEN OTHER
+                 DISPLAY "S11=OTHER"
            END-EVALUATE
            STOP RUN.

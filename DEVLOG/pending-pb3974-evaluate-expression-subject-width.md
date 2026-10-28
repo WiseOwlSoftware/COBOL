@@ -24,17 +24,21 @@ expression un-hoisted, evaluated again at each WHEN, but the bound is an upper b
 because a later part of the statement can change an operand. `FUNCTION SUM(WS-B * WS-B * WS-B, FUNCTION RVBMP(WS-B))`
 (WS-B PIC 9(15), RVBMP adds 1 to WS-B) printed 33 instead of 14, and `EVALUATE WS-B * WS-B * WS-B WHEN FUNCTION RVBMP(WS-B)
 WHEN 8` took WHEN 27 instead of WHEN 8; the S9(21)V9(17) hold they replaced answered both. So `ValueOperandPicOf` always answers an
-item: the expression's own fraction digits (a sum of scales is exact) and the carrier's remaining positions as integer digits,
-which holds whole every value that fits. A value of more than 38 digits is cut, the residual shared with PB3268 (a wide
+item. Branch review round 1 (R1-1) then showed the first form of that item, which kept ALL the expression's fraction digits
+and gave the integer part the rest, cut the integer part of `PIC 9V9(19) * PIC 9V9(19)` (bound 2 + 38) to one digit, so
+`EVALUATE A * B` with 3 and 4 took `WHEN 2` where the old hold and `IF A * B = 12` answered 12, and cut `PIC 9(10)V9(15)`
+12345 * 10000 to 8 integer digits. The item is now a superset of the S9(21)V9(17) hold on both axes: integer digits keep
+priority up to the bound (the order `ShapedPic` keeps) but never below the 17 fraction digits the old item held, the fraction
+takes what remains (S9(2)V9(36) and S9(20)V9(18) for those two), so every value the old hold held is held whole. A value of more than 38 digits is cut, the residual shared with PB3268 (a wide
 intermediate item). An expression holding a quotient, a power or a function keeps the 21 + 17 item, the residual: its width is
 not a bound anyone states.
 Sibling arms: `ArgumentOrder`'s frozen function argument holds an arithmetic expression through the same `Materialize` path and is
 fixed with it (`COMPUTE R = FUNCTION MAX(BIG * BIG, T(FUNCTION MIN(1 2)))` stores the whole 30-digit product); the MOVE, INVOKE
 and SET holders carry function values and character text; the subscript temporary is a saturated integer position.
 
-**Witnesses.** Golden `14.9.13-EVALUATE/pb3974_evaluate_expression_subject_width` (ten EVALUATEs at every edition: 30-digit
+**Witnesses.** Golden `14.9.13-EVALUATE/pb3974_evaluate_expression_subject_width` (eleven EVALUATEs at every edition: 30-digit
 products, a negative product, a 24-digit fraction, a 31-digit sum, two subjects, a range object, a 39-digit bound over a
-30-digit value, a 24-fraction-digit value under a 54-digit bound, and an unequal control; the values are exact arithmetic of
+30-digit value, a 2 + 38 digit bound over the value 12, a 20 + 30 digit bound over 123450000, and an unequal control; the values are exact arithmetic of
 the items) and `pb3974_expression_subject_frozen_past_carrier` (from 2002: the review's two UDF scenarios at a 45-digit bound,
 `FUNCTION SUM` = 14 and the EVALUATE taking WHEN 8); no negative, since the change refuses no source. The 45-digit VALUE
 (`BIG * BIG * BIG`) the first cut's golden held through the un-hoisted path is cut by the 38-digit item and is the residual. Unit theories `ExpressionExtentTests`. Docs: `DESIGN-binder-bound-tree.md` (the intermediate's description).

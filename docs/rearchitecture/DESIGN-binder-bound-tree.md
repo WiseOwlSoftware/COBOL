@@ -641,10 +641,12 @@ fixed-point items and literals (a sum below 10^i and 10^j is below 10^(max(i, j)
 added; a mathematical bound, so it restates none of the renderer's carrier rules), and the intermediate is the fixed-point
 item of exactly those digits. The bound is an UPPER bound, never the value, so an extent past the 38-digit scaled carrier is
 still held (review R1-1): the expression is frozen because a later part of the statement may change an operand (GR3 "at the
-beginning of the execution", §8.4.3.2.4 GR2), and leaving it un-hoisted read the changed operand. The item keeps the
-expression's own fraction digits (a sum of scales is exact) and takes the carrier's remaining positions as integer digits, so it
-holds whole every value that fits; a value of more digits than the carrier is cut, as every fixed-point intermediate is (the
-residual, with PB3268's: a wide intermediate item). An expression holding a quotient, a power or a function keeps the 21 + 17
+beginning of the execution", §8.4.3.2.4 GR2), and leaving it un-hoisted read the changed operand. Where the bound's integer and fraction digits
+together pass the carrier the item is a superset of the S9(21)V9(17) hold on both axes (review R1-1 and its round 1): the integer
+digits keep priority up to the bound (the order `ShapedPic` keeps) but never below the 17 fraction digits the old item held, and the
+fraction takes what the integer part leaves (`PIC 9V9(19)` times `PIC 9V9(19)`, bound 2 + 38, is S9(2)V9(36) and holds 12 whole); a
+value of more digits than the carrier is cut, as every fixed-point intermediate is (the residual, with PB3268's: a wide
+intermediate item). An expression holding a quotient, a power or a function keeps the 21 + 17
 item (a width no bound states). It is not the fixed S9(21)V9(9) (`FunctionValuePic`), the nominal returned-value item IN-ARITHMETIC-RANGE reads: that description cut `MOVE FUNCTION PI TO Q1 Q2` (PIC 9V9(15)) to 3.141592653000000 where `MOVE
 FUNCTION PI TO Q3` stores 3.141592653589793. A NUMERIC function's temporary is flagged
 `DataItem.FunctionValueSeparator` (the decimal separator its literal form is written with, PB2507: the materializing unit's), and `OperandText`'s field image renders a flagged item in DOC-A.1-92's literal
