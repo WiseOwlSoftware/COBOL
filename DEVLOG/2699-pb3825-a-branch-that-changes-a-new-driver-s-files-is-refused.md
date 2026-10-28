@@ -1,4 +1,4 @@
-## PB3825: a branch that changes a new driver's files is refused (a new merge driver lands alone, mechanically)
+## Entry 2699 — 2026-10-28 11:51 PDT — PB3825: a branch that changes a new driver's files is refused (a new merge driver lands alone, mechanically)
 
 PB3727's landing added the `cobol-keyed-publicapi` driver and had sorted both PublicAPI baselines in the same branch. The
 landing merges main in through MAIN's registry, which had no such driver, so every later main change to a baseline was a
@@ -21,3 +21,4 @@ from the Windows half. `linux-gate.sh`'s `pin_origin_main` sets both clones' `or
 tree has none, so the check says NOT CHECKED); three self-test checks cover the stale ref, the pin and the absent ref. (R1-2, lead)
 A pattern is NEW only when the merge base's attributes did not give it that driver either, so a branch cut before main re-pointed a
 driver is no longer refused as if it added one; a sixth `new driver:` self-test arm covers it.
+
