@@ -36,6 +36,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class ImpactedTestsDriftTests
 {
+    /// <summary>The test sources this sweep reads: the COMMITTED C# under <c>tests/</c> (kb/Work PB3814), never a walk
+    /// of the directory from the file system, which enters every running test host's <c>bin/</c> and <c>obj/</c>.</summary>
+    private static readonly TreeScope TestSources = new(Under: ["tests/"], Kinds: [".cs"]);
+
     /// <summary>A vstest filter term — which the impact analysis must never print (kb/Work PB1721).</summary>
     private const string FilterTerm = "FullyQualifiedName";
 
@@ -212,14 +216,9 @@ public sealed class ImpactedTestsDriftTests
 
         var violations = new List<string>();
         int partitions = 0;
-        foreach (string file in Directory.EnumerateFiles(TestRepo.Tests(), "*.cs", SearchOption.AllDirectories))
+        foreach (string rel in TrackedTree.Files(TestSources))
         {
-            string rel = Path.GetRelativePath(TestRepo.Root, file).Replace('\\', '/');
-            if (rel.Contains("/bin/", StringComparison.Ordinal) || rel.Contains("/obj/", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
+            string file = TestRepo.At(rel.Split('/'));
             foreach (var (declaration, isPartition) in SuffixedClasses(File.ReadLines(file)))
             {
                 if (isPartition)

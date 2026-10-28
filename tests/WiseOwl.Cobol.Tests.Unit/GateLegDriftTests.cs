@@ -55,6 +55,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class GateLegDriftTests
 {
+    /// <summary>The test projects (<c>tests/**/*.csproj</c>), COMMITTED (kb/Work PB3814): never a walk of <c>tests/</c> from
+    /// the file system, which enters every running test host's <c>bin/</c> and <c>obj/</c>.</summary>
+    private static readonly TreeScope TestProjects = new(Under: ["tests/"], Kinds: [".csproj"]);
+
+    /// <summary>The test sources (<c>tests/**/*.cs</c>), COMMITTED, for the same reason.</summary>
+    private static readonly TreeScope TestSources = new(Under: ["tests/"], Kinds: [".cs"]);
+
     private const string PopulationTool = "test_population.py";
     private const string DriverTool = "run_gate_legs.py";
 
@@ -597,7 +604,7 @@ public sealed class GateLegDriftTests
                                  + @"<_Parameter2>\$\(AssemblyName\)</_Parameter2>"), props);
         Assert.True(File.Exists(TestRepo.At("tests", "_shared", "GateLegs.cs")), "tests/_shared/GateLegs.cs is gone");
 
-        var testProjects = Directory.EnumerateFiles(TestRepo.At("tests"), "*.csproj", SearchOption.AllDirectories)
+        var testProjects = TrackedTree.Files(TestProjects).Select(rel => TestRepo.At(rel.Split('/')))
             .Where(p => File.ReadAllText(p).Contains("<IsTestProject>true</IsTestProject>", StringComparison.Ordinal))
             .ToList();
         foreach (string gated in new[] { "WiseOwl.Cobol.Tests.Conformance", "WiseOwl.Cobol.Tests.Unit",
@@ -613,8 +620,7 @@ public sealed class GateLegDriftTests
         Assert.True(unlinked.Count == 0, "a test project drops the gate's leg filter (tests/_shared/GateLegs.cs): "
                                          + string.Join(", ", unlinked));
 
-        var ownFramework = Directory.EnumerateFiles(TestRepo.At("tests"), "*.cs", SearchOption.AllDirectories)
-            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+        var ownFramework = TrackedTree.Files(TestSources).Select(rel => TestRepo.At(rel.Split('/')))
             .Where(f => Regex.IsMatch(File.ReadAllText(f), @"\[\s*assembly\s*:\s*(Xunit\.)?TestFramework(Attribute)?\s*\("))
             .Select(f => Path.GetRelativePath(TestRepo.Root, f)).ToList();
         Assert.True(ownFramework.Count == 0, "a test source names its own xunit framework, so its assembly would "
