@@ -256,6 +256,7 @@ internal static class RepositoryAttributeRenderer
             a.Number(nameof(CobolDescriptionFieldsAttribute.OccursMin), t.Min);
             a.Always(nameof(CobolDescriptionFieldsAttribute.OccursMax), t.Max);
             a.Text(nameof(CobolDescriptionFieldsAttribute.OccursDepending), t.Depending);
+            a.Present(nameof(CobolDescriptionFieldsAttribute.OccursDependingEntry), t.DependingEntry);
             a.Flag(nameof(CobolDescriptionFieldsAttribute.OccursDynamic), t.Dynamic);
             a.Text(nameof(CobolDescriptionFieldsAttribute.OccursCapacity), t.Capacity);
             a.Present(nameof(CobolDescriptionFieldsAttribute.OccursInitialCapacity), t.InitialCapacity);

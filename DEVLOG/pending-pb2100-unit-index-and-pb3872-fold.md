@@ -173,6 +173,27 @@ factory method that does not say so and the formal on a CLR method without `[Cob
 at c24278e25, `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half GREEN; run 000003-20261028T031610Z at a1f8d823e (the
 hardening), `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half GREEN; the note's Landing section re-gated after it.
 
+**The branch review's findings (wave 20261739 group A).** R1-1 (blocking): the record kept an OCCURS DEPENDING ON object as
+its bare data-name and the decoder linked the FIRST entry of that name in the record, kb/Work PB978's first-candidate shape. A
+formal `01 REC. 05 A. 10 N PIC 99. 05 B. 10 N PIC 99. 05 T PIC X OCCURS 1 TO 10 DEPENDING ON N OF B.` is legal (ISO §8.4.2.2.3
+SR1: "uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of reference") and
+decoded with `T` counting by `A`'s `N`, which `DependingAdmission` also admits, so nothing refused it. Reproduced on this build
+(`RepositoryCodecTests.AQualifiedDependingOnObject_AndARepeatedRedefinesName_DecodeToTheBoundEntries` failed against the old
+lookup). The root fix records the link as a position, not a word: `OccursRecord.DependingEntry` (the attribute
+`OccursDependingEntry`) is the preorder index of the object's entry in the description's tree, the index the attribute ordinals
+already number, written by `Encoder.Table` exactly when the object is in the record, and `Decoder.Root` links the entry at that
+position, refuses a record whose position is past the tree, whose word is not that entry's name, or that has a word of the
+record with no position (or a position with none), and then asks the admission as before. The sibling sweep found the other
+link decoded by name, REDEFINES: the decoder took the nearest preceding same-named sibling, so `05 X. 05 X REDEFINES X. 05 C
+REDEFINES X.` decoded `C` over the second `X`, where §13.18.44.3 SR7 ("Multiple redefinitions of the same storage area shall
+each specify as data-name-2 the data-name of the entry that originally defined the area") and NOTE 1 make it the first; it also
+failed the same test against the old code. The placement rule the binder states (kb/Work PB1280) became ONE function,
+`DataItem.OriginalDefinition`, which the binder and the decoder now both ask. `RepositoryCodecTests.Same` compares both links as
+positions in the tree for every formal it round-trips, so the whole corpus checks them from now on. R1-2: a
+`CliParserTests` case for `--repository-update` (default on, both spellings, case, refusals, no swallowed flag) and
+`RunCompile` gets back its own summary. R1-3: the README option table lists `--repository-update`. Design 6.1 and its
+table of read members say how the object is recorded.
+
 **Self-review.** Architecture: one writer of attribute text, one reader of the index, one definition of the row encoding;
 no C# text in a bound node. Code: the cap and the escapes are tested at their edges; `Open(Stream)` catches only the
 exceptions a hostile image raises. Performance: the reader allocates only the rows. Duplication: the row encoding is not

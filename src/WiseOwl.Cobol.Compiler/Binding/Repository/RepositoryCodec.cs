@@ -195,15 +195,29 @@ internal static class RepositoryCodec
                 ?? throw new InvalidOperationException($"RepositoryCodec: the RAISING interface '{t.Name}' resolves to no interface of the group"),
         };
 
-        private static OccursRecord Table(OccursSpec spec, DataItem root) => new(spec.Min, spec.Max,
-            spec.DependingName is null ? null : spec.Depending is { } dep && IsWithin(dep, root) ? spec.DependingName : OutsideTheRecord,
-            spec.IsDynamic, spec.CapacityName, spec.InitialCap, spec.ExpectedMax, spec.Initialized);
-
-        private static bool IsWithin(DataItem item, DataItem root)
+        /// <summary>The OCCURS clause. The DEPENDING ON object is the entry the binder resolved (<c>OccursSpec.Depending</c>),
+        /// recorded by its preorder index in <paramref name="root"/>'s tree beside its word: a word alone would make the decoder
+        /// resolve it again, unqualified (ISO §8.4.2.2.3 SR1 qualifies a non-unique one).</summary>
+        private static OccursRecord Table(OccursSpec spec, DataItem root)
         {
-            for (DataItem? cur = item; cur is not null; cur = cur.Parent)
-                if (ReferenceEquals(cur, root)) return true;
-            return false;
+            int? entry = spec.Depending is { } dep ? PreorderIndex(root, dep) : null;
+            string? depending = spec.DependingName is null ? null : entry is not null ? spec.DependingName : OutsideTheRecord;
+            return new(spec.Min, spec.Max, depending, entry, spec.IsDynamic, spec.CapacityName, spec.InitialCap, spec.ExpectedMax,
+                spec.Initialized);
+        }
+
+        /// <summary>The index of <paramref name="item"/> in the preorder of <paramref name="root"/>'s tree (the root 0, the
+        /// order <see cref="DataItem.DescendantsOf"/> walks and the renderer's ordinals number), or null when it is not in it.</summary>
+        private static int? PreorderIndex(DataItem root, DataItem item)
+        {
+            if (ReferenceEquals(item, root)) return 0;
+            int index = 0;
+            foreach (var entry in DataItem.DescendantsOf(root))
+            {
+                index++;
+                if (ReferenceEquals(entry, item)) return index;
+            }
+            return null;
         }
 
         private PicRecord Pic(DataItem d, PicInfo p)
@@ -291,6 +305,7 @@ internal static class RepositoryCodec
         private int _serial;
         private readonly List<(DataItem Pointer, int Declaration)> _typeReferences = [];
         private readonly List<(DataItem Typed, int Declaration)> _typedEntries = [];
+        private readonly List<(DataItem Table, int Entry)> _dependingLinks = [];
         private readonly List<(DataItem Pointer, int Prototype)> _prototypeReferences = [];
         private DynamicLengthStructure[] _structures = [];
 
@@ -331,19 +346,24 @@ internal static class RepositoryCodec
 
         private DataItem Root(DescriptionRecord r)
         {
+            int first = _dependingLinks.Count;
             var root = Item(r, parent: null);
             root.RootSection = EntrySection.Linkage;
             var entries = DataItem.DescendantsOf(root).Prepend(root).ToList();
-            foreach (var table in entries)
-                if (table.OccursSpec is { DependingName: { } name } spec && name != OutsideTheRecord)
-                {
-                    // The link the binder records only when §13.18.38.3 SR17 / SR2 / SR20 admit it (kb/Work PB3510): a
-                    // record naming any other object is malformed, never a cycle for a consumer to follow.
-                    var dep = entries.FirstOrDefault(d => d.CobolName is { } w && CobolNames.Same(w, name))
-                        ?? throw Malformed($"'{table.CobolName}' DEPENDING ON '{name}', which the record does not hold");
-                    spec.Depending = DependingAdmission.Of(table, dep).Admitted ? dep
-                        : throw Malformed($"'{table.CobolName}' DEPENDING ON '{name}', which ISO §13.18.38.3 SR17 / SR2 / SR20 refuse");
-                }
+            for (int i = first; i < _dependingLinks.Count; i++)
+            {
+                var (table, entry) = _dependingLinks[i];
+                var spec = table.OccursSpec!;
+                // The object is the entry at its recorded position (a word alone is no identity: ISO §8.4.2.2.3 SR1 qualifies
+                // a non-unique one), and its word is that entry's name. The binder records the link only when §13.18.38.3
+                // SR17 / SR2 / SR20 admit it (kb/Work PB3510): a record naming any other object is malformed, never a cycle
+                // for a consumer to follow.
+                var dep = At(entries, entry, $"'{table.CobolName}' DEPENDING ON entry");
+                if (dep.CobolName is not { } word || !CobolNames.Same(word, spec.DependingName!))
+                    throw Malformed($"'{table.CobolName}' DEPENDING ON '{spec.DependingName}', which entry {entry} ('{dep.CobolName}') is not");
+                spec.Depending = DependingAdmission.Of(table, dep).Admitted ? dep
+                    : throw Malformed($"'{table.CobolName}' DEPENDING ON '{spec.DependingName}', which ISO §13.18.38.3 SR17 / SR2 / SR20 refuse");
+            }
             return root;
         }
 
@@ -376,13 +396,23 @@ internal static class RepositoryCodec
             };
             if (r.Pic is { RestrictedTypeDeclaration: { } declaration }) _typeReferences.Add((item, declaration));
             if (r.TypeDeclaration is { } typeDeclaration) _typedEntries.Add((item, typeDeclaration));
+            if (r.Table is { } table)
+            {
+                // The renderer writes the position exactly when the object is a word of the record.
+                bool inRecord = table.Depending is { } word && word != OutsideTheRecord;
+                if (inRecord != table.DependingEntry is not null)
+                    throw Malformed($"'{r.Name}' DEPENDING ON '{table.Depending}' with entry {(object?)table.DependingEntry ?? "none"}");
+                if (table.DependingEntry is { } entry) _dependingLinks.Add((item, entry));
+            }
             if (r.Pic is { RestrictedPrototype: { } prototype }) _prototypeReferences.Add((item, prototype));
             foreach (var childRecord in r.Children)
             {
                 var child = Item(childRecord, item);
+                // The object is found by the binder's own placement rule (§13.18.44.3 SR7, NOTE 1): the nearest preceding
+                // same-named sibling that is not itself a redefinition, never merely the nearest same-named one.
                 if (child.RedefinesTargetName is { } target)
-                    child.SetRedefinition(item.Children.LastOrDefault(c => c.CobolName is { } w && CobolNames.Same(w, target))
-                        ?? throw Malformed($"'{child.CobolName}' REDEFINES '{target}', which no preceding sibling is"), RedefinitionKind.Clause);
+                    child.SetRedefinition(DataItem.OriginalDefinition(item.Children.Where(c => c.CobolName is { } w && CobolNames.Same(w, target)))
+                        ?? throw Malformed($"'{child.CobolName}' REDEFINES '{target}', which no preceding sibling originally defines"), RedefinitionKind.Clause);
                 item.AddMember(child);
             }
             return item;

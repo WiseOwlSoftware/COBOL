@@ -77,6 +77,7 @@ The options you will use most:
 | `--sign-encoding ibm` or `ascii` | the overpunched-sign convention for DISPLAY numerics (default ibm) |
 | `--numeric-display decimal` or `digits` | how DISPLAY shows, and ACCEPT reads, a numeric item: with its decimal point and a leading sign, `00012.50` and `-00012.50` (default decimal), or as the digit image, `0001250` and `000125}`, which ACCEPT reads as a digit window (digits) |
 | `--flag-extensions` | warns at every nonstandard extension the compiler accepts |
+| `--repository-update on` or `off` | whether the module records its units' signatures in the external repository (default on), the state in which a later compilation's REPOSITORY paragraph binds against them; with `off` the module still runs and its host entries still work, but no later compilation can bind against it |
 | `--nist NAME` | the NIST CCVS placeholder preprocessing |
 
 `cobol --help` lists them all. `cobol check-batch manifest.json` parses, edition-checks and binds many sources in one

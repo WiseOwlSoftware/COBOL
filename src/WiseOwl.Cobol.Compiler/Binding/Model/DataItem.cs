@@ -736,6 +736,15 @@ public sealed class DataItem
         RedefinesKind = target is null ? RedefinitionKind.None : kind;
     }
 
+    /// <summary>The entry a REDEFINES clause's data-name-2 names among the same-named entries that precede its subject at its
+    /// own level, in declaration order (ISO §13.18.44.3 SR7: "Multiple redefinitions of the same storage area shall each
+    /// specify as data-name-2 the data-name of the entry that originally defined the area"; NOTE 1: "If data-name-2 is not
+    /// unique, no ambiguity of reference exists because of the required placement of the REDEFINES clause"): the NEAREST one
+    /// that is not itself a redefinition, or null when every candidate is (SR7's own violation). The ONE statement of the
+    /// placement rule, asked by the binder and by the repository decoder (kb/Work PB1280, PB2100).</summary>
+    public static DataItem? OriginalDefinition(IEnumerable<DataItem> precedingSameNamed) =>
+        precedingSameNamed.LastOrDefault(s => s.RedefinesTargetName is null);
+
     /// <summary>True when the item shares its storage area by one of the file section's IMPLICIT redefinitions
     /// (§13.18.33.4 GR3 / §12.4.6.4.4 GR2) rather than by a written REDEFINES clause.</summary>
     public bool RedefinesImplicitly => RedefinesKind is RedefinitionKind.ImplicitFileRecord or RedefinitionKind.SameRecordArea;

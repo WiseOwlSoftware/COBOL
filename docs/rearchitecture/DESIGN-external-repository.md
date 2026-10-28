@@ -867,9 +867,11 @@ internal sealed record DescriptionRecord(
     bool DynamicLength, int DynMaxSize, int? DynStructure,
     string? TypeName, bool Strong, bool External, bool IsTypedef, bool TypedefStrong, bool IsExternalTypedef, bool ExternalFromType,
     int? TypeDeclaration, RepositoryGroupUsage GroupUsage, PicRecord? Pic, RecordList<DescriptionRecord> Children);
-/// OccursSpec: the bounds, the DEPENDING ON object as a word of the record (or "<outside>"), a DYNAMIC table's capacity phrases.
-internal sealed record OccursRecord(int Min, int Max, string? Depending, bool Dynamic, string? Capacity, int? InitialCapacity,
-    int? ExpectedMax, bool Initialized);
+/// OccursSpec: the bounds, the DEPENDING ON object, a DYNAMIC table's capacity phrases. The object is its word (or
+/// "<outside>") AND, when it is in the record, DependingEntry: the preorder index of its entry in the description's tree
+/// (the root 0), its identity, because a non-unique name is written qualified (ISO §8.4.2.2.3 SR1) and no qualifier is kept.
+internal sealed record OccursRecord(int Min, int Max, string? Depending, int? DependingEntry, bool Dynamic, string? Capacity,
+    int? InitialCapacity, int? ExpectedMax, bool Initialized);
 /// PicInfo BY VALUE — every member. The two restriction NAMES are kept as written by the publishing element (words: an
 /// importer maps them through its IdentityScope, §8.7) beside what they resolve to (a type declaration, a referenced
 /// prototype's full signature); DigitPositions is its nullable backing.
@@ -890,10 +892,17 @@ SYNCHRONIZED is the clause's form (`RepositorySynchronized`: none, unqualified, 
 made the three forms three clauses, which §8.5.3.1 compares. OCCURS is `Occurs` plus an `OccursRecord` (the bounds and a
 dynamic table's capacity phrases ride `OccursSpec`, which `IsDynamicTable` and the occurs-depending readers need), and the
 DEPENDING ON object is decoded only through the binder's one admission (`DependingAdmission`, kb/Work PB3510), so a record
-naming a forbidden object is refused, never a cycle. `Based` (§13.18.5) and `AlignedAsLevelOne` are recorded because the
+naming a forbidden object is refused, never a cycle. The object is recorded by its POSITION (`DependingEntry`, the preorder
+index the attribute ordinals number) beside its word, and decoded from the position, never by looking the word up: the word
+of `DEPENDING ON N OF B` is `N`, and the first `N` of the record may be another item that the admission also admits, so a
+lookup by name decoded a counter the binder never linked (the review of kb/Work PB2100, finding R1-1). A REDEFINES object is
+found by the binder's own placement rule, `DataItem.OriginalDefinition` (§13.18.44.3 SR7 and NOTE 1: the nearest preceding
+same-named sibling that is not itself a redefinition), since the placement makes its word unambiguous; the round trip
+(`RepositoryCodecTests.Same`) compares both links as positions in the tree. `Based` (§13.18.5) and `AlignedAsLevelOne` are recorded because the
 description copy carries them. `TypedefStrong` replaces `DeclaresStrongType`, which is derived from it. RAISING kinds are the
 persisted `RepositoryRaisingKind`, and a program's whole RAISING phrase rides `BoundProgram.Raising`. A record the decoder
-cannot bind (an index past its table, a REDEFINES or DEPENDING ON naming no entry, a forbidden link) is a
+cannot bind (an index past its table, a REDEFINES naming no original definition, a DEPENDING ON position past the tree or
+whose word is not its entry's name, a forbidden link) is a
 `RepositoryRecordException` naming the record (§15.3), which slice 7's reader reports as REPO-4.
 The model is compiler-side and is written in the persisted vocabulary (§6.2's enums), so the ONE translation between
 the compiler's own types and what is persisted is `RepositoryRecord.Of(BoundUnit)` and its inverse, and the attribute
@@ -1031,7 +1040,7 @@ enclosing comparison's `Comparison` assumption set (PB3120); `BitLayout.*`; `Dat
 |---|---|---|
 | `IsGroup`, `Children`, `IsElementary` | all walkers | `Children`, `Level`, `Pic` null-ness |
 | `RedefinesTargetName` on subordinates | `ByteWidth`, `ImageWidth`, `Atoms` (§8.5.1.12.1: "any subordinate data items that specify the REDEFINES clause, and all data items subordinate to those data items, are ignored"), `BitLayout` | `RedefinesTarget` |
-| `Occurs`, `OccursSpec.DependingName`, `IsDynamicTable` | `ByteWidth`, `Atoms`, `VariableLengthCompatibility` | `Occurs`, `OccursDepending` (word inside the record, else `"<outside>"`), `OccursDynamic` |
+| `Occurs`, `OccursSpec.DependingName`, `IsDynamicTable` | `ByteWidth`, `Atoms`, `VariableLengthCompatibility` | `Occurs`, `OccursDepending` (word inside the record, else `"<outside>"`) with `OccursDependingEntry` (its entry's preorder index, present exactly when the word is inside the record), `OccursDynamic` |
 | `IsDynamicLength`, `DynMaxSize`, `DynStructure` | `DescriptionClauses`, `Atoms`, `TierCIsland`, `IsImageCapable`, `ActivationDescriptions.Of` | `DynamicLength`, `DynMaxSize`, `DynStructure` → `StructureRecord` (definition) |
 | `IsAnyLength`; `IsAligned`, `Justified`, `BlankWhenZero`, `Synchronized` | `SignatureDifference`, `ActivationDescriptions.AnyLengthClausesOf`, `DescriptionClauses`, `ActivationDescriptions.ElementaryClauses`, `SameEssentialCharacteristics` | the five booleans |
 | `StrongType`, `TypeName`, `IsTypedef`, `DeclaresStrongType`, `IsExternalTypedef`, `ExternalFromType`, the TYPE anchor | `StrongTypeModel.*` | the six facts + `TypeDeclaration`; `TypeDeclarations` |

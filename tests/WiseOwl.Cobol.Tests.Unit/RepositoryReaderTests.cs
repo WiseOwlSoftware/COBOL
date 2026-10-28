@@ -164,7 +164,7 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         ["rules, two"] = Unit("RLT", Elementary(Numeric with { EditingRules = new([new EditRuleRecord('+', "-", "+", true, false),
             new EditRuleRecord('\'', "", "\"", false, true)]) })),
         // OCCURS with every phrase, and a zero count; a currency class of value 0 (present).
-        ["table"] = Unit("TBL", Elementary(Numeric) with { Occurs = 0, Table = new OccursRecord(0, 4, "<outside>", true, "CAP", 0, 9, true) }),
+        ["table"] = Unit("TBL", Elementary(Numeric) with { Occurs = 0, Table = new OccursRecord(0, 4, "<outside>", null, true, "CAP", 0, 9, true) }),
         ["currency class 0"] = Unit("CUR", Elementary(Numeric with { CurrencyString = "", CurrencyClass = RepositoryLiteralClass.Alphanumeric })),
         // The unit facts: currencies, RAISING, DECIMAL-POINT IS COMMA, and an OPTIONAL BY VALUE formal with a RETURNING item.
         ["unit facts"] = Unit("UNF", Elementary(Numeric)) with
