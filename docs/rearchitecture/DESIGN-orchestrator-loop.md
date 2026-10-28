@@ -1557,7 +1557,7 @@ registry, no plug-in. Sorted order makes the insertion point of a new case its n
 meet only when their names are adjacent — PB3723's append-point conflict, which met every pair, becomes a rare one.
 
 **Discovery, the gate, CI and reuse change nothing.** `scripts/self_tests.py`'s rule (b) already runs every tracked
-`test_*.py` under `scripts/` bare, recursively (`tracked_scripts` is `git ls-files` over `live_tools.ROOTS`), so a
+`test_*.py` under `scripts/` bare, recursively (`discover` lists them through `live_tools.tracked`, the one `git ls-files` over `live_tools.ROOTS`), so a
 case file is found the day it is added; `fixtures.py` and `selftest_cases.py` handle no `--self-test` and are not
 named `test_*`, so neither runs alone. The gate's selftests leg, `linux-gate.sh`'s leg, CI's `audits` and
 `windows-self-tests` jobs run the runner and name nothing. Reuse (PB2914) traces what each file reads; a change to
