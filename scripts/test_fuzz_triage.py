@@ -9,7 +9,8 @@ scripts/differential_fuzz.py writes) and proves, arm by arm:
             EXIT_DIFFERS, the first four differing lines are kept;
   SLICE     the four slice kinds, the refusal-selection rule (3 rows or more, or a diagnostic code no larger signature
             carries), the rows report.md does not list (synthesized), and ALL of a signature's programs stated;
-  BRIEFS    every template renders with no `<<NAME>>` left, an unknown placeholder is an error, no brief names a
+  BRIEFS    the run is recorded and named by its canonical path whatever spelling it was given, every template renders
+            with no `<<NAME>>` left, an unknown placeholder is an error, no brief names a
             night-specific path, run id or date, the vocabulary / dispositions / bar sections in common.md equal the
             tool's, and the Workflow script names the briefs by the tool's own file names;
   VERDICTS  each rule of `verdict_problems` fires on its defect and stays silent on a valid line; a family claimed twice
@@ -201,7 +202,14 @@ def arm_slice() -> list[ft.Slice]:
 
 def arm_briefs(root: pathlib.Path, run: pathlib.Path) -> ft.Triage:
     coord = root / "coord"
-    t = ft.prepare(run, None, None, root / "triage", str(coord))
+    # The run is given in a spelling that is not its canonical one, as a host's TEMP may spell it (CI's Windows runner:
+    # `C:\Users\RUNNER~1\...`, an 8.3 alias; a symlinked /tmp): the tool records and names the canonical path, so the
+    # briefs, triage.json and every later subcommand agree on one spelling, whatever the caller typed (#714's bounce).
+    (root / "alias").mkdir(exist_ok=True)
+    given = root / "alias" / ".." / run.name
+    t = ft.prepare(given, None, None, root / "triage", str(coord))
+    check("BRIEFS: prepare records the run's canonical path, not the spelling it was given",
+          t.run == run.resolve() and t.run_id == run.name, f"{t.run} {run.resolve()}")
     check("BRIEFS: prepare reads the judge from run.json and the fresh judge defaults to it",
           t.judge == "judge/cobol.exe" and t.fresh_judge == t.judge and t.model == "test-model" and t.programs == len(ROWS))
     briefs = sorted((t.dir / "briefs").glob("*.md"))
@@ -211,7 +219,8 @@ def arm_briefs(root: pathlib.Path, run: pathlib.Path) -> ft.Triage:
     check("BRIEFS: an unknown placeholder is an error", raises(lambda: ft.render_template("<<NOPE>>", {}), KeyError))
     texts = "".join(b.read_text(encoding="utf-8") for b in briefs)
     check("BRIEFS: the brief names the triage directory, the run, the WSL form and the run's stop files",
-          ft.posix(t.dir) in texts and ft.posix(run) in texts and ft.wsl_path(t.dir) in texts
+          ft.posix(t.dir) in texts and ft.posix(t.run) in texts and ft.wsl_path(t.dir) in texts
+          and ft.posix(given) not in texts
           and "STOP-fuzz-20990101-000000" in texts.replace("\\", "/") and "STOP" in texts)
     sources = {p: (BRIEFS_DIR / p).read_text(encoding="utf-8") for p in
                [q.name for q in BRIEFS_DIR.glob("*.md")]}
