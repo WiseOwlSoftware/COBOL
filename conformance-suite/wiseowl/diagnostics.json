@@ -23767,6 +23767,48 @@
   ],
   "expect": "COBOL0902"
  },
+ "pb3960-refmod-zero-start": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2670"
+ },
+ "pb3960-refmod-zero-length": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2670"
+ },
+ "pb3960-refmod-all-zero-start": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL2670"
+ },
+ "pb3960-control-refmod-zero-length": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "leftmost-position and length shall be integer literals"
+ },
+ "pb3960-control-refmod-zero-start": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "leftmost-position and length shall be integer literals"
+ },
  "pb3794-message-reserved-85-2002": {
   "refuse-at": [
    "85",
