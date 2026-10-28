@@ -153,3 +153,6 @@ processes.** CI is the verification of the local process, never its first run. A
 local gates: find why they did not see it and fix that in the same change (a missing leg, an unpinned tool, a setting CI has
 and the local run lacks), then sweep for the others like it (rule 4). `kb/Work/PB1957` is the survey of the known
 differences and carries the drift test that maps every CI job to a local leg or to a recorded reason it cannot run locally.
+**CI and every local host run the SAME tool versions, and those are the LATEST releases** (owner 2026-10-28: "CI and
+local should always be using the latest version"; kb/Work PB4007): one toolchain manifest names each version, everything
+installs from it, and a version is never left to a runner image or to whatever a host happens to have.
