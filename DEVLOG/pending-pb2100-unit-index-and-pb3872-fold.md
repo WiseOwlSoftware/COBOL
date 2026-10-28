@@ -113,7 +113,11 @@ two compiles are byte-identical; ten encoding fixtures, each structured value wi
 reads each back equal; `RepositorySchemaDriftTests` (every attribute sealed, not inherited and decodable without loading;
 every settable property written by the renderer and read by its reader; metadata read only through `RepositoryIndex` and
 `RepositoryReader`). A pseudo-mutation (the renderer dropping `DigitPositions`) failed an encoding fixture, the module
-test and the corpus. The fourteen characterization snapshots are re-baselined for the attributes.
+test and the corpus. The fourteen characterization snapshots are re-baselined for the attributes. Gate: run 000002 was red on
+two tree sweeps (`CobolNameFoldDriftTests`: the option value's case-blind compare now carries `// not a COBOL word`, as
+`--numeric-display`'s does; `HostWitnessTraitDriftTests`: the new schema drift test is a tree sweep and carries the trait);
+the self-review widened the reader's catch to what `RepositoryIndex.Open` catches from a hostile blob. Run 000003 at
+8e7d3c05c: `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half GREEN, the 24 added cases `Passed`.
 
 **Left open in PB2100.** The OO arm: the class half of `RepositoryRecord` (`ClassRecord`, `MethodRecord`), the
 `[CobolUnit]` of classes and interfaces, `CobolMethodAttribute` and `CobolPropertyAttribute` on classes, factory types,
