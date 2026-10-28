@@ -17,12 +17,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// The root is FOLLOWED, not pattern-matched: a root held in a local, a field, a property, an assignment, a helper
-/// method's return, a lambda parameter, a <c>foreach</c> variable, a method parameter (through the calls in the same file)
-/// or a theory row resolves to the <c>TestRepo</c> expression it was built from, evaluated as the path it names (a
+/// method's call (its parameters bound to what that call passes, a <c>params</c> parameter to the arguments it holds), a
+/// lambda parameter, a <c>foreach</c> variable, a method parameter (through the calls in the same file) or a theory row resolves to the <c>TestRepo</c> expression it was built from, evaluated as the path it names (a
 /// <see cref="Rel"/>: the segments below the repository root). A root that resolves to nothing the file can see is
 /// <see cref="Verdict.Unresolved"/>, which the drift test counts and bounds, so the guard cannot lose its reach unseen.
-/// A directory is a hazard only when a test host's build output can lie under it: the repository root, <c>tests/</c>, or a
-/// directory under <c>tests/</c> holding a project; a data-only directory (<c>tests/nist</c>) holds none.
+/// A directory is a hazard only when a test host's build output can lie under it: the repository root, <c>tests/</c>, a
+/// directory under <c>tests/</c> holding a project, or that project's <c>bin/</c> or <c>obj/</c> and anything below; a
+/// data-only directory (<c>tests/nist</c>) holds none. A <c>TestRepo</c> or <c>Path</c> written with its namespace is the same.
 /// </remarks>
 internal static class TestsTreeWalks
 {
@@ -36,6 +37,14 @@ internal static class TestsTreeWalks
 
     /// <summary>A string the file spells (null when it is built at run time).</summary>
     private sealed record Lit(string? Text);
+
+    /// <summary>The arguments a <c>params</c> parameter holds at one call: one evaluation per argument, so the helper's body
+    /// sees exactly the segments its caller passed (none, for <c>Unit()</c>).</summary>
+    private sealed record Params(IReadOnlyList<IReadOnlyList<object>> Args);
+
+    /// <summary>A segment standing for zero or more unknown segments (a spread the file does not let the guard expand); the
+    /// path is judged by the segments before it.</summary>
+    private const string Open = "*";
 
     /// <summary>The method names that list a directory.</summary>
     private static readonly HashSet<string> ListingMethods = new(StringComparer.Ordinal)
@@ -68,8 +77,7 @@ internal static class TestsTreeWalks
             if (call.Expression is not MemberAccessExpressionSyntax access || !ListingMethods.Contains(access.Name.Identifier.ValueText))
                 continue;
             if (!Recurses(call, resolver)) continue;
-            ExpressionSyntax rootExpression = access.Expression is IdentifierNameSyntax { Identifier.ValueText: "Directory" }
-                                              or MemberAccessExpressionSyntax { Name.Identifier.ValueText: "Directory" }
+            ExpressionSyntax rootExpression = IsNamed(access.Expression, "Directory")
                 ? call.ArgumentList.Arguments.FirstOrDefault()?.Expression ?? access.Expression
                 : access.Expression;
             IReadOnlyList<object> values = resolver.Eval(rootExpression, 0);
@@ -86,6 +94,15 @@ internal static class TestsTreeWalks
     /// <summary>The hazards among <paramref name="listings"/> (a <see cref="Scan"/> of <paramref name="path"/>), as messages.</summary>
     internal static IReadOnlyList<string> Hazards(string path, IEnumerable<Listing> listings) =>
         [.. listings.Where(l => l.Verdict == Verdict.Hazard).Select(l => $"{path}:{l.Line}: lists {l.Root} recursively from the file system")];
+
+    /// <summary>Whether <paramref name="e"/> names <paramref name="name"/>, bare or qualified by a namespace or a class
+    /// (<c>TestRepo</c>, <c>Shared.TestRepo</c>, <c>System.IO.Path</c>).</summary>
+    private static bool IsNamed(ExpressionSyntax e, string name) => e switch
+    {
+        IdentifierNameSyntax i => i.Identifier.ValueText == name,
+        MemberAccessExpressionSyntax m => m.Name.Identifier.ValueText == name,
+        _ => false,
+    };
 
     private static string Squash(string text) => string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
@@ -108,13 +125,20 @@ internal static class TestsTreeWalks
         bool resolved = false;
         foreach (Rel rel in values.OfType<Rel>())
         {
-            IReadOnlyList<string?> s = rel.Segments;
+            // What stands after an unexpandable spread may be nothing, so the path is judged by the segments before it.
+            int open = rel.Segments.ToList().IndexOf(Open);
+            IReadOnlyList<string?> s = open < 0 ? rel.Segments : [.. rel.Segments.Take(open)];
             if (s.Count == 0) return Verdict.Hazard; // the repository root
             if (s[0] is null) continue; // not evaluable
             resolved = true;
             if (s[0] != "tests") continue;
             if (s.Count == 1) return Verdict.Hazard; // tests/ itself
-            if (s.Count == 2 && (s[1] is null || projectDirectories.Contains(s[1]!))) return Verdict.Hazard; // a project's directory
+            bool project = s[1] is null || projectDirectories.Contains(s[1]!);
+            if (s.Count == 2 && project) return Verdict.Hazard; // a project's directory
+            // The test host's build output itself, or anything below it (the working directory of the running host).
+            if (s.Count >= 3 && project && s[2] is { } sub
+                && (sub.Equals("bin", StringComparison.OrdinalIgnoreCase) || sub.Equals("obj", StringComparison.OrdinalIgnoreCase)))
+                return Verdict.Hazard;
         }
         return resolved ? Verdict.Safe : Verdict.Unresolved;
     }
@@ -129,7 +153,10 @@ internal static class TestsTreeWalks
         private readonly Dictionary<string, List<ForEachStatementSyntax>> _loops = new(StringComparer.Ordinal);
         private readonly Dictionary<string, List<ParameterSyntax>> _parameters = new(StringComparer.Ordinal);
         private readonly Dictionary<string, List<InvocationExpressionSyntax>> _calls = new(StringComparer.Ordinal);
-        private readonly Dictionary<string, List<MethodDeclarationSyntax>> _methods = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, List<Callable>> _callables = new(StringComparer.Ordinal);
+
+        // The parameters of the helper being evaluated at one call, bound to what that call passes (null outside a helper).
+        private Dictionary<string, IReadOnlyList<object>>? _bound;
 
         public Resolver(SyntaxNode tree)
         {
@@ -141,7 +168,12 @@ internal static class TestsTreeWalks
                     case ParameterSyntax p: Index(_parameters, p.Identifier.ValueText, p); break;
                     case InvocationExpressionSyntax { Expression: IdentifierNameSyntax i } c: Index(_calls, i.Identifier.ValueText, c); break;
                     case InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax m } c: Index(_calls, m.Name.Identifier.ValueText, c); break;
-                    case MethodDeclarationSyntax { ParameterList.Parameters.Count: 0 } m: Index(_methods, m.Identifier.ValueText, m); break;
+                    case MethodDeclarationSyntax m:
+                        Index(_callables, m.Identifier.ValueText, new Callable(m.ParameterList, m.ExpressionBody?.Expression, m.Body));
+                        break;
+                    case LocalFunctionStatementSyntax lf:
+                        Index(_callables, lf.Identifier.ValueText, new Callable(lf.ParameterList, lf.ExpressionBody?.Expression, lf.Body));
+                        break;
                     case VariableDeclaratorSyntax { Initializer: { } init } v: Add(v.Identifier.ValueText, init.Value); break;
                     case PropertyDeclarationSyntax p:
                         if (p.ExpressionBody is { } body) Add(p.Identifier.ValueText, body.Expression);
@@ -149,6 +181,17 @@ internal static class TestsTreeWalks
                         break;
                     case AssignmentExpressionSyntax { Left: var left } a when NameOf(left) is { } name: Add(name, a.Right); break;
                 }
+            }
+        }
+
+        /// <summary>A method or local function of this source: its parameters and the expressions it returns.</summary>
+        private sealed record Callable(ParameterListSyntax Parameters, ExpressionSyntax? ExpressionBody, BlockSyntax? Body)
+        {
+            public IEnumerable<ExpressionSyntax> Returns()
+            {
+                if (ExpressionBody is not null) yield return ExpressionBody;
+                foreach (ReturnStatementSyntax r in Body?.DescendantNodes().OfType<ReturnStatementSyntax>() ?? [])
+                    if (r.Expression is { } x) yield return x;
             }
         }
 
@@ -199,7 +242,7 @@ internal static class TestsTreeWalks
                 case BinaryExpressionSyntax b when b.IsKind(SyntaxKind.CoalesceExpression): return [.. Eval(b.Left, depth), .. Eval(b.Right, depth)];
                 case ObjectCreationExpressionSyntax { Type: var t, ArgumentList.Arguments: [var only] } when t.ToString() is "DirectoryInfo" or "System.IO.DirectoryInfo":
                     return Eval(only.Expression, depth);
-                case MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "TestRepo" }, Name.Identifier.ValueText: "Root" }:
+                case MemberAccessExpressionSyntax { Expression: var repo, Name.Identifier.ValueText: "Root" } when IsNamed(repo, "TestRepo"):
                     return [new Rel([])];
                 case MemberAccessExpressionSyntax { Name.Identifier.ValueText: "FullName" or "Parent" } m:
                     return Eval(m.Expression, depth);
@@ -217,11 +260,13 @@ internal static class TestsTreeWalks
             var args = call.ArgumentList.Arguments;
             switch (call.Expression)
             {
-                case MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "TestRepo" }, Name.Identifier.ValueText: var member }:
+                case MemberAccessExpressionSyntax { Expression: var repo, Name.Identifier.ValueText: var member } when IsNamed(repo, "TestRepo"):
                     return TestRepoCall(member, args, depth);
-                case MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "Path" }, Name.Identifier.ValueText: var m }:
+                case MemberAccessExpressionSyntax { Expression: var path, Name.Identifier.ValueText: var m } when IsNamed(path, "Path"):
                     switch (m)
                     {
+                        case "Combine" when args.Count == 1 && Items(args[0].Expression) is { Count: > 0 } items && !items[0].Spread:
+                            return Eval(items[0].Expression, depth).Select(v => v is Rel r ? AppendItems(r, items.Skip(1), depth) : v).ToList();
                         case "Combine" when args.Count > 0:
                             return Eval(args[0].Expression, depth).Select(v => v is Rel r ? Append(r, args.Skip(1), depth) : v).ToList();
                         case "GetFullPath" when args.Count > 0:
@@ -230,14 +275,59 @@ internal static class TestsTreeWalks
                             return Eval(args[0].Expression, depth).Select(v => v is Rel r ? Parent(r) : v).ToList();
                     }
                     return [];
-                case MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "Directory" }, Name.Identifier.ValueText: "GetParent" } when args.Count == 1:
+                case MemberAccessExpressionSyntax { Expression: var dir, Name.Identifier.ValueText: "GetParent" } when args.Count == 1 && IsNamed(dir, "Directory"):
                     return Eval(args[0].Expression, depth).Select(v => v is Rel r ? Parent(r) : v).ToList();
+                case MemberAccessExpressionSyntax { Expression: var text, Name.Identifier.ValueText: "Split" }:
+                    // "a/b".Split('/'): the parts of a string the file spells, so a spread of it expands to its segments
+                    return [.. Eval(text, depth).OfType<Lit>().Select(l => l.Text is { } t
+                        ? new Params([.. SegmentsOf(t).Select(part => (IReadOnlyList<object>)[new Lit(part)])])
+                        : (object)new Lit(null))];
                 case MemberAccessExpressionSyntax { Expression: var recv, Name.Identifier.ValueText: "ToString" or "ToArray" or "First" or "Single" } when args.Count == 0:
                     return Eval(recv, depth);
                 case IdentifierNameSyntax { Identifier.ValueText: var method }:
-                    return [.. MethodBodies(method).SelectMany(x => Eval(x, depth))];
+                    return Inline(method, args, depth);
+                case MemberAccessExpressionSyntax { Name.Identifier.ValueText: var member } when _callables.ContainsKey(member):
+                    return Inline(member, args, depth); // a method of this source, called through this or its class
                 default: return [];
             }
+        }
+
+        /// <summary>What a call of a method or local function of this source returns: each of its <c>return</c> expressions
+        /// evaluated with the parameters bound to what THIS call passes, never to what another call of it passes.</summary>
+        private IReadOnlyList<object> Inline(string method, SeparatedSyntaxList<ArgumentSyntax> args, int depth)
+        {
+            var values = new List<object>();
+            foreach (Callable callee in _callables.GetValueOrDefault(method) ?? [])
+            {
+                var parameters = callee.Parameters.Parameters;
+                bool hasParams = parameters.Any(p => p.Modifiers.Any(SyntaxKind.ParamsKeyword));
+                if (args.Count > parameters.Count && !hasParams) continue; // another overload
+                var bound = new Dictionary<string, IReadOnlyList<object>>(StringComparer.Ordinal);
+                for (int i = 0; i < parameters.Count; i++)
+                {
+                    ParameterSyntax p = parameters[i];
+                    string name = p.Identifier.ValueText;
+                    if (p.Modifiers.Any(SyntaxKind.ParamsKeyword))
+                        bound[name] = [new Params([.. args.Skip(i).Select(a => Eval(a.Expression, depth))])];
+                    else if (args.FirstOrDefault(a => a.NameColon?.Name.Identifier.ValueText == name) is { } named)
+                        bound[name] = Eval(named.Expression, depth);
+                    else if (i < args.Count && args[i].NameColon is null)
+                        bound[name] = Eval(args[i].Expression, depth);
+                    else
+                        bound[name] = p.Default is { } d ? Eval(d.Value, depth) : [];
+                }
+                var saved = _bound;
+                _bound = bound;
+                try
+                {
+                    foreach (ExpressionSyntax x in callee.Returns()) values.AddRange(Eval(x, depth));
+                }
+                finally
+                {
+                    _bound = saved;
+                }
+            }
+            return values;
         }
 
         private IReadOnlyList<object> TestRepoCall(string member, SeparatedSyntaxList<ArgumentSyntax> args, int depth)
@@ -251,23 +341,75 @@ internal static class TestsTreeWalks
         private Rel Append(Rel r, IEnumerable<ArgumentSyntax> args, int depth)
         {
             var segments = new List<string?>(r.Segments);
-            foreach (ArgumentSyntax a in args)
-            {
-                IReadOnlyList<object> values = Eval(a.Expression, depth);
-                if (values.OfType<Lit>().FirstOrDefault() is { Text: { } text })
-                    segments.AddRange(text.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries));
-                else
-                    segments.Add(null);
-            }
+            foreach (ArgumentSyntax a in args) AppendArgument(segments, a.Expression, depth);
             return new Rel(segments);
         }
 
-        private static Rel Parent(Rel r) => new(r.Segments.Count == 0 ? [null] : [.. r.Segments.Take(r.Segments.Count - 1)]);
+        /// <summary>The elements, in order, of a collection expression or an array creation, each with whether it is a spread;
+        /// null when <paramref name="e"/> spells no collection.</summary>
+        private static IReadOnlyList<(ExpressionSyntax Expression, bool Spread)>? Items(ExpressionSyntax e) => e switch
+        {
+            CollectionExpressionSyntax c =>
+                [.. c.Elements.Select(x => x switch
+                {
+                    SpreadElementSyntax sp => (sp.Expression, true),
+                    ExpressionElementSyntax ex => (ex.Expression, false),
+                    _ => (null!, false), // a key-value element: no path is built from one
+                }).Where(x => x.Expression is not null)],
+            ArrayCreationExpressionSyntax { Initializer: { } ai } => [.. ai.Expressions.Select(x => (x, false))],
+            ImplicitArrayCreationExpressionSyntax ia => [.. ia.Initializer.Expressions.Select(x => (x, false))],
+            _ => null,
+        };
+
+        private Rel AppendItems(Rel r, IEnumerable<(ExpressionSyntax Expression, bool Spread)> items, int depth)
+        {
+            var segments = new List<string?>(r.Segments);
+            foreach ((ExpressionSyntax x, bool spread) in items)
+                if (spread) AppendValues(segments, Eval(x, depth), spread: true);
+                else AppendArgument(segments, x, depth);
+            return new Rel(segments);
+        }
+
+        /// <summary>One argument's segments: a string's parts, the arguments a <c>params</c> parameter holds, or the elements of
+        /// a collection expression or array (a spread stands for the unknown, <see cref="Open"/>).</summary>
+        private void AppendArgument(List<string?> segments, ExpressionSyntax e, int depth)
+        {
+            if (Items(e) is { } items) segments.AddRange(AppendItems(new Rel([]), items, depth).Segments);
+            else AppendValues(segments, Eval(e, depth), spread: false);
+        }
+
+        private static string[] SegmentsOf(string path) => path.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries);
+
+        private static void AppendValues(List<string?> segments, IReadOnlyList<object> values, bool spread)
+        {
+            if (values.OfType<Params>().FirstOrDefault() is { } held)
+            {
+                foreach (IReadOnlyList<object> arg in held.Args) AppendValues(segments, arg, spread: false);
+            }
+            else if (values.OfType<Lit>().FirstOrDefault() is { Text: { } text })
+            {
+                segments.AddRange(SegmentsOf(text));
+            }
+            else
+            {
+                segments.Add(spread ? Open : null);
+            }
+        }
+
+        /// <summary>The directory above <paramref name="r"/>; an <see cref="Open"/> segment may be empty, so the parent is taken
+        /// from the segments before it.</summary>
+        private static Rel Parent(Rel r)
+        {
+            int open = r.Segments.ToList().IndexOf(Open);
+            IReadOnlyList<string?> known = open < 0 ? r.Segments : [.. r.Segments.Take(open)];
+            return new Rel(known.Count == 0 ? [null] : [.. known.Take(known.Count - 1)]);
+        }
 
         /// <summary>What a name holds: its initializers and assignments, or, for a parameter, the values its callers (or its
         /// theory rows) pass; for a lambda parameter or a <c>foreach</c> variable, the elements of the sequence it ranges over.</summary>
         private IReadOnlyList<object> Name(string name, int depth)
         {
+            if (_bound is not null && _bound.TryGetValue(name, out IReadOnlyList<object>? held)) return held;
             var values = new List<object>();
             foreach (SyntaxNode d in Declarations(name))
                 if (d is ExpressionSyntax x) values.AddRange(Eval(x, depth));
@@ -343,17 +485,6 @@ internal static class TestsTreeWalks
             finally
             {
                 _active.Remove(e);
-            }
-        }
-
-        /// <summary>The expressions a method of this name returns (its expression body, or its <c>return</c> statements).</summary>
-        private IEnumerable<ExpressionSyntax> MethodBodies(string method)
-        {
-            foreach (MethodDeclarationSyntax m in _methods.GetValueOrDefault(method) ?? [])
-            {
-                if (m.ExpressionBody is { } b) yield return b.Expression;
-                foreach (ReturnStatementSyntax r in m.Body?.DescendantNodes().OfType<ReturnStatementSyntax>() ?? [])
-                    if (r.Expression is { } x) yield return x;
             }
         }
     }
