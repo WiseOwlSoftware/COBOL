@@ -20,6 +20,8 @@ namespace WiseOwl.Cobol.CodeGen.Emit;
 ///         and seven digits;</item>
 ///   <item>for every other exact function, an item its VALUE describes (<c>CobolNum.DeviceFunctionText</c>).</item>
 /// </list>
+/// <para>The same temporary is what FUNCTION LENGTH and FUNCTION BYTE-LENGTH measure (<see cref="Field"/>, <c>FunctionValueField.ByteLength</c>,
+/// kb/Work PB3951): the item is described once and asked two questions, what it shows and how long it is.</para>
 /// A binary64 result keeps the image a floating-point item has, and a call the binder FOLDED into a literal shows as that
 /// literal when GnuCOBOL folds the same call (<see cref="FunctionDeviceForm.Literal"/>: LENGTH, BYTE-LENGTH) and as the value
 /// of the call it replaced otherwise (the ALGEBRAIC family).
@@ -43,6 +45,13 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
             new FunctionDeviceText(num).ValueText(num.AsNum(lit, ReceiverContext.None)),
         _ => null,
     };
+
+    /// <summary>⛔ IS THIS OPERAND A NUMERIC OR INTEGER FUNCTION'S RETURNED VALUE, whose temporary <see cref="Field"/> describes (kb/Work PB3951)?
+    /// A call, or the literal the binder FOLDED a call to (<c>FUNCTION LENGTH(FUNCTION LENGTH(X))</c>). The ONE predicate the LENGTH and
+    /// BYTE-LENGTH fold asks (<c>IntrinsicBinder.FunctionResultLength</c>) and their renderer arm answers by, so the operand the binder sends to
+    /// the runtime is the operand the renderer measures.</summary>
+    public static bool IsNumericFunctionResult(BoundOperand op) => op is
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } } or BoundNumericLiteral { FunctionValue: true };
 
     private static bool IsFloatingPoint(string literal) => literal.AsSpan().IndexOfAny('E', 'e') >= 0;
 
@@ -93,11 +102,11 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
             {
                 case (FunctionDeviceForm.FixedDigits, _):
                     return RuntimeApi.FunctionFieldOfDigits(num.DecOperand(num.Render(ic, ReceiverContext.None)), ic.Sig.DeviceDigits);
-                case (_, "AbsScaled"): return RuntimeApi.FunctionFieldAbs(ArgField(ic.Args[0]));
+                case (_, "AbsScaled"): return RuntimeApi.FunctionFieldAbs(Field(ic.Args[0]));
                 case (_, "MaxScaled"): return RuntimeApi.FunctionFieldMax(ArgumentList(ic));
                 case (_, "MinScaled"): return RuntimeApi.FunctionFieldMin(ArgumentList(ic));
                 case (_, "MedianScaled"): return RuntimeApi.FunctionFieldMedian(ArgumentList(ic));
-                case (_, "MeanScaled"): return ArgField(ic.Args[0]);
+                case (_, "MeanScaled"): return Field(ic.Args[0]);
             }
         }
         return ValueField(num.Render(ic, ReceiverContext.None));
@@ -113,12 +122,15 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
     /// <summary>The argument list of a selecting function: the comma list, or one array expression when a table(ALL) is among
     /// the arguments (each of its elements is an argument).</summary>
     private string ArgumentList(BoundIntrinsicCall ic) =>
-        num.Intrinsics.ArgArray(ic, 0, RuntimeApi.FunctionFieldType, ArgField)
-        ?? string.Join(", ", ic.Args.Select(ArgField));
+        num.Intrinsics.ArgArray(ic, 0, RuntimeApi.FunctionFieldType, Field)
+        ?? string.Join(", ", ic.Args.Select(Field));
 
-    /// <summary>One argument as the field the returned value would copy.</summary>
+    /// <summary>One operand as the <c>FunctionValueField</c> expression it evaluates to - its value and its description. For an argument of a
+    /// selecting function it is the field the returned value would copy; for a numeric function's returned value
+    /// (<see cref="IsNumericFunctionResult"/>) it is the temporary that DISPLAY shows (<see cref="Of"/>) and LENGTH measures
+    /// (<c>RuntimeApi.FunctionFieldLength</c>, kb/Work PB3951).</summary>
     /// <remarks>INTAKE(EXACT) - the argument's value and description are read once, unlanded and unrounded within the SDIDI's lift.</remarks>
-    private string ArgField(BoundOperand a)
+    public string Field(BoundOperand a)
     {
         switch (a)
         {
@@ -134,9 +146,11 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
             // its exact value (the one float-item lift) and shows its own DISPLAY image.
             case BoundFieldOperand { Place: { DenotedItem: not null, Item.IsGroup: false, Item.Pic: { Category: PicCategory.Numeric } pic } place }:
                 NumX read = num.AsNum(a, ReceiverContext.None);
+                // The copy's length is the item's own, by the one reading the binder gives FUNCTION LENGTH(field) and BYTE-LENGTH(field):
+                // positions (§15.50.4 r2/r3) and bytes (§15.14.4 r1) differ for a usage-national item.
                 return pic.IsFloat
-                    ? RuntimeApi.FunctionFieldOfFloatItem(num.DecOperand(read), OperandText.AsTransferString(a, num, "DISPLAY of"))
-                    : RuntimeApi.FunctionFieldOfItem(num.DecOperand(read), place.Item.ProfileName);
+                    ? RuntimeApi.FunctionFieldOfFloatItem(num.DecOperand(read), place.Item.ProfileName, OperandText.AsTransferString(a, num, "DISPLAY of"), place.Item.ByteWidth)
+                    : RuntimeApi.FunctionFieldOfItem(num.DecOperand(read), place.Item.ProfileName, ItemLength.Positions(place.Item), place.Item.ByteWidth);
             default:
                 // An arithmetic expression (GnuCOBOL evaluates it into a temporary), a register, an index: described by its value.
                 return RuntimeApi.FunctionFieldOfValue(num.DecOperand(num.AsNum(a, ReceiverContext.None)));

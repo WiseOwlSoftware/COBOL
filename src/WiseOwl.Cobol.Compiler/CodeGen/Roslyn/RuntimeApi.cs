@@ -166,9 +166,10 @@ internal static class RuntimeApi
     public static string FunctionFieldText(string field, bool commaMode) =>
         $"({field}).{nameof(FunctionValueField.DeviceText)}({(commaMode ? "true" : "false")})";
 
-    /// <summary>An argument that is a data item: the temporary copies the item's description.</summary>
-    public static string FunctionFieldOfItem(string value, string profile) =>
-        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfItem)}({value}, {profile})";
+    /// <summary>An argument that is a data item: the temporary copies the item's description, and has the item's length in
+    /// <paramref name="positions"/> (FUNCTION LENGTH) and <paramref name="bytes"/> (FUNCTION BYTE-LENGTH).</summary>
+    public static string FunctionFieldOfItem(string value, string profile, int positions, int bytes) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfItem)}({value}, {profile}, {positions}, {bytes})";
 
     /// <summary>An argument that is a numeric literal: the temporary copies the literal's field.</summary>
     public static string FunctionFieldOfLiteral(string value, int digits, int scale, bool signed) =>
@@ -186,9 +187,15 @@ internal static class RuntimeApi
     public static string FunctionFieldOfFloat(string value) =>
         $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloat)}({value})";
 
-    /// <summary>A floating-point item argument: its exact value as the one SDIDI lift gives it, and the image its own DISPLAY writes.</summary>
-    public static string FunctionFieldOfFloatItem(string exactValue, string image) =>
-        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloatItem)}({exactValue}, {image})";
+    /// <summary>A floating-point item argument: its exact value as the one SDIDI lift gives it, its profile (the bytes the copy has), and the
+    /// image its own DISPLAY writes, and the item's <paramref name="bytes"/>.</summary>
+    public static string FunctionFieldOfFloatItem(string exactValue, string profile, string image, int bytes) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfFloatItem)}({exactValue}, {profile}, {image}, {bytes})";
+
+    /// <summary>The length of a <c>FunctionValueField</c> expression - what FUNCTION LENGTH (positions, §15.50.4) or, with
+    /// <paramref name="bytes"/>, FUNCTION BYTE-LENGTH (§15.14.4 r1) of a numeric or integer function call answers (kb/Work PB3951).</summary>
+    public static string FunctionFieldLength(string field, bool bytes) =>
+        $"({field}).{(bytes ? nameof(FunctionValueField.ByteLength) : nameof(FunctionValueField.Length))}";
 
     /// <summary>ABS: the argument's description holding the magnitude.</summary>
     public static string FunctionFieldAbs(string field) => $"({field}).{nameof(FunctionValueField.Abs)}()";
