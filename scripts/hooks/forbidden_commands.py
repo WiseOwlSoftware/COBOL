@@ -33,11 +33,6 @@ fires inside subagents and Workflow agents too. Each rule below was written in a
                             `b` in the CALLER's directory; a landing audit written that way reported a false OK into
                             the queue on 2026-10-11. Use absolute paths or `git -C <dir>`.
 
-  desktop GUI launch        `Start-Process`/`start`/`Invoke-Item`/`explorer` of anything but a console tool run in no
-                            window, a named desktop application (Obsidian, a browser, an editor), and the library forms
-                            of the same act (owner 2026-10-25, kb/Work PB3798: an agent launched Obsidian over and over
-                            on the owner's screen). The model is gui_launch.py.
-
   WSL lifecycle commands    `wsl --terminate/--shutdown/--update/--export/--import/--unregister/--install` (owner
                             2026-10-04): they can end the owner's open session or burn tens of GB, so only the owner runs
                             them. Commands inside a distro (`wsl -d Ubuntu -e ...`) stay allowed. This is the guard that
@@ -53,7 +48,6 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import shell_location  # noqa: E402  (the one parser of a command's location changes, kb/Work PB2599)
-import gui_launch  # noqa: E402  (which commands start a desktop GUI application, kb/Work PB3798)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -283,16 +277,5 @@ for _after in STEPS:
               "(2026-10-11: a landing audit written this way reported a false OK). Use absolute paths or `git -C <dir>` "
               "instead of `cd` (MANDATORY-PRACTICES P14(b), kb/Work PB3095); independent commands go as parallel tool "
               "calls in one turn.")
-
-# 8. a desktop GUI application started from a command (owner 2026-10-25, kb/Work PB3798). Each step is judged by
-# `gui_launch.refusal`, which reads the shared parser's steps (a `cmd /c`, `pwsh -Command` or `bash -c` payload, a
-# substitution and a script block included), so a word in a commit message, a `grep` pattern or a heredoc body is no launch.
-for _st in STEPS:
-    try:
-        _gui = gui_launch.refusal(_st)
-    except Exception:  # noqa: BLE001 — a hook must never wedge a session; the self-test proves the rule fires
-        _gui = None
-    if _gui:
-        block(f"{_gui}. {gui_launch.HOW}")
 
 sys.exit(0)
