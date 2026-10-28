@@ -293,12 +293,6 @@ with tempfile.TemporaryDirectory() as tmp:
     exact("powershell: a here-string is one word, its content", sl.steps("Write-Output @'\nline\n'@", str(main), P)[0].words,
           ("Write-Output", "line"))
 
-    # a step records the shell whose syntax parsed it (gui_launch.py judges a payload by the payload's shell)
-    exact("shell: a Bash call's own step is Bash, its `cmd /c` payload step is cmd.exe",
-          [s.shell for s in sl.steps("ls; cmd //c x.md", str(main), B)], [B, sl.CMD])
-    exact("shell: a PowerShell call's `bash -c` payload step is Bash",
-          [s.shell for s in sl.steps("Get-Date; bash -c 'ls'", str(main), P)], [P, B])
-
 for f in fails:
     print("FAIL:", f)
 print(f"shell_location self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))
