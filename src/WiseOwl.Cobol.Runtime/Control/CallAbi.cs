@@ -133,7 +133,7 @@ public readonly record struct BoundaryItem(NumProfile? Num, int Length = CobolAr
     /// <see cref="Landing"/> only, and is never compared (the check runs only when both sides enable it).</summary>
     public bool IsStated => Num is not null || Length != CobolArg.Unstated || Description is not null;
 
-    /// <summary>⛔ ISO §14.2.3 GR9's SECOND REGIME AND GR10 AT A RUN-TIME-LOCATED CALL (kb/Work PB2549, PB2587): the argument
+    /// <summary>⛔ ISO §14.2.3 GR9's SECOND REGIME AND GR10 AT A RUN-TIME-LOCATED CALL, AND A COMPUTED BY CONTENT VALUE IN THE FIRST (kb/Work PB2549, PB2587, PB3969): the argument
     /// <paramref name="arg"/> landed into "a data item with the same description and the same number of bytes as the formal
     /// parameter" — by "a COMPUTE statement without the ROUNDED phrase" when this formal is numeric, by "otherwise, a MOVE
     /// statement" when it is a non-numeric elementary item — so the activated element reads the allocated record "as if it
@@ -287,8 +287,15 @@ public sealed class MoveLanding(Func<MoveSending, string> Record) : CarrierLandi
 /// GR4's move, "no conversion of data from one form of internal representation to another", so it reads this image
 /// (<see cref="CobolArgAdapt.Text"/>). The activating element cannot choose between them - it does not see the formal - and
 /// the activated unit can. Null when the characters ARE the representation.</param>
+/// <param name="Computed">⛔ THE SENDER IS A COMPUTED NUMERIC VALUE, WHICH HAS NO REPRESENTATION OF ITS OWN (kb/Work PB3969): a numeric
+/// or integer function's returned value, whose "characteristics and representation" §15.4.1 leaves to the implementor and whose
+/// operational sign §15.2 4)-5) gives no usage. Its cell is a number at a scale, not the storage image of a data item, so
+/// there is nothing for §14.2.3 GR9's first regime to move "without conversion", and a formal that read the cell's image would
+/// read a 38-digit container's leading zeros. The activation boundary lands it through the formal's own description
+/// (<see cref="BoundaryItem.Land"/>) in BOTH of GR9's regimes, as it lands every BY VALUE argument.</param>
 public readonly record struct MoveSending(string Characters, bool Group = false, bool Fill = false, bool Numeric = false,
-    Int128 Unscaled = default, int Scale = 0, double? Real = null, string? StorageImage = null, bool Approximate = false)
+    Int128 Unscaled = default, int Scale = 0, double? Real = null, string? StorageImage = null, bool Approximate = false,
+    bool Computed = false)
 {
     /// <summary>The value aligned at <paramref name="scale"/> — §14.6.8.2's alignment, which truncates (a MOVE has no
     /// ROUNDED phrase).</summary>
@@ -831,7 +838,7 @@ public static class CobolArgAdapt
             // no representation for §14.9.25.4 GR4 to preserve (§15.2 4)-5), §15.4.1), so a plain-group formal reads the digits of
             // the value, as a numeric literal and a MOVE of the function to a group send them (CobolNum.GroupDigits; D-B4).
             ManagedPointer<double> d => new MoveSending(CobolFloat.Display(d.Value), Numeric: true, Real: d.Value, Approximate: approximate,
-                StorageImage: CobolNum.GroupDigits(CobolFloat.Display(d.Value))),
+                StorageImage: CobolNum.GroupDigits(CobolFloat.Display(d.Value)), Computed: true),
             var c when ReadNumericCell(c) is { } v => NumericSending(v, arg.Scale),
             _ => null,
         },
@@ -842,7 +849,8 @@ public static class CobolArgAdapt
     private static MoveSending NumericSending(Int128 unscaled, int scale, string? characters = null)
     {
         characters ??= CobolNum.FormatFunctionText(unscaled, scale, deSign: true);
-        return new MoveSending(characters, Numeric: true, Unscaled: unscaled, Scale: scale, StorageImage: CobolNum.GroupDigits(characters));
+        return new MoveSending(characters, Numeric: true, Unscaled: unscaled, Scale: scale, StorageImage: CobolNum.GroupDigits(characters),
+            Computed: true);
     }
 
     /// <summary>⛔ AN SDIDI VALUE CROSSES AT ITS OWN EXPONENT, NOT AT A SCALE THE ACTIVATING ELEMENT CHOSE (kb/Work PB3677): the

@@ -390,6 +390,18 @@ MIN(F 3)` sends the group formal the same digits as `CALL … AS NESTED` and `MO
 of 2, from the 6-digit floor), and a formal the activation boundary lands by GR9's COMPUTE (a REPOSITORY program-specifier)
 takes `0.333333333333` of 0.3333333333333333 where the floor gave `0.333333000000`.
 
+**A COMPUTED NUMERIC VALUE HAS NO IMAGE TO MOVE "WITHOUT CONVERSION" (kb/Work PB3969).** A numeric function's returned value
+is "a returned value in a temporary elementary data item" (§15.4) whose "characteristics and representation" are the
+implementor's under native arithmetic (§15.4.1), so GR9's first branch has no storage image of it to hand the formal's
+adapter. The cell it crosses in (`Int128` at the value's scale, profile 38 digits) is a NUMBER, and a DISPLAY formal that read
+its image saw the container's leading positions: `CALL "Q" USING BY CONTENT FUNCTION MAX(W 0)`, W 1.25, showed `+0.00` in a
+PIC S9V99 formal (`0.00` in a PIC 9V99, garbage in a COMP one, `00000` in a PIC X(5)). The activating element marks such an
+argument's `Sending` as `MoveSending.Computed` (`CobolArgAdapt.WithValueSending` for an evaluated cell, `SdidiValue` for an
+SDIDI value) and `ProgramTable.LandArguments` lands a BY CONTENT argument so marked through the formal's registered carrier in
+BOTH branches, as it lands every BY VALUE one: the formal holds what a COMPUTE (a numeric formal) or `MOVE FUNCTION f TO formal`
+(a non-numeric elementary one) would give it. A plain-group formal registers no landing and keeps reading the value's digits
+(`Sending.StorageImage`, D-B4).
+
 **When the caller cannot: the activation boundary lands, through the formal's registered carrier (kb/Work
 PB2549).** GR9's FIRST branch — a program with no program-specifier in the activating element's REPOSITORY
 paragraph and no NESTED phrase — allocates a record *"of the same length as the argument"* and moves it *"without
