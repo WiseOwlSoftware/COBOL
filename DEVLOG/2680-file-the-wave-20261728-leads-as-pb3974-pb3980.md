@@ -1,4 +1,4 @@
-## File the wave-20261728 leads as PB3974-PB3980
+## Entry 2680 — 2026-10-27 17:19 PDT — File the wave-20261728 leads as PB3974-PB3980
 
 The enqueue unit's clerk filed the leads of wave 20261728 into `kb/Work/`, one note per mechanism, after grepping the
 register for each (PB3268 and PB3514 are landed, so neither took a witness):
@@ -14,3 +14,4 @@ register for each (PB3268 and PB3514 are landed, so neither took a witness):
 Left out by the enqueue unit's direction: the three PB3972 review leads (left to PB3972's own branch, which rewrites that
 note) and the `FunctionValueField` comment lead (fixed by the conflict finisher on worktree-wf_f781f6f8-448-25). No
 witness paragraphs were added; no code changed.
+
