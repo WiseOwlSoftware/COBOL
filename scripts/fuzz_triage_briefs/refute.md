@@ -44,11 +44,15 @@ issue), so no section a filer copies still says the corrected thing. Never leave
 beside the text it contradicts ("where this differs, this paragraph governs" is refused by `work.py check`). Keep the nine
 `##` sections of the record format, the inline program, and the Draft issue opening with its `**Title:**` line. If the
 minimal program changes, write the corrected program to `<<TRIAGE>>/refuted/<family>.cob` and keep the inline block equal to
-it. The tool files the refuted copy when it exists, never the adjudicator's original.
+it. The tool files the refuted copy when it exists, never the adjudicator's original. Because that copy is what is filed,
+its citations are YOURS: every clause its Expected result (and Draft issue) cites is written `§<clause>`, and your
+checkpoint line lists exactly those clauses, each with a quote that `cite.py --check` accepted. The tool checks the quotes
+again and holds a record whose `§` clauses differ from your list; the note's `spec_refs` come from it.
 
 ## Checkpoint
 Append one JSON line per record the moment it is decided to `<<TRIAGE>>/refute/<<SLICE>>/refute-<<SLICE>>.jsonl`:
-`{"family": "...", "outcome": "UPHELD|RECLASSIFY|OVERTURNED", "class": "<new upstream_class, RECLASSIFY only>", "edition": "<new edition, only when it changes>", "why": "<what you re-ran and found; the correction in words>", "rerun_matches": true|false}`.
+`{"family": "...", "outcome": "UPHELD|RECLASSIFY|OVERTURNED", "class": "<new upstream_class, RECLASSIFY only>", "edition": "<new edition, only when it changes>", "citations": [{"clause": "<clause>", "text": "<a quote cite.py --check accepted>"}], "why": "<what you re-ran and found; the correction in words>", "rerun_matches": true|false}`.
+`citations` is required for `UPHELD` and `RECLASSIFY` (leave it out for `OVERTURNED`).
 On start, read the file and skip the families already in it.
 
 ## Stop and caps

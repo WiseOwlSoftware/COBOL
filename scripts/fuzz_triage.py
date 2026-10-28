@@ -12,8 +12,9 @@
 The design is docs/rearchitecture/DESIGN-differential-fuzz.md §3-§5; the Workflow that runs the adjudicators and the
 refuters is .claude/workflows/fuzz-triage.js, and every decision it makes is made HERE. The tool takes the run directory
 `scripts/differential_fuzz.py` wrote and the judge `scripts/fuzz_night.ps1` named (the judge defaults to the one run.json
-records), and writes everything under `--triage` (default `<run dir>/triage`, inside the git-ignored run directory): no
-night-specific path, run id or date is written in this file or in the briefs it renders (scripts/fuzz_triage_briefs/).
+records), and writes everything under `--triage` (default `<coord>/scratch/fuzz-triage/<run id>`; a directory inside a git
+checkout is refused, because the read-only adjudicators cannot write there, PB3972 R1-1): no night-specific path, run id
+or date is written in this file or in the briefs it renders (scripts/fuzz_triage_briefs/).
 
 ⛔ THE TOOL READS THE RUN AND FIXES NOTHING. The owner's standing decision (2026-10-24 ~17:00 PDT): "Do not begin fixing
 any fuzz identified issues without my explicit approval". `file` writes `kind: upstream` kb/Work notes, which RECORD a
@@ -69,6 +70,8 @@ SYNTHESIZED = ("BOTH_HANG", "RUNNER_ERROR", "NO_PROGRAM")
 SPLIT_CLAUSE_PREFIX = "8."
 CHUNK = 25
 REFUTE_PER_SLICE = 6
+#: How long `verify` lets one repro's compile run before it reports the repro as not re-run.
+VERIFY_COMPILE_S = 120
 PROGRAM_ID = re.compile(r"\bfz\d+\b")
 SECTION_HEAD = re.compile(r"### `([^`]*)` × ([0-9]+)")
 
@@ -378,17 +381,36 @@ def prior_records(repo: pathlib.Path) -> str:
     return NL.join(f"  `{p.relative_to(repo).as_posix()}`" for p in found) or "  (none recorded yet)"
 
 
-def stop_files(t: Triage) -> tuple[pathlib.Path, pathlib.Path]:
+def _coord():
+    """scripts/orchestrator/coord.py: the one home of the coordination directory, the stop-file names, the roles' turn
+    caps and the rule for where a fleet's files may live."""
     sys.path.insert(0, str(HERE / "orchestrator"))
-    import coord  # noqa: PLC0415  (this directory's sibling: the one home of the stop-file names)
+    import coord  # noqa: PLC0415
+    return coord
+
+
+def triage_directory(triage: str | pathlib.Path | None, run: pathlib.Path, coord_override: str | None) -> pathlib.Path:
+    """The triage directory: `--triage`, else `<coord>/scratch/fuzz-triage/<run id>`, OUTSIDE every git checkout.
+
+    The adjudicators and refuters are READ-ONLY roles whose PreToolUse hook (scripts/hooks/readonly_repo.py) refuses every
+    Write inside a git working tree, and a run directory is `<repo>/conformance-suite/results/fuzz-<stamp>` by default:
+    a triage directory beside it would refuse every verdict file and record the roles write (PB3972 review R1-1). The one
+    rule for where a fleet's files may live is `coord.scratch_problem`, so it decides here too."""
+    coord = _coord()
+    d = pathlib.Path(triage) if triage else coord.coord_path(coord_override) / "scratch" / "fuzz-triage" / run.name
+    if why := coord.scratch_problem(d):
+        raise SystemExit(f"⛔ the triage directory: {why} (the read-only adjudicators could not write their verdicts there)")
+    return d.resolve()
+
+
+def stop_files(t: Triage) -> tuple[pathlib.Path, pathlib.Path]:
+    coord = _coord()
     scratch = coord.coord_path(t.coord) / "scratch"
     return coord.global_stop(t.coord), coord.fleet_stop(scratch / "op", t.run_id)
 
 
 def turn_cap(role: str) -> int:
-    sys.path.insert(0, str(HERE / "orchestrator"))
-    import coord  # noqa: PLC0415
-    return coord.agent_turn_cap(role)
+    return _coord().agent_turn_cap(role)
 
 
 def common_values(t: Triage) -> dict[str, str]:
@@ -430,7 +452,7 @@ def prepare(run: pathlib.Path, judge: str | None, fresh_judge: str | None, triag
     judge = judge or meta.get("cobol_exe")
     if not judge:
         raise SystemExit("⛔ no judge: pass --judge, or the run's run.json records none (`cobol_exe`)")
-    t = Triage(dir=(triage or run / "triage").resolve(), run=run, run_id=run.name, judge=str(judge),
+    t = Triage(dir=triage_directory(triage, run, coord_override), run=run, run_id=run.name, judge=str(judge),
                fresh_judge=str(fresh_judge or judge), model=str(meta.get("model", "?")), programs=len(rows),
                edition=str(meta.get("edition", "2014")), coord=coord_override or "")
     resid = rescore(rows)
@@ -483,6 +505,12 @@ def nonempty(v, key: str) -> bool:
     return isinstance(x, str) and bool(x.strip())
 
 
+def citations_shaped(cites) -> bool:
+    """Whether `cites` is a non-empty list of `{clause, text}` (an adjudicator's `upstream.citations`, or a refuter's)."""
+    return isinstance(cites, list) and bool(cites) and all(
+        isinstance(c, dict) and nonempty(c, "clause") and nonempty(c, "text") for c in cites)
+
+
 def upstream_shape(up) -> list[str]:
     """What is wrong with the `upstream` object of a GNUCOBOL-SIDE verdict (design §5.1)."""
     if not isinstance(up, dict):
@@ -510,9 +538,7 @@ def upstream_shape(up) -> list[str]:
     for k in ("version", "record", "repro", "draft_title"):
         if not nonempty(up, k):
             bad.append(f"upstream.{k} is empty")
-    cites = up.get("citations")
-    if not (isinstance(cites, list) and cites and all(
-            isinstance(c, dict) and nonempty(c, "clause") and nonempty(c, "text") for c in cites)):
+    if not citations_shaped(up.get("citations")):
         bad.append("upstream.citations is not a non-empty list of {clause, text}: every clause the expected result rests "
                    "on, with the quoted words `cite.py --check` accepted")
     return bad
@@ -622,7 +648,9 @@ class Spec:
 CLAUSE_IN_TEXT = re.compile(r"§\s*([0-9A-F]+(?:\.[0-9]+)*)")
 
 
-def citation_lines(c: Collected, spec: Spec) -> list[tuple[bool, str]]:
+def citation_lines(t: Triage, c: Collected, spec: Spec) -> list[tuple[bool, str]]:
+    """Every citation of the triage as `(checked, line)`: the clauses the adjudicators' rules name, their
+    `upstream.citations`, and the `citations` of each refutation line (the ones a filed record's `spec_refs` come from)."""
     out = []
     for s, v in c.verdicts:
         for clause in sorted(set(CLAUSE_IN_TEXT.findall(v.get("rule") or ""))):
@@ -632,6 +660,15 @@ def citation_lines(c: Collected, spec: Spec) -> list[tuple[bool, str]]:
         for cit in up.get("citations", []) if up.get("disposition") == "record" else []:
             ok, first = spec.check(cit["clause"], cit["text"])
             out.append((ok, f"[{s}] {up['family']}: {first}"))
+    for fam, r in sorted(refutations(t).items()):
+        if r.get("outcome") == "OVERTURNED":
+            continue
+        if not citations_shaped(r.get("citations")):
+            out.append((False, f"[refute] {fam}: the refutation line has no `citations` list of {{clause, text}}"))
+            continue
+        for cit in r["citations"]:
+            ok, first = spec.check(cit["clause"], cit["text"])
+            out.append((ok, f"[refute] {fam}: {first}"))
     return out
 
 
@@ -641,8 +678,12 @@ def compile_command(judge: str, src: pathlib.Path, dll: pathlib.Path, edition: s
     return [judge, str(src), "--std", edition, "--source-format", "free", "-o", str(dll)]
 
 
-def verify(t: Triage, c: Collected) -> int:
+def verify(t: Triage, c: Collected) -> tuple[int, list[str]]:
+    """Re-run every WISEOWL-DEFECT repro on the fresh judge: `(how many verdicts, the ones that could not be re-run)`. A
+    missing repro file or a compile that outlives its timeout is a PROBLEM the exit code reports, and the loop goes on to
+    the next repro (PB3972 review R1-5)."""
     n = 0
+    problems: list[str] = []
     for s, v in c.verdicts:
         if v["verdict"] != "WISEOWL-DEFECT":
             continue
@@ -653,11 +694,17 @@ def verify(t: Triage, c: Collected) -> int:
         d.mkdir(parents=True, exist_ok=True)
         print("=" * 20, f"[{s}] {v['signature']}", src.name, "exists" if src.is_file() else "MISSING")
         if not src.is_file():
+            problems.append(f"[{s}] {v['signature']}: the repro {src} does not exist")
             continue
         print(src.read_text(encoding="utf-8", errors="replace")[:1400])
         dll = d / "p.dll"
-        cp = subprocess.run(compile_command(t.fresh_judge, src, dll, t.edition), capture_output=True, text=True,
-                            encoding="utf-8", errors="replace", timeout=120, cwd=d)
+        try:
+            cp = subprocess.run(compile_command(t.fresh_judge, src, dll, t.edition), capture_output=True, text=True,
+                                encoding="utf-8", errors="replace", timeout=VERIFY_COMPILE_S, cwd=d)
+        except subprocess.TimeoutExpired:
+            print("COMPILE TIMEOUT")
+            problems.append(f"[{s}] {v['signature']}: the compile of {src.name} outlived {VERIFY_COMPILE_S} s")
+            continue
         print("-" * 8, "compile rc", cp.returncode)
         print((cp.stdout + cp.stderr).strip()[:900])
         if dll.is_file():
@@ -669,8 +716,8 @@ def verify(t: Triage, c: Collected) -> int:
                 if rp.stderr.strip():
                     print("stderr:", rp.stderr.strip()[:300])
             except subprocess.TimeoutExpired:
-                print("TIMEOUT")
-    return n
+                print("TIMEOUT")   # a hang is an observed result of the repro (a WE_HANG verdict), not a failure to re-run
+    return n, problems
 
 
 # ── refutation ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -712,37 +759,8 @@ def refute_plan(t: Triage, c: Collected, per: int = REFUTE_PER_SLICE) -> dict:
 
 # ── filing ───────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-def fence_blocks(text: str) -> list[str]:
-    """The contents of the closed fenced blocks of a text (a run of three or more backticks or tildes opens one)."""
-    blocks, cur, run = [], None, None
-    for line in text.splitlines():
-        m = re.match(r"^[ \t]*(`{3,}|~{3,})(.*)$", line)
-        if cur is None:
-            if m:
-                cur, run = [], m.group(1)
-        elif m and m.group(1)[0] == run[0] and len(m.group(1)) >= len(run) and not m.group(2).strip():
-            blocks.append(NL.join(cur))
-            cur = None
-        else:
-            cur.append(line)
-    return blocks
-
-
 def same_program(a: str, b: str) -> bool:
     return [x.rstrip() for x in a.strip().splitlines()] == [x.rstrip() for x in b.strip().splitlines()]
-
-
-def record_sections(text: str) -> dict[str, str]:
-    return _work().body_sections(text)
-
-
-def section(sections: dict[str, str], name: str) -> str | None:
-    return next((t for h, t in sections.items() if h.lower().startswith(name.lower())), None)
-
-
-def draft_title(sections: dict[str, str]) -> str | None:
-    m = re.match(r"\s*\*\*Title:\*\*[ \t]+(\S[^\n]*)", section(sections, "Draft issue") or "")
-    return m.group(1).strip() if m else None
 
 
 def resolve(t: Triage, p: str) -> pathlib.Path:
@@ -869,26 +887,43 @@ def record_held(t: Triage, v: dict, ref: dict | None, spec: Spec) -> Draft | str
     if not repro.is_file():
         return f"the repro {posix(repro)} does not exist"
     text = refuted_md.read_text(encoding="utf-8")
-    secs = record_sections(text)
-    missing = [n for n in BAR if not (section(secs, n) or "").strip()]
+    secs = work.body_sections(text)
+    missing = [n for n in BAR if not (work.section_named(secs, n) or "").strip()]
     if missing:
         return "the record has no non-empty section: " + ", ".join(missing)
-    if not any(same_program(b, repro.read_text(encoding="utf-8")) for b in fence_blocks(section(secs, "Minimal test case"))):
+    repro_text = repro.read_text(encoding="utf-8")
+    if not any(same_program(b, repro_text) for b in work.fenced_block_texts(work.section_named(secs, "Minimal test case"))):
         return "the Minimal test case section carries no fenced block equal to the repro file: copy the program INTO the note"
-    if "cobc" not in (section(secs, "Environment") or ""):
+    if "cobc" not in (work.section_named(secs, "Environment") or ""):
         return "the Environment section does not name the cobc command"
-    title = draft_title(secs)
+    title = work.draft_title(work.section_named(secs, "Draft issue"))
     if title is None:
         return "the Draft issue section does not open with its `**Title:**` line"
+    # ⛔ THE CITATIONS ARE THE FILED RECORD'S, not the adjudicator's: the note is the refuter's corrected copy, which may
+    # cite a more specific clause than the adjudicator did, so the clauses checked and written into `spec_refs` come from
+    # the refutation line, and the record's own `§` citations must be exactly them (PB3972 review R1-2).
+    cites = ref.get("citations")
+    if not citations_shaped(cites):
+        return ("the refutation line carries no `citations` (a non-empty list of {clause, text}: every clause the CORRECTED "
+                "record's Expected result rests on, each checked with cite.py)")
     bad = []
-    for cit in up["citations"]:
+    for cit in cites:
         ok, first = spec.check(cit["clause"], cit["text"])
         if not ok:
             bad.append(first)
     if bad:
         return "a citation does not check: " + " | ".join(bad)
-    refs = sorted({cit["clause"] for cit in up["citations"]},
-                  key=lambda x: [(0, int(p)) if p.isdigit() else (1, p) for p in x.split(".")])
+    cited = {cit["clause"] for cit in cites}
+    expected = work.section_named(secs, "Expected result") or ""
+    written = set(CLAUSE_IN_TEXT.findall(expected + NL + work.section_named(secs, "Draft issue")))
+    if written - cited:
+        return ("the record cites " + ", ".join("§" + c for c in sorted(written - cited)) +
+                ", which the refutation line's checked `citations` do not carry")
+    unwritten = {c for c in cited if not re.search(rf"(?<![0-9A-Za-z.]){re.escape(c)}(?![0-9A-Za-z]|\.[0-9])", expected)}
+    if unwritten:
+        return ("the refutation line's checked citation(s) " + ", ".join(sorted(unwritten)) +
+                " are not named in the record's Expected result: the note's spec_refs would contradict its body")
+    refs = sorted(cited, key=lambda x: [(0, int(p)) if p.isdigit() else (1, p) for p in x.split(".")])
     return Draft(up["family"], t.run_id, cls, edition, up["version"], refs, title, secs, up["programs"])
 
 
@@ -926,22 +961,32 @@ def render_note(d: Draft, pb: str, date: str) -> str:
 
 
 def add_witness(text: str, run_id: str, programs: list[str]) -> str:
-    """The note text with a witness bullet for this run's program ids (ids only, never program text); a run already
-    named in the section adds nothing, so a second `file` is a no-op."""
-    bullet = f"- {run_id}: {' '.join(programs)}"
+    """The note text with this run's program ids in its `## Witnesses` section (ids only, never program text).
+
+    One bullet per run: `- <run id>: fz1 fz2`. A second call for the same run APPENDS the ids the bullet does not hold yet
+    (one mechanism seen under two signatures is the common case, PB3972 review R1-3), and a call whose ids are all there
+    adds nothing, so a second `file` is a no-op."""
+    ids = list(dict.fromkeys(programs))
+    prefix = f"- {run_id}:"
     work = _work()
     secs = work.body_sections(text)
     key = next((h for h in secs if h.lower().startswith("witnesses")), None)
     if key is None:
-        return text.rstrip() + f"{NL}{NL}## Witnesses{NL}{NL}{bullet}{NL}"
-    if f"- {run_id}:" in secs[key]:
-        return text
-    # the section may be followed by another `##`: insert after its last non-blank line
+        return text.rstrip() + f"{NL}{NL}## Witnesses{NL}{NL}{prefix} {' '.join(ids)}{NL}"
     lines = text.split(NL)
     start = next(i for i, ln in enumerate(lines) if ln.strip() == f"## {key}")
+    # the section may be followed by another `##`
     end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+    for i in range(start + 1, end):
+        if lines[i].startswith(prefix):
+            new = [p for p in ids if p not in lines[i][len(prefix):].split()]
+            if new:
+                lines[i] = lines[i].rstrip() + " " + " ".join(new)
+                return NL.join(lines)
+            return text
+    # insert after the section's last non-blank line
     last = max([i for i in range(start + 1, end) if lines[i].strip()], default=start)
-    lines.insert(last + 1, bullet)
+    lines.insert(last + 1, f"{prefix} {' '.join(ids)}")
     return NL.join(lines)
 
 
@@ -1002,7 +1047,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--run", required=True, help="the run directory scripts/differential_fuzz.py wrote")
     p.add_argument("--judge", help="the judge of the run (default: run.json's cobol_exe)")
     p.add_argument("--fresh-judge", help="the build to re-run probes on (default: the judge)")
-    p.add_argument("--triage", help="the triage directory (default: <run>/triage)")
+    p.add_argument("--triage", help="the triage directory (default: <coord>/scratch/fuzz-triage/<run id>; never inside a git checkout)")
     p.add_argument("--coord", default="", help="the coordination directory (default: coord.py's)")
     p.add_argument("--chunk", type=int, default=CHUNK, help="signatures per slice")
     for name, helptext in (("collect", "tally and validate the verdict files"), ("cites", "check every citation"),
@@ -1035,13 +1080,14 @@ def main(argv: list[str] | None = None) -> int:
         print("\n".join(summary(c)))
         return 1 if c.problems or c.undecided else 0
     if args.cmd == "cites":
-        lines = citation_lines(c, Spec())
+        lines = citation_lines(t, c, Spec())
         print("\n".join(("OK    " if ok else "FAIL  ") + s for ok, s in lines))
         return 0 if all(ok for ok, _s in lines) else 1
     if args.cmd == "verify":
-        n = verify(t, c)
+        n, problems = verify(t, c)
         print(f"{n} WISEOWL-DEFECT repro(s) re-run")
-        return 0
+        print("\n".join(f"PROBLEM {p}" for p in problems))
+        return 1 if problems else 0
     if args.cmd == "refute-plan":
         print(json.dumps(refute_plan(t, c, args.per)))
         return 0

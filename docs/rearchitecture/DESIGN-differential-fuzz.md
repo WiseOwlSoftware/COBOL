@@ -57,15 +57,19 @@ the tool, the Workflow script or the briefs (the self-test greps for them). Subc
 |---|---|
 | `prepare` | rescore the output differences, slice the survivors, render the briefs (§3.3-§3.5) |
 | `collect` | tally and VALIDATE the adjudicators' verdict files (§4.1); exit 1 on a bad line or an undecided signature |
-| `cites` | check every clause the verdicts cite exists, and every `upstream.citations` quote with `cite.py`'s own check |
-| `verify` | re-run each `WISEOWL-DEFECT` repro on the fresh judge, one directory per program |
+| `cites` | check every clause the verdicts cite exists, and every `upstream.citations` and refutation-line `citations` quote with `cite.py`'s own check |
+| `verify` | re-run each `WISEOWL-DEFECT` repro on the fresh judge, one directory per program; exit 1 when a repro file is missing or its compile outlives the timeout (the loop goes on to the next) |
 | `refute-plan` | slice the `GNUCOBOL-SIDE` records for the independent refuters and render their briefs (§4.3) |
 | `file` | file what the refuters upheld as `upstream` notes (§5); a dry run unless `--write` |
 | `render` | re-render the briefs of a prepared triage (after a template edit) |
 
 ### 3.2 The triage directory
 
-`<triage>` (default `<run>/triage`, inside the git-ignored run directory):
+`<triage>` (`--triage`, default `<coord>/scratch/fuzz-triage/<run id>`; `triage_directory` refuses, with
+`coord.scratch_problem`, any directory inside a git checkout). The default is NOT beside the run: the run directory is
+`<repo>/conformance-suite/results/fuzz-<stamp>`, and the adjudicators and refuters are read-only roles whose PreToolUse hook
+(`scripts/hooks/readonly_repo.py`) refuses every Write inside a git working tree, so a triage directory there would refuse every
+verdict file and record they write (PB3972 review R1-1). The roles READ the run directory and WRITE only under `<triage>`:
 
 ```
 triage.json  slices.json  refute-slices.json  filing.md
@@ -140,10 +144,11 @@ It cannot run a command, so the operator runs the tool between the two phases:
 `refute-plan` slices the `GNUCOBOL-SIDE` verdicts whose disposition is `record` and that have no refutation line yet (six
 to a slice), and renders `briefs/refute-<R>.md`. The refuter (`cobol-refuter`, read-only, default refuted) re-runs each record on
 cobc, tries to overturn it (legal under the edition the `-std` claims? a more specific rule? latitude? a harness artifact? does
-the rule exist in the claimed edition?), re-checks every citation, and appends `{"family", "outcome", "class", "edition", "why"}`
+the rule exist in the claimed edition?), re-checks every citation, and appends `{"family", "outcome", "class", "edition", "citations", "why"}`
 to `refute/<R>/refute-<R>.jsonl` with outcome `UPHELD`, `RECLASSIFY` (to another GnuCOBOL-side class or edition) or
 `OVERTURNED`. For the first two it writes the FINAL record to `refuted/<family>.md`, every correction applied in place in every
-section it touches. Tier 3 of PB3838 measured why the step exists: 12 RECLASSIFY and 1 OVERTURNED of 113.
+section it touches, and the line's `citations` (`{clause, text}`, required for these two) are the clauses of THAT corrected copy:
+the refuter may cite a more specific rule than the adjudicator did, and the filed note is the corrected copy. Tier 3 of PB3838 measured why the step exists: 12 RECLASSIFY and 1 OVERTURNED of 113.
 
 ## 5. Filing GnuCOBOL's side
 
@@ -164,8 +169,10 @@ section it touches. Tier 3 of PB3838 measured why the step exists: 12 RECLASSIFY
 For every `record`: a refutation line (§4.3) whose outcome is `UPHELD` or `RECLASSIFY` (the refuter's class and edition then
 replace the adjudicator's) and the refuter's corrected copy; the Minimal test case section carries a fenced block EQUAL to the
 repro file (the program is copied OUT of the git-ignored run directory into the note); the Environment names the `cobc`
-command; the Draft issue opens with its `**Title:**` line; every `citations` entry passes `cite.py`'s own check (the words are
-inside that clause); and the resulting note passes the register's own `work.upstream_problems` (the structured fields, the eight
+command; the Draft issue opens with its `**Title:**` line; every entry of the REFUTATION LINE's `citations` passes `cite.py`'s own
+check (the words are inside that clause), the `§<clause>` citations written in the corrected copy's Expected result and Draft
+issue are exactly that list, and each listed clause is named in the Expected result (so `spec_refs`, derived from the refutation
+line, never contradicts the body); and the resulting note passes the register's own `work.upstream_problems` (the structured fields, the eight
 sections non-empty, the 60-line fence cap that keeps GPL testsuite text out, no unapplied "this paragraph governs" correction,
 an edition-2023 behaviour only as `feature-missing`). A record that fails any of these is HELD in `<triage>/filing.md` with
 the reason and is never filed half (PB3838 standing requirement 1); an `OVERTURNED` or unrefuted record is held likewise.
@@ -173,13 +180,14 @@ the reason and is never filed half (PB3838 standing requirement 1); an `OVERTURN
 ### 5.3 Deduplication
 
 A family an existing `upstream` note already records (the slug after the note id in its first heading), and every `witness`
-verdict, adds the run's program ids to that note's `## Witnesses` section (`- <run id>: fz…`, ids only, idempotent per run id) and
-files nothing.
+verdict, adds the run's program ids to that note's `## Witnesses` section (`- <run id>: fz…`, ids only) and files nothing. There is
+one bullet per run: a second signature of the same note in the same run appends the ids the bullet lacks, and ids already there
+are not repeated, so a second `file` is a no-op.
 
 ### 5.4 The note
 
 `render_note` writes the register's frontmatter of an `upstream` record (`process_only: true`, no cluster, tier or claimed row,
-`related: [PB3838]`, the harm flag of the class, `spec_refs` from the citations, `upstream_status: unreported`) and the record's
+`related: [PB3838]`, the harm flag of the class, `spec_refs` from the refutation line's checked citations, `upstream_status: unreported`) and the record's
 sections in the bar's order, then `## Witnesses`. Ids come from `scripts/orchestrator/alloc.py pb <n>` only, called once for the
 count of notes to write, and only under `--write`. Every note is rendered and checked before the first file is written, so a
 refusal leaves the register as it was. The operator then runs `python scripts/spec/work.py check`, commits the notes and

@@ -10,7 +10,7 @@ the night (wrapper, harness, judge, run directory), the morning (§3: rescore, s
 independent refuter (§4) and the filing (§5). It is registered in `docs/DOC_INDEX.md` and `docs/DESIGN.md` §0.5.
 
 **The tool.** `scripts/fuzz_triage.py` takes `--run` and `--judge` (default run.json's `cobol_exe`) and writes everything
-under `--triage` (default `<run>/triage`); no run id, date, judge path or TEMP path is written in it, the templates or the
+under `--triage` (default `<coord>/scratch/fuzz-triage/<run id>`, outside every git checkout); no run id, date, judge path or TEMP path is written in it, the templates or the
 Workflow (the self-test greps for them). Subcommands: `prepare` (rescore from the recorded outputs, slice, render),
 `collect` (validate every verdict line, name the undecided signatures), `cites`, `verify`, `refute-plan`, `file`, `render`.
 The briefs are templates in `scripts/fuzz_triage_briefs/` with `<<NAME>>` placeholders and an unknown name is an error;
@@ -42,6 +42,19 @@ tool's briefs and decides nothing. The self-test holds its brief names equal to 
 run twice) drives a fabricated run through rescoring, slicing, the briefs, each verdict rule, the refute plan and each reason
 `file` holds a record, the RECLASSIFY path, the witness path, the no-op re-file and the write-nothing-on-refusal rule. It is
 green (`SELF-TEST: PASS`).
+
+**Branch review round 1.** The reviewer found four blocking defects and a lead; each is fixed with its own self-test arm.
+(R1-1) The default triage directory sat beside the run, inside the git working tree, where `readonly_repo.py` refuses every
+Write of the read-only adjudicators and refuters: the default is now `<coord>/scratch/fuzz-triage/<run id>` and
+`triage_directory` refuses any directory inside a checkout with `coord.scratch_problem` (the self-test pipes a write to the
+real hook). (R1-2) The filed note is the refuter's corrected copy, but only the adjudicator's citations were checked: the
+refutation line now carries `citations`, `file` and `cites` check those, `spec_refs` come from them, and the `§` clauses the
+corrected copy writes must equal them. (R1-3) `add_witness` dropped the second signature's ids of the same note in one run: a
+run has one bullet and a later call appends the ids it lacks. (R1-4) The tool kept a second fence tracker, section lookup
+and draft-title regex: it now asks `work.py` (`fenced_block_texts` over the shared `_scan_fences`, `section_named`,
+`draft_title`), so the backtick-info-string rule and any later CommonMark fix apply to it. (R1-5, the lead, in the same file)
+`verify` exits 1 for a missing repro or a compile past 120 s and goes on to the next repro. Self-review found the docstring
+and design section 3.2 still naming the old default; both corrected.
 
 **Rows.** PB3972 claims none and closes none (process tooling); its status is `landed` with the Sites paragraph naming the
 briefs' templates and the docstring edit in `scripts/differential_fuzz.py`.
