@@ -14,18 +14,24 @@
 # reason. A name on PATH is not an interpreter, so each candidate is PROBED by running it.
 #
 # Candidates in order: an explicit $PYTHON (the override), `python3` (Linux CI, WSL, macOS), `python` (Windows).
-# The probe also enforces the floor the scripts are written for (3.12: PEP 695 syntax and friends).
+# The probe accepts EXACTLY the interpreter toolchain.env names (PYTHON_VERSION; kb/Work PB4007): CI and every local
+# host run the same Python, so an interpreter of another version is not this repository's, however new. (It was a
+# floor, 3.12, while CI's Windows jobs ran the runner image's 3.12 and every local host 3.14, and a self-test correct
+# on every local leg went red in a merge group.)
 # Nothing runnable ⇒ exit non-zero, loudly: a gate that cannot run its checks is RED, never silently skipped.
+__py_want="$(sed -n 's/^PYTHON_VERSION=\([0-9.]*\)$/\1/p' "$(dirname "${BASH_SOURCE[0]}")/../toolchain.env" 2>/dev/null)"
 PY=""
 for __py_cand in ${PYTHON:+"$PYTHON"} python3 python; do
-    if "$__py_cand" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)' >/dev/null 2>&1; then
+    if [ -n "$__py_want" ] && "$__py_cand" -c 'import platform, sys; sys.exit(0 if platform.python_version() == sys.argv[1] else 1)' "$__py_want" >/dev/null 2>&1; then
         PY="$__py_cand"
         break
     fi
 done
 unset __py_cand
 if [ -z "$PY" ]; then
-    echo "python-resolve: ⛔ no runnable Python >= 3.12 (tried \$PYTHON, python3, python) — the gate cannot run" >&2
+    echo "python-resolve: ⛔ no runnable Python ${__py_want:-(toolchain.env names no PYTHON_VERSION)} (toolchain.env; tried \$PYTHON, python3, python) — the gate cannot run: install it (winget on the Windows dev box, scripts/wsl/setup-wsl.sh in WSL)" >&2
+    unset __py_want
     exit 1
 fi
+unset __py_want
 export PY
