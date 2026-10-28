@@ -34,8 +34,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class VacuousTestDriftTests
 {
-    private static readonly string[] TestAssemblies =
-        ["WiseOwl.Cobol.Tests.Unit", "WiseOwl.Cobol.Tests.Conformance", "WiseOwl.Cobol.Tests.Characterization"];
+    /// <summary>The three gated test assemblies' C# sources, COMMITTED (kb/Work PB3814): never a walk of the directories
+    /// from the file system, which enters every running test host's <c>bin/</c> and <c>obj/</c>.</summary>
+    private static readonly TreeScope TestAssemblySources = new(
+        Under: ["tests/WiseOwl.Cobol.Tests.Unit/", "tests/WiseOwl.Cobol.Tests.Conformance/", "tests/WiseOwl.Cobol.Tests.Characterization/"],
+        Kinds: [".cs"]);
 
     /// <summary>A section banner: a line comment that opens with a box-drawing rule run, then a TITLE. A bare rule
     /// (<c>// ──────</c>) is the closing edge of a comment block, not a section, and heads nothing by design.</summary>
@@ -110,10 +113,8 @@ public sealed class VacuousTestDriftTests
     }
 
     private static IEnumerable<(string Path, string Text)> SourceFiles() =>
-        TestAssemblies.SelectMany(a => Directory.EnumerateFiles(TestRepo.Tests(a), "*.cs", SearchOption.AllDirectories))
-            .Where(p => !p.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
-                && !p.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}"))
-            .Select(p => (Path.GetRelativePath(TestRepo.Root, p), File.ReadAllText(p)));
+        TrackedTree.Files(TestAssemblySources)
+            .Select(rel => (rel, File.ReadAllText(TestRepo.At(rel.Split('/')))));
 
     /// <summary>Rule 1: every non-skipped <c>[Fact]</c> / <c>[Theory]</c> whose body cannot fail.</summary>
     private static IEnumerable<string> VacuousTests(string path, string text)
