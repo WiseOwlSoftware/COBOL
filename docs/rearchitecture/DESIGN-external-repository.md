@@ -821,20 +821,28 @@ compiler, the attribute types and their enum vocabulary in the runtime (the comp
 reverse).
 
 ### 6.1 The model
+The program, function and prototype half is in the tree (`src/WiseOwl.Cobol.Compiler/Binding/Repository/RepositoryRecord.cs`,
+kb/Work PB2100); `Class`, `Skeleton` and `Expansion` join `RepositoryRecord` with the slices that carry them (the class
+record with the OO arm of this slice's renderer; the skeleton and the expansion in slice 8). Every list is a
+`RecordList<T>`, an immutable list that compares by its elements, so a record is a value (§17.4, §17.7).
 ```csharp
-public sealed record RepositoryRecord(
+internal sealed record RepositoryRecord(
     RepositoryUnitKind Kind, string Name, string ExternalizedName,                            // the NAME part
-    string EntryConvention, bool DecimalPointIsComma, ImmutableArray<CurrencyPair> Currencies, // from here on: the SIGNATURE part (§8.13 ¶2)
-    ImmutableArray<RaisingIdentity> Raising, ImmutableArray<FormalRecord> Formals, DescriptionRecord? Returning,
-    ImmutableArray<DescriptionRecord> TypeDeclarations, ImmutableArray<StructureRecord> DynamicLengthStructures,
-    ImmutableArray<PrototypeRecord> ReferencedPrototypes,
-    ClassRecord? Class, SkeletonRecord? Skeleton, ExpansionIdentity? Expansion);
-public sealed record FormalRecord(int Position, string Name, PassingMode Mode, bool Optional, DescriptionRecord Description);
-public sealed record StructureRecord(int Index, RepositoryPrefix Prefix, bool Delimited, string? PhysicalStructureName);
+    string EntryConvention, bool DecimalPointIsComma, RecordList<CurrencyRecord> Currencies,  // from here on: the SIGNATURE part (§8.13 ¶2)
+    RecordList<RaisingRecord> Raising, RecordList<FormalRecord> Formals, DescriptionRecord? Returning,
+    RecordList<DescriptionRecord> TypeDeclarations, RecordList<StructureRecord> DynamicLengthStructures,
+    RecordList<PrototypeRecord> ReferencedPrototypes);
+    // + ClassRecord? Class (the OO arm of slice 4), SkeletonRecord? Skeleton, ExpansionIdentity? Expansion (slice 8)
+internal sealed record CurrencyRecord(char Symbol, string Text, RepositoryLiteralClass Class);
+internal sealed record RaisingRecord(RepositoryRaisingKind Kind, string Identity, bool Factory);
+internal sealed record FormalRecord(int Position, string Name, PassingMode Mode, bool Optional, DescriptionRecord Description);
+/// By DEFINITION; the name is kept because today's comparators still compare it (slice 7 switches them to the definition).
+internal sealed record StructureRecord(int Index, string Name, RepositoryPrefix Prefix, bool Delimited, string? PhysicalStructureName);
 /// A prototype a restricted program- or function-pointer of this record names: its FULL signature, so the importer
 /// types the pointer by signature (§6.4). Recursive references between referenced prototypes are by Index.
-public sealed record PrototypeRecord(int Index, RepositoryUnitKind Kind, string ExternalizedName, ImmutableArray<FormalRecord> Formals, DescriptionRecord? Returning);
-public sealed record RaisingIdentity(string Kind /* E | C | I */, string Identity, bool Factory);
+/// HasSignature is false for a GR10 c) / GR11 c) prototype (no compile-time signature; slice 7 deletes the state).
+internal sealed record PrototypeRecord(int Index, RepositoryUnitKind Kind, string ExternalizedName, bool HasSignature,
+    RecordList<FormalRecord> Formals, DescriptionRecord? Returning);
 public sealed record ExpansionIdentity(string DefinitionIdentity, ImmutableArray<string> ActualIdentities, string Key, bool OwnAssembly);
 public sealed record SkeletonRecord(ImmutableArray<string> Formals, ImmutableArray<bool?> FormalIsInterface, string Source,
     ImmutableArray<(string Word, string Kind, string Identity)> Resolutions, CompileState State);
@@ -845,27 +853,40 @@ public sealed record CompileState(int Edition /* Options.DialectLevel */, bool P
     string CobolWordsMap /* >>COBOL-WORDS, BindSession.CobolWords */,
     string DirectiveFolds /* at the definition: >>TURN, >>PROPAGATE, >>REF-MOD-ZERO-LENGTH, >>LEAP-SECOND */,
     string CompilationVariables /* >>DEFINE as of the definition (BindSession.CompilationVariables): a constant's FROM */);
-public sealed record DescriptionRecord(
-    int Level, string? Name, string? RedefinesTarget, int? Occurs, string? OccursDepending, bool OccursDynamic,
-    bool Justified, bool BlankWhenZero, bool Synchronized, bool Aligned, bool AnyLength,
+internal sealed record DescriptionRecord(
+    int Level, string? Name, string? RedefinesTarget, int? Occurs, OccursRecord? Table,
+    bool Justified, bool BlankWhenZero, RepositorySynchronized Synchronized, bool Aligned, bool AlignedAsLevelOne, bool AnyLength, bool Based,
     bool DynamicLength, int DynMaxSize, int? DynStructure,
-    string? TypeName, bool Strong, bool External, bool IsTypedef, bool DeclaresStrongType, bool IsExternalTypedef, bool ExternalFromType, int? TypeDeclaration,
-    RepositoryGroupUsage GroupUsage, PicRecord? Pic, ImmutableArray<DescriptionRecord> Children);
+    string? TypeName, bool Strong, bool External, bool IsTypedef, bool TypedefStrong, bool IsExternalTypedef, bool ExternalFromType,
+    int? TypeDeclaration, RepositoryGroupUsage GroupUsage, PicRecord? Pic, RecordList<DescriptionRecord> Children);
+/// OccursSpec: the bounds, the DEPENDING ON object as a word of the record (or "<outside>"), a DYNAMIC table's capacity phrases.
+internal sealed record OccursRecord(int Min, int Max, string? Depending, bool Dynamic, string? Capacity, int? InitialCapacity,
+    int? ExpectedMax, bool Initialized);
 /// PicInfo BY VALUE — every member. The two restriction NAMES are kept as written by the publishing element (words: an
 /// importer maps them through its IdentityScope, §8.7) beside what they resolve to (a type declaration, a referenced
 /// prototype's full signature); DigitPositions is its nullable backing.
-public sealed record PicRecord(
+internal sealed record PicRecord(
     RepositoryCategory Category, RepositoryUsage Usage, int Length, int Digits, int Scale, bool Signed, string SignKind, bool IsRecovery,
     string? RestrictedTypeName, int? RestrictedTypeDeclaration, string? RestrictedPrototypeName, int? RestrictedPrototype,
     bool PackedNoSign, bool FloatLittleEndian, bool IsFloatEdited,
     string? EditMask, string? CurrencyString, RepositoryLiteralClass? CurrencyClass, bool IsAlphabetic, int? DigitPositions,
-    PictureClauseRecord? Clause, ImmutableArray<EditRuleRecord>? EditingRules, LocaleEditRecord? LocaleEdit,
+    PictureClauseRecord? Clause, RecordList<EditRuleRecord>? EditingRules, LocaleEditRecord? LocaleEdit,
     ObjectReferenceKind ObjectRefKind, string? ObjectRefName, string? ObjectRefIdentity, bool ObjectRefFactory, bool ObjectRefOnly,
     bool ObjectRefFormal);
-public sealed record PictureClauseRecord(string CharacterString, string? CurrencyString, bool? DecimalPointIsComma, string? Editing);   // PictureClauseIdentity
-public sealed record EditRuleRecord(char Char1, string Neg, string Pos, bool SimpleInsertion, bool Floating);                         // CobolEdit.EditRule
-public sealed record LocaleEditRecord(string? LocaleName, string? External, bool FromLiteral, int Size, string Picture);             // LocaleEditSpec; External null = current locale
+internal sealed record PictureClauseRecord(string CharacterString, string? CurrencyString, bool? DecimalPointIsComma, string? Editing);   // PictureClauseIdentity
+internal sealed record EditRuleRecord(char Char1, string Neg, string Pos, bool SimpleInsertion, bool Floating);                         // CobolEdit.EditRule
+internal sealed record LocaleEditRecord(string? LocaleName, string? External, bool FromLiteral, int Size, string Picture);             // LocaleEditSpec; External null = current locale
 ```
+**Corrections the implementation made (kb/Work PB2100; held by the converse drift test `RepositoryRecordConverseDriftTests`).**
+SYNCHRONIZED is the clause's form (`RepositorySynchronized`: none, unqualified, LEFT, RIGHT), not a flag: kb/Work PB538
+made the three forms three clauses, which §8.5.3.1 compares. OCCURS is `Occurs` plus an `OccursRecord` (the bounds and a
+dynamic table's capacity phrases ride `OccursSpec`, which `IsDynamicTable` and the occurs-depending readers need), and the
+DEPENDING ON object is decoded only through the binder's one admission (`DependingAdmission`, kb/Work PB3510), so a record
+naming a forbidden object is refused, never a cycle. `Based` (§13.18.5) and `AlignedAsLevelOne` are recorded because the
+description copy carries them. `TypedefStrong` replaces `DeclaresStrongType`, which is derived from it. RAISING kinds are the
+persisted `RepositoryRaisingKind`, and a program's whole RAISING phrase rides `BoundProgram.Raising`. A record the decoder
+cannot bind (an index past its table, a REDEFINES or DEPENDING ON naming no entry, a forbidden link) is a
+`RepositoryRecordException` naming the record (§15.3), which slice 7's reader reports as REPO-4.
 The model is compiler-side and is written in the persisted vocabulary (§6.2's enums), so the ONE translation between
 the compiler's own types and what is persisted is `RepositoryRecord.Of(BoundUnit)` and its inverse, and the attribute
 renderer and reader are pure transcriptions of the model. It mirrors the compiler's types one to one (`PicInfo`,
@@ -1833,7 +1854,7 @@ with open work opens with that work and states its landed part after it, because
 | `BoundCallProgram.CalleeSignatureKnown` (one flag for "checked at bind time" and "cannot differ at run time"; `CallEmitter.DescribesOperands` / `LandsAtRunTime`) | slice 7: split into `CalleeSignatureKnown` and `CalleeCompiledHere`; a site whose callee is compiled elsewhere describes its operands for GR3 d) (§4.2) | `CallBinder`, `UdfBinder`, `CallEmitter` |
 | `ObjectRefDescriptor(Kind, Name, Factory, Only, Formal)`; `ActivationDescriptions.Of`'s `ObjectName` / `ObjectClasses` / `ObjectInterfaces` as folded WORDS (PB2463) | slice 8: `+ Target`; `ClrTypeName` over `Target`; the description's class facts become folded EXTERNALIZED names (a call-ABI bump, §6.4) | `PictureAnalyzer`/`DataBinder` (sets `Target`), `OoClassTable.SetOperand`, `OoEmitter.OoReturnClrType`, `OoConformance`, `SetBinder` Format 5 |
 | `DescriptionClauses` and `ActivationDescriptions` (the DYNAMIC LENGTH clause and phrase) compare a dynamic-length structure by its folded NAME; `ClassRaisingCovered` | slice 7: the structure DEFINITION key (§6.4), inside slice 7's call-ABI bump; slice 8: `RaisingTarget.Target` | `StrongTypeModel`, `OoConformance`, `RaisingTarget` |
-| **landed (kb/Work PB2464, PB2495, PB3101, PB3120, PB3162):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (stamped by `DataBinder.ResolveRestrictedPrototypes` / `PrototypeSignatureClasses.Classify` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.RestrictionIdentity` and `SameType`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms, `PrototypeSignatureClasses` (one per `BindSession`: the coarsest stable partition of the group's prototypes by `PrototypeSignatures.Same`; a class's identity its founder's externalized name, `TO name`) — a restricted program- or function-pointer's TYPE is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.Clauses` by every relation; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4, **the classes part landed (kb/Work PB2100):** `PrototypeSignatureClasses` keys members by origin and name (`PrototypeKey`, `RestrictedPrototype.Origin`, `PrototypeOrigin`), admits decoded prototypes into its refinement (`Admit`: a re-run from one block, group members first) and spells a decoded founder's block `DECODED k TO name`, so a decoded pointer is classified by its decoded SIGNATURE (§6.4); open: the decoder rebuilds `RestrictedPrototype` from `ReferencedPrototypes` and calls `Admit`. Slice 7: `PrototypeSignatureClasses` STAYS — it is where recursive signatures are minimized — and partitions the group's prototypes plus every decoded and repository-resolved prototype; a class's identity becomes `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` of the minimized signature graph, group-independent, held to `Same` by `SignatureIdentityDriftTests`; call-ABI and runtime-major bump. (This row used to say the class is DELETED in slice 7 and that two groups "compare record identities": done literally, that types restricted pointers by prototype NAME across units, which GR25 forbids.) | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
+| **landed (kb/Work PB2464, PB2495, PB3101, PB3120, PB3162):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (stamped by `DataBinder.ResolveRestrictedPrototypes` / `PrototypeSignatureClasses.Classify` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.RestrictionIdentity` and `SameType`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms, `PrototypeSignatureClasses` (one per `BindSession`: the coarsest stable partition of the group's prototypes by `PrototypeSignatures.Same`; a class's identity its founder's externalized name, `TO name`) — a restricted program- or function-pointer's TYPE is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.Clauses` by every relation; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4, **the classes part landed (kb/Work PB2100):** `PrototypeSignatureClasses` keys members by origin and name (`PrototypeKey`, `RestrictedPrototype.Origin`, `PrototypeOrigin`), admits decoded prototypes into its refinement (`Admit`: a re-run from one block, group members first) and spells a decoded founder's block `DECODED k TO name`, so a decoded pointer is classified by its decoded SIGNATURE (§6.4); and the decoder, `RepositoryCodec.Decode`, rebuilds `RestrictedPrototype` from `ReferencedPrototypes` with a `PrototypeOrigin` per row and calls `Admit` (BoundCompilation.SignatureClasses is the group's instance). Slice 7: `PrototypeSignatureClasses` STAYS — it is where recursive signatures are minimized — and partitions the group's prototypes plus every decoded and repository-resolved prototype; a class's identity becomes `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` of the minimized signature graph, group-independent, held to `Same` by `SignatureIdentityDriftTests`; call-ABI and runtime-major bump. (This row used to say the class is DELETED in slice 7 and that two groups "compare record identities": done literally, that types restricted pointers by prototype NAME across units, which GR25 forbids.) | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
 | `OoClassTable.Build`; `OoClassSymbol.IsStandard` (`ctx is null`) and `Ctx`; `OoRepositoryScope` (classes/interfaces) | slice 8: `+ Import(symbol)` by identity, `IsParameterized` for imported skeletons; `IsStandard` → `Origin`; `OoRepositoryScope` → `IdentityScope` (+ prototypes, structures; reverse map) | `OoNameResolution`, `OoEmitter.EmitClassUnit` (skips imported), `ResolveOverrides`, `OoExpansion` |
 | `OoExpansion.Expand(tree, classes, interfaces, edition, words)` | slice 8: resolver-driven; imported skeletons re-parsed under their recorded `CompileState` with recorded resolutions; the `ExpansionKey`; import by key; placement (4a)/(4b); stale detection (REPO-9 with the referencing assemblies); publishes keys and skeleton records (§10.5) | `BinderDriver`, `FragmentParse.ParseTokens` (a `CompileState` parameter), the binder's option-dependent arms, `CompilerDriver`, `RepositoryIndex` (`AssemblyRef` listing) |
 | `DataBinder.BindDeclarations` REPOSITORY loop (never resolved) | slice 7: `ResolveRepositorySpecifiers` in `BinderDriver.BindUnitData` for every specifier at its position | `BinderDriver`, `OoDriver.BindClassData` |
