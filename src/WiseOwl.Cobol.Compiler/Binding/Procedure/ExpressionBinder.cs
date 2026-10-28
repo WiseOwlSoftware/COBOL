@@ -1185,8 +1185,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     private BoundNumLiteral ZeroOperand(bool writtenAll, string spelling, string where)
     {
         if (writtenAll)
-            FigurativeAssociation.GateAllZeroAsNumeric(ctx.Edition.Edition, ctx.Edition.Sink,
-                $"figurative constant '{spelling}' as an arithmetic operand{where}");
+            FigurativeAssociation.GateAllZeroAsArithmeticOperand(ctx.Edition.Edition, ctx.Edition.Sink, spelling, where);
         return new BoundNumLiteral("0");
     }
 
