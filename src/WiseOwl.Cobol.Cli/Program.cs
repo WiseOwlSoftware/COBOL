@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Cli;
 /// </summary>
 /// <remarks>
 /// Usage: <c>cobol &lt;source.cob&gt; [-o out.dll] [--nist [NAME]] [--std 85|2002|2014|2023] [--permissive]
-/// [--copy DIR] [--run] [--sign-encoding ibm|ascii] [--numeric-display decimal|digits] [--source-format fixed|free|auto] [--flag-extensions]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
+/// [--copy DIR] [--run] [--sign-encoding ibm|ascii] [--numeric-display decimal|digits] [--source-format fixed|free|auto] [--flag-extensions] [--repository-update on|off]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
 /// option can swallow a following flag. The generated C# is written next to the output assembly
 /// (<c>&lt;name&gt;.g.cs</c>) so the translation is directly inspectable.
 /// </remarks>
@@ -142,10 +142,27 @@ internal static class Program
                 + "construct ISO/IEC 1989 does not define (ISO 4.2.10). The register is docs/CONFORMANCE.md 3.2.",
         };
 
+        // kb/Work PB2100: ISO §8.13 — "The implementor shall provide a mechanism that allows the user to specify whether to
+        // update the external repository when a compilation unit is compiled." This is that mechanism
+        // (DESIGN-external-repository §9.1): on (the default) writes every published unit's signature into the module, off
+        // writes its index and unit identities only. An unknown value is a CLI argument error.
+        var repositoryUpdateOption = new Option<string?>("--repository-update")
+        {
+            Description = "Whether the compilation updates the external repository (ISO 8.13): on (default — the module "
+                + "carries every unit's signature, so a later compilation can bind against it) or off (the module runs and "
+                + "is found by name, but carries no signatures).",
+            HelpName = string.Join("|", RepositoryUpdateSpellings),
+        };
+        repositoryUpdateOption.Validators.Add(result =>
+        {
+            if (result.GetValueOrDefault<string?>() is { } v && !TryParseRepositoryUpdate(v, out _))
+                result.AddError($"--repository-update must be one of {string.Join(", ", RepositoryUpdateSpellings)} (got {v}).");
+        });
+
         var root = new RootCommand("cobol — translate a COBOL source unit to typed-native .NET (the Roslyn backend).")
         {
             sourceArgument, outputOption, nistOption, stdOption, permissiveOption, copyOption, runOption,
-            signEncodingOption, numericDisplayOption, sourceFormatOption, flagExtensionsOption,
+            signEncodingOption, numericDisplayOption, sourceFormatOption, flagExtensionsOption, repositoryUpdateOption,
         };
 
         CliOptions Resolve(ParseResult parse)
@@ -167,11 +184,13 @@ internal static class Program
             _ = NumericDisplayFormOption.TryParse(parse.GetValue(numericDisplayOption), out var numericDisplay);
             // Likewise: false can only be the absent option — fixed form, the standard default (kb/Work PB1362).
             _ = InitialReferenceFormatOption.TryParse(parse.GetValue(sourceFormatOption), out var sourceFormat);
+            // Likewise: false can only be the absent option — on, the documented default (DESIGN-external-repository §9.1).
+            _ = TryParseRepositoryUpdate(parse.GetValue(repositoryUpdateOption), out bool repositoryUpdate);
 
             return new CliOptions(
                 source, parse.GetValue(outputOption), nistName, std,
                 parse.GetValue(copyOption) ?? [], parse.GetValue(runOption), parse.GetValue(permissiveOption),
-                signEncoding, sourceFormat, parse.GetValue(flagExtensionsOption), numericDisplay);
+                signEncoding, sourceFormat, parse.GetValue(flagExtensionsOption), numericDisplay, repositoryUpdate);
         }
 
         // A no-emit BATCH check subcommand (the INV-1 continuity sweep fast path): parse + edition-validate +
@@ -230,12 +249,24 @@ internal static class Program
     }
 
     /// <summary>Compile per the resolved options, print diagnostics, and map the outcome to a POSIX exit code.</summary>
+    /// <summary>The spellings <c>--repository-update</c> accepts.</summary>
+    internal static readonly string[] RepositoryUpdateSpellings = ["on", "off"];
+
+    /// <summary>Parse a <c>--repository-update</c> value (case-insensitive); an absent value is the default, on, and answers
+    /// false.</summary>
+    internal static bool TryParseRepositoryUpdate(string? value, out bool update)
+    {
+        update = !string.Equals(value, "off", StringComparison.OrdinalIgnoreCase);
+        return value is not null && (!update || string.Equals(value, "on", StringComparison.OrdinalIgnoreCase));
+    }
+
     private static int RunCompile(CliOptions options)
     {
         var result = CompilerDriver.Compile(new CompilerDriver.Options(
             options.SourcePath, options.OutputPath, options.NistTestName, options.DialectLevel, options.CopyPaths,
             options.Permissive, SignEncoding: options.SignEncoding, SourceFormat: options.SourceFormat,
-            FlagExtensions: options.FlagExtensions, NumericDisplay: options.NumericDisplay));
+            FlagExtensions: options.FlagExtensions, NumericDisplay: options.NumericDisplay,
+            RepositoryUpdate: options.RepositoryUpdate));
 
         // What the compilation itself transferred — the lines of its DISPLAY directives (ISO §7.3.12.4 GR1, DOC-A.1-53,
         // kb/Work PB1538) — each to the compiler stream it names, in the order the directives were met.

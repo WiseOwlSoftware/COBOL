@@ -27,4 +27,36 @@ public sealed class CobolUnitAttribute(RepositoryUnitKind kind, string name, str
 
     /// <summary>The unit's externalized name as formed.</summary>
     public string ExternalizedName { get; } = externalizedName;
+
+    // The signature facts of ISO §8.13 that belong to the unit rather than to a formal, written only by a module built with
+    // --repository-update on (§7.1, §9.1). A currency and a RAISING element are structured values, so each is flattened into
+    // parallel arrays of one length (§6.2 rule 3); absent arrays are an empty list.
+
+    /// <summary>The entry convention (§8.13 "the entry convention of the source unit"); written whenever the module carries
+    /// signatures.</summary>
+    public string? EntryConvention { get; set; }
+
+    /// <summary>Whether the DECIMAL-POINT IS COMMA clause is specified in the source unit (§8.13).</summary>
+    public bool DecimalPointIsComma { get; set; }
+
+    /// <summary>The currency symbols the source unit defines (§8.13), ordered by symbol; one per element of
+    /// <see cref="CurrencyText"/> and <see cref="CurrencyClass"/>.</summary>
+    public char[]? CurrencySymbol { get; set; }
+
+    /// <summary>The currency string each symbol stands for (ISO §12.3.7.4 GR13).</summary>
+    public string[]? CurrencyText { get; set; }
+
+    /// <summary>The class of the literal that defined each currency string (ISO §12.3.7.3 SR28).</summary>
+    public RepositoryLiteralClass[]? CurrencyClass { get; set; }
+
+    /// <summary>The kind of each element of the PROCEDURE DIVISION header's RAISING phrase (§8.13 "the exceptions that may be
+    /// raised"); one per element of <see cref="RaisingIdentity"/> and <see cref="RaisingFactory"/>.</summary>
+    public RepositoryRaisingKind[]? RaisingKind { get; set; }
+
+    /// <summary>Each RAISING element's identity: an exception-name as written, or the externalized name of the class or
+    /// interface it resolved to in the publishing element (DESIGN-external-repository §6.4).</summary>
+    public string[]? RaisingIdentity { get; set; }
+
+    /// <summary>Each RAISING element's FACTORY phrase.</summary>
+    public bool[]? RaisingFactory { get; set; }
 }

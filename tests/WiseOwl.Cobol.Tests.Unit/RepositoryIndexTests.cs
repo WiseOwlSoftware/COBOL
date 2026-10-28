@@ -79,7 +79,7 @@ public sealed class RepositoryIndexTests : WiseOwlCobolTestBase
         Assert.Equal("Cobol.prog.__CobolModule", index.Registrar);
         Assert.Equal(2023, index.Edition);
         Assert.False(string.IsNullOrEmpty(index.CompilerVersion));
-        Assert.False(index.HasSignatures);   // no signature attributes are emitted yet; HasSignatures says so
+        Assert.True(index.HasSignatures);   // --repository-update on, the default (DESIGN-external-repository §9.1)
         Assert.Contains("WiseOwl.Cobol.Runtime", index.AssemblyReferences);
 
         // The prototype psub is not a unit of its own: its definition PSUB publishes the one entry (§7.2, kb/Work PB3872).
@@ -170,7 +170,7 @@ public sealed class RepositoryIndexTests : WiseOwlCobolTestBase
     }
 
     /// <summary>A library of <paramref name="source"/> that references the runtime, as bytes.</summary>
-    private static byte[] Compile(string source)
+    internal static byte[] Compile(string source)
     {
         string frameworkDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
         var refs = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
