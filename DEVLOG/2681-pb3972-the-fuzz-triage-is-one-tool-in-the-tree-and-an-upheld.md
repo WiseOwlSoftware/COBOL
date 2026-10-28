@@ -59,3 +59,12 @@ and design section 3.2 still naming the old default; both corrected.
 **Rows.** PB3972 claims none and closes none (process tooling); its status is `landed` with the Sites paragraph naming the
 briefs' templates and the docstring edit in `scripts/differential_fuzz.py`.
 
+
+**The bounce (#714).** The merge group went RED on `Windows script self-tests` (run 40611089948): the self-test looked
+for its scratch run directory's unresolved spelling in briefs `prepare` renders from the resolved one, and CI's Windows
+TEMP is the 8.3 alias `RUNNER~1`, which `Path.resolve()` expands. The tool was right and the test was wrong: it now
+checks the recorded canonical run path and hands `prepare` a non-canonical spelling on purpose, a witness that is red on
+every host. The local gate had run the self-test and passed, because this host's TEMP (`E:/Temp`, ReFS) has no 8.3
+names. That gap is closed for the script self-tests: on Windows `scripts/self_tests.py` hands every self-test a TEMP that
+is a junction to its run's scratch (`aliased_temp`), and the old test is red under it. kb/Work PB1957 row 25 corrected,
+with a dated section; DESIGN-test-build-ci.md §3.14.3 says so.
