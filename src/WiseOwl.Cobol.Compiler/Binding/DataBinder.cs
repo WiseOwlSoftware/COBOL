@@ -3869,6 +3869,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // nested strong reference walks THIS item's ancestor chain. TypeName also anchors the §8.5.3 same-type
         // test (see DataItem.TypeAnchor).
         item.TypeName = typeName;
+        item.TypeDeclaration = template;   // the declaration the one lookup resolved (DataItem.TypeDeclaration)
         item.StrongType = strong;
         // §13.18.57.4 GR2 d): a GROUP type's subject "is aligned as though it were a level 1 item" — so a bit
         // group typed after a same-level bit item starts at the first bit of a byte (§8.5.1.6.3), not inside the
@@ -4186,6 +4187,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             to.DynStructure = from.DynStructure;   // … and so does its dynamic-length-structure-name (kb/Work PB829)
         }
         to.TypeName ??= from.TypeName;     // a data-name-1 declared with TYPE carries its type identity (§8.5.3)
+        to.TypeDeclaration ??= from.TypeDeclaration;   // … and the declaration that identity names
         to.StrongType |= from.StrongType;
     }
 
@@ -7485,8 +7487,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 var preceding = scope.TakeWhile(s => !ReferenceEquals(s, item))
                     .Where(s => CobolNames.Same(s.CobolName, tname)
                         && (item.Parent is not null || s.Section == item.Section)).ToList();
-                item.SetRedefinition(preceding.LastOrDefault(s => s.RedefinesTargetName is null) ?? preceding.LastOrDefault(),
-                    RedefinitionKind.Clause);
+                item.SetRedefinition(DataItem.RedefinedEntry(preceding), RedefinitionKind.Clause);
                 // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
                 // silent cross-scope bind to an object/program item) — §13.18.44.3 SR.
                 if (written && item.RedefinesTarget is null && item.Parent is null && OoRootOwner.ContainsKey(item.Root))

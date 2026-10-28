@@ -480,6 +480,17 @@ public sealed class DataItem
         "the carried type identity the ISO §8.5.3 same-type test reads — a subject declared with TYPE keeps it through a further copy")]
     public string? TypeName { get; set; }
 
+    /// <summary>After <c>ExpandTypes</c>: the type declaration <see cref="TypeName"/> names, as the binder's ONE type-name
+    /// lookup resolved it where the TYPE clause was written (<c>DataBinder.TryFindTypeDecl</c>: a method's own declaration
+    /// first, ISO §11.7.4 GR5; a containing program's GLOBAL one, §13.18.58.4 GR3). A consumer that needs the declaration
+    /// itself — the repository record's "type declarations required for the description of parameters and returning items"
+    /// (ISO §8.13; <c>RepositoryCodec</c>) — reads this resolution, never a second lookup by name in a scope it may not
+    /// have (a prototype's formal, described by the unit whose pointer names it, kb/Work PB2100). Null exactly when
+    /// <see cref="TypeName"/> is.</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "the declaration TypeName names, which travels with it — a subject declared with TYPE keeps both through a further copy")]
+    public DataItem? TypeDeclaration { get; set; }
+
     /// <summary>After <c>ExpandTypes</c>: true when this item is the subject of a TYPE clause referencing a STRONG
     /// type declaration (an item is strongly typed if it or any ancestor has this set). Drives the §8.8.4 gates.</summary>
     [DescriptionCopy(DescriptionCopyKind.Clause,
@@ -724,6 +735,18 @@ public sealed class DataItem
         RedefinesTarget = target;
         RedefinesKind = target is null ? RedefinitionKind.None : kind;
     }
+
+    /// <summary>The entry a REDEFINES clause's data-name-2 names among the same-named entries that precede its subject at its
+    /// own level, in declaration order (ISO §13.18.44.3 SR7: "Multiple redefinitions of the same storage area shall each
+    /// specify as data-name-2 the data-name of the entry that originally defined the area"; NOTE 1: "If data-name-2 is not
+    /// unique, no ambiguity of reference exists because of the required placement of the REDEFINES clause"): the NEAREST one
+    /// that is not itself a redefinition; when every candidate is a redefinition (SR7's own violation, COBOL1656: an error
+    /// strict, a warning under --permissive with the chain semantics), the nearest candidate; null only when there is none.
+    /// The ONE statement of the placement rule, BOTH halves, asked by the binder and by the repository decoder, so a record
+    /// the renderer writes for any program the compiler accepts decodes to the entry the binder linked (kb/Work PB1280,
+    /// PB2100).</summary>
+    public static DataItem? RedefinedEntry(IReadOnlyList<DataItem> precedingSameNamed) =>
+        precedingSameNamed.LastOrDefault(s => s.RedefinesTargetName is null) ?? precedingSameNamed.LastOrDefault();
 
     /// <summary>True when the item shares its storage area by one of the file section's IMPLICIT redefinitions
     /// (§13.18.33.4 GR3 / §12.4.6.4.4 GR2) rather than by a written REDEFINES clause.</summary>

@@ -48,6 +48,16 @@ public sealed class RuntimeApiGuardTests
         ["Emit/OperandText.cs"] = 4,          // routes at P9; 7 → 4 measured
     };
 
+    /// <summary>The files, besides <c>Roslyn/RuntimeApi.cs</c>, that write a runtime NAME into emitted text, each through
+    /// <c>typeof</c>, <c>nameof</c> or a typed constant, so that a runtime rename still breaks that file at compile time —
+    /// which is the ratchet's whole purpose. <c>RepositoryAttributeRenderer.cs</c> is the one place the repository
+    /// attributes' syntax is written (DESIGN-external-repository §3.9, §12: it took <c>RuntimeApi.ModuleRecordAttribute</c>
+    /// over), and the attribute types are not callable members the façade wraps. Adding a file here needs the same reason.</summary>
+    private static readonly HashSet<string> AnchoredWriters = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "RepositoryAttributeRenderer.cs",
+    };
+
     [Fact]
     public void Bare_runtime_accesses_do_not_increase()
     {
@@ -57,7 +67,7 @@ public sealed class RuntimeApiGuardTests
         foreach (string file in Directory.EnumerateFiles(codeGen, "*.cs", SearchOption.AllDirectories))
         {
             string name = Path.GetRelativePath(codeGen, file).Replace('\\', '/');
-            if (name is "Roslyn/RuntimeApi.cs") continue;   // the façade itself
+            if (name is "Roslyn/RuntimeApi.cs" || AnchoredWriters.Contains(name)) continue;   // the façade itself, and the anchored writers
             string code = string.Join("\n",
                 File.ReadAllLines(file).Where(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal)));
             int count = Bare.Matches(code).Count;

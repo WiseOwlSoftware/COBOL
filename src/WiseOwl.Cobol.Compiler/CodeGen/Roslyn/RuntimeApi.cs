@@ -2527,17 +2527,10 @@ internal static class RuntimeApi
     public static string RunModule(string registrarEnsureRegistered, string mainPathLiteral) =>
         $"{nameof(ProgramRegistry)}.{nameof(ProgramRegistry.RunModule)}({registrarEnsureRegistered}, {mainPathLiteral})";
 
-    // ── The module's repository record and its one registration member (DESIGN-external-repository §4.5, §11.2;
-    //    kb/Work PB2097). Both state the versions this compiler's runtime declares, as compiled against, so the run unit
-    //    a module joins can refuse it when its runtime major or call ABI differs (RuntimeAbi.Skew). ──
-
-    /// <summary>The module's assembly-level record, <c>[assembly: CobolRepository(schema, runtimeVersion, callAbi,
-    /// Registrar = …)]</c> (design §6.2): written before the module's namespace, global::-qualified like every foreign
-    /// name.</summary>
-    public static string ModuleRecordAttribute(string registrarClrName) =>
-        $"[assembly: global::{typeof(Runtime.Repository.CobolRepositoryAttribute).FullName}("
-        + $"{Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion}, {EmitText.CsLiteral(RuntimeAbi.Version.ToString())}, {RuntimeAbi.CallAbi}, "
-        + $"{nameof(Runtime.Repository.CobolRepositoryAttribute.Registrar)} = {EmitText.CsLiteral(registrarClrName)})]";
+    // ── The module's one registration member (DESIGN-external-repository §4.5, §11.2; kb/Work PB2097). It states the
+    //    versions this compiler's runtime declares, as compiled against, as the module's repository record does
+    //    (RepositoryAttributeRenderer.ModuleRecord, kb/Work PB2100), so the run unit a module joins can refuse it when its
+    //    runtime major or call ABI differs (RuntimeAbi.Skew). ──
 
     /// <summary>The body of a module's <c>EnsureRegistered()</c>: <c>ProgramRegistry.RegisterModule(registrar,
     /// runtimeVersion, callAbi, register)</c> over the module's private registrar body.</summary>

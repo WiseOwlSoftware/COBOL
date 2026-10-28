@@ -89,7 +89,7 @@ TABLE = [
     {"key": "parser-tree", "area": "frontend/parser", "name": "parser drivers and the syntax tree",
      "include": [F + "/{Parsing,Cst,Expressions,Pipeline,Common}/**", F + "/*.csproj"]},
     {"key": "data-binding", "area": "binding/data-division", "name": "data binding",
-     "include": [B + "/*.cs", B + "/Model/**", B + "/Passes/**"],
+     "include": [B + "/*.cs", B + "/Model/**", B + "/Passes/**", B + "/Repository/**"],
      "exclude": [B + "/ReferenceResolver*.cs", B + "/RefResolution.cs", B + "/QualifiedNameClasses.cs",
                  B + "/EcNameResolution.cs", B + "/ReportGroupResolution.cs", B + "/Oo*.cs", B + "/Prototype*.cs"]},
     {"key": "procedure-binding", "area": "binding", "name": "procedure binding", "include": [B + "/Procedure/**"]},
