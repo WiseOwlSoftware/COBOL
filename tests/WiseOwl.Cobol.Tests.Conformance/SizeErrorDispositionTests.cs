@@ -219,6 +219,10 @@ public sealed class SizeErrorDispositionTests
     // §14.9.12.4 6) c): the remainder is a resultant too; 59 / 30 leaves 29, past PIC 9, so R keeps 0 and NOT is skipped.
     [InlineData("NATIVE", "DIVIDE 59 BY 30 GIVING A REMAINDER R", "A=001 E=  0 R=0 F=-")]
     [InlineData("NATIVE", "DIVIDE 66 BY 30 GIVING A REMAINDER R", "A=002 E=  0 R=6 F=N")]
+    // §14.9.12.4 6) c) after a QUOTIENT size error (kb/Work PB3975): 4003 / 2 = 2001 is past PIC 9(3), so A keeps 7 and,
+    // the NOT-only statement keeping every receiver as the ON phrase does (PB3989), no remainder is stored (R keeps 0).
+    [InlineData("NATIVE", "DIVIDE 4003 BY 2 GIVING A REMAINDER R", "A=007 E=  0 R=0 F=-")]
+    [InlineData("STANDARD-DECIMAL", "DIVIDE 4003 BY 2 GIVING A REMAINDER R", "A=007 E=  0 R=0 F=-")]
     public void NotSizeErrorAlone_CheckingOff_LeavesTheResultant_AndRunsOnlyWithoutASizeError(
         string arithmetic, string statement, string verdict)
     {

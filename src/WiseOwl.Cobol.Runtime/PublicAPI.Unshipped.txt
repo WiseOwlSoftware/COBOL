@@ -567,7 +567,7 @@ static WiseOwl.Cobol.Runtime.CobolDec.FromApproximation(double d) -> WiseOwl.Cob
 static WiseOwl.Cobol.Runtime.CobolDec.FromBinary64(double d, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDec.FromUnsigned(System.UInt128 magnitude, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDec.Negate(WiseOwl.Cobol.Runtime.CobolDec value) -> WiseOwl.Cobol.Runtime.CobolDec
-static WiseOwl.Cobol.Runtime.CobolDec.SubsidiaryQuotient(WiseOwl.Cobol.Runtime.CobolDec quotient, int scale, int digits) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolDec.SubsidiaryQuotient(WiseOwl.Cobol.Runtime.CobolDec quotient, int scale) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Add(WiseOwl.Cobol.Runtime.CobolDecWithPrecision a, WiseOwl.Cobol.Runtime.CobolDecWithPrecision b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
 static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.DivTruncatedToOdd(WiseOwl.Cobol.Runtime.CobolDecWithPrecision a, WiseOwl.Cobol.Runtime.CobolDecWithPrecision b, int receiverScale) -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
 static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Mul(WiseOwl.Cobol.Runtime.CobolDecWithPrecision a, WiseOwl.Cobol.Runtime.CobolDecWithPrecision b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision

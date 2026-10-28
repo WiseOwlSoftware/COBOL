@@ -428,13 +428,6 @@ public static partial class CobolNum
         return Rescale(value, fromScale, toScale, mode);
     }
 
-    /// <summary>The low-order <paramref name="digits"/> of <paramref name="v"/>, sign preserved —
-    /// §14.9.12.4 GR6c's subsidiary-quotient cap (kb/Work PB129): the quotient used to form DIVIDE's
-    /// remainder has the GIVING receiver's digit count, exactly the value the §14.7.5 no-phrase store
-    /// leaves in it (high-order truncation keeps the low digits).</summary>
-    public static Int128 CapDigits(Int128 v, int digits) =>
-        digits is <= 0 or > 38 ? v : v % Pow10.AsWide(digits);
-
     /// <summary>The store-semantics widening sibling of <see cref="RescaleEscape"/>: digits a ≤38-digit store
     /// could never use are dropped BEFORE the multiply (decimal high-order truncation — the same cap
     /// <c>CobolDec.ToUnscaled</c>'s widening arm applies), so a receiver-bound rescale composes with the

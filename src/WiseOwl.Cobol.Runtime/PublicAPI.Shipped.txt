@@ -2817,7 +2817,6 @@ static WiseOwl.Cobol.Runtime.CobolNames.Same(string? a, string? b) -> bool
 static WiseOwl.Cobol.Runtime.CobolNames.StartsWith(System.ReadOnlySpan<char> word, System.ReadOnlySpan<char> prefix) -> bool
 static WiseOwl.Cobol.Runtime.CobolNames.UpperFold(string! word) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.AddChecked(System.Int128 a, System.Int128 b) -> System.Int128
-static WiseOwl.Cobol.Runtime.CobolNum.CapDigits(System.Int128 v, int digits) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolNum.Compare(System.Int128 a, int aScale, System.Int128 b, int bScale) -> int
 static WiseOwl.Cobol.Runtime.CobolNum.CompareU(System.Int128 a, int aScale, System.UInt128 b, int bScale) -> int
 static WiseOwl.Cobol.Runtime.CobolNum.CompareU(System.UInt128 a, int aScale, System.Int128 b, int bScale) -> int
