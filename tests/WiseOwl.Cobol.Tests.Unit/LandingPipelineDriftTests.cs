@@ -163,7 +163,15 @@ public sealed class LandingPipelineDriftTests
         Assert.Matches(new Regex(@"^    if: github\.event_name == 'merge_group'$", RegexOptions.Multiline), body);
         Assert.DoesNotMatch(new Regex(@"^    needs:", RegexOptions.Multiline), body);
         Assert.Matches(new Regex(@"^      actions: write\b", RegexOptions.Multiline), body);
-        Assert.Matches(new Regex(@"^        continue-on-error: true$", RegexOptions.Multiline), body);
+        IReadOnlyList<string> fatalSteps = StepsThatCanFailTheJob(body, out int stepCount);
+        Assert.True(stepCount >= 3, $"the `supersede` job lists {stepCount} steps; the checkout, the sweep and the checkout-failed "
+                                    + "notice are three, so the step reader is not measuring the job");
+        Assert.True(fatalSteps.Count == 0, "a `supersede` step is not `continue-on-error: true`, so a housekeeping failure "
+            + "(a checkout, a runner or network error) fails the job and `ci-gate` (kb/Work PB3820): " + string.Join("; ", fatalSteps));
+        Assert.Matches(new Regex(@"^      - id: checkout\n        uses: actions/checkout@", RegexOptions.Multiline), body);
+        Assert.Matches(new Regex(@"^        if: steps\.checkout\.outcome == 'success'\n        continue-on-error: true\n        env:",
+            RegexOptions.Multiline), body);
+        Assert.Matches(new Regex(@"^        if: steps\.checkout\.outcome != 'success'$", RegexOptions.Multiline), body);
         Assert.Contains("run: python3 scripts/orchestrator/cancel_superseded.py --repo \"$REPO\" --run-id \"$RUN_ID\" "
                         + "--sha \"$SHA\"", body, StringComparison.Ordinal);
         Assert.Contains("RUN_ID: ${{ github.run_id }}", body, StringComparison.Ordinal);
@@ -197,6 +205,40 @@ public sealed class LandingPipelineDriftTests
             "live_heads: a queue longer than one page, no merge queue on main, a failed call, a malformed answer or an "
                 + "offline gh is None (an incomplete read), never a short list",
         });
+    }
+
+    /// <summary>The steps of a workflow job's body (the text under its key, LF line endings) that lack
+    /// <c>continue-on-error: true</c> as a key of their own: a step starts at a six-space <c>- </c> and its keys sit at
+    /// eight spaces, so a <c>continue-on-error</c> deeper down (a <c>with:</c> value) is not the step's. Each is named by
+    /// its <c>name:</c>, else its <c>id:</c> or <c>uses:</c>, else its first line.</summary>
+    internal static IReadOnlyList<string> StepsThatCanFailTheJob(string jobBody, out int stepCount)
+    {
+        string[] steps = Regex.Split(jobBody, @"^(?=      - )", RegexOptions.Multiline)
+            .Where(chunk => chunk.StartsWith("      - ", StringComparison.Ordinal)).ToArray();
+        stepCount = steps.Length;
+        return steps.Where(step => !Regex.IsMatch(step, @"^(?:      - |        )continue-on-error: true[ \t]*(?:#.*)?$", RegexOptions.Multiline))
+            .Select(step => Regex.Match(step, @"^(?:      - |        )(?:name|id|uses): (?<v>.*)$", RegexOptions.Multiline) is { Success: true } m
+                ? m.Groups["v"].Value.Trim() : step.Split('\n')[0].Trim())
+            .ToList();
+    }
+
+    [Fact]
+    public void TheSupersedeStepReader_NamesEveryStepThatCouldFailTheJob()
+    {
+        const string job = "    steps:\n"
+            + "      - id: checkout\n        uses: actions/checkout@v7\n        continue-on-error: true\n        with:\n          submodules: false\n"
+            + "      - name: sweep\n        if: steps.checkout.outcome == 'success'\n        continue-on-error: true   # housekeeping\n        run: x\n"
+            + "      - name: notice\n        run: echo\n"
+            + "      - uses: actions/other@v1\n        with:\n          continue-on-error: true\n";
+        IReadOnlyList<string> fatal = StepsThatCanFailTheJob(job, out int count);
+        Assert.Equal(4, count);
+        Assert.Equal(["notice", "actions/other@v1"], fatal);
+
+        Assert.Empty(StepsThatCanFailTheJob("      - name: a\n        continue-on-error: true\n        run: x\n", out int one));
+        Assert.Equal(1, one);
+        Assert.Equal(["a"], StepsThatCanFailTheJob("      - name: a\n        continue-on-error: false\n        run: x\n", out _));
+        Assert.Empty(StepsThatCanFailTheJob("    steps:\n", out int none));
+        Assert.Equal(0, none);
     }
 
     /// <summary>The retired landing's files, by name: the direct-push landing script (both forms), the landing lease
