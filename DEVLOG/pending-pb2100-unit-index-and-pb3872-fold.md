@@ -1,4 +1,4 @@
-## External repository slice 4, first part: the unit index and the unit records; the host entry pairs by the Annex C fold (PB2100, PB3872)
+## External repository slice 4: the schema, the renderer and the reader; the host entry pairs by the Annex C fold (PB2100, PB3872)
 
 **What this change is.** Two things. The first is the PB1086 slice notes' `**Sites:**` blocks (the earlier branch
 `notes-pb1086-sites`, merged here): slices 4, 5, 7 and 8 each declare the files and members the design (sections 12 and
@@ -131,10 +131,14 @@ accessor and interface prototype with its formals on the carriers, and the progr
 The fix is the model first: `ClassRecord`, `PropertyRecord`, `MethodRecord` and `RepositoryRecord.Class`, written by
 `RepositoryCodec.Of(OoClassUnit)` / `Of(OoInterfaceSymbol, DataBinder)`; the renderer and the reader transcribe it
 (`UnitRecord`'s class facts, `MethodRecord`, `PropertyRecords`; `RepositoryReader.Class` / `Methods`, the factory read from
-the type `FactoryType` names). Two corrections of design 6.1 came with it. A method's formals are described in the METHOD's
-scope, so the codec's type-name lookup became the binder's one lookup (`DataBinder.TryFindTypeDecl`, ISO §11.7.4 GR5) for every
-record, programs included, instead of a dictionary of the element's own declarations; the fixture's `LK-M TYPE MT`, MT a
-method-local TYPEDEF, names its own row. And an accessor's externalized name is its property's (ISO §12.3.8.4 GR2: "Literal-5
+the type `FactoryType` names). Two corrections of design 6.1 came with it. A description's type declaration is the one the
+BINDER resolved where the TYPE clause was written: `DataItem.TypeDeclaration`, set by `DataBinder.ExpandType` beside `TypeName` and carried
+by `CopyEntryDescription`, replaces the codec's own lookup by name in the publishing element's dictionary. That lookup was a
+second statement of the type-name rule and was wrong twice: a method's formal typed by a method-local TYPEDEF (ISO §11.7.4 GR5;
+the fixture's `LK-M TYPE MT` now names its row) and a referenced prototype's formal typed by the prototype's own TYPEDEF (the
+predecessor's lead: RTONE's record described PRTA's `P TYPE PP` with no `TypeDeclaration`, because RTONE declares no PP; ISO
+§8.13 "type declarations required for the description of parameters and returning items"; now pinned by
+`TheRecord_StatesTheUnitFactsSection813Lists`). And an accessor's externalized name is its property's (ISO §12.3.8.4 GR2: "Literal-5
 is the externalized name known to the operating environment for a method that implements the named property"), its `Name`
 the roster's `__GET_<P>`; a property record carries `IsFactory` and is derived from the accessors. `OoSignatureOf` takes the
 method's record and puts the formal's attributes on the carrier, the triple's first parameter (design 6.2 "Anchoring");
@@ -146,9 +150,23 @@ Tests: `RepositoryCodecTests.AClassAndAnInterfaceRecord_StateTheFactsSection813L
 the corpus through metadata (it asserts more than 300 class and 50 interface records); the accessor pair in
 `RepositoryVocabularyDriftTests`. All 28,806 unit drift cases and the 36 characterization cases pass (no snapshot holds a class).
 
-**Left open in PB2100.** 17.4's backend-independence fixture (a `MetadataBuilder` writer); 17.2's SR2-pair Fact;
-`HostEntryShapeDriftTests`' totality Fact; and the decoded-identity cases of `PrototypePointerTypeDriftTests`. The note
-says so and stays open.
+**PB2100, the slice's remaining Facts, and the slice lands.** 17.2's SR2 pair: for every prototype the group also defines
+(ISO §10.6.2 SR2: "the signatures of these two compilation units shall be the same"), `PrototypeSignatures.Same` of the two
+DECODED records holds and agrees with the bound pair (`RepositoryRoundTripCorpusTests.PrototypeDefinitionPairs`, over the one
+corpus enumeration `Corpus()` both corpus Facts read). 17.3's every-unit-has-its-entry Fact
+(`HostEntryShapeDriftTests.EveryOutermostUnitOfTheCorpus_PublishesExactlyOneEntryAndRecord`): every case's module carries
+exactly one `[CobolUnit]` per published unit, on its type, and its `Units` index lists exactly those in emission order. 6.4
+part 3 end to end (`PrototypePointerTypeDriftTests.ADecodedPointer_IsTypedByItsPrototypesSignature_NeverByItsName`): a pointer
+from another group's record, read through metadata and decoded into the importer, shares the group pointer's identity exactly
+when the signatures are Same (ISO §13.18.60.4 GR25). 17.4 (`RepositoryBackendIndependenceTests`): a second backend writes the
+same records with `MetadataBuilder` and the ECMA-335 custom-attribute encoders, and the reader reads them back equal to the
+Roslyn module's. So that fixture is a second BACKEND rather than a second statement of the encoding, the renderer was split
+into two layers: `AttributeApplication` values (type, constructor arguments, named arguments; every rule of design 6.2) and
+their one C# spelling, `RepositoryAttributeRenderer.CSharp`; the emitted C# is byte-identical (the 36 characterization
+snapshots and the OO probe's `oo.g.cs` compared). PB2100 flips to `landed` with `closes_rows: []` (its reason: slice 4 closes
+no inventory row; the §12.3.8 rows are slices 7 and 8's), design section 21 marks item 4 LANDED, and the five R3 waves that
+waited on PB2100 for a file of the in-flight set (PB2290, PB2319: `PB2103`; PB2398, PB2406, PB2407: `PB2104`) now wait on the
+slice that changes that file next (`work.py check`).
 
 **Self-review.** Architecture: one writer of attribute text, one reader of the index, one definition of the row encoding;
 no C# text in a bound node. Code: the cap and the escapes are tested at their edges; `Open(Stream)` catches only the

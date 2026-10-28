@@ -206,9 +206,11 @@ public sealed record BackendArtifact(
   differential harness cross-check the two backends. What a module PUBLISHES is backend-independent: the
   external repository's record of every unit (DESIGN-external-repository §6, kb/Work PB2100) is a value,
   `RepositoryRecord`, built from the bound tree by `RepositoryCodec.Of` (programs, functions, prototypes, classes and
-  interfaces); `RoslynBackend` writes it as attribute TEXT through `RepositoryAttributeRenderer` (the one place that
-  syntax is spelled, called by `HostEntryEmitter` and `OoEmitter`), and a `CilBackend` would write the same record
-  through `MetadataBuilder` + `CustomAttributeEncoder`; `RepositoryReader` reads either back to an equal record (§17.4).
+  interfaces); `RepositoryAttributeRenderer` turns it into `AttributeApplication` values (where every encoding rule
+  lives) and `RoslynBackend` writes those as attribute TEXT (`RepositoryAttributeRenderer.CSharp`, called through
+  `HostEntryEmitter` and `OoEmitter`), while a `CilBackend` would encode the same values with `MetadataBuilder` and the
+  ECMA-335 custom-attribute encoders; `RepositoryReader` reads either back to an equal record
+  (`RepositoryBackendIndependenceTests`, §17.4).
 - The driver selects by `--backend` (default Roslyn): `ICodeGenBackend backend = BackendFactory.For(options.Backend);`
 
 **Hard boundary:** the backend's `Emit` receives a `BoundCompilation` and produces an artifact. It performs **no

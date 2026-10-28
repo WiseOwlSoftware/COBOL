@@ -7,7 +7,9 @@ namespace WiseOwl.Cobol.Runtime.Repository;
 // ⛔ THE SIGNATURE HALF OF THE REPOSITORY SCHEMA (ISO §8.13; docs/rearchitecture/DESIGN-external-repository.md §6.2;
 // kb/Work PB2100). A module compiled with --repository-update on carries, beside every unit's [CobolUnit], the
 // description of its formals and returning item (on the host entry's Call parameters and return value) and the rows of
-// the record's own tables (type declarations, dynamic-length structures, referenced prototypes) on the host-entry class.
+// the record's own tables (type declarations, dynamic-length structures, referenced prototypes) on the host-entry class;
+// a class's or an interface's methods carry [CobolMethod] and the same formal and returning attributes on the CLR methods
+// that implement them, and its properties [CobolProperty] on the type of their accessors.
 // Every attribute applied here obeys §6's rules: sealed, not inherited, the identity in ONE constructor, every other fact a
 // named property of a primitive, string, one-dimensional array or int-backed enum type, none a System.Type, so a reader
 // decodes them from metadata without loading the assembly; a named argument is present only when the renderer wrote it

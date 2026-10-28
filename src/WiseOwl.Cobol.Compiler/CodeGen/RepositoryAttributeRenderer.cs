@@ -22,6 +22,12 @@ namespace WiseOwl.Cobol.CodeGen;
 /// Roslyn backend compiles (a direct-CIL backend would write the same facts through its own metadata builder, §17.4's
 /// backend-independence fixture). <c>RuntimeApi.ModuleRecordAttribute</c>, which wrote the assembly record when it carried a
 /// registrar and nothing else, moved here.
+/// <para><b>Two layers, so the encoding is stated once for every backend (§17.4).</b> Each record becomes
+/// <see cref="AttributeApplication"/>s — the attribute type, its constructor arguments and its named arguments as VALUES (the
+/// <c>…Attribute</c> / <c>…Attributes</c> members) — and only then C# text (the <c>…Record</c> members, through
+/// <see cref="CSharp"/>). Every rule of §6.2 (what is written, what is a presence marker, what is left to its default) lives
+/// in the first layer; a backend that writes metadata directly encodes the same applications with its own metadata builder
+/// (<c>RepositoryReaderTests</c>' <c>MetadataBuilder</c> fixture is that backend), and the reader decodes both equal.</para>
 /// <para>It is a pure TRANSCRIPTION of <see cref="RepositoryRecord"/> (§6.1): every value is already in the persisted
 /// vocabulary, so nothing here translates a compiler type. The reader of what this writes is the compiler's
 /// <see cref="RepositoryReader"/> over the runtime's <see cref="RepositoryIndex"/>; <see cref="RepositoryIndex.EncodeUnit"/>
@@ -55,7 +61,11 @@ internal static class RepositoryAttributeRenderer
     /// <param name="units">The index rows (<see cref="IndexOf"/>).</param>
     /// <param name="edition">The ISO edition the group was bound under (<c>EditionContext.DialectLevel</c>).</param>
     /// <param name="hasSignatures">Whether the module carries the signature attributes (<c>--repository-update on</c>).</param>
-    internal static string ModuleRecord(string registrarClrName, IReadOnlyList<RepositoryUnitRow> units, int edition, bool hasSignatures)
+    internal static string ModuleRecord(string registrarClrName, IReadOnlyList<RepositoryUnitRow> units, int edition, bool hasSignatures) =>
+        $"[assembly: {CSharp(ModuleAttribute(registrarClrName, units, edition, hasSignatures))}]";
+
+    /// <summary>The module's assembly-level record as values (<see cref="ModuleRecord"/>'s first layer).</summary>
+    internal static AttributeApplication ModuleAttribute(string registrarClrName, IReadOnlyList<RepositoryUnitRow> units, int edition, bool hasSignatures)
     {
         var named = new Arguments();
         named.Text(nameof(CobolRepositoryAttribute.Registrar), registrarClrName);
@@ -64,7 +74,7 @@ internal static class RepositoryAttributeRenderer
         named.Flag(nameof(CobolRepositoryAttribute.HasSignatures), hasSignatures);
         if (units.Count > 0)
             named.Texts(nameof(CobolRepositoryAttribute.Units), units.Select(u => RepositoryIndex.EncodeUnit(u.Kind, u.ExternalizedName, u.Word)));
-        return $"[assembly: {Attribute<CobolRepositoryAttribute>(named, CobolRepositoryAttribute.CurrentSchemaVersion.ToString(CultureInfo.InvariantCulture), CsLiteral(RuntimeAbi.Version.ToString()), RuntimeAbi.CallAbi.ToString(CultureInfo.InvariantCulture))}]";
+        return Application<CobolRepositoryAttribute>(named, CobolRepositoryAttribute.CurrentSchemaVersion, RuntimeAbi.Version.ToString(), RuntimeAbi.CallAbi);
     }
 
     /// <summary>A unit's <c>[CobolUnit(kind, name, externalizedName)]</c> (§6.2), written on its host-entry class, its class's
@@ -72,7 +82,11 @@ internal static class RepositoryAttributeRenderer
     /// it also states the signature facts of §8.13 that belong to the unit rather than to a formal: the entry convention,
     /// DECIMAL-POINT IS COMMA, the currency symbols and the RAISING phrase, the last two as parallel arrays (§6.2 rule 3), and
     /// for a class or an interface its <see cref="ClassRecord"/>'s own facts.</summary>
-    internal static string UnitRecord(RepositoryUnitKind kind, string name, string externalizedName, RepositoryRecord? signature)
+    internal static string UnitRecord(RepositoryUnitKind kind, string name, string externalizedName, RepositoryRecord? signature) =>
+        $"[{CSharp(UnitAttribute(kind, name, externalizedName, signature))}]";
+
+    /// <summary>A unit's <c>[CobolUnit]</c> as values (<see cref="UnitRecord"/>'s first layer).</summary>
+    internal static AttributeApplication UnitAttribute(RepositoryUnitKind kind, string name, string externalizedName, RepositoryRecord? signature)
     {
         var named = new Arguments();
         if (signature is { } r)
@@ -100,13 +114,16 @@ internal static class RepositoryAttributeRenderer
                 named.Text(nameof(CobolUnitAttribute.FactoryType), c.FactoryType);
             }
         }
-        return $"[{Attribute<CobolUnitAttribute>(named, Member(kind), CsLiteral(name), CsLiteral(externalizedName))}]";
+        return Application<CobolUnitAttribute>(named, Defined(kind), name, externalizedName);
     }
 
     /// <summary>A method's <c>[CobolMethod(name, externalizedName, …)]</c> (§6.2), written before the CLR method that
     /// implements it; its formals and returning item are the method's parameter and return attributes
     /// (<see cref="FormalRecord"/>, <see cref="ReturningRecord"/>), as a program's are.</summary>
-    internal static string MethodRecord(MethodRecord m)
+    internal static string MethodRecord(MethodRecord m) => $"[{CSharp(MethodAttribute(m))}]";
+
+    /// <summary>A method's <c>[CobolMethod]</c> as values (<see cref="MethodRecord"/>'s first layer).</summary>
+    internal static AttributeApplication MethodAttribute(MethodRecord m)
     {
         var named = new Arguments();
         named.Flag(nameof(CobolMethodAttribute.IsFactory), m.IsFactory);
@@ -121,18 +138,22 @@ internal static class RepositoryAttributeRenderer
             named.Texts(nameof(CobolMethodAttribute.RaisingIdentity), m.Raising.Select(t => t.Identity));
             named.Flags(nameof(CobolMethodAttribute.RaisingFactory), m.Raising.Select(t => t.Factory));
         }
-        return $"[{Attribute<CobolMethodAttribute>(named, CsLiteral(m.Name), CsLiteral(m.ExternalizedName))}]";
+        return Application<CobolMethodAttribute>(named, m.Name, m.ExternalizedName);
     }
 
     /// <summary>The <c>[CobolProperty(name, externalizedName, …)]</c> of each property of one half (§6.2): the object's on
     /// the class's type (or the interface), the factory's on the factory type.</summary>
     internal static IEnumerable<string> PropertyRecords(ClassRecord c, bool factory) =>
+        PropertyAttributes(c, factory).Select(a => $"[{CSharp(a)}]");
+
+    /// <summary>The <c>[CobolProperty]</c>s of one half as values (<see cref="PropertyRecords"/>'s first layer).</summary>
+    internal static IEnumerable<AttributeApplication> PropertyAttributes(ClassRecord c, bool factory) =>
         c.Properties.Where(p => p.IsFactory == factory).Select(p =>
         {
             var named = new Arguments();
             named.Flag(nameof(CobolPropertyAttribute.Get), p.Get);
             named.Flag(nameof(CobolPropertyAttribute.Set), p.Set);
-            return $"[{Attribute<CobolPropertyAttribute>(named, CsLiteral(p.Name), CsLiteral(p.ExternalizedName))}]";
+            return Application<CobolPropertyAttribute>(named, p.Name, p.ExternalizedName);
         });
 
     /// <summary>The record's own tables, as the attributes of the unit's host-entry class, in the order of §6.5: every type
@@ -140,50 +161,57 @@ internal static class RepositoryAttributeRenderer
     /// (<see cref="CobolStructureAttribute"/>), every referenced prototype with its formals and their description trees
     /// (<see cref="CobolPrototypeAttribute"/>, <see cref="CobolPrototypeFormalAttribute"/>,
     /// <see cref="CobolPrototypeDescriptionAttribute"/>). One attribute per line.</summary>
-    internal static IEnumerable<string> TableRecords(RepositoryRecord record)
+    internal static IEnumerable<string> TableRecords(RepositoryRecord record) => TableAttributes(record).Select(a => $"[{CSharp(a)}]");
+
+    /// <summary>The record's own tables as values (<see cref="TableRecords"/>'s first layer).</summary>
+    internal static IEnumerable<AttributeApplication> TableAttributes(RepositoryRecord record)
     {
         foreach (var (declaration, index) in record.TypeDeclarations.Select((d, i) => (d, i)))
             foreach (var (entry, ordinal, parent) in Preorder(declaration))
-                yield return $"[{Attribute<CobolTypeDeclarationAttribute>(Description(entry), Number(index), Number(ordinal), Number(parent))}]";
+                yield return Application<CobolTypeDeclarationAttribute>(Description(entry), index, ordinal, parent);
         foreach (var s in record.DynamicLengthStructures)
         {
             var named = new Arguments();
             named.Kind(nameof(CobolStructureAttribute.Prefix), s.Prefix);
             named.Flag(nameof(CobolStructureAttribute.Delimited), s.Delimited);
             named.Text(nameof(CobolStructureAttribute.PhysicalStructureName), s.PhysicalStructureName);
-            yield return $"[{Attribute<CobolStructureAttribute>(named, Number(s.Index), CsLiteral(s.Name))}]";
+            yield return Application<CobolStructureAttribute>(named, s.Index, s.Name);
         }
         foreach (var p in record.ReferencedPrototypes)
         {
             var named = new Arguments();
             named.Flag(nameof(CobolPrototypeAttribute.HasSignature), p.HasSignature);
-            yield return $"[{Attribute<CobolPrototypeAttribute>(named, Number(p.Index), Member(p.Kind), CsLiteral(p.ExternalizedName))}]";
+            yield return Application<CobolPrototypeAttribute>(named, p.Index, Defined(p.Kind), p.ExternalizedName);
             foreach (var f in p.Formals)
             {
-                yield return $"[{Attribute<CobolPrototypeFormalAttribute>(FormalArguments(f), Number(p.Index), Number(f.Position), CsLiteral(f.Name))}]";
+                yield return Application<CobolPrototypeFormalAttribute>(FormalArguments(f), p.Index, f.Position, f.Name);
                 foreach (var (entry, ordinal, parent) in Preorder(f.Description))
-                    yield return $"[{Attribute<CobolPrototypeDescriptionAttribute>(Description(entry), Number(p.Index), Number(f.Position), Number(ordinal), Number(parent))}]";
+                    yield return Application<CobolPrototypeDescriptionAttribute>(Description(entry), p.Index, f.Position, ordinal, parent);
             }
             if (p.Returning is { } returning)
                 foreach (var (entry, ordinal, parent) in Preorder(returning))
-                    yield return $"[{Attribute<CobolPrototypeDescriptionAttribute>(Description(entry), Number(p.Index), Number(CobolPrototypeDescriptionAttribute.ReturningItem), Number(ordinal), Number(parent))}]";
+                    yield return Application<CobolPrototypeDescriptionAttribute>(Description(entry), p.Index, CobolPrototypeDescriptionAttribute.ReturningItem, ordinal, parent);
         }
     }
 
     /// <summary>The attribute lists of one formal, written before its <c>Call</c> parameter (§6.2 "Anchoring": the formal's
     /// <see cref="CobolFormalAttribute"/> and its <see cref="CobolDescriptionAttribute"/> tree sit on ONE CLR parameter).</summary>
-    internal static string FormalRecord(FormalRecord formal) =>
-        $"[{Attribute<CobolFormalAttribute>(FormalArguments(formal), Number(formal.Position), CsLiteral(formal.Name))}]"
-        + string.Concat(Preorder(formal.Description).Select(e =>
-            $"[{Attribute<CobolDescriptionAttribute>(Description(e.Entry), Number(e.Ordinal), Number(e.Parent))}]"));
+    internal static string FormalRecord(FormalRecord formal) => string.Concat(FormalAttributes(formal).Select(a => $"[{CSharp(a)}]"));
+
+    /// <summary>One formal's parameter attributes as values (<see cref="FormalRecord"/>'s first layer).</summary>
+    internal static IEnumerable<AttributeApplication> FormalAttributes(FormalRecord formal) =>
+        Preorder(formal.Description).Select(e => Application<CobolDescriptionAttribute>(Description(e.Entry), e.Ordinal, e.Parent))
+            .Prepend(Application<CobolFormalAttribute>(FormalArguments(formal), formal.Position, formal.Name));
 
     /// <summary>The return value's attribute list (<c>[return: CobolReturning, CobolDescription…]</c>), written before the
     /// <c>Call</c> method: the RETURNING item's description tree (§6.2 "Anchoring").</summary>
     internal static string ReturningRecord(DescriptionRecord returning) =>
-        $"[return: {Attribute<CobolReturningAttribute>(new Arguments())}"
-        + string.Concat(Preorder(returning).Select(e =>
-            $", {Attribute<CobolDescriptionAttribute>(Description(e.Entry), Number(e.Ordinal), Number(e.Parent))}"))
-        + "]";
+        $"[return: {string.Join(", ", ReturningAttributes(returning).Select(CSharp))}]";
+
+    /// <summary>The return value's attributes as values (<see cref="ReturningRecord"/>'s first layer).</summary>
+    internal static IEnumerable<AttributeApplication> ReturningAttributes(DescriptionRecord returning) =>
+        Preorder(returning).Select(e => Application<CobolDescriptionAttribute>(Description(e.Entry), e.Ordinal, e.Parent))
+            .Prepend(Application<CobolReturningAttribute>(new Arguments()));
 
     /// <summary>The version of this compiler, as a record states it. The compiler and the runtime ship from one package
     /// version (<c>Directory.Build.props</c>), so it is the compiler assembly's own, never the runtime's.</summary>
@@ -226,7 +254,7 @@ internal static class RepositoryAttributeRenderer
         if (d.Table is { } t)
         {
             a.Number(nameof(CobolDescriptionFieldsAttribute.OccursMin), t.Min);
-            a.Always(nameof(CobolDescriptionFieldsAttribute.OccursMax), Number(t.Max));
+            a.Always(nameof(CobolDescriptionFieldsAttribute.OccursMax), t.Max);
             a.Text(nameof(CobolDescriptionFieldsAttribute.OccursDepending), t.Depending);
             a.Flag(nameof(CobolDescriptionFieldsAttribute.OccursDynamic), t.Dynamic);
             a.Text(nameof(CobolDescriptionFieldsAttribute.OccursCapacity), t.Capacity);
@@ -255,7 +283,7 @@ internal static class RepositoryAttributeRenderer
         a.Kind(nameof(CobolDescriptionFieldsAttribute.GroupUsage), d.GroupUsage);
         if (d.Pic is not { } p) return a;
 
-        a.Always(nameof(CobolDescriptionFieldsAttribute.Category), Member(p.Category));
+        a.Always(nameof(CobolDescriptionFieldsAttribute.Category), Defined(p.Category));
         a.Kind(nameof(CobolDescriptionFieldsAttribute.Usage), p.Usage);
         a.Number(nameof(CobolDescriptionFieldsAttribute.Length), p.Length);
         a.Number(nameof(CobolDescriptionFieldsAttribute.Digits), p.Digits);
@@ -272,7 +300,7 @@ internal static class RepositoryAttributeRenderer
         a.Flag(nameof(CobolDescriptionFieldsAttribute.IsFloatEdited), p.IsFloatEdited);
         a.Text(nameof(CobolDescriptionFieldsAttribute.EditMask), p.EditMask);
         a.Text(nameof(CobolDescriptionFieldsAttribute.CurrencyString), p.CurrencyString);
-        if (p.CurrencyClass is { } currencyClass) a.Always(nameof(CobolDescriptionFieldsAttribute.CurrencyClass), Member(currencyClass));
+        if (p.CurrencyClass is { } currencyClass) a.Always(nameof(CobolDescriptionFieldsAttribute.CurrencyClass), Defined(currencyClass));
         a.Flag(nameof(CobolDescriptionFieldsAttribute.IsAlphabetic), p.IsAlphabetic);
         a.Present(nameof(CobolDescriptionFieldsAttribute.DigitPositions), p.DigitPositions);
         if (p.Clause is { } c)
@@ -280,7 +308,7 @@ internal static class RepositoryAttributeRenderer
             a.Text(nameof(CobolDescriptionFieldsAttribute.ClauseCharacterString), c.CharacterString);
             a.Text(nameof(CobolDescriptionFieldsAttribute.ClauseCurrencyString), c.CurrencyString);
             if (c.DecimalPointIsComma is { } comma)
-                a.Always(nameof(CobolDescriptionFieldsAttribute.ClauseDecimalPointIsComma), Bool(comma));
+                a.Always(nameof(CobolDescriptionFieldsAttribute.ClauseDecimalPointIsComma), comma);
             a.Text(nameof(CobolDescriptionFieldsAttribute.ClauseEditing), c.Editing);
         }
         if (p.EditingRules is { } rules)
@@ -308,60 +336,84 @@ internal static class RepositoryAttributeRenderer
         return a;
     }
 
-    /// <summary>One attribute: its <c>global::</c>-qualified type, its constructor arguments
-    /// (<paramref name="positional"/>, already C# text), then its <paramref name="named"/> arguments.</summary>
-    private static string Attribute<T>(Arguments named, params string[] positional) where T : System.Attribute
+    /// <summary>One attribute as values: its type, its constructor arguments (<paramref name="positional"/>), then its
+    /// <paramref name="named"/> arguments in the order written.</summary>
+    private static AttributeApplication Application<T>(Arguments named, params object[] positional) where T : System.Attribute =>
+        new(typeof(T), positional, named.Written);
+
+    /// <summary>⛔ THE ONE C# SPELLING OF AN ATTRIBUTE APPLICATION: its <c>global::</c>-qualified type, then its constructor
+    /// and named arguments, each value spelled by <see cref="Value"/>.</summary>
+    internal static string CSharp(AttributeApplication application)
     {
-        string type = $"global::{typeof(T).FullName}";
-        return positional.Length + named.Written.Count == 0 ? type : $"{type}({string.Join(", ", positional.Concat(named.Written))})";
+        string type = $"global::{application.Type.FullName}";
+        var arguments = application.Arguments.Select(Value).Concat(application.Named.Select(n => $"{n.Key} = {Value(n.Value)}")).ToList();
+        return arguments.Count == 0 ? type : $"{type}({string.Join(", ", arguments)})";
     }
 
-    private static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
+    /// <summary>One argument value as C# text: a number, a flag, a string, a character, a member of a persisted enum, or a
+    /// one-dimensional array of those (the only values an attribute argument of the schema holds, §6).</summary>
+    private static string Value(object value) => value switch
+    {
+        int number => number.ToString(CultureInfo.InvariantCulture),
+        bool flag => flag ? "true" : "false",
+        string text => CsLiteral(text),
+        char character => CsCharLiteral(character),
+        Enum member => $"global::{member.GetType().FullName}.{member}",
+        Array array => $"new {ElementType(array.GetType().GetElementType()!)}[] {{ {string.Join(", ", array.Cast<object>().Select(Value))} }}",
+        _ => throw new InvalidOperationException($"RepositoryAttributeRenderer: a {value.GetType().Name} is no attribute argument of the schema"),
+    };
 
-    private static string Bool(bool value) => value ? "true" : "false";
+    private static string ElementType(Type element) =>
+        element == typeof(string) ? "string" : element == typeof(char) ? "char" : element == typeof(bool) ? "bool"
+            : element.IsEnum ? $"global::{element.FullName}"
+            : throw new InvalidOperationException($"RepositoryAttributeRenderer: {element.Name}[] is no attribute argument of the schema");
 
-    /// <summary>A member of a persisted enum as C# text; a value no member names is an internal error (the vocabulary's
-    /// translation is total, §6.2 rule 1).</summary>
-    private static string Member<TEnum>(TEnum value) where TEnum : struct, Enum =>
-        Enum.IsDefined(value) ? $"global::{typeof(TEnum).FullName}.{value}"
+    /// <summary>A member of a persisted enum; a value no member names is an internal error (the vocabulary's translation is
+    /// total, §6.2 rule 1).</summary>
+    private static TEnum Defined<TEnum>(TEnum value) where TEnum : struct, Enum =>
+        Enum.IsDefined(value) ? value
             : throw new InvalidOperationException($"RepositoryAttributeRenderer: {typeof(TEnum).Name} value {value} is not a member of the persisted vocabulary");
 
     /// <summary>The named arguments of one attribute, in the order written; each writer states §6.2 rule 2 for its type.</summary>
     private sealed class Arguments
     {
-        public List<string> Written { get; } = [];
+        public List<KeyValuePair<string, object>> Written { get; } = [];
 
         /// <summary>A presence marker or a nullable value that has one: written whatever its value.</summary>
-        public void Always(string name, string value) => Written.Add($"{name} = {value}");
+        public void Always(string name, object value) => Written.Add(new(name, value));
 
         /// <summary>A non-nullable number: written unless 0.</summary>
-        public void Number(string name, int value) { if (value != 0) Always(name, RepositoryAttributeRenderer.Number(value)); }
+        public void Number(string name, int value) { if (value != 0) Always(name, value); }
 
         /// <summary>A nullable number: written exactly when it has a value.</summary>
-        public void Present(string name, int? value) { if (value is { } v) Always(name, RepositoryAttributeRenderer.Number(v)); }
+        public void Present(string name, int? value) { if (value is { } v) Always(name, v); }
 
         /// <summary>A flag: written when true.</summary>
-        public void Flag(string name, bool value) { if (value) Always(name, "true"); }
+        public void Flag(string name, bool value) { if (value) Always(name, true); }
 
         /// <summary>A non-nullable enum: written unless its zero member.</summary>
         public void Kind<TEnum>(string name, TEnum value) where TEnum : struct, Enum
         {
-            if (!EqualityComparer<TEnum>.Default.Equals(value, default)) Always(name, Member(value));
+            if (!EqualityComparer<TEnum>.Default.Equals(value, default)) Always(name, Defined(value));
         }
 
         /// <summary>A string: written exactly when it is not null (an empty string is written).</summary>
-        public void Text(string name, string? value) { if (value is not null) Always(name, CsLiteral(value)); }
+        public void Text(string name, string? value) { if (value is not null) Always(name, value); }
 
-        public void Texts(string name, IEnumerable<string> values) =>
-            Always(name, $"new string[] {{ {string.Join(", ", values.Select(CsLiteral))} }}");
+        public void Texts(string name, IEnumerable<string> values) => Always(name, values.ToArray());
 
-        public void Chars(string name, IEnumerable<char> values) =>
-            Always(name, $"new char[] {{ {string.Join(", ", values.Select(CsCharLiteral))} }}");
+        public void Chars(string name, IEnumerable<char> values) => Always(name, values.ToArray());
 
-        public void Flags(string name, IEnumerable<bool> values) =>
-            Always(name, $"new bool[] {{ {string.Join(", ", values.Select(Bool))} }}");
+        public void Flags(string name, IEnumerable<bool> values) => Always(name, values.ToArray());
 
         public void Kinds<TEnum>(string name, IEnumerable<TEnum> values) where TEnum : struct, Enum =>
-            Always(name, $"new global::{typeof(TEnum).FullName}[] {{ {string.Join(", ", values.Select(Member))} }}");
+            Always(name, values.Select(Defined).ToArray());
     }
 }
+
+/// <summary>One application of a repository schema attribute as VALUES (DESIGN-external-repository §6.2, §17.4): the attribute
+/// type, its constructor arguments and its named arguments in the order written — each an <see cref="int"/>, a
+/// <see cref="bool"/>, a <see cref="string"/>, a <see cref="char"/>, a member of a persisted enum, or a one-dimensional array of
+/// those. <see cref="RepositoryAttributeRenderer.CSharp"/> spells it for the Roslyn backend; a metadata writer encodes it
+/// directly.</summary>
+internal sealed record AttributeApplication(Type Type, IReadOnlyList<object> Arguments, IReadOnlyList<KeyValuePair<string, object>> Named);
