@@ -631,9 +631,18 @@ the 36-digit decimal `+9.9(35)E+9999` (`WidestFloatEditedPic`, kb/Work PB370) fo
 numeric with a floating-point one among them that no one binary format serves, or whose every receiver is fixed-point with more
 digits between them than the 38-digit carrier holds; the WIDEST receiver's fixed-point description for a MOVE's other
 values (`ValueUse.MovedTo`, `ShapedPic` over `PicInfo.WidestReceiving`: the GR1 `MOVE a TO temp` with temp described
-as the largest receiver), 21 integer + 17 fraction digits for a value read as
+as the largest receiver), 21 integer + 17 fraction digits for a function value read as
 an operand (an EVALUATE subject, a frozen argument), and the returned-value item's S9(21)V9(9) only for a value read as
-text in a character formal. It is not the fixed S9(21)V9(9) (`FunctionValuePic`), the nominal returned-value item IN-ARITHMETIC-RANGE reads: that description cut `MOVE FUNCTION PI TO Q1 Q2` (PIC 9V9(15)) to 3.141592653000000 where `MOVE
+text in a character formal. **An ARITHMETIC EXPRESSION read as an operand is held at the width of its own value**
+(`SendingValueTemp.ValueOperandPicOf`, kb/Work PB3974; §14.9.13.4 GR3 c) assigns the subject "a numeric value according to
+the rules for evaluating an arithmetic expression" and GR4 a) 6. compares that value): `ExpressionExtent`, a visitor over the
+generated expression interface, states the integer digits and the scale of an expression of `+`, `-`, `*` and unary minus over
+fixed-point items and literals (a sum below 10^i and 10^j is below 10^(max(i, j)+1), a product below 10^(i+j) with the scales
+added; a mathematical bound, so it restates none of the renderer's carrier rules), and the intermediate is the fixed-point
+item of exactly those digits. A value past the 38-digit scaled carrier has no intermediate item, so such an expression stays
+un-hoisted and is evaluated again at each WHEN (a function-free expression of data items yields the same value each time,
+where a held value cut to fit would compare a different one); an expression holding a quotient, a power or a function keeps
+the 21 + 17 item (the residual: a width no bound states). It is not the fixed S9(21)V9(9) (`FunctionValuePic`), the nominal returned-value item IN-ARITHMETIC-RANGE reads: that description cut `MOVE FUNCTION PI TO Q1 Q2` (PIC 9V9(15)) to 3.141592653000000 where `MOVE
 FUNCTION PI TO Q3` stores 3.141592653589793. A NUMERIC function's temporary is flagged
 `DataItem.FunctionValueSeparator` (the decimal separator its literal form is written with, PB2507: the materializing unit's), and `OperandText`'s field image renders a flagged item in DOC-A.1-92's literal
 form — so `MOVE temp TO b` stores in a CHARACTER receiver what `MOVE a TO b` stores (kb/Work PB1007: the
