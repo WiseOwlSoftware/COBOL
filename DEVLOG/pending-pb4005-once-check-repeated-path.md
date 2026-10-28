@@ -10,3 +10,7 @@ The wave unit re-planned with `--max-groups 3` and launched groups A to C withou
 reproduction and the acceptance: decide whether the root cause is the duplicate CODE SITES clause or the sentence
 splitter, then add a self-test seen RED first and sweep the other rendered fragments that state a path after a colon.
 No code changes in this landing.
+
+PB2100 records its predecessor branch `worktree-wf_c731503d-cbd-1` (wave 20261733 group A, SPLIT) as ABANDONED: every one of
+its 13 commits is patch-equivalent on main (`git cherry`), carried by w20261734a into #736. The record lets
+`prune_worktrees.py --apply --abandon` remove it.
