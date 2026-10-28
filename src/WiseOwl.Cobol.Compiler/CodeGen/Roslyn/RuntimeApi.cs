@@ -2952,15 +2952,10 @@ internal static class RuntimeApi
     public static string ModuleNameFn(int kind) =>
         $"{nameof(CobolModule)}.{nameof(CobolModule.Name)}({kind})";
 
-    /// <summary>§14.9.12.4 GR6c's subsidiary-quotient digit cap (kb/Work PB129) — the low-order digits
-    /// at the GIVING receiver's digit capacity, the §14.7.5 no-phrase store's own disposition.</summary>
-    public static string NumCapDigits(string expr, int digits) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.CapDigits)}({expr}, {digits})";
-
-    /// <summary>The SDIDI lane's subsidiary quotient (§14.9.12.4 6) c), kb/Work PB3017) - the SDIDI quotient truncated at the
-    /// GIVING receiver's scale and capped at its digit count, <see cref="NumCapDigits"/>'s twin on <c>CobolDec</c>.</summary>
-    public static string DecSubsidiaryQuotient(string quotient, int scale, int digits) =>
-        $"{nameof(CobolDec)}.{nameof(CobolDec.SubsidiaryQuotient)}({quotient}, {scale}, {digits})";
+    /// <summary>The SDIDI lane's subsidiary quotient (§14.9.12.4 6) c), kb/Work PB3017, PB3975) - the SDIDI quotient truncated
+    /// at the GIVING receiver's scale.</summary>
+    public static string DecSubsidiaryQuotient(string quotient, int scale) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.SubsidiaryQuotient)}({quotient}, {scale})";
 
     /// <summary>The subsidiary quotient (§14.9.12.4 6) c), kb/Work PB2923) of a FLOATING-POINT numeric-edited identifier-3: the
     /// SDIDI quotient as that item holds it under truncation, <c>CobolEdit.TruncateToFloatShape</c> -

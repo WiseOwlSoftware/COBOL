@@ -806,27 +806,32 @@ Mined from legacy ArithmeticLowerer.LowerDivide: it divides into a `decimal` acc
 GR1/GR7 define the quotient and the remainder as SDIDI expressions under standard-decimal arithmetic and GR6 c) derives the
 subsidiary quotient from that quotient by truncation, so the STANDARD / STANDARD-DECIMAL lane forms the quotient
 (`CobolDec.Div` over each operand's `DecOperand` lift), the subsidiary quotient (`CobolDec.SubsidiaryQuotient`: truncated
-toward zero at the GIVING receiver's scale, then reduced to its low-order digit count, the significand kept at the
-quotient's own exponent so no 38-digit significand enters a 34-digit carrier) and the remainder entirely on `CobolDec`;
+toward zero at the GIVING receiver's scale, every integer digit kept, the significand kept at the quotient's own exponent
+so no 38-digit significand enters a 34-digit carrier) and the remainder entirely on `CobolDec`;
 the stored quotient is the same SDIDI value, landed by the receiver's own rounding. An unsigned 16-byte dividend in
 [2^127, 2^128) or a float dividend past 1.7E+38 therefore reaches the lane exactly as in `COMPUTE`/`DIVIDE GIVING`. The NATIVE lane keeps the exact
-Int128 kernel (`CobolNum.Divide` at the receiver's scale, then `CapDigits`) for two scaled senders: its intermediate range
+Int128 kernel (`CobolNum.Divide` at the receiver's scale) for two scaled senders: its intermediate range
 is the checked Int128 (DOC-A.1-179), so an unsigned-wide dividend past 2^127 - 1 is the funnel's size error. A native
 sender on the binary64 or SDIDI carrier (a FLOAT-LONG item, a float function's value, a float literal, a NUMVAL value)
 takes `CarriedSubsidiaryQuotient`: the quotient is the very division `DIVIDE ... GIVING` without REMAINDER performs
 (`Combine(dividend, "/", divisor)` as the final transfer into identifier-3), taken at the receiver's rounding mode for
 the stored quotient and at TRUNCATION for the subsidiary quotient, with no sender quantized first (kb/Work PB3829's sweep:
 the lane used to land such a sender truncated at the float working scale, so `ROUNDED MODE AWAY-FROM-ZERO` of 0.12340000000001
-stored 0.1234 with REMAINDER and 0.1235 without, and 0.09 / 0.30000000000001 truncated to 0.3000 instead of 0.2999). ⛔ The subsidiary quotient's DIGIT CAP is the digits the
-receiver's store KEEPS (kb/Work PB129): the PICTURE's digit positions for a PICTURE-truncating item, none for a
-BINARY-CAPACITY item (COMP-5, BINARY-CHAR ... BINARY-DOUBLE), which owns its whole container (§13.18.60.4 GR12 / DOC-A.1-208, DOC-A.1-123) -
-the quotient such an item holds is the full quotient, and capping it at the PICTURE's digits made the remainder of
-`DIVIDE 123456 BY 7 GIVING Q REMAINDER R` into `Q PIC 9(4) COMP-5` 70004 instead of 4.
+stored 0.1234 with REMAINDER and 0.1235 without, and 0.09 / 0.30000000000001 truncated to 0.3000 instead of 0.2999). ⛔ The subsidiary quotient has NO DIGIT CAP (kb/Work PB3975).
+§14.9.12.4 6) c)'s "same number of digits ... as identifier-3" governs a quotient that raised no size error, and that
+quotient fits identifier-3, so its truncation (never further from zero than the stored quotient, whatever the ROUNDED
+mode) has identifier-3's digits already. When the quotient DID meet a size error and the remainder is still stored
+(checking not enabled and no SIZE ERROR phrase, ON or NOT: §14.6.13.1.3 8), CONFORMANCE.md DOC-A.1-70), the subsidiary quotient
+keeps every integer digit, as GnuCOBOL 3.2's `cob_div_quotient` does: `DIVIDE 1003 BY 4 GIVING B REMAINDER R` with B
+`PIC 99` stores R = 3, where the PICTURE-digit cap kb/Work PB129 applied gave 803 (and a cap on a BINARY-CAPACITY
+identifier-3 had made `DIVIDE 123456 BY 7 GIVING Q REMAINDER R` into `Q PIC 9(4) COMP-5` 70004 instead of 4, kb/Work PB3017).
+The native lane's subsidiary quotient carries the quotient's own digit bound (`NumericRenderer.QuotientDigitBound`, the
+rule the nested quotient states) into the back-multiply.
 
 **The subsidiary quotient is identifier-3's SHAPE under truncation, one arm per form (kb/Work PB2923;
 `ArithmeticEmitter.SubsidiaryShapeOf`, `SubsidiaryForm`).** §14.9.12.4 6) c) gives it "the same number of digits and the same
 decimal point location as" identifier-3, which only a fixed-point item has in the sense the old (scale, digit cap) pair
-modelled. A FIXED-POINT identifier-3 keeps that pair (above). A FLOATING-POINT numeric-edited identifier-3 (`PIC +9.99E+99`)
+modelled. A FIXED-POINT identifier-3 keeps its decimal point location, and no digit cap (above). A FLOATING-POINT numeric-edited identifier-3 (`PIC +9.99E+99`)
 has a significand of `SigDigits` digits at an exponent and no decimal point location, so its subsidiary quotient is the
 quotient truncated to those digits at its own exponent: `CobolEdit.TruncateToFloatShape`, the very normalization its store
 performs (`NormalizeFloat`, shared with `FormatFloatCore`, so a value past the exponent's range is the pinned saturated

@@ -179,12 +179,18 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // the exact back-multiply and settled once, by the outer Combine (kb/Work PB3538).
             NumX remainder = num.Combine(dividend, "-",
                 num.Combine(subsidiary, "*", divisor, rcv, keepWide: true), rcv);   // GR7: dividend − subsidiaryQuotient × divisor
-            // The quotient STORE sees the UNCAPPED quotient, so an over-wide one raises ITS size error (§14.7.5); the
-            // cap applies to the REMAINDER's subsidiary quotient only (GR6c, kb/Work PB129).
+            // The quotient STORE sees the whole quotient, so an over-wide one meets ITS size error (§14.7.5) and takes the
+            // statement's disposition there.
             GuardedStore(ise, d.Quotient.Place, () => StoreArith(d.Quotient.Place,
                 quotientFor(d.Quotient.Rounding), d.Quotient.Rounding));
-            // GR6c stores identifier-4 only "if the size error condition is not raised" — gated on the
-            // statement's flag when checking is on (the quotient's raise leaves the remainder untouched).
+            // GR6c stores identifier-4 only "if the size error condition is not raised": under a SIZE ERROR phrase (ON, NOT
+            // or both, kb/Work PB3989's one disposition for every [NOT] SIZE ERROR statement) or EC-SIZE checking the store
+            // is gated on the statement's flag, so the quotient's size error leaves the remainder untouched. With checking
+            // NOT enabled and no phrase, the size error condition is §14.6.13.1.3 8)'s, whose receivers are the
+            // implementor's: docs/CONFORMANCE.md DOC-A.1-70 follows GnuCOBOL 3.2 (libcob cob_div_quotient /
+            // cob_div_remainder), which stores the remainder whatever the quotient met, formed from the quotient truncated
+            // at identifier-3's scale with every integer digit (SubsidiaryShape; kb/Work PB3975). A zero divisor raises
+            // before either store and leaves both.
             if (ise)
                 using (w.Block($"if (!{ecState.SizeErrVar})"))
                     GuardedStore(true, d.Remainder, () => StoreArith(d.Remainder, remainder, CobolRounding.Truncation));
@@ -213,21 +219,22 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// floating-point numeric-edited item took its mask's working-scale HINT as a decimal point location it does not
     /// have, so a quotient below 0.005 truncated to zero in <c>+9.99E+99</c> and the remainder became the whole dividend.
     /// <para><see cref="SubsidiaryForm.FixedPoint"/> carries <see cref="Scale"/> (the receiver-scale rule,
-    /// <see cref="ScaleOf"/>) and <see cref="Digits"/> (the digits the receiver's store KEEPS, §14.9.12.4 6) c) / kb/Work
-    /// PB129): a PICTURE-truncating item keeps its PICTURE's digit positions, and a BINARY-CAPACITY item (COMP-5,
-    /// BINARY-CHAR ... BINARY-DOUBLE) keeps its whole container (§13.18.60.4 GR12 / DOC-A.1-208), so it has no cap (0) - the
-    /// quotient it holds is the full quotient, and a PICTURE-digit cap turned <c>DIVIDE 123456 BY 7 GIVING Q REMAINDER
-    /// R</c> into R = 70004 for <c>Q PIC 9(4) COMP-5</c> (the stored Q is 17636, so the remainder is 4; kb/Work PB3017).
+    /// <see cref="ScaleOf"/>): the quotient truncated at identifier-3's decimal point location. It carries NO digit cap.
+    /// GR6 c) applies only "If the size error condition is not raised", and then the quotient fits identifier-3, so its
+    /// truncation (never further from zero than the stored quotient, whatever the ROUNDED mode) has identifier-3's digits
+    /// already. When the quotient DID meet a size error and the remainder is still stored (checking not enabled and no SIZE
+    /// ERROR phrase: §14.6.13.1.3 8), docs/CONFORMANCE.md DOC-A.1-70), the subsidiary quotient keeps every integer digit, as
+    /// GnuCOBOL 3.2's <c>cob_div_quotient</c> does: <c>DIVIDE 1003 BY 4 GIVING B REMAINDER R</c> with B <c>PIC 99</c> stores
+    /// R = 3 (1003 - 250 x 4), where the digit cap kb/Work PB129 used to apply gave 803 (kb/Work PB3975).
     /// The two floating forms carry the item's <see cref="Pic"/> and nothing else: their shape is the item's own.</para></summary>
-    private readonly record struct SubsidiaryShape(SubsidiaryForm Form, PicInfo? Pic, int Scale = 0, int Digits = 0);
+    private readonly record struct SubsidiaryShape(SubsidiaryForm Form, PicInfo? Pic, int Scale = 0);
 
     private SubsidiaryShape SubsidiaryShapeOf(Place p) => p.Item.Pic switch
     {
         { IsFloatEdited: true } pic => new(SubsidiaryForm.FloatEdited, pic),
         { IsFloat: true } pic => new(SubsidiaryForm.BinaryFloat, pic),
         null => new(SubsidiaryForm.FixedPoint, null),
-        { Truncation: NumericTruncation.BinaryCapacity } pic => new(SubsidiaryForm.FixedPoint, pic, ScaleOf(p)),
-        { } pic => new(SubsidiaryForm.FixedPoint, pic, ScaleOf(p), pic.DigitPositions),
+        { } pic => new(SubsidiaryForm.FixedPoint, pic, ScaleOf(p)),
     };
 
     /// <summary>The native lane of <see cref="EmitDivideRemainder"/> for a FIXED-POINT identifier-3: two scaled senders
@@ -242,24 +249,19 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         BoundDivideRemainder d, ReceiverContext rcv, bool ise, SubsidiaryShape shape)
     {
         var w = ctx.Writer;
-        int qs = shape.Scale, qDigits = shape.Digits;
+        int qs = shape.Scale;
         NumX dividendX = num.Render(d.Dividend, rcv), divisorX = num.Render(d.Divisor, rcv);
         if (dividendX.Real || dividendX.Dec || divisorX.Real || divisorX.Dec)
             return CarriedSubsidiaryQuotient(d, Snapshot(dividendX), Snapshot(divisorX), ise, shape);
         NumX dividend = Snapshot(NumericRenderer.DeU(dividendX)),
              divisor = Snapshot(NumericRenderer.DeU(divisorX));
-        // The SUBSIDIARY quotient is truncated to the GIVING receiver's digits/scale (ISO §14.9.12 GR6c).
+        // The SUBSIDIARY quotient is the quotient truncated at the GIVING receiver's scale (ISO §14.9.12.4 6) c);
+        // SubsidiaryShape says why it carries no digit cap). It is also the stored quotient under TRUNCATION.
         string qt = $"__q{ctx.Names.NextStoreTmp()}";
         w.Line($"Int128 {qt} = {RuntimeApi.NumDivide(ise, dividend.Expr, $"{dividend.Scale}", divisor.Expr, $"{divisor.Scale}", $"{qs}", CobolRounding.Truncation)};");
-        // §14.9.12.4 GR6c (kb/Work PB129): the subsidiary quotient has "the same number of digits as identifier-3" —
-        // cap it at the GIVING receiver's digit capacity (the low-order digits, the §14.7.5 no-phrase store's own
-        // disposition), or a quotient wider than identifier-3 poisons the remainder (Q PIC 9 stored 3 while the
-        // back-multiply used 333).
-        string qtc = $"__qc{ctx.Names.NextStoreTmp()}";
-        w.Line($"Int128 {qtc} = {RuntimeApi.NumCapDigits(qt, qDigits)};");
-        // The capped subsidiary quotient's digit bound IS qDigits (0, unknown, for a binary-capacity receiver with no
-        // cap), so the back-multiply is decided on it rather than on the carrier's 39 digits.
-        return (dividend, divisor, new NumX(qtc, qs, Digits: qDigits), mode => mode == CobolRounding.Truncation
+        // Its digit bound is the quotient's own, so the back-multiply is decided on it rather than on the carrier's 39.
+        int qDigits = Math.Min(NumericRenderer.QuotientDigitBound(dividend, divisor, qs), PicInfo.CarrierDigitBound);
+        return (dividend, divisor, new NumX(qt, qs, Digits: qDigits), mode => mode == CobolRounding.Truncation
             ? new NumX(qt, qs)
             : new NumX(RuntimeApi.NumDivide(ise, dividend.Expr, $"{dividend.Scale}", divisor.Expr, $"{divisor.Scale}", $"{qs}", mode), qs));
     }
@@ -301,28 +303,24 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             mode => mode == CobolRounding.Truncation || truncated.Dec || truncated.Real ? truncated : QuotientAt(mode));
     }
 
-    /// <summary>The subsidiary quotient for a FIXED-POINT identifier-3: the quotient truncated at its scale and capped at its
-    /// digits (kb/Work PB129, PB3017).</summary>
+    /// <summary>The subsidiary quotient for a FIXED-POINT identifier-3: the quotient truncated at its scale (kb/Work PB3017;
+    /// no digit cap, <see cref="SubsidiaryShape"/>, kb/Work PB3975).</summary>
     private NumX FixedPointSubsidiary(NumX truncated, bool ise, SubsidiaryShape shape)
     {
-        var w = ctx.Writer;
-        int qs = shape.Scale, qDigits = shape.Digits;
-        string sq = $"__sq{ctx.Names.NextStoreTmp()}";
+        int qs = shape.Scale;
         if (truncated.Dec)
         {
-            w.Line($"CobolDec {sq} = {RuntimeApi.DecSubsidiaryQuotient(truncated.Expr, qs, qDigits)};");
+            string sq = $"__sq{ctx.Names.NextStoreTmp()}";
+            ctx.Writer.Line($"CobolDec {sq} = {RuntimeApi.DecSubsidiaryQuotient(truncated.Expr, qs)};");
             return new NumX(sq, 0, Dec: true);
         }
         // A binary64 quotient lands at identifier-3's scale by truncation (the checked form under ON SIZE ERROR /
-        // EC-SIZE, as the scaled kernel's DivideOrThrow); a scaled one is already there. Either is then capped at
-        // identifier-3's digits (kb/Work PB129).
-        string atScale = truncated.Real
-            ? RuntimeApi.FloatToScaled(truncated.Expr, $"{qs}", CobolRounding.Truncation, ise)
-            : truncated.Scale == qs ? truncated.Expr
+        // EC-SIZE); a scaled one is already there.
+        if (truncated.Real)
+            return Snapshot(new NumX(RuntimeApi.FloatToScaled(truncated.Expr, $"{qs}", CobolRounding.Truncation, ise), qs));
+        return truncated.Scale == qs ? truncated
             : throw new InvalidOperationException(
                 $"DIVIDE REMAINDER: a final-transfer quotient at scale {truncated.Scale}, not identifier-3's {qs}");
-        w.Line($"Int128 {sq} = {RuntimeApi.NumCapDigits(atScale, qDigits)};");
-        return new NumX(sq, qs, Digits: qDigits);
     }
 
     /// <summary>The subsidiary quotient for a FLOATING-POINT numeric-edited identifier-3 (ISO §14.9.12.4 6) c)): the quotient

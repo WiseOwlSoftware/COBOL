@@ -235,15 +235,15 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// PB3017): "a subsidiary quotient is developed that is signed and derived from the quotient by truncation of digits
     /// at the least significant end and that has the same number of digits and the same decimal point location as the
     /// data item referenced by identifier-3" — the SDIDI <paramref name="quotient"/> truncated toward zero at
-    /// <paramref name="scale"/> fraction digits (the receiver's decimal point location), then, when
-    /// <paramref name="digits"/> is positive, reduced to its low-order <paramref name="digits"/> digits (the
-    /// receiver's digit count, the digits a §14.7.5 no-phrase store would keep — <see cref="CobolNum.CapDigits"/>'s
-    /// rule on this carrier). GR7 then forms the remainder as the SDIDI expression dividend − (subsidiary-quotient ×
+    /// <paramref name="scale"/> fraction digits (the receiver's decimal point location), every integer digit kept: when no
+    /// size error is raised the quotient fits identifier-3 and so has its digits already, and when one is raised with
+    /// checking not enabled and the remainder is still stored, docs/CONFORMANCE.md DOC-A.1-70 follows GnuCOBOL 3.2, whose
+    /// subsidiary quotient is never cut to identifier-3's digits (kb/Work PB3975). GR7 then forms the remainder as the SDIDI expression dividend − (subsidiary-quotient ×
     /// divisor). The result stays an SDIDI AT the quotient's own exponent (never re-expressed at <paramref name="scale"/>,
     /// which would put a 38-digit significand into a carrier whose invariant is 34): a quotient already coarser than the
     /// scale comes back with its significand untouched, so the Int128 carrier plays no part — a quotient near 4.86E+37
     /// (an unsigned 16-byte dividend, or a float past 1.7E+38) is as exact here as 7.</summary>
-    public static CobolDec SubsidiaryQuotient(CobolDec quotient, int scale, int digits)
+    public static CobolDec SubsidiaryQuotient(CobolDec quotient, int scale)
     {
         Int128 sig = quotient.Sig;
         int exp = quotient.Exp;
@@ -252,12 +252,6 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         {
             sig = -e > 38 ? 0 : DivRemPow10(sig, -e).Q;         // truncation toward zero at the receiver's scale
             exp = -scale;
-            e = 0;
-        }
-        if (digits > 0 && digits <= 38)
-        {
-            if (e >= digits) return Zero(-(long)scale);         // every kept digit lies below the first nonzero one
-            sig %= Pow10.AsWide(digits - e);                    // (sig × 10^e) mod 10^digits, sign preserved
         }
         // A ZERO subsidiary quotient has "the same decimal point location as the data item referenced by identifier-3":
         // it is held at the receiver's scale, never at exponent 0 (kb/Work PB3538 review finding R5-1).

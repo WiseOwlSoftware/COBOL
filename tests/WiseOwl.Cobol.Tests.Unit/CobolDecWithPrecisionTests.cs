@@ -151,7 +151,7 @@ public sealed class CobolDecWithPrecisionTests
         Assert.Equal(new CobolDec(0, -3), CobolDec.Sqrt(new CobolDec(0, -5), mode));                          // half, rounded down
         Assert.Equal(new CobolDec(0, -3), CobolDec.FromParsed(0, -3, mode));                                  // NUMVAL ("0.000")
         Assert.Equal(new CobolDec(0, -3), CobolDec.FromUnsigned(0, 3, mode));
-        Assert.Equal(new CobolDec(0, -2), CobolDec.SubsidiaryQuotient(new CobolDec(0, -5), 2, 0));             // the receiver's scale
+        Assert.Equal(new CobolDec(0, -2), CobolDec.SubsidiaryQuotient(new CobolDec(0, -5), 2));             // the receiver's scale
         Assert.Equal(3, CobolDecWithPrecision.Own(CobolIntrinsics.NumvalDec("0.000")).Precision);
         // 0E-40 + 7: as near the preferred -40 as the 34-digit significand holds, exactly 7.000…0 at 33 places
         Assert.Equal(new CobolDec(Int128.Parse("7000000000000000000000000000000000"), -33),
