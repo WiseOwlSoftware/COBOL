@@ -705,10 +705,11 @@ internal static class RuntimeApi
     public static string NumRescaleStoreU(string value, string fromScale, string toScale, CobolRounding mode, bool checkedPath) =>
         $"{nameof(CobolNum)}.{(checkedPath ? nameof(CobolNum.RescaleCheckedU) : nameof(CobolNum.RescaleStoreCapU))}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
 
-    /// <summary>The §14.9.12 GR6c/GR7 scaled division — <c>CobolNum.Divide</c>, or the size-error-throwing
-    /// <c>CobolNum.DivideOrThrow</c> under a checked context.</summary>
-    public static string NumDivide(bool orThrow, string a, string aScale, string b, string bScale, string resultScale, CobolRounding mode) =>
-        $"{nameof(CobolNum)}.{(orThrow ? nameof(CobolNum.DivideOrThrow) : nameof(CobolNum.Divide))}({a}, {aScale}, {b}, {bScale}, {resultScale}, {RoundingText(mode)})";
+    /// <summary>The scaled division at a result scale — <c>CobolNum.Divide</c>, one kernel in every context: it raises a
+    /// zero divisor (§14.7.5 case 2) and a PROHIBITED-inexact quotient (§14.7.4.3 rule 7) whether or not checking is
+    /// enabled (kb/Work PB1605, PB3990).</summary>
+    public static string NumDivide(string a, string aScale, string b, string bScale, string resultScale, CobolRounding mode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.Divide)}({a}, {aScale}, {b}, {bScale}, {resultScale}, {RoundingText(mode)})";
 
     /// <summary>The checked numeric store — <c>CobolNum.TryStore</c> (false = capacity/PROHIBITED failure; the
     /// receiver stays unchanged, §14.7.5). <paramref name="argsFragment"/> is the pre-shaped value/scale/profile
@@ -936,11 +937,6 @@ internal static class RuntimeApi
     public static string DecDivLifted(string numerator, string numeratorScale, string denominator, string mode) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.Div)}({nameof(CobolDec)}.{nameof(CobolDec.From)}({numerator}, "
         + $"{numeratorScale}), {nameof(CobolDec)}.{nameof(CobolDec.From)}({denominator}, 0), {mode})";
-
-    /// <summary>A float value's inexactness probe at a fraction scale (the ROUNDED PROHIBITED gate, §14.7.4.3
-    /// item 7) — <c>CobolFloat.InexactAtScale</c>.</summary>
-    public static string FloatInexactAtScale(string value, string scale) =>
-        $"{nameof(CobolFloat)}.{nameof(CobolFloat.InexactAtScale)}({value}, {scale})";
 
     /// <summary>The capacity-checked edited format — <c>CobolEdit.TryFormat</c> (false = the aligned value's
     /// significant digits exceed the mask, §14.7.5 case 3).</summary>

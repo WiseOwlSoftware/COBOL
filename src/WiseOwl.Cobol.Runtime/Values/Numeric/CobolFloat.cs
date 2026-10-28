@@ -214,9 +214,12 @@ public static class CobolFloat
     /// by character-string-1 shall range from 1 through 31", cite.py-verified). A wider scale, a shift
     /// past the carrier, or a negative scale (a trailing-P receiver, whose 5^|scale| is a DIVISOR) falls to the
     /// same expansion over <see cref="BigInteger"/>. No binary64 multiply is left anywhere in the landing.</para>
-    /// <para>ROUNDING MODE PROHIBITED lands here TRUNCATED (<c>RoundDiv</c>'s truncation arm); the emitter gates
-    /// the STORE with <see cref="InexactAtScale"/> so an inexact float→fixed transfer raises SIZE ERROR and leaves
-    /// the receiver unchanged (§14.7.4.3 item 7) before this is reached.</para></summary>
+    /// <para>ROUNDING MODE PROHIBITED is never landed cut: an inexact value raises
+    /// <see cref="CobolSizeError.ProhibitedInexact"/> from <c>RoundDiv</c>'s one rounding decision (§14.7.4.3 rule 7 —
+    /// the resultant identifier is unchanged; kb/Work PB3990), for the checked, unchecked and intermediate forms alike.
+    /// It is asked of the EXACT ratio (<see cref="ExactRatio"/>, kb/Work PB623), never of a binary64 product, which
+    /// cannot answer it: the double nearest 0.1 does NOT fit one fraction digit, yet <c>0.1 * 10.0</c> is exactly 1.0
+    /// in binary64.</para></summary>
     /// <returns><c>true</c> with the landed value; <c>false</c> when <paramref name="v"/> is not finite or its
     /// exact expansion does not fit the carrier — the caller then applies ITS landing form (kb/Work PB77: the
     /// CHECKED landing saturates so the store's capacity check raises the size error; the UNCHECKED one keeps the
@@ -264,7 +267,7 @@ public static class CobolFloat
     /// <summary>The EXACT decomposition of a finite binary64: <c>v = (neg ? −1 : +1) × man × 2^exp</c>, with the
     /// significand's trailing zero bits shifted into the exponent so <c>man</c> is ODD (or zero, for ±0). Every
     /// exact statement about a double's value in this file is built from this ONE decomposition — the landing, its
-    /// residue past the carrier, and the PROHIBITED gate's divisibility question.</summary>
+    /// residue past the carrier, and PROHIBITED's exactness question (its rounding decision).</summary>
     private static (long man, int exp, bool neg) Decompose(double v)
     {
         long bits = BitConverter.DoubleToInt64Bits(v);
@@ -281,7 +284,7 @@ public static class CobolFloat
     /// numerator over a POSITIVE denominator: <c>v·10^scale = ±man·5^scale·2^(exp+scale)</c>, with a negative
     /// scale's 5^|scale| and a negative exp+scale's 2^|exp+scale| joining the denominator. ⛔ THE ONE PLACE the
     /// exact value of a binary64 at a decimal scale is written down — the landing ROUNDS this ratio, the
-    /// PROHIBITED gate asks whether it DIVIDES. <see cref="Decompose"/> leaves the numerator odd in its factor 2,
+    /// PROHIBITED rounding asks whether it DIVIDES. <see cref="Decompose"/> leaves the numerator odd in its factor 2,
     /// so the ratio is already in lowest terms as to 2 and "the denominator is 1" is exactly "the value has no
     /// digits past this scale".</summary>
     private static (BigInteger num, BigInteger den) ExactRatio(double v, int scale)
@@ -397,25 +400,6 @@ public static class CobolFloat
     public static Int128 LowOrderDigits(double v, int scale, CobolRounding mode) =>
         (Int128)(ExactScaled(v, scale, mode) % Pow10Big38);         // sign-preserving remainder — the low-order digits
 
-    /// <summary>True when <paramref name="v"/> carries a nonzero fraction beyond <paramref name="scale"/> digits — an
-    /// INEXACT float→fixed transfer that ROUNDED MODE PROHIBITED must reject with SIZE ERROR / EC-SIZE-TRUNCATION,
-    /// leaving the receiver unchanged (ISO §14.7.4.3 item 7: "If the PROHIBITED phrase is specified, and the
-    /// arithmetic value cannot be represented exactly in the resultant identifier, the EC-SIZE-TRUNCATION exception
-    /// condition is set to exist, the size error condition exists, and the content of the resultant identifier is
-    /// unchanged" — cite.py-verified).
-    /// <para>⛔ THE QUESTION IS ASKED OF THE EXACT VALUE, and it is the SAME ratio the landing rounds
-    /// (<see cref="ExactRatio"/>, kb/Work PB623) — never of a binary64 product, which cannot answer it: the double
-    /// nearest 0.1 is 0.1000000000000000055511151231257827…, so it does NOT fit one fraction digit, yet
-    /// <c>0.1 * 10.0</c> is exactly 1.0 in binary64 and the old product test called it exact. A gate that says
-    /// "representable" where the landing then truncates digits away is the two-arm defect in one statement.</para>
-    /// <para>NaN/±Infinity are handled by the store's saturation path, not here.</para></summary>
-    public static bool InexactAtScale(double v, int scale)
-    {
-        if (!double.IsFinite(v)) return false;
-        var (num, den) = ExactRatio(v, scale);
-        return !BigInteger.Remainder(num, den).IsZero;
-    }
-
     // ── THE binary64 INTERMEDIATE'S RANGE (kb/Work PB1566, PB1581, PB1147) ───────────────────────────────────
     // Under native arithmetic an expression with a floating-point operand — or whose resultants are all
     // floating-point — evaluates in binary64 (CONFORMANCE.md DOC-A.1-123), so binary64's range IS the intermediate
@@ -470,7 +454,7 @@ public static class CobolFloat
         return double.IsFinite(a) && double.IsFinite(b) ? InBinary64Range(r, nonzero: a != 0 && b != 0, "multiplication") : r;
     }
 
-    /// <summary>The CHECKED native binary64 quotient (the twin of <c>CobolNum.DivideOrThrow</c>): a zero divisor is
+    /// <summary>The CHECKED native binary64 quotient (the twin of <c>CobolNum.Divide</c>): a zero divisor is
     /// §14.7.5 case 2 — "if the divisor in a divide operation or in a DIVIDE statement is zero" (cite.py-verified),
     /// EC-SIZE-ZERO-DIVIDE by the no-phrase rule 2 — whatever the dividend holds (a zero of either sign is zero);
     /// then overflow, and the underflow of a nonzero dividend's quotient. Before it the floating arm rendered a bare

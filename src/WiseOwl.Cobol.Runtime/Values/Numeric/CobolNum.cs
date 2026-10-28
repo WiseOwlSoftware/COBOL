@@ -80,9 +80,6 @@ public static partial class CobolNum
     /// magnitudes it exists to catch.</para></summary>
     public static Int128 RescaleChecked(Int128 value, int fromScale, int toScale, CobolRounding mode)
     {
-        if (mode == CobolRounding.Prohibited && IsInexactAtScale(value, fromScale, toScale))
-            throw new CobolSizeError("ROUNDED MODE IS PROHIBITED on an inexact transfer to an edited receiver "
-                + "(ISO §14.7.4.3 r7 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION");
         if (!WideningFits(value, toScale - fromScale))
             throw new CobolSizeError($"radix point alignment to {toScale} fraction digits is further from zero "
                 + "than permitted for the receiving data item (ISO §14.7.5 case 3 — EC-SIZE-TRUNCATION; the "
@@ -362,8 +359,7 @@ public static partial class CobolNum
     public static bool TryStoreU(UInt128 value, int valueScale, in NumProfile receiver, CobolRounding mode, out Int128 stored)
     {
         stored = 0;
-        if (mode == CobolRounding.Prohibited && valueScale > receiver.FractionScale
-            && value % Pow10U(valueScale - receiver.FractionScale) != 0)
+        if (mode == CobolRounding.Prohibited && IsInexactAtScale(value, valueScale, receiver.FractionScale))
             return false;   // inexact narrowing under PROHIBITED (§14.7.4.3 r7)
         // Rescale exactly for the range check: a WIDENING beyond UInt128 already exceeds every capacity below it.
         int up = receiver.FractionScale - valueScale;
@@ -488,9 +484,6 @@ public static partial class CobolNum
     /// ⛔ Distinctly named, never an overload (see <see cref="StoreUOrRaise"/>).</summary>
     public static Int128 RescaleCheckedU(UInt128 value, int fromScale, int toScale, CobolRounding mode)
     {
-        if (mode == CobolRounding.Prohibited && toScale < fromScale && value % Pow10U(fromScale - toScale) != 0)
-            throw new CobolSizeError("ROUNDED MODE IS PROHIBITED on an inexact transfer to an edited receiver "
-                + "(ISO §14.7.4.3 r7 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION");
         int up = toScale - fromScale;
         bool fits = up <= 0 || value == 0 || (up <= 38 && value <= UInt128.MaxValue / Pow10U(up));
         UInt128 v = !fits ? UInt128.MaxValue
@@ -579,6 +572,10 @@ public static partial class CobolNum
     /// <paramref name="toScale"/> would drop a nonzero fraction (an inexact transfer).</summary>
     private static bool IsInexactAtScale(Int128 value, int fromScale, int toScale) =>
         toScale < fromScale && value % Pow10Wide(fromScale - toScale) != 0;
+
+    /// <inheritdoc cref="IsInexactAtScale(Int128, int, int)"/>
+    private static bool IsInexactAtScale(UInt128 value, int fromScale, int toScale) =>
+        toScale < fromScale && value % Pow10U(fromScale - toScale) != 0;
 
     // ── The ORDINAL-POSITION integrality rule (ISO §8.4.2.3.4 GR1b · §8.4.3.3.4 rule 5)c); fix-queue PB41) ──────
     // A subscript and a reference-modifier leftmost-position/length are the VALUE of an arithmetic expression, and
@@ -811,39 +808,6 @@ public static partial class CobolNum
     {
         try { return checked(a - b); }
         catch (OverflowException) { throw new CobolSizeError("intermediate difference exceeds the Int128 carrier", "EC-SIZE-OVERFLOW"); }
-    }
-
-    /// <summary>
-    /// The CHECKED quotient — <see cref="Divide"/> (whose zero divisor already raises §14.7.5 case 2 in every
-    /// context), plus the one size error only a checked context owes: ROUNDED MODE IS PROHIBITED on an inexact
-    /// quotient (§14.7.4.3 r7, EC-SIZE-TRUNCATION). Emitted where an ON SIZE ERROR phrase or EC-SIZE checking is in
-    /// effect; unchecked, PROHIBITED keeps CONFORMANCE.md DOC-A.1-70's truncated landing (kb/Work PB1196).
-    /// </summary>
-    public static Int128 DivideOrThrow(Int128 a, int aScale, Int128 b, int bScale, int resultScale, CobolRounding mode)
-    {
-        Int128 quotient = Divide(a, aScale, b, bScale, resultScale, mode);
-        // ROUNDED MODE IS PROHIBITED: an inexact quotient AT resultScale is a size error (§14.7.4.3 r7). When the
-        // division rounds directly at the receiver scale (the outermost-division case), the inexactness is consumed
-        // inside Divide, so it must be detected here from the exact remainder rather than by the receiver's TryStore.
-        if (mode == CobolRounding.Prohibited && DivisionLosesPrecision(a, aScale, b, bScale, resultScale))
-            throw new CobolSizeError("ROUNDED MODE IS PROHIBITED on an inexact quotient (ISO §14.7.4.3 r7 — "
-                + "EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION");
-        return quotient;
-    }
-
-    /// <summary>True when <c>a/10^aScale ÷ b/10^bScale</c> cannot be represented exactly at <paramref name="resultScale"/>
-    /// fractional digits (a nonzero remainder after radix alignment) — used to detect a PROHIBITED violation in a
-    /// division. Mirrors <see cref="Divide"/>'s scaling. Assumes <paramref name="b"/> != 0.</summary>
-    private static bool DivisionLosesPrecision(Int128 a, int aScale, Int128 b, int bScale, int resultScale)
-    {
-        int exp = bScale + resultScale - aScale;
-        // An alignment past the carrier: exact on the remainder of a × 10^exp (the scale-down case — a divisor scaled
-        // past the carrier — leaves the whole dividend as the remainder, which is nonzero for a nonzero dividend).
-        if (a != 0 && (exp >= 0 ? !WideningFits(a, exp) : !WideningFits(b, -exp)))
-            return exp < 0 || CobolDec.QuotientHasRemainder(a, b, exp);
-        Int128 num = a, den = b;   // wide radix alignment — mirrors Divide exactly
-        if (exp >= 0) num *= Pow10Wide(exp); else den *= Pow10Wide(-exp);
-        return num % den != 0;
     }
 
     /// <summary>
@@ -1266,10 +1230,16 @@ public static partial class CobolNum
         // alignment (a divisor scaled past the carrier, whose quotient is below one unit of the carrier's own range) or
         // an exponent past 10^38 takes the SDIDI.
         if (!fits)
-            return exp is >= 0 and <= 38
-                ? CobolDec.QuotientAtScale(a, b, exp, mode)
-                : CobolDec.DivToOdd(CobolDec.From(a, aScale), CobolDec.From(b, bScale))
-                    .ToUnscaledIntermediate(resultScale, mode);
+        {
+            if (exp is >= 0 and <= 38) return CobolDec.QuotientAtScale(a, b, exp, mode);
+            // ROUNDED MODE IS PROHIBITED asks the EXACT quotient (§14.7.4.3 rule 7), which the SDIDI's 34 digits below
+            // may not show: a scale-down alignment leaves the whole (nonzero) dividend as the remainder, and past 10^38
+            // the 256-bit remainder answers (kb/Work PB3990 — the test DivideOrThrow made, now the one kernel's).
+            if (mode == CobolRounding.Prohibited && (exp < 0 || CobolDec.QuotientHasRemainder(a, b, exp)))
+                throw CobolSizeError.ProhibitedInexact();
+            return CobolDec.DivToOdd(CobolDec.From(a, aScale), CobolDec.From(b, bScale))
+                .ToUnscaledIntermediate(resultScale, mode);
+        }
         Int128 num = a, den = b;
         if (exp >= 0) num *= Pow10Wide(exp); else den *= Pow10Wide(-exp);
         // Int128.MinValue has no signed negation (-MinValue is MinValue), so the sign-normalising step below would leave
@@ -1326,7 +1296,10 @@ public static partial class CobolNum
             CobolRounding.NearestAwayFromZero => above || tie,
             CobolRounding.NearestTowardZero => above,
             CobolRounding.NearestEven => above || (tie && quotientIsOdd),
-            _ => false,                                                      // TRUNCATION, PROHIBITED (the unchecked landing truncates)
+            // §14.7.4.3 rule 7: PROHIBITED is no direction — a nonzero remainder means the value cannot be represented
+            // exactly, and no landing, checked or not, stores it cut (kb/Work PB3990; CobolSizeError.ProhibitedInexact).
+            CobolRounding.Prohibited => throw CobolSizeError.ProhibitedInexact(),
+            _ => false,                                                      // TRUNCATION
         };
     }
 
@@ -1337,8 +1310,8 @@ public static partial class CobolNum
     /// it NEGATIVE, so <c>Int128.MinValue ÷ −3</c> came out negative and <c>Int128.MinValue ÷ −1</c> came out
     /// <c>Int128.MinValue</c>. The one value only a NEGATIVE quotient can hold is that 2^127; any other quotient past
     /// <c>Int128.MaxValue</c> is the §14.7.5 case-5 size error (EC-SIZE-OVERFLOW), never a wrapped digit string.
-    /// PROHIBITED truncates here — this is <see cref="Divide"/>'s UNCHECKED landing (DOC-A.1-70; the checked statement
-    /// asks <c>DivideOrThrow</c> first).</summary>
+    /// PROHIBITED and a nonzero remainder raise <see cref="CobolSizeError.ProhibitedInexact"/> from the one rounding
+    /// decision (§14.7.4.3 rule 7, kb/Work PB3990).</summary>
     internal static Int128 LandQuotient(UInt128 q, UInt128 rem, UInt128 divisor, bool negative, CobolRounding mode)
     {
         if (rem != 0 && BumpsMagnitude(negative, !UInt128.IsEvenInteger(q), rem, divisor, mode))

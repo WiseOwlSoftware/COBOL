@@ -772,7 +772,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <summary>The binary64 lane of <see cref="CombineCore"/> — the floating arm of the native dispatch whose other
     /// arm is <see cref="CombineNative"/>, and it owes the SAME size-error rules (kb/Work PB1147, PB1581; the
     /// two-arm shape). Where checking is enabled (<see cref="Checked"/>) each operation is the checked runtime twin
-    /// of the scaled carrier's: a zero divisor is EC-SIZE-ZERO-DIVIDE (§14.7.5 case 2, as <c>DivideOrThrow</c>), and
+    /// of the scaled carrier's: a zero divisor is EC-SIZE-ZERO-DIVIDE (§14.7.5 case 2, as <c>CobolNum.Divide</c>), and
     /// a result outside binary64 is EC-SIZE-OVERFLOW / -UNDERFLOW (case 5, as <c>AddChecked</c>/<c>SubChecked</c>).
     /// Unchecked, the sum, difference and product are the bare IEEE operators, exactly as the scaled lane's unchecked
     /// operators wrap; the QUOTIENT is <c>CobolFloat.Div</c>, because a zero divisor is case 2 whether or not checking
@@ -1084,10 +1084,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     private string DecQuotientOperand(NumX x) => x.U ? DecOperand(x) : DecOperandExact(x);
 
     /// <summary>The scaled kernel's quotient of <paramref name="a"/> by <paramref name="b"/> at <paramref name="scale"/> in
-    /// <paramref name="mode"/>. Both kernels raise a zero divisor (ISO §14.7.5 case 2, checked or not, kb/Work PB1605); the
-    /// checked <c>DivideOrThrow</c> adds the PROHIBITED-inexact quotient, which only a checked context owes (§14.7.4.3 GR7).</summary>
-    private string DivideAt(NumX a, NumX b, int scale, CobolRounding mode) =>
-        $"CobolNum.{(Checked ? "DivideOrThrow" : "Divide")}({a.Expr}, {a.Scale}, {b.Expr}, {b.Scale}, {scale}, CobolRounding.{mode})";
+    /// <paramref name="mode"/> (<see cref="RuntimeApi.NumDivide"/>): it raises a zero divisor (ISO §14.7.5 case 2, checked or
+    /// not, kb/Work PB1605) and a PROHIBITED-inexact quotient (§14.7.4.3 rule 7, checked or not, kb/Work PB3990).</summary>
+    private static string DivideAt(NumX a, NumX b, int scale, CobolRounding mode) =>
+        RuntimeApi.NumDivide(a.Expr, $"{a.Scale}", b.Expr, $"{b.Scale}", $"{scale}", mode);
 
     private NumX CombineAdditive(NumX a, string op, NumX b)
     {

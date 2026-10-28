@@ -68,12 +68,18 @@ public sealed class WideTransferKernelTests
     }
 
     [Fact]
-    public void Prohibited_RaisesOnlyWhenChecked_AndTruncatesOtherwise()
+    public void Prohibited_RaisesWhetherOrNotChecked_AndAnExactProductLands()
     {
-        var ex = Assert.Throws<CobolSizeError>(() => CobolDec.MulAtScale(P, 1, Q, 1, 0, CobolRounding.Prohibited, checkedTransfer: true));
-        Assert.Equal("EC-SIZE-TRUNCATION", ex.EcName);
-        Assert.Equal(Big("12193263113702179527930193561668190824"),
-            CobolDec.MulAtScale(P, 1, Q, 1, 0, CobolRounding.Prohibited, checkedTransfer: false));   // DOC-A.1-70
+        // §14.7.4.3 rule 7 keeps the resultant whether or not checking is enabled (kb/Work PB3990): the .25 is a real tail,
+        // so both transfer forms raise the one rule-7 condition rather than land ...190824.
+        foreach (bool checkedTransfer in new[] { true, false })
+        {
+            var ex = Assert.Throws<CobolSizeError>(() => CobolDec.MulAtScale(P, 1, Q, 1, 0, CobolRounding.Prohibited, checkedTransfer));
+            Assert.Equal("EC-SIZE-TRUNCATION", ex.EcName);
+            Assert.True(ex.IsProhibitedInexact);
+            // P × 2 at scale 1 is exact, so PROHIBITED lands it as every mode does.
+            Assert.Equal(P * 2, CobolDec.MulAtScale(P, 1, 2, 0, 1, CobolRounding.Prohibited, checkedTransfer));
+        }
     }
 
     [Fact]
@@ -116,9 +122,10 @@ public sealed class WideTransferKernelTests
     {
         // CobolNum.Divide: 12345678901234567890123456789012345678 / 4.0 (scale 30), result scale 0: the alignment is 10^30.
         Assert.Equal(Big("3086419725308641972530864197253086420"), CobolNum.Divide(A38, 0, Four, 30, 0, CobolRounding.NearestAwayFromZero));
-        Assert.Throws<CobolSizeError>(() => CobolNum.DivideOrThrow(A38, 0, Four, 30, 0, CobolRounding.Prohibited));   // the .5 is a real tail
+        Assert.True(Assert.Throws<CobolSizeError>(() => CobolNum.Divide(A38, 0, Four, 30, 0, CobolRounding.Prohibited))
+            .IsProhibitedInexact);                                                                       // the .5 is a real tail
         Assert.Equal(A38,
-            CobolNum.DivideOrThrow(A38, 0, Big("1000000000000000000000000000000"), 30, 0, CobolRounding.Prohibited));   // A / 1.0: exact
+            CobolNum.Divide(A38, 0, Big("1000000000000000000000000000000"), 30, 0, CobolRounding.Prohibited));   // A / 1.0: exact
     }
 
     [Fact]

@@ -783,11 +783,11 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// (DOC-A.1-208), and an SDIDI product keeps 34.
     /// <para>The two statement dispositions are <see cref="ToUnscaled"/>'s and <see cref="ToUnscaledChecked"/>'s, the final
     /// transfer's pair. <paramref name="checkedTransfer"/> — the statement is under ON SIZE ERROR / EC-SIZE checking —
-    /// raises ROUNDED MODE IS PROHIBITED on an inexact product (§14.7.4.3 r7, EC-SIZE-TRUNCATION) and a product the
-    /// Int128 carrier cannot hold, which no fixed-point receiver can hold either (§14.7.5 case 3, EC-SIZE-TRUNCATION);
-    /// unchecked, PROHIBITED truncates (DOC-A.1-70's no-phrase disposition, as <see cref="CobolNum.DivideOrThrow"/>'s
-    /// unchecked sibling does for a quotient) and a product past the carrier keeps the low-order digits a ≤38-digit
-    /// store can use, which the store's own capacity rules then apply to.</para></summary>
+    /// raises on a product the Int128 carrier cannot hold, which no fixed-point receiver can hold either (§14.7.5 case 3,
+    /// EC-SIZE-TRUNCATION); unchecked, such a product keeps the low-order digits a ≤38-digit store can use, which the
+    /// store's own capacity rules then apply to. ROUNDED MODE IS PROHIBITED on an inexact product raises
+    /// <see cref="CobolSizeError.ProhibitedInexact"/> in BOTH forms (§14.7.4.3 r7, kb/Work PB3990), as
+    /// <see cref="CobolNum.Divide"/> does for a quotient.</para></summary>
     public static Int128 MulAtScale(Int128 a, int aScale, Int128 b, int bScale, int resultScale, CobolRounding mode,
                                     bool checkedTransfer)
     {
@@ -819,7 +819,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
                 if (hi == 0 && lo == 0) { roundDigit = 0; break; }   // only zero digits remain: the tail adds nothing
                 (hi, lo, roundDigit) = DivRem10_256(hi, lo);
             }
-            if ((roundDigit != 0 || sticky) && (checkedTransfer || mode != CobolRounding.Prohibited))
+            if (roundDigit != 0 || sticky)
             {
                 // ONE rounding table (RoundFromRemainder), asked with the quotient's parity alone — the one fact of the
                 // quotient NEAREST-EVEN reads: the round digit over 10 is the fraction dropped, `sticky` says the exact
@@ -871,9 +871,8 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         if (hi >= den) throw QuotientOverflow();             // the quotient would be 2^128 or more
         var (q, rem) = DivRem256(hi, lo, den);
         // The rounding and the landing in Int128 are CobolNum.LandQuotient's: on MAGNITUDES, so a divisor of exactly
-        // Int128.MinValue (magnitude 2^127, kb/Work PB2641's family) is a divisor like any other, and the PROHIBITED
-        // arm of the UNCHECKED landing truncates (DOC-A.1-70, kb/Work PB1196; CobolNum.DivideOrThrow asks
-        // QuotientHasRemainder and raises for a checked statement).
+        // Int128.MinValue (magnitude 2^127, kb/Work PB2641's family) is a divisor like any other, and PROHIBITED with a
+        // nonzero remainder raises from its one rounding decision (§14.7.4.3 r7, kb/Work PB3990).
         return CobolNum.LandQuotient(q, rem, den, negative, mode);
     }
 
@@ -883,8 +882,8 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         + "(ISO §14.7.5 case 5 — the implementor-defined intermediate range is checked, A.1 item 179: EC-SIZE-OVERFLOW)",
         "EC-SIZE-OVERFLOW");
 
-    /// <summary>Does <c>a × 10^exp / b</c> leave a remainder — the exact test <see cref="CobolNum.DivideOrThrow"/>'s
-    /// PROHIBITED check needs when the aligned dividend does not fit <c>Int128</c>.</summary>
+    /// <summary>Does <c>a × 10^exp / b</c> leave a remainder — the exact test <see cref="CobolNum.Divide"/>'s PROHIBITED
+    /// check needs when the aligned dividend does not fit <c>Int128</c> and the quotient is formed on the SDIDI.</summary>
     public static bool QuotientHasRemainder(Int128 a, Int128 b, int exp)
     {
         // a × 10^exp mod |b|, one decimal digit at a time: the running remainder stays below |b| ≤ 2^127, so each step's
@@ -1337,9 +1336,8 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         int sign = q < 0 || rem < 0 ? -1 : 1;
         return mode switch
         {
-            // §14.7.4.3 r7 — the level-3 name is EC-SIZE-TRUNCATION (PB74's sweep: the default name latched OVERFLOW).
-            CobolRounding.Prohibited => throw new CobolSizeError("ROUNDED MODE IS PROHIBITED on an inexact transfer "
-                + "(ISO §14.7.4.3 r7 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION"),
+            // §14.7.4.3 r7 — the one raise, EC-SIZE-TRUNCATION (PB74's sweep: the default name latched OVERFLOW).
+            CobolRounding.Prohibited => throw CobolSizeError.ProhibitedInexact(),
             CobolRounding.Truncation => q,
             CobolRounding.AwayFromZero => q + sign,
             CobolRounding.TowardGreater => sign > 0 ? q + 1 : q,
