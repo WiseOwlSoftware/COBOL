@@ -34,12 +34,17 @@
       *>     SM * SM - both held, both true.
       *> S7  A range object reads the subject twice (GR4 a) 5.): A * B * C is NOT in
       *>     0 THRU A * B * C - 1 and IS in A * B * C THRU A * B * C + 1.
-      *> S8  BIG * BIG * BIG is 45 digits, past the 38-digit scaled carrier a held item
-      *>     can have: the expression is evaluated again at each WHEN (it is a
-      *>     function-free expression of data items, so the value cannot differ), and
-      *>     WHEN BIG * BIG * BIG is true.
+      *> S8  BIG * BIG * ONE9 has an UPPER BOUND of 39 digits (15 + 15 + 9), past the 38-digit
+      *>     scaled carrier, though its value (ONE9 = 1) is the 30-digit BIG * BIG.  The bound
+      *>     is not the value, so the hold keeps the carrier's 38 digits and holds it whole:
+      *>     WHEN 1 is false, WHEN BIG * BIG * ONE9 is true.
       *> S9  A NEGATIVE control: A * B * C is not A * B * C - 1 or + 1, so the last
       *>     WHEN OTHER is taken - an exact hold does not make unequal values equal.
+      *> S10 SM * SM * BIG * BIG has 24 fraction digits: BIG squared is
+      *>     999999999999998000000000000001, times 1E-24 is 999999.999999998000000000000001.
+      *>     The fraction is exact (scales add), so the hold keeps all 24 digits and takes
+      *>     the carrier's remaining positions as integer digits: WHEN 999999.999999998 is
+      *>     false, the same expression true.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3974EV.
        DATA DIVISION.
@@ -50,6 +55,7 @@
        01 BIG  PIC 9(15) VALUE 999999999999999.
        01 N1   PIC S9(15) VALUE -999999999999999.
        01 SM   PIC V9(12) VALUE 0.000000000001.
+       01 ONE9 PIC 9(9) VALUE 1.
        PROCEDURE DIVISION.
        MAIN-PARA.
            EVALUATE A * B * C
@@ -108,10 +114,10 @@
               WHEN OTHER
                  DISPLAY "S7=OTHER"
            END-EVALUATE
-           EVALUATE BIG * BIG * BIG
+           EVALUATE BIG * BIG * ONE9
               WHEN 1
                  DISPLAY "S8=WHEN-1"
-              WHEN BIG * BIG * BIG
+              WHEN BIG * BIG * ONE9
                  DISPLAY "S8=EXACT"
               WHEN OTHER
                  DISPLAY "S8=OTHER"
@@ -123,5 +129,13 @@
                  DISPLAY "S9=PLUS-1"
               WHEN OTHER
                  DISPLAY "S9=OTHER"
+           END-EVALUATE
+           EVALUATE SM * SM * BIG * BIG
+              WHEN 999999.999999998
+                 DISPLAY "S10=ROUNDED"
+              WHEN SM * SM * BIG * BIG
+                 DISPLAY "S10=EXACT"
+              WHEN OTHER
+                 DISPLAY "S10=OTHER"
            END-EVALUATE
            STOP RUN.

@@ -639,10 +639,13 @@ the rules for evaluating an arithmetic expression" and GR4 a) 6. compares that v
 generated expression interface, states the integer digits and the scale of an expression of `+`, `-`, `*` and unary minus over
 fixed-point items and literals (a sum below 10^i and 10^j is below 10^(max(i, j)+1), a product below 10^(i+j) with the scales
 added; a mathematical bound, so it restates none of the renderer's carrier rules), and the intermediate is the fixed-point
-item of exactly those digits. A value past the 38-digit scaled carrier has no intermediate item, so such an expression stays
-un-hoisted and is evaluated again at each WHEN (a function-free expression of data items yields the same value each time,
-where a held value cut to fit would compare a different one); an expression holding a quotient, a power or a function keeps
-the 21 + 17 item (the residual: a width no bound states). It is not the fixed S9(21)V9(9) (`FunctionValuePic`), the nominal returned-value item IN-ARITHMETIC-RANGE reads: that description cut `MOVE FUNCTION PI TO Q1 Q2` (PIC 9V9(15)) to 3.141592653000000 where `MOVE
+item of exactly those digits. The bound is an UPPER bound, never the value, so an extent past the 38-digit scaled carrier is
+still held (review R1-1): the expression is frozen because a later part of the statement may change an operand (GR3 "at the
+beginning of the execution", §8.4.3.2.4 GR2), and leaving it un-hoisted read the changed operand. The item keeps the
+expression's own fraction digits (a sum of scales is exact) and takes the carrier's remaining positions as integer digits, so it
+holds whole every value that fits; a value of more digits than the carrier is cut, as every fixed-point intermediate is (the
+residual, with PB3268's: a wide intermediate item). An expression holding a quotient, a power or a function keeps the 21 + 17
+item (a width no bound states). It is not the fixed S9(21)V9(9) (`FunctionValuePic`), the nominal returned-value item IN-ARITHMETIC-RANGE reads: that description cut `MOVE FUNCTION PI TO Q1 Q2` (PIC 9V9(15)) to 3.141592653000000 where `MOVE
 FUNCTION PI TO Q3` stores 3.141592653589793. A NUMERIC function's temporary is flagged
 `DataItem.FunctionValueSeparator` (the decimal separator its literal form is written with, PB2507: the materializing unit's), and `OperandText`'s field image renders a flagged item in DOC-A.1-92's literal
 form — so `MOVE temp TO b` stores in a CHARACTER receiver what `MOVE a TO b` stores (kb/Work PB1007: the
