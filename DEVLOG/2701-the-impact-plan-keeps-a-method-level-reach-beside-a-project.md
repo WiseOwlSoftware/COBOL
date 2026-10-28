@@ -1,4 +1,4 @@
-## The impact plan keeps a method-level reach beside a project-wide file, skips an unseen test file, and survives a prune race
+## Entry 2701 — 2026-10-28 12:20 PDT — The impact plan keeps a method-level reach beside a project-wide file, skips an unseen test file, and survives a prune race
 
 Three defects of the gate's impact-map planner (`scripts/spec/impacted_tests.py`, `scripts/spec/impact_store.py`,
 `scripts/gate_plan.py`), fixed together because they share the planner (kb/Work PB3806, PB3991, PB3807; cluster PB1957).
@@ -37,3 +37,4 @@ temporary file between the glob and the stat (a patched `Path.stat`), and `impac
 store whose only map vanishes (unaimed, with the cause printed).
 
 Docs: DESIGN-test-build-ci section 3.13 and the `gate_plan.py` docstring state the rule; DOC_INDEX line updated.
+
