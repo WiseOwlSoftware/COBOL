@@ -13,7 +13,10 @@ reason, so the rule was written twice and the copy in `tiers` threw information 
 plus `A.cs` gave `{M1: 1, M2: 1, M3: 1}`. Fix: `tiers` reports what the change reaches whatever the reasons say (the
 override is deleted, the plan keeps its own), and `plan_assembly` ranks tier 1 by that reach (`KeyGroup.rank`: 1 direct,
 2 widened, 3 none) before cost, in the budget loop and in the leg order. A plan with no reach to rank by (a grammar change
-alone) is unchanged: every unit has rank 3 and the order stays cheapest first. Pins: `impacted_tests --self-test` (a
+alone) is unchanged: every unit has rank 3 (a key the map does not hold included: review R1-2) and the order stays
+cheapest first. Review R1-1 found the budget loop still ended on the first group that did not fit, sound only while the
+order was by cost alone: a reached case dearer than the remaining budget left leg 1 with no tier-1 case at all. The loop
+now skips a group that does not fit and goes on, and a self-test arm pins it (as one for R1-2 does). Pins: `impacted_tests --self-test` (a
 props file beside a mapped file keeps the file's tiers; a method-level hit stays tier 1) and `gate_plan --self-test` (a
 dear reached case leads leg 1 ahead of 100 cheaper unreached ones under every_tier1).
 
