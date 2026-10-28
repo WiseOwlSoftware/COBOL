@@ -901,7 +901,16 @@ map recorded after the base serves it too: the comparison is of the two trees). 
 (the map's commit is the base), `documentation-only drift`, `nearest` (source files differ) or `none`. A change to a
 file outside `drift` is attributed by line range exactly as before. A change to a file IN `drift` is taken at the file
 level: every test that executed any method of it is tier 1 (`impacted_tests.drifted_change`), and a file new since the
-map's commit, which the map has never seen, puts every test in tier 1 with that reason printed. A test added since the
+map's commit, which the map has never seen, puts every test in tier 1 with that reason printed (a TEST-project file that
+is new since the map's commit is not that: it is no source to attribute, and its added and edited tests are tier 0a,
+`impacted_tests.reach_cs`'s first guard, kb/Work PB3806). **A reason the change cannot be attributed in part never erases
+the part it can** (kb/Work PB3991): `every_tier1` names the reasons, `gate_plan.tier_of` is the one place that puts every
+case in tier 1 for it, and `impacted_tests.tiers` keeps reporting what the change really reaches (1 direct, 2 widened,
+3 none), which the plan ranks by inside tier 1 (`KeyGroup.rank`, before cost). A branch that bumps the version
+(`Directory.Build.props`, a structural input) beside an emitter change therefore keeps the emitter change's method-level
+reach at the head of leg 1; it had lost it, and with it the 12 CCVS85 NOT-only SIZE ERROR programs the merge queue then
+found. The store tolerates the lane worker's pruning: a map or work directory that vanishes between a glob and its stat is
+skipped (`impact_store.mtime`, kb/Work PB3807). A test added since the
 map's commit is not in it and is tier 0u (§3.14.2); a reach the map under-states costs a later red, never a missed one.
 
 **Measured (2026-10-25, kb/Work PB3663).** One map, recorded at `315f9eb98`, replayed against the 44 landings that

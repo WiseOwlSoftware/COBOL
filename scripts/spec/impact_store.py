@@ -107,14 +107,32 @@ def map_file(store: Path, sha: str) -> Path:
     return store / f"{sha}{SUFFIX}"
 
 
+def mtime(p: Path) -> float | None:
+    """When `p` was last written, or None when it is gone. The store is shared with the lane worker, which prunes and
+    tidies it at any moment (kb/Work PB3807): a path a glob listed can vanish before it is stat'ed, and that is no
+    failure of the reader, so every stat of a globbed store path goes through here."""
+    try:
+        return p.stat().st_mtime
+    except OSError:
+        return None
+
+
+def stale(p: Path, now: float, limit: float) -> bool:
+    """Whether `p` was last written more than `limit` seconds before `now`; a path that has vanished is not stale (there
+    is nothing left to remove)."""
+    written = mtime(p)
+    return written is not None and now - written > limit
+
+
 def maps(store: Path) -> list[tuple[str, Path]]:
     """(commit, file) of every COMPLETE map in the store, newest recorded first. A trial map (`<sha>.partial.json.gz`)
-    and a recorder's temporary file are never one: a trial covers a filter's tests only."""
+    and a recorder's temporary file are never one: a trial covers a filter's tests only. A map pruned between the glob
+    and its stat is no map (`mtime`)."""
     out = []
     for p in store.glob(f"*{SUFFIX}") if store.is_dir() else []:
         sha = p.name[: -len(SUFFIX)]
-        if re.fullmatch(r"[0-9a-f]{40}", sha):
-            out.append((p.stat().st_mtime, sha, p))
+        if re.fullmatch(r"[0-9a-f]{40}", sha) and (written := mtime(p)) is not None:
+            out.append((written, sha, p))
     return [(sha, p) for _, sha, p in sorted(out, key=lambda t: (-t[0], t[1]))]
 
 
@@ -188,7 +206,7 @@ def prune(store: Path, repo: Path, wanted: Iterable[str], keep_newest: int = KEE
             keep.add(c.sha)
     out = Pruned([], [])
     doomed = [path for sha, path in held if sha not in keep]
-    doomed += [p for p in store.glob(f"*{SUFFIX}*{TMP_MARK}") if now - p.stat().st_mtime > TMP_STALE_S] if store.is_dir() else []
+    doomed += [p for p in store.glob(f"*{SUFFIX}*{TMP_MARK}") if stale(p, now, TMP_STALE_S)] if store.is_dir() else []
     for path in doomed:
         try:
             path.unlink(missing_ok=True)
@@ -214,7 +232,7 @@ def clean_work(store: Path, repo: Path, sha: str, recorded: bool, now: float | N
     removed = []
     for d in sorted(store.glob(f"{WORK_PREFIX}*")) if store.is_dir() else []:
         own = d.name.startswith(f"{WORK_PREFIX}{sha[:12]}-")
-        if (own and recorded) or (not own and now - d.stat().st_mtime > WORK_STALE_S):
+        if (own and recorded) or (not own and stale(d, now, WORK_STALE_S)):
             try:
                 shutil.rmtree(d)
             except OSError:
@@ -288,6 +306,28 @@ def self_test() -> int:
         (store / "not-a-sha.json.gz").write_bytes(b"x")
         check("a trial map and a file that is no commit's are never complete maps",
               sorted(s for s, _ in maps(store)), sorted([sha_a, sha_code, sha_more]))
+        # kb/Work PB3807: the lane worker prunes between a gate's glob and its stat. Path.stat is made to find a named
+        # file gone exactly when the glob has already listed it.
+        real_stat = Path.stat
+        vanished: set[str] = set()
+
+        def stat_unless_vanished(self, *args, **kwargs):
+            if self.name in vanished:
+                raise FileNotFoundError(2, "pruned between the glob and the stat", str(self))
+            return real_stat(self, *args, **kwargs)
+
+        Path.stat = stat_unless_vanished
+        try:
+            vanished.add(map_file(store, sha_code).name)
+            check("a map pruned between the glob and its stat is no map, and the others still serve",
+                  sorted(s for s, _ in maps(store)), sorted([sha_a, sha_more]))
+            check("... nearest goes on without it, taking the fewest-drift map left", nearest(store, sha_code, repo.path).sha, sha_a)
+            vanished.update(map_file(store, s).name for s in (sha_a, sha_more))
+            check("... a store whose every map vanished serves nobody, and nearest raises nothing",
+                  (maps(store), nearest(store, sha_more, repo.path)), ([], None))
+            vanished.clear()
+        finally:
+            Path.stat = real_stat
         put("f" * 40, 400)
         check("a map of a commit git does not hold serves nobody", nearest(store, sha_more, repo.path).sha, sha_more)
 
@@ -327,6 +367,22 @@ def self_test() -> int:
               (sorted(gone), young.exists(), failed.exists()), (sorted([mine.name, dead.name]), True, True))
         gone = clean_work(store, repo.path, sha_code, recorded=False)
         check("tidy keeps the failed recording's work directory for its diagnosis", (gone, failed.exists()), ([], True))
+        # kb/Work PB3807: a work directory or a temporary file the worker removed between the glob and the stat
+        Path.stat = stat_unless_vanished
+        try:
+            vanished.update((young.name, stale_tmp.name))
+            os.utime(young, (time.time() - 2 * WORK_STALE_S,) * 2)
+            check("tidy skips a work directory that vanished between the glob and the stat",
+                  (clean_work(store, repo.path, sha_code, recorded=False), young.exists()), ([], True))
+            stale_tmp.write_bytes(b"x")
+            os.utime(stale_tmp, (time.time() - 2 * TMP_STALE_S,) * 2)
+            check("prune skips a temporary file that vanished between the glob and the stat",
+                  (prune(store, repo.path, [sha_a], keep_newest=1), stale_tmp.exists()), (Pruned([], []), True))
+        finally:
+            Path.stat = real_stat
+            vanished.clear()
+        check("a path that is not there has no mtime and is never stale",
+              (mtime(store / "absent"), stale(store / "absent", time.time(), 0.0)), (None, False))
     finally:
         remove_tree(tmp)
     print("impact_store self-test: all checks OK" if not fails else f"⛔ {len(fails)} FAILURE(S)")
