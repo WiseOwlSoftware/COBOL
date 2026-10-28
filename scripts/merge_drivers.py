@@ -4,7 +4,8 @@
 
     python scripts/merge_drivers.py merge <ref> [--message M] [--keep] [--repo DIR]   merge <ref> with the drivers, settle the ABI pin
     python scripts/merge_drivers.py driver <name> <base> <ours> <theirs> [<path>]   what git runs per conflicting file
-    python scripts/merge_drivers.py --check        # .gitattributes and DRIVERS agree, every pattern names a tracked file
+    python scripts/merge_drivers.py --check        # .gitattributes and DRIVERS agree, every pattern names a tracked file, and
+                                                   # a branch leaves a NEW driver's files as origin/main has them (PB3825)
     python scripts/merge_drivers.py --conflicts <logs dir>   # which files the landing logs stopped on, driver-covered or not
     python scripts/merge_drivers.py --hunks <file>...        # replay history's merges: were a file's conflicts insertions or revisions
     python scripts/merge_drivers.py --self-test
@@ -62,6 +63,11 @@ again before proposing a prose driver; a file whose conflicts turn out to be ins
 A file a driver declines (a real conflict at its level) falls back to git's own line merge of the three files: where that
 merges cleanly, as it would without a driver, the file merges; else the file the finisher opens carries the usual markers.
 
+A NEW DRIVER LANDS ALONE (kb/Work PB3727, PB3825; DESIGN-orchestrator-loop.md section 16.9): until the branch that adds a driver
+lands, its landing merges main in through MAIN's registry, which has no such driver, so the files the driver governs merge
+by git's line merge. `--check` therefore refuses a branch that changes a file a DRIVERS pattern governs while origin/main's
+`.gitattributes` does not yet give that pattern that driver, unless the file is main's bytes (`new_driver_files`).
+
 THE MERGE (`merge`): `git merge --no-commit` with the drivers, then `abi_pin.settle` when the pin says UNMEASURED, then
 the merge commit. The settle writes only the files abi_pin.OWNED names; `prune_worktrees.mechanical` (the review's
 coverage rule) accepts a merge whose tree differs from the drivers' own merge in those files and nowhere else.
@@ -97,6 +103,8 @@ Merger = Callable[[str, str, str], "str | None"]
 NL = chr(10)
 #: `merge_drivers.py merge`'s exit for a clean merge that could not be completed (1 is a conflict).
 EXIT_INCOMPLETE = 3
+#: The ref a landing merges in and `--check` reads the attributes of (new_driver_files).
+MAIN_REF = "origin/main"
 
 
 # ── the three-way rule, over keyed blocks ────────────────────────────────────────────────────────────────────────
@@ -620,6 +628,46 @@ def check(repo: pathlib.Path) -> list[str]:
     return findings
 
 
+def new_driver_files(repo: pathlib.Path, main: str = MAIN_REF) -> tuple[list[str], str | None]:
+    """A NEW DRIVER LANDS ALONE, mechanically (kb/Work PB3825; DESIGN-orchestrator-loop.md section 16.9): (findings, the
+    reason the rule could not be read). A finding is a file the branch changed that a DRIVERS pattern governs while `main`'s
+    `.gitattributes` does not yet give that pattern that driver, and whose bytes are not `main`'s.
+
+    WHY. `enqueue.py land` merges main in through MAIN's registry, so until a branch that adds a driver (or moves a pattern
+    to it) lands, git merges that driver's files by its line merge, not the driver. A branch that had also reformatted
+    those files (PB3727 sorted both public-API baselines) met every later main change to them as a conflict and bounced
+    out of the merge queue. A file left as main has it cannot conflict: git takes main's side and runs no driver.
+
+    "The branch changed" is `merge-base(HEAD, main)..HEAD`, so a main that moved since is not the branch's change, and a
+    file the branch changed back to main's bytes passes. The reason is not None when the check could not run (no `main`
+    ref in this checkout, as in CI's, or no merge base in a shallow one): the caller says so and never reads it as a pass."""
+    if git(repo, "rev-parse", "--verify", "-q", f"{main}^{{commit}}").returncode != 0:
+        return [], f"{main} is not in this checkout"
+    base = git(repo, "merge-base", "HEAD", main)
+    if base.returncode != 0 or not base.stdout.strip():
+        return [], f"HEAD and {main} have no merge base in this checkout"
+    shown = git(repo, "show", f"{main}:.gitattributes")
+    assigned = attribute_drivers(shown.stdout if shown.returncode == 0 else "")
+    new = [(p, d.name) for d in DRIVERS for p in d.patterns if assigned.get(p) != d.name]
+    if not new:
+        return [], None
+
+    def blob(rev: str, path: str) -> str | None:
+        r = git(repo, "rev-parse", "--verify", "-q", f"{rev}:{path}")
+        return r.stdout.strip() if r.returncode == 0 else None
+    findings = []
+    changed = git(repo, "diff", "--name-only", "-z", "--no-renames", base.stdout.strip(), "HEAD").stdout.split(chr(0))
+    for path in filter(None, changed):
+        for pattern, name in new:
+            if pattern_matches(path, pattern) and blob("HEAD", path) != blob(main, path):
+                findings.append(
+                    f"{path}: the driver {name} governs it (pattern {pattern}) but {main}'s .gitattributes says "
+                    f"{assigned.get(pattern)!r} for that pattern, so the landing merges main in without the driver: a new "
+                    f"driver lands alone, leave the file as main has it (`git checkout {main} -- {path}`)")
+                break
+    return findings, None
+
+
 def covered_by_driver(path: str) -> bool:
     """Whether a driver merges `path` (its pattern names it as `.gitattributes` does, pattern_matches)."""
     return any(pattern_matches(path, p) for d in DRIVERS for p in d.patterns)
@@ -994,6 +1042,40 @@ def self_test() -> int:
                # path that only ENDS in a driver's pattern is not covered (PurePosixPath.match matched from the right)
                and not covered_by_driver("x/kb/Work/PB1.md") and not covered_by_driver("x/src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin")
                and not covered_by_driver("kb/Work/sub/PB1.md") and covered_by_driver("kb/Work/PB1.md"))
+        # kb/Work PB3825: a new driver lands alone. `main` here stands for origin/main (the function's `main` argument).
+        api = "src/a/PublicAPI.Unshipped.txt"
+        api_main = f"#nullable enable{NL}b{NL}a{NL}"
+        nd = ScratchRepo.init(root / "new-driver")
+        nd.commit("main", {".gitattributes": f"src/**/PublicAPI.*.txt merge=union{NL}conformance-suite/wiseowl/diagnostics.json merge=cobol-keyed-object{NL}",
+                           api: api_main, "conformance-suite/wiseowl/diagnostics.json": f"{{{NL}}}{NL}", "other.txt": "o"})
+        nd.git("switch", "-q", "-c", "topic")
+        nd.commit("topic: the new driver, and the baseline sorted too", {
+            ".gitattributes": f"src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi{NL}conformance-suite/wiseowl/diagnostics.json merge=cobol-keyed-object{NL}",
+            api: f"#nullable enable{NL}a{NL}b{NL}"})
+        found, why = new_driver_files(nd.path, "main")
+        expect("new driver: a branch that gives a pattern a driver main's attributes do not yet give it AND changes a file "
+               "the pattern governs is refused, naming the file, the driver and the way out (the PB3727 bounce)",
+               why is None and len(found) == 1 and found[0].startswith(f"{api}: ") and "cobol-keyed-publicapi" in found[0]
+               and "'union'" in found[0] and "a new driver lands alone" in found[0] and f"git checkout main -- {api}" in found[0],
+               f"{found} {why}")
+        nd.commit("topic: the baseline back to main's bytes", {api: api_main})
+        expect("new driver: the same file back at main's bytes passes (the file is the one main has, so git takes main's side "
+               "and runs no driver), though the branch still adds the driver",
+               new_driver_files(nd.path, "main") == ([], None))
+        nd.commit("topic: a file whose driver main already assigns, and a file no driver governs",
+                  {"conformance-suite/wiseowl/diagnostics.json": f"{{{NL} \"t\": 1{NL}}}{NL}", "other.txt": "changed"})
+        expect("new driver: a changed file whose driver main's attributes already assign, and a file no pattern governs, "
+               "are no finding",
+               new_driver_files(nd.path, "main") == ([], None))
+        nd.git("switch", "-q", "main")
+        nd.commit("main moves on: its own change to the baseline", {api: f"#nullable enable{NL}b{NL}a{NL}c{NL}"})
+        nd.git("switch", "-q", "topic")
+        expect("new driver: a main that moved since the branch was cut is not the branch's change (the diff starts at the "
+               "merge base): the baseline the branch left alone but main changed is no finding",
+               new_driver_files(nd.path, "main") == ([], None))
+        expect("new driver: where the checkout has no such ref (CI's has no origin/main) the answer is a REASON, never a "
+               "silent pass",
+               new_driver_files(nd.path, "origin/main")[0] == [] and "origin/main is not in this checkout" in (new_driver_files(nd.path, "origin/main")[1] or ""))
         expect("check: the registry and this repository's .gitattributes agree",
                not check(HERE.parent), "; ".join(check(HERE.parent)))
         bad = root / "bad"
@@ -1048,8 +1130,12 @@ def main() -> int:
         return 0
     if a.check:
         findings = check(HERE.parent)
+        landing, unread = new_driver_files(HERE.parent)
+        findings += landing
         for f in findings:
             print(f"  FINDING  {f}")
+        if unread:
+            print(f"  NOTE  'a new driver lands alone' was NOT CHECKED: {unread} (fetch origin, or run where main is present)")
         print(f"=== MERGE DRIVERS: {'RED' if findings else 'GREEN'} ===")
         return 1 if findings else 0
     if a.cmd == "driver":
