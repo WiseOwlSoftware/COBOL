@@ -166,7 +166,11 @@ their one C# spelling, `RepositoryAttributeRenderer.CSharp`; the emitted C# is b
 snapshots and the OO probe's `oo.g.cs` compared). PB2100 flips to `landed` with `closes_rows: []` (its reason: slice 4 closes
 no inventory row; the §12.3.8 rows are slices 7 and 8's), design section 21 marks item 4 LANDED, and the five R3 waves that
 waited on PB2100 for a file of the in-flight set (PB2290, PB2319: `PB2103`; PB2398, PB2406, PB2407: `PB2104`) now wait on the
-slice that changes that file next (`work.py check`).
+slice that changes that file next (`work.py check`). The self-review (silent-failure lens) added one refusal: a class record
+that names no factory type, or an interface record that names one, is `Malformed` rather than read as a class without factory
+methods (`RepositoryReaderTests.AClassRecordTheRendererCannotHaveWritten_IsMalformed`, with the missing factory type, the
+factory method that does not say so and the formal on a CLR method without `[CobolMethod]`). Gate: run 000002-20261028T030809Z
+at c24278e25, `LEG 1 ONLY (batched gating, PB2515): GREEN`, Linux half GREEN; the hardening commit re-gated after it.
 
 **Self-review.** Architecture: one writer of attribute text, one reader of the index, one definition of the row encoding;
 no C# text in a bound node. Code: the cap and the escapes are tested at their edges; `Open(Stream)` catches only the

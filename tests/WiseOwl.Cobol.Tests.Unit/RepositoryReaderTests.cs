@@ -233,6 +233,25 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         Assert.Equal(RepositoryReadFailure.OtherSchemaVersion, Read(otherSchema + unit("A", "")).Failure);
     }
 
+    /// <summary>§15.3 for the OO records: a class whose unit names no factory type, a factory type the module does not hold, a
+    /// method on the factory type that does not say it is a factory method, and a formal on a CLR method that carries no
+    /// <see cref="CobolMethodAttribute"/> are each malformed.</summary>
+    [Theory]
+    [InlineData("", "public static class C { }", "names no factory type")]
+    [InlineData(", FactoryType = \"F\"", "public static class C { }", "not in the module")]
+    [InlineData(", FactoryType = \"F\"", "public static class C { } public static class F { [@M(\"N\", \"N\")] public static void N() { } }", "a factory method")]
+    [InlineData(", FactoryType = \"F\"", "public static class C { public static void N([@F(0, \"E\")][@D(0, -1, Level = 1)] object e) { } } public static class F { }", "no [CobolMethod]")]
+    public void AClassRecordTheRendererCannotHaveWritten_IsMalformed(string unitArguments, string types, string detail)
+    {
+        string source = RepositoryAttributeRenderer.ModuleRecord("R", [new RepositoryUnitRow(RepositoryUnitKind.Class, "C", "C")], 2023, hasSignatures: true) + "\n"
+            + "[" + A("CobolUnit") + "(global::WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Class, \"C\", \"C\", EntryConvention = \"COBOL\"" + unitArguments + ")] "
+            + types.Replace("@M", A("CobolMethod"), StringComparison.Ordinal).Replace("@F", A("CobolFormal"), StringComparison.Ordinal)
+                .Replace("@D", A("CobolDescription"), StringComparison.Ordinal);
+        var outcome = Read(source);
+        Assert.Equal(RepositoryReadFailure.Malformed, outcome.Failure);
+        Assert.Contains(detail, outcome.Detail, StringComparison.Ordinal);
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────────────────────────────────────────
 
     private const string Kind = "global::WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Program";

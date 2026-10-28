@@ -133,7 +133,7 @@ internal static class RepositoryReader
                     prototypeEntries.Where(e => e.Prototype == p.Index && e.Formal == f.Formal.Position).Select(e => e.Entry).ToList()))),
                 prototypeEntries.Where(e => e.Prototype == p.Index && e.Formal == CobolPrototypeDescriptionAttribute.ReturningItem)
                     .Select(e => e.Entry).ToList() is { Count: > 0 } r ? Tree(r) : null))),
-            Class: oo ? Class(md, type, unit, properties) : null);
+            Class: oo ? Class(md, type, kind, unit, properties) : null);
         var orphan = prototypeFormals.Select(f => f.Prototype).Concat(prototypeEntries.Select(e => e.Prototype))
             .FirstOrDefault(i => i < 0 || i >= record.ReferencedPrototypes.Count, -1);
         if (orphan != -1 || prototypeEntries.Any(e => e.Formal != CobolPrototypeDescriptionAttribute.ReturningItem
@@ -143,12 +143,15 @@ internal static class RepositoryReader
     }
 
     /// <summary>A class's or an interface's own facts (§6.1 <see cref="ClassRecord"/>): the unit's, then the methods and the
-    /// properties of its type and, for a class, of the factory type the unit names.</summary>
-    private static ClassRecord Class(MetadataReader md, TypeDefinition type, Fields unit, List<Fields> properties)
+    /// properties of its type and, for a class, of the factory type the unit names. Every class has a factory (its own CLR
+    /// type, design §6.2 "Anchoring") and no interface has one, so a record that says otherwise is malformed.</summary>
+    private static ClassRecord Class(MetadataReader md, TypeDefinition type, RepositoryUnitKind kind, Fields unit, List<Fields> properties)
     {
         var methods = Methods(md, type, factory: false);
         var propertyRecords = properties.Select(p => Property(p, isFactory: false)).ToList();
         string? factoryType = unit.Text(nameof(CobolUnitAttribute.FactoryType));
+        if ((kind is RepositoryUnitKind.Class) != (factoryType is not null))
+            throw new MalformedEntry($"the {kind} '{unit.Fixed<string>(1)}' {(factoryType is null ? "names no factory type" : "names a factory type")}");
         if (factoryType is not null)
         {
             string ns = md.GetString(type.Namespace);
