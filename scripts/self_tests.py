@@ -46,7 +46,11 @@ the live coordination state (`E:\\COBOL-coord`: the loop's units, leases and all
 repository-selection variables (`git rev-parse --local-env-vars`), so a self-test that builds a scratch repository
 never acts on the caller's (kb/Work PB1719), and with `GIT_CONFIG_GLOBAL` naming a private config that holds only a
 git identity, so a self-test that commits behaves the same on a developer's machine and on a CI runner with no global
-config. On Windows `bash` is Git for Windows' own (from `git --exec-path`), never System32's WSL launcher, which a
+config. On Windows each self-test's TEMP (and TMP, TMPDIR) is a junction to a directory of the run's scratch
+(`aliased_temp`): CI's `windows-self-tests` runner hands every process the 8.3 alias `C:\\Users\\RUNNER~1\\...` as TEMP,
+a spelling that is not the directory's canonical path, so a self-test that compares a path it built under TEMP with one
+a tool resolved is red there, and with a junction it is red here too (#714's bounce, kb/Work PB1957 row 25).
+On Windows `bash` is Git for Windows' own (from `git --exec-path`), never System32's WSL launcher, which a
 PATH lookup can find first. The public-skills submodule some of them import (`tools/claude-skills`:
 `check_practices.py`) is fetched once when absent, as CI's fleet-practices step does.
 
@@ -311,6 +315,30 @@ def private_git_config(scratch: Path) -> Path:
     return cfg
 
 
+#: The environment variables a process reads its temp directory from: Python's tempfile reads TMPDIR, TEMP, TMP;
+#: .NET's and PowerShell's GetTempPath read TMP, TEMP.
+TEMP_VARS = ("TMPDIR", "TEMP", "TMP")
+
+
+def aliased_temp(scratch: Path) -> Path | None:
+    """THE TEMP DIRECTORY EVERY SELF-TEST IS HANDED ON WINDOWS: a junction `<scratch>/temp-alias` to `<scratch>/temp`,
+    so the spelling a self-test gets is NOT its canonical path, as on CI's `windows-self-tests` runner, whose TEMP is
+    the 8.3 alias `C:\\Users\\RUNNER~1\\AppData\\Local\\Temp` (measured, merge-group run 40611089948). `Path.resolve()`
+    and `os.path.realpath` expand a junction as they expand an 8.3 name, so a self-test that compares a path it built
+    under TEMP with one a tool resolved is red on this host too, never first in CI (the CI invariant; PR #714 bounced
+    on `test_fuzz_triage.py` because this host's TEMP, `E:\\Temp` on ReFS, has no 8.3 names; kb/Work PB1957 row 25).
+    None elsewhere: CI's Linux TEMP is `/tmp`, canonical, as on the Linux gate. `mklink /J` needs no privilege, unlike
+    a symbolic link; the caller removes the junction (`os.rmdir`, which never touches its target) before the scratch."""
+    if os.name != "nt":
+        return None
+    real, alias = scratch / "temp", scratch / "temp-alias"
+    real.mkdir()
+    r = subprocess.run(["cmd", "/c", "mklink", "/J", str(alias), str(real)], capture_output=True, text=True)
+    if r.returncode != 0:
+        raise OSError(f"could not make the self-tests' temp junction {alias}: {(r.stdout + r.stderr).strip()}")
+    return alias
+
+
 @dataclass(frozen=True)
 class HostCpu:
     """THE HOST'S PROCESSOR TIMES AT ONE MOMENT (kb/Work PB3585): the ticks its processors spent idle and in all, from
@@ -504,17 +532,21 @@ class Runner:
             results.append(r)
             self._report(r)
         scratch = Path(tempfile.mkdtemp(prefix="self-tests-"))
+        temp = None
         try:
             git_config = private_git_config(scratch)
             tracer = inputs.install_tracer(scratch / "tracer")
+            temp = aliased_temp(scratch)
             workers = max(1, min(len(todo) or 1, self.budget.cap))  # a thread per place, so no place waits idle
             with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
-                futures = [pool.submit(self.run_one, t, scratch, git_config, tracer, why[t.path]) for t in todo]
+                futures = [pool.submit(self.run_one, t, scratch, git_config, tracer, why[t.path], temp) for t in todo]
                 for f in concurrent.futures.as_completed(futures):
                     r = f.result()
                     results.append(r)
                     self._report(r)
         finally:
+            if temp is not None:
+                os.rmdir(temp)  # the junction alone, never its target, before the scratch goes
             shutil.rmtree(scratch, ignore_errors=True)
         return sorted(results, key=lambda r: r.test.path)
 
@@ -529,12 +561,15 @@ class Runner:
             for line in r.output.rstrip().splitlines():
                 self.say(f"    {line}")
 
-    def run_one(self, test: SelfTest, scratch: Path, git_config: Path, tracer: Path, why: str = "") -> Result:
+    def run_one(self, test: SelfTest, scratch: Path, git_config: Path, tracer: Path, why: str = "",
+                temp: Path | None = None) -> Result:
         coord = Path(tempfile.mkdtemp(prefix="coord-", dir=scratch))
         trace = Path(tempfile.mkdtemp(prefix="trace-", dir=scratch))
         env = scrubbed_env()
         env.update(COBOL_COORD_DIR=str(coord), GIT_CONFIG_GLOBAL=str(git_config), PYTHONIOENCODING="utf-8",
                    PYTHONUTF8="1")
+        if temp is not None:  # CI's Windows runner's TEMP is an alias of its directory; so is this one (aliased_temp)
+            env.update({name: str(temp) for name in TEMP_VARS})
         env = inputs.traced_env(env, tracer, trace, self.repo)
         asked = time.monotonic()
         with self.budget.place(f"self-test {test.path} of {self.by}"):
@@ -679,7 +714,11 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, ValueError, subprocess.CalledProcessError) as e:  # the tree or a declared read cannot be read
         print(f"{VERDICT}NOT RUN — the inputs of the self-tests cannot be read: {e} ===")
         return 2
-    results = runner.run(phase)
+    try:
+        results = runner.run(phase)
+    except OSError as e:  # the run's scratch or its temp junction (aliased_temp) could not be made
+        print(f"{VERDICT}NOT RUN — {e} ===")
+        return 2
     rc, line = verdict(results, platform, time.monotonic() - start, None if args.built else deferred,
                        runner.budget.cap, HostCpu.describe(cpu, HostCpu.sample()))
     print(line, flush=True)
@@ -750,7 +789,9 @@ def self_test() -> int:
         root = Path(d)
         (root / "scripts").mkdir()
         (root / "scripts" / "test_green.py").write_text(
-            "import os, subprocess, sys\nprint('coord=' + os.environ.get('COBOL_COORD_DIR', ''))\n"
+            "import os, subprocess, sys, tempfile\nprint('coord=' + os.environ.get('COBOL_COORD_DIR', ''))\n"
+            "print('temp=' + tempfile.gettempdir())\n"
+            "print('canonical=' + os.path.realpath(tempfile.gettempdir()))\n"
             "print('user=' + subprocess.run(['git', 'config', '--global', 'user.name'], capture_output=True,"
             " text=True).stdout.strip())\n"
             "for k in ('maintenance.auto', 'gc.auto'):\n"
@@ -797,6 +838,15 @@ def self_test() -> int:
         check("arm: each self-test gets a private COBOL_COORD_DIR",
               bool(coord) and Path(coord).name.startswith("coord-") and coord != os.environ.get("COBOL_COORD_DIR"),
               True)
+        seen = dict(ln.split("=", 1) for ln in by["scripts/test_green.py"].output.splitlines()
+                    if ln.startswith(("temp=", "canonical=")))
+        if os.name == "nt":
+            check("arm: on Windows a self-test's temp directory is an alias of the run's own, as CI's 8.3 TEMP is",
+                  (Path(seen.get("temp", "")).name, Path(seen.get("canonical", "")).name,
+                   seen.get("temp") != seen.get("canonical")), ("temp-alias", "temp", True))
+        else:
+            check("arm: elsewhere a self-test keeps the host's temp directory, as CI's Linux runner does",
+                  seen.get("temp"), tempfile.gettempdir())
         check("arm: each self-test commits under the private global config's identity, never the caller's",
               f"user={IDENTITY[0]}" in by["scripts/test_green.py"].output.splitlines(), True)
         check("arm: no self-test's git starts automatic maintenance behind it (NO_AUTO_MAINTENANCE)",
