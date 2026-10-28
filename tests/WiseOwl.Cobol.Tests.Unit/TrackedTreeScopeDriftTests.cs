@@ -105,125 +105,110 @@ public sealed class TrackedTreeScopeDriftTests
             + "Except: [...], Kinds: [...])` with string literals only, and pass that field:\n  " + string.Join("\n  ", offenders));
     }
 
-    /// <summary>A call that lists a directory. BUILT, so this file's own scan and planted sources do not spell one.</summary>
-    private static readonly Regex Listing = new(
-        @"\.(?:Enumerate|Get)(?:Files|Directories|FileSystemEntries)\s*\(", RegexOptions.Compiled);
+    /// <summary>The directories under <c>tests/</c> that hold a project, by name: the COMMITTED <c>*.csproj</c> files, read
+    /// through the one reader, name them. A test host's <c>bin/</c> and <c>obj/</c> lie under <c>tests/&lt;project&gt;/</c>.</summary>
+    private static readonly TreeScope TestProjects = new(Under: ["tests/"], Kinds: [".csproj"]);
 
-    /// <summary>The two ways a listing recurses. BUILT, for the same reason.</summary>
-    private static readonly string[] Recursion = ["SearchOption" + ".AllDirectories", "Recurse" + "Subdirectories"];
+    /// <summary>The names of the directories directly under <c>tests/</c> that hold a project.</summary>
+    private static IReadOnlySet<string> ProjectDirectories() =>
+        TrackedTree.Files(TestProjects).Select(p => p.Split('/')).Where(s => s.Length == 3).Select(s => s[1])
+            .ToHashSet(StringComparer.Ordinal);
 
-    /// <summary>The text of a call's arguments: from just past its open parenthesis to the matching close, over nested
-    /// parentheses and plain string literals.</summary>
-    private static string Arguments(string source, int start)
-    {
-        int depth = 1, i = start;
-        for (; i < source.Length && depth > 0; i++)
-        {
-            switch (source[i])
-            {
-                case '(': depth++; break;
-                case ')': depth--; break;
-                case '"':
-                    for (i++; i < source.Length && source[i] != '"'; i++)
-                        if (source[i] == '\\') i++;
-                    break;
-            }
-        }
-        return source[start..Math.Max(start, i - 1)];
-    }
-
-    /// <summary>The first argument of a call, read from its <paramref name="arguments"/> text.</summary>
-    private static string FirstArgument(string arguments)
-    {
-        int depth = 0;
-        for (int i = 0; i < arguments.Length; i++)
-        {
-            if (arguments[i] is '(' or '[') depth++;
-            else if (arguments[i] is ')' or ']') depth--;
-            else if (arguments[i] == ',' && depth == 0) return arguments[..i].Trim();
-        }
-        return arguments.Trim();
-    }
-
-    /// <summary>Whether a listing's root names <c>tests/</c> or the repository root, the directories a test host's
-    /// working directory (<c>tests/&lt;project&gt;/bin/&lt;configuration&gt;/&lt;framework&gt;</c>) lies under.</summary>
-    private static bool NamesTheTestsTree(string root)
-    {
-        string r = string.Concat(root.Where(c => !char.IsWhiteSpace(c)));
-        return r.Contains("TestRepo.Tests(", StringComparison.Ordinal)
-               || r == "TestRepo.Root"
-               || r.StartsWith("TestRepo.At(\"tests\"", StringComparison.Ordinal)
-               || r.StartsWith("Path.Combine(TestRepo.Root,\"tests\"", StringComparison.Ordinal);
-    }
-
-    /// <summary>The recursive listings of <c>tests/</c> or the repository root in one test source, as messages. Such a walk
-    /// enters every running test host's <c>bin/</c> and <c>obj/</c>, where a test's own file I/O makes and removes
-    /// directories while the walk runs (kb/Work PB3814: a delete-pending sidecar-lock directory answered the walk with
-    /// access denied).</summary>
-    internal static IReadOnlyList<string> TestsTreeWalks(string path, string source)
-    {
-        var found = new List<string>();
-        foreach (Match m in Listing.Matches(source))
-        {
-            string arguments = Arguments(source, m.Index + m.Length);
-            if (!Recursion.Any(r => arguments.Contains(r, StringComparison.Ordinal))) continue;
-            string root = FirstArgument(arguments);
-            if (NamesTheTestsTree(root))
-                found.Add($"{path}:{source.AsSpan(0, m.Index).Count('\n') + 1}: lists {root} recursively from the file system");
-        }
-        return found;
-    }
-
-    /// <summary>⛔ NO TEST WALKS <c>tests/</c> FROM THE FILE SYSTEM (kb/Work PB3814). A sweep of the test sources reads the
-    /// COMMITTED tree through a declared <see cref="TreeScope"/> (<see cref="TrackedTree.Files"/>): a recursive listing of
-    /// <c>tests/</c> or of the repository root descends into every running test host's <c>bin/</c> and <c>obj/</c>, where
-    /// another test's file I/O creates and deletes directories while the walk runs.</summary>
+    /// <summary>⛔ NO TEST WALKS A DIRECTORY THAT HOLDS A TEST HOST'S BUILD OUTPUT FROM THE FILE SYSTEM (kb/Work PB3814, review
+    /// R1-1). A sweep of the test sources reads the COMMITTED tree through a declared <see cref="TreeScope"/>
+    /// (<see cref="TrackedTree.Files"/>): a recursive listing of the repository root, of <c>tests/</c> or of a test project's
+    /// directory descends into every running test host's <c>bin/</c> and <c>obj/</c>, where another test's file I/O creates
+    /// and deletes directories while the walk runs. The root is followed through the locals, fields, properties, helper
+    /// methods, lambda parameters, <c>foreach</c> variables, call arguments and theory rows of its source
+    /// (<see cref="TestsTreeWalks"/>), not matched as spelled in the call.</summary>
     [Fact]
     public void NoTest_WalksTheTestsTreeFromTheFileSystem()
     {
+        IReadOnlySet<string> projects = ProjectDirectories();
+        Assert.True(projects.Count >= 4, $"only {projects.Count} test project(s) found under tests/ — the project scan is broken");
         var offenders = new List<string>();
-        int scanned = 0;
+        int scanned = 0, listings = 0, safe = 0, unresolved = 0;
+        var unseen = new List<string>();
         foreach (string rel in TrackedTree.Files(TestSources))
         {
             scanned++;
-            offenders.AddRange(TestsTreeWalks(rel, File.ReadAllText(TestRepo.At(rel.Split('/')))));
+            string source = File.ReadAllText(TestRepo.At(rel.Split('/')));
+            offenders.AddRange(TestsTreeWalks.Find(rel, source, projects));
+            foreach (TestsTreeWalks.Listing l in TestsTreeWalks.Scan(source, projects))
+            {
+                listings++;
+                if (l.Verdict == TestsTreeWalks.Verdict.Safe) safe++;
+                if (l.Verdict == TestsTreeWalks.Verdict.Unresolved) { unresolved++; unseen.Add($"{rel}:{l.Line}: {l.Root}"); }
+            }
         }
         Assert.True(scanned >= 100, $"only {scanned} test source(s) scanned — the scan of the sources is broken");
+        Assert.True(listings >= 100, $"only {listings} recursive listing(s) found in the test sources — the listing scan is broken");
         Assert.True(offenders.Count == 0,
-            "a test lists tests/ (or the repository root) recursively from the file system, so it walks a running test host's "
-            + "bin/ and obj/ (kb/Work PB3814). Read the committed tree: declare a TreeScope in the drift-test class and "
-            + "pass TrackedTree.Files that field:\n  " + string.Join("\n  ", offenders));
+            "a test lists the repository root, tests/ or a test project's directory recursively from the file system, so it walks a "
+            + "running test host's bin/ and obj/ (kb/Work PB3814). Read the committed tree: declare a TreeScope in the drift-test "
+            + "class and pass TrackedTree.Files that field:\n  " + string.Join("\n  ", offenders));
+        // The guard's reach: a root it cannot follow is unseen, so the share it follows is held. A root from another file
+        // (a helper class's property) or built at run time is the unfollowed remainder.
+        Assert.True(safe * 100 >= listings * 90,
+            $"the walk guard follows the root of only {safe} of {listings} recursive listings to a safe directory "
+            + $"({unresolved} unresolved) — extend TestsTreeWalks or declare a scope. Unresolved:\n  " + string.Join("\n  ", unseen));
     }
 
-    /// <summary>⭐ The walk check's failure branch, fired on each shape of the hazard, and its twins: the same listings of
-    /// <c>src/</c>, a listing of <c>tests/</c> that does not recurse, and a mention outside a listing are not offenders.</summary>
+    /// <summary>⭐ The walk check's failure branch, fired on each shape of the hazard, and its twins: a listing of a directory
+    /// that holds no build output, a listing that does not recurse, a mention outside a listing and a root the source does not
+    /// let it follow are not offenders.</summary>
     [Fact]
     public void TheWalkCheck_FindsEachShapeOfAWalkOfTheTestsTree()
     {
         string walk = "Directory" + ".Enumerate" + "Files(";
-        string all = ", \"*.cs\", " + Recursion[0] + ")";
-        string[] planted =
+        string all = ", \"*.cs\", " + TestsTreeWalks.Recursion[0] + ")";
+        IReadOnlySet<string> projects = new HashSet<string>(StringComparer.Ordinal) { "WiseOwl.Cobol.Tests.Unit" };
+        string Wrap(string members, string body) => "class PlantedDriftTests { " + members + " void M() { " + body + " } }";
+
+        string[] hazards =
         [
-            walk + "TestRepo.Tests()" + all,
-            walk + "TestRepo.Tests(\"WiseOwl.Cobol.Tests.Unit\")" + all,
-            walk + "TestRepo.At(\"tests\")" + all,
-            walk + "TestRepo.Root" + all,
-            walk + "Path.Combine(TestRepo.Root, \"tests\", \"x\")" + all,
-            "Directory" + ".Get" + "Files(TestRepo.Tests(a),\n   \"*.cs\", " + Recursion[0] + ")",
-            walk + "TestRepo.Tests(), \"*.cs\", new EnumerationOptions { " + Recursion[1] + " = true })",
+            Wrap("", walk + "TestRepo.Tests()" + all + ";"),
+            Wrap("", walk + "TestRepo.Tests(\"WiseOwl.Cobol.Tests.Unit\")" + all + ";"),
+            Wrap("", walk + "TestRepo.At(\"tests\")" + all + ";"),
+            Wrap("", walk + "TestRepo.Root" + all + ";"),
+            Wrap("", walk + "Path.Combine(TestRepo.Root, \"tests\")" + all + ";"),
+            Wrap("", "Directory" + ".Get" + "Files(TestRepo.Tests(a),\n   \"*.cs\", " + TestsTreeWalks.Recursion[0] + ");"),
+            Wrap("", walk + "TestRepo.Tests(), \"*.cs\", new EnumerationOptions { " + TestsTreeWalks.Recursion[1] + " = true });"),
+            // a root held in a local, in a field, in a property, assigned later, returned by a helper
+            Wrap("", "string root = TestRepo.Tests(\"WiseOwl.Cobol.Tests.Unit\"); " + walk + "root" + all + ";"),
+            Wrap("static readonly string Held = TestRepo.Root;", walk + "Held" + all + ";"),
+            Wrap("static string Dir => TestRepo.Tests(\"WiseOwl.Cobol.Tests.Unit\");", walk + "Dir" + all + ";"),
+            Wrap("", "string root; root = TestRepo.Tests(); " + walk + "root" + all + ";"),
+            Wrap("static string Home() => Path.GetFullPath(TestRepo.Tests());", walk + "Home()" + all + ";"),
+            // a root that is a lambda parameter, a foreach variable, a method parameter or a theory row
+            Wrap("", "new[] { TestRepo.Src(), TestRepo.Tests() }.SelectMany(r => " + walk + "r" + all + ");"),
+            Wrap("", "foreach (string r in new[] { TestRepo.Docs(), TestRepo.Root }) " + walk + "r" + all + ";"),
+            Wrap("static void Sweep(string r) { " + walk + "r" + all + "; }", "Sweep(TestRepo.Tests());"),
+            Wrap("[Theory, InlineData(\"tests\")] void T(string d) { " + walk + "TestRepo.At(d)" + all + "; }", ""),
+            // the parent of a file under a project, an options variable, an instance listing
+            Wrap("", walk + "Path.GetDirectoryName(TestRepo.Tests(\"WiseOwl.Cobol.Tests.Unit\", \"A.cs\"))" + all + ";"),
+            Wrap("", "var o = new EnumerationOptions { " + TestsTreeWalks.Recursion[1] + " = true }; Directory" + ".Get" + "Files(TestRepo.Root, \"*\", o);"),
+            Wrap("", "new DirectoryInfo(TestRepo.Tests()).Enumerate" + "Files(\"*.cs\", " + TestsTreeWalks.Recursion[0] + ");"),
         ];
-        foreach (string source in planted)
-            Assert.Single(TestsTreeWalks("Planted.cs", source));
+        foreach (string source in hazards)
+            Assert.Single(TestsTreeWalks.Find("Planted.cs", source, projects));
 
         string[] clean =
         [
-            walk + "TestRepo.Src()" + all,
-            walk + "Path.Combine(TestRepo.Root, \"src\", \"x\")" + all,
-            walk + "TestRepo.Tests(), \"*.cs\")",
-            "var t = TestRepo.Tests(); // " + Recursion[0],
+            Wrap("", walk + "TestRepo.Src()" + all + ";"),
+            Wrap("", walk + "Path.Combine(TestRepo.Root, \"src\", \"x\")" + all + ";"),
+            Wrap("", walk + "TestRepo.Nist()" + all + ";"), // data only: no project, no build output
+            Wrap("", walk + "TestRepo.Tests(\"WiseOwl.Cobol.Tests.Unit\", \"Store\")" + all + ";"), // below a project's directory, not its bin
+            Wrap("", walk + "TestRepo.Tests(), \"*.cs\")" + ";"),
+            Wrap("", "var t = TestRepo.Tests(); // " + TestsTreeWalks.Recursion[0]),
+            Wrap("", "string root = TestRepo.Src(); " + walk + "root" + all + ";"),
         ];
         foreach (string source in clean)
-            Assert.Empty(TestsTreeWalks("Planted.cs", source));
+            Assert.Empty(TestsTreeWalks.Find("Planted.cs", source, projects));
+
+        // A root the source gives no way to follow is reported as unresolved, never as safe or as a hazard.
+        IReadOnlyList<TestsTreeWalks.Listing> unseen = TestsTreeWalks.Scan(Wrap("", walk + "Elsewhere.Dir" + all + ";"), projects);
+        Assert.Equal(TestsTreeWalks.Verdict.Unresolved, Assert.Single(unseen).Verdict);
     }
 
     /// <summary>The index reads every declared scope, and reads each exactly as the compiler builds it.</summary>

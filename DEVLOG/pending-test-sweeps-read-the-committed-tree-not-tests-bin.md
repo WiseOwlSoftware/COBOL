@@ -19,14 +19,26 @@ class for the files it reads. `UnresolvedTestRefs` narrows the `tests/` C# scope
 scope instead of a directory.
 
 **Guard.** `TrackedTreeScopeDriftTests.NoTest_WalksTheTestsTreeFromTheFileSystem` reads every committed test source and
-refuses a recursive listing (`SearchOption.AllDirectories`, `RecurseSubdirectories`) whose root is `TestRepo.Tests(..)`,
-`TestRepo.Root` or `TestRepo.At("tests"..)`; `TheWalkCheck_FindsEachShapeOfAWalkOfTheTestsTree` fires it on each shape and
-on its clean twins (the same listing of `src/`, a non-recursive listing of `tests/`, a mention outside a listing).
-`docs/rearchitecture/DESIGN-test-build-ci.md` (tier 0d) states the rule.
+refuses a recursive listing (`SearchOption.AllDirectories`, `RecurseSubdirectories`) of the repository root, of `tests/` or
+of a test project's directory (`TestsTreeWalks`, below); `TheWalkCheck_FindsEachShapeOfAWalkOfTheTestsTree` fires it on each
+shape and on its clean twins (a listing of `src/` or of a data-only directory, a non-recursive listing, a mention outside a
+listing). `docs/rearchitecture/DESIGN-test-build-ci.md` (tier 0d) states the rule.
+
+**Review round 1.** R1-1 (blocking): the first guard matched a root spelled in the call, so a root held in a local, field,
+property, lambda parameter or theory row (155 of the ~265 listings pass an identifier) went unseen. The guard is now
+`TestsTreeWalks`, a Roslyn syntax walk that follows the root through those shapes to the `TestRepo` expression it was built
+from and judges the path: the repository root, `tests/` and a directory under `tests/` that holds a project (named by the
+committed `*.csproj` files) are hazards; a data-only directory (`tests/nist`, `tests/differential`) is not. On the tree it
+sees 216 recursive listings, 209 followed to a safe directory, 7 unresolved (a root from another file), none a hazard; the
+drift test holds the followed share at 90 % so the guard cannot lose its reach unseen, and its twin fires each shape
+(local, field, property, assignment, helper return, lambda, `foreach`, method parameter, theory row, parent directory,
+options variable, `DirectoryInfo`) and the clean twins. R1-2 (lead, fixed): `SourceEncodingDriftTests` no longer skips
+`.g.cs` and `Generated/` (the population is the committed tree; the three committed `.g.cs` files have no BOM). R1-3 (lead,
+`audit_annex_a1.py` resolves a test ref over the file system) is left for the clerk.
 
 **Left alone.** The 217 other recursive listings root at `src/` (about 190, each with its own `bin/obj` filter), `docs/`,
 `scripts/`, `.github/` and `conformance-suite/`; no failure measured the `src/` ones, so they are a separate population and
-the report registers them as a lead. The guard sees a root spelled in the call, not one assigned to a variable first.
+the report registers them as a lead.
 
 `closes_rows: []`: process tooling, no inventory row.
 
