@@ -29,9 +29,13 @@ public sealed class SelfTestDiscoveryDriftTests
     private static readonly Regex ShellFlagArm = new(@"(^|\s)--self-test\)|=\s*[""']--self-test[""']", RegexOptions.Compiled);
     private static readonly Regex StandaloneName = new(@"^test_[^/]*\.(py|ps1)$", RegexOptions.Compiled);
 
-    /// <summary>The scripts that read the live tools' trees, each through <c>live_tools.ROOTS</c> and never a copy.</summary>
+    /// <summary>The scripts that read the live tools' trees, each through <c>live_tools.tracked</c> and never a copy.</summary>
     private static readonly string[] LiveTreeReaders = ["self_tests.py", "line_endings.py", "temp_names.py", "scratch_repo.py",
-        "standard_streams.py"];
+        "standard_streams.py", "gate_plan.py"];
+
+    /// <summary>A <c>git ls-files</c> argument list that holds the live trees' list (<c>ROOTS</c>, or the name a reader
+    /// imported it as): the listing <c>live_tools.tracked</c> owns, spelled by a reader.</summary>
+    private static readonly Regex OwnListing = new(@"ls-files[^\]\)]*(?<!\w)(?:live_tools\.|LIVE_)?ROOTS\b", RegexOptions.Compiled);
 
     /// <summary>
     /// The files the net reads, before <see cref="Roots"/> narrows them: every tracked script (declared, kb/Work PB3531,
@@ -62,8 +66,9 @@ public sealed class SelfTestDiscoveryDriftTests
     /// <summary>
     /// The self-test runner, the line-endings WRITERS arm and the temp-name audit each kept a copy of the live trees
     /// until kb/Work PB3176's branch review (R2-1): the harness joined two copies and not the third, so the temp-name
-    /// audit never scanned the harness the gate runs. Each reader now reads <c>live_tools.ROOTS</c> and declares no
-    /// tuple of its own.
+    /// audit never scanned the harness the gate runs. Each reader now reads the trees through <c>live_tools.tracked</c>
+    /// (kb/Work PB3821: the <c>git ls-files</c> listing itself was written seven times, each with its own suffix filter,
+    /// its own missing-file rule and its own environment) and declares no tuple of its own.
     /// </summary>
     [Fact]
     public void EveryLiveTreeReader_ReadsTheOneList()
@@ -71,11 +76,40 @@ public sealed class SelfTestDiscoveryDriftTests
         foreach (string name in LiveTreeReaders)
         {
             string text = File.ReadAllText(TestRepo.Scripts(name));
-            Assert.True(text.Contains("live_tools.ROOTS", StringComparison.Ordinal),
-                $"scripts/{name} no longer reads the live tools' trees from live_tools.ROOTS");
+            Assert.True(text.Contains("live_tools.tracked(", StringComparison.Ordinal),
+                $"scripts/{name} no longer lists the live tools' trees through live_tools.tracked");
             Assert.False(Regex.IsMatch(text, @"^\w*ROOTS\s*=\s*\(", RegexOptions.Multiline),
                 $"scripts/{name} declares its own copy of the live tools' trees: read live_tools.ROOTS instead");
         }
+    }
+
+    /// <summary>
+    /// A reader that spells the listing itself, a <c>git ls-files</c> over <c>live_tools.ROOTS</c> (or over the name it
+    /// imported them as), is the next copy: <c>live_tools.tracked</c> is the only place that lists the live trees. The
+    /// net is every tracked Python file under the live trees but <c>live_tools.py</c>, so a reader this class's list
+    /// does not name is caught too (kb/Work PB3821).
+    /// </summary>
+    [Fact]
+    public void NoLiveScript_SpellsTheLiveTreeListingItself()
+    {
+        var roots = Roots();
+        var offenders = new List<string>();
+        int read = 0;
+        foreach (string rel in TrackedTree.Files(ScriptKinds))
+        {
+            if (!rel.EndsWith(".py", StringComparison.Ordinal) || rel == "scripts/live_tools.py"
+                || !roots.Any(root => rel.StartsWith(root, StringComparison.Ordinal)))
+                continue;
+
+            read++;
+            if (OwnListing.IsMatch(File.ReadAllText(TestRepo.At(rel))))
+                offenders.Add(rel);
+        }
+
+        Assert.True(read >= 100, $"the net read only {read} live Python files: it is broken");
+        Assert.True(offenders.Count == 0,
+            "a live script lists the live trees (git ls-files over live_tools.ROOTS) itself; call live_tools.tracked(repo, "
+            + "suffixes, env), the one listing (kb/Work PB3821): " + string.Join(", ", offenders));
     }
 
     /// <summary>What the runner discovered here: each self-test's repository path and whether it runs with the flag.</summary>

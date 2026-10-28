@@ -118,7 +118,7 @@ import self_test_inputs as inputs  # this directory's: what a self-test read, an
 from gate_slot import ExclusiveLock, git_common_dir  # this directory's: the OS file lock every gate place is
 # this directory's: the one scratch-repository fixture, whose identity, maintenance settings and scrubbed environment
 # the private global config and every self-test's environment share (kb/Work PB3584)
-from scratch_repo import IDENTITY, NO_AUTO_MAINTENANCE, ScratchRepo, config_text, scrubbed_env
+from scratch_repo import IDENTITY, NO_AUTO_MAINTENANCE, ScratchRepo, config_text, git_env
 from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
@@ -249,17 +249,12 @@ def classify(rel: str, text: str) -> SelfTest | None:
                     b.group(2) if b else "")
 
 
-def tracked_scripts(repo: Path) -> list[str]:
-    out = subprocess.run(["git", "ls-files", "-z", "--", *live_tools.ROOTS], cwd=repo, check=True, capture_output=True,
-                         env=scrubbed_env()).stdout
-    return sorted(p for p in out.decode("utf-8").split("\0") if p.endswith((".py", ".sh", ".ps1")))
-
-
 def discover(repo: Path = REPO) -> list[SelfTest]:
     found = []
-    for rel in tracked_scripts(repo):
+    for rel in live_tools.tracked(repo, (".py", ".sh", ".ps1"), git_env()):
         # A tracked script that cannot be read is a discovery FAILURE (the verdict says NOT RUN), never a file quietly
-        # left out: an unreadable self-test would otherwise run nowhere while the verdict stayed GREEN.
+        # left out: an unreadable self-test would otherwise run nowhere while the verdict stayed GREEN. (A file deleted
+        # from the working tree is no script to read: `live_tools.tracked` does not list it.)
         try:
             text = (repo / rel).read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError) as e:
@@ -281,7 +276,7 @@ def ensure_submodule(repo: Path, say) -> str | None:
         return None
     say(f"self-tests: fetching the {SUBMODULE} submodule (absent in this checkout)")
     r = subprocess.run(["git", "submodule", "update", "--init", SUBMODULE], cwd=repo, capture_output=True, text=True,
-                       encoding="utf-8", errors="replace", env=scrubbed_env())
+                       encoding="utf-8", errors="replace", env=git_env())
     if r.returncode != 0 or not (repo / SUBMODULE / "skills").is_dir():
         return f"`git submodule update --init {SUBMODULE}` failed (exit {r.returncode}): {r.stderr.strip()}"
     return None
@@ -565,7 +560,7 @@ class Runner:
                 temp: Path | None = None) -> Result:
         coord = Path(tempfile.mkdtemp(prefix="coord-", dir=scratch))
         trace = Path(tempfile.mkdtemp(prefix="trace-", dir=scratch))
-        env = scrubbed_env()
+        env = git_env()
         env.update(COBOL_COORD_DIR=str(coord), GIT_CONFIG_GLOBAL=str(git_config), PYTHONIOENCODING="utf-8",
                    PYTHONUTF8="1")
         if temp is not None:  # CI's Windows runner's TEMP is an alias of its directory; so is this one (aliased_temp)
