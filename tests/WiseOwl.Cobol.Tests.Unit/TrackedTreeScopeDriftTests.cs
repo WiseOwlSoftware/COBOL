@@ -132,9 +132,9 @@ public sealed class TrackedTreeScopeDriftTests
         foreach (string rel in TrackedTree.Files(TestSources))
         {
             scanned++;
-            string source = File.ReadAllText(TestRepo.At(rel.Split('/')));
-            offenders.AddRange(TestsTreeWalks.Find(rel, source, projects));
-            foreach (TestsTreeWalks.Listing l in TestsTreeWalks.Scan(source, projects))
+            IReadOnlyList<TestsTreeWalks.Listing> found = TestsTreeWalks.Scan(File.ReadAllText(TestRepo.At(rel.Split('/'))), projects);
+            offenders.AddRange(TestsTreeWalks.Hazards(rel, found));
+            foreach (TestsTreeWalks.Listing l in found)
             {
                 listings++;
                 if (l.Verdict == TestsTreeWalks.Verdict.Safe) safe++;

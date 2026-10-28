@@ -59,6 +59,7 @@ internal static class TestsTreeWalks
     /// the names of the directories under <c>tests/</c> that hold a project.</summary>
     internal static IReadOnlyList<Listing> Scan(string source, IReadOnlySet<string> projectDirectories)
     {
+        if (!Recursion.Any(r => source.Contains(r, StringComparison.Ordinal))) return []; // no recursion is spelled, so no listing recurses
         SyntaxNode tree = CSharpSyntaxTree.ParseText(source).GetRoot();
         var resolver = new Resolver(tree);
         var found = new List<Listing>();
@@ -80,8 +81,11 @@ internal static class TestsTreeWalks
 
     /// <summary>The listings in <paramref name="source"/> a test host's build output can lie under, as messages.</summary>
     internal static IReadOnlyList<string> Find(string path, string source, IReadOnlySet<string> projectDirectories) =>
-        [.. Scan(source, projectDirectories).Where(l => l.Verdict == Verdict.Hazard)
-            .Select(l => $"{path}:{l.Line}: lists {l.Root} recursively from the file system")];
+        Hazards(path, Scan(source, projectDirectories));
+
+    /// <summary>The hazards among <paramref name="listings"/> (a <see cref="Scan"/> of <paramref name="path"/>), as messages.</summary>
+    internal static IReadOnlyList<string> Hazards(string path, IEnumerable<Listing> listings) =>
+        [.. listings.Where(l => l.Verdict == Verdict.Hazard).Select(l => $"{path}:{l.Line}: lists {l.Root} recursively from the file system")];
 
     private static string Squash(string text) => string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
@@ -118,17 +122,26 @@ internal static class TestsTreeWalks
     /// <summary>Evaluates the root expressions of one source.</summary>
     private sealed class Resolver
     {
-        private readonly SyntaxNode _tree;
         private readonly HashSet<SyntaxNode> _active = [];
         private readonly Dictionary<string, List<SyntaxNode>> _declarations = new(StringComparer.Ordinal);
 
+        // The source indexed once, by name, so a lookup never walks the tree.
+        private readonly Dictionary<string, List<ForEachStatementSyntax>> _loops = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, List<ParameterSyntax>> _parameters = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, List<InvocationExpressionSyntax>> _calls = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, List<MethodDeclarationSyntax>> _methods = new(StringComparer.Ordinal);
+
         public Resolver(SyntaxNode tree)
         {
-            _tree = tree;
             foreach (SyntaxNode n in tree.DescendantNodes())
             {
                 switch (n)
                 {
+                    case ForEachStatementSyntax f: Index(_loops, f.Identifier.ValueText, f); break;
+                    case ParameterSyntax p: Index(_parameters, p.Identifier.ValueText, p); break;
+                    case InvocationExpressionSyntax { Expression: IdentifierNameSyntax i } c: Index(_calls, i.Identifier.ValueText, c); break;
+                    case InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax m } c: Index(_calls, m.Name.Identifier.ValueText, c); break;
+                    case MethodDeclarationSyntax { ParameterList.Parameters.Count: 0 } m: Index(_methods, m.Identifier.ValueText, m); break;
                     case VariableDeclaratorSyntax { Initializer: { } init } v: Add(v.Identifier.ValueText, init.Value); break;
                     case PropertyDeclarationSyntax p:
                         if (p.ExpressionBody is { } body) Add(p.Identifier.ValueText, body.Expression);
@@ -139,10 +152,12 @@ internal static class TestsTreeWalks
             }
         }
 
-        private void Add(string name, SyntaxNode value)
+        private void Add(string name, SyntaxNode value) => Index(_declarations, name, value);
+
+        private static void Index<T>(Dictionary<string, List<T>> map, string name, T node)
         {
-            if (!_declarations.TryGetValue(name, out List<SyntaxNode>? list)) _declarations[name] = list = [];
-            list.Add(value);
+            if (!map.TryGetValue(name, out List<T>? list)) map[name] = list = [];
+            list.Add(node);
         }
 
         /// <summary>The expressions a name is initialized or assigned from, in this source.</summary>
@@ -256,18 +271,10 @@ internal static class TestsTreeWalks
             var values = new List<object>();
             foreach (SyntaxNode d in Declarations(name))
                 if (d is ExpressionSyntax x) values.AddRange(Eval(x, depth));
-            foreach (SyntaxNode n in _tree.DescendantNodes())
-            {
-                switch (n)
-                {
-                    case ForEachStatementSyntax f when f.Identifier.ValueText == name:
-                        values.AddRange(Elements(f.Expression, depth));
-                        break;
-                    case ParameterSyntax p when p.Identifier.ValueText == name:
-                        values.AddRange(Parameter(p, depth));
-                        break;
-                }
-            }
+            foreach (ForEachStatementSyntax f in _loops.GetValueOrDefault(name) ?? [])
+                values.AddRange(Elements(f.Expression, depth));
+            foreach (ParameterSyntax p in _parameters.GetValueOrDefault(name) ?? [])
+                values.AddRange(Parameter(p, depth));
             return values;
         }
 
@@ -296,17 +303,9 @@ internal static class TestsTreeWalks
                 if (attr.Name.ToString().StartsWith("InlineData", StringComparison.Ordinal)
                     && attr.ArgumentList?.Arguments is { } row && index < row.Count)
                     values.AddRange(Eval(row[index].Expression, 0));
-            foreach (InvocationExpressionSyntax call in _tree.DescendantNodes().OfType<InvocationExpressionSyntax>())
-            {
-                string? callee = call.Expression switch
-                {
-                    IdentifierNameSyntax i => i.Identifier.ValueText,
-                    MemberAccessExpressionSyntax m => m.Name.Identifier.ValueText,
-                    _ => null,
-                };
-                if (callee == method && index < call.ArgumentList.Arguments.Count)
+            foreach (InvocationExpressionSyntax call in _calls.GetValueOrDefault(method) ?? [])
+                if (index < call.ArgumentList.Arguments.Count)
                     values.AddRange(Eval(call.ArgumentList.Arguments[index].Expression, depth));
-            }
             return values;
         }
 
@@ -350,16 +349,11 @@ internal static class TestsTreeWalks
         /// <summary>The expressions a method of this name returns (its expression body, or its <c>return</c> statements).</summary>
         private IEnumerable<ExpressionSyntax> MethodBodies(string method)
         {
-            foreach (SyntaxNode n in _tree.DescendantNodes())
+            foreach (MethodDeclarationSyntax m in _methods.GetValueOrDefault(method) ?? [])
             {
-                switch (n)
-                {
-                    case MethodDeclarationSyntax { ParameterList.Parameters.Count: 0 } m when m.Identifier.ValueText == method:
-                        if (m.ExpressionBody is { } b) yield return b.Expression;
-                        foreach (ReturnStatementSyntax r in m.Body?.DescendantNodes().OfType<ReturnStatementSyntax>() ?? [])
-                            if (r.Expression is { } x) yield return x;
-                        break;
-                }
+                if (m.ExpressionBody is { } b) yield return b.Expression;
+                foreach (ReturnStatementSyntax r in m.Body?.DescendantNodes().OfType<ReturnStatementSyntax>() ?? [])
+                    if (r.Expression is { } x) yield return x;
             }
         }
     }
