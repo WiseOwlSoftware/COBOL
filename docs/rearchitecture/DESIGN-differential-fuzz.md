@@ -229,12 +229,16 @@ project and "maintained automatically as an artifact of each fuzz testing run", 
   section count from run.json, the nights without a tally from the records, every status from kb/Work.
 - **The Artifact and FUZZ-LEDGER.md stay in sync** (owner 2026-10-28: "The fuzz ledger repo file must be kept in sync with the
   artifact"; kb/Work PB4010). Both carry one LEDGER VERSION in their stamp: a digest of the content alone (the Markdown and its
-  charts drawn with an empty stamp), so it names what the page shows and not when it was drawn. The Artifact is published from
-  MAIN's FUZZ-LEDGER.md only: after a publish, `python scripts/fuzz_history.py mark-published [--page <html>]` fetches main,
-  refuses a page whose version is not the version FUZZ-LEDGER.md carries there, and records the published version in
-  `<coord>/fuzz-ledger-published.json`. `fuzz_history.py status`, printed by session-probe every session, says `current`,
-  `PUBLISH OWED` (the Artifact shows another version than main's file) or `REGENERATE OWED` (a render from the checkout's
-  history and register differs from main's file: a fuzz note's status moved, so a render lands on a branch, then the publish).
+  charts drawn with an empty stamp). Neither carries a build time, so equal content is equal bytes and a render that changes
+  nothing leaves FUZZ-LEDGER.md untouched. The Artifact is the history's `artifact` (the one FUZZ-LEDGER.md links) and is
+  published from MAIN's FUZZ-LEDGER.md only: after a publish, `python scripts/fuzz_history.py mark-published [--page <html>]`
+  fetches main, refuses a page whose version is not the version FUZZ-LEDGER.md carries there, and records the URL and version in
+  `<coord>/fuzz-ledger-published.json` (one record: the Artifact belongs to the account that published it, which is the only one
+  that can update it). `fuzz_history.py status`, printed by session-probe every session, says `current`, `PUBLISH OWED` (the
+  record shows another version than main's file, or another Artifact) or `REGENERATE OWED` (main's file carries no version, or
+  differs from a render now: a fuzz note's status moved, or the file was edited by hand; a render lands on a branch, then the
+  publish). That last check runs only in a checkout AT origin/main, since one behind main would report drift main does not have
+  (the PB2987 lesson); elsewhere the line says it is UNCHECKED.
 
 **The step.** The last step of every morning, after `file --write` and on the same branch: `python scripts/fuzz_triage.py history
 --triage <dir> --judge-commit <sha> --write`. It refuses a triage that `collect` does not pass (a problem or an undecided
@@ -257,7 +261,7 @@ after PB3490 changed the classes, so its survivor counts are that file's, not th
 run and proves the arms listed in its docstring: rescoring, slicing, the briefs (no unfilled placeholder, no night-specific
 literal, the vocabulary, dispositions and bar sections held equal to the tool's, the Workflow script's brief names held equal to
 the tool's), the verdict rules, the refute plan, and every reason `file` holds a record, the witness path, the no-op re-file and
-the write-nothing-on-refusal rule. `scripts/test_fuzz_history.py` proves the history and both pages, arm by arm as its docstring lists them: a run's numbers (and the refusal of an unreadable report), the tally, the one notes rule and the four kinds, which GnuCOBOL records count, the upsert, the HTML page and FUZZ-LEDGER.md with standalone chart files, the `history` subcommand's refusals, numbering, re-run and dry run, and the verdict colours held equal to the verdict vocabulary.
+the write-nothing-on-refusal rule. `scripts/test_fuzz_history.py` proves the history and both pages, arm by arm as its docstring lists them: a run's numbers (and the refusal of an unreadable report), the tally, the one notes rule and the four kinds, which GnuCOBOL records count, the upsert, the HTML page and FUZZ-LEDGER.md with standalone chart files, the sync of the two (one writer and one ledger version, equal content as equal bytes, `mark-published`'s refusal and record, every `status` state), the `history` subcommand's refusals (an unclassifiable note anywhere on the page writes nothing), numbering, re-run and dry run, and the verdict colours held equal to the verdict vocabulary.
 
 ## 8. Alternatives rejected
 

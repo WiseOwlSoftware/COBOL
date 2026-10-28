@@ -1054,27 +1054,22 @@ def history(t: Triage, c: Collected, work_dir: pathlib.Path, args) -> int:
     rec = fh.night_record(t.run, night, [v for _s, v in c.verdicts],
                           prior.get("defects", []) + fh.defects_of(items, t.run_id) + args.defect,
                           args.judge_commit or prior.get("judge"), prior.get("evidence"))
-    by_id = {i["id"]: i for i in items}
-    missing = [d for d in rec["defects"] if d not in by_id]
-    if missing:
-        print("⛔ no kb/Work note for " + ", ".join(missing))
-        return 1
-    # The page tells a compiler bug from a harness bug by the sites a defect declares (fuzz_history.site_kind,
-    # kb/Work PB4010): refused here, by name, before anything is written.
-    unsited = [d for d in rec["defects"] if by_id[d].get("kind") == "defect" and by_id[d].get("status") != "retired"
-               and fh.site_kind(by_id[d]) is None]
-    if unsited:
-        print("⛔ no **Sites:** block naming a path, a glob or `none (why)` in " + ", ".join(unsited) + ": a defect the "
-              "night filed declares where it lives, so the page can tell a compiler bug from a harness bug")
+    # The whole page is drawn BEFORE anything is written: every note it shows (this night's, every other night's and a
+    # run's with no night) must be a note in the register, and a finding it classifies (fuzz_history.finding_kind, kb/Work PB4010), so a
+    # refusal leaves the history untouched.
+    hist = fh.upsert(hist, rec)
+    try:
+        ctx = fh.context(hist, items)
+    except SystemExit as e:
+        print(e)
         return 1
     print(json.dumps({k: rec[k] for k in ("night", "run_id", "judged", "survivors", "survivor_signatures", "defects")}))
     if not args.write:
         print("dry run: pass --write to record the night and render the page")
         return 0
-    hist = fh.upsert(hist, rec)
     fh.write_history(hist)
     out = pathlib.Path(args.out) if args.out else fh.default_page(t.coord)
-    version, written = fh.write_ledger(fh.context(hist, items), hist.get("artifact"), out)
+    version, written = fh.write_ledger(ctx, hist.get("artifact"), out)
     print("wrote " + ", ".join(posix(p) for p in [fh.HISTORY, *written]) + f" (ledger version {version})")
     print(fh.NEXT_STEPS.format(page=posix(out), artifact=hist.get("artifact") or "(none yet: publish it, then record its URL "
                                "as `artifact` in the history)"))
