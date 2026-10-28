@@ -289,6 +289,13 @@ of an unsupported facility.
   conversion" and fills a numeric formal by a COMPUTE "without the ROUNDED phrase", so only the formal cuts the value: it
   crosses at its own exponent (`CobolArgAdapt.SdidiValue`), witnessed by
   `conformance:wiseowl/cases/14.2-Procedure-division-structure/pb3677_format1_sdidi_function_value`.
+  **A numeric function's value reaches a numeric or character formal as its VALUE in a Format-1 CALL too** (kb/Work PB3969): §15.4.1
+  leaves "the characteristics and representation of the returned value" to the implementor under native arithmetic, so GR9's
+  first regime has no image of it to move "without conversion", and the value is the sender exactly as in the second regime and
+  in GR10 ("if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase"; otherwise the MOVE of the value).
+  `CALL "Q" USING BY CONTENT FUNCTION MAX(W 0)` with W = 1.25 shows `+1.25` in a PIC S9V99 formal (it showed `+0.00`, the leading
+  positions of the value's 38-digit container), `FUNCTION INTEGER(W)` shows `1` in a PIC X(5) formal as `MOVE FUNCTION INTEGER(W)
+  TO X5` does. Witnessed by `conformance:wiseowl/cases/14.2-Procedure-division-structure/pb3969_format1_numeric_function_value`.
 - **D-B5 — a boolean item RECEIVING characters converts each one: '1' is boolean one, every other character boolean
   zero** (kb/Work PB3666; owner decision 2026-10-24, on a point of implementor latitude). Table 16 (§14.9.25.3) admits
   an alphanumeric or national sending operand against a boolean receiving operand, and §14.6.8.6 transfers the data
