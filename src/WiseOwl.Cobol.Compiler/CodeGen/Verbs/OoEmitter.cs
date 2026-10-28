@@ -4,8 +4,10 @@ using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Runtime.Repository;
 
 using WiseOwl.Cobol.Compiler.Oo;
 
@@ -19,11 +21,15 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// RUN-UNIT scope — reads the per-unit collaborators through the LIVE <see cref="ProgramEmitter.Current"/>
 /// root: class-unit emission RE-CREATES the whole per-unit set mid-run (<see cref="ProgramEmitter.BeginUnit"/>),
 /// so captured copies would go stale (the coupling-census hazard). The class table and interface-data forests
-/// arrive from the immutable <c>BoundCompilation</c> (never the bind host's session state).</summary>
+/// arrive from the immutable <c>BoundCompilation</c> (never the bind host's session state).
+/// <para><paramref name="repositoryUpdate"/> is <c>--repository-update</c> (DESIGN-external-repository §7.1, §9.1): every
+/// class and interface carries its <c>[CobolUnit]</c>, and with the option on its whole record — the class's or interface's
+/// facts, each method's on the CLR method that implements it, each property's on the type of its accessors (§6.2).</para></summary>
 internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUnitState callState,
     ProgramEmitter program,
     IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> ifaceData,
-    IReadOnlyList<AdapterPair> adapters)
+    IReadOnlyList<AdapterPair> adapters,
+    bool repositoryUpdate)
 {
     /// <summary>A <see cref="Place"/> over a METHOD BOUNDARY ROOT — the ONE thing that lets the OO boundary join
     /// the group-image channel every other operand path already uses (kb/Work PB177 arm A).
@@ -390,7 +396,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             .Where(a => !a.Factory && ReferenceEquals(a.Impl.Owner, cls.Symbol))
             .Select(a =>
             {
-                var (protoRet, protoSig) = OoSignatureOf(a.Proto);
+                var (protoRet, protoSig) = OoSignatureOf(a.Proto, record: null);   // an adapter is no COBOL method (§6.2 "Anchoring")
                 string args = string.Join(", ", a.Proto.Binding!.Formals.Select(f => OoArgPair(f.ParamName, f.AreaParam, f.OmittedFlag))
                     .Concat(OoReturnsAnyLength(a.Proto) ? [RetLenParam] : []));
                 // The conversion to the PROTOTYPE's type is explicit whenever the two return types differ: rule 5 c) 2. is a
@@ -411,10 +417,21 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         if (lifeCycle)
             instExtras.Add($"protected override {OoStandardClasses.BaseFactoryCsName} __FactoryOfClass => {cls.Symbol.FactoryCsName}."
                 + $"{NamingConvention.FactoryInstanceField};   // FactoryObject (ISO §16.2.2.2 GR1)");
+        // The class's repository record (ISO §8.13; DESIGN-external-repository §6.2): its [CobolUnit] always, and with
+        // --repository-update on its facts and tables on this type, each method's on its CLR method, each property's on the
+        // type of its accessors. The record's methods are the object roster, then the factory roster (RepositoryCodec.Of).
+        var record = repositoryUpdate ? RepositoryCodec.Of(cls) : null;
+        var methodRecords = record?.Class!.Methods;
+        List<string> instAttributes = [RepositoryAttributeRenderer.UnitRecord(RepositoryUnitKind.Class, cls.Name, cls.Symbol.ExternalizedName, record)];
+        if (record is not null)
+            instAttributes.AddRange(RepositoryAttributeRenderer.TableRecords(record)
+                .Concat(RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: false)));
         EmitTypeHalf(cls.Name, cls.CsName, cls.Symbol.HalfPath(factory: false), instBase,
             cls.Data, cls.Refs, cls.Bound, cls.Symbol.Methods, w,
             headerExtras: instExtras.Count > 0 ? instExtras : null,
-            sealedType: cls.Symbol.IsFinal);
+            sealedType: cls.Symbol.IsFinal,
+            typeAttributes: instAttributes,
+            methodRecords: methodRecords?.Take(cls.Symbol.Methods.Count).ToList());
 
         // The FACTORY class (brief D11 — a REAL sibling singleton, NEVER statics: §8.6.4 per-class copies of
         // inherited factory data; SELF-in-factory polymorphism SR4f + GR2; §9.3.6 chain resolution). Every
@@ -455,17 +472,23 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 + string.Join(" ", adopt) + " }   // method WORKING-STORAGE → this run unit (ISO §14.6.2.3.2 / §14.6.11)");
         EmitTypeHalf(cls.Name, cls.Symbol.FactoryCsName, cls.Symbol.HalfPath(factory: true), facBase,
             cls.FactoryData, cls.FactoryRefs, cls.FactoryBound, cls.Symbol.FactoryMethods, w, extras,
-            sealedType: cls.Symbol.IsFinal);
+            sealedType: cls.Symbol.IsFinal,
+            typeAttributes: record is null ? [] : [.. RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: true)],
+            methodRecords: methodRecords?.Skip(cls.Symbol.Methods.Count).ToList());
     }
 
     /// <summary>The emit-into-a-type parameterization, realized (deep-dive Summary): ONE routine renders
     /// fields + methods + dispatch into a named type — called for the instance class and the factory class
     /// of every CLASS-ID (identical machinery; only the type identity, base, data forest, roster, and header
-    /// extras differ).</summary>
+    /// extras differ). <paramref name="typeAttributes"/> are the type's repository attributes and
+    /// <paramref name="methodRecords"/>, when the module carries signatures, the roster's method records in roster order.</summary>
     private void EmitTypeHalf(string cobolName, string csName, string describerPath, string baseCsName,
         DataBinder data, ReferenceResolver refs, BoundProgram bound, IReadOnlyList<OoMethodSymbol> roster,
-        CodeWriter w, IReadOnlyList<string>? headerExtras, bool sealedType = false)
+        CodeWriter w, IReadOnlyList<string>? headerExtras, bool sealedType,
+        IReadOnlyList<string> typeAttributes, IReadOnlyList<MethodRecord>? methodRecords)
     {
+        if (methodRecords is not null && methodRecords.Count != roster.Count)
+            throw new InvalidOperationException($"OoEmitter: {csName} has {roster.Count} methods and {methodRecords.Count} method records");
         program.BeginUnit(w, data, refs);
         callState.SelfPath = CallUnitState.NoProgramPath;   // a method is contained in no program (§8.4.6.3; kb/Work PB2843)
         callState.ReturningPlace = null;      // methods deliver results via slice-2 RETURNING, never the program ABI
@@ -479,6 +502,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         dispatch.UnitHasResume = bound.Ec?.HasResume ?? false;   // a METHOD declarative's RESUME needs the PERFORM landing (kb/Work PB1010)
         callState.InheritedStatusPlace.Clear();
 
+        foreach (string attribute in typeAttributes)
+            w.Line(attribute);
         using (w.Block($"public {(sealedType ? "sealed " : "")}class {csName} : {baseCsName}"))
         {
             foreach (string line in headerExtras ?? [])
@@ -525,8 +550,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             if (bound.Paragraphs.Count > 0)
                 w.Line($"private const int __N = {bound.Paragraphs.Count};   // paragraph count (all methods — one pc space)");
             w.Line();
-            foreach (var m in roster)
-                EmitMethod(bound, m, fields, w);
+            for (int i = 0; i < roster.Count; i++)
+                EmitMethod(bound, roster[i], fields, w, methodRecords?[i]);
             EmitCobolInvoke(cobolName, roster, w);   // D10: the universal-dispatch switch (BOTH halves —
                                                        // a universal reference can hold a factory object)
         }
@@ -1023,9 +1048,10 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// the RETURNING local is the C# return value (§14.9.23.4 GR8). D7: <c>virtual</c> by default. The exit-bounded
     /// slice is the trap-#4 guard.
     /// </summary>
-    private void EmitMethod(BoundProgram bound, OoMethodSymbol m, DataEmitter fields, CodeWriter w)
+    private void EmitMethod(BoundProgram bound, OoMethodSymbol m, DataEmitter fields, CodeWriter w, MethodRecord? record)
     {
-        var (retType, sig) = OoSignatureOf(m);
+        var (retType, sig) = OoSignatureOf(m, record);
+        EmitMethodRecord(record, w);
         if (m.PropertySubject is { } subject)
         {
             // A PROPERTY-clause-synthesized accessor (D-P1): a DIRECT field body — identical descriptions
@@ -1420,18 +1446,35 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 
     /// <summary>The C# (return-type, parameter-list) of a method or prototype — ONE builder shared by class
     /// method emission, interface member emission, and the covariant adapters, so the three can never drift
-    /// (the same reasoning as the ONE pair-mode relation, <c>OoConformance.SignatureDifference</c>).</summary>
-    private static (string RetType, string Sig) OoSignatureOf(OoMethodSymbol m)
+    /// (the same reasoning as the ONE pair-mode relation, <c>OoConformance.SignatureDifference</c>). With the method's
+    /// repository <paramref name="record"/> each formal's attributes sit on its CARRIER, the triple's first parameter, the
+    /// one that names the formal; the area, the omitted flag and the trailing receiver length carry nothing (DESIGN-external-
+    /// repository §6.2 "Anchoring": each is a function of the formal's or the RETURNING item's description).</summary>
+    private static (string RetType, string Sig) OoSignatureOf(OoMethodSymbol m, MethodRecord? record)
     {
         string retType = OoReturnClrType(m);
-        var parameters = m.Binding!.Formals.Select(f =>
-            $"ManagedPointer<{OoFormalCrossingType(f.Item)}> {f.ParamName}, CellPointer? {f.AreaParam}, bool {f.OmittedFlag}").ToList();
+        var formals = m.Binding!.Formals;
+        if (record is not null && (record.Formals.Count != formals.Count || record.Formals.Where((r, i) => r.Position != formals[i].Position).Any()))
+            throw new InvalidOperationException($"OoEmitter: the record of '{m.SourceName}' does not state its formals by position");
+        var parameters = formals.Select((f, i) =>
+            $"{(record is null ? "" : RepositoryAttributeRenderer.FormalRecord(record.Formals[i]) + " ")}"
+            + $"ManagedPointer<{OoFormalCrossingType(f.Item)}> {f.ParamName}, CellPointer? {f.AreaParam}, bool {f.OmittedFlag}").ToList();
         // ⛔ AN ANY LENGTH RETURNING ITEM'S LENGTH IS THE ACTIVATOR'S (kb/Work PB1167): §13.18.2.4 GR1 b) makes n "the
         // length of the corresponding … returning item of the activating runtime element", and a C# return value
         // carries no receiver length, so the activator passes it as one trailing parameter — only for a method whose
         // returning item needs it, so every other signature is unchanged.
         if (OoReturnsAnyLength(m)) parameters.Add($"int {RetLenParam}");
         return (retType, string.Join(", ", parameters));
+    }
+
+    /// <summary>A method's repository attributes, on the lines before its declaration: its <c>[CobolMethod]</c> and its
+    /// RETURNING item's <c>[return: CobolReturning, CobolDescription…]</c> (DESIGN-external-repository §6.2). Nothing without
+    /// a record (a module built with <c>--repository-update off</c>).</summary>
+    private static void EmitMethodRecord(MethodRecord? record, CodeWriter w)
+    {
+        if (record is null) return;
+        w.Line(RepositoryAttributeRenderer.MethodRecord(record));
+        if (record.Returning is { } returning) w.Line(RepositoryAttributeRenderer.ReturningRecord(returning));
     }
 
     /// <summary>⛔ THE C# RETURN TYPE OF A METHOD (kb/Work PB1499) — <see cref="OoCrossingType"/> of its RETURNING item,
@@ -1488,21 +1531,34 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         string bases = iface.Inherits.Count > 0
             ? " : " + string.Join(", ", iface.Inherits.Select(b => b.CsName))
             : "";
+        // The interface's repository record (ISO §8.13; DESIGN-external-repository §6.2): its [CobolUnit] always, and with
+        // --repository-update on its facts, tables and properties here and each prototype's on its CLR method.
+        var record = repositoryUpdate ? RepositoryCodec.Of(iface, data) : null;
+        w.Line(RepositoryAttributeRenderer.UnitRecord(RepositoryUnitKind.Interface, iface.Name, iface.ExternalizedName, record));
+        if (record is not null)
+            foreach (string attribute in RepositoryAttributeRenderer.TableRecords(record)
+                         .Concat(RepositoryAttributeRenderer.PropertyRecords(record.Class!, factory: false)))
+                w.Line(attribute);
         using (w.Block($"public interface {iface.CsName}{bases}"))
         {
             new DataEmitter(Ctx).Emit();   // profiles + struct types only (LINKAGE roots are suppressed)
-            foreach (var proto in iface.Prototypes)
+            for (int i = 0; i < iface.Prototypes.Count; i++)
             {
-                var (retType, sig) = OoSignatureOf(proto);
+                var proto = iface.Prototypes[i];
+                var methodRecord = record?.Class!.Methods[i];
+                var (retType, sig) = OoSignatureOf(proto, methodRecord);
+                EmitMethodRecord(methodRecord, w);
                 w.Line($"{retType} {proto.CsName}({sig});   // METHOD-ID {proto.Name} (prototype, §10.6.2 SR4)");
             }
             // §11.6.3 SR5: a name inherited from SEVERAL interfaces is ONE method of this interface (the prototype the
             // others conform to). C# sees two base-interface members and every call through this interface is ambiguous
             // (CS0121), so the presented prototype is declared here, hiding both; a class's one public method still
             // implements all three (kb/Work PB1502).
+            // The presented prototype is the inherited interface's method, which that interface's record states: it carries
+            // no [CobolMethod] here (§6.2 "Anchoring": a reader skips a CLR method without one).
             foreach (var presented in iface.PresentedInherited)
             {
-                var (retType, sig) = OoSignatureOf(presented);
+                var (retType, sig) = OoSignatureOf(presented, record: null);
                 w.Line($"new {retType} {presented.CsName}({sig});   // METHOD-ID {presented.Name} inherited from several interfaces (§11.6.3 SR5)");
             }
         }
