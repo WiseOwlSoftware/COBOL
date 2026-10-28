@@ -1,4 +1,4 @@
-## The UTF-8 switch is idempotent, its COPY rule reads the parse tree, and the live trees have one listing (PB3823, PB3822, PB3821)
+## Entry 2695 — 2026-10-28 11:36 PDT — The UTF-8 switch is idempotent, its COPY rule reads the parse tree, and the live trees have one listing (PB3823, PB3822, PB3821)
 
 Three notes from PB3637's review, all in the Python tooling's standard-streams and live-tree code.
 
@@ -27,3 +27,4 @@ name outside its home. One behaviour change: `self_tests.discover` no longer rai
 tree (the other readers always skipped it); an unreadable file still raises.
 
 No compiler, runtime or conformance change; the three notes claim no inventory row, so `closes_rows` stays empty.
+
