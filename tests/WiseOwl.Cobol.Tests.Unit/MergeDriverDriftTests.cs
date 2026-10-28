@@ -68,6 +68,12 @@ public sealed class MergeDriverDriftTests
             "conflicts: a keyed file whose driver DECLINES (one entry both sides changed differently) is listed",
             "conflicts: a ref git cannot read is None",
             "conflicts: the landing logs' CONFLICT lines name their files",
+            "new driver: a branch that gives a pattern a driver main's attributes do not yet give it AND changes a file",
+            "new driver: the same file back at main's bytes passes",
+            "new driver: a changed file whose driver main's attributes already assign, and a file no pattern governs",
+            "new driver: a main that moved since the branch was cut is not the branch's change",
+            "new driver: a pattern main re-pointed since the branch was cut",
+            "new driver: where the checkout has no such ref (CI's has no origin/main) the answer is a REASON",
             "check: the registry and this repository's .gitattributes agree",
         ]);
         SelfTestArmSource.AssertDeclares(TestRepo.At(AbiPin), [
@@ -90,13 +96,22 @@ public sealed class MergeDriverDriftTests
         ]);
     }
 
-    /// <summary>The registry and <c>.gitattributes</c> agree both ways, and every driver's pattern names a tracked file.</summary>
+    /// <summary>
+    /// The registry and <c>.gitattributes</c> agree both ways, every driver's pattern names a tracked file, and A NEW DRIVER
+    /// LANDS ALONE (kb/Work PB3825; DESIGN-orchestrator-loop.md section 16.9): <c>--check</c> also refuses a branch that
+    /// changes a file a <c>DRIVERS</c> pattern governs while origin/main's <c>.gitattributes</c> does not yet give the pattern
+    /// that driver, unless the file is main's bytes (the landing merges main in through main's registry, so such a file met
+    /// every later main change as a line-merge conflict, PB3727). A checkout without origin/main says so
+    /// (<c>NOTE ... NOT CHECKED</c>); the rule's arms are the self-test's, declared above.
+    /// </summary>
     [Fact]
     public void TheDriverRegistry_AgreesWithGitattributes()
     {
         var r = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.At(Drivers), "--check");
         Assert.True(r.ExitCode == 0 && r.Stdout.Contains("=== MERGE DRIVERS: GREEN ===", StringComparison.Ordinal),
-            $"`merge_drivers.py --check` found the registry and .gitattributes apart (exit {r.ExitCode}): add the pattern to both.\n{r.Stdout}\n{r.Stderr}");
+            $"`merge_drivers.py --check` found the registry and .gitattributes apart, or a branch that changes a file of a NEW driver (a new driver lands alone, leave its files as origin/main has them; exit {r.ExitCode}): add the pattern to both.\n{r.Stdout}\n{r.Stderr}");
+        string source = File.ReadAllText(TestRepo.At(Drivers));
+        Assert.Contains("landing, unread = new_driver_files(HERE.parent)", source, StringComparison.Ordinal);
     }
 
     /// <summary>
