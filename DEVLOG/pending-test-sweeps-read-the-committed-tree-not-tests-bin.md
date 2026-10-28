@@ -29,3 +29,5 @@ on its clean twins (the same listing of `src/`, a non-recursive listing of `test
 the report registers them as a lead. The guard sees a root spelled in the call, not one assigned to a variable first.
 
 `closes_rows: []`: process tooling, no inventory row.
+
+**Gate.** `build-local` leg 1 on b76dfe383 (run 000001-20261028T173732Z): `LEG 1 ONLY (batched gating, PB2515): GREEN`, Unit 5,538/38,218 and Conformance 43/19,251 ran, Linux half (WSL clone of HEAD) GREEN; the guard, its twin and `EveryTestRef_ResolvesToARealTest` all Passed in `leg-1-Unit.trx`. Self-review: the guard reads a root spelled in the call, not one assigned first (named above); the `src/` walks are registered as a lead; no new allocation of diagnostic codes.
