@@ -1931,8 +1931,8 @@ saturated integer POSITION** (`StatementBinder.SegmentTempPic`, a signed 38-digi
 tier, kb/Work PB2695): `BoundPositionValue` asks the integrality question of the value on its own carrier BEFORE the
 store and stores only the answer, and the 38 digits keep an out-of-range position out of range, because high-order
 truncation could WRAP it into an in-range one and convert a detectable error into a silent one. The §15.4
-returned-value item `SendingValueTemp.FunctionValuePic` (S9(21)V9(9)) is NOT this temp; it is what `FUNCTION
-LENGTH` measures. It is synthetic, never enters `DataBinder.ConformanceForest`, so the edition
+returned-value item `SendingValueTemp.FunctionValuePic` (S9(21)V9(9)) is NOT this temp; it is the nominal item
+IN-ARITHMETIC-RANGE reads (`FUNCTION LENGTH` measures the `FunctionValueField` DISPLAY shows, kb/Work PB3951). It is synthetic, never enters `DataBinder.ConformanceForest`, so the edition
 digit-capacity gates (18 at COBOL-85) do not reach it — it is not a PICTURE the programmer wrote. (The temp prune
 lives in the SPINE both forests share, so it is absent from `CompositionForest` too — see
 `DESIGN.md`'s group-VALUE bullets for why there are two: `ConformanceForest` is the WRITTEN-ENTRY set

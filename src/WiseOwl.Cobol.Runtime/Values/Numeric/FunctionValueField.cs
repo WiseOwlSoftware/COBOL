@@ -26,6 +26,11 @@ namespace WiseOwl.Cobol.Runtime;
 ///   <item><b>The binary64 image</b> (<see cref="OfFloat"/>): a floating-point value keeps the shortest round-trip image a
 ///         floating-point item has (kb/Work PB3505 declined GnuCOBOL's 100-digit float image).</item>
 /// </list>
+/// <para>⛔ THE SAME ITEM IS WHAT <c>FUNCTION LENGTH</c> AND <c>FUNCTION BYTE-LENGTH</c> MEASURE (<see cref="Length"/>, <see cref="ByteLength"/>, kb/Work PB3951):
+/// a function-identifier "references the unique data item that results from the evaluation of a function" (§8.4.3.2.1), so both
+/// functions measure the temporary by the description above and never a fixed width of the implementation's own. They measure it in
+/// different units: BYTE-LENGTH in bytes (§15.14.4 r1), LENGTH in national character positions for a usage-national item (§15.50.4 r2)
+/// and in alphanumeric character positions otherwise (r3). The two differ only for the copy of a USAGE NATIONAL argument.</para>
 /// <para>ONE struct carries all three so that a function nested in another function's argument list (<c>ABS(INTEGER(X))</c>,
 /// <c>MAX(ABS(X) 3)</c>) hands its CALLER its description and not only its value - the selection picks a description
 /// as well as a value. The compiler builds it only for the functions that select or copy
@@ -39,23 +44,52 @@ public readonly struct FunctionValueField
     private readonly NumProfile _item;
     private readonly string? _image;
     private readonly Shape _shape;
+    private readonly int _positions;
+    private readonly int _bytes;
 
-    private FunctionValueField(Shape shape, CobolDec value, in NumProfile item, string? image = null)
+    private FunctionValueField(Shape shape, CobolDec value, in NumProfile item, int positions, int bytes, string? image = null)
     {
         _shape = shape;
         _value = value;
         _item = item;
+        _positions = positions;
+        _bytes = bytes;
         _image = image;
     }
 
-    /// <summary>The temporary is a copy of the data item <paramref name="item"/> (an argument that is a field).</summary>
-    public static FunctionValueField OfItem(CobolDec value, in NumProfile item) => new(Shape.Item, value, item);
+    /// <summary>The temporary whose positions are its bytes: every temporary but the copy of a USAGE NATIONAL item, whose position is two bytes.</summary>
+    private FunctionValueField(Shape shape, CobolDec value, in NumProfile item, int bytes, string? image = null)
+        : this(shape, value, item, bytes, bytes, image) { }
+
+    /// <summary>⛔ THE TEMPORARY'S LENGTH IN BYTES - what <c>FUNCTION BYTE-LENGTH</c> of the function call answers (ISO/IEC 1989:2023
+    /// §15.14.4 r1 - "the length of argument-1 in number of bytes"; §8.4.3.2.4 r1 - "A function-identifier references a temporary data
+    /// item"; docs/CONFORMANCE.md DOC-A.1-92, kb/Work PB3951). <c>FUNCTION LENGTH</c> reads <see cref="Length"/>, which is the same
+    /// number for every temporary but the copy of a USAGE NATIONAL argument. It is the SAME item DISPLAY shows (<see cref="DeviceText"/>), so the two cannot
+    /// disagree: a copy of an argument is the bytes of that argument's item (a packed argument's, a binary one's), an item the value
+    /// describes is the 4-byte or 8-byte binary item or the DISPLAY item of its digits (<see cref="CobolNum.ReturnedValueProfile"/>), and a
+    /// binary64 result is the 8-byte floating-point item (the 100-digit image GnuCOBOL gives it is not copied, kb/Work PB3505).</summary>
+    public long ByteLength => _bytes;
+
+    /// <summary>⛔ THE TEMPORARY'S LENGTH IN POSITIONS - what <c>FUNCTION LENGTH</c> of the function call answers (ISO/IEC 1989:2023 §15.50.4 r2 - a
+    /// usage-national item is measured in national character positions; r3 - any other item that is neither national nor boolean in alphanumeric
+    /// character positions; kb/Work PB3951). It differs from <see cref="ByteLength"/> for exactly one temporary, the copy of a USAGE NATIONAL
+    /// argument (a position is two bytes); the two are stated by the compiler from the argument item's own facts (<see cref="OfItem"/>).</summary>
+    public long Length => _positions;
+
+    /// <summary>The temporary is a copy of the data item <paramref name="item"/> (an argument that is a field). <paramref name="positions"/> and
+    /// <paramref name="bytes"/> are the item's own length by §15.50.4 and §15.14.4 - the compiler's one reading of the item
+    /// (<c>ItemLength.Positions</c>, <c>DataItem.ByteWidth</c>), never re-derived from the profile, which does not say a national item's
+    /// position is two bytes.</summary>
+    public static FunctionValueField OfItem(CobolDec value, in NumProfile item, int positions, int bytes) => new(Shape.Item, value, item, positions, bytes);
 
     /// <summary>The temporary is a copy of a numeric LITERAL's field: <paramref name="digits"/> digit positions (every digit the
     /// literal wrote, a leading zero included), <paramref name="scale"/> fraction digits, and a sign position when the literal
     /// wrote a sign.</summary>
-    public static FunctionValueField OfLiteral(CobolDec value, int digits, int scale, bool signed) =>
-        new(Shape.Item, value, Described(digits, scale, signed));
+    public static FunctionValueField OfLiteral(CobolDec value, int digits, int scale, bool signed)
+    {
+        NumProfile described = Described(digits, scale, signed);
+        return new(Shape.Item, value, described, digits + (signed ? 1 : 0));   // a digit position each, and the written sign's own position
+    }
 
     /// <summary>The temporary is an unsigned integer item of <paramref name="digits"/> digit positions (DATE-OF-INTEGER's eight,
     /// DAY-OF-INTEGER's seven).</summary>
@@ -70,28 +104,32 @@ public readonly struct FunctionValueField
         // sign position alone (DeviceText), so ABS of a negative 54-digit expression is still a signed item. The value is
         // a CobolDec (34 significant digits): an argument expression past the Int128 window reaches it lowered to that image
         // (docs/CONFORMANCE.md DOC-A.1-123, kb/Work PB3953, a known departure from GnuCOBOL kept open), and this member shows
-        // the image it is given; the exact wide form PB3953 needs adds a wide value here.
-        NumProfile described = CobolNum.ReturnedValueProfile(value, out string digits);
-        return new(digits.Length <= 38 ? Shape.Item : Shape.Value, value, described);
+        // the image it is given; the exact wide form PB3953 needs adds a wide value here. The temporary's size (ByteLength,
+        // Length) is the storage of the item that description names (kb/Work PB3951).
+        NumProfile described = CobolNum.ReturnedValueProfile(value, out string digits, out int bytes);
+        return new(digits.Length <= 38 ? Shape.Item : Shape.Value, value, described, bytes);
     }
 
     /// <summary>The temporary is a function's binary64 result: it shows the shortest round-trip image and orders by the value that
-    /// image names (<c>CobolDec.FromApproximation</c>, the lift of an engine-produced approximation).</summary>
+    /// image names (<c>CobolDec.FromApproximation</c>, the lift of an engine-produced approximation). It is the 8 bytes of a binary64
+    /// item (<see cref="ByteLength"/>).</summary>
     public static FunctionValueField OfFloat(double value) =>
-        new(Shape.Float, CobolDec.FromApproximation(value), default, CobolFloat.Display(value));
+        new(Shape.Float, CobolDec.FromApproximation(value), default, sizeof(double), CobolFloat.Display(value));
 
     /// <summary>A floating-point ITEM argument: it orders by its exact value (<paramref name="exactValue"/>, the data item's one
     /// SDIDI lift, never an approximation) and shows the image its own DISPLAY writes (a binary32 item's shortest binary32
-    /// round-trip, not its binary64 widening).</summary>
-    public static FunctionValueField OfFloatItem(CobolDec exactValue, string image) => new(Shape.Float, exactValue, default, image);
+    /// round-trip, not its binary64 widening). The temporary copies the item, so it has the item's <paramref name="bytes"/>
+    /// (4 for a binary32 item, 8 for a binary64 one; a floating-point item is never national, so its positions are its bytes).</summary>
+    public static FunctionValueField OfFloatItem(CobolDec exactValue, in NumProfile item, string image, int bytes) =>
+        new(Shape.Float, exactValue, item, bytes, image);
 
     /// <summary>The same description holding the magnitude of the value (§15.7.1 - ABS returns the absolute value of its
     /// argument; GnuCOBOL stores it in a copy of the argument's item, so the sign stays a position of the item and shows
     /// <c>+</c> in a signed one).</summary>
     public FunctionValueField Abs() => _shape switch
     {
-        Shape.Float => new(Shape.Float, new CobolDec(Int128.Abs(_value.Sig), _value.Exp), default, _image![0] == '-' ? _image[1..] : _image),
-        _ => new(_shape, new CobolDec(Int128.Abs(_value.Sig), _value.Exp), _item),
+        Shape.Float => new(Shape.Float, new CobolDec(Int128.Abs(_value.Sig), _value.Exp), _item, _positions, _bytes, _image![0] == '-' ? _image[1..] : _image),
+        _ => new(_shape, new CobolDec(Int128.Abs(_value.Sig), _value.Exp), _item, _positions, _bytes),
     };
 
     /// <summary>§15.59.4 1) - the content of the argument having the greatest value; 2) - the leftmost one when several are equal
