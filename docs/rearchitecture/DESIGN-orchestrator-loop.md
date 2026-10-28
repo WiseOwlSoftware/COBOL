@@ -1797,7 +1797,13 @@ for a name only the branch's registry holds, so git falls back to its line merge
 every main change to it as a conflict (PR #608 stopped on PB3677's additions to `PublicAPI.Unshipped.txt`). A branch
 that leaves the file as main has it cannot conflict on it: git takes main's side without running any driver. So A NEW
 DRIVER LANDS ALONE, without reformatting the files it governs; their order converges at their first merge in which both
-sides changed them, whose output the driver sorts. `PublicAPI.Shipped.txt` order feeds the runtime ABI pin's
+sides changed them, whose output the driver sorts. The rule is mechanical (kb/Work PB3825): `merge_drivers.py --check`
+(`new_driver_files`, which `MergeDriverDriftTests.TheDriverRegistry_AgreesWithGitattributes` runs in every gate) refuses a
+branch that changes a file a DRIVERS pattern governs while `origin/main`'s `.gitattributes` does not yet give that
+pattern that driver (it says another driver, `union`, or none), unless the file is byte-for-byte main's; "the branch
+changed" is `merge-base(HEAD, origin/main)..HEAD`, so a main that moved since is not the branch's change. A checkout with
+no `origin/main` or no merge base (CI's merge-group checkout) prints `NOTE … NOT CHECKED` and the reason, and passes the
+rest of `--check`; it is never read as having checked. `PublicAPI.Shipped.txt` order feeds the runtime ABI pin's
 `runtime-hash` line by line (`RuntimeAbiPinDriftTests.RuntimeHalf`), and a branch that changes Shipped changes the pin,
 so that first merge leaves the pin UNMEASURED and `abi_pin.settle` measures the sorted file. Corrected at
 implementation: the driver's patterns are matched by git's rules in the registry too
