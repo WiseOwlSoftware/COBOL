@@ -1280,7 +1280,7 @@ is split once, by what each half needs:
   `RepositoryIndex.SchemaAttributeName` / `DecodeSchemaAttribute`, the index's own provider. **The OO arm (kb/Work PB2100):** a class's or an interface's record
   from its type — the unit's facts from `[CobolUnit]`, each method from the CLR method carrying its `[CobolMethod]` (a
   formal or description on a method without one is `Malformed`), each property from `[CobolProperty]`, the factory's from
-  the type `FactoryType` names in the class's namespace (one such type, else `Malformed`); the `Units` index lists every
+  the type `FactoryType` names in the class's namespace (one such type, else `Malformed`; a class that names none and an interface that names one are `Malformed` too); the `Units` index lists every
   interface, then every class, then every host entry, in emission order. The skeleton record joins with slice 8.
 
 ### 7.5 The file protocol
