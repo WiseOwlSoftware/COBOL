@@ -79,7 +79,10 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > (an exact sum or product keeps its operands', the larger or the sum, a ZERO operand's places and a zero result's
 > included, since §8.8.1.5.3 performs the operations as ISO/IEC 60559 5.4.1 does and its exact results, zero among them,
 > take the preferred exponent: `0.000 + 2.5` is held at 3 places as `0.001 + 2.5` is, a zero quotient at the dividend's
-> less the divisor's, review finding R5-1, `CobolDec.Zero`, `pb3538_zero_operand_precision`; a result the SDIDI rounded
+> less the divisor's, review finding R5-1, `CobolDec.Zero`, `pb3538_zero_operand_precision`; an EXACT quotient or square root
+> the same, at the preferred exponent and never padded to 34 digits: `6 / 3` and `SQRT (4)` are held at 0 places,
+> `FUNCTION MEAN (1 2 3)` is 2 as the literal is, `CobolDec.ToPreferredExponent`, kb/Work PB3954,
+> `pb3954_exact_quotient_places`; only a result the SDIDI rounded
 > holds its 34 significant digits), also known only at run time (`NumX.RuntimePrecision`). So the NOTATION never changes the
 > precision: `2.50`, `2.50E0`, `NUMVAL ("2.50")` and a `PIC 9V99` item all truncate a quotient at 16 places with no
 > receiver. Counting the value's SIGNIFICANT fraction digits instead dropped the trailing zero, so

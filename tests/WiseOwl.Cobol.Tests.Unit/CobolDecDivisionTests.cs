@@ -59,6 +59,77 @@ public sealed class CobolDecDivisionTests
         Assert.Equal("-1E0", $"{r.Sig}E{r.Exp}");                        // §15.77.4 — the sign follows the dividend
     }
 
+    // ── kb/Work PB3954: an EXACT quotient / root is held at ISO/IEC 60559:2020 5.4.1's preferred exponent ───────────────
+    // ISO §8.8.1.5.3 (division) and §15.84.4 r2 (SQRT) take their definitions from 60559, whose exact result is the
+    // representation NEAREST the preferred exponent (the dividend's less the divisor's; half the operand's rounded down);
+    // only an INEXACT result fills the 34 digits. Expected values are derived by hand from the exact decimal results.
+
+    [Theory]
+    [InlineData("6", 0, "3", 0, "2E0")]                       // 6 / 3 = 2: preferred exponent 0 - 0
+    [InlineData("10", 0, "4", 0, "25E-1")]                    // 2.5 is exact and needs the digit below the preferred exponent
+    [InlineData("1", 0, "4", 0, "25E-2")]
+    [InlineData("150", -2, "5", -1, "30E-1")]                 // 1.50 / 0.5 = 3.0: preferred exponent -2 - -1 = -1, so 30E-1
+    [InlineData("100", 0, "4", 0, "25E0")]
+    [InlineData("1200", 0, "3", 0, "400E0")]                  // trailing zeros of the INTEGER quotient stay: its exponent is already the preferred one
+    [InlineData("5", 2, "5", 0, "1E2")]                       // 5E2 / 5 = 1E2: preferred exponent 2 - 0
+    [InlineData("1", 0, "3", 0, "3333333333333333333333333333333333E-34")]   // inexact: all 34 digits
+    [InlineData("2", 0, "3", 0, "6666666666666666666666666666666667E-34")]
+    public void AnExactQuotient_IsHeldAtThePreferredExponent_AnInexactOneFillsTheDigits(
+        string dividend, int dividendExp, string divisor, int divisorExp, string expected)
+    {
+        var q = CobolDec.Div(Dec(dividend, dividendExp), Dec(divisor, divisorExp), CobolRounding.NearestAwayFromZero);
+        Assert.Equal(expected, $"{q.Sig}E{q.Exp}");
+        // Round-to-odd (the native lane's SDIDI quotient) reduces the same exact value the same way; the inexact ones
+        // differ only in the last digit (odd), so they are compared by value below.
+        var odd = CobolDec.DivToOdd(Dec(dividend, dividendExp), Dec(divisor, divisorExp));
+        if (!expected.EndsWith("E-34")) Assert.Equal(expected, $"{odd.Sig}E{odd.Exp}");
+    }
+
+    [Fact]
+    public void AnExactQuotientPastThirtyFourDigits_KeepsTheExponentTheFormatNeeds()
+    {
+        // 10^37 / 1 is exact but has 38 digits: decimal128 holds it at exponent 4, the nearest the format reaches 0.
+        var q = CobolDec.Div(Dec("10000000000000000000000000000000000000", 0), Dec("1", 0), CobolRounding.NearestAwayFromZero);
+        Assert.Equal("1000000000000000000000000000000000E4", $"{q.Sig}E{q.Exp}");
+    }
+
+    [Fact]
+    public void ANegativeExactQuotient_IsHeldAtThePreferredExponent()
+    {
+        var q = CobolDec.Div(Dec("-6", 0), Dec("3", 0), CobolRounding.NearestAwayFromZero);
+        Assert.Equal("-2E0", $"{q.Sig}E{q.Exp}");
+    }
+
+    [Theory]
+    [InlineData("4", 0, "2E0")]
+    [InlineData("25", -2, "5E-1")]                            // sqrt(0.25) = 0.5: preferred exponent floor(-2 / 2) = -1
+    [InlineData("100", 0, "10E0")]
+    [InlineData("1", 4, "1E2")]                               // sqrt(1E4) = 1E2: preferred exponent 2
+    public void AnExactRoot_IsHeldAtThePreferredExponent(string sig, int exp, string expected)
+    {
+        var r = CobolDec.Sqrt(Dec(sig, exp), CobolRounding.NearestAwayFromZero);
+        Assert.Equal(expected, $"{r.Sig}E{r.Exp}");
+    }
+
+    [Fact]
+    public void AnInexactRoot_FillsTheThirtyFourDigits()
+    {
+        // sqrt(2) = 1.41421356237309504880168872420969807856967…: 34 digits, the next digits 07 round down
+        var r = CobolDec.Sqrt(Dec("2", 0), CobolRounding.NearestAwayFromZero);
+        Assert.Equal("1414213562373095048801688724209698E-33", $"{r.Sig}E{r.Exp}");
+    }
+
+    [Theory]
+    [InlineData(new[] { 1L, 2L, 3L }, "2E0")]               // FUNCTION MEAN (1 2 3): the repro, 2 and not 2.000…0 (34 digits)
+    [InlineData(new[] { 1L, 2L }, "15E-1")]
+    [InlineData(new[] { 1L, 1L }, "1E0")]
+    [InlineData(new[] { 1L, 2L, 4L }, "2333333333333333333333333333333333E-33")]
+    public void TheMean_IsHeldAtThePreferredExponentWhenExact(long[] values, string expected)
+    {
+        var m = CobolIntrinsics.MeanDec(CobolRounding.NearestAwayFromZero, values.Select(v => CobolDec.From(v, 0)).ToArray());
+        Assert.Equal(expected, $"{m.Sig}E{m.Exp}");
+    }
+
     [Fact]
     public void ThePastWindowPower_IsAnApproximation_NeverASentinel()
     {

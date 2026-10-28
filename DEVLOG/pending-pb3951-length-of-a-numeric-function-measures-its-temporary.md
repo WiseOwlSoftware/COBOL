@@ -40,8 +40,8 @@ hashes codec images of its text), so the item's length is stated by the compiler
 the negative `pb3951_length_of_abs_below_2014` (COBOL1502), and `pb1398_length_of_function_result` updated from 30 to the new sizes;
 `FunctionDeviceTextTests` pins the byte rows. Register: PB3951 landed, `closes_rows: []` (no inventory row was claimed).
 
-**Self-review.** Architecture: one field, one predicate, no C# text in a bound node. Full code: the renderer arm implements §15.50.4 r3 /
-§15.14.4 r1 over the temporary §8.4.3.2.1 names; BYTE-LENGTH and LENGTH share it; the index and string arms are unchanged. Performance: the
+**Self-review.** Architecture: one field, one predicate, no C# text in a bound node. Full code: the renderer arm implements §15.50.4 r2 / r3
+(LENGTH, positions) and §15.14.4 r1 (BYTE-LENGTH, bytes) over the temporary §8.4.3.2.1 names, one field read two ways; the index and string arms are unchanged. Performance: the
 nested call is evaluated at run time, as GnuCOBOL evaluates it. Duplication: `OverlappingMove.Size` states the zoned width a second time over its
 own struct and was left alone (it is a digit-run size for a move, not an item's bytes).
 
@@ -55,3 +55,10 @@ the renderer reads `Length` for LENGTH and `ByteLength` for BYTE-LENGTH. The sec
 (`CobolNum.ImageWidth`) is deleted. Pinned by `pb3951_length_of_numeric_function_result_not_copied` (national and SIGN SEPARATE national rows: 5/10, 6/12;
 GnuCOBOL's unfinished national support answers 10 to both) and `FunctionDeviceTextTests.ACopyOfANationalArgumentHasPositionsAndBytes`. R1-2 (the
 design doc named `NumProfile.ImageWidth`) is fixed in `docs/INTRINSICS_DESIGN.md`.
+
+**Merge with main (finisher).** Main's PB3953 (DOC-A.1-123) rewrote the comment of `FunctionValueField.OfValue` while this branch changed its
+code; the merge keeps both: the branch's bytes from `CobolNum.ReturnedValueProfile` and main's note that an argument past the Int128 window
+reaches the member as a 34-digit `CobolDec`. Review round 2's lead R2-1 is fixed in the same change: `ByteLength`'s summary and the struct's
+paragraph no longer say LENGTH answers bytes (BYTE-LENGTH reads `ByteLength`, §15.14.4 r1; LENGTH reads `Length`, §15.50.4 r2 / r3), and the
+same stale sentence is corrected in `IntrinsicRenderer`, `docs/INTRINSICS_DESIGN.md` and DOC-A.1-92. The "temporary data item" wording is cited
+to §8.4.3.2.4 r1, where it is; §8.4.3.2.1's own words are "the unique data item that results from the evaluation of a function".

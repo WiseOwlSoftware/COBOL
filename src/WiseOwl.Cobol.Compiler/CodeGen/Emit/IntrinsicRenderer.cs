@@ -52,8 +52,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         if (sig.Bind == IntrinsicBind.Deferred || sig.RuntimeMethod.Length == 0)
             return new NumX(EmitText.LoudValue("long", $"FUNCTION {sig.Name} (catalogued, not yet implemented)"), 0);
         // ⛔ LENGTH / BYTE-LENGTH OF A NUMERIC OR INTEGER FUNCTION MEASURE ITS RETURNED-VALUE TEMPORARY, BEFORE ANY CARRIER ROUTING (kb/Work PB3951).
-        // §8.4.3.2.1: a function-identifier references the temporary data item the evaluation produces (§15.4), and §15.50.4 r3 / §15.14.4 r1
-        // measure that item in bytes. It is the item DISPLAY shows (FunctionValueField, DOC-A.1-92), so its length is read from that field
+        // §8.4.3.2.4 r1: a function-identifier references a temporary data item (§15.4); §15.14.4 r1 measures it in bytes (ByteLength) and
+        // §15.50.4 r2 / r3 in national or alphanumeric character positions (Length). It is the item DISPLAY shows (FunctionValueField, DOC-A.1-92), so its length is read from that field
         // and never from a width of ours; the argument's value only fills the field, so a binary64 argument (SQRT) is no reason to
         // leave this arm for the float lane below. The binder sends every such argument here (IntrinsicBinder.FunctionResultLength).
         if (sig.RuntimeMethod is "Length" or "ByteLength" && FunctionDeviceText.IsNumericFunctionResult(ic.Args[0]))
@@ -890,6 +890,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// EXCEPT at a §15.3 type-6 position, where it is INTEGRAL: an SDIDI operand becomes its integer on the SDIDI, a
     /// float or a fractional fixed-point operand lands at scale 0 through the type-6 intake (a scale-0 fixed-point
     /// integer passes as it stands), a float past the Int128 carrier raising rather than changing its value.</para>
+    /// <para>⛔ THE ONE EXCEPTION TO "NOTHING TRUNCATED" IS AN ARITHMETIC EXPRESSION PAST THE Int128 WINDOW, AND IT IS A KNOWN
+    /// DEFECT, NOT A DETERMINATION (kb/Work PB3953, open). <c>num.AsNum</c> settles the exact 256-bit intermediate of a nested
+    /// product or power of 39 to 77 digits (<c>NumX.Wide</c>) into the SDIDI by round-to-odd, because no function body consumes
+    /// the wide form (<c>ExactWideSettlementDriftTests</c> closes the list of consumers that do), so the function answers from
+    /// the 34-digit image: <c>ABS (BIG * BIG * K3)</c> of 18-, 18- and 3-digit items shows <c>…100000</c> where the product ends
+    /// <c>…000999</c>, and GnuCOBOL's arbitrary-precision argument temporary gives the exact one. CLAUDE.md rule 1 makes that
+    /// behaviour the answer for an implementor latitude (§8.8.1.3, §15.4.1), so the fix is a wide carrier for the function
+    /// family (docs/CONFORMANCE.md DOC-A.1-123 states the limit and what the fix needs). An expression within 38 digits
+    /// arrives exact (<c>pb3953_function_argument_int128_window</c>).</para>
     /// </remarks>
     private NumX RawArg(BoundIntrinsicCall ic, int i)
     {
