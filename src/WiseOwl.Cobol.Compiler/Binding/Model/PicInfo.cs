@@ -721,6 +721,11 @@ public sealed record PicInfo(
     /// <see cref="Digits"/> (the two coincide). (CA33.)</summary>
     public int DigitPositions { get => _digitPositions ?? Digits; init => _digitPositions = value; }
 
+    /// <summary><see cref="DigitPositions"/>' backing as the analyzer wrote it — null when it defaulted to <see cref="Digits"/>.
+    /// Read only by the repository codec, which persists the backing so a decoded profile is record-equal to its original
+    /// (DESIGN-external-repository §6.1, §6.3; kb/Work PB2100).</summary>
+    internal int? WrittenDigitPositions => _digitPositions;
+
     /// <summary>The ONE PicInfo-keyed receiver-scale rule (kb/Work PB64 T6 — it was written twice, in
     /// <c>MoveEmitter.SenderContext</c> and <c>ArithmeticEmitter.ScaleOf</c>, and both copies silently fell to
     /// <c>Scale</c> = 0 for a locale item, truncating a fractional sender; kb/Work PB1685 moved it HERE so the

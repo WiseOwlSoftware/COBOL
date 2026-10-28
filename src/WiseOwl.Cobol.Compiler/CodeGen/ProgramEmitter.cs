@@ -75,11 +75,13 @@ internal sealed class ProgramEmitter
     /// <param name="assemblySimpleName">The emitted assembly's simple name: every emitted type lives in its
     /// one-segment namespace <c>Cobol.&lt;S&gt;</c> (<see cref="CsNames.ModuleNamespaceOf"/>; DESIGN-external-repository
     /// §4.5).</param>
-    internal string Emit(BoundCompilation comp, string assemblySimpleName)
+    /// <param name="repositoryUpdate">Whether the module carries its units' signature attributes (<c>--repository-update</c>,
+    /// DESIGN-external-repository §9.1; ISO §8.13).</param>
+    internal string Emit(BoundCompilation comp, string assemblySimpleName, bool repositoryUpdate)
     {
         _ecState.Active = comp.EcActive;
         _ecState.OoClasses = comp.OoClasses;
-        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.OoAdapters);
+        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.OoAdapters, repositoryUpdate);
         var units = comp.Units;
         var classes = comp.ClassUnits;
         bool anyFiles = comp.AnyFiles;
@@ -97,7 +99,9 @@ internal sealed class ProgramEmitter
         // named System, WiseOwl or CobolNum (whose namespace Cobol.System … is a member of Cobol) captures neither
         // (CS0234 / CS0118 on legal source otherwise). The assembly attribute precedes the namespace (C# requires it).
         var ns = CsNames.ModuleNamespaceOf(assemblySimpleName);
-        w.Line(RuntimeApi.ModuleRecordAttribute(ns.RegistrarClrName));
+        w.Line(RepositoryAttributeRenderer.ModuleRecord(ns.RegistrarClrName,
+            RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, classes, HostEntryEmitter.EntryUnits(units)), comp.Edition,
+            hasSignatures: repositoryUpdate));
         w.Line($"namespace {ns.CsName};");
         w.Line();
         // ⛔ Every namespace imported here is listed in CsNames.ImportedNamespaces, whose types' simple names no C# name
@@ -141,7 +145,7 @@ internal sealed class ProgramEmitter
                 EmitProgramClass(unit, w);
         // The .NET host surface (DESIGN-external-repository §4.3; kb/Work PB2099): one public class per outermost unit, named
         // in the module namespace's type scope beside every type the module already declares there.
-        new HostEntryEmitter(Current.Ctx.SignEncoding, comp.OoClasses, _atoms,
+        new HostEntryEmitter(Current.Ctx.SignEncoding, comp.OoClasses, _atoms, repositoryUpdate,
             data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp))).Emit(units,
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
                 .Concat(comp.OoClasses.Classes.SelectMany(c => c.FactoryOrInstanceCsTypes))
@@ -294,7 +298,7 @@ internal sealed class ProgramEmitter
         _ecState.Propagation = AutomaticPropagation.Of(data.AutomaticPropagation, inMethod: false);
         // §14.6.13.1.5 items 1 and 3 — this element's header RAISING census (kb/Work PB1121), read by every GOBACK /
         // EXIT … RAISING LAST EXCEPTION and by the activator's pickup, PROPAGATE ON or not.
-        _ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(unit.Bound.RaisingObjects ?? [], _ecState.OoClasses);
+        _ecState.PdRaisingObjectCsTypes = EcState.RaisingObjectCsTypes(unit.Bound.Raising ?? [], _ecState.OoClasses);
         // A containing program with USE … GLOBAL declaratives makes this unit's I-O hooks walk outward on a
         // no-local-match (ISO §14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.
         _dispatchState.OuterGlobalUse = ChainHasGlobalUse(unit.Parent);
