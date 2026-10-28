@@ -1,4 +1,4 @@
-## PB3969: a Format-1 CALL's numeric function value reaches a DISPLAY, binary or character formal as its value, not as its container's image
+## Entry 2679 — 2026-10-27 17:09 PDT — PB3969: a Format-1 CALL's numeric function value reaches a DISPLAY, binary or character formal as its value, not as its container's image
 
 `CALL "Q6X" USING BY CONTENT FUNCTION MAX(W 0)` with `W PIC S9V99` = 1.25 showed `+0.00` in the callee's `PIC S9V99` formal.
 Re-probed on a fresh build: the same value showed `000.00` in a `PIC 9(3)V99`, `+8084644.32` in a `PIC S9(4)V99 COMP` and `00000`
@@ -31,3 +31,4 @@ FUNCTION LENGTH(W2)` showed `5   ` in a PIC 9(4) formal. `ElementarySending` now
 Computed (`RuntimeApi.MoveSendingNew(computed:)`); the golden gained program PB3969E (LENGTH of a numeric and an alphanumeric item
 into PIC 9(4): 0005, 0003). The activation-boundary doc comments now say a computed BY CONTENT argument is landed in GR9's first
 regime too.
+
