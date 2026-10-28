@@ -868,7 +868,10 @@ boundary, `RunUnit.Run`, `ProgramTable.RunMain` and the host's `CallFromHost`, w
 through the fault-injecting medium of 2.2.1.12 in `tests/WiseOwl.Cobol.Tests.Unit/Store/TransactionFaultMatrixTests.cs`
 (the process death, the refusal and the power loss at every point of COMMIT, its reversal, ROLLBACK, the dead-owner step
 and a first change, and a holder's death at every point of another run unit's statement), and witness (e) of 2.2.1.11 in
-`KeyedStorePerformanceWitnessTests`. Still the target: the compiler half (PB3338) and the sequential journal (PB3340). PB3330 lands when its last group has landed. The bar it meets is PB3330's, line by line: no statement reads or writes the whole file; OPEN
+`KeyedStorePerformanceWitnessTests`. The compiler half is built too (kb/Work PB3338: the APPLY COMMIT clause accepted
+instead of declined, COMMIT and ROLLBACK emitted as the registry's calls), and so are the sequential journal (PB3340, 2.2.2)
+and the keyed CAPTURE of a replaced, removed or created file (PB3492, 2.2.2.14). Every group has landed, and with them
+PB3330. The bar it meets is PB3330's, line by line: no statement reads or writes the whole file; OPEN
 reads the header; a keyed statement touches O(log n) pages; the size limit is the host's; a statement's change reaches the
 file when it completes, crash-consistently; `SHARING WITH ALL OTHER` is coherent at page granularity with today's record locks;
 every current golden keeps passing plus measured performance witnesses; one engine, no second path and no reader of the old
@@ -1649,10 +1652,10 @@ throughout the lifetime of the file"*), read by `FixedAttributeConflict` from th
 as today (the read of two pages, not of a variable-length header), and `SequentialConnector`'s "a keyed store opened through a
 sequential description is not a conflict" keeps its answer through the same reader.
 
-**2.2.1.10 APPLY COMMIT, COMMIT and ROLLBACK: per-run-unit transactions on the ledger.** The facility is declined today at bind
-(`DeclinedFacilityPass.VisitApplyCommitClause`, Annex A.4.3 item 2) and COMMIT and ROLLBACK are CONTINUE
-(`conformance:cases/14.9.7-COMMIT/pb137_commit_inert`, §14.9.7.4 GR1 / §14.9.36.4 GR1). PB3330's bar builds them on the engine, so the decline
-is reversed by its groups: the runtime half (PB3337) and the compiler half (PB3338).
+**2.2.1.10 APPLY COMMIT, COMMIT and ROLLBACK: per-run-unit transactions on the ledger.** PB3330's bar builds the facility on the
+engine, so its groups reversed the decline that Annex A.4.3 item 2 once recorded: the runtime half (PB3337) and the compiler
+half (PB3338, the clause accepted at bind). With no active APPLY COMMIT clause in the run unit, COMMIT and ROLLBACK still
+have the effect of a CONTINUE statement (§14.9.7.4 GR1 / §14.9.36.4 GR1; `conformance:cases/14.9.7-COMMIT/pb137_commit_inert`).
 
 - **The scope the standard requires (finding R1-2, derived 2026-10-17).** §14.9.7.1: the COMMIT statement *"makes permanent all
   changes to all files subject to active APPLY COMMIT clauses in the run unit"*; §14.9.36.4 GR3: ROLLBACK restores those files
@@ -1791,8 +1794,8 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   The standard defines no cross-file atomicity for a COMMIT that fails — §14.9.36.4 GR3 restores *"to the state they were
   in at the execution of the last COMMIT statement"*, which for the committed files is this one — and an all-or-nothing
   COMMIT across files would need a durable commit record outside any one file (a second file, refused by PB802, or a slot
-  of one file that another file's OPEN must consult). PB3338's row states the determination; whether the owner wants the
-  cross-file atomicity anyway is the one question in PB3330. *Round 4's self-attack: the round-3 COMMIT ran a removal statement first and
+  of one file that another file's OPEN must consult). PB3338's row states the determination; the owner chose the per-file
+  COMMIT over cross-file atomicity (2026-10-19, "Per file (Recommended)"; kb/Work PB3337, PB3454). *Round 4's self-attack: the round-3 COMMIT ran a removal statement first and
   promoted second, so a promotion refused after a landed removal (a medium that refuses an in-place write, or a revoked
   handle) reported failure with the transaction already gone, and the fatal path's ROLLBACK restored nothing; the reverse
   order reported success with the removal unsynced, which a power loss undid. A decision that is reported once must be
@@ -2279,7 +2282,7 @@ meeting another run unit's lock ('51', a RETRY of three attempts, and a RETRY th
 drift test of `Runtime/IO` (`WholeStoreBanDriftTests`; a specific rule of those files by `drift_rules.py`'s depth, not a `Sweep` trait's tree-wide sweep, measured PB3335) asserts that `src/WiseOwl.Cobol.Runtime/IO/Store/` is the ONLY code under
 `Runtime/IO` that calls `RandomAccess.Read`/`Write`/`GetLength`/`SetLength` on a keyed handle and that it never reads or writes
 more than one page per call, and that `ArrayPool<byte>.Shared.Rent` with a file-length argument appears nowhere under
-`Runtime/IO` (the shape `ReadImage` has today); (e) **a transaction costs its own records only** — a run unit's ROLLBACK after
+`Runtime/IO` (the shape the deleted `ReadImage` had); (e) **a transaction costs its own records only** — a run unit's ROLLBACK after
 m changed records writes ≤ m × ((k + 1) × d) + the HOLDINGS pages its entries sit on + the statement's own bookkeeping
 (the ROLLBACK row above) and leaves every record of another run unit byte-identical; a COMMIT reads its UNDO tree once.
 Witness (d) is `WholeStoreBanDriftTests` (kb/Work PB3335); (a) to (c) are `tests/WiseOwl.Cobol.Tests.Unit/Store/
@@ -2672,7 +2675,7 @@ any later crash — an answer the medium can later contradict is a defect.
 | nothing (the owner died) | whatever was handed over, in order | t rolled back by the next writable entry unless a COMMIT slot names it | the same by the fence | step 5 |
 
 The one determination the tables surface that the standard does not settle (a COMMIT over several files, one refused) is
-written at the COMMIT bullet and asked in PB3330.
+written at the COMMIT bullet; the owner chose per file (kb/Work PB3337, PB3454).
 
 #### 2.2.2 The sequential organization under APPLY COMMIT — the transaction journal (kb/Work PB3340)
 
