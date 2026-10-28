@@ -18,7 +18,12 @@
       *> decide the receivers, so CLAUDE.md rule 1 follows GnuCOBOL: any
       *> SIZE ERROR or NOT SIZE ERROR phrase keeps a resultant that
       *> would overflow unchanged (cobc typeck.c,
-      *> COB_STORE_KEEP_ON_OVERFLOW), and the CCVS85 programs (NC106A,
+      *> COB_STORE_KEEP_ON_OVERFLOW; GnuCOBOL's one exception, a
+      *> COMP-5/COMP-X/COMP-N receiver of a NOT-only statement,
+      *> which it stores as if no phrase were written, is
+      *> GnuCOBOL's error (the owner, kb/Work PB3989), so WiseOwl
+      *> keeps those receivers too), and the CCVS85
+      *> programs (NC106A,
       *> NC171A, ...) expect the same. That is CONFORMANCE.md
       *> DOC-A.1-70's determination for this statement: execution
       *> continues, a resultant that meets a size error keeps its value

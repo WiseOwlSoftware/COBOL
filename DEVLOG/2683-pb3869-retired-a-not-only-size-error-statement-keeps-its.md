@@ -18,7 +18,8 @@ sentence settles the NOT imperative only, and the no-phrase rules end in §14.6.
 "the implementor defines whether or not execution will continue, how it will continue, and how any receiving operands
 are affected". ISO does not control the receivers, so CLAUDE.md rule 1 goes to GnuCOBOL, and GnuCOBOL 3.2 keeps an
 overflowing resultant unchanged for any `[NOT] SIZE ERROR` phrase (`cobc/typeck.c`, `COB_STORE_KEEP_ON_OVERFLOW`), runs
-on and skips the NOT phrase: main's behaviour all along.
+on and skips the NOT phrase: main's behaviour all along. The one exception is a COMP-5, COMP-X or COMP-N receiver of a NOT-only statement, which GnuCOBOL stores as if no phrase were written (its `build_store_option` sets the flag for those usages only with ON SIZE ERROR);
+the owner ruled that exemption GnuCOBOL's error, so WiseOwl keeps those receivers too (kb/Work PB3989).
 
 **What lands instead.** The emitter, `EmitterState`, `BoundTree` and the two drift tests the fix edited are main's again.
 CONFORMANCE.md DOC-A.1-70 states the NOT-only disposition (receivers unchanged, execution continues, a zero divisor too,
@@ -36,3 +37,8 @@ so the tests that executed the changed method bodies fell from tier 1 to tier 2,
 1 was 75 cases where it should have been 1,850. `reach_cs` now reads every hunk and adds the file level beside the
 direct hits; replayed on the fix, leg 1 holds NC203A, one of the twelve, so the gate would have gone RED locally.
 Self-test arm "a declaration hunk beside a method-body hunk"; DESIGN-test-build-ci.md §3.13 states the rule.
+
+Split on the owner's order (2026-10-27 ~21:45 PDT), so the retirement lands without waiting on adjacent work: PB3989
+(the owner's decision: GnuCOBOL's COMP-5 / COMP-X / COMP-N exemption is GnuCOBOL's error), PB3990 (an inexact ROUNDED MODE IS PROHIBITED value
+overwrites a binary receiver on main, where §14.7.4.3 rule 7 keeps it), PB3991 (a version bump hides an emitter
+change's NIST reach from leg 1) and PB3992 (a correct core change waits on every adjacent finding) are filed.

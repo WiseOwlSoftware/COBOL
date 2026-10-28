@@ -991,7 +991,8 @@ if (_se) { <ON SIZE ERROR> } else { <NOT ON SIZE ERROR> }
 A statement written with ONLY a NOT ON SIZE ERROR phrase takes the same shape with an empty ON arm, on purpose: §14.7.5
 ignores the NOT phrase on a size error and §14.6.13.1.3 item 8 leaves the receivers to the implementor, and CONFORMANCE.md
 DOC-A.1-70 follows GnuCOBOL there (any `[NOT] SIZE ERROR` phrase keeps an overflowing resultant unchanged, as the CCVS85
-NC programs expect; kb/Work PB3869, retired).
+NC programs expect, except a COMP-5, COMP-X or COMP-N receiver of a NOT-only statement, which GnuCOBOL stores as if no phrase were written (its `build_store_option` sets the flag for those usages only with ON SIZE ERROR): GnuCOBOL's error, by the owner's decision, so WiseOwl keeps those too, kb/Work PB3989; kb/Work
+PB3869, retired).
 
 AT END / INVALID KEY / ON OVERFLOW / ON EXCEPTION: status flag from the op drives a branch; NOT form = the else (success). `var _st = CobolFile.ReadShared(f,…); if (CobolStatus.IsAtEnd(_st)) {AT END} else {NOT AT END}` (the ONE governed READ entry — there is no ungoverned one, kb/Work PB683). AT END↔EC-I-O-AT-END↔status 1x; INVALID KEY↔2x; ON OVERFLOW↔EC-OVERFLOW-STRING/UNSTRING; ON EXCEPTION (CALL)↔EC-PROGRAM-NOT-FOUND.
 
