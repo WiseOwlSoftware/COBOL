@@ -1,4 +1,4 @@
-## PB3330's close-out runs on Opus: the owner routes it away from Fable
+## Entry 2691 — 2026-10-28 10:41 PDT — PB3330's close-out runs on Opus: the owner routes it away from Fable
 
 All ten groups of the RELATIVE and INDEXED storage redesign have landed, which leaves only PB3330 open, the campaign
 lead itself. On the morning restart the planner held it because its `frontier_model: fable` field (PB3941, set for the
@@ -8,3 +8,4 @@ carries the `NEEDS-OPUS` marker, the `routing.opus_when.body_patterns` entry tha
 the note's `runtime/io` area would route it to the implementer's default model, Sonnet. A planner dry run now plans
 PB3330 with "model: PB3330: an open design question ((?i)NEEDS-OPUS)". A note that declares its own model would be the
 structural fix, which stays PB2294's.
+
