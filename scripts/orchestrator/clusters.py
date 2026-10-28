@@ -35,8 +35,6 @@ from inflight import LANDED_CLASSES, Claim, changed_files, collision_set  # noqa
 REPO = coord.REPO
 FIX_CLUSTERS = REPO / "tools" / "claude-skills" / "skills" / "agent-fleet" / "references" / "fix_clusters.py"
 
-FIX_CLUSTERS = REPO / "tools" / "claude-skills" / "skills" / "agent-fleet" / "references" / "fix_clusters.py"
-
 
 @dataclasses.dataclass
 class Note:

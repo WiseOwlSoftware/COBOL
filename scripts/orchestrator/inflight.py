@@ -24,7 +24,7 @@ import pathlib
 import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Collection, Iterable, Mapping, Sequence
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -268,14 +268,17 @@ class IndexPolicy:
     refusal). One policy for every reader, passed explicitly (kb/Work PB3203): the planner's admission and the landing
     check's guarantee are the same quantity, and the landing check's copy once read the newest COMMITTED index, which
     cannot see a file or type a landing added (PB2118 Draft 9, the eighth refuter's K1 (3)). Regenerating costs a
-    solution build plus the census host (110 s measured on a cold worktree, 2026-10-16), paid at most once per tree."""
+    solution build plus the census host (110 s measured on a cold worktree, 2026-10-16), paid at most once per tree.
+    `record_dir` is where a regeneration is written INSTEAD of `cache_dir` (the cache is then only read): a dry run, which
+    writes nothing to the coordination directory, regenerates into its own temporary one (kb/Work PB3803)."""
     cache_dir: pathlib.Path
     regenerate: bool = True
+    record_dir: pathlib.Path | None = None
 
     @classmethod
-    def of(cls, coord_dir: pathlib.Path, regenerate: bool = True) -> "IndexPolicy":
+    def of(cls, coord_dir: pathlib.Path, regenerate: bool = True, record_dir: pathlib.Path | None = None) -> "IndexPolicy":
         """The coordination directory's cache, `<coord>/member-index` (DESIGN-architecture-review §8.7)."""
-        return cls(coord_dir / "member-index", regenerate)
+        return cls(coord_dir / "member-index", regenerate, record_dir)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -320,7 +323,9 @@ def declared_sets(repo: pathlib.Path, policy: IndexPolicy) -> Callable[[str], Cl
 
     @functools.cache
     def index() -> dict:
-        return member_index.current(repo, policy.cache_dir, policy.regenerate)
+        return member_index.current(repo, policy.cache_dir, policy.regenerate,
+                                    recorder=(lambda r, _cache: member_index.record(r, policy.record_dir))
+                                    if policy.record_dir else None)
 
     @functools.cache
     def drifted() -> dict[str, str]:
@@ -492,8 +497,17 @@ _DIFF_FILE = re.compile(r"^diff --git a/(?:.+) b/(.+)$", re.M)
 
 
 #: The longest pathspec inflight_units passes on one command line (Windows caps a command line at 32,767 characters);
-#: past it the batched diff reads every file of every pair and keeps the shared ones.
+#: past it the diff reads every file and keeps the shared ones.
 PATHSPEC_CHARS = 20000
+
+
+def bounded_pathspec(files: Iterable[str]) -> list[str]:
+    """`files` sorted as a pathspec for one git command line, or [] (the whole diff: the caller keeps the files it
+    wants, shared_hunks) when they would pass PATHSPEC_CHARS. THE one rule of both diff arms of inflight_units, the
+    committed and the uncommitted (kb/Work PB3786: a worktree in the middle of a merge holds every file main changed as
+    uncommitted, 3,331 paths, and the unbounded arm died with WinError 206)."""
+    spec = sorted(set(files))
+    return spec if sum(len(f) + 1 for f in spec) <= PATHSPEC_CHARS else []
 
 
 def split_patch(patch: str) -> dict[str, list[tuple[int, int, int, int]]]:
@@ -502,6 +516,12 @@ def split_patch(patch: str) -> dict[str, list[tuple[int, int, int, int]]]:
     heads = list(_DIFF_FILE.finditer(patch))
     return {h.group(1): source_units.hunks(patch[h.end():heads[k + 1].start() if k + 1 < len(heads) else len(patch)])
             for k, h in enumerate(heads)}
+
+
+def shared_hunks(patch: str, shared: Collection[str]) -> dict[str, list[tuple[int, int, int, int]]]:
+    """split_patch of `patch`, kept to the `shared` files: a diff read without a pathspec (bounded_pathspec) names every
+    changed file, and a file nobody else holds is never read."""
+    return {f: hs for f, hs in split_patch(patch).items() if f in shared}
 
 
 def inflight_units(busy: Mapping[str, InFlight], meta: Mapping[str, dict], claims: Iterable[Claim],
@@ -525,17 +545,16 @@ def inflight_units(busy: Mapping[str, InFlight], meta: Mapping[str, dict], claim
         return
     try:
         committed = [(o, x, m) for o, x, m in rows if m.get("base") and set(m.get("committed", ())) & shared]
-        spec = sorted({f for _, _, m in committed for f in set(m["committed"]) & shared})
-        patches = git_batch.diff_patches(repo, [(m["sha"], m["base"]) for _, _, m in committed],
-                                         *(spec if sum(len(f) + 1 for f in spec) <= PATHSPEC_CHARS else []), git=git)
-        hunks_of = {o: split_patch(p) for (o, _, _), p in zip(committed, patches)}
+        spec = bounded_pathspec(f for _, _, m in committed for f in set(m["committed"]) & shared)
+        patches = git_batch.diff_patches(repo, [(m["sha"], m["base"]) for _, _, m in committed], *spec, git=git)
+        hunks_of = {o: shared_hunks(p, shared) for (o, _, _), p in zip(committed, patches)}
         loose_of: dict[str, dict[str, list[tuple[int, int, int, int]]]] = {}
         for o, x, m in rows:
-            if (lf := sorted(set(m.get("uncommitted", ())) & shared)) and m.get("path"):
-                r = git("diff", "-U0", "--no-renames", "HEAD", "--", *lf, cwd=m["path"])
+            if (lf := set(m.get("uncommitted", ())) & shared) and m.get("path"):
+                r = git("diff", "-U0", "--no-renames", "HEAD", "--", *bounded_pathspec(lf), cwd=m["path"])
                 if r.returncode != 0:
                     raise git_batch.GitError(f"git diff HEAD in {m['path']} failed: {r.stderr.strip()[:200]}")
-                loose_of[o] = split_patch(r.stdout)
+                loose_of[o] = shared_hunks(r.stdout, lf)
         specs = sorted({f"{m['base']}:{f}" for o, _, m in committed for f in hunks_of[o]}
                        | {f"{m['sha']}:{f}" for o, _, m in committed for f in hunks_of[o]}
                        | {f"{m['sha']}:{f}" for o, _, m in rows for f in loose_of.get(o, {})})
