@@ -152,6 +152,36 @@ public enum RepositoryGroupUsage
     National = 2,
 }
 
+/// <summary>The kind of one element of a PROCEDURE DIVISION header's RAISING phrase (ISO §14.2.1; §8.13 "the exceptions that
+/// may be raised by the runtime element"), as persisted: an exception-name, or the identity of an object class or an
+/// interface.</summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
+public enum RepositoryRaisingKind
+{
+    /// <summary>An exception-name (a level-3 EC-USER exception condition).</summary>
+    ExceptionName = 0,
+    /// <summary>An object class (optionally FACTORY OF).</summary>
+    ObjectClass = 1,
+    /// <summary>An interface.</summary>
+    Interface = 2,
+}
+
+/// <summary>The SYNCHRONIZED clause of a described item (ISO §13.18.55.2: <c>{SYNCHRONIZED | SYNC} [LEFT | RIGHT]</c>), as
+/// persisted. The three forms are three different clauses, which §8.5.3.1 compares ("the same … SYNCHRONIZED … clauses"),
+/// so the phrase is recorded, never collapsed to a flag (kb/Work PB538).</summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
+public enum RepositorySynchronized
+{
+    /// <summary>No SYNCHRONIZED clause describes the item.</summary>
+    None = 0,
+    /// <summary><c>SYNCHRONIZED</c> with neither phrase (§13.18.55.4 GR3).</summary>
+    Unqualified = 1,
+    /// <summary><c>SYNCHRONIZED LEFT</c> (§13.18.55.4 GR4).</summary>
+    Left = 2,
+    /// <summary><c>SYNCHRONIZED RIGHT</c> (§13.18.55.4 GR5).</summary>
+    Right = 3,
+}
+
 /// <summary>The length field a PREFIXED dynamic-length structure puts before its data (ISO §12.3.7.4 GR18), as persisted.</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public enum RepositoryPrefix

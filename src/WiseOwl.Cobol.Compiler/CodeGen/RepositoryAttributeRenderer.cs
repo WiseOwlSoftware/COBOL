@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
@@ -25,16 +26,7 @@ internal static class RepositoryAttributeRenderer
     /// the order the entries are emitted (§6.5). The <c>[CobolUnit]</c> of each entry is written from the same list by
     /// <see cref="UnitRecord"/>, so the index and the records cannot name different units.</summary>
     internal static IReadOnlyList<RepositoryUnitRow> IndexOf(IEnumerable<BoundUnit> entryUnits) =>
-        [.. entryUnits.Select(u => new RepositoryUnitRow(KindOf(u), u.ExternalizedName, u.Name))];
-
-    /// <summary>What a program, function or prototype unit is, as the repository records it (§5.1).</summary>
-    internal static RepositoryUnitKind KindOf(BoundUnit unit) => (unit.IsFunction, unit.IsPrototype) switch
-    {
-        (false, false) => RepositoryUnitKind.Program,
-        (true, false) => RepositoryUnitKind.Function,
-        (false, true) => RepositoryUnitKind.ProgramPrototype,
-        (true, true) => RepositoryUnitKind.FunctionPrototype,
-    };
+        [.. entryUnits.Select(u => new RepositoryUnitRow(RepositoryCodec.KindOf(u), u.ExternalizedName, u.Name))];
 
     /// <summary>The module's assembly-level record, <c>[assembly: CobolRepository(schema, runtimeVersion, callAbi, …)]</c>
     /// (§6.2, §7.1): the versions it was compiled against (so a run unit can refuse a module whose runtime major or call ABI
@@ -63,7 +55,7 @@ internal static class RepositoryAttributeRenderer
 
     /// <summary>A unit's <c>[CobolUnit(kind, name, externalizedName)]</c> (§6.2), written on its host-entry class.</summary>
     internal static string UnitRecord(BoundUnit unit) =>
-        $"[global::{typeof(CobolUnitAttribute).FullName}(global::{typeof(RepositoryUnitKind).FullName}.{KindOf(unit)}, "
+        $"[global::{typeof(CobolUnitAttribute).FullName}(global::{typeof(RepositoryUnitKind).FullName}.{RepositoryCodec.KindOf(unit)}, "
         + $"{CsLiteral(unit.Name)}, {CsLiteral(unit.ExternalizedName)})]";
 
     /// <summary>The version of this compiler, as a record states it. The compiler and the runtime ship from one package
