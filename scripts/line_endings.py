@@ -184,8 +184,7 @@ def writer_calls(source: str) -> list[ast.Call]:
 
 
 def live_python(root: Path) -> list[str]:
-    files = git(root, "ls-files", "-z", "--", "*.py").stdout.split("\0")
-    return sorted(f for f in files if f.startswith(live_tools.ROOTS))
+    return live_tools.tracked(root, (".py",))
 
 
 def scan_writers(root: Path) -> list[str]:

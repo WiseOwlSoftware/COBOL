@@ -22,8 +22,9 @@ PYTHONIOENCODING for a child (tests/_shared/PythonInstrument.cs, scripts/self_te
 Start-PyBackground) keep doing so, as "plus likely test cases" asks.
 
 THE RULE (--check), over every tracked .py file under live_tools.ROOTS:
-  1. COPY    no file but this one reconfigures a standard stream's encoding or errors handler: a `.reconfigure(` call
-             (or a `python -c` string holding one) that passes `encoding=` or `errors=`. A buffering-only call such as
+  1. COPY    no file but this one reconfigures a standard stream's encoding or errors handler: a `reconfigure(` call
+             (or a `python -c` string holding one) that passes `encoding=` or `errors=` or `**` keywords, on however
+             many lines it is written (read on the parse tree, kb/Work PB3822). A buffering-only call such as
              `sys.stdout.reconfigure(line_buffering=True)` is no copy.
   2. ENTRY   a file with an `if __name__ == "__main__":` block imports ensure_utf8 from this module and calls it as that
              block's first statement; a file with no such block that runs code at import (a hook, a stand-alone
@@ -43,24 +44,44 @@ import sys
 _STREAMS = (("stdin", "surrogateescape"), ("stdout", "surrogateescape"), ("stderr", "backslashreplace"))
 
 
+def _is_utf8(stream) -> bool:
+    import codecs
+    try:
+        return codecs.lookup(stream.encoding).name == "utf-8"
+    except (LookupError, TypeError):  # no encoding, or one this interpreter does not know: not UTF-8
+        return False
+
+
 def ensure_utf8(line_buffering: bool = False) -> None:
     """Put stdin, stdout and stderr in UTF-8; with `line_buffering`, also flush stdout at every newline (a gate's log
-    that another process tails). Safe to call any number of times, on any platform, and in a process with no console
-    or with a stream replaced by one that cannot be reconfigured (None under pythonw, a StringIO under a capture):
-    such a stream is left as it is."""
+    that another process tails). IDEMPOTENT BY CONSTRUCTION (kb/Work PB3823): a stream already in the target state, as
+    every stream is under UTF-8 mode (PEP 540) or after an earlier call, is not touched, so a second call is a no-op
+    even after the stream was read (`TextIOWrapper.reconfigure` refuses to change the encoding then, with
+    io.UnsupportedOperation). That refusal still propagates for a stream that is NOT yet UTF-8: a call that comes
+    after a read in another encoding has decoded those bytes wrongly and must not pass for a success. Safe on any
+    platform, and in a process with no console or with a stream replaced by one that cannot be reconfigured (None under
+    pythonw, a StringIO under a capture): such a stream is left as it is."""
     for name, errors in _STREAMS:
-        reconfigure = getattr(getattr(sys, name), "reconfigure", None)
-        if reconfigure is not None:
-            buffering = {"line_buffering": True} if line_buffering and name == "stdout" else {}
-            reconfigure(encoding="utf-8", errors=errors, **buffering)
+        stream = getattr(sys, name)
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        change = {} if _is_utf8(stream) and getattr(stream, "errors", None) == errors \
+            else {"encoding": "utf-8", "errors": errors}
+        if line_buffering and name == "stdout" and not getattr(stream, "line_buffering", False):
+            change["line_buffering"] = True
+        if change:
+            reconfigure(**change)
 
 
 # ── the audit (--check, --self-test): imported only when this file runs as a program ─────────────────────────────────
 
 THIS = "scripts/standard_streams.py"
 IMPORT = "from standard_streams import ensure_utf8"
-#: A copy of the rule: a reconfigure call that sets the encoding or the errors handler, in code or in a `-c` string.
-COPY_RE = r"\.reconfigure\([^)]*\b(?:encoding|errors)\s*="
+#: A copy of the rule inside a STRING (a `python -c` program): a reconfigure call that sets the encoding or the errors
+#: handler, or passes `**` keywords that may. A string is text, not a tree, so the match is a regex, and `[^)]*` and
+#: `\s*` cross line breaks. Code is read on the parse tree (`_copy_lines`), never by this pattern.
+COPY_RE = r"\.reconfigure\([^)]*(?:\b(?:encoding|errors)\s*=|\*\*)"
 #: The usage-error probe's option: no parser in this tree defines it.
 UNKNOWN_OPTION = "--standard-streams-probe-unknown-option"
 PROBE_TIMEOUT_S = 120
@@ -102,15 +123,34 @@ def _runs_at_import(node) -> bool:
     return True
 
 
+def _copy_lines(tree) -> set[int]:
+    """The line of each COPY (rule 1) in a parsed file, however it is written (kb/Work PB3822): a call of `reconfigure`
+    (as `x.reconfigure(...)`, or a bare name bound to it) with an `encoding=` or `errors=` keyword or any `**`
+    keywords, wrapped over any number of lines; and, in a string constant, the COPY_RE match, at the line it is on.
+    A method bound to a name other than `reconfigure` and called through that name is not followed."""
+    import ast
+    import re
+    lines = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func = node.func
+            name = func.attr if isinstance(func, ast.Attribute) else func.id if isinstance(func, ast.Name) else None
+            if name == "reconfigure" and any(k.arg in ("encoding", "errors") or k.arg is None for k in node.keywords):
+                lines.add(node.lineno)
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if (m := re.search(COPY_RE, node.value)) is not None:
+                lines.add(node.lineno + node.value.count(chr(10), 0, m.start()))
+    return lines
+
+
 def scan(rel: str, source: str) -> list[str]:
     """Rules 1 and 2 over one file's source; each finding is `path:line: RULE: what`."""
     import ast
-    import re
     if rel == THIS:
         return []
-    found = [f"{rel}:{n}: COPY: reconfigures a standard stream's encoding itself; call standard_streams.ensure_utf8()"
-             for n, line in enumerate(source.splitlines(), 1) if re.search(COPY_RE, line)]
     tree = ast.parse(source, filename=rel)
+    found = [f"{rel}:{n}: COPY: reconfigures a standard stream's encoding itself; call standard_streams.ensure_utf8()"
+             for n in sorted(_copy_lines(tree))]
     guard = next((n for n in tree.body if _is_main_guard(n)), None)
     calls = any(isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == "ensure_utf8"
                 for n in ast.walk(tree))
@@ -177,11 +217,8 @@ def probe_cli(repo, rel: str, source: str) -> list[str]:
 
 
 def live_python(repo) -> list[str]:
-    import live_tools  # this directory's: the one list of the live tools' trees
-    import subprocess
-    out = subprocess.run(["git", "-C", str(repo), "ls-files", "-z", "--", *live_tools.ROOTS], capture_output=True,
-                         check=True).stdout.decode("utf-8")
-    return sorted(p for p in out.split("\0") if p.endswith(".py") and (repo / p).is_file())
+    import live_tools  # this directory's: the one listing of the live tools' trees
+    return live_tools.tracked(repo, (".py",))
 
 
 def check(repo, probes: bool = True) -> int:
@@ -206,8 +243,11 @@ def check(repo, probes: bool = True) -> int:
 
 
 def self_test(repo) -> int:
+    import os
+    import subprocess
     import tempfile
     from pathlib import Path
+    scripts = Path(__file__).resolve().parent
     failures: list[str] = []
 
     def expect(name: str, got, want) -> None:
@@ -229,6 +269,20 @@ def self_test(repo) -> int:
                                         " errors='replace')" + main, ["COPY"]),
         ("a copy inside a `python -c` string",
          head + "ARGV = ['-c', \"import sys; sys.stdout.reconfigure(encoding='utf-8'); print(1)\"]" + main, ["COPY"]),
+        ("a copy wrapped onto a second line (PB3822)",
+         head + "def main():\n    sys.stdout.reconfigure(\n        encoding='utf-8')" + main, ["COPY"]),
+        ("an errors-only copy after a buffering keyword on the line before",
+         head + "def main():\n    sys.stdout.reconfigure(line_buffering=True,\n                           errors='replace')"
+         + main, ["COPY"]),
+        ("a copy passed through **kwargs (PB3822)", head + "def main():\n    sys.stdout.reconfigure(**KW)" + main,
+         ["COPY"]),
+        ("a copy through a bound method named reconfigure",
+         head + "def main():\n    reconfigure = sys.stdout.reconfigure\n    reconfigure(encoding='utf-8')" + main,
+         ["COPY"]),
+        ("a copy inside a wrapped `python -c` string",
+         head + "ARGV = ['-c', '''import sys\\nsys.stdout.reconfigure(\\n    encoding='utf-8')''']" + main, ["COPY"]),
+        ("a reconfigure named in a comment is no copy",
+         head + "def main():\n    # sys.stdout.reconfigure(encoding='utf-8')\n    pass" + main, []),
         ("a buffering-only reconfigure is no copy",
          head + "def main():\n    sys.stdout.reconfigure(line_buffering=True)" + main, []),
         ("a __main__ block without the call", head + "def main(): pass\n\nif __name__ == '__main__':\n    main()\n",
@@ -248,10 +302,33 @@ def self_test(repo) -> int:
     for name, source, want in cases:
         expect(f"scan: {name} -> {want}", rules(source), want)
     expect("scan: this file is the one place, not a copy", scan(THIS, "x.reconfigure(encoding='utf-8')\n"), [])
+    expect("scan: a wrapped copy is reported at its call's first line, and one inside a string at the line it is on",
+           [f.split(": ")[0] for f in scan("scripts/x.py", "import sys\nsys.stdout.reconfigure(\n    encoding='u')\n"
+                                                           "S = '''a\nb.reconfigure(\nerrors='r')'''\n") if "COPY" in f],
+           ["scripts/x.py:2", "scripts/x.py:5"])
+
+    # PB3823: a second call changes nothing, even after stdin was read, where reconfigure would refuse.
+    def run_stdin(program: str, **env: str) -> tuple[int, str, str]:
+        r = subprocess.run([sys.executable, "-c", f"import sys; sys.path.insert(0, {str(scripts)!r})\n{program}"],
+                           input=b"a line\n", capture_output=True, timeout=PROBE_TIMEOUT_S,
+                           env={**os.environ, **env})
+        return r.returncode, r.stdout.decode("utf-8", errors="replace").strip(), r.stderr.decode("utf-8", errors="replace")
+
+    twice = "from standard_streams import ensure_utf8\n"
+    cp1252 = {"PYTHONIOENCODING": "cp1252", "PYTHONUTF8": "0"}
+    for label, program, env in (
+            ("a call, a read of stdin, then a second call", twice + "ensure_utf8(); sys.stdin.readline(); "
+             "ensure_utf8(); ensure_utf8(line_buffering=True); print('ok')", cp1252),
+            ("a read of stdin under UTF-8 mode, then two calls", twice + "sys.stdin.readline(); ensure_utf8(); "
+             "ensure_utf8(); print('ok')", {"PYTHONUTF8": "1", "PYTHONIOENCODING": ""})):
+        code, out, err = run_stdin(program, **env)
+        expect(f"ensure_utf8 twice: {label} -> exit 0 and no error", (code, out, err.strip()), (0, "ok", ""))
+    code, out, err = run_stdin(twice + "sys.stdin.readline(); ensure_utf8(); print('ok')", **cp1252)
+    expect("ensure_utf8 after a cp1252 read of stdin is refused, not passed off as a success",
+           (code, "UnsupportedOperation" in err), (1, True))
 
     # Rule 3 can fail on this host: the probe environment really is hostile, and the call really cures it.
-    scripts = Path(__file__).resolve().parent
-    planted = ("import argparse, sys\n"
+    planted =("import argparse, sys\n"
                f"sys.path.insert(0, {str(scripts)!r})\n{IMPORT}\n\n"
                "def main():\n"
                "    ap = argparse.ArgumentParser(prog='⛔probe', description='⛔ → §')\n"

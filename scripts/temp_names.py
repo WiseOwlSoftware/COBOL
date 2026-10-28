@@ -36,7 +36,6 @@ from __future__ import annotations
 import argparse
 import ast
 import re
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -249,17 +248,13 @@ def scan(path: str, text: str) -> list[Finding]:
 
 
 def live_scripts(root: Path) -> list[str]:
-    out = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", *live_tools.ROOTS], capture_output=True,
-                         check=True).stdout.decode("utf-8")
-    return sorted(p for p in out.split("\0") if p.endswith(SUFFIXES))
+    return live_tools.tracked(root, SUFFIXES)
 
 
 def scan_tree(root: Path) -> list[Finding]:
     found = []
     for rel in live_scripts(root):
-        p = root / rel
-        if p.is_file():  # a tracked file deleted in this working tree is no script
-            found += scan(rel, p.read_text(encoding="utf-8"))
+        found += scan(rel, (root / rel).read_text(encoding="utf-8"))
     return found
 
 
