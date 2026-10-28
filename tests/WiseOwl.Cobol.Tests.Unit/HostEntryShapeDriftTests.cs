@@ -335,6 +335,55 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
             $"a host-entry argument not stated by CallEmitter.Described: {a}"));
     }
 
+    /// <summary>⛔ ONE HOST ENTRY PER EXTERNALIZED NAME (DESIGN-external-repository §7.2; kb/Work PB3872). A group holding a
+    /// prototype and its definition publishes the definition's entry only, and the two pair by the Annex C fold
+    /// (<c>ExternalizedNames.Same</c>; ISO §8.3.2.2 2): every source element naming one externalized name refers to the same instance), so a
+    /// prototype <c>psub</c> beside a definition <c>PSUB</c> publishes ONE class — the definition's, spelled as written.</summary>
+    [Fact]
+    public void APrototype_BesideItsDefinition_PairsByTheAnnexCFold_AndPublishesOneEntry()
+    {
+        const string source = """
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. psub IS PROTOTYPE.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 A PIC 9(4).
+               PROCEDURE DIVISION USING A.
+               END PROGRAM psub.
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PMAIN.
+               ENVIRONMENT DIVISION.
+               CONFIGURATION SECTION.
+               REPOSITORY. PROGRAM psub.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 W PIC 9(4) VALUE 7.
+               PROCEDURE DIVISION.
+                   CALL psub USING W.
+                   STOP RUN.
+               END PROGRAM PMAIN.
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PSUB.
+               DATA DIVISION.
+               LINKAGE SECTION.
+               01 B PIC 9(4).
+               PROCEDURE DIVISION USING B.
+                   DISPLAY "PSUB " B.
+                   GOBACK.
+               END PROGRAM PSUB.
+               """;
+        // The main program is the first definition; the prototype is not one.
+        var (ok, stdout, detail) = CompileAndRun(source, dialectLevel: 2023);
+        Assert.True(ok, detail);
+        Assert.Equal("PSUB 0007", stdout);
+        var root = CSharpSyntaxTree.ParseText(File.ReadAllText(Path.Combine(TempDir, "prog.g.cs"))).GetRoot();
+        var entries = root.DescendantNodes().OfType<ClassDeclarationSyntax>()
+            .Where(c => c.Members.OfType<MethodDeclarationSyntax>().Any(m => m.Identifier.Text == "Call")
+                        && c.Modifiers.Any(SyntaxKind.StaticKeyword))
+            .Select(c => c.Identifier.Text).Order().ToArray();
+        Assert.Equal(["PMAIN", "PSUB"], entries);
+    }
+
     /// <summary>The §17.3 collision fixture: words a published name could collide with — a word twice in one record
     /// (F in S1 and S2, beside the record's own F), F beside F-2, words spelling the record's own members
     /// (<c>AsImage</c>, <c>FromImage</c>, <c>Equals</c>, <c>ToString</c>, <c>GetHashCode</c>), a member spelling its
@@ -372,6 +421,72 @@ public sealed class HostEntryShapeDriftTests : WiseOwlCobolTestBase
                    GOBACK.
                END PROGRAM L-G-Record.
                """;
+
+    /// <summary>⛔ EVERY OUTERMOST UNIT HAS ITS ENTRY (DESIGN-external-repository §7.2, §17.3; kb/Work PB2100, PB3872). Over
+    /// §17.2's corpus (<see cref="RepositoryRoundTripCorpusTests.Corpus"/>), the emitted module of each case carries exactly
+    /// one <c>[CobolUnit]</c> per outermost program, function and prototype unit — except a prototype its group also defines,
+    /// which is one unit with its definition however the two names are cased (ISO §8.3.2.2 2), the Annex C fold; kb/Work
+    /// PB3872) — and per class and interface, each on a type declaration (a host entry is a <c>public static class</c>), and
+    /// its <c>Units</c> index lists exactly those units in the order emitted. A unit without an entry would leave the
+    /// repository silently (§7.2), so this is the Fact that no unit is withheld.</summary>
+    [Fact]
+    public void EveryOutermostUnitOfTheCorpus_PublishesExactlyOneEntryAndRecord()
+    {
+        var failures = new System.Collections.Concurrent.ConcurrentBag<string>();
+        int checkedCases = 0, units = 0, folded = 0;
+        Parallel.ForEach(RepositoryRoundTripCorpusTests.Corpus(), c =>
+        {
+            string at = $"{c.Edition}/{c.Id}";
+            try
+            {
+                var comp = RepositoryCodecTests.BindFile(c.Path, c.Edition, c.Format);
+                string generated = new WiseOwl.Cobol.CodeGen.CSharpEmitter().EmitBound(comp, "corpus", repositoryUpdate: false);
+                var entries = WiseOwl.Cobol.CodeGen.HostEntryEmitter.EntryUnits(comp.Units).ToList();
+                var expected = WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, comp.ClassUnits, entries)
+                    .Select(r => $"{r.Kind}|{SymbolDisplay.FormatLiteral(r.Word, quote: true)}|{SymbolDisplay.FormatLiteral(r.ExternalizedName, quote: true)}").ToList();
+                var lines = generated.Split('\n');
+                var emitted = new List<string>();
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (UnitAttribute.Match(lines[i]) is not { Success: true } m) continue;
+                    emitted.Add($"{m.Groups[1].Value}|{m.Groups[2].Value}|{m.Groups[3].Value}");
+                    int next = i + 1;
+                    while (next < lines.Length && lines[next].TrimStart().StartsWith('[')) next++;
+                    var declaration = next < lines.Length ? TypeDeclaration.Match(lines[next]) : null;
+                    bool hostKind = m.Groups[1].Value is "Program" or "Function" or "ProgramPrototype" or "FunctionPrototype";
+                    if (declaration is not { Success: true } || hostKind != (declaration.Groups[1].Value == "static class"))
+                        failures.Add($"{at}: [CobolUnit({m.Groups[1].Value}, {m.Groups[2].Value})] is not on {(hostKind ? "a host-entry class" : "its class or interface")}");
+                }
+                if (!emitted.SequenceEqual(expected))
+                    failures.Add($"{at}: the module's [CobolUnit]s are [{string.Join(", ", emitted)}], its units [{string.Join(", ", expected)}]");
+                var index = IndexRows.Match(generated);
+                string rows = index.Success ? index.Groups[1].Value : "";
+                string expectedRows = string.Join(", ", WiseOwl.Cobol.CodeGen.RepositoryAttributeRenderer.IndexOf(comp.OoClasses.Interfaces, comp.ClassUnits, entries)
+                    .Select(r => SymbolDisplay.FormatLiteral(WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.EncodeUnit(r.Kind, r.ExternalizedName, r.Word), quote: true)));
+                if (rows != expectedRows) failures.Add($"{at}: the Units index is [{rows}], the units [{expectedRows}]");
+                Interlocked.Add(ref units, emitted.Count);
+                Interlocked.Add(ref folded, comp.Units.Count(u => u is { Parent: null, IsPrototype: true }) - entries.Count(u => u.IsPrototype));
+                Interlocked.Increment(ref checkedCases);
+            }
+            catch (Exception e)
+            {
+                failures.Add($"{at}: {e.GetType().Name}: {e.Message.Split('\n')[0]}");
+            }
+        });
+        Assert.True(failures.IsEmpty, $"{failures.Count} corpus cases withhold or duplicate a unit's entry:\n  "
+            + string.Join("\n  ", failures.Order(StringComparer.Ordinal).Take(60)));
+        Assert.True(units > checkedCases && folded > 20, $"only {units} units over {checkedCases} cases, {folded} prototypes folded into their definitions — the scan measured nothing");
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex UnitAttribute = new(
+        @"^\s*\[global::WiseOwl\.Cobol\.Runtime\.Repository\.CobolUnitAttribute\(global::WiseOwl\.Cobol\.Runtime\.Repository\.RepositoryUnitKind\.(\w+), (""(?:[^""\\]|\\.)*""), (""(?:[^""\\]|\\.)*"")",
+        System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    private static readonly System.Text.RegularExpressions.Regex TypeDeclaration = new(
+        @"^\s*public (?:sealed )?(static class|class|interface) ", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    private static readonly System.Text.RegularExpressions.Regex IndexRows = new(
+        @"Units = new string\[\] \{ (.*?) \}\)\]", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
     /// <summary>⛔ THE PUBLISHED NAMES ARE ALLOCATED (DESIGN-external-repository §17.3 "Names"). Every name of a host class,
     /// its record structs and their members comes from <c>CsNames.Allocate</c> over its scope, so the collision fixture
