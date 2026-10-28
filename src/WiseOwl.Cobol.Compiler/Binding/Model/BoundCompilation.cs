@@ -28,8 +28,13 @@ using Core = CobolParserCore;
 /// <see cref="OoConformance.ValidateImplements"/>; the interface emitter renders one explicit implementation per pair).</param>
 /// <param name="Turn">The group's compile-time TurnState (ISO §7.3.25; EC deep-dive D10).</param>
 /// <param name="EcActive">ANY EC-model feature in use (gates every machinery emission; SSOT §18.16).</param>
+/// <param name="Edition">The ISO edition (<c>EditionContext.DialectLevel</c>: 85, 2002, 2014 or 2023) the group was bound under;
+/// the module's repository record names it (DESIGN-external-repository §5.4 item 2).</param>
 /// <param name="AnyFiles">Any unit/class declares files or declaratives (drives the IO using + the run-unit-start
 /// FileInit; the §14.6.11 termination CloseAll is runtime-side in ProgramTable.RunMain, run-unit-scoped).</param>
+/// <param name="SignatureClasses">The group's restricted-pointer signature classes (<c>BindSession.SignatureClasses</c>,
+/// ISO §13.18.60.4 GR25 / GR26): the one partition a decoded repository record's prototypes are admitted into
+/// (<see cref="PrototypeSignatureClasses.Admit"/>; DESIGN-external-repository §6.4 part 2; kb/Work PB2100).</param>
 internal sealed record BoundCompilation(
     Core.CompilationUnitContext Tree,
     IReadOnlyList<BoundUnit> Units,
@@ -39,4 +44,6 @@ internal sealed record BoundCompilation(
     IReadOnlyList<AdapterPair> OoAdapters,
     TurnState Turn,
     bool EcActive,
-    bool AnyFiles);
+    bool AnyFiles,
+    int Edition,
+    PrototypeSignatureClasses SignatureClasses);

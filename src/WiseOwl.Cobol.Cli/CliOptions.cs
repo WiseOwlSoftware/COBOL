@@ -27,6 +27,8 @@ namespace WiseOwl.Cobol.Cli;
 /// <param name="NumericDisplay">The form DISPLAY gives a numeric operand (<c>--numeric-display</c>; kb/Work PB3505,
 /// owner decision PB3467; ISO §14.9.11.4 GR1, Annex A.1 item 56). Defaults to
 /// <see cref="WiseOwl.Cobol.Binding.NumericDisplayForm.Decimal"/> — the decimal point and a leading sign.</param>
+/// <param name="RepositoryUpdate">Whether the compilation updates the external repository (<c>--repository-update on|off</c>;
+/// ISO §8.13, DESIGN-external-repository §9.1). Defaults to on.</param>
 internal sealed record CliOptions(
     string SourcePath,
     string? OutputPath,
@@ -39,4 +41,5 @@ internal sealed record CliOptions(
     WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat SourceFormat =
         WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat.Fixed,
     bool FlagExtensions = false,
-    WiseOwl.Cobol.Binding.NumericDisplayForm NumericDisplay = WiseOwl.Cobol.Binding.NumericDisplayForm.Decimal);
+    WiseOwl.Cobol.Binding.NumericDisplayForm NumericDisplay = WiseOwl.Cobol.Binding.NumericDisplayForm.Decimal,
+    bool RepositoryUpdate = true);
