@@ -2613,7 +2613,6 @@ static WiseOwl.Cobol.Runtime.CobolFloat.DivChecked(double a, double b) -> double
 static WiseOwl.Cobol.Runtime.CobolFloat.FromBinary32Bits(uint bits) -> float
 static WiseOwl.Cobol.Runtime.CobolFloat.FromBinary64Bits(ulong bits) -> double
 static WiseOwl.Cobol.Runtime.CobolFloat.InBinary64Range(double r, bool nonzero, string! what) -> double
-static WiseOwl.Cobol.Runtime.CobolFloat.InexactAtScale(double v, int scale) -> bool
 static WiseOwl.Cobol.Runtime.CobolFloat.LowOrderDigits(double v, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolFloat.MulChecked(double a, double b) -> double
 static WiseOwl.Cobol.Runtime.CobolFloat.ScaledToDouble(System.Int128 unscaled, int scale) -> double
@@ -2824,7 +2823,6 @@ static WiseOwl.Cobol.Runtime.CobolNum.CompareU(System.UInt128 a, int aScale, Sys
 static WiseOwl.Cobol.Runtime.CobolNum.DigitMagnitude(System.ReadOnlySpan<char> image) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolNum.DigitMagnitude(string! image) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolNum.Divide(System.Int128 a, int aScale, System.Int128 b, int bScale, int resultScale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
-static WiseOwl.Cobol.Runtime.CobolNum.DivideOrThrow(System.Int128 a, int aScale, System.Int128 b, int bScale, int resultScale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolNum.FormatDisplay(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile receiver) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.FormatDisplay(string! image, in WiseOwl.Cobol.Runtime.NumProfile receiver) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.FormatDisplaySigned(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile receiver) -> string!
