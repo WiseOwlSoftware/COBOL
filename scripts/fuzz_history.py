@@ -31,7 +31,7 @@ import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parent
-HISTORY = REPO / "docs" / "rearchitecture" / "evidence" / "differential-fuzz-history.json"
+HISTORY = REPO / "conformance-suite" / "fuzz-history.json"
 RUN_ID = re.compile(r"fuzz-\d{8}-\d{6}")
 
 #: Display order and colour token of every verdict an adjudicator may write (design §4.1); the test holds this list equal

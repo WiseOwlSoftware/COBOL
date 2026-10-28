@@ -4,7 +4,7 @@ The owner asked for a cumulative summary of the fuzz nights, published as an Art
 project, and maintained automatically as part of every run. Until now each night's numbers lived in its git-ignored run
 directory and its evidence record's prose, and its verdict files in session scratch, so no one could see the trend.
 
-- `docs/rearchitecture/evidence/differential-fuzz-history.json` is the new tracked record, one entry per night. It holds
+- `conformance-suite/fuzz-history.json` is the new tracked record, one entry per night. It holds
   run.json, report.md's headline, the harness classes, the adjudicators' verdict tally and the night's WiseOwl note ids. It
   holds no statuses. It was backfilled for nights 1 to 7. Nights 3 to 7 have tallies, taken from the verdict files that
   survived in the triaging sessions' scratch; nights 1 and 2 were triaged before verdict files existed.
