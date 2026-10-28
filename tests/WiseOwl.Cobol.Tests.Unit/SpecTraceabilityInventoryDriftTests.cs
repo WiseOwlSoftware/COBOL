@@ -61,6 +61,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class SpecTraceabilityInventoryDriftTests
 {
+    /// <summary>The test sources a <c>unit:</c>, <c>conformance-test:</c> or <c>characterization:</c> test-ref resolves
+    /// against (kb/Work PB3814): the COMMITTED tests, never a walk of <c>tests/</c> from the file system, which enters
+    /// every running test host's <c>bin/</c> and <c>obj/</c> and met a delete-pending sidecar-lock directory there.</summary>
+    private static readonly TreeScope TestSources = new(Under: ["tests/"], Kinds: [".cs"]);
+
     // ── the artifacts under test ─────────────────────────────────────────────────────────────────────
 
     private sealed record Row(
@@ -847,6 +852,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // and the uncached form re-globs the directory AND re-reads the same .cs file once per citing row.
         var sources = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
         var text = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        IReadOnlyList<string> tests = TrackedTree.Files(TestSources);
         var bad = new List<string>();
         foreach (var r in rows.Where(r => r.TestRef.Length > 0))
         {
@@ -883,10 +889,15 @@ public sealed class SpecTraceabilityInventoryDriftTests
                     continue;
                 }
                 string cls = body[..dot], method = body[(dot + 1)..];
-                string dir = Path.Combine(root, form.TestDir!.Replace('/', Path.DirectorySeparatorChar));
+                string dir = form.TestDir!.TrimEnd('/') + "/";
                 if (!sources.TryGetValue(cls + '|' + dir, out string[]? files))
-                    sources[cls + '|' + dir] = files = Directory.Exists(dir)
-                        ? Directory.GetFiles(dir, cls + ".cs", SearchOption.AllDirectories) : [];
+                    sources[cls + '|' + dir] = files =
+                    [
+                        .. tests
+                            .Where(rel => rel.StartsWith(dir, StringComparison.Ordinal)
+                                          && rel.EndsWith("/" + cls + ".cs", StringComparison.Ordinal))
+                            .Select(rel => Path.Combine(root, rel.Replace('/', Path.DirectorySeparatorChar))),
+                    ];
 
                 if (files.Length == 0)
                 {

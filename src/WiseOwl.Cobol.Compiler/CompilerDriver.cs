@@ -51,6 +51,13 @@ public static class CompilerDriver
     /// item 56): the default is <see cref="Binding.NumericDisplayForm.Decimal"/> (the decimal point and a leading
     /// sign, GnuCOBOL 3.2.0's default form) and <see cref="Binding.NumericDisplayForm.Digits"/> keeps the digit image.
     /// Orthogonal to <paramref name="DialectLevel"/>: every edition grants the same latitude.</param>
+    /// <param name="RepositoryUpdate">Whether the compilation updates the external repository (CLI
+    /// <c>--repository-update on|off</c>, default on; ISO §8.13: "The implementor shall provide a mechanism that allows the
+    /// user to specify whether to update the external repository when a compilation unit is compiled";
+    /// DESIGN-external-repository §9.1). ON is the state §8.4.6.7 names ("if the external repository is updated"), in
+    /// which a separately compiled unit binds against this group's signatures; OFF emits the unit index, the host
+    /// entries and the registrar only, so the group runs and is locatable by name but no later compilation binds
+    /// against it (§7.1).</param>
     public sealed record Options(
         string SourcePath,
         string? OutputPath = null,
@@ -62,7 +69,8 @@ public static class CompilerDriver
         SignEncoding SignEncoding = SignEncoding.Ibm,
         Frontend.Preprocessor.InitialReferenceFormat SourceFormat = Frontend.Preprocessor.InitialReferenceFormat.Fixed,
         bool FlagExtensions = false,
-        Binding.NumericDisplayForm NumericDisplay = Binding.NumericDisplayForm.Decimal);
+        Binding.NumericDisplayForm NumericDisplay = Binding.NumericDisplayForm.Decimal,
+        bool RepositoryUpdate = true);
 
     /// <summary>Which phase a compilation reached (drives the CLI's exit code).</summary>
     public enum Outcome { Success, SourceNotFound, FrontendError, BindError, BackendError }
@@ -198,7 +206,8 @@ public static class CompilerDriver
         string outputDll = options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");
         var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
         var artifact = backend.Emit(bound, new BackendOptions(
-            outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs));
+            outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
+            RepositoryUpdate: options.RepositoryUpdate));
         if (!artifact.Success)
             return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
                 artifact.Diagnostics
