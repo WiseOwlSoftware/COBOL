@@ -243,7 +243,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // for a PD-less unit (the report emission does not require a PROCEDURE DIVISION).
         BindDeclaredReportClauses();
         if (program.procedureDivision() is not { } pd) return new BoundProgram([]);
-        Ec.EcCollectPdRaising(pd);   // the PD-header RAISING list (§14.2.1) — consumed by the GOBACK/EXIT SR2 check
+        var raising = Ec.EcCollectPdRaising(pd);   // the PD-header RAISING list (§14.2.1) — consumed by the GOBACK/EXIT SR2 check
         var table = Ctx.Table;
         table.CollectParagraphs(pd);
 
@@ -274,7 +274,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             DebugSubjects: table.DebugSubjects.Count > 0 ? table.DebugSubjects : null,
             F3HandlerBasePc: table.F3Handlers.Count > 0 ? handlerBase : null,
             F3HandlerOwners: table.F3Handlers.Count > 0 ? table.F3HandlerOwners : null,
-            RaisingObjects: [.. Ctx.EcState.PdRaisingObjects]);
+            Raising: raising);
     }
 
     // ⛔ `OoScopeHint` IS GONE (kb/Work PB390). It appended "names resolve METHOD-LOCALLY (§11.7)" to the four

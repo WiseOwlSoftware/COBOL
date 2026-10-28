@@ -191,7 +191,7 @@ public sealed class RuntimeAbiPinDriftTests
     public void TheEmittedRecord_StatesTheVersionsThisRuntimeDeclares()
     {
         string cs = EmitFixture();
-        Assert.Contains($"(1, \"{RuntimeAbi.Version}\", {RuntimeAbi.CallAbi}, Registrar = \"Cobol.ABIFIXTURE.__CobolModule\")]", cs, StringComparison.Ordinal);
+        Assert.Contains($"({WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion}, \"{RuntimeAbi.Version}\", {RuntimeAbi.CallAbi}, Registrar = \"Cobol.ABIFIXTURE.__CobolModule\"", cs, StringComparison.Ordinal);
         Assert.Contains($"RegisterModule(\"Cobol.ABIFIXTURE.__CobolModule\", \"{RuntimeAbi.Version}\", {RuntimeAbi.CallAbi}, Register)", cs, StringComparison.Ordinal);
     }
 

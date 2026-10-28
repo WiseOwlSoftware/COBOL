@@ -480,6 +480,17 @@ public sealed class DataItem
         "the carried type identity the ISO §8.5.3 same-type test reads — a subject declared with TYPE keeps it through a further copy")]
     public string? TypeName { get; set; }
 
+    /// <summary>After <c>ExpandTypes</c>: the type declaration <see cref="TypeName"/> names, as the binder's ONE type-name
+    /// lookup resolved it where the TYPE clause was written (<c>DataBinder.TryFindTypeDecl</c>: a method's own declaration
+    /// first, ISO §11.7.4 GR5; a containing program's GLOBAL one, §13.18.58.4 GR3). A consumer that needs the declaration
+    /// itself — the repository record's "type declarations required for the description of parameters and returning items"
+    /// (ISO §8.13; <c>RepositoryCodec</c>) — reads this resolution, never a second lookup by name in a scope it may not
+    /// have (a prototype's formal, described by the unit whose pointer names it, kb/Work PB2100). Null exactly when
+    /// <see cref="TypeName"/> is.</summary>
+    [DescriptionCopy(DescriptionCopyKind.Clause,
+        "the declaration TypeName names, which travels with it — a subject declared with TYPE keeps both through a further copy")]
+    public DataItem? TypeDeclaration { get; set; }
+
     /// <summary>After <c>ExpandTypes</c>: true when this item is the subject of a TYPE clause referencing a STRONG
     /// type declaration (an item is strongly typed if it or any ancestor has this set). Drives the §8.8.4 gates.</summary>
     [DescriptionCopy(DescriptionCopyKind.Clause,

@@ -821,20 +821,36 @@ compiler, the attribute types and their enum vocabulary in the runtime (the comp
 reverse).
 
 ### 6.1 The model
+The program, function, prototype, class and interface records are in the tree (`src/WiseOwl.Cobol.Compiler/Binding/Repository/RepositoryRecord.cs`,
+kb/Work PB2100); `Skeleton` and `Expansion` join `RepositoryRecord` with slice 8, which carries them. Every list is a
+`RecordList<T>`, an immutable list that compares by its elements, so a record is a value (§17.4, §17.7).
 ```csharp
-public sealed record RepositoryRecord(
+internal sealed record RepositoryRecord(
     RepositoryUnitKind Kind, string Name, string ExternalizedName,                            // the NAME part
-    string EntryConvention, bool DecimalPointIsComma, ImmutableArray<CurrencyPair> Currencies, // from here on: the SIGNATURE part (§8.13 ¶2)
-    ImmutableArray<RaisingIdentity> Raising, ImmutableArray<FormalRecord> Formals, DescriptionRecord? Returning,
-    ImmutableArray<DescriptionRecord> TypeDeclarations, ImmutableArray<StructureRecord> DynamicLengthStructures,
-    ImmutableArray<PrototypeRecord> ReferencedPrototypes,
-    ClassRecord? Class, SkeletonRecord? Skeleton, ExpansionIdentity? Expansion);
-public sealed record FormalRecord(int Position, string Name, PassingMode Mode, bool Optional, DescriptionRecord Description);
-public sealed record StructureRecord(int Index, RepositoryPrefix Prefix, bool Delimited, string? PhysicalStructureName);
+    string EntryConvention, bool DecimalPointIsComma, RecordList<CurrencyRecord> Currencies,  // from here on: the SIGNATURE part (§8.13 ¶2)
+    RecordList<RaisingRecord> Raising, RecordList<FormalRecord> Formals, DescriptionRecord? Returning,
+    RecordList<DescriptionRecord> TypeDeclarations, RecordList<StructureRecord> DynamicLengthStructures,
+    RecordList<PrototypeRecord> ReferencedPrototypes, ClassRecord? Class = null);
+    // + SkeletonRecord? Skeleton, ExpansionIdentity? Expansion (slice 8)
+/// A class's or an interface's own facts (null for a program, a function, a prototype); an interface's Implements is its
+/// INHERITS list. A class's or an interface's record has no formals, returning item or RAISING phrase of its own, and its
+/// tables are the ones its methods' descriptions index (one encoder per record).
+internal sealed record ClassRecord(bool Final, string? BaseIdentity, RecordList<string> Implements, RecordList<string> FactoryImplements,
+    string? FactoryType, RecordList<PropertyRecord> Properties, RecordList<MethodRecord> Methods);
+internal sealed record PropertyRecord(string Name, string ExternalizedName, bool IsFactory, bool Get, bool Set);
+internal sealed record MethodRecord(string Name, string ExternalizedName, bool IsFactory, RepositoryAccessor Accessor, string? PropertyName,
+    bool Override, bool Final, string EntryConvention, RecordList<RaisingRecord> Raising, RecordList<FormalRecord> Formals,
+    DescriptionRecord? Returning, string ClrName);
+internal sealed record CurrencyRecord(char Symbol, string Text, RepositoryLiteralClass Class);
+internal sealed record RaisingRecord(RepositoryRaisingKind Kind, string Identity, bool Factory);
+internal sealed record FormalRecord(int Position, string Name, PassingMode Mode, bool Optional, DescriptionRecord Description);
+/// By DEFINITION; the name is kept because today's comparators still compare it (slice 7 switches them to the definition).
+internal sealed record StructureRecord(int Index, string Name, RepositoryPrefix Prefix, bool Delimited, string? PhysicalStructureName);
 /// A prototype a restricted program- or function-pointer of this record names: its FULL signature, so the importer
 /// types the pointer by signature (§6.4). Recursive references between referenced prototypes are by Index.
-public sealed record PrototypeRecord(int Index, RepositoryUnitKind Kind, string ExternalizedName, ImmutableArray<FormalRecord> Formals, DescriptionRecord? Returning);
-public sealed record RaisingIdentity(string Kind /* E | C | I */, string Identity, bool Factory);
+/// HasSignature is false for a GR10 c) / GR11 c) prototype (no compile-time signature; slice 7 deletes the state).
+internal sealed record PrototypeRecord(int Index, RepositoryUnitKind Kind, string ExternalizedName, bool HasSignature,
+    RecordList<FormalRecord> Formals, DescriptionRecord? Returning);
 public sealed record ExpansionIdentity(string DefinitionIdentity, ImmutableArray<string> ActualIdentities, string Key, bool OwnAssembly);
 public sealed record SkeletonRecord(ImmutableArray<string> Formals, ImmutableArray<bool?> FormalIsInterface, string Source,
     ImmutableArray<(string Word, string Kind, string Identity)> Resolutions, CompileState State);
@@ -845,35 +861,61 @@ public sealed record CompileState(int Edition /* Options.DialectLevel */, bool P
     string CobolWordsMap /* >>COBOL-WORDS, BindSession.CobolWords */,
     string DirectiveFolds /* at the definition: >>TURN, >>PROPAGATE, >>REF-MOD-ZERO-LENGTH, >>LEAP-SECOND */,
     string CompilationVariables /* >>DEFINE as of the definition (BindSession.CompilationVariables): a constant's FROM */);
-public sealed record DescriptionRecord(
-    int Level, string? Name, string? RedefinesTarget, int? Occurs, string? OccursDepending, bool OccursDynamic,
-    bool Justified, bool BlankWhenZero, bool Synchronized, bool Aligned, bool AnyLength,
+internal sealed record DescriptionRecord(
+    int Level, string? Name, string? RedefinesTarget, int? Occurs, OccursRecord? Table,
+    bool Justified, bool BlankWhenZero, RepositorySynchronized Synchronized, bool Aligned, bool AlignedAsLevelOne, bool AnyLength, bool Based,
     bool DynamicLength, int DynMaxSize, int? DynStructure,
-    string? TypeName, bool Strong, bool External, bool IsTypedef, bool DeclaresStrongType, bool IsExternalTypedef, bool ExternalFromType, int? TypeDeclaration,
-    RepositoryGroupUsage GroupUsage, PicRecord? Pic, ImmutableArray<DescriptionRecord> Children);
+    string? TypeName, bool Strong, bool External, bool IsTypedef, bool TypedefStrong, bool IsExternalTypedef, bool ExternalFromType,
+    int? TypeDeclaration, RepositoryGroupUsage GroupUsage, PicRecord? Pic, RecordList<DescriptionRecord> Children);
+/// OccursSpec: the bounds, the DEPENDING ON object as a word of the record (or "<outside>"), a DYNAMIC table's capacity phrases.
+internal sealed record OccursRecord(int Min, int Max, string? Depending, bool Dynamic, string? Capacity, int? InitialCapacity,
+    int? ExpectedMax, bool Initialized);
 /// PicInfo BY VALUE — every member. The two restriction NAMES are kept as written by the publishing element (words: an
 /// importer maps them through its IdentityScope, §8.7) beside what they resolve to (a type declaration, a referenced
 /// prototype's full signature); DigitPositions is its nullable backing.
-public sealed record PicRecord(
+internal sealed record PicRecord(
     RepositoryCategory Category, RepositoryUsage Usage, int Length, int Digits, int Scale, bool Signed, string SignKind, bool IsRecovery,
     string? RestrictedTypeName, int? RestrictedTypeDeclaration, string? RestrictedPrototypeName, int? RestrictedPrototype,
     bool PackedNoSign, bool FloatLittleEndian, bool IsFloatEdited,
     string? EditMask, string? CurrencyString, RepositoryLiteralClass? CurrencyClass, bool IsAlphabetic, int? DigitPositions,
-    PictureClauseRecord? Clause, ImmutableArray<EditRuleRecord>? EditingRules, LocaleEditRecord? LocaleEdit,
+    PictureClauseRecord? Clause, RecordList<EditRuleRecord>? EditingRules, LocaleEditRecord? LocaleEdit,
     ObjectReferenceKind ObjectRefKind, string? ObjectRefName, string? ObjectRefIdentity, bool ObjectRefFactory, bool ObjectRefOnly,
     bool ObjectRefFormal);
-public sealed record PictureClauseRecord(string CharacterString, string? CurrencyString, bool? DecimalPointIsComma, string? Editing);   // PictureClauseIdentity
-public sealed record EditRuleRecord(char Char1, string Neg, string Pos, bool SimpleInsertion, bool Floating);                         // CobolEdit.EditRule
-public sealed record LocaleEditRecord(string? LocaleName, string? External, bool FromLiteral, int Size, string Picture);             // LocaleEditSpec; External null = current locale
+internal sealed record PictureClauseRecord(string CharacterString, string? CurrencyString, bool? DecimalPointIsComma, string? Editing);   // PictureClauseIdentity
+internal sealed record EditRuleRecord(char Char1, string Neg, string Pos, bool SimpleInsertion, bool Floating);                         // CobolEdit.EditRule
+internal sealed record LocaleEditRecord(string? LocaleName, string? External, bool FromLiteral, int Size, string Picture);             // LocaleEditSpec; External null = current locale
 ```
+**Corrections the implementation made (kb/Work PB2100; held by the converse drift test `RepositoryRecordConverseDriftTests`).**
+SYNCHRONIZED is the clause's form (`RepositorySynchronized`: none, unqualified, LEFT, RIGHT), not a flag: kb/Work PB538
+made the three forms three clauses, which §8.5.3.1 compares. OCCURS is `Occurs` plus an `OccursRecord` (the bounds and a
+dynamic table's capacity phrases ride `OccursSpec`, which `IsDynamicTable` and the occurs-depending readers need), and the
+DEPENDING ON object is decoded only through the binder's one admission (`DependingAdmission`, kb/Work PB3510), so a record
+naming a forbidden object is refused, never a cycle. `Based` (§13.18.5) and `AlignedAsLevelOne` are recorded because the
+description copy carries them. `TypedefStrong` replaces `DeclaresStrongType`, which is derived from it. RAISING kinds are the
+persisted `RepositoryRaisingKind`, and a program's whole RAISING phrase rides `BoundProgram.Raising`. A record the decoder
+cannot bind (an index past its table, a REDEFINES or DEPENDING ON naming no entry, a forbidden link) is a
+`RepositoryRecordException` naming the record (§15.3), which slice 7's reader reports as REPO-4.
 The model is compiler-side and is written in the persisted vocabulary (§6.2's enums), so the ONE translation between
 the compiler's own types and what is persisted is `RepositoryRecord.Of(BoundUnit)` and its inverse, and the attribute
 renderer and reader are pure transcriptions of the model. It mirrors the compiler's types one to one (`PicInfo`,
 `PictureClauseIdentity`, `CobolEdit.EditRule`, `LocaleEditSpec` with its `LocaleRef`, `ObjectRefDescriptor(Kind, Name,
 Factory, Only, Formal)`), so the converse drift test (§17.2) can demand a field per member. `ObjectRefName` is the written class or interface word (diagnostics, and the
 importer's mapping); `ObjectRefIdentity` the externalized name it resolved to in the publishing element (§6.4).
-`ClassRecord` carries base/implements identities, properties and both rosters (`MethodRecord(Name, ExternalizedName,
-IsFactory, Accessor, PropertyName, Override, Final, EntryConvention, Raising, Formals, Returning, ClrName)`).
+`ClassRecord` carries the base and implements identities, the properties and both rosters, the object methods then the
+factory methods, each in roster order (`RepositoryCodec.Of(OoClassUnit)`, `RepositoryCodec.Of(OoInterfaceSymbol,
+DataBinder)`, kb/Work PB2100). **Corrections the OO arm made.** A description's `TypeDeclaration` row is the declaration
+the BINDER resolved where the TYPE clause was written (`DataItem.TypeDeclaration`, set by `DataBinder.ExpandType` beside `TypeName`
+from the one lookup `DataBinder.TryFindTypeDecl`, and carried by the description copy), never a second lookup by name in
+the codec: a method's formal typed by a method-local TYPEDEF names that declaration (ISO §11.7.4 GR5), and a referenced
+prototype's formal typed by the prototype's own TYPEDEF names the prototype's, which the publishing unit's scope does not
+hold (the codec's first form resolved it there and left the row out). An accessor's
+`ExternalizedName` is its property's (ISO §12.3.8.4 GR2: "Literal-5 is the externalized name known to the operating
+environment for a method that implements the named property"; D-R5), while `Name` keeps the implementor-defined roster
+name (`__GET_<P>`). A property record carries `IsFactory` (a factory's WORKING-STORAGE may hold a PROPERTY clause) and is
+derived from the accessors, so it cannot disagree with them. `Override` is the bound fact (`OoMethodSymbol.OverrideOf`,
+the one the CLR `override` is emitted from), not the source keyword. `ClrName` is the CLR method's own metadata name,
+never an attribute argument. The accessor mark is persisted as `RepositoryAccessor` (`None`, `Get`, `Set`), translated
+once in `RepositoryVocabulary`.
 `CompileState` is exhaustive by a drift test that lands with it in slice 8 (§17.2): every member of
 `CompilerDriver.Options` and every directive state `BindSession` carries is a `CompileState` field or is in the test's
 explicit not-semantic list with its reason. Not semantic today: `SourcePath`, `OutputPath`, `NistTestName` (harness
@@ -888,22 +930,34 @@ re-parse) and `>>FLAG-02` / `>>FLAG-14` (`FlagState`: they add warnings and chan
 | Attribute | Target | Constructor | Named properties |
 |---|---|---|---|
 | `CobolRepositoryAttribute` | assembly | `(int schemaVersion, string runtimeVersion, int callAbi)` | `CompilerVersion`, `Edition`, `Units`, `Registrar`, `HasSignatures` |
-| `CobolUnitAttribute` | host-entry class (programs, functions, prototypes) / OO class / interface | `(RepositoryUnitKind, string name, string externalizedName)` | `EntryConvention`, `DecimalPointIsComma`, `Currencies`, `Raising`, `Final`, `BaseIdentity`, `Implements`, `FactoryImplements`, `FactoryType`, `ExpandsDefinition`, `ExpandsActuals`, `ExpansionKey`, `ExpansionOwnAssembly` |
+| `CobolUnitAttribute` | host-entry class (programs, functions, prototypes) / OO class / interface | `(RepositoryUnitKind, string name, string externalizedName)` | `EntryConvention`, `DecimalPointIsComma`, the currencies as `CurrencySymbol` / `CurrencyText` / `CurrencyClass` and the RAISING phrase as `RaisingKind` / `RaisingIdentity` / `RaisingFactory` (parallel arrays, rule 3), `Final`, `BaseIdentity`, `Implements`, `FactoryImplements`, `FactoryType` (landed), `ExpandsDefinition`, `ExpandsActuals`, `ExpansionKey`, `ExpansionOwnAssembly` (slice 8) |
 | `CobolSkeletonAttribute` | class | `(string source)` | `Formals`, `FormalIsInterface`, `Resolutions`, `Edition`, `Permissive`, `SignEncoding`, `FlagExtensions`, `NumericDisplay`, `CobolWordsMap`, `DirectiveFolds`, `CompilationVariables` |
-| `CobolFormalAttribute` | parameter | `(int position, string name)` | `Mode`, `Optional` |
+| `CobolFormalAttribute` | parameter | `(int position, string name)` | `Mode`, `Optional` (with the position and the name, `CobolFormalFieldsAttribute`'s) |
 | `CobolReturningAttribute` | return value | `()` | — |
 | `CobolDescriptionAttribute` | parameter / return value, `AllowMultiple` | `(int ordinal, int parent)` | every `DescriptionRecord` + `PicRecord` field |
-| `CobolTypeDeclarationAttribute`, `CobolStructureAttribute`, `CobolPrototypeAttribute`, `CobolPrototypeFormalAttribute`, `CobolPrototypeDescriptionAttribute` | the host-entry class / OO class, `AllowMultiple` | indexed as §6.1 | the description fields |
-| `CobolMethodAttribute` | method | `(string name, string externalizedName)` | `IsFactory`, `Accessor`, `PropertyName`, `Override`, `Final`, `EntryConvention`, `Raising` |
-| `CobolPropertyAttribute` | class, `AllowMultiple` | `(string name, string externalizedName)` | `Get`, `Set` |
+| `CobolTypeDeclarationAttribute` | the host-entry class / OO class, `AllowMultiple` | `(int declaration, int ordinal, int parent)` | the description fields |
+| `CobolStructureAttribute` | the same | `(int index, string name)` | `Prefix`, `Delimited`, `PhysicalStructureName` |
+| `CobolPrototypeAttribute` | the same | `(int index, RepositoryUnitKind kind, string externalizedName)` | `HasSignature` |
+| `CobolPrototypeFormalAttribute` | the same | `(int prototype, int position, string name)` | `Mode`, `Optional` |
+| `CobolPrototypeDescriptionAttribute` | the same | `(int prototype, int formal, int ordinal, int parent)`: `formal` is the formal's POSITION, `ReturningItem` (-1) for the returning item | the description fields |
+| `CobolMethodAttribute` | method | `(string name, string externalizedName)` | `IsFactory`, `Accessor` (`RepositoryAccessor`), `PropertyName`, `Override`, `Final`, `EntryConvention`, the RAISING phrase as `RaisingKind` / `RaisingIdentity` / `RaisingFactory` (parallel arrays, rule 3) |
+| `CobolPropertyAttribute` | the class's type (object properties), its factory type (factory properties) or the interface, `AllowMultiple` | `(string name, string externalizedName)` | `Get`, `Set` |
+The description fields (every `DescriptionRecord` and `PicRecord` field, flattened by rule 3) are declared ONCE, on the
+abstract `CobolDescriptionFieldsAttribute` that the three description carriers derive from, and a formal's on the abstract
+`CobolFormalFieldsAttribute` of the two formal carriers; neither base is ever applied, so "every attribute is `sealed`"
+holds of every attribute a module carries (`RepositorySchemaDriftTests`, kb/Work PB2100: a correction of this table, which
+had listed the fields per attribute). The same test holds that every settable property is written by the renderer and
+read by its reader, and that no property is a type a reader that loads nothing cannot decode.
 **Anchoring — one rule for programs and methods.** A formal's `[CobolFormal]` and its `[CobolDescription]` tree sit on
 ONE CLR parameter; the RETURNING tree on the return value (`[return: CobolReturning, CobolDescription…]`); `ordinal` is
 the preorder index within the tree, `parent` the parent's (`-1` at the root). The reader has one decoder keyed by
 `(parameter or return, ordinal)`, and it finds the formals by `[CobolFormal]`, never by CLR position, so the CLR shape
-around them is free:
+around them is free; a tree is rebuilt from its ordinals, never from the order of the attribute rows, and a referenced
+prototype's formals and entries are joined by the prototype's index and the formal's position:
 - *A program or function* (definition or prototype): the host entry's `Call` parameter of that formal (§4.3: one CLR
-  parameter per formal).
-- *A method* (slice 8): PB2087's method ABI crosses each formal as a TRIPLE — `ManagedPointer<T> <carrier>`,
+  parameter per formal); the record's tables (type declarations, structures, referenced prototypes) on the host-entry
+  class, in §6.5's order (landed, kb/Work PB2100).
+- *A method* (landed with the OO arm, kb/Work PB2100): PB2087's method ABI crosses each formal as a TRIPLE — `ManagedPointer<T> <carrier>`,
   `CellPointer? <area>`, `bool <omitted>` (`OoEmitter.OoSignatureOf` / `OoArgPair`) — and the attributes sit on the
   CARRIER, the triple's first parameter, the one that names the formal; the area and the omitted flag carry nothing
   (both are functions of the formal's description and mode). The trailing `int __retLen` of a method whose RETURNING
@@ -949,7 +1003,10 @@ is written) and the reader (the ONE decoder) are their two halves:
    `CobolEdit.EditRule(Char1, Neg, Pos, SimpleInsertion, Floating)`) is five parallel arrays, `EditRuleChar1` (`char[]`),
    `EditRuleNeg`, `EditRulePos` (`string[]`), `EditRuleSimpleInsertion`, `EditRuleFloating` (`bool[]`), of one length,
    present exactly when the item has rules (an empty array is a present empty list). The reader refuses arrays of
-   unequal length as malformed (REPO-4).
+   unequal length as malformed (REPO-4). The renderer writes each structure's
+   PRESENCE MARKER whenever the structure exists — `Category` for the elementary entry's `Pic`, `OccursMax` for the OCCURS
+   clause, `ClauseCharacterString`, `LocalePicture`, the `EditRule…` arrays — and a non-nullable number, flag or enum
+   only when it is not its default (an absent one decodes as the default; a non-nullable string is always written).
 4. **A reference inside a record is an index into the record's own tables** — `TypeDeclaration` /
    `RestrictedTypeDeclaration` into `TypeDeclarations`, `DynStructure` into `DynamicLengthStructures`,
    `RestrictedPrototype` into `ReferencedPrototypes` — and a reference outside the unit is an externalized identity
@@ -1214,7 +1271,17 @@ is split once, by what each half needs:
 - **Compiler:** `RepositoryReader`, which opens the same prefetched reader through `RepositoryIndex` (the header is
   never decoded twice) and decodes the unit, description, type-declaration, structure, prototype, class, method,
   property and skeleton attributes into a `RepositoryRecord`, and the codec that binds a record into the throw-away
-  `DataItem` forest (§6.3). §17.3's "read only through" test names both halves.
+  `DataItem` forest (§6.3). §17.3's "read only through" test names both halves (`RepositorySchemaDriftTests`).
+  **Landed for programs, functions and prototypes (kb/Work PB2100):** `RepositoryReader.Read(RepositoryIndex)` returns
+  every unit's record in the index's order, or a typed `RepositoryReadFailure` (`OtherSchemaVersion` for REPO-7,
+  `NoSignatures` for REPO-8, `Malformed` with the reader's words for REPO-4: an argument of another type, an index naming
+  no row, ordinals that form no tree, parallel arrays of unequal length, two formals at one position, a unit the index
+  does not list or a row with no unit); it names the schema's attributes and decodes them through
+  `RepositoryIndex.SchemaAttributeName` / `DecodeSchemaAttribute`, the index's own provider. **The OO arm (kb/Work PB2100):** a class's or an interface's record
+  from its type — the unit's facts from `[CobolUnit]`, each method from the CLR method carrying its `[CobolMethod]` (a
+  formal or description on a method without one is `Malformed`), each property from `[CobolProperty]`, the factory's from
+  the type `FactoryType` names in the class's namespace (one such type, else `Malformed`; a class that names none and an interface that names one are `Malformed` too); the `Units` index lists every
+  interface, then every class, then every host entry, in emission order. The skeleton record joins with slice 8.
 
 ### 7.5 The file protocol
 Lands in slice 7, with the first compilation that reads a directory builds write into (the resolver and §9.2's read of
@@ -1819,11 +1886,11 @@ with open work opens with that work and states its landed part after it, because
 | Today | Change | Callers updated in the same change |
 |---|---|---|
 | `ProgramEmitter.EmitEntryWrapper` (`public static class __CobolModule` in the global namespace with a public `Register()`; always `Main`) | **landed, slice 1 (the library form slice 3):** the one-segment `namespace Cobol.<S>` (§4.5); `[assembly: CobolRepository(schema, runtimeVersion, callAbi, Registrar)]` (`RuntimeApi.ModuleRecordAttribute`); `Register` private, `EnsureRegistered()` the one public member (through `RegisterModule`; the emitted `Main` calls it, so no path registers a module twice); `Main` only with a main unit (`ProgramEmitter.MainUnit`), a library otherwise; `global::` on every foreign name | `ProgramTable.ProbeSiblingModule`, `RoslynBackend.Compile`, `AssemblyPackager.Package` |
-| `RuntimeApi.ModuleRecordAttribute` (slice 1: the assembly record's C# text) | slice 4: MOVES into `RepositoryAttributeRenderer`, the one place attribute syntax is written (§3.9), and is deleted from `RuntimeApi`; the record gains `Units`, `HasSignatures`, `CompilerVersion`, `Edition` | `ProgramEmitter` (its one caller) |
-| `CobolRepositoryAttribute` (`CurrentSchemaVersion = 1`, `Registrar` only) | slice 4: `CurrentSchemaVersion = 2` and the named properties above (§6.6); the rest of the attribute family and the schema enums of §6.2 rule 1 beside it; `RepositoryIndex` (§7.4) | `PublicAPI.Unshipped.txt` |
+| `RuntimeApi.ModuleRecordAttribute` (slice 1: the assembly record's C# text) | **landed, slice 4 (kb/Work PB2100):** MOVED into `RepositoryAttributeRenderer.ModuleRecord`, the one place attribute syntax is written (§3.9), and deleted from `RuntimeApi`; the record gained `Units` (`HostEntryEmitter.EntryUnits` through `RepositoryAttributeRenderer.IndexOf`), `CompilerVersion` and `Edition` (`BoundCompilation.Edition`), and every host entry its `[CobolUnit]` (`RepositoryAttributeRenderer.UnitRecord`); then (the fourth part) `HasSignatures` with `--repository-update`, and the signature attributes of every host entry: `UnitRecord` with the unit facts, `TableRecords` (type declarations, structures, referenced prototypes) on the class, `FormalRecord` on each `Call` parameter and `ReturningRecord` on its return value, each a transcription of `RepositoryCodec.Of`; then the OO arm: `[CobolUnit]` on every class and interface (and their rows in `Units`, `IndexOf`), and with signatures `UnitRecord`'s class facts, `MethodRecord` on each method, accessor and interface prototype (`OoEmitter.EmitMethodRecord`; the formals on the carriers through `OoEmitter.OoSignatureOf`) and `PropertyRecords` on the type of the accessors | `ProgramEmitter` (its one caller), `HostEntryEmitter`, `OoEmitter` |
+| `CobolRepositoryAttribute` (`CurrentSchemaVersion = 1`, `Registrar` only) | slice 8: `CobolSkeletonAttribute` and `CobolUnitAttribute`'s expansion properties. **Landed, slice 4 (kb/Work PB2100):** `CurrentSchemaVersion = 2` and the named properties `Units`, `HasSignatures`, `CompilerVersion`, `Edition` (§6.6); the schema enums of §6.2 rule 1 (`RepositoryEnums.cs`); `CobolUnitAttribute`; `RepositoryIndex` (§7.4: the header, the `Units` rows and the `AssemblyRef` names read without loading the assembly, the 65,536-unit cap as a typed `RepositoryReadFailure`). Then (the fourth part) the signature attributes of programs, functions and prototypes (`CobolSignatureAttributes.cs`: `CobolFormalAttribute`, `CobolReturningAttribute`, `CobolDescriptionAttribute`, `CobolTypeDeclarationAttribute`, `CobolStructureAttribute`, `CobolPrototypeAttribute`, `CobolPrototypeFormalAttribute`, `CobolPrototypeDescriptionAttribute`, over the two never-applied field bases `CobolDescriptionFieldsAttribute` and `CobolFormalFieldsAttribute`), `CobolUnitAttribute`'s signature properties, `RepositoryReadFailure.NoSignatures` / `OtherSchemaVersion`, and `RepositoryIndex.SchemaAttributeName` / `DecodeSchemaAttribute` (the one decoding provider the compiler's `RepositoryReader` shares); then the OO arm: `CobolMethodAttribute`, `CobolPropertyAttribute`, `CobolUnitAttribute`'s `Final`, `BaseIdentity`, `Implements`, `FactoryImplements` and `FactoryType`, and `RepositoryAccessor` | `PublicAPI.Unshipped.txt` |
 | `ProgramTable` (`_probedModules` keyed by name; `ProbeSiblingModule` loads `<name>.dll` and calls a global `__CobolModule.Register`; a linear `_order` scan for rule 4; `CallProgram`/`Cancel` take a non-null `callerPath`) | Slice 5: `ProbeSiblingModule` over `RepositoryLocator` / `RepositoryIndex` (§11.2: no case-insensitive scan, no reflection read of the record); the per-kind `CallName` dictionary; `RuntimeFeatures.DynamicProbe`; the §11.2 classification (a registrar fault reached through `EnsureRegistered()` is EC-PROGRAM-NOT-FOUND; a registered program whose class or a dependency cannot be loaded or initialized at `n.Factory(…)` is EC-PROGRAM-NOT-FOUND with the loader's message, as DOC-A.1-14 / -89 classify a module that cannot be loaded). Already landed — slice 1: `RegisterModule(registrar, runtimeVersion, callAbi, register)` (one registration set per run unit, the version refusal, staged commit refusing a duplicate outermost name, §11.2); `_probedNames` / `_probeFailure` keyed by `ProbeKey` (the kind letter and the name, kb/Work PB2847); the probe reads `Registrar` from the record. Slice 3: `callerPath` is `string?` in `CallProgram` and `Cancel`, and the null arm (`CallFromHost`) is the outermost boundary that turns a STOP RUN or a run-unit-terminating fatal condition into R48's `RunUnitEndedException(ExitStatus, Abnormal)` after the §14.6.11 actions | `ProgramRegistry`, `RuntimeFeatures` (new), `RunUnit` |
 | `ProgramRegistry` (public; XML remarks calling it the "emitted-surface shim", a facade whose members "forward") | **landed, slice 3:** `[EditorBrowsable(Never)]` on the type; remarks state that it is the generated code's ABI over the ambient run unit, callable from generated code in other assemblies, with no contract for a hand-written caller (§4.4) | — |
-| `ProgramEmitter.Emit` (the outermost-unit loop emits a program class per definition and skips prototypes) | Slice 4: each host entry's record attributes when `RepositoryUpdate`; the assembly attribute's index and the `[CobolUnit]`s always; `HostEntryEmitter.EntryUnits` pairs a prototype with its definition by DOC-A.1-68's one mapping rule, the Annex C fold (kb/Work PB3872), and `HostEntryEmitter.Published` is deleted (§7.2). Slice 8: skeleton → `[CobolSkeleton]` class; expansion → §10.5's steps. Already landed, slice 3: every outermost program, function and prototype → its host-entry class (§4.3) through `HostEntryEmitter` and `PublishedRecordEmitter` | `HostEntryEmitter`, `RepositoryAttributeRenderer` (new), `CompilerDriver` (an expansion assembly is a second emission, slice 8) |
+| `ProgramEmitter.Emit` (the outermost-unit loop emits a program class per definition and skips prototypes) | Slice 8: skeleton → `[CobolSkeleton]` class; expansion → §10.5's steps. **Landed (kb/Work PB2100, PB3872):** the OO arm's records (classes, factory types, methods, accessors, interfaces; `OoEmitter(…, repositoryUpdate)`); each host entry's record attributes when `RepositoryUpdate` (`Emit(comp, name, repositoryUpdate)`, `HostEntryEmitter(…, repositoryUpdate, …)`); the assembly attribute's index and the `[CobolUnit]`s always; `HostEntryEmitter.EntryUnits` pairs a prototype with its definition by DOC-A.1-68's one mapping rule, the Annex C fold (kb/Work PB3872), and `HostEntryEmitter.Published` is deleted (§7.2). Already landed, slice 3: every outermost program, function and prototype → its host-entry class (§4.3) through `HostEntryEmitter` and `PublishedRecordEmitter` | `HostEntryEmitter`, `RepositoryAttributeRenderer` (new), `CompilerDriver` (an expansion assembly is a second emission, slice 8) |
 | `DataBinder.Unique` (private; the internal record struct's member names, unseeded: a subordinate `AsImage` or `Equals` drew CS0102) and `DataItem.Sanitize` | **landed for the internal scopes (kb/Work PB2098), and for the published ones in slice 3:** `CsNames.Allocate(baseName, scope)`: the Sanitized base, then the smallest free `_n`, over a scope seeded with the emitter's own members in that scope and the imported type names (§4.5) — the ONE allocator for internal and published names. `NameAllocator` (the `__`-prefixed temporaries, which no COBOL word can spell) is unchanged | `DataBinder` (every `Unique` caller), `RecordStructEmitter`, `HostEntryEmitter`, `PublishedRecordEmitter`, `OoEmitter` |
 | `CallEmitter.ArgText` (renders a COBOL argument's `CobolArg`) | **landed, slice 3:** the one argument renderer is callable for "an argument of description D passed by CONTENT over a detached value" (`CallEmitter.Described`, `ArgumentLength`), so the host entry renders through it | `HostEntryEmitter` |
 | `RecordStructEmitter` "published mode" with `GroupImageCodec` (this table's first text) | **landed differently, slice 3, and adopted:** a group FORMAL has no internal record struct (the program reads it through windows over its area), so there is no member walk to share; `PublishedRecordEmitter` renders the published record from the DESCRIPTION over the shared geometry (`BitLayout`) and the door rules (§4.3) | `HostEntryEmitter` |
@@ -1833,16 +1900,16 @@ with open work opens with that work and states its landed part after it, because
 | `BoundCallProgram.CalleeSignatureKnown` (one flag for "checked at bind time" and "cannot differ at run time"; `CallEmitter.DescribesOperands` / `LandsAtRunTime`) | slice 7: split into `CalleeSignatureKnown` and `CalleeCompiledHere`; a site whose callee is compiled elsewhere describes its operands for GR3 d) (§4.2) | `CallBinder`, `UdfBinder`, `CallEmitter` |
 | `ObjectRefDescriptor(Kind, Name, Factory, Only, Formal)`; `ActivationDescriptions.Of`'s `ObjectName` / `ObjectClasses` / `ObjectInterfaces` as folded WORDS (PB2463) | slice 8: `+ Target`; `ClrTypeName` over `Target`; the description's class facts become folded EXTERNALIZED names (a call-ABI bump, §6.4) | `PictureAnalyzer`/`DataBinder` (sets `Target`), `OoClassTable.SetOperand`, `OoEmitter.OoReturnClrType`, `OoConformance`, `SetBinder` Format 5 |
 | `DescriptionClauses` and `ActivationDescriptions` (the DYNAMIC LENGTH clause and phrase) compare a dynamic-length structure by its folded NAME; `ClassRaisingCovered` | slice 7: the structure DEFINITION key (§6.4), inside slice 7's call-ABI bump; slice 8: `RaisingTarget.Target` | `StrongTypeModel`, `OoConformance`, `RaisingTarget` |
-| **landed (kb/Work PB2464, PB2495, PB3101, PB3120, PB3162):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (stamped by `DataBinder.ResolveRestrictedPrototypes` / `PrototypeSignatureClasses.Classify` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.RestrictionIdentity` and `SameType`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms, `PrototypeSignatureClasses` (one per `BindSession`: the coarsest stable partition of the group's prototypes by `PrototypeSignatures.Same`; a class's identity its founder's externalized name, `TO name`) — a restricted program- or function-pointer's TYPE is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.Clauses` by every relation; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4: the decoder rebuilds `RestrictedPrototype` from `ReferencedPrototypes`, and `PrototypeSignatureClasses` keys members by origin and name, admits decoded prototypes into its refinement (`Admit`) and keeps identities unique per block, so a decoded pointer is classified by its decoded SIGNATURE (§6.4; the name-keyed `Identity` arm would type it by name). Slice 7: `PrototypeSignatureClasses` STAYS — it is where recursive signatures are minimized — and partitions the group's prototypes plus every decoded and repository-resolved prototype; a class's identity becomes `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` of the minimized signature graph, group-independent, held to `Same` by `SignatureIdentityDriftTests`; call-ABI and runtime-major bump. (This row used to say the class is DELETED in slice 7 and that two groups "compare record identities": done literally, that types restricted pointers by prototype NAME across units, which GR25 forbids.) | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
+| **landed (kb/Work PB2464, PB2495, PB3101, PB3120, PB3162):** `DataItem.RestrictedPrototype` and `DataItem.PointerRestrictionIdentity` (stamped by `DataBinder.ResolveRestrictedPrototypes` / `PrototypeSignatureClasses.Classify` from `BinderDriver.ResolvePointerRestrictions`, before every signature check), `PrototypeSignatures.RestrictionIdentity` and `SameType`, `StrongTypeModel.SameAnalyzedProfile`'s restriction arms, `PrototypeSignatureClasses` (one per `BindSession`: the coarsest stable partition of the group's prototypes by `PrototypeSignatures.Same`; a class's identity its founder's externalized name, `TO name`) — a restricted program- or function-pointer's TYPE is its prototype's SIGNATURE (§13.18.60.4 GR25 / GR26), read through `ActivationDescription.Clauses` by every relation; `PicInfo.RestrictedPrototypeName` kept as the written name | slice 4, **the classes part landed (kb/Work PB2100):** `PrototypeSignatureClasses` keys members by origin and name (`PrototypeKey`, `RestrictedPrototype.Origin`, `PrototypeOrigin`), admits decoded prototypes into its refinement (`Admit`: a re-run from one block, group members first) and spells a decoded founder's block `DECODED k TO name`, so a decoded pointer is classified by its decoded SIGNATURE (§6.4); and the decoder, `RepositoryCodec.Decode`, rebuilds `RestrictedPrototype` from `ReferencedPrototypes` with a `PrototypeOrigin` per row and calls `Admit` (BoundCompilation.SignatureClasses is the group's instance). Slice 7: `PrototypeSignatureClasses` STAYS — it is where recursive signatures are minimized — and partitions the group's prototypes plus every decoded and repository-resolved prototype; a class's identity becomes `PrototypeSignatures.CanonicalIdentity`, `SIG <hex>` of the minimized signature graph, group-independent, held to `Same` by `SignatureIdentityDriftTests`; call-ABI and runtime-major bump. (This row used to say the class is DELETED in slice 7 and that two groups "compare record identities": done literally, that types restricted pointers by prototype NAME across units, which GR25 forbids.) | `ActivationDescriptions` (`ElementaryClauses`, `OfAddress`), `OoConformance`, `OoBinder`, `BinderDriver`, `OoDriver` |
 | `OoClassTable.Build`; `OoClassSymbol.IsStandard` (`ctx is null`) and `Ctx`; `OoRepositoryScope` (classes/interfaces) | slice 8: `+ Import(symbol)` by identity, `IsParameterized` for imported skeletons; `IsStandard` → `Origin`; `OoRepositoryScope` → `IdentityScope` (+ prototypes, structures; reverse map) | `OoNameResolution`, `OoEmitter.EmitClassUnit` (skips imported), `ResolveOverrides`, `OoExpansion` |
 | `OoExpansion.Expand(tree, classes, interfaces, edition, words)` | slice 8: resolver-driven; imported skeletons re-parsed under their recorded `CompileState` with recorded resolutions; the `ExpansionKey`; import by key; placement (4a)/(4b); stale detection (REPO-9 with the referencing assemblies); publishes keys and skeleton records (§10.5) | `BinderDriver`, `FragmentParse.ParseTokens` (a `CompileState` parameter), the binder's option-dependent arms, `CompilerDriver`, `RepositoryIndex` (`AssemblyRef` listing) |
 | `DataBinder.BindDeclarations` REPOSITORY loop (never resolved) | slice 7: `ResolveRepositorySpecifiers` in `BinderDriver.BindUnitData` for every specifier at its position | `BinderDriver`, `OoDriver.BindClassData` |
 | `OoNameResolution.Resolve` message "no … is defined in this compilation group" | slice 8: adds "and no information exists for it in the external repository" | — |
 | `RoslynBackend.Compile(csharp, path, name)` (console only; no extra refs; the driver keeps only `Error` diagnostics) | Slice 7: GUID temp + retrying rename (§7.5). Slice 8: the `RepositoryReferences` appended to the framework set; CS0435/CS0436/CS0437 escalated to errors (§10.2). Already landed, slice 3: `Compile(csharp, path, name, OutputKind)` (a library for a group with no main unit) | `RoslynBackend.Emit`, `CompilerDriver` |
-| `BackendOptions`; `CompilerDriver.Options` | slice 4: `BackendOptions + RepositoryUpdate`, its `AssemblyName` remark ("the COBOL PROGRAM-ID") corrected to the output file's base name, `Options + RepositoryUpdate = true` and `--repository-update`. Slice 7: `Options + RepositoryPaths`, `+ ReferencePaths`, `+ RepositoryCheck = true` and their CLI options. Slice 8: `BackendOptions + RepositoryReferences`. (`OutputKind` is not an option: slice 3 landed it as `Compile`'s parameter, §10.2) | `WiseOwl.Cobol.Cli BuildParser`, test harnesses, `OptionsModelConsumerDriftTests` |
+| `BackendOptions`; `CompilerDriver.Options` | Slice 7: `Options + RepositoryPaths`, `+ ReferencePaths`, `+ RepositoryCheck = true` and their CLI options. Slice 8: `BackendOptions + RepositoryReferences`. **Landed, slice 4 (kb/Work PB2100):** `BackendOptions + RepositoryUpdate`, its `AssemblyName` remark ("the COBOL PROGRAM-ID") corrected to the output file's base name, `Options + RepositoryUpdate = true` and `--repository-update on|off` (`CliOptions.RepositoryUpdate`, `Program.TryParseRepositoryUpdate`). (`OutputKind` is not an option: slice 3 landed it as `Compile`'s parameter, §10.2) | `WiseOwl.Cobol.Cli BuildParser`, test harnesses, `OptionsModelConsumerDriftTests` |
 | `Directory.Build.props` (no `Version`) | **landed, slice 1:** `<Version>` from the package version; `RuntimeAbi.Version` reads the runtime's `AssemblyVersion`; `RuntimeAbi.CallAbi`, the call-ABI integer (§15.4); `Microsoft.CodeAnalysis.PublicApiAnalyzers` on `WiseOwl.Cobol.Runtime` with `PublicAPI.Shipped.txt`; the measured `RuntimeAbi.pin` (kb/Work PB3610) | `CobolRepositoryAttribute`, `ProgramTable.RegisterModule`, `EmitModuleRegistrar` (emits both versions) |
 | `WiseOwl.Cobol.Runtime.csproj` | slice 5: `IsTrimmable`, `EnableTrimAnalyzer`; `RuntimeFeatures.DynamicProbe` (`[FeatureSwitchDefinition("WiseOwl.Cobol.Runtime.DynamicProbe")]`, `[FeatureGuard(typeof(RequiresUnreferencedCodeAttribute))]`) guarding `ProbeSiblingModule` (§15.5) | — |
-| 14 characterization snapshots (`tests/WiseOwl.Cobol.Tests.Characterization/Snapshots/char_*.g.cs.txt`) | Slice 4: re-baselined for the record attributes. Already landed: re-baselined for the namespace line, `global::`, the registrar attribute and `EnsureRegistered` (slice 1), and for the host-entry class of each program (slice 3) | — |
+| 14 characterization snapshots (`tests/WiseOwl.Cobol.Tests.Characterization/Snapshots/char_*.g.cs.txt`) | **Landed:** re-baselined for the record attributes of slice 4 (`HasSignatures`, the `[CobolUnit]` signature properties, the description attributes); and before: re-baselined for the namespace line, `global::`, the registrar attribute and `EnsureRegistered` (slice 1), and for the host-entry class of each program (slice 3) | — |
 | Tests naming the global-namespace registrar: `NonCobolActivatorReturnTests`, `FunctionLocateResourceWitnessTests`, `InterProgramFileDifferentialTests` | **landed:** slice 1 reaches the module through `EnsureRegistered` named by `[CobolRepository(Registrar)]` (the witness fixture carries the record and a throwing `EnsureRegistered`); slice 3 made the activator test a host of the generated entries (`Cobol.L1HSTGB.L1HSTGB.Call()` inside `RunUnit.Run`) | — |
 | `docs/CONFORMANCE.md` DOC-A.1-65, -116, -141, -167 (the host route through `__CobolModule.Register()`, `ProgramRegistry.CallProgram`, `ICobolProgram.Call`) | **landed, slice 3:** rewritten to the host entry (§9.4's DOC-A.1-141 text; the other three name the entry, `EnsureRegistered` and the exception contract) | — |
 | Goldens pinning function resolution (§8.3 D-R3) | unchanged source and expectations; slice 6 added the in-group REPO-13 (COBOL2969) goldens; slice 7 adds REPO-13 across the repository, the word reaching a later-compiled unit, as WiseOwl multi-unit cases (§17.1) | — |
@@ -2104,7 +2171,8 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   (§8.5.3.1) — makes some comparator fail; a perturbation of a DATA-NAME or of intermediate grouping makes none fail
   (§13.7.3 SR2).
 - For every §10.6.2 SR2/SR3 pair in the corpus (pb1115 included): `PrototypeSignatures.Same(Decode(Of(prototype)),
-  Decode(Of(definition)))` holds, and `Same` against the in-group bound pair agrees.
+  Decode(Of(definition)))` holds, and `Same` against the in-group bound pair agrees (landed:
+  `RepositoryRoundTripCorpusTests.PrototypeDefinitionPairs`, over the one enumeration `RepositoryRoundTripCorpusTests.Corpus`).
 - **Boundary layout:** a fixture of (usage, picture, group shape) rows covering every byte form, width and crossing
   arm is rendered by BOTH halves of the boundary — the compiler's `CrossingOf` / `FormalCrossing` arm,
   `FormalCarrierType`, `RegisteredFormal`/`RegisteredReturning` profile and width, and the runtime codecs' image of a
@@ -2138,7 +2206,9 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   and two identities do not.
 - **Every outermost unit has its entry** (slice 4, `HostEntryShapeDriftTests`, §7.2): over §17.2's corpus, each
   outermost unit except a prototype its group defines has exactly one host-entry class and one record, and a prototype
-  and its definition whose externalized names differ only in case are one (kb/Work PB3872).
+  and its definition whose externalized names differ only in case are one (kb/Work PB3872). Landed as
+  `EveryOutermostUnitOfTheCorpus_PublishesExactlyOneEntryAndRecord`, which also holds every class and interface to exactly
+  one `[CobolUnit]` on its type and the module's `Units` index to the units in emission order.
 - **The host entry is a caller:** a Roslyn-analysis test over the emitted corpus asserts that every host-entry `Call`
   body consists of exactly the parts §4.3 lists — `EnsureRegistered` (definitions only), one `HostLanding` landing per
   formal and the alias grouping, one `CobolArg` per formal from the CALL lane's renderer, exactly one
@@ -2176,8 +2246,13 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   error; a fixture provoking CS1718 (`IF B = B`, legal source) asserts a clean compile (§10.2).
 
 ### 17.4 Backend-independence
-Slice 4. A fixture record rendered (a) by `RepositoryAttributeRenderer` through `RoslynBackend` and (b) by
-`MetadataBuilder` + `CustomAttributeEncoder` decodes equal; `Units` equals the record set.
+Slice 4, **landed (kb/Work PB2100, `RepositoryBackendIndependenceTests`)**. A fixture record set (the encoding fixtures,
+the codec's program group, a class, an interface and their program) rendered (a) by `RepositoryAttributeRenderer` through
+Roslyn and (b) by `MetadataBuilder` + the ECMA-335 custom-attribute encoders decodes equal; `Units` equals the record set.
+What makes (b) a second backend rather than a second statement of the encoding: the renderer has two layers. Its
+`…Attribute` / `…Attributes` members turn a record into `AttributeApplication` values (type, constructor arguments, named
+arguments in order) and hold every rule of §6.2; its `…Record` members spell those values as C# (`CSharp`), and the
+metadata writer encodes the same values. A `CilBackend` takes the first layer as it is.
 
 ### 17.5 Trim and AOT tests
 `WiseOwl.Cobol.Runtime` builds analyzer-clean. A caller is published trimmed with the probe switch ON and
@@ -2359,7 +2434,7 @@ green when the slices it depends on have landed, each carrying the sibling-docum
 (CLAUDE.md rule 6). The work items are `kb/Work/` notes filed after approval (CLAUDE.md rule 8), one per slice; their
 REPO-n codes are allocated with `scripts/orchestrator/alloc.py code N` by the slice that first reports them (§14). The
 dependency graph has no cycle: 1 and 2 and 6 stand alone; 3 needs 1, 2 and kb/Work PB2087; 4 needs 3; 5 needs 4; 7
-needs 4, 5 and 6; 8 needs 7. Landed: 1, 2, 3, 6. Each open slice's list below is complete as of the 2026-10-27
+needs 4, 5 and 6; 8 needs 7. Landed: 1, 2, 3, 4, 6. Each open slice's list below is complete as of the 2026-10-27
 currency pass; a slice that finds it is not makes the restructuring and corrects this list (CLAUDE.md rule 5).
 
 1. **Namespace, registration and the version guard — LANDED (kb/Work PB2097).** `CsNames.ModuleNamespaceOf`;
@@ -2423,7 +2498,7 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    lands kb/Work PB1149's GR13 half and R48's run-unit-ended result, and PB1253's item-116 row. Depends on 1, on 2 (the
    published names), and on kb/Work PB2087 whole — its item 5 carries the strongly-typed groups with pointer or object
    leaves (and closes PB1940), so every program has a complete host entry the day the slice lands.
-4. **The schema, the renderer, the reader** (kb/Work PB2100). In the runtime: the attribute family of §6.2 and its
+4. **The schema, the renderer, the reader — LANDED (kb/Work PB2100).** In the runtime: the attribute family of §6.2 and its
    persisted enum vocabulary (rule 1), `CobolRepositoryAttribute` at schema version 2 with `Units`, `HasSignatures`,
    `CompilerVersion`, `Edition` (§6.6), and `RepositoryIndex` (the prefetched header, `Units` and `AssemblyRef` read,
    with §15.2's read caps as typed outcomes; §7.4), public with `[EditorBrowsable(Never)]` and recorded in
