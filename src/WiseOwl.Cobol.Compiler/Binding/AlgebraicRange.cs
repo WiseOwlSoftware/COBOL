@@ -259,9 +259,11 @@ internal static class AlgebraicRanges
     /// <item><paramref name="standardDecimal"/> — a value carried as the SDIDI (NUMVAL / NUMVAL-C in every mode,
     /// every function under a standard arithmetic mode): the SDIDI's own extremes, the same text
     /// <see cref="ArithmeticModes.IntermediateExtremes"/> states for that form.</item>
-    /// <item>otherwise the §15.4 temporary's description (<c>SendingValueTemp</c>): S9(30) for an INTEGER function
+    /// <item>otherwise the NOMINAL returned-value item (<c>SendingValueTemp</c>): S9(30) for an INTEGER function
     /// (§15.2 item 5 — "no digits to the right of the decimal point", so its nearest nonzero value is 1), and
-    /// S9(21)V9(9) for a NUMERIC function.</item>
+    /// S9(21)V9(9) for a NUMERIC function. It is nominal because the temporary DISPLAY shows and LENGTH measures
+    /// (<c>FunctionValueField</c>, kb/Work PB3951) has a description that follows the function and its value, so no
+    /// one item's extremes exist to read.</item>
     /// </list></summary>
     internal static AlgebraicRange OfFunctionReturnedValue(bool integer, bool standardDecimal)
     {
