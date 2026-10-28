@@ -193,35 +193,46 @@ count of notes to write, and only under `--write`. Every note is rendered and ch
 refusal leaves the register as it was. The operator then runs `python scripts/spec/work.py check`, commits the notes and
 lands the branch; filing the notes upstream (tier 6 of PB3838) stays owner-gated.
 
-## 6. The cumulative history and its page
+## 6. The cumulative history and its pages
 
-The owner asked on 2026-10-28 for a running summary of every night, published as an Artifact and "maintained automatically as
-an artifact of each fuzz testing run" (kb/Work PB4006). Two pieces make it:
+The owner asked on 2026-10-28 for a running summary of every night, published as an Artifact, written for a reader new to the
+project and "maintained automatically as an artifact of each fuzz testing run", then for the same summary at the repository root
+"so I can easily link to it and track readers" (kb/Work PB4006). Three pieces make it:
 
-- **The history,** `conformance-suite/fuzz-history.json`, one record per night, tracked because the run
-  directories are git-ignored and the triage directories are coordination scratch. It is not under `docs/.../evidence/`, whose
-  JSON files are frozen records (the EVIDENCE SUPERSESSION audit holds each to a `_frozen` banner): this file grows every night.
-  A record holds the run's own numbers (run.json,
-  report.md's headline and survivor line, the harness classes of results.jsonl), the adjudicators' verdict tally (signatures and
-  programs per verdict) and the ids of the WiseOwl notes the night filed. It never stores a status. The file also carries
-  `artifact`, the one Artifact URL the page is published to (https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g).
-- **The page,** rendered by `scripts/fuzz_history.py render` from the history and the register: the steps of §2 to §5 in plain
-  words, the totals, the programs per night, the WiseOwl defects per night, the verdict mix, and every WiseOwl defect with its
-  CURRENT status and every GnuCOBOL record, both read from kb/Work when the page is rendered. It states that it is
-  machine-generated and names the command and the history file. Its charts are inline SVG drawn by the script: no library, no
-  data in the page that the script did not compute.
+- **The history,** `conformance-suite/fuzz-history.json`, one record per night, tracked because the run directories are
+  git-ignored and the triage directories are coordination scratch. It is not under `docs/.../evidence/`, whose JSON files are
+  frozen records (the EVIDENCE SUPERSESSION audit holds each to a `_frozen` banner): this file grows every night. A record holds
+  the run's own numbers (run.json, including its hours and its count of seed sections; report.md's headline and survivor line;
+  the harness classes of results.jsonl), the adjudicators' verdict tally (signatures and programs per verdict) and the ids of
+  the notes the night filed on the WiseOwl side. It never stores a status or a classification. The file also carries
+  `artifact`, the one Artifact URL the HTML page is published to (https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g).
+- **The notes of a night,** by ONE rule (`fuzz_history.defects_of`): every defect or adjudication note whose `source` names the
+  run id. What each note IS is read from the register when a page is drawn (`finding_kind`): a compiler bug, a test-harness bug
+  (`area: tooling/*` or `docs/*`), a settled question (`kind: adjudication`) or a retired finding. Only compiler bugs reach the
+  totals and the per-night chart; the table lists all four kinds. A GnuCOBOL record counts when the fuzzing produced it (its
+  `source` names the fuzz triage or the harvest plan PB3838) and it is not retired (`from_fuzzing`).
+- **Two renderings of one text,** both from `scripts/fuzz_history.py`: the HTML page for the Artifact (`render --out`) and
+  `FUZZ-LEDGER.md` at the repository root with its chart files in `docs/fuzz-ledger/*.svg` (`render --markdown`), which GitHub
+  renders in place. GitHub never renders a committed `.html` file (its viewer shows the source and its raw host serves
+  `text/plain`), so the root copy is Markdown; the HTML is served by the Artifact. The prose (INTRO, STEPS, CAPTIONS, HEADINGS),
+  the tables and the SVG charts are each written once and drawn by both, so the two cannot drift. Each states that it is
+  machine-generated and names the script and the history file. Every fact either states comes from the records: the hours and
+  section count from run.json, the nights without a tally from the records, every status from kb/Work.
 
 **The step.** The last step of every morning, after `file --write` and on the same branch: `python scripts/fuzz_triage.py history
 --triage <dir> --judge-commit <sha> --write`. It refuses a triage that `collect` does not pass (a problem or an undecided
-signature), finds the night's WiseOwl notes in the register by the run id in their `source` (`--defect` adds one whose source
-does not name it, and every id must be a note), records the night (a re-run replaces its own record), and writes the page to
-`<coord>/scratch/fuzz-summary.html`. The session then publishes that file to the `artifact` URL with the Artifact tool, the only
-publisher (a script cannot publish), and commits the history with the night's filing.
+signature) and a report.md whose headline it cannot read, finds the night's notes by the rule above (`--defect` adds one whose
+source does not name the run, and every id must be a note), and records the night. A re-run keeps the night's number, its stored
+notes, its judge and its evidence path, and replaces the rest. It then writes the HTML page to `<coord>/scratch/fuzz-summary.html`
+and `FUZZ-LEDGER.md` with `docs/fuzz-ledger/` into the worktree. The session publishes the HTML file to the `artifact` URL with
+the Artifact tool, the only publisher (a script cannot publish), and commits the history, the ledger and its charts with the
+night's filing.
 
 **Backfill.** Nights 1 to 7 were recorded on 2026-10-28 from their run directories and, for nights 3 to 7, the verdict files that
-survived in the triaging sessions' scratch. Nights 1 and 2 were triaged before verdict files existed, so their records carry no
-tally (`verdicts: null`) and the page marks them "by hand". Night 1's report.md was regenerated after PB3490 changed the
-classes, so its survivor counts are that file's, not the first-night record's.
+survived in the triaging sessions' scratch. Every night's notes were then rebuilt by the one rule (the first backfill's
+hand-copied lists missed PB3523, PB3569 and PB3570; branch review R1-1). Nights 1 and 2 were triaged before verdict files existed,
+so their records carry no tally (`verdicts: null`) and the pages mark them "not itemized". Night 1's report.md was regenerated
+after PB3490 changed the classes, so its survivor counts are that file's, not the first-night record's.
 
 ## 7. Tests and drift
 
@@ -229,10 +240,7 @@ classes, so its survivor counts are that file's, not the first-night record's.
 run and proves the arms listed in its docstring: rescoring, slicing, the briefs (no unfilled placeholder, no night-specific
 literal, the vocabulary, dispositions and bar sections held equal to the tool's, the Workflow script's brief names held equal to
 the tool's), the verdict rules, the refute plan, and every reason `file` holds a record, the witness path, the no-op re-file and
-the write-nothing-on-refusal rule. `scripts/test_fuzz_history.py` proves the history: a run's numbers read from a fabricated run
-directory, the tally, the upsert that replaces a night's own record, the defect lookup by run id, a page that renders every night
-and states it is machine-generated, a status shown as the register has it, and the verdict colours held equal to the verdict
-vocabulary.
+the write-nothing-on-refusal rule. `scripts/test_fuzz_history.py` proves the history and both pages, arm by arm as its docstring lists them: a run's numbers (and the refusal of an unreadable report), the tally, the one notes rule and the four kinds, which GnuCOBOL records count, the upsert, the HTML page and FUZZ-LEDGER.md with standalone chart files, the `history` subcommand's refusals, numbering, re-run and dry run, and the verdict colours held equal to the verdict vocabulary.
 
 ## 8. Alternatives rejected
 

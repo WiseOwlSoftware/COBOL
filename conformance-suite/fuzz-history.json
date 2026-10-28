@@ -73,7 +73,8 @@
     "PB3510",
     "PB3511",
     "PB3512",
-    "PB3517"
+    "PB3517",
+    "PB3523"
    ],
    "evidence": "docs/rearchitecture/evidence/fleet-optimization/2026-10-22-differential-fuzz-second-night.md"
   },
@@ -145,7 +146,9 @@
     "PB3565",
     "PB3566",
     "PB3567",
-    "PB3568"
+    "PB3568",
+    "PB3569",
+    "PB3570"
    ],
    "evidence": "docs/rearchitecture/evidence/fleet-optimization/2026-10-23-differential-fuzz-third-night.md"
   },
