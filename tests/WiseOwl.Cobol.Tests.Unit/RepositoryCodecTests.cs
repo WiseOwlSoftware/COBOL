@@ -31,7 +31,7 @@ public sealed class RepositoryCodecTests
     // and currency pictures, SIGN SEPARATE, SYNCHRONIZED LEFT and RIGHT, BLANK WHEN ZERO, JUSTIFIED, a strong TYPE, a pointer
     // restricted to that type, program-pointers restricted to a prototype that names itself (a finite graph of one row),
     // national, bit and float items, BY VALUE, OPTIONAL and RETURNING.
-    private const string Source = """
+    internal const string Source = """
                IDENTIFICATION DIVISION.
                PROGRAM-ID. PRTA IS PROTOTYPE.
                DATA DIVISION.

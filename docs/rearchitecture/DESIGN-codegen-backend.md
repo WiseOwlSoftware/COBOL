@@ -187,8 +187,9 @@ public interface ICodeGenBackend
 public enum BackendId { Roslyn, Cil }
 
 public sealed record BackendOptions(
-    string OutputPath, string AssemblyName, EditionInfo Edition,
-    bool EmitPdb = true, bool WriteSource = true /* .g.cs */);
+    string OutputPath, string AssemblyName /* the output file's base name */, EditionInfo Edition,
+    bool EmitPdb = true, bool WriteSource = true /* .g.cs */, CompilationInputs? Inputs = null,
+    bool RepositoryUpdate = true /* --repository-update: the module carries its units' signatures (ISO §8.13) */);
 
 /// The result the driver consumes; backend-agnostic.
 public sealed record BackendArtifact(

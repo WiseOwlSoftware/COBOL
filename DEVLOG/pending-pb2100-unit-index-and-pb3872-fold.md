@@ -91,12 +91,35 @@ and every carried `DataItem` member has a record field or a stated reason). A ps
 SYNCHRONIZED) failed the fixture at `SameElementaryLayout`. `DescriptionCopyCompletenessDriftTests` exempts the decoder's
 `Item`, a translation from a persisted record and not a `DataItem` copy.
 
-**Left open in PB2100, and why this is a first part.** `HasSignatures` is written only with the signature attributes, which
-do not exist yet, so it is never written and decodes false (the design makes it true exactly for `--repository-update on`).
-Not yet written: the rest of the attribute family, the description attributes on host entries and OO types with
-`--repository-update`, `RepositoryReader` (which decodes the attributes into the codec's `RepositoryRecord`), and the
-round-trip-through-metadata tests (17.2's encoding Facts, 17.4, 17.7). Classes and interfaces are not yet units of the index
-either (their `[CobolUnit]` and the class half of the record come with the OO emission). The note says so and stays open.
+**PB2100, the signature attributes, the update option and the reader (wave 20261733 group A).** ISO 8.13: "The
+implementor shall provide a mechanism that allows the user to specify whether to update the external repository when a
+compilation unit is compiled." That mechanism is now `--repository-update on|off` (default on; `CompilerDriver.Options` and
+`BackendOptions.RepositoryUpdate`, the `AssemblyName` remark corrected to the output file's base name). With it on, every host
+entry carries its unit's record, transcribed from `RepositoryCodec.Of` by `RepositoryAttributeRenderer`: the unit facts on
+`[CobolUnit]` (entry convention, DECIMAL-POINT IS COMMA, the currencies and the RAISING phrase as parallel arrays), the
+record's tables on the class (`CobolTypeDeclarationAttribute`, `CobolStructureAttribute`, `CobolPrototypeAttribute`,
+`CobolPrototypeFormalAttribute`, `CobolPrototypeDescriptionAttribute`), each formal's `[CobolFormal]` and `[CobolDescription]`
+tree on its own `Call` parameter and the RETURNING tree on the return value; the assembly record says `HasSignatures`. The
+description and formal fields are declared once, on two never-applied abstract bases, so every applied attribute stays sealed
+(a correction of design 6.2's table). The reader is `RepositoryReader.Read(RepositoryIndex)`, through the index's own
+decoding provider (`RepositoryIndex.SchemaAttributeName` / `DecodeSchemaAttribute`, not a copy): it rebuilds trees from
+their ordinals and formals by position, and refuses every shape the renderer cannot write as a typed outcome
+(`Malformed` with its words, `NoSignatures`, `OtherSchemaVersion`). Re-probe: the codec's fixture compiled by the CLI
+carries the records, and the reader returns them equal to `Of` of each published unit. Tests: `RepositoryReaderTests`
+(the module's records equal the codec's and still answer `PrototypeSignatures.Same`; the host entry's parameter and return
+types are `HostSurface.TypeOf` of the decoded descriptions; `off` writes no signature attribute and reads `NoSignatures`;
+two compiles are byte-identical; ten encoding fixtures, each structured value with it and without it; the malformed shapes);
+`RepositoryRoundTripCorpusTests` now also renders every published record of the corpus into libraries, compiles them and
+reads each back equal; `RepositorySchemaDriftTests` (every attribute sealed, not inherited and decodable without loading;
+every settable property written by the renderer and read by its reader; metadata read only through `RepositoryIndex` and
+`RepositoryReader`). A pseudo-mutation (the renderer dropping `DigitPositions`) failed an encoding fixture, the module
+test and the corpus. The fourteen characterization snapshots are re-baselined for the attributes.
+
+**Left open in PB2100.** The OO arm: the class half of `RepositoryRecord` (`ClassRecord`, `MethodRecord`), the
+`[CobolUnit]` of classes and interfaces, `CobolMethodAttribute` and `CobolPropertyAttribute` on classes, factory types,
+methods, accessors and interfaces; 17.4's backend-independence fixture (a `MetadataBuilder` writer); 17.2's SR2-pair Fact;
+`HostEntryShapeDriftTests`' totality Fact; and the decoded-identity cases of `PrototypePointerTypeDriftTests`. The note
+says so and stays open.
 
 **Self-review.** Architecture: one writer of attribute text, one reader of the index, one definition of the row encoding;
 no C# text in a bound node. Code: the cap and the escapes are tested at their edges; `Open(Stream)` catches only the

@@ -32,6 +32,11 @@ public enum RepositoryReadFailure
     Malformed = 3,
     /// <summary>The <c>Units</c> index lists more than <see cref="RepositoryIndex.MaxUnits"/> units (REPO-4).</summary>
     TooManyUnits = 4,
+    /// <summary>The module was built with <c>--repository-update off</c>: it carries no signature attributes, so no
+    /// compilation can bind against it (REPO-8, DESIGN-external-repository §7.1).</summary>
+    NoSignatures = 5,
+    /// <summary>The record follows another schema version than the one the reader implements (REPO-7, §6.6).</summary>
+    OtherSchemaVersion = 6,
 }
 
 /// <summary>The result of <see cref="RepositoryIndex.Open(Stream)"/>: the index, or the typed reason there is none.</summary>
@@ -62,8 +67,8 @@ public sealed class RepositoryIndex : IDisposable
     /// <see cref="RepositoryReadFailure.TooManyUnits"/>.</summary>
     public const int MaxUnits = 65_536;
 
-    private const string AttributeNamespace = "WiseOwl.Cobol.Runtime.Repository";
-    private const string AttributeName = "CobolRepositoryAttribute";
+    /// <summary>The namespace every attribute of the repository schema is declared in (this one).</summary>
+    private const string SchemaNamespace = "WiseOwl.Cobol.Runtime.Repository";
 
     private readonly PEReader _image;
 
@@ -130,13 +135,13 @@ public sealed class RepositoryIndex : IDisposable
             foreach (CustomAttributeHandle h in md.GetAssemblyDefinition().GetCustomAttributes())
             {
                 CustomAttribute candidate = md.GetCustomAttribute(h);
-                if (!IsRepositoryRecord(md, candidate.Constructor)) continue;
+                if (SchemaAttributeName(md, candidate) != nameof(CobolRepositoryAttribute)) continue;
                 record = candidate;
                 break;
             }
             if (record is null) return Fail(image, RepositoryReadFailure.NoRepositoryRecord, null);
 
-            CustomAttributeValue<string> value = record.Value.DecodeValue(DecodeTypes.Instance);
+            CustomAttributeValue<string> value = DecodeSchemaAttribute(record.Value);
             if (value.FixedArguments.Length != 3
                 || value.FixedArguments[0].Value is not int schema
                 || value.FixedArguments[1].Value is not string runtimeVersion
@@ -234,26 +239,38 @@ public sealed class RepositoryIndex : IDisposable
 
     private static string Escape(string name) => name.Replace("\\", "\\\\", StringComparison.Ordinal).Replace(":", "\\:", StringComparison.Ordinal);
 
-    private static bool IsRepositoryRecord(MetadataReader md, EntityHandle constructor)
+    /// <summary>The simple type name of <paramref name="attribute"/> when it is an attribute of the repository schema (a type
+    /// of this namespace, <c>WiseOwl.Cobol.Runtime.Repository</c>), else null: how the compiler's <c>RepositoryReader</c> and
+    /// this index tell the schema's attributes from every other attribute of an entry, by name and without loading anything
+    /// (DESIGN-external-repository §7.4, §15.1).</summary>
+    /// <param name="md">The entry's metadata.</param>
+    /// <param name="attribute">An attribute row of the entry.</param>
+    public static string? SchemaAttributeName(MetadataReader md, CustomAttribute attribute)
     {
-        switch (constructor.Kind)
+        switch (attribute.Constructor.Kind)
         {
             case HandleKind.MemberReference:
                 {
-                    MemberReference member = md.GetMemberReference((MemberReferenceHandle)constructor);
-                    if (member.Parent.Kind != HandleKind.TypeReference) return false;
+                    MemberReference member = md.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
+                    if (member.Parent.Kind != HandleKind.TypeReference) return null;
                     TypeReference type = md.GetTypeReference((TypeReferenceHandle)member.Parent);
-                    return md.StringComparer.Equals(type.Name, AttributeName) && md.StringComparer.Equals(type.Namespace, AttributeNamespace);
+                    return md.StringComparer.Equals(type.Namespace, SchemaNamespace) ? md.GetString(type.Name) : null;
                 }
             case HandleKind.MethodDefinition:
                 {
-                    TypeDefinition type = md.GetTypeDefinition(md.GetMethodDefinition((MethodDefinitionHandle)constructor).GetDeclaringType());
-                    return md.StringComparer.Equals(type.Name, AttributeName) && md.StringComparer.Equals(type.Namespace, AttributeNamespace);
+                    TypeDefinition type = md.GetTypeDefinition(md.GetMethodDefinition((MethodDefinitionHandle)attribute.Constructor).GetDeclaringType());
+                    return md.StringComparer.Equals(type.Namespace, SchemaNamespace) ? md.GetString(type.Name) : null;
                 }
             default:
-                return false;
+                return null;
         }
     }
+
+    /// <summary>Decode a schema attribute's arguments with the schema's one decoding provider (<see cref="DecodeTypes"/>):
+    /// every enum as its <c>int</c> value, every array as its elements.</summary>
+    /// <param name="attribute">An attribute <see cref="SchemaAttributeName"/> names.</param>
+    /// <exception cref="BadImageFormatException">The attribute's blob is not a well-formed custom-attribute value.</exception>
+    public static CustomAttributeValue<string> DecodeSchemaAttribute(CustomAttribute attribute) => attribute.DecodeValue(DecodeTypes.Instance);
 
     /// <summary>The decoding provider: primitives, strings, enums (always <c>int</c>-backed, DESIGN-external-repository §6.2
     /// rule 1) and one-dimensional arrays of those. A type is named, never loaded, and every enum is taken as <c>int</c>
