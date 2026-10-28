@@ -8,7 +8,9 @@ selection whatever the harm flags, the blocked_by order, site clustering per dep
 waits (blockers in two chains, the owner, a frontier model), and work.py check's topology rules.
 Run: python scripts/orchestrator/test_plan_wave.py   (no build, no git; the campaign section needs the
 tools/claude-skills submodule, and its absence is a FAIL)."""
+import contextlib
 import dataclasses
+import io
 import json
 import os
 import pathlib
@@ -27,6 +29,8 @@ from reports import (Report, Review, load_reports, parse_report, parse_review, r
 from inflight import (Claim, InFlight, IndexPolicy, SLICE_OWNER, branch_replays, changed_files,  # noqa: E402
                       classify_inflight, collision, collision_set, declared_sets, file_set_collisions,
                       inflight_file_sets, inflight_units, slice_reservation, unlanded_branch_notes)
+import inflight as inb  # noqa: E402
+import clusters as clusters_mod  # noqa: E402
 from clusters import (Note, add_closed_notes, branch_lead_notes, campaign_clusters, closed_by_branch,  # noqa: E402
                       declare_fix_lane, lift_tiers, load_fix_clusters, load_notes, ready_notes_view)
 from groups import (Group, as_group_json, attempts, body_of, campaign_requirements, group_cost,  # noqa: E402
@@ -2495,6 +2499,176 @@ inflight_units(UFAIL, UMETA, [C({"src/Binder.cs", "src/New.cs"})], failing_git, 
 check("inflight_units: a git failure leaves every file whole, so the owner meets every claim on its files",
       (UFAIL[UOWN].members, collision(C({"src/Binder.cs"}, {"src/Binder.cs": ["Other"]}), UFAIL[UOWN].claim)),
       ({}, "src/Binder.cs"))
+
+# kb/Work PB3786: A WORKTREE IN THE MIDDLE OF A MERGE (every file main changed shows as uncommitted and shared) used to put
+# its whole uncommitted shared set on `git diff HEAD`'s command line; one such worktree (3,331 paths) crashed every plan
+# with WinError 206. The uncommitted arm now follows the committed arm's rule (inflight.bounded_pathspec: over
+# PATHSPEC_CHARS, no pathspec at all) and keeps only the shared files' hunks. Planted: 300 uncommitted files with 120-character
+# names (over the 32,767-character Windows limit, which crashed the unguarded call there) beside one edit of Binder.cs.
+MR = scratch_dir("plan-wave-midmerge-")
+mrepo = ScratchRepo.init(MR / "repo")
+MERGED = {"src/generated/" + "d" * 90 + f"_{k:04d}.cs": "class M" + str(k) + " { }" + chr(10)
+          for k in range(300)}
+mrepo.commit("base", {"src/Binder.cs": BINDER, **MERGED})
+mrepo.git("update-ref", "refs/remotes/origin/main", "HEAD")
+mwt = mrepo.worktree(MR / "wt", branch="worktree-midmerge")
+mrepo.write({**{f: t.replace("{ }", "{ int x; }") for f, t in MERGED.items()},
+             "src/Binder.cs": BINDER.replace("int a = 1;", "int a = 3;")}, cwd=mwt.path)
+MDIFFS: list[list[str]] = []
+
+
+def mgit(*args, cwd=None, stdin=None):
+    if args[:1] == ("diff",) and "HEAD" in args:
+        MDIFFS.append(list(args))
+    return mrepo.run(*args, cwd=cwd, input=stdin)
+
+
+def midmerge_members(files):
+    """The worktree's members of the claimed files and the `git diff HEAD` command lines the plan ran."""
+    meta: dict = {}
+    busy = classify_inflight(inflight_file_sets(git=mgit, repo=mrepo.path, coord_dir=MR, with_git=True, meta=meta),
+                             meta, [], {})
+    MDIFFS.clear()
+    inflight_units(busy, meta, [C({*files, "src/Binder.cs"})], mgit, mrepo.path)
+    return busy[next(o for o in busy if "worktree-midmerge" in o)].claim.member_lists(), [a[a.index("--"):] for a in MDIFFS]
+
+
+M_SOME = sorted(MERGED)[:60]
+M_REF, M_REF_CALLS = midmerge_members(M_SOME)
+check("PB3786: a shared set within the bound goes to `git diff HEAD` as a pathspec, and the worktree's units are read",
+      (M_REF_CALLS == [["--", "src/Binder.cs", *M_SOME]], M_REF["src/Binder.cs"], len(M_REF)),
+      (True, ["Binder.Bind"], len(M_SOME) + 1))
+saved_bound = inb.PATHSPEC_CHARS
+inb.PATHSPEC_CHARS = 1000
+try:
+    M_SMALL, M_SMALL_CALLS = midmerge_members(M_SOME)
+finally:
+    inb.PATHSPEC_CHARS = saved_bound
+check("PB3786: over the bound the same read runs with NO pathspec and gives the same members as the pathspec form",
+      (M_SMALL_CALLS, M_SMALL == M_REF), ([["--"]], True))
+M_ALL, M_ALL_CALLS = midmerge_members(MERGED)
+check("PB3786: the real mid-merge size (300 files, over the 32,767-character command-line limit) plans: no pathspec, "
+      "every shared file read, the units of the 60 files of the reference the same",
+      (len(" ".join(MERGED)) > 32767, M_ALL_CALLS, len(M_ALL), {f: M_ALL[f] for f in M_REF} == M_REF),
+      (True, [["--"]], len(MERGED) + 1, True))
+
+# kb/Work PB3803: A DRY RUN WRITES NOTHING to the coordination directory, whichever path it plans by: the fix lane
+# (run_fix_clusters wrote clusters-<status>.json and its notes view), a campaign (clusters-campaign-<lead>.json) and a
+# regenerated member index (IndexPolicy.record_dir). The same plan without --dry-run records them, so the test is not
+# vacuous, and its table is the dry run's (apart from the header's DRY RUN mark). fix_clusters.py is a stand-in (the
+# submodule is not checked out in CI) and the campaign's own inputs are planted; the plan itself is the real one.
+DRY = TMP / "dry-run"
+DRY.mkdir()
+FAKE_FIX = DRY / "fake_fix_clusters.py"
+FAKE_FIX.write_text("import json, pathlib, sys\n"
+                    "pathlib.Path(sys.argv[sys.argv.index('--json') + 1]).write_text(json.dumps({'clusters': []}))\n",
+                    encoding="utf-8", newline="\n")
+(DRY / "reports").mkdir()
+DRY_MARK = "(DRY RUN: nothing reserved or written) "
+
+
+def listing(root):
+    """{relative path: (mtime_ns, bytes)} of every file under `root`."""
+    return {str(f.relative_to(root)): (f.stat().st_mtime_ns, f.read_bytes()) for f in sorted(root.rglob("*")) if f.is_file()}
+
+
+def dry_coord(name):
+    """A coordination directory holding a previous plan's views, so a rewrite shows as a changed byte or mtime."""
+    d = DRY / name
+    (d / "member-index").mkdir(parents=True)
+    for view in ("clusters-open.json", "clusters-half.json", "clusters-campaign-PB9.json", "member-index/old.members.json.gz"):
+        (d / view).write_text("previous plan", encoding="utf-8", newline="\n")
+    return d
+
+
+def plan_into(d, *flags):
+    """main() of a plan with the planted inputs against coordination directory `d`: (exit code, its printed table)."""
+    saved = (pw.work.cluster_order, pw.campaign_clusters, pw.load_fix_clusters, clusters_mod.FIX_CLUSTERS)
+    pw.work.cluster_order = lambda items, lead: {"named": 1, "notes": [{"id": "PB1", "tier": 1}]}
+    pw.campaign_clusters = lambda *_a, **_k: ([], [], {}, {})
+    pw.load_fix_clusters = lambda: None
+    clusters_mod.FIX_CLUSTERS = FAKE_FIX
+    out = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(out):
+            rc = pw.main(["--wave", "9803", "--budget-points", "3", "--no-branches", "--allow-stale", "--coord", str(d),
+                          "--reports", str(DRY / "reports"), *flags])
+    finally:
+        pw.work.cluster_order, pw.campaign_clusters, pw.load_fix_clusters, clusters_mod.FIX_CLUSTERS = saved
+    return rc, out.getvalue()
+
+
+for kind, flags in (("fix lane", []), ("campaign (--cluster)", ["--cluster", "PB9"])):
+    dry, real = dry_coord("dry-" + kind[:3]), dry_coord("real-" + kind[:3])
+    before = listing(dry)
+    dry_rc, dry_table = plan_into(dry, "--dry-run", *flags)
+    real_rc, real_table = plan_into(real, "--scratch", str(DRY / "scratch"), *flags)
+    check(f"PB3803: a --dry-run of the {kind} plan leaves every file of the coordination directory unchanged",
+          (dry_rc, listing(dry) == before), (0, True))
+    check(f"PB3803: ... the same plan without --dry-run records its views there and prints the dry run's table",
+          (real_rc, listing(real) != before, real_table.replace(DRY_MARK, "") == dry_table.replace(DRY_MARK, "")),
+          (0, True, True))
+
+# A member index the plan must regenerate: with a record_dir the cache is only READ and the index recorded there; without
+# one it is recorded into the cache (member_index.current's `recorder`), exactly as before.
+DECL_CALLS: list = []
+saved_mi = (member_index.current, member_index.record, member_index.note_file_set)
+member_index.current = lambda repo, cache, regen, recorder=None: (cache, regen, recorder(repo, cache) if recorder else None)
+member_index.record = lambda repo, out_dir=None: out_dir
+member_index.note_file_set = lambda text, repo, index, drifted: (DECL_CALLS.append(index()),
+                                                                  {"files": [], "members": {}, "sited": True})[1]
+try:
+    declared_sets(DRY, IndexPolicy.of(DRY / "coord", record_dir=DRY / "made" / "member-index"))("a note")
+    declared_sets(DRY, IndexPolicy.of(DRY / "coord"))("a note")
+finally:
+    member_index.current, member_index.record, member_index.note_file_set = saved_mi
+check("PB3803: a policy with a record_dir regenerates the member index there and reads the coordination cache; without "
+      "one the index is recorded by member_index's own default (into the cache)",
+      [(c[0].relative_to(DRY).as_posix(), c[2] and c[2].relative_to(DRY).as_posix()) for c in DECL_CALLS],
+      [("coord/member-index", "made/member-index"), ("coord/member-index", None)])
+
+# kb/Work PB3746: A FIX-LANE WAVE AND A CAMPAIGN SHARE ONE COORDINATION DIRECTORY. After PB3699 a normal plan also
+# finishes a campaign's SPLIT branches (their notes are `process_only`: no fix-lane cluster holds them), so one directory
+# holds the campaign's reports, its dispatch-ledger entry and its running branches beside the fix lane's clusters. Planted
+# in one directory: a campaign branch (PB90, SPLIT, DECISION) holding F_CAMP; a campaign branch whose worktree a live
+# agent holds (PB94); a campaign group dispatched and not yet answered (PB93, in the ledger) holding F_HELD; and the fix
+# lane's clusters on F_CAMP (PB91), F_HELD (PB93, PB95) and a free file (PB92). Through the real ledger,
+# inflight_file_sets and held_by_dispatch the one plan finishes each campaign branch ONCE, plans no fix-lane group beside
+# the branch on its file (the group FOLLOWS the finisher: a successor), holds the dispatched campaign's note and the file's
+# other notes, and plans the free file's group beside everything.
+CB = TMP / "coord-both"
+CB_REPORTS = CB / "reports"
+CB_REPORTS.mkdir(parents=True)
+F_CAMP, F_HELD, F_FREE = "src/X/CampaignOwned.cs", "src/X/CampaignDispatched.cs", "src/X/Free.cs"
+for slug, lead, branch in (("w2050a", "PB90", "worktree-cb-1"), ("w2050b", "PB94", "worktree-cb-2")):
+    (CB_REPORTS / f"{slug}-{lead}-report.md").write_text(
+        f"SPLIT\n# {lead} group\n**Status:** SPLIT at the turn cap · **branch:** `{branch}` · **HEAD:** `6060606aa`\n\n"
+        "## Reproduced?\n", encoding="utf-8", newline="\n")
+record_dispatch(CB, "2049", [{"letter": "a", "notes": ["PB93"], "files": [F_HELD]}], lambda i: False)
+returned(CB_REPORTS)
+cb_notes = {n: Note(n, "open", area, n, [], "", 8) for n, area in
+            (("PB90", "process"), ("PB94", "process"), ("PB91", "tooling"), ("PB92", "tooling"), ("PB93", "process"),
+             ("PB95", "tooling"))}
+cb_reports = load_reports(CB_REPORTS, CB)
+cb_meta: dict = {}
+cb_raw = inflight_file_sets(coord_dir=CB, terminal=lambda i: False, with_git=False, meta=cb_meta)
+CB_BRANCH = "worktree cb-1 (worktree-cb-1)"
+cb_raw[CB_BRANCH] = {F_CAMP}
+cb_meta[CB_BRANCH] = {"notes": ["PB90"], "branch": "worktree-cb-1"}
+cb_busy = classify_inflight(cb_raw, cb_meta, cb_reports, {CB_BRANCH: "DECISION"}, {})
+cb_plan = pw.plan(cb_notes, [cl(F_CAMP, "PB91"), cl(F_HELD, "PB93", "PB95"), cl(F_FREE, "PB92")], [], cb_reports,
+                  lambda b: "UNLANDED", {}, RULES, budget_points=100, busy=cb_busy,
+                  held=held_by_dispatch(CB, cb_reports, lambda i: False), locked={"worktree-cb-2"})
+cb_groups = {n: g for g in cb_plan["groups"] for n in g.notes}
+check("PB3746: a fix-lane plan beside a campaign's directory finishes the campaign's SPLIT branch once (never in a cluster "
+      "group), and its notes held by a live worktree or an unanswered campaign dispatch wait",
+      ([n for g in cb_plan["groups"] for n in g.notes if n in ("PB90", "PB94", "PB93")], cb_groups["PB90"].kind,
+       sorted(n for n in cb_plan["waiting"] if n in ("PB94", "PB93", "PB95"))),
+      (["PB90"], "finisher", ["PB93", "PB94", "PB95"]))
+check("PB3746: the fix lane's group on the file the campaign branch holds follows that finisher; the free file's group "
+      "is planned beside everything",
+      (cb_groups["PB91"].after, cb_groups["PB90"].letter, cb_groups["PB92"].after, "PB92" in cb_plan["waiting"]),
+      (cb_groups["PB90"].letter, cb_groups["PB90"].letter, "", False))
 
 # kb/Work PB3456: THE SLICES' RESERVATION HOLDS ONLY THE RESTRUCTURING PROGRAM'S GROUPS (R69 §2, "R2 and every R3
 # wave"), whichever campaign plans them, and reads OPEN (RESERVED) while nobody runs a slice. Wave 1132 (campaign
