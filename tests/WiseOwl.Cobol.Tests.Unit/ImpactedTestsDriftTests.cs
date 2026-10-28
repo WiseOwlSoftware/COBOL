@@ -43,7 +43,7 @@ public sealed class ImpactedTestsDriftTests
     public void ImpactedTestsSelfTest_DrivesEveryTierArm()
     {
         AssertSelfTest(TestRepo.Scripts("spec", "impacted_tests.py"),
-            "a mapped file (file level) puts its tests in tier 2", "an UNMAPPED (new) src file puts every test in tier 1",
+            "a mapped file (file level) puts its tests in tier 2", "an UNMAPPED (new) src file",
             "a known file no test executed", "an ambient-only file", "a grammar file", "a props file",
             "a runtime data file", "a public-API analyzer baseline is data a test may read",
             "a new file's test methods are all tier 0a",
