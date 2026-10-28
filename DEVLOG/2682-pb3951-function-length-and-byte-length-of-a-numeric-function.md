@@ -1,4 +1,4 @@
-## PB3951: FUNCTION LENGTH and BYTE-LENGTH of a numeric function measure the temporary DISPLAY shows, as GnuCOBOL does
+## Entry 2682 — 2026-10-27 17:47 PDT — PB3951: FUNCTION LENGTH and BYTE-LENGTH of a numeric function measure the temporary DISPLAY shows, as GnuCOBOL does
 
 `FUNCTION LENGTH(FUNCTION ABS(S))` answered 30 for every numeric function (the fixed S9(30) "returned-value item" PB1398 gave them)
 where GnuCOBOL 3.2.0 answers the size of the temporary that holds the value: 7 for `ABS` of an `S9(5)V99` item, 5 for a COMP-3 argument,
@@ -62,3 +62,4 @@ reaches the member as a 34-digit `CobolDec`. Review round 2's lead R2-1 is fixed
 paragraph no longer say LENGTH answers bytes (BYTE-LENGTH reads `ByteLength`, §15.14.4 r1; LENGTH reads `Length`, §15.50.4 r2 / r3), and the
 same stale sentence is corrected in `IntrinsicRenderer`, `docs/INTRINSICS_DESIGN.md` and DOC-A.1-92. The "temporary data item" wording is cited
 to §8.4.3.2.4 r1, where it is; §8.4.3.2.1's own words are "the unique data item that results from the evaluation of a function".
+
