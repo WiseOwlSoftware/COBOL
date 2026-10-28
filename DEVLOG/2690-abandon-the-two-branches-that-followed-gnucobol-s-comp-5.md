@@ -1,4 +1,4 @@
-## Abandon the two branches that followed GnuCOBOL's COMP-5 exemption; carry their findings into PB3975 and PB3990; file PB3993
+## Entry 2690 — 2026-10-28 10:22 PDT — Abandon the two branches that followed GnuCOBOL's COMP-5 exemption; carry their findings into PB3975 and PB3990; file PB3993
 
 The owner ruled on 2026-10-27 that GnuCOBOL 3.2's exemption of COMP-5, COMP-X and COMP-N receivers from
 keep-on-overflow under a NOT-only statement is GnuCOBOL's error (PB3989). Two branches had followed it:
@@ -16,3 +16,4 @@ the unchecked leg of the pb1196 golden. PB3990 also gets the abandoned finisher'
 (`RuntimeApi.InexactAtScale` over every carrier) and its site list. PB3869's title and `closes_rows_reason` now
 qualify "GnuCOBOL keeps them" with the exemption (lead R3-2). PB3993 is new (lead R3-3): no golden or test row pins
 the keep for a binary-capacity receiver, so a change that copied the exemption would turn nothing red.
+
