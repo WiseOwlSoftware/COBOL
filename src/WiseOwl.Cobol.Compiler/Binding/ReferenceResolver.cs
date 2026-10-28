@@ -834,7 +834,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
         DataItem.HasOdoOnOrBeneath(item) || item.IsDynamicTable || HasVariableLengthSubordinate(item);
 
     /// <summary>The decimal-integer LITERAL a rendered position is, or null when it is anything else (a data-name
-    /// read, an expression, a narrowing call) — the screen's "is this position known at compile time".</summary>
+    /// read, an expression, a narrowing call) — the screen's "is this position known at compile time". A figurative
+    /// ZERO is included: <see cref="BindPosition"/> reads it as <c>PositionConstant(0)</c> (kb/Work PB3960).</summary>
     private static Int128? LiteralPosition(Position? position) => position switch
     {
         PositionConstant { Value: >= 0 } c => c.Value,
@@ -959,13 +960,20 @@ public sealed partial class ReferenceResolver(DataBinder data)
     private static (int Start, int? Length, bool Ok, bool Beyond) ReadLiteralPositions(Core.RefModPartContext rmp)
     {
         var spec = rmp.refModSpec();
-        if (spec.leftmost is null
+        if (spec.leftmost is null || WritesFigurativeZero(spec.leftmost)
             || !WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(spec.leftmost.GetText(), out int start, out bool b0))
             return (0, null, false, false);
         if (spec.length is null) return (start, null, true, b0);
-        return WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(spec.length.GetText(), out int len, out bool b1)
+        return !WritesFigurativeZero(spec.length)
+            && WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(spec.length.GetText(), out int len, out bool b1)
             ? (start, len, true, b0 || b1) : (0, null, false, false);
     }
+
+    /// <summary>True when the position's source is the figurative ZERO (the <c>ZERO_ARITH</c> token the rewriter mints,
+    /// whose text is "0"): §13.18.16.3 SR4 and its twins want an INTEGER LITERAL, and ZERO is a figurative constant
+    /// (§8.8.1.1), so <see cref="ReadLiteralPositions"/> must not take its text for the literal <c>0</c> (kb/Work PB3960).</summary>
+    private static bool WritesFigurativeZero(IParseTree position) =>
+        LeafTokens(position).Exists(t => t.Type == Core.ZERO_ARITH);
 
     /// <summary>
     /// Build the typed <see cref="Place"/> for an already-resolved <paramref name="item"/> with its subscript index
@@ -2592,7 +2600,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <summary>Bind one subscript / ref-mod position to its typed <see cref="Position"/> (kb/Work PB2151), or
     /// <see langword="null"/> if neither the direct walk nor the D18 materialization route can bind it (so the
     /// caller fails loud). The direct walk reads the PARSE NODE through the arithmetic grammar and keeps the shapes
-    /// that map to an ordinal term by term — integer literals, data-name / index-name references, <c>+ - *</c>,
+    /// that map to an ordinal term by term — integer literals, the figurative ZERO (the integer 0, kb/Work PB3960), data-name / index-name references, <c>+ - *</c>,
     /// unary minus and written parentheses, i.e. the relative-subscript and simple-index forms. <b>EVERYTHING ELSE
     /// routes through <see cref="MaterializePosition"/></b>, which binds the same node through the ONE expression
     /// binder; the walk is an optimization over that route, never the arbiter of what is legal in the position
@@ -2641,7 +2649,9 @@ public sealed partial class ReferenceResolver(DataBinder data)
         if (bound.ExceedsLongArithmetic) return MaterializePosition(seg, position);
         if (pending is not null && !_probing)   // R30 purity: a probe never diagnoses (kb/Work PB157)
             foreach (var ps in pending)
-                if (ps.Item is { } it) ScreenPositionOperandClass(it, ps.Name, position);
+                if (ps.AllZero)
+                    FigurativeAssociation.GateAllZeroAsArithmeticOperand(data.Edition.Edition, data.Edition.Sink, ps.Name, where: "");
+                else if (ps.Item is { } it) ScreenPositionOperandClass(it, ps.Name, position);
                 else IndexNameInPositionError(ps.Name, position);
         return bound;
 
@@ -2689,6 +2699,18 @@ public sealed partial class ReferenceResolver(DataBinder data)
             if (p.LPAREN() is not null)
                 return Additive(p.arithmeticExpression().additiveExpression()) is { } inner ? new PositionGroup(inner) : null;
             if (p.numericLiteral() is { } lit) return IntegerLiteral(lit);
+            // ⛔ The figurative ZERO beside a ref-mod colon, an operator or a lone grouping pair (ZeroTokenRewriter) is the
+            // INTEGER 0 (§8.8.1.1 "the figurative constant ZERO"; §8.3.3.6.4 GR4 — the zero format is the value 0 in a
+            // numeric context), so it is a literal like `0` and meets every literal-only screen as one (kb/Work PB3960):
+            // routed through D18 it became a §15.4 temp read, and `T(ZERO:2)` over PIC X(4) escaped the §8.4.3.3.4 5) b)
+            // range screen that `T(0:2)` meets. ALL before it is §8.3.3.6.2 Format 1's optional word, whose
+            // §8.3.3.6.3 SR1 a) edition edge is queued with the other screens (an abandoned walk must not report twice).
+            if (p.ZERO_ARITH() is { } zero)
+            {
+                if (p.ALL() is not null)
+                    (pending ??= []).Add(new PendingScreen(null, "ALL " + WiseOwl.Cobol.Frontend.Parsing.ZeroTokenRewriter.WrittenWord(zero.Symbol), AllZero: true));
+                return new PositionConstant(0);
+            }
             if (p.dataReference() is not { } dref || !IsNameToken(dref.Start)) return null;
             // A FUNCTION-BEARING position cannot be read term by term (the head word is a function name, not a
             // data-name), so the WHOLE position routes to D18. Asked once, at the first name, over the whole position.
@@ -2743,8 +2765,9 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// screen over a resolved item (<see cref="ScreenPositionOperandClass"/>) or the §13.18.38.3 r7 index-name
     /// screen (<see cref="IndexNameInPositionError"/>, <c>Item</c> null). Queued rather than emitted so an exit
     /// to D18 later in the token loop cannot leave a diagnostic behind for the D18 route to duplicate — see
-    /// <see cref="BindPosition"/>.</summary>
-    private readonly record struct PendingScreen(DataItem? Item, string Name);
+    /// <see cref="BindPosition"/>. The third kind (<paramref name="AllZero"/>, <c>Name</c> the operand as written) is the
+    /// §8.3.3.6.3 SR1 a) edition edge of a position written <c>ALL ZERO</c> (kb/Work PB3960).</summary>
+    private readonly record struct PendingScreen(DataItem? Item, string Name, bool AllZero = false);
 
     /// <summary>⛔ §8.4.2.3.3 SR4 — THE ONE CONSUMER OF THE INDEX→TABLE ASSOCIATION on the reference side:
     /// "Index-name-1 shall correspond to a data description entry in the hierarchy of the table being referenced
