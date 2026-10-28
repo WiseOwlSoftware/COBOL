@@ -287,19 +287,18 @@ def owed_statements(erased: list[Erasure], current: dict[str, dict[str, Any]]
     the state `record_verdicts.validate` refuses a verdict change to leave behind. Such a row is STRANDED: the
     prose of its present verdict has to be written by a person, and `run_history` says so (kb/Work PB3795).
     """
-    owed: dict[str, dict[str, str]] = {}
-    stranded: dict[str, str] = {}
+    latest: dict[tuple[str, str], Erasure] = {}
     for e in erased:
         row = current.get(e.loss.rule_id)
-        if row is None or statement_text(row, e.loss.field):
-            continue
-        if e.loss.field == "notes" and row.get("verdict", "") != e.verdict:
-            stranded[e.loss.rule_id] = e.verdict
-            owed.get(e.loss.rule_id, {}).pop("notes", None)
-            continue
-        if e.loss.field == "notes":
-            stranded.pop(e.loss.rule_id, None)
-        owed.setdefault(e.loss.rule_id, {})[e.loss.field] = e.text
+        if row is not None and not statement_text(row, e.loss.field):
+            latest[e.loss.rule_id, e.loss.field] = e
+    owed: dict[str, dict[str, str]] = {}
+    stranded: dict[str, str] = {}
+    for (rid, field), e in latest.items():
+        if field == "notes" and current[rid].get("verdict", "") != e.verdict:
+            stranded[rid] = e.verdict
+        else:
+            owed.setdefault(rid, {})[field] = e.text
     return owed, stranded
 
 
@@ -604,6 +603,10 @@ def self_test(schema) -> int:
     owed_p, stranded_p = owed_statements(erasures(partial, prose_now), {rid: {**prose_now}})
     verify("history restore: prose that argued ANOTHER verdict is stranded, never put back under the row's (R1-2)",
            not owed_p and stranded_p == {rid: other}, f": {owed_p} {stranded_p}")
+    owed_p, stranded_p = owed_statements(erasures(said, prose_now) + erasures(partial, prose_now), {rid: {**prose_now}})
+    verify("history restore: a later erasure under another verdict strands the row only, it is owed nothing (PB3808)",
+           not owed_p and stranded_p == {rid: other}
+           and not restore_records({}, owed_p, {rid: {**prose_now}}, schema), f": {owed_p} {stranded_p}")
     print(f"=== SELF-TEST: {'GREEN' if not fails else f'RED ({fails})'} ===")
     return 1 if fails else 0
 
