@@ -3,6 +3,7 @@
 using System.Globalization;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Repository;
+using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Repository;
 using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
@@ -14,7 +15,10 @@ namespace WiseOwl.Cobol.CodeGen;
 /// assembly-level <see cref="CobolRepositoryAttribute"/>, a unit's <see cref="CobolUnitAttribute"/> and, for a module built
 /// with <c>--repository-update on</c>, the SIGNATURE attributes of its record (§9.1): the formals' and the returning item's
 /// description trees on the host entry's <c>Call</c> parameters and return value, and the rows of the record's own tables
-/// (type declarations, dynamic-length structures, referenced prototypes) on the host-entry class — as C# attribute text the
+/// (type declarations, dynamic-length structures, referenced prototypes) on the host-entry class; for a class or an
+/// interface, its facts on the unit's <see cref="CobolUnitAttribute"/>, each method's <see cref="CobolMethodAttribute"/> on the
+/// CLR method that implements it with its formals and returning item anchored as a program's are, and each property's
+/// <see cref="CobolPropertyAttribute"/> on the type that holds its accessors (§6.2 "Anchoring") — as C# attribute text the
 /// Roslyn backend compiles (a direct-CIL backend would write the same facts through its own metadata builder, §17.4's
 /// backend-independence fixture). <c>RuntimeApi.ModuleRecordAttribute</c>, which wrote the assembly record when it carried a
 /// registrar and nothing else, moved here.
@@ -33,11 +37,15 @@ namespace WiseOwl.Cobol.CodeGen;
 /// </summary>
 internal static class RepositoryAttributeRenderer
 {
-    /// <summary>The rows of the assembly's <c>Units</c> index: one per host entry <paramref name="entryUnits"/> publishes, in
-    /// the order the entries are emitted (§6.5). The <c>[CobolUnit]</c> of each entry is written from the same list by
-    /// <see cref="UnitRecord"/>, so the index and the records cannot name different units.</summary>
-    internal static IReadOnlyList<RepositoryUnitRow> IndexOf(IEnumerable<BoundUnit> entryUnits) =>
-        [.. entryUnits.Select(u => new RepositoryUnitRow(RepositoryCodec.KindOf(u), u.ExternalizedName, u.Name))];
+    /// <summary>The rows of the assembly's <c>Units</c> index, in the order the module emits the units (§6.5): every
+    /// interface, every class, then one per host entry <paramref name="entryUnits"/> publishes (§7.2). The
+    /// <c>[CobolUnit]</c> of each unit is written from the same lists by <see cref="UnitRecord"/>, so the index and the
+    /// records cannot name different units.</summary>
+    internal static IReadOnlyList<RepositoryUnitRow> IndexOf(IEnumerable<OoInterfaceSymbol> interfaces, IEnumerable<OoClassUnit> classes,
+        IEnumerable<BoundUnit> entryUnits) =>
+        [.. interfaces.Select(i => new RepositoryUnitRow(RepositoryUnitKind.Interface, i.ExternalizedName, i.Name))
+            .Concat(classes.Select(c => new RepositoryUnitRow(RepositoryUnitKind.Class, c.Symbol.ExternalizedName, c.Name)))
+            .Concat(entryUnits.Select(u => new RepositoryUnitRow(RepositoryCodec.KindOf(u), u.ExternalizedName, u.Name)))];
 
     /// <summary>The module's assembly-level record, <c>[assembly: CobolRepository(schema, runtimeVersion, callAbi, …)]</c>
     /// (§6.2, §7.1): the versions it was compiled against (so a run unit can refuse a module whose runtime major or call ABI
@@ -59,10 +67,11 @@ internal static class RepositoryAttributeRenderer
         return $"[assembly: {Attribute<CobolRepositoryAttribute>(named, CobolRepositoryAttribute.CurrentSchemaVersion.ToString(CultureInfo.InvariantCulture), CsLiteral(RuntimeAbi.Version.ToString()), RuntimeAbi.CallAbi.ToString(CultureInfo.InvariantCulture))}]";
     }
 
-    /// <summary>A unit's <c>[CobolUnit(kind, name, externalizedName)]</c> (§6.2), written on its host-entry class; with the
-    /// unit's <paramref name="signature"/> (a module built with <c>--repository-update on</c>) it also states the signature
-    /// facts of §8.13 that belong to the unit rather than to a formal: the entry convention, DECIMAL-POINT IS COMMA, the
-    /// currency symbols and the RAISING phrase, the last two as parallel arrays (§6.2 rule 3).</summary>
+    /// <summary>A unit's <c>[CobolUnit(kind, name, externalizedName)]</c> (§6.2), written on its host-entry class, its class's
+    /// type or its interface; with the unit's <paramref name="signature"/> (a module built with <c>--repository-update on</c>)
+    /// it also states the signature facts of §8.13 that belong to the unit rather than to a formal: the entry convention,
+    /// DECIMAL-POINT IS COMMA, the currency symbols and the RAISING phrase, the last two as parallel arrays (§6.2 rule 3), and
+    /// for a class or an interface its <see cref="ClassRecord"/>'s own facts.</summary>
     internal static string UnitRecord(RepositoryUnitKind kind, string name, string externalizedName, RepositoryRecord? signature)
     {
         var named = new Arguments();
@@ -82,9 +91,49 @@ internal static class RepositoryAttributeRenderer
                 named.Texts(nameof(CobolUnitAttribute.RaisingIdentity), r.Raising.Select(t => t.Identity));
                 named.Flags(nameof(CobolUnitAttribute.RaisingFactory), r.Raising.Select(t => t.Factory));
             }
+            if (r.Class is { } c)
+            {
+                named.Flag(nameof(CobolUnitAttribute.Final), c.Final);
+                named.Text(nameof(CobolUnitAttribute.BaseIdentity), c.BaseIdentity);
+                if (c.Implements.Count > 0) named.Texts(nameof(CobolUnitAttribute.Implements), c.Implements);
+                if (c.FactoryImplements.Count > 0) named.Texts(nameof(CobolUnitAttribute.FactoryImplements), c.FactoryImplements);
+                named.Text(nameof(CobolUnitAttribute.FactoryType), c.FactoryType);
+            }
         }
         return $"[{Attribute<CobolUnitAttribute>(named, Member(kind), CsLiteral(name), CsLiteral(externalizedName))}]";
     }
+
+    /// <summary>A method's <c>[CobolMethod(name, externalizedName, …)]</c> (§6.2), written before the CLR method that
+    /// implements it; its formals and returning item are the method's parameter and return attributes
+    /// (<see cref="FormalRecord"/>, <see cref="ReturningRecord"/>), as a program's are.</summary>
+    internal static string MethodRecord(MethodRecord m)
+    {
+        var named = new Arguments();
+        named.Flag(nameof(CobolMethodAttribute.IsFactory), m.IsFactory);
+        named.Kind(nameof(CobolMethodAttribute.Accessor), m.Accessor);
+        named.Text(nameof(CobolMethodAttribute.PropertyName), m.PropertyName);
+        named.Flag(nameof(CobolMethodAttribute.Override), m.Override);
+        named.Flag(nameof(CobolMethodAttribute.Final), m.Final);
+        named.Text(nameof(CobolMethodAttribute.EntryConvention), m.EntryConvention);
+        if (m.Raising.Count > 0)
+        {
+            named.Kinds(nameof(CobolMethodAttribute.RaisingKind), m.Raising.Select(t => t.Kind));
+            named.Texts(nameof(CobolMethodAttribute.RaisingIdentity), m.Raising.Select(t => t.Identity));
+            named.Flags(nameof(CobolMethodAttribute.RaisingFactory), m.Raising.Select(t => t.Factory));
+        }
+        return $"[{Attribute<CobolMethodAttribute>(named, CsLiteral(m.Name), CsLiteral(m.ExternalizedName))}]";
+    }
+
+    /// <summary>The <c>[CobolProperty(name, externalizedName, …)]</c> of each property of one half (§6.2): the object's on
+    /// the class's type (or the interface), the factory's on the factory type.</summary>
+    internal static IEnumerable<string> PropertyRecords(ClassRecord c, bool factory) =>
+        c.Properties.Where(p => p.IsFactory == factory).Select(p =>
+        {
+            var named = new Arguments();
+            named.Flag(nameof(CobolPropertyAttribute.Get), p.Get);
+            named.Flag(nameof(CobolPropertyAttribute.Set), p.Set);
+            return $"[{Attribute<CobolPropertyAttribute>(named, CsLiteral(p.Name), CsLiteral(p.ExternalizedName))}]";
+        });
 
     /// <summary>The record's own tables, as the attributes of the unit's host-entry class, in the order of §6.5: every type
     /// declaration's entries (<see cref="CobolTypeDeclarationAttribute"/>, preorder), every dynamic-length structure

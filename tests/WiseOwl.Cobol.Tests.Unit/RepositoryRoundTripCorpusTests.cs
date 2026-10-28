@@ -14,12 +14,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ⛔ EVERY PUBLISHED UNIT OF THE CORPUS ROUND-TRIPS THROUGH ITS REPOSITORY RECORD (DESIGN-external-repository §17.2; kb/Work
 /// PB2100). The corpus is every case of the WiseOwl manifest (<see cref="SuiteManifest"/>: <c>conformance-suite/cases/**</c>
 /// and <c>conformance-suite/wiseowl/cases/**</c>), bound at EVERY edition it is accepted at — 85 included, since an 85
-/// program is a legal callee and publishes its record (§13) — and for each outermost program, function and prototype unit
-/// <see cref="RepositoryCodecTests.RoundTrip"/> holds: <c>Decode(Of(unit))</c> answers every comparator and derived quantity
-/// as the bound unit's LINKAGE does, its restricted pointers included (§6.3, §6.4); and every record a host entry publishes
-/// (§7.2: every outermost unit but a prototype its group defines) is rendered by <c>RepositoryAttributeRenderer</c>, compiled
-/// and read back by <c>RepositoryReader</c> EQUAL to the record (§6.2, §7.4), so the attribute encoding holds for every shape
-/// the corpus has. One Fact over the whole corpus, bound in parallel, so a description shape the fixtures of
+/// program is a legal callee and publishes its record (§13) — and for each outermost program, function and prototype unit,
+/// and each method of each class and interface, <see cref="RepositoryCodecTests.RoundTrip"/> holds: <c>Decode(Of(unit))</c>
+/// answers every comparator and derived quantity as the bound unit's LINKAGE does, its restricted pointers included (§6.3,
+/// §6.4); and every record the module publishes (§7.2: every outermost unit but a prototype its group defines, every class
+/// and every interface) is rendered by <c>RepositoryAttributeRenderer</c>, compiled and read back by <c>RepositoryReader</c>
+/// EQUAL to the record (§6.2, §7.4), so the attribute encoding holds for every shape the corpus has. One Fact over the whole corpus, bound in parallel, so a description shape the fixtures of
 /// <see cref="RepositoryCodecTests"/> and <see cref="RepositoryReaderTests"/> lack is still met.
 /// </summary>
 public sealed class RepositoryRoundTripCorpusTests
@@ -46,6 +46,8 @@ public sealed class RepositoryRoundTripCorpusTests
                 Interlocked.Add(ref units, RepositoryCodecTests.RoundTripAll(comp).Count);
                 foreach (var unit in HostEntryEmitter.EntryUnits(comp.Units))
                     published.Add(($"{c.Edition}/{c.Test.Id}", RepositoryCodec.Of(unit)));
+                foreach (var (record, _) in RepositoryCodecTests.OoRecordsOf(comp))
+                    published.Add(($"{c.Edition}/{c.Test.Id}", record));
             }
             catch (Exception e)
             {
@@ -58,14 +60,16 @@ public sealed class RepositoryRoundTripCorpusTests
 
         // Through metadata: libraries of distinct (kind, externalized name), each compiled once and read back.
         var libraries = new List<List<(string Case, RepositoryRecord Record)>>();
-        var keys = new List<HashSet<(RepositoryUnitKind, string)>>();
+        var keys = new List<HashSet<string>>();
         foreach (var entry in published.OrderBy(p => p.Case, StringComparer.Ordinal).ThenBy(p => p.Record.ExternalizedName, StringComparer.Ordinal))
         {
-            var key = (entry.Record.Kind, entry.Record.ExternalizedName);
-            int at = keys.FindIndex(k => k.Count < LibrarySize && !k.Contains(key));
+            // One unit per (kind, externalized name), and one CLR type per factory type name (a class's factory is a type the
+            // library declares by the name its record states).
+            string[] entryKeys = [$"{entry.Record.Kind}:{entry.Record.ExternalizedName}", .. entry.Record.Class?.FactoryType is { } f ? [$"factory:{f}"] : Array.Empty<string>()];
+            int at = keys.FindIndex(k => k.Count < LibrarySize && !entryKeys.Any(k.Contains));
             if (at < 0) { libraries.Add([]); keys.Add([]); at = libraries.Count - 1; }
             libraries[at].Add(entry);
-            keys[at].Add(key);
+            keys[at].UnionWith(entryKeys);
         }
         var readFailures = new ConcurrentBag<string>();
         Parallel.ForEach(libraries, library =>
@@ -84,6 +88,8 @@ public sealed class RepositoryRoundTripCorpusTests
         Assert.True(readFailures.IsEmpty, $"{readFailures.Count} records failed the metadata round trip:\n  "
             + string.Join("\n  ", readFailures.Order(StringComparer.Ordinal).Take(60)));
         Assert.True(published.Count > cases.Count, $"only {published.Count} records were published over {cases.Count} cases");
+        int classes = published.Count(p => p.Record.Kind == RepositoryUnitKind.Class), interfaces = published.Count(p => p.Record.Kind == RepositoryUnitKind.Interface);
+        Assert.True(classes > 300 && interfaces > 50, $"only {classes} class and {interfaces} interface records were published — the OO arm measured nothing");
     }
 
     /// <summary>The records one compiled library holds: large enough that the corpus compiles in tens of libraries, small

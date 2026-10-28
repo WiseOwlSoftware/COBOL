@@ -67,6 +67,42 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         }
     }
 
+    /// <summary>A class's and an interface's records (ISO §8.13 "the object properties of the source unit" and "the methods
+    /// contained in the source unit"; §6.2 "Anchoring"): what the module carries — the facts on the class's type, the
+    /// methods on the CLR methods that implement them, the factory's on its own type — reads back equal to the codec's, in the
+    /// index's order (interfaces, classes, host entries).</summary>
+    [Fact]
+    public void ACompiledClassAndInterface_ReadBack_EqualToTheCodecsOf()
+    {
+        var (dll, comp, _) = CompileFixture(repositoryUpdate: true, source: RepositoryCodecTests.OoSource);
+        var expected = RepositoryCodecTests.OoRecordsOf(comp).Select(r => r.Record)
+            .Concat(HostEntryEmitter.EntryUnits(comp.Units).Select(RepositoryCodec.Of)).ToList();
+        Assert.Equal([RepositoryUnitKind.Interface, RepositoryUnitKind.Class, RepositoryUnitKind.Program], expected.Select(r => r.Kind));
+
+        using RepositoryIndex index = RepositoryIndex.Open(dll).Index!;
+        var outcome = RepositoryReader.Read(index);
+        Assert.True(outcome.Failure == RepositoryReadFailure.None, outcome.Detail);
+        Assert.Equal(expected, outcome.Records);
+
+        // Each decoded method still answers as the bound method does (§6.3's invariant).
+        foreach (var (record, methods) in RepositoryCodecTests.OoRecordsOf(comp))
+        {
+            var decoded = RepositoryCodec.Decode(outcome.Records.Single(r => r.Kind == record.Kind && r.Name == record.Name), comp.SignatureClasses);
+            for (int i = 0; i < methods.Count; i++)
+                Assert.True(PrototypeSignatures.Same(new CalleeSignature([.. methods[i].Binding!.Formals.Select(f =>
+                        new LinkageFormal(f.Item, f.Position, f.ParamName, CarrierResident: true, ByValue: f.ByValue, Optional: f.Optional))],
+                    methods[i].Binding!.Returning), decoded.Methods[i].Signature), $"{record.Name} {methods[i].SourceName}: the method read from the module is not the method's signature");
+        }
+
+        var (offDll, _, _) = CompileFixture(repositoryUpdate: false, source: RepositoryCodecTests.OoSource, subdirectory: "off");
+        using RepositoryIndex off = RepositoryIndex.Open(offDll).Index!;
+        Assert.Equal(expected.Select(r => new RepositoryUnitRow(r.Kind, r.ExternalizedName, r.Name)), off.Units);
+        Assert.Equal(RepositoryReadFailure.NoSignatures, RepositoryReader.Read(off).Failure);
+        var md = off.Metadata;
+        var schema = md.CustomAttributes.Select(h => RepositoryIndex.SchemaAttributeName(md, md.GetCustomAttribute(h))).OfType<string>().ToHashSet();
+        Assert.Equal(new HashSet<string> { nameof(CobolRepositoryAttribute), nameof(CobolUnitAttribute) }, schema);
+    }
+
     [Fact]
     public void WithRepositoryUpdateOff_TheModuleCarriesNoSignature_AndTheReaderSaysSo()
     {
@@ -212,18 +248,20 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         return RepositoryReader.Read(index);
     }
 
-    /// <summary>Compile the codec's fixture group (<see cref="RepositoryCodecTests.Source"/>) to a module; returns the module,
-    /// the group bound as the compile bound it, and the generated C#.</summary>
-    private (string Dll, BoundCompilation Comp, string Generated) CompileFixture(bool repositoryUpdate, string subdirectory = "")
+    /// <summary>Compile one of the codec's fixture groups (<see cref="RepositoryCodecTests.Source"/> unless
+    /// <paramref name="source"/> names another) to a module; returns the module, the group bound as the compile bound it, and
+    /// the generated C#.</summary>
+    private (string Dll, BoundCompilation Comp, string Generated) CompileFixture(bool repositoryUpdate, string subdirectory = "",
+        string source = RepositoryCodecTests.Source)
     {
         string dir = Path.Combine(TempDir, subdirectory);
         Directory.CreateDirectory(dir);
-        string source = Path.Combine(dir, "rtgroup.cob"), dll = Path.Combine(dir, "rtgroup.dll");
-        File.WriteAllText(source, RepositoryCodecTests.Source);
-        var result = CompilerDriver.Compile(new CompilerDriver.Options(source, dll, SourceFormat: InitialReferenceFormat.Auto,
+        string path = Path.Combine(dir, "rtgroup.cob"), dll = Path.Combine(dir, "rtgroup.dll");
+        File.WriteAllText(path, source);
+        var result = CompilerDriver.Compile(new CompilerDriver.Options(path, dll, SourceFormat: InitialReferenceFormat.Auto,
             RepositoryUpdate: repositoryUpdate));
         Assert.True(result.Success, $"{result.Status}: {string.Join("\n", result.Errors)}");
-        return (dll, RepositoryCodecTests.BindFile(source, 2023, InitialReferenceFormat.Auto), result.GeneratedCsPath!);
+        return (dll, RepositoryCodecTests.BindFile(path, 2023, InitialReferenceFormat.Auto), result.GeneratedCsPath!);
     }
 
     private static void AssertHostType(HostType type, string emitted, string at)
@@ -234,9 +272,11 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
     }
 
     /// <summary>The records of <paramref name="records"/> rendered by <see cref="RepositoryAttributeRenderer"/> into ONE library
-    /// — each on a class of its own, its formals on a <c>Call</c>'s parameters and its returning item on the return value, as
-    /// a host entry carries them (§6.2 "Anchoring") — compiled by Roslyn and read back by <see cref="RepositoryReader"/>. Two
-    /// records may not share a kind and externalized name (one module, one unit per name).</summary>
+    /// — a program's on a class of its own, its formals on a <c>Call</c>'s parameters and its returning item on the return
+    /// value, as a host entry carries them; a class's on a class with each object method a method of it and each factory
+    /// method one of the factory type the record names; an interface's on an interface (§6.2 "Anchoring") — compiled by Roslyn
+    /// and read back by <see cref="RepositoryReader"/>. Two records may not share a kind and externalized name (one module, one
+    /// unit per name).</summary>
     internal static IReadOnlyList<RepositoryRecord> ReadLibrary(IReadOnlyList<RepositoryRecord> records)
     {
         var source = new StringBuilder();
@@ -247,6 +287,12 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
             var r = records[n];
             source.AppendLine(RepositoryAttributeRenderer.UnitRecord(r.Kind, r.Name, r.ExternalizedName, r));
             foreach (string attribute in RepositoryAttributeRenderer.TableRecords(r)) source.AppendLine(attribute);
+            if (r.Class is { } c)
+            {
+                AppendType(source, c, r.Kind is RepositoryUnitKind.Interface ? $"public interface U{n}" : $"public class U{n}", factory: false);
+                if (c.FactoryType is { } factoryType) AppendType(source, c, $"public class {factoryType}", factory: true);
+                continue;
+            }
             source.Append("public static class U").Append(n).AppendLine(" {");
             if (r.Returning is { } returning) source.AppendLine(RepositoryAttributeRenderer.ReturningRecord(returning));
             source.Append(r.Returning is null ? "public static void Call(" : "public static object Call(")
@@ -257,5 +303,23 @@ public sealed class RepositoryReaderTests : WiseOwlCobolTestBase
         var outcome = RepositoryReader.Read(index);
         Assert.True(outcome.Failure == RepositoryReadFailure.None, $"{outcome.Failure}: {outcome.Detail}");
         return outcome.Records;
+
+        // One half of a class (or an interface): its properties on the type, each of its methods a CLR method of the record's
+        // CLR name whose parameters carry the formals and whose return value carries the RETURNING item.
+        static void AppendType(StringBuilder source, ClassRecord c, string declaration, bool factory)
+        {
+            foreach (string attribute in RepositoryAttributeRenderer.PropertyRecords(c, factory)) source.AppendLine(attribute);
+            source.Append(declaration).AppendLine(" {");
+            foreach (var m in c.Methods.Where(m => m.IsFactory == factory))
+            {
+                source.AppendLine(RepositoryAttributeRenderer.MethodRecord(m));
+                if (m.Returning is { } returning) source.AppendLine(RepositoryAttributeRenderer.ReturningRecord(returning));
+                source.Append(declaration.Contains("interface", StringComparison.Ordinal) ? "" : "public ")
+                    .Append(m.Returning is null ? "void " : "object ").Append(m.ClrName).Append('(')
+                    .Append(string.Join(", ", m.Formals.Select((f, i) => RepositoryAttributeRenderer.FormalRecord(f) + " object p" + i)))
+                    .AppendLine(declaration.Contains("interface", StringComparison.Ordinal) ? ");" : m.Returning is null ? ") { }" : ") => null!;");
+            }
+            source.AppendLine("}");
+        }
     }
 }

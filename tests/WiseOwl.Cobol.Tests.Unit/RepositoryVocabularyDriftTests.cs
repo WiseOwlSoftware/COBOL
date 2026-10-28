@@ -57,6 +57,8 @@ public sealed class RepositoryVocabularyDriftTests
         Assert.Null(FromPersisted(Persisted((ObjectRefDescriptor?)null)));
         foreach (var v in Enum.GetValues<ObjectRefKind>())
             Assert.Equal(v, FromPersisted(Persisted(new ObjectRefDescriptor(v, "C", false, false))));
+        // OoMethodSymbol.Accessor is a mark, not an enum: its three values (an ordinary method, GET, SET; ISO 11.7.2).
+        foreach (char mark in (char[])[default, 'G', 'S']) Assert.Equal(mark, AccessorMark(PersistedAccessor(mark)));
     }
 
     /// <summary>The converse: every persisted member names a compiler value, so no value a record may carry is undecodable.</summary>
@@ -73,5 +75,6 @@ public sealed class RepositoryVocabularyDriftTests
         foreach (var v in Enum.GetValues<RepositorySynchronized>()) Assert.Equal(v, Persisted(FromPersisted(v)));
         foreach (var v in Enum.GetValues<ObjectReferenceKind>())
             Assert.Equal(v, Persisted(FromPersisted(v) is { } kind ? new ObjectRefDescriptor(kind, "C", false, false) : null));
+        foreach (var v in Enum.GetValues<RepositoryAccessor>()) Assert.Equal(v, PersistedAccessor(AccessorMark(v)));
     }
 }

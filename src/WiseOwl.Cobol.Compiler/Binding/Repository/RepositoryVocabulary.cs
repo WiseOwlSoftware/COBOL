@@ -216,6 +216,24 @@ internal static class RepositoryVocabulary
         _ => throw new UnreachableException($"RepositoryRaisingKind {(int)k} is no persisted RAISING kind"),
     };
 
+    /// <summary>A method's accessor mark (<c>OoMethodSymbol.Accessor</c>: 'G' for a get property method, 'S' for a set
+    /// property method, '\0' for an ordinary method; ISO §11.7.2).</summary>
+    public static RepositoryAccessor PersistedAccessor(char accessor) => accessor switch
+    {
+        '\0' => RepositoryAccessor.None,
+        'G' => RepositoryAccessor.Get,
+        'S' => RepositoryAccessor.Set,
+        _ => throw new UnreachableException($"the accessor mark '{accessor}' has no persisted value"),
+    };
+
+    public static char AccessorMark(RepositoryAccessor accessor) => accessor switch
+    {
+        RepositoryAccessor.None => '\0',
+        RepositoryAccessor.Get => 'G',
+        RepositoryAccessor.Set => 'S',
+        _ => throw new UnreachableException($"RepositoryAccessor {(int)accessor} is no persisted accessor"),
+    };
+
     /// <summary>An object-reference description's kind; no description (not an object reference) is
     /// <see cref="ObjectReferenceKind.None"/>. The forward half is the descriptor's own <see cref="ObjectRefDescriptor.RuntimeKind"/>.</summary>
     public static ObjectReferenceKind Persisted(ObjectRefDescriptor? d) => d?.RuntimeKind ?? ObjectReferenceKind.None;

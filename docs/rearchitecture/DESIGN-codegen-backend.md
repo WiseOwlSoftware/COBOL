@@ -203,7 +203,12 @@ public sealed record BackendArtifact(
   hands packaging to `AssemblyPackager`. It becomes the **only** owner of C# syntax knowledge.
 - `CilBackend` (future) implements it over Mono.Cecil, doing its own private structure→branch lowering (SSOT §1.1:
   no shared lowered IR). Not built in this rearchitecture; the seam and the neutral tree make it *possible* and let the
-  differential harness cross-check the two backends.
+  differential harness cross-check the two backends. What a module PUBLISHES is backend-independent: the
+  external repository's record of every unit (DESIGN-external-repository §6, kb/Work PB2100) is a value,
+  `RepositoryRecord`, built from the bound tree by `RepositoryCodec.Of` (programs, functions, prototypes, classes and
+  interfaces); `RoslynBackend` writes it as attribute TEXT through `RepositoryAttributeRenderer` (the one place that
+  syntax is spelled, called by `HostEntryEmitter` and `OoEmitter`), and a `CilBackend` would write the same record
+  through `MetadataBuilder` + `CustomAttributeEncoder`; `RepositoryReader` reads either back to an equal record (§17.4).
 - The driver selects by `--backend` (default Roslyn): `ICodeGenBackend backend = BackendFactory.For(options.Backend);`
 
 **Hard boundary:** the backend's `Emit` receives a `BoundCompilation` and produces an artifact. It performs **no

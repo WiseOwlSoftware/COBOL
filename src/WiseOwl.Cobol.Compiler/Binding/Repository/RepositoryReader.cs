@@ -30,8 +30,12 @@ internal readonly record struct RepositoryReadOutcome(IReadOnlyList<RepositoryRe
 /// (<see cref="RepositoryReadFailure.NoSignatures"/>, REPO-8) and one of another schema version is
 /// <see cref="RepositoryReadFailure.OtherSchemaVersion"/> (REPO-7, §6.6: the reader implements one version). The REPO
 /// diagnostics that report these outcomes are slice 7's.</para>
-/// <para>Only the program, function and prototype records are read today; the class, interface and skeleton records join with
-/// the OO arm of the renderer (§6.1).</para>
+/// <para>A class's or an interface's record (§6.1 <see cref="ClassRecord"/>) is read from its type: the unit's facts from its
+/// <see cref="CobolUnitAttribute"/>, the tables as a program's, each method from the CLR method that carries its
+/// <see cref="CobolMethodAttribute"/> (a CLR method without one is no COBOL method, and a formal or description on it is
+/// malformed), and each property from a <see cref="CobolPropertyAttribute"/>; the factory's methods and properties from the
+/// factory type the unit names (<see cref="CobolUnitAttribute.FactoryType"/>, in the class's namespace). The skeleton and
+/// expansion records are slice 8's.</para>
 /// </summary>
 internal static class RepositoryReader
 {
@@ -73,6 +77,7 @@ internal static class RepositoryReader
     private static RepositoryRecord? Unit(MetadataReader md, TypeDefinition type)
     {
         Fields? unit = null;
+        var properties = new List<Fields>();
         var declarations = new List<(int Declaration, Fields Entry)>();
         var structures = new List<StructureRecord>();
         var prototypes = new List<(int Index, RepositoryUnitKind Kind, string ExternalizedName, bool HasSignature)>();
@@ -82,6 +87,7 @@ internal static class RepositoryReader
             switch (name)
             {
                 case nameof(CobolUnitAttribute): unit = value; break;
+                case nameof(CobolPropertyAttribute): properties.Add(value); break;
                 case nameof(CobolTypeDeclarationAttribute): declarations.Add((value.Fixed<int>(0), value)); break;
                 case nameof(CobolStructureAttribute):
                     structures.Add(new StructureRecord(value.Fixed<int>(0), value.Fixed<string>(1),
@@ -89,7 +95,7 @@ internal static class RepositoryReader
                         value.Flag(nameof(CobolStructureAttribute.Delimited)), value.Text(nameof(CobolStructureAttribute.PhysicalStructureName))));
                     break;
                 case nameof(CobolPrototypeAttribute):
-                    prototypes.Add((value.Fixed<int>(0), (RepositoryUnitKind)value.Fixed<int>(1), value.Fixed<string>(2),
+                    prototypes.Add((value.Fixed<int>(0), value.FixedKind<RepositoryUnitKind>(1), value.Fixed<string>(2),
                         value.Flag(nameof(CobolPrototypeAttribute.HasSignature))));
                     break;
                 case nameof(CobolPrototypeFormalAttribute): prototypeFormals.Add((value.Fixed<int>(0), value)); break;
@@ -97,10 +103,118 @@ internal static class RepositoryReader
             }
         if (unit is null) return null;
 
-        var formals = new List<(Fields Formal, List<Fields> Entries)>();
-        List<Fields>? returning = null;
-        foreach (MethodDefinitionHandle m in type.GetMethods())
-            foreach (ParameterHandle p in md.GetMethodDefinition(m).GetParameters())
+        var kind = unit.FixedKind<RepositoryUnitKind>(0);
+        string unitName = unit.Fixed<string>(1);
+        bool oo = kind is RepositoryUnitKind.Class or RepositoryUnitKind.Interface;
+        // A program's, function's or prototype's formals are on its host entry's Call (the one method that carries any); a
+        // class's or an interface's are its methods' (Methods).
+        var signature = new Signature();
+        if (!oo)
+            foreach (MethodDefinitionHandle m in type.GetMethods())
+                signature.Read(md, md.GetMethodDefinition(m));
+        var record = new RepositoryRecord(
+            Kind: kind, Name: unitName, ExternalizedName: unit.Fixed<string>(2),
+            EntryConvention: unit.Text(nameof(CobolUnitAttribute.EntryConvention))
+                ?? throw new MalformedEntry($"the unit '{unitName}' states no entry convention"),
+            DecimalPointIsComma: unit.Flag(nameof(CobolUnitAttribute.DecimalPointIsComma)),
+            Currencies: List(Parallel(unit.Chars(nameof(CobolUnitAttribute.CurrencySymbol)), unit.Texts(nameof(CobolUnitAttribute.CurrencyText)),
+                unit.Kinds<RepositoryLiteralClass>(nameof(CobolUnitAttribute.CurrencyClass)), "currency",
+                (symbol, text, literalClass) => new CurrencyRecord(symbol, text, literalClass))),
+            Raising: List(Parallel(unit.Kinds<RepositoryRaisingKind>(nameof(CobolUnitAttribute.RaisingKind)),
+                unit.Texts(nameof(CobolUnitAttribute.RaisingIdentity)), unit.Flags(nameof(CobolUnitAttribute.RaisingFactory)), "RAISING",
+                (kind, identity, factory) => new RaisingRecord(kind, identity, factory))),
+            Formals: Formals(signature.Formals),
+            Returning: signature.Returning is null ? null : Tree(signature.Returning),
+            TypeDeclarations: List(Rows(declarations.GroupBy(d => d.Declaration, d => d.Entry), "type declaration").Select(Tree)),
+            DynamicLengthStructures: List(Rows(structures.GroupBy(s => s.Index), "structure").Select(g => g.Single())),
+            ReferencedPrototypes: List(Rows(prototypes.GroupBy(p => p.Index), "prototype").Select(g => g.Single()).Select(p => new PrototypeRecord(
+                p.Index, p.Kind, p.ExternalizedName, p.HasSignature,
+                Formals(prototypeFormals.Where(f => f.Prototype == p.Index).Select(f => (f.Formal,
+                    prototypeEntries.Where(e => e.Prototype == p.Index && e.Formal == f.Formal.Position).Select(e => e.Entry).ToList()))),
+                prototypeEntries.Where(e => e.Prototype == p.Index && e.Formal == CobolPrototypeDescriptionAttribute.ReturningItem)
+                    .Select(e => e.Entry).ToList() is { Count: > 0 } r ? Tree(r) : null))),
+            Class: oo ? Class(md, type, unit, properties) : null);
+        var orphan = prototypeFormals.Select(f => f.Prototype).Concat(prototypeEntries.Select(e => e.Prototype))
+            .FirstOrDefault(i => i < 0 || i >= record.ReferencedPrototypes.Count, -1);
+        if (orphan != -1 || prototypeEntries.Any(e => e.Formal != CobolPrototypeDescriptionAttribute.ReturningItem
+                && !prototypeFormals.Any(f => f.Prototype == e.Prototype && f.Formal.Position == e.Formal)))
+            throw new MalformedEntry($"the unit '{unitName}' holds a prototype formal or description that names no prototype row or formal");
+        return record;
+    }
+
+    /// <summary>A class's or an interface's own facts (§6.1 <see cref="ClassRecord"/>): the unit's, then the methods and the
+    /// properties of its type and, for a class, of the factory type the unit names.</summary>
+    private static ClassRecord Class(MetadataReader md, TypeDefinition type, Fields unit, List<Fields> properties)
+    {
+        var methods = Methods(md, type, factory: false);
+        var propertyRecords = properties.Select(p => Property(p, isFactory: false)).ToList();
+        string? factoryType = unit.Text(nameof(CobolUnitAttribute.FactoryType));
+        if (factoryType is not null)
+        {
+            string ns = md.GetString(type.Namespace);
+            var factory = md.TypeDefinitions.Select(md.GetTypeDefinition)
+                .Where(t => md.GetString(t.Name) == factoryType && md.GetString(t.Namespace) == ns).ToList();
+            if (factory.Count != 1)
+                throw new MalformedEntry($"the factory type '{factoryType}' the class names is {(factory.Count == 0 ? "not in the module" : "in it twice")}");
+            methods.AddRange(Methods(md, factory[0], factory: true));
+            foreach (var (name, value) in SchemaAttributes(md, factory[0].GetCustomAttributes()))
+                if (name == nameof(CobolPropertyAttribute)) propertyRecords.Add(Property(value, isFactory: true));
+        }
+        return new ClassRecord(unit.Flag(nameof(CobolUnitAttribute.Final)), unit.Text(nameof(CobolUnitAttribute.BaseIdentity)),
+            List(unit.Texts(nameof(CobolUnitAttribute.Implements)) ?? []), List(unit.Texts(nameof(CobolUnitAttribute.FactoryImplements)) ?? []),
+            factoryType, List(propertyRecords), List(methods));
+
+        static PropertyRecord Property(Fields p, bool isFactory) => new(p.Fixed<string>(0), p.Fixed<string>(1), isFactory,
+            p.Flag(nameof(CobolPropertyAttribute.Get)), p.Flag(nameof(CobolPropertyAttribute.Set)));
+    }
+
+    /// <summary>The methods of one CLR type, in metadata order: each method that carries a <see cref="CobolMethodAttribute"/>,
+    /// with its formals and returning item. A method without one is no COBOL method, so a formal or a description on it is
+    /// malformed; a method of the factory type must say it is one (<see cref="CobolMethodAttribute.IsFactory"/>), and only one.</summary>
+    private static List<MethodRecord> Methods(MetadataReader md, TypeDefinition type, bool factory)
+    {
+        var methods = new List<MethodRecord>();
+        foreach (MethodDefinitionHandle h in type.GetMethods())
+        {
+            var definition = md.GetMethodDefinition(h);
+            Fields? method = null;
+            foreach (var (name, value) in SchemaAttributes(md, definition.GetCustomAttributes()))
+                if (name == nameof(CobolMethodAttribute)) method = value;
+            var signature = new Signature();
+            signature.Read(md, definition);
+            if (method is null)
+            {
+                if (signature.Formals.Count > 0 || signature.Returning is not null)
+                    throw new MalformedEntry($"the CLR method '{md.GetString(definition.Name)}' carries a formal or a RETURNING item and no [CobolMethod]");
+                continue;
+            }
+            string clrName = md.GetString(definition.Name);
+            if (method.Flag(nameof(CobolMethodAttribute.IsFactory)) != factory)
+                throw new MalformedEntry($"the method '{clrName}' is {(factory ? "on the factory type and not" : "a factory method on the object's type, not")} a factory method");
+            methods.Add(new MethodRecord(method.Fixed<string>(0), method.Fixed<string>(1), factory,
+                method.Kind<RepositoryAccessor>(nameof(CobolMethodAttribute.Accessor)), method.Text(nameof(CobolMethodAttribute.PropertyName)),
+                method.Flag(nameof(CobolMethodAttribute.Override)), method.Flag(nameof(CobolMethodAttribute.Final)),
+                method.Text(nameof(CobolMethodAttribute.EntryConvention)) ?? throw new MalformedEntry($"the method '{clrName}' states no entry convention"),
+                List(Parallel(method.Kinds<RepositoryRaisingKind>(nameof(CobolMethodAttribute.RaisingKind)),
+                    method.Texts(nameof(CobolMethodAttribute.RaisingIdentity)), method.Flags(nameof(CobolMethodAttribute.RaisingFactory)), "RAISING",
+                    (kind, identity, isFactory) => new RaisingRecord(kind, identity, isFactory))),
+                Formals(signature.Formals), signature.Returning is null ? null : Tree(signature.Returning), clrName));
+        }
+        return methods;
+    }
+
+    /// <summary>The formal and returning-item attributes of one or more CLR methods' parameters and return values (§6.2
+    /// "Anchoring"): a <see cref="CobolFormalAttribute"/> with its <see cref="CobolDescriptionAttribute"/>s per formal, the
+    /// return value's <see cref="CobolReturningAttribute"/> with its tree.</summary>
+    private sealed class Signature
+    {
+        public List<(Fields Formal, List<Fields> Entries)> Formals { get; } = [];
+
+        public List<Fields>? Returning { get; private set; }
+
+        public void Read(MetadataReader md, MethodDefinition method)
+        {
+            foreach (ParameterHandle p in method.GetParameters())
             {
                 Parameter parameter = md.GetParameter(p);
                 Fields? formal = null;
@@ -113,40 +227,12 @@ internal static class RepositoryReader
                         case nameof(CobolReturningAttribute): isReturning = true; break;
                         case nameof(CobolDescriptionAttribute): entries.Add(value); break;
                     }
-                if (formal is not null) formals.Add((formal, entries));
+                if (formal is not null) Formals.Add((formal, entries));
                 else if (isReturning)
-                    returning = returning is null ? entries : throw new MalformedEntry("two return values carry the RETURNING item");
+                    Returning = Returning is null ? entries : throw new MalformedEntry("two return values carry the RETURNING item");
                 else if (entries.Count > 0) throw new MalformedEntry("a description sits on a parameter that is no formal");
             }
-
-        string unitName = unit.Fixed<string>(1);
-        var record = new RepositoryRecord(
-            Kind: (RepositoryUnitKind)unit.Fixed<int>(0), Name: unitName, ExternalizedName: unit.Fixed<string>(2),
-            EntryConvention: unit.Text(nameof(CobolUnitAttribute.EntryConvention))
-                ?? throw new MalformedEntry($"the unit '{unitName}' states no entry convention"),
-            DecimalPointIsComma: unit.Flag(nameof(CobolUnitAttribute.DecimalPointIsComma)),
-            Currencies: List(Parallel(unit.Chars(nameof(CobolUnitAttribute.CurrencySymbol)), unit.Texts(nameof(CobolUnitAttribute.CurrencyText)),
-                unit.Kinds<RepositoryLiteralClass>(nameof(CobolUnitAttribute.CurrencyClass)), "currency",
-                (symbol, text, literalClass) => new CurrencyRecord(symbol, text, literalClass))),
-            Raising: List(Parallel(unit.Kinds<RepositoryRaisingKind>(nameof(CobolUnitAttribute.RaisingKind)),
-                unit.Texts(nameof(CobolUnitAttribute.RaisingIdentity)), unit.Flags(nameof(CobolUnitAttribute.RaisingFactory)), "RAISING",
-                (kind, identity, factory) => new RaisingRecord(kind, identity, factory))),
-            Formals: Formals(formals.Select(f => (f.Formal, f.Entries))),
-            Returning: returning is null ? null : Tree(returning),
-            TypeDeclarations: List(Rows(declarations.GroupBy(d => d.Declaration, d => d.Entry), "type declaration").Select(Tree)),
-            DynamicLengthStructures: List(Rows(structures.GroupBy(s => s.Index), "structure").Select(g => g.Single())),
-            ReferencedPrototypes: List(Rows(prototypes.GroupBy(p => p.Index), "prototype").Select(g => g.Single()).Select(p => new PrototypeRecord(
-                p.Index, p.Kind, p.ExternalizedName, p.HasSignature,
-                Formals(prototypeFormals.Where(f => f.Prototype == p.Index).Select(f => (f.Formal,
-                    prototypeEntries.Where(e => e.Prototype == p.Index && e.Formal == f.Formal.Position).Select(e => e.Entry).ToList()))),
-                prototypeEntries.Where(e => e.Prototype == p.Index && e.Formal == CobolPrototypeDescriptionAttribute.ReturningItem)
-                    .Select(e => e.Entry).ToList() is { Count: > 0 } r ? Tree(r) : null))));
-        var orphan = prototypeFormals.Select(f => f.Prototype).Concat(prototypeEntries.Select(e => e.Prototype))
-            .FirstOrDefault(i => i < 0 || i >= record.ReferencedPrototypes.Count, -1);
-        if (orphan != -1 || prototypeEntries.Any(e => e.Formal != CobolPrototypeDescriptionAttribute.ReturningItem
-                && !prototypeFormals.Any(f => f.Prototype == e.Prototype && f.Formal.Position == e.Formal)))
-            throw new MalformedEntry($"the unit '{unitName}' holds a prototype formal or description that names no prototype row or formal");
-        return record;
+        }
     }
 
     /// <summary>The formals by position (each a <see cref="CobolFormalAttribute"/> or <see cref="CobolPrototypeFormalAttribute"/>,
@@ -336,6 +422,9 @@ internal static class RepositoryReader
 
         /// <summary>A description entry's parent's index (the last constructor argument).</summary>
         public int Parent => Fixed<int>(_fixed.Length - 1);
+
+        /// <summary>A constructor argument of an enum type, which must be one of its members.</summary>
+        public TEnum FixedKind<TEnum>(int position) where TEnum : struct, Enum => Member<TEnum>(Fixed<int>(position));
 
         public T Fixed<T>(int position) =>
             position < _fixed.Length && _fixed[position].Value is T value ? value
