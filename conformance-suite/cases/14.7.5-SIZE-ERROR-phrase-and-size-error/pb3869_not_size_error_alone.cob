@@ -5,64 +5,66 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> PB3869 - an arithmetic statement written with ONLY a NOT ON SIZE
-      *> ERROR phrase is the statement with no phrase.
+      *> PB3869 (retired) - an arithmetic statement written with ONLY a
+      *> NOT ON SIZE ERROR phrase, checking not enabled.
       *>
-      *> ISO 14.7.5, the paragraph on a size error condition with no SIZE
-      *> ERROR phrase, ends: "and processing proceeds as specified in
-      *> 14.6.13.1.3, Fatal exception conditions. If a NOT SIZE ERROR
-      *> phrase is specified, it is ignored." The closing paragraph of the
-      *> clause transfers to the NOT SIZE ERROR imperative only when "no
-      *> size error condition occurs during the execution of the
-      *> arithmetic operations ... or while storing into the resultant
-      *> identifiers". So the NOT phrase runs exactly when the statement
-      *> met no size error condition, and a statement that met one is
-      *> disposed of as the phraseless statement is: with checking not
-      *> enabled, CONFORMANCE.md DOC-A.1-70 (14.6.13.1.3 item 8) has
-      *> execution continue and the resultant receive the LOW-ORDER
-      *> digits of the result. Before the fix the phrase turned on the
-      *> phrase-checked shape, whose disposition (the receiver left
-      *> unchanged, 14.7.5 storing rule 2) belongs to ON SIZE ERROR.
-      *> The no-phrase rules are 2002 and later (GR-14.7.5-L3.x), so this
-      *> test starts there.
+      *> ISO 14.7.5, the paragraph on a size error condition with no
+      *> SIZE ERROR phrase, ends: "and processing proceeds as specified
+      *> in 14.6.13.1.3, Fatal exception conditions. If a NOT SIZE ERROR
+      *> phrase is specified, it is ignored." 14.6.13.1.3 item 8 then
+      *> leaves it to the implementor, checking not being enabled,
+      *> "whether or not execution will continue, how it will continue,
+      *> and how any receiving operands are affected". ISO does not
+      *> decide the receivers, so CLAUDE.md rule 1 follows GnuCOBOL: any
+      *> SIZE ERROR or NOT SIZE ERROR phrase keeps a resultant that
+      *> would overflow unchanged (cobc typeck.c,
+      *> COB_STORE_KEEP_ON_OVERFLOW), and the CCVS85 programs (NC106A,
+      *> NC171A, ...) expect the same. That is CONFORMANCE.md
+      *> DOC-A.1-70's determination for this statement: execution
+      *> continues, a resultant that meets a size error keeps its value
+      *> (the others store as they would have, 14.7.5 rule 2), and the
+      *> NOT imperative runs only when no size error condition occurred
+      *> (the clause's closing paragraph). The no-phrase rules are 2002
+      *> and later (GR-14.7.5-L3.x), so this test starts there.
       *>
-      *> EVERY EXPECTED VALUE IS COMPUTED FROM THE SPEC, never read off a
-      *> run. F is "-" before each statement and "N" afterwards only if
-      *> the NOT imperative ran.
+      *> EVERY EXPECTED VALUE IS COMPUTED FROM THAT DETERMINATION, never
+      *> read off a run. F is "-" before each statement and "N"
+      *> afterwards only if the NOT imperative ran.
       *>
-      *> ADD1: 9 + 1 = 10, further from zero than PIC 9 permits (case 3),
-      *> so the digit 0 lands and NOT is ignored: X=0 F=-.
+      *> ADD1: 9 + 1 = 10, past PIC 9 (14.7.5 case 3): X keeps 9, F=-.
       *> ADD2: 5 + 1 = 6 fits: X=6 and NOT runs: F=N.
-      *> MUL: 42 * 50 = 2100 into PIC 99 keeps its low-order 00, F=-.
+      *> MUL: 42 * 50 = 2100 is past PIC 99: M keeps 42, F=-.
       *> CMP: 40 + 2 = 42 fits, F=N.
-      *> CMPR: 99.6 rounded away from zero is 100, past PIC 99: 00, F=-.
-      *> MULTI: ADD 1 TO A B with A=9, B=1: A's 10 is a size error (A=0),
-      *> B stores 2 as it would have without it (14.7.5 rule 2), and the
-      *> statement met a size error, so F=-.
+      *> CMPR: 99.6 rounded away from zero is 100, past PIC 99: R keeps
+      *> 42, F=-.
+      *> MULTI: ADD 1 TO A B with A=9, B=1: A's 10 is a size error (A
+      *> keeps 9), B stores 2 as it would have without it (14.7.5 rule
+      *> 2), and the statement met a size error, so F=-.
       *> SUB: 3 - 5 = -2 into a signed PIC S9 fits: N=-2 and F=N.
-      *> REM: 150 / 4 = 37.5, quotient 37 (PIC 99) and remainder
-      *> 150 - 37 * 4 = 2 (14.9.12.4 rules 6 and 7): both fit, F=N.
-      *> EDIT: 123 into PIC Z9 keeps its low-order digits 23, F=-.
+      *> REM: 150 / 4 = 37.5, quotient 37 (PIC 99) and remainder 150 -
+      *> 37 * 4 = 2 (14.9.12.4 rules 6 and 7): both fit, F=N.
+      *> EDIT: 123 is past PIC Z9: E keeps its VALUE 5, F=-.
       *> CORR: ADD CORRESPONDING is one implied ADD per pair (14.9.2.4
-      *> rule 5): P is 9 + 1 = 10, past PIC 9 (P=0), Q is 5 + 1 = 6 as it
-      *> would have been alone, and the statement met a size error: F=-.
+      *> rule 5): P is 9 + 1 = 10, past PIC 9 (P keeps 9), Q is 5 + 1 =
+      *> 6 as it would have been alone, and the statement met a size
+      *> error: F=-.
       *> SUBS: ADD 1 TO TE(I) with TE(2) = 9 identifies the receiver at
-      *> run time and stores 0 there: TE is 909, F=-.
-      *> BOTH: ON and NOT ON SIZE ERROR together are the two-phase
-      *> statement: 9 + 1 leaves X=9 and runs the ON phrase, F=S.
+      *> run time and keeps 9 there: TE is 999, F=-.
+      *> BOTH: ON and NOT ON SIZE ERROR together: 9 + 1 leaves X=9 and
+      *> runs the ON phrase, F=S.
       *> REMOV: 59 / 30 has quotient 1 and remainder 59 - 1 * 30 = 29
       *> (14.9.12.4 rules 6 and 7); 29 is past the PIC 9 remainder, a
       *> size error condition while storing into a resultant (rule 6 c:
       *> "unless storing the value would cause a size error condition"),
-      *> so the statement met one and NOT is ignored, F=-. With checking
-      *> not enabled the disposition is DOC-A.1-70's, as for the
-      *> quotient: the low-order digit lands, R=9.
-      *> RAND: the initial evaluation is done ONCE (14.7.7 rule 4 a) and
-      *> the statement is the phraseless one, so it consumes exactly one
-      *> element of the FUNCTION RANDOM sequence (15.75.3 rule 5: each
-      *> reference without an argument returns the next number). Seeded
-      *> the same, the NOT-only statement and the phraseless one store
-      *> the same R and leave the same next element: OKAY=Y.
+      *> so the remainder keeps the 2 the REM row stored, Q=01, and NOT
+      *> is skipped, F=-.
+      *> RAND: the initial evaluation is done ONCE (14.7.7 rule 4 a), so
+      *> the statement consumes exactly one element of the FUNCTION
+      *> RANDOM sequence (15.75.3 rule 5: each reference without an
+      *> argument returns the next number). Seeded the same, the
+      *> NOT-only statement and the phraseless one store the same RR
+      *> (PIC 999 holds any RANDOM * 1000) and leave the same next
+      *> element: OKAY=Y.
       *>
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3869NOTONLY.
@@ -77,7 +79,7 @@
        01 NE    PIC -9.
        01 Q     PIC 99 VALUE 7.
        01 REM   PIC 9 VALUE 0.
-       01 E     PIC Z9.
+       01 E     PIC Z9 VALUE 5.
        01 F     PIC X VALUE "-".
        01 G1.
           05 P  PIC 9 VALUE 9.
@@ -88,8 +90,8 @@
        01 TAB.
           05 TE PIC 9 OCCURS 3 TIMES VALUE 9.
        01 I     PIC 9 VALUE 2.
-       01 RR    PIC 99 VALUE 0.
-       01 RS    PIC 99 VALUE 0.
+       01 RR    PIC 999 VALUE 0.
+       01 RS    PIC 999 VALUE 0.
        01 RD1   PIC 9V9(8) VALUE 0.
        01 RD2   PIC 9V9(8) VALUE 0.
        01 OKAY  PIC X VALUE "N".

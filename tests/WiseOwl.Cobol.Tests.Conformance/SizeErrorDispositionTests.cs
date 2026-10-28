@@ -147,110 +147,14 @@ public sealed class SizeErrorDispositionTests
     [InlineData("NATIVE", "COMPUTE A = FL / FZ.")]
     [InlineData("NATIVE", "IF FL / FZ > 1 DISPLAY \"GT\" END-IF.")]
     [InlineData("STANDARD-DECIMAL", "COMPUTE A = B / Z.")]
-    // kb/Work PB3869: ONLY a NOT ON SIZE ERROR phrase is the phraseless statement (§14.7.5: "If a NOT SIZE ERROR phrase is
-    // specified, it is ignored") - the zero divisor ends the run unit on every lane, and the phrase's imperative never runs.
-    [InlineData("NATIVE", "DIVIDE B BY Z GIVING A NOT ON SIZE ERROR DISPLAY \"NSE\" END-DIVIDE.")]
-    [InlineData("NATIVE", "COMPUTE A = B / Z NOT ON SIZE ERROR DISPLAY \"NSE\" END-COMPUTE.")]
-    [InlineData("NATIVE", "DIVIDE Z INTO A NOT ON SIZE ERROR DISPLAY \"NSE\" END-DIVIDE.")]
-    [InlineData("NATIVE", "DIVIDE B BY Z GIVING A REMAINDER R NOT ON SIZE ERROR DISPLAY \"NSE\" END-DIVIDE.")]
-    [InlineData("NATIVE", "COMPUTE FR = FL / FZ NOT ON SIZE ERROR DISPLAY \"NSE\" END-COMPUTE.")]
-    [InlineData("STANDARD-DECIMAL", "COMPUTE A = B / Z NOT ON SIZE ERROR DISPLAY \"NSE\" END-COMPUTE.")]
     public void ZeroDivisor_CheckingOff_TerminatesNamingEcSizeZeroDivide(string arithmetic, string body)
     {
         var (exit, stdout, stderr) = Run(ProgZeroDivisor(arithmetic, body));
         Assert.Equal(1, exit);
         Assert.Contains("BEFORE", stdout);
         Assert.DoesNotContain("AFTER", stdout);
-        Assert.DoesNotContain("NSE", stdout);
         Assert.Contains("abnormal run-unit termination: EC-SIZE-ZERO-DIVIDE (fatal)", stderr);
         Assert.DoesNotContain("   at ", stderr);   // no CLR stack trace
-    }
-
-    /// <summary>kb/Work PB3869 — a statement written with ONLY a NOT ON SIZE ERROR phrase and checking off is the
-    /// phraseless statement (§14.7.5: with a size error condition and no SIZE ERROR phrase "processing proceeds as
-    /// specified in 14.6.13.1.3 ... If a NOT SIZE ERROR phrase is specified, it is ignored"), and its closing
-    /// paragraph transfers to the phrase when no size error condition occurred. The result past the receiver lands its
-    /// low-order digits (DOC-A.1-70) and the phrase's imperative is skipped; the result that fits lands and the
-    /// imperative runs. A holds 7 before each statement; the displays are the verdict. Each arm is a different
-    /// receiver store (fixed-point, edited, float) and a different value lane.</summary>
-    [Theory]
-    [InlineData("NATIVE", "COMPUTE A = 1234", "A=234 E=  0 F=-")]
-    [InlineData("NATIVE", "COMPUTE A = 123", "A=123 E=  0 F=N")]
-    [InlineData("STANDARD-DECIMAL", "COMPUTE A = 1234", "A=234 E=  0 F=-")]
-    [InlineData("STANDARD-DECIMAL", "COMPUTE A = 123", "A=123 E=  0 F=N")]
-    [InlineData("NATIVE", "ADD 1000 TO A", "A=007 E=  0 F=-")]
-    [InlineData("NATIVE", "ADD 10 TO A", "A=017 E=  0 F=N")]
-    [InlineData("NATIVE", "MULTIPLY 200 BY A", "A=400 E=  0 F=-")]
-    [InlineData("NATIVE", "DIVIDE 5 INTO A", "A=001 E=  0 F=N")]
-    [InlineData("NATIVE", "COMPUTE A ROUNDED = 999.6", "A=000 E=  0 F=-")]
-    [InlineData("NATIVE", "COMPUTE E = 12345", "A=007 E=345 F=-")]
-    [InlineData("NATIVE", "COMPUTE E = 123", "A=007 E=123 F=N")]
-    [InlineData("NATIVE", "COMPUTE A = FL * 400", "A=000 E=  0 F=-")]
-    [InlineData("NATIVE", "COMPUTE A = FL * 2", "A=010 E=  0 F=N")]
-    [InlineData("NATIVE", "COMPUTE FR = FL * 2", "A=007 E=  0 F=N")]
-    public void NotSizeErrorAlone_CheckingOff_IsThePhraselessStatement_AndRunsOnlyWithoutASizeError(
-        string arithmetic, string statement, string verdict)
-    {
-        var (exit, stdout, _) = Run($$"""
-               IDENTIFICATION DIVISION.
-               PROGRAM-ID. PB3869NSE.
-               OPTIONS.
-                   ARITHMETIC IS {{arithmetic}}.
-               DATA DIVISION.
-               WORKING-STORAGE SECTION.
-               01 A  PIC 9(3) VALUE 7.
-               01 E  PIC ZZ9 VALUE 0.
-               01 F  PIC X VALUE "-".
-               01 FL USAGE FLOAT-LONG VALUE 5.
-               01 FR USAGE FLOAT-LONG VALUE 9.
-               PROCEDURE DIVISION.
-               MAIN-P.
-                   {{statement}} NOT ON SIZE ERROR MOVE "N" TO F END-{{statement[..statement.IndexOf(' ')]}}.
-                   DISPLAY "A=" A " E=" E " F=" F.
-                   STOP RUN.
-            """);
-        Assert.Equal(0, exit);
-        Assert.Equal(verdict, stdout.Trim());
-    }
-
-    /// <summary>kb/Work PB3869, review R1-2 — the REMAINDER store of a NOT-only DIVIDE is a resultant store like the
-    /// quotient's: a remainder past identifier-4 is a size error condition (§14.9.12.4 6) c)), so its low-order digit lands
-    /// and the NOT phrase is ignored; one that fits runs the phrase. R is PIC 9, Q is PIC 99.</summary>
-    [Theory]
-    [InlineData("DIVIDE 59 BY 30 GIVING Q REMAINDER R", "Q=01 R=9 F=-")]     // remainder 29 does not fit PIC 9
-    [InlineData("DIVIDE 66 BY 30 GIVING Q REMAINDER R", "Q=02 R=6 F=N")]     // remainder 6 fits
-    public void NotSizeErrorAlone_DivideRemainder_DetectsASizeErrorInTheRemainder(string statement, string verdict)
-    {
-        var (exit, stdout, _) = Run($$"""
-               IDENTIFICATION DIVISION.
-               PROGRAM-ID. PB3869REM.
-               DATA DIVISION.
-               WORKING-STORAGE SECTION.
-               01 Q  PIC 99 VALUE 7.
-               01 R  PIC 9 VALUE 0.
-               01 F  PIC X VALUE "-".
-               PROCEDURE DIVISION.
-               MAIN-P.
-                   {{statement}} NOT ON SIZE ERROR MOVE "N" TO F END-DIVIDE.
-                   DISPLAY "Q=" Q " R=" R " F=" F.
-                   STOP RUN.
-            """);
-        Assert.Equal(0, exit);
-        Assert.Equal(verdict, stdout.Trim());
-    }
-
-    /// <summary>kb/Work PB3869 — the same statement with EC-SIZE checking ENABLED: with no size error condition the NOT
-    /// phrase runs (§14.7.5's closing paragraph); with one, no SIZE ERROR phrase being written, §14.6.13.1.3 #7 ends the
-    /// run unit naming EC-SIZE-TRUNCATION and the NOT phrase is ignored.</summary>
-    [Theory]
-    [InlineData("COMPUTE WS-X = 5 NOT ON SIZE ERROR DISPLAY \"NSE\" END-COMPUTE.", 0, true)]
-    [InlineData("COMPUTE WS-X = 123456 NOT ON SIZE ERROR DISPLAY \"NSE\" END-COMPUTE.", 1, false)]
-    public void NotSizeErrorAlone_CheckingOn_RunsOnlyWithoutASizeError(string body, int exit, bool phraseRuns)
-    {
-        var (actualExit, stdout, stderr) = Run(Prog(">>TURN EC-SIZE CHECKING ON", body));
-        Assert.Equal(exit, actualExit);
-        Assert.Equal(phraseRuns, stdout.Contains("NSE", StringComparison.Ordinal));
-        if (exit == 1) Assert.Contains("EC-SIZE-TRUNCATION", stderr);
     }
 
     /// <summary>The same zero divisors under the SIZE ERROR phrase: §14.7.5 phrase rule 1 leaves every resultant
@@ -267,6 +171,91 @@ public sealed class SizeErrorDispositionTests
         Assert.Contains("SE", stdout);
         Assert.Contains("A=007 FR=9", stdout);
         Assert.Contains("AFTER", stdout);
+    }
+
+    /// <summary>kb/Work PB3869 (retired) — a statement written with ONLY a NOT ON SIZE ERROR phrase meets a zero divisor
+    /// with checking off. §14.7.5 sends it to the no-phrase rules ("If a NOT SIZE ERROR phrase is specified, it is
+    /// ignored"), which end in §14.6.13.1.3 item 8: the implementor defines whether execution continues and how the
+    /// receivers are affected. CONFORMANCE.md DOC-A.1-70 follows GnuCOBOL there (CLAUDE.md rule 1): a statement carrying a
+    /// SIZE ERROR or a NOT SIZE ERROR phrase leaves every resultant unchanged and continues, and the NOT imperative does
+    /// not run. A (VALUE 7), R (VALUE 9) and FR (VALUE 9) are displayed as their initial values.</summary>
+    [Theory]
+    [InlineData("NATIVE", "DIVIDE B BY Z GIVING A NOT ON SIZE ERROR DISPLAY \"NSE\" END-DIVIDE.")]
+    [InlineData("NATIVE", "COMPUTE A = B / Z NOT ON SIZE ERROR DISPLAY \"NSE\" END-COMPUTE.")]
+    [InlineData("NATIVE", "DIVIDE Z INTO A NOT ON SIZE ERROR DISPLAY \"NSE\" END-DIVIDE.")]
+    [InlineData("NATIVE", "DIVIDE B BY Z GIVING A REMAINDER R NOT ON SIZE ERROR DISPLAY \"NSE\" END-DIVIDE.")]
+    [InlineData("NATIVE", "COMPUTE FR = FL / FZ NOT ON SIZE ERROR DISPLAY \"NSE\" END-COMPUTE.")]
+    [InlineData("STANDARD-DECIMAL", "COMPUTE A = B / Z NOT ON SIZE ERROR DISPLAY \"NSE\" END-COMPUTE.")]
+    public void ZeroDivisor_NotSizeErrorAlone_LeavesTheResultantsAndContinues(string arithmetic, string body)
+    {
+        var (exit, stdout, _) = Run(ProgZeroDivisor(arithmetic, body + " DISPLAY \"A=\" A \" R=\" R \" FR=\" FR."));
+        Assert.Equal(0, exit);
+        Assert.DoesNotContain("NSE", stdout);
+        Assert.Contains("A=007 R=009 FR=9", stdout);
+        Assert.Contains("AFTER", stdout);
+    }
+
+    /// <summary>kb/Work PB3869 (retired) — the same NOT-only statement over a RESULT past its receiver, checking off, on
+    /// every receiver store (fixed-point, edited, float) and both value lanes. DOC-A.1-70's determination for a statement
+    /// carrying a NOT SIZE ERROR phrase (§14.6.13.1.3 item 8, following GnuCOBOL): the resultant keeps its value and the
+    /// NOT imperative is skipped; a result that fits lands and the imperative runs (§14.7.5's closing paragraph). A holds
+    /// 7 and E holds 0 before each statement; the displays are the verdict.</summary>
+    [Theory]
+    [InlineData("NATIVE", "COMPUTE A = 1234", "A=007 E=  0 R=0 F=-")]
+    [InlineData("NATIVE", "COMPUTE A = 123", "A=123 E=  0 R=0 F=N")]
+    [InlineData("STANDARD-DECIMAL", "COMPUTE A = 1234", "A=007 E=  0 R=0 F=-")]
+    [InlineData("STANDARD-DECIMAL", "COMPUTE A = 123", "A=123 E=  0 R=0 F=N")]
+    [InlineData("NATIVE", "ADD 1000 TO A", "A=007 E=  0 R=0 F=-")]
+    [InlineData("NATIVE", "ADD 10 TO A", "A=017 E=  0 R=0 F=N")]
+    [InlineData("NATIVE", "MULTIPLY 200 BY A", "A=007 E=  0 R=0 F=-")]
+    [InlineData("NATIVE", "DIVIDE 5 INTO A", "A=001 E=  0 R=0 F=N")]
+    [InlineData("NATIVE", "COMPUTE A ROUNDED = 999.6", "A=007 E=  0 R=0 F=-")]
+    [InlineData("NATIVE", "COMPUTE E = 12345", "A=007 E=  0 R=0 F=-")]
+    [InlineData("NATIVE", "COMPUTE E = 123", "A=007 E=123 R=0 F=N")]
+    [InlineData("NATIVE", "COMPUTE A = FL * 400", "A=007 E=  0 R=0 F=-")]
+    [InlineData("NATIVE", "COMPUTE A = FL * 2", "A=010 E=  0 R=0 F=N")]
+    [InlineData("NATIVE", "COMPUTE FR = FL * 2", "A=007 E=  0 R=0 F=N")]
+    // §14.9.12.4 6) c): the remainder is a resultant too; 59 / 30 leaves 29, past PIC 9, so R keeps 0 and NOT is skipped.
+    [InlineData("NATIVE", "DIVIDE 59 BY 30 GIVING A REMAINDER R", "A=001 E=  0 R=0 F=-")]
+    [InlineData("NATIVE", "DIVIDE 66 BY 30 GIVING A REMAINDER R", "A=002 E=  0 R=6 F=N")]
+    public void NotSizeErrorAlone_CheckingOff_LeavesTheResultant_AndRunsOnlyWithoutASizeError(
+        string arithmetic, string statement, string verdict)
+    {
+        var (exit, stdout, _) = Run($$"""
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PB3869NSE.
+               OPTIONS.
+                   ARITHMETIC IS {{arithmetic}}.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 A  PIC 9(3) VALUE 7.
+               01 E  PIC ZZ9 VALUE 0.
+               01 R  PIC 9 VALUE 0.
+               01 F  PIC X VALUE "-".
+               01 FL USAGE FLOAT-LONG VALUE 5.
+               01 FR USAGE FLOAT-LONG VALUE 9.
+               PROCEDURE DIVISION.
+               MAIN-P.
+                   {{statement}} NOT ON SIZE ERROR MOVE "N" TO F END-{{statement[..statement.IndexOf(' ')]}}.
+                   DISPLAY "A=" A " E=" E " R=" R " F=" F.
+                   STOP RUN.
+            """);
+        Assert.Equal(0, exit);
+        Assert.Equal(verdict, stdout.Trim());
+    }
+
+    /// <summary>kb/Work PB3869 (retired) — the NOT-only statement with EC-SIZE checking ENABLED: with no size error
+    /// condition the NOT phrase runs (§14.7.5's closing paragraph); with one, no SIZE ERROR phrase being written,
+    /// §14.6.13.1.3 #7 ends the run unit naming EC-SIZE-TRUNCATION and the NOT phrase is ignored.</summary>
+    [Theory]
+    [InlineData("COMPUTE WS-X = 5 NOT ON SIZE ERROR DISPLAY \"NSE\" END-COMPUTE.", 0, true)]
+    [InlineData("COMPUTE WS-X = 123456 NOT ON SIZE ERROR DISPLAY \"NSE\" END-COMPUTE.", 1, false)]
+    public void NotSizeErrorAlone_CheckingOn_RunsOnlyWithoutASizeError(string body, int exit, bool phraseRuns)
+    {
+        var (actualExit, stdout, stderr) = Run(Prog(">>TURN EC-SIZE CHECKING ON", body));
+        Assert.Equal(exit, actualExit);
+        Assert.Equal(phraseRuns, stdout.Contains("NSE", StringComparison.Ordinal));
+        if (exit == 1) Assert.Contains("EC-SIZE-TRUNCATION", stderr);
     }
 
     private static string ProgZeroDivisor(string arithmetic, string body) => $$"""
