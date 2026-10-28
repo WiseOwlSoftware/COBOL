@@ -55,9 +55,12 @@ public sealed class OdoDependingAdmissionDriftTests
                 writers.Add((Path.GetFileName(file), m.Value.Trim()));
         }
 
-        Assert.Equal(["DataBinder.Odo.cs", "SendingValueTemp.cs"], writers.Select(w => w.File).Order().ToArray());
-        string admission = writers.Single(w => w.File == "DataBinder.Odo.cs").Line;
-        Assert.Contains("!notInteger && !subscripted && !inTableRange", admission);
+        Assert.Equal(["DataBinder.Odo.cs", "RepositoryCodec.cs", "SendingValueTemp.cs"], writers.Select(w => w.File).Order().ToArray());
+        // The binder and the repository decoder (DESIGN-external-repository §6.3; kb/Work PB2100) both ask the ONE admission.
+        Assert.Contains("admission.Admitted", writers.Single(w => w.File == "DataBinder.Odo.cs").Line);
+        Assert.Contains("DependingAdmission.Of(", writers.Single(w => w.File == "RepositoryCodec.cs").Line);
+        string rule = File.ReadAllText(CompilerSrc("Binding", "DataBinder.Odo.cs"));
+        Assert.Contains("public bool Admitted => !NotInteger && !Subscripted && !InTableRange;", rule);
         Assert.Contains("clonedSpec.Depending = frozen", writers.Single(w => w.File == "SendingValueTemp.cs").Line);
     }
 

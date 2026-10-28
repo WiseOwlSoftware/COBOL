@@ -179,6 +179,38 @@ public sealed class RepositoryCodecTests
         Assert.False(PrototypeSignatures.Same(new CalleeSignature(unit.Data.LinkageFormals, unit.Data.LinkageReturning), decodedRetyped.Signature));
     }
 
+    /// <summary>§15.3: a record the decoder cannot bind is a typed refusal naming the record, never an index fault or a
+    /// cycle: an index past its table, and an OCCURS DEPENDING ON object ISO §13.18.38.3 SR17 forbids ("Data-name-1 shall
+    /// describe an integer") — here the group that holds the table, the PB3510 shape whose link a consumer would follow
+    /// without end.</summary>
+    [Fact]
+    public void AMalformedRecord_IsRefusedByName()
+    {
+        var comp = Bind(Source, 2023);
+        var record = RepositoryCodec.Of(comp.Units.Single(u => u.Name == "RTONE"));
+        var f4 = record.Formals[3];
+        var pastTheTable = record with
+        {
+            Formals = new([.. record.Formals.Select(f => f == f4
+                ? f with { Description = f.Description with { Pic = f.Description.Pic! with { RestrictedPrototype = 7 } } }
+                : f)]),
+        };
+        var e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(pastTheTable, comp.SignatureClasses));
+        Assert.Contains("RTONE", e.Message);
+        Assert.Contains("index 7", e.Message);
+
+        var g1 = record.Formals[0];
+        var table = g1.Description.Children[1];
+        var cyclic = record with
+        {
+            Formals = new([.. record.Formals.Select(f => f == g1
+                ? f with { Description = f.Description with { Children = new([f.Description.Children[0], table with { Table = table.Table! with { Depending = "G1" } }]) } }
+                : f)]),
+        };
+        e = Assert.Throws<RepositoryRecordException>(() => RepositoryCodec.Decode(cyclic, comp.SignatureClasses));
+        Assert.Contains("DEPENDING ON 'G1'", e.Message);
+    }
+
     // ── the shared round-trip check (also the corpus enumeration's) ─────────────────────────────────────────────────
 
     /// <summary>Round-trip every outermost program, function and prototype unit of <paramref name="comp"/>; returns the

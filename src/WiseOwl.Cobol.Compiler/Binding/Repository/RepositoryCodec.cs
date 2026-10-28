@@ -242,14 +242,14 @@ internal static class RepositoryCodec
                 Returning: p.Returning is { } pr ? Root(pr) : null)).ToList();
 
             foreach (var (pointer, declaration) in _typeReferences)
-                pointer.Pic = pointer.Pic! with { RestrictedTypeDecl = types[declaration] };
+                pointer.Pic = pointer.Pic! with { RestrictedTypeDecl = At(types, declaration, "a RestrictedTypeDeclaration") };
             RestrictedPrototype[] restricted = [.. prototypes.Select(p => new RestrictedPrototype(
                 p.Record.Kind is RepositoryUnitKind.FunctionPrototype or RepositoryUnitKind.Function, p.Record.ExternalizedName,
                 p.Record.HasSignature ? new CalleeSignature(p.Formals, p.Returning) : null,
                 new PrototypeOrigin($"{record.ExternalizedName} ReferencedPrototypes[{p.Record.Index}]")))];
             foreach (var (pointer, prototype) in _prototypeReferences)
             {
-                pointer.RestrictedPrototype = restricted[prototype];
+                pointer.RestrictedPrototype = At(restricted, prototype, "a RestrictedPrototype");
                 RestrictedPointers.Add(pointer);
             }
             return new DecodedRecord(formals, returning, types, restricted);
@@ -263,11 +263,24 @@ internal static class RepositoryCodec
         {
             var root = Item(r, parent: null);
             root.RootSection = EntrySection.Linkage;
-            foreach (var table in DataItem.DescendantsOf(root).Prepend(root))
-                if (table.OccursSpec is { DependingName: { } name } spec && name != RepositoryCodec.OutsideTheRecord)
-                    spec.Depending = DataItem.DescendantsOf(root).Prepend(root).FirstOrDefault(d => d.CobolName is { } w && CobolNames.Same(w, name));
+            var entries = DataItem.DescendantsOf(root).Prepend(root).ToList();
+            foreach (var table in entries)
+                if (table.OccursSpec is { DependingName: { } name } spec && name != OutsideTheRecord)
+                {
+                    // The link the binder records only when §13.18.38.3 SR17 / SR2 / SR20 admit it (kb/Work PB3510): a
+                    // record naming any other object is malformed, never a cycle for a consumer to follow.
+                    var dep = entries.FirstOrDefault(d => d.CobolName is { } w && CobolNames.Same(w, name))
+                        ?? throw Malformed($"'{table.CobolName}' DEPENDING ON '{name}', which the record does not hold");
+                    spec.Depending = DependingAdmission.Of(table, dep).Admitted ? dep
+                        : throw Malformed($"'{table.CobolName}' DEPENDING ON '{name}', which ISO §13.18.38.3 SR17 / SR2 / SR20 refuse");
+                }
             return root;
         }
+
+        private RepositoryRecordException Malformed(string what) => new($"the repository record of {record.ExternalizedName} is malformed: {what}");
+
+        private T At<T>(IReadOnlyList<T> table, int index, string what) =>
+            index >= 0 && index < table.Count ? table[index] : throw Malformed($"{what} index {index} names no row of {table.Count}");
 
         private DataItem Item(DescriptionRecord r, DataItem? parent)
         {
@@ -287,7 +300,7 @@ internal static class RepositoryCodec
                 Justified = r.Justified, BlankWhenZero = r.BlankWhenZero, Synchronized = FromPersisted(r.Synchronized),
                 IsAligned = r.Aligned, AlignedAsLevelOne = r.AlignedAsLevelOne, IsAnyLength = r.AnyLength, IsBased = r.Based,
                 IsDynamicLength = r.DynamicLength, DynMaxSize = r.DynMaxSize,
-                DynStructure = r.DynStructure is { } s ? _structures[s] : null,
+                DynStructure = r.DynStructure is { } s ? At(_structures, s, "a DynStructure") : null,
                 RedefinesTargetName = r.RedefinesTarget,
                 Pic = r.Pic is { } p ? Pic(p) : null,
             };
@@ -298,8 +311,7 @@ internal static class RepositoryCodec
                 var child = Item(childRecord, item);
                 if (child.RedefinesTargetName is { } target)
                     child.SetRedefinition(item.Children.LastOrDefault(c => c.CobolName is { } w && CobolNames.Same(w, target))
-                        ?? throw new InvalidOperationException($"RepositoryCodec: '{child.CobolName}' of {record.ExternalizedName} "
-                            + $"REDEFINES '{target}', which precedes it in no record entry"), RedefinitionKind.Clause);
+                        ?? throw Malformed($"'{child.CobolName}' REDEFINES '{target}', which no preceding sibling is"), RedefinitionKind.Clause);
                 item.AddMember(child);
             }
             return item;
@@ -331,6 +343,11 @@ internal static class RepositoryCodec
         }
     }
 }
+
+/// <summary>A record the decoder cannot bind: an index naming no row of its table, a REDEFINES or DEPENDING ON naming no entry
+/// of the record, or a link the rules forbid (§15.3). The reader of slice 7 reports it as its malformed-record outcome (REPO-4);
+/// a record the compiler wrote never draws it.</summary>
+internal sealed class RepositoryRecordException(string message) : Exception(message);
 
 /// <summary>A record bound into its throw-away forest (§6.3): the formals and the returning item as a CALL's callee
 /// signature, the type declarations and the referenced prototypes as the record's tables decoded.</summary>

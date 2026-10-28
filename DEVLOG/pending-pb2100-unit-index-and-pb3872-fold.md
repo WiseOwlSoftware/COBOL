@@ -63,12 +63,40 @@ like a group prototype with another signature is not the group's type; two decod
 identities and one record's `X`, in another case, is one member; a group prototype named `DECODED 1 TO B` or `B #1` never
 shares an identity with a decoded block; an unadmitted decoded prototype and a group pointer given to `Admit` are refused.
 
+**PB2100, the codec (wave 20261731 group B; design 6.1-6.4, 17.2).** ISO 8.13 stores "the description of the parameters
+of the source unit, if any, and the manner of receiving parameters (by reference or by value) and whether they are optional
+or not" (`cite.py --check` OK) as the unit's signature. `Binding/Repository/RepositoryRecord.cs` is that record in the
+persisted vocabulary, `RepositoryVocabulary` the one enum translation (a `Persisted` / `FromPersisted` pair per enum, each
+with an `UnreachableException` discard), and `RepositoryCodec.Of(BoundUnit)` / `RepositoryCodec.Decode` the one translation
+between a bound unit and its record: the formals and the returning item as description trees, every type declaration,
+dynamic-length structure and referenced prototype they name as rows of the record's own tables (an index is assigned before
+a row is described, so a prototype naming itself records as one row). `Decode` binds a record into a throw-away `DataItem`
+forest, rebuilds `RestrictedPrototype` per prototype row with a `PrototypeOrigin` of its own and calls `Admit` on the group's
+signature classes (`BoundCompilation.SignatureClasses`, new), so a decoded pointer is typed by its decoded signature.
+Re-probe (the slice's own shape: no code existed): the fixture of nine formals of every 6.3 shape and the whole corpus round
+trip. The design's model was wrong in five places, each fixed in the design: SYNCHRONIZED is the clause's form
+(`RepositorySynchronized`; kb/Work PB538 made LEFT and RIGHT two clauses), OCCURS needs the whole `OccursSpec`
+(`OccursRecord`), BASED and ALIGNED-as-level-1 ride the description copy, a structure's name is still compared today, and a
+GR10 c) prototype row has no signature. The decoder refuses a malformed record by name (`RepositoryRecordException`), and an
+OCCURS DEPENDING ON link only through the binder's one admission, now a value both ask (`DependingAdmission`, kb/Work PB3510:
+`OdoDependingAdmissionDriftTests` caught the decoder as a third writer of the link, and now pins that both writers ask the
+one admission). The program's whole RAISING phrase now rides the bound program (`BoundProgram.Raising`, which replaced
+`RaisingObjects`), since 8.13 records "the exceptions that may be raised". Tests: `RepositoryCodecTests` (the fixture round
+trip; the unit facts; two encodings equal; a referenced prototype missing a formal fails `Same` and founds a `DECODED` block;
+a data-name change is inert and a TYPE-name change is seen, ISO 13.7.3 SR2 / 8.5.3.1; malformed records refused);
+`RepositoryRoundTripCorpusTests` (every accepted case of the WiseOwl manifest at every edition, 3,011 binds: the activation
+description both ways, `SameElementaryLayout`, `SameType`, the widths, the host type, the normalized `PicInfo` equality and
+the restriction identities); `RepositoryVocabularyDriftTests`; `RepositoryRecordConverseDriftTests` (every `PicInfo` member
+and every carried `DataItem` member has a record field or a stated reason). A pseudo-mutation (the decoder dropping
+SYNCHRONIZED) failed the fixture at `SameElementaryLayout`. `DescriptionCopyCompletenessDriftTests` exempts the decoder's
+`Item`, a translation from a persisted record and not a `DataItem` copy.
+
 **Left open in PB2100, and why this is a first part.** `HasSignatures` is written only with the signature attributes, which
 do not exist yet, so it is never written and decodes false (the design makes it true exactly for `--repository-update on`).
-Not yet written: the rest of the attribute family and `RepositoryVocabulary`, `RepositoryRecord` with `Of(BoundUnit)` and its
-inverse (which rebuilds `RestrictedPrototype` from `ReferencedPrototypes` and calls `Admit`), the description attributes on
-host entries and OO types with `--repository-update`, `RepositoryReader`, and the 17.2 corpus tests. Classes and interfaces
-are not yet units of the index either (their `[CobolUnit]` comes with the OO emission). The note says so and stays open.
+Not yet written: the rest of the attribute family, the description attributes on host entries and OO types with
+`--repository-update`, `RepositoryReader` (which decodes the attributes into the codec's `RepositoryRecord`), and the
+round-trip-through-metadata tests (17.2's encoding Facts, 17.4, 17.7). Classes and interfaces are not yet units of the index
+either (their `[CobolUnit]` and the class half of the record come with the OO emission). The note says so and stays open.
 
 **Self-review.** Architecture: one writer of attribute text, one reader of the index, one definition of the row encoding;
 no C# text in a bound node. Code: the cap and the escapes are tested at their edges; `Open(Stream)` catches only the
