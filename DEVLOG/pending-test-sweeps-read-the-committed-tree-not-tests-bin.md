@@ -36,6 +36,17 @@ options variable, `DirectoryInfo`) and the clean twins. R1-2 (lead, fixed): `Sou
 `.g.cs` and `Generated/` (the population is the committed tree; the three committed `.g.cs` files have no BOM). R1-3 (lead,
 `audit_annex_a1.py` resolves a test ref over the file system) is left for the clerk.
 
+**Review round 2.** R2-1 (blocking): the resolver indexed only parameterless helpers and did not follow a collection-expression
+argument or a namespace-qualified `TestRepo`, and the 90 % reach bound let every unresolved root pass, so the codebase's usual
+helper shape (`Repo(string rel) => Path.Combine(TestRepo.Root, rel)`, `CompilerSrc(params string[] parts)`,
+`TestRepo.Tests(["X", .. path])`) went unjudged. The resolver now binds a helper's parameters to what each call passes (a
+`params` parameter to the arguments it holds; a spread it cannot expand stands for an open tail, judged by the segments before
+it), follows collection expressions, arrays, `Path.Combine([...])`, `"a/b".Split('/')` and a qualified `TestRepo`, `Path` and
+`Directory`, and indexes local functions. Of 216 listings it now follows 214 to a safe directory; the two it cannot are
+`RunDirectoryState`'s run directories, and the drift test admits exactly those (a new unresolved root fails). R2-2 (lead,
+fixed): a listing rooted at `tests/<project>/bin` or `obj`, or below, is a hazard. The twin fires each new shape, and its clean
+twins (a helper called for `tests/` elsewhere but for `src/` here; `Unit("Store")`).
+
 **Left alone.** The 217 other recursive listings root at `src/` (about 190, each with its own `bin/obj` filter), `docs/`,
 `scripts/`, `.github/` and `conformance-suite/`; no failure measured the `src/` ones, so they are a separate population and
 the report registers them as a lead.
