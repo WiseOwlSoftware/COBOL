@@ -20,7 +20,9 @@ public enum BackendId
 
 /// <summary>Per-compilation backend inputs (DESIGN-codegen-backend §2.2).</summary>
 /// <param name="OutputPath">The output assembly path (the backend creates the directory).</param>
-/// <param name="AssemblyName">The emitted assembly's simple name (the COBOL PROGRAM-ID).</param>
+/// <param name="AssemblyName">The emitted assembly's simple name: the output file's base name (<c>CompilerDriver</c>
+/// passes <c>Path.GetFileNameWithoutExtension(OutputPath)</c>), which names the module namespace <c>Cobol.&lt;S&gt;</c>
+/// (DESIGN-external-repository §4.5) — never a PROGRAM-ID, since a group holds many units.</param>
 /// <param name="Edition">The targeted edition. The Roslyn backend does not consult it — emit is
 /// edition-agnostic by the P3 pipeline contract (every edition diagnostic precedes emit) — but the seam carries
 /// it for backend-neutral plumbing a future backend may need (e.g. per-edition runtime feature switches, P16).</param>
@@ -30,8 +32,14 @@ public enum BackendId
 /// Meaningful only for a source-producing backend; a direct-IL backend ignores it.</param>
 /// <param name="Inputs">The compilation's ambient-input record (kb/Work PB985) — a backend that reads anything
 /// outside the bound tree (the WHEN-COMPILED clock) reads it through this, so the record stays complete.</param>
+/// <param name="RepositoryUpdate">Whether the build updates the external repository (CLI <c>--repository-update</c>;
+/// ISO §8.13: "The implementor shall provide a mechanism that allows the user to specify whether to update the external
+/// repository when a compilation unit is compiled"; DESIGN-external-repository §9.1): ON writes the signature attributes
+/// of every published unit (<c>HasSignatures</c>), OFF only the index, the unit identities, the registrar and the host
+/// entries.</param>
 public sealed record BackendOptions(string OutputPath, string AssemblyName, EditionInfo Edition,
-    bool EmitPdb = true, bool WriteSource = true, WiseOwl.Cobol.Frontend.CompilationInputs? Inputs = null);
+    bool EmitPdb = true, bool WriteSource = true, WiseOwl.Cobol.Frontend.CompilationInputs? Inputs = null,
+    bool RepositoryUpdate = true);
 
 /// <summary>The outcome of one backend emission (DESIGN-codegen-backend §2.2).</summary>
 /// <param name="Success">True iff the assembly was produced.</param>

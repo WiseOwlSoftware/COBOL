@@ -60,7 +60,7 @@ like any documentation site, nothing to download or install. A version picker sw
   access modes and statements per edition, the on-disk format, the limits (DOC-A.1-107 and the other DOC-A.1 rows),
   foreign files ('39'), the Latin-1 no-CODE-SET rule of R47 and the status codes. It also covers sharing and record
   locking, APPLY COMMIT / COMMIT / ROLLBACK and the crash guarantee, the performance a user can plan by, and the SORT
-  work files' memory limit and location. Written once kb/Work PB3330's engine has landed.
+  work files' memory limit and location. Its prerequisite, kb/Work PB3330's keyed store engine, has landed.
 - *.NET interoperability* (§4.2.3) — calling COBOL from C# and C# from COBOL; the runtime package.
 - *Migrating* (§4.2.4) — from IBM Enterprise COBOL, Micro Focus and GnuCOBOL: what is standard, what is a dialect
   extension, what WiseOwl COBOL rejects and why.

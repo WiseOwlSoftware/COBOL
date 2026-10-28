@@ -7,6 +7,8 @@
     python scripts/fuzz_triage.py verify  --triage <dir>        # re-run every WISEOWL-DEFECT repro on the fresh judge
     python scripts/fuzz_triage.py refute-plan --triage <dir>    # slice the GNUCOBOL-SIDE records for the independent refuter
     python scripts/fuzz_triage.py file    --triage <dir> [--write]   # file what the refuter upheld as `upstream` notes
+    python scripts/fuzz_triage.py history --triage <dir> [--judge-commit <sha>] [--write]
+                                       # record the night in the cumulative history and render its page (fuzz_history.py)
     python scripts/test_fuzz_triage.py                           # the self-test (discovered by scripts/self_tests.py)
 
 The design is docs/rearchitecture/DESIGN-differential-fuzz.md §3-§5; the Workflow that runs the adjudicators and the
@@ -1040,6 +1042,44 @@ def filing_report(t: Triage, f: Filing, written: list[str], c: Collected) -> str
 
 # ── command line ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
+# ── the cumulative history ───────────────────────────────────────────────────────────────────────────────────────────
+
+def history(t: Triage, c: Collected, work_dir: pathlib.Path, args) -> int:
+    """Record this night in scripts/fuzz_history.py's HISTORY and render the summary page (design §6). A triage with a
+    problem or an undecided signature is refused: the history holds finished nights only."""
+    if c.problems or c.undecided:
+        print(f"⛔ the triage is not finished: {len(c.problems)} problem(s), {sum(map(len, c.undecided.values()))} "
+              "undecided signature(s) (fuzz_triage.py collect)")
+        return 1
+    import fuzz_history as fh  # noqa: PLC0415
+    items = _work().load(work_dir)
+    hist = fh.load_history()
+    known = {n["run_id"]: n["night"] for n in hist["nights"]}
+    night = known.get(t.run_id, max(known.values(), default=0) + 1)
+    prior = next((n for n in hist["nights"] if n["run_id"] == t.run_id), {})
+    rec = fh.night_record(t.run, night, [v for _s, v in c.verdicts],
+                          prior.get("defects", []) + fh.defects_of(items, t.run_id) + args.defect,
+                          args.judge_commit or prior.get("judge"), prior.get("evidence"))
+    missing = [d for d in rec["defects"] if d not in {i["id"] for i in items}]
+    if missing:
+        print("⛔ no kb/Work note for " + ", ".join(missing))
+        return 1
+    print(json.dumps({k: rec[k] for k in ("night", "run_id", "judged", "survivors", "survivor_signatures", "defects")}))
+    if not args.write:
+        print("dry run: pass --write to record the night and render the page")
+        return 0
+    hist = fh.upsert(hist, rec)
+    fh.write_history(hist)
+    ctx = fh.context(hist, items)
+    out = pathlib.Path(args.out) if args.out else pathlib.Path(t.coord) / "scratch" / "fuzz-summary.html"
+    out.write_text(fh.render_html(ctx), encoding="utf-8", newline=NL)
+    ledger = fh.write_markdown(ctx, hist.get("artifact"))
+    print("wrote " + ", ".join(posix(p) for p in [fh.HISTORY, out, *ledger]))
+    print(f"next: publish {posix(out)} to the Artifact {hist.get('artifact') or '(none yet: publish it, then record its URL as `artifact` in the history)'}"
+          ", and commit the history, FUZZ-LEDGER.md and docs/fuzz-ledger/ with the night's filing")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -1063,6 +1103,14 @@ def main(argv: list[str] | None = None) -> int:
             q.add_argument("--write", action="store_true", help="allocate ids and write the notes (default: report only)")
             q.add_argument("--date", default=datetime.date.today().isoformat(), help="the `filed:` date")
             q.add_argument("--work", default=str(REPO / "kb" / "Work"), help="the register directory")
+    h = sub.add_parser("history", help="record the night in the cumulative history and render its summary page")
+    h.add_argument("--triage", required=True, help="the triaged directory (its verdicts complete, its records filed)")
+    h.add_argument("--judge-commit", default=None, help="the main commit the judge was built from")
+    h.add_argument("--defect", action="append", default=[], help="a WiseOwl note this night filed whose `source` does not "
+                   "name the run (repeatable); notes whose source names the run are found in the register")
+    h.add_argument("--work", default=str(REPO / "kb" / "Work"), help="the register directory")
+    h.add_argument("--out", default="", help="the page to write (default: <coord>/scratch/fuzz-summary.html)")
+    h.add_argument("--write", action="store_true", help="write the history record and the page (default: report only)")
     args = ap.parse_args(argv)
     if args.cmd == "prepare":
         t = prepare(pathlib.Path(args.run), args.judge, args.fresh_judge, pathlib.Path(args.triage) if args.triage else None,
@@ -1092,6 +1140,8 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(refute_plan(t, c, args.per)))
         return 0
     work_dir = pathlib.Path(args.work)
+    if args.cmd == "history":
+        return history(t, c, work_dir, args)
     f = plan_filing(t, c, work_dir)
     written = write_filing(f, work_dir, args.date, lambda n: alloc_ids(n, t.coord), t.run_id) if args.write else []
     report = filing_report(t, f, written, c)

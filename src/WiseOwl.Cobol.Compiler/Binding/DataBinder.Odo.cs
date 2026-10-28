@@ -432,10 +432,9 @@ public sealed partial class DataBinder
             // the table where an undefined data-name-1 leaves it (COBOL0851): Depending unset, the compile failed.
             // The predicates are facts of the entries, so a TYPE declaration and its clone refuse the same link even
             // where only one of them REPORTS the fault (DeclarationFact).
-            bool notInteger = dep.Pic is not { IsIntegerDescription: true };
-            bool subscripted = dep.SubscriptArity > 0;
-            bool inTableRange = DependingInsideTableRange(item, dep);
-            if (!notInteger && !subscripted && !inTableRange) spec.Depending = dep;
+            var admission = DependingAdmission.Of(item, dep);
+            var (notInteger, subscripted, inTableRange) = admission;
+            if (admission.Admitted) spec.Depending = dep;
 
             // SR17: data-name-1 shall describe an integer — §5.5 2) b) 2., so a trailing-P PIC 99P is one (an index
             // item is NOT an integer data item).
@@ -549,7 +548,7 @@ public sealed partial class DataBinder
     /// (kb/Work PB3510). Across the records of one area the counter's byte window is compared with the table's:
     /// its offset in its own record against the table's offset and its record's extent (the table at its maximum,
     /// §8.5.1.8 — the allocation every record of the area is described against).</para></summary>
-    private static bool DependingInsideTableRange(DataItem table, DataItem dep)
+    internal static bool DependingInsideTableRange(DataItem table, DataItem dep)
     {
         if (ReferenceEquals(dep.Root, table.Root))
         {
@@ -783,4 +782,21 @@ public sealed partial class DataBinder
         if (!registers.TryGetValue(name, out var tables)) registers[name] = tables = [];
         tables.Add(table);
     }
+}
+
+/// <summary>⛔ THE ONE ADMISSION OF AN OCCURS DEPENDING ON OBJECT (ISO §13.18.38.3 SR17: "Data-name-1 shall describe an
+/// integer"; SR2: "Data-name-1 and data-name-2 shall not be subscripted"; SR20: data-name-1 "shall not occupy a byte
+/// position within the range of the first byte position defined by the data description entry containing the OCCURS
+/// clause and the last byte position defined by the record description entry containing that OCCURS clause"; kb/Work
+/// PB3510). <see cref="OccursSpec.Depending"/> records data-name-1 only when all three facts are false, so no consumer
+/// of the link can cycle. Asked by the binder (<c>DataBinder.OdoResolve</c>, which also reports each fact) and by the
+/// repository decoder (<c>RepositoryCodec</c>), which refuses a record whose link the rules forbid.</summary>
+internal readonly record struct DependingAdmission(bool NotInteger, bool Subscripted, bool InTableRange)
+{
+    /// <summary>The three facts of <paramref name="dep"/> as the object of <paramref name="table"/>'s DEPENDING phrase.</summary>
+    public static DependingAdmission Of(DataItem table, DataItem dep) =>
+        new(dep.Pic is not { IsIntegerDescription: true }, dep.SubscriptArity > 0, DataBinder.DependingInsideTableRange(table, dep));
+
+    /// <summary>The link may be recorded.</summary>
+    public bool Admitted => !NotInteger && !Subscripted && !InTableRange;
 }
