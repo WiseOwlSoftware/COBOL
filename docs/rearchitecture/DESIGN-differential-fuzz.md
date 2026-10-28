@@ -207,9 +207,15 @@ project and "maintained automatically as an artifact of each fuzz testing run", 
   the notes the night filed on the WiseOwl side. It never stores a status or a classification. The file also carries
   `artifact`, the one Artifact URL the HTML page is published to (https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g).
 - **The notes of a night,** by ONE rule (`fuzz_history.defects_of`): every defect or adjudication note whose `source` names the
-  run id. What each note IS is read from the register when a page is drawn (`finding_kind`): a compiler bug, a test-harness bug
-  (`area: tooling/*` or `docs/*`), a settled question (`kind: adjudication`) or a retired finding. Only compiler bugs reach the
-  totals and the per-night chart; the table lists all four kinds. A GnuCOBOL record counts when the fuzzing produced it (its
+  run id. What each note IS is read from the register when a page is drawn (`finding_kind`): a settled question (`kind:
+  adjudication`), a retired finding, or a defect, which is a compiler bug when its declared sites (`work.note_sites`, the
+  register's one reader of them) reach the product's code under `src/` and a test-harness bug when they do not. Neither the
+  area nor `process_only` decides it: harness defects are filed under `tests/`, `process/`, `orchestrator/`, `scripts/` and
+  `ci/` areas as well as `tooling/`, and a wrong diagnostic is `process_only` yet a compiler bug (kb/Work PB4010). `history`
+  therefore refuses a new defect note with no site block; only the notes filed before that rule are read by their area's
+  first segment (`LEGACY_HARNESS_AREAS`). A note whose `source` names a fuzz run the history holds no night for (a run that
+  stopped early) is counted too and listed as "Run of <date>" (`unrecorded_runs`). Only compiler bugs reach the totals; the
+  per-night chart holds the nights; the table lists all four kinds. A GnuCOBOL record counts when the fuzzing produced it (its
   `source` names the fuzz triage or the harvest plan PB3838) and it is not retired (`from_fuzzing`).
 - **Two renderings of one text,** both from `scripts/fuzz_history.py`: the HTML page for the Artifact (`render --out`) and
   `FUZZ-LEDGER.md` at the repository root with its chart files in `docs/fuzz-ledger/*.svg` (`render --markdown`), which GitHub

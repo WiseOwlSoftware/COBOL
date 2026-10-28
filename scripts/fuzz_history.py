@@ -85,26 +85,66 @@ def verdict_tally(verdicts: list[dict]) -> dict[str, dict[str, int]]:
     return out
 
 
+def is_finding(it: dict) -> bool:
+    return it.get("kind") in ("defect", "adjudication")
+
+
 def defects_of(items: list[dict], run_id: str) -> list[str]:
     """The notes the night filed on the WiseOwl side: a defect or adjudication note whose `source` names the run. The ONE
     rule every record is built with; what each note IS (a compiler bug, a test-harness bug, a settled question, a retired
     finding) is read from the register when the page is drawn (`finding_kind`), never stored."""
-    return sorted(i["id"] for i in items if i.get("kind") in ("defect", "adjudication") and run_id in str(i.get("source", "")))
+    return sorted(i["id"] for i in items if is_finding(i) and run_id in str(i.get("source", "")))
 
 
 #: What a night's note is, in the page's words: (key, label). Only "compiler" counts as a bug found in WiseOwl.
 FINDING_KINDS = {"compiler": "compiler bug", "harness": "test-harness bug", "settled": "question settled, no bug",
                  "retired": "not a bug after all"}
 
+#: The product's code: a defect whose declared sites reach under it is a compiler bug (kb/Work PB4010).
+PRODUCT_ROOT = "src/"
+
+#: The areas of the notes filed before `fuzz_triage.py history` required declared sites (kb/Work PB4010): the only
+#: notes `finding_kind` reads by area. Every top-level area the register files non-product defects under.
+LEGACY_HARNESS_AREAS = ("tooling", "docs", "tests", "process", "orchestrator", "scripts", "ci")
+
+
+def _work():
+    sys.path.insert(0, str(HERE / "spec"))
+    import work  # noqa: PLC0415  (the register's one reader)
+    return work
+
+
+def declared_sites(it: dict):
+    """The note's declared sites (work.note_sites, the register's one reader of them), from its body."""
+    return _work().note_sites(str(it.get("_body", "")))
+
 
 def finding_kind(it: dict) -> str:
+    """A defect is a compiler bug when its declared sites reach the product's code, a harness bug when they do not. A note
+    with no site block predates that requirement and is read by its area's first segment."""
     if it.get("status") == "retired":
         return "retired"
     if it.get("kind") == "adjudication":
         return "settled"
-    if str(it.get("area", "")).startswith(("tooling", "docs")):
-        return "harness"
-    return "compiler"
+    sites = declared_sites(it)
+    if sites.declared:
+        return "compiler" if any(p.startswith(PRODUCT_ROOT) for p in sites.paths) else "harness"
+    return "harness" if str(it.get("area", "")).split("/")[0].strip() in LEGACY_HARNESS_AREAS else "compiler"
+
+
+def unrecorded_runs(history: dict, items: list[dict]) -> list[tuple[dict, str]]:
+    """(run, note id) for every finding whose `source` names a fuzz run the history holds no night for (an aborted or
+    shortened run, kb/Work PB4010) and no night already lists: the testing found it, so the page counts it."""
+    recorded = {n["run_id"] for n in history["nights"]}
+    listed = {d for n in history["nights"] for d in n["defects"]}
+    out = []
+    for it in items:
+        if not is_finding(it) or it["id"] in listed:
+            continue
+        runs = sorted(set(RUN_ID.findall(str(it.get("source", "")))) - recorded)
+        if runs:
+            out.append(({"run_id": runs[0]}, it["id"]))
+    return sorted(out, key=lambda rd: (rd[0]["run_id"], rd[1]))
 
 
 def from_fuzzing(it: dict) -> bool:
@@ -184,7 +224,8 @@ CAPTIONS = {
     "who": "How each night's groups of disagreements were decided. {untallied}",
     "decisions": "Groups of disagreements / programs in them. \"Both allowed by the standard\" means the standard leaves that "
                  "detail to each compiler, so both answers are correct.",
-    "findings": "Every note a night filed on the WiseOwl side. Only compiler bugs count in the totals above. \"landed\" means "
+    "findings": "Every note the testing filed on the WiseOwl side, including a run that stopped before a full night (\"Run "
+                "of\" its date). Only compiler bugs count in the totals above. \"landed\" means "
                 "the fix is in the compiler; \"open\" means it is waiting to be fixed; \"retired\" means closer study showed it "
                 "was not a bug after all.",
     "gnucobol": "The testing also checks the reference compiler: the GnuCOBOL bugs it found, by the day each was written up.",
@@ -213,7 +254,8 @@ def context(history: dict, items: list[dict], now: str | None = None) -> dict:
     """Everything either rendering shows, computed once from the history and the register."""
     by_id = {i["id"]: i for i in items}
     nights = history["nights"]
-    findings = [(n, d, finding_kind(by_id.get(d, {}))) for n in nights for d in n["defects"]]
+    findings = [(n, d, finding_kind(by_id.get(d, {}))) for n in nights for d in n["defects"]] + [
+        (r, d, finding_kind(by_id.get(d, {}))) for r, d in unrecorded_runs(history, items)]
     compiler = [d for _n, d, k in findings if k == "compiler"]
     upstream = [i for i in items if from_fuzzing(i)]
     hours = sorted({n["hours"] for n in nights if n.get("hours")})
@@ -240,7 +282,8 @@ def context(history: dict, items: list[dict], now: str | None = None) -> dict:
 
 
 def night_label(n: dict) -> str:
-    return f"Night {n['night']}"
+    """"Night N" for a recorded night; a run the history holds no night for is named by its date."""
+    return f"Night {n['night']}" if "night" in n else f"Run of {night_date(n)}"
 
 
 def night_date(n: dict) -> str:
@@ -535,9 +578,7 @@ def main(argv: list[str] | None = None) -> int:
                   f"notes {','.join(n['defects']) or '-'}  verdicts {'yes' if n.get('verdicts') else 'no'}")
         print(f"artifact: {history.get('artifact')}")
         return 0
-    sys.path.insert(0, str(HERE / "spec"))
-    import work  # noqa: PLC0415  (the register's one reader)
-    ctx = context(history, work.load(pathlib.Path(args.work)))
+    ctx = context(history, _work().load(pathlib.Path(args.work)))
     page = render_html(ctx)
     if args.out:
         pathlib.Path(args.out).write_text(page, encoding="utf-8", newline="\n")

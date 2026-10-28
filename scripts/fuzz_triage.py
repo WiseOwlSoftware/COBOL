@@ -1060,9 +1060,18 @@ def history(t: Triage, c: Collected, work_dir: pathlib.Path, args) -> int:
     rec = fh.night_record(t.run, night, [v for _s, v in c.verdicts],
                           prior.get("defects", []) + fh.defects_of(items, t.run_id) + args.defect,
                           args.judge_commit or prior.get("judge"), prior.get("evidence"))
-    missing = [d for d in rec["defects"] if d not in {i["id"] for i in items}]
+    by_id = {i["id"]: i for i in items}
+    missing = [d for d in rec["defects"] if d not in by_id]
     if missing:
         print("⛔ no kb/Work note for " + ", ".join(missing))
+        return 1
+    # The page tells a compiler bug from a harness bug by the sites a defect declares (fuzz_history.finding_kind,
+    # kb/Work PB4010); a note this night adds must declare them, so no new note is read by its area.
+    unsited = [d for d in rec["defects"] if d not in prior.get("defects", []) and by_id[d].get("kind") == "defect"
+               and by_id[d].get("status") != "retired" and not fh.declared_sites(by_id[d]).declared]
+    if unsited:
+        print("⛔ no **Sites:** block in " + ", ".join(unsited) + ": a defect the night filed declares where it lives "
+              "(`**Sites:** none (why)` when it changes no code), so the page can tell a compiler bug from a harness bug")
         return 1
     print(json.dumps({k: rec[k] for k in ("night", "run_id", "judged", "survivors", "survivor_signatures", "defects")}))
     if not args.write:

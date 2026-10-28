@@ -9,14 +9,17 @@ It proves, on a FABRICATED run directory in the shapes scripts/differential_fuzz
             report whose headline cannot be read is REFUSED, never recorded as zeros;
   TALLY     signatures and programs per verdict;
   NOTES     the night's notes are found by the run id in their `source` (defect and adjudication notes only); each note's
-            kind is read from the register (compiler bug, test-harness bug, settled question, retired); a GnuCOBOL record
+            kind is read from the register (compiler bug, test-harness bug, settled question, retired), a defect's from
+            its declared sites (product code or not) and only a site-less older note's from its area; a GnuCOBOL record
             counts only when the fuzzing produced it and it is not retired;
   UPSERT    a re-recorded night replaces its own record and the nights stay in order;
   PAGE      every night is rendered, the page says it is machine-generated, a status is shown as the register has it, only
-            compiler bugs reach the totals, the facts it states come from the records, and a tally reaches the page;
+            compiler bugs reach the totals, a finding from a run that is not a recorded night is counted and listed by
+            its date, the facts it states come from the records, and a tally reaches the page;
   MARKDOWN  FUZZ-LEDGER.md carries the same content, links each note, names its chart files, and each chart file is a
             standalone SVG;
-  HISTORY   `fuzz_triage.py history` refuses an unfinished triage and a note id the register lacks, numbers a new night
+  HISTORY   `fuzz_triage.py history` refuses an unfinished triage, a note id the register lacks and a new defect with no
+            declared sites, numbers a new night
             after the last, keeps a re-run's own number and its stored notes, and writes nothing without --write;
   VOCAB     the page's verdict list equals the triage tool's vocabulary, so no verdict reaches the page without a colour.
 """
@@ -60,8 +63,10 @@ def fabricated_run(root: pathlib.Path, run_id: str, headline: bool = True) -> pa
 
 RUN = "fuzz-20261028-200000"
 OLD = "fuzz-20261020-000000"
+SHORT = "fuzz-20261022-160216"
 ITEMS = [
-    {"id": "PB9001", "kind": "defect", "status": "open", "area": "binding", "title": "PB9001 — a bug", "source": f"{RUN} slice D1"},
+    {"id": "PB9001", "kind": "defect", "status": "open", "area": "binding", "title": "PB9001 — a bug", "source": f"{RUN} slice D1",
+     "_body": "**Sites:** `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#Bind`"},
     {"id": "PB9002", "kind": "upstream", "status": "open", "title": "x", "source": f"the triage of {RUN}",
      "upstream_project": "GnuCOBOL", "filed": "2026-10-28"},
     {"id": "PB9003", "kind": "defect", "status": "landed", "area": "codegen", "title": "PB9003 — Defect: older", "source": OLD},
@@ -70,6 +75,17 @@ ITEMS = [
     {"id": "PB9006", "kind": "defect", "status": "retired", "area": "arithmetic", "title": "PB9006 — RETIRED — x", "source": OLD},
     {"id": "PB9007", "kind": "upstream", "status": "open", "title": "y", "source": "the owner decision PB1",
      "upstream_project": "GnuCOBOL", "filed": "2026-10-27"},
+    # a harness bug filed under tests/: its declared sites, never its area, decide (kb/Work PB4010 R2-1)
+    {"id": "PB9008", "kind": "defect", "status": "landed", "area": "tests/conformance", "title": "PB9008 — harness",
+     "source": OLD, "_body": "**Sites:** `scripts/differential_fuzz.py#classify`"},
+    # a diagnostic defect no user program sees (process_only) is still a compiler bug when its sites are the product's
+    {"id": "PB9009", "kind": "defect", "status": "landed", "area": "frontend/diagnostics", "process_only": True,
+     "title": "PB9009 — message", "source": OLD, "_body": "**Sites:** `src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs`"},
+    # a note from before sites were required, under a non-product area
+    {"id": "PB9010", "kind": "defect", "status": "landed", "area": "process/fuzz", "title": "PB9010 — legacy", "source": OLD},
+    # a compiler bug from a run the history holds no night for (kb/Work PB4010 R2-2)
+    {"id": "PB9011", "kind": "defect", "status": "landed", "area": "codegen", "title": "PB9011 — short run",
+     "source": f"the aborted run {SHORT}", "_body": "**Sites:** `src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs`"},
 ]
 
 
@@ -97,13 +113,15 @@ def main() -> int:
                                   "GNUCOBOL-SIDE": {"signatures": 1, "programs": 2}}, tally)
 
         expect("NOTES by run id, defect and adjudication only", fh.defects_of(ITEMS, RUN) == ["PB9001"], fh.defects_of(ITEMS, RUN))
-        kinds = {d: fh.finding_kind(by[d]) for d in ("PB9001", "PB9004", "PB9005", "PB9006")}
-        expect("NOTES kinds", kinds == {"PB9001": "compiler", "PB9004": "harness", "PB9005": "settled", "PB9006": "retired"}, kinds)
+        kinds = {d: fh.finding_kind(by[d]) for d in ("PB9001", "PB9004", "PB9005", "PB9006", "PB9008", "PB9009", "PB9010")}
+        expect("NOTES kinds: declared sites decide, a site-less note by its area", kinds == {
+            "PB9001": "compiler", "PB9004": "harness", "PB9005": "settled", "PB9006": "retired", "PB9008": "harness",
+            "PB9009": "compiler", "PB9010": "harness"}, kinds)
         expect("NOTES a GnuCOBOL record counts only from the fuzzing", [i["id"] for i in ITEMS if fh.from_fuzzing(i)] == ["PB9002"])
 
         rec = fh.night_record(run, 2, verdicts, ["PB9001"], "abc1234")
-        older = {**rec, "night": 1, "run_id": OLD, "defects": ["PB9003", "PB9004", "PB9005", "PB9006"], "verdicts": None,
-                 "hours": 8.0}
+        older = {**rec, "night": 1, "run_id": OLD, "defects": ["PB9003", "PB9004", "PB9005", "PB9006", "PB9008", "PB9009",
+                                                                "PB9010"], "verdicts": None, "hours": 8.0}
         hist = fh.upsert(fh.upsert({"artifact": "https://example.invalid/a", "nights": []}, rec), older)
         expect("UPSERT orders nights", [n["night"] for n in hist["nights"]] == [1, 2], hist["nights"])
         again = fh.upsert(hist, {**rec, "judged": 99})
@@ -116,8 +134,11 @@ def main() -> int:
         expect("PAGE shows the register's status", '<span class="pill bad">open</span>' in page
                and '<span class="pill ok">landed</span>' in page and '<span class="pill muted">retired</span>' in page)
         tiles = dict((c, v) for v, c in ctx["tiles"])
-        expect("PAGE totals count compiler bugs only", (tiles["bugs found in WiseOwl"], tiles["of those bugs fixed"],
-                                                       tiles["bugs recorded in GnuCOBOL"]) == ("2", "1", "1"), tiles)
+        expect("PAGE totals count compiler bugs only, a run that is not a night included", (
+            tiles["bugs found in WiseOwl"], tiles["of those bugs fixed"], tiles["bugs recorded in GnuCOBOL"]) == ("4", "3", "1"),
+            tiles)
+        expect("PAGE lists a run that is not a night by its date", "Run of 2026-10-22" in page and "PB9011" in page)
+        expect("PAGE keeps the per-night chart to the nights", "Run of" not in fh.charts(ctx)["bugs"])
         expect("PAGE states facts from the records", "For 8 hours" in page and "about 211 sections" in page
                and "Night 1 was reviewed before" in page, page[page.find("<ol"):][:300])
         expect("PAGE shows the tally", "2 / 5" in page, page[page.find("Decisions"):][:400])
@@ -146,6 +167,8 @@ def main() -> int:
             expect("HISTORY refuses an unfinished triage", rc == 1)
             rc = ft.history(t, done, root, types.SimpleNamespace(**{**vars(args), "defect": ["PB0000"]}))
             expect("HISTORY refuses a note the register lacks", rc == 1)
+            rc = ft.history(t, done, root, types.SimpleNamespace(**{**vars(args), "defect": ["PB9010"]}))
+            expect("HISTORY refuses a new defect with no declared sites", rc == 1)
             rc = ft.history(t, done, root, args)
             expect("HISTORY writes nothing without --write", rc == 0 and len(fh.load_history(hfile)["nights"]) == 1)
             with unittest.mock.patch.object(fh, "write_markdown", lambda *_a, **_k: []):
