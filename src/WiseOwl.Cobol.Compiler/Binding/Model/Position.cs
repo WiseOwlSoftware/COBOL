@@ -9,8 +9,8 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// computes from them. The binder builds STRUCTURE and the code generator renders it
 /// (<c>CodeGen.PositionRenderer</c>); no position travels between the two as C# text.
 /// <para>The node set is the set of shapes that render DIRECTLY as an ordinal. Every other arithmetic expression (a
-/// function-identifier, <c>/</c>, <c>**</c>, a decimal literal, a scaled operand inside a compound, the figurative
-/// ZERO) is bound by the ONE expression binder into the §15.4 position temporary and is then a
+/// function-identifier, <c>/</c>, <c>**</c>, a decimal literal, a scaled operand inside a compound) is bound by the
+/// ONE expression binder into the §15.4 position temporary and is then a
 /// <see cref="PositionItemRead"/> of that temporary, so §8.4.2.3.4 GR1 b)'s integrality rule is asked once, of the
 /// result.</para>
 /// </summary>
