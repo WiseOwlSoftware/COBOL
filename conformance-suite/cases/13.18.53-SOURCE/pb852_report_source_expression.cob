@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb852_report_source_expression
       *> rules: [SR-13.18.53.3-3, SR-13.18.53.3-5, GR-13.18.53.4-2]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

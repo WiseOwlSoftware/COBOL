@@ -1310,7 +1310,9 @@ and the check refuses a pending entry), run by `enqueue.py checks` and by CI on 
 before the slot, each audit's output printed as one block. One entry, `SELF-TESTS`, is every script self-test under
 `scripts/`: `scripts/self_tests.py` DISCOVERS them (a script that handles `--self-test`, read from its syntax tree, or a
 file named `test_*.py`/`test_*.ps1`), runs them in parallel, each with a private `COBOL_COORD_DIR` and a private git
-global config, and reports a self-test marked `# SELF-TEST-PLATFORM: windows — <reason>` as NOT RUN elsewhere with its
+global config (on Windows also a TEMP that is a junction to the run's own scratch, `aliased_temp`, because CI's Windows
+runner hands every process the 8.3 alias `C:\Users\RUNNER~1\...` as TEMP and a test comparing an unresolved TEMP path
+with a resolved one is red only there otherwise; PR #714's bounce, kb/Work PB1957 row 25), and reports a self-test marked `# SELF-TEST-PLATFORM: windows — <reason>` as NOT RUN elsewhere with its
 reason. Its post-build half (`self_tests.py --built`: the self-tests marked `# SELF-TEST-NEEDS: build`,
 `filter_population.py`) runs beside the legs once the build is done. The same runner is CI's (the `audits` job on Linux,
 `windows-self-tests` on Windows, `greenfield-unit` for `--built`) and the Linux gate's (`selftests` and

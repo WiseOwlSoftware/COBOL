@@ -278,6 +278,10 @@ public static class Constructs
     public const string ReportMultiSource2002 = "report-multi-source-2002";
     public const string ReportMultiLine2002 = "report-multi-line-2002";
     public const string ReportOccurs2002 = "report-occurs-2002";
+    public const string ReportFiller2002 = "report-filler-2002";
+    public const string ReportPlusSymbol2002 = "report-plus-symbol-2002";
+    public const string ReportSourceExpression2002 = "report-source-expression-2002";
+    public const string ReportSourceRounded2002 = "report-source-rounded-2002";
     public const string UserWordUnderscore2002 = "user-word-underscore-2002";
     public const string UserWordExtendedLetter2002 = "user-word-extended-letter-2002";
     public const string UserWordCharacterRemoved2023 = "user-word-character-removed-2023";
