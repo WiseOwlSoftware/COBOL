@@ -1,4 +1,4 @@
-## PB3972: the fuzz triage is one tool in the tree, and an upheld GnuCOBOL-side verdict files an `upstream` note
+## Entry 2681 — 2026-10-27 17:43 PDT — PB3972: the fuzz triage is one tool in the tree, and an upheld GnuCOBOL-side verdict files an `upstream` note
 
 Group A of wave 20261731, PB3838's tier 5. Seven nights of morning triage had run from the writing session's TEMP
 scratchpad (`residue.py`, `slice.py`, `render.py`, `collect.py`, `verify.py`, `retarget.py`, `save_reports.py`,
@@ -58,3 +58,4 @@ and design section 3.2 still naming the old default; both corrected.
 
 **Rows.** PB3972 claims none and closes none (process tooling); its status is `landed` with the Sites paragraph naming the
 briefs' templates and the docstring edit in `scripts/differential_fuzz.py`.
+
