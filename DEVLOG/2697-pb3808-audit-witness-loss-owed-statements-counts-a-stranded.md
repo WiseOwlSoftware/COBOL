@@ -1,4 +1,4 @@
-## PB3808: audit_witness_loss owed_statements counts a stranded row as owed
+## Entry 2697 — 2026-10-28 11:46 PDT — PB3808: audit_witness_loss owed_statements counts a stranded row as owed
 
 **Mechanism.** `scripts/spec/audit_witness_loss.py` `owed_statements` stranded a row (its erased notes argued a verdict
 the row no longer carries) by popping `notes` from `owed[rid]` and leaving the emptied dict. `run_history` then printed
@@ -17,3 +17,4 @@ change.
 
 **Test.** `audit_witness_loss.py --self-test` gained the two-erasure arm (GREEN). No ISO rule governs this tooling, so no
 conformance golden; no inventory row is claimed or closed (`closes_rows: []`).
+
