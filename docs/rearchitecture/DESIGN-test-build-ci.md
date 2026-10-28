@@ -2372,7 +2372,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    line per registry pattern after it), so a branch cut before a driver existed merges that driver's files through it.
    The other way round fails: until a branch that ADDS a driver lands, its landing merges main in through main's
    registry, which has no such driver, so that branch leaves the files the driver governs as main has them (a new driver
-   lands alone, DESIGN-orchestrator-loop.md section 16.9). The review's coverage rule (`prune_worktrees.mechanical`)
+   lands alone, DESIGN-orchestrator-loop.md section 16.9; `merge_drivers.py --check`, run by
+   `MergeDriverDriftTests`, refuses a branch that changes such a file, kb/Work PB3825; the Linux half's clones carry the TREE's
+   `origin/main`, `linux-gate.sh`'s `pin_origin_main`, so both halves read one main). The review's coverage rule (`prune_worktrees.mechanical`)
    reads the same `is_drivers_merge`, built on `merged_tree` (kb/Work PB3713), the one definition of a clean merge's
    tree, which the branch survey's LANDED proof (`prune_worktrees.merges_to_main_unchanged`) reads too, with the first
    parent's attributes through `attributes_tree`; so a merge the drivers made is mechanical and a hand resolution is
