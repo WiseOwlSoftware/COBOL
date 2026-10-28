@@ -1014,7 +1014,7 @@ def self_test() -> int:
     check("a mapped file (file level) puts its tests in tier 2 and the others in tier 3 (A.cs also holds a finalizer only "
           "the ambient array reached: it does not make the file unattributable)",
           t == {"N.T.M1": 2, "N.T.M2": 2, "N.T.M3": 3}, t)
-    unattributable = "cannot be attributed: the plan puts every test in tier 1, and the change itself reaches none (tier 3)"
+    unattributable = "puts every test in tier 1 in the plan, and the change itself reaches none (tier 3)"
     for label, f in [("an UNMAPPED (new) src file", "src/WiseOwl.Cobol.Compiler/New.cs"),
                      ("a known file no test executed", "src/WiseOwl.Cobol.Compiler/Enum.cs"),
                      ("an ambient-only file", "src/WiseOwl.Cobol.Compiler/B.cs"),
