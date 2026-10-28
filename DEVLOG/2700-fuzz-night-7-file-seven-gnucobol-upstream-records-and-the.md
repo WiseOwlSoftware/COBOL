@@ -1,4 +1,4 @@
-## Fuzz night 7: file seven GnuCOBOL upstream records and the night's witnesses
+## Entry 2700 — 2026-10-28 12:12 PDT — Fuzz night 7: file seven GnuCOBOL upstream records and the night's witnesses
 
 The independent refuters (Workflow `fuzz-triage`, slices R1 and R2) re-ran all eight GnuCOBOL-side records of fuzz night 7
 (`fuzz-20261027-215606`) under cobc 3.2.0 and upheld every one, with small corrections to citations and wording.
@@ -20,3 +20,4 @@ The tool HELD the eighth record (INVOKE of a universal object reference). The re
 is not named in the record's Expected result, so filing it would give the note `spec_refs` its body contradicts. It
 stays in the triage's `filing.md`, as do three families the adjudicators did not file. Slice B3 found two CONFORMANCE rows
 that share the id DOC-A.1-92; that is PB3840, already open.
+
