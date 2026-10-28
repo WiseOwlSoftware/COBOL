@@ -25,6 +25,13 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class ClassSpellingDriftTests
 {
+    /// <summary>The C# of the compiler and of its tests, and the conformance suite's COBOL programs, COMMITTED
+    /// (kb/Work PB3814): never a walk from the file system, which enters every running test host's <c>bin/</c> and
+    /// <c>obj/</c>.</summary>
+    private static readonly TreeScope CSharpSources = new(Under: ["src/", "tests/"], Kinds: [".cs"]);
+
+    private static readonly TreeScope SuiteSources = new(Under: ["conformance-suite/"], Kinds: [".cob"]);
+
     // "class {x.ToString()…}", "{x.ToString()…} class", ClassOf…(…).ToString() bound to a local, and an interpolated
     // class-named local ({cls.ToString()…}) whose "class " sits on the previous source line.
     private static readonly Regex OwnSpelling = new(
@@ -148,13 +155,9 @@ public sealed class ClassSpellingDriftTests
     public void NoSourceOrCorpusComment_SaysEveryGroupIsClassAlphanumeric()
     {
         string self = Path.GetFullPath(TestRepo.Tests(["WiseOwl.Cobol.Tests.Unit", "ClassSpellingDriftTests.cs"]));
-        static bool Built(string f) =>
-            f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
-            || f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}");
-        var files = Directory.EnumerateFiles(TestRepo.Src(), "*.cs", SearchOption.AllDirectories)
-            .Concat(Directory.EnumerateFiles(TestRepo.Tests(), "*.cs", SearchOption.AllDirectories))
-            .Concat(Directory.EnumerateFiles(TestRepo.Suite(), "*.cob", SearchOption.AllDirectories))
-            .Where(f => !Built(f) && Path.GetFullPath(f) != self);
+        var files = TrackedTree.Files(CSharpSources).Concat(TrackedTree.Files(SuiteSources))
+            .Select(rel => TestRepo.At(rel.Split('/')))
+            .Where(f => Path.GetFullPath(f) != self);
         var offenders = files
             .SelectMany(f =>
             {

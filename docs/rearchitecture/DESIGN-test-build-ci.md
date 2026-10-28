@@ -1041,7 +1041,17 @@ because the raw name is not stable (`b7`):
   the tree only through a declared `TreeScope` (`Under` / `Except` / `Kinds`, string literals in named arguments;
   `tests/_shared/TrackedTree.cs`), which the index reads from the source and applies exactly as `TreeScope.Holds` does;
   `TrackedTreeScopeDriftTests` holds every scan to a declared field, every declaration as the index reads it equal to
-  the value the compiler builds, and the index's `in_scope` equal to `Holds`. A drift test that reads the tree through
+  the value the compiler builds, and the index's `in_scope` equal to `Holds`. A sweep of the TEST sources reads them only
+  through that reader too (kb/Work PB3814): a recursive listing of `tests/` or of the repository root from the file
+  system descends into every running test host's `bin/` and `obj/`, where another test's file I/O creates and deletes
+  directories while the walk runs (a delete-pending sidecar-lock directory answered the walk with access denied), so
+  `TrackedTreeScopeDriftTests.NoTest_WalksTheTestsTreeFromTheFileSystem` refuses a recursive listing of the repository root,
+  of `tests/` or of a test project's directory (a data-only directory such as `tests/nist` holds no build output). The root
+  is FOLLOWED, not matched as spelled: `TestsTreeWalks` (a Roslyn syntax walk of the source) resolves a local, field,
+  property, assignment, helper-method return, lambda parameter, `foreach` variable, call argument or theory row to the
+  `TestRepo` expression it was built from, and the drift test holds the share of listings it can follow (a root from
+  another file or built at run time is reported unresolved, never read as safe). (The walks of `src/` are a separate population: they enter the product projects' build
+  outputs, and no failure there is measured.) A drift test that reads the tree through
   a HELPER CLASS names no path either (kb/Work PB3247: `ConstantNameLiteralPositionDriftTests` reads the whole corpus
   through `SuiteManifest`, and the register drift tests (since replaced by `work_inventory.py`) read the register through
   `WorkRegister`, so a golden or a note governed neither and the landing's Linux leg found the reds), so the index also reads every top-level type a drift
