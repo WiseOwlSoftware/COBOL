@@ -51,11 +51,13 @@ public sealed class ProcessObservationDriftTests
         "ProcessObservation.cs", "ProcessObservationDriftTests.cs",
     ];
 
+    /// <summary>The test sources this sweep reads: the COMMITTED C# under <c>tests/</c> (kb/Work PB3814), never a walk
+    /// of the directory from the file system, which enters every running test host's <c>bin/</c> and <c>obj/</c>.</summary>
+    private static readonly TreeScope TestSourceScope = new(Under: ["tests/"], Kinds: [".cs"]);
+
     private static IEnumerable<string> TestSources() =>
-        Directory.EnumerateFiles(TestRepo.Tests(), "*.cs", SearchOption.AllDirectories)
-            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
-                        && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
-                        && !Exempt.Contains(Path.GetFileName(f)));
+        TrackedTree.Files(TestSourceScope).Select(rel => TestRepo.At(rel.Split('/')))
+            .Where(f => !Exempt.Contains(Path.GetFileName(f)));
 
     [Fact]
     public void NoTestSource_RunsAProgramUnderItsOwnTimeout()
