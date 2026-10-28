@@ -834,7 +834,8 @@ public sealed partial class ReferenceResolver(DataBinder data)
         DataItem.HasOdoOnOrBeneath(item) || item.IsDynamicTable || HasVariableLengthSubordinate(item);
 
     /// <summary>The decimal-integer LITERAL a rendered position is, or null when it is anything else (a data-name
-    /// read, an expression, a narrowing call) — the screen's "is this position known at compile time".</summary>
+    /// read, an expression, a narrowing call) — the screen's "is this position known at compile time". A figurative
+    /// ZERO is included: <see cref="BindPosition"/> reads it as <c>PositionConstant(0)</c> (kb/Work PB3960).</summary>
     private static Int128? LiteralPosition(Position? position) => position switch
     {
         PositionConstant { Value: >= 0 } c => c.Value,
@@ -959,13 +960,20 @@ public sealed partial class ReferenceResolver(DataBinder data)
     private static (int Start, int? Length, bool Ok, bool Beyond) ReadLiteralPositions(Core.RefModPartContext rmp)
     {
         var spec = rmp.refModSpec();
-        if (spec.leftmost is null
+        if (spec.leftmost is null || WritesFigurativeZero(spec.leftmost)
             || !WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(spec.leftmost.GetText(), out int start, out bool b0))
             return (0, null, false, false);
         if (spec.length is null) return (start, null, true, b0);
-        return WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(spec.length.GetText(), out int len, out bool b1)
+        return !WritesFigurativeZero(spec.length)
+            && WiseOwl.Cobol.Validation.IntegerOperandRules.TryHostValue(spec.length.GetText(), out int len, out bool b1)
             ? (start, len, true, b0 || b1) : (0, null, false, false);
     }
+
+    /// <summary>True when the position's source is the figurative ZERO (the <c>ZERO_ARITH</c> token the rewriter mints,
+    /// whose text is "0"): §13.18.16.3 SR4 and its twins want an INTEGER LITERAL, and ZERO is a figurative constant
+    /// (§8.8.1.1), so <see cref="ReadLiteralPositions"/> must not take its text for the literal <c>0</c> (kb/Work PB3960).</summary>
+    private static bool WritesFigurativeZero(IParseTree position) =>
+        LeafTokens(position).Exists(t => t.Type == Core.ZERO_ARITH);
 
     /// <summary>
     /// Build the typed <see cref="Place"/> for an already-resolved <paramref name="item"/> with its subscript index

@@ -21,8 +21,12 @@ would gate the same operand again (measured on `T(2:ALL ZERO + 1)`: one COBOL090
 COBOL2670; at 2002 and later it carries COBOL0902 for the ALL and COBOL2670 for the range, two different rules.
 
 **Sibling sweep.** Other readers of a rendered position: `ScreenRefModLiterals` (the fix's consumer),
-`DataBinder.Reports` CONTROL operands (read lexically by `ReadOperandSuffixes`, where a ZERO stays non-literal for the
-clause's own syntax rule), the subscript path (a constant subscript is not screened at compile time by design, DOC-A.1-69;
+`DataBinder.Reports` CONTROL operands (read lexically by `ReadOperandSuffixes`; the branch review (R1-1) found the first
+version of this note wrong here: `ReadLiteralPositions` read the rewritten token's text "0" as the literal 0, so
+`CONTROL IS T(1:ZERO)` compiled clean and `CONTROL IS T(ZERO:2)` was refused by the range screen, quoting text the program
+never wrote, instead of §13.18.16.3 SR4's COBOL1699. `ReadLiteralPositions` now refuses a position whose tokens include
+`ZERO_ARITH` as non-literal, for every clause that asks it: CONTROL, SUM/RESET, TYPE CONTROL, the CODE clause; goldens
+`13.18.16-CONTROL/pb3960-control-refmod-zero-length` and `-zero-start`), the subscript path (a constant subscript is not screened at compile time by design, DOC-A.1-69;
 the ZERO there is now a direct constant, still range-checked at run time). Folded constants such as `T(1 + 0:2)` or
 `T(-0:2)` are not literals to the screen and are still left to run time; filed as a lead.
 
@@ -36,3 +40,6 @@ now says "integer literals or the figurative ZERO".
 reads the cited rule, not a paraphrase; `Position.cs`'s node-set doc no longer lists the figurative ZERO as a D18 shape.
 Performance: no new allocation on the hot path (a record struct field and a constant). Duplication: the
 "as an arithmetic operand" diagnostic text moved to one place.
+
+**Docs.** VCR Table 7 row 7.28 and DESIGN-frontend-grammar.md now name the resolver's position walk as the third asker of the
+one ALL ZERO gate (review lead R1-2).
