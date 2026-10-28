@@ -36,10 +36,10 @@ Sibling arms: `ArgumentOrder`'s frozen function argument holds an arithmetic exp
 fixed with it (`COMPUTE R = FUNCTION MAX(BIG * BIG, T(FUNCTION MIN(1 2)))` stores the whole 30-digit product); the MOVE, INVOKE
 and SET holders carry function values and character text; the subscript temporary is a saturated integer position.
 
-**Witnesses.** Golden `14.9.13-EVALUATE/pb3974_evaluate_expression_subject_width` (eleven EVALUATEs at every edition: 30-digit
+**Witnesses.** Golden `14.9.13-EVALUATE/pb3974_evaluate_expression_subject_width` (nine EVALUATEs at every edition: 30-digit
 products, a negative product, a 24-digit fraction, a 31-digit sum, two subjects, a range object, a 39-digit bound over a
-30-digit value, a 2 + 38 digit bound over the value 12, a 20 + 30 digit bound over 123450000, and an unequal control; the values are exact arithmetic of
-the items) and `pb3974_expression_subject_frozen_past_carrier` (from 2002: the review's two UDF scenarios at a 45-digit bound,
+30-digit value, and an unequal control; the values are exact arithmetic of
+the items), `pb3974_expression_subject_past_carrier_fraction` (from 2002: a 2 + 38 digit bound over 12 and a 20 + 30 digit bound over 123450000, round 1 R1-1) and `pb3974_expression_subject_frozen_past_carrier` (from 2002: the review's two UDF scenarios at a 45-digit bound,
 `FUNCTION SUM` = 14 and the EVALUATE taking WHEN 8); no negative, since the change refuses no source. The 45-digit VALUE
 (`BIG * BIG * BIG`) the first cut's golden held through the un-hoisted path is cut by the 38-digit item and is the residual. Unit theories `ExpressionExtentTests`. Docs: `DESIGN-binder-bound-tree.md` (the intermediate's description).
 `kb/Work/PB3974` flips to landed with `closes_rows: []` (no inventory row claimed it).
