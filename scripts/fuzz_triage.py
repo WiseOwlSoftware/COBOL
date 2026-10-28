@@ -42,6 +42,7 @@ import re
 import subprocess
 import sys
 
+import fuzz_history as fh
 from standard_streams import ensure_utf8
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -530,7 +531,7 @@ def upstream_shape(up) -> list[str]:
         if not (isinstance(up.get("note"), str) and NOTE_ID.fullmatch(up["note"])):
             bad.append("upstream.witness names no existing note (`PB####`)")
         return bad
-    work = _work()
+    work = fh.register()
     if not (isinstance(up.get("family"), str) and FAMILY.fullmatch(up["family"])):
         bad.append("upstream.family is not a lowercase slug [a-z0-9-]+")
     if up.get("class") not in work.UPSTREAM_CLASSES:
@@ -625,12 +626,6 @@ def summary(c: Collected) -> list[str]:
 
 
 # ── citations ────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-def _work():
-    sys.path.insert(0, str(HERE / "spec"))
-    import work  # noqa: PLC0415  (the register's one reader and the upstream bar)
-    return work
-
 
 class Spec:
     """specs/ISO_COBOL.md loaded once, for cite.py's own clause check."""
@@ -800,7 +795,7 @@ class Filing:
 
 def existing_families(work_dir: pathlib.Path) -> dict[str, str]:
     """slug -> note id of every `kind: upstream` note: the word after the id in its first heading (design §5.3)."""
-    work = _work()
+    work = fh.register()
     out = {}
     for p in sorted(work_dir.glob("PB*.md")):
         note, _why = work.read_note(p.name, p.read_text(encoding="utf-8"))
@@ -812,7 +807,7 @@ def existing_families(work_dir: pathlib.Path) -> dict[str, str]:
 
 
 def upstream_ids(work_dir: pathlib.Path) -> set[str]:
-    work = _work()
+    work = fh.register()
     out = set()
     for p in sorted(work_dir.glob("PB*.md")):
         note, _why = work.read_note(p.name, p.read_text(encoding="utf-8"))
@@ -823,7 +818,7 @@ def upstream_ids(work_dir: pathlib.Path) -> set[str]:
 
 def draft_problems(d: Draft) -> list[str]:
     """The register's own bar on the note this draft would become (id PB0 stands in until the allocator gives one)."""
-    work = _work()
+    work = fh.register()
     note, why = work.read_note("PB0.md", render_note(d, "PB0", "1970-01-01"))
     return [why] if note is None else work.upstream_problems(note)
 
@@ -876,7 +871,7 @@ def record_held(t: Triage, v: dict, ref: dict | None, spec: Spec) -> Draft | str
         return f"refutation outcome {ref.get('outcome')!r} is none of {list(OUTCOMES)}"
     if ref["outcome"] == "OVERTURNED":
         return "OVERTURNED by the refuter: " + str(ref.get("why", "")).strip()[:300]
-    work = _work()
+    work = fh.register()
     cls = ref.get("class") if ref["outcome"] == "RECLASSIFY" and ref.get("class") else up["class"]
     edition = ref.get("edition") or up["edition"]
     if cls not in work.UPSTREAM_CLASSES or edition not in work.UPSTREAM_EDITIONS:
@@ -970,7 +965,7 @@ def add_witness(text: str, run_id: str, programs: list[str]) -> str:
     adds nothing, so a second `file` is a no-op."""
     ids = list(dict.fromkeys(programs))
     prefix = f"- {run_id}:"
-    work = _work()
+    work = fh.register()
     secs = work.body_sections(text)
     key = next((h for h in secs if h.lower().startswith("witnesses")), None)
     if key is None:
@@ -1011,7 +1006,7 @@ def alloc_ids(count: int, coord_override: str) -> list[str]:
 def write_filing(f: Filing, work_dir: pathlib.Path, date: str, allocate, run_id: str) -> list[str]:
     """Write the notes and the witness lines. Everything is rendered and checked BEFORE the first byte is written, so a
     refusal leaves the register as it was. Returns the files written."""
-    work = _work()
+    work = fh.register()
     ids = allocate(len(f.drafts)) if f.drafts else []
     notes = {}
     for d, pb in zip(f.drafts, ids):
@@ -1051,8 +1046,7 @@ def history(t: Triage, c: Collected, work_dir: pathlib.Path, args) -> int:
         print(f"⛔ the triage is not finished: {len(c.problems)} problem(s), {sum(map(len, c.undecided.values()))} "
               "undecided signature(s) (fuzz_triage.py collect)")
         return 1
-    import fuzz_history as fh  # noqa: PLC0415
-    items = _work().load(work_dir)
+    items = fh.register().load(work_dir)
     hist = fh.load_history()
     known = {n["run_id"]: n["night"] for n in hist["nights"]}
     night = known.get(t.run_id, max(known.values(), default=0) + 1)
@@ -1065,13 +1059,13 @@ def history(t: Triage, c: Collected, work_dir: pathlib.Path, args) -> int:
     if missing:
         print("⛔ no kb/Work note for " + ", ".join(missing))
         return 1
-    # The page tells a compiler bug from a harness bug by the sites a defect declares (fuzz_history.finding_kind,
-    # kb/Work PB4010); a note this night adds must declare them, so no new note is read by its area.
-    unsited = [d for d in rec["defects"] if d not in prior.get("defects", []) and by_id[d].get("kind") == "defect"
-               and by_id[d].get("status") != "retired" and not fh.declared_sites(by_id[d]).declared]
+    # The page tells a compiler bug from a harness bug by the sites a defect declares (fuzz_history.site_kind,
+    # kb/Work PB4010): refused here, by name, before anything is written.
+    unsited = [d for d in rec["defects"] if by_id[d].get("kind") == "defect" and by_id[d].get("status") != "retired"
+               and fh.site_kind(by_id[d]) is None]
     if unsited:
-        print("⛔ no **Sites:** block in " + ", ".join(unsited) + ": a defect the night filed declares where it lives "
-              "(`**Sites:** none (why)` when it changes no code), so the page can tell a compiler bug from a harness bug")
+        print("⛔ no **Sites:** block naming a path, a glob or `none (why)` in " + ", ".join(unsited) + ": a defect the "
+              "night filed declares where it lives, so the page can tell a compiler bug from a harness bug")
         return 1
     print(json.dumps({k: rec[k] for k in ("night", "run_id", "judged", "survivors", "survivor_signatures", "defects")}))
     if not args.write:
@@ -1079,13 +1073,11 @@ def history(t: Triage, c: Collected, work_dir: pathlib.Path, args) -> int:
         return 0
     hist = fh.upsert(hist, rec)
     fh.write_history(hist)
-    ctx = fh.context(hist, items)
-    out = pathlib.Path(args.out) if args.out else pathlib.Path(t.coord) / "scratch" / "fuzz-summary.html"
-    out.write_text(fh.render_html(ctx), encoding="utf-8", newline=NL)
-    ledger = fh.write_markdown(ctx, hist.get("artifact"))
-    print("wrote " + ", ".join(posix(p) for p in [fh.HISTORY, out, *ledger]))
-    print(f"next: publish {posix(out)} to the Artifact {hist.get('artifact') or '(none yet: publish it, then record its URL as `artifact` in the history)'}"
-          ", and commit the history, FUZZ-LEDGER.md and docs/fuzz-ledger/ with the night's filing")
+    out = pathlib.Path(args.out) if args.out else fh.default_page(t.coord)
+    version, written = fh.write_ledger(fh.context(hist, items), hist.get("artifact"), out)
+    print("wrote " + ", ".join(posix(p) for p in [fh.HISTORY, *written]) + f" (ledger version {version})")
+    print(fh.NEXT_STEPS.format(page=posix(out), artifact=hist.get("artifact") or "(none yet: publish it, then record its URL "
+                               "as `artifact` in the history)"))
     return 0
 
 
