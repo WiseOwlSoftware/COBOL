@@ -256,8 +256,8 @@ internal static class Program
     /// false.</summary>
     internal static bool TryParseRepositoryUpdate(string? value, out bool update)
     {
-        update = !string.Equals(value, "off", StringComparison.OrdinalIgnoreCase);
-        return value is not null && (!update || string.Equals(value, "on", StringComparison.OrdinalIgnoreCase));
+        update = !string.Equals(value, "off", StringComparison.OrdinalIgnoreCase);   // not a COBOL word: a command-line option value
+        return value is not null && (!update || string.Equals(value, "on", StringComparison.OrdinalIgnoreCase));   // not a COBOL word: a command-line option value
     }
 
     private static int RunCompile(CliOptions options)

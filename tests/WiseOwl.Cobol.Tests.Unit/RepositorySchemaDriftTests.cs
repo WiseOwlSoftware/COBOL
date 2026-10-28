@@ -27,6 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// use; §17.3's read-through test, with the halves slice 4 has; slices 5 and 7 add their callers).</item>
 /// </list>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class RepositorySchemaDriftTests
 {
     private static readonly Type[] Attributes = [.. typeof(CobolRepositoryAttribute).Assembly.GetTypes()
