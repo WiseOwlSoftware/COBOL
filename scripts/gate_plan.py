@@ -50,7 +50,9 @@ THE TIERS (per case; a key shared by several cases takes the lowest):
       dear sweep (CatalogCoverageDriftTests' 44 s) was left in leg 2 by 0c and found only by the landing's Linux leg;
   0u  known to no timing source and to no map (genuinely new) — charged the assembly's median time and admitted to
       leg 1, in declaration order, within LEG_ONE_UNKNOWN_BUDGET; the overflow LEADS leg 2;
-  1–3 impacted_tests.py's tiers (§3.13); with no map, every case is tier 1.
+  1–3 impacted_tests.py's tiers (§3.13); with no map, or a change that cannot be attributed (`every_tier1`), every case is
+      tier 1, and inside tier 1 the cases the change really reaches (impacted_tests's tiers, which a reason that part of the
+      change cannot be attributed does not erase, kb/Work PB3991) rank first, then the cheapest first.
 LEG 1 = tier 0a + 0h + the cheap 0c + 0d + the admitted 0u + the cheapest tier-1 cases while their recorded time stays
 within LEG_ONE_BUDGET and each case's collection's budgeted leg-1 time within LEG_ONE_COLLECTION_CAP (tiers 0a, 0h and
 0d are exempt from the cap). Trait membership is DERIVED from the test sources (`class_traits`), never listed here;
@@ -464,6 +466,7 @@ class KeyGroup:
     index: int                              # first declaration position
     cases: list[tuple[str, str]]            # (raw display, collection) per case
     tier: str = "1"
+    rank: int = 0                           # inside tier 1: what the change really reaches (1 direct, 2 widened, 3 none)
     per_case: float | None = None           # recorded seconds of one case; None = no timing source knows it
 
     def cost(self, median: float) -> float:
@@ -507,6 +510,7 @@ def plan_assembly(displays: list[str], ctx: Context) -> dict:
         u.per_case = prev if prev is not None else ctx.recorded.seconds(u.key)
         u.tier = min((tier_of(d, u.key, ctx, u.per_case, has_timings) for d, _ in u.cases),
                      key=TIER_ORDER.index)
+        u.rank = ctx.tiers.get(u.key, 1) if u.tier == "1" else 0
     known = [u.per_case for u in units.values() for _ in u.cases if u.per_case is not None]
     median = statistics.median(known) if known else 0.0
     total = sum(known)
@@ -545,7 +549,7 @@ def plan_assembly(displays: list[str], ctx: Context) -> dict:
                 overflow.append(u)
         if has_timings:
             acc = 0.0
-            for u in sorted((u for u in order if u.tier == "1"), key=lambda u: (u.cost(median), u.index)):
+            for u in sorted((u for u in order if u.tier == "1"), key=lambda u: (u.rank, u.cost(median), u.index)):
                 if acc + u.cost(median) > LEG_ONE_BUDGET * total:
                     break
                 part = fits(u)
@@ -568,7 +572,7 @@ def plan_assembly(displays: list[str], ctx: Context) -> dict:
         legs = [1, 2]
 
     def within(u: KeyGroup) -> tuple:
-        return (TIER_ORDER.index(u.tier), u.cost(median) if has_timings else 0.0, u.index)
+        return (TIER_ORDER.index(u.tier), u.rank, u.cost(median) if has_timings else 0.0, u.index)
 
     leg1_ranked = sorted(leg1, key=within)
     overflow_keys = {u.key for u in overflow}
@@ -755,6 +759,16 @@ def self_test() -> int:
                                           every_tier1=True))
     check("an unattributable change under a map: every case tier 1, its durations still order leg 1",
           p["stats"]["tiers"]["1"] == 101 and p["stats"]["leg1_cases"] == 22, p["stats"])
+    # kb/Work PB3991: ... and when the change ALSO reaches some cases by method (a version bump beside an emitter change),
+    # those rank first inside tier 1: a dear case the change reaches runs in leg 1 ahead of 100 cheap unreached ones.
+    dear = f"{ns}Dear.Reached"
+    t6 = timed([(d, 1.0) for d in cheap] + [(pole, 1000.0), (dear, 5.0)])
+    k6 = {name_key(d) for d in cheap + [pole, dear]}
+    p = plan_assembly(cheap + [pole, dear], ctx(recorded=t6, map_known=k6, every_tier1=True,
+                                                tiers={**{k: 3 for k in k6}, name_key(dear): 1}))
+    check("an unattributable part beside a method-level reach: every case tier 1, the reached case leads leg 1 ahead "
+          "of the cheaper unreached ones", p["stats"]["tiers"]["1"] == 102 and p["leg1"][0] == name_key(dear)
+          and p["stats"]["leg1_cases"] == 18, (p["leg1"][:2], p["stats"]["leg1_cases"]))
     # no timings: leg 1 is tier 0a alone, ordered by tier.
     p = plan_assembly(cheap + [f"{ns}Changed.M"], ctx(changed_tests={"M"}))
     check("no timings: leg 1 is tier 0a alone and nothing is tier 0u",
