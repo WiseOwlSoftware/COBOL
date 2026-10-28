@@ -1,4 +1,4 @@
-## PB3801 — remove the GUI-launch guard; the fix is not running Obsidian
+## Entry 2694 — 2026-10-28 11:23 PDT — PB3801 — remove the GUI-launch guard; the fix is not running Obsidian
 
 Wave 20261737 group G. PB3798 had added rule 8 to the guard hook (`scripts/hooks/gui_launch.py`, 368 self-test cases)
 to stop an agent opening Obsidian on the owner's screen; its reviews kept finding forms it missed (PB3800), and the
@@ -16,3 +16,4 @@ inventory row). The one-line agent rule stays text in MANDATORY-PRACTICES throug
 
 **Sibling sweep.** `grep -rIn gui_launch` outside `DEVLOG/` and `kb/Work/` finds nothing; no other reader of `.shell`
 on a `Step`. No goldens: no ISO rule governs the hook.
+
