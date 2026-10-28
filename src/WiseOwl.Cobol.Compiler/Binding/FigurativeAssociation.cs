@@ -128,4 +128,14 @@ public static class FigurativeAssociation
     /// keeps the value zero either way, because a refused compile reaches no output.</summary>
     public static void GateAllZeroAsNumeric(EditionInfo edition, IDiagnosticSink sink, string where) =>
         ConstructRegistry.Check(edition, sink, Constructs.FigurativeAllZeroNumericRemoved2002, where);
+
+    /// <summary>The gate as an ARITHMETIC OPERAND asks it (ISO §8.8.1.1: "the figurative constant ZERO (ZEROS,
+    /// ZEROES)"): the ONE wording of the diagnostic, so the expression binder's operand reading and the reference
+    /// resolver's direct position walk (a subscript or reference-modifier bound written <c>ALL ZERO</c>, kb/Work
+    /// PB3960) cannot word it two ways.</summary>
+    /// <param name="spelling">The operand as written (<c>ALL ZEROS</c>).</param>
+    /// <param name="where">The position clause suffix, or empty.</param>
+    public static void GateAllZeroAsArithmeticOperand(EditionInfo edition, IDiagnosticSink sink, string spelling,
+        string where) =>
+        GateAllZeroAsNumeric(edition, sink, $"figurative constant '{spelling}' as an arithmetic operand{where}");
 }
