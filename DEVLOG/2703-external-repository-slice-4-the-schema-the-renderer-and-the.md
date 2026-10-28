@@ -1,4 +1,4 @@
-## External repository slice 4: the schema, the renderer and the reader; the host entry pairs by the Annex C fold (PB2100, PB3872)
+## Entry 2703 — 2026-10-28 13:05 PDT — External repository slice 4: the schema, the renderer and the reader; the host entry pairs by the Annex C fold (PB2100, PB3872)
 
 **What this change is.** Two things. The first is the PB1086 slice notes' `**Sites:**` blocks (the earlier branch
 `notes-pb1086-sites`, merged here): slices 4, 5, 7 and 8 each declare the files and members the design (sections 12 and
@@ -214,3 +214,4 @@ no C# text in a bound node. Code: the cap and the escapes are tested at their ed
 exceptions a hostile image raises. Performance: the reader allocates only the rows. Duplication: the row encoding is not
 restated by the renderer. Comment accuracy: `Edition` and `CompilerVersion` are documented as named in diagnostics and never
 compared (design 5.4 item 2).
+
