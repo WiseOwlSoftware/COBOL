@@ -23960,5 +23960,29 @@
    "85"
   ],
   "expect": "COBOL0900: the ROUNDED phrase of the SOURCE clause (report group description) requires COBOL-2002"
+ },
+ "pb3996-call-format1-omitted-bare": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0899"
+ },
+ "pb3996-call-format1-omitted-by-content": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0899"
+ },
+ "pb3996-call-format1-omitted-by-reference": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0899"
  }
 }
