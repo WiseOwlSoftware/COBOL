@@ -1,4 +1,4 @@
-## A sign touching the next literal is that literal's sign (PB3962), and four report-section 2002 forms get their COBOL-85 gate (PB3964)
+## Entry 2688 — 2026-10-27 19:58 PDT — A sign touching the next literal is that literal's sign (PB3962), and four report-section 2002 forms get their COBOL-85 gate (PB3964)
 
 Wave 20261732, group A (the DataBinder group). Two mechanisms, two checkpoint commits.
 
@@ -33,3 +33,4 @@ re-scan); the relative-sign gate is one visit of the one shared production, not 
 `SoleOperand.DataRef`, the reduction the binder's classifier uses.
 
 Gate (batched, leg 1 plus the Linux half): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on head e727195b3, run 000001-20261028T011525Z; the added goldens (`pb3962_figurative_zero_before_a_signed_literal` at 85, 2002, 2014 and 2023; the four `pb3964-report-*-85` refusals) all Passed in `leg-1-Conformance.trx`; Linux half (WSL clone of HEAD) GREEN; `semgrep/verify.py` PASS.
+
