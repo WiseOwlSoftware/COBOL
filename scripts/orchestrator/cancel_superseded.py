@@ -27,8 +27,8 @@ moment of supersession, so their runs are what sweeps the runs they replaced. It
 entries than one page), when the queue reads empty, or when the read does not hold this run's own head commit (a read
 taken before GitHub recorded this group, or this run is itself superseded): each says why, as a warning annotation on
 the run. A cancel GitHub refuses (the run finished in between: HTTP 409) is reported and the sweep goes on. Every
-outcome exits 0: housekeeping never decides a verdict, and the job's step is `continue-on-error` as well
-(LandingPipelineDriftTests); 2 is a usage error.
+outcome exits 0: housekeeping never decides a verdict, and every step of the job is `continue-on-error` as
+well, the checkout included (LandingPipelineDriftTests, kb/Work PB3820); 2 is a usage error.
 """
 from __future__ import annotations
 
