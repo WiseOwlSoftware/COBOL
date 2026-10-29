@@ -45,7 +45,7 @@ public sealed class DotnetSdkInstallDriftTests
         RegexOptions.NonBacktracking);
 
     /// <summary>A job: its id two spaces deep, then every line deeper than that, a comment line or a blank line.</summary>
-    internal static readonly Regex JobShape = new(@"(?m)^  (?<id>[A-Za-z0-9_-]+):[ \t]*\n(?<body>(?:(?:   .*|[ \t]*#.*|[ \t]*)\n)*)",
+    private static readonly Regex JobShape = new(@"(?m)^  (?<id>[A-Za-z0-9_-]+):[ \t]*\n(?<body>(?:(?:   .*|[ \t]*#.*|[ \t]*)\n)*)",
         RegexOptions.NonBacktracking);
 
     private static readonly Regex PinLine = new(@"^DOTNET_SDK_VERSION=(?<v>\S+)$", RegexOptions.Multiline | RegexOptions.NonBacktracking);
@@ -288,8 +288,10 @@ public sealed class DotnetSdkInstallDriftTests
         return lf[begin..(stop < 0 ? lf.Length : stop)];
     }
 
-    /// <summary>The jobs of a workflow: each job id (a key two spaces deep under <c>jobs:</c>) and its text.</summary>
-    private static IEnumerable<(string Id, string Body)> Jobs(string workflow)
+    /// <summary>The jobs of a workflow: each job id (a key two spaces deep under <c>jobs:</c>, so never an <c>on:</c>
+    /// trigger) and its text. The one reader of a workflow's jobs for this class and for
+    /// <see cref="SparseCheckoutAudit.Jobs"/> (kb/Work PB3810).</summary>
+    internal static IEnumerable<(string Id, string Body)> Jobs(string workflow)
     {
         string lf = workflow.ReplaceLineEndings("\n");
         int jobs = lf.IndexOf("\njobs:\n", StringComparison.Ordinal);

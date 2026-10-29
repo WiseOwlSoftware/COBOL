@@ -810,7 +810,9 @@ public sealed class DerivedVerdictDriftTests
     {
         Assert.True(File.Exists(ConformanceRegister.Path), $"the register is missing: {ConformanceRegister.Path}");
         Assert.InRange(ConformanceRegister.Rows.Count, 20, 400);        // 47 rows when this landed
-        Assert.All(ConformanceRegister.Rows, r => Assert.Matches(@"^DOC-A\.1-\d+$", r.Key));
+        // A row key is the item's rule-id, plus a letter on a FURTHER determination of one item (DOC-A.1-92b), and unique.
+        Assert.All(ConformanceRegister.Rows, r => Assert.Matches(@"^DOC-A\.1-\d+[a-z]?$", r.Key));
+        Assert.Equal(ConformanceRegister.Rows.Count, ConformanceRegister.Rows.Select(r => r.Key).Distinct(StringComparer.Ordinal).Count());
 
         // The escaped-pipe case, which is why the split is not `Split('|')`: item 82's determination writes an
         // absolute value as \|v\|, and a naive split gives that row two extra cells and mis-places the rest.
