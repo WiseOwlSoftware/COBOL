@@ -1,4 +1,4 @@
-## External repository slice 5: the locator, the probe over it, the per-kind name dictionaries and the load-fault classification (PB2101)
+## Entry 2723 — 2026-10-29 10:26 PDT — External repository slice 5: the locator, the probe over it, the per-kind name dictionaries and the load-fault classification (PB2101)
 
 **What the re-probe showed.** The probe still found a sibling module by file name alone (a case-insensitive scan of `<name>.dll`),
 loaded it before reading its record, scanned `_order` linearly at every CALL, and let two faults escape the CALL as the CLR's own
@@ -38,3 +38,4 @@ the emitted assemblies reference `System.Private.CoreLib` directly (CS0012).
 DESIGN-external-repository 9.4 and 15.5) now say the switch is on unless the application sets it and a native-AOT application must;
 the probe's catch is one classifier, `ProgramTable.ProbeFaultReason`, which also takes `NotSupportedException` as "not located" with a
 reason naming the switch (`ProbeFaultClassificationTests`). A CALL with no sibling file in such an application stays the plain miss.
+
