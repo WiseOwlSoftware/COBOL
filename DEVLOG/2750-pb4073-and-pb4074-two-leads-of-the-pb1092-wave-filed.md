@@ -1,4 +1,4 @@
-## PB4073 and PB4074: two leads of the PB1092 wave filed
+## Entry 2750 — 2026-10-29 16:58 PDT — PB4073 and PB4074: two leads of the PB1092 wave filed
 
 The review of wave 20261755 (PB1092, PB1397: the one source-text decoder) was CLEAN, with two leads. PB4073 records
 that `Frontend.Parse`'s summary still names only a fatal syntax error as its null return, though a main source whose
@@ -7,3 +7,4 @@ PB4074 records that `CopyProcessor` takes an optional diagnostics bag. Every err
 `_diagnostics?` therefore vanishes for a caller that builds it without one, which now includes PB1092's
 malformed-library-text COBOL5434. The only such caller, the line-map replay, runs after a pass that already reported,
 but nothing enforces that.
+
