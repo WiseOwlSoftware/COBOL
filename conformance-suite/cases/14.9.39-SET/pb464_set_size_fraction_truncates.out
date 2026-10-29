@@ -1,0 +1,8 @@
+2.7 LEN=02 [AB] EC[                               ]
+2.2 LEN=02 [AB] EC[                               ]
+2.5 LEN=02 [AB] EC[                               ]
+0.9 LEN=00 [] EC[                               ]
+8.9 LEN=08 [ABCDEFGH] EC[                               ]
+GROW LEN=04 [AB  ] EC[                               ]
+EXACT LEN=02 [AB] EC[                               ]
+9.5 LEN=09 [ABCDEFGHI] EC[EC-STORAGE-NOT-AVAIL           ]
