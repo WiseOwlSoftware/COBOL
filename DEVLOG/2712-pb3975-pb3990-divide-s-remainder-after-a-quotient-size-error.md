@@ -1,4 +1,4 @@
-## PB3975 + PB3990: DIVIDE's remainder after a quotient size error follows GnuCOBOL, and ROUNDED MODE IS PROHIBITED never stores a value it cut
+## Entry 2712 — 2026-10-28 18:17 PDT — PB3975 + PB3990: DIVIDE's remainder after a quotient size error follows GnuCOBOL, and ROUNDED MODE IS PROHIBITED never stores a value it cut
 
 Wave 20261740 group A, the arithmetic emitter's two notes, each re-probed on main 1da5e0d6b against GnuCOBOL 3.2.
 
@@ -58,3 +58,4 @@ into Z9 at every edition from 2002. The mode now reaches both landings. Goldens
 `13.18.53-SOURCE/pb3990_report_source_prohibited_keeps_the_item` (2014, 2023) and `pb3990_report_source_rounded_edited`
 (2002, 2014, 2023); the shape pin `ArithmeticOneInitialEvaluationDriftTests.TheReportImplicitCompute_KeepsAProhibitedPrintableItem_OnRule7Alone`.
 The lead R1-2 (a StoreArith comment naming a helper that does not exist) is fixed in the same change.
+
