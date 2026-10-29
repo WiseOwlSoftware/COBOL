@@ -38,6 +38,10 @@
       *>   The OMITTED argument forwarded twice is still omitted.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P2096M02.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           PROGRAM P2096O02.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 N PIC 9(4) VALUE 1.
@@ -49,7 +53,7 @@
            DISPLAY "N=" N
            CALL "P2096E02" USING G
            DISPLAY "G=" G
-           CALL "P2096O02" USING OMITTED
+           CALL "P2096O02" AS P2096O02 USING OMITTED
            STOP RUN.
        END PROGRAM P2096M02.
        IDENTIFICATION DIVISION.
