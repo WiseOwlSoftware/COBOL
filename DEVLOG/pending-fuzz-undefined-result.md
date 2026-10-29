@@ -41,3 +41,13 @@ OCCURS DEPENDING ON table, the numeric usages of the incompatible-data finding, 
 edges removed 5 of its arms go red, with the function emptied 10. `differential_fuzz.py --self-test` gained arms for the class,
 the row's `undefined` field through a stubbed `Fuzz._one`, `rederived` (an old row, a recorded finding, a missing source) and the
 report heading. `docs/rearchitecture/DESIGN-differential-fuzz.md` §2 and §7 describe the class. No compiler code changed.
+
+**Branch review round 1 (two blocking findings, fixed at the root).** (R1-1) UNWRITTEN_STORAGE walked only the PROCEDURE DIVISION, so
+a FILE STATUS item the program only DISPLAYed after an OPEN read as storage no statement wrote, though the runtime sets it (ISO
+9.1.13.1); RELATIVE KEY, CRT STATUS and CURSOR items likewise. A name anywhere before WORKING-STORAGE (the ENVIRONMENT DIVISION and the
+FILE SECTION) now makes the item defined. (R1-2) `DataDivision._entry` ignored SAME AS and TYPE, so an item inheriting its VALUE read
+as having none (fz01192's WS-COPY-GROUP had been misattributed this way). The entry now takes the picture, usages, VALUE and a copy of
+the subordinates of the one entry it names (ISO 13.18.49.4 1, 2; 13.18.57.4 1, 2); a source it cannot resolve to one entry reads as
+defined. Also fixed in the same files: a numeric literal with no integer part (`.5`, `-.25`) split the data entry at its point and
+produced a bogus FILLER (R1-4), and `BakeOffScore.model_failures` named the classes without UNDEFINED_RESULT (R1-3). The test gained
+arms in found and not-found pairs; seven go red against the previous module.

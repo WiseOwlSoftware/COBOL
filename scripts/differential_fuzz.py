@@ -1534,7 +1534,7 @@ class BakeOffScore(typing.NamedTuple):
     programs: int
     usable: int
     judged: int
-    model_failures: int              # MODEL_FAILURE_CLASSES: BOTH_REJECT, NO_PROGRAM, BOTH_HANG
+    model_failures: int              # MODEL_FAILURE_CLASSES: BOTH_REJECT, NO_PROGRAM, BOTH_HANG, UNDEFINED_RESULT
     gnucobol_alone_refuses: int
     median_model_seconds: float
     leads: int

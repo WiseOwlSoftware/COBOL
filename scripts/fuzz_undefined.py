@@ -20,7 +20,10 @@ a real difference from the triage while a missed one only costs the triage it co
                      storage that is itself unwritten writes nothing defined either, so definedness is the LEAST FIXED POINT of
                      the program's data flow: a data item is defined when it has a VALUE (or a group above it does), is named
                      by any statement other than as a DISPLAY operand or a MOVE sender, or receives a MOVE from a defined
-                     item or from anything that is not a data item (a literal, a figurative constant, a function).
+                     item or from anything that is not a data item (a literal, a figurative constant, a function). An item the
+                     ENVIRONMENT DIVISION or the FILE SECTION names (FILE STATUS, RELATIVE KEY, CRT STATUS ...) is set by the
+                     runtime, and an item with SAME AS or TYPE has the description, VALUE clauses included, of the entry it
+                     names (ISO 13.18.49.4 1, 13.18.57.4 1).
   SUBSCRIPT_RANGE    an integer-literal subscript outside 1 .. the OCCURS maximum of its dimension (ISO 8.4.2.3.4 2): the
                      exception condition EC-BOUND-SUBSCRIPT, which when not enabled leaves the results undefined
                      (ISO 14.6.13.1.1 NOTE 3).
@@ -64,12 +67,12 @@ class Finding:
 
 #: Free reference format only (the fuzz compiles `--source-format free`). A comment, a string (with its N/X/B/Z/H prefix), a
 #: PICTURE clause (its character-string is ONE token: it holds the parentheses and points the tokenizer would split), a decimal
-#: number, a word, anything else. The commas and semicolons that separate operands are dropped.
+#: number (`1.5`, and `.5` with no integer part, which a split at its point would turn into a data entry of its own), a word, anything else. The commas and semicolons that separate operands are dropped.
 _TOKEN = re.compile(r"""
     \*>[^\n]*
   | (?P<str>(?:[BbNn][Xx]|[NnXxBbZzHh])?(?:"(?:[^"]|"")*"|'(?:[^']|'')*'))
   | (?P<pic>(?<![\w-])PIC(?:TURE)?(?![\w-])(?:\s+IS(?![\w-]))?\s+(?P<picture>\S+))
-  | (?P<num>\d+\.\d+)
+  | (?P<num>\d*\.\d+)
   | (?P<word>[A-Za-z0-9][A-Za-z0-9_-]*)
   | (?P<punct>[^\s,;])
 """, re.VERBOSE | re.IGNORECASE)
@@ -155,10 +158,14 @@ class DataDivision:
         self.by_name: dict[str, list[Item]] = defaultdict(list)
         self.conditions: dict[str, Item] = {}         # a level-88 condition-name -> the item it tests
         self.renames = False
-        start = next((i + 3 for i in range(len(tokens) - 3)
-                      if _is(tokens[i], "WORKING-STORAGE") and _is(tokens[i + 1], "SECTION")), None)
-        if start is None:
+        #: everything before WORKING-STORAGE (the ENVIRONMENT DIVISION and the FILE SECTION): what names a data item there is
+        #: written by the runtime, never by a statement (`undefined_results`)
+        self.preamble: list[Token] = []
+        at = next((i for i in range(len(tokens) - 3) if _is(tokens[i], "WORKING-STORAGE") and _is(tokens[i + 1], "SECTION")), None)
+        if at is None:
             return
+        self.preamble = tokens[:at]
+        start = at + 3
         end = len(tokens)
         for i in range(start, len(tokens) - 1):
             if (tokens[i][0] == "word" and tokens[i][1] in _SECTION_STARTS and _is(tokens[i + 1], "SECTION")) \
@@ -207,6 +214,7 @@ class DataDivision:
             item.parent.children.append(item)
         self.items.append(item)
         usages: set[str] = set()
+        inherits: tuple[bool, list[Token]] | None = None      # (SAME AS?, the tokens after the clause: the source's name)
         for k, (kind, text) in enumerate(rest):
             if kind == "pic":
                 item.picture = text
@@ -224,14 +232,57 @@ class DataDivision:
                     elif not _is(t2, "TO"):
                         break
                 item.occurs_max = max(counts) if counts else None
+            elif kind == "word" and text == "SAME" and k + 1 < len(rest) and _is(rest[k + 1], "AS"):
+                inherits = (True, rest[k + 2:])
+            elif kind == "word" and text == "TYPE":
+                inherits = (False, rest[k + 2:] if k + 1 < len(rest) and _is(rest[k + 1], "TO") else rest[k + 1:])
             elif kind == "word" and text in NUMERIC_USAGES | OPAQUE_USAGES:
                 usages.add(text)
         item.usages = frozenset(usages)
         if usages & OPAQUE_USAGES:
             item.opaque = True
+        if inherits is not None:
+            self._inherit(item, inherits[1])
         stack.append(item)
         if name is not None:
             self.by_name[name].append(item)
+
+    def _inherit(self, item: Item, named: list[Token]) -> None:
+        """SAME AS (ISO 13.18.49.4 1, 2) and TYPE (13.18.57.4 1, 2, 3): the effect is as though the description of the item named,
+        its VALUE clauses and its subordinates included, had been coded in place; the entry's own clauses stay. A source this
+        analysis cannot resolve to ONE entry (a type declared in another section, an ambiguous name) leaves the item opaque,
+        which reads as defined. EXTERNAL and REDEFINES, which SAME AS excludes, are not told apart from the other opaque
+        shapes: a source with either reads as defined too, the safe direction."""
+        if not named or named[0][0] != "word":
+            item.opaque = True
+            return
+        quals = []
+        k = 1
+        while k + 1 < len(named) and named[k][0] == "word" and named[k][1] in ("OF", "IN") and named[k + 1][0] == "word":
+            quals.append(named[k + 1][1])
+            k += 2
+        found = [c for c in self.by_name.get(named[0][1], []) if all(any(a.name == q for a in c.chain()[:-1]) for q in quals)]
+        if len(found) != 1 or found[0] is item:
+            item.opaque = True
+            return
+        src = found[0]
+        item.picture = item.picture or src.picture
+        item.usages = item.usages | src.usages
+        item.valued = item.valued or src.valued
+        item.opaque = item.opaque or src.opaque
+        if item.occurs_max is None:
+            item.occurs_max = src.occurs_max
+        if not item.children:
+            item.children = [self._copy(c, item) for c in src.children]
+
+    def _copy(self, src: Item, parent: Item) -> Item:
+        """A subordinate element with the same name, description and hierarchy (ISO 13.18.49.4 2 a, 13.18.57.4 2 a)."""
+        dup = dataclasses.replace(src, parent=parent, children=[])
+        self.items.append(dup)
+        if dup.name is not None:
+            self.by_name[dup.name].append(dup)
+        dup.children = [self._copy(c, dup) for c in src.children]
+        return dup
 
 
 # ── the procedure division ────────────────────────────────────────────────────────────────────────────────────────────
@@ -479,6 +530,12 @@ def undefined_results(source: str) -> list[Finding]:
     if proc is None:
         return []
     analysis = Analysis(tokens, data)
+    # a data item named in the ENVIRONMENT DIVISION or the FILE SECTION (FILE STATUS, RELATIVE KEY, CRT STATUS, CURSOR, ASSIGN
+    # USING, RECORD DEPENDING ON ...) is set by the runtime on OPEN / READ / WRITE / ACCEPT (the I-O status, ISO 9.1.13.1), whatever statement
+    # names it, so no unwritten byte of it is proved
+    for kind, text in data.preamble:
+        if kind == "word":
+            analysis.touch(data.by_name.get(text, []))
     analysis.run(proc)
     if data.renames:
         analysis.displayed.clear()          # RENAMES aliases storage this analysis does not follow
