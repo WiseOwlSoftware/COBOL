@@ -1,0 +1,72 @@
+# ⛔ THE ONE WAY A JOB OF THIS REPOSITORY GETS ITS TOOLS (kb/Work PB3308, PB4007; DotnetSdkInstallDriftTests,
+# ToolchainManifestDriftTests; DESIGN-test-build-ci.md §1.4). Every job's first step after its checkout.
+#
+# It installs the exact versions toolchain.env names and puts them first on PATH: Python through actions/setup-python,
+# and the .NET SDK, the JDK, pwsh, gh and jq through scripts/install-tool.sh (each from its publisher, checked against
+# the publisher's checksum), restored from the Actions cache when it holds them. Then `python scripts/toolchain.py check
+# --scope ci` fails the job unless every tool on PATH reports the manifest's version, the runner image's git included
+# (actions/checkout ran it before any repository file existed, so it cannot be installed from the manifest first;
+# toolchain.env says why). A runner image's own tools stay on the image, behind these on PATH, and no step reaches them.
+#
+# Why (the owner, 2026-10-28: "CI tooling should match local tooling versions - always", then "CI and local should
+# always be using the latest version"): CI's Windows jobs ran the runner image's Python 3.12 while every local host ran
+# 3.14, so a self-test correct on every local leg went red in merge-group run 40754265548 (kb/Work PB4007). Before
+# that, every building job resolved "the newest .NET 10" through the aka.ms redirect, with no cache, and from about
+# 18:50Z on 2026-10-25 every code merge group failed `Setup .NET 10` on it (kb/Work PB3308).
+#
+# The cache is keyed on the manifest's version lines (a comment edit keeps it), the OS and the architecture. A merge
+# group's run restores what its own ref or main saved, and its ref is new every time, so the `toolchain-cache` job of
+# build-and-test.yml saves the tools under main on every push to main: a merge group then finds them even while a
+# publisher refuses. A cache restore or save that fails only warns.
+name: Setup toolchain
+description: Install toolchain.env's exact tool versions, put them first on PATH, and prove each one reports its version.
+runs:
+  using: composite
+  steps:
+    - id: manifest
+      shell: bash
+      env:
+        TOOL_CACHE: ${{ runner.tool_cache }}
+      run: |
+        set -euo pipefail
+        echo "python=$(bash scripts/install-tool.sh --version python)" >> "$GITHUB_OUTPUT"
+        key="toolchain-$(grep -E '^[A-Z][A-Z0-9_]*=' toolchain.env | sha256sum | cut -c1-16)-$RUNNER_OS-$RUNNER_ARCH"
+        echo "key=$key" >> "$GITHUB_OUTPUT"
+        echo "dir=$TOOL_CACHE/wiseowl-toolchain/$key" >> "$GITHUB_OUTPUT"
+    - uses: actions/setup-python@v7
+      with:
+        python-version: ${{ steps.manifest.outputs.python }}
+    - id: cache
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ steps.manifest.outputs.dir }}
+        key: ${{ steps.manifest.outputs.key }}
+    - name: Install the manifest's tools (each a no-op when the cache restored it)
+      shell: bash
+      env:
+        DIR: ${{ steps.manifest.outputs.dir }}
+      run: |
+        set -euo pipefail
+        for tool in dotnet-sdk jdk pwsh gh jq; do bash scripts/install-tool.sh "$tool" "$DIR/$tool"; done
+    - if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      continue-on-error: true
+      uses: actions/cache/save@v6
+      with:
+        path: ${{ steps.manifest.outputs.dir }}
+        key: ${{ steps.manifest.outputs.key }}
+    - name: Put the tools first on PATH
+      shell: bash
+      env:
+        DIR: ${{ steps.manifest.outputs.dir }}
+      run: |
+        set -euo pipefail
+        # Git Bash on Windows: the runner reads GITHUB_PATH and GITHUB_ENV as Windows paths.
+        native() { if command -v cygpath > /dev/null; then cygpath -w "$1"; else printf '%s\n' "$1"; fi; }
+        for tool in dotnet-sdk jdk pwsh gh jq; do
+          native "$(bash scripts/install-tool.sh --bin "$tool" "$DIR/$tool")" >> "$GITHUB_PATH"
+        done
+        echo "DOTNET_ROOT=$(native "$(bash scripts/install-tool.sh --bin dotnet-sdk "$DIR/dotnet-sdk")")" >> "$GITHUB_ENV"
+        echo "JAVA_HOME=$(native "$(dirname "$(bash scripts/install-tool.sh --bin jdk "$DIR/jdk")")")" >> "$GITHUB_ENV"
+    - name: Prove every tool on PATH reports toolchain.env's version (toolchain.py check --scope ci)
+      shell: bash
+      run: python scripts/toolchain.py check --scope ci

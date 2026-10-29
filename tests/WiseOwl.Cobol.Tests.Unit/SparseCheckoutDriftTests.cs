@@ -8,7 +8,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ A CI JOB THAT CHECKS OUT ONLY SOME PATHS LISTS EVERY REPOSITORY FILE ITS SCRIPTS REACH (kb/Work PB3787):
 /// every job of <c>.github/workflows/build-and-test.yml</c> whose checkout has a <c>sparse-checkout</c> list (the
-/// <c>supersede</c> job of kb/Work PB3769 and <c>dotnet-sdk-cache</c> today) runs on a tree without the rest, so each
+/// <c>supersede</c> job of kb/Work PB3769, <c>toolchain-cache</c> and <c>ci-gate</c> of kb/Work PB4007 today, and the
+/// toolchain-freshness workflow) runs on a tree without the rest, so each
 /// file its steps name, each file a local action it uses names, and each repository module a Python script it runs
 /// imports as it starts (transitively) must be inside that list; the job sets <c>sparse-checkout-cone-mode: false</c>,
 /// the mode the list is read in. <c>supersede</c>'s step is <c>continue-on-error</c>, so a missing
@@ -61,12 +62,12 @@ public sealed class SparseCheckoutDriftTests
         Assert.True(declared >= 2, "the workflows declare fewer than two sparse-checkout lists: the reader or the workflow moved");
         Assert.Equal(declared, jobs.Count);
         Assert.Contains(jobs, j => j.Id == "supersede");
-        Assert.Contains(jobs, j => j.Id == "dotnet-sdk-cache");
+        Assert.Contains(jobs, j => j.Id == "toolchain-cache");
         Assert.Empty(SparseCheckoutAudit.Problems(jobs, ReadRepo));
     }
 
     [Fact]
-    public void TheSupersedeJobAndTheSdkCacheJob_ReachTheFilesTheyRun_AndNothingLazy()
+    public void TheSupersedeJobAndTheToolchainCacheJob_ReachTheFilesTheyRun_AndNothingLazy()
     {
         IReadOnlyList<SparseCheckoutAudit.SparseJob> jobs = RealJobs();
         string[] supersede = [.. SparseCheckoutAudit.Reach(jobs.Single(j => j.Id == "supersede"), ReadRepo).Select(r => r.Path)];
@@ -76,9 +77,11 @@ public sealed class SparseCheckoutDriftTests
         // standard_streams.live_python imports live_tools inside the function: lazy, on the path of no CI job.
         Assert.DoesNotContain("scripts/live_tools.py", supersede);
 
-        string[] cache = [.. SparseCheckoutAudit.Reach(jobs.Single(j => j.Id == "dotnet-sdk-cache"), ReadRepo).Select(r => r.Path)];
-        Assert.Contains(".github/actions/setup-dotnet/action.yml", cache);
-        Assert.Contains("scripts/install-dotnet-sdk.sh", cache);
+        string[] cache = [.. SparseCheckoutAudit.Reach(jobs.Single(j => j.Id == "toolchain-cache"), ReadRepo).Select(r => r.Path)];
+        Assert.Contains(".github/actions/setup-toolchain/action.yml", cache);
+        Assert.Contains("scripts/install-tool.sh", cache);
+        Assert.Contains("toolchain.env", cache);
+        Assert.Contains("scripts/toolchain.py", cache);
     }
 
     /// <summary>The acceptance: the real workflow without <c>scripts/standard_streams.py</c> in the supersede list is
@@ -88,8 +91,11 @@ public sealed class SparseCheckoutDriftTests
     {
         string wf = File.ReadAllText(TestRepo.At(Workflow.Split('/'))).ReplaceLineEndings("\n");
         const string Entry = "\n            scripts/standard_streams.py\n";
-        Assert.Contains(Entry, wf, StringComparison.Ordinal);
-        string without = wf.Replace(Entry, "\n", StringComparison.Ordinal);
+        // The supersede job's list is the file's first; the toolchain-cache and ci-gate lists name the file too.
+        int at = wf.IndexOf(Entry, StringComparison.Ordinal);
+        Assert.True(at > wf.IndexOf("\n  supersede:", StringComparison.Ordinal) && at < wf.IndexOf("\n  audits:", StringComparison.Ordinal),
+            "the first sparse list naming scripts/standard_streams.py is no longer the supersede job's");
+        string without = wf[..at] + "\n" + wf[(at + Entry.Length)..];
         IReadOnlyList<string> problems = SparseCheckoutAudit.Problems(RealJobs(without), ReadRepo);
         string problem = Assert.Single(problems);
         Assert.Contains("job `supersede`", problem, StringComparison.Ordinal);

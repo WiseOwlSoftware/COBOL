@@ -11,7 +11,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// DESIGN-test-build-ci.md §3.14.11): every bash script under <c>scripts/</c> that runs Python runs <c>"$PY"</c>, resolved by sourcing
 /// <c>scripts/python-resolve.sh</c>; every PowerShell twin of a bash script (<c>build-local.ps1</c> beside
 /// <c>build-local.sh</c>) runs <c>$PY</c>, resolved by dot-sourcing <c>scripts/python-resolve.ps1</c>; the two
-/// resolvers probe the same candidates in the same order against the same version floor; and only a provisioner that
+/// resolvers probe the same candidates in the same order for the same version (exactly <c>toolchain.env</c>'s
+/// <c>PYTHON_VERSION</c>, kb/Work PB4007; it was a floor, 3.12, until then); and only a provisioner that
 /// installs the interpreter (<c>uv python install</c>) names one directly.
 /// </summary>
 /// <remarks>
@@ -146,7 +147,7 @@ public sealed class PythonInterpreterDriftTests
             .ToArray();
 
     [Fact]
-    public void TheTwoResolvers_ProbeTheSameCandidates_AgainstTheSameFloor()
+    public void TheTwoResolvers_ProbeTheSameCandidates_ForTheSameVersion()
     {
         string bash = File.ReadAllText(TestRepo.Scripts(BashResolver));
         string pwsh = File.ReadAllText(TestRepo.Scripts(PwshResolver));
@@ -156,7 +157,8 @@ public sealed class PythonInterpreterDriftTests
         Assert.Equal(["$PYTHON", "python3", "python"], bashCandidates);
         Assert.Equal(bashCandidates, pwshCandidates);
 
-        const string probe = @"-c '(?<probe>[^']*sys\.version_info >= \(\d+, \d+\)[^']*)'";
+        // Both accept exactly toolchain.env's PYTHON_VERSION, handed to the probe as its argument (kb/Work PB4007).
+        const string probe = @"-c '(?<probe>[^']*platform\.python_version\(\) == sys\.argv\[1\][^']*)'";
         string bashProbe = Regex.Match(bash, probe).Groups["probe"].Value;
         Assert.NotEqual("", bashProbe);
         Assert.Equal(bashProbe, Regex.Match(pwsh, probe).Groups["probe"].Value);
