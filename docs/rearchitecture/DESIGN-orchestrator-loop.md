@@ -1743,7 +1743,7 @@ and `is_drivers_merge`'s caller), `abi_pin.py`, `git_batch.py`'s docstring, `tes
 |---|---|---|
 | `gate_verdict.py` | THE verdict vocabulary and its one reader: GREEN, RED, BUSY, NOT RUN and its causes, the Linux verdict, a Reading | `VERDICT`, `LINUX_VERDICT`, `PLAN_LEG_VERDICT`, `LEG1_ONLY`, `LEG2_OWNER`, `BUSY`, `EXIT_BUSY`, `NOT_RUN`, `NotRunCause`, `NOT_RUN_CAUSES`, `UNCLASSIFIED`, `_NOT_RUN_TAG`, `GREEN_VERDICT`, `Reading`, `GREEN_READING`, `RED_READING`, `BUSY_READING`, `not_run`, `read_verdict`, `LinuxLeg` |
 | `gate_runs.py` | THE run store: where a gate's run directory, record, pid and lock live, how a run is named, found, kept and read, and the await | `RUN_ROOT`, `RUN_DIR`, `RUNS_LOCK`, `RUNS_LOCK_WAIT_S`, `KEEP_RUNS`, `LOCK_NAME`, `VERDICT_FILE`, `PID_FILE`, `RUN_LABEL`, `LOG_FILE`, `LINUX_LEG_LOG`, `RECORD_SCHEMA`, `LANDABLE_SCHEMA`, `LANDING_FIELDS`, `leg_stem`, `leg_env`, `write_pid`, `read_pid`, `read_record`, `record_schema`, `predates_landing`, `_record_exit`, `resolve_run`, `lock_of_run`, `gate_running`, `lock_running`, `run_dirs`, `run_order`, `LiveGate`, `live_gate`, `AWAIT_PENDING`, `AWAIT_PENDING_EXIT`, `AWAIT_WAIT_S`, `watch`, `launch_and_follow` |
-| `gate_host.py` | THE real machine the gate runs on: git, the slot, the audits, the build, the listings, the legs, the Linux half, the bounce results | `Host`, `_Live`, `_captured`, `_stop_tree`, `_no_slot`, `AUDITS`, `AUDIT_PREREQUISITES`, `SELF_TESTS_REUSE`, `BUILT_SELF_TESTS`, `BESIDE`, `LINUX_PROBE_TIMEOUT_S`, `_sha256` |
+| `gate_host.py` | THE real machine the gate runs on: git, the slot, the audits, the build, the listings, the legs, the Linux half, the bounce results | `Host`, `_Live`, `_captured`, `_no_slot`, `AUDITS`, `AUDIT_PREREQUISITES`, `SELF_TESTS_REUSE`, `BUILT_SELF_TESTS`, `BESIDE`, `LINUX_PROBE_TIMEOUT_S`, `_sha256` |
 | `run_gate_legs.py` (stays, the driver) | The one gate: `Gate.run` and its stages, the outcome, `plan_leg`, `main` | `Gate`, `LegRun`, `Outcome`, `NOT_RUN_SHOWN`, `plan_leg`, `print_flush`, `main` |
 | `scripts/selftests/run_gate_legs/fixtures.py` | The planted machine | `FakeHost` (today a class in the driver), `POPULATION`, `LEGS` |
 
@@ -1861,8 +1861,8 @@ the file it cut (the implementer commits the diff of the two: empty). After the 
 ### 16.9 `PublicAPI.Unshipped.txt`: a keyed merge driver
 
 A public-API baseline (`Microsoft.CodeAnalysis.PublicApiAnalyzers`) is a SET of symbol lines under one
-`#nullable enable` header; `*REMOVED*`-prefixed lines are members of the same set. `.gitattributes` merges it by line
-union today (`src/**/PublicAPI.*.txt merge=union`), which keeps a line one side removed and once duplicated a symbol
+`#nullable enable` header; `*REMOVED*`-prefixed lines are members of the same set. `.gitattributes` merged it by line
+union before PB3727 (`src/**/PublicAPI.*.txt merge=union`), which kept a line one side removed and once duplicated a symbol
 (PB3694). The driver: `Driver("cobol-keyed-publicapi", ("src/**/PublicAPI.*.txt",), lambda: merge_symbol_set, "a
 public-API baseline is a set of symbol lines: a line either side added is kept, a line either side removed is gone, the
 header stays first, the rest sorted")` in `merge_drivers.DRIVERS`; `merge_symbol_set(base, ours, theirs)` =
@@ -1901,6 +1901,19 @@ catalogues. And a merge reads its ATTRIBUTES from the registry as it reads its d
 by a `<pattern> merge=<driver>` line per DRIVERS pattern; a later line wins). Without it, a branch cut before this
 landing (its `.gitattributes` still says `merge=union`) merging a main whose baseline the driver sorted got the union: a
 measured branch that added two symbols came out with 31 duplicated lines (RS0025 in the Release build).
+
+THE LANDING CHECK READS THE HEAD, AND CI READS THE QUEUE'S MERGE (kb/Work PB3694). The driver runs only in a merge this
+repository makes; GitHub's merge group merges the baselines by git's LINE merge (no driver is defined there, PB3642), and that
+merge keeps a symbol both sides added at different places twice (RS0025 in the Release build, which no local gate saw because
+the local merge, through the driver, had made one line). `landing_check.py` reads the baselines of the landing's own tree at
+every landing (arm 0b, `baseline_stops`) and STOPS (exit 3) on a symbol listed twice in one file or as a plain line in two
+files of one directory (Shipped and Unshipped are one project's API). `merge_drivers.is_symbol_baseline` (the DRIVERS row's
+pattern) names the files and `merge_drivers.baseline_duplicates` is the rule, so the rule lives beside the merge it guards.
+RESIDUAL, STATED: the queue's own merge is not readable before the push. Every landing's head already contains `origin/main`
+(`enqueue.queue` refuses any other, exit 2; the lane checks from the merge base), so a driverless `git merge-tree` of main and
+the head is the head's own tree and says nothing; the merge differs only when main advances after the push, and a commit that
+does not exist yet cannot be read. CI's merge-group run is the net for that window. No `merge=union` attribute remains in
+`.gitattributes`; the work notes' body union (`merge_note`) keeps a doubled line visible to the reader, and no build reads it.
 
 ### 16.10 The order, the waves and PB3637
 

@@ -961,15 +961,14 @@ class _Proc:
         self.p.wait()
 
     def kill(self) -> None:
-        """Kill the holder's whole tree: the job does it on Windows, the session's process group on Linux."""
+        """Kill the holder's whole tree: the job does it on Windows, the session's process group on Linux (the one tree
+        kill, detached.kill_tree, which fails loudly on a holder that leads no group: kb/Work PB4072)."""
         if IS_WINDOWS:
             if self.p.poll() is None:
                 self.p.kill()
         else:
-            try:
-                os.killpg(self.p.pid, 9)
-            except ProcessLookupError:
-                pass
+            from detached import kill_tree  # noqa: PLC0415  (detached imports gate_slot's pid probe: each imports where used)
+            kill_tree(self.p.pid)
         self.p.wait()
 
 

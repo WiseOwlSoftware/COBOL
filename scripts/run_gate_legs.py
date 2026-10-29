@@ -104,7 +104,6 @@ import json
 import os
 import re
 import shutil
-import signal
 import subprocess
 import sys
 import tempfile
@@ -128,7 +127,7 @@ from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT  # noqa: E402
 from gate_slot import _pid_alive  # noqa: E402  — the first-red arm checks that a stopped audit's tree is gone
 from gate_slot import (DEFAULT_SCOPE, GATE_POOL, LIGHT_POOL, ExclusiveLock, GateSettings, GateSlots, Pool,  # noqa: E402
                        Setting, Slot, git_common_dir, slot_dir)
-from detached import spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536)
+from detached import kill_tree, spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536), THE one tree kill (PB4072)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
 from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, so never part of a measured tree
 import queue_facts  # noqa: E402  — THE one reader of GitHub's facts: a merge-queue bounce's reds (kb/Work PB3644)
@@ -404,20 +403,6 @@ def _no_slot(**kwargs) -> dict:
     return kwargs
 
 
-def _stop_tree(p: subprocess.Popen) -> None:
-    """Stop `p` and every process it started (kb/Work PB3061): on Windows `taskkill /T /F` walks the tree by parent
-    id; on POSIX the process group `start_new_session` gave it. A process already gone is no error."""
-    if p.poll() is not None:
-        return
-    if os.name == "nt":
-        subprocess.run(["taskkill", "/PID", str(p.pid), "/T", "/F"], capture_output=True)
-    else:
-        try:
-            os.killpg(p.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-
-
 class _Live:
     """The audit processes of one `Host.audits()` call (kb/Work PB3061), so the first RED can stop the rest. `add` under
     the lock stops a process that starts after `stop_all` ran, so no audit slips through the gap between its spawn and
@@ -432,9 +417,9 @@ class _Live:
     def add(self, p: subprocess.Popen) -> None:
         with self.lock:
             self.procs.add(p)
-            if self.stopping.is_set():
+            if self.stopping.is_set() and p.poll() is None:
                 self.stopped.add(p.pid)
-                _stop_tree(p)
+                kill_tree(p.pid)   # its whole tree: each audit leads the process group start_new_session gave it
 
     def discard(self, p: subprocess.Popen) -> None:
         with self.lock:
@@ -447,7 +432,7 @@ class _Live:
             running = [p for p in self.procs if p.poll() is None]
             for p in running:
                 self.stopped.add(p.pid)
-                _stop_tree(p)
+                kill_tree(p.pid)
             return len(running)
 
 
@@ -2908,7 +2893,7 @@ def self_test() -> int:
         while read_pid(run2) is None and time.monotonic() - t < 120:  # a hang guard: the arm names what it never saw
             time.sleep(0.05)
         gate_pid = read_pid(run2)
-        _stop_tree(follower)
+        kill_tree(follower.pid)
         follower.wait()
         survived = gate_pid is not None and _pid_alive(gate_pid)
         go.touch()
