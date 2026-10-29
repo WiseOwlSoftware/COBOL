@@ -1,4 +1,4 @@
-## Two orchestrator leads filed (PB4038, PB4039) and a PB4011 recurrence
+## Entry 2721 — 2026-10-29 09:15 PDT — Two orchestrator leads filed (PB4038, PB4039) and a PB4011 recurrence
 
 The 2026-10-28 operator session left three leads at quit. Each was checked against the register first.
 
@@ -11,3 +11,4 @@ The 2026-10-28 operator session left three leads at quit. Each was checked again
   three. Removing the `lstat` or `is_dir` stub would leave the self-test green. This is the low review lead R1-1 on #734.
 - **PB4011 recurrence.** #734's finisher wrote the same space-separated `Head:` header that PB4011 records. It parsed
   correctly only because no prose `head <sha>` came before it.
+
