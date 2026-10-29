@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>jobs:</c> anchor of its own.
 /// </summary>
 /// <remarks>
-/// Before PB3819 seven classes split the one workflow seven ways: over the whole file (the <c>on:</c> triggers read as
+/// Before PB3819 ten classes split the one workflow their own ways: over the whole file (the <c>on:</c> triggers read as
 /// jobs), with a step list read at one fixed depth, with a banner attributed to the job above it, with comments kept or dropped inside a step, with a different set
 /// of characters in a job id. A workflow edit one reader tolerated another misread, and a drift test then passed
 /// vacuously or went red on a legal change. The reader's own arms are held on a fixture workflow below; the sweep holds

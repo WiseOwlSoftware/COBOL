@@ -269,10 +269,13 @@ jobs:
           submodules: false
           # scripts/standard_streams.py: every orchestrator script imports its one UTF-8 switch (kb/Work PB3637)
           # SparseCheckoutDriftTests (kb/Work PB3787) holds this list: every file the job runs, and every module those
-          # import as they start, must be listed, or the continue-on-error script step cancels nothing while the run stays green
+          # import anywhere in their text (a function body's lazy import too, kb/Work PB3810), must be listed, or the
+          # continue-on-error script step cancels nothing while the run stays green
           sparse-checkout: |
             scripts/orchestrator
             scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
             .github/actions/setup-toolchain
             toolchain.env
             scripts/install-tool.sh
@@ -891,6 +894,8 @@ jobs:
             scripts/install-tool.sh
             scripts/toolchain.py
             scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
             global.json
           sparse-checkout-cone-mode: false
       - id: warm
@@ -929,6 +934,8 @@ jobs:
             scripts/install-tool.sh
             scripts/toolchain.py
             scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
             global.json
           sparse-checkout-cone-mode: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)

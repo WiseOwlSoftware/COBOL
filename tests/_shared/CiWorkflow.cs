@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// <summary>
 /// ⭐ THE ONE READER OF A CI WORKFLOW'S SHAPE (kb/Work PB3819): the jobs under <c>jobs:</c>, each job's steps and the
 /// comments between them, for every drift test that audits <c>.github/workflows/*.yml</c> (or a composite action's
-/// <c>steps:</c>). Seven classes each split the workflow their own way — one over the whole file (so the <c>on:</c>
+/// <c>steps:</c>). Ten classes each split the workflow their own way — one over the whole file (so the <c>on:</c>
 /// triggers read as jobs), one that hung a job's banner on the job ABOVE, one that dropped comments inside a step and one
 /// that kept them — and a workflow edit one reader tolerated another misread, so a drift test passed vacuously or went red
 /// on a legal change. This is the single definition; the tests ask it, and none splits a workflow itself.
@@ -248,7 +248,7 @@ internal sealed record CiStep(IReadOnlyList<string> Lines, int ItemIndent)
         return null;
     }
 
-    /// <summary>How the step is named in a message:its first <c>name</c>, <c>id</c> or <c>uses</c> key, else its first
+    /// <summary>How the step is named in a message: its first <c>name</c>, <c>id</c> or <c>uses</c> key, else its first
     /// line.</summary>
     internal string Label => Keys.Where(k => k.Key is "name" or "id" or "uses").Select(k => k.Value).FirstOrDefault()
                              ?? Lines[0].Trim();
