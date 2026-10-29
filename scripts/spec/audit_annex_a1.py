@@ -109,11 +109,16 @@ def load_register() -> dict[int, dict]:
     return {r['ordinal']: r for r in catalog['rules'] if r.get('kind') == 'DOC'}
 
 
-#: A §7 row key: the inventory rule-id of the A.1 item the row discharges.
-ITEM_KEY_RX = re.compile(r'^DOC-A\.1-(\d+)$')
+#: A §7 row key: the inventory rule-id of the A.1 item the row discharges (`DOC-A.1-92`), or — for a SECOND
+#: determination of the same item — that id plus one lowercase letter (`DOC-A.1-92b`, kb/Work PB3840). A row key
+#: is UNIQUE: a code comment that cites a determination names exactly one row. Group 1 is the item number, group 2
+#: the determination letter ('' for the item's first determination, the one its inventory row anchors on).
+ITEM_KEY_RX = re.compile(r'^DOC-A\.1-(\d+)([a-z]?)$')
 #: The same token ANYWHERE in the file. The set of these must equal the set of row keys — a determination is
 #: filed by being a ROW, and a passing prose mention that resolved as an anchor would be a silent false claim.
-TOKEN_RX = re.compile(r'\bDOC-A\.1-\d+\b')
+#: The letter is inside the token, so `DOC-A.1-92` never matches within `DOC-A.1-92b` (no word boundary between
+#: the digit and the letter): each row key is counted on its own.
+TOKEN_RX = re.compile(r'\bDOC-A\.1-\d+[a-z]?\b')
 
 
 def unreachable_items() -> dict[int, str]:
@@ -230,6 +235,13 @@ def self_test() -> int:
         # inventory rule-id, so a `DOC-A.1-<n>` token now has TWO legitimate homes. The pair below is what
         # proves the widening did not blunt the check: the same §8 row that must be ACCEPTED is present in both
         # cases, and the prose mention beside it is still caught.
+        # ⛔ A ROW KEY IS UNIQUE (kb/Work PB3840). The repeated key is the exact shape that shipped as DOC-A.1-92
+        # twice; the lettered key is the legitimate way to file a second determination, and it needs the item's row.
+        ('a DUPLICATE row key is caught', good + '\n' + good, 'appears on 2 rows'),
+        ('a second determination under a LETTERED key is accepted',
+         good + '\n' + good.replace('DOC-A.1-2 ', 'DOC-A.1-2b'), None),
+        ('a lettered key whose item has no row of its own is caught',
+         good.replace('DOC-A.1-2 ', 'DOC-A.1-2b'), 'no row "DOC-A.1-2"'),
         ('a §8 DERIVATION row key is a legitimate SECOND occurrence of its item token',
          good + '\n' + DERIVATION_SELF_TEST_ROWS, None),
         ('…and a PROSE mention beside that §8 row is STILL caught',
@@ -341,6 +353,16 @@ def self_test() -> int:
              [f for f in sweep_source_citations(register, {2: 'x', 999: 'y'}, pathlib.Path(td))
               if 'item 2' in f], None),
         ]
+        # kb/Work PB3840 — a lettered determination cited in code must be a real row key.
+        lettered = pathlib.Path(td) / 'lettered'
+        (lettered / 'src').mkdir(parents=True)
+        (lettered / 'src' / 'Y.cs').write_text('// the floating arm (DOC-A.1-92b)\n', encoding='utf-8', newline='\n')
+        sweep_cases += [
+            ('a citation of a lettered determination that is no row is caught',
+             sweep_lettered_citations({'DOC-A.1-92'}, lettered), 'no row key'),
+            ('a citation of a lettered determination that is a row passes',
+             sweep_lettered_citations({'DOC-A.1-92', 'DOC-A.1-92b'}, lettered), None),
+        ]
         for name, got, want in sweep_cases:
             ok = (not got) if want is None else any(want in f for f in got)
             if ok:
@@ -378,11 +400,28 @@ def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int,
         findings.append(f'{len(unnumbered)} §7 row(s) carry no A.1 item number, so no obligation is discharged '
                         f'by them and nothing can check them')
 
+    # ⛔ A ROW KEY IS UNIQUE (kb/Work PB3840). `DOC-A.1-92` once named two different determinations — the text
+    # image of a function's returned value, and the evaluation of a function with a floating-point argument — and
+    # the ten code sites that cited it could not say which one they relied on. An item that needs a second
+    # determination files it under the item's id plus a letter (`DOC-A.1-92b`); a repeated key is refused here, so
+    # the next such item cannot reintroduce the ambiguity. A lettered key needs the item's own (unlettered) row
+    # too: the letter says "ANOTHER determination of this item", and the item's inventory row anchors on the first.
+    for key, count in sorted(keys.items()):
+        if count > 1:
+            findings.append(f'§7 row key "{key}" appears on {count} rows — a row key names ONE determination; '
+                            f'file the second determination of an item under the item id plus a letter '
+                            f'(DOC-A.1-<n>b)')
+    for key in sorted(keys):
+        m = ITEM_KEY_RX.match(key)
+        if m is not None and m.group(2) and f'DOC-A.1-{m.group(1)}' not in keys:
+            findings.append(f'§7 row key "{key}" is a further determination of item {m.group(1)}, but §7 carries '
+                            f'no row "DOC-A.1-{m.group(1)}" for the item itself')
+
     # ⛔ THE TOKEN COUNT — not the token SET. `DOC-A.1-<n>` is the ANCHOR an inventory row computes and the C#
     # gate resolves by a word search over this WHOLE file, so a stray occurrence outside a §7 row key lets a
     # passing prose mention satisfy a traceability claim. A determination is filed by BEING A ROW, so the number
-    # of occurrences of each token equals the number of §7 rows keyed by it (items 56 and 92 legitimately have
-    # two rows each, and therefore two occurrences each).
+    # of occurrences of each token equals the number of §7 rows keyed by it — ONE, since a row key is unique (a
+    # second determination of an item is keyed `DOC-A.1-<n>b`, its own token).
     #
     # ⚠ IT WAS WRITTEN AS A SET DIFFERENCE FIRST, AND THAT VERSION HAD A HOLE THIS FOUND: driven against the
     # real file with `See DOC-A.1-50 for the DELETE FILE case.` inserted as prose, it stayed GREEN, because
@@ -438,6 +477,31 @@ def sweep_source_citations(register: dict[int, dict], numbered: dict[int, str], 
                 findings.append(f'{where} cites "{m.group(0)}" as documented, but CONFORMANCE.md §7 carries '
                                 f'no item-{n} row — the claim is undischarged (A.1-{n}: '
                                 f'"{register[n]["subject"][:60]}")')
+    return findings
+
+
+#: A citation of a LETTERED determination (`DOC-A.1-92b`) in code or a current doc. A bare `DOC-A.1-<n>` is also the
+#: inventory rule-id of item n, which a comment, a test or a batch script legitimately cites with no §7 row behind
+#: it; a letter exists ONLY as a §7 row key, so a lettered token that is no row names a determination not there.
+LETTERED_CITATION_RX = re.compile(r'\bDOC-A\.1-\d+[a-z]\b')
+#: Where a lettered citation is checked: the compiler and runtime, the tests and the current-state docs. The DEVLOG
+#: is history, and the register itself is checked by evaluate().
+LETTERED_CITATION_ROOTS = (('src', '*.cs'), ('tests', '*.cs'), ('docs', '*.md'))
+
+
+def sweep_lettered_citations(row_keys: set[str], root: pathlib.Path) -> list[str]:
+    """Every `DOC-A.1-<n><letter>` citation under `root` must be the key of a §7 row (kb/Work PB3840)."""
+    findings: list[str] = []
+    for top, pattern in LETTERED_CITATION_ROOTS:
+        for path in sorted((root / top).rglob(pattern)):
+            if 'obj' in path.parts or 'bin' in path.parts or path.name == 'CONFORMANCE.md':
+                continue
+            text = path.read_text(encoding='utf-8', errors='replace')
+            for m in LETTERED_CITATION_RX.finditer(text):
+                if m.group(0) not in row_keys:
+                    line = text.count('\n', 0, m.start()) + 1
+                    findings.append(f'{path.name}:{line} cites "{m.group(0)}", which is no row key of '
+                                    f'CONFORMANCE.md §7')
     return findings
 
 
@@ -600,6 +664,8 @@ def main(argv: list[str]) -> int:
     # kb/Work R23 — source comments claiming "implementor item N" must be discharged by a real §7 row.
     src_findings = sweep_source_citations(register, numbered, ROOT / 'src')
     findings.extend(src_findings)
+    # kb/Work PB3840 — a lettered determination cited in code or a doc must be a real row.
+    findings.extend(sweep_lettered_citations({r.key for r in rows}, ROOT))
     # The determination and its evidence are ONE artifact: §7's `Pinned by` cell and the inventory row's own
     # spec-derived test-ref must agree. Imported lazily so the register audit still runs where the inventory
     # has not been built (the error a missing inventory raises is a SystemExit with the rebuild command).
@@ -617,12 +683,14 @@ def main(argv: list[str]) -> int:
         if n not in register:
             print(f'  ⛔ {key:<5} NOT AN A.1 ITEM')
             continue
-        # ⚠ MORE THAN ONE ROW PER ITEM IS LEGITIMATE, not a finding. One A.1 element can need several
-        # determinations (A.1-92 needs one for a function result's text image and one for evaluation under a
-        # floating-point argument). The first draft failed on the duplicate and was simply wrong.
+        # ⚠ MORE THAN ONE ROW PER ITEM IS LEGITIMATE, not a finding — but each carries its OWN key. One A.1
+        # element can need several determinations (A.1-92 needs one for a function result's text image
+        # (`DOC-A.1-92`) and one for evaluation under a floating-point argument (`DOC-A.1-92b`)). The first
+        # draft failed on the second row and was simply wrong; the second draft let both share one key and
+        # left every citing code comment unable to say which it meant (kb/Work PB3840).
         mark = 'ok' if corresponds(element, register[n], register) else '⛔'
         print(f'  {mark} {key:<5} {register[n]["subject"][:74]}'
-              + ('   (2nd determination)' if n in seen else ''))
+              + ('   (further determination)' if n in seen else ''))
         seen.add(n)
 
     covered_doc = sorted(n for n in numbered if register[n]['documented'])
