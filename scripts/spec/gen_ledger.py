@@ -734,7 +734,7 @@ def register_legend(pts: list[dict]) -> str:
 
 UNMEASURED = '<span class="pill warn">UNMEASURED</span>'
 HARM_WORDS = (("wrong_answer", "wrong answers"), ("crashes", "crashes"), ("rejects_legal_source", "reject legal source"),
-              ("under_rejects", "under-reject"), ("silent", "silent"))
+              ("under_rejects", "under-reject"), ("misleads_diagnosis", "misleading diagnostic"), ("silent", "silent"))
 
 
 def lane_label(lane: str) -> str:

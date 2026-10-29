@@ -602,8 +602,7 @@ R2_MODEL = {"extract": EXTRACT_MODEL, "unify": EXTRACT_MODEL, "data-ize": EXTRAC
 # Critical stays MAJOR: the register reserves BLOCKER for an adjudicated severe wrong answer (4 notes of 2,137),
 # and the fix lane ranks a defect by its harm flags first; the landing adjudication re-ranks it.
 R2_SEVERITY = {"Critical": "MAJOR", "Warning": "MINOR"}
-R2_HARM = {"wrong-answer": "wrong_answer", "crashes": "crashes", "silent": "silent",
-           "rejects-legal-source": "rejects_legal_source", "under-rejects": "under_rejects"}
+R2_HARM = work.FINDING_HARMS   # the register's harm words and the flag each files as: one table, not a copy per writer
 R2_FRONTMATTER = """---
 title: "{title}"
 id: {nid}
@@ -611,12 +610,7 @@ kind: {kind}
 status: open
 severity: {severity}
 area: {area}
-wrong_answer: {wrong_answer}
-crashes: {crashes}
-silent: {silent}
-rejects_legal_source: {rejects_legal_source}
-under_rejects: {under_rejects}
-process_only: {process_only}
+""" + "".join("%s: {%s}\n" % (flag, flag) for flag in R2_HARM.values()) + """process_only: {process_only}
 blocked_by: []
 cluster: ["PB1754"]
 spec_refs: {spec_refs}

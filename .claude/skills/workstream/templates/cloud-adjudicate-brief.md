@@ -58,7 +58,7 @@ line, flush) — never batch at the end — in the `record_verdicts.py` record s
 the code does, the owning kb/Work note, and the `cite.py --check` line. Every 5 rows copy `out/*` into
 `adjudication/{BATCH}/`, commit ONLY that directory on branch `claude/{BATCH}`, push
 (`git push -u origin claude/{BATCH}`). Cluster defects by MECHANISM into `out/findings.json`:
-`[{mechanism, rule_ids, harm (wrong-answer|crashes|rejects-legal-source|under-rejects|silent), repro,
+`[{mechanism, rule_ids, harm (wrong-answer|crashes|rejects-legal-source|under-rejects|misleads-diagnosis|silent), repro,
 expected_from_spec, observed_or_reasoning, code_site, clause, owning_note}]`.
 
 ## Refute
