@@ -26,7 +26,7 @@ public sealed class CiHarnessLogDriftTests
     [Fact]
     public void EveryCiTestStep_WritesTheHarnessLogWhereItsJobUploadsIt()
     {
-        string[] workflow = File.ReadAllLines(TestRepo.At(".github", "workflows", "build-and-test.yml"));
+        string workflow = File.ReadAllText(TestRepo.At(".github", "workflows", "build-and-test.yml"));
         var (steps, offenders) = Audit(workflow);
         Assert.True(steps > 0, "no `dotnet test` step found in build-and-test.yml: the audit reads nothing");
         Assert.True(offenders.Count == 0,
@@ -62,12 +62,11 @@ public sealed class CiHarnessLogDriftTests
 
         static (int, int) Count(string yaml)
         {
-            var (steps, offenders) = Audit(yaml.ReplaceLineEndings("\n").Split('\n'));
+            var (steps, offenders) = Audit(yaml);
             return (steps, offenders.Count);
         }
     }
 
-    private static readonly Regex JobHeader = new(@"^  ([A-Za-z0-9_-]+):\s*(#.*)?$", RegexOptions.NonBacktracking);
     /// <summary>A path as the workflow spells it: a run of non-blank characters and <c>${{ … }}</c> expressions, which
     /// hold blanks (<c>TestResults/${{ runner.os }}-unit</c>).</summary>
     private const string WorkflowPath = @"((?:\$\{\{[^}]*\}\}|[^\s$])+)";
@@ -75,60 +74,40 @@ public sealed class CiHarnessLogDriftTests
     private static readonly Regex HarnessLog = new(
         @"^\s*WISEOWL_COBOL_HARNESS_LOG:\s*\$\{\{\s*github\.workspace\s*\}\}/" + WorkflowPath + @"\s*$", RegexOptions.NonBacktracking);
 
-    /// <summary>Each job's steps (a step starts at <c>      - </c>), as blocks of lines, comments dropped.</summary>
-    private static IEnumerable<List<List<string>>> Jobs(string[] workflow)
-    {
-        int start = Array.FindIndex(workflow, l => l.TrimEnd() == "jobs:");
-        if (start < 0) yield break;
-        List<List<string>>? job = null;
-        foreach (string line in workflow.Skip(start + 1))
-        {
-            if (JobHeader.IsMatch(line))
-            {
-                if (job is not null) yield return job;
-                job = [];
-                continue;
-            }
-            if (job is null || line.TrimStart().StartsWith('#')) continue;
-            if (line.StartsWith("      - ", StringComparison.Ordinal)) job.Add([]);
-            if (job.Count > 0) job[^1].Add(line);
-        }
-        if (job is not null) yield return job;
-    }
-
     /// <summary>The upload paths of a job's upload steps (<see cref="CiArtifactDriftTests.UploadAction"/>): the
     /// <c>path:</c> value, or each line of a <c>path: |</c> block.</summary>
-    private static IEnumerable<string> UploadPaths(List<List<string>> job)
+    private static IEnumerable<string> UploadPaths(CiJob job)
     {
-        foreach (var step in job.Where(s => s.Any(l => l.Contains(CiArtifactDriftTests.UploadAction, StringComparison.Ordinal))))
+        foreach (CiStep step in job.Steps.Where(s => s.Value("uses")?.Contains(CiArtifactDriftTests.UploadAction, StringComparison.Ordinal) == true))
         {
-            int at = step.FindIndex(l => l.TrimStart().StartsWith("path:", StringComparison.Ordinal));
+            List<string> lines = [.. step.CodeLines];
+            int at = lines.FindIndex(l => l.TrimStart().StartsWith("path:", StringComparison.Ordinal));
             if (at < 0) continue;
-            string value = step[at].TrimStart()["path:".Length..].Trim();
+            string value = lines[at].TrimStart()["path:".Length..].Trim();
             if (value != "|")
             {
                 yield return value;
                 continue;
             }
-            int indent = step[at].Length - step[at].TrimStart().Length;
-            foreach (string line in step.Skip(at + 1).TakeWhile(l => l.Length - l.TrimStart().Length > indent))
+            int indent = CiWorkflow.Indent(lines[at]);
+            foreach (string line in lines.Skip(at + 1).TakeWhile(l => CiWorkflow.Indent(l) > indent))
                 yield return line.Trim();
         }
     }
 
-    private static (int Steps, List<string> Offenders) Audit(string[] workflow)
+    private static (int Steps, List<string> Offenders) Audit(string workflow)
     {
         int steps = 0;
         var offenders = new List<string>();
-        foreach (var job in Jobs(workflow))
+        foreach (CiJob job in CiWorkflow.Jobs(workflow))
         {
             var uploaded = UploadPaths(job).ToList();
-            foreach (var step in job.Where(s => s.Any(l => l.Contains("dotnet test ", StringComparison.Ordinal))))
+            foreach (CiStep step in job.Steps.Where(s => s.CodeLines.Any(l => l.Contains("dotnet test ", StringComparison.Ordinal))))
             {
                 steps++;
-                string name = step[0].Trim();
-                string? results = step.Select(l => ResultsDirectory.Match(l)).FirstOrDefault(m => m.Success)?.Groups[1].Value;
-                string? log = step.Select(l => HarnessLog.Match(l)).FirstOrDefault(m => m.Success)?.Groups[1].Value;
+                string name = step.Lines[0].Trim();
+                string? results = step.CodeLines.Select(l => ResultsDirectory.Match(l)).FirstOrDefault(m => m.Success)?.Groups[1].Value;
+                string? log = step.CodeLines.Select(l => HarnessLog.Match(l)).FirstOrDefault(m => m.Success)?.Groups[1].Value;
                 if (results is null) offenders.Add($"  {name}: names no --results-directory");
                 else if (log is null) offenders.Add($"  {name}: sets no WISEOWL_COBOL_HARNESS_LOG");
                 else if (log != $"{results}/{LogName}")

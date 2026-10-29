@@ -44,10 +44,6 @@ public sealed class DotnetSdkInstallDriftTests
     private static readonly Regex DotnetCommand = new(@"(?:^|[\s;&|(])dotnet\s+(?:build|test|restore|run|publish|pack|tool)\b",
         RegexOptions.NonBacktracking);
 
-    /// <summary>A job: its id two spaces deep, then every line deeper than that, a comment line or a blank line.</summary>
-    internal static readonly Regex JobShape = new(@"(?m)^  (?<id>[A-Za-z0-9_-]+):[ \t]*\n(?<body>(?:(?:   .*|[ \t]*#.*|[ \t]*)\n)*)",
-        RegexOptions.NonBacktracking);
-
     private static readonly Regex PinLine = new(@"^DOTNET_SDK_VERSION=(?<v>\S+)$", RegexOptions.Multiline | RegexOptions.NonBacktracking);
     private static readonly Regex FeedsLine = new(@"^DOTNET_SDK_FEEDS=""(?<f>[^""]*)""$", RegexOptions.Multiline | RegexOptions.NonBacktracking);
     private static readonly Regex SdkVersion = new(@"^(?<major>\d+)\.(?<minor>\d+)\.(?<band>\d)(?<patch>\d{2})$", RegexOptions.NonBacktracking);
@@ -127,7 +123,7 @@ public sealed class DotnetSdkInstallDriftTests
     public void TheCacheIsSavedUnderMain_OnBothOperatingSystems()
     {
         string workflow = File.ReadAllText(TestRepo.At(".github", "workflows", "build-and-test.yml"));
-        string? job = Jobs(workflow).Where(j => j.Id == "toolchain-cache").Select(j => j.Body).FirstOrDefault();
+        string? job = CiWorkflow.Jobs(workflow).Where(j => j.Id == "toolchain-cache").Select(j => j.Code).FirstOrDefault();
         Assert.True(job is not null, "build-and-test.yml has no `toolchain-cache` job: a merge group's ref is new every time, "
             + "so only a save under main is ever restored (kb/Work PB3308)");
         Assert.Contains("github.event_name == 'push'", job, StringComparison.Ordinal);
@@ -206,7 +202,7 @@ public sealed class DotnetSdkInstallDriftTests
         Assert.Equal((2, 1), Audit(Workflow.Replace("run: echo \"the dotnet word\"", "run: |\n          dotnet test p.csproj", StringComparison.Ordinal)));
         Assert.Equal((2, 1), Audit(Workflow.Replace("run: echo \"the dotnet word\"", "run: python3 scripts/inert_lane.py watch -- dotnet test p.csproj", StringComparison.Ordinal)));
         // A blank line between jobs swallows neither: the job after it is read as its own.
-        Assert.Equal(["build", "docs", "last"], Jobs(Workflow).Select(j => j.Id));
+        Assert.Equal(["build", "docs", "last"], CiWorkflow.Jobs(Workflow).Select(j => j.Id));
         Assert.Equal((2, 1), Audit(Workflow + "\n        run: dotnet test q.csproj\n"));
 
         Assert.Single(RedirectOffenders("a.sh", ["curl -fsSL https://dot.net/v1/dotnet-install.sh -o x"]));
@@ -288,23 +284,14 @@ public sealed class DotnetSdkInstallDriftTests
         return lf[begin..(stop < 0 ? lf.Length : stop)];
     }
 
-    /// <summary>The jobs of a workflow: each job id (a key two spaces deep under <c>jobs:</c>) and its text.</summary>
-    private static IEnumerable<(string Id, string Body)> Jobs(string workflow)
-    {
-        string lf = workflow.ReplaceLineEndings("\n");
-        int jobs = lf.IndexOf("\njobs:\n", StringComparison.Ordinal);
-        string body = jobs < 0 ? (lf.StartsWith("jobs:\n", StringComparison.Ordinal) ? lf[6..] : "") : lf[(jobs + 7)..];
-        foreach (Match m in JobShape.Matches(body + "\n"))
-            yield return (m.Groups["id"].Value, m.Groups["body"].Value);
-    }
-
     private static (int Jobs, List<string> Offenders) AuditWorkflow(string file, string workflow)
     {
         var offenders = new List<string>();
         int jobs = 0;
-        foreach (var (id, body) in Jobs(workflow))
+        foreach (CiJob job in CiWorkflow.Jobs(workflow))
         {
-            string[] code = body.Split('\n').Where(l => !l.TrimStart().StartsWith('#')).ToArray();
+            string id = job.Id;
+            string[] code = [.. job.CodeLines];
             int first = Array.FindIndex(code, l => DotnetCommand.IsMatch(l));
             if (first < 0)
                 continue;
