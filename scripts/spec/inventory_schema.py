@@ -46,7 +46,8 @@ SCHEMA_PATH = REPO / "tests" / "version-matrix" / "inventory-schema.json"
 CATALOG_PATH = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
 INVENTORY_PATH = REPO / "tests" / "version-matrix" / "traceability-inventory.json"
 #: The IMPLEMENTOR-DEFINED ELEMENT REGISTER — docs/CONFORMANCE.md §7, whose rows are keyed by the inventory
-#: rule-id `DOC-A.1-<n>` because `kinds.DOC.anchor-template` computes that key as the row's own anchor.
+#: rule-id `DOC-A.1-<n>` because `kinds.DOC.anchor-template` computes that key as the row's own anchor. An item's FURTHER
+#: determinations are keyed by that id plus a letter (`DOC-A.1-92b`, kb/Work PB3840); no inventory row anchors on those.
 REGISTER_PATH = REPO / "docs" / "CONFORMANCE.md"
 REGISTER_HEADING = "## 7. Annex A.1"
 #: The label in the §7 table's own header row, so the reader can tell a header from a determination.
@@ -323,7 +324,7 @@ def section_matches(prefix: str, section: str) -> bool:
 class Section7Row(NamedTuple):
     """One data row of the docs/CONFORMANCE.md §7 register, by cell."""
 
-    key: str            #: the inventory rule-id the row discharges — `DOC-A.1-<n>`
+    key: str            #: the row's UNIQUE key — the inventory rule-id it discharges, `DOC-A.1-<n>`, plus a letter on an item's further determinations (`DOC-A.1-92b`, kb/Work PB3840)
     element: str        #: the A.1 element the row claims to be about
     determination: str  #: WHAT WE DO — the determination itself
     pinned: str         #: the spec-derived test-ref(s) that pin it, or '—'
@@ -441,14 +442,21 @@ _REGISTER_CACHE: dict[str, str] | None = None
 def register_determinations(text: str | None = None) -> dict[str, str]:
     """`{row key -> determination cell}` for the §7 register — cached when read from disk.
 
-    An item with SEVERAL determinations (A.1-56 and A.1-92 legitimately have two rows each) keeps the FIRST:
-    the question every caller asks is "does this element have a determination, and what does it say", and the
-    first row is the one the item's own obligation is discharged by. `audit_annex_a1.py` is the place that cares
-    about the second row, and it reads `section7_rows` directly.
+    A row key is UNIQUE (kb/Work PB3840): an item with SEVERAL determinations (A.1-92 has two) keys the first
+    by the item's inventory rule-id — the one its obligation and its inventory row anchor on — and each further
+    one by that id plus a letter (`DOC-A.1-92b`). A repeated key raises: a lookup that silently kept one of two rows
+    is how ten code sites came to cite a determination they could not name. `audit_annex_a1.py` reports the same
+    defect as a finding, with the rest of the register's checks.
     """
     global _REGISTER_CACHE
     if text is not None:
-        return {r.key: r.determination for r in reversed(section7_rows(text))}
+        rows = section7_rows(text)
+        keys = [r.key for r in rows]
+        if len(set(keys)) != len(keys):
+            repeated = sorted({k for k in keys if keys.count(k) > 1})
+            raise ValueError(f"docs/CONFORMANCE.md §7 repeats the row key(s) {repeated}: a row key names ONE "
+                             f"determination (file a further determination of an item under its id plus a letter)")
+        return {r.key: r.determination for r in rows}
     if _REGISTER_CACHE is None:
         _REGISTER_CACHE = register_determinations(REGISTER_PATH.read_text(encoding="utf-8"))
     return _REGISTER_CACHE
