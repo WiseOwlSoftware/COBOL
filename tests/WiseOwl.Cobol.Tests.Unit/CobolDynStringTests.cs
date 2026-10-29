@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.CodeGen.Emit;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Exceptions;
 using Xunit;
@@ -151,6 +153,118 @@ public sealed class CobolDynStringTests
     [Fact]
     public void SetSize_Shrink_TruncatesTowardZeroAndDropsTrailingPositions()
         => Assert.Equal("ABC", CobolDynString.SetSize("ABCDE", 3.9, 20));
+
+    /// <summary>GR37 second sentence (kb/Work PB464) — "truncated to the nearest integer" is applied as truncation
+    /// TOWARD ZERO, the reading the standard's own TRUNCATION rounding mode fixes (§14.7.4.3 GR10 "rounded to the
+    /// nearest value nearer to zero"): 2.7 gives 2 (a nearest-integer rounding would give 3), a half does not round
+    /// away, and 0.9 gives 0 with NO condition (it is nonnegative). The unit twin of
+    /// 2023/pb464_set_size_fraction_truncates.</summary>
+    [Theory]
+    [InlineData(2.7, "AB")]
+    [InlineData(2.2, "AB")]
+    [InlineData(2.5, "AB")]
+    [InlineData(0.9, "")]
+    [InlineData(4.9, "ABCD")]
+    public void SetSize_NonIntegerNonnegative_TruncatesTowardZero_AndRaisesNothing(double newLen, string expected)
+    {
+        RunUnit.Run(_ =>
+        {
+            ExceptionState.Clear();
+            ExceptionState.StorageNotAvailChecking = true;
+            Assert.Equal(expected, CobolDynString.SetSize("ABCDEFGHI", newLen, 9));
+            Assert.Null(ExceptionState.LastName);
+        });
+    }
+
+    /// <summary>⛔ THE AMOUNT IS READ IN ITS OWN DOMAIN (kb/Work PB464). 2.99999999999999999 is the scaled integer
+    /// 299999999999999999 at scale 17; its binary64 image is 3.0, whose truncation gave a THREE character item where
+    /// the exact value truncates to two. The sign and the fraction are the exact value's: −10^-17 is below zero
+    /// (GR37's leg: length 0 and the condition), and 9.00000000000000001 against a maximum of 9 is above it (GR38's
+    /// leg: the same condition) while exactly 9 is not.</summary>
+    [Fact]
+    public void SetSize_ScaledAmount_IsReadExactly_NeverThroughItsBinary64Image()
+    {
+        RunUnit.Run(_ =>
+        {
+            ExceptionState.Clear();
+            ExceptionState.StorageNotAvailChecking = true;
+            Assert.Equal("AB", CobolDynString.SetSize("ABCDEFGHI", (Int128)299999999999999999L, 17, 9));
+            Assert.Equal("ABCDEFGHI", CobolDynString.SetSize("ABCDEFGHI", (Int128)9, 0, 9));
+            Assert.Null(ExceptionState.LastName);
+
+            Assert.Equal("", CobolDynString.SetSize("ABC", (Int128)(-1), 17, 9));
+            Assert.Equal("EC-STORAGE-NOT-AVAIL", ExceptionState.LastName);
+
+            ExceptionState.Clear();
+            ExceptionState.StorageNotAvailChecking = true;
+            Assert.Equal("ABCDEFGHI", CobolDynString.SetSize("ABCDEFGHI", (Int128)900000000000000001L, 17, 9));
+            Assert.Equal("EC-STORAGE-NOT-AVAIL", ExceptionState.LastName);
+        });
+    }
+
+    /// <summary>The standard-decimal and the unsigned-wide carriers take the same legs as the scaled one
+    /// (kb/Work PB464): the SDIDI sign is the significand's and its whole part the saturating truncation, so 10^40 is
+    /// above every maximum size and not the zero its 38 low-order digits make; an unsigned-wide value at 2^128 − 1 is
+    /// above the maximum and never negative.</summary>
+    [Fact]
+    public void SetSize_DecimalAndUnsignedWideAmounts_TakeTheirLegs()
+    {
+        RunUnit.Run(_ =>
+        {
+            ExceptionState.Clear();
+            ExceptionState.StorageNotAvailChecking = true;
+            Assert.Equal("AB", CobolDynString.SetSize("ABCDEFGHI", CobolDec.From(299999999999999999L, 17), 9));
+            Assert.Null(ExceptionState.LastName);
+            Assert.Equal("AB", CobolDynString.SetSize("ABCDEFGHI", (UInt128)2, 0, 9));
+            Assert.Null(ExceptionState.LastName);
+
+            Assert.Equal("", CobolDynString.SetSize("ABC", CobolDec.From(-5, 1), 9));
+            Assert.Equal("EC-STORAGE-NOT-AVAIL", ExceptionState.LastName);
+
+            ExceptionState.Clear();
+            ExceptionState.StorageNotAvailChecking = true;
+            Assert.Equal("ABCDE", CobolDynString.SetSize("ABCDE", new CobolDec(1, 40), 5));
+            Assert.Equal("EC-STORAGE-NOT-AVAIL", ExceptionState.LastName);
+
+            ExceptionState.Clear();
+            ExceptionState.StorageNotAvailChecking = true;
+            Assert.Equal("ABCDE", CobolDynString.SetSize("ABCDE", UInt128.MaxValue, 0, 5));
+            Assert.Equal("EC-STORAGE-NOT-AVAIL", ExceptionState.LastName);
+        });
+    }
+
+    /// <summary>⛔ THE EMITTED CALL IS TOTAL OVER EVERY CARRIER A NumX CAN BE (kb/Work PB464; the sibling of
+    /// <c>CobolTimingTests.ContinueAfterCall_IsTotalOverTheNumXCarriers_AndNarrowsNothing</c>). The carrier list is
+    /// NOT kept here: <see cref="NumXCarrier"/> is the compiler's own enumeration, so a fifth carrier fails THIS test
+    /// (the emitter throws on a carrier it does not map) before a user meets it. Each carrier reaches the
+    /// <c>CobolDynString.SetSize</c> overload of its own domain, and none is narrowed through a binary64.</summary>
+    [Fact]
+    public void SetSizeCall_IsTotalOverTheNumXCarriers_AndNarrowsNothing()
+    {
+        foreach (var carrier in Enum.GetValues<NumXCarrier>())
+        {
+            var x = carrier switch
+            {
+                NumXCarrier.Scaled => new NumX("e", 2),
+                NumXCarrier.UnsignedWide => new NumX("u", 2, U: true),
+                NumXCarrier.Sdidi => new NumX("d", 0, Dec: true),
+                NumXCarrier.Binary64 => new NumX("r", 0, Real: true),
+                _ => throw new InvalidOperationException($"the test builds no operand for the new carrier {carrier}"),
+            };
+            Assert.Equal(carrier, x.Carrier);
+            string call = SetEmitter.SetSizeCall(x, "cur", "9");
+            string expected = carrier switch
+            {
+                NumXCarrier.Scaled => "CobolDynString.SetSize(cur, (Int128)(e), 2, 9)",
+                NumXCarrier.UnsignedWide => "CobolDynString.SetSize(cur, (UInt128)(u), 2, 9)",
+                NumXCarrier.Sdidi => "CobolDynString.SetSize(cur, d, 9)",
+                _ => "CobolDynString.SetSize(cur, r, 9)",
+            };
+            Assert.Equal(expected, call);
+            Assert.DoesNotContain("(double)", call);
+            Assert.DoesNotContain("ToDouble", call);
+        }
+    }
 
     /// <summary>⛔ THE DEFECT'S RUNTIME HALF, ARM 1 (kb/Work PB463) — a request past 2³² must take GR38's clamp,
     /// NOT wrap to its low 32 bits. 4294967306 = 2³² + 10 used to yield a TEN-character item, silently, with no
