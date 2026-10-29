@@ -1,4 +1,4 @@
-## PB3809 — a retried copy no longer hides a real build break as ENVIRONMENT
+## Entry 2741 — 2026-10-29 15:01 PDT — PB3809 — a retried copy no longer hides a real build break as ENVIRONMENT
 
 `abi_pin.failure` classified a failed pin-settle build or test run by one regex over the whole output, and that regex held the
 phrases of MSBuild's transient `warning MSB3026` copy-retry notice ("being used by another process", "is locked by"). A merged
@@ -11,3 +11,4 @@ Re-probe on the branch build: the MSB3026 warning plus `error CS0103` plus `Buil
 only on a line that is not an MSBuild warning. The ending `error MSB3027` after the same retry stays the host's. The
 `abi_pin.py` self-test carries the arm (either line order), declared in `MergeDriverDriftTests`. No second classifier exists
 (grep of scripts/, .github/, tests/); `enqueue.land` and `run_gate_legs.NOT_RUN_CAUSES` read the tag and are unchanged.
+
