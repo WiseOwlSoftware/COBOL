@@ -1061,7 +1061,7 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    (`merge_drivers.covered_by_driver`, the rule `enqueue.py`'s re-gate reads). A note's members come from its site block (`path#Member`,
    `` `path` (`member`, ...) `` with an optional `:line` after the path, the form MANDATORY-PRACTICES R3 and
    `work.SITES_RULE` require, `work.NoteSites.members`), each kept only when the file on the planned tree declares a
-   unit every one of them matches (a stale, misspelt or prose name claims the file whole, `work._members_located`); an in-flight worktree's or branch's from the units its
+   unit every one of them matches (a stale, misspelt or prose name claims the file whole, `work._members_located`, and `work.py check` refuses it for a note held to the site rule, as it refuses a code file named with neither members nor `(whole: why)`, `NoteSites.unnamed` and `undeclared`, kb/Work PB3797); an in-flight worktree's or branch's from the units its
    ACTUAL diff touches in each file another claim shares (`inflight.inflight_units`: both sides of every hunk, read
    from one `git diff-tree --stdin -p -U0` and two `git cat-file` batches, plus one `git diff -U0 HEAD` per worktree
    with an uncommitted shared edit, each diff's pathspec bounded by `inflight.bounded_pathspec`: past `PATHSPEC_CHARS` it
@@ -1228,8 +1228,8 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   spelling of `blocked_by`, and it went stale both ways (a stale `true` hid PB1940 and PB1956 from every work list; a
   blocker landing ahead of its dependent in the merge queue turned the check that held the flag to the list red with no
   change to the branch, and failed the CI of five pull requests), so `work.py check` refuses the key and `waiting_on` is read by
-  `next`, `cluster_order`, the ledger, the fix lane's population (`clusters.ready_notes_view`) and, in the Bases language,
-  `kb/Work.base`'s `blocked` formula. A hold on something that is no note (the owner, a document) is `status: blocked`
+  `next`, `cluster_order`, the ledger, the fix lane's population (`clusters.ready_notes_view`) and the `blocked` view
+  (`work.py blocked`). A hold on something that is no note (the owner, a document) is `status: blocked`
   or `owner`, said in the note's body. `check` also holds `blocked_by` to notes that exist and open notes to no cycle.
 - **The owner's tier** (kb/Work PB3423) orders the READY notes: `tier: ["PB3353:1"]`, a list of `CAMPAIGN:N` entries
   (N a positive integer, 1 first), scoped because a note belongs to several campaigns and the owner's order for one

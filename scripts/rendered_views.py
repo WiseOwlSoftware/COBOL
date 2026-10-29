@@ -20,8 +20,8 @@ tree (or the coordination directory), so it can be rendered on demand — the dr
 burn-down, the diagnostics table, the ledger page. These stay TRACKED, on purpose, and are not views: a SOURCE file
 the build compiles (`*.g.cs`, `*.Table.cs`: a clone must build with `dotnet build` and no pre-step; each is pinned by
 its own drift test), DATA extracted from the licensed standard (`spec-rule-catalog.json`, the reserved-word tables:
-the generator needs the private PDF, which CI does not have), and a view DEFINITION (`kb/Work.base` is an Obsidian
-query over the notes, not generated content).
+the generator needs the private PDF, which CI does not have). The register's own views are `work.py` subcommands,
+not files (kb/Work PB3799).
 
 ONE REGISTRY, ONE RULE (rule 4: no hand list per consumer). `VIEWS` below is the only place a view is named. The
 gate's audits and CI's `audits` job call `--check`, which enforces, per view (no test calls it: rule (c) reads the head

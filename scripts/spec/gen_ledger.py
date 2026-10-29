@@ -259,7 +259,7 @@ def measure_work() -> dict:
     """The register's own numbers, through the register's own predicate.
 
     ⛔ `actionable()` IS IMPORTED, NOT REIMPLEMENTED. `work.py`'s docstring records what a second copy of that
-    predicate costs: the `Fix next` Bases view and `work.py` both read `wrong_answer or crashes` and both were
+    predicate costs: the `Fix next` view and `work.py` both read `wrong_answer or crashes` and both were
     wrong the same way, hiding nine open items for months. A ledger that computed its own "actionable" would be
     a third copy — and the one people quote."""
     import work  # noqa: PLC0415  (deliberately late: this module is a renderer, work.py owns the register)
@@ -734,7 +734,7 @@ def register_legend(pts: list[dict]) -> str:
 
 UNMEASURED = '<span class="pill warn">UNMEASURED</span>'
 HARM_WORDS = (("wrong_answer", "wrong answers"), ("crashes", "crashes"), ("rejects_legal_source", "reject legal source"),
-              ("under_rejects", "under-reject"), ("silent", "silent"))
+              ("under_rejects", "under-reject"), ("misleads_diagnosis", "misleading diagnostic"), ("silent", "silent"))
 
 
 def lane_label(lane: str) -> str:

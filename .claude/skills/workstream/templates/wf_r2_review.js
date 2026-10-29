@@ -75,7 +75,7 @@ that rule is written", "scenario": "what goes wrong or what it costs, concretely
 "files": ["src/..."], "sites": ["src/...:12-40 (Type.Member)"], "members": ["Ns.Type.Member"], "census_ids": ["R0-nnnn"],
 "design_ref": "§8.x or PBnnnn", "wave_kind": "extract|unify|move-and-rename|data-ize|delete|modernize|defect-for-fix-lane",
 "analyzer_rule": "CAnnnn/IDEnnnn/SYSLIBnnnn (modernize only)", "measurement": "the number on the pin and how (performance only)",
-"severity": "Critical|Warning|Suggestion", "harm": ["wrong-answer|crashes|silent|rejects-legal-source|under-rejects"] and
+"severity": "Critical|Warning|Suggestion", "harm": ["wrong-answer|crashes|rejects-legal-source|under-rejects|misleads-diagnosis|silent"] and
 "spec_refs": [{"clause": "14.9.8.4", "text": "words of that clause"}] (defects only; each must pass cite.py --check),
 "existing_note": "PBnnnn or empty", "owner_question": "empty, or the one question only the owner can answer"}`
 
