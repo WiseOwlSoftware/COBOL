@@ -2152,6 +2152,15 @@
   ],
   "expect": "COBOL1627"
  },
+ "l1_encoding_marked_malformed_is_refused": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5434"
+ },
  "l1_sync_abbrev_group_below_2023": {
   "refuse-at": [
    "85",
