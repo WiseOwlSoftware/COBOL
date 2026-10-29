@@ -223,17 +223,17 @@ public sealed class SelfTestDiscoveryDriftTests
         Assert.Matches(@"(?m)^\s*selftests_leg selftests ""\$auditsnap""( > ""\$out/selftests\.result"" 2>&1 &)?\r?$", linux);
         Assert.Matches(@"(?m)^\s+selftests_leg selftests-built ""\$auditsnap"" --built( > ""\$out/selftests-built\.result"" 2>&1 &)?\r?$", linux);
 
-        var steps = Jobs(workflow);
-        Assert.Contains("run: python3 scripts/self_tests.py", RunLines(steps["audits"]));
-        Assert.Contains("run: python3 scripts/self_tests.py --built", RunLines(steps["greenfield-unit"]));
-        Assert.Contains("run: python scripts/self_tests.py", RunLines(steps["windows-self-tests"]));
-        Assert.Matches(@"(?m)^\s+runs-on:\s*ubuntu", steps["audits"]);
-        Assert.Matches(@"(?m)^\s+runs-on:\s*ubuntu", steps["greenfield-unit"]);
-        Assert.Matches(@"(?m)^\s+runs-on:\s*windows", steps["windows-self-tests"]);
+        var jobs = CiWorkflow.Jobs(workflow).ToDictionary(j => j.Id, StringComparer.Ordinal);
+        Assert.Contains("python3 scripts/self_tests.py", RunCommands(jobs["audits"]));
+        Assert.Contains("python3 scripts/self_tests.py --built", RunCommands(jobs["greenfield-unit"]));
+        Assert.Contains("python scripts/self_tests.py", RunCommands(jobs["windows-self-tests"]));
+        Assert.StartsWith("ubuntu", jobs["audits"].Value("runs-on"), StringComparison.Ordinal);
+        Assert.StartsWith("ubuntu", jobs["greenfield-unit"].Value("runs-on"), StringComparison.Ordinal);
+        Assert.StartsWith("windows", jobs["windows-self-tests"].Value("runs-on"), StringComparison.Ordinal);
         // kb/Work PB3581: the Windows self-tests are their own job, never a step after a build (the default phase never
         // builds, and as windows-build-test's last step they were 7.4 minutes of the merge queue's longest job).
-        Assert.DoesNotContain("self_tests.py", string.Join("\n", RunLines(steps["windows-build-test"])), StringComparison.Ordinal);
-        Assert.DoesNotContain("dotnet build", steps["windows-self-tests"], StringComparison.Ordinal);
+        Assert.DoesNotContain("self_tests.py", string.Join("\n", RunCommands(jobs["windows-build-test"])), StringComparison.Ordinal);
+        Assert.DoesNotContain("dotnet build", jobs["windows-self-tests"].Code, StringComparison.Ordinal);
 
         // No entry point runs a self-test by hand: a flag-handling self-test named with `--self-test`, or a standalone
         // test_* script named at all, in a line that runs something (comments excluded).
@@ -376,7 +376,7 @@ public sealed class SelfTestDiscoveryDriftTests
                 + "passes (`enqueue.py checks`, exit 6) and in CI on a pull request or merge group",
         };
 
-        var lines = Jobs(workflow)["audits"].Split('\n').Select(l => l.Trim()).Where(l => !l.StartsWith('#')).ToList();
+        var lines = CiWorkflow.Job(workflow, "audits").CodeLines.Select(l => l.Trim()).ToList();
         var scripts = lines.SelectMany(l => Regex.Matches(l, @"\bpython3?\s+(\S+\.py)\b").Select(m => m.Groups[1].Value))
                            .Distinct(StringComparer.Ordinal).ToList();
         var submodules = lines.SelectMany(l => Regex.Matches(l, @"\bgit submodule update --init (\S+)")
@@ -401,22 +401,9 @@ public sealed class SelfTestDiscoveryDriftTests
             + string.Join(", ", stale));
     }
 
-    /// <summary>The workflow's jobs, by id: each job's text up to the next job.</summary>
-    private static Dictionary<string, string> Jobs(string workflow)
-    {
-        var jobs = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (string job in Regex.Split(workflow, @"^  (?=[A-Za-z0-9_-]+:\s*$)", RegexOptions.Multiline))
-        {
-            Match id = Regex.Match(job, @"^([A-Za-z0-9_-]+):\s*$", RegexOptions.Multiline);
-            if (id.Success && id.Index == 0)
-            {
-                jobs[id.Groups[1].Value] = job;
-            }
-        }
-
-        return jobs;
-    }
-
-    private static List<string> RunLines(string job) =>
-        job.Split('\n').Select(l => l.Trim()).Where(l => l.StartsWith("run: ", StringComparison.Ordinal)).ToList();
+    /// <summary>The one-line <c>run:</c> command of each of a job's steps (a <c>run: |</c> block is not one line and is
+    /// left out).</summary>
+    private static List<string> RunCommands(CiJob job) =>
+        job.Steps.Select(s => s.Value("run")).Where(v => !string.IsNullOrEmpty(v) && v is not ("|" or ">" or "|-" or ">-"))
+            .Select(v => v!).ToList();
 }

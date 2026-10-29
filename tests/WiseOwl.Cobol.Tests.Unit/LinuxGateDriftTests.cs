@@ -20,6 +20,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class LinuxGateDriftTests
 {
+    /// <summary>The code (no comment line) of each job of <paramref name="workflow"/> that runs on an Ubuntu image.</summary>
+    private static IEnumerable<string> LinuxJobs(string workflow) =>
+        CiWorkflow.Jobs(workflow)
+            .Where(j => j.Value("runs-on")?.StartsWith("ubuntu", StringComparison.Ordinal) == true)
+            .Select(j => j.Code);
+
     [Fact]
     public void EveryTestProjectCisLinuxJobsRun_IsALegOfTheLinuxGate()
     {
@@ -27,13 +33,8 @@ public sealed class LinuxGateDriftTests
         string gate = File.ReadAllText(TestRepo.Scripts("linux-gate.sh"));
 
         var linuxProjects = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (string job in Regex.Split(workflow, @"^  (?=[A-Za-z0-9_-]+:\s*$)", RegexOptions.Multiline))
+        foreach (string job in LinuxJobs(workflow))
         {
-            if (!Regex.IsMatch(job, @"^\s+runs-on:\s*ubuntu", RegexOptions.Multiline))
-            {
-                continue;
-            }
-
             foreach (Match m in Regex.Matches(job, @"dotnet test (tests/[^\s]+\.csproj)"))
             {
                 linuxProjects.Add(m.Groups[1].Value);
@@ -67,13 +68,8 @@ public sealed class LinuxGateDriftTests
         string gate = File.ReadAllText(TestRepo.Scripts("linux-gate.sh"));
 
         var linuxScripts = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (string job in Regex.Split(workflow, @"^  (?=[A-Za-z0-9_-]+:\s*$)", RegexOptions.Multiline))
+        foreach (string job in LinuxJobs(workflow))
         {
-            if (!Regex.IsMatch(job, @"^\s+runs-on:\s*ubuntu", RegexOptions.Multiline))
-            {
-                continue;
-            }
-
             foreach (Match m in Regex.Matches(job, @"^\s+run:\s*bash (scripts/[^\s]+\.sh)\s*$", RegexOptions.Multiline))
             {
                 linuxScripts.Add(m.Groups[1].Value);
