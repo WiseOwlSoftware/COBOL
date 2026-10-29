@@ -1,4 +1,4 @@
-## PB3997: a VALUE literal past a fixed-width binary usage's band is refused (COBOL1625)
+## Entry 2709 — 2026-10-28 17:22 PDT — PB3997: a VALUE literal past a fixed-width binary usage's band is refused (COBOL1625)
 
 **Defect.** `BINARY-CHAR VALUE 255`, `BINARY-CHAR UNSIGNED VALUE 256`, `BINARY-CHAR VALUE -129`, `BINARY-SHORT VALUE
 65535` and `BINARY-LONG VALUE 4294967295` compiled with no diagnostic, and the stored value wrapped (`BINARY-CHAR VALUE
@@ -28,3 +28,4 @@ entry all gain the check by construction; probes of each refused, and the band e
 **Left open (lead).** `PIC 9(4) COMP-5 VALUE 65535` is still refused by the picture-digit span although the item
 owns its 16-bit container (DOC-A.1-208); whether SR2's "PICTURE clause or the USAGE clause" admits it is a separate
 adjudication.
+
