@@ -32,7 +32,9 @@ Design: docs/rearchitecture/DESIGN-orchestrator-loop.md (kb/Work PB1981). Each i
      BESIDE the unit, the LANDING LANE: `land_lane.py tick` as the unit starts and every -LandLaneSeconds while it runs,
      in the background and never fatal, lands every branch WAITING TO LAND (kb/Work PB3103, design 4.9); the lane
      ticks on the same period for as long as the supervisor lives, between units, through a budget hold and a
-     failure backoff too (Step-Lane, kb/Work PB3639); and the PROGRESS line every -ProgressSeconds (progress.py, in
+     failure backoff too (Step-Lane, kb/Work PB3639), and right after each of its ticks the REVIEW LANE's
+     (`review_lane.py tick`, kb/Work PB3608): one read-only reviewer per branch WAITING FOR REVIEW and one finisher per
+     CONFLICT stop, each its own headless session, at most -ReviewAgents at once, charged to the budget; and the PROGRESS line every -ProgressSeconds (progress.py, in
      the background: groups running, done and reviewed, landings, the oldest waiting item; each new stall posted once
      to the operator's mailbox), and past -UnitSoftMinutes the unit gets STOP-UNIT as at the context soft cap (the
      owner's hand-off at about 60 minutes; kb/Work PB3638)
@@ -91,6 +93,10 @@ param(
     # through a budget hold and through a failure backoff. 0 runs no lane (a branch then lands only through an enqueue
     # unit's own `land_lane.py tick`).
     [int]$LandLaneSeconds = 300,
+    # THE REVIEW LANE (kb/Work PB3608; design section 4.9.1): the most reviewers and CONFLICT finishers the lane runs at
+    # once, each a headless `claude -p --agent` session of its own, started by `review_lane.py tick` right after every
+    # landing-lane tick. 0 runs no review lane (the enqueue unit then ticks it once, as it ticks the landing lane).
+    [int]$ReviewAgents = 3,
     # THE OWNER'S FIX-CYCLE BAR (kb/Work PB3638; design section 4.3): the progress line every this many seconds while a
     # unit runs (0: none), and the unit's hand-off: past this many minutes STOP-UNIT, the soft cap's wind-down (the unit
     # starts no new step and launches no fleet; a fleet already running finishes and lands). 0 sets no time cap.
@@ -273,6 +279,34 @@ function Complete-LaneTick {
     $script:LaneTick = $null
     foreach ($l in @("$($t.out.Result)" -split "`r?`n" | Where-Object { $_ })) { Say $l }
     if ($t.proc.ExitCode -ne 0) { Say "land lane tick failed (exit $($t.proc.ExitCode); the unit continues)$(if ($t.err.Result) { ": $(([string]$t.err.Result).Trim() -split "`r?`n" | Select-Object -Last 3)" })" }
+    Start-ReviewTick   # on the survey this tick just wrote, a failed tick's stale one included (the review lane refuses an old one)
+}
+
+# THE REVIEW LANE (kb/Work PB3608; design section 4.9.1): `review_lane.py tick` right after each landing-lane tick, on the
+# survey that tick wrote. It starts a headless reviewer or finisher session DETACHED per branch (they outlive this tick,
+# like a landing), and starts none under any stop file or a budget hold. Background and never fatal, as the landing tick.
+# The account is the supervisor's own (CLAUDE_CONFIG_DIR is exported at startup, below), so the agents spend what the units do.
+$script:ReviewTick = $null   # the background review_lane.py tick in flight: @{ proc; out; err }
+
+function Complete-ReviewTick {
+    if (-not $script:ReviewTick -or -not $script:ReviewTick.proc.HasExited) { return }
+    $t = $script:ReviewTick
+    $script:ReviewTick = $null
+    foreach ($l in @("$($t.out.Result)" -split "`r?`n" | Where-Object { $_ })) { Say $l }
+    if ($t.proc.ExitCode -ne 0) { Say "review lane tick failed (exit $($t.proc.ExitCode); the unit continues)$(if ($t.err.Result) { ": $(([string]$t.err.Result).Trim() -split "`r?`n" | Select-Object -Last 3)" })" }
+}
+
+function Start-ReviewTick {
+    if ($LandLaneSeconds -le 0 -or $ReviewAgents -le 0 -or $DryRun) { return }
+    Complete-ReviewTick
+    if ($script:ReviewTick) { return }   # the previous tick still runs: this one is skipped, the next carries it
+    $exe, $pre = Resolve-Launch $ClaudeExe
+    $argList = @((Join-Path $Here 'review_lane.py'), '--coord', $CoordDir, 'tick', '--repo', $RepoDir, '--permission-mode', $PermissionMode,
+        '--max-agents', "$ReviewAgents", '--borrow-days', "$BorrowDays")
+    foreach ($piece in @($exe) + @($pre)) { $argList += "--claude=$piece" }   # the one launch rule: Resolve-Launch
+    if ($TelemetryDir) { $argList += @('--telemetry-dir', $TelemetryDir) }
+    try { $script:ReviewTick = Start-PyBackground $argList }
+    catch { Say "review lane tick not started (the unit continues): $_" }
 }
 
 function Start-LaneTick {
@@ -291,6 +325,7 @@ $script:LastLaneTick = [datetime]::MinValue
 function Step-Lane([switch]$Now) {
     if ($LandLaneSeconds -le 0) { return }
     Complete-LaneTick
+    Complete-ReviewTick
     if ($Now -or ((Get-Date) - $script:LastLaneTick).TotalSeconds -ge $LandLaneSeconds) {
         Start-LaneTick
         $script:LastLaneTick = Get-Date
