@@ -54,6 +54,11 @@ findings, each a PROOF and never a guess, so every shape the analysis cannot fol
 | `SUBSCRIPT_RANGE` | an integer-literal subscript outside 1 to the OCCURS maximum of its dimension | ISO 8.4.2.3.4 2), 14.6.13.1.1 NOTE 3 |
 | `INCOMPATIBLE_DATA` | an unprefixed alphanumeric literal with a letter MOVEd to a numeric item | ISO 14.9.25.4 6) |
 
+Storage the program's text shows something else defines is not unwritten: an item the ENVIRONMENT DIVISION or the FILE SECTION names
+(FILE STATUS, RELATIVE KEY, CRT STATUS, CURSOR: the runtime sets it, ISO 9.1.13.1), and an item with SAME AS or TYPE, which has the
+description of the entry it names, VALUE clauses and subordinates included (ISO 13.18.49.4 1, 13.18.57.4 1; a source the analysis
+cannot resolve to one entry reads as defined).
+
 It abstains (no finding) for a program with a COPY, REPLACE, OPTIONS paragraph, compiler directive, RENAMES or a second program.
 The analysis is flow-insensitive, so a DISPLAY before the first write is not found; a variable subscript or reference-modification
 position and the content a MOVE moves at run time need the program run and stay leads. The row records the findings

@@ -72,6 +72,40 @@ def main() -> int:
     expect("STORAGE: the chain follows a copy of a copy",
            kinds("01 X PIC 9.\n01 Y PIC 9.\n01 Z PIC 9.", "MOVE X TO Y MOVE Y TO Z DISPLAY Z") == [U])
 
+    # ── STORAGE: storage the runtime or a description elsewhere defines (PB3862 review R1-1, R1-2, R1-4)
+    def full(env: str, data: str, proc: str) -> str:
+        return NL.join(["IDENTIFICATION DIVISION.", "PROGRAM-ID. FUZZ.", env, "DATA DIVISION.", "WORKING-STORAGE SECTION.", data,
+                        "PROCEDURE DIVISION.", "MAIN-PARA.", proc, "STOP RUN."]) + NL
+
+    fenv = 'ENVIRONMENT DIVISION. INPUT-OUTPUT SECTION. FILE-CONTROL. SELECT F ASSIGN TO "nofile.dat" FILE STATUS IS WS-FS.'
+    renv = 'ENVIRONMENT DIVISION. INPUT-OUTPUT SECTION. FILE-CONTROL. SELECT F ASSIGN TO "r.dat" ORGANIZATION IS RELATIVE RELATIVE KEY IS WS-K.'
+    senv = "ENVIRONMENT DIVISION. CONFIGURATION SECTION. SPECIAL-NAMES. CRT STATUS IS WS-CRT."
+    plain = "ENVIRONMENT DIVISION. INPUT-OUTPUT SECTION. FILE-CONTROL."
+    expect("STORAGE/not: a FILE STATUS item the program only DISPLAYs is set by OPEN (ISO 9.1.13.1)",
+           fu.undefined_results(full(fenv, "01 WS-FS PIC XX.", 'OPEN INPUT F DISPLAY "STATUS " WS-FS')) == [])
+    expect("STORAGE/not: a RELATIVE KEY item and a CRT STATUS item likewise",
+           fu.undefined_results(full(renv, "01 WS-K PIC 9(4).", "DISPLAY WS-K")) == []
+           and fu.undefined_results(full(senv, "01 WS-CRT PIC 9(4).", "DISPLAY WS-CRT")) == [])
+    expect("STORAGE: the same item with no clause naming it in the ENVIRONMENT DIVISION is found",
+           [f.kind for f in fu.undefined_results(full(plain, "01 WS-FS PIC XX.", "DISPLAY WS-FS"))] == [U])
+    expect("STORAGE/not: SAME AS carries the VALUE of the entry it names (ISO 13.18.49.4 1), a group's members too",
+           kinds("01 WS-T PIC X(5) VALUE 'ABCDE'.\n01 WS-C SAME AS WS-T.", "DISPLAY WS-C") == []
+           and kinds("01 WS-G.\n   05 G1 PIC 9 VALUE 1.\n   05 G2 PIC X VALUE 'Y'.\n01 WS-H SAME AS WS-G.", "DISPLAY WS-H G1 OF WS-H") == [])
+    expect("STORAGE: SAME AS a source with no VALUE has none either",
+           kinds("01 WS-T PIC X(5).\n01 WS-C SAME AS WS-T.", "DISPLAY WS-C") == [U])
+    expect("STORAGE: SAME AS a group with one unvalued member names that member",
+           details("01 WS-G.\n   05 G1 PIC 9 VALUE 1.\n   05 G2 PIC X.\n01 WS-H SAME AS WS-G.", "DISPLAY WS-H")
+           == ["DISPLAY reads WS-H (its member G2), which has no VALUE clause and no statement writes it"])
+    expect("STORAGE/not: TYPE TO carries the VALUE of the type (ISO 13.18.57.4 1), elementary and group",
+           kinds("01 T-AMT TYPEDEF PIC 9(3) VALUE 7.\n01 WS-A TYPE TO T-AMT.", "DISPLAY WS-A") == []
+           and kinds("01 T-REC TYPEDEF.\n   05 R1 PIC 9 VALUE 1.\n01 WS-R TYPE T-REC.", "DISPLAY WS-R") == [])
+    expect("STORAGE: TYPE of a typedef with no VALUE has none; an unresolved type reads as defined",
+           kinds("01 T-AMT TYPEDEF PIC 9(3).\n01 WS-A TYPE TO T-AMT.", "DISPLAY WS-A") == [U]
+           and kinds("01 WS-A TYPE TO T-ELSEWHERE.", "DISPLAY WS-A") == [])
+    expect("STORAGE/not: a VALUE with no integer part (.5) does not end the entry",
+           kinds("01 G.\n   05 A PIC V9 VALUE .5.\n   05 B PIC X VALUE 'Y'.", "DISPLAY G") == []
+           and kinds("01 G.\n   05 A PIC SV9 VALUE -.25.\n   05 B PIC X VALUE 'Y'.", "DISPLAY G") == [])
+
     # ── STORAGE: the nearest programs that must not be found
     expect("STORAGE/not: a VALUE clause initialises", kinds("01 X PIC 9(2) VALUE 5.", "DISPLAY X") == [])
     expect("STORAGE/not: a VALUE on the group initialises its members", kinds("01 G VALUE SPACES." + NL + "   05 G1 PIC X.", "DISPLAY G1") == [])
