@@ -32,3 +32,11 @@ sparse-checkout audit and the Linux-job scans match (a commented-out `uses:` cou
 a job's `runs-on` is read as the job's key rather than any line of the job, and `RunCommands` of the self-test test reads
 a step's `run:` value rather than any trimmed line starting with `run: `. No diagnostic code is used; no inventory row is
 claimed or closed.
+
+Review round 1 (R1-1): `CiArtifactDriftTests` kept a ninth reader, a step splitter that took the indentation of the first
+`steps:` list for every job, plus a `Value` that read a key at any depth. With a same-indent step list in a later job the
+upload step was never read and the audit passed vacuously, and a `continue-on-error` under `with:` satisfied the upload
+action audit. It now asks `CiWorkflow` (jobs, `CiStep.Value`, and a new `CiStep.Input` for a `with:` input such as
+`overwrite`), with arms for a same-indent list in a second job, a `with:`-nested `continue-on-error` and an `overwrite`
+under `env:`. The tree sweep now also refuses a hand-found `steps:` key (`== "steps:"`), so the next fixed-depth step
+splitter fails at the gate.
