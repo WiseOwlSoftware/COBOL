@@ -59,9 +59,9 @@ LINES: tuple[tuple[tuple[str, ...], ...], ...] = (
     (("review_coverage", "branch_lifecycle", "branch_survey", "prune_worktrees"), ("plan_wave",)),
     # the landing step, its CLI last
     (("coord",), ("landing_verdict",), ("land_checks", "land_tree", "land_evidence", "land_queue"), ("enqueue",)),
-    # the landing lane, its CLI last
+    # the landing lane, its CLI last; the review lane (kb/Work PB3608) is built on its state, its stops and its survey
     (("coord",), ("landing_verdict", "lane_state"), ("conflict_brief", "lane_decide", "lane_watch"), ("lane_status",),
-     ("land_lane",)),
+     ("land_lane",), ("review_lane",)),
 )
 
 #: Every declared module: its repo-relative file, and the kb/Work step that creates it (None: it exists already).
@@ -94,6 +94,7 @@ NODES: dict[str, tuple[str, str | None]] = {
     "lane_watch": ("scripts/orchestrator/lane_watch.py", "PB3737"),
     "lane_status": ("scripts/orchestrator/lane_status.py", "PB3737"),
     "land_lane": ("scripts/orchestrator/land_lane.py", None),
+    "review_lane": ("scripts/orchestrator/review_lane.py", None),
 }
 
 #: Each pipeline script that is split: the step that splits it and the modules that step creates out of it. Until the
