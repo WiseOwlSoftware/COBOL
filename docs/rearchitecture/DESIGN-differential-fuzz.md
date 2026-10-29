@@ -207,26 +207,52 @@ project and "maintained automatically as an artifact of each fuzz testing run", 
   the notes the night filed on the WiseOwl side. It never stores a status or a classification. The file also carries
   `artifact`, the one Artifact URL the HTML page is published to (https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g).
 - **The notes of a night,** by ONE rule (`fuzz_history.defects_of`): every defect or adjudication note whose `source` names the
-  run id. What each note IS is read from the register when a page is drawn (`finding_kind`): a compiler bug, a test-harness bug
-  (`area: tooling/*` or `docs/*`), a settled question (`kind: adjudication`) or a retired finding. Only compiler bugs reach the
-  totals and the per-night chart; the table lists all four kinds. A GnuCOBOL record counts when the fuzzing produced it (its
+  run id. What each note IS is read from the register when a page is drawn (`finding_kind`): a settled question (`kind:
+  adjudication`), a retired finding, or a defect, which is a compiler bug when its declared sites (`work.note_sites`, the
+  register's one reader of them) reach the product's code under `src/` and a test-harness bug when they do not. Neither the
+  area nor `process_only` decides it: harness defects are filed under `tests/`, `process/`, `orchestrator/`, `scripts/` and
+  `ci/` areas as well as `tooling/`, and a wrong diagnostic is `process_only` yet a compiler bug (kb/Work PB4010). A site
+  block counts only when it names a path, a glob or `none (why)` (`none` reads as harness), the bar `work.sites_problems`
+  holds open notes to; a block naming only types or members classifies nothing. The 16 fuzz defects filed before site blocks
+  were required are a closed record in the code (`LEGACY_KINDS`), never extended. Any other defect nothing classifies stops
+  the render and `history` refuses it, by name: no note is guessed into either count. A note whose `source` names a fuzz run the history holds no night for (a run that
+  stopped early) is counted too and listed as "Run of <date>" (`unrecorded_runs`). Only compiler bugs reach the totals; the
+  per-night chart holds the nights; the table lists all four kinds. A GnuCOBOL record counts when the fuzzing produced it (its
   `source` names the fuzz triage or the harvest plan PB3838) and it is not retired (`from_fuzzing`).
-- **Two renderings of one text,** both from `scripts/fuzz_history.py`: the HTML page for the Artifact (`render --out`) and
-  `FUZZ-LEDGER.md` at the repository root with its chart files in `docs/fuzz-ledger/*.svg` (`render --markdown`), which GitHub
-  renders in place. GitHub never renders a committed `.html` file (its viewer shows the source and its raw host serves
+- **Two renderings of one text, written together,** by `scripts/fuzz_history.py`'s one writer `write_ledger` (`render`, and
+  `history --write`): the HTML page for the Artifact (`<coord>/scratch/fuzz-summary.html`, or `--out`) and `FUZZ-LEDGER.md` at
+  the repository root with its chart files in `docs/fuzz-ledger/*.svg`, which GitHub renders in place. There is no way to
+  write one without the other. GitHub never renders a committed `.html` file (its viewer shows the source and its raw host serves
   `text/plain`), so the root copy is Markdown; the HTML is served by the Artifact. The prose (INTRO, STEPS, CAPTIONS, HEADINGS),
   the tables and the SVG charts are each written once and drawn by both, so the two cannot drift. Each states that it is
   machine-generated and names the script and the history file. Every fact either states comes from the records: the hours and
   section count from run.json, the nights without a tally from the records, every status from kb/Work.
+- **The Artifact and FUZZ-LEDGER.md stay in sync** (owner 2026-10-28: "The fuzz ledger repo file must be kept in sync with the
+  artifact"; kb/Work PB4010). Both carry one LEDGER VERSION in their stamp: a digest of the content alone (the Markdown and its
+  charts drawn with an empty stamp). Neither carries a build time, so equal content is equal bytes and a render that changes
+  nothing leaves FUZZ-LEDGER.md untouched. The Artifact is the history's `artifact` (the one FUZZ-LEDGER.md links) and is
+  published from MAIN's FUZZ-LEDGER.md only: after a publish, `python scripts/fuzz_history.py mark-published [--page <html>]`
+  fetches main, refuses a page whose version is not the version FUZZ-LEDGER.md carries there, and records the URL and version in
+  `<coord>/fuzz-ledger-published.json` (one record: the Artifact belongs to the account that published it, which is the only one
+  that can update it). `fuzz_history.py status`, printed by session-probe every session, says `current`, `PUBLISH OWED` (the
+  record shows another version than main's file, or another Artifact) or `REGENERATE OWED` (main's file carries no version, or
+  differs from a render now: a fuzz note's status moved, or the file was edited by hand; a render lands on a branch, then the
+  publish). That last answer is MAIN's own: `main_verdict` extracts origin/main's committed `scripts/`, `kb/Work/`, history and
+  FUZZ-LEDGER.md with `git archive` into a temporary directory and runs that copy's `fuzz_history.py verify`, which renders its
+  own tree and compares it with its own FUZZ-LEDGER.md. No file of the checkout running `status` reaches it: not an edit, not an
+  untracked note, not a stale script, and a checkout behind main reports main's state (the PB2987 lesson). Four review rounds
+  found a working-tree check one input short each time (a dirty input, work.py, coord.py and model_rules.json, an untracked
+  note); reading main's committed tree has no list to keep. The extract costs seconds, so it runs only when the Artifact already
+  shows main's version.
 
 **The step.** The last step of every morning, after `file --write` and on the same branch: `python scripts/fuzz_triage.py history
 --triage <dir> --judge-commit <sha> --write`. It refuses a triage that `collect` does not pass (a problem or an undecided
 signature) and a report.md whose headline it cannot read, finds the night's notes by the rule above (`--defect` adds one whose
 source does not name the run, and every id must be a note), and records the night. A re-run keeps the night's number, its stored
 notes, its judge and its evidence path, and replaces the rest. It then writes the HTML page to `<coord>/scratch/fuzz-summary.html`
-and `FUZZ-LEDGER.md` with `docs/fuzz-ledger/` into the worktree. The session publishes the HTML file to the `artifact` URL with
-the Artifact tool, the only publisher (a script cannot publish), and commits the history, the ledger and its charts with the
-night's filing.
+and `FUZZ-LEDGER.md` with `docs/fuzz-ledger/` into the worktree, one ledger version. The session commits the history, the
+ledger and its charts with the night's filing and lands them; once they are on main it publishes the HTML file to the
+`artifact` URL with the Artifact tool, the only publisher (a script cannot publish), and runs `mark-published`.
 
 **Backfill.** Nights 1 to 7 were recorded on 2026-10-28 from their run directories and, for nights 3 to 7, the verdict files that
 survived in the triaging sessions' scratch. Every night's notes were then rebuilt by the one rule (the first backfill's
@@ -240,7 +266,7 @@ after PB3490 changed the classes, so its survivor counts are that file's, not th
 run and proves the arms listed in its docstring: rescoring, slicing, the briefs (no unfilled placeholder, no night-specific
 literal, the vocabulary, dispositions and bar sections held equal to the tool's, the Workflow script's brief names held equal to
 the tool's), the verdict rules, the refute plan, and every reason `file` holds a record, the witness path, the no-op re-file and
-the write-nothing-on-refusal rule. `scripts/test_fuzz_history.py` proves the history and both pages, arm by arm as its docstring lists them: a run's numbers (and the refusal of an unreadable report), the tally, the one notes rule and the four kinds, which GnuCOBOL records count, the upsert, the HTML page and FUZZ-LEDGER.md with standalone chart files, the `history` subcommand's refusals, numbering, re-run and dry run, and the verdict colours held equal to the verdict vocabulary.
+the write-nothing-on-refusal rule. `scripts/test_fuzz_history.py` proves the history and both pages, arm by arm as its docstring lists them: a run's numbers (and the refusal of an unreadable report), the tally, the one notes rule and the four kinds, which GnuCOBOL records count, the upsert, the HTML page and FUZZ-LEDGER.md with standalone chart files, the sync of the two (one writer and one ledger version, equal content as equal bytes, `mark-published`'s refusal and record, every `status` state), the `history` subcommand's refusals (an unclassifiable note anywhere on the page writes nothing), numbering, re-run and dry run, and the verdict colours held equal to the verdict vocabulary.
 
 ## 8. Alternatives rejected
 

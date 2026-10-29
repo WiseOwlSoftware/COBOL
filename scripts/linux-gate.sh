@@ -626,6 +626,13 @@ fi
 if [ ! -f WiseOwl.Cobol.sln ]; then
   echo "=== LINUX GATE: NOT RUN [tree] (not at a repository root: $(pwd)) ==="; exit 2
 fi
+# ⛔ THE TOOLCHAIN (kb/Work PB4007): CI runs exactly toolchain.env's versions, so a Linux half under any other measures
+# what CI will not run; the Windows half holds its own host to the manifest the same way (run_gate_legs.Host.toolchain).
+if ! toolchain_report="$("$PY" scripts/toolchain.py check --scope gate 2>&1)"; then
+  printf '%s\n' "$toolchain_report"
+  echo "=== LINUX GATE: NOT RUN [toolchain] (this host's tools are not toolchain.env's — run scripts/wsl/setup-wsl.sh) ==="; exit 2
+fi
+echo "linux-gate: toolchain (toolchain.env) $(printf '%s\n' "$toolchain_report" | tail -1 | sed 's/^=== TOOLCHAIN: GREEN — gate: //; s/ ===$//')"
 tree="$(pwd)"
 
 # THIS SCRIPT'S OWN READS OF THE TREE (never exported) go through `wgit`: the TREE'S OWN git, and never one that

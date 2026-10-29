@@ -11,8 +11,9 @@
 //   5. Workflow fuzz-triage  args { triage, refute: [<those slice names>], concurrency }
 //   6. python scripts/fuzz_triage.py file --triage <triage> [--write]                    (on a branch; the gate follows)
 //   7. python scripts/fuzz_triage.py history --triage <triage> --judge-commit <sha> --write   (same branch: it also rewrites
-//      FUZZ-LEDGER.md and docs/fuzz-ledger/), then publish <coord>/scratch/fuzz-summary.html to the history's `artifact` URL
-//      with the Artifact tool (design section 6)
+//      FUZZ-LEDGER.md and docs/fuzz-ledger/ with the same ledger version); land the branch, then publish
+//      <coord>/scratch/fuzz-summary.html to the history's `artifact` URL with the Artifact tool and run
+//      `python scripts/fuzz_history.py mark-published` (design section 6: the Artifact shows main's version only)
 //
 // Either list may be empty; the two phases may run in one invocation only when the refuter slices are already known
 // (a resumed triage). `triage` is the absolute triage directory the tool printed.
