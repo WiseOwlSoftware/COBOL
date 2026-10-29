@@ -8,14 +8,15 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ ONE PINNED .NET SDK, INSTALLED ONE WAY, NEVER THROUGH THE AKA.MS REDIRECT (kb/Work PB3308; DESIGN-test-build-ci.md
-/// §1.4): <c>scripts/install-dotnet-sdk.sh</c> pins the exact SDK version, a version <c>global.json</c>'s
-/// <c>sdk.version</c> and <c>rollForward</c> accept, and lists its feeds, <c>builds.dotnet.microsoft.com</c> first and no
-/// aka.ms link among them; every workflow job that runs <c>dotnet</c> gets its SDK from <c>./.github/actions/setup-dotnet</c>,
-/// which restores it from the cache keyed on that version, installs it with that script otherwise, saves it, and proves
-/// <c>dotnet</c> reports it; the <c>dotnet-sdk-cache</c> job saves it under main on both OSes; no workflow, action or setup
-/// script names <c>actions/setup-dotnet</c>, <c>dotnet-install</c> or an aka.ms link; <c>scripts/wsl/setup-wsl.sh</c>
-/// calls the script, and <c>scripts/cloud/setup-env.sh</c> carries its install block byte for byte.
+/// ⛔ ONE PINNED .NET SDK, INSTALLED ONE WAY, NEVER THROUGH THE AKA.MS REDIRECT (kb/Work PB3308, PB4007;
+/// DESIGN-test-build-ci.md §1.4): <c>toolchain.env</c> pins the exact SDK version, a version <c>global.json</c>'s
+/// <c>sdk.version</c> and <c>rollForward</c> accept; <c>scripts/install-tool.sh</c> lists the SDK's feeds,
+/// <c>builds.dotnet.microsoft.com</c> first and no aka.ms link among them; every workflow job that runs <c>dotnet</c> gets
+/// its SDK from <c>./.github/actions/setup-toolchain</c>, which restores it from the cache keyed on the manifest, installs
+/// it with that script otherwise, saves it, and proves <c>dotnet</c> reports it; the <c>toolchain-cache</c> job saves it
+/// under main on both OSes; no workflow, action or setup script names <c>actions/setup-dotnet</c>, <c>dotnet-install</c> or
+/// an aka.ms link; <c>scripts/wsl/setup-wsl.sh</c> calls the script, and <c>scripts/cloud/setup-env.sh</c> carries its
+/// install block byte for byte. (The manifest itself, and every other tool, is <see cref="ToolchainManifestDriftTests"/>.)
 /// </summary>
 /// <remarks>
 /// Every building job used to run <c>actions/setup-dotnet</c> with <c>dotnet-version: 10.0.x</c>, which resolves "the
@@ -29,11 +30,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class DotnetSdkInstallDriftTests
 {
-    /// <summary>The one SDK step every building job uses.</summary>
-    public const string SetupAction = "./.github/actions/setup-dotnet";
+    /// <summary>The one toolchain step every job uses, the SDK among its tools.</summary>
+    public const string SetupAction = "./.github/actions/setup-toolchain";
 
-    private const string BeginMarker = "# >>> dotnet-sdk-install";
-    private const string EndMarker = "# <<< dotnet-sdk-install";
+    private const string BeginMarker = "# >>> tool-install";
+    private const string EndMarker = "# <<< tool-install";
 
     /// <summary>The install routes that resolve "the newest SDK" through the aka.ms redirect: none may come back.</summary>
     private static readonly string[] RedirectRoutes = ["actions/setup-dotnet", "dotnet-install", "aka.ms"];
@@ -51,18 +52,20 @@ public sealed class DotnetSdkInstallDriftTests
     private static readonly Regex FeedsLine = new(@"^DOTNET_SDK_FEEDS=""(?<f>[^""]*)""$", RegexOptions.Multiline | RegexOptions.NonBacktracking);
     private static readonly Regex SdkVersion = new(@"^(?<major>\d+)\.(?<minor>\d+)\.(?<band>\d)(?<patch>\d{2})$", RegexOptions.NonBacktracking);
 
-    private static string InstallScript => File.ReadAllText(TestRepo.Scripts("install-dotnet-sdk.sh"));
+    private static string InstallScript => File.ReadAllText(TestRepo.Scripts("install-tool.sh"));
+
+    private static string Manifest => File.ReadAllText(TestRepo.At("toolchain.env"));
 
     [Fact]
     public void ThePin_IsAnExactSdkVersionThatGlobalJsonAccepts()
     {
-        string pin = Pin(InstallScript);
+        string pin = Pin(Manifest);
         using var global = JsonDocument.Parse(File.ReadAllText(TestRepo.At("global.json")));
         JsonElement sdk = global.RootElement.GetProperty("sdk");
         string floor = sdk.GetProperty("version").GetString()!;
         string rollForward = sdk.TryGetProperty("rollForward", out JsonElement r) ? r.GetString()! : "patch";
         Assert.True(Accepts(floor, rollForward, pin),
-            $"scripts/install-dotnet-sdk.sh pins SDK {pin}, which global.json (version {floor}, rollForward {rollForward}) does "
+            $"toolchain.env pins SDK {pin}, which global.json (version {floor}, rollForward {rollForward}) does "
             + "not accept: CI would install an SDK the build then refuses (kb/Work PB3308)");
     }
 
@@ -70,7 +73,7 @@ public sealed class DotnetSdkInstallDriftTests
     public void TheFeeds_StartAtTheCdnAndNeverGoThroughAkaMs()
     {
         string[] feeds = Feeds(InstallScript);
-        Assert.True(feeds.Length >= 2, $"scripts/install-dotnet-sdk.sh lists {feeds.Length} feed(s): a refusing feed needs a next one");
+        Assert.True(feeds.Length >= 2, $"scripts/install-tool.sh lists {feeds.Length} .NET SDK feed(s): a refusing feed needs a next one");
         Assert.Equal("https://builds.dotnet.microsoft.com/dotnet", feeds[0]);
         Assert.All(feeds, f => Assert.StartsWith("https://", f, StringComparison.Ordinal));
         Assert.DoesNotContain(feeds, f => f.Contains("aka.ms", StringComparison.OrdinalIgnoreCase));
@@ -100,7 +103,7 @@ public sealed class DotnetSdkInstallDriftTests
         var sites = Directory.EnumerateFiles(TestRepo.At(".github"), "*.yml", SearchOption.AllDirectories)
             .Append(TestRepo.Scripts("wsl", "setup-wsl.sh"))
             .Append(TestRepo.Scripts("cloud", "setup-env.sh"))
-            .Append(TestRepo.Scripts("install-dotnet-sdk.sh"));
+            .Append(TestRepo.Scripts("install-tool.sh"));
         var offenders = new List<string>();
         foreach (string site in sites)
         {
@@ -108,24 +111,24 @@ public sealed class DotnetSdkInstallDriftTests
             offenders.AddRange(RedirectOffenders(rel, File.ReadAllLines(site)));
         }
         Assert.True(offenders.Count == 0,
-            "an SDK install route through the aka.ms redirect (kb/Work PB3308; install with scripts/install-dotnet-sdk.sh or "
+            "an SDK install route through the aka.ms redirect (kb/Work PB3308; install with scripts/install-tool.sh or "
             + SetupAction + "):\n" + string.Join("\n", offenders));
     }
 
     [Fact]
     public void TheAction_RestoresInstallsSavesAndProvesThePinnedSdk()
     {
-        string action = File.ReadAllText(TestRepo.At(".github", "actions", "setup-dotnet", "action.yml"));
-        var offenders = AuditAction(action);
-        Assert.True(offenders.Count == 0, "the setup-dotnet action (kb/Work PB3308):\n" + string.Join("\n", offenders));
+        string action = File.ReadAllText(TestRepo.At(".github", "actions", "setup-toolchain", "action.yml"));
+        var offenders = AuditAction(action, ToolchainManifestDriftTests.Tools);
+        Assert.True(offenders.Count == 0, "the setup-toolchain action (kb/Work PB3308, PB4007):\n" + string.Join("\n", offenders));
     }
 
     [Fact]
     public void TheCacheIsSavedUnderMain_OnBothOperatingSystems()
     {
         string workflow = File.ReadAllText(TestRepo.At(".github", "workflows", "build-and-test.yml"));
-        string? job = Jobs(workflow).Where(j => j.Id == "dotnet-sdk-cache").Select(j => j.Body).FirstOrDefault();
-        Assert.True(job is not null, "build-and-test.yml has no `dotnet-sdk-cache` job: a merge group's ref is new every time, "
+        string? job = Jobs(workflow).Where(j => j.Id == "toolchain-cache").Select(j => j.Body).FirstOrDefault();
+        Assert.True(job is not null, "build-and-test.yml has no `toolchain-cache` job: a merge group's ref is new every time, "
             + "so only a save under main is ever restored (kb/Work PB3308)");
         Assert.Contains("github.event_name == 'push'", job, StringComparison.Ordinal);
         Assert.Contains("uses: " + SetupAction, job, StringComparison.Ordinal);
@@ -138,14 +141,14 @@ public sealed class DotnetSdkInstallDriftTests
     public void TheLocalSetupScripts_InstallTheSameWay()
     {
         string wsl = File.ReadAllText(TestRepo.Scripts("wsl", "setup-wsl.sh"));
-        Assert.Matches(new Regex(@"(?m)^[^#\n]*bash ""\$SCRIPTS/install-dotnet-sdk\.sh"" ""\$HOME/\.dotnet"""), wsl);
+        Assert.Matches(new Regex(@"(?m)^[^#\n]*bash ""\$SCRIPTS/install-tool\.sh"" dotnet-sdk ""\$HOME/\.dotnet"""), wsl);
 
         string? script = Block(InstallScript);
         string? cloud = Block(File.ReadAllText(TestRepo.Scripts("cloud", "setup-env.sh")));
-        Assert.True(script is not null, $"scripts/install-dotnet-sdk.sh has no `{BeginMarker}` … `{EndMarker}` block");
+        Assert.True(script is not null, $"scripts/install-tool.sh has no `{BeginMarker}` … `{EndMarker}` block");
         Assert.True(cloud is not null, $"scripts/cloud/setup-env.sh has no `{BeginMarker}` … `{EndMarker}` block: it runs "
             + "before the repository is cloned, so it carries the install block itself");
-        Assert.True(script == cloud, "scripts/cloud/setup-env.sh's install block differs from scripts/install-dotnet-sdk.sh's: "
+        Assert.True(script == cloud, "scripts/cloud/setup-env.sh's install block differs from scripts/install-tool.sh's: "
             + "copy the script's block (markers included) into setup-env.sh, then paste setup-env.sh into the cloud environment");
     }
 
@@ -173,7 +176,7 @@ public sealed class DotnetSdkInstallDriftTests
                 steps:
                   - uses: actions/checkout@v7
                   - name: Setup .NET SDK
-                    uses: ./.github/actions/setup-dotnet
+                    uses: ./.github/actions/setup-toolchain
                   - name: Build
                     run: dotnet build WiseOwl.Cobol.sln
               docs:
@@ -186,18 +189,18 @@ public sealed class DotnetSdkInstallDriftTests
                 runs-on: ubuntu-26.04
             """;
         Assert.Equal((1, 0), Audit(Workflow));
-        Assert.Equal((1, 1), Audit(Workflow.Replace("uses: ./.github/actions/setup-dotnet", "uses: actions/setup-dotnet@v6", StringComparison.Ordinal)));
+        Assert.Equal((1, 1), Audit(Workflow.Replace("uses: ./.github/actions/setup-toolchain", "uses: actions/setup-dotnet@v6", StringComparison.Ordinal)));
         // The action after the first dotnet command is too late.
         Assert.Equal((1, 1), Audit(Workflow.Replace("""
                   - name: Setup .NET SDK
-                    uses: ./.github/actions/setup-dotnet
+                    uses: ./.github/actions/setup-toolchain
                   - name: Build
                     run: dotnet build WiseOwl.Cobol.sln
             """, """
                   - name: Build
                     run: dotnet build WiseOwl.Cobol.sln
                   - name: Setup .NET SDK
-                    uses: ./.github/actions/setup-dotnet
+                    uses: ./.github/actions/setup-toolchain
             """, StringComparison.Ordinal)));
         // A multi-line run block's command counts, and so does one behind a wrapper (the inert watch).
         Assert.Equal((2, 1), Audit(Workflow.Replace("run: echo \"the dotnet word\"", "run: |\n          dotnet test p.csproj", StringComparison.Ordinal)));
@@ -210,16 +213,19 @@ public sealed class DotnetSdkInstallDriftTests
         Assert.Single(RedirectOffenders("a.yml", ["        uses: actions/setup-dotnet@v6"]));
         Assert.Single(RedirectOffenders("a.sh", ["curl https://aka.ms/dotnet/10.0/dotnet-sdk-linux-x64.tar.gz"]));
         Assert.Empty(RedirectOffenders("a.sh", ["# once actions/setup-dotnet resolved 10.0.x through aka.ms"]));
-        Assert.Empty(RedirectOffenders("a.yml", ["        uses: ./.github/actions/setup-dotnet"]));
+        Assert.Empty(RedirectOffenders("a.yml", ["        uses: ./.github/actions/setup-toolchain"]));
 
-        string action = File.ReadAllText(TestRepo.At(".github", "actions", "setup-dotnet", "action.yml"));
-        Assert.Empty(AuditAction(action));
-        Assert.Single(AuditAction(action.Replace("bash scripts/install-dotnet-sdk.sh \"$DIR\"", "true", StringComparison.Ordinal)));
-        Assert.Single(AuditAction(action.Replace("actions/cache/restore@", "actions/other/restore@", StringComparison.Ordinal)));
-        Assert.Single(AuditAction(action.Replace("--version)", "--print)", StringComparison.Ordinal)));
-        Assert.Single(AuditAction(action.Replace("if [ \"$got\" != \"$VERSION\" ]", "if false", StringComparison.Ordinal)));
+        string action = File.ReadAllText(TestRepo.At(".github", "actions", "setup-toolchain", "action.yml"));
+        var tools = ToolchainManifestDriftTests.Tools;
+        Assert.Empty(AuditAction(action, tools));
+        Assert.Single(AuditAction(action.Replace("bash scripts/install-tool.sh \"$tool\" \"$DIR/$tool\"", "true", StringComparison.Ordinal), tools));
+        Assert.Single(AuditAction(action.Replace("python scripts/toolchain.py ci-installs", "echo jdk", StringComparison.Ordinal), tools));
+        Assert.Single(AuditAction(action, tools.Select(t => t.Name == "dotnet-sdk" ? t with { Runs = "HOST" } : t).ToList()));
+        Assert.Single(AuditAction(action.Replace("actions/cache/restore@", "actions/other/restore@", StringComparison.Ordinal), tools));
+        Assert.Single(AuditAction(action.Replace("toolchain.env | sha256sum", "global.json | sha256sum", StringComparison.Ordinal), tools));
+        Assert.Single(AuditAction(action.Replace("python scripts/toolchain.py check --scope ci", "true", StringComparison.Ordinal), tools));
 
-        const string Script = "x\n# >>> dotnet-sdk-install (kept)\nDOTNET_SDK_VERSION=10.0.403\nDOTNET_SDK_FEEDS=\"https://a https://b\"\n# <<< dotnet-sdk-install\ny\n";
+        const string Script = "x\n# >>> tool-install (kept)\nDOTNET_SDK_VERSION=10.0.403\nDOTNET_SDK_FEEDS=\"https://a https://b\"\n# <<< tool-install\ny\n";
         Assert.Equal("10.0.403", Pin(Script));
         Assert.Equal(["https://a", "https://b"], Feeds(Script));
         Assert.Equal(Block(Script), Block("other\n" + Script.Replace("x\n", "", StringComparison.Ordinal)));
@@ -259,14 +265,14 @@ public sealed class DotnetSdkInstallDriftTests
     private static string Pin(string script)
     {
         Match m = PinLine.Match(script);
-        Assert.True(m.Success, "scripts/install-dotnet-sdk.sh has no `DOTNET_SDK_VERSION=` line");
+        Assert.True(m.Success, "toolchain.env has no `DOTNET_SDK_VERSION=` line");
         return m.Groups["v"].Value;
     }
 
     private static string[] Feeds(string script)
     {
         Match m = FeedsLine.Match(script);
-        Assert.True(m.Success, "scripts/install-dotnet-sdk.sh has no `DOTNET_SDK_FEEDS=\"…\"` line");
+        Assert.True(m.Success, "scripts/install-tool.sh has no `DOTNET_SDK_FEEDS=\"…\"` line");
         return m.Groups["f"].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
     }
 
@@ -328,7 +334,10 @@ public sealed class DotnetSdkInstallDriftTests
         return offenders;
     }
 
-    private static List<string> AuditAction(string action)
+    /// <summary>What keeps setup-toolchain from restoring, installing, saving and proving the SDK. The action installs
+    /// the tools <c>toolchain.py ci-installs</c> names, so the SDK is among them when its row of toolchain.py's TOOLS
+    /// (<paramref name="tools"/>) is an install-tool row that runs in CI.</summary>
+    private static List<string> AuditAction(string action, IReadOnlyList<ToolchainManifestDriftTests.ToolRow> tools)
     {
         var offenders = new List<string>();
         void Require(string text, string why)
@@ -336,13 +345,15 @@ public sealed class DotnetSdkInstallDriftTests
             if (!action.Contains(text, StringComparison.Ordinal))
                 offenders.Add($"  no `{text}`: {why}");
         }
-        Require("version=$(bash scripts/install-dotnet-sdk.sh --version)", "the cache key and the check need the pinned version from the script");
         Require("actions/cache/restore@", "a cached SDK must be restored before any feed is asked");
-        Require("key: dotnet-sdk-${{ steps.sdk.outputs.version }}-${{ runner.os }}-${{ runner.arch }}", "the cache is keyed on the pinned version, the OS and the architecture");
-        Require("bash scripts/install-dotnet-sdk.sh \"$DIR\"", "the SDK is installed by the one install script");
+        Require("toolchain.env | sha256sum", "the cache is keyed on the manifest's versions, the OS and the architecture");
+        Require("bash scripts/install-tool.sh \"$tool\" \"$DIR/$tool\"", "the SDK is installed by the one install script");
+        Require("tools=\"$(python scripts/toolchain.py ci-installs)\"", "the action installs the tools toolchain.py's TOOLS names for CI");
+        if (!tools.Any(t => t is { Name: "dotnet-sdk", Source: "INSTALL_TOOL", Runs: "CI" }))
+            offenders.Add("  scripts/toolchain.py's dotnet-sdk row is not an INSTALL_TOOL row that runs in CI: the action would not install the SDK");
         if (!Regex.IsMatch(action, @"(?m)^\s+continue-on-error: true\n\s+uses: actions/cache/save@"))
             offenders.Add("  no `continue-on-error: true` on an `actions/cache/save@` step: the SDK is saved, and a failed save never fails the job");
-        Require("if [ \"$got\" != \"$VERSION\" ]", "the step proves `dotnet` reports the pinned version");
+        Require("python scripts/toolchain.py check --scope ci", "the step proves `dotnet` (with every other tool) reports the manifest's version");
         return offenders;
     }
 }

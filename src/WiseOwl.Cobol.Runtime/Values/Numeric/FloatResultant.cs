@@ -43,10 +43,11 @@ public static class FloatResultant
     // ── The entry points, one per value carrier; each has an UNCHECKED form (the no-phrase store) and a CHECKED
     //    Try form (ON SIZE ERROR / EC-SIZE checking — false is the size error condition, receiver unchanged). ──
 
-    /// <summary>The unchecked landing of a binary64 intermediate: the mode-rounded value (a PROHIBITED-inexact value
-    /// lands TRUNCATED, and an overflow lands as ISO/IEC 60559's overflow result for the mode — the no-phrase
-    /// disposition, CONFORMANCE.md DOC-A.1-70).</summary>
-    public static double FromReal(double v, CobolRounding mode, bool single) => LandReal(v, mode, single, out _);
+    /// <summary>The unchecked landing of a binary64 intermediate: the mode-rounded value (an overflow lands as ISO/IEC
+    /// 60559's overflow result for the mode — the no-phrase disposition, CONFORMANCE.md DOC-A.1-70), and a
+    /// PROHIBITED-inexact value raises (<see cref="Unchecked"/>).</summary>
+    public static double FromReal(double v, CobolRounding mode, bool single) =>
+        Unchecked(LandReal(v, mode, single, out Outcome o), o, mode);
 
     /// <summary>The checked landing of a binary64 intermediate: <c>false</c> is the size error condition —
     /// §14.7.5 case 3 (further from zero than the resultant permits) or §14.7.4.3 rule 7 (PROHIBITED, inexact).</summary>
@@ -58,7 +59,7 @@ public static class FloatResultant
 
     /// <summary>The unchecked landing of an exact scaled value <c>unscaled × 10^(−scale)</c>.</summary>
     public static double FromScaled(Int128 unscaled, int scale, CobolRounding mode, bool single) =>
-        LandExact(unscaled < 0, CobolDec.UAbs(unscaled), scale, mode, single, out _);
+        Unchecked(LandExact(unscaled < 0, CobolDec.UAbs(unscaled), scale, mode, single, out Outcome o), o, mode);
 
     /// <inheritdoc cref="TryFromReal"/>
     public static bool TryFromScaled(Int128 unscaled, int scale, CobolRounding mode, bool single, out double landed)
@@ -70,7 +71,7 @@ public static class FloatResultant
     /// <summary>The unchecked landing of an exact UNSIGNED-wide scaled value (a 16-byte unsigned COMP-5 operand,
     /// whose container range reaches 2^128 − 1 — kb/Work R10).</summary>
     public static double FromUnsignedScaled(UInt128 unscaled, int scale, CobolRounding mode, bool single) =>
-        LandExact(false, unscaled, scale, mode, single, out _);
+        Unchecked(LandExact(false, unscaled, scale, mode, single, out Outcome o), o, mode);
 
     /// <inheritdoc cref="TryFromReal"/>
     public static bool TryFromUnsignedScaled(UInt128 unscaled, int scale, CobolRounding mode, bool single, out double landed)
@@ -82,7 +83,7 @@ public static class FloatResultant
     /// <summary>The unchecked landing of an SDIDI <c>Sig × 10^Exp</c> (exact — its significand never exceeds 34
     /// digits, so its magnitude always fits the carrier).</summary>
     public static double FromDec(CobolDec v, CobolRounding mode, bool single) =>
-        LandExact(v.Sig < 0, CobolDec.UAbs(v.Sig), -v.Exp, mode, single, out _);
+        Unchecked(LandExact(v.Sig < 0, CobolDec.UAbs(v.Sig), -v.Exp, mode, single, out Outcome o), o, mode);
 
     /// <inheritdoc cref="TryFromReal"/>
     public static bool TryFromDec(CobolDec v, CobolRounding mode, bool single, out double landed)
@@ -127,7 +128,7 @@ public static class FloatResultant
 
     private static Dir DirOf(CobolRounding mode, bool neg) => mode switch
     {
-        CobolRounding.Truncation or CobolRounding.Prohibited => Dir.Down,   // r10 (r7 lands truncated when unchecked)
+        CobolRounding.Truncation or CobolRounding.Prohibited => Dir.Down,   // r10 (r7's inexact value is never stored)
         CobolRounding.AwayFromZero => Dir.Up,                               // r3
         CobolRounding.TowardGreater => neg ? Dir.Down : Dir.Up,             // r8 — the nearest LARGER value
         CobolRounding.TowardLesser => neg ? Dir.Up : Dir.Down,              // r9 — the nearest SMALLER value
@@ -141,6 +142,13 @@ public static class FloatResultant
     /// when the value was representable exactly (§14.7.4.3 r7).</summary>
     private static bool Admits(Outcome o, CobolRounding mode) =>
         o == Outcome.Exact || (o == Outcome.Rounded && mode != CobolRounding.Prohibited);
+
+    /// <summary>The unchecked (no-phrase) landing's disposition: the landed value, an overflow included (ISO/IEC 60559's
+    /// overflow result for the mode, CONFORMANCE.md DOC-A.1-70), EXCEPT a PROHIBITED value the format cannot represent
+    /// exactly, which raises <see cref="CobolSizeError.ProhibitedInexact"/> — §14.7.4.3 rule 7 leaves the resultant
+    /// identifier unchanged whether or not checking is enabled (kb/Work PB3990).</summary>
+    private static double Unchecked(double landed, Outcome o, CobolRounding mode) =>
+        o == Outcome.Rounded && mode == CobolRounding.Prohibited ? throw CobolSizeError.ProhibitedInexact() : landed;
 
 
     /// <summary>A binary64 intermediate. Into a binary64 resultant it IS representable — every mode stores it

@@ -53,15 +53,17 @@ public sealed class CobolEditFloatRoundingTests
         Assert.Equal("+1.23E+00", CobolEdit.FormatFloatStore(1239, 3, Mask, CobolRounding.Truncation));
 
     /// <summary>Rule 7: PROHIBITED and a value the three-digit significand cannot hold exactly is the size error
-    /// condition; an exact value is stored. The unchecked store lands the inexact one TRUNCATED (DOC-A.1-70) and
-    /// raises nothing.</summary>
+    /// condition; an exact value is stored. The unchecked store raises the same rule-7 condition instead of landing
+    /// the inexact one truncated (kb/Work PB3990: the resultant is unchanged whether or not checking is enabled).</summary>
     [Fact]
     public void Prohibited_IsASizeErrorOnlyWhenInexact()
     {
         Assert.False(CobolEdit.TryFormatFloat(1234, 3, Mask, out _, CobolRounding.Prohibited));
         Assert.True(CobolEdit.TryFormatFloat(1230, 3, Mask, out string exact, CobolRounding.Prohibited));
         Assert.Equal("+1.23E+00", exact);
-        Assert.Equal("+1.23E+00", CobolEdit.FormatFloatStore(1234, 3, Mask, CobolRounding.Prohibited));
+        Assert.True(Assert.Throws<CobolSizeError>(
+            () => CobolEdit.FormatFloatStore(1234, 3, Mask, CobolRounding.Prohibited)).IsProhibitedInexact);
+        Assert.Equal("+1.23E+00", CobolEdit.FormatFloatStore(1230, 3, Mask, CobolRounding.Prohibited));
     }
 
     /// <summary>The rounding precedes the range test (§14.7.5 case 3, "after … any applicable rounding"): a value

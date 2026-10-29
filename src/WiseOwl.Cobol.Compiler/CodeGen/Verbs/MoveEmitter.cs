@@ -870,9 +870,11 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             case PicCategory.NumericEdited when IsNumericOperand(source):
                 NumX e = num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric);
                 // A FLOATING-POINT numeric-edited receiver (D21/PB66) takes the sender's EXACT form — no alignment to a
-                // mask scale (it has none); the dispatch is RuntimeApi.EditFormatFor's, keyed on the receiver's picture.
+                // mask scale (it has none) — and the transfer's mode rounds the significand to the mask's digits
+                // (kb/Work PB2638): TRUNCATION for a MOVE (§14.6.8.4 rule 2), the clause's own for the report's rounded
+                // implicit COMPUTE (kb/Work PB3990 review finding R1-1's sibling: it always truncated).
                 if (pic.IsFloatEdited)
-                    return RuntimeApi.EditFormatFor(pic, e, "", "", ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
+                    return RuntimeApi.EditFormatFloat(pic, e, rounding, ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
                 // The edit Format takes a scaled Int128. A NATIVE scaled sender passes at its own scale: the formatter's
                 // own alignment IS the MOVE's truncation (§14.6.8.2). Every other carrier — a float (D16 review: CS1503),
                 // a STANDARD-DECIMAL intermediate (fix-queue PB65: CS1503), an unsigned-wide item (kb/Work PB2163's
@@ -881,8 +883,12 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // (kb/Work PB77) and carries an unsigned item's full container range (DOC-A.1-179). NB the receiver
                 // scale is the ONE PicInfo.ReceiverScale rule, NOT pic.Scale (a masked item's Scale is 0 — the point
                 // is in the mask; a format-2 LOCALE item's IS pic.Scale — kb/Work PB64 T6).
+                // ⛔ The formatter's alignment only TRUNCATES, so a native sender whose fraction the receiver drops under
+                // any other mode — the report's rounded implicit COMPUTE, §13.18.53.4 GR2 — lands through the ONE edited
+                // landing with that mode too, where ROUNDED MODE IS PROHIBITED raises rule 7 (kb/Work PB3990 review
+                // finding R1-1's sibling: `SOURCE IS WS-F ROUNDED` printed 1.55 as 1 into Z9).
                 int ems = pic.ReceiverScale();
-                bool nativeScaled = e.Carrier == NumXCarrier.Scaled;
+                bool nativeScaled = e.Carrier == NumXCarrier.Scaled && (rounding == CobolRounding.Truncation || e.Scale <= ems);
                 string editVal = nativeScaled ? e.Expr : NumericRenderer.EditedLanding(e, ems, rounding, checkedLanding: false);
                 int editScale = nativeScaled ? e.Scale : ems;
                 // The form dispatch (mask vs LOCALE) is EditFormatFor's — never a call-site EditMask deref.

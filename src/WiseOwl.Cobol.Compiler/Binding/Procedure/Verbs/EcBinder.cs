@@ -309,10 +309,13 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Capture the PROCEDURE DIVISION header RAISING phrase of a program / function unit (§14.2.1) through
     /// the ONE partition (<see cref="RaisingPhrase.Partition"/>) — consumed by the SR2 exception-name check and
-    /// the SR4/SR5 identifier check above.</summary>
-    public void EcCollectPdRaising(Core.ProcedureDivisionContext pd)
-        => EcLoadPdRaising(RaisingPhrase.Partition(pd.raisingClause(), host.OoClasses, ctx.Edition,
-            "PROCEDURE DIVISION RAISING"));
+    /// the SR4/SR5 identifier check above. Returns the phrase in written order, which the unit's bound program carries.</summary>
+    public IReadOnlyList<RaisingTarget> EcCollectPdRaising(Core.ProcedureDivisionContext pd)
+    {
+        var targets = RaisingPhrase.Partition(pd.raisingClause(), host.OoClasses, ctx.Edition, "PROCEDURE DIVISION RAISING");
+        EcLoadPdRaising(targets);
+        return targets;
+    }
 
     /// <summary>Load one source element's partitioned header RAISING phrase as the current per-element state —
     /// a program's (above) or a METHOD's (per-method reset: methods of one class bind through ONE binder).</summary>

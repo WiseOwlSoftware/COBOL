@@ -187,8 +187,9 @@ public interface ICodeGenBackend
 public enum BackendId { Roslyn, Cil }
 
 public sealed record BackendOptions(
-    string OutputPath, string AssemblyName, EditionInfo Edition,
-    bool EmitPdb = true, bool WriteSource = true /* .g.cs */);
+    string OutputPath, string AssemblyName /* the output file's base name */, EditionInfo Edition,
+    bool EmitPdb = true, bool WriteSource = true /* .g.cs */, CompilationInputs? Inputs = null,
+    bool RepositoryUpdate = true /* --repository-update: the module carries its units' signatures (ISO §8.13) */);
 
 /// The result the driver consumes; backend-agnostic.
 public sealed record BackendArtifact(
@@ -202,7 +203,14 @@ public sealed record BackendArtifact(
   hands packaging to `AssemblyPackager`. It becomes the **only** owner of C# syntax knowledge.
 - `CilBackend` (future) implements it over Mono.Cecil, doing its own private structure→branch lowering (SSOT §1.1:
   no shared lowered IR). Not built in this rearchitecture; the seam and the neutral tree make it *possible* and let the
-  differential harness cross-check the two backends.
+  differential harness cross-check the two backends. What a module PUBLISHES is backend-independent: the
+  external repository's record of every unit (DESIGN-external-repository §6, kb/Work PB2100) is a value,
+  `RepositoryRecord`, built from the bound tree by `RepositoryCodec.Of` (programs, functions, prototypes, classes and
+  interfaces); `RepositoryAttributeRenderer` turns it into `AttributeApplication` values (where every encoding rule
+  lives) and `RoslynBackend` writes those as attribute TEXT (`RepositoryAttributeRenderer.CSharp`, called through
+  `HostEntryEmitter` and `OoEmitter`), while a `CilBackend` would encode the same values with `MetadataBuilder` and the
+  ECMA-335 custom-attribute encoders; `RepositoryReader` reads either back to an equal record
+  (`RepositoryBackendIndependenceTests`, §17.4).
 - The driver selects by `--backend` (default Roslyn): `ICodeGenBackend backend = BackendFactory.For(options.Backend);`
 
 **Hard boundary:** the backend's `Emit` receives a `BoundCompilation` and produces an artifact. It performs **no
@@ -382,7 +390,7 @@ internal sealed class RuntimeApi   // one instance per EmitContext
     // numeric
     public string NumStore(string expr, string profile) => $"CobolNum.Store({expr}, {profile})";
     public string NumFormatDisplay(string v, string profile) => $"CobolNum.FormatDisplay({v}, {profile})";
-    public string NumDivideOrThrow(string a, string b, int scale, string rounding) => …;
+    public string NumDivide(string a, string b, int scale, string rounding) => …;
     // strings
     public string StrRefMod(string s, string start, string len) => $"CobolString.RefMod({s}, {start}, {len})";
     public string StrSpliceInto(string s, string start, string len, string rhs, char? pad = null) => …;

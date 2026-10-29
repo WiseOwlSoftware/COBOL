@@ -1,0 +1,61 @@
+## Entry 2712 — 2026-10-28 18:17 PDT — PB3975 + PB3990: DIVIDE's remainder after a quotient size error follows GnuCOBOL, and ROUNDED MODE IS PROHIBITED never stores a value it cut
+
+Wave 20261740 group A, the arithmetic emitter's two notes, each re-probed on main 1da5e0d6b against GnuCOBOL 3.2.
+
+**PB3975 (DIVIDE ... GIVING q REMAINDER r).** The filed case (`DIVIDE 1000 BY 4 GIVING A REMAINDER R`, A `PIC 99`) is not
+a defect: main and GnuCOBOL both print `50 0`. The cases that differed: with no SIZE ERROR phrase and checking off,
+`DIVIDE 1003 BY 4 GIVING B REMAINDER R3` (B `PIC 99`) stored R3 = 803 where GnuCOBOL stores 003, and `DIVIDE 333 BY 1
+GIVING B6 REMAINDER R8` (B6 `PIC 9`) stored 30 where GnuCOBOL stores 00. §14.9.12.4 6) c) (`cite.py --check 14.9.12.4 "If
+the size error condition is not raised, a subsidiary quotient is developed"` OK) gives the subsidiary quotient
+identifier-3's digit count only when no size error was raised, and then the quotient fits identifier-3; after a quotient
+size error with checking off the receivers are §14.6.13.1.3 8)'s (`cite.py --check 14.6.13.1.3 "how any receiving operands
+are affected"` OK), so CLAUDE.md rule 1 follows GnuCOBOL, which keeps every integer digit. The PB129 digit cap is gone
+(`SubsidiaryShape` has no digits; `CobolNum.CapDigits`, `RuntimeApi.NumCapDigits` deleted; `CobolDec.SubsidiaryQuotient`
+loses its digits parameter; runtime major 20 -> 21; the native back-multiply takes `NumericRenderer.QuotientDigitBound`).
+The open question the note carried (a statement with ONLY a NOT ON SIZE ERROR phrase) is settled without the owner:
+PB3989 gives the NOT-only statement the ON phrase's disposition for every receiver, so identifier-4 keeps its value as
+under ON (where ISO decides and GnuCOBOL's 003 is against 6 c)). DOC-A.1-70 records both. Goldens
+`14.9.12-DIVIDE/pb3975_remainder_after_quotient_size_error` (+ `_standard_decimal`); `pb129_remainder_no_phrase` now
+R2=0001 (GnuCOBOL's); `SizeErrorDispositionTests` NOT-only rows.
+
+**PB3990 (ROUNDED MODE IS PROHIBITED, no phrase, checking off).** Every receiver usage and category stored the value cut
+(`COMPUTE D5 ROUNDED MODE IS PROHIBITED = V`, V 1.5: D5 = 01, COMP-5 001, a quotient 03, a product 02, an in-place sum
+08, a COMP-1 0.099999994), and under STANDARD-DECIMAL the same statement terminated the run unit, because the SDIDI's
+rounding table always raised and nothing caught it. §14.7.4.3 rule 7 (`cite.py --check 14.7.4.3 "the content of the
+resultant identifier is unchanged"` OK) keeps the resultant whether or not checking is enabled; GnuCOBOL keeps it too.
+The fix is one mechanism: PROHIBITED is never a rounding direction, so `CobolNum.BumpsMagnitude` and
+`CobolDec.RoundFromRemainder` (and `FloatResultant`'s unchecked entries, `CobolEdit.FormatFloatStore`) raise the one
+`CobolSizeError.ProhibitedInexact()` from every final transfer, checked or not, and a Try form answers false. A checked
+statement's catch takes it as before; an unchecked one gets `ArithmeticEmitter.KeepsOnProhibitedInexact`, a try around a
+PROHIBITED receiver's compute-and-store that catches that condition alone, so the receiver is unchanged and the statement
+continues. That made four mechanisms redundant, and they are deleted: `CobolNum.DivideOrThrow`, PB654's StoreArith gate
+(`CobolFloat.InexactAtScale`), `FromDouble`'s checked-only raise and `TransferWide`'s unchecked mask. DOC-A.1-70's PB1196
+determination (truncate) is reversed, and `pb1196_float_resultant_rounded_mode`'s unchecked leg now keeps 5. A value
+that is exact but too big still takes the low-order digits (150 -> 50, GnuCOBOL's). Golden
+`14.7.4-ROUNDED/pb3990_prohibited_unchecked_keeps_the_resultant` (2014, 2023); GnuCOBOL differs only on the exact 2.0 (it
+keeps 07) and 0.1 into a COMP-1 (it stores it), both ISO's. `SizeErrorDispositionTests` 24 rows, both lanes.
+
+Inventory: two `record_verdicts` batches (witnesses, notes, three `DivideOrThrow` code-locations retired), no verdict
+moved, GAP 31 -> 31. The fleet stop (STOP-loop) arrived before the gate.
+
+Wave 20261744 group B finished the branch: the two commits were cherry-picked cleanly onto main 9920cfec5 and the re-probe
+matched. The first gate was RED on one case, `RuntimeApiGuardTests.Bare_runtime_accesses_do_not_increase`: the rule-7 catch
+arm named `CobolSizeError.IsProhibitedInexact` in `ArithmeticEmitter`, a bare runtime access the P7 ratchet forbids in a
+CodeGen file. The arm now renders through `RuntimeApi.ProhibitedInexactKeepCatch`, the facade's one anchor for it. The same
+read found three stacked doc comments in `RuntimeApi` (`PtrIsNull`, `DecSign` and `DecToUnscaledIntermediate` each lost
+its summary to the member above), and each is back on its own member.
+
+The branch review (round 1) found one blocking defect, R1-1: every landing now raises the rule-7 condition checked or
+not, but only the arithmetic statements caught it. A report printable item's implicit COMPUTE (`SOURCE ... ROUNDED MODE
+IS PROHIBITED`, §13.18.53.4 GR2; the SUM print, §13.18.54.4 GR4) passed the mode into `MoveEmitter.ConvertSource` with
+no catch, outside every statement's checking, so `SOURCE IS WS-F ROUNDED MODE IS PROHIBITED` with 1.55 into `PIC 9(3)`
+ended the run unit where main printed 001. The keep is now one emitted shape, `ArithmeticEmitter.EmitProhibitedInexactKeep`,
+and `ReportWriterEmitter.FieldImage` forms a PROHIBITED item's image inside it over a local holding the item's unchanged
+content, spaces (§13.8.6.2.3; each presentation composes the line from a space-filled buffer), and the report goes on. Its
+golden exposed a sibling present since PB852: the numeric-edited arm of `ConvertSource` handed a native sender to the
+formatter unrounded and its floating-point edited arm always truncated, so `SOURCE IS WS-F ROUNDED` printed 1.55 as 1
+into Z9 at every edition from 2002. The mode now reaches both landings. Goldens
+`13.18.53-SOURCE/pb3990_report_source_prohibited_keeps_the_item` (2014, 2023) and `pb3990_report_source_rounded_edited`
+(2002, 2014, 2023); the shape pin `ArithmeticOneInitialEvaluationDriftTests.TheReportImplicitCompute_KeepsAProhibitedPrintableItem_OnRule7Alone`.
+The lead R1-2 (a StoreArith comment naming a helper that does not exist) is fixed in the same change.
+
