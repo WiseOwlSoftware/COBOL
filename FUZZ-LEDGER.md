@@ -4,15 +4,15 @@
 
 **WiseOwl COBOL** is a new compiler for COBOL, the programming language that much of the world's banking, insurance and government software is still written in. It is being built largely by AI coding agents working under one engineer's supervision, and its goal is to follow the international COBOL standard, ISO/IEC 1989, exactly. **GnuCOBOL** is the established free, open-source COBOL compiler, maintained for more than twenty years.
 
-This page tracks a nightly test called **differential fuzzing**. An AI model picks sections of the standard at random, each one defining a COBOL statement, built-in function, data-description clause or kind of expression, and writes small test programs that use what that section defines. Both compilers run every one of those thousands of programs. When the two give different answers, at least one of them is wrong, or the standard allows both answers. Each disagreement is then settled by reading the standard itself, never by trusting either compiler. The totals below run from 2026-10-20 to 2026-10-27.
+This page tracks a nightly test called **differential fuzzing**. An AI model picks sections of the standard at random, each one defining a COBOL statement, built-in function, data-description clause or kind of expression, and writes small test programs that use what that section defines. Both compilers run every one of those thousands of programs. When the two give different answers, at least one of them is wrong, or the standard allows both answers. Each disagreement is then settled by reading the standard itself, never by trusting either compiler. The totals below run from 2026-10-20 to 2026-10-28.
 
-> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Ledger version e301185cecb2. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
+> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Ledger version 786bf648b722. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
 
-**7** nights of testing · **39,906** test programs written and run · **11,307** on which the two compilers disagreed · **24** bugs found in WiseOwl · **24** of those bugs fixed · **72** bugs recorded in GnuCOBOL
+**8** nights of testing · **44,256** test programs written and run · **12,583** on which the two compilers disagreed · **24** bugs found in WiseOwl · **24** of those bugs fixed · **77** bugs recorded in GnuCOBOL
 
 ## How a night of testing works
 
-1. **Write test programs.** For 8 hours, an AI model running on a local graphics card works through sections of the COBOL standard chosen at random (many sections covering the statements, built-in functions, data-description clauses and expressions). For each section it reads that section's text and writes a few short programs that use what the section defines. If GnuCOBOL cannot compile a program, the model sees the error messages and gets up to three tries to fix it.
+1. **Write test programs.** For 8 hours, an AI model running on a local graphics card works through sections of the COBOL standard chosen at random (about 235 sections covering the statements, built-in functions, data-description clauses and expressions). For each section it reads that section's text and writes a few short programs that use what the section defines. If GnuCOBOL cannot compile a program, the model sees the error messages and gets up to three tries to fix it.
 2. **Run them on both compilers.** Every program is compiled and run by WiseOwl and by GnuCOBOL. When both produce the same output, the program is set aside. Every difference is kept: one compiler refuses the program, the outputs differ, or one crashes or never finishes. Programs that differ in the same way are grouped together.
 3. **Decide who is right.** The next morning a team of AI reviewers, each given one share of the groups and no permission to change anything, read the standard and decide each group. Every quotation from the standard they rely on is checked automatically against the standard's actual text.
 4. **Challenge the result.** Each claimed GnuCOBOL bug is handed to a separate AI reviewer whose only job is to re-run it and try to prove the claim wrong. Only claims that survive are recorded.
@@ -47,6 +47,7 @@ Colours, left to right: WiseOwl was wrong · WiseOwl was right · GnuCOBOL was w
 | Night 5 | 2026-10-25 | qwen3.6:35b | 6,274 | 3,922 | 1,773 | 314 | 3 | itemized |
 | Night 6 | 2026-10-26 | qwen3.6:35b | 6,646 | 4,183 | 1,863 | 328 | 0 | itemized |
 | Night 7 | 2026-10-27 | qwen3.6:35b | 6,457 | 4,010 | 1,798 | 330 | 2 | itemized |
+| Night 8 | 2026-10-28 | qwen3.6:35b | 4,350 | 2,779 | 1,276 | 272 | 0 | itemized |
 
 ## Decisions, night by night
 
@@ -57,6 +58,7 @@ Colours, left to right: WiseOwl was wrong · WiseOwl was right · GnuCOBOL was w
 | Night 5 | 4 / 10 | 123 / 1,150 | 50 / 243 | 45 / 184 | 1 / 1 | 12 / 36 | 19 / 72 | 4 / 9 |
 | Night 6 | 1 / 3 | 123 / 1,202 | 59 / 296 | 42 / 163 | 0 / 0 | 11 / 28 | 17 / 71 | 7 / 10 |
 | Night 7 | 2 / 7 | 103 / 1,104 | 70 / 296 | 64 / 192 | 0 / 0 | 11 / 32 | 9 / 55 | 11 / 11 |
+| Night 8 | 0 / 0 | 87 / 753 | 55 / 238 | 62 / 173 | 0 / 0 | 6 / 18 | 7 / 31 | 7 / 9 |
 
 Groups of disagreements / programs in them. "Both allowed by the standard" means the standard leaves that detail to each compiler, so both answers are correct.
 
@@ -102,5 +104,6 @@ Every note the testing filed on the WiseOwl side, including a run that stopped b
 | --- | ---: |
 | 2026-10-27 | 65 |
 | 2026-10-28 | 7 |
+| 2026-10-29 | 5 |
 
 The testing also checks the reference compiler: the GnuCOBOL bugs it found, by the day each was written up.
