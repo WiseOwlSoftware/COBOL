@@ -716,7 +716,7 @@ passes every argument lifted exactly (`DecArgList` / `DecOf`, table(ALL) enumera
 result. PRESENT-VALUE's §15.74.3 r2 is then decided where every SDIDI evaluation of it decides it —
 `PresentValueDec`'s exact compare through the one `PresentValueDomain` raise site — which is also what lets a
 leading table(ALL) rate stay one `CobolDec[]` enumeration. A list with a floating argument keeps the binary64
-body (its EAE is evaluated in binary64, CONFORMANCE.md DOC-A.1-92); an SDIDI argument was already routed to the
+body (its EAE is evaluated in binary64, CONFORMANCE.md DOC-A.1-92b); an SDIDI argument was already routed to the
 Dec bodies by `RenderNum`'s native Dec arm (PB69). `WholeRangeBodiesDriftTests` requires every variadic Float
 catalog row to be a member and pins each overload. Pinned by `conformance-suite/cases/15.74.4-Returned-value-rule/pb1565_variadic_exact_argument_list`.
 

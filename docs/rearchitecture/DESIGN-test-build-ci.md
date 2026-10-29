@@ -2845,9 +2845,12 @@ has every step `continue-on-error` (kb/Work PB3820: the checkout too, the script
 are declared), the supersession rule of §3.17.2 step 4. Landed with kb/Work PB3787: `SparseCheckoutDriftTests` (reader:
 `SparseCheckoutAudit`): every workflow job whose checkout has a `sparse-checkout` list (`supersede`, `toolchain-cache`, `ci-gate`, the freshness job)
 lists each repository file its steps name, each file its local action names, and each repository module a Python script
-it runs imports as it starts, transitively (a function body's import is lazy and not followed; `importlib` and path
-strings are the static read's limits), and sets `sparse-checkout-cone-mode: false`, the mode the list is read in; the
-arms hold the real workflow (without `scripts/standard_streams.py` it is flagged), a transitive import, a lazy import,
+it runs imports anywhere in its text, transitively (a function body's lazy import is followed, kb/Work PB3810: an
+under-approximated closure fails silently on the runner; `importlib` and path strings are the static read's limits), and
+sets `sparse-checkout-cone-mode: false`, the mode the list is read in; the workflow's jobs come from the one reader,
+`DotnetSdkInstallDriftTests.Jobs` (the keys beneath `jobs:`, never the `on:` triggers); the
+arms hold the real workflow (without `scripts/standard_streams.py` it is flagged; `live_tools.py` and `scratch_repo.py`,
+which `standard_streams.live_python` imports lazily, are in every list), a transitive import, a lazy import (reached),
 a docstring, relative imports, packages, a local action, comments, the pattern forms, a cone-mode job and a negation.
 
 ### 3.18 THE INERT LANE — a change no test reads runs the audits and nothing else (kb/Work PB2878)
