@@ -6,6 +6,7 @@
 #    (the supervisor's tick is what a case measures, not the lane's survey of a scratch repository: kb/Work PB3639); with
 #    FAKE_PYTHON_STOP_AFTER_TICKS=N the Nth tick creates the loop's STOP file, so a case can prove that no tick starts once
 #    STOP exists.
+#  - every `review_lane.py ... tick`, which appends its argument list to `fake-python-review-ticks.txt` (kb/Work PB3608).
 $ErrorActionPreference = 'Stop'
 if ($args.Count -ge 2 -and ([string]$args[0]).EndsWith('checkpoint.py') -and $args[1] -eq 'write') {
     $mark = Join-Path $env:COBOL_COORD_DIR 'fake-python-slow-checkpoint'
@@ -20,6 +21,11 @@ if ($args.Count -ge 1 -and ([string]$args[0]).EndsWith('land_lane.py') -and $arg
     if ($env:FAKE_PYTHON_STOP_AFTER_TICKS -and @(Get-Content $log).Count -ge [int]$env:FAKE_PYTHON_STOP_AFTER_TICKS) {
         Set-Content -Path (Join-Path $env:COBOL_COORD_DIR 'STOP') -Value 'fake-python.ps1'
     }
+    exit 0
+}
+if ($args.Count -ge 1 -and ([string]$args[0]).EndsWith('review_lane.py') -and $args -contains 'tick') {
+    # the review lane's tick (kb/Work PB3608): one line per tick, the whole argument list, so a case can read what the supervisor passed
+    Add-Content -Path (Join-Path $env:COBOL_COORD_DIR 'fake-python-review-ticks.txt') -Value ($args -join ' ')
     exit 0
 }
 & python @args

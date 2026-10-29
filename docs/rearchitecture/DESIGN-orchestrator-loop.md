@@ -653,9 +653,10 @@ instead of at the next enqueue unit, is the headless lane's second job (kb/Work 
 did, because a wave's other groups are still in flight; the lane waits them out instead of handing the stop to the
 attended session.
 
-**What the enqueue unit keeps.** The judgment (units/enqueue.md): step 2's reviews, step 3 reads `land_lane.py status`
+**What the enqueue unit keeps.** The judgment (units/enqueue.md): step 2 reads the review lane's results and holds
+(section 4.9.1), step 3 reads `land_lane.py status`
 (one line per branch: its latest attempt, its verdict, its log, who acts next) and sends each STOPPED attempt to a
-finisher (step 4) or a reviewer (exit 11), files the leads of each ENQUEUED one (step 5), completes the landing records
+finisher (step 4; a CONFLICT one is the review lane's) or a reviewer (exit 11), files the leads of each ENQUEUED one (step 5), completes the landing records
 (step 6b) and then `land_lane.py collect`s them. A stop resolved WITHOUT a new commit leaves the head unchanged, and
 the lane never relaunches a stopped or queued head by itself, so the unit re-arms it, `land_lane.py rearm <branch>
 --why <cause>`: a bounce or a red its finisher attributes to infrastructure, load timing or main (once main carries the
@@ -668,6 +669,80 @@ total gate load is the same.
 
 **Measured** after it lands by `landing_measure.py summary`: DONE -> enqueued -> merged per pull request for the first
 waves after the lane, against wave 1069's landings, which went through the enqueue unit.
+
+#### 4.9.1 The review lane beside the landing lane (`review_lane.py`, kb/Work PB3608)
+
+**Why.** The landing lane starts every WAITING TO LAND branch within its tick, but a branch DONE outside a rolling wave
+(an attended branch, a finisher's new tip, a lane's notes branch) was WAITING FOR REVIEW until the loop's next `enqueue`
+unit ran its step 2, and units run one at a time: the units of 2026-10-23 ran 3,308 s, 4,579 s and (the wave from 14:13)
+over two hours. `fix-self-test-wall-leads` was DONE at ~14:00 and still WAITING FOR REVIEW at 16:00, until the operator
+dispatched its reviewer by hand (CLEAN in 187 s). The review is a model's work, so it cannot be a script step like the
+landing; it can be a script that STARTS the model, which is what the landing lane does with `enqueue.py`.
+
+**What runs.** Right after each landing-lane tick completes (`Complete-LaneTick` starts `Start-ReviewTick`), the
+supervisor starts `python scripts/orchestrator/review_lane.py --coord <coord> tick --repo <repo> --max-agents
+<-ReviewAgents> --permission-mode <mode> --claude=<piece>...` as a BACKGROUND process (`Start-PyBackground`, never on
+the event loop, never fatal, one at a time under `tick.lock`). It chains after the landing tick because it reads the
+survey that tick wrote (`land-lane/survey.json`, whose rows carry the report path and `conflicts`): no second survey, and
+a survey older than `land_lane.SURVEY_MAX_AGE_MIN` (30 minutes; the one threshold, `agent_work` reads it too) launches
+nothing and is not recorded as a tick (`last-tick.json`), so `agent_work` still reports the lane as not ticking. `-ReviewAgents 0`
+(default 3) or `-LandLaneSeconds 0` runs no review lane; the enqueue unit then takes the survey (`land_lane.py tick`) before
+it ticks the review lane. The tick:
+
+1. REAPS the runs whose detached runner is gone without an exit code (DIED) and JUDGES each finished run once.
+2. Starts nothing under the loop's STOP, its fleet stop or the owner's global stop (`land_lane.loop_stop`, the same
+   three the landing lane obeys) or when `budget.py` does not say `go`: the landing costs no tokens and ticks through a
+   budget hold; a reviewer or finisher spends the loop's account (`CLAUDE_CONFIG_DIR` is the supervisor's, inherited).
+3. LAUNCHES, at most `-ReviewAgents` alive at once, conflict finishers first, then reviews in survey order. A launch
+   writes `review-lane/runs/<id>.json` and the prompt, and starts `review_lane.py run <record>` DETACHED
+   (`scripts/detached.py`), which runs `claude -p --agent cobol-reviewer|cobol-finisher` in the main checkout with the
+   prompt on stdin (the role's own definition carries its model, hooks and turn cap), kills it at the role's ceiling
+   (`reviewer_ceiling_min` 90, the finisher's 240: STALLED) or on a loop stop (STOPPED), and records rc, the end head and
+   the verdict the findings file holds.
+
+**The lease, per branch head.** A reviewer is reviewing a head when the lane's runner for it is alive, or ANY findings
+file that names the branch holds a `start` at the head with no verdict younger than the reviewer ceiling (a rolling
+wave's reviewer: the survey reads one WAITING FOR REVIEW, kb/Work PB3283); a verdict at the head in any file means
+reviewed: its reviewer stamps the report within 5 minutes, and a verdict older than that whose stamp never came (a
+reviewer killed between the two, a wave stopped before its step 5), in the lane's own file or a wave's, is stamped by the
+lane (only the file's newest round; `review_findings.stamp`); and a report younger than 5 minutes waits, because a wave's reviewer writes its `start` only
+after the implementer's return is checked and nothing on disk says it is coming. `review_findings.rounds` is the one
+reader. The lane's own file is `scratch/review-<branch slug>.jsonl`.
+
+**Restart-safe.** A reviewer killed mid-review leaves its `start` (and perhaps findings, and perhaps a cut-off last
+line) in the file; no hand repair follows. The next tick finds the run DIED, mends a tear that is the file's LAST line
+only (`review_findings.repair_interrupted_append`; any other tear is a HOLD for the operator, and a torn file is never
+read for a verdict), and starts the SAME round again: `review_findings.py start` allows a second `start` of a round with
+no verdict, the findings already recorded stand and count at the verdict, and the prompt tells the new reviewer to list
+them (`show`) and record only new ones. Two runs that end with no verdict at one head are a HOLD, not a third; a run a
+loop stop ended (STOPPED) is not one of the two, for reviewer and finisher alike: the stop restarts it however often it
+came.
+
+**Rounds.** Round 1 reviews the whole branch; a later round (the lane's file holds the previous round's verdict at an
+older head) reviews the diff since that head. Blocking severities are `critical,high,medium` up to the wave's
+`review_fix_rounds` (2), `critical,high` after (a finding no finisher can answer any more is a lead).
+
+**The conflict finisher.** An exit-4 landing attempt (the branch still at its end head), or a pull request the survey
+reads BOUNCED with `conflicts` (merge state DIRTY), gets ONE `cobol-finisher` per head, its prompt carrying
+`land_lane.py conflict-brief <branch>` verbatim (kb/Work PB3640, PB3670 item 4) and the stop line, under the same cap
+and runner as a reviewer. The lane collects the exit-4 attempt it took and no other (a DIRTY bounce's latest attempt is
+the ENQUEUED one, whose leads and landing record stay the unit's); the landing lane's `agent_work` leaves the DIRTY
+bounces to it. A finisher that ends with the head unchanged is a HOLD. The finisher's commits make the branch
+WAITING FOR REVIEW, so the same lane reviews the new tip and the landing lane lands it.
+
+**What stays with the enqueue unit.** `review_lane.agent_work` is `next_unit.py`'s second reader (rule 6): the lane's
+uncollected HOLDS (each names the findings file a hand-dispatched reviewer records in), and, while the lane has not ticked in 30 minutes, the branches that wait for it (the unit ticks it
+once, as it ticks the landing lane). `review_lane.py collect <branch>` clears a hold. Everything else the unit did
+about reviews is gone from units/enqueue.md step 2; the finishers of every other stop (GATE RED, UNTESTED, a
+failed-checks bounce, a DEVLOG refusal) stay its step 4.
+
+**Measure.** DONE -> review stamp latency per branch (`review_findings.py summary`, `landing_measure.py`) against the
+2026-10-23 evidence above; `review_lane.py status` lists every run with its log and verdict.
+
+**Tests.** `review_lane.py --self-test` (discovered and run by `scripts/self_tests.py` in every gate and in CI) drives
+the tick over planted surveys and stubbed spawn/liveness/budget collaborators, and the runner over a stub agent;
+`test_orchestrate_lane.ps1` proves the supervisor ticks it beside the landing lane and not at `-ReviewAgents 0`;
+`ReviewLaneDriftTests` holds the supervisor's chaining, the enqueue unit's step 2 and the self-test arms.
 
 ### 4.10 The loop adopts what landed (`adopt_main.py`, kb/Work PB2699)
 
@@ -1705,9 +1780,9 @@ and `detached.py`'s docstrings, `scripts/hooks/forbidden_commands.py` (`enqueue.
 
 | Module | The job it owns | What moves there |
 |---|---|---|
-| `lane_state.py` | THE lane's state files under `<coord>/land-lane/`: attempt records (one writer per field), the re-arms, HALT, the tick lock, the survey copy | `LANE_DIR`, `ATTEMPTS`, `SURVEY`, `HALT`, `REARM`, `TICK_LOCK`, `lane_dir`, `_now`, `_slug`, `ATTEMPT_NUMBER`, `attempt_order`, `attempts`, `by_branch`, `update`, `finished`, `classify`, `trailing`, `effective`, `last_verdict`, `queued_pr`, `rearm_path`, `rearms`, `drop_stale_rearms`, `rearm`, `rearm_hold`, `rearm_effect`, `stop_reason` |
+| `lane_state.py` | THE lane's state files under `<coord>/land-lane/`: attempt records (one writer per field), the re-arms, HALT, the tick lock, the survey copy | `LANE_DIR`, `ATTEMPTS`, `SURVEY`, `HALT`, `REARM`, `TICK_LOCK`, `lane_dir`, `now_utc`, `slug`, `ATTEMPT_NUMBER`, `attempt_order`, `attempts`, `by_branch`, `update`, `finished`, `classify`, `trailing`, `effective`, `last_verdict`, `queued_pr`, `rearm_path`, `rearms`, `drop_stale_rearms`, `rearm`, `rearm_hold`, `rearm_effect`, `stop_reason`, `loop_stop` |
 | `conflict_brief.py` | The conflict brief a finisher starts from (PB3640) | `CONFLICTS`, `NOTE_ID`, `MAIN`, `BRIEF_NOTES`, `_note_line`, `conflict_brief`, `brief_path`, `main_of`, `write_conflict_brief`, `show_conflict_brief` |
-| `lane_decide.py` | What the lane does with one branch: the decision from its attempts, the waits (which exit waits on what), the candidates | `WAITS`, `RETRYABLE`, `QUEUE_OWNED`, `SURVEY_MAX_AGE_MIN`, `Decision`, `decide`, `tip_of`, `pid_alive`, `survey_rows`, `landing_check_free`, `linux_gate_holder`, `gate_lock_free`, `land_lock_free`, `lock_free`, `predecessor_free`, `wait_free`, `candidates` |
+| `lane_decide.py` | What the lane does with one branch: the decision from its attempts, the waits (which exit waits on what), the candidates | `WAITS`, `RETRYABLE`, `QUEUE_OWNED`, `SURVEY_MAX_AGE_MIN`, `Decision`, `decide`, `tip_of`, `pid_alive`, `survey_rows`, `row_dicts`, `landing_check_free`, `linux_gate_holder`, `gate_lock_free`, `land_lock_free`, `lock_free`, `predecessor_free`, `wait_free`, `candidates` |
 | `lane_watch.py` | The queue watch of a queued pull request and its remedies | `QUEUE_GRACE_MIN`, `WATCH_DONE`, `WatchStep`, `_iso`, `watch_step`, `WatchEffects`, `real_effects`, `watch_text`, `watch_queue`, `notify_operator` |
 | `lane_status.py` | The read side: the view `next_unit.py` and the probe print, the agent work, status lines | `ACTION`, `Lane`, `view`, `AgentWork`, `agent_work`, `outcome`, `brief_text`, `status_lines`, `collect` |
 | `land_lane.py` (stays, the lane) | The tick: survey, decide, launch, reap; the runner; `main` | `tick`, `launch`, `reap`, `run_attempt`, `LaneError`, `main` |
@@ -1715,7 +1790,10 @@ and `detached.py`'s docstrings, `scripts/hooks/forbidden_commands.py` (`enqueue.
 Importers re-pointed: `next_unit.py` and `orchestrate.ps1`'s `land_lane.py status`/`tick`/`rearm` calls (the CLI
 is unchanged), `session-probe.ps1` and `enqueue.py` (`view` → `lane_status`), `progress.py`, `LandingLaneDriftTests`
 (`land_lane.py` arms → `AssertCases`; the `'land_lane.py'` start it reads in the supervisor is unchanged),
-`MergeDriverDriftTests` (`merge_conflicts(`, `outcome_files(` → `conflict_brief.py`).
+`MergeDriverDriftTests` (`merge_conflicts(`, `outcome_files(` → `conflict_brief.py`), and `review_lane.py` (kb/Work PB3608,
+section 4.9.1), which uses `update`, `attempt_order`, `attempts`, `by_branch`, `view`, `finished`, `loop_stop`,
+`runner_alive`, `tip_of`, `notify_operator`, `show_conflict_brief` and the survey's rows: each import is re-pointed to its
+new module, and `review_lane.py` is declared in `scripts/script_layering.py` beside them.
 
 ### 16.8 `docs/CONFORMANCE.md`: one file per determination, a rendered index
 

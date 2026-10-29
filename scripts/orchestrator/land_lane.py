@@ -113,9 +113,11 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
      attempt (`watch`) and in landing_measure.py's record (`stalls`). Under a stop the watch reads but acts on nothing.
 `status` prints each branch's latest attempt; the enqueue unit reads it (units/enqueue.md step 3), sends each STOPPED
 attempt to a finisher or a reviewer, files the leads of each ENQUEUED one, and then `collect`s them. `agent_work` is
-next_unit.py's one reader: the enqueue unit starts only for agent work (WAITING FOR REVIEW, a BOUNCED branch the lane is
-neither landing nor re-armed to land, a stopped attempt, an ENQUEUED one to collect), never merely because a handoff
-lists DONE branches the lane is landing.
+next_unit.py's one reader: the enqueue unit starts only for agent work (a BOUNCED branch the lane is neither landing nor
+re-armed to land, a stopped attempt, an ENQUEUED one to collect), never merely because a handoff lists DONE branches the
+lane is landing. THE REVIEWS ARE NOT HERE: a branch WAITING FOR REVIEW, and the CONFLICT finisher of an exit 4 or of a
+pull request bounced DIRTY, are the REVIEW LANE's (review_lane.py, kb/Work PB3608), which the supervisor ticks right
+after this tick, on the survey this tick wrote (`survey.json`, whose rows carry the `report` and `conflicts` it reads).
 
 Exit: 0 done (a tick already running included) · 1 the survey or a launch failed (printed; the supervisor never treats
 it as fatal) · 2 usage.
@@ -185,11 +187,11 @@ def lane_dir(cdir: pathlib.Path) -> pathlib.Path:
     return cdir / LANE_DIR
 
 
-def _now() -> dt.datetime:
+def now_utc() -> dt.datetime:
     return dt.datetime.now(dt.timezone.utc)
 
 
-def _slug(branch: str) -> str:
+def slug(branch: str) -> str:
     return re.sub(r"[^A-Za-z0-9._-]+", "-", branch).strip("-") or "branch"
 
 
@@ -356,7 +358,7 @@ def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, re
     main_sha = main_of(worktree, git)
     tip = git("rev-parse", "HEAD", cwd=worktree).stdout.strip()
     out = [f"# Conflict brief: {branch}", "",
-           f"Written {(now or _now()).isoformat(timespec='seconds')} by `land_lane.py` (kb/Work PB3640) for the "
+           f"Written {(now or now_utc()).isoformat(timespec='seconds')} by `land_lane.py` (kb/Work PB3640) for the "
            "CONFLICT finisher, who gets it verbatim (units/enqueue.md step 4).",
            f"Bringing origin/main ({main_sha[:12] or 'unreadable'}) into {branch} ({tip[:12] or 'unreadable'}, merge "
            f"base {base[:12] or 'unreadable'}) leaves {len(files)} file(s) in conflict: {', '.join(files) or 'none'}.",
@@ -557,8 +559,18 @@ def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, 
         raise LaneError(f"git fetch origin failed in {repo}: {fetch.stderr.strip()[:200]}")
     rows = prune_worktrees.live_survey(repo, coord_dir=cdir, prs=prs)
     order = [r.name for r in prune_worktrees.landing_order(rows, prune_worktrees.note_rank())]
-    return ([{"name": r.name, "state": r.state, "content": r.content, "tip": r.tip, "worktree": r.worktree,
-              "why": r.why, "lead": r.report.lead if r.report else None} for r in rows], order, prs)
+    return row_dicts(rows, prs), order, prs
+
+
+def row_dicts(rows: list, prs: dict | None) -> list[dict[str, Any]]:
+    """The surveyed rows (prune_worktrees.Row) as the tick and the review lane read them. Pure, so the self-test runs
+    it on a planted Row: the tick's own survey is a fake there, and a field this mapping read that the survey's report
+    lacks crashed every tick on main (kb/Work PB4055)."""
+    return [{"name": r.name, "state": r.state, "content": r.content, "tip": r.tip, "worktree": r.worktree,
+             "why": r.why, "lead": r.report.lead if r.report else None,
+             "report": str(r.report.path) if r.report else None,
+             # GitHub cannot create the pull request's merge commit (DIRTY): a CONFLICT finisher's, as an exit 4 is
+             "conflicts": bool(prs and r.name in prs and prs[r.name].conflicts)} for r in rows]
 
 
 def landing_check_free(worktree: str) -> tuple[bool, str]:
@@ -682,7 +694,7 @@ def notify_operator(cdir: pathlib.Path, subject: str, body: str, ref: str, say: 
 
 # ── the enqueue unit's re-arm ──────────────────────────────────────────────────────────────────────────────────────
 def rearm_path(cdir: pathlib.Path, branch: str) -> pathlib.Path:
-    return lane_dir(cdir) / REARM / f"{_slug(branch)}.json"
+    return lane_dir(cdir) / REARM / f"{slug(branch)}.json"
 
 
 def rearms(cdir: pathlib.Path, unreadable: list[str] | None = None) -> dict[str, dict[str, Any]]:
@@ -749,7 +761,7 @@ def rearm(cdir: pathlib.Path, branch: str, why: str, say: Say = print,
         return 1
     path = rearm_path(cdir, branch)
     path.parent.mkdir(parents=True, exist_ok=True)
-    coord.write_json(path, {"branch": branch, "head": tip, "why": why, "at": _now().isoformat(timespec="seconds")})
+    coord.write_json(path, {"branch": branch, "head": tip, "why": why, "at": now_utc().isoformat(timespec="seconds")})
     say(f"land lane: {branch}: re-armed at {tip[:12]} ({why}); the next tick lands it again")
     return 0
 
@@ -894,7 +906,7 @@ def watch_queue(cdir: pathlib.Path, branches: dict[str, list[dict[str, Any]]], r
                 now: dt.datetime | None = None) -> None:
     """Read each branch's latest attempt that ended ENQUEUED (exit 0) and whose watch has not ended, and act on a
     stalled read (watch_step). Unobserved facts (None) read nothing; a stop (`held`) lets it read but not act."""
-    now = now or _now()
+    now = now or now_utc()
     if prs is None:
         if any(finished(a[-1]) and classify(a[-1]) == DONE and (a[-1].get("watch") or {}).get("state") not in WATCH_DONE
                for a in branches.values()):
@@ -955,10 +967,18 @@ def stop_reason(cdir: pathlib.Path) -> str | None:
     STOP), the owner's global stop, or HALT. Never `STOP-UNIT` alone (kb/Work PB3402): that is the soft context cap's
     signal to the running UNIT, and a landing is its own process, which adds nothing to the unit's context, so the
     unit's size must not hold finished work."""
+    halt = lane_dir(cdir) / HALT
+    return loop_stop(cdir) or (f"HALT (a run ended QUEUE NOT ACTIVE; `land_lane.py clear-halt`) ({halt})"
+                               if halt.exists() else None)
+
+
+def loop_stop(cdir: pathlib.Path) -> str | None:
+    """Why no agent of the loop may start: the loop's STOP, its fleet stop `scratch/STOP-loop`, or the owner's global
+    stop (`stop_reason` without HALT, which is the landing's alone). THE one reader of the three: the review lane
+    (review_lane.py, kb/Work PB3608) starts no reviewer or finisher under any of them either."""
     for path, what in ((cdir / "STOP", "the loop's STOP"),
                        (coord.fleet_stop(cdir / "scratch", "loop"), "the loop's fleet stop"),
-                       (coord.global_stop(str(cdir)), "the owner's global STOP"),
-                       (lane_dir(cdir) / HALT, "HALT (a run ended QUEUE NOT ACTIVE; `land_lane.py clear-halt`)")):
+                       (coord.global_stop(str(cdir)), "the owner's global STOP")):
         if path.exists():
             return f"{what} ({path})"
     return None
@@ -974,7 +994,7 @@ def reap(cdir: pathlib.Path, atts: list[dict[str, Any]], alive: Callable[[dict[s
         # leaves the branch IN FLIGHT in the survey, and only this record lets the lane retry it. A runner that wrote
         # its rc and then exited is not DIED: the fresh record decides, under the record's lock.
         update(a, lambda fresh: {} if "rc" in fresh else {
-            "outcome": "DIED", "ended": _now().isoformat(timespec="seconds"),
+            "outcome": "DIED", "ended": now_utc().isoformat(timespec="seconds"),
             "verdict": last_verdict(pathlib.Path(a["log"])), "end_head": tip_of(a.get("worktree"))})
         if a.get("outcome") == "DIED":
             say(f"land lane: {a['branch']}: the runner of attempt {a['id']} is gone with no exit code (DIED; {a['log']})")
@@ -982,7 +1002,7 @@ def reap(cdir: pathlib.Path, atts: list[dict[str, Any]], alive: Callable[[dict[s
         if finished(a) and a.get("rc") == EXIT_QUEUE_NOT_ACTIVE and not a.get("halted"):
             halt = lane_dir(cdir) / HALT
             if not halt.exists():
-                halt.write_text(f"{_now().isoformat(timespec='seconds')} {a['branch']} attempt {a['id']}: "
+                halt.write_text(f"{now_utc().isoformat(timespec='seconds')} {a['branch']} attempt {a['id']}: "
                                 f"{a.get('verdict')}\n", encoding="utf-8", newline="\n")
                 say(f"land lane: HALTED — {a['branch']} ended QUEUE NOT ACTIVE; no landing starts until the operator "
                     f"runs `land_lane.py clear-halt` once `ruleset.py check` reports ACTIVE")
@@ -1023,11 +1043,11 @@ def launch(cdir: pathlib.Path, repo: pathlib.Path, row: dict[str, Any], why: str
            start: Callable[[list[str], pathlib.Path], int], argv: list[str] | None = None) -> dict[str, Any]:
     """Start one attempt. Only `tick` calls it, under the tick lock, so the attempt's NUMBER (one past every attempt
     recorded; `attempt_order`) is taken by one process at a time and names one attempt."""
-    now = _now()
+    now = now_utc()
     d = lane_dir(cdir) / ATTEMPTS
     d.mkdir(parents=True, exist_ok=True)
     n = max((attempt_order(p)[0] for p in d.glob("*.json")), default=0) + 1
-    aid = f"{n:06d}-{now:%Y%m%dT%H%M%SZ}-{_slug(row['name'])}"
+    aid = f"{n:06d}-{now:%Y%m%dT%H%M%SZ}-{slug(row['name'])}"
     path = d / f"{aid}.json"
     log = cdir / "logs" / f"land-lane-{aid}.log"
     rec = {"id": aid, "branch": row["name"], "head": row["tip"], "worktree": row["worktree"], "why": why,
@@ -1051,7 +1071,7 @@ def tick(cdir: pathlib.Path, repo: pathlib.Path, *,
          effects: WatchEffects | None = None, now: dt.datetime | None = None, say: Say = print) -> int:
     d = lane_dir(cdir)
     d.mkdir(parents=True, exist_ok=True)
-    lock = ExclusiveLock.try_take(d / TICK_LOCK, f"land_lane.py tick (pid {os.getpid()}, {_now():%Y-%m-%d %H:%M:%S}Z)")
+    lock = ExclusiveLock.try_take(d / TICK_LOCK, f"land_lane.py tick (pid {os.getpid()}, {now_utc():%Y-%m-%d %H:%M:%S}Z)")
     if lock is None:
         say(f"land lane: a tick is already running ({ExclusiveLock.holder(d / TICK_LOCK)}); nothing done")
         return 0
@@ -1066,7 +1086,7 @@ def tick(cdir: pathlib.Path, repo: pathlib.Path, *,
         except (LaneError, OSError, subprocess.SubprocessError) as exc:
             say(f"land lane: no survey, nothing launched: {exc}")
             return 1
-        coord.write_json(d / SURVEY, {"at": _now().isoformat(timespec="seconds"), "rows": rows, "landing_order": order})
+        coord.write_json(d / SURVEY, {"at": now_utc().isoformat(timespec="seconds"), "rows": rows, "landing_order": order})
         branches = by_branch(atts)
         why = stop_reason(cdir)
         # THE QUEUE WATCH (kb/Work PB3527), on the facts this survey read: under a stop it reads, and acts on nothing.
@@ -1114,7 +1134,7 @@ def run_attempt(path: pathlib.Path) -> int:
         rc = subprocess.run(rec["argv"], cwd=rec.get("cwd") or None, stdin=subprocess.DEVNULL, stdout=log,
                             stderr=subprocess.STDOUT).returncode
     current = update({**rec, "_path": str(path)},
-                     {"rc": rc, "ended": _now().isoformat(timespec="seconds"), "end_head": tip_of(rec.get("worktree")),
+                     {"rc": rc, "ended": now_utc().isoformat(timespec="seconds"), "end_head": tip_of(rec.get("worktree")),
                       "verdict": last_verdict(pathlib.Path(rec["log"])), "pr": queued_pr(pathlib.Path(rec["log"]))})
     print(f"land lane: attempt {rec['id']} ended exit {rc}: {current['verdict'] or 'no verdict line'}", flush=True)
     if rc == EXIT_CONFLICT:
@@ -1132,8 +1152,8 @@ def run_attempt(path: pathlib.Path) -> int:
 
 
 # ── what the enqueue unit and next_unit.py read ────────────────────────────────────────────────────────────────────
-ACTION = {STOPPED: "the enqueue unit's: step 4 finisher, a CONFLICT one with its brief (UNREVIEWED: step 2 reviewer; a "
-                   "repeated exit 2 or 9: handoff)",
+ACTION = {STOPPED: "the enqueue unit's: step 4 finisher (a CONFLICT one is the review lane's: started with its brief and "
+                   "collected; UNREVIEWED: step 2 reviewer; a repeated exit 2 or 9: handoff)",
           DONE: "the lane's queue watch follows its pull request into the merge queue; the enqueue unit's: file its "
                 "leads (step 5), complete its landing record (step 6b), then collect it",
           FREE: "the lane retries it at this head once what it waits on is free (exit 3: landing_check.py passes, the "
@@ -1153,7 +1173,7 @@ class Lane:
     rearms: dict[str, dict[str, Any]]          # the enqueue unit's pending re-arms, by branch
 
     def survey_age_min(self, now: dt.datetime | None = None) -> float | None:
-        return None if self.survey_at is None else ((now or _now()) - self.survey_at).total_seconds() / 60
+        return None if self.survey_at is None else ((now or now_utc()) - self.survey_at).total_seconds() / 60
 
 
 def view(cdir: pathlib.Path) -> Lane:
@@ -1177,21 +1197,23 @@ class AgentWork:
 
 
 def agent_work(cdir: pathlib.Path, now: dt.datetime | None = None) -> AgentWork:
-    """What only the enqueue unit's agents (or its clerk and its records) can do: rows WAITING FOR REVIEW or BOUNCED in
-    a survey younger than SURVEY_MAX_AGE_MIN (a BOUNCED one only while the lane is neither landing it nor re-armed to:
-    its finisher already resolved it), STOPPED attempts not yet collected, and ENQUEUED attempts not yet collected
-    (their leads and landing records). A row the survey reads STOPPED is counted through its attempt, never by its
-    state: uncollected, it is the unit's work; collected, the unit has already dispatched its owner (kb/Work PB3125)."""
+    """What only the enqueue unit's agents (or its clerk and its records) can do: rows BOUNCED in a survey younger than
+    SURVEY_MAX_AGE_MIN (only while the lane is neither landing it nor re-armed to: its finisher already resolved it,
+    and not one GitHub bounced as DIRTY, which the REVIEW LANE's conflict finisher takes, kb/Work PB3608), STOPPED
+    attempts not yet collected (an exit 4 the review lane started a finisher for is collected by it), and ENQUEUED
+    attempts not yet collected (their leads and landing records). A row WAITING FOR REVIEW is the review lane's
+    (review_lane.agent_work reports what it could not do). A row the survey reads STOPPED is counted through its
+    attempt, never by its state: uncollected, it is the unit's work; collected, the unit has already dispatched its
+    owner (kb/Work PB3125)."""
     lane = view(cdir)
     age = lane.survey_age_min(now)
     reasons = []
     landing = {a["branch"] for a, c in lane.latest if c == "running"} | set(lane.rearms)
     if age is not None and age <= SURVEY_MAX_AGE_MIN:
-        for state in ("WAITING FOR REVIEW", "BOUNCED"):
-            names = [r["name"] for r in lane.rows if r.get("state") == state
-                     and not (state == "BOUNCED" and r["name"] in landing)]
-            if names:
-                reasons.append(f"{state.lower()}: {', '.join(names)}")
+        names = [r["name"] for r in lane.rows if r.get("state") == "BOUNCED" and r["name"] not in landing
+                 and not r.get("conflicts")]
+        if names:
+            reasons.append(f"bounced: {', '.join(names)}")
     stopped = [f"{a['branch']} ({outcome(a)})" for a, c in lane.latest if c == STOPPED and not a.get("collected")]
     queued = [a["branch"] for a, c in lane.latest if c == DONE and not a.get("collected")]
     if stopped:
@@ -1358,7 +1380,7 @@ def self_test() -> int:
             """The runner's own completion of the branch's running attempt (the record `run_attempt` writes)."""
             for a in attempts(cdir):
                 if a["branch"] == branch and not finished(a):
-                    update(a, {"rc": rc, "verdict": verdict, "ended": _now().isoformat(),
+                    update(a, {"rc": rc, "verdict": verdict, "ended": now_utc().isoformat(),
                                "end_head": end_head or a["head"]})
 
         # 1. planted survey rows: exactly the WAITING TO LAND rows start, in survey order; a second tick starts none.
@@ -1372,8 +1394,30 @@ def self_test() -> int:
                [r["name"] for r in s.get("rows", [])] == ["w1a", "w1b", "w1c", "w1d", "w1e"], str(s))
         expect("a second tick while both run starts nothing (being landed)", f.tick(c) == [], str(f.started))
         w = agent_work(c)
-        expect("agent work: the row WAITING FOR REVIEW, and nothing for the runs in flight",
-               w.reasons == ["waiting for review: w1b"], str(w.reasons))
+        expect("agent work: the row WAITING FOR REVIEW is the review lane's, not the enqueue unit's (kb/Work PB3608), "
+               "and the runs in flight are nobody's", w.reasons == [], str(w.reasons))
+
+        # 1b. the real mapping from the survey's rows (the Fake above stands in for it): a row's report reaches the
+        # review lane as its file's PATH, which it stats and reads (kb/Work PB4055: the mapping read a field the
+        # survey's report lacked, and every tick on main crashed)
+        import prune_worktrees  # noqa: PLC0415  (scripts/: it imports this module back, lazily)
+        from reports import IndexedReport  # noqa: PLC0415
+        rep_path = root / "reports" / "w1a-PB1-report.md"
+        planted = [prune_worktrees.Row("w1a", "CHECK", [], [], 1, str(root / "wt-w1a"), None, 0, 5.0, "",
+                                       IndexedReport(rep_path, "DONE", "PB1", False, 5.0), "WAITING FOR REVIEW",
+                                       tip="a1"),
+                   prune_worktrees.Row("w1b", "UNLANDED", [], [], 1, None, None, 0, 5.0, "", None, "DECISION")]
+        mapped = row_dicts(planted, None)
+        expect("the survey's rows map to the tick's dicts: a reported row carries its report's path and lead, an "
+               "unreported one None for both",
+               [(d["name"], d["report"], d["lead"], d["conflicts"]) for d in mapped]
+               == [("w1a", str(rep_path), "PB1", False), ("w1b", None, None, False)], str(mapped))
+        import queue_facts  # noqa: PLC0415
+        dirty = {"w1a": queue_facts.PullRequest(1, "u1", "a1", False, merge_state="DIRTY"),
+                 "w1b": queue_facts.PullRequest(2, "u2", "b1", True, merge_state="DIRTY")}
+        expect("... with GitHub observed, a pull request GitHub cannot merge (DIRTY, not queued) is a conflict, a queued "
+               "one is not (PullRequest.conflicts read through the real mapping)",
+               [d["conflicts"] for d in row_dicts(planted, dirty)] == [True, False], str(row_dicts(planted, dirty)))
 
         # 2. exit 5 (GATE RED) is never relaunched at the same head; a new head (a finisher's commit) is eligible.
         f.rows[0] = row("w1a", "DECISION", "a2")                  # enqueue merged main in: the survey no longer lists it
@@ -1619,8 +1663,8 @@ def self_test() -> int:
         #     file name, and the retry's record overwrote the first.
         c4b = fresh("one-tick")
         stopped_at = dt.datetime(2026, 10, 23, 2, 21, 9, 187360, dt.timezone.utc)
-        real_now = _now
-        globals()["_now"] = lambda: stopped_at
+        real_now = now_utc
+        globals()["now_utc"] = lambda: stopped_at
         try:
             f4b = Fake([row("w3b", "WAITING TO LAND", "m1")])
             first4b = f4b.tick(c4b)
@@ -1628,7 +1672,7 @@ def self_test() -> int:
             f4b.live.clear()
             again4b = f4b.tick(c4b)
         finally:
-            globals()["_now"] = real_now
+            globals()["now_utc"] = real_now
         (lane_dir(c4b) / ATTEMPTS / "20261022T225440187360Z-w3b.json").write_text(
             json.dumps({"id": "20261022T225440187360Z-w3b", "branch": "w3b", "head": "m0", "rc": 2}),
             encoding="utf-8", newline="\n")   # an attempt named before the numbers
@@ -1701,7 +1745,7 @@ def self_test() -> int:
         collect(c8, ["w7a"], say=lambda s: None)
         expect("collected: no agent work is left", agent_work(c8).reasons == [], str(agent_work(c8).reasons))
         old = coord.read_json(lane_dir(c8) / SURVEY, {})
-        old["at"] = (_now() - dt.timedelta(minutes=SURVEY_MAX_AGE_MIN + 5)).isoformat()
+        old["at"] = (now_utc() - dt.timedelta(minutes=SURVEY_MAX_AGE_MIN + 5)).isoformat()
         coord.write_json(lane_dir(c8) / SURVEY, old)
         expect("a survey older than SURVEY_MAX_AGE_MIN is reported stale (the lane is not ticking)",
                agent_work(c8).survey_age_min > SURVEY_MAX_AGE_MIN and "STALE" in status_lines(c8)[0], status_lines(c8)[0])
@@ -2047,7 +2091,7 @@ def self_test() -> int:
         f15.tick(c15)
         stale = next(a for a in attempts(c15) if a["branch"] == "w15b")
         late = next(a for a in attempts(c15) if a["branch"] == "w15b")
-        update(late, {"rc": 0, "verdict": "ENQUEUED", "ended": _now().isoformat(), "end_head": "x1"})
+        update(late, {"rc": 0, "verdict": "ENQUEUED", "ended": now_utc().isoformat(), "end_head": "x1"})
         reap(c15, [stale], lambda a: False, say=lambda s: None)
         expect("one writer per field: a runner that wrote its rc after reap read the record is not marked DIED (the "
                "fresh record decides, under the record's lock)",

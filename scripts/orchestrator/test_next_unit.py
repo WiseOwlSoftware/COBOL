@@ -136,6 +136,36 @@ c = choose(coord("enqueue", lines), handoff=enq)
 check("a named enqueue is chosen while the meter is unreadable", (c["unit"], c["meter_unreadable"]["failures"]),
       ("enqueue", 3))
 
+# rule 6 and the REVIEW LANE (kb/Work PB3608): a branch WAITING FOR REVIEW is the review lane's while it ticks; the enqueue
+# unit starts for its holds, or for the branch while the lane is not ticking (the unit then ticks it once).
+def lane_case(case: str, ticked_min_ago: float | None, holds: list[dict]) -> dict:
+    cdir = coord(case, [], reading_hours_ago=0.1)
+    real = dt.datetime.now(dt.timezone.utc)
+    (cdir / "land-lane").mkdir()
+    (cdir / "land-lane" / "survey.json").write_text(json.dumps({"at": real.isoformat(), "landing_order": [], "rows": [
+        {"name": "w1a", "state": "WAITING FOR REVIEW", "tip": "a1", "worktree": "wt", "conflicts": False}]}),
+        encoding="utf-8", newline="\n")
+    (cdir / "review-lane" / "holds").mkdir(parents=True)
+    if ticked_min_ago is not None:
+        (cdir / "review-lane" / "last-tick.json").write_text(json.dumps({"at": (real - dt.timedelta(minutes=ticked_min_ago)).isoformat()}),
+                                                              encoding="utf-8", newline="\n")
+    for h in holds:
+        (cdir / "review-lane" / "holds" / f"{h['branch']}.json").write_text(json.dumps(h), encoding="utf-8", newline="\n")
+    return choose(cdir)
+
+
+c = lane_case("lane-ticking", 1, [])
+check("a branch WAITING FOR REVIEW starts no enqueue unit while the review lane ticks", c["unit"], "wave")
+c = lane_case("lane-hold", 1, [{"branch": "w1a", "head": "a1", "why": "2 reviewers ended with no verdict", "collected": False}])
+check("a review lane hold starts the enqueue unit, naming the branch", (c["unit"], "review lane holds: w1a" in c["reason"]), ("enqueue", True))
+c = lane_case("lane-collected", 1, [{"branch": "w1a", "head": "a1", "why": "x", "collected": True}])
+check("a collected hold is nobody's work", c["unit"], "wave")
+c = lane_case("lane-stale", 500, [])
+check("a review lane that is not ticking hands its waiting branch to the unit, which ticks it once",
+      (c["unit"], "not ticking" in c["reason"]), ("enqueue", True))
+c = lane_case("lane-never", None, [])
+check("a review lane that never ticked does the same", c["unit"], "enqueue")
+
 if fails:
     print("\n".join("FAIL: " + f for f in fails))
     sys.exit(1)

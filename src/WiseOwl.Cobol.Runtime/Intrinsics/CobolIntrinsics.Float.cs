@@ -494,7 +494,7 @@ public static partial class CobolIntrinsics
     // narrowing each exact argument first cancels its low digits away: VARIANCE(100000000000000001
     // 100000000000000002) answered 0 where the value is 0.25, STANDARD-DEVIATION 0 where it is 0.5, and
     // PRESENT-VALUE(0 100000000000000001 −100000000000000000) 0 where it is 1. The binary64 bodies above stay for a
-    // list with a FLOATING argument, whose EAE is evaluated in binary64 (CONFORMANCE.md DOC-A.1-92, the exact
+    // list with a FLOATING argument, whose EAE is evaluated in binary64 (CONFORMANCE.md DOC-A.1-92b, the exact
     // family's determination for the same case). An all-exact list is lifted exactly into the SDIDI and the EAE is
     // evaluated there by the ONE Dec body of each function (VarianceDec / StdDevDec / PresentValueDec — the
     // standard modes' bodies, in the native intermediate rounding mode), and only the RESULT is narrowed, once,

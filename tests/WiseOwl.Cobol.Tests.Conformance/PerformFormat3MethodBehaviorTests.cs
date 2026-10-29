@@ -136,20 +136,35 @@ public sealed class PerformFormat3MethodBehaviorTests
 
     // ── GR18 WHEN OTHER + GR19 WHEN COMMON — in a method ─────────────────────────────────────────────────────────
 
-    [Fact]   // GR18: an enabled condition named by no WHEN runs WHEN OTHER (imp-3).
-    public void WhenOther_HandlesUnnamedCondition()
+    [Fact]   // GR18 + GR20: a NONFATAL condition named by no WHEN runs WHEN OTHER (imp-3), then resumes IN PLACE (the
+             // method-scope mirror of PerformFormat3BehaviorTests.WhenOther_NonfatalWithoutResume_ContinuesInPlace; no
+             // RESUME in the handler, which would print the same output under either reading of GR18, kb/Work PB438).
+    public void WhenOther_NonfatalWithoutResume_ContinuesInPlace()
         => AssertSpec("""
                 PERFORM
-                    RAISE EXCEPTION EC-BOUND-SUBSCRIPT
+                    RAISE EXCEPTION EC-USER-DEMO
+                    DISPLAY "AFTER"
+                WHEN EC-BOUND-SUBSCRIPT
+                    DISPLAY "SPECIFIC"
+                WHEN OTHER
+                    DISPLAY "OTHER"
+                END-PERFORM
+                DISPLAY "DONE"
+            """, "OTHER\nAFTER\nDONE");
+
+    [Fact]   // GR18 + GR20 fatal: a FATAL condition named by no WHEN runs WHEN OTHER, then — no RESUME — terminates.
+    public void WhenOther_Fatal_ThenTerminates()
+        => AssertFatal("""
+                PERFORM
+                    RAISE EXCEPTION EC-SIZE-OVERFLOW
                     DISPLAY "AFTER"
                 WHEN EC-USER-DEMO
                     DISPLAY "SPECIFIC"
                 WHEN OTHER
                     DISPLAY "OTHER"
-                    RESUME NEXT STATEMENT
                 END-PERFORM
                 DISPLAY "DONE"
-            """, "OTHER\nAFTER\nDONE");
+            """, "EC-SIZE-OVERFLOW", "OTHER");
 
     [Fact]   // GR19: WHEN COMMON (imp-4) runs after the selected WHEN (imp-2) completes, then GR20 resumes in place.
     public void WhenCommon_RunsAfterWhen_ThenResumes()
