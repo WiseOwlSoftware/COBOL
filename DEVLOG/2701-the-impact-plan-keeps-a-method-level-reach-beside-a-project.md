@@ -33,8 +33,22 @@ and the stat raised `FileNotFoundError` out of `nearest` and `find_map`, and the
 `record_impact_map.py` and `scripts/orchestrator/impact_lane.py` are these four; the remaining globs (`plan.json` in
 `impact_lane.measure`, the recorder's own raw directory, the test-source `rglob`s) read the file under `except OSError`
 or are the recorder's own files. Pins: `impact_store --self-test` removes a globbed map, a work directory and a
-temporary file between the glob and the stat (a patched `Path.stat`), and `impacted_tests --self-test` plans through a
-store whose only map vanishes (unaimed, with the cause printed).
+temporary file between the glob and the stat, and `impacted_tests --self-test` plans through a store whose only map
+vanishes (unaimed, with the cause printed). Both go through one fault, `impact_store.vanished_after_the_glob`.
+
+**The merge-queue bounce (PR #734, run 40754265548).** The first pins patched `Path.stat` alone and read `exists()` on
+the vanished path inside the patch. CI's Windows self-test job then ran Python 3.12, where `Path.exists`, `is_file` and
+`is_dir` call `Path.stat` (3.12 `pathlib.py`: `exists` calls `self.stat(...)`); 3.14 and later call `os.path.exists`.
+So the arm's own read hit the stub, and two arms failed on 3.12 only (`tidy skips a work directory …`, `prune skips a
+temporary file …`: `exists()` False). Reproduced with uv's CPython 3.12.16 on this host. Fix: the fault makes a path
+read gone through all five calls (`stat`, `lstat`, `exists`, `is_file`, `is_dir`), so every Python sees the same thing,
+and the arms read what the code left on disk only after the block. A new arm pins that the calls agree on the
+running Python (`mtime`, `exists`, `is_file`, its directory's `is_dir`). The two self-tests are green on 3.12.16 and 3.15.2. Sweep: of the other self-test stubs on a pathlib
+or os method (`Path.open` in `prune_worktrees.py` and `review_findings.py`, `Path.rename` in `queue_facts.py`,
+`Path.glob` in `test_plan_wave.py`, `os.replace` in `sharedfile.py`), none routes differently between 3.12 and 3.15:
+`read_text` and `write_*` call `self.open` in both, `rename` and `replace` call `os`, and `load_reports` calls `glob`,
+not `rglob` (3.15 implements `rglob` through `glob`, 3.12 does not). The CI side of the gap, CI running a different Python
+from the hosts, was closed on main by PB4007 (the toolchain manifest's Python 3.15.2 in every job).
 
 Docs: DESIGN-test-build-ci section 3.13 and the `gate_plan.py` docstring state the rule; DOC_INDEX line updated.
 

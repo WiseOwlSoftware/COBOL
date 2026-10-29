@@ -971,19 +971,9 @@ def map_service_arms(check) -> None:
             pruned = tmp / "pruned"
             pruned.mkdir()
             impact_store.map_file(pruned, recorded).write_bytes(b"x")
-            real_stat = Path.stat
-
-            def stat_of_pruned_map(self, *args, **kwargs):
-                if self.parent == pruned and self.name.endswith(impact_store.SUFFIX):
-                    raise FileNotFoundError(2, "pruned between the glob and the stat", str(self))
-                return real_stat(self, *args, **kwargs)
-
-            Path.stat = stat_of_pruned_map
-            try:
-                r = Reach()
+            r = Reach()
+            with impact_store.vanished_after_the_glob(impact_store.map_file(pruned, recorded)):
                 found = find_map(pruned, docs, r)
-            finally:
-                Path.stat = real_stat
             check("a map pruned between the store's glob and its stat leaves the plan unaimed with the cause printed, "
                   "never a failed plan", found.map is None and found.state == "none" and bool(r.every_tier1),
                   r.every_tier1[:1])
