@@ -123,6 +123,7 @@ import external_corpus  # noqa: E402
 import gate_plan  # noqa: E402
 import impacted_tests  # noqa: E402
 import inert_lane  # noqa: E402  — THE classification of a change no test reads (kb/Work PB2878)
+import toolchain  # noqa: E402  — THE reader of toolchain.env, the versions CI and every host run (kb/Work PB4007)
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT  # noqa: E402
 from gate_slot import _pid_alive  # noqa: E402  — the first-red arm checks that a stopped audit's tree is gone
 from gate_slot import (DEFAULT_SCOPE, GATE_POOL, LIGHT_POOL, ExclusiveLock, GateSettings, GateSlots, Pool,  # noqa: E402
@@ -209,6 +210,8 @@ NOT_RUN_CAUSES: dict[str, NotRunCause] = {c.tag: c for c in (
     NotRunCause("settings", ENVIRONMENT, "the shared gate settings in the coordination directory are malformed (at the "
                                          "start, or while the gate queued)"),
     NotRunCause("interpreter", ENVIRONMENT, "no runnable Python (or one without PyYAML) on the host"),
+    NotRunCause("toolchain", ENVIRONMENT, "a tool the gate runs reports a version other than toolchain.env's, or is "
+                                          "absent (scripts/toolchain.py check --scope gate, kb/Work PB4007)"),
     NotRunCause("host", ENVIRONMENT, "the host is not Linux and has no WSL to run the Linux gate on"),
     NotRunCause("sdk", ENVIRONMENT, "no .NET SDK in the Linux environment"),
     NotRunCause("disk", ENVIRONMENT, "the Linux filesystem the gate clones onto has too few free inodes or too little "
@@ -503,6 +506,17 @@ class Host:
             return self.git("rev-parse", "HEAD^{tree}")
         except (subprocess.CalledProcessError, OSError):
             return None
+
+    def toolchain(self) -> tuple[bool, str]:
+        """This host's tools against toolchain.env (kb/Work PB4007; scripts/toolchain.py): (True, the toolchain the gate
+        runs under) when every tool the gate runs reports the manifest's version, else (False, each mismatch). CI runs
+        exactly those versions, so a gate under any other toolchain measures something CI will not run."""
+        try:
+            manifest = toolchain.load()
+        except (OSError, ValueError) as e:
+            return False, f"toolchain.env cannot be read: {e}"
+        _, bad = toolchain.compare(manifest, "gate")
+        return (not bad), ("; ".join(bad) if bad else toolchain.summary(manifest, "gate"))
 
     def runs_linux_leg(self) -> bool:
         """Whether this host runs the LINUX HALF of the targeted leg itself, in a WSL clone of HEAD (kb/Work PB3612; owner
@@ -1071,6 +1085,9 @@ class Outcome:
     #: lane, or a Windows half that was red first).
     linux: dict | None = None
     head_tree: str | None = None
+    #: The toolchain the gate ran under (kb/Work PB4007): toolchain.env's versions of the tools it runs, which this
+    #: host's tools reported before anything ran (`Host.toolchain`); None until then.
+    toolchain: str | None = None
 
 
 def run_order(name: str) -> tuple[int, str]:
@@ -1227,6 +1244,7 @@ class Gate:
         out.reused_detail = rec.get("reused_detail") or str(rec.get("line", "")).removeprefix(VERDICT).removesuffix(" ===")
         out.scope_until, out.leg1_only, out.plan_note = rec.get("scope_until"), bool(rec.get("leg1_only")), rec.get("plan", "")
         out.lane, out.linux = rec.get("lane"), rec.get("linux")  # a chain of reuses keeps what the first run measured
+        out.toolchain = rec.get("toolchain")
         out.timings["wall_s"] = round(time.monotonic() - started, 1)  # this gate's own seconds (landing_measure.py)
         return self._finish(out, run, str(rec["verdict"]),
                             f"REUSED (kb/Work PB3536): tree {out.tree[:12]} at head {(out.head or '?')[:12]} was gated "
@@ -1298,6 +1316,16 @@ class Gate:
         # tree — no build output, no test result — so they need nothing the slot rations (concurrent builds and test
         # legs, DESIGN-test-build-ci §3.14.6). Inside the slot they were 35-45 % of its hold (~230 s of serial Python
         # per gate, one core busy) while every other gate queued behind it.
+        # ⛔ FIRST, THE TOOLCHAIN (kb/Work PB4007): CI runs exactly toolchain.env's versions, so a gate under any other
+        # measures what CI will not run (#734 was GREEN here on Python 3.14 and RED in CI's 3.12). Nothing runs on it.
+        matched, tools = self.host.toolchain()
+        if not matched:
+            return self._finish(out, run, NOT_RUN_CAUSES["toolchain"].verdict,
+                                f"this host's tools are not toolchain.env's: {tools}. Install the manifest's versions "
+                                "(winget on the Windows dev box, scripts/wsl/setup-wsl.sh in WSL; `python "
+                                f"scripts/toolchain.py check --scope host` lists them); nothing ran (run {run.name})", 2)
+        out.toolchain = tools
+        self.say(f"build-local: toolchain (toolchain.env) {tools}")
         t = time.monotonic()
         audit_reds = self.host.audits(_no_slot, self.say)  # an unchanged self-test is REUSED (PB2914)
         out.timings["audits_s"] = round(time.monotonic() - t, 1)
@@ -1365,7 +1393,7 @@ class Gate:
         out.tree_end = self.host.measured_tree()
         verdict = f"{LEG1_ONLY}: GREEN" if out.scope == "leg1" else "GREEN"
         return self._finish(out, run, verdict, f"INERT LANE (kb/Work PB2878): {lane.reason}; the audits are GREEN{linux}, "
-                            f"and no build or test leg ran (run {run.name})", 0)
+                            f"and no build or test leg ran · toolchain {out.toolchain} (run {run.name})", 0)
 
     def _tested(self, out: Outcome, run: Path, slot: Slot, started: float) -> Outcome:
         """The build, the listings, the plan, the legs and the checks: the part of the gate the slot rations."""
@@ -1661,7 +1689,8 @@ class Gate:
         n_legs = len(legs)
         detail = (f"{tally} cases ran (skipped {skipped:,}) in {len(out.legs_invoked)} of {n_legs} leg(s)"
                   + (f" · Linux half (WSL clone of HEAD) {out.linux['verdict']}" if out.linux else "")
-                  + (f" · {out.slot}" if out.slot else "") + f" ({out.plan_note}; run {run.name})")
+                  + (f" · {out.slot}" if out.slot else "")
+                  + (f" · toolchain {out.toolchain}" if out.toolchain else "") + f" ({out.plan_note}; run {run.name})")
         reds = [f"{r.asm} leg {r.leg} RED" for r in out.runs if r.red]
         problems = reds + out.reasons + [f"{a} POPULATION {'NOT EXACT' if not pops[a].stopped_early else 'STOPPED'}"
                                          for a in pops if not pops[a].exact and not pops[a].stopped_early]
@@ -1685,7 +1714,7 @@ class Gate:
     def _record(self, out: Outcome, run: Path) -> dict:
         return {"schema": RECORD_SCHEMA, "verdict": out.verdict, "line": out.line, "exit_code": out.exit_code,
                 "head": out.head, "tree": out.tree, "tree_end": out.tree_end, "base": out.base,
-                "head_tree": out.head_tree, "linux": out.linux,
+                "head_tree": out.head_tree, "linux": out.linux, "toolchain": out.toolchain,
                 "reused_from": out.reused_from, "reused_detail": out.reused_detail, "reasons": out.reasons,
                 "slot": out.slot, "plan_sha256": out.plan_sha256, "plan": out.plan_note, "stopped": out.stopped,
                 "scope": out.scope, "scope_until": out.scope_until, "leg1_only": out.leg1_only, "lane": out.lane,
@@ -1772,13 +1801,20 @@ class FakeHost(Host):
         self.committed_tree = self.trees[0]  # HEAD's tree: a gate of a clean working tree measures it
         self.slots_taken = 0
         self.pools: list[str] = []   # the pool of each slot the gate took (kb/Work PB3724)
-        self.audited = self.built = False
+        self.audited = self.built = self.toolchain_checked = False
         self.events: list[str] = []  # the order the gate drove the host in: audits, fetch, slot, build
         self.envs: dict[tuple[int, str], dict[str, str]] = {}
         self.plan_obj: dict | None = None
 
     def lock_path(self) -> Path:
         return self._lock
+
+    def toolchain(self) -> tuple[bool, str]:
+        """The planted host's tools: toolchain.env's, unless the arm plants `toolchain` (a JDK of another version)."""
+        self.toolchain_checked = True
+        if "toolchain" in self.plant:
+            return False, "jdk 23.0.2 (toolchain.env 27.0.1)"
+        return True, "dotnet-sdk 10.0.403, python 3.15.2"
 
     def fetch_bounce_results(self) -> str:
         return "build-local: ci bounce: none (a planted host asks GitHub nothing)"
@@ -2135,6 +2171,16 @@ def self_test() -> int:
             and gate("order")[1].events == ["audits", "fetch", "slot", "build", "post-build self-tests",
                                                            "publish"],
             str(h.events))
+        o, h = gate("toolchain", plant={"toolchain"})
+        arm("a host whose tools are not toolchain.env's is NOT RUN [toolchain] before anything runs, naming the tool, "
+            "exit 2, an ENVIRONMENT cause (kb/Work PB4007)",
+            o.verdict == NOT_RUN_CAUSES["toolchain"].verdict and o.exit_code == 2 and h.toolchain_checked
+            and "jdk 23.0.2 (toolchain.env 27.0.1)" in o.line and h.events == [] and not o.runs
+            and not read_verdict(o.line[len(VERDICT):]).branch_carried, o.line)
+        o, h = gate("toolchain-named")
+        arm("a gate names the toolchain it ran under, in its verdict line and its record (kb/Work PB4007)",
+            "toolchain dotnet-sdk 10.0.403, python 3.15.2" in o.line and o.toolchain == "dotnet-sdk 10.0.403, python 3.15.2",
+            o.line)
         o, h = gate("inert", plant={"inert"}, scope=None)
         arm("a change in the INERT LANE (kb/Work PB2878) runs the audits and then ends GREEN under the leg1 scope, with "
             "no fetch, slot, build or leg, the lane recorded",

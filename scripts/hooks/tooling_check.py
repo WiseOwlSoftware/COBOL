@@ -143,6 +143,24 @@ def permission_mode_line(payload: dict | None, default_mode: str | None) -> tupl
                       f"start-session.ps1 it is not in the owner's mode: {fix}"))
 
 
+def toolchain_line(run=None) -> tuple[str, str, str]:
+    """(status, what, detail) for every tool of toolchain.env on this host (scripts/toolchain.py check --scope host):
+    OK when each reports the manifest's version, else ASK-OWNER naming each mismatch, since installing or upgrading a
+    tool (winget on the Windows dev box) is the owner's machine to change."""
+    import toolchain   # scripts/, on the path above
+    try:
+        manifest = toolchain.load()
+    except (OSError, ValueError) as exc:
+        return "ASK-OWNER", "toolchain (toolchain.env)", f"the manifest cannot be read: {exc}"
+    _, bad = toolchain.compare(manifest, "host", *([run] if run else []))
+    if not bad:
+        return "OK", "toolchain (toolchain.env)", toolchain.summary(manifest, "host")
+    return ("ASK-OWNER", "toolchain (toolchain.env)",
+            f"{'; '.join(bad)} — the gate refuses this host (NOT RUN [toolchain]) while a tool it runs differs: ask the "
+            "owner to install the manifest's versions (winget on the Windows dev box, scripts/wsl/setup-wsl.sh in WSL), "
+            "or move toolchain.env forward if the installed one is a newer release (`python scripts/toolchain.py latest`)")
+
+
 def check(payload: dict | None = None):
     out = []
     add = lambda status, what, detail="": out.append(f"  {status:9} {what}" + (f" — {detail}" if detail else ""))
@@ -161,6 +179,10 @@ def check(payload: dict | None = None):
         "every definition's frontmatter parses and names itself, so each LOADS; workflows select roles with agentType"
         if not broken else "; ".join(broken) + " — Claude Code never loads such a file (`Agent(subagent_type)` answers "
         "'not found'): fix it, or restore it from git, before dispatching")
+
+    # kb/Work PB4007: CI and every host run toolchain.env's versions, and the gate stops NOT RUN [toolchain] on a host
+    # that does not, so the session hears of a drifted tool here first, from what each tool itself reports.
+    add(*toolchain_line())
 
     proj = load(REPO / ".claude" / "settings.json")
     hooks = json.dumps(proj.get("hooks", {}))
@@ -299,6 +321,22 @@ def self_test() -> int:
     live = definition_problems(REPO / ".claude", ROLES)
     if live:
         fails.append(f"this repository's own definitions would not load: {live}")
+    # kb/Work PB4007: a tool reporting another version than toolchain.env's, or none, is ASK-OWNER naming it.
+    import toolchain
+    manifest = toolchain.load()
+    status, _, detail = toolchain_line(lambda command: None)
+    if status != "ASK-OWNER" or "absent (toolchain.env" not in detail or "NOT RUN [toolchain]" not in detail:
+        fails.append(f"a host with no tools is not ASK-OWNER naming each: {status} — {detail}")
+    # git's manifest line is this OS's (GIT_LINUX_VERSION or GIT_WINDOWS_VERSION): the one row `host` holds here.
+    git = next(t.key for t in toolchain.held("host") if t.command and t.command[0] == "git")
+    reports = {"dotnet": manifest["DOTNET_SDK_VERSION"], "java": f'java version "{manifest["JDK_VERSION"]}"',
+               "pwsh": f"PowerShell {manifest['PWSH_VERSION']}", "git": f"git version {manifest[git]}",
+               "gh": f"gh version {manifest['GH_VERSION']}", "jq": f"jq-{manifest['JQ_VERSION']}",
+               "uv": f"uv {manifest['UV_VERSION']}", "semgrep": manifest["SEMGREP_VERSION"]}
+    status, _, detail = toolchain_line(lambda command: reports.get(command[0]))
+    python_matches = toolchain.platform.python_version() == manifest["PYTHON_VERSION"]
+    if (status == "OK") != python_matches:
+        fails.append(f"a host whose tools all report the manifest's versions is not OK: {status} — {detail}")
     for f in fails:
         print(f"FAIL  {f}")
     print(f"=== TOOLING_CHECK SELF-TEST: {'GREEN' if not fails else f'RED ({len(fails)})'} ===")

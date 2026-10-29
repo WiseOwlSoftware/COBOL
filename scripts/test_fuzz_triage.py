@@ -341,7 +341,7 @@ def arm_refute_and_filing(root: pathlib.Path, t: ft.Triage) -> None:
     check("FILING: a refuted, bar-meeting record is filed", len(f.drafts) == 1 and not f.held, str(f.held))
     d = f.drafts[0]
     note = ft.render_note(d, "PB9101", "2026-10-27")
-    wk = ft._work()
+    wk = ft.fh.register()
     parsed, why = wk.read_note("PB9101.md", note)
     check("FILING: the note passes the register's own upstream bar", parsed is not None and wk.upstream_problems(parsed) == [],
           str(why or (wk.upstream_problems(parsed) if parsed else "")))
@@ -442,7 +442,7 @@ def arm_refute_and_filing(root: pathlib.Path, t: ft.Triage) -> None:
 
 
 def arm_helpers() -> None:
-    wk = ft._work()
+    wk = ft.fh.register()
     text = "a\n```cobol\nX\n  Y\n```\nb\n~~~\nZ\n~~~\n```\nopen"
     check("HELPERS: the register's fence tracker reads closed backtick and tilde blocks and ignores an unclosed one",
           wk.fenced_block_texts(text) == ["X\n  Y", "Z"], str(wk.fenced_block_texts(text)))
