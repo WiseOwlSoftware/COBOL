@@ -11,7 +11,7 @@ refused); and the two standing directives: **COBOL semantics are honored
 regardless of cost**, and **otherwise the surface stays as close to .NET as possible** (strongly typed host calls,
 ECMA-335 metadata and attributes, no bespoke formats). This is the "R44 design doc" that `docs/CONFORMANCE.md` rows
 DOC-A.1-66/-67/-138/-161/-162 defer to; §9 carries the text those rows take. **Implementation:** slices 1 (kb/Work PB2097),
-2 (kb/Work PB2098), 3 (kb/Work PB2099) and 6 (kb/Work PB989 / PB2102) of §21 have landed; 4, 5, 7 and 8 are open.
+2 (kb/Work PB2098), 3 (kb/Work PB2099), 4 (kb/Work PB2100), 5 (kb/Work PB2101) and 6 (kb/Work PB989 / PB2102) of §21 have landed; 7 and 8 are open.
 **Currency (2026-10-27, kb/Work PB1086):** re-verified against the tree after PB2464, PB2463, PB3101, PB3120, PB3162,
 PB3273 and PB3505 reshaped the code under it. Where the code settled a point differently and correctly the design now
 adopts the code and says so; where following the approved text would have regressed a rule (the type of a restricted
@@ -1278,7 +1278,17 @@ is split once, by what each half needs:
   framework, so this adds no package. Both are public — the runtime grants no `InternalsVisibleTo` to the compiler —
   and carry `[EditorBrowsable(Never)]` with the remark that they are the compiler's and the probe's ABI, as
   `ProgramRegistry` does (§4.4); `PublicAPI.Unshipped.txt` records them. Slice 4 lands `RepositoryIndex` (the slice
-  that writes `Units`); slice 5 lands `RepositoryLocator` and moves the probe onto both.
+  that writes `Units`); slice 5 lands `RepositoryLocator` and moves the probe onto both. **Landed (kb/Work PB2101):**
+  `RepositoryLocator.Find(directory, kind, externalizedName)` and `FunctionByWord(directory, word)` answer a
+  `RepositoryFind` — the `RepositoryEntry` (path, MVID, schema, runtime version, call ABI, registrar, the unit's row), or
+  none with the `Reason` the file named after the unit was no answer (not a managed assembly, no record, another schema,
+  malformed, too large, or "does not carry the program X": a plain miss has no reason), and the `Collision` path of a
+  second assembly (another MVID); `SkippedForSize(directory)` lists the files over 256 MiB for REPO-1's tail. What reading
+  a file established is cached per process by path, length and last write time, a documented process-lifetime store
+  (`RunUnitStateDriftTests`). The named file is `<externalized name as formed>.dll`, opened by that name (a name no file
+  can have, an AS literal holding `/`, skips step 1 and is found by its row); the extension is compared exactly (a
+  Windows `*.dll` pattern also matches `x.dllx`). A schema other than the runtime's is no entry: a named file of one is
+  the reason "schema v1, this runtime reads v2; recompile it".
 - **Compiler:** `RepositoryReader`, which opens the same prefetched reader through `RepositoryIndex` (the header is
   never decoded twice) and decodes the unit, description, type-declaration, structure, prototype, class, method,
   property and skeleton attributes into a `RepositoryRecord`, and the codec that binds a record into the throw-away
@@ -1548,7 +1558,15 @@ executes STOP RUN or a fatal condition terminates the run unit — the run unit'
 continues; `FormatException` when the program leaves a numeric item holding characters that are not a number of its
 description (the variable is left as it was). **Trimmed and AOT applications** have no dynamic loading: your host
 references every COBOL assembly the run unit uses and calls each one's `__CobolModule.EnsureRegistered()` before the
-first call; a program called by name from COBOL is then found among them. A program compiled against a different
+first call; a program called by name from COBOL is then found among them. A COBOL program that calls another program
+by name finds it, when no host registered it, by loading the assembly that carries it from the application directory
+(the file named after the program first, then any assembly there that lists it); that loading is the runtime's one use of
+reflection, behind the switch `WiseOwl.Cobol.Runtime.DynamicProbe`. The switch is on unless the application sets it; a native-AOT or trimmed application turns it off with `<RuntimeHostConfigurationOption Include="WiseOwl.Cobol.Runtime.DynamicProbe" Value="false"
+Trim="true" />`; a CALL that nothing registered is then an EC-PROGRAM-NOT-FOUND condition saying the dynamic probe is
+disabled. A trimmed application that keeps the switch on must keep the whole runtime (`<TrimmerRootAssembly
+Include="WiseOwl.Cobol.Runtime" />`) and deploy the called assemblies untrimmed beside it. A program that cannot be
+located, whether its assembly is missing, does not load, is of another runtime version, or fails while it registers,
+is an EC-PROGRAM-NOT-FOUND condition naming the reason. A program compiled against a different
 signature than the one it is called with is detected at run time only when it enables EC-PROGRAM-ARG-MISMATCH checking
 (`>>TURN EC-PROGRAM-ARG-MISMATCH CHECKING ON`); otherwise the arguments are read through its own description.
 
@@ -1735,7 +1753,7 @@ versions emitted as constants and its private `Register` as the action. The emit
 composing a run unit (§11.4) and the probe all reach a module through that member, so there is one way in.
 `RegisterModule`:
 1. returns at once when the registrar's full name is already in the run unit's set (a module a host registered is
-   never registered again by a probe, and vice versa — a second `Register` would duplicate every node in `_order`);
+   never registered again by a probe, and vice versa — a second `Register` would duplicate every node);
 2. refuses a module whose runtime major differs from the running runtime's or whose call ABI differs from the
    runtime's (§11.3, §15.4);
 3. runs `Register` into a STAGING list and commits it only when none of the module's outermost names is already
@@ -1762,41 +1780,45 @@ reason (below).
 ```csharp
 private bool ProbeSiblingModule(string name, bool wantFunction)
 {
-    string key = ProbeKey(name, wantFunction);                           // "P:name" / "F:name": the kind is part of the key (PB2847)
-    if (!RuntimeFeatures.DynamicProbe)                                   // the feature switch (§15.5)
-    { _probeFailure[key] = "the dynamic probe is disabled (trimmed/AOT): the host registers every module it composes"; return false; }
-    var kind = wantFunction ? RepositoryUnitKind.Function : RepositoryUnitKind.Program;
-    if (!_probedNames.Add(key)) return false;
-    var hit = RepositoryLocator.Find(AppContext.BaseDirectory, kind, name);   // the named file first; the directory only on a miss
-    if (hit is null) return false;
-    if (hit.Collision is { } other) { _probeFailure[key] = $"'{hit.Path}' and '{other}' both carry {name}"; return false; }
-    if (hit.SchemaVersion != CobolRepositoryAttribute.CurrentSchemaVersion)   // §6.6: one version; v1 has no Units
-    { _probeFailure[key] = $"'{hit.Path}': schema v{hit.SchemaVersion}, this runtime reads v{CobolRepositoryAttribute.CurrentSchemaVersion}; recompile it"; return false; }
-    if (RuntimeAbi.Skew(hit.RuntimeVersion, hit.CallAbi) is { } skew) { _probeFailure[key] = $"'{hit.Path}': {skew}"; return false; }
+    if (!_probedNames.Add(ProbeKey(name, wantFunction))) return false;         // one probe per name and kind per run unit
+    if (RuntimeFeatures.DynamicProbe) return LocateSiblingModule(name, wantFunction);   // the feature switch (§15.5)
+    return ProbeFailed(name, wantFunction, "the dynamic probe is disabled (trimmed or ahead-of-time application): the host registers every module it composes");
+}
+
+private bool LocateSiblingModule(string name, bool wantFunction)               // the one reflection of the runtime
+{
+    var found = RepositoryLocator.Find(AppContext.BaseDirectory,                // the named file first; the directory index only on a miss
+        wantFunction ? RepositoryUnitKind.Function : RepositoryUnitKind.Program, name);
+    if (found.Entry is not { } hit) return found.Reason is { } why && ProbeFailed(name, wantFunction, why);   // a plain miss has no reason
+    if (found.Collision is { } other) return ProbeFailed(name, wantFunction, $"'{hit.Path}' and '{other}' are different assemblies that both carry the {kind} {name}");
+    // an entry is of the runtime's own schema (§6.6: the locator answers no other); the record is read before anything loads:
+    if (RuntimeAbi.Skew(hit.RuntimeVersion, hit.CallAbi) is { } skew) return ProbeFailed(name, wantFunction, $"'{hit.Path}': {skew}");
     try
     {
         var asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(hit.Path);
-        var ensure = asm.GetType(hit.Registrar)?.GetMethod("EnsureRegistered", Type.EmptyTypes);
-        if (ensure is null) { _probeFailure[key] = $"'{hit.Path}' has no registrar {hit.Registrar}"; return false; }
-        ensure.Invoke(null, null);                                       // → RegisterModule, the one way in
-        return _byName.ContainsKey(kind, name) || Fail(name, $"'{hit.Path}' did not register {name}");
+        var ensure = asm.GetType(hit.Registrar)?.GetMethod("EnsureRegistered", Public | Static, Type.EmptyTypes);
+        if (ensure is null) return ProbeFailed(name, wantFunction, $"'{hit.Path}' has no registrar … with an EnsureRegistered() member");
+        ensure.Invoke(null, null);                                              // → RegisterModule, the one way in
+        return Outermost(name, wantFunction) is not null || ProbeFailed(name, wantFunction, $"'{hit.Path}' did not register the {kind} {name}");
     }
-    catch (Exception e) when (e is IOException or UnauthorizedAccessException or BadImageFormatException
-                                  or TargetInvocationException or TypeLoadException or ArgumentException)
-    { _probeFailure[key] = $"'{hit.Path}': {e.GetBaseException().Message}"; return false; }   // never escapes the CALL (§14.9.4.4 GR3 b))
+    catch (Exception e) when (IsCodeLoadFailure(e) || e is IOException or UnauthorizedAccessException or TargetInvocationException or ArgumentException)
+    { return ProbeFailed(name, wantFunction, $"'{hit.Path}': {e.GetBaseException().Message}"); }   // never escapes the CALL (§14.9.4.4 GR3 b))
 }
 ```
 The named file is loaded without a directory scan (`PAY.dll` beside `PAY - Copy.dll` keeps working); the index is read
-only on a miss, so a program whose assembly is not named after it is found too. The catch list is the landed probe's
-(`ProgramTable.ProbeSiblingModule`, slice 1): `IOException` covers `FileNotFoundException` (a file removed between the
-listing and the load) and `FileLoadException`; `UnauthorizedAccessException` a file the process may not read;
-`ArgumentException` a registrar name `Assembly.GetType` cannot parse (a hand-made or damaged record); a
-`RegisterModule` refusal and a throwing registrar arrive wrapped in `TargetInvocationException`. Slice 5 keeps every
-arm (the locator's header read throws nothing: `RepositoryIndex.Read` returns an unreadable or malformed file as a
-failure outcome — the outcomes the compile-time reader turns into REPO-3 / REPO-4 — and a named file that fails so is
-the probe's recorded reason, a scanned one is skipped as "not an entry", §7.4) and replaces the
-landed probe's case-insensitive file scan and its reflection read of the record (`GetCustomAttributesData` after the
-load) by `RepositoryLocator` and `RepositoryIndex`, so the record is read before anything is loaded.
+only on a miss, so a program whose assembly is not named after it is found too. **Landed (kb/Work PB2101):** the catch list
+is the landed probe's plus the CLR's code-load failures (`IsCodeLoadFailure`: `TypeLoadException`,
+`TypeInitializationException`, `FileNotFoundException`, `FileLoadException`, `BadImageFormatException`,
+`MissingMemberException`): `IOException` covers `FileNotFoundException` (a file removed between the listing and the load)
+and `FileLoadException`; `UnauthorizedAccessException` a file the process may not read; `ArgumentException` a registrar
+name `Assembly.GetType` cannot parse (a hand-made or damaged record); a registrar fault arrives wrapped in
+`TargetInvocationException` around the `CobolCallException` `RegisterModule` made of it. The locator's header read throws
+nothing: `RepositoryIndex.Open` returns an unreadable or malformed file as a failure outcome (the outcomes the
+compile-time reader turns into REPO-3 / REPO-4), and a named file that fails so is the probe's recorded reason, a scanned
+one is skipped as "not an entry" (§7.4). The landed probe's case-insensitive file scan and its reflection read of the
+record (`GetCustomAttributesData` after the load) are gone: `RepositoryLocator` and `RepositoryIndex` read the record
+before anything is loaded. A module a hand-made fixture (or another compiler) builds is located by its `Units` index like
+any other: a record with no row for the name is a module that does not carry it.
 `_probeFailure[key]` is appended to the not-found message every locating path raises (`NotLocatedReason(name,
 wantFunction)`): CALL and a function reference, and the address-identifiers `ADDRESS OF PROGRAM`, `SET … TO ENTRY` and
 `ADDRESS OF FUNCTION` through `AddressNotLocated`, so a disabled probe, a collision, a version skew, a load failure, a
@@ -1821,10 +1843,13 @@ unit** — its name matches a node a module's committed registration created. So
   `Register`): `RegisterModule` commits the staged nodes only after `Register` returns, so a module whose registrar
   faults registered nothing, and nothing of it is located. This is what the landed probe already does (its
   `TargetInvocationException` arm) and what `FunctionLocateResourceWitnessTests.ThrowingRegistrarSiblingModule_…` pins;
-  slice 5 keeps it and adds the same classification to a registrar fault reached from a host's or the emitted `Main`'s
-  `EnsureRegistered()`, which today propagates as the registrar's own exception: there it is a
-  `CobolCallException` EC-PROGRAM-NOT-FOUND naming the module and the fault, R48's run-unit-ending result at the host
-  door (§4.3) and the abnormal termination of §14.6.12 under `Main`.
+  **landed (kb/Work PB2101):** `RegisterModule` itself makes the classification (`ProgramTable.Stage` / `Commit`: any
+  exception out of the registrar body, the PB154 and PB2843 guards, a name twice in one module, or a static reset that
+  throws, which is adopted BEFORE any node is committed so the module registers nothing, is a `CobolCallException`
+  EC-PROGRAM-NOT-FOUND naming the module and the fault), so every route to a module sees it: the probe, the emitted
+  `Main` (the abnormal termination of §14.6.12) and a host's `EnsureRegistered()`, whose generated entry has no catch of
+  its own (it is a `CobolCallException` the host handles, R48's contract at the host door, §4.3). A repeated path stays
+  loud: it ends the run unit with its reason, and is never a replaced node.
 - *A registered program whose CODE cannot be loaded is not located either → EC-PROGRAM-NOT-FOUND.* The approved text of
   this subsection said a program class that fails to load inside the instance creation is EC-PROGRAM-NOT-FOUND and
   that `FunctionLocateResourceWitnessTests` pins it. The classification was right and the witness claim was not: the
@@ -1844,7 +1869,14 @@ unit** — its name matches a node a module's committed registration created. So
   module the probe cannot load is. An exception the program's own code throws while it executes is not a load failure
   and keeps its own meaning. DOC-A.1-14 / -89 need no new determination; slice 5 adds this case to their text and a
   witness for it (a registered program whose dependency assembly is missing; one whose class's static initializer
-  throws).
+  throws). **Landed (kb/Work PB2101):** `ProgramTable.Create` is the one instance creation of an activation (`Activate`,
+  `ActivateMain`) and makes the classification; the entry's own `EnsureRegistered` delegate, a member the CLR compiles on its
+  first call, is classified the same way in `RunOnThisThread` (a module whose code or dependency cannot be loaded). A
+  host's own call to a generated entry is compiled in the host's process, where the CLR's failure to load a COBOL assembly
+  the host references is the host's own (§11.4: a host references what it composes). Witnesses:
+  `RunTimeLocateFaultTests` (a throwing registrar through the probe and through a host's `EnsureRegistered()`, a missing
+  dependency, a throwing static initializer, a module of schema v1, a file that is no assembly, the switch off) and
+  `ModuleRegistrationTests.ARegistrarFault_IsEcProgramNotFound_AndRegistersNothing`.
 - *Located, and the activation's resources are not available → EC-PROGRAM-RESOURCES* — only where DOC-A.1-14 / -89 and
   the standard put it: the ONE checked resource is the stack an activation needs (`ActivationStack.IsAvailable`,
   kb/Work PB2659). This design adds no other.
@@ -1899,7 +1931,7 @@ with open work opens with that work and states its landed part after it, because
 | `ProgramEmitter.EmitEntryWrapper` (`public static class __CobolModule` in the global namespace with a public `Register()`; always `Main`) | **landed, slice 1 (the library form slice 3):** the one-segment `namespace Cobol.<S>` (§4.5); `[assembly: CobolRepository(schema, runtimeVersion, callAbi, Registrar)]` (`RuntimeApi.ModuleRecordAttribute`); `Register` private, `EnsureRegistered()` the one public member (through `RegisterModule`; the emitted `Main` calls it, so no path registers a module twice); `Main` only with a main unit (`ProgramEmitter.MainUnit`), a library otherwise; `global::` on every foreign name | `ProgramTable.ProbeSiblingModule`, `RoslynBackend.Compile`, `AssemblyPackager.Package` |
 | `RuntimeApi.ModuleRecordAttribute` (slice 1: the assembly record's C# text) | **landed, slice 4 (kb/Work PB2100):** MOVED into `RepositoryAttributeRenderer.ModuleRecord`, the one place attribute syntax is written (§3.9), and deleted from `RuntimeApi`; the record gained `Units` (`HostEntryEmitter.EntryUnits` through `RepositoryAttributeRenderer.IndexOf`), `CompilerVersion` and `Edition` (`BoundCompilation.Edition`), and every host entry its `[CobolUnit]` (`RepositoryAttributeRenderer.UnitRecord`); then (the fourth part) `HasSignatures` with `--repository-update`, and the signature attributes of every host entry: `UnitRecord` with the unit facts, `TableRecords` (type declarations, structures, referenced prototypes) on the class, `FormalRecord` on each `Call` parameter and `ReturningRecord` on its return value, each a transcription of `RepositoryCodec.Of`; then the OO arm: `[CobolUnit]` on every class and interface (and their rows in `Units`, `IndexOf`), and with signatures `UnitRecord`'s class facts, `MethodRecord` on each method, accessor and interface prototype (`OoEmitter.EmitMethodRecord`; the formals on the carriers through `OoEmitter.OoSignatureOf`) and `PropertyRecords` on the type of the accessors | `ProgramEmitter` (its one caller), `HostEntryEmitter`, `OoEmitter` |
 | `CobolRepositoryAttribute` (`CurrentSchemaVersion = 1`, `Registrar` only) | slice 8: `CobolSkeletonAttribute` and `CobolUnitAttribute`'s expansion properties. **Landed, slice 4 (kb/Work PB2100):** `CurrentSchemaVersion = 2` and the named properties `Units`, `HasSignatures`, `CompilerVersion`, `Edition` (§6.6); the schema enums of §6.2 rule 1 (`RepositoryEnums.cs`); `CobolUnitAttribute`; `RepositoryIndex` (§7.4: the header, the `Units` rows and the `AssemblyRef` names read without loading the assembly, the 65,536-unit cap as a typed `RepositoryReadFailure`). Then (the fourth part) the signature attributes of programs, functions and prototypes (`CobolSignatureAttributes.cs`: `CobolFormalAttribute`, `CobolReturningAttribute`, `CobolDescriptionAttribute`, `CobolTypeDeclarationAttribute`, `CobolStructureAttribute`, `CobolPrototypeAttribute`, `CobolPrototypeFormalAttribute`, `CobolPrototypeDescriptionAttribute`, over the two never-applied field bases `CobolDescriptionFieldsAttribute` and `CobolFormalFieldsAttribute`), `CobolUnitAttribute`'s signature properties, `RepositoryReadFailure.NoSignatures` / `OtherSchemaVersion`, and `RepositoryIndex.SchemaAttributeName` / `DecodeSchemaAttribute` (the one decoding provider the compiler's `RepositoryReader` shares); then the OO arm: `CobolMethodAttribute`, `CobolPropertyAttribute`, `CobolUnitAttribute`'s `Final`, `BaseIdentity`, `Implements`, `FactoryImplements` and `FactoryType`, and `RepositoryAccessor` | `PublicAPI.Unshipped.txt` |
-| `ProgramTable` (`_probedModules` keyed by name; `ProbeSiblingModule` loads `<name>.dll` and calls a global `__CobolModule.Register`; a linear `_order` scan for rule 4; `CallProgram`/`Cancel` take a non-null `callerPath`) | Slice 5: `ProbeSiblingModule` over `RepositoryLocator` / `RepositoryIndex` (§11.2: no case-insensitive scan, no reflection read of the record); the per-kind `CallName` dictionary; `RuntimeFeatures.DynamicProbe`; the §11.2 classification (a registrar fault reached through `EnsureRegistered()` is EC-PROGRAM-NOT-FOUND; a registered program whose class or a dependency cannot be loaded or initialized at `n.Factory(…)` is EC-PROGRAM-NOT-FOUND with the loader's message, as DOC-A.1-14 / -89 classify a module that cannot be loaded). Already landed — slice 1: `RegisterModule(registrar, runtimeVersion, callAbi, register)` (one registration set per run unit, the version refusal, staged commit refusing a duplicate outermost name, §11.2); `_probedNames` / `_probeFailure` keyed by `ProbeKey` (the kind letter and the name, kb/Work PB2847); the probe reads `Registrar` from the record. Slice 3: `callerPath` is `string?` in `CallProgram` and `Cancel`, and the null arm (`CallFromHost`) is the outermost boundary that turns a STOP RUN or a run-unit-terminating fatal condition into R48's `RunUnitEndedException(ExitStatus, Abnormal)` after the §14.6.11 actions | `ProgramRegistry`, `RuntimeFeatures` (new), `RunUnit` |
+| `ProgramTable` (`_probedModules` keyed by name; `ProbeSiblingModule` loads `<name>.dll` and calls a global `__CobolModule.Register`; a linear `_order` scan for rule 4; `CallProgram`/`Cancel` take a non-null `callerPath`) | **landed, slice 5 (kb/Work PB2101):** `ProbeSiblingModule` over `RepositoryLocator` / `RepositoryIndex` (§11.2: no case-insensitive scan, no reflection read of the record); the per-kind `CallName` dictionaries (`_programs`, `_functions`, filled where `RegisterModule` commits; `_order` deleted); `RuntimeFeatures.DynamicProbe`; the §11.2 classification (`RegisterModule` makes every registrar fault EC-PROGRAM-NOT-FOUND and commits a module's static resets before its nodes; `Create` classifies a registered program whose class or a dependency cannot be loaded or initialized as EC-PROGRAM-NOT-FOUND with the loader's message, as DOC-A.1-14 / -89 classify a module that cannot be loaded). Slice 1: `RegisterModule(registrar, runtimeVersion, callAbi, register)` (one registration set per run unit, the version refusal, staged commit refusing a duplicate outermost name, §11.2); `_probedNames` / `_probeFailure` keyed by `ProbeKey` (the kind letter and the name, kb/Work PB2847); the probe reads `Registrar` from the record. Slice 3: `callerPath` is `string?` in `CallProgram` and `Cancel`, and the null arm (`CallFromHost`) is the outermost boundary that turns a STOP RUN or a run-unit-terminating fatal condition into R48's `RunUnitEndedException(ExitStatus, Abnormal)` after the §14.6.11 actions | `ProgramRegistry`, `RuntimeFeatures` (new), `RunUnit` |
 | `ProgramRegistry` (public; XML remarks calling it the "emitted-surface shim", a facade whose members "forward") | **landed, slice 3:** `[EditorBrowsable(Never)]` on the type; remarks state that it is the generated code's ABI over the ambient run unit, callable from generated code in other assemblies, with no contract for a hand-written caller (§4.4) | — |
 | `ProgramEmitter.Emit` (the outermost-unit loop emits a program class per definition and skips prototypes) | Slice 8: skeleton → `[CobolSkeleton]` class; expansion → §10.5's steps. **Landed (kb/Work PB2100, PB3872):** the OO arm's records (classes, factory types, methods, accessors, interfaces; `OoEmitter(…, repositoryUpdate)`); each host entry's record attributes when `RepositoryUpdate` (`Emit(comp, name, repositoryUpdate)`, `HostEntryEmitter(…, repositoryUpdate, …)`); the assembly attribute's index and the `[CobolUnit]`s always; `HostEntryEmitter.EntryUnits` pairs a prototype with its definition by DOC-A.1-68's one mapping rule, the Annex C fold (kb/Work PB3872), and `HostEntryEmitter.Published` is deleted (§7.2). Already landed, slice 3: every outermost program, function and prototype → its host-entry class (§4.3) through `HostEntryEmitter` and `PublishedRecordEmitter` | `HostEntryEmitter`, `RepositoryAttributeRenderer` (new), `CompilerDriver` (an expansion assembly is a second emission, slice 8) |
 | `DataBinder.Unique` (private; the internal record struct's member names, unseeded: a subordinate `AsImage` or `Equals` drew CS0102) and `DataItem.Sanitize` | **landed for the internal scopes (kb/Work PB2098), and for the published ones in slice 3:** `CsNames.Allocate(baseName, scope)`: the Sanitized base, then the smallest free `_n`, over a scope seeded with the emitter's own members in that scope and the imported type names (§4.5) — the ONE allocator for internal and published names. `NameAllocator` (the `__`-prefixed temporaries, which no COBOL word can spell) is unchanged | `DataBinder` (every `Unique` caller), `RecordStructEmitter`, `HostEntryEmitter`, `PublishedRecordEmitter`, `OoEmitter` |
@@ -1919,7 +1951,7 @@ with open work opens with that work and states its landed part after it, because
 | `RoslynBackend.Compile(csharp, path, name)` (console only; no extra refs; the driver keeps only `Error` diagnostics) | Slice 7: GUID temp + retrying rename (§7.5). Slice 8: the `RepositoryReferences` appended to the framework set; CS0435/CS0436/CS0437 escalated to errors (§10.2). Already landed, slice 3: `Compile(csharp, path, name, OutputKind)` (a library for a group with no main unit) | `RoslynBackend.Emit`, `CompilerDriver` |
 | `BackendOptions`; `CompilerDriver.Options` | Slice 7: `Options + RepositoryPaths`, `+ ReferencePaths`, `+ RepositoryCheck = true` and their CLI options. Slice 8: `BackendOptions + RepositoryReferences`. **Landed, slice 4 (kb/Work PB2100):** `BackendOptions + RepositoryUpdate`, its `AssemblyName` remark ("the COBOL PROGRAM-ID") corrected to the output file's base name, `Options + RepositoryUpdate = true` and `--repository-update on|off` (`CliOptions.RepositoryUpdate`, `Program.TryParseRepositoryUpdate`). (`OutputKind` is not an option: slice 3 landed it as `Compile`'s parameter, §10.2) | `WiseOwl.Cobol.Cli BuildParser`, test harnesses, `OptionsModelConsumerDriftTests` |
 | `Directory.Build.props` (no `Version`) | **landed, slice 1:** `<Version>` from the package version; `RuntimeAbi.Version` reads the runtime's `AssemblyVersion`; `RuntimeAbi.CallAbi`, the call-ABI integer (§15.4); `Microsoft.CodeAnalysis.PublicApiAnalyzers` on `WiseOwl.Cobol.Runtime` with `PublicAPI.Shipped.txt`; the measured `RuntimeAbi.pin` (kb/Work PB3610) | `CobolRepositoryAttribute`, `ProgramTable.RegisterModule`, `EmitModuleRegistrar` (emits both versions) |
-| `WiseOwl.Cobol.Runtime.csproj` | slice 5: `IsTrimmable`, `EnableTrimAnalyzer`; `RuntimeFeatures.DynamicProbe` (`[FeatureSwitchDefinition("WiseOwl.Cobol.Runtime.DynamicProbe")]`, `[FeatureGuard(typeof(RequiresUnreferencedCodeAttribute))]`) guarding `ProbeSiblingModule` (§15.5) | — |
+| `WiseOwl.Cobol.Runtime.csproj` | **landed, slice 5 (kb/Work PB2101):** `IsTrimmable`, `EnableTrimAnalyzer`; `RuntimeFeatures.DynamicProbe` (`[FeatureSwitchDefinition("WiseOwl.Cobol.Runtime.DynamicProbe")]`; no `FeatureGuard`, see §15.5) guarding `ProbeSiblingModule` (§15.5) | — |
 | 14 characterization snapshots (`tests/WiseOwl.Cobol.Tests.Characterization/Snapshots/char_*.g.cs.txt`) | **Landed:** re-baselined for the record attributes of slice 4 (`HasSignatures`, the `[CobolUnit]` signature properties, the description attributes); and before: re-baselined for the namespace line, `global::`, the registrar attribute and `EnsureRegistered` (slice 1), and for the host-entry class of each program (slice 3) | — |
 | Tests naming the global-namespace registrar: `NonCobolActivatorReturnTests`, `FunctionLocateResourceWitnessTests`, `InterProgramFileDifferentialTests` | **landed:** slice 1 reaches the module through `EnsureRegistered` named by `[CobolRepository(Registrar)]` (the witness fixture carries the record and a throwing `EnsureRegistered`); slice 3 made the activator test a host of the generated entries (`Cobol.L1HSTGB.L1HSTGB.Call()` inside `RunUnit.Run`) | — |
 | `docs/CONFORMANCE.md` DOC-A.1-65, -116, -141, -167 (the host route through `__CobolModule.Register()`, `ProgramRegistry.CallProgram`, `ICobolProgram.Call`) | **landed, slice 3:** rewritten to the host entry (§9.4's DOC-A.1-141 text; the other three name the entry, `EnsureRegistered` and the exception contract) | — |
@@ -2028,11 +2060,16 @@ guarded on both sides of the boundary, each by a recorded version and a fixture 
 `WiseOwl.Cobol.Runtime` is `IsTrimmable` and analyzer-clean. The dynamic probe is the ONLY reflection
 (`LoadFromAssemblyPath` and `Assembly.GetType(string)` are IL2026 sites; `GetMethod` on an unannotated `Type` is
 IL2075) and it sits behind the feature switch `WiseOwl.Cobol.Runtime.DynamicProbe` (`RuntimeFeatures.DynamicProbe`, a
-`[FeatureSwitchDefinition]` property that is also a `[FeatureGuard(typeof(RequiresUnreferencedCodeAttribute))]`).
-With the switch ON (the default for a framework-dependent run unit) the probe runs and a trimmed publish must root the
+`[FeatureSwitchDefinition]` property whose value is the application's runtime-configuration setting, else ON). **Corrected at landing (kb/Work
+PB2101):** the default is NOT `RuntimeFeature.IsDynamicCodeSupported` (a trimmed self-contained application threw `TypeLoadException` on it), so a native-AOT application must set the switch off itself; one that does not reaches `LoadFromAssemblyPath`, whose `PlatformNotSupportedException` the probe classifies (`ProgramTable.ProbeFaultReason`) as EC-PROGRAM-NOT-FOUND with the reason to set the switch (a CALL with no sibling file in that application is the plain miss, with no reason). Also: the property cannot also be a `[FeatureGuard(typeof(RequiresUnreferencedCodeAttribute))]`: the analyzer (IL4000)
+accepts no body for a switch the application sets at run time, so `LocateSiblingModule` carries
+`[UnconditionalSuppressMessage]` for IL2026 and IL2075 whose justification is the switch, and the method is the one
+suppression in the runtime.
+With the switch ON (the default) the probe runs and a trimmed publish must root the
 runtime (`<TrimmerRootAssembly Include="WiseOwl.Cobol.Runtime" />`: **a dynamically located callee requires the WHOLE
-runtime**, since ILLink would remove members only the callee uses). With the switch OFF (`PublishTrimmed` /
-`PublishAot` set it in the runtime's `ILLink.Substitutions.xml`) the probe is removed and the trim analyzer sees no
+runtime**, since ILLink would remove members only the callee uses). With the switch OFF (an application sets it in its project with
+`<RuntimeHostConfigurationOption Include="WiseOwl.Cobol.Runtime.DynamicProbe" Value="false" Trim="true" />`, which the trimmer
+and the native-AOT compiler read; a native-AOT application sets it so) the probe is removed and the trim analyzer sees no
 IL2026 at any CALL; the run unit is then **host-composed** (owner decision 2026-10-05; §11.4): the application is a
 .NET host that references every COBOL assembly of the run unit and calls each one's `__CobolModule.EnsureRegistered()`
 — the one registration member — before activating the main program through its host entry. No compile-time module
@@ -2073,28 +2110,36 @@ Folded-name comparison over the enumerated listing; CI's Linux legs run the mult
   C# test written per case and never a second harness. C# keeps only what is not a COBOL program: the host harness
   below (a C# host), the patched-metadata fixtures (skew, malformed records) and the drift tests.
   **The multi-unit case shape (rule 5: the next case is a metadata line, not code).** One new optional header field,
-  `build`, an ordered flow list of compilation steps, each `<declared file>` or `<declared file> > <output base name>`,
-  with `{self}` standing for the case's own source (appended last when the list omits it): for example
-  `*> build: [LIBP.cob > Lib, {self}]`, or a stale caller `[CALLEE1.cob > CALLEE, {self}, CALLEE2.cob > CALLEE]` (the
-  callee rebuilt after its caller), or `[PAY.cob > PAY, PAY.cob > PAY - Copy, {self}]`. Every step's file is in `files`
+  `build`, an ordered flow list of compilation steps, each a QUOTED `"<declared file>"` or `"<declared file> > <output base
+  name>"` (the header's value syntax reads an unquoted `>` or `{self}` as separate tokens or a map), with `"{self}"`
+  standing for the case's own source (appended last when the list omits it): for example
+  `*> build: ["LIBP.cbl > Lib", "{self}"]`, or a stale caller `["CALLEE1.cbl > CALLEE", "{self}", "CALLEE2.cbl > CALLEE"]` (the
+  callee rebuilt after its caller), or `["PAY.cbl > PAY", "PAY.cbl > PAY - Copy", "{self}"]`. **A unit's extension is
+  `.cbl`, never `.cob`** (the generator reads every `*.cob` of a clause folder as a test). Every step's file is in `files`
   (the generator's existing check). The generator (`harness/generate.py`, the ONE reader of headers) validates the field
-  — a step naming an undeclared file, an output named twice before `{self}` is compiled, `build` outside
-  `wiseowl/cases/` — and writes it into the manifest entry. The runner (`harness/run.py`) executes the steps in list
-  order in the case's one fresh working directory: each declared file through a new adapter operation `compile-unit`
-  (WiseOwl: `["{cobol}", "{unit}", "--std", "{std}", "--source-format", "{source-format}", "-o", "{output}.dll"]`),
-  and `{self}` through the case's own `compile` operation AT ITS PLACE IN THE LIST — not deferred to the end — so steps
-  after it compile against, and overwrite outputs beside, the already-built program (the stale-caller case: CALLEE
-  v1, then the caller, then CALLEE v2 into the same `CALLEE.dll`). The run follows the last step, as today. Every step's output lands in the working directory, which is the default
+  — a step naming an undeclared file, an output named twice before `{self}` is compiled, an output equal to the case's
+  own id, `{self}` twice, `build` outside `wiseowl/cases/` — and writes it into the manifest entry as `build`: the steps in
+  order, each `{file, output, options}` (`file` and `output` null for the case's own source). **Corrected at landing (kb/Work
+  PB2101): the one runner of a `wiseowl/cases/` case is WiseOwl's in-process runner** (`ConformanceSuiteRunner`, over the
+  `wiseowl` manifest): `harness/run.py` reads the per-edition manifests of `cases/` alone and never sees a multi-unit case, so
+  there is no `compile-unit` adapter operation (nothing would execute it) and `run.py` has no multi-unit step. The runner
+  executes the steps in list order in the case's one fresh working directory: each declared unit compiled to
+  `<output>.dll` with the step's options, and `{self}` through the case's own compile AT ITS PLACE IN THE LIST — not
+  deferred to the end — so steps after it compile against, and overwrite outputs beside, the already-built program (the
+  stale-caller case: CALLEE v1, then the caller, then CALLEE v2 into the same `CALLEE.dll`). The run follows the last step,
+  out of process as every case's is (`dotnet {program}.dll`, one process per case), which circ5 requires: an in-process
+  reload of one simple name is refused. Every step's output lands in the working directory, which is the default
   repository search space (D1, §9.3: the output directory) and the run unit's application directory (§11.4), so no
-  repository option is written per case; a step that needs one (`--repository-update off`, `--repository-check off`, a
-  second directory) takes it from `wiseowl/options.json`, keyed `<id>` for the case and `<id>/<step file>` for a step.
-  The run is already out of process (`dotnet {program}.dll`, one process per case), which circ5 requires: an in-process
-  reload of one simple name is refused. WiseOwl's own in-process corpus runner reads the same manifest entry and runs
-  the steps through the same compile path. An expected compile refusal of a step (REPO-1, REPO-9, …) is
-  `wiseowl/diagnostics.json`'s, keyed as above. The suite's runner has its Linux leg already (`scripts/linux-gate.sh`).
+  repository option is written per case; a step that needs one (`--repository-update off`; `--repository-check off` and a
+  second directory with slice 7) takes it from `wiseowl/options.json`, keyed `<id>/<step file>` (`repository-update` is
+  landed). An expected compile refusal of a step (REPO-1, REPO-9, …) is `wiseowl/diagnostics.json`'s under the same key:
+  its first consumer is slice 7's first refusal case, and the key lands with it, as the six readers of that file take a
+  key for a test's own file today (kb/Work PB2103).
   **Slice 5 lands the shape**, because its run-time cases are the first that need two separately compiled groups (a
-  program whose assembly is not named after it, two assemblies carrying one name, `PAY - Copy.dll` beside `PAY.dll`, a
-  missing callee, a host-registered module reached again by the probe); slices 7 and 8 add cases, not mechanism.
+  program whose assembly is not named after it, two assemblies carrying one name, `PAY - Copy.dll` beside `PAY.dll`: landed
+  as `conformance-suite/wiseowl/cases/A.1-…/pb2101_locate_*`, witnesses of DOC-A.1-14; a missing callee, a host-registered
+  module reached again by the probe and the patched-metadata fixtures are C#, `RunTimeLocateFaultTests` and
+  `ModuleRegistrationHostTests`); slices 7 and 8 add cases, not mechanism.
   Cases (slice 7 unless marked): program prototype resolved from a
   prototype-only build (BY VALUE default from the formal, §14.9.4.4 GR9 b); from a definition's build; the pb1115
   shape split across two units (prototype names and grouping differ from the definition's: compiles, runs, no
@@ -2273,6 +2318,14 @@ host referencing the main program's assembly and the callee's, calling both `Ens
 host entry; it is asserted analyzer-clean (no IL2026 at any CALL), and the main's COBOL CALL into the other assembly
 succeeds; the same host without the callee's `EnsureRegistered()` gets EC-PROGRAM-NOT-FOUND naming the disabled
 probe. A trimmed .NET host calling host entries is analyzer-clean.
+**Landed state (kb/Work PB2101):** the runtime's analyzer-cleanliness is a fact of every build of it (`IsTrimmable`,
+`EnableTrimAnalyzer`, warnings as errors). The publishes themselves were measured by hand on the landing (a self-contained
+trimmed host with the probe off and the runtime rooted: no trim warning, no `LoadFromAssemblyPath` left in the trimmed runtime,
+and a CALL nothing registered reports the disabled probe; the probe on with the runtime rooted: an untrimmed callee beside the
+application is located and runs). They are not yet automated, for two reasons recorded in the PB2101 report: a `dotnet publish
+-p:PublishTrimmed` restores the SDK-matched `Microsoft.NET.ILLink.Tasks` and runtime pack, which a host without network access
+to NuGet does not have (the local gate must not depend on it), and a host project that references an emitted COBOL assembly
+does not compile, because the emitted assemblies reference `System.Private.CoreLib` directly (CS0012).
 
 ### 17.6 Zero-cost-when-unused; 17.7 Determinism
 As §16: no listing/open when the group answers every specifier (slice 7, with the resolver); two compiles →
@@ -2377,7 +2430,7 @@ description (§4.3); the forward-reference reading of SR14 — the output being 
   one missing assembly never gives a different condition depending on when the CLR loads it; EC-PROGRAM-RESOURCES
   stays where those rows put it, the activation's stack; never an escaping fatal of another kind (§11.2; slice 5).
 - **(c) Multi-unit repository tests are WiseOwl conformance cases** under `conformance-suite/wiseowl/cases`, through
-  the suite's `build` field and `compile-unit` adapter operation, which slice 5 lands (§17.1).
+  the suite's `build` field, which slice 5 landed, run by the in-process runner (§17.1).
 - **The type of a restricted program- or function-pointer stays its SIGNATURE** (§13.18.60.4 GR25 / GR26, as
   PB2464 landed it): the record carries the full signature, and slice 7 makes the class identity a group-independent
   canonical key over the minimized signature graph rather than deleting the classes (§6.4); the approved text's
@@ -2413,8 +2466,8 @@ specifier's literal is literal-4; §12.3.8.4 GR11 c) is run into b)'s paragraph 
   PB3162 sentence on exact identities and the external arm goes); every emitted type lives in `Cobol.<assembly>` and
   foreign names are `global::`-qualified; parameterized definitions cross assemblies with D3's key-based reuse and
   placement rule (§10.5).
-- `docs/rearchitecture/DESIGN-conformance-suite.md`: the `build` header field, the `compile-unit` adapter operation and
-  the per-step keys of `wiseowl/options.json` and `wiseowl/diagnostics.json` (§17.1; slice 5).
+- `docs/rearchitecture/DESIGN-conformance-suite.md`: the `build` header field and the per-step key of `wiseowl/options.json`
+  (§17.1; landed, slice 5; the per-step key of `wiseowl/diagnostics.json` comes with slice 7's first refusal case).
 - `docs/rearchitecture/DESIGN-codegen-backend.md` §2.0: `RoslynBackend` has `OutputKind` (landed, slice 3), per-compilation references,
   a temp-and-rename emit, the §10.2 warning policy and a second emission per own-assembly expansion; the
   `CilBackend` line "(Mono.Cecil → IL)" is "(`System.Reflection.Metadata` → IL)"; every backend renders the
@@ -2451,7 +2504,7 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
 1. **Namespace, registration and the version guard — LANDED (kb/Work PB2097).** `CsNames.ModuleNamespaceOf`;
    `RuntimeApi.ModuleRecordAttribute` / `RegisterModule`; `ProgramEmitter.EmitModuleRegistrar`; `RuntimeAbi`
    (`Version`, `CallAbi`, `Skew`); `WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute`; `ProgramTable.RegisterModule`
-   and the attribute-reading `ProbeSiblingModule` (still the named-file probe: the locator is slice 5), whose failure
+   and the attribute-reading `ProbeSiblingModule` (the named-file probe; slice 5 moved it onto the locator), whose failure
    reasons the not-found messages carry; the tests `EmittedGlobalNameDriftTests`, `ModuleRegistrationTests`,
    `ModuleRegistrationHostTests`, `RuntimeAbiPinDriftTests` (the major beside `PublicAPI.Shipped.txt` and the codec
    images; `CallAbi` beside the boundary-layout fixture). As designed: The one-segment `namespace Cobol.<S>` and
@@ -2532,7 +2585,7 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    attributes. Docs: codegen-backend (`RepositoryRecord`, the `CilBackend` line); this design's §12 rows it lands.
    Depends on 3 (a program's record is anchored on its host entry). `CompileState` and its drift test are not here:
    a skeleton is their only carrier (slice 8).
-5. **The locator and the run-time probe** (kb/Work PB2101). `RepositoryLocator` over `RepositoryIndex` (named file,
+5. **The locator and the run-time probe — LANDED (kb/Work PB2101).** `RepositoryLocator` over `RepositoryIndex` (named file,
    directory index with word rows, collisions, the schema-version check, §15.2's file-size skip and directory rules);
    `ProbeSiblingModule` over it (§11.2's snippet: the landed catch arms kept, the case-insensitive scan and the
    reflection read of the record gone); the per-kind `CallName` dictionary; the feature switch, the disabled-probe
@@ -2541,8 +2594,8 @@ currency pass; a slice that finds it is not makes the restructuring and corrects
    EC-PROGRAM-NOT-FOUND with its reason, and so is a registered program whose class or a dependency cannot be loaded
    or initialized at `n.Factory(…)` (DOC-A.1-14 / -89's existing determination, their text extended to the case, a
    witness for each); the multi-unit case
-   shape of §17.1 (`build`, `compile-unit`, the per-step option and diagnostic keys) with DESIGN-conformance-suite.md
-   corrected to it; the run-time cases of §17.1 marked slice 5. Docs: INTERPROGRAM's probe paragraph (index-based);
+   shape of §17.1 (`build`, the per-step option key; the in-process runner, with DESIGN-conformance-suite.md corrected to it;
+   the per-step diagnostic key waits for slice 7's first refusal case) and the run-time cases of §17.1. Docs: INTERPROGRAM's probe paragraph (index-based);
    the manual's trimmed/AOT paragraph, into §9.4 and recorded in kb/Work PB1610. Depends on 4 (the `Units` index and
    `RepositoryIndex`) and, through it, 3 (the composed application activates its main through a host entry).
 6. **The group provider's corrections — kb/Work PB989 (LANDED with PB2102; the order-blind tables are `GroupRepository`'s one `Find`, REPO-13 is COBOL2969).** Inside the existing group tables: externalized-name keys and

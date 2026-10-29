@@ -117,7 +117,7 @@ public sealed class ModuleRegistrationHostTests
         string other = RuntimeVersionSkew.OtherMajor;
         // A module that records a runtime major this runtime is not: the probe refuses it before invoking its registrar.
         string library = $$"""
-            [assembly: WiseOwl.Cobol.Runtime.Repository.CobolRepository({{WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion}}, "{{other}}", {{WiseOwl.Cobol.Runtime.RuntimeAbi.CallAbi}}, Registrar = "Cobol.P2097VS.__CobolModule")]
+            [assembly: WiseOwl.Cobol.Runtime.Repository.CobolRepository({{WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion}}, "{{other}}", {{WiseOwl.Cobol.Runtime.RuntimeAbi.CallAbi}}, Registrar = "Cobol.P2097VS.__CobolModule", Units = new string[] { "{{WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.EncodeUnit(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Program, "P2097VS", "P2097VS")}}" })]
             namespace Cobol.P2097VS
             {
                 public static class __CobolModule

@@ -118,14 +118,15 @@ public sealed class FunctionLocateResourceWitnessTests
     /// module found on disk is located") would most naturally call EC-PROGRAM-RESOURCES, because the image loads.
     /// The library is built with Roslyn, the same way <c>NonCobolActivatorReturnTests.CompileHost</c> builds its host,
     /// and carries what every compiled module carries — the <c>[assembly: CobolRepository(…)]</c> record, at this
-    /// runtime's version and call ABI, naming its registrar — so the probe selects it exactly as it selects a compiled
+    /// runtime's version and call ABI, naming its registrar and indexing its one function in <c>Units</c> (the locator finds a
+    /// unit by that index, DESIGN-external-repository §7.4) — so the probe selects it exactly as it selects a compiled
     /// module, and what is tested is the registrar: its one registration member, <c>EnsureRegistered()</c>, throws
     /// (DESIGN-external-repository §11.2; kb/Work PB2097).</summary>
     [Fact]
     public void ThrowingRegistrarSiblingModule_IsNotFound_NeverProgramResources()
     {
         string library = $$"""
-            [assembly: WiseOwl.Cobol.Runtime.Repository.CobolRepository({{WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion}}, "{{WiseOwl.Cobol.Runtime.RuntimeAbi.Version}}", {{WiseOwl.Cobol.Runtime.RuntimeAbi.CallAbi}}, Registrar = "Cobol.L1FRSX.__CobolModule")]
+            [assembly: WiseOwl.Cobol.Runtime.Repository.CobolRepository({{WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion}}, "{{WiseOwl.Cobol.Runtime.RuntimeAbi.Version}}", {{WiseOwl.Cobol.Runtime.RuntimeAbi.CallAbi}}, Registrar = "Cobol.L1FRSX.__CobolModule", Units = new string[] { "{{WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.EncodeUnit(WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Function, "L1FRSX", "L1FRSX")}}" })]
             namespace Cobol.L1FRSX
             {
                 public static class __CobolModule
