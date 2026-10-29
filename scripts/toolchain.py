@@ -178,8 +178,10 @@ def _run(command: tuple[str, ...]) -> str | None:
     if exe is None:
         return None
     try:
+        # From the repository root: `dotnet --version` answers the SDK global.json selects there, which is the one the
+        # build uses (elsewhere it answers the newest installed, a preview among them).
         p = subprocess.run([exe, *command[1:]], capture_output=True, text=True, timeout=60, encoding="utf-8",
-                           errors="replace")
+                           errors="replace", cwd=REPO)
     except (OSError, subprocess.SubprocessError):
         return None
     return p.stdout + p.stderr
@@ -389,7 +391,7 @@ def self_test() -> int:
     expect("bump never writes a new major .NET channel", new == text and "NOT written" in moved[0])
     with tempfile.TemporaryDirectory() as d:
         copy = Path(d) / "setup-env.sh"
-        copy.write_text("#!/bin/bash\n" + text + "rest\n", encoding="utf-8")
+        copy.write_text("#!/bin/bash\n" + text + "rest\n", encoding="utf-8", newline="\n")
         new, _ = bumped(copy.read_text(encoding="utf-8"), [(TOOLS[0], "10.0.403", "10.0.404", None)])
         expect("bump rewrites a copy carried inside another script", block(new) == block(bumped(text, [
             (TOOLS[0], "10.0.403", "10.0.404", None)])[0]) and new.endswith("rest\n"))
