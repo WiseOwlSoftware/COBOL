@@ -1,4 +1,4 @@
-## The PB3777 once-check refused every one-file group's spec with a long path, so three waves planned RED: fixed as PB4005
+## Entry 2743 — 2026-10-29 15:14 PDT — The PB3777 once-check refused every one-file group's spec with a long path, so three waves planned RED: fixed as PB4005
 
 `plan_wave.py` planned wave 20261751 with three groups, and `check_practices.py` refused group B's rendered spec (PB4031, one
 file: `src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs`). The template ends both `THE GROUP IS ONE ROOT:` and
@@ -17,3 +17,4 @@ the fixed check still refuses them. A new check in `test_plan_wave.py` renders a
 through the real template. Without the fix it fails with the incident's message; with it the self-test passes, and the
 existing checks still show it refusing a repeated real sentence. The fix was first filed as PB4054. The branch review found
 PB4005 already held the defect, so the duplicate note is gone and PB4005 records the landing. kb/Work PB4005.
+
