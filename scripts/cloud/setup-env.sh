@@ -58,7 +58,8 @@ DOTNET_SDK_VERSION=10.0.403
 PYTHON_VERSION=3.15.2
 JDK_VERSION=27.0.1
 PWSH_VERSION=7.6.9
-GIT_VERSION=2.56.0
+GIT_LINUX_VERSION=2.56.0
+GIT_WINDOWS_VERSION=2.56.0
 GH_VERSION=2.103.3
 JQ_VERSION=1.8.2
 UV_VERSION=0.13.6
@@ -218,24 +219,24 @@ tool_bin() {
 
 DOTNET_DIR=/usr/share/dotnet
 TOOLS=/opt/wiseowl-toolchain
-# install_tool <tool> <dir> <exe>: install <tool> into <dir> and link its <exe> into /usr/local/bin (ahead of the image's
-# own on PATH). A failure warns: the session still starts, and its readiness check names the missing tool.
+# install_tool <tool>: install <tool> (the SDK into DOTNET_DIR, every other tool into TOOLS/<tool>-<version>) and link its
+# executable into /usr/local/bin (ahead of the image's own on PATH). A failure warns: the session still starts, and its
+# readiness check names the missing tool.
 install_tool() {
-  local bin
-  if tool_install "$1" "$2" "$WORK" > "$WORK/$1.log" 2>&1 && bin=$(tool_bin "$1" "$2"); then
-    ln -sf "$bin/$3" "/usr/local/bin/$3" && log "$1 $TOOL_V ok"
+  local dir bin
+  tool_spec "$1" || return 1
+  case "$1" in dotnet-sdk) dir=$DOTNET_DIR ;; *) dir="$TOOLS/$1-$TOOL_V" ;; esac
+  if tool_install "$1" "$dir" "$WORK" > "$WORK/$1.log" 2>&1 && bin=$(tool_bin "$1" "$dir"); then
+    ln -sf "$bin/$TOOL_EXE" "/usr/local/bin/$TOOL_EXE" && log "$1 $TOOL_V ok"
   else
     log "WARN: $1 did not install (tail below)"; tail -5 "$WORK/$1.log" 2>/dev/null; return 1
   fi
 }
-install_tool dotnet-sdk "$DOTNET_DIR" dotnet || true
+# Every tool the block above installs (its TOOL_INSTALLABLE, which `scripts/toolchain.py check` holds to TOOLS'
+# install-tool rows), so a tool added there is installed here with no line of its own.
+for tool in $TOOL_INSTALLABLE; do install_tool "$tool" || true; done
 # apphosts (any dotnet tool) locate the runtime through this file when DOTNET_ROOT is unset.
 mkdir -p /etc/dotnet && echo "$DOTNET_DIR" > /etc/dotnet/install_location
-install_tool jdk "$TOOLS/jdk-$JDK_VERSION" java || true
-install_tool pwsh "$TOOLS/pwsh-$PWSH_VERSION" pwsh || true
-install_tool gh "$TOOLS/gh-$GH_VERSION" gh || true
-install_tool jq "$TOOLS/jq-$JQ_VERSION" jq || true
-install_tool uv "$TOOLS/uv-$UV_VERSION" uv || true
 
 cat > /etc/profile.d/dotnet.sh <<EOF
 export DOTNET_ROOT=$DOTNET_DIR
@@ -313,5 +314,5 @@ log "python: $(python --version 2>&1)"
 log "gh:     $(gh --version 2>&1 | head -1)"
 log "jq:     $(jq --version 2>&1)"
 log "uv:     $(uv --version 2>&1)"
-log "git:    $(git --version 2>&1) (the image's; toolchain.env names $GIT_VERSION)"
+log "git:    $(git --version 2>&1) (the image's; toolchain.env names $GIT_LINUX_VERSION)"
 exit 0

@@ -119,7 +119,7 @@ public sealed class DotnetSdkInstallDriftTests
     public void TheAction_RestoresInstallsSavesAndProvesThePinnedSdk()
     {
         string action = File.ReadAllText(TestRepo.At(".github", "actions", "setup-toolchain", "action.yml"));
-        var offenders = AuditAction(action);
+        var offenders = AuditAction(action, ToolchainManifestDriftTests.Tools);
         Assert.True(offenders.Count == 0, "the setup-toolchain action (kb/Work PB3308, PB4007):\n" + string.Join("\n", offenders));
     }
 
@@ -216,12 +216,14 @@ public sealed class DotnetSdkInstallDriftTests
         Assert.Empty(RedirectOffenders("a.yml", ["        uses: ./.github/actions/setup-toolchain"]));
 
         string action = File.ReadAllText(TestRepo.At(".github", "actions", "setup-toolchain", "action.yml"));
-        Assert.Empty(AuditAction(action));
-        Assert.Single(AuditAction(action.Replace("bash scripts/install-tool.sh \"$tool\" \"$DIR/$tool\"", "true", StringComparison.Ordinal)));
-        Assert.Single(AuditAction(action.Replace("for tool in dotnet-sdk jdk", "for tool in jdk", StringComparison.Ordinal)));
-        Assert.Single(AuditAction(action.Replace("actions/cache/restore@", "actions/other/restore@", StringComparison.Ordinal)));
-        Assert.Single(AuditAction(action.Replace("toolchain.env | sha256sum", "global.json | sha256sum", StringComparison.Ordinal)));
-        Assert.Single(AuditAction(action.Replace("python scripts/toolchain.py check --scope ci", "true", StringComparison.Ordinal)));
+        var tools = ToolchainManifestDriftTests.Tools;
+        Assert.Empty(AuditAction(action, tools));
+        Assert.Single(AuditAction(action.Replace("bash scripts/install-tool.sh \"$tool\" \"$DIR/$tool\"", "true", StringComparison.Ordinal), tools));
+        Assert.Single(AuditAction(action.Replace("python scripts/toolchain.py ci-installs", "echo jdk", StringComparison.Ordinal), tools));
+        Assert.Single(AuditAction(action, tools.Select(t => t.Name == "dotnet-sdk" ? t with { Runs = "HOST" } : t).ToList()));
+        Assert.Single(AuditAction(action.Replace("actions/cache/restore@", "actions/other/restore@", StringComparison.Ordinal), tools));
+        Assert.Single(AuditAction(action.Replace("toolchain.env | sha256sum", "global.json | sha256sum", StringComparison.Ordinal), tools));
+        Assert.Single(AuditAction(action.Replace("python scripts/toolchain.py check --scope ci", "true", StringComparison.Ordinal), tools));
 
         const string Script = "x\n# >>> tool-install (kept)\nDOTNET_SDK_VERSION=10.0.403\nDOTNET_SDK_FEEDS=\"https://a https://b\"\n# <<< tool-install\ny\n";
         Assert.Equal("10.0.403", Pin(Script));
@@ -332,7 +334,10 @@ public sealed class DotnetSdkInstallDriftTests
         return offenders;
     }
 
-    private static List<string> AuditAction(string action)
+    /// <summary>What keeps setup-toolchain from restoring, installing, saving and proving the SDK. The action installs
+    /// the tools <c>toolchain.py ci-installs</c> names, so the SDK is among them when its row of toolchain.py's TOOLS
+    /// (<paramref name="tools"/>) is an install-tool row that runs in CI.</summary>
+    private static List<string> AuditAction(string action, IReadOnlyList<ToolchainManifestDriftTests.ToolRow> tools)
     {
         var offenders = new List<string>();
         void Require(string text, string why)
@@ -343,8 +348,9 @@ public sealed class DotnetSdkInstallDriftTests
         Require("actions/cache/restore@", "a cached SDK must be restored before any feed is asked");
         Require("toolchain.env | sha256sum", "the cache is keyed on the manifest's versions, the OS and the architecture");
         Require("bash scripts/install-tool.sh \"$tool\" \"$DIR/$tool\"", "the SDK is installed by the one install script");
-        if (!Regex.IsMatch(action, @"(?m)^\s+for tool in dotnet-sdk\b"))
-            offenders.Add("  the install loop does not start with `dotnet-sdk`: the action installs the SDK");
+        Require("tools=\"$(python scripts/toolchain.py ci-installs)\"", "the action installs the tools toolchain.py's TOOLS names for CI");
+        if (!tools.Any(t => t is { Name: "dotnet-sdk", Source: "INSTALL_TOOL", Runs: "CI" }))
+            offenders.Add("  scripts/toolchain.py's dotnet-sdk row is not an INSTALL_TOOL row that runs in CI: the action would not install the SDK");
         if (!Regex.IsMatch(action, @"(?m)^\s+continue-on-error: true\n\s+uses: actions/cache/save@"))
             offenders.Add("  no `continue-on-error: true` on an `actions/cache/save@` step: the SDK is saved, and a failed save never fails the job");
         Require("python scripts/toolchain.py check --scope ci", "the step proves `dotnet` (with every other tool) reports the manifest's version");

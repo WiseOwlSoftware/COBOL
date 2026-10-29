@@ -327,8 +327,10 @@ def self_test() -> int:
     status, _, detail = toolchain_line(lambda command: None)
     if status != "ASK-OWNER" or "absent (toolchain.env" not in detail or "NOT RUN [toolchain]" not in detail:
         fails.append(f"a host with no tools is not ASK-OWNER naming each: {status} — {detail}")
+    # git's manifest line is this OS's (GIT_LINUX_VERSION or GIT_WINDOWS_VERSION): the one row `host` holds here.
+    git = next(t.key for t in toolchain.held("host") if t.command and t.command[0] == "git")
     reports = {"dotnet": manifest["DOTNET_SDK_VERSION"], "java": f'java version "{manifest["JDK_VERSION"]}"',
-               "pwsh": f"PowerShell {manifest['PWSH_VERSION']}", "git": f"git version {manifest['GIT_VERSION']}",
+               "pwsh": f"PowerShell {manifest['PWSH_VERSION']}", "git": f"git version {manifest[git]}",
                "gh": f"gh version {manifest['GH_VERSION']}", "jq": f"jq-{manifest['JQ_VERSION']}",
                "uv": f"uv {manifest['UV_VERSION']}", "semgrep": manifest["SEMGREP_VERSION"]}
     status, _, detail = toolchain_line(lambda command: reports.get(command[0]))

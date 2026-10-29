@@ -29,10 +29,12 @@ done
 export DOTNET_ROOT="$HOME/.dotnet"
 export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$HOME/.local/bin:$PATH"
 
-# The JDK (ANTLR), pwsh, gh, jq and uv -> ~/tools/<tool>-<version>, each executable linked into ~/.local/bin, the way
-# CI installs them (scripts/install-tool.sh: the publisher's release, checked against its checksum). A version the
-# manifest no longer names is removed once the new one is linked.
-for tool in jdk pwsh gh jq uv; do
+# Every other tool install-tool.sh installs (its --list: the JDK for ANTLR, pwsh, gh, jq and uv today, the list
+# `toolchain.py check` holds to TOOLS' install-tool rows) -> ~/tools/<tool>-<version>, each executable linked into
+# ~/.local/bin, the way CI installs them (the publisher's release, checked against its checksum). A version the manifest
+# no longer names is removed once the new one is linked; a tool that fails is named by the closing check.
+for tool in $(bash "$SCRIPTS/install-tool.sh" --list); do
+  [ "$tool" != dotnet-sdk ] || continue   # installed into ~/.dotnet above
   version=$(bash "$SCRIPTS/install-tool.sh" --version "$tool")
   dir="$TOOLS/$tool-$version"
   if bash "$SCRIPTS/install-tool.sh" "$tool" "$dir" > "$WORK/$tool.log" 2>&1 && bin=$(bash "$SCRIPTS/install-tool.sh" --bin "$tool" "$dir"); then
