@@ -1,4 +1,4 @@
-## PB3996 — a Format 1 CALL refuses OMITTED, and the Format-1 narrowing is asked once per argument
+## Entry 2710 — 2026-10-28 17:44 PDT — PB3996 — a Format 1 CALL refuses OMITTED, and the Format-1 narrowing is asked once per argument
 
 **What was wrong.** `CALL "P" USING W OMITTED`, `USING BY REFERENCE OMITTED` and `USING BY CONTENT W OMITTED` compiled and
 ran (the note's program printed `EXC EXC EXC END`), where ISO §14.9.4.2 prints OMITTED only in Format 2
@@ -27,3 +27,4 @@ callee's `IS OMITTED` answering from §14.9.4.4 GR11). Seven existing fixtures h
 OMITTED` with a REPOSITORY program-specifier, and its expected output is unchanged.
 
 **Rows.** PB3996 claimed none and closes none; `docs/INTERPROGRAM_DESIGN.md` carries the narrowing's current shape.
+
