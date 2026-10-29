@@ -36,20 +36,13 @@ public sealed class InertLaneDriftTests
 
     private static readonly string Workflow = File.ReadAllText(TestRepo.At(".github", "workflows", "build-and-test.yml"));
 
-    /// <summary>The jobs of the workflow, each as (its id, its text).</summary>
-    private static IEnumerable<(string Id, string Text)> Jobs()
-    {
-        string jobs = Workflow[Workflow.IndexOf("\njobs:\n", StringComparison.Ordinal)..];
-        foreach (string part in Regex.Split(jobs, @"^  (?=[A-Za-z0-9_-]+:\s*$)", RegexOptions.Multiline).Skip(1))
-        {
-            yield return (part[..part.IndexOf(':')], part);
-        }
-    }
+    /// <summary>The workflow's jobs, read by the one reader (kb/Work PB3819).</summary>
+    private static readonly IReadOnlyList<CiJob> Jobs = CiWorkflow.Jobs(Workflow);
 
     [Fact]
     public void TheChangesJob_DecidesTheMatrixThroughTheOneClassification_AndCarriesNoPathList()
     {
-        string changes = Assert.Single(Jobs(), j => j.Id == "changes").Text;
+        string changes = Assert.Single(Jobs, j => j.Id == "changes").Code;
         Assert.Contains($"python3 {Classifier} classify --base", changes, StringComparison.Ordinal);
         // A regex of repository paths is the doc-only list this replaced: one more copy of "what no test reads".
         Assert.False(Regex.IsMatch(changes, @"grep -[A-Za-z]*E[A-Za-z]* ""\$IGNORE""|IGNORE='|\^\((DEVLOG|docs|kb)/"),
@@ -60,8 +53,8 @@ public sealed class InertLaneDriftTests
     [Fact]
     public void EveryLinuxDotnetTestStep_RunsUnderTheInertWatch()
     {
-        var linux = Jobs().Where(j => Regex.IsMatch(j.Text, @"^\s+runs-on:\s*ubuntu", RegexOptions.Multiline)).ToList();
-        var steps = linux.SelectMany(j => Regex.Matches(j.Text, @"^.*\bdotnet test tests/.*$", RegexOptions.Multiline)
+        var linux = Jobs.Where(j => j.Value("runs-on")?.StartsWith("ubuntu", StringComparison.Ordinal) == true).ToList();
+        var steps = linux.SelectMany(j => Regex.Matches(j.Code, @"^.*\bdotnet test tests/.*$", RegexOptions.Multiline)
             .Select(m => (j.Id, Line: m.Value.Trim()))).ToList();
         Assert.True(steps.Count >= 4,
             $"found only {steps.Count} `dotnet test` step(s) in the Linux jobs: the scan is broken, not the workflow");
@@ -93,7 +86,7 @@ public sealed class InertLaneDriftTests
     [Fact]
     public void TheInertLane_RunsTheLinuxSelfTests_ThatTheAuditsJobRunsOnEveryEvent()
     {
-        string audits = Assert.Single(Jobs(), j => j.Id == "audits").Text;
+        string audits = Assert.Single(Jobs, j => j.Id == "audits").Code;
         Assert.Contains("python3 scripts/self_tests.py", audits, StringComparison.Ordinal);
         Assert.DoesNotContain("run_matrix", audits, StringComparison.Ordinal);   // no event skips it
 
