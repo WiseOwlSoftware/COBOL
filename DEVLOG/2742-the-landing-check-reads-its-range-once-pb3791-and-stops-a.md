@@ -1,4 +1,4 @@
-## The landing check reads its range once (PB3791) and stops a public-API symbol listed twice (PB3694)
+## Entry 2742 — 2026-10-29 15:11 PDT — The landing check reads its range once (PB3791) and stops a public-API symbol listed twice (PB3694)
 
 Wave 20261752 group B, two notes with one root: `scripts/orchestrator/landing_check.py` held a second copy of a question
 and lacked a check the merge queue makes for it.
@@ -33,3 +33,4 @@ Self-review: architecture (the rule lives beside the merge it guards, merge_driv
 (the stop is exit 3 like every landing_check stop, which the lane reads as a wait: see the report's lead); performance (one
 ls-tree and one batched blob read per landing); duplication (no second reader
 of the range, no second definition of which files are baselines). Rows closed: none (process tooling).
+
