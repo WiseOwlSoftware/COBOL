@@ -23961,6 +23961,22 @@
   ],
   "expect": "COBOL0900: the ROUNDED phrase of the SOURCE clause (report group description) requires COBOL-2002"
  },
+ "pb3997-value-binary-usage-above-band": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "permissible value in the range the USAGE clause indicates"
+ },
+ "pb3997-value-binary-usage-condition-above-band": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "permissible value in the range the USAGE clause indicates"
+ },
  "pb3996-call-format1-omitted-bare": {
   "refuse-at": [
    "2002",
