@@ -701,7 +701,10 @@ lane. The tick:
 **The lease, per branch head.** A reviewer is reviewing a head when the lane's runner for it is alive, or ANY findings
 file that names the branch holds a `start` at the head with no verdict younger than the reviewer ceiling (a rolling
 wave's reviewer: the survey reads one WAITING FOR REVIEW, kb/Work PB3283); a verdict at the head in any file means
-reviewed. `review_findings.rounds` is the one reader. The lane's own file is `scratch/review-<branch slug>.jsonl`.
+reviewed (a verdict in the lane's own file that the report lacks the stamp for, a reviewer killed between the two, is
+stamped by the lane); and a report younger than 5 minutes waits, because a wave's reviewer writes its `start` only
+after the implementer's return is checked and nothing on disk says it is coming. `review_findings.rounds` is the one
+reader. The lane's own file is `scratch/review-<branch slug>.jsonl`.
 
 **Restart-safe.** A reviewer killed mid-review leaves its `start` (and perhaps findings, and perhaps a cut-off last
 line) in the file; no hand repair follows. The next tick finds the run DIED, mends a tear that is the file's LAST line
