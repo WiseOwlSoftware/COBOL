@@ -82,7 +82,7 @@ def pid_alive(pid: int) -> bool:
     return _pid_alive(pid)
 
 
-def _kill_tree(pid: int) -> None:
+def kill_tree(pid: int) -> None:
     """Kill `pid` and every process its TREE reaches, as the agent harness does when an agent returns."""
     if os.name == "nt":
         subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True)
@@ -132,7 +132,7 @@ def self_test() -> int:
             start_new_session=os.name != "nt")
         _wait_for(mark.exists, "the detached target's pid file")
         survivor = int(mark.read_text(encoding="utf-8"))
-        _kill_tree(caller.pid)
+        kill_tree(caller.pid)
         caller.wait()
         alive_after_kill = pid_alive(survivor)
         go.touch()
@@ -165,7 +165,7 @@ def self_test() -> int:
                    words[:4:2] == ["console-cp", "visible"] and words[1] != "0" and words[3] == "0", " ".join(words))
     finally:
         if survivor is not None and pid_alive(survivor):
-            _kill_tree(survivor)
+            kill_tree(survivor)
         remove_tree(root)
     print(f"=== detached.py self-test: {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0
