@@ -1,4 +1,4 @@
-## PB3811: the build guard reads an output path given on the command line
+## Entry 2735 — 2026-10-29 13:36 PDT — PB3811: the build guard reads an output path given on the command line
 
 `fleet_active_build.py` (the PreToolUse guard that refuses a `dotnet` build while a live subagent works in the tree the
 build writes) treated an output path moved in a project file as UNKNOWN but ignored the same redirection on the command
@@ -31,3 +31,4 @@ the option and of each property family aimed into a live agent's worktree, the m
 agent's directory, relative values, the UNKNOWN shapes, the `--` boundary, `-os linux`, both response files. With
 `dotnet_arguments` made blind to redirections 28 of them fail. `DESIGN-test-build-ci.md` 1.7 states the rule.
 No ISO rule governs it; the note claims no inventory row.
+
