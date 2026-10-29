@@ -23,6 +23,14 @@
       *>     digits) is false, WHEN CC * DD is true.
       *> S3  The same P * Q read by a range object: 12 is in 2 THRU P * Q and not in
       *>     13 THRU 20.
+      *> S4  AA * BB, both PIC 9(15)V9(12) holding 1.000000000001 and 1, is bounded by
+      *>     30 + 24 digits, so the hold is the S9(21)V9(17) item itself: the fraction
+      *>     floor is that item's 17 digits (branch review round 2, R2-1, where a floor of
+      *>     9 held S9(29)V9(9)).  The value is 1.000000000001: WHEN 1 (the value cut to
+      *>     9 fraction digits) is false, WHEN 1.000000000001 is true.
+      *> S5  EE * FF, the same 30 + 24 bound holding 0.000000000001 and 0.00001.  The
+      *>     value is 0.00000000000000001, its 17th fraction digit the floor's last:
+      *>     WHEN 0 (any shorter fraction) is false, WHEN EE * FF is true.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3974PF.
        DATA DIVISION.
@@ -31,6 +39,10 @@
        01 Q    PIC 9V9(19) VALUE 4.
        01 CC   PIC 9(10)V9(15) VALUE 12345.
        01 DD   PIC 9(10)V9(15) VALUE 10000.
+       01 AA   PIC 9(15)V9(12) VALUE 1.000000000001.
+       01 BB   PIC 9(15)V9(12) VALUE 1.
+       01 EE   PIC 9(15)V9(12) VALUE 0.000000000001.
+       01 FF   PIC 9(15)V9(12) VALUE 0.00001.
        PROCEDURE DIVISION.
        MAIN-PARA.
            EVALUATE P * Q
@@ -56,5 +68,21 @@
                  DISPLAY "S3=EXACT"
               WHEN OTHER
                  DISPLAY "S3=OTHER"
+           END-EVALUATE
+           EVALUATE AA * BB
+              WHEN 1
+                 DISPLAY "S4=CUT-TO-1"
+              WHEN 1.000000000001
+                 DISPLAY "S4=EXACT"
+              WHEN OTHER
+                 DISPLAY "S4=OTHER"
+           END-EVALUATE
+           EVALUATE EE * FF
+              WHEN 0
+                 DISPLAY "S5=CUT-TO-0"
+              WHEN EE * FF
+                 DISPLAY "S5=EXACT"
+              WHEN OTHER
+                 DISPLAY "S5=OTHER"
            END-EVALUATE
            STOP RUN.

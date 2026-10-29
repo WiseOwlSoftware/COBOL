@@ -221,9 +221,11 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         int scale = extent.Scale;
         if (integer + scale > PicInfo.ScaledCarrierDigits)
         {
-            // Integer digits keep priority (ShapedPic's order), but never at the cost of the ReturnedFractionDigits
-            // the S9(21)V9(17) hold this replaced kept: the item is a superset of it on BOTH axes.
-            integer = Math.Min(integer, PicInfo.ScaledCarrierDigits - Math.Min(scale, ReturnedFractionDigits));
+            // Integer digits keep priority (ShapedPic's order), but never at the cost of the fraction digits the
+            // ValueOperandPic hold this replaced kept (its Scale, 17 — read off the item, never a constant naming
+            // another item: FunctionValuePic's 9 cut a 30 + 24 bound to S9(29)V9(9), review R2-1): the item is a
+            // superset of ValueOperandPic on BOTH axes.
+            integer = Math.Min(integer, PicInfo.ScaledCarrierDigits - Math.Min(scale, ValueOperandPic.Scale));
             scale = Math.Min(scale, PicInfo.ScaledCarrierDigits - integer);
         }
         int digits = integer + scale;
