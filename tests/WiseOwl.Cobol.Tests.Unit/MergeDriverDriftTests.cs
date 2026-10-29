@@ -82,6 +82,7 @@ public sealed class MergeDriverDriftTests
             "settle: the merged counters are written into the props and RuntimeAbi.cs BEFORE the measurement",
             "settle: a measurement that fails, or writes nothing, is the reason",
             "failure: a build output another process holds (MSB3027, MSB3021), a full disk and a command that cannot start are MERGE_BLOCKED",
+            "failure: MSBuild's transient copy-retry WARNING (MSB3026, which carries the held-file phrases) is no cause",
             "settle: an owned file that lacks the line the settle rewrites is the merged tree's (MERGE_FAILED)",
             "bump: the named counter rises by one",
         ]);
