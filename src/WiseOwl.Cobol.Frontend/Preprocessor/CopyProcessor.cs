@@ -488,8 +488,15 @@ public sealed class CopyProcessor(
         // the COPY's text is unaffected after it (5), the revert). Then COPY … REPLACING (§7.2.3.4 9)).
         var copyLine = mapped.PointAt(copyIdx).Origin;   // the file and physical line the COPY word stands on
         bool? copyFixed = _referenceFormats.TryGetValue(copyLine.File, out var copyFormats) ? copyFormats.LibraryTextDefaultAt(copyLine.Line) : null;
-        var normalizedMapped = NormalizeCopybookMapped(_inputs.ReadAllText(copybookPath), copybookPath, copyFixed,
-            standsInIdentificationDivision);
+        // The library text's bytes become characters in SourceTextDecoder (A.1 items 25 and 26, kb/Work PB1397): a marked
+        // file not well-formed in its encoding is COBOL5434 (reported there), and the COPY draws no second diagnostic.
+        if (_inputs.ReadSourceText(copybookPath, _diagnostics) is not { } libraryText)
+        {
+            alreadyIncluded.Remove(copybookPath);   // nothing was included, so a later COPY of it is no circular include
+            return new OneCopyResult(CopyOutcome.NotFound, $"*> COPY {libraryName} — library text malformed for its byte-order mark", null);
+        }
+
+        var normalizedMapped = NormalizeCopybookMapped(libraryText, copybookPath, copyFixed, standsInIdentificationDivision);
         string normalized = normalizedMapped.Text;
         // §7.2.3.3 SR9: "The length of a text-word within pseudo-text and within library text shall be from 1 through
         // 65,535 character positions" — the library-text half (the pseudo-text half is ScreenOperandPair's).
