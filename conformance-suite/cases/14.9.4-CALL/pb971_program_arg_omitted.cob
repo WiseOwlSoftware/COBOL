@@ -17,10 +17,16 @@
       *> (so its DISPLAY/MOVE has no effect). The two exemptions raise nothing:
       *> the IS OMITTED condition, and X/G passed as ARGUMENTS to P971F, where
       *> the omission is transitive (8.8.4.8.4 GR1c). The second CALL supplies
-      *> every argument: no reference raises, so N stays 00.
+      *> every argument: no reference raises, so N stays 00. The OMITTED call is the
+      *> program-prototype Format 2 (14.9.4.2 prints OMITTED there only), so P971C is
+      *> a REPOSITORY program-specifier (kb/Work PB3996).
       >>TURN EC-PROGRAM-ARG-OMITTED CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P971M.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           PROGRAM P971C.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 WA PIC X(4) VALUE "ABCD".
@@ -29,7 +35,7 @@
           05 WG2 PIC 9(2) VALUE 42.
        01 WR PIC X(4) VALUE "0123".
        PROCEDURE DIVISION.
-           CALL "P971C" USING OMITTED OMITTED OMITTED
+           CALL "P971C" AS P971C USING OMITTED OMITTED OMITTED
            DISPLAY "M-SECOND"
            CALL "P971C" USING WA WG WR
            DISPLAY "M-END WG1=" WG1
