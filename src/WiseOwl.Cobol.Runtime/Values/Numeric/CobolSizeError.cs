@@ -30,11 +30,31 @@ namespace WiseOwl.Cobol.Runtime;
 /// EC-SIZE-ZERO-DIVIDE; an exponentiation-rule violation EC-SIZE-EXPONENTIATION; the PROHIBITED-inexact
 /// EC-SIZE-TRUNCATION; a range overflow EC-SIZE-OVERFLOW ("arithmetic overflow in calculation"). ⛔ It is REQUIRED —
 /// there is no default name: a defaulted EC-SIZE-OVERFLOW is how the outermost-quotient PROHIBITED raise
-/// (<c>CobolNum.DivideOrThrow</c>) latched the wrong level-3 name, so a USE AFTER EC-SIZE-TRUNCATION declarative
+/// (then <c>CobolNum.DivideOrThrow</c>) latched the wrong level-3 name, so a USE AFTER EC-SIZE-TRUNCATION declarative
 /// never saw it (kb/Work PB1147). Every raise site now says which Table 13 condition it is.</para>
 /// </summary>
 public sealed class CobolSizeError(string detail, string ecName) : CobolFatalException(ecName, detail)
 {
+    /// <summary>Is this §14.7.4.3 rule 7's condition — ROUNDED MODE IS PROHIBITED and a value the resultant identifier
+    /// cannot represent exactly (<see cref="ProhibitedInexact"/>)? The one fact the emitted code of an arithmetic
+    /// statement with no SIZE ERROR phrase and checking off filters on: there the resultant is left unchanged and
+    /// execution continues (docs/CONFORMANCE.md DOC-A.1-70), while every OTHER size error such a statement meets keeps
+    /// its own disposition.</summary>
+    public bool IsProhibitedInexact { get; private init; }
+
+    /// <summary>⛔ THE ONE RAISE OF §14.7.4.3 RULE 7 (kb/Work PB3990): "If the PROHIBITED phrase is specified, and the
+    /// arithmetic value cannot be represented exactly in the resultant identifier, the EC-SIZE-TRUNCATION exception
+    /// condition is set to exist, the size error condition exists, and the content of the resultant identifier is
+    /// unchanged". Every final transfer that rounds raises it from its rounding decision — the scaled carrier's
+    /// <c>CobolNum.BumpsMagnitude</c>, the SDIDI's <c>CobolDec.RoundFromRemainder</c>, a floating-point resultant's
+    /// <see cref="FloatResultant"/> and a floating-point edited one's <c>CobolEdit</c> store — whether or not checking is
+    /// enabled, because the rule does not depend on it: PROHIBITED is never a rounding direction, and no landing stores
+    /// a value it cut (a Try form answers false instead).</summary>
+    public static CobolSizeError ProhibitedInexact() =>
+        new("ROUNDED MODE IS PROHIBITED and the value cannot be represented exactly in the resultant identifier "
+            + "(ISO §14.7.4.3 rule 7 — EC-SIZE-TRUNCATION; the resultant identifier is unchanged)", "EC-SIZE-TRUNCATION")
+        { IsProhibitedInexact = true };
+
     /// <summary>The zero divisor — §14.7.5 case 2, "if the divisor in a divide operation or in a DIVIDE statement is
     /// zero", EC-SIZE-ZERO-DIVIDE by no-phrase rule 2 (a Fatal condition in Table 13). The ONE raise every value
     /// lane's quotient kernel throws (<c>CobolNum.Divide</c> for the scaled <see cref="Int128"/> carrier,

@@ -77,8 +77,14 @@ public sealed class FloatResultantTests
         Assert.Equal(0.5, half);
         Assert.True(FloatResultant.TryFromReal(0.1, CobolRounding.Prohibited, Binary64, out _));     // a binary64 IS one
         Assert.False(FloatResultant.TryFromReal(0.1, CobolRounding.Prohibited, Single, out _));
-        // Unchecked, the inexact PROHIBITED value lands TRUNCATED (CONFORMANCE.md DOC-A.1-70).
-        Assert.Equal(TenthDown32, FloatResultant.FromScaled(1, 1, CobolRounding.Prohibited, Single));
+        // Unchecked, the inexact PROHIBITED value raises rule 7's condition — the resultant is unchanged whether or not
+        // checking is enabled (kb/Work PB3990; it used to land TRUNCATED) — and an exact one lands.
+        Assert.True(Assert.Throws<CobolSizeError>(() => FloatResultant.FromScaled(1, 1, CobolRounding.Prohibited, Single)).IsProhibitedInexact);
+        Assert.True(Assert.Throws<CobolSizeError>(() => FloatResultant.FromReal(0.1, CobolRounding.Prohibited, Single)).IsProhibitedInexact);
+        Assert.True(Assert.Throws<CobolSizeError>(() => FloatResultant.FromDec(new CobolDec(1, -1), CobolRounding.Prohibited, Single)).IsProhibitedInexact);
+        Assert.True(Assert.Throws<CobolSizeError>(() => FloatResultant.FromUnsignedScaled(1, 1, CobolRounding.Prohibited, Binary64)).IsProhibitedInexact);
+        Assert.Equal(0.5, FloatResultant.FromScaled(5, 1, CobolRounding.Prohibited, Single));
+        Assert.Equal(0.1, FloatResultant.FromReal(0.1, CobolRounding.Prohibited, Binary64));
         // Checked, every other mode commits an inexact value.
         Assert.True(FloatResultant.TryFromScaled(1, 1, CobolRounding.Truncation, Single, out double t));
         Assert.Equal(TenthDown32, t);
