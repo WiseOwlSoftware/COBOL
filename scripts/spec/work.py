@@ -245,6 +245,46 @@ def _split_list(inner: str) -> list[str]:
     return [m for m in (x.strip().strip('"').strip("'").strip() for x in inner.split(",")) if m]
 
 
+#: YAML 1.2 section 5.7's escape characters (the single-character ones), for the one-line double-quoted scalars the
+#: register writes; `\x`, `\u` and `\U` carry their code point in the hex digits that follow (`_YAML_ESCAPE`).
+_YAML_ESCAPES = {"0": "\0", "a": "\a", "b": "\b", "t": "\t", "\t": "\t", "n": "\n", "v": "\v", "f": "\f",
+                 "r": "\r", "e": "\x1b", " ": " ", '"': '"', "/": "/", "\\": "\\", "N": "\x85", "_": "\xa0",
+                 "L": " ", "P": " "}
+_YAML_ESCAPE = re.compile(r"\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|.)", re.S)
+
+
+def _scalar(v: str) -> tuple[str, str]:
+    r"""`(value, error)` of a one-line scalar as YAML reads it (kb/Work PB3812): a double-quoted one with its escapes
+    decoded (`\"` is a quote, `\\` a backslash, `′` a code point), a single-quoted one with `''` as a quote, a
+    plain one as written. `error` is `""` or a code: `unknown-escape` (a backslash YAML 1.2 does not define) or
+    `unterminated-quote` (an opening quote the value never closes). The value stays as written when it is in error,
+    and the caller records the code in `_errors`, so a malformed scalar is a reported third answer, never a silent
+    one (the fail-open doctrine below). It was `v.strip('"')`, which left every escape in the value: 279 titles
+    carried a visible backslash."""
+    quote = v[:1]
+    if quote not in ('"', "'"):
+        return v, ""
+    if len(v) < 2 or v[-1] != quote:
+        return v, "unterminated-quote"
+    inner = v[1:-1]
+    if quote == "'":
+        return inner.replace("''", "'"), ""
+    unknown = False
+
+    def decode(m: re.Match) -> str:
+        nonlocal unknown
+        e = m.group(1)
+        if len(e) > 1:
+            return chr(int(e[1:], 16))
+        if e not in _YAML_ESCAPES:
+            unknown = True
+            return m.group(0)
+        return _YAML_ESCAPES[e]
+
+    decoded = _YAML_ESCAPE.sub(decode, inner)
+    return (v, "unknown-escape") if unknown else (decoded, "")
+
+
 def parse_frontmatter(text: str) -> dict | None:
     """One note's frontmatter as `key -> str | bool | list[str]`, or `None` when the file is not a note.
 
@@ -290,7 +330,12 @@ def parse_frontmatter(text: str) -> dict | None:
         if not sep or not FM_KEY.match(k):
             continue              # a continuation of a wrapped SCALAR, a comment, a blank line
         if not v.startswith("["):
-            out[k] = True if v == "true" else False if v == "false" else v.strip('"')
+            if v in ("true", "false"):
+                out[k] = v == "true"
+            else:
+                out[k], bad = _scalar(v)
+                if bad:
+                    out["_errors"].append(f"{bad}:{k}")
         elif v.endswith("]"):
             out[k] = _split_list(v[1:-1])
         else:
@@ -446,6 +491,23 @@ def check_base_agrees(base: pathlib.Path = REPO / "kb" / "Work.base") -> list[st
 RULE_ID_SHAPE = re.compile(r"\A[A-Z]{2,4}-[0-9A-Za-z.]+(?:-[0-9A-Za-z.]+)?\Z")
 
 
+#: What each frontmatter error code of `parse_frontmatter` (`_errors`) means for the person fixing the note.
+FRONTMATTER_ERRORS = {
+    "unterminated-list": "a wrapped list whose bracket never closes is read as NOTHING by every reader of this "
+                         "register (kb/Work/PB875); close it, or put it on one line",
+    "unknown-escape": "a double-quoted value holds a backslash that YAML 1.2 section 5.7 does not define, so a YAML "
+                      "reader refuses the note (kb/Work PB3812); write the backslash as two",
+    "unterminated-quote": "a value opens a quote it never closes, so a YAML reader refuses the note (kb/Work PB3812)",
+}
+
+
+def frontmatter_errors(it: dict) -> list[str]:
+    """One problem per error code the reader recorded for this note (`parse_frontmatter`'s `_errors`: a malformed value
+    is a reported third answer, never an empty one)."""
+    return [f'{it["_file"]}: frontmatter {e} — ' + FRONTMATTER_ERRORS.get(e.partition(":")[0], "malformed")
+            for e in it.get("_errors", [])]
+
+
 def closes_rows_shape(it: dict) -> list[str]:
     """The `closes_rows` / `closes_rows_reason` back-link, checked for SHAPE — and only for shape.
 
@@ -462,9 +524,6 @@ def closes_rows_shape(it: dict) -> list[str]:
     (`feedback_one_rule_one_place`).
     """
     bad: list[str] = []
-    for e in it.get("_errors", []):
-        bad.append(f'{it["_file"]}: frontmatter {e} — a wrapped list whose bracket never closes is read as '
-                   f'NOTHING by both readers of this register (kb/Work/PB875); close it, or put it on one line')
     rows = it.get("closes_rows")
     if rows is not None and not isinstance(rows, list):
         bad.append(f'{it["_file"]}: closes_rows is {rows!r}, not a list — write `closes_rows: [RULE-ID, …]`')
@@ -710,6 +769,7 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
             bad.append(f'{it["_file"]}: open defect with no harm flag set — it can never appear in '
                        f'`work.py next`. Set one of {list(HARM_FLAGS)}, or process_only: true if it '
                        f'genuinely does nothing to a user\'s program.')
+        bad += frontmatter_errors(it)
         bad += closes_rows_shape(it)
         bad += frontier_model_shape(it)
         bad += upstream_problems(it)
@@ -1664,6 +1724,27 @@ def case_findings(fixture: dict, answers: list[dict]) -> list[str]:
     return bad
 
 
+def scalar_findings(fixture: dict) -> list[str]:
+    """The fixture's `scalars` against `_scalar` (kb/Work PB3812): the value and the error code of each, and a case for
+    every escape the reader defines (a character added to `_YAML_ESCAPES` stops this until a case states it)."""
+    cases = fixture.get("scalars", [])
+    bad = []
+    for c in cases:
+        got = _scalar(c["value"])
+        if got != (c["expect"], c["error"]):
+            bad.append(f'scalar case "{c["name"]}": {c["value"]!r} reads as {got!r}, fixture says '
+                       f'{(c["expect"], c["error"])!r}')
+    backslash = chr(92)
+    stated = {c["value"][c["value"].index(backslash) + 1] for c in cases
+              if not c["error"] and c["value"][:1] == '"' and backslash in c["value"]}
+    bad += [f"the fixture carries no scalar case for the YAML escape backslash-{e!r}, which _scalar decodes"
+            for e in (*_YAML_ESCAPES, "x", "u", "U") if e not in stated]
+    for code in ("unknown-escape", "unterminated-quote"):
+        if not any(c["error"] == code for c in cases):
+            bad.append(f"the fixture's scalars carry no case reporting {code}")
+    return bad
+
+
 def directory_findings(fixture: dict) -> list[str]:
     """The fixture's files written into a directory and read as a register (kb/Work PB3654): `register_problems` and
     `load` refuse each file named like a note that does not parse, `check --work` counts the DIRECTORY's notes (it once
@@ -1865,6 +1946,7 @@ def self_test() -> int:
     if len(fixture["cases"]) < 8:
         findings.append(f'{len(fixture["cases"])} case(s) — too few to be measuring the reader')
 
+    findings += scalar_findings(fixture)
     findings += directory_findings(fixture)
     findings += upstream_findings()
 
@@ -1885,6 +1967,9 @@ def self_test() -> int:
     if not case_findings(corrupted, [{"name": c["name"], **reading_view(c["file"], c["text"])}
                                      for c in corrupted["cases"]]):
         findings.append("a fixture whose expected id is WRONG produced no finding — the comparison is inert")
+    corrupted["scalars"][0]["expect"] += "-X"
+    if not scalar_findings(corrupted):
+        findings.append("a fixture whose expected scalar is WRONG produced no finding — the scalar comparison is inert")
 
     print(f"cases  : {len(answers)} from {FIXTURE_REL}")
     if findings:
