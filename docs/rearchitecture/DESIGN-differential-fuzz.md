@@ -237,10 +237,13 @@ project and "maintained automatically as an artifact of each fuzz testing run", 
   that can update it). `fuzz_history.py status`, printed by session-probe every session, says `current`, `PUBLISH OWED` (the
   record shows another version than main's file, or another Artifact) or `REGENERATE OWED` (main's file carries no version, or
   differs from a render now: a fuzz note's status moved, or the file was edited by hand; a render lands on a branch, then the
-  publish). That last check runs only in a checkout AT origin/main with no tracked file edited, since a render anywhere else
-  would report drift main does not have (the PB2987 lesson); elsewhere the line says it is UNCHECKED. It asks of the whole
-  tracked tree, never of a list of the render's inputs: the render reaches coord.py and model_rules.json through work.py, and
-  two review rounds in a row found such a list one file short.
+  publish). That last answer is MAIN's own: `main_verdict` extracts origin/main's committed `scripts/`, `kb/Work/`, history and
+  FUZZ-LEDGER.md with `git archive` into a temporary directory and runs that copy's `fuzz_history.py verify`, which renders its
+  own tree and compares it with its own FUZZ-LEDGER.md. No file of the checkout running `status` reaches it: not an edit, not an
+  untracked note, not a stale script, and a checkout behind main reports main's state (the PB2987 lesson). Four review rounds
+  found a working-tree check one input short each time (a dirty input, work.py, coord.py and model_rules.json, an untracked
+  note); reading main's committed tree has no list to keep. The extract costs seconds, so it runs only when the Artifact already
+  shows main's version.
 
 **The step.** The last step of every morning, after `file --write` and on the same branch: `python scripts/fuzz_triage.py history
 --triage <dir> --judge-commit <sha> --write`. It refuses a triage that `collect` does not pass (a problem or an undecided

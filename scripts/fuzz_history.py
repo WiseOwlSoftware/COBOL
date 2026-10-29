@@ -29,11 +29,15 @@ import collections
 import datetime
 import hashlib
 import html
+import io
 import json
 import pathlib
 import re
 import subprocess
 import sys
+import tarfile
+import tempfile
+from collections.abc import Callable
 
 from standard_streams import ensure_utf8
 
@@ -669,10 +673,10 @@ def mark_published(page: pathlib.Path, url: str, main_text: str, coord_override:
     return 0
 
 
-def sync_status(main_text: str, published: dict, artifact: str | None, fresh_md: str | None) -> str:
+def sync_status(main_text: str, published: dict, artifact: str | None, judge: Callable[[], dict]) -> str:
     """One line: does the Artifact (the history's `artifact`) show the version main's FUZZ-LEDGER.md carries, and is main's
-    file exactly what a render gives now? `fresh_md` is that render, or None when the checkout is not at main (a checkout
-    behind main would report drift that main does not have, kb/Work PB2987): then the second question is not asked."""
+    file exactly what main's own content renders to now? `judge` (`main_verdict`, seconds: an extract of main) is asked
+    only when the first answer is yes."""
     on_main, shown = version_of(main_text), published.get("version")
     regenerate = "`fuzz_history.py render` on a branch, land it, then publish and mark"
     if on_main is None:
@@ -681,12 +685,12 @@ def sync_status(main_text: str, published: dict, artifact: str | None, fresh_md:
         where = "" if published.get("url") in (None, artifact) else f" (the record names another Artifact, {published['url']})"
         return (f"fuzz ledger: ⛔ PUBLISH OWED — FUZZ-LEDGER.md on {MAIN_REF} is version {on_main}, the Artifact {artifact} "
                 f"shows {shown or 'no recorded version'}{where}: render at main, publish the page, `fuzz_history.py mark-published`")
-    if fresh_md is None:
-        return (f"fuzz ledger: published version {on_main} is main's; whether the register moved since is UNCHECKED (this "
-                f"checkout is not at {MAIN_REF}, or a tracked file carries an uncommitted edit)")
-    if fresh_md != main_text:
-        return (f"fuzz ledger: ⚠ REGENERATE OWED — a render now (version {version_of(fresh_md)}) differs from FUZZ-LEDGER.md on "
-                f"{MAIN_REF} (version {on_main}): {regenerate}")
+    verdict = judge()
+    if verdict.get("error"):
+        return f"fuzz ledger: ⛔ main's content could not be rendered: {verdict['error']}"
+    if not verdict.get("same"):
+        return (f"fuzz ledger: ⚠ REGENERATE OWED — main's content renders version {verdict.get('version')} but FUZZ-LEDGER.md on "
+                f"{MAIN_REF} is version {on_main} (a fuzz note's status moved, or the file was edited by hand): {regenerate}")
     return f"fuzz ledger: current — the Artifact and FUZZ-LEDGER.md on {MAIN_REF} are version {on_main}"
 
 
@@ -695,16 +699,40 @@ def rendered_markdown(ctx: dict, artifact: str | None) -> str:
     return render_markdown({**ctx, "fill": {**ctx["fill"], "version": ledger_version(ctx, artifact)}}, artifact)[0]
 
 
-def at_main(repo: pathlib.Path = REPO) -> bool:
-    """HEAD is origin/main AND no tracked file carries an uncommitted change: only then does a render here show what main's
-    own content renders to. The whole tracked tree, never a list of the render's inputs: the render reads the history,
-    kb/Work and, through work.py, coord.py and model_rules.json, and two reviews in a row found a list one file short
-    (review R3-1, R4-2, R5-1)."""
-    heads = [subprocess.run(["git", "-C", str(repo), "rev-parse", ref], capture_output=True, text=True).stdout.strip()
-             for ref in ("HEAD", MAIN_REF)]
-    dirty = subprocess.run(["git", "-C", str(repo), "status", "--porcelain", "--untracked-files=no"],
-                           capture_output=True, text=True).stdout.strip()
-    return bool(heads[0]) and heads[0] == heads[1] and not dirty
+def verify() -> dict:
+    """Does THIS tree's FUZZ-LEDGER.md equal what this tree's history and register render to, by this tree's code? Run by
+    `main_verdict` inside an extract of origin/main, where REPO (this file's parent) is that extract."""
+    history = load_history()
+    md = rendered_markdown(context(history, register().load(REPO / "kb" / "Work")), history.get("artifact"))
+    on_disk = LEDGER_MD.read_text(encoding="utf-8") if LEDGER_MD.exists() else ""
+    return {"same": md == on_disk, "version": version_of(md)}
+
+
+#: What `main_verdict` extracts from origin/main: everything the render reads, code included, so no working-tree file of
+#: the checkout running `status` (an edit, an untracked note, a stale script) reaches the answer (reviews R3-1 to R6-2).
+MAIN_EXTRACT = ("scripts", "kb/Work", "conformance-suite/fuzz-history.json", "FUZZ-LEDGER.md")
+
+
+def extract_main(dest: pathlib.Path, paths: tuple[str, ...] = MAIN_EXTRACT, repo: pathlib.Path = REPO) -> None:
+    """`paths` as origin/main commits them, written under `dest` (git archive: never the working tree)."""
+    tar = subprocess.run(["git", "-C", str(repo), "archive", "--format=tar", MAIN_REF, "--", *paths], capture_output=True)
+    if tar.returncode:
+        raise SystemExit(f"⛔ git archive {MAIN_REF}: {tar.stderr.decode('utf-8', 'replace').strip()}")
+    with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as archive:
+        archive.extractall(dest, filter="data")
+
+
+def main_verdict(repo: pathlib.Path = REPO) -> dict:
+    """`verify` run by origin/main's own fuzz_history.py over origin/main's own content."""
+    with tempfile.TemporaryDirectory(prefix="fuzz-ledger-main-") as tmp:
+        extract_main(pathlib.Path(tmp), repo=repo)
+        script = pathlib.Path(tmp) / "scripts" / "fuzz_history.py"
+        run = subprocess.run([sys.executable, str(script), "verify"], capture_output=True, text=True, encoding="utf-8")
+        lines = run.stdout.strip().splitlines()
+        if run.returncode or not lines:
+            tail = (run.stderr.strip().splitlines() or ["no output"])[-1]
+            return {"error": f"`fuzz_history.py verify` on {MAIN_REF} exited {run.returncode}: {tail}"}
+        return json.loads(lines[-1])
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -715,8 +743,8 @@ def main(argv: list[str] | None = None) -> int:
     m = sub.add_parser("mark-published", help="record that the Artifact shows --page, which must be main's ledger version")
     m.add_argument("--page", help=f"the HTML page just published to the history's `artifact` (default: <coord>/scratch/{PAGE_NAME})")
     sub.add_parser("status", help="one line: is the Artifact in sync with main's FUZZ-LEDGER.md, and main's with the register")
-    for p in (r, sub.choices["status"]):
-        p.add_argument("--work", default=str(REPO / "kb" / "Work"), help="the register directory")
+    r.add_argument("--work", default=str(REPO / "kb" / "Work"), help="the register directory")
+    sub.add_parser("verify", help="(run by `status` in an extract of origin/main) is this tree's FUZZ-LEDGER.md its render?")
     sub.add_parser("show", help="print the history, one line per night")
     args = ap.parse_args(argv)
     history = load_history()
@@ -731,10 +759,11 @@ def main(argv: list[str] | None = None) -> int:
         if not history.get("artifact"):
             raise SystemExit("⛔ the history names no `artifact`: publish the page once, record its URL in the history, land it")
         return mark_published(page, history["artifact"], main_ledger(fetch=True))
+    if args.cmd == "verify":
+        print(json.dumps(verify()))
+        return 0
     if args.cmd == "status":
-        fresh = (rendered_markdown(context(history, register().load(pathlib.Path(args.work))), history.get("artifact"))
-                 if at_main() else None)
-        print(sync_status(main_ledger(), published_record(), history.get("artifact"), fresh))
+        print(sync_status(main_ledger(), published_record(), history.get("artifact"), main_verdict))
         return 0
     ctx = context(history, register().load(pathlib.Path(args.work)))
     page = pathlib.Path(args.out) if args.out else default_page()

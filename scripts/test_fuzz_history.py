@@ -193,31 +193,31 @@ def main() -> int:
         record = fh.published_record(str(root))
         expect("SYNC mark-published records main's version", rc == 0 and record.get("version") == version
                and record.get("url") == art, record)
-        moved_md = fh.rendered_markdown(fh.context(moved, ITEMS), art)
-        status = {"current": fh.sync_status(ledger, record, art, ledger),
-                  "publish": fh.sync_status(ledger, {}, art, ledger),
-                  "elsewhere": fh.sync_status(ledger, {**record, "url": "https://example.invalid/other"}, art, ledger),
-                  "regenerate": fh.sync_status(ledger, record, art, moved_md),
-                  "hand-edit": fh.sync_status(ledger.replace("Night 1", "Night one", 1), record, art, ledger),
-                  "unversioned": fh.sync_status("no stamp", record, art, ledger),
-                  "behind": fh.sync_status(ledger, record, art, None)}
+        same, drifted, asked = {"same": True, "version": version}, {"same": False, "version": "ffffffffffff"}, []
+        status = {"current": fh.sync_status(ledger, record, art, lambda: same),
+                  "publish": fh.sync_status(ledger, {}, art, lambda: asked.append(1) or same),
+                  "elsewhere": fh.sync_status(ledger, {**record, "url": "https://example.invalid/other"}, art, lambda: same),
+                  "regenerate": fh.sync_status(ledger, record, art, lambda: drifted),
+                  "unversioned": fh.sync_status("no stamp", record, art, lambda: asked.append(1) or same),
+                  "unrenderable": fh.sync_status(ledger, record, art, lambda: {"error": "boom"})}
         expect("SYNC status names each state", "current" in status["current"] and "PUBLISH OWED" in status["publish"]
                and "PUBLISH OWED" in status["elsewhere"] and "another Artifact" in status["elsewhere"]
-               and "REGENERATE OWED" in status["regenerate"] and "REGENERATE OWED" in status["hand-edit"]
-               and "REGENERATE OWED" in status["unversioned"] and "UNCHECKED" in status["behind"], status)
+               and "REGENERATE OWED" in status["regenerate"] and "REGENERATE OWED" in status["unversioned"]
+               and "boom" in status["unrenderable"], status)
+        expect("SYNC status renders main only when the Artifact already shows main's version", asked == [], asked)
+        # status reads origin/main's COMMITTED tree, never the checkout's (reviews R3-1 to R6-2): an edit, an untracked
+        # note or a checkout behind main cannot reach the answer.
         repo = ScratchRepo.init(root / "repo")
-        tracked = ("kb/Work/PB1.md", "scripts/spec/work.py", "scripts/orchestrator/model_rules.json")
-        repo.commit("base", dict.fromkeys(tracked, "x\n"))
+        repo.commit("base", {"kb/Work/PB1.md": "committed\n", "scripts/x.py": "committed\n", "elsewhere.txt": "no\n"})
         repo.git("update-ref", f"refs/remotes/{fh.MAIN_REF}", "HEAD")
-        states = [fh.at_main(repo.path)]
-        for rel in tracked:
-            repo.write({rel: "y\n"})
-            states.append(fh.at_main(repo.path))
-            repo.write({rel: "x\n"})
-        repo.write({"untracked.txt": "z\n"})
-        states.append(fh.at_main(repo.path))
-        expect("SYNC status checks drift only at main with no tracked file edited (review R3-1, R4-2, R5-1)",
-               states == [True, False, False, False, True], states)
+        repo.write({"kb/Work/PB1.md": "edited\n", "kb/Work/PB2.md": "untracked\n"})
+        out = root / "extract"
+        fh.extract_main(out, ("scripts", "kb/Work"), repo=repo.path)
+        got = sorted(p.relative_to(out).as_posix() for p in out.rglob("*") if p.is_file())
+        expect("SYNC status renders main's committed content only", got == ["kb/Work/PB1.md", "scripts/x.py"]
+               and (out / "kb/Work/PB1.md").read_text(encoding="utf-8") == "committed\n", got)
+        expect("SYNC the extract holds everything the render reads", set(fh.MAIN_EXTRACT) >= {
+            "scripts", "kb/Work", fh.HISTORY.relative_to(fh.REPO).as_posix(), fh.LEDGER_MD.relative_to(fh.REPO).as_posix()})
 
         # HISTORY: the subcommand, on a history file of its own
         hfile = root / "fuzz-history.json"
