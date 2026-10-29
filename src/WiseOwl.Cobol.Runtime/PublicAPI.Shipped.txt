@@ -2575,6 +2575,9 @@ static WiseOwl.Cobol.Runtime.CobolDec.operator !=(WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDec.operator ==(WiseOwl.Cobol.Runtime.CobolDec left, WiseOwl.Cobol.Runtime.CobolDec right) -> bool
 static WiseOwl.Cobol.Runtime.CobolDynString.Agree(string? value, int maxSize) -> string!
 static WiseOwl.Cobol.Runtime.CobolDynString.MaxSizeOf(System.Int128? limitPhrase, long? prefixedMaximum = null) -> int
+static WiseOwl.Cobol.Runtime.CobolDynString.SetSize(string? current, WiseOwl.Cobol.Runtime.CobolDec newLen, int maxSize) -> string!
+static WiseOwl.Cobol.Runtime.CobolDynString.SetSize(string? current, System.Int128 unscaled, int scale, int maxSize) -> string!
+static WiseOwl.Cobol.Runtime.CobolDynString.SetSize(string? current, System.UInt128 unscaled, int scale, int maxSize) -> string!
 static WiseOwl.Cobol.Runtime.CobolDynString.SetSize(string? current, double newLen, int maxSize) -> string!
 static WiseOwl.Cobol.Runtime.CobolDynString.Store(string? value, int maxSize) -> string!
 static WiseOwl.Cobol.Runtime.CobolDynStructure.FrameWith(int code, string! content) -> string!
