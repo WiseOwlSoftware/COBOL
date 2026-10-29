@@ -155,8 +155,9 @@ HANGING_WAIT = re.compile(r"tail -n \+1 -f[^\n]*grep -m1|tail -f[^\n]*grep -m1")
 # checkpoint protocol, the gate paragraph, the DEVLOG entry, I9, the citation rule and the STOP rule twice, and an implementer
 # re-read all of it on every later turn. The template and every RENDERED spec (`msg-w<wave>-<letter>.txt`) are held to it:
 # a sentence of SENTENCE_MIN characters or more, whitespace collapsed, may not appear twice in one file. A sentence is two
-# words or more: a lone token is a path the spec names in two roles, never a rule (kb/Work PB4054: a one-file group's root
-# file ends both "THE GROUP IS ONE ROOT:" and "CODE SITES the notes name:", and wave 20261751 rendered RED on it).
+# words or more: a lone token is a path the spec names in two roles, never a rule (kb/Work PB4005: a one-file group's root
+# file ends both "THE GROUP IS ONE ROOT:" and "CODE SITES the notes name:", and waves 20261740, 20261751 and 20261755
+# rendered RED on it).
 ONCE_FILES = ('dispatch-spec-implementer.md',)
 RENDERED_SPEC_NAME = re.compile(r'msg-w[^-]+-[a-z0-9]+\.txt')
 SENTENCE_MIN = 60

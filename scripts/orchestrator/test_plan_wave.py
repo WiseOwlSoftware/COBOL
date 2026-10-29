@@ -936,15 +936,15 @@ spec_file.write_text(spec0 + "\n" + twice + "\n", encoding="utf-8", newline="\n"
 check("... and check_practices refuses a spec that states a sentence twice",
       [m.startswith("PB3777: states twice: orientation") for m in check_practices.check(spec_file, []) if "PB3777" in m], [True])
 spec_file.write_text(spec0, encoding="utf-8", newline="\n")
-# kb/Work PB4054: a one-file group ends both "THE GROUP IS ONE ROOT:" and "CODE SITES the notes name:" with its file, so the
+# kb/Work PB4005: a one-file group ends both "THE GROUP IS ONE ROOT:" and "CODE SITES the notes name:" with its file, so the
 #      lone path is a "sentence" the spec states twice. It names data in two roles and states no rule: the once-check passes
-#      it (wave 20261751 rendered RED on group B, whose one file is this 62-character path).
+#      it (waves 20261751 and 20261755 rendered RED on PB4031's group, whose one file is this 62-character path).
 ONE = "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs"
 g1 = as_group_json(dataclasses.replace(p["groups"][0], file=ONE, files=[ONE], members={}), "77", notes, "COBOL0001-COBOL0003")
 one_spec = TMP / "msg-w77-one.txt"
 one_spec.write_text(mds.render(CFG77, g1, FILES(g1)), encoding="utf-8", newline="\n")
 one_text = " ".join(one_spec.read_text(encoding="utf-8").split())
-check("PB4054: a one-file group's spec ends the root and the sites with its long path, and the once-check passes it",
+check("PB4005: a one-file group's spec ends the root and the sites with its long path, and the once-check passes it",
       (len(ONE) + 1 >= check_practices.SENTENCE_MIN, f"ONE ROOT: {ONE}. " in one_text, f"notes name: {ONE}. " in one_text,
        [m for m in check_practices.check(one_spec, []) if "PB3777" in m]), (True, True, True, []))
 check("every statement of a cap in the tree matches its role's maxTurns", check_practices.turn_cap_copies(), [])
