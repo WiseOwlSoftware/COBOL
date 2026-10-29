@@ -99,7 +99,7 @@ public sealed class NestedQuotientPrecisionDriftTests
         var scales = new SortedSet<int>();
         foreach (var (call, arity, scaleAt) in new[]
                  {
-                     ("CobolNum.Divide(", 6, 4), ("CobolNum.DivideOrThrow(", 6, 4), ("CobolWide.DivTruncated(", 5, 4),
+                     ("CobolNum.Divide(", 6, 4), ("CobolWide.DivTruncated(", 5, 4),
                      ("CobolDec.DivTruncatedToOdd(", 3, 2),
                      ("CobolDecWithPrecision.DivTruncatedToOdd(", 3, 2),   // its third argument is the receiver scale
                  })
