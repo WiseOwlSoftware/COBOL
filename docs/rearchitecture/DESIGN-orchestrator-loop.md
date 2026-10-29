@@ -986,7 +986,7 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    (`merge_drivers.covered_by_driver`, the rule `enqueue.py`'s re-gate reads). A note's members come from its site block (`path#Member`,
    `` `path` (`member`, ...) `` with an optional `:line` after the path, the form MANDATORY-PRACTICES R3 and
    `work.SITES_RULE` require, `work.NoteSites.members`), each kept only when the file on the planned tree declares a
-   unit every one of them matches (a stale, misspelt or prose name claims the file whole, `work._members_located`); an in-flight worktree's or branch's from the units its
+   unit every one of them matches (a stale, misspelt or prose name claims the file whole, `work._members_located`, and `work.py check` refuses it for a note held to the site rule, as it refuses a code file named with neither members nor `(whole: why)`, `NoteSites.unnamed` and `undeclared`, kb/Work PB3797); an in-flight worktree's or branch's from the units its
    ACTUAL diff touches in each file another claim shares (`inflight.inflight_units`: both sides of every hunk, read
    from one `git diff-tree --stdin -p -U0` and two `git cat-file` batches, plus one `git diff -U0 HEAD` per worktree
    with an uncommitted shared edit, each diff's pathspec bounded by `inflight.bounded_pathspec`: past `PATHSPEC_CHARS` it

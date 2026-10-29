@@ -1156,6 +1156,14 @@ class NoteSites:
     globs: tuple[str, ...] = ()
     #: A site block says `none (why)`: the note changes no code file, so a claim of nothing is its declaration.
     no_code: bool = False
+    #: The code files (CODE_SUFFIXES) the block names bare: some mention gives neither members nor a `(whole: why)`
+    #: reason (kb/Work PB3797). With `repo`, only a file the tree has and no glob sweep claims counts: a file the change
+    #: creates has no members to name, and a sweep is whole by its pattern.
+    unnamed: tuple[str, ...] = ()
+    #: {path: the member names its block gives that the file does not declare}, read only with `repo` and only for a
+    #: file with a unit reader (source_units.READERS): a name no unit matches (kb/Work PB3670 review R1-3 claimed the file
+    #: whole in silence; PB3797 reports it).
+    undeclared: dict[str, tuple[str, ...]] = dataclasses.field(default_factory=dict, hash=False)
 
     @property
     def fix_lane(self) -> bool:
@@ -1256,7 +1264,7 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None, repo: pathlib.Pa
     token = _path_token(roots or campaign_domain().roots)
     paths: set[str] = set()
     globs: set[str] = set()
-    mentions: dict[str, list[tuple[str, ...]]] = {}   # path -> the members each mention names (() = the whole file)
+    mentions: dict[str, list[tuple[tuple[str, ...], bool]]] = {}   # path -> (members, whole-file reason) per mention
     for b in blocks:
         for m in token.finditer(b):
             raw = m.group(1)
@@ -1277,14 +1285,20 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None, repo: pathlib.Pa
     for part in blocks + ([moves.group(1)] if moves else []):
         names += [d.split("~", 1)[0] for d in _DOC_ID.findall(part)]
     wave = m.group(1).lower() if (m := _WAVE_KIND.search(text)) else ""
-    members = {p: tuple(sorted({n for ms in each for n in ms})) for p, each in mentions.items() if all(each)}
+    members = {p: tuple(sorted({n for ms, _ in each for n in ms})) for p, each in mentions.items()
+               if all(ms for ms, _ in each)}
+    bare = {p for p, each in mentions.items() if CODE_FILE.search(p) and any(not ms and not why for ms, why in each)}
+    undeclared: dict[str, tuple[str, ...]] = {}
     if repo is not None:
-        members = {p: ms for p, ms in members.items() if _members_located(repo / p, ms)}
+        undeclared = {p: gone for p, ms in members.items() if (gone := _undeclared_names(repo / p, ms))}
+        members = {p: ms for p, ms in members.items() if p not in undeclared and _members_located(repo / p, ms)}
         swept = expand_globs(tuple(sorted(globs)), repo)
         paths |= set(swept)
         members = {p: ms for p, ms in members.items() if p not in swept}   # a sweep claims each file it matches whole
+        bare = {p for p in bare if (repo / p).is_file() and p not in swept}
+        undeclared = {p: gone for p, gone in undeclared.items() if p not in swept}
     return NoteSites(tuple(sorted(paths)), tuple(dict.fromkeys(names)), wave, bool(blocks), members,
-                     tuple(sorted(globs)), any(_says_none(b) for b in blocks))
+                     tuple(sorted(globs)), any(_says_none(b) for b in blocks), tuple(sorted(bare)), undeclared)
 
 
 def expand_globs(globs: tuple[str, ...], repo: pathlib.Path) -> tuple[str, ...]:
@@ -1314,39 +1328,47 @@ def _says_none(block: str) -> bool:
 
 #: A member a site block names after its path: an identifier, dotted (`Type.Member`), with an optional `()`; a `~`
 #: names a finalizer. A code span that names a file (`Foo.cs`) or holds a space is no member.
-_MEMBER_NAME = re.compile(r"~?[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*(?:\(\))?")
+_MEMBER_NAME = re.compile(r"~?(?:<[a-z]+>|[A-Za-z_][A-Za-z0-9_-]*)(?:\.(?:<own>|[A-Za-z_][A-Za-z0-9_-]*))*(?:\(\))?")
 _FILE_NAME = re.compile(r"\.(?:cs|py|md|json|ps1|psm1|g4|js|ts|txt|ya?ml|sh|csproj|props|targets|sln)$", re.I)
+#: The files whose site mention must name its members or say why the whole file changes (kb/Work PB3797): the code the
+#: wave planner partitions by unit (source_units.READERS) and the code kinds a note names beside it. A Markdown file is
+#: named by a section number (`(§8.7)`) or the file whole, a data file (json, yml) by the file.
+CODE_FILE = re.compile(r"\.(?:cs|py|ps1|psm1|js|g4|sh)$", re.I)
 _SECTION_REF = re.compile(r"§(\d+(?:\.\d+)*)")
 
 
-def _mention_members(raw: str, block: str, end: int) -> tuple[str, ...]:
-    """The members ONE mention of a site path names (kb/Work PB3670), or () for the whole file: its `#Member` suffix,
+def _mention_members(raw: str, block: str, end: int) -> tuple[tuple[str, ...], bool]:
+    """`(the members ONE mention of a site path names, whether it says why the whole file changes)` (kb/Work PB3670,
+    PB3797). The members are () for the whole file: the `#Member` suffix,
     else the code spans (and `§N.N` section numbers) of a parenthesis right after it (past its closing backtick) that
     OPENS with a code span or a section sign (`plan_wave.py` (`collision`, `collision_set`)), with or without a `:line`
     suffix (`DataBinder.cs:123` (`DataBinder.Bind`): the line says where to look, the member what is claimed, and the
     binding rule R3 writes sites this way, review R1-1); a bare mention, a `:line` alone and a prose parenthesis ("(the
     shared-primary-file rule)", "(the planner side that honours `x`)") name the whole file (a line number drifts as the
-    file changes, so it locates no unit)."""
+    file changes, so it locates no unit). The whole file with a REASON is the parenthesis `(whole: why)` right after the
+    path, with a non-empty why (the one form that names a code file bare without being refused: `work.SITES_RULE`)."""
     if "#" in raw:
         frag = raw.split("#", 1)[1].rstrip(".,:")
-        return (frag,) if _MEMBER_NAME.fullmatch(frag) and not _FILE_NAME.search(frag) else ()
+        return ((frag,) if _MEMBER_NAME.fullmatch(frag) and not _FILE_NAME.search(frag) else ()), False
     rest = block[end:]
     rest = rest[1:] if rest.startswith("`") else rest
     opened = re.match(r"[ \t]*\(", rest)
     if not opened:
-        return ()
+        return (), False
     depth, k = 0, opened.end() - 1
     for k in range(opened.end() - 1, len(rest)):
         depth += {"(": 1, ")": -1}.get(rest[k], 0)
         if depth == 0:
             break
     inner = rest[opened.end():k]
+    if (why := re.match(r"\s*whole:(.*)", inner, re.I | re.S)) is not None:
+        return (), bool(why.group(1).strip())
     if not inner.lstrip().startswith(("`", "§")):
-        return ()
+        return (), False
     names = [s.strip() for s in _CODE_SPAN.findall(inner)]
     out = [n.removesuffix("()") for n in names if _MEMBER_NAME.fullmatch(n) and not _FILE_NAME.search(n)]
     out += [f"§{s}" for s in _SECTION_REF.findall(_CODE_SPAN.sub("", inner))]
-    return tuple(dict.fromkeys(out))
+    return tuple(dict.fromkeys(out)), False
 
 
 #: The first note id `check` holds to SITES_RULE (kb/Work PB3263, filed 2026-10-19 at PB3443, the next id unallocated
@@ -1366,8 +1388,26 @@ SITES_RULE = ("an open note that names a cluster declares its sites: a `**Sites:
               "changes AND the members it changes in it, the file's path (a `:line` suffix optional) followed by a "
               "parenthesis of code spans, as in " + SITES_EXAMPLE + ", or `path#Member`; the wave planner partitions "
               "on the members, so a file named without them, or with a name the file does not declare, is claimed "
-              "whole and holds every other group on it (kb/Work PB3670); or `**Sites:** none (why)` when it changes "
-              "no code file")
+              "whole and holds every other group on it (kb/Work PB3670), and `check` refuses a code file (.py .cs .ps1 "
+              ".js .g4 .sh) named so, unless the parenthesis says why the whole file changes, `(whole: why)` (a file "
+              "the change creates needs neither); a Markdown section is named by its number outside backticks, "
+              "`(§8.7)`; or `**Sites:** none (why)` when it changes no code file")
+
+
+def _undeclared_names(path: pathlib.Path, names: tuple[str, ...]) -> tuple[str, ...]:
+    """The `names` no unit of the file `path` matches (source_units.match), or () when there is nothing to check them
+    against: a file not on the tree (one the change creates), a folder, or a file with no unit reader or that the reader
+    cannot balance (kb/Work PB3797)."""
+    if not path.is_file():
+        return ()
+    try:
+        stat = path.stat()
+        declared = _unit_names(str(path), stat.st_mtime_ns, stat.st_size)
+    except OSError:
+        return ()
+    if declared is None:
+        return ()
+    return tuple(n for n in names if not any(_source_units().match(n, u) for u in declared))
 
 
 def _members_located(path: pathlib.Path, names: tuple[str, ...]) -> bool:
@@ -1376,7 +1416,8 @@ def _members_located(path: pathlib.Path, names: tuple[str, ...]) -> bool:
     against and keeps them (so does a folder, which is no file claim: member_index.note_file_set drops it); a file
     with no units (no reader for its kind, one the reader cannot balance, one it cannot read) cannot locate any name,
     and a name no unit matches (a deleted function, a local, a prose word in a code span) says nothing about where the
-    edit lands: both claim the file whole (kb/Work PB3670 review R1-3)."""
+    edit lands: both claim the file whole (kb/Work PB3670 review R1-3), and `check` refuses the second for a note it
+    holds to the site rule (`NoteSites.undeclared`, kb/Work PB3797)."""
     if not path.is_file():
         return True
     try:
@@ -1384,7 +1425,7 @@ def _members_located(path: pathlib.Path, names: tuple[str, ...]) -> bool:
         declared = _unit_names(str(path), stat.st_mtime_ns, stat.st_size)
     except OSError:
         return False
-    return declared is not None and all(any(_source_units().match(n, u) for u in declared) for n in names)
+    return declared is not None and not _undeclared_names(path, names)
 
 
 @functools.lru_cache(maxsize=1)
@@ -1433,7 +1474,7 @@ def sites_problems(items: list[dict]) -> list[str]:
         from_cutover = bool(clusters) and number is not None and int(number.group(1)) >= SITES_REQUIRED_FROM
         if it.get("kind") == "decision" or it.get("status") in TERMINAL_STATUSES or not (from_cutover or in_campaign):
             continue
-        sites = note_sites(it.get("_body", ""))
+        sites = note_sites(it.get("_body", ""), repo=REPO)
         if not sites.declared:
             where = (f"names the campaign cluster(s) {', '.join(sorted(campaigns & set(clusters))) or 'it tiers'}"
                      if in_campaign else f"names the cluster(s) {', '.join(clusters)}")
@@ -1448,6 +1489,17 @@ def sites_problems(items: list[dict]) -> list[str]:
                        f"UNPARTITIONED beside every group on the files it changes (kb/Work PB3721): name each file "
                        f"under a campaign root ({', '.join(campaign_domain().roots)}), or a glob over tracked files "
                        f"such as `scripts/**/*.py`, or write `**Sites:** none (why)` when it changes no code file")
+        # ⛔ A CODE FILE NAMED BARE IS CLAIMED WHOLE (kb/Work PB3797). The planner partitions on members; a file named
+        # without them holds every other group on it, and nineteen PB1957 notes waited behind one dispatch for it on
+        # 2026-10-25. Naming the members, or saying why the whole file changes, is what R3 asks, so `check` asks it.
+        bad += [f"{it['_file']}: its site block names the code file `{p}` without the members the fix changes in it: "
+                f"write `{p}` (`Member`, …), `{p}#Member` or `{p}` (whole: why the whole file changes) — a file named "
+                f"bare is claimed whole and holds every other group on it (kb/Work PB3797, PB3670; MANDATORY-PRACTICES R3)"
+                for p in sites.unnamed]
+        bad += [f"{it['_file']}: its site block names {', '.join(f'`{n}`' for n in gone)} in `{p}`, which declares no such "
+                f"member, so the planner claims the whole file (kb/Work PB3797): name a member the file declares "
+                f"(`python scripts/arch/source_units.py {p}` lists them) or `(whole: why)`"
+                for p, gone in sorted(sites.undeclared.items())]
     return bad
 
 
@@ -1967,6 +2019,38 @@ def upstream_findings() -> list[str]:
     return bad
 
 
+def site_member_findings() -> list[str]:
+    """R3's member rule as `check` enforces it (kb/Work PB3797): a governed note names each code file it changes WITH its
+    members or with `(whole: why)`, and a member the file does not declare is refused. Each shape is a fabricated note
+    over files of this repository, so the answers are the real readers' (source_units for .py and .ps1)."""
+    here = "scripts/spec/work.py"
+
+    def problems(sites: str) -> list[str]:
+        it = {"_file": "PB9999.md", "id": "PB9999", "kind": "defect", "status": "open", "cluster": ["PB1"],
+              "_body": "**Sites:** " + sites}
+        return sites_problems([it])
+
+    cases = (
+        ("a member the file declares", f"`{here}` (`sites_problems`)", 0),
+        ("two members, the second qualified", f"`{here}` (`sites_problems`, `NoteSites.fix_lane`)", 0),
+        ("a member after a :line suffix", f"`{here}:1400` (`sites_problems`)", 0),
+        ("the path#Member form", f"`{here}#sites_problems`", 0),
+        ("a module-level unit", "`scripts/hooks/dispatch_guard.py` (`<module>`)", 0),
+        ("a PowerShell function with a hyphen", "`scripts/orchestrator/orchestrate.ps1` (`Take-Lock`)", 0),
+        ("the whole file with a reason", f"`{here}` (whole: the register is restructured)", 0),
+        ("the whole file with an empty reason", f"`{here}` (whole: )", 1),
+        ("the whole file named bare", f"`{here}`", 1),
+        ("a prose parenthesis is no member", f"`{here}` (the register check)", 1),
+        ("a :line alone is no member", f"`{here}:1400`", 1),
+        ("a member the file does not declare", f"`{here}` (`no_such_member_anywhere`)", 1),
+        ("a file the change creates needs neither", "`scripts/spec/a_file_this_change_creates.py`", 0),
+        ("a Markdown file is named by its section number", "`docs/DOC_INDEX.md`, `docs/DESIGN.md` (§0.5)", 0),
+        ("a glob sweep is whole by its pattern", "`scripts/spec/work*.py`", 0),
+    )
+    return [f"site rule, {name}: {len(got)} problem(s), want {want}: {got}"
+            for name, sites, want in cases if len(got := problems(sites)) != want]
+
+
 def process_only_findings() -> list[str]:
     """`process_only` on a note whose sites are all compiler code, and `next`'s order across harm classes (kb/Work PB3836)."""
     src = "**Sites:** `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs` (`DataBinder.Bind`)"
@@ -2125,6 +2209,7 @@ def self_test() -> int:
     findings += upstream_findings()
     findings += view_findings()
     findings += process_only_findings()
+    findings += site_member_findings()
     findings += harm_vocabulary_findings()
     # FALSIFICATION: a repository whose weights are flat and whose brief names two classes of the vocabulary is refused
     # on both counts, and one that is consistent is not.
