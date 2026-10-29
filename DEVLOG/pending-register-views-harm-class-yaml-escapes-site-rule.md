@@ -51,3 +51,11 @@ owner's screen. The 340 older open notes of idle clusters stay as PB3263 left th
 **Found on the way.** The R2 writer's `(Type.Member)` parenthesis without code spans was read as prose, so eight R2 notes claimed
 their files whole although they named members; the reader stays strict about the one form and the notes were rewritten.
 `test_work.py` (named in two Sites paragraphs) never existed: the reader's test is `work.py --self-test`.
+
+**Review round 1.** One blocking finding: `gen_ledger.HARM_WORDS` was a second hand-kept flag-to-label table beside
+`work.HARM_LABELS`, so the next harm class would reach `next`, the views and the writers but not the ledger page. The
+table is deleted; `gen_ledger.harm_text` walks `work.HARM_LABELS` and `silent`, and `gen_ledger.py --self-test` plants a
+count per class and requires each on the page. Merging main brought PB4053, whose Sites paragraph named
+`check_practices.py` for a member (`inflight.collision`) that lives in `scripts/orchestrator/inflight.py`; `work.py check`
+refused it under the new member rule, so the paragraph now names the real files and members. The three LEAD findings
+(`_scalar` interior quotes, the remaining Obsidian wording, the U+2032 docstring) stay for the clerk.

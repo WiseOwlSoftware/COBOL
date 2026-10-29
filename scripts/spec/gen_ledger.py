@@ -733,8 +733,6 @@ def register_legend(pts: list[dict]) -> str:
 # ── what remains ────────────────────────────────────────────────────────────────────────────────────────────────
 
 UNMEASURED = '<span class="pill warn">UNMEASURED</span>'
-HARM_WORDS = (("wrong_answer", "wrong answers"), ("crashes", "crashes"), ("rejects_legal_source", "reject legal source"),
-              ("under_rejects", "under-reject"), ("misleads_diagnosis", "misleading diagnostic"), ("silent", "silent"))
 
 
 def lane_label(lane: str) -> str:
@@ -763,7 +761,11 @@ def states_text(s: collections.Counter) -> str:
 
 
 def harm_text(h: collections.Counter) -> str:
-    return " · ".join(f'<span class="num">{n(h.get(k, 0))}</span> {w}' for k, w in HARM_WORDS)
+    """One count per harm class: the register's own vocabulary (`work.HARM_LABELS`, in rank order) and the `silent`
+    qualifier, so a harm class added there reaches the ledger with no edit here (kb/Work PB3836: no second table)."""
+    import work  # noqa: PLC0415  (late, as measure_work: work.py owns the register)
+    words = (*work.HARM_LABELS.items(), ("silent", "silent"))
+    return " · ".join(f'<span class="num">{n(h.get(k, 0))}</span> {w}' for k, w in words)
 
 
 def kinds_text(k: collections.Counter) -> str:
@@ -1294,6 +1296,12 @@ def self_test() -> int:
     none = {"rules": None, "fix_groups": None, "rate": None, "burn": None}
     page = render_remaining(rem, ledger_plan.bucket_estimates(rem, none), cp, none)
     flags = re.findall(r'<p class="alert crit">(.*?)</p>', page, re.S)
+    import work  # noqa: PLC0415
+    planted = collections.Counter({flag: 100 + n_ for n_, flag in enumerate((*work.HARM_FLAGS, "silent"))})
+    shown = harm_text(planted)
+    check("the harm line counts every class of work.HARM_LABELS and the silent qualifier (R1-1: no second table)",
+          all(f'<span class="num">{n(count)}</span>' in shown for count in planted.values())
+          and all(label in shown for label in work.HARM_LABELS.values()), shown[:300])
     check("a GAP holder outside the GAP campaign is flagged loudly",
           any("outside the GAP campaign" in f and "PB9004" in f for f in flags), str(flags)[:300])
     check("an open compiler note no lane plans is flagged loudly",
