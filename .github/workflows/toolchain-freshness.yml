@@ -37,6 +37,8 @@ jobs:
             scripts/install-tool.sh
             scripts/toolchain.py
             scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
             global.json
           sparse-checkout-cone-mode: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
@@ -63,6 +65,8 @@ jobs:
             scripts/install-tool.sh
             scripts/toolchain.py
             scripts/standard_streams.py
+            scripts/live_tools.py
+            scripts/scratch_repo.py
             global.json
           sparse-checkout-cone-mode: false
       - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
