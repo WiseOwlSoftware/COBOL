@@ -709,3 +709,21 @@ static WiseOwl.Cobol.Runtime.UniversalGroupCarrier.WriteBackVariable(object? box
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+const WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.MaxFileBytes = 268435456 -> long
+static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.Find(string! directory, WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind kind, string! externalizedName) -> WiseOwl.Cobol.Runtime.Repository.RepositoryFind!
+static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.FunctionByWord(string! directory, string! word) -> WiseOwl.Cobol.Runtime.Repository.RepositoryFind!
+static WiseOwl.Cobol.Runtime.Repository.RepositoryLocator.SkippedForSize(string! directory) -> System.Collections.Generic.IReadOnlyList<string!>!
+WiseOwl.Cobol.Runtime.Repository.RepositoryEntry
+WiseOwl.Cobol.Runtime.Repository.RepositoryEntry.CallAbi.get -> int
+WiseOwl.Cobol.Runtime.Repository.RepositoryEntry.Mvid.get -> System.Guid
+WiseOwl.Cobol.Runtime.Repository.RepositoryEntry.Path.get -> string!
+WiseOwl.Cobol.Runtime.Repository.RepositoryEntry.Registrar.get -> string?
+WiseOwl.Cobol.Runtime.Repository.RepositoryEntry.RuntimeVersion.get -> string!
+WiseOwl.Cobol.Runtime.Repository.RepositoryEntry.SchemaVersion.get -> int
+WiseOwl.Cobol.Runtime.Repository.RepositoryEntry.Unit.get -> WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow
+WiseOwl.Cobol.Runtime.Repository.RepositoryFind
+WiseOwl.Cobol.Runtime.Repository.RepositoryFind.Collision.get -> string?
+WiseOwl.Cobol.Runtime.Repository.RepositoryFind.Entry.get -> WiseOwl.Cobol.Runtime.Repository.RepositoryEntry?
+WiseOwl.Cobol.Runtime.Repository.RepositoryFind.Reason.get -> string?
+WiseOwl.Cobol.Runtime.Repository.RepositoryIndex.Mvid.get -> System.Guid
+WiseOwl.Cobol.Runtime.Repository.RepositoryLocator

@@ -21,12 +21,23 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// <param name="Control">A flagged test's control: the accepted twin with the violation removed.</param>
 /// <param name="InSuite">Whether the per-edition suites carry it (the rest are WiseOwl's own tests).</param>
 /// <param name="Options">A WiseOwl test's WiseOwl compile options (<c>conformance-suite/wiseowl/options.json</c>), by
-/// option: <c>sign-encoding</c>, <c>numeric-display</c>, <c>flag-extensions</c>; empty for every other test.</param>
+/// option: <c>sign-encoding</c>, <c>numeric-display</c>, <c>flag-extensions</c>, <c>repository-update</c>; empty for every other test.</param>
+/// <param name="Build">A multi-unit WiseOwl test's compilation steps in order (the test's own source among them, where its
+/// header's <c>build</c> puts it); null for a test that is one compilation (DESIGN-external-repository §17.1).</param>
 internal sealed record SuiteTest(
     string Id, string Clause, string Source, string SourceFormat, IReadOnlyList<string> Files,
     IReadOnlyList<string> Requires, IReadOnlyList<string> Words, string Expect, IReadOnlyList<int> ImplementorDefined,
     IReadOnlyDictionary<string, string> ExpectedOutput, int Line, string? Control, bool InSuite,
-    IReadOnlyDictionary<string, string> Options);
+    IReadOnlyDictionary<string, string> Options, IReadOnlyList<SuiteBuildStep>? Build);
+
+/// <summary>One compilation step of a multi-unit test (<c>conformance-suite/harness/generate.py#entry_for</c>, the manifest's
+/// <c>build</c>).</summary>
+/// <param name="File">The declared unit this step compiles, relative to the suite root; null for the step that compiles the
+/// test's own source.</param>
+/// <param name="Output">The output's base name (the assembly's file name without <c>.dll</c>); null for the test's own
+/// source, whose output is the test's id.</param>
+/// <param name="Options">The step's WiseOwl compile options (<c>wiseowl/options.json</c>, keyed <c>&lt;id&gt;/&lt;file&gt;</c>).</param>
+internal sealed record SuiteBuildStep(string? File, string? Output, IReadOnlyDictionary<string, string> Options);
 
 /// <summary>One of WiseOwl COBOL's refusals (<c>conformance-suite/wiseowl/diagnostics.json</c>, carried into the
 /// wiseowl manifest): the editions at which WiseOwl refuses the program, and the code or message substring it
@@ -146,8 +157,12 @@ internal sealed record WiseOwlManifest(
                 : new Dictionary<string, string>(StringComparer.Ordinal),
             accepted ? 0 : t.GetProperty("line").GetInt32(),
             accepted ? null : t.GetProperty("control").GetString()!,
-            t.GetProperty("in-suite").GetBoolean(), Map(t.GetProperty("options")));
+            t.GetProperty("in-suite").GetBoolean(), Map(t.GetProperty("options")),
+            t.TryGetProperty("build", out JsonElement build) ? [.. build.EnumerateArray().Select(Step)] : null);
     }
+
+    private static SuiteBuildStep Step(JsonElement step) => new(
+        step.GetProperty("file").GetString(), step.GetProperty("output").GetString(), Map(step.GetProperty("options")));
 
     private static IReadOnlyDictionary<string, string> Map(JsonElement map) =>
         map.EnumerateObject().ToDictionary(o => o.Name, o => o.Value.GetString()!, StringComparer.Ordinal);

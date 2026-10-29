@@ -38,6 +38,11 @@ internal readonly record struct SuiteResult(string Verdict, string Reason);
 /// and declared files, named as its copy library (<c>run.py</c> compiles in the working directory, which the
 /// <c>cobol</c> command searches first, DOC-A.1-40), and a flagged test's control compiles in a directory inside the
 /// test's. The working directory is removed afterwards.</para>
+/// <para><b>A multi-unit test</b> (its header's <c>build</c>, DESIGN-external-repository §17.1) compiles its steps in the
+/// order the manifest lists them into that one working directory, which is the run unit's application directory: each
+/// declared unit to <c>&lt;output&gt;.dll</c> with its step's WiseOwl options, and the test's own source AT ITS PLACE in the
+/// list, so a step after it compiles beside, and may overwrite the output of, the program already built (the stale
+/// caller: the callee rebuilt after its caller). The run follows the last step.</para>
 /// </remarks>
 internal static class ConformanceSuiteRunner
 {
@@ -107,6 +112,22 @@ internal static class ConformanceSuiteRunner
         Options(Stage(test.Id, test.Source, test.Files, work), Path.Combine(work, test.Id + ".dll"), edition,
             test.SourceFormat, flag: true, test.Options);
 
+    /// <summary>The compile of one declared unit of a multi-unit test (<paramref name="step"/>, a step with a file): the unit
+    /// staged beside the test's source and its declared files, its assembly <c>&lt;output&gt;.dll</c> in
+    /// <paramref name="work"/>, compiled as the test is at <paramref name="edition"/> with the step's own WiseOwl options.</summary>
+    private static CompilerDriver.Options UnitOptions(SuiteTest test, SuiteBuildStep step, string edition, string work)
+    {
+        string compileDir = Path.Combine(work, "compile");
+        string unit = Path.Combine(compileDir, Path.GetFileName(step.File!));
+        string folder = Path.GetDirectoryName(test.Source)!;
+        var companions = test.Files.ToDictionary(
+            declared => Path.GetRelativePath(folder, declared).Replace('\\', '/'),
+            declared => File.ReadAllBytes(Path.Combine(SuiteManifest.Root, declared)), StringComparer.Ordinal);
+        Directory.CreateDirectory(compileDir);
+        string source = CompiledProgramCache.StageSource(unit, File.ReadAllText(Path.Combine(SuiteManifest.Root, step.File!)), companions);
+        return Options(source, Path.Combine(work, step.Output + ".dll"), edition, test.SourceFormat, flag: false, step.Options);
+    }
+
     /// <summary>The ordinary compile of a refused program at <paramref name="edition"/>, staged in
     /// <paramref name="work"/> (the one compile <see cref="CompileRefusal"/> and <see cref="ArchOracle"/> make).</summary>
     internal static CompilerDriver.Options RefusalOptions(SuiteRefusal refusal, string edition, string work) =>
@@ -117,9 +138,13 @@ internal static class ConformanceSuiteRunner
     {
         CompilerDriver.Options options = AcceptOptions(test, edition, work);
         string dll = options.OutputPath!;
-        var (result, crash) = Compile(options);
-        if (result is null) return new(NoVerdict, $"the compiler crashed: {crash}");
-        if (!result.Success) return new(Fail, $"it did not translate ({result.Status}): {FirstLines(result.Errors)}");
+        foreach (SuiteBuildStep step in test.Build ?? [new SuiteBuildStep(null, null, new Dictionary<string, string>())])
+        {
+            string what = step.File is null ? "it" : $"its unit {Path.GetFileName(step.File)}";
+            var (result, crash) = Compile(step.File is null ? options : UnitOptions(test, step, edition, work));
+            if (result is null) return new(NoVerdict, $"the compiler crashed on {what}: {crash}");
+            if (!result.Success) return new(Fail, $"{what} did not translate ({result.Status}): {FirstLines(result.Errors)}");
+        }
 
         var (_, stdout, _) = CutRunner.RunExit(dll, work);   // the exit status is not judged (§3.2)
         string key = string.Join(".", test.ImplementorDefined.Order().Select(item =>
@@ -205,7 +230,7 @@ internal static class ConformanceSuiteRunner
     }
 
     /// <summary>A WiseOwl test's WiseOwl compile options (<c>wiseowl/options.json</c>, which the generator validates),
-    /// applied as the <c>cobol</c> command's <c>--sign-encoding</c>, <c>--numeric-display</c> and <c>--flag-extensions</c>
+    /// applied as the <c>cobol</c> command's <c>--sign-encoding</c>, <c>--numeric-display</c>, <c>--flag-extensions</c> and <c>--repository-update</c>
     /// apply them.</summary>
     private static CompilerDriver.Options WithWiseOwlOptions(CompilerDriver.Options options,
         IReadOnlyDictionary<string, string> wiseOwlOptions)
@@ -223,6 +248,7 @@ internal static class ConformanceSuiteRunner
                     : throw new SuiteHarnessException($"numeric-display '{value}' is not one of "
                         + string.Join(", ", WiseOwl.Cobol.Binding.NumericDisplayFormOption.OptionSpellings)),
                 "flag-extensions" => options with { FlagExtensions = options.FlagExtensions || value == "on" },
+                "repository-update" => options with { RepositoryUpdate = value == "on" },
                 _ => throw new SuiteHarnessException($"'{key}' is not a WiseOwl compile option"),
             };
         }

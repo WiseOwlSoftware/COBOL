@@ -95,6 +95,7 @@ its own directory's edition today; which editions each belongs in is what §6 st
 | `requires` | Optional modules (Annex A.4) and processor-dependent elements (Annex A.3) the test needs, spelled `A.4.<n>` (the module's subclause, `A.4.11` Report Writer) and `A.3-<n>` (the element's item); the generator reads the valid names from the standard's annexes. A compiler whose profile does not claim one gets NOT APPLICABLE |
 | `implementor-defined` | §3.3: Annex A.1 items whose standard-enumerated value the expected output depends on, by item number |
 | `files` | Copybooks, data files and other compilation units the test needs, beside it; the generator refuses a COPY (in the program or in a declared copybook) of an undeclared library text, a declared file that is not there, and a file in a clause folder no test declares or expects |
+| `build` | A WiseOwl test only (kb/Work PB2101; DESIGN-external-repository §17.1): the compilation steps of a multi-unit test, an ordered flow list of quoted items, each `"<declared file>"` or `"<declared file> > <output base name>"`, with `"{self}"` standing for the test's own source (appended last when the list omits it): `*> build: ["pb2101_callee.cbl > P2101LIB", "{self}"]`, or a stale caller `["CALLEE1.cbl > CALLEE", "{self}", "CALLEE2.cbl > CALLEE"]` (the callee rebuilt after its caller). How separately compiled units find each other is §8.13's implementor mechanism, not a portable program, so `build` is refused in `cases/`. Every step's file is in `files` (a unit's extension is `.cbl`, because the generator reads every `*.cob` of a folder as a test); a step's output defaults to the file's base name; two steps may not compile into one output before `{self}` (the first would be overwritten unused) and no output may be the test's own id. The runner compiles the steps in list order into the test's one working directory, which is the run unit's application directory and the default repository directory, so a case writes no repository option; a step that needs a compile option takes it from `wiseowl/options.json`, keyed `<id>/<step file>` (`repository-update on\|off` is one) |
 | `source-format` | `fixed` or `free`, required on every test (compilers differ in their default) |
 | `portable` | `unverified` on every migrated test until its clause pass (§6 step 2) clears it; the suites carry only cleared tests |
 
@@ -216,12 +217,17 @@ conformance-suite/
   expected output; an A.1 item or `requires` name the registries lack; a test filed under a clause none of its rules
   belongs to, or with no rules outside `_unassigned/`; a folder not named `<clause>-<Name>`; a file no test declares;
   a `wiseowl/diagnostics.json` entry naming no test or refusing a test where it must be accepted, and a flagged test
-  without one; a portability-lint violation in a test the suites carry. It writes `suites/<edition>/manifest.json`
+  without one; a `build` outside the wiseowl tree, naming an undeclared file, a bad output name, an output compiled twice
+  before the test's own source or `{self}` twice (§3.1); a portability-lint violation in a test the suites carry. It writes `suites/<edition>/manifest.json`
   per edition (the cleared tests of `cases/`, not `_unassigned/`, that apply there, with their expectation: the
   expected-output file per A.1 value, or the flag kind, the marked line and the control), and
   `suites/wiseowl/manifest.json`: every test of both trees at each edition it names, portable or not, and the
   `wiseowl/diagnostics.json` refusals, each with the refused test's source, reference format and declared files,
-  which is what WiseOwl's own runner executes (S1c). The suites are build output, never committed; `--out DIR`
+  which is what WiseOwl's own runner executes (S1c). A multi-unit test's entry carries `build`: its steps in order, each
+  `{file, output, options}` with `file` and `output` null for the test's own source. Only WiseOwl's in-process runner
+  (`ConformanceSuiteRunner`) reads the `wiseowl` manifest, so it is the one runner that executes `build`; `run.py` reads
+  the per-edition manifests of `cases/` alone, which carry no multi-unit test, and has no multi-unit step and no adapter
+  operation for one (an operation nothing executes would be configuration no runner reads). The suites are build output, never committed; `--out DIR`
   writes them elsewhere (the in-process runner's own directory). A rerun replaces only what a previous run wrote (the
   manifest directories and the completeness report) and refuses a directory holding anything else, deleting nothing.
 - **Completeness is reported per witness kind**, never as one count that can never reach zero: for each edition, the
