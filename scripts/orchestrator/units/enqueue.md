@@ -8,19 +8,38 @@ entry, runs the landing checks and hands the branch to GitHub's merge queue as o
 pull requests, so while `ruleset.py check` does not report the queue ACTIVE the script refuses before it merges or
 gates anything (exit 8). THE LANDING LANE runs it, not this unit (kb/Work PB3103; DESIGN-orchestrator-loop.md section
 4.9): the supervisor ticks `python scripts/orchestrator/land_lane.py tick` beside every unit, which starts
-`enqueue.py land` for every branch WAITING TO LAND the moment it is ready and retries what a script can see end. This
-unit keeps the judgment: the reviews, the finishers, the leads, the records and the ledger.
+`enqueue.py land` for every branch WAITING TO LAND the moment it is ready and retries what a script can see end. THE
+REVIEW LANE reviews and finishes conflicts beside it (kb/Work PB3608; design section 4.9.1): right after each of those
+ticks the supervisor ticks `python scripts/orchestrator/review_lane.py tick`, which starts ONE read-only `cobol-reviewer`
+for every branch WAITING FOR REVIEW and ONE `cobol-finisher` for every CONFLICT stop, each its own headless session.
+This unit keeps the judgment the lanes cannot make: the review lane's holds, the finishers of every other stop, the
+leads, the records and the ledger.
 1. Load the `workstream` skill (the dispatch guard refuses a finisher or reviewer otherwise); read
    .claude/skills/workstream/references/landing.md.
-2. REVIEW FIRST (MANDATORY-PRACTICES I10; kb/Work PB3027): for each row `python scripts/prune_worktrees.py --brief`
-   lists WAITING FOR REVIEW (a DONE branch whose report carries no `Review: CLEAN` stamp at its tip: a branch finished
-   outside a rolling wave, or one whose wave stopped before its review), dispatch ONE read-only `cobol-reviewer` (Agent
-   tool, model opus; all of them in one message) whose prompt gives the branch, its worktree, its tip, its report, the
-   findings file `{COORD}\scratch\review-<branch>.jsonl`, the reviewer label `enqueue-review-<branch>-r1`, round 1, both
-   stop files, and says: follow "The branch form" of `.claude/skills/review/SKILL.md`. A CLEAN stamp makes the row
-   WAITING TO LAND for step 3; a FINDINGS stamp makes it a DECISION row whose finisher the next wave plans
-   (plan_wave.py). Never fix a finding here. A CLEAN stamp on a branch whose lane attempt stopped `UNREVIEWED` (exit
-   11) at the same tip changes no commit, so the lane would never land it again by itself: re-arm it,
+2. THE REVIEW LANE'S RESULTS (MANDATORY-PRACTICES I10; kb/Work PB3027, PB3608). This step starts no reviewer: the lane
+   reviews every row `python scripts/prune_worktrees.py --brief` lists WAITING FOR REVIEW (a DONE branch whose report
+   carries no `Review: CLEAN` stamp at its tip: a branch finished outside a rolling wave, a finisher's new tip, or one
+   whose wave stopped before its review) and restarts a reviewer that was killed. Read `python
+   scripts/orchestrator/review_lane.py status`: one line per reviewer and finisher, and a `HOLD` line per branch only
+   you or the operator can resolve. When its header says the lane has never ticked or is STALE (the supervisor's lane is
+   off or failing, or `-LandLaneSeconds 0` leaves it no landing tick to follow), first make the survey fresh: when
+   `python scripts/orchestrator/land_lane.py status` says its survey is STALE or the lane never ticked, run
+   `land_lane.py tick` ONCE (step 3's tick, taking the survey the review lane reads). Then run `python
+   scripts/orchestrator/review_lane.py tick` ONCE (the same deterministic lane: it starts exactly what a supervisor tick
+   would; on a survey older than `land_lane.SURVEY_MAX_AGE_MIN` it starts nothing and says so) and read `status` again. A CLEAN stamp makes the row WAITING TO LAND for step
+   3; a FINDINGS stamp makes it a DECISION row whose finisher the next wave plans (plan_wave.py). Never fix a finding
+   here. By hold: reviewers that ended with no verdict at one head (STALLED at the ceiling, killed, a stalled model),
+   or a findings file torn other than by a cut-off append: dispatch ONE read-only `cobol-reviewer` yourself (Agent
+   tool, model opus) whose prompt gives the branch, its worktree, its tip, its report, the findings file (the
+   hold's own, which `status` prints on its HOLD line; for an UNREVIEWED branch, which has no hold, the lane's own name for
+   it, `<coord>/scratch/review-<branch>.jsonl` with every run of characters outside A-Z a-z 0-9 . _ - in the branch name
+   replaced by one `-`; a torn one is mended first, by the remedy the hold names), the reviewer label `enqueue-review-<branch>-r1`, the round, both stop files, and says: follow "The branch
+   form" of `.claude/skills/review/SKILL.md`; a conflict finisher that ended with the head unchanged: read its report
+   (`review_lane.py status` names its log), and either re-arm the branch (step 3, a stop resolved with no commit) or
+   send a finisher (step 4). Then `python scripts/orchestrator/review_lane.py collect <branch> ...`. A branch whose
+   lane attempt stopped `UNREVIEWED` (exit 11) reads STOPPED, not WAITING FOR REVIEW, so the lane does not review it:
+   dispatch the reviewer as above for it too. A CLEAN stamp on a branch whose lane attempt stopped `UNREVIEWED` at the
+   same tip changes no commit, so the landing lane would never land it again by itself: re-arm it,
    `python scripts/orchestrator/land_lane.py rearm <branch> --why "reviewed CLEAN at <tip>"`.
 3. THE LANDING LANE'S RESULTS. This step starts no landing of its own: the lane lands every WAITING TO LAND branch
    (kb/Work PB3103). Read `python scripts/orchestrator/land_lane.py status`: one line per branch, its latest attempt
@@ -37,13 +56,15 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
      past the grace it re-runs a stuck check, then closes, reopens and re-queues the pull request, then sends the
      operator a mailbox question and stops (`ALERTED`) — never a finisher's, and nothing to do here but name an
      ALERTED one in the handoff. Its leads go to step 5 and its record to step 6b.
-   - `STOPPED`: `CONFLICT` (exit 4, bringing main in), `UNTESTED` (exit 14: no recorded GREEN local gate covers the tip, kb/Work PB3612; a finisher gates it), `GATE RED` or `GATE NOT RUN, BRANCH-CARRIED` (exit 5, the rare gate a landing runs:
+   - `STOPPED`: `CONFLICT` (exit 4, bringing main in: the review lane already started its finisher and collected the
+     attempt, kb/Work PB3608; read it in `review_lane.py status`, step 2), `UNTESTED` (exit 14: no recorded GREEN local gate covers the tip, kb/Work PB3612; a finisher gates it), `GATE RED` or `GATE NOT RUN, BRANCH-CARRIED` (exit 5, the rare gate a landing runs:
      a gate that measured nothing because code the branch carries failed, and main passes that step; kb/Work PB3526)
      or a DEVLOG, register or diagnostic-prefix refusal (exit 6): the
      reason is in the log and in the branch's report (`BLOCKED: enqueue …`); the branch survey reads the branch
      STOPPED too, never WAITING TO LAND, until a new tip or a re-arm (kb/Work PB3125):
      step 4. `UNREVIEWED` (exit 11): the branch's tip is not covered by its CLEAN review stamp (MANDATORY-PRACTICES
-     I10): it goes back to step 2's reviewer, never to a finisher and never landed another way. A repeated exit 2 or
+     I10): it goes back to step 2's reviewer (dispatched by hand, as the review lane does not review a STOPPED row),
+     never to a finisher and never landed another way. A repeated exit 2 or
      9 (main kept moving, GitHub refused twice at one head, or a gate NOT RUN twice for a cause in the environment or
      one main fails the same way: no finisher fixes it, kb/Work PB3526): name it in the handoff with its log.
    - `RETRY-WHEN-FREE` (exit 3, the landing check's STOP: the branch shares a file with earlier-dispatched,
@@ -73,13 +94,14 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
    queue removed its pull request; GitHub's reason named), dispatch ONE `cobol-finisher` (Agent tool, model opus; all
    of them in one message) with `.claude/skills/workstream/templates/finisher-brief.md`, its prompt naming the branch,
    its worktree, its report, the stop line verbatim (or the PR number and the bounce reason, with the merge group's
-   failed run from `gh run list --event merge_group --limit 20`) and both stop files. For a `CONFLICT` (exit 4), or a
-   BOUNCED pull request that conflicts with main (merge state DIRTY), the prompt also carries the output of
-   `python scripts/orchestrator/land_lane.py conflict-brief <branch>` verbatim (kb/Work PB3640: the conflicted files,
-   the commits main gained on them since the branch's merge base, the notes on both sides and each one's newest
-   report), so the finisher resolves each file against both sides' intent without re-deriving them. The finisher fixes the branch at
+   failed run from `gh run list --event merge_group --limit 20`) and both stop files. NOT a `CONFLICT` (exit 4) and not
+   a BOUNCED pull request that conflicts with main (merge state DIRTY): the review lane's conflict finisher took those
+   the moment they stopped, with `python scripts/orchestrator/land_lane.py conflict-brief <branch>` verbatim (kb/Work
+   PB3640: the conflicted files, the commits main gained on them since the branch's merge base, the notes on both sides
+   and each one's newest report; kb/Work PB3608). Only when its hold says it could not resolve one (step 2) do you
+   dispatch the conflict finisher yourself, with that brief in the prompt. The finisher fixes the branch at
    its root, gates it and returns DONE; it never lands: its commits are unreviewed, so the branch reads WAITING FOR
-   REVIEW and the next enqueue unit's step 2 reviews the new tip before the landing lane lands it (`enqueue.py land`
+   REVIEW and the review lane reviews the new tip before the landing lane lands it (`enqueue.py land`
    refuses an unreviewed tip with exit 11, UNREVIEWED: never a finisher's case to work around). Stay until every
    finisher returns. A finisher that resolved its stop with NO commit of its own (a bounce it attributes to
    infrastructure or load timing; a red already on main) leaves the head unchanged, so the lane would never land it
