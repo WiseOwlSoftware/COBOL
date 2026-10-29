@@ -275,6 +275,18 @@ internal static class AlgebraicRanges
         return Of(integer ? Procedure.SendingValueTemp.IntegerFunctionValuePic : Procedure.SendingValueTemp.FunctionValuePic)!.Value;
     }
 
+    /// <summary>True when the literal whose unsigned magnitude text is <paramref name="magnitude"/> (the forms
+    /// <see cref="CompareMagnitude"/> parses) lies within <paramref name="range"/>: its magnitude is no greater than
+    /// <see cref="AlgebraicRange.Farthest"/> when <paramref name="negative"/> is false, no greater than the magnitude
+    /// of <see cref="AlgebraicRange.FarthestNegative"/> when it is true; a negative literal against a range with no
+    /// negative extreme is not admitted. The VALUE clause's USAGE-range test (§13.18.63.3 SR2, kb/Work PB3997) asks
+    /// this of the very range the HIGHEST/LOWEST-ALGEBRAIC fold reads, so the VALUE check never restates a band.</summary>
+    internal static bool Admits(AlgebraicRange range, string magnitude, bool negative)
+    {
+        string? limit = negative ? range.FarthestNegative : range.Farthest;
+        return limit is not null && CompareMagnitude(magnitude, limit) <= 0;
+    }
+
     private static BigInteger Pow10(int n) => BigInteger.Pow(10, Math.Max(0, n));
 
     /// <summary>Render an unscaled <see cref="BigInteger"/> at <paramref name="scale"/> fractional digits as a
