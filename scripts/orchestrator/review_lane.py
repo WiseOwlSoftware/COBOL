@@ -950,7 +950,7 @@ def self_test() -> int:
         att_b = land_lane.lane_dir(c10b) / land_lane.ATTEMPTS
         att_b.mkdir(parents=True)
         enq = {"id": "000001-x-F4", "branch": "F4", "head": "a1a1a1a", "worktree": str(root / "wt-F4"), "rc": 0, "end_head": "a1a1a1a",
-               "verdict": "=== ENQUEUE: ENQUEUED", "collected": False}
+               "verdict": verdict_line.render("ENQUEUED", "F4"), "collected": False}
         coord.write_json(att_b / "000001-x-F4.json", enq)
         f10b = Fake(c10b, [row("F4", "BOUNCED", "a1a1a1a", conflicts=True, why="pull request #9 conflicts with main (merge state DIRTY)")])
         expect("a DIRTY bounce starts its finisher", f10b.tick() == [(CONFLICT, "F4")], str(f10b.said))
