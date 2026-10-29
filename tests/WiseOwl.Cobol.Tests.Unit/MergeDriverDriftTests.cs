@@ -47,6 +47,8 @@ public sealed class MergeDriverDriftTests
             "publicapi: a line one side removed is gone",
             "publicapi: the header stays first and the rest is sorted",
             "publicapi: the same line added by both is one line",
+            "publicapi: baseline_duplicates names a symbol listed twice in one file",
+            "publicapi: is_symbol_baseline reads the SYMBOL_SET_DRIVER row's pattern",
             "git: a public-API baseline both branches changed merges through its driver as a set",
             "git: a branch cut with the old attributes (merge=union) merges a baseline through the registry's driver",
             "patterns: a driver's pattern names a path as git does",
