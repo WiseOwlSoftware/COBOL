@@ -722,9 +722,9 @@ def self_test() -> int:
         expect("a second tick while the reviewer runs starts none", f.tick() == [], str(f.said))
 
         # 2. Stops, the budget, the survey's age, the tip that moved, and the cap.
-        for what, arrange in (("the loop's STOP", lambda c: (c / "STOP").write_text("", encoding="utf-8")),
-                              ("the owner's global stop", lambda c: coord.global_stop(str(c)).write_text("", encoding="utf-8")),
-                              ("the loop's fleet stop", lambda c: coord.fleet_stop(c / "scratch", "loop").write_text("", encoding="utf-8"))):
+        for what, arrange in (("the loop's STOP", lambda c: (c / "STOP").write_text("", encoding="utf-8", newline="\n")),
+                              ("the owner's global stop", lambda c: coord.global_stop(str(c)).write_text("", encoding="utf-8", newline="\n")),
+                              ("the loop's fleet stop", lambda c: coord.fleet_stop(c / "scratch", "loop").write_text("", encoding="utf-8", newline="\n"))):
             c2 = fresh()
             f2 = Fake(c2, [row("s1", "WAITING FOR REVIEW", "a1a1a1a")])
             arrange(c2)
@@ -912,7 +912,7 @@ def self_test() -> int:
              argv_for=lambda k: [sys.executable, str(stub), "hang"], now=t0, say=lambda s: None)
         v1 = runs(c13)[0]
         coord.write_json(pathlib.Path(v1["_path"]), {k: v for k, v in v1.items() if k != "_path"} | {"poll_s": 0.05})
-        (c13 / "STOP").write_text("", encoding="utf-8")
+        (c13 / "STOP").write_text("", encoding="utf-8", newline="\n")
         run_agent(pathlib.Path(v1["_path"]))
         expect("a loop stop ends a running agent, recorded STOPPED", runs(c13)[0].get("outcome") == "STOPPED", str(runs(c13)[0]))
     finally:
