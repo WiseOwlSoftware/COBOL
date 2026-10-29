@@ -32,3 +32,9 @@ against the maximum; expected output derived from the rules, then matched by the
 index formats are a different rule (an exception condition, not a truncation) and stay with that note.
 
 **ABI pin.** The three overloads add to the shipped surface and remove nothing, so `RuntimeAbi.pin` was re-measured with `abi_pin.py repin` (no major bump).
+
+**Review round 1 (R1-1).** The carrier split dropped PB463's once-per-statement guard: `Resize`'s `OutOfMemoryException` catch raised
+EC-STORAGE-NOT-AVAIL again after the clamp leg had raised it, so one SET SIZE ran the USE declarative twice. `Resize` now raises on
+the third leg only when the request was in range (`leg == Leg.InRange`); regression test
+`CobolDynStringTests.SetSize_ClampThenStorageRefused_RaisesOncePerStatement` counts dispatches for the clamp-then-refused and the
+in-range-refused requests (one each).
