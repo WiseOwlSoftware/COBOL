@@ -2218,13 +2218,13 @@ def self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="work-harm-") as tmp:
         root = pathlib.Path(tmp)
         (root / HARM_RESTATEMENT_ROOTS[0]).mkdir(parents=True)
-        (root / HARM_RESTATEMENT_ROOTS[0] / "brief.md").write_text("wrong_answer / crashes", encoding="utf-8")
+        (root / HARM_RESTATEMENT_ROOTS[0] / "brief.md").write_text("wrong_answer / crashes", encoding="utf-8", newline="\n")
         weights = lambda ws: json.dumps({"harm": ",".join(f"{f}={w}" for f, w in zip(HARM_FLAGS, ws))})   # noqa: E731
-        (root / ".agent-fleet.json").write_text(weights([1] * len(HARM_FLAGS)), encoding="utf-8")
+        (root / ".agent-fleet.json").write_text(weights([1] * len(HARM_FLAGS)), encoding="utf-8", newline="\n")
         if len(harm_vocabulary_findings(root)) != 2:
             findings.append("harm_vocabulary_findings does not refuse flat weights and a brief that leaves classes out")
-        (root / ".agent-fleet.json").write_text(weights(range(len(HARM_FLAGS), 0, -1)), encoding="utf-8")
-        (root / HARM_RESTATEMENT_ROOTS[0] / "brief.md").write_text(" ".join(HARM_FLAGS), encoding="utf-8")
+        (root / ".agent-fleet.json").write_text(weights(range(len(HARM_FLAGS), 0, -1)), encoding="utf-8", newline="\n")
+        (root / HARM_RESTATEMENT_ROOTS[0] / "brief.md").write_text(" ".join(HARM_FLAGS), encoding="utf-8", newline="\n")
         if harm_vocabulary_findings(root):
             findings.append(f"harm_vocabulary_findings refuses a consistent repository: {harm_vocabulary_findings(root)}")
 
