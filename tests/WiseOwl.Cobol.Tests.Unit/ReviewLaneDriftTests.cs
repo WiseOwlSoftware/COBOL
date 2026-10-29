@@ -22,7 +22,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// finisher, the runner's ceiling) are <c>review_lane.py --self-test</c>'s, which the self-test runner discovers and runs in
 /// every gate and in CI; this holds that no arm of it was deleted.</para>
 /// </remarks>
-[Trait("Sweep", "tree")]
 public sealed class ReviewLaneDriftTests
 {
     [Fact]
