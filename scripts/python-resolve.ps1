@@ -10,13 +10,17 @@
 # Nothing runnable ⇒ a TERMINATING error naming what was tried. A dot-sourced `exit` would end only this file and leave
 # its caller running with no interpreter, so the refusal is thrown into the caller: build-local.ps1 reports its gate
 # NOT RUN; any other caller stops with exit 1. A gate that cannot run its checks is never silently skipped.
+# The version accepted is EXACTLY toolchain.env's PYTHON_VERSION (kb/Work PB4007), as in the bash twin.
+$PyWant = Select-String -LiteralPath (Join-Path $PSScriptRoot '..' 'toolchain.env') -Pattern '^PYTHON_VERSION=([0-9.]+)$' |
+    ForEach-Object { $_.Matches[0].Groups[1].Value } | Select-Object -First 1
 $PY = & {
+    if (-not $PyWant) { return }
     foreach ($candidate in @($env:PYTHON, 'python3', 'python')) {
         if (-not $candidate) { continue }
         # A candidate that cannot be started (absent, or not executable) answers the probe "no", exactly as the bash
         # twin's `if "$cand" … 2>&1` does: the next candidate is tried, and only none at all is the refusal below.
         try {
-            & $candidate -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)' *> $null
+            & $candidate -c 'import platform, sys; sys.exit(0 if platform.python_version() == sys.argv[1] else 1)' $PyWant *> $null
         } catch {
             continue
         }
@@ -24,5 +28,6 @@ $PY = & {
     }
 }
 if (-not $PY) {
-    throw 'python-resolve: ⛔ no runnable Python >= 3.12 (tried $PYTHON, python3, python) — the gate cannot run'
+    throw "python-resolve: ⛔ no runnable Python $(if ($PyWant) { $PyWant } else { '(toolchain.env names no PYTHON_VERSION)' }) (toolchain.env; tried `$PYTHON, python3, python) — the gate cannot run: install it (winget on the Windows dev box, scripts/wsl/setup-wsl.sh in WSL)"
 }
+Remove-Variable -Name PyWant
