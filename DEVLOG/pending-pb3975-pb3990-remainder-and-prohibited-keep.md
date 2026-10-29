@@ -37,3 +37,10 @@ keeps 07) and 0.1 into a COMP-1 (it stores it), both ISO's. `SizeErrorDispositio
 
 Inventory: two `record_verdicts` batches (witnesses, notes, three `DivideOrThrow` code-locations retired), no verdict
 moved, GAP 31 -> 31. The fleet stop (STOP-loop) arrived before the gate.
+
+Wave 20261744 group B finished the branch: the two commits were cherry-picked cleanly onto main 9920cfec5 and the re-probe
+matched. The first gate was RED on one case, `RuntimeApiGuardTests.Bare_runtime_accesses_do_not_increase`: the rule-7 catch
+arm named `CobolSizeError.IsProhibitedInexact` in `ArithmeticEmitter`, a bare runtime access the P7 ratchet forbids in a
+CodeGen file. The arm now renders through `RuntimeApi.ProhibitedInexactKeepCatch`, the facade's one anchor for it. The same
+read found three stacked doc comments in `RuntimeApi` (`PtrIsNull`, `DecSign` and `DecToUnscaledIntermediate` each lost
+its summary to the member above), and each is back on its own member.

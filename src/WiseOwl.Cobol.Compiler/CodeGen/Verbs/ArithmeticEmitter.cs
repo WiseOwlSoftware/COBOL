@@ -516,8 +516,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         if (inSizeError || mode != CobolRounding.Prohibited) { emit(); return; }
         var w = ctx.Writer;
         using (w.Block("try")) emit();
-        string e = $"__cse{ctx.Names.NextEc()}";
-        w.Line($"catch ({nameof(CobolSizeError)} {e}) when ({e}.{nameof(CobolSizeError.IsProhibitedInexact)}) {{ }}");
+        w.Line(RuntimeApi.ProhibitedInexactKeepCatch($"__cse{ctx.Names.NextEc()}"));
     }
 
     /// <summary>The <see cref="ReceiverContext"/> a statement with several resultants renders its once-evaluated
