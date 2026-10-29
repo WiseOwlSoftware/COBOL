@@ -695,11 +695,13 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
         if (it.get("kind") == "defect" and it.get("status") in ("open", "half")
                 and not it.get("process_only") and not any(it.get(f) for f in HARM_FLAGS)):
             bad.append(f'{it["_file"]}: open defect with no harm flag set — it can never appear in '
-                       f'`work.py next`. Set one of {list(HARM_FLAGS)}, or process_only: true if it '
-                       f'genuinely does nothing to a user\'s program.')
+                       f'`work.py next`. Set one of {list(HARM_FLAGS)} (a message that names the wrong fault is '
+                       f'`misleads_diagnosis`), or process_only: true if it genuinely does nothing to a user\'s '
+                       f'program (process_only_problems refuses that on a note whose sites are all under src/).')
         bad += frontmatter_errors(it)
         bad += closes_rows_shape(it)
         bad += frontier_model_shape(it)
+        bad += process_only_problems(it)
         bad += upstream_problems(it)
     bad += topology_problems(items)
     bad += sites_problems(items)
@@ -743,6 +745,12 @@ def check(work_dir: pathlib.Path = WORK) -> int:
 #: frontmatter has not said what it actually does. `process_only` is likewise not here — it marks an item that
 #: does nothing to a user's program by definition.
 #:
+#: ⭐ `misleads_diagnosis` (kb/Work PB3836) IS THE HARM OF A DIAGNOSTIC THAT NAMES THE WRONG FAULT: the program is
+#: refused or warned about correctly, and the message names a wrong cause, position or rule, so the user is sent to
+#: the wrong place to fix their program. It had no word in this vocabulary, so a filer satisfied `check` with
+#: `process_only: true` ("does nothing to a user's program"), which is false and hid the note from `next`. It ranks
+#: last: a program that still compiles to the right answer outranks one that is merely told the wrong thing.
+#:
 #: THE HARM VOCABULARY IS THIS ONE TABLE (flag -> the word a listing prints), in rank order: `HARM_FLAGS`, `next`, the
 #: views below (`unharmed` is its complement) and the other readers of the register derive from it, so a harm class
 #: added here reaches every one of them, with no second copy of the predicate in another language (kb/Work PB3799).
@@ -751,8 +759,13 @@ HARM_LABELS = {
     "crashes": "crash",
     "rejects_legal_source": "rejects legal source",
     "under_rejects": "under-rejects",
+    "misleads_diagnosis": "misleading diagnostic",
 }
 HARM_FLAGS = tuple(HARM_LABELS)
+#: The harm words a review finding or an adjudicator's record uses (`wrong-answer`) and the frontmatter flag each files as
+#: (`wrong_answer`): HARM_FLAGS and `silent`, the qualifier no class ranks. The writers of defect notes (the R2 review's
+#: collector and census writer) read it, so a harm class added to HARM_LABELS is a word they accept and a flag they write.
+FINDING_HARMS = {flag.replace("_", "-"): flag for flag in (*HARM_FLAGS, "silent")}
 #: What a note with none of HARM_FLAGS is listed as.
 NO_HARM_LABEL = "process"
 
@@ -762,13 +775,20 @@ def harm_label(it: dict) -> str:
     return next((label for flag, label in HARM_LABELS.items() if it.get(flag)), NO_HARM_LABEL)
 
 
+def harm_rank(it: dict) -> int:
+    """The position in HARM_FLAGS of the highest-ranked harm the note sets (0 first); past the last for none."""
+    return next((n for n, flag in enumerate(HARM_FLAGS) if it.get(flag)), len(HARM_FLAGS))
+
+
 def actionable(items: list[dict]) -> list[dict]:
+    """`next`: the open, unblocked notes that harm a user's program, by severity, then by what the harm DOES to the
+    program (HARM_FLAGS' order: a wrong answer before a misleading message), then by id."""
     sev = {"BLOCKER": 0, "MAJOR": 1, "MINOR": 2, "OWNER": 3}
     by_id = {i.get("id"): i for i in items}
     live = [i for i in items if i.get("status") in ("open", "half")
             and any(i.get(f) for f in HARM_FLAGS)
             and not i.get("process_only") and not waiting_on(i, by_id)]
-    return sorted(live, key=lambda i: (sev.get(i.get("severity"), 9), i.get("id", "")))
+    return sorted(live, key=lambda i: (sev.get(i.get("severity"), 9), harm_rank(i), i.get("id", "")))
 
 
 # ── the register's views: `work.py <view>` (kb/Work PB3799) ───────────────────────────────────────────────────────
@@ -1431,6 +1451,39 @@ def sites_problems(items: list[dict]) -> list[str]:
     return bad
 
 
+#: The tree a note's work lands in when it changes the compiler or its runtime: `process_only` says the item does
+#: NOTHING to a user's program, which a note whose every site is here contradicts unless it says why.
+COMPILER_ROOT = "src/"
+
+
+def process_only_problems(it: dict) -> list[str]:
+    """A not-yet-done note that sets `process_only: true` while every site it declares is under `src/` (kb/Work PB3836).
+
+    ⛔ `process_only` WAS THE FILER'S WAY THROUGH THE CHECK, NOT A FACT. The check refuses an open defect with no harm
+    flag and offers `process_only` as the other way out, so a defect whose message names the wrong fault (which does
+    something to a user's program, and had no harm class) was filed `process_only: true`: 23 open notes with compiler
+    sites carried it, hidden from `next`. A note whose sites are all compiler code sets a harm flag from HARM_FLAGS,
+    or states in `process_only_reason:` why its change reaches no user's program (a drift test that guards a site in
+    `src/`, a rename with no behaviour change). A note naming no `src/` site, or one outside it too, is unaffected: its
+    work is tooling, tests or documents. An `upstream` record describes another project and is exempt by its kind. A
+    RESTRUCTURING note (a `**Wave kind:**` of extract, unify, move-and-rename, data-ize, delete or modernize: the
+    architecture review's behavior-neutral waves, DESIGN-architecture-review.md section 8.7) states its reason by that
+    kind: its change reaches no user's program by construction, and the oracle that proves it is the wave's gate."""
+    if (not it.get("process_only") or it.get("kind") == "upstream" or it.get("status") in TERMINAL_STATUSES):
+        return []
+    sites = note_sites(it.get("_body", ""))
+    if not sites.paths or not all(p.startswith(COMPILER_ROOT) for p in sites.paths):
+        return []
+    reason = it.get("process_only_reason")
+    if (isinstance(reason, str) and reason.strip()) or (sites.wave and not sites.fix_lane):
+        return []
+    paths = sites.paths
+    return [f'{it["_file"]}: `process_only: true` on a note whose every site is under `{COMPILER_ROOT}` '
+            f'({", ".join(paths[:3])}{", …" if len(paths) > 3 else ""}): set the harm flag the defect really has '
+            f'({", ".join(HARM_FLAGS)}; a message that names the wrong fault is `misleads_diagnosis`), or state in '
+            f'`process_only_reason:` why the change reaches no user\'s program (kb/Work PB3836)']
+
+
 def _slice_rows(repo: pathlib.Path) -> list[list[str]]:
     """DESIGN-external-repository §12's rows whose change has not landed (a row whose "Change" cell opens with
     "landed" is history), each as its three cells: Today, Change, Callers updated in the same change."""
@@ -1914,6 +1967,39 @@ def upstream_findings() -> list[str]:
     return bad
 
 
+def process_only_findings() -> list[str]:
+    """`process_only` on a note whose sites are all compiler code, and `next`'s order across harm classes (kb/Work PB3836)."""
+    src = "**Sites:** `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs` (`DataBinder.Bind`)"
+    mixed = src + ", `tests/WiseOwl.Cobol.Tests.Unit/XTests.cs` (`XTests.Y`)"
+
+    def note(body: str, **fm) -> dict:
+        return {"_file": "PB9.md", "id": "PB9", "kind": "defect", "status": "open", "process_only": True, "_body": body, **fm}
+
+    cases = (
+        ("process_only on a src-only note without a reason", note(src), True),
+        ("process_only_reason states why", note(src, process_only_reason="a drift test guards the site"), False),
+        ("a blank reason is none", note(src, process_only_reason="  "), True),
+        ("a restructuring wave kind states it", note(src + chr(10) + "**Wave kind:** unify."), False),
+        ("the fix-lane wave kind does not", note(src + chr(10) + f"**Wave kind:** {FIX_LANE_WAVE}."), True),
+        ("a note that also sites a test", note(mixed), False),
+        ("a note with no site block", note("no sites"), False),
+        ("a landed note", note(src, status="landed"), False),
+        ("an upstream record", note(src, kind="upstream"), False),
+        ("a harm flag instead of process_only", note(src, process_only=False, misleads_diagnosis=True), False),
+    )
+    bad = [f"process_only_problems, {name}: {'no problem' if want else 'a problem'} was due"
+           for name, it, want in cases if bool(process_only_problems(it)) != want]
+    # next ranks within a severity by what the harm does, a misleading message last, then by id
+    ids = [i["id"] for i in actionable([
+        {"id": "PB1", "status": "open", "severity": "MINOR", "misleads_diagnosis": True},
+        {"id": "PB2", "status": "open", "severity": "MINOR", "under_rejects": True},
+        {"id": "PB3", "status": "open", "severity": "MINOR", "wrong_answer": True},
+        {"id": "PB4", "status": "open", "severity": "MAJOR", "misleads_diagnosis": True}])]
+    if ids != ["PB4", "PB3", "PB2", "PB1"]:
+        bad.append(f"next lists {ids}: severity, then the harm's rank, then the id (want PB4 PB3 PB2 PB1)")
+    return bad
+
+
 def view_findings() -> list[str]:
     """The register's views (VIEWS, `next`) over a scratch register that holds one note of each shape (kb/Work PB3799):
     which notes each lists is stated here, so a change to a predicate, to HARM_FLAGS or to TERMINAL_STATUSES that moves a
@@ -1966,6 +2052,38 @@ def view_findings() -> list[str]:
     return bad
 
 
+#: The repository files that restate the harm vocabulary (a flag list in a brief, an enum in a workflow template) and
+#: are the places a new harm class is forgotten: any file under these folders that names one of HARM_FLAGS or
+#: FINDING_HARMS must name them all.
+HARM_RESTATEMENT_ROOTS = (".claude/skills/workstream/templates",)
+
+
+def harm_vocabulary_findings(repo: pathlib.Path = REPO) -> list[str]:
+    """The harm vocabulary written outside this module agrees with HARM_LABELS (kb/Work PB3836): `.agent-fleet.json`
+    weighs exactly HARM_FLAGS, in rank order, each class strictly below the one before it (the planner and the branch
+    survey rank on the weights, clusters.harm_weights); and no template that restates the vocabulary leaves a class out,
+    so a harm class added to HARM_LABELS stops this until each restatement names it."""
+    bad = []
+    fleet = json.loads((repo / ".agent-fleet.json").read_text(encoding="utf-8"))
+    weights = {k: int(v) for k, v in (p.split("=") for p in fleet["harm"].split(","))}
+    if list(weights) != list(HARM_FLAGS):
+        bad.append(f".agent-fleet.json `harm` weighs {list(weights)}, not HARM_FLAGS {list(HARM_FLAGS)} in rank order")
+    elif any(a <= b for a, b in zip(weights.values(), list(weights.values())[1:])):
+        bad.append(f".agent-fleet.json `harm` weights {list(weights.values())} do not fall strictly with the rank of "
+                   f"{list(HARM_FLAGS)}: a class must weigh less than the one ranked before it")
+    ranked = {flag.replace("_", "-"): flag for flag in HARM_FLAGS}      # `silent` qualifies a harm and may be left out
+    for root in HARM_RESTATEMENT_ROOTS:
+        for path in sorted((repo / root).rglob("*")):
+            if not path.is_file() or path.suffix not in (".md", ".js", ".json", ".txt"):
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            named = [word for word, flag in ranked.items() if word in text or flag in text]
+            if len(named) >= 2 and len(named) < len(ranked):   # two classes written out is a restatement of the list
+                bad.append(f"{path.relative_to(repo).as_posix()} restates the harm vocabulary but leaves out "
+                           f"{[word for word in ranked if word not in named]}")
+    return bad
+
+
 def self_test() -> int:
     """Evaluate `tests/version-matrix/work-frontmatter-cases.json` against `parse_frontmatter`.
 
@@ -2006,6 +2124,24 @@ def self_test() -> int:
     findings += directory_findings(fixture)
     findings += upstream_findings()
     findings += view_findings()
+    findings += process_only_findings()
+    findings += harm_vocabulary_findings()
+    # FALSIFICATION: a repository whose weights are flat and whose brief names two classes of the vocabulary is refused
+    # on both counts, and one that is consistent is not.
+    import tempfile  # noqa: PLC0415
+
+    with tempfile.TemporaryDirectory(prefix="work-harm-") as tmp:
+        root = pathlib.Path(tmp)
+        (root / HARM_RESTATEMENT_ROOTS[0]).mkdir(parents=True)
+        (root / HARM_RESTATEMENT_ROOTS[0] / "brief.md").write_text("wrong_answer / crashes", encoding="utf-8")
+        weights = lambda ws: json.dumps({"harm": ",".join(f"{f}={w}" for f, w in zip(HARM_FLAGS, ws))})   # noqa: E731
+        (root / ".agent-fleet.json").write_text(weights([1] * len(HARM_FLAGS)), encoding="utf-8")
+        if len(harm_vocabulary_findings(root)) != 2:
+            findings.append("harm_vocabulary_findings does not refuse flat weights and a brief that leaves classes out")
+        (root / ".agent-fleet.json").write_text(weights(range(len(HARM_FLAGS), 0, -1)), encoding="utf-8")
+        (root / HARM_RESTATEMENT_ROOTS[0] / "brief.md").write_text(" ".join(HARM_FLAGS), encoding="utf-8")
+        if harm_vocabulary_findings(root):
+            findings.append(f"harm_vocabulary_findings refuses a consistent repository: {harm_vocabulary_findings(root)}")
 
     # `frontier_model:` names a frontier family or is absent (kb/Work PB3941): every family is accepted, and a value
     # that is none (the alias `opus`, a dated id, a LIST such as `[mythos]`, which must be refused by name rather than
