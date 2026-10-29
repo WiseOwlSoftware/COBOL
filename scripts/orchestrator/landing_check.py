@@ -9,7 +9,7 @@ finds, the files under its site folders. Three refuter rounds each found a new h
 then the index's blind spots, then its staleness), so the planner's set is an ADMISSION ESTIMATE; a miss in it must
 be caught, never silently landed. This is the second line: before a landing reaches main it first refuses a path no landing carries (0: coord.NEVER_WORK,
 above all the harness's tracked `.claude/settings.local.json`, which `git add -A` stages) and a public-API baseline that lists a symbol
-twice (0b: RS0025, in the landing's tree and in the merge GitHub's merge group makes, kb/Work PB3694), then compares what the landing
+twice (0b: RS0025, in the landing's own tree, kb/Work PB3694), then compares what the landing
 ACTUALLY changed with
 
   1. its DECLARED file set, for the R3 work it lands: the set the dispatch ledger recorded for those notes when they
@@ -202,30 +202,24 @@ def baseline_texts(repo: pathlib.Path, git: Callable[..., Any], tree: str) -> di
     return {path: blob[oid].decode("utf-8", "replace") for path, oid in paths.items()}
 
 
-def baseline_stops(repo: pathlib.Path, base: str, rev: str, git: Callable[..., Any]) -> list[str]:
-    """The public-API baselines this landing would leave with a symbol listed twice (kb/Work PB3694): RS0025 fails the
-    Release build on one, and no local gate sees it when only the merge differs. Two trees are read: the landing's own
-    (a branch that listed a symbol twice, or in both PublicAPI.Shipped.txt and PublicAPI.Unshipped.txt) and the merge GitHub's
-    merge group makes of `base` and the landing, which runs NO merge driver (kb/Work PB3642) and so merges the baselines by
-    git's line merge, which keeps a symbol both sides added at different places twice. That merge is `git merge-tree` of
-    the two with no driver configured (a driver `.gitattributes` names but nothing defines merges by line); a merge that
-    conflicts has no tree to read (its markers are no symbols), and it is the queue's conflict, not this check's. When
-    the landing already contains `base` the two trees are one."""
-    own = git("rev-parse", "--verify", "-q", f"{rev}^{{tree}}").stdout.strip()
-    trees = {"the landing's tree": own} if own else {}
-    queued = git("merge-tree", "--write-tree", base, rev)
-    if queued.returncode == 0 and (merged := queued.stdout.split()[:1]) and merged[0] != own:
-        trees[f"the merge queue's merge of {base} and the landing (no merge driver)"] = merged[0]
-    stops: list[str] = []
-    reported: set[str] = set()   # a finding of the landing's own tree is not said again of the merge that carries it on
-    for label, tree in trees.items():
-        dups = [d for d in merge_drivers.baseline_duplicates(baseline_texts(repo, git, tree)) if d not in reported]
-        reported.update(dups)
-        if dups:
-            stops.append(f"{label} lists a public-API symbol twice, which fails the Release build (RS0025): "
-                         f"{'; '.join(dups[:5])}{' …' if len(dups) > 5 else ''} — keep each symbol once in the baselines "
-                         f"(`python scripts/merge_drivers.py merge {base}` merges them as a set), commit, and re-gate")
-    return stops
+def baseline_stops(repo: pathlib.Path, rev: str, git: Callable[..., Any]) -> list[str]:
+    """The public-API baselines of the landing's own tree that list a symbol twice, or in both PublicAPI.Shipped.txt and
+    PublicAPI.Unshipped.txt (kb/Work PB3694): RS0025 fails the Release build on one. The merge driver (PB3727) keeps a
+    symbol both sides added once in a merge this repository makes; this reads what the branch's head holds, which no
+    local test of a branch ever read.
+
+    What it does NOT read is GitHub's merge group's own merge. That merge runs no driver (PB3642) and keeps a symbol both
+    sides added at different places twice, but it merges the pushed head with the main of the moment it is made. Every
+    caller presents a head that already contains origin/main (enqueue.queue refuses any other, exit 2; the landing lane
+    checks from the merge base, which the head contains), so a `git merge-tree` of the two is the head's own tree and
+    reads nothing. Only a main that advances after the push makes the merge differ, and no check before the push can
+    read a commit that does not exist yet: CI's merge-group run is the net for it (kb/Work PB3694, Residual)."""
+    tree = git("rev-parse", "--verify", "-q", f"{rev}^{{tree}}").stdout.strip()
+    dups = merge_drivers.baseline_duplicates(baseline_texts(repo, git, tree)) if tree else []
+    return ([f"the landing's tree lists a public-API symbol twice, which fails the Release build (RS0025): "
+             f"{'; '.join(dups[:5])}{' …' if len(dups) > 5 else ''} — keep each symbol once in the baselines "
+             f"(`python scripts/merge_drivers.py merge <origin/main>` merges them as a set), commit, and re-gate"]
+            if dups else [])
 
 
 def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, items: list[dict], rules: dict[str, Any],
@@ -268,9 +262,8 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
         stops.append(f"carries {', '.join(leaked[:5])}{' …' if len(leaked) > 5 else ''}, which no landing carries "
                      f"(coord.NEVER_WORK: the harness's per-machine settings, the checkpoint file, the gate's results): "
                      f"restore each to its content on {base} (`git checkout {base} -- <path>`), commit, and re-gate")
-    # 0b. a public-API baseline that lists a symbol twice (kb/Work PB3694): RS0025 fails the Release build, and GitHub's
-    # merge group merges the baselines without the merge drivers, so a local merge can be clean where the queue's is not
-    stops += baseline_stops(repo, base, rev, git)
+    # 0b. a public-API baseline that lists a symbol twice (kb/Work PB3694): RS0025 fails the Release build
+    stops += baseline_stops(repo, rev, git)
 
     if mine_r3:   # 1. the declared set
         # From the FULL ledger, terminal or not: the declaration recorded when the work was planned is the authority
@@ -813,34 +806,30 @@ def self_test() -> int:
                ([] if len(reads) == 1 else [f"{len(reads)} reads: {reads}"], []), 0, 0)
         scratch.git("branch", "-D", name)
 
-    # kb/Work PB3694: a public-API baseline that lists a symbol twice fails the Release build (RS0025). Three ways to get there:
-    # the landing's own tree lists it twice, or in both Shipped and Unshipped, or the merge GitHub's merge group makes (git's
-    # line merge: no merge driver runs there, PB3642) keeps a symbol both sides added at different places twice. Its own repository
-    # so that main advances without moving the cases above.
-    queue = ScratchRepo.init(root / "queue")
+    # kb/Work PB3694: a public-API baseline that lists a symbol twice fails the Release build (RS0025). The landing's own tree
+    # lists it twice, or in both Shipped and Unshipped. (The merge GitHub's merge group makes of a head and a main that moved
+    # after the push is not readable before the push: baseline_stops says so.) Its own repository, so main's commits do not
+    # move the cases above.
+    apis = ScratchRepo.init(root / "apis")
     shipped, unshipped = "src/Lib/PublicAPI.Shipped.txt", "src/Lib/PublicAPI.Unshipped.txt"
 
     def api(*symbols: str) -> str:
         return "".join(line + chr(10) for line in ("#nullable enable", *symbols))
-    queue.commit("base", {shipped: api("A.A", "B.B"), unshipped: api("C.C", "E.E")}, when=1_002_000)
-    queue.git("update-ref", "refs/remotes/origin/main", "HEAD")
+    apis.commit("base", {shipped: api("A.A", "B.B"), unshipped: api("C.C", "E.E")}, when=1_002_000)
+    apis.git("update-ref", "refs/remotes/origin/main", "HEAD")
     for name, edits in (("dup", {unshipped: api("C.C", "E.E", "E.E")}),
                         ("both", {unshipped: api("A.A", "C.C", "E.E")}),
-                        ("removed", {unshipped: api("*REMOVED*B.B", "C.C", "E.E", "Z.Z")}),
-                        ("queued", {unshipped: api("C.C", "E.E", "X.X")}),
-                        ("queued-same", {unshipped: api("C.C", "X.X", "E.E")})):
-        queue.git("checkout", "-q", "-b", name, "origin/main")
-        queue.commit(f"a baseline edit: {name}", edits, when=1_002_100)
-        queue.git("checkout", "-q", "main")
-    empty = root / "coord-queue"
+                        ("removed", {unshipped: api("*REMOVED*B.B", "C.C", "E.E", "Z.Z")})):
+        apis.git("checkout", "-q", "-b", name, "origin/main")
+        apis.commit(f"a baseline edit: {name}", edits, when=1_002_100)
+        apis.git("checkout", "-q", "main")
+    empty = root / "coord-apis"
     empty.mkdir()
-    queue.commit("main adds X.X between C.C and E.E", {unshipped: api("C.C", "X.X", "E.E")}, when=1_002_200)
-    queue.git("update-ref", "refs/remotes/origin/main", "HEAD")
-    queue_git = _git(queue.path)
+    apis_git = _git(apis.path)
 
     def baselines(name: str, needle: str = "") -> list[str]:
         """The landing's stops; with `needle`, the one stop that holds it ([] when it is not the only stop)."""
-        stops = check(queue.path, "origin/main", name, empty, [], rules, never, queue_git)[0]
+        stops = check(apis.path, "origin/main", name, empty, [], rules, never, apis_git)[0]
         return [s for s in stops if needle in s] if not needle or len(stops) == 1 else [*stops, "(more than one stop)"]
     expect("PB3694: a baseline that lists a symbol twice STOPS, naming the file and the symbol",
            (baselines("dup", f"(RS0025): {unshipped}: E.E is listed twice"), []), 1, 0)
@@ -848,13 +837,6 @@ def self_test() -> int:
            (baselines("both", f"{shipped} and {unshipped}: A.A is listed in both"), []), 1, 0)
     expect("PB3694: a `*REMOVED*` line beside the Shipped symbol it removes is no duplicate: lands",
            (baselines("removed"), []), 0, 0)
-    expect("PB3694: a symbol both sides added at different places STOPS, naming the merge queue's merge (the landing's own "
-           "tree lists it once)",
-           (baselines("queued", f"the merge queue's merge of origin/main and the landing (no merge driver) lists a public-API symbol "
-                               f"twice, which fails the Release build (RS0025): {unshipped}: X.X is listed twice"), []), 1, 0)
-    expect("PB3694: ... and a symbol both sides added at the same place is merged once: lands",
-           (baselines("queued-same"), []), 0, 0)
-
     base_sha = scratch.git("rev-parse", "main")
     commits("f-behind", ("PB9100: a fix-lane branch", {"src/B.cs": "// fixed\n"}, 1_001_200))
     write("src/C.cs", "// main's own R3 landing, outside PB9001's declared set\n")

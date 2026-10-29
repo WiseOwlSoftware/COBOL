@@ -1902,16 +1902,18 @@ by a `<pattern> merge=<driver>` line per DRIVERS pattern; a later line wins). Wi
 landing (its `.gitattributes` still says `merge=union`) merging a main whose baseline the driver sorted got the union: a
 measured branch that added two symbols came out with 31 duplicated lines (RS0025 in the Release build).
 
-THE LANDING CHECK HOLDS WHAT THE DRIVER CANNOT (kb/Work PB3694). The driver runs only in a merge this repository makes;
-GitHub's merge group merges the baselines by git's LINE merge (no driver is defined there, PB3642), and that merge keeps a
-symbol both sides added at different places twice (RS0025 in the Release build, which no local gate saw because the local
-merge, through the driver, had made one line). `landing_check.py` therefore reads the baselines of two trees at every landing
-(arm 0b, `baseline_stops`): the landing's own, and the merge `git merge-tree` makes of `origin/main` and the landing with no
-driver configured, and STOPS (exit 3) on a symbol listed twice in one file or as a plain line in two files of one directory
-(Shipped and Unshipped are one project's API). `merge_drivers.is_symbol_baseline` (the DRIVERS row's pattern) names the files
-and `merge_drivers.baseline_duplicates` is the rule, so the rule lives beside the merge it guards. A merge that conflicts has
-no tree to read and is the queue's conflict, not this check's. No `merge=union` attribute remains in `.gitattributes`; the
-work notes' body union (`merge_note`) keeps a doubled line visible to the reader, and no build reads it.
+THE LANDING CHECK READS THE HEAD, AND CI READS THE QUEUE'S MERGE (kb/Work PB3694). The driver runs only in a merge this
+repository makes; GitHub's merge group merges the baselines by git's LINE merge (no driver is defined there, PB3642), and that
+merge keeps a symbol both sides added at different places twice (RS0025 in the Release build, which no local gate saw because
+the local merge, through the driver, had made one line). `landing_check.py` reads the baselines of the landing's own tree at
+every landing (arm 0b, `baseline_stops`) and STOPS (exit 3) on a symbol listed twice in one file or as a plain line in two
+files of one directory (Shipped and Unshipped are one project's API). `merge_drivers.is_symbol_baseline` (the DRIVERS row's
+pattern) names the files and `merge_drivers.baseline_duplicates` is the rule, so the rule lives beside the merge it guards.
+RESIDUAL, STATED: the queue's own merge is not readable before the push. Every landing's head already contains `origin/main`
+(`enqueue.queue` refuses any other, exit 2; the lane checks from the merge base), so a driverless `git merge-tree` of main and
+the head is the head's own tree and says nothing; the merge differs only when main advances after the push, and a commit that
+does not exist yet cannot be read. CI's merge-group run is the net for that window. No `merge=union` attribute remains in
+`.gitattributes`; the work notes' body union (`merge_note`) keeps a doubled line visible to the reader, and no build reads it.
 
 ### 16.10 The order, the waves and PB3637
 
