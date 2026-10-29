@@ -223,15 +223,27 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// so the raise also runs the §14.6.13.1.4 #3 declarative selection (kb/Work PB367b).</summary>
     public void EmitSetSize(BoundSetSize s)
     {
-        // Evaluate arithmetic-expression-5 at FULL precision (a double) — the GR37 sign test must precede the
-        // GR38 clamp and the toward-zero truncation, so a fractional negative in (−1,0) still raises. Mirrors the
-        // CONTINUE AFTER interval render (StatementEmitter.Visit(BoundContinueAfter)); the runtime does the
-        // truncation, not a (long) cast here that would lose the sign of a (−1,0) value.
-        string amt = $"__sz{ctx.Names.NextSet()}";
-        ctx.Writer.Line($"double {amt} = {NumericRenderer.Real(num.Render(s.Amount, ReceiverContext.None))};");
+        // Evaluate arithmetic-expression-5 ONCE and hand it to the runtime on the carrier it evaluated on
+        // (SetSizeCall) — the GR37 sign test and the toward-zero truncation read the value in its own domain, so a
+        // fractional negative in (−1,0) still raises and 2.99999999999999999 truncates to 2, where a binary64 image
+        // is 3.0 (kb/Work PB464). Mirrors the CONTINUE AFTER interval render (StatementEmitter.ContinueAfterCall,
+        // kb/Work PB1529); the emitter narrows nothing.
+        var x = num.Render(s.Amount, ReceiverContext.None);
         ctx.Writer.Line(PlaceRenderer.Write(s.Target,
-            RuntimeApi.DynSetSize(PlaceRenderer.Read(s.Target), amt, s.MaxSize.ToString())));
+            SetSizeCall(x, PlaceRenderer.Read(s.Target), s.MaxSize.ToString())));
     }
+
+    /// <summary>⛔ THE SET SIZE RUNTIME CALL, ONE ARM PER CARRIER (kb/Work PB464; the sibling of
+    /// <c>StatementEmitter.ContinueAfterCall</c>). A carrier this switch does not map throws, so the carrier drift
+    /// test (every <see cref="NumXCarrier"/> renders a call onto its own <c>CobolDynString.SetSize</c> overload)
+    /// fails the build of a fifth carrier before a user meets it.</summary>
+    internal static string SetSizeCall(NumX x, string current, string limit) => x.Carrier switch
+    {
+        NumXCarrier.Binary64 or NumXCarrier.Sdidi => RuntimeApi.DynSetSize(current, x.Expr, limit),
+        NumXCarrier.UnsignedWide => RuntimeApi.DynSetSizeScaled(current, $"(UInt128)({x.Expr})", x.Scale.ToString(), limit),
+        NumXCarrier.Scaled => RuntimeApi.DynSetSizeScaled(current, $"(Int128)({x.Expr})", x.Scale.ToString(), limit),
+        _ => throw new InvalidOperationException($"SET SIZE: no runtime call for the carrier {x.Carrier}"),
+    };
 
     /// <summary>SET CONTENT OF identifier-14 … TO … (ISO §14.9.39.2 Format 15, numeric-content; kb/Work PB452) —
     /// one store per receiver, each with the content the binder computed for THAT receiver's data description.
