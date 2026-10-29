@@ -684,8 +684,10 @@ supervisor starts `python scripts/orchestrator/review_lane.py --coord <coord> ti
 <-ReviewAgents> --permission-mode <mode> --claude=<piece>...` as a BACKGROUND process (`Start-PyBackground`, never on
 the event loop, never fatal, one at a time under `tick.lock`). It chains after the landing tick because it reads the
 survey that tick wrote (`land-lane/survey.json`, whose rows carry the report path and `conflicts`): no second survey, and
-a survey older than 10 minutes launches nothing. `-ReviewAgents 0` (default 3) or `-LandLaneSeconds 0` runs no review
-lane. The tick:
+a survey older than `land_lane.SURVEY_MAX_AGE_MIN` (30 minutes; the one threshold, `agent_work` reads it too) launches
+nothing and is not recorded as a tick (`last-tick.json`), so `agent_work` still reports the lane as not ticking. `-ReviewAgents 0`
+(default 3) or `-LandLaneSeconds 0` runs no review lane; the enqueue unit then takes the survey (`land_lane.py tick`) before
+it ticks the review lane. The tick:
 
 1. REAPS the runs whose detached runner is gone without an exit code (DIED) and JUDGES each finished run once.
 2. Starts nothing under the loop's STOP, its fleet stop or the owner's global stop (`land_lane.loop_stop`, the same
@@ -701,8 +703,9 @@ lane. The tick:
 **The lease, per branch head.** A reviewer is reviewing a head when the lane's runner for it is alive, or ANY findings
 file that names the branch holds a `start` at the head with no verdict younger than the reviewer ceiling (a rolling
 wave's reviewer: the survey reads one WAITING FOR REVIEW, kb/Work PB3283); a verdict at the head in any file means
-reviewed (a verdict in the lane's own file that the report lacks the stamp for, a reviewer killed between the two, is
-stamped by the lane); and a report younger than 5 minutes waits, because a wave's reviewer writes its `start` only
+reviewed: its reviewer stamps the report within 5 minutes, and a verdict older than that whose stamp never came (a
+reviewer killed between the two, a wave stopped before its step 5), in the lane's own file or a wave's, is stamped by the
+lane (only the file's newest round; `review_findings.stamp`); and a report younger than 5 minutes waits, because a wave's reviewer writes its `start` only
 after the implementer's return is checked and nothing on disk says it is coming. `review_findings.rounds` is the one
 reader. The lane's own file is `scratch/review-<branch slug>.jsonl`.
 
@@ -711,7 +714,9 @@ line) in the file; no hand repair follows. The next tick finds the run DIED, men
 only (`review_findings.repair_interrupted_append`; any other tear is a HOLD for the operator, and a torn file is never
 read for a verdict), and starts the SAME round again: `review_findings.py start` allows a second `start` of a round with
 no verdict, the findings already recorded stand and count at the verdict, and the prompt tells the new reviewer to list
-them (`show`) and record only new ones. Two runs that end with no verdict at one head are a HOLD, not a third.
+them (`show`) and record only new ones. Two runs that end with no verdict at one head are a HOLD, not a third; a run a
+loop stop ended (STOPPED) is not one of the two, for reviewer and finisher alike: the stop restarts it however often it
+came.
 
 **Rounds.** Round 1 reviews the whole branch; a later round (the lane's file holds the previous round's verdict at an
 older head) reviews the diff since that head. Blocking severities are `critical,high,medium` up to the wave's
@@ -720,12 +725,13 @@ older head) reviews the diff since that head. Blocking severities are `critical,
 **The conflict finisher.** An exit-4 landing attempt (the branch still at its end head), or a pull request the survey
 reads BOUNCED with `conflicts` (merge state DIRTY), gets ONE `cobol-finisher` per head, its prompt carrying
 `land_lane.py conflict-brief <branch>` verbatim (kb/Work PB3640, PB3670 item 4) and the stop line, under the same cap
-and runner as a reviewer. The lane collects the exit-4 attempt it took; the landing lane's `agent_work` leaves the
-DIRTY bounces to it. A finisher that ends with the head unchanged is a HOLD. The finisher's commits make the branch
+and runner as a reviewer. The lane collects the exit-4 attempt it took and no other (a DIRTY bounce's latest attempt is
+the ENQUEUED one, whose leads and landing record stay the unit's); the landing lane's `agent_work` leaves the DIRTY
+bounces to it. A finisher that ends with the head unchanged is a HOLD. The finisher's commits make the branch
 WAITING FOR REVIEW, so the same lane reviews the new tip and the landing lane lands it.
 
 **What stays with the enqueue unit.** `review_lane.agent_work` is `next_unit.py`'s second reader (rule 6): the lane's
-uncollected HOLDS, and, while the lane has not ticked in 30 minutes, the branches that wait for it (the unit ticks it
+uncollected HOLDS (each names the findings file a hand-dispatched reviewer records in), and, while the lane has not ticked in 30 minutes, the branches that wait for it (the unit ticks it
 once, as it ticks the landing lane). `review_lane.py collect <branch>` clears a hold. Everything else the unit did
 about reviews is gone from units/enqueue.md step 2; the finishers of every other stop (GATE RED, UNTESTED, a
 failed-checks bounce, a DEVLOG refusal) stay its step 4.

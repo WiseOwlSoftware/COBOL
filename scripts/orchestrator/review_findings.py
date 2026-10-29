@@ -341,6 +341,7 @@ class Round:
     reviewer: str
     started: str       # the newest `start`'s time
     verdict: str | None
+    ended: str | None = None   # the verdict's time; None while the round is unfinished
 
 
 def rounds(path: pathlib.Path, branch: str | None = None) -> list[Round] | None:
@@ -358,7 +359,7 @@ def rounds(path: pathlib.Path, branch: str | None = None) -> list[Round] | None:
         if r["kind"] in ("start", "verdict") and (branch is None or r["branch"] == branch):
             (starts if r["kind"] == "start" else done)[r["round"]] = r
     return [Round(n, done[n]["head"] if n in done else starts[n]["head"], starts[n]["reviewer"], starts[n]["at"],
-                  done[n]["verdict"] if n in done else None)
+                  done[n]["verdict"] if n in done else None, done[n]["at"] if n in done else None)
             for n in sorted(starts)]
 
 
@@ -647,13 +648,13 @@ def minutes(a: str, b: str) -> float:
 def summary(paths: list[pathlib.Path]) -> dict:
     """The measurement (kb/Work PB3027 item 5): per branch review file its rounds, findings and reviewer minutes; over
     all of them, findings per branch, the re-review rate (branches reviewed more than once) and the minutes."""
-    files = sorted({f for p in paths for f in ([p] if p.is_file() else p.glob("review-w*.jsonl"))})
+    files = sorted({f for p in paths for f in ([p] if p.is_file() else p.glob(FINDINGS_NAME))})
     per = []
     for f in files:
         recs = load(f)
         rounds = []
         for v in (r for r in recs if r["kind"] == "verdict"):
-            s = of_round(recs, v["round"], "start")[0]
+            s = of_round(recs, v["round"], "start")[-1]   # the newest `start`: a round started again after a kill runs from it
             rounds.append({"round": v["round"], "verdict": v["verdict"], "findings": v["findings"],
                            "leads": len(v.get("leads", [])), "minutes": round(minutes(s["at"], v["at"]), 1)})
         per.append({"file": str(f), "rounds": rounds, "open": any(r["kind"] == "start" for r in recs)
@@ -1205,6 +1206,20 @@ def self_test() -> int:
         s = summary([tmp])
         check(f"arm: the summary measures findings per branch and the re-review rate: {s}",
               s["branches"] == 1 and s["findings_per_branch"] == 1.0 and s["re_review_rate"] == 1.0 and s["clean"] == 1)
+        # kb/Work PB3608 review R1-6: the review lane's own files are `review-<branch slug>.jsonl`, and a round it started
+        # again after a kill is measured from the restart, not from the killed reviewer's `start`.
+        nf = tmp / "named" / "review-fix-self-test-wall-leads.jsonl"
+        start(nf, 1, "fix-self-test-wall-leads", "a1a1a1a", "lane-1")
+        start(nf, 1, "fix-self-test-wall-leads", "a1a1a1a", "lane-2")
+        verdict(nf, 1)
+        recs = load(nf)
+        recs[0]["at"] = "2026-01-01T00:00:00+00:00"
+        recs[1]["at"] = "2026-01-01T09:00:00+00:00"
+        recs[2]["at"] = "2026-01-01T09:05:00+00:00"
+        nf.write_bytes(b"".join(json.dumps(r).encode() + NEWLINE for r in recs))
+        ns = summary([tmp / "named"])
+        check(f"arm: the summary reads a lane-named findings file and times a restarted round from its newest start: {ns}",
+              ns["branches"] == 1 and ns["reviewer_minutes"] == 5.0)
     finally:
         remove_tree(tmp)
     for f in fails:
