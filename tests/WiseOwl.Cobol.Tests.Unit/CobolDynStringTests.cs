@@ -306,6 +306,34 @@ public sealed class CobolDynStringTests
     public void SetSize_StorageNotAvailable_LeavesTheSizeUnchanged()
         => Assert.Equal("AB", CobolDynString.SetSize("AB", 2_000_000_000d, int.MaxValue));
 
+    /// <summary>GR38 once per statement (kb/Work PB463): a request above the maximum takes the clamp leg, which sets
+    /// EC-STORAGE-NOT-AVAIL; when the clamped growth is then refused by the host (the third leg) the condition is
+    /// already set and the USE declarative must not run a second time. The in-range request that only the third leg
+    /// refuses raises exactly once, so the guard is not a blanket suppression.</summary>
+    [Theory]
+    [InlineData(3_000_000_000d, 1)]   // clamp leg, then the clamped growth is refused: one raise, not two
+    [InlineData(2_000_000_000d, 1)]   // in range, refused by the host: the third leg's own single raise
+    public void SetSize_ClampThenStorageRefused_RaisesOncePerStatement(double newLen, int expectedDispatches)
+    {
+        RunUnit.Run(_ =>
+        {
+            ExceptionState.Clear();
+            ExceptionState.StorageNotAvailChecking = true;
+            var counter = new CountingSelector();
+            var saved = ExceptionState.NonfatalDispatcher;
+            ExceptionState.NonfatalDispatcher = counter;
+            try { Assert.Equal("AB", CobolDynString.SetSize("AB", newLen, int.MaxValue)); }
+            finally { ExceptionState.NonfatalDispatcher = saved; }
+            Assert.Equal(expectedDispatches, counter.Count);
+        });
+    }
+
+    private sealed class CountingSelector : INonfatalSelector
+    {
+        public int Count { get; private set; }
+        public int NonfatalDispatch(string ec) { Count++; return DispatchResult.NoHandler; }
+    }
+
     /// <summary>ISO §14.6.13.2 rule 5 (kb/Work PB1118): content within THIS description's maximum agrees and is
     /// read unchanged; with EC-DATA-INCOMPATIBLE checking off (the default) over-long content is read whole — the
     /// condition does not exist (§14.6.13.1.1) — and is never truncated by the read, which is not a store. The

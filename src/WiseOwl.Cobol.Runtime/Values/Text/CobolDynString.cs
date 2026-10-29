@@ -212,10 +212,12 @@ public static class CobolDynString
         catch (OutOfMemoryException)
         {
             // GR38 third sentence — the host cannot hand over the storage the expansion needs: the size is NOT
-            // changed, and the condition is set to exist.
-            ExceptionState.StorageNotAvailError(
-                $"SET SIZE: the storage required to expand the item to {n} characters is not available "
-                + "(ISO §14.9.39.4 Format 16 GR38)");
+            // changed, and the condition is set to exist. A request that already took a leg (the clamp) has set it
+            // to exist; raising again would run the USE declarative twice for one statement (kb/Work PB463).
+            if (leg == Leg.InRange)
+                ExceptionState.StorageNotAvailError(
+                    $"SET SIZE: the storage required to expand the item to {n} characters is not available "
+                    + "(ISO §14.9.39.4 Format 16 GR38)");
             return current;
         }
     }
