@@ -390,7 +390,7 @@ internal sealed class RuntimeApi   // one instance per EmitContext
     // numeric
     public string NumStore(string expr, string profile) => $"CobolNum.Store({expr}, {profile})";
     public string NumFormatDisplay(string v, string profile) => $"CobolNum.FormatDisplay({v}, {profile})";
-    public string NumDivideOrThrow(string a, string b, int scale, string rounding) => …;
+    public string NumDivide(string a, string b, int scale, string rounding) => …;
     // strings
     public string StrRefMod(string s, string start, string len) => $"CobolString.RefMod({s}, {start}, {len})";
     public string StrSpliceInto(string s, string start, string len, string rhs, char? pad = null) => …;

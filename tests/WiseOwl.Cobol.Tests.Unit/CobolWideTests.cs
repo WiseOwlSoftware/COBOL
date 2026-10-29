@@ -137,12 +137,16 @@ public sealed class CobolWideTests
     }
 
     [Fact]
-    public void Prohibited_RaisesOnAnInexactTransfer_OnlyWhenChecked()
+    public void Prohibited_RaisesOnAnInexactTransfer_WhetherOrNotChecked()
     {
+        // §14.7.4.3 rule 7 keeps the resultant whether or not checking is enabled (kb/Work PB3990): the unchecked
+        // transfer used to land 0.1 as 0.
         CobolWide tenth = W(1);                                                      // 1 at scale 1 = 0.1
-        Assert.Throws<CobolSizeError>(() => tenth.ToUnscaled(1, 0, CobolRounding.Prohibited, checkedTransfer: true));
-        Assert.Equal(0, (BigInteger)tenth.ToUnscaled(1, 0, CobolRounding.Prohibited, checkedTransfer: false));   // DOC-A.1-70's no-phrase disposition
-        Assert.Equal(1, (BigInteger)W(10).ToUnscaled(1, 0, CobolRounding.Prohibited, checkedTransfer: true));    // exact: nothing to refuse
+        foreach (bool checkedTransfer in new[] { true, false })
+        {
+            Assert.True(Assert.Throws<CobolSizeError>(() => tenth.ToUnscaled(1, 0, CobolRounding.Prohibited, checkedTransfer)).IsProhibitedInexact);
+            Assert.Equal(1, (BigInteger)W(10).ToUnscaled(1, 0, CobolRounding.Prohibited, checkedTransfer));    // exact: nothing to refuse
+        }
     }
 
     [Fact]

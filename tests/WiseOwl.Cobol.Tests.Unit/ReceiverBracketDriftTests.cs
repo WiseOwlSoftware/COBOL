@@ -119,14 +119,18 @@ public sealed class ReceiverBracketDriftTests
         for (int i = 0; i < lines.Length; i++)
         {
             string line = lines[i].Trim();
-            if (line.StartsWith("//") || line.StartsWith("///") || !line.Contains("GuardedStore(")) continue;
-            if (line.Contains("private void GuardedStore(")) continue;
-            if (!Regex.IsMatch(line, @"GuardedStore\((ise|true|inSizeError), [A-Za-z.]+, \(\) =>"))
+            // GuardedStore names the receiver and its ROUNDED mode (kb/Work PB3990); ReceiverStore, the bracket funnel it
+            // wraps, names the receiver (the one caller outside GuardedStore is the materialized single receiver).
+            if (line.StartsWith("//") || line.StartsWith("///")) continue;
+            if (line.Contains("private void GuardedStore(") || line.Contains("private void ReceiverStore(")) continue;
+            if (line.Contains("GuardedStore(") && !Regex.IsMatch(line, @"GuardedStore\((ise|true|inSizeError), [A-Za-z.]+, [A-Za-z.]+, \(\) =>"))
+                bare.Add($"ArithmeticEmitter.cs:{i + 1}: {line}");
+            if (line.Contains("ReceiverStore(") && !Regex.IsMatch(line, @"ReceiverStore\((ise|inSizeError), [A-Za-z.]+, (\(\) =>|emitOne\))"))
                 bare.Add($"ArithmeticEmitter.cs:{i + 1}: {line}");
         }
         Assert.True(bare.Count == 0,
-            "A GuardedStore call does not name the receiver it stores, so a property receiver's GET/SET would be dropped "
-            + "(kb/Work PB2078):\n" + string.Join("\n", bare));
+            "A GuardedStore / ReceiverStore call does not name the receiver it stores, so a property receiver's GET/SET would be "
+            + "dropped (kb/Work PB2078):\n" + string.Join("\n", bare));
         string src = string.Join('\n', lines);
         Assert.Contains("brackets.Receive(receiver,", src);
         Assert.Contains("brackets.Receive(d.Remainder,", src);

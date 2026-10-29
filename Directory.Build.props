@@ -18,7 +18,7 @@
          public surface (src/WiseOwl.Cobol.Runtime/PublicAPI.Shipped.txt) or a codec's image layout changes incompatibly;
          RuntimeAbiPinDriftTests pins it beside the surface's hash in src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin, a file
          scripts/abi_pin.py writes (its bump command raises this number and measures; kb/Work PB3610). -->
-    <Version>20.0.0</Version>
+    <Version>21.0.0</Version>
   </PropertyGroup>
   <!-- The LICENSE file PackageLicenseFile names, packed at the package root. Items are evaluated after every property,
        so the project's own IsPackable (false in every test and tool project) is already set here. -->

@@ -31,8 +31,8 @@
       *> PB1147: an outermost quotient under PROHIBITED (1 / 30 into
       *> PIC 9V9) is 14.7.4.3 r7's EC-SIZE-TRUNCATION, not OVERFLOW.
       *> Unchecked (EC-SIZE off, no phrase) an inexact PROHIBITED store
-      *> lands TRUNCATED - the 14.6.13.1.3 item 8 disposition
-      *> CONFORMANCE.md DOC-A.1-70 documents for the fixed-point arm.
+      *> leaves F1 unchanged (5) and continues: 14.7.4.3 r7 keeps the
+      *> resultant either way (kb/Work PB3990, CONFORMANCE.md DOC-A.1-70).
        >>TURN EC-SIZE CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1196FLTRND14.
