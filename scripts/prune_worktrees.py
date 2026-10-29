@@ -1394,7 +1394,7 @@ def main(argv=None):
     order = landing_order(rows, note_rank())
     if a.json:
         print(json.dumps({'verdict': verdict(rows), 'rows': [dataclasses.asdict(r) for r in rows],
-                          'landing_order': [r.name for r in order]}, indent=1))
+                          'landing_order': [r.name for r in order]}, indent=1, default=str))  # a report's path
         return 0
     for st in STATES:
         for r in order if st == 'WAITING TO LAND' else sorted((r for r in rows if r.state == st), key=lambda r: r.name):
@@ -2350,7 +2350,7 @@ def self_test() -> int:
         # first, a compiler fix before process work at equal harm, the oldest report first; nothing else
         def waiting(name, lead, age):
             return Row(name, 'CHECK', [], [], 1, None, None, 0, 999.0, '',
-                       IndexedReport(f'w1a-{lead}-report.md', 'DONE', lead, False, age), 'WAITING TO LAND')
+                       IndexedReport(pathlib.Path(f'w1a-{lead}-report.md'), 'DONE', lead, False, age), 'WAITING TO LAND')
         ranks = {'PB1': (-8, 0), 'PB2': (-4, 0), 'PB3': (0, 0), 'PB4': (0, 1)}
         eight = [waiting(f'b{i}', lead, age) for i, (lead, age) in enumerate(
             (('PB4', 500), ('PB3', 10), ('PB3', 90), ('PB1', 5), ('PB4', 50), ('PB2', 7), ('PB3', 30), ('PB4', 900)))]
