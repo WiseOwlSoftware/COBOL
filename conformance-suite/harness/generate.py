@@ -53,7 +53,7 @@ import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
 
 HARNESS = Path(__file__).resolve().parent
 SUITE = HARNESS.parent
@@ -74,9 +74,14 @@ SPEC_PATH = REPO / "specs" / "ISO_COBOL.md"
 IMPLEMENTOR_DEFINED_PATH = SUITE / "implementor-defined.json"
 DIAGNOSTICS_PATH = SUITE / "wiseowl" / "diagnostics.json"
 OPTIONS_PATH = SUITE / "wiseowl" / "options.json"
+#: A `build` step that stands for the test's own source (§3.1).
+SELF_STEP = "{self}"
+#: A `build` step's output base name: the assembly's file name without `.dll`.
+OUTPUT_BASE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._ -]*$")
 #: wiseowl/options.json (§4): the WiseOwl compile options a WiseOwl test may need, and each one's values (the `cobol`
 #: command's --sign-encoding, --numeric-display and --flag-extensions). Only a test of the wiseowl tree may name one.
-WISEOWL_OPTIONS = {"sign-encoding": ("ibm", "ascii"), "numeric-display": ("decimal", "digits"), "flag-extensions": ("on", "off")}
+WISEOWL_OPTIONS = {"sign-encoding": ("ibm", "ascii"), "numeric-display": ("decimal", "digits"), "flag-extensions": ("on", "off"),
+                   "repository-update": ("on", "off")}
 OUT = SUITE / "suites"
 #: The corpus slice S2 moved into the suite (kb/Work PB3177). A file there is a test a branch cut before the move
 #: added, which no runner would ever run: refused, so the branch is red in seconds (§13 S2).
@@ -99,7 +104,7 @@ CONTINUATION = "    "
 FIELDS = {
     "id": "scalar", "rules": "list", "accept": "list", "flag": "map", "control": "scalar", "requires": "list",
     "implementor-defined": "list", "files": "list", "source-format": "scalar", "portable": "scalar",
-    "constructs": "list",
+    "constructs": "list", "build": "list",
 }
 FLAG_FIELDS = {"kind": "scalar", "at": "list", "why": "scalar"}
 #: §3.2: the kinds of standard-conformance diagnostic a flagged test requires.
@@ -165,6 +170,9 @@ class Case:
     #: the words a runner checks against a profile's extra reserved words (§5), so no runner reads the program.
     words: frozenset[str] = frozenset()
     defined: frozenset[str] = frozenset()
+    #: A WiseOwl test's compilation steps (§3.1 `build`, DESIGN-external-repository §17.1): in order, each `(declared file,
+    #: output base name)`, the test's own source as `(None, None)`; None for a test that is one compilation.
+    build: tuple[tuple[str | None, str | None], ...] | None = None
 
     @property
     def in_suite(self) -> bool:
@@ -449,10 +457,63 @@ class Reader:
             requires=tuple(self._shaped(rel, h, "requires", "list") or ()), implementor_defined=tuple(items),
             files=tuple(self._shaped(rel, h, "files", "list") or ()),
             constructs=tuple(self._shaped(rel, h, "constructs", "list") or ()),
-            portable=portable_value is None, marked_line=None)
+            portable=portable_value is None, marked_line=None,
+            build=self._build(rel, h, tree, test_id, self._shaped(rel, h, "files", "list") or ()))
         self.sources[test_id] = text
         self._check_program(case, h, text)
         return case
+
+    def _build(self, rel: Path, h: Header, tree: str, test_id: str,
+               files: Iterable[str]) -> tuple[tuple[str | None, str | None], ...] | None:
+        """A WiseOwl test's `build` (§3.1): an ordered flow list of compilation steps, each a declared file or
+        `<declared file> > <output base name>`, with `{self}` standing for the test's own source (appended last when the
+        list omits it). The runner compiles each step in order into the test's one working directory, which is the
+        run unit's application directory, and the test's own source AT ITS PLACE in the list, so a step after it compiles
+        beside (and may overwrite the output of) the program already built: a stale caller is the callee rebuilt after
+        its caller."""
+        raw = self._shaped(rel, h, "build", "list")
+        if raw is None:
+            return None
+        line = h.lines["build"]
+        if tree != "wiseowl":
+            self.refuse(rel, line, "build is a WiseOwl-only field: how separately compiled units find each other is "
+                                   "the implementor's (ISO 8.13), so no test of cases/ states it (§4)")
+            return None
+        if not raw:
+            self.refuse(rel, line, "build lists at least one step")
+            return None
+        declared = set(files)
+        steps: list[tuple[str | None, str | None]] = []
+        before_self: set[str] = set()
+        for item in raw:
+            text = item.strip()
+            if text == SELF_STEP:
+                if any(f is None for f, _ in steps):
+                    self.refuse(rel, line, f"build names {SELF_STEP} twice")
+                steps.append((None, None))
+                continue
+            name, arrow, output = text.partition(">")
+            name, output = name.strip(), output.strip()
+            if name not in declared:
+                self.refuse(rel, line, f"build step {text!r} names {name!r}, which is not a declared file of this test "
+                                       f"(`files`, §3.1)")
+                continue
+            if arrow and not OUTPUT_BASE.match(output):
+                self.refuse(rel, line, f"build step {text!r}: an output base name is letters, digits, '.', '_', '-' and "
+                                       f"spaces (the assembly's file name without `.dll`), not {output!r}")
+                continue
+            base = output if arrow else Path(name).stem
+            if base.casefold() == test_id.casefold():
+                self.refuse(rel, line, f"build step {text!r}: the output {base!r} is the test's own program")
+            if not any(f is None for f, _ in steps):
+                if base.casefold() in before_self:
+                    self.refuse(rel, line, f"build compiles two units into {base!r} before {SELF_STEP}: the first is "
+                                           f"overwritten before anything uses it")
+                before_self.add(base.casefold())
+            steps.append((name, base))
+        if not any(f is None for f, _ in steps):
+            steps.append((None, None))
+        return tuple(steps)
 
     def _flag(self, rel: Path, line: int, raw: dict[str, Any]) -> Flag | None:
         for key in raw:
@@ -746,6 +807,13 @@ def check_cases(reader: Reader) -> None:
     where = OPTIONS_PATH.relative_to(SUITE)
     for test_id, entry in inputs.options.items():
         case = by_id.get(test_id)
+        if case is None and "/" in test_id:
+            # `<id>/<step file>`: the options of one compilation step of a multi-unit test (§3.1 `build`).
+            owner, _, step_file = test_id.partition("/")
+            case = by_id.get(owner)
+            if case is not None and step_file not in {f for f, _ in case.build or () if f is not None}:
+                reader.refuse(where, 1, f"an entry for {test_id!r}: {owner} has no build step {step_file!r}")
+                continue
         if case is None:
             reader.refuse(where, 1, f"an entry for {test_id!r}, which is no test")
         elif case.tree != "wiseowl":
@@ -881,6 +949,11 @@ def entry_for(case: Case, edition: str, inputs: Inputs) -> dict[str, Any]:
         "requires": list(case.requires),
         "words": sorted((case.words - reserved - inputs.keywords) | (case.defined - reserved)),
     }
+    if case.build is not None:
+        folder = case.path.parent
+        entry["build"] = [{"file": None if f is None else _posix(folder / f), "output": out,
+                           "options": {} if f is None else dict(inputs.options.get(f"{case.test_id}/{f}", {}))}
+                          for f, out in case.build]
     if edition in case.accept:
         expected = {}
         values = [[(i, v) for v in inputs.implementor_defined[i]] for i in case.implementor_defined]
@@ -1234,6 +1307,16 @@ def self_test() -> int:
                                                     "source-format: fixed"],
                                                    _PROGRAM[:9] + ["           DISPLAY W-N"] + _PROGRAM[9:]),
         "wiseowl/cases/1.1.1-Rule/own.out": "000\n",
+        "wiseowl/cases/1.1.1-Rule/multi.cob": _fixed(
+            ["id: multi", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl, U2.cbl]",
+             "build: [\"U1.cbl > Lib\", U2.cbl, \"{self}\", \"U1.cbl > Lib\"]", "source-format: fixed"], _PROGRAM),
+        "wiseowl/cases/1.1.1-Rule/multi.out": "x\n",
+        "wiseowl/cases/1.1.1-Rule/multi-tail.cob": _fixed(
+            ["id: multi-tail", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl]", "build: [U1.cbl]",
+             "source-format: fixed"], _PROGRAM),
+        "wiseowl/cases/1.1.1-Rule/multi-tail.out": "x\n",
+        "wiseowl/cases/1.1.1-Rule/U1.cbl": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. U1.\n",
+        "wiseowl/cases/1.1.1-Rule/U2.cbl": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. U2.\n",
         "cases/2.2.2-Free/free-test.cob": "*>--- conformance-case\n*> id: free-test\n*> rules: [RV-2.2.2-1]\n"
                                           "*> accept: [2002]\n*> source-format: free\n*>---\n"
                                           + "\n".join(line.strip() for line in _PROGRAM) + "\n",
@@ -1247,6 +1330,7 @@ def self_test() -> int:
         root = Path(d)
         _plant(root, good)
         inputs = _planted_inputs()
+        inputs.options = {"multi/U1.cbl": {"repository-update": "off"}}
         rc_gen, reader = generate(root, inputs, [], root / "suites")
         check("arm: a well-formed tree is GREEN", rc_gen == 0, [str(r) for r in reader.refusals])
         if rc_gen == 0:
@@ -1286,6 +1370,19 @@ def self_test() -> int:
             check("arm: an unverified test, an _unassigned test and a wiseowl test are in no suite",
                   not {"unverified", "loose", "own"} & {t["id"] for m in (m85, m2023) for t in m["tests"]})
             w2023 = {t["id"]: t for t in mw["editions"]["2023"]}
+            unit = "wiseowl/cases/1.1.1-Rule/"
+            check("arm: a multi-unit test's manifest entry lists its steps in order, the test's own source where the "
+                  "list puts it, each step's output base name and options (an output defaults to the file's stem)",
+                  w2023["multi"]["build"] == [
+                      {"file": unit + "U1.cbl", "output": "Lib", "options": {"repository-update": "off"}},
+                      {"file": unit + "U2.cbl", "output": "U2", "options": {}},
+                      {"file": None, "output": None, "options": {}},
+                      {"file": unit + "U1.cbl", "output": "Lib", "options": {"repository-update": "off"}}],
+                  w2023["multi"].get("build"))
+            check("arm: ... {self} is appended last when the list omits it, and a test with no build has no key",
+                  w2023["multi-tail"]["build"] == [{"file": unit + "U1.cbl", "output": "U1", "options": {}},
+                                                   {"file": None, "output": None, "options": {}}]
+                  and "build" not in w2023["own"], w2023["multi-tail"])
             check("arm: ... and all three are in the wiseowl manifest",
                   {"loose", "own"} <= set(w2023) and "unverified" in {t["id"] for t in mw["editions"]["85"]}, w2023)
             check("arm: the wiseowl manifest carries diagnostics.json's refusals",
@@ -1494,6 +1591,34 @@ def self_test() -> int:
         "a baseline of no adapter": (
             "baselines/nobody.json", json.dumps({"compiler": "nobody", "verdicts": {"85": {"ok": "PASS"}}}),
             "a baseline of 'nobody', which has no adapter"),
+        "build in a suite test": ("cases/1.1.1-Rule/bld-suite.cob",
+                                  _fixed(["id: bld-suite", "rules: [GR-1.1.1-1]", "accept: [85]", "files: [CPY1.cpy]",
+                                          "build: [CPY1.cpy]", "source-format: fixed"], _PROGRAM),
+                                  "build is a WiseOwl-only field"),
+        "build names an undeclared file": ("wiseowl/cases/1.1.1-Rule/bld-undeclared.cob",
+                                           _fixed(["id: bld-undeclared", "rules: [GR-1.1.1-1]", "accept: [2023]",
+                                                   "files: [U1.cbl]", "build: [U2.cbl]", "source-format: fixed"],
+                                                  _PROGRAM), "which is not a declared file of this test"),
+        "build compiles two units into one output before the test": (
+            "wiseowl/cases/1.1.1-Rule/bld-twice.cob",
+            _fixed(["id: bld-twice", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl, U2.cbl]",
+                    "build: [\"U1.cbl > Lib\", \"U2.cbl > lib\"]", "source-format: fixed"], _PROGRAM),
+            "compiles two units into 'lib' before {self}"),
+        "build over the test's own program": (
+            "wiseowl/cases/1.1.1-Rule/bld-own.cob",
+            _fixed(["id: bld-own", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl]",
+                    "build: [\"U1.cbl > BLD-OWN\"]", "source-format: fixed"], _PROGRAM),
+            "is the test's own program"),
+        "build with a bad output base name": (
+            "wiseowl/cases/1.1.1-Rule/bld-name.cob",
+            _fixed(["id: bld-name", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl]",
+                    "build: [\"U1.cbl > a/b\"]", "source-format: fixed"], _PROGRAM),
+            "an output base name is letters"),
+        "build naming {self} twice": (
+            "wiseowl/cases/1.1.1-Rule/bld-self.cob",
+            _fixed(["id: bld-self", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl]",
+                    "build: [\"{self}\", U1.cbl, \"{self}\"]", "source-format: fixed"], _PROGRAM),
+            "names {self} twice"),
         "duplicate id": ("wiseowl/cases/1.1.1-Rule/ok.cob",
                          _fixed(["id: ok", "rules: [GR-1.1.1-1]", "accept: [85]", "source-format: fixed"], _PROGRAM),
                          "is also"),
@@ -1524,6 +1649,11 @@ def self_test() -> int:
     base["cases/2.2.2-Free/free85.out"] = "x\n"
     base["cases/COMPUTE/folder.out"] = "x\n"
     base["wiseowl/cases/1.1.1-Rule/ok.out"] = "x\n"
+    base["cases/1.1.1-Rule/bld-suite.out"] = "x\n"
+    for name in ("bld-undeclared", "bld-twice", "bld-own", "bld-name", "bld-self"):
+        base[f"wiseowl/cases/1.1.1-Rule/{name}.out"] = "x\n"
+    base["wiseowl/cases/1.1.1-Rule/U1.cbl"] = "       IDENTIFICATION DIVISION.\n"
+    base["wiseowl/cases/1.1.1-Rule/U2.cbl"] = "       IDENTIFICATION DIVISION.\n"
     for name in ("ctl-unflagged", "gone", "ec-copy", "copy-margin", "copy-display"):
         base[f"cases/1.1.1-Rule/{name}.out"] = "x\n"
     base["cases/1.1.1-Rule/ec-copy.cob"] = _fixed(["id: ec-copy", "rules: [GR-1.1.1-1]", "accept: [85]",
