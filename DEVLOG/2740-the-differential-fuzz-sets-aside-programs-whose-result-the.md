@@ -1,4 +1,4 @@
-## The differential fuzz sets aside programs whose result the standard leaves undefined (PB3862)
+## Entry 2740 — 2026-10-29 15:00 PDT — The differential fuzz sets aside programs whose result the standard leaves undefined (PB3862)
 
 The fifth fuzz night's triage found that 8 of the 17 `OUTPUT_DIFFERS:14.9.25` rows (fz01110, fz01111, fz01282, fz01933, fz01980,
 fz02818, fz04400, fz00704) were programs that DISPLAY storage no statement wrote: a MOVE CORRESPONDING whose names do not
@@ -51,3 +51,4 @@ the subordinates of the one entry it names (ISO 13.18.49.4 1, 2; 13.18.57.4 1, 2
 defined. Also fixed in the same files: a numeric literal with no integer part (`.5`, `-.25`) split the data entry at its point and
 produced a bogus FILLER (R1-4), and `BakeOffScore.model_failures` named the classes without UNDEFINED_RESULT (R1-3). The test gained
 arms in found and not-found pairs; seven go red against the previous module.
+
