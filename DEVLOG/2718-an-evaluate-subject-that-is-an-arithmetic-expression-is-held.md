@@ -1,4 +1,4 @@
-## An EVALUATE subject that is an arithmetic expression is held at the width of its value (PB3974)
+## Entry 2718 — 2026-10-28 19:18 PDT — An EVALUATE subject that is an arithmetic expression is held at the width of its value (PB3974)
 
 Wave 20261735, group B. One mechanism, one checkpoint commit.
 
@@ -47,3 +47,4 @@ the items), `pb3974_expression_subject_past_carrier_fraction` (from 2002: a 2 + 
 `FUNCTION SUM` = 14 and the EVALUATE taking WHEN 8); no negative, since the change refuses no source. The 45-digit VALUE
 (`BIG * BIG * BIG`) the first cut's golden held through the un-hoisted path is cut by the 38-digit item and is the residual. Unit theories `ExpressionExtentTests`. Docs: `DESIGN-binder-bound-tree.md` (the intermediate's description).
 `kb/Work/PB3974` flips to landed with `closes_rows: []` (no inventory row claimed it).
+
