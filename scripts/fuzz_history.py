@@ -177,10 +177,11 @@ def unrecorded_runs(history: dict, items: list[dict]) -> list[tuple[dict, str]]:
 
 def from_fuzzing(it: dict) -> bool:
     """A GnuCOBOL record the fuzzing produced: its `source` names the fuzz triage or the upstream-harvest plan (PB3838).
-    A retired record counts only when it was retired because GnuCOBOL fixed the bug (`fixed-upstream`): it was still a bug
-    the testing found. Retired for any other reason, it was not a bug after all."""
+    `work.py` retires an upstream record only when the matter has ended upstream (`UPSTREAM_DONE`): fixed upstream or a
+    duplicate of a ticket upstream are still bugs the testing found, so they count; declined is the one ending in which
+    GnuCOBOL's maintainers do not accept it as a bug, so it does not."""
     s = str(it.get("source", ""))
-    counted = it.get("status") != "retired" or it.get("upstream_status") == "fixed-upstream"
+    counted = it.get("status") != "retired" or it.get("upstream_status") in ("fixed-upstream", "duplicate")
     return it.get("kind") == "upstream" and it.get("upstream_project") == "GnuCOBOL" and counted \
         and ("fuzz" in s or "PB3838" in s)
 
