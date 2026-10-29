@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
+using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -48,11 +49,12 @@ internal static class SparseCheckoutAudit
     private static readonly Regex ImportStatement = new(@"^(?<ind>[ \t]*)import[ \t]+(?<mods>[^#;\r\n]+)", RegexOptions.NonBacktracking);
     private static readonly Regex FromStatement = new(@"^(?<ind>[ \t]*)from[ \t]+(?<dots>\.*)(?<mod>[\w.]*)[ \t]+import[ \t]+(?<names>[^#\r\n]*)", RegexOptions.NonBacktracking);
 
-    /// <summary>The jobs of one workflow file: those <see cref="DotnetSdkInstallDriftTests.Jobs"/> reads beneath
-    /// <c>jobs:</c>, the one reader of a workflow's jobs (kb/Work PB3810: a second reader over the whole file returned
-    /// the <c>on:</c> triggers as jobs).</summary>
+    /// <summary>The jobs of one workflow file, each with its code (no comment-only line): the jobs
+    /// <see cref="CiWorkflow"/>, the one reader of a workflow's jobs, reads beneath <c>jobs:</c> (so never an
+    /// <c>on:</c> trigger: kb/Work PB3810, where a reader over the whole file returned the triggers as jobs), tagged
+    /// with the file they came from.</summary>
     internal static IReadOnlyList<Job> Jobs(string file, string workflow) =>
-    [.. DotnetSdkInstallDriftTests.Jobs(workflow).Select(j => new Job(file, j.Id, j.Body))];
+        [.. CiWorkflow.Jobs(workflow).Select(j => new Job(file, j.Id, j.Code))];
 
     /// <summary>The jobs of <paramref name="jobs"/> that give their checkout a sparse list.</summary>
     internal static IReadOnlyList<SparseJob> SparseJobs(IEnumerable<Job> jobs)
