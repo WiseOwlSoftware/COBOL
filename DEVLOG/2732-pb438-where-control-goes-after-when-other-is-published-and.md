@@ -1,4 +1,4 @@
-## PB438: where control goes after WHEN OTHER is published, and the test that could not tell is replaced
+## Entry 2732 — 2026-10-29 12:41 PDT — PB438: where control goes after WHEN OTHER is published, and the test that could not tell is replaced
 
 ISO/IEC 1989:2023 §14.9.28.4 GR18 prints two consecutive sentences naming different destinations after imperative-statement-3:
 "control is passed to the end of the PERFORM statement" and "control is passed as indicated in General rule 14.9.29" (a clause
@@ -28,3 +28,4 @@ RESUME NEXT STATEMENT in the WHEN OTHER, which prints the same output under both
   swept across the WHEN OTHER / WHEN COMMON / RESUME tests of both Format-3 test files; the other RESUME-bearing tests
   (`Fatal_ResumeNext_SuppressesTermination`, `ResumeNext_SkipsWhenCommon`, the tier tests) name rules whose answer the RESUME
   itself decides, so they discriminate.
+
