@@ -287,13 +287,17 @@ def base_choice(h: dict, cdir: pathlib.Path, repo: pathlib.Path, now: dt.datetim
 
 def enqueue_work(h: dict, cdir: pathlib.Path) -> dict[str, str] | None:
     """Rule 6: an `enqueue` unit only for what its agents (or its clerk and records) must do — the landing lane lands
-    the branches WAITING TO LAND itself (land_lane.agent_work, kb/Work PB3103). DONE branches in a handoff start one
+    the branches WAITING TO LAND itself (land_lane.agent_work, kb/Work PB3103), and the review lane reviews the branches
+    WAITING FOR REVIEW and finishes the CONFLICT stops (review_lane.agent_work: only its holds, or its own work while it
+    is not ticking, reach the unit, kb/Work PB3608). DONE branches in a handoff start one
     only while the lane has no survey younger than land_lane.SURVEY_MAX_AGE_MIN: the lane is not ticking, and the
     enqueue unit's step 3 ticks it."""
     import land_lane  # noqa: PLC0415  (it imports enqueue.py, gate_slot and ruleset: only rule 6 needs them)
+    import review_lane  # noqa: PLC0415  (and the review lane's holds: what its agents could not do, kb/Work PB3608)
     work = land_lane.agent_work(cdir)
-    if work.reasons:
-        return {"unit": "enqueue", "reason": "agent work for the enqueue unit: " + "; ".join(work.reasons)}
+    reasons = [*work.reasons, *review_lane.agent_work(cdir)]
+    if reasons:
+        return {"unit": "enqueue", "reason": "agent work for the enqueue unit: " + "; ".join(reasons)}
     done = [b["branch"] for b in h.get("branches_pending", []) if b.get("status") == "DONE"]
     if done and (work.survey_age_min is None or work.survey_age_min > land_lane.SURVEY_MAX_AGE_MIN):
         return {"unit": "enqueue", "reason": f"finished branches waiting: {', '.join(done)}; the landing lane has no "

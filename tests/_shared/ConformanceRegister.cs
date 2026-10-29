@@ -53,9 +53,9 @@ internal static class ConformanceRegister
     internal static IReadOnlyList<Row> Rows => Parsed.Value;
 
     /// <summary>
-    /// <c>rule-id → determination cell</c>. An item with SEVERAL determinations (A.1-56 and A.1-92 legitimately
-    /// have two rows each) keeps the FIRST, which is the one its obligation is discharged by — matching
-    /// <c>register_determinations</c> on the Python side.
+    /// <c>row key → determination cell</c>. A row key is UNIQUE (kb/Work PB3840): an item with SEVERAL determinations
+    /// (A.1-92 has two) keys the first by the item's rule-id and each further one by that id plus a letter
+    /// (<c>DOC-A.1-92b</c>); a repeated key throws — matching <c>register_determinations</c> on the Python side.
     /// </summary>
     internal static IReadOnlyDictionary<string, string> Determinations { get; } = Build();
 
@@ -67,7 +67,15 @@ internal static class ConformanceRegister
     private static Dictionary<string, string> Build()
     {
         var map = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var r in Rows) map.TryAdd(r.Key, r.Determination);
+        foreach (var r in Rows)
+        {
+            if (!map.TryAdd(r.Key, r.Determination))
+            {
+                throw new InvalidOperationException(
+                    $"docs/CONFORMANCE.md §7 repeats the row key {r.Key}: a row key names ONE determination " +
+                    "(file a further determination of an item under its id plus a letter, kb/Work PB3840)");
+            }
+        }
         return map;
     }
 
