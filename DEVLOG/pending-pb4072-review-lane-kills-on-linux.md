@@ -10,5 +10,7 @@ the owner asked why so many actions were running so long.
 
 `run_agent` now starts the agent in its own session on POSIX. `kill_tree` treats a live process that leads no group as the
 caller's defect: it kills it alone and raises ChildProcessError. The self-test's ceiling and loop-stop arms assert the run
-was killed (its rc is not the stub's own 3), so the old code fails at once; under WSL the whole self-test now takes 0.64 s.
-`run_gate_legs.py`'s `_stop_tree`, a second copy of `kill_tree` with the same swallow, is gone, and its callers use the one.
+was killed (its rc is not the stub's own 3): the old code fails them once the sleeps run out, and a reviewer started without
+a session fails at once, since `kill_tree` raises. Under WSL the whole self-test now takes 0.64 s. `run_gate_legs.py`'s
+`_stop_tree` and the POSIX arm of `gate_slot.py`'s self-test harness kill, two copies of the same swallow, are gone; their
+callers use the one `kill_tree`.

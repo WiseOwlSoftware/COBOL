@@ -78,7 +78,7 @@ def spawn_detached(argv: list[str], log: pathlib.Path, cwd: str | os.PathLike | 
 def pid_alive(pid: int) -> bool:
     """Is process `pid` running? (gate_slot's one probe: a zombie, which holds nothing, counts as dead.)"""
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-    from gate_slot import _pid_alive  # noqa: PLC0415  (gate_slot imports nothing from here)
+    from gate_slot import _pid_alive  # noqa: PLC0415  (imported where used: gate_slot's self-test harness takes kill_tree so)
     return _pid_alive(pid)
 
 
