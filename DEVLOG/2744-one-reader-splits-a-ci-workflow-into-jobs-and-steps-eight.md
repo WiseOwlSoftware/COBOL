@@ -1,4 +1,4 @@
-## One reader splits a CI workflow into jobs and steps: eight private splitters collapsed into `CiWorkflow` (PB3819)
+## Entry 2744 — 2026-10-29 15:38 PDT — One reader splits a CI workflow into jobs and steps: eight private splitters collapsed into `CiWorkflow` (PB3819)
 
 PB3819 named six drift tests that each split `.github/workflows/build-and-test.yml` into jobs their own way. The re-probe
 (`git grep -nE "Jobs\(|SplitJobs" -- tests` on the base) found eight readers, not six: the note's five classes,
@@ -48,3 +48,4 @@ so the three conflicted files took `CiWorkflow.Jobs` in its place, and main's ha
 holds `SparseCheckoutAudit.Jobs` on the real workflow and on a planted trigger block). The note body's union merge had
 kept two `**Sites:**` lines in PB3810; the landed one stays. The reader's comments and the design row now count the ten
 classes it replaced.
+
