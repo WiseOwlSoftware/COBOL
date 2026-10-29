@@ -1,4 +1,4 @@
-## PB4007: CI and every host run the tool versions one manifest names, and the gate refuses any other
+## Entry 2715 — 2026-10-28 18:45 PDT — PB4007: CI and every host run the tool versions one manifest names, and the gate refuses any other
 
 **Why.** Pull request #734 was GREEN on every local leg and RED in its merge group (run 40754265548): CI's Windows jobs
 ran the runner image's Python 3.12, while every local host ran 3.14, and the self-test's `Path.exists` stub behaves
@@ -62,3 +62,4 @@ Linux half (WSL clone of HEAD) GREEN · … · toolchain dotnet-sdk 10.0.403, py
 git-windows 2.56.0, gh 2.103.3, jq 1.8.2`. The Linux half passed its toolchain preflight, and every
 `ToolchainManifestDriftTests` and `DotnetSdkInstallDriftTests` case, the new `EveryInstaller_InstallsExactlyTheTablesRows`
 among them, passed in leg 1.
+
