@@ -1801,6 +1801,11 @@ check("nothing left to release", release_dispatch(RL, "1050"), [])
 check("changed_files passes --no-renames",
       changed_files(lambda *a, **k: _R(NL.join(a) + NL) if "--no-renames" in a else _R(""), "x...y"),
       {"diff", "--name-only", "--no-renames", "x...y"})
+# kb/Work PB3791: range_names is the ONE question, every path it lists; changed_files is its work paths
+RANGE = lambda *a, **k: _R(NL.join([".claude/settings.local.json", "src/A.cs", "TestResults/x.trx", "STATUS.md"]) + NL)   # noqa: E731
+check("range_names lists every path of the range, the paths no landing carries too",
+      inb.range_names(RANGE, "x...y"), {".claude/settings.local.json", "src/A.cs", "TestResults/x.trx", "STATUS.md"})
+check("changed_files is range_names without those paths", changed_files(RANGE, "x...y"), {"src/A.cs"})
 
 # 10. whether a note is blocked is DERIVED (kb/Work PB3389): work.waiting_on is the one reading, so a blocker that lands
 # changes the dependent's answer with no edit to the dependent, and `check` refuses a stored `blocked:` flag, which could
