@@ -357,11 +357,18 @@ internal static class RuntimeApi
     /// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16) — set the current length of a dynamic-length
     /// item, space-filling grown positions (GR39); the negative→0 (GR37) and clamp-to-maximum (GR38) legs raise the
     /// nonfatal EC-STORAGE-NOT-AVAIL through the engine's own (ambient flag, name) pair, so the raise reaches a USE
-    /// declarative (§14.6.13.1.4 #3) instead of only setting the status. <paramref name="newLen"/> is
-    /// the arithmetic-expression-5 value at FULL precision (a <c>double</c>) so the GR37 sign test precedes the
-    /// toward-zero truncation — <c>CobolDynString.SetSize(current, newLen, limit)</c>.</summary>
+    /// declarative (§14.6.13.1.4 #3) instead of only setting the status. <paramref name="newLen"/> is the
+    /// arithmetic-expression-5 value on the carrier it evaluated on, a binary64 or a <c>CobolDec</c>, so the GR37
+    /// sign test and the toward-zero truncation read the value in its own domain —
+    /// <c>CobolDynString.SetSize(current, newLen, limit)</c>.</summary>
     public static string DynSetSize(string current, string newLen, string limit) =>
         $"{nameof(CobolDynString)}.{nameof(CobolDynString.SetSize)}({current}, {newLen}, {limit})";
+
+    /// <summary>The scaled-integer amount of SET SIZE (kb/Work PB464): the <c>Int128</c> or <c>UInt128</c> unscaled
+    /// value and its scale, so the runtime takes the sign, the whole part and the fraction from the exact value —
+    /// <c>CobolDynString.SetSize(current, unscaled, scale, limit)</c>.</summary>
+    public static string DynSetSizeScaled(string current, string unscaledOfCarrierType, string scale, string limit) =>
+        $"{nameof(CobolDynString)}.{nameof(CobolDynString.SetSize)}({current}, {unscaledOfCarrierType}, {scale}, {limit})";
 
     /// <summary>CONTINUE AFTER n SECONDS (ISO §14.9.9.4 GR1) — the timed pause for an interval carried as ONE value: a
     /// binary64 or a standard-decimal <c>CobolDec</c>. A negative interval sets the nonfatal
