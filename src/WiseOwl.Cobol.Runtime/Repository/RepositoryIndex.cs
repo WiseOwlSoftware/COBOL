@@ -82,6 +82,10 @@ public sealed class RepositoryIndex : IDisposable
     /// description attributes through it.</summary>
     public MetadataReader Metadata { get; }
 
+    /// <summary>The module version id of the assembly (its <c>Mvid</c>): two files with one are the same build, two with
+    /// different ones are two assemblies (§7.4's collision test).</summary>
+    public Guid Mvid { get; private init; }
+
     /// <summary>The repository schema the record follows (<see cref="CobolRepositoryAttribute.SchemaVersion"/>).</summary>
     public int SchemaVersion { get; private init; }
 
@@ -179,7 +183,7 @@ public sealed class RepositoryIndex : IDisposable
 
             return new RepositoryIndexOutcome(new RepositoryIndex(image, md)
             {
-                SchemaVersion = schema, RuntimeVersion = runtimeVersion, CallAbi = callAbi, Registrar = registrar,
+                Mvid = md.GetGuid(md.GetModuleDefinition().Mvid), SchemaVersion = schema, RuntimeVersion = runtimeVersion, CallAbi = callAbi, Registrar = registrar,
                 CompilerVersion = compiler, Edition = edition, HasSignatures = signatures, Units = units, AssemblyReferences = references,
             }, RepositoryReadFailure.None, null);
         }

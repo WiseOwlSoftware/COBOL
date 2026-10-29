@@ -22,6 +22,20 @@
   </ItemGroup>
 
   <!--
+    TRIMMING AND NATIVE AOT (docs/rearchitecture/DESIGN-external-repository.md section 15.5; kb/Work PB2101). The runtime is
+    trimmable and analyzer-clean: its ONE reflection, the dynamic sibling-module probe (AssemblyLoadContext.LoadFromAssemblyPath,
+    Assembly.GetType(string) and the registrar member's lookup), sits behind the feature switch
+    WiseOwl.Cobol.Runtime.DynamicProbe (RuntimeFeatures.DynamicProbe), so an application that composes its run unit itself
+    switches it off and the trimmer and the AOT compiler remove the probe; the trim analyzer sees no IL2026 at any CALL. An
+    application that keeps the probe roots the whole runtime (TrimmerRootAssembly): a callee located at run time may use any
+    member of it.
+  -->
+  <PropertyGroup>
+    <IsTrimmable>true</IsTrimmable>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+  </PropertyGroup>
+
+  <!--
     THE PUBLIC SURFACE IS A RECORDED CONTRACT (kb/Work PB2097; docs/rearchitecture/DESIGN-external-repository.md
     §15.4). Every compiled COBOL module calls this assembly's public members, and records the runtime version it was
     compiled against; a run unit refuses a module of another MAJOR (RuntimeAbi.Skew). PublicAPI.Shipped.txt lists the

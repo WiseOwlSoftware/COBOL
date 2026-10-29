@@ -150,29 +150,95 @@ public sealed class ModuleRegistrationTests
     }
 
     /// <summary>kb/Work PB2843: a registrar that repeats a path, inside its module or across modules, is a compiler
-    /// defect, refused LOUDLY rather than replacing a node another unit registered.</summary>
+    /// defect, refused LOUDLY rather than replacing a node another unit registered. Like every registrar fault it is
+    /// §14.9.4.4 GR3 b)'s EC-PROGRAM-NOT-FOUND naming the module and the fault (DESIGN-external-repository §11.2, kb/Work
+    /// PB2101): the module registers nothing.</summary>
     [Fact]
     public void ARepeatedPath_IsRefusedLoudly_NeverReplacingANode()
     {
         var table = new RunUnit().Programs;
         string w = ProgramTable.OutermostPath("P2843W");
-        var inModule = Assert.Throws<InvalidOperationException>(() =>
+        var inModule = Assert.Throws<CobolCallException>(() =>
             table.RegisterModule("Cobol.PW.__CobolModule", Current, RuntimeAbi.CallAbi, () =>
             {
                 table.Register(w, "P2843W", null, initial: false, common: false, recursive: false, _ => new Stub());
                 table.Register(w, "P2843V", null, initial: false, common: false, recursive: false, _ => new Stub());
             }));
+        Assert.Equal("EC-PROGRAM-NOT-FOUND", inModule.EcName);
         Assert.Contains("PB2843", inModule.Message, StringComparison.Ordinal);
+        Assert.Contains("InvalidOperationException", inModule.Message, StringComparison.Ordinal);
+        Assert.False(Located(table, "P2843W"));   // the module's first unit was staged, not registered
 
         table.RegisterModule("Cobol.PW2.__CobolModule", Current, RuntimeAbi.CallAbi, () =>
             table.Register(w, "P2843W", null, initial: false, common: false, recursive: false, _ => new Stub()));
         // A hand-made registrar that roots its program at the declared name P2843W while externalizing P2843X.
-        var across = Assert.Throws<InvalidOperationException>(() =>
+        var across = Assert.Throws<CobolCallException>(() =>
             table.RegisterModule("Cobol.PX.__CobolModule", Current, RuntimeAbi.CallAbi, () =>
                 table.Register(w, "P2843W", null, initial: false, common: false, recursive: false, _ => new Stub(),
                     externalizedName: "P2843X")));
+        Assert.Equal("EC-PROGRAM-NOT-FOUND", across.EcName);
         Assert.Contains("Cobol.PW2.__CobolModule", across.Message, StringComparison.Ordinal);
         Assert.False(Located(table, "P2843X"));
+    }
+
+    /// <summary>DESIGN-external-repository §11.2 (kb/Work PB2101): EVERY registrar fault is the CALL's own condition,
+    /// EC-PROGRAM-NOT-FOUND with the fault named (a registrar that throws for any reason, the PB154
+    /// containee-before-container guard, a static reset that throws as its unit is adopted), and the module registers
+    /// NOTHING: not the units its registrar staged before the fault, and not the module itself, so the same module may be
+    /// registered again once the cause is gone.</summary>
+    [Fact]
+    public void ARegistrarFault_IsEcProgramNotFound_AndRegistersNothing()
+    {
+        var table = new RunUnit().Programs;
+        var bodyFault = Assert.Throws<CobolCallException>(() =>
+            table.RegisterModule("Cobol.F1.__CobolModule", Current, RuntimeAbi.CallAbi, () =>
+            {
+                table.Register("P5398A", "P5398A", null, initial: false, common: false, recursive: false, _ => new Stub());
+                throw new InvalidOperationException("the registrar's own fault");
+            }));
+        Assert.Equal("EC-PROGRAM-NOT-FOUND", bodyFault.EcName);
+        Assert.Contains("Cobol.F1.__CobolModule", bodyFault.Message, StringComparison.Ordinal);
+        Assert.Contains("the registrar's own fault", bodyFault.Message, StringComparison.Ordinal);
+        Assert.False(Located(table, "P5398A"));
+
+        var containee = Assert.Throws<CobolCallException>(() =>
+            table.RegisterModule("Cobol.F2.__CobolModule", Current, RuntimeAbi.CallAbi, () =>
+                table.Register("P5398B/INNER", "INNER", "P5398B", initial: false, common: false, recursive: false, _ => new Stub())));
+        Assert.Contains("PB154", containee.Message, StringComparison.Ordinal);
+
+        // A static reset that throws as its unit is adopted: the program registered BEFORE it in the same module is not left
+        // behind, and the module is not in the registration set.
+        int attempts = 0;
+        Action body = () =>
+        {
+            table.Register("P5398C", "P5398C", null, initial: false, common: false, recursive: false, _ => new Stub());
+            table.Register("P5398D", "P5398D", null, initial: false, common: false, recursive: true, _ => new Stub(),
+                staticReset: () => { if (attempts++ == 0) throw new InvalidOperationException("the static reset fails"); });
+        };
+        var reset = Assert.Throws<CobolCallException>(() => table.RegisterModule("Cobol.F3.__CobolModule", Current, RuntimeAbi.CallAbi, body));
+        Assert.Contains("the static reset fails", reset.Message, StringComparison.Ordinal);
+        Assert.False(Located(table, "P5398C"));
+        Assert.False(Located(table, "P5398D"));
+        table.RegisterModule("Cobol.F3.__CobolModule", Current, RuntimeAbi.CallAbi, body);   // not remembered as registered
+        Assert.True(Located(table, "P5398C"));
+        Assert.True(Located(table, "P5398D"));
+    }
+
+    /// <summary>One module naming one externalized name twice is a registrar defect too (§8.3.2.2 2): refused whole, so the
+    /// per-kind name dictionary never sees a duplicate.</summary>
+    [Fact]
+    public void AModuleCarryingOneOutermostNameTwice_RegistersNothing()
+    {
+        var table = new RunUnit().Programs;
+        var twice = Assert.Throws<CobolCallException>(() =>
+            table.RegisterModule("Cobol.T.__CobolModule", Current, RuntimeAbi.CallAbi, () =>
+            {
+                table.Register("P5398T", "P5398T", null, initial: false, common: false, recursive: false, _ => new Stub());
+                table.Register("P5398T-2", "P5398T-2", null, initial: false, common: false, recursive: false, _ => new Stub(),
+                    externalizedName: "p5398t");
+            }));
+        Assert.Contains("twice", twice.Message, StringComparison.Ordinal);
+        Assert.False(Located(table, "P5398T"));
     }
 
     [Fact]
