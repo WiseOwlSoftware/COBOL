@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// Before PB3819 seven classes split the one workflow seven ways: over the whole file (the <c>on:</c> triggers read as
-/// jobs), with a banner attributed to the job above it, with comments kept or dropped inside a step, with a different set
+/// jobs), with a step list read at one fixed depth, with a banner attributed to the job above it, with comments kept or dropped inside a step, with a different set
 /// of characters in a job id. A workflow edit one reader tolerated another misread, and a drift test then passed
 /// vacuously or went red on a legal change. The reader's own arms are held on a fixture workflow below; the sweep holds
 /// every other test file off the shape.
@@ -30,9 +30,10 @@ public sealed class CiWorkflowDriftTests
 
     /// <summary>A job key matched by a regex of the test's own (<c>^  (?&lt;id&gt;…</c>, <c>^  (?=[A-Za-z0-9_-]+:</c>,
     /// <c>^  ([A-Za-z0-9_-]+):</c>), or a hand-found <c>jobs:</c> anchor (<c>IndexOf("\njobs:</c>, <c>== "jobs:"</c>,
-    /// <c>StartsWith("jobs:"</c>).</summary>
+    /// <c>StartsWith("jobs:"</c>), or a hand-found <c>steps:</c> key (<c>== "steps:"</c>): a step splitter that reads the
+    /// first list at one fixed depth misses every job whose list sits elsewhere.</summary>
     private static readonly Regex OwnSplitter = new(
-        @"\^ {2}\((?:\?(?:<\w+>|=|:))?\[A-Za-z0-9_|IndexOf\(""\\njobs:|==\s*""jobs:""|StartsWith\(""jobs:""",
+        @"\^ {2}\((?:\?(?:<\w+>|=|:))?\[A-Za-z0-9_|IndexOf\(""\\njobs:|==\s*""jobs:""|StartsWith\(""jobs:""|==\s*""steps:""",
         RegexOptions.NonBacktracking);
 
     /// <summary>The lines of <paramref name="text"/> that read the job shape themselves.</summary>
@@ -62,6 +63,7 @@ public sealed class CiWorkflowDriftTests
         Assert.Single(Splitters("a.cs", "int jobs = lf.IndexOf(\"\\njobs:\\n\", StringComparison.Ordinal);"));
         Assert.Single(Splitters("a.cs", "int s = Array.FindIndex(w, l => l.TrimEnd() == \"jobs:\");"));
         Assert.Single(Splitters("a.cs", "int s = Array.FindIndex(w, l => l.StartsWith(\"jobs:\", StringComparison.Ordinal));"));
+        Assert.Single(Splitters("a.cs", "int key = code.FindIndex(l => l.Trim() == \"steps:\");"));
         Assert.Empty(Splitters("a.cs", "// ^  (?<id>[A-Za-z0-9_-]+): was the old reader"));
         Assert.Empty(Splitters("a.cs", "foreach (CiJob job in CiWorkflow.Jobs(workflow)) { }"));
     }

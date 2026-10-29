@@ -226,7 +226,29 @@ internal sealed record CiStep(IReadOnlyList<string> Lines, int ItemIndent)
     /// deeper (a <c>with:</c> value) is not the step's.</summary>
     internal string? Value(string key) => Keys.Where(k => k.Key == key).Select(k => k.Value).FirstOrDefault();
 
-    /// <summary>How the step is named in a message: its first <c>name</c>, <c>id</c> or <c>uses</c> key, else its first
+    /// <summary>The inline value of the input <paramref name="name"/> in the step's <c>with:</c> mapping (<c>overwrite</c>,
+    /// <c>path</c>), or null: only a key one level under the step's own <c>with:</c> key counts, never the same key under
+    /// <c>env:</c> or at the step's own level.</summary>
+    internal string? Input(string name)
+    {
+        bool inWith = false;
+        foreach (string raw in CodeLines)
+        {
+            string line = raw.TrimStart().StartsWith("- ", StringComparison.Ordinal) ? new string(' ', CiWorkflow.Indent(raw) + 2) + raw.TrimStart()[2..] : raw;
+            int indent = CiWorkflow.Indent(line);
+            if (indent == ItemIndent + 2)
+                inWith = line.Trim().StartsWith("with:", StringComparison.Ordinal);
+            else if (inWith && indent == ItemIndent + 4)
+            {
+                var key = CiWorkflow.OwnKeys([line], indent).FirstOrDefault();
+                if (key.Key == name)
+                    return key.Value;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>How the step is named in a message:its first <c>name</c>, <c>id</c> or <c>uses</c> key, else its first
     /// line.</summary>
     internal string Label => Keys.Where(k => k.Key is "name" or "id" or "uses").Select(k => k.Value).FirstOrDefault()
                              ?? Lines[0].Trim();
