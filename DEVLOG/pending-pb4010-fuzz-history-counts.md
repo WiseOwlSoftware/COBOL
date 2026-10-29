@@ -24,9 +24,12 @@ version it published. `fuzz_history.py status` is a new session-probe line that 
 (a fuzz note's status moved since main's file was drawn). `render --markdown` is gone, so one rendering cannot be written
 without the other. The round-2 review closed the gaps: the stamp no longer carries a build time, so a render that changes
 nothing leaves the tracked file byte-identical and `status` compares main's file with a fresh render byte for byte (a hand edit
-shows). `status` also requires the record to name the history's Artifact, and checks drift only in a checkout at origin/main
-(one behind main would report drift main does not have). `history` now draws the whole page before writing anything, so a note
-it cannot show writes nothing.
+shows). `status` also requires the record to name the history's Artifact. `history` now draws the whole page before writing anything,
+so a note it cannot show writes nothing. Rounds 3 to 6 each found the working-tree drift check one input short: an uncommitted
+input, then work.py, then coord.py and model_rules.json, then an untracked note and the main checkout's always-modified
+settings.local.json. So `status` stopped reading the working tree. It extracts origin/main's committed scripts, register, history
+and ledger with `git archive` and runs that copy's own `fuzz_history.py verify`. The extract takes seconds, so it runs only when
+the Artifact already shows main's version.
 
 The self-test gains the classification, refusal and SYNC cases. DESIGN-differential-fuzz.md section 6 and the fuzz-triage workflow's
 step list state the new order: render, land, publish, mark.
