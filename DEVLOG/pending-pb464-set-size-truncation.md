@@ -30,3 +30,5 @@ against the maximum; expected output derived from the rules, then matched by the
 
 **Sibling sweep.** No other `Real(...Render(...))` site exists in `CodeGen`; the PB459 `SetEmitter` narrowings of the SET capacity and
 index formats are a different rule (an exception condition, not a truncation) and stay with that note.
+
+**ABI pin.** The three overloads add to the shipped surface and remove nothing, so `RuntimeAbi.pin` was re-measured with `abi_pin.py repin` (no major bump).
