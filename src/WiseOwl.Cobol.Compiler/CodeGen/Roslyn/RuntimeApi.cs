@@ -763,21 +763,29 @@ internal static class RuntimeApi
     public static string DecToUnscaledChecked(string decExpr, string scale, CobolRounding mode) =>
         $"({decExpr}).{nameof(CobolDec.ToUnscaledChecked)}({scale}, {RoundingText(mode)})";
 
-    /// <summary>The INTERMEDIATE landing — <c>CobolDec.ToUnscaledIntermediate</c> (kb/Work PB69): an SDIDI value
-    /// entering the Int128 carrier as an argument, an arithmetic operand, a subscript … A magnitude the carrier
-    /// cannot hold at the scale raises EC-SIZE-OVERFLOW (§14.7.5 case 5 — the implementor-defined intermediate
-    /// range IS checked, A.1 item 179), never the modular low-order digits.</summary>
-    /// <summary>The algebraic sign of an SDIDI intermediate as an <c>int</c> (−1/0/+1) — <c>Int128.Sign</c> over the
-    /// significand, which carries the value's sign exactly at every exponent (a sign condition over a
-    /// STANDARD-DECIMAL expression, or over a native integer power — kb/Work PB84, NIST NC250A).</summary>
+    /// <summary>⛔ The catch arm of §14.7.4.3 rule 7 in an arithmetic statement with no SIZE ERROR phrase and checking off
+    /// (kb/Work PB3990; <c>ArithmeticEmitter.KeepsOnProhibitedInexact</c>): it takes <see cref="CobolSizeError.ProhibitedInexact"/>'s
+    /// condition alone, filtered on <see cref="CobolSizeError.IsProhibitedInexact"/>, and does nothing, so the resultant
+    /// keeps its content and execution continues (docs/CONFORMANCE.md DOC-A.1-70). <paramref name="exceptionVar"/> is the
+    /// caught exception's emitted name.</summary>
+    public static string ProhibitedInexactKeepCatch(string exceptionVar) =>
+        $"catch ({nameof(CobolSizeError)} {exceptionVar}) when ({exceptionVar}.{nameof(CobolSizeError.IsProhibitedInexact)}) {{ }}";
+
     /// <summary>Is a data-address / pointer expression the NULL pointer? The runtime's null is the
     /// <c>ManagedPointer.Null</c> SINGLETON, never a C# null — a bare <c>is null</c> test is always false on it (kb/Work
     /// PB80: the LENGTH r4a association guard read an unallocated BASED entry as associated).</summary>
     public static string PtrIsNull(string ptrExpr) => $"({ptrExpr} is null || {ptrExpr}.{nameof(ManagedPointer.IsNull)})";
 
+    /// <summary>The algebraic sign of an SDIDI intermediate as an <c>int</c> (−1/0/+1) — <c>Int128.Sign</c> over the
+    /// significand, which carries the value's sign exactly at every exponent (a sign condition over a
+    /// STANDARD-DECIMAL expression, or over a native integer power — kb/Work PB84, NIST NC250A).</summary>
     public static string DecSign(string decExpr) =>
         $"{nameof(Int128)}.{nameof(Int128.Sign)}(({decExpr}).{nameof(CobolDec.Sig)})";
 
+    /// <summary>The INTERMEDIATE landing — <c>CobolDec.ToUnscaledIntermediate</c> (kb/Work PB69): an SDIDI value
+    /// entering the Int128 carrier as an argument, an arithmetic operand, a subscript … A magnitude the carrier
+    /// cannot hold at the scale raises EC-SIZE-OVERFLOW (§14.7.5 case 5 — the implementor-defined intermediate
+    /// range IS checked, A.1 item 179), never the modular low-order digits.</summary>
     public static string DecToUnscaledIntermediate(string decExpr, string scale, CobolRounding mode) =>
         $"({decExpr}).{nameof(CobolDec.ToUnscaledIntermediate)}({scale}, {RoundingText(mode)})";
 
