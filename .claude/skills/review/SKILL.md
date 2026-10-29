@@ -76,6 +76,8 @@ the implementer was told, and a branch that lacks a requirement is a finding (ca
 `python <worktree>\scripts\orchestrator\review_findings.py`:
 
 1. `RF start <file> --round <k> --branch <branch> --head <head> --reviewer <label>` — first, before reading the diff.
+   A round whose `start` stands with no verdict (its reviewer was killed: the review lane's restart, kb/Work PB3608) is
+   STARTED AGAIN by the same command; first `RF show <file> --round <k>`, and record only findings not already listed.
 2. **The pass**, by yourself (no sub-agents: one branch's diff is one reviewer's work): `git -C <worktree> diff
    origin/main...<head>` and the code around each hunk; the **full code review** dimension above in full —
    `python scripts/spec/drift_rules.py <each changed file>` and every SPECIFIC rule it prints, correctness against the

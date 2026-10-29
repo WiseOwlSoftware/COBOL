@@ -23,7 +23,8 @@ function Run-Lane([string]$case, [string[]]$extra) {
     $ticks = Join-Path $coord 'fake-python-lane-ticks.txt'
     return [pscustomobject]@{ code = $code; out = ($out -join "`n"); coord = $coord
         runs = $(if (Test-Path $env:FAKE_CLAUDE_MARK) { @(Get-Content $env:FAKE_CLAUDE_MARK).Count } else { 0 })
-        ticks = $(if (Test-Path $ticks) { @(Get-Content $ticks).Count } else { 0 }) }
+        ticks = $(if (Test-Path $ticks) { @(Get-Content $ticks).Count } else { 0 })
+        review = $(if (Test-Path (Join-Path $coord 'fake-python-review-ticks.txt')) { @(Get-Content (Join-Path $coord 'fake-python-review-ticks.txt')) } else { @() }) }
 }
 
 # 1. THE LANE TICKS IN A BACKOFF, AND NOT ONCE STOP EXISTS. One unit fails at once and the supervisor backs off 600 s: no unit
@@ -41,10 +42,20 @@ Check 'backoff: the lane ticked until STOP appeared, then never again' $r.ticks 
 Check 'backoff: only the one unit ran (the 600 s backoff ended on STOP, not on its timer)' $r.runs 1
 Check 'backoff: the wait ended on STOP' ($r.out -match 'STOP during the backoff') $true
 Check 'backoff: a clean stop' $r.code 0
+# THE REVIEW LANE (kb/Work PB3608) is chained after the landing lane's tick: one review tick per landing tick that completed (the last
+# one, running when STOP appeared, may not have), each carrying the supervisor's cap, its permission mode and the resolved launch of -ClaudeExe.
+Check 'review lane: it ticked beside the landing lane (at least once, never more than the landing lane did)' ($r.review.Count -ge 1 -and $r.review.Count -le $r.ticks) $true
+Check 'review lane: the tick carries the cap, the permission mode and the resolved claude launch' ($r.review[0] -match ' --max-agents 3 ' -and $r.review[0] -match ' --permission-mode bypassPermissions ' -and $r.review[0] -match ' --claude=-File ' -and $r.review[0] -match 'fake-claude\.ps1') $true   # (this fake ps1 sees `--claude=C:\...` split at the colon; the real python gets each piece whole)
 
 # 2. -LandLaneSeconds 0 runs no lane anywhere, a backoff included.
 $r = Run-Lane 'lanezero' @('-BackoffBaseSeconds', '2', '-LandLaneSeconds', '0', '-MaxUnits', '2')
 Check 'no lane at -LandLaneSeconds 0: two units ran' $r.runs 2
 Check 'no lane at -LandLaneSeconds 0: not one tick' $r.ticks 0
+Check 'no lane at -LandLaneSeconds 0: no review lane either' $r.review.Count 0
+
+# 3. -ReviewAgents 0 runs the landing lane and no review lane.
+$r = Run-Lane 'reviewzero' @('-BackoffBaseSeconds', '2', '-LandLaneSeconds', '1', '-ReviewAgents', '0', '-MaxUnits', '2')
+Check 'review lane off at -ReviewAgents 0: the landing lane still ticked' ($r.ticks -ge 1) $true
+Check 'review lane off at -ReviewAgents 0: not one review tick' $r.review.Count 0
 
 Complete-OrchTest 'lane'
