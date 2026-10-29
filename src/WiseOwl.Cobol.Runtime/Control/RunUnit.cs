@@ -161,12 +161,13 @@ public sealed class RunUnit
     /// <summary>Adopt one unit's static storage into this run unit: its <paramref name="reset"/> runs NOW — ISO
     /// §14.6.2.3.2 case 1, "The first time the function, method, or program in which it is described is activated in
     /// a run unit", holds even when the same loaded module served an earlier run unit in this process — and again at
-    /// <see cref="Terminate"/>. Adopting the same reset twice is a no-op.</summary>
+    /// <see cref="Terminate"/>. Adopting the same reset twice is a no-op, and a reset that throws is not adopted.</summary>
     public void AdoptStaticStorage(Action reset)
     {
-        if (!_adoptedStaticStorage.Add(reset)) return;
+        if (_adoptedStaticStorage.Contains(reset)) return;
+        reset();   // first: a reset that throws is not adopted, so nothing of it is left to throw again at Terminate
+        _adoptedStaticStorage.Add(reset);
         _staticStorage.Add(reset);
-        reset();
     }
 
     /// <summary>Normal and abnormal run-unit termination's runtime epilogue — ONE method for every boundary
