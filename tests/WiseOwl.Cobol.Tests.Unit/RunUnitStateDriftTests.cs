@@ -255,6 +255,8 @@ public sealed class RunUnitStateDriftTests
             "see PointerImage::s_nextBase in " + nameof(ProcessLifetimeStatics) + ": pointer-image bases count per PROCESS",
         ["WiseOwl.Cobol.Runtime.PointerImage::s_nameBases"] =
             "see PointerImage::s_nextBase in " + nameof(ProcessLifetimeStatics) + ": pointer-image bases count per PROCESS",
+        ["WiseOwl.Cobol.Runtime.Repository.RepositoryLocator::Cache"] =
+            "memo of what reading a repository file established (its Units rows and header), keyed by the file's path and valid only for its length and last write time: derived from the file, never from a run unit (kb/Work PB2101)",
         ["WiseOwl.Cobol.Runtime.IO.RecordLayoutNotice::Reported"] =
             "the (file, host path) pairs already noticed on standard error: a once-per-process diagnostic latch, locked",
     };
