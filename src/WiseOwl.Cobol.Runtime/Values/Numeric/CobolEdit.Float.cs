@@ -92,8 +92,9 @@ public static partial class CobolEdit
     /// <para>⛔ <paramref name="mode"/> is the LANDING's, named by the caller (kb/Work PB2638): a MOVE passes
     /// <see cref="CobolRounding.Truncation"/> (§14.6.8.4 rule 2 aligns and truncates), and the no-phrase
     /// ARITHMETIC store passes the receiver's own §14.7.4.3 mode — ROUNDED applies to a floating-point edited
-    /// resultant exactly as to any other, at the significand's digit count; PROHIBITED lands truncated here, as
-    /// <c>CONFORMANCE.md</c> DOC-A.1-70 gives every unchecked store, and is raised only by <see cref="TryFormatFloat(Int128, int, string, out string, CobolRounding, bool, bool, EditRule[])"/>.</para></summary>
+    /// resultant exactly as to any other, at the significand's digit count; a PROHIBITED value the significand cannot
+    /// hold exactly raises <see cref="CobolSizeError.ProhibitedInexact"/> here (§14.7.4.3 rule 7, kb/Work PB3990), where
+    /// <see cref="TryFormatFloat(Int128, int, string, out string, CobolRounding, bool, bool, EditRule[])"/> answers false.</para></summary>
     public static string FormatFloatStore(Int128 value, int valueScale, string picture, CobolRounding mode, bool blankWhenZero = false, bool commaMode = false, EditRule[]? edits = null)
         => FormatFloatStoreCore((BigInteger)value, -valueScale, picture, mode, blankWhenZero, commaMode, edits);
 
@@ -133,9 +134,10 @@ public static partial class CobolEdit
     private static string FormatFloatStoreCore(BigInteger sig, int exp10, string picture, CobolRounding mode, bool blankWhenZero, bool commaMode, EditRule[]? edits)
     {
         var m = FloatMask.Parse(picture, commaMode, edits);
-        // An unchecked store never acts on Inexact: PROHIBITED is a request to raise, and this one cannot; the
-        // rounding kernel lands it truncated (DOC-A.1-70), the same as every unchecked fixed-point store.
         string image = FormatFloatCore(NormalizeFloat(sig, exp10, m, mode), m, blankWhenZero, out var outcome);
+        // §14.7.4.3 rule 7 holds whether or not checking is enabled: a PROHIBITED value the significand cannot hold
+        // exactly is never stored (kb/Work PB3990 — this store used to land it truncated).
+        if (outcome == FloatStoreOutcome.Inexact) throw CobolSizeError.ProhibitedInexact();
         if (outcome == FloatStoreOutcome.Overflow)
             ExceptionState.FloatOverflowError($"the value {sig}E{exp10} is farther from zero than the picture {picture} permits");
         return commaMode ? SwapSeparators(image) : image;
@@ -230,12 +232,14 @@ public static partial class CobolEdit
         var tenK = BigInteger.Pow(10, Math.Abs(k));
         // k < 0 drops digits: the SIGNED value goes to the kernel, because TOWARD-GREATER and TOWARD-LESSER depend
         // on the sign and the kernel takes the away-from-zero step from it (§14.7.4.3 rules 3, 8 and 9).
-        var s = k >= 0 ? a * tenK : BigInteger.Abs(CobolNum.RoundDiv(sig, tenK, mode));
+        // §14.7.4.3 rule 7: PROHIBITED and a nonzero dropped tail is the Inexact OUTCOME, never a rounding — so the kernel,
+        // which raises for PROHIBITED (kb/Work PB3990), is asked for the truncation the outcome's image carries, and each
+        // caller acts on the outcome (the Try form answers false, the unchecked store raises).
+        inexact = k < 0 && mode == CobolRounding.Prohibited && !(a % tenK).IsZero;
+        var s = k >= 0 ? a * tenK
+            : BigInteger.Abs(CobolNum.RoundDiv(sig, tenK, mode == CobolRounding.Prohibited ? CobolRounding.Truncation : mode));
         if (k < 0)
         {
-            // §14.7.4.3 rule 7: PROHIBITED and a nonzero dropped tail — the kernel lands such a value truncated
-            // (the unchecked disposition), the checked caller turns this outcome into the size error.
-            if (mode == CobolRounding.Prohibited && !(a % tenK).IsZero) inexact = true;
             if (DigitCount(s) > m.SigDigits)     // rounded up past the last digit: 9.99|5 → 10.00
             {
                 s /= 10;

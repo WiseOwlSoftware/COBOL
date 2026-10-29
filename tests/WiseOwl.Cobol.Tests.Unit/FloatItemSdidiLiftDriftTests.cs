@@ -118,7 +118,8 @@ public sealed class FloatItemSdidiLiftDriftTests
         Assert.True(start >= 0, "StoreArith not found");
         string head = src[start..Math.Min(src.Length, start + 8000)];
         int lift = head.IndexOf("if (num.StandardDecimal && value.Real)", StringComparison.Ordinal);
-        int firstUse = head.IndexOf("r7Inexact", StringComparison.Ordinal);
+        // The first receiver-category arm (the §14.7.4.3 rule 7 gate that once read the value first is gone, kb/Work PB3990).
+        int firstUse = head.IndexOf("if (target.Item.Pic is", StringComparison.Ordinal);
         Assert.True(lift >= 0 && firstUse > lift,
             "StoreArith must convert a lone float operand into the SDIDI (num.DecOperand) BEFORE any arm reads the value: under a "
             + "standard-decimal mode `COMPUTE R = F` and `COMPUTE R = F + 0` store one value (ISO §8.8.1.5.2 r1, kb/Work PB1606).");

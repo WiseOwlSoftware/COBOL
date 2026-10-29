@@ -30,7 +30,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > `(Int128 value, int scale)`** — i.e. `CobolInt` with its `Scale` field resolved statically. Rationale: the
 > renderer computes every scale at compile time and emits them as constants; a runtime `Scale` field would box
 > static knowledge into per-value state and add construction ceremony to every generated expression for no
-> semantic gain. The kernel surface (`Rescale`, `Store`, `TryStore`, `Divide`, `DivideOrThrow`, `AddChecked`,
+> semantic gain. The kernel surface (`Rescale`, `Store`, `TryStore`, `Divide`, `AddChecked`,
 > `FormatDisplay*`, `ParseDisplay`, `DigitMagnitude`/`FromAlphanumeric`/`FromAlphanumericSending` — D25) IS this
 > section's Align/Add/Sub/Mul/Div engine, in Int128.
 > Every emitted operation forces wide math (`(Int128)(a) op (b)`); a ≤18-digit receiver stores through one
@@ -455,8 +455,8 @@ its own (kb/Work PB623 deleted the `RoundScaled`/`NearestTowardZero` pair); a fr
 uses a native-double membership branch (exact-inverse membership, not a scale-0 truncation); a fixed-only expression
 into a float receiver uses a `TargetReal` flag that makes the whole RHS Real when every target is float (so `10/3`
 evaluates in binary64, not at receiver-scale 0; reset at the condition-render entry, the H1 staleness discipline);
-PROHIBITED on an inexact float uses a `CobolFloat.InexactAtScale` gate that raises SIZE ERROR + leaves the receiver
-unchanged (§14.7.4.3 rule 7); a transcendental intrinsic into a float receiver returns Real from `RenderFloat` when
+PROHIBITED on an inexact float raises `CobolSizeError.ProhibitedInexact` from the landing's own rounding and leaves the
+receiver unchanged (§14.7.4.3 rule 7, checked or not, kb/Work PB3990); a transcendental intrinsic into a float receiver returns Real from `RenderFloat` when
 `TargetReal` (full binary64, not quantized to 9 digits).
 
 **Edition gate.** The trio introduced 2002 → the `ConstructRegistry` introduction gate stands (COBOL0900 below
@@ -642,29 +642,27 @@ SUM clause, and all integer and numeric functions") reaches the INTERMEDIATE, no
 readings collide, §15.4.1's identity sentence outranks the approximation preference — and a program that wants the
 rounded landing now writes ROUNDED and gets it.
 
-**ROUNDED MODE IS PROHIBITED moved with the decision.** §14.7.4.3 rule 7's raise now lives in `FromDouble`, gated
-on `checkedLanding` (the ON SIZE ERROR / EC-SIZE scope the emitter's own float-source gate uses). It has to: a
-final transfer lands AT the resultant identifier's scale, so the store's rescale is the identity and its own
-PROHIBITED test can no longer see the discarded fraction. Before the move,
-`COMPUTE S ROUNDED MODE IS PROHIBITED = FUNCTION SQRT(3) ... ON SIZE ERROR` into `PIC 9V9(9)` stored silently
-while the same statement into `PIC 9V9` raised — the condition depending on the receiver's scale rather than on
-the transfer's exactness.
-
-**And rule 7's gate is ONE gate, over ONE initial evaluation (kb/Work PB654).** A value that reaches the STORE
-as a binary64 — a COMP-2 operand, a nested float operand after PB653, `**` over a float base — does not pass
-through `FromDouble`, so `ArithmeticEmitter.StoreArith` owns rule 7 for it. Two things were wrong there. (a) The
-emitter wrote the right-hand side's expression TWICE, once into the representability test and once into the
-store, where §14.7.7 rule 4 a) places the initial evaluation "in an intermediate data item" and rule 4 b) stores
-THAT item: for a function whose successive references are not the same value (§15.75.3 rule 5 — `FUNCTION RANDOM`
-with no argument) the test examined one returned value and the store landed the next, and the statement consumed
-two elements of the sequence. `StoreArith` now materialises the value once, through the same `Snapshot` helper
-`EmitCompute`'s multi-receiver arm already used for the same rule. (b) The gate itself existed only in the
-plain-numeric arm; the numeric-EDITED and LOCALE-edited arms stored the truncated value and raised nothing
-(`COMPUTE E ROUNDED MODE IS PROHIBITED = C2 * 1` with `C2 = SQRT(3)` into `PIC ZZ9.999` stored 1.732). The gate
-is now written ONCE at the top of `StoreArith`, keyed on the ONE receiver-scale rule
-(`RuntimeApi.ReceiverScaleOf`), and each fixed-scale arm asks it for the keyword its own first test opens with.
-A FLOATING-POINT numeric-edited receiver is deliberately out: it has no fixed fraction scale, so rule 7's
-"cannot be represented exactly in the resultant identifier" is a different predicate there.
+**ROUNDED MODE IS PROHIBITED is the landing's own rounding decision, in every form (kb/Work PB647, PB654, PB3990).**
+§14.7.4.3 rule 7 — "If the PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly
+in the resultant identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition
+exists, and the content of the resultant identifier is unchanged" — does not depend on checking. A final transfer
+lands AT the resultant identifier's scale, so the store's rescale is the identity and only the landing's rounding
+sees the discarded fraction; PROHIBITED is therefore never a rounding DIRECTION. The two "one rounding decision"
+tables raise `CobolSizeError.ProhibitedInexact` for it — the scaled carrier's `CobolNum.BumpsMagnitude` (so
+`RoundDiv`, `Rescale`, `Store`, `RescaleStoreCap`, `Divide`, `LandQuotient`, `CobolFloat.TryExactScaled` and
+`CobolIntrinsics.FromDouble` all raise) and the SDIDI's `CobolDec.RoundFromRemainder` (`ToUnscaled`, `MulAtScale`'s
+`TransferWide`, `CobolWide.ToUnscaled`) — and the two float resultants raise from their own outcome (`FloatResultant`'s
+unchecked entries, `CobolEdit.FormatFloatStore`). A Try form (`TryStore`, `TryStoreU`, `FloatResultant.TryFrom*`,
+`TryFormatFloat`) answers false instead. So one mechanism serves every receiver category, carrier and statement:
+under a SIZE ERROR phrase or EC-SIZE checking the statement's own catch takes the raise and sets the flag; with
+neither, `ArithmeticEmitter.KeepsOnProhibitedInexact` wraps a PROHIBITED receiver's compute-and-store in a try that
+catches THAT condition alone, so the receiver is unchanged and the statement goes on (CONFORMANCE.md DOC-A.1-70).
+**What this replaced:** `CobolNum.DivideOrThrow`, the `checkedLanding`-gated raise in `FromDouble`, the
+`checkedTransfer` mask in `TransferWide`, and PB654's `CobolFloat.InexactAtScale` gate at the top of `StoreArith`,
+which tested a binary64 value before the store landed it (once, materialized — the double read was PB654's defect)
+and existed only for a checked statement: unchecked, every one of those landings stored the value cut, and the
+standard-decimal lane, whose rounding table always raised, terminated the run unit instead (PB1196's determination,
+reversed by PB3990). A value that is exact but too big is §14.7.5 case 3 alone (the low-order digits unchecked).
 
 **Blast radius, measured.** The whole Conformance corpus moved exactly ONE golden,
 `2023/pb65_codomain_clamp`, in two lines (`ASINH` 0.523598776 → 0.523598775, `SQRTD` 1.000000000 →
@@ -687,8 +685,9 @@ final transfer, the float-edited resultant keeping the binary64 — asserts the 
 rounding mode of its own, and asserts that NEITHER consumer re-derives the receiver-shape half in its own
 landing body; `CarrierLandingFormTests.FromDouble_IsTheSameLandingAsTheMove` sweeps every mode instead of the one
 both channels used to hard-code. `ArithmeticOneInitialEvaluationDriftTests` reads the EMITTED C# and asserts each
-right-hand side is spelled once per source reference, that the r7 gate's operand is the materialized `__ie`
-intermediate, and that the gate is emitted for the numeric AND the numeric-edited receiver.
+right-hand side is spelled once per source reference, that no exactness test is written beside the landing (rule 7
+is the landing's own rounding decision, kb/Work PB3990), and that the one unchecked PROHIBITED store catches rule 7's
+condition alone.
 Goldens: `pb647_float_landing_mode` at 2002/2014/2023; `85/pb653_nested_float_operand` (the four channels agree
 on one binary64); `2014/pb653_nested_float_rounded_mode` (the eight modes over a nested-float expression, the
 exact-half tie, and PROHIBITED seeing the whole value); `2014/pb654_prohibited_gate_one_evaluation` (one
@@ -806,27 +805,32 @@ Mined from legacy ArithmeticLowerer.LowerDivide: it divides into a `decimal` acc
 GR1/GR7 define the quotient and the remainder as SDIDI expressions under standard-decimal arithmetic and GR6 c) derives the
 subsidiary quotient from that quotient by truncation, so the STANDARD / STANDARD-DECIMAL lane forms the quotient
 (`CobolDec.Div` over each operand's `DecOperand` lift), the subsidiary quotient (`CobolDec.SubsidiaryQuotient`: truncated
-toward zero at the GIVING receiver's scale, then reduced to its low-order digit count, the significand kept at the
-quotient's own exponent so no 38-digit significand enters a 34-digit carrier) and the remainder entirely on `CobolDec`;
+toward zero at the GIVING receiver's scale, every integer digit kept, the significand kept at the quotient's own exponent
+so no 38-digit significand enters a 34-digit carrier) and the remainder entirely on `CobolDec`;
 the stored quotient is the same SDIDI value, landed by the receiver's own rounding. An unsigned 16-byte dividend in
 [2^127, 2^128) or a float dividend past 1.7E+38 therefore reaches the lane exactly as in `COMPUTE`/`DIVIDE GIVING`. The NATIVE lane keeps the exact
-Int128 kernel (`CobolNum.Divide` at the receiver's scale, then `CapDigits`) for two scaled senders: its intermediate range
+Int128 kernel (`CobolNum.Divide` at the receiver's scale) for two scaled senders: its intermediate range
 is the checked Int128 (DOC-A.1-179), so an unsigned-wide dividend past 2^127 - 1 is the funnel's size error. A native
 sender on the binary64 or SDIDI carrier (a FLOAT-LONG item, a float function's value, a float literal, a NUMVAL value)
 takes `CarriedSubsidiaryQuotient`: the quotient is the very division `DIVIDE ... GIVING` without REMAINDER performs
 (`Combine(dividend, "/", divisor)` as the final transfer into identifier-3), taken at the receiver's rounding mode for
 the stored quotient and at TRUNCATION for the subsidiary quotient, with no sender quantized first (kb/Work PB3829's sweep:
 the lane used to land such a sender truncated at the float working scale, so `ROUNDED MODE AWAY-FROM-ZERO` of 0.12340000000001
-stored 0.1234 with REMAINDER and 0.1235 without, and 0.09 / 0.30000000000001 truncated to 0.3000 instead of 0.2999). ⛔ The subsidiary quotient's DIGIT CAP is the digits the
-receiver's store KEEPS (kb/Work PB129): the PICTURE's digit positions for a PICTURE-truncating item, none for a
-BINARY-CAPACITY item (COMP-5, BINARY-CHAR ... BINARY-DOUBLE), which owns its whole container (§13.18.60.4 GR12 / DOC-A.1-208, DOC-A.1-123) -
-the quotient such an item holds is the full quotient, and capping it at the PICTURE's digits made the remainder of
-`DIVIDE 123456 BY 7 GIVING Q REMAINDER R` into `Q PIC 9(4) COMP-5` 70004 instead of 4.
+stored 0.1234 with REMAINDER and 0.1235 without, and 0.09 / 0.30000000000001 truncated to 0.3000 instead of 0.2999). ⛔ The subsidiary quotient has NO DIGIT CAP (kb/Work PB3975).
+§14.9.12.4 6) c)'s "same number of digits ... as identifier-3" governs a quotient that raised no size error, and that
+quotient fits identifier-3, so its truncation (never further from zero than the stored quotient, whatever the ROUNDED
+mode) has identifier-3's digits already. When the quotient DID meet a size error and the remainder is still stored
+(checking not enabled and no SIZE ERROR phrase, ON or NOT: §14.6.13.1.3 8), CONFORMANCE.md DOC-A.1-70), the subsidiary quotient
+keeps every integer digit, as GnuCOBOL 3.2's `cob_div_quotient` does: `DIVIDE 1003 BY 4 GIVING B REMAINDER R` with B
+`PIC 99` stores R = 3, where the PICTURE-digit cap kb/Work PB129 applied gave 803 (and a cap on a BINARY-CAPACITY
+identifier-3 had made `DIVIDE 123456 BY 7 GIVING Q REMAINDER R` into `Q PIC 9(4) COMP-5` 70004 instead of 4, kb/Work PB3017).
+The native lane's subsidiary quotient carries the quotient's own digit bound (`NumericRenderer.QuotientDigitBound`, the
+rule the nested quotient states) into the back-multiply.
 
 **The subsidiary quotient is identifier-3's SHAPE under truncation, one arm per form (kb/Work PB2923;
 `ArithmeticEmitter.SubsidiaryShapeOf`, `SubsidiaryForm`).** §14.9.12.4 6) c) gives it "the same number of digits and the same
 decimal point location as" identifier-3, which only a fixed-point item has in the sense the old (scale, digit cap) pair
-modelled. A FIXED-POINT identifier-3 keeps that pair (above). A FLOATING-POINT numeric-edited identifier-3 (`PIC +9.99E+99`)
+modelled. A FIXED-POINT identifier-3 keeps its decimal point location, and no digit cap (above). A FLOATING-POINT numeric-edited identifier-3 (`PIC +9.99E+99`)
 has a significand of `SigDigits` digits at an exponent and no decimal point location, so its subsidiary quotient is the
 quotient truncated to those digits at its own exponent: `CobolEdit.TruncateToFloatShape`, the very normalization its store
 performs (`NormalizeFloat`, shared with `FormatFloatCore`, so a value past the exponent's range is the pinned saturated
@@ -1034,8 +1038,8 @@ the ONE definition: a finite double is ±man·2^exp exactly, so v·10^scale = ±
 PROVABLY exact for every scale ≤ 31 (man < 2^53 and 5^31 < 2^72 put the product below 2^125), with the same
 expansion over `BigInteger` for a wider scale, a negative one (a trailing-P receiver, whose 5^|scale| is a divisor)
 or a magnitude past the carrier — the runtime's second and last cold `BigInteger` path. `ExactRatio` is the one
-place a double's exact value at a decimal scale is written down, and `InexactAtScale` (the ROUNDED MODE PROHIBITED
-gate, §14.7.4.3 item 7) asks THAT ratio whether it divides rather than testing a product. **What this replaced**
+place a double's exact value at a decimal scale is written down, and ROUNDED MODE PROHIBITED (§14.7.4.3 item 7) is
+the landing's own `RoundDiv` over THAT ratio, raising when it does not divide, rather than a test of a product. **What this replaced**
 was `v * Pow10.AsDouble(scale)` formed in binary64 at each of three sites: past 2^53 the product is itself rounded,
 so the landing answered with a value the sender never held, and because the MOVE channel lands at the RECEIVER's
 scale while the arithmetic channel lands at a WORKING scale, one returned value became two receiver contents

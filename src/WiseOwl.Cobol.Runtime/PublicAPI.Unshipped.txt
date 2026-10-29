@@ -32,6 +32,7 @@ WiseOwl.Cobol.Runtime.CobolDynTable<T>.CopyOf(System.Func<T, T>! copyElement) ->
 WiseOwl.Cobol.Runtime.CobolDynTable<T>.CreatedAs(System.Func<T, WiseOwl.Cobol.Runtime.CobolVarGroup!>! carrierOf) -> System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?
 WiseOwl.Cobol.Runtime.CobolDynTable<T>.CreatedAs(System.Func<T, string!>! imageOf) -> System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?
 WiseOwl.Cobol.Runtime.CobolDynTable<T>.Recreated<TPart>(System.Collections.Generic.IReadOnlyList<TPart>! parts, TPart blank, System.Func<T, TPart, T>! store) -> WiseOwl.Cobol.Runtime.CobolDynTable<T>!
+WiseOwl.Cobol.Runtime.CobolSizeError.IsProhibitedInexact.get -> bool
 WiseOwl.Cobol.Runtime.CobolVarGroup.CobolVarGroup(string! Fixed, string![]! Dynamic, WiseOwl.Cobol.Runtime.CobolVarGroup![]?[]? Elements = null, System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?[]? Created = null) -> void
 WiseOwl.Cobol.Runtime.CobolVarGroup.Created.get -> System.Func<int, WiseOwl.Cobol.Runtime.CobolVarGroup!>?[]?
 WiseOwl.Cobol.Runtime.CobolVarGroup.Created.init -> void
@@ -567,7 +568,7 @@ static WiseOwl.Cobol.Runtime.CobolDec.FromApproximation(double d) -> WiseOwl.Cob
 static WiseOwl.Cobol.Runtime.CobolDec.FromBinary64(double d, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDec.FromUnsigned(System.UInt128 magnitude, int scale, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDec.Negate(WiseOwl.Cobol.Runtime.CobolDec value) -> WiseOwl.Cobol.Runtime.CobolDec
-static WiseOwl.Cobol.Runtime.CobolDec.SubsidiaryQuotient(WiseOwl.Cobol.Runtime.CobolDec quotient, int scale, int digits) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolDec.SubsidiaryQuotient(WiseOwl.Cobol.Runtime.CobolDec quotient, int scale) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Add(WiseOwl.Cobol.Runtime.CobolDecWithPrecision a, WiseOwl.Cobol.Runtime.CobolDecWithPrecision b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
 static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.DivTruncatedToOdd(WiseOwl.Cobol.Runtime.CobolDecWithPrecision a, WiseOwl.Cobol.Runtime.CobolDecWithPrecision b, int receiverScale) -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
 static WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Mul(WiseOwl.Cobol.Runtime.CobolDecWithPrecision a, WiseOwl.Cobol.Runtime.CobolDecWithPrecision b, WiseOwl.Cobol.Runtime.CobolRounding mode) -> WiseOwl.Cobol.Runtime.CobolDecWithPrecision
@@ -601,6 +602,7 @@ static WiseOwl.Cobol.Runtime.CobolNum.PositionOfWide(WiseOwl.Cobol.Runtime.Cobol
 static WiseOwl.Cobol.Runtime.CobolNum.PositionOfWide(double value) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassFormal(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal) -> void
 static WiseOwl.Cobol.Runtime.CobolObject.CheckActiveClassReturning(bool enabledInMethod, string! what, WiseOwl.Cobol.Runtime.ActivationDescription! receiving, WiseOwl.Cobol.Runtime.ActivationDescription! sending) -> void
+static WiseOwl.Cobol.Runtime.CobolSizeError.ProhibitedInexact() -> WiseOwl.Cobol.Runtime.CobolSizeError!
 static WiseOwl.Cobol.Runtime.CobolTable.OdoExtentTrimmed(WiseOwl.Cobol.Runtime.Occurrence count, int min, int max, int fixedUnits, int strideUnits, int trailingUnits) -> int
 static WiseOwl.Cobol.Runtime.CobolVarGroup.FromImage(string! image, WiseOwl.Cobol.Runtime.GroupAtom![]! imageShape, WiseOwl.Cobol.Runtime.GroupAtom![]! to) -> WiseOwl.Cobol.Runtime.CobolVarGroup!
 static WiseOwl.Cobol.Runtime.CobolVarGroup.OfImage(string! image) -> WiseOwl.Cobol.Runtime.CobolVarGroup!

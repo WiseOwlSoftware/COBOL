@@ -350,10 +350,8 @@ public static partial class CobolIntrinsics
     /// the receiver's capacity check to notice, which a receiver as wide as the carrier cannot); <c>false</c> for the no-phrase store (§14.6.13.1.3 item 8 — the receiver takes the
     /// LOW-ORDER digits of the result, the documented disposition), where the sentinel had no check to expose it and
     /// its low digits were stored as the answer (<c>COMPUTE X = FUNCTION EXP10(40)</c> stored 03715 in PIC 9(5)). An
-    /// unchecked ±∞ lands as zero (no digits), exactly as the MOVE landing does. Since kb/Work PB647 moved the
-    /// FINAL TRANSFER's rounding decision into this method, it is also the gate on the §14.7.4.3 rule 7
-    /// PROHIBITED raise below — the same condition the emitter's own float-source gate uses (an ON SIZE ERROR /
-    /// EC-SIZE statement), so the two channels agree on when the condition is raised.</param>
+    /// unchecked ±∞ lands as zero (no digits), exactly as the MOVE landing does. The §14.7.4.3 rule 7 PROHIBITED
+    /// raise does not depend on it (kb/Work PB3990).</param>
     /// <param name="mode">⛔ THE STATEMENT'S ROUNDING DECISION, AND IT HAS NO DEFAULT ON PURPOSE (kb/Work PB647).
     /// This quantizer is the ARITHMETIC channel's float→fixed landing; <c>CobolFloat.ToScaledUnchecked</c> is the
     /// MOVE channel's, and it has always taken the receiver's mode. While this one hard-coded
@@ -394,19 +392,13 @@ public static partial class CobolIntrinsics
         // landing's own (kb/Work PB77), and since kb/Work PB647 the MODE is the statement's, exactly as the MOVE
         // landing's is — the last thing that still made one returned value land two ways.
         //
-        // ⛔ ROUNDING MODE IS PROHIBITED, AT THE ONE PLACE THE TRANSFER'S ROUNDING NOW HAPPENS (§14.7.4.3 rule 7:
-        // "If the PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly in the
-        // resultant identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error
-        // condition exists", cite.py-verified — the receiver is left unchanged, which the caller's catch does).
-        // It has to be HERE and not at the store: a final transfer lands AT the resultant identifier's scale, so
-        // the store's rescale is the identity and its own PROHIBITED test can no longer see the discarded
-        // fraction. TryExactScaled documents that PROHIBITED itself lands truncated, so the raise must precede
-        // it. Gated on checkedLanding — the same ON SIZE ERROR / EC-SIZE scope the emitter's float-source gate
-        // has; without the phrase the no-phrase store's silent disposition stands, unchanged.
-        if (mode == CobolRounding.Prohibited && checkedLanding && CobolFloat.InexactAtScale(d, scale))
-            throw new CobolSizeError(
-                "ROUNDED MODE IS PROHIBITED on an inexact float-to-fixed arithmetic transfer "
-                + "(ISO §14.7.4.3 r7 — EC-SIZE-TRUNCATION; the receiver is left unchanged)", "EC-SIZE-TRUNCATION");
+        // ⛔ ROUNDING MODE IS PROHIBITED is answered by the landing's own rounding decision (§14.7.4.3 rule 7: "If the
+        // PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly in the resultant
+        // identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition exists, and
+        // the content of the resultant identifier is unchanged", cite.py-verified): a final transfer lands AT the
+        // resultant identifier's scale, so the store's rescale is the identity and only this rounding sees the
+        // discarded fraction, and CobolNum.RoundDiv raises CobolSizeError.ProhibitedInexact there, checked landing or
+        // not (kb/Work PB3990: the unchecked form used to land the value truncated).
         if (CobolFloat.TryExactScaled(d, scale, mode, out Int128 landed)) return landed;
         // ⛔ PAST THE CARRIER THE CHECKED FORM RAISES, IT NEVER SATURATES (kb/Work PB2967). The sentinel it used to
         // return ("so the capacity check raises") is invisible to a receiver whose capacity IS the carrier — a
