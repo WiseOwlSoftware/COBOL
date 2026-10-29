@@ -92,17 +92,23 @@ public static class CobolDynString
 
     /// <summary>
     /// SET [SIZE OF] data-name-3 TO n (ISO §14.9.39 Format 16, GR37–GR39): set the current length of a
-    /// dynamic-length item. <paramref name="newLen"/> is the arithmetic-expression-5 value at FULL precision (the
-    /// GR37 sign test precedes the GR38 clamp and the non-integer truncation, so a fractional negative in (−1,0)
-    /// must be caught before the toward-zero truncation — hence a <see cref="double"/>, mirroring
-    /// <see cref="CobolTiming.ContinueAfter"/>). GR39 — growing initializes the ADDED positions to SPACES (the
-    /// national space is U+0020 under the Latin-1 identity), NEVER restoring previously-truncated content; shrinking
-    /// drops the trailing positions. GR37 — when the evaluated value does not evaluate to a nonnegative number the
-    /// length is set to 0 and the nonfatal EC-STORAGE-NOT-AVAIL is raised; a non-integer nonnegative value is
-    /// truncated toward zero. GR38 — a value above <paramref name="maxSize"/> (the §8.5.1.10.1 maximum size of
-    /// data-name-3) is clamped to that maximum and the same nonfatal EC-STORAGE-NOT-AVAIL is raised. The stored
-    /// value is identical whether or not checking is on; checking only governs the observable exception status and
-    /// the §14.6.13.1.4 #3 declarative.
+    /// dynamic-length item. The amount arrives on the carrier arithmetic-expression-5 EVALUATED on (the
+    /// <see cref="double"/> here, a <see cref="CobolDec"/>, or a scaled <see cref="Int128"/>/<see cref="UInt128"/>
+    /// below), never narrowed first: the GR37 sign test and GR38's comparison with the maximum size are asked of the
+    /// EVALUATED value, so a fractional negative in (−1,0) still takes GR37's leg and 2.5 against a maximum of 2 is
+    /// still above it, and the non-integer truncation reads the value in its own domain — a binary64 image of
+    /// 2.99999999999999999 is 3.0, whose truncation is the wrong length (kb/Work PB464; the same discipline as
+    /// <see cref="CobolTiming.ContinueAfter(double, bool)"/>, kb/Work PB1529).
+    /// GR39 — growing initializes the ADDED positions to SPACES (the national space is U+0020 under the Latin-1
+    /// identity), NEVER restoring previously-truncated content; shrinking drops the trailing positions.
+    /// GR37 — when the evaluated value does not evaluate to a nonnegative number (a NaN is no number) the length is
+    /// set to 0 and the nonfatal EC-STORAGE-NOT-AVAIL is raised; GR37's second sentence, "truncated to the nearest
+    /// integer", is applied as TRUNCATION TOWARD ZERO and nothing is raised for the discarded fraction — the
+    /// standard's own TRUNCATION rounding mode is defined by the same words (§14.7.4.3 GR10 "rounded to the nearest
+    /// value nearer to zero"; docs/CONFORMANCE.md §7, the SET SIZE OF determination). GR38 — a value above
+    /// <paramref name="maxSize"/> (the §8.5.1.10.1 maximum size of data-name-3) is clamped to that maximum and the
+    /// same nonfatal EC-STORAGE-NOT-AVAIL is raised. The stored value is identical whether or not checking is on;
+    /// checking only governs the observable exception status and the §14.6.13.1.4 #3 declarative.
     /// <para>GR38's THIRD leg is implemented, not assumed away: "If the amount of storage required to expand the
     /// size of data-name-3 is not available, the size of data-name-3 is not changed, and an EC-STORAGE-NOT-AVAIL
     /// exception condition is set to exist." <see cref="MaxLength"/> is the carrier's ceiling, not a promise that
@@ -117,35 +123,87 @@ public static class CobolDynString
     /// </summary>
     public static string SetSize(string? current, double newLen, int maxSize)
     {
-        current ??= "";
-        int n;
-        bool raised = false;
-        // ⛔ A NaN is not a number, so it "does not evaluate to a nonnegative number" — GR37's leg — yet it fails
-        // BOTH comparisons below and used to fall to the `(int)` cast, which .NET saturates to 0 SILENTLY: the
-        // length came out right and the condition was never set (kb/Work PB2647). The infinities need no screen:
-        // −∞ is below zero (GR37) and +∞ is above every maximum size (GR38's clamp).
-        if (double.IsNaN(newLen) || newLen < 0.0)
-        {
-            n = 0;                                                       // GR37 — not nonnegative → length 0
-            raised = true;
+        // A NaN is not a number, so it "does not evaluate to a nonnegative number" — GR37's leg — yet it fails BOTH
+        // comparisons a plain `< 0` / `> max` pair would make and used to fall to a narrowing that saturates it to 0
+        // SILENTLY: the length came out right and the condition was never set (kb/Work PB2647). The infinities need
+        // no screen: −∞ is below zero (GR37) and +∞ is above every maximum size (GR38's clamp).
+        bool negative = double.IsNaN(newLen) || newLen < 0.0;
+        long whole = CobolNum.PositionOf(newLen);
+        var leg = Classify(negative, whole, CobolNum.HasFraction(newLen), maxSize);
+        if (leg != Leg.InRange) RaiseLeg(leg, newLen.ToString("R", System.Globalization.CultureInfo.InvariantCulture), maxSize);
+        return Resize(current, leg, whole, maxSize);
+    }
+
+    /// <summary>The <see cref="SetSize(string?, double, int)"/> twin for an amount that evaluated as a standard
+    /// decimal (§8.8.1.5 SDIDI): the sign is the significand's and the whole part is the saturating truncation
+    /// <see cref="CobolNum.PositionOf(CobolDec)"/> reads, so 10^40 is above every maximum size and not the zero its
+    /// 38 low-order digits make.</summary>
+    public static string SetSize(string? current, CobolDec newLen, int maxSize)
+    {
+        long whole = CobolNum.PositionOf(newLen);
+        var leg = Classify(newLen.Sig < 0, whole, newLen.HasFraction, maxSize);
+        if (leg != Leg.InRange)
+            RaiseLeg(leg, newLen.ToDouble().ToString("R", System.Globalization.CultureInfo.InvariantCulture), maxSize);
+        return Resize(current, leg, whole, maxSize);
+    }
+
+    /// <summary>The <see cref="SetSize(string?, double, int)"/> twin for an amount held as a scaled integer (a
+    /// fixed-point item or expression: <paramref name="unscaled"/> × 10^-<paramref name="scale"/>). The sign and the
+    /// fraction are the exact value's, never a binary64 image's.</summary>
+    public static string SetSize(string? current, Int128 unscaled, int scale, int maxSize)
+    {
+        long whole = CobolNum.PositionOf(unscaled, scale);
+        var leg = Classify(unscaled < 0, whole, CobolNum.HasFraction(unscaled, scale), maxSize);
+        if (leg != Leg.InRange) RaiseLeg(leg, CobolNum.PlainValue(unscaled, scale), maxSize);
+        return Resize(current, leg, whole, maxSize);
+    }
+
+    /// <summary>The <see cref="SetSize(string?, Int128, int, int)"/> twin for an UNSIGNED-WIDE amount (a 16-byte
+    /// unsigned COMP-5 item's [0, 2^128) range): never negative, and every value past the <see cref="long"/> range is
+    /// above every maximum size, where an <see cref="Int128"/> cast of a value at or above 2^127 would go negative.</summary>
+    public static string SetSize(string? current, UInt128 unscaled, int scale, int maxSize)
+    {
+        long whole = CobolNum.PositionOf(unscaled, scale);
+        var leg = Classify(false, whole, CobolNum.HasFraction(unscaled, scale), maxSize);
+        if (leg != Leg.InRange) RaiseLeg(leg, CobolNum.PlainValue(unscaled, scale), maxSize);
+        return Resize(current, leg, whole, maxSize);
+    }
+
+    /// <summary>Which of GR37 / GR38 the evaluated amount takes. <paramref name="whole"/> is the toward-zero
+    /// truncation GR37's second sentence calls for, saturated to <see cref="long"/> so an out-of-range request stays
+    /// out of range. GR37's test is on the EVALUATED value (<paramref name="negative"/>); so is GR38's "greater than
+    /// the maximum size": the truncation exceeds the maximum, or, at the maximum, a nonzero fraction lifts the
+    /// evaluated value above it.</summary>
+    private static Leg Classify(bool negative, long whole, bool hasFraction, int maxSize) =>
+        negative ? Leg.NotNonnegative
+        : whole > maxSize || (whole == maxSize && hasFraction) ? Leg.AboveMaximum
+        : Leg.InRange;
+
+    private enum Leg { InRange, NotNonnegative, AboveMaximum }
+
+    /// <summary>The nonfatal EC-STORAGE-NOT-AVAIL of GR37 or GR38's second sentence. <paramref name="shown"/> is the
+    /// amount as the exception detail names it, formatted by the caller only when a leg raises.</summary>
+    private static void RaiseLeg(Leg leg, string shown, int maxSize)
+    {
+        if (leg == Leg.NotNonnegative)
             ExceptionState.StorageNotAvailError(
-                $"SET SIZE: the evaluated length {newLen} is not a nonnegative number (ISO §14.9.39.4 Format 16 GR37)");
-        }
-        else if (newLen > maxSize)
-        {
-            n = maxSize;                                                 // GR38 — above the maximum → clamp to it
-            raised = true;
-            ExceptionState.StorageNotAvailError(
-                $"SET SIZE: the evaluated length {newLen} exceeds the item's maximum size {maxSize} "
-                + "(ISO §14.9.39.4 Format 16 GR38 / §8.5.1.10.1)");
-        }
+                $"SET SIZE: the evaluated length {shown} is not a nonnegative number (ISO §14.9.39.4 Format 16 GR37)");
         else
-        {
-            // 0 ≤ newLen ≤ maxSize ≤ MaxLength, so the narrowing is exact — GR37's toward-zero truncation of a
-            // non-integer value, and nothing else. This is the whole point of MaxSizeOf: the bound is applied
-            // BEFORE any narrowing, on the value as written.
-            n = (int)newLen;
-        }
+            ExceptionState.StorageNotAvailError(
+                $"SET SIZE: the evaluated length {shown} exceeds the item's maximum size {maxSize} "
+                + "(ISO §14.9.39.4 Format 16 GR38 / §8.5.1.10.1)");
+    }
+
+    /// <summary>GR37 – GR39 once the leg is known: length 0 (GR37), the maximum (GR38), or the truncated whole
+    /// part; shrinking drops the trailing positions, growing adds spaces (GR39) unless the host cannot hand over the
+    /// storage (GR38 third sentence).</summary>
+    private static string Resize(string? current, Leg leg, long whole, int maxSize)
+    {
+        current ??= "";
+        // 0 ≤ whole ≤ maxSize ≤ MaxLength on the in-range leg, so the narrowing is exact — GR37's toward-zero
+        // truncation of a non-integer value, and nothing else. This is the whole point of MaxSizeOf: the bound is
+        // applied BEFORE any narrowing, on the value as written.
+        int n = leg switch { Leg.NotNonnegative => 0, Leg.AboveMaximum => maxSize, _ => (int)whole };
         if (n <= current.Length) return current[..n];                    // shrink — drop the trailing positions
         try
         {
@@ -153,12 +211,11 @@ public static class CobolDynString
         }
         catch (OutOfMemoryException)
         {
-            // GR38 third leg — the storage to expand is not available: the size is NOT changed. (The condition is
-            // already set to exist when the clamp leg raised it; a second raise would re-enter the declarative.)
-            if (!raised)
-                ExceptionState.StorageNotAvailError(
-                    $"SET SIZE: the storage required to expand the item to {n} characters is not available "
-                    + "(ISO §14.9.39.4 Format 16 GR38)");
+            // GR38 third sentence — the host cannot hand over the storage the expansion needs: the size is NOT
+            // changed, and the condition is set to exist.
+            ExceptionState.StorageNotAvailError(
+                $"SET SIZE: the storage required to expand the item to {n} characters is not available "
+                + "(ISO §14.9.39.4 Format 16 GR38)");
             return current;
         }
     }
