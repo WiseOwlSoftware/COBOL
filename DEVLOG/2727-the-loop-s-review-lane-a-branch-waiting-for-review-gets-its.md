@@ -1,4 +1,4 @@
-## The loop's review lane: a branch WAITING FOR REVIEW gets its reviewer within a tick, and a CONFLICT stop its finisher (kb/Work PB3608)
+## Entry 2727 — 2026-10-29 11:50 PDT — The loop's review lane: a branch WAITING FOR REVIEW gets its reviewer within a tick, and a CONFLICT stop its finisher (kb/Work PB3608)
 
 **Mechanism.** A finished branch waited up to an hour for its reviewer: the loop reviewed only inside an `enqueue` unit,
 units run one at a time (3,308 s, 4,579 s and over two hours on 2026-10-23), and `fix-self-test-wall-leads`, DONE at
@@ -68,3 +68,4 @@ fresh survey, and enqueue.md step 2 takes the survey (`land_lane.py tick`) befor
 already changed: R1-5 (a hold carries and `status` prints its findings file; step 2 names the lane's file for an
 UNREVIEWED branch), R1-6 (`review_findings.py summary` reads every `review-*.jsonl` and times a restarted round from its
 newest `start`). Arms for each in `review_lane.py` and `review_findings.py` self-tests, named in `ReviewLaneDriftTests`.
+
