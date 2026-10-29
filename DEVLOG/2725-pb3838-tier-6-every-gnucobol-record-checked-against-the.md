@@ -1,4 +1,4 @@
-## PB3838 tier 6: every GnuCOBOL record checked against the tracker and re-run on the development line
+## Entry 2725 — 2026-10-29 11:20 PDT — PB3838 tier 6: every GnuCOBOL record checked against the tracker and re-run on the development line
 
 The owner asked for our GnuCOBOL records to be triaged against the bugs already reported upstream before any is filed.
 All 78 `upstream` notes now carry the result in their `## Upstream state`.
@@ -37,3 +37,4 @@ Retiring PB3899 exposed a counting error in the fuzz ledger: `fuzz_history.from_
 record, so a bug GnuCOBOL has since fixed vanished from "bugs recorded in GnuCOBOL" as if it had never been one. A retired
 record now counts when its `upstream_status` is `fixed-upstream`; retired for any other reason it does not. The ledger's
 self-test pins both cases (PB9013, PB9014), and the ledger renders unchanged (786bf648b722).
+
