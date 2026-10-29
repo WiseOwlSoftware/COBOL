@@ -22,13 +22,18 @@ leads, the records and the ledger.
    whose wave stopped before its review) and restarts a reviewer that was killed. Read `python
    scripts/orchestrator/review_lane.py status`: one line per reviewer and finisher, and a `HOLD` line per branch only
    you or the operator can resolve. When its header says the lane has never ticked or is STALE (the supervisor's lane is
-   off or failing), run `python scripts/orchestrator/review_lane.py tick` ONCE (the same deterministic lane: it starts
-   exactly what a supervisor tick would) and read `status` again. A CLEAN stamp makes the row WAITING TO LAND for step
+   off or failing, or `-LandLaneSeconds 0` leaves it no landing tick to follow), first make the survey fresh: when
+   `python scripts/orchestrator/land_lane.py status` says its survey is STALE or the lane never ticked, run
+   `land_lane.py tick` ONCE (step 3's tick, taking the survey the review lane reads). Then run `python
+   scripts/orchestrator/review_lane.py tick` ONCE (the same deterministic lane: it starts exactly what a supervisor tick
+   would; on a survey older than `land_lane.SURVEY_MAX_AGE_MIN` it starts nothing and says so) and read `status` again. A CLEAN stamp makes the row WAITING TO LAND for step
    3; a FINDINGS stamp makes it a DECISION row whose finisher the next wave plans (plan_wave.py). Never fix a finding
    here. By hold: reviewers that ended with no verdict at one head (STALLED at the ceiling, killed, a stalled model),
    or a findings file torn other than by a cut-off append: dispatch ONE read-only `cobol-reviewer` yourself (Agent
-   tool, model opus) whose prompt gives the branch, its worktree, its tip, its report, the findings file the hold
-   names, the reviewer label `enqueue-review-<branch>-r1`, the round, both stop files, and says: follow "The branch
+   tool, model opus) whose prompt gives the branch, its worktree, its tip, its report, the findings file (the
+   hold's own, which `status` prints on its HOLD line; for an UNREVIEWED branch, which has no hold, the lane's own name for
+   it, `<coord>/scratch/review-<branch>.jsonl` with every run of characters outside A-Z a-z 0-9 . _ - in the branch name
+   replaced by one `-`; a torn one is mended first, by the remedy the hold names), the reviewer label `enqueue-review-<branch>-r1`, the round, both stop files, and says: follow "The branch
    form" of `.claude/skills/review/SKILL.md`; a conflict finisher that ended with the head unchanged: read its report
    (`review_lane.py status` names its log), and either re-arm the branch (step 3, a stop resolved with no commit) or
    send a finisher (step 4). Then `python scripts/orchestrator/review_lane.py collect <branch> ...`. A branch whose

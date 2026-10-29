@@ -53,3 +53,18 @@ runner over a stub agent for rc, verdict, ceiling and a loop stop), `review_find
 `test_orchestrate_lane.ps1` (a review tick follows the landing ticks, carries the cap and the resolved claude launch,
 and none at `-ReviewAgents 0` or `-LandLaneSeconds 0`), `ReviewLaneDriftTests` (the supervisor's chaining, enqueue.md
 step 2, every self-test arm named). No inventory row is claimed or closed.
+
+**Branch review, round 1 (four blocking findings, all fixed at the root).** R1-1: starting a conflict finisher collected
+every finished attempt of the branch, so a DIRTY bounce lost the enqueue unit's work on its ENQUEUED attempt (leads, landing
+record); `conflict_attempt` now names the one exit-4 attempt that IS the stop, and only it is collected. R1-2: a verdict
+at the head in a rolling wave's findings file whose stamp never came (the wave stopped before its step 5) read as
+reviewed for ever; any file's verdict older than the 5-minute grace is now stamped by the lane (only the file's newest
+round, `Round.ended` carries the verdict's time). R1-3: runs a loop stop ended (STOPPED) counted toward ATTEMPT_LIMIT, so
+two stops turned the restart into a HOLD; they count for neither reviewers nor conflict finishers now (the finisher was the
+sibling: `plan_conflict` and `judge`). R1-4: the lane's survey threshold was 10 minutes while `agent_work` used 30, and
+`tick` recorded itself as ticking before it read the survey, so under `-LandLaneSeconds 0` a stale-survey tick launched
+nothing and hid the waiting branches; one threshold (`land_lane.SURVEY_MAX_AGE_MIN`), the tick is recorded only after a
+fresh survey, and enqueue.md step 2 takes the survey (`land_lane.py tick`) before the review tick. Leads fixed in files
+already changed: R1-5 (a hold carries and `status` prints its findings file; step 2 names the lane's file for an
+UNREVIEWED branch), R1-6 (`review_findings.py summary` reads every `review-*.jsonl` and times a restarted round from its
+newest `start`). Arms for each in `review_lane.py` and `review_findings.py` self-tests, named in `ReviewLaneDriftTests`.

@@ -20,7 +20,7 @@ branch within its tick; this lane does the same for the two steps before it that
 the finishers of every other stop, the leads and the records; it no longer starts reviews or CONFLICT finishers.
 
 THE TICK is chained after the landing lane's (orchestrate.ps1 starts it when a land tick completes), because it reads
-the survey that tick wrote (`<coord>/land-lane/survey.json`; a survey older than SURVEY_MAX_AGE_MIN launches nothing)
+the survey that tick wrote (`<coord>/land-lane/survey.json`; a survey older than land_lane.SURVEY_MAX_AGE_MIN launches nothing)
 and no second survey is taken. In order:
   1. REAP: a run whose runner is gone without an rc is DIED. Every finished run is JUDGED once: a CONFLICT finisher
      that ended with its branch's head unchanged is a HOLD (the enqueue unit decides: a stop resolved with no commit is
@@ -36,7 +36,9 @@ and no second survey is taken. In order:
 
 THE LEASE, per branch HEAD (review_findings.py is the one reader of the findings files, `rounds`):
     a run of this lane alive at the head                          wait
-    any findings file with a VERDICT at the head                 reviewed: the next survey reads it (nothing to start)
+    any findings file with a VERDICT at the head                 reviewed: its reviewer stamps the report (nothing to
+                                                                 start); a verdict older than REPORT_GRACE_MIN whose stamp
+                                                                 never came is STAMPED BY THE LANE, whichever file holds it
     the report younger than REPORT_GRACE_MIN                     wait: a wave's reviewer may be about to write its `start`
     a foreign `start` at the head, no verdict, younger than the  wait: a rolling wave's reviewer (the survey cannot tell it
     reviewer ceiling (REVIEWER_CEILING_MIN)                      from a branch waiting for one, kb/Work PB3283)
@@ -123,12 +125,11 @@ FINISHER_CEILING_MIN = 240
 CEILING_MIN = {REVIEW: REVIEWER_CEILING_MIN, CONFLICT: FINISHER_CEILING_MIN}
 #: A report this young may belong to a rolling wave whose reviewer has not started (module doc, THE LEASE): the lane waits.
 REPORT_GRACE_MIN = 5
-#: Reviews that may END WITH NO VERDICT at one head before the lane stops trying (a HOLD).
+#: Reviews that may END WITH NO VERDICT at one head before the lane stops trying (a HOLD). A review the loop's own stop
+#: ended (STOPPED) is not one: it was cut off from outside, and the next tick starts the round again.
 ATTEMPT_LIMIT = 2
 #: Review finisher rounds the rolling wave allows (review_fix_rounds): rounds above it block on BLOCKING_AT_CAP.
 REVIEW_FIX_ROUNDS = 2
-#: The lane acts on a survey this fresh. It is chained after the landing lane's tick, so it is normally seconds old.
-SURVEY_MAX_AGE_MIN = 10
 #: The lane has not ticked in this long: `agent_work` hands its work to the enqueue unit (which ticks it once).
 LANE_STALE_MIN = land_lane.SURVEY_MAX_AGE_MIN
 POLL_S = 2.0   # the runner's look at its agent
@@ -203,7 +204,7 @@ class Plan:
     round: int = 0
     prev_head: str | None = None
     hold: bool = False   # not a wait: only the enqueue unit or the operator resolves it
-    stamp: pathlib.Path | None = None   # the lane's own findings file holds the verdict, the report lacks its stamp
+    stamp: pathlib.Path | None = None   # a findings file holds the verdict at the head, the report lacks its stamp
 
 
 def blocking_for(rnd: int) -> str:
@@ -221,8 +222,16 @@ def standing(row: dict[str, Any], cdir: pathlib.Path, now: dt.datetime, own: pat
             if not same_commit(x.head, row["tip"]):
                 continue
             if x.verdict:
-                return Plan(False, f"reviewed: {path.name} round {x.round} has its {x.verdict} at this head",
-                            stamp=path if os.path.normcase(str(path)) == os.path.normcase(str(own)) else None)
+                # The survey reads only the report's stamp, so a verdict whose stamp never came (the reviewer was killed
+                # between the two, or a wave stopped before its step 5) is stamped by the lane, from any file, once it is
+                # older than the grace in which its own reviewer stamps it (R1-2). `stamp` writes the file's NEWEST verdict:
+                # only the file's newest round may be stamped.
+                if x.round != max(y.round for y in rs if y.verdict):
+                    continue
+                if minutes_since(x.ended, now) < REPORT_GRACE_MIN:
+                    return Plan(False, f"reviewed: {path.name} round {x.round} has its {x.verdict} at this head, "
+                                       f"{max(minutes_since(x.ended, now), 0):.0f} min ago; its reviewer stamps it")
+                return Plan(False, f"reviewed: {path.name} round {x.round} has its {x.verdict} at this head, unstamped", stamp=path)
             if os.path.normcase(str(path)) != os.path.normcase(str(own)) \
                     and minutes_since(x.started, now) < REVIEWER_CEILING_MIN:
                 return Plan(False, f"a reviewer ({x.reviewer}, {path.name} round {x.round}) started "
@@ -250,7 +259,9 @@ def plan_review(row: dict[str, Any], cdir: pathlib.Path, rs: list[dict[str, Any]
     if age is not None and age < REPORT_GRACE_MIN:
         return Plan(False, f"its report was written {max(age, 0):.0f} min ago: a rolling wave's reviewer may be about to start "
                            f"(the lane waits {REPORT_GRACE_MIN} min)")
-    failed = [r for r in ours if finished(r) and same_commit(r["head"], tip) and not r.get("verdict")]
+    # A reviewer ended by a loop stop (STOPPED) failed at nothing: the stop restarts the round, however often it came (R1-3).
+    failed = [r for r in ours if finished(r) and same_commit(r["head"], tip) and not r.get("verdict")
+              and r.get("outcome") != "STOPPED"]
     if len(failed) >= ATTEMPT_LIMIT:
         return Plan(False, f"{len(failed)} reviewers ended with no verdict at {tip[:12]} ({failed[-1].get('outcome') or 'exit ' + str(failed[-1].get('rc'))})",
                     hold=True)
@@ -272,12 +283,22 @@ def plan_review(row: dict[str, Any], cdir: pathlib.Path, rs: list[dict[str, Any]
     return Plan(True, why, rnd, prev)
 
 
-def conflict_cause(row: dict[str, Any], atts: list[dict[str, Any]]) -> str | None:
-    """Why the row is a CONFLICT stop at its tip, or None: the branch's latest landing attempt ended exit 4 (CONFLICT)
-    with the branch still at that attempt's end head, or the survey reads its pull request DIRTY (BOUNCED)."""
+def conflict_attempt(row: dict[str, Any], atts: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """The landing attempt that IS the row's CONFLICT stop: the branch's latest, ended exit 4 with the branch still at its
+    end head. It is the only attempt the lane collects when it starts the finisher: for a pull request the queue bounced
+    DIRTY the latest attempt is the ENQUEUED one, whose leads and landing record the enqueue unit still owes (R1-1)."""
     last = atts[-1] if atts else None
     if row.get("state") == "STOPPED" and last and land_lane.finished(last) and last.get("rc") == land_lane.EXIT_CONFLICT \
             and row.get("tip") == last.get("end_head"):
+        return last
+    return None
+
+
+def conflict_cause(row: dict[str, Any], atts: list[dict[str, Any]]) -> str | None:
+    """Why the row is a CONFLICT stop at its tip, or None: the branch's latest landing attempt ended exit 4 (CONFLICT)
+    with the branch still at that attempt's end head, or the survey reads its pull request DIRTY (BOUNCED)."""
+    last = conflict_attempt(row, atts)
+    if last:
         return f"the landing stopped CONFLICT (exit 4): {last.get('verdict') or 'no verdict line'}"
     if row.get("state") == "BOUNCED" and row.get("conflicts"):
         return f"the queue bounced its pull request as DIRTY: {row.get('why')}"
@@ -287,7 +308,8 @@ def conflict_cause(row: dict[str, Any], atts: list[dict[str, Any]]) -> str | Non
 def plan_conflict(row: dict[str, Any], rs: list[dict[str, Any]]) -> Plan:
     """ONE conflict finisher per head: a run already started at this head (alive or ended) is never repeated; an ended
     one that moved nothing is a hold (judge), a new head is a new case."""
-    started = [r for r in mine(rs, row["name"], CONFLICT) if same_commit(r["head"], row["tip"])]
+    started = [r for r in mine(rs, row["name"], CONFLICT) if same_commit(r["head"], row["tip"])
+               and r.get("outcome") != "STOPPED"]   # a finisher a loop stop cut off is started again, like a reviewer (R1-3)
     if started:
         return Plan(False, f"its conflict finisher ({started[-1]['id']}) "
                            f"{'is running' if not finished(started[-1]) else 'already ran at this head'}")
@@ -368,6 +390,7 @@ def hold(cdir: pathlib.Path, row: dict[str, Any], why: str, say: Say) -> None:
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     coord.write_json(path, {"branch": row["name"], "head": row["tip"], "why": why, "collected": False,
+                            "findings": str(findings_path(cdir, row["name"])),   # a hand-dispatched reviewer records here (R1-5)
                             "at": land_lane.now_utc().isoformat(timespec="seconds")})
     say(f"review lane: {row['name']} @{row['tip'][:12]}: HOLD — {why}")
     land_lane.notify_operator(cdir, f"Review lane holds {row['name']}", f"{row['name']} at {row['tip']}: {why}",
@@ -380,7 +403,8 @@ def judge(cdir: pathlib.Path, rs: list[dict[str, Any]], rows: dict[str, dict[str
     for r in rs:
         if not finished(r) or r.get("judged"):
             continue
-        if r["kind"] == CONFLICT and same_commit(r.get("end_head"), r["head"]) and r["branch"] in rows:
+        if r["kind"] == CONFLICT and same_commit(r.get("end_head"), r["head"]) and r["branch"] in rows \
+                and r.get("outcome") != "STOPPED":
             hold(cdir, {"name": r["branch"], "tip": r["head"]},
                  f"the conflict finisher {r['id']} ended ({r.get('outcome') or 'exit ' + str(r.get('rc'))}) with the head "
                  f"unchanged: read its report; a stop it resolved with no commit is re-armed (`land_lane.py rearm`)", say)
@@ -463,17 +487,20 @@ def tick(cdir: pathlib.Path, repo: pathlib.Path, *, claude: list[str] = ("claude
         say(f"review lane: a tick is already running ({ExclusiveLock.holder(d / TICK_LOCK)}); nothing done")
         return 0
     with lock:
-        coord.write_json(d / LAST_TICK, {"at": land_lane.now_utc().isoformat(timespec="seconds")})
         unreadable: list[str] = []
         rs = runs(cdir, unreadable)
         for p in unreadable:
             say(f"review lane: {p} is not a run record; left out (its branch may be reviewed again): inspect it")
         reap(rs, alive, tip, say)
         rows, age = read_survey(cdir, now)
-        if age is None or age > SURVEY_MAX_AGE_MIN:
+        if age is None or age > land_lane.SURVEY_MAX_AGE_MIN:
             say("review lane: " + ("no survey yet: the landing lane has not ticked" if age is None else
-                                    f"the landing lane's survey is {age:.0f} min old (over {SURVEY_MAX_AGE_MIN}): nothing launched"))
+                                    f"the landing lane's survey is {age:.0f} min old (over {land_lane.SURVEY_MAX_AGE_MIN}): nothing launched")
+                + "; run `land_lane.py tick` (it takes the survey), then this tick again")
             return 0
+        # Only a tick that read a fresh survey is a TICK: one that could act on nothing leaves `agent_work` saying the lane
+        # is not ticking, so the unit that runs it takes the survey first (R1-4: -LandLaneSeconds 0 has no other tick).
+        coord.write_json(d / LAST_TICK, {"at": land_lane.now_utc().isoformat(timespec="seconds")})
         named = {r["name"]: r for r in rows}
         judge(cdir, runs(cdir), named, say)
         rs = runs(cdir)
@@ -501,8 +528,8 @@ def tick(cdir: pathlib.Path, repo: pathlib.Path, *, claude: list[str] = ("claude
                 continue
             plan = plan_review(row, cdir, rs, now, say)
             if plan.stamp:
-                # A reviewer killed between its verdict and its stamp: the verdict is computed and on disk, so stamping
-                # it is the lane's (a script's) job, not a second review. A foreign file's verdict is its wave's.
+                # A reviewer killed between its verdict and its stamp (or a wave that stopped before its step 5): the verdict
+                # is computed and on disk, so stamping it is the lane's (a script's) job, not a second review.
                 try:
                     say(f"review lane: {row['name']}: stamped from its own verdict: {review_findings.stamp(pathlib.Path(row['report']), plan.stamp)}")
                 except (review_findings.RecordError, OSError) as exc:
@@ -538,10 +565,10 @@ def tick(cdir: pathlib.Path, repo: pathlib.Path, *, claude: list[str] = ("claude
                 failed += 1
                 say(f"review lane: {row['name']}: the runner did not start ({exc})")
                 continue
-            if kind == CONFLICT:   # the unit need not dispatch what the lane did
-                for a in atts.get(row["name"], []):
-                    if land_lane.finished(a) and not a.get("collected"):
-                        land_lane.update(a, {"collected": True})
+            if kind == CONFLICT:   # the unit need not dispatch what the lane did: the exit-4 attempt only, never an ENQUEUED one
+                stop = conflict_attempt(row, atts.get(row["name"], []))
+                if stop and not stop.get("collected"):
+                    land_lane.update(stop, {"collected": True})
             rs.append(rec)
             say(f"review lane: {row['name']} @{row['tip'][:12]}: {ROLE[kind]} started ({plan.why}; pid {rec['pid']}, {rec['log']})")
         return 1 if failed else 0
@@ -640,7 +667,8 @@ def status_lines(cdir: pathlib.Path, now: dt.datetime | None = None) -> list[str
              f"last tick {age:.0f} min ago" + (f" — STALE (over {LANE_STALE_MIN} min): run `review_lane.py tick`" if age > LANE_STALE_MIN else ""))
             + " ===")
     out = [head]
-    out += [f"HOLD             {h['branch']} @{h['head'][:12]}{' [collected]' if h.get('collected') else ''}: {h['why']}" for h in lane.holds]
+    out += [f"HOLD             {h['branch']} @{h['head'][:12]}{' [collected]' if h.get('collected') else ''}: {h['why']}"
+            f" (findings file {h.get('findings') or findings_path(cdir, h['branch'])})" for h in lane.holds]
     latest: dict[tuple[str, str], dict[str, Any]] = {}
     for r in lane.runs:
         latest[(r["branch"], r["kind"])] = r
@@ -747,8 +775,8 @@ def self_test() -> int:
         f2.decision = "hold-session"
         expect("no agent starts under a budget hold (the lane spends the loop's quota)", f2.tick() == [] and any("hold-session" in s for s in f2.said), str(f2.said))
         f2.decision = "go"
-        survey(c2, f2.rows, t0 - dt.timedelta(minutes=SURVEY_MAX_AGE_MIN + 1))
-        expect("a survey older than SURVEY_MAX_AGE_MIN launches nothing", f2.tick() == [] and any("old" in s for s in f2.said), str(f2.said))
+        survey(c2, f2.rows, t0 - dt.timedelta(minutes=land_lane.SURVEY_MAX_AGE_MIN + 1))
+        expect("a survey older than land_lane.SURVEY_MAX_AGE_MIN launches nothing", f2.tick() == [] and any("old" in s for s in f2.said), str(f2.said))
         survey(c2, f2.rows)
         tips_moved = Fake(c2, [row("s1", "WAITING FOR REVIEW", "a1a1a1a")])
         tick(c2, root, budget=lambda: "go", start=tips_moved.start, alive=lambda r: False, tip=lambda wt: "ffffffff", now=t0, say=tips_moved.said.append)
@@ -785,9 +813,26 @@ def self_test() -> int:
         review_findings.start(own5, 1, "S1", "a1a1a1a", "lane-review-S1-r1-1")
         review_findings.verdict(own5, 1)   # the reviewer was killed between its verdict and its stamp
         f5s = Fake(c5s, [row("S1", "WAITING FOR REVIEW", "a1a1a1a", report=str(stamped))])
+        expect("a verdict younger than REPORT_GRACE_MIN is left to its reviewer's own stamp",
+               f5s.tick() == [] and "**Review:**" not in stamped.read_text(encoding="utf-8"), str(f5s.said))
+        past_grace = t0 + dt.timedelta(minutes=REPORT_GRACE_MIN + 1)
+        survey(c5s, f5s.rows, past_grace)
         expect("a verdict in the lane's own file with no stamp in the report is stamped by the lane, not reviewed again",
-               f5s.tick() == [] and "**Review:** CLEAN lane-review-S1-r1-1 a1a1a1a" in stamped.read_text(encoding="utf-8")
+               f5s.tick(past_grace) == [] and "**Review:** CLEAN lane-review-S1-r1-1 a1a1a1a" in stamped.read_text(encoding="utf-8")
                and not holds(c5s), str(f5s.said))
+        # R1-2: a rolling wave's reviewer recorded its verdict and was stopped before its stamp: the lane stamps it too.
+        c5w = fresh()
+        stamped_w = root / "w9y-PB2-report.md"
+        stamped_w.write_text("# PB2 — implementer report\n\n**Status:** DONE · **branch:** `S2`\n**diffstat:** x\n\n## Rule\n",
+                             encoding="utf-8", newline="\n")
+        wave_w = c5w / "scratch" / "review-w9-y.jsonl"
+        review_findings.start(wave_w, 1, "S2", "a1a1a1a", "w9y-review-r1")
+        review_findings.verdict(wave_w, 1)
+        f5w = Fake(c5w, [row("S2", "WAITING FOR REVIEW", "a1a1a1a", report=str(stamped_w))])
+        survey(c5w, f5w.rows, past_grace)
+        expect("a wave reviewer's verdict at the head whose stamp never came is stamped by the lane (the branch would wait for ever)",
+               f5w.tick(past_grace) == [] and "**Review:** CLEAN w9y-review-r1 a1a1a1a" in stamped_w.read_text(encoding="utf-8")
+               and not holds(c5w), str(f5w.said))
         c5g = fresh()
         young = root / "young-report.md"
         young.write_text("# report\n", encoding="utf-8", newline="\n")
@@ -833,6 +878,8 @@ def self_test() -> int:
         bad.write_bytes(bad.read_bytes() + b"{not json}\n" + bad.read_bytes())
         expect("a tear before more lines is the operator's: a HOLD, nothing started, the file untouched",
                f7.tick() == [] and any(h["branch"] == "K2" for h in holds(c7)) and b"{not json}" in bad.read_bytes(), str(f7.said))
+        expect("a hold names the findings file a hand-dispatched reviewer records in, and `status` prints it (R1-5)",
+               holds(c7)[0].get("findings") == str(bad) and str(bad) in "\n".join(status_lines(c7)), str(holds(c7)))
 
         # 5. ROUNDS: round 2 reviews the finisher's diff; past REVIEW_FIX_ROUNDS the blocking set is the cap's.
         c8 = fresh()
@@ -861,6 +908,14 @@ def self_test() -> int:
                and any(w.startswith("review lane holds: A1") for w in agent_work(c9, t0)), f"{f9.said} {agent_work(c9, t0)}")
         expect("a new head is a new case: the hold is dropped and the lane reviews again",
                (f9.rows[0].__setitem__("tip", "d4d4d4d"), survey(c9, f9.rows), f9.tick())[2] == [(REVIEW, "A1")] and not holds(c9))
+        # R1-3: a reviewer a LOOP STOP ended failed at nothing; however many stops came, the round starts again.
+        c9s = fresh()
+        f9s = Fake(c9s, [row("A2", "WAITING FOR REVIEW", "a1a1a1a")])
+        for i in range(ATTEMPT_LIMIT + 1):
+            expect(f"review {i + 1} after {i} loop stops starts again", f9s.tick() == [(REVIEW, "A2")] and not holds(c9s), str(f9s.said))
+            end(c9s, runs_of(c9s, "A2")[-1], 1, outcome="STOPPED")
+            f9s.live.clear()
+        expect("loop stops never make a HOLD for the enqueue unit", not holds(c9s) and agent_work(c9s, t0) == [], str(agent_work(c9s, t0)))
 
         # 7. THE CONFLICT FINISHER: an exit 4 and a DIRTY bounce each get ONE per head, with the brief; the exit 4 is collected.
         c10 = fresh()
@@ -889,11 +944,42 @@ def self_test() -> int:
         expect("a finisher that moved the head is judged and holds nothing", not any(h["branch"] == "F2" for h in holds(c10)), str(holds(c10)))
         expect("`collect` clears a hold from the unit's work", collect(c10, ["F1"], say=lambda s: None) == 0
                and not [w for w in agent_work(c10, t0) if "F1" in w])
+        # R1-1: the lane collects ONLY the exit-4 attempt; a DIRTY bounce's latest attempt is the ENQUEUED one, still owed
+        # its leads and landing record. R1-3: a finisher a loop stop cut off is started again, not held.
+        c10b = fresh()
+        att_b = land_lane.lane_dir(c10b) / land_lane.ATTEMPTS
+        att_b.mkdir(parents=True)
+        enq = {"id": "000001-x-F4", "branch": "F4", "head": "a1a1a1a", "worktree": str(root / "wt-F4"), "rc": 0, "end_head": "a1a1a1a",
+               "verdict": "=== ENQUEUE: ENQUEUED", "collected": False}
+        coord.write_json(att_b / "000001-x-F4.json", enq)
+        f10b = Fake(c10b, [row("F4", "BOUNCED", "a1a1a1a", conflicts=True, why="pull request #9 conflicts with main (merge state DIRTY)")])
+        expect("a DIRTY bounce starts its finisher", f10b.tick() == [(CONFLICT, "F4")], str(f10b.said))
+        expect("the ENQUEUED attempt is NOT collected: its leads and landing record are still the unit's",
+               land_lane.attempts(c10b)[0].get("collected") is False
+               and any("F4" in w for w in land_lane.agent_work(c10b, t0).reasons), str(land_lane.agent_work(c10b, t0).reasons))
+        for i in range(2):
+            end(c10b, runs_of(c10b, "F4", CONFLICT)[-1], 1, outcome="STOPPED")
+            f10b.live.clear()
+            expect(f"a finisher cut off by a loop stop (stop {i + 1}) is started again at the same head",
+                   f10b.tick() == [(CONFLICT, "F4")] and not holds(c10b), str(f10b.said))
 
         # 8. agent_work and status: a lane that is not ticking hands its work to the unit; a ticking one hands none.
         c11 = fresh()
         f11 = Fake(c11, [row("W1", "WAITING FOR REVIEW", "a1a1a1a")])
         expect("never ticked and a branch waits: the unit ticks it once", any("not ticking" in w and "W1" in w for w in agent_work(c11, t0)), str(agent_work(c11, t0)))
+        # R1-4: a survey older than land_lane.SURVEY_MAX_AGE_MIN (the unit's tick under -LandLaneSeconds 0, before step 3's
+        # landing tick): nothing launches AND the tick is no TICK, so the branches stay reported to the unit; agent_work and
+        # the tick read ONE threshold (a 15 min survey is fresh to both).
+        stale = t0 - dt.timedelta(minutes=land_lane.SURVEY_MAX_AGE_MIN + 1)
+        survey(c11, f11.rows, stale)
+        f11.tick()
+        expect("a tick that read a stale survey is not a tick: the lane still reports not ticking and the survey is the unit's to take",
+               not runs(c11) and view(c11).ticked_at is None and not agent_work(c11, t0), str(agent_work(c11, t0)))
+        survey(c11, f11.rows, t0 - dt.timedelta(minutes=15))
+        expect("a 15 min old survey is fresh to agent_work and to the tick alike",
+               any("W1" in w for w in agent_work(c11, t0)) and f11.tick() == [(REVIEW, "W1")], str(f11.said))
+        c11 = fresh()
+        f11 = Fake(c11, [row("W1", "WAITING FOR REVIEW", "a1a1a1a")])
         f11.tick()
         expect("a ticking lane owes the unit nothing for a branch it is reviewing", agent_work(c11, land_lane.now_utc()) == [], str(agent_work(c11, land_lane.now_utc())))
         expect("status counts the running reviewer and names the branch",
