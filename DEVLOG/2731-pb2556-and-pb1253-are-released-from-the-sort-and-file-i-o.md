@@ -1,4 +1,4 @@
-## PB2556 and PB1253 are released from the SORT and file I/O hold; PB4053 files the planner's row-key partition
+## Entry 2731 — 2026-10-29 12:22 PDT — PB2556 and PB1253 are released from the SORT and file I/O hold; PB4053 files the planner's row-key partition
 
 The owner took the Annex A.1 documentation rows of the GAP campaign (PB2911) into the Mythos lane on 2026-10-29, then
 released PB2556 from the PB3420 hold ("Release it"). PB2556 is one probe: does a refused wide print line on a LINE
@@ -12,3 +12,4 @@ The root fix is PB3738, already designed and decided, which splits the file into
 keyed register tables. PB4053 files what PB3738 leaves: the planner collides a keyed-table file by path. With row-key
 partitioning the A.1 notes would run as one parallel wave, and `enqueue.py`'s existing hold on driver-merged files
 would serialize only their landings.
+
