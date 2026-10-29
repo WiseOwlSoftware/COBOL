@@ -1,4 +1,4 @@
-## PB3838 tier 6 review leads: notes quote compiler output verbatim, and a duplicate GnuCOBOL record still counts
+## Entry 2726 — 2026-10-29 11:44 PDT — PB3838 tier 6 review leads: notes quote compiler output verbatim, and a duplicate GnuCOBOL record still counts
 
 The branch review of the tier-6 triage (Entry 2725) was CLEAN with five low leads, all fixed here.
 
@@ -16,3 +16,4 @@ The branch review of the tier-6 triage (Entry 2725) was CLEAN with five low lead
   would also have vanished from "bugs recorded in GnuCOBOL". Duplicates now count, and declined is the one ending that
   does not. The self-test pins all three, each a state `work.py check` accepts: fixed-upstream (PB9013) and duplicate
   (PB9015) count, declined (PB9014) does not. The ledger renders unchanged (786bf648b722).
+
