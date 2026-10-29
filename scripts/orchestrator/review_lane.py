@@ -643,6 +643,7 @@ def status_lines(cdir: pathlib.Path, now: dt.datetime | None = None) -> list[str
 # ── the self-test ──────────────────────────────────────────────────────────────────────────────────────────────────
 def self_test() -> int:
     from scratch_repo import remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    import verdict_line  # noqa: PLC0415  (scripts/: the one home of the landing's verdict line, kb/Work PB3714)
     fails: list[str] = []
 
     def expect(what: str, ok: bool, detail: str = "") -> None:
@@ -845,7 +846,7 @@ def self_test() -> int:
         att = land_lane.lane_dir(c10) / land_lane.ATTEMPTS
         att.mkdir(parents=True)
         rec4 = {"id": "000001-x-F1", "branch": "F1", "head": "a1a1a1a", "worktree": str(root / "wt-F1"), "rc": 4, "end_head": "a1a1a1a",
-                "verdict": "=== ENQUEUE: CONFLICT in x.py — merge aborted (F1) ===", "collected": False}
+                "verdict": verdict_line.render(verdict_line.conflict_outcome(["x.py"]), "F1"), "collected": False}
         coord.write_json(att / "000001-x-F1.json", rec4)
         f10 = Fake(c10, [row("F1", "STOPPED", "a1a1a1a"), row("F2", "BOUNCED", "b2b2b2b", conflicts=True, why="pull request #9 conflicts with main (merge state DIRTY)"),
                          row("F3", "BOUNCED", "c3c3c3c", why="removed from the merge queue (FAILED_CHECKS)")])
