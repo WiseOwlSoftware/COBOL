@@ -14,8 +14,8 @@ difference from the triage, so a false one is worse than a missed one):
   INCOMPAT   an unprefixed alphanumeric literal with a letter MOVEd to a numeric item: found; a digit literal, an alphanumeric
              receiver, a national or hexadecimal literal, a reference-modified receiver: not.
   ABSTAIN    a program the analysis cannot follow (COPY, OPTIONS, more than one program) has no finding.
-Every PB3468 program of the fifth night's class 2 that still differs on the current build is held to this verdict in the
-`SHAPES` below, as the minimal program of its shape.
+The STORAGE arms are the minimal programs of the shapes the fifth night's PB3468 class 2 met (fz01110, fz01111, fz01282, fz01933,
+fz01980, fz02818, fz04400, fz00704), named in each arm's text.
 """
 from __future__ import annotations
 

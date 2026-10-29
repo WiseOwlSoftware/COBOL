@@ -281,6 +281,8 @@ class Analysis:
         if not found:
             return None
         j = i + 1
+        # a qualifier keeps the candidates that have a so-named ancestor, in no particular order: a name left ambiguous reads as
+        # written wherever it is a receiver and is never a finding where it is displayed, the safe direction both ways
         while j + 1 < len(t) and t[j][0] == "word" and t[j][1] in ("OF", "IN") and t[j + 1][0] == "word":
             found = [it for it in found if any(a.name == t[j + 1][1] for a in it.chain()[:-1])]
             j += 2
