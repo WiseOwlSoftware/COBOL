@@ -448,16 +448,6 @@ public sealed class ToolchainManifestDriftTests
         return (values, problems);
     }
 
-    /// <summary>A job of a workflow: its id and its text.</summary>
-    private static IEnumerable<(string Id, string Body)> Jobs(string workflow)
-    {
-        string lf = workflow.ReplaceLineEndings("\n");
-        int jobs = lf.IndexOf("\njobs:\n", StringComparison.Ordinal);
-        string body = jobs < 0 ? (lf.StartsWith("jobs:\n", StringComparison.Ordinal) ? lf[6..] : "") : lf[(jobs + 7)..];
-        foreach (Match m in DotnetSdkInstallDriftTests.JobShape.Matches(body + "\n"))
-            yield return (m.Groups["id"].Value, m.Groups["body"].Value);
-    }
-
     /// <summary>The steps of a job (or of an action), each its text from its `- ` line to the next step's.</summary>
     private static List<string> Steps(string body)
     {
@@ -503,7 +493,7 @@ public sealed class ToolchainManifestDriftTests
     {
         var offenders = new List<string>();
         int jobs = 0;
-        foreach (var (id, body) in Jobs(workflow))
+        foreach (var (id, body) in DotnetSdkInstallDriftTests.Jobs(workflow))
         {
             List<string> steps = Steps(body);
             if (steps.Count == 0)
@@ -540,7 +530,7 @@ public sealed class ToolchainManifestDriftTests
     {
         var offenders = new List<string>();
         int seen = 0;
-        foreach (var (id, body) in Jobs(workflow))
+        foreach (var (id, body) in DotnetSdkInstallDriftTests.Jobs(workflow))
         {
             foreach (Match m in RunsOn.Matches(body))
             {
@@ -582,7 +572,7 @@ public sealed class ToolchainManifestDriftTests
     private static IEnumerable<(string Job, bool Pwsh, List<string> Lines)> RunBlocks(string text)
     {
         string lf = text.ReplaceLineEndings("\n");
-        var jobs = Jobs(lf).ToList();
+        var jobs = DotnetSdkInstallDriftTests.Jobs(lf).ToList();
         if (jobs.Count == 0)
             jobs = [("(action)", lf)];   // an action.yml: its `runs: steps:` list
         foreach (var (id, body) in jobs)
