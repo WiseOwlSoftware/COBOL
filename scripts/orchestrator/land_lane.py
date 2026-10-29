@@ -559,11 +559,18 @@ def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, 
         raise LaneError(f"git fetch origin failed in {repo}: {fetch.stderr.strip()[:200]}")
     rows = prune_worktrees.live_survey(repo, coord_dir=cdir, prs=prs)
     order = [r.name for r in prune_worktrees.landing_order(rows, prune_worktrees.note_rank())]
-    return ([{"name": r.name, "state": r.state, "content": r.content, "tip": r.tip, "worktree": r.worktree,
-              "why": r.why, "lead": r.report.lead if r.report else None,
-              "report": str(r.report.path) if r.report else None,
-              # GitHub cannot create the pull request's merge commit (DIRTY): a CONFLICT finisher's, as an exit 4 is
-              "conflicts": bool(prs and r.name in prs and prs[r.name].conflicts)} for r in rows], order, prs)
+    return row_dicts(rows, prs), order, prs
+
+
+def row_dicts(rows: list, prs: dict | None) -> list[dict[str, Any]]:
+    """The surveyed rows (prune_worktrees.Row) as the tick and the review lane read them. Pure, so the self-test runs
+    it on a planted Row: the tick's own survey is a fake there, and a field this mapping read that the survey's report
+    lacks crashed every tick on main (kb/Work PB4055)."""
+    return [{"name": r.name, "state": r.state, "content": r.content, "tip": r.tip, "worktree": r.worktree,
+             "why": r.why, "lead": r.report.lead if r.report else None,
+             "report": str(r.report.path) if r.report else None,
+             # GitHub cannot create the pull request's merge commit (DIRTY): a CONFLICT finisher's, as an exit 4 is
+             "conflicts": bool(prs and r.name in prs and prs[r.name].conflicts)} for r in rows]
 
 
 def landing_check_free(worktree: str) -> tuple[bool, str]:
@@ -1389,6 +1396,22 @@ def self_test() -> int:
         w = agent_work(c)
         expect("agent work: the row WAITING FOR REVIEW is the review lane's, not the enqueue unit's (kb/Work PB3608), "
                "and the runs in flight are nobody's", w.reasons == [], str(w.reasons))
+
+        # 1b. the real mapping from the survey's rows (the Fake above stands in for it): a row's report reaches the
+        # review lane as its file's PATH, which it stats and reads (kb/Work PB4055: the mapping read a field the
+        # survey's report lacked, and every tick on main crashed)
+        import prune_worktrees  # noqa: PLC0415  (scripts/: it imports this module back, lazily)
+        from reports import IndexedReport  # noqa: PLC0415
+        rep_path = root / "reports" / "w1a-PB1-report.md"
+        planted = [prune_worktrees.Row("w1a", "CHECK", [], [], 1, str(root / "wt-w1a"), None, 0, 5.0, "",
+                                       IndexedReport(rep_path, "DONE", "PB1", False, 5.0), "WAITING FOR REVIEW",
+                                       tip="a1"),
+                   prune_worktrees.Row("w1b", "UNLANDED", [], [], 1, None, None, 0, 5.0, "", None, "DECISION")]
+        mapped = row_dicts(planted, None)
+        expect("the survey's rows map to the tick's dicts: a reported row carries its report's path and lead, an "
+               "unreported one None for both",
+               [(d["name"], d["report"], d["lead"], d["conflicts"]) for d in mapped]
+               == [("w1a", str(rep_path), "PB1", False), ("w1b", None, None, False)], str(mapped))
 
         # 2. exit 5 (GATE RED) is never relaunched at the same head; a new head (a finisher's commit) is eligible.
         f.rows[0] = row("w1a", "DECISION", "a2")                  # enqueue merged main in: the survey no longer lists it
