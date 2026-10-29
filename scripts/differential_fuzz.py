@@ -83,6 +83,11 @@ THE VERDICT CLASSES, per program (one JSON line each in `results.jsonl`, appende
                    Ollama) ended, after every correction: counted against the model.
   BOTH_HANG        both compilers' compiles or programs exceeded the hang guard: the model's program (an unsigned PERFORM
                    VARYING counter, a loop that changes neither bound), not a lead. Counted against the model (kb/Work PB3490).
+  UNDEFINED_RESULT both ran and the outputs differ, in a program whose result the standard leaves undefined, which its text
+                   proves (scripts/fuzz_undefined.py: it DISPLAYs storage no VALUE clause initialises and no statement writes, ISO
+                   A.2 19; a literal subscript outside its OCCURS; an alphanumeric literal with a letter MOVEd to a numeric item).
+                   The difference is neither compiler's: the model's non-conforming program, counted against it, never a lead
+                   (kb/Work PB3862). The row records the findings (`undefined`).
   THEY_REJECT      WiseOwl compiled it, GnuCOBOL refused: a lead — GnuCOBOL 3.2 lacks the construct, or WiseOwl accepts a
                    program the standard forbids (an under-rejection); the spec decides at triage.
   AGREE            both compiled and ran, same normalized output (CutRunner.Normalize). Dropped.
@@ -146,6 +151,7 @@ from spec_headings import GENERAL_FORMAT_NOUN  # noqa: E402  — THE one spellin
 from fuzz_ollama import (ABORTED, DEGENERATE, DEGENERATE_FORMS, DEGENERATE_LINES, DEGENERATE_REASONS, MODEL_ERRORS,  # noqa: E402
                          NUM_CTX, NUM_PREDICT, OllamaError, PauseGate, lossless, ollama_chat, parse_model_options,
                          read_pauses, unload)  # — the model's side: the streaming chat, the degenerate-reply watch, the PAUSE file
+from fuzz_undefined import CITATIONS as UNDEFINED_CITATIONS, undefined_results  # noqa: E402  — the programs whose result is undefined (kb/Work PB3862)
 from standard_streams import ensure_utf8  # noqa: E402
 
 SPEC = REPO / "specs" / "ISO_COBOL.md"
@@ -874,11 +880,12 @@ def observe_fresh(run: suite_run.Run, entry: dict[str, Any], name: str) -> Obser
 
 # ── the verdict ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
-def classify(we: Observation, they: Observation, display_fold: bool = False) -> str:
+def classify(we: Observation, they: Observation, display_fold: bool = False, undefined: bool = False) -> str:
     """The class of one program from the two observations. A refusal by GnuCOBOL alone is a lead (THEY_REJECT), a refusal
     by both is the model's failure (BOTH_REJECT); an unobserved compiler on either side is never a verdict, and a crash of
     ours outranks every refusal. `display_fold` is display_fold_allowed() of the program's source: without it an output
-    difference is never OUTPUT_LATITUDE."""
+    difference is never OUTPUT_LATITUDE. `undefined` is "undefined_results() found something in the program's source": an
+    output difference in such a program is UNDEFINED_RESULT, the model's and never a lead (kb/Work PB3862)."""
     if we.hung and they.hung:
         # A program both compilers run (or compile) forever is the generator's, whichever side was observed first: the first
         # overnight report presented three of the model's infinite loops as WiseOwl hangs (kb/Work PB3490).
@@ -906,7 +913,7 @@ def classify(we: Observation, they: Observation, display_fold: bool = False) -> 
     if we.output != they.output:
         if display_fold and we.run_rc == they.run_rc and display_image(we.output) == display_image(they.output):
             return "OUTPUT_LATITUDE"
-        return "OUTPUT_DIFFERS"
+        return "UNDEFINED_RESULT" if undefined else "OUTPUT_DIFFERS"
     # The exit status is an observable result too (ISO 14.9.42.4 General rule 2: the operating system is told of an error
     # termination): a fatal condition after the last DISPLAY leaves the same stdout, so it is compared here, never read as
     # agreement.
@@ -918,7 +925,7 @@ def classify(we: Observation, they: Observation, display_fold: bool = False) -> 
 LEAD_CLASSES = ("WE_CRASH", "WE_REJECT", "THEY_REJECT", "OUTPUT_DIFFERS", "WE_FAIL_RUN", "EXIT_DIFFERS", "WE_HANG", "THEY_HANG",
                 "THEY_FAIL_RUN")
 #: the model's failures: counted against it in the report and the bake-off, never a lead
-MODEL_FAILURE_CLASSES = ("BOTH_REJECT", "NO_PROGRAM", "BOTH_HANG")
+MODEL_FAILURE_CLASSES = ("BOTH_REJECT", "NO_PROGRAM", "BOTH_HANG", "UNDEFINED_RESULT")
 #: a known implementor latitude: reported under its own heading, never a survivor
 LATITUDE_CLASSES = ("OUTPUT_LATITUDE",)
 
@@ -980,6 +987,17 @@ def display_fold_allowed(source: str) -> bool:
     if _SIGN_SEPARATE.search(source):
         return False
     return not any(_EDITING_SIGN_OR_POINT.search(m.group(1).rstrip(".")) for m in _PICTURE.finditer(source))
+
+
+def row_undefined(rec: dict[str, Any], out: Path) -> list[str]:
+    """The undefined results of a recorded row's program (fuzz_undefined): the recorded `undefined`, or, for a row recorded
+    before kb/Work PB3862, those of its source under `out`; a source that is gone proves nothing."""
+    found = rec.get("undefined")
+    if found is None:
+        src = out / rec.get("source", "")
+        has_source = bool(rec.get("source")) and src.is_file()
+        found = [str(f) for f in undefined_results(src.read_text(encoding="utf-8", errors="replace"))] if has_source else []
+    return found
 
 
 def display_image(text: str) -> str:
@@ -1154,9 +1172,10 @@ class Fuzz:
         if we is None:
             we = observe_fresh(self.we, entry, name)
         display_fold = display_fold_applies(NUMERIC_DISPLAY, program)
-        verdict = classify(we, they, display_fold)
+        undefined = [str(f) for f in undefined_results(program)]
+        verdict = classify(we, they, display_fold, bool(undefined))
         rec.update(verdict=verdict, signature=signature(verdict, number, we), display_fold=display_fold,
-                   numeric_display=NUMERIC_DISPLAY,
+                   numeric_display=NUMERIC_DISPLAY, undefined=undefined,
                    we={"compiled": we.compiled, "codes": we.codes,
                        "first_error": first_error(we.diagnostics) if we.compiled is False or we.crashed else "",
                        "run_rc": we.run_rc, "crashed": we.crashed, "hung": we.hung, "output": we.output[:RECORDED_OUTPUT],
@@ -1355,11 +1374,12 @@ def rederived(rec: dict[str, Any], out: Path) -> dict[str, Any]:
     if not we or not they or rec["verdict"] in ("WE_CRASH", "RUNNER_ERROR") or \
             len(we.get("output") or "") >= RECORDED_OUTPUT or len(they.get("output") or "") >= RECORDED_OUTPUT:
         return rec
-    verdict = classify(recorded_observation(we), recorded_observation(they), row_display_fold(rec, out))
+    undefined = row_undefined(rec, out) if we.get("output") != they.get("output") else []
+    verdict = classify(recorded_observation(we), recorded_observation(they), row_display_fold(rec, out), bool(undefined))
     if verdict == rec["verdict"]:
         return rec
     return {**rec, "verdict": verdict, "signature": signature(verdict, rec["clause"], recorded_observation(we)),
-            "recorded_verdict": rec["verdict"]}
+            "recorded_verdict": rec["verdict"], "undefined": undefined}
 
 
 def read_results(out: Path) -> list[dict[str, Any]]:
@@ -1455,6 +1475,17 @@ def render_report(rows: list[dict[str, Any]], out: Path) -> str:
                   "and need no triage: a run made now compiles WiseOwl's default decimal form, where this difference is a defect."]
         lines += [f"- clause {c} ({g[0]['title']}): {len(g)} — {', '.join(x['id'] for x in g[:6])}{' …' if len(g) > 6 else ''}"
                   for c, g in sorted(by_clause.items(), key=lambda kv: (-len(kv[1]), kv[0]))]
+    undefined_rows = [r for r in rows if r["verdict"] == "UNDEFINED_RESULT"]
+    if undefined_rows:
+        by_kind: dict[str, list[dict[str, Any]]] = {}
+        for r in undefined_rows:
+            for kind in sorted({u.split(":", 1)[0] for u in r.get("undefined") or []}):
+                by_kind.setdefault(kind, []).append(r)
+        lines += ["", f"## Undefined results: {len(undefined_rows)} programs (the model's, not survivors)",
+                  "The outputs differ, in a program whose result the standard leaves undefined: the difference is neither compiler's",
+                  "(kb/Work PB3862). The program's text proves it; the row's `undefined` field names the item or statement."]
+        lines += [f"- {kind} ({UNDEFINED_CITATIONS[kind]}): {len(g)} — {', '.join(x['id'] for x in g[:6])}{' …' if len(g) > 6 else ''}"
+                  for kind, g in sorted(by_kind.items(), key=lambda kv: (-len(kv[1]), kv[0]))]
     runner = [r for r in rows if r["verdict"] == "RUNNER_ERROR"]
     if runner:
         lines += ["", f"## Runner errors: {len(runner)} (not compiler verdicts)"]
@@ -1503,7 +1534,7 @@ class BakeOffScore(typing.NamedTuple):
     programs: int
     usable: int
     judged: int
-    model_failures: int              # MODEL_FAILURE_CLASSES: BOTH_REJECT, NO_PROGRAM, BOTH_HANG
+    model_failures: int              # MODEL_FAILURE_CLASSES: BOTH_REJECT, NO_PROGRAM, BOTH_HANG, UNDEFINED_RESULT
     gnucobol_alone_refuses: int
     median_model_seconds: float
     leads: int
@@ -1810,6 +1841,17 @@ def self_test() -> int:
           classify(Observation(None, None, "", [], runner_error="did not start"), ok_run) == "RUNNER_ERROR"
           and classify(ok_run, Observation(None, None, "", [], runner_error="x")) == "RUNNER_ERROR"
           and classify(Observation(True, 0, "", [], ran=None, runner_error="x"), ok_run) == "RUNNER_ERROR")
+    differs = dataclasses.replace(ok_run, output="A\n2")
+    check("classify: an output difference in a program whose result is undefined is the model's UNDEFINED_RESULT, never a lead; "
+          "without the finding, or where the outputs agree, nothing changes (kb/Work PB3862)",
+          classify(differs, ok_run, undefined=True) == "UNDEFINED_RESULT" and classify(differs, ok_run) == "OUTPUT_DIFFERS"
+          and classify(ok_run, ok_run, undefined=True) == "AGREE"
+          and "UNDEFINED_RESULT" in MODEL_FAILURE_CLASSES and "UNDEFINED_RESULT" not in LEAD_CLASSES
+          and "UNDEFINED_RESULT" not in LATITUDE_CLASSES)
+    check("classify: an undefined program's exit-status difference with the same output stays a lead; the digit-image latitude is still the latitude",
+          classify(dataclasses.replace(ok_run, run_rc=8), ok_run, undefined=True) == "WE_FAIL_RUN"
+          and classify(dataclasses.replace(ok_run, run_rc=1), dataclasses.replace(ok_run, run_rc=8), undefined=True) == "EXIT_DIFFERS"
+          and classify(dataclasses.replace(ok_run, output="R=000125{"), dataclasses.replace(ok_run, output="R=+00012.50"), True, True) == "OUTPUT_LATITUDE")
     check("signature: a refusal groups by our codes, a difference by clause",
           signature("WE_REJECT", "14.9.25", Observation(False, 1, "", ["COBOL1234", "COBOL4001"])) == "WE_REJECT:COBOL1234,COBOL4001"
           and signature("OUTPUT_DIFFERS", "14.9.25", ok_run) == "OUTPUT_DIFFERS:14.9.25")
@@ -1881,6 +1923,28 @@ def self_test() -> int:
               and rederived(gone_row, out)["verdict"] == "OUTPUT_DIFFERS"
               and rederived(rows[1], out) is rows[1] and rederived(rows[2], out) is rows[2] and rederived(rows[3], out) is rows[3] and rederived(cut_row, out) is cut_row,
               [rederived(hang_row, out)["verdict"], rederived(edited_row, out)["verdict"], rederived(gone_row, out)["verdict"]])
+    with tempfile.TemporaryDirectory() as td3:
+        out3 = Path(td3)
+        (out3 / "programs").mkdir()
+        (out3 / "programs" / "fz00031.cob").write_text(
+            "PROGRAM-ID. FUZZ." + chr(10) + "WORKING-STORAGE SECTION." + chr(10) + "01 WS-X PIC 9(3)." + chr(10)
+            + "PROCEDURE DIVISION." + chr(10) + "DISPLAY WS-X." + chr(10), encoding="utf-8", newline="\n")
+        old_row = {**rows[1], "id": "fz00031", "source": "programs/fz00031.cob"}       # recorded before kb/Work PB3862: no `undefined`
+        kept_row = {**rows[1], "id": "fz00032", "source": "programs/gone.cob",
+                    "undefined": ["SUBSCRIPT_RANGE: T (4) is outside 1 to 3, the OCCURS of T"]}
+        none_row = {**rows[1], "id": "fz00033", "source": "programs/gone.cob", "undefined": []}
+        derived = rederived(old_row, out3)
+        check("rederived: a row recorded before kb/Work PB3862 is read again from its source (UNDEFINED_RESULT, the findings recorded, the old verdict kept beside it); "
+              "the recorded findings win over a source that is gone, an empty record and a missing source prove nothing",
+              derived["verdict"] == "UNDEFINED_RESULT" and derived["recorded_verdict"] == "OUTPUT_DIFFERS"
+              and derived["undefined"][0].startswith("UNWRITTEN_STORAGE: DISPLAY reads WS-X")
+              and rederived(kept_row, out3)["verdict"] == "UNDEFINED_RESULT" and rederived(none_row, out3) is none_row
+              and rederived({**rows[1], "source": "programs/gone.cob"}, out3)["verdict"] == "OUTPUT_DIFFERS", derived)
+        rep_u = render_report([derived, rederived(kept_row, out3), rows[1]], out3)
+        check("report: the undefined results have their own heading with the finding kinds and their clauses, are counted among the model's failures, and are not survivors",
+              "## Undefined results: 2 programs (the model's, not survivors)" in rep_u
+              and "- UNWRITTEN_STORAGE (ISO A.2 19)" in rep_u and "- SUBSCRIPT_RANGE (ISO 8.4.2.3.4 2)" in rep_u
+              and "the model's failures: 2" in rep_u and "## Survivors: 1 programs in 1 signatures" in rep_u, rep_u)
     solo = render_report([rows[8]], Path("."))
     check("report: a digit-image row that differs elsewhere lists its REAL differing line first and counts the lines that differ only in the display form",
           "line 2: `Q=1` | `Q=2`" in solo and "line 1:" not in solo
@@ -2024,6 +2088,17 @@ def self_test() -> int:
           rec_once["verdict"] == "AGREE" and rec_once["degenerate_replies"] == 2 and rec_once["repairs"] == 2
           and calls == ["model"] * 3 + ["they", "we"] and asked[1] == asked[2] == retry_request(DEGENERATE)
           and "degenerate_replies" not in stubbed_one(agree)[0], (rec_once, calls))
+
+    unwritten_reply = ("```cobol\nIDENTIFICATION DIVISION.\nPROGRAM-ID. FUZZ.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n"
+                       "01 WS-X PIC 9(3).\nPROCEDURE DIVISION.\nDISPLAY WS-X\nSTOP RUN.\n```", 1.0, "stop", 0)
+    differ = {"they": lambda k: dataclasses.replace(ok_run, output="A\n2"), "we": lambda k: ok_run}
+    rec_unwritten = stubbed_one(differ, [unwritten_reply])[0]
+    rec_written = stubbed_one(differ)[0]
+    check("run: a program that DISPLAYs an item nothing wrote is UNDEFINED_RESULT when the outputs differ and records what proves it; a program with nothing undefined "
+          "records an empty list and stays OUTPUT_DIFFERS (kb/Work PB3862)",
+          rec_unwritten["verdict"] == "UNDEFINED_RESULT" and rec_unwritten["signature"] == "UNDEFINED_RESULT:14.9.25"
+          and len(rec_unwritten["undefined"]) == 1 and rec_unwritten["undefined"][0].startswith("UNWRITTEN_STORAGE: DISPLAY reads WS-X")
+          and rec_written["verdict"] == "OUTPUT_DIFFERS" and rec_written["undefined"] == [], (rec_unwritten, rec_written))
 
     def fails_during_pause(gate: PauseGate) -> BaseException:
         """What the wrapper does: PAUSE first, then the runner is ended and the generation in flight fails."""

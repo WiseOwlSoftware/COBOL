@@ -134,16 +134,20 @@ def work_names(paths: Iterable[str]) -> set[str]:
     return {s.strip() for s in paths if s.strip() and coord.is_work(s.strip())}
 
 
-def _names(out: str) -> set[str]:
-    return work_names(out.splitlines())
+def range_names(git: Callable[..., Any], *revs: str, cwd: Any = None) -> set[str]:
+    """THE ONE QUESTION `git diff --name-only --no-renames <revs>` asks, every path it lists, NEVER_WORK ones too (kb/Work
+    PB3791). A moved file counts at BOTH paths: git's default rename detection lists only the NEW path, so the old one
+    (the path a declared set and every other branch name) dropped out and an R3 `git mv` of an undeclared file passed
+    (PB2118 Draft 10, the ninth refuter's K1). A caller that needs the paths no landing carries (the landing check's
+    arm 0) reads this set; one that needs the work (changed_files) filters it, so a range is asked about once."""
+    out = git("diff", "--name-only", "--no-renames", *revs, **({} if cwd is None else {"cwd": cwd})).stdout
+    return {s.strip() for s in out.splitlines() if s.strip()}
 
 
 def changed_files(git: Callable[..., Any], *revs: str, cwd: Any = None) -> set[str]:
-    """THE changed-file reader of the partition (the planner's admission and the landing check): `git diff
-    --name-only --no-renames <revs>`. A moved file counts at BOTH paths: git's default rename detection lists only the
-    NEW path, so the old one (the path a declared set and every other branch name) dropped out and an R3 `git mv` of
-    an undeclared file passed (PB2118 Draft 10, the ninth refuter's K1)."""
-    return _names(git("diff", "--name-only", "--no-renames", *revs, **({} if cwd is None else {"cwd": cwd})).stdout)
+    """THE changed-file reader of the partition (the planner's admission and the landing check): the work paths of
+    range_names (coord.is_work: never STATUS.md, the harness's settings or TestResults/)."""
+    return work_names(range_names(git, *revs, cwd=cwd))
 
 
 def _still_differs(git: Callable[..., Any], repo: Any, revs: Sequence[str]) -> list[tuple[set[str], str]]:

@@ -40,9 +40,31 @@ directory** (default `conformance-suite/results/fuzz-<stamp>/`, git-ignored, loc
 | `report.md` | survivors grouped by signature (`### \`SIGNATURE\` × N`), the class table, runner errors |
 | `programs/fz*.cob` | the programs (free format, edition 2014 by default) |
 
-The verdict classes (`differential_fuzz.py#classify`): `BOTH_REJECT`, `NO_PROGRAM` and `BOTH_HANG` are the model's failures;
-`AGREE` and `OUTPUT_LATITUDE` are dropped; `THEY_REJECT`, `WE_REJECT`, `OUTPUT_DIFFERS`, `WE_CRASH`, `WE_FAIL_RUN`,
+The verdict classes (`differential_fuzz.py#classify`): `BOTH_REJECT`, `NO_PROGRAM`, `BOTH_HANG` and `UNDEFINED_RESULT` are the
+model's failures; `AGREE` and `OUTPUT_LATITUDE` are dropped; `THEY_REJECT`, `WE_REJECT`, `OUTPUT_DIFFERS`, `WE_CRASH`, `WE_FAIL_RUN`,
 `EXIT_DIFFERS`, `WE_HANG`, `THEY_HANG`, `THEY_FAIL_RUN` are leads; `RUNNER_ERROR` is never a compiler verdict.
+
+**`UNDEFINED_RESULT`** (kb/Work PB3862) is an output difference in a program whose result the standard leaves undefined, and the
+program's text proves it (`scripts/fuzz_undefined.py#undefined_results`, one function; `classify` takes its yes/no). Three
+findings, each a PROOF and never a guess, so every shape the analysis cannot follow reads as defined and the row stays a lead:
+
+| Finding | The program | Authority |
+|---|---|---|
+| `UNWRITTEN_STORAGE` | DISPLAYs storage with no VALUE clause that no statement writes. Definedness is the least fixed point of the data flow: a VALUE, any statement naming the item (other than as a DISPLAY operand or a MOVE sender), or a MOVE / MOVE CORRESPONDING (ISO 14.7.6 1, 2) from a defined item or a non-item makes an item defined; a MOVE from storage that is itself unwritten does not. | ISO A.2 19) |
+| `SUBSCRIPT_RANGE` | an integer-literal subscript outside 1 to the OCCURS maximum of its dimension | ISO 8.4.2.3.4 2), 14.6.13.1.1 NOTE 3 |
+| `INCOMPATIBLE_DATA` | an unprefixed alphanumeric literal with a letter MOVEd to a numeric item | ISO 14.9.25.4 6) |
+
+Storage the program's text shows something else defines is not unwritten: an item the ENVIRONMENT DIVISION or the FILE SECTION names
+(FILE STATUS, RELATIVE KEY, CRT STATUS, CURSOR: the runtime sets it, ISO 9.1.13.1), and an item with SAME AS or TYPE, which has the
+description of the entry it names, VALUE clauses and subordinates included (ISO 13.18.49.4 1, 13.18.57.4 1; a source the analysis
+cannot resolve to one entry reads as defined).
+
+It abstains (no finding) for a program with a COPY, REPLACE, OPTIONS paragraph, compiler directive, RENAMES or a second program.
+The analysis is flow-insensitive, so a DISPLAY before the first write is not found; a variable subscript or reference-modification
+position and the content a MOVE moves at run time need the program run and stay leads. The row records the findings
+(`undefined`); a row recorded before PB3862 is read again from its source under the run directory, so `--report` shows an old night
+under today's classes. Only an OUTPUT difference becomes `UNDEFINED_RESULT`: an exit-status difference with the same output stays
+a lead (`WE_FAIL_RUN`, `EXIT_DIFFERS`), because no undefined value can end the run.
 
 ## 3. The morning: `fuzz_triage.py prepare`
 
@@ -262,6 +284,7 @@ after PB3490 changed the classes, so its survivor counts are that file's, not th
 
 ## 7. Tests and drift
 
+`scripts/test_fuzz_undefined.py` proves `undefined_results` shape by shape, each program that must be found beside the nearest one that must not (the three storage shapes of PB3468 class 2, the statements that may have written an item, REDEFINES and EXTERNAL, the subscript and incompatible-data shapes, and the abstentions); `differential_fuzz.py --self-test` proves the class (`classify`, the row's `undefined`, `rederived`, the report heading).
 `scripts/test_fuzz_triage.py` (discovered by `scripts/self_tests.py`; it needs no build or git) drives the tool on a fabricated
 run and proves the arms listed in its docstring: rescoring, slicing, the briefs (no unfilled placeholder, no night-specific
 literal, the vocabulary, dispositions and bar sections held equal to the tool's, the Workflow script's brief names held equal to
