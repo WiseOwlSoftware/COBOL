@@ -9,8 +9,8 @@ using WiseOwl.Cobol.Tests.Shared;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// ⛔ AN ARITHMETIC STATEMENT EVALUATES ITS RIGHT-HAND SIDE ONCE, AND THE §14.7.4.3 r7 GATE TESTS THAT ONE
-/// INTERMEDIATE (kb/Work PB654). <c>ArithmeticEmitter.StoreArith</c> wrote <c>value.Expr</c> into the
+/// ⛔ AN ARITHMETIC STATEMENT EVALUATES ITS RIGHT-HAND SIDE ONCE, AND §14.7.4.3 r7 IS ASKED BY THE LANDING OF THAT ONE
+/// INTERMEDIATE (kb/Work PB654, PB3990). <c>ArithmeticEmitter.StoreArith</c> wrote <c>value.Expr</c> into the
 /// PROHIBITED representability test and AGAIN into the store that follows. ISO §14.7.7 rule 4 a) — "The
 /// initial evaluation of the statement is done and the result of this operation is placed in an intermediate
 /// data item" — and rule 4 b) — "the intermediate data item is stored in or combined with and then stored in
@@ -29,10 +29,9 @@ public sealed class ArithmeticOneInitialEvaluationDriftTests
 {
     /// <summary>Six arithmetic stores, one <c>FUNCTION RANDOM</c> reference each, across every receiver
     /// category and phrase combination that reaches <c>StoreArith</c> with a float value: plain numeric and
-    /// numeric-EDITED under ON SIZE ERROR + PROHIBITED (the two arms the r7 gate must cover), a non-PROHIBITED
-    /// mode under ON SIZE ERROR, PROHIBITED with no phrase at all (no gate — §14.7.4.3 r7's condition is the
-    /// size error condition, which without a phrase or EC-SIZE checking has its own disposition), a bare
-    /// no-phrase store, and a FLOAT receiver (no scaled store at all).</summary>
+    /// numeric-EDITED under ON SIZE ERROR + PROHIBITED, a non-PROHIBITED mode under ON SIZE ERROR, PROHIBITED with no
+    /// phrase at all (rule 7 keeps the receiver there too, kb/Work PB3990: the one rule-7 catch), a bare no-phrase
+    /// store, and a FLOAT receiver (no scaled store at all).</summary>
     private const string Program = """
         IDENTIFICATION DIVISION.
         PROGRAM-ID. PB654DRIFT.
@@ -93,34 +92,73 @@ public sealed class ArithmeticOneInitialEvaluationDriftTests
     }
 
     /// <summary>
-    /// INVARIANT 2 — AND THE r7 GATE READS THAT INTERMEDIATE, NEVER A RE-SPELLED EXPRESSION. The gate's first
-    /// argument must be the <c>__ie</c> local <c>ArithmeticEmitter.Snapshot</c> introduced, which is rule 4 a)'s
-    /// "intermediate data item" made literal. Stated separately from invariant 1 because it is the property that
-    /// survives a change of function: a gate over any impure right-hand side is wrong the same way, and this
-    /// assertion does not depend on RANDOM being the one that shows it.
+    /// INVARIANT 2 — NO SEPARATE EXACTNESS TEST IS WRITTEN BESIDE THE LANDING (kb/Work PB3990, replacing PB654's gate).
+    /// §14.7.4.3 rule 7 is answered by the landing's own rounding decision on every receiver category, checked or not
+    /// (<c>CobolSizeError.ProhibitedInexact</c>), so the value is read once by construction. A test written beside the
+    /// store is a second read of the intermediate (invariant 1's defect) and a second rule that can disagree with the
+    /// landing: PB654's gate covered the checked statement only, and the unchecked one stored the value cut.
     /// </summary>
     [Fact]
-    public void TheProhibitedGate_TestsTheMaterializedIntermediate()
+    public void NoProhibitedGate_IsWrittenBesideTheLanding()
     {
         string cs = EmitCSharp(Program, 2014);
-        var gates = Regex.Matches(cs, @"CobolFloat\.InexactAtScale\(([^,]+),");
-        Assert.NotEmpty(gates);
-        foreach (Match g in gates)
-            Assert.Matches(@"^__ie\d+$", g.Groups[1].Value.Trim());
+        Assert.DoesNotMatch(@"InexactAtScale\(", cs);
     }
 
     /// <summary>
-    /// INVARIANT 3 — THE GATE COVERS EVERY FIXED-SCALE RECEIVER CATEGORY, NOT JUST THE PLAIN NUMERIC ONE.
-    /// §14.7.4.3 rule 7 speaks of "the resultant identifier" with no category qualification, and
-    /// <c>CobolFloat.ToScaled</c> lands a PROHIBITED transfer TRUNCATED for every one of them — so an ungated
-    /// arm stores the truncated value and raises nothing. The numeric-EDITED and LOCALE-edited arms were
-    /// exactly that for three waves (measured: SQRT(3) into <c>PIC ZZ9.999</c> stored 1.732, no size error).
-    /// <see cref="Program"/> writes ONE gated store per covered category, so the count is the proof.
+    /// INVARIANT 3 — THE STATEMENT WITH NO SIZE ERROR PHRASE AND CHECKING OFF KEEPS A PROHIBITED RECEIVER ON RULE 7'S
+    /// CONDITION ALONE. <see cref="Program"/> writes ONE such statement (the fourth store), so the emitted C# catches
+    /// <c>CobolSizeError</c> filtered on <c>IsProhibitedInexact</c> exactly once: the other PROHIBITED stores have their
+    /// statement's own ON SIZE ERROR catch, and no other mode pays for a try.
     /// </summary>
     [Fact]
-    public void TheProhibitedGate_IsEmittedForBothTheNumericAndTheEditedReceiver()
+    public void TheUncheckedProhibitedStore_CatchesRule7Alone_Once()
     {
         string cs = EmitCSharp(Program, 2014);
-        Assert.Equal(2, Regex.Matches(cs, @"CobolFloat\.InexactAtScale\(").Count);
+        Assert.Single(Regex.Matches(cs, @"catch \(CobolSizeError (__cse\d+)\) when \(\1\.IsProhibitedInexact\) \{ \}"));
+    }
+
+    /// <summary>A report whose printable items take the §13.18.53.4 GR2 implicit COMPUTE: two PROHIBITED SOURCE
+    /// entries — one single placement, one multiple COLUMN entry of two placements (§13.18.53.4 GR4) — beside a
+    /// NEAREST-EVEN one and a no-phrase MOVE.</summary>
+    private const string ReportProgram = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PB3990RDRIFT.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT PRT ASSIGN TO "pb3990rdrift.txt".
+        DATA DIVISION.
+        FILE SECTION.
+        FD  PRT REPORT IS R-D.
+        WORKING-STORAGE SECTION.
+        01  WS-F PIC 9V99 VALUE 1.55.
+        REPORT SECTION.
+        RD  R-D.
+        01  DET TYPE DE LINE PLUS 1.
+            03  COLUMN 1 PIC 9(3) SOURCE IS WS-F ROUNDED MODE IS PROHIBITED.
+            03  COLUMNS ARE 5 9 PIC 9(3) SOURCES ARE (WS-F) (WS-F + 1) ROUNDED MODE IS PROHIBITED.
+            03  COLUMN 13 PIC 9(3) SOURCE IS WS-F ROUNDED MODE IS NEAREST-EVEN.
+            03  COLUMN 17 PIC 9(3) SOURCE IS WS-F.
+        PROCEDURE DIVISION.
+        MAIN.
+            OPEN OUTPUT PRT. INITIATE R-D. GENERATE DET. TERMINATE R-D. CLOSE PRT.
+            STOP RUN.
+        """;
+
+    /// <summary>
+    /// INVARIANT 4 — A REPORT PRINTABLE ITEM'S PROHIBITED IMPLICIT COMPUTE IS KEPT BY THE SAME ONE RULE-7 CATCH (kb/Work
+    /// PB3990 review finding R1-1). The compose is emitted outside every statement's EC-SIZE checking, and every landing
+    /// raises <c>CobolSizeError.ProhibitedInexact</c>, so each PROHIBITED PLACEMENT — three in <see cref="ReportProgram"/>
+    /// — forms its image inside <c>ArithmeticEmitter.EmitProhibitedInexactKeep</c>, over a local that starts as the
+    /// printable item's unchanged content (spaces, §13.8.6.2.3). Uncaught, the raise ended the run unit; the other modes
+    /// pay for no try.
+    /// </summary>
+    [Fact]
+    public void TheReportImplicitCompute_KeepsAProhibitedPrintableItem_OnRule7Alone()
+    {
+        string cs = EmitCSharp(ReportProgram, 2014);
+        Assert.Equal(3, Regex.Matches(cs, @"catch \(CobolSizeError (__cse\d+)\) when \(\1\.IsProhibitedInexact\) \{ \}").Count);
+        Assert.Equal(3, Regex.Matches(cs, @"string (__rimg\d+) = ""   "";").Count);
     }
 }

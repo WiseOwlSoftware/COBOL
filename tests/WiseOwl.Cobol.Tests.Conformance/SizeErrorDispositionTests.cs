@@ -219,6 +219,10 @@ public sealed class SizeErrorDispositionTests
     // §14.9.12.4 6) c): the remainder is a resultant too; 59 / 30 leaves 29, past PIC 9, so R keeps 0 and NOT is skipped.
     [InlineData("NATIVE", "DIVIDE 59 BY 30 GIVING A REMAINDER R", "A=001 E=  0 R=0 F=-")]
     [InlineData("NATIVE", "DIVIDE 66 BY 30 GIVING A REMAINDER R", "A=002 E=  0 R=6 F=N")]
+    // §14.9.12.4 6) c) after a QUOTIENT size error (kb/Work PB3975): 4003 / 2 = 2001 is past PIC 9(3), so A keeps 7 and,
+    // the NOT-only statement keeping every receiver as the ON phrase does (PB3989), no remainder is stored (R keeps 0).
+    [InlineData("NATIVE", "DIVIDE 4003 BY 2 GIVING A REMAINDER R", "A=007 E=  0 R=0 F=-")]
+    [InlineData("STANDARD-DECIMAL", "DIVIDE 4003 BY 2 GIVING A REMAINDER R", "A=007 E=  0 R=0 F=-")]
     public void NotSizeErrorAlone_CheckingOff_LeavesTheResultant_AndRunsOnlyWithoutASizeError(
         string arithmetic, string statement, string verdict)
     {
@@ -239,6 +243,75 @@ public sealed class SizeErrorDispositionTests
                MAIN-P.
                    {{statement}} NOT ON SIZE ERROR MOVE "N" TO F END-{{statement[..statement.IndexOf(' ')]}}.
                    DISPLAY "A=" A " E=" E " R=" R " F=" F.
+                   STOP RUN.
+            """);
+        Assert.Equal(0, exit);
+        Assert.Equal(verdict, stdout.Trim());
+    }
+
+    /// <summary>kb/Work PB3990 — ROUNDED MODE IS PROHIBITED in a statement with NO SIZE ERROR phrase and checking off.
+    /// §14.7.4.3 rule 7: "If the PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly
+    /// in the resultant identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition
+    /// exists, and the content of the resultant identifier is unchanged" — and with checking off execution continues
+    /// (§14.6.13.1.3 item 8, DOC-A.1-70; GnuCOBOL 3.2 prints the same). Every receiver usage and category, every final
+    /// transfer (a lone value, an outermost quotient and product, an in-place sum, a float sender), both value lanes:
+    /// the receiver holds 7 before the statement, keeps it on an inexact value, and lands an exact one; a value only
+    /// TOO BIG (exact) takes the no-phrase low-order digits; the run continues to the DISPLAY. Expected values are
+    /// computed from the rule: 1.5, 10/3, 1.5 × 1.5 = 2.25, 7 + 1.5 = 8.5, 150.5 and 1.25 (into Z9.9) are inexact; 2.0
+    /// and 1.5 × 2 = 3 are exact; 150 is exact past PIC 99 (low-order 50).</summary>
+    [Theory]
+    [InlineData("NATIVE", "COMPUTE D ROUNDED MODE IS PROHIBITED = V", "D=07")]
+    [InlineData("NATIVE", "COMPUTE B ROUNDED MODE IS PROHIBITED = V", "B=07")]
+    [InlineData("NATIVE", "COMPUTE C ROUNDED MODE IS PROHIBITED = V", "C=007")]
+    [InlineData("NATIVE", "COMPUTE P ROUNDED MODE IS PROHIBITED = V", "P=07")]
+    [InlineData("NATIVE", "COMPUTE E ROUNDED MODE IS PROHIBITED = V", "E= 7")]
+    [InlineData("NATIVE", "COMPUTE ED ROUNDED MODE IS PROHIBITED = V2", "ED= 7.0")]
+    [InlineData("NATIVE", "COMPUTE D ROUNDED MODE IS PROHIBITED = F2", "D=07")]
+    [InlineData("NATIVE", "DIVIDE 3 INTO 10 GIVING D ROUNDED MODE IS PROHIBITED", "D=07")]
+    [InlineData("NATIVE", "COMPUTE D ROUNDED MODE IS PROHIBITED = 10 / 3", "D=07")]
+    [InlineData("NATIVE", "MULTIPLY V BY V GIVING D ROUNDED MODE IS PROHIBITED", "D=07")]
+    [InlineData("NATIVE", "MULTIPLY V BY 2 GIVING D ROUNDED MODE IS PROHIBITED", "D=03")]
+    [InlineData("NATIVE", "ADD 1.5 TO D ROUNDED MODE IS PROHIBITED", "D=07")]
+    [InlineData("NATIVE", "COMPUTE D ROUNDED MODE IS PROHIBITED = 2.0", "D=02")]
+    [InlineData("NATIVE", "COMPUTE D ROUNDED MODE IS PROHIBITED = 150", "D=50")]
+    [InlineData("NATIVE", "COMPUTE D ROUNDED MODE IS PROHIBITED = 150.5", "D=07")]
+    [InlineData("NATIVE", "COMPUTE FS ROUNDED MODE IS PROHIBITED = 0.1", "FS=7")]
+    [InlineData("NATIVE", "COMPUTE FE ROUNDED MODE IS PROHIBITED = 1.25", "FE=+7.0E+00")]
+    [InlineData("NATIVE", "COMPUTE D T ROUNDED MODE IS PROHIBITED = V", "D=01 T=07")]
+    [InlineData("STANDARD-DECIMAL", "COMPUTE D ROUNDED MODE IS PROHIBITED = V", "D=07")]
+    [InlineData("STANDARD-DECIMAL", "COMPUTE C ROUNDED MODE IS PROHIBITED = V", "C=007")]
+    [InlineData("STANDARD-DECIMAL", "COMPUTE D ROUNDED MODE IS PROHIBITED = 10 / 3", "D=07")]
+    [InlineData("STANDARD-DECIMAL", "COMPUTE D ROUNDED MODE IS PROHIBITED = F2", "D=07")]
+    [InlineData("STANDARD-DECIMAL", "COMPUTE FS ROUNDED MODE IS PROHIBITED = 0.1", "FS=7")]
+    [InlineData("STANDARD-DECIMAL", "COMPUTE D ROUNDED MODE IS PROHIBITED = 2.0", "D=02")]
+    public void Prohibited_CheckingOff_NoPhrase_KeepsTheResultantOnAnInexactValue(string arithmetic, string statement, string verdict)
+    {
+        // The DISPLAY names the item(s) the statement stores, read off the verdict ("D=", "D=01 T=").
+        string shown = string.Join(" \" \" ", verdict.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Where(p => p.Contains('=')).Select(p => p[..p.IndexOf('=')]).Select(n => $"\"{n}=\" {n}"));
+        var (exit, stdout, _) = Run($$"""
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. PB3990R7.
+               OPTIONS.
+                   ARITHMETIC IS {{arithmetic}}.
+               DATA DIVISION.
+               WORKING-STORAGE SECTION.
+               01 D  PIC 99 VALUE 7.
+               01 T  PIC 99 VALUE 7.
+               01 B  PIC 99 COMP VALUE 7.
+               01 C  PIC 99 COMP-5 VALUE 7.
+               01 P  PIC 99 COMP-3 VALUE 7.
+               01 E  PIC Z9 VALUE 7.
+               01 ED PIC Z9.9 VALUE 7.
+               01 FS USAGE COMP-1 VALUE 7.
+               01 FE PIC +9.9E+99 VALUE 7.0E0.
+               01 F2 USAGE COMP-2 VALUE 1.5.
+               01 V  PIC 9V9 VALUE 1.5.
+               01 V2 PIC 9V99 VALUE 1.25.
+               PROCEDURE DIVISION.
+               MAIN-P.
+                   {{statement}}.
+                   DISPLAY {{shown}}.
                    STOP RUN.
             """);
         Assert.Equal(0, exit);
