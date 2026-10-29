@@ -1,4 +1,4 @@
-## PB3840: a CONFORMANCE.md row key names one determination (DOC-A.1-92 and DOC-A.1-92b)
+## Entry 2734 — 2026-10-29 13:30 PDT — PB3840: a CONFORMANCE.md row key names one determination (DOC-A.1-92 and DOC-A.1-92b)
 
 `docs/CONFORMANCE.md` §7 filed two determinations of Annex A.1 item 92 under the key `DOC-A.1-92`: the characteristics,
 representation and text image of a numeric function's returned value, and the evaluation of an exact-family function whose
@@ -25,3 +25,4 @@ determinations discharge, so no golden changed. The change closes no inventory r
 Self-review: architecture (one key rule, written in `ITEM_KEY_RX`, read by the audit; the two register readers refuse a repeat instead of each
 choosing a winner); full code (a lettered key cannot shadow its bare token because the letter sits inside the token); performance (the
 lettered-citation sweep reads each `.cs` and `.md` once, as the existing source sweep does); duplication (no second copy of the key grammar).
+
