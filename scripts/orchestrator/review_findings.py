@@ -9,7 +9,7 @@ decision in `<scratch>/review-w<wave>-<letter>.jsonl`, the verdict computed from
     python scripts/orchestrator/review_findings.py stamp   <report> --findings <file>
     python scripts/orchestrator/review_findings.py show    <file> [--round N]     # the findings, for the finisher
     python scripts/orchestrator/review_findings.py last-verdict <file>             # the newest verdict: does it hold?
-    python scripts/orchestrator/review_findings.py repair  <file>                 # mend a torn file (operator only)
+    python scripts/orchestrator/review_findings.py repair  <file>                 # mend a torn file (the operator's; the review lane mends a cut-off append)
     python scripts/orchestrator/review_findings.py summary <file or directory>... # the measurement (PB3027 item 5)
     python scripts/orchestrator/review_findings.py --self-test
 
@@ -79,7 +79,9 @@ file first) refuses a torn file BEFORE writing, naming `repair <file>`, so nothi
 mends: a byte-order mark is removed; a last line that is a record but lost its newline is terminated and kept;
 otherwise the torn line and every line after it are removed, bytes that are not UTF-8 shown as bytes; a file left with
 no record is deleted; a file it cannot read is refused; an intact file is left unchanged. Only the operator runs it, by
-hand; no survey or wave does. `--self-test` proves the rule by cutting a findings file at every byte offset (THE
+hand; no survey or wave does. The ONE exception is the review lane (kb/Work PB3608): a reviewer it started and a kill cut
+off mid-append leaves a file torn at its LAST line only, and `repair_interrupted_append` mends exactly that for the
+lane's own files (a tear before more lines, a byte-order mark, an unreadable file stay the operator's). `--self-test` proves the rule by cutting a findings file at every byte offset (THE
 PROPERTY), by each discovery case at the file's first read (DISCOVERY) and by each schema mutation (SCHEMA).
 """
 from __future__ import annotations
@@ -298,7 +300,8 @@ def repair(path: pathlib.Path) -> list[str]:
     """Mend a torn findings file in place (mend) and return what was done; [] when it is intact, and then the file is
     left untouched. When no record is left the file is deleted (the next `start` creates it again). A file it cannot
     read is refused: the operator makes it readable first. The operator runs it by hand (the CLI's `repair`), after
-    reading what it prints; no survey and no wave runs it."""
+    reading what it prints; no survey and no wave runs it (the review lane mends an interrupted append only:
+    `repair_interrupted_append`)."""
     s, data = examine(path)
     if s.torn and s.line is None:
         raise RecordError(f"{s.torn}: repair cannot mend a file it cannot read; make it readable (or move what stands "
@@ -310,6 +313,53 @@ def repair(path: pathlib.Path) -> list[str]:
         path.unlink()
         did.append(f"deleted: {path} (no record is left; the next `start` creates it again)")
     return did
+
+
+def repair_interrupted_append(path: pathlib.Path) -> list[str] | None:
+    """Mend a findings file whose ONLY tear is an append a kill cut short (kb/Work PB3608): the torn line is the file's
+    last, and the file is not a hand edit (no byte-order mark). Returns what `repair` printed ([] when the file is
+    intact and untouched); None when the tear is anything else (a tear before more lines, a byte-order mark, a file that
+    cannot be read), which stays the operator's. Only the review lane calls it, for its OWN files: a reviewer killed
+    mid-write leaves exactly this, the next tick mends it and starts the round again, and it never reads a verdict
+    from a file it could not mend. The loss is bounded to the one record being written: a verdict is computed from the
+    findings, so a verdict cut short is computed again, and a finding cut short is found again by the reviewer that
+    restarts the round, which lists the standing ones first (`show`)."""
+    s, data = examine(path)
+    if not s.torn:
+        return []
+    if s.line is None or data.startswith(BOM) or NEWLINE in data[s.offset:].rstrip(NEWLINE):
+        return None
+    return repair(path)
+
+
+@dataclasses.dataclass(frozen=True)
+class Round:
+    """One round of a branch's review as the file records it (`rounds`): `verdict` is None while the round is started
+    and not finished."""
+    round: int
+    head: str          # the verdict's head when the round has one, else the head the newest `start` named
+    reviewer: str
+    started: str       # the newest `start`'s time
+    verdict: str | None
+
+
+def rounds(path: pathlib.Path, branch: str | None = None) -> list[Round] | None:
+    """The rounds an INTACT findings file records, oldest first, only the ones of `branch` when named; None when the
+    file is torn or cannot be read (no reader takes a round from a torn file: `last_verdict`'s rule). A round started
+    again after a kill (`start`) reads as the one round, by its newest `start`. [] when there is no file."""
+    if not os.path.lexists(path):
+        return []
+    s, _ = examine(path)
+    if s.torn:
+        return None
+    starts: dict[int, dict] = {}
+    done: dict[int, dict] = {}
+    for r in s.records:
+        if r["kind"] in ("start", "verdict") and (branch is None or r["branch"] == branch):
+            (starts if r["kind"] == "start" else done)[r["round"]] = r
+    return [Round(n, done[n]["head"] if n in done else starts[n]["head"], starts[n]["reviewer"], starts[n]["at"],
+                  done[n]["verdict"] if n in done else None)
+            for n in sorted(starts)]
 
 
 def append(path: pathlib.Path, rec: dict) -> dict:
@@ -333,8 +383,10 @@ def of_round(recs: list[dict], rnd: int, kind: str) -> list[dict]:
 
 def start(path: pathlib.Path, rnd: int, branch: str, head: str, reviewer: str) -> dict:
     recs = load(path)
-    if of_round(recs, rnd, "start"):
-        raise RecordError(f"round {rnd} already started in {path}: a re-review of a new head is the next round")
+    if of_round(recs, rnd, "verdict"):
+        raise RecordError(f"round {rnd} already has its verdict in {path}: a re-review of a new head is the next round")
+    # A round started and never finished (its reviewer was killed) is STARTED AGAIN by the next reviewer (kb/Work
+    # PB3608, the review lane's restart rule): a second `start` of the round, its recorded findings standing.
     if rnd > 1 and not of_round(recs, rnd - 1, "verdict"):
         raise RecordError(f"round {rnd - 1} has no verdict in {path}: finish it (verdict) before round {rnd}")
     if not re.fullmatch(r"[0-9a-f]{7,40}", head):
@@ -392,7 +444,7 @@ def verdict(path: pathlib.Path, rnd: int, blocking: tuple[str, ...] = BLOCKING_D
         raise RecordError(f"round {rnd} already has its verdict in {path}")
     found = of_round(recs, rnd, "finding")
     n = sum(1 for r in found if blocks(r, blocking))
-    s = started[0]
+    s = started[-1]   # a restarted round (a killed reviewer) is judged at its newest start
     return append(path, {"kind": "verdict", "round": rnd, "branch": s["branch"], "head": s["head"],
                          "reviewer": s["reviewer"], "verdict": "CLEAN" if n == 0 else "FINDINGS", "findings": n,
                          "blocking": list(blocking), "leads": [r["id"] for r in found if not blocks(r, blocking)]})
@@ -642,7 +694,12 @@ def self_test() -> int:
                           "## Reproduced?\n**Review:** below the header binds nothing\n", encoding="utf-8", newline="\n")
         check("arm: a finding before its round started is refused", refused(finding, f, 1, '{"file":"a"}'))
         start(f, 1, "b", "abc1234", "w9a-review-r1")
-        check("arm: a second start of one round is refused", refused(start, f, 1, "b", "abc1234", "x"))
+        # kb/Work PB3608: a round started and never finished (its reviewer was killed) is started AGAIN, the findings
+        # already recorded standing; the same read says what the file holds (`rounds`: one round, started, no verdict)
+        check("arm: an unfinished round is started again by the next reviewer (a killed reviewer's restart)",
+              not refused(start, f, 1, "b", "abc1234", "w9a-review-r1-again")
+              and [(x.round, x.head, x.reviewer, x.verdict) for x in rounds(f, "b") or []]
+              == [(1, "abc1234", "w9a-review-r1-again", None)] and rounds(f, "other") == [])
         check("arm: a reviewer label with a space is refused", refused(start, f, 2, "b", "abc1234", "two words"))
         check("arm: a finding without its scenario is refused",
               refused(finding, f, 1, json.dumps({"file": "a.py", "line": 3, "category": "correctness", "summary": "s"})))
@@ -665,10 +722,13 @@ def self_test() -> int:
         check("arm: a finding after the round's verdict is refused",
               refused(finding, f, 1, json.dumps({"file": "a", "line": 1, "category": "c", "summary": "s",
                                                  "severity": "low", "failure_scenario": "x"})))
+        check("arm: a round that has its verdict is not started again, and the restart's findings stood",
+              refused(start, f, 1, "b", "abc1234", "x") and v["findings"] == 1
+              and [(x.round, x.verdict) for x in rounds(f) or []] == [(1, "FINDINGS")])
         line = stamp(report, f)
         rep = reports.parse_report(report)
         check(f"arm: a FINDINGS stamp reads back through plan_wave: {line} -> {rep.review if rep else None}",
-              rep is not None and rep.review == reports.Review("FINDINGS", 1, "w9a-review-r1", "abc1234", str(f))
+              rep is not None and rep.review == reports.Review("FINDINGS", 1, "w9a-review-r1-again", "abc1234", str(f))
               and rep.status == "DONE")
         check("arm: the stamp goes right under the Status line",
               report.read_text(encoding="utf-8").splitlines()[3].startswith("**Review:** FINDINGS 1 "))
@@ -912,6 +972,27 @@ def self_test() -> int:
               len(did) == 1 and did[0].startswith("kept: ") and sw.read_bytes() == whole
               and (v["round"], v["verdict"], v["unanswered"]) == (2, "FINDINGS", True))
         check("arm: after `repair` the next round starts", not refusal(start, sw, 3, "bS", "b2b2b2b", "w9s-review-r3"))
+        # kb/Work PB3608: the review lane mends an INTERRUPTED APPEND (the torn line is the file's last) and nothing else
+        ia = tmp / "interrupted" / "review-w9-i.jsonl"
+        start(ia, 1, "bI", "a1a1a1a", "w9i-review-r1")
+        finding(ia, 1, high)
+        sound = ia.read_bytes()
+        cutoff = json.dumps({"kind": "finding", "round": 1, "summary": "§14.9 half written"}, ensure_ascii=False).encode()
+        ia.write_bytes(sound + cutoff[:cutoff.index("§".encode()) + 1])   # killed inside a multi-byte character
+        check("arm: a read of the interrupted file is TORN, never a verdict, and `rounds` reads none",
+              last_verdict(ia)["verdict"] == "TORN" and rounds(ia) is None)
+        did = repair_interrupted_append(ia)
+        check(f"arm: an interrupted append is mended: only the cut line goes ({did}), the round stands unfinished",
+              did is not None and len(did) == 1 and ia.read_bytes() == sound
+              and [(x.round, x.verdict) for x in rounds(ia) or []] == [(1, None)])
+        check("arm: an intact file is left untouched", repair_interrupted_append(ia) == [] and ia.read_bytes() == sound)
+        ia.write_bytes(sound + b"{not json}" + NEWLINE + sound.splitlines(keepends=True)[0])
+        check("arm: a tear with records after it is the operator's (None), the file left as it is",
+              repair_interrupted_append(ia) is None and ia.read_bytes().startswith(sound + b"{not json}"))
+        ia.write_bytes(BOM + sound)
+        check("arm: a byte-order mark (a hand edit) is the operator's, left as it is",
+              repair_interrupted_append(ia) is None and ia.read_bytes() == BOM + sound)
+        check("arm: a file that cannot be read is the operator's", repair_interrupted_append(ia.parent) is None)
         # a tear inside a multi-byte character (the reviewer's medium lead: the round-4 reader raised
         # UnicodeDecodeError out of the survey, and land_lane's tick, which does not catch it, landed nothing)
         mb = tmp / "utf8" / "review-w9-u.jsonl"
