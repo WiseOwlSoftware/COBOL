@@ -174,7 +174,8 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     ///   <item>otherwise a fixed-point item described by the receivers (<see cref="ShapedPic"/>, the 36-digit decimal
     ///     item when every receiver is fixed-point and their digits pass the carrier), or, when no
     ///     receiver is known (an EVALUATE subject, an argument frozen for §8.4.3.2.4 GR2's order),
-    ///     <see cref="ValueOperandPic"/>.</item>
+    ///     <see cref="ValueOperandPicOf"/> — the item an arithmetic expression's own extent describes
+    ///     (<see cref="ExpressionExtent"/>, kb/Work PB3974), else <see cref="ValueOperandPic"/>.</item>
     /// </list></summary>
     private PicInfo IntermediatePic(BoundOperand c, ValueUse use)
     {
@@ -185,7 +186,50 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         if (SharedFloatFormatPic(receivers) is { } floatPic) return floatPic;
         if (FloatingPointNumericSet(receivers)) return WidestFloatEditedPic();
         if (integer) return IntegerIntermediatePic;
-        return receivers is { Count: > 0 } ? ShapedPic(receivers) : use.AsText ? FunctionValuePic : ValueOperandPic;
+        if (receivers is { Count: > 0 }) return ShapedPic(receivers);
+        return use.AsText ? FunctionValuePic : ValueOperandPicOf(c);
+    }
+
+    /// <summary>⛔ THE INTERMEDIATE OF A VALUE NO RECEIVER BOUNDS, DESCRIBED FOR THE VALUE (an EVALUATE subject, a frozen
+    /// function argument; kb/Work PB3974). A computed operand that is an ARITHMETIC EXPRESSION whose value
+    /// <see cref="ExpressionExtent"/> bounds is held in the fixed-point item that bound describes, so the intermediate
+    /// compares and passes on the very number the un-hoisted expression yields (§14.9.13.4 GR3 c) assigns the subject "a
+    /// numeric value according to the rules for evaluating an arithmetic expression" and GR4 a) 6. compares THAT):
+    /// `EVALUATE BIG * BIG WHEN BIG * BIG` over PIC 9(18) took WHEN OTHER through <see cref="ValueOperandPic"/>, which
+    /// keeps 21 of the product's 36 integer digits.
+    /// <para>⛔ THE BOUND IS AN UPPER BOUND, NEVER THE VALUE, SO AN EXTENT PAST THE <c>Int128</c> CARRIER'S
+    /// <see cref="PicInfo.ScaledCarrierDigits"/> IS STILL HELD (review R1-1 of the first landing): the expression is
+    /// frozen because a later part of the statement may change an operand (GR3 "evaluated at the beginning"; §8.4.3.2.4
+    /// GR2 for a frozen function argument), and leaving it un-hoisted re-read the changed operand, where the
+    /// S9(21)V9(17) item it replaced held every value that fits. When the bound's integer and fraction digits together
+    /// pass the carrier, the item is a SUPERSET OF THAT ITEM ON BOTH AXES (review R1-1 of the first landing, then its
+    /// round 1): the integer digits keep priority up to the bound (the order <see cref="ShapedPic"/> and
+    /// <c>ReceiverContext.WorkingScale</c> keep) but never below the 17 fraction digits the old item held, and the
+    /// fraction takes what the integer part leaves — so <c>PIC 9V9(19)</c> times <c>PIC 9V9(19)</c> (bound 2 + 38) is
+    /// S9(2)V9(36) and holds 12 whole, where cutting the integer part to keep all 38 fraction digits held 2. A value
+    /// that really has more digits than the carrier holds is cut, as every fixed-point intermediate is (the limit
+    /// kb/Work PB3268 records; the lead is a wide intermediate item).</para>
+    /// Any other value (an expression with a quotient, a power or a function in it, a function value itself) keeps
+    /// <see cref="ValueOperandPic"/>, the widest scaled item with the returned-value item's 21 integer digits.</summary>
+    private static PicInfo ValueOperandPicOf(BoundOperand c)
+    {
+        if (c is not BoundComputedOperand { Expr: var expression and not BoundIntrinsicCall }
+            || ExpressionExtent.Of(expression) is not { } extent)
+            return ValueOperandPic;
+        // ShapedPic's own floor: an item of no integer digits (a value below 1) still has one integer position.
+        int integer = Math.Max(extent.IntegerDigits, 1);
+        int scale = extent.Scale;
+        if (integer + scale > PicInfo.ScaledCarrierDigits)
+        {
+            // Integer digits keep priority (ShapedPic's order), but never at the cost of the fraction digits the
+            // ValueOperandPic hold this replaced kept (its Scale, 17 — read off the item, never a constant naming
+            // another item: FunctionValuePic's 9 cut a 30 + 24 bound to S9(29)V9(9), review R2-1): the item is a
+            // superset of ValueOperandPic on BOTH axes.
+            integer = Math.Min(integer, PicInfo.ScaledCarrierDigits - Math.Min(scale, ValueOperandPic.Scale));
+            scale = Math.Min(scale, PicInfo.ScaledCarrierDigits - integer);
+        }
+        int digits = integer + scale;
+        return new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: scale, Signed: true);
     }
 
     /// <summary>True when <paramref name="c"/> is a function whose returned value the renderer produces as a binary64
@@ -283,7 +327,9 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// where no receiver bounds the digits a comparison or the consuming function will ask of it: the widest scaled
     /// item the carrier holds with <see cref="FunctionValuePic"/>'s 21 integer digits, so `EVALUATE FUNCTION
     /// NUMVAL("1.23456789012") WHEN 1 WHEN 1.23456789012` compares the exact value the un-hoisted
-    /// `IF FUNCTION NUMVAL("1.23456789012") = 1.23456789012` does.</summary>
+    /// `IF FUNCTION NUMVAL("1.23456789012") = 1.23456789012` does. An arithmetic expression whose extent is known is
+    /// NOT held here but in the item its own digits describe (<see cref="ValueOperandPicOf"/>, kb/Work PB3974); this
+    /// item is for a value whose width no bound states.</summary>
     private static readonly PicInfo ValueOperandPic =
         new(PicCategory.Numeric, Usage.Display, Length: PicInfo.ScaledCarrierDigits, Digits: PicInfo.ScaledCarrierDigits,
             Scale: PicInfo.ScaledCarrierDigits - ReturnedIntegerDigits, Signed: true);
