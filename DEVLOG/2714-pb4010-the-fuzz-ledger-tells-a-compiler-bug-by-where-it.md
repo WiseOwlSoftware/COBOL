@@ -1,4 +1,4 @@
-## PB4010: the fuzz ledger tells a compiler bug by where it lives, counts a run that stopped early, and stays in sync with its Artifact
+## Entry 2714 — 2026-10-28 18:28 PDT — PB4010: the fuzz ledger tells a compiler bug by where it lives, counts a run that stopped early, and stays in sync with its Artifact
 
 The round-2 review of fuzz-summary (PB4006) left two low leads. This change files them as PB4010 and fixes both, at the owner's
 request, in the same landing; the owner added a third requirement during the fix.
@@ -33,3 +33,4 @@ the Artifact already shows main's version.
 
 The self-test gains the classification, refusal and SYNC cases. DESIGN-differential-fuzz.md section 6 and the fuzz-triage workflow's
 step list state the new order: render, land, publish, mark.
+
