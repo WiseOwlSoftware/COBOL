@@ -1,4 +1,4 @@
-## SET SIZE OF truncates toward zero, and reads its amount in its own domain (PB464)
+## Entry 2739 — 2026-10-29 14:59 PDT — SET SIZE OF truncates toward zero, and reads its amount in its own domain (PB464)
 
 **Mechanism.** ISO §14.9.39.4 GR37's second sentence says a non-integer amount "is truncated to the nearest integer". The
 phrase is the standard's only use of those words and reads two ways (toward zero, or to the closer integer). The compiler
@@ -38,3 +38,4 @@ EC-STORAGE-NOT-AVAIL again after the clamp leg had raised it, so one SET SIZE ra
 the third leg only when the request was in range (`leg == Leg.InRange`); regression test
 `CobolDynStringTests.SetSize_ClampThenStorageRefused_RaisesOncePerStatement` counts dispatches for the clamp-then-refused and the
 in-range-refused requests (one each).
+
