@@ -49,3 +49,5 @@ the code that makes the determination, so the key and its documentation change t
 harness reader is lenient on purpose and says so). Code: the diagnostics cite §8.1.3.2 GR1 and A.1 item 25 (checked with `cite.py`). Performance:
 the file is read once as bytes; the strict UTF-8 attempt is the same single pass `File.ReadAllText` made. Duplication: the offset walk exists only
 for UTF-16, where .NET's index is not exact.
+
+**Gate.** Run `TestResults/build-local/000001-20261029T230436Z` on head b692a8fda: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` with `Linux half (WSL clone of HEAD) GREEN`; both new goldens ran (`l1_encoding_unmarked_non_utf8_is_latin1` at 2023, `l1_encoding_marked_malformed_is_refused` at 85, 2002, 2014 and 2023) and the 26 `SourceTextDecoderTests` cases passed. `scripts/semgrep/verify.py` PASS with no rule count raised.
