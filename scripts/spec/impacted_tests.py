@@ -541,12 +541,16 @@ def reach_test_file(path: str, base: str | None, reach: Reach) -> None:
 
 
 def reach_cs(ix: MapIndex, path: str, status: str, base: str | None, reach: Reach) -> None:
+    # ⛔ FIRST, before the drift arm (kb/Work PB3806): a test-project file the recording never executed, whether the map
+    # has never seen it (a file added on main after the map's commit, edited again by the branch: it is in `drift`
+    # too) or only never ran it, is no source file to attribute: its added and edited tests are tier 0a
+    # (`reach_test_file`). The drift arm ran first and put every test in tier 1 for it.
+    if path not in ix.ranges and path.startswith(TEST_PROJECTS):
+        return
     if path in ix.drift:
         drifted_change(ix, path, base, reach)
         return
     if path not in ix.ranges:
-        if path.startswith(TEST_PROJECTS):
-            return  # never executed by the recording: its added and edited tests are tier 0a (reach_test_file)
         if path not in ix.known:
             reach.every_tier1.append(f"{path}: the map has never seen it (a file NEW since the map's commit)")
             return
@@ -767,20 +771,21 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
 
 def tiers(ix: MapIndex, reach: Reach) -> dict[str, dict[str, int]]:
     """Per assembly, per recorded display name, its tier (1 · 2 · 3). Rows sharing a display name (xunit truncates
-    long theory arguments) take the lowest tier among them."""
+    long theory arguments) take the lowest tier among them. ⛔ These are the tiers of what the change REACHES, whether or
+    not `reach.every_tier1` names a reason that part of it cannot be attributed (kb/Work PB3991): that rule belongs to
+    the plan (`gate_plan.tier_of` puts every case in tier 1) and the plan ranks inside tier 1 by these, so a project-wide
+    file beside a method-level change (the version bump in `Directory.Build.props`) adds its own reach and never erases
+    the method-level one. Zeroing them here lost the aim of every branch that bumped the version."""
     out: dict[str, dict[str, int]] = {}
     for i, t in enumerate(ix.tests):
         asm, display = t[0], t[2]
-        if reach.every_tier1:
+        executed = ix.executed(i)
+        if executed & reach.direct or any(n in display for n in reach.direct_names):
             tier = TIER_DIRECT
+        elif executed & reach.widened:
+            tier = TIER_WIDENED
         else:
-            executed = ix.executed(i)
-            if executed & reach.direct or any(n in display for n in reach.direct_names):
-                tier = TIER_DIRECT
-            elif executed & reach.widened:
-                tier = TIER_WIDENED
-            else:
-                tier = TIER_UNREACHED
+            tier = TIER_UNREACHED
         per = out.setdefault(asm, {})
         per[display] = min(per.get(display, TIER_UNREACHED), tier)
     return out
@@ -918,10 +923,10 @@ def map_service_arms(check) -> None:
                {"N.T.M1": 1, "N.T.M2": 2, "N.T.M3": 3})
         served("a hunk inside a method only the ambient array reached (a finalizer) cannot be attributed: every test is tier 1",
                docs, a_path, text([*a_lines[:42], "    int x43 = 99;", *a_lines[43:]]), "documentation-only drift", set(),
-               {"N.T.M1": 1, "N.T.M2": 1, "N.T.M3": 1}, every_tier1=True)
+               {"N.T.M1": 3, "N.T.M2": 3, "N.T.M3": 3}, every_tier1=True)
         served("a file the map has never seen, new since its commit, puts every test in tier 1",
                new_file, "src/WiseOwl.Cobol.Compiler/New.cs", "n2\n", "nearest", {a_path, b_path, "src/WiseOwl.Cobol.Compiler/New.cs"},
-               {"N.T.M1": 1, "N.T.M2": 1, "N.T.M3": 1}, every_tier1=True)
+               {"N.T.M1": 3, "N.T.M2": 3, "N.T.M3": 3}, every_tier1=True)
 
         # A map recorded AFTER the base serves it by comparing trees: ancestry plays no part.
         later = tmp / "later"
@@ -962,6 +967,16 @@ def map_service_arms(check) -> None:
                   "with the cause printed, never a failed plan",
                   found.map is None and found.state == "none" and any("could not be read" in w for w in r.every_tier1),
                   r.every_tier1[:1])
+            # kb/Work PB3807: the lane worker prunes the only map between the glob and its stat
+            pruned = tmp / "pruned"
+            pruned.mkdir()
+            impact_store.map_file(pruned, recorded).write_bytes(b"x")
+            r = Reach()
+            with impact_store.vanished_after_the_glob(impact_store.map_file(pruned, recorded)):
+                found = find_map(pruned, docs, r)
+            check("a map pruned between the store's glob and its stat leaves the plan unaimed with the cause printed, "
+                  "never a failed plan", found.map is None and found.state == "none" and bool(r.every_tier1),
+                  r.every_tier1[:1])
         finally:
             REPO, HEAD = repo.path, None
     finally:
@@ -989,14 +1004,42 @@ def self_test() -> int:
     check("a mapped file (file level) puts its tests in tier 2 and the others in tier 3 (A.cs also holds a finalizer only "
           "the ambient array reached: it does not make the file unattributable)",
           t == {"N.T.M1": 2, "N.T.M2": 2, "N.T.M3": 3}, t)
-    for label, f in [("an UNMAPPED (new) src file puts every test in tier 1", "src/WiseOwl.Cobol.Compiler/New.cs"),
-                     ("a known file no test executed puts every test in tier 1", "src/WiseOwl.Cobol.Compiler/Enum.cs"),
-                     ("an ambient-only file puts every test in tier 1", "src/WiseOwl.Cobol.Compiler/B.cs"),
-                     ("a grammar file puts every test in tier 1", "src/WiseOwl.Cobol.Frontend/Grammar/Core/X.g4"),
-                     ("a props file puts every test in tier 1", "Directory.Build.props"),
-                     ("a runtime data file puts every test in tier 1", "src/WiseOwl.Cobol.Runtime/Collation/Data/x.bin")]:
+    unattributable = "puts every test in tier 1 in the plan, and the change itself reaches none (tier 3)"
+    for label, f in [("an UNMAPPED (new) src file", "src/WiseOwl.Cobol.Compiler/New.cs"),
+                     ("a known file no test executed", "src/WiseOwl.Cobol.Compiler/Enum.cs"),
+                     ("an ambient-only file", "src/WiseOwl.Cobol.Compiler/B.cs"),
+                     ("a grammar file", "src/WiseOwl.Cobol.Frontend/Grammar/Core/X.g4"),
+                     ("a props file", "Directory.Build.props"),
+                     ("a runtime data file", "src/WiseOwl.Cobol.Runtime/Collation/Data/x.bin")]:
         t, reach = tiers_for([f])
-        check(label, set(t.values()) == {1} and bool(reach.every_tier1), reach.every_tier1[:1])
+        check(f"{label} {unattributable}", set(t.values()) == {3} and bool(reach.every_tier1), reach.every_tier1[:1])
+    # kb/Work PB3991: a project-wide file beside a source change adds its own reason and never erases the source's reach
+    t, reach = tiers_for(["Directory.Build.props", "src/WiseOwl.Cobol.Compiler/A.cs"])
+    check("a version bump (Directory.Build.props) beside a mapped source file: the plan is every-tier-1 and the source "
+          "file's own reach survives in the tiers", bool(reach.every_tier1) and t == {"N.T.M1": 2, "N.T.M2": 2, "N.T.M3": 3},
+          (reach.every_tier1[:1], t))
+    reach = Reach()
+    reach.direct |= 1 << 0
+    reach.widened |= ix.expand(1 << 0)
+    reach_of(ix, [("M", "Directory.Build.props")], None, reach)
+    t = tiers(ix, reach)["Conformance"]
+    check("... and a method-level hit stays tier 1 for the tests that executed it, the rest tier 3",
+          bool(reach.every_tier1) and t == {"N.T.M1": 1, "N.T.M2": 3, "N.T.M3": 3}, (reach.every_tier1[:1], t))
+    # kb/Work PB3806: a test-project file added on main after the map's commit (so in `drift`, unknown to the map) and
+    # edited by the branch is no source to attribute: its tests are tier 0a (reach_test_file), never every test in tier 1
+    seen_late = "tests/WiseOwl.Cobol.Tests.Unit/FooDriftTests.cs"
+    late = MapIndex(synthetic_map(), frozenset({seen_late}))
+    reach = Reach()
+    reach_cs(late, seen_late, "M", None, reach)
+    reach_cs(late, "src/WiseOwl.Cobol.Compiler/A.cs", "M", None, reach)
+    check("a test-project file the map never saw, in drift, adds no every-tier-1 reason and the branch's source file keeps "
+          "its own reach", not reach.every_tier1 and tiers(late, reach)["Conformance"] == {"N.T.M1": 2, "N.T.M2": 2, "N.T.M3": 3},
+          (reach.every_tier1[:1], tiers(late, reach)["Conformance"]))
+    reach = Reach()
+    reach_cs(MapIndex(synthetic_map(), frozenset({"src/WiseOwl.Cobol.Compiler/New2.cs"})),
+             "src/WiseOwl.Cobol.Compiler/New2.cs", "M", None, reach)
+    check("... while a SOURCE file the map never saw, in drift, is still unattributable", bool(reach.every_tier1),
+          reach.every_tier1[:1])
     t, reach = tiers_for(["src/WiseOwl.Cobol.Runtime/PublicAPI.Unshipped.txt", "src/WiseOwl.Cobol.Runtime/PublicAPI.Shipped.txt",
                           "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin"])
     check("a public-API analyzer baseline is data a test may read, not a non-C# input: no test goes to tier 1 for it "
