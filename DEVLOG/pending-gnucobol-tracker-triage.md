@@ -32,3 +32,8 @@ PB3838 records it.
 Two intermittent Windows self-test failures bounced the night-8 notes pull request (#755) out of the merge queue twice:
 PB4046 (new, `test_orchestrate_adopt.ps1`'s restart scenario) and PB4008 (open, the dead-pid arm of `impact_lane.py`'s
 self-test), which gains that run as a witness.
+
+Retiring PB3899 exposed a counting error in the fuzz ledger: `fuzz_history.from_fuzzing` dropped every retired GnuCOBOL
+record, so a bug GnuCOBOL has since fixed vanished from "bugs recorded in GnuCOBOL" as if it had never been one. A retired
+record now counts when its `upstream_status` is `fixed-upstream`; retired for any other reason it does not. The ledger's
+self-test pins both cases (PB9013, PB9014), and the ledger renders unchanged (786bf648b722).
