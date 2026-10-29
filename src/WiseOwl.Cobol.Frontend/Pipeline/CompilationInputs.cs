@@ -1,5 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions.Diagnostics;
+using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Frontend.Diagnostics;
+
 namespace WiseOwl.Cobol.Frontend;
 
 /// <summary>
@@ -37,12 +41,45 @@ public sealed class CompilationInputs
     /// into the program, so its output is a function of WHEN it was compiled, not only of its inputs.</summary>
     public bool ReadsCompilationTime { get; private set; }
 
-    /// <summary>Read a file's text (source or copybook), recording its full path.</summary>
-    public string ReadAllText(string path)
+    /// <summary>Read the text of a source or library text file, recording its full path. The bytes become characters in
+    /// <see cref="SourceTextDecoder"/> and nowhere else (docs/CONFORMANCE.md §7, Annex A.1 items 25 and 26; kb/Work
+    /// PB1397): a file read as ISO/IEC 8859-1 draws the warning COBOL5435 and a marked file that is not well-formed in its
+    /// encoding draws the error COBOL5434, both into <paramref name="diagnostics"/> naming the file and the byte offset,
+    /// at the start of that file. Returns null for the malformed file (its error is reported) and the text otherwise.</summary>
+    public string? ReadSourceText(string path, DiagnosticBag? diagnostics)
     {
-        string text = File.ReadAllText(path);
+        var decoded = SourceTextDecoder.Decode(File.ReadAllBytes(path));
         _filesRead.Add(Path.GetFullPath(path));
-        return text;
+        // The location names the file; the finding is once per file per bag, so a library text copied many times is one
+        // finding and not one per COPY.
+        var at = new SourceLocation(path, 0, 0, 0);
+        switch (decoded.Reading)
+        {
+            case SourceTextReading.Malformed:
+                ReportOnce(diagnostics, DiagnosticCatalog.SourceTextMalformedForItsMark.Code, DiagnosticSeverity.Error,
+                    $"the file begins with a {decoded.EncodingName} byte-order mark but is not well-formed {decoded.EncodingName}: the "
+                    + $"first byte it does not define is at offset {decoded.FaultOffset} — ISO §8.1.3.2 GR1 (Annex A.1 item 25): a file "
+                    + "with a byte-order mark is read in exactly the encoding the mark names, and this implementation does not substitute a "
+                    + "character for a byte sequence that encoding does not define",
+                    at);
+                break;
+            case SourceTextReading.Latin1:
+                ReportOnce(diagnostics, DiagnosticCatalog.SourceTextReadAsLatin1.Code, DiagnosticSeverity.Warning,
+                    "the file has no byte-order mark and is not well-formed UTF-8 (the first byte that is not UTF-8 is at offset "
+                    + $"{decoded.FaultOffset}), so it is read as ISO/IEC 8859-1: each byte is the character with that code point — ISO "
+                    + "§8.1.3.2 GR1 (Annex A.1 item 25)",
+                    at);
+                break;
+        }
+
+        return decoded.Text;
+    }
+
+    private static void ReportOnce(DiagnosticBag? diagnostics, string code, DiagnosticSeverity severity, string message,
+        SourceLocation at)
+    {
+        if (diagnostics is not null && !diagnostics.Diagnostics.Any(d => d.Code == code && d.Location.FileName == at.FileName))
+            diagnostics.Report(code, severity, message, at, default);
     }
 
     /// <summary>Probe whether a FILE exists, recording the answer.</summary>
