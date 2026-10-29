@@ -176,9 +176,12 @@ def unrecorded_runs(history: dict, items: list[dict]) -> list[tuple[dict, str]]:
 
 
 def from_fuzzing(it: dict) -> bool:
-    """A GnuCOBOL record the fuzzing produced: its `source` names the fuzz triage or the upstream-harvest plan (PB3838)."""
+    """A GnuCOBOL record the fuzzing produced: its `source` names the fuzz triage or the upstream-harvest plan (PB3838).
+    A retired record counts only when it was retired because GnuCOBOL fixed the bug (`fixed-upstream`): it was still a bug
+    the testing found. Retired for any other reason, it was not a bug after all."""
     s = str(it.get("source", ""))
-    return it.get("kind") == "upstream" and it.get("upstream_project") == "GnuCOBOL" and it.get("status") != "retired" \
+    counted = it.get("status") != "retired" or it.get("upstream_status") == "fixed-upstream"
+    return it.get("kind") == "upstream" and it.get("upstream_project") == "GnuCOBOL" and counted \
         and ("fuzz" in s or "PB3838" in s)
 
 
