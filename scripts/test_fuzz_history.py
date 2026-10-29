@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import subprocess
 import sys
 import tempfile
 import types
@@ -204,6 +205,16 @@ def main() -> int:
                and "PUBLISH OWED" in status["elsewhere"] and "another Artifact" in status["elsewhere"]
                and "REGENERATE OWED" in status["regenerate"] and "REGENERATE OWED" in status["hand-edit"]
                and "REGENERATE OWED" in status["unversioned"] and "UNCHECKED" in status["behind"], status)
+        repo = root / "repo"
+        (repo / "kb" / "Work").mkdir(parents=True)
+        (repo / "kb" / "Work" / "PB1.md").write_text("x\n", encoding="utf-8", newline="\n")
+        git = ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
+        for cmd in (["init", "-q"], ["add", "-A"], ["commit", "-q", "-m", "x"], ["update-ref", "refs/remotes/origin/main", "HEAD"]):
+            subprocess.run(git + cmd, check=True, capture_output=True)
+        clean = fh.at_main(repo)
+        (repo / "kb" / "Work" / "PB1.md").write_text("y\n", encoding="utf-8", newline="\n")
+        expect("SYNC status checks drift only at main with its render inputs unedited (review R3-1)",
+               clean and not fh.at_main(repo), clean)
 
         # HISTORY: the subcommand, on a history file of its own
         hfile = root / "fuzz-history.json"
