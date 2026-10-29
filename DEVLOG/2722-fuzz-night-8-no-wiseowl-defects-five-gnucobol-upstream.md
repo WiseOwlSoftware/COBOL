@@ -1,4 +1,4 @@
-## Fuzz night 8: no WiseOwl defects, five GnuCOBOL upstream records, and a night cut short by a reboot
+## Entry 2722 — 2026-10-29 09:57 PDT — Fuzz night 8: no WiseOwl defects, five GnuCOBOL upstream records, and a night cut short by a reboot
 
 Fuzz night 8 (`fuzz-20261028-210601`, seed 20261029, judge built from main 1498935b6) stopped at 02:29 when the machine
 rebooted, after about 5.4 of its 8 planned hours. It judged 4350 programs; 1276 survived the filters in 272 signatures.
@@ -22,3 +22,4 @@ width under 2014), which the adjudicator could not check against the 2014 text.
 
 `fuzz_triage.py history --write` recorded the night (ledger version 786bf648b722). It recorded the run's planned 8 hours,
 not the 5.4 it ran, and the launcher log gives no sign that the run ended; that is PB4045.
+
