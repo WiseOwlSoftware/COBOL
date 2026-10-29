@@ -208,7 +208,7 @@ public static class RepositoryLocator
             foreach (var info in new DirectoryInfo(directory).EnumerateFiles("*.dll"))
                 // "*.dll" also matches a longer extension on some file systems (8.3 short names): the extension is exact.
                 if ((info.Attributes & FileAttributes.ReparsePoint) == 0
-                    && string.Equals(info.Extension, ".dll", StringComparison.OrdinalIgnoreCase))
+                    && string.Equals(info.Extension, ".dll", StringComparison.OrdinalIgnoreCase))   // not a COBOL word: a file extension
                     paths.Add(info.FullName);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException) { }
