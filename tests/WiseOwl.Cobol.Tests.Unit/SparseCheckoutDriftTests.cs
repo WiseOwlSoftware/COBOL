@@ -11,15 +11,18 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>supersede</c> job of kb/Work PB3769, <c>toolchain-cache</c> and <c>ci-gate</c> of kb/Work PB4007 today, and the
 /// toolchain-freshness workflow) runs on a tree without the rest, so each
 /// file its steps name, each file a local action it uses names, and each repository module a Python script it runs
-/// imports as it starts (transitively) must be inside that list; the job sets <c>sparse-checkout-cone-mode: false</c>,
+/// imports anywhere in its text (transitively, a function body's lazy import included) must be inside that list; the job sets <c>sparse-checkout-cone-mode: false</c>,
 /// the mode the list is read in. <c>supersede</c>'s step is <c>continue-on-error</c>, so a missing
 /// <c>scripts/standard_streams.py</c> made it cancel nothing while the run stayed green and no test failed (kb/Work
 /// PB3637 added the file by hand). <see cref="SparseCheckoutAudit"/> reads the closure; the arms below hold the real
 /// workflow and the audit's own failure branches.
 /// </summary>
 /// <remarks>
-/// A function body's import is lazy and runs only when the function does; the audit follows what a script imports as it
-/// starts, as <c>cancel_superseded.py --self-test</c> reproduced in kb/Work PB3787 (the reviewer's <c>git archive</c> of
+/// A function body's import is lazy and runs when the function does, on the job's path as often as not (the repository's
+/// scripts hold 176 of them, <c>main()</c> importing <c>enqueue</c>, <c>devlog</c> and the like), so the audit follows every
+/// import statement of a reached script wherever it stands (kb/Work PB3810): an over-approximated closure fails loudly in
+/// this test, an under-approximated one fails silently on the runner. The first shape was
+/// <c>cancel_superseded.py --self-test</c> as kb/Work PB3787 reproduced it (the reviewer's <c>git archive</c> of
 /// <c>scripts/orchestrator</c> alone fails with <c>ModuleNotFoundError: No module named 'standard_streams'</c>).
 /// </remarks>
 [Trait("Sweep", "tree")]
@@ -63,19 +66,20 @@ public sealed class SparseCheckoutDriftTests
         Assert.Equal(declared, jobs.Count);
         Assert.Contains(jobs, j => j.Id == "supersede");
         Assert.Contains(jobs, j => j.Id == "toolchain-cache");
-        Assert.Empty(SparseCheckoutAudit.Problems(jobs, ReadRepo));
+        IReadOnlyList<string> problems = SparseCheckoutAudit.Problems(jobs, ReadRepo);
+        Assert.True(problems.Count == 0, string.Join('\n', problems));
     }
 
     [Fact]
-    public void TheSupersedeJobAndTheToolchainCacheJob_ReachTheFilesTheyRun_AndNothingLazy()
+    public void TheSupersedeJobAndTheToolchainCacheJob_ReachTheFilesTheyRun_TheLazyImportsIncluded()
     {
         IReadOnlyList<SparseCheckoutAudit.SparseJob> jobs = RealJobs();
         string[] supersede = [.. SparseCheckoutAudit.Reach(jobs.Single(j => j.Id == "supersede"), ReadRepo).Select(r => r.Path)];
         foreach (string file in new[] { "scripts/orchestrator/cancel_superseded.py", "scripts/orchestrator/queue_facts.py",
                      "scripts/orchestrator/ruleset.py", "scripts/standard_streams.py" })
             Assert.Contains(file, supersede);
-        // standard_streams.live_python imports live_tools inside the function: lazy, on the path of no CI job.
-        Assert.DoesNotContain("scripts/live_tools.py", supersede);
+        // standard_streams.live_python imports live_tools inside the function: lazy, and reached all the same (kb/Work PB3810).
+        Assert.Contains("scripts/live_tools.py", supersede);
 
         string[] cache = [.. SparseCheckoutAudit.Reach(jobs.Single(j => j.Id == "toolchain-cache"), ReadRepo).Select(r => r.Path)];
         Assert.Contains(".github/actions/setup-toolchain/action.yml", cache);
@@ -126,7 +130,7 @@ public sealed class SparseCheckoutDriftTests
     }
 
     [Fact]
-    public void ALazyImport_ADocstring_AndAComment_AreNotFollowed_ButAClassBodyAndAnIfBlockAre()
+    public void ADocstring_AndAComment_AreNotFollowed_ButALazyImportAClassBodyAndAnIfBlockAre()
     {
         var repo = Repo(
             ("tools/run.py",
@@ -139,7 +143,38 @@ public sealed class SparseCheckoutDriftTests
             ("docstring_mod.py", ""), ("comment_mod.py", ""), ("lazy_mod.py", ""), ("lazy2.py", ""),
             ("class_mod.py", ""), ("method_mod.py", ""), ("if_mod.py", ""));
         string[] reached = [.. SparseCheckoutAudit.Reach(OneJob("j", ["tools"], "      - run: python3 tools/run.py").Single(), repo).Select(r => r.Path)];
-        Assert.Equal(["tools/run.py", "class_mod.py", "if_mod.py"], reached);
+        Assert.Equal(["tools/run.py", "lazy_mod.py", "lazy2.py", "class_mod.py", "method_mod.py", "if_mod.py"], reached);
+    }
+
+    /// <summary>The acceptance of kb/Work PB3810: a repository module a script imports inside <c>main()</c> and the
+    /// sparse list leaves out is flagged with the script that imports it; listing it clears the job.</summary>
+    [Fact]
+    public void ALazilyImportedModule_LeftOutOfTheList_IsFlaggedWithItsChain()
+    {
+        var repo = Repo(
+            ("tools/run.py", "def main():\n    import coord\n    coord.go()\n"),
+            ("coord.py", "pass\n"));
+        string problem = Assert.Single(SparseCheckoutAudit.Problems(OneJob("j", ["tools"], "      - run: python3 tools/run.py"), repo));
+        Assert.Contains("`coord.py` (reached from tools/run.py)", problem, StringComparison.Ordinal);
+
+        Assert.Empty(SparseCheckoutAudit.Problems(OneJob("j", ["tools", "coord.py"], "      - run: python3 tools/run.py"), repo));
+    }
+
+    /// <summary>The reader of kb/Work PB3810: the jobs are the keys beneath <c>jobs:</c>, never the <c>on:</c> triggers
+    /// above it, on the real workflow and on a planted one.</summary>
+    [Fact]
+    public void TheJobReader_SeesTheKeysBeneathJobsAndNotTheTriggers()
+    {
+        string[] real = [.. SparseCheckoutAudit.Jobs(Workflow, File.ReadAllText(TestRepo.At(Workflow.Split('/')))).Select(j => j.Id)];
+        Assert.Contains("supersede", real);
+        Assert.Contains("toolchain-cache", real);
+        Assert.DoesNotContain("push", real);
+        Assert.DoesNotContain("pull_request", real);
+        Assert.DoesNotContain("merge_group", real);
+
+        string[] planted = [.. SparseCheckoutAudit.Jobs("w.yml",
+            "on:\n  push:\n    branches: [main]\n  merge_group:\njobs:\n  only:\n    runs-on: ubuntu-26.04\n    steps:\n      - run: true\n").Select(j => j.Id)];
+        Assert.Equal(["only"], planted);
     }
 
     [Fact]
