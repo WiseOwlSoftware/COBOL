@@ -16065,6 +16065,14 @@
   ],
   "expect": "COBOL2954"
  },
+ "pb438-f3-when-other-below-2023": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014"
+  ],
+  "expect": "COBOL0900: the Format-3 (exception-checking) PERFORM requires COBOL-2023"
+ },
  "pb441-f3-perform-below-2023": {
   "refuse-at": [
    "85",
