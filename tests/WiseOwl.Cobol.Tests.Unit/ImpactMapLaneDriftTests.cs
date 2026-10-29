@@ -78,6 +78,10 @@ public sealed class ImpactMapLaneDriftTests
             "tidy removes a RECORDED recording's work directory",
             "tidy keeps the failed recording's work directory for its diagnosis",
             "a map that cannot be removed is reported busy and the prune goes on",
+            // kb/Work PB3807: the lane worker prunes between a gate's glob and its stat
+            "a map pruned between the glob and its stat is no map",
+            "tidy skips a work directory that vanished between the glob and the stat",
+            "prune skips a temporary file that vanished between the glob and the stat",
         ]);
         SelfTestArmSource.AssertDeclares(TestRepo.Scripts("spec", "record_impact_map.py"),
         [

@@ -47,7 +47,7 @@ public sealed class ImpactedTestsDriftTests
     public void ImpactedTestsSelfTest_DrivesEveryTierArm()
     {
         AssertSelfTest(TestRepo.Scripts("spec", "impacted_tests.py"),
-            "a mapped file (file level) puts its tests in tier 2", "an UNMAPPED (new) src file puts every test in tier 1",
+            "a mapped file (file level) puts its tests in tier 2", "an UNMAPPED (new) src file",
             "a known file no test executed", "an ambient-only file", "a grammar file", "a props file",
             "a runtime data file", "a public-API analyzer baseline is data a test may read",
             "a new file's test methods are all tier 0a",
@@ -77,6 +77,12 @@ public sealed class ImpactedTestsDriftTests
             "a file the map has never seen, new since its commit, puts every test in tier 1",
             "a map recorded AFTER the base serves it", "a map named with --map is served by the same comparison",
             "a map file that cannot be read (torn by a killed recorder, or pruned meanwhile) leaves the plan unaimed",
+            // kb/Work PB3807, PB3806, PB3991
+            "a map pruned between the store's glob and its stat leaves the plan unaimed",
+            "a test-project file the map never saw, in drift, adds no every-tier-1 reason",
+            "... while a SOURCE file the map never saw, in drift, is still unattributable",
+            "a version bump (Directory.Build.props) beside a mapped source file",
+            "... and a method-level hit stays tier 1 for the tests that executed it",
             // tier 0d: the drift tests governing a changed file (kb/Work PB3531), and those of a register citing what
             // the change removes (kb/Work PB3131)
             "a changed file names every drift test the index says governs it",
@@ -105,7 +111,8 @@ public sealed class ImpactedTestsDriftTests
             "tier 0a: an added or edited test method, a touched golden and a previous red",
             "tiers 2 and 3 never enter leg 1",
             "tier 0u: unknown cases are charged the median", "a partition-renamed row keeps its timing",
-            "no map: every case is tier 1", "an unattributable change under a map: every case tier 1","no timings: leg 1 is tier 0a alone",
+            "no map: every case is tier 1", "an unattributable change under a map: every case tier 1",
+            "an unattributable part beside a method-level reach: every case tier 1, the reached case leads leg 1","no timings: leg 1 is tier 0a alone",
             "an empty leg 1 makes the assembly one leg", "an assembly whose whole recorded time fits the collection cap",
             "leg 2 runs collections longest first", "cases sharing a truncated name share one key",
             "a theory listed as one case", "leg_of is total", "a --list-tests output reads back as its display names",
