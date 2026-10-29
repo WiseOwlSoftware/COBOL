@@ -25,6 +25,7 @@ Run as a script it only runs its self-test."""
 from __future__ import annotations
 
 import base64
+import contextlib
 import fnmatch
 import os
 import re
@@ -34,7 +35,7 @@ import sys
 import time
 import zlib
 from pathlib import Path
-from typing import Iterable, NamedTuple
+from typing import Iterable, Iterator, NamedTuple
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))  # scripts/, for standard_streams
@@ -241,6 +242,39 @@ def clean_work(store: Path, repo: Path, sha: str, recorded: bool, now: float | N
     return removed
 
 
+# ── the self-tests' race (this module's and impacted_tests.py's) ──────────────────────────────────────────────────────
+@contextlib.contextmanager
+def vanished_after_the_glob(*paths: Path) -> Iterator[None]:
+    """Inside the block every one of `paths` reads as GONE, as when the lane worker prunes or tidies it between a
+    reader's glob and its stat (kb/Work PB3807), while it stays on the disk: `Path.stat` and `Path.lstat` raise
+    FileNotFoundError and `Path.exists`, `is_file` and `is_dir` answer False. All five are stubbed because Python routes
+    them differently: 3.12's `exists`, `is_file` and `is_dir` call `Path.stat`, 3.14's and later call `os.path`, so a
+    stub of `Path.stat` alone made a path read gone on 3.12 and present on 3.15, through the same call. The block holds
+    the code under test only; an arm that asks what the code left on the disk asks after the block."""
+    gone = {Path(p) for p in paths}
+    real = {name: getattr(Path, name) for name in ("stat", "lstat", "exists", "is_file", "is_dir")}
+
+    def raising(name: str):
+        def stub(self, *args, **kwargs):
+            if self in gone:
+                raise FileNotFoundError(2, "removed between the glob and the stat", str(self))
+            return real[name](self, *args, **kwargs)
+        return stub
+
+    def absent(name: str):
+        def stub(self, *args, **kwargs):
+            return False if self in gone else real[name](self, *args, **kwargs)
+        return stub
+
+    for name in real:
+        setattr(Path, name, raising(name) if name in ("stat", "lstat") else absent(name))
+    try:
+        yield
+    finally:
+        for name, method in real.items():
+            setattr(Path, name, method)
+
+
 def self_test() -> int:
     from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
     fails: list[str] = []
@@ -306,28 +340,22 @@ def self_test() -> int:
         (store / "not-a-sha.json.gz").write_bytes(b"x")
         check("a trial map and a file that is no commit's are never complete maps",
               sorted(s for s, _ in maps(store)), sorted([sha_a, sha_code, sha_more]))
-        # kb/Work PB3807: the lane worker prunes between a gate's glob and its stat. Path.stat is made to find a named
-        # file gone exactly when the glob has already listed it.
-        real_stat = Path.stat
-        vanished: set[str] = set()
-
-        def stat_unless_vanished(self, *args, **kwargs):
-            if self.name in vanished:
-                raise FileNotFoundError(2, "pruned between the glob and the stat", str(self))
-            return real_stat(self, *args, **kwargs)
-
-        Path.stat = stat_unless_vanished
-        try:
-            vanished.add(map_file(store, sha_code).name)
+        # kb/Work PB3807: the lane worker prunes between a gate's glob and its stat: a file the glob has listed reads
+        # gone (vanished_after_the_glob)
+        with vanished_after_the_glob(map_file(store, sha_code)):
             check("a map pruned between the glob and its stat is no map, and the others still serve",
                   sorted(s for s, _ in maps(store)), sorted([sha_a, sha_more]))
             check("... nearest goes on without it, taking the fewest-drift map left", nearest(store, sha_code, repo.path).sha, sha_a)
-            vanished.update(map_file(store, s).name for s in (sha_a, sha_more))
+        with vanished_after_the_glob(*(map_file(store, s) for s in (sha_a, sha_code, sha_more))):
             check("... a store whose every map vanished serves nobody, and nearest raises nothing",
                   (maps(store), nearest(store, sha_more, repo.path)), ([], None))
-            vanished.clear()
-        finally:
-            Path.stat = real_stat
+        # the race is the same on every Python: 3.12 routes Path.exists, is_file and is_dir through Path.stat, 3.14 and
+        # later through os.path (CI's 3.12 read a stubbed stat where 3.15 read the disk, kb/Work PB3806's bounce)
+        probe = map_file(store, sha_a)
+        with vanished_after_the_glob(probe):
+            inside = (mtime(probe), probe.exists(), probe.is_file(), probe.parent.is_dir())
+        check("a vanished path reads gone through every call on this Python, its directory present, and is back after",
+              (inside, probe.exists(), probe.is_file(), mtime(probe) is not None), ((None, False, False, True), True, True, True))
         put("f" * 40, 400)
         check("a map of a commit git does not hold serves nobody", nearest(store, sha_more, repo.path).sha, sha_more)
 
@@ -367,20 +395,18 @@ def self_test() -> int:
               (sorted(gone), young.exists(), failed.exists()), (sorted([mine.name, dead.name]), True, True))
         gone = clean_work(store, repo.path, sha_code, recorded=False)
         check("tidy keeps the failed recording's work directory for its diagnosis", (gone, failed.exists()), ([], True))
-        # kb/Work PB3807: a work directory or a temporary file the worker removed between the glob and the stat
-        Path.stat = stat_unless_vanished
-        try:
-            vanished.update((young.name, stale_tmp.name))
-            os.utime(young, (time.time() - 2 * WORK_STALE_S,) * 2)
-            check("tidy skips a work directory that vanished between the glob and the stat",
-                  (clean_work(store, repo.path, sha_code, recorded=False), young.exists()), ([], True))
-            stale_tmp.write_bytes(b"x")
-            os.utime(stale_tmp, (time.time() - 2 * TMP_STALE_S,) * 2)
-            check("prune skips a temporary file that vanished between the glob and the stat",
-                  (prune(store, repo.path, [sha_a], keep_newest=1), stale_tmp.exists()), (Pruned([], []), True))
-        finally:
-            Path.stat = real_stat
-            vanished.clear()
+        # kb/Work PB3807: a work directory or a temporary file the worker removed between the glob and the stat; what the
+        # tidy and the prune left on the disk is read after the block
+        os.utime(young, (time.time() - 2 * WORK_STALE_S,) * 2)
+        with vanished_after_the_glob(young):
+            tidied = clean_work(store, repo.path, sha_code, recorded=False)
+        check("tidy skips a work directory that vanished between the glob and the stat", (tidied, young.exists()), ([], True))
+        stale_tmp.write_bytes(b"x")
+        os.utime(stale_tmp, (time.time() - 2 * TMP_STALE_S,) * 2)
+        with vanished_after_the_glob(stale_tmp):
+            pruned = prune(store, repo.path, [sha_a], keep_newest=1)
+        check("prune skips a temporary file that vanished between the glob and the stat",
+              (pruned, stale_tmp.exists()), (Pruned([], []), True))
         check("a path that is not there has no mtime and is never stale",
               (mtime(store / "absent"), stale(store / "absent", time.time(), 0.0)), (None, False))
     finally:
