@@ -889,9 +889,10 @@ public static class DiagnosticCatalog
         "ISO §14.9.11.3 / §13.18.60.3");
     public static readonly DiagnosticDescriptor CallContentOperandFormat = new(
         NotImplemented, "call-content-operand-format", EditionSeverity.Error,
-        "This BY CONTENT operand belongs to a different CALL format. ISO §14.9.4.2 Format 1's BY CONTENT admits "
-        + "\"{ identifier-2 } …\" and nothing else; the expression operands (arithmetic-expression-1, "
-        + "boolean-expression-1) are Format 2's, which the AS phrase selects. A boolean expression is additionally "
+        "This CALL argument belongs to a different CALL format. ISO §14.9.4.2 Format 1's USING admits "
+        + "\"{ identifier-2 } …\" (BY REFERENCE or BY CONTENT) and nothing else; BY VALUE, the OMITTED phrase and the "
+        + "expression operands (arithmetic-expression-1, boolean-expression-1, literal-2) are Format 2's, which the "
+        + "AS phrase selects (kb/Work PB130, PB3996). A boolean expression is additionally "
         + "not yet carried across a CALL boundary — the INVOKE side has BoundInvokeArg.ContentBool and the CALL "
         + "argument model has no counterpart.",
         "ISO §14.9.4.2 Formats 1 and 2", RecognizedNotImplemented);

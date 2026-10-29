@@ -200,7 +200,8 @@ internal sealed class ReportWriterEmitter(
     {
         if (!needsHc && f.Columns.Count == 1 && presentSlot < 0 && !f.GroupIndicate && f.Varyings.Count == 0)
         {
-            w.Line($"{RuntimeApi.ReportPlace(r.CsIndex, "__ln", f.Columns[0].AbsoluteLeftmost(f.PrintItem.DisplayTextWidth), FieldImage(r, f, 0))};");
+            string single = FieldImage(r, f, 0, w);
+            w.Line($"{RuntimeApi.ReportPlace(r.CsIndex, "__ln", f.Columns[0].AbsoluteLeftmost(f.PrintItem.DisplayTextWidth), single)};");
             return;
         }
         // The placement's presence — ALL THREE suppressors §13.18.63.4 GR22 names ("a GROUP INDICATE, PRESENT
@@ -228,7 +229,7 @@ internal sealed class ReportWriterEmitter(
             // The operand this repetition takes (§13.18.63.4 GR23 / §13.18.53.4 GR4 — the ONE cycling reader is
             // ReportFieldModel.SourceAt). The index is the repetition ORDINAL, so a PRESENT WHEN that suppresses
             // the item does not shift the assignment (GR23's last sentence).
-            string image = FieldImage(r, f, rep);
+            string image = FieldImage(r, f, rep, w);
             switch (spec.Kind)
             {
                 case ReportColumnKindModel.Absolute:
@@ -379,7 +380,38 @@ internal sealed class ReportWriterEmitter(
     /// repetition ORDINAL — what §13.18.63.4 GR23 counts when it assigns "successive operands to successive
     /// repeating printable items", and what §13.18.38's replay makes span the OCCURS repetitions too — is
     /// <see cref="ReportFieldModel.RepetitionOrdinal"/> + this index (kb/Work PB506 × PB565).</param>
-    private string FieldImage(ReportModel r, ReportFieldModel f, int rep)
+    /// <param name="w">The compose body: a PROHIBITED transfer's rule-7 keep is emitted into it as statements before the
+    /// placement that reads the returned image (see <see cref="KeptOnProhibitedInexact"/>).</param>
+    private string FieldImage(ReportModel r, ReportFieldModel f, int rep, CodeWriter w)
+    {
+        var (image, rounding) = TransferImage(r, f, rep);
+        return rounding == CobolRounding.Prohibited ? KeptOnProhibitedInexact(f, image, w) : image;
+    }
+
+    /// <summary>⛔ §14.7.4.3 RULE 7 IN A PRINTABLE ITEM'S IMPLICIT COMPUTE (kb/Work PB3990 review finding R1-1). "If the
+    /// PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly in the resultant
+    /// identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition exists, and the
+    /// content of the resultant identifier is unchanged": a SOURCE ... ROUNDED MODE IS PROHIBITED operand (§13.18.53.4
+    /// GR2) and a SUM counter printed with ROUNDED MODE IS PROHIBITED (§13.18.54.4 GR4) are implicit COMPUTE
+    /// statements whose resultant is the printable item, with no SIZE ERROR phrase, and the compose is emitted outside
+    /// any statement's EC-SIZE checking. Every landing raises <c>CobolSizeError.ProhibitedInexact</c> before it stores,
+    /// so the image is formed inside the ONE rule-7 keep (<see cref="ArithmeticEmitter.EmitProhibitedInexactKeep"/>)
+    /// and the presentation continues (docs/CONFORMANCE.md DOC-A.1-70) — uncaught, the raise ended the run unit.
+    /// The printable item's unchanged content is SPACES: a printable item is not storage, it is a horizontal division of
+    /// a report line whose value "is determined solely by a SOURCE, SUM, or VALUE clause" (§13.8.6.2.3), and each
+    /// presentation composes the line afresh from a space-filled buffer (<c>CobolReport.NewLine</c>), so before the
+    /// implicit COMPUTE its columns hold spaces — placed at the item's columns, so the horizontal
+    /// counter and the column-overlap test see the item exactly as they would a stored one.</summary>
+    private string KeptOnProhibitedInexact(ReportFieldModel f, string image, CodeWriter w)
+    {
+        string kept = $"__rimg{ctx.Names.NextEc()}";
+        w.Line($"string {kept} = {CsLiteral(new string(' ', f.PrintItem.DisplayTextWidth))};   // the unchanged printable item (§14.7.4.3 rule 7)");
+        ArithmeticEmitter.EmitProhibitedInexactKeep(w, ctx.Names, () => w.Line($"{kept} = {image};"));
+        return kept;
+    }
+
+    /// <summary>The image expression of <see cref="FieldImage"/> and the ROUNDING MODE of its transfer (§14.7.4).</summary>
+    private (string Image, CobolRounding Rounding) TransferImage(ReportModel r, ReportFieldModel f, int rep)
     {
         BoundOperand source;
         // The transfer's ROUNDING MODE (§14.7.4). Only a report value clause's own ROUNDED phrase sets it:
@@ -390,7 +422,7 @@ internal sealed class ReportWriterEmitter(
         {
             case FieldValueSource v:
                 // §13.18.63 — an initialization, NOT the §13.18.53.4 GR1 implicit MOVE (see the remarks above).
-                return Data.ValueImageOf(f.PrintItem, v.Raw);
+                return (Data.ValueImageOf(f.PrintItem, v.Raw), rounding);
             case FieldReferenceSource { Value: { } operand }:
                 // SOURCE identifier-1 (§13.18.53.4 GR1's implicit MOVE sender), bound by the ONE operand binder: a
                 // storage item with its subscripts and reference modification, a LINE-COUNTER / PAGE-COUNTER (§8.4.3.15
@@ -399,8 +431,8 @@ internal sealed class ReportWriterEmitter(
                 source = operand;
                 break;
             case FieldReferenceSource bad:
-                return LoudValue("string",
-                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §13.18.53.3 SR4)");
+                return (LoudValue("string",
+                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §13.18.53.3 SR4)"), rounding);
             case FieldSumSource s:
                 // The SUM counter is the printable entry's source item (§13.18.54.4 GR4 — "the content of the
                 // sum counter is moved, according to the general rules of the MOVE statement, to the printable
@@ -418,8 +450,8 @@ internal sealed class ReportWriterEmitter(
                 // indicator is set, an EC-REPORT-SUM-SIZE exception condition is set to exist and the printable item
                 // is filled with spaces" — kb/Work PB1130). The engine answers the indicator and raises the
                 // condition; the fill is unconditional, so it is decided here and not by the raise.
-                return $"({RuntimeApi.ReportSumPresentable(r.CsIndex, s.CounterId)} "
-                    + $"? {moved} : {CsLiteral(new string(' ', f.PrintItem.DisplayTextWidth))})";
+                return ($"({RuntimeApi.ReportSumPresentable(r.CsIndex, s.CounterId)} "
+                    + $"? {moved} : {CsLiteral(new string(' ', f.PrintItem.DisplayTextWidth))})", sum.Rounding);
             case FieldComputeSource { Value: { } expr } cs:
                 // §13.18.53.4 GR2 — "Arithmetic-expression-1 specifies the operand of an implicit COMPUTE
                 // statement that is executed implicitly whenever the associated item is printed. If the ROUNDED
@@ -430,13 +462,13 @@ internal sealed class ReportWriterEmitter(
                 rounding = cs.Rounding;
                 break;
             case FieldComputeSource bad:
-                return LoudValue("string",
-                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §13.18.53.3 SR4)");
+                return (LoudValue("string",
+                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §13.18.53.3 SR4)"), rounding);
             default:
-                return LoudValue("string",
-                    $"report {r.Name}: SOURCE operand not resolvable to storage (ISO §13.18.53.3 SR4)");
+                return (LoudValue("string",
+                    $"report {r.Name}: SOURCE operand not resolvable to storage (ISO §13.18.53.3 SR4)"), rounding);
         }
-        return move.ConvertSource(source, f.PrintItem, rounding: rounding);
+        return (move.ConvertSource(source, f.PrintItem, rounding: rounding), rounding);
     }
 
     // ⛔ `ValueOperand(string raw)` IS GONE (kb/Work PB506), and this comment stands where it was so it is not

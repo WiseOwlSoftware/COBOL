@@ -31,11 +31,10 @@ public sealed class ZeroDivisorLaneTests
     [InlineData(-7, 2)]
     public void ScaledCarrier_BothKernels_RaiseAZeroDivisor(long dividend, int divisorScale)
     {
+        // One scaled kernel since kb/Work PB3990 deleted DivideOrThrow (CobolNum.Divide raises PROHIBITED's inexact
+        // quotient itself); the zero divisor wins over PROHIBITED, so both modes name EC-SIZE-ZERO-DIVIDE.
         foreach (CobolRounding mode in new[] { CobolRounding.Truncation, CobolRounding.Prohibited })
-        {
             AssertZeroDivide(() => CobolNum.Divide(dividend, 0, 0, divisorScale, 2, mode));
-            AssertZeroDivide(() => CobolNum.DivideOrThrow(dividend, 0, 0, divisorScale, 2, mode));
-        }
     }
 
     [Theory]

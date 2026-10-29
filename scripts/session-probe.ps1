@@ -86,6 +86,10 @@ if (Test-Path 'tests/version-matrix/traceability-inventory.json') {
     Write-Host "invent : not built yet (P14 Step 0)"
 }
 
+# THE FUZZ LEDGER (owner 2026-10-28, kb/Work PB4010): the Artifact and FUZZ-LEDGER.md must show the same ledger. The rule
+# lives in fuzz_history.py; the probe prints its one status line (current, PUBLISH OWED or REGENERATE OWED).
+& python scripts/fuzz_history.py status 2>&1 | ForEach-Object { Write-Host "fuzz   : $_" }
+
 # ⛔ NO BRANCH IS LEFT UNDECIDED (owner 2026-10-08 00:00 PDT, kb/Work PB2600; MANDATORY-PRACTICES O10). Every local
 # branch and detached worktree is IN FLIGHT, WAITING FOR REVIEW, WAITING TO LAND, STOPPED, ENQUEUED, NOT QUEUED, BOUNCED, LANDED
 # or needs a DECISION; the rows someone must act on print here every session, so an undecided branch can no longer be

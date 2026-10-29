@@ -66,7 +66,16 @@ public sealed class CarrierLandingFormTests
 
     // ── the float family's two landings ───────────────────────────────────────────────────────────────────────
 
-    /// <summary>Inside the carrier the three landings are ONE function (the same product, the same rounding).</summary>
+    /// <summary>A landing's answer as one comparable value: the landed integer, or §14.7.4.3 rule 7's raise, which every
+    /// form makes alike for a PROHIBITED value the scale cannot hold exactly (kb/Work PB3990).</summary>
+    private static string Landed(Func<Int128> land)
+    {
+        try { return land().ToString(System.Globalization.CultureInfo.InvariantCulture); }
+        catch (CobolSizeError e) when (e.IsProhibitedInexact) { return "PROHIBITED-INEXACT"; }
+    }
+
+    /// <summary>Inside the carrier the three landings are ONE function (the same product, the same rounding, the same
+    /// PROHIBITED raise).</summary>
     [Theory]
     [InlineData(1.15, 2)]
     [InlineData(-8.2, 1)]
@@ -76,8 +85,8 @@ public sealed class CarrierLandingFormTests
     {
         foreach (CobolRounding mode in Enum.GetValues<CobolRounding>())
         {
-            Assert.Equal(CobolFloat.ToScaled(v, scale, mode), CobolFloat.ToScaledUnchecked(v, scale, mode));
-            Assert.Equal(CobolFloat.ToScaledIntermediate(v, scale, mode), CobolFloat.ToScaledUnchecked(v, scale, mode));
+            Assert.Equal(Landed(() => CobolFloat.ToScaled(v, scale, mode)), Landed(() => CobolFloat.ToScaledUnchecked(v, scale, mode)));
+            Assert.Equal(Landed(() => CobolFloat.ToScaledIntermediate(v, scale, mode)), Landed(() => CobolFloat.ToScaledUnchecked(v, scale, mode)));
         }
     }
 
@@ -396,8 +405,8 @@ public sealed class CarrierLandingFormTests
         // 1.732050808 in one PIC 9V9(9)). Sweeping every mode is the drift test: a mode re-introduced inside
         // either landing fails here rather than in a golden six months later.
         foreach (CobolRounding mode in System.Enum.GetValues<CobolRounding>())
-            Assert.Equal(CobolFloat.ToScaledUnchecked(v, scale, mode),
-                         CobolIntrinsics.FromDouble(v, scale, mode));
+            Assert.Equal(Landed(() => CobolFloat.ToScaledUnchecked(v, scale, mode)),
+                         Landed(() => CobolIntrinsics.FromDouble(v, scale, mode)));
     }
 
     /// <summary>THE DRIFT TEST for the carrier fast path (kb/Work PB623). <see cref="ExactOracle"/> below is a
@@ -472,12 +481,14 @@ public sealed class CarrierLandingFormTests
         return bits < 0 ? -q : q;                                   // magnitude-then-sign: truncation is toward zero
     }
 
-    /// <summary>The ROUNDED MODE PROHIBITED gate asks the SAME exact value the landing rounds (kb/Work PB623;
-    /// ISO §14.7.4.3 item 7 — "If the PROHIBITED phrase is specified, and the arithmetic value cannot be
-    /// represented exactly in the resultant identifier, the EC-SIZE-TRUNCATION exception condition is set to
-    /// exist … and the content of the resultant identifier is unchanged"). The old product test could not:
-    /// <c>0.1 * 10.0</c> is exactly 1.0 in binary64, so it called a value with 55 fraction digits representable in
-    /// ONE — a gate saying "exact" over a landing that then truncates 54 digits away.
+    /// <summary>ROUNDED MODE PROHIBITED is asked of the SAME exact value the landing rounds, by the landing's own rounding
+    /// decision (kb/Work PB623, PB3990; ISO §14.7.4.3 item 7 — "If the PROHIBITED phrase is specified, and the
+    /// arithmetic value cannot be represented exactly in the resultant identifier, the EC-SIZE-TRUNCATION exception
+    /// condition is set to exist … and the content of the resultant identifier is unchanged"). A binary64 product test
+    /// could not: <c>0.1 * 10.0</c> is exactly 1.0 in binary64, so it called a value with 55 fraction digits
+    /// representable in ONE. The UNCHECKED landing answers every row (past the carrier it keeps the low-order digits
+    /// of the same exact expansion), and since PB3990 it raises <see cref="CobolSizeError.ProhibitedInexact"/> where it
+    /// used to land the value truncated; an exact value lands exactly as TRUNCATION lands it.
     /// <para>The exact expansions decide every row: 0.1 has 55 fraction digits, 8.2 has 48, 0.3 has 54, 1.5 has
     /// one, and 1.0E+25 and 2.0 are integers.</para></summary>
     [Theory]
@@ -493,8 +504,15 @@ public sealed class CarrierLandingFormTests
     [InlineData(2.0, 0, false)]
     [InlineData(1.0e25, 0, false)]
     [InlineData(0.0, 0, false)]
-    public void InexactAtScale_AsksTheExactValue_NotABinary64Product(double v, int scale, bool inexact) =>
-        Assert.Equal(inexact, CobolFloat.InexactAtScale(v, scale));
+    public void ProhibitedLanding_AsksTheExactValue_NotABinary64Product(double v, int scale, bool inexact)
+    {
+        if (inexact)
+            Assert.True(Assert.Throws<CobolSizeError>(
+                () => CobolFloat.ToScaledUnchecked(v, scale, CobolRounding.Prohibited)).IsProhibitedInexact);
+        else
+            Assert.Equal(CobolFloat.ToScaledUnchecked(v, scale, CobolRounding.Truncation),
+                CobolFloat.ToScaledUnchecked(v, scale, CobolRounding.Prohibited));
+    }
 
     // ── the edited landing (kb/Work PB2163) ──────────────────────────────────────────────────────────────────
 

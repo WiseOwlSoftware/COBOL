@@ -133,8 +133,8 @@ public sealed class FloatLandingModeDriftTests
     /// INVARIANT 5 — AND THE RUNTIME LANDING NAMES NO MODE OF ITS OWN. This is the drift that re-opens the
     /// defect: the mode became a parameter, but a body that still writes <c>CobolRounding.Something</c> into the
     /// quantization silently overrides it, and no golden would say so — the value would simply be wrong in one
-    /// channel again. The ONE mode constant this file may name is <see cref="CobolRounding.Prohibited"/>, which
-    /// it names to TEST for (the §14.7.4.3 rule 7 raise), never to quantize with.
+    /// channel again. The file names no mode constant at all: it used to name <see cref="CobolRounding.Prohibited"/>
+    /// to test for the §14.7.4.3 rule 7 raise, which the landing's own rounding decision now makes (kb/Work PB3990).
     /// </summary>
     [Fact]
     public void TheRuntimeQuantizer_HardCodesNoRoundingMode()
@@ -144,7 +144,7 @@ public sealed class FloatLandingModeDriftTests
         // scan is about CODE. (A block comment would be stripped the same way; the file uses neither.)
         string code = string.Join('\n', src.Split('\n').Where(l => !l.TrimStart().StartsWith("//")));
         var named = Regex.Matches(code, @"CobolRounding\.(\w+)").Select(m => m.Groups[1].Value).Distinct().ToList();
-        Assert.Equal(["Prohibited"], named);
+        Assert.Empty(named);
     }
 
     /// <summary>

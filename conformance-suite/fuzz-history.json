@@ -1,0 +1,422 @@
+{
+ "artifact": "https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g",
+ "nights": [
+  {
+   "night": 1,
+   "run_id": "fuzz-20261020-224517",
+   "started": "2026-10-21T05:45:17+00:00",
+   "model": "qwen3.6:35b",
+   "seed": 20261021,
+   "hours": 8.0,
+   "edition": "2014",
+   "programs": 5599,
+   "judged": 5599,
+   "usable": 3345,
+   "usable_first": null,
+   "they_reject": 176,
+   "survivors": 1821,
+   "survivor_signatures": 352,
+   "classes": {
+    "BOTH_REJECT": 2249,
+    "OUTPUT_DIFFERS": 1141,
+    "AGREE": 1023,
+    "WE_REJECT": 950,
+    "THEY_REJECT": 176,
+    "THEY_FAIL_RUN": 41,
+    "WE_HANG": 8,
+    "EXIT_DIFFERS": 8,
+    "NO_PROGRAM": 2,
+    "WE_FAIL_RUN": 1
+   },
+   "judge": "0421be4df",
+   "verdicts": null,
+   "defects": [
+    "PB3489",
+    "PB3490",
+    "PB3491"
+   ],
+   "evidence": "docs/rearchitecture/evidence/fleet-optimization/2026-10-21-differential-fuzz-overnight.md"
+  },
+  {
+   "night": 2,
+   "run_id": "fuzz-20261021-211424",
+   "started": "2026-10-22T04:14:25+00:00",
+   "model": "qwen3.6:35b",
+   "seed": 20261022,
+   "hours": 8.0,
+   "edition": "2014",
+   "programs": 4931,
+   "judged": 4931,
+   "usable": 2592,
+   "usable_first": null,
+   "they_reject": 154,
+   "survivors": 1260,
+   "survivor_signatures": 314,
+   "classes": {
+    "BOTH_REJECT": 2326,
+    "AGREE": 1042,
+    "WE_REJECT": 707,
+    "OUTPUT_DIFFERS": 368,
+    "OUTPUT_LATITUDE": 290,
+    "THEY_REJECT": 154,
+    "THEY_FAIL_RUN": 19,
+    "BOTH_HANG": 7,
+    "NO_PROGRAM": 6,
+    "WE_HANG": 5,
+    "EXIT_DIFFERS": 5,
+    "WE_CRASH": 1,
+    "THEY_HANG": 1
+   },
+   "judge": null,
+   "verdicts": null,
+   "defects": [
+    "PB3510",
+    "PB3511",
+    "PB3512",
+    "PB3517",
+    "PB3523"
+   ],
+   "evidence": "docs/rearchitecture/evidence/fleet-optimization/2026-10-22-differential-fuzz-second-night.md"
+  },
+  {
+   "night": 3,
+   "run_id": "fuzz-20261022-163846",
+   "started": "2026-10-22T23:38:46+00:00",
+   "model": "qwen3.6:35b",
+   "seed": 20261024,
+   "hours": 8.0,
+   "edition": "2014",
+   "programs": 4756,
+   "judged": 4753,
+   "usable": 3012,
+   "usable_first": 1506,
+   "they_reject": 172,
+   "survivors": 1379,
+   "survivor_signatures": 275,
+   "classes": {
+    "BOTH_REJECT": 1734,
+    "AGREE": 1633,
+    "WE_REJECT": 804,
+    "OUTPUT_DIFFERS": 377,
+    "THEY_REJECT": 172,
+    "THEY_FAIL_RUN": 13,
+    "EXIT_DIFFERS": 9,
+    "NO_PROGRAM": 5,
+    "RUNNER_ERROR": 3,
+    "WE_FAIL_RUN": 2,
+    "BOTH_HANG": 2,
+    "WE_HANG": 1,
+    "THEY_HANG": 1
+   },
+   "judge": null,
+   "verdicts": {
+    "WISEOWL-CORRECT": {
+     "signatures": 100,
+     "programs": 905
+    },
+    "LATITUDE": {
+     "signatures": 45,
+     "programs": 120
+    },
+    "UNINITIALIZED": {
+     "signatures": 9,
+     "programs": 20
+    },
+    "NOT-COMPARABLE": {
+     "signatures": 13,
+     "programs": 50
+    },
+    "GNUCOBOL-SIDE": {
+     "signatures": 45,
+     "programs": 183
+    },
+    "WISEOWL-DEFECT": {
+     "signatures": 10,
+     "programs": 34
+    },
+    "MODEL-ERROR": {
+     "signatures": 9,
+     "programs": 9
+    }
+   },
+   "defects": [
+    "PB3562",
+    "PB3563",
+    "PB3564",
+    "PB3565",
+    "PB3566",
+    "PB3567",
+    "PB3568",
+    "PB3569",
+    "PB3570"
+   ],
+   "evidence": "docs/rearchitecture/evidence/fleet-optimization/2026-10-23-differential-fuzz-third-night.md"
+  },
+  {
+   "night": 4,
+   "run_id": "fuzz-20261023-204437",
+   "started": "2026-10-24T03:44:37+00:00",
+   "model": "qwen3.6:35b",
+   "seed": 20261025,
+   "hours": 8.0,
+   "edition": "2014",
+   "programs": 5247,
+   "judged": 5246,
+   "usable": 3229,
+   "usable_first": 1608,
+   "they_reject": 157,
+   "survivors": 1413,
+   "survivor_signatures": 285,
+   "classes": {
+    "BOTH_REJECT": 2008,
+    "AGREE": 1816,
+    "WE_REJECT": 811,
+    "OUTPUT_DIFFERS": 424,
+    "THEY_REJECT": 157,
+    "THEY_FAIL_RUN": 15,
+    "NO_PROGRAM": 6,
+    "WE_HANG": 3,
+    "BOTH_HANG": 3,
+    "EXIT_DIFFERS": 2,
+    "RUNNER_ERROR": 1,
+    "THEY_HANG": 1
+   },
+   "judge": null,
+   "verdicts": {
+    "WISEOWL-CORRECT": {
+     "signatures": 114,
+     "programs": 907
+    },
+    "LATITUDE": {
+     "signatures": 41,
+     "programs": 136
+    },
+    "UNINITIALIZED": {
+     "signatures": 11,
+     "programs": 30
+    },
+    "NOT-COMPARABLE": {
+     "signatures": 14,
+     "programs": 46
+    },
+    "GNUCOBOL-SIDE": {
+     "signatures": 54,
+     "programs": 209
+    },
+    "WISEOWL-DEFECT": {
+     "signatures": 2,
+     "programs": 5
+    },
+    "MODEL-ERROR": {
+     "signatures": 5,
+     "programs": 6
+    }
+   },
+   "defects": [
+    "PB3664",
+    "PB3665",
+    "PB3666"
+   ],
+   "evidence": "docs/rearchitecture/evidence/fleet-optimization/2026-10-24-differential-fuzz-fourth-night.md"
+  },
+  {
+   "night": 5,
+   "run_id": "fuzz-20261025-220901",
+   "started": "2026-10-26T05:09:01+00:00",
+   "model": "qwen3.6:35b",
+   "seed": 20261026,
+   "hours": 8.0,
+   "edition": "2014",
+   "programs": 6274,
+   "judged": 6274,
+   "usable": 3922,
+   "usable_first": 1901,
+   "they_reject": 182,
+   "survivors": 1773,
+   "survivor_signatures": 314,
+   "classes": {
+    "BOTH_REJECT": 2339,
+    "AGREE": 2149,
+    "WE_REJECT": 1032,
+    "OUTPUT_DIFFERS": 531,
+    "THEY_REJECT": 182,
+    "THEY_FAIL_RUN": 19,
+    "NO_PROGRAM": 12,
+    "EXIT_DIFFERS": 7,
+    "WE_FAIL_RUN": 2,
+    "BOTH_HANG": 1
+   },
+   "judge": "6ed90bd1c",
+   "verdicts": {
+    "WISEOWL-CORRECT": {
+     "signatures": 123,
+     "programs": 1150
+    },
+    "LATITUDE": {
+     "signatures": 45,
+     "programs": 184
+    },
+    "UNINITIALIZED": {
+     "signatures": 12,
+     "programs": 36
+    },
+    "NOT-COMPARABLE": {
+     "signatures": 19,
+     "programs": 72
+    },
+    "GNUCOBOL-SIDE": {
+     "signatures": 50,
+     "programs": 243
+    },
+    "WISEOWL-DEFECT": {
+     "signatures": 4,
+     "programs": 10
+    },
+    "KNOWN": {
+     "signatures": 1,
+     "programs": 1
+    },
+    "MODEL-ERROR": {
+     "signatures": 4,
+     "programs": 9
+    }
+   },
+   "defects": [
+    "PB3829",
+    "PB3830",
+    "PB3831",
+    "PB3832"
+   ],
+   "evidence": "docs/rearchitecture/evidence/fleet-optimization/2026-10-26-differential-fuzz-fifth-night.md"
+  },
+  {
+   "night": 6,
+   "run_id": "fuzz-20261026-225310",
+   "started": "2026-10-27T05:53:10+00:00",
+   "model": "qwen3.6:35b",
+   "seed": 20261027,
+   "hours": 8.0,
+   "edition": "2014",
+   "programs": 6646,
+   "judged": 6646,
+   "usable": 4183,
+   "usable_first": 2079,
+   "they_reject": 185,
+   "survivors": 1863,
+   "survivor_signatures": 328,
+   "classes": {
+    "BOTH_REJECT": 2448,
+    "AGREE": 2320,
+    "WE_REJECT": 1100,
+    "OUTPUT_DIFFERS": 548,
+    "THEY_REJECT": 185,
+    "THEY_FAIL_RUN": 22,
+    "NO_PROGRAM": 10,
+    "BOTH_HANG": 5,
+    "EXIT_DIFFERS": 5,
+    "WE_FAIL_RUN": 2,
+    "WE_HANG": 1
+   },
+   "judge": "deae52c90",
+   "verdicts": {
+    "WISEOWL-CORRECT": {
+     "signatures": 123,
+     "programs": 1202
+    },
+    "LATITUDE": {
+     "signatures": 42,
+     "programs": 163
+    },
+    "UNINITIALIZED": {
+     "signatures": 11,
+     "programs": 28
+    },
+    "NOT-COMPARABLE": {
+     "signatures": 17,
+     "programs": 71
+    },
+    "GNUCOBOL-SIDE": {
+     "signatures": 59,
+     "programs": 296
+    },
+    "WISEOWL-DEFECT": {
+     "signatures": 1,
+     "programs": 3
+    },
+    "MODEL-ERROR": {
+     "signatures": 7,
+     "programs": 10
+    }
+   },
+   "defects": [
+    "PB3869"
+   ],
+   "evidence": "docs/rearchitecture/evidence/fleet-optimization/2026-10-27-differential-fuzz-sixth-night.md"
+  },
+  {
+   "night": 7,
+   "run_id": "fuzz-20261027-215606",
+   "started": "2026-10-28T04:56:07+00:00",
+   "model": "qwen3.6:35b",
+   "seed": 20261028,
+   "hours": 8.0,
+   "edition": "2014",
+   "programs": 6457,
+   "judged": 6457,
+   "usable": 4010,
+   "usable_first": 1977,
+   "they_reject": 207,
+   "survivors": 1798,
+   "survivor_signatures": 330,
+   "classes": {
+    "BOTH_REJECT": 2438,
+    "AGREE": 2212,
+    "WE_REJECT": 1076,
+    "OUTPUT_DIFFERS": 490,
+    "THEY_REJECT": 207,
+    "THEY_FAIL_RUN": 14,
+    "NO_PROGRAM": 5,
+    "BOTH_HANG": 4,
+    "EXIT_DIFFERS": 4,
+    "WE_FAIL_RUN": 4,
+    "WE_HANG": 2,
+    "THEY_HANG": 1
+   },
+   "judge": "7f0105fec",
+   "verdicts": {
+    "WISEOWL-CORRECT": {
+     "signatures": 103,
+     "programs": 1104
+    },
+    "GNUCOBOL-SIDE": {
+     "signatures": 70,
+     "programs": 296
+    },
+    "LATITUDE": {
+     "signatures": 64,
+     "programs": 192
+    },
+    "UNINITIALIZED": {
+     "signatures": 11,
+     "programs": 32
+    },
+    "NOT-COMPARABLE": {
+     "signatures": 9,
+     "programs": 55
+    },
+    "WISEOWL-DEFECT": {
+     "signatures": 2,
+     "programs": 7
+    },
+    "MODEL-ERROR": {
+     "signatures": 11,
+     "programs": 11
+    }
+   },
+   "defects": [
+    "PB3996",
+    "PB3997"
+   ]
+  }
+ ]
+}

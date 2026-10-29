@@ -358,6 +358,18 @@ off-by-one through every later counter check.
   subsequent MOVE of the counter to the printable item — makes the phrase provably dead, because GR1 derives the
   counter's integral AND fractional digits from that item's own PICTURE, so that transfer is always
   scale-identical. The mode reaches the accumulation through `NumericRenderer.Align`'s one optional parameter.
+  ⛔ **The implicit COMPUTE's mode reaches EVERY printable-item category** (kb/Work PB3990 review finding R1-1):
+  `MoveEmitter.ConvertSource` threads it into the numeric store, the numeric-edited landing (a native sender whose
+  fraction the item drops takes `NumericRenderer.EditedLanding` with the mode, because the formatter's own alignment
+  only truncates; `SOURCE IS WS-F ROUNDED` printed 1.55 as 1 into Z9) and the floating-point edited store
+  (`RuntimeApi.EditFormatFloat` with the mode, never the MOVE's truncation). **ROUNDED MODE IS PROHIBITED** (§14.7.4.3
+  rule 7 — "the content of the resultant identifier is unchanged") is kept by the ONE rule-7 catch the arithmetic
+  statements use (`ArithmeticEmitter.EmitProhibitedInexactKeep`, called from `ReportWriterEmitter.FieldImage`): the
+  compose is emitted outside every statement's EC-SIZE checking, so the item's image is formed inside that try over a
+  local holding the item's unchanged content, which is SPACES — a printable item is a horizontal division of a line
+  composed afresh from a space-filled buffer each presentation, its value "determined solely by a SOURCE, SUM, or
+  VALUE clause" (§13.8.6.2.3) — and the presentation continues (CONFORMANCE.md DOC-A.1-70). Goldens
+  `13.18.53-SOURCE/pb3990_report_source_prohibited_keeps_the_item` and `pb3990_report_source_rounded_edited`.
 - **THE SUM COUNTER IS A PLACE, AND ITS IDENTITY IS ITS ENTRY** (kb/Work PB882 × PB840). §13.18.54.4 GR1 gives
   EACH entry its own counter, so `ReportSumModel.Id` is the entry's ORDINAL in its report description and the
   engine holds the counters in a `List<SumEntry>` indexed by it; GR5's data-name rides alongside as

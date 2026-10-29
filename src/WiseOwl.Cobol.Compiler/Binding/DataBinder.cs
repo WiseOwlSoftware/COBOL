@@ -3297,9 +3297,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// trailing-nonzero truncation. Zero (and a literal whose only nonzero digits are outside the tested span) is
     /// handled naturally: a literal of value zero is always representable and skipped. A picture-less numeric item
     /// (USAGE INDEX, Digits 0) has no digit positions to test and is skipped; SR3's signed-literal-into-unsigned test is
-    /// independent of the digit range. A COMP-5 / fixed-width binary item's Digits equals the decimal width of its
-    /// range's maximum magnitude, so the digit test never false-rejects a capacity-valid value (its full
-    /// binary-capacity range is a separate discipline, not SR2's PICTURE range).
+    /// independent of the digit range. A fixed-width binary item's Digits equals the decimal width of its
+    /// range's maximum magnitude, so the digit test never false-rejects a capacity-valid value; it also cannot
+    /// refuse a value past the native band (BINARY-CHAR's three digits hold 255), so SR2's USAGE half is asked
+    /// separately, last: a <c>NumericTruncation.BinaryCapacity</c> subject's literal shall lie within
+    /// <see cref="AlgebraicRanges.Of"/>'s band, the one statement the runtime store bound and the
+    /// HIGHEST/LOWEST-ALGEBRAIC fold also read (kb/Work PB3997).
     /// </remarks>
     private void ValidateNumericValue(PicInfo pic, string raw, string where)
     {
@@ -3309,11 +3312,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         string t = raw.Trim();
         if (t.Length == 0) return;
         bool signedLiteral = t[0] is '-' or '+';   // §8.3.3.3.2 2): a literal written with a sign is a signed literal
+        bool negativeLiteral = signedLiteral && t[0] == '-';
         if (signedLiteral) t = t[1..];
         // A plain numeric literal is a digit run with at most one decimal point (the floating-point form of
         // §8.3.3.3.3 — significand E exponent — reaches only a floating-point numeric-edited subject here: a
         // fixed-point subject's ValidateValueCategory expanded it to its exact value first); figurative words, quoted
         // alphanumeric, and national/boolean literals are validated on their own paths and are out of scope here.
+        string magnitudeText = t;                  // the literal's magnitude as written (sign stripped), for the USAGE-band test
         int ePos = t.IndexOfAny(['E', 'e']);
         int exp10 = 0;
         if (ePos >= 0)
@@ -3390,6 +3395,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 : $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
                     + "permissible value in the range the PICTURE indicates — it is not representable without truncation "
                     + "of leading or trailing nonzero digits (ISO §13.18.63.3 SR2)");
+        else if (!edited && pic.Truncation == WiseOwl.Cobol.Runtime.NumericTruncation.BinaryCapacity
+                 && AlgebraicRanges.Of(pic) is { } band
+                 && !AlgebraicRanges.Admits(band, magnitudeText, negative: negativeLiteral))
+            // SR2's other half: "permissible values within the range indicated by the PICTURE clause or the USAGE
+            // clause" (ISO §13.18.63.3 SR2). A fixed-width binary usage (BINARY-CHAR … -DOUBLE, COMP-5) owns the
+            // native two's-complement band of its byte width (§13.18.60.4 GR12; docs/CONFORMANCE.md DOC-A.1-206/-208),
+            // a band the PICTURE's digit span above cannot see (BINARY-CHAR's three digits admit 255). The band is
+            // read from AlgebraicRanges.Of, the one statement the runtime store bound and the HIGHEST/LOWEST-ALGEBRAIC
+            // fold agree on (kb/Work PB3997).
+            Edition.Error("COBOL1625", $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
+                + $"permissible value in the range the USAGE clause indicates — {(band.FarthestNegative ?? "0")} through "
+                + $"{band.Farthest} (ISO §13.18.63.3 SR2)");
     }
 
     /// <summary>The stored digit-position span and P-signed scale of a FIXED-POINT item — plain numeric
@@ -3869,6 +3886,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // nested strong reference walks THIS item's ancestor chain. TypeName also anchors the §8.5.3 same-type
         // test (see DataItem.TypeAnchor).
         item.TypeName = typeName;
+        item.TypeDeclaration = template;   // the declaration the one lookup resolved (DataItem.TypeDeclaration)
         item.StrongType = strong;
         // §13.18.57.4 GR2 d): a GROUP type's subject "is aligned as though it were a level 1 item" — so a bit
         // group typed after a same-level bit item starts at the first bit of a byte (§8.5.1.6.3), not inside the
@@ -4186,6 +4204,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             to.DynStructure = from.DynStructure;   // … and so does its dynamic-length-structure-name (kb/Work PB829)
         }
         to.TypeName ??= from.TypeName;     // a data-name-1 declared with TYPE carries its type identity (§8.5.3)
+        to.TypeDeclaration ??= from.TypeDeclaration;   // … and the declaration that identity names
         to.StrongType |= from.StrongType;
     }
 
@@ -7485,8 +7504,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 var preceding = scope.TakeWhile(s => !ReferenceEquals(s, item))
                     .Where(s => CobolNames.Same(s.CobolName, tname)
                         && (item.Parent is not null || s.Section == item.Section)).ToList();
-                item.SetRedefinition(preceding.LastOrDefault(s => s.RedefinesTargetName is null) ?? preceding.LastOrDefault(),
-                    RedefinitionKind.Clause);
+                item.SetRedefinition(DataItem.RedefinedEntry(preceding), RedefinitionKind.Clause);
                 // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
                 // silent cross-scope bind to an object/program item) — §13.18.44.3 SR.
                 if (written && item.RedefinesTarget is null && item.Parent is null && OoRootOwner.ContainsKey(item.Root))
