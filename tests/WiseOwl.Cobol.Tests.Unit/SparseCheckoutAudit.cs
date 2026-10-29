@@ -15,9 +15,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <remarks>
 /// <para>What a job REACHES: every token of its steps (comments and the sparse list itself set aside) that names an
 /// existing repository file, and the files of a local action (<c>uses: ./…</c>) it calls; from a Python file, the files
-/// of every repository module it imports as it starts (a module-level <c>import</c>, <c>from … import</c> or a
-/// submodule named by the latter; a function body's import is lazy and is not followed, a class body's runs with the
-/// module); from a shell script, a PowerShell script or an action, the same token scan of its non-comment text.</para>
+/// of every repository module it imports anywhere in its text (an <c>import</c>, <c>from … import</c> or a submodule
+/// named by the latter, at module level, in a class body, in a function body or under an <c>if</c>: a lazy import runs
+/// on the job's path when its function does, and an over-approximated closure is loud where an under-approximated one
+/// is silent, kb/Work PB3810); from a shell script, a PowerShell script or an action, the same token scan of its
+/// non-comment text.</para>
 /// <para>Python resolves a bare module name through <c>sys.path</c>, which the scripts extend themselves
 /// (<c>sys.path.insert(0, str(HERE))</c>, <c>sys.path.append(str(HERE.parent))</c>), so the audit searches the entry
 /// script's directory, the importing file's directory and each directory above it. It does not run Python: a module
@@ -46,10 +48,11 @@ internal static class SparseCheckoutAudit
 
     private static readonly Regex ImportStatement = new(@"^(?<ind>[ \t]*)import[ \t]+(?<mods>[^#;\r\n]+)", RegexOptions.NonBacktracking);
     private static readonly Regex FromStatement = new(@"^(?<ind>[ \t]*)from[ \t]+(?<dots>\.*)(?<mod>[\w.]*)[ \t]+import[ \t]+(?<names>[^#\r\n]*)", RegexOptions.NonBacktracking);
-    private static readonly Regex DefLine = new(@"^(?<ind>[ \t]*)(?:async[ \t]+)?def[ \t]", RegexOptions.NonBacktracking);
 
     /// <summary>The jobs of one workflow file, each with its code (no comment-only line): the jobs
-    /// <see cref="CiWorkflow"/> reads under <c>jobs:</c>, tagged with the file they came from.</summary>
+    /// <see cref="CiWorkflow"/>, the one reader of a workflow's jobs, reads beneath <c>jobs:</c> (so never an
+    /// <c>on:</c> trigger: kb/Work PB3810, where a reader over the whole file returned the triggers as jobs), tagged
+    /// with the file they came from.</summary>
     internal static IReadOnlyList<Job> Jobs(string file, string workflow) =>
         [.. CiWorkflow.Jobs(workflow).Select(j => new Job(file, j.Id, j.Code))];
 
@@ -191,8 +194,8 @@ internal static class SparseCheckoutAudit
             return c < 0 ? l : l[..c];
         }));
 
-    /// <summary>The repository Python files <paramref name="text"/> (the file at <paramref name="path"/>) imports as it
-    /// starts: module-level statements, not a docstring's text and not a function body's lazy import.</summary>
+    /// <summary>The repository Python files <paramref name="text"/> (the file at <paramref name="path"/>) contains:
+    /// every import statement, a function body's lazy import included, and not a docstring's text.</summary>
     internal static IEnumerable<string> ImportedFiles(string path, string text, string entryDir, Func<string, string?> read)
     {
         string dir = Path.GetDirectoryName(path)?.Replace('\\', '/') ?? "";
@@ -205,7 +208,7 @@ internal static class SparseCheckoutAudit
         }
         roots = [.. roots.Distinct()];
 
-        foreach ((int level, string module, IReadOnlyList<string> names) in ModuleLevelImports(text))
+        foreach ((int level, string module, IReadOnlyList<string> names) in Imports(text))
         {
             IReadOnlyList<string> bases = level == 0 ? roots : [Up(dir, level - 1)];
             foreach (string file in Resolve(bases, module, names, read))
@@ -257,11 +260,11 @@ internal static class SparseCheckoutAudit
         }
     }
 
-    /// <summary>Each module-level import of a Python file, as (relative level, dotted module, imported names).</summary>
-    private static IEnumerable<(int Level, string Module, IReadOnlyList<string> Names)> ModuleLevelImports(string text)
+    /// <summary>Each import statement of a Python file, at any depth, as (relative level, dotted module, imported
+    /// names).</summary>
+    private static IEnumerable<(int Level, string Module, IReadOnlyList<string> Names)> Imports(string text)
     {
         string[] lines = text.ReplaceLineEndings("\n").Split('\n');
-        Stack<int> defs = new();
         string? quote = null;
         for (int i = 0; i < lines.Length; i++)
         {
@@ -274,11 +277,6 @@ internal static class SparseCheckoutAudit
             string trimmed = line.TrimStart();
             if (trimmed.Length == 0 || trimmed[0] == '#') continue;
             quote = OpenTripleQuote(line);
-            int indent = line.Length - trimmed.Length;
-            if (trimmed[0] is not (')' or ']' or '}'))
-                while (defs.Count > 0 && indent <= defs.Peek()) defs.Pop();
-            if (DefLine.IsMatch(line)) { defs.Push(indent); continue; }
-            if (defs.Count > 0) continue;
 
             Match import = ImportStatement.Match(line);
             if (import.Success)

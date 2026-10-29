@@ -34,7 +34,11 @@ shape rule 5 forbids, and it would go stale the first time the host renamed a di
     it was cut from (`repo_root_of`). A project outside every working tree (a scratch probe) writes where its
     PROJECT FILES say: its own directory plus the directory of every project it `ProjectReference`s (a scratch
     project can reference a worktree's project, so the trees such a build writes are read off the project graph,
-    `build_places`, kb/Work PB3770); a graph the guard cannot read to the end stays UNKNOWN.
+    `build_places`, kb/Work PB3770); a graph the guard cannot read to the end stays UNKNOWN. A build also writes
+    wherever its command line moves the output (`-o`, `--output`, `--artifacts-path`, `-p:OutDir=…` and the other
+    output properties, `dotnet_arguments`, kb/Work PB3811): each such directory is one more place, so a scratch
+    build whose `-o` lands in a live agent's worktree meets that agent; a path the line does not say (a variable, a
+    response file, an environment variable that moves the output) is UNKNOWN.
   • a FOREIGN agent's tree = the tree of the directory the agent was LAUNCHED in, which its own transcript records
     on its first record (`cwd`; `launch_cwd`, `agent_place`; kb/Work PB3770). The host writes that field however
     it starts an agent, so ONE mechanism covers `Agent(isolation="worktree")`'s `agent-<id>`, a rolling wave's
@@ -49,8 +53,8 @@ main-tree build is ALLOWED while only worktree agents are live, because their bi
 
 ⚠ AND THE FALLBACK IS TOWARD THE OLD RULE, NEVER TOWARD ALLOWING. If the places a build writes cannot be located
 (a directory the command line does not determine; a scratch project whose graph the guard cannot read to the end:
-an unreadable or missing project file, a `$(…)` reference, an `Import`, a moved output path, a
-`Directory.Build.props` above it), or an agent's launch directory cannot be read from its transcript or no longer
+an unreadable or missing project file, a `$(…)` reference, an `Import`, an output path moved in a project file or
+one the command line does not say, a `Directory.Build.props`, `.targets` or `.rsp` above it), or an agent's launch directory cannot be read from its transcript or no longer
 exists, the decision reverts to the SESSION-WIDE rule for it and the foreign live agent denies. Fail-open (below)
 covers a BROKEN guard; this covers an UNKNOWN tree, where allowing would be the one outcome that reproduces
 2026-08-04.
@@ -118,16 +122,35 @@ PROJECT_SUFFIXES = (*SOLUTION_SUFFIXES, *MSBUILD_PROJECT_SUFFIXES, FILE_APP_SUFF
 
 # What a build outside every working tree writes is read off its project graph (`build_places`, kb/Work PB3770). Any
 # of these makes the graph unreadable, so the build stays UNKNOWN and the session-wide rule applies: an MSBuild
-# import (it can set anything), a property that moves where the build writes, and a `Directory.Build.*` file in any
-# ancestor directory (MSBuild imports it implicitly).
-IMPLICIT_IMPORTS = ("Directory.Build.props", "Directory.Build.targets")
-OUTPUT_PROPERTIES = (
+# import (it can set anything), a property that moves where the build writes, and a file MSBuild reads implicitly in any
+# ancestor directory: `Directory.Build.props` / `.targets` (imported) and `Directory.Build.rsp` / `MSBuild.rsp`
+# (response files, which carry the same `-p:` switches a command line does; kb/Work PB3811, decided: a superset, since
+# MSBuild looks for them at the project directory and above).
+IMPLICIT_IMPORTS = ("Directory.Build.props", "Directory.Build.targets", "Directory.Build.rsp", "MSBuild.rsp")
+# The properties that move where a build writes: the ones whose value is a directory, and the one that chooses a layout.
+OUTPUT_PATH_PROPERTIES = (
     "BaseOutputPath", "OutputPath", "OutDir", "PublishDir", "BaseIntermediateOutputPath", "IntermediateOutputPath",
-    "ArtifactsPath", "UseArtifactsOutput",
+    "ArtifactsPath",
 )
+OUTPUT_SWITCH_PROPERTIES = ("UseArtifactsOutput",)
+OUTPUT_PROPERTIES = (*OUTPUT_PATH_PROPERTIES, *OUTPUT_SWITCH_PROPERTIES)
+OUTPUT_PATH_NAMES = frozenset(n.lower() for n in OUTPUT_PATH_PROPERTIES)  # MSBuild property names ignore case
+OUTPUT_SWITCH_NAMES = frozenset(n.lower() for n in OUTPUT_SWITCH_PROPERTIES)
 XML_COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
 IMPORT_RE = re.compile(r"<Import\b", re.I)
 OUTPUT_PROPERTY_RE = re.compile(r"<(?:" + "|".join(OUTPUT_PROPERTIES) + r")\b", re.I)
+# The command-line spellings of a moved output (kb/Work PB3811), read off the words after `dotnet`: the output option
+# (`-o`, `--output`, `--artifacts-path`; the value is the next word or follows `:` / `=`) and MSBuild's property switch
+# (`-p:N=V`, `-property:`, `--property:`, `/p:`, `/property:`, or `-p` and the next word; `;` or `,` separate several).
+# `-os` and `--os` are no output option.
+OUTPUT_OPTION_RE = re.compile(r"^(?:-o|--output|--artifacts-path)(?:[:=](?P<value>.*))?$", re.I | re.S)
+PROPERTY_OPTION_RE = re.compile(r"^(?:--?|/)(?:p|property)(?:[:=](?P<value>.*))?$", re.I | re.S)
+PROPERTY_SEPARATOR_RE = re.compile(r"[;,]")
+# MSBuild reads an environment variable as a property, so `OutDir=x dotnet build`, `export OutDir=x` and
+# `$env:OutDir = 'x'` move the output too.
+ENVIRONMENT_ASSIGNMENT_RE = re.compile(
+    r"^(?:\$env:(?:" + "|".join(OUTPUT_PROPERTIES) + r")(?:=|$)|(?:" + "|".join(OUTPUT_PROPERTIES) + r")=)", re.I
+)
 PROJECT_REFERENCE_RE = re.compile(r"<ProjectReference\b[^>]*?\bInclude\s*=\s*[\"']([^\"']*)[\"']", re.I | re.S)
 # A solution names its projects in quotes (`.sln`: `Project("{…}") = "n", "p.csproj", "{…}"`) or as `Path="p.csproj"`.
 SOLUTION_PROJECT_RE = re.compile(r"[\"']([^\"']+\.(?:cs|fs|vb)?proj)[\"']", re.I)
@@ -336,7 +359,7 @@ def project_refs(project: pathlib.Path) -> "list[pathlib.Path] | None":
             value = value.strip()
             if kind.lower() == "project":
                 found.append(value)
-            elif kind.lower() == "property" and value.split("=", 1)[0].strip() in OUTPUT_PROPERTIES:
+            elif kind.lower() == "property" and value.split("=", 1)[0].strip().lower() in OUTPUT_PATH_NAMES | OUTPUT_SWITCH_NAMES:
                 return None
     elif suffix in SOLUTION_SUFFIXES:
         found = [m.group(1) for m in SOLUTION_PROJECT_RE.finditer(text)]
@@ -373,8 +396,45 @@ def project_files_in(directory: pathlib.Path) -> list:
         return []
 
 
-def build_places(site: str) -> "list[Place] | None":
-    """Every place a build at `site` writes (kb/Work PB3770); None when the line does not determine them.
+class Site(NamedTuple):
+    """One build of the tool call: what it builds, and the directories its command line moves the output to."""
+
+    target: "str | None"  # the project or solution it names, else the directory it runs in; None: not determined
+    outputs: tuple = ()   # the directories `-o`, `--artifacts-path` or an output property name (`output_directories`)
+
+
+def output_place(directory: str) -> "Place | None":
+    """The place a build that writes into `directory` writes: its working tree, else the directory itself. The
+    directory need not exist (the build creates it), so a worktree's `bin/…` is the worktree before it is built;
+    None when the path cannot be read as one."""
+    tree = repo_root_of(directory)
+    if tree is not None:
+        return Place(tree, True)
+    try:
+        return Place(pathlib.Path(directory).resolve(), False)
+    except (OSError, ValueError):
+        return None
+
+
+def build_places(site: Site) -> "list[Place] | None":
+    """Every place a build writes (kb/Work PB3770, PB3811); None when the line does not determine them: the places of
+    the project it builds (`target_places`) and the place of every directory its command line redirects the output
+    to."""
+    places = target_places(site.target or "")
+    if places is None:
+        return None
+    for directory in site.outputs:
+        place = output_place(directory)
+        if place is None:
+            return None
+        if not any(same_path(place.path, q.path) for q in places):
+            places.append(place)
+    return places
+
+
+def target_places(site: str) -> "list[Place] | None":
+    """Every place a build at `site` writes beside its own project (kb/Work PB3770); None when the line does not
+    determine them.
 
     Inside a working tree the build writes that tree. Outside every tree (a scratch probe) it writes next to each
     project of its graph — the project or solution named, or the only one in the directory, and the closure of what
@@ -423,9 +483,94 @@ def build_places(site: str) -> "list[Place] | None":
     return places
 
 
+class Arguments(NamedTuple):
+    """What the arguments of one `dotnet <verb>` say about where it builds and writes (`dotnet_arguments`)."""
+
+    projects: list        # the projects and solutions it names
+    redirects: list       # the `Redirect`s it carries
+    undetermined: bool    # an output the words cannot say: a response file (`@x.rsp`), a layout switch
+
+
+class Redirect(NamedTuple):
+    """A directory the output is moved to, as written. `-o` and `--artifacts-path` are relative to the directory the
+    command runs in; an output property is relative to the project directory (MSBuild)."""
+
+    value: str
+    from_project: bool
+
+
+def dotnet_arguments(args: list) -> Arguments:
+    """The projects named, the output redirections and the unreadable parts among the arguments of a `dotnet`
+    command (kb/Work PB3811). Words after a bare `--` are the program's own (`dotnet run -- hello.cob -o hello.dll`),
+    and the value of an option is no project, so neither is read as one."""
+    projects, redirects, undetermined = [], [], False
+    i = 0
+    while i < len(args):
+        word = args[i]
+        i += 1
+        if word == "--":
+            break
+        if word.startswith("@"):
+            undetermined = True  # MSBuild reads a response file's switches, `-p:OutDir=…` included
+        elif word in ("--project", "--solution"):
+            if i < len(args):
+                projects.append(args[i])
+                i += 1
+        elif word.startswith(("--project=", "--solution=")):
+            projects.append(word.split("=", 1)[1])
+        elif (output := OUTPUT_OPTION_RE.match(word)) is not None:
+            value = output.group("value")
+            if value is None:
+                value = args[i] if i < len(args) else ""
+                i += 1
+            redirects.append(Redirect(value, False))
+        elif (prop := PROPERTY_OPTION_RE.match(word)) is not None:
+            text = prop.group("value")
+            if text is None and i < len(args) and "=" in args[i]:  # `-p Name=Value`; `-p x.csproj` names a project
+                text = args[i]
+                i += 1
+            for item in PROPERTY_SEPARATOR_RE.split(text or ""):
+                name, _, value = item.partition("=")
+                name = name.strip().lower()
+                if name in OUTPUT_PATH_NAMES:
+                    redirects.append(Redirect(value.strip(), True))
+                elif name in OUTPUT_SWITCH_NAMES:
+                    undetermined = True
+        elif word.lower().endswith(PROJECT_SUFFIXES) and not word.startswith("-"):
+            projects.append(word)
+    return Arguments(projects, redirects, undetermined)
+
+
+def output_directories(redirects: list, cwd: "str | None", target: "str | None") -> "tuple | None":
+    """The directories `redirects` move a build of `target` (run in `cwd`) to; None when they cannot be determined: a
+    value with a variable or a substitution in it, or a property value that climbs out of the project directory (it
+    is relative to each project of the graph, which this line does not read)."""
+    if target is None:
+        return None
+    path = pathlib.Path(target)
+    project_dir = str(path.parent if path.suffix.lower() in PROJECT_SUFFIXES else path)
+    directories = []
+    for value, from_project in redirects:
+        if from_project and not shell_location.is_absolute(value) and ".." in re.split(r"[\\/]", value):
+            return None
+        directory = shell_location.resolve(value, project_dir if from_project else cwd)
+        if directory is None:
+            return None
+        directories.append(directory)
+    return tuple(directories)
+
+
+def sets_output_by_environment(words: list) -> bool:
+    """Does a command assign an environment variable that MSBuild reads as an output property (kb/Work PB3811)?"""
+    return any(ENVIRONMENT_ASSIGNMENT_RE.match(w) for w in words)
+
+
 def build_sites(data: dict) -> list:
-    """Every place the tool call builds: for each `dotnet <verb>` command, the project it names, else the directory it
-    runs in. `None` is a place the command line does not determine (an UNKNOWN tree, so the session-wide rule).
+    """Every build of the tool call, as a `Site`: for each `dotnet <verb>` command, the project it names, else the
+    directory it runs in, with the directories its command line moves the output to (`-o`, `--output`,
+    `--artifacts-path`, `-p:OutDir=…` and the other `OUTPUT_PATH_PROPERTIES`; kb/Work PB3811). A site whose target or
+    output the command line does not determine is `Site(None)` (an UNKNOWN tree, so the session-wide rule): a
+    variable in the path, a response file, a layout switch, an environment variable that moves the output.
 
     The directory each command runs in comes from `shell_location.steps`, the one parser of the two shells' location
     changes (kb/Work PB2599): a PowerShell `Set-Location <worktree>; dotnet build`, a Bash `git worktree add … && cd
@@ -440,16 +585,20 @@ def build_sites(data: dict) -> list:
         except OSError:
             cwd = ""
     command = (data.get("tool_input") or {}).get("command") or ""
-    sites = []
+    sites, by_environment = [], False
     for step in shell_location.steps(command, cwd or None, shell_location.shell_of(data.get("tool_name"))):
-        if not is_build_command(step.text):
-            continue
         words = list(step.words)
-        named = [words[i + 1] for i, w in enumerate(words[:-1]) if w in ("--project", "--solution")]
-        named += [w.split("=", 1)[1] for w in words if w.startswith(("--project=", "--solution="))]
-        named += [w for w in words if w.lower().endswith(PROJECT_SUFFIXES) and not w.startswith("-")]
-        sites += [shell_location.resolve(n, step.cwd) for n in named] or [step.cwd]
-    return sites
+        if not is_build_command(step.text):
+            by_environment = by_environment or sets_output_by_environment(words)
+            continue
+        # words before `dotnet` are its environment (`OutDir=x dotnet build`); a text that only mentions it has none
+        index = next((k for k, w in enumerate(words) if shell_location.program(w) == "dotnet"), -1)
+        by_environment = by_environment or sets_output_by_environment(words[:max(index, 0)])
+        arguments = dotnet_arguments(words[index + 1:])
+        for target in [shell_location.resolve(n, step.cwd) for n in arguments.projects] or [step.cwd]:
+            outputs = None if arguments.undetermined else output_directories(arguments.redirects, step.cwd, target)
+            sites.append(Site(target, outputs) if outputs is not None else Site(None))
+    return [Site(None)] * len(sites) if by_environment else sites
 
 
 def agents_sharing_any(sites: list, foreign: list) -> tuple[list, "pathlib.Path | None"]:
@@ -465,7 +614,7 @@ def agents_sharing_any(sites: list, foreign: list) -> tuple[list, "pathlib.Path 
     places = {p: agent_place(p) for p in foreign}
     sharing, tree = [], None
     for site in sites:
-        written = build_places(site or "")
+        written = build_places(site)
         for transcript in foreign:
             if transcript in sharing:
                 continue
@@ -613,6 +762,9 @@ def _build_fixture(root: pathlib.Path) -> dict:
     (scratch / "empty").mkdir(parents=True)
     write(scratch / "dbp" / "Directory.Build.props", "<Project/>\n")
     write(scratch / "dbp" / "probe.csproj", sdk.format(""))
+    for folder, response_file in (("dbrsp", "Directory.Build.rsp"), ("msrsp", "MSBuild.rsp")):  # read implicitly (PB3811)
+        write(scratch / folder / response_file, "-p:OutDir=elsewhere/\n")
+        write(scratch / folder / "probe.csproj", sdk.format(""))
     return {
         "main": main.resolve(),
         "nested": (main / "scripts" / "hooks").resolve(),
@@ -636,6 +788,8 @@ def _build_fixture(root: pathlib.Path) -> dict:
         "csOut": (cs / "out" / "walk.cs").resolve(),
         "empty": (scratch / "empty").resolve(),
         "dbp": (scratch / "dbp").resolve(),
+        "dbRsp": (scratch / "dbrsp").resolve(),
+        "msRsp": (scratch / "msrsp").resolve(),
     }
 
 
@@ -723,7 +877,7 @@ def self_test() -> int:
 
         def shared(site, *agents: str) -> list:
             """The agents among `agents` that share the places a build at `site` writes."""
-            sharing, _ = agents_sharing_any([str(site)], [t(a) for a in agents])
+            sharing, _ = agents_sharing_any([Site(str(site))], [t(a) for a in agents])
             return sorted(p.stem[len("agent-"):] for p in sharing)
 
         fleet = ("main1", "aaa", "bbb", "ccc")
@@ -836,18 +990,79 @@ def self_test() -> int:
         check("scope: a scratch dir outside every tree with no project stays UNKNOWN -> DENY (2026-10-07 21:41 refuter)",
               denies(f"cd {fx['outside'].as_posix()}; timeout 600 dotnet run walk.cs", main), 1)
 
+        # kb/Work PB3811: an output path given on the command line is a place the build writes, whatever the project
+        # file says, so a scratch build whose `-o` lands in a live agent's worktree must see that agent. Every
+        # spelling of the output option and of an output property, over the same fleet.
+        def who(command: str, cwd, tool: str = "Bash", agents=fleet) -> list:
+            sharing, _ = agents_sharing_any(sites(command, cwd, tool), [t(a) for a in agents])
+            return sorted(p.stem[len("agent-"):] for p in sharing)
+
+        wave_out = (fx["wtB"] / "src" / "App" / "bin" / "Debug" / "net10.0").as_posix()
+        scratch_cwd = fx["plain"]
+        everyone = sorted(fleet)
+        for name, command, expected in [
+            ("`-o <worktree>/bin` from a scratch probe", f"dotnet build -o {wave_out}", ["bbb"]),
+            ("`-o:<worktree>`", f"dotnet build -o:{wave_out}", ["bbb"]),
+            ("`--output <worktree>` (publish)", f"dotnet publish --output {wave_out}", ["bbb"]),
+            ("`--output=<worktree>`", f"dotnet publish --output={wave_out}", ["bbb"]),
+            ("`--artifacts-path <worktree>`", f"dotnet build --artifacts-path {wave_out}", ["bbb"]),
+            ("`-p:OutDir=<worktree>/`", f"dotnet build -p:OutDir={wave_out}/", ["bbb"]),
+            ("`-p:OutputPath=<worktree>`", f"dotnet build -p:OutputPath={wave_out}", ["bbb"]),
+            ("`-property:PublishDir=<worktree>`", f"dotnet publish -property:PublishDir={wave_out}", ["bbb"]),
+            ("`--property:BaseIntermediateOutputPath=<worktree>`", f"dotnet build --property:BaseIntermediateOutputPath={wave_out}/", ["bbb"]),
+            ("`/p:IntermediateOutputPath=<worktree>`", f"dotnet build /p:IntermediateOutputPath={wave_out}/", ["bbb"]),
+            ("`/property:ArtifactsPath=<worktree>`", f"dotnet build /property:ArtifactsPath={wave_out}", ["bbb"]),
+            ("`-p:BaseOutputPath=<worktree>`", f"dotnet build -p:BaseOutputPath={wave_out}/", ["bbb"]),
+            ("a property name in another case", f"dotnet build -p:outdir={wave_out}/", ["bbb"]),
+            ("`-p OutDir=<worktree>` (the value in the next word)", f"dotnet build -p OutDir={wave_out}/", ["bbb"]),
+            ("one of several properties in a quoted word", f'dotnet build "-p:Configuration=Release;OutDir={wave_out}/"', ["bbb"]),
+            ("`-o <main>/bin` -> the main-tree agent", f"dotnet build -o {fx['main'].as_posix()}/bin", ["main1"]),
+            ("`-o ../../main/bin` (relative to the directory it runs in)", "dotnet build -o ../../main/bin", ["main1"]),
+            ("`-o <scratch>/out` -> a plain directory no agent works in -> ALLOW", f"dotnet build -o {fx['scratch'].as_posix()}/out", []),
+            ("`-o ../elsewhere` -> ALLOW", "dotnet build -o ../elsewhere", []),
+            ("`-p:OutDir=bin/` (inside the project directory) -> ALLOW", "dotnet build -p:OutDir=bin/", []),
+            ("`-os linux` is no output option -> ALLOW", "dotnet build -os linux", []),
+            ("`cd <scratch probe> && dotnet build -o <worktree>`", f"cd {scratch_cwd.as_posix()} && dotnet build -o {wave_out}", ["bbb"]),
+            ("`dotnet build <scratch>/probe.csproj -p:OutDir=<worktree>/`",
+             f"dotnet build {(scratch_cwd / 'probe.csproj').as_posix()} -p:OutDir={wave_out}/", ["bbb"]),
+            # What the line does not say stays UNKNOWN: every foreign agent denies.
+            ("`-o $OUT` -> UNKNOWN", "dotnet build -o $OUT", everyone),
+            ("`-o` with no value -> UNKNOWN", "dotnet build -o", everyone),
+            ("a response file `@args.rsp` -> UNKNOWN", "dotnet build @args.rsp", everyone),
+            ("`-p:UseArtifactsOutput=true` -> UNKNOWN", "dotnet build -p:UseArtifactsOutput=true", everyone),
+            ("`-p:OutDir=../x` climbs out of the project directory -> UNKNOWN", "dotnet build -p:OutDir=../x/", everyone),
+            ("`-p:OutDir=$(Root)/bin` -> UNKNOWN", "dotnet build '-p:OutDir=$(Root)/bin'", everyone),
+            ("`OutDir=<worktree> dotnet build` (environment property) -> UNKNOWN", f"OutDir={wave_out} dotnet build", everyone),
+            ("`export OutputPath=x; dotnet build` -> UNKNOWN", "export OutputPath=x; dotnet build", everyone),
+            # The program's own arguments are no build option and no project.
+            ("`dotnet run -- hello.cob -o $OUT` -> ALLOW (after `--` they are the program's)", "dotnet run -- hello.cob -o $OUT", []),
+            ("`dotnet run -- other.cs` names no project -> ALLOW", "dotnet run -- other.cs", []),
+        ]:
+            check(f"output: {name}", who(command, scratch_cwd), expected)
+        check("output: PowerShell `$env:OutputPath = '<worktree>'; dotnet build` -> UNKNOWN",
+              who(f"$env:OutputPath = '{wave_out}'; dotnet build", scratch_cwd, "PowerShell"), everyone)
+        check("output: from a worktree, `-o <main>/bin` -> DENY on that worktree's agent AND the main-tree agent",
+              who(f"dotnet build -o {fx['main'].as_posix()}/bin", fx["wtB"]), ["bbb", "main1"])
+        check("output: from a worktree, `-o bin/x` inside it -> the worktree's agent only",
+              who("dotnet build -o bin/x", fx["wtB"]), ["bbb"])
+        check("output: a scratch agent working in the output directory is denied, the fleet is not",
+              who(f"dotnet build {(fx['otherPlain'] / 'probe.csproj').as_posix()} -o {scratch_cwd.as_posix()}/out",
+                  fx["otherPlain"], agents=fleet + ("scr",)), ["scr"])
+        check("output: a Directory.Build.rsp above the project -> UNKNOWN", who("dotnet build", fx["dbRsp"]), everyone)
+        check("output: a MSBuild.rsp above the project -> UNKNOWN", who("dotnet build", fx["msRsp"]), everyone)
+
         # PB474: a Git-Bash `cd /e/…` target must land on the worktree, not on `E:\e\…` and thence UNKNOWN.
         if os.name == "nt":
             drive, rest = os.path.splitdrive(str(wt))
             msys = "/" + drive[0].lower() + rest.replace("\\", "/")
             for spelled in (msys, "/cygdrive" + msys):
                 got = sites(f"cd {spelled} && dotnet build", main)
-                check(f"scope: MSYS `cd {spelled[:14]}…` resolves to the worktree (PB474)", same_path(got[0], wt), True)
+                check(f"scope: MSYS `cd {spelled[:14]}…` resolves to the worktree (PB474)", same_path(got[0].target, wt), True)
                 sharing, tree = agents_sharing_any(got, [t("main1")])
                 check("scope: …and a main-tree fleet then does NOT deny that worktree build", (len(sharing), tree), (0, None))
 
         # The DENY message must name the agents AND the shared tree (it named `subagents` for every one).
-        sharing, tree = agents_sharing_any([str(main)], [t("main1"), t("main2")])
+        sharing, tree = agents_sharing_any([Site(str(main))], [t("main1"), t("main2")])
         msg = deny_reason(sharing, tree)
         check("message: names the live agents", "agent-main1" in msg and "agent-main2" in msg, True)
         check("message: names the shared tree", str(main) in msg, True)

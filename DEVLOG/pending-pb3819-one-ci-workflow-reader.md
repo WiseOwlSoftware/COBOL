@@ -24,7 +24,7 @@ regex; the self-test fixtures name their `steps:` key now.
 block with a comment and a blank line inside, a step list at the key's own indentation, a nested `continue-on-error`, CRLF,
 and the four refusals) and sweeps every other C# file under `tests/` for a job-key regex or a hand-found `jobs:` anchor,
 with its own planted arms. DESIGN-test-build-ci.md's `tests/_shared` table carries the reader; PB3810 item 2 is marked
-resolved (its item 1, the function-body imports, is untouched); PB3787's and PB3308's site paragraphs follow the move.
+resolved; PB3787's and PB3308's site paragraphs follow the move.
 
 Self-review: the old readers' behaviours that differed were each a bug or an accident, so the unified semantics changed
 three results on purpose and none showed in the existing arms: comment-only lines are now dropped from the text the
@@ -40,3 +40,11 @@ action audit. It now asks `CiWorkflow` (jobs, `CiStep.Value`, and a new `CiStep.
 `overwrite`), with arms for a same-indent list in a second job, a `with:`-nested `continue-on-error` and an `overwrite`
 under `env:`. The tree sweep now also refuses a hand-found `steps:` key (`== "steps:"`), so the next fixed-depth step
 splitter fails at the gate.
+
+Merging main in: PB3810 had landed first and answered its item 2 by making `DotnetSdkInstallDriftTests.Jobs` internal, the
+reader `SparseCheckoutAudit.Jobs` and `ToolchainManifestDriftTests` then called. That is the reader this change deletes,
+so the three conflicted files took `CiWorkflow.Jobs` in its place, and main's half of PB3810 was kept whole: the audit's
+`Imports`, which follows a function body's lazy import, and its arms (`TheJobReader_SeesTheKeysBeneathJobsAndNotTheTriggers`
+holds `SparseCheckoutAudit.Jobs` on the real workflow and on a planted trigger block). The note body's union merge had
+kept two `**Sites:**` lines in PB3810; the landed one stays. The reader's comments and the design row now count the ten
+classes it replaced.

@@ -569,7 +569,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <c>StandardDeviation</c> (§15.86.4 r1, SQRT of that: 0, not 0.5), <c>PresentValue</c> (§15.74.4 r1, a Σ of
     /// signed amounts: PRESENT-VALUE(0 100000000000000001 −100000000000000000) answered 0, not 1).</para>
     /// <para>A list with a FLOATING argument keeps the binary64 body — its EAE is evaluated in binary64, the
-    /// determination CONFORMANCE.md DOC-A.1-92 states for the exact family's floating arm. An SDIDI argument is
+    /// determination CONFORMANCE.md DOC-A.1-92b states for the exact family's floating arm. An SDIDI argument is
     /// already claimed by <c>RenderNum</c>'s native Dec arm before the float family is reached.
     /// <c>WholeRangeBodiesDriftTests</c> pins the overload each member needs and that EVERY variadic float-family
     /// catalog row is a member, so a new variadic float function cannot silently take the narrowing arm.</para>
