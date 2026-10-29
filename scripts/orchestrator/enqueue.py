@@ -456,17 +456,33 @@ def rerun_check(repo: str, run_id: int, *, gh: Gh) -> tuple[bool, str]:
     return rc == 0, (out + err).strip() or f"gh run rerun {run_id}: exit {rc}"
 
 
-def requeue(repo: str, number: int, *, gh: Gh, state: Callable[[], tuple[str, str]]) -> tuple[bool, str]:
+def requeue(repo: str, number: int, head: str, *, gh: Gh, state: Callable[[], tuple[str, str]]) -> tuple[bool, str]:
     """Close and reopen the pull request (GitHub re-evaluates its head commit and runs its pull-request checks again)
     and queue it again with auto-merge, as `queue` does: what cleared PR #385 when a re-run did not. Refused, touching
-    nothing, while the merge queue is not ACTIVE (queue's guard), or when its state cannot be read. (ok, what
-    happened; a step GitHub did not answer names itself, and a pull request left closed by it is the next read's: no
-    open pull request ALERTS the operator at once)."""
+    nothing, while the merge queue is not ACTIVE (queue's guard), when its state cannot be read, and while a workflow
+    run on the head commit `head` has not completed or the head's runs cannot be read: the reopen starts a new run that
+    CANCELS the one in flight (build-and-test.yml's cancel-in-progress), whose `ci-gate` then fails and the branch
+    reads BOUNCED with no defect (kb/Work PB4052). (ok, what happened; a step GitHub did not answer names itself, and a
+    pull request left closed by it is the next read's: no open pull request ALERTS the operator at once)."""
     step = "the merge queue's state (ruleset.py check)"
     try:
         st, detail = state()
         if st != ruleset.ACTIVE:
             return False, f"the merge queue is not ACTIVE (ruleset: {st} — {detail}): nothing closed or re-queued"
+        step = f"gh run list --commit {head[:12]}"
+        rc, out, err = gh(["run", "list", "--commit", head, "--json", "databaseId,status", "--limit", "100", "-R", repo])
+        try:
+            runs = json.loads(out) if rc == 0 else None
+        except ValueError:
+            runs = None
+        if not isinstance(runs, list):
+            return False, (f"{step}: the head's workflow runs could not be read (exit {rc}: {(out + err).strip()[:120]}): "
+                           "nothing closed or re-queued")
+        live = [f"{r.get('databaseId')} {r.get('status')}" for r in runs
+                if not isinstance(r, dict) or r.get("status") != "completed"]
+        if live:
+            return False, (f"workflow run(s) on the head {head[:12]} not completed ({', '.join(live)}): a close and reopen "
+                           "would cancel them (kb/Work PB4052): nothing closed or re-queued")
         for verb in ("close", "reopen"):
             step = f"gh pr {verb} #{number}"
             rc, out, err = gh(["pr", verb, str(number), "-R", repo])
@@ -1379,9 +1395,12 @@ def self_test() -> int:
 
         # The queue watch's remedies (kb/Work PB3527): a re-run of the stuck check's workflow run, then close, reopen and
         # auto-merge again, behind queue's own ACTIVE guard; every call names the repository.
-        def remedy_gh(log: list[list[str]], fail: str = "", merge_says: str = "") -> Gh:
+        def remedy_gh(log: list[list[str]], fail: str = "", merge_says: str = "", runs: str = "[]",
+                      runs_rc: int = 0) -> Gh:
             def gh(args: list[str]) -> tuple[int, str, str]:
                 log.append(list(args))
+                if args[:2] == ["run", "list"]:
+                    return (0, runs, "") if runs_rc == 0 else (runs_rc, "", "HTTP 502")
                 if fail and args[:2] == ["pr", fail]:
                     return 1, "", f"refused ({fail})"
                 if args[:2] == ["pr", "merge"] and merge_says:
@@ -1391,46 +1410,63 @@ def self_test() -> int:
         rlog: list[list[str]] = []
         ok_rerun = rerun_check("o/r", 39834070835, gh=remedy_gh(rlog))
         qlog: list[list[str]] = []
-        ok_requeue = requeue("o/r", 385, gh=remedy_gh(qlog), state=active)
+        head385 = "fb899d188e35" + "0" * 28
+        ok_requeue = requeue("o/r", 385, head385, gh=remedy_gh(qlog, runs='[{"databaseId": 1, "status": "completed"}]'),
+                             state=active)
         idle: list[list[str]] = []
-        refused = requeue("o/r", 385, gh=remedy_gh(idle), state=lambda: (ruleset.DRIFT, "x"))
+        refused = requeue("o/r", 385, head385, gh=remedy_gh(idle), state=lambda: (ruleset.DRIFT, "x"))
         closefail: list[list[str]] = []
-        stopped = requeue("o/r", 385, gh=remedy_gh(closefail, fail="close"), state=active)
-        already = requeue("o/r", 385, gh=remedy_gh([], merge_says="pull request is already queued"), state=active)
-        expect("the queue watch's remedies: a re-run of the stuck check's run, then close, reopen and auto-merge again "
-               "(in that order, each naming the repository); refused touching nothing while the queue is not ACTIVE; a "
-               "failed close stops before anything else (kb/Work PB3527)",
+        stopped = requeue("o/r", 385, head385, gh=remedy_gh(closefail, fail="close"), state=active)
+        already = requeue("o/r", 385, head385, gh=remedy_gh([], merge_says="pull request is already queued"), state=active)
+        expect("the queue watch's remedies: a re-run of the stuck check's run, then (no run on the head still in "
+               "progress) close, reopen and auto-merge again (in that order, each naming the repository); refused "
+               "touching nothing while the queue is not ACTIVE; a failed close stops before anything else (kb/Work PB3527)",
                ok_rerun[0] and rlog == [["run", "rerun", "39834070835", "-R", "o/r"]]
-               and ok_requeue[0] and [a[:3] for a in qlog] == [["pr", "close", "385"], ["pr", "reopen", "385"],
-                                                               ["pr", "merge", "385"]]
-               and qlog[2][3] == "--auto" and all(a[-2:] == ["-R", "o/r"] for a in qlog)
-               and not refused[0] and not idle and not stopped[0] and len(closefail) == 1 and already[0],
+               and ok_requeue[0] and qlog[0][:4] == ["run", "list", "--commit", head385]
+               and [a[:3] for a in qlog[1:]] == [["pr", "close", "385"], ["pr", "reopen", "385"], ["pr", "merge", "385"]]
+               and qlog[3][3] == "--auto" and all(a[-2:] == ["-R", "o/r"] for a in qlog)
+               and not refused[0] and not idle and not stopped[0] and len(closefail) == 2 and already[0],
                f"{ok_rerun} {rlog} {ok_requeue} {qlog} {refused} {idle} {stopped} {closefail} {already}")
+        inflight: list[list[str]] = []
+        running = requeue("o/r", 777, head385, state=active, gh=remedy_gh(
+            inflight, runs='[{"databaseId": 40967509020, "status": "completed"}, {"databaseId": 40969292151, "status": "in_progress"}]'))
+        unreadable: list[list[str]] = []
+        blind = requeue("o/r", 777, head385, gh=remedy_gh(unreadable, runs_rc=1), state=active)
+        expect("the requeue refuses, touching nothing, while a workflow run on the head has not completed (the reopen's "
+               "new run would cancel it and its ci-gate would read as a bounce, kb/Work PB4052, PR #777), naming the run, "
+               "and when the head's runs cannot be read",
+               not running[0] and "40969292151 in_progress" in running[1] and "nothing closed" in running[1]
+               and [a[:2] for a in inflight] == [["run", "list"]]
+               and not blind[0] and "could not be read" in blind[1] and [a[:2] for a in unreadable] == [["run", "list"]],
+               f"{running} {inflight} {blind} {unreadable}")
 
         def silent_gh(log: list[list[str]], at: str) -> Gh:
-            """gh that answers until the call `at` (its first two words), which gives no answer (real_gh's timeout)."""
+            """gh that answers until the call `at` (its first two words), which gives no answer (real_gh's timeout); the
+            head's workflow runs are all completed."""
             def gh(args: list[str]) -> tuple[int, str, str]:
                 log.append(list(args))
                 if " ".join(args[:2]) == at:
                     raise ruleset.Unobserved(f"`gh {at}` gave no answer in 120 s")
-                return 0, "", ""
+                return (0, "[]", "") if args[:2] == ["run", "list"] else (0, "", "")
             return gh
 
         def silent_state() -> tuple[str, str]:
             raise ruleset.Unobserved("`gh api` gave no answer in 120 s")
         hung_rerun = rerun_check("o/r", 39834070835, gh=silent_gh([], "run rerun"))
         reopen_log: list[list[str]] = []
-        hung_reopen = requeue("o/r", 385, gh=silent_gh(reopen_log, "pr reopen"), state=active)
+        hung_reopen = requeue("o/r", 385, head385, gh=silent_gh(reopen_log, "pr reopen"), state=active)
         unread: list[list[str]] = []
-        hung_state = requeue("o/r", 385, gh=silent_gh(unread, ""), state=silent_state)
+        hung_state = requeue("o/r", 385, head385, gh=silent_gh(unread, ""), state=silent_state)
+        hung_runs = requeue("o/r", 385, head385, gh=silent_gh([], "run list"), state=active)
         expect("the queue watch's remedies ANSWER when GitHub gives none (gh's timeout: ruleset.Unobserved), never "
                "raise: (False, the step that went unanswered), so the tick that runs them still launches its landings "
                "(kb/Work PB3527 review R1-4); a queue state that cannot be read touches nothing",
                hung_rerun[0] is False and "gh run rerun 39834070835: GitHub gave no answer" in hung_rerun[1]
                and hung_reopen[0] is False and hung_reopen[1].startswith("gh pr reopen #385: GitHub gave no answer")
-               and [a[:2] for a in reopen_log] == [["pr", "close"], ["pr", "reopen"]]
-               and hung_state[0] is False and "merge queue's state" in hung_state[1] and not unread,
-               f"{hung_rerun} {hung_reopen} {reopen_log} {hung_state} {unread}")
+               and [a[:2] for a in reopen_log] == [["run", "list"], ["pr", "close"], ["pr", "reopen"]]
+               and hung_state[0] is False and "merge queue's state" in hung_state[1] and not unread
+               and hung_runs[0] is False and hung_runs[1].startswith("gh run list --commit fb899d188e35: GitHub gave no answer"),
+               f"{hung_rerun} {hung_reopen} {reopen_log} {hung_state} {unread} {hung_runs}")
         m = QUEUED_LINE.match(QUEUED.format(number=17, sha="ab12", branch="fix", url="https://github.com/o/r/pull/17"))
         expect("the queued line `queue` prints is the one its reader parses (the lane records the pull request's number)",
                bool(m) and m.group("pr") == "17" and m.group("branch") == "fix"
