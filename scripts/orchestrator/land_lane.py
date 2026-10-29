@@ -1412,6 +1412,12 @@ def self_test() -> int:
                "unreported one None for both",
                [(d["name"], d["report"], d["lead"], d["conflicts"]) for d in mapped]
                == [("w1a", str(rep_path), "PB1", False), ("w1b", None, None, False)], str(mapped))
+        import queue_facts  # noqa: PLC0415
+        dirty = {"w1a": queue_facts.PullRequest(1, "u1", "a1", False, merge_state="DIRTY"),
+                 "w1b": queue_facts.PullRequest(2, "u2", "b1", True, merge_state="DIRTY")}
+        expect("... with GitHub observed, a pull request GitHub cannot merge (DIRTY, not queued) is a conflict, a queued "
+               "one is not (PullRequest.conflicts read through the real mapping)",
+               [d["conflicts"] for d in row_dicts(planted, dirty)] == [True, False], str(row_dicts(planted, dirty)))
 
         # 2. exit 5 (GATE RED) is never relaunched at the same head; a new head (a finisher's commit) is eligible.
         f.rows[0] = row("w1a", "DECISION", "a2")                  # enqueue merged main in: the survey no longer lists it
