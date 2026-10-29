@@ -165,7 +165,13 @@ $l2 = (Next-Unit $lc @('--handoff', $doneHandoff)) | ConvertFrom-Json
 Check 'finished branches with a current lane survey: no enqueue unit (the lane lands them)' "$($l2.unit) $($l2.reason)" 'wave nothing pending'
 Set-LaneSurvey @(@{ name = 'w9a'; state = 'WAITING TO LAND'; tip = 'a1'; worktree = 'x' }, @{ name = 'w9b'; state = 'WAITING FOR REVIEW'; tip = 'b1'; worktree = 'y' })
 $l3 = (Next-Unit $lc @('--handoff', $doneHandoff)) | ConvertFrom-Json
-Check 'a branch WAITING FOR REVIEW is agent work: an enqueue unit' "$($l3.unit) $($l3.reason -match 'waiting for review: w9b')" 'enqueue True'
+Check 'a branch WAITING FOR REVIEW while the review lane is not ticking: an enqueue unit, which ticks the lane once (kb/Work PB3608)' "$($l3.unit) $($l3.reason -match 'review lane is not ticking and branches wait for it: w9b')" 'enqueue True'
+$reviewDir = Join-Path $lc 'review-lane'
+New-Item -ItemType Directory -Force -Path $reviewDir | Out-Null
+Set-Content -Path (Join-Path $reviewDir 'last-tick.json') -Encoding utf8 -Value (@{ at = (Get-Date).ToUniversalTime().ToString('o') } | ConvertTo-Json -Compress)
+$l3b = (Next-Unit $lc @('--handoff', $doneHandoff)) | ConvertFrom-Json
+Check 'a branch WAITING FOR REVIEW while the review lane ticks is the lane''s, not an enqueue unit''s' "$($l3b.unit) $($l3b.reason)" 'wave nothing pending'
+Remove-Item -Recurse -Force $reviewDir
 Set-LaneSurvey @()
 Set-Content -Path (Join-Path $laneDir 'attempts/20261012T120000000000Z-w9c.json') -Encoding utf8 -Value (@{ id = '20261012T120000000000Z-w9c'; branch = 'w9c'; head = 'c1'; end_head = 'c2'; log = 'x.log'; rc = 5; verdict = 'GATE RED (Windows) on c2'; collected = $false } | ConvertTo-Json -Compress)
 $l4 = (Next-Unit $lc @()) | ConvertFrom-Json

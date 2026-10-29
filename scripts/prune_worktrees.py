@@ -1369,6 +1369,13 @@ def apply(rows: list[Row], *, repo=REPO, include_locked: bool = False, abandon: 
     return removed
 
 
+def survey_json(rows: list[Row], order: list[Row]) -> str:
+    """The survey as `--json` prints it (the operator tick reads it): every row with its state and evidence, its
+    report's path as a string (`dataclasses.asdict` carries the pathlib.Path; kb/Work PB4055)."""
+    return json.dumps({'verdict': verdict(rows), 'rows': [dataclasses.asdict(r) for r in rows],
+                       'landing_order': [r.name for r in order]}, indent=1, default=str)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--apply', action='store_true', help='remove the LANDED rows (and each --abandon branch)')
@@ -1393,8 +1400,7 @@ def main(argv=None):
     rows = live_survey(reports_dir=a.reports, min_age=a.min_age, stale_hours=a.stale_hours)
     order = landing_order(rows, note_rank())
     if a.json:
-        print(json.dumps({'verdict': verdict(rows), 'rows': [dataclasses.asdict(r) for r in rows],
-                          'landing_order': [r.name for r in order]}, indent=1))
+        print(survey_json(rows, order))
         return 0
     for st in STATES:
         for r in order if st == 'WAITING TO LAND' else sorted((r for r in rows if r.state == st), key=lambda r: r.name):
@@ -2350,7 +2356,7 @@ def self_test() -> int:
         # first, a compiler fix before process work at equal harm, the oldest report first; nothing else
         def waiting(name, lead, age):
             return Row(name, 'CHECK', [], [], 1, None, None, 0, 999.0, '',
-                       IndexedReport(f'w1a-{lead}-report.md', 'DONE', lead, False, age), 'WAITING TO LAND')
+                       IndexedReport(pathlib.Path(f'w1a-{lead}-report.md'), 'DONE', lead, False, age), 'WAITING TO LAND')
         ranks = {'PB1': (-8, 0), 'PB2': (-4, 0), 'PB3': (0, 0), 'PB4': (0, 1)}
         eight = [waiting(f'b{i}', lead, age) for i, (lead, age) in enumerate(
             (('PB4', 500), ('PB3', 10), ('PB3', 90), ('PB1', 5), ('PB4', 50), ('PB2', 7), ('PB3', 30), ('PB4', 900)))]
@@ -2359,6 +2365,10 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
+        printed = json.loads(survey_json(eight[:2], order[:2]))
+        check([r['report']['path'] for r in printed['rows']] == ['w1a-PB4-report.md', 'w1a-PB3-report.md']
+              and printed['landing_order'] == ['b3', 'b5'],
+              f'--json prints each row with its report path as a string (kb/Work PB4055): {printed["rows"][:1]}')
         check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 80 · 25 in flight · 6 waiting for review · '
                                                       '13 waiting to land · 1 stopped · 2 enqueued · 0 not queued · '
                                                       '0 bounced · 7 landed'),

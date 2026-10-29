@@ -168,8 +168,12 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             w.Line($"if ({arm.Test}) return {call};");
         }
         if (catchAll) return;
+        // WHEN OTHER (imp-3) rides the SAME __RunF3 return path as a named WHEN. GR18 prints two sentences naming
+        // different destinations after imp-3; GR20 ("the processing in General rules 17, 18, and 19") settles it - a
+        // nonfatal condition resumes in place, a fatal one terminates - so there is one destination rule, not one per
+        // arm (docs/CONFORMANCE.md §3, "where control goes after WHEN OTHER's imperative-statement-3", kb/Work PB438).
         if (p.OtherPc is int opc)
-            w.Line($"return __RunF3({HandlerUseId(opc)}, {opc}, {cu}, {cpc});   // WHEN OTHER (imp-3, §14.9.28.4 GR18)");
+            w.Line($"return __RunF3({HandlerUseId(opc)}, {opc}, {cu}, {cpc});   // WHEN OTHER (imp-3, §14.9.28.4 GR18, then GR20)");
         else
             w.Line("return PerformFrame.NoMatch;   // no WHEN/OTHER selects → fall to __EcDispatch (USE), GR17 tail");
     }
