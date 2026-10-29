@@ -1054,7 +1054,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// §9.10 — it calls <c>__RunUse</c>, which calls the method-local <c>__MDispatch</c>). Its sole caller is the frame
     /// Matcher, emitted inline where the F3 PERFORM statement is (so a method-local <c>__RunF3</c> is in scope).
     /// ONE return path for imp-2 AND imp-3: GR17 and GR19 hand control to GR20, and so does GR18 (its second sentence,
-    /// whose "General rule 14.9.29" is the standard's misprint for GR20, which names "General rules 17, 18, and 19";
+    /// whose cross-reference to the RAISE clause is the standard's misprint for GR20, which names "General rules 17, 18, and 19";
     /// docs/CONFORMANCE.md §3, kb/Work PB438) - the composer returns <c>Normal</c> and the raise site's guard continues
     /// after the raiser (nonfatal) or terminates (fatal), whichever handler ran.</summary>
     public void EmitRunF3(CodeWriter w, bool asLocal)
