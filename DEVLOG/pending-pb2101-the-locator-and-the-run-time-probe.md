@@ -31,3 +31,10 @@ SDK-matched ILLink package (a publish hangs on NuGet) and because a host project
 the emitted assemblies reference `System.Private.CoreLib` directly (CS0012).
 
 **Left for PB2103.** The per-step `diagnostics.json` key (six readers take a key for a test's own file).
+
+**Review round 1 (R1-1).** The docs said a native-AOT application has the switch off by default; the code defaults it ON (the
+`IsDynamicCodeSupported` default was dropped), so an AOT application that leaves it on reached `LoadFromAssemblyPath`, whose
+`PlatformNotSupportedException` escaped the CALL. Both halves fixed: the docs (CONFORMANCE DOC-A.1-14, INTERPROGRAM_DESIGN,
+DESIGN-external-repository 9.4 and 15.5) now say the switch is on unless the application sets it and a native-AOT application must;
+the probe's catch is one classifier, `ProgramTable.ProbeFaultReason`, which also takes `NotSupportedException` as "not located" with a
+reason naming the switch (`ProbeFaultClassificationTests`). A CALL with no sibling file in such an application stays the plain miss.

@@ -1106,15 +1106,26 @@ public sealed class ProgramTable
             return Outermost(name, wantFunction) is not null
                 || ProbeFailed(name, wantFunction, $"'{hit.Path}' did not register the {kindWord} {name}");
         }
-        catch (Exception e) when (IsCodeLoadFailure(e)
-                                  || e is System.IO.IOException or UnauthorizedAccessException or TargetInvocationException or ArgumentException)
+        catch (Exception e) when (ProbeFaultReason(hit.Path, e) is { } why)
         {
-            // IOException covers FileNotFoundException (a file removed between the listing and the load) and
-            // FileLoadException; a RegisterModule refusal or a throwing registrar arrives as TargetInvocationException;
-            // ArgumentException is a registrar name Assembly.GetType cannot parse (a hand-made or damaged record).
-            return ProbeFailed(name, wantFunction, $"'{hit.Path}': {e.GetBaseException().Message}");
+            return ProbeFailed(name, wantFunction, why);
         }
     }
+
+    /// <summary>The reason a fault of the probe's load-and-register step is the CALL's "not located" condition (§14.9.4.4 GR3 b),
+    /// or null when the fault is not one the probe classifies. IOException covers FileNotFoundException (a file removed between
+    /// the listing and the load) and FileLoadException; a <see cref="RegisterModule"/> refusal or a throwing registrar arrives as
+    /// TargetInvocationException; ArgumentException is a registrar name Assembly.GetType cannot parse (a hand-made or damaged
+    /// record); NotSupportedException (PlatformNotSupportedException included) is a platform with no assembly loader by path, a
+    /// native-AOT application that left the <see cref="RuntimeFeatures.DynamicProbe"/> switch on, and its reason says what to do
+    /// (DESIGN-external-repository §15.5).</summary>
+    internal static string? ProbeFaultReason(string path, Exception e) => e switch
+    {
+        NotSupportedException => $"'{path}': this application cannot load an assembly by path (a native-AOT application): its host registers every module it composes and sets the switch {RuntimeFeatures.DynamicProbeSwitch} false",
+        _ when IsCodeLoadFailure(e) || e is System.IO.IOException or UnauthorizedAccessException or TargetInvocationException or ArgumentException
+            => $"'{path}': {e.GetBaseException().Message}",
+        _ => null,
+    };
 
     /// <summary>A failure of the CLR to LOAD or INITIALIZE code: a type that cannot be loaded or whose static initializer throws,
     /// a dependency assembly that is missing, unreadable or of another format, a member that is not there. The faults of an

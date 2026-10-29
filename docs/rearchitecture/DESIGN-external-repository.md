@@ -1561,8 +1561,7 @@ references every COBOL assembly the run unit uses and calls each one's `__CobolM
 first call; a program called by name from COBOL is then found among them. A COBOL program that calls another program
 by name finds it, when no host registered it, by loading the assembly that carries it from the application directory
 (the file named after the program first, then any assembly there that lists it); that loading is the runtime's one use of
-reflection, behind the switch `WiseOwl.Cobol.Runtime.DynamicProbe`. A native-AOT application has the switch off, and a
-trimmed one turns it off with `<RuntimeHostConfigurationOption Include="WiseOwl.Cobol.Runtime.DynamicProbe" Value="false"
+reflection, behind the switch `WiseOwl.Cobol.Runtime.DynamicProbe`. The switch is on unless the application sets it; a native-AOT or trimmed application turns it off with `<RuntimeHostConfigurationOption Include="WiseOwl.Cobol.Runtime.DynamicProbe" Value="false"
 Trim="true" />`; a CALL that nothing registered is then an EC-PROGRAM-NOT-FOUND condition saying the dynamic probe is
 disabled. A trimmed application that keeps the switch on must keep the whole runtime (`<TrimmerRootAssembly
 Include="WiseOwl.Cobol.Runtime" />`) and deploy the called assemblies untrimmed beside it. A program that cannot be
@@ -2061,17 +2060,16 @@ guarded on both sides of the boundary, each by a recorded version and a fixture 
 `WiseOwl.Cobol.Runtime` is `IsTrimmable` and analyzer-clean. The dynamic probe is the ONLY reflection
 (`LoadFromAssemblyPath` and `Assembly.GetType(string)` are IL2026 sites; `GetMethod` on an unannotated `Type` is
 IL2075) and it sits behind the feature switch `WiseOwl.Cobol.Runtime.DynamicProbe` (`RuntimeFeatures.DynamicProbe`, a
-`[FeatureSwitchDefinition]` property whose value is the application's runtime-configuration setting, else
-`RuntimeFeature.IsDynamicCodeSupported`, so a native-AOT application has it off by default). **Corrected at landing (kb/Work
-PB2101):** the property cannot also be a `[FeatureGuard(typeof(RequiresUnreferencedCodeAttribute))]`: the analyzer (IL4000)
+`[FeatureSwitchDefinition]` property whose value is the application's runtime-configuration setting, else ON). **Corrected at landing (kb/Work
+PB2101):** the default is NOT `RuntimeFeature.IsDynamicCodeSupported` (a trimmed self-contained application threw `TypeLoadException` on it), so a native-AOT application must set the switch off itself; one that does not reaches `LoadFromAssemblyPath`, whose `PlatformNotSupportedException` the probe classifies (`ProgramTable.ProbeFaultReason`) as EC-PROGRAM-NOT-FOUND with the reason to set the switch (a CALL with no sibling file in that application is the plain miss, with no reason). Also: the property cannot also be a `[FeatureGuard(typeof(RequiresUnreferencedCodeAttribute))]`: the analyzer (IL4000)
 accepts no body for a switch the application sets at run time, so `LocateSiblingModule` carries
 `[UnconditionalSuppressMessage]` for IL2026 and IL2075 whose justification is the switch, and the method is the one
 suppression in the runtime.
-With the switch ON (the default for a framework-dependent run unit) the probe runs and a trimmed publish must root the
+With the switch ON (the default) the probe runs and a trimmed publish must root the
 runtime (`<TrimmerRootAssembly Include="WiseOwl.Cobol.Runtime" />`: **a dynamically located callee requires the WHOLE
 runtime**, since ILLink would remove members only the callee uses). With the switch OFF (an application sets it in its project with
 `<RuntimeHostConfigurationOption Include="WiseOwl.Cobol.Runtime.DynamicProbe" Value="false" Trim="true" />`, which the trimmer
-and the native-AOT compiler read; a native-AOT application has it off by default) the probe is removed and the trim analyzer sees no
+and the native-AOT compiler read; a native-AOT application sets it so) the probe is removed and the trim analyzer sees no
 IL2026 at any CALL; the run unit is then **host-composed** (owner decision 2026-10-05; §11.4): the application is a
 .NET host that references every COBOL assembly of the run unit and calls each one's `__CobolModule.EnsureRegistered()`
 — the one registration member — before activating the main program through its host entry. No compile-time module
