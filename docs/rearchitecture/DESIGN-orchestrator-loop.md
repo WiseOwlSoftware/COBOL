@@ -707,7 +707,11 @@ reviewed: its reviewer stamps the report within 5 minutes, and a verdict older t
 reviewer killed between the two, a wave stopped before its step 5), in the lane's own file or a wave's, is stamped by the
 lane (only the file's newest round; `review_findings.stamp`); and a report younger than 5 minutes waits, because a wave's reviewer writes its `start` only
 after the implementer's return is checked and nothing on disk says it is coming. `review_findings.rounds` is the one
-reader. The lane's own file is `scratch/review-<branch slug>.jsonl`.
+reader. The lane's own file is `scratch/review-<branch slug>.jsonl`. A HOLD at the head that the unit has not collected
+(`review_lane.py collect`) is a lease too, and the one that covers the unit's hand-dispatched reviewer: after a torn-file
+hold it records into the lane's OWN file, where `standing` grants no lease to an open round, so once the operator mends the
+file the lane would read the unit's open round as its own killed one and start a second reviewer of the round (kb/Work
+PB4049). The lane waits for the unit's `collect`, whatever the hold's reason.
 
 **Restart-safe.** A reviewer killed mid-review leaves its `start` (and perhaps findings, and perhaps a cut-off last
 line) in the file; no hand repair follows. The next tick finds the run DIED, mends a tear that is the file's LAST line
