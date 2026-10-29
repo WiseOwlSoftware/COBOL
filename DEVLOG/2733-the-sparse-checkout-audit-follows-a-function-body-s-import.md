@@ -1,4 +1,4 @@
-## The sparse-checkout audit follows a function body's import and shares the one workflow job reader (PB3810)
+## Entry 2733 — 2026-10-29 13:14 PDT — The sparse-checkout audit follows a function body's import and shares the one workflow job reader (PB3810)
 
 `SparseCheckoutAudit.ModuleLevelImports` skipped every import inside a `def` body, so a repository module a CI script
 imports lazily (from `main()`, say) was never demanded of a sparse-checkout list: the job would fail on the runner with
@@ -21,3 +21,4 @@ trigger as a job (and a planted `on:` + `jobs:` workflow returns only its job); 
 `ALazyImport_...` test became a reached arm; `TheSupersede...` asserts `live_tools.py` is reached. The closure test now prints
 its problems instead of a truncated collection. DESIGN-test-build-ci.md 3.17.8 and the PB3787 note carry the corrected
 reading (the first said a function body's import "is lazy and not followed").
+
