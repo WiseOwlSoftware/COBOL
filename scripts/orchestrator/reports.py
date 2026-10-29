@@ -305,9 +305,11 @@ def age_minutes(*paths: pathlib.Path) -> float:
 @dataclasses.dataclass
 class IndexedReport:
     """A report as the BRANCH SURVEY indexes it (report_index; prune_worktrees.lifecycle reads it): the fields Report
-    parsed, plus the two facts the survey adds, whether its lead note is terminal and its age."""
-    name: str                       # the file name, w<wave><letter>-PB<lead>-report.md
-    status: str                     # DONE | SPLIT | DISCHARGED | BLOCKED | NOT STARTED | '' (parse_report)
+    parsed, plus the two facts the survey adds, whether its lead note is terminal and its age. It keeps the report's
+    PATH, not only its name: the landing lane hands a row's report to the review lane, which reads the file itself
+    (kb/Work PB4055)."""
+    path: pathlib.Path              # the report file, <reports>/w<wave><letter>-PB<lead>-report.md
+    status: str                    # DONE | SPLIT | DISCHARGED | BLOCKED | NOT STARTED | '' (parse_report)
     lead: str                       # its lead note
     lead_terminal: bool             # the lead note is landed or retired: the work reached main some other way
     age_min: float                  # minutes since the report was written
@@ -315,6 +317,11 @@ class IndexedReport:
     review: Review | None = None    # the header's branch-review stamp (parse_review, kb/Work PB3027)
     head: str | None = None         # the header's HEAD: the branch tip the report describes (HEAD)
     finished: bool = False          # Report.finished: DONE, or DISCHARGED with a HEAD past its base
+
+    @property
+    def name(self) -> str:
+        """The file name, w<wave><letter>-PB<lead>-report.md: what the survey's evidence prints."""
+        return self.path.name
 
 
 def report_index(reports_dir: pathlib.Path | None, terminal: Callable[[str], bool]) -> list[IndexedReport]:
@@ -327,7 +334,7 @@ def report_index(reports_dir: pathlib.Path | None, terminal: Callable[[str], boo
     out = []
     for r in load_reports(reports_dir):
         header = header_lines(r.path.read_text(encoding='utf-8', errors='replace').splitlines())
-        out.append(IndexedReport(r.path.name, r.status, r.lead, terminal(r.lead), age_minutes(r.path), '\n'.join(header),
+        out.append(IndexedReport(r.path, r.status, r.lead, terminal(r.lead), age_minutes(r.path), '\n'.join(header),
                                  r.review, r.head, r.finished))
     return out
 
