@@ -117,4 +117,48 @@ public sealed class ArithmeticOneInitialEvaluationDriftTests
         string cs = EmitCSharp(Program, 2014);
         Assert.Single(Regex.Matches(cs, @"catch \(CobolSizeError (__cse\d+)\) when \(\1\.IsProhibitedInexact\) \{ \}"));
     }
+
+    /// <summary>A report whose printable items take the §13.18.53.4 GR2 implicit COMPUTE: two PROHIBITED SOURCE
+    /// entries — one single placement, one multiple COLUMN entry of two placements (§13.18.53.4 GR4) — beside a
+    /// NEAREST-EVEN one and a no-phrase MOVE.</summary>
+    private const string ReportProgram = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. PB3990RDRIFT.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT PRT ASSIGN TO "pb3990rdrift.txt".
+        DATA DIVISION.
+        FILE SECTION.
+        FD  PRT REPORT IS R-D.
+        WORKING-STORAGE SECTION.
+        01  WS-F PIC 9V99 VALUE 1.55.
+        REPORT SECTION.
+        RD  R-D.
+        01  DET TYPE DE LINE PLUS 1.
+            03  COLUMN 1 PIC 9(3) SOURCE IS WS-F ROUNDED MODE IS PROHIBITED.
+            03  COLUMNS ARE 5 9 PIC 9(3) SOURCES ARE (WS-F) (WS-F + 1) ROUNDED MODE IS PROHIBITED.
+            03  COLUMN 13 PIC 9(3) SOURCE IS WS-F ROUNDED MODE IS NEAREST-EVEN.
+            03  COLUMN 17 PIC 9(3) SOURCE IS WS-F.
+        PROCEDURE DIVISION.
+        MAIN.
+            OPEN OUTPUT PRT. INITIATE R-D. GENERATE DET. TERMINATE R-D. CLOSE PRT.
+            STOP RUN.
+        """;
+
+    /// <summary>
+    /// INVARIANT 4 — A REPORT PRINTABLE ITEM'S PROHIBITED IMPLICIT COMPUTE IS KEPT BY THE SAME ONE RULE-7 CATCH (kb/Work
+    /// PB3990 review finding R1-1). The compose is emitted outside every statement's EC-SIZE checking, and every landing
+    /// raises <c>CobolSizeError.ProhibitedInexact</c>, so each PROHIBITED PLACEMENT — three in <see cref="ReportProgram"/>
+    /// — forms its image inside <c>ArithmeticEmitter.EmitProhibitedInexactKeep</c>, over a local that starts as the
+    /// printable item's unchanged content (spaces, §13.8.6.2.3). Uncaught, the raise ended the run unit; the other modes
+    /// pay for no try.
+    /// </summary>
+    [Fact]
+    public void TheReportImplicitCompute_KeepsAProhibitedPrintableItem_OnRule7Alone()
+    {
+        string cs = EmitCSharp(ReportProgram, 2014);
+        Assert.Equal(3, Regex.Matches(cs, @"catch \(CobolSizeError (__cse\d+)\) when \(\1\.IsProhibitedInexact\) \{ \}").Count);
+        Assert.Equal(3, Regex.Matches(cs, @"string (__rimg\d+) = ""   "";").Count);
+    }
 }

@@ -417,8 +417,9 @@ internal static class RuntimeApi
     /// <summary>The floating-point numeric-edited form's UNCHECKED store — <c>CobolEdit.FormatFloatStore</c> over the
     /// sender's exact form, the significand's dropped digits rounded by <paramref name="mode"/>. The CALLER names
     /// the landing (kb/Work PB2638): a MOVE is TRUNCATION (§14.6.8.4 rule 2, <see cref="EditFormatFor"/>), and the
-    /// no-phrase arithmetic store is the receiver's §14.7.4.3 mode, where PROHIBITED lands truncated as every
-    /// unchecked store does (DOC-A.1-70).</summary>
+    /// no-phrase arithmetic store and the report's rounded implicit COMPUTE (<c>MoveEmitter.ConvertSource</c>) are the
+    /// receiver's §14.7.4.3 mode, where an inexact PROHIBITED raises <see cref="CobolSizeError.ProhibitedInexact"/>
+    /// (rule 7, kb/Work PB3990) for the caller's keep to catch.</summary>
     public static string EditFormatFloat(PicInfo pic, Emit.NumX value, CobolRounding mode, string cfgArgs)
     {
         var (store, _, args) = FloatEditEntry(value);

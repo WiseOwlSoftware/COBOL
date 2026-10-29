@@ -44,3 +44,17 @@ arm named `CobolSizeError.IsProhibitedInexact` in `ArithmeticEmitter`, a bare ru
 CodeGen file. The arm now renders through `RuntimeApi.ProhibitedInexactKeepCatch`, the facade's one anchor for it. The same
 read found three stacked doc comments in `RuntimeApi` (`PtrIsNull`, `DecSign` and `DecToUnscaledIntermediate` each lost
 its summary to the member above), and each is back on its own member.
+
+The branch review (round 1) found one blocking defect, R1-1: every landing now raises the rule-7 condition checked or
+not, but only the arithmetic statements caught it. A report printable item's implicit COMPUTE (`SOURCE ... ROUNDED MODE
+IS PROHIBITED`, §13.18.53.4 GR2; the SUM print, §13.18.54.4 GR4) passed the mode into `MoveEmitter.ConvertSource` with
+no catch, outside every statement's checking, so `SOURCE IS WS-F ROUNDED MODE IS PROHIBITED` with 1.55 into `PIC 9(3)`
+ended the run unit where main printed 001. The keep is now one emitted shape, `ArithmeticEmitter.EmitProhibitedInexactKeep`,
+and `ReportWriterEmitter.FieldImage` forms a PROHIBITED item's image inside it over a local holding the item's unchanged
+content, spaces (§13.8.6.2.3; each presentation composes the line from a space-filled buffer), and the report goes on. Its
+golden exposed a sibling present since PB852: the numeric-edited arm of `ConvertSource` handed a native sender to the
+formatter unrounded and its floating-point edited arm always truncated, so `SOURCE IS WS-F ROUNDED` printed 1.55 as 1
+into Z9 at every edition from 2002. The mode now reaches both landings. Goldens
+`13.18.53-SOURCE/pb3990_report_source_prohibited_keeps_the_item` (2014, 2023) and `pb3990_report_source_rounded_edited`
+(2002, 2014, 2023); the shape pin `ArithmeticOneInitialEvaluationDriftTests.TheReportImplicitCompute_KeepsAProhibitedPrintableItem_OnRule7Alone`.
+The lead R1-2 (a StoreArith comment naming a helper that does not exist) is fixed in the same change.

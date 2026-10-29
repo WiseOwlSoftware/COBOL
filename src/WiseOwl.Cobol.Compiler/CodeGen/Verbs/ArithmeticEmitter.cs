@@ -514,9 +514,20 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     private void KeepsOnProhibitedInexact(bool inSizeError, CobolRounding mode, Action emit)
     {
         if (inSizeError || mode != CobolRounding.Prohibited) { emit(); return; }
-        var w = ctx.Writer;
+        EmitProhibitedInexactKeep(ctx.Writer, ctx.Names, emit);
+    }
+
+    /// <summary>⛔ THE ONE EMITTED SHAPE OF §14.7.4.3 RULE 7'S UNCHECKED KEEP (kb/Work PB3990): <paramref name="emit"/>'s
+    /// compute-and-store inside a try whose one catch (<see cref="RuntimeApi.ProhibitedInexactKeepCatch"/>) takes
+    /// <c>CobolSizeError.ProhibitedInexact</c>'s condition alone and does nothing, so the resultant keeps its content
+    /// and execution continues (docs/CONFORMANCE.md DOC-A.1-70). Its two callers are the two places an implicit or
+    /// explicit COMPUTE lands a PROHIBITED resultant with checking off: an arithmetic statement's receiver
+    /// (<see cref="KeepsOnProhibitedInexact"/>) and a report printable item's §13.18.53.4 GR2 / §13.18.54.4 GR4
+    /// implicit COMPUTE (<c>ReportWriterEmitter.FieldImage</c>, kb/Work PB3990 review finding R1-1).</summary>
+    internal static void EmitProhibitedInexactKeep(CodeWriter w, NameAllocator names, Action emit)
+    {
         using (w.Block("try")) emit();
-        w.Line(RuntimeApi.ProhibitedInexactKeepCatch($"__cse{ctx.Names.NextEc()}"));
+        w.Line(RuntimeApi.ProhibitedInexactKeepCatch($"__cse{names.NextEc()}"));
     }
 
     /// <summary>The <see cref="ReceiverContext"/> a statement with several resultants renders its once-evaluated
@@ -645,7 +656,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // exists to store (CobolNum.BumpsMagnitude, CobolDec.RoundFromRemainder, FloatResultant, CobolEdit's floating
         // store). A gate written here once tested a binary64 value before the store landed it, which wrote the value
         // twice (PB654) and covered only the checked statement; the unchecked one stored the value cut. GuardedStore
-        // keeps the receiver of an unchecked statement unchanged (KeepsProhibitedInexact). The value is read ONCE.
+        // keeps the receiver of an unchecked statement unchanged (KeepsOnProhibitedInexact). The value is read ONCE.
         //
         // A numeric-edited receiver stores the EDITED image of the result (ISO §14.7.7 — arithmetic results store
         // per the MOVE editing rules). ROUNDED applies BEFORE editing: the value is rescaled to the mask's

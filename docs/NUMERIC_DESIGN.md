@@ -656,7 +656,11 @@ unchecked entries, `CobolEdit.FormatFloatStore`). A Try form (`TryStore`, `TrySt
 `TryFormatFloat`) answers false instead. So one mechanism serves every receiver category, carrier and statement:
 under a SIZE ERROR phrase or EC-SIZE checking the statement's own catch takes the raise and sets the flag; with
 neither, `ArithmeticEmitter.KeepsOnProhibitedInexact` wraps a PROHIBITED receiver's compute-and-store in a try that
-catches THAT condition alone, so the receiver is unchanged and the statement goes on (CONFORMANCE.md DOC-A.1-70).
+catches THAT condition alone, so the receiver is unchanged and the statement goes on (CONFORMANCE.md DOC-A.1-70). The
+try is ONE emitted shape, `ArithmeticEmitter.EmitProhibitedInexactKeep`, and its other caller is the report's implicit
+COMPUTE (§13.18.53.4 GR2 / §13.18.54.4 GR4): `ReportWriterEmitter.FieldImage` forms a PROHIBITED printable item's image
+inside it over a local holding the item's unchanged content, SPACES, because the compose runs outside every
+statement's EC-SIZE checking (kb/Work PB3990 review finding R1-1: uncaught, the raise ended the run unit).
 **What this replaced:** `CobolNum.DivideOrThrow`, the `checkedLanding`-gated raise in `FromDouble`, the
 `checkedTransfer` mask in `TransferWide`, and PB654's `CobolFloat.InexactAtScale` gate at the top of `StoreArith`,
 which tested a binary64 value before the store landed it (once, materialized — the double read was PB654's defect)
