@@ -95,31 +95,75 @@ ubuntu) · `greenfield-conformance` (ubuntu, 6 shards) · `greenfield-unit` (ubu
 `windows-conformance` (windows, the same 6 shards, Release) · `conformance-population` (the shards' union against
 each platform's discovered population, `scripts/test_population.py`, §3.14.4) ·
 `inv1-strong-2023` · `windows-build-test` (Release warnings-as-errors) · `windows-self-tests` (every script self-test
-on a Windows checkout, no build, kb/Work PB3581); `dotnet-sdk-cache` (push to main only, both OSes: saves the pinned
-SDK under main, below); and finally `ci-gate`. (The nightly
+on a Windows checkout, no build, kb/Work PB3581); `toolchain-cache` (push to main only, both OSes: saves the
+manifest's tools under main, below); and finally `ci-gate`. (The nightly
 `legacy-oracle` job and the guard's legacy Unit and Integration legs were retired with the engine, kb/Work PB2108,
-PB2109.) NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites).
+PB2109.) NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequisites). A second workflow,
+`toolchain-freshness.yml`, runs once a day (below).
 
-**⛔ One pinned .NET SDK, installed one way, never through the aka.ms redirect (kb/Work PB3308;
-`DotnetSdkInstallDriftTests`).** `scripts/install-dotnet-sdk.sh` pins the exact SDK version (one `global.json`'s
-`10.0.100` and `rollForward: latestMinor` accept; the drift test checks it) and lists its feeds,
-`builds.dotnet.microsoft.com` first and `ci.dot.net/public` second. It downloads `dotnet-sdk-<version>-<os>-<arch>` from
-the first feed that serves it and its `.sha512`, checks the archive against that SHA-512, unpacks it, and only then writes
-a completion marker. A transfer that breaks off is retried on the same feed, while a refusal (an HTTP error, a 404 or a
-409) moves on to the next feed. Every building job gets its SDK from the composite action `.github/actions/setup-dotnet`:
-it restores the SDK from the Actions cache keyed on the version, the OS and the architecture, runs the script (a no-op on
-a cache hit), saves the SDK, puts it first on `PATH`, and fails unless `dotnet --version` reports the pinned version. A
-merge group's run restores only what its own ref or main saved, and its ref is new every time, so `dotnet-sdk-cache`
-saves the SDK under main on every push to main: a merge group then finds it even while every feed refuses. A warm-up
+**⛔ CI and every local host run the tool versions ONE manifest names, and each is the tool's latest release (kb/Work
+PB4007; `ToolchainManifestDriftTests`).** The owner, 2026-10-28: "CI tooling should match local tooling versions -
+always", then "CI and local should always be using the latest version". `toolchain.env` (the repository root) names the
+exact version of every tool a CI job or a local gate runs (the .NET SDK, Python, the Oracle JDK, pwsh, each image's git,
+gh, jq, uv, semgrep) and the two runner images (`ubuntu-26.04`, `windows-2025-vs2026`); it is the only place a version
+is written. `scripts/toolchain.py`'s `TOOLS` is the one table of the tools: each row names a tool's manifest key, the
+command it reports its version with, how a host gets it (`install-tool.sh`, `actions/setup-python`, the runner image,
+`uv tool`) and whether it runs in CI. The manifest must name exactly its keys; `install-tool.sh`'s `TOOL_INSTALLABLE`
+must be exactly its install-tool rows (`toolchain.py check` refuses otherwise, in every CI job and every gate); the
+action installs what `toolchain.py ci-installs` prints and the host setups loop over `install-tool.sh --list`; and the
+drift tests read the rows from `toolchain.py`'s text, keeping no list of their own. So a new tool is one row, one
+manifest line and, for an install-tool row, one `tool_spec` arm. Every job of every workflow runs
+`.github/actions/setup-toolchain` as the step right after its checkout. The action installs Python with
+`actions/setup-python` at the manifest's version, and every `ci-installs` tool (the SDK, the JDK, pwsh, gh and jq) with
+`scripts/install-tool.sh`, all restored from one Actions cache entry keyed on the manifest's version lines, the OS and the
+architecture. It puts them first on `PATH` (with `DOTNET_ROOT` and `JAVA_HOME`), then runs `python scripts/toolchain.py
+check --scope ci`, which fails the job unless every tool it installed reports the manifest's version. git is the one tool
+CI cannot install: `actions/checkout` runs the image's git before any repository file exists, and no publisher ships a
+Linux git of a chosen version (the Ubuntu image lacks the zlib and libcurl headers a source build needs). So the manifest
+names each image's git, `GIT_LINUX_VERSION` and `GIT_WINDOWS_VERSION` (git's own release, without Git for Windows'
+`.windows.N` suffix), one per image because GitHub rolls the two on different weeks, and each host installs that release.
+A job on an image whose git moved warns and runs: a failure there would stop every landing until a bump, and with the
+two images moving on different weeks no single value could clear it. The freshness run below holds each image strictly.
+On the hosts, `scripts/wsl/setup-wsl.sh` and `scripts/cloud/setup-env.sh` install from the manifest (WSL's Python and semgrep through
+uv; semgrep runs on its own uv-managed CPython, `SEMGREP_PYTHON_VERSION`, until upstream ships a cp315 wheel). The
+Windows dev box installs with winget. The gate holds every host to the manifest: before its audits, `run_gate_legs.py`
+runs `toolchain.check --scope gate`, stops `NOT RUN [toolchain]` (an ENVIRONMENT cause) on any mismatch, and names the
+toolchain it ran under in its verdict line and its record. `scripts/python-resolve.sh` and `.ps1` accept exactly
+`PYTHON_VERSION`. The SessionStart readiness check (`scripts/hooks/tooling_check.py`) prints the same comparison for
+every tool, ASK-OWNER on a mismatch. Identical holds at every commit; LATEST holds within a day. `toolchain-freshness.yml`
+runs `python scripts/toolchain.py latest` every day. It asks each publisher for its newest stable release (the newest
+SDK of the .NET release index's GA channel of the manifest's major; actions/python-versions' stable list, so the target
+is one setup-python can install; Oracle's current releases; GitHub's `releases/latest`; each runner image's readme for
+its git; PyPI for semgrep). The run is red, naming each tool, while the manifest is behind or a publisher cannot be read.
+A newer GA .NET major is a warning on the run, never red: moving to it also moves `global.json` and every
+TargetFramework, an owner's decision, and a standing red would hide the next release `bump` can take. Its `images` jobs
+run `toolchain.py check --scope image` on each runner image, red while the image's git differs from the manifest's.
+`python scripts/toolchain.py bump` moves the manifest and its cloud copy forward within the .NET major. It does so in a
+change of its own that carries the hosts' update and lands like any other, so CI and the hosts move together. The drift test holds the rest. The manifest names each tool once, exactly; the
+cloud setup carries the manifest's block byte for byte; every job sets up the toolchain right after its checkout and runs
+on a manifest image. No workflow or action installs a tool any other way: no `actions/setup-*` but the action's own
+Python step, no package manager, no `dotnet tool install`. Every command a step runs is a manifest tool, a repository
+script, or the image's shell and utilities, so a new tool fails the test on the day it is added. The host setups write no
+version of their own. Before this, CI's Windows jobs ran the runner image's Python 3.12 while every local host ran 3.14,
+and merge-group run 40754265548 (pull request #734) went red on a self-test that was green on every local leg.
+
+**⛔ The .NET SDK is installed one way, never through the aka.ms redirect (kb/Work PB3308;
+`DotnetSdkInstallDriftTests`).** `toolchain.env` pins the exact SDK version (one `global.json`'s `10.0.100` and
+`rollForward: latestMinor` accept; the drift test checks it), and `scripts/install-tool.sh` lists the SDK's feeds,
+`builds.dotnet.microsoft.com` first and `ci.dot.net/public` second. Every tool the script installs is downloaded from the
+first feed that serves it and its checksum file (the SDK's `.sha512`, the JDK's and uv's `.sha256`, or the release's
+checksum list: PowerShell's UTF-16 `hashes.sha256`, gh's `checksums.txt`, jq's `sha256sum.txt`). The script checks the
+asset against it, unpacks it, and only then writes a completion marker that records where the executable is. A transfer
+that breaks off is retried on the same feed, while a refusal (an HTTP error, a 404 or a 409) moves on to the next feed.
+A merge group's run restores only what its own ref or main saved, and its ref is new every time, so `toolchain-cache`
+saves the tools under main on every push to main: a merge group then finds them even while every feed refuses. A warm-up
 that fails warns and passes, because the merge group's own install still tries the feeds. `scripts/wsl/setup-wsl.sh`
 calls the script. `scripts/cloud/setup-env.sh` runs before the repository is cloned, so it carries the script's install
-block byte for byte between the `dotnet-sdk-install` markers. Before this, every building job ran `actions/setup-dotnet`
+block byte for byte between the `tool-install` markers. Before PB3308, every building job ran `actions/setup-dotnet`
 with `dotnet-version: 10.0.x`, which resolves "the newest 10.0" through aka.ms on every job, with no cache. A dropped
 transfer cost one merge group (run 38974314534, 2026-10-16). From about 18:50Z on 2026-10-25 the redirect's storage
 origin answered `409 PublicAccessNotPermitted`, so every code merge group failed `Setup .NET 10` while
-builds.dotnet.microsoft.com served the same file. An exact version never goes through aka.ms. The pin is also kb/Work
-PB1957 row 8's (a): CI and the local Linux hosts build with the same SDK patch. Moving to a newer SDK is one edit to
-`DOTNET_SDK_VERSION`, copied into `setup-env.sh`.
+builds.dotnet.microsoft.com served the same file. An exact version never goes through aka.ms.
 
 **⛔ An artifact never decides a verdict (kb/Work PB3140; `CiArtifactDriftTests`).** Every test job uploads its
 results (TRX, population listing, shard log, harness observation log) `if: ${{ always() }}`, so a red job's results
@@ -1949,9 +1993,10 @@ are `DESIGN-orchestrator-loop.md` §16.2.
 
 **The rule.** A name on PATH is not an interpreter: on the Windows dev box `python3` is the Microsoft Store alias,
 which runs, prints "Python was not found" and exits non-zero; a stock Ubuntu host has no `python`; and in the cloud
-image a `python3` below the floor the scripts are written for (3.12) can stay first on PATH, where they fail to parse.
-So every gate script runs ONE interpreter, resolved by PROBING each candidate, in order an explicit `$PYTHON`, then
-`python3`, then `python`, by running it against the floor; nothing runnable is a loud refusal, never a skipped check.
+image an older `python3` can stay first on PATH. So every gate script runs ONE interpreter, resolved by PROBING each
+candidate, in order an explicit `$PYTHON`, then `python3`, then `python`, by running it: a candidate passes only when it
+is exactly `toolchain.env`'s `PYTHON_VERSION`, the interpreter CI runs (kb/Work PB4007, §1.4); nothing runnable is a
+loud refusal, never a skipped check.
 
 **Where it lives.** The probe has to run before any Python can, so it is written once per shell that starts a gate:
 `scripts/python-resolve.sh`, sourced by every bash script that runs Python (`build-local.sh`, `linux-gate.sh`,
@@ -2787,7 +2832,7 @@ landing is held to a record of its own tree. Landed with kb/Work PB3769:
 with no `needs`, runs `cancel_superseded.py` with the run's id and head commit, is the only job with `actions: write`,
 has every step `continue-on-error` (kb/Work PB3820: the checkout too, the script gated on the checkout's outcome, a failed checkout said as a warning; `StepsThatCanFailTheJob` is the step reader, held by its own arms) and is a `needs` of `ci-gate`; the arms of `cancel_superseded.py` and of `queue_facts.live_heads`
 are declared), the supersession rule of §3.17.2 step 4. Landed with kb/Work PB3787: `SparseCheckoutDriftTests` (reader:
-`SparseCheckoutAudit`): every workflow job whose checkout has a `sparse-checkout` list (`supersede`, `dotnet-sdk-cache`)
+`SparseCheckoutAudit`): every workflow job whose checkout has a `sparse-checkout` list (`supersede`, `toolchain-cache`, `ci-gate`, the freshness job)
 lists each repository file its steps name, each file its local action names, and each repository module a Python script
 it runs imports as it starts, transitively (a function body's import is lazy and not followed; `importlib` and path
 strings are the static read's limits), and sets `sparse-checkout-cone-mode: false`, the mode the list is read in; the
