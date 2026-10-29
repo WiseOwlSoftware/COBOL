@@ -42,4 +42,7 @@ six tools from their publishers ran on the Windows box, and each executable repo
 **Left, as leads.** CI's git is verified, not installed. The Windows box's Git for Windows revision trails its newest. The
 command audit stops at the step and does not follow a repository script.
 
-**Gate.** See the report: `TestResults/build-local/<run>` and its verdict line.
+**Gate.** Run `000001-20261029T001932Z`: `LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 50/19,251 · Unit
+5,590/38,308 · Characterization 36/36 cases ran … · Linux half (WSL clone of HEAD) GREEN · … · toolchain dotnet-sdk
+10.0.403, python 3.15.2, jdk 27.0.1, pwsh 7.6.9, git 2.56.0, gh 2.103.3, jq 1.8.2`. The Linux half passed its own new
+toolchain preflight, and every `ToolchainManifestDriftTests` case passed in leg 1.
