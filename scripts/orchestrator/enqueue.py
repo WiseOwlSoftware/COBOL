@@ -464,6 +464,9 @@ def requeue(repo: str, number: int, head: str, *, gh: Gh, state: Callable[[], tu
     CANCELS the one in flight (build-and-test.yml's cancel-in-progress), whose `ci-gate` then fails and the branch
     reads BOUNCED with no defect (kb/Work PB4052). (ok, what happened; a step GitHub did not answer names itself, and a
     pull request left closed by it is the next read's: no open pull request ALERTS the operator at once)."""
+    if not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", head or ""):
+        return False, (f"the head {head!r} is not a full commit id, and `gh run list --commit` lists nothing for a "
+                       "shortened one, so its runs cannot be read (kb/Work PB4052): nothing closed or re-queued")
     step = "the merge queue's state (ruleset.py check)"
     try:
         st, detail = state()
@@ -1432,13 +1435,17 @@ def self_test() -> int:
             inflight, runs='[{"databaseId": 40967509020, "status": "completed"}, {"databaseId": 40969292151, "status": "in_progress"}]'))
         unreadable: list[list[str]] = []
         blind = requeue("o/r", 777, head385, gh=remedy_gh(unreadable, runs_rc=1), state=active)
+        shortened: list[list[str]] = []
+        short = requeue("o/r", 777, head385[:12], gh=remedy_gh(shortened), state=active)
         expect("the requeue refuses, touching nothing, while a workflow run on the head has not completed (the reopen's "
                "new run would cancel it and its ci-gate would read as a bounce, kb/Work PB4052, PR #777), naming the run, "
-               "and when the head's runs cannot be read",
+               "and when the head's runs cannot be read or the head is not a full commit id (gh lists no run for a "
+               "shortened one: review R1-2)",
                not running[0] and "40969292151 in_progress" in running[1] and "nothing closed" in running[1]
                and [a[:2] for a in inflight] == [["run", "list"]]
-               and not blind[0] and "could not be read" in blind[1] and [a[:2] for a in unreadable] == [["run", "list"]],
-               f"{running} {inflight} {blind} {unreadable}")
+               and not blind[0] and "could not be read" in blind[1] and [a[:2] for a in unreadable] == [["run", "list"]]
+               and not short[0] and "not a full commit id" in short[1] and not shortened,
+               f"{running} {inflight} {blind} {unreadable} {short} {shortened}")
 
         def silent_gh(log: list[list[str]], at: str) -> Gh:
             """gh that answers until the call `at` (its first two words), which gives no answer (real_gh's timeout); the

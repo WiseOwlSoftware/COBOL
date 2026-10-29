@@ -2532,8 +2532,10 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    `gh pr merge --merge-queue`-equivalent (`gh pr merge --auto`) so the PR joins the queue. Done. No lease, no local
    whole population, no waiting for CI. That the pull request then ENTERS the queue is the landing lane's QUEUE WATCH
    (DESIGN-orchestrator-loop.md section 4.9 step 4, kb/Work PB3527): on every tick it reads the merge queue's entries
-   and the head's required check-runs (`queue_facts.py`) and, past a 10-minute grace, re-runs a stuck check, then
-   closes, reopens and re-queues the pull request, then asks the operator. A HOST-I-O group (a file of its set under
+   and the head's check-runs, the newest workflow run of each workflow only (`queue_facts.py`), waits while any of them
+   runs (kb/Work PB4052), and, past a 10-minute grace after their work ended, re-runs a stuck check, then closes,
+   reopens and re-queues the pull request (refused while a run on its head is in progress), then asks the operator. A
+   HOST-I-O group (a file of its set under
    `src/WiseOwl.Cobol.Runtime/IO/`) runs the Linux unit and conformance legs from WSL at its own gate (MANDATORY-PRACTICES I8;
    `make_dispatch_specs.host_io`, kb/Work PB3381: wave 1118's PB3333 was refused at its landing by 31 NIST RL programs that
    differ on Linux, 2.6 h after its DONE), and CI's merge group runs all of them. Every gate row (the rare gate above) hands
