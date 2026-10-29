@@ -1305,7 +1305,7 @@ of an unsupported facility.
   rule alone, because with WHEN COMMON both sentences hand control to imperative-statement-4 and GR19 then passes it "as
   indicated in General rule 20" - so a WHEN COMMON written beside a WHEN OTHER would turn "abandon imperative-statement-1" into
   "resume in place", and one WHEN OTHER whose destination depends on whether an unrelated phrase is present is no reading of GR18;
-  (3) an unnamed condition would otherwise resume where a named one (GR17) does not, though GR14 enables both the same way and
+  (3) a named condition (GR17, returning by GR20) would otherwise resume in place where an unnamed one (WHEN OTHER) abandons imperative-statement-1, though GR14 enables both the same way and
   GR17 and GR18 select the same handler machinery. §14.9.28.4's own cross-clause statement, §14.6.13.1.4 item 2, describes only a
   PERFORM "that contains a WHEN phrase that specifies the exception-name" and says the WHEN phrase's statement "completes as
   specified in the rules for the PERFORM statement" - GR20; it is silent on WHEN OTHER, which GR18 supplies, and that silence is
