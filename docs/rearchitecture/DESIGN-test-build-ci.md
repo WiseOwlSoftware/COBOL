@@ -2389,7 +2389,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    names, the same note's included (a file that names none holds the branches of the note whose review it records,
    by the stamp that names it or its wave name), and writes the tear and what the operator does into the held row's
    `why`; `predecessorEnd` reads it `unanswered`, never `capped`; one file never stops the landing lane's tick; every
-   writer refuses a torn file BEFORE writing, naming `review_findings.py repair <file>`, which only the operator runs:
+   writer refuses a torn file BEFORE writing, naming `review_findings.py repair <file>`, which only the operator runs
+   (the review lane alone mends a file torn at its LAST line, a reviewer's cut-off append, through
+   `repair_interrupted_append`, kb/Work PB3608):
    it removes a byte-order mark, keeps a last record that only lost its newline, removes any other torn tail, deletes
    a file left with no record, refuses a file it cannot read, and leaves an intact file unchanged.
    `review_findings.py --self-test` proves the rule by cutting a findings file at every byte offset, alone and with a
