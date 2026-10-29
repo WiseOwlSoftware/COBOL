@@ -37,6 +37,7 @@ and no second survey is taken. In order:
 THE LEASE, per branch HEAD (review_findings.py is the one reader of the findings files, `rounds`):
     a run of this lane alive at the head                          wait
     any findings file with a VERDICT at the head                 reviewed: the next survey reads it (nothing to start)
+    the report younger than REPORT_GRACE_MIN                     wait: a wave's reviewer may be about to write its `start`
     a foreign `start` at the head, no verdict, younger than the  wait: a rolling wave's reviewer (the survey cannot tell it
     reviewer ceiling (REVIEWER_CEILING_MIN)                      from a branch waiting for one, kb/Work PB3283)
     the lane's own unfinished round, no live runner              START THE ROUND AGAIN (a killed reviewer: its recorded
@@ -120,6 +121,8 @@ MAX_AGENTS = 3
 REVIEWER_CEILING_MIN = 90
 FINISHER_CEILING_MIN = 240
 CEILING_MIN = {REVIEW: REVIEWER_CEILING_MIN, CONFLICT: FINISHER_CEILING_MIN}
+#: A report this young may belong to a rolling wave whose reviewer has not started (module doc, THE LEASE): the lane waits.
+REPORT_GRACE_MIN = 5
 #: Reviews that may END WITH NO VERDICT at one head before the lane stops trying (a HOLD).
 ATTEMPT_LIMIT = 2
 #: Review finisher rounds the rolling wave allows (review_fix_rounds): rounds above it block on BLOCKING_AT_CAP.
@@ -238,6 +241,15 @@ def plan_review(row: dict[str, Any], cdir: pathlib.Path, rs: list[dict[str, Any]
     other = standing(row, cdir, now, own)
     if other:
         return other
+    # A rolling wave's implementer has just returned DONE and its reviewer has not written its `start` yet: nothing on disk
+    # says so (kb/Work PB3283), but its report is minutes old. A finisher's, an attended or a lane's branch waits this long too.
+    try:
+        age = now.timestamp() / 60 - os.stat(row["report"]).st_mtime / 60
+    except OSError:
+        age = None
+    if age is not None and age < REPORT_GRACE_MIN:
+        return Plan(False, f"its report was written {max(age, 0):.0f} min ago: a rolling wave's reviewer may be about to start "
+                           f"(the lane waits {REPORT_GRACE_MIN} min)")
     failed = [r for r in ours if finished(r) and same_commit(r["head"], tip) and not r.get("verdict")]
     if len(failed) >= ATTEMPT_LIMIT:
         return Plan(False, f"{len(failed)} reviewers ended with no verdict at {tip[:12]} ({failed[-1].get('outcome') or 'exit ' + str(failed[-1].get('rc'))})",
@@ -776,6 +788,15 @@ def self_test() -> int:
         expect("a verdict in the lane's own file with no stamp in the report is stamped by the lane, not reviewed again",
                f5s.tick() == [] and "**Review:** CLEAN lane-review-S1-r1-1 a1a1a1a" in stamped.read_text(encoding="utf-8")
                and not holds(c5s), str(f5s.said))
+        c5g = fresh()
+        young = root / "young-report.md"
+        young.write_text("# report\n", encoding="utf-8", newline="\n")
+        os.utime(young, (t0.timestamp(), t0.timestamp()))
+        f5g = Fake(c5g, [row("G1", "WAITING FOR REVIEW", "a1a1a1a", report=str(young))])
+        expect("a report younger than REPORT_GRACE_MIN waits: a rolling wave's reviewer may be about to write its `start`",
+               f5g.tick() == [] and any("may be about to start" in s for s in f5g.said), str(f5g.said))
+        os.utime(young, (t0.timestamp() - 600, t0.timestamp() - 600))
+        expect("the same report past the grace is reviewed", f5g.tick() == [(REVIEW, "G1")], str(f5g.said))
         c5b = fresh()
         other = c5b / "scratch" / "review-w9-c.jsonl"
         review_findings.start(other, 1, "someone-else", "a1a1a1a", "w9c-review-r1")

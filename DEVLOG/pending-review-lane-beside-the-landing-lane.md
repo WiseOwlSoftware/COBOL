@@ -21,7 +21,9 @@ reaps and judges finished runs; starts nothing under the loop's STOP, its fleet 
 prompt on stdin, the role's own definition carrying model, hooks and turn cap, killed at the role's ceiling (90 / 240
 min, STALLED) or on a loop stop. A lease per branch head (the lane's live runner; any findings file naming the branch
 with a `start` at the head and no verdict younger than the reviewer ceiling, which is a rolling wave's reviewer; a
-verdict at the head means reviewed) keeps a second reviewer off. The CONFLICT finisher (an exit-4 attempt, or a pull
+verdict at the head means reviewed; a report under 5 minutes old waits, because a wave's reviewer has not written its
+`start` yet) keeps a second reviewer off. PB3283 (the survey reads a running wave reviewer as WAITING FOR REVIEW) stays
+open: the lane works around it by the lease and does not touch the survey's state. The CONFLICT finisher (an exit-4 attempt, or a pull
 request the survey reads BOUNCED with merge state DIRTY) gets one `cobol-finisher` per head with `land_lane.py
 conflict-brief` verbatim in its prompt; the lane collects the exit-4 attempt, and `land_lane.agent_work` leaves DIRTY
 bounces to it. `review_lane.agent_work` is `next_unit.py`'s second reader: holds, or the lane's own work while it has

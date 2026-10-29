@@ -76,6 +76,7 @@ public sealed class ReviewLaneDriftTests
             "a wave reviewer's `start` at the head (no verdict, young) is a lease: no second reviewer",
             "the same `start` past the reviewer ceiling is a dead reviewer's: the lane reviews",
             "a verdict at the head in any findings file means reviewed: nothing starts",
+            "a report younger than REPORT_GRACE_MIN waits: a rolling wave's reviewer may be about to write its `start`",
             "a verdict in the lane's own file with no stamp in the report is stamped by the lane, not reviewed again",
             "the next tick reaps it DIED, mends the cut-off append and starts the SAME round again, with no hand repair",
             "the restart's prompt lists what the dead reviewer recorded and does not record it again",
