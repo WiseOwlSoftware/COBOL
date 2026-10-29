@@ -1861,8 +1861,8 @@ the file it cut (the implementer commits the diff of the two: empty). After the 
 ### 16.9 `PublicAPI.Unshipped.txt`: a keyed merge driver
 
 A public-API baseline (`Microsoft.CodeAnalysis.PublicApiAnalyzers`) is a SET of symbol lines under one
-`#nullable enable` header; `*REMOVED*`-prefixed lines are members of the same set. `.gitattributes` merges it by line
-union today (`src/**/PublicAPI.*.txt merge=union`), which keeps a line one side removed and once duplicated a symbol
+`#nullable enable` header; `*REMOVED*`-prefixed lines are members of the same set. `.gitattributes` merged it by line
+union before PB3727 (`src/**/PublicAPI.*.txt merge=union`), which kept a line one side removed and once duplicated a symbol
 (PB3694). The driver: `Driver("cobol-keyed-publicapi", ("src/**/PublicAPI.*.txt",), lambda: merge_symbol_set, "a
 public-API baseline is a set of symbol lines: a line either side added is kept, a line either side removed is gone, the
 header stays first, the rest sorted")` in `merge_drivers.DRIVERS`; `merge_symbol_set(base, ours, theirs)` =
@@ -1901,6 +1901,17 @@ catalogues. And a merge reads its ATTRIBUTES from the registry as it reads its d
 by a `<pattern> merge=<driver>` line per DRIVERS pattern; a later line wins). Without it, a branch cut before this
 landing (its `.gitattributes` still says `merge=union`) merging a main whose baseline the driver sorted got the union: a
 measured branch that added two symbols came out with 31 duplicated lines (RS0025 in the Release build).
+
+THE LANDING CHECK HOLDS WHAT THE DRIVER CANNOT (kb/Work PB3694). The driver runs only in a merge this repository makes;
+GitHub's merge group merges the baselines by git's LINE merge (no driver is defined there, PB3642), and that merge keeps a
+symbol both sides added at different places twice (RS0025 in the Release build, which no local gate saw because the local
+merge, through the driver, had made one line). `landing_check.py` therefore reads the baselines of two trees at every landing
+(arm 0b, `baseline_stops`): the landing's own, and the merge `git merge-tree` makes of `origin/main` and the landing with no
+driver configured, and STOPS (exit 3) on a symbol listed twice in one file or as a plain line in two files of one directory
+(Shipped and Unshipped are one project's API). `merge_drivers.is_symbol_baseline` (the DRIVERS row's pattern) names the files
+and `merge_drivers.baseline_duplicates` is the rule, so the rule lives beside the merge it guards. A merge that conflicts has
+no tree to read and is the queue's conflict, not this check's. No `merge=union` attribute remains in `.gitattributes`; the
+work notes' body union (`merge_note`) keeps a doubled line visible to the reader, and no build reads it.
 
 ### 16.10 The order, the waves and PB3637
 

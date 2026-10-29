@@ -2518,7 +2518,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    reason: a branch cut before the codes became `COBOL####` that merges main cleanly meets it here, never first in CI's `audits` job, PB3575),
    `rename_retired_names.py --check` (the RETIRED NAMES audit, the same shape for the same reason: a branch cut before the code took the
    product's name, WiseOwl.Cobol, PB3837)
-   and `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`, then the R3 file-set
+   and `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`, then a public-API symbol listed twice, PB3694, then the R3 file-set
    partition, PB2118) — then `gh pr create` (title = the branch's one-line subject, body = the forensic message) and
    `gh pr merge --merge-queue`-equivalent (`gh pr merge --auto`) so the PR joins the queue. Done. No lease, no local
    whole population, no waiting for CI. That the pull request then ENTERS the queue is the landing lane's QUEUE WATCH
