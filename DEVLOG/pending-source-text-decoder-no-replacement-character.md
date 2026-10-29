@@ -27,7 +27,7 @@ lone UTF-16 high surrogate one code unit late, so the offset of a malformed UTF-
 exception. COBOL5436 of the allocation is returned unused.
 
 **Sibling sweep.** Source text is read in exactly two places (`Frontend.Parse`, `CopyProcessor.ResolveOneCopy`), both changed;
-`CompilationInputsDriftTests` already forbids an ambient read anywhere else. The second reader of library text is the conformance-suite
+`CompiledProgramCacheDriftTests.EveryAmbientReadInTheCompiler_IsRecorded` already forbids an ambient read anywhere else. The second reader of library text is the conformance-suite
 generator (`conformance-suite/harness/cobol_source.py#decode`): it was strict UTF-8 and crashed on the new library texts. It only needs a
 text's structure (COPY statements, DISPLAY operands), so it is now lenient by design and its self-test pins that. Eight inventory rows
 named the retired `ReadAllText` as a code site (`DOC-A.1-25`, `-26`, `-31`, `-34`, `-38`, `GR-8.1.3.2-1`, `-2`, `-5`); all were re-sited. The
