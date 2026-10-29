@@ -124,17 +124,73 @@ public sealed class PerformFormat3BehaviorTests
 
     // ── GR18 WHEN OTHER + GR19 WHEN COMMON ─────────────────────────────────────────────────────────────────────
 
-    [Fact]   // GR18: an enabled condition named by no WHEN runs WHEN OTHER (imp-3).
-    public void WhenOther_HandlesUnnamedCondition()
+    // ⛔ GR18 prints two consecutive sentences naming DIFFERENT destinations after imperative-statement-3 ("to the end of
+    // the PERFORM statement" / "as indicated in General rule 14.9.29 [sic]"); docs/CONFORMANCE.md §3 pins the second,
+    // read as General rule 20, because GR20 names "General rules 17, 18, and 19" (kb/Work PB438). The tests below pin
+    // that destination WITHOUT a RESUME in the handler: a RESUME NEXT STATEMENT inside the WHEN OTHER prints the same
+    // output under either reading, so a test that writes one is evidence about neither.
+
+    [Fact]   // GR18 + GR20: a NONFATAL condition named by no WHEN runs WHEN OTHER (imp-3), then resumes IN PLACE — the
+             // statement after the raiser still runs ("AFTER"); under the first sentence it would be abandoned.
+    public void WhenOther_NonfatalWithoutResume_ContinuesInPlace()
         => AssertSpec("""
                 PERFORM
-                    RAISE EXCEPTION EC-BOUND-SUBSCRIPT
+                    RAISE EXCEPTION EC-USER-DEMO
+                    DISPLAY "AFTER"
+                WHEN EC-BOUND-SUBSCRIPT
+                    DISPLAY "SPECIFIC"
+                WHEN OTHER
+                    DISPLAY "OTHER"
+                END-PERFORM
+                DISPLAY "DONE"
+            """, "OTHER\nAFTER\nDONE");
+
+    [Fact]   // GR18 + GR19 + GR20: WHEN COMMON (imp-4) follows imp-3, then the nonfatal resume — the destination does
+             // not depend on whether WHEN COMMON is written (both sentences hand control to imp-4, GR19 to GR20).
+    public void WhenOther_NonfatalWithCommon_RunsCommonThenContinues()
+        => AssertSpec("""
+                PERFORM
+                    RAISE EXCEPTION EC-USER-DEMO
+                    DISPLAY "AFTER"
+                WHEN EC-BOUND-SUBSCRIPT
+                    DISPLAY "SPECIFIC"
+                WHEN OTHER
+                    DISPLAY "OTHER"
+                WHEN COMMON
+                    DISPLAY "COMMON"
+                END-PERFORM
+                DISPLAY "DONE"
+            """, "OTHER\nCOMMON\nAFTER\nDONE");
+
+    [Fact]   // GR18 + GR20 fatal: a FATAL condition named by no WHEN runs WHEN OTHER, then — no RESUME — §14.6.13.1.3
+             // abnormal termination, exactly as for a named WHEN (Fatal_WhenMatch_ThenTerminates).
+    public void WhenOther_Fatal_ThenTerminates()
+        => AssertFatal("""
+                PERFORM
+                    RAISE EXCEPTION EC-SIZE-OVERFLOW
                     DISPLAY "AFTER"
                 WHEN EC-USER-DEMO
                     DISPLAY "SPECIFIC"
                 WHEN OTHER
                     DISPLAY "OTHER"
+                END-PERFORM
+                DISPLAY "DONE"
+            """, "EC-SIZE-OVERFLOW", "OTHER");
+
+    [Fact]   // GR18 + §14.9.33 RESUME NEXT STATEMENT: a transfer OUT of imp-3, so WHEN COMMON does not run (the WHEN OTHER
+             // arm of ResumeNext_SkipsWhenCommon) — and the resume lands after the raiser, as for a named WHEN.
+    public void WhenOther_ResumeNext_SkipsWhenCommon()
+        => AssertSpec("""
+                PERFORM
+                    RAISE EXCEPTION EC-USER-DEMO
+                    DISPLAY "AFTER"
+                WHEN EC-BOUND-SUBSCRIPT
+                    DISPLAY "SPECIFIC"
+                WHEN OTHER
+                    DISPLAY "OTHER"
                     RESUME NEXT STATEMENT
+                WHEN COMMON
+                    DISPLAY "COMMON"
                 END-PERFORM
                 DISPLAY "DONE"
             """, "OTHER\nAFTER\nDONE");
