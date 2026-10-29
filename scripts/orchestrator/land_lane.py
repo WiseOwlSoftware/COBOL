@@ -106,10 +106,12 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
      facts), before the stops are read: `ENQUEUED` means only that the pull request was HANDED to the queue (auto-merge
      on); on 2026-10-22 PR #385's ci-gate job completed and its check-run stayed in_progress for 50 minutes, outside
      the queue, and nothing looked. Each branch's latest exit-0 attempt is watched until its pull request is in the
-     merge queue (or merged, BOUNCED, or superseded by a new head). Not in the queue QUEUE_GRACE_MIN after its required
-     checks' work ended (a stuck check-run's JOB time) is a STALLED read: read 1 re-runs the stuck check's workflow run,
-     read 2 (one grace after) closes, reopens and re-queues the pull request (both enqueue.py's: the only file that
-     queues), read 3 sends the operator a mailbox question and the watch acts no more; each read is recorded on the
+     merge queue (or merged, BOUNCED, or superseded by a new head). While ANY check on its head runs, required or not
+     (ci-gate has no check-run until the jobs it needs end, kb/Work PB4052), nothing is late. Not in the queue
+     QUEUE_GRACE_MIN after its checks' work ended (the newest check-run's end; a stuck one's JOB time) is a STALLED read:
+     read 1 re-runs the stuck check's workflow run, read 2 (one grace after) closes, reopens and re-queues the pull
+     request, refused while a run on its head is in progress (both enqueue.py's: the only file that queues), read 3
+     sends the operator a mailbox question and the watch acts no more; each read is recorded on the
      attempt (`watch`) and in landing_measure.py's record (`stalls`). Under a stop the watch reads but acts on nothing.
 `status` prints each branch's latest attempt; the enqueue unit reads it (units/enqueue.md step 3), sends each STOPPED
 attempt to a finisher or a reviewer, files the leads of each ENQUEUED one, and then `collect`s them. `agent_work` is
@@ -773,7 +775,7 @@ def rearm(cdir: pathlib.Path, branch: str, why: str, say: Say = print,
 # the pull request BLOCKED, and nothing looked. So every tick WATCHES each pull request the lane queued until the merge
 # queue holds it, as a state machine over the facts the survey read on the same tick (queue_facts.read, the one
 # reader): never a wait inside enqueue.py, never a second reader of GitHub.
-QUEUE_GRACE_MIN = 10          # how long a pull request may stay out of the queue after its required checks' work ended
+QUEUE_GRACE_MIN = 10          # how long a pull request may stay out of the queue after its head's checks' work ended
 WATCHING, IN_QUEUE, MERGED, LEFT, ALERTED = "watching", "queued", "merged", "left", "alerted"
 WATCH_DONE = (IN_QUEUE, MERGED, LEFT, ALERTED)
 STUCK, NOT_QUEUED, CLOSED = "stuck-check-run", "not-queued", "closed"   # landing_measure.STALL_CAUSES
