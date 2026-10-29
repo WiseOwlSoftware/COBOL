@@ -683,7 +683,7 @@ def sync_status(main_text: str, published: dict, artifact: str | None, fresh_md:
                 f"shows {shown or 'no recorded version'}{where}: render at main, publish the page, `fuzz_history.py mark-published`")
     if fresh_md is None:
         return (f"fuzz ledger: published version {on_main} is main's; whether the register moved since is UNCHECKED (this "
-                f"checkout is not at {MAIN_REF}, or its history, kb/Work, work.py or fuzz_history.py carry uncommitted edits)")
+                f"checkout is not at {MAIN_REF}, or a tracked file carries an uncommitted edit)")
     if fresh_md != main_text:
         return (f"fuzz ledger: ⚠ REGENERATE OWED — a render now (version {version_of(fresh_md)}) differs from FUZZ-LEDGER.md on "
                 f"{MAIN_REF} (version {on_main}): {regenerate}")
@@ -695,16 +695,14 @@ def rendered_markdown(ctx: dict, artifact: str | None) -> str:
     return render_markdown({**ctx, "fill": {**ctx["fill"], "version": ledger_version(ctx, artifact)}}, artifact)[0]
 
 
-#: What a render reads from the working tree: `status` compares it with main only when these are main's own content.
-RENDER_INPUTS = ("conformance-suite/fuzz-history.json", "kb/Work", "scripts/fuzz_history.py", "scripts/spec/work.py")
-
-
 def at_main(repo: pathlib.Path = REPO) -> bool:
-    """HEAD is origin/main AND the render's inputs carry no uncommitted change (review R3-1): only then does a render here
-    show what main's own content renders to."""
+    """HEAD is origin/main AND no tracked file carries an uncommitted change: only then does a render here show what main's
+    own content renders to. The whole tracked tree, never a list of the render's inputs: the render reads the history,
+    kb/Work and, through work.py, coord.py and model_rules.json, and two reviews in a row found a list one file short
+    (review R3-1, R4-2, R5-1)."""
     heads = [subprocess.run(["git", "-C", str(repo), "rev-parse", ref], capture_output=True, text=True).stdout.strip()
              for ref in ("HEAD", MAIN_REF)]
-    dirty = subprocess.run(["git", "-C", str(repo), "status", "--porcelain", "--", *RENDER_INPUTS],
+    dirty = subprocess.run(["git", "-C", str(repo), "status", "--porcelain", "--untracked-files=no"],
                            capture_output=True, text=True).stdout.strip()
     return bool(heads[0]) and heads[0] == heads[1] and not dirty
 

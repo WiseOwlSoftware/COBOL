@@ -237,9 +237,10 @@ project and "maintained automatically as an artifact of each fuzz testing run", 
   that can update it). `fuzz_history.py status`, printed by session-probe every session, says `current`, `PUBLISH OWED` (the
   record shows another version than main's file, or another Artifact) or `REGENERATE OWED` (main's file carries no version, or
   differs from a render now: a fuzz note's status moved, or the file was edited by hand; a render lands on a branch, then the
-  publish). That last check runs only in a checkout AT origin/main whose render inputs (the history, kb/Work, work.py,
-  fuzz_history.py) carry no uncommitted edit, since a render anywhere else would report drift main does not have
-  (the PB2987 lesson); elsewhere the line says it is UNCHECKED.
+  publish). That last check runs only in a checkout AT origin/main with no tracked file edited, since a render anywhere else
+  would report drift main does not have (the PB2987 lesson); elsewhere the line says it is UNCHECKED. It asks of the whole
+  tracked tree, never of a list of the render's inputs: the render reaches coord.py and model_rules.json through work.py, and
+  two review rounds in a row found such a list one file short.
 
 **The step.** The last step of every morning, after `file --write` and on the same branch: `python scripts/fuzz_triage.py history
 --triage <dir> --judge-commit <sha> --write`. It refuses a triage that `collect` does not pass (a problem or an undecided
