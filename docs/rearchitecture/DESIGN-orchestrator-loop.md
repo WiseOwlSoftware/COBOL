@@ -1153,8 +1153,8 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   spelling of `blocked_by`, and it went stale both ways (a stale `true` hid PB1940 and PB1956 from every work list; a
   blocker landing ahead of its dependent in the merge queue turned the check that held the flag to the list red with no
   change to the branch, and failed the CI of five pull requests), so `work.py check` refuses the key and `waiting_on` is read by
-  `next`, `cluster_order`, the ledger, the fix lane's population (`clusters.ready_notes_view`) and, in the Bases language,
-  `kb/Work.base`'s `blocked` formula. A hold on something that is no note (the owner, a document) is `status: blocked`
+  `next`, `cluster_order`, the ledger, the fix lane's population (`clusters.ready_notes_view`) and the `blocked` view
+  (`work.py blocked`). A hold on something that is no note (the owner, a document) is `status: blocked`
   or `owner`, said in the note's body. `check` also holds `blocked_by` to notes that exist and open notes to no cycle.
 - **The owner's tier** (kb/Work PB3423) orders the READY notes: `tier: ["PB3353:1"]`, a list of `CAMPAIGN:N` entries
   (N a positive integer, 1 first), scoped because a note belongs to several campaigns and the owner's order for one

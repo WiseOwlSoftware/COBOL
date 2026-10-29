@@ -1,7 +1,7 @@
 # Verified Conformance Fix-Queue — MOVED
 
-> ⛔ **THIS FILE IS RETIRED. The work register is `kb/Work/` — one note per item — and `kb/Work.base` is the
-> view over it.** Nothing was lost: all 39 PB entries were migrated with their bodies **verbatim** (verified —
+> ⛔ **THIS FILE IS RETIRED. The work register is `kb/Work/` — one note per item — and its views are
+> `work.py` subcommands.** Nothing was lost: all 39 PB entries were migrated with their bodies **verbatim** (verified —
 > zero lines dropped across 343,466 characters), and the entries that were never itemised finally are.
 
 ## Why it moved
@@ -25,8 +25,8 @@ work list could see, because it lived inside a paragraph.
 - **`kb/Work/`** — the register. One note per item, tracked in git, frontmatter carrying `kind`, `status`,
   `severity`, `area` and the harm flags. The forensic prose — repro, citation, why a previous summary was wrong —
   is in each note's body, unchanged.
-- **`kb/Work.base`** — every view: *Fix next*, *Blocked*, *Open but no harm flag set*, the §11
-  analyses, and everything.
+- **The views** — `work.py` subcommands: `next` (Fix next), `blocked`, `unharmed` (open, no harm flag set), `analyses`
+  (the §11 backlog), `landed`, `upstream` and `stats`.
 - **`scripts/spec/work.py`** — `check` validates the register, `next` prints the ranked list (session-probe
   shows it every session), `stats` counts it.
 
