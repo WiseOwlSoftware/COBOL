@@ -206,15 +206,18 @@ def main() -> int:
                and "REGENERATE OWED" in status["regenerate"] and "REGENERATE OWED" in status["hand-edit"]
                and "REGENERATE OWED" in status["unversioned"] and "UNCHECKED" in status["behind"], status)
         repo = ScratchRepo.init(root / "repo")
-        repo.commit("base", {"kb/Work/PB1.md": "x\n", "scripts/spec/work.py": "x\n"})
+        tracked = ("kb/Work/PB1.md", "scripts/spec/work.py", "scripts/orchestrator/model_rules.json")
+        repo.commit("base", dict.fromkeys(tracked, "x\n"))
         repo.git("update-ref", f"refs/remotes/{fh.MAIN_REF}", "HEAD")
         states = [fh.at_main(repo.path)]
-        for rel in ("kb/Work/PB1.md", "scripts/spec/work.py"):
+        for rel in tracked:
             repo.write({rel: "y\n"})
             states.append(fh.at_main(repo.path))
             repo.write({rel: "x\n"})
-        expect("SYNC status checks drift only at main with its render inputs unedited (review R3-1, R4-2)",
-               states == [True, False, False], states)
+        repo.write({"untracked.txt": "z\n"})
+        states.append(fh.at_main(repo.path))
+        expect("SYNC status checks drift only at main with no tracked file edited (review R3-1, R4-2, R5-1)",
+               states == [True, False, False, False, True], states)
 
         # HISTORY: the subcommand, on a history file of its own
         hfile = root / "fuzz-history.json"
