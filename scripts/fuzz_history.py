@@ -683,7 +683,7 @@ def sync_status(main_text: str, published: dict, artifact: str | None, fresh_md:
                 f"shows {shown or 'no recorded version'}{where}: render at main, publish the page, `fuzz_history.py mark-published`")
     if fresh_md is None:
         return (f"fuzz ledger: published version {on_main} is main's; whether the register moved since is UNCHECKED (this "
-                f"checkout is not at {MAIN_REF}, or its history, kb/Work or fuzz_history.py carry uncommitted edits)")
+                f"checkout is not at {MAIN_REF}, or its history, kb/Work, work.py or fuzz_history.py carry uncommitted edits)")
     if fresh_md != main_text:
         return (f"fuzz ledger: ⚠ REGENERATE OWED — a render now (version {version_of(fresh_md)}) differs from FUZZ-LEDGER.md on "
                 f"{MAIN_REF} (version {on_main}): {regenerate}")
@@ -696,7 +696,7 @@ def rendered_markdown(ctx: dict, artifact: str | None) -> str:
 
 
 #: What a render reads from the working tree: `status` compares it with main only when these are main's own content.
-RENDER_INPUTS = ("conformance-suite/fuzz-history.json", "kb/Work", "scripts/fuzz_history.py")
+RENDER_INPUTS = ("conformance-suite/fuzz-history.json", "kb/Work", "scripts/fuzz_history.py", "scripts/spec/work.py")
 
 
 def at_main(repo: pathlib.Path = REPO) -> bool:
