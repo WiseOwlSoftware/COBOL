@@ -104,29 +104,42 @@ PB2109.) NuGet cached; `Generated/` regenerated per checkout (java+pwsh prerequi
 **⛔ CI and every local host run the tool versions ONE manifest names, and each is the tool's latest release (kb/Work
 PB4007; `ToolchainManifestDriftTests`).** The owner, 2026-10-28: "CI tooling should match local tooling versions -
 always", then "CI and local should always be using the latest version". `toolchain.env` (the repository root) names the
-exact version of every tool a CI job or a local gate runs (the .NET SDK, Python, the Oracle JDK, pwsh, git, gh, jq, uv,
-semgrep) and the two runner images (`ubuntu-26.04`, `windows-2025-vs2026`); it is the only place a version is written.
-Every job of every workflow runs `.github/actions/setup-toolchain` as the step right after its checkout. The action
-installs Python with `actions/setup-python` at the manifest's version, and the SDK, the JDK, pwsh, gh and jq with
+exact version of every tool a CI job or a local gate runs (the .NET SDK, Python, the Oracle JDK, pwsh, each image's git,
+gh, jq, uv, semgrep) and the two runner images (`ubuntu-26.04`, `windows-2025-vs2026`); it is the only place a version
+is written. `scripts/toolchain.py`'s `TOOLS` is the one table of the tools: each row names a tool's manifest key, the
+command it reports its version with, how a host gets it (`install-tool.sh`, `actions/setup-python`, the runner image,
+`uv tool`) and whether it runs in CI. The manifest must name exactly its keys; `install-tool.sh`'s `TOOL_INSTALLABLE`
+must be exactly its install-tool rows (`toolchain.py check` refuses otherwise, in every CI job and every gate); the
+action installs what `toolchain.py ci-installs` prints and the host setups loop over `install-tool.sh --list`; and the
+drift tests read the rows from `toolchain.py`'s text, keeping no list of their own. So a new tool is one row, one
+manifest line and, for an install-tool row, one `tool_spec` arm. Every job of every workflow runs
+`.github/actions/setup-toolchain` as the step right after its checkout. The action installs Python with
+`actions/setup-python` at the manifest's version, and every `ci-installs` tool (the SDK, the JDK, pwsh, gh and jq) with
 `scripts/install-tool.sh`, all restored from one Actions cache entry keyed on the manifest's version lines, the OS and the
 architecture. It puts them first on `PATH` (with `DOTNET_ROOT` and `JAVA_HOME`), then runs `python scripts/toolchain.py
-check --scope ci`, which fails the job unless every tool on `PATH` reports the manifest's version. git is the one tool CI
-does not install: `actions/checkout` runs the image's git before any repository file exists, so the check holds the
-image's git (git's own release, without Git for Windows' `.windows.N` suffix) to the manifest instead. On the hosts,
-`scripts/wsl/setup-wsl.sh` and `scripts/cloud/setup-env.sh` install from the manifest (WSL's Python and semgrep through
+check --scope ci`, which fails the job unless every tool it installed reports the manifest's version. git is the one tool
+CI cannot install: `actions/checkout` runs the image's git before any repository file exists, and no publisher ships a
+Linux git of a chosen version (the Ubuntu image lacks the zlib and libcurl headers a source build needs). So the manifest
+names each image's git, `GIT_LINUX_VERSION` and `GIT_WINDOWS_VERSION` (git's own release, without Git for Windows'
+`.windows.N` suffix), one per image because GitHub rolls the two on different weeks, and each host installs that release.
+A job on an image whose git moved warns and runs: a failure there would stop every landing until a bump, and with the
+two images moving on different weeks no single value could clear it. The freshness run below holds each image strictly.
+On the hosts, `scripts/wsl/setup-wsl.sh` and `scripts/cloud/setup-env.sh` install from the manifest (WSL's Python and semgrep through
 uv; semgrep runs on its own uv-managed CPython, `SEMGREP_PYTHON_VERSION`, until upstream ships a cp315 wheel). The
 Windows dev box installs with winget. The gate holds every host to the manifest: before its audits, `run_gate_legs.py`
 runs `toolchain.check --scope gate`, stops `NOT RUN [toolchain]` (an ENVIRONMENT cause) on any mismatch, and names the
 toolchain it ran under in its verdict line and its record. `scripts/python-resolve.sh` and `.ps1` accept exactly
 `PYTHON_VERSION`. The SessionStart readiness check (`scripts/hooks/tooling_check.py`) prints the same comparison for
 every tool, ASK-OWNER on a mismatch. Identical holds at every commit; LATEST holds within a day. `toolchain-freshness.yml`
-runs `python scripts/toolchain.py latest` every day. It asks each publisher for its newest stable release (the .NET
-release index's newest GA channel; actions/python-versions' stable list, so the target is one setup-python can install;
-Oracle's current releases; GitHub's `releases/latest`; git's highest `vX.Y.Z` tag; PyPI for semgrep). The run is red,
-naming each tool, while the manifest is behind or a publisher cannot be read. `python scripts/toolchain.py bump` moves the
-manifest and its cloud copy forward, never across a .NET major (that also moves `global.json` and every
-TargetFramework, an owner's decision). It does so in a change of its own that carries the hosts' update and lands like any
-other, so CI and the hosts move together. The drift test holds the rest. The manifest names each tool once, exactly; the
+runs `python scripts/toolchain.py latest` every day. It asks each publisher for its newest stable release (the newest
+SDK of the .NET release index's GA channel of the manifest's major; actions/python-versions' stable list, so the target
+is one setup-python can install; Oracle's current releases; GitHub's `releases/latest`; each runner image's readme for
+its git; PyPI for semgrep). The run is red, naming each tool, while the manifest is behind or a publisher cannot be read.
+A newer GA .NET major is a warning on the run, never red: moving to it also moves `global.json` and every
+TargetFramework, an owner's decision, and a standing red would hide the next release `bump` can take. Its `images` jobs
+run `toolchain.py check --scope image` on each runner image, red while the image's git differs from the manifest's.
+`python scripts/toolchain.py bump` moves the manifest and its cloud copy forward within the .NET major. It does so in a
+change of its own that carries the hosts' update and lands like any other, so CI and the hosts move together. The drift test holds the rest. The manifest names each tool once, exactly; the
 cloud setup carries the manifest's block byte for byte; every job sets up the toolchain right after its checkout and runs
 on a manifest image. No workflow or action installs a tool any other way: no `actions/setup-*` but the action's own
 Python step, no package manager, no `dotnet tool install`. Every command a step runs is a manifest tool, a repository

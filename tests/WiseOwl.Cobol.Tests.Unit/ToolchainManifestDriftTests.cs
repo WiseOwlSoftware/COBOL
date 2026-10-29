@@ -34,23 +34,37 @@ public sealed class ToolchainManifestDriftTests
     private const string BeginMarker = "# >>> toolchain";
     private const string EndMarker = "# <<< toolchain";
 
-    /// <summary>The command each manifest tool answers to in a CI step, by its manifest name. A manifest version this
-    /// map lacks fails <see cref="TheManifest_NamesEveryToolOnce_AtAnExactVersion"/>: give it its command here.</summary>
-    internal static readonly FrozenDictionary<string, string[]> ToolCommands = new Dictionary<string, string[]>
-    {
-        ["DOTNET_SDK_VERSION"] = ["dotnet"],
-        ["PYTHON_VERSION"] = ["python", "python3"],
-        ["JDK_VERSION"] = ["java"],
-        ["PWSH_VERSION"] = ["pwsh"],
-        ["GIT_VERSION"] = ["git"],
-        ["GH_VERSION"] = ["gh"],
-        ["JQ_VERSION"] = ["jq"],
-        ["UV_VERSION"] = ["uv"],
-        ["SEMGREP_VERSION"] = ["semgrep"],
-    }.ToFrozenDictionary(StringComparer.Ordinal);
+    /// <summary>A row of <c>scripts/toolchain.py</c>'s <c>TOOLS</c>, the ONE table of the tools: its name, its manifest
+    /// key, the commands a CI step may run it by, how a host gets it (<c>INSTALL_TOOL</c>, <c>SETUP_PYTHON</c>,
+    /// <c>IMAGE</c> or <c>UV_TOOL</c>) and where it runs (<c>CI</c> or <c>HOST</c>).</summary>
+    internal sealed record ToolRow(string Name, string Key, string[] Commands, string Source, string Runs);
 
-    /// <summary>The manifest's lines that are not a tool's version: semgrep's interpreter exception and the images.</summary>
-    private static readonly string[] OtherKeys = ["SEMGREP_PYTHON_VERSION", "CI_LINUX_IMAGE", "CI_WINDOWS_IMAGE"];
+    /// <summary>One <c>Tool(…)</c> row of <c>TOOLS</c>, written on one line: its name, its key, its command (<c>None</c>
+    /// for the interpreter running the script), its version pattern (a string or a named one), its source and where it
+    /// runs.</summary>
+    private static readonly Regex ToolRowShape = new(
+        @"(?m)^\s*Tool\(""(?<name>[\w-]+)"", ""(?<key>[A-Z][A-Z0-9_]*)"", (?:None|\(""(?<exe>[\w.-]+)""[^)]*\)), "
+        + @"(?:r?""[^""\n]*""|r?'[^'\n]*'|[A-Z_]+), (?<source>[A-Z_]+), (?<runs>CI|HOST), ");
+
+    private static readonly Regex ToolRowStart = new(@"(?m)^\s*Tool\(");
+    private static readonly Regex OtherKeysShape = new(@"(?m)^OTHER_KEYS = \((?<keys>[^)]*)\)");
+    private static readonly Regex Installable = new(@"(?m)^TOOL_INSTALLABLE=""(?<tools>[^""]*)""$");
+
+    private static readonly Lazy<(List<ToolRow> Rows, string[] OtherKeys)> Table =
+        new(() => ReadTable(File.ReadAllText(TestRepo.Scripts("toolchain.py"))));
+
+    /// <summary>The rows of <c>scripts/toolchain.py</c>'s <c>TOOLS</c>, read from its text: this test keeps no list of
+    /// its own (a manifest key, a CI install and a command allowed in a step all come from that one table).</summary>
+    internal static IReadOnlyList<ToolRow> Tools => Table.Value.Rows;
+
+    /// <summary>The command each manifest tool answers to in a CI step, by its manifest key, from <see cref="Tools"/>.
+    /// The interpreter running the scripts (a <c>None</c> command) answers to <c>python</c> and <c>python3</c>.</summary>
+    internal static FrozenDictionary<string, string[]> ToolCommands =>
+        Tools.ToFrozenDictionary(t => t.Key, t => t.Commands, StringComparer.Ordinal);
+
+    /// <summary>The manifest's lines that are not a tool's version: semgrep's interpreter exception and the images,
+    /// from <c>toolchain.py</c>'s <c>OTHER_KEYS</c>.</summary>
+    private static string[] OtherKeys => Table.Value.OtherKeys;
 
     /// <summary>What a CI step may run that no manifest names: the shell's keywords and builtins, and the utilities of
     /// the OS release the image label pins (coreutils, grep, sed, awk, curl, tar, unzip, Git for Windows' cygpath).</summary>
@@ -95,6 +109,33 @@ public sealed class ToolchainManifestDriftTests
         var (values, problems) = Parse(ManifestText);
         Assert.True(problems.Count == 0, "toolchain.env (kb/Work PB4007):\n  " + string.Join("\n  ", problems));
         Assert.Equal(ToolCommands.Count + OtherKeys.Length, values.Count);
+        string toolchain = File.ReadAllText(TestRepo.Scripts("toolchain.py"));
+        Assert.True(Tools.Count >= 10 && Tools.Count == ToolRowStart.Matches(toolchain).Count && OtherKeys.Length >= 3,
+            $"read {Tools.Count} TOOLS row(s) and {OtherKeys.Length} OTHER_KEYS of the {ToolRowStart.Matches(toolchain).Count} "
+            + "`Tool(` line(s) in scripts/toolchain.py: write each row on one line, in the shape ToolRowShape reads");
+    }
+
+    /// <summary>Every installer installs exactly the table's rows (branch review R1-2): install-tool.sh's
+    /// TOOL_INSTALLABLE is the install-tool rows, in their order; setup-toolchain installs and puts on PATH the list
+    /// <c>toolchain.py ci-installs</c> prints, and the host setups loop over install-tool.sh's own list; no workflow,
+    /// action or host setup loops over a literal list of tools.</summary>
+    [Fact]
+    public void EveryInstaller_InstallsExactlyTheTablesRows()
+    {
+        var offenders = InstallerOffenders(File.ReadAllText(TestRepo.Scripts("install-tool.sh")), Tools);
+        string action = File.ReadAllText(TestRepo.At(".github", "actions", "setup-toolchain", "action.yml"));
+        offenders.AddRange(ActionInstallOffenders(action));
+        foreach (string file in WorkflowFiles().Concat(ActionFiles()))
+            offenders.AddRange(LiteralToolLoops(Rel(file), File.ReadAllText(file)));
+        foreach (string setup in new[] { "wsl/setup-wsl.sh", "cloud/setup-env.sh" })
+            offenders.AddRange(LiteralToolLoops("scripts/" + setup, File.ReadAllText(TestRepo.Scripts(setup.Split('/')))));
+        Assert.Matches(new Regex(@"(?m)^for tool in \$\(bash ""\$SCRIPTS/install-tool\.sh"" --list\); do$"),
+            File.ReadAllText(TestRepo.Scripts("wsl", "setup-wsl.sh")));
+        Assert.Matches(new Regex(@"(?m)^for tool in \$TOOL_INSTALLABLE; do install_tool ""\$tool"""),
+            File.ReadAllText(TestRepo.Scripts("cloud", "setup-env.sh")));
+        Assert.True(offenders.Count == 0, "an installer that does not install exactly scripts/toolchain.py's TOOLS rows "
+            + "(kb/Work PB4007): a tool the manifest names would run in CI or on a host at another version\n"
+            + string.Join("\n", offenders));
     }
 
     [Fact]
@@ -169,7 +210,8 @@ public sealed class ToolchainManifestDriftTests
             offenders.AddRange(found);
         }
         Assert.True(offenders.Count == 0, "a CI step runs a tool toolchain.env does not name (kb/Work PB4007): name it in the "
-            + "manifest, install it in " + Action + " and give it its command in ToolchainManifestDriftTests.ToolCommands\n"
+            + "manifest and give it its row in scripts/toolchain.py TOOLS (an install-tool row also needs its tool_spec arm "
+            + "in scripts/install-tool.sh), which installs it in " + Action + "\n"
             + string.Join("\n", offenders));
         Assert.True(commands >= 50, $"the audit read {commands} command(s) in the workflows and actions: the reader moved");
     }
@@ -204,8 +246,38 @@ public sealed class ToolchainManifestDriftTests
         Assert.Single(Parse(good.Replace("JQ_VERSION=1.2.3\n", "", StringComparison.Ordinal)).Problems);
         Assert.Single(Parse(good.Replace("JQ_VERSION=1.2.3", "JQ_VERSION=1.x", StringComparison.Ordinal)).Problems);
         Assert.Single(Parse(good.Replace(EndMarker, "NODE_VERSION=22.1.0\n" + EndMarker, StringComparison.Ordinal)).Problems);
+        Assert.Single(Parse(good.Replace(EndMarker, "XZ_TOOL=5.8.1\n" + EndMarker, StringComparison.Ordinal)).Problems);
         Assert.Single(Parse(good.Replace(EndMarker, "JQ_VERSION=1.2.4\n" + EndMarker, StringComparison.Ordinal)).Problems);
         Assert.Single(Parse("JQ_VERSION=1.2.3\n").Problems);
+
+        // The one table: rows read from toolchain.py's text, and each installer held to them.
+        const string TableText = """
+            TOOLS: tuple[Tool, ...] = (
+                Tool("dotnet-sdk", "DOTNET_SDK_VERSION", ("dotnet", "--version"), r"^(\d+)$", INSTALL_TOOL, CI, _dotnet_sdk),
+                Tool("python", "PYTHON_VERSION", None, r"^(\d+)$", SETUP_PYTHON, CI, _python),
+                Tool("jdk", "JDK_VERSION", ("java", "-version"), r'version "(\d+)', INSTALL_TOOL, CI, _jdk),
+                Tool("git-linux", "GIT_LINUX_VERSION", ("git", "--version"), GIT, IMAGE, CI, _image_git("CI_LINUX_IMAGE"), "Linux"),
+                Tool("uv", "UV_VERSION", ("uv", "--version"), r"uv (\d+)", INSTALL_TOOL, HOST, _github("astral-sh/uv", "")),
+            )
+            OTHER_KEYS = ("SEMGREP_PYTHON_VERSION", "CI_LINUX_IMAGE")
+            """;
+        var (rows, otherKeys) = ReadTable(TableText);
+        Assert.Equal(["dotnet-sdk:DOTNET_SDK_VERSION:dotnet:INSTALL_TOOL:CI", "python:PYTHON_VERSION:python,python3:SETUP_PYTHON:CI",
+                      "jdk:JDK_VERSION:java:INSTALL_TOOL:CI", "git-linux:GIT_LINUX_VERSION:git:IMAGE:CI", "uv:UV_VERSION:uv:INSTALL_TOOL:HOST"],
+            rows.Select(r => $"{r.Name}:{r.Key}:{string.Join(',', r.Commands)}:{r.Source}:{r.Runs}"));
+        Assert.Equal(["SEMGREP_PYTHON_VERSION", "CI_LINUX_IMAGE"], otherKeys);
+        Assert.Empty(InstallerOffenders("x\nTOOL_INSTALLABLE=\"dotnet-sdk jdk uv\"\n", rows));
+        Assert.Single(InstallerOffenders("TOOL_INSTALLABLE=\"dotnet-sdk jdk\"\n", rows));        // a row with no install arm
+        Assert.Single(InstallerOffenders("TOOL_INSTALLABLE=\"dotnet-sdk jdk uv xz\"\n", rows));  // an arm with no row
+        Assert.Single(InstallerOffenders("TOOL_INSTALLABLE=\"jdk dotnet-sdk uv\"\n", rows));
+        Assert.Single(InstallerOffenders("no list\n", rows));
+        string action = File.ReadAllText(TestRepo.At(".github", "actions", "setup-toolchain", "action.yml"));
+        Assert.Empty(ActionInstallOffenders(action));
+        Assert.Single(ActionInstallOffenders(action.Replace("python scripts/toolchain.py ci-installs", "echo dotnet-sdk jdk", StringComparison.Ordinal)));
+        Assert.Single(ActionInstallOffenders(action.Replace("for tool in $TOOLS; do", "for tool in dotnet-sdk jdk pwsh gh jq; do", StringComparison.Ordinal)));
+        Assert.Single(LiteralToolLoops("a.yml", "        for tool in dotnet-sdk jdk pwsh gh jq; do\n"));
+        Assert.Single(LiteralToolLoops("s.sh", "for tool in jdk pwsh; do x; done\n"));
+        Assert.Empty(LiteralToolLoops("s.sh", "for tool in $TOOL_INSTALLABLE; do x; done\nfor tool in $(bash x.sh --list); do\n"));
 
         const string Workflow = """
             jobs:
@@ -294,8 +366,63 @@ public sealed class ToolchainManifestDriftTests
         return lf[begin..(stop < 0 ? lf.Length : stop)];
     }
 
+    /// <summary>The rows of a <c>toolchain.py</c> text's <c>TOOLS</c> and its <c>OTHER_KEYS</c>.</summary>
+    internal static (List<ToolRow> Rows, string[] OtherKeys) ReadTable(string toolchain)
+    {
+        var rows = ToolRowShape.Matches(toolchain).Select(m => new ToolRow(
+            m.Groups["name"].Value, m.Groups["key"].Value,
+            m.Groups["exe"].Success ? [m.Groups["exe"].Value] : ["python", "python3"],
+            m.Groups["source"].Value, m.Groups["runs"].Value)).ToList();
+        Match other = OtherKeysShape.Match(toolchain);
+        string[] keys = other.Success
+            ? Regex.Matches(other.Groups["keys"].Value, @"""(?<k>[A-Z][A-Z0-9_]*)""").Select(k => k.Groups["k"].Value).ToArray()
+            : [];
+        return (rows, keys);
+    }
+
+    /// <summary>What keeps install-tool.sh's TOOL_INSTALLABLE (in <paramref name="installer"/>) from being exactly the
+    /// install-tool rows of <paramref name="rows"/>, in their order.</summary>
+    private static List<string> InstallerOffenders(string installer, IReadOnlyList<ToolRow> rows)
+    {
+        Match m = Installable.Match(installer.ReplaceLineEndings("\n"));
+        string want = string.Join(' ', rows.Where(r => r.Source == "INSTALL_TOOL").Select(r => r.Name));
+        if (!m.Success)
+            return ["  scripts/install-tool.sh has no `TOOL_INSTALLABLE=\"…\"` line"];
+        string have = string.Join(' ', m.Groups["tools"].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        return have == want ? [] : [$"  scripts/install-tool.sh TOOL_INSTALLABLE is `{have}`; toolchain.py's install-tool rows are `{want}`"];
+    }
+
+    /// <summary>What keeps setup-toolchain from installing, and putting first on PATH, exactly the list
+    /// <c>toolchain.py ci-installs</c> prints.</summary>
+    private static List<string> ActionInstallOffenders(string action)
+    {
+        var offenders = new List<string>();
+        if (!action.Contains("tools=\"$(python scripts/toolchain.py ci-installs)\"", StringComparison.Ordinal))
+            offenders.Add("  setup-toolchain does not read its tools from `python scripts/toolchain.py ci-installs`");
+        if (!Regex.IsMatch(action, @"(?m)^\s+for tool in \$tools; do bash scripts/install-tool\.sh ""\$tool"" ""\$DIR/\$tool""; done$"))
+            offenders.Add("  setup-toolchain's install loop is not `for tool in $tools` over install-tool.sh");
+        if (!Regex.IsMatch(action, @"(?m)^\s+TOOLS: \$\{\{ steps\.install\.outputs\.tools \}\}$")
+            || !Regex.IsMatch(action, @"(?m)^\s+for tool in \$TOOLS; do$"))
+            offenders.Add("  setup-toolchain's PATH step does not loop over the install step's `tools` output");
+        return offenders;
+    }
+
+    /// <summary>A `for tool in …` loop over literal tool names: the list belongs to toolchain.py's TOOLS.</summary>
+    private static IEnumerable<string> LiteralToolLoops(string file, string text)
+    {
+        var names = Tools.Select(t => t.Name).ToFrozenSet(StringComparer.Ordinal);
+        string[] lines = text.ReplaceLineEndings("\n").Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            Match m = Regex.Match(lines[i], @"^\s*for tool in (?<list>[^;\n]*?)\s*(?:;|$)");
+            if (m.Success && m.Groups["list"].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Any(names.Contains))
+                yield return $"  {file}:{i + 1}: `{lines[i].Trim()}` lists tools itself";
+        }
+    }
+
     /// <summary>The block's NAME=value lines, and what is wrong with them: no block, a name given twice, a tool with no
-    /// version or a version that is not exact, a version this test has no command for, a missing image.</summary>
+    /// version or a version that is not exact, a key no row of toolchain.py's TOOLS (or its OTHER_KEYS) names, a missing
+    /// image.</summary>
     private static (Dictionary<string, string> Values, List<string> Problems) Parse(string text)
     {
         var values = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -308,14 +435,15 @@ public sealed class ToolchainManifestDriftTests
             if (!values.TryAdd(m.Groups["key"].Value, m.Groups["value"].Value))
                 problems.Add($"{m.Groups["key"].Value} is named twice");
         }
-        foreach (string key in ToolCommands.Keys.Concat(OtherKeys).Where(k => !values.ContainsKey(k)))
+        var commands = ToolCommands;
+        foreach (string key in commands.Keys.Concat(OtherKeys).Where(k => !values.ContainsKey(k)))
             problems.Add($"no {key}");
-        foreach (var (key, value) in values.Where(v => v.Key.EndsWith("_VERSION", StringComparison.Ordinal)))
+        foreach (var (key, value) in values)
         {
-            if (!Exact.IsMatch(value))
+            if (!commands.ContainsKey(key) && !OtherKeys.Contains(key))
+                problems.Add($"{key} names no row of scripts/toolchain.py TOOLS (give the tool its row there)");
+            else if (key.EndsWith("_VERSION", StringComparison.Ordinal) && !Exact.IsMatch(value))
                 problems.Add($"{key}={value} is not an exact version");
-            if (!ToolCommands.ContainsKey(key) && !OtherKeys.Contains(key))
-                problems.Add($"{key} names a tool ToolchainManifestDriftTests.ToolCommands has no command for");
         }
         return (values, problems);
     }

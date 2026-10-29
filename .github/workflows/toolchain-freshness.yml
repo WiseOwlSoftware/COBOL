@@ -8,6 +8,13 @@ name: Toolchain freshness
 # lacks is a red scheduled run within a day, never silence. The move itself is `python scripts/toolchain.py bump` in a
 # change of its own that also updates the hosts (winget on the Windows dev box, scripts/wsl/setup-wsl.sh in WSL, the
 # cloud environment's setup script pasted again), gated and landed like any other, so CI and the hosts move together.
+# A new major .NET channel is a warning on the run, never red: moving to it is the owner's decision (global.json and
+# every TargetFramework move with it), and a standing red would hide the next release `bump` can take.
+#
+# The `images` jobs hold the one thing CI does not install, each runner image's own git (toolchain.env says why), on
+# the image itself: `toolchain.py check --scope image` is red while the image's git differs from GIT_LINUX_VERSION or
+# GIT_WINDOWS_VERSION. A build-and-test job on such an image only warns, so GitHub rolling an image never stops a
+# landing, and this run is where the move is red until `bump` follows it.
 on:
   schedule:
     - cron: "17 13 * * *"     # every day, 13:17 UTC (06:17 PDT): before the working day's first landing
@@ -38,3 +45,28 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}   # api.github.com allows an unauthenticated runner IP 60 requests an hour
         run: python scripts/toolchain.py latest
+
+  images:
+    name: images (does each runner image carry the git toolchain.env names for it?)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-26.04, windows-2025-vs2026]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: false
+          sparse-checkout: |
+            .github/actions/setup-toolchain
+            toolchain.env
+            scripts/install-tool.sh
+            scripts/toolchain.py
+            scripts/standard_streams.py
+            global.json
+          sparse-checkout-cone-mode: false
+      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
+        uses: ./.github/actions/setup-toolchain
+      - name: The image's own tools, strictly (toolchain.py check --scope image)
+        shell: bash
+        run: python scripts/toolchain.py check --scope image

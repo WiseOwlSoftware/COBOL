@@ -5,9 +5,12 @@
 # Usage: install-tool.sh --version <tool>             print the version toolchain.env names for <tool>
 #        install-tool.sh <tool> <install-dir>         install that version there (a no-op once it is installed there)
 #        install-tool.sh --bin <tool> <install-dir>   print the directory that holds the installed tool's executable
+#        install-tool.sh --list                       print TOOL_INSTALLABLE, the tools this script installs
 #        install-tool.sh --self-test                  the install's witnesses (offline: file:// feeds, fake archives)
-# <tool> is one of TOOL_INSTALLABLE below. Python is not among them: CI installs it with actions/setup-python, the
-# Windows dev box with the Python Install Manager, WSL and the cloud image with uv (which this script installs).
+# <tool> is one of TOOL_INSTALLABLE below, which `scripts/toolchain.py check` (in every CI job and every gate) holds to
+# exactly the install-tool rows of toolchain.py's TOOLS, the one table of the tools. Python is not among them: CI installs
+# it with actions/setup-python, the Windows dev box with the Python Install Manager, WSL and the cloud image with uv
+# (which this script installs).
 #
 # CI (./.github/actions/setup-toolchain, in every job), the WSL toolchain refresh (scripts/wsl/setup-wsl.sh) and the
 # cloud environment (scripts/cloud/setup-env.sh) install the SAME versions the SAME way: the exact version
@@ -306,7 +309,7 @@ self_test() {
   [ "$fails" -eq 0 ]
 }
 
-usage() { echo "usage: $0 --version <tool> | --bin <tool> <install-dir> | --self-test | <tool> <install-dir>" >&2; exit 2; }
+usage() { echo "usage: $0 --version <tool> | --bin <tool> <install-dir> | --list | --self-test | <tool> <install-dir>" >&2; exit 2; }
 
 # Git Bash: a Windows path (C:\… from a runner variable) becomes the POSIX form its tools all read.
 posix_path() { case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) cygpath -u "$1" ;; *) printf '%s\n' "$1" ;; esac; }
@@ -314,6 +317,7 @@ posix_path() { case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) cygpath -u "$1" ;; *)
 case "${1:-}" in
   --version) [ $# -eq 2 ] || usage; tool_version "$2" && printf '%s\n' "$TOOL_V" ;;
   --bin) [ $# -eq 3 ] || usage; tool_bin "$2" "$(posix_path "$3")" ;;
+  --list) [ $# -eq 1 ] || usage; printf '%s\n' "$TOOL_INSTALLABLE" ;;
   --self-test) self_test ;;
   "" | -*) usage ;;
   *)

@@ -18,11 +18,13 @@ that `scripts/cloud/setup-env.sh` carries byte for byte. It is the only place a 
 pwsh, gh, jq and uv from their publishers, checking each against the publisher's checksum file (a single hash, or a
 list; PowerShell's is UTF-16). Every job's step after its checkout is `.github/actions/setup-toolchain`, which replaces
 `setup-dotnet`. It installs Python with `actions/setup-python` and the rest from one cache entry keyed on the manifest,
-then runs `python scripts/toolchain.py check --scope ci`, which fails the job unless every tool reports the manifest's
-version (git included, which actions/checkout runs from the image before the manifest exists). `windows-latest` is now
-`windows-2025-vs2026`, and `toolchain-cache` replaces `dotnet-sdk-cache`. `toolchain-freshness.yml` runs `toolchain.py
-latest` every day and is red while any publisher has a newer stable release or cannot be read. `toolchain.py bump` moves
-the manifest and its cloud copy, never across a .NET major. On the hosts, the gate stops `NOT RUN [toolchain]` before
+then runs `python scripts/toolchain.py check --scope ci`, which fails the job unless every tool it installed reports the
+manifest's version. git is each runner image's (actions/checkout runs it before the manifest exists, and no publisher
+ships a Linux git of a chosen version), named per image (`GIT_LINUX_VERSION`, `GIT_WINDOWS_VERSION`) and only warned on
+in a job. `windows-latest` is now `windows-2025-vs2026`, and `toolchain-cache` replaces `dotnet-sdk-cache`.
+`toolchain-freshness.yml` runs `toolchain.py latest` every day and is red while any publisher has a newer stable release
+the manifest can take or cannot be read; its `images` jobs are red while an image's git differs from the manifest's.
+`toolchain.py bump` moves the manifest and its cloud copy, never across a .NET major. On the hosts, the gate stops `NOT RUN [toolchain]` before
 its audits when a tool it runs differs (Windows half: `run_gate_legs.Host.toolchain`; Linux half: `linux-gate.sh`), and
 its verdict line names the toolchain. `python-resolve.sh` and `.ps1` accept exactly `PYTHON_VERSION` (the 3.12 floor is
 gone), and `tooling_check.py` prints the host comparison at session start. `setup-wsl.sh` and `setup-env.sh` install from
@@ -39,8 +41,20 @@ six tools from their publishers ran on the Windows box, and each executable repo
 
 **PB1957.** Rows 8, 12, 13, 14, 15, 52, 53 and 56 are now (a), identical.
 
-**Left, as leads.** CI's git is verified, not installed. The Windows box's Git for Windows revision trails its newest. The
-command audit stops at the step and does not follow a repository script.
+**Branch review, round 1.** Two blocking findings. R1-1: the first cut held every job's image git to one `GIT_VERSION`
+as a hard failure, so GitHub rolling an image would stop every landing, and with the two images on different weeks no
+value could clear it. Installing git in CI was ruled out (the `ubuntu-26.04` image has no zlib or libcurl headers for a
+source build, and no publisher ships a Linux git binary), so the manifest now names each image's git, `latest` reads it
+from the image's readme, a job on a moved image warns and runs, and the freshness run's `images` jobs hold each image
+strictly (`check --scope image`). R1-2: the tool set lived in four places no test held together. `toolchain.py`'s
+`TOOLS` is now the one table: the manifest may name no other key, `check` refuses an `install-tool.sh` whose
+`TOOL_INSTALLABLE` differs from its install-tool rows, the action installs what `toolchain.py ci-installs` prints, the
+host setups loop over the installer's own list, and the drift tests read the rows from `toolchain.py`'s text instead of
+a hand-kept `ToolCommands`. The lead R1-3 was fixed in the same file: `latest` offers the newest SDK of the manifest's
+own .NET major and reports a newer GA major as a warning, so the daily run does not stand red on an owner decision.
+
+**Left, as leads.** The Windows box's Git for Windows revision trails its newest. The command audit stops at the step and
+does not follow a repository script.
 
 **Gate.** Run `000001-20261029T001932Z`: `LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 50/19,251 · Unit
 5,590/38,308 · Characterization 36/36 cases ran … · Linux half (WSL clone of HEAD) GREEN · … · toolchain dotnet-sdk
