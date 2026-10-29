@@ -253,10 +253,19 @@ build is *allowed* while only worktree agents are live. A build outside every wo
 scratch probe) writes next to the projects of its graph — the project or solution it names, or the only one in the
 directory, and the closure of their `ProjectReference`s, solution members and a file-based app's `#:project`
 directives (`build_places`) — so it is denied only by an agent working in a tree such a project references.
-Fail-open on any error; an **unknown** answer reverts to the old session-wide deny rather than to an allow: a
+An output path given on the command line is one more place the build writes (kb/Work PB3811): `-o`, `--output` and
+`--artifacts-path` (relative to the directory the command runs in) and `-p:`/`-property:`/`--property:`/`/p:` naming one
+of `OUTPUT_PATH_PROPERTIES` (`OutDir`, `OutputPath`, `PublishDir`, …; relative to the project directory) each add
+the directory's working tree, or the plain directory, to the places (`dotnet_arguments`, `output_directories`), so a
+scratch build whose `-o` lands in a live agent's worktree is denied by that agent. Words after a bare `--` are the
+program's own and are not read. Fail-open on any error; an **unknown** answer reverts to the old session-wide deny rather
+than to an allow: a
 directory the command line does not determine, an agent whose transcript names no launch directory or whose launch
 directory no longer exists, and a scratch graph the guard cannot read to the end (a missing project, a `$(…)` in a
-reference, an `<Import>`, a moved output path, a `Directory.Build.props`/`.targets` in an ancestor directory).
+reference, an `<Import>`, an output property set in a project file, a `Directory.Build.props`/`.targets`/`.rsp` or
+`MSBuild.rsp` in an ancestor directory), and a command line that moves the output without saying where (a variable in
+the path, a response file `@x.rsp`, `-p:UseArtifactsOutput=…`, an output property that climbs out of the project
+directory, an environment variable MSBuild reads as an output property: `OutDir=x dotnet build`, `$env:OutputPath = …`).
 `--self-test` fires every branch over real temporary worktrees, scratch projects and agent transcripts, and is the only
 thing that proves the ALLOW arm — three of this hook's four defects were it failing closed.
 
