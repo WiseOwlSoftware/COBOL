@@ -154,18 +154,20 @@ HANGING_WAIT = re.compile(r"tail -n \+1 -f[^\n]*grep -m1|tail -f[^\n]*grep -m1")
 # kb/Work PB3777: the implementer's instruction file says each rule ONCE. Its two predecessors, a spec and a brief, carried the
 # checkpoint protocol, the gate paragraph, the DEVLOG entry, I9, the citation rule and the STOP rule twice, and an implementer
 # re-read all of it on every later turn. The template and every RENDERED spec (`msg-w<wave>-<letter>.txt`) are held to it:
-# a sentence of SENTENCE_MIN characters or more, whitespace collapsed, may not appear twice in one file.
+# a sentence of SENTENCE_MIN characters or more, whitespace collapsed, may not appear twice in one file. A sentence is two
+# words or more: a lone token is a path the spec names in two roles, never a rule (kb/Work PB4054: a one-file group's root
+# file ends both "THE GROUP IS ONE ROOT:" and "CODE SITES the notes name:", and wave 20261751 rendered RED on it).
 ONCE_FILES = ('dispatch-spec-implementer.md',)
 RENDERED_SPEC_NAME = re.compile(r'msg-w[^-]+-[a-z0-9]+\.txt')
 SENTENCE_MIN = 60
 
 
 def repeated_sentences(text):
-    """The sentences of `text` (split after . ! ? : ;, whitespace collapsed) of SENTENCE_MIN characters or more that it
-    states more than once, in first-seen order."""
+    """The sentences of `text` (split after . ! ? : ;, whitespace collapsed) of SENTENCE_MIN characters or more and two
+    words or more that it states more than once, in first-seen order."""
     seen, again = set(), []
     for s in re.split(r'(?<=[.!?:;])\s+', ' '.join(text.split())):
-        if len(s) >= SENTENCE_MIN:
+        if len(s) >= SENTENCE_MIN and ' ' in s:
             if s in seen and s not in again:
                 again.append(s)
             seen.add(s)
