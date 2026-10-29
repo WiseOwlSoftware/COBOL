@@ -1,4 +1,4 @@
-## File PB4011: a report's `Head:` field after other text on its line reads as prose
+## Entry 2711 — 2026-10-28 18:12 PDT — File PB4011: a report's `Head:` field after other text on its line reads as prose
 
 The loop's STALL alert for w20261740b (PB3974) had run 269 minutes. The branch was finished, but the branch survey read
 it as a DECISION, because `reports.sha_field` took the report's HEAD from the Base field's prose ("merged reviewed head
@@ -9,3 +9,4 @@ finished test compares the parsed HEAD with the worktree's head (folded into PB3
 The operator moved the field onto its own line and recorded the round-2 finding that the 13:32 STOP had cut short (the
 past-carrier fraction floor is 9 digits, not 17: a wrong-answer regression, reproduced). The loop now plans the branch's
 finisher.
+
