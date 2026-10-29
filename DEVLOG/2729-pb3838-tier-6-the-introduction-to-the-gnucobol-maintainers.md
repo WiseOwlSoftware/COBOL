@@ -1,4 +1,4 @@
-## PB3838 tier 6: the introduction to the GnuCOBOL maintainers is sent
+## Entry 2729 — 2026-10-29 12:08 PDT — PB3838 tier 6: the introduction to the GnuCOBOL maintainers is sent
 
 The owner emailed the introduction to `bug-gnucobol@gnu.org` on 2026-10-29. It describes the differential testing and
 the 78 records:
@@ -16,3 +16,4 @@ left-to-right result that §8.8.1.2 rule 3 requires. PB3887 now records that run
 Four notes (PB3885 to PB3888) still said "Not re-run on the current development branch" after the tier-6 triage had
 re-run them. The triage's script had corrected two other wordings of that claim but not this one. All four are now
 corrected in place, and a sweep of the 78 notes finds no other form of it.
+
