@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -135,13 +133,13 @@ public sealed class FilterPopulationGuardDriftTests
                      TestRepo.At(".github", "workflows"), "*.yml", SearchOption.TopDirectoryOnly))
         {
             string name = Path.GetFileName(workflow);
-            foreach ((string job, string body) in SplitJobs(File.ReadAllLines(workflow), name))
+            foreach (CiJob job in CiWorkflow.Jobs(File.ReadAllText(workflow)))
             {
-                string code = CodeOnly(body);
+                string code = job.Code;
                 if (!RunsAFilteredTest(code)) continue;
-                jobSites.Add($"{name}:{job}");
+                jobSites.Add($"{name}:{job.Id}");
                 if (!code.Contains(Guard, StringComparison.Ordinal) && !AssertsPopulationByShardUnion(code))
-                    offenders.Add($"{name} job '{job}'");
+                    offenders.Add($"{name} job '{job.Id}'");
             }
         }
 
@@ -165,8 +163,8 @@ public sealed class FilterPopulationGuardDriftTests
     public void TheShardPopulationJob_StillChecksTheShardUnionAgainstTheListing()
     {
         string workflow = TestRepo.At(".github", "workflows", "build-and-test.yml");
-        var checking = SplitJobs(File.ReadAllLines(workflow), "build-and-test.yml")
-            .Select(j => (j.Name, Code: CodeOnly(j.Body)))
+        var checking = CiWorkflow.Jobs(File.ReadAllText(workflow))
+            .Select(j => (Name: j.Id, j.Code))
             .Where(j => j.Code.Contains(PopulationTool + " check", StringComparison.Ordinal)
                      && j.Code.Contains(CiArtifactDriftTests.DownloadAction, StringComparison.Ordinal))
             .ToList();
@@ -182,55 +180,5 @@ public sealed class FilterPopulationGuardDriftTests
         Assert.Contains("--listing", code, StringComparison.Ordinal);
         Assert.Contains("--trx", code, StringComparison.Ordinal);
         Assert.DoesNotContain("grep -c", code, StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// The workflow's jobs, split on the two-space keys under <c>jobs:</c> — every key inside a job is deeper,
-    /// so the split is exact for this file's shape, and the caller asserts it found jobs at all.
-    /// </summary>
-    /// <remarks>
-    /// ⛔ A comment block sitting immediately above a job key documents the job BELOW it, not the job above —
-    /// this file's jobs are each introduced by a <c>── … ──</c> banner. A splitter that appended those lines to
-    /// the preceding job attributed <c>conformance-population</c>'s banner (which names <c>--list-tests</c>) to
-    /// <c>windows-conformance</c>, and the summing job was then "found" in the wrong place. Measured, not
-    /// theorised: that is exactly how this test failed on its first run.
-    /// </remarks>
-    private static List<(string Name, string Body)> SplitJobs(string[] lines, string file)
-    {
-        int start = Array.FindIndex(lines, l => l.StartsWith("jobs:", StringComparison.Ordinal));
-        Assert.True(start >= 0, $"{file} has no top-level `jobs:` key — the job splitter cannot have found "
-            + "anything, and a scan that looked at nothing must never report clean.");
-
-        var key = new Regex(@"^  (?<name>[A-Za-z0-9_.-]+):\s*$", RegexOptions.NonBacktracking);
-        var jobs = new List<(string, string)>();
-        string? name = null;
-        var body = new StringBuilder();
-        var pending = new StringBuilder();   // trailing comment/blank lines: they belong to the NEXT job
-        for (int i = start + 1; i < lines.Length; i++)
-        {
-            Match m = key.Match(lines[i]);
-            if (m.Success)
-            {
-                if (name is not null) jobs.Add((name, body.ToString()));
-                name = m.Groups["name"].Value;
-                body.Clear().Append(pending);
-                pending.Clear();
-                continue;
-            }
-
-            string trimmed = lines[i].TrimStart();
-            if (trimmed.Length == 0 || trimmed[0] == '#')
-            {
-                pending.Append(lines[i]).Append('\n');
-                continue;
-            }
-
-            body.Append(pending).Append(lines[i]).Append('\n');
-            pending.Clear();
-        }
-
-        if (name is not null) jobs.Add((name, body.Append(pending).ToString()));
-        Assert.NotEmpty(jobs);
-        return jobs;
     }
 }
