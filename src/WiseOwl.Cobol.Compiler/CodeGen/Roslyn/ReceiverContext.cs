@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// scale (the division/power working scale, ISO §8.8.1/§14.7.4), its INTEGER-DIGIT CAPACITY (the float
 /// landing headroom — see <see cref="WorkingScale"/>), whether it is a floating-point receiver (the
 /// whole RHS then evaluates in IEEE binary64 — D16), its ROUNDED mode, and whether the statement runs under ON
-/// SIZE ERROR / EC-SIZE checking (a division renders the checked <c>DivideOrThrow</c>, a sum
+/// SIZE ERROR / EC-SIZE checking (a sum renders the checked
 /// <c>AddChecked</c>; ISO §14.7.5). Passed BY PARAMETER into every public numeric-render entry — replacing the
 /// four mutable <c>EmitContext.Target*</c>/<c>InSizeErrorContext</c> fields whose manual set/reset discipline
 /// was the H1 staleness hazard (a receiver-less render inheriting the PREVIOUS statement's receiver). A site with

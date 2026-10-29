@@ -417,8 +417,9 @@ internal static class RuntimeApi
     /// <summary>The floating-point numeric-edited form's UNCHECKED store — <c>CobolEdit.FormatFloatStore</c> over the
     /// sender's exact form, the significand's dropped digits rounded by <paramref name="mode"/>. The CALLER names
     /// the landing (kb/Work PB2638): a MOVE is TRUNCATION (§14.6.8.4 rule 2, <see cref="EditFormatFor"/>), and the
-    /// no-phrase arithmetic store is the receiver's §14.7.4.3 mode, where PROHIBITED lands truncated as every
-    /// unchecked store does (DOC-A.1-70).</summary>
+    /// no-phrase arithmetic store and the report's rounded implicit COMPUTE (<c>MoveEmitter.ConvertSource</c>) are the
+    /// receiver's §14.7.4.3 mode, where an inexact PROHIBITED raises <see cref="CobolSizeError.ProhibitedInexact"/>
+    /// (rule 7, kb/Work PB3990) for the caller's keep to catch.</summary>
     public static string EditFormatFloat(PicInfo pic, Emit.NumX value, CobolRounding mode, string cfgArgs)
     {
         var (store, _, args) = FloatEditEntry(value);
@@ -705,10 +706,11 @@ internal static class RuntimeApi
     public static string NumRescaleStoreU(string value, string fromScale, string toScale, CobolRounding mode, bool checkedPath) =>
         $"{nameof(CobolNum)}.{(checkedPath ? nameof(CobolNum.RescaleCheckedU) : nameof(CobolNum.RescaleStoreCapU))}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
 
-    /// <summary>The §14.9.12 GR6c/GR7 scaled division — <c>CobolNum.Divide</c>, or the size-error-throwing
-    /// <c>CobolNum.DivideOrThrow</c> under a checked context.</summary>
-    public static string NumDivide(bool orThrow, string a, string aScale, string b, string bScale, string resultScale, CobolRounding mode) =>
-        $"{nameof(CobolNum)}.{(orThrow ? nameof(CobolNum.DivideOrThrow) : nameof(CobolNum.Divide))}({a}, {aScale}, {b}, {bScale}, {resultScale}, {RoundingText(mode)})";
+    /// <summary>The scaled division at a result scale — <c>CobolNum.Divide</c>, one kernel in every context: it raises a
+    /// zero divisor (§14.7.5 case 2) and a PROHIBITED-inexact quotient (§14.7.4.3 rule 7) whether or not checking is
+    /// enabled (kb/Work PB1605, PB3990).</summary>
+    public static string NumDivide(string a, string aScale, string b, string bScale, string resultScale, CobolRounding mode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.Divide)}({a}, {aScale}, {b}, {bScale}, {resultScale}, {RoundingText(mode)})";
 
     /// <summary>The checked numeric store — <c>CobolNum.TryStore</c> (false = capacity/PROHIBITED failure; the
     /// receiver stays unchanged, §14.7.5). <paramref name="argsFragment"/> is the pre-shaped value/scale/profile
@@ -762,21 +764,29 @@ internal static class RuntimeApi
     public static string DecToUnscaledChecked(string decExpr, string scale, CobolRounding mode) =>
         $"({decExpr}).{nameof(CobolDec.ToUnscaledChecked)}({scale}, {RoundingText(mode)})";
 
-    /// <summary>The INTERMEDIATE landing — <c>CobolDec.ToUnscaledIntermediate</c> (kb/Work PB69): an SDIDI value
-    /// entering the Int128 carrier as an argument, an arithmetic operand, a subscript … A magnitude the carrier
-    /// cannot hold at the scale raises EC-SIZE-OVERFLOW (§14.7.5 case 5 — the implementor-defined intermediate
-    /// range IS checked, A.1 item 179), never the modular low-order digits.</summary>
-    /// <summary>The algebraic sign of an SDIDI intermediate as an <c>int</c> (−1/0/+1) — <c>Int128.Sign</c> over the
-    /// significand, which carries the value's sign exactly at every exponent (a sign condition over a
-    /// STANDARD-DECIMAL expression, or over a native integer power — kb/Work PB84, NIST NC250A).</summary>
+    /// <summary>⛔ The catch arm of §14.7.4.3 rule 7 in an arithmetic statement with no SIZE ERROR phrase and checking off
+    /// (kb/Work PB3990; <c>ArithmeticEmitter.KeepsOnProhibitedInexact</c>): it takes <see cref="CobolSizeError.ProhibitedInexact"/>'s
+    /// condition alone, filtered on <see cref="CobolSizeError.IsProhibitedInexact"/>, and does nothing, so the resultant
+    /// keeps its content and execution continues (docs/CONFORMANCE.md DOC-A.1-70). <paramref name="exceptionVar"/> is the
+    /// caught exception's emitted name.</summary>
+    public static string ProhibitedInexactKeepCatch(string exceptionVar) =>
+        $"catch ({nameof(CobolSizeError)} {exceptionVar}) when ({exceptionVar}.{nameof(CobolSizeError.IsProhibitedInexact)}) {{ }}";
+
     /// <summary>Is a data-address / pointer expression the NULL pointer? The runtime's null is the
     /// <c>ManagedPointer.Null</c> SINGLETON, never a C# null — a bare <c>is null</c> test is always false on it (kb/Work
     /// PB80: the LENGTH r4a association guard read an unallocated BASED entry as associated).</summary>
     public static string PtrIsNull(string ptrExpr) => $"({ptrExpr} is null || {ptrExpr}.{nameof(ManagedPointer.IsNull)})";
 
+    /// <summary>The algebraic sign of an SDIDI intermediate as an <c>int</c> (−1/0/+1) — <c>Int128.Sign</c> over the
+    /// significand, which carries the value's sign exactly at every exponent (a sign condition over a
+    /// STANDARD-DECIMAL expression, or over a native integer power — kb/Work PB84, NIST NC250A).</summary>
     public static string DecSign(string decExpr) =>
         $"{nameof(Int128)}.{nameof(Int128.Sign)}(({decExpr}).{nameof(CobolDec.Sig)})";
 
+    /// <summary>The INTERMEDIATE landing — <c>CobolDec.ToUnscaledIntermediate</c> (kb/Work PB69): an SDIDI value
+    /// entering the Int128 carrier as an argument, an arithmetic operand, a subscript … A magnitude the carrier
+    /// cannot hold at the scale raises EC-SIZE-OVERFLOW (§14.7.5 case 5 — the implementor-defined intermediate
+    /// range IS checked, A.1 item 179), never the modular low-order digits.</summary>
     public static string DecToUnscaledIntermediate(string decExpr, string scale, CobolRounding mode) =>
         $"({decExpr}).{nameof(CobolDec.ToUnscaledIntermediate)}({scale}, {RoundingText(mode)})";
 
@@ -936,11 +946,6 @@ internal static class RuntimeApi
     public static string DecDivLifted(string numerator, string numeratorScale, string denominator, string mode) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.Div)}({nameof(CobolDec)}.{nameof(CobolDec.From)}({numerator}, "
         + $"{numeratorScale}), {nameof(CobolDec)}.{nameof(CobolDec.From)}({denominator}, 0), {mode})";
-
-    /// <summary>A float value's inexactness probe at a fraction scale (the ROUNDED PROHIBITED gate, §14.7.4.3
-    /// item 7) — <c>CobolFloat.InexactAtScale</c>.</summary>
-    public static string FloatInexactAtScale(string value, string scale) =>
-        $"{nameof(CobolFloat)}.{nameof(CobolFloat.InexactAtScale)}({value}, {scale})";
 
     /// <summary>The capacity-checked edited format — <c>CobolEdit.TryFormat</c> (false = the aligned value's
     /// significant digits exceed the mask, §14.7.5 case 3).</summary>
@@ -2952,15 +2957,10 @@ internal static class RuntimeApi
     public static string ModuleNameFn(int kind) =>
         $"{nameof(CobolModule)}.{nameof(CobolModule.Name)}({kind})";
 
-    /// <summary>§14.9.12.4 GR6c's subsidiary-quotient digit cap (kb/Work PB129) — the low-order digits
-    /// at the GIVING receiver's digit capacity, the §14.7.5 no-phrase store's own disposition.</summary>
-    public static string NumCapDigits(string expr, int digits) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.CapDigits)}({expr}, {digits})";
-
-    /// <summary>The SDIDI lane's subsidiary quotient (§14.9.12.4 6) c), kb/Work PB3017) - the SDIDI quotient truncated at the
-    /// GIVING receiver's scale and capped at its digit count, <see cref="NumCapDigits"/>'s twin on <c>CobolDec</c>.</summary>
-    public static string DecSubsidiaryQuotient(string quotient, int scale, int digits) =>
-        $"{nameof(CobolDec)}.{nameof(CobolDec.SubsidiaryQuotient)}({quotient}, {scale}, {digits})";
+    /// <summary>The SDIDI lane's subsidiary quotient (§14.9.12.4 6) c), kb/Work PB3017, PB3975) - the SDIDI quotient truncated
+    /// at the GIVING receiver's scale.</summary>
+    public static string DecSubsidiaryQuotient(string quotient, int scale) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.SubsidiaryQuotient)}({quotient}, {scale})";
 
     /// <summary>The subsidiary quotient (§14.9.12.4 6) c), kb/Work PB2923) of a FLOATING-POINT numeric-edited identifier-3: the
     /// SDIDI quotient as that item holds it under truncation, <c>CobolEdit.TruncateToFloatShape</c> -
