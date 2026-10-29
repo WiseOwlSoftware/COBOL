@@ -11,7 +11,7 @@ It proves, on a FABRICATED run directory in the shapes scripts/differential_fuzz
   NOTES     the night's notes are found by the run id in their `source` (defect and adjudication notes only); each note's
             kind is read from the register (compiler bug, test-harness bug, settled question, retired), a defect's from
             its declared sites (product code or not), a site-less one only from the closed legacy record, and a defect
-            nothing classifies is REFUSED; a GnuCOBOL record counts only when the fuzzing produced it and it is not retired;
+            nothing classifies is REFUSED; a GnuCOBOL record counts only when the fuzzing produced it and it is not retired (unless fixed upstream);
   UPSERT    a re-recorded night replaces its own record and the nights stay in order;
   PAGE      every night is rendered, the page says it is machine-generated, a status is shown as the register has it, only
             compiler bugs reach the totals, a finding from a run that is not a recorded night is counted and listed by
@@ -92,6 +92,12 @@ ITEMS = [
     # a compiler bug from a run the history holds no night for (kb/Work PB4010 R2-2)
     {"id": "PB9011", "kind": "defect", "status": "landed", "area": "codegen", "title": "PB9011 — short run",
      "source": f"the aborted run {SHORT}", "_body": "**Sites:** `src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs`"},
+    # a GnuCOBOL record retired because the bug is fixed upstream was still a bug the fuzzing found: it counts (PB3838)
+    {"id": "PB9013", "kind": "upstream", "status": "retired", "title": "z", "source": f"the triage of {RUN}",
+     "upstream_project": "GnuCOBOL", "upstream_status": "fixed-upstream", "filed": "2026-10-28"},
+    # one retired for any other reason was not a bug after all: it does not
+    {"id": "PB9014", "kind": "upstream", "status": "retired", "title": "w", "source": f"the triage of {RUN}",
+     "upstream_project": "GnuCOBOL", "upstream_status": "unreported", "filed": "2026-10-28"},
 ]
 #: A site block naming only a member declares no path (review R1-1): nothing classifies it, so it is refused, never guessed.
 MEMBER_ONLY = {"id": "PB9012", "kind": "defect", "status": "open", "area": "binding", "title": "PB9012 — members",
@@ -133,7 +139,8 @@ def main() -> int:
             expect("NOTES refuses a defect nothing classifies (a block naming only members)", False, "classified")
         except SystemExit as e:
             expect("NOTES refuses a defect nothing classifies (a block naming only members)", "PB9012" in str(e), str(e))
-        expect("NOTES a GnuCOBOL record counts only from the fuzzing", [i["id"] for i in ITEMS if fh.from_fuzzing(i)] == ["PB9002"])
+        expect("NOTES a GnuCOBOL record counts only from the fuzzing, and a retired one only when fixed upstream",
+               [i["id"] for i in ITEMS if fh.from_fuzzing(i)] == ["PB9002", "PB9013"])
 
         rec = fh.night_record(run, 2, verdicts, ["PB9001"], "abc1234")
         older = {**rec, "night": 1, "run_id": OLD, "defects": ["PB9003", "PB9004", "PB9005", "PB9006", "PB9008", "PB9009",
@@ -151,7 +158,7 @@ def main() -> int:
                and '<span class="pill ok">landed</span>' in page and '<span class="pill muted">retired</span>' in page)
         tiles = dict((c, v) for v, c in ctx["tiles"])
         expect("PAGE totals count compiler bugs only, a run that is not a night included", (
-            tiles["bugs found in WiseOwl"], tiles["of those bugs fixed"], tiles["bugs recorded in GnuCOBOL"]) == ("4", "3", "1"),
+            tiles["bugs found in WiseOwl"], tiles["of those bugs fixed"], tiles["bugs recorded in GnuCOBOL"]) == ("4", "3", "2"),
             tiles)
         expect("PAGE lists a run that is not a night by its date", "Run of 2026-10-22" in page and "PB9011" in page)
         expect("PAGE keeps the per-night chart to the nights", "Run of" not in fh.charts(ctx)["bugs"])
