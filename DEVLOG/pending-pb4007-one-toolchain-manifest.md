@@ -56,7 +56,9 @@ own .NET major and reports a newer GA major as a warning, so the daily run does 
 **Left, as leads.** The Windows box's Git for Windows revision trails its newest. The command audit stops at the step and
 does not follow a repository script.
 
-**Gate.** Run `000001-20261029T001932Z`: `LEG 1 ONLY (batched gating, PB2515): GREEN — … Conformance 50/19,251 · Unit
-5,590/38,308 · Characterization 36/36 cases ran … · Linux half (WSL clone of HEAD) GREEN · … · toolchain dotnet-sdk
-10.0.403, python 3.15.2, jdk 27.0.1, pwsh 7.6.9, git 2.56.0, gh 2.103.3, jq 1.8.2`. The Linux half passed its own new
-toolchain preflight, and every `ToolchainManifestDriftTests` case passed in leg 1.
+**Gate.** After the review round, run `000001-20261029T011321Z` (on 40cd15432): `LEG 1 ONLY (batched gating, PB2515):
+GREEN — … Conformance 54/19,260 · Unit 5,602/38,309 · Characterization 36/36 cases ran (skipped 0) in 1 of 2 leg(s) ·
+Linux half (WSL clone of HEAD) GREEN · … · toolchain dotnet-sdk 10.0.403, python 3.15.2, jdk 27.0.1, pwsh 7.6.9,
+git-windows 2.56.0, gh 2.103.3, jq 1.8.2`. The Linux half passed its toolchain preflight, and every
+`ToolchainManifestDriftTests` and `DotnetSdkInstallDriftTests` case, the new `EveryInstaller_InstallsExactlyTheTablesRows`
+among them, passed in leg 1.
