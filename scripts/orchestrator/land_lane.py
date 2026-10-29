@@ -806,13 +806,18 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
       a required check FAILED, the queue removed    the watch ends: BOUNCED, the enqueue unit's finisher (PB3096;
         it, or it conflicts with main (DIRTY)          a conflict is the branch's: no re-run or reopen clears it)
       the head moved past the attempt's              the watch ends: a new push is a new landing, watched afresh
-      a required check still running (its job too)  watching: nothing is late yet
+      any check on the head still running (its job   watching: nothing is late yet. ANY check, not only a required
+        too)                                           one: `ci-gate` `needs:` every other job and has no check-run
+                                                       until they end, so a long `audits` read as no work running and
+                                                       the requeue cancelled it (kb/Work PB4052)
       not in the queue, the checks' work ended       a STALLED read once QUEUE_GRACE_MIN have passed since that work
-        (or no check-run at all) or since the last     ended (a stuck check-run's JOB time), or since the last remedy:
-        remedy                                         read 1 re-runs the stuck check's workflow run (`gh run rerun`;
-                                                       a pull request with no check-run goes straight to read 2's
-                                                       remedy), read 2 closes, reopens and re-queues the pull request
-                                                       (enqueue.requeue), read 3 ALERTS the operator and acts no more
+        (or no check-run at all) or since the last     ended (the newest check-run's end on the head; a stuck one's JOB
+        remedy                                         time), or since the last remedy: read 1 re-runs the workflow run
+                                                       of the stuck check, else of any check (`gh run rerun`; a pull
+                                                       request with no check-run goes straight to read 2's remedy),
+                                                       read 2 closes, reopens and re-queues the pull request
+                                                       (enqueue.requeue, which refuses while a run on the head is still
+                                                       in progress), read 3 ALERTS the operator and acts no more
       no pull request open, the branch not on main   a stalled read (closed by hand?): it ALERTS at once"""
     w = att.get("watch") or {}
     reads = list(w.get("reads") or [])
@@ -834,10 +839,11 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
         return WatchStep(LEFT, f"pull request #{pr.number} is BOUNCED ({why}): the enqueue unit's finisher")
     # Running only while its job is SEEN running: a job the jobs API could not read (job_status '') is unknown, and an
     # unknown job must not hold the watch for ever, so its clock falls back to the enqueue, like no check-run at all.
-    running = [c for c in pr.checks if not c.resolved and c.job_status not in ("", "completed")]
+    work = pr.head_runs
+    running = [c for c in work if not c.resolved and c.job_status not in ("", "completed")]
     if running:
         return WatchStep(WATCHING, f"pull request #{pr.number}: {', '.join(c.name for c in running)} still running")
-    ends = [t for t in (_iso(c.done_at) for c in pr.checks) if t]
+    ends = [t for t in (_iso(c.done_at) for c in work) if t]
     if not ends:
         ends += [t for t in (_iso(att.get("ended", "")),) if t]
     ends += [t for t in (_iso(r.get("at", "")) for r in reads) if t]
@@ -846,9 +852,9 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
     if late < QUEUE_GRACE_MIN:
         return WatchStep(WATCHING, f"pull request #{pr.number} not in the queue {late:.0f} min after its checks' work "
                                    f"ended (grace {QUEUE_GRACE_MIN} min)")
-    stuck = next((c for c in pr.checks if c.stuck), None)
+    stuck = next((c for c in work if c.stuck), None)
     cause = STUCK if stuck else NOT_QUEUED
-    unknown = [c.name for c in pr.checks if not c.resolved and not c.stuck]
+    unknown = [c.name for c in work if not c.resolved and not c.stuck]
     what = (f"{stuck.name}'s check-run is {stuck.status.lower()} although its job completed at {stuck.job_completed_at}"
             if stuck else
             f"{', '.join(unknown)} unresolved and its job could not be read, and it is not in the queue "
@@ -857,7 +863,7 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
     n = len(reads) + 1
     if n >= 3:
         return WatchStep(ALERTED, f"stalled read {n}: {what}, after a re-run and a requeue", ALERT, cause)
-    run = next((c.run for c in ([stuck] if stuck else list(pr.checks)) if c.run), 0)
+    run = next((c.run for c in ([stuck] if stuck else list(work)) if c.run), 0)
     if n == 1 and run:
         return WatchStep(WATCHING, f"stalled read 1: {what}; re-running workflow run {run}", RERUN, cause, run)
     return WatchStep(WATCHING, f"stalled read {n}: {what}; closing, reopening and re-queueing it", REQUEUE, cause)
@@ -866,9 +872,9 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
 @dataclasses.dataclass(frozen=True)
 class WatchEffects:
     """What a stalled read does, and its record (the self-test plants recorders): rerun(repo, run) and requeue(repo,
-    pr) answer (ok, detail); alert(subject, body, ref); measure(pr, branch, read, cause, act, ok)."""
+    pr, head) answer (ok, detail); alert(subject, body, ref); measure(pr, branch, read, cause, act, ok)."""
     rerun: Callable[[str, int], tuple[bool, str]]
-    requeue: Callable[[str, int], tuple[bool, str]]
+    requeue: Callable[[str, int, str], tuple[bool, str]]
     alert: Callable[[str, str, str], None]
     measure: Callable[[int, str, int, str, str, bool], None]
 
@@ -885,7 +891,7 @@ def real_effects(cdir: pathlib.Path, say: Say) -> WatchEffects:
             say(f"land lane: PR #{pr}: the stall was NOT recorded in {landing_measure.FILE} ({exc})")
     return WatchEffects(
         rerun=lambda repo, run: enqueue.rerun_check(repo, run, gh=ruleset.real_gh),
-        requeue=lambda repo, pr: enqueue.requeue(repo, pr, gh=ruleset.real_gh, state=enqueue.queue_state),
+        requeue=lambda repo, pr, head: enqueue.requeue(repo, pr, head, gh=ruleset.real_gh, state=enqueue.queue_state),
         alert=lambda subject, body, ref: notify_operator(cdir, subject, body, ref, say, kind="question"),
         measure=measure)
 
@@ -937,7 +943,7 @@ def watch_queue(cdir: pathlib.Path, branches: dict[str, list[dict[str, Any]]], r
             if step.act == RERUN:
                 ok, detail = effects.rerun(pr.repo, step.run)
             elif step.act == REQUEUE:
-                ok, detail = effects.requeue(pr.repo, pr.number)
+                ok, detail = effects.requeue(pr.repo, pr.number, pr.head)
             else:
                 import queue_facts  # noqa: PLC0415
                 prior = "; ".join(f"read {r['read']}: {r['act']} {'done' if r.get('ok') else 'FAILED'} ({r.get('detail')})"
@@ -1351,7 +1357,7 @@ def self_test() -> int:
             def watch_effects(self) -> WatchEffects:
                 rec = self.effects.append
                 return WatchEffects(rerun=lambda repo, run: rec(("rerun", repo, run)) or (True, "re-run requested"),
-                                    requeue=lambda repo, pr: rec(("requeue", repo, pr)) or (True, "requeued"),
+                                    requeue=lambda repo, pr, head: rec(("requeue", repo, pr)) or (True, "requeued"),
                                     alert=lambda subject, body, ref: rec(("alert", subject, body)),
                                     measure=lambda pr, b, read, cause, act, ok: rec(("measure", pr, b, read, cause, act)))
 
@@ -1953,9 +1959,9 @@ def self_test() -> int:
         green_gate = queue_facts.CheckRun("ci-gate", "COMPLETED", "SUCCESS", 120043423624, 39834070835, job_done)
         red_gate = queue_facts.CheckRun("ci-gate", "COMPLETED", "FAILURE", 120043423625, 39834070836, job_done)
 
-        def pr(number: int, *checks, in_queue: bool = False, head: str = "z1") -> Any:
+        def pr(number: int, *checks, in_queue: bool = False, head: str = "z1", others: tuple = ()) -> Any:
             return queue_facts.PullRequest(number, f"https://github.com/o/r/pull/{number}", head, in_queue,
-                                           "2026-10-22T18:44:50Z", "BLOCKED", "", tuple(checks), "o/r")
+                                           "2026-10-22T18:44:50Z", "BLOCKED", "", tuple(checks), "o/r", others=others)
 
         c14 = fresh("watch")
         names = ["q", "m", "rerun", "reopen", "alert", "red", "closed", "held"]
@@ -2060,6 +2066,17 @@ def self_test() -> int:
                "requeue (there is no run to re-run); a new head on the pull request ends the watch LEFT",
                noq.act == REQUEUE and noq.cause == NOT_QUEUED
                and watch_step({"end_head": "z1"}, "IN FLIGHT", pr(398, head="z9"), t("19:00")).state == LEFT, str(noq))
+        audits = lambda status, done="", job="": queue_facts.CheckRun(   # noqa: E731
+            "audits", status, "SUCCESS" if done else "", 120100000001, 40969292151, done, job_status=job)
+        long_audits = watch_step(enq, "IN FLIGHT", pr(777, others=(audits("IN_PROGRESS", job="in_progress"),)), t("19:10"))
+        audits_ended = [watch_step(enq, "IN FLIGHT", pr(777, others=(audits("COMPLETED", "2026-10-22T19:05:00Z"),)), t(hm))
+                        for hm in ("19:10", "19:16")]
+        expect("queue watch: a required check with no check-run yet because a job it needs still runs (PR #777's audits, "
+               "25 min after the enqueue) is WATCHING with no remedy, never the requeue that cancels the run (kb/Work "
+               "PB4052); once that work ends the grace counts from ITS end, and read 1 re-runs its workflow run",
+               long_audits.state == WATCHING and not long_audits.act and "audits still running" in long_audits.why
+               and audits_ended[0].state == WATCHING and not audits_ended[0].act
+               and audits_ended[1].act == RERUN and audits_ended[1].run == 40969292151, f"{long_audits} {audits_ended}")
         dirty = watch_step(enq, "IN FLIGHT", dataclasses.replace(pr(396, green_gate), merge_state="DIRTY"), t("19:30"))
         expect("queue watch: a pull request that conflicts with main (merge state DIRTY), its checks green, ends the "
                "watch LEFT (BOUNCED, the finisher's) with no remedy: a re-run or a reopen cannot clear a conflict "
@@ -2116,7 +2133,8 @@ def self_test() -> int:
         recorded: list[tuple] = []
         f16.watch_effects = lambda: WatchEffects(
             rerun=lambda repo, run: enqueue.rerun_check(repo, run, gh=silent),
-            requeue=lambda repo, number: enqueue.requeue(repo, number, gh=silent, state=lambda: (ruleset.ACTIVE, "x")),
+            requeue=lambda repo, number, head: enqueue.requeue(repo, number, head, gh=silent,
+                                                               state=lambda: (ruleset.ACTIVE, "x")),
             alert=lambda subject, body, ref: recorded.append(("alert", subject)),
             measure=lambda number, b, read, cause, act, ok: recorded.append(("measure", number, read, act, ok)))
         try:
