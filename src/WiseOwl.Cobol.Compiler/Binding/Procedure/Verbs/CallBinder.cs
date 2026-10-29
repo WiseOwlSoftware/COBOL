@@ -229,12 +229,18 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // arm used to pass such an identifier BY CONTENT, so in `USING N B1 B-AND B2` a callee's store into its BY
             // REFERENCE formal never reached N. (The phrase arms reduce their own operands.)
             var bareArg = ConditionBinder.ReduceArgument(a.literal(), null, a.booleanExpression(), a.arithmeticExpression());
+            // ⛔ §14.9.4.2 FORMAT 1'S NARROWING IS ASKED HERE, ONCE PER ARGUMENT, BEFORE ANY ARM (kb/Work PB3996). The
+            // grammar parses every argument alternative WIDE (the two formats share callArgument), so a Format-2-only
+            // spelling reaches an arm that binds it; the narrowing used to be written inside each arm, and the two
+            // OMITTED arms had none — `USING W OMITTED` and `USING BY REFERENCE OMITTED` compiled clean. A new arm is
+            // now refused by default: Format2OnlySpellingOf names every alternative (CallArgumentFormatDriftTests).
+            if (!formatTwo && Format2OnlySpellingOf(a, bareArg) is { } format2Only && !Format1Narrowing(format2Only))
+                return BoundRejected.Reported(ctx.Edition);
             if (a.callByReference() is { } byRef)
             {
                 mode = CobolPassMode.Reference;
-                // §14.9.4.2 Format 2: `[BY REFERENCE] {identifier-2 | OMITTED}` (kb/Work PB130). The omitted-
-                // argument carrier joins the OPTIONAL-formal landing (PB133); until then the recognized form
-                // draws the same staged diagnostic family instead of a parse error on legal source.
+                // §14.9.4.2 Format 2: `[BY REFERENCE] {identifier-2 | OMITTED}` (kb/Work PB130); Format 1 never
+                // reaches this arm with OMITTED — Format2OnlySpellingOf refused it above (kb/Work PB3996).
                 if (byRef.OMITTED() is not null)
                 {
                     // §14.9.4.4 GR11 (kb/Work PB133 wave C): the omitted argument occupies its position with
@@ -303,19 +309,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // (§12.3.7.4 GR11 a)) — is literal-2, never identifier-2 (kb/Work PB1544), asked of the ONE alias
                 // resolution.
                 var cAlias = cDref is null ? null : host.Expr.LiteralAliasOf(cDref);
-                // §14.9.4.2 FORMAT 1's BY CONTENT IS `{ identifier-2 } …` AND NOTHING ELSE. An expression operand
-                // is legal only under Format 2, which the AS phrase selects — so accepting one here without that
-                // phrase would admit illegal source, the exact trade this item refused to make in the grammar.
-                // The literal and the parenthesized expression an operator-free boolean node held are literal-2 and
-                // arithmetic-expression-1 exactly as their written spellings are (kb/Work PB3760 review R1-1).
-                if (!formatTwo && (cBool is not null || cLit is not null || cBareLit is not null || cAlias is not null
-                                   || cGrouped is not null
-                                   || (cArith is not null && cDref is null && !IsSoleIdentifierExpression(cArith)))
-                    && !Format1VendorSpelling(
-                        $"CALL … USING BY CONTENT {byContent.GetText()}: an expression operand belongs to the "
-                        + "program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects. "
-                        + "Format 1's BY CONTENT admits `{ identifier-2 } …` only"))
-                    return BoundRejected.Reported(ctx.Edition);
+                // (§14.9.4.2 Format 1's BY CONTENT is `{ identifier-2 } …` and nothing else: Format2OnlySpellingOf
+                // refused an expression operand before this arm.)
                 // Probe to DISCRIMINATE (the cArith arm below is the legal alternative and its bind demands —
                 // R30), then RESOLVE to commit: a probe is unscreened, so its Place must never enter the bound
                 // tree (kb/Work PB221 — this arm used to commit the probe's Place, so `BY CONTENT E(XE)` with
@@ -352,13 +347,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             }
             else if (a.callByValue() is { } byValue)
             {
-                // §14.9.4.2 FORMAT 1 HAS NO BY VALUE ARM (kb/Work PB130): its USING brace prints BY REFERENCE
-                // and BY CONTENT only (the repaired figure notes’ required-word list has no VALUE), and
-                // SR21–SR23 sit under Format 2. Accepting it here passed a GR5-impossible mode.
-                if (!formatTwo && !Format1VendorSpelling(
-                        "CALL … USING BY VALUE belongs to the program-prototype CALL (ISO §14.9.4.2 Format 2), "
-                        + "which the AS phrase selects — Format 1’s USING admits BY REFERENCE and BY CONTENT only"))
-                    return BoundRejected.Reported(ctx.Edition);
+                // (§14.9.4.2 Format 1 has no BY VALUE arm: Format2OnlySpellingOf refused it before this arm, kb/Work PB130.)
                 // BY VALUE (§14.9.4) is a COBOL-2002 introduction; the edition gate moved to the post-bind
                 // VersionConformancePass (Step 14c), firing on a BoundCallProgram whose args use value passing.
                 mode = CobolPassMode.Value;
@@ -544,14 +533,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // §14.9.4.2 Format 2's keyword-less non-identifier arguments (kb/Work PB130): literal-2,
             // arithmetic-expression-1, boolean-expression-1 and OMITTED all print bare in Format 2 (its BY
             // phrases are plain brackets — GR9 a)2 exists precisely for the non-identifier bare argument);
-            // Format 1's bare argument is identifier-2 only, so each arm narrows on formatTwo. A bare
-            // non-identifier crosses BY CONTENT semantics (a value, never a writeback carrier).
+            // Format 1's bare argument is identifier-2 only, which Format2OnlySpellingOf enforced before this
+            // chain. A bare non-identifier crosses BY CONTENT semantics (a value, never a writeback carrier).
             else if (a.OMITTED() is not null)
                 // §14.9.4.4 GR11 — same carrier as the BY REFERENCE spelling (kb/Work PB133 wave C).
                 args.Add(new BoundCallArg(CobolPassMode.Reference, null, null, Omitted: true));
             else if (a.literal() is { } bLit)
             {
-                if (!formatTwo && !BareNeedsFormat2(bLit.GetText())) return BoundRejected.Reported(ctx.Edition);
                 // §14.9.4.4 GR9 b) — BY VALUE is assumed when the corresponding formal is BY VALUE, and the
                 // MODE is the mechanism, not a side effect of the copy-out (kb/Work PB238: this arm hard-coded
                 // Content and the VALUE outcome happened only because a Content literal has no storage to copy
@@ -567,14 +555,12 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // boolean-expression-1 prints ONLY in the BY CONTENT brace of §14.9.4.2 Format 2, so the omitted
                 // phrase can only be BY CONTENT; §14.9.4.3 SR19 is then checked against the corresponding formal by
                 // the loop below (a BY VALUE formal draws its own diagnostic).
-                if (!formatTwo && !BareNeedsFormat2(bBool.GetText())) return BoundRejected.Reported(ctx.Edition);
                 args.Add(BooleanContentArg(bBool));
             }
             // A literal the reduction recovered from an operator-free boolean node is literal-2, and its mode is GR9's,
             // as the written literal's is (a BY VALUE formal makes it BY VALUE, and SR23 is asked of it).
             else if (bareArg.NonNumericLiteral is { } nbl)
             {
-                if (!formatTwo && !BareNeedsFormat2(nbl.GetText())) return BoundRejected.Reported(ctx.Edition);
                 if (host.Expr.NullAdmittingOperand(nbl) is not { } nblOp)
                     return new BoundUnsupported($"CALL USING argument '{nbl.GetText()}'");
                 var nblMode = Gr9NonIdentifierMode(calleeFormals, args.Count);
@@ -583,7 +569,6 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             }
             else if (bareArg.SoleNumericLiteral is { } nNum)
             {
-                if (!formatTwo && !BareNeedsFormat2(nNum)) return BoundRejected.Reported(ctx.Edition);
                 args.Add(new BoundCallArg(Gr9NonIdentifierMode(calleeFormals, args.Count), null,
                     host.Expr.NumericLiteralOperand(nNum)));
             }
@@ -606,7 +591,6 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     if (AddBareTemporaryArg(ExpressionOperand(bArith), DataBinder.WrittenText(bArith)) is { } refusal) return refusal;
                     continue;
                 }
-                if (!formatTwo && !BareNeedsFormat2(bArith.GetText())) return BoundRejected.Reported(ctx.Edition);
                 AddBareExpressionArg(ExpressionOperand(bArith), bArith.GetText());
             }
             // `(3)` or `(N)` an operator-free boolean node held inside its grouping parentheses: arithmetic-expression-1,
@@ -614,7 +598,6 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // the expression it is, it takes GR9 a)2's BY CONTENT, so a callee's store never reaches N.
             else if (bareArg.Grouped is { } bGrouped)
             {
-                if (!formatTwo && !BareNeedsFormat2(a.GetText())) return BoundRejected.Reported(ctx.Edition);
                 AddBareExpressionArg(host.Cond.CompoundOperand(bGrouped), a.GetText());
             }
             else
@@ -711,36 +694,6 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         static CobolPassMode Gr9NonIdentifierMode(IReadOnlyList<LinkageFormal>? formals, int pos) =>
             formals is not null && pos < formals.Count && formals[pos].ByValue
                 ? CobolPassMode.Value : CobolPassMode.Content;
-
-        static bool IsSoleIdentifierExpression(Core.ArithmeticExpressionContext ax) =>
-            ConditionBinder.SoleFunctionCall(ax) is not null || ConditionBinder.SoleOoIdentifier(ax) is not null;
-
-        bool BareNeedsFormat2(string text) =>
-            Format1VendorSpelling(
-                $"CALL … USING {text}: a keyword-less literal or expression argument belongs to the "
-                + "program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects — Format 1's "
-                + "bare argument is identifier-2 only");
-
-        // ⛔ THE ONE FRAMING OF §14.9.4.2 FORMAT 1'S NARROWING (kb/Work PB162), for all five spellings it refuses —
-        // BY VALUE, a BY CONTENT literal / expression, and a bare literal / boolean / arithmetic expression. Strict:
-        // the error (PB130's ISO-correct narrowing, unchanged). --permissive (the dialect axis every leniency rides,
-        // project_dialect_two_axes): a WARNING under the same code, and the argument binds with the Format-2
-        // semantics the spelling plainly intends — a literal or expression is a detached BY CONTENT value, BY VALUE
-        // is the Value mode. GnuCOBOL accepts all five spellings, and IBM Enterprise COBOL and Micro Focus accept
-        // BY VALUE and a BY CONTENT literal, on the CALL that names no prototype (CLAUDE.md rule 1's precedence
-        // for implementor latitude; the strict verdict is the standard's, not latitude). True = bind on.
-        bool Format1VendorSpelling(string refusal)
-        {
-            if (ctx.Edition.Permissive)
-            {
-                ctx.Edition.Warning(DiagnosticCatalog.CallContentOperandFormat, refusal
-                    + "; accepted under --permissive as the vendor extension (GnuCOBOL, IBM, Micro Focus) and bound "
-                    + "with the Format-2 semantics it spells");
-                return true;
-            }
-            ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat, refusal);
-            return false;
-        }
 
         // §14.8.2.1 + §14.9.4.3 SR24 (kb/Work PB133 wave C, generalized by PB237): with the Format-2 callee's
         // formals known at BIND time — from the AS NESTED containment table or from the program prototype's
@@ -905,6 +858,82 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         host.Ptr.BindAddressIdentifier(ai, "CALL … USING") is { } ao
             ? new BoundCallArg(mode, null, null) { DataAddress = ao.Data, ProgramAddress = ao.Program }
             : null;
+
+    static bool IsSoleIdentifierExpression(Core.ArithmeticExpressionContext ax) =>
+        ConditionBinder.SoleFunctionCall(ax) is not null || ConditionBinder.SoleOoIdentifier(ax) is not null;
+
+    /// <summary>A USING argument spelling that only §14.9.4.2 Format 2 prints, and the refusal text that names it.
+    /// <paramref name="VendorLane"/> is true for the five spellings GnuCOBOL accepts and the dialect axis admits under
+    /// <c>--permissive</c> (kb/Work PB162); false for OMITTED, which has no such lane (kb/Work PB3996).</summary>
+    private readonly record struct Format2OnlySpelling(string Refusal, bool VendorLane);
+
+    /// <summary>⛔ THE ONE QUESTION "IS THIS ARGUMENT SPELLING FORMAT 2's?" (kb/Work PB130, PB162, PB3996), asked once per
+    /// argument before any arm binds it. §14.9.4.2 prints Format 1's USING as <c>[ BY REFERENCE ] { identifier-2 } …</c>
+    /// or <c>BY CONTENT { identifier-2 } …</c>; Format 2 alone prints BY VALUE, OMITTED, arithmetic-expression-1,
+    /// boolean-expression-1 and literal-2. The grammar parses all of them wide because the formats share
+    /// <c>callArgument</c>, so every alternative is named HERE and refused here, never by the arm that binds it: the
+    /// per-arm narrowing PB130 wrote left the two OMITTED arms without one. <c>CallArgumentFormatDriftTests</c> pins
+    /// that every alternative of <c>callArgument</c>, <c>callByReference</c>, <c>callByContent</c> and
+    /// <c>callByValue</c> is read here.
+    /// <para>Null = Format 1 prints the spelling (identifier-2, an address-identifier, a function-identifier, which
+    /// §14.9.4.4 GR8 makes an identifier). A literal and a parenthesized expression an operator-free boolean node held
+    /// are literal-2 and arithmetic-expression-1 exactly as their written spellings are (kb/Work PB3760 review R1-1).</para></summary>
+    private Format2OnlySpelling? Format2OnlySpellingOf(Core.CallArgumentContext a, ConditionBinder.ArgumentOperand bare)
+    {
+        const string Shared = " belongs to the program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects";
+        if (a.callByValue() is not null)
+            return new($"CALL … USING BY VALUE{Shared} — Format 1’s USING admits BY REFERENCE and BY CONTENT only", true);
+        if (a.callByReference() is { } byRef)
+            return byRef.OMITTED() is not null ? OmittedSpelling("BY REFERENCE OMITTED") : null;
+        if (a.callByContent() is { } byContent)
+        {
+            if (byContent.addressIdentifier() is not null) return null;
+            var (cLit, cBareLit, _, cDref, cBool, cArith, cGrouped) = ConditionBinder.ReduceArgument(
+                byContent.literal(), null, byContent.booleanExpression(), byContent.arithmeticExpression());
+            bool expressionOperand = cBool is not null || cLit is not null || cBareLit is not null || cGrouped is not null
+                || (cDref is not null && host.Expr.LiteralAliasOf(cDref) is not null)
+                || (cArith is not null && cDref is null && !IsSoleIdentifierExpression(cArith));
+            return expressionOperand
+                ? new($"CALL … USING BY CONTENT {byContent.GetText()}: an expression operand{Shared}. "
+                      + "Format 1's BY CONTENT admits `{ identifier-2 } …` only", true)
+                : null;
+        }
+        if (a.addressIdentifier() is not null || bare.Reference is not null) return null;
+        if (a.OMITTED() is not null) return OmittedSpelling("OMITTED");
+        bool bareNonIdentifier = a.literal() is not null || bare.Bool is not null || bare.NonNumericLiteral is not null
+            || bare.SoleNumericLiteral is not null || bare.Grouped is not null
+            || (bare.Arith is { } arith && !IsSoleIdentifierExpression(arith));
+        return bareNonIdentifier
+            ? new($"CALL … USING {a.GetText()}: a keyword-less literal or expression argument{Shared} — Format 1's "
+                  + "bare argument is identifier-2 only", true)
+            : null;
+
+        static Format2OnlySpelling OmittedSpelling(string spelling) =>
+            new($"CALL … USING {spelling}: the OMITTED phrase belongs to the program-prototype CALL (ISO §14.9.4.2 "
+                + "Format 2), which the AS phrase selects — Format 1's USING prints `{ identifier-2 } …` only", false);
+    }
+
+    /// <summary>⛔ THE ONE FRAMING OF §14.9.4.2 FORMAT 1'S NARROWING (kb/Work PB162), for every spelling
+    /// <see cref="Format2OnlySpellingOf"/> names. Strict: the error (PB130's ISO-correct narrowing, unchanged).
+    /// <c>--permissive</c> (the dialect axis every leniency rides): a WARNING under the same code for a
+    /// <see cref="Format2OnlySpelling.VendorLane"/> spelling, and the argument binds with the Format-2 semantics the
+    /// spelling plainly intends — a literal or expression is a detached BY CONTENT value, BY VALUE is the Value mode.
+    /// GnuCOBOL accepts those five spellings, and IBM Enterprise COBOL and Micro Focus accept BY VALUE and a BY CONTENT
+    /// literal, on the CALL that names no prototype (CLAUDE.md rule 1's precedence for implementor latitude; the strict
+    /// verdict is the standard's, not latitude). OMITTED has no vendor lane: it is refused under both (kb/Work PB3996).
+    /// True = bind on.</summary>
+    private bool Format1Narrowing(Format2OnlySpelling spelling)
+    {
+        if (spelling.VendorLane && ctx.Edition.Permissive)
+        {
+            ctx.Edition.Warning(DiagnosticCatalog.CallContentOperandFormat, spelling.Refusal
+                + "; accepted under --permissive as the vendor extension (GnuCOBOL, IBM, Micro Focus) and bound "
+                + "with the Format-2 semantics it spells");
+            return true;
+        }
+        ctx.Edition.Error(DiagnosticCatalog.CallContentOperandFormat, spelling.Refusal);
+        return false;
+    }
 
     /// <summary>⛔ THE ONE §14.9.4.3 SR1 / §14.9.5.3 SR1 CATEGORY SCREEN of an identifier-1 program-name target
     /// (kb/Work PB3355): what the operand IS when the rule refuses it, else null. SR1 reads "Identifier-1 shall be

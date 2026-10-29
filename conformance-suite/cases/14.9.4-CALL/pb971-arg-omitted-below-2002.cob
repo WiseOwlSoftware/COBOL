@@ -10,8 +10,12 @@
       *> edition diagnostic rather than binding a reference that could raise the condition.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. P971NG.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           PROGRAM P971NS.
        PROCEDURE DIVISION.
-           CALL "P971NS" USING OMITTED
+           CALL "P971NS" AS P971NS USING OMITTED
            STOP RUN.
        END PROGRAM P971NG.
        IDENTIFICATION DIVISION.
