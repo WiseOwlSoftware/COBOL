@@ -50,8 +50,9 @@ THE DRIVERS (DRIVERS: the one registry; `.gitattributes` repeats its patterns, a
                     declines: a line is atomic, and a stale symbol fails the build (RS0017) as any wrong baseline does.
                     git's union merge, which governed these files before, kept a line one side removed when the other
                     side added a line beside it, and kept a symbol both sides added at different places twice (PB3694).
-                    GitHub's merge group runs no driver, so `landing_check.py` (arm 0b) reads the baselines of the landing's tree and of
-                    the driverless merge with main and STOPS on a symbol listed twice (baseline_duplicates, RS0025).
+                    `landing_check.py` (arm 0b) reads the baselines of the landing's tree and STOPS on a symbol listed
+                    twice (baseline_duplicates, RS0025). GitHub's merge group runs no driver and merges the pushed head
+                    with the main of the moment: a main that advanced after the push is read by CI alone (PB3694).
 PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643). `docs/CONFORMANCE.md` and the `DESIGN-*.md` documents look append-only
 and conflict at landings, but `--hunks <path>…` (replay every merge in history that touched the file, classify each
 conflict hunk of git's line merge) measured otherwise over CONFORMANCE.md, DESIGN-runtime-library.md and
@@ -834,7 +835,7 @@ def self_test() -> int:
            and any(d.name == SYMBOL_SET_DRIVER for d in DRIVERS))
 
     lines = lambda *ls: NL.join(ls) + NL    # noqa: E731
-    twelve =[f"l{i}" for i in range(1, 13)]
+    twelve = [f"l{i}" for i in range(1, 13)]
     hunks = conflict_hunks(lines(*twelve), lines("l1", "ours-ins", *twelve[1:8], "l9-ours", *twelve[9:]),
                            lines("l1", "theirs-ins", *twelve[1:8], "l9-theirs", *twelve[9:]))
     expect("hunks: two insertions at one place are an INSERTION hunk (empty base section), two rewrites of one line a "
