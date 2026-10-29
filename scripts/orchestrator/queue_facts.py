@@ -482,8 +482,8 @@ def self_test() -> int:
            and [c.name for c in prs['stuck'].others] == ['audits'] and prs['stuck'].red is None,
            f'{stuck} {prs["auto"].checks} {prs["stuck"].others}')
     jobs_read = sorted(a[1].rsplit('/', 1)[1] for a in log if a[0] == 'api' and '/actions/jobs/' in a[1])
-    expect("only an unresolved required check-run asks the jobs API; the newest check-run of a context decides (a "
-           "re-run's), so a re-run that completed is not stuck",
+    expect("only an unresolved check-run asks the jobs API (a resolved one, required or not, never does); the newest "
+           "check-run of a context decides (a re-run's), so a re-run that completed is not stuck",
            jobs_read == ['31', '41'] and prs['rerun'].checks[0].job == 71 and not prs['rerun'].checks[0].stuck,
            f'{jobs_read} {prs["rerun"].checks}')
     expect("a pull request the queue removed with auto-merge off is BOUNCED with GitHub's reason; a required check "
