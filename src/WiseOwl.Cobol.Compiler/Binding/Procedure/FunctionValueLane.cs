@@ -139,9 +139,8 @@ internal static class FunctionValueLane
             ? Carrier.Exact(true)
             : argument;
 
-    /// <summary>The call's RESOLVED type is Integer — the ONE reader (<see cref="IntrinsicResultType.Resolve"/>).</summary>
-    private static bool IsInteger(BoundIntrinsicCall call) =>
-        IntrinsicResultType.Resolve(call.Sig, call.Args) is IntrinsicType.Integer;
+    /// <summary>The call's RESOLVED type is Integer — the type the binder gave it (<see cref="BoundIntrinsicCall.ResultType"/>).</summary>
+    private static bool IsInteger(BoundIntrinsicCall call) => call.ResultType is IntrinsicType.Integer;
 
     /// <summary>The carrier a value is held on while the renderer evaluates an expression: the exact scaled
     /// <c>Int128</c>, the SDIDI, a binary64 that is a float ITEM's content, or a binary64 the engine produced as an
