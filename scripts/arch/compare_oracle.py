@@ -126,10 +126,6 @@ def show_diff(case_id: str, suffix: str, old_dir: Path, new_dir: Path) -> None:
 def compare(baseline_path: Path, new_path: Path, show: bool) -> int:
     old, new = load(baseline_path), load(new_path)
     old_cases, new_cases = old["cases"], new["cases"]
-    if old.get("platform") != new.get("platform"):
-        print(f"NOTE baseline captured on {old.get('platform')}, new on {new.get('platform')}: a diagnostic naming a COPY "
-              "text found by a case-insensitive probe differs by platform (DESIGN-architecture-review.md §4.1); "
-              "compare captures of one platform")
     old_dir, new_dir = baseline_path.parent, new_path.parent   # a capture's blobs sit beside its manifest
     differing = 0
     for case_id in sorted(old_cases.keys() | new_cases.keys()):
