@@ -90,6 +90,38 @@ public sealed class CompilationInputs
         return exists;
     }
 
+    /// <summary>Probe whether a FILE exists and, when it does, return its path with the FINAL component spelled as the
+    /// directory entry spells it (kb/Work PB1680): on a case-insensitive file system <c>gr9dbook.CPY</c> finds
+    /// <c>gr9dbook.cpy</c>, and a diagnostic, a line map or a dependency record must name the file that was read, not
+    /// the spelling that was probed. Where several entries differ only in case (a case-sensitive file system) the one
+    /// that matches exactly is the file. Null when no such file exists; the probe is recorded as
+    /// <see cref="FileExists"/> records it.</summary>
+    public string? LocateFile(string path)
+    {
+        if (!FileExists(path)) return null;
+        string name = Path.GetFileName(path);
+        // A wildcard in the name would be a pattern, not a name; no file system that matches case-insensitively allows one.
+        if (name.AsSpan().IndexOfAny('*', '?') >= 0) return path;
+        string? directory = Path.GetDirectoryName(path);
+        string? spelledAs = null;
+        try
+        {
+            var options = new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, MatchType = MatchType.Simple };
+            foreach (var entry in Directory.EnumerateFiles(string.IsNullOrEmpty(directory) ? "." : directory, name, options))
+            {
+                string entryName = Path.GetFileName(entry);
+                if (string.Equals(entryName, name, StringComparison.Ordinal)) return path;   // the exact spelling is an entry
+                spelledAs ??= entryName;
+            }
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return path;   // the directory cannot be listed: the probe spelling stands (File.Exists already said it is there)
+        }
+
+        return spelledAs is null ? path : Path.Combine(directory ?? "", spelledAs);
+    }
+
     /// <summary>Probe whether a DIRECTORY exists, recording the answer.</summary>
     public bool DirectoryExists(string path)
     {
