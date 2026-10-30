@@ -1,4 +1,4 @@
-## PB3428, PB3861: a syntax error names what the parse expects at the token (COBOL5506)
+## Entry 2817 — 2026-10-30 15:49 PDT — PB3428, PB3861: a syntax error names what the parse expects at the token (COBOL5506)
 
 Wave 20261769 group C. Both notes are one mechanism: at a token of a kind its position does not take, the parse
 error carried no account of what the position expects, and the reason was that every reading of the parse at the
@@ -53,3 +53,4 @@ at every edition), `pb3428_memory_size_modules_85` (accepted at 85); `14.9.39-SE
 `WrittenKindRefusalTests`, with the drift fact that every whole-literal token has a category. Documented as
 `docs/CONFORMANCE.md` §3 D-EXPECT and in DESIGN-frontend-grammar.md beside the 0g arm. No inventory row changes
 verdict (FMT-12.3.6.2 and FMT-14.9.39.2 were already CONFORMS). Code COBOL5506 used; COBOL5507 and COBOL5508 returned.
+
