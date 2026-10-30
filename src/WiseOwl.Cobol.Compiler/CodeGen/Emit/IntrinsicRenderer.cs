@@ -514,6 +514,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // The lead is the DISCOUNT BASE 1 + rate, formed on the rate's exact carrier after the ONE screen
         // (kb/Work PB1000 — see PresentValueBase).
         "PresentValue" => LeadThenTail(ic, method, "", "double", DblOf, lead: a => PresentValueBase(ic, a)),
+        // An ill-conditioned body handed an argument expression past the Int128 carrier takes the EXACT WIDE value, not its
+        // 34-digit image (kb/Work PB4075 — see WideLeadArg).
+        _ when WideLeadArg(ic, method) is { } wide => RuntimeApi.Intrinsic(method + "Wide", wide),
         // A table(ALL) argument enumerates at run time (ISO §15.3; kb/Work PB62) — the list becomes ONE array.
         _ => RuntimeApi.Intrinsic(method, ArgArray(ic, 0, "double", DblOf)
             ?? string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => i == 0 ? LeadArg(ic, method) : Dbl(ic, i)))),
@@ -557,9 +560,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     internal static readonly FrozenDictionary<string, ExactIntake> WholeRangeBodies = new Dictionary<string, ExactIntake>
     {
         ["Sqrt"] = ExactIntake.Sdidi,
-        ["Sin"] = ExactIntake.EveryExact, ["Cos"] = ExactIntake.EveryExact, ["Tan"] = ExactIntake.EveryExact,
-        ["Log"] = ExactIntake.EveryExact, ["Log10"] = ExactIntake.EveryExact,
-        ["Acos"] = ExactIntake.EveryExact, ["Asin"] = ExactIntake.EveryExact,
+        ["Sin"] = ExactIntake.Wide, ["Cos"] = ExactIntake.Wide, ["Tan"] = ExactIntake.Wide,
+        ["Log"] = ExactIntake.Wide, ["Log10"] = ExactIntake.Wide,
+        ["Acos"] = ExactIntake.Wide, ["Asin"] = ExactIntake.Wide,
         ["Exp"] = ExactIntake.EveryExact, ["Exp10"] = ExactIntake.EveryExact,
     }.ToFrozenDictionary(StringComparer.Ordinal);
 
@@ -594,6 +597,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         /// <summary>A scaled operand too (lifted exactly by <c>CobolDec.From</c>) — the body is ill-conditioned
         /// somewhere, so the narrowing's relative error is amplified into the result.</summary>
         EveryExact,
+        /// <summary><see cref="EveryExact"/>, and the exact WIDE intermediate too (<c>NumX.Wide</c>, an argument expression of 39
+        /// to 77 digits; kb/Work PB4075): the body is ill-conditioned at a place the SDIDI's 34-digit round-to-odd image cannot
+        /// name — every multiple of π/2 for the periodic trio (a 39-digit angle's image is hundreds of radians away), 1 and ±1 for
+        /// LOG, LOG10, ACOS and ASIN (a value 10^−25 from 1 has an image that is the whole answer) — so a <c>…Wide</c> overload
+        /// in <c>CobolIntrinsics.FloatWide.cs</c> takes the exact value. <c>Exp</c> / <c>Exp10</c> stay <see cref="EveryExact"/>:
+        /// their condition number |x| is at most 709 on the range binary64 holds, so the image's 10^−34 relative error never
+        /// reaches the result's last bit; <c>Sqrt</c> is ½.</summary>
+        Wide,
     }
 
     /// <summary>Argument-1 of the default binary64-family arm: an operand a <see cref="WholeRangeBodies"/> member
@@ -606,7 +617,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     {
         NumX x = RawArg(ic, 0);
         bool exact = WholeRangeBodies.TryGetValue(method, out var intake)
-            && (x.Dec || intake is ExactIntake.EveryExact && !x.Real);
+            && (x.Dec || intake is ExactIntake.EveryExact or ExactIntake.Wide && !x.Real);
         return exact ? ExactArg(ic, x) : DomainArg(ic, x);
     }
 
@@ -622,6 +633,24 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         return ic.Sig.Domain is IntrinsicDomain.None
             ? dec.Expr
             : RuntimeApi.DomainArgAdmitted(dec, ic.Sig.Domain, ic.Sig.Name, ic.Sig.DomainRule!);
+    }
+
+    /// <summary>⛔ Argument-1 of a <see cref="ExactIntake.Wide"/> member as the EXACT WIDE value (kb/Work PB4075): the argument
+    /// expression's <see cref="CobolWide"/> and its scale — through the row's ONE domain screen
+    /// (<see cref="RuntimeApi.DomainWideAdmitted"/>, a <c>CobolWide?</c>, null = rejected) when it has a §15.x.3 value domain —
+    /// for the <c>…Wide</c> body the call names; <c>null</c> when the member takes no wide form or the argument is not wide
+    /// (a call over data items and literals is answered without rendering its argument a further time).</summary>
+    /// <remarks>INTAKE(EXACT) — the operand's exact wide form, unnarrowed; the body narrows only what it computes from it.</remarks>
+    private string? WideLeadArg(BoundIntrinsicCall ic, string method)
+    {
+        if (!WholeRangeBodies.TryGetValue(method, out var intake) || intake is not ExactIntake.Wide
+            || ic.Args.Count != 1 || ic.Args[0] is not BoundComputedOperand) return null;
+        NumX x = RawWideArg(ic, 0);
+        if (!x.Wide) return null;
+        string value = ic.Sig.Domain is IntrinsicDomain.None
+            ? x.Expr
+            : RuntimeApi.DomainWideAdmitted(x.Expr, x.Scale, ic.Sig.Domain, ic.Sig.Name, ic.Sig.DomainRule!);
+        return $"{value}, {x.Scale}";
     }
 
     /// <summary>PRESENT-VALUE's leading value: the discount base <c>1 + argument-1</c>
@@ -903,10 +932,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// (kb/Work PB1900). The exact family never reads it lowered: <see cref="RenderWide"/> evaluates such a call on the wide form
     /// first (kb/Work PB3953), so <c>ABS (BIG * BIG * K3)</c> of 18-, 18- and 3-digit items is the exact 39-digit product, as
     /// GnuCOBOL's arbitrary-precision argument temporary is. The bounded integer positions still take the image, and rightly:
-    /// a value past 34 significant digits is outside the function's domain on either form. ⛔ Two other consumers still take
-    /// it and are OPEN WRONG ANSWERS, not determinations: MEAN double-rounds (the image, then the SDIDI quotient's own rounding,
-    /// where one rounding of the exact sum is owed), and the binary64 family reads an argument as far from the written one as
-    /// the image is (SIN of a 39-digit product reads a value about 999 radians away); both want the wide form at intake.</para>
+    /// a value past 34 significant digits is outside the function's domain on either form. MEAN divides the exact wide sum ONCE
+    /// (<see cref="RenderWide"/>'s <c>MeanScaled</c> arm, <c>CobolIntrinsics.MeanWide</c>; kb/Work PB4075), and the binary64 family's
+    /// ill-conditioned bodies take the exact wide value (<see cref="WideLeadArg"/>, <see cref="ExactIntake.Wide"/>): SIN of a
+    /// 39-digit product reduces that product, not an image some 999 radians away. The consumers that still read the image, each
+    /// for the reason its value cannot depend on the lost digits: EXP, EXP10 and SQRT (condition numbers of at most 709, 709 and ½,
+    /// against an image error of 10^−34 relative), the bounded integer positions, and COMBINED-DATETIME's argument-2.
+    /// ⚠ VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE (<c>RenderDec</c>'s SDIDI bodies) are NOT in that list: they read the
+    /// image through <see cref="DecArgList"/> (VARIANCE of the product and the product less one does not answer 0.25, and
+    /// PRESENT-VALUE (0, P, 1 - P) answers 0, not 1), and no clause fixes the precision of the MEAN they deviate from.</para>
     /// </remarks>
     private NumX RawArg(BoundIntrinsicCall ic, int i) => NumericRenderer.LowerWide(RawWideArg(ic, i));
 
@@ -1331,6 +1365,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "OrdMin" => (new NumX(RuntimeApi.Intrinsic("OrdMinWide", List()), 0), widest),
             "SumScaled" => (Wide("SumWide", List(), s, sumDigits), sumDigits),
             "RangeScaled" => (Wide("RangeWide", List(), s, widest + 1), widest + 1),
+            // MEAN (§15.60.4 r1) is the one arm whose value is not wide: the exact sum divided ONCE on the SDIDI (kb/Work PB4075,
+            // PB3860), the value every other lane forms, returned as the SDIDI the receiver then rounds once.
+            "MeanScaled" => (new NumX(RuntimeApi.Intrinsic("MeanWide", $"{num.IntermediateMode}, {s}, {List()}"), 0, Dec: true), sumDigits),
             "MedianScaled" => (Wide("MedianWide", List(), s + 1, widest + 2), widest + 2),
             "MidrangeScaled" => (Wide("MidrangeWide", List(), s + 1, widest + 2), widest + 2),
             _ => null,
