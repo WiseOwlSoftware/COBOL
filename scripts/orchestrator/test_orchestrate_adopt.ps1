@@ -12,8 +12,9 @@
 $ErrorActionPreference = 'Stop'
 $Here = $PSScriptRoot
 . (Join-Path $Here 'testdata/orchestrate_test_lib.ps1')
-# A failed check quotes the run's adoption line: adopt_main's outcome and its reason (kb/Work PB4046).
-$script:Evidence = 'adopt main:'
+# A failed check quotes the run's adoption line: adopt_main's outcome and its reason, the supervisor's line when
+# adopt_main.py itself failed, and any tool's stderr the supervisor said (kb/Work PB4046).
+$script:Evidence = 'adopt main:|main not adopted|wrote to stderr'
 
 function G { & git -c user.email=t@t -c user.name=t @args 2>&1 | Out-Null; if ($LASTEXITCODE) { throw "git $args failed" } }
 function Land([string]$clone, [string]$file, [string]$text) {
@@ -83,6 +84,18 @@ Check 'restart: no unit ran in the predecessor' $r.runs 0
 Check 'restart: the lock was handed over, not left behind' (Test-Path (Join-Path $r.coord 'orchestrate.lock')) $false
 Check 'restart: the exit code is the successors' $r.code 0
 Check 'restart: the checkout is origin/main' (Head $Checkout) (Head $Lander)
+
+# 5. A TOOL'S STDERR IS SAID, NEVER PARSED (kb/Work PB4046): adopt_main.py writes a line to stderr and still answers.
+#    Folded into its JSON answer, that line made the answer unreadable: "main not adopted", the unit ran on the old tree.
+Land $Lander 'kb/Work/PB4.md' 'landed while a tool warned'
+$env:FAKE_GH_JSON = $Green
+$env:FAKE_PYTHON_STDERR = 'adopt_main.py'
+$env:FAKE_PYTHON_CHECKPOINT_SECONDS = '0'
+$r = Run-Orch 'adoptwarn' 'good' ($unitArgs + @('-Python', $FakePython))
+Remove-Item Env:FAKE_PYTHON_STDERR, Env:FAKE_PYTHON_CHECKPOINT_SECONDS -ErrorAction SilentlyContinue
+Check 'stderr: the adoption still reads its answer' ($r.out -match 'adopt main: adopted') $true
+Check 'stderr: the line is said, not parsed' ($r.out -match 'adopt_main\.py wrote to stderr \(said, not parsed\): .*a warning on stderr') $true
+Check 'stderr: the checkout is origin/main' (Head $Checkout) (Head $Lander)
 
 Remove-Item Env:FAKE_GH_JSON -ErrorAction SilentlyContinue
 Complete-OrchTest 'adopt'
