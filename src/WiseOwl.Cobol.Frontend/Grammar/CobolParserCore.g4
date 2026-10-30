@@ -1968,9 +1968,10 @@ setIndexStatement
 // DECLINED optional element given a surface here purely so it draws the named COBOL1707 instead of a generic
 // parse error, and so its MINIMAL shape stops being invisible: `ACCEPT screen-name-1` is token-identical to the
 // format-1 device ACCEPT, so without the binder's screen-name test it silently transfers device input into a
-// screen record (kb/Work PB260). The positioning and exception phrases live in CobolScreen.g4.
+// screen record (kb/Work PB260). The positioning phrase lives in CobolScreen.g4; the exception phrases are the
+// statement's own `conditionalPhrases`, printed independently of it (kb/Work PB1528; see screenPositionPhrase).
 acceptStatement
-    : ACCEPT receivingIdentifier (FROM acceptSource)? screenTail? END_ACCEPT?   // END-ACCEPT: 2002+ (gated in VersionConformancePass; kb/Work PB134)
+    : ACCEPT receivingIdentifier (FROM acceptSource)? screenPositionPhrase? conditionalPhrases END_ACCEPT?   // END-ACCEPT: 2002+ (gated in VersionConformancePass; kb/Work PB134)
     ;
 
 // ⛔ THE FORMAT-1 SLOT IS A WORD, NOT A dataReference (kb/Work PB2499). §14.9.1.2 Format 1 prints
@@ -2016,7 +2017,11 @@ acceptSource
 // (ReservedWordPositionConformanceTests.DataItemNamedColumn_Rejected0901_EvenAt85; the memory is
 // `left_edge_predicates`). Requiring one operand unconditionally and guarding only the CONTINUATION keeps
 // both answers: `DISPLAY COLUMN.` binds COLUMN as a dataReference and the funnel names it, while
-// `DISPLAY SG COLUMN 5` still takes SG as its one operand and hands COLUMN 5 to screenTail.
+// `DISPLAY SG COLUMN 5` still takes SG as its one operand and hands COLUMN 5 to screenPositionPhrase.
+// The exception phrases are the statement's own `conditionalPhrases`, independent of the positioning phrase as the
+// printed Format 2 has them (kb/Work PB1528); which DISPLAY a phrase belongs to is ConditionalPhraseAssociation's
+// §14.5.3.3 decision, where the operand arms written here (a literal, a function-identifier, an inline invocation, a
+// second operand) and UPON / NO ADVANCING are the selectors that rule Format 2 out.
 // ⚠ THE OPERAND SET IS `sendingOperand`'s, WRITTEN INLINE ON PURPOSE (kb/Work PB2114). Naming the rule parses every
 // legal DISPLAY identically, but it moves the error-recovery boundary: `DISPLAY COLUMN.` / `DISPLAY COLS.` (a data
 // item named by a word the edition reserves) then count one to three more syntax errors on the way to the §8.9
@@ -2025,7 +2030,7 @@ acceptSource
 displayStatement
     : DISPLAY (inlineMethodInvocation | dataReference | literal | functionCall)
       ({!screenPositionAhead()}? (inlineMethodInvocation | dataReference | literal | functionCall))*
-      displayUpon? displayNoAdvancing? screenTail? END_DISPLAY?
+      displayUpon? displayNoAdvancing? screenPositionPhrase? conditionalPhrases END_DISPLAY?
     ;
 
 displayUpon

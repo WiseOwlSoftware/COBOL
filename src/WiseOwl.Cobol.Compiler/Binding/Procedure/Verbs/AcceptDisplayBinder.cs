@@ -33,7 +33,8 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     {
         // Format 3 (screen) — Annex A.4.2 item 1, DECLINED. Refused BEFORE anything else so no format-1 rule is
         // applied to a statement that is not format 1.
-        if (ScreenFormatOf(ac.screenTail(), ac.receivingIdentifier().dataReference() is { } recv ? [recv] : []) is { } why)
+        if (ScreenFormatOf(ac.screenPositionPhrase(), ac.conditionalPhrases(),
+                ac.receivingIdentifier().dataReference() is { } recv ? [recv] : []) is { } why)
         {
             ScreenFacility.ReportAcceptScreen(ctx.Edition, why);
             return BoundRejected.Reported(ctx.Edition);
@@ -201,32 +202,45 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     /// statement — <c>ACCEPT screen-name-1</c> / <c>DISPLAY screen-name-1</c> — is token-identical to its device
     /// format, so it parsed and bound as one: the screen record's characters were written to standard output and
     /// device input was read into a screen record, with no diagnostic anywhere. Only the operand's DECLARATION
-    /// tells them apart, which is why <see cref="DataBinder.ScreenNames"/> is consulted here.</para></summary>
-    private string? ScreenFormatOf(Core.ScreenTailContext? tail, IReadOnlyList<Core.DataReferenceContext> operands)
+    /// tells them apart, which is why <see cref="DataBinder.ScreenNames"/> is consulted here.</para>
+    /// <para>The [NOT] ON EXCEPTION phrases are printed by the screen format alone and independently of the
+    /// positioning phrase (§14.9.1.2 Format 3, §14.9.11.2 Format 2), so a statement holding one is the screen format
+    /// with or without AT / LINE / COLUMN. The parser gives an unpositioned statement such a phrase only when no
+    /// enclosing statement may take it (ConditionalPhraseAssociation's presumed reading, kb/Work PB1528), so a phrase
+    /// here is this statement's by ISO §14.5.3.3.</para></summary>
+    private string? ScreenFormatOf(Core.ScreenPositionPhraseContext? position, Core.ConditionalPhrasesContext phrases,
+        IReadOnlyList<Core.DataReferenceContext> operands)
     {
-        if (tail is not null)
-            return ConditionalPhrases.HasFamily(tail.conditionalPhrases(), ConditionalPhraseFamily.Exception)
+        bool exception = ConditionalPhrases.HasFamily(phrases, ConditionalPhraseFamily.Exception);
+        if (position is not null)
+            return exception
                 ? "the AT / LINE / COLUMN positioning phrase with an ON EXCEPTION handler appears only in the "
                   + "screen format"
                 : "the AT / LINE / COLUMN positioning phrase appears only in the screen format";
         // The operand scan costs nothing in the overwhelmingly common case: no SCREEN SECTION, no names, and
         // DISPLAY is the binder's hottest statement — so the empty-set test comes before the per-operand work.
-        if (ctx.Data.ScreenNames.Count == 0) return null;
-        foreach (var dref in operands)
-        {
-            string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-            if (ctx.Data.ScreenNames.Contains(name))
-                return $"'{DataBinder.WrittenText(dref)}' is declared in the SCREEN SECTION, so this is the screen format even "
-                     + "though it is spelled exactly like the device format";
-        }
-        return null;
+        var screen = ctx.Data.ScreenNames.Count == 0 ? null
+            : operands.FirstOrDefault(d => ctx.Data.ScreenNames.Contains(d.cobolWord()?.GetText() ?? d.GetText()));
+        if (exception)
+            return screen is not null
+                ? $"'{DataBinder.WrittenText(screen)}' is declared in the SCREEN SECTION, and the ON EXCEPTION / NOT ON "
+                  + "EXCEPTION phrase appears only in the screen format"
+                : "the ON EXCEPTION / NOT ON EXCEPTION phrase appears only in the screen format, whose operand is a "
+                  + "screen-name — "
+                  + (operands.Count == 1 ? $"'{DataBinder.WrittenText(operands[0])}' is" : "this operand is")
+                  + " not declared in the SCREEN SECTION, so the statement is neither the screen format nor the device "
+                  + "format, which prints no exception phrase";
+        return screen is not null
+            ? $"'{DataBinder.WrittenText(screen)}' is declared in the SCREEN SECTION, so this is the screen format even "
+              + "though it is spelled exactly like the device format"
+            : null;
     }
 
     public BoundStatement BindDisplay(Core.DisplayStatementContext display)
     {
         // Format 2 (screen) — Annex A.4.2 item 9, DECLINED. See ScreenFormatOf: `DISPLAY SG` used to print the
         // screen record and `DISPLAY SG COLUMN 5` used to bind as a THREE-operand device DISPLAY.
-        if (ScreenFormatOf(display.screenTail(), display.dataReference()) is { } why)
+        if (ScreenFormatOf(display.screenPositionPhrase(), display.conditionalPhrases(), display.dataReference()) is { } why)
         {
             ScreenFacility.ReportDisplayScreen(ctx.Edition, why);
             return BoundRejected.Reported(ctx.Edition);
