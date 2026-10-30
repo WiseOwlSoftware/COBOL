@@ -1,4 +1,4 @@
-## PB4124: a function argument held for left-to-right order keeps the description the unheld argument has
+## Entry 2812 — 2026-10-30 14:38 PDT — PB4124: a function argument held for left-to-right order keeps the description the unheld argument has
 
 **What was wrong.** `FUNCTION LENGTH (FUNCTION MAX (A * B, 3))` answered 4 and `FUNCTION LENGTH (FUNCTION MAX (A * B, FUNCTION UDF (A)))` answered
 8; the nested `MAX (MAX (C, 5), UDF (A))` answered 38 against 8 (C PIC 9(8)). DISPLAY of the result differed the same way (`+000000000000000000012.50000000000000000`
@@ -38,3 +38,4 @@ are not asserted: §15.4.1 leaves the description to the implementor, so the ass
 **Self-review.** Architecture: the rule lives in two named places (the binder decides what is held, `Field` decides how a held value is described), no C# text
 in a bound node. Full code: the replaced nested node keeps `ResultType` (PB4036) and `FunctionValue` through `with`. Performance: the extra recursion runs
 only for a held argument of a nested selecting call. Duplication: none added; `IsStable` and `RootOf` moved up one level to serve `Hold`.
+
