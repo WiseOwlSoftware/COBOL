@@ -1852,18 +1852,19 @@ lowercase with Annex C. Three pieces, each in one place:
   E.3.3 items 4 and 5 — the standard records no 2002→2014 change, so 2002 uses 2014's). `AnnexBCDriftTests` re-reads
   every list from `specs/ISO_COBOL.md`. A word's length is counted in characters (code points), so a combining
   character counts separately (GR4 c).
-- **Where the legality is asked (kb/Work PB3845).** `WordCharacterScreen` (Frontend/Parsing), once per compilation over the
-  lexer's token stream, whether or not the parse succeeds: every `IDENTIFIER` token that holds an underscore or a character
-  outside the basic repertoire gets the underscore gate (`user-word-underscore-2002`), the extended-letter gate and the
-  Annex B test, one report per distinct word (the Annex C fold). `IDENTIFIER` is the only token built from `NAME_BODY`, so
-  the walk covers a name slot, a phrase word and a word the grammar cannot place alike. It lives there, and not in the
-  bound-tree funnel it began in (`VisitCobolWord`), because a funnel that walks the tree never runs on a source that does
-  not parse, and the U+00A0-only line of golden `pb1660-nbsp-only-line-is-not-blank` was answered "cannot parse near
-  'STOP'" without the cause. The one text that is not words is a comment-entry (`AUTHOR. JOSÉ` is a legal '85 comment),
-  which the parse tree names by its single context `commentEntry`; the six paragraph rules call it. The directive
-  stages scan their own words and ask `CobolWordRule` themselves (a directive leaves the text before the lexer runs).
-  The reports are frontend errors, so a source with an offending word stops before the binder, as any parse-stage
-  diagnostic does.
+- **Where the legality is asked (kb/Work PB3845).** `WordCharacterScreen` (Frontend/Parsing), over the words of the
+  compilation: every `IDENTIFIER` token that holds an underscore or a character outside the basic repertoire gets the
+  underscore gate (`user-word-underscore-2002`), the extended-letter gate and the Annex B test, one report per distinct word
+  (the Annex C fold). `IDENTIFIER` is the only token built from `NAME_BODY`, so the walk covers a name slot, a phrase word
+  and a word the grammar cannot place alike. It began as a check in the bound-tree funnel (`VisitCobolWord`), which never
+  runs on a source that does not parse, so the U+00A0-only line of golden `pb1660-nbsp-only-line-is-not-blank` was
+  answered "cannot parse near STOP" without the cause. One body (`Check`), two word sources: a parse that FAILED is
+  screened by `Frontend.LexAndParseOnce` over the lexer's whole token stream (`RunOnTokens`, reporting through a frontend
+  `CursorBagSink`, next to the parse error), a parse that SUCCEEDED by `BinderDriver` over the tree's words (`RunOnTree`,
+  through the compiler's sink, so the reports sit beside the binder's own diagnostics and do not stop the compile before
+  it). The one text that is not words is a comment-entry (`AUTHOR. JOSÉ` is a legal '85 comment), which the parse tree
+  names by its single context `commentEntry`; the six paragraph rules call it. The directive stages scan their own words
+  and ask `CobolWordRule` themselves (a directive leaves the text before the lexer runs).
 - **The fold** — `CobolNames` (Runtime, because the run-time externalized-name match needs it too): `Fold`, the
   `Comparer` every name table uses, `Same` / `StartsWith` / `EndsWith` / `Contains` over spans, and `UpperFold`, a
   word's one upper-case spelling (the fold with the basic letters raised), which is the key wherever a word is

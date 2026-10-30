@@ -494,12 +494,14 @@ public sealed class Frontend
         var tree = ReservationGateRewriter.ParseToFixpoint(parser, tokens, retypes, diagnostics,
             (bag, witness) => ParsePass(parser, tokens, bag, witness, sourcePath));
 
-        // ISO §8.3.2.1 / §8.1.3.2 GR4 / Annex B.3 — the characters of every COBOL word the lexer produced, decided from the
-        // token stream and NOT in the bound-tree funnel, so that a word the grammar cannot use (the parse then fails at the
-        // NEXT token) still draws the diagnostic that names its character (kb/Work PB3845). The tree, complete or not, only
-        // says which tokens are a comment-entry's text rather than words. Reported at the word's own position.
-        WordCharacterScreen.Run(tokens.GetTokens(), tree, edition, t => new BagSink(diagnostics,
-            LineMap.Locate(t.Line, t.Column, sourcePath)));
+        // ISO §8.3.2.1 / §8.1.3.2 GR4 / Annex B.3 — the characters of every COBOL word the lexer produced. A parse that
+        // FAILED never reaches the binder driver's screen of the tree's words, and a word the grammar cannot use is exactly
+        // why it may have failed (the parse dies at the NEXT token), so the lexer's whole stream is screened here and the
+        // cause is named beside the parse error (kb/Work PB3845). The tree, partial as it is, only says which tokens are a
+        // comment-entry's text rather than words. A parse that succeeded is screened by the binder driver.
+        if (parser.NumberOfSyntaxErrors != 0)
+            WordCharacterScreen.RunOnTokens(tokens.GetTokens(), tree, edition,
+                new CursorBagSink(diagnostics, (line, column) => LineMap.Locate(line, column, sourcePath)));
 
         // ISO §8.7.1 — the arithmetic operators' own separator context, decided from the characters beside each operator
         // the PARSE TREE found (only the tree says binary, unary or no operator at all) and reported the same way
