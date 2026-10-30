@@ -36,7 +36,7 @@ public sealed class CitationAuditSelfTestDriftTests
 
     /// <summary>
     /// The CONSTRUCT-vs-CLAUSE audit: PHANTOM, SUBJECT, HEADER and the ordinal family (FORMAT, FORMAT-RULE,
-    /// FORMAT-NAME, RULE, SUBITEM), each fired on its real defect and silent on the repaired twin.
+    /// FORMAT-NAME, RULE, SUBITEM, QUOTE-RULE), each fired on its real defect and silent on the repaired twin.
     /// </summary>
     [Fact]
     public void CodeCitationAudit_ProvesEveryCheckCanFail()
@@ -44,6 +44,8 @@ public sealed class CitationAuditSelfTestDriftTests
         AssertDeclares("audit_code_citations.py",
             "(\"SUBJECT\",", "(\"HEADER\",", "(\"PHANTOM\",", "(\"FORMAT\",", "(\"RULE\",", "(\"SUBITEM\",",
             "(\"FORMAT-NAME\",", "(\"FORMAT-RULE\",",
+            // a QUOTATION resolved to its own top-level rule (kb/Work PB597): the number beside it is another rule's
+            "(\"QUOTE-RULE\",",
             // the DIAGNOSTIC-STRING family (kb/Work PB838) — a citation a USER reads, the highest cost per error
             "(\"DIAG-NO-RULE\",", "(\"DIAG-UNQUALIFIED\",",
             // every firing case is paired with a REPAIRED twin that must be silent, and the DIAGNOSTIC-STRING family

@@ -342,6 +342,40 @@ public sealed class CobolWordsDirectiveTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
+    private const string WordsTail = "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CWPB3119.\n"
+        + "       PROCEDURE DIVISION.\n       MAIN.\n           STOP RUN.\n";
+
+    /// <summary>kb/Work PB3119 — a literal slot that names a variable whose DEFINE was REFUSED adds nothing to the one
+    /// report that DEFINE made (§7.3.11.4 GR1 lets the name stand in the slot; the DEFINE already failed). The control is
+    /// the same slot over a name nobody wrote, which still says it was never defined.</summary>
+    [Fact]
+    public void LiteralSlotNamingARefusedDefine_AddsNoSecondError()
+    {
+        var errors = CompileErrors("       >>DEFINE W AS 1 +\n       >>COBOL-WORDS UNDEFINE W\n" + WordsTail);
+        Assert.Single(errors);
+        Assert.Contains("COBOL1619", errors[0]);
+
+        var control = CompileErrors("       >>COBOL-WORDS UNDEFINE W\n" + WordsTail);
+        Assert.Contains(control, e => e.Contains("COBOL1623") && e.Contains("defined before the directive"));
+    }
+
+    [Fact] // a refused REDEFINITION changed nothing: the name still stands for the value it had, and its slot is judged on it
+    public void LiteralSlotNamingARefusedRedefinition_StillReadsTheEarlierValue()
+    {
+        var errors = CompileErrors(
+            "       >>DEFINE W AS \"MOVE\"\n       >>DEFINE W AS 1 + OVERRIDE\n       >>COBOL-WORDS UNDEFINE W\n" + WordsTail);
+        Assert.Single(errors);
+        Assert.Contains("COBOL1619", errors[0]);
+    }
+
+    [Fact] // the refusal belongs to the LAST directive that wrote the name: an OFF after it makes the name genuinely undefined
+    public void LiteralSlotNamingAnOffAfterARefusal_IsUndefined()
+    {
+        var errors = CompileErrors(
+            "       >>DEFINE W AS 1 +\n       >>DEFINE W OFF\n       >>COBOL-WORDS UNDEFINE W\n" + WordsTail);
+        Assert.Contains(errors, e => e.Contains("COBOL1623"));
+    }
+
     [Fact] // GR5 end-to-end — a RESERVE'd word used as a user-defined name is COBOL0901-rejected.
     public void Reserve_UsedAsUserWord_Rejected0901()
     {

@@ -47,6 +47,16 @@ THE CHECKS, each narrow on purpose:
               are printed in the rule block itself, so this pairing is decidable with no heuristic at all.
   RULE      — `§14.9.12.3 SR6` where that clause has four syntax rules, `§14.9.47.4 GR6` where it has three.
   SUBITEM   — `§14.9.37.4 GR8b` where rule 8 has no sub-items (the serial-SEARCH VARYING rules are GR3 a)–c)).
+  QUOTE-RULE — (kb/Work PB597) the clause is right, the quotation is really in it, and the rule NUMBER beside it
+              belongs to a DIFFERENT rule: `§14.9.25.4 GR8 — "the absolute value"`, where the words are printed
+              in GR6 d) 2. b.) and GR8 is the dynamic-length rule. `cite.py --check` answers "is this sentence
+              inside that clause" and `audit_doc_citations.py` "is it filed under the right clause"; the checks
+              above compare a number to the clause's COUNT of rules. Nothing compared the number to the rule the
+              quoted words are IN, and `kb/Work/R10`'s sweep of one wrong GR covered 5 of 14 sites while all
+              three audits read zero. The fragment is resolved to its TOP-LEVEL rule with `cite.py`'s own
+              `rule_path` — the very path `cite.py --check` prints — and only the top-level number is compared,
+              because the nested-list numbering is imprecise one level down (`6) 1.` and `6) d) 2. b.` are the
+              SAME rule 6); a different TOP-LEVEL rule is the finding.
   FORMAT-NAME — the context NAMES a format of the cited clause verbatim ("data-pointer assignment") and cites a
               different ordinal. §14.9.39 was the measured case: eleven sites called the data-pointer slice
               "Format 4", which is condition-setting, and two of them were the text of COBOL0869.
@@ -105,6 +115,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation_corpus  # noqa: E402
+import cite as cite_mod  # noqa: E402  — THE one reader of the standard's printed rule paths (CLAUDE.md rule 1)
 from spec_headings import GENERAL_FORMAT_TITLE  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -667,6 +678,148 @@ def _another_clause_admits(line: str, mine: str, kind: str, num: int, sub: str |
     return False
 
 
+#: A QUOTATION beside a rule designator (QUOTE-RULE): straight or curly double quotes around at least ten
+#: characters. The words floor is `QUOTE_FLOOR`, applied to the normalized text.
+QUOTE = re.compile(r'["“]([^"”\n]{10,240})["”]')
+
+#: A rule designator as QUOTE-RULE reads it: `GR8`, `SR 3`, `rule 6`, and the range `GR12–13`. Wider than
+#: `RULE_CITE` (which owns the sub-item letter and nothing else) because the claim here is only the TOP-LEVEL
+#: number, and the prose form `rule 6` is as common as `GR6` beside a quotation. A range yields every number in it.
+QUOTE_DESIGNATOR = re.compile(r"\b(GR|SR|[Rr]ules?)\s?(\d{1,3})(?!\d)(?:\s?[–-]\s?(\d{1,3})(?!\d))?")
+
+#: What may stand BETWEEN two designators for them to be ONE citation chain (`GR4/GR6/GR9`, `GR3 c) 2. and GR5`):
+#: separators, a sub-item label, `and`/`or`. A chain is one claim that the quotation is in SOME member.
+QUOTE_CHAIN_GAP = re.compile(r"^(?:\s|[/,&–—()\-.]|and|or|[a-z]\\?\)|\d+[.)])*$")
+
+#: How far (characters) a quotation may stand from the designator chain it is read as quoting, with no other
+#: quotation, designator or clause number between them.
+QUOTE_REACH = 45
+
+#: What may stand between a designator chain and the quotation it quotes, once the clause number is removed:
+#: whitespace, brackets, dashes, colons, commas, equals and the verbs that introduce a quotation.
+QUOTE_GAP = re.compile(r"^(?:\s|[()\[\]:,=—–\-]|reads|says|is|means|states|as|from|[a-z]\\?\)|\d+[.)]|[a-z]\.)*$")
+
+#: A fragment shorter than this many WORDS is a phrase, not a quotation: "the value" sits in half the clauses
+#: of the standard, so placing it proves nothing about which rule a comment means. MEASURED against the tree
+#: when the arm landed (kb/Work PB597).
+QUOTE_FLOOR = 3
+
+#: ⛔ A RULE NUMBER OF ANOTHER TEXT IS NOT A CITATION OF THIS ONE. A repository that reconciles editions writes
+#: "the post-ballot 2002 text's clause 8.7.5.2 ends its abbreviation rules at SR8 …" — a true statement about
+#: a DRAFT's numbering, which differs from the 2023 standard's by design (kb/Work PB3602). The same calibration
+#: as `NOT_THE_STANDARD`, for the same reason: it is a short list of words, applied to the text just before the
+#: designator, and over-accepting costs nothing while accusing a correct history sentence teaches its author to
+#: delete the history. `P1`/`P2`/`P3` are the reconciliation passes' own names for the three transcriptions.
+OTHER_TEXT = re.compile(r"(?i)post-ballot|\bdrafts?\b|\bJ4\b|\bP[123]\b|COBOL[- ]?(?:85|1985|2002|2014)\b")
+OTHER_TEXT_REACH = 160
+
+#: An ELLIPSIS inside a quotation — the quotation is then not a verbatim fragment and QUOTE-RULE leaves it alone.
+_ELLIPSIS = re.compile(r"…|\.\.\.|\[\.\.\.\]")
+_SPEC_LINES = None
+
+
+def _standard():
+    """`specs/ISO_COBOL.md` as `cite.py` reads it (its lines and clause regions), loaded once and only when a
+    line carrying both a designator and a quotation asks for it."""
+    global _SPEC_LINES
+    if _SPEC_LINES is None:
+        _SPEC_LINES = cite_mod.load()
+    return _SPEC_LINES
+
+
+def quote_rules(clause: str, designator: str, fragment: str) -> tuple[str, set[int]] | None:
+    """THE RULING QUOTE-RULE MAKES: which TOP-LEVEL rules of `clause` print `fragment`. Returns
+    `(the clause the words were found in, the set of top-level rule numbers)`, or None when the clause does not
+    carry the words (a paraphrase, an elision, a different clause: other audits' business).
+
+    A rule block lives one level down from the clause the repository cites (`§14.9.25` is the statement,
+    `§14.9.25.4` its general rules), so the cited clause is tried first and then its `.3`/`.4` child that the
+    designator's kind names (`_RULE_HOME`). The top-level number is the FIRST label of `cite.rule_path` —
+    the path `cite.py --check` prints — and a line whose path does not open with `N)` (a block numbered some
+    other way, a banner, a note) contributes nothing."""
+    lines, regions = _standard()
+    needle = cite_mod.norm(fragment)
+    home = _RULE_HOME.get(designator[:2].upper())
+    for cl in (clause, *((clause + home,) if home else ()), *((clause + ".3", clause + ".4") if not home else ())):
+        hit: set[int] = set()
+        for n, _t, start, end in regions:
+            if n != cl:
+                continue
+            for i in range(start, end):
+                if _BANNER.match(lines[i]):
+                    continue      # `FORMATS 1 AND 2` heads the NEXT rule; the path walk would file it under the last
+                if needle in cite_mod.norm(lines[i]) and (m := re.match(r"(\d+)\)", cite_mod.rule_path(lines, i, start))):
+                    hit.add(int(m.group(1)))
+        if hit:
+            return cl, hit
+    return None
+
+
+def _quote_findings(site: str, line: str):
+    """QUOTE-RULE over ONE line: the rule number beside a quotation names a rule the quotation is not in.
+
+    ⛔ THE PAIRING IS THE WHOLE DISCIPLINE, because a line often cites several rules and quotes several
+    sentences, and the first draft of this arm accused 63 sites of which 5 were wrong. A designator CHAIN
+    (`QUOTE_CHAIN_GAP`: `GR4/GR6/GR9`, `GR12-13`) is one claim, and a quotation is paired to a chain only when
+    it is the ONLY chain within `QUOTE_REACH` and nothing but punctuation stands between them (`QUOTE_GAP`) -
+    not a sentence end, not a semicolon, not another clause number; a chain AFTER the quotation must be its
+    parenthetical cite. The quotation is then resolved to its top-level rule (`quote_rules`) and the chain is
+    accused only when the clause carries the words and not under any rule the chain names. A quotation with an
+    elision, one under three words, one filed under another clause just before it, and a designator belonging
+    to a draft (`OTHER_TEXT`) all say nothing: over-accepting is free, accusing a correct citation is not."""
+    quotes = [(m.start(), m.end(), m.group(1)) for m in QUOTE.finditer(line)]
+    if not quotes:
+        return []
+    chains: list[list] = []                   # [start, end, designator, {numbers}]
+    for m in QUOTE_DESIGNATOR.finditer(line):
+        hi = int(m.group(3)) if m.group(3) else int(m.group(2))
+        nums = set(range(int(m.group(2)), max(hi, int(m.group(2))) + 1))
+        if chains and QUOTE_CHAIN_GAP.match(line[chains[-1][1]:m.start()]) and m.start() - chains[-1][1] <= 16:
+            chains[-1][1] = m.end()
+            chains[-1][3] |= nums
+        else:
+            chains.append([m.start(), m.end(), m.group(1), nums])
+    out = []
+    for qs, qe, text in quotes:
+        # ONE chain per quotation, and it must be UNAMBIGUOUS: exactly one chain within reach, with nothing but
+        # punctuation (and the clause number / `ISO` the chain is filed under) between it and the quotation.
+        # Two chains in reach is prose that names several rules around one phrase
+        # (`§14.9.39.4 GR29 — "does not evaluate to a NONNEGATIVE integer". GR30's minimum-capacity clamp`,
+        # `(§13.16.3 SR1 ("Level-number may be 77 …") … plus §13.16.3 SR2's`), and which of them the phrase is
+        # about is a question only its writer can answer.
+        near = []
+        for cs, ce, kind, nums in chains:
+            if 0 <= qs - ce <= QUOTE_REACH:
+                near.append((line[ce:qs], cs, kind, nums))
+            elif 0 <= cs - qe <= QUOTE_REACH:
+                near.append((line[qe:cs], cs, kind, nums))
+        if len(near) != 1:
+            continue
+        between, cs, kind, nums = near[0]
+        if (clause := _clause_left_of(line, cs)) is None:
+            continue
+        bare = CLAUSE_TOKEN.sub("", between).replace("§", "").replace("ISO", "")
+        if not QUOTE_GAP.match(bare):
+            continue
+        if cs > qs and not re.search(r"[(\[]", bare):
+            # The chain FOLLOWS the quotation, so it must be a parenthetical cite of it — `"…" (ISO §X GR8)` — and
+            # not the next sentence's subject (`"…" §X GR1: LEAP-SECOND defaults OFF`).
+            continue
+        if any(c.group(1) != clause for c in CLAUSE_TOKEN.finditer(line[max(0, qs - QUOTE_REACH):qs])):
+            continue          # the quotation is filed under another clause cited just before it (`§8.8.1.1 "…"`)
+        if OTHER_TEXT.search(line[max(0, cs - OTHER_TEXT_REACH):cs]):
+            continue          # the rule number belongs to a draft or another edition, not to this standard
+        if _ELLIPSIS.search(text) or len(cite_mod.norm(text).split()) < QUOTE_FLOOR:
+            continue          # an elision is not a verbatim fragment; a phrase is not a quotation
+        if (found := quote_rules(clause, kind, text)) is None or nums & found[1]:
+            continue
+        where = found
+        out.append(("QUOTE-RULE", site, clause,
+                    f"§{clause} {kind} {'/'.join(map(str, sorted(nums)))} is cited beside \"{text.strip()[:60]}\", "
+                    f"which the standard prints in §{where[0]} rule {'/'.join(map(str, sorted(where[1])))}"))
+    return out
+
+
 def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, str], int] | None = None):
     formats, spans, owner = data if data is not None else ({}, {}, {})
     tops = tops if tops is not None else {}
@@ -679,6 +832,8 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
         # on its own fix and teach the next author to delete the forensics.
         if NAMED_AS_WRONG.search(line):
             continue
+        if data is not None and ('"' in line or "“" in line):
+            out += _quote_findings(site, line)
         cited_formats: list[tuple[int, str, int]] = []
         # Every format citation on the line, in order — the anchors `_owning_cite` measures a spelled format
         # NAME against. Collected BEFORE the loop so each name can be weighed against all of them.
@@ -966,6 +1121,42 @@ ORDINAL_SELF_TEST = [
      "// the >>TURN directive (§7.3.25.4) records it, and GR1 b) is therefore the activator's",
      "// §14.9.18.4 GR1 b) asks the ACTIVATOR; the >>TURN directive (§7.3.25.4) records it, and GR1 b) "
      "is therefore about the activator's profile."),
+    # ⛔ QUOTE-RULE (kb/Work PB597): the clause is right, the words are really in it, and the NUMBER is another
+    # rule's. §14.9.25.4 GR8 is the dynamic-length rule; the unsigned-magnitude sentence is GR6 d) 2. b.) —
+    # `kb/Work/R10`'s landed sweep left this verbatim shape in nine places while all three audits read zero.
+    ("QUOTE-RULE",
+     '// a data file interchanges. An UNSIGNED item holds the magnitude (§14.9.25.4 GR8 — "the absolute value").',
+     '// a data file interchanges. An UNSIGNED item holds the magnitude (§14.9.25.4 GR6 — "the absolute value").'),
+    # ... and the quotation BEFORE its parenthetical cite, the other order a comment writes it in.
+    ("QUOTE-RULE",
+     '/// An UNSIGNED receiver stores "the absolute value of the sending value" (ISO §14.9.25.4 GR8) mod 2^bits.',
+     '/// An UNSIGNED receiver stores "the absolute value of the sending value" (ISO §14.9.25.4 GR6) mod 2^bits.'),
+    # ⛔ THE DEPTH TOLERANCE the note demands: `GR6 d) 2. b.)` and `6) 1.` are the SAME top-level rule 6, so the
+    # deeper spelling of the right rule must stay silent (and the wrong top-level number, above, must not).
+    (None,
+     '// An UNSIGNED item holds the magnitude (§14.9.25.4 GR6 d) 2. b.) — "the absolute value").',
+     '// An UNSIGNED item holds the magnitude (§14.9.25.4 GR6 d) 2. b.) — "the absolute value").'),
+    # ⛔ THE SILENT CALIBRATIONS, each a shape the first draft accused and the measurement rejected (63 findings,
+    # 5 real): a BANNER (`FORMATS 1 AND 2` heads rule 4 and the path walk files it under rule 3) ...
+    (None,
+     '/// the group: §14.9.49.4 GR4 ("FORMATS 1 AND 2") selects it from the source element that contains the',
+     '/// the group: §14.9.49.4 GR4 ("FORMATS 1 AND 2") selects it from the source element that contains the'),
+    # ... TWO chains in reach of one quotation (which of them it is about is the writer's secret) ...
+    (None,
+     '// §14.9.39.4 GR29 — "does not evaluate to a NONNEGATIVE integer". GR30\'s minimum-capacity clamp',
+     '// §14.9.39.4 GR29 — "does not evaluate to a NONNEGATIVE integer". GR30\'s minimum-capacity clamp'),
+    # ... a chain that opens the NEXT sentence, not a parenthetical cite of the quotation before it ...
+    (None,
+     '+ "\\"Level-number may be 77 or 1 through 49.\\" §13.16.3 SR2 adds the one obligation that runs the other "',
+     '+ "\\"Level-number may be 77 or 1 through 49.\\" §13.16.3 SR2 adds the one obligation that runs the other "'),
+    # ... a quotation filed under ANOTHER clause cited just before it ...
+    (None,
+     '// INTEGER 0 (§8.8.1.1 "the figurative constant ZERO"; §8.3.3.6.4 GR4 — the zero format is the value 0',
+     '// INTEGER 0 (§8.8.1.1 "the figurative constant ZERO"; §8.3.3.6.4 GR4 — the zero format is the value 0'),
+    # ... and the rule numbering of a DRAFT, which differs from the 2023 standard's by design.
+    (None,
+     '| the post-ballot 2002 text has no `<>`: its clause 8.7.5.2 ends at SR8 "`<=` is an abbreviation for LESS THAN OR EQUAL TO."',
+     '| the post-ballot 2002 text has no `<>`: its clause 8.7.5.2 ends at SR8 "`<=` is an abbreviation for LESS THAN OR EQUAL TO."'),
 ]
 
 
@@ -1025,9 +1216,10 @@ def ordinal_self_test(ordinals, tops) -> bool:
     for want, defect, repaired in ORDINAL_SELF_TEST:
         fires = {k for k, _s, _c, _m in _ordinal_findings("probe", [defect], ordinals, tops)}
         quiet = {k for k, _s, _c, _m in _ordinal_findings("probe", [repaired], ordinals, tops)}
-        good = want in fires and not quiet
+        good = (want in fires if want else not fires) and not quiet
         ok &= good
-        print(f"  {'ok  ' if good else 'FAIL'} fires {want:12s} on {defect.strip()[:56]}"
+        label = f"fires {want}" if want else "silent calibration"
+        print(f"  {'ok  ' if good else 'FAIL'} {label:24s} on {defect.strip()[:56]}"
               + ("" if good else f"   (fired {sorted(fires)}, repaired twin fired {sorted(quiet)})"))
     return ok
 
