@@ -29,9 +29,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 public abstract class ConformanceSuiteTestsBase<TSlot>
     where TSlot : ITestPartitionSlot
 {
-    /// <summary>Partition count: 32, one per processor of the 32-way gate host (kb/Work PB2527). At about 12,000 rows a
-    /// partition holds about 375; <c>ConformancePartitioningDriftTests</c>' bound of 500 a partition is reached at 16,000
-    /// rows (kb/Work PB4146 derives the count from the row total).</summary>
+    /// <summary>Partition count: 32, one per processor of the 32-way gate host, raised from the corpus runner's measured
+    /// 24 (kb/Work PB2527) on 2026-10-30, when the suite reached 12,005 rows, 501 a partition at 24, over
+    /// <c>ConformancePartitioningDriftTests</c>' bound of 500. At 32 a partition holds about 375 rows, and the bound is
+    /// reached again at 16,000 rows.</summary>
     public const int Partitions = 32;
 
     [PartitionedRowSource(nameof(Tests))]
