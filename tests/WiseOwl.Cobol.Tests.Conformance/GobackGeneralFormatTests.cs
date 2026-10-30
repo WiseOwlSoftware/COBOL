@@ -146,9 +146,9 @@ public sealed class GobackGeneralFormatTests
     /// program COMPILES and the decline rides the warning channel: a parse error would deny §4.2.6 ¶3's named
     /// warning entirely, which is the conformance obligation the decline rests on.</para></summary>
     [Theory]
-    [InlineData("PBFM31", "SEND TO D-NAME FROM MSG-OUT RAISING LAST")]
-    [InlineData("PBFM32", "SEND TO D-NAME FROM MSG-OUT RAISING LAST EXCEPTION")]
-    [InlineData("PBFM33", "SEND D-NAME FROM MSG-OUT RAISING LAST")]
+    [InlineData("PBFM31", "SEND TO D-NAME FROM MSG-OUT RAISING LAST END-SEND")]
+    [InlineData("PBFM32", "SEND TO D-NAME FROM MSG-OUT RAISING LAST EXCEPTION END-SEND")]
+    [InlineData("PBFM33", "SEND D-NAME FROM MSG-OUT RAISING LAST END-SEND")]
     public void TheWordEXCEPTIONAfterLAST_IsOptionalAtTheSendSiteToo(string pid, string body)
     {
         string source = $"""

@@ -67,6 +67,9 @@ reportCodeClause
 
 // CONTROL(S) {FINAL | data-name}... (§13.18.16) — the control hierarchy (major→minor).
 reportControlClause
+    // §13.18.16.2 prints `FINAL [ data-name-1 ] …`: FINAL once, first. The binder refuses a FINAL written again or
+    // after a data-name (COBOL2421), and the grammar audit reports it as DECIDED (kb/Work PB2024):
+    // audit:repeated-word FINAL decided-by DataBinder.BindReportDescriptionClauses
     : (CONTROL IS? | CONTROLS ARE?) (FINAL | dataReference)+
     ;
 
@@ -87,6 +90,10 @@ reportControlClause
 // audit judges as a unit of its own since kb/Work PB715. GnuCOBOL demands LIMIT too; the printed page controls
 // (CLAUDE.md rule 1). A word of one alternative never joins the other's (`PAGE LIMIT ARE` stays refused).
 reportPageClause
+    // §13.18.39.3 SR4 frees the ORDER of the five trailing phrases, so `reportPageSubclause*` spells any order; each is
+    // still a bracket with no ellipsis, written once, which the binder enforces (COBOL2423, UnrepeatedElements). The
+    // grammar audit reads the next line and reports the phrases' words as DECIDED (kb/Work PB2024):
+    // audit:repeated-word HEADING FIRST DETAIL DE LAST CONTROL CH FOOTING decided-by DataBinder.BindReportDescriptionClauses
     : PAGE (LIMIT IS? | IS | LIMITS ARE? | ARE)?
       ( integerOperand (LINE | LINES) reportPageWidth?
       | integerOperand
