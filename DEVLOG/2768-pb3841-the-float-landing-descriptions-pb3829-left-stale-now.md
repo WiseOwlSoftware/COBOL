@@ -1,4 +1,4 @@
-## PB3841: the float-landing descriptions PB3829 left stale now describe the two-answer rule
+## Entry 2768 — 2026-10-29 21:04 PDT — PB3841: the float-landing descriptions PB3829 left stale now describe the two-answer rule
 
 PB3829 deleted `FixedLane`, `FromDoubleBounded`, `IntrinsicCodomain` and the third `FloatLanding` arm and did not sweep their descriptions. This change is documentation and doc comments only; no behavior moved, so no golden was added.
 
@@ -12,3 +12,4 @@ PB3829 deleted `FixedLane`, `FromDoubleBounded`, `IntrinsicCodomain` and the thi
 **Sibling sweep.** Present-tense descriptions of the deleted nested `max(Receiver.Scale, 9)` landing in `NumericRenderer.Power`, `IntrinsicRenderer.RenderFloat`, `NumericRenderer.Fold`, `OperandText` and the `CobolIntrinsics` Int128 remark were rewritten to the PB653 rule. A grep for `FixedLane`, `FromDoubleBounded`, `IntrinsicCodomain`, `CodomainConst` and `pb65_codomain_clamp` over `src/` and `docs/` now finds only history (frozen census evidence, the dated plan narrative, dated clauses in the design doc).
 
 **Rows.** None claimed, none closed (`closes_rows: []` with a reason). PB3841 is `landed`.
+
