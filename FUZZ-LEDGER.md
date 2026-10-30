@@ -4,11 +4,11 @@
 
 **WiseOwl COBOL** is a new compiler for COBOL, the programming language that much of the world's banking, insurance and government software is still written in. It is being built largely by AI coding agents working under one engineer's supervision, and its goal is to follow the international COBOL standard, ISO/IEC 1989, exactly. **GnuCOBOL** is the established free, open-source COBOL compiler, maintained for more than twenty years.
 
-This page tracks a nightly test called **differential fuzzing**. An AI model picks sections of the standard at random, each one defining a COBOL statement, built-in function, data-description clause or kind of expression, and writes small test programs that use what that section defines. Both compilers run every one of those thousands of programs. When the two give different answers, at least one of them is wrong, or the standard allows both answers. Each disagreement is then settled by reading the standard itself, never by trusting either compiler. The totals below run from 2026-10-20 to 2026-10-28.
+This page tracks a nightly test called **differential fuzzing**. An AI model picks sections of the standard at random, each one defining a COBOL statement, built-in function, data-description clause or kind of expression, and writes small test programs that use what that section defines. Both compilers run every one of those thousands of programs. When the two give different answers, at least one of them is wrong, or the standard allows both answers. Each disagreement is then settled by reading the standard itself, never by trusting either compiler. The totals below run from 2026-10-20 to 2026-10-29.
 
-> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Ledger version 786bf648b722. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
+> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Ledger version 118421220031. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
 
-**8** nights of testing · **44,256** test programs written and run · **12,583** on which the two compilers disagreed · **24** bugs found in WiseOwl · **24** of those bugs fixed · **77** bugs recorded in GnuCOBOL
+**9** nights of testing · **51,107** test programs written and run · **14,484** on which the two compilers disagreed · **25** bugs found in WiseOwl · **24** of those bugs fixed · **79** bugs recorded in GnuCOBOL
 
 ## How a night of testing works
 
@@ -48,6 +48,7 @@ Colours, left to right: WiseOwl was wrong · WiseOwl was right · GnuCOBOL was w
 | Night 6 | 2026-10-26 | qwen3.6:35b | 6,646 | 4,183 | 1,863 | 328 | 0 | itemized |
 | Night 7 | 2026-10-27 | qwen3.6:35b | 6,457 | 4,010 | 1,798 | 330 | 2 | itemized |
 | Night 8 | 2026-10-28 | qwen3.6:35b | 4,350 | 2,779 | 1,276 | 272 | 0 | itemized |
+| Night 9 | 2026-10-29 | qwen3.6:35b | 6,851 | 4,308 | 1,901 | 324 | 1 | itemized |
 
 ## Decisions, night by night
 
@@ -59,6 +60,7 @@ Colours, left to right: WiseOwl was wrong · WiseOwl was right · GnuCOBOL was w
 | Night 6 | 1 / 3 | 123 / 1,202 | 59 / 296 | 42 / 163 | 0 / 0 | 11 / 28 | 17 / 71 | 7 / 10 |
 | Night 7 | 2 / 7 | 103 / 1,104 | 70 / 296 | 64 / 192 | 0 / 0 | 11 / 32 | 9 / 55 | 11 / 11 |
 | Night 8 | 0 / 0 | 87 / 753 | 55 / 238 | 62 / 173 | 0 / 0 | 6 / 18 | 7 / 31 | 7 / 9 |
+| Night 9 | 1 / 13 | 93 / 1,037 | 70 / 358 | 75 / 332 | 0 / 0 | 11 / 26 | 5 / 41 | 12 / 12 |
 
 Groups of disagreements / programs in them. "Both allowed by the standard" means the standard leaves that detail to each compiler, so both answers are correct.
 
@@ -76,7 +78,7 @@ Groups of disagreements / programs in them. "Both allowed by the standard" means
 | Night 2 | [PB3523](kb/Work/PB3523.md) | test-harness bug | landed | the fuzz generator's prompt yields a program both compilers refuse 47 % of the time, every such program exhausts its three repair rounds, and about… |
 | Night 3 | [PB3562](kb/Work/PB3562.md) | compiler bug | landed | a boolean function sender in a group MOVE copies its '0'/'1' text carrier, not its usage-bit image: MOVE FUNCTION BOOLEAN-OF-INTEGER(255 8) TO an a… |
 | Night 3 | [PB3563](kb/Work/PB3563.md) | compiler bug | landed | a MOVE into a level-66 RENAMES ... THROUGH alias converts the numeric DISPLAY leaf it spans when that leaf is also referenced by its own name: MOVE… |
-| Night 3 | [PB3564](kb/Work/PB3564.md) | compiler bug | landed | the implicit filler bits after a USAGE BIT item in an alphanumeric group have no storage: MOVE \"AB\" TO G1 (a PIC 1 bit item then a PIC X) display… |
+| Night 3 | [PB3564](kb/Work/PB3564.md) | compiler bug | landed | the implicit filler bits after a USAGE BIT item in an alphanumeric group have no storage: MOVE "AB" TO G1 (a PIC 1 bit item then a PIC X) displays… |
 | Night 3 | [PB3565](kb/Work/PB3565.md) | compiler bug | landed | COMPUTE boolean-receiver = FUNCTION boolean-function is refused with COBOL1511 although a sole boolean function-identifier is a boolean expression… |
 | Night 3 | [PB3566](kb/Work/PB3566.md) | compiler bug | landed | the numeric literal zero as the VALUE of a numeric-edited item is accepted at COBOL-2002 and COBOL-2014 (DataBinder.ScreenNumericEditedNumericLiter… |
 | Night 3 | [PB3567](kb/Work/PB3567.md) | compiler bug | landed | a positive signed numeric literal as the VALUE of an unsigned item is accepted at every edition (PIC 9(4) VALUE +5 compiles and prints 0005): DataB… |
@@ -91,8 +93,9 @@ Groups of disagreements / programs in them. "Both allowed by the standard" means
 | Night 5 | [PB3831](kb/Work/PB3831.md) | compiler bug | landed | `CLASS IS BOOLEAN` on a data item draws COBOL0901 ('BOOLEAN is a reserved word ... used as a user-defined word') where the declined VALIDATE facili… |
 | Night 5 | [PB3832](kb/Work/PB3832.md) | compiler bug | landed | COBOL2072 tells the user an IF lacks its imperative-statement when the fault is `LENGTH OF`: `IF LENGTH OF WS-OUT = 30` draws it only after an open… |
 | Night 6 | [PB3869](kb/Work/PB3869.md) | not a bug after all | retired | an arithmetic statement written with ONLY a NOT ON SIZE ERROR phrase keeps an overflowing receiver unchanged and continues, checking off: §14.6.13.… |
-| Night 7 | [PB3996](kb/Work/PB3996.md) | compiler bug | landed | a Format 1 CALL accepts OMITTED with no diagnostic: `CALL \"P\" USING W OMITTED`, `USING BY REFERENCE OMITTED` and `USING BY CONTENT W OMITTED` com… |
+| Night 7 | [PB3996](kb/Work/PB3996.md) | compiler bug | landed | a Format 1 CALL accepts OMITTED with no diagnostic: `CALL "P" USING W OMITTED`, `USING BY REFERENCE OMITTED` and `USING BY CONTENT W OMITTED` compi… |
 | Night 7 | [PB3997](kb/Work/PB3997.md) | compiler bug | landed | a VALUE literal outside a fixed-width binary usage's range is accepted with no diagnostic: BINARY-CHAR VALUE 255 / -129, BINARY-CHAR UNSIGNED VALUE… |
+| Night 9 | [PB4096](kb/Work/PB4096.md) | compiler bug | owner | TEST-NUMVAL-F returns LENGTH + 1 when the exponent's sign is followed by a character in error: TEST-NUMVAL-F("12.34E+AB") returns 10 where §15.95.4… |
 | Run of 2026-10-22 | [PB3537](kb/Work/PB3537.md) | test-harness bug | landed | the fuzz harness spends the whole 6,000-token cap on a reply that degenerates into an enumeration loop (hundreds of data items differing only by a… |
 | Run of 2026-10-22 | [PB3538](kb/Work/PB3538.md) | compiler bug | landed | a COMPUTE with four or more chained divisions (A / B / B / B / B), or a product of quotients ((A / B) * (A / B) * (A / B)), ends the run unit with… |
 
@@ -105,5 +108,6 @@ Every note the testing filed on the WiseOwl side, including a run that stopped b
 | 2026-10-27 | 65 |
 | 2026-10-28 | 7 |
 | 2026-10-29 | 5 |
+| 2026-10-30 | 2 |
 
 The testing also checks the reference compiler: the GnuCOBOL bugs it found, by the day each was written up.
