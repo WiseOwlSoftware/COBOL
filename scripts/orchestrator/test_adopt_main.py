@@ -235,6 +235,31 @@ r = subprocess.run([sys.executable, str(HERE / "plan_wave.py"), "--budget-points
                    capture_output=True, text=True, encoding="utf-8")
 check("plan_wave.py refuses a checkout behind the adopted commit (exit 2)", (r.returncode, "behind the commit the loop adopted" in r.stdout), (2, True))
 
+# 10. A FETCH RUNNING ELSEWHERE IN THE REPOSITORY (kb/Work PB4046): every worktree shares refs/remotes/origin/main, and a
+#     `git fetch` that is updating it holds its lock. The landing lane's survey fetched in this very checkout while the
+#     supervisor adopted, and the adoption lost the race ("cannot lock ref") and kept the old commit for a whole unit (CI
+#     merge-group runs 40918334805 and 40987962746). The adoption's own fetch writes only its private ref, so the shared
+#     ref's lock, held for as long as the case runs, costs it nothing; no timing is involved. A landing comes first, so
+#     origin's main is ahead of every ref here and a fetch that wrote the shared ref would have to take its lock.
+land("a landing while another fetch runs", {"kb/Work/PB4046.md": "the race\n"})
+gitdir = pathlib.Path(scratch.git("rev-parse", "--absolute-git-dir"))
+tracking = scratch.git("rev-parse", "refs/remotes/origin/main")
+fetch_head = (gitdir / "FETCH_HEAD").read_bytes() if (gitdir / "FETCH_HEAD").exists() else None
+lock = gitdir / "refs" / "remotes" / "origin" / "main.lock"
+lock.parent.mkdir(parents=True, exist_ok=True)
+lock.write_text(tracking + "\n", encoding="utf-8", newline="\n")   # what a concurrent fetch holds while it updates the ref
+try:
+    r = am.adopt(REPO, COORD, GREEN)
+finally:
+    lock.unlink()
+check("a concurrent fetch's lock on refs/remotes/origin/main does not keep the adoption",
+      (r.action, head(), r.reason if r.action == am.KEPT else ""), (am.ADOPTED, lander.git("rev-parse", "HEAD"), ""))
+check("... the adoption wrote neither the shared remote-tracking ref nor FETCH_HEAD, only its own ref",
+      (scratch.git("rev-parse", "refs/remotes/origin/main"),
+       (gitdir / "FETCH_HEAD").read_bytes() if (gitdir / "FETCH_HEAD").exists() else None,
+       scratch.git("rev-parse", am.FETCH_REF)),
+      (tracking, fetch_head, lander.git("rev-parse", "HEAD")))
+
 remove_tree(TMP)   # the scratch repository, its origin, the lander's clone and the coordination
 if fails:
     print("\n".join("FAIL: " + f for f in fails))

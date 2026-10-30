@@ -353,6 +353,25 @@ public static class DiagnosticCatalog
         + "Format 1's), so each is required the same way (kb/Work PB2024).",
         "ISO §14.9.34.2 · §14.9.38.2 · §5.2.2 · §5.2.6.2");
 
+    /// <summary>COBOL5488 — a SEND statement that writes phrases only its two DIFFERENT general formats print
+    /// (kb/Work PB4090). §14.9.38.2 prints Format 1 (to-message-server) as <c>SEND TO { literal-1 |
+    /// message-server-name-1 } FROM identifier-1 RETURNING data-name-1</c> and Format 2 (message-server-response) as
+    /// <c>SEND TO data-name-2 FROM identifier-1 [ RAISING … ]</c>: RETURNING is Format 1's and RAISING is Format 2's,
+    /// literal-1 is a Format 1 operand and a message-tag data-name-2 a Format 2 one. A statement is written in ONE
+    /// format (§5.2.1), so one that carries a phrase of each is in neither. The grammar keeps the two tails optional
+    /// in one rule (a parse error could not name the format), so the binder classifies the statement and names the
+    /// two phrases that disagree.</summary>
+    public static readonly DiagnosticDescriptor SendPhrasesOfTwoFormats = new(
+        "COBOL5488", "send-phrases-of-two-formats", EditionSeverity.Error,
+        "A SEND statement is written with phrases of both of its general formats. ISO §14.9.38.2 prints RETURNING "
+        + "data-name-1 in Format 1 (to-message-server) alone and RAISING in Format 2 (message-server-response) alone; "
+        + "an operand that is literal-1 or a message-server-name-1 belongs to Format 1, and a message-tag data-name-2 "
+        + "to Format 2 (§14.9.38.3 SR2, SR4). Words, phrases and operands are written in the sequence given in ONE "
+        + "general format (§5.2.1), so a statement that carries a phrase of each is in neither. Write the statement "
+        + "in Format 1 (TO { literal-1 | message-server-name-1 } FROM identifier-1 RETURNING data-name-1) or in "
+        + "Format 2 (TO data-name-2 FROM identifier-1 [ RAISING … ]).",
+        "ISO §14.9.38.2 · §14.9.38.3 SR2, SR4 · §5.2.1");
+
     public static readonly DiagnosticDescriptor RedefinesPointerObject = new(
         "COBOL1697", "redefines-pointer-object", EditionSeverity.Error,
         "ISO §13.18.44.3 syntax rule 12: \"The REDEFINES clause shall not be specified for a data item of "

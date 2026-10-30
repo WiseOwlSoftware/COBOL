@@ -19,6 +19,7 @@
        01 WS-TAG PIC X(8).
        01 WS-MSG PIC X(80).
        01 WS-LEN PIC 9(4).
+       01 WS-REPLY PIC X(8).
        PROCEDURE DIVISION.
        M1.
            RECEIVE FROM WS-TAG GIVING WS-MSG WS-LEN
@@ -26,7 +27,7 @@
                ON EXCEPTION DISPLAY "EXC"
                NOT ON EXCEPTION DISPLAY "OK"
            END-RECEIVE.
-           SEND TO WS-TAG FROM WS-MSG
+           SEND TO WS-SRV FROM WS-MSG RETURNING WS-REPLY
                ON EXCEPTION DISPLAY "EXC"
            END-SEND.
            STOP RUN.
