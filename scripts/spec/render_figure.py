@@ -31,6 +31,7 @@ import math
 import pathlib
 import re
 import sys
+from typing import NamedTuple
 
 from spec_headings import GENERAL_FORMAT_TITLE   # THE one spelling of the heading (kb/Work PB284)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
@@ -193,8 +194,19 @@ def split_fused(page, words):
     return out
 
 
-def enclosures(glyphs, stems):
-    """Every OPENING delimiter paired with its CLOSING one, as (x_open, x_close, top, bottom, stems).
+class Enclosure(NamedTuple):
+    """One printed delimiter pair: an opener, the closer `enclosures` matched to it, and the band it encloses."""
+    x_open: float
+    x_close: float
+    top: float                  # the y at or below which a row is enclosed
+    bottom: float | None        # the y at or above which a row is enclosed; None for a glyph delimiter
+    stems: tuple                # the pair's two vector stems, (None, None) for a glyph delimiter
+    family: str                 # "bracket" or "bar" (vector stems), "brace" or "paren" (Symbol-face glyphs)
+    low: float                  # the lowest y the opener itself reaches: a stem's foot, a glyph's bottom piece
+
+
+def enclosures(glyphs, stems) -> list[Enclosure]:
+    """Every OPENING delimiter paired with its CLOSING one, as an `Enclosure`.
 
     `top` is the y at or below which a row is enclosed, exactly as the span tests draw it: a brace's or a
     parenthesis' top piece less HOOK_REACH (`hook_row`), a bracket stem's top less TOP_SLACK (`covers`).
@@ -238,7 +250,7 @@ def enclosures(glyphs, stems):
                 open_.append(d)
             continue
         o = open_.pop(match)
-        out.append((o[0], x, o[5], o[6], (o[7], stem)))
+        out.append(Enclosure(o[0], x, o[5], o[6], (o[7], stem), family, o[4]))
     return out
 
 
@@ -266,15 +278,15 @@ def place_rows(rowof, words, encl):
     lo_of, hi_of = {}, {}
     for w in words:
         y, lo, hi = w["y0"], -math.inf, math.inf
-        for xo, xc, top, bottom, _ in encl:
-            if not xo < w["x0"] < xc:
+        for e in encl:
+            if not e.x_open < w["x0"] < e.x_close:
                 continue
-            if y < top:
-                hi = min(hi, math.nextafter(top, -math.inf))
-            elif bottom is not None and y > bottom:
-                lo = max(lo, math.nextafter(bottom, math.inf))
+            if y < e.top:
+                hi = min(hi, math.nextafter(e.top, -math.inf))
+            elif e.bottom is not None and y > e.bottom:
+                lo = max(lo, math.nextafter(e.bottom, math.inf))
             else:
-                lo, hi = max(lo, top), min(hi, math.inf if bottom is None else bottom)
+                lo, hi = max(lo, e.top), min(hi, math.inf if e.bottom is None else e.bottom)
         lo_of[y], hi_of[y] = max(lo_of.get(y, -math.inf), lo), min(hi_of.get(y, math.inf), hi)
     groups = collections.defaultdict(list)
     for v, r in rowof.items():
@@ -442,7 +454,7 @@ def build(page, lo, hi, extract, classify_page):
     # next alternative, and drew down through it past their own brace (kb/Work PB3530). The rows between the
     # first and the last row holding a word between the pair's two stems are the span; a stem with no partner
     # keeps the rows its height admits.
-    held_between = {id(st): (xo, xc) for xo, xc, _, _, pair in encl for st in pair if st is not None}
+    held_between = {id(st): (e.x_open, e.x_close) for e in encl for st in e.stems if st is not None}
 
     def covers(s):
         span = [rindex[y] for y in rows if s["y0"] - TOP_SLACK <= y <= s["y1"] - BOTTOM_INSET]

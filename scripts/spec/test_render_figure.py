@@ -551,26 +551,30 @@ def unit_failures():
     # Choice bars have no hand: the second bar of a height closes the first.
     bars = [{"x": 5, "y0": 0, "y1": 30, "h": 30, "kind": "bar", "side": None},
             {"x": 50, "y0": 0, "y1": 30, "h": 30, "kind": "bar", "side": None}]
-    got = [(xo, xc, pair == (bars[0], bars[1])) for xo, xc, _, _, pair in R.enclosures([], bars)]
-    if got != [(5, 50, True)]:
-        fails.append(f"enclosures: a pair of choice bars paired as {got}, want [(5, 50, True)]")
+    got = [(e.x_open, e.x_close, e.stems == (bars[0], bars[1]), e.family) for e in R.enclosures([], bars)]
+    if got != [(5, 50, True, "bar")]:
+        fails.append(f"enclosures: a pair of choice bars paired as {got}, want [(5, 50, True, 'bar')]")
+    # Each pair names its family and how low its opener reaches, which is where a glyph delimiter's band ends.
+    got = sorted((e.x_open, e.family, e.low) for e in R.enclosures(nested, []))
+    if got != [(0, "brace", 60), (10, "brace", 45)]:
+        fails.append(f"enclosures: nested braces paired as (x, family, low) {got}, want [(0, brace, 60), (10, brace, 45)]")
 
     # A row keeps its words together: a held word below its hook moves the WHOLE row inside, and the word beside
     # the enclosure goes with it (review R1-1: `CODE-SET` was torn off the row of `FOR ALPHANUMERIC`).
     words = [{"text": "beside", "x0": 0, "y0": 100.0}, {"text": "held", "x0": 30, "y0": 103.9}]
-    encl = [(20, 60, 103.0, None, (None, None))]
+    encl = [R.Enclosure(20, 60, 103.0, None, (None, None), "brace", 120.0)]
     rowof = R.place_rows(R.cluster([100.0, 103.9], 4.0), words, encl)
     if rowof[100.0] != rowof[103.9] or rowof[103.9] < 103.0:
         fails.append(f"place_rows: a row holding a word below its hook was not moved inside whole: {rowof}")
     # A row whose average already agrees with every word is left where it is.
     words = [{"text": "alongside", "x0": 0, "y0": 100.0}, {"text": "held", "x0": 30, "y0": 102.2}]
-    encl = [(20, 60, 101.0, None, (None, None))]
+    encl = [R.Enclosure(20, 60, 101.0, None, (None, None), "brace", 120.0)]
     rowof = R.place_rows(R.cluster([100.0, 102.2], 4.0), words, encl)
     if rowof[100.0] != rowof[102.2] or rowof[100.0] != 101.1:
         fails.append(f"place_rows: a row whose average already agrees with the held word was moved: {rowof}")
     # Only words that cannot share one row are split: one inside the hook and one above it, between the same pair.
     words = [{"text": "above", "x0": 25, "y0": 100.0}, {"text": "held", "x0": 30, "y0": 103.9}]
-    encl = [(20, 60, 103.0, None, (None, None))]
+    encl = [R.Enclosure(20, 60, 103.0, None, (None, None), "brace", 120.0)]
     rowof = R.place_rows(R.cluster([100.0, 103.9], 4.0), words, encl)
     if not (rowof[100.0] < 103.0 <= rowof[103.9]):
         fails.append(f"place_rows: two words that cannot share a row across a hook were not split: {rowof}")
