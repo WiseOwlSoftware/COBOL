@@ -571,12 +571,14 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // (#7). ARITHMETIC statements are EXCLUDED below (IArithmeticStatement): EmitArith owns their §14.7.5 shape
         // (phrase, EC-SIZE handling, fatal default) and a second guard would dispatch the same condition twice.
         ("EC-SIZE-OVERFLOW", null),                             // §14.7.5 cases 5/7 — an intermediate past its range
+        ("EC-SIZE-UNDERFLOW", null),                            // §14.7.5 cases 5/7 — a nonzero intermediate nearer to zero than its range (kb/Work PB4092: the row was missing, so the condition the checked binary64 operators raise reached no declarative)
         ("EC-SIZE-ZERO-DIVIDE", null),                          // §14.7.5 case 2 — a zero divisor
         ("EC-SIZE-EXPONENTIATION", null),                       // §14.7.5 case 1 — the exponentiation rules violated
         // The EC-SIZE family's one RUN-TIME reader is the report compose a GENERATE or TERMINATE runs, compiled outside
-        // every statement: those two statements alone carry it there (ExceptionState.SizeChecking for any EC-SIZE-* name,
-        // SizeTruncationChecking for this one), through this same OpenGateFlags scope (ReportWriterEmitter.EmitPresenting,
-        // kb/Work PB4031) — every other render and store selects its kernel at compile time. These rows stay null-flagged.
+        // every statement: those two statements alone carry it there (ExceptionState.SizeOverflowChecking,
+        // SizeUnderflowChecking and SizeTruncationChecking, one per name — EcState.SizeCheckRows), through this same
+        // OpenGateFlags scope (ReportWriterEmitter.EmitPresenting, kb/Work PB4031, PB4092) — every other render and store
+        // selects its kernel at compile time. These rows stay null-flagged.
         ("EC-SIZE-TRUNCATION", null),                           // §14.7.4.3 r7 / §11.9.11.2 r3d — a PROHIBITED-inexact intermediate
     ];
 

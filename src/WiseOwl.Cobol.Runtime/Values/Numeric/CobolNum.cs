@@ -796,16 +796,23 @@ public static partial class CobolNum
     /// carries an ON SIZE ERROR phrase and (kb/Work PB91) in the receiver-less renders of an EC-SIZE-checked
     /// statement — elsewhere an add stays a bare unchecked <c>+</c>. (A product has no checked twin: the renderer forms
     /// one whose digit bound may leave the carrier exactly, on the 256-bit lane or the SDIDI, kb/Work PB1143, PB3538.) Raises
-    /// <see cref="CobolSizeError"/> (the size error condition), never a bare OverflowException.</summary>
-    public static Int128 AddChecked(Int128 a, Int128 b)
+    /// <see cref="CobolSizeError"/> (the size error condition), never a bare OverflowException.
+    /// <para><paramref name="taken"/> (kb/Work PB4092): the raise is EC-SIZE-OVERFLOW, so it stands only where that
+    /// condition's checking is enabled; without <see cref="SizeChecks.Overflow"/> the not-enabled disposition is the bare
+    /// operator's wrap (DOC-A.1-70), exactly as in a statement that checks nothing. A statement chooses this kernel at
+    /// compile time only when it takes the condition; the report compose, compiled once for every presenting statement,
+    /// passes the presenting statement's enablement at run time.</para></summary>
+    public static Int128 AddChecked(Int128 a, Int128 b, SizeChecks taken)
     {
+        if ((taken & SizeChecks.Overflow) == 0) return unchecked(a + b);
         try { return checked(a + b); }
         catch (OverflowException) { throw new CobolSizeError("intermediate sum exceeds the Int128 carrier", "EC-SIZE-OVERFLOW"); }
     }
 
     /// <inheritdoc cref="AddChecked"/>
-    public static Int128 SubChecked(Int128 a, Int128 b)
+    public static Int128 SubChecked(Int128 a, Int128 b, SizeChecks taken)
     {
+        if ((taken & SizeChecks.Overflow) == 0) return unchecked(a - b);
         try { return checked(a - b); }
         catch (OverflowException) { throw new CobolSizeError("intermediate difference exceeds the Int128 carrier", "EC-SIZE-OVERFLOW"); }
     }

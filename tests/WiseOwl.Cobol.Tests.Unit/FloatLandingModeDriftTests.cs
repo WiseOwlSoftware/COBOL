@@ -42,7 +42,7 @@ public sealed class FloatLandingModeDriftTests
     }
 
     private static ReceiverContext Rcv(int intDigits, int scale, CobolRounding mode) =>
-        new(scale, Real: false, mode, InSizeError: false, IntegerDigits: intDigits);
+        new(scale, Real: false, mode, Checks: SizeChecks.None, IntegerDigits: intDigits);
 
     /// <summary>
     /// INVARIANT 1 — THE FINAL TRANSFER LANDS AT THE RESULTANT IDENTIFIER'S OWN SCALE, WITH ITS OWN MODE.
