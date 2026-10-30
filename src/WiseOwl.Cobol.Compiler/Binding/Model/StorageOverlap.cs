@@ -32,6 +32,10 @@ public static class StorageOverlap
         return false;
     }
 
+    /// <summary>The same question for a data item READ BY VALUE (a reference-modifier position an operand evaluates)
+    /// against a reference: true unless the item is provably disjoint from the storage under <paramref name="b"/>.</summary>
+    public static bool MayShareStorage(DataItem a, Place b) => StorageItems(b).Any(y => MayShareStorage(a, y));
+
     private static IEnumerable<DataItem> StorageItems(Place place)
     {
         var core = place.Undecorated;
