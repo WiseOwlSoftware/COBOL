@@ -247,7 +247,7 @@ tracking = scratch.git("rev-parse", "refs/remotes/origin/main")
 fetch_head = (gitdir / "FETCH_HEAD").read_bytes() if (gitdir / "FETCH_HEAD").exists() else None
 lock = gitdir / "refs" / "remotes" / "origin" / "main.lock"
 lock.parent.mkdir(parents=True, exist_ok=True)
-lock.write_text(tracking + "\n", encoding="utf-8")   # what a concurrent fetch holds while it updates the ref
+lock.write_text(tracking + "\n", encoding="utf-8", newline="\n")   # what a concurrent fetch holds while it updates the ref
 try:
     r = am.adopt(REPO, COORD, GREEN)
 finally:
