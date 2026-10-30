@@ -1,4 +1,4 @@
-## Filed the leads of eight fix-lane reports as PB4151-PB4163
+## Entry 2814 — 2026-10-30 14:56 PDT — Filed the leads of eight fix-lane reports as PB4151-PB4163
 
 The lead-filing clerk (units/enqueue.md step 5) turned the new defects and the non-blocking review leads of eight finished fix-lane reports into thirteen `kb/Work/` notes and one extension. No code changed.
 
@@ -14,3 +14,4 @@ The lead-filing clerk (units/enqueue.md step 5) turned the new defects and the n
 - PB4025 extended: the PB1906 report's carried-over inert-watch flake is a second sighting of PB4025's.
 
 Skipped: PB4146's R1-1 and R1-2 are already held by PB4149 (open); PB1906's `LENGTH OF V (1)` item is held by PB2867 (landed: `LENGTH OF V (1)` measuring V itself stays the SR4 cycle); PB4126 (R1-2 answered fixed), PB4092 (an observation), PB851, PB4096 carry no lead (PB4096's partition-bound lead rests on PB4146, which is not yet landed: its pull request #844 is queued).
+
