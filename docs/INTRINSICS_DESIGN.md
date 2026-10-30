@@ -603,10 +603,13 @@ change, and the held call must answer, for DISPLAY, `LENGTH` and `BYTE-LENGTH`, 
 numeric intermediate result item does not: (1) an argument that is an arithmetic expression or a `Value`-form function is held in a
 `FunctionValueSeparator`-flagged temporary, and `FunctionDeviceText.Field` describes THAT temporary by its value (`ValueField`), as it
 describes the argument it replaced, never by the temporary's own digits (`LENGTH (MAX (A * B, UDF (A)))` was 8 where `LENGTH (MAX (A * B, 3))` was 4);
-(2) a nested function whose returned value copies an argument's item (`FunctionDeviceForm.Argument`: ABS, MAX, MIN, MEDIAN, MEAN;
-`FixedDigits`: DATE-OF-INTEGER) cannot be held as a value, because the copy's description is chosen at run time by which argument it
+(2) a nested function whose returned value copies an argument's item (`FunctionDeviceForm.Argument`: ABS, MAX, MIN, MEDIAN, MEAN)
+cannot be held as a value, because the copy's description is chosen at run time by which argument it
 copies, so `ArgumentOrder.Hold` holds the nested call's own arguments (recursively) at the nested argument's place and the call is read
-over them (`NeedsItsArguments` names every `FunctionDeviceForm`, so a new form must say which kind it is). A user-defined function's argument
+over them (`ReadsArgumentDescriptions` names every `FunctionDeviceForm`, so a new form must say which kind it is). DATE-OF-INTEGER and
+DAY-OF-INTEGER (`FixedDigits`) are described by digits no argument decides, so they ARE held as a value, at their place (a fatal
+EC-ARGUMENT-FUNCTION of an earlier argument is raised before a later activation, GR2), and the held temporary carries the digits
+(`DataItem.FunctionDeviceDigits`, read by `FunctionDeviceText.Field`). A user-defined function's argument
 is read for its value alone and is still held as a value. A nested call that names a table(ALL) argument (no recorded operand, enumerated
 where the call renders) is still held as a value, and its description is the value's: `HeldFunctionArgumentDescriptionTests` pins the
 agreement over 22 argument shapes and the conformance golden `pb4124_held_function_argument_keeps_description` over six measurements and

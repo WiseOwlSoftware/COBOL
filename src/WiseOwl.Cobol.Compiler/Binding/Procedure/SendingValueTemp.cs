@@ -427,6 +427,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // default rather than being stamped with a bound no rule gives it (kb/Work PB463).
         temp.IsDynamicLength = model.DynLimit > 0;
         if (model.FunctionValue) temp.FunctionValueSeparator = ctx.Data.DecimalSeparator;   // PB2507: the unit's spelling of the literal form
+        temp.FunctionDeviceDigits = model.DeviceDigits;   // PB4124: DATE-OF-INTEGER's fixed digits, kept by a held argument
         temp.HoldsApproximation = model.Approximation;   // PB1606: every read of it is the returned value's read
         if (temp.IsDynamicLength) temp.DynMaxSize = model.DynLimit;
         if (ctx.Refs.ResolveItem(temp) is not { } place) return null;
@@ -604,8 +605,9 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <paramref name="FunctionValue"/> marks the §15.4 temporary of a NUMERIC function's returned value, whose
     /// character image is DOC-A.1-92's literal form (<see cref="DataItem.FunctionValueSeparator"/>);
     /// <paramref name="Approximation"/> marks the binary64 intermediate of a float-family value
-    /// (<see cref="DataItem.HoldsApproximation"/>).</summary>
-    private readonly record struct TempModel(DataItem Item, int DynLimit, bool FunctionValue = false, bool Approximation = false);
+    /// (<see cref="DataItem.HoldsApproximation"/>); <paramref name="DeviceDigits"/> the fixed digits of a <c>FixedDigits</c> function's
+    /// item (<see cref="DataItem.FunctionDeviceDigits"/>, kb/Work PB4124).</summary>
+    private readonly record struct TempModel(DataItem Item, int DynLimit, bool FunctionValue = false, bool Approximation = false, int? DeviceDigits = null);
 
     /// <summary>⛔ THE ONE description derivation — every <see cref="BoundOperand"/> leaf is named, so a leaf
     /// added tomorrow is a COMPILE error here rather than a silent fall-through to "no hoist" (the
@@ -700,7 +702,9 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             var pic = IntermediatePic(c, use);
             return new TempModel(
                 new DataItem { Level = 1, CobolName = "__SENDVAL-FN", CsName = "__sendvalFn", Pic = pic },
-                DynLimit: 0, FunctionValue: true, Approximation: pic.IsFloat && IsBinary64Approximation(c));
+                DynLimit: 0, FunctionValue: true, Approximation: pic.IsFloat && IsBinary64Approximation(c),
+                DeviceDigits: c.Expr is BoundIntrinsicCall { Sig.DeviceForm: FunctionDeviceForm.FixedDigits } fixedDigits
+                    ? fixedDigits.Sig.DeviceDigits : null);
         }
         return CharacterCarrier("__SENDVAL-FNS", "__sendvalFns", cat, CharacterUsage(cat), FunctionTextLimit);
     }
