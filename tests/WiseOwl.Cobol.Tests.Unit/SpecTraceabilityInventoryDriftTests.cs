@@ -6,7 +6,9 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Tests.Shared;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -746,10 +748,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     /// <summary>
-    /// The CODE of a file, for symbol resolution (<see cref="SymbolResolves"/>): a C# file's tokens, so a comment,
-    /// a doc comment and a disabled region are not code but a string literal is (a construct id or a diagnostic
-    /// code is legitimately anchored in the string that carries it); a grammar file's text with its <c>//</c> and
-    /// <c>/* */</c> comments removed; any other file's whole text. Parsed once per file per process.
+    /// The CODE of a NON-C# file, for symbol resolution (<see cref="SymbolResolves"/>): a grammar file's text with
+    /// its <c>//</c> and <c>/* */</c> comments removed; any other file's whole text. Parsed once per file per
+    /// process. A C# file has no code TEXT: its symbols are its declarations (<see cref="CSharpSymbolsOf"/>).
     /// </summary>
     private static readonly ConcurrentDictionary<string, string> CodeTexts = new(StringComparer.OrdinalIgnoreCase);
 
@@ -761,29 +762,89 @@ public sealed class SpecTraceabilityInventoryDriftTests
         string body = File.ReadAllText(f);
         return Path.GetExtension(f).ToLowerInvariant() switch
         {
-            ".cs" => string.Join(' ', CSharpSyntaxTree.ParseText(body).GetRoot().DescendantTokens().Select(t => t.Text)),
+            ".cs" => throw new InvalidOperationException($"{f}: a C# file's symbols are its declarations (CSharpSymbolsOf), not its text"),
             ".g4" => GrammarComments.Replace(body, " "),
             _ => body,
         };
     });
 
     /// <summary>
+    /// What a C# file holds, for symbol resolution: <see cref="Code"/> is its tokens (so a comment, a doc comment
+    /// and a disabled region are not code, but a string literal is — a construct id or a diagnostic code is
+    /// legitimately anchored in the string that carries it), and <see cref="Paths"/> is every DECLARED name of a
+    /// type, namespace or member (method, constructor, property, indexer, event, field, enum member, delegate,
+    /// local function, record-positional parameter) in every suffix of its qualified path —
+    /// <c>N.Live.Run</c> is <c>Run</c>, <c>Live.Run</c> and <c>N.Live.Run</c> (kb/Work PB3278). Built once per file
+    /// per process.
+    /// </summary>
+    private sealed record CSharpSymbols(string Code, HashSet<string> Paths);
+
+    private static readonly ConcurrentDictionary<string, CSharpSymbols> CSharpSymbolTable = new(StringComparer.OrdinalIgnoreCase);
+
+    private static CSharpSymbols CSharpSymbolsOf(string file) => CSharpSymbolTable.GetOrAdd(file, f =>
+    {
+        SyntaxNode root = CSharpSyntaxTree.ParseText(File.ReadAllText(f)).GetRoot();
+        var paths = new HashSet<string>(StringComparer.Ordinal);
+        Declare(root, []);
+        return new CSharpSymbols(string.Join(' ', root.DescendantTokens().Select(t => t.Text)), paths);
+
+        void Declare(SyntaxNode node, List<string> scope)
+        {
+            IEnumerable<string> own = DeclaredNames(node);
+            List<string> inner = scope;
+            foreach (string name in own)
+            {
+                var path = new List<string>(scope) { name };
+                for (int i = 0; i < path.Count; i++)
+                    paths.Add(string.Join('.', path.Skip(i)));
+            }
+            if (node is BaseTypeDeclarationSyntax || node is BaseNamespaceDeclarationSyntax)
+                inner = [.. scope, .. own];
+            foreach (SyntaxNode child in node.ChildNodes())
+                Declare(child, inner);
+        }
+    });
+
+    /// <summary>The names <paramref name="node"/> itself declares (a dotted namespace name is its segments).</summary>
+    private static IEnumerable<string> DeclaredNames(SyntaxNode node) => node switch
+    {
+        BaseNamespaceDeclarationSyntax ns => ns.Name.ToString().Split('.'),
+        BaseTypeDeclarationSyntax t => [t.Identifier.Text],
+        DelegateDeclarationSyntax d => [d.Identifier.Text],
+        MethodDeclarationSyntax m => [m.Identifier.Text],
+        ConstructorDeclarationSyntax c => [c.Identifier.Text],
+        PropertyDeclarationSyntax p => [p.Identifier.Text],
+        IndexerDeclarationSyntax => ["this"],
+        EventDeclarationSyntax e => [e.Identifier.Text],
+        EnumMemberDeclarationSyntax em => [em.Identifier.Text],
+        LocalFunctionStatementSyntax lf => [lf.Identifier.Text],
+        VariableDeclaratorSyntax { Parent.Parent: BaseFieldDeclarationSyntax } v => [v.Identifier.Text],
+        ParameterSyntax { Parent.Parent: RecordDeclarationSyntax } rp => [rp.Identifier.Text],
+        _ => [],
+    };
+
+    /// <summary>
     /// ⛔ THE ONE PREDICATE for "this <c>#Symbol</c> still exists in that file" (kb/Work PB762), asked of a row's
     /// <c>code-location</c> and of a <c>path#Symbol</c> spelling in its <c>notes</c> alike. A symbol, not a line
     /// number: it survives every edit that does not delete the thing it names, which is the only event this gate
-    /// should go red for. It must be in the file's CODE (<see cref="CodeText"/>) and not merely in a comment: the
-    /// word search ran over the whole body, so <c>FileRegistry.cs#ReadLockGovern</c> resolved on three CONFORMS rows
-    /// for as long as a comment narrated the method's removal. In a C# file a dotted symbol is a QUALIFIED NAME —
-    /// <c>PictureAnalyzer.Analyze</c> is a member and its type, not that text — so each segment must be an
-    /// identifier of the file; in any other file the symbol is a literal anchor (<c>DOC-A.1-19</c>) and stays whole.
+    /// should go red for. In a C# file a SIMPLE name must be in the file's CODE (<see cref="CSharpSymbols.Code"/>: its
+    /// tokens, so a string literal that anchors a construct id counts, and a reference counts because the citing row
+    /// names the file that USES it) and not merely in a comment, a doc comment or a disabled region (kb/Work PB762:
+    /// the word search ran over the whole body, so <c>FileRegistry.cs#ReadLockGovern</c> resolved on three CONFORMS
+    /// rows for as long as a comment narrated the method's removal). A DOTTED name is a QUALIFIED NAME —
+    /// <c>PictureAnalyzer.Analyze</c> is the member <c>Analyze</c> OF <c>PictureAnalyzer</c>, DECLARED in this file
+    /// (<see cref="CSharpSymbols.Paths"/>), not two identifiers somewhere in it (kb/Work PB3278: a member of ANOTHER
+    /// type resolved it). In any other file the symbol is a literal anchor (<c>DOC-A.1-19</c>) found in its code
+    /// (<see cref="CodeText"/>) and stays whole.
     /// </summary>
     private static bool SymbolResolves(string file, string symbol)
     {
-        string code = CodeText(file);
-        string[] needles = Path.GetExtension(file).Equals(".cs", StringComparison.OrdinalIgnoreCase)
-            ? symbol.Split('.', StringSplitOptions.RemoveEmptyEntries)
-            : [symbol];
-        return needles.All(n => Regex.IsMatch(code, WholeWord(n)));
+        if (!Path.GetExtension(file).Equals(".cs", StringComparison.OrdinalIgnoreCase))
+            return Regex.IsMatch(CodeText(file), WholeWord(symbol));
+        CSharpSymbols declared = CSharpSymbolsOf(file);
+        return symbol.Contains('.')
+            ? declared.Paths.Contains(symbol)
+            : Regex.IsMatch(declared.Code, WholeWord(symbol));
     }
 
     /// <summary>The pattern for <paramref name="name"/> as a whole identifier: no identifier character on either side.</summary>
@@ -1560,6 +1621,12 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 + "    public const string Id = \"listing-directive-2002\";\n"
                 + "    /* GoneInBlockComment */\n"
                 + "    public void Run() { }\n"
+                + "}\n"
+                // PB3278: names that are in the file's tokens but are not DECLARED there — a call site, a local, and a
+                // member that belongs to the OTHER type.
+                + "public sealed class Other\n"
+                + "{\n"
+                + "    public int Elsewhere() { int onlyLocal = 0; CalledNotDeclared(); return onlyLocal; }\n"
                 + "}\n");
             File.WriteAllText(Path.Combine(fixture, "src", "Rules.g4"),
                 "// lineRule : 'x' ;\n/* blockRule : 'y' ; */\nliveRule : 'z' ;\n");
@@ -1568,13 +1635,15 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 UnresolvedCodeLocations([Base("X-PB762") with { CodeLocation = string.Join(s.CodeLocationSeparator, refs) }], s, fixture);
 
             // The negatives: a name that is only a comment (line, doc, block) in C#, only a comment in a grammar,
-            // and a member of a type that does not have it.
-            Assert.Equal(6, Locs("src/Live.cs#GoneInLineComment", "src/Live.cs#GoneInDocComment",
+            // a member of a type that does not have it (never declared, and declared on the OTHER type: kb/Work PB3278).
+            Assert.Equal(8, Locs("src/Live.cs#GoneInLineComment", "src/Live.cs#GoneInDocComment",
                 "src/Live.cs#GoneInBlockComment", "src/Rules.g4#lineRule", "src/Rules.g4#blockRule",
-                "src/Live.cs#Live.NoSuchMember").Count);
-            // The positive controls: a member, a qualified member, a string-literal anchor and a grammar rule.
-            Assert.Empty(Locs("src/Live.cs#Run", "src/Live.cs#Live.Run", "src/Live.cs#listing-directive-2002",
-                "src/Rules.g4#liveRule"));
+                "src/Live.cs#Live.NoSuchMember", "src/Live.cs#Live.Elsewhere", "src/Live.cs#Other.Run").Count);
+            // The positive controls: a member, a qualified member, a fully qualified member, a type, a name the file
+            // only uses (a call site cites the file that uses it), a string-literal anchor and a grammar rule.
+            Assert.Empty(Locs("src/Live.cs#Run", "src/Live.cs#Live.Run", "src/Live.cs#N.Live.Run",
+                "src/Live.cs#Other.Elsewhere", "src/Live.cs#Other", "src/Live.cs#CalledNotDeclared",
+                "src/Live.cs#listing-directive-2002", "src/Rules.g4#liveRule"));
 
             List<string> Notes(string notes) => UnresolvedNotesLocations(
                 [Base("X-PB762") with { Notes = notes }], s, fixture);
