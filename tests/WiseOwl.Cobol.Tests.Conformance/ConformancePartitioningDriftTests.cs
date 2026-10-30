@@ -23,7 +23,7 @@ public sealed class ConformancePartitioningDriftTests
 {
     /// <summary>Rows (tests and refusals, each at one edition) one suite partition may hold. A refusal row is one
     /// front-end compile at one edition (kb/Work PB3177). At <see cref="ConformanceSuiteTestsBase{TSlot}.Partitions"/>
-    /// partitions the bound is reached at Partitions × 500 rows; kb/Work PB4114 is the warning before it.</summary>
+    /// partitions the bound is reached at Partitions × 500 rows; kb/Work PB4146 replaces the fixed count.</summary>
     private const int MaxSuiteRowsPerPartition = 500;
 
     /// <summary>Formats one optional-word partition may hold: each format's whole power set runs serially.</summary>
