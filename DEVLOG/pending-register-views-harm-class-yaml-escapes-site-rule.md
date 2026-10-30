@@ -59,3 +59,9 @@ count per class and requires each on the page. Merging main brought PB4053, whos
 `check_practices.py` for a member (`inflight.collision`) that lives in `scripts/orchestrator/inflight.py`; `work.py check`
 refused it under the new member rule, so the paragraph now names the real files and members. The three LEAD findings
 (`_scalar` interior quotes, the remaining Obsidian wording, the U+2032 docstring) stay for the clerk.
+
+**Landing stop.** The landing's merge of main brought three notes filed after the branch's base that the two new rules
+refuse: PB4073 and PB4074 set `process_only` on compiler sites, and PB4068 named its test file bare. Each was judged from
+its own code site. PB4073 changes only a doc comment, and its one caller reports the bag, not the null. PB4074 hardens a
+type, and every production construction already passes the compilation's bag. Both now say so in
+`process_only_reason:`. PB4068 names its test method, and its stale line about PB3819's unlanded reader is gone.
