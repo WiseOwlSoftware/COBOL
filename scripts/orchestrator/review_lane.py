@@ -586,8 +586,9 @@ def run_agent(path: pathlib.Path) -> int:
     outcome = None
     env = {**os.environ, "COBOL_COORD_DIR": str(cdir)}
     with open(rec["prompt"], "rb") as prompt, open(rec["log"], "ab") as log:
+        # its own session on POSIX: kill_tree's tree there is the process group, which the agent must lead (kb/Work PB4072)
         proc = subprocess.Popen(rec["argv"], cwd=rec.get("cwd") or None, stdin=prompt, stdout=log, stderr=subprocess.STDOUT,
-                                env=env)
+                                env=env, start_new_session=os.name != "nt")
         began = time.monotonic()
         while proc.poll() is None:
             if time.monotonic() - began > float(rec.get("ceiling_min", CEILING_MIN[rec["kind"]])) * 60:
@@ -1012,8 +1013,12 @@ def self_test() -> int:
         done2 = runs_of(c12, "U2")[0]
         expect("a failed agent records its rc and no verdict", rc2 == 3 and done2["rc"] == 3 and done2["verdict"] is None, str(done2))
         coord.write_json(pathlib.Path(recs["U3"]["_path"]), {k: v for k, v in runs_of(c12, "U3")[0].items() if k != "_path"} | {"ceiling_min": 0.0001})
+        # The hang stub's own exit is 3 after its 600 s sleep, so rc 3 means the kill never reached it (kb/Work PB4072: on
+        # Linux the agent led no process group, kill_tree passed over it, and both arms waited the sleep out and passed).
         run_agent(pathlib.Path(recs["U3"]["_path"]))
-        expect("an agent past its CEILING is killed and recorded STALLED", runs_of(c12, "U3")[0].get("outcome") == "STALLED", str(runs_of(c12, "U3")[0]))
+        expect("an agent past its CEILING is KILLED (its rc is the kill's, never the stub's own 3) and recorded STALLED",
+               runs_of(c12, "U3")[0].get("outcome") == "STALLED" and runs_of(c12, "U3")[0].get("rc") not in (3, None),
+               str(runs_of(c12, "U3")[0]))
         c13 = fresh()
         Fake(c13, [row("V1", "WAITING FOR REVIEW", "a1a1a1a")])
         tick(c13, root, budget=lambda: "go", start=lambda argv, log: 0, alive=lambda r: True, tip=lambda wt: "a1a1a1a",
@@ -1022,7 +1027,8 @@ def self_test() -> int:
         coord.write_json(pathlib.Path(v1["_path"]), {k: v for k, v in v1.items() if k != "_path"} | {"poll_s": 0.05})
         (c13 / "STOP").write_text("", encoding="utf-8", newline="\n")
         run_agent(pathlib.Path(v1["_path"]))
-        expect("a loop stop ends a running agent, recorded STOPPED", runs(c13)[0].get("outcome") == "STOPPED", str(runs(c13)[0]))
+        expect("a loop stop KILLS a running agent (its rc is the kill's, never the stub's own 3), recorded STOPPED",
+               runs(c13)[0].get("outcome") == "STOPPED" and runs(c13)[0].get("rc") not in (3, None), str(runs(c13)[0]))
     finally:
         remove_tree(root)
     for m in fails:

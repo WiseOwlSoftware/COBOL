@@ -448,54 +448,18 @@ public sealed class ToolchainManifestDriftTests
         return (values, problems);
     }
 
-    /// <summary>The steps of a job (or of an action), each its text from its `- ` line to the next step's.</summary>
-    private static List<string> Steps(string body)
-    {
-        var steps = new List<string>();
-        string[] lines = body.ReplaceLineEndings("\n").Split('\n');
-        int start = Array.FindIndex(lines, l => StepsKey.IsMatch(l));
-        if (start < 0)
-            return steps;
-        int key = lines[start].Length - lines[start].TrimStart().Length, item = -1;
-        for (int i = start + 1; i < lines.Length; i++)
-        {
-            string t = lines[i].TrimStart();
-            int at = lines[i].Length - t.Length;
-            if (t.Length == 0 || (t.StartsWith('#') && at > key))
-            {
-                if (steps.Count > 0)
-                    steps[^1] += lines[i] + "\n";
-            }
-            else if (t.StartsWith("- ", StringComparison.Ordinal) && at > key && (item < 0 || at == item))
-            {
-                item = at;
-                steps.Add(lines[i] + "\n");
-            }
-            else if (steps.Count > 0 && at > item)
-            {
-                steps[^1] += lines[i] + "\n";
-            }
-            else
-            {
-                break;   // a key as shallow as `steps:`: the list ended
-            }
-        }
-        return steps;
-    }
+    private static bool IsCheckout(CiStep step) => step.Value("uses")?.StartsWith("actions/checkout@", StringComparison.Ordinal) == true;
 
-    private static readonly Regex StepsKey = new(@"^\s*steps:\s*$");
-
-    private static bool IsCheckout(string step) => Regex.IsMatch(step, @"(?m)^\s*(?:- )?uses:\s*actions/checkout@");
-
-    private static bool IsToolchain(string step) => Regex.IsMatch(step, @"(?m)^\s*(?:- )?uses:\s*" + Regex.Escape(Action) + @"\s*$");
+    private static bool IsToolchain(CiStep step) => step.Value("uses") == Action;
 
     private static (int Jobs, List<string> Offenders) AuditJobs(string file, string workflow)
     {
         var offenders = new List<string>();
         int jobs = 0;
-        foreach (var (id, body) in DotnetSdkInstallDriftTests.Jobs(workflow))
+        foreach (CiJob job in CiWorkflow.Jobs(workflow))
         {
-            List<string> steps = Steps(body);
+            string id = job.Id;
+            List<CiStep> steps = [.. job.Steps];
             if (steps.Count == 0)
                 continue;
             jobs++;
@@ -530,8 +494,9 @@ public sealed class ToolchainManifestDriftTests
     {
         var offenders = new List<string>();
         int seen = 0;
-        foreach (var (id, body) in DotnetSdkInstallDriftTests.Jobs(workflow))
+        foreach (CiJob job in CiWorkflow.Jobs(workflow))
         {
+            string id = job.Id, body = job.Code;
             foreach (Match m in RunsOn.Matches(body))
             {
                 seen++;
@@ -572,14 +537,15 @@ public sealed class ToolchainManifestDriftTests
     private static IEnumerable<(string Job, bool Pwsh, List<string> Lines)> RunBlocks(string text)
     {
         string lf = text.ReplaceLineEndings("\n");
-        var jobs = DotnetSdkInstallDriftTests.Jobs(lf).ToList();
-        if (jobs.Count == 0)
-            jobs = [("(action)", lf)];   // an action.yml: its `runs: steps:` list
-        foreach (var (id, body) in jobs)
+        // A workflow's jobs, or an action.yml's one `runs: steps:` list.
+        List<(string Id, IReadOnlyList<CiStep> Steps)> units = CiWorkflow.HasJobs(lf)
+            ? [.. CiWorkflow.Jobs(lf).Select(j => (j.Id, j.Steps))]
+            : [("(action)", CiWorkflow.Steps(lf))];
+        foreach (var (id, steps) in units)
         {
-            foreach (string step in Steps(body))
+            foreach (CiStep step in steps)
             {
-                string[] lines = step.Split('\n');
+                string[] lines = [.. step.Lines];
                 bool pwsh = lines.Any(l => Regex.IsMatch(l, @"^\s*(?:- )?shell:\s*pwsh\s*$"));
                 for (int i = 0; i < lines.Length; i++)
                 {

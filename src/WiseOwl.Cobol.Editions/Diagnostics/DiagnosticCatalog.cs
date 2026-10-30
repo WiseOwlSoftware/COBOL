@@ -2883,6 +2883,33 @@ public static class DiagnosticCatalog
         + "COPY statement\"; nesting (at least 5 levels) is permitted only without REPLACING (GR12). Flatten "
         + "the copybook, or drop the REPLACING phrase.",
         "ISO §7.2.3.4 GR10 / GR12");
+    /// <summary>COBOL5434 — a source or library text file whose byte-order mark names an encoding its content is not
+    /// well-formed in (kb/Work PB1397; docs/CONFORMANCE.md §7, Annex A.1 items 25 and 26). The mark states the encoding, so
+    /// there is no other reading to fall back to: invalid UTF-8 after <c>EF BB BF</c>, a lone surrogate or a truncated
+    /// code unit in UTF-16, a UTF-32 unit that is no Unicode scalar value. The message names the file, the encoding and
+    /// the offset of the first byte that is not well-formed. Before this descriptor <c>File.ReadAllText</c> replaced the
+    /// bytes with U+FFFD and said nothing, so a literal's value changed without a diagnostic.</summary>
+    public static readonly DiagnosticDescriptor SourceTextMalformedForItsMark = new(
+        "COBOL5434", "source-text-malformed-for-its-mark", EditionSeverity.Error,
+        "A source or library text file begins with a byte-order mark but its content is not well-formed in the "
+        + "encoding the mark names. ISO §8.1.3.2 GR1 leaves the mapping of the COBOL character repertoire to the "
+        + "implementor, and Annex A.1 item 25 requires it documented: this implementation reads a marked file in "
+        + "exactly the encoding the mark names and has no character for a byte sequence that encoding does not "
+        + "define, so it refuses the file rather than substitute a character. Re-save the file in the encoding its "
+        + "mark names, or remove the mark so the file is read as UTF-8 (or as ISO/IEC 8859-1 when it is not "
+        + "well-formed UTF-8).",
+        "ISO §8.1.3.2 GR1 / Annex A.1 items 25, 26");
+    /// <summary>COBOL5435 — a source or library text file with NO byte-order mark that is not well-formed UTF-8, read as
+    /// ISO/IEC 8859-1 (kb/Work PB1397; docs/CONFORMANCE.md §7, Annex A.1 item 25). Every byte is then the character with
+    /// that code point, so no source byte is lost or altered — and the compiler says so, naming the file and the
+    /// offset of the first byte that is not UTF-8, so the choice is never silent.</summary>
+    public static readonly DiagnosticDescriptor SourceTextReadAsLatin1 = new(
+        "COBOL5435", "source-text-read-as-latin1", EditionSeverity.Warning,
+        "A source or library text file has no byte-order mark and is not well-formed UTF-8, so it is read as "
+        + "ISO/IEC 8859-1: each byte is the character with that code point. ISO §8.1.3.2 GR1 leaves the mapping of "
+        + "the COBOL character repertoire to the implementor, and Annex A.1 item 25 requires it documented. Save the "
+        + "file as UTF-8 (or with a byte-order mark) if the characters are not the Latin-1 ones.",
+        "ISO §8.1.3.2 GR1 / Annex A.1 item 25");
     /// <summary>COBOL2449 — a COPY or REPLACE statement that does not follow its general format (kb/Work PB1354).
     /// Both statements are parsed over §7.2.2.5 text-words in general-format order (COPY: text-name-1/literal-1, the
     /// OF/IN phrase, SUPPRESS [PRINTING], REPLACING operands, the separator period); a word out of place, a missing BY,
