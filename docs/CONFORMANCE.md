@@ -2291,6 +2291,30 @@ of an unsupported facility.
   `conformance-test:RepositoryDetailsOrderTests.APrototypeAndItsDefinition_AreOneFunction_AndDrawNoWarning`,
   `unit:GroupRepositoryOrderDriftTests`.
 
+- **D-EXPECT — a syntax error names what the parse expects at the token (kb/Work PB3428, PB3861).** §4.2.2 requires a
+  compile-time indication of "violations of the general formats" and leaves its wording to the implementor. Where the
+  token written is of a kind the parse does not take at its position, **COBOL5506** names the element written (a
+  word, a literal by its §8.3.3.1 category — "alphanumeric, boolean, national, or numeric", the integer literal of
+  §8.3.3.3.2 among the numeric ones — a figurative constant, or the separator period) and what is expected there:
+  every keyword, context word and literal category, where all of it can be named (`OBJECT-COMPUTER. XYZ MEMORY SIZE
+  12 FOO.` expects CHARACTERS, MODULES or WORDS; `SEGMENT-LIMIT IS.` an integer literal; `OPEN F` EXTEND, I-O, INPUT
+  or OUTPUT), and otherwise the literal categories expected (`SET IX TO "A"`: of the literals, only a numeric
+  literal). Context words that are no lexer token are named by running the predicate that recognizes them. The
+  figurative constant ZERO is named only where a ZERO written at the token would parse: the parse takes the
+  arithmetic ZERO that the token rewriter makes of a ZERO beside an arithmetic operator (`COMPUTE W-N = 1 + "A"`
+  names it), and naming it after `SET IX TO`, where the parse refuses a sole ZERO, would direct the user to a rewrite
+  the compiler refuses. **What is expected is the compiler's parse, a superset of the
+  general format** wherever a later check names the departure better (INSPECT's tallying phrase is parsed with FIRST
+  and TRAILING so COBOL2269 refuses them by name; the parse takes a later edition's words at every edition), so the
+  message says "expected", never "the general format admits". It is not given where a statement may begin (the
+  imperative-statement and statement-shape diagnostics own those positions), where a forgotten separator period
+  would let the next sentence or entry follow (COBOL0307), or at a closed format's residue (COBOL1941 / 1970 / 1971).
+  Witnesses: `conformance:cases/12.3.6-OBJECT-COMPUTER/pb3428-memory-size-unit-word`,
+  `conformance:cases/12.3.6-OBJECT-COMPUTER/pb3428-segment-limit-integer-omitted`,
+  `conformance:cases/12.3.6-OBJECT-COMPUTER/pb3428_memory_size_modules_85`,
+  `conformance:cases/14.9.39-SET/pb3861-set-index-to-alphanumeric-literal`,
+  `conformance:cases/14.9.39-SET/pb3861_set_index_to_integer_literal`, `unit:WrittenKindRefusalTests`.
+
 ### 3.1 Implementor behavior in Annex A.2 undefined cases (kb/Work PB1907)
 
 Annex A.2 lists situations whose results the standard leaves undefined, and §4.4 2) says that "A COBOL run unit that
@@ -2771,7 +2795,14 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
    `DeclinedFacilityBinder.ClassifySend` does, from the phrases written (a literal-1 operand and RETURNING are Format 1's,
    RAISING is Format 2's) and the declaration the name silently resolves to (a message-tag item is Format 2's); a
    statement with evidence for both is **COBOL5488**, and one with evidence for neither is Format 1, so a bare
-   `SEND TO name FROM x` is **COBOL1850** (RETURNING is required there, §14.9.38.2 prints it without brackets). SR4's own
+   `SEND TO name FROM x` is **COBOL1850** (RETURNING is required there, §14.9.38.2 prints it without brackets). The
+   operands the formats print as NAMES (SEND's TO operand, which is message-server-name-1 or data-name-2, and its
+   RETURNING data-name-1; RECEIVE's data-name-1 and data-name-2) are asked their WRITTEN shape first
+   (`DeclinedFacilityBinder.ScreenName`, kb/Work PB4118): a subscript, a reference modifier or a special register is
+   refused with **COBOL2024**, the one data-name-n shape screen the SORT keys and the file clauses use, and is read no
+   further (no second diagnostic for the format or for an undefined name). A qualifier is a name's own form, so a
+   TO operand written `A OF B` is a data-name-2: Format 2's evidence (a message-server-name-1 is a bare name), resolved
+   like any data reference. SR4's own
    requirement that data-name-1 and data-name-2 BE message-tag items is not screened: the usage is refused by name
    (COBOL1943, below), so no program that compiles can hold the item. Pinned by
    `conformance:wiseowl/cases/14.9.31-RECEIVE/pb3568-receive-undefined-operand`, its siblings and the
