@@ -15225,6 +15225,32 @@
   ],
   "expect": "COBOL0900"
  },
+ "pb3845-extended-letter-unparseable-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900"
+ },
+ "pb3845-nbsp-word-unparseable": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2773"
+ },
+ "pb3845-removed-character-unparseable-2023": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL0902"
+ },
+ "pb3845-underscore-unparseable-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "the underscore in the COBOL word"
+ },
  "pb3860_mean_rounded_mode_below_2014": {
   "refuse-at": [
    "2002"

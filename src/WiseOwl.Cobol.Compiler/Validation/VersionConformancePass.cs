@@ -2671,33 +2671,10 @@ internal sealed class VersionConformancePass
             // (reserved words are all short — only user-defined words reach the limit); deduped per distinct word.
             string raw = ctx.Start.Text;
             int max = CobolWordRule.MaxLength(_p._edition.Year);   // ONE ceiling — the directive stages share it
-            // §8.3.2.1's OTHER half — the word CHARACTER SET (fix-queue R02). The same sentence that caps the
-            // length names the admissible characters: "…the basic special characters HYPHEN AND UNDERSCORE. The
-            // hyphen or underscore shall not appear as the first or last character in such words." The
-            // underscore is a COBOL-2002 introduction ('85's set is hyphen-only), and the lexer admits it at
-            // every edition (superset-parse), so this is where a below-2002 use is named.
-            // ⚠ Deduped per distinct word through the SAME set the length check uses: one diagnostic per word
-            // per compilation, matching the §8.9 funnel's posture rather than one per occurrence.
-            if (raw.Contains('_') && (_overlongWords ??= []).Add("_" + CobolNames.Fold(raw)))
-                _p.Check(Constructs.UserWordUnderscore2002, $"the underscore in the COBOL word '{raw}'");
-            // The EXTENDED LETTERS of the same sentence (kb/Work PB1402): a COBOL-2002 introduction (the '85 set is
-            // the basic letters, digits and hyphen), and from 2002 each character must be where the edition's Annex
-            // B.3 permits it. The lexer's word class is a superset, so both are named here.
-            if (CobolCharacterRepertoire.HasExtendedCharacter(raw) && (_overlongWords ??= []).Add("extended " + CobolNames.Fold(raw)))
-            {
-                _p.Check(Constructs.UserWordExtendedLetter2002, $"the extended letter in the COBOL word '{raw}'");
-                // A character the 2014 Annex B permitted here and 2023's does not (Annex E.2 item 4) is a REMOVED
-                // construct — error strict, warning and the 2014 rule under --permissive; every other one is 2773.
-                if (CobolWordRule.CharacterViolation(raw, _p._edition.Year) is { } character)
-                {
-                    if (CobolWordRule.RemovedAt2023(raw, _p._edition.Year))
-                        _p.Check(Constructs.UserWordCharacterRemoved2023, character);
-                    else
-                        _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.WordCharacterNotPermitted.Code,
-                            EditionSeverity.Error, DiagnosticCatalog.WordCharacterNotPermitted.Id, character, "",
-                            "ISO §8.3.2.1; Annex B.3"));
-                }
-            }
+            // §8.3.2.1's OTHER half — the word CHARACTER SET (fix-queue R02; the underscore's 2002 gate, the extended
+            // letters' 2002 gate and Annex B.3 — kb/Work PB1402) — is asked of every word the LEXER produced, in
+            // WordCharacterScreen (Frontend), not here: this funnel walks the parse tree and so never ran on a source
+            // that does not parse (kb/Work PB3845).
             if (CobolCharacterRepertoire.LengthInCharacters(raw) > max && (_overlongWords ??= []).Add(CobolNames.Fold(raw)))
                 _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.WordLengthExceeded.Code,
                     EditionSeverity.Error, DiagnosticCatalog.WordLengthExceeded.Id,
