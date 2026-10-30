@@ -27,7 +27,14 @@ it reaches across rows, which the writer's PB762 rule (a retirement must restate
 never could: a grammar restructure retires the witnesses of the citing rows and nothing else. Its first run found seven more
 rows, all through lexer tokens the camel-case sweep cannot match (`SUB_HEXLIT`, `SUB_COLON`, `COMMA_SEP`, plus
 `abbreviatedAndChain` and `linkageProcedureParameter`), which were restated in the second batch together with seven more
-past-tense mentions, so no row's prose names a deleted rule now. `TheseChecks_ActuallyFail_OnAFabricatedInventory` drives
+past-tense mentions. The branch review then found the sweep incomplete: it and the test saw only camel-case names and names
+some mark records, so lexer tokens no row marked slipped through (SR-8.3.3.5.3-5 named `SUB_NATLIT`, SR-8.3.5-2 named
+`SUB_COMMA` and `SUB_SEMICOLON`, all deleted with the SUBSCRIPT lexer mode by PB2113). A third batch restated both rows against
+the tokens that exist (`NATLIT`, `COMMA`, `SEMICOLON`, `FNARG_SEPARATOR`) and gave each dead token a `retired-witness:` mark, so
+the test now guards them. Re-running the sweep over every deleted ALL-CAPS lexer name (60 in all) found one more: five rows
+described the deleted `HEXDIGITS` fragment (`BX` and `NX` bodies over `[0-9a-f]*`) where the lexer now has `STR_BODY` with the
+repertoire asked by `LiteralScreen`; a fourth batch restated them and marked `HEXDIGITS`. The sweep now finds none (`ALNUM` is
+the data name `C-ALNUM`, not a token). `TheseChecks_ActuallyFail_OnAFabricatedInventory` drives
 the check against planted rows and a planted grammar (a second row's prose, the retiring row's own prose, and four positive
 controls: behind a mark, a rule that moved, a longer identifier, a rule no mark retires).
 
