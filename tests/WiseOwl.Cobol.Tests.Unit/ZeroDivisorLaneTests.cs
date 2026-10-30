@@ -48,7 +48,7 @@ public sealed class ZeroDivisorLaneTests
         double divisor = negativeZero ? -0.0 : 0.0;
         Assert.Equal(negativeZero, double.IsNegative(divisor));
         AssertZeroDivide(() => CobolFloat.Div(dividend, divisor));
-        AssertZeroDivide(() => CobolFloat.DivChecked(dividend, divisor));
+        AssertZeroDivide(() => CobolFloat.DivChecked(dividend, divisor, SizeChecks.Range));
     }
 
     [Fact]

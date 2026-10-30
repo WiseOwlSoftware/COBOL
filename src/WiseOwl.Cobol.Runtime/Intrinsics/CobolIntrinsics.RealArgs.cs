@@ -102,14 +102,15 @@ public static partial class CobolIntrinsics
         return Math.Pow(b, e);
     }
 
-    /// <summary><see cref="PowNativeReal"/> where size-error checking is ENABLED — the power is an operation on the
-    /// binary64 intermediate, so its result's range is §14.7.5 case 5 through the ONE check the other checked native
+    /// <summary><see cref="PowNativeReal"/> where a range condition's checking is ENABLED — the power is an operation on
+    /// the binary64 intermediate, so its result's range is §14.7.5 case 5 through the ONE check the other checked native
     /// operators use (<see cref="CobolFloat.InBinary64Range"/>, kb/Work PB1581): <c>C ** 2</c> over a COMP-2 holding
-    /// 1.0E+300 is EC-SIZE-OVERFLOW, not +Infinity. A nonzero base's power is never zero.</summary>
-    public static double PowNativeRealChecked(double b, double e)
+    /// 1.0E+300 is EC-SIZE-OVERFLOW, not +Infinity. A nonzero base's power is never zero. <paramref name="taken"/>: the
+    /// conditions whose checking is enabled (kb/Work PB4092).</summary>
+    public static double PowNativeRealChecked(double b, double e, SizeChecks taken)
     {
         double r = PowNativeReal(b, e);
-        return double.IsFinite(b) && double.IsFinite(e) ? CobolFloat.InBinary64Range(r, nonzero: b != 0, "exponentiation") : r;
+        return double.IsFinite(b) && double.IsFinite(e) ? CobolFloat.InBinary64Range(r, nonzero: b != 0, "exponentiation", taken) : r;
     }
 
     /// <summary>Native <c>**</c> with an integer base and an integer exponent — EVERY shape (kb/Work PB69 — the

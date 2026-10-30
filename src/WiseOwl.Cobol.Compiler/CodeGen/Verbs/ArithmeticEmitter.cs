@@ -33,7 +33,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // identifies at run time it is materialized too, so the operands are evaluated before the receiver is
             // read or identified (MaterializesInitialEvaluation, kb/Work PB3261). The fold itself is
             // receiver-INDEPENDENT (GR4 -- the initial evaluation precedes any receiver's involvement): None.
-            NumX value = num.Fold(operands, ReceiverContext.None with { InSizeError = ise });
+            NumX value = num.Fold(operands, ReceiverContext.None with { Checks = TakenBy(ise) });
             if (MaterializesInitialEvaluation(targets)) value = Snapshot(value);
             // Each receiver's FieldNum read is ALSO a sending reference (A = A + value; §14.6.13.2 NOTE 2), so a
             // non-finite float receiver is caught by its CobolFloat.Sending wrap. Precise follow-on (parallel to the
@@ -169,7 +169,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // context rule, ReceiverContext.Of, so a floating-point numeric-edited identifier-3 is flagged as such and
             // a nested quotient in an operand is not cut at its mask's working-scale hint (kb/Work PB2694, PB2923);
             // pre-P7.3 they rendered under the previous statement's leftover Target* state (H1).
-            var rcv = ReceiverContext.Of(d.Quotient.Place.Item.Pic, CobolRounding.Truncation, ise);
+            var rcv = ReceiverContext.Of(d.Quotient.Place.Item.Pic, CobolRounding.Truncation, TakenBy(ise));
             var (dividend, divisor, subsidiary, quotientFor) = num.StandardDecimal || shape.Form != SubsidiaryForm.FixedPoint
                 ? CarriedSubsidiaryQuotient(d, Snapshot(num.Render(d.Dividend, rcv)), Snapshot(num.Render(d.Divisor, rcv)), ise, shape)
                 : NativeSubsidiaryQuotient(d, rcv, ise, shape);
@@ -291,7 +291,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         BoundDivideRemainder d, NumX dividend, NumX divisor, bool ise, SubsidiaryShape shape)
     {
         var pic = d.Quotient.Place.Item.Pic;
-        NumX QuotientAt(CobolRounding mode) => FinalQuotient(dividend, divisor, ReceiverContext.Of(pic, mode, ise));
+        NumX QuotientAt(CobolRounding mode) => FinalQuotient(dividend, divisor, ReceiverContext.Of(pic, mode, TakenBy(ise)));
         NumX truncated = Snapshot(QuotientAt(CobolRounding.Truncation));
         NumX subsidiary = shape.Form switch
         {
@@ -314,10 +314,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             ctx.Writer.Line($"CobolDec {sq} = {RuntimeApi.DecSubsidiaryQuotient(truncated.Expr, qs)};");
             return new NumX(sq, 0, Dec: true);
         }
-        // A binary64 quotient lands at identifier-3's scale by truncation (the checked form under ON SIZE ERROR /
-        // EC-SIZE); a scaled one is already there.
+        // A binary64 quotient lands at identifier-3's scale by truncation; the CHECKED landing (the one that raises
+        // EC-SIZE-TRUNCATION) only where that name is taken - a SIZE ERROR phrase or EC-SIZE-TRUNCATION checking - and not on
+        // the statement's mere having the two-phase shape, which EC-SIZE-OVERFLOW checking alone also gives it
+        // (§14.6.13.1.1 NOTE 3, kb/Work PB4093: the other name stores the low-order digits, DOC-A.1-70). A scaled quotient
+        // is already there.
         if (truncated.Real)
-            return Snapshot(new NumX(RuntimeApi.FloatToScaled(truncated.Expr, $"{qs}", CobolRounding.Truncation, ise), qs));
+            return Snapshot(new NumX(RuntimeApi.FloatToScaled(truncated.Expr, $"{qs}", CobolRounding.Truncation,
+                (TakenBy(ise) & SizeChecks.Truncation) != 0), qs));
         return truncated.Scale == qs ? truncated
             : throw new InvalidOperationException(
                 $"DIVIDE REMAINDER: a final-transfer quotient at scale {truncated.Scale}, not identifier-3's {qs}");
@@ -458,21 +462,32 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         => EmitArith(null, ise =>
         {
             var (carrier, value) = NumericRenderer.IntakeCarrier(
-                num.Render(p.Value, ReceiverContext.None with { InSizeError = ise }));
+                num.Render(p.Value, ReceiverContext.None with { Checks = TakenBy(ise) }));
             var position = new NumX(RuntimeApi.PositionValueOf(carrier, value.Expr, value.Scale, p.RefMod), 0);
             GuardedStore(ise, p.Temp, CobolRounding.Truncation, () => StoreArith(p.Temp, position, CobolRounding.Truncation));
         });
 
     /// <summary>The size-error catch pair (kb/Work PB129 — factored so the outer statement try and every
-    /// per-receiver <see cref="GuardedStore"/> emit the identical discipline).</summary>
+    /// per-receiver <see cref="GuardedStore"/> emit the identical discipline).
+    /// <para>⛔ A statement WITHOUT a SIZE ERROR phrase catches only the conditions it TAKES (kb/Work PB4092,
+    /// <see cref="EcState.SizeErrOnlyNames"/>): the enabled names, and §14.7.4.3 rule 7's keep, which the rule makes
+    /// whether or not checking is enabled (the condition is latched, the receiver stays, and the EC-SIZE handling then
+    /// finds the name not enabled and does nothing — <c>CobolSizeError.IsProhibitedInexact</c>). Every other condition
+    /// is not enabled, so it propagates: a zero divisor or an exponentiation-rule violation ends the run unit exactly as
+    /// it does with checking off (DOC-A.1-70), where the family-wide catch used to latch it, drop it and go on with the
+    /// receiver unchanged. A statement WITH the phrase catches everything: §14.7.5 enables checking of all of it.</para></summary>
     private void WriteSizeCatches(string flag, string? ecnVar)
     {
         var w = ctx.Writer;
+        var only = ecState.SizeErrOnlyNames;
         if (ecnVar is not null)
         {
             int cid = ctx.Names.NextEc();
-            w.Line($"catch (CobolSizeError __cse{cid}) {{ {flag} = true; {ecnVar} = __cse{cid}.EcName; }}");
-            w.Line($"catch (global::System.OverflowException) {{ {flag} = true; {ecnVar} = \"EC-SIZE-OVERFLOW\"; }}");
+            string taken = only is null ? ""
+                : $" when (__cse{cid}.IsProhibitedInexact || {string.Join(" || ", only.Select(n => $"__cse{cid}.EcName == {CsLiteral(n)}"))})";
+            w.Line($"catch (CobolSizeError __cse{cid}){taken} {{ {flag} = true; {ecnVar} = __cse{cid}.EcName; }}");
+            if (only is null || only.Contains("EC-SIZE-OVERFLOW"))
+                w.Line($"catch (global::System.OverflowException) {{ {flag} = true; {ecnVar} = \"EC-SIZE-OVERFLOW\"; }}");
         }
         else
         {
@@ -533,8 +548,13 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <summary>The <see cref="ReceiverContext"/> a statement with several resultants renders its once-evaluated
     /// operands FOR — <see cref="ReceiverContext.OfSet"/>, the one rule (kb/Work PB2694). Each receiver's own final
     /// transfer is <see cref="RcvFor"/>.</summary>
-    private static ReceiverContext SetRcv(IReadOnlyList<Receiver> targets, bool inSizeError) =>
-        ReceiverContext.OfSet(targets.Select(t => t.Place.Item.Pic).ToList(), inSizeError);
+    private ReceiverContext SetRcv(IReadOnlyList<Receiver> targets, bool inSizeError) =>
+        ReceiverContext.OfSet(targets.Select(t => t.Place.Item.Pic).ToList(), TakenBy(inSizeError));
+
+    /// <summary>The size error conditions a render FOR the statement being emitted takes (kb/Work PB4092):
+    /// <see cref="EcState.SizeErrChecks"/> while the statement's two-phase shape stands (<paramref name="inSizeError"/>),
+    /// none in the unchecked fast path.</summary>
+    private SizeChecks TakenBy(bool inSizeError) => inSizeError ? ecState.SizeErrChecks : SizeChecks.None;
 
     /// <summary>The <see cref="ReceiverContext"/> for receiver <paramref name="r"/> (P7 Step 3 — the pure
     /// factory replacing the mutable <c>SetTarget</c> context writes).</summary>
@@ -544,7 +564,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <see cref="ReceiverContext.RoundsAtItsScale"/> and <see cref="ReceiverContext.FloatLanding"/> read it
     /// (kb/Work PB647, PB1900).</remarks>
     public ReceiverContext RcvFor(Receiver r, bool inSizeError) =>
-        ReceiverContext.Of(r.Place.Item.Pic, r.Rounding, inSizeError);
+        ReceiverContext.Of(r.Place.Item.Pic, r.Rounding, TakenBy(inSizeError));
 
     /// <summary>The optional <c>blankWhenZero</c> argument text for a numeric-edited store when the receiver
     /// carries BLANK WHEN ZERO (ISO §13.18.8 — zero stores all spaces, MOVE and arithmetic alike).</summary>
@@ -608,6 +628,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             ecState.SizeErrEcVar = ecnVar;
         }
         ecState.SizeErrVar = flag;
+        // ⛔ WHICH CONDITIONS THIS STATEMENT TAKES (kb/Work PB4092, PB4093): the phrase takes every one (§14.7.5); without
+        // it only the names whose checking is enabled are taken (§14.6.13.1.1). The renders choose their checked kernels
+        // by it, the store chooses the checked landing by it, and the catches below catch exactly it - a condition not
+        // taken is the not-enabled disposition (DOC-A.1-70), never a dropped one.
+        ecState.SizeErrChecks = sizeErr is not null ? SizeChecks.All : EcState.ChecksOf(ecSize);
+        ecState.SizeErrOnlyNames = sizeErr is null ? ecSize : null;
         using (w.Block("try")) emitStores(true);   // checked renders: AddChecked / SubChecked / the checked landings (§14.7.5)
         // A zero divisor / PROHIBITED-inexact quotient raises CobolSizeError; an intermediate that overflows the
         // long engine raises OverflowException (the checked(...) the store wraps the value in). Both are the
@@ -619,6 +645,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         WriteSizeCatches(flag, ecnVar);
         ecState.SizeErrVar = null;
         ecState.SizeErrEcVar = null;
+        ecState.SizeErrChecks = SizeChecks.None;
+        ecState.SizeErrOnlyNames = null;
 
         if (ecnVar is not null)
             ec.EmitSizeHandling(flag, ecnVar, ecSize, hasPhrase: sizeErr?.OnError is not null);
@@ -673,7 +701,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // unchanged; EC-SIZE-TRUNCATION like every sibling arm); without them the MOVE disposition (overflow → the
             // pinned image, underflow → zero) stands, rounded, and an inexact PROHIBITED keeps the receiver (rule 7).
             string fcfg = BwzFlag(target.Item) + EditCfg(target.Item.Pic);
-            if (ecState.SizeErrVar is { } fflag)
+            if (ecState.SizeErrLandingVar is { } fflag)
             {
                 string fimg = $"__sv{ctx.Names.NextStoreTmp()}";
                 string fOnFail = ecState.SizeErrEcVar is { } fecn ? $"{{ {fflag} = true; {fecn} = \"EC-SIZE-TRUNCATION\"; }}" : $"{fflag} = true;";
@@ -694,7 +722,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         {
             int ls = ScaleOf(target);
             string lcfg = BwzFlag(target.Item);   // no EditCfg, no EditsArg — a locale item takes neither
-            if (ecState.SizeErrVar is { } lflag)
+            if (ecState.SizeErrLandingVar is { } lflag)
             {
                 string limg = $"__sv{ctx.Names.NextStoreTmp()}";
                 string lOnFail = ecState.SizeErrEcVar is { } lecn ? $"{{ {lflag} = true; {lecn} = \"EC-SIZE-TRUNCATION\"; }}" : $"{lflag} = true;";
@@ -716,7 +744,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // Under ON SIZE ERROR an edited resultant is capacity-checked too (ISO §14.7.5 case 3 + storing rule
             // 2): an aligned |value| exceeding the mask's digit positions sets the flag and leaves the receiver
             // UNCHANGED — Format's silent high-order truncation is MOVE behavior only (§14.9.25).
-            if (ecState.SizeErrVar is { } eflag)
+            if (ecState.SizeErrLandingVar is { } eflag)
             {
                 string img = $"__sv{ctx.Names.NextStoreTmp()}";
                 // EC-SIZE checking latches the Table 13 condition: a store whose significant digits do not fit
@@ -748,7 +776,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                     ? RuntimeApi.NumFormatImageFloat(algebraic, target.Item.ProfileName, floatPic.IsSingle)
                     : algebraic;
             }
-            if (ecState.SizeErrVar is { } fflag)
+            if (ecState.SizeErrLandingVar is { } fflag)
             {
                 string tmp = $"__sv{ctx.Names.NextStoreTmp()}";
                 string onFail = ecState.SizeErrEcVar is { } fecn ? $"{{ {fflag} = true; {fecn} = \"EC-SIZE-TRUNCATION\"; }}" : $"{fflag} = true;";
@@ -772,8 +800,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         int recvScale = target.Item.Pic!.Scale;
         // The ONE carrier switch (PB84); the landing's form is the statement's (PB77) — CHECKED under ON SIZE ERROR /
         // EC-SIZE checking (the branch below), the low-order digits for the no-phrase store.
-        string args = NumericRenderer.StoreArgs(value, recvScale, mode, profile, checkedLanding: ecState.SizeErrVar is not null);
-        if (ecState.SizeErrVar is { } flag)
+        string args = NumericRenderer.StoreArgs(value, recvScale, mode, profile, checkedLanding: ecState.SizeErrLandingVar is not null);
+        if (ecState.SizeErrLandingVar is { } flag)
         {
             string tmp = $"__sv{ctx.Names.NextStoreTmp()}";
             // Intermediate long-engine overflow is detected upstream by the checked multiply the renderer emits in a
