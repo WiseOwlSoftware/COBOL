@@ -1,4 +1,4 @@
-## EVALUATE's Table 15 reads the predefined NULL as an identifier, not a literal (PB1682)
+## Entry 2816 — 2026-10-30 15:24 PDT — EVALUATE's Table 15 reads the predefined NULL as an identifier, not a literal (PB1682)
 
 **Mechanism.** `EvaluateBinder.OperandKindOf` classified a bare operand as a LITERAL whenever its `nonNumericLiteral`
 parse node was present (ISO §14.9.13.4 GR1). Since PB1427 the grammar carries the predefined NULL as the
@@ -20,3 +20,4 @@ file that tests a `nonNumericLiteral` node's presence must decide `predefinedNul
 **Goldens.** `14.9.13-EVALUATE/pb1682_evaluate_null_subject_is_identifier` (accepted at 2002; four legs, values from
 §8.4.3.10.4 GR2 and §14.9.13.4 GR4 a) 6.) and `pb1682-evaluate-null-subject-literal-object` (refused COBOL0869 at
 2002, 2014, 2023). Rows: none claimed, none closed.
+
