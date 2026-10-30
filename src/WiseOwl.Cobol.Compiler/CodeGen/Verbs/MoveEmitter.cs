@@ -803,7 +803,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// arm. A MOVE never passes it (§14.6.8.2 r4 truncates by rule, and MOVE is not in §14.7.5's list of statements the
     /// size error condition may occur as a result of). It governs the receivers an implicit COMPUTE can have — numeric
     /// and numeric-edited (§13.18.53.3 SR3) — and nothing else. It is the FINAL TRANSFER only: the operations that develop
-    /// the result take the checked kernels from the render's own checking state (<c>EcState.SizeChecking</c>, which the
+    /// the result take the checked kernels from the render's own checking state (<c>NumericRenderer.Taken</c>, from <c>EcState.EnabledChecks</c>, which the
     /// report compose sets for its checked render — <c>ReportWriterEmitter.UnderPresentingChecking</c>), as every other
     /// receiver-less render does.</param>
     public string ConvertSource(BoundOperand source, DataItem target, string? runtimeWidth = null,
