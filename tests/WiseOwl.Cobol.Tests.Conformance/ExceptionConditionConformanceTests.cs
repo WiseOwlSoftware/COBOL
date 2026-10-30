@@ -1512,6 +1512,30 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """, 2023), "COBOL0710");
 
+    /// <summary>PB596: the level-3 requirement is stated once per statement under its own clause, and the
+    /// shared resolver prints the clause of the statement the user wrote, never RAISE's at an EXIT or GOBACK
+    /// (§14.9.29.3 SR1 · §14.9.18.3 SR2 · §14.9.14.3 SR3). The EC-USER-not-in-header leg (COBOL0717) exists only
+    /// for GOBACK and EXIT and cites the same ordinals.</summary>
+    [Theory]
+    [InlineData("RAISE EXCEPTION EC-SIZE.", "COBOL0710", "ISO §14.9.29.3 SR1)")]
+    [InlineData("GOBACK RAISING EXCEPTION EC-SIZE.", "COBOL0710", "ISO §14.9.18.3 SR2)")]
+    [InlineData("EXIT PROGRAM RAISING EXCEPTION EC-SIZE.", "COBOL0710", "ISO §14.9.14.3 SR3)")]
+    [InlineData("GOBACK RAISING EXCEPTION EC-USER-PB596.", "COBOL0717", "ISO §14.9.18.3 SR2 ")]
+    [InlineData("EXIT PROGRAM RAISING EXCEPTION EC-USER-PB596.", "COBOL0717", "ISO §14.9.14.3 SR3 ")]
+    public void RaisingContext_DiagnosticCitesItsOwnClause(string statement, string code, string citation)
+    {
+        var diagnostics = EditionHarness.GetDiagnostics($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT596.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                {statement}
+                STOP RUN.
+            """, 2023);
+        var line = Assert.Single(diagnostics, d => d.Contains(code, StringComparison.Ordinal));
+        Assert.Contains(citation, line, StringComparison.Ordinal);
+    }
+
     [Fact]   // §14.6.13.1 / §7.3.25.3 SR2: an unknown exception-name is rejected.
     public void Raise_UnknownName_Diagnosed()
         => EditionHarness.AssertHasDiagnostic(EditionHarness.GetDiagnostics("""
