@@ -88,6 +88,8 @@ public sealed class ReviewLaneDriftTests
             "the next tick reaps it DIED, mends the cut-off append and starts the SAME round again, with no hand repair",
             "the restart's prompt lists what the dead reviewer recorded and does not record it again",
             "a tear before more lines is the operator's: a HOLD, nothing started, the file untouched",
+            "a mended torn-file hold with the unit's reviewer open in the lane's own file starts NO second reviewer",
+            "once the unit has collected the hold, its reviewer gone, the lane starts the open round again",
             "a branch that moved past a reviewed head is round 2, a RE-REVIEW of the diff since that head",
             "after ATTEMPT_LIMIT reviewers with no verdict at one head the lane HOLDS, starts none, and asks for the unit",
             "an exit-4 stop and a DIRTY bounce each start a conflict finisher; a bounce for failed checks does not",

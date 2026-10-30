@@ -36,7 +36,9 @@ leads, the records and the ledger.
    replaced by one `-`; a torn one is mended first, by the remedy the hold names), the reviewer label `enqueue-review-<branch>-r1`, the round, both stop files, and says: follow "The branch
    form" of `.claude/skills/review/SKILL.md`; a conflict finisher that ended with the head unchanged: read its report
    (`review_lane.py status` names its log), and either re-arm the branch (step 3, a stop resolved with no commit) or
-   send a finisher (step 4). Then `python scripts/orchestrator/review_lane.py collect <branch> ...`. A branch whose
+   send a finisher (step 4). Then `python scripts/orchestrator/review_lane.py collect <branch> ...` (until you collect, the
+   lane starts no review of a held branch, so your reviewer is the only one of its round, even in the lane's own file once
+   the operator has mended it, kb/Work PB4049). A branch whose
    lane attempt stopped `UNREVIEWED` (exit 11) reads STOPPED, not WAITING FOR REVIEW, so the lane does not review it:
    dispatch the reviewer as above for it too. A CLEAN stamp on a branch whose lane attempt stopped `UNREVIEWED` at the
    same tip changes no commit, so the landing lane would never land it again by itself: re-arm it,
