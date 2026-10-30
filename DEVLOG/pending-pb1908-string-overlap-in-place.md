@@ -48,6 +48,7 @@ argument or a plain `LK-X(1:L)`) raised EC-BOUND-REF-MOD (R1-1); and `ReadsStora
 walk, including `FUNCTION UPPER-CASE(WX)(1:L)` over disjoint working storage (R1-2). Fix: the first sending is never reachable (no
 store precedes it, so GR10 cannot apply), so its operands are always read once, in order; `ReadsStorageOf` also walks arithmetic
 arguments and the positions of a reference-modified result (`StorageOverlap.MayShareStorage(DataItem, Place)` judges a position's item).
-A later sending's function that may share identifier-3 stays inline (D-STR4, evaluated once; its range tests run at its transfer, libcob's
-order, only in a statement GR10 may already make undefined). Golden `pb1908_string_function_order` (legs F1 to F5 and a value leg;
-mutating the fix back gave EC-BOUND-SUBSCRIPT on F2, F4 and F5) and five `StringLiveReadDriftTests` tests.
+A later sending's function that may share identifier-3 is identified up front like the rest (its failure interrupts the statement before
+"XY" moves: the second review's K2 and B1 legs) and evaluated again at its transfer (D-STR4); only FUNCTION RANDOM (§15.75.3 5) and a
+shape the walk does not know run once, inline (`Reach.Repeatable`). Golden `pb1908_string_function_order` (legs F1 to F7 and a value
+leg; mutating the fix back gave EC-BOUND-SUBSCRIPT on F2, F4 and F5) and seven new `StringLiveReadDriftTests` tests.

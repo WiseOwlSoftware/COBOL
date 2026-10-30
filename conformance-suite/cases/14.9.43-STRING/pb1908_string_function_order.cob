@@ -28,6 +28,11 @@
       *> F3 LK-X(1:L)              LINKAGE field, no function
       *> F4 UPPER-CASE(WX)(1:L)    reference-modified result
       *> F5 DELIMITED BY UPPER-CASE(LK-X(1:L))   a delimiter
+      *> F6, F7 the same function as a LATER sending into WR, which
+      *>    keeps "........": the sender is identified before any
+      *>    character moves, so the failed sending interrupts the
+      *>    statement before "XY" is transferred (F6 LINKAGE
+      *>    argument, F7 reference-modified result).
       *> V  in range, the functions give the same values: T(2) is
       *>    ABC and T(3) is xABC (a later sending reads LK-X at
       *>    its transfer, unchanged by the earlier ones).
@@ -49,6 +54,7 @@
        01 WX PIC X(8) VALUE "abcdefgh".
        01 I  PIC 99 VALUE 9.
        01 L  PIC 99 VALUE 50.
+       01 WR PIC X(8) VALUE "........".
        LINKAGE SECTION.
        01 LK-X PIC X(8).
        PROCEDURE DIVISION USING LK-X.
@@ -81,6 +87,16 @@
            DISPLAY "F5 STRING LK-X DELIMITED BY UPPER-CASE(LK-X(1:L))"
            STRING LK-X DELIMITED BY FUNCTION UPPER-CASE(LK-X(1:L))
                INTO T(I)
+           DISPLAY "F6 STRING XY UPPER-CASE(LK-X(1:L)) INTO WR"
+           STRING "XY" DELIMITED BY SIZE
+                  FUNCTION UPPER-CASE(LK-X(1:L)) DELIMITED BY SIZE
+               INTO WR
+           DISPLAY "  WR=[" WR "]"
+           DISPLAY "F7 STRING XY UPPER-CASE(WX)(1:L) INTO WR"
+           STRING "XY" DELIMITED BY SIZE
+                  FUNCTION UPPER-CASE(WX)(1:L) DELIMITED BY SIZE
+               INTO WR
+           DISPLAY "  WR=[" WR "]"
            MOVE SPACES TO TB
            MOVE 2 TO I
            MOVE 3 TO L

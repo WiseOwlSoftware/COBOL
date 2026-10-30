@@ -14,7 +14,8 @@
       *> GnuCOBOL 3.2 libcob strings.c: cobc evaluates the function
       *> in the argument list of cob_string_append, when that
       *> transfer begins): a function whose argument can occupy
-      *> identifier-3's storage is evaluated, once, when its own
+      *> identifier-3's storage is evaluated, after the statement's
+      *> identifiers are identified in order, again when its own
       *> transfer begins, from the storage the earlier transfers
       *> stored into. A function whose arguments are disjoint from
       *> identifier-3 is evaluated with the statement's other

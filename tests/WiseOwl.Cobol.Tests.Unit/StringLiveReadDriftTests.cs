@@ -20,10 +20,11 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ONE store of the image, the code it always had, which is also why the Characterization emit snapshots did not move.
 /// This class reads the EMITTED C# over each arm of the predicate (the same record, REDEFINES, LINKAGE, a level-66
 /// alias, a function argument) and over the operands that are never in reach (a literal, a sibling field, the first
-/// sending), so a new arm that forgets the re-read fails here even if no golden crosses it. (3) A function
-/// operand of a later sending that may share identifier-3's storage is evaluated ONCE, inline, when its transfer
-/// begins (D-STR4), never twice; every other function, the first sending's included, is identified up front in
-/// statement order (§14.6.4 7, kb/Work PB3261), so its range tests precede identifier-3's.</para>
+/// sending), so a new arm that forgets the re-read fails here even if no golden crosses it. (3) Every function
+/// operand is identified up front in statement order (§14.6.4 7, kb/Work PB3261), so its range tests precede
+/// identifier-3's; one of a later sending that may share identifier-3's storage is then evaluated again at its
+/// transfer (D-STR4), except FUNCTION RANDOM and a shape the walk does not know, which run ONCE, inline, at their
+/// transfer.</para>
 /// </summary>
 public sealed class StringLiveReadDriftTests
 {
@@ -174,13 +175,31 @@ public sealed class StringLiveReadDriftTests
     }
 
     [Fact]
-    public void FunctionOverTheReceiver_IsEvaluatedOnce_InlineAtItsTransfer()
+    public void RepeatableFunctionOverTheReceiver_IsIdentifiedUpFront_AndEvaluatedAgainAtItsTransfer()
     {
+        // §14.6.4 7) identifies the function first (its range tests run before identifier-3's); D-STR4 evaluates it
+        // again from the storage the earlier transfers stored. Review r1: a LATER sending's LINKAGE argument must not
+        // let "XY" be transferred before the function's own failure interrupts the statement.
         string cs = EmitCSharp(Program(Disjoint, """STRING "XY" DELIMITED BY SIZE FUNCTION UPPER-CASE(R1) DELIMITED BY SIZE INTO R1 END-STRING"""));
         Assert.Equal(2, Stores(cs));
-        // no up-front local for it, and exactly one evaluation of the function
-        Assert.DoesNotMatch(new Regex(@"string __strSrc\d+_1 = ", RegexOptions.Multiline), cs);
-        Assert.Single(Regex.Matches(cs, @"CobolIntrinsics\.UpperCase\("));
+        Assert.Matches(new Regex(@"string __strSrc\d+_1 = ", RegexOptions.Multiline), cs);
+        Assert.Matches(new Regex(@"^\s*__strSrc\d+_1 = ", RegexOptions.Multiline), cs);
+        Assert.Equal(2, Regex.Matches(cs, @"CobolIntrinsics\.UpperCase\(").Count);
+    }
+
+    [Fact]
+    public void RandomOverTheReceiver_IsEvaluatedOnce_InlineAtItsTransfer()
+    {
+        // FUNCTION RANDOM returns the next number of its sequence each time it runs (§15.75.3 5)): never twice.
+        const string data = """
+            01 REC.
+               05 CNT PIC 9 VALUE 2.
+               05 BUF PIC X(8) VALUE "ABCDEFGH".
+            """;
+        string cs = EmitCSharp(Program(data, """STRING "XY" DELIMITED BY SIZE FUNCTION CHAR(FUNCTION INTEGER(FUNCTION RANDOM(CNT) * 9) + 66) DELIMITED BY SIZE INTO REC END-STRING"""));
+        Assert.Equal(2, Stores(cs));
+        Assert.DoesNotMatch(new Regex(@"__strSrc\d+_1 = ", RegexOptions.Multiline), cs);
+        Assert.Single(Regex.Matches(cs, @"CobolIntrinsics\.Random\("));
     }
 
     [Fact]
@@ -247,11 +266,12 @@ public sealed class StringLiveReadDriftTests
             01 S1   PIC X(4)  VALUE "abcd".
             """;
         string position = EmitCSharp(Program(data, """STRING "XY" DELIMITED BY SIZE FUNCTION UPPER-CASE(S1)(1:CNT) DELIMITED BY SIZE INTO REC END-STRING"""));
+        var reread = new Regex(@"^\s*__strSrc\d+_1 = ", RegexOptions.Multiline);
         Assert.Equal(2, Stores(position));
-        Assert.DoesNotMatch(new Regex(@"string __strSrc\d+_1 = ", RegexOptions.Multiline), position);
+        Assert.Matches(reread, position);
         string arithmetic = EmitCSharp(Program(data, """STRING "XY" DELIMITED BY SIZE FUNCTION CHAR(CNT + 64) DELIMITED BY SIZE INTO REC END-STRING"""));
         Assert.Equal(2, Stores(arithmetic));
-        Assert.DoesNotMatch(new Regex(@"string __strSrc\d+_1 = ", RegexOptions.Multiline), arithmetic);
+        Assert.Matches(reread, arithmetic);
     }
 
     [Fact]
