@@ -81,7 +81,7 @@ public sealed class PerformFormat3ParseTests
     [InlineData("RAISE EXCEPTION EC-USER-X")]
     [InlineData("VALIDATE N")]
     [InlineData("UNLOCK F")]
-    [InlineData("SEND TO \"Q\" FROM N")]
+    [InlineData("SEND TO \"Q\" FROM N RETURNING N END-SEND")]
     [InlineData("RECEIVE FROM N GIVING N N")]
     [InlineData("COMMIT")]
     [InlineData("ROLLBACK")]
