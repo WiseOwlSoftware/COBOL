@@ -1,4 +1,4 @@
-## PB4013 adjudicated: VALUE must admit a COMP-5 item's whole container range; the fix is filed as PB4113
+## Entry 2791 — 2026-10-30 11:34 PDT — PB4013 adjudicated: VALUE must admit a COMP-5 item's whole container range; the fix is filed as PB4113
 
 kb/Work PB4013 asked whether `PIC 9(4) COMP-5 VALUE 65535` and `PIC S9(4) COMP-5 VALUE -32768` may compile. The compiler
 refuses them with COBOL1625. A cobol-adjudicator ruled that they may, which makes the refusal a rejects-legal-source
@@ -14,3 +14,4 @@ It also widened the golden scope to cover WHEN SET TO FALSE, a format-2 table, t
 P-scaled pictures. The PICTURE's scale still bounds the trailing digits, so `S99V99 COMP-5 VALUE 1.234` stays refused.
 PB4113 carries the fix, the DOC-A.1-208 sentence for VALUE and the goldens, and claims SR-13.18.63.3-2. PB4013 is
 closed as adjudicated.
+
