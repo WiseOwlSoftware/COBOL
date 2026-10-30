@@ -21,17 +21,19 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// the binder, never the backend, whose refusal is the compiler's own failure) and report the entry's code or message
 /// substring.</para>
 /// <para>⛔ <b>THIS FAMILY IS PARTITIONED</b> (<see cref="TestPartitioning"/>; kb/Work PB2527): xUnit 2 runs one test
-/// class as one collection, serially, and the corpus is about 10,600 rows, so one class would be the Conformance leg's
-/// wall. <see cref="Partitions"/> classes of about 440 rows each run in parallel; <c>ConformancePartitioningDriftTests</c>
+/// class as one collection, serially, and the suite is about 12,000 rows, so one class would be the Conformance leg's
+/// wall. <see cref="Partitions"/> classes of about 375 rows each run in parallel; <c>ConformancePartitioningDriftTests</c>
 /// pins the count against the measured bound, and <see cref="ArchOracle"/> enrolls both row sources.</para>
 /// </remarks>
 /// <typeparam name="TSlot">This partition's slot.</typeparam>
 public abstract class ConformanceSuiteTestsBase<TSlot>
     where TSlot : ITestPartitionSlot
 {
-    /// <summary>Partition count: the corpus runner's measured 24 (kb/Work PB2527: about 190 cases, about 35 s each, at
-    /// the former 4,659-row corpus; the suite's rows are cheaper per row, a refusal compiling once per edition).</summary>
-    public const int Partitions = 24;
+    /// <summary>Partition count: 32, one per processor of the 32-way gate host, raised from the corpus runner's measured
+    /// 24 (kb/Work PB2527) on 2026-10-30, when the suite reached 12,005 rows, 501 a partition at 24, over
+    /// <c>ConformancePartitioningDriftTests</c>' bound of 500. At 32 a partition holds about 375 rows, and the bound is
+    /// reached again at 16,000 rows.</summary>
+    public const int Partitions = 32;
 
     [PartitionedRowSource(nameof(Tests))]
     public static IEnumerable<object[]> AllTests() => SuiteManifest.Tests();
@@ -68,7 +70,7 @@ public abstract class ConformanceSuiteTestsBase<TSlot>
     }
 }
 
-// ⛔ THE 24 PARTITIONS — each its own xUnit collection. TestPartitionAudit proves they cover both row sources exactly
+// ⛔ THE 32 PARTITIONS — each its own xUnit collection. TestPartitionAudit proves they cover both row sources exactly
 // once; ConformancePartitioningDriftTests keeps the count at its floor and bounds the rows per partition
 // (MaxSuiteRowsPerPartition, kb/Work PB2527).
 
@@ -143,6 +145,30 @@ public sealed class ConformanceSuiteTests_P22 : ConformanceSuiteTestsBase<Slot22
 
 /// <summary>Conformance-suite partition 23.</summary>
 public sealed class ConformanceSuiteTests_P23 : ConformanceSuiteTestsBase<Slot23>;
+
+/// <summary>Conformance-suite partition 24.</summary>
+public sealed class ConformanceSuiteTests_P24 : ConformanceSuiteTestsBase<Slot24>;
+
+/// <summary>Conformance-suite partition 25.</summary>
+public sealed class ConformanceSuiteTests_P25 : ConformanceSuiteTestsBase<Slot25>;
+
+/// <summary>Conformance-suite partition 26.</summary>
+public sealed class ConformanceSuiteTests_P26 : ConformanceSuiteTestsBase<Slot26>;
+
+/// <summary>Conformance-suite partition 27.</summary>
+public sealed class ConformanceSuiteTests_P27 : ConformanceSuiteTestsBase<Slot27>;
+
+/// <summary>Conformance-suite partition 28.</summary>
+public sealed class ConformanceSuiteTests_P28 : ConformanceSuiteTestsBase<Slot28>;
+
+/// <summary>Conformance-suite partition 29.</summary>
+public sealed class ConformanceSuiteTests_P29 : ConformanceSuiteTestsBase<Slot29>;
+
+/// <summary>Conformance-suite partition 30.</summary>
+public sealed class ConformanceSuiteTests_P30 : ConformanceSuiteTestsBase<Slot30>;
+
+/// <summary>Conformance-suite partition 31.</summary>
+public sealed class ConformanceSuiteTests_P31 : ConformanceSuiteTestsBase<Slot31>;
 
 /// <summary>The suite's whole-manifest facts, run once (an inherited fact would run once per partition).</summary>
 public sealed class ConformanceSuiteTests
