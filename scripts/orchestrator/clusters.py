@@ -50,7 +50,8 @@ class Note:
 
 
 def harm_weights() -> dict[str, int]:
-    """Each harm flag's weight, from `.agent-fleet.json` `harm` (`wrong_answer=8,crashes=4,...`): the one reading, used
+    """Each harm flag's weight, from `.agent-fleet.json` `harm` (`wrong_answer=16,crashes=8,...`, in work.HARM_FLAGS' order, each weight below the one before: work.py's self-test
+    holds the file to it): the one reading, used
     by the planner's ranks and by the branch survey's train order (prune_worktrees.py note_rank, kb/Work PB2981)."""
     fleet = json.loads((REPO / ".agent-fleet.json").read_text(encoding="utf-8"))
     return {k: int(v) for k, v in (p.split("=") for p in fleet["harm"].split(","))}

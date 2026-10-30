@@ -1199,7 +1199,7 @@ list could see it, and this section's own duplicate table had rotted into listin
 | to ask | run |
 |---|---|
 | what should I work on now? | `python scripts/spec/work.py next` — session-probe prints it every session |
-| show me everything | `kb/Work.base` → **Fix next** · **Blocked** · **Open but no harm flag set** |
+| show me everything | `python scripts/spec/work.py next` · `blocked` · `unharmed` (open, no harm flag set) |
 | is the register sound? | `python scripts/spec/work.py check` |
 
 ⛔ **AND KEEP IT CURRENT IN THE SAME CHANGE SET AS THE WORK** — a landed fix flips its note's `status` in the
@@ -1517,7 +1517,7 @@ of work counted twice**, and unifying them before the SR mass starts avoids audi
    | to ask | run |
    |---|---|
    | what should I work on now? | `python scripts/spec/work.py next` — session-probe already prints it |
-   | show me everything open | `kb/Work.base` → **Fix next** · **Blocked** · **Open but no harm flag set** |
+   | show me everything open | `python scripts/spec/work.py next` · `blocked` · `unharmed` (open, no harm flag set) |
    | is the register sound? | `python scripts/spec/work.py check` |
    | counts by kind/status | `python scripts/spec/work.py stats` |
 
@@ -3307,7 +3307,7 @@ already-derivable coverage; none change the pipeline.
 
    | to ask | run |
    |---|---|
-   | the analysis backlog | `kb/Work.base` → **Analyses (§11)** |
+   | the analysis backlog | `python scripts/spec/work.py analyses` |
    | everything actionable | `python scripts/spec/work.py next` |
 
    ⛔ **Do not restore a table here.** If an analysis needs recording, add or edit its `kb/Work/` note.

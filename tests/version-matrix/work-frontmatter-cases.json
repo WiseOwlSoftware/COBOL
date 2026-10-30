@@ -20,6 +20,11 @@
   "reports, so a status added to the vocabulary reaches the reader's answers here before anything can read it",
   "differently (kb/Work PB3196).",
   "",
+  "`scalars` measures the one-line value reader `_scalar` (kb/Work PB3812): `value` is the text after `key: `, `expect`",
+  "the value the reader returns, `error` the code it reports (empty for none). A double-quoted value decodes YAML 1.2",
+  "section 5.7's escapes (one case per escape the reader defines, which `--self-test` demands of the whole table), and a",
+  "backslash that table lacks or a quote never closed is an error with the text kept as written, never a silent pass.",
+  "",
   "⚙ ADD A SHAPE HERE THE MOMENT THE REGISTER GROWS ONE. A shape the reader is not measured on is a shape it is free to",
   "misread, and the misreading is invisible until a note happens to use it."
  ],
@@ -103,6 +108,16 @@
     "note": true, "id": "PB390", "kind": "defect", "status": "open", "terminal": false,
     "inventory_rows": [], "closes_rows": [], "closes_rows_reason": "",
     "errors": ["unterminated-list:inventory_rows"], "refusal": ""
+   }
+  },
+  {
+   "name": "⛔ a double-quoted value holding an escape YAML does not define (a Windows path) is an error, never a silent pass (PB3812)",
+   "file": "PB2482b.md",
+   "text": "---\nid: PB2482\nkind: defect\nstatus: open\ntitle: \"PB2482 — the mailbox E:\\COBOL-coord\\mailbox\"\ncloses_rows: []\n---\nbody\n",
+   "expect": {
+    "note": true, "id": "PB2482", "kind": "defect", "status": "open", "terminal": false,
+    "inventory_rows": [], "closes_rows": [], "closes_rows_reason": "",
+    "errors": ["unknown-escape:title"], "refusal": ""
    }
   },
   {
@@ -228,5 +243,39 @@
     "refusal": "PB3700.md: unreadable as a work note — the file starts with a byte-order mark, so line 1 is not the opening `---`"
    }
   }
+ ],
+ "scalars": [
+  {"name": "a double-quoted scalar is its text without the quotes", "value": "\"plain title\"", "expect": "plain title", "error": ""},
+  {"name": "an escaped quote is a quote", "value": "\"says \\\"hi\\\"\"", "expect": "says \"hi\"", "error": ""},
+  {"name": "an escaped backslash is a backslash", "value": "\"E:\\\\Temp\\\\x\"", "expect": "E:\\Temp\\x", "error": ""},
+  {"name": "the escape backslash-0 is U+0000", "value": "\"x\\0y\"", "expect": "x\u0000y", "error": ""},
+  {"name": "the escape backslash-a is U+0007", "value": "\"x\\ay\"", "expect": "x\u0007y", "error": ""},
+  {"name": "the escape backslash-b is U+0008", "value": "\"x\\by\"", "expect": "x\by", "error": ""},
+  {"name": "the escape backslash-t is U+0009", "value": "\"x\\ty\"", "expect": "x\ty", "error": ""},
+  {"name": "the escape backslash-<tab> is U+0009", "value": "\"x\\\ty\"", "expect": "x\ty", "error": ""},
+  {"name": "the escape backslash-n is U+000A", "value": "\"x\\ny\"", "expect": "x\ny", "error": ""},
+  {"name": "the escape backslash-v is U+000B", "value": "\"x\\vy\"", "expect": "x\u000by", "error": ""},
+  {"name": "the escape backslash-f is U+000C", "value": "\"x\\fy\"", "expect": "x\fy", "error": ""},
+  {"name": "the escape backslash-r is U+000D", "value": "\"x\\ry\"", "expect": "x\ry", "error": ""},
+  {"name": "the escape backslash-e is U+001B", "value": "\"x\\ey\"", "expect": "x\u001by", "error": ""},
+  {"name": "the escape backslash-<space> is U+0020", "value": "\"x\\ y\"", "expect": "x y", "error": ""},
+  {"name": "the escape backslash-/ is U+002F", "value": "\"x\\/y\"", "expect": "x/y", "error": ""},
+  {"name": "the escape backslash-N is U+0085", "value": "\"x\\Ny\"", "expect": "x\u0085y", "error": ""},
+  {"name": "the escape backslash-_ is U+00A0", "value": "\"x\\_y\"", "expect": "x\u00a0y", "error": ""},
+  {"name": "the escape backslash-L is U+2028", "value": "\"x\\Ly\"", "expect": "x\u2028y", "error": ""},
+  {"name": "the escape backslash-P is U+2029", "value": "\"x\\Py\"", "expect": "x\u2029y", "error": ""},
+  {"name": "the escape backslash-x takes two hex digits", "value": "\"\\x41\\x7e\"", "expect": "A~", "error": ""},
+  {"name": "the escape backslash-u takes four hex digits", "value": "\"c\\u2032\\u00e9\"", "expect": "c\u2032\u00e9", "error": ""},
+  {"name": "the escape backslash-U takes eight hex digits", "value": "\"\\U0001F600\"", "expect": "\ud83d\ude00", "error": ""},
+  {"name": "a single-quoted scalar doubles its quote", "value": "'it''s'", "expect": "it's", "error": ""},
+  {"name": "a single-quoted scalar has no escapes", "value": "'a\\nb'", "expect": "a\\nb", "error": ""},
+  {"name": "a plain scalar is as written", "value": "owner decision: yes", "expect": "owner decision: yes", "error": ""},
+  {"name": "a plain scalar keeps its backslash", "value": "E:\\Temp", "expect": "E:\\Temp", "error": ""},
+  {"name": "an empty double-quoted scalar is empty", "value": "\"\"", "expect": "", "error": ""},
+  {"name": "an escape YAML does not define is an error (backslash-C), the text kept as written", "value": "\"path \\C\"", "expect": "\"path \\C\"", "error": "unknown-escape"},
+  {"name": "a truncated backslash-x is an unknown escape", "value": "\"bad \\x4\"", "expect": "\"bad \\x4\"", "error": "unknown-escape"},
+  {"name": "an unterminated double quote is an error", "value": "\"abc", "expect": "\"abc", "error": "unterminated-quote"},
+  {"name": "a lone quote is an error", "value": "\"", "expect": "\"", "error": "unterminated-quote"},
+  {"name": "an unterminated single quote is an error", "value": "'abc", "expect": "'abc", "error": "unterminated-quote"}
  ]
 }

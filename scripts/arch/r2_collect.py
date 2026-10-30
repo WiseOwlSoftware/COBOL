@@ -49,7 +49,8 @@ THE FINDING SCHEMA (B5; every field required unless marked):
   analyzer_rule required when wave_kind is modernize (the analyzer id, §5.5 analyzer-first)
   measurement   required for a performance finding: the measured number on the pin and how it was measured
   severity      Critical | Warning | Suggestion (scale = long-lived, consequence = high)
-  harm          for a defect: a non-empty subset of wrong-answer, crashes, silent, rejects-legal-source, under-rejects
+  harm          for a defect: a non-empty subset of wrong-answer, crashes, rejects-legal-source, under-rejects,
+                misleads-diagnosis, silent (work.FINDING_HARMS), at least one of them not `silent`
   spec_refs     for a defect: [{"clause": "14.9.8.4", "text": "words of that clause"}, ...] — each is run through
                 `cite.py`'s check here, so a defect note's `spec_refs:` holds only checked clauses (CLAUDE.md rule 1)
   existing_note "PBnnnn" when the finding is already a note (then it is not filed again), else ""
@@ -94,12 +95,12 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "scripts" / "spec"))
 # the register's ONE definition of a harm `work.py next` ranks, and of the fix lane's wave kind (kb/Work PB3242)
-from work import FIX_LANE_WAVE, HARM_FLAGS  # noqa: E402
+from work import FINDING_HARMS, FIX_LANE_WAVE, HARM_FLAGS  # noqa: E402
 LENSES = ("site", "rule", "scenario")
 KINDS = ("finding", "lead", "defect")
 WAVES = ("extract", "unify", "move-and-rename", "data-ize", "delete", "modernize", FIX_LANE_WAVE)
 SEVERITIES = ("Critical", "Warning", "Suggestion")
-HARMS = ("wrong-answer", "crashes", "silent", "rejects-legal-source", "under-rejects")
+HARMS = tuple(FINDING_HARMS)   # the register's harm words (work.FINDING_HARMS), so a new harm class is accepted here
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import r2_cost  # noqa: E402  (the ONE estimator of what a launch plan spends)
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
@@ -663,6 +664,10 @@ def self_test():
         arm("a defect whose only harm is `silent` is INVALID: work.py next ranks only HARM_FLAGS",
             any("at least one of" in p for p in problems(silent_only, tracked))
             and not any("at least one of" in p for p in problems(dict(silent_only, harm=["wrong-answer", "silent"]), tracked)))
+        arm("the review template's harm line names every harm word the register files (work.FINDING_HARMS), so a harm "
+            "class added to the register reaches the reviewers' prompt",
+            all(w in "".join(re.findall(r'"harm": \["([^"]*)"\]', TEMPLATE.read_text(encoding="utf-8"))).split("|")
+                for w in HARMS))
         arm("a defect whose clause does not hold its text is INVALID (cite.py's check)",
             any("cite.py --check" in p for p in inv.get(f % 9, [])))
         arm("a defect whose clause holds its text passes the check", spec_ref_problems([{

@@ -927,8 +927,9 @@ def record_held(t: Triage, v: dict, ref: dict | None, spec: Spec) -> Draft | str
 def render_note(d: Draft, pb: str, date: str) -> str:
     """The note text of one draft (design §5.4): the register's frontmatter of an `upstream` record, then the record's
     sections in the bar's order with the run's witnesses at the end."""
+    work = fh.register()
     flag = CLASS_FLAGS.get(d.cls)
-    flags = {k: (k == flag) for k in ("wrong_answer", "crashes", "silent", "rejects_legal_source", "under_rejects")}
+    flags = {k: (k == flag) for k in work.FINDING_HARMS.values()}
     fm = ["---", f"title: {json.dumps(pb + ' — ' + d.title, ensure_ascii=False)}", f"id: {pb}", "kind: upstream",
           "status: open", "severity: MINOR", "area: tooling/upstream"]
     fm += [f"{k}: {str(x).lower()}" for k, x in flags.items()]
