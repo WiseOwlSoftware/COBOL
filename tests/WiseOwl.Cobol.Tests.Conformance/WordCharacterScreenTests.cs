@@ -81,6 +81,19 @@ public sealed class WordCharacterScreenTests
         Assert.Contains(errors, e => e.Contains("COBOL0001"));
     }
 
+    /// <summary>A source that PARSES keeps its bind-time diagnostics beside the word-character one (the binder driver screens
+    /// the tree's words through the compiler's channel, so the report does not stop the compile before the binder).</summary>
+    [Fact]
+    public void AParsedSource_KeepsItsBindErrorsBesideTheWordCharacterError()
+    {
+        string word = "X" + Euro;
+        var (ok, errors, _) = EditionHarness.CompileFull(Unparseable(word, word + " NOWHERE-DEFINED").Replace(" MOVE MOVE", ""), 2023);
+        Assert.False(ok);
+        Assert.Contains(errors, e => e.Contains("COBOL2773"));
+        Assert.Contains(errors, e => e.Contains("NOWHERE-DEFINED"));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL0001"));
+    }
+
     /// <summary>A word that no grammar rule uses as a name (a phrase word of a statement) is still a word of the program.</summary>
     [Fact]
     public void AWordInAnyPosition_IsScreened()

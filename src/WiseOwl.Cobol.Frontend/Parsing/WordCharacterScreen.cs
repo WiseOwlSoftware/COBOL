@@ -32,37 +32,71 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// not where the grammar can use it, the parse fails at the NEXT token, and the user was told "cannot parse near
 /// 'STOP'" without the cause. The lexer's word class is the single <see cref="CobolLexer.IDENTIFIER"/> token (only
 /// <c>IDENTIFIER</c> is built from <c>NAME_BODY</c>; a reserved word has only basic characters), so one walk of the
-/// token stream asks the rule of every word in every position — a name slot, a phrase word, a word the parser
+/// words asks the rule of every word in every position — a name slot, a phrase word, a word the parser
 /// rejects — and a new grammar position needs no arm. The one text that is not words is a comment-entry, which the
 /// tree names (<see cref="CobolParserCore.CommentEntryContext"/>). The directive stages ask the same rule of the
 /// words they scan themselves (<see cref="CobolWordRule.DirectiveWordViolations"/>): a directive is removed from the
 /// text before the lexer runs.</para>
+/// <para>⛔ TWO WORD SOURCES, ONE RULE. When the parse FAILED the frontend asks it of the lexer's token stream
+/// (<see cref="RunOnTokens"/>; the tree is partial, so it only names the comment-entries) and reports as frontend errors,
+/// which is what a parse failure is. When the parse SUCCEEDED the binder driver asks it of the tree's own words
+/// (<see cref="RunOnTree"/>), so the reports ride the compiler's channel beside the binder's own diagnostics instead of
+/// stopping the compile before it (a source whose only fault is a word character still draws every bind-time error).
+/// Both run <see cref="Check"/>.</para>
 /// <para>One report per DISTINCT word per compilation (the Annex C fold), the posture the length ceiling has.</para>
 /// </summary>
 public static class WordCharacterScreen
 {
-    /// <summary>Screen every word of <paramref name="tokens"/> against the targeted <paramref name="edition"/>,
-    /// reporting each violation to the sink <paramref name="sinkAt"/> answers for the word's token (the sink carries
-    /// the diagnostic's location). <paramref name="tree"/> is the unit's parse tree, complete or not: it names only
-    /// the tokens that are NOT words, those of a comment-entry (<c>AUTHOR. JOSÉ</c> is a legal '85 comment).</summary>
-    public static void Run(IEnumerable<IToken> tokens, IParseTree tree, EditionInfo edition, Func<IToken, IDiagnosticSink> sinkAt)
+    /// <summary>The parse FAILED or is incomplete: screen every word of <paramref name="tokens"/> (the lexer's whole
+    /// stream). <paramref name="tree"/> is the unit's parse tree, complete or not: it names only the tokens that are NOT
+    /// words, those of a comment-entry (<c>AUTHOR. JOSÉ</c> is a legal '85 comment).</summary>
+    public static void RunOnTokens(IEnumerable<IToken> tokens, IParseTree tree, EditionInfo edition, IDiagnosticSink sink)
     {
         List<IToken>? candidates = null;
         foreach (var token in tokens)
-        {
-            if (token.Type != CobolLexer.IDENTIFIER) continue;
-            string text = token.Text;   // one read: a token's text is cut from the input on every call
-            if (text.Contains('_') || CobolCharacterRepertoire.HasExtendedCharacter(text)) (candidates ??= []).Add(token);
-        }
+            if (IsCandidate(token)) (candidates ??= []).Add(token);
         if (candidates is null) return;   // the ordinary program: no word holds a character beyond letters, digits and hyphen
-
         var commentEntries = CommentEntryTokens(tree);
+        Check(candidates.Where(t => !commentEntries.Contains(t.TokenIndex)), edition, sink);
+    }
+
+    /// <summary>The parse SUCCEEDED: screen every word the tree holds, outside its comment-entries.</summary>
+    public static void RunOnTree(IParseTree tree, EditionInfo edition, IDiagnosticSink sink)
+    {
+        List<IToken>? candidates = null;
+        var pending = new Stack<IParseTree>();
+        pending.Push(tree);
+        while (pending.Count > 0)
+        {
+            var node = pending.Pop();
+            if (node is CobolParserCore.CommentEntryContext) continue;
+            if (node is ITerminalNode t)
+            {
+                if (IsCandidate(t.Symbol)) (candidates ??= []).Add(t.Symbol);
+                continue;
+            }
+            for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
+        }
+        if (candidates is not null) Check(candidates, edition, sink);
+    }
+
+    /// <summary>A word token holding an underscore or a character outside the basic repertoire. The text is read once:
+    /// a token's text is cut from the input on every call.</summary>
+    private static bool IsCandidate(IToken token)
+    {
+        if (token.Type != CobolLexer.IDENTIFIER) return false;
+        string text = token.Text;
+        return text.Contains('_') || CobolCharacterRepertoire.HasExtendedCharacter(text);
+    }
+
+    private static void Check(IEnumerable<IToken> words, EditionInfo edition, IDiagnosticSink sink)
+    {
         var reported = new HashSet<string>(CobolNames.Comparer);
-        foreach (var token in candidates)
+        foreach (var token in words)
         {
             string word = token.Text;
-            if (commentEntries.Contains(token.TokenIndex) || !reported.Add(word)) continue;
-            var sink = sinkAt(token);
+            if (!reported.Add(word)) continue;
+            using var _ = sink.At(token.Line, token.Column);
             if (word.Contains('_'))
                 ConstructRegistry.Check(edition, sink, Constructs.UserWordUnderscore2002,
                     $"the underscore in the COBOL word '{word}'");

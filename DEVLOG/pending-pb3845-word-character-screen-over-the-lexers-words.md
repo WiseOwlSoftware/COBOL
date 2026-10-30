@@ -10,10 +10,14 @@ non-basic character so the diagnostic can name it). The U+00A0 word is read, no 
 at the next token, and the cause is lost.
 
 **Fix.** `WordCharacterScreen` (Frontend/Parsing) asks the rule of every `IDENTIFIER` token, the only token built from
-`NAME_BODY`, from `Frontend.LexAndParseOnce` after the parse, whether or not it succeeded; the funnel's copy is deleted.
-All four checks moved together (one mechanism): the underscore gate, the extended-letter gate, COBOL2773 and the removed
-construct (a warning under `--permissive`). The pb1660 line now draws COBOL2773 naming U+00A0 from 2002, and the
-extended-letter gate (COBOL0900) at 85, next to the parse error. One report per distinct word under the Annex C fold.
+`NAME_BODY`; the funnel's copy is deleted. All four checks moved together (one mechanism): the underscore gate, the
+extended-letter gate, COBOL2773 and the removed construct (a warning under `--permissive`). One body, two word sources:
+a failed parse is screened by `Frontend.LexAndParseOnce` over the lexer's whole stream, a successful one by `BinderDriver`
+over the tree's words. The first draft screened the stream in every case and reported through the frontend, which stopped
+a parseable source before the binder: the gate went RED on `pb2983-supplementary-letters-parser-error-column`, whose
+COBOL1941 (a bind-time diagnostic) no longer accompanied COBOL2773 at 2002 and 2014. The pb1660 line now draws COBOL2773
+naming U+00A0 from 2002, and the extended-letter gate (COBOL0900) at 85, next to the parse error. One report per distinct
+word under the Annex C fold.
 
 **Structure.** The first draft of the screen flagged `AUTHOR. JOSÉ`, a legal COBOL-85 comment: the tokens of a comment-entry
 are not words. The six identification comment paragraphs spelled the same `~DOT+` body six times (`authorContent`,
@@ -24,9 +28,5 @@ rule, `commentEntry`, and the screen finds the non-word tokens by that one conte
 `pb3845-underscore-unparseable-85` (COBOL0900), `pb3845-removed-character-unparseable-2023` (COBOL0902), and
 `WordCharacterScreenTests` for what a golden cannot hold (a comment-entry is not words at all four editions; a distinct
 word is reported once; `--permissive` keeps the warning next to the parse error; a phrase-word position is screened).
-
-**Behaviour change.** The reports are frontend errors, so a source with an offending word now stops before the binder, as
-every parse-stage diagnostic does; the binder's undefined-name errors no longer accompany them (the EditionGateArm
-"gate survives the bind" fact is unaffected: the gate is earlier, not later).
 
 **Rows.** None closed: the rule's inventory rows were closed by PB1402; this names the cause when the parse fails.
