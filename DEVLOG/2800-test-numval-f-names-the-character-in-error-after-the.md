@@ -1,4 +1,4 @@
-## TEST-NUMVAL-F names the character in error after the exponent's sign (PB4096)
+## Entry 2800 — 2026-10-30 12:30 PDT — TEST-NUMVAL-F names the character in error after the exponent's sign (PB4096)
 
 Differential fuzz night 9 found `TEST-NUMVAL-F("12.34E+AB")` returning 10 and `TEST-NUMVAL-F("1E++2")` returning 6, where
 ISO/IEC 1989:2023 §15.95.4 1) b) ("Otherwise, if one or more characters are in error, the position of the first character
@@ -20,3 +20,4 @@ same `NvfScan`, so no second scanner needed the fix.
 hand-derived in its header, each shape with a literal and a data-item argument), and six rows in
 `TestNumvalFPositionTests.Native_PositionLegs`. The edition refusal below 2002 is the existing
 `test_validators_below_2002`. No inventory row was claimed or closed.
+
