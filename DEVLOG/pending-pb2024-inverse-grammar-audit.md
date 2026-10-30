@@ -67,6 +67,15 @@ deliberately does not.
 COBOL1850). `cases/_unassigned/optional_words_mcs` wrote `SEND "LITERAL-TAG" FROM MSG-BODY END-SEND`, a Format 1 SEND
 without its RETURNING; it writes one now and its output is unchanged. SR-8.3.2.4.2-1 PARTIAL → CONFORMS (GAP 21 → 20).
 
+### Branch review, round 1
+
+The reviewer found one blocking regression (R1-1): the version-matrix probe `async-messaging-2023` in
+`tests/version-matrix/constructs.json` wrote `SEND TO WS-TAG FROM WS-MSG.` with no END-SEND, so the new screen refused
+it at 2023 (COBOL1850) where the row expects a clean compile. The gate had planned that cell into leg 2, so CI's merge
+group would have been its first run. The probe now writes `SEND TO WS-TAG FROM WS-MSG END-SEND.`, and the row's
+description says why. A sweep of every SEND statement in the tracked COBOL sources, test strings and matrix rows found
+no other one without its END-SEND. The `async-messaging-2023` cells pass at all four editions.
+
 ### Stated limits
 
 The audit measures the licensed PDF, so neither CI's `audits` job (no `specs-private`, by design) nor a worktree gate can
