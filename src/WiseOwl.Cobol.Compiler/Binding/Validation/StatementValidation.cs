@@ -1527,7 +1527,11 @@ internal sealed class StatementValidation(DataBinder data)
     /// where an ANTLR parse error can only report an unexpected token. Making the phrase mandatory in the
     /// grammar would also make the §14.9.34.3 SR4 reversed spelling report as a token-level surprise. The
     /// grammar rule carries a comment pointing here; <c>RequiredFormatPhraseDriftTests</c> re-derives from the
-    /// transcription that RETURN's AT END is still the only §14.9 format line this applies to.</para>
+    /// transcription that RETURN's AT END is still the only §14.9 CONDITIONAL-PHRASE line this applies to. The other
+    /// callers are the unbracketed lines of SEND (§14.9.38.2: END-SEND in both formats, Format 1's RETURNING;
+    /// <c>DeclinedFacilityBinder.ScreenSendRequiredPhrases</c>), found by the inverse class of
+    /// <c>scripts/spec/audit_grammar_optional_words.py</c>, which a grammar rule's <c>audit:required-word</c> line
+    /// answers by naming the member that screens the word (kb/Work PB2024).</para>
     /// <para>Returns true when the phrase was omitted, so a call site reads as a screen, not a branch. The
     /// caller may still bind the statement — the compile has already failed.</para></summary>
     /// <param name="omitted">Whether the phrase is absent — computed by the caller, which alone knows how its

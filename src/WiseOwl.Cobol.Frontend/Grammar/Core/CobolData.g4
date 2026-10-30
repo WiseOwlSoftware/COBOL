@@ -750,6 +750,10 @@ binarySign
 // §13.10.4 GR1/GR3). The constant is resolved at BIND time from the compile-time constant table
 // (DataBinder.Constants.cs) — a cobolWord bound in a program with no such constant rejects loud (COBOL1547).
 occursClause
+    // Format 4 prints `[ CAPACITY IN data-name-3 ] [ FROM integer-4 ] [ TO integer-5 ] [ INITIALIZED ]`, each once and in
+    // that order; `occursDynamicPhrase*` parses any sequence and the binder refuses a repeated or reordered phrase
+    // (COBOL2789). The grammar audit reads the next line and reports those words as DECIDED (kb/Work PB2024):
+    // audit:repeated-word CAPACITY FROM TO INITIALIZED decided-by DataBinder.NarrowToDataDivisionFormats
     : OCCURS integerOperand (TO integerOperand)? timesKeyword?
       (DEPENDING ON? dataReference)?
       occursStepPhrase?

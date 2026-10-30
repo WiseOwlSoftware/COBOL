@@ -348,8 +348,10 @@ public static class DiagnosticCatalog
         + "made its AT END half optional too, so a RETURN with no AT END compiled clean at all four editions "
         + "and, at end of data, §14.9.34.4 GR3's \"the contents of the record area … are undefined\" branch "
         + "ran with control falling THROUGH the statement: a loop written on RETURN could never terminate "
-        + "from the statement, and re-displayed the previous record instead.",
-        "ISO §14.9.34.2 · §5.2.2 · §5.2.6.2");
+        + "from the statement, and re-displayed the previous record instead. ISO §14.9.38.2 prints SEND's END-SEND "
+        + "without brackets in both formats, and Format 1's RETURNING data-name-1 line too (a literal-1 operand is "
+        + "Format 1's), so each is required the same way (kb/Work PB2024).",
+        "ISO §14.9.34.2 · §14.9.38.2 · §5.2.2 · §5.2.6.2");
 
     public static readonly DiagnosticDescriptor RedefinesPointerObject = new(
         "COBOL1697", "redefines-pointer-object", EditionSeverity.Error,
