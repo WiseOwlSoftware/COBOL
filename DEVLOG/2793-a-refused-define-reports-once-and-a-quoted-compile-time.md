@@ -1,4 +1,4 @@
-## A refused >>DEFINE reports once, and a quoted compile-time operand keeps its spaces (PB3119, PB3429)
+## Entry 2793 — 2026-10-30 11:48 PDT — A refused >>DEFINE reports once, and a quoted compile-time operand keeps its spaces (PB3119, PB3429)
 
 Two diagnostic-quality defects in the one compile-time expression evaluator (wave 20261769, group D). Neither changes
 what a correct program compiles to; both made a wrong program's error list longer or harder to read than the mistake.
@@ -43,3 +43,4 @@ DEFINE refuses nothing; POP restores the refusals; the quoted operand in the ari
 were run through `cite.py --check`. Duplication: the live set and the timeline event record the same fact for the same
 reason `_defines` and the DEFINE events already do. Performance: the refused set is consulted only on a name that
 already failed to resolve.
+
