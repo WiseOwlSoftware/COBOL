@@ -24166,6 +24166,12 @@
   ],
   "expect": "COBOL0900: >>TURN directive requires COBOL-2002"
  },
+ "pb4092-turn-size-per-name-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: >>TURN directive requires COBOL-2002"
+ },
  "pb2024-required-word-omitted": {
   "refuse-at": [
    "85",

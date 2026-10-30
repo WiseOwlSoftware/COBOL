@@ -3,6 +3,7 @@
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.CodeGen;
 
@@ -400,38 +401,82 @@ internal sealed class EcState
     /// nothing.</summary>
     public bool FlagsStanding { get; set; }
 
-    /// <summary>True while the statement being emitted has any EC-SIZE-* condition enabled (kb/Work PB91): the
-    /// receiver-less numeric renders inside it — a relation operand, a function argument, a subscript, a SET
-    /// amount — take the CHECKED kernels (AddChecked / SubChecked, the checked NUMVAL
-    /// landing), so an intermediate that overflows the Int128 carrier or a zero divisor raises CobolSizeError for
-    /// the ambient EC-SIZE guard to dispatch (§14.7.5 no-phrase rule 3 + §14.6.13.1.3) instead of wrapping.
-    /// <para>Also true while the report compose renders its CHECKED twin (<see cref="ComposeSizeChecking"/>).</para></summary>
-    public bool SizeChecking =>
-        ComposeSizeChecking || Info?.Enabled.Any(p => p.Ec.StartsWith("EC-SIZE-", StringComparison.Ordinal)) == true;
+    /// <summary>The size error conditions whose checking is enabled at the statement being emitted (kb/Work PB91,
+    /// PB4092): §14.6.13.1.1 raises a condition only "if checking for an exception condition is enabled", which is per
+    /// level-3 NAME, never per family. The receiver-less numeric renders inside the statement — a relation operand, a
+    /// function argument, a subscript, a SET amount — take the CHECKED operators for exactly these (AddChecked /
+    /// MulChecked, the checked NUMVAL landing), so an intermediate that leaves its range raises the CobolSizeError of an
+    /// ENABLED name for the ambient EC-SIZE guard to dispatch (§14.7.5 no-phrase rule 3 + §14.6.13.1.3) and takes the
+    /// not-enabled disposition (DOC-A.1-70: the unchecked value, execution continuing) for every other name. A name with
+    /// no <see cref="SizeChecks"/> bit (EC-SIZE-ZERO-DIVIDE, -EXPONENTIATION) is raised by every kernel and dispatched or
+    /// terminated by the statement's guard.
+    /// <para>The report compose has no statement of its own (<see cref="Info"/> is null there): its CHECKED twin
+    /// (<see cref="ComposeSizeChecking"/>) takes the PRESENTING statement's enablement at run time instead.</para></summary>
+    public SizeChecks EnabledChecks => Info is null ? SizeChecks.None : ChecksOf(Info.Enabled.Select(p => p.Ec));
 
-    /// <summary>True while the report compose renders the CHECKED twin of one of its numeric renders (kb/Work PB4031):
+    /// <summary>The rows of the ONE table that says which size error conditions have a per-name check: the Table 13 name,
+    /// its <see cref="SizeChecks"/> bit, and the <c>ExceptionState</c> flag the presenting GENERATE or TERMINATE sets for
+    /// the report compose (kb/Work PB4031, PB4092). <c>SizeChecksDriftTests</c> holds the table against the enum and the
+    /// runtime flags, so a fourth name joins by construction.</summary>
+    internal static readonly (string Ec, SizeChecks Bit, string Flag)[] SizeCheckRows =
+    [
+        ("EC-SIZE-OVERFLOW", SizeChecks.Overflow, nameof(Runtime.Exceptions.ExceptionState.SizeOverflowChecking)),
+        ("EC-SIZE-UNDERFLOW", SizeChecks.Underflow, nameof(Runtime.Exceptions.ExceptionState.SizeUnderflowChecking)),
+        ("EC-SIZE-TRUNCATION", SizeChecks.Truncation, nameof(Runtime.Exceptions.ExceptionState.SizeTruncationChecking)),
+    ];
+
+    /// <summary>The checks of the exception names <paramref name="enabled"/> (the names with no per-name check add
+    /// nothing).</summary>
+    public static SizeChecks ChecksOf(IEnumerable<string> enabled)
+    {
+        var checks = SizeChecks.None;
+        foreach (string ec in enabled)
+            foreach (var row in SizeCheckRows)
+                if (string.Equals(row.Ec, ec, StringComparison.Ordinal)) checks |= row.Bit;
+        return checks;
+    }
+
+    /// <summary>True while the report compose renders its CHECKED twin of one of its numeric renders (kb/Work PB4031):
     /// the compose is compiled once, outside every statement, and runs as part of whichever GENERATE or TERMINATE
     /// presents the line, so it is rendered both ways and selects at run time on the presenting statement's EC-SIZE
-    /// enablement (<c>ReportWriterEmitter.UnderPresentingChecking</c>, the one writer). It feeds
-    /// <see cref="SizeChecking"/> and nothing else: the per-name questions (<see cref="SizeTruncationChecking"/>, the
-    /// other gates) stay the statement's own.</summary>
+    /// enablement (<c>ReportWriterEmitter.UnderPresentingChecking</c>, the one writer). Its receiver-less numeric renders
+    /// then pass that enablement, read at run time (<c>RuntimeApi.SizeChecksEnabled</c>), to the checked operators
+    /// instead of a compile-time <see cref="SizeChecks"/> (kb/Work PB4092).</summary>
     public bool ComposeSizeChecking { get; set; }
+
+    /// <summary>The conditions the arithmetic statement being emitted TAKES (kb/Work PB4092, PB4093) — set with
+    /// <see cref="SizeErrVar"/> by the two-phase wrapper (<c>ArithmeticEmitter.EmitArith</c>) and clear outside it.
+    /// <see cref="SizeChecks.All"/> for a statement with a SIZE ERROR phrase (§14.7.5: the phrase enables checking of
+    /// every condition its operations meet); the <see cref="EnabledChecks"/> of a statement without one. A store takes the
+    /// CHECKED landing (leaving the receiver unchanged on a size error) only when <see cref="SizeChecks.Truncation"/> is
+    /// taken, and stores the low-order digits otherwise (DOC-A.1-70).</summary>
+    public SizeChecks SizeErrChecks { get; set; }
 
     /// <summary>True while the statement being emitted has EC-SIZE-TRUNCATION specifically enabled (ISO
     /// §7.3.25's TURN directive; §14.6.13.1.1 — "if checking for an exception condition is enabled", which is
-    /// per level-3 NAME, not per family). The narrower sibling of <see cref="SizeChecking"/>, read by the ONE
+    /// per level-3 NAME, not per family). One bit of <see cref="EnabledChecks"/>, read by the ONE
     /// store shape that has no arithmetic statement to latch a flag in and therefore RAISES instead: the
     /// §14.2.3 GR9/GR10 argument crossing performed by the ACTIVATING element, on both the CALL lane
     /// (<c>CallEmitter.LandedForFormal</c>) and the INVOKE lane (<c>OoEmitter</c>'s BY CONTENT arms) — kb/Work
     /// PB640. It lives HERE rather than in either emitter because those two lanes are one rule, and a
     /// per-emitter copy of the enablement test is how they would come to disagree.</summary>
-    public bool SizeTruncationChecking =>
-        Info?.Enabled.Any(p => p.Ec == "EC-SIZE-TRUNCATION") == true;
+    public bool SizeTruncationChecking => (EnabledChecks & SizeChecks.Truncation) != 0;
 
     /// <summary>The current <c>__sizeErr</c> flag while emitting a checked arithmetic body (else null) —
     /// statement-scoped scratch set/cleared by the ON SIZE ERROR two-phase wrapper and read by the checked
     /// arithmetic stores (the EC↔arithmetic interlock).</summary>
     public string? SizeErrVar { get; set; }
+
+    /// <summary>The <c>__sizeErr</c> flag for a store that takes the CHECKED LANDING (kb/Work PB4093): <see cref="SizeErrVar"/>
+    /// while the statement takes EC-SIZE-TRUNCATION (<see cref="SizeErrChecks"/>), else null - the store is then the
+    /// plain one, which keeps the result's low-order digits (§14.6.13.1.3 item 8; docs/CONFORMANCE.md DOC-A.1-70). Before
+    /// PB4093 any enabled EC-SIZE name made every store a Try store, so a truncation that was NOT enabled left the
+    /// receiver unchanged as if a SIZE ERROR phrase had run.</summary>
+    public string? SizeErrLandingVar => (SizeErrChecks & SizeChecks.Truncation) != 0 ? SizeErrVar : null;
+
+    /// <summary>The EC-SIZE names a NO-PHRASE arithmetic statement's size-error catches take (kb/Work PB4092), or null
+    /// for a statement with a SIZE ERROR phrase, whose catches take everything (§14.7.5).</summary>
+    public IReadOnlyList<string>? SizeErrOnlyNames { get; set; }
 
     /// <summary>The current EC-SIZE name local while emitting a checked arithmetic body (else null) — the
     /// <c>&gt;&gt;TURN EC-SIZE</c> half of the interlock.</summary>

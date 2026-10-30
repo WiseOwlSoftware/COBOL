@@ -380,7 +380,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 for (int j = 1; j < i; j++) if (ctx.CobolWords.Is(words[j].GetText(), w)) duplicate = true;
                 if (duplicate)
                 {
-                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocaleCategories, $"SET LOCALE … {w}: the category {w} is specified more than once — each alternative "
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocaleCategories, $"SET LOCALE {string.Join(' ', words.Skip(1).Take(i).Select(x => x.GetText()))}: the category {w} is specified more than once — each alternative "
                         + "of the category brace shall be specified at most once (ISO §14.9.39.2 format 11 / §5.2.6.4)");
                 }
                 categories |= cat;
@@ -834,7 +834,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var drefs = Receivers(sfa.setReceivingIdentifier());
         var fai = sfa.functionAddressIdentifier();
         if (drefs.Length < 1)
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET … TO ADDRESS OF FUNCTION with no receiving operand (ISO §14.9.39.2)");
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET TO ADDRESS OF FUNCTION with no receiving operand (ISO §14.9.39.2)");
         var targets = new List<Place>(drefs.Length);
         foreach (var dref in drefs)
         {
@@ -1017,7 +1017,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             : null;
         int targetCount = drefs.Length;
         if (targetCount < 1)
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET … TO ENTRY with no receiving operand (ISO §14.9.39.2)");
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET TO ENTRY with no receiving operand (ISO §14.9.39.2)");
         if (BindProgramAddressTargets(drefs, targetCount, "SET … TO ENTRY") is not { } targets)
             return BoundRejected.Reported(ctx.Edition);
         // The receiving operands AS WRITTEN — a statement ECHO names them (kb/Work PB388); only the FORM
@@ -1115,7 +1115,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // sender phrase is written inline in setFunctionAddressStatement and therefore has to drop the last
         // element. Getting that wrong is silent: the last receiver is simply never screened or stored.
         if (drefs.Length < 1)
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET … TO ADDRESS OF PROGRAM with no receiving operand (ISO §14.9.39.2)");
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET TO ADDRESS OF PROGRAM with no receiving operand (ISO §14.9.39.2)");
         if (BindProgramAddressTargets(drefs, drefs.Length, "SET … TO ADDRESS OF PROGRAM") is not { } targets)
             return BoundRejected.Reported(ctx.Edition);
         // The receiving operands AS WRITTEN — every echo of the statement below names them, and the two
