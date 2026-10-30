@@ -1739,7 +1739,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (k < 0 || kind >= 0)
             {
                 ctx.Edition.Error("COBOL1504", "FUNCTION MODULE-NAME takes exactly one keyword argument "
-                    + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §15.65.2), not '{a.GetText()}'");
+                    + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §15.65.2), not '{DataBinder.WrittenText(a)}'");
                 return BoundExprError.Refused(ctx.Edition, "FUNCTION MODULE-NAME");
             }
             kind = k;
