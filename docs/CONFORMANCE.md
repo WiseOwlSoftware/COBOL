@@ -2575,6 +2575,83 @@ a result, so GnuCOBOL 3.2 (libcob, measured on every case below) is the comparat
   (libcob `cob_unstring_init` and `cob_unstring_finish`; this case already matched GnuCOBOL on every leg). Pinned by
   `conformance:cases/14.9.48-UNSTRING/pb1907_unstring_overlap_pointer`, which also guards D-UNS1 to D-UNS3 against re-reading the pointer
   mid-statement.
+- **D-STR1 — STRING runs in place: a SENDING operand is read when its transfer begins (kb/Work PB1908, row
+  `GR-14.9.43.4-10`).** §14.9.43.4 GR10 — *"If identifier-1, or identifier-2, occupies the same storage area as
+  identifier-3, or identifier-4, or if identifier-3 and identifier-4 occupy the same storage area, the result of the
+  execution of this statement is undefined, even if they are defined by the same data description entry"* (`cite.py
+  --check 14.9.43.4 "or if identifier-3 and identifier-4 occupy the same storage area, the result of the execution of
+  this statement is undefined, even if they are defined by the same data description entry"` → OK, 10)) — and Annex A.2
+  item 60 (`cite.py --check A.2 "If the STRING identifier, or DELIMITED BY identifier, occupies the same storage area
+  as the INTO identifier"` → OK, 60)) leave the case open; §4.4 2) makes a run unit that allows it conforming, and GR10
+  widens §14.6.10 rule 2 so the overlap is undefined even for one data description entry. **WiseOwl COBOL moves the
+  characters into identifier-3 as the statement runs and reads each sending operand when its own transfer begins:**
+  the image the earlier transfers built is stored into identifier-3 first, so a sender that shares storage with
+  identifier-3 (the same record, a REDEFINES view, a level-66 alias, a table element, a group that contains it, a LINKAGE
+  item passed twice by reference or a BASED item) reads what those transfers wrote. GR6 words the transfer as though the
+  characters "were moved one at a time from the source into the character positions of the data item referenced by
+  identifier-3" (`cite.py --check 14.9.43.4 "the moves behave as though the characters were moved one at a time from the
+  source into the character positions"` → OK, 6)), which is the in-place reading; before this entry every sender and
+  delimiter was read once before the first character moved. This is libcob `cob_string_append`, which moves with `memcpy`
+  into `string_dst->data` and reads `src->data` (and the delimiter's storage, D-STR2) on every call. Measured (cobc 3.2.0
+  and this build agree): `STRING "XY" R1(1:2) R1(3:2) INTO R1` over `R1 = "ABCDEFGHIJKL"` gives `XYXYXYGHIJKL` (the
+  earlier behavior gave `XYABCDGHIJKL`), a table element sender `T(1)` after `"123"` filled `T(1)` gives `123123ZZZ`, a
+  numeric DISPLAY item as its own sender (`"99"` then `N` over 123456) gives `999934` with the overflow of GR8, a group
+  sender that contains its receiver (`"ab"` then `G` into `G`'s first four bytes) gives `ababBBBB`. **Not an overlap
+  effect and unchanged:** ONE sender whose own transfer overlaps the positions it writes (`STRING R(1:6) INTO R WITH
+  POINTER 3`): libcob calls `memcpy` over overlapping storage, which the C standard leaves undefined, and glibc moves
+  the sender as it stood when that transfer began (`ABABCDEFIJKL`; a character-at-a-time smear, GR6 read literally,
+  would give `ABABABABIJKL`). WiseOwl COBOL does the same, because a transfer is one `StringTransfer` over the sender's
+  image, and it is pinned as the platform's behavior, not as a rule. The decision "can a transfer reach this operand?"
+  is `StorageOverlap.MayShareStorage` (the finer of the two predicates, kb/Work PB1911) asked by
+  `StringEmitter.ReadsStorageOf`, and a STRING whose operands are provably disjoint, or whose only reachable operand is
+  its first sending, renders the single store it always did. Pinned by
+  `conformance:cases/14.9.43-STRING/pb1908_string_overlap_sender` (S1 to S5) and
+  `conformance:cases/14.9.43-STRING/pb1908_string_overlap_linkage` (K1, by-reference aliasing), and held by
+  `unit:StringLiveReadDriftTests`.
+- **D-STR2 — STRING: an identifier DELIMITER is read when its transfer begins (kb/Work PB1908, row
+  `GR-14.9.43.4-10`).** The same rule covers identifier-2 occupying identifier-3's storage (GR10 names it; Annex A.2
+  item 60 names the DELIMITED BY identifier). **WiseOwl COBOL examines the sending operand against the delimiter's
+  content as the earlier transfers left it**, so an earlier transfer that overwrote the delimiter changes where the
+  next operand is cut (libcob `cob_string_delimited` keeps the delimiter's storage, and `cob_string_append` scans it
+  with `memcmp` on every call). A literal delimiter, DELIMITED BY SIZE and a delimiter no transfer can reach are
+  untouched. Measured (cobc 3.2.0 and this build agree): `STRING "x" "12x34" DELIMITED BY R1(1:1) INTO R1` over `R1 =
+  ",bcdefghijkl"` gives `x12defghijkl` (the first transfer made the delimiter `x`; the earlier behavior gave
+  `x12x34ghijkl`), `STRING ";" "ab;cd" DELIMITED BY DD INTO DG` with `DD` the first byte of `DG` gives `;ab.......`, and
+  a two-character delimiter overwritten the same way gives `ab1.......`. Pinned by
+  `conformance:cases/14.9.43-STRING/pb1908_string_overlap_delimiter` (D1 to D3) and the K2 leg of
+  `conformance:cases/14.9.43-STRING/pb1908_string_overlap_linkage`.
+- **D-STR3 — STRING: the POINTER is read once at initiation and stored last (kb/Work PB1908, row
+  `GR-14.9.43.4-10`).** GR4 and GR6 describe identifier-4 for operands that share no storage; GR10 leaves identifier-4
+  sharing storage with identifier-1, identifier-2 or identifier-3 undefined. **WiseOwl COBOL reads the POINTER item
+  once, at initiation, and that value governs the whole statement**: a transfer that overwrites the pointer item does
+  not move the next transfer, a sending operand that is the pointer item is read like any other (D-STR1, so it holds the
+  characters the earlier transfers wrote), and **the pointer's final value is stored after identifier-3**, so it
+  overwrites whatever the transfers left there (libcob `cob_string_init` reads `cob_get_int(string_ptr)` once and
+  `cob_string_finish` stores `string_offset + 1`; this case already matched GnuCOBOL on every leg, and the golden pins
+  it so D-STR1 cannot start re-reading the pointer). The pointer is stored only when characters moved (GR6: it
+  changes as they move), where libcob stores it unconditionally; the two cannot differ, because with nothing moved the
+  value stored is the value read and nothing else wrote it. Measured (cobc 3.2.0 and this build agree): `STRING "WXYZ"
+  INTO G WITH POINTER P` with `P` the first two bytes of `G` gives `05YZcdefghij`; `"ab" "cd"` with `P` (3) at bytes
+  3-4 of the receiver gives `..07cd..` (the second transfer continues at 5 although the item now holds `ab`); and the
+  pointer item as a sender after a transfer overwrote it gives `05ABefgh`. Pinned by
+  `conformance:cases/14.9.43-STRING/pb1908_string_overlap_pointer` (P1 to P3).
+- **D-STR4 — STRING: a FUNCTION operand whose argument can occupy identifier-3 is evaluated once, when its transfer
+  begins (kb/Work PB1908, row `GR-14.9.43.4-10`).** A function-identifier is an identifier of the statement, and
+  §14.6.4 7) evaluates the identifiers of a statement *"in left to right order as the first operation of the execution
+  of that statement"* (`cite.py --check 14.6.4 "the identifiers within a statement are evaluated in left to right order
+  as the first operation"` → OK, 7)); a statement whose operands share no storage with identifier-3 therefore
+  evaluates its functions with its other identifiers, before any character moves, and so does WiseOwl COBOL. GR10 leaves
+  the other case undefined, and GnuCOBOL evaluates a function in the argument list of `cob_string_append`, when its
+  transfer begins. **WiseOwl COBOL follows GnuCOBOL there, for a function whose argument is a data item that can share
+  identifier-3's storage** (`StringEmitter.ReadsStorageOf` walks a function's arguments; a shape it does not walk, a
+  reference-modified result, an arithmetic argument or a user-defined function, answers "may"): the function is rendered
+  inline into its transfer and runs once, after the image of the earlier transfers was stored, so `FUNCTION RANDOM`
+  and a user-defined function are never evaluated twice. Measured (cobc 3.2.0 and this build agree): `STRING "xy"
+  FUNCTION UPPER-CASE(F) INTO F` over `F = "abcdefgh"` gives `xyXYCDEF` (an up-front evaluation gives `xyABCDEF`), and
+  the delimiter `FUNCTION UPPER-CASE(X(1:1))` after `"z"` filled `X(1:1)` is `Z`, so `"12Z34Q56"` is cut at `Z`
+  (`z12.......`). A function whose arguments are disjoint from identifier-3 keeps the up-front evaluation (`F3`). Pinned
+  by `conformance:cases/14.9.43-STRING/pb1908_string_overlap_function` and held by `unit:StringLiveReadDriftTests`
+  (`FunctionOverTheReceiver_IsEvaluatedOnce_InlineAtItsTransfer`).
 
 ### 3.2 Nonstandard extensions (§4.2.10; kb/Work PB1525)
 
@@ -4024,7 +4101,6 @@ mirrored page; the current documentation did not load): the `digits` form is the
 | DRV-GR-14.9.40.4-4 | undefined-A.2 | A.2 item 52 | **§14.9.40.4 GR4**: *"If the DUPLICATES phrase is not specified and the contents of all the key data items associated with one record or table element are equal to the contents of the corresponding key data items associated with one or more other records or table elements, the order of return of these records or the relative order of the contents of these table elements is undefined."* (`cite.py --check 14.9.40.4` → OK, rule 4). **Annex A.2 item 52 carries it verbatim** (`--check A.2` → OK 52)), and `annex-a2-undefined.json` resolves item 52 to exactly this rule-id. Every order conforms. WiseOwl COBOL's order is nevertheless determinate: `CobolSort.Sort` breaks ties by release index and `CobolTable.SortInPlace` is stable, with or without the phrase. That is one admissible realization; a golden fixing it would pin the implementation, not the rule. | owner: 2026-10-08 |
 | DRV-GR-12.3.5.4-2 | definitional | defines the source computer of the USER's source unit (the computer on which the user compiles it when the paragraph is absent), a term no other rule of the standard reads, so it obliges the implementation to nothing | **§12.3.5.4 GR2**: *"When the SOURCE-COMPUTER paragraph is not specified and the source unit is not contained within a source unit including a SOURCE-COMPUTER paragraph, the computer on which the source unit is being compiled is the source computer."* (`cite.py --check 12.3.5.4` → OK, rule 2). The sentence DEFINES a term about the user's compilation; it contains no *shall*. A search of `specs/ISO_COBOL.md` for "source computer" finds only §12.3.5.1's description (*"provides a means of describing the computer upon which the compilation unit is to be compiled"*, `--check 12.3.5.1` → OK) and GR2/GR3. No rule's outcome depends on which computer is the source computer, so no program can observe GR2. The paragraph's only rule with an effect, GR1's inheritance into contained units, is its own row (`85/pb1088_dbg_contained`). | owner: 2026-10-08 |
 | DRV-GR-12.3.5.4-3 | definitional | defines the source computer of the USER's source unit (the computer on which the user compiles it when the paragraph names no computer), a term no other rule of the standard reads, so it obliges the implementation to nothing | **§12.3.5.4 GR3**: *"When the SOURCE-COMPUTER paragraph is specified, but computer-name-1 is not specified, the computer upon which the source unit is being compiled is the source computer."* (`cite.py --check 12.3.5.4` → OK, rule 3). This is GR2's twin for a name-less paragraph. It defines the term and nothing reads it (the same search: §12.3.5.1 and GR2/GR3 only). Accepting `SOURCE-COMPUTER.` with no name is §12.3.5.3 SR1 and the general format, a separate row. | owner: 2026-10-08 |
-| DRV-GR-14.9.43.4-10 | undefined-A.2 | A.2 item 60 | **§14.9.43.4 GR10**: *"If identifier-1, or identifier-2, occupies the same storage area as identifier-3, or identifier-4, or if identifier-3 and identifier-4 occupy the same storage area, the result of the execution of this statement is undefined, even if they are defined by the same data description entry."* (`cite.py --check 14.9.43.4` → OK, rule 10). **Annex A.2 item 60 carries it** (*"STRING statement. If the STRING identifier, or DELIMITED BY identifier, occupies the same storage area as the INTO identifier, or WITH POINTER identifier … the result of the execution of the STRING statement is undefined …"*, `--check A.2` → OK 60)), and `annex-a2-undefined.json` resolves item 60 to exactly this rule-id. Like GR-14.9.20.4-9 for INITIALIZE, it widens undefinedness past §14.6.10's same-description rule. Every behaviour conforms. WiseOwl COBOL's is determinate (`StringEmitter.EmitString` reads the pointer once at initiation and each sender at its own transfer), which is one admissible realization. | owner: 2026-10-08 |
 | DRV-SR-8.4.2.3.3-7 | unpopulatable-antecedent | the set of contexts that admit both the subscript ALL and a condition-name is EMPTY by the standard: SR6 admits ALL only in an intrinsic function argument and as a table subscript in the SORT table format, no AR-15.3 argument type (1 to 14) is a condition-name, and the SORT table operand is a data-name | **§8.4.2.3.3 SR7**: *"ALL shall not be specified if qualified-condition-name-1 is specified."* (`cite.py --check 8.4.2.3.3` → OK, rule 7). SR7 forbids something no other rule permits. **SR6** confines ALL to two contexts (*"When the subscripted identifier is used as an intrinsic function argument, or"* the SORT table format, `--check 8.4.2.3.3` → OK 6)). Neither admits a condition-name: §15.3's argument types (AR-15.3-1 to -14) name none, and a table is referenced by *"specifying the data-name and any qualifiers that identify the table"* (`--check 15.3` → OK 14)). The SORT table operand is a table data-name. So every program SR7 rejects is already rejected by SR6 or by an AR-15.3 type rule, whether or not SR7 is enforced. Measured on the pinned build: `IF C1(ALL)` → COBOL2363 (SR6); `FUNCTION MAX(C1(ALL))` and `FUNCTION MAX(C1(1))` → the same COBOL1639, so the ALL is irrelevant to the refusal. The vacuity is the standard's, not the implementation's. | owner: 2026-10-08 |
 | DRV-GR-8.5.1.11.3-1 | unpopulatable-antecedent | the set of statements that can reference a data item of a destroyed instance object is EMPTY by the standard: §9.3.14.3 destroys an instance only when it cannot take part in the continued execution of the run unit, or when the run unit terminates | **§8.5.1.11.3 event 1**: *"The resources used by a variable-length data item may be freed automatically when: 1) an object instance containing the data item is finalized;"* (`cite.py --check 8.5.1.11.3` → OK, 1)). This is a PERMISSION whose timing is implementor-defined (`--check 8.5.1.11.3 "The actual time when the resources used by a variable-length data item are freed is implementor-defined"` → OK). To observe it, a statement would have to reference the item after its instance ended. **§9.3.14.3** (*"An instance object is destroyed either when it is determined that the object cannot take part in the continued execution of the run unit, or when the run unit terminates, whichever occurs first."*, `--check 9.3.14.3` → OK) makes that set empty by definition. The persistence paragraph adds that remote storage *"has no effect on the results of the execution of the program"* (`--check 8.5.1.11.3` → OK). Unlike events 2, 4, 5 and 6, which are pinned by goldens because a later activation or re-growth can see storage restored, event 1 has no later reference. WiseOwl COBOL's items are managed objects reclaimed by the GC (§7's A.1 item 220), which is one admissible timing. | owner: 2026-10-08 |
 | DRV-GR-8.5.1.11.3-3 | indistinguishable-consequent | GR-14.9.42.4-6 | **§8.5.1.11.3 event 3**: *"the program containing the data item is a main program and executes a GOBACK or STOP;"* (`cite.py --check 8.5.1.11.3` → OK, 3)). Freeing here cannot be told from **§14.9.42.4 GR6**: *"Execution of the run unit terminates and control is transferred to the operating system."* (`--check 14.9.42.4` → OK 6)). A main program's GOBACK operates as STOP (§14.9.18.4 GR3, *"the program operates as if executing a STOP statement"*, `--check 14.9.18.4` → OK 3)), and after GR6 no statement of the run unit executes, so every resource of the run unit is gone to the program whether or not this permission was used. A golden for event 3 would measure run-unit termination. | owner: 2026-10-08 |

@@ -35,11 +35,11 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 
 **Rejected alternatives.** Treat counters as raw C# long and bypass NumProfile — would skip PIC truncation/scale/sign and diverge from every other numeric store; rejected.
 
-### D4. Overlapping operands: read source(s) into locals once, build into a working buffer, single write-back to dest.
+### D4. Operands: read source(s) into locals once, build into a working buffer, single write-back to dest — except an operand that may share storage with a receiver.
 
-**Rationale.** Spec calls overlap undefined (INSPECT GR13/18/21, STRING GR10, UNSTRING GR18) — undefined permits the sensible deterministic result. Read-once/write-once delivers that for free and is the only sane behavior. Also satisfies STRING GR7 (only written positions change) by seeding the working buffer from dest's current value.
+**Rationale.** Spec calls overlap undefined (INSPECT GR13/18/21, STRING GR10, UNSTRING GR18). For operands that share no storage the working buffer is exact and cheap, and it satisfies STRING GR7 (only written positions change) by seeding the working buffer from dest's current value. An operand a store of the statement CAN reach (`StorageOverlap.MayShareStorage`; UNSTRING still asks `StorageSharing.MayShare`, kb/Work PB1911) is read again where the statement's own stores precede its use, because the owner decided (kb/Work PB1907, PB1908) that the undefined case follows GnuCOBOL's in-place libcob: INSPECT D-INS1 to D-INS4, UNSTRING D-UNS1 to D-UNS4, STRING D-STR1 to D-STR4 (docs/CONFORMANCE.md §3.1). STRING stores the working image into identifier-3 before each transfer whose sender or delimiter can reach it, then reads that operand (`StringEmitter.ReadsStorageOf`); a statement over disjoint operands emits the single write-back.
 
-**Rejected alternatives.** In-place mutation that re-reads dest during the op (would make REPLACING create spurious later matches — the legacy RunReplaceCycle already reads the PRE-modification text precisely to avoid this).
+**Rejected alternatives.** Read-once/write-once for every operand (the original model: it picked a result no other compiler gives where operands overlap). In-place mutation that re-reads dest for EVERY operand (would make REPLACING create spurious later matches — the legacy RunReplaceCycle already reads the PRE-modification text precisely to avoid this; INSPECT D-INS3 keeps it).
 
 ### D5. National (PIC N) uses the identical string helpers with NO surrogate-aware handling; one COBOL character = one UTF-16 code unit = one C# char.
 
