@@ -23,7 +23,10 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// <summary>STRING (ISO §14.9.43): the receiver's character image is materialized into ONE working local (its
     /// CURRENT content — GR7 preserves every position the transfer does not touch; there is no space filling), each
     /// sending operand transfers into it via <c>StringTransfer</c> in statement order (GR3), and the
-    /// final image stores back through the receiver's own store path. The pointer initializes from the POINTER item
+    /// final image stores back through the receiver's own store path. An operand that can occupy identifier-3's storage
+    /// (GR10, Annex A.2 item 60 — undefined) is read AT ITS TRANSFER from the storage the earlier transfers stored into,
+    /// as libcob <c>cob_string_append</c> does (D-STR1 to D-STR3, docs/CONFORMANCE.md); every other operand is read once,
+    /// up front. The pointer initializes from the POINTER item
     /// (GR4) or 1 (GR5), advances only with the per-character moves (GR6 — the runtime kernel), and writes back —
     /// before the overflow phrases run, which may inspect it — only when the phrase was written. The overflow flag
     /// is latched across sendings by the kernel (GR8a) and dispatches ON / NOT ON OVERFLOW per GR8c/GR8e/GR9 (the
@@ -45,19 +48,21 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // that statement", and §14.9.49.4 GR11 selects the declarative by the first condition in that order. Each sending
         // operand and delimiter that identifies at run time is therefore read here, in statement order, BEFORE
         // identifier-3 is read and before the POINTER item's value is taken. The transfers change only the working image,
-        // so a value read here is the value the transfer would have read (an operand overlapping identifier-3 or -4 is
-        // undefined, §14.9.43.4 GR10).
-        var sendings = new List<(string Source, string Delimiter)>(s.Sendings.Count);
+        // so a value read here is the value the transfer would have read — except where an operand can occupy
+        // identifier-3's storage (§14.9.43.4 GR10): that operand is read AGAIN at its own transfer (D-STR1, D-STR2 below).
+        var sendings = new List<StringSending>(s.Sendings.Count);
         foreach (var snd in s.Sendings)
         {
             // GR3a: the sender's CONTENT transfers per the alphanumeric-to-alphanumeric move mechanics — its raw
             // character image (a numeric sender contributes its sign-carrying zoned image), not a converted value.
             // GR2: a figurative literal-1 / literal-2 is a one-character item of identifier-3's usage, so its
             // HIGH-/LOW-VALUE comes from THAT usage's program collating sequence (§8.3.3.6.4 GR6; kb/Work PB1185).
-            string src = ReadInOrder(snd.Value, OperandText.AsString(snd.Value, num, characterCategory: s.CharacterCategory), $"__strSrc{id}_{sendings.Count}");
+            var rereads = new List<(string Local, string Read)>();
+            string src = ReadOperand(snd.Value, $"__strSrc{id}_{sendings.Count}", s, rereads);
             string delim = snd.BySize || snd.Delimiter is null ? "null"
-                : ReadInOrder(snd.Delimiter, OperandText.AsString(snd.Delimiter, num, characterCategory: s.CharacterCategory), $"__strDlm{id}_{sendings.Count}");
-            sendings.Add((src, delim));
+                : ReadOperand(snd.Delimiter, $"__strDlm{id}_{sendings.Count}", s, rereads);
+            bool reachable = ReadsStorageOf(snd.Value, s.Into) || (!snd.BySize && snd.Delimiter is { } d && ReadsStorageOf(d, s.Into));
+            sendings.Add(new StringSending(src, delim, reachable, rereads));
         }
         // ⚖ A DYNAMIC-LENGTH identifier-3 (kb/Work PB871; DETERMINATION D-DL2, docs/CONFORMANCE.md §3): GR6 and
         // GR8 are written over "the number of character positions in the data item referenced by identifier-3",
@@ -90,15 +95,31 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                 : $"long {ptr} = 1;");                                                    // GR5 — implicit pointer of 1
             w.Line($"long {ptr0} = {ptr};");   // the starting pointer: GR6 changes the POINTER item only when a character moves
             w.Line($"bool {ovf} = false;");
-            foreach (var (src, delim) in sendings)
-                w.Line($"{acc} = {RuntimeApi.StrTransfer(acc, src, delim, ptr, ovf)};");
-            if (dynInto)
-                // GR6 advances the pointer once per character moved, so a moved character's position is below the
-                // final pointer: the content reaches position ptr-1 exactly when anything moved (ptr != its start).
-                w.Line(PlaceRenderer.Write(s.Into, ReceivingStore.Characters(s.Into.Item,
-                    $"{acc}.Substring(0, {ptr} != {ptr0} ? global::System.Math.Max({old}.Length, (int)({ptr} - 1)) : {old}.Length)", "")));
-            else
-                WriteImage(s.Into, acc);
+            void StoreImage()
+            {
+                if (dynInto)
+                    // GR6 advances the pointer once per character moved, so a moved character's position is below the
+                    // final pointer: the content reaches position ptr-1 exactly when anything moved (ptr != its start).
+                    w.Line(PlaceRenderer.Write(s.Into, ReceivingStore.Characters(s.Into.Item,
+                        $"{acc}.Substring(0, {ptr} != {ptr0} ? global::System.Math.Max({old}.Length, (int)({ptr} - 1)) : {old}.Length)", "")));
+                else
+                    WriteImage(s.Into, acc);
+            }
+            for (int k = 0; k < sendings.Count; k++)
+            {
+                // ⛔ D-STR1/D-STR2 (kb/Work PB1908; GR10 leaves an operand sharing identifier-3's storage undefined):
+                // the statement runs IN PLACE, as libcob does — each sending operand and delimiter is read when its
+                // transfer begins, so the image the earlier transfers built is stored first and the reachable operands
+                // are read from it. The first transfer follows no store; an operand no store can reach keeps the
+                // single up-front read and emits none of this.
+                if (k > 0 && sendings[k].ReadsReceiver)
+                {
+                    StoreImage();
+                    foreach (var (local, read) in sendings[k].Rereads) w.Line($"{local} = {read};");
+                }
+                w.Line($"{acc} = {RuntimeApi.StrTransfer(acc, sendings[k].Source, sendings[k].Delimiter, ptr, ovf)};");
+            }
+            StoreImage();
         });
         // GR6: the pointer item changes only as characters move. Storing it back unconditionally re-wrote an
         // unchanged pointer through its host carrier — a saturated value past long (kb/Work PB1033) — so it is
@@ -120,6 +141,45 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         ctx.Writer.Line($"string {local} = {read};");
         return local;
     }
+
+    /// <summary>One sending operand's or delimiter's text for <c>StringTransfer</c>: its ONE rendering
+    /// (<see cref="OperandText.AsString"/>, in the receiver's character category). An operand no transfer of the
+    /// statement can reach (<see cref="ReadsStorageOf"/>) is read once, in statement order (<see cref="ReadInOrder"/>).
+    /// A reachable data-item reference is read in order as well (its range tests run in statement order) and adds its
+    /// (local, rendering) pair to <paramref name="rereads"/>, which the emitter assigns again when the operand's own
+    /// transfer begins (D-STR1, D-STR2). A reachable FUNCTION operand stays inline and is evaluated once, when its
+    /// transfer begins (D-STR4): evaluating it twice would run RANDOM or a user-defined function twice.</summary>
+    private string ReadOperand(BoundOperand operand, string local, BoundStringStmt s, List<(string Local, string Read)> rereads)
+    {
+        string read = OperandText.AsString(operand, num, characterCategory: s.CharacterCategory);
+        if (operand is not BoundFieldOperand && ReadsStorageOf(operand, s.Into)) return read;
+        string value = ReadInOrder(operand, read, local);
+        if (!ReferenceEquals(value, read) && ReadsStorageOf(operand, s.Into)) rereads.Add((value, read));
+        return value;
+    }
+
+    /// <summary>⛔ CAN A TRANSFER OF THIS STRING REACH THIS OPERAND? (kb/Work PB1908; §14.9.43.4 GR10, Annex A.2 item
+    /// 60). Identifier-3 is the one place a STRING stores before it ends (the POINTER item is stored last, after every
+    /// transfer), so an operand needs the in-place read exactly when a data item it reads is one
+    /// <see cref="StorageOverlap.MayShareStorage"/> cannot prove disjoint from identifier-3: a data-item reference
+    /// itself, or a function whose argument is such a reference. A literal and a figurative constant read no storage.
+    /// The answer is conservative like the predicate's: an operand of a shape this method does not walk (a function
+    /// with a reference-modified result, an arithmetic argument, a user-defined function) cannot be shown disjoint
+    /// and answers true. The ONE decision: the emitter asks here and derives nothing from a record walk.</summary>
+    private static bool ReadsStorageOf(BoundOperand operand, Place receiver) => operand switch
+    {
+        BoundFieldOperand f => StorageOverlap.MayShareStorage(f.Place, receiver),
+        BoundStringLiteral or BoundNumericLiteral or BoundFigurative or BoundAllLiteral or BoundPredefinedNull
+            or BoundOperandError => false,
+        BoundComputedOperand { Expr: BoundIntrinsicCall { RefMod: null } call } => call.Args.Any(a => ReadsStorageOf(a, receiver)),
+        _ => true,
+    };
+
+    /// <summary>One sending (identifier/literal-1 with its DELIMITED BY phrase) as <c>StringTransfer</c> takes it:
+    /// <paramref name="Source"/> and <paramref name="Delimiter"/> are C# expressions (a local or the inline rendering,
+    /// <c>null</c> for DELIMITED BY SIZE); <paramref name="ReadsReceiver"/> says some operand of it may share
+    /// identifier-3's storage, and <paramref name="Rereads"/> are the locals to assign again at its transfer.</summary>
+    private sealed record StringSending(string Source, string Delimiter, bool ReadsReceiver, IReadOnlyList<(string Local, string Read)> Rereads);
 
     /// <summary>UNSTRING (ISO §14.9.48): the sender's image and the delimiter values are read at initiation and
     /// AGAIN before each later receiving area wherever a store of the statement can reach them (operand overlap is
