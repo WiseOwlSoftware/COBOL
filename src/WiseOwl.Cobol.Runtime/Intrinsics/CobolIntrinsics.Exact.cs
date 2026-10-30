@@ -797,7 +797,11 @@ public static partial class CobolIntrinsics
                 ev = ev * 10 + (text[i] - '0');
                 i++;
             }
-            if (ed == 0) return new(n + 1, false, false, 0, 0, 0);    // r c — E± with no exponent digit
+            // No exponent digit. The spaces after the sign are already consumed, so a remaining character IS a
+            // character in error (§15.95.4 r1 b): "12.34E+AB" → 8, "1E++2" → 4, "1E+ A" → 5 — only text that ENDS
+            // here is valid-but-incomplete (r1 c: "1E+" → 4, "1E+ " → 5), the same discrimination the significand
+            // arm and NvScan make (kb/Work PB121, PB4096).
+            if (ed == 0) return new(i < n ? Pos() : n + 1, false, false, 0, 0, 0);
             exp = eneg ? -ev : ev;
         }
         while (i < n && text[i] == ' ') i++;                          // trailing spaces (r5)
