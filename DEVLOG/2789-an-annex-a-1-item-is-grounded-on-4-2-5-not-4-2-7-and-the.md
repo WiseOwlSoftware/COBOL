@@ -1,4 +1,4 @@
-## An Annex A.1 item is grounded on §4.2.5, not §4.2.7, and the audit now refuses the other
+## Entry 2789 — 2026-10-30 11:23 PDT — An Annex A.1 item is grounded on §4.2.5, not §4.2.7, and the audit now refuses the other
 
 kb/Work PB593 was a citation that passed `cite.py --check` and was still wrong. The inventory schema grounded the
 "optional element not provided" verdict (`DOCUMENTED-NON-SUPPORT`, owner decision PB280 Q1) partly on §4.2.7: "An
@@ -31,3 +31,4 @@ Self-review (architecture, full code, performance, duplication): one rule in one
 register checks); the check reads the schema through `SCHEMA_PATH` rather than a second copy; no hot path. The guard is a
 proximity heuristic by design, so a future prose that cites 4.2.7 for an A.1 item with an unrelated "A.4" nearby would pass;
 that trade is named in the function's docstring.
+
