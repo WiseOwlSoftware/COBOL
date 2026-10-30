@@ -13,7 +13,9 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// Arithmetic context is detected by adjacency (<see cref="PrecedingArithmeticContext"/>,
 /// <see cref="FollowingArithmeticContext"/>, <see cref="IsParenthesizedAlone"/>):
 ///   ZERO followed by  +, -, *, /, **   → rewrite to ZERO_ARITH, unless the +/- touches the digits of the next
-///                                        literal: that is the literal's sign (<see cref="IsSignOfNextLiteral"/>)
+///                                        literal: that is the literal's sign (<see cref="IsSignOfNextLiteral"/>), unless
+///                                        the parse then fails at that sign, which marks an arithmetic expression's
+///                                        slot (<see cref="ZeroSignReading"/>, kb/Work PB3981)
 ///   ZERO preceded by  +, -, *, /, **   → rewrite to ZERO_ARITH
 ///   ZERO between a grouping ( and )    → rewrite (<c>(ZERO)</c>, a parenthesized arithmetic expression)
 ///   ZERO beside the ref-mod :          → rewrite (a reference-modification position or length)
@@ -117,7 +119,7 @@ public static class ZeroTokenRewriter
             var token = tokens[i];
             // All three §8.9 spellings of the figurative zero (§8.3.3.6.2 format 1) — they are distinct tokens since
             // kb/Work PB510, and interchangeable exactly here, where the word IS the figurative constant.
-            if (token.Type is not (CobolLexer.ZERO or CobolLexer.ZEROS or CobolLexer.ZEROES))
+            if (!IsFigurativeZero(token))
                 continue;
 
             // The nearest non-hidden token on each side (-1 at either end of the stream, which no set contains). On
@@ -140,6 +142,11 @@ public static class ZeroTokenRewriter
         tokenStream.Seek(0);
     }
 
+    /// <summary>The token is one of the three §8.9 spellings of the figurative zero (<c>ZERO</c>, <c>ZEROS</c>,
+    /// <c>ZEROES</c>; §8.3.3.6.2 format 1), still figurative: not yet a <c>ZERO_ARITH</c>.</summary>
+    internal static bool IsFigurativeZero(IToken token) =>
+        token.Type is CobolLexer.ZERO or CobolLexer.ZEROS or CobolLexer.ZEROES;
+
     /// <summary>
     /// The token at <paramref name="index"/> is a <c>+</c> or <c>-</c> that is the sign of the numeric literal touching
     /// its right, not an arithmetic operator (kb/Work PB3962). §8.7.1 makes the binary operators characters "that shall
@@ -149,7 +156,9 @@ public static class ZeroTokenRewriter
     /// <c>DISPLAY ZERO -1</c>, <c>CALL "P" USING ZERO +1</c> and the VALUE list <c>88 C VALUE ZERO -1</c> are operand
     /// lists of two operands, and the ZERO keeps its figurative identity (§8.3.3.6.4 GR4: the value 0 or the character
     /// '0' "depending on context"). It is still the operand of an operator written with its space (<c>ZERO - 1</c>,
-    /// whose digits are not touched) and of any operator on its LEFT. The test reads the token positions, the character
+    /// whose digits are not touched) and of any operator on its LEFT. Where the grammar puts an arithmetic expression
+    /// (<c>COMPUTE X = ZERO -1</c>) this operand-list reading fails to parse, and <see cref="ZeroSignReading"/> takes
+    /// the sign for the operator §8.7.1 then refuses, as it refuses <c>Y -1</c> (kb/Work PB3981). The test reads the token positions, the character
     /// facts the lexer's default mode does not keep (outside a list region it lexes the sign and the digits as two
     /// tokens, <c>SignedLiteralCanStart</c>); the touching digits are an integer, a decimal, a floating-point literal or
     /// the integer part of a DECIMAL-POINT IS COMMA one (<c>-1,5</c>, <c>-,5</c>).
@@ -183,7 +192,7 @@ public static class ZeroTokenRewriter
     /// Finds the nearest non-hidden token in the given direction and returns its index.
     /// Returns -1 if no such token exists (beginning/end of stream).
     /// </summary>
-    private static int AdjacentIndex(IList<IToken> tokens, int index, bool forward)
+    internal static int AdjacentIndex(IList<IToken> tokens, int index, bool forward)
     {
         if (index < 0)
             return -1;
@@ -219,7 +228,7 @@ public static class ZeroTokenRewriter
     /// Replaces the token at the given index with a ZERO_ARITH virtual token
     /// that has text "0" but preserves the original token's position information.
     /// </summary>
-    private static void ReplaceWithZeroArith(IList<IToken> tokens, int index)
+    internal static void ReplaceWithZeroArith(IList<IToken> tokens, int index)
     {
         var original = tokens[index];
 
