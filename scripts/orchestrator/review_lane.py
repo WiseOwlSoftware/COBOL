@@ -59,7 +59,8 @@ severities are `critical,high,medium` for rounds 1..REVIEW_FIX_ROUNDS and `criti
 BLOCKING_DEFAULT / BLOCKING_AT_CAP: a finding that cannot be answered any more becomes a lead).
 
 THE CONFLICT FINISHER (kb/Work PB3640, PB3670 item 4): an exit-4 landing attempt, or a pull request the queue BOUNCED as
-DIRTY, gets ONE `cobol-finisher` per head whose prompt carries `land_lane.py conflict-brief <branch>` verbatim. The lane
+DIRTY, or a QUEUED one whose head conflicts with an entry ahead of it (the survey's FORESEEN CONFLICT, kb/Work PB3723), gets
+ONE `cobol-finisher` per head whose prompt carries `land_lane.py conflict-brief <branch>` verbatim. The lane
 COLLECTS the exit-4 attempt when it starts the finisher (the unit need not dispatch it). The finisher's commits are
 unreviewed: the branch reads WAITING FOR REVIEW and this lane reviews the new tip, then the landing lane lands it.
 
@@ -311,6 +312,8 @@ def conflict_cause(row: dict[str, Any], atts: list[dict[str, Any]]) -> str | Non
     last = conflict_attempt(row, atts)
     if last:
         return f"the landing stopped CONFLICT (exit 4): {last.get('verdict') or 'no verdict line'}"
+    if row.get("state") == "BOUNCED" and row.get("foreseen"):
+        return f"the queue will remove its queued pull request for a merge conflict (foreseen, kb/Work PB3723): {row.get('why')}"
     if row.get("state") == "BOUNCED" and row.get("conflicts"):
         return f"the queue bounced its pull request as DIRTY: {row.get('why')}"
     return None

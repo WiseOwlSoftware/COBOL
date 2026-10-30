@@ -168,6 +168,12 @@ internal static class UsageCollectionPass
         public bool Visit(BoundStringStmt n)
         {
             P(n.Into); P(n.Pointer);
+            // ⛔ STRING IS A CHARACTER CHANNEL OF ELEMENTARY identifier-3 (kb/Work PB4089), the twin of INSPECT's above.
+            // §14.9.43.3 SR1 admits a numeric item of usage display or national, and §14.9.43.4 GR6 moves the characters
+            // "one at a time" into its character positions while GR7 leaves every position not written as it was:
+            // `STRING "AB" … INTO N` over `PIC 9(6) VALUE 123456` leaves the characters AB3456, which no native numeric
+            // carrier holds. The item stores its character image, the one representation that holds every content.
+            Channel(n.Into);
             foreach (var snd in n.Sendings) { Op(snd.Value); Op(snd.Delimiter); }
             return false;
         }

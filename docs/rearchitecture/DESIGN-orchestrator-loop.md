@@ -629,11 +629,12 @@ instead of at the next enqueue unit, is the headless lane's second job (kb/Work 
 
 | The pull request | The watch |
 |---|---|
-| in the merge queue, or the branch's work on main | ends (`queued`, `merged`) |
+| the branch's work on main | ends (`merged`) |
+| in the merge queue | `queued`, and read again on every tick: the queue can drop a pull request without merging it and without a failed run (a ruleset toggle, a dequeue; PR #593 sat out of the queue for an hour with auto-merge off, kb/Work PB3772), and only a watch that keeps reading sees that. The watch ends at `merged`, `left` or `alerted`, never at `queued` (`WATCH_DONE`) |
 | a required check FAILED on its head, the queue removed it, or it CONFLICTS with main (`mergeStateStatus` DIRTY: no re-run or reopen clears a conflict, kb/Work PB3527 review R1-5) | ends (`left`): the survey reads it BOUNCED, the enqueue unit's finisher |
 | its head moved past the attempt's | ends (`left`): a new push is a new landing, watched afresh |
 | any check on its head still running (its job too), required or not | watching: nothing is late |
-| not in the queue `QUEUE_GRACE_MIN` (10) minutes after its checks' work ended (the newest check-run's end on the head, a stuck one's JOB time; the enqueue time when no check-run exists) or after the last remedy | a STALLED read, cause `stuck-check-run` or `not-queued`: read 1 re-runs the workflow run of the stuck check, else of any check on the head (`enqueue.rerun_check`, `gh run rerun`; a pull request with no check-run goes straight to read 2's remedy), read 2 closes, reopens and re-queues it with auto-merge (`enqueue.requeue`, behind `queue`'s ACTIVE guard: enqueue.py stays the only file that queues; refused, touching nothing, while a workflow run on the head has not completed, since the reopen's run would cancel it, kb/Work PB4052), read 3 sends the operator a mailbox `question` and the watch acts no more (`alerted`) |
+| not in the queue `QUEUE_GRACE_MIN` (10) minutes after its checks' work ended (the newest check-run's end on the head, a stuck one's JOB time; the enqueue time when no check-run exists) or after the last remedy | a STALLED read, cause `stuck-check-run` or `not-queued` (for one the watch saw `queued` and finds out of the queue again, the grace counts from the last reading in the queue and read 1 is the requeue, since its checks passed and no re-run is a remedy): read 1 re-runs the workflow run of the stuck check, else of any check on the head (`enqueue.rerun_check`, `gh run rerun`; a pull request with no check-run goes straight to read 2's remedy), read 2 closes, reopens and re-queues it with auto-merge (`enqueue.requeue`, behind `queue`'s ACTIVE guard: enqueue.py stays the only file that queues; refused, touching nothing, while a workflow run on the head has not completed, since the reopen's run would cancel it, kb/Work PB4052), read 3 sends the operator a mailbox `question` and the watch acts no more (`alerted`) |
 | no pull request open and the branch's work not on main | a stalled read, cause `closed`: it alerts at once |
 
    Each read is recorded on the attempt (`watch`) and in `landing_measure.py`'s record of the pull request
@@ -644,7 +645,7 @@ instead of at the next enqueue unit, is the headless lane's second job (kb/Work 
    record's lock), so a `collect` the enqueue unit made while the tick surveyed is kept (review R1-3). Under a stop
    the watch reads but acts on nothing. `land_lane.py status` prints each exit-0 attempt's watch, and
    `prune_worktrees.py --brief` lists such a branch NOT QUEUED with how long it has waited, what GitHub says and the
-   watch's state, until the queue holds it. NOT QUEUED is a pull request AT THE BRANCH'S TIP: one left at an older head
+   watch's state, the time of its last reading and whether it has ENDED (an ended watch reads nothing again, and a QUEUED reading under a pull request the survey finds out of the queue is said to be the last one, never the current state), until the queue holds it. NOT QUEUED is a pull request AT THE BRANCH'S TIP: one left at an older head
    (a finisher's fix committed locally, auto-merge still on at the old head) is the old landing's whatever that head's
    health: a red, conflicting or removed head promises nothing, and a healthy one promises only its own commits, so
    waiting on it would land the old head and leave the fix for a second landing (kb/Work PB3275, PB3628); and the branch reads by its report again, WAITING

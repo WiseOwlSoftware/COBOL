@@ -14087,7 +14087,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL2269"
  },
  "pb331-rewrite-ignoring-lock": {
   "refuse-at": [
@@ -24025,6 +24025,12 @@
    "2023"
   ],
   "expect": "COBOL0899"
+ },
+ "pb4031-report-turn-size-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: >>TURN directive requires COBOL-2002"
  },
  "pb2024-required-word-omitted": {
   "refuse-at": [

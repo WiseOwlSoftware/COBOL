@@ -73,8 +73,27 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             (at, kind, hints) = (carried, ErrorKind.NoViableAlternative, GuessCobolIntent(recognizer, carried));
         }
         _lastReported = (Math.Min(at.ParserTokenIndex, at.Token.TokenIndex), at.Token.TokenIndex);
+        _constructEndedEarly = EndsAConstructEarly(hints);
         recognizer.NotifyErrorListeners(at.Token, BuildMessage(at.Token, kind, hints), e);
     }
+
+    /// <summary>Did the last report name a fault that left the parser with a construct it had CLOSED EARLY
+    /// (<see cref="EndsAConstructEarly"/>)? The recovery that follows it discards the rest of the sentence
+    /// (<see cref="ConsumeUntil"/>).</summary>
+    private bool _constructEndedEarly;
+
+    /// <summary>⛔ THE FAULTS THAT FIND THE ENCLOSING STATEMENTS ALREADY CLOSED (kb/Work PB3843): a word the statement
+    /// just written does not print there (hint 0h, COBOL2269), a WHEN OTHER phrase repeated or out of place (hint 0b,
+    /// COBOL2073: the EVALUATE or PERFORM has taken its one) and an explicit scope terminator no open statement owns
+    /// (hint 13, COBOL0306). All are found AFTER the parser has ended the statements around the word, because an
+    /// optional END-x (and the lack of a phrase) lets every rule end where its next token is not its own and defers the
+    /// refusal to the sentence's period. The code that wins the message is the test, as <see cref="BuildMessage"/>
+    /// picks it.</summary>
+    private static bool EndsAConstructEarly(List<DiagnosticHint> hints)
+        => hints.Count > 0 && hints.MinBy(h => h.Priority).Code
+               is var code && (code == Diagnostics.DiagnosticDescriptors.COBOL2269.Code
+                               || code == Diagnostics.DiagnosticDescriptors.COBOL2073.Code
+                               || code == Diagnostics.DiagnosticDescriptors.COBOL0306.Code);
 
     protected override void ReportNoViableAlternative(Parser recognizer, NoViableAltException e)
         => Report(recognizer, e.OffendingToken ?? recognizer.CurrentToken, e, ErrorKind.NoViableAlternative);
@@ -103,7 +122,57 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             ConsumeUntil(recognizer, GetErrorRecoverySet(recognizer).Subtract(ResidueRunTokens(residue.Production)));
         }
         base.Recover(recognizer, e);
+        FinishSentenceTailDiscard(recognizer);
     }
+
+    /// <summary>⛔ A CONSTRUCT CLOSED EARLY LEAVES ITS TAIL TO THE SENTENCE, NOT TO THE NEXT STATEMENT (kb/Work PB3843).
+    /// When the report names a fault found after the parser had ended the statements around the token
+    /// (<see cref="EndsAConstructEarly"/>: a phrase the statement does not print there, a scope terminator no open
+    /// statement owns), the tokens that follow are the TAIL of those statements: the rest of the phrase, the phrases of
+    /// the same statement that would follow it (a NOT ON EXCEPTION), the statements still inside the construct, its
+    /// explicit terminator (<c>IF c MOVE 1 TO N END-ADD MOVE 2 TO N END-IF.</c>, a second <c>ON OVERFLOW … END-STRING</c>).
+    /// ANTLR's recovery resumes at the first token a statement or the loop can take and parses that tail as statements
+    /// of a sentence the construct is no longer part of, so its END-IF met no IF and its NOT phrase no statement, and
+    /// the one fault drew a second, false diagnostic naming the recovery's own damage. A sentence is the unit of COBOL's
+    /// procedural syntax that a fault inside it cannot cut, so the resynchronization of such a fault stops only at the
+    /// sentence's separator period, and the next sentence is parsed afresh. It is not a missing period: hint 0h is
+    /// refused where a period lets the sentence that starts at the token follow
+    /// (<see cref="OffendingPosition.APeriodLetsTheSentenceFollow"/>), and a scope terminator never begins a sentence.
+    /// This is the ONE place the resynchronization is bent, for both recoveries that reach <see cref="ConsumeUntil"/>:
+    /// the loop recovery of <see cref="Sync"/> (the sentence's own <c>statement+</c> loop meets the stray word) and
+    /// <see cref="Recover"/> (a rule whose match failed). Outside a sentence the set is the caller's, and stays so.</summary>
+    private IntervalSet ResynchronizationSet(Parser recognizer, IntervalSet set)
+    {
+        int la = ((ITokenStream)recognizer.InputStream).LT(1).TokenIndex;
+        bool discard = _constructEndedEarly && la >= _lastReported.From && la <= _lastReported.Through
+                       && InSentence(recognizer);
+        _constructEndedEarly = false;   // this fault's recovery: a later fault decides afresh
+        _discardedSentenceTail |= discard;
+        return discard ? SentenceEnd : set;
+    }
+
+    /// <summary>The recovery that discarded a sentence's tail stands at the sentence's period; when the rule that
+    /// recovered is the sentence itself its match of the period has failed, so the period is consumed here and the
+    /// paragraph goes on with the next sentence. An inner rule that recovered leaves the period for the sentence.</summary>
+    private void FinishSentenceTailDiscard(Parser recognizer)
+    {
+        if (!_discardedSentenceTail) return;
+        _discardedSentenceTail = false;
+        if (recognizer.Context.RuleIndex == CobolParserCore.RULE_sentence
+            && ((ITokenStream)recognizer.InputStream).LA(1) == CobolLexer.DOT)
+            recognizer.Consume();
+    }
+
+    private bool _discardedSentenceTail;
+
+    private static bool InSentence(Parser recognizer)
+    {
+        for (var c = recognizer.Context; c is not null; c = c.Parent as ParserRuleContext)
+            if (c.RuleIndex == CobolParserCore.RULE_sentence) return true;
+        return false;
+    }
+
+    private static readonly IntervalSet SentenceEnd = IntervalSet.Of(CobolLexer.DOT);
 
     /// <summary>Every token a run of the error production's form <paramref name="production"/> may hold: the union of
     /// the FIRST sets of the run pieces the form calls (<c>residueOpening</c>, <c>residueItem</c>, and in
@@ -155,6 +224,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// the resync point: the set is asked first.</summary>
     protected override void ConsumeUntil(Parser recognizer, IntervalSet set)
     {
+        set = ResynchronizationSet(recognizer, set);
         var input = (ITokenStream)recognizer.InputStream;
         for (int ttype = input.LA(1); ttype != TokenConstants.EOF && !set.Contains(ttype); ttype = input.LA(1))
         {
@@ -1331,6 +1401,15 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     {
         _scopeTerminators ??= BuildScopeTerminators(recognizer);
         return _scopeTerminators.GetValueOrDefault(tokenType);
+    }
+
+    /// <summary>Every explicit scope terminator the grammar spells, as its reserved word (<c>END-ADD</c>): the list
+    /// the drift test of the recovery sweeps (<c>ParseRecoveryTailTests</c>, kb/Work PB3843), read from the same map
+    /// the misplaced-terminator hint reads, so a terminator a statement gains tomorrow is swept the day it is added.</summary>
+    internal static IReadOnlyList<string> ScopeTerminatorWords(Parser recognizer)
+    {
+        _scopeTerminators ??= BuildScopeTerminators(recognizer);
+        return [.. _scopeTerminators.Values.Select(t => t.Word).Order(StringComparer.Ordinal)];
     }
 
     private static Dictionary<int, ScopeTerminatorInfo> BuildScopeTerminators(Parser recognizer)
