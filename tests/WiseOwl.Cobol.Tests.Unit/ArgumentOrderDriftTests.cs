@@ -68,6 +68,28 @@ public sealed class ArgumentOrderDriftTests
         Assert.Contains(".Freeze(", code);
     }
 
+    /// <summary>⛔ A BOUND CALL'S TYPE IS READ OFF THE NODE, NEVER RE-DERIVED FROM ITS ARGUMENTS (kb/Work PB4036).
+    /// <c>Settle</c> swaps a frozen argument for the compiler temporary that holds it, and an arithmetic expression held
+    /// in a scale-0 temporary is an integer data item where the expression was not, so a reader that re-resolves the
+    /// type from <c>call.Args</c> after the swap answers a different type for the same call
+    /// (<c>FUNCTION MAX (A * B, 5)</c> Numeric, <c>FUNCTION MAX (A * B, FUNCTION UDF (A))</c> Integer). The type is
+    /// <c>BoundIntrinsicCall.ResultType</c>, asked once when the call is built from its arguments as written.</summary>
+    [Fact]
+    public void ACallsType_IsReadFromTheNode_NotResolvedAgainFromItsSettledArguments()
+    {
+        var rereaders = CompilerSources()
+            .Where(f => Regex.IsMatch(CodeOf(f), @"\bResolve\(\s*\w+\.Sig\s*,\s*\w+\.Args\s*\)"))
+            .Select(Path.GetFileName)
+            .ToList();
+        Assert.True(rereaders.Count == 0,
+            $"{string.Join(", ", rereaders)} resolves a bound call's type from call.Args again — after ArgumentOrder.Settle "
+            + "swapped a frozen argument for its temporary that is a different type from the call as written; read "
+            + "BoundIntrinsicCall.ResultType (kb/Work PB4036).");
+
+        string settle = CodeOf(Path.Combine(CompilerDir, "Binding", "Procedure", "ArgumentOrder.cs"));
+        Assert.Matches(@"call with \{ Args = ", settle);
+    }
+
     [Fact]
     public void NoOtherBinder_BindsFunctionArgumentsOrOpensAWindow()
     {

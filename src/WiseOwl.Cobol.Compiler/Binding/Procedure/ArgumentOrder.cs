@@ -122,7 +122,12 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
         }
 
         /// <summary>The intrinsic form: every argument of the bound call settles, and the call is returned with the
-        /// frozen operands swapped in (the argument-class screens already ran on the operands as written).</summary>
+        /// frozen operands swapped in (the argument-class screens already ran on the operands as written). ⛔ THE SWAP
+        /// CHANGES NO TYPE: the call's §15.2 type (<see cref="BoundIntrinsicCall.ResultType"/>) was decided from the
+        /// arguments as written when the call was built, and the <c>with</c> keeps it — a frozen arithmetic expression is
+        /// a scale-0 temporary (an integer data item) where the expression it replaced was not one, so a type re-read from
+        /// the swapped arguments would depend on whether a LATER argument activated a user-defined function (kb/Work
+        /// PB4036; <c>ArgumentOrderDriftTests</c> refuses a reader that re-resolves it).</summary>
         internal BoundExpr Settle(BoundExpr result)
         {
             if (result is not BoundIntrinsicCall call) return result;
