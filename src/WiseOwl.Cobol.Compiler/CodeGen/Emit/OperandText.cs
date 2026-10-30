@@ -116,7 +116,7 @@ internal static class OperandText
     /// freshly computed temporary, not a stored item that could hold a NaN deposited earlier.
     /// <para>⛔ <see cref="ReceiverContext.None"/>, NEVER the ambient receiver — the same convention
     /// <c>IntrinsicRenderer.ArgNum</c> uses for the string channel. A text context HAS no numeric receiver, and an
-    /// intrinsic's working scale is <c>max(Receiver.Scale, 9)</c>, so reading the ambient one made a function's
+    /// intrinsic's landing derives from the receiver (<c>ReceiverContext.FloatLanding</c>), so reading the ambient one made a function's
     /// printed text depend on whatever arithmetic statement happened to run BEFORE it.</para>
     /// <para>⛔ <paramref name="deSign"/> is honoured, because §14.9.25.4 GR6a is a GENERAL rule carrying no
     /// implementor latitude: "If the sending operand is described as being signed numeric, the operational sign is
