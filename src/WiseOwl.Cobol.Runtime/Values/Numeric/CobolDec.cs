@@ -961,7 +961,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// format cannot hold it nearer). Only a result KNOWN exact comes here: every digit of an inexact one is significant.
     /// The twin of <see cref="AddSigned"/>'s sum reduction, which reaches the same exponent from the other side (zeros
     /// appended).</summary>
-    private static UInt128 ToPreferredExponent(UInt128 mag, ref int exp, int preferred)
+    internal static UInt128 ToPreferredExponent(UInt128 mag, ref int exp, int preferred)
     {
         while (exp < preferred && mag != 0)
         {
@@ -1219,7 +1219,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// significand: divide by 10 until in range, capturing the LAST dropped digit (the round digit) and whether
     /// any earlier dropped digit was nonzero (sticky); then apply the INTERMEDIATE ROUNDING mode (§11.9.11 —
     /// PROHIBITED ⇒ size error when anything was dropped).</summary>
-    private static CobolDec Round34Wide(UInt128 hi, UInt128 lo, bool negative, int exp, CobolRounding mode,
+    internal static CobolDec Round34Wide(UInt128 hi, UInt128 lo, bool negative, int exp, CobolRounding mode,
         bool extraSticky = false, bool jam = false)
     {
         bool sticky = extraSticky;
