@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.CommandLine;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Cli;
 using Xunit;
@@ -67,6 +68,49 @@ public sealed class CliParserTests
     [Fact]
     public void Std_RejectsUnknownYear()
         => Assert.Contains(Errors("a.cob", "--std", "99"), m => m.Contains("--std must be one of"));
+
+    /// <summary>kb/Work PB4126: a <c>--std</c> value that is not an edition year (<c>COBOL-2002</c>, a word, an empty value, a
+    /// signed or padded year) is a usage error naming the accepted values, never an exception out of the parser — the
+    /// validator once read the token as an <c>int?</c> and threw <see cref="InvalidOperationException"/> on any it could not convert.
+    /// Each is parsed AND invoked, because the throw was in the parse itself.</summary>
+    [Theory]
+    [InlineData("COBOL-2002")]
+    [InlineData("abc")]
+    [InlineData("1999")]
+    [InlineData("")]
+    [InlineData("+85")]
+    [InlineData(" 85")]
+    [InlineData("2002.0")]
+    public void Std_RejectsAnyNonEditionValue_AsAUsageError_NeverThrows(string value)
+    {
+        var (command, _) = Program.BuildParser();
+        var parse = command.Parse(["a.cob", "--std", value]);
+        Assert.Contains(parse.Errors, e => e.Message.Contains("--std must be one of 85, 2002, 2014, 2023"));
+        var output = new StringWriter();
+        var error = new StringWriter();
+        Assert.NotEqual(0, parse.Invoke(new InvocationConfiguration { Output = output, Error = error }));
+        Assert.Contains("--std must be one of 85, 2002, 2014, 2023", error.ToString());
+    }
+
+    [Theory]
+    [InlineData("85", 85)]
+    [InlineData("2002", 2002)]
+    [InlineData("2014", 2014)]
+    [InlineData("2023", 2023)]
+    public void TryParseStd_AcceptsExactlyTheFourEditions(string value, int year)
+    {
+        Assert.True(Program.TryParseStd(value, out int parsed));
+        Assert.Equal(year, parsed);
+        Assert.False(Program.TryParseStd(null, out _));
+    }
+
+    /// <summary>kb/Work PB4126, sibling arm: a check-batch manifest entry whose std field is present but is not an edition is a
+    /// FAIL verdict naming the field as written (it once fell back to 2023 or compiled at any integer), and compiles nothing.</summary>
+    [Theory]
+    [InlineData("a.cob\tCOBOL-2002", "a.cob\tCOBOL-2002\tFAIL")]
+    [InlineData("a.cob\t1999\t\t0", "a.cob\t1999\tFAIL")]
+    public void CheckBatch_PresentButInvalidStd_IsAFailEntry(string line, string verdict)
+        => Assert.Equal(verdict, Program.CheckBatchVerdict(line));
 
     [Fact]
     public void Source_RequiredAndSingle()
