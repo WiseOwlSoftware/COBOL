@@ -177,6 +177,43 @@ public sealed class WideArgumentBodiesTests
         MeanIs("0", -5, away, 5, "0", "0");
     }
 
+    /// <summary><c>MeanWide</c> and <c>MeanDec</c> are one rule: wherever the SDIDI can hold the exact sum (34 digits or fewer) the two
+    /// quotients are the same value at the same exponent, in every rounding mode, so the lane is a representation and never changes
+    /// the answer (kb/Work PB4075's claim about <c>CobolWide.QuotientDec</c>).</summary>
+    [Theory]
+    [InlineData(CobolRounding.NearestAwayFromZero)]
+    [InlineData(CobolRounding.NearestEven)]
+    [InlineData(CobolRounding.Truncation)]
+    public void MeanWide_AgreesWithMeanDec_WhereTheSdidiHoldsTheSum(CobolRounding mode)
+    {
+        string[][] lists =
+        [
+            ["1", "2"], ["1", "2", "4"], ["7"], ["-5", "2"], ["10", "20", "30", "40"], ["0", "0"],
+            ["1234567890123456789012345678901", "1"], ["-1234567890123456789012345678901", "2", "3"],
+        ];
+        foreach (string[] list in lists)
+        foreach (int scale in new[] { 0, 3, 17 })
+        {
+            CobolDec wide = CobolIntrinsics.MeanWide(mode, scale, list.Select(W).ToArray());
+            CobolDec sdidi = CobolIntrinsics.MeanDec(mode, list.Select(v => new CobolDec(Int128.Parse(v), -scale)).ToArray());
+            Assert.True(wide.Sig == sdidi.Sig && wide.Exp == sdidi.Exp,
+                $"MEAN ({string.Join(' ', list)}) at scale {scale}, {mode}: wide {wide.Sig}E{wide.Exp}, SDIDI {sdidi.Sig}E{sdidi.Exp}");
+        }
+    }
+
+    /// <summary>INTERMEDIATE ROUNDING IS PROHIBITED (§11.9.11.2 r3d): an inexact exact-sum quotient raises EC-SIZE-TRUNCATION, an
+    /// exact one does not — the mode reaches the one rounding.</summary>
+    [Fact]
+    public void MeanWide_UnderProhibited_RaisesOnlyForAnInexactQuotient()
+    {
+        const string N = "998999999999999998002000000000000000999";
+        Assert.Equal("EC-SIZE-TRUNCATION",
+            Assert.Throws<CobolSizeError>(() => CobolIntrinsics.MeanWide(CobolRounding.Prohibited, 0, W(N), W("1"))).EcName);
+        CobolDec exact = CobolIntrinsics.MeanWide(CobolRounding.Prohibited, 0, W("3" + new string('0', 40)), W("1" + new string('0', 40)));
+        Assert.Equal(Int128.Parse("2000000000000000000000000000000000"), exact.Sig);
+        Assert.Equal(7, exact.Exp);
+    }
+
     /// <summary>An empty argument list invents no value (§15.3 requires at least one argument; kb/Work PB257).</summary>
     [Fact]
     public void MeanOfNothing_IsRefused() =>
