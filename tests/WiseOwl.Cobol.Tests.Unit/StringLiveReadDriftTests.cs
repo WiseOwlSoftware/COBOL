@@ -194,8 +194,8 @@ public sealed class StringLiveReadDriftTests
     [Fact]
     public void AFunctionInTheFirstSending_IsEvaluatedUpFront_EvenOverTheReceiver()
     {
-        // Review R1-1 (§14.6.4 7): no store precedes the first transfer, so GR10 cannot reach it and its function is
-        // identified in statement order, before identifier-3 is read - not inline in the transfer after that read.
+        // Review R1-1: no store precedes the first transfer, so §14.9.43.4 GR10 cannot reach it and its function is
+        // identified in statement order (§14.6.4 7), before identifier-3 is read - not inline in the transfer after that read.
         string cs = EmitCSharp(Program(Disjoint, """STRING FUNCTION UPPER-CASE(R1) DELIMITED BY SIZE INTO R1 END-STRING"""));
         Assert.Equal(1, Stores(cs));
         Assert.Matches(new Regex(@"string __strSrc\d+_0 = ", RegexOptions.Multiline), cs);
