@@ -894,7 +894,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 || (cDref is not null && host.Expr.LiteralAliasOf(cDref) is not null)
                 || (cArith is not null && cDref is null && !IsSoleIdentifierExpression(cArith));
             return expressionOperand
-                ? new($"CALL … USING BY CONTENT {byContent.GetText()}: an expression operand{Shared}. "
+                ? new($"CALL … USING BY CONTENT {DataBinder.WrittenText(byContent)}: an expression operand{Shared}. "
                       + "Format 1's BY CONTENT admits `{ identifier-2 } …` only", true)
                 : null;
         }
@@ -904,7 +904,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             || bare.SoleNumericLiteral is not null || bare.Grouped is not null
             || (bare.Arith is { } arith && !IsSoleIdentifierExpression(arith));
         return bareNonIdentifier
-            ? new($"CALL … USING {a.GetText()}: a keyword-less literal or expression argument{Shared} — Format 1's "
+            ? new($"CALL … USING {DataBinder.WrittenText(a)}: a keyword-less literal or expression argument{Shared} — Format 1's "
                   + "bare argument is identifier-2 only", true)
             : null;
 
