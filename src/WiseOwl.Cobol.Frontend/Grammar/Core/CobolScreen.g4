@@ -165,27 +165,20 @@ screenUsingClause
 // INDICATORS (§5.2.6.4 — one or more, each at most once, ANY ORDER), which is why this is a `+` over the two
 // legs and not a fixed LINE-then-COLUMN sequence: `DISPLAY SG COLUMN 5` with no LINE is legal, and it is exactly
 // the shape kb/Work PB260 measured binding as a THREE-operand device DISPLAY.
-// ⛔ THE EXCEPTION PHRASES ARE BOUND TO THE POSITIONING PHRASE, AND THAT COUPLING IS LOAD-BEARING — DO NOT
-// "SIMPLIFY" IT BACK INTO TWO INDEPENDENT OPTIONAL TAILS. `ON EXCEPTION` / `NOT ON EXCEPTION` is spelled the
-// same on a screen ACCEPT/DISPLAY as on the half-dozen statements that already own one, and DISPLAY appears
-// inside every one of their imperative-statement slots. With the phrases free-standing on DISPLAY the
-// inner DISPLAY STEALS the enclosing statement's arm:
+// ⛔ THE EXCEPTION PHRASES ARE THE STATEMENT'S OWN `conditionalPhrases`, NOT A TAIL OF THIS PHRASE (kb/Work PB1528).
+// The printed formats (pages 607 and 640) put the AT group and the [| ON EXCEPTION | NOT ON EXCEPTION |] group in two
+// INDEPENDENT brackets, so `ACCEPT screen-name-1 ON EXCEPTION …` is the screen format too. The phrases used to be bound
+// to this phrase (a rule `screenTail`), which made that unpositioned spelling a parse error ("unexpected 'ON'") where
+// docs/CONFORMANCE.md §5 promises the named Annex A.4.2 refusal COBOL1707. The coupling existed to stop an inner
+// DISPLAY STEALING an enclosing statement's arm:
 //
-//     DELETE FILE F ON EXCEPTION DISPLAY "EXC" NOT ON EXCEPTION DISPLAY "NOEXC" END-DELETE
+//     DELETE FILE F ON EXCEPTION DISPLAY X NOT ON EXCEPTION DISPLAY "NOEXC" END-DELETE
 //
-// parsed as DELETE's ON EXCEPTION containing `DISPLAY "EXC" NOT ON EXCEPTION DISPLAY "NOEXC"` — a screen
-// DISPLAY — and DELETE lost its NOT-arm entirely. The wave-local gate caught it on four corpus programs
-// (delete_file_absent, ec_external_{file,data,format}_*). Requiring the AT/LINE/COLUMN phrase first makes the
-// tail unambiguous: no other statement's exception arm can begin with it, and a real screen ACCEPT/DISPLAY
-// that wants an exception handler is positioned in practice. The cost is one spelling — an UNPOSITIONED
-// `DISPLAY screen-name ON EXCEPTION …` — which stays a parse error exactly as it was before this wave, while
-// the far more common `DISPLAY screen-name` alone is caught by the binder's screen-name test (the unpositioned
-// spelling's diagnostic is kb/Work PB1528). The phrases are `conditionalPhrases` (kb/Work PB3830), whose association
-// table gives screenTail the [NOT] ON EXCEPTION pair (§14.9.1.2 Format 3, §14.9.11.2 Format 2).
-screenTail
-    : screenPositionPhrase conditionalPhrases
-    ;
-
+// and that is §14.5.3.3's association question, which ConditionalPhraseAssociation answers for every owner: a literal,
+// function-identifier, inline-invocation or second operand, UPON, NO ADVANCING or FROM rules the screen format out
+// (Format.Unprinted); this positioning phrase PROVES it; with neither, the format is only PRESUMED — whether `X` is a
+// screen-name is a declaration fact the parser does not see — and the inner statement takes the phrase only when no
+// enclosing open statement may (Format.ProvedBy). AcceptDisplayBinder.ScreenFormatOf names what the screen format took.
 screenPositionPhrase
     : AT? screenPositionLeg+
     ;
