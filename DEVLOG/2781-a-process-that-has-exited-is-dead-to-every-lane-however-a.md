@@ -1,4 +1,4 @@
-## A process that has exited is dead to every lane, however a listing still names it (kb/Work PB4008)
+## Entry 2781 — 2026-10-30 09:43 PDT — A process that has exited is dead to every lane, however a listing still names it (kb/Work PB4008)
 
 `impact_lane.py --self-test` failed one check in CI's Windows self-tests three times, and each time it threw an unrelated
 pull request out of the merge queue: #738 on 2026-10-28, #755 on 2026-10-29 and #801 on 2026-10-30 (merge-group run
@@ -37,3 +37,4 @@ live pid owned by another user (`os.kill(pid, 0)` answers EPERM), which crashed 
 check, and never raises. The review's second finding was a comment that said an unopenable live process reads alive on
 Windows while `process_name` read it dead. The probe is now symmetric: `OpenProcess` failing with ERROR_ACCESS_DENIED means
 the pid exists and reads as running, as EPERM does. Arm 5 of `detached.py --self-test` covers both systems.
+
