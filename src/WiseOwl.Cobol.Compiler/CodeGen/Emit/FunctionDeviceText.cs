@@ -153,6 +153,9 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
             // for A * B, 38 for a nested function's value - and describing the copy by THAT item made LENGTH (MAX (A * B, 3)) 4 and
             // LENGTH (MAX (A * B, UDF (A))) 8, one call with two answers. The held value is exactly the value the unheld argument
             // has, so it is described as the unheld argument is: by its value.
+            // A held DATE-OF-INTEGER / DAY-OF-INTEGER keeps its fixed digits: they do not depend on the value (CallField).
+            case BoundFieldOperand { Place.Item.FunctionDeviceDigits: int deviceDigits }:
+                return RuntimeApi.FunctionFieldOfDigits(num.DecOperand(num.AsNum(a, ReceiverContext.None)), deviceDigits);
             case BoundFieldOperand { Place.Item.FunctionValueSeparator: not null }:
                 return ValueField(num.AsNum(a, ReceiverContext.None, keepWide: true));
             // A whole data item (a reference-modified slice is no declared item, Place.DenotedItem); a floating-point item orders by

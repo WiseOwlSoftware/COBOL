@@ -117,6 +117,55 @@ public sealed class HeldFunctionArgumentDescriptionTests : WiseOwlCobolTestBase
         return (source.ToString(), labels);
     }
 
+    /// <summary>⛔ A FATAL EXCEPTION OF AN EARLIER ARGUMENT IS RAISED BEFORE A LATER ARGUMENT'S ACTIVATION (kb/Work PB4124, review
+    /// round 1). ISO §8.4.3.2.4 GR2 evaluates the arguments left to right; DATE-OF-INTEGER (0) raises EC-ARGUMENT-FUNCTION
+    /// (§14.6.13.1.3), which is fatal (§14.6.13.1.6), so the user-defined function in argument-2 must never run. The nested call
+    /// is described by its fixed digits, which no argument decides, so it is held AS A VALUE at its place and not read after
+    /// the activation by holding only its (stable) arguments.</summary>
+    [Theory]
+    [InlineData("FUNCTION DATE-OF-INTEGER(WS-D)")]
+    [InlineData("FUNCTION DATE-OF-INTEGER(0)")]
+    [InlineData("FUNCTION DAY-OF-INTEGER(WS-D)")]
+    public void AFatalExceptionOfAnEarlierArgumentIsRaisedBeforeALaterActivation(string earlier)
+    {
+        string source = $$"""
+            >>TURN EC-ARGUMENT-FUNCTION CHECKING ON
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. HFADRAN.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-X PIC 9(8).
+            01 L-R PIC 9(8).
+            PROCEDURE DIVISION USING L-X RETURNING L-R.
+            P.
+                DISPLAY "UDF RAN"
+                MOVE L-X TO L-R.
+                GOBACK.
+            END FUNCTION HFADRAN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. HFADORD.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION HFADRAN
+                FUNCTION ALL INTRINSIC.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-D PIC S9(8) VALUE 0.
+            01 WS-C PIC 9(8) VALUE 5.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "START"
+                DISPLAY FUNCTION MAX({{earlier}}, FUNCTION HFADRAN(WS-C))
+                DISPLAY "END"
+                STOP RUN.
+            END PROGRAM HFADORD.
+            """;
+        var (ok, stdout, _) = CompileAndRun(source, dialectLevel: 2023);
+        Assert.False(ok);   // the fatal exception ended the run
+        Assert.Equal("START", stdout);   // neither the activation ("UDF RAN") nor the DISPLAY after it ran
+    }
+
     [Fact]
     public void AHeldArgumentIsDescribedAsTheUnheldArgumentIs()
     {

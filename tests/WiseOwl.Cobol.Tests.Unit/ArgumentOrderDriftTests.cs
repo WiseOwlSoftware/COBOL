@@ -91,7 +91,7 @@ public sealed class ArgumentOrderDriftTests
     }
 
     /// <summary>⛔ A HELD ARGUMENT KEEPS THE DESCRIPTION THE UNHELD ARGUMENT HAS, AND THE NEXT DEVICE FORM IS AUTOMATIC (kb/Work PB4124).
-    /// A nested function whose temporary is a copy of an argument's item (<c>FunctionDeviceForm.Argument</c>) or an item of fixed digits
+    /// A nested function whose temporary is a copy of an argument's item (<c>FunctionDeviceForm.Argument</c>)
     /// cannot be held as a value, so <c>ArgumentOrder</c> holds its arguments instead; the answer is a statement about each
     /// <c>FunctionDeviceForm</c>, so a member added tomorrow must be named in <c>ReadsArgumentDescriptions</c> or this test fails
     /// on its throw.</summary>
@@ -102,7 +102,7 @@ public sealed class ArgumentOrderDriftTests
             .Where(WiseOwl.Cobol.Binding.Procedure.ArgumentOrder.ReadsArgumentDescriptions)
             .ToList();
         Assert.Equal(
-            [WiseOwl.Cobol.Binding.FunctionDeviceForm.Argument, WiseOwl.Cobol.Binding.FunctionDeviceForm.FixedDigits],
+            [WiseOwl.Cobol.Binding.FunctionDeviceForm.Argument],
             reads);
     }
 

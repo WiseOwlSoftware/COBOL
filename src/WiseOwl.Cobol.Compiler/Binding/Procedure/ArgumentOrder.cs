@@ -161,11 +161,13 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
     }
 
     /// <summary>⛔ DOES THIS CALL'S RETURNED VALUE DEPEND ON THE DESCRIPTIONS OF ITS ARGUMENTS, NOT ONLY ON THEIR VALUES (kb/Work
-    /// PB4124)? ABS, MAX, MIN, MEDIAN and MEAN return a COPY of an argument's item (<see cref="FunctionDeviceForm.Argument"/>) and
-    /// DATE-OF-INTEGER / DAY-OF-INTEGER an unsigned item of fixed digits (<see cref="FunctionDeviceForm.FixedDigits"/>): what a
+    /// PB4124)? ABS, MAX, MIN, MEDIAN and MEAN return a COPY of an argument's item (<see cref="FunctionDeviceForm.Argument"/>): what a
     /// function that reads the result sees (its value, <c>FUNCTION LENGTH</c>, DISPLAY) is that item, which a numeric
     /// intermediate result item holding the value alone does not keep. Every other numeric function's temporary is described by
-    /// its value (<see cref="FunctionDeviceForm.Value"/>), and the intermediate that holds the value holds all of it; a call GnuCOBOL
+    /// its value (<see cref="FunctionDeviceForm.Value"/>), and the intermediate that holds the value holds all of it;
+    /// DATE-OF-INTEGER / DAY-OF-INTEGER (<see cref="FunctionDeviceForm.FixedDigits"/>) is an item of fixed digits that no argument
+    /// decides, so it is held AS A VALUE - evaluated at its place, where its own argument-function exception belongs to GR2's
+    /// order - and the held temporary carries the digits (<c>DataItem.FunctionDeviceDigits</c>); a call GnuCOBOL
     /// folds to a literal (<see cref="FunctionDeviceForm.Literal"/>) is no call to hold. <see cref="ReadsArgumentDescriptions"/> names
     /// every form, and <c>ArgumentOrderDriftTests</c> asks it of each member, so the next form says which kind it is.</summary>
     private static bool NeedsItsArguments(BoundOperand operand, out BoundComputedOperand computed, out BoundIntrinsicCall call)
@@ -180,13 +182,13 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
         return false;
     }
 
-    /// <summary>Does a function of this device form return a temporary the ARGUMENTS' descriptions decide (a copy of an argument's item,
-    /// or an item of fixed digits), rather than one the value alone describes? Total over <see cref="FunctionDeviceForm"/>: a member
+    /// <summary>Does a function of this device form return a temporary the ARGUMENTS' descriptions decide (a copy of an argument's item),
+    /// rather than one the value alone (or a fixed number of digits) describes? Total over <see cref="FunctionDeviceForm"/>: a member
     /// it does not name throws, and <c>ArgumentOrderDriftTests</c> fails on it.</summary>
     internal static bool ReadsArgumentDescriptions(FunctionDeviceForm form) => form switch
     {
-        FunctionDeviceForm.Argument or FunctionDeviceForm.FixedDigits => true,
-        FunctionDeviceForm.Value or FunctionDeviceForm.Literal => false,
+        FunctionDeviceForm.Argument => true,
+        FunctionDeviceForm.Value or FunctionDeviceForm.FixedDigits or FunctionDeviceForm.Literal => false,
         _ => throw new InvalidOperationException($"ArgumentOrder: FunctionDeviceForm.{form} has no statement of whether its temporary reads its arguments' descriptions (kb/Work PB4124)"),
     };
 
