@@ -19,3 +19,9 @@ recorded results stand and nothing could be fixed-since.
 
 `FUZZ-LEDGER.md`, `docs/fuzz-ledger/` and `conformance-suite/fuzz-history.json` carry night 9 (ledger version
 118421220031).
+
+**Rescued in the same landing.** The branch survey (`prune_worktrees.py`) found two loose ends. PB4091 (the planner
+plans a second finisher over a branch whose review finisher runs in another worktree) was filed by the loop's wave unit
+on 10-29 on the local branch `notes-pb4091-carrier-lock` and never landed: the note lands here, unchanged.
+`worktree-wf_bacf469e-cf2-1`, the first PB4075 branch, is recorded ABANDONED in PB4075: the finisher branch that
+landed PB4075 (DEVLOG 2779) carried its whole change.
