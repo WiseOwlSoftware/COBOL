@@ -802,7 +802,10 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// <c>CobolSizeError</c>, the expression-position shape <c>CobolNum.StoreOrRaise</c> already gives the fixed-point
     /// arm. A MOVE never passes it (§14.6.8.2 r4 truncates by rule, and MOVE is not in §14.7.5's list of statements the
     /// size error condition may occur as a result of). It governs the receivers an implicit COMPUTE can have — numeric
-    /// and numeric-edited (§13.18.53.3 SR3) — and nothing else.</param>
+    /// and numeric-edited (§13.18.53.3 SR3) — and nothing else. It is the FINAL TRANSFER only: the operations that develop
+    /// the result take the checked kernels from the render's own checking state (<c>EcState.SizeChecking</c>, which the
+    /// report compose sets for its checked render — <c>ReportWriterEmitter.UnderPresentingChecking</c>), as every other
+    /// receiver-less render does.</param>
     public string ConvertSource(BoundOperand source, DataItem target, string? runtimeWidth = null,
         CobolRounding rounding = CobolRounding.Truncation, bool raiseOnSizeError = false)
     {
@@ -881,7 +884,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // A function whose value is on the exact wide form (an exact-family call over an argument expression past the
                 // Int128 carrier, kb/Work PB3953) is kept exact here and TRANSFERRED at the mask's scale below, so the edit sees
                 // the value's own low-order digits and not its 34-digit image.
-                NumX e = num.AsNum(source, ComputeSender(target, raiseOnSizeError), SendingRef.MoveToNumeric, keepWide: true);
+                NumX e = num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
                 // A FLOATING-POINT numeric-edited receiver (D21/PB66) takes the sender's EXACT form — no alignment to a
                 // mask scale (it has none) — and the transfer's mode rounds the significand to the mask's digits
                 // (kb/Work PB2638): TRUNCATION for a MOVE (§14.6.8.4 rule 2), the clause's own for the report's rounded
@@ -991,7 +994,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 }
                 NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
                     ? AllDigitFill(allDigit.Literal, pic)
-                    : num.AsNum(source, ComputeSender(target, raiseOnSizeError), SendingRef.MoveToNumeric, keepWide: true);
+                    : num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
                 // A float SOURCE lands into the fixed receiver via the runtime's ToScaled at the receiver scale (MOVE
                 // truncates toward zero — §14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
                 // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).
@@ -1025,15 +1028,6 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             $"the value cannot be stored in the numeric-edited item {target.CobolName ?? "FILLER"}: it is further from zero "
             + "than its picture permits, or ROUNDED MODE IS PROHIBITED and it is inexact (ISO §14.7.5 — EC-SIZE-TRUNCATION)");
     }
-
-    /// <summary>The context a numeric sender renders under (<see cref="SenderContext"/>), and under the raising implicit
-    /// COMPUTE (<see cref="ConvertSource"/>'s <c>raiseOnSizeError</c>) with the size-error kernels too
-    /// (<c>ReceiverContext.InSizeError</c>): the presenting statement then has EC-SIZE checking enabled, so the operations
-    /// that develop the result take the CHECKED kernels an arithmetic statement takes under checking, and an intermediate
-    /// outside its range raises its own condition (§14.7.5 no-phrase rule 3, EC-SIZE-OVERFLOW) instead of landing a
-    /// wrapped or non-finite value that the final transfer would report as EC-SIZE-TRUNCATION (kb/Work PB4031).</summary>
-    private ReceiverContext ComputeSender(DataItem target, bool raiseOnSizeError) =>
-        raiseOnSizeError ? SenderContext(target) with { InSizeError = true } : SenderContext(target);
 
     /// <summary>The RECEIVER-SCALE context a numeric MOVE source renders under (fix-queue PB60 /
     /// RV-15.68.4-1 half 2). <c>Receiverless</c> STAYS TRUE — the float family keeps its deliberate binary64

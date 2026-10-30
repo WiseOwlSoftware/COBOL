@@ -82,11 +82,22 @@ public struct CheckingFlags
     /// <see cref="RangePtr"/>.</summary>
     public bool SizeAddress;
 
+    /// <summary>ANY EC-SIZE-* condition as the PRESENTING statement enables it (kb/Work PB4031): set by a GENERATE or
+    /// TERMINATE whose line enables some EC-SIZE-* name, and read by the report compose that statement runs, which is
+    /// compiled once, outside every statement, and so cannot carry the statement's state in its code. Under it the
+    /// compose's numeric renders — a printable item's implicit COMPUTE (§13.18.53.4 GR2), a PRESENT WHEN condition, a
+    /// VARYING FROM/BY expression — take the CHECKED kernels, so an intermediate outside its range raises EC-SIZE-OVERFLOW
+    /// (§14.7.5 no-phrase rule 3) as the same expression does in any statement with EC-SIZE checking. The run-time twin of
+    /// the compile-time <c>EcState.SizeChecking</c>; its one reader is <c>ReportWriterEmitter.UnderPresentingChecking</c>
+    /// (through <c>RuntimeApi.SizeChecking</c>).</summary>
+    public bool Size;
+
     /// <summary>EC-SIZE-TRUNCATION as the PRESENTING statement enables it (kb/Work PB4031): set by a GENERATE or TERMINATE
-    /// whose line enables EC-SIZE-TRUNCATION, and read by the report compose that statement runs, whose printable items'
-    /// implicit COMPUTE (§13.18.53.4 GR2) is compiled once, outside every statement, and so cannot carry the statement's
-    /// state in its code. Every other EC-SIZE-TRUNCATION store is compiled inside its own statement and selects its kernel
-    /// at compile time, so this is the one run-time reader (<c>ReportWriterEmitter.ImplicitComputeImage</c>).</summary>
+    /// whose line enables EC-SIZE-TRUNCATION, alongside <see cref="Size"/>, and read by the report compose that statement
+    /// runs: a printable item's implicit COMPUTE then takes the RAISING final transfer (§14.7.5 no-phrase rules 4 and 5).
+    /// Every other EC-SIZE-TRUNCATION store is compiled inside its own statement and selects its kernel at compile time,
+    /// so the compose is the one run-time reader (<c>ReportWriterEmitter.FieldImage</c> and
+    /// <c>ReportWriterEmitter.KeptOnProhibitedInexact</c>, through <c>RuntimeApi.SizeTruncationChecking</c>).</summary>
     public bool SizeTruncation;
 
     /// <summary>EC-RANGE-PTR — a SET pointer UP/DOWN BY whose new address falls outside the implementor range
