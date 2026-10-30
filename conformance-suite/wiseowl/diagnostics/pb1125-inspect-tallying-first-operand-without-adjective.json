@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL0001"}
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL5506: unexpected '\"A\"'. The alphanumeric literal \"A\" is not expected here: expected ALL, CHARACTERS, FIRST, LEADING or TRAILING"}

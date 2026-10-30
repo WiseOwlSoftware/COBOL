@@ -21,6 +21,7 @@ public sealed class SendFormatClassificationTests
     private const string PhrasesOfTwoFormats = "COBOL5488";
     private const string MessageTagUsageRefused = "COBOL1943";
     private const string Undefined = "COBOL1639";
+    private const string NotANameShape = "COBOL2024";
 
     /// <summary>A main program with ordinary items and, when asked, a message-tag item <c>MT</c>; <paramref name="send"/> is the
     /// SEND statement (the caller wraps long ones across lines inside fixed-form margin R).</summary>
@@ -32,6 +33,11 @@ public sealed class SendFormatClassificationTests
                01 WS-MSG PIC X(8) VALUE "MSG".
                01 WS-REPLY PIC X(8) VALUE "NONE".
                01 WS-TAG PIC X(8) VALUE "TAG".
+               01 WS-LEN PIC 9(4) VALUE 0.
+               01 GRP-B.
+                  05 FLD PIC X(8).
+               01 GRP.
+                  05 TBL PIC X(8) OCCURS 3.
                {(messageTag ? "01 MT USAGE MESSAGE-TAG." : "")}
                PROCEDURE DIVISION.
                MAIN-P.
@@ -106,6 +112,51 @@ public sealed class SendFormatClassificationTests
         else EditionHarness.AssertNoDiagnostic(diagnostics, Undefined);
         EditionHarness.AssertNoDiagnostic(diagnostics, PhrasesOfTwoFormats);
         EditionHarness.AssertNoDiagnostic(diagnostics, FormatRequiredPhraseOmitted);
+    }
+
+    /// <summary>⛔ A NAME OPERAND IS ASKED HOW IT WAS WRITTEN (kb/Work PB4118). The operand after TO is
+    /// message-server-name-1 or data-name-2 (§14.9.38.2), RETURNING prints data-name-1 and RECEIVE prints data-name-1 and
+    /// data-name-2 (§14.9.31.2): names, so a subscript, a reference modifier or a special register is refused
+    /// (COBOL2024) whatever format the rest of the statement is. The refusal is ONE diagnostic: a refused TO operand
+    /// says nothing about the format, so the statement is not also asked for the RETURNING it may not have (COBOL1850),
+    /// and a refused name is not also resolved (COBOL1639).</summary>
+    [Theory]
+    [InlineData("PB4118A1", "SEND TO TBL(1) FROM WS-MSG END-SEND.")]
+    [InlineData("PB4118A2", "SEND TO TBL(1) FROM WS-MSG RETURNING WS-REPLY END-SEND.")]
+    [InlineData("PB4118A3", "SEND TO WS-REPLY(1:2) FROM WS-MSG END-SEND.")]
+    [InlineData("PB4118A4", "SEND TO LINE-COUNTER FROM WS-MSG END-SEND.")]
+    [InlineData("PB4118A5", "SEND TO TBL(1) FROM WS-MSG\n                       RAISING LAST EXCEPTION END-SEND.")]
+    [InlineData("PB4118A6", "SEND TO SRV FROM WS-MSG RETURNING TBL(1) END-SEND.")]
+    [InlineData("PB4118A7", "SEND TO SRV FROM WS-MSG RETURNING WS-REPLY(2:3) END-SEND.")]
+    [InlineData("PB4118A8", "RECEIVE FROM TBL(1) GIVING WS-MSG WS-LEN END-RECEIVE.")]
+    [InlineData("PB4118A9", "RECEIVE FROM WS-TAG GIVING WS-MSG TBL(1) END-RECEIVE.")]
+    [InlineData("PB4118AA", "RECEIVE FROM WS-TAG(1:2) GIVING WS-MSG WS-LEN END-RECEIVE.")]
+    public void ANameWrittenAsAnythingButAName_IsRefusedOnce_WithoutACascade(string pid, string statement)
+    {
+        var diagnostics = EditionHarness.GetDiagnostics(Prog(pid, statement), 2023);
+        Assert.Single(diagnostics, d => d.Contains(NotANameShape, System.StringComparison.Ordinal));
+        EditionHarness.AssertNoDiagnostic(diagnostics, FormatRequiredPhraseOmitted);
+        EditionHarness.AssertNoDiagnostic(diagnostics, PhrasesOfTwoFormats);
+        EditionHarness.AssertNoDiagnostic(diagnostics, Undefined);
+    }
+
+    /// <summary>The legal side of the same screen: a qualifier is a name's own form (§8.4.2.2.2 Format 1), identifier-1
+    /// (FROM, GIVING) may be subscripted or reference-modified, and a bare name is untouched. A qualified TO name is a
+    /// data-name-2, so the statement is Format 2 and needs no RETURNING.</summary>
+    [Theory]
+    [InlineData("PB4118B1", "SEND TO FLD OF GRP-B FROM WS-MSG END-SEND.")]
+    [InlineData("PB4118B2", "SEND TO FLD IN GRP-B FROM WS-MSG RAISING LAST EXCEPTION END-SEND.")]
+    [InlineData("PB4118B3", "SEND TO SRV FROM TBL(2) RETURNING WS-REPLY END-SEND.")]
+    [InlineData("PB4118B4", "SEND TO SRV FROM WS-MSG(1:2) RETURNING WS-REPLY END-SEND.")]
+    [InlineData("PB4118B5", "RECEIVE FROM WS-TAG GIVING TBL(3) WS-LEN END-RECEIVE.")]
+    [InlineData("PB4118B6", "RECEIVE FROM WS-TAG GIVING WS-MSG(1:2) WS-LEN END-RECEIVE.")]
+    public void ANameWithItsOwnQualifier_AndAnIdentifierWithItsSubscript_AreNotRefused(string pid, string statement)
+    {
+        var diagnostics = EditionHarness.GetDiagnostics(Prog(pid, statement), 2023);
+        EditionHarness.AssertNoDiagnostic(diagnostics, NotANameShape);
+        EditionHarness.AssertNoDiagnostic(diagnostics, FormatRequiredPhraseOmitted);
+        EditionHarness.AssertNoDiagnostic(diagnostics, PhrasesOfTwoFormats);
+        EditionHarness.AssertNoDiagnostic(diagnostics, Undefined);
     }
 
     /// <summary>Below 2023 the facility is not part of the edition (Annex E.3.2 item 1): the introduction gate answers

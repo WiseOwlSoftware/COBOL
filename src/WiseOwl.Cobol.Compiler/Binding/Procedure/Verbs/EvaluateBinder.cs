@@ -446,7 +446,11 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// expression.</summary>
     private static EvaluateObjectOperand? OperandKindOf(Core.ValueOperandContext vo)
     {
-        if (vo.nonNumericLiteral() is not null) return EvaluateObjectOperand.Literal;     // GR1
+        // NULL is the grammar's `predefinedNull` arm of nonNumericLiteral only as a parse CARRIER (kb/Work PB1427); it is an
+        // IDENTIFIER (ISO §8.4.3.1.2 identifier Format 8, predefined-address), so Table 15 reads it in the Identifier
+        // row/column, never as a literal (kb/Work PB1682).
+        if (vo.nonNumericLiteral() is { } nn)
+            return nn.predefinedNull() is not null ? EvaluateObjectOperand.Identifier : EvaluateObjectOperand.Literal;     // GR1
         if (vo.arithmeticExpression() is not { } expr) return null;
         if (ConditionBinder.SoleDataRef(expr) is not null) return EvaluateObjectOperand.Identifier;
         if (ConditionBinder.SoleNumLiteral(expr) is not null) return EvaluateObjectOperand.Literal;   // GR1

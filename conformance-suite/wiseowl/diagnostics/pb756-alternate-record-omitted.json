@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL0312: missing token before 'KEY'"}
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL5506: missing token before 'KEY'. The word KEY is not expected here: expected RECORD"}

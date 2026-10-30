@@ -58,10 +58,9 @@ public static class DiagnosticDescriptors
         "{0} appears without a matching {1} statement.");
     public static readonly DiagnosticDescriptor COBOL0307 = new("COBOL0307", DiagnosticSeverity.Warning,
         "A period may be missing at the end of the previous sentence.");
-    public static readonly DiagnosticDescriptor COBOL0308 = new("COBOL0308", DiagnosticSeverity.Warning,
-        "A data-name is expected here, not a literal.");
-    public static readonly DiagnosticDescriptor COBOL0309 = new("COBOL0309", DiagnosticSeverity.Warning,
-        "A literal value is expected here, not a data-name.");
+    // COBOL0308 ("A data-name is expected here, not a literal.") and COBOL0309 ("A literal value is expected here, not
+    // a data-name.") named the kind a position admits in two shapes only; COBOL5506 names it in every shape (kb/Work
+    // PB3861).
     public static readonly DiagnosticDescriptor COBOL0310 = new("COBOL0310", DiagnosticSeverity.Warning,
         "Missing BY keyword. INDEXED BY requires 'INDEXED BY <index-name>'.");
     // COBOL0311 ("NOT = / NOT > / NOT < abbreviated condition not yet supported") was a hint for a
@@ -124,6 +123,12 @@ public static class DiagnosticDescriptors
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOL2269 = new(
         WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.StatementFormatShape.Code,
+        DiagnosticSeverity.Error, "{0}");
+
+    // COBOL5506: the element written is not of a kind the general format admits at its position (kb/Work PB3428,
+    // PB3861) — CobolErrorStrategy hint 0i, worded by AdmittedKinds. Same single-sourcing as 2269.
+    public static readonly DiagnosticDescriptor COBOL5506 = new(
+        WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.WrittenKindNotAdmitted.Code,
         DiagnosticSeverity.Error, "{0}");
 
     // ══════════════════════════════════════
