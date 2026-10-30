@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// <param name="Line">A flagged test's marked line.</param>
 /// <param name="Control">A flagged test's control: the accepted twin with the violation removed.</param>
 /// <param name="InSuite">Whether the per-edition suites carry it (the rest are WiseOwl's own tests).</param>
-/// <param name="Options">A WiseOwl test's WiseOwl compile options (<c>conformance-suite/wiseowl/options.json</c>), by
+/// <param name="Options">A WiseOwl test's WiseOwl compile options (<c>conformance-suite/wiseowl/options/</c>), by
 /// option: <c>sign-encoding</c>, <c>numeric-display</c>, <c>flag-extensions</c>, <c>repository-update</c>; empty for every other test.</param>
 /// <param name="Build">A multi-unit WiseOwl test's compilation steps in order (the test's own source among them, where its
 /// header's <c>build</c> puts it); null for a test that is one compilation (DESIGN-external-repository §17.1).</param>
@@ -36,10 +36,10 @@ internal sealed record SuiteTest(
 /// test's own source.</param>
 /// <param name="Output">The output's base name (the assembly's file name without <c>.dll</c>); null for the test's own
 /// source, whose output is the test's id.</param>
-/// <param name="Options">The step's WiseOwl compile options (<c>wiseowl/options.json</c>, keyed <c>&lt;id&gt;/&lt;file&gt;</c>).</param>
+/// <param name="Options">The step's WiseOwl compile options (<c>wiseowl/options/</c>, keyed <c>&lt;id&gt;/&lt;file&gt;</c>).</param>
 internal sealed record SuiteBuildStep(string? File, string? Output, IReadOnlyDictionary<string, string> Options);
 
-/// <summary>One of WiseOwl COBOL's refusals (<c>conformance-suite/wiseowl/diagnostics.json</c>, carried into the
+/// <summary>One of WiseOwl COBOL's refusals (<c>conformance-suite/wiseowl/diagnostics/</c>, carried into the
 /// wiseowl manifest): the editions at which WiseOwl refuses the program, and the code or message substring it
 /// reports.</summary>
 internal sealed record SuiteRefusal(

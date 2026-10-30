@@ -2324,9 +2324,9 @@ def self_test() -> int:
                and "nothing to brief" in "".join(clean_out), str(clean_out))
         # ... and a keyed catalogue whose merge driver DECLINES (one entry both sides changed differently) is a real
         #     conflict the brief names (PB3640 review R1-1: dropping every driver-covered file read it as nothing).
-        keyed = lambda v: '{\n "a": {\n  "refuse-at": [\n   "' + v + '"\n  ]\n }\n}\n'   # noqa: E731
-        diag = "conformance-suite/wiseowl/diagnostics.json"   # a file the registry covers (merge_drivers.covered_by_driver)
-        cbr.commit("WIP checkpoint: PB9002 a keyed file", {".gitattributes": f"{diag} merge=cobol-keyed-object\n",
+        keyed = lambda v: '{\n "constructs": [\n  {\n   "id": "a",\n   "refuse-at": "' + v + '"\n  }\n ]\n}\n'   # noqa: E731
+        diag = "tests/version-matrix/constructs.json"   # a file the registry covers (merge_drivers.covered_by_driver)
+        cbr.commit("WIP checkpoint: PB9002 a keyed file", {".gitattributes": f"{diag} merge=cobol-keyed-constructs\n",
                                                            diag: keyed("85")})
         cbr.git("update-ref", MAIN, "HEAD")
         keyed_base = cbr.git("rev-parse", "HEAD")

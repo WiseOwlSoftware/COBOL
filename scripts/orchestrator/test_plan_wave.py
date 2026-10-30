@@ -2342,9 +2342,9 @@ check("collision: a whole file meets anything on it; different members never mee
        collision(C({"a.cs"}, {"a.cs": ["M"]}), C({"a.cs"}, {"a.cs": ["T.M", "T.N"]})),
        collision(C(set()), C({"a.cs"})), collision(C({"a.cs"}), C(set()))),
       ("a.cs", None, "a.cs#M", None, None))
-check("collision: a file a merge driver merges by key (the diagnostics catalogue, a work note) never meets",
-      collision(C({"conformance-suite/wiseowl/diagnostics.json", "kb/Work/PB9.md"}),
-                   C({"conformance-suite/wiseowl/diagnostics.json", "kb/Work/PB9.md"})), None)
+check("collision: a file a merge driver merges by key (the constructs catalogue, a work note) never meets",
+      collision(C({"tests/version-matrix/constructs.json", "kb/Work/PB9.md"}),
+                   C({"tests/version-matrix/constructs.json", "kb/Work/PB9.md"})), None)
 check("Claim union: a file stays whole when either side claims it whole; members unite otherwise",
       ((C({"a.cs"}, {"a.cs": ["M"]}) | C({"a.cs"}, {"a.cs": ["N"]})).member_lists(),
        (C({"a.cs"}, {"a.cs": ["M"]}) | C({"a.cs"})).member_lists()),

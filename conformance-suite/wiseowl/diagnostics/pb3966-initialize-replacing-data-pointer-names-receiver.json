@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL0869: INITIALIZE REPLACING DATA-POINTER DATA BY 'PU' — the implicit SET 'PR' TO 'PU' (ISO §14.9.20.4 GR4)"}

@@ -129,8 +129,8 @@ they cover ~70% of real dialect collisions and exercise all five gating patterns
   and generates the per-edition suites and WiseOwl's manifest; `ConformanceSuiteTests` (32 partitions,
   `tests/WiseOwl.Cobol.Tests.Conformance/ConformanceSuiteTests.cs`) compiles and runs every test at each accepted
   edition and compares its output. `conformance-suite/README.md` is the authoring guide.
-- **Refused programs:** a program WiseOwl must refuse names no `accept` edition; its entry in
-  `conformance-suite/wiseowl/diagnostics.json` gives the editions it is refused at (`refuse-at`) and the code or
+- **Refused programs:** a program WiseOwl must refuse names no `accept` edition; its file
+  `conformance-suite/wiseowl/diagnostics/<id>.json` gives the editions it is refused at (`refuse-at`) and the code or
   message it reports (`expect`), and `ConformanceSuiteTests` requires the front end or the binder to refuse it so.
 - **Behavior-variant:** a per-edition `<id>.<edition>.out` (only where INV-3 actually applies).
 - ⚠ **The migrated tests** of the former per-edition corpus (`tests/conformance/`, moved by kb/Work PB3177) are
