@@ -1204,9 +1204,14 @@ clause text and fails if a new member is silently exempted.
    numeric-edited item, whose scale is only the mask's hint and whose value normalizes into the mask, §14.6.8.4; the
    outermost quotient and the MAX/MIN selection ask the same predicate), else lowered to the SDIDI by
    ROUND-TO-ODD (`CobolWide.ToDec`; an inexact value keeps an odd last digit, so a later rounding in any mode equals
-   rounding the exact value for a receiver of ≤ 32 digit positions). Two consumers take it EXACT through `keepWide`: a
-   several-receiver COMPUTE's one initial evaluation (snapshotted as a `CobolWide`, settled per receiver) and a relation
-   (`CobolWide.Compare`); `ExactWideSettlementDriftTests` closes that list. A bound past 77 digits, a FINAL-TRANSFER quotient above a wide value
+   rounding the exact value for a receiver of ≤ 32 digit positions). The consumers that take it EXACT through `keepWide`
+   are a closed list (`ExactWideSettlementDriftTests`): a several-receiver COMPUTE's one initial evaluation (snapshotted as a
+   `CobolWide`, settled per receiver), a relation (`CobolWide.Compare`), an intrinsic function's argument
+   (`IntrinsicRenderer.RawWideArg`: the exact family evaluates on the wide form, `IntrinsicRenderer.RenderWide` over
+   `CobolIntrinsics.*Wide`, and returns a wide value settled like a nested product; kb/Work PB3953, INTRINSICS_DESIGN), the
+   temporary DISPLAY shows (`FunctionValueField.OfWide`), a MOVE's store of a function whose value is wide
+   (`NumericRenderer.TransferWide`, the final transfer `Settle` itself takes, unchecked as a MOVE is), and that value's text
+   image (`OperandText`, `CobolNum.FormatWideFunctionText`). A bound past 77 digits, a FINAL-TRANSFER quotient above a wide value
    (GnuCOBOL's own divide is inexact, numeric.c:2259-2261; a NESTED one is `CobolWide.DivTruncated`, or past 77 digits
    `CobolDec.DivTruncatedToOdd`, D2) and an exponentiation take the SDIDI (`CobolDec.MulToOdd` / `DivToOdd`) as before; an unknown bound is the `Int128` carrier's own, 39 digits (kb/Work PB3538: the checked multiply it used to take at
    the summed scale raised the size error when the SCALE left the carrier), so a native product never wraps. The old emitter

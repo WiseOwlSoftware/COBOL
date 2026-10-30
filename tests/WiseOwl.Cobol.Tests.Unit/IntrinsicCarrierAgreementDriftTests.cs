@@ -490,9 +490,10 @@ public sealed class IntrinsicCarrierAgreementDriftTests
         string src = Regex.Replace(Regex.Replace(raw, @"/\*.*?\*/", "", RegexOptions.Singleline), @"//[^\n]*", "");
         Assert.Single(Regex.Matches(src, @"RuntimeApi\.IntegerArgSaturatingReal\("));
         Assert.Single(Regex.Matches(src, @"RuntimeApi\.IntegerArgSaturatingDec\("));
-        var rawArg = Regex.Match(src, @"private NumX RawArg\(BoundIntrinsicCall ic, int i\)\s*\{(?<body>.*?)\n    \}",
+        // The position intake is RawWideArg; RawArg only lowers what it returns (kb/Work PB3953).
+        var rawArg = Regex.Match(src, @"private NumX RawWideArg\(BoundIntrinsicCall ic, int i\)\s*\{(?<body>.*?)\n    \}",
             RegexOptions.Singleline);
-        Assert.True(rawArg.Success, "IntrinsicRenderer.RawArg was not found — the guard is reading the wrong file");
+        Assert.True(rawArg.Success, "IntrinsicRenderer.RawWideArg was not found — the guard is reading the wrong file");
         Assert.DoesNotContain("Saturat", rawArg.Groups["body"].Value, StringComparison.Ordinal);
 
         // ... and the intake every other type-6 operand takes keeps the value or raises: never a clamp.
