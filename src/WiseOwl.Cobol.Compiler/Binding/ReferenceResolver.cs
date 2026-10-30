@@ -218,49 +218,32 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// ambiguity defeat resolution (§8.4.2.2 — qualification shall establish uniqueness).</summary>
     internal void ReportUnidentified(Core.DataReferenceContext dref, string name, List<string> qualifiers)
     {
-        // kb/Work R32 — a name DECLARED in the SCREEN SECTION is not undefined. Since kb/Work PB260 the section
-        // itself is REFUSED (COBOL1560), so "is not defined" would send the user hunting a declaration that is
-        // right there — the reference is to a REFUSED declaration (COBOL2364). Before kb/Work PB1030 this arm
-        // reported NOTHING, and the statement bound a run-time NotImplemented announced as a WiseOwl COBOL gap.
-        if (data.ScreenNames.Contains(name))
+        // ⛔ A NAME DECLARED AS SOMETHING OTHER THAN A DATA ITEM IS NOT UNDEFINED (kb/Work PB1906): the one query of
+        // what it IS. "Not defined" would send the user hunting a declaration that is right there.
+        var nonData = data.NonDataDeclarationOf(name, qualifiers, data.ActiveScope);
+        // kb/Work R32 — a SCREEN SECTION name. Since kb/Work PB260 the section itself is REFUSED (COBOL1560), so the
+        // reference is to a REFUSED declaration (COBOL2364). Before kb/Work PB1030 this arm reported NOTHING, and the
+        // statement bound a run-time NotImplemented announced as a WiseOwl COBOL gap.
+        if (nonData is { Kind: NonDataDeclarationKind.ScreenEntry })
         {
             ReportRefusedDeclaration(dref, name, "a SCREEN SECTION entry — COBOL1560");
             return;
         }
+        // A constant-name whose entry was refused (a cycle, a bad operand; reported there): `DISPLAY K` is that fault's
+        // consequence, named as such (COBOL2364) rather than as a constant-name in a data-item position. A statement
+        // still answers for its refusal with an error of its own (the COBOL2362 ledger), so it is never silent.
+        if (nonData is { Kind: NonDataDeclarationKind.ConstantName, DeclarationRefused: true })
+        {
+            ReportRefusedDeclaration(dref, name, "a constant entry that yielded no value", "a constant-name");
+            return;
+        }
         if (!_diagnosed.Add(dref)) return;
         string text = DataBinder.WrittenText(dref);
-        // A declared ALPHABET-NAME written where a data item is required (kb/Work R38, PB1030). ISO §8.4.2.1: "a
-        // statement shall contain a reference that uniquely identifies that resource", and an alphabet-name
-        // (SPECIAL-NAMES) identifies no data item — so the reference identifies no resource of the kind the
-        // position needs. R38 adjudicated the vendor alphabet-operand forms (GnuCOBOL's INSPECT CONVERTING
-        // alphabet) as extensions no edition admits, and the owner's 2026-08-08 decision keeps WiseOwl COBOL
-        // strict-ISO permanently; this arm used to report nothing and let the statement abort at run time.
-        if (data.IsAlphabetName(name))
-        {
-            data.Edition.Error(DiagnosticCatalog.UndefinedReference,
-                $"'{text}' is declared as an alphabet-name in the SPECIAL-NAMES paragraph, not as a data item, so "
-                + "this reference identifies no data item (ISO §8.4.2.1: \"a statement shall contain a reference "
-                + "that uniquely identifies that resource\").");
-            return;
-        }
-        // A DECLARED CONSTANT-NAME IS NOT UNDEFINED EITHER (kb/Work PB3287). A constant-name is in no name table the
-        // lookup above reads (§13.10.4 GR1 substitutes its literal), so a position that needs a data item and was
-        // handed one — `ADDRESS OF C` — used to be told "not defined", about a name the CONSTANT entry declares.
-        if (qualifiers.Count == 0 && data.IsConstantName(name) && !data.Symbols.TryResolve(name, data.ActiveScope, out _))
-        {
-            data.Edition.Error(DiagnosticCatalog.UndefinedReference,
-                $"'{text}' is declared as a constant-name (a CONSTANT entry, ISO §13.10), not as a data item, so this "
-                + "reference identifies no data item (ISO §8.4.2.1: \"a statement shall contain a reference that "
-                + "uniquely identifies that resource\").");
-            return;
-        }
-        // ⛔ A DECLARED INDEX-NAME IS NOT UNDEFINED (kb/Work PB1266 — the resolver-level twin of SetBinder's
-        // PB388 screen). The data symbol table holds no index-name, so `ADD 1 TO IX` and `CALL "P" USING IX` — an
-        // identifier position an index-name cannot fill — landed in the "not defined" arm below and told the user that
-        // no declaration gives 'IX', while INDEXED BY had declared it: false, and it sends the reader hunting a typo.
-        // §13.18.38.3 SR7 closes the list of contexts an index-name may appear in, and this position is not one, so
-        // the reference is refused for the CATEGORY — the same COBOL1637 DISPLAY / MOVE / COMPUTE already draw.
-        if (data.Symbols.IndexCandidates(name, qualifiers, data.ActiveScope) is not null)
+        // ⛔ A DECLARED INDEX-NAME (kb/Work PB1266 — the resolver-level twin of SetBinder's PB388 screen): `ADD 1 TO IX`
+        // and `CALL "P" USING IX` put an index-name in an identifier position. §13.18.38.3 SR7 closes the list of
+        // contexts an index-name may appear in, and this position is not one, so the reference is refused for the
+        // CATEGORY — the same COBOL1637 DISPLAY / MOVE / COMPUTE already draw.
+        if (nonData is { Kind: NonDataDeclarationKind.IndexName })
         {
             data.Edition.Error(DiagnosticCatalog.IndexNameContext,
                 $"'{text}' is an index-name, which is not an identifier (ISO §8.4.3.1.2): §13.18.38.3 SR7 admits an "
@@ -276,14 +259,17 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // admitted ones — a sum counter, resolved before name lookup, and a DETAIL group named by GENERATE — never get here.
         if (data.ReportEntryReferenceRefused($"'{text}'", name, qualifiers)) return;
         string msg;
-        // ⛔ A DECLARED CONDITION-NAME IS NOT UNDEFINED (kb/Work PB567). The data symbol table holds no level-88,
-        // so a condition-name qualified by a data-name it is NOT subordinate to (`IS-A OF H1`, H1 an unrelated
-        // record; `IS-A OF G1 OF S`, real ancestors in reversed order) used to land in the "not defined" arm below
-        // and tell the user that no declaration gives the name — while the 88 was right there.
-        if (!data.Symbols.TryResolve(name, data.ActiveScope, out var candidates)
-            && data.Symbols.TryResolveCondition(name, data.ActiveScope, out _))
+        // ⛔ A DECLARED CONDITION-NAME (kb/Work PB567): one qualified by a data-name it is NOT subordinate to (`IS-A OF
+        // H1`, H1 an unrelated record; `IS-A OF G1 OF S`, real ancestors in reversed order) is worded by the one
+        // misqualified-condition text. Every other kind — an alphabet-name (kb/Work R38: GnuCOBOL's INSPECT CONVERTING
+        // alphabet is an extension no edition admits), a constant-name (kb/Work PB3287: `ADDRESS OF C`), a type-name or
+        // a type declaration's member (kb/Work PB1906, §13.18.58.4 GR1/GR2) — identifies no data item (§8.4.2.1).
+        if (nonData is { Kind: NonDataDeclarationKind.ConditionName })
             msg = MisqualifiedConditionText(text, name, qualifiers);
-        else if (candidates.Count == 0)
+        else if (nonData is { } declared)
+            msg = $"'{text}' {declared.DeclaredAs(text, name)}, so this reference identifies no data item (ISO "
+                + "§8.4.2.1: \"a statement shall contain a reference that uniquely identifies that resource\").";
+        else if (!data.Symbols.TryResolve(name, data.ActiveScope, out var candidates))
             msg = $"'{text}' is not defined — no declaration in this source element gives the name '{name}', so "
                 + "the statement's reference identifies no resource (ISO §8.4.2.1: \"a statement shall contain a "
                 + "reference that uniquely identifies that resource\"). Check the spelling, or declare the item.";
@@ -426,15 +412,17 @@ public sealed partial class ReferenceResolver(DataBinder data)
     private readonly record struct PlaceGap(DeferredShape? Deferred, DataItem Refused);
 
     /// <summary>COBOL2364 — a reference to a name whose declaration the compiler REFUSED (a Tier-D REDEFINES
-    /// view; a SCREEN SECTION name, the section being declined as COBOL1560). The compile has already failed at
-    /// the declaration; this names the consequence at the statement, instead of "not defined" (the name IS
-    /// declared) or "not implemented" (it is not a gap in WiseOwl COBOL).</summary>
-    private void ReportRefusedDeclaration(Core.DataReferenceContext dref, string name, string? why)
+    /// view; a SCREEN SECTION name, the section being declined as COBOL1560; a constant-name whose entry yielded no
+    /// value, kb/Work PB1906). The compile has already failed at the declaration; this names the consequence at the
+    /// statement, instead of "not defined" (the name IS declared) or "not implemented" (it is not a gap in WiseOwl
+    /// COBOL). <paramref name="declared"/> is what the declaration declares the name as.</summary>
+    private void ReportRefusedDeclaration(Core.DataReferenceContext dref, string name, string? why,
+                                          string declared = "a data item")
     {
         if (_probing || !_diagnosed.Add(dref)) return;   // R30 purity; one report per written reference
         string text = DataBinder.WrittenText(dref);
         data.Edition.Error(DiagnosticCatalog.ReferenceToRefusedDeclaration,
-            (text == name ? $"'{text}' names a data item" : $"'{text}' names '{name}'") + ", whose declaration was refused"
+            (text == name ? $"'{text}' names {declared}" : $"'{text}' names '{name}'") + ", whose declaration was refused"
             + (why is null ? "" : $" ({why})") + "; see the error at the declaration. The reference cannot be bound.");
     }
 
@@ -1566,6 +1554,16 @@ public sealed partial class ReferenceResolver(DataBinder data)
         }
         return new WrittenReference(qualifiers, subCtx, cleanRef, refModCount, propertyObject);
     }
+
+    /// <summary>The user-defined word a <c>dataReference</c> names, as written — or null for the LINAGE-COUNTER,
+    /// LINE-COUNTER and PAGE-COUNTER special-register alternatives (§8.4.3.14; §8.4.2.2.2 Format 8, the
+    /// qualified-report-counter), which name a register, not a word. ⛔ In those alternatives <c>dref.cobolWord()</c> is the QUALIFIER (<c>LINAGE-COUNTER OF F</c> gives
+    /// F, the file-name) or absent, never the referenced name, so a query of what the word is declared as asks this
+    /// (kb/Work PB1906, review w20261769b R1-1: <c>SET LINAGE-COUNTER TO TRUE</c> crashed on the absent word).</summary>
+    internal static string? WrittenWordOf(Core.DataReferenceContext dref) =>
+        dref.LINAGE_COUNTER() is null && dref.LINE_COUNTER() is null && dref.PAGE_COUNTER() is null
+            ? dref.cobolWord().Name()
+            : null;
 
     /// <summary>The reference's subscript list AS WRITTEN — one token segment per subscript position, outermost
     /// first, read by the ONE <see cref="SegmentsOf"/> with the same declaration-informed '(' rule

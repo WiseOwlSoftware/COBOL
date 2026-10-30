@@ -127,7 +127,13 @@ public sealed partial class DataBinder
     /// <summary>Is <paramref name="item"/>'s description still open — the item of the entry being bound, or an ancestor
     /// of it, so a group whose subordinates are still being described?</summary>
     private bool IsDescriptionOpen(DataItem item) =>
-        _openDescriptions.Any(d => ReferenceEquals(d.Item, item) || (item.Level < d.Level && d.Stack.Contains(item)));
+        _openDescriptions.Any(d => ReferenceEquals(d.Item, item)) || HasSubordinatesBeingDescribed(item);
+
+    /// <summary>Is <paramref name="item"/> an ANCESTOR of an entry being bound — a group whose subordinate entries are
+    /// still being described? The other half of <see cref="IsDescriptionOpen"/>: an entry's OWN item, open only while
+    /// its table bounds bind (<see cref="BindTableBounds"/>), has every other clause applied already.</summary>
+    private bool HasSubordinatesBeingDescribed(DataItem item) =>
+        _openDescriptions.Any(d => item.Level < d.Level && d.Stack.Contains(item));
 
     /// <summary>The OCCURS clause of each entry whose item exists and whose table bounds are not yet bound
     /// (<see cref="DataItem.TableBoundsPending"/>).</summary>
