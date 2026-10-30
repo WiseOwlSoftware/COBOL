@@ -178,6 +178,14 @@ public sealed partial class DataBinder
     internal bool IsConstantName(string name) =>
         ConstantScopeOf(name) is { } scope && (scope.Declared.ContainsKey(name) || scope.Bound.ContainsKey(name));
 
+    /// <summary>Is <paramref name="name"/> a constant-name whose every entry FINISHED with no value — refused, and
+    /// reported at the entry (a cycle, a bad operand)? A PURE question, like <see cref="IsConstantName"/>: a reference to
+    /// it is the consequence of that one fault, so its reader reports nothing more (kb/Work PB1906).</summary>
+    private bool IsRefusedConstantName(string name) =>
+        ConstantScopeOf(name) is { } scope && !scope.Bound.ContainsKey(name)
+        && scope.Declared.TryGetValue(name, out var declared)
+        && declared.TrueForAll(static d => d.State == ConstantBindState.Finished);
+
     /// <summary>The names in <see cref="_constants"/> that came from a container, not from this unit's own entries,
     /// each with the containment distance of the container that declared it (1 = the direct container) — the tier
     /// <see cref="DropShadowedConstants"/> weighs against a same-spelled data-name's (kb/Work PB1047).</summary>
@@ -703,7 +711,7 @@ public sealed partial class DataBinder
         if (nn.figurativeConstant() is not null)
         {
             Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: literal-1 shall not be a figurative "
-                + $"constant (ISO §13.10.3 SR6; '{nn.GetText()}')");
+                + $"constant (ISO §13.10.3 SR6; '{WrittenText(nn)}')");
             return null;
         }
         // The predefined NULL is an identifier, not literal-1, and §13.10.3 SR7 makes every operand of
