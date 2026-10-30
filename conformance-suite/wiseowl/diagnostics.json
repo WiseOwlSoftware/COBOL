@@ -13117,6 +13117,14 @@
   ],
   "expect": "COBOL0900"
  },
+ "pb2867-constant-length-composed-cycle": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "§13.10.3 SR4"
+ },
  "pb2921-method-section-named-like-its-data": {
   "refuse-at": [
    "2002",
