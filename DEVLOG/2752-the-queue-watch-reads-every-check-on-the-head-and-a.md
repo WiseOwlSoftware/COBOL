@@ -1,4 +1,4 @@
-## The queue watch reads every check on the head, and a superseded run's cancelled ci-gate is no bounce (kb/Work PB4052)
+## Entry 2752 — 2026-10-29 17:19 PDT — The queue watch reads every check on the head, and a superseded run's cancelled ci-gate is no bounce (kb/Work PB4052)
 
 The landing lane's queue watch requeued pull requests whose CI was still running. `ci-gate`, the one required check,
 `needs:` every other job and has no check-run until they end, so while `audits` ran the watch saw no check at all, dated the
@@ -12,3 +12,4 @@ workflow there, so a superseded run's checks are history: the required ones stay
 unresolved one carries its job's status. `land_lane.watch_step` holds the watch while any of them runs and dates the grace
 from the newest one's end. `enqueue.requeue` takes the head and refuses, touching nothing, while a workflow run on it has not
 completed. Self-test arms in all three scripts plant PR #777's shape; DESIGN-orchestrator-loop.md §4.9 says the same.
+
