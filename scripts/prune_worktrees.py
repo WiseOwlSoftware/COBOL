@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Every local branch and worktree, by CONTENT against origin/main and by LIFECYCLE (who acts on it next); with --apply,
-remove the ones whose work is on main, and the ones abandoned by a recorded decision.
+"""Every local branch, every branch of origin and every worktree, by CONTENT against origin/main and by LIFECYCLE (who
+acts on it next); with --apply, remove the ones whose work is on main, and the ones abandoned by a recorded decision.
 
     python scripts/prune_worktrees.py                      # dry run: the lifecycle table, nothing touched
     python scripts/prune_worktrees.py --brief              # the verdict line and only the rows someone must act on
@@ -48,7 +48,7 @@ who acts next:
     1. its newest fix-lane report (`w<wave><letter>-PB<lead>-report.md`, coord.py REPORT_NAME, under
        coord.reports_dir()) is FINISHED (reports.Report.finished: `Status: DONE`, or DISCHARGED with a HEAD past its
        base) and COVERS the tip: its HEAD is the tip, or every commit after it is mechanical (main merged in cleanly,
-       the DEVLOG stamp: `unreviewed_since`, the one coverage rule the review stamp and `enqueue.py land` read). The
+       the DEVLOG stamp, a notes-only commit: `unreviewed_since`, the one coverage rule the review stamp and `enqueue.py land` read). The
        report's HEAD is its header's HEAD field, else the head its review stamp names (reports.parse_report: the
        reviewer stamps the head it reviewed, kb/Work PB3476). A report naming neither, or followed by a commit no
        report describes (an agent resumed after writing it), covers nothing: DECISION, with the count;
@@ -96,7 +96,11 @@ who acts next:
                    no re-run or reopen clears it), and its head is still the branch's tip and no commit was pushed
                    after the removal (the head is read at the removal, not by headRefOid alone, which a push moves,
                    kb/Work PB3275): the enqueue unit dispatches ONE finisher
-                   with the reason named. A finisher that fixes the branch returns DONE and lands nothing: its new tip
+                   with the reason named. A pull request still IN the queue reads BOUNCED too when the queue's simulation
+                   (foresee_queued: merge_drivers.foresee_queue on the queue's entries in order) finds its head
+                   conflicting with an entry ahead of it, or with main: the FORESEEN CONFLICT, which the queue will
+                   remove for merge_conflict with no failed run (kb/Work PB3723); Row.foreseen names the entries, and the
+                   review lane's conflict finisher takes it while they are still queued. A finisher that fixes the branch returns DONE and lands nothing: its new tip
                    is reviewed again, then the landing lane lands it. A bounce resolved with no commit (infrastructure,
                    a red already on main) is re-armed by the enqueue unit (`land_lane.py rearm`, kb/Work PB3103), and
                    the lane lands it again at the same head. A tip that moved past the bounced head is the fix, and
@@ -146,7 +150,15 @@ is ABANDONED: `--apply --abandon <branch>` removes a clean, idle DECISION row on
 the decision (a line where the word ABANDONED directly follows the branch's name, with the reason; the word abandons
 that branch, never a successor the line names). Each removed branch's `origin/<branch>`
 goes with it unless it holds commits the local branch did not (drop_remote); --apply first drops the remote-tracking refs whose
-branch origin no longer holds (prune_stale_remote_refs, kb/Work PB3409). --include-locked also takes a landed
+branch origin no longer holds (prune_stale_remote_refs, kb/Work PB3409).
+ORIGIN'S BRANCHES ARE SURVEYED TOO (kb/Work PB3413: eleven branches that existed only on origin surfaced in 2026-10 through a
+hand query, because a local branch was the survey's only unit). Every branch of origin (`refs/remotes/origin/*`; not main,
+and not the merge queue's `gh-readonly-queue/*`) with NO local branch is a row named `<branch>`, and one whose tip is neither
+the local branch's nor an ancestor of it (origin moved on past, or away from, the local branch) is a row named
+`origin/<branch>`. Such a row (Row.origin) is measured and given its lifecycle by the same rules, has no worktree, lock or
+report, and so reads LANDED (its work is on main: --apply deletes the branch on origin, only while it is still the tip that
+was judged), a DECISION naming what is not on main, ENQUEUED and the like when a pull request of it is open, or IN FLIGHT
+while its tip is under --min-age old. Every reader fetches with `--prune` (fetch_origin) so a branch origin deleted leaves no row. --include-locked also takes a landed
 worktree locked by hand (no pid). A DETACHED worktree (a read-only fleet's pin)
 has no branch: it is listed with its lifecycle and never removed here. On Windows a worktree can refuse to delete
 ("Invalid argument", "Access is denied") because the C# language server (csharp-ls) loaded an analyzer DLL from it:
@@ -387,6 +399,35 @@ def replay_view(ranked: dict[str, int], unlanded: Iterable[str], abandoned: set[
                    lambda b: ranked.get(b, -1), graph)
 
 
+#: The remote-tracking refs of origin's branches (`git fetch` keeps them current).
+ORIGIN_REFS = 'refs/remotes/origin/'
+#: The branches of origin that are no one's work: its default branch, and the merge queue's own merge-group branches.
+ORIGIN_SKIP = ('HEAD', 'main')
+ORIGIN_SKIP_PREFIX = ('gh-readonly-queue/',)
+
+
+def fetch_origin(repo=REPO):
+    """THE fetch every reader of the survey makes: `git fetch --prune origin`. Pruning keeps `refs/remotes/origin/*`
+    equal to what origin holds, which the survey now reads as branches (kb/Work PB3413): GitHub deletes a merged pull
+    request's head branch itself (kb/Work PB3409), and an unpruned tracking ref would stand as a branch no one can
+    delete."""
+    return git('fetch', '-q', '--prune', 'origin', cwd=repo)
+
+
+def origin_branches(repo=REPO) -> dict[str, tuple[str, str, int]]:
+    """{branch: (tip sha, `<short sha> <date> <subject>`, committer time)} of every branch of origin (its remote-tracking
+    ref) but main and the merge queue's, from ONE `git for-each-ref` (kb/Work PB3413)."""
+    out: dict[str, tuple[str, str, int]] = {}
+    for line in git('for-each-ref', ORIGIN_REFS,
+                    '--format=%(refname)%00%(objectname)%00%(objectname:short) %(committerdate:short) %(subject)%00%(committerdate:unix)',
+                    cwd=repo).stdout.splitlines():
+        ref, tip, last, when = line.split('\0')
+        b = ref.removeprefix(ORIGIN_REFS)
+        if b not in ORIGIN_SKIP and not b.startswith(ORIGIN_SKIP_PREFIX):
+            out[b] = (tip, last[:90], int(when or 0))
+    return out
+
+
 def branch_graph(branches, repo=REPO) -> Ancestry:
     """THE ancestry every classify() of one pass reads (git_batch.Ancestry: one resolve and one `git log` for every
     branch, never a `merge-base` per branch, kb/Work PB3582)."""
@@ -491,7 +532,7 @@ class Row:
     how: str = ''                   # a LANDED row whose own merge would change main: how its work got there (carried)
     tip: str = ''                   # the branch's tip sha (a review stamp covers exactly one head)
     review_holds: bool = False      # its review stamp (CLEAN or FINDINGS) names an older head and every commit since
-                                    # is mechanical (unreviewed_since: main's, a clean merge of main, DEVLOG-only)
+                                    # is mechanical (unreviewed_since: main's, a clean merge of main, register-only)
     report_since: list[str] | None = None   # unreviewed_since(the report's HEAD, tip): [] = the report covers the tip,
                                             # None = it names no head of this branch (kb/Work PB3181)
     carrier: str = ''               # contained(): the branch it lands THROUGH; its IN FLIGHT is that branch's, and
@@ -502,14 +543,33 @@ class Row:
     waits_on: str = ''              # carrying_findings(): the branch whose unanswered FINDINGS it carries, or that a
                                     # TORN findings file holding it names first; it lands after that one is answered
                                     # (or the file repaired), and nobody works on THIS one either (owned() excludes it)
+    origin: str = ''                # the row stands for a branch of ORIGIN (kb/Work PB3413): the remote-tracking ref it
+                                    # measures, `refs/remotes/origin/<branch>`; '' for a local branch or a detached tree.
+                                    # Named `<branch>` when no local branch of that name exists, else `origin/<branch>`
+                                    # (origin holds commits the local branch does not). It has no worktree.
+    foreseen: tuple[tuple[str, str], ...] = ()   # lifecycle(): a queued head the queue's simulation finds conflicting
+                                    # with what is ahead of it: (the entry's branch, its head commit) per entry it
+                                    # conflicts with, or (origin/main, origin/main) for main alone (kb/Work PB3723)
+
+
+def register_path(path: str) -> bool:
+    """A path only the register's audits read: a DEVLOG entry (`devlog.py check`: the landing checks and CI run it) or a
+    `kb/Work/` note (`work.py check`: the landing checks and CI run it, and its frontmatter claims and closed rows are
+    audited against the traceability inventory by `work_inventory.py`, so a status, a harm flag, `inventory_rows` or
+    `closes_rows` that is wrong fails an audit). THE ONE DEFINITION of a REGISTER-ONLY commit's paths (kb/Work PB3849);
+    DESIGN-test-build-ci.md section 3.17.2 step 2 says why they need no gate and no reviewer."""
+    note = path.removeprefix('kb/Work/')
+    return path.startswith('DEVLOG/') or (note != path and '/' not in note and note.endswith('.md'))
 
 
 def mechanical(commits: list[str], graph: Ancestry, repo=REPO) -> set[str]:
-    """The commits (beyond the graph's base) that change nothing a reviewer reads: a merge whose tree IS the clean merge
-    of its two parents THROUGH THE MERGE DRIVERS, the runtime ABI pin's measurement aside (no hand resolution: what
-    `enqueue.py land`'s own merge of origin/main makes; merge_drivers.is_drivers_merge, kb/Work PB3610), or a commit that
-    changes only DEVLOG/ (an entry, its stamp). Parents and trees come from the graph; every one-parent commit's files
-    from ONE `git diff-tree --stdin` (git_batch.diff_names); a merge costs its one `git merge-tree` (kb/Work PB3582)."""
+    """The commits (beyond the graph's base) that change nothing a reviewer reads or a test runs: a merge whose tree IS
+    the clean merge of its two parents THROUGH THE MERGE DRIVERS, the runtime ABI pin's measurement aside (no hand
+    resolution: what `enqueue.py land`'s own merge of origin/main makes; merge_drivers.is_drivers_merge, kb/Work PB3610),
+    or a REGISTER-ONLY commit: one that changes only DEVLOG/ and `kb/Work/` notes (`register_path`: an entry, its
+    stamp, a note's text or frontmatter; kb/Work PB3849). Parents and trees come from the graph; every one-parent
+    commit's files from ONE `git diff-tree --stdin` (git_batch.diff_names); a merge costs its one `git merge-tree`
+    (kb/Work PB3582)."""
     out = set()
     for c in commits:
         parents = graph.parents(c)
@@ -517,7 +577,7 @@ def mechanical(commits: list[str], graph: Ancestry, repo=REPO) -> set[str]:
             out.add(c)
     singles = [c for c in commits if len(graph.parents(c)) == 1]
     for c, paths in zip(singles, git_batch.diff_names(repo, [(c, graph.parents(c)[0]) for c in singles])):
-        if paths and all(p.startswith('DEVLOG/') for p in paths):
+        if paths and all(register_path(p) for p in paths):
             out.add(c)
     return out
 
@@ -550,7 +610,7 @@ def unreviewed_since(reviewed: str, tip: str, *, repo=REPO, base: str = git_batc
 
 def review_holds(rv: Review, tip: str | None, *, repo=REPO, graph: Ancestry | None = None) -> bool:
     """A review stamp at an OLDER head still holds at `tip`: every commit since its head is mechanical
-    (unreviewed_since == []: main merged in cleanly, the DEVLOG stamp). False when it names the tip itself."""
+    (unreviewed_since == []: main merged in cleanly, the DEVLOG stamp, a notes-only commit). False when it names the tip itself."""
     return bool(tip) and not rv.covers(tip) and unreviewed_since(rv.sha, tip, repo=repo, graph=graph) == []
 
 
@@ -625,9 +685,14 @@ def not_queued(row: Row, pr: PullRequest, lane: Lane | None, now: dt.datetime) -
         waited = f'{(now - dt.datetime.fromisoformat(since.replace("Z", "+00:00"))).total_seconds() / 60:.0f} min'
     except ValueError:
         waited = 'an unknown time'
+    # The watch's reading is the one of the last lane tick (it reads after the survey): a pull request this survey finds
+    # OUT of the queue under a QUEUED reading left it since, and the next tick reads that; said, never shown as current
+    # (kb/Work PB3772).
+    stale = (' (that reading is from before this survey: the pull request is out of the queue now, and the next lane '
+             'tick reads it)' if att and (att.get('watch') or {}).get('state') == land_lane.IN_QUEUE else '')
     return 'NOT QUEUED', (f'pull request #{pr.number} ({pr.url}) was handed to the merge queue {waited} ago '
                           f'({since or "?"}) and is NOT in it: {queue_facts.describe(pr)}; '
-                          + (land_lane.watch_text(att) if att else
+                          + (land_lane.watch_text(att) + stale if att else
                              'no landing-lane attempt at this tip watches it (the lane watches only its own landings)'))
 
 
@@ -699,18 +764,34 @@ def finisher_due(row: Row) -> bool:
     return row.state == 'DECISION' and findings_open(row)
 
 
+def foresee_queued(prs: dict[str, PullRequest] | None, repo=REPO) -> dict[str, merge_drivers.Foreseen]:
+    """{branch: Foreseen} for each pull request in the merge queue whose head conflicts with main plus the entries ahead
+    of it that stay: the queue's own build, simulated through the merge drivers on the facts the survey read
+    (merge_drivers.foresee_queue; kb/Work PB3723). The queue removes such an entry for `merge_conflict` with no failed
+    run, so nothing else sees it before it happens. {} when GitHub was not observed or nothing is queued."""
+    entries = sorted(((pr.position, b, pr.head) for b, pr in (prs or {}).items() if pr.in_queue and pr.position and pr.head))
+    return merge_drivers.foresee_queue(repo, 'origin/main', [(b, head) for _, b, head in entries]) if entries else {}
+
+
 def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours: float = 24,
               live: Callable[[str | None], bool] = live_lock,
               prs: dict[str, PullRequest] | None = None, lane: Lane | None = None,
-              now: dt.datetime | None = None) -> tuple[str, str]:
+              now: dt.datetime | None = None,
+              foreseen: dict[str, merge_drivers.Foreseen] | None = None) -> tuple[str, str]:
     """THE lifecycle rule (module doc), as a pure function of what the survey measured: (state, the evidence). `lane`:
     the landing lane's view (land_lane.view: each branch's newest attempt and its class, the pending re-arms). `prs`:
     queue_facts.read's answer, None when GitHub was not observed (the git-only lifecycle). `now`:
-    the time a NOT QUEUED row's wait is measured to (default: now)."""
+    the time a NOT QUEUED row's wait is measured to (default: now). `foreseen`: foresee_queued's answer."""
     if live(row.lock):
         return 'IN FLIGHT', f'worktree locked by a live agent ({row.lock or "locked by hand"})'
     pr = (prs or {}).get(row.name)
     if pr and row.content not in LANDED_CONTENT:
+        if pr.in_queue and (fs := (foreseen or {}).get(row.name)) and (not row.tip or row.tip == pr.head):
+            where = f'the entries ahead of it ({", ".join(fs.ahead)})' if fs.ahead else 'main'
+            return 'BOUNCED', (f'pull request #{pr.number} is in the merge queue, but its head CONFLICTS with {where} '
+                               f'({", ".join(fs.files[:4])}): the queue will remove it for merge_conflict with no failed run '
+                               f'(a FORESEEN CONFLICT, kb/Work PB3723), so ONE finisher brings {"those heads" if fs.ahead else "main"} '
+                               f'in now, while they are still queued, from `land_lane.py conflict-brief {row.name}` ({pr.url})')
         if pr.in_queue:
             return 'ENQUEUED', f'pull request #{pr.number} is in the merge queue ({pr.url}): it lands when the queue merges it'
         at_head = not row.tip or row.tip == pr.head
@@ -804,6 +885,9 @@ def evidence(row: Row) -> str:
     ev = [row.content + (f' ({len(row.absent)} added file(s) absent from main, e.g. {row.absent[0]})' if row.absent else '')
           + (f' (names not on main: {" ".join(row.lost[:5])})' if row.content == 'CHECK' else ''),
           f'{row.ahead} commit(s) ahead', f'idle {row.age_min / 60:.1f} h', f'last: {row.last_commit}']
+    if row.origin:
+        ev.insert(0, 'a branch of origin' + (' that origin moved on past its local branch' if row.name.startswith('origin/')
+                                             else ' with no local branch') + ' (kb/Work PB3413)')
     if row.dirty:
         ev.append(f'{row.dirty} uncommitted path(s) in its worktree')
     if row.lock is not None:
@@ -859,7 +943,7 @@ def live_survey(repo=REPO, *, coord_dir: pathlib.Path | None = None, reports_dir
 def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[IndexedReport] = (),
            slugs: set[str] = frozenset(), min_age: int = 180, stale_hours: float = 24,
            live: Callable[[str | None], bool] = live_lock, coord_dir: pathlib.Path | None = None) -> list[Row]:
-    """Every local branch but main, and every detached worktree, measured and given its lifecycle state. `prs`:
+    """Every local branch but main, every branch of origin (Row.origin, kb/Work PB3413) and every detached worktree, measured and given its lifecycle state. `prs`:
     {branch: its open pull request into main} (queue_facts.read), or None when GitHub was not observed (the git-only
     lifecycle); REQUIRED so no caller reads a git-only lifecycle by omission; production readers call live_survey, and
     a self-test passes its own (None is an explicit offline, {} an observed "no pull request is open")."""
@@ -882,6 +966,16 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
         if b != 'main':
             refs[b] = (tip, last[:90])
     graph = branch_graph(list(refs), repo)
+    # kb/Work PB3413: the branches of ORIGIN with no local branch to carry their lifecycle, or holding commits their
+    # local branch does not: each gets a row of its own (below). The graph reads their tips in one more batch.
+    origin = origin_branches(repo)
+    graph.extend(ORIGIN_REFS + b for b, (tip, _, _) in origin.items() if (b not in refs or refs[b][0] != tip))
+    remote_rows = {}    # row name -> (origin branch, tip, last, committer time)
+    for b, (tip, last, when) in origin.items():
+        if b not in refs:
+            remote_rows[b] = (b, tip, last, when)
+        elif refs[b][0] != tip and (graph.on_base(tip) or tip not in graph.beyond(refs[b][0])):
+            remote_rows[f'origin/{b}'] = (b, tip, last, when)   # origin moved on past (or away from) the local tip
     reports = list(reports)
     detached = [t for t in trees if not t.branch]
     # every other name a row asks the graph about, resolved in the same single process as a batch
@@ -914,10 +1008,23 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
         return Row(f'(detached) {pathlib.PurePath(t.path).name}', 'DETACHED', [], [], 0, t.path, t.lock, dirty,
                    age_minutes(worktree_git_dir(t.path) / 'logs' / 'HEAD', pathlib.Path(t.path) / 'STATUS.md'), last)
 
+    def measure_origin(name: str) -> Row:
+        """A branch of origin, measured as a local one is (kb/Work PB3413): its content against origin/main, by the same
+        classify(). It has no worktree, no lock, no report (nothing runs in it, and a report is about a branch a
+        worktree holds) and no uncommitted edit, so it reads LANDED or a DECISION (or ENQUEUED and the like when a
+        pull request of it is open), and its age is its tip's commit time."""
+        branch, tip, last, when = remote_rows[name]
+        ref = ORIGIN_REFS + branch
+        kind, absent, lost, how = classify(ref, names, graph, repo, coord_dir)
+        return Row(name, kind, absent, lost, len(graph.beyond(tip)), None, None, 0, max(0.0, (time.time() - when) / 60),
+                   last, None, how=how, tip=tip, on_main_line=kind == 'MERGED' and graph.on_base_line(tip), origin=ref)
+
     with ThreadPoolExecutor(max_workers=16) as pool:   # subprocess-bound: ~1-3 s a branch, 35 s for 29 one by one
-        rows = list(pool.map(measure, refs)) + list(pool.map(measure_detached, detached))
+        rows = (list(pool.map(measure, refs)) + list(pool.map(measure_detached, detached))
+                + list(pool.map(measure_origin, remote_rows)))
     import land_lane  # noqa: PLC0415  (scripts/orchestrator: it imports this module back; its attempt reader, never its text)
     lane = land_lane.view(pathlib.Path(coord_dir) if coord_dir else coord.coord_path())
+    queue_foreseen = foresee_queued(prs, repo)
     for r in rows:
         rv = r.report.review if r.report else None
         if rv:
@@ -925,7 +1032,10 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
         if r.content not in LANDED_CONTENT and r.report and r.report.finished and r.report.head and r.tip:
             r.report_since = report_since(r.report.head, r.tip, repo=repo, graph=graph)
         r.state, r.why = lifecycle(r, in_flight_slugs=set(slugs), min_age=min_age, stale_hours=stale_hours, live=live,
-                                   prs=prs, lane=lane)
+                                   prs=prs, lane=lane, foreseen=queue_foreseen)
+        if r.state == 'BOUNCED' and r.name in queue_foreseen and prs and r.name in prs and prs[r.name].in_queue:
+            r.foreseen = (tuple((b, prs[b].head) for b in queue_foreseen[r.name].ahead)
+                          or (('origin/main', 'origin/main'),))
     contained(rows, graph, reports, pathlib.Path(repo) / 'kb' / 'Work')
     import review_findings  # noqa: PLC0415  (scripts/orchestrator: the one reader of a findings file, kb/Work PB3381)
     scratch = (pathlib.Path(coord_dir) if coord_dir else coord.coord_path()) / 'scratch'
@@ -1208,7 +1318,9 @@ def verdict(rows: list[Row]) -> str:
             f'review · {n["WAITING TO LAND"]} waiting to land · {n["STOPPED"]} stopped · {n["ENQUEUED"]} enqueued · '
             f'{n["NOT QUEUED"]} not queued · {n["BOUNCED"]} bounced · '
             f'{n["LANDED"]} landed (--apply deletes) · {n["DECISION"]} need a DECISION'
-            + (' (owner rule 2026-10-08, kb/Work PB2600: land it or abandon it in its kb/Work note, then delete) ===' if n['DECISION'] else ' ==='))
+            + (' (owner rule 2026-10-08, kb/Work PB2600: land it or abandon it in its kb/Work note, then delete)' if n['DECISION'] else '')
+            + (f' · {sum(1 for r in rows if r.origin)} of the rows are branches of origin (kb/Work PB3413)'
+               if any(r.origin for r in rows) else '') + ' ===')
 
 
 def note_rank(work_dir: pathlib.Path | None = None) -> Callable[[str], tuple[int, int]]:
@@ -1309,9 +1421,18 @@ def drop_remote(branch: str, tip: str, *, repo=REPO, say: Callable[[str], None] 
     if not tip or git('merge-base', '--is-ancestor', remote, tip, cwd=repo).returncode != 0:
         say(f'kept origin/{branch}: it holds commits the local branch did not ({remote[:12]})')
         return
-    res = git('push', '-q', 'origin', '--delete', branch, cwd=repo)
+    delete_origin(branch, repo=repo, say=say)
+
+
+def delete_origin(branch: str, *, expect: str = '', repo=REPO, say: Callable[[str], None] = print) -> bool:
+    """`git push origin --delete <branch>`, said; True when origin no longer holds it. `expect`: the tip the survey judged
+    (a LANDED origin row, kb/Work PB3413): the delete is refused if origin's branch has moved since, so a push that
+    landed after the survey is never deleted on a verdict about the tip before it."""
+    lease = [f'--force-with-lease={branch}:{expect}'] if expect else []
+    res = git('push', '-q', 'origin', *lease, '--delete', branch, cwd=repo)
     say(f'deleted origin/{branch}' if res.returncode == 0 else
         f'could not delete origin/{branch}: {res.stderr.strip()[:120]}')
+    return res.returncode == 0
 
 
 def apply(rows: list[Row], *, repo=REPO, include_locked: bool = False, abandon: list[str] = (), min_age: int = 180,
@@ -1346,6 +1467,10 @@ def apply(rows: list[Row], *, repo=REPO, include_locked: bool = False, abandon: 
     removed = 0
     prune_stale_remote_refs(repo=repo, say=say)
     for r in doomed:
+        if r.origin:   # a branch of origin (kb/Work PB3413): nothing local to remove, and origin's copy only while it is
+            # still the tip the survey judged
+            removed += delete_origin(r.origin.removeprefix(ORIGIN_REFS), expect=r.tip, repo=repo, say=say)
+            continue
         if r.worktree:
             # re-measured at the moment of removal: an agent may have started writing since the survey
             if uncommitted(r.worktree):
@@ -1396,7 +1521,7 @@ def main(argv=None):
     if a.self_test:
         return self_test()
     if not a.no_fetch:
-        git('fetch', '-q', 'origin')
+        fetch_origin()
     rows = live_survey(reports_dir=a.reports, min_age=a.min_age, stale_hours=a.stale_hours)
     order = landing_order(rows, note_rank())
     if a.json:
@@ -1406,7 +1531,7 @@ def main(argv=None):
         for r in order if st == 'WAITING TO LAND' else sorted((r for r in rows if r.state == st), key=lambda r: r.name):
             if a.brief and st in ('IN FLIGHT', 'ENQUEUED', 'LANDED'):
                 continue
-            print(f'{st:15} {r.name}{" [worktree]" if r.worktree and r.content != "DETACHED" else ""} — {r.why}')
+            print(f'{st:15} {r.name}{" [worktree]" if r.worktree and r.content != "DETACHED" else " [origin]" if r.origin else ""} — {r.why}')
     print(verdict(rows))
     if not a.apply:
         if not a.brief:
@@ -1489,6 +1614,7 @@ def self_test() -> int:
                      # `succ`, which was cut from it and is DONE and reviewed CLEAN
                      ('unreviewed', 'src/N.cs'), ('review-findings', 'src/O.cs'), ('reviewed-moved', 'src/S.cs'),
                      ('pred', 'src/T.cs'), ('fnd-pred', 'src/W.cs'), ('reviewed-stamped', 'src/Y.cs'),
+                     ('reviewed-noted', 'src/Y2.cs'), ('reviewed-noted-src', 'src/Y3.cs'),
                      # kb/Work PB3394: a FINDINGS stamp at a head the branch moved past (its answers committed after
                      # the review), and one followed only by the DEVLOG stamp
                      ('findings-moved', 'src/FM.cs'), ('findings-stamped', 'src/FS.cs'), ('findings-resumed', 'src/FR.cs'),
@@ -1568,6 +1694,18 @@ def self_test() -> int:
         stamped_at = scratch.git('rev-parse', 'reviewed-stamped')
         scratch.git('switch', '-q', 'reviewed-stamped')
         commit('DEVLOG/0042-the-fix.md', '## Entry 42 — 2026-10-11 20:00 PDT — the fix\n\nWhy.\n', 'DEVLOG 42: stamp')
+        # kb/Work PB3849: CLEAN at a head, then a commit that changes only a register note and a DEVLOG entry: still
+        # reviewed; a note commit that also changes a source file is not
+        noted_at = scratch.git('rev-parse', 'reviewed-noted')
+        scratch.git('switch', '-q', 'reviewed-noted')
+        scratch.write({'kb/Work/PB9101.md': 'a note\n', 'DEVLOG/pending-noted.md': '## Noted\n\nWhy.\n'})
+        scratch.git('add', 'kb/Work/PB9101.md', 'DEVLOG/pending-noted.md')
+        scratch.git('commit', '-q', '-m', 'register-only: a note and a DEVLOG entry')
+        noted_src_at = scratch.git('rev-parse', 'reviewed-noted-src')
+        scratch.git('switch', '-q', 'reviewed-noted-src')
+        scratch.write({'kb/Work/PB9102.md': 'a note\n', 'src/Y3b.cs': 'class NotedSrcX {}\n'})
+        scratch.git('add', 'kb/Work/PB9102.md', 'src/Y3b.cs')
+        scratch.git('commit', '-q', '-m', 'a note and a source file')
         fmoved_at = scratch.git('rev-parse', 'findings-moved')
         scratch.git('switch', '-q', 'findings-moved')
         commit('src/FM.cs', 'class FindingsMovedX { int R1_1Answered; }\n', 'review R1-1: answered after the review')
@@ -1745,6 +1883,10 @@ def self_test() -> int:
                                           f'**Review:** CLEAN w9998n-r1 {tips["succ"]}\n', 10),
                 ('w9998q-PB17-report.md', f'Status: DONE\nBranch: reviewed-stamped\nHEAD: {stamped_at[:12]}\n'
                                           f'**Review:** CLEAN w9998q-review-r1 {stamped_at[:12]}\n', 10),
+                ('w9989a-PB62-report.md', f'Status: DONE\nBranch: reviewed-noted\nHEAD: {scratch.git("rev-parse", "reviewed-noted")}\n'
+                                          f'**Review:** CLEAN w9989a-review-r1 {noted_at[:12]}\n', 10),
+                ('w9989b-PB63-report.md', f'Status: DONE\nBranch: reviewed-noted-src\nHEAD: {scratch.git("rev-parse", "reviewed-noted-src")}\n'
+                                          f'**Review:** CLEAN w9989b-review-r1 {noted_src_at[:12]}\n', 10),
                 # kb/Work PB3394: rewritten for the answers committed after the FINDINGS review (the report covers the
                 # tip, the stamp does not), and a FINDINGS stamp followed only by the DEVLOG stamp (it still covers)
                 ('w9992a-PB50-report.md', f'Status: DONE\nBranch: findings-moved\nHEAD: {tips["findings-moved"]}\n'
@@ -1872,6 +2014,38 @@ def self_test() -> int:
             f.write('{"kind": "verdict", "round": 1, "bra')
         (fscratch / 'r2-0abc' / 'batch-1').mkdir(parents=True)
         (fscratch / 'r2-0abc' / 'batch-1' / 'review-cli--code--f1.jsonl').write_text('{"type": "read", "file": "x.cs"}\n', encoding='utf-8', newline='\n')
+        # kb/Work PB3413: BRANCHES OF ORIGIN. `ro-landed` exists only on origin and its work is on main (its commit, made
+        # 10 h ago, is merged into main); `ro-unlanded` exists only on origin and carries a file main lacks; `ro-moved`
+        # has a local branch, and origin moved on past it by a commit; a merge-queue branch is no one's work. None has
+        # a worktree; all are committed 10 h ago, so none is fresh.
+        ro_when = int(hours(10))
+
+        def ro_commit(path: str, text: str, msg: str, offset: int = 0) -> None:
+            scratch.write({path: text})
+            scratch.git('add', path)
+            scratch.git('commit', '-q', '-m', msg, when=ro_when + offset)
+
+        scratch.git('switch', '-q', '-c', 'ro-tmp', 'main')
+        ro_commit('src/RoLanded.cs', 'class RoLandedX {}\n', 'ro-landed')
+        scratch.git('push', '-q', 'origin', 'ro-tmp:refs/heads/ro-landed')
+        scratch.git('switch', '-q', 'main')
+        scratch.git('merge', '-q', '--no-ff', '--no-edit', 'ro-tmp')
+        scratch.git('push', '-q', 'origin', 'main')
+        scratch.git('branch', '-q', '-D', 'ro-tmp')
+        scratch.git('switch', '-q', '-c', 'ro-tmp', 'main')
+        ro_commit('src/RoUnlanded.cs', 'class RoUnlandedX {}\n', 'ro-unlanded')
+        scratch.git('push', '-q', 'origin', 'ro-tmp:refs/heads/ro-unlanded')
+        scratch.git('push', '-q', 'origin', 'ro-tmp:refs/heads/gh-readonly-queue/main/pr-1-abc')
+        scratch.git('switch', '-q', 'main')
+        scratch.git('branch', '-q', '-D', 'ro-tmp')
+        scratch.git('switch', '-q', '-c', 'ro-moved', 'main')
+        ro_commit('src/RoMoved.cs', 'class RoMovedX {}\n', 'ro-moved: the local tip')
+        scratch.git('push', '-q', 'origin', 'ro-moved')
+        ro_commit('src/RoMoved2.cs', 'class RoMoved2X {}\n', 'ro-moved: origin moved on', 60)
+        scratch.git('push', '-q', 'origin', 'ro-moved')
+        scratch.git('reset', '-q', '--hard', 'HEAD~1')
+        scratch.git('switch', '-q', 'main')
+        scratch.git('fetch', '-q', '--prune', 'origin')
         # age everything but `fresh` past --min-age: the branch reflogs, each worktree's HEAD log
         common = repo / '.git'
         for p in list((common / 'logs').rglob('*')):
@@ -1895,7 +2069,8 @@ def self_test() -> int:
                 'picked-lost': 'DECISION', 'tools-only': 'DECISION', 'unlanded-train': 'DECISION', 'ejected': 'DECISION',
                 'unreviewed': 'WAITING FOR REVIEW', 'review-findings': 'DECISION', 'reviewed-moved': 'WAITING FOR REVIEW',
                 'pred': 'IN FLIGHT', 'succ': 'WAITING TO LAND', 'fnd-pred': 'IN FLIGHT', 'fnd-fix': 'WAITING TO LAND',
-                'reviewed-stamped': 'WAITING TO LAND',
+                'reviewed-stamped': 'WAITING TO LAND', 'reviewed-noted': 'WAITING TO LAND',
+                'reviewed-noted-src': 'WAITING FOR REVIEW',
                 'lane-stopped': 'STOPPED', 'lane-pred': 'IN FLIGHT', 'lane-free': 'WAITING TO LAND',
                 'lane-done': 'ENQUEUED', 'lane-running': 'WAITING TO LAND', 'discharged': 'WAITING TO LAND',
                 'discharged-empty': 'DECISION', 'no-head': 'WAITING TO LAND', 'no-head-bare': 'DECISION',
@@ -1910,7 +2085,10 @@ def self_test() -> int:
                 'cw-pred': 'IN FLIGHT', 'cw-stale': 'IN FLIGHT', 'cw-moved': 'IN FLIGHT', 'cw-lost': 'IN FLIGHT',
                 'cw-succ': 'WAITING TO LAND',
                 'findings-resumed': 'DECISION', 'wpred': 'WAITING TO LAND', 'wsucc': 'IN FLIGHT',
-                'qpred': 'IN FLIGHT', 'qsucc': 'ENQUEUED'}
+                'qpred': 'IN FLIGHT', 'qsucc': 'ENQUEUED',
+                # kb/Work PB3413: branches of origin
+                'ro-landed': 'LANDED', 'ro-unlanded': 'DECISION', 'ro-moved': 'DECISION', 'origin/ro-moved': 'DECISION',
+                'origin/merged': 'IN FLIGHT'}
         for name, state in want.items():
             got = rows.get(name)
             check(got is not None and got.state == state, f'{name}: want {state}, got {got.state if got else "no row"} ({got.why if got else ""})')
@@ -2327,6 +2505,25 @@ def self_test() -> int:
               and 'queue watch' in pr_rows['lane-done'].why,
               f'with auto-merge off, the lane\'s ENQUEUED attempt at the tip is what says the PR was handed to the queue, '
               f'and the row names the lane\'s queue watch: {pr_rows["lane-done"].why}')
+        # A watch reading of QUEUED under a survey that finds the pull request out of the queue is shown as the last
+        # reading with its time, never as the current state (kb/Work PB3772; an ENDED watch says so: land_lane.watch_text).
+        done_att = next(a for a in land_lane.attempts(landed_coord) if a['branch'] == 'lane-done')
+        land_lane.update(done_att, {'watch': {'state': land_lane.IN_QUEUE, 'why': 'pull request #20 is in the merge queue',
+                                              'at': '2026-10-15T19:30:00+00:00', 'queued_at': '2026-10-15T19:30:00+00:00'}})
+        stale_row = lifecycle(pr_rows['lane-done'], in_flight_slugs=set(), min_age=180, live=live, prs=prs,
+                              lane=land_lane.view(landed_coord), now=then)
+        check(stale_row[0] == 'NOT QUEUED' and 'queue watch QUEUED' in stale_row[1]
+              and 'read at 2026-10-15T19:30:00+00:00' in stale_row[1] and 'out of the queue now' in stale_row[1]
+              and 'has ENDED' not in stale_row[1],
+              f'a QUEUED watch reading under a pull request found out of the queue is said to be the last reading, with '
+              f'its time: {stale_row}')
+        land_lane.update(done_att, {'watch': {'state': land_lane.ALERTED, 'why': 'stalled read 3',
+                                              'at': '2026-10-15T19:40:00+00:00'}})
+        ended_row = lifecycle(pr_rows['lane-done'], in_flight_slugs=set(), min_age=180, live=live, prs=prs,
+                              lane=land_lane.view(landed_coord), now=then)
+        check('queue watch ALERTED' in ended_row[1] and 'the watch has ENDED' in ended_row[1]
+              and 'out of the queue now' not in ended_row[1],
+              f'an ENDED watch (ALERTED) says nothing reads the pull request again: {ended_row}')
         # THE ONE PRODUCTION SURVEY (kb/Work PB2807 review R1-2): live_survey reads the open pull requests itself, so
         # every reader (main, the landing lane, the planner's partition) sees the queue states; and no production
         # reader calls survey directly with arguments of its own (the planner once omitted `prs` and never saw BOUNCED)
@@ -2369,9 +2566,9 @@ def self_test() -> int:
         check([r['report']['path'] for r in printed['rows']] == ['w1a-PB4-report.md', 'w1a-PB3-report.md']
               and printed['landing_order'] == ['b3', 'b5'],
               f'--json prints each row with its report path as a string (kb/Work PB4055): {printed["rows"][:1]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 80 · 25 in flight · 6 waiting for review · '
-                                                      '13 waiting to land · 1 stopped · 2 enqueued · 0 not queued · '
-                                                      '0 bounced · 7 landed'),
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 87 · 26 in flight · 7 waiting for review · '
+                                                      '14 waiting to land · 1 stopped · 2 enqueued · 0 not queued · '
+                                                      '0 bounced · 8 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
         r0 = dataclasses.replace(rows['orphan'], lock='')
@@ -2411,11 +2608,61 @@ def self_test() -> int:
         n = apply(list(rows.values()), repo=repo, abandon=['orphan', 'split-branch', 'fresh', 'dirty-merged'],
                   work_dir=notes, say=out.append)
         left = set(scratch.git('branch', '--format=%(refname:short)').split())
-        check(n == 7, f'--apply removed {n}, want 7 (6 LANDED + orphan): {out}')
+        check(n == 8, f'--apply removed {n}, want 8 (6 LANDED + orphan + the origin-only ro-landed): {out}')
+        # kb/Work PB3413: a branch of origin whose work is on main is deleted on origin, with no local branch to remove;
+        # an unlanded one and one origin moved on past stay, and the merge queue's are no rows at all
+        on_origin = set(git('ls-remote', '--heads', 'origin', cwd=repo).stdout.replace('refs/heads/', '').split()[1::2])
+        check('ro-landed' not in on_origin and {'ro-unlanded', 'ro-moved'} <= on_origin
+              and any(l == 'deleted origin/ro-landed' for l in out),
+              f'--apply deletes the LANDED branch of origin and keeps the others: {sorted(on_origin)} {out}')
+        lease_out: list[str] = []
+        refused = delete_origin('ro-unlanded', expect='0' * 40, repo=repo, say=lease_out.append)
+        check(not refused and lease_out and lease_out[0].startswith('could not delete origin/ro-unlanded')
+              and 'ro-unlanded' in set(git('ls-remote', '--heads', 'origin', cwd=repo).stdout.replace('refs/heads/', '').split()[1::2]),
+              f'a delete is refused when origin\'s branch is no longer the tip the survey judged: {lease_out}')
+        queued = queue_facts.PullRequest(77, 'https://github.com/o/r/pull/77', rows['ro-unlanded'].tip, True)
+        check(lifecycle(rows['ro-unlanded'], in_flight_slugs=set(), min_age=180, live=live, prs={'ro-unlanded': queued})[0]
+              == 'ENQUEUED', 'a branch of origin with a pull request in the merge queue reads ENQUEUED, as a local one does')
+        # kb/Work PB3723: THE QUEUE SIMULATED. `qa` and `qb` both rewrite one file of main, `qc` another: queued in that
+        # order, `qb` conflicts with `qa` ahead of it (the queue removes it for merge_conflict, with no failed run), `qc`
+        # does not. A queued head is a BOUNCED row naming the entry ahead, a finisher's while that one is still queued.
+        qheads = {}
+        for qn, (qpath, qtext) in {'qa': ('src/A.cs', 'class Alpha { int QA; }\n'), 'qb': ('src/A.cs', 'class Alpha { int QB; }\n'),
+                                   'qc': ('src/QC.cs', 'class QcX {}\n')}.items():
+            scratch.git('switch', '-q', '-c', qn, 'origin/main')
+            commit(qpath, qtext, qn)
+            qheads[qn] = scratch.git('rev-parse', 'HEAD')
+            scratch.git('switch', '-q', 'main')
+        qprs = {qn: queue_facts.PullRequest(i, f'https://github.com/o/r/pull/{i}', qheads[qn], True, position=i)
+                for i, qn in ((1, 'qa'), (2, 'qb'), (3, 'qc'))}
+        qseen = foresee_queued(qprs, repo)
+        check(set(qseen) == {'qb'} and qseen['qb'].files == ('src/A.cs',) and qseen['qb'].ahead == ('qa',),
+              f'the queue simulated: qb conflicts with the entry ahead of it, qa and qc do not: {qseen}')
+        check(foresee_queued(None, repo) == {} and foresee_queued({}, repo) == {}
+              and foresee_queued({'qb': dataclasses.replace(qprs['qb'], position=0, in_queue=False)}, repo) == {},
+              'GitHub not observed, an empty queue and a pull request not in the queue foresee nothing')
+        qrow = dataclasses.replace(rows['ro-unlanded'], name='qb', tip=qheads['qb'], origin='')
+        qstate = lifecycle(qrow, in_flight_slugs=set(), min_age=180, live=live, prs=qprs, foreseen=qseen)
+        check(qstate[0] == 'BOUNCED' and 'FORESEEN CONFLICT' in qstate[1] and 'qa' in qstate[1] and 'src/A.cs' in qstate[1]
+              and lifecycle(dataclasses.replace(qrow, name='qa', tip=qheads['qa']), in_flight_slugs=set(), min_age=180,
+                            live=live, prs=qprs, foreseen=qseen)[0] == 'ENQUEUED',
+              f'a queued head that conflicts with the entry ahead of it is BOUNCED, naming it; the entry ahead stays ENQUEUED: {qstate}')
+        queued_rows = {r.name: r for r in survey(repo, reports=[], slugs=set(), min_age=180, live=live, coord_dir=landed_coord,
+                                                 prs=qprs)}
+        check(queued_rows['qb'].state == 'BOUNCED' and queued_rows['qb'].foreseen == (('qa', qheads['qa']),)
+              and queued_rows['qa'].state == 'ENQUEUED' and not queued_rows['qa'].foreseen
+              and queued_rows['qc'].state == 'ENQUEUED',
+              f'the survey reads a foreseen conflict into the row (BOUNCED, the entry ahead named with its head): '
+              f'{[(r.name, r.state, r.foreseen) for r in queued_rows.values() if r.name in qheads]}')
+        for qn in qheads:
+            scratch.git('branch', '-q', '-D', qn)
+        check(not any('gh-readonly-queue' in name for name in rows),
+              f'the merge queue\'s own branches are no one\'s work and get no row: {sorted(rows)}')
         check(not {'merged', 'landed-content', 'agent-dead', 'orphan', 'carried', 'picked', 'key-landed'} & left, f'LANDED/abandoned branches remain: {sorted(left)}')
         check('merged-own' in left and any('LANDED, kept: merged-own touched' in l for l in out),
               f'--apply keeps a LANDED branch touched inside --min-age, and says so (kb/Work PB3609): {out}')
-        check({b for b, s in want.items() if s != 'LANDED' and b != 'orphan' and not b.startswith('(')} <= left,
+        check({b for b, s in want.items() if s != 'LANDED' and b != 'orphan' and not b.startswith('(')
+               and not rows[b].origin} <= left,
               f'a branch neither landed nor recorded abandoned was removed: {sorted(left)}')
         check(any('no kb/Work note records' in l and 'split-branch' in l for l in out),
               'an --abandon with no recorded decision is refused, said so')

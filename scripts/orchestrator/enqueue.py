@@ -25,7 +25,7 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      PB3023 review R1-1: the former direct-push landing arm merged and gated for half an hour with nothing holding main).
      THE REVIEW (MANDATORY-PRACTICES I10, L9; kb/Work PB3027): the branch's newest fix-lane report must carry
      `**Review:** CLEAN <reviewer> <head>` naming a commit of the branch, and every later commit must be main's, a clean
-     merge of main (its tree the auto-merge of its parents) or DEVLOG-only; anything else (a finisher's fix, a
+     merge of main (its tree the auto-merge of its parents) or register-only (DEVLOG and kb/Work notes); anything else (a finisher's fix, a
      hand-resolved conflict) is unreviewed: exit 11, the report gains `BLOCKED: enqueue — not reviewed …`, and the new
      tip goes to a reviewer. Only the lanes I10 does not review (UNREVIEWED_LANES: the registrar, the golden lane, the
      clerk) skip it, naming themselves with `--lane`.
@@ -53,7 +53,7 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
      whole population on the exact merge) is the gate for the merge. It READS the record instead (`tested_locally`):
      the worktree's newest gate verdict files must hold a GREEN run of the committed head's own tree (`head_tree`
      equals the `tree` it measured) with its Linux half GREEN (the inert lane's is the script self-tests alone, kb/Work PB3646), whose head covers this one
-     (it IS this head, or every later commit is main's, a clean merge of main or DEVLOG-only:
+     (it IS this head, or every later commit is main's, a clean merge of main or register-only (DEVLOG and kb/Work notes):
      `prune_worktrees.unreviewed_since`, the review's coverage rule). None is exit 14, UNTESTED, before anything is
      merged: the report gains `BLOCKED: enqueue — no local gate is recorded …` and a finisher gates the tip (or, when
      the newest GREEN record was written by a gate OLDER than this lander, `run_gate_legs.predates_landing`, merges
@@ -730,7 +730,8 @@ def review_gate(branch: str, wt: pathlib.Path, base: str, reports_dir: pathlib.P
         return f"{rep.name}'s CLEAN stamp names {rv.sha}, which is not a commit of {branch}"
     if extra:
         return (f"{len(extra)} commit(s) after the CLEAN review at {rv.sha[:12]} (newest {extra[0][:12]}) are neither "
-                "main's nor a clean merge of it nor DEVLOG-only: the new tip is reviewed before it lands")
+                "main's nor a clean merge of it nor register-only (DEVLOG and kb/Work notes): the new tip is "
+                "reviewed before it lands")
     return None
 
 
@@ -934,7 +935,7 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
         same tree; the inert lane's is the script self-tests alone (kb/Work PB3646: CI's `audits` job runs them on
         Linux on every event);
       * has a head that COVERS `head`: it IS `head`, or every later commit is main's, a clean merge of main or
-        DEVLOG-only (`prune_worktrees.unreviewed_since`, the one coverage rule the review gate reads too).
+        register-only (DEVLOG and kb/Work notes; `prune_worktrees.unreviewed_since`, the one coverage rule the review gate reads too).
     The newest run is not special: a REUSED answer is a run too, and a later RED does not unrecord an earlier GREEN of
     the same head. `linux_half`: whether a Linux half is required (default: this host runs one, `Host.runs_linux_leg`;
     the self-test names it so it reads the same on every host)."""
@@ -982,7 +983,7 @@ def tested_locally(wt: pathlib.Path, head: str, base: str, *, linux_half: bool |
             problem = "it records no head"
         elif gated != head and prune_worktrees.unreviewed_since(gated, head, repo=wt, base=base) != []:
             problem = (f"it gated {gated[:12]}, and the commits since are not all main's, a clean merge of main or "
-                       "DEVLOG-only")
+                       "register-only (DEVLOG and kb/Work notes)")
         else:
             half = (("inert lane, Linux self-tests GREEN" if rec.get("lane") == "inert" else "Linux half GREEN")
                     if linux_half else "Linux host: its own legs")
@@ -1934,12 +1935,29 @@ def self_test() -> int:
         fix.git("add", "DEVLOG")
         fix.git("commit", "--quiet", "-m", "the entry")
         after_main = seen()
+        # kb/Work PB3849: a commit that changes only a register note (the work.py check and the audits the landing runs
+        # read it) is mechanical like the DEVLOG entry; the same note with a source file beside it is the branch's own
+        (lw / "kb" / "Work").mkdir(parents=True)
+        (lw / "kb" / "Work" / "PB1.md").write_text("a note\n", encoding="utf-8", newline="\n")
+        fix.git("add", "kb")
+        fix.git("commit", "--quiet", "-m", "a note, nothing else")
+        after_note = seen()
+        (lw / "kb" / "Work" / "PB1.md").write_text("a note, changed\n", encoding="utf-8", newline="\n")
+        fix.git("add", "kb")
+        (lw / "with-note.txt").write_text("a source file", encoding="utf-8", newline="\n")
+        fix.git("add", "with-note.txt")
+        fix.git("commit", "--quiet", "-m", "a note and a file")
+        after_note_and_file = seen()
+        fix.git("reset", "--quiet", "--hard", "HEAD~1")
         own_commit("after-gate.txt")
         after_commit = seen()
-        expect("tested_locally: the gated head still covers the tip after main's commits, a clean merge of main and a "
-               "DEVLOG-only commit (the review's coverage rule), and no longer after a commit of the branch's own",
-               after_main.ok and gated_head[:12] in after_main.text and not after_commit.ok
-               and "not all main's" in after_commit.text, f"{after_main} {after_commit}")
+        expect("tested_locally: the gated head still covers the tip after main's commits, a clean merge of main, a "
+               "DEVLOG-only commit and a register-note-only commit (the review's coverage rule), and no longer after a "
+               "commit of the branch's own, a note with a source file among them",
+               after_main.ok and gated_head[:12] in after_main.text and after_note.ok
+               and gated_head[:12] in after_note.text and not after_note_and_file.ok
+               and "not all main's" in after_note_and_file.text and not after_commit.ok
+               and "not all main's" in after_commit.text, f"{after_main} {after_note} {after_note_and_file} {after_commit}")
         shutil.rmtree(results_dir)
         fix.git("reset", "--quiet", "--hard", fix_tip)
 
@@ -2269,9 +2287,15 @@ def self_test() -> int:
         rev.git("add", "DEVLOG")
         rev.git("commit", "--quiet", "-m", "the entry")
         mechanical_only = review_gate("rev", rw, base_ref, rdir)
-        expect("review: a tip that moved after its CLEAN review only by main's commits, a clean merge of main and a "
-               "DEVLOG-only commit is still reviewed",
-               at_review is None and mechanical_only is None, f"{at_review} / {mechanical_only}")
+        (rw / "kb" / "Work").mkdir(parents=True)
+        (rw / "kb" / "Work" / "PB1.md").write_text("a note\n", encoding="utf-8", newline="\n")
+        rev.git("add", "kb")
+        rev.git("commit", "--quiet", "-m", "a note, nothing else")
+        note_only = review_gate("rev", rw, base_ref, rdir)
+        expect("review: a tip that moved after its CLEAN review only by main's commits, a clean merge of main, a "
+               "DEVLOG-only commit and a register-note-only commit (kb/Work PB3849) is still covered by it",
+               at_review is None and mechanical_only is None and note_only is None,
+               f"{at_review} / {mechanical_only} / {note_only}")
 
         (wt / "m2.txt").write_text("main moves again", encoding="utf-8", newline="\n")
         scratch.git("add", "m2.txt")
