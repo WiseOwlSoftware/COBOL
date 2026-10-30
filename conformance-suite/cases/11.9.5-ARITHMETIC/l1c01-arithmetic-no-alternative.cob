@@ -12,7 +12,7 @@
       *>   cite.py --check 11.9.5.1 "STANDARD-DECIMAL"
       *>     -> OK §11.9.5.1 (General format)
       *> The OPTIONS paragraph is otherwise valid; the missing phrase is
-      *> parse error COBOL0001 (missing token).
+      *> a parse error; COBOL5506 names the alternatives expected (PB3428).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C01J.
        OPTIONS.
