@@ -199,7 +199,8 @@ internal sealed partial class ControlFlowBinder
         // operation repeats carries its function activations to that operation (kb/Work PB437).
         if (IsPerEvaluationWindow(slot)) e = host.Udf.UdfAttachPerEvaluation(e, mark);
 
-        string text = op.GetText();
+        // As written (kb/Work PB3961): GetText() would spell a ZERO the rewriter made arithmetic as its token text "0".
+        string text = WrittenSource.Of(op);
         var (kind, literal) = Classify(e);
         if (kind is VaryingOperandKind.Invalid && e is not BoundExprError)
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandShape,
