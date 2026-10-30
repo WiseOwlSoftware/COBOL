@@ -1,0 +1,126 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Tests.Shared;
+using Xunit;
+
+namespace WiseOwl.Cobol.Tests.Unit;
+
+/// <summary>
+/// ⛔ THE KIND WRITTEN, AGAINST THE KINDS THE PARSE EXPECTS THERE (kb/Work PB3428, PB3861): <c>CobolErrorStrategy</c>
+/// hint 0i, worded by <c>AdmittedKinds</c>. A context word a text predicate refuses inside a clause it has entered
+/// (MEMORY SIZE's unit, DYNAMIC LENGTH's SHORT and PREFIXED), an operand left out (SEGMENT-LIMIT's integer, MOVE's TO), a
+/// literal of a category the position does not take (SET IX TO "A", whose Format 1 takes a numeric literal or ZERO,
+/// ISO §14.9.39.2 with §8.8.1.1) and a literal where only a user-defined word may stand (CALL … RETURNING 5) each draw
+/// ONE COBOL5506 naming what is expected there. The words a predicate tests are read by running it, through the parser
+/// base's one word funnel, so no table lists them.
+/// <para>The controls pin what the arm must NOT claim: a level-number after a forgotten period stays the missing-period
+/// reading, a word refused at a closed format's residue stays the format's own refusal (COBOL1970), a level-number
+/// before the FD that would own it is no literal operand, and the words the predicate accepts still compile.</para>
+/// </summary>
+public sealed class WrittenKindRefusalTests
+{
+    private const string Head = "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB3428U.\n";
+    private const string Proc = "       PROCEDURE DIVISION.\n           STOP RUN.\n";
+    private const string Config = "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n";
+    private const string Table = "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-N PIC 9.\n"
+        + "       01 W-X PIC X(4).\n       01 TB.\n          05 TE PIC X OCCURS 4 INDEXED BY IX.\n";
+    private const string Files = "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n"
+        + "           SELECT F ASSIGN TO \"pb3428u.dat\".\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n"
+        + "       01 R PIC X(4).\n";
+
+    [Theory]
+    // A word a text predicate refuses inside a clause it has entered: the words the predicate tests are named.
+    [InlineData("memory-size-unit", 85, Config + "       OBJECT-COMPUTER. XYZ MEMORY SIZE 12 FOO.\n" + Proc,
+        "COBOL5506: cannot parse construct near 'FOO'. The word 'FOO' is not expected here: expected CHARACTERS, MODULES or WORDS")]
+    [InlineData("dynamic-length-prefix", 2023, Config + "       SPECIAL-NAMES.\n           DYNAMIC LENGTH STRUCTURE DL IS SIGNED FOO.\n" + Proc,
+        "COBOL5506: cannot parse construct near 'FOO'. The word 'FOO' is not expected here: expected PREFIXED or SHORT")]
+    // An operand left out: the period stands where the parse expects only an integer literal.
+    [InlineData("segment-limit-integer", 85, Config + "       OBJECT-COMPUTER. XYZ SEGMENT-LIMIT IS.\n" + Proc,
+        "COBOL5506: cannot parse construct near '.'. The separator period is not expected here: expected an integer literal")]
+    [InlineData("move-to", 2023, Table + "       PROCEDURE DIVISION.\n           MOVE 1 W-N.\n           STOP RUN.\n",
+        "COBOL5506: missing token before 'W-N'. The word 'W-N' is not expected here: expected TO")]
+    [InlineData("open-mode", 2023, Files + "       PROCEDURE DIVISION.\n           OPEN F.\n           STOP RUN.\n",
+        "COBOL5506: unexpected 'F'. The word 'F' is not expected here: expected EXTEND, I-O, INPUT or OUTPUT")]
+    // A literal of a category the position does not take, and a literal where no literal is expected.
+    [InlineData("set-index-alphanumeric", 2023, Table + "       PROCEDURE DIVISION.\n           SET IX TO \"A\".\n           STOP RUN.\n",
+        "COBOL5506: cannot parse construct near '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, "
+        + "only a numeric literal or the figurative constant ZERO is expected at this position")]
+    [InlineData("set-up-by-alphanumeric", 2023, Table + "       PROCEDURE DIVISION.\n           SET IX UP BY \"A\".\n           STOP RUN.\n",
+        "COBOL5506: unexpected '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, only a numeric "
+        + "literal or the figurative constant ZERO is expected at this position")]
+    [InlineData("call-returning-literal", 2023, Table + "       PROCEDURE DIVISION.\n           CALL \"P\" RETURNING 5.\n           STOP RUN.\n",
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: no literal is expected at this position")]
+    public void AWrittenKindThePositionDoesNotExpect_IsNamedOnce(string name, int edition, string source, string expected)
+    {
+        string text = Head + source;
+        var errors = Compile(text, edition);
+        Assert.True(errors.Count == 1, $"[{name}] expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        Assert.Contains(expected, errors[0], StringComparison.Ordinal);
+    }
+
+    /// <summary>The controls: each keeps the diagnosis it had, and none draws COBOL5506.</summary>
+    [Theory]
+    [InlineData("residue-word", 85, Config + "       OBJECT-COMPUTER. XYZ FOO IS 12.\n" + Proc, "COBOL1970")]
+    [InlineData("level-number-after-missing-period", 2023,
+        "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X\n       05 W-Y PIC X.\n" + Proc, "COBOL0307")]
+    [InlineData("level-number-before-its-fd", 2023, "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n"
+        + "       FILE-CONTROL.\n           SELECT F ASSIGN TO \"pb3428u.dat\".\n       DATA DIVISION.\n       FILE SECTION.\n"
+        + "       01 W-LOOSE PIC X(5).\n       FD F.\n       01 R PIC X(5).\n" + Proc, "COBOL0001")]
+    public void APositionTheArmDoesNotName_KeepsItsDiagnosis(string name, int edition, string body, string code)
+    {
+        var errors = Compile(Head + body, edition);
+        Assert.Contains(errors, e => e.Contains($"error {code}: ", StringComparison.Ordinal));
+        Assert.DoesNotContain(errors, e => e.Contains("COBOL5506", StringComparison.Ordinal));
+        Assert.True(errors.Count >= 1, name);
+    }
+
+    /// <summary>The words the predicate accepts still parse: MEMORY SIZE's three units at COBOL-85.</summary>
+    [Theory]
+    [InlineData("WORDS")]
+    [InlineData("MODULES")]
+    [InlineData("CHARACTERS")]
+    public void TheWordsThePredicateTests_StillParse(string unit)
+    {
+        string dir = ScratchDirectory.Create("WiseOwlCobol_PB3428_");
+        try
+        {
+            string src = Path.Combine(dir, "pb3428u.cob");
+            File.WriteAllText(src, Head + Config + $"       OBJECT-COMPUTER. XYZ MEMORY SIZE 12 {unit}.\n" + Proc);
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+                src, Path.Combine(dir, "pb3428u.dll"), DialectLevel: 85, CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
+            Assert.True(r.Success, $"MEMORY SIZE 12 {unit} is the '85 clause; got:\n{string.Join("\n", r.Errors)}");
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>⛔ EVERY WHOLE-LITERAL TOKEN HAS ITS §8.3.3.1 CATEGORY (kb/Work PB3861). The refusal names a literal by
+    /// <see cref="LiteralTokens.CategoryOf"/>; a literal token the grammar gains tomorrow (FIRST(residueLiteral) and the
+    /// unsigned integer, read from the ATN) is red here until it is named there.</summary>
+    [Fact]
+    public void EveryWholeLiteralToken_HasACategory()
+    {
+        var unnamed = LiteralTokens.Whole.ToIntegerList()
+            .Where(t => LiteralTokens.CategoryOf(t) is null)
+            .Select(t => CobolLexer.DefaultVocabulary.GetSymbolicName(t))
+            .ToList();
+        Assert.True(unnamed.Count == 0, $"literal tokens with no §8.3.3.1 category: {string.Join(", ", unnamed)}");
+    }
+
+    private static IReadOnlyList<string> Compile(string source, int edition)
+    {
+        string dir = ScratchDirectory.Create("WiseOwlCobol_PB3428_");
+        try
+        {
+            string src = Path.Combine(dir, "pb3428u.cob");
+            File.WriteAllText(src, source);
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+                src, Path.Combine(dir, "pb3428u.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
+            Assert.False(r.Success, "the source is non-conforming and must be rejected");
+            return r.Errors;
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+}

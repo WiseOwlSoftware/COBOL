@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1125 - ISO 14.9.22.2 general formats (rendered from the PDF, folio 643-644): CHARACTERS, ALL, LEADING and FIRST are required words of the replacing-phrase (one choice, all underlined),
       *> so a pair with no adjective is not a format.
-      *> Expected: a syntax error (COBOL0001) at every edition.
+      *> Expected: a syntax error at every edition, COBOL5506 naming the words expected (PB3428).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG1125G3.
        DATA DIVISION.
