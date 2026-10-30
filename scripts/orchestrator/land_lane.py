@@ -542,20 +542,9 @@ def runner_alive(a: dict[str, Any]) -> bool:
     """The attempt's runner is alive (kb/Work PB3113): the process with the recorded pid is a Python whose command line
     names this attempt's own record (`launch` starts `land_lane.py run <record>`). A pid the OS has reused for another
     program after the runner died, a Python one included, carries another command line, so it is not the runner: the
-    lane no longer reads RUNNING until that stranger exits."""
+    lane no longer reads RUNNING until that stranger exits. The one rule is `coord.runs_python` (kb/Work PB4008)."""
     pid = a.get("pid")
-    if not isinstance(pid, int) or not a.get("_path"):
-        return False
-    name = coord.process_name(pid)
-    if not name or "python" not in name.lower():
-        return False
-    cmd = coord.process_command(pid)
-    if not cmd:
-        # None: the process ended since the name was read. "": its command line cannot be read (not ours to open), which
-        # cannot tell the runner from a stranger; calling a live runner dead would relaunch its branch beside it, so an
-        # unreadable line reads as before this check existed: a live Python is alive.
-        return cmd == ""
-    return os.path.normcase(str(a["_path"])) in os.path.normcase(cmd)
+    return isinstance(pid, int) and bool(a.get("_path")) and coord.runs_python(pid, str(a["_path"]))
 
 
 def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, Any]], list[str], dict | None]:
