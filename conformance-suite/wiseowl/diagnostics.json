@@ -737,6 +737,14 @@
   ],
   "expect": "literal-1 shall not be a figurative constant"
  },
+ "pb3429-constant-qualified-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "'FOO OF X' — all operands of the compile-time arithmetic expression"
+ },
  "constant-figurative-arith-operand": {
   "refuse-at": [
    "2002",
@@ -8041,6 +8049,14 @@
   ],
   "expect": "COBOL2651"
  },
+ "pb3119-define-refused-then-referenced": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": ">>DEFINE FOO: malformed compile-time expression '1 +'"
+ },
  "pb1367-define-without-operand": {
   "refuse-at": [
    "2002",
@@ -10259,6 +10275,18 @@
   ],
   "expect": "COBOL0900"
  },
+ "pb1673-null-undeclared-at-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "§8.9 does not reserve the word at this edition"
+ },
+ "pb1673-set-null-undeclared-at-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "'NULL' is not defined"
+ },
  "pb1687-report-entry-32-digits": {
   "refuse-at": [
    "85",
@@ -11008,6 +11036,22 @@
    "2023"
   ],
   "expect": "COBOL1627"
+ },
+ "pb1906-typedef-member-without-group": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "is declared only by a subordinate entry of the type declaration 'T'"
+ },
+ "pb1920-currency-string-refused-symbol-stands": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0890"
  },
  "pb1929-set-object-from-numeric-function": {
   "refuse-at": [
@@ -13116,6 +13160,14 @@
    "85"
   ],
   "expect": "COBOL0900"
+ },
+ "pb2867-constant-length-composed-cycle": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "§13.10.3 SR4"
  },
  "pb2921-method-section-named-like-its-data": {
   "refuse-at": [
@@ -20565,7 +20617,6 @@
  },
  "pb791-currency-null-literal-7": {
   "refuse-at": [
-   "85",
    "2002",
    "2014",
    "2023"
