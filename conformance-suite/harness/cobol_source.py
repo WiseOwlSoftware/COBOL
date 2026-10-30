@@ -66,11 +66,21 @@ _BOMS = ((b"\x00\x00\xfe\xff", "utf-32-be"), (b"\xff\xfe\x00\x00", "utf-32-le"),
 
 def decode(data: bytes) -> str:
     """A program or library text's characters: the encoding its byte-order mark names (the mark dropped), else UTF-8.
-    A test's library text may be stored in UTF-16 or UTF-32 to witness the compiler's reading of it."""
+    A test's library text may be stored in UTF-16 or UTF-32 to witness the compiler's reading of it.
+
+    This reader only finds the text's STRUCTURE (its COPY statements, its DISPLAY operands), so it never fails on a
+    text that is not well-formed: a library text a test stores to witness a compiler's reading of malformed bytes
+    (Annex A.1 item 25) is read leniently here, byte for byte as ISO/IEC 8859-1 when it has no mark and with each
+    undecodable sequence replaced when its mark names an encoding it is not well-formed in. The structure of such a
+    text is ASCII, which every one of these readings leaves intact; what the compiler under test makes of the bytes
+    is the test's own expectation, never this reader's."""
     for mark, encoding in _BOMS:
         if data.startswith(mark):
-            return data[len(mark):].decode(encoding)
-    return data.decode("utf-8")
+            return data[len(mark):].decode(encoding, errors="replace")
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError:
+        return data.decode("latin-1")
 
 
 # ── reference format ─────────────────────────────────────────────────────────────────────────────────────────────────

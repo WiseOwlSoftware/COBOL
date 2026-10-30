@@ -729,6 +729,11 @@ public sealed partial class DataBinder
             ValidateCurrencyChar(symbol, "CURRENCY SIGN literal");
         }
 
+        // THE KEY IS THE IMPLEMENTOR'S DETERMINATION: §12.3.7.3 SR20 leaves "any equivalence between that character and any
+        // other character in the computer's compile-time coded character set" of a symbol that is not a COBOL character to
+        // the implementor, and Annex A.1 item 43 requires it documented — docs/CONFORMANCE.md DOC-A.1-43 states it: two
+        // characters are equivalent exactly when they have the same invariant-culture upper-case mapping. A COBOL character
+        // folds by §8.1.3.2 GR3 b), which the same mapping gives (kb/Work PB1092). Change the key and that row together.
         char key = char.ToUpperInvariant(symbol);
         // §12.3.7.3 SR28's input: the CLASS of literal-7 — alphanumeric (a plain or X"…" literal) or national (N"…" /
         // NX"…", a §8.8.3.3 concatenation folding to national, or a constant-name of either). Boolean and every other
@@ -749,7 +754,10 @@ public sealed partial class DataBinder
     }
 
     /// <summary>The ISO §12.3.7.3 SR22/SR27 forbidden currency-symbol set: digits; A B C D E N P R S V X Z (either
-    /// case) or space; and <c>+ - , . * / ; ( ) " =</c>.</summary>
+    /// case) or space; and <c>+ - , . * / ; ( ) " =</c>. The letter test goes through the item-43 equivalence
+    /// (<c>char.ToUpperInvariant</c>), so a non-COBOL character whose invariant upper case is one of those letters is
+    /// excluded with it — the "additional characters prohibited" of §8.1.2 that Annex A.1 item 44 requires documented
+    /// (docs/CONFORMANCE.md DOC-A.1-44; kb/Work PB1397).</summary>
     private void ValidateCurrencyChar(char c, string what)
     {
         bool forbidden = char.IsAsciiDigit(c)
