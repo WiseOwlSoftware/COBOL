@@ -1,4 +1,4 @@
-## PB4092, PB4093: size error checking is per EC-SIZE name, never per family
+## Entry 2809 — 2026-10-30 14:14 PDT — PB4092, PB4093: size error checking is per EC-SIZE name, never per family
 
 Wave 20261767, group B (one root: the family-wide question "is some EC-SIZE name enabled?" chose the checked kernels, the Try
 store and the catches of every size computation).
@@ -60,3 +60,4 @@ The sweep of every other checked-landing choice (`FloatToScaled`, `StoreArgs`, `
 EC-SIZE-TRUNCATION already. The remainder this statement leaves for a quotient past the Int128 carrier is the
 not-enabled disposition (the implementor's, DOC-A.1-70), the same with and without a per-name TURN, so the golden pins only
 the quotient.
+
