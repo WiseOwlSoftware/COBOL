@@ -1,4 +1,4 @@
-## PB3278: a dotted inventory symbol must be declared in its type, and the note's comment half was already fixed
+## Entry 2787 — 2026-10-30 10:59 PDT — PB3278: a dotted inventory symbol must be declared in its type, and the note's comment half was already fixed
 
 **The note.** PB3278 said `SpecTraceabilityInventoryDriftTests.EveryCodeLocation_ResolvesInTheTree` resolved a
 `file#Member` code-location by a whole-file word match, so a deleted member kept resolving while a comment or a
@@ -27,3 +27,4 @@ only uses).
 
 **Register.** PB3278 landed with `closes_rows: []` (no verdict claimed or changed). Design text updated in
 `DESIGN-spec-conformance-review.md` and the `symbol_of` docstring.
+
