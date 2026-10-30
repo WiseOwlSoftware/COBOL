@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Linq;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Conformance;
@@ -156,6 +155,30 @@ public sealed class WordCharacterScreenTests
         Assert.Contains("COBOL0001", all);
         Assert.DoesNotContain("COBOL2773", all);
         Assert.DoesNotContain("COBOL0900", all);
+    }
+
+    /// <summary>ISO §8.1.3.2 GR4 makes the extended letters Annex B's characters; a character that NO edition's Annex B holds
+    /// (U+00A0, the euro sign) is no extended letter, so at COBOL-85 it is the word-character error COBOL2773 naming it, not
+    /// the 2002 introduction gate COBOL0900 (kb/Work PB4130). Both word sources run the one body, so a failed parse (the
+    /// lexer's stream) and a parsed source (the tree's words) answer alike; an Annex B letter at 85 stays the gate
+    /// (golden <c>pb3845-extended-letter-unparseable-85</c>).</summary>
+    [Theory]
+    [InlineData(" ", "U+00A0", false)]
+    [InlineData(" ", "U+00A0", true)]
+    [InlineData(Euro, "U+20AC", false)]
+    [InlineData(Euro, "U+20AC", true)]
+    public void ACharacterInNoAnnexB_IsTheWordCharacterError_NotTheExtendedLetterGate_At85(string character, string named, bool parses)
+    {
+        string word = "PREIS" + character;
+        string source = Unparseable(word, word);
+        if (parses) source = source.Replace(" MOVE MOVE", "");
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, 85);
+        string all = string.Join('\n', errors.Concat(warnings));
+        Assert.False(ok);
+        Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains(named));
+        Assert.DoesNotContain("COBOL0900", all);
+        Assert.DoesNotContain("extended letter", all);
+        Assert.Equal(!parses, all.Contains("COBOL0001"));
     }
 
     /// <summary>The binder driver screens only a compilation whose frontend reported nothing, so a source that PARSES beside

@@ -19,7 +19,8 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// <item>the underscore is a COBOL-2002 introduction (<see cref="Constructs.UserWordUnderscore2002"/>; the '85 set is
 /// hyphen-only);</item>
 /// <item>below COBOL-2002 any extended letter is the construct <see cref="Constructs.UserWordExtendedLetter2002"/>
-/// (COBOL0900);</item>
+/// (COBOL0900) — but a character that no edition's Annex B holds (U+00A0, the euro sign) is no extended letter, so it is
+/// COBOL2773 at every target (<see cref="CobolWordRule.CharacterViolation"/>, kb/Work PB4130);</item>
 /// <item>from 2002 a character where the edition's Annex B does not permit it is COBOL2773
 /// (<see cref="CobolWordRule.CharacterViolation"/>), or — when the 2002/2014 Annex B permitted it and 2023's does not
 /// (Annex E.2 item 4) — the removed construct <see cref="Constructs.UserWordCharacterRemoved2023"/> (COBOL0902; a
@@ -37,18 +38,19 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// tree names (<see cref="CobolParserCore.CommentEntryContext"/>). The directive stages ask the same rule of the
 /// words they scan themselves (<see cref="CobolWordRule.DirectiveWordViolations"/>): a directive is removed from the
 /// text before the lexer runs.</para>
-/// <para>⛔ TWO WORD SOURCES, ONE RULE. When the parse FAILED the frontend asks it of the lexer's token stream
-/// (<see cref="RunOnTokens"/>; the tree is partial, so it only names the comment-entries) and reports as frontend errors,
-/// which is what a parse failure is. When the parse SUCCEEDED the binder driver asks it of the tree's own words
-/// (<see cref="RunOnTree"/>), so the reports ride the compiler's channel beside the binder's own diagnostics instead of
-/// stopping the compile before it (a source whose only fault is a word character still draws every bind-time error).
-/// Both run <see cref="Check"/>.</para>
+/// <para>⛔ TWO WORD SOURCES, ONE RULE, chosen by whether the binder will run. When the frontend reported ANY error (a
+/// parse that FAILED, or one that parsed beside a separator, PICTURE or preprocessor error: the compiler driver stops
+/// before the binder on any) the frontend asks it of the lexer's token stream (<see cref="RunOnTokens"/>; the tree may be
+/// partial, so it only names the comment-entries) and reports as frontend errors beside that error. Otherwise the binder
+/// driver asks it of the tree's own words (<see cref="RunOnTree"/>), so the reports ride the compiler's channel beside the
+/// binder's own diagnostics instead of stopping the compile before it (a source whose only fault is a word character
+/// still draws every bind-time error). Both run <see cref="Check"/>.</para>
 /// <para>One report per DISTINCT word per compilation (the Annex C fold), the posture the length ceiling has.</para>
 /// </summary>
 public static class WordCharacterScreen
 {
-    /// <summary>The parse FAILED or is incomplete: screen every word of <paramref name="tokens"/> (the lexer's whole
-    /// stream). <paramref name="tree"/> is the unit's parse tree, complete or not: it names only the tokens that are NOT
+    /// <summary>The frontend reported an error, so the binder will not run (the parse failed, or parsed beside another
+    /// frontend error): screen every word of <paramref name="tokens"/> (the lexer's whole stream). <paramref name="tree"/> is the unit's parse tree, complete or not: it names only the tokens that are NOT
     /// words, those of a comment-entry (<c>AUTHOR. JOSÉ</c> is a legal '85 comment).</summary>
     public static void RunOnTokens(IEnumerable<IToken> tokens, IParseTree tree, EditionInfo edition, IDiagnosticSink sink)
     {
@@ -60,7 +62,8 @@ public static class WordCharacterScreen
         Check(candidates.Where(t => !commentEntries.Contains(t.TokenIndex)), edition, sink);
     }
 
-    /// <summary>The parse SUCCEEDED: screen every word the tree holds, outside its comment-entries.</summary>
+    /// <summary>The frontend reported no error, so the binder runs on the complete tree: screen every word the tree holds,
+    /// outside its comment-entries.</summary>
     public static void RunOnTree(IParseTree tree, EditionInfo edition, IDiagnosticSink sink)
     {
         List<IToken>? candidates = null;
@@ -104,9 +107,13 @@ public static class WordCharacterScreen
                 ConstructRegistry.Check(edition, sink, Constructs.UserWordUnderscore2002,
                     $"the underscore in the COBOL word '{word}'");
             if (!CobolCharacterRepertoire.HasExtendedCharacter(word)) continue;
-            ConstructRegistry.Check(edition, sink, Constructs.UserWordExtendedLetter2002,
-                $"the extended letter in the COBOL word '{word}'");
-            if (CobolWordRule.CharacterViolation(word, edition.Year) is not { } character) continue;
+            string? character = CobolWordRule.CharacterViolation(word, edition.Year);
+            // Below 2002 a character in no edition's Annex B is no EXTENDED LETTER, so the 2002 gate would name the
+            // wrong fault: CharacterViolation answers it as COBOL2773 at every target (kb/Work PB4130).
+            if (character is null || edition.Year >= 2002)
+                ConstructRegistry.Check(edition, sink, Constructs.UserWordExtendedLetter2002,
+                    $"the extended letter in the COBOL word '{word}'");
+            if (character is null) continue;
             if (CobolWordRule.RemovedAt2023(word, edition.Year))
                 ConstructRegistry.Check(edition, sink, Constructs.UserWordCharacterRemoved2023, character);
             else
