@@ -1,4 +1,4 @@
-## PB3908, PB3874: the two GnuCOBOL compiler crashes are filed upstream as bugs #1265 and #1266
+## Entry 2777 — 2026-10-30 08:57 PDT — PB3908, PB3874: the two GnuCOBOL compiler crashes are filed upstream as bugs #1265 and #1266
 
 The owner's public reply to the GnuCOBOL project lead promised the upstream findings through the SourceForge trackers,
 starting with the two compiler crashes, and then asked for them to be filed. Before filing, every repro was re-run on
@@ -19,3 +19,4 @@ The owner shaped the tickets in review: each shows the compiler's verbatim outpu
 not a description of it, and attaches the `.cob` repro files besides quoting the main program inline. Both notes now
 carry `upstream_status: reported` and their `upstream_ref`; the rest of the upstream batch (about 18 reports) is still
 `unreported` in `work.py upstream`.
+
