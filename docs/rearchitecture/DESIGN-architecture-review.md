@@ -379,8 +379,9 @@ The cases are:
 - `nist-continuity/<name>@<edition>`: the INV-1 cells, check-only, permissive then strict.
 - `matrix/<construct>@<edition>[+permissive]`: every compile the version-matrix theories perform. The obsolete
   theory's strict compiles are the strict matrix cells, so they count once.
-- `optword/<format>`: every subset spelling of a format's optional words, as `OptionalWordSubsetDriftTests` compiles
-  them, folded into one stream per format (enrolled when the sweep became a partitioned family, kb/Work PB2527).
+- `optword/<format>/<unit>`: each subset spelling of a format's optional words, as `OptionalWordSubsetDriftTests`
+  compiles it, named by the spelling's PROGRAM-ID (one case per spelling since the sweep's row became one spelling,
+  kb/Work PB4146; enrolled when the sweep became a partitioned family, kb/Work PB2527).
 
 The characterization corpus is not enrolled. It is already a byte-for-byte emitted-C# and diagnostic snapshot
 oracle of its own (`EmittedCSharpSnapshotTests`, `DiagnosticSnapshotTests`). Programs written inline in test
