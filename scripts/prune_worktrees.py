@@ -96,7 +96,11 @@ who acts next:
                    no re-run or reopen clears it), and its head is still the branch's tip and no commit was pushed
                    after the removal (the head is read at the removal, not by headRefOid alone, which a push moves,
                    kb/Work PB3275): the enqueue unit dispatches ONE finisher
-                   with the reason named. A finisher that fixes the branch returns DONE and lands nothing: its new tip
+                   with the reason named. A pull request still IN the queue reads BOUNCED too when the queue's simulation
+                   (foresee_queued: merge_drivers.foresee_queue on the queue's entries in order) finds its head
+                   conflicting with an entry ahead of it, or with main: the FORESEEN CONFLICT, which the queue will
+                   remove for merge_conflict with no failed run (kb/Work PB3723); Row.foreseen names the entries, and the
+                   review lane's conflict finisher takes it while they are still queued. A finisher that fixes the branch returns DONE and lands nothing: its new tip
                    is reviewed again, then the landing lane lands it. A bounce resolved with no commit (infrastructure,
                    a red already on main) is re-armed by the enqueue unit (`land_lane.py rearm`, kb/Work PB3103), and
                    the lane lands it again at the same head. A tip that moved past the bounced head is the fix, and
@@ -543,6 +547,9 @@ class Row:
                                     # measures, `refs/remotes/origin/<branch>`; '' for a local branch or a detached tree.
                                     # Named `<branch>` when no local branch of that name exists, else `origin/<branch>`
                                     # (origin holds commits the local branch does not). It has no worktree.
+    foreseen: tuple[tuple[str, str], ...] = ()   # lifecycle(): a queued head the queue's simulation finds conflicting
+                                    # with what is ahead of it: (the entry's branch, its head commit) per entry it
+                                    # conflicts with, or (origin/main, origin/main) for main alone (kb/Work PB3723)
 
 
 def register_path(path: str) -> bool:
@@ -757,18 +764,34 @@ def finisher_due(row: Row) -> bool:
     return row.state == 'DECISION' and findings_open(row)
 
 
+def foresee_queued(prs: dict[str, PullRequest] | None, repo=REPO) -> dict[str, merge_drivers.Foreseen]:
+    """{branch: Foreseen} for each pull request in the merge queue whose head conflicts with main plus the entries ahead
+    of it that stay: the queue's own build, simulated through the merge drivers on the facts the survey read
+    (merge_drivers.foresee_queue; kb/Work PB3723). The queue removes such an entry for `merge_conflict` with no failed
+    run, so nothing else sees it before it happens. {} when GitHub was not observed or nothing is queued."""
+    entries = sorted(((pr.position, b, pr.head) for b, pr in (prs or {}).items() if pr.in_queue and pr.position and pr.head))
+    return merge_drivers.foresee_queue(repo, 'origin/main', [(b, head) for _, b, head in entries]) if entries else {}
+
+
 def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours: float = 24,
               live: Callable[[str | None], bool] = live_lock,
               prs: dict[str, PullRequest] | None = None, lane: Lane | None = None,
-              now: dt.datetime | None = None) -> tuple[str, str]:
+              now: dt.datetime | None = None,
+              foreseen: dict[str, merge_drivers.Foreseen] | None = None) -> tuple[str, str]:
     """THE lifecycle rule (module doc), as a pure function of what the survey measured: (state, the evidence). `lane`:
     the landing lane's view (land_lane.view: each branch's newest attempt and its class, the pending re-arms). `prs`:
     queue_facts.read's answer, None when GitHub was not observed (the git-only lifecycle). `now`:
-    the time a NOT QUEUED row's wait is measured to (default: now)."""
+    the time a NOT QUEUED row's wait is measured to (default: now). `foreseen`: foresee_queued's answer."""
     if live(row.lock):
         return 'IN FLIGHT', f'worktree locked by a live agent ({row.lock or "locked by hand"})'
     pr = (prs or {}).get(row.name)
     if pr and row.content not in LANDED_CONTENT:
+        if pr.in_queue and (fs := (foreseen or {}).get(row.name)) and (not row.tip or row.tip == pr.head):
+            where = f'the entries ahead of it ({", ".join(fs.ahead)})' if fs.ahead else 'main'
+            return 'BOUNCED', (f'pull request #{pr.number} is in the merge queue, but its head CONFLICTS with {where} '
+                               f'({", ".join(fs.files[:4])}): the queue will remove it for merge_conflict with no failed run '
+                               f'(a FORESEEN CONFLICT, kb/Work PB3723), so ONE finisher brings {"those heads" if fs.ahead else "main"} '
+                               f'in now, while they are still queued, from `land_lane.py conflict-brief {row.name}` ({pr.url})')
         if pr.in_queue:
             return 'ENQUEUED', f'pull request #{pr.number} is in the merge queue ({pr.url}): it lands when the queue merges it'
         at_head = not row.tip or row.tip == pr.head
@@ -1001,6 +1024,7 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
                 + list(pool.map(measure_origin, remote_rows)))
     import land_lane  # noqa: PLC0415  (scripts/orchestrator: it imports this module back; its attempt reader, never its text)
     lane = land_lane.view(pathlib.Path(coord_dir) if coord_dir else coord.coord_path())
+    queue_foreseen = foresee_queued(prs, repo)
     for r in rows:
         rv = r.report.review if r.report else None
         if rv:
@@ -1008,7 +1032,10 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
         if r.content not in LANDED_CONTENT and r.report and r.report.finished and r.report.head and r.tip:
             r.report_since = report_since(r.report.head, r.tip, repo=repo, graph=graph)
         r.state, r.why = lifecycle(r, in_flight_slugs=set(slugs), min_age=min_age, stale_hours=stale_hours, live=live,
-                                   prs=prs, lane=lane)
+                                   prs=prs, lane=lane, foreseen=queue_foreseen)
+        if r.state == 'BOUNCED' and r.name in queue_foreseen and prs and r.name in prs and prs[r.name].in_queue:
+            r.foreseen = (tuple((b, prs[b].head) for b in queue_foreseen[r.name].ahead)
+                          or (('origin/main', 'origin/main'),))
     contained(rows, graph, reports, pathlib.Path(repo) / 'kb' / 'Work')
     import review_findings  # noqa: PLC0415  (scripts/orchestrator: the one reader of a findings file, kb/Work PB3381)
     scratch = (pathlib.Path(coord_dir) if coord_dir else coord.coord_path()) / 'scratch'
@@ -2596,6 +2623,39 @@ def self_test() -> int:
         queued = queue_facts.PullRequest(77, 'https://github.com/o/r/pull/77', rows['ro-unlanded'].tip, True)
         check(lifecycle(rows['ro-unlanded'], in_flight_slugs=set(), min_age=180, live=live, prs={'ro-unlanded': queued})[0]
               == 'ENQUEUED', 'a branch of origin with a pull request in the merge queue reads ENQUEUED, as a local one does')
+        # kb/Work PB3723: THE QUEUE SIMULATED. `qa` and `qb` both rewrite one file of main, `qc` another: queued in that
+        # order, `qb` conflicts with `qa` ahead of it (the queue removes it for merge_conflict, with no failed run), `qc`
+        # does not. A queued head is a BOUNCED row naming the entry ahead, a finisher's while that one is still queued.
+        qheads = {}
+        for qn, (qpath, qtext) in {'qa': ('src/A.cs', 'class Alpha { int QA; }\n'), 'qb': ('src/A.cs', 'class Alpha { int QB; }\n'),
+                                   'qc': ('src/QC.cs', 'class QcX {}\n')}.items():
+            scratch.git('switch', '-q', '-c', qn, 'origin/main')
+            commit(qpath, qtext, qn)
+            qheads[qn] = scratch.git('rev-parse', 'HEAD')
+            scratch.git('switch', '-q', 'main')
+        qprs = {qn: queue_facts.PullRequest(i, f'https://github.com/o/r/pull/{i}', qheads[qn], True, position=i)
+                for i, qn in ((1, 'qa'), (2, 'qb'), (3, 'qc'))}
+        qseen = foresee_queued(qprs, repo)
+        check(set(qseen) == {'qb'} and qseen['qb'].files == ('src/A.cs',) and qseen['qb'].ahead == ('qa',),
+              f'the queue simulated: qb conflicts with the entry ahead of it, qa and qc do not: {qseen}')
+        check(foresee_queued(None, repo) == {} and foresee_queued({}, repo) == {}
+              and foresee_queued({'qb': dataclasses.replace(qprs['qb'], position=0, in_queue=False)}, repo) == {},
+              'GitHub not observed, an empty queue and a pull request not in the queue foresee nothing')
+        qrow = dataclasses.replace(rows['ro-unlanded'], name='qb', tip=qheads['qb'], origin='')
+        qstate = lifecycle(qrow, in_flight_slugs=set(), min_age=180, live=live, prs=qprs, foreseen=qseen)
+        check(qstate[0] == 'BOUNCED' and 'FORESEEN CONFLICT' in qstate[1] and 'qa' in qstate[1] and 'src/A.cs' in qstate[1]
+              and lifecycle(dataclasses.replace(qrow, name='qa', tip=qheads['qa']), in_flight_slugs=set(), min_age=180,
+                            live=live, prs=qprs, foreseen=qseen)[0] == 'ENQUEUED',
+              f'a queued head that conflicts with the entry ahead of it is BOUNCED, naming it; the entry ahead stays ENQUEUED: {qstate}')
+        queued_rows = {r.name: r for r in survey(repo, reports=[], slugs=set(), min_age=180, live=live, coord_dir=landed_coord,
+                                                 prs=qprs)}
+        check(queued_rows['qb'].state == 'BOUNCED' and queued_rows['qb'].foreseen == (('qa', qheads['qa']),)
+              and queued_rows['qa'].state == 'ENQUEUED' and not queued_rows['qa'].foreseen
+              and queued_rows['qc'].state == 'ENQUEUED',
+              f'the survey reads a foreseen conflict into the row (BOUNCED, the entry ahead named with its head): '
+              f'{[(r.name, r.state, r.foreseen) for r in queued_rows.values() if r.name in qheads]}')
+        for qn in qheads:
+            scratch.git('branch', '-q', '-D', qn)
         check(not any('gh-readonly-queue' in name for name in rows),
               f'the merge queue\'s own branches are no one\'s work and get no row: {sorted(rows)}')
         check(not {'merged', 'landed-content', 'agent-dead', 'orphan', 'carried', 'picked', 'key-landed'} & left, f'LANDED/abandoned branches remain: {sorted(left)}')

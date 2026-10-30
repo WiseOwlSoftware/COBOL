@@ -572,11 +572,60 @@ def merge_conflicts(repo: pathlib.Path | str, ref: str) -> list[str] | None:
     declined it (both sides changed one entry differently: a real conflict, kb/Work PB3640 review R1-1); None when git
     cannot say (a missing ref: merge-tree exits 1 for that too, with no tree on stdout, so the tree line decides). The
     runtime ABI pin's settle needs a build, so a pin `merge` could not settle is not foreseen here."""
-    r = git(pathlib.Path(repo), "merge-tree", "--write-tree", "--name-only", "--no-messages", "HEAD", ref, attributes_of="HEAD")
+    return probe(repo, ["HEAD", ref], attributes_of="HEAD")[1]
+
+
+def probe(repo: pathlib.Path | str, parents: list[str], attributes_of: str | None = None) -> tuple[str | None, list[str] | None]:
+    """THE ONE `git merge-tree --write-tree` THROUGH EVERY DRIVER (kb/Work PB3723): (the merged tree, []) when `parents`
+    merge clean; (None, the conflicted files) when they do not (a file a driver merges by key is listed only when the
+    driver declined it); (None, None) when git cannot say (a missing ref, unrelated histories: merge-tree exits 1 for
+    that too, with no tree on stdout, so the tree line decides). `attributes_of` (default: the first parent) names the
+    revision whose attributes the merge reads (attributes_tree). The worktree and the index are not touched."""
+    r = git(pathlib.Path(repo), "merge-tree", "--write-tree", "--name-only", "--no-messages", *parents,
+            attributes_of=attributes_of or parents[0])
     lines = r.stdout.splitlines()
     if r.returncode not in (0, 1) or not lines or not re.fullmatch(r"[0-9a-f]{40,64}", lines[0].strip()):
-        return None
-    return [] if r.returncode == 0 else [f for f in dict.fromkeys(ln.strip() for ln in lines[1:]) if f]
+        return None, None
+    if r.returncode == 0:
+        return lines[0].strip(), []
+    return None, [f for f in dict.fromkeys(ln.strip() for ln in lines[1:]) if f]
+
+
+class Foreseen(NamedTuple):
+    """A queued head that conflicts with the queue ahead of it: the files left in conflict, and the entries ahead it
+    conflicts with (their labels; empty: with main alone, which GitHub already reads as DIRTY)."""
+    files: tuple[str, ...]
+    ahead: tuple[str, ...]
+
+
+def foresee_queue(repo: pathlib.Path | str, base: str, entries: list[tuple[str, str]]) -> dict[str, Foreseen]:
+    """THE MERGE QUEUE, SIMULATED (kb/Work PB3723): the queue builds each entry's merge group on main plus the entries
+    ahead of it that stay, and REMOVES an entry whose head conflicts there (reason `merge_conflict`, with no failed run
+    and no event a reader sees until it has happened). `entries`: (label, head commit) in queue order; `base`: main.
+    Each head is merged onto the result of those before it through every driver (probe), and an entry that conflicts is
+    skipped, as the queue skips it. Returns {label: Foreseen} for each such entry, so its finisher can bring the entries
+    ahead in while they are still queued. A head git cannot merge (an object this repository lacks) is left out: it is
+    unknown, never a conflict. The runtime ABI pin's settle needs a build and is not foreseen (merge_conflicts)."""
+    out: dict[str, Foreseen] = {}
+    result, ahead = base, []
+    for label, head in entries:
+        tree, files = probe(repo, [result, head], attributes_of=base)
+        if files is None:
+            continue
+        if tree is None:
+            if probe(repo, [base, head], attributes_of=base)[1]:   # it conflicts with main itself: GitHub reads that DIRTY
+                out[label] = Foreseen(tuple(files), ())
+                continue
+            with_head = [lab for lab, h in ahead if probe(repo, [h, head], attributes_of=base)[1]]
+            out[label] = Foreseen(tuple(files), tuple(with_head or [lab for lab, _ in ahead]))
+            continue
+        made = git(pathlib.Path(repo), "-c", "user.name=merge_drivers", "-c", "user.email=merge_drivers@localhost",
+                   "commit-tree", tree, "-p", result, "-p", head, "-m", f"queue simulation: {label}")
+        if made.returncode != 0:
+            break
+        result = made.stdout.strip()
+        ahead.append((label, head))
+    return out
 
 
 def merged_tree(repo: pathlib.Path | str, parents: list[str]) -> str | None:
@@ -587,9 +636,7 @@ def merged_tree(repo: pathlib.Path | str, parents: list[str]) -> str | None:
     (prune_worktrees.merges_to_main_unchanged) both read it, so the survey and the landing agree on what merges clean: a
     plain `git merge-tree` conflicts in a keyed catalogue the drivers merge by key. The attributes are the first
     parent's with the registry's merge lines over them (attributes_tree), as `merge` reads HEAD's."""
-    r = git(pathlib.Path(repo), "merge-tree", "--write-tree", *parents, attributes_of=parents[0])
-    clean = r.stdout.split()[:1]
-    return clean[0] if r.returncode == 0 and clean else None
+    return probe(repo, parents)[0]
 
 
 def is_drivers_merge(repo: pathlib.Path | str, parents: list[str], tree: str) -> bool:
@@ -935,6 +982,30 @@ def self_test() -> int:
                "merge-tree conflicts (the premise)",
                lr.run("merge-tree", "--write-tree", "main", "topic").returncode != 0
                and merged_tree(lr.path, ["main", "topic"]) == lr.git("rev-parse", "main^{tree}"))
+        # kb/Work PB3723, THE QUEUE SIMULATED: e1 and e2 edit one line of a.txt, e3 another file, e4 that line again, e6 a
+        # line of c.txt that main changed since the branches were cut. The queue removes an entry that conflicts on the
+        # entries ahead that STAY, so e2 conflicts with e1, e3 stays, e4 conflicts with e1 (e2 is gone), e6 with main alone;
+        # a head this repository lacks is unknown, never a conflict.
+        qr = ScratchRepo.init(root / "queue")
+        qr.commit("base", {"a.txt": f"1{NL}2{NL}3{NL}", "b.txt": f"1{NL}2{NL}3{NL}", "c.txt": f"1{NL}2{NL}3{NL}"})
+        for name, path, text in (("e1", "a.txt", f"1{NL}x{NL}3{NL}"), ("e2", "a.txt", f"1{NL}y{NL}3{NL}"),
+                                 ("e3", "b.txt", f"1{NL}b{NL}3{NL}"), ("e4", "a.txt", f"1{NL}z{NL}3{NL}"),
+                                 ("e6", "c.txt", f"1{NL}n{NL}3{NL}")):
+            qr.git("switch", "-q", "-c", name, "main")
+            qr.commit(name, {path: text})
+            qr.git("switch", "-q", "main")
+        qr.commit("main moves", {"c.txt": f"1{NL}m{NL}3{NL}"})
+        heads = {n: qr.git("rev-parse", n) for n in ("e1", "e2", "e3", "e4", "e6")}
+        order = [(n, heads[n]) for n in ("e1", "e2", "e3", "e4", "e6")] + [("e5", "0" * 40)]
+        foreseen = foresee_queue(qr.path, "main", order)
+        expect("queue: an entry that conflicts on the entries ahead that stay is foreseen, with the entry it conflicts with "
+               "(e2 and e4 with e1, the removed e2 not counted for e4), main alone when none ahead does (e6), and a clean "
+               "entry or an unreadable head is not",
+               foreseen == {"e2": Foreseen(("a.txt",), ("e1",)), "e4": Foreseen(("a.txt",), ("e1",)),
+                            "e6": Foreseen(("c.txt",), ())}, str(foreseen))
+        expect("queue: the simulation touches no worktree, and one clean entry of the queue is foreseen as nothing",
+               not qr.git("status", "--porcelain") and foresee_queue(qr.path, "main", [("e2", heads["e2"])]) == {},
+               qr.git("status", "--porcelain"))
         # A file the keyed merger declines (both sides changed one entry) but git's line merge merges cleanly (the changes are
         # on lines apart, as a plain `git merge` would merge them) merges: no conflict, no markers (review finding R1-1).
         fat = lambda p, s: (f'{{{NL} "x": {{{NL}  "p": "{p}",{NL}  "q": "q",{NL}  "r": "r",{NL}  "s": "{s}"{NL} }}{NL}}}{NL}')    # noqa: E731

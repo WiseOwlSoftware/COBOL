@@ -334,11 +334,12 @@ BRIEF_NOTES = 24
 Git = Callable[..., Any]   # prune_worktrees.git's shape: (*args, cwd=) -> CompletedProcess
 
 
-def _note_line(nid: str, worktree: str, git: Git, reports: list[Any]) -> str:
-    """`- PBnnnn (status): title — newest report: <path> (<status>)`, the note read from origin/main (where the notes of
-    main's commits are), else from the worktree's own copy (a note the branch filed)."""
+def _note_line(nid: str, worktree: str, git: Git, reports: list[Any], ref: str = MAIN) -> str:
+    """`- PBnnnn (status): title — newest report: <path> (<status>)`, the note read from `ref` (origin/main, where the
+    notes of main's commits are, or the queued head a brief is against), else from the worktree's own copy (a note the
+    branch filed)."""
     from clusters import note_of  # noqa: PLC0415  (the one note reader, on the one frontmatter reader)
-    shown = git("show", f"{MAIN}:kb/Work/{nid}.md", cwd=worktree)
+    shown = git("show", f"{ref}:kb/Work/{nid}.md", cwd=worktree)
     text = shown.stdout if shown.returncode == 0 else None
     if text is None and (local := pathlib.Path(worktree) / "kb" / "Work" / f"{nid}.md").is_file():
         text = local.read_text(encoding="utf-8", errors="replace")
@@ -349,24 +350,33 @@ def _note_line(nid: str, worktree: str, git: Git, reports: list[Any]) -> str:
 
 
 def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, reports: list[Any],
-                   now: dt.datetime | None = None) -> str:
-    """THE CONFLICT BRIEF (section doc) for `branch` in `worktree` against origin/main, as Markdown. `reports` are the
+                   now: dt.datetime | None = None, against: str = MAIN, label: str = "origin/main") -> str:
+    """THE CONFLICT BRIEF (section doc) for `branch` in `worktree` against origin/main, as Markdown; `against` (a ref or
+    a commit) and its `label` name another side instead: the head of a queued pull request ahead of this one that the
+    queue's simulation finds conflicting (kb/Work PB3723). `reports` are the
     fix-lane reports, oldest first (reports.load_reports with the dispatch ledger, so each names the notes it
     answers). Git answers three questions: the merge base, the commits main gained on `files` since it (ONE `git log`
     over every file), and the branch's own commit subjects; a question git cannot answer is said in the brief, never
     dropped."""
-    mb = git("merge-base", MAIN, "HEAD", cwd=worktree)
+    who = "main" if against == MAIN else label     # how the brief's prose names the other side
+    mb = git("merge-base", against, "HEAD", cwd=worktree)
     base = mb.stdout.strip() if mb.returncode == 0 else ""
-    main_sha = main_of(worktree, git)
+    main_sha = main_of(worktree, git) if against == MAIN else \
+        git("rev-parse", "--verify", "--quiet", against, cwd=worktree).stdout.strip()
     tip = git("rev-parse", "HEAD", cwd=worktree).stdout.strip()
     out = [f"# Conflict brief: {branch}", "",
            f"Written {(now or now_utc()).isoformat(timespec='seconds')} by `land_lane.py` (kb/Work PB3640) for the "
            "CONFLICT finisher, who gets it verbatim (units/enqueue.md step 4).",
-           f"Bringing origin/main ({main_sha[:12] or 'unreadable'}) into {branch} ({tip[:12] or 'unreadable'}, merge "
+           f"Bringing {label} ({main_sha[:12] or 'unreadable'}) into {branch} ({tip[:12] or 'unreadable'}, merge "
            f"base {base[:12] or 'unreadable'}) leaves {len(files)} file(s) in conflict: {', '.join(files) or 'none'}.",
-           "Merge with `python scripts/merge_drivers.py merge origin/main --keep` and resolve each file against BOTH "
-           "sides' intent: this branch's notes and report, and what main gained on the file, with its notes and "
-           "reports (finisher-brief.md, CONFLICT). Never take one side wholesale.", ""]
+           f"Merge with `python scripts/merge_drivers.py merge {against if against == MAIN else main_sha or against} --keep` and "
+           f"resolve each file against BOTH sides' intent: this branch's notes and report, and what {who} gained on the "
+           "file, with its notes and reports (finisher-brief.md, CONFLICT). Never take one side wholesale."
+           + ("" if against == MAIN else
+              f" {label} is a pull request QUEUED ahead of this one: the queue will remove this one for a merge conflict "
+              "with it (kb/Work PB3723), and bringing its head in now keeps it from being removed; this branch then carries "
+              "that pull request's stamped DEVLOG entry and lands after it (`enqueue.py land` exit 15 until it is on main)."),
+           ""]
     mine = [r for r in reports if r.branch == branch]
     own_ids = list(dict.fromkeys(mine[-1].notes if mine else []))
     out.append("## This branch")
@@ -376,12 +386,12 @@ def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, re
     if base:
         subjects = git("log", "--format=%s", f"{base}..HEAD", cwd=worktree)
         own_ids = list(dict.fromkeys(own_ids + (NOTE_ID.findall(subjects.stdout) if subjects.returncode == 0 else [])))
-        out += ["", "## What main gained on each file since the merge base"]
-        log = git("log", "--no-merges", "--format=%x1e%H%x1f%s", "--name-only", f"{base}..{MAIN}", "--", *files,
+        out += ["", f"## What {who} gained on each file since the merge base"]
+        log = git("log", "--no-merges", "--format=%x1e%H%x1f%s", "--name-only", f"{base}..{against}", "--", *files,
                   cwd=worktree) if files else None
         changes: dict[str, list[str]] = {f: [] for f in files}
         if log is not None and log.returncode != 0:
-            out.append(f"git log failed ({log.stderr.strip()[:200]}): read `git log {base[:12]}..origin/main -- <file>`")
+            out.append(f"git log failed ({log.stderr.strip()[:200]}): read `git log {base[:12]}..{label} -- <file>`")
         for chunk in (log.stdout.split(chr(30)) if log is not None and log.returncode == 0 else []):
             head, _, names = chunk.strip().partition(chr(10))
             sha, _, subject = head.partition(chr(31))
@@ -395,14 +405,14 @@ def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, re
             out += [f"### {f}", *(lines or ["- nothing since the merge base (the conflict is the branch's edit against "
                                             "an older one)"])]
     else:
-        out += ["", f"git could not read the merge base of HEAD and origin/main ({mb.stderr.strip()[:200]}): the "
-                    "commits main gained are not listed"]
+        out += ["", f"git could not read the merge base of HEAD and {label} ({mb.stderr.strip()[:200]}): the "
+                    f"commits {who} gained are not listed"]
     out += ["", "## The branch's notes"]
     ids = own_ids[:BRIEF_NOTES]
-    out += [_note_line(i, worktree, git, reports) for i in ids] or ["- none named by its report or its commits"]
+    out += [_note_line(i, worktree, git, reports, against) for i in ids] or ["- none named by its report or its commits"]
     other = [i for i in theirs if i not in own_ids]
-    out += ["", "## The notes main's commits name"]
-    out += [_note_line(i, worktree, git, reports) for i in other[:max(0, BRIEF_NOTES - len(ids))]] or \
+    out += ["", f"## The notes {who}'s commits name"]
+    out += [_note_line(i, worktree, git, reports, against) for i in other[:max(0, BRIEF_NOTES - len(ids))]] or \
         ["- none (their subjects name no PB note)"]
     if len(own_ids) + len(other) > BRIEF_NOTES:
         out.append(f"- ... {len(own_ids) + len(other) - BRIEF_NOTES} more not read (BRIEF_NOTES = {BRIEF_NOTES})")
@@ -457,18 +467,26 @@ def show_conflict_brief(cdir: pathlib.Path, branch: str, git: Git | None = None,
     if not wt:
         say(f"land lane: {branch}: no attempt and no survey row names its worktree: nothing to brief")
         return 1
-    recorded = pathlib.Path(last["brief"]) if last and last.get("brief") else None
+    # A queued pull request the queue's simulation finds conflicting with an entry ahead of it (the survey's `foreseen`,
+    # kb/Work PB3723) is briefed against that entry's head, the first it conflicts with; the others follow once it is in.
+    ahead = [f for f in (row or {}).get("foreseen") or [] if f.get("branch") != "origin/main"]
+    against, label = (ahead[0]["head"], ahead[0]["branch"]) if ahead else (MAIN, "origin/main")
+    recorded = pathlib.Path(last["brief"]) if last and last.get("brief") and not ahead else None
     if (recorded and recorded.is_file() and tip_of(wt) == last.get("end_head")
             and last.get("brief_main") and last.get("brief_main") == main_of(wt, git)):
         say(recorded.read_text(encoding="utf-8").rstrip())
         return 0
-    files = merge_drivers.merge_conflicts(wt, MAIN)
+    files = merge_drivers.merge_conflicts(wt, against)
     if not files:
-        say(f"land lane: {branch}: " + ("git could not merge-tree it against origin/main" if files is None else
-                                        "merging origin/main leaves nothing in conflict now: nothing to brief"))
+        say(f"land lane: {branch}: " + (f"git could not merge-tree it against {label}" if files is None else
+                                        f"merging {label} leaves nothing in conflict now: nothing to brief"))
         return 1
-    say(conflict_brief(branch, wt, files, git=git,
-                       reports=load_reports(coord.reports_dir(str(cdir)), cdir)).rstrip())
+    text = conflict_brief(branch, wt, files, git=git, reports=load_reports(coord.reports_dir(str(cdir)), cdir),
+                          against=against, label=label).rstrip()
+    if len(ahead) > 1:
+        text += (f"\n\nAlso queued ahead and conflicting: {', '.join(a['branch'] for a in ahead[1:])}. Run "
+                 f"`land_lane.py conflict-brief {branch}` again once {label} is merged in.")
+    say(text)
     return 0
 
 
@@ -571,8 +589,10 @@ def row_dicts(rows: list, prs: dict | None) -> list[dict[str, Any]]:
     return [{"name": r.name, "state": r.state, "content": r.content, "tip": r.tip, "worktree": r.worktree,
              "why": r.why, "lead": r.report.lead if r.report else None,
              "report": str(r.report.path) if r.report else None,
-             # GitHub cannot create the pull request's merge commit (DIRTY): a CONFLICT finisher's, as an exit 4 is
-             "conflicts": bool(prs and r.name in prs and prs[r.name].conflicts)} for r in rows]
+             # GitHub cannot create the pull request's merge commit (DIRTY), or the queue's simulation finds its head
+             # conflicting with an entry ahead of it (foreseen, kb/Work PB3723): a CONFLICT finisher's, as an exit 4 is
+             "conflicts": bool(prs and r.name in prs and prs[r.name].conflicts) or bool(r.foreseen),
+             "foreseen": [{"branch": b, "head": h} for b, h in r.foreseen]} for r in rows]
 
 
 def landing_check_free(worktree: str) -> tuple[bool, str]:
@@ -1455,6 +1475,12 @@ def self_test() -> int:
         expect("... with GitHub observed, a pull request GitHub cannot merge (DIRTY, not queued) is a conflict, a queued "
                "one is not (PullRequest.conflicts read through the real mapping)",
                [d["conflicts"] for d in row_dicts(planted, dirty)] == [True, False], str(row_dicts(planted, dirty)))
+        foreseen_row = prune_worktrees.Row("w1c", "CHECK", [], [], 1, None, None, 0, 5.0, "", None, "BOUNCED", tip="c1",
+                                           foreseen=(("w1a", "a1"),))
+        expect("... and a queued head the queue's simulation finds conflicting with an entry ahead of it (kb/Work PB3723) "
+               "is a conflict too, naming that entry's branch and head for the brief",
+               [(d["conflicts"], d["foreseen"]) for d in row_dicts([foreseen_row], {})]
+               == [(True, [{"branch": "w1a", "head": "a1"}])], str(row_dicts([foreseen_row], {})))
 
         # 2. exit 5 (GATE RED) is never relaunched at the same head; a new head (a finisher's commit) is eligible.
         f.rows[0] = row("w1a", "DECISION", "a2")                  # enqueue merged main in: the survey no longer lists it
@@ -2324,6 +2350,29 @@ def self_test() -> int:
                merge_drivers.covered_by_driver(diag)
                and show_conflict_brief(c17b, "wdirty", fixture_git, declined_out.append) == 0
                and f"leaves 1 file(s) in conflict: {diag}" in "".join(declined_out), str(declined_out))
+
+        # ... and a QUEUED pull request whose head conflicts with an entry queued ahead of it (the survey's `foreseen`,
+        #     kb/Work PB3723): origin/main merges clean, the entry ahead does not, so the brief is against that entry's
+        #     head, saying it is queued ahead and how its head is brought in
+        qbr = ScratchRepo.init(root / "wt-queue")
+        qbr.commit("base", {"scripts/q.py": "q = 0\n"})
+        qbr.git("update-ref", MAIN, "HEAD")
+        qbr.commit("the entry queued ahead", {"scripts/q.py": "q = 1\n"})
+        ahead_head = qbr.git("rev-parse", "HEAD")
+        qbr.git("reset", "-q", "--hard", MAIN)
+        qbr.commit("the queued branch", {"scripts/q.py": "q = 2\n"})
+        c17c = fresh("foreseen")
+        f17c = Fake([{"name": "wq", "state": "BOUNCED", "tip": qbr.git("rev-parse", "HEAD"), "worktree": str(qbr.path),
+                      "why": "", "lead": None, "conflicts": True, "foreseen": [{"branch": "wahead", "head": ahead_head}]}])
+        f17c.tick(c17c)
+        foreseen_out: list[str] = []
+        expect("conflict brief: a queued branch whose head conflicts with an entry ahead of it is briefed against THAT "
+               "head, not origin/main (which merges clean): the file, the entry's name, and the merge command for its head",
+               show_conflict_brief(c17c, "wq", lambda *a, cwd=None: qbr.run(*a, cwd=cwd), foreseen_out.append) == 0
+               and "Bringing wahead" in "".join(foreseen_out) and "leaves 1 file(s) in conflict: scripts/q.py" in "".join(foreseen_out)
+               and f"merge_drivers.py merge {ahead_head} --keep" in "".join(foreseen_out)
+               and "QUEUED ahead of this one" in "".join(foreseen_out) and "the entry queued ahead" in "".join(foreseen_out),
+               "".join(foreseen_out))
 
         # 13. the runner's launch (no window, outliving the tick) is scripts/detached.py's, with its own self-test
         #     arms (kb/Work PB3117, PB3536): the tick starts every runner through it.
