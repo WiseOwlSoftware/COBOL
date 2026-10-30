@@ -308,9 +308,21 @@ public static class DiagnosticCatalog
         + "specified if ACCESS MODE RANDOM is specified in the file control entry for file-name-1.\" "
         + "ISO §14.9.30.3 syntax rule 7: \"The phrase PREVIOUS shall not be specified if FILE ORGANIZATION "
         + "LINE SEQUENTIAL is specified in the file control entry for file-name-1.\" And the READ general "
-        + "format itself: §14.9.30.2 Format 1 has no INVALID KEY bracket, and §12.4.5.5.2 SR2 + §14.9.30.3 SR8 "
-        + "+ §14.9.30.4 GR19 make every READ of a sequential-organization file a Format-1 read, so the phrase "
-        + "has no format to belong to there. "
+        + "format itself: §14.9.30.2 Format 1 has no INVALID KEY bracket, and §14.9.30.4 GR19: \"An implicit or "
+        + "explicit NEXT phrase or a PREVIOUS phrase results in a sequential read: otherwise, the read is a "
+        + "random read and the rules for format 2 apply.\" makes a READ that binds sequential a Format-1 read, so "
+        + "the phrase has no format to belong to there. A READ binds sequential at TWO sites, both screened "
+        + "through the one seam. (1) Every READ of a sequential-organization file (SequentialIoBinder.BindRead): "
+        + "§12.4.5.5.2 SR2 \"The DYNAMIC and RANDOM phrases shall not be specified for a sequential file.\" leaves "
+        + "that file ACCESS MODE SEQUENTIAL, and §14.9.30.3 SR8 \"If neither the NEXT phrase nor the PREVIOUS phrase "
+        + "is specified and ACCESS MODE SEQUENTIAL is specified in the file control entry for file-name-1, the NEXT "
+        + "phrase is implied.\" supplies the NEXT. (2) A READ of an INDEXED or RELATIVE file that binds sequential "
+        + "(KeyedIoBinder.BindRead, kb/Work PB3569): ACCESS MODE SEQUENTIAL by the same SR8; ACCESS MODE DYNAMIC "
+        + "when the READ writes NEXT or PREVIOUS (GR19), or ADVANCING, AT END or NOT AT END, which §14.9.30.3 SR9 "
+        + "\"If neither the NEXT phrase nor the PREVIOUS phrase is specified and ACCESS MODE DYNAMIC is specified in "
+        + "the file control entry for file-name-1, the NEXT phrase is implied if any of the following phrases is "
+        + "specified: ADVANCING, AT END, or NOT AT END.\" makes NEXT. A bare READ of a DYNAMIC or RANDOM file is "
+        + "the Format-2 random read and may carry the bracket. "
         + "Under --permissive the phrase is tolerated and BOUND with the meaning ISO §9.1.14 gives it: the "
         + "INVALID arm is dead in the status-first branches wherever the forbidding condition also excludes "
         + "the '2x' family (never silently rerouted), while §9.1.14's final rule item 2 still runs the NOT "
@@ -319,7 +331,7 @@ public static class DiagnosticCatalog
         + "obligation is §14.9.30.4 GR13c, which transfers control to NOT INVALID KEY on a successful read "
         + "(kb/Work PB334).",
         "ISO §14.9.10.3 SR2 · §14.9.35.3 SR2 · §14.9.51.3 SR2 · §14.9.51.3 SR3 · §14.9.30.3 SR6 · §14.9.30.3 SR7 "
-        + "· §14.9.30.2 Format 1");
+        + "· §14.9.30.3 SR8 · §14.9.30.3 SR9 · §14.9.30.4 GR19 · §14.9.30.2 Format 1");
     // The MIRROR of COBOL1720, and the falsely-PERMISSIVE twin of the OCR's falsely-restrictive bias
     // (kb/Work PB350). §5.2.6.2 makes BRACKETS the only thing that lets a portion of a general format be
     // omitted, and §5.2.2 makes an underlined keyword required subject to those conventions — so a phrase

@@ -1,6 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
+using Antlr4.Runtime;
+using Antlr4.Runtime.Atn;
+using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -322,6 +325,88 @@ public sealed class RequiredImperativeStatementDriftTests : WiseOwlCobolTestBase
         var (_, _, nested) = CompileAndRun(Program("PB3832L2", OpenNest + "           " + FailsInside), 2023);
         Assert.Equal(new[] { "COBOL0001" }, Codes(lone));
         Assert.Equal(Codes(lone), Codes(nested));
+    }
+
+    // ── kb/Work PB911: EVERY rule that calls statementBlock has an empty-block witness, and each draws ONE diagnostic ──
+
+    /// <summary>The empty-block witness of each grammar rule that calls <c>statementBlock</c>, by RULE name: a statement
+    /// written with that rule's imperative-statement EMPTY and the owner's next token (its terminator or next phrase)
+    /// right after it. PERFORM carries four rules of Format 3 beside Format 2's (§14.9.28.2: imperative-statement-1 is
+    /// printed unbracketed, and so are the bodies of the WHEN, WHEN OTHER, WHEN COMMON and FINALLY phrases), which the
+    /// first draft of this table lacked, so the Format-3 positions were never exercised (kb/Work PB911).</summary>
+    private static readonly Dictionary<string, string[]> EmptyBlockWitnesses = new(StringComparer.Ordinal)
+    {
+        ["conditionalPhrase"] = ["ADD 1 TO X ON SIZE ERROR END-ADD"],
+        ["performStatement"] = ["PERFORM UNTIL X > 5 END-PERFORM", "PERFORM 3 TIMES END-PERFORM",
+            "PERFORM WHEN EC-ALL DISPLAY \"B\" END-PERFORM"],
+        ["performWhenPhrase"] = ["PERFORM DISPLAY \"A\" WHEN EC-ALL END-PERFORM",
+            "PERFORM DISPLAY \"A\" WHEN EXCEPTION INPUT END-PERFORM"],
+        ["performWhenOther"] = ["PERFORM DISPLAY \"A\" WHEN EC-ALL DISPLAY \"B\" WHEN OTHER EXCEPTION END-PERFORM"],
+        ["performWhenCommon"] = ["PERFORM DISPLAY \"A\" WHEN EC-ALL DISPLAY \"B\" WHEN COMMON END-PERFORM"],
+        ["performFinally"] = ["PERFORM DISPLAY \"A\" WHEN EC-ALL DISPLAY \"B\" FINALLY END-PERFORM"],
+        ["ifStatement"] = ["IF X = 1 END-IF", "IF X = 1 DISPLAY \"T\" ELSE END-IF"],
+        ["evaluateWhenClause"] = ["EVALUATE X WHEN 3 END-EVALUATE"],
+        ["evaluateWhenOther"] = ["EVALUATE X WHEN 3 DISPLAY \"T\" WHEN OTHER END-EVALUATE"],
+        ["searchWhenClause"] = ["SEARCH R WHEN R (I) = 7 END-SEARCH"],
+        ["searchAllWhenClause"] = ["SEARCH ALL R WHEN R (I) = 7 END-SEARCH"],
+    };
+
+    /// <summary>⛔ THE TABLE ABOVE IS THE GRAMMAR'S, READ FROM THE ATN, NEVER A LIST SOMEONE REMEMBERED. Every parser
+    /// rule with a call of <c>statementBlock</c> is an imperative-statement operand position, so it needs a witness:
+    /// a phrase rule added tomorrow fails here until its empty block is written down and draws its one diagnostic.</summary>
+    [Fact]
+    public void EveryRuleThatCallsStatementBlock_HasAnEmptyBlockWitness()
+    {
+        var parser = new CobolParserCore(new CommonTokenStream(new CobolLexer(new AntlrInputStream(""))));
+        var callers = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (var state in parser.Atn.states)
+            for (int i = 0; state is not null && i < state.NumberOfTransitions; i++)
+                if (state.Transition(i) is RuleTransition { target.ruleIndex: CobolParserCore.RULE_statementBlock }
+                    && state.ruleIndex != CobolParserCore.RULE_statementBlock)
+                    callers.Add(parser.RuleNames[state.ruleIndex]);
+        Assert.True(callers.Count >= 11, $"only {callers.Count} callers of statementBlock found: {string.Join(", ", callers)}");
+        Assert.Equal(callers, new SortedSet<string>(EmptyBlockWitnesses.Keys, StringComparer.Ordinal));
+    }
+
+    public static TheoryData<string, string, bool, int> EmptyBlockRows()
+    {
+        var data = new TheoryData<string, string, bool, int>();
+        int row = 0;
+        foreach (var (rule, witnesses) in EmptyBlockWitnesses)
+            foreach (string witness in witnesses)
+                foreach (bool nested in new[] { false, true })
+                    data.Add(rule, witness, nested, ++row);
+        return data;
+    }
+
+    /// <summary>⛔ AN EMPTY REQUIRED BLOCK DRAWS ONE DIAGNOSTIC, AT EVERY POSITION AND BOTH DEPTHS (kb/Work PB911). The
+    /// Format-2 and Format-3 PERFORM positions drew COBOL2072 but not ONE diagnostic: the statement after the PERFORM
+    /// (<c>STOP RUN</c> in <see cref="Program"/>) drew a second COBOL0001 at its period. The recovery deleted the stray
+    /// END-PERFORM (single-token deletion: the token after it begins a statement), the next statement became the body, and
+    /// the PERFORM, whose END-PERFORM is required, ran to the period without one. The terminators of IF, EVALUATE and
+    /// SEARCH are optional (§14.5.3.2), so the same recovery hid it there. The token that ends an empty block is the
+    /// owner's own, and is never deleted (<c>CobolErrorStrategy.SingleTokenDeletion</c>).</summary>
+    [Theory]
+    [MemberData(nameof(EmptyBlockRows))]
+    public void AnEmptyRequiredBlock_AtEveryRulePosition_DrawsExactlyOneCOBOL2072(string rule, string statement, bool nested, int row)
+    {
+        string id = $"PB911R{row}";
+        var (ok, _, detail) = CompileAndRun(Program(id, (nested ? OpenNest : "") + "           " + statement), 2023);
+        Assert.False(ok, $"{rule}: an empty imperative-statement compiled: {statement}");
+        Assert.Equal(new[] { "COBOL2072" }, Codes(detail));
+        Assert.DoesNotContain("appears without a matching", detail, StringComparison.Ordinal);
+    }
+
+    /// <summary>⛔ THE COMPLEMENT: THE SAME FORMAT-3 STATEMENT WITH EVERY BODY WRITTEN COMPILES (kb/Work PB911), so the rows
+    /// above cannot pass because Format 3 is refused outright. Compiled, not run: the exception-checking PERFORM's
+    /// runtime is staged work and this table asserts only that the printed format is accepted.</summary>
+    [Fact]
+    public void TheFormat3Statement_WithEveryBodyWritten_IsAccepted()
+    {
+        var (ok, _, detail) = CompileAndRun(Program("PB911F3OK", "           PERFORM DISPLAY \"A\" WHEN EC-ALL DISPLAY \"B\" "
+            + "WHEN OTHER EXCEPTION DISPLAY \"C\" WHEN COMMON DISPLAY \"D\" FINALLY DISPLAY \"E\" END-PERFORM"), 2023);
+        Assert.DoesNotContain("COBOL2072", detail, StringComparison.Ordinal);
+        Assert.True(ok || !Codes(detail).Contains("COBOL0001"), detail);
     }
 
     /// <summary>⛔ THE COMPLEMENT, so the guard above cannot be satisfied by rejecting the construct outright:
