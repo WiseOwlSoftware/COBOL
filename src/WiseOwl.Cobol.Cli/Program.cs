@@ -4,6 +4,7 @@ using System.CommandLine;
 using System.Diagnostics;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime;
 
@@ -56,15 +57,19 @@ internal static class Program
             Arity = ArgumentArity.ZeroOrOne,   // the name is optional — `--nist` alone is legal
             HelpName = "NAME",
         };
-        var stdOption = new Option<int?>("--std")
+        // kb/Work PB4126: a STRING option whose one validator owns both the accepted spellings and the message, like every
+        // sibling value option below. It was an Option<int?>, and reading a token the parser could not convert
+        // (`--std COBOL-2002`, `--std abc`, `--std ""`) from inside the validator threw an unhandled
+        // InvalidOperationException instead of reporting a usage error.
+        var stdOption = new Option<string?>("--std")
         {
-            Description = "Target ISO edition: 85, 2002, 2014, or 2023 (default: 2023, or 85 with --nist).",
+            Description = $"Target ISO edition: {string.Join(", ", StdSpellings[..^1])}, or {StdSpellings[^1]} (default: 2023, or 85 with --nist).",
             HelpName = "YEAR",
         };
         stdOption.Validators.Add(result =>
         {
-            if (result.GetValueOrDefault<int?>() is { } y and not (85 or 2002 or 2014 or 2023))
-                result.AddError($"--std must be one of 85, 2002, 2014, 2023 (got {y}).");
+            if (result.GetValueOrDefault<string?>() is { } v && !TryParseStd(v, out _))
+                result.AddError($"--std must be one of {string.Join(", ", StdSpellings)} (got {v}).");
         });
         var permissiveOption = new Option<bool>("--permissive")
         {
@@ -175,7 +180,8 @@ internal static class Program
                 ? parse.GetValue(nistOption) ?? Path.GetFileNameWithoutExtension(source)
                 : null;
             // --std wins when given; else the NIST CCVS corpus is COBOL-85, otherwise the 2023 default (DEVLOG 519).
-            int std = parse.GetValue(stdOption) ?? (nistEnabled ? 85 : 2023);
+            // The validator above has already refused any other spelling, so a false here can only be the ABSENT option.
+            int std = TryParseStd(parse.GetValue(stdOption), out int stdYear) ? stdYear : nistEnabled ? 85 : 2023;
 
             // The validator above has already refused any unparseable value, so a false here can only be the
             // ABSENT option — the documented IBM default (kb/Work PB803).
@@ -232,20 +238,42 @@ internal static class Program
         }
         string[] entries = File.ReadAllLines(manifestPath).Where(l => l.Trim().Length > 0).ToArray();
         var results = new System.Collections.Concurrent.ConcurrentBag<string>();
-        Parallel.ForEach(entries, line =>
-        {
-            string[] f = line.Split('\t');
-            string source = f[0];
-            int std = f.Length > 1 && int.TryParse(f[1], out int s) ? s : 2023;
-            string? nist = f.Length > 2 && f[2].Length > 0 ? f[2] : null;
-            bool permissive = f.Length > 3 && f[3] == "1";
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                source, NistTestName: nist, DialectLevel: std, Permissive: permissive, CheckOnly: true));
-            results.Add($"{source}\t{std}\t{(r.Success ? "PASS" : "FAIL")}");
-        });
+        Parallel.ForEach(entries, line => results.Add(CheckBatchVerdict(line)));
         foreach (string line in results)
             Console.Out.WriteLine(line);
         return 0;
+    }
+
+    /// <summary>The verdict line of one check-batch manifest entry, <c>source TAB std TAB PASS|FAIL</c>. An absent std field is
+    /// the 2023 default; a PRESENT field that is not an edition (<see cref="TryParseStd"/>) is a FAIL entry that compiles
+    /// nothing, never silently checked as 2023 (kb/Work PB4126).</summary>
+    internal static string CheckBatchVerdict(string manifestLine)
+    {
+        string[] f = manifestLine.Split('\t');
+        string source = f[0];
+        bool stdGiven = f.Length > 1 && f[1].Length > 0;
+        int std = 2023;
+        if (stdGiven && !TryParseStd(f[1], out std))
+            return $"{source}\t{f[1]}\tFAIL";
+        string? nist = f.Length > 2 && f[2].Length > 0 ? f[2] : null;
+        bool permissive = f.Length > 3 && f[3] == "1";
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(
+            source, NistTestName: nist, DialectLevel: std, Permissive: permissive, CheckOnly: true));
+        return $"{source}\t{std}\t{(r.Success ? "PASS" : "FAIL")}";
+    }
+
+    /// <summary>The spellings <c>--std</c> accepts: the years of <see cref="EditionInfo.All"/>, the one list of the editions this
+    /// compiler targets, written as plain decimal years, so <c>COBOL-2002</c>, <c>+85</c> and an empty value are refused. Derived,
+    /// never retyped: an edition added to <see cref="EditionInfo.All"/> is accepted here with no second edit.</summary>
+    internal static readonly string[] StdSpellings = EditionInfo.All.ToArray()
+        .Select(year => year.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+
+    /// <summary>Parse a <c>--std</c> value (or a check-batch manifest's std field) to its edition year; an absent value answers
+    /// false.</summary>
+    internal static bool TryParseStd(string? value, out int year)
+    {
+        year = 0;
+        return value is not null && Array.IndexOf(StdSpellings, value) >= 0 && int.TryParse(value, out year);
     }
 
     /// <summary>The spellings <c>--repository-update</c> accepts.</summary>

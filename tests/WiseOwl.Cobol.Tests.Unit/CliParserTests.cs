@@ -1,7 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.CommandLine;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Cli;
+using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -67,6 +70,73 @@ public sealed class CliParserTests
     [Fact]
     public void Std_RejectsUnknownYear()
         => Assert.Contains(Errors("a.cob", "--std", "99"), m => m.Contains("--std must be one of"));
+
+    /// <summary>kb/Work PB4126: a <c>--std</c> value that is not an edition year (<c>COBOL-2002</c>, a word, an empty value, a
+    /// signed or padded year) is a usage error naming the accepted values, never an exception out of the parser — the
+    /// validator once read the token as an <c>int?</c> and threw <see cref="InvalidOperationException"/> on any it could not convert.
+    /// Each is parsed AND invoked, because the throw was in the parse itself.</summary>
+    [Theory]
+    [InlineData("COBOL-2002")]
+    [InlineData("abc")]
+    [InlineData("1999")]
+    [InlineData("")]
+    [InlineData("+85")]
+    [InlineData(" 85")]
+    [InlineData("2002.0")]
+    public void Std_RejectsAnyNonEditionValue_AsAUsageError_NeverThrows(string value)
+    {
+        var (command, _) = Program.BuildParser();
+        var parse = command.Parse(["a.cob", "--std", value]);
+        Assert.Contains(parse.Errors, e => e.Message.Contains("--std must be one of 85, 2002, 2014, 2023"));
+        var output = new StringWriter();
+        var error = new StringWriter();
+        Assert.NotEqual(0, parse.Invoke(new InvocationConfiguration { Output = output, Error = error }));
+        Assert.Contains("--std must be one of 85, 2002, 2014, 2023", error.ToString());
+    }
+
+    [Theory]
+    [InlineData("85", 85)]
+    [InlineData("2002", 2002)]
+    [InlineData("2014", 2014)]
+    [InlineData("2023", 2023)]
+    public void TryParseStd_AcceptsExactlyTheFourEditions(string value, int year)
+    {
+        Assert.True(Program.TryParseStd(value, out int parsed));
+        Assert.Equal(year, parsed);
+        Assert.False(Program.TryParseStd(null, out _));
+    }
+
+    /// <summary>kb/Work PB4126, sibling arm: a check-batch manifest entry whose std field is present but is not an edition is a
+    /// FAIL verdict naming the field as written, and compiles nothing. The source EXISTS and is valid (the 2023 control row passes
+    /// it), so the old reading, which fell back to 2023 on text and compiled at any integer such as 1999, cannot also produce the
+    /// FAIL: a regression to either arm turns this red.</summary>
+    [Theory]
+    [InlineData("COBOL-2002")]
+    [InlineData("1999")]
+    [InlineData("+85")]
+    public void CheckBatch_PresentButInvalidStd_IsAFailEntry_ForAValidSource(string std)
+    {
+        string dir = ScratchDirectory.Create("pb4126batch");
+        try
+        {
+            string src = Path.Combine(dir, "OK.cob");
+            File.WriteAllText(src, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4126OK.\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
+            Assert.Equal($"{src}\t2023\tPASS", Program.CheckBatchVerdict($"{src}\t2023"));
+            Assert.Equal($"{src}\t{std}\tFAIL", Program.CheckBatchVerdict($"{src}\t{std}\t\t0"));
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>The CLI's accepted <c>--std</c> spellings are the years of <see cref="EditionInfo.All"/>, the one list of
+    /// editions, never a second copy of it.</summary>
+    [Fact]
+    public void StdSpellings_AreExactlyTheEditionInfoYears()
+    {
+        string[] years = EditionInfo.All.ToArray().Select(y => y.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+        Assert.Equal(years, Program.StdSpellings);
+        foreach (string spelling in years)
+            Assert.True(Program.TryParseStd(spelling, out int parsed) && parsed.ToString(System.Globalization.CultureInfo.InvariantCulture) == spelling);
+    }
 
     [Fact]
     public void Source_RequiredAndSingle()
