@@ -1,4 +1,4 @@
-## PB1908: STRING with overlapping operands runs in place, as GnuCOBOL's libcob does; documented as D-STR1 to D-STR4 and pinned by five goldens
+## Entry 2765 — 2026-10-29 20:11 PDT — PB1908: STRING with overlapping operands runs in place, as GnuCOBOL's libcob does; documented as D-STR1 to D-STR4 and pinned by five goldens
 
 **The case.** §14.9.43.4 GR10 and Annex A.2 item 60 leave a STRING whose sending, delimiter, receiving or pointer operands
 share storage undefined; §4.4 2) makes a run unit that allows it conforming. The owner's PB1907 decision (document what we do,
@@ -54,3 +54,4 @@ shape the walk does not know run once, inline (`Reach.Repeatable`). Golden `pb19
 leg; mutating the fix back gave EC-BOUND-SUBSCRIPT on F2, F4 and F5) and seven new `StringLiveReadDriftTests` tests.
 
 **Review round 2 (one blocking finding).** The round-1 fix replaced the notes of row `GR-14.9.43.4-10` with a review narrative that said a later function is "evaluated once at its transfer" (stale after the second review) and dropped the row rationale. The row now carries the current determination once: the GR10 / Annex A.2 item 60 citations, the owner decision (PB1907/PB1908), the GnuCOBOL 3.2 measurement, the function rule (identified up front and evaluated again at its transfer; only `FUNCTION RANDOM` and unwalked shapes run once) and why `DRV-GR-14.9.43.4-10` left (`record_verdicts` batch, GAP 21 to 21). The lead that the operand walk belongs beside `StorageOverlap` with `InspectEmitter.MayReadStorageOf` (the report's lead 2) stays for the clerk: neither file is changed here.
+
