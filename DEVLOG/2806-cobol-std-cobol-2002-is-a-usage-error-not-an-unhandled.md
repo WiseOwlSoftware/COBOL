@@ -1,4 +1,4 @@
-## `cobol --std COBOL-2002` is a usage error, not an unhandled exception (PB4126)
+## Entry 2806 — 2026-10-30 13:49 PDT — `cobol --std COBOL-2002` is a usage error, not an unhandled exception (PB4126)
 
 Re-probe on the branch build: `--std COBOL-2002`, `--std abc` and `--std ""` ended in an unhandled `InvalidOperationException`
 ("Cannot parse argument ... as expected type Nullable<Int32>", exit 127) out of the `--std` validator, which read the token with
@@ -16,3 +16,4 @@ in the parse itself) and expects the "--std must be one of 85, 2002, 2014, 2023"
 check-batch FAIL theory (round 1: rewritten over an existing valid source with a 2023 PASS control, so the old any-integer arm cannot also yield the FAIL) and `StdSpellings_AreExactlyTheEditionInfoYears`. No conformance golden: nothing about the COBOL source is wrong, it is a command-line argument error. No inventory row
 closed (`closes_rows: []`). Self-review (architecture, full code, performance, duplication): one parse of the edition, no second copy of the
 list; the option description is built from the same table.
+
