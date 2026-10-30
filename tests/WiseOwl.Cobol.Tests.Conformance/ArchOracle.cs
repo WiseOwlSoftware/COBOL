@@ -75,10 +75,10 @@ public static class ArchOracle
             VersionMatrixTestsBase<Slot0>.AllObsoleteMatrix, row => MatrixCell(row, permissive: false)),
         new(typeof(VersionMatrixTestsBase<>), nameof(VersionMatrixTestsBase<Slot0>.AllContinuityCells),
             VersionMatrixTestsBase<Slot0>.AllContinuityCells, ContinuityCell),
-        // Partitioned since kb/Work PB2527: every subset spelling of a format's optional words, one case per format.
-        // Its templates live in the drift-test file; one is derived from a corpus golden.
+        // Partitioned since kb/Work PB2527: one subset spelling of a format's optional words per row (kb/Work PB4146),
+        // one case per spelling. Its templates live in the drift-test file; one is derived from a corpus golden.
         new(typeof(OptionalWordSubsetDriftTestsBase<>), nameof(OptionalWordSubsetDriftTestsBase<Slot0>.AllCases),
-            OptionalWordSubsetDriftTestsBase<Slot0>.AllCases, OptionalWordFormat),
+            OptionalWordSubsetDriftTestsBase<Slot0>.AllCases, OptionalWordSpelling),
     ];
 
     /// <summary>The whole population: every enrolled source's cases, one per identity, in ordinal id order. An id
@@ -147,15 +147,15 @@ public static class ArchOracle
                 EditionHarness.CompileNistObserved(name, edition, permissive, checkOnly: true, Observe))));
     }
 
-    /// <summary>An optional-word format: every subset spelling, compiled as the drift theory compiles it, each section
-    /// headed by the words it writes.</summary>
-    private static IEnumerable<OracleCase> OptionalWordFormat(object[] row)
+    /// <summary>One spelling of an optional-word format (the sweep's row is one subset of a format's optional words),
+    /// compiled as the drift theory compiles it, named by the format and the spelling's PROGRAM-ID.</summary>
+    private static IEnumerable<OracleCase> OptionalWordSpelling(object[] row)
     {
-        string name = (string)row[0];
+        var (name, mask) = ((string)row[0], (int)row[1]);
         int edition = OptionalWordSubsetDriftTestsBase<Slot0>.EditionOf(name);
-        yield return new($"optword/{name}", $"optword/{edition}", () => Fold(
-            OptionalWordSubsetDriftTestsBase<Slot0>.Spellings(name).Select(s => (s.Words, InScratch(dir =>
-                OptionalWordSubsetDriftTestsBase<Slot0>.Compile(dir, s, edition))))));
+        var spelling = OptionalWordSubsetDriftTestsBase<Slot0>.SpellingOf(name, mask);
+        yield return new($"optword/{name}/{spelling.Unit}", $"optword/{edition}", () => InScratch(dir =>
+            OptionalWordSubsetDriftTestsBase<Slot0>.Compile(dir, spelling, edition)));
     }
 
     private static IEnumerable<OracleCase> MatrixCell(object[] row, bool permissive)
