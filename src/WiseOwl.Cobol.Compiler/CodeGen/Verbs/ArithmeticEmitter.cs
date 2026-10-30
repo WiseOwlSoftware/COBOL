@@ -314,10 +314,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             ctx.Writer.Line($"CobolDec {sq} = {RuntimeApi.DecSubsidiaryQuotient(truncated.Expr, qs)};");
             return new NumX(sq, 0, Dec: true);
         }
-        // A binary64 quotient lands at identifier-3's scale by truncation (the checked form under ON SIZE ERROR /
-        // EC-SIZE); a scaled one is already there.
+        // A binary64 quotient lands at identifier-3's scale by truncation; the CHECKED landing (the one that raises
+        // EC-SIZE-TRUNCATION) only where that name is taken - a SIZE ERROR phrase or EC-SIZE-TRUNCATION checking - and not on
+        // the statement's mere having the two-phase shape, which EC-SIZE-OVERFLOW checking alone also gives it
+        // (§14.6.13.1.1 NOTE 3, kb/Work PB4093: the other name stores the low-order digits, DOC-A.1-70). A scaled quotient
+        // is already there.
         if (truncated.Real)
-            return Snapshot(new NumX(RuntimeApi.FloatToScaled(truncated.Expr, $"{qs}", CobolRounding.Truncation, ise), qs));
+            return Snapshot(new NumX(RuntimeApi.FloatToScaled(truncated.Expr, $"{qs}", CobolRounding.Truncation,
+                (TakenBy(ise) & SizeChecks.Truncation) != 0), qs));
         return truncated.Scale == qs ? truncated
             : throw new InvalidOperationException(
                 $"DIVIDE REMAINDER: a final-transfer quotient at scale {truncated.Scale}, not identifier-3's {qs}");

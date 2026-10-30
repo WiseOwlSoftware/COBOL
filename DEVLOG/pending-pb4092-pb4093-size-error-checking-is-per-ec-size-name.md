@@ -49,3 +49,14 @@ VALUE, which COBOL-2002/2014 refuse; DOC-A.1-179 did not list its two new witnes
 (Conformance 2,012 · Unit 32,926 · Characterization 36 cases ran), the ten new conformance cases among them passing.
 Self-review (architecture, full code, performance, duplication, and the silent-failure, test and comment lenses) found nothing
 beyond the missing EC-SIZE-UNDERFLOW gate row, fixed above.
+
+**Branch review round 1 (R1-1).** `ArithmeticEmitter.FixedPointSubsidiary` still chose the CHECKED float landing for the
+subsidiary quotient of `DIVIDE ... REMAINDER` on the statement flag `ise`, the sibling of the store arm this fix moved to
+`SizeErrLandingVar`: under EC-SIZE-OVERFLOW alone, `DIVIDE WS-F1 BY WS-F2 GIVING WS-Q REMAINDER WS-R` with a binary64 quotient
+past the Int128 carrier raised EC-SIZE-TRUNCATION, which the per-name catch filter no longer catches, so the run unit ended
+where checking off stores the low-order digits. It now asks `TakenBy(ise)` for EC-SIZE-TRUNCATION, the one question; steps 16
+and 17 of the PB4093 golden (2 ** 130 divided by 1: 824 under OVERFLOW alone, the raise and 007 under TRUNCATION) pin it.
+The sweep of every other checked-landing choice (`FloatToScaled`, `StoreArgs`, `EditedLanding` callers) found them keyed on
+EC-SIZE-TRUNCATION already. The remainder this statement leaves for a quotient past the Int128 carrier is the
+not-enabled disposition (the implementor's, DOC-A.1-70), the same with and without a per-name TURN, so the golden pins only
+the quotient.
