@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Concurrent;
+using System.Globalization;
 using Xunit;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Tests.Shared;
@@ -25,20 +27,27 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// (<c>scripts/spec/figure_extract.py</c>), never from the transcription and never from the corpus, and
 /// <c>scripts/spec/audit_grammar_optional_words.py</c> is the tool that finds the ones still missing.
 ///
-/// ⛔ THIS FAMILY IS PARTITIONED (<see cref="TestPartitioning"/>, kb/Work PB2527). Every row compiles and runs the
-/// whole power set of its format serially, and as ONE class (one xUnit collection) the 23 rows were a 131-152 s pole
-/// of the Conformance leg, one row alone 59 s. The partitions keep <c>OptionalWordSubsetDriftTests</c> in their names,
-/// so a <c>FullyQualifiedName~OptionalWordSubsetDriftTests</c> filter still selects them all.
+/// ⛔ THIS FAMILY IS PARTITIONED (<see cref="TestPartitioning"/>, kb/Work PB2527, PB4146), and a row is one SPELLING,
+/// never one format. Each row compiles and runs one subset of one format's optional words and compares its output with
+/// the format's bare spelling (no optional word written), which <see cref="OptionalWordBaselines"/> observes once per
+/// test process for every partition. A row per format made the unit of work a whole power set (one format of seven
+/// optional words is 128 compiles, 41-59 s), so a partition's time depended on which formats it drew and a new format
+/// could only land whole in one partition; a row per spelling spreads every format across the partitions by the stride,
+/// so the sweep grows without a partition growing into a pole. The partitions keep
+/// <c>OptionalWordSubsetDriftTests</c> in their names, so a <c>FullyQualifiedName~OptionalWordSubsetDriftTests</c>
+/// filter still selects them all.
 /// </remarks>
 /// <typeparam name="TSlot">This partition's slot.</typeparam>
 public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     where TSlot : ITestPartitionSlot
 {
-    /// <summary>Partition count: collections of at most 3 rows each, so no partition holds more than the 59 s row
-    /// and a neighbour (w1033 gate diagnosis; modeled with the 24 corpus partitions and longest-first order: the
-    /// Conformance leg 162 s to 118 s, against a floor of 117 s). 8 held the first 23 rows; kb/Work PB3751's three
-    /// made 26, so 9. <c>ConformancePartitioningDriftTests</c> pins the bound.</summary>
-    public const int Partitions = 9;
+    /// <summary>Partition count: 8, the split kb/Work PB2527 measured and modeled for this sweep (with the conformance
+    /// suite's partitions and longest-first order, the Conformance leg 162 s to 118 s against a floor of 117 s). It is
+    /// set by the sweep's share of the leg's work and the gate host's parallelism, never by the sweep's size: the
+    /// stride gives each partition an eighth of the spellings, so the sweep's growth grows every partition alike
+    /// (<see cref="TestPartitionAudit"/> proves each holds its share). <c>ConformancePartitioningDriftTests</c> keeps
+    /// it at its floor.</summary>
+    public const int Partitions = 8;
 
     /// <param name="Name">Test identity, and the PROGRAM-ID stem.</param>
     /// <param name="Clause">The general format whose underlining was measured.</param>
@@ -945,10 +954,13 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
             "OPW1", ReceiveContinueWords),
     ];
 
+    /// <summary>The sweep's rows: <c>(format, mask)</c> for every subset of every format's optional words, one row per
+    /// spelling (the mask's bit <c>i</c> writes the format's optional word <c>i</c>).</summary>
     [PartitionedRowSource(nameof(Cases))]
-    public static IEnumerable<object[]> AllCases() => Formats.Select(f => new object[] { f.Name });
+    public static IEnumerable<object[]> AllCases() =>
+        Formats.SelectMany(f => Enumerable.Range(0, 1 << f.OptionalWords.Length).Select(mask => new object[] { f.Name, mask }));
 
-    /// <summary>This partition's share of the formats.</summary>
+    /// <summary>This partition's share of the spellings.</summary>
     public static IEnumerable<object[]> Cases() => TestPartitioning.SliceRows<TSlot>(AllCases(), Partitions);
 
     /// <summary>One spelling of a format: its PROGRAM-ID (and assembly name), the optional words it writes, and its
@@ -958,25 +970,28 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     /// <summary>The edition a format compiles at.</summary>
     internal static int EditionOf(string name) => Formats.Single(c => c.Name == name).Edition;
 
-    /// <summary>Every subset of a format's optional words, as the source that writes it — THE generator the theory
-    /// and the architecture oracle (<see cref="ArchOracle"/>) both compile, so they compile the same programs.</summary>
-    internal static IEnumerable<Spelling> Spellings(string name)
+    /// <summary>The subset <paramref name="mask"/> of a format's optional words, as the source that writes it — THE
+    /// generator the theory and the architecture oracle (<see cref="ArchOracle"/>) both compile, so they compile the
+    /// same programs. Mask 0 writes no optional word: the format's bare spelling, every other spelling's baseline.</summary>
+    internal static Spelling SpellingOf(string name, int mask)
     {
         FormatCase f = Formats.Single(c => c.Name == name);
         int slots = f.OptionalWords.Length;
-        for (int mask = 0; mask < (1 << slots); mask++)
-        {
-            // Slot i is written when its bit is set; the all-bits-set spelling is the fully-written form.
-            object[] words = [.. Enumerable.Range(0, slots).Select(i => (mask & (1 << i)) != 0 ? f.OptionalWords[i] : "")];
-            string spelling = string.Join(" ", words.Cast<string>().Where(w => w.Length > 0));
-            // ⛔ A UNIQUE PROGRAM-ID AND ASSEMBLY NAME PER SPELLING. Every subset compiles inside ONE test
-            // process, and a same-named assembly is served from the load context that already holds it — the
-            // run would then compare a spelling against ITSELF and pass whatever the grammar did.
-            string unit = f.ProgramId + mask.ToString("00");
-            string source = string.Format(f.Template, words).Replace(f.ProgramId + ".", unit + ".", StringComparison.Ordinal);
-            yield return new(unit, spelling.Length == 0 ? "none written" : spelling, source);
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(mask);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(mask, 1 << slots);
+        // Slot i is written when its bit is set; the all-bits-set spelling is the fully-written form.
+        object[] words = [.. Enumerable.Range(0, slots).Select(i => (mask & (1 << i)) != 0 ? f.OptionalWords[i] : "")];
+        string spelling = string.Join(" ", words.Cast<string>().Where(w => w.Length > 0));
+        // ⛔ A UNIQUE PROGRAM-ID AND ASSEMBLY NAME PER SPELLING. Every subset compiles inside ONE test process, and a
+        // same-named assembly is served from the load context that already holds it — the run would then compare a
+        // spelling against ITSELF and pass whatever the grammar did.
+        string unit = f.ProgramId + mask.ToString("00", CultureInfo.InvariantCulture);
+        string source = string.Format(f.Template, words).Replace(f.ProgramId + ".", unit + ".", StringComparison.Ordinal);
+        return new(unit, spelling.Length == 0 ? BareSpelling : spelling, source);
     }
+
+    /// <summary>How a report names the spelling that writes no optional word.</summary>
+    private const string BareSpelling = "none written";
 
     /// <summary>The compile the theory performs for one spelling, its outputs in <paramref name="dir"/>.</summary>
     internal static CompilerDriver.Result Compile(string dir, Spelling s, int edition)
@@ -986,50 +1001,85 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
             DialectLevel: edition, SourceFormat: InitialReferenceFormat.Auto));
     }
 
+    /// <summary>Compile and run one spelling in a scratch directory of its own: its normalized output, or why it did
+    /// not compile or run.</summary>
+    private static SpellingRun Run(FormatCase f, Spelling s)
+    {
+        string dir = ScratchDirectory.Create("optword");
+        try
+        {
+            var r = Compile(dir, s, f.Edition);
+            if (!r.Success)
+            {
+                return SpellingRun.Failed($"ISO §{f.Clause}: the optional words [{s.Words}] must compile at --std "
+                    + $"{f.Edition} (§5.2.3 — they are printed WITHOUT an underline): {string.Join("\n", r.Errors)}");
+            }
+
+            var (ran, stdout, detail) = CutRunner.Run(Path.Combine(dir, s.Unit + ".dll"), dir);
+            return ran
+                ? SpellingRun.Ran(CutRunner.Normalize(stdout))
+                : SpellingRun.Failed($"[{f.Name}] with [{s.Words}] must run: {detail}");
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>ISO §8.3.2.4.3: one spelling of a format compiles, runs, and prints what the format's bare spelling
+    /// prints. The bare spelling's own row (mask 0) is the baseline itself, so that row proves the baseline compiles
+    /// and runs.</summary>
     [Theory]
     [MemberData(nameof(Cases))]
-    public void EveryOptionalWordSubset_CompilesAndRunsIdentically(string name)
+    public void EveryOptionalWordSubset_CompilesAndRunsIdentically(string name, int mask)
     {
         FormatCase f = Formats.Single(c => c.Name == name);
-        string? baseline = null;
-        string baselineSpelling = "";
+        Spelling s = SpellingOf(name, mask);
+        Assert.Contains("PROGRAM-ID. " + s.Unit + ".", s.Source, StringComparison.Ordinal);
 
-        foreach (Spelling s in Spellings(name))
-        {
-            string unit = s.Unit, spelling = s.Words;
-            Assert.Contains("PROGRAM-ID. " + unit + ".", s.Source, StringComparison.Ordinal);
-
-            string dir = ScratchDirectory.Create("optword");
-            try
-            {
-                string dll = Path.Combine(dir, unit + ".dll");
-                var r = Compile(dir, s, f.Edition);
-                Assert.True(r.Success,
-                    $"ISO §{f.Clause}: the optional words [{spelling}] must compile at --std {f.Edition} " +
-                    $"(§5.2.3 — they are printed WITHOUT an underline): {string.Join("\n", r.Errors)}");
-
-                var (ran, stdout, detail) = CutRunner.Run(dll, dir);
-                Assert.True(ran, $"[{f.Name}] with [{spelling}] must run: {detail}");
-                string normalized = CutRunner.Normalize(stdout);
-                if (baseline is null)
-                {
-                    baseline = normalized;
-                    baselineSpelling = spelling;
-                    continue;
-                }
-                Assert.True(baseline == normalized,
-                    $"ISO §8.3.2.4.3: an optional word is specified \"with no effect on the semantics of the " +
-                    $"format\", but §{f.Clause} written [{spelling}] differs from [{baselineSpelling}].\n" +
-                    $"  [{baselineSpelling}] -> {baseline}\n  [{spelling}] -> {normalized}");
-            }
-            finally { ScratchDirectory.Remove(dir); }
-        }
-
-        Assert.NotNull(baseline);
+        SpellingRun baseline = OptionalWordBaselines.Of(name, () => Run(f, SpellingOf(name, 0)));
+        SpellingRun run = mask == 0 ? baseline : Run(f, s);
+        Assert.True(run.Failure is null, run.Failure);
+        Assert.True(baseline.Failure is null,
+            $"[{f.Name}] [{s.Words}] has no baseline to be compared with: the bare spelling [{BareSpelling}] failed "
+            + $"(its own row, mask 0, reports it): {baseline.Failure}");
+        Assert.True(baseline.Output == run.Output,
+            $"ISO §8.3.2.4.3: an optional word is specified \"with no effect on the semantics of the " +
+            $"format\", but §{f.Clause} written [{s.Words}] differs from [{BareSpelling}].\n" +
+            $"  [{BareSpelling}] -> {baseline.Output}\n  [{s.Words}] -> {run.Output}");
     }
 }
 
-// ⛔ THE 9 PARTITIONS — each its own xUnit collection; TestPartitionAudit proves they cover the formats exactly once.
+/// <summary>What one spelling of an optional-word format did: its normalized output when it compiled and ran, else
+/// why it did not (<see cref="Failure"/>, null on success).</summary>
+internal sealed record SpellingRun(string? Failure, string Output)
+{
+    /// <summary>The spelling compiled and ran, printing <paramref name="output"/> (normalized).</summary>
+    internal static SpellingRun Ran(string output) => new(null, output);
+
+    /// <summary>The spelling did not compile or did not run, for the reason <paramref name="failure"/>.</summary>
+    internal static SpellingRun Failed(string failure) => new(failure, "");
+}
+
+/// <summary>
+/// Each optional-word format's BASELINE — what its bare spelling (no optional word written) prints — observed ONCE per
+/// test process and shared by every partition of <see cref="OptionalWordSubsetDriftTestsBase{TSlot}"/>.
+/// </summary>
+/// <remarks>It lives outside the family because a static of a generic type is per CLOSED type: a cache on
+/// <c>OptionalWordSubsetDriftTestsBase&lt;TSlot&gt;</c> would be one per partition, and every partition that drew a
+/// spelling of a format would compile and run the format's bare spelling again. The partitions run concurrently, so the
+/// first row of a format to ask computes the baseline and the others wait for it
+/// (<see cref="LazyThreadSafetyMode.ExecutionAndPublication"/>); a baseline that threw rethrows to every row that
+/// asks.</remarks>
+internal static class OptionalWordBaselines
+{
+    private static readonly ConcurrentDictionary<string, Lazy<SpellingRun>> s_baselines = new(StringComparer.Ordinal);
+
+    /// <summary>The baseline of format <paramref name="name"/>, computed by <paramref name="run"/> the first time any
+    /// partition asks.</summary>
+    internal static SpellingRun Of(string name, Func<SpellingRun> run) =>
+        s_baselines.GetOrAdd(name, _ => new Lazy<SpellingRun>(run, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+}
+
+// ⛔ THE 8 PARTITIONS — each its own xUnit collection; TestPartitionAudit proves they cover the spellings exactly once,
+// each partition its eighth.
 
 /// <summary>Optional-word subset partition 0 of <see cref="OptionalWordSubsetDriftTestsBase{TSlot}.Partitions"/>.</summary>
 public sealed class OptionalWordSubsetDriftTests_P0 : OptionalWordSubsetDriftTestsBase<Slot0>;
@@ -1054,6 +1104,3 @@ public sealed class OptionalWordSubsetDriftTests_P6 : OptionalWordSubsetDriftTes
 
 /// <summary>Optional-word subset partition 7.</summary>
 public sealed class OptionalWordSubsetDriftTests_P7 : OptionalWordSubsetDriftTestsBase<Slot7>;
-
-/// <summary>Optional-word subset partition 8.</summary>
-public sealed class OptionalWordSubsetDriftTests_P8 : OptionalWordSubsetDriftTestsBase<Slot8>;
