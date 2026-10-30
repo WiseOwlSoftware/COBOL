@@ -108,4 +108,75 @@ public sealed class WordCharacterScreenTests
         var (_, errors, _) = EditionHarness.CompileFull(source, 2023);
         Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains("U+20AC"));
     }
+
+    /// <summary>The comment-entry exclusion on a FAILED parse is the screen's own (the token walk, then the partial tree names
+    /// the entries): <c>AUTHOR. JOSE_X.</c> is legal '85 comment text beside the parse error that stops the compile.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    public void ACommentEntry_IsNotWords_OnAFailedParse(int edition)
+    {
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB3845F.
+            AUTHOR. JOSE_X {Euro}.
+            PROCEDURE DIVISION.
+                DISPLAY "A" MOVE MOVE.
+                STOP RUN.
+            """;
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+        string all = string.Join('\n', errors.Concat(warnings));
+        Assert.False(ok);
+        Assert.Contains("COBOL0001", all);
+        Assert.DoesNotContain("COBOL2773", all);
+        Assert.DoesNotContain("COBOL0900", all);
+        Assert.DoesNotContain("underscore", all);
+    }
+
+    /// <summary>A fixed-form debugging line without WITH DEBUGGING MODE is a COMMENT (the rewriter moves its tokens to the
+    /// ABSENT_DEBUG_LINE channel; kb/Work PB1705), so its words are not the program's: with an unrelated parse error below
+    /// it, the failed-parse screen names no character of the comment line, at the edition that gates the underscore and at the
+    /// one that gates the euro sign.</summary>
+    [Theory]
+    [InlineData(85, "MY_VAR")]
+    [InlineData(2023, "OUT€")]
+    public void ADebuggingLineThatIsAComment_IsNotWords_OnAFailedParse(int edition, string word)
+    {
+        string source = string.Join('\n',
+            "       IDENTIFICATION DIVISION.",
+            "       PROGRAM-ID. PB3845D.",
+            "       PROCEDURE DIVISION.",
+            "      D    DISPLAY " + word + ".",
+            "           DISPLAY \"A\" MOVE MOVE.",
+            "           STOP RUN.",
+            "");
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+        string all = string.Join('\n', errors.Concat(warnings));
+        Assert.False(ok);
+        Assert.Contains("COBOL0001", all);
+        Assert.DoesNotContain("COBOL2773", all);
+        Assert.DoesNotContain("COBOL0900", all);
+    }
+
+    /// <summary>The binder driver screens only a compilation whose frontend reported nothing, so a source that PARSES beside
+    /// another frontend error (here the §8.3.5 separator rule: a semicolon must be followed by a space) is screened by the
+    /// frontend too: the underscore gate of '85 is not lost until the separator is fixed.</summary>
+    [Fact]
+    public void AParsedSourceWithAnotherFrontendError_IsStillScreened()
+    {
+        string source = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB3845S.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 MY_NAME PIC X VALUE "A".
+            PROCEDURE DIVISION.
+                MOVE "A" TO MY_NAME;DISPLAY MY_NAME.
+                STOP RUN.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
+        Assert.False(ok);
+        Assert.Contains(errors, e => e.Contains("COBOL2631"));
+        Assert.Contains(errors, e => e.Contains("COBOL0900") && e.Contains("MY_NAME"));
+    }
 }

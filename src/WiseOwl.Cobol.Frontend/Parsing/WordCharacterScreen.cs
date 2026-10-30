@@ -81,10 +81,13 @@ public static class WordCharacterScreen
     }
 
     /// <summary>A word token holding an underscore or a character outside the basic repertoire. The text is read once:
-    /// a token's text is cut from the input on every call.</summary>
+    /// a token's text is cut from the input on every call. A word of a fixed-form debugging line that is a COMMENT (its
+    /// unit has no WITH DEBUGGING MODE, so <see cref="DebuggingLineRewriter"/> moved it to the
+    /// <see cref="CobolLexer.ABSENT_DEBUG_LINE"/> channel) is not a COBOL word of the program, as the sibling readers of
+    /// the stream decide it too (<see cref="SeparatorRule"/>, <see cref="PictureSeparatorPeriodRule"/>; kb/Work PB1705).</summary>
     private static bool IsCandidate(IToken token)
     {
-        if (token.Type != CobolLexer.IDENTIFIER) return false;
+        if (token.Type != CobolLexer.IDENTIFIER || token.Channel == CobolLexer.ABSENT_DEBUG_LINE) return false;
         string text = token.Text;
         return text.Contains('_') || CobolCharacterRepertoire.HasExtendedCharacter(text);
     }
