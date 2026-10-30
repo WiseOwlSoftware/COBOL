@@ -126,7 +126,7 @@ they cover ~70% of real dialect collisions and exercise all five gating patterns
   the owner 2026-10-14, kb/Work PB3160): one tree of tests filed by ISO clause (`cases/<clause>-<Name>/<id>.cob`
   + `<id>.out`; WiseOwl's own behaviour under `wiseowl/cases/`), each opening with a metadata header that names its
   `rules` and the editions it is accepted at (`accept`). `conformance-suite/harness/generate.py` reads the headers
-  and generates the per-edition suites and WiseOwl's manifest; `ConformanceSuiteTests` (24 partitions,
+  and generates the per-edition suites and WiseOwl's manifest; `ConformanceSuiteTests` (32 partitions,
   `tests/WiseOwl.Cobol.Tests.Conformance/ConformanceSuiteTests.cs`) compiles and runs every test at each accepted
   edition and compares its output. `conformance-suite/README.md` is the authoring guide.
 - **Refused programs:** a program WiseOwl must refuse names no `accept` edition; its entry in
