@@ -923,6 +923,9 @@ try {
             # outlasts the wait is said; the check then runs beside it, and a lost fetch says "fetch failed" (review R2-1).
             if (-not (Wait-LaneTick)) { Say "ledger check: the landing lane's tick still runs after 120 s; checking beside it (a lost fetch race says so, and the next unit's check repeats it)" }
             $ls = Invoke-Py @((Join-Path $Here 'ledger_state.py'), 'owed', '--repo', $RepoDir)
+            # A lost fetch reads main's stamp from a stale ref: said whatever the answer, so a "current" read on old facts
+            # is never silent (review R3-1); an "owed" one carries it in the publish line below.
+            if ($ls -notmatch '^owed' -and $ls -match 'fetch failed') { Say "ledger check: $ls" }
             if ($ls -match '^owed') {
                 # $ls is read on origin/main, fetched (kb/Work PB2987); when it says the checkout is behind, the
                 # publisher fast-forwards it before rendering, and mark-published refuses until then.
