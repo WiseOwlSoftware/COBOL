@@ -7,3 +7,8 @@ then bounces. Second, the 32-partition Conformance leg was not re-measured, alth
 it. The third lead is fixed here. `DESIGN-conformance-suite.md` and the two partition summaries in
 `ConformanceSuiteTests.cs` and `ConformancePartitioningDriftTests.cs` now state the current count and bound. The dated
 history of the change lives in the DEVLOG entry of the change itself.
+
+kb/Work PB4145 records what the crossing showed about the landing lane. A merge-group red that every later group will
+meet (here the partition bound) does not hold the lane: it went on queueing pull requests whose groups were known to
+fail, until the operator dequeued them, cancelled their runs and held the lane by hand. The only hold the operator had
+is `HALT`, whose recorded cause is QUEUE NOT ACTIVE.
