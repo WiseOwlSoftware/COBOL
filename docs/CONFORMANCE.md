@@ -2792,7 +2792,14 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
    `DeclinedFacilityBinder.ClassifySend` does, from the phrases written (a literal-1 operand and RETURNING are Format 1's,
    RAISING is Format 2's) and the declaration the name silently resolves to (a message-tag item is Format 2's); a
    statement with evidence for both is **COBOL5488**, and one with evidence for neither is Format 1, so a bare
-   `SEND TO name FROM x` is **COBOL1850** (RETURNING is required there, §14.9.38.2 prints it without brackets). SR4's own
+   `SEND TO name FROM x` is **COBOL1850** (RETURNING is required there, §14.9.38.2 prints it without brackets). The
+   operands the formats print as NAMES (SEND's TO operand, which is message-server-name-1 or data-name-2, and its
+   RETURNING data-name-1; RECEIVE's data-name-1 and data-name-2) are asked their WRITTEN shape first
+   (`DeclinedFacilityBinder.ScreenName`, kb/Work PB4118): a subscript, a reference modifier or a special register is
+   refused with **COBOL2024**, the one data-name-n shape screen the SORT keys and the file clauses use, and is read no
+   further (no second diagnostic for the format or for an undefined name). A qualifier is a name's own form, so a
+   TO operand written `A OF B` is a data-name-2: Format 2's evidence (a message-server-name-1 is a bare name), resolved
+   like any data reference. SR4's own
    requirement that data-name-1 and data-name-2 BE message-tag items is not screened: the usage is refused by name
    (COBOL1943, below), so no program that compiles can hold the item. Pinned by
    `conformance:wiseowl/cases/14.9.31-RECEIVE/pb3568-receive-undefined-operand`, its siblings and the
