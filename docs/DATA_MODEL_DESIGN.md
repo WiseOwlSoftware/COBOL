@@ -256,7 +256,11 @@ anything measures it (`CompletePreboundGroup`). An operand SUBORDINATE to the ve
 the constant links to that entry's item: a data description entry's item is created, attached and recorded BEFORE its
 table bounds are evaluated (`BindTableBounds`; `DataItem.TableBoundsPending` keeps it a table meanwhile, so the operand's
 subscripts are screened against the real dimensions), with the entry's description still open, so measuring the entry
-itself or an ancestor stays the SR4 cycle. Before the item exists only a PICTURE, VALUE or DYNAMIC LENGTH clause reads a
+itself or an ancestor stays the SR4 cycle. That entry's own TYPE or SAME AS clause is composed then too (kb/Work PB2867,
+`ComposePendingSubjectsAhead`): every clause but its bounds is applied, and §13.18.57.4 GR1 / §13.18.49.4 GR1 make the
+clause "as though the data description … had been coded in place of" it, so `05 V TYPE T OCCURS K.` with
+`K CONSTANT AS LENGTH OF M OF V (1)` measures T's M exactly as an explicitly written subordinate would be; only a group
+whose subordinate ENTRIES are still being described is not composed (`HasSubordinatesBeingDescribed`). Before the item exists only a PICTURE, VALUE or DYNAMIC LENGTH clause reads a
 constant, none of which may describe a group (§13.18.40.3 SR1, §13.18.63.3 SR13), so an operand under such an entry is
 that clause's refusal plus COBOL1547.
 
