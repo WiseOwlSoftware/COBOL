@@ -14,8 +14,10 @@ up landed changes itself. We should adopt efficiency improvements as soon as the
 recorded as an impact map in a detached worker, coalesced to the newest, so the gate's leg 1 can aim at what a change
 reaches. The adoption line carries what the lane did.
 
-`adopt` is called by the supervisor (orchestrate.ps1) BETWEEN units, when no unit runs, and by autostart.ps1 before the
-supervisor starts. It is NOT the only thing that moves the checkout: the attended session fast-forwards it by hand when
+`adopt` is called by the supervisor (orchestrate.ps1) BETWEEN units, when no unit runs and no landing-lane tick runs
+either (kb/Work PB4046), and by autostart.ps1 before the supervisor starts. It fetches origin's main into its own ref,
+FETCH_REF, never into the shared remote-tracking ref every other fetch writes (below). It is NOT the only thing that
+moves the checkout: the attended session fast-forwards it by hand when
 ledger_state.py says a ledger publish is owed (`git merge --ff-only origin/main`), and `adopt` then finds nothing left to
 do. It adopts origin/main only when
   AVAILABLE  the checkout is on main, fetched origin/main is ahead of it (a fast-forward, never a merge or a reset) and
@@ -57,7 +59,14 @@ from standard_streams import ensure_utf8  # noqa: E402
 SUPERVISOR_FILES = ("scripts/orchestrator/orchestrate.ps1",)
 CI_WORKFLOW = "build-and-test.yml"
 BRANCH = "main"
-REMOTE_REF = f"origin/{BRANCH}"
+#: Where `adopt` fetches origin's main TO: a ref only this routine writes (kb/Work PB4046). Every worktree of the repository
+#: shares refs/remotes/origin/main, and the landing lane's survey, every landing, finisher and session fetch into it; two
+#: fetches that update it at once fail one of them ("cannot lock ref 'refs/remotes/origin/main': is at X but expected Y"),
+#: and an adoption that lost that race kept the last adopted commit for a whole unit (CI merge-group runs 40918334805 and
+#: 40987962746: the supervisor's self-test, whose lane tick fetched beside the adoption). `--refmap=` turns off git's
+#: opportunistic update of the remote-tracking ref and `--no-write-fetch-head` leaves FETCH_HEAD alone, so this fetch
+#: locks nothing another git process writes.
+FETCH_REF = f"refs/adopt-main/{BRANCH}"
 MARKER = "adopted-main.json"
 SETTINGS = "settings.local.json"   # the always-dirty per-machine file (.claude/settings.local.json)
 TIMEOUT_S = 120
@@ -179,12 +188,13 @@ def _decide(repo: pathlib.Path, cdir: pathlib.Path, gh: Gh, dry_run: bool) -> Ad
     def kept(reason: str, target: str = "") -> Adoption:
         return Adoption(KEPT, head, head, target, reason)
 
-    rc, out = _git(repo, "fetch", "--quiet", "origin", BRANCH)
+    rc, out = _git(repo, "fetch", "--quiet", "--no-tags", "--refmap=", "--no-write-fetch-head", "origin",
+                   f"+refs/heads/{BRANCH}:{FETCH_REF}")
     if rc != 0:
         return kept(f"origin/{BRANCH} could not be fetched ({out.splitlines()[0] if out else 'no answer'}); the last adopted commit stays")
-    rc, target = _git(repo, "rev-parse", REMOTE_REF)
+    rc, target = _git(repo, "rev-parse", "--verify", "--quiet", f"{FETCH_REF}^{{commit}}")
     if rc != 0:
-        return kept(f"{REMOTE_REF} names no commit ({target.splitlines()[0] if target else 'no answer'})")
+        return kept(f"origin/{BRANCH}, fetched to {FETCH_REF}, names no commit ({target.splitlines()[0] if target else 'no answer'})")
     if target == head:
         record(cdir, head, head)
         return Adoption(CURRENT, head, head, target, "the checkout is origin/main")

@@ -45,6 +45,15 @@ Check 'a published ledger is not announced again' ($r.out -match 'LEDGER PUBLISH
 # kb/Work PB2987: train 1056 landed from a lander's worktree, the supervisor's checkout stayed behind, and no publish was
 # announced. A landing pushed from another clone is owed at the next unit, and the line names the stale checkout.
 Land $Lander 'kb/Work/PB2.md' 'landed elsewhere'
+# kb/Work PB4046 review R3-1: a fetch that loses to another (here a held lock on the shared remote-tracking ref, what a
+# concurrent fetch holds) reads main's stamp from the stale ref, "current" although a landing is owed: the supervisor says
+# the failed fetch, never a silent "current".
+$lock = Join-Path $LedgerRepo '.git/refs/remotes/origin/main.lock'
+New-Item -ItemType Directory -Force -Path (Split-Path $lock) | Out-Null
+Set-Content -Path $lock -Value 'held by another fetch' -Encoding ascii
+try { $r = Run-Orch 'ledgercurrent' 'good' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0', '-RepoDir', $LedgerRepo) }
+finally { Remove-Item $lock -Force -ErrorAction SilentlyContinue }
+Check 'a lost fetch is said, not read as a silent current' ($r.out -match 'ledger check: current .*fetch failed') $true
 $r = Run-Orch 'ledgercurrent' 'good' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0', '-RepoDir', $LedgerRepo)
 Check 'a landing pushed from another clone is announced owed (main, not the checkout)' ($r.out -match 'LEDGER PUBLISH OWED') $true
 Check '... naming the stale checkout and its fast-forward' ($r.out -match 'merge --ff-only origin/main') $true
