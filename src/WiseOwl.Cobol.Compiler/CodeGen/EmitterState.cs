@@ -404,9 +404,18 @@ internal sealed class EcState
     /// receiver-less numeric renders inside it — a relation operand, a function argument, a subscript, a SET
     /// amount — take the CHECKED kernels (AddChecked / SubChecked, the checked NUMVAL
     /// landing), so an intermediate that overflows the Int128 carrier or a zero divisor raises CobolSizeError for
-    /// the ambient EC-SIZE guard to dispatch (§14.7.5 no-phrase rule 3 + §14.6.13.1.3) instead of wrapping.</summary>
+    /// the ambient EC-SIZE guard to dispatch (§14.7.5 no-phrase rule 3 + §14.6.13.1.3) instead of wrapping.
+    /// <para>Also true while the report compose renders its CHECKED twin (<see cref="ComposeSizeChecking"/>).</para></summary>
     public bool SizeChecking =>
-        Info?.Enabled.Any(p => p.Ec.StartsWith("EC-SIZE-", StringComparison.Ordinal)) == true;
+        ComposeSizeChecking || Info?.Enabled.Any(p => p.Ec.StartsWith("EC-SIZE-", StringComparison.Ordinal)) == true;
+
+    /// <summary>True while the report compose renders the CHECKED twin of one of its numeric renders (kb/Work PB4031):
+    /// the compose is compiled once, outside every statement, and runs as part of whichever GENERATE or TERMINATE
+    /// presents the line, so it is rendered both ways and selects at run time on the presenting statement's EC-SIZE
+    /// enablement (<c>ReportWriterEmitter.UnderPresentingChecking</c>, the one writer). It feeds
+    /// <see cref="SizeChecking"/> and nothing else: the per-name questions (<see cref="SizeTruncationChecking"/>, the
+    /// other gates) stay the statement's own.</summary>
+    public bool ComposeSizeChecking { get; set; }
 
     /// <summary>True while the statement being emitted has EC-SIZE-TRUNCATION specifically enabled (ISO
     /// §7.3.25's TURN directive; §14.6.13.1.1 — "if checking for an exception condition is enabled", which is
