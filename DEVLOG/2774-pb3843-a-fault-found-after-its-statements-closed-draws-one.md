@@ -1,4 +1,4 @@
-## PB3843: a fault found after its statements closed draws one diagnostic, not the recovery's second
+## Entry 2774 — 2026-10-29 21:44 PDT — PB3843: a fault found after its statements closed draws one diagnostic, not the recovery's second
 
 **Mechanism.** An explicit scope terminator is optional (ISO §14.5.3.2), so a statement ends wherever its next token is not
 its own and the refusal arrives at the sentence's period or its `statement+` loop, after the enclosing IF, STRING, ACCEPT or
@@ -30,3 +30,4 @@ COBOL0001 and then COBOL2072 after ANTLR's single-token deletion inside a statem
 **Self-review.** Architecture: one place bends the resynchronization set, read by both recoveries. Full code: the winning
 code is computed as `BuildMessage` picks it, and the flag is bounded by the report's token range so a stale mark never
 reaches a later fault. Performance: no allocation on the success path. Duplication: the terminator list is the hint's own map.
+
