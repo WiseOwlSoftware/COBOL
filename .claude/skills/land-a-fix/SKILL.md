@@ -7,10 +7,10 @@ description: Use when landing a conformance fix-queue item or any spec-derived f
 
 # Land a fix
 
-> ⛔ **ONE WORK REGISTER: `kb/Work/`.** `python scripts/spec/work.py next` answers "what now"; `kb/Work.base` is the view. **Keep it current in the SAME change set as the work**, and **never start a list, table, tracker or "remaining work" section anywhere else** — five registers accumulated by 2026-08-04 and three each claimed to be canonical (CLAUDE.md rule 8).
+> ⛔ **ONE WORK REGISTER: `kb/Work/`.** `python scripts/spec/work.py next` answers "what now" (`blocked`, `unharmed`, `analyses`, `landed` and `upstream` are its other views). **Keep it current in the SAME change set as the work**, and **never start a list, table, tracker or "remaining work" section anywhere else** — five registers accumulated by 2026-08-04 and three each claimed to be canonical (CLAUDE.md rule 8).
 
 
-The work register is **`kb/Work/`** — one note per item, `kb/Work.base` is the view, and
+The work register is **`kb/Work/`** — one note per item, and
 `python scripts/spec/work.py next` prints the ranked list (session-probe shows it every session).
 
 ⛔ **WORK THE `Fix next` VIEW TOP-DOWN, NOT SEVERITY TOP-DOWN.** It ranks on what a defect DOES to a user's
