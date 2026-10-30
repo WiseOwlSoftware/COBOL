@@ -32,9 +32,18 @@ named a kind in two shapes only; both are deleted, and the guesses 3 and 17 now 
 The literal-token set moved to `LiteralTokens.Whole`, its one home beside the category.
 
 Now: `MEMORY SIZE 12 FOO` "expected CHARACTERS, MODULES or WORDS"; `SEGMENT-LIMIT IS.` "expected an integer literal";
-`SET IX TO "A"` "of the literals, only a numeric literal or the figurative constant ZERO is expected" (§14.9.39.2
-Format 1 with §8.8.1.1); `OPEN F` "expected EXTEND, I-O, INPUT or OUTPUT"; `CALL "P" RETURNING 5` "no literal is
-expected". Twenty-four existing negatives and test rows that pinned the bare COBOL0001 (or COBOL0308, COBOL0312) now
+`SET IX TO "A"` "of the literals, only a numeric literal is expected"; `COMPUTE W-N = 1 + "A"` "only a numeric
+literal or the figurative constant ZERO"; `OPEN F` "expected EXTEND, I-O, INPUT or OUTPUT"; `CALL "P" RETURNING 5` "no
+literal is expected".
+
+The branch review (R1-1) found the first version naming the figurative ZERO after `SET IX TO`, from ZERO_ARITH, the
+token the rewriter makes of a ZERO only beside an arithmetic operator: the message sent the user to `SET IX TO ZERO`,
+which the parse refuses, and `SET IX TO ALL ZERO` read "The word ZERO is not expected here: expected the figurative
+constant ZERO". The rewriter's context test is now one function, `ZeroTokenRewriter.AZeroWrittenAtIsArithmetic`, asked
+by the rewrite and by the refusal at the refused token, so ZERO is named exactly where writing it would parse;
+`WrittenKindRefusalTests` checks that every refusal naming ZERO parses with ZERO written in. The refusal of a sole
+ZERO itself (SET TO, SET UP/DOWN BY, ALLOCATE … CHARACTERS, CONTINUE AFTER … SECONDS, all legal by §8.8.1.1) is a
+separate parse mechanism, left registered in the wave report. Twenty-four existing negatives and test rows that pinned the bare COBOL0001 (or COBOL0308, COBOL0312) now
 pin the named COBOL5506; `RequiredImperativeStatementDriftTests` keeps its one-diagnostic-at-every-depth check with
 the new code.
 

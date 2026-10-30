@@ -119,25 +119,37 @@ public static class ZeroTokenRewriter
             // kb/Work PB510, and interchangeable exactly here, where the word IS the figurative constant.
             if (token.Type is not (CobolLexer.ZERO or CobolLexer.ZEROS or CobolLexer.ZEROES))
                 continue;
-
-            // The nearest non-hidden token on each side (-1 at either end of the stream, which no set contains). On
-            // the left, a written ALL is the figurative constant's own optional word (§8.3.3.6.2 Format 1, `[ALL]
-            // ZERO`), never its context, so the context is the token before it: `1 + ALL ZERO`, `- ALL ZERO` and
-            // `(ALL ZERO)` are arithmetic exactly as `1 + ZERO` is, and the parser's `ALL? ZERO_ARITH` arm carries
-            // the ALL to the binder's edition gate (kb/Work PB3846). On the right the ZERO is the word's last token.
-            int next = AdjacentIndex(tokens, i, forward: true);
-            int nextType = TypeAt(tokens, next);
-            int prev = AdjacentIndex(tokens, i, forward: false);
-            if (TypeAt(tokens, prev) == CobolLexer.ALL)
-                prev = AdjacentIndex(tokens, prev, forward: false);
-            int prevType = TypeAt(tokens, prev);
-            if ((FollowingArithmeticContext.Contains(nextType) && !IsSignOfNextLiteral(tokens, next))
-                || PrecedingArithmeticContext.Contains(prevType) || IsParenthesizedAlone(prevType, nextType))
+            if (AZeroWrittenAtIsArithmetic(tokens, i))
                 ReplaceWithZeroArith(tokens, i);
         }
 
         // Reset the stream position so the parser reads from the beginning.
         tokenStream.Seek(0);
+    }
+
+    /// <summary>
+    /// Is a figurative ZERO written at <paramref name="index"/> in an arithmetic context, so that this pass makes it the
+    /// <c>ZERO_ARITH</c> token? The question is asked of the ZERO's neighbours only, so it has the same answer for the ZERO
+    /// written there and for a ZERO that WOULD be written in place of the token there: the rewrite asks it of every
+    /// ZERO, and a syntax error asks it before naming ZERO among the elements the parse expects at the token it refuses
+    /// (<c>AdmittedKinds.Refusal</c>, kb/Work PB3861 review R1-1), so the diagnostic names the figurative ZERO exactly where
+    /// writing it would parse. ONE rule, both readers.
+    /// </summary>
+    public static bool AZeroWrittenAtIsArithmetic(IList<IToken> tokens, int index)
+    {
+        // The nearest non-hidden token on each side (-1 at either end of the stream, which no set contains). On
+        // the left, a written ALL is the figurative constant's own optional word (§8.3.3.6.2 Format 1, `[ALL]
+        // ZERO`), never its context, so the context is the token before it: `1 + ALL ZERO`, `- ALL ZERO` and
+        // `(ALL ZERO)` are arithmetic exactly as `1 + ZERO` is, and the parser's `ALL? ZERO_ARITH` arm carries
+        // the ALL to the binder's edition gate (kb/Work PB3846). On the right the ZERO is the word's last token.
+        int next = AdjacentIndex(tokens, index, forward: true);
+        int nextType = TypeAt(tokens, next);
+        int prev = AdjacentIndex(tokens, index, forward: false);
+        if (TypeAt(tokens, prev) == CobolLexer.ALL)
+            prev = AdjacentIndex(tokens, prev, forward: false);
+        int prevType = TypeAt(tokens, prev);
+        return (FollowingArithmeticContext.Contains(nextType) && !IsSignOfNextLiteral(tokens, next))
+               || PrecedingArithmeticContext.Contains(prevType) || IsParenthesizedAlone(prevType, nextType);
     }
 
     /// <summary>

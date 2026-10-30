@@ -44,13 +44,21 @@ public sealed class WrittenKindRefusalTests
         "COBOL5506: missing token before 'W-N'. The word 'W-N' is not expected here: expected TO")]
     [InlineData("open-mode", 2023, Files + "       PROCEDURE DIVISION.\n           OPEN F.\n           STOP RUN.\n",
         "COBOL5506: unexpected 'F'. The word 'F' is not expected here: expected EXTEND, I-O, INPUT or OUTPUT")]
-    // A literal of a category the position does not take, and a literal where no literal is expected.
+    // A literal of a category the position does not take, and a literal where no literal is expected. The figurative
+    // ZERO is named only where a ZERO written instead would parse (review R1-1): beside an arithmetic operator, the
+    // ZERO_ARITH the token rewriter makes it; after SET … TO alone the parse does not take a sole ZERO, so it is not named.
     [InlineData("set-index-alphanumeric", 2023, Table + "       PROCEDURE DIVISION.\n           SET IX TO \"A\".\n           STOP RUN.\n",
         "COBOL5506: cannot parse construct near '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, "
-        + "only a numeric literal or the figurative constant ZERO is expected at this position")]
+        + "only a numeric literal is expected at this position")]
     [InlineData("set-up-by-alphanumeric", 2023, Table + "       PROCEDURE DIVISION.\n           SET IX UP BY \"A\".\n           STOP RUN.\n",
         "COBOL5506: unexpected '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, only a numeric "
-        + "literal or the figurative constant ZERO is expected at this position")]
+        + "literal is expected at this position")]
+    [InlineData("compute-operand-alphanumeric", 2023, Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = 1 + \"A\".\n           STOP RUN.\n",
+        "COBOL5506: cannot parse construct near '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, "
+        + "only a numeric literal or the figurative constant ZERO is expected at this position")]
+    [InlineData("set-left-operand-alphanumeric", 2023, Table + "       PROCEDURE DIVISION.\n           SET IX TO \"A\" + 1.\n           STOP RUN.\n",
+        "COBOL5506: cannot parse construct near '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, "
+        + "only a numeric literal or the figurative constant ZERO is expected at this position")]
     [InlineData("call-returning-literal", 2023, Table + "       PROCEDURE DIVISION.\n           CALL \"P\" RETURNING 5.\n           STOP RUN.\n",
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: no literal is expected at this position")]
     public void AWrittenKindThePositionDoesNotExpect_IsNamedOnce(string name, int edition, string source, string expected)
@@ -59,6 +67,15 @@ public sealed class WrittenKindRefusalTests
         var errors = Compile(text, edition);
         Assert.True(errors.Count == 1, $"[{name}] expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
         Assert.Contains(expected, errors[0], StringComparison.Ordinal);
+        // ⛔ A NAMED ELEMENT IS ONE THE PARSE TAKES THERE (review R1-1): where the refusal names the figurative constant
+        // ZERO, the same statement with ZERO written for the refused literal parses.
+        if (expected.Contains("the figurative constant ZERO", StringComparison.Ordinal))
+        {
+            var rewritten = CompileErrors(text.Replace("\"A\"", "ZERO", StringComparison.Ordinal), edition);
+            Assert.True(!rewritten.Any(e => e.Contains("COBOL0001", StringComparison.Ordinal)
+                                            || e.Contains("COBOL5506", StringComparison.Ordinal)),
+                $"[{name}] the refusal names ZERO, and ZERO written there does not parse:\n{string.Join("\n", rewritten)}");
+        }
     }
 
     /// <summary>The controls: each keeps the diagnosis it had, and none draws COBOL5506.</summary>
@@ -69,6 +86,11 @@ public sealed class WrittenKindRefusalTests
     [InlineData("level-number-before-its-fd", 2023, "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n"
         + "       FILE-CONTROL.\n           SELECT F ASSIGN TO \"pb3428u.dat\".\n       DATA DIVISION.\n       FILE SECTION.\n"
         + "       01 W-LOOSE PIC X(5).\n       FD F.\n       01 R PIC X(5).\n" + Proc, "COBOL0001")]
+    // A ZERO the rewriter left figurative, where the parse takes only the arithmetic ZERO_ARITH: the refusal named
+    // ZERO_ARITH "the figurative constant ZERO" and wrote "The word ZERO is not expected here: expected the figurative
+    // constant ZERO" (review R1-1). Nothing the position expects can be named, so the arm says nothing.
+    [InlineData("all-zero-after-set-to", 2023, Table + "       PROCEDURE DIVISION.\n           SET IX TO ALL ZERO.\n           STOP RUN.\n",
+        "COBOL0001")]
     public void APositionTheArmDoesNotName_KeepsItsDiagnosis(string name, int edition, string body, string code)
     {
         var errors = Compile(Head + body, edition);
@@ -111,6 +133,13 @@ public sealed class WrittenKindRefusalTests
 
     private static IReadOnlyList<string> Compile(string source, int edition)
     {
+        var errors = CompileErrors(source, edition);
+        Assert.False(errors.Count == 0, "the source is non-conforming and must be rejected");
+        return errors;
+    }
+
+    private static IReadOnlyList<string> CompileErrors(string source, int edition)
+    {
         string dir = ScratchDirectory.Create("WiseOwlCobol_PB3428_");
         try
         {
@@ -118,8 +147,7 @@ public sealed class WrittenKindRefusalTests
             File.WriteAllText(src, source);
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, "pb3428u.dll"), DialectLevel: edition, CheckOnly: true, SourceFormat: InitialReferenceFormat.Fixed));
-            Assert.False(r.Success, "the source is non-conforming and must be rejected");
-            return r.Errors;
+            return r.Success ? [] : r.Errors;
         }
         finally { ScratchDirectory.Remove(dir); }
     }

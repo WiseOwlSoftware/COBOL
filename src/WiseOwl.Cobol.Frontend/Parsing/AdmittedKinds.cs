@@ -46,14 +46,31 @@ internal static class AdmittedKinds
     /// <summary>The refusal sentence for <paramref name="token"/>, written where the parse takes
     /// <paramref name="admitted"/> (predicates evaluated at the token) and the text predicates refusing it tested
     /// <paramref name="words"/>; null when the token is taken (the fault lies further on) or no shape applies.
-    /// <paramref name="statementStart"/> is FIRST(<c>statementBlock</c>).</summary>
+    /// <paramref name="statementStart"/> is FIRST(<c>statementBlock</c>).
+    /// <para>⛔ <c>ZERO_ARITH</c> IS NAMED ONLY WHERE A WRITTEN ZERO WOULD BECOME IT (kb/Work PB3861 review R1-1). It is a
+    /// token no program writes: <c>ZeroTokenRewriter</c> makes a written ZERO that one by its neighbours, an arithmetic
+    /// operator, the ref-mod colon or a paren pair around it alone. A parse that expects it expects a ZERO only in such
+    /// a context, so it is named "the figurative constant ZERO" only when <paramref name="aZeroWrittenHereIsArithmetic"/>
+    /// (the rewriter's own test, asked of the refused token's place): after <c>1 +</c> a ZERO written instead of
+    /// <c>"A"</c> parses, while after <c>SET IX TO</c> it stays the figurative ZERO the position does not take, and naming
+    /// it there sent the user to a rewrite the compiler refuses (and wrote "The word ZERO is not expected here: expected
+    /// the figurative constant ZERO" for <c>SET IX TO ALL ZERO</c>).</para></summary>
     public static string? Refusal(IToken token, IntervalSet admitted, IReadOnlyCollection<string> words,
-        IntervalSet statementStart, Func<bool> aPeriodLetsTheSentenceFollow)
+        IntervalSet statementStart, Func<bool> aPeriodLetsTheSentenceFollow, bool aZeroWrittenHereIsArithmetic)
     {
+        if (!aZeroWrittenHereIsArithmetic && admitted.Contains(CobolParserCore.ZERO_ARITH))
+        {
+            var writable = new IntervalSet();
+            writable.AddAll(admitted);
+            writable.Remove(CobolParserCore.ZERO_ARITH);
+            admitted = writable;
+        }
         if (token.Type == TokenConstants.EOF || admitted.Contains(token.Type) || admitted.Count == 0 && words.Count == 0)
             return null;
         var named = Name(admitted, words, statementStart);
         string written = Written(token);
+        if (!named.Open && named.Words.Count + named.Literals.Count + named.Symbols.Count == 0)
+            return null;   // nothing the position expects can be named, so nothing is said
         if (!named.Open)
             return $"{written} is not expected here: expected {Join([.. named.Words, .. named.Literals, .. named.Symbols])} "
                    + "(ISO §5.2.1).";
@@ -96,7 +113,8 @@ internal static class AdmittedKinds
     /// <summary>The figurative-constant words, each a literal (ISO §8.3.3.1: "A literal is defined by a reserved word
     /// that references a figurative constant or is a character-string …"): FIRST(<c>figurativeConstant</c>) but its ALL
     /// prefix, and ZERO_ARITH, the ZERO the token rewriter marks arithmetic (§8.8.1.1: an arithmetic expression may be
-    /// "the figurative constant ZERO (ZEROS, ZEROES)"). A position that takes some of them, not the whole family,
+    /// "the figurative constant ZERO (ZEROS, ZEROES)"), which reaches here only where a ZERO written at the refused
+    /// token would be that token (<see cref="Refusal"/>). A position that takes some of them, not the whole family,
     /// names each as a figurative constant among its literals.</summary>
     private static IntervalSet FigurativeWords => _figurativeWords ??= BuildFigurativeWords();
 
