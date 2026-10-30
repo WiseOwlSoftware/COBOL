@@ -18,10 +18,20 @@ New-Item -ItemType Directory -Force -Path $FxRepo | Out-Null
 $FakePython = Join-Path $Here 'testdata/fake-python.ps1'
 $script:fails = @()
 $script:checked = 0
+# A failed check quotes the lines of the newest run's output that say WHY (kb/Work PB4046: the adopt part's restart
+# scenario failed in CI twice with only "got 'False', want 'True'", and adopt_main's own reason, on its `adopt main:`
+# line, was dropped with the rest of the output). A part names those lines with `$script:Evidence`, a regex.
+$script:Evidence = ''
+$script:lastRun = $null
 
 function Check([string]$name, $got, $want) {
     $script:checked++
-    if ("$got" -ne "$want") { $script:fails += "${name}: got '$got', want '$want'" }
+    if ("$got" -ne "$want") {
+        $why = if ($script:Evidence -and $script:lastRun) {
+            @($script:lastRun.out -split "`n" | Where-Object { $_ -match $script:Evidence } | ForEach-Object { $_.Trim() }) -join ' | '
+        } else { '' }
+        $script:fails += "${name}: got '$got', want '$want'" + $(if ($why) { " [run '$($script:lastRun.case)': $why]" } else { '' })
+    }
 }
 
 function Run-Orch([string]$case, [string]$mode, [string[]]$extra, [scriptblock]$before) {
@@ -36,7 +46,8 @@ function Run-Orch([string]$case, [string]$mode, [string[]]$extra, [scriptblock]$
     $code = $LASTEXITCODE
     $runs = if (Test-Path $mark) { @(Get-Content $mark).Count } else { 0 }
     $units = if (Test-Path (Join-Path $coord 'units.jsonl')) { @(Get-Content (Join-Path $coord 'units.jsonl') | ForEach-Object { $_ | ConvertFrom-Json }) } else { @() }
-    return [pscustomobject]@{ code = $code; out = ($out -join "`n"); runs = $runs; units = $units; coord = $coord }
+    $script:lastRun = [pscustomobject]@{ case = $case; code = $code; out = ($out -join "`n"); runs = $runs; units = $units; coord = $coord }
+    return $script:lastRun
 }
 
 function Complete-OrchTest([string]$part) {
