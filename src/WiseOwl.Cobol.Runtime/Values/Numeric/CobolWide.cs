@@ -35,6 +35,10 @@ public readonly struct CobolWide
     /// type only for bounds up to this width.</summary>
     public const int MaxDigits = 77;
 
+    /// <summary>The base-10^18 limbs a magnitude below 2^256 needs (10^90 &gt; 2^256): the length of the span
+    /// <see cref="MagnitudeLimbs"/> fills.</summary>
+    internal const int WideLimbs = 5;
+
     private readonly UInt128 _hi;
     private readonly UInt128 _lo;
     private readonly bool _negative;
@@ -121,6 +125,49 @@ public readonly struct CobolWide
         text.Append(chunks[count - 1].ToString(System.Globalization.CultureInfo.InvariantCulture));
         for (int i = count - 2; i >= 0; i--) text.Append(chunks[i].ToString("D19", System.Globalization.CultureInfo.InvariantCulture));
         return text.ToString();
+    }
+
+    /// <summary>The magnitude as base-10^18 limbs, least significant first, into <paramref name="limbs"/>
+    /// (<see cref="WideLimbs"/> long): long division of the four 64-bit limbs by 10^18, whose partial remainders are below
+    /// 10^18 &lt; 2^60, so <c>(remainder &lt;&lt; 64) | limb</c> fits one <see cref="UInt128"/>. The input of the
+    /// quarter-turn reduction (<c>CobolIntrinsics.ReduceQuarterTurns</c>).</summary>
+    internal void MagnitudeLimbs(Span<long> limbs)
+    {
+        const ulong Base = 1_000_000_000_000_000_000UL;   // 10^18
+        Span<ulong> words = [(ulong)(_hi >> 64), (ulong)_hi, (ulong)(_lo >> 64), (ulong)_lo];
+        for (int n = 0; n < limbs.Length; n++)
+        {
+            UInt128 remainder = 0;
+            for (int i = 0; i < words.Length; i++)
+            {
+                UInt128 current = (remainder << 64) | words[i];
+                words[i] = (ulong)(current / Base);
+                remainder = current % Base;
+            }
+            limbs[n] = (long)remainder;
+        }
+    }
+
+    /// <summary>⛔ THE EXACT QUOTIENT OF THIS VALUE (at <paramref name="scale"/>) BY A COUNT, ROUNDED ONCE TO THE SDIDI
+    /// (kb/Work PB4075): the single division of FUNCTION MEAN's <c>Σ / n</c> (ISO §15.60.4 r1, kb/Work PB3860) over an exact
+    /// wide sum, where <see cref="ToDec"/> then <see cref="CobolDec.Div"/> would round twice. The dividend is scaled by
+    /// powers of ten until the integer quotient has at least 36 digits (the work stays below 10^36 × the count's 10^digits), the true
+    /// remainder is the sticky bit, and <see cref="CobolDec.Round34Wide"/> lands the 34-digit significand with
+    /// <paramref name="mode"/> — the rounding <see cref="CobolDec.Div"/> applies to an SDIDI dividend, so the two agree wherever
+    /// both can form the quotient. An exact quotient keeps the preferred exponent (the dividend's, ISO/IEC 60559 5.4.1,
+    /// kb/Work PB3954), as <see cref="CobolDec.Div"/> does.</summary>
+    internal CobolDec QuotientDec(int scale, int count, CobolRounding mode)
+    {
+        if (IsZero) return CobolDec.Zero(-scale);
+        CobolWide divisor = From(count);
+        CobolWide magnitude = Abs(this);
+        // The integer quotient of dm digits by dn digits has at least dm − dn: scaling by 36 + dn − dm leaves it 36 or 37 digits.
+        int up = Math.Max(0, 36 + divisor.MagnitudeDigits().Length - magnitude.MagnitudeDigits().Length);
+        CobolWide quotient = DivRem(Up(magnitude, up), divisor, out CobolWide remainder);
+        int exp = -scale - up;
+        UInt128 lo = quotient._lo;
+        if (remainder.IsZero && up > 0) lo = CobolDec.ToPreferredExponent(lo, ref exp, -scale);   // below 2^128: up > 0 means 36 or 37 digits
+        return CobolDec.Round34Wide(quotient._hi, lo, _negative, exp, mode, extraSticky: !remainder.IsZero);
     }
 
     private static CobolSizeError Overflow() => new("a native intermediate exceeds the exact 256-bit range "

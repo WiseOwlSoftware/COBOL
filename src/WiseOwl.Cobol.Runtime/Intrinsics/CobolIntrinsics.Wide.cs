@@ -4,7 +4,7 @@ namespace WiseOwl.Cobol.Runtime;
 
 /// <summary>
 /// ⛔ THE EXACT INTRINSIC FAMILY ON THE EXACT WIDE INTERMEDIATE (kb/Work PB3953; docs/CONFORMANCE.md DOC-A.1-123): the bodies
-/// of ABS, SIGN, INTEGER, INTEGER-PART, FRACTION-PART, MOD, REM, MAX, MIN, ORD-MAX, ORD-MIN, SUM, RANGE, MEDIAN and MIDRANGE
+/// of ABS, SIGN, INTEGER, INTEGER-PART, FRACTION-PART, MOD, REM, MAX, MIN, ORD-MAX, ORD-MIN, SUM, RANGE, MEAN, MEDIAN and MIDRANGE
 /// over <see cref="CobolWide"/> values, for a call whose argument is an arithmetic expression whose exact value passes the
 /// <see cref="Int128"/> carrier (a nested product of 39 to 77 digits). They are the <c>…Scaled</c> bodies of
 /// <c>CobolIntrinsics.Exact.cs</c> and <c>CobolIntrinsics.Select.cs</c> on the wider carrier, with the same contracts: the
@@ -128,6 +128,18 @@ public static partial class CobolIntrinsics
     {
         RequireArguments(xs.Length, "RANGE");
         return CobolWide.Sub(MaxWide(xs), MinWide(xs));
+    }
+
+    /// <summary>⛔ MEAN (§15.60.4 r1) OVER THE EXACT WIDE SUM, ONE SDIDI QUOTIENT (kb/Work PB4075, PB3860): the arguments' exact sum
+    /// divided by their count and rounded ONCE to the SDIDI's 34 digits (<see cref="CobolWide.QuotientDec"/>) in
+    /// <paramref name="mode"/> — the value <see cref="MeanDec"/> forms for an SDIDI list, and the value every receiver then
+    /// rounds once (§14.7.4.3). The arguments arrive ALREADY ALIGNED by the emitter to the common <paramref name="scale"/>. Lowering
+    /// each argument to its round-to-odd image first and dividing that sum rounded twice: MEAN (BIG * BIG * K3, 1) of 18-, 18- and
+    /// 3-digit items showed …000000000000100000 where one rounding of the exact …000500 is …000000000000000000.</summary>
+    public static CobolDec MeanWide(CobolRounding mode, int scale, params CobolWide[] xs)
+    {
+        RequireArguments(xs.Length, "MEAN");
+        return SumWide(xs).QuotientDec(scale, xs.Length, mode);
     }
 
     /// <summary>MEDIAN (§15.61.4): the middle of the sorted arguments for an odd count, the mean of the two middles for an even

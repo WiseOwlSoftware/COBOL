@@ -25,6 +25,7 @@ _SCRIPTS = str(pathlib.Path(__file__).resolve().parents[1])
 if _SCRIPTS not in sys.path:
     sys.path.append(_SCRIPTS)
 import sharedfile  # noqa: E402
+from detached import pid_alive  # noqa: E402  (scripts/: THE one liveness probe, kb/Work PB4008)
 
 DEFAULT = r"E:\COBOL-coord"
 ENV = "COBOL_COORD_DIR"
@@ -331,7 +332,12 @@ def write_json(path: pathlib.Path, value: Any) -> None:
 
 
 def process_name(pid: int) -> str | None:
-    """The image name of the live process `pid`, or None when no process has that id (read-only; no psutil here)."""
+    """The image name of the RUNNING process `pid`, or None when no running process has that id (read-only; no psutil
+    here). Running is the operating system's answer (`detached.pid_alive`), never the listing's: a Windows snapshot can
+    still name an exited process whose object another handle keeps, and a Linux zombie keeps its /proc entry, so a dead
+    worker once read as a live Python (kb/Work PB4008)."""
+    if not pid_alive(pid):
+        return None
     if os.name == "nt":
         return next((p["name"] for p in _nt_snapshot() if p["pid"] == pid), None)
     try:
@@ -352,6 +358,21 @@ def process_command(pid: int) -> str | None:
         return pathlib.Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode("utf-8", "replace").strip()
     except OSError:
         return ""
+
+
+def runs_python(pid: int, mark: str) -> bool:
+    """`pid` is a running Python process whose command line names `mark`: THE one rule by which a lane tells its own
+    detached process (`land_lane.runner_alive`, `impact_lane.worker_alive`) from a dead one and from a stranger on a
+    reused pid (kb/Work PB3113), its liveness asked of the operating system (`process_name`, kb/Work PB4008). An
+    UNREADABLE command line (a process not ours to open, which `detached.pid_alive` reads as running on both systems)
+    cannot tell the two apart, and calling a live one dead would start a second beside it, so it reads as alive."""
+    name = process_name(pid)
+    if not name or "python" not in name.lower():
+        return False
+    cmd = process_command(pid)
+    if not cmd:
+        return cmd == ""   # None: it ended since the name was read; "": unreadable, so alive (above)
+    return os.path.normcase(mark) in os.path.normcase(cmd)
 
 
 def _nt_snapshot() -> list[dict[str, Any]]:
@@ -464,8 +485,38 @@ def loop_state(override: str | None = None) -> tuple[str, str]:
 
 
 
+def _exited_but_listed_arm() -> list[str]:
+    """kb/Work PB4008: a Python child that has EXITED while its object is still kept is dead to `process_name` and to
+    `runs_python`, however a listing still names it. The state is made, never waited for: on Windows the `Popen` keeps
+    the handle after `wait()`, and the listing names the pid as the CI runner's snapshot did three times (this host's
+    drops it at once); on Linux `waitid(WNOWAIT)` returns at the exit and leaves the zombie unreaped, and a zombie keeps
+    its /proc name with an empty command line. The listing alone reads that pid as a live Python whose command line
+    cannot be read: alive."""
+    import subprocess  # noqa: PLC0415
+    global _nt_snapshot
+    fails: list[str] = []
+    mark = "coord-selftest-exited-child"
+    child = subprocess.Popen([sys.executable, "-c", "import sys; sys.stdin.read()", mark], stdin=subprocess.PIPE)
+    real_snapshot = _nt_snapshot
+    try:
+        child.stdin.close()   # the child reads EOF and exits by itself
+        if os.name == "nt":
+            child.wait()
+            _nt_snapshot = lambda: [*real_snapshot(), {"pid": child.pid, "ppid": os.getpid(), "name": "python.exe"}]  # noqa: E731
+        else:
+            os.waitid(os.P_PID, child.pid, os.WEXITED | os.WNOWAIT)
+        got = (process_name(child.pid), process_command(child.pid), runs_python(child.pid, mark))
+        if got != (None, None, False):
+            fails.append(f"an exited child whose object is kept must read dead (name None, command None, not running); "
+                         f"got {got}")
+    finally:
+        _nt_snapshot = real_snapshot
+        child.wait()
+    return fails
+
+
 def _self_test() -> int:
-    """loop_state on each lock shape: absent, live PID, dead PID, unreadable."""
+    """loop_state on each lock shape: absent, live PID, dead PID, unreadable; the process probes (`_exited_but_listed_arm`)."""
     import tempfile
     fails = []
     with tempfile.TemporaryDirectory() as d:
@@ -539,6 +590,9 @@ def _self_test() -> int:
         fails.append(f"process_name: this process reads {process_name(os.getpid())!r}; a dead pid must read None")
     if "coord.py" not in (process_command(os.getpid()) or "") or process_command(2 ** 22 + 12345) is not None:
         fails.append(f"process_command: this process reads {process_command(os.getpid())!r}; a dead pid must read None")
+    if not runs_python(os.getpid(), "coord.py") or runs_python(os.getpid(), "not-this-script.py"):
+        fails.append("runs_python: this process must run coord.py and must not run not-this-script.py")
+    fails += _exited_but_listed_arm()
     for f in fails:
         print(f"FAIL  {f}")
     print(f"=== COORD SELF-TEST: {'GREEN' if not fails else f'RED ({len(fails)})'} ===")
