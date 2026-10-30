@@ -49,10 +49,12 @@
            RECEIVE MSG-TAG GIVING MSG-BODY MSG-LEN
                CONTINUE MESSAGE RECEIVED
            END-RECEIVE.
-      *> TO omitted on SEND, both spellings of the operand
+      *> TO omitted on SEND, both spellings of the operand. A literal-1 operand is Format 1's
+      *> (to-message-server), whose RETURNING data-name-1 line p756 prints without brackets, so
+      *> that spelling writes it (kb/Work PB2024: omitted, it is COBOL1850).
            SEND MSG-TAG FROM MSG-BODY
            END-SEND.
-           SEND "LITERAL-TAG" FROM MSG-BODY
+           SEND "LITERAL-TAG" FROM MSG-BODY RETURNING MSG-TAG
            END-SEND.
       *> the optional words remain ACCEPTED when written - omission is a spelling, not a replacement
            RECEIVE FROM MSG-TAG GIVING MSG-BODY MSG-LEN

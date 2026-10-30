@@ -619,6 +619,27 @@ apart (the VALUE clause's `IN alphabet-name-1`, decided by symbol in `DataBinder
 DECIDED. Optional words are judged within EACH format (§8.3.2.4.3): RECEIVE's CONTINUE phrase leaves AFTER and
 SECONDS plain on its own page while the CONTINUE statement's format rules both, and each rule follows its own.
 
+The same audit asks the INVERSE two questions (kb/Work PB2024), the under-rejection side: a word the grammar lets be
+LEFT OUT (`X?`, an optional group or rule) that the format demands, and a word the grammar lets be WRITTEN AGAIN
+(`+`/`*`) that the format prints once. Underlining alone cannot answer either: §5.2.2 makes an underlined keyword
+required "subject to the conventions specified in 5.2.6", and a bracket or a choice indicator legitimately makes
+one omissible (MULTIPLE in `[ WITH LOCK ON [ MULTIPLE ] … ]`), while §5.2.7 repeats only the portion between the
+bracket or brace pair before an ellipsis. So `scripts/spec/figure_options.py` reads the OPTION STRUCTURE of each
+printed format — every word with the brackets, choice indicators and braces that hold it, paired from the same
+measured delimiters `render_figure.enclosures` draws the transcription's figures from, plus the one-line delimiters
+set as text — and the audit joins it per alternative: a word omissible in an alternative is a candidate when every
+printed occurrence of a word the alternative demands stands in sequence with an underlined occurrence of it that no
+bracket or choice indicator holds apart (`required-word`); a repeatable word is a candidate when no printed
+occurrence lies in a repeated portion or among choice indicators (`repeated-word`; §5.2.6.4's "one or more … in any
+order" can only be spelled as a repetition, and its "each once" is a later phase's). A later phase that refuses the
+omission or repetition is named the same way the optional-word decision is, `// audit:required-word <WORD> …
+decided-by <Type>.<Member>` and `// audit:repeated-word …` (several words may share one line): SUBTRACT's FROM
+(`ArithmeticBinder.BindSubtract`), SEND's END-SEND (`DeclinedFacilityBinder.ScreenSendRequiredPhrases`), CONTROL's
+FINAL and the PAGE clause's phrases (`DataBinder.BindReportDescriptionClauses`), OCCURS DYNAMIC's phrases
+(`DataBinder.NarrowToDataDivisionFormats`). Its known catches, replayed as a control run, are PB755 (`LOCK ON?`),
+PB756 (`ALTERNATE RECORD?`) and PB1183's shape (`unstringIntoPhrase+`). A compiler directive's format (§7.3, "IF
+directive") is the preprocessor's and is never joined to a parser rule that shares its keyword.
+
 ⛔ **Why this is generated and not written by hand (kb/Work PB300, CLAUDE.md rule 5).** The second half used to be
 a hand-written list of two words inside `CobolData.g4`'s `dataName`, paired with a hand-written
 `ctx.COMMIT() ?? ctx.ROLLBACK()` extraction in the funnel — three places naming the same set. It had already
