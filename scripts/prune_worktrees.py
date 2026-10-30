@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Every local branch and worktree, by CONTENT against origin/main and by LIFECYCLE (who acts on it next); with --apply,
-remove the ones whose work is on main, and the ones abandoned by a recorded decision.
+"""Every local branch, every branch of origin and every worktree, by CONTENT against origin/main and by LIFECYCLE (who
+acts on it next); with --apply, remove the ones whose work is on main, and the ones abandoned by a recorded decision.
 
     python scripts/prune_worktrees.py                      # dry run: the lifecycle table, nothing touched
     python scripts/prune_worktrees.py --brief              # the verdict line and only the rows someone must act on
@@ -146,7 +146,15 @@ is ABANDONED: `--apply --abandon <branch>` removes a clean, idle DECISION row on
 the decision (a line where the word ABANDONED directly follows the branch's name, with the reason; the word abandons
 that branch, never a successor the line names). Each removed branch's `origin/<branch>`
 goes with it unless it holds commits the local branch did not (drop_remote); --apply first drops the remote-tracking refs whose
-branch origin no longer holds (prune_stale_remote_refs, kb/Work PB3409). --include-locked also takes a landed
+branch origin no longer holds (prune_stale_remote_refs, kb/Work PB3409).
+ORIGIN'S BRANCHES ARE SURVEYED TOO (kb/Work PB3413: eleven branches that existed only on origin surfaced in 2026-10 through a
+hand query, because a local branch was the survey's only unit). Every branch of origin (`refs/remotes/origin/*`; not main,
+and not the merge queue's `gh-readonly-queue/*`) with NO local branch is a row named `<branch>`, and one whose tip is neither
+the local branch's nor an ancestor of it (origin moved on past, or away from, the local branch) is a row named
+`origin/<branch>`. Such a row (Row.origin) is measured and given its lifecycle by the same rules, has no worktree, lock or
+report, and so reads LANDED (its work is on main: --apply deletes the branch on origin, only while it is still the tip that
+was judged), a DECISION naming what is not on main, ENQUEUED and the like when a pull request of it is open, or IN FLIGHT
+while its tip is under --min-age old. Every reader fetches with `--prune` (fetch_origin) so a branch origin deleted leaves no row. --include-locked also takes a landed
 worktree locked by hand (no pid). A DETACHED worktree (a read-only fleet's pin)
 has no branch: it is listed with its lifecycle and never removed here. On Windows a worktree can refuse to delete
 ("Invalid argument", "Access is denied") because the C# language server (csharp-ls) loaded an analyzer DLL from it:
@@ -387,6 +395,35 @@ def replay_view(ranked: dict[str, int], unlanded: Iterable[str], abandoned: set[
                    lambda b: ranked.get(b, -1), graph)
 
 
+#: The remote-tracking refs of origin's branches (`git fetch` keeps them current).
+ORIGIN_REFS = 'refs/remotes/origin/'
+#: The branches of origin that are no one's work: its default branch, and the merge queue's own merge-group branches.
+ORIGIN_SKIP = ('HEAD', 'main')
+ORIGIN_SKIP_PREFIX = ('gh-readonly-queue/',)
+
+
+def fetch_origin(repo=REPO):
+    """THE fetch every reader of the survey makes: `git fetch --prune origin`. Pruning keeps `refs/remotes/origin/*`
+    equal to what origin holds, which the survey now reads as branches (kb/Work PB3413): GitHub deletes a merged pull
+    request's head branch itself (kb/Work PB3409), and an unpruned tracking ref would stand as a branch no one can
+    delete."""
+    return git('fetch', '-q', '--prune', 'origin', cwd=repo)
+
+
+def origin_branches(repo=REPO) -> dict[str, tuple[str, str, int]]:
+    """{branch: (tip sha, `<short sha> <date> <subject>`, committer time)} of every branch of origin (its remote-tracking
+    ref) but main and the merge queue's, from ONE `git for-each-ref` (kb/Work PB3413)."""
+    out: dict[str, tuple[str, str, int]] = {}
+    for line in git('for-each-ref', ORIGIN_REFS,
+                    '--format=%(refname)%00%(objectname)%00%(objectname:short) %(committerdate:short) %(subject)%00%(committerdate:unix)',
+                    cwd=repo).stdout.splitlines():
+        ref, tip, last, when = line.split('\0')
+        b = ref.removeprefix(ORIGIN_REFS)
+        if b not in ORIGIN_SKIP and not b.startswith(ORIGIN_SKIP_PREFIX):
+            out[b] = (tip, last[:90], int(when or 0))
+    return out
+
+
 def branch_graph(branches, repo=REPO) -> Ancestry:
     """THE ancestry every classify() of one pass reads (git_batch.Ancestry: one resolve and one `git log` for every
     branch, never a `merge-base` per branch, kb/Work PB3582)."""
@@ -502,6 +539,10 @@ class Row:
     waits_on: str = ''              # carrying_findings(): the branch whose unanswered FINDINGS it carries, or that a
                                     # TORN findings file holding it names first; it lands after that one is answered
                                     # (or the file repaired), and nobody works on THIS one either (owned() excludes it)
+    origin: str = ''                # the row stands for a branch of ORIGIN (kb/Work PB3413): the remote-tracking ref it
+                                    # measures, `refs/remotes/origin/<branch>`; '' for a local branch or a detached tree.
+                                    # Named `<branch>` when no local branch of that name exists, else `origin/<branch>`
+                                    # (origin holds commits the local branch does not). It has no worktree.
 
 
 def register_path(path: str) -> bool:
@@ -821,6 +862,9 @@ def evidence(row: Row) -> str:
     ev = [row.content + (f' ({len(row.absent)} added file(s) absent from main, e.g. {row.absent[0]})' if row.absent else '')
           + (f' (names not on main: {" ".join(row.lost[:5])})' if row.content == 'CHECK' else ''),
           f'{row.ahead} commit(s) ahead', f'idle {row.age_min / 60:.1f} h', f'last: {row.last_commit}']
+    if row.origin:
+        ev.insert(0, 'a branch of origin' + (' that origin moved on past its local branch' if row.name.startswith('origin/')
+                                             else ' with no local branch') + ' (kb/Work PB3413)')
     if row.dirty:
         ev.append(f'{row.dirty} uncommitted path(s) in its worktree')
     if row.lock is not None:
@@ -876,7 +920,7 @@ def live_survey(repo=REPO, *, coord_dir: pathlib.Path | None = None, reports_dir
 def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[IndexedReport] = (),
            slugs: set[str] = frozenset(), min_age: int = 180, stale_hours: float = 24,
            live: Callable[[str | None], bool] = live_lock, coord_dir: pathlib.Path | None = None) -> list[Row]:
-    """Every local branch but main, and every detached worktree, measured and given its lifecycle state. `prs`:
+    """Every local branch but main, every branch of origin (Row.origin, kb/Work PB3413) and every detached worktree, measured and given its lifecycle state. `prs`:
     {branch: its open pull request into main} (queue_facts.read), or None when GitHub was not observed (the git-only
     lifecycle); REQUIRED so no caller reads a git-only lifecycle by omission; production readers call live_survey, and
     a self-test passes its own (None is an explicit offline, {} an observed "no pull request is open")."""
@@ -899,6 +943,16 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
         if b != 'main':
             refs[b] = (tip, last[:90])
     graph = branch_graph(list(refs), repo)
+    # kb/Work PB3413: the branches of ORIGIN with no local branch to carry their lifecycle, or holding commits their
+    # local branch does not: each gets a row of its own (below). The graph reads their tips in one more batch.
+    origin = origin_branches(repo)
+    graph.extend(ORIGIN_REFS + b for b, (tip, _, _) in origin.items() if (b not in refs or refs[b][0] != tip))
+    remote_rows = {}    # row name -> (origin branch, tip, last, committer time)
+    for b, (tip, last, when) in origin.items():
+        if b not in refs:
+            remote_rows[b] = (b, tip, last, when)
+        elif refs[b][0] != tip and (graph.on_base(tip) or tip not in graph.beyond(refs[b][0])):
+            remote_rows[f'origin/{b}'] = (b, tip, last, when)   # origin moved on past (or away from) the local tip
     reports = list(reports)
     detached = [t for t in trees if not t.branch]
     # every other name a row asks the graph about, resolved in the same single process as a batch
@@ -931,8 +985,20 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
         return Row(f'(detached) {pathlib.PurePath(t.path).name}', 'DETACHED', [], [], 0, t.path, t.lock, dirty,
                    age_minutes(worktree_git_dir(t.path) / 'logs' / 'HEAD', pathlib.Path(t.path) / 'STATUS.md'), last)
 
+    def measure_origin(name: str) -> Row:
+        """A branch of origin, measured as a local one is (kb/Work PB3413): its content against origin/main, by the same
+        classify(). It has no worktree, no lock, no report (nothing runs in it, and a report is about a branch a
+        worktree holds) and no uncommitted edit, so it reads LANDED or a DECISION (or ENQUEUED and the like when a
+        pull request of it is open), and its age is its tip's commit time."""
+        branch, tip, last, when = remote_rows[name]
+        ref = ORIGIN_REFS + branch
+        kind, absent, lost, how = classify(ref, names, graph, repo, coord_dir)
+        return Row(name, kind, absent, lost, len(graph.beyond(tip)), None, None, 0, max(0.0, (time.time() - when) / 60),
+                   last, None, how=how, tip=tip, on_main_line=kind == 'MERGED' and graph.on_base_line(tip), origin=ref)
+
     with ThreadPoolExecutor(max_workers=16) as pool:   # subprocess-bound: ~1-3 s a branch, 35 s for 29 one by one
-        rows = list(pool.map(measure, refs)) + list(pool.map(measure_detached, detached))
+        rows = (list(pool.map(measure, refs)) + list(pool.map(measure_detached, detached))
+                + list(pool.map(measure_origin, remote_rows)))
     import land_lane  # noqa: PLC0415  (scripts/orchestrator: it imports this module back; its attempt reader, never its text)
     lane = land_lane.view(pathlib.Path(coord_dir) if coord_dir else coord.coord_path())
     for r in rows:
@@ -1225,7 +1291,9 @@ def verdict(rows: list[Row]) -> str:
             f'review · {n["WAITING TO LAND"]} waiting to land · {n["STOPPED"]} stopped · {n["ENQUEUED"]} enqueued · '
             f'{n["NOT QUEUED"]} not queued · {n["BOUNCED"]} bounced · '
             f'{n["LANDED"]} landed (--apply deletes) · {n["DECISION"]} need a DECISION'
-            + (' (owner rule 2026-10-08, kb/Work PB2600: land it or abandon it in its kb/Work note, then delete) ===' if n['DECISION'] else ' ==='))
+            + (' (owner rule 2026-10-08, kb/Work PB2600: land it or abandon it in its kb/Work note, then delete)' if n['DECISION'] else '')
+            + (f' · {sum(1 for r in rows if r.origin)} of the rows are branches of origin (kb/Work PB3413)'
+               if any(r.origin for r in rows) else '') + ' ===')
 
 
 def note_rank(work_dir: pathlib.Path | None = None) -> Callable[[str], tuple[int, int]]:
@@ -1326,9 +1394,18 @@ def drop_remote(branch: str, tip: str, *, repo=REPO, say: Callable[[str], None] 
     if not tip or git('merge-base', '--is-ancestor', remote, tip, cwd=repo).returncode != 0:
         say(f'kept origin/{branch}: it holds commits the local branch did not ({remote[:12]})')
         return
-    res = git('push', '-q', 'origin', '--delete', branch, cwd=repo)
+    delete_origin(branch, repo=repo, say=say)
+
+
+def delete_origin(branch: str, *, expect: str = '', repo=REPO, say: Callable[[str], None] = print) -> bool:
+    """`git push origin --delete <branch>`, said; True when origin no longer holds it. `expect`: the tip the survey judged
+    (a LANDED origin row, kb/Work PB3413): the delete is refused if origin's branch has moved since, so a push that
+    landed after the survey is never deleted on a verdict about the tip before it."""
+    lease = [f'--force-with-lease={branch}:{expect}'] if expect else []
+    res = git('push', '-q', 'origin', *lease, '--delete', branch, cwd=repo)
     say(f'deleted origin/{branch}' if res.returncode == 0 else
         f'could not delete origin/{branch}: {res.stderr.strip()[:120]}')
+    return res.returncode == 0
 
 
 def apply(rows: list[Row], *, repo=REPO, include_locked: bool = False, abandon: list[str] = (), min_age: int = 180,
@@ -1363,6 +1440,10 @@ def apply(rows: list[Row], *, repo=REPO, include_locked: bool = False, abandon: 
     removed = 0
     prune_stale_remote_refs(repo=repo, say=say)
     for r in doomed:
+        if r.origin:   # a branch of origin (kb/Work PB3413): nothing local to remove, and origin's copy only while it is
+            # still the tip the survey judged
+            removed += delete_origin(r.origin.removeprefix(ORIGIN_REFS), expect=r.tip, repo=repo, say=say)
+            continue
         if r.worktree:
             # re-measured at the moment of removal: an agent may have started writing since the survey
             if uncommitted(r.worktree):
@@ -1413,7 +1494,7 @@ def main(argv=None):
     if a.self_test:
         return self_test()
     if not a.no_fetch:
-        git('fetch', '-q', 'origin')
+        fetch_origin()
     rows = live_survey(reports_dir=a.reports, min_age=a.min_age, stale_hours=a.stale_hours)
     order = landing_order(rows, note_rank())
     if a.json:
@@ -1423,7 +1504,7 @@ def main(argv=None):
         for r in order if st == 'WAITING TO LAND' else sorted((r for r in rows if r.state == st), key=lambda r: r.name):
             if a.brief and st in ('IN FLIGHT', 'ENQUEUED', 'LANDED'):
                 continue
-            print(f'{st:15} {r.name}{" [worktree]" if r.worktree and r.content != "DETACHED" else ""} — {r.why}')
+            print(f'{st:15} {r.name}{" [worktree]" if r.worktree and r.content != "DETACHED" else " [origin]" if r.origin else ""} — {r.why}')
     print(verdict(rows))
     if not a.apply:
         if not a.brief:
@@ -1906,6 +1987,38 @@ def self_test() -> int:
             f.write('{"kind": "verdict", "round": 1, "bra')
         (fscratch / 'r2-0abc' / 'batch-1').mkdir(parents=True)
         (fscratch / 'r2-0abc' / 'batch-1' / 'review-cli--code--f1.jsonl').write_text('{"type": "read", "file": "x.cs"}\n', encoding='utf-8', newline='\n')
+        # kb/Work PB3413: BRANCHES OF ORIGIN. `ro-landed` exists only on origin and its work is on main (its commit, made
+        # 10 h ago, is merged into main); `ro-unlanded` exists only on origin and carries a file main lacks; `ro-moved`
+        # has a local branch, and origin moved on past it by a commit; a merge-queue branch is no one's work. None has
+        # a worktree; all are committed 10 h ago, so none is fresh.
+        ro_when = int(hours(10))
+
+        def ro_commit(path: str, text: str, msg: str, offset: int = 0) -> None:
+            scratch.write({path: text})
+            scratch.git('add', path)
+            scratch.git('commit', '-q', '-m', msg, when=ro_when + offset)
+
+        scratch.git('switch', '-q', '-c', 'ro-tmp', 'main')
+        ro_commit('src/RoLanded.cs', 'class RoLandedX {}\n', 'ro-landed')
+        scratch.git('push', '-q', 'origin', 'ro-tmp:refs/heads/ro-landed')
+        scratch.git('switch', '-q', 'main')
+        scratch.git('merge', '-q', '--no-ff', '--no-edit', 'ro-tmp')
+        scratch.git('push', '-q', 'origin', 'main')
+        scratch.git('branch', '-q', '-D', 'ro-tmp')
+        scratch.git('switch', '-q', '-c', 'ro-tmp', 'main')
+        ro_commit('src/RoUnlanded.cs', 'class RoUnlandedX {}\n', 'ro-unlanded')
+        scratch.git('push', '-q', 'origin', 'ro-tmp:refs/heads/ro-unlanded')
+        scratch.git('push', '-q', 'origin', 'ro-tmp:refs/heads/gh-readonly-queue/main/pr-1-abc')
+        scratch.git('switch', '-q', 'main')
+        scratch.git('branch', '-q', '-D', 'ro-tmp')
+        scratch.git('switch', '-q', '-c', 'ro-moved', 'main')
+        ro_commit('src/RoMoved.cs', 'class RoMovedX {}\n', 'ro-moved: the local tip')
+        scratch.git('push', '-q', 'origin', 'ro-moved')
+        ro_commit('src/RoMoved2.cs', 'class RoMoved2X {}\n', 'ro-moved: origin moved on', 60)
+        scratch.git('push', '-q', 'origin', 'ro-moved')
+        scratch.git('reset', '-q', '--hard', 'HEAD~1')
+        scratch.git('switch', '-q', 'main')
+        scratch.git('fetch', '-q', '--prune', 'origin')
         # age everything but `fresh` past --min-age: the branch reflogs, each worktree's HEAD log
         common = repo / '.git'
         for p in list((common / 'logs').rglob('*')):
@@ -1945,7 +2058,10 @@ def self_test() -> int:
                 'cw-pred': 'IN FLIGHT', 'cw-stale': 'IN FLIGHT', 'cw-moved': 'IN FLIGHT', 'cw-lost': 'IN FLIGHT',
                 'cw-succ': 'WAITING TO LAND',
                 'findings-resumed': 'DECISION', 'wpred': 'WAITING TO LAND', 'wsucc': 'IN FLIGHT',
-                'qpred': 'IN FLIGHT', 'qsucc': 'ENQUEUED'}
+                'qpred': 'IN FLIGHT', 'qsucc': 'ENQUEUED',
+                # kb/Work PB3413: branches of origin
+                'ro-landed': 'LANDED', 'ro-unlanded': 'DECISION', 'ro-moved': 'DECISION', 'origin/ro-moved': 'DECISION',
+                'origin/merged': 'IN FLIGHT'}
         for name, state in want.items():
             got = rows.get(name)
             check(got is not None and got.state == state, f'{name}: want {state}, got {got.state if got else "no row"} ({got.why if got else ""})')
@@ -2423,9 +2539,9 @@ def self_test() -> int:
         check([r['report']['path'] for r in printed['rows']] == ['w1a-PB4-report.md', 'w1a-PB3-report.md']
               and printed['landing_order'] == ['b3', 'b5'],
               f'--json prints each row with its report path as a string (kb/Work PB4055): {printed["rows"][:1]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 82 · 25 in flight · 7 waiting for review · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 87 · 26 in flight · 7 waiting for review · '
                                                       '14 waiting to land · 1 stopped · 2 enqueued · 0 not queued · '
-                                                      '0 bounced · 7 landed'),
+                                                      '0 bounced · 8 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
         r0 = dataclasses.replace(rows['orphan'], lock='')
@@ -2465,11 +2581,28 @@ def self_test() -> int:
         n = apply(list(rows.values()), repo=repo, abandon=['orphan', 'split-branch', 'fresh', 'dirty-merged'],
                   work_dir=notes, say=out.append)
         left = set(scratch.git('branch', '--format=%(refname:short)').split())
-        check(n == 7, f'--apply removed {n}, want 7 (6 LANDED + orphan): {out}')
+        check(n == 8, f'--apply removed {n}, want 8 (6 LANDED + orphan + the origin-only ro-landed): {out}')
+        # kb/Work PB3413: a branch of origin whose work is on main is deleted on origin, with no local branch to remove;
+        # an unlanded one and one origin moved on past stay, and the merge queue's are no rows at all
+        on_origin = set(git('ls-remote', '--heads', 'origin', cwd=repo).stdout.replace('refs/heads/', '').split()[1::2])
+        check('ro-landed' not in on_origin and {'ro-unlanded', 'ro-moved'} <= on_origin
+              and any(l == 'deleted origin/ro-landed' for l in out),
+              f'--apply deletes the LANDED branch of origin and keeps the others: {sorted(on_origin)} {out}')
+        lease_out: list[str] = []
+        refused = delete_origin('ro-unlanded', expect='0' * 40, repo=repo, say=lease_out.append)
+        check(not refused and lease_out and lease_out[0].startswith('could not delete origin/ro-unlanded')
+              and 'ro-unlanded' in set(git('ls-remote', '--heads', 'origin', cwd=repo).stdout.replace('refs/heads/', '').split()[1::2]),
+              f'a delete is refused when origin\'s branch is no longer the tip the survey judged: {lease_out}')
+        queued = queue_facts.PullRequest(77, 'https://github.com/o/r/pull/77', rows['ro-unlanded'].tip, True)
+        check(lifecycle(rows['ro-unlanded'], in_flight_slugs=set(), min_age=180, live=live, prs={'ro-unlanded': queued})[0]
+              == 'ENQUEUED', 'a branch of origin with a pull request in the merge queue reads ENQUEUED, as a local one does')
+        check(not any('gh-readonly-queue' in name for name in rows),
+              f'the merge queue\'s own branches are no one\'s work and get no row: {sorted(rows)}')
         check(not {'merged', 'landed-content', 'agent-dead', 'orphan', 'carried', 'picked', 'key-landed'} & left, f'LANDED/abandoned branches remain: {sorted(left)}')
         check('merged-own' in left and any('LANDED, kept: merged-own touched' in l for l in out),
               f'--apply keeps a LANDED branch touched inside --min-age, and says so (kb/Work PB3609): {out}')
-        check({b for b, s in want.items() if s != 'LANDED' and b != 'orphan' and not b.startswith('(')} <= left,
+        check({b for b, s in want.items() if s != 'LANDED' and b != 'orphan' and not b.startswith('(')
+               and not rows[b].origin} <= left,
               f'a branch neither landed nor recorded abandoned was removed: {sorted(left)}')
         check(any('no kb/Work note records' in l and 'split-branch' in l for l in out),
               'an --abandon with no recorded decision is refused, said so')

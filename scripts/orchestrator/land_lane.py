@@ -556,7 +556,7 @@ def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, 
     if probe.returncode != 0:
         raise LaneError(f"{repo} is not a git repository ({probe.stderr.strip()[:120]})")
     prs = queue_facts.read()
-    fetch = prune_worktrees.git("fetch", "-q", "origin", cwd=repo)
+    fetch = prune_worktrees.fetch_origin(repo)
     if fetch.returncode != 0:
         raise LaneError(f"git fetch origin failed in {repo}: {fetch.stderr.strip()[:200]}")
     rows = prune_worktrees.live_survey(repo, coord_dir=cdir, prs=prs)
