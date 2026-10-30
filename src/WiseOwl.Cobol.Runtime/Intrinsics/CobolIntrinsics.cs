@@ -49,8 +49,8 @@ public static partial class CobolIntrinsics
     /// <remarks>
     /// ⛔ RETURNS <see cref="Int128"/>, NOT <see cref="long"/> — and that is a CORRECTNESS fix, not a widening for
     /// comfort (fix-queue PB5). The scaled domain of this compiler IS Int128 (every <c>…Scaled</c> body takes
-    /// one), but this function saturated at <c>long.MaxValue</c>. Its caller quantizes at
-    /// <c>ws = max(Receiver.Scale, 9)</c>, so the old clamp bit at |value| ≈ <b>9.2 × 10⁹</b> — an utterly
+    /// one), but this function saturated at <c>long.MaxValue</c>. Its caller quantized at
+    /// <c>ws = max(Receiver.Scale, 9)</c> (kb/Work PB647 since landed at the resultant's own scale), so the old clamp bit at |value| ≈ <b>9.2 × 10⁹</b> — an utterly
     /// ordinary COBOL magnitude. A twelve-digit money field is routine, and every float-family result at or above
     /// that magnitude was silently replaced by 9223372036.85:
     /// <code>

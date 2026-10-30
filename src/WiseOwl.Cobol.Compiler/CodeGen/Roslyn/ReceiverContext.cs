@@ -257,9 +257,10 @@ internal readonly record struct ReceiverContext(
 /// The answer <see cref="ReceiverContext.FloatLanding"/> gives: either the value STAYS a binary64
 /// (<see cref="Binary64"/> — a nested intermediate, a float receiver, a receiver-less render) or it is
 /// QUANTIZED into the fixed-point <c>Int128</c> lane at <see cref="Scale"/> with <see cref="Mode"/>.
-/// <para>⛔ IT IS A THREE-ANSWER DECISION AND NOT A SCALE, DELIBERATELY (kb/Work PB653). While the method
-/// returned a bare <c>(scale, mode)</c> pair, "do not quantize at all" had nowhere to live, so BOTH consumers
-/// wrote the receiver-shape half of the rule out again for themselves —
+/// <para>⛔ IT IS A DECISION AND NOT A SCALE, DELIBERATELY (kb/Work PB653): exactly TWO answers, quantize at a
+/// fixed-point resultant's scale and mode or keep the binary64 (PB3829 removed the third, the clamp to a function's
+/// codomain). While the method returned a bare <c>(scale, mode)</c> pair, "do not quantize at all" had nowhere to
+/// live, so BOTH consumers wrote the receiver-shape half of the rule out again for themselves —
 /// <c>if (Receiver.Real || Receiver.Receiverless)</c> in <c>IntrinsicRenderer.RenderFloatNative</c> and
 /// <c>if (b.Real || e.Real || _rcv.Real || _rcv.Receiverless)</c> in <c>NumericRenderer.Power</c> — and neither
 /// of those two copies learned about the nested case. <c>Quantize</c> is what makes the NEXT consumer inherit
