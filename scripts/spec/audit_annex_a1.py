@@ -43,7 +43,7 @@ import sys
 # `DerivedSelector`'s `determination-prefix` arm, which reads what the determination SAYS. A markdown table read
 # three ways is `feedback_one_rule_one_place` waiting to happen, so it moved down into the module every consumer
 # already imports, and the two names this file used keep working unchanged.
-from inventory_schema import derivation_rows, load_schema
+from inventory_schema import SCHEMA_PATH, derivation_rows, load_schema
 from inventory_schema import register_cells as cells_of
 from inventory_schema import section7_rows
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
@@ -370,6 +370,7 @@ def self_test() -> int:
             else:
                 print(f'  SELF-TEST FAILED: {name} -> {got}')
                 rc = 1
+    rc |= self_test_grounds()
     print('=== audit_annex_a1 --self-test: ' + ('ALL GREEN (every check proven able to fail)' if not rc else 'FAILED') + ' ===')
     return rc
 
@@ -623,6 +624,147 @@ def check_pin_resolution(pinned: dict[int, list[str]], schema, root: pathlib.Pat
     return findings
 
 
+#: A mention of clause 4.2.7 — not the tail of a longer clause number (`8.8.4.2.7`, `15.4.2.7`) and not a child of it.
+CLAUSE_4_2_7_RX = re.compile(r'(?<![\d.])4\.2\.7(?!\.?\d)')
+#: Annex A.1 named in a text: the list itself or one of its inventory rule-ids.
+A1_NAMED_RX = re.compile(r'\bA\.1\b|\bDOC-A\.1-')
+#: Annex A.4 named in a text: the optional-element list or one of its modules (`A.4.8`, `A.4.1`).
+A4_NAMED_RX = re.compile(r'\bA\.4\b')
+#: How far either side of a §4.2.7 mention an `A.4` naming must sit to count as that mention's own.
+GROUND_WINDOW = 200
+#: How much of the text's opening also counts: a register row or a note that BEGINS with its module (`| A.4.8 |`,
+#: `Annex A.4.8 (items 1 …`) names the annex of everything it then says, however long the row runs.
+GROUND_HEAD = 80
+
+
+def inherited_ground_findings(label: str, text: str, a1_item: bool = False) -> list[str]:
+    """Every §4.2.7 mention that is a ground for an Annex A.1 item is a finding (kb/Work PB593).
+
+    ⛔ WHY THIS IS A CHECK AND NOT A SWEEP. §4.2.7's first sentence — "Language elements that an implementor may,
+    but need not, implement are listed in A.4, Optional language element list" — scopes the clause to Annex **A.4**.
+    The governing clause for an Annex **A.1** item is §4.2.5, whose ¶1 applies it "to optional language elements for
+    which an implementor claims support". The two clauses sit side by side and both carry a sentence about
+    "optional" elements and user documentation, so a ground written for one gets quoted for the other, and the
+    quoted sentence IS in the standard — `cite.py --check 4.2.7 "<the sentence>"` answers OK. The clause NUMBER is
+    never re-derived once it is in a schema, a row's notes and the register (CLAUDE.md rule 1's inheritance
+    failure mode): the inventory schema's DOCUMENTED-NON-SUPPORT `meaning` named it, DOC-A.1-127 / -206 copied it
+    ("which this verdict's own `meaning` already names"), and it travelled into GR rows and the §7 preamble.
+
+    The rule, as a predicate over a text: a §4.2.7 mention must have Annex A.4 named within GROUND_WINDOW
+    characters (or in the text's first GROUND_HEAD characters, where a row names its module). A text about an A.1
+    item — `a1_item`, a DOC inventory row — must satisfy it for EVERY mention; any other text must satisfy it only
+    where it ALSO names Annex A.1 beside the mention, since a mention far from A.1 is ordinary A.4 documentation
+    (the §4 / §5 facility rows, the diagnostics' PostureClause). A row withdrawn through an A.4 module (items 84,
+    85, 86, 173) names `Annex A.4.8` and passes; the A.1 optional-not-provided items name §4.2.5 and carry no
+    §4.2.7 at all.
+
+    ⚠ IT IS A PROXIMITY RULE, deliberately: it reads prose, and prose has no machine-readable "ground". An unrelated
+    `A.4` naming inside the window would let a wrong ground through; the window is kept narrow (200 characters) so
+    that takes a coincidence, and the self-test pins the boundary.
+    """
+    findings: list[str] = []
+    head = text[:GROUND_HEAD]
+    for m in CLAUSE_4_2_7_RX.finditer(text):
+        window = text[max(0, m.start() - GROUND_WINDOW): m.end() + GROUND_WINDOW]
+        if A4_NAMED_RX.search(window) or A4_NAMED_RX.search(head):
+            continue
+        if a1_item or A1_NAMED_RX.search(window):
+            context = ' '.join(window.split())
+            findings.append(f'{label} grounds an Annex A.1 element on §4.2.7, which 4.2.7\'s own first sentence scopes '
+                            f'to Annex A.4 — the governing clause for an A.1 item is §4.2.5 (kb/Work PB593): '
+                            f'"…{context[:160]}…"')
+    return findings
+
+
+def schema_texts(node, path: str = '') -> list[tuple[str, str]]:
+    """Every string in the inventory schema, as (JSON path, text); a list of strings is one text of its lines."""
+    if isinstance(node, str):
+        return [(path, node)]
+    if isinstance(node, list):
+        if all(isinstance(x, str) for x in node):
+            return [(path, ' '.join(node))]
+        return [t for i, x in enumerate(node) for t in schema_texts(x, f'{path}[{i}]')]
+    if isinstance(node, dict):
+        return [t for k, v in node.items() for t in schema_texts(v, f'{path}.{k}')]
+    return []
+
+
+def register_units(markdown: str) -> list[tuple[int, str]]:
+    """A markdown document as (first line number, text) units: a table row is one unit, and any other run of
+    non-blank lines — a wrapped paragraph or blockquote — is one, so a sentence wrapped across lines is read whole."""
+    units: list[tuple[int, str]] = []
+    run: list[str] = []
+    start = 0
+
+    def flush() -> None:
+        if run:
+            units.append((start, ' '.join(run)))
+            run.clear()
+
+    for i, line in enumerate(markdown.splitlines(), 1):
+        if not line.strip() or line.lstrip().startswith('|'):
+            flush()
+            if line.strip():
+                units.append((i, line))
+        else:
+            if not run:
+                start = i
+            run.append(line)
+    flush()
+    return units
+
+
+def sweep_inherited_grounds(conformance: str, inventory: list[dict], schema_json: dict) -> list[str]:
+    """The three surfaces the inherited ground travelled through: the register (CONFORMANCE.md, a line at a time —
+    a §7 row or a preamble paragraph is one line), the inventory's notes, and the schema's own prose."""
+    findings: list[str] = []
+    for first_line, unit in register_units(conformance):
+        findings.extend(inherited_ground_findings(f'docs/CONFORMANCE.md:{first_line}', unit))
+    for row in inventory:
+        findings.extend(inherited_ground_findings(row.get('rule-id', '?'), row.get('notes') or '',
+                                                  a1_item=row.get('kind') == 'DOC'))
+    for path, text in schema_texts(schema_json):
+        findings.extend(inherited_ground_findings(f'inventory-schema.json{path}', text))
+    return findings
+
+
+def self_test_grounds() -> int:
+    """Prove the §4.2.7 ground check can fail, and for its own reason (feedback_green_gates_arent_evidence)."""
+    far = 'x' * (GROUND_WINDOW + GROUND_HEAD + 20)
+    cases = [
+        ('control: an A.4 module row citing 4.2.7 passes',
+         inherited_ground_findings('r', 'Annex A.4.8 (items 1 FORMAT clause) is an OPTIONAL element (§4.2.7)', True), False),
+        ('a DOC row grounded on 4.2.7 with no A.4 beside it is caught',
+         inherited_ground_findings('r', 'A.1 item 150 is optional, and §4.2.7 obliges the implementor to identify '
+                                   'what is claimed.', True), True),
+        ('a non-DOC text naming A.1 beside 4.2.7 with no A.4 is caught',
+         inherited_ground_findings('r', 'GR4 by Annex A.1 item 150 and §4.2.7)'), True),
+        ('a non-DOC text that names no A.1 beside 4.2.7 is ordinary A.4 documentation and passes',
+         inherited_ground_findings('r', 'the screen module is documented per §4.2.7'), False),
+        ('a row that BEGINS with its A.4 module passes however long it runs',
+         inherited_ground_findings('r', '| A.4.8 | FORMAT |' + far + ' §4.2.7 user documentation of A.1 item 84'), False),
+        ('an A.4 naming far from the mention, outside the head, does not rescue it',
+         inherited_ground_findings('r', far + ' A.4.8 ' + far + far + ' A.1 item 150 and §4.2.7 ' + far), True),
+        ('a longer clause number ending 4.2.7 is not a mention',
+         inherited_ground_findings('r', 'A.1 item 99 per §8.8.4.2.7 and 15.4.2.7', True), False),
+        ('a sentence wrapped across two blockquote lines is read whole (A.1 on one line, 4.2.7 on the next)',
+         sweep_inherited_grounds('> A.1 conditions the duty on provision, and\n> §4.2.7 obliges us to identify it', [], {}), True),
+        ('a table row beside a paragraph naming A.4 is its own unit',
+         sweep_inherited_grounds('A.4.8 is declined.\n| x | A.1 item 9, §4.2.7 |', [], {}), True),
+        ('the schema walk joins a list of lines into one text',
+         [f for p, t in schema_texts({'k': ['A.1 item 150', 'and §4.2.7']}) for f in inherited_ground_findings(p, t)], True),
+    ]
+    rc = 0
+    print('=== audit_annex_a1 --self-test (the §4.2.7 ground check) ===')
+    for name, findings, want in cases:
+        if bool(findings) == want:
+            print(f'  ok: {name}')
+        else:
+            print(f'  SELF-TEST FAILED: {name} -> {findings}')
+            rc = 1
+    return rc
+
+
 def main(argv: list[str]) -> int:
 
     if '--self-test' in argv:
@@ -672,6 +814,8 @@ def main(argv: list[str]) -> int:
     from inventory_schema import load_inventory, load_schema
     findings.extend(check_pins(pinned, load_inventory(), load_schema()))
     findings.extend(check_pin_resolution(pinned, load_schema(), ROOT))
+    # kb/Work PB593 — no Annex A.1 element is grounded on §4.2.7, which its own first sentence scopes to Annex A.4.
+    findings.extend(sweep_inherited_grounds(text, load_inventory(), json.loads(SCHEMA_PATH.read_text(encoding='utf-8'))))
 
     print('\n=== docs/CONFORMANCE.md §7 ROWS ===')
     seen: set[int] = set()
