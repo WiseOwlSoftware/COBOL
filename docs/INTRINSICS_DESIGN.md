@@ -667,15 +667,16 @@ answered 0; ACOS(1 − 10^−26) answered 0 for 1.414·10^−13; EXP(700.1234567
 
 The declared set `IntrinsicRenderer.WholeRangeBodies` names the bodies that take an exact argument, each with the
 carriers it takes that way (`ExactIntake`): `Sqrt` takes an SDIDI only (`Sdidi` — its condition number is ½, so only
-past binary64's RANGE is the substitute wrong); `Sin`, `Cos`, `Tan`, `Log`, `Log10`, `Acos`, `Asin`, `Exp`, `Exp10`
-take every exact operand (`EveryExact` — ill-conditioned somewhere, so a scaled operand is lifted exactly by
-`CobolDec.From` too). For such an operand `FloatBody`'s default arm (`LeadArg` → `ExactArg`) passes the `CobolDec`
+past binary64's RANGE is the substitute wrong); `Exp`, `Exp10` take every exact operand (`EveryExact` — ill-conditioned
+somewhere, so a scaled operand is lifted exactly by `CobolDec.From` too); `Sin`, `Cos`, `Tan`, `Log`, `Log10`, `Acos`, `Asin`
+take those AND the exact wide intermediate (`Wide`, below). For such an operand `FloatBody`'s default arm (`LeadArg` → `ExactArg`) passes the `CobolDec`
 itself to the runtime's `CobolDec` overload, which forms ON THE EXACT CARRIER the quantity the function is well
 conditioned in and narrows only that:
 
 - **SIN / COS / TAN** — the quadrant q and residue r of |x| = q·π/2 + r, r ∈ [−π/4, π/4]
   (`CobolIntrinsics.ReduceQuarterTurns`, a decimal Payne–Hanek reduction on the Int128 fixed point: |x|/2π ≡ Sig·g
-  (mod 1) with g = frac(10^Exp/2π), read as nine base-10^18 limbs — 162 places — of the constant digit string
+  (mod 1) with g = frac(10^Exp/2π), read as three base-10^18 limbs per significand limb (nine for an SDIDI, fifteen for an
+  exact wide argument) — 162 or 270 places — of the constant digit string
   `InverseTwoPiDigits`, 6320 places of 1/(2π), enough for the SDIDI's top place 10^6144 plus the reduction,
   re-derived by `InverseTwoPiDigitsDriftTests`; no arbitrary-precision type, DESIGN §1.2 invariant 2). The
   reduction's error is under 2·10^−124 turns, some 80 digits below the smallest residue a 34-digit decimal is
@@ -688,6 +689,16 @@ conditioned in and narrows only that:
 - **EXP / EXP10** — e^i · e^f over the integer part i and the exact fraction f = x − i, for 1 ≤ |x| ≤ 1000 (400 for
   EXP10; beyond, the result is outside binary64 whatever the digits — the size error condition, below).
 - **SQRT** — the root on the exact carrier (`CobolDec.Sqrt`) off the normal binary64 range.
+
+⛔ **A wide argument (`ExactIntake.Wide`, kb/Work PB4075).** An argument expression of 39 to 77 digits (`NumX.Wide`, the exact
+256-bit intermediate PB3953 gave the exact family) reaches `Sin`, `Cos`, `Tan`, `Log`, `Log10`, `Acos` and `Asin` as the
+`CobolWide` itself: `FloatBody` names the `…Wide` overload (`CobolIntrinsics.FloatWide.cs`; `WideLeadArg`), with the value and its
+scale and, for a domain row, through `CobolIntrinsics.DomainWideAdmitted` (`Admits`, the SDIDI screen's one predicate). SIN / COS /
+TAN reduce the wide magnitude's five limbs by the same fixed-point reduction (`ReduceQuarterTurns(CobolWide, int)`), where the
+34-digit image of a 39-digit angle stands hundreds of radians away (`FUNCTION SIN (BIG * BIG * K3)`); LOG / LOG10 form x − 1 and
+ACOS / ASIN form 1 − |x| on the exact wide value, where a wide argument 10^−34 from ±1 has an image that is the whole answer.
+`Exp`, `Exp10` and `Sqrt` take the image: their condition numbers (709, 709, ½) keep a 10^−34 relative error below the last bit.
+`WholeRangeBodiesDriftTests.EveryWideIntakeBody_HasItsWideOverload_AndNoOtherMemberDoes` holds the set closed.
 
 Not members, each because its condition number is bounded by a constant on the whole domain, so the substitute's
 result IS the approximation: ATAN (≤ 1), and SQRT for a scaled operand. ⛔ The domain members (LOG, LOG10, SQRT,
@@ -897,12 +908,19 @@ for that latitude CLAUDE.md rule 1 makes GnuCOBOL the answer, and its argument t
   34-digit images' order by the exact values), and a MOVE transfers it at the receiver's scale
   (`NumericRenderer.TransferWide`), so its high-order truncation keeps the value's own low-order digits (§14.6.8.2 4); the
   string-image channel (a MOVE to an alphanumeric item, STRING) sends every digit (`OperandText`, `CobolNum.FormatWideFunctionText`).
-- **What still takes the image.** A function whose value is an approximation in any case: the binary64 family (a wide argument
-  reaches `WholeRangeBodies` as its 34-digit image) and MEAN, the SDIDI quotient of its equivalent arithmetic expression in every
-  mode (PB3860). Under `ARITHMETIC IS STANDARD-DECIMAL` the SDIDI is the value and nothing here applies.
+- **MEAN divides the exact wide sum once** (kb/Work PB4075): `MeanWide` sums the aligned arguments on `CobolWide` and
+  `CobolWide.QuotientDec` rounds the exact quotient to the SDIDI's 34 digits ONCE (the true remainder is the sticky bit, the
+  intermediate rounding mode applies, an exact quotient keeps the preferred exponent), where the image divided afterwards rounded
+  twice. The value is the SDIDI quotient of every other lane (PB3860), so `RenderWide` returns it as a Dec, not as a `NumX.Wide`.
+- **The binary64 family's ill-conditioned bodies take the wide value** (`ExactIntake.Wide`, above).
+- **What still takes the image.** `Exp`, `Exp10`, `Sqrt` (a condition number of at most 709 cannot carry a 10^−34 relative error to
+  binary64's last bit), the bounded integer positions, and the SDIDI-evaluated variance family (VARIANCE, STANDARD-DEVIATION,
+  PRESENT-VALUE read `DecArgList`). Under `ARITHMETIC IS STANDARD-DECIMAL` the SDIDI is the value and nothing here applies.
 
 Pinned by `conformance:cases/15.4.1-Numeric-and-integer-functions/pb3953_function_argument_int128_window` (the 38-digit window
-and the 39-digit ABS, MOD, MAX and MOVE legs) and `unit:CobolWideIntrinsicsTests` (each body against a `BigInteger` oracle).
+and the 39-digit ABS, MOD, MAX and MOVE legs), `conformance:cases/15.4.1-Numeric-and-integer-functions/pb4075_wide_argument_consumers`
+(MEAN, SIN, COS, TAN, LOG and ACOS of a wide argument), `unit:CobolWideIntrinsicsTests` (each body against a `BigInteger` oracle) and
+`unit:WideArgumentBodiesTests` (the wide binary64 bodies and MEAN against a 400-digit `decimal` oracle).
 
 ## Edge cases
 
