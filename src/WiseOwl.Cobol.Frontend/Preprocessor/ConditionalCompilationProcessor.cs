@@ -122,6 +122,10 @@ public static partial class ConditionalCompilationProcessor
     {
         private readonly IReadOnlySet<string> _leave;
         private readonly Dictionary<string, CtValue> _defines = new(CobolNames.Comparer);
+        // kb/Work PB3119 — the names whose last >>DEFINE in a compiled branch was REFUSED (malformed, a directive word, an
+        // operand that did not evaluate): reported once at that directive, so a later operand naming one fails silently
+        // instead of reporting "not a previously-defined compilation variable". Saved and restored with `_defines`.
+        private readonly HashSet<string> _refusedDefines = new(CobolNames.Comparer);
         private readonly FlagScanState _flagScan = new();
         // §7.3.20 / §7.3.22 (kb/Work PB941): THIS stage's share of the directive state a PUSH saves and a POP
         // restores — the compilation-variable table (every instance at once, §7.3.22.4 GR3) and the running FLAG
@@ -191,14 +195,19 @@ public static partial class ConditionalCompilationProcessor
             _evaluator = new CompileTimeExpressionEvaluator(
                 edition: _edition,
                 resolveName: w => _defines.TryGetValue(w, out var v) ? v : null,
+                isRefusedName: _refusedDefines.Contains,
                 diag: _diag,
                 vocab: new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §7.3.6.2 SR1b"),
                 decimalPointIsComma: false);
             _copy = copy;
             _directiveState
-                .Carry(Constructs.DefineDirective2002, new DirectiveValueCarrier<Dictionary<string, CtValue>>(
-                    () => new Dictionary<string, CtValue>(_defines, CobolNames.Comparer),
-                    saved => { _defines.Clear(); foreach (var (k, v) in saved) _defines[k] = v; }))
+                .Carry(Constructs.DefineDirective2002, new DirectiveValueCarrier<(Dictionary<string, CtValue> Defines, HashSet<string> Refused)>(
+                    () => (new Dictionary<string, CtValue>(_defines, CobolNames.Comparer), new HashSet<string>(_refusedDefines, CobolNames.Comparer)),
+                    saved =>
+                    {
+                        _defines.Clear(); foreach (var (k, v) in saved.Defines) _defines[k] = v;
+                        _refusedDefines.Clear(); _refusedDefines.UnionWith(saved.Refused);
+                    }))
                 .Carry(Constructs.Flag02Directive2014, _flagScan.CarrierFor(FlagDirective.Flag02))
                 .Carry(Constructs.Flag14Directive2023, _flagScan.CarrierFor(FlagDirective.Flag14));
         }
@@ -448,9 +457,14 @@ public static partial class ConditionalCompilationProcessor
                         // compilation-variable timeline, recorded at this directive's output-frame line (the encounter's,
                         // below) so the CONSTANT FROM and directive-literal uses can read the table as of their own line
                         // (§7.3.11.4 GR1, kb/Work PB1368).
-                        if (ApplyDefine(rest, _defines, _evaluator, _diag, _dialectLevel, _inputs, apply: emitting) is var (defined, written))
+                        if (ApplyDefine(rest, _defines, _evaluator, _diag, _dialectLevel, _inputs, apply: emitting) is var (defined, written, refused))
+                        {
+                            // The live set the evaluator reads and the timeline the later stages read record the SAME fact:
+                            // this directive refused the name (kb/Work PB3119), or wrote it and ended any earlier refusal.
+                            if (refused) _refusedDefines.Add(defined); else _refusedDefines.Remove(defined);
                             _compilationVariables.Add(new CompilationVariableEvent(_renderBase + output.Count, defined,
-                                _defines.GetValueOrDefault(defined), written));
+                                refused ? null : _defines.GetValueOrDefault(defined), written, refused));
+                        }
                         changesState = emitting;
                         break;
                     case "DISPLAY":
@@ -618,14 +632,24 @@ public static partial class ConditionalCompilationProcessor
 
     private enum DefineKind { Value, Off, Parameter }
 
+    /// <summary>What one applied-or-refused <c>&gt;&gt;DEFINE</c> did to <paramref name="Name"/>: wrote it
+    /// (<paramref name="Written"/> is the operand as written) or REFUSED it (<paramref name="Refused"/>; reported at the
+    /// directive, table unchanged — kb/Work PB3119).</summary>
+    private readonly record struct DefineEffect(string Name, string Written, bool Refused = false)
+    {
+        public static DefineEffect RefusalOf(string name) => new(name, "", Refused: true);
+    }
+
     /// <summary>Split a <c>&gt;&gt;DEFINE compilation-variable-name [AS] { operand | PARAMETER | OFF } [OVERRIDE]</c>
     /// directive at the DIRECTIVE-SYNTAX level (name / AS / OFF / PARAMETER / OVERRIDE are directive keywords, not
     /// expression syntax); the OPERAND text is handed to the ANTLR fragment parse. §7.3.11.2 makes AS optional and
     /// OVERRIDE a trailing phrase; OFF and PARAMETER are the two operand-less alternatives.</summary>
+    /// <remarks><paramref name="define"/>.Name is "" until the first word is a valid
+    /// compilation-variable-name, and set on EVERY return after that, a refusal included: the refused directive still names the variable (kb/Work PB3119).</remarks>
     private static bool TrySplitDefine(string rest, out (string Name, DefineKind Kind, string Operand, bool Override) define,
         out string complaint)
     {
-        define = default;
+        define = ("", DefineKind.Value, "", false);
         string s = rest.TrimSpaces();
         int sp = 0;
         while (sp < s.Length && !CobolSpace.IsSeparator(s[sp])) sp++;
@@ -638,6 +662,7 @@ public static partial class ConditionalCompilationProcessor
             complaint = $"'{name}' is not a COBOL word, so it cannot be compilation-variable-name-1";
             return false;
         }
+        define = (name, DefineKind.Value, "", false);   // the name is valid: any refusal below still names it
         if (StartsWithWord(body, "AS")) body = body["AS".Length..].TrimSpacesStart();   // AS is not underlined: an optional word (§5.2.3)
 
         // { value-group [OVERRIDE] | OFF }: OFF is an alternative of the OUTER brace, so neither OVERRIDE nor any other
@@ -674,19 +699,23 @@ public static partial class ConditionalCompilationProcessor
     private static bool IsCompilationVariableNameShape(string w) => CobolCharacterRepertoire.IsWordShape(w);
 
     /// <summary>Check one <c>&gt;&gt;DEFINE</c> against its general format and, when <paramref name="apply"/> (the
-    /// directive is in a compiled branch), apply it to <paramref name="defines"/>. Returns the name whose
-    /// entry the directive CHANGED and the operand as written — the event the compilation-variable timeline records
-    /// (kb/Work PB1368) — or null when the directive changed nothing (malformed, an operand that did not evaluate, or
-    /// an omitted branch; each violation already reported).</summary>
-    private static (string Name, string Written)? ApplyDefine(string rest, Dictionary<string, CtValue> defines,
+    /// directive is in a compiled branch), apply it to <paramref name="defines"/>. Returns the <see cref="DefineEffect"/>
+    /// the compilation-variable timeline records (kb/Work PB1368, PB3119) — the name the directive wrote, the operand
+    /// as written, and whether the directive was REFUSED (each violation already reported) — or null when the directive
+    /// wrote no name that takes effect (an omitted branch, or a name that is no word at all).</summary>
+    private static DefineEffect? ApplyDefine(string rest, Dictionary<string, CtValue> defines,
         CompileTimeExpressionEvaluator evaluator, DirectiveDiag diag, int dialectLevel, CompilationInputs inputs, bool apply)
     {
         // The directive's own general format first (kb/Work PB1367): every violation names the rule and the directive
         // is not applied, so one malformed line cannot cascade into misleading "undefined variable" errors.
+        // ⛔ A refusal still NAMES the variable (kb/Work PB3119): it changes no table entry, but it was reported once,
+        // here, so it is returned as a refusal and a later operand that names the variable fails silently
+        // (CompileTimeExpressionEvaluator's isRefusedName; CobolWordsDirectiveProcessor.Literal) instead of saying
+        // that nobody ever wrote the name. A directive in an omitted branch is not applied, so it refuses nothing.
         if (!TrySplitDefine(rest, out var define, out string complaint))
         {
             diag.DefineMalformed(complaint);
-            return null;
+            return define.Name.Length > 0 && apply ? DefineEffect.RefusalOf(define.Name) : null;
         }
         var (name, kind, operand, over) = define;
         // §7.3.11.3 SR1 (with §7.3.3 SR7, SR9): the name shall not be a compiler-directive word — the ONE §8.12
@@ -694,7 +723,7 @@ public static partial class ConditionalCompilationProcessor
         if (CompilerDirectiveWords.IsReserved(name))
         {
             diag.DirectiveWordAsName(name, "a DEFINE directive", "ISO §7.3.11.3 SR1");
-            return null;
+            return apply ? DefineEffect.RefusalOf(name) : null;
         }
         // §8.3.2.1 applies to the compilation-variable-name — a word the tree-walk funnel never sees. Checked at
         // the DEFINITION site (the root: an over-long word can never become defined, so a reference-site spelling
@@ -711,7 +740,7 @@ public static partial class ConditionalCompilationProcessor
         {
             case DefineKind.Off:
                 defines.Remove(name);   // GR2 — undefine
-                return (name, "");
+                return new DefineEffect(name, "");
             case DefineKind.Parameter:
             {
                 // GR4 — the value is obtained from the operating environment by an implementor-defined method
@@ -729,21 +758,23 @@ public static partial class ConditionalCompilationProcessor
                         pv = CtValue.Alphanumeric(env!);
                         break;
                     case ParameterValueForm.NumericLiteral or ParameterValueForm.QuotedLiteral:
-                        if (EvaluateOperandText(env!, evaluator, diag, $">>DEFINE {name} AS PARAMETER") is not { } literal) return null;
+                        if (EvaluateOperandText(env!, evaluator, diag, $">>DEFINE {name} AS PARAMETER") is not { } literal)
+                            return DefineEffect.RefusalOf(name);
                         pv = literal;
                         break;
                 }
                 // SR2 applies to the PARAMETER alternative like every other (kb/Work PB1367): without OVERRIDE, a name
                 // already defined may be redefined only to the SAME value, and "no value" is not the same value.
                 if (pv is null && !over && defines.ContainsKey(name)) diag.Report1618(name);
-                if (pv is null) { defines.Remove(name); return (name, ""); }
+                if (pv is null) { defines.Remove(name); return new DefineEffect(name, ""); }
                 AssignDefine(name, pv, over, defines, diag);
-                return (name, "");
+                return new DefineEffect(name, "");
             }
             default:
-                if (EvaluateOperandText(operand, evaluator, diag, $">>DEFINE {name}") is not { } v) return null;
+                if (EvaluateOperandText(operand, evaluator, diag, $">>DEFINE {name}") is not { } v)
+                    return DefineEffect.RefusalOf(name);
                 AssignDefine(name, v, over, defines, diag);
-                return (name, operand);
+                return new DefineEffect(name, operand);
         }
     }
 
