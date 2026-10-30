@@ -597,6 +597,21 @@ function's text is `CobolNum.DeviceFunctionText` of its value: a scaled integer 
 result keeps the shortest round-trip image (`CobolFloat.Display`), as a floating-point item does (PB3505). The value path
 reads the call at `ReceiverContext.None`, so the text never depends on a receiver (PB3839).
 
+**A HELD argument is described as the unheld one is (PB4124).** §8.4.3.2.4 GR2 orders the arguments' evaluation and nothing else, so
+`ArgumentOrder.Window.Settle` holds each earlier argument of an intrinsic call that a later argument's user-defined activation could
+change, and the held call must answer, for DISPLAY, `LENGTH` and `BYTE-LENGTH`, what the unheld one answers. Two shapes carried a description a
+numeric intermediate result item does not: (1) an argument that is an arithmetic expression or a `Value`-form function is held in a
+`FunctionValueSeparator`-flagged temporary, and `FunctionDeviceText.Field` describes THAT temporary by its value (`ValueField`), as it
+describes the argument it replaced, never by the temporary's own digits (`LENGTH (MAX (A * B, UDF (A)))` was 8 where `LENGTH (MAX (A * B, 3))` was 4);
+(2) a nested function whose returned value copies an argument's item (`FunctionDeviceForm.Argument`: ABS, MAX, MIN, MEDIAN, MEAN;
+`FixedDigits`: DATE-OF-INTEGER) cannot be held as a value, because the copy's description is chosen at run time by which argument it
+copies, so `ArgumentOrder.Hold` holds the nested call's own arguments (recursively) at the nested argument's place and the call is read
+over them (`NeedsItsArguments` names every `FunctionDeviceForm`, so a new form must say which kind it is). A user-defined function's argument
+is read for its value alone and is still held as a value. A nested call that names a table(ALL) argument (no recorded operand, enumerated
+where the call renders) is still held as a value, and its description is the value's: `HeldFunctionArgumentDescriptionTests` pins the
+agreement over 22 argument shapes and the conformance golden `pb4124_held_function_argument_keeps_description` over six measurements and
+GR2's own order.
+
 **The same temporary is what LENGTH and BYTE-LENGTH measure (PB3951).** `FunctionValueField.Length` (positions, §15.50.4) and
 `FunctionValueField.ByteLength` (bytes, §15.14.4 r1) are the size of the item the field describes: `OfItem` and `OfFloatItem` take the argument
 item's own length from the compiler (`ItemLength.Positions` and `DataItem.ByteWidth`, the one reading `LENGTH(field)` and `BYTE-LENGTH(field)`
