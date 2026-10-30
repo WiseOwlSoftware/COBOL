@@ -8,9 +8,10 @@
       *> EC-RANGE-SEARCH-INDEX / EC-RANGE-SEARCH-NO-MATCH (ISO §14.9.37.4 GR4 and GR9; §14.6.13.1.6 Nonfatal). A serial
       *> SEARCH whose INITIAL index is < 1 or > the highest permissible occurrence sets SEARCH-INDEX (GR4 — this also
       *> fixes a latent bug: the initial index < 1 now goes to AT END/unsuccessful, not a phantom occurrence 0). A scan
-      *> that advances past the last occurrence with no WHEN satisfied sets NO-MATCH (GR4, its last sentence; for SEARCH ALL, whose search order GR9
-      *> leaves to the implementor, the EC's own definition in §14.6.13.1.6). A SUCCESSFUL search sets neither. Observed via FUNCTION EXCEPTION-STATUS under >>TURN EC-RANGE CHECKING ON (the level-2
-      *> parent enables both level-3 names). The AT END phrase is taken on the unsuccessful path (GR1 b).
+      *> that advances past the last occurrence with no WHEN satisfied sets NO-MATCH (GR4, its last sentence; SEARCH ALL: GR9,
+      *> its last-but-one sentence). A SUCCESSFUL search sets neither. Observed via FUNCTION EXCEPTION-STATUS under
+      *> >>TURN EC-RANGE CHECKING ON (the level-2 parent enables both level-3 names). The AT END phrase is taken on the
+      *> unsuccessful path (GR1 b).
       >>TURN EC-RANGE CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. EC-RNG-SR.
@@ -53,7 +54,7 @@
                WHEN WS-E (IX) = 9 CONTINUE
            END-SEARCH.
            DISPLAY "NM[" FUNCTION EXCEPTION-STATUS "]".
-      *> SEARCH ALL, no key match: NO-MATCH (the header) + AT END (GR1 b).
+      *> SEARCH ALL, no key match: NO-MATCH (GR9) + AT END (GR1 b).
            SEARCH ALL WS-KE AT END DISPLAY "ATEND-ALL"
                WHEN WS-K (KX) = 9 CONTINUE
            END-SEARCH.
