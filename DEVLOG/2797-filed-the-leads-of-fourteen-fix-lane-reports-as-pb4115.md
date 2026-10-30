@@ -1,4 +1,4 @@
-## Filed the leads of fourteen fix-lane reports as PB4115-PB4140
+## Entry 2797 — 2026-10-30 12:11 PDT — Filed the leads of fourteen fix-lane reports as PB4115-PB4140
 
 The enqueue unit's clerk filed the new defects and non-blocking review leads of fourteen finished fix-lane reports, one note per mechanism. Compiler and tooling behaviour is unchanged; only `kb/Work/` moved.
 
@@ -23,3 +23,4 @@ The enqueue unit's clerk filed the new defects and non-blocking review leads of 
 - PB4140: `prune_worktrees.lifecycle` turns a CLEAN-reviewed branch with unique commits into DECISION when its lead note is already landed, so a reviewed follow-up never reads WAITING TO LAND (the enqueue unit's own lead; witness `tooling-suite-partitions`, `tooling-semgrep-1183`).
 
 Not filed: PB4075's wide-argument consumers and comment leads (PB4111, PB4112 hold them), PB1908's STRING lead (PB4089), PB4031's EC-SIZE leads (PB4092, PB4093), PB3429's `DataBinder.WrittenText` forwarder lead (PB2733 holds it), and the stale-comment leads of PB3845 and PB3429, whose code is on branches not yet on main.
+
