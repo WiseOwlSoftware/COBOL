@@ -1,4 +1,4 @@
-## The landing pipeline's single-point bottlenecks, measured and filed as one campaign (PB4147)
+## Entry 2805 — 2026-10-30 13:29 PDT — The landing pipeline's single-point bottlenecks, measured and filed as one campaign (PB4147)
 
 The owner asked to fix every single-point bottleneck (2026-10-30). The landing lane's attempt logs (821) and
 `landing_measure.py summary` since 2026-10-28 (112 landings) show where landings wait.
@@ -16,3 +16,4 @@ Measured alongside: review CLEAN to enqueued has a median of 7 min and a p90 of 
 21 min and a p90 of 61, against the owner's 30- and 15-minute bars (PB3638). Local gates waited a mean 3.8 min for one
 of the 3 gate slots (147 gates, 20 over 10 min). The cap is the owner's (PB2514). The conformance suite's partition
 count is PB4146, which the Mythos lane is running.
+
