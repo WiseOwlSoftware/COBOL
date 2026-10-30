@@ -171,7 +171,8 @@ public static class PictureAnalyzer
         string currencyString = cs == '\0' ? "$" : currencySet[cs].Text;
         // §12.3.7.3 SR28's input — the class of the literal-7 behind the symbol THIS picture uses; null when it uses
         // none (the default below is only what the whitelist/editing checks see, not a symbol the picture wrote).
-        LiteralClass? currencyClass = cs == '\0' ? null : currencySet[cs].LiteralClass;
+        // A symbol whose clause was refused for its string has no known class (kb/Work PB1920): SR28 is not asked.
+        LiteralClass? currencyClass = cs == '\0' || currencySet[cs].ClauseRefused ? null : currencySet[cs].LiteralClass;
         if (cs == '\0') cs = '$';   // no currency symbol in this picture: the whitelist/editing checks see the default
         // GR14: the first occurrence contributes the whole string; the mask below is canonical ('$').
         int currencyExtra = expanded.Any(c => char.ToUpperInvariant(c) == cs) ? currencyString.Length - 1 : 0;
