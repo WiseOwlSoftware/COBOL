@@ -3,6 +3,8 @@
 using System.CommandLine;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Cli;
+using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -105,12 +107,36 @@ public sealed class CliParserTests
     }
 
     /// <summary>kb/Work PB4126, sibling arm: a check-batch manifest entry whose std field is present but is not an edition is a
-    /// FAIL verdict naming the field as written (it once fell back to 2023 or compiled at any integer), and compiles nothing.</summary>
+    /// FAIL verdict naming the field as written, and compiles nothing. The source EXISTS and is valid (the 2023 control row passes
+    /// it), so the old reading, which fell back to 2023 on text and compiled at any integer such as 1999, cannot also produce the
+    /// FAIL: a regression to either arm turns this red.</summary>
     [Theory]
-    [InlineData("a.cob\tCOBOL-2002", "a.cob\tCOBOL-2002\tFAIL")]
-    [InlineData("a.cob\t1999\t\t0", "a.cob\t1999\tFAIL")]
-    public void CheckBatch_PresentButInvalidStd_IsAFailEntry(string line, string verdict)
-        => Assert.Equal(verdict, Program.CheckBatchVerdict(line));
+    [InlineData("COBOL-2002")]
+    [InlineData("1999")]
+    [InlineData("+85")]
+    public void CheckBatch_PresentButInvalidStd_IsAFailEntry_ForAValidSource(string std)
+    {
+        string dir = ScratchDirectory.Create("pb4126batch");
+        try
+        {
+            string src = Path.Combine(dir, "OK.cob");
+            File.WriteAllText(src, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4126OK.\n       PROCEDURE DIVISION.\n           STOP RUN.\n");
+            Assert.Equal($"{src}\t2023\tPASS", Program.CheckBatchVerdict($"{src}\t2023"));
+            Assert.Equal($"{src}\t{std}\tFAIL", Program.CheckBatchVerdict($"{src}\t{std}\t\t0"));
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>The CLI's accepted <c>--std</c> spellings are the years of <see cref="EditionInfo.All"/>, the one list of
+    /// editions, never a second copy of it.</summary>
+    [Fact]
+    public void StdSpellings_AreExactlyTheEditionInfoYears()
+    {
+        string[] years = EditionInfo.All.ToArray().Select(y => y.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+        Assert.Equal(years, Program.StdSpellings);
+        foreach (string spelling in years)
+            Assert.True(Program.TryParseStd(spelling, out int parsed) && parsed.ToString(System.Globalization.CultureInfo.InvariantCulture) == spelling);
+    }
 
     [Fact]
     public void Source_RequiredAndSingle()
