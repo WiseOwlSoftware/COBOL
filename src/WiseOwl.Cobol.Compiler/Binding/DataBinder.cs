@@ -2497,9 +2497,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // division section other than the report section from referring to a report item. (The report section's own
         // clauses are that section's; their operand rules are theirs.)
         if (!inReportSection && ReportEntryReferenceRefused($"{clauseFace} '{written}'", name, quals)) return null;
+        // A name declared as something other than a data item is not undefined (kb/Work PB1906): the one query of what
+        // it is, the same the procedure division's unidentified reference asks. A refused declaration was reported.
+        var nonData = NonDataDeclarationOf(name, quals, Model.Scope.Program);
+        if (nonData is { DeclarationRefused: true }) return null;
         Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"{clauseFace} '{written}': the clause's data-name references no data item — "
-              + (Symbols.TryResolve(name, Model.Scope.Program, out _)
+              + (nonData is { } declared
+                  ? $"'{written}' {declared.DeclaredAs(written, name)} (ISO §8.4.2.1: \"a statement shall "
+                    + "contain a reference that uniquely identifies that resource\")"
+                  : Symbols.TryResolve(name, Model.Scope.Program, out _)
                   ? $"'{name}' is declared, but not under the given qualifier{(quals.Count == 1 ? "" : "s")} "
                     + "(ISO §8.4.2.2 — qualification shall establish uniqueness)"
                   : $"no declaration in this source element gives the name '{name}' (ISO §8.4.2.1: \"a statement "
