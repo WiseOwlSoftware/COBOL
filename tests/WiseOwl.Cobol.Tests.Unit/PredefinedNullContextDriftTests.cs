@@ -157,4 +157,39 @@ public sealed class PredefinedNullContextDriftTests
         Assert.True(staleExempt.Count == 0, "an exemption names a file that no longer decodes a nonNumericLiteral "
             + "— remove it: " + string.Join(", ", staleExempt));
     }
+
+    /// <summary>PROCEDURE DIVISION files that ask "is this operand a literal?" of the parse node
+    /// (<c>nonNumericLiteral() is …</c>) without deciding the <c>predefinedNull</c> arm, and why each is exempt.</summary>
+    private static readonly Dictionary<string, string> LiteralClassifiersExempt = new()
+    {
+        ["SetBinder.cs"] = "the SET program-name literal binds through ProgramNameLiteral.Of -> "
+            + "ExpressionBinder.NonNumericLiteralOperand, which refuses NULL (COBOL2576)",
+    };
+
+    /// <summary>⛔ A PROCEDURE DIVISION classifier that reads a <c>valueOperand</c> as "a literal" by the presence of its
+    /// <c>nonNumericLiteral</c> node also decides the <c>predefinedNull</c> arm (kb/Work PB1682). NULL rides that node
+    /// only as the parse carrier; EVALUATE's Table 15 once took the presence for a LITERAL, so
+    /// <c>EVALUATE NULL WHEN "A"</c> drew a false "the selection subject is a literal" beside the true COBOL0869.
+    /// The decoder fact above keys on the figurative arm and could not see this classifier.</summary>
+    [Fact]
+    public void EveryProcedureLiteralClassifier_DecidesTheNullArm()
+    {
+        string procedureDir = $"{Path.DirectorySeparatorChar}Procedure{Path.DirectorySeparatorChar}";
+        var classifiers = CompilerSources()
+            .Where(f => f.Contains(procedureDir, StringComparison.Ordinal))
+            .Select(f => (Name: Path.GetFileName(f), Code: StripLineComments(File.ReadAllText(f), "//")))
+            .Where(s => Regex.IsMatch(s.Code, @"nonNumericLiteral\(\)\s+is\s"))
+            .ToList();
+        Assert.True(classifiers.Count >= 3, $"the scan found only {classifiers.Count} literal classifiers — it no "
+            + "longer sees them; fix the scan, not the assertion");
+        var silent = classifiers.Where(s => !s.Code.Contains("predefinedNull()", StringComparison.Ordinal)
+                                            && !LiteralClassifiersExempt.ContainsKey(s.Name))
+            .Select(s => s.Name).Order().ToList();
+        Assert.True(silent.Count == 0, "these PROCEDURE DIVISION files take the presence of a nonNumericLiteral node "
+            + "for 'a literal' but never decide its predefinedNull arm, which is an identifier (ISO §8.4.3.1.2 Format "
+            + "8): " + string.Join(", ", silent));
+        var staleExempt = LiteralClassifiersExempt.Keys.Except(classifiers.Select(s => s.Name)).Order().ToList();
+        Assert.True(staleExempt.Count == 0, "an exemption names a file that no longer classifies by a "
+            + "nonNumericLiteral node — remove it: " + string.Join(", ", staleExempt));
+    }
 }
