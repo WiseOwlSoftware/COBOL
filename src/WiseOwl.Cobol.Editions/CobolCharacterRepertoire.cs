@@ -36,7 +36,8 @@ public enum WordCharacterPosition
 /// E.3.3 item 4 (characters newly permitted FIRST at 2023 — before, anywhere but first) and E.3.3 item 5 (characters
 /// added at 2023 — absent before). The standard records no change of Annex B between 2002 and 2014, so 2002 uses the
 /// 2014 repertoire. COBOL-85 has no extended letters: the gate is the construct
-/// <c>user-word-extended-letter-2002</c>, asked before this class.</para>
+/// <c>user-word-extended-letter-2002</c>, asked before <see cref="Violation"/>, except for a character no edition's
+/// Annex B holds (<see cref="ViolationAtEveryEdition"/>), which is no extended letter and draws COBOL2773.</para>
 /// </summary>
 public static partial class CobolCharacterRepertoire
 {
@@ -119,10 +120,7 @@ public static partial class CobolCharacterRepertoire
         for (int i = 0; i < word.Length;)
         {
             int start = i;
-            char c = word[i];
-            int cp = char.IsHighSurrogate(c) && i + 1 < word.Length && char.IsLowSurrogate(word[i + 1])
-                ? char.ConvertToUtf32(c, word[++i]) : c;
-            i++;
+            int cp = NextCodePoint(word, ref i);
             if (cp < 0x80) continue;
             bool first = start == 0, last = i == word.Length;
             string what = $"the COBOL word '{word}' contains U+{cp:X4}";
@@ -141,6 +139,35 @@ public static partial class CobolCharacterRepertoire
             }
         }
         return null;
+    }
+
+    /// <summary>The first character of <paramref name="word"/> that NO edition's Annex B holds anywhere — outside the
+    /// COBOL 2023 repertoire and the 2002/2014 one alike — as the diagnostic's message; null when every character is
+    /// in some edition's Annex B. This is the question a pre-2002 target asks: COBOL-85 has no extended letters, so
+    /// <see cref="Violation"/> has no repertoire to judge by there and the construct gate
+    /// <c>user-word-extended-letter-2002</c> names an extended letter, which a character in NO edition's Annex B is
+    /// not (U+00A0, the euro sign): it is no character of a COBOL word at any edition, so the target is not the cause
+    /// and the message says so (kb/Work PB4130).</summary>
+    public static string? ViolationAtEveryEdition(string word)
+    {
+        for (int i = 0; i < word.Length;)
+        {
+            int cp = NextCodePoint(word, ref i);
+            if (cp >= 0x80 && PositionOf(cp, 2023) == WordCharacterPosition.NotPermitted
+                           && PositionOf(cp, 2014) == WordCharacterPosition.NotPermitted)
+                return $"the COBOL word '{word}' contains U+{cp:X4}, which is in no edition's Annex B, so it is not a "
+                    + "character of a COBOL word at any edition: a word is made of basic letters, basic digits, hyphen, "
+                    + "underscore and the extended letters of Annex B (ISO §8.3.2.1; §8.1.3.2 GR4)";
+        }
+        return null;
+    }
+
+    /// <summary>The code point at <paramref name="i"/> (a surrogate pair is one), advancing <paramref name="i"/> past it.</summary>
+    private static int NextCodePoint(string word, ref int i)
+    {
+        char c = word[i++];
+        return char.IsHighSurrogate(c) && i < word.Length && char.IsLowSurrogate(word[i])
+            ? char.ConvertToUtf32(c, word[i++]) : c;
     }
 
     private static bool Contains((int First, int Second)[] ranges, int codePoint)
