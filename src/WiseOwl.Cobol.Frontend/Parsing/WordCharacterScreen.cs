@@ -49,8 +49,11 @@ public static class WordCharacterScreen
     {
         List<IToken>? candidates = null;
         foreach (var token in tokens)
-            if (token.Type == CobolLexer.IDENTIFIER && (token.Text.Contains('_') || CobolCharacterRepertoire.HasExtendedCharacter(token.Text)))
-                (candidates ??= []).Add(token);
+        {
+            if (token.Type != CobolLexer.IDENTIFIER) continue;
+            string text = token.Text;   // one read: a token's text is cut from the input on every call
+            if (text.Contains('_') || CobolCharacterRepertoire.HasExtendedCharacter(text)) (candidates ??= []).Add(token);
+        }
         if (candidates is null) return;   // the ordinary program: no word holds a character beyond letters, digits and hyphen
 
         var commentEntries = CommentEntryTokens(tree);
