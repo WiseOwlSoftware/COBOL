@@ -1,4 +1,4 @@
-## PB3848: 37 inventory rows stop naming grammar rules the grammar no longer has, and a drift test refuses the next one
+## Entry 2773 — 2026-10-29 21:39 PDT — PB3848: 37 inventory rows stop naming grammar rules the grammar no longer has, and a drift test refuses the next one
 
 kb/Work PB3848 said ten traceability-inventory rows still named the per-statement phrase rules PB3830 deleted
 (`arithmeticOnSizeError`, `readAtEnd`, `writeInvalidKey`). Re-measured on main 20fecec14: ten rows, as the note said, but
@@ -52,3 +52,4 @@ head, was `LEG 1 ONLY (batched gating, PB2515): GREEN` with `Linux half (WSL clo
 
 No diagnostic codes used (COBOL5482-COBOL5484 returned). No conformance golden: no compiler behavior changed, and the
 rule these rows cite is untouched.
+
