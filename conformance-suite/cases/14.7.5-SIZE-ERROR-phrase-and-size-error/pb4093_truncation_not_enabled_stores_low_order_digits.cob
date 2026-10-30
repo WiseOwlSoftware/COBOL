@@ -48,7 +48,7 @@
        01  WS-B      PIC 999        VALUE 999.
        01  WS-C      PIC 999        VALUE 7.
        01  WS-P      PIC 99 COMP-3  VALUE 7.
-       01  WS-E      PIC ZZ9        VALUE 7.
+       01  WS-E      PIC ZZ9.
        01  WS-Q      PIC 99         VALUE 7.
        01  WS-STEP   PIC 99         VALUE 0.
        PROCEDURE DIVISION.
