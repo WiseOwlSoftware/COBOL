@@ -1136,14 +1136,17 @@ public sealed class CopyProcessor(
     /// period — with each of <see cref="CopybookSuffixes"/> in order; the FIRST regular file that exists IS the
     /// library text, so a text-name names exactly one text in a library (§7.2.3.3 SR3 "Within one COBOL library,
     /// each text-name shall be unique"). A period in a directory part (<c>"../lib/BOOK"</c>) is not an extension, so
-    /// that name still takes the suffixes. Null when the library holds no such text.</summary>
+    /// that name still takes the suffixes. The returned path names the file as its directory entry spells it
+    /// (<see cref="CompilationInputs.LocateFile"/>), not as it was probed: on a case-insensitive file system the
+    /// probe <c>BOOK.CPY</c> finds <c>book.cpy</c>, and every consumer — the already-included set, the source origin,
+    /// the diagnostics — must see <c>book.cpy</c> (kb/Work PB1680). Null when the library holds no such text.</summary>
     private string? LocateInLibrary(string library, string textName)
     {
         string spelled = Path.Combine(library, textName);   // an absolute name stays as written
-        if (_inputs.FileExists(spelled)) return spelled;
+        if (_inputs.LocateFile(spelled) is { } asWritten) return asWritten;
         if (Path.GetFileName(textName.AsSpan()).Contains('.')) return null;
         foreach (var suffix in CopybookSuffixes)
-            if (_inputs.FileExists(spelled + suffix)) return spelled + suffix;
+            if (_inputs.LocateFile(spelled + suffix) is { } withSuffix) return withSuffix;
         return null;
     }
 
