@@ -747,13 +747,43 @@ static WiseOwl.Cobol.Runtime.CobolNum.DeviceFunctionText(WiseOwl.Cobol.Runtime.C
 static WiseOwl.Cobol.Runtime.CobolWide.FromUnsigned(System.UInt128 value) -> WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfWide(WiseOwl.Cobol.Runtime.CobolWide value, int scale) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.CobolNum.FormatWideFunctionText(WiseOwl.Cobol.Runtime.CobolWide value, int scale, bool deSign = false, bool commaMode = false) -> string!
-WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.Size -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.SizeTruncation -> bool
-WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeChecking.get -> bool
-WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeChecking.set -> void
-static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeChecking.get -> bool
-static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeChecking.set -> void
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeTruncationChecking.get -> bool
 WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeTruncationChecking.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeTruncationChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeTruncationChecking.set -> void
+WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.SizeOverflow -> bool
+WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.SizeUnderflow -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeOverflowChecking.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeOverflowChecking.set -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeUnderflowChecking.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeUnderflowChecking.set -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeChecksEnabled.get -> WiseOwl.Cobol.Runtime.SizeChecks
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeOverflowChecking.get -> bool
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeOverflowChecking.set -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeUnderflowChecking.get -> bool
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeUnderflowChecking.set -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeChecksEnabled.get -> WiseOwl.Cobol.Runtime.SizeChecks
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolFloat.AddChecked(double a, double b) -> double
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolFloat.DivChecked(double a, double b) -> double
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolFloat.InBinary64Range(double r, bool nonzero, string! what) -> double
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolFloat.MulChecked(double a, double b) -> double
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolFloat.SubChecked(double a, double b) -> double
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeRealChecked(double b, double e) -> double
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolNum.AddChecked(System.Int128 a, System.Int128 b) -> System.Int128
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolNum.SubChecked(System.Int128 a, System.Int128 b) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolFloat.AddChecked(double a, double b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
+static WiseOwl.Cobol.Runtime.CobolFloat.DivChecked(double a, double b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
+static WiseOwl.Cobol.Runtime.CobolFloat.InBinary64Range(double r, bool nonzero, string! what, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
+static WiseOwl.Cobol.Runtime.CobolFloat.MulChecked(double a, double b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
+static WiseOwl.Cobol.Runtime.CobolFloat.SubChecked(double a, double b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.PowNativeRealChecked(double b, double e, WiseOwl.Cobol.Runtime.SizeChecks taken) -> double
+static WiseOwl.Cobol.Runtime.CobolNum.AddChecked(System.Int128 a, System.Int128 b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolNum.SubChecked(System.Int128 a, System.Int128 b, WiseOwl.Cobol.Runtime.SizeChecks taken) -> System.Int128
+WiseOwl.Cobol.Runtime.SizeChecks
+WiseOwl.Cobol.Runtime.SizeChecks.All = WiseOwl.Cobol.Runtime.SizeChecks.Range | WiseOwl.Cobol.Runtime.SizeChecks.Truncation -> WiseOwl.Cobol.Runtime.SizeChecks
+WiseOwl.Cobol.Runtime.SizeChecks.None = 0 -> WiseOwl.Cobol.Runtime.SizeChecks
+WiseOwl.Cobol.Runtime.SizeChecks.Overflow = 1 -> WiseOwl.Cobol.Runtime.SizeChecks
+WiseOwl.Cobol.Runtime.SizeChecks.Range = WiseOwl.Cobol.Runtime.SizeChecks.Overflow | WiseOwl.Cobol.Runtime.SizeChecks.Underflow -> WiseOwl.Cobol.Runtime.SizeChecks
+WiseOwl.Cobol.Runtime.SizeChecks.Truncation = 4 -> WiseOwl.Cobol.Runtime.SizeChecks
+WiseOwl.Cobol.Runtime.SizeChecks.Underflow = 2 -> WiseOwl.Cobol.Runtime.SizeChecks
