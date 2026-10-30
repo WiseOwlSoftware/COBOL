@@ -10,8 +10,10 @@
 #  - with FAKE_PYTHON_STDERR=<script file name>, that script's calls, which write one line to stderr first (kb/Work PB4046).
 # Every landing-lane tick and every `adopt_main.py` and `ledger_state.py` call appends its interval
 # (`tick|adopt|ledger <start ticks> <end ticks>`, UTC) to `fake-python-timeline.txt` (a tick also its start, `tickstart
-# <ticks>`, at once), and with FAKE_PYTHON_TICK_SECONDS=N a tick lasts N seconds, so a case can prove the supervisor never
-# fetches the checkout while its lane ticks (kb/Work PB4046: their fetches raced on one ref).
+# <ticks>`, at once). With FAKE_PYTHON_TICK_AFTER_UNIT=N a tick lasts until the supervisor has recorded a unit
+# (`units.jsonl` exists) and N seconds more, so it is still running when the unit ends however loaded the host (review
+# R2-2), and a case can prove the supervisor never fetches the checkout while its lane ticks (kb/Work PB4046: their
+# fetches raced on one ref).
 $ErrorActionPreference = 'Stop'
 $Timeline = Join-Path $env:COBOL_COORD_DIR 'fake-python-timeline.txt'
 if ($args.Count -ge 2 -and ([string]$args[0]).EndsWith('checkpoint.py') -and $args[1] -eq 'write') {
@@ -29,7 +31,12 @@ if ($args.Count -ge 1 -and ([string]$args[0]).EndsWith('land_lane.py') -and $arg
     if ($env:FAKE_PYTHON_STOP_AFTER_TICKS -and @(Get-Content $log).Count -ge [int]$env:FAKE_PYTHON_STOP_AFTER_TICKS) {
         Set-Content -Path (Join-Path $env:COBOL_COORD_DIR 'STOP') -Value 'fake-python.ps1'
     }
-    if ($env:FAKE_PYTHON_TICK_SECONDS) { Start-Sleep -Seconds ([int]$env:FAKE_PYTHON_TICK_SECONDS) }
+    if ($env:FAKE_PYTHON_TICK_AFTER_UNIT) {
+        $units = Join-Path $env:COBOL_COORD_DIR 'units.jsonl'
+        $guard = (Get-Date).AddMinutes(5)   # a hang guard, never a verdict: a run that records no unit ends the wait
+        while (-not (Test-Path $units) -and (Get-Date) -lt $guard) { Start-Sleep -Milliseconds 200 }
+        Start-Sleep -Seconds ([int]$env:FAKE_PYTHON_TICK_AFTER_UNIT)
+    }
     Add-Content -Path $Timeline -Value "tick $began $([DateTime]::UtcNow.Ticks)"
     exit 0
 }

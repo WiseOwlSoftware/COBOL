@@ -19,6 +19,6 @@ Three changes remove the race and the gap that hid it:
 
 The tests involve no timing. `test_adopt_main.py` section 10 holds the lock a concurrent fetch would hold on
 `refs/remotes/origin/main` and requires the adoption to go through. On main's adopt_main it fails with CI's own message.
-`test_orchestrate_adopt.ps1` scenario 6 runs an eight-second fake tick, longer than the fake unit. It requires that no
-adoption and no ledger-check interval overlaps a tick's: 30/30. Main's supervisor fails the adoption check, and the
-branch's first head fails the ledger check.
+`test_orchestrate_adopt.ps1` scenario 6 runs a fake tick that lasts until the unit is recorded and 5 seconds more, so it
+is still running at both points however loaded the host. It requires that no adoption and no ledger-check interval
+overlaps a tick's: 30/30. Main's supervisor fails both checks, and the branch's first head fails the ledger check.
