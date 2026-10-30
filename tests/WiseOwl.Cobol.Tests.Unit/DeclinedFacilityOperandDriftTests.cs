@@ -43,14 +43,37 @@ public sealed class DeclinedFacilityOperandDriftTests
             ["validateFacilityStatement"] = (1, 1,
                 "VALIDATE { identifier-1 } … — the repeated operand, every one screened against §14.9.50.3 SR1/SR2/SR4/SR5"),
             ["mcsReceiveStatement"] = (3, 3,
-                "RECEIVE [FROM] data-name-1 GIVING identifier-1 data-name-2 — the three data references"),
+                "RECEIVE [FROM] data-name-1 GIVING identifier-1 data-name-2 — the three data references; data-name-1 and -2 are names (ScreenedNames)"),
             ["mcsSendStatement"] = (3, 3,
                 "SEND [TO] { literal-1 | message-server-name-1 | data-name-2 } FROM identifier-1 [RETURNING data-name-1] — "
-                + "FROM and RETURNING always resolve; the TO operand resolves only in Format 2, where it is a data-name-2 "
+                + "FROM and RETURNING always resolve (RETURNING, a name, after its shape is screened); the TO operand resolves only in Format 2, where it is a data-name-2 "
                 + "(§14.9.38.3 SR4): in Format 1 it names a message-server-name-1, 'the name of a message server run unit' "
                 + "(SR2), which is no data item, and the grammar's one dataReference alternative cannot tell the two apart, "
                 + "so DeclinedFacilityBinder.ClassifySend decides the format first (kb/Work PB4090)"),
         };
+
+    /// <summary>⛔ THE OPERANDS THE GENERAL FORMATS PRINT AS NAMES, each asked its WRITTEN shape by
+    /// <c>DeclinedFacilityBinder.ScreenName</c> before it resolves (kb/Work PB4118): a subscript, a reference modifier or a
+    /// special register is no name. The census is the other half of <see cref="Roster"/>: an operand there that is a
+    /// data-name or a message-server-name (not an identifier) belongs here, so a statement that grows one fails until
+    /// the binder screens it or this list says why it need not.</summary>
+    private static readonly string[] ScreenedNames =
+    [
+        "SEND TO operand",             // message-server-name-1 | data-name-2 (§14.9.38.2)
+        "SEND RETURNING data-name-1",  // Format 1
+        "RECEIVE data-name-1",         // §14.9.31.2
+        "RECEIVE data-name-2",
+    ];
+
+    [Fact]
+    public void EveryNameOperandOfTheDeclinedStatements_IsScreenedForItsWrittenShape()
+    {
+        string facility = CodeOf(DeclinedFacilityBinderPath);
+        foreach (string face in ScreenedNames)
+            Assert.True(Regex.IsMatch(facility, @"ScreenName\([^;]*""" + Regex.Escape(face) + @""""),
+                $"DeclinedFacilityBinder no longer asks ScreenName about '{face}': a name printed by the general format "
+                + "is refused written as a subscripted, reference-modified or special-register reference (kb/Work PB4118).");
+    }
 
     private static string CodeOf(string path)
     {
