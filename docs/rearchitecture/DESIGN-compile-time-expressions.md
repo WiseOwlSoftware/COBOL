@@ -90,6 +90,23 @@ categories, division, which WHEN matches — a compiled branch only, because an 
 compilation variable). A `>>DEFINE` in an omitted branch is checked against its general format and its operand is
 parsed, but it applies nothing.
 
+**A refused `>>DEFINE` is reported once** (kb/Work PB3119). A `>>DEFINE` in a compiled branch that is malformed, names
+a compiler-directive word, or whose operand does not evaluate changes no table entry, and `ApplyDefine` returns it as a
+REFUSAL of its name, recorded twice, each for its reader: in the run's live refused set, which moves with the table
+(PUSH saves it, POP restores it), and as a `CompilationVariableEvent` with `Refused` on the timeline the later stages
+read (`CompilationVariableTimeline.DefinitionAt` passes over it; `StandingAt` reads it, and the literal slot of
+`>>COBOL-WORDS` fails silently on it). The evaluator is built with the live set as `isRefusedName`; at each site that would report an undefined or wrong-category name (a comparison operand, an
+arithmetic operand, a boolean operand, a shift count), a name that resolves to nothing AND is refused fails silently, so
+one bad definition is one diagnostic, not one more at every later use. A later directive that writes the name takes it
+out of the set (a good definition resolves, a bad one puts it back); a `>>DEFINE` in an omitted branch refuses nothing,
+because it applied nothing and the name is genuinely undefined. A name no directive wrote still reports "not a
+previously-defined compilation variable". The CONSTANT-entry binder passes no set: its failed constants read the
+recovery value `1` (kb/Work PB1231).
+
+**A diagnostic quotes an operand as the programmer wrote it** (kb/Work PB3429): every message of the evaluator and the
+CONSTANT binder that quotes a multi-token operand (a qualified name `FOO OF X`, a function call, a figurative
+`ALL "X"`) reads it through `WrittenSource.Of`, never `GetText()`, which runs the tokens together (`FOOOFX`).
+
 **Every fragment comes through one of three funnels** (`ParseOperandFragment` / `ParseCceFragment` /
 `ParseDisplayFragment` in `ConditionalCompilationProcessor`; `LiteralScreenDriftTests` pins that nothing else calls
 `DirectiveExpressionFragment`), and each funnel asks two things of it: is it a fragment (COBOL1619) and is every literal
@@ -201,7 +218,8 @@ public sealed class CompileTimeExpressionEvaluator(
     Func<string, CtValue?> resolveName,     // a name → its bound value, or null if undefined
     ICtDiagnostics diag,                     // CODE-preserving sink (§5.2) — not a bare Action<string>
     CtOperandVocabulary vocab,               // per-consumer operand-source clause / noun (§5.2)
-    bool decimalPointIsComma)                // §12.3.7 GR14a normalization (binder: real; frontend: false, §5.3)
+    bool decimalPointIsComma,                // §12.3.7 GR14a normalization (binder: real; frontend: false, §5.3)
+    Func<string, bool>? isRefusedName = null) // frontend only: a name whose >>DEFINE was refused and reported (PB3119)
 {
     // Public operand boundary — applies §7.3.11.4 GR5 reclassification + §7.3.6.3 GR3 truncation ITSELF.
     public CtNumber? EvaluateArithmeticOperand(CobolParserCore.ArithmeticExpressionContext e, string where);
