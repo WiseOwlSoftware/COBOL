@@ -5,7 +5,8 @@
 *> portable: unverified
 *>---
       *> ISO 8.3.2.1 / Annex B (kb/Work PB1402): U+20AC EURO SIGN is no character of Annex B, so it cannot
-      *> stand in a COBOL word; the lexer keeps it in the word and the Annex B screen names it.
+      *> stand in a COBOL word; the lexer keeps it in the word and the Annex B screen names it at every
+      *> target, COBOL-85 too (kb/Work PB4130: it is no extended letter, so the 2002 gate does not apply).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1402N3.
        DATA DIVISION.
