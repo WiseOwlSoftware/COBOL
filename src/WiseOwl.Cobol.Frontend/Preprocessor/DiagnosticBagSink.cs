@@ -23,3 +23,18 @@ internal sealed class BagSink(DiagnosticBag bag, SourceLocation loc) : IDiagnost
         d.Severity == EditionSeverity.Error ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
         d.Message, loc, default);
 }
+
+/// <summary>
+/// The <see cref="BagSink"/> of a stage that reports at MANY positions (kb/Work PB3845): it keeps the diagnostic cursor
+/// (<see cref="IDiagnosticSink.Cursor"/>, set through <c>sink.At(line, column)</c>) and locates each report through
+/// <paramref name="locate"/> — the resultant-text position the walker names, as the physical file, line and column the user
+/// edits (<see cref="SourceLineMap.Locate(int, int, string)"/>). The severity mapping is <see cref="BagSink"/>'s.
+/// </summary>
+internal sealed class CursorBagSink(DiagnosticBag bag, Func<int, int, SourceLocation> locate) : IDiagnosticSink
+{
+    public DiagnosticCursor Cursor { get; set; }
+
+    public void Report(in EditionDiagnostic d) => bag.Report(d.Code,
+        d.Severity == EditionSeverity.Error ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
+        d.Message, locate(Cursor.Line, Cursor.Column), default);
+}

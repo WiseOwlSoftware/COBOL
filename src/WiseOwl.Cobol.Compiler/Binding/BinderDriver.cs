@@ -228,6 +228,12 @@ internal sealed class BinderDriver
         // kb/Work PB1393.
         global::WiseOwl.Cobol.Frontend.Parsing.LiteralScreen.Run(tree, edition.Edition, edition, gateFormats: true);
 
+        // The word-character screen (ISO §8.3.2.1, §8.1.3.2 GR4, Annex B.3) — the character half of the COBOL-word rule is a
+        // property of the word TOKEN, whatever position it is written in, so it is asked once per word of the tree rather
+        // than once per name slot. A parse that FAILED was screened by the frontend over the lexer's whole stream (the same
+        // body), so this is the successful parse's half. kb/Work PB3845.
+        global::WiseOwl.Cobol.Frontend.Parsing.WordCharacterScreen.RunOnTree(tree, edition.Edition, edition);
+
         // The declined-optional-element pass (ISO Annex A.4.1) — a THIRD sibling on the same footing: it answers
         // "does this implementation claim support for this optional module", which is orthogonal to both the
         // edition axis (VersionConformancePass) and the directive axis (FlagConformancePass). It refuses the
