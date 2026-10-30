@@ -737,6 +737,14 @@
   ],
   "expect": "literal-1 shall not be a figurative constant"
  },
+ "pb3429-constant-qualified-operand": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "'FOO OF X' — all operands of the compile-time arithmetic expression"
+ },
  "constant-figurative-arith-operand": {
   "refuse-at": [
    "2002",
@@ -8040,6 +8048,14 @@
    "2023"
   ],
   "expect": "COBOL2651"
+ },
+ "pb3119-define-refused-then-referenced": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": ">>DEFINE FOO: malformed compile-time expression '1 +'"
  },
  "pb1367-define-without-operand": {
   "refuse-at": [
@@ -21622,6 +21638,12 @@
    "2023"
   ],
   "expect": "COBOL1720"
+ },
+ "pb911-perform-f3-empty-imperative-1": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL2072"
  },
  "pb917-condition-value-twice": {
   "refuse-at": [
