@@ -1,4 +1,4 @@
-## The supervisor no longer parses a Python tool's stderr as its answer, and the orchestrate self-tests quote the run's own reason (kb/Work PB4046; PB4083 and PB4084 filed)
+## Entry 2761 — 2026-10-29 19:43 PDT — The supervisor no longer parses a Python tool's stderr as its answer, and the orchestrate self-tests quote the run's own reason (kb/Work PB4046; PB4083 and PB4084 filed)
 
 `test_orchestrate_adopt.ps1` failed in CI's Windows self-tests a second time on 2026-10-29: PR #791, merge-group run
 40987962746. Both failures said only "got 'False', want 'True'". In each, the loop did not adopt main, and the harness
@@ -20,3 +20,4 @@ CI's flake, whose scenario 4 kept the old commit.
 PB4046 stays open with three causes ruled out and the evidence ready for the next run. PB4083 records the PowerShell
 self-tests' repositories built outside `scratch_repo.py`'s fixture. PB4084 records four entry scripts with the same stderr
 shape as `Invoke-Py`.
+
