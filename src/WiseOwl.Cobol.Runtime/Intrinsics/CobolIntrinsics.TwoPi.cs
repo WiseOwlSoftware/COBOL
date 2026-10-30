@@ -23,7 +23,9 @@ namespace WiseOwl.Cobol.Runtime;
 /// <see cref="ReductionPlaces"/> = 162 places as <see cref="ReductionLimbs"/> base-10^18 limbs and multiplied by
 /// Sig's three limbs schoolbook — every partial product is below 10^36 and every column sum below 10^37, inside
 /// Int128 — keeping only the fractional limbs. Truncating g costs under Sig·10^−162 &lt; 2·10^−124 turns, which is
-/// the reduction's whole error. Four times that fraction is the quadrant (its integer part) and the residue (its
+/// the reduction's whole error. (An EXACT WIDE argument, kb/Work PB4075, is up to five limbs of 10^18 and reads three
+/// limbs of g per significand limb, 15 limbs = 270 places: the error stays under 10^77·10^−270, and the SIN of a
+/// 39-digit product is the sine of that product.) Four times that fraction is the quadrant (its integer part) and the residue (its
 /// fraction, centred on (−½, ½]); the residue's two leading nonzero limbs become a double-double (FMA products)
 /// scaled by π/2, so the body sees it to about 10^−18 relative, below binary64's 2^−53. The smallest residue a 34-digit decimal in the SDIDI range reaches is, by the
 /// usual counting heuristic (~10^38 candidate significand-exponent pairs), about 10^−40 radians — some 80 digits
@@ -34,10 +36,11 @@ namespace WiseOwl.Cobol.Runtime;
 public static partial class CobolIntrinsics
 {
     /// <summary>Decimal digits per limb of the reduction's fixed point: 10^18 &lt; 2^63, and a limb product is below
-    /// 10^36, so a column of three sums below 10^37 in <see cref="Int128"/> (max ≈ 1.7·10^38).</summary>
+    /// 10^36, so a column of at most five (a 77-digit wide argument's limbs) sums below 5·10^36 in <see cref="Int128"/>
+    /// (max ≈ 1.7·10^38).</summary>
     internal const int LimbDigits = 18;
 
-    /// <summary>Limbs of g = frac(10^Exp / 2π) the reduction reads.</summary>
+    /// <summary>Limbs of g = frac(10^Exp / 2π) the reduction reads for an SDIDI argument (three per significand limb).</summary>
     internal const int ReductionLimbs = 9;
 
     /// <summary>Places of 1/(2π) one reduction reads past the argument's lowest place: <see cref="ReductionLimbs"/> ·
@@ -58,21 +61,41 @@ public static partial class CobolIntrinsics
     private static (int Quadrant, double Hi, double Lo) ReduceQuarterTurns(CobolDec x)
     {
         Int128 sig = Int128.Abs(x.Sig);
-        Span<long> s = [(long)(sig % LimbBase), (long)(sig / LimbBase % LimbBase), (long)(sig / LimbBase / LimbBase)];
-        Span<long> g = stackalloc long[ReductionLimbs];
-        for (int k = 0; k < ReductionLimbs; k++) g[k] = InverseTwoPiLimb(x.Exp + k * LimbDigits);
+        return ReduceQuarterTurns([(long)(sig % LimbBase), (long)(sig / LimbBase % LimbBase), (long)(sig / LimbBase / LimbBase)], x.Exp);
+    }
+
+    /// <summary>⛔ THE EXACT WIDE ARGUMENT'S REDUCTION (kb/Work PB4075): <paramref name="x"/> at <paramref name="scale"/> is the
+    /// 256-bit magnitude <see cref="CobolWide.WideLimbs"/> base-10^18 limbs long, and the same fixed-point reduction reads it —
+    /// <c>SIN (BIG * BIG * K3)</c> of a 39-digit product is reduced as the 39-digit angle it is, not as the 34-digit image the
+    /// SDIDI holds, which stands about 999 radians away.</summary>
+    private static (int Quadrant, double Hi, double Lo) ReduceQuarterTurns(CobolWide x, int scale)
+    {
+        Span<long> s = stackalloc long[CobolWide.WideLimbs];
+        x.MagnitudeLimbs(s);
+        return ReduceQuarterTurns(s, -scale);
+    }
+
+    /// <summary>The reduction of the magnitude <paramref name="s"/> × 10^<paramref name="exp"/> (base-10^18 limbs, least
+    /// significant first): the limbs of 1/(2π) it reads are THREE PER SIGNIFICAND LIMB, so the truncation error — the
+    /// magnitude below 10^(18·limbs) times 10^−(18·reads) — keeps the margin below the smallest residue the SDIDI's
+    /// 34 digits give (see the type's remarks) for a 77-digit wide magnitude as well: 10^−193 turns at 15 limbs.</summary>
+    private static (int Quadrant, double Hi, double Lo) ReduceQuarterTurns(ReadOnlySpan<long> s, int exp)
+    {
+        int reads = 3 * s.Length;
+        Span<long> g = stackalloc long[reads];
+        for (int k = 0; k < reads; k++) g[k] = InverseTwoPiLimb(exp + k * LimbDigits);
 
         // a[m] is the coefficient of 10^(−18m); s[j]·10^(18j) × g[k]·10^(−18(k+1)) lands at m = k + 1 − j, and a
         // term with k < j is an INTEGER number of turns, which the reduction discards.
-        Span<Int128> a = stackalloc Int128[ReductionLimbs + 1];
+        Span<Int128> a = stackalloc Int128[reads + 1];
         for (int j = 0; j < s.Length; j++)
-            for (int k = j; k < ReductionLimbs; k++)
+            for (int k = j; k < reads; k++)
                 a[k + 1 - j] += (Int128)s[j] * g[k];
-        for (int m = ReductionLimbs; m > 0; m--) { a[m - 1] += a[m] / LimbBase; a[m] %= LimbBase; }
+        for (int m = reads; m > 0; m--) { a[m - 1] += a[m] / LimbBase; a[m] %= LimbBase; }
 
         // Quarter turns: 4 × the turn fraction; what carries out of a[1] is the quadrant.
         Int128 carry = 0;
-        for (int m = ReductionLimbs; m > 0; m--)
+        for (int m = reads; m > 0; m--)
         {
             Int128 v = a[m] * 4 + carry;
             a[m] = v % LimbBase;
@@ -86,7 +109,7 @@ public static partial class CobolIntrinsics
         {
             quadrant = (quadrant + 1) & 3;
             Int128 borrow = 0;
-            for (int m = ReductionLimbs; m > 0; m--)
+            for (int m = reads; m > 0; m--)
             {
                 Int128 v = -a[m] - borrow;
                 (a[m], borrow) = v < 0 ? (v + LimbBase, 1) : (v, 0);
@@ -94,13 +117,13 @@ public static partial class CobolIntrinsics
         }
 
         int lead = 1;
-        while (lead <= ReductionLimbs && a[lead] == 0) lead++;
-        if (lead > ReductionLimbs) return (quadrant, 0, 0);
+        while (lead <= reads && a[lead] == 0) lead++;
+        if (lead > reads) return (quadrant, 0, 0);
 
         // The residue's two leading limbs as one Int128 (below 10^36, so at least 10^18 when the first is nonzero:
         // relative precision 10^−18 from the limbs dropped), exactly as a double-double, times π/2, then scaled by
         // 10^(−18(lead + 1)) one exact 10^18 at a time.
-        Int128 top = a[lead] * LimbBase + (lead < ReductionLimbs ? a[lead + 1] : 0);
+        Int128 top = a[lead] * LimbBase + (lead < reads ? a[lead + 1] : 0);
         double hi = (double)top;
         double lo = (double)(top - (Int128)hi);
         (hi, lo) = MulDd(hi, lo, HalfPiHi, HalfPiLo);
