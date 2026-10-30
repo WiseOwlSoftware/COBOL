@@ -34,6 +34,20 @@ public static partial class CobolNum
     public static string DeviceFunctionText(Int128 unscaled, int scale, bool commaMode) =>
         DeviceFunctionText(CobolDec.From(unscaled, scale), commaMode);
 
+    /// <summary>The same text for a returned value carried on the EXACT WIDE intermediate (<paramref name="value"/> at
+    /// <paramref name="scale"/> fraction digits; kb/Work PB3953): an argument expression past the <see cref="Int128"/> carrier, and
+    /// the value of an exact function over one, show every digit, as GnuCOBOL's arbitrary-precision temporary does.</summary>
+    public static string DeviceFunctionText(CobolWide value, int scale, bool commaMode) =>
+        DeviceFunctionText(value, scale, signedItem: value.Sign < 0, commaMode);
+
+    /// <summary>The wide value's text for a temporary whose sign position was fixed when it was made (see
+    /// <see cref="DeviceFunctionText(CobolDec, bool, bool)"/>).</summary>
+    internal static string DeviceFunctionText(CobolWide value, int scale, bool signedItem, bool commaMode)
+    {
+        NumProfile temporary = ReturnedValueProfile(value, scale, out string digits, out _) with { Signed = signedItem };
+        return Compose(value.Sign < 0, digits, temporary, commaMode);
+    }
+
     /// <summary>
     /// ⛔ THE DESCRIPTION OF THE TEMPORARY A VALUE DESCRIBES, GnuCOBOL 3.2.0's <c>cob_alloc_field</c>:
     /// <list type="number">
@@ -57,14 +71,27 @@ public static partial class CobolNum
     /// the digit POSITIONS DISPLAY pads to (9 or 20 for a binary item).</param>
     internal static NumProfile ReturnedValueProfile(CobolDec value, out string digits, out int storageBytes)
     {
-        bool negative = value.Sig < 0;
-        digits = CobolDec.UAbs(value.Sig).ToString(CultureInfo.InvariantCulture);
-        int scale = 0;
-        if (value.Sig == 0) digits = "0";
-        else if (value.Exp >= 0) digits += new string('0', value.Exp);   // an integer value written with a positive exponent
-        else
+        string magnitude = CobolDec.UAbs(value.Sig).ToString(CultureInfo.InvariantCulture);
+        if (value.Sig != 0 && value.Exp > 0) magnitude += new string('0', value.Exp);   // an integer value written with a positive exponent
+        return ReturnedValueProfile(value.Sig < 0, magnitude, value.Sig != 0 && value.Exp < 0 ? -value.Exp : 0, out digits, out storageBytes);
+    }
+
+    /// <summary>The description of the temporary an EXACT WIDE value describes (<paramref name="value"/> at <paramref name="scale"/>
+    /// fraction digits; kb/Work PB3953): the same rule as the SDIDI value's, over the wide value's own digits.</summary>
+    internal static NumProfile ReturnedValueProfile(CobolWide value, int scale, out string digits, out int storageBytes)
+    {
+        string magnitude = value.MagnitudeDigits();
+        if (value.Sign != 0 && scale < 0) magnitude += new string('0', -scale);   // trailing P positions are integer digits
+        return ReturnedValueProfile(value.Sign < 0, magnitude, value.Sign != 0 && scale > 0 ? scale : 0, out digits, out storageBytes);
+    }
+
+    /// <summary>The ONE statement of <c>cob_alloc_field</c>'s description, over a value given as its sign, the digits of its
+    /// unscaled magnitude and its fraction digits, whichever carrier held it.</summary>
+    private static NumProfile ReturnedValueProfile(bool negative, string magnitude, int scale, out string digits, out int storageBytes)
+    {
+        digits = magnitude;
+        if (scale > 0)
         {
-            scale = -value.Exp;
             int end = digits.Length;
             while (scale > 0 && end > 1 && digits[end - 1] == '0') { end--; scale--; }   // cob_trim_decimal
             digits = digits[..end];

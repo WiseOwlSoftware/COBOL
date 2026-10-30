@@ -132,13 +132,17 @@ internal static class OperandText
     /// left it in — the intrinsic call itself, or a fold's arithmetic sum (<see cref="AsString"/>).</summary>
     private static string NumericExprText(NumericRenderer num, BoundExpr expr, bool deSign)
     {
-        NumX x = num.Render(expr, ReceiverContext.None);
+        // A value on the exact wide intermediate (an exact function over an argument expression past the Int128 carrier,
+        // kb/Work PB3953) is kept, and SETTLES here into the text of its every digit (CobolNum.FormatWideFunctionText), so a
+        // MOVE to an alphanumeric item sends the value's digits and not its 34-digit image's.
+        NumX x = num.Render(expr, ReceiverContext.None, keepWide: true);
         // ⛔ The image is the LITERAL form of the value, so its decimal separator is the evaluating unit's (§12.3.7.4
         // GR14 a — kb/Work PB2507), exactly as the literal operand's image is (BoundNumericLiteral.Image, PB1643).
         // A float result keeps CobolFloat.Display's '.' in both compilers (a PICTURE-less float has no separator rule).
         bool comma = num.UnitDecimalPointIsComma;
         return x.Real ? RuntimeApi.FloatDisplay(x.Expr)
              : x.Dec ? RuntimeApi.DecFunctionText(x.Expr, deSign, comma)
+             : x.Wide ? RuntimeApi.WideFunctionText(x.Expr, x.Scale, deSign, comma)
              : RuntimeApi.NumFormatFunctionText(x.Expr, x.Scale, deSign, comma);
     }
 
