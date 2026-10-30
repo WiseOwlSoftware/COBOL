@@ -1,4 +1,4 @@
-## The loop's adoption of main no longer races another fetch (kb/Work PB4046)
+## Entry 2769 — 2026-10-29 21:12 PDT — The loop's adoption of main no longer races another fetch (kb/Work PB4046)
 
 `test_orchestrate_adopt.ps1` failed in CI's Windows self-tests twice on 2026-10-29 (merge-group runs 40918334805 and
 40987962746), and the loop's PB3797 finisher found why. The supervisor started the landing lane's tick in the background
@@ -22,3 +22,4 @@ The tests involve no timing. `test_adopt_main.py` section 10 holds the lock a co
 `test_orchestrate_adopt.ps1` scenario 6 runs a fake tick that lasts until the unit is recorded and 5 seconds more, so it
 is still running at both points however loaded the host. It requires that no adoption and no ledger-check interval
 overlaps a tick's: 30/30. Main's supervisor fails both checks, and the branch's first head fails the ledger check.
+
