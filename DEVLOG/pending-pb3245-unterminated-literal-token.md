@@ -40,8 +40,23 @@ debugging line that is a comment keeps its open literal unreported (the `ABSENT_
 (`IsUnterminated`, and an open literal is no well-formed literal) and `LiteralScreenDriftTests` (the one question, the one
 report, the two callers). No inventory row was claimed or re-verdicted.
 
-**Lead left open.** A free-form comment-entry reaches the lexer as tokens, so the post-lex rules judge its text: COBOL2631,
-COBOL2633, COBOL2630 and COBOL0900 already fired on it, and an unpaired quotation symbol in it (`AUTHOR. Joe's program.`)
-now draws COBOL5563 as well. Fixed form discards the entry in the reference-format stage. Free form needs the same
-treatment and a decision on where a free-form entry ends, which is a reference-format change outside this group, so it is
-reported as a lead.
+**Review finding R1-1: a free-form comment-entry is commentary too.** The branch review found a regression. Free form
+passed comment-entry text to the lexer, so with the new token `AUTHOR. Pat O'Brien.` (`--std 85 --source-format free`, or
+`--permissive`) drew COBOL5563 and COBOL2633 where main had compiled it. The first implementer had recorded the root as a
+lead: COBOL2631, COBOL2633, COBOL2630 and COBOL0900 already fired on entry text before this change, and
+`SECURITY. J. Smith.` drew COBOL1971. Fixed form discards the entry in the §6.5 conversion. Free form now does the same:
+`ReferenceFormatProcessor.FreeFormConverter` replaces the static `ConvertFreeLines`. In an IDENTIFICATION DIVISION, a line
+whose first word is a comment-entry paragraph's word is written `AUTHOR. .`, as the fixed-form converter writes it, and
+the rest of the line is discarded. No edition has both free form and a comment-entry, so where a free-form entry ends was
+open. CLAUDE.md rule 1 sends it to GnuCOBOL 3.2. Probed with `cobc -free`: the paragraph word must be first on its line,
+its period is optional, the entry is the rest of that line, and a second line of entry text is refused. That is
+docs/CONFORMANCE.md D-CE1. One behavior changes on purpose: main accepted an entry continued onto further lines (it ran
+to the parser's first period token), and that is now refused, as GnuCOBOL refuses it. The sibling sweep over the
+conversion found a second defect. A free SOURCE FORMAT segment never passed the division it read on to the next segment.
+So a fixed-form `REMARKS.` procedure paragraph after a free `PROCEDURE DIVISION.` header was read as a comment-entry, and
+a legal 2002 program was refused with COBOL0001. `ConvertSegment` now carries the division across segments in either
+format. Witnesses: `wiseowl/cases/6.5-Logical-conversion/pb3245_free_comment_entry_is_commentary` (85, prints OK: an
+apostrophe, an unclosed quotation mark, `,`/`;` with no space, `X"ZZ"`, an inner period and a header with no period),
+`pb3245-free-comment-entry-ends-at-line-end` (refused at 85, COBOL1971), and
+`cases/6.5-Logical-conversion/pb3245_free_segment_hands_on_its_division` (2002, prints IN-REMARKS; GnuCOBOL prints the
+same). Unit tests are in `ReferenceFormatLogicalConversionTests`.
