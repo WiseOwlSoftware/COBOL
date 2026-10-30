@@ -1,4 +1,4 @@
-## PB4028 is a wrong answer: another run unit reads a dead transaction's uncommitted changes (filed as PB4097)
+## Entry 2784 — 2026-10-30 10:38 PDT — PB4028 is a wrong answer: another run unit reads a dead transaction's uncommitted changes (filed as PB4097)
 
 kb/Work PB4028 asked whether an OPEN INPUT reader may read the uncommitted change of an APPLY COMMIT run unit that was
 killed. The reader returns it with status 00 until some run unit opens the file for writing and so performs the deferred
@@ -17,3 +17,4 @@ The fix is filed as PB4097, a wrong-answer defect for the fix lane. It covers bo
 read. It also corrects the design and CONFORMANCE.md statements that called the read conforming, and it claims
 GR-9.1.18.5-p1. PB4028 is closed as adjudicated. The PB3330 close-out bullet that called the read "not a defect" now
 points to the verdict.
+
