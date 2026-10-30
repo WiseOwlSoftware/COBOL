@@ -24,7 +24,12 @@ it (the positioning phrase). Written without that proof the format is only PRESU
 only when no enclosing open statement may take it, the same last-resort rule the edition superset reading already
 used (`Reading.Proved` / `Reading.Presumed`). A legal program never loses a phrase this way, and an inner screen
 statement that yields its phrase is still refused by name. `AcceptDisplayBinder.ScreenFormatOf` treats an exception
-phrase as the screen format with or without positioning, and says whether the operand is a screen-name.
+phrase on a screen-name statement as the screen format with or without positioning. When the operand proves to be no
+screen-name, the new `DeviceFormatPhrase` names the shape COBOL2269 (Format 1 prints no exception phrase, §14.5.3.3),
+never COBOL1707: claiming the declined module would not make that program legal, so blaming the module would mislead.
+The first gate caught the need for this: `ParseRecoveryTailTests` pinned `ACCEPT W-A ON EXCEPTION …` to one COBOL2269,
+and the first cut answered COBOL1707. The row now expects COBOL2269 naming W-A, and gains a DISPLAY identifier twin
+and a DISPLAY literal row.
 
 The structural change touched one more place. Every ACCEPT / DISPLAY now ends in a `conditionalPhrases` context even
 when it is empty, and two error-strategy walks that look for "the construct that ended just before the token"
@@ -35,7 +40,8 @@ what it looks for.
 
 **After.** `ACCEPT SG ON EXCEPTION …` / `DISPLAY SG ON EXCEPTION …`: COBOL1707 "'SG' is declared in the SCREEN SECTION,
 and the ON EXCEPTION / NOT ON EXCEPTION phrase appears only in the screen format", with no parse error.
-`ACCEPT WS-X ON EXCEPTION …` (no screen): COBOL1707 saying WS-X is no screen-name. `DISPLAY "A" ON EXCEPTION …`:
+`ACCEPT WS-X ON EXCEPTION …` (no screen): COBOL2269 "'WS-X' is not declared in the SCREEN SECTION, so this is ISO
+§14.9.1.2 Format 1 (device), which prints no exception phrase …". `DISPLAY "A" ON EXCEPTION …`:
 COBOL2269 "this DISPLAY statement specifies a literal operand …". `CALL "X" ON EXCEPTION DISPLAY WS-MSG NOT ON EXCEPTION
 … END-CALL` keeps the NOT arm the CALL's and runs it at 85 through 2023.
 

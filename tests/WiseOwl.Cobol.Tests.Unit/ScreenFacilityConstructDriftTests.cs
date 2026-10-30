@@ -208,10 +208,11 @@ public sealed class ScreenFacilityConstructDriftTests
     }
 
     /// <summary>The two complements of the presumed reading at top level, where no enclosing statement may take the
-    /// phrase. An IDENTIFIER operand that names no screen still leaves the screen format possible by syntax, so the
-    /// phrase is the statement's and the refusal names the screen format and says the operand is not a screen-name; a
-    /// LITERAL operand rules the screen format out (§14.9.11.2: Format 2 writes screen-name-1), so the phrase may be
-    /// associated with nothing (§14.5.3.3) and COBOL2269 names the operand that ruled it out.</summary>
+    /// phrase. An IDENTIFIER operand leaves the screen format possible to the parser, so the phrase reaches the binder,
+    /// which sees the operand is no screen-name and names the shape (COBOL2269: Format 1 prints no exception phrase) —
+    /// never the screen refusal COBOL1707, which would tell the user the declined module is what is missing; a LITERAL
+    /// operand rules the screen format out at parse time (§14.9.11.2: Format 2 writes screen-name-1), so the phrase may
+    /// be associated with nothing (§14.5.3.3) and the parse layer's COBOL2269 names the operand that ruled it out.</summary>
     [Fact]
     public void ExceptionPhraseOnADeviceOperand_IsNamed_ByWhatTheOperandIs()
     {
@@ -226,8 +227,10 @@ public sealed class ScreenFacilityConstructDriftTests
                 ACCEPT WS-X ON EXCEPTION CONTINUE END-ACCEPT
                 STOP RUN.
             """, 2023);
-        Assert.True(Has(identifier, "COBOL1707: the ACCEPT statement's screen format 3")
-            && Has(identifier, "'WS-X' is not declared in the SCREEN SECTION"), string.Join("\n", identifier));
+        Assert.True(Has(identifier, "COBOL2269") && Has(identifier, "'WS-X' is not declared in the SCREEN SECTION")
+            && Has(identifier, "§14.9.1.2 Format 1 (device)"), string.Join("\n", identifier));
+        Assert.False(Has(identifier, "COBOL1707"), "a device ACCEPT with an exception phrase is not the declined "
+            + "screen module — claiming that module would not make it legal:\n" + string.Join("\n", identifier));
 
         var (_, literal) = Compile("""
             IDENTIFICATION DIVISION.

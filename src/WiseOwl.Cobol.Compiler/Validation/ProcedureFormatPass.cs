@@ -96,8 +96,8 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
             .Select(k => k.Words).FirstOrDefault();
     }
 
-    /// <summary>The statement's own <c>conditionalPhrases</c> (a screen ACCEPT / DISPLAY holds it under its positioning
-    /// phrase), never one of a statement nested in its operands.</summary>
+    /// <summary>The statement's own <c>conditionalPhrases</c> (below the <c>statement</c> node, in its verb's rule), never
+    /// one of a statement nested in its operands.</summary>
     private static Core.ConditionalPhrasesContext? OwnPhrases(IParseTree node)
     {
         for (int i = 0; i < node.ChildCount; i++)
