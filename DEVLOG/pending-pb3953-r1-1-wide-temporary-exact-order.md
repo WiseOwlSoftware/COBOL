@@ -22,7 +22,9 @@ pairs).
 
 **R1-2 (lead, fixed in the files changed).** Entry 2754 called MEAN and the binary64 family "left on the image, by
 determination". They are open wrong answers: MEAN rounds twice (the image, then the SDIDI quotient) and SIN of a 39-digit
-product reduces the wrong angle. They are filed as PB4075. The `RawArg` doc comment and kb/Work PB3953 now say so.
+product reduces the wrong angle. They are filed as PB4075. The `RawArg` doc comment and kb/Work PB3953 now say so. Round 2's lead R2-1: the `Compare` and
+`OfWide` comments and the unit test's summary bounded a non-wide temporary at 38 exact digits; an Int128 value has up to 39
+(the witness A is 39 digits), and they now say 39.
 
 **Register.** PB3953 stays `landed` and its body now records the two landings; PB4075's site paragraph no longer says the fix
 waits to land. No inventory row moves (`closes_rows: []`, as in 2754).
