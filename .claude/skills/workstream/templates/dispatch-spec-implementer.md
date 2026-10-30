@@ -49,7 +49,7 @@ Create NO kb/Work note beyond one the orchestrator allocated to you; a defect ou
 
 GOLDENS: ONE spec-derived test at the rule's INTRODUCING edition in conformance-suite/cases/<ISO clause>-<Name>/ (its metadata header names its `rules`, `accept` from that
 edition and its `source-format`; `<id>.out` is its expected output) and ONE program refused below it (no `accept`; its file
-conformance-suite/wiseowl/diagnostics/<test id>.json, `{"refuse-at": [...], "expect": "<code>"}`, one file per refusal); a per-edition `.out` ONLY where the rule's behaviour differs by edition
+conformance-suite/wiseowl/diagnostics/<test id>.json, one file per refusal, gives `refuse-at` and `expect`, the code); a per-edition `.out` ONLY where the rule's behaviour differs by edition
 (the version matrix covers the gating); expected values COMPUTED FROM THE SPEC; unique PROGRAM-IDs; `python conformance-suite/harness/generate.py --check` GREEN
 (conformance-suite/README.md, 'Adding a test'). Every golden/negative you ADD runs in leg 1 of your gate — quote its `UnitTestResult` from `TestResults/build-local/<run>/leg-1-Conformance.trx` (MANDATORY-PRACTICES I7).
 Parser + emitter + golden + manifest entry in ONE commit.
