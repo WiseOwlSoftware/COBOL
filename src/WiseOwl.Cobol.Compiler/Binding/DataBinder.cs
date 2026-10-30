@@ -2595,7 +2595,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         using var _ = Edition.At(op);
         if (RawValueOperandText(op, $"ALTERNATE RECORD KEY '{clause.Name}'", LiteralPosition.SuppressWhen) is not { } raw)
             return null;
-        string written = AsWritten(op);
+        string written = WrittenText(op);
         var form = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(raw, includeNull: false);
         if (form.Kind is { } kind)
             return new(written, SuppressWhenForm.Figurative, null, "", kind);
@@ -5271,7 +5271,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : (null, true);
     }
 
-    /// <summary>Bind one data-description entry (skips level-66 RENAMES and level-88 condition names for now).</summary>
     /// <summary>A clause's source spelling with its words SEPARATED. <c>ctx.GetText()</c> concatenates the
     /// tokens ("FORMATCHARACTERDATA"), which is unreadable in a diagnostic whose whole job is to quote back
     /// what the user wrote — one join, at the three declined-clause sites that quote a multi-word clause
@@ -5279,15 +5278,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private static string Spelled(Antlr4.Runtime.Tree.IParseTree node) =>
         string.Join(' ', Enumerable.Range(0, node.ChildCount).Select(i => node.GetChild(i).GetText()));
 
-    /// <summary>A construct's text AS WRITTEN — the source char-stream slice, spacing intact (the
-    /// <c>IntrinsicBinder.ReparseArgs</c> precedent) — for a diagnostic that quotes back a DEEP node, where
-    /// <see cref="Spelled"/>'s direct-children join still glues (<c>FUNCTION LENGTH(X)</c> has ONE child).
-    /// Falls back to the glued spelling when the node carries no input stream (a synthesized token).</summary>
-    private static string AsWritten(Antlr4.Runtime.ParserRuleContext node) =>
-        node.Start?.InputStream is { } chars && node.Stop is { } stop
-            ? chars.GetText(new Antlr4.Runtime.Misc.Interval(node.Start.StartIndex, stop.StopIndex))
-            : Spelled(node);
-
+    /// <summary>Bind one data-description entry (skips level-66 RENAMES and level-88 condition names for now).</summary>
     private DataItem? BindEntry(Core.DataDescriptionEntryContext entry, EntrySection section)
     {
         DataDescriptionCst e = entry;
@@ -6645,7 +6636,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             && WiseOwl.Cobol.Frontend.Expressions.ArithmeticFormationRules.SignedLiteralViolation(signedShape) is { } why)
         {
             Edition.Error(DiagnosticCatalog.SignedLiteralSignNotAdjacent, $"{where}: {position.Operand} "
-                + $"'{AsWritten(op)}' is not a literal — {why}: "
+                + $"'{WrittenText(op)}' is not a literal — {why}: "
                 + WiseOwl.Cobol.Frontend.Expressions.ArithmeticFormationRules.SignRuleQuote
                 + $"; and {position.Format}, which admits no arithmetic expression.");
             return;
@@ -6670,7 +6661,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             return;
         }
         Edition.Error(DiagnosticCatalog.ValueOperandNotALiteral, $"{where}: {position.Operand} "
-            + $"'{AsWritten(op)}' is not a literal — {position.Format}. A figurative constant (ISO §8.3.3.6.3 SR1), a constant-name (ISO §13.10.3 SR2) "
+            + $"'{WrittenText(op)}' is not a literal — {position.Format}. A figurative constant (ISO §8.3.3.6.3 SR1), a constant-name (ISO §13.10.3 SR2) "
             + "and a symbolic-character (ISO §8.3.3.6.2 Format 7) stand where a literal stands, each written "
             + "as a BARE word; an arithmetic expression, a function-identifier and a qualified, subscripted or "
             + "reference-modified reference do not.");
