@@ -1921,10 +1921,10 @@ GUARD = [{"_file": f"PB{n}.md", "id": f"PB{n}", "kind": "defect", "status": "ope
          for n, b in [(NEW, "**Sites:** `kb/Work/PB1.md` and `conformance-suite/cases/x.cob`."),
                       (NEW + 1, "**Sites:** none (a golden only)"),
                       (NEW + 2, "**Sites:** every `scripts/spec/work*.py` that reads the register"),
-                      (NEW + 3, "**Sites:** `scripts/spec/work.py` and `scripts/nothing-here/**/*.zz`"),
+                      (NEW + 3, "**Sites:** `scripts/spec/work.py` (`register_problems`) and `scripts/nothing-here/**/*.zz`"),
                       (NEW + 4, "**Sites:** `scripts/nothing-here/**/*.zz`"),
                       (NEW + 5, "**Sites:** `docs/A.md`"),
-                      (NEW + 6, "**Sites:** `.claude/skills/workstream/check_practices.py`")]]
+                      (NEW + 6, "**Sites:** `.claude/skills/workstream/check_practices.py` (`check`)")]]
 gp = work.sites_problems(GUARD)
 check("a held note whose block names files it cannot claim is refused, a `none (why)`, a live glob, a path under a root "
       "(the .claude process code included) are not, and a dead glob is named whether or not a path stands beside it",

@@ -128,4 +128,38 @@ public sealed class CobolWideIntrinsicsTests
         // A value that fits Int128 is the SDIDI's temporary, exactly as OfValue describes it.
         Assert.Equal(FunctionValueField.OfValue(CobolDec.From(12345, 2)).DeviceText(false), FunctionValueField.OfWide(CobolWide.From(12345), 2).DeviceText(false));
     }
+
+    /// <summary>kb/Work PB3953 review R1-1: a wide temporary against a NON-wide one of up to 39 exact digits is ordered by the exact
+    /// values. <c>a</c> = 170141183460469231731687303715884105000 fits Int128 (an exact SDIDI temporary, off the 34-digit grid);
+    /// <c>a + 1000</c> is past it, and its 34-digit round-to-odd image (…884100000 + 1 ulp at most) lies BELOW <c>a</c>, so an image
+    /// order picks the smaller value as MAX. Expected values: §15.59.4 1) / §15.63.4 1) select the greatest / least value, §15.61.4
+    /// the middle of the sorted list, computed here by <see cref="BigInteger"/>.</summary>
+    [Fact]
+    public void AWideTemporary_OrdersExactlyAgainstANarrowOneOffTheImageGrid()
+    {
+        BigInteger a = BigInteger.Parse("170141183460469231731687303715884105000", CultureInfo.InvariantCulture);
+        FunctionValueField narrow = FunctionValueField.OfWide(W(a), 0);          // fits Int128: OfValue's exact SDIDI temporary
+        FunctionValueField wide = FunctionValueField.OfWide(W(a + 1000), 0);
+        FunctionValueField wider = FunctionValueField.OfWide(W(a + 2000), 0);
+        Assert.True(CobolDec.Compare(W(a + 1000).ToDec(0), CobolDec.From((Int128)a, 0)) < 0);   // the trap: the image is below a
+        string Text(BigInteger v) => v.ToString(CultureInfo.InvariantCulture);
+        Assert.Equal(Text(a + 1000), FunctionValueField.Max(narrow, wide).DeviceText(false));
+        Assert.Equal(Text(a + 1000), FunctionValueField.Max(wide, narrow).DeviceText(false));
+        Assert.Equal(Text(a), FunctionValueField.Min(narrow, wide).DeviceText(false));
+        Assert.Equal(Text(a), FunctionValueField.Min(wide, narrow).DeviceText(false));
+        Assert.Equal(Text(a + 1000), FunctionValueField.Median(wide, narrow, wider).DeviceText(false));
+        Assert.Equal(Text(a + 1000), FunctionValueField.Median(wider, wide, narrow).DeviceText(false));
+        // The same off-grid trap with a fraction: a 38-digit SDIDI at scale 4 against a wide value at scale 4 just above it.
+        BigInteger f = BigInteger.Parse("17014118346046923173168730371588410500", CultureInfo.InvariantCulture);   // at scale 4
+        FunctionValueField narrowF = FunctionValueField.OfValue(CobolDec.From((Int128)f, 4));
+        FunctionValueField wideF = FunctionValueField.OfWide(W(f * 10 + 10000), 5);
+        Assert.Equal(wideF.DeviceText(false), FunctionValueField.Max(narrowF, wideF).DeviceText(false));
+        Assert.Equal(narrowF.DeviceText(false), FunctionValueField.Min(wideF, narrowF).DeviceText(false));
+        // A non-wide value past the 256-bit range has no exact wide form; it is larger in magnitude than every wide value.
+        FunctionValueField huge = FunctionValueField.OfValue(new CobolDec(1, 80)), hugeNegative = FunctionValueField.OfValue(new CobolDec(-1, 80));
+        Assert.Equal(huge.DeviceText(false), FunctionValueField.Max(wide, huge).DeviceText(false));
+        Assert.Equal(wide.DeviceText(false), FunctionValueField.Min(wide, huge).DeviceText(false));
+        Assert.Equal(hugeNegative.DeviceText(false), FunctionValueField.Min(wide, hugeNegative).DeviceText(false));
+        Assert.Equal(wide.DeviceText(false), FunctionValueField.Max(hugeNegative, wide).DeviceText(false));
+    }
 }

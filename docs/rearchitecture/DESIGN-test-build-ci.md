@@ -2718,8 +2718,7 @@ demand and not committed.
   tracked on purpose: generated SOURCE the build compiles (`*.g.cs`, `*.Table.cs`: a clone must build with no pre-step; each
   has its own drift test), DATA extracted from the licensed standard (the generator needs the private PDF), the gating
   status block embedded in `VERSION_CHANGE_REFERENCE.md` (a region of a hand-written, anchor-checked document: one row per
-  construct, sorted, so it merges line by line; separating it is a lead, not part of this change) and `kb/Work.base` (a view
-  DEFINITION, a query over the notes).
+  construct, sorted, so it merges line by line; separating it is a lead, not part of this change).
 - **Plan §0 and other shared prose** are edited only by the loop's own `ledger`/§0 refresh PR, never inside a fix PR; a
   fix PR edits its notes, its code, its tests, its goldens and the design doc of its subsystem. `CONFORMANCE.md` was measured
   (93 commits in the week to 2026-10-25; kb/Work PB3643 counted 126 conflict hunks over it) and becomes one source file
@@ -2878,7 +2877,7 @@ very tests that read them, and a kb/Work-only branch went RED on the landing's L
 under no `READ` entry; each entry names who reads it (an audit, a person; a READ entry names the tests that read it).
 A change is in the inert lane when its changed paths (`git diff --name-only --no-renames`, so a code file renamed into
 an inert directory shows its old name too) are non-empty and all inert. The INERT entries are `DEVLOG/`, `kb/` (the
-knowledge base, THE work register `kb/Work/` among it) and `.obsidian/`. NOT inert, measured on 2026-10-23 by deleting
+knowledge base, THE work register `kb/Work/` among it). NOT inert, measured on 2026-10-23 by deleting
 each candidate and running the three assemblies on Windows, and then by the watch below over the whole Linux
 population: `docs/` (SortRuntimeDocShapeDriftTests and GateLegDriftTests read every doc, and twenty-odd classes read
 CONFORMANCE.md, the rule catalog or VERSION_CHANGE_REFERENCE.md); `.claude/` and the root `*.md` files
@@ -2895,7 +2894,7 @@ self-tests initialize. Two sweeps moved to make `kb/` inert, the way the conflic
   audits: the gate's `WORK REGISTER` audit runs them before the slot, CI's `audits` job on every event, and they run on a
   `kb/`-only change exactly as on any other. The twin, its parity fixture's second engine and `work.py parity` are gone
   (the fixture stays as `work.py --self-test`'s cases). The tree sweeps of LandingPipelineDriftTests (two scopes),
-  LandingLaneDriftTests and LandingMeasureDriftTests set `kb/` and `.obsidian/` aside whole, and EcRaiseSiteRegistryDriftTests
+  LandingLaneDriftTests and LandingMeasureDriftTests set `kb/` aside whole, and EcRaiseSiteRegistryDriftTests
   no longer reads a note (the raise site is its evidence). `RenderedViewsDriftTests`, which only ran
   `rendered_views.py --tree` (rule (c) there reads the head of every tracked `kb/` note), is deleted: the same rule is
   `rendered_views.py --check`, the gate's `RENDERED VIEWS` audit and a step of CI's `audits` job, so no test reads the
