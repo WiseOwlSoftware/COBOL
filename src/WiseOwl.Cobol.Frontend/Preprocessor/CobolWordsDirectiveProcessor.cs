@@ -107,7 +107,7 @@ public static class CobolWordsDirectiveProcessor
             // where the region closes.
 
             int directiveLine = i + 1;   // resultant, 1-based: the frame the DEFINE events carry
-            if (TryParseOption(operand, new DiagnosticCursor(directiveLine, at), diagnostics, loc, name => definitions.DefinitionAt(name, directiveLine), out var op))
+            if (TryParseOption(operand, new DiagnosticCursor(directiveLine, at), diagnostics, loc, name => definitions.StandingAt(name, directiveLine), out var op))
             {
                 // SR5 — every literal's content across all directives is unique.
                 foreach (string w in Words(op))
@@ -135,9 +135,10 @@ public static class CobolWordsDirectiveProcessor
     }
 
     /// <summary>Parse the operand after <c>COBOL-WORDS</c> into one option (§7.3.10.2), enforcing SR2 per literal
-    /// and the §8.3.2.2 user-word form for the fresh word. Returns false (with a COBOL1623) when malformed.
-    /// <para><paramref name="definitionOf"/> reads the DEFINE timeline for a compilation-variable-name in a literal
-    /// slot; null is the SYNTAX-ONLY parse of <see cref="CheckOperand"/>, where such a name is accepted by its shape
+    /// and the §8.3.2.2 user-word form for the fresh word. Returns false (with a COBOL1623) when malformed — with
+    /// none when a literal slot names a variable whose last DEFINE was refused, which that directive reported (kb/Work PB3119).
+    /// <para><paramref name="definitionOf"/> reads the DEFINE timeline (<see cref="CompilationVariableTimeline.StandingAt"/>)
+    /// for a compilation-variable-name in a literal slot; null is the SYNTAX-ONLY parse of <see cref="CheckOperand"/>, where such a name is accepted by its shape
     /// and no word is looked up.</para></summary>
     private static bool TryParseOption(string operand, DiagnosticCursor at, DiagnosticBag diag, SourceLocation loc,
         Func<string, CompilationVariableEvent?>? definitionOf, out CobolWordsOp op)
@@ -244,7 +245,10 @@ public static class CobolWordsDirectiveProcessor
         }
         if (!tok.IsLiteral)
         {
-            if (definitionOf!(tok.Text) is not { Value: { } value } definition)
+            var standing = definitionOf!(tok.Text);
+            // A name whose last DEFINE was refused: that directive reported it, so this use adds nothing (kb/Work PB3119).
+            if (standing is { Refused: true }) return false;
+            if (standing is not { Value: { } value } definition)
             {
                 Invalid(diag, loc, $">>COBOL-WORDS: {role} must be an alphanumeric literal (ISO §7.3.10.3 SR2), or a "
                     + $"compilation-variable-name defined before the directive (ISO §7.3.11.4 GR1), not '{tok.Text}'");
