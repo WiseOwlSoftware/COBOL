@@ -116,13 +116,20 @@ public sealed partial class DataBinder
     /// AS), so `01 V TYPE T.` has the subordinate `M OF V` — but those subordinates exist only once the clause is
     /// expanded, and the pipeline expands after the DATA DIVISION is bound, while a constant's length phrase is
     /// evaluated during it. When a length operand's name finds no item, every bound subject whose composition is still
-    /// pending (outside a type declaration, which <see cref="ExpandTemplate"/> composes, and outside an open
-    /// description, which is not complete) is composed now (<see cref="ComposeAhead"/>); true when one was.</summary>
+    /// pending (outside a type declaration, which <see cref="ExpandTemplate"/> composes) is composed now
+    /// (<see cref="ComposeAhead"/>); true when one was.
+    /// <para>That includes the subject of the entry whose OCCURS bound demanded the constant (kb/Work PB2867): `05 V TYPE
+    /// T OCCURS K.` with `01 K CONSTANT AS LENGTH OF M OF V (1).` §13.18.57.4 GR1 makes the clause "as though the data
+    /// description identified by type-name-1 had been coded in place of the TYPE clause", so the source is `05 V OCCURS
+    /// K. 10 M …` — PB1941's legal shape, an element's subordinate whose length does not depend on the occurrence count
+    /// (§13.10.3 SR4). V's item exists with every clause but its bounds applied, so its composition is complete; only a
+    /// group whose subordinate ENTRIES are still being described is not (<see cref="HasSubordinatesBeingDescribed"/>),
+    /// and measuring V itself stays the SR4 cycle (<see cref="LengthOperandItem"/>).</para></summary>
     private bool ComposePendingSubjectsAhead()
     {
         var pending = _entryItems.Values
             .Where(i => (i.TypeRefName is not null || i.SameAsName is not null)
-                && !InTypeDeclaration(i) && !IsDescriptionOpen(i))
+                && !InTypeDeclaration(i) && !HasSubordinatesBeingDescribed(i))
             .ToList();
         foreach (var subject in pending) ComposeAhead(subject);
         return pending.Count > 0;
