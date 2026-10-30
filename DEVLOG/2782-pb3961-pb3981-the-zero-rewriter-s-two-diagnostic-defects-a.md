@@ -1,4 +1,4 @@
-## PB3961, PB3981: the ZERO rewriter's two diagnostic defects, a message that spells the source and a sign position the parse decides
+## Entry 2782 — 2026-10-30 10:13 PDT — PB3961, PB3981: the ZERO rewriter's two diagnostic defects, a message that spells the source and a sign position the parse decides
 
 Group F of wave 20261769, one root file (`ZeroTokenRewriter.cs`), two mechanisms.
 
@@ -28,3 +28,4 @@ the take-back and the end of the loop. `DESIGN-frontend-grammar.md` (the gate-lo
 Rows re-verdicted: none (both notes claim none). Self-review: architecture (one mechanism per job; the new class holds
 the one decision, the loop stays the one parse entry), full code (the retry criterion is the offending token at the ZERO
 or its sign), performance (zero cost on a clean parse), duplication (`AsWritten` removed).
+
