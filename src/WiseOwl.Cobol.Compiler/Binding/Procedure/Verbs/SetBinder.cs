@@ -5,7 +5,6 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
-using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
 
@@ -671,41 +670,29 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         return new BoundSetProgramPointer(targets, source, toNull);
     }
 
-    /// <summary>⛔ THE ONE §14.9.39.3 VERDICT FOR A POINTER IDENTIFIER STORED INTO A POINTER RECEIVER — the SET of one
-    /// (receiver, sender) pair whose two items are already of one pointer category. Asked by SET Format 9 itself and by
-    /// every BY CONTENT / BY VALUE argument into a pointer formal, because §14.8.2.3.3 makes that crossing "the same as if
-    /// a SET statement were performed in the activating runtime element with the argument as the sending operand and the
-    /// corresponding formal parameter as the receiving operand" (kb/Work PB1063: the argument lane compared the
-    /// CATEGORY alone, so a restricted data-pointer reached an unrestricted pointer formal, which SR19 refuses). Null
-    /// when the SET is valid.
+    /// <summary>⛔ THE ONE §14.9.39.3 VERDICT FOR A PROGRAM- OR FUNCTION-POINTER IDENTIFIER STORED INTO A POINTER
+    /// RECEIVER — the SET of one (receiver, sender) pair whose two items are already of one pointer category. Asked by
+    /// SET Format 8 and Format 9 themselves and by <see cref="ScreenImplicitSet"/> (INITIALIZE … REPLACING); the
+    /// BY CONTENT / BY VALUE argument lane, which §14.8.2.3.3 makes "the same as if a SET statement were performed in
+    /// the activating runtime element with the argument as the sending operand and the corresponding formal parameter
+    /// as the receiving operand", asks the same relations of the run-time description
+    /// (<c>ActivationRelations.MaySet</c>; kb/Work PB1063), not this member. Null when the SET is valid.
     /// <list type="bullet">
-    /// <item>data-pointer — SR19: "If identifier-5 references a restricted data-pointer, identifier-6 shall be the
-    /// predefined address NULL or shall reference a data-pointer restricted to the same type", and its third sentence
-    /// the converse (a restricted sender needs a receiver restricted to the same type) — both directions over the ONE
-    /// restriction model (<see cref="StrongTypeModel.PointerRestriction"/>), the pair
-    /// <c>PtrBinder.ScreenPointerReceiverRestriction</c> asks of a Format-7 sender of either spelling;</item>
     /// <item>program-pointer — SR22: a RESTRICTED receiver needs a sender "restricted" to a program-prototype of the
     /// same signature (an unrestricted sender is associated with none); an unrestricted receiver takes any
     /// program-pointer (SR21);</item>
     /// <item>function-pointer — SR20: "The function-prototypes associated with identifier-12 and identifier-13 shall
     /// have the same signature".</item>
-    /// </list></summary>
+    /// </list>
+    /// ⛔ THE DATA-POINTER ARM IS NOT HERE: SR19's three sentences are one rule over the ONE restriction model
+    /// (<see cref="StrongTypeModel.PointerRestriction"/>), written once as
+    /// <c>PtrBinder.ScreenPointerReceiverRestriction</c>, which the Format-7 routes and
+    /// <see cref="ScreenImplicitSet"/> all ask (kb/Work PB3966: a second copy of it lived here, reachable only by
+    /// the order of <see cref="ScreenImplicitSet"/>'s own guards).</summary>
     internal string? PointerAssignmentReason(DataItem receiver, DataItem sender)
     {
         switch (receiver.Pic?.Category)
         {
-            case PicCategory.Pointer:
-                var rr = StrongTypeModel.PointerRestriction(receiver);
-                var sr = StrongTypeModel.PointerRestriction(sender);
-                return (rr.IsRestricted || sr.IsRestricted) && !StrongTypeModel.SameRestriction(rr, sr)
-                    ? (rr.IsRestricted
-                        ? $"the receiving data-pointer is restricted to type '{rr}', so the sender shall be NULL or a "
-                          + $"data-pointer restricted to the same type, and it is {(sr.IsRestricted ? $"restricted to '{sr}'" : "unrestricted")} "
-                          + "(ISO §14.9.39.3 SR19)"
-                        : $"the sender is a RESTRICTED data-pointer of type '{sr}' (ISO §13.18.60.4 GR23), so the receiver "
-                          + "shall be a data-pointer restricted to the same type, and it is unrestricted (ISO §14.9.39.3 SR19, "
-                          + "third sentence)")
-                    : null;
             case PicCategory.ProgramPointer:
                 string? targetProto = receiver.Pic.RestrictedPrototypeName;
                 if (targetProto is null) return null;   // an UNRESTRICTED receiver — SR22's condition is not met
@@ -744,21 +731,24 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// The data-pointer arm is <see cref="PtrBinder.ScreenPointerReceiverRestriction"/>, the Format-7 route's own; the
     /// program-pointer and function-pointer arms are <see cref="PointerAssignmentReason"/>, the Format-8/9 routes'; the
     /// object-reference arm is <c>OoBinder.ScreenObjectRefAssignment</c>, the Format-5 route's.
+    /// ⛔ ALL FOUR ARMS NAME THE STATEMENT AND THE RECEIVER the same way (<paramref name="statement"/>, then
+    /// "the implicit SET 'receiver' TO 'sender' (ISO §14.9.20.4 GR4)"), because the receiver is a SUBORDINATE of the
+    /// INITIALIZE operand the user wrote and is otherwise unfindable (kb/Work PB3966).
     /// A NULL sender never reaches here (it is a <c>BoundPredefinedNull</c>, not a place). True when the store is valid;
     /// otherwise the error is reported and false returned.</summary>
     internal bool ScreenImplicitSet(Place receiver, Place sender, string statement)
     {
         string recvName = receiver.Item.CobolName ?? "FILLER";
+        string sendName = sender.Item.CobolName ?? "FILLER";
+        string implicitSet = $"{statement} — the implicit SET '{recvName}' TO '{sendName}' (ISO §14.9.20.4 GR4)";
         if (receiver.Item.Pic?.Category is PicCategory.Pointer)
             return host.Ptr.ScreenPointerReceiverRestriction(receiver, recvName,
-                StrongTypeModel.PointerRestriction(sender.Item), sender.Item.CobolName ?? "FILLER", addressSender: false);
+                StrongTypeModel.PointerRestriction(sender.Item), sendName, addressSender: false, implicitSet);
         if (receiver.Item.Pic is { Category: PicCategory.ObjectReference } rpic
             && sender.Item.Pic is { Category: PicCategory.ObjectReference } spic)
-            return host.Oo.ScreenObjectRefAssignment(spic, rpic,
-                $"{statement} — the implicit SET '{recvName}' TO '{sender.Item.CobolName}' (ISO §14.9.20.4 GR4)");
+            return host.Oo.ScreenObjectRefAssignment(spic, rpic, implicitSet);
         if (PointerAssignmentReason(receiver.Item, sender.Item) is not { } why) return true;
-        ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature,
-            $"{statement} — the implicit SET '{recvName}' TO '{sender.Item.CobolName}' (ISO §14.9.20.4 GR4): {why}");
+        ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature, $"{implicitSet}: {why}");
         return false;
     }
 

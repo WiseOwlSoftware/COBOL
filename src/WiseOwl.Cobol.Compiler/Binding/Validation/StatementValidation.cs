@@ -453,7 +453,7 @@ internal sealed class StatementValidation(DataBinder data)
             : $"'{name}' is in the nondeclarative portion of the procedure division";
 
     /// <summary>⛔ ISO §14.9.39.3 SR6 — "Condition-name-1 shall be associated with a conditional variable"
-    /// (kb/Work PB390), the Format-4 <c>SET condition-name-1 … TO TRUE</c> operand rule. COBOL has TWO kinds of
+    /// (kb/Work PB390), the Format-4 <c>SET condition-name-1 … TO TRUE | FALSE</c> operand rule. COBOL has TWO kinds of
     /// condition-name (§8.4.4): one associated with a CONDITIONAL VARIABLE (a level-88 entry) and one
     /// associated with the status of an EXTERNAL SWITCH (a SPECIAL-NAMES <c>ON STATUS IS</c> / <c>OFF STATUS
     /// IS</c> name, §12.3.7). SR6 admits the first kind only — the second is set through Format 3,
@@ -466,9 +466,11 @@ internal sealed class StatementValidation(DataBinder data)
     /// for Format 3. The rule's own discriminating case was also its silent one: it compiled clean and aborted
     /// the run unit.</para></summary>
     /// <param name="refText">The operand as written.</param>
+    /// <param name="toTrue">Which phrase the group of <paramref name="refText"/> wrote: Format 4 prints
+    /// <c>TO { TRUE | FALSE }</c> (§14.9.39.2) and each group of a statement chooses its own, so the message
+    /// quotes the one this operand's group wrote and never the other (kb/Work PB1314).</param>
     /// <param name="switchName">The implementor's external-switch name when the operand IS a switch-status
     /// condition-name, else null.</param>
-    /// <param name="toTrue">True for the TO TRUE phrase, false for TO FALSE — the message names the statement as written.</param>
     /// <param name="name">The operand's word, for the one query of what it is declared as (kb/Work PB1906); null for a
     /// special register (<see cref="ReferenceResolver.WrittenWordOf"/>), which names no word to look up.</param>
     /// <param name="qualifiers">The operand's qualifiers as written.</param>
