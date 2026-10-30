@@ -8456,6 +8456,7 @@
  },
  "pb1402-not-an-annex-b-character": {
   "refuse-at": [
+   "85",
    "2002",
    "2014",
    "2023"
@@ -10275,6 +10276,18 @@
   ],
   "expect": "COBOL0900"
  },
+ "pb1673-null-undeclared-at-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "§8.9 does not reserve the word at this edition"
+ },
+ "pb1673-set-null-undeclared-at-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "'NULL' is not defined"
+ },
  "pb1687-report-entry-32-digits": {
   "refuse-at": [
    "85",
@@ -11024,6 +11037,22 @@
    "2023"
   ],
   "expect": "COBOL1627"
+ },
+ "pb1906-typedef-member-without-group": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "is declared only by a subordinate entry of the type declaration 'T'"
+ },
+ "pb1920-currency-string-refused-symbol-stands": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0890"
  },
  "pb1929-set-object-from-numeric-function": {
   "refuse-at": [
@@ -13132,6 +13161,14 @@
    "85"
   ],
   "expect": "COBOL0900"
+ },
+ "pb2867-constant-length-composed-cycle": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "§13.10.3 SR4"
  },
  "pb2921-method-section-named-like-its-data": {
   "refuse-at": [
@@ -20581,7 +20618,6 @@
  },
  "pb791-currency-null-literal-7": {
   "refuse-at": [
-   "85",
    "2002",
    "2014",
    "2023"
@@ -24174,5 +24210,14 @@
    "2023"
   ],
   "expect": "COBOL5488: SEND is written with the RETURNING phrase"
+ },
+ "pb4130-no-break-space-in-a-word": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2773"
  }
 }

@@ -663,20 +663,18 @@ public sealed partial class DataBinder
     /// single-character form): literal-7 is the currency string ("may have any length", r23 — at least one
     /// non-space character, none of <c>0-9 + - , . *</c>), literal-8 the one-character symbol (r26/r27; a
     /// hexadecimal literal-7 requires this form, r19). r21: two clauses may not give equivalent symbols
-    /// different strings. r25's implied '$' is added by <see cref="FinalizeCurrencySigns"/>.</summary>
+    /// different strings. r25's implied '$' is added by <see cref="FinalizeCurrencySigns"/>.
+    /// <para>⛔ A CLAUSE REFUSED FOR ITS CURRENCY STRING STILL NAMES ITS PICTURE SYMBOL (kb/Work PB1920). In the PICTURE
+    /// SYMBOL form the symbol is literal-8 and the string literal-7, two operands with rules of their own: each is
+    /// judged, and a valid literal-8 is registered even when literal-7 broke SR18, SR23 a) or SR23 b)
+    /// (<see cref="CurrencyDefinition.OfRefusedClause"/>), so a later <c>PIC #9.99</c> is not a cascade of COBOL0808 /
+    /// COBOL0819 behind the clause's one diagnostic. In the bare form literal-7 IS the symbol, so a refused literal-7
+    /// names none.</para></summary>
     private void SwitchBindCurrency(Core.CurrencySignClauseContext cur)
     {
         var operands = cur.specialNamesLiteral();
         if (operands.Length == 0) return;
-        if (CurrencyOperandOf(operands[0], CurrencyOperand.Literal7) is not { } operand7) return;
-        string literal7 = operand7.Text;
-        // SR19: a hexadecimal literal-7 (X"…" / NX"…") requires the PICTURE SYMBOL phrase — and NOTE 1 exempts its
-        // content from the compile-time currency-string limitations (SR23 b). Detected on the operand's WRITTEN form
-        // (the decoded characters cannot tell the forms apart), by CurrencyOperandOf.
-        bool literal7Hex = operand7.Hexadecimal;
-
-        char symbol;
-        string currencyString;
+        var operand7 = CurrencyOperandOf(operands[0], CurrencyOperand.Literal7);
         if (cur.PIC() is not null)
         {
             // currency-picture-symbol-2002 (§12.3.7): the pass owns the edition gate (Exec Step E).
@@ -684,6 +682,9 @@ public sealed partial class DataBinder
             // the keyword SYMBOL (the grammar cannot distinguish; semantic check per the grammar's own note).
             if (cur.PIC_STRING()?.GetText() is { } sym && !CobolNames.Same(sym, "SYMBOL"))
                 Edition.Error("COBOL0892", $"CURRENCY SIGN: expected 'WITH PICTURE SYMBOL', found 'PICTURE {sym}' (ISO §12.3.7)");
+            // The currency string and its class (SR28's input), or null when literal-7 was refused.
+            CurrencyDefinition? stringDefinition = operand7 is { } literal7 && CurrencyStringAdmitted(literal7)
+                ? new CurrencyDefinition(literal7.Text, literal7.Class) : null;
             string? literal8 = operands.Length > 1 ? CurrencyOperandOf(operands[1], CurrencyOperand.Literal8)?.Text : "";
             if (literal8 is null) return;
             if (literal8.Length != 1)
@@ -692,65 +693,83 @@ public sealed partial class DataBinder
                     + "character (ISO §12.3.7.3 r26)");
                 return;
             }
-            // r23a/b — the currency STRING's content (its length is free).
-            if (literal7.Trim().Length == 0)
-            {
-                Edition.Error("COBOL0890", "CURRENCY SIGN: the currency string shall contain at least one "
-                    + "non-space character (ISO §12.3.7.3 r23a)");
-                return;
-            }
-            // SR23 b is a compile-time limitation on the characters of a currency string, which SR19's NOTE 1 says
-            // does not reach "the alphanumeric or national characters represented by hexadecimal literals used as
-            // currency strings" — their content is the runtime coded character set's, used exactly as written.
-            if (!literal7Hex && literal7.Any(c => char.IsAsciiDigit(c) || c is '+' or '-' or ',' or '.' or '*'))
-            {
-                Edition.Error("COBOL0890", $"CURRENCY SIGN \"{literal7}\": a currency string may not contain the "
-                    + "digits 0 through 9 or the characters '+' '-' ',' '.' '*' (ISO §12.3.7.3 r23b)");
-                return;
-            }
-            symbol = literal8[0];
-            currencyString = literal7;
-            ValidateCurrencyChar(symbol, "PICTURE SYMBOL literal");   // r27 — same forbidden set as r22
+            ValidateCurrencyChar(literal8[0], "PICTURE SYMBOL literal");   // r27 — same forbidden set as r22
+            RegisterCurrency(literal8[0], stringDefinition);
+            return;
         }
-        else
+        // Bare form (the COBOL-85 surface): r22 — one character, both string and symbol.
+        if (operand7 is not { } bare) return;
+        // SR19: a hexadecimal literal-7 (X"…" / NX"…") requires the PICTURE SYMBOL phrase. Detected on the operand's
+        // WRITTEN form (the decoded characters cannot tell the forms apart), by CurrencyOperandOf.
+        if (bare.Hexadecimal)
+            Edition.Error("COBOL0890", "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
+                + "SYMBOL phrase (ISO §12.3.7.3 r19)");
+        if (bare.Text.Length != 1)
         {
-            // Bare form (the COBOL-85 surface): r22 — one character, both string and symbol.
-            if (literal7Hex)
-                Edition.Error("COBOL0890", "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
-                    + "SYMBOL phrase (ISO §12.3.7.3 r19)");
-            if (literal7.Length != 1)
-            {
-                Edition.Error("COBOL0890", $"CURRENCY SIGN \"{literal7}\": without PICTURE SYMBOL the literal "
-                    + "shall consist of a single character (ISO §12.3.7.3 r22)");
-                return;
-            }
-            symbol = literal7[0];
-            currencyString = literal7;
-            ValidateCurrencyChar(symbol, "CURRENCY SIGN literal");
+            Edition.Error("COBOL0890", $"CURRENCY SIGN \"{bare.Text}\": without PICTURE SYMBOL the literal "
+                + "shall consist of a single character (ISO §12.3.7.3 r22)");
+            return;
         }
+        ValidateCurrencyChar(bare.Text[0], "CURRENCY SIGN literal");
+        RegisterCurrency(bare.Text[0], new CurrencyDefinition(bare.Text, bare.Class));
+    }
 
+    /// <summary>§12.3.7.3 SR23 a)/b) — the content of a PICTURE SYMBOL form's currency STRING (its length is free);
+    /// reported here, true when it is admitted.</summary>
+    private bool CurrencyStringAdmitted(CurrencyLiteral literal7)
+    {
+        if (literal7.Text.Trim().Length == 0)
+        {
+            Edition.Error("COBOL0890", "CURRENCY SIGN: the currency string shall contain at least one "
+                + "non-space character (ISO §12.3.7.3 r23a)");
+            return false;
+        }
+        // SR23 b is a compile-time limitation on the characters of a currency string, which SR19's NOTE 1 says
+        // does not reach "the alphanumeric or national characters represented by hexadecimal literals used as
+        // currency strings" — their content is the runtime coded character set's, used exactly as written.
+        if (!literal7.Hexadecimal && literal7.Text.Any(c => char.IsAsciiDigit(c) || c is '+' or '-' or ',' or '.' or '*'))
+        {
+            Edition.Error("COBOL0890", $"CURRENCY SIGN \"{literal7.Text}\": a currency string may not contain the "
+                + "digits 0 through 9 or the characters '+' '-' ',' '.' '*' (ISO §12.3.7.3 r23b)");
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>Bind <paramref name="symbol"/> into the currency set: to <paramref name="definition"/>, or — null — as
+    /// the symbol of a clause refused for its currency string (<see cref="CurrencyDefinition.OfRefusedClause"/>, kb/Work
+    /// PB1920), which neither meets nor makes a §12.3.7.3 SR21 conflict and adds no string to §15.68.3 r3's count.</summary>
+    private void RegisterCurrency(char symbol, CurrencyDefinition? definition)
+    {
         // THE KEY IS THE IMPLEMENTOR'S DETERMINATION: §12.3.7.3 SR20 leaves "any equivalence between that character and any
         // other character in the computer's compile-time coded character set" of a symbol that is not a COBOL character to
         // the implementor, and Annex A.1 item 43 requires it documented — docs/CONFORMANCE.md DOC-A.1-43 states it: two
         // characters are equivalent exactly when they have the same invariant-culture upper-case mapping. A COBOL character
         // folds by §8.1.3.2 GR3 b), which the same mapping gives (kb/Work PB1092). Change the key and that row together.
         char key = char.ToUpperInvariant(symbol);
+        if (key == '$') _dollarSpecified = true;   // r25 — a clause named '$' as literal-8: no implied clause
+        bool isBound = _currencySigns.TryGetValue(key, out var bound);
+        if (definition is not { } defined)
+        {
+            if (!isBound) _currencySigns[key] = CurrencyDefinition.OfRefusedClause(symbol);
+            return;
+        }
         // §12.3.7.3 SR28's input: the CLASS of literal-7 — alphanumeric (a plain or X"…" literal) or national (N"…" /
         // NX"…", a §8.8.3.3 concatenation folding to national, or a constant-name of either). Boolean and every other
         // shape were refused by CurrencyOperandOf.
-        var definition = new CurrencyDefinition(currencyString, operand7.Class);
         // r21: no two clauses may bind equivalent symbols to different strings — and a string of the other CLASS is
-        // not the identical string (SR28 would then confine the one symbol to display AND to national items).
-        if (_currencySigns.TryGetValue(key, out var bound) && bound != definition)
+        // not the identical string (SR28 would then confine the one symbol to display AND to national items). A refused
+        // clause's placeholder states no string, so it neither conflicts nor survives a clause that does.
+        if (isBound && !bound.ClauseRefused && bound != defined)
         {
             Edition.Error("COBOL0891", $"CURRENCY SIGN: the symbol '{symbol}' is already bound to "
                 + $"{(bound.LiteralClass is LiteralClass.National ? "national " : "")}\"{bound.Text}\" "
                 + $"(ISO §12.3.7.3 r21; SR28)");
             return;
         }
-        _currencySigns[key] = definition;
-        _explicitCurrencyStrings.Add(currencyString);
-        if (currencyString == "$" || key == '$') _dollarSpecified = true;   // r25 — no implied clause
+        _currencySigns[key] = defined;
+        _explicitCurrencyStrings.Add(defined.Text);
+        if (defined.Text == "$") _dollarSpecified = true;   // r25 — a clause named '$' as literal-7
     }
 
     /// <summary>The ISO §12.3.7.3 SR22/SR27 forbidden currency-symbol set: digits; A B C D E N P R S V X Z (either
