@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Generate the Obsidian conformance view over the traceability inventory — AGGREGATES, not one note per rule.
+"""Generate the conformance burn-down view over the traceability inventory — AGGREGATES, not one note per rule.
 
 ⛔ DESIGN CORRECTION. The first version emitted one note per rule: 3,481 files created in a single run, an 82%
-increase in the vault's markdown, on top of two ~3 MB indexed documents. It wedged Obsidian mid-sync. The
+increase in the vault's markdown, on top of two ~3 MB indexed documents. It wedged the note viewer mid-sync. The
 per-rule frontmatter did buy live Dataview filtering, but that is not worth a 5x vault and a client that will not
 open — and the queryable SSOT already exists as JSON, which jq and python query far better than Dataview does.
 
@@ -131,8 +131,7 @@ def build_notes(rows: list[dict]) -> dict[str, str]:
                     f"{sum(1 for r in i if r['verdict'])} |")
     dash += ["",
              "## Related", "",
-             "- [[kb/Conformance Burn-down.base|the sortable Bases view]] — the same data, filterable and sortable",
-             "- [[kb/Work.base|the work register]] — every open defect, analysis and decision, ranked by harm",
+             "- `python scripts/spec/work.py next` — the work register, every open defect ranked by what it does to a program",
              "- `docs/rearchitecture/spec-reconciliation/REPAIR-PLAN.md` — the repair order for all 210 defects",
              "- `docs/rearchitecture/DESIGN-spec-conformance-review.md` — the P14 Step-0 methodology", ""]
     notes["_Dashboard.md"] = "\n".join(dash)

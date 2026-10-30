@@ -99,7 +99,7 @@ One code, **~40 stable Ids**, all sharing suppress key `recognized-not-implement
 strong-group comparison members (`strong-group-comparison-member`), arithmetic (`arithmetic-standard-intrinsic`), and a large
 **Report Writer** cluster (`report-*` — CODE clause, NEXT GROUP, multiple LINE, OCCURS-in-group, rolled/cross SUM, …).
 `construct-staged-not-implemented` is the generic marker. These are the implementation backlog — cross-reference
-[[kb/Work.base|the work register]].
+the work register (`kb/Work/`).
 
 ## Supplementary — string-literal codes (not yet in the descriptor catalog)
 Surfaced from `constructs.json` and the binders; the every-code→descriptor migration is the P7 follow-on, so these

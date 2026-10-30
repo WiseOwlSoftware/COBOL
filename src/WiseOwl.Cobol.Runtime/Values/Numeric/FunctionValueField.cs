@@ -43,9 +43,9 @@ public readonly struct FunctionValueField
     /// 38 digits held EXACTLY on the wide intermediate (<see cref="OfWide"/>, kb/Work PB3953).</summary>
     private enum Shape : byte { Value, Item, Float, Wide }
 
-    /// <summary>The value the temporary orders by. For a <see cref="Shape.Wide"/> temporary it is the round-to-odd IMAGE of
-    /// <see cref="_wide"/>, which orders every pair of values whose images differ (the lowering is monotone) and is refined by
-    /// the exact value where the images are equal (<see cref="Compare"/>).</summary>
+    /// <summary>The temporary's SDIDI value. For a <see cref="Shape.Wide"/> temporary it is only the round-to-odd IMAGE of
+    /// <see cref="_wide"/>, and <see cref="Compare"/> never orders by that image: a pair holding a wide value is ordered by the
+    /// exact values.</summary>
     private readonly CobolDec _value;
     private readonly NumProfile _item;
     private readonly string? _image;
@@ -129,7 +129,7 @@ public readonly struct FunctionValueField
     /// fraction digits; kb/Work PB3953, docs/CONFORMANCE.md DOC-A.1-123): an arithmetic expression argument past the
     /// <see cref="Int128"/> carrier, or an exact function's value over one. GnuCOBOL's temporary is arbitrary-precision, so it holds
     /// every digit: <c>FUNCTION ABS (BIG * BIG * K3)</c> shows the 39-digit product, and MAX, MIN and MEDIAN order such values exactly.
-    /// A value that fits <see cref="Int128"/> is exactly an SDIDI of at most 38 digits and is <see cref="OfValue"/>'s; a wider one keeps
+    /// A value that fits <see cref="Int128"/> is exactly an SDIDI of at most 39 digits and is <see cref="OfValue"/>'s; a wider one keeps
     /// the description the same rule derives from its digits (<see cref="CobolNum.ReturnedValueProfile(CobolWide, int, out string, out int)"/>).</summary>
     public static FunctionValueField OfWide(CobolWide value, int scale)
     {
@@ -151,15 +151,19 @@ public readonly struct FunctionValueField
     }
 
     /// <summary>⛔ THE ONE ORDERING OF TWO TEMPORARIES (§8.8.4.2.4 - a comparison of the algebraic values; §15.59.4, §15.63.4, §15.61.4
-    /// compare "according to the rules for simple conditions"). Two values with different images are ordered by them: a wide value's
-    /// image is its round-to-odd lowering, which is MONOTONE (it never moves a value past one it was below), so unequal images order the
-    /// exact values the same way. Equal images, when one of them is a wide value's, are refined by the exact values (kb/Work PB3953):
-    /// two 39-digit products that differ in their last digit have one 34-digit image and are not equal.</summary>
+    /// compare "according to the rules for simple conditions"). Two temporaries neither of which is a wide value are ordered by their
+    /// SDIDI values, which ARE their values. ⛔ When EITHER is a wide value the pair is ordered by the EXACT values, never by the wide
+    /// value's 34-digit image (kb/Work PB3953): the image orders it only against another 34-digit image, and the other temporary may
+    /// hold up to 39 exact digits off that grid (an Int128 value <see cref="OfWide"/> hands to <see cref="OfValue"/>), so
+    /// <c>MAX (X * Y + C, X * Y + C + 1000)</c> with the first value just under <see cref="Int128.MaxValue"/> and the second just over
+    /// it has the second's image BELOW the first. The one temporary with no exact wide form is an SDIDI value past the 256-bit range
+    /// (<see cref="CobolWide.TryFrom"/>), larger in magnitude than every wide value, so its sign alone orders the pair.</summary>
     private static int Compare(in FunctionValueField a, in FunctionValueField b)
     {
-        int order = CobolDec.Compare(a._value, b._value);
-        if (order != 0 || (a._shape != Shape.Wide && b._shape != Shape.Wide)) return order;
-        return a.TryExact(out CobolWide aw, out int sa) && b.TryExact(out CobolWide bw, out int sb) ? CobolWide.Compare(aw, sa, bw, sb) : order;
+        if (a._shape != Shape.Wide && b._shape != Shape.Wide) return CobolDec.Compare(a._value, b._value);
+        bool exactA = a.TryExact(out CobolWide aw, out int sa), exactB = b.TryExact(out CobolWide bw, out int sb);
+        if (exactA && exactB) return CobolWide.Compare(aw, sa, bw, sb);
+        return exactA ? -Int128.Sign(b._value.Sig) : Int128.Sign(a._value.Sig);   // the inexact one is the non-wide one: its sign decides
     }
 
     /// <summary>The temporary is a function's binary64 result: it shows the shortest round-trip image and orders by the value that
