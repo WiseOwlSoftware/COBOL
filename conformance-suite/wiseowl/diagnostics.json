@@ -21631,6 +21631,12 @@
   ],
   "expect": "COBOL1720"
  },
+ "pb911-perform-f3-empty-imperative-1": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL2072"
+ },
  "pb917-condition-value-twice": {
   "refuse-at": [
    "85",

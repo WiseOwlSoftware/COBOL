@@ -32,6 +32,14 @@ public sealed class TestNumvalFPositionTests
     [InlineData(" +.", 4)]
     [InlineData("1E", 3)]       // dangling E — incomplete, length+1
     [InlineData("1E+", 4)]      // E-sign with no digit — incomplete, length+1
+    // kb/Work PB4096 — r1b after `E{+|-}`: a character that is not a digit or a space IS in error (§15.69.3 r1:
+    // n is 1..4 digits); only text that ENDS there is r1c. The exponent arm returned LENGTH+1 for all of these.
+    [InlineData("12.34E+AB", 8)]
+    [InlineData("1E++2", 4)]
+    [InlineData("1E-X", 4)]
+    [InlineData("1E+ A", 5)]    // the space-string after the sign is legal; the A is the first character in error
+    [InlineData("1E+1A", 5)]    // one exponent digit, then a trailing character in error
+    [InlineData("1E+ ", 5)]     // ends after the sign and its legal space-string: r1c, LENGTH+1
     // r1b after digits — unchanged behavior, guarded here.
     [InlineData("1.5X", 4)]
     [InlineData("1E2", 3)]      // §15.69.3: the sign is REQUIRED once E is written
