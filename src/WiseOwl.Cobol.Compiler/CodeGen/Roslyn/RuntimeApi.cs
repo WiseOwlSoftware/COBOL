@@ -982,6 +982,31 @@ internal static class RuntimeApi
     public static string EditTryFormat(string value, string scale, string maskLiteral, string imgVar, string cfgArgs) =>
         $"{nameof(CobolEdit)}.{nameof(CobolEdit.TryFormat)}({value}, {scale}, {maskLiteral}, out var {imgVar}{cfgArgs})";
 
+    /// <summary>The capacity-checked twin of <see cref="EditFormatFor"/> for a FIXED-POINT edited receiver, keyed on the
+    /// receiver's picture the same way: a format-2 (LOCALE) item's <see cref="EditTryFormatLocale"/>, else the mask's
+    /// <see cref="EditTryFormat"/>. A floating-point edited receiver takes <see cref="EditTryFormatFloat"/> over the
+    /// value's exact form instead (it is never aligned), so it has no arm here.</summary>
+    public static string EditTryFormatFor(PicInfo pic, string alignedFixed, string alignedScale, string imgVar, string cfgArgs)
+    {
+        if (pic.IsFloatEdited)
+            throw new InvalidOperationException("EditTryFormatFor: a floating-point edited receiver takes EditTryFormatFloat");
+        return pic.LocaleEdit is not null
+            ? EditTryFormatLocale(pic, alignedFixed, alignedScale, imgVar, cfgArgs)
+            : EditTryFormat(alignedFixed, alignedScale, Emit.EmitText.CsLiteral(pic.EditMask!), imgVar, cfgArgs);
+    }
+
+    /// <summary>A Try store as an EXPRESSION that raises: <paramref name="tryCall"/>'s image when it answers true, else
+    /// a thrown EC-SIZE-TRUNCATION <c>CobolSizeError</c> carrying <paramref name="detail"/> — the edited receivers'
+    /// counterpart of <see cref="NumStoreOrRaise"/>, for a final transfer that has no SIZE ERROR flag to latch (a report
+    /// printable item's implicit COMPUTE under the presenting statement's checking, kb/Work PB4031).</summary>
+    public static string SizeRaisingImage(string tryCall, string imgVar, string detail) =>
+        $"({tryCall} ? {imgVar} : throw new {nameof(CobolSizeError)}({Emit.EmitText.CsLiteral(detail)}, \"EC-SIZE-TRUNCATION\"))";
+
+    /// <summary>The presenting statement's EC-SIZE-TRUNCATION enablement as the report compose reads it at run time —
+    /// <c>ExceptionState.SizeTruncationChecking</c> (kb/Work PB4031).</summary>
+    public const string SizeTruncationChecking =
+        $"{nameof(Runtime.Exceptions.ExceptionState)}.{nameof(Runtime.Exceptions.ExceptionState.SizeTruncationChecking)}";
+
     /// <summary>A boolean ITEM operand of an item-width-carrying expression (ISO §14.9.8.4 GR3; kb/Work PB589) —
     /// <c>CobolBool.Item(v)</c>: it contributes its own run-time positions to the width.</summary>
     public static string BoolItem(string value) => $"{nameof(CobolBool)}.{nameof(CobolBool.Item)}({value})";

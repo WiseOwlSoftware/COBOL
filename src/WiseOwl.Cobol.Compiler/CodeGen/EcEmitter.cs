@@ -573,6 +573,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-SIZE-OVERFLOW", null),                             // §14.7.5 cases 5/7 — an intermediate past its range
         ("EC-SIZE-ZERO-DIVIDE", null),                          // §14.7.5 case 2 — a zero divisor
         ("EC-SIZE-EXPONENTIATION", null),                       // §14.7.5 case 1 — the exponentiation rules violated
+        // EC-SIZE-TRUNCATION's one RUN-TIME reader is the report compose a GENERATE or TERMINATE runs, compiled outside
+        // every statement: those two statements alone carry it there, through this same OpenGateFlags scope
+        // (ReportWriterEmitter.EmitPresenting, kb/Work PB4031) — every other store selects its kernel at compile time.
         ("EC-SIZE-TRUNCATION", null),                           // §14.7.4.3 r7 / §11.9.11.2 r3d — a PROHIBITED-inexact intermediate
     ];
 

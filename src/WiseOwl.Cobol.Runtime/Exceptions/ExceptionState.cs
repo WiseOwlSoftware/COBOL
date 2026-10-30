@@ -790,6 +790,16 @@ public sealed class ExceptionEngine
     /// and terminated run units on legal COBOL (kb/Work PB465).</para></summary>
     public void SizeAddressError(string detail) => FatalIfEnabled(SizeAddressChecking, "EC-SIZE-ADDRESS", detail);
 
+    /// <summary>True while the executing GENERATE or TERMINATE has EC-SIZE-TRUNCATION checking enabled, so the report
+    /// compose it runs takes the RAISING final transfer for a printable item's implicit COMPUTE (§14.7.5 no-phrase rule 4,
+    /// §14.7.4.3 rule 7; kb/Work PB4031). No raise helper reads it: the raise is the transfer kernel's own
+    /// <see cref="WiseOwl.Cobol.Runtime.CobolSizeError"/>, which the presenting statement's guard dispatches.</summary>
+    public bool SizeTruncationChecking
+    {
+        get => _checking.SizeTruncation;
+        set => _checking.SizeTruncation = value;
+    }
+
     /// <summary>True while the currently-executing statement has EC-RANGE-PTR checking enabled (fatal). The
     /// displacement site in <see cref="CobolPtr"/> consults it.</summary>
     public bool RangePtrChecking
@@ -1842,6 +1852,13 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.SizeAddressError"/>
     public static void SizeAddressError(string detail) => E.SizeAddressError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.SizeTruncationChecking"/>
+    public static bool SizeTruncationChecking
+    {
+        get => E.SizeTruncationChecking;
+        set => E.SizeTruncationChecking = value;
+    }
 
     /// <inheritdoc cref="ExceptionEngine.RangePtrChecking"/>
     public static bool RangePtrChecking

@@ -24,7 +24,7 @@ using static WiseOwl.Cobol.CodeGen.Emit.EmitText;
 /// </summary>
 internal sealed class ReportWriterEmitter(
     EmitContext ctx, NumericRenderer num, ReferenceResolver refs, MoveEmitter move, ConditionRenderer cond,
-    DispatchState dispatch)
+    DispatchState dispatch, EcState ecState, EcEmitter ec)
 {
     /// <summary>The DATA DIVISION emitter of THIS unit, built once on first use — the report lane reaches it for
     /// exactly one thing: <see cref="DataEmitter.ValueImageOf"/>, the ONE §13.18.63 VALUE recipe a format-4
@@ -384,34 +384,64 @@ internal sealed class ReportWriterEmitter(
     /// placement that reads the returned image (see <see cref="KeptOnProhibitedInexact"/>).</param>
     private string FieldImage(ReportModel r, ReportFieldModel f, int rep, CodeWriter w)
     {
-        var (image, rounding) = TransferImage(r, f, rep);
-        return rounding == CobolRounding.Prohibited ? KeptOnProhibitedInexact(f, image, w) : image;
+        var (image, raising, rounding) = TransferImage(r, f, rep);
+        if (rounding == CobolRounding.Prohibited) return KeptOnProhibitedInexact(f, image, raising, w);
+        return raising is null ? image : $"({RuntimeApi.SizeTruncationChecking} ? {raising} : {image})";
     }
+
+    /// <summary>⛔ THE PRESENTING STATEMENT'S EC-SIZE-TRUNCATION GOVERNS A PRINTABLE ITEM'S IMPLICIT COMPUTE (kb/Work PB4031).
+    /// §7.3.25.4 GR6 enables checking "for the procedure division statements and procedure division headers that follow
+    /// in the compilation group", so a TURN written at the REPORT SECTION entry enables nothing there, and §14.7.5 names
+    /// GENERATE among the statements whose execution the size error condition "may occur as a result of": the implicit
+    /// COMPUTE (§13.18.53.4 GR2 — "executed implicitly whenever the associated item is printed"; §13.18.54.4 GR4 for a
+    /// SUM counter's ROUNDED face) runs as part of the GENERATE or TERMINATE that prints the item, and THAT statement's
+    /// state decides it. One compose serves every such statement, so the state arrives at run time: the statement sets
+    /// <c>ExceptionState.SizeTruncationChecking</c> around its engine call (<see cref="EmitPresenting"/>), and the
+    /// compose picks the RAISING final transfer under it (<c>MoveEmitter.ConvertSource</c>'s <c>raiseOnSizeError</c>)
+    /// and the checking-off transfer (docs/CONFORMANCE.md DOC-A.1-70) otherwise. The raise is the presenting statement's
+    /// to process (§14.6.13.1.3): its guard catches EC-SIZE-TRUNCATION because the same line enables it. Null when the
+    /// transfer is a MOVE (§13.18.53.4 GR1, §13.18.54.4 GR4 without ROUNDED, a VALUE) or when the compilation group uses
+    /// no exception checking at all, where no statement can set the flag (the zero-scaffolding gate,
+    /// <see cref="EcState.Active"/>).</summary>
+    private string? RaisingImage(BoundOperand source, ReportFieldModel f, CobolRounding rounding) =>
+        ecState.Active ? move.ConvertSource(source, f.PrintItem, rounding: rounding, raiseOnSizeError: true) : null;
 
     /// <summary>⛔ §14.7.4.3 RULE 7 IN A PRINTABLE ITEM'S IMPLICIT COMPUTE (kb/Work PB3990 review finding R1-1). "If the
     /// PROHIBITED phrase is specified, and the arithmetic value cannot be represented exactly in the resultant
     /// identifier, the EC-SIZE-TRUNCATION exception condition is set to exist, the size error condition exists, and the
     /// content of the resultant identifier is unchanged": a SOURCE ... ROUNDED MODE IS PROHIBITED operand (§13.18.53.4
     /// GR2) and a SUM counter printed with ROUNDED MODE IS PROHIBITED (§13.18.54.4 GR4) are implicit COMPUTE
-    /// statements whose resultant is the printable item, with no SIZE ERROR phrase, and the compose is emitted outside
-    /// any statement's EC-SIZE checking. Every landing raises <c>CobolSizeError.ProhibitedInexact</c> before it stores,
-    /// so the image is formed inside the ONE rule-7 keep (<see cref="ArithmeticEmitter.EmitProhibitedInexactKeep"/>)
-    /// and the presentation continues (docs/CONFORMANCE.md DOC-A.1-70) — uncaught, the raise ended the run unit.
+    /// statements whose resultant is the printable item, with no SIZE ERROR phrase. Every landing raises
+    /// <c>CobolSizeError.ProhibitedInexact</c> before it stores, so while the presenting statement does not enable
+    /// EC-SIZE-TRUNCATION the image is formed inside the ONE rule-7 keep
+    /// (<see cref="ArithmeticEmitter.EmitProhibitedInexactKeep"/>) and the presentation continues (docs/CONFORMANCE.md
+    /// DOC-A.1-70) — uncaught, the raise ended the run unit.
     /// The printable item's unchanged content is SPACES: a printable item is not storage, it is a horizontal division of
     /// a report line whose value "is determined solely by a SOURCE, SUM, or VALUE clause" (§13.8.6.2.3), and each
     /// presentation composes the line afresh from a space-filled buffer (<c>CobolReport.NewLine</c>), so before the
     /// implicit COMPUTE its columns hold spaces — placed at the item's columns, so the horizontal
-    /// counter and the column-overlap test see the item exactly as they would a stored one.</summary>
-    private string KeptOnProhibitedInexact(ReportFieldModel f, string image, CodeWriter w)
+    /// counter and the column-overlap test see the item exactly as they would a stored one.
+    /// <para>Under the presenting statement's EC-SIZE-TRUNCATION checking (<paramref name="raising"/>, see
+    /// <see cref="RaisingImage"/>) there is no keep: the condition is set to exist and §14.6.13.1.3 processes it, so the
+    /// raise leaves the compose for the statement's guard.</para></summary>
+    private string KeptOnProhibitedInexact(ReportFieldModel f, string image, string? raising, CodeWriter w)
     {
         string kept = $"__rimg{ctx.Names.NextEc()}";
         w.Line($"string {kept} = {CsLiteral(new string(' ', f.PrintItem.DisplayTextWidth))};   // the unchanged printable item (§14.7.4.3 rule 7)");
-        ArithmeticEmitter.EmitProhibitedInexactKeep(w, ctx.Names, () => w.Line($"{kept} = {image};"));
+        if (raising is null)
+        {
+            ArithmeticEmitter.EmitProhibitedInexactKeep(w, ctx.Names, () => w.Line($"{kept} = {image};"));
+            return kept;
+        }
+        w.Line($"if ({RuntimeApi.SizeTruncationChecking}) {kept} = {raising};   // the presenting statement's checking (kb/Work PB4031)");
+        using (w.Block("else"))
+            ArithmeticEmitter.EmitProhibitedInexactKeep(w, ctx.Names, () => w.Line($"{kept} = {image};"));
         return kept;
     }
 
-    /// <summary>The image expression of <see cref="FieldImage"/> and the ROUNDING MODE of its transfer (§14.7.4).</summary>
-    private (string Image, CobolRounding Rounding) TransferImage(ReportModel r, ReportFieldModel f, int rep)
+    /// <summary>The image expression of <see cref="FieldImage"/>, its raising twin (<see cref="RaisingImage"/>; null for a
+    /// MOVE) and the ROUNDING MODE of its transfer (§14.7.4).</summary>
+    private (string Image, string? Raising, CobolRounding Rounding) TransferImage(ReportModel r, ReportFieldModel f, int rep)
     {
         BoundOperand source;
         // The transfer's ROUNDING MODE (§14.7.4). Only a report value clause's own ROUNDED phrase sets it:
@@ -422,7 +452,7 @@ internal sealed class ReportWriterEmitter(
         {
             case FieldValueSource v:
                 // §13.18.63 — an initialization, NOT the §13.18.53.4 GR1 implicit MOVE (see the remarks above).
-                return (Data.ValueImageOf(f.PrintItem, v.Raw), rounding);
+                return (Data.ValueImageOf(f.PrintItem, v.Raw), null, rounding);
             case FieldReferenceSource { Value: { } operand }:
                 // SOURCE identifier-1 (§13.18.53.4 GR1's implicit MOVE sender), bound by the ONE operand binder: a
                 // storage item with its subscripts and reference modification, a LINE-COUNTER / PAGE-COUNTER (§8.4.3.15
@@ -432,7 +462,7 @@ internal sealed class ReportWriterEmitter(
                 break;
             case FieldReferenceSource bad:
                 return (LoudValue("string",
-                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §13.18.53.3 SR4)"), rounding);
+                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §13.18.53.3 SR4)"), null, rounding);
             case FieldSumSource s:
                 // The SUM counter is the printable entry's source item (§13.18.54.4 GR4 — "the content of the
                 // sum counter is moved, according to the general rules of the MOVE statement, to the printable
@@ -443,32 +473,34 @@ internal sealed class ReportWriterEmitter(
                 var sum = r.Sums[s.CounterId];
                 // §13.18.54.4 GR4 — with the clause's ROUNDED phrase "the content of the sum counter is computed
                 // according to the general rules for the COMPUTE statement with the ROUNDED phrase".
-                string moved = move.ConvertSource(
-                    new BoundFieldOperand(new ReportSumCounterPlace(r.CsIndex, s.CounterId, sum.Family.Register)),
-                    f.PrintItem, rounding: sum.Rounding);
+                var counter = new BoundFieldOperand(new ReportSumCounterPlace(r.CsIndex, s.CounterId, sum.Family.Register));
+                string moved = move.ConvertSource(counter, f.PrintItem, rounding: sum.Rounding);
+                // Only the ROUNDED face is a COMPUTE; without the phrase GR4's transfer is a MOVE, which cannot raise.
+                string? movedRaising = sum.Rounding == CobolRounding.Truncation ? null : RaisingImage(counter, f, sum.Rounding);
                 // ⛔ …but only while the counter's SIZE ERROR INDICATOR is unset (GR4: "If the associated size error
                 // indicator is set, an EC-REPORT-SUM-SIZE exception condition is set to exist and the printable item
                 // is filled with spaces" — kb/Work PB1130). The engine answers the indicator and raises the
                 // condition; the fill is unconditional, so it is decided here and not by the raise.
-                return ($"({RuntimeApi.ReportSumPresentable(r.CsIndex, s.CounterId)} "
-                    + $"? {moved} : {CsLiteral(new string(' ', f.PrintItem.DisplayTextWidth))})", sum.Rounding);
+                string Presentable(string image) => $"({RuntimeApi.ReportSumPresentable(r.CsIndex, s.CounterId)} "
+                    + $"? {image} : {CsLiteral(new string(' ', f.PrintItem.DisplayTextWidth))})";
+                return (Presentable(moved), movedRaising is null ? null : Presentable(movedRaising), sum.Rounding);
             case FieldComputeSource { Value: { } expr } cs:
                 // §13.18.53.4 GR2 — "Arithmetic-expression-1 specifies the operand of an implicit COMPUTE
                 // statement that is executed implicitly whenever the associated item is printed. If the ROUNDED
                 // phrase is specified, the implicit COMPUTE statement has the corresponding ROUNDED phrase."
                 // The COMPUTE's receiving operand is the printable item, so the transfer IS the one conversion
                 // every other operand takes — with the clause's rounding mode (kb/Work PB852).
-                source = new BoundComputedOperand(expr);
-                rounding = cs.Rounding;
-                break;
+                var computed = new BoundComputedOperand(expr);
+                return (move.ConvertSource(computed, f.PrintItem, rounding: cs.Rounding), RaisingImage(computed, f, cs.Rounding),
+                    cs.Rounding);
             case FieldComputeSource bad:
                 return (LoudValue("string",
-                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §13.18.53.3 SR4)"), rounding);
+                    $"report {r.Name}: SOURCE '{bad.Written}' was rejected at bind (ISO §13.18.53.3 SR4)"), null, rounding);
             default:
                 return (LoudValue("string",
-                    $"report {r.Name}: SOURCE operand not resolvable to storage (ISO §13.18.53.3 SR4)"), rounding);
+                    $"report {r.Name}: SOURCE operand not resolvable to storage (ISO §13.18.53.3 SR4)"), null, rounding);
         }
-        return (move.ConvertSource(source, f.PrintItem, rounding: rounding), rounding);
+        return (move.ConvertSource(source, f.PrintItem, rounding: rounding), null, rounding);
     }
 
     // ⛔ `ValueOperand(string raw)` IS GONE (kb/Work PB506), and this comment stands where it was so it is not
@@ -919,15 +951,30 @@ internal sealed class ReportWriterEmitter(
             return;
         }
         string sel = SelectorArgument(s.Report);
-        ctx.Writer.Line($"{Engine(s.Report)}.Generate({(s.Detail is { } d ? CsLiteral(d.Name!) : "null")}"
-            + $"{(sel.Length > 0 ? ", " + sel : "")});");
+        EmitPresenting(() => ctx.Writer.Line($"{Engine(s.Report)}.Generate({(s.Detail is { } d ? CsLiteral(d.Name!) : "null")}"
+            + $"{(sel.Length > 0 ? ", " + sel : "")});"));
     }
 
     /// <summary>TERMINATE: one engine call per report, in written order (§14.9.46.4 GR4).</summary>
-    public void EmitTerminate(BoundTerminate s)
+    public void EmitTerminate(BoundTerminate s) =>
+        EmitPresenting(() =>
+        {
+            foreach (var r in s.Reports)
+                ctx.Writer.Line($"{Engine(r)}.Terminate({SelectorArgument(r)});");
+        });
+
+    /// <summary>The engine call(s) of a PRESENTING statement — a GENERATE or TERMINATE, the two statements that print report
+    /// lines — inside the checking scope that carries the statement's EC-SIZE-TRUNCATION enablement to the compose methods
+    /// those calls run (kb/Work PB4031; see <see cref="RaisingImage"/>). The scope is the ONE save/set/restore every
+    /// statement guard opens (<see cref="EcEmitter.OpenGateFlags"/>), so a USE BEFORE REPORTING procedure the engine runs
+    /// between two groups starts from its own baseline and the flag stands again for the next compose. A statement whose
+    /// line does not enable the condition emits the bare call.</summary>
+    private void EmitPresenting(Action emitCalls)
     {
-        foreach (var r in s.Reports)
-            ctx.Writer.Line($"{Engine(r)}.Terminate({SelectorArgument(r)});");
+        if (!ecState.SizeTruncationChecking) { emitCalls(); return; }
+        using (ec.OpenGateFlags([nameof(Runtime.Exceptions.ExceptionState.SizeTruncationChecking)]))
+        using (ctx.Writer.Block("try"))
+            emitCalls();
     }
 
     /// <summary>SUPPRESS PRINTING (§14.9.45): name the group of the enclosing USE BEFORE REPORTING procedure
