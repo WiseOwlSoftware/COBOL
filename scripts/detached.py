@@ -76,10 +76,31 @@ def spawn_detached(argv: list[str], log: pathlib.Path, cwd: str | os.PathLike | 
 
 
 def pid_alive(pid: int) -> bool:
-    """Is process `pid` running? (gate_slot's one probe: a zombie, which holds nothing, counts as dead.)"""
-    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-    from gate_slot import _pid_alive  # noqa: PLC0415  (imported where used: gate_slot's self-test harness takes kill_tree so)
-    return _pid_alive(pid)
+    """Is process `pid` RUNNING? THE ONE liveness probe of the scripts (kb/Work PB4008): it asks the operating system
+    whether the process has EXITED, never whether a process listing still names it. On Windows an exited process whose
+    object another handle keeps (a `Popen` not yet closed) is signaled, and `WaitForSingleObject(h, 0)` says so; a
+    snapshot can still list it under its image name, which once read as alive. On Linux a zombie still answers
+    `kill(pid, 0)` and its /proc entry; it holds nothing, so it counts as dead."""
+    if os.name == "nt":
+        import ctypes  # noqa: PLC0415
+        k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        k32.OpenProcess.restype = ctypes.c_void_p
+        h = k32.OpenProcess(0x00100000 | 0x1000, False, pid)  # SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION
+        if not h:
+            return False
+        try:
+            return k32.WaitForSingleObject(ctypes.c_void_p(h), 0) != 0  # 0 = WAIT_OBJECT_0: it has exited
+        finally:
+            k32.CloseHandle(ctypes.c_void_p(h))
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    try:
+        with open(f"/proc/{pid}/stat", encoding="ascii") as fh:
+            return fh.read().split(") ", 1)[1][:1] != "Z"
+    except OSError:
+        return True
 
 
 def kill_tree(pid: int) -> None:
