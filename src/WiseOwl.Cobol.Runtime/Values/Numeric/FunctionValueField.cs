@@ -129,7 +129,7 @@ public readonly struct FunctionValueField
     /// fraction digits; kb/Work PB3953, docs/CONFORMANCE.md DOC-A.1-123): an arithmetic expression argument past the
     /// <see cref="Int128"/> carrier, or an exact function's value over one. GnuCOBOL's temporary is arbitrary-precision, so it holds
     /// every digit: <c>FUNCTION ABS (BIG * BIG * K3)</c> shows the 39-digit product, and MAX, MIN and MEDIAN order such values exactly.
-    /// A value that fits <see cref="Int128"/> is exactly an SDIDI of at most 38 digits and is <see cref="OfValue"/>'s; a wider one keeps
+    /// A value that fits <see cref="Int128"/> is exactly an SDIDI of at most 39 digits and is <see cref="OfValue"/>'s; a wider one keeps
     /// the description the same rule derives from its digits (<see cref="CobolNum.ReturnedValueProfile(CobolWide, int, out string, out int)"/>).</summary>
     public static FunctionValueField OfWide(CobolWide value, int scale)
     {
@@ -154,7 +154,7 @@ public readonly struct FunctionValueField
     /// compare "according to the rules for simple conditions"). Two temporaries neither of which is a wide value are ordered by their
     /// SDIDI values, which ARE their values. ⛔ When EITHER is a wide value the pair is ordered by the EXACT values, never by the wide
     /// value's 34-digit image (kb/Work PB3953): the image orders it only against another 34-digit image, and the other temporary may
-    /// hold up to 38 exact digits off that grid (an Int128 value <see cref="OfWide"/> hands to <see cref="OfValue"/>), so
+    /// hold up to 39 exact digits off that grid (an Int128 value <see cref="OfWide"/> hands to <see cref="OfValue"/>), so
     /// <c>MAX (X * Y + C, X * Y + C + 1000)</c> with the first value just under <see cref="Int128.MaxValue"/> and the second just over
     /// it has the second's image BELOW the first. The one temporary with no exact wide form is an SDIDI value past the 256-bit range
     /// (<see cref="CobolWide.TryFrom"/>), larger in magnitude than every wide value, so its sign alone orders the pair.</summary>
