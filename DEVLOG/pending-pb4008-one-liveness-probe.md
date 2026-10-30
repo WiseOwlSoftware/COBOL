@@ -11,7 +11,10 @@ one. A Linux zombie fails the same way: it keeps its /proc name and has an empty
 The repository already had the right question in `gate_slot._pid_alive`: on Windows `WaitForSingleObject(h, 0)` on a
 `SYNCHRONIZE` handle, on Linux `kill(pid, 0)` and the zombie state. This change makes that the only probe:
 - `detached.pid_alive` holds the probe now. `gate_slot._pid_alive` is deleted, `detached.pid_alive` no longer forwards to
-  it, and `gate_slot.py` and `run_gate_legs.py` import the probe from `detached`.
+  it, and `gate_slot.py` and `run_gate_legs.py` import the probe from `detached`. The branch review found that the probe
+  raised `PermissionError` on Linux for another user's live process (pid 1, for instance), and that on Windows the same
+  kind of process read as dead. Now a process that exists but cannot be opened counts as running on both systems, and
+  the probe never raises.
 - `coord.process_name` returns None unless the probe says the process is still running. `process_command` and
   `loop_state` (the supervisor lock) get the same answer through it.
 - `coord.runs_python(pid, mark)` is now the one rule by which a lane tells its own detached process from a dead one or

@@ -364,8 +364,8 @@ def runs_python(pid: int, mark: str) -> bool:
     """`pid` is a running Python process whose command line names `mark`: THE one rule by which a lane tells its own
     detached process (`land_lane.runner_alive`, `impact_lane.worker_alive`) from a dead one and from a stranger on a
     reused pid (kb/Work PB3113), its liveness asked of the operating system (`process_name`, kb/Work PB4008). An
-    UNREADABLE command line (a process not ours to open) cannot tell the two apart, and calling a live one dead would
-    start a second beside it, so it reads as alive."""
+    UNREADABLE command line (a process not ours to open, which `detached.pid_alive` reads as running on both systems)
+    cannot tell the two apart, and calling a live one dead would start a second beside it, so it reads as alive."""
     name = process_name(pid)
     if not name or "python" not in name.lower():
         return False
