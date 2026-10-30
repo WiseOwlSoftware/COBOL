@@ -186,7 +186,7 @@ NC232A	NC	green	-	valid	-
 NC233A	NC	green	-	valid	-
 NC234A	NC	green	-	valid	-
 NC235A	NC	divergent	-	valid	ISO §14.9.37 F2 — SEARCH ALL over an ODO table executes (legacy fell to DE-LETE)
-NC236A	NC	divergent	-	valid	ISO §14.9.37.4 GR8b — SEARCH VARYING another index executes (legacy fell to DE-LETE)
+NC236A	NC	divergent	-	valid	ISO §14.9.37.4 GR3 c) 2. — SEARCH VARYING another index executes (legacy fell to DE-LETE)
 NC237A	NC	green	-	valid	-
 NC238A	NC	green	-	valid	-
 NC239A	NC	green	-	valid	-
