@@ -1,4 +1,4 @@
-## PB3845: the word-character rules of ISO §8.3.2.1 are asked of the lexer's words, so a parse failure no longer hides their cause
+## Entry 2778 — 2026-10-30 09:00 PDT — PB3845: the word-character rules of ISO §8.3.2.1 are asked of the lexer's words, so a parse failure no longer hides their cause
 
 The U+00A0-only line of golden `pb1660-nbsp-only-line-is-not-blank` drew a bare `COBOL0001 cannot parse construct near
 'STOP'` at every edition and never COBOL2773 naming U+00A0. Re-probed on the branch build before any edit: reproduced.
@@ -39,3 +39,4 @@ error" (the binder is skipped on any, so a source that parses beside a COBOL2631
 it runs after the last stream reader and counts the pass's earlier preprocessor errors. `CursorBagSink` was a second copy of
 `BagSink`'s severity mapping: it is deleted and `BagSink` carries the cursored form. Three new `WordCharacterScreenTests` pin
 all of it (each fails with its fix removed), including the failed-parse comment-entry exclusion that nothing had tested.
+
