@@ -21,7 +21,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// This class reads the EMITTED C# over each arm of the predicate (the same record, REDEFINES, LINKAGE, a level-66
 /// alias, a function argument) and over the operands that are never in reach (a literal, a sibling field, the first
 /// sending), so a new arm that forgets the re-read fails here even if no golden crosses it. (3) A function
-/// operand is evaluated ONCE, inline, when its transfer begins (D-STR4), never twice.</para>
+/// operand of a later sending that may share identifier-3's storage is evaluated ONCE, inline, when its transfer
+/// begins (D-STR4), never twice; every other function, the first sending's included, is identified up front in
+/// statement order (§14.6.4 7, kb/Work PB3261), so its range tests precede identifier-3's.</para>
 /// </summary>
 public sealed class StringLiveReadDriftTests
 {
@@ -187,6 +189,69 @@ public sealed class StringLiveReadDriftTests
         string cs = EmitCSharp(Program(Disjoint, """STRING "XY" DELIMITED BY SIZE FUNCTION UPPER-CASE(S1) DELIMITED BY SIZE INTO R1 END-STRING"""));
         Assert.Equal(1, Stores(cs));
         Assert.Matches(new Regex(@"string __strSrc\d+_1 = ", RegexOptions.Multiline), cs);
+    }
+
+    [Fact]
+    public void AFunctionInTheFirstSending_IsEvaluatedUpFront_EvenOverTheReceiver()
+    {
+        // Review R1-1 (§14.6.4 7): no store precedes the first transfer, so GR10 cannot reach it and its function is
+        // identified in statement order, before identifier-3 is read - not inline in the transfer after that read.
+        string cs = EmitCSharp(Program(Disjoint, """STRING FUNCTION UPPER-CASE(R1) DELIMITED BY SIZE INTO R1 END-STRING"""));
+        Assert.Equal(1, Stores(cs));
+        Assert.Matches(new Regex(@"string __strSrc\d+_0 = ", RegexOptions.Multiline), cs);
+        Assert.Single(Regex.Matches(cs, @"CobolIntrinsics\.UpperCase\("));
+    }
+
+    [Fact]
+    public void AFunctionDelimiterInTheFirstSending_IsEvaluatedUpFront_EvenOverTheReceiver()
+    {
+        string cs = EmitCSharp(Program(Disjoint, """STRING S1 DELIMITED BY FUNCTION UPPER-CASE(R1(1:1)) INTO R1 END-STRING"""));
+        Assert.Equal(1, Stores(cs));
+        Assert.Matches(new Regex(@"string __strDlm\d+_0 = ", RegexOptions.Multiline), cs);
+    }
+
+    [Fact]
+    public void ARefModifiedFunctionResultOverADisjointItem_IsEvaluatedUpFront()
+    {
+        // Review R1-2: the arm that cannot be walked answered "may share" for a shape it CAN walk; every storage the
+        // function reads (its argument, the positions of its result's reference modification) is disjoint here.
+        const string data = Disjoint + """
+
+            01 N1   PIC 9 VALUE 2.
+            """;
+        string cs = EmitCSharp(Program(data, """STRING "XY" DELIMITED BY SIZE FUNCTION UPPER-CASE(S1)(1:N1) DELIMITED BY SIZE INTO R1 END-STRING"""));
+        Assert.Equal(1, Stores(cs));
+        Assert.Matches(new Regex(@"string __strSrc\d+_1 = ", RegexOptions.Multiline), cs);
+    }
+
+    [Fact]
+    public void AnArithmeticFunctionArgumentOverADisjointItem_IsEvaluatedUpFront()
+    {
+        const string data = Disjoint + """
+
+            01 N1   PIC 99 VALUE 2.
+            """;
+        string cs = EmitCSharp(Program(data, """STRING "XY" DELIMITED BY SIZE FUNCTION CHAR(N1 + 64) DELIMITED BY SIZE INTO R1 END-STRING"""));
+        Assert.Equal(1, Stores(cs));
+        Assert.Matches(new Regex(@"string __strSrc\d+_1 = ", RegexOptions.Multiline), cs);
+    }
+
+    [Fact]
+    public void AReferenceModifierPositionOrArithmeticArgumentInTheReceiver_StillReadsInPlace()
+    {
+        // The walk answers "may share" when the storage a position or an arithmetic argument reads can be identifier-3's.
+        const string data = """
+            01 REC.
+               05 CNT PIC 9 VALUE 2.
+               05 BUF PIC X(8) VALUE "ABCDEFGH".
+            01 S1   PIC X(4)  VALUE "abcd".
+            """;
+        string position = EmitCSharp(Program(data, """STRING "XY" DELIMITED BY SIZE FUNCTION UPPER-CASE(S1)(1:CNT) DELIMITED BY SIZE INTO REC END-STRING"""));
+        Assert.Equal(2, Stores(position));
+        Assert.DoesNotMatch(new Regex(@"string __strSrc\d+_1 = ", RegexOptions.Multiline), position);
+        string arithmetic = EmitCSharp(Program(data, """STRING "XY" DELIMITED BY SIZE FUNCTION CHAR(CNT + 64) DELIMITED BY SIZE INTO REC END-STRING"""));
+        Assert.Equal(2, Stores(arithmetic));
+        Assert.DoesNotMatch(new Regex(@"string __strSrc\d+_1 = ", RegexOptions.Multiline), arithmetic);
     }
 
     [Fact]

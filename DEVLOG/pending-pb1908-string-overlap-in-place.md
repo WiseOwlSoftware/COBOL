@@ -39,3 +39,15 @@ retired by a later owner-directed documentation campaign; it is named in the bra
 **Found and left.** STRING of non-digit characters into a numeric DISPLAY item stores a decoded number where libcob keeps the bytes
 (`STRING "AB" INTO N` over 123456: `003456` against `AB3456`); that is the typed-native numeric representation and the documented
 decode of invalid content (§14.6.13.2), independent of overlap, and is recorded in the branch report.
+
+**Review round 1 (two blocking findings, one root).** `ReadOperand` rendered a function operand whose argument
+`MayShareStorage` could not prove disjoint inline into its transfer, after identifier-3 was read. A function is an identifier of
+the statement, so §14.6.4 7) and §14.9.49.4 GR11 put its range tests before identifier-3's subscript test: a `STRING FUNCTION
+UPPER-CASE(LK-X(1:L)) INTO T(I)` over a LINKAGE `LK-X` raised EC-BOUND-SUBSCRIPT where `main` (and the same statement over a working-storage
+argument or a plain `LK-X(1:L)`) raised EC-BOUND-REF-MOD (R1-1); and `ReadsStorageOf` answered "may share" for every shape it did not
+walk, including `FUNCTION UPPER-CASE(WX)(1:L)` over disjoint working storage (R1-2). Fix: the first sending is never reachable (no
+store precedes it, so GR10 cannot apply), so its operands are always read once, in order; `ReadsStorageOf` also walks arithmetic
+arguments and the positions of a reference-modified result (`StorageOverlap.MayShareStorage(DataItem, Place)` judges a position's item).
+A later sending's function that may share identifier-3 stays inline (D-STR4, evaluated once; its range tests run at its transfer, libcob's
+order, only in a statement GR10 may already make undefined). Golden `pb1908_string_function_order` (legs F1 to F5 and a value leg;
+mutating the fix back gave EC-BOUND-SUBSCRIPT on F2, F4 and F5) and five `StringLiveReadDriftTests` tests.
