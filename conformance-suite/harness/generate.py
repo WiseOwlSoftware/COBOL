@@ -1735,10 +1735,9 @@ def self_test() -> int:
         suite = Path(d)
         registry = suite / "wiseowl" / "options"
         registry.mkdir(parents=True)
-        (registry / "plain.json").write_text('{"sign-encoding": "ascii"}', encoding="utf-8")
-        (registry / "multi.U1.cbl.json").write_text('{"repository-update": "off"}', encoding="utf-8")
-        (registry / "broken.json").write_text("{", encoding="utf-8")
-        (registry / "stray.txt").write_text("", encoding="utf-8")
+        for name, text in (("plain.json", '{"sign-encoding": "ascii"}'), ("multi.U1.cbl.json", '{"repository-update": "off"}'),
+                           ("broken.json", "{"), ("stray.txt", "")):
+            (registry / name).write_text(text, encoding="utf-8", newline="\n")
         (registry / "sub").mkdir()
         entries, bad = load_sidecars(registry, suite)
         check("arm: a registry file <id>.json is the entry of <id>, and <id>.<step file>.json that of <id>/<step file>",
