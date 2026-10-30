@@ -43,6 +43,27 @@ public sealed class WholeRangeBodiesDriftTests
         }
     }
 
+    /// <summary>⛔ A WHOLE-RANGE body takes the EXACT WIDE value of an argument expression past the <c>Int128</c> carrier exactly when
+    /// its <see cref="IntrinsicRenderer.ExactIntake.Wide"/> says so (kb/Work PB4075): each such member has a public
+    /// <c>double {Name}Wide(CobolWide[?], int)</c> — nullable exactly when the row carries a §15.x.3 domain, as the SDIDI overload's
+    /// <c>CobolDec?</c> is — and no other member has one, so a new ill-conditioned body decides its wide form here, never silently
+    /// answers from a 34-digit round-to-odd image.</summary>
+    [Fact]
+    public void EveryWideIntakeBody_HasItsWideOverload_AndNoOtherMemberDoes()
+    {
+        foreach (var (method, intake) in IntrinsicRenderer.WholeRangeBodies)
+        {
+            Assert.True(IntrinsicCatalog.TryGet(method.ToUpperInvariant(), out var sig));
+            Type want = sig.Domain is IntrinsicDomain.None ? typeof(CobolWide) : typeof(CobolWide?);
+            var wide = typeof(CobolIntrinsics).GetMethod(method + "Wide", BindingFlags.Public | BindingFlags.Static, [want, typeof(int)]);
+            if (intake is IntrinsicRenderer.ExactIntake.Wide)
+                Assert.True(wide is not null && wide.ReturnType == typeof(double),
+                    $"{method}: no public static double {method}Wide({want.Name}, int) — the renderer emits one for an exact wide operand");
+            else
+                Assert.True(wide is null, $"{method}: has a {method}Wide body but its intake is {intake}, not Wide — the renderer never emits it");
+        }
+    }
+
     private static CobolDec Pow10(int e) => new(1, e);
 
     private static void UnderChecking(bool on, Action body)
