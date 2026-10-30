@@ -870,6 +870,40 @@ compile-time screen stays fail-open (it can only refuse the provably non-integra
 run-time condition. `IntrinsicCarrierAgreementDriftTests.EveryIntegerIntake_IsTotalOverTheNumXCarriers` walks `NumXCarrier`.
 Goldens `pb1526_integer_argument_has_integral_value`, `pb638_unsigned_wide_item_as_integer_argument`.
 
+### An argument expression past the Int128 carrier is taken EXACT by the exact family, on the wide intermediate (PB3953).
+
+A nested native product of 39 to 77 digits is the exact wide intermediate (`NumX.Wide`, `CobolWide`, NUMERIC_DESIGN, kb/Work
+PB1900). Used as a function argument it used to be lowered to the 34-digit SDIDI by round-to-odd at the argument's intake, so the
+function answered from that image: `FUNCTION ABS (BIG * BIG * K3)` of 18-, 18- and 3-digit items showed `…100000` for the
+product's `…000999`, and `FUNCTION MOD (BIG * BIG * K3, 1000)` was 0 for 999. Under native arithmetic the method of evaluating
+"all integer and numeric functions" is the implementor's (§8.8.1.3) and so is the returned value's representation (§15.4.1);
+for that latitude CLAUDE.md rule 1 makes GnuCOBOL the answer, and its argument temporary is arbitrary-precision.
+
+- **The intake keeps the form.** `IntrinsicRenderer.RawWideArg` is the position intake rendered with `keepWide`; at a §15.3
+  type-6 position a wide operand takes its integer on the wide form (`CobolIntrinsics.IntegerArgWide`, the same integrality
+  test). `RawArg` is `RawWideArg` lowered, for every consumer with no wide form.
+- **The family evaluates on it.** `IntrinsicRenderer.RenderWide`, consulted under native arithmetic before the SDIDI arm, takes a
+  call with a wide argument and no SDIDI or binary64 one (those keep their lanes) whose arguments' digit bounds prove the work fits
+  77 digits: ABS, SIGN, INTEGER, INTEGER-PART and FRACTION-PART at the argument's scale; MOD and REM over their type-6 integers;
+  MAX, MIN, ORD-MAX, ORD-MIN, SUM, RANGE, MEDIAN and MIDRANGE over the arguments aligned to the common scale, as the `…Scaled`
+  bodies take them (`CobolIntrinsics.Wide.cs`). A call past the bound keeps the SDIDI arm, DOC-A.1-123's determination past 77
+  digits. `ExactWideSettlementDriftTests.EveryExactArmTakingANumericArgument_HasAWideBody` holds the family closed: a new
+  exact-switch arm with a numeric intake needs a wide body or a stated reason its value cannot depend on the lost digits
+  (COMBINED-DATETIME: argument-2 is below 86 401 and the value is formed on the SDIDI).
+- **The value it returns is wide and is settled like a nested product.** The result is a `NumX.Wide` where it can be as wide as an
+  argument, so `NumericRenderer` settles it at its public entry: rounded once into a fixed-point resultant, compared exactly by a
+  relation, kept by an enclosing function's intake. DISPLAY shows every digit (`FunctionDeviceText` renders the call with
+  `keepWide`; `CobolNum.DeviceFunctionText(CobolWide, …)` and `FunctionValueField.OfWide`, whose MAX, MIN and MEDIAN refine the
+  34-digit images' order by the exact values), and a MOVE transfers it at the receiver's scale
+  (`NumericRenderer.TransferWide`), so its high-order truncation keeps the value's own low-order digits (§14.6.8.2 4); the
+  string-image channel (a MOVE to an alphanumeric item, STRING) sends every digit (`OperandText`, `CobolNum.FormatWideFunctionText`).
+- **What still takes the image.** A function whose value is an approximation in any case: the binary64 family (a wide argument
+  reaches `WholeRangeBodies` as its 34-digit image) and MEAN, the SDIDI quotient of its equivalent arithmetic expression in every
+  mode (PB3860). Under `ARITHMETIC IS STANDARD-DECIMAL` the SDIDI is the value and nothing here applies.
+
+Pinned by `conformance:cases/15.4.1-Numeric-and-integer-functions/pb3953_function_argument_int128_window` (the 38-digit window
+and the 39-digit ABS, MOD, MAX and MOVE legs) and `unit:CobolWideIntrinsicsTests` (each body against a `BigInteger` oracle).
+
 ## Edge cases
 
 - FUNCTION LENGTH / BYTE-LENGTH of a reference-modified operand x(s:l) is a RUNTIME value over the view (§8.4.3.3.4 GR6 — the substring's own length; x(s:) ends where the item does); only fixed operands fold.

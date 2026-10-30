@@ -23,7 +23,10 @@ namespace WiseOwl.Cobol.Runtime;
 /// is a compile-time optimisation of a run-time guarantee: this type never wraps.</para>
 /// <para>It is NOT a carrier a consumer ever sees. <c>NumericRenderer</c> settles it at every public entry — into the
 /// receiver's own scale and mode at a final transfer (<see cref="ToUnscaled"/>), into the SDIDI otherwise
-/// (<see cref="ToDec"/>) — so the rest of the compiler keeps its three carriers.</para>
+/// (<see cref="ToDec"/>) — so the rest of the compiler keeps its three carriers. The consumers that take it EXACT form a
+/// closed list (<c>ExactWideSettlementDriftTests</c>): the arithmetic statements, the relation, and an intrinsic function's
+/// argument (kb/Work PB3953: the exact intrinsic family's wide bodies, <c>CobolIntrinsics.Wide.cs</c>, and the temporary
+/// DISPLAY shows, <see cref="FunctionValueField"/>).</para>
 /// </summary>
 public readonly struct CobolWide
 {
@@ -45,10 +48,80 @@ public readonly struct CobolWide
 
     private bool IsZero => _hi == 0 && _lo == 0;
 
-    private int Sign => IsZero ? 0 : _negative ? -1 : 1;
+    /// <summary>The algebraic sign of the value: −1, 0 or +1.</summary>
+    internal int Sign => IsZero ? 0 : _negative ? -1 : 1;
 
     /// <summary>An <see cref="Int128"/> value (any scale) as a wide value of the same unscaled magnitude.</summary>
     public static CobolWide From(Int128 value) => new(value < 0, 0, CobolDec.UAbs(value));
+
+    /// <summary>An unsigned 16-byte value (a <see cref="UInt128"/> container, any scale) as a wide value of the same unscaled
+    /// magnitude. A distinct NAME, not an overload of <see cref="From"/>: a <c>ulong</c> converts implicitly to both
+    /// <see cref="Int128"/> and <see cref="UInt128"/>, so an overload pair would make an emitted call ambiguous (CS0121).</summary>
+    public static CobolWide FromUnsigned(UInt128 value) => new(false, 0, value);
+
+    /// <summary>The value as an <see cref="Int128"/> when it fits one (the same unscaled magnitude), else false.</summary>
+    internal bool TryToInt128(out Int128 value)
+    {
+        value = 0;
+        if (_hi != 0 || _lo > (UInt128)Int128.MaxValue) return false;
+        value = _negative ? -(Int128)_lo : (Int128)_lo;
+        return true;
+    }
+
+    /// <summary>⛔ AN SDIDI VALUE AS A WIDE VALUE AT THE SCALE IT IS WRITTEN AT, EXACTLY (kb/Work PB3953): <paramref name="value"/> =
+    /// <c>Sig × 10^Exp</c> is the wide <paramref name="wide"/> at <paramref name="scale"/> = −Exp, or, for a positive exponent, the
+    /// integer <c>Sig × 10^Exp</c> at scale 0. False when that integer is past the 256-bit range (the value is then larger in magnitude
+    /// than every wide value, which is all a comparison needs to know).</summary>
+    internal static bool TryFrom(CobolDec value, out CobolWide wide, out int scale)
+    {
+        scale = value.Exp < 0 ? -value.Exp : 0;
+        return TryUp(From(value.Sig), value.Exp > 0 ? value.Exp : 0, out wide);
+    }
+
+    /// <summary>The magnitude of the value (§15.7.4 ABS of the unscaled value; the caller keeps the scale).</summary>
+    internal static CobolWide Abs(CobolWide a) => new(false, a._hi, a._lo);
+
+    /// <summary>10^<paramref name="digits"/> (0 ≤ <paramref name="digits"/> ≤ 76), the divisor that cuts a value at a scale.</summary>
+    internal static CobolWide PowerOfTen(int digits) => Up(From(1), digits);
+
+    /// <summary>The quotient of <paramref name="a"/> by <paramref name="b"/> TRUNCATED toward zero, with the remainder, which has
+    /// the dividend's sign (<c>a = b × quotient + remainder</c>, |remainder| &lt; |b|) — both unscaled values at one scale. A zero
+    /// divisor is the caller's own rule (§15.64.3 r2, §15.77.3 r2), so it is refused here as a defect.</summary>
+    internal static CobolWide DivRem(CobolWide a, CobolWide b, out CobolWide remainder)
+    {
+        if (b.IsZero) throw new DivideByZeroException("CobolWide.DivRem with a zero divisor: the caller owns the zero-divisor rule");
+        var (hi, lo) = DivideMagnitude(new CobolWide(false, a._hi, a._lo), new CobolWide(false, b._hi, b._lo));
+        var quotient = new CobolWide(a._negative != b._negative, hi, lo);
+        remainder = Sub(a, Mul(b, quotient));   // |b × quotient| ≤ |a|: neither step can leave the range
+        return quotient;
+    }
+
+    /// <summary>The decimal digits of the magnitude, unpadded ("0" for zero) — the digit string the returned value's temporary is
+    /// described by (<c>CobolNum.ReturnedValueProfile</c>). Long division of the four 64-bit limbs by 10^19: each partial
+    /// remainder is below 10^19 &lt; 2^64, so <c>(remainder &lt;&lt; 64) | limb</c> fits one <see cref="UInt128"/>.</summary>
+    internal string MagnitudeDigits()
+    {
+        if (IsZero) return "0";
+        const ulong Chunk = 10_000_000_000_000_000_000UL;   // 10^19
+        Span<ulong> limbs = [(ulong)(_hi >> 64), (ulong)_hi, (ulong)(_lo >> 64), (ulong)_lo];
+        Span<ulong> chunks = stackalloc ulong[5];   // 10^95 > 2^256: five base-10^19 chunks hold any magnitude
+        int count = 0;
+        while (limbs[0] != 0 || limbs[1] != 0 || limbs[2] != 0 || limbs[3] != 0)
+        {
+            UInt128 remainder = 0;
+            for (int i = 0; i < limbs.Length; i++)
+            {
+                UInt128 current = (remainder << 64) | limbs[i];
+                limbs[i] = (ulong)(current / Chunk);
+                remainder = current % Chunk;
+            }
+            chunks[count++] = (ulong)remainder;
+        }
+        var text = new System.Text.StringBuilder(count * 19);
+        text.Append(chunks[count - 1].ToString(System.Globalization.CultureInfo.InvariantCulture));
+        for (int i = count - 2; i >= 0; i--) text.Append(chunks[i].ToString("D19", System.Globalization.CultureInfo.InvariantCulture));
+        return text.ToString();
+    }
 
     private static CobolSizeError Overflow() => new("a native intermediate exceeds the exact 256-bit range "
         + "(ISO §14.7.5 case 5 — the implementor-defined intermediate range is checked, A.1 item 179: EC-SIZE-OVERFLOW)",
@@ -104,7 +177,7 @@ public readonly struct CobolWide
     public static CobolWide Up(CobolWide a, int digits) =>
         TryUp(a, digits, out CobolWide aligned) ? aligned : throw Overflow();
 
-    private static bool TryUp(CobolWide a, int digits, out CobolWide aligned)
+    internal static bool TryUp(CobolWide a, int digits, out CobolWide aligned)
     {
         aligned = a;
         while (digits > 0)
