@@ -594,13 +594,32 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 + "words, phrases, clauses, punctuation, and operands in each general format shall be written in the "
                 + "compilation group in the sequence given in the general format (ISO §5.2.1).", 0));
 
+        // ⛔ 0i. THE KIND WRITTEN IS NOT A KIND THE POSITION EXPECTS (kb/Work PB3428, PB3861). Read from the parse AT the
+        // token with every predicate on the way evaluated (OffendingPosition.Admitted), so a context word a text
+        // predicate refused (`MEMORY SIZE 12 FOO`: the unit is CHARACTERS, MODULES or WORDS) is named with the words
+        // expected, a missing operand (`SEGMENT-LIMIT IS .`) with the literal expected, and a literal of the wrong
+        // category (`SET W-N TO "A"`) with the categories expected. AdmittedKinds says which positions can be named and
+        // how. It replaces the two guesses that named a kind in two shapes only, "a data-name is expected
+        // here, not a literal" (COBOL0308, whose silence where some literal was expected left `SET W-N TO "A"` the bare
+        // COBOL0001, kb/Work PB906) and its converse (COBOL0309). After 0h, as a later structural diagnosis: a statement
+        // that ended before the token, a closed format's residue and an empty block name the fault better; a scope
+        // terminator is hint 13's.
+        if (!HasStructuralHint(hints) && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
+            && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, StatementBlockStart(recognizer),
+                   at.APeriodLetsTheSentenceFollow,
+                   ZeroTokenRewriter.AZeroWrittenAtIsArithmetic(((BufferedTokenStream)recognizer.InputStream).GetTokens(),
+                       token.TokenIndex)) is { } kindMsg)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, kindMsg, 0));
+
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
         // separated is §8.3.5 rule 5's violation, and SeparatorRule reports it — for every literal token, whether or
         // not the parse happens to fail there — as COBOL2633. The two recovery hints that stood here (COBOL0301 /
         // COBOL0302) stated that rule a second time, only on a parse error, and only for a quotation-mark delimiter.
 
-        // 3. Missing TO in MOVE statement
-        if (IsInRule(ruleStack, "moveStatement") && IsIdentifier(token) && prev != null && IsLiteral(prev))
+        // 3. Missing TO in MOVE statement — a GUESS, suppressed by a structural diagnosis as 7 is: where TO alone may
+        // follow the sending operand, 0i already names it (kb/Work PB3428).
+        if (IsInRule(ruleStack, "moveStatement") && IsIdentifier(token) && prev != null && IsLiteral(prev)
+            && !HasStructuralHint(hints))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0303, "In a MOVE statement, did you forget TO before the target?", 10));
 
         // ⛔ NO "MISSING PERIOD AFTER PARAGRAPH NAME" GUESS KEYED ON A TOKEN'S TEXT (kb/Work PB2770, review R1-1). The
@@ -672,23 +691,14 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             && at.APeriodLetsTheSentenceFollow())
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0307, "A period may be missing at the end of the previous sentence.", 25));
 
-        // 15. Literal where identifier expected — a GUESS, suppressed once a structural diagnosis has named the rule
-        // (priority 0), as 7 and 14 are: at a closed format's residue position the IDENTIFIER in the expected set is
-        // the error production's own left edge, so "a data-name is expected here" would contradict 0g (kb/Work PB3373).
-        // ⛔ And "not a literal" is true only where NO literal is expected: `SET X TO "A"` expects a data-name AND a
-        // numeric literal (§14.9.39.2 Format 1), so the written nonnumeric literal is refused for its kind, and the
-        // sentence told the user a literal was not allowed there (kb/Work PB906, the fifth fuzz night's fz02341).
-        if (IsLiteral(token) && expected?.Contains(CobolLexer.IDENTIFIER) == true && expected.And(LiteralTokens).Count == 0
-            && !HasStructuralHint(hints))
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0308, "A data-name is expected here, not a literal.", 20));
+        // ⛔ NO "A DATA-NAME IS EXPECTED HERE" / "A LITERAL VALUE IS EXPECTED HERE" GUESS (kb/Work PB3861). Hints 15
+        // (COBOL0308) and 16 (COBOL0309) named the kind a position admits in two shapes only, from the predicate-blind
+        // expected set; 0i names it in every shape, from what the parse admits at the token.
 
-        // 16. Identifier where literal expected: the expected set holds a whole-literal token (IsLiteral's set)
-        if (IsIdentifier(token) && expected?.And(LiteralTokens).Count > 0)
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0309, "A literal value is expected here, not a data-name.", 20));
-
-        // 17. Missing BY in INDEXED BY
+        // 17. Missing BY in INDEXED BY — a GUESS, suppressed by a structural diagnosis as 7 is: where BY alone may
+        // follow, 0i already names it (kb/Work PB3428).
         if (token.Type != CobolLexer.BY && expected?.Contains(CobolLexer.BY) == true &&
-            IsInRule(ruleStack, "dataDescriptionEntry"))
+            IsInRule(ruleStack, "dataDescriptionEntry") && !HasStructuralHint(hints))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0310, "Missing BY keyword. INDEXED BY requires 'INDEXED BY <index-name>'.", 10));
 
         // 19. FILE CONTROL / SELECT context errors — a GUESS, suppressed by a structural diagnosis as 7 is (kb/Work PB2533).
@@ -871,6 +881,36 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             }
         }
 
+        /// <summary>⛔ WHAT THE PARSE ADMITS AT <paramref name="token"/>, EVERY PREDICATE ON THE WAY EVALUATED (kb/Work
+        /// PB3428). The walks of <see cref="To"/> and <see cref="Over"/> evaluate no predicate, so a path a text predicate
+        /// cuts stays open: an IDENTIFIER edge a predicate guards (<c>(CHARACTERS | {memoryUnitAhead()}?
+        /// IDENTIFIER)</c>, MEMORY SIZE's unit) is in their expected set whatever word was written, and a clause whose
+        /// left-edge predicate refused an earlier word goes on taking the tokens after it (<c>XYZ SEGMENT-LIMIT IS .</c>
+        /// reached the period through CHARACTER CLASSIFICATION's path, which SEGMENT-LIMIT never opens, and the period
+        /// seemed to admit a locale-name). This walk re-runs the same simulation from <paramref name="start"/> in
+        /// <paramref name="context"/> over the tokens from <paramref name="first"/> to <paramref name="token"/> with every
+        /// closure evaluating the predicates it meets AT the token it precedes, as ANTLR's full-context prediction
+        /// evaluates a decision's (its <c>PredTransition</c> seeks the input to <c>startIndex</c>; a closure crosses no
+        /// token, so every predicate it meets belongs to that token's position). Its expected set is what the parse
+        /// admits there, and the last closure records the words its refusing predicates compared the token with
+        /// (<see cref="EvalSemanticContext"/>). Null when it cannot reach the token. Error path only: the runtime restores
+        /// the parser's input after each evaluation.</summary>
+        public static Admitted? AdmittedAt(Parser recognizer, ATNState start, RuleContext context, IToken first, IToken token)
+        {
+            var stream = (ITokenStream)recognizer.InputStream;
+            var walk = new ResimulationWalk(recognizer, start, context, evaluateBefore: first);
+            for (var at = first; at.TokenIndex != token.TokenIndex; )
+            {
+                if (at.TokenIndex > token.TokenIndex || at.Type == TokenConstants.EOF) return null;
+                int index = at.TokenIndex;
+                if (NextDefault(stream, ref index) is not { } next) return null;
+                walk.startIndex = next.TokenIndex;   // the closure after `at` precedes `next`: its predicates are next's
+                if (!walk.Consume(at.Type)) return null;
+                at = next;
+            }
+            return new Admitted(TokensOf(walk._configs), walk._closureWords ?? []);
+        }
+
         /// <summary>A walk over <paramref name="closed"/>, a construct the parser has completed, re-run from its rule's
         /// start in its real context over its own tokens, so every path the parser's prediction did NOT take in it is
         /// open again; null when the walk cannot take them, or they cross a separator period (a construct closed by its
@@ -902,15 +942,47 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         }
 
         /// <summary>Every token some configuration at the walk's position can take: the expected set AT the offending
-        /// token, whatever decision the parser itself was rewound to.</summary>
-        public IntervalSet Expected()
+        /// token, whatever decision the parser itself was rewound to. Predicate-blind, as the parser's own
+        /// <c>GetExpectedTokens</c> is: a text-predicated IDENTIFIER edge is in it whatever word was written.</summary>
+        public IntervalSet Expected() => TokensOf(_configs);
+
+        private static IntervalSet TokensOf(ATNConfigSet configs)
         {
             var expected = new IntervalSet();
-            foreach (var c in _configs.Elements)
+            foreach (var c in configs.Elements)
                 for (int i = 0; i < c.state.NumberOfTransitions; i++)
                     if (c.state.Transition(i) is { IsEpsilon: false } t && t.Label is { } label && t is not NotSetTransition)
                         expected.AddAll(label);
             return expected;
+        }
+
+        /// <summary>Does this walk evaluate the predicates its closures meet (<see cref="AdmittedAt"/>)?</summary>
+        private readonly bool _evaluatesPredicates;
+
+        /// <summary>The words the refusing predicates of the last closure tested: the context words the format prints
+        /// at the position that closure precedes. Null for a walk that evaluates no predicate.</summary>
+        private SortedSet<string>? _closureWords;
+
+        private readonly List<(string Word, bool Matched)> _tested = [];
+
+        /// <summary>A predicate met by a closure of <see cref="AdmittedAt"/>'s walk, evaluated at the token the closure
+        /// precedes through the parser base's one word funnel (<see cref="CobolParserCoreBase.EvaluateTestingWords"/>).
+        /// A predicate that refuses the token with no word of it matching is a word predicate the token is not a word of,
+        /// and its words are the ones the position prints there. One that refuses although a word matched (a negated
+        /// predicate, <c>{!…Ahead()}?</c>, or a word whose following tokens are wrong, MEMORY without SIZE) names no word
+        /// the position admits. A precedence or context-dependent predicate is not evaluated (it reads the parser's own
+        /// rule state, which is not the token's): its path stays open, as every path of the other walks does.</summary>
+        protected override bool EvalSemanticContext(SemanticContext pred, ParserRuleContext parserCallStack, int alt, bool fullCtx)
+        {
+            if (!_evaluatesPredicates || pred is not SemanticContext.Predicate { isCtxDependent: false }
+                || parser is not CobolParserCoreBase wordFunnel)
+                return true;
+            _tested.Clear();
+            bool holds = wordFunnel.EvaluateTestingWords(
+                () => base.EvalSemanticContext(pred, parserCallStack, alt, fullCtx), startIndex, _tested);
+            if (!holds && !_tested.Exists(w => w.Matched))
+                foreach (var (word, _) in _tested) _closureWords?.Add(word);
+            return holds;
         }
 
         /// <summary>The names of every rule OPEN at the walk's position: entered before it and not complete. Read off the
@@ -1065,11 +1137,18 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         /// <summary>A walk from ATN state <paramref name="start"/> inside the rule context <paramref name="context"/> on
         /// the parser's real invocation stack. It never predicts, so it never reads a DFA: the base constructor only
         /// stores the array it is given, and an empty one of the parser's size keeps the walk from touching the parser's
-        /// shared DFA cache at all.</summary>
-        private ResimulationWalk(Parser parser, ATNState start, RuleContext context)
+        /// shared DFA cache at all.
+        /// <para>With <paramref name="evaluateBefore"/> the walk evaluates the predicates its closures meet, the first
+        /// closure's at that token (<see cref="AdmittedAt"/>).</para></summary>
+        private ResimulationWalk(Parser parser, ATNState start, RuleContext context, IToken? evaluateBefore = null)
             : base(parser, parser.Atn, new DFA[parser.Atn.NumberOfDecisions], new PredictionContextCache())
         {
             mergeCache = new MergeCache();
+            if (evaluateBefore is not null)
+            {
+                (_evaluatesPredicates, input) = (true, (ITokenStream)parser.InputStream);
+                startIndex = evaluateBefore.TokenIndex;
+            }
             for (RuleContext? c = context; c is not null; c = c.Parent)
                 _own.TryAdd(PredictionContext.FromRuleContext(atn, c), c);
             _entered = [new ATNConfig(start, 1, PredictionContext.FromRuleContext(atn, context))];
@@ -1077,7 +1156,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         }
 
         /// <summary>Step every configuration over one token of type <paramref name="ttype"/> and close the result;
-        /// false when none can take it, and the walk then stays where it was.</summary>
+        /// false when none can take it, and the walk then stays where it was. A walk that evaluates predicates
+        /// evaluates the closure's at <c>startIndex</c>, which <see cref="AdmittedAt"/> sets to the token that follows.</summary>
         public bool Consume(int ttype)
         {
             var moved = Move(_configs, ttype);
@@ -1090,8 +1170,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         {
             var closed = new ATNConfigSet(fullCtx: true);
             var busy = new HashSet<ATNConfig>();
+            if (_evaluatesPredicates) _closureWords = new SortedSet<string>(StringComparer.Ordinal);
             foreach (var c in seeds)
-                Closure(c, closed, busy, collectPredicates: false, fullCtx: true, treatEofAsEpsilon: false);
+                Closure(c, closed, busy, collectPredicates: _evaluatesPredicates, fullCtx: true, treatEofAsEpsilon: false);
             return closed;
         }
 
@@ -1161,6 +1242,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             }
         }
     }
+
+    /// <summary>What a position admits at a token (<see cref="ResimulationWalk.AdmittedAt"/>): the tokens its
+    /// configurations take with their predicates evaluated there, and the context words the refusing text predicates
+    /// tested (kb/Work PB3428).</summary>
+    private readonly record struct Admitted(IntervalSet Tokens, IReadOnlyCollection<string> Words);
 
     /// <summary>What the final closure of <see cref="ClosedFormatResidue"/> found: the innermost closed format whose
     /// error production it reached, the form of the production that list calls, and the tokens that may follow a
@@ -1576,8 +1662,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         public OffendingPosition(Parser recognizer, IToken token, bool predictionFailedAt = false)
             => (_recognizer, Token, PredictionFailedAt) = (recognizer, token, predictionFailedAt);
 
-        private OffendingPosition(Parser recognizer, IToken token, ResimulationWalk walk)
-            : this(recognizer, token) => (_walk, _walked, CarriedForward, _carriedAsked) = (walk, true, true, true);
+        private OffendingPosition(Parser recognizer, IToken token, ResimulationWalk walk, ParserRuleContext closed)
+            : this(recognizer, token)
+            => (_walk, _walked, CarriedForward, _carriedAsked, _closed) = (walk, true, true, true, closed);
+
+        /// <summary>The construct the parser closed early whose re-simulation found the token, for a position carried
+        /// forward (<see cref="CarryForward"/>); null otherwise.</summary>
+        private readonly ParserRuleContext? _closed;
 
         /// <summary>The token the report names.</summary>
         public IToken Token { get; }
@@ -1634,7 +1725,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 return null;
             for (int next = Token.TokenIndex; NextDefault(stream, ref next) is { } t; )
             {
-                if (!walk.Takes(t.Type)) return new(_recognizer, t, walk);
+                if (!walk.Takes(t.Type)) return new(_recognizer, t, walk, closed);
                 if (t.Type == CobolLexer.DOT || !walk.Consume(t.Type)) break;
             }
             return null;
@@ -1694,6 +1785,25 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
         /// <summary>The tokens the parse could take at the token, or null.</summary>
         public IntervalSet? Expected() => ParserIsThere ? _recognizer.GetExpectedTokens() : Walk?.Expected();
+
+        /// <summary>What the parse admits at the token, every predicate on the way to it evaluated, or null when that walk
+        /// cannot reach it (<see cref="ResimulationWalk.AdmittedAt"/>): from where the parser stands, or, carried forward,
+        /// from the start of the construct closed early. Unlike <see cref="Expected"/>, it is walked even where the parser
+        /// stands at the token, because the parser's own expected set is predicate-blind too. Computed once.</summary>
+        public Admitted? Admitted()
+        {
+            if (_admittedAsked) return _admitted;
+            _admittedAsked = true;
+            if (Token.Type == TokenConstants.EOF) return null;
+            var atn = _recognizer.Atn;
+            return _admitted = _closed is { } closed
+                ? ResimulationWalk.AdmittedAt(_recognizer, atn.ruleToStartState[closed.RuleIndex], closed, closed.Start, Token)
+                : ResimulationWalk.AdmittedAt(_recognizer, atn.states[_recognizer.State], _recognizer.Context,
+                    ((ITokenStream)_recognizer.InputStream).LT(1), Token);
+        }
+
+        private Admitted? _admitted;
+        private bool _admittedAsked;
 
         /// <summary>The rules open at the token, or null.</summary>
         public string[]? OpenRules() => ParserIsThere ? _recognizer.GetRuleInvocationStack().ToArray() : Walk?.OpenRuleNames();
@@ -1910,21 +2020,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// (ClosedFormatDriftTests holds the equality). Read from the ATN once. It used to be STRINGLIT, INTEGERLIT and
     /// DECIMALLIT alone, so a national, boolean, hexadecimal or floating-point literal was "no literal" to every hint
     /// below (kb/Work PB3373).</summary>
-    private static bool IsLiteral(IToken token) => LiteralTokens.Contains(token.Type);
-
-    private static IntervalSet LiteralTokens => _literalTokens ??= LiteralTokenSet();
-
-    private static IntervalSet? _literalTokens;
-
-    private static IntervalSet LiteralTokenSet()
-    {
-        var atn = CobolParserCore._ATN;
-        var set = new IntervalSet();
-        set.AddAll(atn.NextTokens(atn.ruleToStartState[CobolParserCore.RULE_residueLiteral]));
-        set.Add(CobolLexer.INTEGERLIT);
-        set.SetReadonly(true);
-        return set;
-    }
+    private static bool IsLiteral(IToken token) => LiteralTokens.Whole.Contains(token.Type);
 
     private static bool IsInRule(string[]? ruleStack, string ruleName)
         => ruleStack?.Any(r => CobolNames.Same(r, ruleName)) == true;

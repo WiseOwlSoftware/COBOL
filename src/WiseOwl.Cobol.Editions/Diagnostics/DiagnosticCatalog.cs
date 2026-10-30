@@ -385,6 +385,25 @@ public static class DiagnosticCatalog
         + "Format 2 (TO data-name-2 FROM identifier-1 [ RAISING … ]).",
         "ISO §14.9.38.2 · §14.9.38.3 SR2, SR4 · §5.2.1");
 
+    /// <summary>COBOL5506 — the element written is not of a kind the parse expects at its position (kb/Work PB3428,
+    /// PB3861). Emitted at the parse layer by <c>CobolErrorStrategy</c> (hint 0i), which reads what the parse takes AT
+    /// the token with every semantic predicate on the way evaluated, and worded by <c>AdmittedKinds</c>: the keywords and
+    /// context words expected there, the §8.3.3.1 literal categories, a figurative constant. It replaced COBOL0308 and
+    /// COBOL0309, which named the kind in two shapes only.</summary>
+    public static readonly DiagnosticDescriptor WrittenKindNotAdmitted = new(
+        "COBOL5506", "written-kind-not-admitted", EditionSeverity.Error,
+        "The element written is not of a kind expected at its position. ISO §5.2.1: \"The words, phrases, clauses, "
+        + "punctuation, and operands in each general format shall be written in the compilation group in the sequence "
+        + "given in the general format\". The message names the element written (a word, a literal of its §8.3.3.1 "
+        + "category — \"alphanumeric, boolean, national, or numeric\" — or the separator period) and what is expected "
+        + "there: every keyword, context word and literal category where all of it can be named (the X3.23-1985 "
+        + "OBJECT-COMPUTER MEMORY SIZE clause takes CHARACTERS, MODULES or WORDS after its integer, so MEMORY SIZE 12 FOO "
+        + "names the three), and otherwise the literal categories expected (SET W-N TO \"A\" writes an alphanumeric "
+        + "literal where §14.9.39.2 Format 1 prints integer-1 as its one literal). What is expected is what the "
+        + "compiler's parse takes, which is a superset of the general format wherever a later check names the departure "
+        + "better (INSPECT's tallying phrase is parsed with FIRST and TRAILING so COBOL2269 can refuse them by name).",
+        "ISO §5.2.1 · §8.3.3.1 · §8.3.3.3.2");
+
     public static readonly DiagnosticDescriptor RedefinesPointerObject = new(
         "COBOL1697", "redefines-pointer-object", EditionSeverity.Error,
         "ISO §13.18.44.3 syntax rule 12: \"The REDEFINES clause shall not be specified for a data item of "
