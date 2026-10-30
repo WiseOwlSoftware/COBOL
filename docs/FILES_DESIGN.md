@@ -2076,7 +2076,10 @@ file name as the clause's data-name and died at OPEN naming a word the programme
   worded once, in `ReportReferenceModified`, shared with `ScreenDataNameShape`.
 - **`ResolveClauseOperand(name, quals, face, at)`** — the resolution, reporting a zero- or many-survivor outcome
   under **COBOL1639**, the same descriptor the procedure division's own unidentified reference uses: the rule
-  broken is §8.4.2.1/§8.4.2.2, not a rule of the clause.
+  broken is §8.4.2.1/§8.4.2.2, not a rule of the clause. A word declared as something other than a data item (a
+  type-name or a type declaration's member, an alphabet-, constant-, index- or condition-name) is named as what it
+  is through the one query the procedure division asks too, `DataBinder.NonDataDeclarationOf` (kb/Work PB1906),
+  never "no declaration gives the name"; a constant-name whose entry was refused adds nothing to that entry's error.
 
 **The exceptions, and why they are principled.** The REPORT SECTION's SOURCE (§13.18.53), SUM (§13.18.54) and
 CONTROL (§13.18.16) operands capture with the unscreened `KeyReference` and apply their own rules, because
