@@ -494,6 +494,13 @@ public sealed class Frontend
         var tree = ReservationGateRewriter.ParseToFixpoint(parser, tokens, retypes, diagnostics,
             (bag, witness) => ParsePass(parser, tokens, bag, witness, sourcePath));
 
+        // ISO §8.3.2.1 / §8.1.3.2 GR4 / Annex B.3 — the characters of every COBOL word the lexer produced, decided from the
+        // token stream and NOT in the bound-tree funnel, so that a word the grammar cannot use (the parse then fails at the
+        // NEXT token) still draws the diagnostic that names its character (kb/Work PB3845). The tree, complete or not, only
+        // says which tokens are a comment-entry's text rather than words. Reported at the word's own position.
+        WordCharacterScreen.Run(tokens.GetTokens(), tree, edition, t => new BagSink(diagnostics,
+            LineMap.Locate(t.Line, t.Column, sourcePath)));
+
         // ISO §8.7.1 — the arithmetic operators' own separator context, decided from the characters beside each operator
         // the PARSE TREE found (only the tree says binary, unary or no operator at all) and reported the same way
         // (kb/Work PB2017). The two operator clauses that need no tree (§8.7.3, §8.7.4) were asked with the rest above.
