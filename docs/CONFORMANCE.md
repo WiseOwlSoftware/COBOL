@@ -2643,10 +2643,18 @@ a result, so GnuCOBOL 3.2 (libcob, measured on every case below) is the comparat
   evaluates its functions with its other identifiers, before any character moves, and so does WiseOwl COBOL. GR10 leaves
   the other case undefined, and GnuCOBOL evaluates a function in the argument list of `cob_string_append`, when its
   transfer begins. **WiseOwl COBOL follows GnuCOBOL there, for a function whose argument is a data item that can share
-  identifier-3's storage** (`StringEmitter.ReadsStorageOf` walks a function's arguments; a shape it does not walk, a
-  reference-modified result, an arithmetic argument or a user-defined function, answers "may"): the function is rendered
-  inline into its transfer and runs once, after the image of the earlier transfers was stored, so `FUNCTION RANDOM`
-  and a user-defined function are never evaluated twice. Measured (cobc 3.2.0 and this build agree): `STRING "xy"
+  identifier-3's storage** (`StringEmitter.ReadsStorageOf` walks a function's arguments, an arithmetic argument and
+  the positions of a reference-modified result; a shape it does not walk, a user-defined function, answers "may"):
+  the function is rendered inline into its transfer and runs once, after the image of the earlier transfers was
+  stored, so `FUNCTION RANDOM` and a user-defined function are never evaluated twice. **The FIRST sending is never
+  such a case** (no transfer has stored before it, so GR10 cannot reach it): its functions, and every function the
+  walk proves disjoint, are identified up front in statement order, so an EC-BOUND-REF-MOD in the sender precedes an
+  EC-BOUND-SUBSCRIPT in identifier-3 as §14.6.4 7) and §14.9.49.4 GR11 require (kb/Work PB3261;
+  `conformance:cases/14.9.43-STRING/pb1908_string_function_order`). A LATER sending whose function argument is a
+  LINKAGE item (or another reference no declaration pins) cannot be shown disjoint at compile time and is read at its
+  transfer, so a range test inside it runs there, in libcob's order; the order is unobservable unless the function
+  raises an exception condition, and the statement is in GR10's undefined zone whenever the caller does alias the
+  argument. Measured (cobc 3.2.0 and this build agree): `STRING "xy"
   FUNCTION UPPER-CASE(F) INTO F` over `F = "abcdefgh"` gives `xyXYCDEF` (an up-front evaluation gives `xyABCDEF`), and
   the delimiter `FUNCTION UPPER-CASE(X(1:1))` after `"z"` filled `X(1:1)` is `Z`, so `"12Z34Q56"` is cut at `Z`
   (`z12.......`). A function whose arguments are disjoint from identifier-3 keeps the up-front evaluation (`F3`). Pinned

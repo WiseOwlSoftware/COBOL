@@ -49,7 +49,9 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // operand and delimiter that identifies at run time is therefore read here, in statement order, BEFORE
         // identifier-3 is read and before the POINTER item's value is taken. The transfers change only the working image,
         // so a value read here is the value the transfer would have read — except where an operand can occupy
-        // identifier-3's storage (§14.9.43.4 GR10): that operand is read AGAIN at its own transfer (D-STR1, D-STR2 below).
+        // identifier-3's storage (§14.9.43.4 GR10): that operand is read AGAIN at its own transfer (D-STR1, D-STR2 below), and
+        // a FUNCTION operand of a later sending that can is evaluated once, at its transfer, instead (D-STR4). The first
+        // sending follows no store, so it is never such an operand.
         var sendings = new List<StringSending>(s.Sendings.Count);
         foreach (var snd in s.Sendings)
         {
@@ -58,10 +60,13 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             // GR2: a figurative literal-1 / literal-2 is a one-character item of identifier-3's usage, so its
             // HIGH-/LOW-VALUE comes from THAT usage's program collating sequence (§8.3.3.6.4 GR6; kb/Work PB1185).
             var rereads = new List<(string Local, string Read)>();
-            string src = ReadOperand(snd.Value, $"__strSrc{id}_{sendings.Count}", s, rereads);
+            // The FIRST sending follows no store of the statement, so nothing can reach its operands (GR10 needs a transfer
+            // that stored before the operand is read): it is always read once, in order.
+            bool first = sendings.Count == 0;
+            string src = ReadOperand(snd.Value, $"__strSrc{id}_{sendings.Count}", s, first, rereads);
             string delim = snd.BySize || snd.Delimiter is null ? "null"
-                : ReadOperand(snd.Delimiter, $"__strDlm{id}_{sendings.Count}", s, rereads);
-            bool reachable = ReadsStorageOf(snd.Value, s.Into) || (!snd.BySize && snd.Delimiter is { } d && ReadsStorageOf(d, s.Into));
+                : ReadOperand(snd.Delimiter, $"__strDlm{id}_{sendings.Count}", s, first, rereads);
+            bool reachable = !first && (ReadsStorageOf(snd.Value, s.Into) || (!snd.BySize && snd.Delimiter is { } d && ReadsStorageOf(d, s.Into)));
             sendings.Add(new StringSending(src, delim, reachable, rereads));
         }
         // ⚖ A DYNAMIC-LENGTH identifier-3 (kb/Work PB871; DETERMINATION D-DL2, docs/CONFORMANCE.md §3): GR6 and
@@ -144,17 +149,20 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
 
     /// <summary>One sending operand's or delimiter's text for <c>StringTransfer</c>: its ONE rendering
     /// (<see cref="OperandText.AsString"/>, in the receiver's character category). An operand no transfer of the
-    /// statement can reach (<see cref="ReadsStorageOf"/>) is read once, in statement order (<see cref="ReadInOrder"/>).
-    /// A reachable data-item reference is read in order as well (its range tests run in statement order) and adds its
-    /// (local, rendering) pair to <paramref name="rereads"/>, which the emitter assigns again when the operand's own
-    /// transfer begins (D-STR1, D-STR2). A reachable FUNCTION operand stays inline and is evaluated once, when its
-    /// transfer begins (D-STR4): evaluating it twice would run RANDOM or a user-defined function twice.</summary>
-    private string ReadOperand(BoundOperand operand, string local, BoundStringStmt s, List<(string Local, string Read)> rereads)
+    /// statement can reach (<see cref="ReadsStorageOf(BoundOperand, Place)"/>), and every operand of the
+    /// <paramref name="first"/> sending (no store precedes it), is read once, in statement order
+    /// (<see cref="ReadInOrder"/>, §14.6.4 7), whatever it reads. A reachable data-item reference is read in order as
+    /// well (its range tests run in statement order) and adds its (local, rendering) pair to <paramref name="rereads"/>,
+    /// which the emitter assigns again when the operand's own transfer begins (D-STR1, D-STR2). A reachable FUNCTION
+    /// operand of a later sending stays inline and is evaluated once, when its transfer begins (D-STR4): evaluating it
+    /// twice would run RANDOM or a user-defined function twice.</summary>
+    private string ReadOperand(BoundOperand operand, string local, BoundStringStmt s, bool first, List<(string Local, string Read)> rereads)
     {
         string read = OperandText.AsString(operand, num, characterCategory: s.CharacterCategory);
-        if (operand is not BoundFieldOperand && ReadsStorageOf(operand, s.Into)) return read;
+        bool reachable = !first && ReadsStorageOf(operand, s.Into);
+        if (reachable && operand is not BoundFieldOperand) return read;
         string value = ReadInOrder(operand, read, local);
-        if (!ReferenceEquals(value, read) && ReadsStorageOf(operand, s.Into)) rereads.Add((value, read));
+        if (reachable && !ReferenceEquals(value, read)) rereads.Add((value, read));
         return value;
     }
 
@@ -162,16 +170,41 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// 60). Identifier-3 is the one place a STRING stores before it ends (the POINTER item is stored last, after every
     /// transfer), so an operand needs the in-place read exactly when a data item it reads is one
     /// <see cref="StorageOverlap.MayShareStorage"/> cannot prove disjoint from identifier-3: a data-item reference
-    /// itself, or a function whose argument is such a reference. A literal and a figurative constant read no storage.
-    /// The answer is conservative like the predicate's: an operand of a shape this method does not walk (a function
-    /// with a reference-modified result, an arithmetic argument, a user-defined function) cannot be shown disjoint
-    /// and answers true. The ONE decision: the emitter asks here and derives nothing from a record walk.</summary>
+    /// itself, or a function whose arguments (and whose result's reference-modifier positions) read such a reference. A
+    /// literal and a figurative constant read no storage. The answer is conservative like the predicate's: an operand
+    /// of a shape this method does not walk (a user-defined function, an index or counter reference) cannot be shown
+    /// disjoint and answers true. The ONE decision: the emitter asks here and derives nothing from a record walk.</summary>
     private static bool ReadsStorageOf(BoundOperand operand, Place receiver) => operand switch
     {
         BoundFieldOperand f => StorageOverlap.MayShareStorage(f.Place, receiver),
         BoundStringLiteral or BoundNumericLiteral or BoundFigurative or BoundAllLiteral or BoundPredefinedNull
             or BoundOperandError => false,
-        BoundComputedOperand { Expr: BoundIntrinsicCall { RefMod: null } call } => call.Args.Any(a => ReadsStorageOf(a, receiver)),
+        BoundComputedOperand { Expr: var expr } => ReadsStorageOf(expr, receiver),
+        _ => true,
+    };
+
+    /// <summary>The numeric-expression arm of <see cref="ReadsStorageOf(BoundOperand, Place)"/>: a function call reads its
+    /// arguments and the positions of its result's reference modification, an arithmetic argument reads each item it names.</summary>
+    private static bool ReadsStorageOf(BoundExpr expr, Place receiver) => expr switch
+    {
+        BoundNumLiteral => false,
+        BoundNumRef r => StorageOverlap.MayShareStorage(r.Place, receiver),
+        BoundBinary b => ReadsStorageOf(b.Left, receiver) || ReadsStorageOf(b.Right, receiver),
+        BoundNegate n => ReadsStorageOf(n.Operand, receiver),
+        BoundPower p => ReadsStorageOf(p.Base, receiver) || ReadsStorageOf(p.Exp, receiver),
+        BoundIntrinsicCall call => call.Args.Any(a => ReadsStorageOf(a, receiver))
+            || (call.RefMod is { } rm && (ReadsStorageOf(rm.Start, receiver) || (rm.Length is { } len && ReadsStorageOf(len, receiver)))),
+        _ => true,
+    };
+
+    /// <summary>The reference-modifier position arm: a constant reads nothing, an item read is judged by its item.</summary>
+    private static bool ReadsStorageOf(Position position, Place receiver) => position switch
+    {
+        PositionConstant or PositionWideConstant => false,
+        PositionItemRead r => StorageOverlap.MayShareStorage(r.Item, receiver),
+        PositionBinary b => ReadsStorageOf(b.Left, receiver) || ReadsStorageOf(b.Right, receiver),
+        PositionNegate n => ReadsStorageOf(n.Operand, receiver),
+        PositionGroup g => ReadsStorageOf(g.Inner, receiver),
         _ => true,
     };
 
