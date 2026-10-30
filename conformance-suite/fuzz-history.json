@@ -473,6 +473,71 @@
     }
    },
    "defects": []
+  },
+  {
+   "night": 9,
+   "run_id": "fuzz-20261029-224533",
+   "started": "2026-10-30T05:45:33+00:00",
+   "model": "qwen3.6:35b",
+   "seed": 20261030,
+   "hours": 8.0,
+   "edition": "2014",
+   "sections": 235,
+   "programs": 6851,
+   "judged": 6851,
+   "usable": 4308,
+   "usable_first": 2215,
+   "they_reject": 207,
+   "survivors": 1901,
+   "survivor_signatures": 324,
+   "classes": {
+    "BOTH_REJECT": 2506,
+    "AGREE": 2407,
+    "WE_REJECT": 1111,
+    "OUTPUT_DIFFERS": 544,
+    "THEY_REJECT": 207,
+    "UNDEFINED_RESULT": 26,
+    "THEY_FAIL_RUN": 24,
+    "EXIT_DIFFERS": 12,
+    "NO_PROGRAM": 9,
+    "BOTH_HANG": 2,
+    "WE_FAIL_RUN": 2,
+    "THEY_HANG": 1
+   },
+   "judge": "8803a84ff",
+   "verdicts": {
+    "WISEOWL-CORRECT": {
+     "signatures": 93,
+     "programs": 1037
+    },
+    "GNUCOBOL-SIDE": {
+     "signatures": 70,
+     "programs": 358
+    },
+    "LATITUDE": {
+     "signatures": 75,
+     "programs": 332
+    },
+    "UNINITIALIZED": {
+     "signatures": 11,
+     "programs": 26
+    },
+    "NOT-COMPARABLE": {
+     "signatures": 5,
+     "programs": 41
+    },
+    "WISEOWL-DEFECT": {
+     "signatures": 1,
+     "programs": 13
+    },
+    "MODEL-ERROR": {
+     "signatures": 12,
+     "programs": 12
+    }
+   },
+   "defects": [
+    "PB4096"
+   ]
   }
  ]
 }
