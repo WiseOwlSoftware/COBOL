@@ -48,7 +48,7 @@ who acts next:
     1. its newest fix-lane report (`w<wave><letter>-PB<lead>-report.md`, coord.py REPORT_NAME, under
        coord.reports_dir()) is FINISHED (reports.Report.finished: `Status: DONE`, or DISCHARGED with a HEAD past its
        base) and COVERS the tip: its HEAD is the tip, or every commit after it is mechanical (main merged in cleanly,
-       the DEVLOG stamp: `unreviewed_since`, the one coverage rule the review stamp and `enqueue.py land` read). The
+       the DEVLOG stamp, a notes-only commit: `unreviewed_since`, the one coverage rule the review stamp and `enqueue.py land` read). The
        report's HEAD is its header's HEAD field, else the head its review stamp names (reports.parse_report: the
        reviewer stamps the head it reviewed, kb/Work PB3476). A report naming neither, or followed by a commit no
        report describes (an agent resumed after writing it), covers nothing: DECISION, with the count;
@@ -491,7 +491,7 @@ class Row:
     how: str = ''                   # a LANDED row whose own merge would change main: how its work got there (carried)
     tip: str = ''                   # the branch's tip sha (a review stamp covers exactly one head)
     review_holds: bool = False      # its review stamp (CLEAN or FINDINGS) names an older head and every commit since
-                                    # is mechanical (unreviewed_since: main's, a clean merge of main, DEVLOG-only)
+                                    # is mechanical (unreviewed_since: main's, a clean merge of main, register-only)
     report_since: list[str] | None = None   # unreviewed_since(the report's HEAD, tip): [] = the report covers the tip,
                                             # None = it names no head of this branch (kb/Work PB3181)
     carrier: str = ''               # contained(): the branch it lands THROUGH; its IN FLIGHT is that branch's, and
@@ -504,12 +504,24 @@ class Row:
                                     # (or the file repaired), and nobody works on THIS one either (owned() excludes it)
 
 
+def register_path(path: str) -> bool:
+    """A path only the register's audits read: a DEVLOG entry (`devlog.py check`: the landing checks and CI run it) or a
+    `kb/Work/` note (`work.py check`: the landing checks and CI run it, and its frontmatter claims and closed rows are
+    audited against the traceability inventory by `work_inventory.py`, so a status, a harm flag, `inventory_rows` or
+    `closes_rows` that is wrong fails an audit). THE ONE DEFINITION of a REGISTER-ONLY commit's paths (kb/Work PB3849);
+    DESIGN-test-build-ci.md section 3.17.2 step 2 says why they need no gate and no reviewer."""
+    note = path.removeprefix('kb/Work/')
+    return path.startswith('DEVLOG/') or (note != path and '/' not in note and note.endswith('.md'))
+
+
 def mechanical(commits: list[str], graph: Ancestry, repo=REPO) -> set[str]:
-    """The commits (beyond the graph's base) that change nothing a reviewer reads: a merge whose tree IS the clean merge
-    of its two parents THROUGH THE MERGE DRIVERS, the runtime ABI pin's measurement aside (no hand resolution: what
-    `enqueue.py land`'s own merge of origin/main makes; merge_drivers.is_drivers_merge, kb/Work PB3610), or a commit that
-    changes only DEVLOG/ (an entry, its stamp). Parents and trees come from the graph; every one-parent commit's files
-    from ONE `git diff-tree --stdin` (git_batch.diff_names); a merge costs its one `git merge-tree` (kb/Work PB3582)."""
+    """The commits (beyond the graph's base) that change nothing a reviewer reads or a test runs: a merge whose tree IS
+    the clean merge of its two parents THROUGH THE MERGE DRIVERS, the runtime ABI pin's measurement aside (no hand
+    resolution: what `enqueue.py land`'s own merge of origin/main makes; merge_drivers.is_drivers_merge, kb/Work PB3610),
+    or a REGISTER-ONLY commit: one that changes only DEVLOG/ and `kb/Work/` notes (`register_path`: an entry, its
+    stamp, a note's text or frontmatter; kb/Work PB3849). Parents and trees come from the graph; every one-parent
+    commit's files from ONE `git diff-tree --stdin` (git_batch.diff_names); a merge costs its one `git merge-tree`
+    (kb/Work PB3582)."""
     out = set()
     for c in commits:
         parents = graph.parents(c)
@@ -517,7 +529,7 @@ def mechanical(commits: list[str], graph: Ancestry, repo=REPO) -> set[str]:
             out.add(c)
     singles = [c for c in commits if len(graph.parents(c)) == 1]
     for c, paths in zip(singles, git_batch.diff_names(repo, [(c, graph.parents(c)[0]) for c in singles])):
-        if paths and all(p.startswith('DEVLOG/') for p in paths):
+        if paths and all(register_path(p) for p in paths):
             out.add(c)
     return out
 
@@ -550,7 +562,7 @@ def unreviewed_since(reviewed: str, tip: str, *, repo=REPO, base: str = git_batc
 
 def review_holds(rv: Review, tip: str | None, *, repo=REPO, graph: Ancestry | None = None) -> bool:
     """A review stamp at an OLDER head still holds at `tip`: every commit since its head is mechanical
-    (unreviewed_since == []: main merged in cleanly, the DEVLOG stamp). False when it names the tip itself."""
+    (unreviewed_since == []: main merged in cleanly, the DEVLOG stamp, a notes-only commit). False when it names the tip itself."""
     return bool(tip) and not rv.covers(tip) and unreviewed_since(rv.sha, tip, repo=repo, graph=graph) == []
 
 
@@ -1494,6 +1506,7 @@ def self_test() -> int:
                      # `succ`, which was cut from it and is DONE and reviewed CLEAN
                      ('unreviewed', 'src/N.cs'), ('review-findings', 'src/O.cs'), ('reviewed-moved', 'src/S.cs'),
                      ('pred', 'src/T.cs'), ('fnd-pred', 'src/W.cs'), ('reviewed-stamped', 'src/Y.cs'),
+                     ('reviewed-noted', 'src/Y2.cs'), ('reviewed-noted-src', 'src/Y3.cs'),
                      # kb/Work PB3394: a FINDINGS stamp at a head the branch moved past (its answers committed after
                      # the review), and one followed only by the DEVLOG stamp
                      ('findings-moved', 'src/FM.cs'), ('findings-stamped', 'src/FS.cs'), ('findings-resumed', 'src/FR.cs'),
@@ -1573,6 +1586,18 @@ def self_test() -> int:
         stamped_at = scratch.git('rev-parse', 'reviewed-stamped')
         scratch.git('switch', '-q', 'reviewed-stamped')
         commit('DEVLOG/0042-the-fix.md', '## Entry 42 — 2026-10-11 20:00 PDT — the fix\n\nWhy.\n', 'DEVLOG 42: stamp')
+        # kb/Work PB3849: CLEAN at a head, then a commit that changes only a register note and a DEVLOG entry: still
+        # reviewed; a note commit that also changes a source file is not
+        noted_at = scratch.git('rev-parse', 'reviewed-noted')
+        scratch.git('switch', '-q', 'reviewed-noted')
+        scratch.write({'kb/Work/PB9101.md': 'a note\n', 'DEVLOG/pending-noted.md': '## Noted\n\nWhy.\n'})
+        scratch.git('add', 'kb/Work/PB9101.md', 'DEVLOG/pending-noted.md')
+        scratch.git('commit', '-q', '-m', 'register-only: a note and a DEVLOG entry')
+        noted_src_at = scratch.git('rev-parse', 'reviewed-noted-src')
+        scratch.git('switch', '-q', 'reviewed-noted-src')
+        scratch.write({'kb/Work/PB9102.md': 'a note\n', 'src/Y3b.cs': 'class NotedSrcX {}\n'})
+        scratch.git('add', 'kb/Work/PB9102.md', 'src/Y3b.cs')
+        scratch.git('commit', '-q', '-m', 'a note and a source file')
         fmoved_at = scratch.git('rev-parse', 'findings-moved')
         scratch.git('switch', '-q', 'findings-moved')
         commit('src/FM.cs', 'class FindingsMovedX { int R1_1Answered; }\n', 'review R1-1: answered after the review')
@@ -1750,6 +1775,10 @@ def self_test() -> int:
                                           f'**Review:** CLEAN w9998n-r1 {tips["succ"]}\n', 10),
                 ('w9998q-PB17-report.md', f'Status: DONE\nBranch: reviewed-stamped\nHEAD: {stamped_at[:12]}\n'
                                           f'**Review:** CLEAN w9998q-review-r1 {stamped_at[:12]}\n', 10),
+                ('w9989a-PB62-report.md', f'Status: DONE\nBranch: reviewed-noted\nHEAD: {scratch.git("rev-parse", "reviewed-noted")}\n'
+                                          f'**Review:** CLEAN w9989a-review-r1 {noted_at[:12]}\n', 10),
+                ('w9989b-PB63-report.md', f'Status: DONE\nBranch: reviewed-noted-src\nHEAD: {scratch.git("rev-parse", "reviewed-noted-src")}\n'
+                                          f'**Review:** CLEAN w9989b-review-r1 {noted_src_at[:12]}\n', 10),
                 # kb/Work PB3394: rewritten for the answers committed after the FINDINGS review (the report covers the
                 # tip, the stamp does not), and a FINDINGS stamp followed only by the DEVLOG stamp (it still covers)
                 ('w9992a-PB50-report.md', f'Status: DONE\nBranch: findings-moved\nHEAD: {tips["findings-moved"]}\n'
@@ -1900,7 +1929,8 @@ def self_test() -> int:
                 'picked-lost': 'DECISION', 'tools-only': 'DECISION', 'unlanded-train': 'DECISION', 'ejected': 'DECISION',
                 'unreviewed': 'WAITING FOR REVIEW', 'review-findings': 'DECISION', 'reviewed-moved': 'WAITING FOR REVIEW',
                 'pred': 'IN FLIGHT', 'succ': 'WAITING TO LAND', 'fnd-pred': 'IN FLIGHT', 'fnd-fix': 'WAITING TO LAND',
-                'reviewed-stamped': 'WAITING TO LAND',
+                'reviewed-stamped': 'WAITING TO LAND', 'reviewed-noted': 'WAITING TO LAND',
+                'reviewed-noted-src': 'WAITING FOR REVIEW',
                 'lane-stopped': 'STOPPED', 'lane-pred': 'IN FLIGHT', 'lane-free': 'WAITING TO LAND',
                 'lane-done': 'ENQUEUED', 'lane-running': 'WAITING TO LAND', 'discharged': 'WAITING TO LAND',
                 'discharged-empty': 'DECISION', 'no-head': 'WAITING TO LAND', 'no-head-bare': 'DECISION',
@@ -2393,8 +2423,8 @@ def self_test() -> int:
         check([r['report']['path'] for r in printed['rows']] == ['w1a-PB4-report.md', 'w1a-PB3-report.md']
               and printed['landing_order'] == ['b3', 'b5'],
               f'--json prints each row with its report path as a string (kb/Work PB4055): {printed["rows"][:1]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 80 · 25 in flight · 6 waiting for review · '
-                                                      '13 waiting to land · 1 stopped · 2 enqueued · 0 not queued · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 82 · 25 in flight · 7 waiting for review · '
+                                                      '14 waiting to land · 1 stopped · 2 enqueued · 0 not queued · '
                                                       '0 bounced · 7 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
