@@ -35,5 +35,13 @@ What the sweep cannot reach, and the note records: a single-word rule name (`ide
 from the English word, and a deleted rule that no row ever cited as a `.g4#Rule` witness has no mark for the test to read.
 Line-number citations in older notes (`ArithmeticBinder.cs:94-139`) are staler still but are not rule names; they stay.
 
+Self-review: architecture (the rule lives in the one inventory drift class beside the PB762 prose check, reusing `ProseOf`
+and `CodeText`; the only new thing is the cross-row source of names, the marks), full code (the test cites no clause; the
+prose it protects cites §5.2.6.4 and §14.9.x rules that were `cite.py --check`ed or kept verbatim), performance (one
+regex over four thousand rows, six seconds in the targeted run), duplication (a `WholeWord` helper now serves
+`SymbolResolves` and the new check, replacing two copies of one pattern). Gate: the first gate, on the code and inventory
+head, was `LEG 1 ONLY (batched gating, PB2515): GREEN` with `Linux half (WSL clone of HEAD) GREEN` (run
+000001-20261030T034837Z); the new test passed in its leg 1 Unit run.
+
 No diagnostic codes used (COBOL5482-COBOL5484 returned). No conformance golden: no compiler behavior changed, and the
 rule these rows cite is untouched.
