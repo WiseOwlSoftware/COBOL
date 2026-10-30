@@ -902,9 +902,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// settles it into the SDIDI by round-to-odd, as <c>NumericRenderer.Settle</c> does for every receiver-less operand
     /// (kb/Work PB1900). The exact family never reads it lowered: <see cref="RenderWide"/> evaluates such a call on the wide form
     /// first (kb/Work PB3953), so <c>ABS (BIG * BIG * K3)</c> of 18-, 18- and 3-digit items is the exact 39-digit product, as
-    /// GnuCOBOL's arbitrary-precision argument temporary is. The consumers that still take the image are the bodies whose
-    /// value is an approximation in any case (the binary64 family, MEAN's SDIDI quotient) and the bounded integer positions,
-    /// where a value past 34 significant digits is outside the function's domain on either form.</para>
+    /// GnuCOBOL's arbitrary-precision argument temporary is. The bounded integer positions still take the image, and rightly:
+    /// a value past 34 significant digits is outside the function's domain on either form. ⛔ Two other consumers still take
+    /// it and are OPEN WRONG ANSWERS, not determinations: MEAN double-rounds (the image, then the SDIDI quotient's own rounding,
+    /// where one rounding of the exact sum is owed), and the binary64 family reads an argument as far from the written one as
+    /// the image is (SIN of a 39-digit product reads a value about 999 radians away); both want the wide form at intake.</para>
     /// </remarks>
     private NumX RawArg(BoundIntrinsicCall ic, int i) => NumericRenderer.LowerWide(RawWideArg(ic, i));
 
