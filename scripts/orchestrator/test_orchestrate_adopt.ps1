@@ -12,6 +12,8 @@
 $ErrorActionPreference = 'Stop'
 $Here = $PSScriptRoot
 . (Join-Path $Here 'testdata/orchestrate_test_lib.ps1')
+# A failed check quotes the run's adoption line: adopt_main's outcome and its reason (kb/Work PB4046).
+$script:Evidence = 'adopt main:'
 
 function G { & git -c user.email=t@t -c user.name=t @args 2>&1 | Out-Null; if ($LASTEXITCODE) { throw "git $args failed" } }
 function Land([string]$clone, [string]$file, [string]$text) {
