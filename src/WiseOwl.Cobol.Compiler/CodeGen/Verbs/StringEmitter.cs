@@ -511,9 +511,9 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
 
     /// <summary>Store a full-width character image back into the STRING receiver, preserving its storage shape
     /// (§14.9.43.4 GR7 — the image already carries the untouched positions): a character-image group distributes
-    /// via <c>FromImage</c>; a Tier-B view / reference window splices through its own <c>Write</c>; a long-stored
-    /// numeric-DISPLAY receiver (SR1 admits usage-display numeric) decodes the updated zoned image back to its
-    /// value; an alphanumeric, NATIONAL, USAGE DISPLAY boolean or image-stored receiver assigns the image directly
+    /// via <c>FromImage</c>; a Tier-B view / reference window splices through its own <c>Write</c>; an
+    /// alphanumeric, NATIONAL, USAGE DISPLAY boolean or image-stored receiver (a numeric item of usage display or
+    /// national, which SR1 admits and which holds the characters GR6 moves into it — kb/Work PB4089) assigns the image directly
     /// (same width by construction — a national elementary item is a string of national character positions, and
     /// §14.9.43.4 GR3 a) moves "national-to-national" with no space fill, GR7 keeping every position not written; a
     /// display boolean item is a string of '0' / '1' characters; kb/Work PB1179).</summary>
@@ -527,15 +527,13 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // The ONE group VALUE writer, in the alphabet ReadImage read (SendingGroupValue): a national group — class
         // national, so legal here by SR1 — takes its national positions, never its byte image (kb/Work PB1128).
         if (p.Item.IsGroup) { w.Line(PlaceRenderer.WriteGroupValue(p, imageExpr, "STRING INTO group")); return; }
-        if (p is not RedefViewPlace && !p.Item.StoreAsImage
-            && p.Item.Pic is { IsCharacterFormNumeric: true })   // THE ONE character-form predicate (kb/Work PB646)
-        {
-            w.Line(PlaceRenderer.Write(p, ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(imageExpr, p.Item.ProfileName), p.Item)));
-            return;
-        }
-        // Every other receiver SR1 and SR5 leave legal is a string of character positions — alphanumeric, national
-        // or USAGE DISPLAY boolean (a string of '0' / '1' characters, ReceivingStore.StorageArea: "display boolean ...
-        // stores the characters as they are") — and the image stores through its own writer. There is no loud arm:
+        // Every other receiver SR1 and SR5 leave legal is a string of character positions — alphanumeric, national,
+        // USAGE DISPLAY boolean (a string of '0' / '1' characters, ReceivingStore.StorageArea: "display boolean ...
+        // stores the characters as they are") or a numeric item of usage display or national, which holds its
+        // CHARACTER IMAGE (UsageCollectionPass makes the elementary identifier-3 a character channel, so StorageFormPass
+        // promotes it: GR6 moves characters and GR7 changes only the positions written, so a decoded value would lose
+        // the non-digit characters and the untouched positions' content — kb/Work PB4089) — and the image stores
+        // through its own writer. There is no loud arm:
         // every receiver SR1 refuses (a COMP, PACKED, INDEX, POINTER or BIT item), SR5 refuses (an edited item) or
         // SR4 refuses (a reference-modified one) is rejected at BIND time (StringUnstringBinder.BindString), so a loud
         // stage here could only fire on LEGAL source and mislabel it an SR1 violation (kb/Work PB1179: the national

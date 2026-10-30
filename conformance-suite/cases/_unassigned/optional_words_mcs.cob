@@ -49,10 +49,11 @@
            RECEIVE MSG-TAG GIVING MSG-BODY MSG-LEN
                CONTINUE MESSAGE RECEIVED
            END-RECEIVE.
-      *> TO omitted on SEND, both spellings of the operand. A literal-1 operand is Format 1's
-      *> (to-message-server), whose RETURNING data-name-1 line p756 prints without brackets, so
-      *> that spelling writes it (kb/Work PB2024: omitted, it is COBOL1850).
-           SEND MSG-TAG FROM MSG-BODY
+      *> TO omitted on SEND, both spellings of the operand. Both are Format 1's (to-message-server): a literal-1
+      *> operand, and a name that is no message-tag data item, which is a message-server-name-1 (14.9.38.3 SR2,
+      *> kb/Work PB4090). Format 1's RETURNING data-name-1 line p756 prints without brackets, so each spelling
+      *> writes it (kb/Work PB2024: omitted, it is COBOL1850).
+           SEND MSG-SERVER FROM MSG-BODY RETURNING MSG-TAG
            END-SEND.
            SEND "LITERAL-TAG" FROM MSG-BODY RETURNING MSG-TAG
            END-SEND.
@@ -60,7 +61,7 @@
            RECEIVE FROM MSG-TAG GIVING MSG-BODY MSG-LEN
                CONTINUE AFTER 5 SECONDS
            END-RECEIVE.
-           SEND TO MSG-TAG FROM MSG-BODY
+           SEND TO MSG-SERVER FROM MSG-BODY RETURNING MSG-TAG
            END-SEND.
       *> ordinary control flow around the inert facilities is unaffected
            PERFORM 3 TIMES
