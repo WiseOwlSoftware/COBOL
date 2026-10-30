@@ -16,6 +16,13 @@ New-Item -ItemType Directory -Force -Path $Tele | Out-Null
 $FxRepo = Join-Path $Root 'repo'
 New-Item -ItemType Directory -Force -Path $FxRepo | Out-Null
 $FakePython = Join-Path $Here 'testdata/fake-python.ps1'
+# THE SELF-TESTS NEVER REACH GITHUB (kb/Work PB4046): a `gh` that fails at once comes first on every supervisor run's PATH,
+# as on CI, whose step has no token. On a developer's host the real, authenticated gh made the lane tick's GitHub reads
+# (queue_facts) take 1-3 s, and that delay alone let the adoption win a race that CI's fast-failing gh lost: the self-test
+# passed locally and failed in CI. A case that needs GitHub's answers passes its own fake (-GhExe for adopt_main.py).
+$NoGh = Join-Path $Root 'no-gh'
+New-Item -ItemType Directory -Force -Path $NoGh | Out-Null
+Set-Content -Path (Join-Path $NoGh 'gh.cmd') -Encoding ascii -Value '@echo gh: the orchestrate self-tests never reach GitHub (kb/Work PB4046) 1>&2& exit /b 1'
 $script:fails = @()
 $script:checked = 0
 # A failed check quotes the lines of the newest run's output that say WHY (kb/Work PB4046: the adopt part's restart
@@ -42,8 +49,12 @@ function Run-Orch([string]$case, [string]$mode, [string[]]$extra, [scriptblock]$
     $env:FAKE_CLAUDE_MODE = $mode
     $env:FAKE_CLAUDE_MARK = $mark
     $repo = if ($extra -contains '-RepoDir') { @() } else { @('-RepoDir', $FxRepo) }
-    $out = & pwsh -NoProfile -File $Orch -ClaudeExe $Fake -CoordDir $coord -TelemetryDir $Tele -BackoffBaseSeconds 0 -IdleCloseSeconds 1 @repo @extra 2>&1
-    $code = $LASTEXITCODE
+    $path = $env:PATH
+    $env:PATH = "$NoGh$([IO.Path]::PathSeparator)$path"
+    try {
+        $out = & pwsh -NoProfile -File $Orch -ClaudeExe $Fake -CoordDir $coord -TelemetryDir $Tele -BackoffBaseSeconds 0 -IdleCloseSeconds 1 @repo @extra 2>&1
+        $code = $LASTEXITCODE
+    } finally { $env:PATH = $path }
     $runs = if (Test-Path $mark) { @(Get-Content $mark).Count } else { 0 }
     $units = if (Test-Path (Join-Path $coord 'units.jsonl')) { @(Get-Content (Join-Path $coord 'units.jsonl') | ForEach-Object { $_ | ConvertFrom-Json }) } else { @() }
     $script:lastRun = [pscustomobject]@{ case = $case; code = $code; out = ($out -join "`n"); runs = $runs; units = $units; coord = $coord }
