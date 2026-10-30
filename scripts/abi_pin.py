@@ -68,12 +68,26 @@ _CALL_ABI = re.compile(r"(public const int CallAbi = )(\d+)(;)")
 #: finisher fixes and a retry may clear; FAILED is the merged tree's own. The settle's Failure carries them, and
 #: merge_drivers.merge gives git's own refusals of the merge commit the same two.
 MERGE_BLOCKED, MERGE_FAILED = "merge-blocked", "merge-failed"
-#: What a failed build or test run says when the cause is the host's, not the tree's: MSBuild's copy of an output over a
-#: file another process holds (MSB3027 after its retries, MSB3021: the language server of a session holds an analyzer
-#: DLL, an antivirus scan holds a new one), a full disk, and a command that cannot start (gate_slot.py's `run` lets the
-#: spawn's FileNotFoundError reach its stderr when there is no `dotnet` on the PATH).
-_HOST_CAUSE = re.compile(r"MSB3027|MSB3021|being used by another process|is locked by|not enough space on the disk"
-                         r"|No space left on device|FileNotFoundError", re.IGNORECASE)
+#: What a failed build or test run says when the cause is the host's, not the tree's, ON A LINE THAT REPORTS THE FAILURE
+#: (kb/Work PB3809): MSBuild's copy of an output over a file another process holds, once its retries are spent (`error
+#: MSB3027`, or `error MSB3021`: the language server of a session holds an analyzer DLL, an antivirus scan holds a new
+#: one), a full disk, and a command that cannot start (gate_slot.py's `run` lets the spawn's FileNotFoundError reach its
+#: stderr when there is no `dotnet` on the PATH).
+_HOST_ERROR = re.compile(r"\berror\s+MSB3027\b|\berror\s+MSB3021\b", re.IGNORECASE)
+_HOST_PHRASE = re.compile(r"being used by another process|is locked by|not enough space on the disk"
+                          r"|No space left on device|FileNotFoundError", re.IGNORECASE)
+#: MSBuild's transient notice, which the `Build FAILED` summary repeats: `warning MSB3026: Could not copy ... Beginning
+#: retry 1 in 1000ms ... The file is locked by: ...` says a copy is being retried, not that anything failed. It carries
+#: the held-file phrases, so reading it as a cause called every build that retried once and then failed to compile the
+#: host's, and the landing stopped for the operator instead of going to a finisher (PB3809).
+_RETRY_NOTICE = re.compile(r"\bwarning\s+[A-Za-z]+\d+\s*:", re.IGNORECASE)
+
+
+def host_caused(output: str) -> bool:
+    """True when `output` reports a failure whose cause is the host's (_HOST_ERROR, _HOST_PHRASE), read line by line: a
+    warning line (_RETRY_NOTICE) reports no failure, so the phrases it carries count for nothing."""
+    return any(_HOST_ERROR.search(ln) or (_HOST_PHRASE.search(ln) and not _RETRY_NOTICE.search(ln))
+               for ln in output.splitlines())
 
 
 class Failure(NamedTuple):
@@ -88,9 +102,9 @@ Runner = Callable[[pathlib.Path], "Failure | None"]
 
 def failure(why: str, output: str = "") -> Failure:
     """The Failure of a command that exited non-zero: MERGE_BLOCKED when its FULL `output` names a cause of the host's
-    (_HOST_CAUSE), else MERGE_FAILED. The caller keeps only the tail of the output in `why`, and the error that decides
+    (host_caused), else MERGE_FAILED. The caller keeps only the tail of the output in `why`, and the error that decides
     the class can be above that tail, so the class is read from the whole output."""
-    return Failure(MERGE_BLOCKED if _HOST_CAUSE.search(output) else MERGE_FAILED, why)
+    return Failure(MERGE_BLOCKED if host_caused(output) else MERGE_FAILED, why)
 
 
 def parse(text: str) -> dict[str, str] | None:
@@ -296,6 +310,20 @@ def self_test() -> int:
                and failure("x", "error CS0103: The name 'x' does not exist in the current context").cause == MERGE_FAILED
                and failure("x", "Failed RuntimeAbiPinDriftTests.RuntimeHash_IsThePin").cause == MERGE_FAILED
                and failure("x").cause == MERGE_FAILED)
+        retry = ('a.csproj : warning MSB3026: Could not copy "a.dll" to "b.dll". Beginning retry 1 in 1000ms. The '
+                 'process cannot access the file because it is being used by another process. The file is locked by: '
+                 '"csharp-ls (62616)"')
+        compiled = "error CS0103: The name 'x' does not exist in the current context" + NL + "Build FAILED."
+        expect("failure: MSBuild's transient copy-retry WARNING (MSB3026, which carries the held-file phrases) is no cause: "
+               "a retried copy followed by a compile error is MERGE_FAILED, a finisher's, and the same retry followed by "
+               "the error MSB3027 that ends the retries stays MERGE_BLOCKED, whichever line comes first (kb/Work PB3809)",
+               failure("x", retry + NL + compiled).cause == MERGE_FAILED
+               and failure("x", compiled + NL + retry).cause == MERGE_FAILED
+               and failure("x", retry).cause == MERGE_FAILED
+               and failure("x", retry + NL + "error MSB3027: Could not copy a.dll. Exceeded retry count of 10. Failed."
+                           + NL + compiled).cause == MERGE_BLOCKED
+               and failure("x", "System.IO.IOException: The process cannot access the file 'a.dll' because it is being "
+                           "used by another process.").cause == MERGE_BLOCKED)
         (repo / PROPS_PATH).write_bytes(b"<Project />")
         malformed = settle(repo, measure=writes)
         expect("settle: an owned file that lacks the line the settle rewrites is the merged tree's (MERGE_FAILED), and "

@@ -156,13 +156,13 @@ public sealed class LandingPipelineDriftTests
     public void TheMergeGroupRun_CancelsTheRunsTheQueueSuperseded_AndNothingElse()
     {
         string wf = File.ReadAllText(TestRepo.At(".github", "workflows", "build-and-test.yml")).ReplaceLineEndings("\n");
-        Match job = Regex.Match(wf, @"^  supersede:\n(?<body>(?:(?:   .*|[ \t]*#.*|[ \t]*)\n)*)", RegexOptions.Multiline);
-        Assert.True(job.Success, "build-and-test.yml has no `supersede` job: superseded merge-group runs hold runners");
-        string body = job.Groups["body"].Value;
+        CiJob? supersede = CiWorkflow.Jobs(wf).FirstOrDefault(j => j.Id == "supersede");
+        Assert.True(supersede is not null, "build-and-test.yml has no `supersede` job: superseded merge-group runs hold runners");
+        string body = supersede.Code;
         Assert.Matches(new Regex(@"^    if: github\.event_name == 'merge_group'$", RegexOptions.Multiline), body);
         Assert.DoesNotMatch(new Regex(@"^    needs:", RegexOptions.Multiline), body);
         Assert.Matches(new Regex(@"^      actions: write\b", RegexOptions.Multiline), body);
-        IReadOnlyList<string> fatalSteps = StepsThatCanFailTheJob(body, out int stepCount);
+        IReadOnlyList<string> fatalSteps = StepsThatCanFailTheJob(supersede, out int stepCount);
         Assert.True(stepCount >= 3, $"the `supersede` job lists {stepCount} steps; the checkout, the sweep and the checkout-failed "
                                     + "notice are three, so the step reader is not measuring the job");
         Assert.True(fatalSteps.Count == 0, "a `supersede` step is not `continue-on-error: true`, so a housekeeping failure "
@@ -177,7 +177,7 @@ public sealed class LandingPipelineDriftTests
         Assert.Contains("SHA: ${{ github.sha }}", body, StringComparison.Ordinal);
         Assert.True(Regex.Matches(wf, @"^\s+actions:\s*write\b", RegexOptions.Multiline).Count == 1,
             "a job other than `supersede` is granted `actions: write`: only the sweep may cancel a run");
-        Assert.Matches(new Regex(@"^  ci-gate:\n(?:.*\n)*?    needs: \[[^\]]*\bsupersede\b", RegexOptions.Multiline), wf);
+        Assert.Matches(new Regex(@"^\[[^\]]*\bsupersede\b"), CiWorkflow.Jobs(wf).Single(j => j.Id == "ci-gate").Value("needs"));
 
         SelfTestArmSource.AssertDeclares(TestRepo.Scripts("orchestrator", "cancel_superseded.py"), new[]
         {
@@ -206,20 +206,18 @@ public sealed class LandingPipelineDriftTests
         });
     }
 
-    /// <summary>The steps of a workflow job's body (the text under its key, LF line endings) that lack
-    /// <c>continue-on-error: true</c> as a key of their own: a step starts at a six-space <c>- </c> and its keys sit at
-    /// eight spaces, so a <c>continue-on-error</c> deeper down (a <c>with:</c> value) is not the step's. Each is named by
-    /// its <c>name:</c>, else its <c>id:</c> or <c>uses:</c>, else its first line.</summary>
-    internal static IReadOnlyList<string> StepsThatCanFailTheJob(string jobBody, out int stepCount)
+    /// <summary>The steps of <paramref name="job"/> that lack <c>continue-on-error: true</c> as a key of their own (a
+    /// <c>continue-on-error</c> deeper down, a <c>with:</c> value, is not the step's: <see cref="CiStep.Value"/> reads the
+    /// step's own keys). Each is named by <see cref="CiStep.Label"/>.</summary>
+    internal static IReadOnlyList<string> StepsThatCanFailTheJob(CiJob job, out int stepCount)
     {
-        string[] steps = Regex.Split(jobBody, @"^(?=      - )", RegexOptions.Multiline)
-            .Where(chunk => chunk.StartsWith("      - ", StringComparison.Ordinal)).ToArray();
-        stepCount = steps.Length;
-        return steps.Where(step => !Regex.IsMatch(step, @"^(?:      - |        )continue-on-error: true[ \t]*(?:#.*)?$", RegexOptions.Multiline))
-            .Select(step => Regex.Match(step, @"^(?:      - |        )(?:name|id|uses): (?<v>.*)$", RegexOptions.Multiline) is { Success: true } m
-                ? m.Groups["v"].Value.Trim() : step.Split('\n')[0].Trim())
-            .ToList();
+        IReadOnlyList<CiStep> steps = job.Steps;
+        stepCount = steps.Count;
+        return [.. steps.Where(step => step.Value("continue-on-error") != "true").Select(step => step.Label)];
     }
+
+    /// <summary>A job whose body is <paramref name="body"/> (its lines, indented as the workflow indents them).</summary>
+    private static CiJob JobOf(string body) => Assert.Single(CiWorkflow.Jobs("jobs:\n  j:\n" + body));
 
     [Fact]
     public void TheSupersedeStepReader_NamesEveryStepThatCouldFailTheJob()
@@ -229,14 +227,14 @@ public sealed class LandingPipelineDriftTests
             + "      - name: sweep\n        if: steps.checkout.outcome == 'success'\n        continue-on-error: true   # housekeeping\n        run: x\n"
             + "      - name: notice\n        run: echo\n"
             + "      - uses: actions/other@v1\n        with:\n          continue-on-error: true\n";
-        IReadOnlyList<string> fatal = StepsThatCanFailTheJob(job, out int count);
+        IReadOnlyList<string> fatal = StepsThatCanFailTheJob(JobOf(job), out int count);
         Assert.Equal(4, count);
         Assert.Equal(["notice", "actions/other@v1"], fatal);
 
-        Assert.Empty(StepsThatCanFailTheJob("      - name: a\n        continue-on-error: true\n        run: x\n", out int one));
+        Assert.Empty(StepsThatCanFailTheJob(JobOf("    steps:\n      - name: a\n        continue-on-error: true\n        run: x\n"), out int one));
         Assert.Equal(1, one);
-        Assert.Equal(["a"], StepsThatCanFailTheJob("      - name: a\n        continue-on-error: false\n        run: x\n", out _));
-        Assert.Empty(StepsThatCanFailTheJob("    steps:\n", out int none));
+        Assert.Equal(["a"], StepsThatCanFailTheJob(JobOf("    steps:\n      - name: a\n        continue-on-error: false\n        run: x\n"), out _));
+        Assert.Empty(StepsThatCanFailTheJob(JobOf("    steps:\n"), out int none));
         Assert.Equal(0, none);
     }
 

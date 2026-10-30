@@ -95,8 +95,9 @@ public sealed class ReviewLaneDriftTests
             "ONE finisher per head: the same conflict at the same head starts none",
             "a finisher that ended (here DIED) with the head where it found it is a HOLD for the enqueue unit",
             "never ticked and a branch waits: the unit ticks it once",
-            "an agent past its CEILING is killed and recorded STALLED",
-            "a loop stop ends a running agent, recorded STOPPED",
+            // kb/Work PB4072: the rc proves the kill; on Linux the agent led no process group and was never killed
+            "an agent past its CEILING is KILLED (its rc is the kill's, never the stub's own 3) and recorded STALLED",
+            "a loop stop KILLS a running agent (its rc is the kill's, never the stub's own 3), recorded STOPPED",
         });
     }
 }

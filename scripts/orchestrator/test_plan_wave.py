@@ -936,6 +936,17 @@ spec_file.write_text(spec0 + "\n" + twice + "\n", encoding="utf-8", newline="\n"
 check("... and check_practices refuses a spec that states a sentence twice",
       [m.startswith("PB3777: states twice: orientation") for m in check_practices.check(spec_file, []) if "PB3777" in m], [True])
 spec_file.write_text(spec0, encoding="utf-8", newline="\n")
+# kb/Work PB4005: a one-file group ends both "THE GROUP IS ONE ROOT:" and "CODE SITES the notes name:" with its file, so the
+#      lone path is a "sentence" the spec states twice. It names data in two roles and states no rule: the once-check passes
+#      it (waves 20261751 and 20261755 rendered RED on PB4031's group, whose one file is this 62-character path).
+ONE = "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs"
+g1 = as_group_json(dataclasses.replace(p["groups"][0], file=ONE, files=[ONE], members={}), "77", notes, "COBOL0001-COBOL0003")
+one_spec = TMP / "msg-w77-one.txt"
+one_spec.write_text(mds.render(CFG77, g1, FILES(g1)), encoding="utf-8", newline="\n")
+one_text = " ".join(one_spec.read_text(encoding="utf-8").split())
+check("PB4005: a one-file group's spec ends the root and the sites with its long path, and the once-check passes it",
+      (len(ONE) + 1 >= check_practices.SENTENCE_MIN, f"ONE ROOT: {ONE}. " in one_text, f"notes name: {ONE}. " in one_text,
+       [m for m in check_practices.check(one_spec, []) if "PB3777" in m]), (True, True, True, []))
 check("every statement of a cap in the tree matches its role's maxTurns", check_practices.turn_cap_copies(), [])
 CAPREPO = TMP / "caprepo"
 for rel in {c[0] for c in check_practices.CAP_COPIES} | {f".claude/skills/workstream/templates/{b}" for b in check_practices.NUMBERLESS_CAP_BRIEFS} | set(check_practices.NUMBERLESS_CAP_FILES):
@@ -1801,6 +1812,11 @@ check("nothing left to release", release_dispatch(RL, "1050"), [])
 check("changed_files passes --no-renames",
       changed_files(lambda *a, **k: _R(NL.join(a) + NL) if "--no-renames" in a else _R(""), "x...y"),
       {"diff", "--name-only", "--no-renames", "x...y"})
+# kb/Work PB3791: range_names is the ONE question, every path it lists; changed_files is its work paths
+RANGE = lambda *a, **k: _R(NL.join([".claude/settings.local.json", "src/A.cs", "TestResults/x.trx", "STATUS.md"]) + NL)   # noqa: E731
+check("range_names lists every path of the range, the paths no landing carries too",
+      inb.range_names(RANGE, "x...y"), {".claude/settings.local.json", "src/A.cs", "TestResults/x.trx", "STATUS.md"})
+check("changed_files is range_names without those paths", changed_files(RANGE, "x...y"), {"src/A.cs"})
 
 # 10. whether a note is blocked is DERIVED (kb/Work PB3389): work.waiting_on is the one reading, so a blocker that lands
 # changes the dependent's answer with no edit to the dependent, and `check` refuses a stored `blocked:` flag, which could
