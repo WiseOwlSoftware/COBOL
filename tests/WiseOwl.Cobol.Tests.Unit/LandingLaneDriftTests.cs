@@ -99,6 +99,9 @@ public sealed class LandingLaneDriftTests
                 + "the remedies tried) and the watch acts no more, however long it stays out",
             "queue watch: with no check-run at all the clock starts at the enqueue",
             "queue watch: a check-run whose job the jobs API could not read never holds the watch for ever",
+            // kb/Work PB4052: ci-gate has no check-run while a job it needs runs; that is work running, never a stall
+            "queue watch: a required check with no check-run yet because a job it needs still runs (PR #777's audits, "
+                + "25 min after the enqueue) is WATCHING with no remedy, never the requeue that cancels the run",
             "exit 12 while the gate lock is held: not relaunched, not the enqueue unit's work",
             "exit 12 once the gate lock is free: retried at the same head",
             "wait_free for exit 12 reads the gate driver's own lock of the worktree",
@@ -113,8 +116,11 @@ public sealed class LandingLaneDriftTests
         {
             "auto-merge on is NOT in the queue",
             "a required check-run in progress whose Actions job completed is STUCK (PR #385's propagation fault)",
-            "only an unresolved required check-run asks the jobs API",
+            "only an unresolved check-run asks the jobs API (a resolved one, required or not, never does)",
             "a job the jobs API cannot read leaves the check-run unknown, never stuck",
+            // kb/Work PB4052: a reopen's run supersedes the run it cancelled, whose failed ci-gate is no red
+            "a superseded run's check-runs are history (kb/Work PB4052): the newer run of the same workflow on the head "
+                + "decides, so the cancelled run's FAILED ci-gate is no red",
             "offline, a gh failure or a malformed answer is None (a non-observation), never {}",
         });
     }

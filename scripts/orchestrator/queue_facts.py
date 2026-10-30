@@ -18,12 +18,16 @@ WHAT ONE READ RETURNS ({head branch: PullRequest}, or None when GitHub could not
     pushed after it (the last 100 removal and commit timeline items: `headRefOid` is the CURRENT head, which every push
     moves, so a removal is read against the head it was observed at, kb/Work PB3275), and the head commit's check-runs
     with the workflow run of each;
-  - for each REQUIRED context (ruleset.required_contexts: the committed ruleset's `required_status_checks`) the newest
-    check-run on the head commit; and only while that check-run is UNRESOLVED (not COMPLETED), its Actions job's own
-    status from the REST jobs API (`actions/jobs/<id>`: for a GitHub Actions check-run the check-run id IS the job id).
-    A check-run still in progress whose job has completed is a PROPAGATION FAULT (PR #385, 2026-10-22: job `ci-gate`
-    completed success at 18:46:46Z, its check-run on the head commit stayed in_progress for 50 minutes, the queue
-    empty, the merge state BLOCKED): `CheckRun.stuck`.
+  - the newest check-run of EVERY context on the head commit, read only from the NEWEST workflow run of each workflow
+    there: an older run of the same workflow on the same head was superseded (a reopen's run cancels it), so its
+    check-runs, its cancelled `ci-gate` among them, are history and never this head's facts (kb/Work PB4052). The
+    REQUIRED contexts' (ruleset.required_contexts: the committed ruleset's `required_status_checks`) are `checks`; the
+    others are `others`, the jobs a required check `needs:` (build-and-test.yml's `ci-gate` has no check-run at all
+    until they end, so without them a long `audits` job read as no work running). Only while a check-run is
+    UNRESOLVED (not COMPLETED) is its Actions job's own status asked of the REST jobs API (`actions/jobs/<id>`: for a
+    GitHub Actions check-run the check-run id IS the job id). A check-run still in progress whose job has completed is
+    a PROPAGATION FAULT (PR #385, 2026-10-22: job `ci-gate` completed success at 18:46:46Z, its check-run on the head
+    commit stayed in_progress for 50 minutes, the queue empty, the merge state BLOCKED): `CheckRun.stuck`.
 `fetch_bounce_results` asks for the REDS of a bounce (kb/Work PB3644): it downloads the test results of the
 newest failed merge-group run of a branch's open pull request into the worktree (`gate_plan.CI_BOUNCE_RESULTS`), where the
 gate planner reads them as tier 0a, called by `run_gate_legs.Host.fetch_bounce_results` before every gate's plan.
@@ -65,13 +69,13 @@ QUERY = ('query($owner:String!,$name:String!){repository(owner:$owner,name:$name
          'timelineItems(itemTypes:[REMOVED_FROM_MERGE_QUEUE_EVENT],last:1){nodes{'
          '... on RemovedFromMergeQueueEvent{reason createdAt}}} '
          'pushes:timelineItems(itemTypes:[REMOVED_FROM_MERGE_QUEUE_EVENT,PULL_REQUEST_COMMIT],last:100){nodes{__typename}} '
-         'commits(last:1){nodes{commit{oid checkSuites(first:20){nodes{workflowRun{databaseId} '
+         'commits(last:1){nodes{commit{oid checkSuites(first:20){nodes{workflowRun{databaseId workflow{databaseId}} '
          'checkRuns(first:50){nodes{databaseId name status conclusion completedAt}}}}}}}}}}}')
 
 
 @dataclasses.dataclass(frozen=True)
 class CheckRun:
-    """The newest check-run of one REQUIRED context on a pull request's head commit."""
+    """The newest check-run of one context on a pull request's head commit."""
     name: str
     status: str                 # GraphQL CheckStatusState: QUEUED, IN_PROGRESS, COMPLETED, WAITING, PENDING, REQUESTED
     conclusion: str             # GraphQL CheckConclusionState ('' while unresolved)
@@ -112,6 +116,13 @@ class PullRequest:
     checks: tuple[CheckRun, ...] = ()   # the required contexts' newest check-runs on the head commit
     repo: str = ''                  # owner/name: the repository the read asked about (a remedy names it)
     pushed_since_removal: bool = False  # a commit reached the branch AFTER the newest queue removal: a head the queue never saw
+    others: tuple[CheckRun, ...] = ()   # every other context's newest check-run there: the jobs a required check needs
+
+    @property
+    def head_runs(self) -> tuple[CheckRun, ...]:
+        """Every context's newest check-run on the head commit, the required ones first: the head's checks' WORK, which
+        is still running while any of them runs, whether or not a required context has a check-run yet (kb/Work PB4052)."""
+        return self.checks + self.others
 
     @property
     def bounced(self) -> str:
@@ -144,21 +155,37 @@ class PullRequest:
         return (self.in_queue or bool(self.auto_merge_at)) and not (self.bounced or self.conflicts or self.red)
 
 
-def _required_runs(commit: dict, required: tuple[str, ...]) -> list[CheckRun]:
-    """The newest check-run of each required context on the commit (the highest databaseId: a re-run's is newer)."""
+def _head_runs(commit: dict, required: tuple[str, ...]) -> tuple[list[CheckRun], list[CheckRun]]:
+    """(the required contexts' newest check-runs on the commit, in `required` order; every other context's, by name).
+    Newest is the highest databaseId (a re-run's is newer), read only from the newest workflow run of each workflow on
+    the commit: closing and reopening a pull request starts a new run of the workflow on the same head, which cancels
+    the one in flight, and that cancelled run's `ci-gate` FAILS ("audits=cancelled"). Read as the head's, it turned a
+    branch with no defect BOUNCED until the new run's own `ci-gate` existed (kb/Work PB4052, PR #760). A check suite
+    with no workflow run (another app's) is read as it is."""
+    suites = [s for s in ((commit.get('checkSuites') or {}).get('nodes') or []) if isinstance(s, dict)]
+
+    def run_of(suite: dict) -> tuple[int, int | None]:
+        wr = suite.get('workflowRun') or {}
+        return int(wr.get('databaseId') or 0), (wr.get('workflow') or {}).get('databaseId')
+    latest: dict[object, int] = {}
+    for suite in suites:
+        run, workflow = run_of(suite)
+        if workflow is not None:
+            latest[workflow] = max(latest.get(workflow, 0), run)
     newest: dict[str, CheckRun] = {}
-    for suite in ((commit.get('checkSuites') or {}).get('nodes') or []):
-        if not isinstance(suite, dict):
+    for suite in suites:
+        run, workflow = run_of(suite)
+        if workflow is not None and run != latest[workflow]:
             continue
-        run = int(((suite.get('workflowRun') or {}).get('databaseId')) or 0)
         for c in ((suite.get('checkRuns') or {}).get('nodes') or []):
-            if not isinstance(c, dict) or c.get('name') not in required:
+            if not isinstance(c, dict) or not c.get('name'):
                 continue
             cr = CheckRun(str(c['name']), str(c.get('status') or ''), str(c.get('conclusion') or ''),
                           int(c.get('databaseId') or 0), run, str(c.get('completedAt') or ''))
-            if c['name'] not in newest or cr.job > newest[c['name']].job:
-                newest[c['name']] = cr
-    return [newest[n] for n in required if n in newest]
+            if cr.name not in newest or cr.job > newest[cr.name].job:
+                newest[cr.name] = cr
+    return ([newest[n] for n in required if n in newest],
+            [newest[n] for n in sorted(newest) if n not in required])
 
 
 def _with_job(gh: Gh, repo: str, cr: CheckRun) -> CheckRun:
@@ -209,7 +236,7 @@ def read(gh: Gh | None = None, required: tuple[str, ...] | None = None) -> dict[
             number = int(n.get('number') or 0)
             removed = [e for e in ((n.get('timelineItems') or {}).get('nodes') or []) if isinstance(e, dict) and e]
             commits = [c.get('commit') or {} for c in ((n.get('commits') or {}).get('nodes') or []) if isinstance(c, dict)]
-            checks = _required_runs(commits[-1], required) if commits else []
+            checks, others = _head_runs(commits[-1], required) if commits else ([], [])
             prs[str(n['headRefName'])] = PullRequest(
                 number, str(n.get('url') or ''), str(n.get('headRefOid') or ''),
                 number in queued or bool(n.get('isInMergeQueue')),
@@ -217,7 +244,8 @@ def read(gh: Gh | None = None, required: tuple[str, ...] | None = None) -> dict[
                 f"{removed[-1].get('reason') or 'no reason given'} at {removed[-1].get('createdAt') or '?'}"
                 if removed else '',
                 tuple(_with_job(run, repo, c) for c in checks), repo,
-                bool(removed) and pushed_since_removal((n.get('pushes') or {}).get('nodes') or []))
+                bool(removed) and pushed_since_removal((n.get('pushes') or {}).get('nodes') or []),
+                tuple(_with_job(run, repo, c) for c in others))
         return prs
     except (ruleset.Unobserved, ValueError, KeyError, TypeError, AttributeError):
         return None
@@ -373,7 +401,8 @@ def describe(pr: PullRequest) -> str:
     checks = '; '.join(f'{c.name} {c.status.lower() or "?"}' + (f' {c.conclusion.lower()}' if c.conclusion else '')
                        + (f', its job {c.job_status} {c.job_completed_at}' if c.job_status and not c.resolved else '')
                        for c in pr.checks) or 'no required check-run on the head yet'
-    return (f'merge state {pr.merge_state or "?"}; {checks}'
+    running = [c.name for c in pr.others if not c.resolved]
+    return (f'merge state {pr.merge_state or "?"}; {checks}' + (f'; still running: {", ".join(running)}' if running else '')
             + (f'; auto-merge on since {pr.auto_merge_at}' if pr.auto_merge_at else '; auto-merge off'))
 
 
@@ -398,16 +427,21 @@ def fake(prs: list[dict], entries: list[int] = (), jobs: dict[int, dict] | None 
 
 
 def node(number: int, branch: str, head: str, *, in_queue: bool = False, auto: str = '', state: str = 'BLOCKED',
-         removed: str = '', runs: list[dict] = (), pushed: int = 0) -> dict:
-    """A planted GraphQL pull-request node; `runs`: check-runs of one suite of workflow run 900 + number; `pushed`:
-    commits pushed to the branch after the queue removed it (the `pushes` window: two commits, the removal, then those)."""
+         removed: str = '', runs: list[dict] = (), pushed: int = 0,
+         suites: list[tuple[int | None, int, list[dict]]] | None = None) -> dict:
+    """A planted GraphQL pull-request node; `runs`: check-runs of one suite, workflow run 900 + number of workflow 1;
+    `suites`: instead, (workflow, its run, check-runs) per suite, workflow None for a suite with no workflow run;
+    `pushed`: commits pushed to the branch after the queue removed it (the `pushes` window: two commits, the removal,
+    then those)."""
+    suites = suites if suites is not None else [(1, 900 + number, list(runs))]
     commit, removal = {'__typename': 'PullRequestCommit'}, {'__typename': 'RemovedFromMergeQueueEvent'}
     return {'number': number, 'url': f'u{number}', 'headRefName': branch, 'headRefOid': head, 'isInMergeQueue': in_queue,
             'mergeStateStatus': state, 'autoMergeRequest': {'enabledAt': auto} if auto else None,
             'timelineItems': {'nodes': [{'reason': removed, 'createdAt': '2026-10-22T18:00:00Z'}] if removed else []},
             'pushes': {'nodes': [commit, commit] + ([removal] if removed else []) + [commit] * pushed},
             'commits': {'nodes': [{'commit': {'oid': head, 'checkSuites': {'nodes': [
-                {'workflowRun': {'databaseId': 900 + number}, 'checkRuns': {'nodes': list(runs)}}]}}}]}}
+                {'workflowRun': None if workflow is None else {'databaseId': run, 'workflow': {'databaseId': workflow}},
+                 'checkRuns': {'nodes': list(checks)}} for workflow, run, checks in suites]}}}]}}
 
 
 def self_test() -> int:
@@ -441,13 +475,15 @@ def self_test() -> int:
            and prs['auto'].auto_merge_at == '2026-10-22T18:44:50Z' and prs['auto'].repo == 'o/r', str(prs))
     stuck = prs['stuck'].checks
     expect("a required check-run in progress whose Actions job completed is STUCK (PR #385's propagation fault), with "
-           "the job's completion as its time; one whose job still runs is not; an unrequired check is not read",
+           "the job's completion as its time; one whose job still runs is not; an unrequired check is no required one "
+           "(it is among `others`, and its failure is no red)",
            [c.name for c in stuck] == ['ci-gate'] and stuck[0].stuck and stuck[0].done_at == '2026-10-22T18:46:46Z'
-           and stuck[0].run == 904 and not prs['auto'].checks[0].stuck and prs['auto'].checks[0].done_at == '',
-           f'{stuck} {prs["auto"].checks}')
+           and stuck[0].run == 904 and not prs['auto'].checks[0].stuck and prs['auto'].checks[0].done_at == ''
+           and [c.name for c in prs['stuck'].others] == ['audits'] and prs['stuck'].red is None,
+           f'{stuck} {prs["auto"].checks} {prs["stuck"].others}')
     jobs_read = sorted(a[1].rsplit('/', 1)[1] for a in log if a[0] == 'api' and '/actions/jobs/' in a[1])
-    expect("only an unresolved required check-run asks the jobs API; the newest check-run of a context decides (a "
-           "re-run's), so a re-run that completed is not stuck",
+    expect("only an unresolved check-run asks the jobs API (a resolved one, required or not, never does); the newest "
+           "check-run of a context decides (a re-run's), so a re-run that completed is not stuck",
            jobs_read == ['31', '41'] and prs['rerun'].checks[0].job == 71 and not prs['rerun'].checks[0].stuck,
            f'{jobs_read} {prs["rerun"].checks}')
     expect("a pull request the queue removed with auto-merge off is BOUNCED with GitHub's reason; a required check "
@@ -491,6 +527,26 @@ def self_test() -> int:
     lost = read(fake([node(8, 'lost', 'h1', auto='t', runs=[gate(81, 'IN_PROGRESS')])], jobs={}), required=req) or {}
     expect("a job the jobs API cannot read leaves the check-run unknown, never stuck",
            not lost['lost'].checks[0].stuck and lost['lost'].checks[0].job_status == '', str(lost))
+    # PR #777's shape (kb/Work PB4052): the lane's reopen started run 960 on the head and cancelled run 950, whose
+    # ci-gate then FAILED ("audits=cancelled"); the new run's audits still runs and its ci-gate does not exist yet.
+    named = lambda name, job, status, concl='', done='': {**gate(job, status, concl, done), 'name': name}  # noqa: E731
+    reopened = read(fake([node(20, 'reopened', 'n1', auto='t', suites=[
+        (1, 950, [gate(951, 'COMPLETED', 'FAILURE', '2026-10-29T22:55:40Z'),
+                  named('audits', 952, 'COMPLETED', 'CANCELLED', '2026-10-29T22:55:19Z')]),
+        (1, 960, [named('audits', 961, 'IN_PROGRESS'), named('changes', 962, 'COMPLETED', 'SUCCESS', '2026-10-29T22:56:20Z')]),
+        (2, 940, [named('lint', 941, 'COMPLETED', 'SUCCESS', '2026-10-29T22:50:00Z')]),
+        (None, 0, [named('ext', 931, 'COMPLETED', 'SUCCESS', '2026-10-29T22:49:00Z')])])],
+        jobs={961: {'status': 'in_progress'}}), required=req) or {}
+    r = reopened.get('reopened')
+    expect("a superseded run's check-runs are history (kb/Work PB4052): the newer run of the same workflow on the head "
+           "decides, so the cancelled run's FAILED ci-gate is no red and no required check-run exists yet; every other "
+           "context's newest check-run is read (`others`: the newer run's jobs, another workflow's newest run, a suite with "
+           "no workflow run), an unresolved one with its job's status, and the survey's line says what still runs",
+           r is not None and r.checks == () and r.red is None and r.entering
+           and [c.name for c in r.others] == ['audits', 'changes', 'ext', 'lint']
+           and r.others[0].run == 960 and r.others[0].job_status == 'in_progress' and not r.others[0].stuck
+           and [c.name for c in r.head_runs] == ['audits', 'changes', 'ext', 'lint']
+           and 'no required check-run on the head yet; still running: audits' in describe(r), f'{r}')
 
     def offline(args: list[str]) -> tuple[int, str, str]:
         raise ruleset.Unobserved('no network')
