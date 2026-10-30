@@ -159,6 +159,24 @@ public sealed partial class ReferenceResolver(DataBinder data)
                 SectionDataItem.NonSectionKind(p))
             : null;
 
+    /// <summary>The <see cref="DataItem"/> a written data reference names, asked SILENTLY (kb/Work PB4090): the §8.4.2.2
+    /// lookup <see cref="Resolve"/> performs, with the declaration and nothing built from it — no
+    /// <see cref="Place"/>, no shape screen, no COBOL1639 on a name that identifies nothing. For a caller whose
+    /// question is about the DECLARATION (what USAGE does this item carry?) and whose format has a legal reading on
+    /// which the name is no data item at all; the SEND statement's TO operand, which is a message-server-name-1 in
+    /// Format 1 and a message-tag data-name-2 in Format 2 (§14.9.38.2), is the one such caller. A MESSAGE-TAG item
+    /// has no <see cref="Place"/> (its profile is the COBOL1943 recovery shape), so <see cref="Probe"/> cannot answer
+    /// the question. Null for a special register, a name nothing declares and an ambiguous reference.</summary>
+    internal DataItem? ProbeDeclaration(Core.DataReferenceContext dref)
+    {
+        DataReferenceCst written = dref;
+        if (written.Register != SpecialRegister.None || written.BaseName is not { } name) return null;
+        bool savedProbing = _probing;
+        _probing = true;
+        try { return FindItem(name, ReadWritten(dref).Qualifiers); }
+        finally { _probing = savedProbing; }
+    }
+
     /// <summary>⛔ THE ONE OWN-ITEM TEST (kb/Work PB3153): does the REFERRING element itself describe an item that
     /// <paramref name="dref"/> names, either a data item (<see cref="Probe"/>) or a constant-name (a bare word only,
     /// <see cref="DataBinder.ConstantOf"/>)? A contained program or a method sees the SPECIAL-NAMES and REPOSITORY

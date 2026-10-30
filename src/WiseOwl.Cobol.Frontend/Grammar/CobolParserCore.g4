@@ -1058,6 +1058,11 @@ mcsSendStatement
     // names their omission (COBOL1850) rather than this rule turning it into a token-level parse error. The grammar
     // audit reads the next line and reports END-SEND as DECIDED (kb/Work PB2024):
     // audit:required-word END-SEND decided-by DeclinedFacilityBinder.ScreenSendRequiredPhrases
+    // ⚠ THE TWO FORMATS STAY ONE RULE ON PURPOSE (kb/Work PB4090, PB4085): the name after TO is a message-server-name-1
+    // in Format 1 and a message-tag data-name-2 in Format 2 (§14.9.38.3 SR2, SR4), both a bare word, and which it is
+    // is a fact about its DECLARATION, which no parse alternative can read — so splitting the rule per format would
+    // still leave `SEND TO name FROM x` to the binder. DeclinedFacilityBinder.ClassifySend assigns the format once;
+    // a phrase of each format in one statement is COBOL5488 and a Format 1 without RETURNING is COBOL1850.
     : SEND TO? (literal | dataReference) FROM dataReference
       (RETURNING dataReference)?
       (RAISING (EXCEPTION cobolWord | LAST EXCEPTION?))?

@@ -4,7 +4,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> SEND TO WS-TAG FROM WS-MSG with no END-SEND. Expected: COBOL1850.
+      *> SEND TO SRVNAME FROM WS-MSG RETURNING WS-REPLY with no END-SEND. Expected: COBOL1850.
       *> ISO 14.9.38.2 prints END-SEND underlined, on a line of its own, WITHOUT brackets, in both
       *> formats (PDF page 756, printed folio 726), while it brackets the exception phrases above it.
       *> ISO 8.3.2.4.2 1) - required words: "Keywords. Within each format, such words are uppercase
@@ -15,14 +15,16 @@
       *> The grammar's END_SEND? let the omission compile clean (kb/Work PB2024, found by the inverse
       *> class of scripts/spec/audit_grammar_optional_words.py). SEND is the declined messaging facility
       *> (COBOL1578), which declines the behaviour, never the syntax rules; the program is otherwise legal
-      *> at 2023, the facility's edition (Format 2: TO data-name-2, no RETURNING).
+      *> at 2023, the facility's edition: Format 1 (to-message-server), whose TO name SRVNAME is a
+      *> message-server-name-1 (14.9.38.3 SR2) and whose RETURNING data-name-1 line is written (kb/Work PB4090),
+      *> so END-SEND is the only phrase missing.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2024S1.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 WS-TAG PIC X(8) VALUE "TAG".
+       01 WS-REPLY PIC X(8) VALUE "NONE".
        01 WS-MSG PIC X(8) VALUE "MSG".
        PROCEDURE DIVISION.
        MAIN-P.
-           SEND TO WS-TAG FROM WS-MSG.
+           SEND TO SRVNAME FROM WS-MSG RETURNING WS-REPLY.
            STOP RUN.
