@@ -468,10 +468,21 @@ internal sealed class StatementValidation(DataBinder data)
     /// <param name="refText">The operand as written.</param>
     /// <param name="switchName">The implementor's external-switch name when the operand IS a switch-status
     /// condition-name, else null.</param>
+    /// <param name="name">The operand's word, for the one query of what it is declared as (kb/Work PB1906).</param>
+    /// <param name="qualifiers">The operand's qualifiers as written.</param>
     /// <returns>Always false: the operand is refused, HAVING REPORTED.</returns>
-    public bool RejectSetConditionName(string refText, string? switchName)
+    public bool RejectSetConditionName(string refText, string? switchName, string name, IReadOnlyList<string> qualifiers)
     {
-        if (switchName is not null)
+        // A level-88 entry of a type declaration DOES declare the word (kb/Work PB1906), so "no level-88 entry declares
+        // it" would be false: the one query says what it is.
+        var declared = switchName is null ? data.NonDataDeclarationOf(name, qualifiers, data.ActiveScope) : null;
+        if (declared is { Kind: NonDataDeclarationKind.TypeDeclarationCondition or NonDataDeclarationKind.TypeName
+                or NonDataDeclarationKind.TypeDeclarationMember })
+            data.Edition.Error(DiagnosticCatalog.UndefinedReference,
+                $"SET '{refText}' TO TRUE — '{refText}' {declared.Value.DeclaredAs(refText, name)}, so the reference "
+                + "identifies no resource (ISO §8.4.2.1), and §14.9.39.3 SR6 requires a condition-name associated with "
+                + "a conditional variable.");
+        else if (switchName is not null)
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                 $"SET '{refText}' TO TRUE — '{refText}' IS a condition-name, but the SPECIAL-NAMES kind: it "
                 + $"names the status of external switch {switchName} (ISO §12.3.7), and §8.4.4.1 distinguishes "
