@@ -230,7 +230,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             {
                 ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
                     $"{verb} without GIVING: Format 1 prints receiving identifiers only (ISO {cite}), and "
-                    + $"'{bad.GetText()}' is {ArithmeticOperandRole.Describe(bad)} — a sending operand belongs to "
+                    + $"'{DataBinder.WrittenText(bad)}' is {ArithmeticOperandRole.Describe(bad)} — a sending operand belongs to "
                     + "the GIVING form");
                 ok = false;
             }
@@ -279,8 +279,8 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     private BoundBoolExpr RefuseNonBooleanComputeOperand(Core.ArithmeticExpressionContext expr)
     {
         ctx.Edition.Error("COBOL1511", $"a boolean COMPUTE receiver takes a boolean expression, "
-            + $"not '{expr.GetText()}' (ISO §14.9.8 Format 2 / §8.8.2)");
-        return BoundBoolError.Refused(ctx.Edition, $"COMPUTE boolean receiver takes a boolean expression, not '{expr.GetText()}' "
+            + $"not '{DataBinder.WrittenText(expr)}' (ISO §14.9.8 Format 2 / §8.8.2)");
+        return BoundBoolError.Refused(ctx.Edition, $"COMPUTE boolean receiver takes a boolean expression, not '{DataBinder.WrittenText(expr)}' "
             + "(ISO §14.9.8 Format 2)");
     }
 
