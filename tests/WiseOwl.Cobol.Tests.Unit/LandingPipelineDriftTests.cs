@@ -473,9 +473,11 @@ public sealed class LandingPipelineDriftTests
                 + "no report line",
             "land: an UNCLASSIFIED NOT RUN (no known cause) is BRANCH-carried",
             "gate_main: main is measured in a clean checkout of its head",
-            "the queue watch's remedies: a re-run of the stuck check's run, then close, reopen and auto-merge again "
-                + "(in that order, each naming the repository); refused touching nothing while the queue is not ACTIVE; a "
-                + "failed close stops before anything else (kb/Work PB3527)",
+            "the queue watch's remedies: a re-run of the stuck check's run, then (no run on the head still in "
+                + "progress) close, reopen and auto-merge again (in that order, each naming the repository); refused "
+                + "touching nothing while the queue is not ACTIVE; a failed close stops before anything else (kb/Work PB3527)",
+            // kb/Work PB4052: a close and reopen cancels the head's run in flight, whose ci-gate then reads as a bounce
+            "the requeue refuses, touching nothing, while a workflow run on the head has not completed",
             "the queued line `queue` prints is the one its reader parses (the lane records the pull request's number)",
             // kb/Work PB3662: a gate still running owes a verdict; it is exit 12, never the terminal exit 14
             "land: a gate of the worktree still RUNNING (its gate lock is held, no verdict file) is exit 12, GATE "

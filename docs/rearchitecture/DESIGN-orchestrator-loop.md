@@ -620,17 +620,20 @@ instead of at the next enqueue unit, is the headless lane's second job (kb/Work 
    `scripts/orchestrator/queue_facts.py`, which the survey itself reads on the same tick (read BEFORE the fetch, so a
    pull request the queue merges in between is never missing from both): one GraphQL query for the merge queue's own
    entries (`mergeQueue(branch: "main")`) and every open pull request into main with its `mergeStateStatus`, its
-   auto-merge time and the head commit's check-runs, plus, only for a REQUIRED context's (the committed ruleset's)
-   unresolved check-run, its Actions job's own status from the jobs API. A check-run still in progress whose job has
-   completed is STUCK.
+   auto-merge time and the head commit's check-runs, plus, for each UNRESOLVED check-run, its Actions job's own status
+   from the jobs API. It keeps every context's newest check-run, read only from the newest workflow run of each workflow
+   on the head (an older run of the same workflow was superseded: a reopen's run cancels it, and its cancelled `ci-gate`
+   FAILS), split into the REQUIRED contexts' (the committed ruleset's: `checks`, whose failure is a red) and the others
+   (`others`: the jobs `ci-gate` `needs:`, which has no check-run at all until they end; kb/Work PB4052). A check-run
+   still in progress whose job has completed is STUCK.
 
 | The pull request | The watch |
 |---|---|
 | in the merge queue, or the branch's work on main | ends (`queued`, `merged`) |
 | a required check FAILED on its head, the queue removed it, or it CONFLICTS with main (`mergeStateStatus` DIRTY: no re-run or reopen clears a conflict, kb/Work PB3527 review R1-5) | ends (`left`): the survey reads it BOUNCED, the enqueue unit's finisher |
 | its head moved past the attempt's | ends (`left`): a new push is a new landing, watched afresh |
-| a required check still running (its job too) | watching: nothing is late |
-| not in the queue `QUEUE_GRACE_MIN` (10) minutes after its required checks' work ended (a stuck check-run's JOB time; the enqueue time when no check-run exists) or after the last remedy | a STALLED read, cause `stuck-check-run` or `not-queued`: read 1 re-runs the stuck check's workflow run (`enqueue.rerun_check`, `gh run rerun`; a pull request with no check-run goes straight to read 2's remedy), read 2 closes, reopens and re-queues it with auto-merge (`enqueue.requeue`, behind `queue`'s ACTIVE guard: enqueue.py stays the only file that queues), read 3 sends the operator a mailbox `question` and the watch acts no more (`alerted`) |
+| any check on its head still running (its job too), required or not | watching: nothing is late |
+| not in the queue `QUEUE_GRACE_MIN` (10) minutes after its checks' work ended (the newest check-run's end on the head, a stuck one's JOB time; the enqueue time when no check-run exists) or after the last remedy | a STALLED read, cause `stuck-check-run` or `not-queued`: read 1 re-runs the workflow run of the stuck check, else of any check on the head (`enqueue.rerun_check`, `gh run rerun`; a pull request with no check-run goes straight to read 2's remedy), read 2 closes, reopens and re-queues it with auto-merge (`enqueue.requeue`, behind `queue`'s ACTIVE guard: enqueue.py stays the only file that queues; refused, touching nothing, while a workflow run on the head has not completed, since the reopen's run would cancel it, kb/Work PB4052), read 3 sends the operator a mailbox `question` and the watch acts no more (`alerted`) |
 | no pull request open and the branch's work not on main | a stalled read, cause `closed`: it alerts at once |
 
    Each read is recorded on the attempt (`watch`) and in `landing_measure.py`'s record of the pull request
