@@ -417,41 +417,46 @@ public static class CobolFloat
     /// EC-SIZE-UNDERFLOW (§14.7.5 case 5 / no-phrase rule 3), each the <see cref="CobolSizeError"/> the statement's
     /// SIZE ERROR phrase or EC-SIZE checking takes. <paramref name="what"/> names the operation for the message.
     /// Shared by the float-family returned values (FUNCTION EXP, the list bodies) and the checked native
-    /// operations below, so an intrinsic and an operator cannot answer the same range question differently.</summary>
-    public static double InBinary64Range(double r, bool nonzero, string what)
+    /// operations below, so an intrinsic and an operator cannot answer the same range question differently.
+    /// <para><paramref name="taken"/> is the set of conditions whose checking is enabled where the operation runs
+    /// (kb/Work PB4092): a range condition NOT in it is the not-enabled disposition (§14.6.13.1.1 NOTE 3; DOC-A.1-70),
+    /// the unchecked kernel's value — the IEEE result — and execution continues. The float-family returned values pass
+    /// <see cref="SizeChecks.Range"/>: their range error is raised wherever checking stands, as it always was.</para></summary>
+    public static double InBinary64Range(double r, bool nonzero, string what, SizeChecks taken)
     {
-        if (double.IsInfinity(r))
+        if (double.IsInfinity(r) && (taken & SizeChecks.Overflow) != 0)
             throw new CobolSizeError($"{what}: the result is farther from zero than the binary64 intermediate "
                 + "allows (ISO §14.7.5 case 5; CONFORMANCE.md DOC-A.1-179)", "EC-SIZE-OVERFLOW");
-        if (r == 0 && nonzero)
+        if (r == 0 && nonzero && (taken & SizeChecks.Underflow) != 0)
             throw new CobolSizeError($"{what}: the nonzero result is nearer to zero than the binary64 intermediate "
                 + "allows (ISO §14.7.5 case 5; CONFORMANCE.md DOC-A.1-179)", "EC-SIZE-UNDERFLOW");
         return r;
     }
 
-    /// <summary>The CHECKED native binary64 sum — emitted where size-error checking is enabled (an ON SIZE ERROR
-    /// phrase, EC-SIZE checking), the twin of <c>CobolNum.AddChecked</c> on the scaled carrier. A sum of finite
-    /// binary64 values that is nonzero is never rounded to zero (every such sum is a multiple of the smallest
-    /// subnormal), so only the overflow half applies.</summary>
-    public static double AddChecked(double a, double b)
+    /// <summary>The CHECKED native binary64 sum — emitted where a range condition's checking is enabled (an ON SIZE
+    /// ERROR phrase, EC-SIZE-OVERFLOW checking), the twin of <c>CobolNum.AddChecked</c> on the scaled carrier. A sum of
+    /// finite binary64 values that is nonzero is never rounded to zero (every such sum is a multiple of the smallest
+    /// subnormal), so only the overflow half applies. <paramref name="taken"/>: see <see cref="InBinary64Range"/>.</summary>
+    public static double AddChecked(double a, double b, SizeChecks taken)
     {
         double r = a + b;
-        return double.IsFinite(a) && double.IsFinite(b) ? InBinary64Range(r, nonzero: false, "addition") : r;
+        return double.IsFinite(a) && double.IsFinite(b) ? InBinary64Range(r, nonzero: false, "addition", taken) : r;
     }
 
     /// <inheritdoc cref="AddChecked"/>
-    public static double SubChecked(double a, double b)
+    public static double SubChecked(double a, double b, SizeChecks taken)
     {
         double r = a - b;
-        return double.IsFinite(a) && double.IsFinite(b) ? InBinary64Range(r, nonzero: false, "subtraction") : r;
+        return double.IsFinite(a) && double.IsFinite(b) ? InBinary64Range(r, nonzero: false, "subtraction", taken) : r;
     }
 
     /// <summary>The CHECKED native binary64 product: overflow, and the
-    /// underflow of a product of two nonzero operands.</summary>
-    public static double MulChecked(double a, double b)
+    /// underflow of a product of two nonzero operands. <paramref name="taken"/>: see <see cref="InBinary64Range"/>.</summary>
+    public static double MulChecked(double a, double b, SizeChecks taken)
     {
         double r = a * b;
-        return double.IsFinite(a) && double.IsFinite(b) ? InBinary64Range(r, nonzero: a != 0 && b != 0, "multiplication") : r;
+        return double.IsFinite(a) && double.IsFinite(b)
+            ? InBinary64Range(r, nonzero: a != 0 && b != 0, "multiplication", taken) : r;
     }
 
     /// <summary>The CHECKED native binary64 quotient (the twin of <c>CobolNum.Divide</c>): a zero divisor is
@@ -460,10 +465,10 @@ public static class CobolFloat
     /// then overflow, and the underflow of a nonzero dividend's quotient. Before it the floating arm rendered a bare
     /// <c>/</c>: <c>COMPUTE FR = FL / FZ ON SIZE ERROR</c> took NOT ON SIZE ERROR and stored +Infinity (kb/Work
     /// PB1147).</summary>
-    public static double DivChecked(double a, double b)
+    public static double DivChecked(double a, double b, SizeChecks taken)
     {
         double r = Div(a, b);
-        return double.IsFinite(a) && double.IsFinite(b) ? InBinary64Range(r, nonzero: a != 0, "division") : r;
+        return double.IsFinite(a) && double.IsFinite(b) ? InBinary64Range(r, nonzero: a != 0, "division", taken) : r;
     }
 
     /// <summary>The native binary64 quotient where size-error checking is NOT enabled — the IEEE operator, except that
