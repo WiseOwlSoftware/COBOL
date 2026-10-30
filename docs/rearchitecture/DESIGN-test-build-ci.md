@@ -748,7 +748,7 @@ why that direction cannot reach the audit at all).
 |---|---|---|---|
 | `VersionMatrixTests_P0 … _P11` | 12 | 2127 rows, **720.5 s SERIAL** — the whole 721 s leg | 12 × (175…179 rows), 552–601 s each, all spanning the run together |
 | `NistDifferentialTests_P0 … _P5` | 6 | 349 rows, 237.9 s SERIAL | 6 × (58–59 rows), 329–354 s each |
-| `ConformanceSuiteTests_P0 … _P23` (formerly `CorpusRunnerTests`) | 24 | at 3 partitions (2026-10-07, about 4,635 rows): 3 × about 1,546 cases, 246–282 s each, the Conformance leg's 95–220 s tail at 1–4 threads | 24 × about 193 rows (kb/Work PB2527); `ConformancePartitioningDriftTests` bounds a partition at 500 rows |
+| `ConformanceSuiteTests_P0 … _P31` (formerly `CorpusRunnerTests`) | 32 | at 3 partitions (2026-10-07, about 4,635 rows): 3 × about 1,546 cases, 246–282 s each, the Conformance leg's 95–220 s tail at 1–4 threads | 24 × about 193 rows (kb/Work PB2527); `ConformancePartitioningDriftTests` bounds a partition at 500 rows, which the suite crossed at 12,005 rows on 2026-10-30, so it runs as 32 × about 375 rows (one partition per processor of the 32-way gate host) |
 | `OptionalWordSubsetDriftTests_P0 … _P8` | 9 | one 23-row class, 131–152 s span (one row 59 s) | 9 × at most 3 formats (kb/Work PB2527; 9 since kb/Work PB3751's rows made 26), bounded at 3 by `ConformancePartitioningDriftTests` |
 | `StorageFormNistEquivalenceTests_P0 … _P7` | 8 | one `[Fact]` looping the corpus, **171.5 s** — *was* the Unit leg's wall clock | 8 slice-`[Fact]`s, 81–138 s each |
 
