@@ -1,4 +1,4 @@
-## PB4089: STRING into a numeric DISPLAY receiver moves characters instead of storing a decoded number
+## Entry 2771 — 2026-10-29 21:29 PDT — PB4089: STRING into a numeric DISPLAY receiver moves characters instead of storing a decoded number
 
 `STRING "AB" DELIMITED BY SIZE INTO N` with `N PIC 9(6) VALUE 123456` left `003456`. ISO/IEC 1989:2023 §14.9.43.3 SR1 admits a
 numeric item of usage display or national as identifier-3, §14.9.43.4 GR6 has the characters moved "one at a time" into its
@@ -47,3 +47,4 @@ area"), over all arms at once, so no present or future channel reopens it. Golde
 `14.9.25-MOVE/pb4089_character_channel_into_redefines_alias` (the MOVE and INSPECT siblings). The lead R1-2 (two comments
 still naming the STRING receiver as a reader of `PicInfo.IsCharacterFormNumeric`) is fixed in `PicInfo.cs` and
 `DisplayUsageUnionDriftTests.cs`.
+
