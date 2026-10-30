@@ -2620,15 +2620,20 @@ formats a surface is the only way to fail at all. Completing that surface from t
 added `MINUS`/`-` to the LINE and COLUMN clauses, the `END OF LINE` / `END OF SCREEN` spellings to ERASE, and
 `usageClause` to `screenClause`.
 
-⛔ **The ACCEPT/DISPLAY exception phrases are bound to the positioning phrase (`screenTail`), and that coupling
-is load-bearing.** `ON EXCEPTION` / `NOT ON EXCEPTION` is spelled the same on a screen statement as on the
-statements that already own one, and DISPLAY sits inside every one of their imperative-statement slots — so a
-free-standing optional exception-phrase pair on DISPLAY made the inner DISPLAY of
-`DELETE FILE F ON EXCEPTION DISPLAY "EXC" NOT ON EXCEPTION DISPLAY "NOEXC" END-DELETE` swallow DELETE's own
-NOT-arm. Requiring the AT/LINE/COLUMN phrase first makes the tail unambiguous, because no other statement's
-exception arm can begin with it. `NestedDisplayInAnExceptionArm_DoesNotStealTheEnclosingStatementsNotArm` pins
-it; the cost is one spelling (an unpositioned `DISPLAY screen-name ON EXCEPTION …`), which stays a parse error
-exactly as it was before.
+⛔ **The ACCEPT/DISPLAY exception phrases are the statement's own `conditionalPhrases`, independent of the
+positioning phrase as the printed formats bracket them (§14.9.1.2 Format 3, §14.9.11.2 Format 2), and §14.5.3.3
+decides which statement a phrase belongs to** (kb/Work PB1528; `docs/rearchitecture/DESIGN-frontend-grammar.md`
+§3.16). `ON EXCEPTION` / `NOT ON EXCEPTION` is spelled the same on a screen statement as on the statements that
+already own one, and ACCEPT and DISPLAY sit inside every one of their imperative-statement slots, so an inner
+device statement must never take the enclosing statement's arm: in
+`DELETE FILE F ON EXCEPTION DISPLAY X NOT ON EXCEPTION DISPLAY "NOEXC" END-DELETE` the NOT arm is DELETE's. The
+screen format's operand is a screen-name, a declaration fact the parser cannot see, so
+`ConditionalPhraseAssociation` reads it three ways: a literal, function-identifier, inline-invocation or second
+operand, UPON, NO ADVANCING or FROM rules the screen format out; the positioning phrase proves it; and with
+neither it is only PRESUMED, and the phrase joins the inner statement only when no enclosing open statement may
+take it. So the unpositioned `ACCEPT screen-name ON EXCEPTION …` reaches COBOL1707 (it used to be the one shape
+left a parse error, when the phrases were bound to the positioning phrase), and
+`NestedDeviceAcceptOrDisplayInAnExceptionArm_DoesNotStealTheEnclosingStatementsArm` pins the complement.
 
 **Declining the module must not cost the user the words.** §8.10 makes fifteen screen words — `AUTO`,
 `BACKGROUND-COLOR`, `BELL`, `BLINK`, `EOL`, `EOS`, `ERASE`, `FOREGROUND-COLOR`, `FULL`, `HIGHLIGHT`, `LOWLIGHT`,

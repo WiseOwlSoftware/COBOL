@@ -1266,7 +1266,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
         if (token.Type == CobolLexer.WHEN)
             for (var c = ctx; c is not null; c = c.Parent as ParserRuleContext)
-                for (var d = LastRuleChild(c); d is not null; d = LastRuleChild(d))
+                for (var d = LastWrittenRuleChild(c); d is not null; d = LastWrittenRuleChild(d))
                     if (d is CobolParserCore.SearchAllStatementContext sa && sa.Stop is { } stop
                         && NextDefault(stream, stop.TokenIndex)?.TokenIndex == token.TokenIndex)
                         return "SEARCH ALL with a second WHEN phrase: Format 2 prints exactly ONE WHEN phrase — its "
@@ -1307,7 +1307,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     {
         if (IsMnemonicSuffixStart(token.Type))
             for (var c = recognizer.Context; c is not null; c = c.Parent as ParserRuleContext)
-                for (var d = LastRuleChild(c); d is not null; d = LastRuleChild(d))
+                for (var d = LastWrittenRuleChild(c); d is not null; d = LastWrittenRuleChild(d))
                 {
                     var (slot, format, word) = d switch
                     {
@@ -1371,6 +1371,20 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// can be a just-completed statement). Shared with ConditionalPhraseAssociation.UnownedPhraseMessage.</summary>
     internal static ParserRuleContext? LastRuleChild(ParserRuleContext c) =>
         c.ChildCount > 0 ? c.GetChild(c.ChildCount - 1) as ParserRuleContext : null;
+
+    /// <summary>The last child that WROTE something, when it is a rule context: <see cref="LastRuleChild"/> past the
+    /// trailing rule contexts that matched no token. Every statement that owns conditional phrases ends in its
+    /// <c>conditionalPhrases</c>, which the parser enters (and so adds) even when no phrase is written; a walk that asks
+    /// which construct ENDED immediately before the offending token must look past it (kb/Work PB1528: ACCEPT's
+    /// <c>acceptSource</c> and DISPLAY's <c>displayUpon</c> are followed by it). UnownedPhraseMessage keeps
+    /// <see cref="LastRuleChild"/>: the empty phrase loop IS the ended statement it is looking for.</summary>
+    internal static ParserRuleContext? LastWrittenRuleChild(ParserRuleContext c)
+    {
+        for (int i = c.ChildCount - 1; i >= 0; i--)
+            if (c.GetChild(i) is not ParserRuleContext { ChildCount: 0 })
+                return c.GetChild(i) as ParserRuleContext;
+        return null;
+    }
 
     // ── Parse-layer edition-gate rendering (rearch PHASE 02) ──
 
