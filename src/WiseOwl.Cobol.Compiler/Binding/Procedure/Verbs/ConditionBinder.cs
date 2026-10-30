@@ -134,10 +134,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // A sole data reference or sole function reference — through the enclosing parentheses, as the routing
         // predicate IsBooleanValueOperand reads it (§8.8.2; kb/Work PB1464).
         if (BindSoleBooleanOperand(vo.arithmeticExpression()) is { } sole) return sole;
-        ctx.Edition.Error("COBOL1511", $"'{vo.GetText()}' is not a valid boolean operand — a boolean "
+        ctx.Edition.Error("COBOL1511", $"'{DataBinder.WrittenText(vo)}' is not a valid boolean operand — a boolean "
             + "expression admits boolean items, boolean literals, and the figurative ZERO / ALL B\"…\" only "
             + "(ISO §8.8.2)");
-        return BoundBoolError.Refused(ctx.Edition, $"boolean operand '{vo.GetText()}'");
+        return BoundBoolError.Refused(ctx.Edition, $"boolean operand '{DataBinder.WrittenText(vo)}'");
     }
 
     /// <summary>The ONE binding of a boolean operand that is a SOLE identifier — a data reference to a
@@ -194,9 +194,9 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (bound is BoundNumRef { Place: var resultTemp } && resultTemp.Item.OperandPic?.Category is PicCategory.Boolean)
                 return new BoundBoolRef(resultTemp);
             if (bound is BoundExprError err) return BoundBoolError.Carry(err.Feature, err.IsUnbuilt);   // already loud
-            ctx.Edition.Error("COBOL1511", $"operand '{fc.GetText()}' in a boolean expression is not a "
+            ctx.Edition.Error("COBOL1511", $"operand '{DataBinder.WrittenText(fc)}' in a boolean expression is not a "
                 + "boolean function — its result is not class boolean (ISO §8.8.2 — boolean operands only)");
-            return BoundBoolError.Refused(ctx.Edition, $"non-boolean function operand '{fc.GetText()}'");
+            return BoundBoolError.Refused(ctx.Edition, $"non-boolean function operand '{DataBinder.WrittenText(fc)}'");
         }
         return null;
     }
@@ -1086,7 +1086,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             return BindSoleOperandCondition(operands[0].valueOperand(), () => ComparisonOperand(operands[0]), carry);
         }
 
-        return Refused($"condition '{cmp.GetText()}'");
+        return Refused($"condition '{DataBinder.WrittenText(cmp)}'");
     }
 
     /// <summary>A bare single operand is either a level-88 condition-name (a complete simple condition —
