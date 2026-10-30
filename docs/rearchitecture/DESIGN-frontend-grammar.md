@@ -2035,7 +2035,9 @@ out where syntax can (a literal, function-identifier, inline-invocation or secon
 the format only PRESUMED, so a phrase joins it only when no enclosing open statement may take the phrase at the target
 edition by any reading — the superset reading's rule. A legal program never loses a phrase this way (after a device
 ACCEPT / DISPLAY a phrase is an enclosing statement's or the program is in error), and an inner screen statement that
-yields its phrase is still refused by name (Annex A.4.2 is declined: `AcceptDisplayBinder.ScreenFormatOf`). The phrases
+yields its phrase is still refused by name (Annex A.4.2 is declined: `AcceptDisplayBinder.ScreenFormatOf`). A top-level
+statement whose presumed phrase reaches the binder with an operand that proves to be no screen-name is named COBOL2269 by
+`AcceptDisplayBinder.DeviceFormatPhrase` (Format 1 prints no exception phrase), never COBOL1707. The phrases
 were once bound to the positioning phrase instead (a rule `screenTail`) to stop that stealing, which left the legal
 unpositioned `ACCEPT screen-name-1 ON EXCEPTION …` a parse error where COBOL1707 belongs. Should the screen module ever
 be claimed, the presumed reading must become a parse-time screen-name test, scoped per program.
