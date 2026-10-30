@@ -129,7 +129,7 @@ public sealed class CobolWideIntrinsicsTests
         Assert.Equal(FunctionValueField.OfValue(CobolDec.From(12345, 2)).DeviceText(false), FunctionValueField.OfWide(CobolWide.From(12345), 2).DeviceText(false));
     }
 
-    /// <summary>kb/Work PB3953 review R1-1: a wide temporary against a NON-wide one of up to 38 exact digits is ordered by the exact
+    /// <summary>kb/Work PB3953 review R1-1: a wide temporary against a NON-wide one of up to 39 exact digits is ordered by the exact
     /// values. <c>a</c> = 170141183460469231731687303715884105000 fits Int128 (an exact SDIDI temporary, off the 34-digit grid);
     /// <c>a + 1000</c> is past it, and its 34-digit round-to-odd image (…884100000 + 1 ulp at most) lies BELOW <c>a</c>, so an image
     /// order picks the smaller value as MAX. Expected values: §15.59.4 1) / §15.63.4 1) select the greatest / least value, §15.61.4
