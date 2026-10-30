@@ -363,6 +363,16 @@ public sealed record BoundUdfEvaluatedExpr(IReadOnlyList<BoundStatement> Activat
 public sealed record BoundIntrinsicCall(
     IntrinsicSig Sig, IReadOnlyList<BoundOperand> Args, PicCategory ResultCategory, bool Collate = false) : BoundExpr
 {
+    /// <summary>⛔ THE CALL'S §15.2 TYPE, DECIDED ONCE — FROM THE ARGUMENTS AS WRITTEN — WHEN THE CALL IS BOUND (kb/Work
+    /// PB4036). Every reader asks THIS (the Integer-position screens, <c>IsIntegerOperand</c>, the value lane), none
+    /// re-derives it from <see cref="Args"/>: <c>ArgumentOrder.Window.Settle</c> swaps a frozen argument for the
+    /// compiler temporary that holds its value (§8.4.3.2.4 GR2), and an arithmetic expression held in a scale-0
+    /// temporary is an integer DATA ITEM where the expression it replaced was not, so a type re-read from the swapped
+    /// <see cref="Args"/> made one call Integer or Numeric by whether a LATER argument activated a user-defined function.
+    /// The <c>with</c> that settles a call copies this property, so the type stays the one the arguments as written
+    /// gave (§15.x.1's result-type tables).</summary>
+    public IntrinsicType ResultType { get; init; } = IntrinsicResultType.Resolve(Sig, Args);
+
     /// <summary>CHAR-NATIONAL / ORD-over-a-national-argument bound under a NON-native NATIONAL program collating
     /// sequence (an <c>ALPHABET … FOR NATIONAL</c> literal phrase; §15.16.4 / §15.70.4 r2) — the backend then
     /// passes the emitted <c>__COLLATE_NAT</c> table; when false the field does not even exist (the H5 twin).

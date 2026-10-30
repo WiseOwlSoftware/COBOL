@@ -33,7 +33,8 @@ namespace WiseOwl.Cobol.Binding;
 /// <c>MOVE FUNCTION TRIM(national-item) TO alphanumeric-item</c> compiled clean where the standard requires a
 /// diagnostic. The defect was never in any one of the three mechanisms; it was in there being three
 /// (<c>feedback_one_mechanism_per_job</c>). This column restores D2's promise: the RULE is data on the row, and
-/// <see cref="IntrinsicResultType.Resolve"/> is the ONE reader.
+/// <see cref="IntrinsicResultType.Resolve"/> is the ONE reader, asked once per call when its node is built
+/// (<see cref="Bound.BoundIntrinsicCall.ResultType"/>, kb/Work PB4036).
 /// </para>
 /// <para>
 /// ⭐ <b>THE MEMBERS ARE SPEC SHAPES, NOT FUNCTION NAMES.</b> Twenty functions carry a result-type table and they
@@ -367,7 +368,7 @@ internal static class IntrinsicResultType
         // Integer only against its own argument — so the outer "all arguments integer" row would never be
         // selected through a nested integer function. The recursion is bounded by expression nesting depth.
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
-            Resolve(ic.Sig, ic.Args) is IntrinsicType.Integer,
+            ic.ResultType is IntrinsicType.Integer,
         // A COUNTER REGISTER is "a temporary unsigned integer data item" (§8.4.3.14.4 GR1 / §8.4.3.15.4 GR1) that
         // the binder carries as a computed operand, and §8.4.3.15.3 SR1 admits PAGE-COUNTER / LINE-COUNTER "in any
         // context where an integer data item may appear" — `PERFORM PAGE-COUNTER TIMES` among them, which this
