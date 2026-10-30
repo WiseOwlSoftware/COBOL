@@ -24025,5 +24025,26 @@
    "2023"
   ],
   "expect": "COBOL0899"
+ },
+ "pb2024-required-word-omitted": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0001"
+ },
+ "pb2024-send-end-send-omitted": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL1850: the END-SEND phrase is required on every SEND statement"
+ },
+ "pb2024-send-literal-returning-omitted": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL1850: the RETURNING phrase is required"
  }
 }
