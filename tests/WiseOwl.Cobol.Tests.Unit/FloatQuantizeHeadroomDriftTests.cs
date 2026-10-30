@@ -42,7 +42,7 @@ public sealed class FloatQuantizeHeadroomDriftTests
     }
 
     private static ReceiverContext Rcv(int intDigits, int scale) =>
-        new(scale, Real: false, CobolRounding.Truncation, InSizeError: false, IntegerDigits: intDigits);
+        new(scale, Real: false, CobolRounding.Truncation, Checks: SizeChecks.None, IntegerDigits: intDigits);
 
     /// <summary>
     /// INVARIANT 1 — a value that FITS the receiver never saturates. The receiver holds |v| &lt; 10^intDigits, the
