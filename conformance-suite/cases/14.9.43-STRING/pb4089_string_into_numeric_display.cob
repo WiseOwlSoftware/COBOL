@@ -37,6 +37,10 @@
       *>     fills 1-2 -> "ZZ34"; the other occurrences keep 1234.
       *>   G the receiver shares its storage with a REDEFINES item: the same
       *>     characters AB34 are seen through the redefining item.
+      *>   H the RECEIVER is the redefining item: G4 redefines G3, which holds
+      *>     1234; "XY" fills positions 1-2 of the one storage area, so G3
+      *>     reads "XY34" (GR6, GR7). A redefining item owns no storage of its
+      *>     own, so the characters reach the item it redefines.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4089A.
        DATA DIVISION.
@@ -49,6 +53,8 @@
        01 IX PIC 9 VALUE 2.
        01 G1 PIC 9(4) VALUE 1234.
        01 G2 REDEFINES G1 PIC 9(4).
+       01 G3 PIC 9(4) VALUE 1234.
+       01 G4 REDEFINES G3 PIC 9(4).
        PROCEDURE DIVISION.
            STRING "AB" DELIMITED BY SIZE INTO N
            DISPLAY "A[" N(1:6) "]"
@@ -71,4 +77,6 @@
            DISPLAY "F[" TE(1) "/" TE(2)(1:4) "/" TE(3) "]"
            STRING "AB" DELIMITED BY SIZE INTO G1
            DISPLAY "G[" G2(1:4) "]"
+           STRING "XY" DELIMITED BY SIZE INTO G4
+           DISPLAY "H[" G3(1:4) "/" G4(1:4) "]"
            STOP RUN.
