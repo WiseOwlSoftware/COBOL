@@ -3736,8 +3736,8 @@ public sealed partial class DataBinder
         // §13.18.53.3 SR5 makes an identifier-1 written WITH the ROUNDED phrase an arithmetic-expression, so the
         // two forms merge here and GR2's COMPUTE governs both (kb/Work PB852).
         if (IdentifierOperandOf(op) is not { } dref || rounded is not null)
-            return new FieldComputeSource(op, AsWritten(op)) { Rounded = rounded };
-        return new FieldReferenceSource(dref, AsWritten(op));
+            return new FieldComputeSource(op, WrittenText(op)) { Rounded = rounded };
+        return new FieldReferenceSource(dref, WrittenText(op));
     }
 
     /// <summary>⛔ ISO §13.18.54.4 GR1 — the sum counter's digit count, "derived from the corresponding number of
@@ -4062,7 +4062,7 @@ public sealed partial class DataBinder
     /// expression binder, and the SR6 screen runs at resolution where the report-section name set is known.</para></summary>
     private ReportSumAddend SumAddendRef(Core.ReportValueOperandContext op, ReportModel model)
     {
-        string written = AsWritten(op);
+        string written = WrittenText(op);
         if (IdentifierOperandOf(op) is not { } dref)
             return new ReportSumAddend { Ctx = op, Reference = null, Name = "", Qualifiers = [], Written = written };
         var (name, quals) = KeyReference(dref);
@@ -4096,7 +4096,7 @@ public sealed partial class DataBinder
     private ReportDetailRef? UponDetailRef(Core.DataReferenceContext dref, ReportModel model)
     {
         var (name, quals) = KeyReference(dref);
-        string written = AsWritten(dref);
+        string written = WrittenText(dref);
         var sfx = ReferenceResolver.ReadOperandSuffixes(dref);
         if (sfx.Subscripts > 0 || sfx.RefMods > 0)
         {
