@@ -24092,6 +24092,12 @@
   ],
   "expect": "COBOL1511"
  },
+ "pb4124_held_function_argument_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: a FUNCTION-ID paragraph (user-defined function definition) requires COBOL-2002"
+ },
  "pb3953_function_argument_below_2014": {
   "refuse-at": [
    "85",
