@@ -738,8 +738,9 @@ of an unsupported facility.
   the rules for format 2 apply") makes a READ with an implicit NEXT a sequential read. §14.9.30.2 prints the KEY phrase
   in Format 2 only, so a sequential read has no KEY phrase to bind. That is the reading the READ binder already used
   (`KeyedIoBinder.BindRead` binds `ReadKind.Next` for such a file) and the one that refuses INVALID KEY on a READ of a
-  sequential-organization file (COBOL1720, `DiagnosticCatalog.IoPhraseForbiddenHere`: "SR8 + GR19 make every READ ...
-  a Format-1 read"); the KEY refusal states the same thing and no other. The standard's own way to read by key on a
+  sequential-organization file or on a keyed READ that binds sequential (COBOL1720, `DiagnosticCatalog.IoPhraseForbiddenHere`,
+  whose rationale names both READ sites and cites SR8, SR9 and GR19: a READ that binds sequential is a Format-1 read);
+  the KEY refusal states the same thing and no other. The standard's own way to read by key on a
   keyed file is §12.4.5.5.3 GR3 (RANDOM) or GR4 (DYNAMIC: "accessed sequentially, randomly, or both"). The
   alternative to a refusal is a sequential read that ignores the key; that is GnuCOBOL's ("KEY ignored with sequential
   READ", a warning), and it reads a different record than the program asked for, so it is not taken (CLAUDE.md rule 1:

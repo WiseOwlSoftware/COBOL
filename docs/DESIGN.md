@@ -781,7 +781,7 @@ battle-tested 364-NIST oracle; .NET format strings — can't express floating in
 ### 6.6 Hard problems / edge cases
 
 - MOVE rescale is value-preserving with TRUNCATION rounding (never ROUNDED); a scaled→integer MOVE drops the
-  fraction; an unsigned receiver stores the magnitude (GR8; watch `long.MinValue`).
+  fraction; an unsigned receiver stores the magnitude (§14.9.25.4 GR6 d) 2. b.; watch `long.MinValue`).
 - Comparisons align scales then compare the `Int128` unscaled values; `+0 == −0`.
 - IS NUMERIC on a typed numeric field folds to `true` (it can't hold non-digits) UNLESS the field aliases external
   bytes (REDEFINES/file/ACCEPT) — then validate the char image (`CobolNum.IsNumericClass(image, profile)`).
