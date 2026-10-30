@@ -9,6 +9,8 @@
       *> CALL, ..., or in a pointer-or-object-reference relation condition; cite.py --check 8.4.3.10.3 "it may be used
       *> only as a sending operand in an INITIALIZE or a SET statement"). A CURRENCY SIGN literal-7 is none of those, so
       *> the one SR1 refusal (COBOL2576) answers it - it used to draw SR22's length rule over the five letters N U L L.
+      *> Pinned 2002+: the predefined NULL is a 2002 facility, and at COBOL-85 an undeclared NULL is the undefined user
+      *> word (COBOL1639, kb/Work PB1673; witnessed by 8.3.2-COBOL-words/pb1673-null-undeclared-at-85).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGPB791E.
        ENVIRONMENT DIVISION.
