@@ -24,13 +24,12 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 
 ### Where we are
 
-- **▶ NIGHT OF 2026-10-29 (owner ~22:25 PDT): THE LOOP IS STOPPED FOR THE FUZZ RUN.** The owner started the differential
-  fuzz run by hand once #809 (PB4031) merged; the operator stopped the loop with `stop.ps1` (its STOP file stays until
-  the next session clears it: `pwsh scripts/orchestrator/stop.ps1 -Clear`, then restart the supervisor). Checkpointed
-  for the next session: the loop's wave for PB4075 (MEAN rounding twice for an argument wider than 38 digits, the one
-  fuzz-relevant wrong answer the planner had), and the Mythos lane's PB4092/PB4093 (EC-SIZE per-name checking), which
-  wait for PB4031. Still in force: `blocked_by` holds on PB4047, PB4012 and PB2103 until the Mythos A.1 chain
-  (PB2556, PB1253) lands, so the loop plans nothing else on `docs/CONFORMANCE.md`.
+- **▶ WHO RUNS WHAT (2026-10-30).** The operator's loop runs `-Cluster PB1957,PB3838` (CI parity, the GnuCOBOL
+  upstream records) beside the fix lane's waves; it stopped for the night's differential fuzz run (2026-10-29 22:30 PDT)
+  and restarted at 09:17. The Mythos lane runs the GAP campaign (PB2911), each fuzz night's triage, PB4075 (MEAN
+  rounding twice for an argument wider than 38 digits) and PB4092/PB4093 (EC-SIZE per-name checking). The loop plans
+  nothing a Mythos dispatch holds (`inflight-groups.json`). Still in force: `blocked_by` holds on PB4047, PB4012 and
+  PB2103 until the Mythos A.1 chain (PB2556, PB1253) lands, so the loop plans nothing else on `docs/CONFORMANCE.md`.
 - **▶ PRIORITY (owner 2026-10-10, kb/Work PB2911): THE COMPILER AND ZERO GAP COME FIRST.** The loop runs
   `-Cluster PB2911,PB1086`: the GAP campaign (the 51 open notes holding the inventory's 103 GAP rows, which the fix
   lane never planned: 34 are analyses and 29 process-only, and GAP had not moved since 2026-10-08) and the §8.13
