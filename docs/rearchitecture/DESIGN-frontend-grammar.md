@@ -2051,7 +2051,7 @@ paired conditional phrases should be handled grammatically in the same consisten
 **The shape.** ONE rule spells them: `conditionalPhrases : ({conditionalPhraseAssociates($ctx)}? conditionalPhrase)*`,
 `conditionalPhrase : NOT? conditionalPhraseHead statementBlock`, and `conditionalPhraseHead` holds every phrase
 keyword (ON, AT and KEY optional, §5.2.3). Every owning statement writes `conditionalPhrases` bare at the position its
-format prints the phrases (the screen ACCEPT / DISPLAY through `screenTail`, after the positioning phrase). The 18
+format prints the phrases (ACCEPT and DISPLAY after their optional positioning phrase, independent of it). The 18
 per-statement rules it replaced (`arithmeticOnSizeError`, `computeOnSizeError`, `callExceptionPhrases`, `readAtEnd`,
 `readInvalidKey`, `writeAtEndOfPage`, … `searchAtEndClause`) are deleted, and every binder asks for its family
 through the ONE reader, `Frontend/Parsing/ConditionalPhrases` (`KindOf`, `Find`, `HasFamily`), and binds the pair by
@@ -2074,8 +2074,8 @@ COMPUTE's NOT ON SIZE ERROR outward). A format whose unprinted selector the stat
 `READ R INVALID KEY READ G NEXT RECORD NOT INVALID KEY … END-READ` gives the NOT phrase and END-READ to READ R (branch
 review R1-1 of PB3830: a table of phrase brackets alone gave them to READ G, silently). A selector is looked for in the
 owner's own syntax only — a child rule, or the alternative a child bracket rule chose — never inside an expression or a
-nested statement. A rule whose formats print different brackets either splits them across grammar rules (ACCEPT and
-DISPLAY through `screenTail`, DELETE record / file) or carries selectors (READ, WRITE, COMPUTE). ANTLR's
+nested statement. A rule whose formats print different brackets either splits them across grammar rules (DELETE
+record / file) or carries selectors (READ, WRITE, COMPUTE, ACCEPT, DISPLAY). ANTLR's
 greedy loop supplies "most-recently preceding": the innermost open statement is asked first, and when it declines,
 its loop ends, the statement ends (§14.5.3.3 2) c), 4) b)) and the next enclosing owner is asked. So `SUBTRACT … ON
 SIZE ERROR ADD 1 TO D NOT ON SIZE ERROR …` gives the NOT phrase to the ADD (COBOL2796 then refuses the ADD as a
@@ -2089,6 +2089,24 @@ only, never a selector. A phrase NO open statement may take — a second ON SIZE
 INVALID KEY beside its AT END or after its NEXT, a WRITE's INVALID KEY after ADVANCING, a boolean COMPUTE's ON SIZE ERROR
 — is a syntax error that `CobolErrorStrategy` names COBOL2269 from the parser state
 (`ConditionalPhraseAssociation.UnownedPhraseMessage`, which names the selector that ruled the formats out).
+**The presumed reading, last of all too (kb/Work PB1528).** Only the screen formats of ACCEPT (§14.9.1.2 Format 3) and
+DISPLAY (§14.9.11.2 Format 2) print [NOT] ON EXCEPTION, and they differ from Format 1 by the CATEGORY of their operand
+— screen-name-1 where Format 1 writes identifier-1 — which the parser cannot see. Selectors still rule the screen format
+out where syntax can (a literal, function-identifier, inline-invocation or second operand, UPON, NO ADVANCING, FROM:
+`Format.Unprinted`); the positioning phrase proves it (`Format.ProvedBy`); and a statement that writes neither holds
+the format only PRESUMED, so a phrase joins it only when no enclosing open statement may take the phrase at the target
+edition by any reading — the superset reading's rule. A legal program never loses a phrase this way (after a device
+ACCEPT / DISPLAY a phrase is an enclosing statement's or the program is in error), and an inner screen statement that
+yields its phrase is still refused by name (Annex A.4.2 is declined: `AcceptDisplayBinder.ScreenFormatOf`). A top-level
+statement whose presumed phrase reaches the binder with an operand that proves to be no screen-name is named COBOL2269 by
+`AcceptDisplayBinder.DeviceFormatPhrase` (Format 1 prints no exception phrase), never COBOL1707. The phrases
+were once bound to the positioning phrase instead (a rule `screenTail`) to stop that stealing, which left the legal
+unpositioned `ACCEPT screen-name-1 ON EXCEPTION …` a parse error where COBOL1707 belongs. Should the screen module ever
+be claimed, the presumed reading must become a parse-time screen-name test, scoped per program.
+One consequence for error recovery: an owner's `conditionalPhrases` is entered, and so added to the tree, even when no
+phrase is written, so a hint that asks which construct ENDED just before the offending token descends through
+`CobolErrorStrategy.LastWrittenRuleChild` (ACCEPT … FROM / DISPLAY … UPON's mnemonic suffix, SEARCH ALL's second WHEN),
+while `UnownedPhraseMessage` keeps `LastRuleChild`, because the empty loop is the ended statement it looks for.
 
 **Why a context-dependent predicate, and why the loop lives in the shared rule.** The predicate reads `$ctx`, so ANTLR
 evaluates it only in `conditionalPhrases`' own decisions, with that rule's context; when an inner statement's prediction
