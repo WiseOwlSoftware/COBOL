@@ -105,7 +105,7 @@ def prose_of(notes: str) -> str:
 
 def symbol_of(ref: str) -> str | None:
     """The identifier a code-location witness names, or None for a bare path. In a C# file a dotted symbol is a
-    qualified name (the gate resolves each segment, `SymbolResolves`) and the identifier is its LAST segment:
+    qualified name (the gate requires the member declared in that type, `SymbolResolves`) and the identifier is its LAST segment:
     `FileRegistry.cs#ReadLockGovern` gives `ReadLockGovern`, `Foo.cs#Type.Member` gives `Member`. In any other
     file the fragment is a literal anchor and stays whole (`docs/CONFORMANCE.md#DOC-A.1-19`)."""
     path, _, fragment = ref.partition("#")

@@ -375,8 +375,9 @@ records restating the row's own verdict for the erased `notes`).
 `SpecTraceabilityInventoryDriftTests.SymbolResolves`, decides whether a `#Symbol` still exists, for a `code-location`
 and for a `path#Symbol` spelling in a row's `notes`: the symbol must be in the file's CODE (a C# file's tokens, so a
 comment, a doc comment and a disabled region do not count but a string literal does; a grammar file's text without its
-comments; any other file's whole text), and in a C# file a dotted symbol is a qualified name, so each segment must be
-an identifier of the file. The old whole-body word search let `FileRegistry.cs#ReadLockGovern` resolve on three
+comments; any other file's whole text), and in a C# file a dotted symbol is a qualified name, so the member must be
+DECLARED in that type of the file (a Roslyn walk of its declarations; a member of another type of the same file does not
+resolve it, kb/Work PB3278) while a simple name need only be used in the code. The old whole-body word search let `FileRegistry.cs#ReadLockGovern` resolve on three
 CONFORMS rows for as long as a comment narrated the method's removal, and left `notes`, the field a reader opens to
 learn why a row has its verdict, unread: a rename re-pointed the field the gate checks and five rows then
 contradicted themselves, a dated erratum stapled beneath prose that still described the dead method. The prose is
