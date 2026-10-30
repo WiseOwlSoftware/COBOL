@@ -420,7 +420,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   the area it overlays, and a boundary inside a cell is a ref-mod partial part. CONFORMANCE.md §4 determination
   for the shorter-redefinition-as-data-name-3 reading. Two verdicts → CONFORMS, GAP 3956.
   **✅ PB91 CLOSED (DEVLOG 1321, 2026-08-18)** — the checked numeric kernels follow the STATEMENT's checking state:
-  `NumericRenderer.Checked = InSizeError || (Receiverless && EcState.SizeChecking)`, and `MulChecked / AddChecked /
+  `NumericRenderer.Taken = ReceiverContext.Checks | (Receiverless ? EcState.EnabledChecks : None)` (per condition name, kb/Work PB4092), and `MulChecked / AddChecked /
   SubChecked` raise `CobolSizeError` (never a bare OverflowException) — a native Int128 overflow or a zero divisor in
   a condition / argument / subscript under EC-SIZE checking is the size error condition, dispatched like the decimal
   carrier's (PB75). Two verdicts (§14.7.5 cases 2 and 5) → CONFORMS, GAP 3954. **THE DEFECT BACKLOG IS EMPTY** —

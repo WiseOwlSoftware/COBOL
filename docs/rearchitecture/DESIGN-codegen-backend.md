@@ -330,7 +330,7 @@ internal sealed class EmitContext(CodeWriter writer, BoundUnit unit, EditionInfo
 The four mutable receiver fields become a **value passed as a parameter** to the numeric renders:
 
 ```csharp
-public readonly record struct ReceiverContext(int Scale, bool Real, CobolRounding Rounding, bool InSizeError);
+public readonly record struct ReceiverContext(int Scale, bool Real, CobolRounding Rounding, SizeChecks Checks);
 NumX ExpressionRenderer.Render(BoundExpr e, in ReceiverContext rcv);   // no ambient state, no reset dance
 ```
 
@@ -340,8 +340,10 @@ all take `in ReceiverContext rcv`) and carried in ONE private renderer field the
 freshly assigned at every entry, so no render can run under a stale receiver: the by-construction guarantee lives at
 the API boundary. One render tree serves exactly one receiver, so field-vs-parameter is semantically identical inside
 the recursion. The mutually-recursive `IntrinsicRenderer` reads the live receiver via `NumericRenderer.Receiver`.
-`EmitArith` threads the size-error flag into its store closure as `Action<bool>` — `InSizeError` has TWO triggers,
-the phrase and `>>TURN EC-SIZE` checking — and receiver-less sites pass `ReceiverContext.None`.)*
+`EmitArith` threads the size-error flag into its store closure as `Action<bool>`; the CONDITIONS the statement takes ride
+`ReceiverContext.Checks` (a `SizeChecks` value: every condition for the phrase, else the names `>>TURN EC-SIZE-*`
+enables — checking is per level-3 NAME, §14.6.13.1.1, kb/Work PB4092) — and receiver-less sites pass `ReceiverContext.None`,
+whose renders take the enclosing statement's `EcState.EnabledChecks`.)*
 
 This closes the H1 staleness class by construction and made `IntrinsicRenderer`'s "static channel" unnecessary —
 DONE at P7 Step 12: the string channel is INSTANCE, renders numeric arguments through the **one** expression
