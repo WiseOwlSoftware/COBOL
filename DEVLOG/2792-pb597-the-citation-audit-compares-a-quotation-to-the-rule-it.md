@@ -1,4 +1,4 @@
-## PB597: the citation audit compares a quotation to the rule it is in, and the last wrong GR numbers are corrected
+## Entry 2792 — 2026-10-30 11:34 PDT — PB597: the citation audit compares a quotation to the rule it is in, and the last wrong GR numbers are corrected
 
 **The defect.** `cite.py --check`, `audit_doc_citations.py` and `audit_code_citations.py` all stop at the clause. A
 comment reading `§14.9.25.4 GR8 — "the absolute value"` passed all three: the clause is right, the words are in it,
@@ -36,3 +36,4 @@ attributed SR10's bit-group sentence to SR5.
 **Rows.** The three rows PB597 claimed (`GR-14.9.25.4-6`, `GR-14.9.37.4-6`, `SR-14.9.37.3-6`) were CONFORMS and OK
 already; the defect was a citation number beside them, which no verdict reads, so the note closes none
 (`closes_rows: []` with the reason). No compiler behaviour changed; no golden's expected output changed.
+
