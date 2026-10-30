@@ -4,6 +4,7 @@ using System.CommandLine;
 using System.Diagnostics;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime;
 
@@ -261,9 +262,11 @@ internal static class Program
         return $"{source}\t{std}\t{(r.Success ? "PASS" : "FAIL")}";
     }
 
-    /// <summary>The spellings <c>--std</c> accepts: the four editions this compiler targets (the
-    /// <c>EditionContext.DialectLevel</c> years), exactly, so <c>COBOL-2002</c>, <c>+85</c> and an empty value are refused.</summary>
-    internal static readonly string[] StdSpellings = ["85", "2002", "2014", "2023"];
+    /// <summary>The spellings <c>--std</c> accepts: the years of <see cref="EditionInfo.All"/>, the one list of the editions this
+    /// compiler targets, written as plain decimal years, so <c>COBOL-2002</c>, <c>+85</c> and an empty value are refused. Derived,
+    /// never retyped: an edition added to <see cref="EditionInfo.All"/> is accepted here with no second edit.</summary>
+    internal static readonly string[] StdSpellings = EditionInfo.All.ToArray()
+        .Select(year => year.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray();
 
     /// <summary>Parse a <c>--std</c> value (or a check-batch manifest's std field) to its edition year; an absent value answers
     /// false.</summary>
