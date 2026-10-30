@@ -8,7 +8,7 @@ a golden to one edition to stay under the bound (PB4096). Re-probe at base 90da7
 3,113 test rows and 8,900 refusal rows, 12,013 in all, 376 a partition, so the bound would turn red again 3,987 rows
 later.
 
-**The design correction (DESIGN-test-build-ci.md §3.11 "How many partitions").** A partition's time is its family's
+**The design correction (DESIGN-test-build-ci.md section 3.11 "How many partitions").** A partition's time is its family's
 time over P; the leg's ideal wall is the leg's time over the host's T workers; so a partition stays under the wall
 while P ≥ T × (the family's share of the leg). Neither side moves when a family grows with the leg, so the row total
 was never the right input: the count is chosen from the host's parallelism and the family's share, kept at its
@@ -33,7 +33,7 @@ measured floor, and re-measured when the host or the shares change.
   suite's rows exist only at test time (`SuiteManifest` runs `generate.py`), and `scripts/gate_plan.py` models a
   collection as a class. The note proposed generation; this departs from it on that evidence, and its "Done when" holds.
 - **Docs.** The summaries of `ConformanceSuiteTestsBase.Partitions` and `OptionalWordSubsetDriftTestsBase.Partitions`
-  state the current design without dated history (review lead R1-3 of #828); §3.11's check table and §3.11.1's rows,
+  state the current design without dated history (review lead R1-3 of #828); the design's section 3.11 check table and section 3.11.1 rows,
   and DESIGN-architecture-review.md's `optword/` case, are current.
 - **PB4096's golden is restored to `accept: [2002, 2014, 2023]`.** It matches its `.out` at all three editions (CLI
   re-probe, and the three suite rows green).

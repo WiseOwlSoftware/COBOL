@@ -154,7 +154,7 @@ internal sealed class PartitionedRowSourceAttribute(string slicedMember) : Attri
 /// </list>
 /// The share check is what bounds a partition, and it bounds it RELATIVELY: a partition holds 1/P of its family
 /// whatever the family's size, so a family that grows grows every partition alike, and no absolute row bound exists
-/// to be crossed by growth alone (kb/Work PB4146; DESIGN-test-build-ci.md §3.11).
+/// to be crossed by growth alone (kb/Work PB4146; DESIGN-test-build-ci.md section 3.11).
 /// ⚠ The slot and empty-partition checks have been fired deliberately (a partition class commented out; a slice count
 /// desynced from the const) rather than trusted silent, the share check by a planted count
 /// (<c>TestPartitionCoverageDriftTests</c> in the Unit assembly) — and the discovery filter itself went RED on its
