@@ -23,7 +23,9 @@ public sealed class ConformancePartitioningDriftTests
 {
     /// <summary>Rows (tests and refusals, each at one edition) one suite partition may hold: about 440 at 24
     /// partitions when the corpus moved into the suite (kb/Work PB3177: 2,491 test rows and 8,079 refusal rows, 441 a partition; a refusal
-    /// row is one front-end compile at one edition, where the corpus runner's negative row compiled at each of its editions).</summary>
+    /// row is one front-end compile at one edition, where the corpus runner's negative row compiled at each of its editions).
+    /// The suite crossed it at 12,005 rows on 2026-10-30 (501 a partition at 24); the runner then went to 32 partitions,
+    /// about 375 rows each.</summary>
     private const int MaxSuiteRowsPerPartition = 500;
 
     /// <summary>Formats one optional-word partition may hold: each format's whole power set runs serially.</summary>
