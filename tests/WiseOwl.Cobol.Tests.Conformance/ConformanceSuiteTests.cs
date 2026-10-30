@@ -31,7 +31,7 @@ public abstract class ConformanceSuiteTestsBase<TSlot>
 {
     /// <summary>Partition count: 32, one per processor of the 32-way gate host (kb/Work PB2527). At about 12,000 rows a
     /// partition holds about 375; <c>ConformancePartitioningDriftTests</c>' bound of 500 a partition is reached at 16,000
-    /// rows (kb/Work PB4114).</summary>
+    /// rows (kb/Work PB4146 derives the count from the row total).</summary>
     public const int Partitions = 32;
 
     [PartitionedRowSource(nameof(Tests))]
