@@ -85,18 +85,12 @@ def recorder_present(repo: pathlib.Path) -> bool:
 
 
 def worker_alive(st: dict[str, Any]) -> bool:
-    """The registered worker is a live Python whose command line names this script (a pid the OS reused for another
-    program after the worker died carries another command line; an unreadable command line reads as alive, as
-    land_lane.runner_alive does, so a live worker is never started beside)."""
+    """The registered worker is a running Python whose command line names this script (`coord.runs_python`: a pid the
+    OS reused for another program after the worker died carries another command line, and an exited worker is dead
+    however a process listing still names it, kb/Work PB4008)."""
     w = st.get("worker")
     pid = w.get("pid") if isinstance(w, dict) else None
-    if not isinstance(pid, int):
-        return False
-    name = coord.process_name(pid)
-    if not name or "python" not in name.lower():
-        return False
-    cmd = coord.process_command(pid)
-    return cmd == "" if not cmd else WORKER_MARK in cmd
+    return isinstance(pid, int) and coord.runs_python(pid, WORKER_MARK)
 
 
 def skip_reason(store: pathlib.Path, repo: pathlib.Path, sha: str, st: dict[str, Any]) -> str | None:
