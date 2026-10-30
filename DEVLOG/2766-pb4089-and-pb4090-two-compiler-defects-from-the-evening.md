@@ -1,4 +1,4 @@
-## PB4089 and PB4090: two compiler defects from the evening waves, adjudicated against the spec
+## Entry 2766 — 2026-10-29 20:22 PDT — PB4089 and PB4090: two compiler defects from the evening waves, adjudicated against the spec
 
 At the owner's request ("These may be compiler bugs which should be fixed if possible before the fuzz"), two leads of
 wave 20261760 were checked against ISO/IEC 1989:2023 and filed as defects.
@@ -8,3 +8,4 @@ wave 20261760 were checked against ISO/IEC 1989:2023 and filed as defects.
   positions, so `STRING "AB" INTO N` with N = 123456 must leave AB3456, as GnuCOBOL does. WiseOwl leaves 003456.
 - **PB4090 (accepts illegal source).** A Format 1 SEND that names a message server compiles without the RETURNING
   phrase that §14.9.38.2 prints unbracketed. PB2024's screen covers only a literal operand.
+
