@@ -68,10 +68,10 @@ public sealed class ClosedFormatDriftTests : WiseOwlCobolTestBase
     /// landing closing. And the two forms differ in ONE thing, the integer-led literals (kb/Work PB3390): only
     /// <c>unrecognizedClause</c> calls <c>residueInteger</c>, and no FIRST set of the data form's run holds INTEGERLIT,
     /// so the data division's run can never swallow the next entry's level-number.
-    /// <para>⚠ THE COMMENT-ENTRY SINKS ARE NOT THIS. <c>dateCompiledContent</c>, <c>securityContent</c> and
-    /// <c>remarksContent</c> are also unbounded token runs and are CORRECT: a comment-entry is arbitrary text by
+    /// <para>⚠ THE COMMENT-ENTRY SINK IS NOT THIS. <c>commentEntry</c> (the one body of the six identification comment
+    /// paragraphs) is also an unbounded token run and is CORRECT: a comment-entry is arbitrary text by
     /// definition, which is why ISO/IEC 1989:2023 defines no syntax for one anywhere. The distinction is what the
-    /// sink sits over — a COMMENT-ENTRY (right) or a CLAUSE / PARAGRAPH LIST (this defect) — so they are
+    /// sink sits over — a COMMENT-ENTRY (right) or a CLAUSE / PARAGRAPH LIST (this defect) — so it is
     /// deliberately outside this fact's reach.</para></summary>
     [Fact]
     public void TheWordRun_IsCalledOnlyByTheErrorProduction()

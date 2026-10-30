@@ -22,8 +22,10 @@ namespace WiseOwl.Cobol.Frontend.Common;
 /// word is a length error, not an introduction gate), 31 at 2002/2014, 30 at 1985. Above 63 is a hard cap at
 /// every edition. The CHARACTER half of §8.3.2.1 is here too (kb/Work PB1402): from 2002 each character outside the
 /// basic repertoire must be where the edition's Annex B.3 permits it (<see cref="CharacterViolation"/>, COBOL2773);
-/// the below-2002 gates of the underscore and the extended letters stay in the tree funnel, because every
-/// <c>&gt;&gt;</c> directive is itself rejected below 2002, so neither can reach a directive word.</para>
+/// the below-2002 gates of the underscore and the extended letters are asked with it by
+/// <see cref="Parsing.WordCharacterScreen"/> over the lexer's words (parse or no parse, kb/Work PB3845), not by the
+/// directive stages, because every <c>&gt;&gt;</c> directive is itself rejected below 2002, so neither can reach a
+/// directive word.</para>
 /// </summary>
 public static class CobolWordRule
 {
