@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb4096_test_numval_f_exponent_char_in_error
 *> rules: [RV-15.95.4-1, AR-15.69.3-1]
-*> accept: [2002, 2014, 2023]
+*> accept: [2002]
 *> source-format: free
 *> portable: unverified
 *>---
