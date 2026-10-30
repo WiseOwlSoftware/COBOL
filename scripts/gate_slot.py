@@ -89,6 +89,7 @@ from pathlib import Path
 from typing import Callable
 
 import sharedfile  # this directory's: the one Windows share-retry rule for the settings file (kb/Work PB2564)
+from detached import kill_tree, pid_alive  # this directory's: the one tree kill and the one liveness probe (PB4008)
 from standard_streams import ensure_utf8
 
 REPO = Path(__file__).resolve().parents[1]
@@ -967,32 +968,8 @@ class _Proc:
             if self.p.poll() is None:
                 self.p.kill()
         else:
-            from detached import kill_tree  # noqa: PLC0415  (detached imports gate_slot's pid probe: each imports where used)
             kill_tree(self.p.pid)
         self.p.wait()
-
-
-def _pid_alive(pid: int) -> bool:
-    if IS_WINDOWS:
-        import ctypes
-        k32 = ctypes.WinDLL("kernel32", use_last_error=True)
-        k32.OpenProcess.restype = ctypes.c_void_p
-        h = k32.OpenProcess(0x00100000 | 0x1000, False, pid)  # SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION
-        if not h:
-            return False
-        try:
-            return k32.WaitForSingleObject(ctypes.c_void_p(h), 0) != 0  # 0 = WAIT_OBJECT_0: it has exited
-        finally:
-            k32.CloseHandle(ctypes.c_void_p(h))
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    try:  # a zombie still answers kill(0); it holds nothing, so it counts as dead
-        with open(f"/proc/{pid}/stat", encoding="ascii") as fh:
-            return fh.read().split(") ", 1)[1][:1] != "Z"
-    except OSError:
-        return True
 
 
 def _wait_until(predicate: Callable[[], bool], what: str) -> None:
@@ -1178,11 +1155,11 @@ def self_test() -> int:
             h.kill_holder_only()                         # its tree is now orphaned
             state = GateSlots.for_repo(main_repo, 1)
             if IS_WINDOWS:
-                _wait_until(lambda: not _pid_alive(child) and not _pid_alive(grandchild),
+                _wait_until(lambda: not pid_alive(child) and not pid_alive(grandchild),
                             "the job killing the orphaned child and grandchild")
                 _wait_until(lambda: not state.state().held, "the slot freed after the tree died")
             else:
-                assert _pid_alive(grandchild), "the grandchild should outlive the holder on Linux"
+                assert pid_alive(grandchild), "the grandchild should outlive the holder on Linux"
                 assert state.state().held, "an orphaned tree must keep the slot while it runs (flock inheritance)"
                 h.kill()                                 # the orphans' process group outlived its leader
                 _wait_until(lambda: not state.state().held, "the slot freed once the orphaned tree exited")

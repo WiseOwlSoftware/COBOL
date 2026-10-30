@@ -599,8 +599,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// It did not, and that was a real defect rather than a tidiness point: <c>_rcv</c> is a per-unit MUTABLE field,
     /// so an ADD left its receiver LATCHED on the renderer and the next receiver-less render — a numeric FUNCTION in
     /// a DISPLAY or a text MOVE — silently inherited it. `DISPLAY FUNCTION SQRT(2)` printed `1.414213562`, then
-    /// `1.414213562373` after an unrelated `ADD 1 TO R`, because the intrinsic's working scale is
-    /// <c>max(Receiver.Scale, 9)</c>. A public entry that mutates ambient state must restore it or the
+    /// `1.414213562373` after an unrelated `ADD 1 TO R`, because the intrinsic's landing derives from the receiver
+    /// (<c>ReceiverContext.FloatLanding</c>; then a working scale of <c>max(Receiver.Scale, 9)</c>). A public entry that mutates ambient state must restore it or the
     /// next caller reads someone else's context.</para></summary>
     public NumX Fold(IReadOnlyList<BoundExpr> xs, in ReceiverContext rcv)
     {
@@ -1302,13 +1302,13 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// is the arm below. A native-arithmetic exponentiation whose result has no exact
     /// representation is an IMPLEMENTOR-DEFINED approximation, computed in double and quantized through the ONE
     /// <c>CobolIntrinsics.FromDouble</c> at the landing <see cref="ReceiverContext.FloatLanding"/> chooses — the
-    /// resultant identifier's scale + the statement's ROUNDED mode when the power IS the transfer, the
-    /// <c>max(Receiver.Scale, 9)</c> working scale with TRUNCATION when it is a nested intermediate (kb/Work
-    /// PB647: this arm carried the float family's hard-coded NEAREST-AWAY-FROM-ZERO and its defect with it, so
-    /// <c>COMPUTE A = 3 ** 0.5</c> rounded where a no-phrase store must truncate). The previous
+    /// resultant identifier's scale + the statement's ROUNDED mode when the power IS the transfer into a fixed-point
+    /// resultant, and NO quantization at all (the binary64 stays, as a <c>COMP-2</c> item's content does) when it is a
+    /// nested intermediate, a float receiver or a receiver-less render (kb/Work PB647: this arm carried the float
+    /// family's hard-coded NEAREST-AWAY-FROM-ZERO and its defect with it, so <c>COMPUTE A = 3 ** 0.5</c> rounded where
+    /// a no-phrase store must truncate; kb/Work PB653 removed the nested arm's working scale). The previous
     /// scale-0 <c>(long)</c> truncation lost every fractional power result and turned the double artifact in
-    /// <c>SQRT(10) ** 2</c> = 9.999999988 into 9 (IF136A F-SQRT-25); the 9-digit floor mirrors the float-intrinsic
-    /// working scale (a receiver-less context renders at scale 0 — the P7.3 <see cref="ReceiverContext.None"/>).</summary>
+    /// <c>SQRT(10) ** 2</c> = 9.999999988 into 9 (IF136A F-SQRT-25).</summary>
     private NumX Power(NumX b, NumX e, Int128? literalExponent)
     {
         // An exact wide base/exponent has no power form: it enters on the SDIDI (kb/Work PB1900)
@@ -1467,8 +1467,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// "checked" — never the modular low-order digits a STORE may use, because a value-semantics consumer has no
     /// capacity check downstream); a float under a STANDARD mode is converted in first (§8.8.1.5.1 — the mode
     /// beats the float branch, NUMERIC_DESIGN.md D3) and lands the same way. A float under NATIVE
-    /// arithmetic stays binary64 — the consumer's own float arm applies (see <see cref="FixedLane"/> for the
-    /// consumers that have none).
+    /// arithmetic stays binary64 — the consumer's own float arm applies (every consumer has one: the intrinsic
+    /// argument intake, <c>SetEmitter.LandAmount</c>, <c>PtrEmitter</c>, <c>CallEmitter</c>'s BY VALUE arm; kb/Work
+    /// PB3829 deleted the <c>FixedLane</c> that once truncated a float sender at a working scale for the ones that
+    /// lacked it).
     /// <para>⛔ kb/Work PB84: after PB69 made <c>A ** 2</c> an SDIDI intermediate under native arithmetic, every
     /// consumer that read <c>x.Expr</c> as a native carrier — <c>(long)(x.Expr)</c> in the pointer and CALL BY
     /// VALUE emitters, the sign condition's <c>x.Expr &gt; 0</c> (NIST NC250A), the INVOKE BY CONTENT store —
