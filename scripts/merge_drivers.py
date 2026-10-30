@@ -621,7 +621,9 @@ def foresee_queue(repo: pathlib.Path | str, base: str, entries: list[tuple[str, 
             continue
         made = git(pathlib.Path(repo), "-c", "user.name=merge_drivers", "-c", "user.email=merge_drivers@localhost",
                    "commit-tree", tree, "-p", result, "-p", head, "-m", f"queue simulation: {label}")
-        if made.returncode != 0:
+        if made.returncode != 0:   # the entries after this one are unknown, never clean: said, and left out
+            print(f"merge_drivers: the queue simulation stopped at {label}: git commit-tree failed "
+                  f"({made.stderr.strip()[:160]})", file=sys.stderr)
             break
         result = made.stdout.strip()
         ahead.append((label, head))
