@@ -11,8 +11,8 @@ namespace WiseOwl.Cobol.Runtime;
 /// variadic entries take arguments ALREADY ALIGNED by the emitter to one common scale, and the unary ones take the
 /// argument's own scale.
 /// <para>WHY THEY EXIST. Under native arithmetic the method of evaluating "all integer and numeric functions" is the
-/// implementor's (ISO/IEC 1989:2023 §8.8.1.3), and so are "the characteristics and representation of the returned value"
-/// (§15.4.1). For that latitude CLAUDE.md rule 1 makes GnuCOBOL the answer, and GnuCOBOL evaluates a function's argument
+/// implementor's (ISO/IEC 1989:2023 §8.8.1.3), and so, by §15.4.1, are "the characteristics and representation of the
+/// returned value". For that latitude CLAUDE.md rule 1 makes GnuCOBOL the answer, and GnuCOBOL evaluates a function's argument
 /// expression into an arbitrary-precision temporary, so <c>FUNCTION ABS (BIG * BIG * K3)</c> of 18-, 18- and 3-digit items is
 /// every digit of the 39-digit product. The argument used to reach these functions lowered to the 34-digit SDIDI by
 /// round-to-odd, and the function answered from that image: ABS showed <c>…100000</c> for <c>…000999</c> and
