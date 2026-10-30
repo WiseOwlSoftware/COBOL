@@ -177,21 +177,40 @@ public sealed class FloatResultantTests
     [Fact]
     public void CheckedOperations_RaiseTheTable13Condition()
     {
-        Assert.Equal("EC-SIZE-ZERO-DIVIDE", Ec(() => CobolFloat.DivChecked(1, 0)));
-        Assert.Equal("EC-SIZE-ZERO-DIVIDE", Ec(() => CobolFloat.DivChecked(1, -0.0)));
-        Assert.Equal("EC-SIZE-ZERO-DIVIDE", Ec(() => CobolFloat.DivChecked(double.NaN, 0)));
-        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolFloat.MulChecked(1e300, 1e300)));
-        Assert.Equal("EC-SIZE-UNDERFLOW", Ec(() => CobolFloat.MulChecked(1e-300, 1e-300)));
-        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolFloat.AddChecked(double.MaxValue, double.MaxValue)));
-        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolFloat.SubChecked(double.MaxValue, -double.MaxValue)));
-        Assert.Equal("EC-SIZE-UNDERFLOW", Ec(() => CobolFloat.DivChecked(double.Epsilon, 2)));   // 2^-1075 → 0
-        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolIntrinsics.PowNativeRealChecked(1e300, 2)));
-        Assert.Equal("EC-SIZE-UNDERFLOW", Ec(() => CobolIntrinsics.PowNativeRealChecked(1e-300, 2)));
+        Assert.Equal("EC-SIZE-ZERO-DIVIDE", Ec(() => CobolFloat.DivChecked(1, 0, SizeChecks.Range)));
+        Assert.Equal("EC-SIZE-ZERO-DIVIDE", Ec(() => CobolFloat.DivChecked(1, -0.0, SizeChecks.Range)));
+        Assert.Equal("EC-SIZE-ZERO-DIVIDE", Ec(() => CobolFloat.DivChecked(double.NaN, 0, SizeChecks.Range)));
+        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolFloat.MulChecked(1e300, 1e300, SizeChecks.Range)));
+        Assert.Equal("EC-SIZE-UNDERFLOW", Ec(() => CobolFloat.MulChecked(1e-300, 1e-300, SizeChecks.Range)));
+        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolFloat.AddChecked(double.MaxValue, double.MaxValue, SizeChecks.Range)));
+        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolFloat.SubChecked(double.MaxValue, -double.MaxValue, SizeChecks.Range)));
+        Assert.Equal("EC-SIZE-UNDERFLOW", Ec(() => CobolFloat.DivChecked(double.Epsilon, 2, SizeChecks.Range)));   // 2^-1075 → 0
+        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolIntrinsics.PowNativeRealChecked(1e300, 2, SizeChecks.Range)));
+        Assert.Equal("EC-SIZE-UNDERFLOW", Ec(() => CobolIntrinsics.PowNativeRealChecked(1e-300, 2, SizeChecks.Range)));
         // In range, a zero operand, a subnormal result, and a non-finite operand are not the condition.
-        Assert.Equal(0.0, CobolFloat.MulChecked(0, 1e-300));
-        Assert.Equal(double.Epsilon, CobolFloat.DivChecked(double.Epsilon, 1));
-        Assert.Equal(double.PositiveInfinity, CobolFloat.MulChecked(double.PositiveInfinity, 2));
-        Assert.Equal(0.0, CobolIntrinsics.PowNativeRealChecked(0, 2));
+        Assert.Equal(0.0, CobolFloat.MulChecked(0, 1e-300, SizeChecks.Range));
+        Assert.Equal(double.Epsilon, CobolFloat.DivChecked(double.Epsilon, 1, SizeChecks.Range));
+        Assert.Equal(double.PositiveInfinity, CobolFloat.MulChecked(double.PositiveInfinity, 2, SizeChecks.Range));
+        Assert.Equal(0.0, CobolIntrinsics.PowNativeRealChecked(0, 2, SizeChecks.Range));
+    }
+
+    /// <summary>kb/Work PB4092 — §14.6.13.1.1 raises a condition only "if checking for an exception condition is enabled":
+    /// a checked operator raises the range conditions it is GIVEN and takes the not-enabled disposition (DOC-A.1-70, the
+    /// IEEE value) for the rest. A zero divisor is not one of them: it is raised whatever is taken.</summary>
+    [Fact]
+    public void CheckedOperations_RaiseOnlyTheConditionsTaken()
+    {
+        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolFloat.MulChecked(1e300, 1e300, SizeChecks.Overflow)));
+        Assert.Equal(0.0, CobolFloat.MulChecked(1e-300, 1e-300, SizeChecks.Overflow));
+        Assert.Equal("EC-SIZE-UNDERFLOW", Ec(() => CobolFloat.MulChecked(1e-300, 1e-300, SizeChecks.Underflow)));
+        Assert.Equal(double.PositiveInfinity, CobolFloat.MulChecked(1e300, 1e300, SizeChecks.Underflow));
+        Assert.Equal(double.PositiveInfinity, CobolFloat.AddChecked(double.MaxValue, double.MaxValue, SizeChecks.Truncation));
+        Assert.Equal(double.PositiveInfinity, CobolIntrinsics.PowNativeRealChecked(1e300, 2, SizeChecks.None));
+        Assert.Equal("EC-SIZE-ZERO-DIVIDE", Ec(() => CobolFloat.DivChecked(1, 0, SizeChecks.None)));
+        // The scaled Int128 carrier's sum raises EC-SIZE-OVERFLOW alone, and wraps like the bare operator without it.
+        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolNum.AddChecked(Int128.MaxValue, 1, SizeChecks.Overflow)));
+        Assert.Equal(Int128.MinValue, CobolNum.AddChecked(Int128.MaxValue, 1, SizeChecks.Underflow | SizeChecks.Truncation));
+        Assert.Equal(Int128.MaxValue, CobolNum.SubChecked(Int128.MinValue, 1, SizeChecks.None));
     }
 
     [Fact]

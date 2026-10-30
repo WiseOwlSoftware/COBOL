@@ -8456,6 +8456,7 @@
  },
  "pb1402-not-an-annex-b-character": {
   "refuse-at": [
+   "85",
    "2002",
    "2014",
    "2023"
@@ -24159,6 +24160,12 @@
   ],
   "expect": "COBOL0900: >>TURN directive requires COBOL-2002"
  },
+ "pb4092-turn-size-per-name-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: >>TURN directive requires COBOL-2002"
+ },
  "pb2024-required-word-omitted": {
   "refuse-at": [
    "85",
@@ -24209,6 +24216,15 @@
    "2023"
   ],
   "expect": "COBOL5488: SEND is written with the RETURNING phrase"
+ },
+ "pb4130-no-break-space-in-a-word": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2773"
  },
  "pb3245-literal-not-continued-fixed": {
   "refuse-at": [

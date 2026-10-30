@@ -105,7 +105,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor WordCharacterNotPermitted = new(
         "COBOL2773", "word-character-not-permitted", EditionSeverity.Error,
         "A COBOL word holds a character that the edition's Annex B does not permit where it stands: one outside the "
-        + "repertoire (Annex B.3), or a continuing character (B.3 item 2) as the first character. (A character the "
+        + "repertoire (Annex B.3; a character no edition's Annex B holds, such as U+00A0 or the euro sign, is refused "
+        + "at every target, COBOL-85 included), or a continuing character (B.3 item 2) as the first character. (A character the "
         + "COBOL 2014 Annex B permitted where COBOL 2023's does not — Annex E.2 item 4 — is the removed construct "
         + "user-word-character-removed-2023, COBOL0902.)", "ISO §8.3.2.1; §8.1.3.2 GR4; Annex B.3");
     public static readonly DiagnosticDescriptor DigitCapacityOver18Pre2002 = new(

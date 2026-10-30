@@ -2130,7 +2130,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// statements' own rule), never receiver-less at the 6-digit working scale that dropped the digits the formal could hold.
     /// Checking is the ambient EC-SIZE state, as for every receiver-less render in this statement.</summary>
     private NumX FormalValue(BoundExpr expr, PicInfo formalPic) =>
-        Num.Render(expr, ReceiverContext.Of(formalPic, CobolRounding.Truncation, ecState.SizeChecking),
+        Num.Render(expr, ReceiverContext.Of(formalPic, CobolRounding.Truncation, ecState.EnabledChecks),
             outermost: true);
 
     /// <summary>The VALUE a literal-2 or arithmetic-expression-1 argument stores into a fixed-point numeric method formal

@@ -1008,10 +1008,16 @@ internal static class RuntimeApi
     public static string SizeRaisingImage(string tryCall, string imgVar, string detail) =>
         $"({tryCall} ? {imgVar} : throw new {nameof(CobolSizeError)}({Emit.EmitText.CsLiteral(detail)}, \"EC-SIZE-TRUNCATION\"))";
 
-    /// <summary>The presenting statement's EC-SIZE-* family enablement as the report compose reads it at run time —
-    /// <c>ExceptionState.SizeChecking</c> (kb/Work PB4031): it selects the compose's checked numeric renders.</summary>
-    public const string SizeChecking =
-        $"{nameof(Runtime.Exceptions.ExceptionState)}.{nameof(Runtime.Exceptions.ExceptionState.SizeChecking)}";
+    /// <summary>The presenting statement's EC-SIZE enablement as the report compose reads it at run time —
+    /// <c>ExceptionState.SizeChecksEnabled</c> (kb/Work PB4031, PB4092): the <see cref="SizeChecks"/> it passes to every
+    /// checked operator it runs, and, compared with <c>SizeChecks.None</c>, the selector of its checked renders.</summary>
+    public const string SizeChecksEnabled =
+        $"{nameof(Runtime.Exceptions.ExceptionState)}.{nameof(Runtime.Exceptions.ExceptionState.SizeChecksEnabled)}";
+
+    /// <summary>A compile-time <see cref="SizeChecks"/> as C# source — <c>SizeChecks.Overflow | SizeChecks.Underflow</c>
+    /// (kb/Work PB4092): the argument a checked operator takes, naming the conditions the statement takes.</summary>
+    public static string SizeChecksText(SizeChecks checks) =>
+        string.Join(" | ", checks.ToString().Split(", ").Select(n => $"{nameof(SizeChecks)}.{n}"));
 
     /// <summary>The presenting statement's EC-SIZE-TRUNCATION enablement as the report compose reads it at run time —
     /// <c>ExceptionState.SizeTruncationChecking</c> (kb/Work PB4031).</summary>

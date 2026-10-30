@@ -1067,7 +1067,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // moves the argument "without conversion", so it keeps the receiver-less render.
                 ReceiverContext rcv = !a.Omitted && a.Mode is CobolPassMode.Content or CobolPassMode.Value
                                       && a.Formal is { IsGroup: false, Pic: { IsClassNumeric: true } formalPic }
-                    ? ReceiverContext.Of(formalPic, CobolRounding.Truncation, ecState.SizeChecking)
+                    ? ReceiverContext.Of(formalPic, CobolRounding.Truncation, ecState.EnabledChecks)
                     : ReceiverContext.None;
                 NumX rendered = NumericRenderer.DeU(num.Render(expr.Expr, rcv, outermost: !rcv.Receiverless));
                 // ⛔ …AND AN SDIDI VALUE NO FORMAL CAN CUT CROSSES AT ITS OWN EXPONENT (kb/Work PB3677). Landing it at the receiver-less
