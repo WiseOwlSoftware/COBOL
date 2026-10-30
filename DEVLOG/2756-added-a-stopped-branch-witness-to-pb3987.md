@@ -1,3 +1,4 @@
-## Added a stopped-branch witness to PB3987
+## Entry 2756 — 2026-10-29 18:16 PDT — Added a stopped-branch witness to PB3987
 
 PB3987 described a bounced branch whose finisher merges main in and then reads WAITING TO LAND, so the landing lane re-lands it inside the finisher's worktree. A branch stopped on a red gate (exit 5) does the same: on 2026-10-30 the survey stopped reading STOPPED once a finisher's clean main merge moved the tip, and the lane started a new attempt in the finisher's worktree, refused only because the finisher had uncommitted edits. The note's title and mechanism now say a stopped or bounced branch, and the new witness is recorded. It also records that the retry arm in the lane's candidate selection retries an in-flight row, so the hand worktree lock the first witness suggested does not hold a branch against a retryable attempt at the same head.
+
