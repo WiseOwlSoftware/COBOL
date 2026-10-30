@@ -1,4 +1,4 @@
-## PB4075: MEAN and the binary64 family take a wide function argument as its exact value, not its 34-digit image
+## Entry 2779 — 2026-10-30 09:32 PDT — PB4075: MEAN and the binary64 family take a wide function argument as its exact value, not its 34-digit image
 
 PB3953 gave the exact intrinsic family (ABS, MOD, MAX, SUM and the rest) the exact wide intermediate of an argument expression
 of 39 to 77 digits, and left two consumers on the round-to-odd image `RawArg` lowers it to. Both reproduced on the landed tree
@@ -39,3 +39,4 @@ VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE read the image through `DecArgLis
 `PRESENT-VALUE (0, P, 1 - P)` answers 0, not 1). The mean they deviate from is itself a 34-digit SDIDI value, and no clause says
 which precision a native evaluation owes it. PB4075's note records the repros, and DOC-A.1-123 now states which consumers take the
 exact value and which the image.
+
