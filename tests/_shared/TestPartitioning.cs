@@ -135,23 +135,30 @@ internal sealed class PartitionedRowSourceAttribute(string slicedMember) : Attri
 
 /// <summary>
 /// The DRIFT GATE for <see cref="TestPartitioning"/>: proves, per assembly and by shape alone, that every
-/// partitioned family's concrete partitions cover its row set exactly once.
+/// partitioned family's concrete partitions cover its row set exactly once, each partition its even share.
 /// </summary>
 /// <remarks>
 /// ⛔ A partitioned family fails OPEN if nothing checks it: delete one partition class and the rows it owned are
 /// simply never run, with a green leg and a smaller — but still plausible — test count. Every check below exists
-/// for one such way to lose rows silently:
+/// for one such way to lose rows silently, or to rebuild the serial pole the partitions exist to remove:
 /// <list type="bullet">
 ///   <item>a row source that yields NOTHING — every check below would then compare an empty union against an
 ///         empty source and report green;</item>
 ///   <item>slot indices ≠ {0 … <c>Partitions</c>−1} — a deleted, duplicated or mis-slotted partition class;</item>
 ///   <item>an EMPTY partition over a non-empty source — more partitions declared than the source can fill, the
 ///         one waste a pure union check cannot see because the surviving slots still cover the whole set;</item>
+///   <item>a partition holding more or fewer than its even share (⌊rows/P⌋ or ⌈rows/P⌉ of a source's rows) — a
+///         sliced member that filters by something other than the stride, so one partition can grow into the
+///         family's serial pole while the union still covers every row once;</item>
 ///   <item>the union of the partitions ≠ the source as a MULTISET — rows dropped or double-run.</item>
 /// </list>
-/// ⚠ Both of the middle checks have been fired deliberately (a partition class commented out; a slice count
-/// desynced from the const) rather than trusted silent — and the discovery filter itself went RED on its first
-/// real run, on Roslyn's compiler-generated <c>&lt;&gt;O</c> type.
+/// The share check is what bounds a partition, and it bounds it RELATIVELY: a partition holds 1/P of its family
+/// whatever the family's size, so a family that grows grows every partition alike, and no absolute row bound exists
+/// to be crossed by growth alone (kb/Work PB4146; DESIGN-test-build-ci.md section 3.11).
+/// ⚠ The slot and empty-partition checks have been fired deliberately (a partition class commented out; a slice count
+/// desynced from the const) rather than trusted silent, the share check by a planted count
+/// (<c>TestPartitionCoverageDriftTests</c> in the Unit assembly) — and the discovery filter itself went RED on its
+/// first real run, on Roslyn's compiler-generated <c>&lt;&gt;O</c> type.
 /// It is deliberately shape-driven rather than registered: a new family is covered with no edit here, which is
 /// what keeps "automatic" true.
 /// </remarks>
@@ -315,10 +322,12 @@ internal static class TestPartitionAudit
 
         var expected = Multiset(whole);
         var actual = new Dictionary<string, int>(StringComparer.Ordinal);
+        var counts = new List<(string Partition, int Rows)>(partitions.Count);
         foreach (var partition in partitions)
         {
             var rows = Invoke(partition.BaseType!, sliced, familyName, violations);
             if (rows is null) return;
+            counts.Add((partition.Name, rows.Count));
 
             // ② An EMPTY partition over a non-empty source. The union check below CANNOT see this: the remaining
             //    slots still cover the whole set, and an empty collection looks exactly like a fast one. It means
@@ -341,7 +350,18 @@ internal static class TestPartitionAudit
             }
         }
 
-        // ③ The union must equal the source as a MULTISET — nothing dropped, nothing run twice.
+        // ③ Every partition holds its even share of the source. The empty partitions ② already named are left out,
+        //    so one cause is reported once.
+        foreach (var (partition, rows) in OutsideTheirShare(whole.Count, counts).Where(c => c.Rows > 0))
+        {
+            var (low, high) = Share(whole.Count, counts.Count);
+            violations.Add($"{familyName}.{sliced}: partition {partition} holds {rows} of {whole.Count} rows, outside "
+                + $"its share of {low}..{high} at {counts.Count} partitions — the sliced member does not divide the "
+                + $"source by the stride ({nameof(TestPartitioning)}.{nameof(TestPartitioning.SliceRows)}), so one "
+                + "partition can grow into the family's serial pole.");
+        }
+
+        // ④ The union must equal the source as a MULTISET — nothing dropped, nothing run twice.
         var missing = expected.Where(kv => actual.GetValueOrDefault(kv.Key) < kv.Value)
             .Select(kv => kv.Key).Order(StringComparer.Ordinal).ToList();
         var extra = actual.Where(kv => kv.Value > expected.GetValueOrDefault(kv.Key))
@@ -354,6 +374,26 @@ internal static class TestPartitionAudit
                 + $"First missing: {string.Join(" | ", missing.Take(5))}. "
                 + $"First duplicated: {string.Join(" | ", extra.Take(5))}.");
         }
+    }
+
+    /// <summary>The even share of <paramref name="total"/> rows over <paramref name="partitions"/> partitions: each
+    /// holds ⌊total/P⌋ or ⌈total/P⌉ rows, which is exactly what the stride of <see cref="TestPartitioning.Slice{T}"/>
+    /// gives.</summary>
+    internal static (int Low, int High) Share(int total, int partitions)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(total);
+        ArgumentOutOfRangeException.ThrowIfLessThan(partitions, 1);
+        return (total / partitions, (total + partitions - 1) / partitions);
+    }
+
+    /// <summary>The partitions of <paramref name="counts"/> (name and row count, one entry per partition) holding
+    /// fewer or more rows than their even <see cref="Share"/> of <paramref name="total"/>.</summary>
+    internal static IReadOnlyList<(string Partition, int Rows)> OutsideTheirShare(int total,
+        IReadOnlyList<(string Partition, int Rows)> counts)
+    {
+        ArgumentNullException.ThrowIfNull(counts);
+        var (low, high) = Share(total, counts.Count);
+        return [.. counts.Where(c => c.Rows < low || c.Rows > high)];
     }
 
     /// <summary>Invoke a public static parameterless row member on a CLOSED family base and key its rows.</summary>
