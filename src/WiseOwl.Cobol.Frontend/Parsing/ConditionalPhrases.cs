@@ -145,6 +145,14 @@ public static class ConditionalPhrases
 /// phrase to the wrong statement. The superset relaxes the EDITION and nothing else: a phrase no format of any edition
 /// admits beside what the statement already wrote (a NOT ON OVERFLOW on a CALL; a READ's INVALID KEY after its AT END,
 /// or after its NEXT) associates with nothing and is a syntax error, COBOL2269 (<see cref="UnownedPhraseMessage"/>).</para>
+///
+/// <para><b>The presumed reading, last of all too (kb/Work PB1528).</b> ACCEPT Format 3 and DISPLAY Format 2 differ from
+/// Format 1 by the CATEGORY of their operand (screen-name-1 where Format 1 writes identifier-1), which the parser cannot
+/// see. Their phrases join the statement outright only when the positioning phrase proves the format
+/// (<see cref="Format.ProvedBy"/>); otherwise only when no enclosing open statement may take the phrase, exactly as the
+/// superset reading does. A legal program never loses a phrase this way: a phrase after a device ACCEPT / DISPLAY belongs
+/// to an enclosing statement or the program is in error, and an inner screen statement that yields its phrase to an
+/// enclosing one is refused by name all the same (Annex A.4.2 is declined; AcceptDisplayBinder.ScreenFormatOf).</para>
 /// </summary>
 public static class ConditionalPhraseAssociation
 {
@@ -174,6 +182,25 @@ public static class ConditionalPhraseAssociation
     public sealed record Format(FrozenSet<ConditionalPhraseKind> Phrases, string? Construct = null)
     {
         public IReadOnlyList<Selector> Unprinted { get; init; } = [];
+
+        /// <summary>The syntax elements that PROVE a statement is written in this format, for a format told apart from
+        /// the owner's other formats by the CATEGORY of a name rather than by syntax: ACCEPT Format 3 and DISPLAY Format 2
+        /// write <c>screen-name-1</c> exactly where Format 1 writes <c>identifier-1</c> (§14.9.1.2, §14.9.11.2), and
+        /// whether a word names a screen is a declaration fact the parser does not see. Empty: the format needs no
+        /// proof. Non-empty and none written: the format is only PRESUMED, and a phrase joins the statement by it only
+        /// when no enclosing open statement may take the phrase (<see cref="Associates"/>) — so
+        /// <c>DELETE FILE F ON EXCEPTION DISPLAY X NOT ON EXCEPTION …</c> keeps the NOT phrase the DELETE's when X is a
+        /// data item, while <c>ACCEPT SG ON EXCEPTION …</c> reaches the binder's named refusal (kb/Work PB1528).</summary>
+        public IReadOnlyList<Selector> ProvedBy { get; init; } = [];
+    }
+
+    /// <summary>Which formats a phrase may join a statement by: <see cref="Proved"/> admits only the formats the written
+    /// syntax establishes; <see cref="Presumed"/> also admits a <see cref="Format.ProvedBy"/> format written without its
+    /// proof — the reading of last resort.</summary>
+    public enum Reading
+    {
+        Proved,
+        Presumed,
     }
 
     private static Format Pair(ConditionalPhraseFamily f, string? construct = null) =>
@@ -193,6 +220,33 @@ public static class ConditionalPhraseAssociation
     {
         AlsoPrinted = static e => ComputeFormats.SoleFigurativeZero((Core.BooleanExpressionContext)e) is not null,
     };
+    // ACCEPT Format 3 / DISPLAY Format 2 (screen) against the device formats (§14.9.1.2, §14.9.11.2). The screen format
+    // writes ONE operand, screen-name-1 — a word, never a literal, a function-identifier or an inline invocation — and
+    // none of FROM, UPON or NO ADVANCING, which only Format 1 prints; the positioning phrase only the screen format prints.
+    private static readonly Selector AcceptFrom = new(Core.RULE_acceptSource, "FROM");
+    private static readonly Selector DisplayUpon = new(Core.RULE_displayUpon, "UPON");
+    private static readonly Selector DisplayNoAdvancing = new(Core.RULE_displayNoAdvancing, "WITH NO ADVANCING");
+    private static readonly Selector DisplayLiteral = new(Core.RULE_literal, "a literal operand");
+    private static readonly Selector DisplayFunction = new(Core.RULE_functionCall, "a function-identifier operand");
+    private static readonly Selector DisplayInvocation = new(Core.RULE_inlineMethodInvocation, "an inline method invocation operand");
+    // The first data-reference operand; it selects only when it is not the statement's sole operand.
+    private static readonly Selector DisplaySecondOperand = new(Core.RULE_dataReference, "more than one operand")
+    {
+        AlsoPrinted = static e => e.Parent is Core.DisplayStatementContext display && OperandCount(display) == 1,
+    };
+    private static readonly Selector ScreenPosition = new(Core.RULE_screenPositionPhrase, "the AT / LINE / COLUMN phrase");
+
+    /// <summary>The DISPLAY statement's operands (identifier-1 / literal-1 …). A loop over the children: it runs at
+    /// phrase-keyword lookahead, so it allocates nothing.</summary>
+    private static int OperandCount(Core.DisplayStatementContext display)
+    {
+        int n = 0;
+        foreach (var c in display.children)
+            if (c is Core.DataReferenceContext or Core.LiteralContext or Core.FunctionCallContext
+                or Core.InlineMethodInvocationContext)
+                n++;
+        return n;
+    }
 
     /// <summary>⛔ THE OWNERS: every grammar rule that writes <c>conditionalPhrases</c>, with its general formats' phrase
     /// brackets (the §14.9 general formats, read against Table 12 by <c>ConditionalPhraseDriftTests</c>).</summary>
@@ -216,12 +270,24 @@ public static class ConditionalPhraseAssociation
             Pair(ConditionalPhraseFamily.Exception),
             Positive(ConditionalPhraseFamily.Overflow, Constructs.CallOnOverflowRemoved2023),
         ],
-        // §14.9.31.2, §14.9.38.2, §14.9.10.2 Format 2 (file), and the screen formats of ACCEPT (§14.9.1.2 Format 3)
-        // and DISPLAY (§14.9.11.2 Format 2), whose phrase pair follows their positioning phrase (screenTail).
+        // §14.9.31.2, §14.9.38.2, §14.9.10.2 Format 2 (file).
         [Core.RULE_mcsReceiveStatement] = [Pair(ConditionalPhraseFamily.Exception)],
         [Core.RULE_mcsSendStatement] = [Pair(ConditionalPhraseFamily.Exception)],
         [Core.RULE_deleteFileStatement] = [Pair(ConditionalPhraseFamily.Exception)],
-        [Core.RULE_screenTail] = [Pair(ConditionalPhraseFamily.Exception)],
+        // §14.9.1.2 / §14.9.11.2: only the screen format (ACCEPT Format 3, DISPLAY Format 2) prints the pair, beside an
+        // independent positioning phrase that proves it; written without one, the format is presumed (kb/Work PB1528).
+        [Core.RULE_acceptStatement] =
+        [
+            Pair(ConditionalPhraseFamily.Exception) with { Unprinted = [AcceptFrom], ProvedBy = [ScreenPosition] },
+        ],
+        [Core.RULE_displayStatement] =
+        [
+            Pair(ConditionalPhraseFamily.Exception) with
+            {
+                Unprinted = [DisplayLiteral, DisplayFunction, DisplayInvocation, DisplaySecondOperand, DisplayUpon, DisplayNoAdvancing],
+                ProvedBy = [ScreenPosition],
+            },
+        ],
         // §14.9.30.2: Format 1 (sequential) { NEXT | PREVIOUS } … [ ADVANCING ON LOCK | … ] [| AT END | NOT AT END |];
         // Format 2 (random) … [ KEY IS … ] [| INVALID KEY | NOT INVALID KEY |]. NEXT is the default alternative of
         // Format 1's braces (§5.2.6.3), so a READ that writes none of the selectors may be either format.
@@ -255,24 +321,30 @@ public static class ConditionalPhraseAssociation
     /// <paramref name="phrases"/> — the parse-time predicate's whole decision.</summary>
     public static bool Associates(Core.ConditionalPhrasesContext phrases, ConditionalPhraseKind next, EditionInfo edition)
     {
-        if (MayAssociate(phrases, next, edition)) return true;
-        if (!MayAssociate(phrases, next, edition: null)) return false;
-        // The superset reading: only when no enclosing open statement may take the phrase by §14.5.3.3 itself.
+        if (MayAssociate(phrases, next, edition, Reading.Proved)) return true;
+        if (!MayAssociate(phrases, next, edition: null, Reading.Presumed)) return false;
+        // The readings of last resort — a format of another edition (the superset) or one the written syntax does not
+        // prove (Format.ProvedBy): only when no enclosing open statement may take the phrase at the target edition by
+        // any reading, so neither relaxation ever moves a phrase away from a statement that may have it.
         for (RuleContext? a = phrases.Parent?.Parent; a is not null; a = a.Parent)
-            if (a is Core.ConditionalPhrasesContext outer && MayAssociate(outer, next, edition))
+            if (a is Core.ConditionalPhrasesContext outer && MayAssociate(outer, next, edition, Reading.Presumed))
                 return false;
         return true;
     }
 
     /// <summary>The §14.5.3.3 test proper: <paramref name="next"/> is not yet written, and one of the owner's general
     /// formats printed at <paramref name="edition"/> (at ANY edition when null — the superset reading) admits it together
-    /// with every phrase already written, and prints every <see cref="Selector"/> the statement wrote.</summary>
-    public static bool MayAssociate(Core.ConditionalPhrasesContext phrases, ConditionalPhraseKind next, EditionInfo? edition)
+    /// with every phrase already written, prints every <see cref="Selector"/> the statement wrote, and — under
+    /// <see cref="Reading.Proved"/> — is proved by what the statement wrote (<see cref="Format.ProvedBy"/>).</summary>
+    public static bool MayAssociate(Core.ConditionalPhrasesContext phrases, ConditionalPhraseKind next, EditionInfo? edition,
+        Reading reading)
     {
         var written = ConditionalPhrases.KindsOf(phrases).ToList();
+        var owner = Owner(phrases);
         return !written.Contains(next)
             && AdmittingFormats(phrases, written, next).Any(f =>
-                f.Construct is null || edition is not { } e || ConstructRegistry.IsAvailable(e, f.Construct));
+                (f.Construct is null || edition is not { } e || ConstructRegistry.IsAvailable(e, f.Construct))
+                && (reading == Reading.Presumed || f.ProvedBy.Count == 0 || f.ProvedBy.Any(s => Writes(owner, s))));
     }
 
     /// <summary>The owner's formats (at any edition) that print <paramref name="next"/> beside every phrase in
@@ -332,7 +404,7 @@ public static class ConditionalPhraseAssociation
                 if (d is Core.ConditionalPhrasesContext ended) candidates.Add(ended);
         }
         // Not this rule's error when a candidate may take the phrase: the parse failed for another reason.
-        if (candidates.Any(p => MayAssociate(p, kind, edition: null)))
+        if (candidates.Any(p => MayAssociate(p, kind, edition: null, Reading.Presumed)))
             return null;
         var owner = candidates.FirstOrDefault(p => FormatsOf(OwnerRule(p)).Any(f => f.Phrases.Any(k => k.Family == kind.Family)));
         if (owner is null) return null;
@@ -373,8 +445,7 @@ public static class ConditionalPhraseAssociation
         return ConditionalPhrases.KindOfLeadingTokens(types[0], types[1], types[2]);
     }
 
-    /// <summary>The verb of the statement that owns <paramref name="phrases"/> (a screen ACCEPT / DISPLAY owns them
-    /// through its positioning phrase).</summary>
+    /// <summary>The verb of the statement that owns <paramref name="phrases"/>: the nearest enclosing statement rule.</summary>
     private static string StatementName(Core.ConditionalPhrasesContext phrases)
     {
         for (RuleContext? c = phrases.Parent; c is not null; c = c.Parent)

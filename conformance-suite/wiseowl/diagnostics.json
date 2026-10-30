@@ -32,6 +32,14 @@
   ],
   "expect": "COBOL1706"
  },
+ "a42-accept-screen-exception": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1707: the ACCEPT statement's screen format 3"
+ },
  "a42-accept-screen-minimal": {
   "refuse-at": [
    "2002",
@@ -47,6 +55,14 @@
    "2023"
   ],
   "expect": "COBOL1707: the ACCEPT statement's screen format 3"
+ },
+ "a42-display-screen-exception": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL1707: the DISPLAY statement's screen format 2"
  },
  "a42-display-screen-minimal": {
   "refuse-at": [
