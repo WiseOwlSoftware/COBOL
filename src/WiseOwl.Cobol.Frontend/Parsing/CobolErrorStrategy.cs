@@ -593,7 +593,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // terminator is hint 13's.
         if (!HasStructuralHint(hints) && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, StatementBlockStart(recognizer),
-                   at.APeriodLetsTheSentenceFollow) is { } kindMsg)
+                   at.APeriodLetsTheSentenceFollow,
+                   ZeroTokenRewriter.AZeroWrittenAtIsArithmetic(((BufferedTokenStream)recognizer.InputStream).GetTokens(),
+                       token.TokenIndex)) is { } kindMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, kindMsg, 0));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not

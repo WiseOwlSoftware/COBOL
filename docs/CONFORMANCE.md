@@ -2297,9 +2297,12 @@ of an unsupported facility.
   §8.3.3.3.2 among the numeric ones — a figurative constant, or the separator period) and what is expected there:
   every keyword, context word and literal category, where all of it can be named (`OBJECT-COMPUTER. XYZ MEMORY SIZE
   12 FOO.` expects CHARACTERS, MODULES or WORDS; `SEGMENT-LIMIT IS.` an integer literal; `OPEN F` EXTEND, I-O, INPUT
-  or OUTPUT), and otherwise the literal categories expected (`SET IX TO "A"`: of the literals, only a numeric literal
-  or the figurative constant ZERO, §14.9.39.2 Format 1 with §8.8.1.1). Context words that are no lexer token are
-  named by running the predicate that recognizes them. **What is expected is the compiler's parse, a superset of the
+  or OUTPUT), and otherwise the literal categories expected (`SET IX TO "A"`: of the literals, only a numeric
+  literal). Context words that are no lexer token are named by running the predicate that recognizes them. The
+  figurative constant ZERO is named only where a ZERO written at the token would parse: the parse takes the
+  arithmetic ZERO that the token rewriter makes of a ZERO beside an arithmetic operator (`COMPUTE W-N = 1 + "A"`
+  names it), and naming it after `SET IX TO`, where the parse refuses a sole ZERO, would direct the user to a rewrite
+  the compiler refuses. **What is expected is the compiler's parse, a superset of the
   general format** wherever a later check names the departure better (INSPECT's tallying phrase is parsed with FIRST
   and TRAILING so COBOL2269 refuses them by name; the parse takes a later edition's words at every edition), so the
   message says "expected", never "the general format admits". It is not given where a statement may begin (the
