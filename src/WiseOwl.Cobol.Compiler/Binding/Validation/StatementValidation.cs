@@ -468,23 +468,28 @@ internal sealed class StatementValidation(DataBinder data)
     /// <param name="refText">The operand as written.</param>
     /// <param name="switchName">The implementor's external-switch name when the operand IS a switch-status
     /// condition-name, else null.</param>
-    /// <param name="name">The operand's word, for the one query of what it is declared as (kb/Work PB1906).</param>
+    /// <param name="toTrue">True for the TO TRUE phrase, false for TO FALSE — the message names the statement as written.</param>
+    /// <param name="name">The operand's word, for the one query of what it is declared as (kb/Work PB1906); null for a
+    /// special register (<see cref="ReferenceResolver.WrittenWordOf"/>), which names no word to look up.</param>
     /// <param name="qualifiers">The operand's qualifiers as written.</param>
     /// <returns>Always false: the operand is refused, HAVING REPORTED.</returns>
-    public bool RejectSetConditionName(string refText, string? switchName, string name, IReadOnlyList<string> qualifiers)
+    public bool RejectSetConditionName(string refText, bool toTrue, string? switchName, string? name,
+        IReadOnlyList<string> qualifiers)
     {
+        string set = $"SET '{refText}' TO {(toTrue ? "TRUE" : "FALSE")}";
         // A level-88 entry of a type declaration DOES declare the word (kb/Work PB1906), so "no level-88 entry declares
         // it" would be false: the one query says what it is.
-        var declared = switchName is null ? data.NonDataDeclarationOf(name, qualifiers, data.ActiveScope) : null;
-        if (declared is { Kind: NonDataDeclarationKind.TypeDeclarationCondition or NonDataDeclarationKind.TypeName
-                or NonDataDeclarationKind.TypeDeclarationMember })
+        var declared = switchName is null && name is not null
+            ? data.NonDataDeclarationOf(name, qualifiers, data.ActiveScope) : null;
+        if (name is not null && declared is { Kind: NonDataDeclarationKind.TypeDeclarationCondition
+                or NonDataDeclarationKind.TypeName or NonDataDeclarationKind.TypeDeclarationMember })
             data.Edition.Error(DiagnosticCatalog.UndefinedReference,
-                $"SET '{refText}' TO TRUE — '{refText}' {declared.Value.DeclaredAs(refText, name)}, so the reference "
+                $"{set} — '{refText}' {declared.Value.DeclaredAs(refText, name)}, so the reference "
                 + "identifies no resource (ISO §8.4.2.1), and §14.9.39.3 SR6 requires a condition-name associated with "
                 + "a conditional variable.");
         else if (switchName is not null)
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
-                $"SET '{refText}' TO TRUE — '{refText}' IS a condition-name, but the SPECIAL-NAMES kind: it "
+                $"{set} — '{refText}' IS a condition-name, but the SPECIAL-NAMES kind: it "
                 + $"names the status of external switch {switchName} (ISO §12.3.7), and §8.4.4.1 distinguishes "
                 + "that kind from the level-88 kind, which is the one associated with a conditional variable. "
                 + "\"Condition-name-1 shall be associated with a conditional variable\" (ISO §14.9.39.3 SR6), "
@@ -492,7 +497,7 @@ internal sealed class StatementValidation(DataBinder data)
                 + "SET <mnemonic-name> TO ON or OFF (SR5).");
         else
             data.Edition.Error(DiagnosticCatalog.UndefinedReference,
-                $"SET '{refText}' TO TRUE — '{refText}' is not a condition-name: no level-88 entry and no "
+                $"{set} — '{refText}' is not a condition-name: no level-88 entry and no "
                 + "SPECIAL-NAMES switch-status name in this source element declares it, so the reference "
                 + "identifies no resource (ISO §8.4.2.1), and §14.9.39.3 SR6 requires a condition-name "
                 + "associated with a conditional variable.");

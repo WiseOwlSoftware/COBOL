@@ -54,3 +54,15 @@ second copy left behind (`RefuseNonReceivable`'s text moved and was not copied).
 its call count did not. Duplication: `semgrep/verify.py` holds every count. No diagnostic code was allocated
 (COBOL5503-5505 returned) and no inventory row changed (each note's `closes_rows: []` carries its reason). The gate's
 verdict is recorded in the wave report.
+
+**Branch review round 1: two blocking findings.** R1-1: PB1906 made `SetBinder.BindSetCondition` pass
+`dref.cobolWord()` to the declaration query. In the LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER alternatives of
+`dataReference` that word is the qualifier or absent, so `SET LINAGE-COUNTER TO TRUE` crashed with a
+NullReferenceException where main reports COBOL1639. `ReferenceResolver.WrittenWordOf` now returns the word a
+reference names (null for a register), and both the SET query and `SetAlterBinder.SwitchCondOf` ask it. The message
+now names a TO FALSE phrase as written; it used to say TO TRUE for both. R1-2: SET reads NULL itself in its
+object-reference arm, not through `NullAdmittingOperand`, so `SET IX TO NULL` at 85 still drew the 2002 §14.9.39.3 8)
+refusal (COBOL0867). That arm now asks `UnreservedKeywordReference` before it selects a format. Witnesses: four
+`NonDataNameReferenceTests` register cases and the negative `8.3.2-COBOL-words/pb1673-set-null-undeclared-at-85`.
+SELF and SUPER at 85 also draw the 2002 OO rules. That is a separate mechanism with its own sites, so the report
+records it as a lead.

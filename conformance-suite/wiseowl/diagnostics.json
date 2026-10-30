@@ -10265,6 +10265,12 @@
   ],
   "expect": "§8.9 does not reserve the word at this edition"
  },
+ "pb1673-set-null-undeclared-at-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "'NULL' is not defined"
+ },
  "pb1687-report-entry-32-digits": {
   "refuse-at": [
    "85",
