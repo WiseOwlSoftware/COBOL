@@ -27,6 +27,13 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// and the store is placed on the pending list at the position its argument finished binding — i.e. before the
 /// later argument's pre-ops. The list order IS the evaluation order, so no argument can observe a later one.</para>
 ///
+/// <para><b>A held argument keeps its DESCRIPTION (kb/Work PB4124).</b> An intrinsic function reads an argument's description as
+/// well as its value (ABS, MAX, MIN, MEDIAN and MEAN return a COPY of an argument's item, §15.59.4, §15.63.4, §15.61.4; DISPLAY
+/// and <c>FUNCTION LENGTH</c> measure it), and the intermediate result item an argument is held in has its own digits. A held
+/// argument that is a function whose result copies an argument's item (<see cref="NeedsItsArguments"/>) is therefore not held as
+/// a value: <see cref="Hold"/> holds ITS arguments and the call is read over them, a pure selection reading what it read at its
+/// place. Any other held argument is described by its value (<c>FunctionDeviceText.Field</c>).</para>
+///
 /// <para><b>An object property is an argument evaluated IN ITS PLACE (kb/Work PB1932).</b> Its value is temp-1,
 /// "determined as though the associated get property method were invoked" (§8.4.3.9.4 GR1), so the GET IS the
 /// argument's evaluation. Every property reference in a function argument is SENDING — an intrinsic argument always
@@ -95,8 +102,13 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
         /// pre-ops would otherwise overtake, store its value in an intermediate result item at the position its
         /// argument finished binding, and return the replacement operand (keyed by REFERENCE to the operand as
         /// bound). Operands that need no freeze are absent from the result. The caller passes the operands whose
-        /// value is read at the activation — in argument order — and swaps the replacements in.</summary>
-        internal Dictionary<BoundOperand, BoundOperand> Freeze(IEnumerable<BoundOperand> candidates)
+        /// value is read at the activation — in argument order — and swaps the replacements in.
+        /// <para>⛔ <paramref name="describedValue"/> is true when the frozen operand's DESCRIPTION is read as well as its value
+        /// (an intrinsic function's argument: <c>FunctionValueField</c>, kb/Work PB4124) and false when only its value is (a
+        /// user-defined function's BY CONTENT / BY VALUE argument). Then a nested function whose returned value copies one of its
+        /// arguments' items (<see cref="NeedsItsArguments"/>) is NOT frozen as a value, which keeps the value and loses the
+        /// item copied: its own arguments are frozen where they are and the call is read after them.</para></summary>
+        internal Dictionary<BoundOperand, BoundOperand> Freeze(IEnumerable<BoundOperand> candidates, bool describedValue = false)
         {
             var frozen = new Dictionary<BoundOperand, BoundOperand>(ReferenceEqualityComparer.Instance);
             var wanted = new HashSet<BoundOperand>(candidates, ReferenceEqualityComparer.Instance);
@@ -114,7 +126,7 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
             {
                 var operand = Entries[i].Operand;
                 if (!needs[i] || !wanted.Contains(operand) || IsStable(operand)) continue;
-                if (owner.StoreAt(operand, Entries[i].After + shift, out int added) is not { } replacement) continue;
+                if (owner.Hold(operand, Entries[i].After + shift, describedValue, out int added) is not { } replacement) continue;
                 shift += added;
                 frozen[operand] = replacement;
             }
@@ -131,20 +143,82 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
         internal BoundExpr Settle(BoundExpr result)
         {
             if (result is not BoundIntrinsicCall call) return result;
-            var frozen = Freeze(call.Args);
+            var frozen = Freeze(call.Args, describedValue: true);
             if (frozen.Count == 0) return result;
             return call with { Args = [.. call.Args.Select(a => frozen.GetValueOrDefault(a) ?? a)] };
         }
 
-        private static bool IsStable(BoundOperand operand) => operand is BoundFieldOperand { Place: var place }
-            && RootOf(place.Item).IsCompilerTemp;
+    }
 
-        private static DataItem RootOf(DataItem item)
+    private static bool IsStable(BoundOperand operand) => operand is BoundFieldOperand { Place: var place }
+        && RootOf(place.Item).IsCompilerTemp;
+
+    private static DataItem RootOf(DataItem item)
+    {
+        var root = item;
+        while (root.Parent is { } p) root = p;
+        return root;
+    }
+
+    /// <summary>⛔ DOES THIS CALL'S RETURNED VALUE DEPEND ON THE DESCRIPTIONS OF ITS ARGUMENTS, NOT ONLY ON THEIR VALUES (kb/Work
+    /// PB4124)? ABS, MAX, MIN, MEDIAN and MEAN return a COPY of an argument's item (<see cref="FunctionDeviceForm.Argument"/>): what a
+    /// function that reads the result sees (its value, <c>FUNCTION LENGTH</c>, DISPLAY) is that item, which a numeric
+    /// intermediate result item holding the value alone does not keep. Every other numeric function's temporary is described by
+    /// its value (<see cref="FunctionDeviceForm.Value"/>), and the intermediate that holds the value holds all of it;
+    /// DATE-OF-INTEGER / DAY-OF-INTEGER (<see cref="FunctionDeviceForm.FixedDigits"/>) is an item of fixed digits that no argument
+    /// decides, so it is held AS A VALUE - evaluated at its place, where its own argument-function exception belongs to GR2's
+    /// order - and the held temporary carries the digits (<c>DataItem.FunctionDeviceDigits</c>); a call GnuCOBOL
+    /// folds to a literal (<see cref="FunctionDeviceForm.Literal"/>) is no call to hold. <see cref="ReadsArgumentDescriptions"/> names
+    /// every form, and <c>ArgumentOrderDriftTests</c> asks it of each member, so the next form says which kind it is.</summary>
+    private static bool NeedsItsArguments(BoundOperand operand, out BoundComputedOperand computed, out BoundIntrinsicCall call)
+    {
+        if (operand is BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Numeric } numericCall } numeric
+            && ReadsArgumentDescriptions(numericCall.Sig.DeviceForm))
         {
-            var root = item;
-            while (root.Parent is { } p) root = p;
-            return root;
+            (computed, call) = (numeric, numericCall);
+            return true;
         }
+        (computed, call) = (null!, null!);
+        return false;
+    }
+
+    /// <summary>Does a function of this device form return a temporary the ARGUMENTS' descriptions decide (a copy of an argument's item),
+    /// rather than one the value alone (or a fixed number of digits) describes? Total over <see cref="FunctionDeviceForm"/>: a member
+    /// it does not name throws, and <c>ArgumentOrderDriftTests</c> fails on it.</summary>
+    internal static bool ReadsArgumentDescriptions(FunctionDeviceForm form) => form switch
+    {
+        FunctionDeviceForm.Argument => true,
+        FunctionDeviceForm.Value or FunctionDeviceForm.FixedDigits or FunctionDeviceForm.Literal => false,
+        _ => throw new InvalidOperationException($"ArgumentOrder: FunctionDeviceForm.{form} has no statement of whether its temporary reads its arguments' descriptions (kb/Work PB4124)"),
+    };
+
+    /// <summary>Hold <paramref name="operand"/> against a later argument's pre-ops, at <paramref name="index"/>: store it
+    /// (<see cref="StoreAt"/>), or, when its description is read and it is a function whose result copies an argument
+    /// (<see cref="NeedsItsArguments"/>), hold each of ITS arguments instead and answer the call over the held ones - the call is a
+    /// pure selection over its arguments, so reading it later over values that cannot change is the call read at its place, and the
+    /// item it copies is the item it copied (kb/Work PB4124). Null when nothing needs holding.</summary>
+    private BoundOperand? Hold(BoundOperand operand, int index, bool describedValue, out int added)
+    {
+        added = 0;
+        // A table(ALL) argument is no recorded operand (IntrinsicBinder.TryBindAllArgument): the backend ENUMERATES it where the call
+        // is rendered, so it cannot be held on its own and the call that names it is held as a value, as it always was.
+        if (!describedValue || !NeedsItsArguments(operand, out var computed, out var call)
+            || call.Args.Any(a => a is BoundFieldOperand { Place: TableAllPlace }))
+            return StoreAt(operand, index, out added);
+        var args = new List<BoundOperand>(call.Args.Count);
+        bool changed = false;
+        foreach (var arg in call.Args)
+        {
+            if (!IsStable(arg) && Hold(arg, index + added, describedValue, out int stored) is { } held)
+            {
+                args.Add(held);
+                added += stored;
+                changed = true;
+            }
+            else args.Add(arg);
+        }
+        // ResultType stays the one the arguments as written gave (kb/Work PB4036): `with` copies it.
+        return changed ? computed with { Expr = call with { Args = args } } : null;
     }
 
     /// <summary>Materialize <paramref name="operand"/> with its registered pre-ops (the extent freeze, when there is
