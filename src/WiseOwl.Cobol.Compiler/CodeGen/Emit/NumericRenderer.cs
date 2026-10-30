@@ -17,16 +17,44 @@ namespace WiseOwl.Cobol.CodeGen.Emit;
 /// </summary>
 internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBoundExprVisitor<NumX>, IBoundOperandVisitor<NumX>
 {
-    /// <summary>THE checked-kernel decision (kb/Work PB91): a render under an ON SIZE ERROR / EC-SIZE-checked
-    /// ARITHMETIC statement (<c>_rcv.InSizeError</c>, threaded by ArithmeticEmitter) — and, since PB91, any
-    /// RECEIVER-LESS render (a condition, an argument, a subscript, …) inside a statement that has EC-SIZE-*
-    /// checking enabled (<see cref="EcState.SizeChecking"/>): §14.7.5 no-phrase rule 3 makes such an
-    /// intermediate overflow EC-SIZE-OVERFLOW, and §14.6.13.1.3 its disposition fatal.</summary>
-    private bool Checked => CheckedFor(_rcv);
+    /// <summary>⛔ THE CHECKED-KERNEL DECISION IS PER CONDITION NAME (kb/Work PB91, PB4092): the size error conditions this
+    /// render TAKES. A render under an ON SIZE ERROR phrase (<c>_rcv.Checks</c>, threaded by ArithmeticEmitter) takes
+    /// <see cref="SizeChecks.All"/>; a RECEIVER-LESS render (a condition, an argument, a subscript, …) takes the names
+    /// the statement it sits in enables (<see cref="EcState.EnabledChecks"/>); an arithmetic statement's own renders take
+    /// the names it enables. §14.6.13.1.1: a condition is raised "if checking for an exception condition is enabled",
+    /// its NOTE 3 "An exception condition is set to exist only if checking for that condition is enabled" — so a kernel
+    /// that raises EC-SIZE-OVERFLOW is chosen only where EC-SIZE-OVERFLOW is taken, and every other name takes the
+    /// not-enabled disposition, the unchecked kernel's value (§14.6.13.1.3 item 8; docs/CONFORMANCE.md DOC-A.1-70). The
+    /// family was one question before PB4092: checking enabled for EC-SIZE-TRUNCATION alone raised EC-SIZE-OVERFLOW from
+    /// <c>IF WS-D * WS-D &gt; 0</c> and ended the run unit.</summary>
+    private SizeChecks Taken => TakenFor(_rcv);
 
-    /// <summary><see cref="Checked"/> for an explicit receiver context — the final transfer of an exact wide value
+    /// <summary><see cref="Taken"/> for an explicit receiver context — the final transfer of an exact wide value
     /// (<see cref="Settle"/>) is checked by the receiver it lands in, which a per-receiver settle names itself.</summary>
-    private bool CheckedFor(in ReceiverContext rcv) => rcv.InSizeError || (rcv.Receiverless && ecState.SizeChecking);
+    private SizeChecks TakenFor(in ReceiverContext rcv) =>
+        rcv.Checks | (rcv.Receiverless ? ecState.EnabledChecks : SizeChecks.None);
+
+    /// <summary>Does the render take the CHECKED LANDING — the form that refuses a value its receiver cannot hold
+    /// (EC-SIZE-TRUNCATION, §14.7.5 no-phrase rule 4) instead of storing its low-order digits? (<see cref="Taken"/>
+    /// has <see cref="SizeChecks.Truncation"/>.)</summary>
+    private bool CheckedLanding => LandingTaken(_rcv);
+
+    private bool LandingTaken(in ReceiverContext rcv) => (TakenFor(rcv) & SizeChecks.Truncation) != 0;
+
+    /// <summary>The C# source of the <see cref="SizeChecks"/> a binary64 operator is given, or null when the render takes
+    /// neither range condition and the operator stays the bare IEEE one. In the report compose's CHECKED twin it is the
+    /// PRESENTING statement's enablement, read at run time (<see cref="EcState.ComposeSizeChecking"/>).</summary>
+    private string? RangeChecks => RangeChecksOf(SizeChecks.Range);
+
+    /// <summary><see cref="RangeChecks"/> restricted to the conditions <paramref name="raised"/> a kernel can raise: the
+    /// scaled <see cref="Int128"/> carrier's sum raises EC-SIZE-OVERFLOW alone, so a render that takes only
+    /// EC-SIZE-UNDERFLOW leaves it the bare operator.</summary>
+    private string? RangeChecksOf(SizeChecks raised)
+    {
+        if (_rcv.Receiverless && ecState.ComposeSizeChecking) return RuntimeApi.SizeChecksEnabled;
+        var taken = Taken & raised;
+        return taken == SizeChecks.None ? null : RuntimeApi.SizeChecksText(taken);
+    }
 
     /// <summary>The intrinsic-function render dispatch (ISO §15; IntrinsicRenderer.cs) — created lazily because
     /// the two renderers are mutually recursive (an intrinsic renders its numeric arguments through THIS).</summary>
@@ -131,7 +159,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// function's argument, the temporary DISPLAY shows, a MOVE's store) passes <c>keepWide</c> and settles it itself.</summary>
     public NumX Settle(NumX x, in ReceiverContext rcv, bool outermost) =>
         !x.Wide ? x
-        : outermost && rcv.RoundsAtItsScale ? TransferWide(x, rcv.Scale, rcv.Rounding, CheckedFor(rcv))
+        : outermost && rcv.RoundsAtItsScale ? TransferWide(x, rcv.Scale, rcv.Rounding, LandingTaken(rcv))
         : LowerWide(x);
 
     /// <summary>⛔ THE TRANSFER OF AN EXACT WIDE VALUE INTO ONE FIXED-POINT RECEIVER (kb/Work PB1900, PB3953): the value moved to the
@@ -788,7 +816,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     private NumX CombineReal(NumX a, string op, NumX b)
     {
         string x = Real(a), y = Real(b);
-        string? fn = (op, Checked) switch
+        string? taken = RangeChecks;
+        string? fn = (op, taken is not null) switch
         {
             ("/", false) => nameof(CobolFloat.Div),
             ("+" or "-" or "*", false) => null,
@@ -800,7 +829,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         };
         return fn is null
             ? new NumX($"({x} {op} {y})", 0, Real: true)
-            : new NumX($"{nameof(CobolFloat)}.{fn}({x}, {y})", 0, Real: true);
+            : new NumX($"{nameof(CobolFloat)}.{fn}({x}, {y}{(taken is null ? "" : ", " + taken)})", 0, Real: true);
     }
 
     // Plain STANDARD arithmetic (2002; obsolete 2014, removed 2023 — Annex E.2 item 21) uses the standard
@@ -952,7 +981,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             // receiver-less or floating-point context has no such transfer (the bound alone cannot tell the value's
             // magnitude), and a nested product is not it either.
             if (_outermost && _rcv.RoundsAtItsScale && !a.Wide && !b.Wide)
-                return new NumX(RuntimeApi.DecMulAtScale(a.Expr, a.Scale, b.Expr, b.Scale, _rcv.Scale, _rcv.Rounding, Checked), _rcv.Scale);
+                return new NumX(RuntimeApi.DecMulAtScale(a.Expr, a.Scale, b.Expr, b.Scale, _rcv.Scale, _rcv.Rounding, CheckedLanding), _rcv.Scale);
             // ⛔ A NESTED PRODUCT KEEPS EVERY DIGIT (kb/Work PB1900): the exact wide form, whenever the operands' digit
             // bounds prove the exact product fits it. Rounding it to 34 digits here — as the SDIDI below does — left
             // `A * B - C * D` over PIC 9(21) operands only the rounding error of two nearly equal 41-digit products.
@@ -1123,8 +1152,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // (AddChecked/SubChecked → OverflowException → the size error condition, §14.7.5 case 5). Reachable: HIGHEST-ALGEBRAIC of PIC S9(19) COMP-5 is Int128.MaxValue itself
         // (kb/Work R10), where an unchecked `+ 1` wraps to the container's far end and stores with no error.
         // Without the phrase it stays the bare unchecked operator, like every other engine op.
-        if (Checked)
-            return new NumX($"CobolNum.{(op == "+" ? "AddChecked" : "SubChecked")}({Align(a, s)}, {Align(b, s)})", s, Digits: digits,
+        if (RangeChecksOf(SizeChecks.Overflow) is { } taken)
+            return new NumX($"CobolNum.{(op == "+" ? "AddChecked" : "SubChecked")}({Align(a, s)}, {Align(b, s)}, {taken})", s, Digits: digits,
                 Precision: precision);
         return new NumX($"((Int128)({Align(a, s)}) {op} ({Align(b, s)}))", s, Digits: digits, Precision: precision);
     }
@@ -1414,7 +1443,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         var landing = _rcv.FloatLanding(_outermost);
         // Under size-error checking the binary64 power is range-checked like every other checked native operation
         // (§14.7.5 case 5 — kb/Work PB1581); unchecked it stays the bare approximation.
-        string pow = RuntimeApi.Intrinsic(Checked ? "PowNativeRealChecked" : "PowNativeReal", $"{Real(b)}, {Real(e)}");
+        string pow = RangeChecks is { } powTaken
+            ? RuntimeApi.Intrinsic("PowNativeRealChecked", $"{Real(b)}, {Real(e)}, {powTaken}")
+            : RuntimeApi.Intrinsic("PowNativeReal", $"{Real(b)}, {Real(e)}");
         // The binary64 power is an APPROXIMATION the engine produced (§8.8.1.3) unless an operand is itself a float
         // ITEM's content, which then owns the result (kb/Work PB1641 — see CombineCore's lane note).
         if (b.Real || e.Real || !landing.Quantize)
@@ -1563,8 +1594,12 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// under ON SIZE ERROR / EC-SIZE checking (kb/Work PB77): the value's landing past the Int128 carrier is then the
     /// SATURATING one (the receiver's capacity check raises, PB13); a MOVE sender or a no-phrase store — the default —
     /// takes the low-order digits. ONE spelling for the float family's <c>FromDouble</c>, native <c>**</c>, and the
-    /// NUMVAL family (<c>IntrinsicRenderer</c> reads it through <c>ReceiverContext.InSizeError</c>).</summary>
-    internal string CheckedFlag => Checked ? ", checkedLanding: true" : "";
+    /// NUMVAL family (<c>IntrinsicRenderer</c> reads it through <c>ReceiverContext.Checks</c>). The landing is EC-SIZE-TRUNCATION's
+    /// (<c>CobolFloat.BeyondCarrier</c>), so it is checked only where that condition is taken (kb/Work PB4092) — in the report
+    /// compose's CHECKED twin, where the presenting statement's own enablement decides at run time.</summary>
+    internal string CheckedFlag =>
+        _rcv.Receiverless && ecState.ComposeSizeChecking ? $", checkedLanding: {RuntimeApi.SizeTruncationChecking}"
+        : CheckedLanding ? ", checkedLanding: true" : "";
 
     // Internal (not private): the intrinsic renderer converts float-family arguments to double through THIS
     // one scaled-value→double conversion (ISO §15.4.1 native-arithmetic family; singular-pattern rule).

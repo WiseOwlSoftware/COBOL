@@ -331,7 +331,7 @@ public static partial class CobolIntrinsics
     /// <summary>A float-family returned value range-checked by the ONE binary64 intermediate check
     /// (<see cref="CobolFloat.InBinary64Range"/>), named for the function.</summary>
     private static double InBinary64Range(double r, bool nonzero, string function) =>
-        CobolFloat.InBinary64Range(r, nonzero, $"FUNCTION {function}");
+        CobolFloat.InBinary64Range(r, nonzero, $"FUNCTION {function}", SizeChecks.Range);
 
     /// <summary>An EXACT returned value narrowed to the family's binary64, range-checked against its own value
     /// (<see cref="InBinary64Range"/>) — the one narrowing of an SDIDI-evaluated body.</summary>
