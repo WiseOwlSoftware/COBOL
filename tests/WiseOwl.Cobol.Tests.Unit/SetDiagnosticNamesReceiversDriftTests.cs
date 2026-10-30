@@ -45,10 +45,13 @@ public sealed class SetDiagnosticNamesReceiversDriftTests
     ];
 
     /// <summary>A diagnostic message whose FIRST literal opens with the verb SET and then elides — the echo
-    /// position. <c>ctx.Edition.Error(&lt;code&gt;, $"SET … TO …</c>. The ellipsis is matched in both the U+2026
-    /// and the three-dot spellings, because the renderer collapses the first into the second.</summary>
+    /// position, in BOTH reporting call forms a binder has: <c>ctx.Edition.Error(&lt;code&gt;, $"SET … TO …</c>
+    /// and <c>BoundRejected.Report(ctx.Edition, &lt;code&gt;, "SET … TO …</c>, the form that carries one more
+    /// leading argument (the edition) and is how the three <c>… with no receiving operand</c> guards of
+    /// SetBinder outlived the first sweep (kb/Work PB4121). The ellipsis is matched in both the U+2026 and the
+    /// three-dot spellings, because the renderer collapses the first into the second.</summary>
     private static readonly Regex ElidedEcho = new(
-        @"Error\(\s*[^,()]*(?:\([^()]*\))?[^,()]*,\s*\$?""SET (?:…|\.\.\.)",
+        @"(?:Error|Report)\(\s*(?:[\w.]+\s*,\s*)?[^,()]*(?:\([^()]*\))?[^,()]*,\s*\$?""SET (?:…|\.\.\.)",
         RegexOptions.Compiled);
 
     /// <summary>The receiver-naming idiom, which belongs in <c>SetFormatSelection.Written</c> and nowhere
@@ -112,12 +115,21 @@ public sealed class SetDiagnosticNamesReceiversDriftTests
         const string repaired =
             "            ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,\n"
             + "                $\"SET {SetFormatSelection.Written(targetRefs)} TO {senderText}: SELF and SUPER \"";
+        // The BoundRejected.Report call form, as PB4121 found it in SetBinder.BindSetEntry.
+        const string reportDefect =
+            "            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "
+            + "\"SET … TO ENTRY with no receiving operand (ISO §14.9.39.2)\");";
+        const string reportRepaired =
+            "            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "
+            + "\"SET TO ENTRY with no receiving operand (ISO §14.9.39.2)\");";
         const string formReference =
             "                ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,\n"
             + "                    $\"SET '{drefs[i].GetText()}': the receiving operand of SET … TO ENTRY \"";
 
         Assert.True(ElidedEcho.IsMatch(defect), "the elided-echo pattern no longer matches the PB388 defect");
         Assert.False(ElidedEcho.IsMatch(repaired), "the elided-echo pattern matches the REPAIRED message");
+        Assert.True(ElidedEcho.IsMatch(reportDefect), "the elided-echo pattern no longer sees a BoundRejected.Report site (PB4121)");
+        Assert.False(ElidedEcho.IsMatch(reportRepaired), "the elided-echo pattern matches the REPAIRED Report message (PB4121)");
         Assert.False(ElidedEcho.IsMatch(formReference),
             "the elided-echo pattern matches a general-format REFERENCE, whose `…` is the standard's own");
 

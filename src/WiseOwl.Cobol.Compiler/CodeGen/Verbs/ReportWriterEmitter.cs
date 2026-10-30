@@ -420,7 +420,7 @@ internal sealed class ReportWriterEmitter(
     {
         if (!ecState.Active) return plain;
         string chk = RenderChecked(render);
-        return chk == plain ? plain : $"({RuntimeApi.SizeChecking} ? {chk} : {plain})";
+        return chk == plain ? plain : $"({RuntimeApi.SizeChecksEnabled} != {nameof(SizeChecks)}.{nameof(SizeChecks.None)} ? {chk} : {plain})";
     }
 
     /// <inheritdoc cref="UnderPresentingChecking(string, Func{string})"/>
@@ -769,7 +769,7 @@ internal sealed class ReportWriterEmitter(
         CodeWriter? w = null, ReportItemOccurrence? source = null)
     {
         var family = sum.Family;
-        var rcv = new ReceiverContext(family.Scale, Real: false, sum.Rounding, InSizeError: true,
+        var rcv = new ReceiverContext(family.Scale, Real: false, sum.Rounding, Checks: SizeChecks.All,
             IntegerDigits: Math.Max(0, (family.Register.Pic?.DigitPositions ?? 0) - family.Scale));
         var list = addends.ToList();
         var addendExprs = list.OfType<BoundExpr>().ToList();
@@ -996,19 +996,19 @@ internal sealed class ReportWriterEmitter(
 
     /// <summary>The engine call(s) of a PRESENTING statement — a GENERATE or TERMINATE, the two statements that print report
     /// lines — inside the checking scope that carries the statement's EC-SIZE enablement to the compose and presence
-    /// methods those calls run (kb/Work PB4031; see <see cref="UnderPresentingChecking(string, Func{string})"/> and
-    /// <see cref="FieldImage"/>): <c>SizeChecking</c> when the line enables any EC-SIZE-* name (the checked kernels),
-    /// and <c>SizeTruncationChecking</c> too when it enables EC-SIZE-TRUNCATION (the raising final transfer) — the two
-    /// compile-time questions <see cref="EcState.SizeChecking"/> and <see cref="EcState.SizeTruncationChecking"/>, asked
-    /// once here. The scope is the ONE save/set/restore every statement guard opens (<see cref="EcEmitter.OpenGateFlags"/>),
-    /// so a USE BEFORE REPORTING procedure the engine runs between two groups starts from its own baseline and the flags
-    /// stand again for the next compose. A statement whose line enables no EC-SIZE-* name emits the bare call.</summary>
+    /// methods those calls run (kb/Work PB4031, PB4092; see <see cref="UnderPresentingChecking(string, Func{string})"/> and
+    /// <see cref="FieldImage"/>): one run-time flag for each size condition the line enables
+    /// (<see cref="EcState.SizeCheckRows"/>), which the compose reads back as the <see cref="SizeChecks"/> it passes to every
+    /// checked operator (<c>ExceptionState.SizeChecksEnabled</c>) and, for EC-SIZE-TRUNCATION, as the raising final
+    /// transfer's selector. The compile-time question is <see cref="EcState.EnabledChecks"/>, asked once here. The scope is
+    /// the ONE save/set/restore every statement guard opens (<see cref="EcEmitter.OpenGateFlags"/>), so a USE BEFORE
+    /// REPORTING procedure the engine runs between two groups starts from its own baseline and the flags stand again for
+    /// the next compose. A statement whose line enables none of them emits the bare call.</summary>
     private void EmitPresenting(Action emitCalls)
     {
-        if (!ecState.SizeChecking) { emitCalls(); return; }
-        string[] flags = ecState.SizeTruncationChecking
-            ? [nameof(Runtime.Exceptions.ExceptionState.SizeChecking), nameof(Runtime.Exceptions.ExceptionState.SizeTruncationChecking)]
-            : [nameof(Runtime.Exceptions.ExceptionState.SizeChecking)];
+        var enabled = ecState.EnabledChecks;
+        if (enabled == SizeChecks.None) { emitCalls(); return; }
+        string[] flags = [.. EcState.SizeCheckRows.Where(row => (enabled & row.Bit) != 0).Select(row => row.Flag)];
         using (ec.OpenGateFlags(flags))
         using (ctx.Writer.Block("try"))
             emitCalls();

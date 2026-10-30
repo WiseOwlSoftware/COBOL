@@ -1036,7 +1036,7 @@ intermediate form. The emitter NAMES the landing at every site —
 `RuntimeApi.FloatToScaled(…, bool checkedLanding)` has no
 default; `NumericRenderer.StoreArgs(…, checkedLanding)` takes it from `ecState.SizeErrVar` (arithmetic) or `false`
 (`StoreExpr`: MOVE, INVOKE); the quantizer / NUMVAL-family renders carry the ONE `NumericRenderer.CheckedFlag`
-(`, checkedLanding: true` under `ReceiverContext.InSizeError`). `CarrierLandingFormTests` pins the kernels and
+(`, checkedLanding: true` where the render takes EC-SIZE-TRUNCATION, `ReceiverContext.Checks`). `CarrierLandingFormTests` pins the kernels and
 greps the sites; golden `pb77_move_past_the_carrier` pins sixteen spec-derived rows.
 
 **THE VALUE IS THE SAME AT EVERY MAGNITUDE — the landing is the binary64's EXACT value, and the carrier decides only
