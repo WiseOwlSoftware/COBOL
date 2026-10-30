@@ -1175,8 +1175,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // ⚙ The SIXTEENTH to FORTY-SEVENTH, added deliberately as ONE batch (owner decision kb/Work PB1636,
             // 2026-10-08, answer "Sign all 32", signature `owner: 2026-10-08`): the golden-lane-2 rows no test can
             // close, each drafted and re-probed (w1040) before the signing. By arm — undefined-A.2 (Annex A.2
-            // items 39, 52, 60):
-            "GR-14.2.3-7", "GR-14.9.40.4-4", "GR-14.9.43.4-10",
+            // items 39, 52 and 60, item 60 having left, below):
+            "GR-14.2.3-7", "GR-14.9.40.4-4",
+            // (GR-14.9.43.4-10 LEFT this list with kb/Work PB1908: STRING overlap is documented and pinned by
+            // spec-cited goldens like its UNSTRING twin GR-14.9.48.4-18 (D-STR1 to D-STR4), and a derivation stands
+            // in place of a WHOLE row's test, never beside one.)
             // indistinguishable-consequent (each names the rule whose consequent it cannot be told from):
             "GR-14.9.35.4-8", "GR-8.5.1.11.3-3", "DOC-A.1-220",
             // definitional, R43's arm EXTENDED by this signing to a user-program constraint no rule gives a
