@@ -2468,7 +2468,20 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    beside its replacement in a document that describes the current compiler, and a word-level merge came out different
    from the person's resolution in 3 of the 9 merges it resolved. Such a conflict is a decision about what the text now
    says, the finisher's; `--hunks` is rerun before any prose driver is proposed, and a file whose conflicts are
-   insertions earns one. The landing's last line, `=== ENQUEUE: <OUTCOME> (<branch>) ===`, and the CONFLICT outcome
+   insertions earns one. kb/Work PB3723 asked the same question of an INSERTION-ONLY resolution (keep both sides where the
+   base section is empty, decline the file otherwise) and PB3643's trial of it is the answer: it resolved 1 of 32 conflicted
+   merges, in a different order from the person's resolution, and the two same-file pairs of wave 20261107 that read as
+   insert/insert from a simulated merge were revise/revise once resolved (both sides rewrote one base sentence, so a union
+   keeps its trailing clause twice). It is not adopted; a script's test arms are no prose and leave the merge by being
+   one test per case (kb/Work PB3726). THE QUEUE'S CONFLICTS ARE SEEN BEFORE THEY HAPPEN (kb/Work PB3723): the queue
+   builds each entry's merge group on main plus the entries ahead of it that stay, and removes one that conflicts there
+   (`merge_conflict`) with no failed run and no event any reader sees until it has happened. `merge_drivers.foresee_queue`
+   replays that build through the drivers (`probe`, the one `merge-tree`), skipping the entries it would remove, on the
+   queue's own order (`queue_facts.PullRequest.position`) and heads; `prune_worktrees.foresee_queued` asks it on every survey,
+   and a queued head that conflicts reads BOUNCED (a FORESEEN CONFLICT, naming the entries ahead of it, or main alone) with
+   `Row.foreseen`, so the review lane's conflict finisher takes it while the entry ahead is still queued:
+   `land_lane.py conflict-brief` is then against that entry's head, and the finisher merges it with `merge_drivers.py merge
+   <head> --keep` (the branch then carries that pull request's DEVLOG entry and lands after it, exit 15). The landing's last line, `=== ENQUEUE: <OUTCOME> (<branch>) ===`, and the CONFLICT outcome
    inside it have ONE home, `scripts/verdict_line.py` (kb/Work PB3714): `enqueue.py` writes through `render` and
    `conflict_outcome`, the landing lane and the drivers' coverage report read through `parse`, `outcomes` and
    `outcome_files`, and `LandingLaneDriftTests` keeps every other script from spelling the prefix. What is left in

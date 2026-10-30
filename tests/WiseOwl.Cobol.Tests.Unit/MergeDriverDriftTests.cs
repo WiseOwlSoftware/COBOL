@@ -69,6 +69,8 @@ public sealed class MergeDriverDriftTests
             "conflicts: the dry run lists nothing where the drivers merge",
             "conflicts: a keyed file whose driver DECLINES (one entry both sides changed differently) is listed",
             "conflicts: a ref git cannot read is None",
+            "queue: an entry that conflicts on the entries ahead that stay is foreseen",
+            "queue: the simulation touches no worktree",
             "conflicts: the landing logs' CONFLICT lines name their files",
             "new driver: a branch that gives a pattern a driver main's attributes do not yet give it AND changes a file",
             "new driver: the same file back at main's bytes passes",
