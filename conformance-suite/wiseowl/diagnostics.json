@@ -24052,5 +24052,35 @@
    "2023"
   ],
   "expect": "COBOL1850: the RETURNING phrase is required"
+ },
+ "pb4090-send-server-name-returning-omitted": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL1850: the RETURNING phrase is required on every SEND TO message-server-name-1"
+ },
+ "pb4090-send-returning-and-raising": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL5488: SEND is written with the RETURNING phrase"
+ },
+ "pb4090-send-literal-with-raising": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL5488: SEND is written with a literal-1 operand"
+ },
+ "pb4090-send-format2-undefined-data-name": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL1639: 'NOSUCH-TAG' is not defined"
+ },
+ "pb4090-send-message-tag-with-returning": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL5488: SEND is written with the RETURNING phrase"
  }
 }

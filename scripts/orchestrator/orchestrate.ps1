@@ -322,6 +322,16 @@ function Start-LaneTick {
 # (-Now: at once, as a unit starts, so a branch that became ready while no unit ran lands without waiting a period). It
 # starts nothing under STOP: the callers check STOP first, and the tick itself launches nothing under any stop file.
 $script:LastLaneTick = [datetime]::MinValue
+
+# Waits, at most $seconds, for a landing-lane tick still running, and says it (kb/Work PB4046): the supervisor's own git
+# work on the checkout, the adoption and the ledger check, does not run beside its tick, whose survey fetches and reads
+# the same checkout. $true when no tick runs any more; a tick that outlasts the wait is said by the caller, which goes on.
+function Wait-LaneTick([int]$seconds = 120) {
+    if ($script:LaneTick -and -not $script:LaneTick.proc.HasExited) { [void]$script:LaneTick.proc.WaitForExit($seconds * 1000) }
+    Complete-LaneTick
+    return -not $script:LaneTick
+}
+
 function Step-Lane([switch]$Now) {
     if ($LandLaneSeconds -le 0) { return }
     Complete-LaneTick
@@ -734,18 +744,24 @@ try {
             $exitCode = 4; break
         }
 
-        # The landing lane ticks between units too (kb/Work PB3639): its period, not the unit's life, decides.
-        if (-not $DryRun) { Step-Lane }
-
-        # ADOPT what landed, between units: no unit runs now, so no tree a unit reads moves under it.
+        # ADOPT what landed, between units: no unit runs now, so no tree a unit reads moves under it. And BEFORE the landing
+        # lane ticks (kb/Work PB4046): the tick's survey fetches and reads this same checkout, and started just ahead of
+        # the adoption it raced it (the adoption's fetch lost, "cannot lock ref", and the old commit was kept for a whole
+        # unit; CI merge-group runs 40918334805 and 40987962746). A tick still running from the unit is waited for, bounded.
+        # One that outlasts the wait does not cost the adoption a whole unit (review R1-2): the adoption goes on beside it,
+        # since its fetch writes only adopt_main's own ref, and a checkout the tick holds busy is kept and said, never forced.
         if ($DryRun) { Say 'DRY RUN: would adopt origin/main here (adopt_main.py adopt) and restart if the supervisor changed' }
         else {
+            if (-not (Wait-LaneTick)) { Say "adopt main: the landing lane's tick still runs after 120 s; adopting beside it (adopt_main fetches into its own ref)" }
             $adopted = Invoke-AdoptMain
             if ($adopted -and $adopted.supervisor_changed) {
                 $exitCode = Restart-Supervisor $failures $ran $lastStarted
                 break
             }
         }
+
+        # The landing lane ticks between units too (kb/Work PB3639): its period, not the unit's life, decides.
+        if (-not $DryRun) { Step-Lane }
 
         $budgetArgs = @((Join-Path $Here 'budget.py'), '--json', '--borrow-days', "$BorrowDays")
         if ($TelemetryDir) { $budgetArgs += @('--telemetry-dir', $TelemetryDir) }
@@ -902,7 +918,14 @@ try {
         # A headless unit cannot publish the owner's ledger artifact (no Artifact tool); say loudly when a publish is owed
         # so the attended session does it (ledger_state.py compares the page's stamp with the last published one).
         try {
+            # ledger_state.py fetches origin/main into the shared remote-tracking ref, as the lane tick's survey does: not
+            # beside a tick (kb/Work PB4046 review R1-1), or one of the two fetches fails "cannot lock ref". A tick that
+            # outlasts the wait is said; the check then runs beside it, and a lost fetch says "fetch failed" (review R2-1).
+            if (-not (Wait-LaneTick)) { Say "ledger check: the landing lane's tick still runs after 120 s; checking beside it (a lost fetch race says so, and the next unit's check repeats it)" }
             $ls = Invoke-Py @((Join-Path $Here 'ledger_state.py'), 'owed', '--repo', $RepoDir)
+            # A lost fetch reads main's stamp from a stale ref: said whatever the answer, so a "current" read on old facts
+            # is never silent (review R3-1); an "owed" one carries it in the publish line below.
+            if ($ls -notmatch '^owed' -and $ls -match 'fetch failed') { Say "ledger check: $ls" }
             if ($ls -match '^owed') {
                 # $ls is read on origin/main, fetched (kb/Work PB2987); when it says the checkout is behind, the
                 # publisher fast-forwards it before rendering, and mark-published refuses until then.
