@@ -1,4 +1,4 @@
-## Two analyses adjudicated: PB3758 and PB3752 are not defects, and four new notes record what the adjudications found (PB4107-PB4110)
+## Entry 2788 — 2026-10-30 11:12 PDT — Two analyses adjudicated: PB3758 and PB3752 are not defects, and four new notes record what the adjudications found (PB4107-PB4110)
 
 PB3758 said INVOKE method matching wrongly refuses a restricted program-pointer passed BY REFERENCE into a formal
 restricted to another prototype, since SET and CALL accept the pair. The first adjudicator agreed, and a refuter
@@ -19,3 +19,4 @@ format pages and probed every spelling, and all six conform. The refuter found t
 PB4110 records the audit's three causes of the false candidates. It ignores another alternative of the same rule, it
 maps §13.18.19.2 to the wrong rule, and it has no marker for the binder's IS/ARE decision. That marker waits for PB4108.
 Every quote was checked with `cite.py --check`; the rulings are under `E:/COBOL-coord/scratch/adj/`.
+
