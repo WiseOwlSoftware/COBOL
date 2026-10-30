@@ -126,7 +126,7 @@
   {
    "id": "async-messaging-2023",
    "status": "active",
-   "description": "The asynchronous messaging statements RECEIVE (ISO §14.9.31) and SEND (§14.9.38) — a COBOL-2023 introduction (Annex E.3.2 item 1). The facility is declined (Annex A.3 item 4; docs/CONFORMANCE.md §4 item 1): at 2023 each statement is accepted inert under COBOL1578. Both grammar arms are the UNION grammar, predicated only on the verb's spelling, because §8.9 reserves RECEIVE and SEND at 85 (the '85 communication module) and again at 2023 with a user-word gap between; the VersionConformancePass parse arm (VisitMcsReceiveStatement / VisitMcsSendStatement) names the edition on RECOGNITION, so 85, 2002 and 2014 all answer COBOL0900 (kb/Work PB374: the reservation predicate had compiled the 2023 formats at --std 85 under a warning naming the 2023 facility).",
+   "description": "The asynchronous messaging statements RECEIVE (ISO §14.9.31) and SEND (§14.9.38) — a COBOL-2023 introduction (Annex E.3.2 item 1). The facility is declined (Annex A.3 item 4; docs/CONFORMANCE.md §4 item 1): at 2023 each statement is accepted inert under COBOL1578. Both grammar arms are the UNION grammar, predicated only on the verb's spelling, because §8.9 reserves RECEIVE and SEND at 85 (the '85 communication module) and again at 2023 with a user-word gap between; the VersionConformancePass parse arm (VisitMcsReceiveStatement / VisitMcsSendStatement) names the edition on RECOGNITION, so 85, 2002 and 2014 all answer COBOL0900 (kb/Work PB374: the reservation predicate had compiled the 2023 formats at --std 85 under a warning naming the 2023 facility). The SEND writes its END-SEND: §14.9.38.2 prints it without brackets in both formats, so its omission is refused at 2023 (COBOL1850, kb/Work PB2024).",
    "display": "RECEIVE/SEND (asynchronous messaging)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §14.9.31 / §14.9.38 (asynchronous messaging; Annex E.3.2 item 1)",
@@ -134,7 +134,7 @@
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",
    "vcr": "VCR Table 2 row 38 (Annex E.3.2 item 1)",
-   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AMG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-TAG PIC X(8).\n01 WS-MSG PIC X(20).\n01 WS-LEN PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    RECEIVE FROM WS-TAG GIVING WS-MSG WS-LEN.\n    SEND TO WS-TAG FROM WS-MSG.\n    STOP RUN.\n"
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AMG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-TAG PIC X(8).\n01 WS-MSG PIC X(20).\n01 WS-LEN PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    RECEIVE FROM WS-TAG GIVING WS-MSG WS-LEN.\n    SEND TO WS-TAG FROM WS-MSG END-SEND.\n    STOP RUN.\n"
   },
   {
    "id": "apply-commit-clause-2023",

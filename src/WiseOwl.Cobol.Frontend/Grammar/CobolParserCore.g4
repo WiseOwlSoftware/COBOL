@@ -1054,6 +1054,10 @@ mcsReceiveStatement
 // standard prints `LAST EXCEPTION` — is held across every spelling by
 // PrintedFormatAlternativeDriftTests.EveryPrintedLastExceptionSpelling_MakesTheSecondExceptionOptional.
 mcsSendStatement
+    // §14.9.38.2 prints END-SEND, and Format 1's RETURNING line, WITHOUT brackets: both are required, and the binder
+    // names their omission (COBOL1850) rather than this rule turning it into a token-level parse error. The grammar
+    // audit reads the next line and reports END-SEND as DECIDED (kb/Work PB2024):
+    // audit:required-word END-SEND decided-by DeclinedFacilityBinder.ScreenSendRequiredPhrases
     : SEND TO? (literal | dataReference) FROM dataReference
       (RETURNING dataReference)?
       (RAISING (EXCEPTION cobolWord | LAST EXCEPTION?))?
@@ -1232,6 +1236,9 @@ addToPhrase
 // ==========================================
 
 subtractStatement
+    // Every §14.9.44.2 format prints FROM; `subtractFromPhrase?` lets the binder name the omission (COBOL1689), and
+    // the grammar audit reads the next line and reports FROM as DECIDED (kb/Work PB2024):
+    // audit:required-word FROM decided-by ArithmeticBinder.BindSubtract
     : SUBTRACT (CORRESPONDING | CORR) dataReference FROM receivingIdentifier roundedPhrase? conditionalPhrases END_SUBTRACT?
     | SUBTRACT sendingOperand+ subtractFromPhrase? arithmeticGivingPhrase? conditionalPhrases END_SUBTRACT?
     ;
