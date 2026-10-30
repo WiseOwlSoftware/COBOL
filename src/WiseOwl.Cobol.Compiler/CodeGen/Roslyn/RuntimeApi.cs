@@ -104,6 +104,11 @@ internal static class RuntimeApi
     public static string NumFormatFunctionText(string value, int scale, bool deSign, bool commaMode) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.FormatFunctionText)}({value}, {scale}{FunctionTextFlags(deSign, commaMode, ", ")})";
 
+    /// <summary>The same text image for a value on the exact wide intermediate (kb/Work PB3953) —
+    /// <c>CobolNum.FormatWideFunctionText</c>: every digit of the <c>CobolWide</c> <paramref name="value"/> at <paramref name="scale"/>.</summary>
+    public static string WideFunctionText(string value, int scale, bool deSign, bool commaMode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.FormatWideFunctionText)}({value}, {scale}{FunctionTextFlags(deSign, commaMode, ", ")})";
+
     /// <summary>The DIGITS-ONLY characters a numeric value's text sends to a group - <c>CobolNum.GroupDigits</c> (ISO §14.9.25.4 GR4;
     /// kb/Work PB3613, docs/CONFORMANCE.md D-B4). The same method the compiler calls on a numeric literal's text.</summary>
     public static string NumGroupDigits(string text) =>
@@ -875,6 +880,24 @@ internal static class RuntimeApi
 
     /// <summary>An <c>Int128</c>-lane value lifted into the exact wide form (same unscaled magnitude; the caller tracks the scale).</summary>
     public static string WideFrom(string int128Expr) => $"{nameof(CobolWide)}.{nameof(CobolWide.From)}({int128Expr})";
+
+    /// <summary>An unsigned-wide (<c>UInt128</c>) value lifted into the exact wide form (<c>CobolWide.FromUnsigned</c>).</summary>
+    public static string WideFromUnsigned(string uint128Expr) => $"{nameof(CobolWide)}.{nameof(CobolWide.FromUnsigned)}({uint128Expr})";
+
+    /// <summary>The §15.3 type-6 intake of an exact wide argument (kb/Work PB3953): its integer at scale 0, on the wide form, behind
+    /// the one integrality test (<c>CobolIntrinsics.IntegerArgWide</c>).</summary>
+    public static string IntegerArgWide(string wide, int scale) =>
+        $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.IntegerArgWide)}({wide}, {scale})";
+
+    /// <summary>The device text of a returned value carried on the exact wide form (kb/Work PB3953) -
+    /// <c>CobolNum.DeviceFunctionText(value, scale, commaMode)</c>.</summary>
+    public static string FunctionDeviceTextWide(string wide, int scale, bool commaMode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.DeviceFunctionText)}({wide}, {scale}, {(commaMode ? "true" : "false")})";
+
+    /// <summary>A result or argument the value alone describes, carried on the exact wide form (kb/Work PB3953):
+    /// <c>FunctionValueField.OfWide</c>.</summary>
+    public static string FunctionFieldOfWide(string wide, int scale) =>
+        $"{nameof(FunctionValueField)}.{nameof(FunctionValueField.OfWide)}({wide}, {scale})";
 
     /// <summary>The exact product of two wide values (the caller adds the scales).</summary>
     public static string WideMul(string left, string right) =>

@@ -22,7 +22,8 @@ namespace WiseOwl.Cobol.Runtime;
 ///         the sign made positive.</item>
 ///   <item><b>The description of the value</b> (<see cref="OfValue"/>): every other exact function, and an arithmetic
 ///         expression used as an argument, returns a value whose description is derived from the value alone -
-///         <see cref="CobolNum.DeviceFunctionText"/> owns the rule.</item>
+///         <see cref="CobolNum.DeviceFunctionText(CobolDec, bool)"/> owns the rule. A value of more than 38 digits on the exact
+///         wide intermediate keeps every digit under the same rule (<see cref="OfWide"/>, kb/Work PB3953).</item>
 ///   <item><b>The binary64 image</b> (<see cref="OfFloat"/>): a floating-point value keeps the shortest round-trip image a
 ///         floating-point item has (kb/Work PB3505 declined GnuCOBOL's 100-digit float image).</item>
 /// </list>
@@ -38,14 +39,21 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public readonly struct FunctionValueField
 {
-    private enum Shape : byte { Value, Item, Float }
+    /// <summary>What the temporary is: a value the value describes, a copy of an item, a binary64 image, or a value of more than
+    /// 38 digits held EXACTLY on the wide intermediate (<see cref="OfWide"/>, kb/Work PB3953).</summary>
+    private enum Shape : byte { Value, Item, Float, Wide }
 
+    /// <summary>The value the temporary orders by. For a <see cref="Shape.Wide"/> temporary it is the round-to-odd IMAGE of
+    /// <see cref="_wide"/>, which orders every pair of values whose images differ (the lowering is monotone) and is refined by
+    /// the exact value where the images are equal (<see cref="Compare"/>).</summary>
     private readonly CobolDec _value;
     private readonly NumProfile _item;
     private readonly string? _image;
     private readonly Shape _shape;
     private readonly int _positions;
     private readonly int _bytes;
+    private readonly CobolWide _wide;
+    private readonly int _wideScale;
 
     private FunctionValueField(Shape shape, CobolDec value, in NumProfile item, int positions, int bytes, string? image = null)
     {
@@ -55,6 +63,14 @@ public readonly struct FunctionValueField
         _positions = positions;
         _bytes = bytes;
         _image = image;
+    }
+
+    /// <summary>A temporary holding a value of more than 38 digits exactly (<paramref name="wide"/> at <paramref name="scale"/>).</summary>
+    private FunctionValueField(CobolWide wide, int scale, in NumProfile item, int bytes)
+        : this(Shape.Wide, wide.ToDec(scale), item, bytes, bytes)
+    {
+        _wide = wide;
+        _wideScale = scale;
     }
 
     /// <summary>The temporary whose positions are its bytes: every temporary but the copy of a USAGE NATIONAL item, whose position is two bytes.</summary>
@@ -101,13 +117,49 @@ public readonly struct FunctionValueField
         // The description is fixed when the temporary is made - its sign position follows the value's sign THEN, so ABS of a
         // negative expression is a signed item holding the magnitude, as GnuCOBOL's is. A value of more than 38 digits has no
         // Int128 unscaled form to show an item by; its text is composed from the value, and the description it keeps is the
-        // sign position alone (DeviceText), so ABS of a negative 54-digit expression is still a signed item. The value is
-        // a CobolDec (34 significant digits): an argument expression past the Int128 window reaches it lowered to that image
-        // (docs/CONFORMANCE.md DOC-A.1-123, kb/Work PB3953, a known departure from GnuCOBOL kept open), and this member shows
-        // the image it is given; the exact wide form PB3953 needs adds a wide value here. The temporary's size (ByteLength,
-        // Length) is the storage of the item that description names (kb/Work PB3951).
+        // sign position alone (DeviceText), so ABS of a negative 54-digit expression is still a signed item. A value of more
+        // than 38 digits that is EXACT (an argument expression past the Int128 carrier) is OfWide's, which keeps every digit;
+        // this member holds the value it is given. The temporary's size (ByteLength, Length) is the storage of the item that
+        // description names (kb/Work PB3951).
         NumProfile described = CobolNum.ReturnedValueProfile(value, out string digits, out int bytes);
         return new(digits.Length <= 38 ? Shape.Item : Shape.Value, value, described, bytes);
+    }
+
+    /// <summary>⛔ THE TEMPORARY OF A VALUE CARRIED ON THE EXACT WIDE INTERMEDIATE (<paramref name="value"/> at <paramref name="scale"/>
+    /// fraction digits; kb/Work PB3953, docs/CONFORMANCE.md DOC-A.1-123): an arithmetic expression argument past the
+    /// <see cref="Int128"/> carrier, or an exact function's value over one. GnuCOBOL's temporary is arbitrary-precision, so it holds
+    /// every digit: <c>FUNCTION ABS (BIG * BIG * K3)</c> shows the 39-digit product, and MAX, MIN and MEDIAN order such values exactly.
+    /// A value that fits <see cref="Int128"/> is exactly an SDIDI of at most 38 digits and is <see cref="OfValue"/>'s; a wider one keeps
+    /// the description the same rule derives from its digits (<see cref="CobolNum.ReturnedValueProfile(CobolWide, int, out string, out int)"/>).</summary>
+    public static FunctionValueField OfWide(CobolWide value, int scale)
+    {
+        if (value.TryToInt128(out Int128 narrow)) return OfValue(CobolDec.From(narrow, scale));
+        NumProfile described = CobolNum.ReturnedValueProfile(value, scale, out _, out int bytes);
+        return new(value, scale, described, bytes);
+    }
+
+    /// <summary>This temporary's value exactly, as a wide value at a scale: its own wide value, or its SDIDI value written at its
+    /// own exponent. False only for an SDIDI value whose integer is past the 256-bit range.</summary>
+    private bool TryExact(out CobolWide wide, out int scale)
+    {
+        if (_shape == Shape.Wide)
+        {
+            (wide, scale) = (_wide, _wideScale);
+            return true;
+        }
+        return CobolWide.TryFrom(_value, out wide, out scale);
+    }
+
+    /// <summary>⛔ THE ONE ORDERING OF TWO TEMPORARIES (§8.8.4.2.4 - a comparison of the algebraic values; §15.59.4, §15.63.4, §15.61.4
+    /// compare "according to the rules for simple conditions"). Two values with different images are ordered by them: a wide value's
+    /// image is its round-to-odd lowering, which is MONOTONE (it never moves a value past one it was below), so unequal images order the
+    /// exact values the same way. Equal images, when one of them is a wide value's, are refined by the exact values (kb/Work PB3953):
+    /// two 39-digit products that differ in their last digit have one 34-digit image and are not equal.</summary>
+    private static int Compare(in FunctionValueField a, in FunctionValueField b)
+    {
+        int order = CobolDec.Compare(a._value, b._value);
+        if (order != 0 || (a._shape != Shape.Wide && b._shape != Shape.Wide)) return order;
+        return a.TryExact(out CobolWide aw, out int sa) && b.TryExact(out CobolWide bw, out int sb) ? CobolWide.Compare(aw, sa, bw, sb) : order;
     }
 
     /// <summary>The temporary is a function's binary64 result: it shows the shortest round-trip image and orders by the value that
@@ -129,6 +181,7 @@ public readonly struct FunctionValueField
     public FunctionValueField Abs() => _shape switch
     {
         Shape.Float => new(Shape.Float, new CobolDec(Int128.Abs(_value.Sig), _value.Exp), _item, _positions, _bytes, _image![0] == '-' ? _image[1..] : _image),
+        Shape.Wide => new(CobolWide.Abs(_wide), _wideScale, _item, _bytes),
         _ => new(_shape, new CobolDec(Int128.Abs(_value.Sig), _value.Exp), _item, _positions, _bytes),
     };
 
@@ -139,7 +192,7 @@ public readonly struct FunctionValueField
         CobolIntrinsics.RequireArguments(arguments.Length, "MAX");   // an ALL subscript over no occurrence (§15.3)
         FunctionValueField best = arguments[0];
         for (int i = 1; i < arguments.Length; i++)
-            if (CobolDec.Compare(arguments[i]._value, best._value) > 0) best = arguments[i];
+            if (Compare(arguments[i], best) > 0) best = arguments[i];
         return best;
     }
 
@@ -149,7 +202,7 @@ public readonly struct FunctionValueField
         CobolIntrinsics.RequireArguments(arguments.Length, "MIN");
         FunctionValueField best = arguments[0];
         for (int i = 1; i < arguments.Length; i++)
-            if (CobolDec.Compare(arguments[i]._value, best._value) < 0) best = arguments[i];
+            if (Compare(arguments[i], best) < 0) best = arguments[i];
         return best;
     }
 
@@ -164,12 +217,19 @@ public readonly struct FunctionValueField
         {
             FunctionValueField x = sorted[i];
             int j = i - 1;
-            while (j >= 0 && CobolDec.Compare(sorted[j]._value, x._value) > 0) { sorted[j + 1] = sorted[j]; j--; }
+            while (j >= 0 && Compare(sorted[j], x) > 0) { sorted[j + 1] = sorted[j]; j--; }
             sorted[j + 1] = x;
         }
         int n = sorted.Length;
         if ((n & 1) == 1) return sorted[n / 2];
-        CobolDec sum = CobolDec.Add(sorted[n / 2 - 1]._value, sorted[n / 2]._value, CobolRounding.Truncation);
+        FunctionValueField low = sorted[n / 2 - 1], high = sorted[n / 2];
+        // The mean of two middles one of which is a wide value is formed EXACTLY on the wide form (kb/Work PB3953): their sum
+        // at the common scale, halved exactly as five times the sum one place further (MedianWide's rule).
+        if ((low._shape == Shape.Wide || high._shape == Shape.Wide)
+            && low.TryExact(out CobolWide lw, out int ls) && high.TryExact(out CobolWide hw, out int hs)
+            && CobolWide.TryUp(lw, Math.Max(ls, hs) - ls, out lw) && CobolWide.TryUp(hw, Math.Max(ls, hs) - hs, out hw))
+            return OfWide(CobolWide.Mul(CobolWide.Add(lw, hw), CobolWide.From(5)), Math.Max(ls, hs) + 1);
+        CobolDec sum = CobolDec.Add(low._value, high._value, CobolRounding.Truncation);
         return OfValue(CobolDec.Div(sum, CobolDec.From(2, 0), CobolRounding.Truncation));
     }
 
@@ -179,6 +239,7 @@ public readonly struct FunctionValueField
     {
         Shape.Float => _image!,
         Shape.Item => CobolNum.DisplayDecimal(_value.ToUnscaled(_item.FractionDigits, CobolRounding.Truncation), _item, commaMode),
+        Shape.Wide => CobolNum.DeviceFunctionText(_wide, _wideScale, _item.Signed, commaMode),
         _ => CobolNum.DeviceFunctionText(_value, _item.Signed, commaMode),
     };
 
