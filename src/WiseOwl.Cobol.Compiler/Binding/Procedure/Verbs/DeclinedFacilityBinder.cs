@@ -71,7 +71,27 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
             _ = EcNameResolution.TryResolve(ctx.Edition, exceptionName.GetText(),
                 $"SEND RAISING EXCEPTION '{exceptionName.GetText()}'", out _);
         BindExceptionPhrases(s.conditionalPhrases());
+        ScreenSendRequiredPhrases(s);
         ctx.Edition.TakeUnbuiltSince(unbuiltMark);
+    }
+
+    /// <summary>⛔ §14.9.38.2 prints `END-SEND` on its own line with NO brackets in BOTH formats, and Format 1's
+    /// `RETURNING data-name-1` line with none either, while it brackets the exception phrases around them (PDF page
+    /// 756, printed folio 726). Brackets are the only convention that makes a portion omissible (§5.2.6.2), so both are
+    /// required wherever their format is written — the facility is declined, its syntax rules are not (the class
+    /// remark). The grammar keeps them optional so the omission is NAMED here (COBOL1850, the one screen of an
+    /// unbracketed phrase, <see cref="StatementValidation.ScreenOmittedRequiredPhrase"/>); its rule's
+    /// <c>audit:required-word</c> line names this member (kb/Work PB2024). RETURNING is required only where the
+    /// written statement IS Format 1: a literal-1 operand is printed in Format 1 alone, while a name operand is
+    /// message-server-name-1 (Format 1) or data-name-2 (Format 2), which this binder deliberately does not resolve.</summary>
+    private void ScreenSendRequiredPhrases(Core.McsSendStatementContext s)
+    {
+        ctx.Validation.ScreenOmittedRequiredPhrase(s.END_SEND() is null, "END-SEND", "SEND",
+            "both of its general formats print END-SEND on a line of its own without brackets", "ISO §14.9.38.2");
+        if (s.literal() is not null)
+            ctx.Validation.ScreenOmittedRequiredPhrase(s.RETURNING() is null, "RETURNING", "SEND TO literal-1",
+                "a literal-1 operand is Format 1's (to-message-server), whose general format prints the RETURNING "
+                + "data-name-1 line without brackets", "ISO §14.9.38.2 Format 1");
     }
 
     private void BindExceptionPhrases(Core.ConditionalPhrasesContext phrases) =>
