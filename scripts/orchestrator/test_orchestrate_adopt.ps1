@@ -86,8 +86,10 @@ Check 'restart: the exit code is the successors' $r.code 0
 Check 'restart: the checkout is origin/main' (Head $Checkout) (Head $Lander)
 
 # 5. A TOOL'S STDERR IS SAID, NEVER PARSED (kb/Work PB4046): adopt_main.py writes a line to stderr and still answers.
-#    Folded into its JSON answer, that line made the answer unreadable: "main not adopted", the unit ran on the old tree.
-Land $Lander 'kb/Work/PB4.md' 'landed while a tool warned'
+#    Folded into its JSON answer, that line made the answer unreadable. adopt_main.py had already fast-forwarded the
+#    checkout, so the harm was the supervisor's: a false "main not adopted" and NO RESTART although the landing changed
+#    its own script. So this landing changes the supervisor, and the restart is what the case holds.
+Land $Lander 'scripts/orchestrator/orchestrate.ps1' 'Write-Host "STUB-SUPERVISOR v3 $args"; exit 0'
 $env:FAKE_GH_JSON = $Green
 $env:FAKE_PYTHON_STDERR = 'adopt_main.py'
 $env:FAKE_PYTHON_CHECKPOINT_SECONDS = '0'
@@ -95,6 +97,8 @@ $r = Run-Orch 'adoptwarn' 'good' ($unitArgs + @('-Python', $FakePython))
 Remove-Item Env:FAKE_PYTHON_STDERR, Env:FAKE_PYTHON_CHECKPOINT_SECONDS -ErrorAction SilentlyContinue
 Check 'stderr: the adoption still reads its answer' ($r.out -match 'adopt main: adopted') $true
 Check 'stderr: the line is said, not parsed' ($r.out -match 'adopt_main\.py wrote to stderr \(said, not parsed\): .*a warning on stderr') $true
+Check 'stderr: the supervisor still restarts from the adopted checkout' ($r.out -match 'STUB-SUPERVISOR v3') $true
+Check 'stderr: no unit ran in the predecessor' $r.runs 0
 Check 'stderr: the checkout is origin/main' (Head $Checkout) (Head $Lander)
 
 Remove-Item Env:FAKE_GH_JSON -ErrorAction SilentlyContinue

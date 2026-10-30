@@ -10,11 +10,13 @@ that match the part's evidence pattern: for the adopt part, `adopt main:`, `main
 The branch review found a path that pattern first missed. When adopt_main.py fails, the supervisor prints `main not
 adopted (...)`, and it did the same when the tool merely wrote to stderr. `orchestrate.ps1`'s `Invoke-Py` ran each tool
 with `2>&1`, and its callers parsed the merged text as JSON: adopt_main's answer, budget.py's and next_unit.py's. So one
-warning from a tool that succeeded made the loop skip adopting main and run its unit on the old checkout. `Invoke-Py` now
+warning from a tool that succeeded cost the supervisor its answer. adopt_main.py had already fast-forwarded the checkout,
+but the loop said "main not adopted" and skipped the restart that a landing of its own script needs. `Invoke-Py` now
 keeps stdout as the answer and says stderr without parsing it. The startup's account and cluster reads go through it.
-Adopt scenario 5 proves it: a stderr line planted through the fake python still adopts and is said (24/24), and the same
-scenario fails on main's supervisor with "Conversion from JSON failed" (22/24).
+Adopt scenario 5 proves it: it lands a change to the supervisor's script and plants a stderr line through the fake python.
+The line is said and the supervisor still restarts; on main's supervisor the restart checks fail. This is not the cause of
+CI's flake, whose scenario 4 kept the old commit.
 
-Whether that was CI's flake is not proven, since nothing from those runs was printed, so PB4046 stays open with three
-causes ruled out and the evidence ready for the next run. PB4083 records the PowerShell self-tests' repositories built
-outside `scratch_repo.py`'s fixture. PB4084 records three entry scripts with the same stderr shape as `Invoke-Py`.
+PB4046 stays open with three causes ruled out and the evidence ready for the next run. PB4083 records the PowerShell
+self-tests' repositories built outside `scratch_repo.py`'s fixture. PB4084 records four entry scripts with the same stderr
+shape as `Invoke-Py`.
