@@ -24103,6 +24103,12 @@
   ],
   "expect": "COBOL1511"
  },
+ "pb4124_held_function_argument_below_2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: a FUNCTION-ID paragraph (user-defined function definition) requires COBOL-2002"
+ },
  "pb3953_function_argument_below_2014": {
   "refuse-at": [
    "85",
@@ -24182,6 +24188,12 @@
   "expect": "COBOL0899"
  },
  "pb4031-report-turn-size-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL0900: >>TURN directive requires COBOL-2002"
+ },
+ "pb4092-turn-size-per-name-85": {
   "refuse-at": [
    "85"
   ],
