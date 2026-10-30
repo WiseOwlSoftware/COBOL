@@ -1,4 +1,4 @@
-## SET diagnostics name what the user wrote: the implicit-SET data-pointer arm and the Format 4 TRUE/FALSE phrase (PB3966, PB1314)
+## Entry 2786 — 2026-10-30 10:58 PDT — SET diagnostics name what the user wrote: the implicit-SET data-pointer arm and the Format 4 TRUE/FALSE phrase (PB3966, PB1314)
 
 Two diagnostic-quality defects in one binder family (`SetBinder`, `PtrBinder`, `StatementValidation`), fixed at their
 roots in wave 20261769 group G. Both are message-only: no program that compiled before is refused now and none that
@@ -28,3 +28,4 @@ took its phrase from the first group or the statement would still misquote), `pb
 `pb3966-initialize-replacing-data-pointer-names-receiver` and
 `pb3966-initialize-replacing-data-pointer-restricted-sender-names-receiver` (the two sentences of SR19), each with its
 `wiseowl/diagnostics.json` entry pinning the message text. No inventory row is closed (`closes_rows: []`).
+
