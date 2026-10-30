@@ -919,8 +919,9 @@ try {
         # so the attended session does it (ledger_state.py compares the page's stamp with the last published one).
         try {
             # ledger_state.py fetches origin/main into the shared remote-tracking ref, as the lane tick's survey does: not
-            # beside a tick (kb/Work PB4046 review R1-1), or one of the two fetches fails "cannot lock ref".
-            [void](Wait-LaneTick)
+            # beside a tick (kb/Work PB4046 review R1-1), or one of the two fetches fails "cannot lock ref". A tick that
+            # outlasts the wait is said; the check then runs beside it, and a lost fetch says "fetch failed" (review R2-1).
+            if (-not (Wait-LaneTick)) { Say "ledger check: the landing lane's tick still runs after 120 s; checking beside it (a lost fetch race says so, and the next unit's check repeats it)" }
             $ls = Invoke-Py @((Join-Path $Here 'ledger_state.py'), 'owed', '--repo', $RepoDir)
             if ($ls -match '^owed') {
                 # $ls is read on origin/main, fetched (kb/Work PB2987); when it says the checkout is behind, the
