@@ -11,7 +11,7 @@ tags:
 
 # 🗺 Diagrams — Map of Content
 
-Visual models of the compiler — Mermaid flowcharts, ASCII sketches, and tables. (Mermaid renders natively in Obsidian.)
+Visual models of the compiler — Mermaid flowcharts, ASCII sketches, and tables. (Mermaid renders natively in GitHub and in most Markdown viewers.)
 
 ## Pipeline & structure
 - [[kb/Diagrams/Compiler Pipeline Diagram]] — the 6-phase source→assembly flow; invariants (no lowered IR, edition-gate-halts-before-emit).
