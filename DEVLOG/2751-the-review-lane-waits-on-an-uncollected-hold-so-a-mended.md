@@ -1,4 +1,4 @@
-## The review lane waits on an uncollected hold, so a mended torn findings file never gets a second reviewer of the same round (PB4049)
+## Entry 2751 — 2026-10-29 17:05 PDT — The review lane waits on an uncollected hold, so a mended torn findings file never gets a second reviewer of the same round (PB4049)
 
 **Mechanism.** The enqueue unit answers a torn-file hold by dispatching one `cobol-reviewer` by hand into the hold's findings
 file, which for that hold is the lane's own `review-<branch>.jsonl`. `review_lane.standing` grants a lease to an open round only in a
@@ -22,3 +22,4 @@ were landed with PB3608 (`tick`, `plan_conflict`, `repair_interrupted_append`); 
 for both still pass.
 
 **Register.** PB4049 landed, `closes_rows: []` (process tooling, no inventory row).
+
