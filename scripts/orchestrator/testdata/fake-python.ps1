@@ -8,10 +8,10 @@
 #    STOP exists.
 #  - every `review_lane.py ... tick`, which appends its argument list to `fake-python-review-ticks.txt` (kb/Work PB3608).
 #  - with FAKE_PYTHON_STDERR=<script file name>, that script's calls, which write one line to stderr first (kb/Work PB4046).
-# Every landing-lane tick and every `adopt_main.py` call appends its interval (`tick|adopt <start ticks> <end ticks>`, UTC)
-# to `fake-python-timeline.txt` (a tick also its start, `tickstart <ticks>`, at once), and with FAKE_PYTHON_TICK_SECONDS=N
-# a tick lasts N seconds, so a case can prove the supervisor never adopts while its lane ticks (kb/Work PB4046: the two
-# raced on one checkout).
+# Every landing-lane tick and every `adopt_main.py` and `ledger_state.py` call appends its interval
+# (`tick|adopt|ledger <start ticks> <end ticks>`, UTC) to `fake-python-timeline.txt` (a tick also its start, `tickstart
+# <ticks>`, at once), and with FAKE_PYTHON_TICK_SECONDS=N a tick lasts N seconds, so a case can prove the supervisor never
+# fetches the checkout while its lane ticks (kb/Work PB4046: their fetches raced on one ref).
 $ErrorActionPreference = 'Stop'
 $Timeline = Join-Path $env:COBOL_COORD_DIR 'fake-python-timeline.txt'
 if ($args.Count -ge 2 -and ([string]$args[0]).EndsWith('checkpoint.py') -and $args[1] -eq 'write') {
@@ -46,5 +46,7 @@ if ($env:FAKE_PYTHON_STDERR -and $args.Count -ge 1 -and ([string]$args[0]).EndsW
 $began = [DateTime]::UtcNow.Ticks
 & python @args
 $code = $LASTEXITCODE
-if ($args.Count -ge 1 -and ([string]$args[0]).EndsWith('adopt_main.py')) { Add-Content -Path $Timeline -Value "adopt $began $([DateTime]::UtcNow.Ticks)" }
+foreach ($kind in @(@('adopt_main.py', 'adopt'), @('ledger_state.py', 'ledger'))) {
+    if ($args.Count -ge 1 -and ([string]$args[0]).EndsWith($kind[0])) { Add-Content -Path $Timeline -Value "$($kind[1]) $began $([DateTime]::UtcNow.Ticks)" }
+}
 exit $code

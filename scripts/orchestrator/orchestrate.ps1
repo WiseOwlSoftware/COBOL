@@ -323,8 +323,9 @@ function Start-LaneTick {
 # starts nothing under STOP: the callers check STOP first, and the tick itself launches nothing under any stop file.
 $script:LastLaneTick = [datetime]::MinValue
 
-# Waits, at most $seconds, for a landing-lane tick still running, and says it: the adoption never runs beside a tick
-# (kb/Work PB4046). $true when no tick runs any more.
+# Waits, at most $seconds, for a landing-lane tick still running, and says it (kb/Work PB4046): the supervisor's own git
+# work on the checkout, the adoption and the ledger check, does not run beside its tick, whose survey fetches and reads
+# the same checkout. $true when no tick runs any more; a tick that outlasts the wait is said by the caller, which goes on.
 function Wait-LaneTick([int]$seconds = 120) {
     if ($script:LaneTick -and -not $script:LaneTick.proc.HasExited) { [void]$script:LaneTick.proc.WaitForExit($seconds * 1000) }
     Complete-LaneTick
@@ -746,11 +747,12 @@ try {
         # ADOPT what landed, between units: no unit runs now, so no tree a unit reads moves under it. And BEFORE the landing
         # lane ticks (kb/Work PB4046): the tick's survey fetches and reads this same checkout, and started just ahead of
         # the adoption it raced it (the adoption's fetch lost, "cannot lock ref", and the old commit was kept for a whole
-        # unit; CI merge-group runs 40918334805 and 40987962746). A tick still running from the unit is waited for, bounded;
-        # one that outlasts the wait defers the adoption to the next iteration rather than run beside it.
+        # unit; CI merge-group runs 40918334805 and 40987962746). A tick still running from the unit is waited for, bounded.
+        # One that outlasts the wait does not cost the adoption a whole unit (review R1-2): the adoption goes on beside it,
+        # since its fetch writes only adopt_main's own ref, and a checkout the tick holds busy is kept and said, never forced.
         if ($DryRun) { Say 'DRY RUN: would adopt origin/main here (adopt_main.py adopt) and restart if the supervisor changed' }
-        elseif (-not (Wait-LaneTick)) { Say "adopt main: deferred: the landing lane's tick still runs after 120 s; the next iteration adopts" }
         else {
+            if (-not (Wait-LaneTick)) { Say "adopt main: the landing lane's tick still runs after 120 s; adopting beside it (adopt_main fetches into its own ref)" }
             $adopted = Invoke-AdoptMain
             if ($adopted -and $adopted.supervisor_changed) {
                 $exitCode = Restart-Supervisor $failures $ran $lastStarted
@@ -916,6 +918,9 @@ try {
         # A headless unit cannot publish the owner's ledger artifact (no Artifact tool); say loudly when a publish is owed
         # so the attended session does it (ledger_state.py compares the page's stamp with the last published one).
         try {
+            # ledger_state.py fetches origin/main into the shared remote-tracking ref, as the lane tick's survey does: not
+            # beside a tick (kb/Work PB4046 review R1-1), or one of the two fetches fails "cannot lock ref".
+            [void](Wait-LaneTick)
             $ls = Invoke-Py @((Join-Path $Here 'ledger_state.py'), 'owed', '--repo', $RepoDir)
             if ($ls -match '^owed') {
                 # $ls is read on origin/main, fetched (kb/Work PB2987); when it says the checkout is behind, the
