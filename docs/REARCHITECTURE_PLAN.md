@@ -2162,7 +2162,8 @@ result. Run the long legs ONE AT A TIME.
   (a definition-header cites a clause that is not its construct's) · and, since PB388, the ORDINAL family over
   the number INSIDE a right clause: FORMAT (no such general format) · FORMAT-RULE (the rule is printed under a
   DIFFERENT format banner than the one cited beside it) · FORMAT-NAME (the line names one format and cites
-  another) · DIAG-NO-RULE (a rule KIND with no ordinal inside a C# string literal under `src/` —
+  another) · QUOTE-RULE (a quotation sits beside a rule number that is not the top-level rule the quoted words are
+  printed in; kb/Work PB597) · DIAG-NO-RULE (a rule KIND with no ordinal inside a C# string literal under `src/` —
   `(ISO §14.9.18 SR)` names no rule at all; kb/Work PB838) · DIAG-UNQUALIFIED (a message string citing a construct
   clause where the rules live in its `.3`/`.4` child — GATING since PB388's wave-47 sweep qualified all 154
   sites) — baseline **ZERO findings** over 4666
