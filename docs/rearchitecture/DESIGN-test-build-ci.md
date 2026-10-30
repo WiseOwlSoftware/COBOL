@@ -2413,10 +2413,22 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    one finished outside a wave). The landing step never reviews and never fixes, but it ENFORCES the
    stamp: `enqueue.py land` refuses (exit 11, UNREVIEWED) a branch whose newest report's CLEAN stamp names no commit of
    it, or after which it gained a commit that is not main's, a clean merge of main (its tree the auto-merge of its
-   parents) or DEVLOG-only — a finisher's fix, a hand-resolved conflict — so that work is reviewed at its new tip first;
+   parents) or register-only (below) — a finisher's fix, a hand-resolved conflict — so that work is reviewed at its new tip first;
    the lanes I10 does not review (the registrar, the golden lane, the clerk: notes and spec-derived goldens) name
    themselves with `--lane`. The lander's former train review is retired. The role keeps the R2 design's 120-turn cap (one role, one cap; one branch's diff fits it).
    `review_findings.py summary` measures findings per branch, the re-review rate and reviewer minutes.
+   **REGISTER-ONLY commits (kb/Work PB3849).** One coverage rule answers for the review gate, the landing's reading of the
+   gate record (step 3), the report's coverage and the branch survey: `prune_worktrees.mechanical` counts a commit as
+   covered by the head before it when it is main's, a clean merge of main through the drivers, or REGISTER-ONLY: every
+   path it changes is a DEVLOG entry or a `kb/Work/*.md` note (`prune_worktrees.register_path`, the one definition).
+   Nothing a test runs or a reviewer reads for behaviour lives there; what can be wrong with such a commit is audited
+   mechanically, at every landing and in CI's `audits` job: `devlog.py check` (the entry), `work.py check` (the register
+   is well-formed) and, through it, `work_inventory.py` (a note's FRONTMATTER claims and closes rows against the
+   traceability inventory). A note's frontmatter change (status, harm flags, `inventory_rows`, `closes_rows`) is therefore
+   covered the same way and not reviewed: a claim or a closed row that is wrong fails `work_inventory.py`, and a row
+   whose verdict really changed carries an inventory edit, which is no register path, so that commit is the branch's own
+   and reviewed. Deleting one stale line in a note after a reviewed, gated head (PB3849's witness: about 20 minutes of
+   a new gate and a new review) now lands as it stands. DEVLOG-only and notes-only commits are one rule, not two.
 3. **Enqueue** (`scripts/orchestrator/enqueue.py land <branch>`, PB3023 — a SCRIPT, deterministic, no agent, started
    by the loop's landing lane the moment the branch is WAITING TO LAND, PB3103, DESIGN-orchestrator-loop.md §4.9;
    its gate's slot is served ahead of waiting implementer gates, §3.14.6): fetch;
@@ -2456,7 +2468,20 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    beside its replacement in a document that describes the current compiler, and a word-level merge came out different
    from the person's resolution in 3 of the 9 merges it resolved. Such a conflict is a decision about what the text now
    says, the finisher's; `--hunks` is rerun before any prose driver is proposed, and a file whose conflicts are
-   insertions earns one. The landing's last line, `=== ENQUEUE: <OUTCOME> (<branch>) ===`, and the CONFLICT outcome
+   insertions earns one. kb/Work PB3723 asked the same question of an INSERTION-ONLY resolution (keep both sides where the
+   base section is empty, decline the file otherwise) and PB3643's trial of it is the answer: it resolved 1 of 32 conflicted
+   merges, in a different order from the person's resolution, and the two same-file pairs of wave 20261107 that read as
+   insert/insert from a simulated merge were revise/revise once resolved (both sides rewrote one base sentence, so a union
+   keeps its trailing clause twice). It is not adopted; a script's test arms are no prose and leave the merge by being
+   one test per case (kb/Work PB3726). THE QUEUE'S CONFLICTS ARE SEEN BEFORE THEY HAPPEN (kb/Work PB3723): the queue
+   builds each entry's merge group on main plus the entries ahead of it that stay, and removes one that conflicts there
+   (`merge_conflict`) with no failed run and no event any reader sees until it has happened. `merge_drivers.foresee_queue`
+   replays that build through the drivers (`probe`, the one `merge-tree`), skipping the entries it would remove, on the
+   queue's own order (`queue_facts.PullRequest.position`) and heads; `prune_worktrees.foresee_queued` asks it on every survey,
+   and a queued head that conflicts reads BOUNCED (a FORESEEN CONFLICT, naming the entries ahead of it, or main alone) with
+   `Row.foreseen`, so the review lane's conflict finisher takes it while the entry ahead is still queued:
+   `land_lane.py conflict-brief` is then against that entry's head, and the finisher merges it with `merge_drivers.py merge
+   <head> --keep` (the branch then carries that pull request's DEVLOG entry and lands after it, exit 15). The landing's last line, `=== ENQUEUE: <OUTCOME> (<branch>) ===`, and the CONFLICT outcome
    inside it have ONE home, `scripts/verdict_line.py` (kb/Work PB3714): `enqueue.py` writes through `render` and
    `conflict_outcome`, the landing lane and the drivers' coverage report read through `parse`, `outcomes` and
    `outcome_files`, and `LandingLaneDriftTests` keeps every other script from spelling the prefix. What is left in
@@ -2485,7 +2510,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    merged; the report gains `BLOCKED: enqueue — no local gate is recorded GREEN …` and a finisher gates the tip): a run
    covers it when it read GREEN with exit 0, measured the COMMITTED head's own tree (`tree` equals `head_tree`), carries a
    GREEN Linux half of that tree on a host that runs one (the inert lane's is the script self-tests alone, §3.18), and its head IS the tip or every later
-   commit is main's, a clean merge of main or DEVLOG-only (`prune_worktrees.unreviewed_since`, the review's coverage rule).
+   commit is main's, a clean merge of main or register-only (`prune_worktrees.unreviewed_since`, the review's coverage rule).
    The record is written by the BRANCH's gate driver and read by main's lander, so a record the driver wrote before a
    field the lander requires existed (`run_gate_legs.LANDING_FIELDS`: `head_tree`, `linux`; schema below
    `LANDABLE_SCHEMA`) is its own reason, "written by a gate older than this lander" (`run_gate_legs.predates_landing`),

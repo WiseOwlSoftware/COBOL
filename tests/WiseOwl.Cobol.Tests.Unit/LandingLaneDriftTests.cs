@@ -85,18 +85,25 @@ public sealed class LandingLaneDriftTests
         {
             "queue watch: under a stop it reads but acts on nothing (no re-run, no requeue, no alert)",
             "queue watch: GitHub's facts unobserved this tick: nothing is read and nothing is done",
-            "queue watch: a pull request in the queue ends the watch QUEUED; one whose branch's work is on main "
-                + "ends it MERGED; a required check that failed ends it LEFT (BOUNCED: the finisher's); none acted on",
+            // kb/Work PB3772: a pull request in the queue is read again on every tick (it can leave the queue unmerged)
+            "queue watch: a pull request in the queue reads QUEUED and the watch does NOT end (kb/Work PB3772: it "
+                + "can leave the queue unmerged); one whose branch's work is on main ends it MERGED; a required check "
+                + "that failed ends it LEFT (BOUNCED: the finisher's); none acted on",
             "queue watch: a stuck check-run inside the grace is only watched; a pull request with no open pull "
                 + "request and its work not on main ALERTS at once (closed by hand)",
             "queue watch: past the grace, read 1 of a stuck check-run re-runs its workflow run and records the "
                 + "stall (cause stuck-check-run, read 1); a check whose job still runs is not stalled",
-            "queue watch: stuck, then cleared by the re-run: the pull request enters the queue and the watch ends",
+            "queue watch: stuck, then cleared by the re-run: the pull request enters the queue (QUEUED, still watched)",
             "queue watch: read 2 (still stuck one grace after the re-run) closes, reopens and re-queues the pull "
                 + "request, recorded as read 2",
-            "queue watch: stuck, then cleared by the reopen: in the queue, the watch ends with no third read",
+            "queue watch: stuck, then cleared by the reopen: in the queue, no third read",
             "queue watch: a third stalled read ALERTS the operator (one mailbox question naming the pull request and "
                 + "the remedies tried) and the watch acts no more, however long it stays out",
+            "queue watch: status and the survey's NOT QUEUED row say the watch's state, when it read, that an ended "
+                + "watch reads nothing again, and each read",
+            "queue watch: a pull request QUEUED and then out of the queue with auto-merge off and no failed run is "
+                + "WATCHING inside the grace counted from its last reading in the queue",
+            "queue watch: the requeue put it back in the queue: QUEUED again, and watched on",
             "queue watch: with no check-run at all the clock starts at the enqueue",
             "queue watch: a check-run whose job the jobs API could not read never holds the watch for ever",
             // kb/Work PB4052: ci-gate has no check-run while a job it needs runs; that is work running, never a stall
