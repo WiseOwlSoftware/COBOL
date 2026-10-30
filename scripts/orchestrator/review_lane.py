@@ -44,6 +44,9 @@ THE LEASE, per branch HEAD (review_findings.py is the one reader of the findings
     reviewer ceiling (REVIEWER_CEILING_MIN)                      from a branch waiting for one, kb/Work PB3283)
     the lane's own unfinished round, no live runner              START THE ROUND AGAIN (a killed reviewer: its recorded
                                                                  findings stand, `review_findings.py start` allows it)
+    an UNCOLLECTED hold at the head                              wait for the enqueue unit's `collect`: after a torn-file
+                                                                 hold its hand-dispatched reviewer records in the lane's own
+                                                                 file, where no lease is granted (PB4049)
     ATTEMPT_LIMIT runs ended with no verdict at the head         HOLD (the enqueue unit's; the operator is told once)
 RESTART-SAFE: the lane's own findings file is `<coord>/scratch/review-<branch slug>.jsonl`. A reviewer killed mid-append
 leaves it torn at its last line; the tick mends exactly that (`review_findings.repair_interrupted_append`) and starts the
@@ -250,6 +253,14 @@ def plan_review(row: dict[str, Any], cdir: pathlib.Path, rs: list[dict[str, Any]
     other = standing(row, cdir, now, own)
     if other:
         return other
+    # An uncollected hold at the head is the enqueue unit's: it dispatches a reviewer by hand into the hold's own findings
+    # file, which for a torn-file hold is the lane's OWN file (so `standing` leases nothing there, and once the operator
+    # mends it the unit's open round would read as a killed round of the lane's: a second reviewer of the same round,
+    # PB4049). The lane waits for `collect`, whatever the hold's reason.
+    open_hold = next((h for h in holds(cdir) if h["branch"] == branch and same_commit(h.get("head"), tip)
+                      and not h.get("collected")), None)
+    if open_hold:
+        return Plan(False, f"held at this head until the enqueue unit collects it ({open_hold['why']})", hold=True)
     # A rolling wave's implementer has just returned DONE and its reviewer has not written its `start` yet: nothing on disk
     # says so (kb/Work PB3283), but its report is minutes old. A finisher's, an attended or a lane's branch waits this long too.
     try:
@@ -881,6 +892,17 @@ def self_test() -> int:
                f7.tick() == [] and any(h["branch"] == "K2" for h in holds(c7)) and b"{not json}" in bad.read_bytes(), str(f7.said))
         expect("a hold names the findings file a hand-dispatched reviewer records in, and `status` prints it (R1-5)",
                holds(c7)[0].get("findings") == str(bad) and str(bad) in "\n".join(status_lines(c7)), str(holds(c7)))
+        # The enqueue unit's hand-dispatched reviewer records into that SAME (lane-own) file; the operator mends the tear
+        # and the reviewer's round is open there. The lane must not start a second reviewer of the round beside it (PB4049).
+        bad.unlink()
+        review_findings.start(bad, 1, "K2", "a1a1a1a", "enqueue-review-K2-r1")
+        expect("a mended torn-file hold with the unit's reviewer open in the lane's own file starts NO second reviewer",
+               f7.tick() == [] and not runs_of(c7, "K2")
+               and "until the enqueue unit collects it" in plan_review(f7.rows[0], c7, [], t0, f7.said.append).why, str(f7.said))
+        expect("the lane keeps waiting on later ticks too, the hold uncollected", f7.tick() == [] and not runs_of(c7, "K2"), str(f7.said))
+        collect(c7, ["K2"], say=lambda s: None)
+        expect("once the unit has collected the hold, its reviewer gone, the lane starts the open round again",
+               f7.tick() == [(REVIEW, "K2")] and runs_of(c7, "K2")[0]["round"] == 1, str(f7.said))
 
         # 5. ROUNDS: round 2 reviews the finisher's diff; past REVIEW_FIX_ROUNDS the blocking set is the cap's.
         c8 = fresh()
