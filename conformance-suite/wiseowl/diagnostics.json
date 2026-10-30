@@ -11023,6 +11023,14 @@
   ],
   "expect": "is declared only by a subordinate entry of the type declaration 'T'"
  },
+ "pb1920-currency-string-refused-symbol-stands": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0890"
+ },
  "pb1929-set-object-from-numeric-function": {
   "refuse-at": [
    "2002",
