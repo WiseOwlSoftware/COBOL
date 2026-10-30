@@ -1858,11 +1858,13 @@ lowercase with Annex C. Three pieces, each in one place:
   (the Annex C fold). `IDENTIFIER` is the only token built from `NAME_BODY`, so the walk covers a name slot, a phrase word
   and a word the grammar cannot place alike. It began as a check in the bound-tree funnel (`VisitCobolWord`), which never
   runs on a source that does not parse, so the U+00A0-only line of golden `pb1660-nbsp-only-line-is-not-blank` was
-  answered "cannot parse near STOP" without the cause. One body (`Check`), two word sources: a parse that FAILED is
-  screened by `Frontend.LexAndParseOnce` over the lexer's whole token stream (`RunOnTokens`, reporting through a frontend
-  `CursorBagSink`, next to the parse error), a parse that SUCCEEDED by `BinderDriver` over the tree's words (`RunOnTree`,
-  through the compiler's sink, so the reports sit beside the binder's own diagnostics and do not stop the compile before
-  it). The one text that is not words is a comment-entry (`AUTHOR. JOSÉ` is a legal '85 comment), which the parse tree
+  answered "cannot parse near STOP" without the cause. One body (`Check`), two word sources chosen by whether the binder
+  will run: a compilation whose frontend reported ANY error (a parse that failed, or one that parsed beside a separator,
+  PICTURE or preprocessor error: `CompilerDriver` stops before the binder on any) is screened by
+  `Frontend.LexAndParseOnce` over the lexer's whole token stream (`RunOnTokens`, reporting through a frontend `BagSink` in
+  its cursored form, next to that error; a word of a fixed-form debugging line that is a comment, channel
+  `ABSENT_DEBUG_LINE`, is not a word); any other by `BinderDriver` over the tree's words (`RunOnTree`, through the
+  compiler's sink, so the reports sit beside the binder's own diagnostics and do not stop the compile before it). The one text that is not words is a comment-entry (`AUTHOR. JOSÉ` is a legal '85 comment), which the parse tree
   names by its single context `commentEntry`; the six paragraph rules call it. The directive stages scan their own words
   and ask `CobolWordRule` themselves (a directive leaves the text before the lexer runs).
 - **The fold** — `CobolNames` (Runtime, because the run-time externalized-name match needs it too): `Fold`, the

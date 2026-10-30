@@ -30,3 +30,12 @@ rule, `commentEntry`, and the screen finds the non-word tokens by that one conte
 word is reported once; `--permissive` keeps the warning next to the parse error; a phrase-word position is screened).
 
 **Rows.** None closed: the rule's inventory rows were closed by PB1402; this names the cause when the parse fails.
+
+**Review round 1.** The reviewer found that the failed-parse screen read every `IDENTIFIER` of the stream, including the words
+of a fixed-form debugging line that is a comment (the rewriter moves it to the `ABSENT_DEBUG_LINE` channel), so a program
+with `D    DISPLAY MY_VAR.` and an unrelated parse error drew a false COBOL0900 naming comment text; `IsCandidate` now skips that
+channel like the other two stream readers. The screen's gate widened from "the parser reported" to "the frontend reported any
+error" (the binder is skipped on any, so a source that parses beside a COBOL2631 separator error lost the underscore gate);
+it runs after the last stream reader and counts the pass's earlier preprocessor errors. `CursorBagSink` was a second copy of
+`BagSink`'s severity mapping: it is deleted and `BagSink` carries the cursored form. Three new `WordCharacterScreenTests` pin
+all of it (each fails with its fix removed), including the failed-parse comment-entry exclusion that nothing had tested.
