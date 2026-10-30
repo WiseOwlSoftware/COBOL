@@ -1,4 +1,4 @@
-## PB4031: a report's compose takes the EC-SIZE checking of the GENERATE or TERMINATE that presents it
+## Entry 2776 — 2026-10-29 22:16 PDT — PB4031: a report's compose takes the EC-SIZE checking of the GENERATE or TERMINATE that presents it
 
 **The defect.** A printable item's `SOURCE IS <arithmetic-expression>` is an implicit COMPUTE (§13.18.53.4 GR2), but the
 report compose that evaluates it is one generated method, emitted outside every statement, so it never saw any statement's
@@ -59,3 +59,4 @@ EC-SIZE-OVERFLOW terminates the run unit with EC-SIZE-OVERFLOW (`IF WS-D * WS-D 
 the checked kernels on the family, and nothing catches the unenabled name); the compose inherits it through the same rule.
 And a COMPUTE statement under EC-SIZE-OVERFLOW alone leaves a truncated receiver unchanged (`COMPUTE WS-C = WS-A * WS-A`
 kept 007), where DOC-A.1-70 says an unenabled EC-SIZE-TRUNCATION stores the low-order digits.
+
