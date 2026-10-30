@@ -1,4 +1,4 @@
-## PB2867, PB1906, PB1673, PB1920: a TYPE subject composes in its bounds phase, and four refusals name what the source really says
+## Entry 2803 — 2026-10-30 13:22 PDT — PB2867, PB1906, PB1673, PB1920: a TYPE subject composes in its bounds phase, and four refusals name what the source really says
 
 Wave 20261769 group B took four DataBinder notes. Each was re-probed on the base 802352531 before any code changed.
 
@@ -67,3 +67,4 @@ refusal (COBOL0867). That arm now asks `UnreservedKeywordReference` before it se
 `NonDataNameReferenceTests` register cases and the negative `8.3.2-COBOL-words/pb1673-set-null-undeclared-at-85`.
 SELF and SUPER at 85 also draw the 2002 OO rules. That is a separate mechanism with its own sites, so the report
 records it as a lead.
+
