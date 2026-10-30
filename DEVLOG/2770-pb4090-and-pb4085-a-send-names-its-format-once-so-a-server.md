@@ -1,4 +1,4 @@
-## PB4090 and PB4085: a SEND names its format once, so a server-name operand needs RETURNING and a phrase of each format is refused
+## Entry 2770 — 2026-10-29 21:14 PDT — PB4090 and PB4085: a SEND names its format once, so a server-name operand needs RETURNING and a phrase of each format is refused
 
 **Mechanism.** §14.9.38.2 prints SEND as two formats the grammar merges into one rule: Format 1 (to-message-server) is
 `SEND TO { literal-1 | message-server-name-1 } FROM identifier-1 RETURNING data-name-1`, Format 2 (message-server-response)
@@ -36,3 +36,4 @@ spelling with a PIC X name and now draw COBOL1850; each was rewritten as Format 
 source in `constructs.json`). The roster in `DeclinedFacilityOperandDriftTests` now counts SEND's TO operand as resolved.
 
 **Rows.** None closed: the MCS SEND rows carry the DOCUMENTED-NON-SUPPORT verdict of their declined facility and stay so.
+
