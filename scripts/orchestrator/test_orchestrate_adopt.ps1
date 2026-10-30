@@ -101,5 +101,26 @@ Check 'stderr: the supervisor still restarts from the adopted checkout' ($r.out 
 Check 'stderr: no unit ran in the predecessor' $r.runs 0
 Check 'stderr: the checkout is origin/main' (Head $Checkout) (Head $Lander)
 
+# 6. THE ADOPTION NEVER RUNS BESIDE A LANDING-LANE TICK (kb/Work PB4046): the tick's survey fetches and reads the same
+#    checkout, and the supervisor started it just ahead of the adoption, so their fetches raced on one ref and the adoption
+#    kept the old commit (CI merge-group runs 40918334805 and 40987962746). A slow fake tick (FAKE_PYTHON_TICK_SECONDS)
+#    makes any overlap certain, and the fake python's timeline holds every interval; a tick the run outlives is open-ended.
+Land $Lander 'kb/Work/PB5.md' 'landed while the lane ticks'
+$env:FAKE_GH_JSON = $Green
+$env:FAKE_PYTHON_TICK_SECONDS = '4'
+$env:FAKE_PYTHON_CHECKPOINT_SECONDS = '0'
+$r = Run-Orch 'adopttick' 'good' ($unitArgs + @('-Python', $FakePython))
+Remove-Item Env:FAKE_PYTHON_TICK_SECONDS, Env:FAKE_PYTHON_CHECKPOINT_SECONDS -ErrorAction SilentlyContinue
+$lines = @(Get-Content (Join-Path $r.coord 'fake-python-timeline.txt') -ErrorAction SilentlyContinue)
+$ended = @{}
+foreach ($l in $lines) { $k, $a, $b = $l -split ' '; if ($k -eq 'tick') { $ended[$a] = [long]$b } }
+$ticks = @($lines | Where-Object { $_ -like 'tickstart *' } | ForEach-Object {
+    $a = ($_ -split ' ')[1]; [pscustomobject]@{ from = [long]$a; to = $(if ($ended.ContainsKey($a)) { $ended[$a] } else { [long]::MaxValue }) } })
+$adopts = @($lines | Where-Object { $_ -like 'adopt *' } | ForEach-Object { $k, $a, $b = $_ -split ' '; [pscustomobject]@{ from = [long]$a; to = [long]$b } })
+$overlap = @($adopts | Where-Object { $x = $_; @($ticks | Where-Object { $_.from -lt $x.to -and $x.from -lt $_.to }).Count })
+Check 'tick: the landing was adopted' ($r.out -match 'adopt main: adopted') $true
+Check 'tick: the run held an adoption and a lane tick (the case measured something)' ($adopts.Count -ge 1 -and $ticks.Count -ge 1) $true
+Check 'tick: no adoption ran beside a lane tick' $overlap.Count 0
+
 Remove-Item Env:FAKE_GH_JSON -ErrorAction SilentlyContinue
 Complete-OrchTest 'adopt'

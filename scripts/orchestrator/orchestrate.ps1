@@ -322,6 +322,15 @@ function Start-LaneTick {
 # (-Now: at once, as a unit starts, so a branch that became ready while no unit ran lands without waiting a period). It
 # starts nothing under STOP: the callers check STOP first, and the tick itself launches nothing under any stop file.
 $script:LastLaneTick = [datetime]::MinValue
+
+# Waits, at most $seconds, for a landing-lane tick still running, and says it: the adoption never runs beside a tick
+# (kb/Work PB4046). $true when no tick runs any more.
+function Wait-LaneTick([int]$seconds = 120) {
+    if ($script:LaneTick -and -not $script:LaneTick.proc.HasExited) { [void]$script:LaneTick.proc.WaitForExit($seconds * 1000) }
+    Complete-LaneTick
+    return -not $script:LaneTick
+}
+
 function Step-Lane([switch]$Now) {
     if ($LandLaneSeconds -le 0) { return }
     Complete-LaneTick
@@ -734,11 +743,13 @@ try {
             $exitCode = 4; break
         }
 
-        # The landing lane ticks between units too (kb/Work PB3639): its period, not the unit's life, decides.
-        if (-not $DryRun) { Step-Lane }
-
-        # ADOPT what landed, between units: no unit runs now, so no tree a unit reads moves under it.
+        # ADOPT what landed, between units: no unit runs now, so no tree a unit reads moves under it. And BEFORE the landing
+        # lane ticks (kb/Work PB4046): the tick's survey fetches and reads this same checkout, and started just ahead of
+        # the adoption it raced it (the adoption's fetch lost, "cannot lock ref", and the old commit was kept for a whole
+        # unit; CI merge-group runs 40918334805 and 40987962746). A tick still running from the unit is waited for, bounded;
+        # one that outlasts the wait defers the adoption to the next iteration rather than run beside it.
         if ($DryRun) { Say 'DRY RUN: would adopt origin/main here (adopt_main.py adopt) and restart if the supervisor changed' }
+        elseif (-not (Wait-LaneTick)) { Say "adopt main: deferred: the landing lane's tick still runs after 120 s; the next iteration adopts" }
         else {
             $adopted = Invoke-AdoptMain
             if ($adopted -and $adopted.supervisor_changed) {
@@ -746,6 +757,9 @@ try {
                 break
             }
         }
+
+        # The landing lane ticks between units too (kb/Work PB3639): its period, not the unit's life, decides.
+        if (-not $DryRun) { Step-Lane }
 
         $budgetArgs = @((Join-Path $Here 'budget.py'), '--json', '--borrow-days', "$BorrowDays")
         if ($TelemetryDir) { $budgetArgs += @('--telemetry-dir', $TelemetryDir) }
