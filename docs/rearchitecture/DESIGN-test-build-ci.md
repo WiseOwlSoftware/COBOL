@@ -721,14 +721,15 @@ per partition, each asserting its own slot; open-type resolution would have prod
 owned are simply never run — no error, no red, just a smaller and entirely plausible test count.
 `TestPartitionAudit`, run per assembly by `TestPartitionCoverageDriftTests`, closes that. It is SHAPE-DRIVEN, not
 registered — it finds every family by structure (a top-level, author-written, abstract generic base with one type
-parameter constrained to `ITestPartitionSlot`), so a NEW family is covered the moment it is written. Four checks,
-one per way a family loses rows silently:
+parameter constrained to `ITestPartitionSlot`), so a NEW family is covered the moment it is written. Five checks,
+one per way a family loses rows silently or rebuilds the serial pole it exists to remove:
 
 | check | what it catches |
 |---|---|
 | the row source yields NOTHING | every check below would compare an empty union against an empty source and report green |
 | slot indices ≠ {0 … `Partitions`−1} | a deleted, duplicated or mis-slotted partition class |
 | an EMPTY partition over a non-empty source | more partitions declared than the source can fill — the one waste the union check cannot see, because the surviving slots still cover the whole set |
+| a partition outside its even SHARE (⌊rows/P⌋ or ⌈rows/P⌉ of a source's rows) | a sliced member that filters by something other than the stride, so one partition can grow into the family's pole while the union still covers every row once (kb/Work PB4146; fired by a planted count in the Unit assembly's `TestPartitionCoverageDriftTests`, and by a planted block split of the optional-word sweep) |
 | union of the partitions ≠ the source as a MULTISET | rows dropped or double-run, each named in the failure |
 
 Plus a ladder check: `Slot9.Index => 8` would silently put two classes in one partition and corrupt EVERY family
@@ -742,14 +743,40 @@ class commented out → the slot-set violation plus a per-source "87 row(s) NEVE
 rows; a slice count desynced from the const → `TestPartitioning.Slice`'s own range guard throws first, which is
 why that direction cannot reach the audit at all).
 
+**⭐ How many partitions: the host's parallelism, never the row total (kb/Work PB4146).** A partition's time is its
+family's time over `Partitions` (P), because the share check holds every partition to 1/P of its rows and the stride
+spreads cost-correlated neighbours apart. The leg's ideal wall is the leg's time over the host's T workers. So a
+partition stays under that wall while **P ≥ T × (the family's share of the leg's work)**, and neither side of that
+inequality moves when a family grows with the leg: a suite that doubles doubles every partition and the wall alike.
+A family's `Partitions` is therefore chosen from the gate host's parallelism and the family's share of its leg, kept
+at its measured floor by a drift test (`ConformancePartitioningDriftTests`: 24 for the conformance suite, 8 for the
+optional-word sweep, kb/Work PB2527), and re-measured when the host or the shares change — never raised because rows
+were added. No test bounds the rows a partition holds: an absolute bound guarded nothing the floor and the share
+check do not, and it turned every golden-adding branch red once the suite crossed it (kb/Work PB4146: #811's merge
+group at 12,005 rows, 24 × 500).
+
+Two consequences shape the families:
+- **A row is the smallest unit of work the theory can judge alone.** The share check balances rows, so it balances
+  time only when rows cost about the same. The optional-word sweep's row is therefore one SPELLING (a format and a
+  subset mask), not a whole format: a format of seven optional words is 128 compiles (41–59 s), and as one row it
+  could only land whole in one partition. Each spelling compares its output with its format's bare spelling, which
+  `OptionalWordBaselines` observes once per test process for every partition (a static of the generic family would
+  be one per closed type, that is per partition).
+- **The partition classes are written, not generated.** The count changes only with the host, so a generator buys
+  nothing a one-line class and the audit's slot check do not. Deriving the count from the row total was rejected on
+  its mechanics as well: the suite's rows exist only at test time (`SuiteManifest` runs `generate.py` in the test
+  process, the one reader of the test headers), xUnit v2 makes a collection of a compile-time class, and
+  `scripts/gate_plan.py` models a collection as a class (`class_of`, the leg-1 collection cap), so a run-time
+  partitioning would need a second copy of the partition rule in the plan.
+
 #### 3.11.1 What is partitioned, and what it measured
 
 | family | `Partitions` | before (battery #41 trx) | after |
 |---|---|---|---|
 | `VersionMatrixTests_P0 … _P11` | 12 | 2127 rows, **720.5 s SERIAL** — the whole 721 s leg | 12 × (175…179 rows), 552–601 s each, all spanning the run together |
 | `NistDifferentialTests_P0 … _P5` | 6 | 349 rows, 237.9 s SERIAL | 6 × (58–59 rows), 329–354 s each |
-| `ConformanceSuiteTests_P0 … _P31` (formerly `CorpusRunnerTests`) | 32 | at 3 partitions (2026-10-07, about 4,635 rows): 3 × about 1,546 cases, 246–282 s each, the Conformance leg's 95–220 s tail at 1–4 threads | 24 × about 193 rows (kb/Work PB2527); `ConformancePartitioningDriftTests` bounds a partition at 500 rows, which the suite crossed at 12,005 rows on 2026-10-30, so it runs as 32 × about 375 rows (one partition per processor of the 32-way gate host) |
-| `OptionalWordSubsetDriftTests_P0 … _P8` | 9 | one 23-row class, 131–152 s span (one row 59 s) | 9 × at most 3 formats (kb/Work PB2527; 9 since kb/Work PB3751's rows made 26), bounded at 3 by `ConformancePartitioningDriftTests` |
+| `ConformanceSuiteTests_P0 … _P31` (formerly `CorpusRunnerTests`) | 32 | at 3 partitions (2026-10-07, about 4,635 rows): 3 × about 1,546 cases, 246–282 s each, the Conformance leg's 95–220 s tail at 1–4 threads | 24 × about 193 rows (kb/Work PB2527); now one partition per processor of the 32-way gate host, each its 32nd of the suite (about 12,000 rows in 2026-10: about 375 a partition) |
+| `OptionalWordSubsetDriftTests_P0 … _P7` | 8 | one 23-row class, 131–152 s span (one row 59 s) | 8 partitions (kb/Work PB2527), each an eighth of the SPELLINGS since kb/Work PB4146 (about 380 spellings of 26 formats in 2026-10: about 48 a partition), so no format's power set lands whole in one partition |
 | `StorageFormNistEquivalenceTests_P0 … _P7` | 8 | one `[Fact]` looping the corpus, **171.5 s** — *was* the Unit leg's wall clock | 8 slice-`[Fact]`s, 81–138 s each |
 
 Whole-corpus assertions stay OFF the partitioned base and run ONCE (`VersionMatrixTests`' two catalogue facts,

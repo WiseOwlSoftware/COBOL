@@ -1013,6 +1013,14 @@ public sealed class DataItem
         "a synthesized-temp discrimination (kb/Work PB1007, PB2507), set on the materialized temp, not a data description clause")]
     public char? FunctionValueSeparator { get; internal set; }
 
+    /// <summary>The FIXED DIGITS of the returned value's item when this <see cref="FunctionValueSeparator"/> temporary holds a function
+    /// whose item has them whatever its value (DATE-OF-INTEGER's eight, DAY-OF-INTEGER's seven: <c>FunctionDeviceForm.FixedDigits</c>),
+    /// <see langword="null"/> for every other temporary (kb/Work PB4124). A function argument held for ISO 8.4.3.2.4 GR2's order is
+    /// described by this, as the unheld call is, never by the intermediate's own digits.</summary>
+    [DescriptionCopy(DescriptionCopyKind.None,
+        "a synthesized-temp discrimination (kb/Work PB4124), set on the materialized temp, not a data description clause")]
+    public int? FunctionDeviceDigits { get; internal set; }
+
     /// <summary>⛔ THIS FLOATING-POINT TEMPORARY HOLDS AN IMPLEMENTOR-DEFINED APPROXIMATION, NOT A FLOATING-POINT DATA
     /// ITEM'S CONTENT (kb/Work PB1606): the binary64 intermediate result item a statement freezes a float-family
     /// function's returned value into (<c>SendingValueTemp</c>, §14.9.25.4 GR1's "temp"). A binary64 cell cannot say
