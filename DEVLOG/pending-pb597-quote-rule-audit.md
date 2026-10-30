@@ -12,7 +12,7 @@ parentheticals are right in the inventory row and in `l1_search_when_condition_f
 corrected to the printed rule: the unsigned-magnitude sentence is `§14.9.25.4 GR6 d) 2. b.` in `CobolNum.Image.cs`,
 `BinaryCapacityTests.cs` (2), `RecordImageCodecTests.cs` (2), `docs/DATA_MODEL_DESIGN.md` (2) and `docs/DESIGN.md`;
 the serial SEARCH no-match in `ec_range_search.cob` is GR4 (GR6 is the Format 2 rule that applies only when GR5 is
-violated), and SEARCH ALL's no-match with a sequenced table is the EC's own definition in §14.6.13.1.6;
+violated), and SEARCH ALL's no-match is GR9 (the non-serial search sets the EC when no setting in range satisfies the WHEN);
 `SetEmitter`'s "SEARCH's GR8b varied index" and `tests/nist/corpus.tsv` NC236A's "GR8b" are GR3 b)/c) and GR3 c) 2.
 (SEARCH has no GR8b: GR8 is one sentence). Every citation was run through `cite.py --check`.
 
