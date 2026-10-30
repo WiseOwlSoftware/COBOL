@@ -1292,6 +1292,13 @@ target:
   `SingleTokenDeletion` never deletes a '('. Once the reference paren became its own token (kb/Work PB2113) the
   integer inside `05 A(1)` or `X(3)` resynced as a level-number and the orphaned ')' reported a second, spurious
   error; the behavior-neutrality oracle caught it, and `ParseRecoveryParenGroupTests` pins the count.
+- ⛔ **The token that ends an empty required block is never deleted** (kb/Work PB911; ISO §5.2.6.2, §5.2.6.3).
+  `SingleTokenDeletion` declines when `OffendingPosition.EmptyBlockOwner()` names an owner at the token (one statement
+  written there would let it follow: the owner's END-x or next WHEN/FINALLY phrase). Deleting it because the token after
+  it can begin a statement made that statement the block's body, and a PERFORM, whose END-PERFORM is required, then drew
+  a second COBOL0001 at the next period; IF, EVALUATE and SEARCH, whose terminators are optional, hid it.
+  `RequiredImperativeStatementDriftTests` reads every rule that calls `statementBlock` from the ATN and requires an
+  empty-block witness for each, drawing exactly one COBOL2072 at both nesting depths.
 - Recovery beyond that and the sync-point behavior is out of scope for this rearchitecture (the battery does
   not exercise multi-error recovery quality; changing it risks the green net for no measured gain) — but a
   change in the diagnostics a negative fixture produces is visible to the oracle

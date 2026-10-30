@@ -1437,7 +1437,8 @@ internal sealed class StatementValidation(DataBinder data)
     /// supplies the NEXT phrase, GR19 makes a statement with an implicit NEXT a sequential read, and a sequential
     /// read has no KEY phrase to bind. That is how <c>KeyedIoBinder.BindRead</c> chooses <see cref="ReadKind.Next"/>
     /// and how the INVALID KEY screen on a sequential-organization READ words its refusal
-    /// (<see cref="DiagnosticCatalog.IoPhraseForbiddenHere"/>: "SR8 + GR19 make every READ ... a Format-1 read"), so
+    /// (<see cref="DiagnosticCatalog.IoPhraseForbiddenHere"/>: a READ that binds sequential, by SR8, SR9 or GR19, is a
+    /// Format-1 read, at its two READ sites), so
     /// the two diagnostics cannot explain the same shape by contradictory readings of SR8 and GR19. The statement
     /// has no phrase in it that is wrong: the FILE is the wrong mode for it, so the message names the access mode
     /// and the implied NEXT, never a phrase the statement wrote. Random retrieval needs ACCESS MODE RANDOM
