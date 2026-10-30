@@ -31,9 +31,16 @@
       *>   Leg 7 MOVE FUNCTION INTEGER (BIG * BIG * K3) TO R: INTEGER is the product itself, and the MOVE keeps its 31 low-order
       *>         digits (§14.6.8.2 4: "transferred to the receiving digits with zero fill or truncation on either end as
       *>         required"): +9999999998002000000000000000999.
+      *>   Legs 8-11 (review R1-1): A = X * Y + C = 170141183460469231731687303715884105000 fits Int128 (39 digits, under
+      *>         2**127 - 1 = ...884105727), so its temporary is exact; A + 1000 = ...884106000 is past Int128, on the wide
+      *>         form, and its 34-digit image (...8841 then zeros) lies BELOW A. §15.59.4 1): "The returned value is the
+      *>         content of the argument-1 having the greatest value" - legs 8 and 9 MAX (A, A + 1000) = ...884106000 in
+      *>         either argument order; §15.63.4 1) ("having the least value") - leg 10 MIN = ...884105000; §15.61.4 1) -
+      *>         leg 11 MEDIAN (A + 1000, A, A + 2000), the middle of the sorted three, = ...884106000.
       *> Each leg can fail on its own: legs 1/2 if the function window moved below 38 digits, leg 3 if the arithmetic
       *> statement lost the exact wide form, legs 4-6 if a function argument past the window is lowered to its image again,
-      *> leg 7 if a MOVE stores a wide function value through that image.
+      *> leg 7 if a MOVE stores a wide function value through that image, legs 8-11 if a wide temporary is ordered
+      *> against an exact narrower one by its image.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3953FA.
        DATA DIVISION.
@@ -42,6 +49,9 @@
        01 K2  PIC 99    VALUE 99.
        01 K3  PIC 999   VALUE 999.
        01 R   PIC S9(31).
+       01 X   PIC 9(20) VALUE 17014118346046923173.
+       01 Y   PIC 9(20) VALUE 10000000000000000000.
+       01 C   PIC 9(19) VALUE 1687303715884105000.
        PROCEDURE DIVISION.
        MAIN.
            DISPLAY FUNCTION ABS (BIG * BIG * K2)
@@ -53,4 +63,8 @@
            DISPLAY FUNCTION MAX (BIG * BIG * K3, BIG * BIG * K3 + 1)
            MOVE FUNCTION INTEGER (BIG * BIG * K3) TO R
            DISPLAY R
+           DISPLAY FUNCTION MAX (X * Y + C, X * Y + C + 1000)
+           DISPLAY FUNCTION MAX (X * Y + C + 1000, X * Y + C)
+           DISPLAY FUNCTION MIN (X * Y + C + 1000, X * Y + C)
+           DISPLAY FUNCTION MEDIAN (X * Y + C + 1000, X * Y + C, X * Y + C + 2000)
            STOP RUN.

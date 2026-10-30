@@ -41,6 +41,17 @@ the MOVE of INTEGER), each value derived from the rule; its negative `pb3953_fun
 **Rows.** DOC-A.1-123 now states the determination instead of the departure; it and RV-15.4.1-1 already CONFORM, so the landing
 closes no inventory row (`closes_rows: []`, with the reason in the note).
 
-**Left on the image, by determination, and filed as leads in the report:** the binary64 family (SIN of a 39-digit argument
+**Left on the image, and OPEN WRONG ANSWERS rather than determinations (review lead R1-2), filed as leads in the report:** the binary64 family (SIN of a 39-digit argument
 depends on every digit) and MEAN (its SDIDI quotient over a round-to-odd image can differ from the correctly rounded quotient in
 the 34th digit: `MEAN (BIG * BIG * K3, 1)` shows `…0001000…` where the quotient rounded once at 34 digits ends in zeros).
+
+**Review round 1 (R1-1, fixed by the review finisher).** `FunctionValueField.Compare` ordered a wide temporary against a non-wide
+one by the wide value's 34-digit image whenever the images differed, on the claim that the round-to-odd lowering is monotone. It
+is, but only against another image: a non-wide temporary holds up to 39 exact digits (an Int128 value), off that grid. With
+`A = X * Y + C = 170141183460469231731687303715884105000`, just under `Int128.MaxValue`, and `A + 1000` just past it, the wide
+value's image (`…8841` then zeros) lies below A, so the branch showed `MAX (A, A + 1000)` = A, `MIN` = A + 1000 and
+`MEDIAN (A + 1000, A, A + 2000)` = A + 2000, while ORD-MAX (on the exact `RenderWide` arm) answered 2. `Compare` now orders any
+pair holding a wide value by the exact values (`CobolWide.Compare`); the one temporary with no exact wide form, an SDIDI value
+past the 256-bit range, is larger than every wide value, so its sign decides. Golden legs 8-11 and
+`CobolWideIntrinsicsTests.AWideTemporary_OrdersExactlyAgainstANarrowOneOffTheImageGrid` (integer, fractional and past-256-bit
+pairs) witness it. The `RawArg` comment and the note no longer call MEAN and the binary64 family determinations (lead R1-2).
