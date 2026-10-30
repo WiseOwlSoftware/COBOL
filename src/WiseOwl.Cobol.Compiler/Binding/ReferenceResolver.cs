@@ -1555,6 +1555,16 @@ public sealed partial class ReferenceResolver(DataBinder data)
         return new WrittenReference(qualifiers, subCtx, cleanRef, refModCount, propertyObject);
     }
 
+    /// <summary>The user-defined word a <c>dataReference</c> names, as written — or null for the LINAGE-COUNTER,
+    /// LINE-COUNTER and PAGE-COUNTER special-register alternatives (§8.4.3.14; §8.4.2.2.2 Format 8, the
+    /// qualified-report-counter), which name a register, not a word. ⛔ In those alternatives <c>dref.cobolWord()</c> is the QUALIFIER (<c>LINAGE-COUNTER OF F</c> gives
+    /// F, the file-name) or absent, never the referenced name, so a query of what the word is declared as asks this
+    /// (kb/Work PB1906, review w20261769b R1-1: <c>SET LINAGE-COUNTER TO TRUE</c> crashed on the absent word).</summary>
+    internal static string? WrittenWordOf(Core.DataReferenceContext dref) =>
+        dref.LINAGE_COUNTER() is null && dref.LINE_COUNTER() is null && dref.PAGE_COUNTER() is null
+            ? dref.cobolWord().Name()
+            : null;
+
     /// <summary>The reference's subscript list AS WRITTEN — one token segment per subscript position, outermost
     /// first, read by the ONE <see cref="SegmentsOf"/> with the same declaration-informed '(' rule
     /// <see cref="InterpretSubscripts"/> uses (kb/Work PB136), or <see langword="null"/> when the reference carries

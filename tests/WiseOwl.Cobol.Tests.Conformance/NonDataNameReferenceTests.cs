@@ -125,6 +125,30 @@ public sealed class NonDataNameReferenceTests
         EditionHarness.AssertNoDiagnostic(errors, "no level-88 entry");
     }
 
+    /// <summary>A special register written as SET Format 4's condition-name-1 is no condition-name (§14.9.39.3 SR6) and
+    /// names no user word: its <c>cobolWord</c> is the qualifier or absent, so the declaration query is not asked of it
+    /// (<c>ReferenceResolver.WrittenWordOf</c>). The unqualified forms crashed the compiler with a
+    /// NullReferenceException (review w20261769b R1-1); the TO FALSE phrase is named as written.</summary>
+    [Theory]
+    [InlineData("LINAGE-COUNTER", "TRUE")]
+    [InlineData("LINAGE-COUNTER OF F1", "TRUE")]
+    [InlineData("LINE-COUNTER", "TRUE")]
+    [InlineData("PAGE-COUNTER", "FALSE")]
+    public void ASetOperandNamingASpecialRegister_IsNotAConditionName(string operand, string phrase)
+    {
+        string source =
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB1906R.\n"
+            + "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n"
+            + "           SELECT F1 ASSIGN TO \"F1\" ORGANIZATION IS LINE SEQUENTIAL.\n"
+            + "       DATA DIVISION.\n       FILE SECTION.\n       FD F1 LINAGE IS 10 LINES.\n       01 R1 PIC X.\n"
+            + $"       PROCEDURE DIVISION.\n           SET {operand} TO {phrase}\n           STOP RUN.\n";
+        var (ok, errors) = EditionHarness.Compile(source, 2023);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1639");
+        EditionHarness.AssertHasDiagnostic(errors, $"SET '{operand}' TO {phrase} — '{operand}' is not a condition-name");
+        EditionHarness.AssertHasDiagnostic(errors, "§14.9.39.3 SR6");
+    }
+
     /// <summary>An index-name in a statement operand keeps its category refusal (§13.18.38.3 SR7, COBOL1637, kb/Work
     /// PB1266) — the query names its kind; the statement site words the rule it breaks.</summary>
     [Fact]

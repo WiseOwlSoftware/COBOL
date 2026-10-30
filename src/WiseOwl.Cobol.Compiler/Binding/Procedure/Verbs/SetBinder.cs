@@ -136,6 +136,16 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             else if (atom?.dataReference() is { } sorRef)
                 sorSender = SetSender.OfReference(sorRef);
             bool sorNull = atom?.predefinedNull() is not null;
+            // ⛔ SET IS AN SR1 CONTEXT, SO IT ASKS THE EDITION TOO (kb/Work PB1673, review w20261769b R1-2). The predefined
+            // NULL exists only where §8.9 reserves the word (COBOL 2002 on); at COBOL-85 an undeclared NULL token names
+            // nothing declared, the §8.4.2.1 undefined reference every other NULL position draws there
+            // (ExpressionBinder.NullAdmittingOperand, PredefinedNullRule.Report) — never the object-reference SET's SR8
+            // of a facility the edition does not have.
+            if (sorNull && UnreservedKeywordReference.IsFreeAt("NULL", ctx.Edition))
+            {
+                UnreservedKeywordReference.Report(ctx.Edition, "NULL");
+                return BoundRejected.Reported(ctx.Edition);
+            }
             bool sorSelf = atom?.selfAndSuper()?.SELF() is not null;
             bool sorSuper = atom?.selfAndSuper()?.SUPER() is not null;
             return SetFormatSelection.Select(_fmt.KindsOf(sorRefs), SetDirections.To, out _) switch
@@ -1672,8 +1682,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     // A DECLARED level-88 the qualifiers do not reach is misqualified, not "not a condition-name"
                     // (kb/Work PB567 — §13.16.3 SR23's negative side, one wording for every site).
                     if (!host.Cond.ReportMisqualifiedCondition(dref))
-                        ctx.Validation.RejectSetConditionName(DataBinder.WrittenText(dref), host.Alter.SwitchNameOf(dref),
-                            dref.cobolWord().GetText(), ReferenceResolver.ReadWritten(dref).Qualifiers);
+                        ctx.Validation.RejectSetConditionName(DataBinder.WrittenText(dref), toTrue, host.Alter.SwitchNameOf(dref),
+                            ReferenceResolver.WrittenWordOf(dref), ReferenceResolver.ReadWritten(dref).Qualifiers);
                     return BoundRejected.Reported(ctx.Edition);
                 }
                 // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
