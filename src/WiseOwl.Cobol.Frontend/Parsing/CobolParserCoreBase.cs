@@ -137,9 +137,35 @@ public abstract class CobolParserCoreBase : Parser
     /// COBOL word by its spelling calls this, so <c>&gt;&gt;COBOL-WORDS</c> is applied once, for the whole class,
     /// in both directions: an EQUATE/SUBSTITUTE synonym resolves onto the canonical word and steers the same
     /// prediction (§7.3.10.4 GR2/GR4), and an UNDEFINE'd word resolves to null and steers none (GR3). A new
-    /// predicate that writes its own <c>string.Equals(token.Text, …)</c> re-opens the defect.</summary>
+    /// predicate that writes its own <c>string.Equals(token.Text, …)</c> re-opens the defect.
+    /// <para>Being the one comparison, it is also the one place that knows WHICH words a predicate tests: while
+    /// <see cref="EvaluateTestingWords"/> runs a predicate for a diagnosis, every word compared against the token it
+    /// names is recorded (kb/Work PB3428).</para></summary>
     private bool Word(IToken? t, string text)
-        => WiseOwl.Cobol.Frontend.Parsing.CobolWordsRewriter.TokenIs(t, text, CobolWords);
+    {
+        bool matched = WiseOwl.Cobol.Frontend.Parsing.CobolWordsRewriter.TokenIs(t, text, CobolWords);
+        if (_wordsTested is { } tested && t is not null && t.TokenIndex == _wordsTestedAt && Canonical(text) is not null)
+            tested.Add((text, matched));
+        return matched;
+    }
+
+    /// <summary>⛔ THE WORDS A TEXT PREDICATE TESTS, READ BY RUNNING IT (kb/Work PB3428). A context word a general
+    /// format prints (MEMORY SIZE's WORDS and MODULES, SORT's ORDER, the STRUCTURE of DYNAMIC LENGTH) is no lexer
+    /// token, so the ATN shows only the IDENTIFIER edge its predicate guards, and an expected set built from the ATN
+    /// cannot name the word. Run <paramref name="predicate"/> (the parser's input already positioned at the token
+    /// <paramref name="tokenIndex"/>) and add to <paramref name="tested"/> every word the <see cref="Word"/> funnel
+    /// compares against that token, with whether it matched — every word, because a word predicate that fails has
+    /// compared the token with each of its words. A word a <c>&gt;&gt;COBOL-WORDS UNDEFINE</c> removed is no keyword
+    /// any more and is not recorded. Diagnosis only (<c>CobolErrorStrategy</c>); never called while parsing.</summary>
+    internal bool EvaluateTestingWords(Func<bool> predicate, int tokenIndex, List<(string Word, bool Matched)> tested)
+    {
+        (_wordsTestedAt, _wordsTested) = (tokenIndex, tested);
+        try { return predicate(); }
+        finally { _wordsTested = null; }
+    }
+
+    private int _wordsTestedAt;
+    private List<(string Word, bool Matched)>? _wordsTested;
 
     /// <summary>The next token spells one of <paramref name="words"/> — the LEFT-EDGE predicate of a
     /// <c>formatWord</c> brace alternative (kb/Work PB764): <c>{wordAhead("NESTED")}? formatWord | cobolWord</c>
