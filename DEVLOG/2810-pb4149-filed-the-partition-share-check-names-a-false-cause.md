@@ -1,3 +1,4 @@
-## PB4149 filed: the partition share check names a false cause when a partition class is missing
+## Entry 2810 — 2026-10-30 14:32 PDT — PB4149 filed: the partition share check names a false cause when a partition class is missing
 
 The branch review of PB4146 left two non-blocking leads. R1-1 is a defect, filed as kb/Work PB4149: TestPartitionAudit computes the even share from the number of partition classes it found, so a deleted or duplicated class flags every surviving partition and blames the stride. R1-2 is decided in the same note: the row-count share replaces the measured-time guard because a stopwatch ceiling in a test is forbidden (PB1590) and the stride interleaves rows; the fix records that reason in DESIGN-test-build-ci section 3.11.
+
