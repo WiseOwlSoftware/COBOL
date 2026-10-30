@@ -1,3 +1,4 @@
-## Filed the PB2024 review leads as PB4085-PB4088 and added a witness to PB4051
+## Entry 2764 — 2026-10-29 20:10 PDT — Filed the PB2024 review leads as PB4085-PB4088 and added a witness to PB4051
 
 The enqueue unit's leads of 2026-10-30 (the PB2024 report, PR #795) became four notes. PB4085 holds both SEND defects under one root (SEND's two general formats are one grammar rule with every tail optional: `SEND TO name FROM x` with no RETURNING compiles, and RETURNING with RAISING is accepted). PB4086 is the optional-words audit's blind spot (`Layout.demanded_with` needs every printed format to demand a word), which is why row SR-8.3.2.4.2-1 read CONFORMS while PB4085's violation is open. PB4087 is that the audit needs the licensed PDF and so cannot run in CI. PB4088 is the leg-1 plan omitting a changed matrix row's own cells. PB4051 gained two more lane rows of gone branches, one of a branch that landed. PB4046 gained the root cause of its restart-scenario flake (the lane tick and the adoption race on one fetch).
+
