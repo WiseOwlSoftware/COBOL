@@ -868,13 +868,17 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // (ISO §14.9.25.4 GR6 — "any editing specified for … the receiving data item"; GR6 a) alignment);
             // an alphanumeric source stays a plain character move.
             case PicCategory.NumericEdited when IsNumericOperand(source):
-                NumX e = num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric);
+                // A function whose value is on the exact wide form (an exact-family call over an argument expression past the
+                // Int128 carrier, kb/Work PB3953) is kept exact here and TRANSFERRED at the mask's scale below, so the edit sees
+                // the value's own low-order digits and not its 34-digit image.
+                NumX e = num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
                 // A FLOATING-POINT numeric-edited receiver (D21/PB66) takes the sender's EXACT form — no alignment to a
                 // mask scale (it has none) — and the transfer's mode rounds the significand to the mask's digits
                 // (kb/Work PB2638): TRUNCATION for a MOVE (§14.6.8.4 rule 2), the clause's own for the report's rounded
-                // implicit COMPUTE (kb/Work PB3990 review finding R1-1's sibling: it always truncated).
+                // implicit COMPUTE (kb/Work PB3990 review finding R1-1's sibling: it always truncated). A wide value reaches
+                // it as the SDIDI (round-to-odd), which every mask of at most 32 digit positions rounds as the exact value.
                 if (pic.IsFloatEdited)
-                    return RuntimeApi.EditFormatFloat(pic, e, rounding, ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
+                    return RuntimeApi.EditFormatFloat(pic, NumericRenderer.LowerWide(e), rounding, ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
                 // The edit Format takes a scaled Int128. A NATIVE scaled sender passes at its own scale: the formatter's
                 // own alignment IS the MOVE's truncation (§14.6.8.2). Every other carrier — a float (D16 review: CS1503),
                 // a STANDARD-DECIMAL intermediate (fix-queue PB65: CS1503), an unsigned-wide item (kb/Work PB2163's
@@ -888,6 +892,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // landing with that mode too, where ROUNDED MODE IS PROHIBITED raises rule 7 (kb/Work PB3990 review
                 // finding R1-1's sibling: `SOURCE IS WS-F ROUNDED` printed 1.55 as 1 into Z9).
                 int ems = pic.ReceiverScale();
+                e = NumericRenderer.TransferWide(e, ems, rounding, checkedTransfer: false);
                 bool nativeScaled = e.Carrier == NumXCarrier.Scaled && (rounding == CobolRounding.Truncation || e.Scale <= ems);
                 string editVal = nativeScaled ? e.Expr : NumericRenderer.EditedLanding(e, ems, rounding, checkedLanding: false);
                 int editScale = nativeScaled ? e.Scale : ems;
@@ -964,11 +969,16 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 }
                 NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
                     ? AllDigitFill(allDigit.Literal, pic)
-                    : num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric);
+                    : num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
                 // A float SOURCE lands into the fixed receiver via the runtime's ToScaled at the receiver scale (MOVE
                 // truncates toward zero — §14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
                 // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).
                 int recvScaleM = target.OperandPic!.Scale;
+                // A function whose value is on the exact wide form (kb/Work PB3953: INTEGER (BIG * BIG * K3)) is TRANSFERRED at
+                // the receiver's scale, unchecked as a MOVE is, so the store keeps the value's own low-order digits (§14.6.8.2 4:
+                // "transferred to the receiving digits with zero fill or truncation on either end as required") and never its
+                // 34-digit image's.
+                n = NumericRenderer.TransferWide(n, recvScaleM, rounding, checkedTransfer: false);
                 // A STANDARD-DECIMAL intermediate stores through the SDIDI Store overload (the §14.7 final
                 // transfer), exactly as the arithmetic path does — fix-queue PB65: the MOVE arm was the one
                 // numeric consumer without the Dec case, so MOVE FUNCTION E was a backend CS1503.

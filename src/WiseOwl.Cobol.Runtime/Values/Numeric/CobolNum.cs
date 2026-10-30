@@ -938,12 +938,21 @@ public static partial class CobolNum
     /// in GnuCOBOL 3.2. The emitter passes the referencing unit's mode (a returned value is a temporary of the unit
     /// that evaluates it); false is the C#-facing '.' radix of a compile-time fold's canonical text
     /// (<c>AlgebraicRanges.Decimalize</c>), which never reaches COBOL source.</param>
-    public static string FormatFunctionText(Int128 unscaled, int scale, bool deSign = false, bool commaMode = false)
-    {
+    public static string FormatFunctionText(Int128 unscaled, int scale, bool deSign = false, bool commaMode = false) =>
         // The magnitude is the UNSIGNED one: negating the signed value leaves Int128.MinValue (-2^127) NEGATIVE
         // (kb/Work PB2641), which printed as "--170141…" here.
-        bool neg = unscaled < 0 && !deSign;
-        string digits = CobolDec.UAbs(unscaled).ToString(CultureInfo.InvariantCulture);
+        FunctionText(unscaled < 0, CobolDec.UAbs(unscaled).ToString(CultureInfo.InvariantCulture), scale, deSign, commaMode);
+
+    /// <summary>The same text for a returned value carried on the EXACT WIDE intermediate (<paramref name="value"/> at
+    /// <paramref name="scale"/> fraction digits; kb/Work PB3953): every digit of an exact function's value over an argument expression
+    /// past the <see cref="Int128"/> carrier, as a MOVE to an alphanumeric item or a STRING sends it.</summary>
+    public static string FormatWideFunctionText(CobolWide value, int scale, bool deSign = false, bool commaMode = false) =>
+        FunctionText(value.Sign < 0, value.MagnitudeDigits(), scale, deSign, commaMode);
+
+    /// <summary>The ONE statement of the literal-form text, over a value given as its sign and the digits of its unscaled magnitude.</summary>
+    private static string FunctionText(bool negative, string digits, int scale, bool deSign, bool commaMode)
+    {
+        bool neg = negative && !deSign;
         string body;
         if (scale <= 0)
         {

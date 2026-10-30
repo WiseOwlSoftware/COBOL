@@ -16,12 +16,27 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (<c>NumericRenderer.Settle</c>: into the receiver's own scale and mode at the final transfer, else into the SDIDI), and a
 /// consumer may take it exact only by passing <c>keepWide: true</c> — which it then owes a settlement of its own. This class
 /// pins both halves: the entries all settle, and the opt-in sites are the ones that do (a several-receiver COMPUTE's one
-/// initial evaluation, the DIVIDE ... REMAINDER back-multiply that the subtraction around it settles, kb/Work PB3538, and a
-/// relation). Another site is a design decision (add its settlement here), never a silent edit.</para>
+/// initial evaluation, the DIVIDE ... REMAINDER back-multiply that the subtraction around it settles, kb/Work PB3538, a
+/// relation, an intrinsic function's argument and the temporary DISPLAY shows, kb/Work PB3953, and a MOVE's store of a function
+/// whose value is wide). Another site is a design decision (add its settlement here), never a silent edit.</para>
+/// <para>⛔ AND THE FUNCTION FAMILY THAT TAKES IT IS CLOSED THE OTHER WAY ROUND (kb/Work PB3953): every arm of the exact
+/// intrinsic switch whose intake is a fraction-bearing numeric argument has a wide body in <c>IntrinsicRenderer.RenderWide</c>, or is
+/// named in <see cref="ImageTakers"/> with the reason its value cannot depend on digits past the SDIDI's 34. A new exact arm is then
+/// a red here until it decides, never a function that quietly answers from a round-to-odd image.</para>
 /// </summary>
 public sealed class ExactWideSettlementDriftTests
 {
-    private static readonly string[] OptInSites = ["ArithmeticEmitter.cs", "ConditionRenderer.cs"];
+    private static readonly string[] OptInSites =
+        ["ArithmeticEmitter.cs", "ConditionRenderer.cs", "IntrinsicRenderer.cs", "FunctionDeviceText.cs", "MoveEmitter.cs", "OperandText.cs"];
+
+    /// <summary>The exact-switch arms that take an argument expression past the <c>Int128</c> carrier as its SDIDI image, each for the
+    /// reason no digit past the image's 34 can change its value.</summary>
+    private static readonly Dictionary<string, string> ImageTakers = new(StringComparer.Ordinal)
+    {
+        // §15.17.3 r2: argument-2 is in standard numeric time form (§15.5.5, a magnitude below 86 401), so its image keeps 29
+        // fraction digits, and the returned value is formed on the SDIDI (CombinedDatetimeDec) whatever carried the argument.
+        ["CombinedDatetime"] = "argument-2 is bounded below 86401 and the value is formed on the SDIDI",
+    };
 
     private static string Renderer() =>
         File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "NumericRenderer.cs"));
@@ -53,7 +68,7 @@ public sealed class ExactWideSettlementDriftTests
 
     /// <summary>The consumers that opt in to the exact form are exactly the two that settle it themselves.</summary>
     [Fact]
-    public void OnlyTheArithmeticStatementsAndTheRelation_KeepTheWideForm()
+    public void OnlyTheRegisteredSettlingSites_KeepTheWideForm()
     {
         var offenders = new List<string>();
         foreach (string file in Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen"), "*.cs", SearchOption.AllDirectories))
@@ -82,6 +97,77 @@ public sealed class ExactWideSettlementDriftTests
         Assert.Contains("keepWide: true", condition);
         Assert.Contains("NumericRenderer.CompareWide(l, rr)", condition);
         Assert.Contains("NumericRenderer.LowerWide(l)", condition);
+        // An intrinsic argument (kb/Work PB3953): the one keeping intake, lowered for every consumer but the wide bodies, whose
+        // results are NumX.Wide values the renderer settles at its public entry.
+        string intrinsic = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
+        Assert.Single(Regex.Matches(intrinsic, @"keepWide\s*:\s*true"));
+        Assert.Contains("NumX x = num.AsNum(ic.Args[i], num.Receiver, keepWide: true);", BodyOf(intrinsic, "private NumX RawWideArg("));
+        Assert.Contains("private NumX RawArg(BoundIntrinsicCall ic, int i) => NumericRenderer.LowerWide(RawWideArg(ic, i));", intrinsic);
+        // The temporary DISPLAY shows: every kept value settles into a wide text or a wide field.
+        string device = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "FunctionDeviceText.cs"));
+        Assert.Contains("if (x.Wide) return RuntimeApi.FunctionDeviceTextWide(x.Expr, x.Scale, Comma);", device);
+        Assert.Contains(": x.Wide ? RuntimeApi.FunctionFieldOfWide(x.Expr, x.Scale)", device);
+        Assert.Contains("? RuntimeApi.FunctionFieldOfWide(value.Expr, value.Scale)", device);
+        // A MOVE's store: transferred at the receiver's (or the mask's) scale, or lowered for a floating-point mask.
+        string move = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "MoveEmitter.cs"));
+        Assert.Equal(2, Regex.Matches(move, @"keepWide\s*:\s*true").Count);
+        Assert.Contains("n = NumericRenderer.TransferWide(n, recvScaleM, rounding, checkedTransfer: false);", move);
+        Assert.Contains("e = NumericRenderer.TransferWide(e, ems, rounding, checkedTransfer: false);", move);
+        Assert.Contains("NumericRenderer.LowerWide(e)", move);
+        // The string-image channel of a numeric function's value: the kept value settles into the text of its every digit.
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "OperandText.cs"));
+        Assert.Single(Regex.Matches(text, @"keepWide\s*:\s*true"));
+        Assert.Contains(": x.Wide ? RuntimeApi.WideFunctionText(x.Expr, x.Scale, deSign, comma)", text);
+    }
+
+    /// <summary>The exact-switch arms of <c>IntrinsicRenderer.RenderNum</c> (the first <c>switch (sig.RuntimeMethod)</c>), each label
+    /// with the text of its arm, read up to the switch's <c>default:</c>.</summary>
+    private static List<(string Label, string Body)> ExactArms(string src)
+    {
+        int from = src.IndexOf("switch (sig.RuntimeMethod)", StringComparison.Ordinal);
+        Assert.True(from > 0, "IntrinsicRenderer.RenderNum no longer switches on sig.RuntimeMethod — this guard is blind");
+        int end = src.IndexOf("default:", from, StringComparison.Ordinal);
+        string body = Regex.Replace(src[from..end], @"//[^\n]*", "");
+        var arms = new List<(string, string)>();
+        var labels = Regex.Matches(body, @"case\s+(?<l>""[^:]*?""(?:\s+or\s+""[^""]+"")*)\s*(?:when[^:]*)?:");
+        for (int i = 0; i < labels.Count; i++)
+        {
+            int start = labels[i].Index + labels[i].Length;
+            int stop = i + 1 < labels.Count ? labels[i + 1].Index : body.Length;
+            foreach (Match name in Regex.Matches(labels[i].Groups["l"].Value, @"""(?<n>\w+)"""))
+                arms.Add((name.Groups["n"].Value, body[start..stop]));
+        }
+        return arms;
+    }
+
+    /// <summary>⛔ EVERY EXACT-FAMILY ARM THAT TAKES A FRACTION-BEARING NUMERIC ARGUMENT HAS A WIDE BODY, OR SAYS WHY ITS IMAGE IS ITS
+    /// VALUE (kb/Work PB3953). A stacked label pair shares the body after it (an empty arm is judged by the next one's text).</summary>
+    [Fact]
+    public void EveryExactArmTakingANumericArgument_HasAWideBody()
+    {
+        string src = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
+        var arms = ExactArms(src);
+        var fractionBearing = new Regex(@"\b(?:Arg|RawArg)\(ic,\s*\d+\)|\bAlignedArgs\(|\bRawArgPairs\(");
+        var numeric = new List<string>();
+        for (int i = 0; i < arms.Count; i++)
+        {
+            string body = arms[i].Body;
+            for (int j = i + 1; body.Trim().Length == 0 && j < arms.Count; j++) body = arms[j].Body;
+            if (fractionBearing.IsMatch(body)) numeric.Add(arms[i].Label);
+        }
+        Assert.True(numeric.Count >= 15, "only " + numeric.Count + " numeric exact arms found (" + string.Join(", ", numeric) + ") — the scan is blind");
+        Assert.Contains("AbsScaled", numeric);
+
+        string wide = BodyOf(src, "private NumX? RenderWide(");
+        var wideLabels = Regex.Matches(wide, @"""(?<n>\w+)""\s*=>").Select(m => m.Groups["n"].Value).ToHashSet(StringComparer.Ordinal);
+        var missing = numeric.Distinct().Where(n => !wideLabels.Contains(n) && !ImageTakers.ContainsKey(n)).ToList();
+        Assert.True(missing.Count == 0,
+            "these exact-switch arms take a numeric argument but have no wide body in IntrinsicRenderer.RenderWide, so an argument "
+            + "expression past the Int128 carrier reaches them as its 34-digit round-to-odd image (kb/Work PB3953: ABS (BIG * BIG * K3) "
+            + "showed …100000 for …000999). Give each a …Wide body, or name it in ImageTakers with the reason its value cannot depend on "
+            + "the lost digits: " + string.Join(", ", missing));
+        var stale = ImageTakers.Keys.Where(n => !numeric.Contains(n) || wideLabels.Contains(n)).ToList();
+        Assert.True(stale.Count == 0, "ImageTakers names arms that no longer take the image: " + string.Join(", ", stale));
     }
 
     /// <summary>The wide form is not a carrier: no consumer may dispatch on it, so <c>NumX.Carrier</c> refuses it.</summary>
