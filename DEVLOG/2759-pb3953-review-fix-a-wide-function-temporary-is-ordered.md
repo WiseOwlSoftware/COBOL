@@ -1,4 +1,4 @@
-## PB3953 review fix: a wide function temporary is ordered against a non-wide one by the exact values, never by its 34-digit image
+## Entry 2759 — 2026-10-29 19:07 PDT — PB3953 review fix: a wide function temporary is ordered against a non-wide one by the exact values, never by its 34-digit image
 
 **Why a second PB3953 entry.** Entry 2754 records PB3953's round-1 head `5d4e0ac1d`, which reached main inside PR #787: PB1369's
 same-file successor branch had merged that head, and the stamp folded PB3953's pending entry into PB1369's. The branch review had
@@ -28,3 +28,4 @@ product reduces the wrong angle. They are filed as PB4075. The `RawArg` doc comm
 
 **Register.** PB3953 stays `landed` and its body now records the two landings; PB4075's site paragraph no longer says the fix
 waits to land. No inventory row moves (`closes_rows: []`, as in 2754).
+
