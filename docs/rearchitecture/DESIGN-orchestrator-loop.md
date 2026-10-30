@@ -763,8 +763,10 @@ picks up landed changes itself. We should adopt efficiency improvements as soon 
 **One routine owns it**, `scripts/orchestrator/adopt_main.py adopt`. The supervisor calls it at the top of every iteration,
 BETWEEN units (no unit runs, so no tree a unit reads moves under it; a hold that ends loops back through it), and
 `autostart.ps1` calls it before the supervisor starts (its former inline `git pull --ff-only` is gone). It runs BEFORE that
-iteration's landing-lane tick and never beside one (kb/Work PB4046): `Wait-LaneTick` waits up to 120 s for a tick still
-running from the unit, and one that outlasts it defers the adoption to the next iteration. It fetches origin's `main` into
+iteration's landing-lane tick (kb/Work PB4046): `Wait-LaneTick` waits up to 120 s for a tick still running from the unit,
+before the adoption and before the ledger check after each unit (`ledger_state.py owed` fetches the shared ref too), so
+the supervisor's own git work never runs beside its tick's survey; a tick that outlasts the wait is said, and the
+adoption goes on beside it rather than wait a whole unit. It fetches origin's `main` into
 a ref only it writes, `refs/adopt-main/main` (`--refmap=`, `--no-write-fetch-head`), never into the shared
 `refs/remotes/origin/main`: every worktree, landing and session fetches into that one, and an adoption whose fetch met
 another's lost with "cannot lock ref" and kept the old commit for a whole unit (CI merge-group runs 40918334805 and

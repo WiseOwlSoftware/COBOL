@@ -10,12 +10,15 @@ commit for a whole unit. The self-test passed locally only because an authentica
 Three changes remove the race and the gap that hid it:
 - `adopt_main.py` fetches origin's main into a ref only it writes, `refs/adopt-main/main`, with `--refmap=` and
   `--no-write-fetch-head`. No fetch elsewhere in the repository (a landing, a finisher, another session) can fail it.
-- The supervisor adopts BEFORE the iteration's lane tick, and never beside one: `Wait-LaneTick` waits up to 120 s for a
-  tick still running, and one that outlasts the wait defers the adoption to the next iteration.
+- The supervisor adopts BEFORE the iteration's lane tick, and its own fetches never run beside one. `Wait-LaneTick` waits
+  up to 120 s for a tick still running, before the adoption and before the ledger check after each unit, which also
+  fetches the shared ref. The branch review found that second fetch. A tick that outlasts the wait is said, and the
+  adoption goes on beside it instead of waiting a whole unit.
 - The orchestrate self-tests put a `gh` that fails at once first on every supervisor run's PATH, as on CI, so local
   timing can no longer hide what CI sees.
 
 The tests involve no timing. `test_adopt_main.py` section 10 holds the lock a concurrent fetch would hold on
 `refs/remotes/origin/main` and requires the adoption to go through. On main's adopt_main it fails with CI's own message.
-`test_orchestrate_adopt.ps1` scenario 6 runs a four-second fake tick and requires that no adoption interval overlaps a
-tick's (29/29). On main's supervisor the overlap is caught (28/29).
+`test_orchestrate_adopt.ps1` scenario 6 runs an eight-second fake tick, longer than the fake unit. It requires that no
+adoption and no ledger-check interval overlaps a tick's: 30/30. Main's supervisor fails the adoption check, and the
+branch's first head fails the ledger check.
