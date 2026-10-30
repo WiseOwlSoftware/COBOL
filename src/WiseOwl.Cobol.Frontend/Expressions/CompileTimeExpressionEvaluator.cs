@@ -141,7 +141,7 @@ public sealed class CompileTimeExpressionEvaluator
         return false;
     }
 
-    // ── The §7.3.6 raw-value recursion (lifted from the CONSTANT binder's battery-tested EvalConstExpr) ──────────
+    // ── The §7.3.6 raw-value recursion (the one evaluator of the constant entry and of every directive operand) ─
 
     /// <summary>Evaluate a compile-time arithmetic expression to its raw (un-truncated) value (ISO §7.3.6):
     /// operands are fixed-point numeric literals (§7.3.6.2 SR1b; never the figurative ZERO) or previously-defined numeric names substituting
