@@ -21,11 +21,11 @@ namespace WiseOwl.Cobol.Frontend.Common;
 /// <para>The ceiling: 63 at COBOL-2023 (Annex E.3.3 item 11 — a RELAXATION, so firing below 2023 for a 32..63
 /// word is a length error, not an introduction gate), 31 at 2002/2014, 30 at 1985. Above 63 is a hard cap at
 /// every edition. The CHARACTER half of §8.3.2.1 is here too (kb/Work PB1402): from 2002 each character outside the
-/// basic repertoire must be where the edition's Annex B.3 permits it (<see cref="CharacterViolation"/>, COBOL2773);
-/// the below-2002 gates of the underscore and the extended letters are asked with it by
-/// <see cref="Parsing.WordCharacterScreen"/> over the lexer's words (parse or no parse, kb/Work PB3845), not by the
-/// directive stages, because every <c>&gt;&gt;</c> directive is itself rejected below 2002, so neither can reach a
-/// directive word.</para>
+/// basic repertoire must be where the edition's Annex B.3 permits it, and at every edition one that no Annex B holds is
+/// refused (<see cref="CharacterViolation"/>, COBOL2773; kb/Work PB4130); the below-2002 gates of the underscore and
+/// the extended letters are asked with it by <see cref="Parsing.WordCharacterScreen"/> over the lexer's words (parse or
+/// no parse, kb/Work PB3845), not by the directive stages, because every <c>&gt;&gt;</c> directive is itself rejected
+/// below 2002, so neither can reach a directive word.</para>
 /// </summary>
 public static class CobolWordRule
 {
@@ -48,11 +48,16 @@ public static class CobolWordRule
     }
 
     /// <summary>The COBOL2773 message when a character of <paramref name="word"/> is not where the edition's Annex B
-    /// permits it (<see cref="CobolCharacterRepertoire.Violation"/>); null when every character is legal. Asked only
-    /// from COBOL 2002, which introduced extended letters: below it ANY character outside the basic repertoire is the
-    /// construct gate <c>user-word-extended-letter-2002</c>, which the caller asks instead (kb/Work PB1402).</summary>
+    /// permits it (<see cref="CobolCharacterRepertoire.Violation"/>); null when every character is legal. From COBOL
+    /// 2002, which introduced extended letters, that is the edition's own Annex B. Below it there is no Annex B, and
+    /// ANY character outside the basic repertoire is the construct gate <c>user-word-extended-letter-2002</c>, which
+    /// the caller asks instead (kb/Work PB1402) — except a character no edition's Annex B holds (U+00A0, the euro
+    /// sign), which is no extended letter, so it is COBOL2773 at every target
+    /// (<see cref="CobolCharacterRepertoire.ViolationAtEveryEdition"/>, kb/Work PB4130).</summary>
     public static string? CharacterViolation(string word, int dialectLevel) =>
-        dialectLevel >= 2002 ? CobolCharacterRepertoire.Violation(word, dialectLevel) : null;
+        dialectLevel >= 2002
+            ? CobolCharacterRepertoire.Violation(word, dialectLevel)
+            : CobolCharacterRepertoire.ViolationAtEveryEdition(word);
 
     /// <summary>True when <paramref name="word"/>'s character violation at <paramref name="dialectLevel"/> is one the
     /// COBOL 2002/2014 Annex B did not have — Annex E.2 item 4 deleted U+037A and made U+30FB medial at 2023 — so the
@@ -65,7 +70,7 @@ public static class CobolWordRule
     /// operand) — the length and the Annex B characters — as (code, message), for the directive stages to report on
     /// their own channels. Every directive is itself a COBOL-2002 introduction, so the below-2002 extended-letter gate
     /// never applies to one. A 2023 removal (<see cref="RemovedAt2023"/>) carries the removed-construct code, as the
-    /// tree funnel's does; the directive channels report errors only.</summary>
+    /// word screen's does (<see cref="Parsing.WordCharacterScreen"/>); the directive channels report errors only.</summary>
     public static IEnumerable<(string Code, string Message)> DirectiveWordViolations(string word, int dialectLevel)
     {
         if (LengthViolation(word, dialectLevel) is { } length)

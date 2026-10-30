@@ -8456,6 +8456,7 @@
  },
  "pb1402-not-an-annex-b-character": {
   "refuse-at": [
+   "85",
    "2002",
    "2014",
    "2023"
@@ -15285,6 +15286,7 @@
  },
  "pb3845-nbsp-word-unparseable": {
   "refuse-at": [
+   "85",
    "2002",
    "2014",
    "2023"
@@ -24235,5 +24237,14 @@
    "2023"
   ],
   "expect": "COBOL5488: SEND is written with the RETURNING phrase"
+ },
+ "pb4130-no-break-space-in-a-word": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2773"
  }
 }
