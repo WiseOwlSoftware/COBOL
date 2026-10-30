@@ -392,11 +392,9 @@ compilation read the compile clock. **Portability:** the repository root and eac
 `<repo>` and `<scratch>` with forward slashes, line endings are LF, and a compilation that read the compile clock has
 its WHEN-COMPILED stamp masked. The capture also runs with every `COBOL*` variable scrubbed, the compiled-program
 cache off (the oracle observes the compiler, never a stored result), and the repository root as its working
-directory. Two captures of one commit are therefore identical. Windows and Linux captures of that commit differ
-only in cases whose diagnostic names a COPY text found by a case-insensitive probe. The compiler names the text
-as probed (`K1FDA.CPY` on Windows, the on-disk `K1FDA.cpy` on Linux), which affects 19 NIST continuity cells at the
-first baseline. So the manifest records its `platform`, `compare_oracle.py` prints a NOTE when the two differ, and
-a wave compares captures from one platform.
+directory. Two captures of one commit are therefore identical, and so are the Windows and Linux captures of it: a
+COPY text found by a case-insensitive probe is named by the file's own directory-entry spelling
+(`CompilationInputs.LocateFile`, so `K1FDA.cpy` on both), and the manifest records no platform.
 
 **Commands.** A wave runs `python scripts/arch/compare_oracle.py [--base REV]`. It captures the baseline, the
 change's base commit (default: the merge base of HEAD and origin/main), by running THAT commit's own
