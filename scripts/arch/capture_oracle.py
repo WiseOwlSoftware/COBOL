@@ -23,9 +23,8 @@ on demand. A committed baseline could describe only the tree it was recorded on,
 request on a tree no branch ever recorded (its group is built on every group ahead of it), so every committed baseline
 was stale or doubled in the queue whenever two input-changing landings were queued together.
 
-DETERMINISM. The same commit captures the same manifest run after run, and on Windows and on Linux but for the
-cases whose diagnostic names a COPY text found by a case-insensitive probe (19 NIST continuity cells at the first
-baseline): the manifest records its platform, and a wave compares captures of one platform. The C# side writes the repository
+DETERMINISM. The same commit captures the same manifest run after run, and on Windows and on Linux (a COPY text is
+named by the file's own directory-entry spelling on either, CompilationInputs.LocateFile). The C# side writes the repository
 root and each scratch directory as `<repo>` / `<scratch>` with forward slashes, normalizes line endings, and masks the
 WHEN-COMPILED stamp of a compilation that recorded reading the compile clock; this side scrubs every COBOL* variable
 from the environment (a NIST edition override or a directive's environment read would otherwise reach the output),
@@ -52,10 +51,6 @@ REPO = Path(__file__).resolve().parents[2]
 HOST_PROJECT = REPO / "tests" / "WiseOwl.Cobol.ArchOracle" / "WiseOwl.Cobol.ArchOracle.csproj"
 RESULTS = REPO / "TestResults" / "arch-oracle"
 SCHEMA = 1
-# The file system decides one thing the compiler reports: a COPY text found by a case-insensitive probe is named as
-# probed (`K1FDA.CPY` on Windows, `K1FDA.cpy` on Linux), so a manifest records its platform and a wave compares
-# captures of one platform (DESIGN-architecture-review.md §4.1).
-PLATFORM = "windows" if sys.platform.startswith("win") else sys.platform
 
 
 def git(*args: str) -> str:
@@ -92,7 +87,6 @@ def write_manifest(path: Path, commit: str, dirty: bool, rows: list[list[str]]) 
              f'  "schema": {SCHEMA},',
              f'  "commit": {json.dumps(commit)},',
              f'  "dirty": {json.dumps(dirty)},',
-             f'  "platform": {json.dumps(PLATFORM)},',
              f'  "cases_total": {len(rows)},',
              '  "population": {' + ", ".join(f"{json.dumps(k)}: {v}" for k, v in sorted(population.items())) + "},",
              '  "cases": {']

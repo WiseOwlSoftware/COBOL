@@ -267,9 +267,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// <para>Admission is not acceptance: each caller still decides NULL against its other operand or formal —
     /// the relation checkpoint's §8.8.4.2.3 SR5 band (COBOL0869), the §14.8.2 argument conformance
     /// (<c>ParameterConformance</c>), INITIALIZE's §14.9.20.3 SR4 category agreement. The callers are pinned by
-    /// <c>PredefinedNullContextDriftTests</c>: a new one must be an SR1 context.</para></summary>
+    /// <c>PredefinedNullContextDriftTests</c>: a new one must be an SR1 context.</para>
+    /// <para>⛔ An SR1 context admits the predefined NULL only at an edition that HAS it (kb/Work PB1673): where §8.9
+    /// leaves NULL free (COBOL-85) the token names no declared item, and it is refused as every other slot refuses it
+    /// there (<see cref="PredefinedNullRule.Report"/>'s undefined-reference arm).</para></summary>
     public BoundOperand? NullAdmittingOperand(Core.NonNumericLiteralContext? nn) =>
-        nn?.predefinedNull() is not null ? BoundPredefinedNull.Instance : NonNumericLiteralOperand(nn);
+        nn?.predefinedNull() is { } pn
+            ? UnreservedKeywordReference.IsFreeAt("NULL", ctx.Edition) ? RefusePredefinedNull(pn) : BoundPredefinedNull.Instance
+            : NonNumericLiteralOperand(nn);
 
     /// <summary>The <c>literal</c>-node twin of <see cref="NullAdmittingOperand(Core.NonNumericLiteralContext?)"/>
     /// — the same §8.4.3.10.3 SR1 admission, else <see cref="LiteralOperand"/>'s mapping.</summary>
@@ -907,21 +912,15 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         RefuseNonReceivable(ReceivingOperandForms.FormOf(n), n);
 
     /// <summary>⛔ A WORD §8.9 LEAVES FREE IS AN UNDECLARED USER WORD, NOT THE PREDEFINED IDENTIFIER (kb/Work PB655's
-    /// determination, the class-condition precedent in ConditionBinder). SELF, SUPER, NULL and ADDRESS are
-    /// reservation-gated: a program that DECLARES one at an edition where §8.9 leaves it free has every occurrence
-    /// retyped to a user-defined word before this parse, so a keyword token that still reaches a receiving position
-    /// there names nothing the program declared — the §8.4.2.1 undefined reference (COBOL1639), never a rule about a
-    /// predefined identifier the edition does not have (COBOL-85 has no SELF, NULL or address-identifier).</summary>
+    /// determination, the class-condition precedent in ConditionBinder): a SELF, SUPER, NULL or ADDRESS keyword token
+    /// that reaches a receiving position at an edition where §8.9 leaves the word free is the §8.4.2.1 undefined
+    /// reference, worded once by <see cref="UnreservedKeywordReference"/>.</summary>
     internal Place? RefuseNonReceivable(NonReceivableForm form, Antlr4.Runtime.ParserRuleContext written)
     {
         if (written.Start.Type is CobolLexer.SELF or CobolLexer.SUPER or CobolLexer.NULL_ or CobolLexer.ADDRESS
-            && CobolNames.UpperFold(written.Start.Text) is var head
-            && !Editions.ReservedWordSet.Default.RejectsAt(head, ctx.Edition.Edition.Year))
+            && UnreservedKeywordReference.IsFreeAt(written.Start.Text, ctx.Edition))
         {
-            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, $"'{head}' is not defined — no declaration in this "
-                + $"source element gives the name '{head}', and §8.9 does not reserve the word at this edition, so it is "
-                + "no predefined identifier here (ISO §8.4.2.1: \"a statement shall contain a reference that uniquely "
-                + "identifies that resource\"). Check the spelling, or declare the item.");
+            UnreservedKeywordReference.Report(ctx.Edition, written.Start.Text);
             return null;
         }
         var bar = Bar(form, written);
