@@ -1191,9 +1191,12 @@ of an unsupported facility.
   Code sites: `PtrEmitter.EmitSetEntry` and `PtrEmitter.EmitSetFunctionAddress` (the `_ = nf` lines); pinned by
   `conformance-test:FatalRaiseSelectionTests` (the checking-off case).
 - **Compile-time arithmetic mode (§7.3.6.2 SR2 / §7.3.6.3 GR2 — Annex E.2 item 6; the required §4.2.16 implementor
-  documentation)**: this determination is A.1 item 29 in §7 — .NET `System.Decimal` for every compile-time
-  arithmetic expression (constant entries and directive operands alike), round-half-even intermediate rounding, a
-  diagnosed error on overflow, and truncation of the final result to an integer.
+  documentation)**: this determination is A.1 item 29 in §7 — one evaluator (`CompileTimeExpressionEvaluator`) for
+  constant entries and directive operands alike. At COBOL-2023 the mode is .NET `System.Decimal`, an implementor-unique
+  mode (not a §8.8.1 standard mode), with intermediate results rounded to nearest, a tie to the even digit (division
+  does not truncate) and a diagnosed error on overflow; at COBOL-2002 and 2014 the mode is standard arithmetic
+  (34-digit standard-decimal intermediates, NEAREST-AWAY-FROM-ZERO). In every edition the final result is truncated
+  toward zero to an integer.
 - **Recognized-and-ignored compiler directives (§7.3 — the implementor-disposition set)**: the following standard
   directives are RECOGNIZED (consumed during text manipulation so the program compiles unchanged) and carry no
   effect, each because WiseOwl COBOL provides a single behaviour with no alternative to select: **>>CALL-CONVENTION**
