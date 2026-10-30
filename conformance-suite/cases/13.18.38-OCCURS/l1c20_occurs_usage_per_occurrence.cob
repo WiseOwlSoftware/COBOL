@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c20_occurs_usage_per_occurrence
       *> rules: [GR-13.18.38.4-1]
-      *> accept: [2002, 2014, 2023]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
