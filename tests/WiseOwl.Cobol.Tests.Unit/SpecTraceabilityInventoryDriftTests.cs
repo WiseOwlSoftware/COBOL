@@ -29,7 +29,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// check is a BARE identifier in prose (<c>ReadLockGovern became ReadKeyedShared</c>): prose also narrates history
 /// and the standard's own words, so no resolver can tell a stale name from a deliberate one; the writer's side of
 /// the rule (<c>record_verdicts.py</c>: a retirement must restate prose that still names the symbol) is what
-/// reaches it.
+/// reaches it. The one bare identifier a gate CAN decide is a grammar rule a retirement mark already records as
+/// deleted (<see cref="RetiredGrammarRulesNamedInProse"/>, kb/Work PB3848): the writer's rule is per row, a
+/// grammar restructure retires only the witnesses of the rows that cited the rule, and every other row that
+/// described the mechanism through it kept naming it.
 /// </para>
 /// <para>
 /// ⛔ The referential half is deliberately HERE and nowhere else. <c>record_verdicts.py</c> validates an incoming
@@ -65,6 +68,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// against (kb/Work PB3814): the COMMITTED tests, never a walk of <c>tests/</c> from the file system, which enters
     /// every running test host's <c>bin/</c> and <c>obj/</c> and met a delete-pending sidecar-lock directory there.</summary>
     private static readonly TreeScope TestSources = new(Under: ["tests/"], Kinds: [".cs"]);
+
+    /// <summary>The grammar a row's prose describes: every committed <c>.g4</c> of the frontend (the tracked tree, so the
+    /// ANTLR task's build copies under <c>obj/</c> are not read twice).</summary>
+    private static readonly TreeScope GrammarSources = new(Under: ["src/WiseOwl.Cobol.Frontend/Grammar/"], Kinds: [".g4"]);
 
     // ── the artifacts under test ─────────────────────────────────────────────────────────────────────
 
@@ -776,8 +783,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
         string[] needles = Path.GetExtension(file).Equals(".cs", StringComparison.OrdinalIgnoreCase)
             ? symbol.Split('.', StringSplitOptions.RemoveEmptyEntries)
             : [symbol];
-        return needles.All(n => Regex.IsMatch(code, $@"(?<![A-Za-z0-9_]){Regex.Escape(n)}(?![A-Za-z0-9_])"));
+        return needles.All(n => Regex.IsMatch(code, WholeWord(n)));
     }
+
+    /// <summary>The pattern for <paramref name="name"/> as a whole identifier: no identifier character on either side.</summary>
+    private static string WholeWord(string name) => $@"(?<![A-Za-z0-9_]){Regex.Escape(name)}(?![A-Za-z0-9_])";
 
     private static List<string> UnresolvedCodeLocations(IEnumerable<Row> rows, Schema s, string root)
     {
@@ -843,6 +853,39 @@ public sealed class SpecTraceabilityInventoryDriftTests
                             + "(rewrite the sentence, or retire the witness so the history sits behind a retired-witness mark)");
             }
         }
+        return bad;
+    }
+
+    /// <summary>A grammar-rule witness a retirement mark records: <c>retired-witness: &lt;path&gt;.g4#&lt;rule&gt;</c>.</summary>
+    private static Regex RetiredGrammarWitness(Schema s) =>
+        new(Regex.Escape(s.RetiredWitnessMark) + @"\s*\S+\.g4#([A-Za-z][A-Za-z0-9_]*)", RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// Every row whose PROSE names a grammar rule that some row's retirement mark records as retired and that
+    /// no grammar file declares any more (kb/Work PB3848). The writer's side of kb/Work PB762 is per ROW: retiring a
+    /// witness obliges the prose of the row that CITED it, and a grammar restructure that deletes a rule retires
+    /// the witnesses of the rows that cited the rule and nothing else, so another row's prose that described the
+    /// mechanism through the same rule kept naming it — ten rows named the three per-statement phrase rules
+    /// kb/Work PB3830 deleted. A mark is the record of what is gone, so the sweep needs no list of its own: a rule
+    /// name any mark retires and no grammar file mentions in code (<paramref name="grammarCode"/>, comments
+    /// stripped) is dead, and a row's prose (<see cref="ProseOf"/>) may not name it. A name a mark retires that a
+    /// grammar file still has (the rule MOVED to another file) is live and exempt.
+    /// </summary>
+    private static List<string> RetiredGrammarRulesNamedInProse(IEnumerable<Row> rows, Schema s, IReadOnlyList<string> grammarCode)
+    {
+        var all = rows as IReadOnlyCollection<Row> ?? [.. rows];
+        Regex witness = RetiredGrammarWitness(s);
+        var gone = all.SelectMany(r => witness.Matches(r.Notes).Select(m => m.Groups[1].Value))
+            .Where(rule => !grammarCode.Any(code => Regex.IsMatch(code, WholeWord(rule))))
+            .ToHashSet(StringComparer.Ordinal);
+        var bad = new List<string>();
+        if (gone.Count == 0) return bad;
+        var named = new Regex($@"(?<![A-Za-z0-9_])({string.Join('|', gone.Select(Regex.Escape))})(?![A-Za-z0-9_])", RegexOptions.CultureInvariant);
+        foreach (var r in all.Where(r => r.Notes.Length > 0))
+            foreach (string rule in named.Matches(ProseOf(r.Notes, s)).Select(m => m.Groups[1].Value).Distinct())
+                bad.Add($"{r.RuleId}: notes name the grammar rule '{rule}', which a retired-witness mark records as deleted "
+                        + "(restate the sentence for the mechanism that exists now and leave the dead name to the mark; "
+                        + "when the row is changed through record_verdicts.py, restate its whole notes)");
         return bad;
     }
 
@@ -1367,6 +1410,22 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.True(bad.Count == 0, Report("unresolved path#Symbol spelling(s) in notes", bad, rows.Count));
     }
 
+    /// <summary>
+    /// No row's PROSE names a grammar rule that a retirement mark records as deleted (kb/Work PB3848): the
+    /// cross-row half of the rule <see cref="EveryNotesLocation_ResolvesInTheTree"/> and the writer's retirement
+    /// check enforce per row. See <see cref="RetiredGrammarRulesNamedInProse"/>.
+    /// </summary>
+    [Fact]
+    public void NoRowsProse_NamesAGrammarRule_ARetirementRecordsAsDeleted()
+    {
+        var rows = LoadInventory();
+        IReadOnlyList<string> grammar = [.. TrackedTree.Files(GrammarSources)
+            .Select(rel => CodeText(Path.Combine(TestRepo.Root, rel.Replace('/', Path.DirectorySeparatorChar))))];
+        Assert.True(grammar.Count > 0, "no grammar file under " + GrammarSources.Under[0] + " - the sweep would call every rule deleted");
+        var bad = RetiredGrammarRulesNamedInProse(rows, LoadSchema(), grammar);
+        Assert.True(bad.Count == 0, Report("row(s) whose notes name a deleted grammar rule", bad, rows.Count));
+    }
+
     /// <summary>Every claimed covering test is really on disk — "tested" is checked, never asserted.</summary>
     [Fact]
     public void EveryTestRef_ResolvesToARealTest()
@@ -1535,6 +1594,35 @@ public sealed class SpecTraceabilityInventoryDriftTests
         finally
         {
             ScratchDirectory.Remove(fixture);
+        }
+
+        // ⛔ A DELETED GRAMMAR RULE IS NAMED IN NO ROW'S PROSE (kb/Work PB3848). One row's mark records the rule as
+        // retired; ANOTHER row's prose still describes the mechanism through it. Built from planted rows and planted
+        // grammar text, so the fixture cannot rot with the production grammar.
+        {
+            string retireMark = s.RetiredWitnessMark;
+            Row Retiring() => Base("X-PB3848-a") with
+            {
+                Notes = $"Prose. {retireMark} src/Gone/Grammar.g4#goneRule (the rule was deleted)",
+            };
+            IReadOnlyList<string> liveGrammar = ["liveRule : 'z' ;"];
+
+            // The negative: a second row's prose names the rule the first row's mark retires.
+            Assert.Contains("X-PB3848-b", Assert.Single(RetiredGrammarRulesNamedInProse(
+                [Retiring(), Base("X-PB3848-b") with { Notes = "The phrase is the goneRule alternative." }], s, liveGrammar)));
+            // The retiring row's own prose too: the writer enforces it at record time, the sweep at every build.
+            Assert.Single(RetiredGrammarRulesNamedInProse(
+                [Base("X-PB3848-a") with { Notes = $"goneRule is described here. {retireMark} a.g4#goneRule (deleted)" }], s, liveGrammar));
+            // The positive controls: the same name behind a mark is history; a grammar file that still has the rule
+            // (it moved) makes it live; a longer identifier is not the name; a rule no mark retires is not swept.
+            Assert.Empty(RetiredGrammarRulesNamedInProse(
+                [Retiring(), Base("X-PB3848-c") with { Notes = $"Fine. {retireMark} b.g4#other (moved) and goneRule is history here" }], s, liveGrammar));
+            Assert.Empty(RetiredGrammarRulesNamedInProse(
+                [Retiring(), Base("X-PB3848-d") with { Notes = "The goneRule alternative." }], s, ["goneRule : 'x' ;"]));
+            Assert.Empty(RetiredGrammarRulesNamedInProse(
+                [Retiring(), Base("X-PB3848-e") with { Notes = "goneRuleTwo and prefixgoneRule are other names." }], s, liveGrammar));
+            Assert.Empty(RetiredGrammarRulesNamedInProse(
+                [Base("X-PB3848-f") with { Notes = "The unretiredRule alternative." }], s, liveGrammar));
         }
 
         // ── kind-DOC rows: the register anchor, and what a DOC row costs ─────────────────────────────
