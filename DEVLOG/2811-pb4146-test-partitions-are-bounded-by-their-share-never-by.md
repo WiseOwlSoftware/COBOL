@@ -1,4 +1,4 @@
-## PB4146: test partitions are bounded by their share, never by size; the optional-word sweep's row is one spelling
+## Entry 2811 — 2026-10-30 14:36 PDT — PB4146: test partitions are bounded by their share, never by size; the optional-word sweep's row is one spelling
 
 **The defect (kb/Work PB4146, process only).** The conformance suite's runner and the optional-word sweep were guarded by
 absolute size bounds in `ConformancePartitioningDriftTests` (500 rows a suite partition, 3 formats an optional-word
@@ -42,3 +42,4 @@ Self-review: architecture (one partition rule, `TestPartitioning.Slice`; one sha
 the baseline cache in one non-generic home), full code (each spelling compiled once per process, as before; the
 `PROGRAM-ID` uniqueness assertion kept), performance (the sweep compiles the same programs, now spread over 8
 partitions instead of 9 coarse ones), duplication (no second copy of the stride or the share).
+
