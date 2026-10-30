@@ -76,7 +76,7 @@ public sealed class RecordImageCodecTests
             CobolNum.FormatImage(-1, P(Usage.Binary, 18, signed: true)));
     }
 
-    /// <summary>An UNSIGNED receiver holds the absolute value (ISO §14.9.25.4 GR8), so the image can never carry
+    /// <summary>An UNSIGNED receiver holds the absolute value (ISO §14.9.25.4 GR6 d) 2. b.), so the image can never carry
     /// a two's-complement negative for one — a sign that leaked into the bytes would read back as an enormous
     /// positive.</summary>
     [Fact]
@@ -213,7 +213,7 @@ public sealed class RecordImageCodecTests
         {
             Assert.Equal(v, CobolNum.ParseImage(CobolNum.FormatImage(v, p), p));
             if (signed) Assert.Equal(-v, CobolNum.ParseImage(CobolNum.FormatImage(-v, p), p));
-            else Assert.Equal(v, CobolNum.ParseImage(CobolNum.FormatImage(-v, p), p));   // magnitude (GR8)
+            else Assert.Equal(v, CobolNum.ParseImage(CobolNum.FormatImage(-v, p), p));   // magnitude (§14.9.25.4 GR6 d) 2. b.)
         }
     }
 
