@@ -39,11 +39,10 @@ expression evaluated by the compiler, never at run time. Admitted in:
 | `>>DISPLAY …` | §7.3.12 | arithmetic-expr, boolean-expr, literal, PARAMETER, repeated, then UPON (§8a) |
 | `01 c CONSTANT AS arithmetic-expr` | §13.10.4 GR4 | arithmetic-expr (numeric only) |
 
-**The defect (ledger C2, MAJOR — silent wrong value).** Two unrelated code paths: the **binder**
-(`DataBinder.Constants.cs EvalConstExpr`) had a complete, battery-tested §7.3.6 arithmetic evaluator, reachable
-only from CONSTANT-entry binding (numeric only). The **frontend** (`ConditionalCompilationProcessor`) resolved
-each directive operand by a **single token** — `>>DEFINE X AS 1 + 2` bound `X = 1`, boolean operands were never
-evaluated, no diagnostic raised.
+**The shape (ledger C2).** Every consumer in the table above reaches ONE §7.3.6 arithmetic evaluator,
+`CompileTimeExpressionEvaluator` (frontend). A directive operand is never resolved by a single token:
+`>>DEFINE X AS 1 + 2` binds `X = 3`, boolean operands are evaluated, and an operand the evaluator cannot
+represent is a diagnostic, never a silent mis-binding.
 
 **Mandate.** ONE compile-time expression evaluator shared by both consumers (the C2 verifier correction: "*lift/
 reuse that evaluator rather than build a new one*"). ONE parser — ANTLR — for all directive-expression syntax.
@@ -213,8 +212,8 @@ public sealed class CompileTimeExpressionEvaluator(
 public readonly record struct CtNumber(bool WasSingleLiteral, CobolDec Value, string Literal, bool IsInteger);   // GR3-truncated unless WasSingleLiteral
 ```
 
-* **GR5 + GR3 live INSIDE `EvaluateArithmeticOperand`.** The raw-value recursion (`EvalArith`, the lift of
-  `EvalConstExpr`) stays private — intermediates correctly un-truncated (§7.3.6.3 GR1). At the boundary: a single
+* **GR5 + GR3 live INSIDE `EvaluateArithmeticOperand`.** The raw-value recursion (`EvalArith`)
+  stays private — intermediates correctly un-truncated (§7.3.6.3 GR1). At the boundary: a single
   numeric literal (private `SoleNumericLiteral` probe) is kept exact (GR5 / §13.10.3 SR1 — `AS 0.25` → `0.25`)
   and is returned AS WRITTEN in `Literal` — its sign and decimal separator included, never a normalized form
   (kb/Work PB1230: §13.10.4 GR1 makes a constant-name "as if literal-1 … were written", so `AS +5` substitutes
@@ -233,7 +232,7 @@ public readonly record struct CtNumber(bool WasSingleLiteral, CobolDec Value, st
 
 ### 5.1 Arithmetic semantics (§7.3.6) — one evaluator, the edition's mode
 
-The private recursion is the existing `EvalConstExpr` walk: `+ - * /` and unary sign over the grammar precedence
+The private recursion is the `EvalArith` walk: `+ - * /` and unary sign over the grammar precedence
 tiers (§8.8.1/§7.3.6.3 GR1); SR1a exponentiation reject; SR1b operand-is-fixed-point-literal-or-numeric-name
 (floating-point/E-form rejected); SR1c div-by-zero reject; overflow reported, never wrapped.
 

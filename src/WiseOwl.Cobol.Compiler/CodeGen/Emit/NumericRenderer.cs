@@ -127,25 +127,32 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         lowered to the SDIDI by ROUND-TO-ODD (<see cref="LowerWide"/>), exactly the intermediate a nested product
     ///         was before the wide form existed, so whatever consumes it next rounds it in any mode as the exact value.</item>
     /// </list>
-    /// A consumer that CAN use the exact form (a several-receiver COMPUTE's one initial evaluation, a relation) passes
-    /// <c>keepWide</c> and settles it itself.</summary>
-    public NumX Settle(NumX x, in ReceiverContext rcv, bool outermost)
-    {
-        if (!x.Wide) return x;
-        return outermost && rcv.RoundsAtItsScale
-            ? new NumX(RuntimeApi.WideToUnscaled(x.Expr, x.Scale, rcv.Scale, rcv.Rounding, CheckedFor(rcv)), rcv.Scale)
-            : LowerWide(x);
-    }
+    /// A consumer that CAN use the exact form (a several-receiver COMPUTE's one initial evaluation, a relation, an intrinsic
+    /// function's argument, the temporary DISPLAY shows, a MOVE's store) passes <c>keepWide</c> and settles it itself.</summary>
+    public NumX Settle(NumX x, in ReceiverContext rcv, bool outermost) =>
+        !x.Wide ? x
+        : outermost && rcv.RoundsAtItsScale ? TransferWide(x, rcv.Scale, rcv.Rounding, CheckedFor(rcv))
+        : LowerWide(x);
+
+    /// <summary>⛔ THE TRANSFER OF AN EXACT WIDE VALUE INTO ONE FIXED-POINT RECEIVER (kb/Work PB1900, PB3953): the value moved to the
+    /// receiver's <paramref name="toScale"/> and rounded ONCE with <paramref name="mode"/> (<c>CobolWide.ToUnscaled</c>), with the
+    /// statement's disposition past the carrier (<paramref name="checkedTransfer"/>: the size error; unchecked, the low-order digits a
+    /// store can use, as a MOVE keeps them, kb/Work PB77). The final transfer of <see cref="Settle"/> and a MOVE's store of a function
+    /// whose value is wide (<c>MoveEmitter</c>) are the same transfer; every other value passes through.</summary>
+    internal static NumX TransferWide(NumX x, int toScale, CobolRounding mode, bool checkedTransfer) =>
+        x.Wide ? new NumX(RuntimeApi.WideToUnscaled(x.Expr, x.Scale, toScale, mode, checkedTransfer), toScale) : x;
 
     /// <summary>An exact wide intermediate as the SDIDI (round-to-odd, 34 digits); every other value passes through.</summary>
     internal static NumX LowerWide(NumX x) =>
         x.Wide ? new NumX(RuntimeApi.WideToDec(x.Expr, x.Scale), 0, Dec: true, Precision: x.FractionPrecision) : x;
 
-    /// <summary>The wide-lane spelling of an exact operand: a wide value as itself, an <c>Int128</c>-lane value lifted.</summary>
-    private static string WideOperand(NumX x) => x.Wide ? x.Expr : RuntimeApi.WideFrom(x.Expr);
+    /// <summary>The wide-lane spelling of an exact operand: a wide value as itself, an <c>Int128</c>-lane value lifted, an
+    /// unsigned-wide one lifted by its own name (the full <c>UInt128</c> container, no Widen funnel: the wide form holds it).</summary>
+    private static string WideOperand(NumX x) =>
+        x.Wide ? x.Expr : x.U ? RuntimeApi.WideFromUnsigned(x.Expr) : RuntimeApi.WideFrom(x.Expr);
 
     /// <summary>The wide-lane spelling of an exact operand aligned UP to <paramref name="scale"/> (a sum's common scale).</summary>
-    private static string WideAligned(NumX x, int scale) => RuntimeApi.WideUp(WideOperand(x), scale - x.Scale);
+    internal static string WideAligned(NumX x, int scale) => RuntimeApi.WideUp(WideOperand(x), scale - x.Scale);
 
     /// <summary>The exact comparison (−1/0/+1 as a C# expression) of two operands of which at least one is an exact wide
     /// intermediate, or <c>null</c> when the pair has no exact form to compare on (a float, an SDIDI, an unknown bound: the
@@ -961,7 +968,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
 
     /// <summary>The digit bound of an exact operand's UNSCALED value: its own (<see cref="NumX.Digits"/>), or, when it has
     /// none, the <see cref="Int128"/> carrier's that holds it (kb/Work PB3538). A wide operand always carries its own.</summary>
-    private static int DigitBound(NumX x) => x.Digits > 0 ? x.Digits : PicInfo.CarrierDigitBound;
+    internal static int DigitBound(NumX x) => x.Digits > 0 ? x.Digits : PicInfo.CarrierDigitBound;
 
     /// <summary>The digit bound of the unscaled quotient of two exact operands truncated at <paramref name="scale"/> fraction
     /// digits: the dividend's integer digits, plus the divisor's fraction digits (|divisor| is at least one unit of its last
