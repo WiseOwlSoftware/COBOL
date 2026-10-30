@@ -30,7 +30,11 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// the bare COBOL0001 (a period was expected after the complete statement, but none written there lets the stray
 /// phrase word follow), and since kb/Work PB906 they draw COBOL2269: the statement ENDS before a phrase no general
 /// format of it prints there (ISO §5.2.1), named with the statement whose own syntax prints the word (the IF of a
-/// second ELSE, PBGF05). PBGF15 and PBGF38 are COBOL2269 for another reason (§14.5.3.3, kb/Work PB3830).</para>
+/// second ELSE, PBGF05). PBGF15 and PBGF38 are COBOL2269 for another reason (§14.5.3.3, kb/Work PB3830). Since kb/Work
+/// PB3428 and PB3861 the rows whose token stands where the parse expects only nameable elements, or a literal of
+/// another category, draw COBOL5506 naming what is expected there: OPEN F1 expects EXTEND, I-O, INPUT or OUTPUT (PBGF40),
+/// PERFORM VARYING … BY 1 expects UNTIL (PBGF12), CALL … RETURNING 5 expects no literal (PBGF23, which drew the
+/// guess COBOL0308 "a data-name is expected here").</para>
 /// </summary>
 public sealed class GeneralFormatViolationTests
 {
@@ -49,7 +53,7 @@ public sealed class GeneralFormatViolationTests
     [InlineData("PBGF09", "EVALUATE W-N WHEN 1 DISPLAY \"1\" WHEN OTHER DISPLAY \"O\" WHEN OTHER DISPLAY \"P\" END-EVALUATE", "COBOL2073")]
     // PERFORM (M415) — UNTIL takes a condition; the varying-phrase's UNTIL is unbracketed.
     [InlineData("PBGF10", "PERFORM UNTIL DISPLAY \"X\" END-PERFORM", "COBOL0001")]
-    [InlineData("PBGF12", "PERFORM VARYING W-N FROM 1 BY 1 DISPLAY W-N END-PERFORM", "COBOL0001")]
+    [InlineData("PBGF12", "PERFORM VARYING W-N FROM 1 BY 1 DISPLAY W-N END-PERFORM", "COBOL5506")]
     // STRING (M416) — INTO is unbracketed; ON OVERFLOW sits in choice indicators, so at most once.
     [InlineData("PBGF13", "STRING W-A DELIMITED BY SIZE END-STRING", "COBOL0001")]
     [InlineData("PBGF15", "STRING W-A DELIMITED BY SIZE INTO W-B ON OVERFLOW DISPLAY \"1\" ON OVERFLOW DISPLAY \"2\" END-STRING", "COBOL2269")]   // named since kb/Work PB3830 (§14.5.3.3)
@@ -57,12 +61,12 @@ public sealed class GeneralFormatViolationTests
     [InlineData("PBGF16", "UNSTRING W-A DELIMITED BY \",\" END-UNSTRING", "COBOL0001")]
     [InlineData("PBGF18", "UNSTRING W-A DELIMITED BY \",\" INTO W-B W-C TALLYING IN W-N TALLYING IN W-K END-UNSTRING", "COBOL2269")]
     // INSPECT (M418) — FOR and BY are required words; Format 3 puts TALLYING before REPLACING.
-    [InlineData("PBGF19", "INSPECT W-A TALLYING W-N ALL \",\"", "COBOL0001")]
-    [InlineData("PBGF20", "INSPECT W-A REPLACING ALL \",\" \".\"", "COBOL0001")]
+    [InlineData("PBGF19", "INSPECT W-A TALLYING W-N ALL \",\"", "COBOL5506")]
+    [InlineData("PBGF20", "INSPECT W-A REPLACING ALL \",\" \".\"", "COBOL5506")]
     [InlineData("PBGF21", "INSPECT W-A REPLACING ALL \",\" BY \".\" TALLYING W-N FOR ALL \",\"", "COBOL2269")]
     // CALL (M419) — a written USING needs an argument; RETURNING takes an identifier; USING is written once.
     [InlineData("PBGF22", "CALL \"PBSUB\" USING", "COBOL0001")]
-    [InlineData("PBGF23", "CALL \"PBSUB\" RETURNING 5", "COBOL0308")]
+    [InlineData("PBGF23", "CALL \"PBSUB\" RETURNING 5", "COBOL5506")]
     [InlineData("PBGF24", "CALL \"PBSUB\" USING W-A USING W-B", "COBOL2269")]
     // SET (M420) — a receiving operand is required; UP BY / DOWN BY is one brace choice over index-names.
     [InlineData("PBGF25", "SET TO 5", "COBOL0001")]
@@ -71,7 +75,7 @@ public sealed class GeneralFormatViolationTests
     // SORT / MERGE (M422, M423) — the file format's ON … KEY phrase is a brace group, data-name-1 unbracketed.
     [InlineData("PBGF28", "SORT SW USING F1 GIVING F2", "COBOL1757")]
     [InlineData("PBGF29", "SORT SW ON ASCENDING KEY USING F1 GIVING F2", "COBOL1757")]
-    [InlineData("PBGF31", "MERGE SW USING F1 F2 GIVING F3", "COBOL0001")]
+    [InlineData("PBGF31", "MERGE SW USING F1 F2 GIVING F3", "COBOL5506")]
     [InlineData("PBGF32", "MERGE SW ON ASCENDING KEY USING F1 F2 GIVING F3", "COBOL0001")]
     // WRITE (M424) — a written FROM needs its operand, once; ADVANCING takes an integer or identifier.
     [InlineData("PBGF34", "WRITE R1 FROM", "COBOL0001")]
@@ -82,7 +86,7 @@ public sealed class GeneralFormatViolationTests
     [InlineData("PBGF38", "READ F1 AT END DISPLAY \"E\" AT END DISPLAY \"F\" END-READ", "COBOL2269")]   // named since kb/Work PB3830 (§14.5.3.3)
     [InlineData("PBGF39", "READ F1 KEY IS W-A", "COBOL0864")]
     // OPEN / CLOSE (M426) — a mode is required, one per file group; CLOSE names a file.
-    [InlineData("PBGF40", "OPEN F1", "COBOL0001")]
+    [InlineData("PBGF40", "OPEN F1", "COBOL5506")]
     [InlineData("PBGF41", "CLOSE W-A", "COBOL1639")]
     [InlineData("PBGF42", "OPEN INPUT OUTPUT F1", "COBOL0001")]
     public void AStatementOutsideItsGeneralFormat_IsRefused(string pid, string statement, string code)
