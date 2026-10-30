@@ -790,15 +790,31 @@ public sealed class ExceptionEngine
     /// and terminated run units on legal COBOL (kb/Work PB465).</para></summary>
     public void SizeAddressError(string detail) => FatalIfEnabled(SizeAddressChecking, "EC-SIZE-ADDRESS", detail);
 
-    /// <summary>True while the executing GENERATE or TERMINATE has some EC-SIZE-* condition enabled, so the report compose
-    /// it runs takes the CHECKED kernels for its numeric renders (§14.7.5 no-phrase rule 3; kb/Work PB4031). No raise
-    /// helper reads it: the raise is the checked kernel's own <see cref="WiseOwl.Cobol.Runtime.CobolSizeError"/>, which
-    /// the presenting statement's guard dispatches.</summary>
-    public bool SizeChecking
+    /// <summary>True while the executing GENERATE or TERMINATE has EC-SIZE-OVERFLOW checking enabled, so the report compose
+    /// it runs takes the CHECKED operators with that condition taken (§14.7.5 no-phrase rule 3; kb/Work PB4031, PB4092).
+    /// No raise helper reads it: the raise is the checked kernel's own <see cref="WiseOwl.Cobol.Runtime.CobolSizeError"/>,
+    /// which the presenting statement's guard dispatches.</summary>
+    public bool SizeOverflowChecking
     {
-        get => _checking.Size;
-        set => _checking.Size = value;
+        get => _checking.SizeOverflow;
+        set => _checking.SizeOverflow = value;
     }
+
+    /// <summary><see cref="SizeOverflowChecking"/>'s twin for EC-SIZE-UNDERFLOW (kb/Work PB4092).</summary>
+    public bool SizeUnderflowChecking
+    {
+        get => _checking.SizeUnderflow;
+        set => _checking.SizeUnderflow = value;
+    }
+
+    /// <summary>The EC-SIZE conditions the executing GENERATE or TERMINATE enables, as the <see cref="SizeChecks"/> the
+    /// checked kernels take (kb/Work PB4092). The report compose passes it to every checked operator it runs, so each
+    /// raises only the conditions the PRESENTING statement enables and takes the not-enabled disposition (DOC-A.1-70) for
+    /// the rest; <see cref="SizeChecks.None"/> is the selector of the compose's unchecked render.</summary>
+    public SizeChecks SizeChecksEnabled =>
+        (SizeOverflowChecking ? SizeChecks.Overflow : SizeChecks.None)
+        | (SizeUnderflowChecking ? SizeChecks.Underflow : SizeChecks.None)
+        | (SizeTruncationChecking ? SizeChecks.Truncation : SizeChecks.None);
 
     /// <summary>True while the executing GENERATE or TERMINATE has EC-SIZE-TRUNCATION checking enabled, so the report
     /// compose it runs takes the RAISING final transfer for a printable item's implicit COMPUTE (§14.7.5 no-phrase rule 4,
@@ -1863,12 +1879,22 @@ public static class ExceptionState
     /// <inheritdoc cref="ExceptionEngine.SizeAddressError"/>
     public static void SizeAddressError(string detail) => E.SizeAddressError(detail);
 
-    /// <inheritdoc cref="ExceptionEngine.SizeChecking"/>
-    public static bool SizeChecking
+    /// <inheritdoc cref="ExceptionEngine.SizeOverflowChecking"/>
+    public static bool SizeOverflowChecking
     {
-        get => E.SizeChecking;
-        set => E.SizeChecking = value;
+        get => E.SizeOverflowChecking;
+        set => E.SizeOverflowChecking = value;
     }
+
+    /// <inheritdoc cref="ExceptionEngine.SizeUnderflowChecking"/>
+    public static bool SizeUnderflowChecking
+    {
+        get => E.SizeUnderflowChecking;
+        set => E.SizeUnderflowChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.SizeChecksEnabled"/>
+    public static SizeChecks SizeChecksEnabled => E.SizeChecksEnabled;
 
     /// <inheritdoc cref="ExceptionEngine.SizeTruncationChecking"/>
     public static bool SizeTruncationChecking
