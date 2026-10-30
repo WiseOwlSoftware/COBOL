@@ -980,8 +980,10 @@ public static partial class ConditionalCompilationProcessor
         /// <paramref name="text"/> is the exact text the fragment was lexed from.</summary>
         public bool ScreenFragment(Antlr4.Runtime.Tree.IParseTree fragment, string text, bool compiled)
         {
+            // A literal the directive line ends inside (§6.4.2; kb/Work PB3245) has no value either.
+            bool closed = LiteralScreen.ReportUnterminated(fragment, (_, descriptor, message) => Emit(descriptor.Code, message));
             foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, fragment)) Emit(v.Descriptor.Code, v.Message);
-            return LiteralScreen.Run(fragment, edition, new BagSink(bag ?? new DiagnosticBag(), At), compiled);
+            return LiteralScreen.Run(fragment, edition, new BagSink(bag ?? new DiagnosticBag(), At), compiled) && closed;
         }
 
         public void Report(CtDiagCode code, string message) => Emit(

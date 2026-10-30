@@ -38,7 +38,9 @@ public sealed class LiteralScreenDriftTests
     {
         foreach (string body in LiteralBodies)
             Assert.Matches(new Regex($@"(?m)^fragment\s+{body}\s*:"), LexerText);   // a rename must fail here, not empty the set
-        var defined = Regex.Matches(LexerText, $@"(?m)^([A-Z_]+)\s*:\s*({string.Join("|", LiteralBodies)})\s*;")
+        // A literal token may carry the one delimited-literal action (OnDelimitedLiteral, kb/Work PB3245) after its body.
+        var defined = Regex.Matches(LexerText,
+                $@"(?m)^([A-Z_]+)\s*:\s*({string.Join("|", LiteralBodies)})\s*(?:\{{\s*OnDelimitedLiteral\(\);\s*\}}\s*)?;")
             .Select(m => m.Groups[1].Value).ToHashSet();
         Assert.True(defined.Count >= 4,
             $"expected the four literal tokens (STRINGLIT, HEXLIT, NATLIT, BOOLLIT), found {defined.Count}");
@@ -73,7 +75,9 @@ public sealed class LiteralScreenDriftTests
     /// that is asked by <c>LiteralScreen</c> alone, over the unit's tree and over each compiler-directive fragment (lexed
     /// apart from the unit); a directive fragment is parsed only in the conditional-compilation stage's three funnels
     /// (kb/Work PB1616), each of which screens it; the descriptors have ONE emit site, and no emit site spells a code as
-    /// a bare string.</summary>
+    /// a bare string. The closing-delimiter rule (COBOL5563, kb/Work PB3245) is asked of the tokens before the parse: its
+    /// one question is asked by LiteralScreen alone, and LiteralScreen's one report is called by the two lexings — the
+    /// unit's (Frontend) and each directive fragment's.</summary>
     [Theory]
     [InlineData("CobolLiteral.SyntaxViolation(", "LiteralScreen.cs")]
     [InlineData("DirectiveExpressionFragment.Parse", "ConditionalCompilationProcessor.cs")]
@@ -86,6 +90,10 @@ public sealed class LiteralScreenDriftTests
     [InlineData("\"COBOL2630\"", "")]
     [InlineData("\"COBOL0814\"", "")]
     [InlineData("\"COBOL1635\"", "")]
+    [InlineData("CobolLiteral.IsUnterminated(", "LiteralScreen.cs")]
+    [InlineData("DiagnosticCatalog.LiteralUnterminated", "LiteralScreen.cs")]
+    [InlineData("LiteralScreen.ReportUnterminated(", "ConditionalCompilationProcessor.cs,Frontend.cs")]
+    [InlineData("\"COBOL5563\"", "")]
     public void LiteralRule_HasOneReportingSite(string needle, string expectedSites)
     {
         char sep = Path.DirectorySeparatorChar;

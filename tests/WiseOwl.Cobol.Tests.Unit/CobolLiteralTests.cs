@@ -35,6 +35,47 @@ public sealed class CobolLiteralTests
     public void IsStringLiteral_BothDelimiters(string raw, bool expected) =>
         Assert.Equal(expected, CobolLiteral.IsStringLiteral(raw));
 
+    /// <summary>kb/Work PB3245 — a literal token its line ended inside: an opening delimiter (after any of the five prefixes,
+    /// §8.3.3.2.2 / §8.3.3.4.2 / §8.3.3.5.2) that the text never closes, read left to right with a doubled delimiter as one
+    /// embedded delimiter (§8.3.3.2.3 r3). The closed literal, the zero-length one, text that is no single literal and text
+    /// with no opening delimiter are not unterminated.</summary>
+    [Theory]
+    [InlineData("\"HELLO", true)]
+    [InlineData("'IT''S", true)]           // the doubled apostrophe is content; nothing closes it
+    [InlineData("\"AB\"\"", true)]         // ends on a doubled delimiter: still open
+    [InlineData("\"", true)]               // the opening delimiter alone
+    [InlineData("N\"AB", true)]
+    [InlineData("NX'0041", true)]
+    [InlineData("B\"01", true)]
+    [InlineData("BX\"F", true)]
+    [InlineData("x'41", true)]             // a prefix letter in either case
+    [InlineData("\"x'", true)]             // the other quotation symbol closes nothing
+    [InlineData("\"AB\"", false)]
+    [InlineData("'IT''S'", false)]
+    [InlineData("\"\"", false)]            // zero-length (§8.3.3.1)
+    [InlineData("NX\"\"", false)]
+    [InlineData("\"A\"&\"B\"", false)]     // no single literal (kb/Work PB71)
+    [InlineData("NAME", false)]
+    [InlineData("N", false)]
+    [InlineData("", false)]
+    public void IsUnterminated_OpenToTheEnd(string raw, bool expected) =>
+        Assert.Equal(expected, CobolLiteral.IsUnterminated(raw));
+
+    /// <summary>An unterminated literal is no well-formed literal: the codec's other questions decline it, so the §8.3.3
+    /// rules (<see cref="CobolLiteral.SyntaxViolation"/>) and the format gates never judge its content (kb/Work PB3245 —
+    /// COBOL5563 is its one report).</summary>
+    [Theory]
+    [InlineData("\"HELLO")]
+    [InlineData("X\"4")]
+    [InlineData("B\"012")]
+    public void UnterminatedLiteral_IsNoWellFormedLiteral(string raw)
+    {
+        Assert.False(CobolLiteral.IsStringLiteral(raw));
+        Assert.Null(CobolLiteral.ClassOf(raw));
+        Assert.Null(CobolLiteral.SyntaxViolation(raw, 2023));
+        Assert.Equal(raw, CobolLiteral.Decode(raw));
+    }
+
     /// <summary>kb/Work PB1615 — the literal LENGTH bound is the edition's: 8,191 positions from COBOL-2014 (§8.3.3.2.3 SR1,
     /// §8.3.3.4.3 SR1, §8.3.3.5.3 SR1), 160 below it (derived, VCR row 7.43). The boundary from both sides, per class and
     /// delimiter, with the measure the rule uses: the literal's VALUE in positions of its class (a doubled embedded
