@@ -105,6 +105,16 @@ internal static class StorageFormPass
                     && (method.MethodOptions ?? d.Options).Initialize is { HasFill: true } methodInit
                     && methodInit.Governs(root, workingStorageRoot: false, localStorageRoot: true))
                     AddBackgroundFilled(root, promoted);
+        // (6) THE TIER-A ALIAS CLOSURE (review round 1, R1-1 of PB4089): a Tier-A REDEFINES alias owns no storage of
+        //     its own, so Classify arm (2) forwards it to its CANONICAL's form (ISO §13.18.44.1: "the same computer storage area"; the
+        //     alias and the canonical are the same carrier). A promotion decided on the alias — a character channel
+        //     into it (STRING INTO / INSPECT / a group MOVE), the OPTIONS INITIALIZE background — must therefore
+        //     reach the canonical, or the alias is classified native through the canonical while the channel stores
+        //     a string image into it (CS0029 for STRING, the INSPECT EmitStore invariant, a group MOVE read back as
+        //     zeros). The closure runs LAST, over every arm above, so a later arm cannot reopen the gap.
+        foreach (var item in promoted.ToArray())
+            if (item is { IsCanonical: false, Class: { Tier: RedefinesTier.Alias } cls } && IsImagePromotable(cls.Canonical))
+                promoted.Add(cls.Canonical);
         return promoted;
 
         static void AddBackgroundFilled(DataItem item, HashSet<DataItem> promoted)
