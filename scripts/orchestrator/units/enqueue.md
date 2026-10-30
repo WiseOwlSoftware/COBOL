@@ -97,7 +97,9 @@ leads, the records and the ledger.
    of them in one message) with `.claude/skills/workstream/templates/finisher-brief.md`, its prompt naming the branch,
    its worktree, its report, the stop line verbatim (or the PR number and the bounce reason, with the merge group's
    failed run from `gh run list --event merge_group --limit 20`) and both stop files. NOT a `CONFLICT` (exit 4) and not
-   a BOUNCED pull request that conflicts with main (merge state DIRTY): the review lane's conflict finisher took those
+   a BOUNCED pull request that conflicts with main (merge state DIRTY), or a queued one whose head the survey FORESEES
+   conflicting with an entry queued ahead of it (kb/Work PB3723; the brief is against that entry's head): the review lane's
+   conflict finisher took those
    the moment they stopped, with `python scripts/orchestrator/land_lane.py conflict-brief <branch>` verbatim (kb/Work
    PB3640: the conflicted files, the commits main gained on them since the branch's merge base, the notes on both sides
    and each one's newest report; kb/Work PB3608). Only when its hold says it could not resolve one (step 2) do you

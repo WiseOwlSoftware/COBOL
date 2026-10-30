@@ -413,7 +413,7 @@ public sealed class LandingPipelineDriftTests
             // kb/Work PB3612: the landing reads the record of the implementer's gate, and gates only where nothing else has
             "land: a tip no recorded GREEN local gate covers is exit 14, UNTESTED, before anything is merged",
             "tested_locally: a GREEN gate run of the committed head's own tree with its Linux half GREEN covers the tip",
-            "tested_locally: the gated head still covers the tip after main's commits, a clean merge of main and a DEVLOG-only commit",
+            "tested_locally: the gated head still covers the tip after main's commits, a clean merge of main, a DEVLOG-only commit and a register-note-only commit",
             "land: the one gate a landing runs (a lane no one gates) runs on the MERGED head",
             // review R1-1: main takes only queued pull requests, so nothing is merged or gated while the queue is off
             "land: the queue not ACTIVE (ABSENT, DRIFT or SKIPPED) is exit 8 before anything is merged, gated, "
@@ -438,8 +438,9 @@ public sealed class LandingPipelineDriftTests
             "land: bringing main in over files the branch does not change runs no gate",
             "merge_overlap: a file a merge driver merges by key (diagnostics.json, a work note) and one no test reads",
             // MANDATORY-PRACTICES I10, L9 (kb/Work PB3027): only a tip its CLEAN review stamp covers lands
-            "review: a tip that moved after its CLEAN review only by main's commits, a clean merge of main and a "
-                + "DEVLOG-only commit is still reviewed",
+            // kb/Work PB3849: a commit that changes only a kb/Work note is covered like the DEVLOG entry
+            "review: a tip that moved after its CLEAN review only by main's commits, a clean merge of main, a "
+                + "DEVLOG-only commit and a register-note-only commit (kb/Work PB3849) is still covered by it",
             "review: a commit after the CLEAN review that is not mechanical (a finisher's fix, a hand-resolved "
                 + "merge) is exit 11 before anything is merged or gated, the report told why",
             "review: a FINDINGS stamp or no report is unreviewed; only a lane I10 does not review, named with "

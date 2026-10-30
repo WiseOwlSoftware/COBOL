@@ -6,7 +6,7 @@
   L1; DESIGN-test-build-ci.md §3.17.2 step 3).** One finished branch, one pull request. It merges origin/main into the
   branch (never a rebase: a branch that merged a same-file predecessor keeps its conflict resolutions), runs the ordered
   gate and CI's Linux legs on the merged head under the shared gate slot (a commit gated GREEN, or a head that differs
-  from it only by main's commits, clean merges and DEVLOG-only commits, is not gated again), merges main in again when
+  from it only by main's commits, clean merges and register-only commits (DEVLOG and kb/Work notes), is not gated again), merges main in again when
   it moved during the gate (no second gate: the merge group runs the whole population on the current main), stamps the
   branch's `DEVLOG/pending-<slug>.md` (`devlog.py stamp`, the number from `alloc.py devlog`), runs the landing checks
   (`devlog.py check` 6, `landing_check.py` 3, the merged head's own `work.py check` 6; none depends on what else is queued, kb/Work PB3107, PB3123) and hands
