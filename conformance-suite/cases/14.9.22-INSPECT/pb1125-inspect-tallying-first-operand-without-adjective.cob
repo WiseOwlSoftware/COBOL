@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1125 - ISO 14.9.22.2 general formats (rendered from the PDF, folio 643-644): CHARACTERS, ALL and LEADING are required words of the tallying-phrase, so the first operand after FOR
       *> needs its adjective (only the operands AFTER an ALL/LEADING operand are bare).
-      *> Expected: a syntax error (COBOL0001) at every edition.
+      *> Expected: a syntax error at every edition, COBOL5506 naming the words expected (PB3428).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEG1125G2.
        DATA DIVISION.
