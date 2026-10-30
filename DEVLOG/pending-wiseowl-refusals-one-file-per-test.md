@@ -15,3 +15,7 @@ With no shared file there is no driver to run: `cobol-keyed-object` left `merge_
 **For branches cut before this landing.** A branch that added a refusal to the deleted `diagnostics.json` meets a modify/delete conflict at its landing merge: write the entry as the file `wiseowl/diagnostics/<test id>.json` and take the old file's deletion.
 
 **Rows.** None: process tooling, `closes_rows: []`.
+
+**Self-review.** Architecture, full code, performance and duplication each found nothing to change after the sweep: every reader of the two files (grep of `diagnostics.json` and `options.json` over the tree) moved, and an unreadable or stray file in a registry directory is a refusal, never a skip. Two gate audits went RED before any leg ran and were fixed: the line-endings audit (the new self-test's file writes did not state `newline=`) and the self-tests (a `{...}` example in the dispatch-spec template, which `str.format` reads as a field).
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN …` with the Linux half GREEN: leg 1 ran all 26,664 `WiseOwlRefusal` rows, because the diff touches every refusal file, and none failed.
