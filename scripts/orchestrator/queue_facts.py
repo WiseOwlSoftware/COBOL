@@ -35,7 +35,9 @@ gate planner reads them as tier 0a, called by `run_gate_legs.Host.fetch_bounce_r
 queue's current entries (`mergeQueue(branch: "main").entries.headCommit`: the merge-group commit its workflow run tests)
 for CI's `supersede` job (scripts/orchestrator/cancel_superseded.py), which cancels every unfinished merge-group run whose
 head commit no entry heads any more; an unreadable, absent or incomplete queue is None there too.
-A pull request is IN THE QUEUE when the queue's entries name it or GitHub says `isInMergeQueue`. Auto-merge on is NOT
+A pull request is IN THE QUEUE when the queue's entries name it or GitHub says `isInMergeQueue`; one an entry names carries
+its place in the queue (`position`: the entries' own order), which the survey simulates the queue's builds in
+(merge_drivers.foresee_queue, kb/Work PB3723). Auto-merge on is NOT
 in the queue: it is GitHub's promise to queue the pull request once its required checks pass, and that promise is what
 PR #385 broke. Offline, unauthenticated, with no gh, or on any malformed answer the read is None: a non-observation,
 never a claim that nothing is open or queued (a job that cannot be read leaves that check-run's `job_status` empty, so
@@ -63,7 +65,7 @@ Gh = Callable[[list[str]], tuple[int, str, str]]
 FAILED = ("FAILURE", "TIMED_OUT", "CANCELLED", "ACTION_REQUIRED", "STARTUP_FAILURE", "STALE")
 
 QUERY = ('query($owner:String!,$name:String!){repository(owner:$owner,name:$name){'
-         'mergeQueue(branch:"main"){entries(first:100){nodes{state enqueuedAt pullRequest{number}}}}'
+         'mergeQueue(branch:"main"){entries(first:100){nodes{state position enqueuedAt pullRequest{number}}}}'
          'pullRequests(states:OPEN,baseRefName:"main",first:100){nodes{number url headRefName headRefOid '
          'isInMergeQueue mergeStateStatus autoMergeRequest{enabledAt} '
          'timelineItems(itemTypes:[REMOVED_FROM_MERGE_QUEUE_EVENT],last:1){nodes{'
@@ -117,6 +119,7 @@ class PullRequest:
     repo: str = ''                  # owner/name: the repository the read asked about (a remedy names it)
     pushed_since_removal: bool = False  # a commit reached the branch AFTER the newest queue removal: a head the queue never saw
     others: tuple[CheckRun, ...] = ()   # every other context's newest check-run there: the jobs a required check needs
+    position: int = 0               # its place in the merge queue, 1 = the entry the queue builds first; 0 = not an entry
 
     @property
     def head_runs(self) -> tuple[CheckRun, ...]:
@@ -228,7 +231,11 @@ def read(gh: Gh | None = None, required: tuple[str, ...] | None = None) -> dict[
         data = json.loads(out)['data']['repository']
         nodes = data['pullRequests']['nodes']
         entries = ((data.get('mergeQueue') or {}).get('entries') or {}).get('nodes') or []
-        queued = {int((e.get('pullRequest') or {}).get('number') or 0) for e in entries if isinstance(e, dict)}
+        # The entries in the queue's own order (`position`, else the order GitHub listed them): a pull request's place in
+        # it is what a conflict between two queued heads is read against (merge_drivers.foresee_queue, kb/Work PB3723).
+        listed = [e for e in entries if isinstance(e, dict)]
+        queued = {int((e.get('pullRequest') or {}).get('number') or 0): int(e.get('position') or i + 1)
+                  for i, e in enumerate(listed)}
         prs: dict[str, PullRequest] = {}
         for n in nodes if isinstance(nodes, list) else ():
             if not isinstance(n, dict) or not n.get('headRefName'):
@@ -245,7 +252,7 @@ def read(gh: Gh | None = None, required: tuple[str, ...] | None = None) -> dict[
                 if removed else '',
                 tuple(_with_job(run, repo, c) for c in checks), repo,
                 bool(removed) and pushed_since_removal((n.get('pushes') or {}).get('nodes') or []),
-                tuple(_with_job(run, repo, c) for c in others))
+                tuple(_with_job(run, repo, c) for c in others), queued.get(number, 0))
         return prs
     except (ruleset.Unobserved, ValueError, KeyError, TypeError, AttributeError):
         return None
@@ -473,6 +480,12 @@ def self_test() -> int:
            "auto-merge on is NOT in the queue",
            prs['queued'].in_queue and prs['flag'].in_queue and not prs['auto'].in_queue
            and prs['auto'].auto_merge_at == '2026-10-22T18:44:50Z' and prs['auto'].repo == 'o/r', str(prs))
+    order = read(fake([node(1, 'first-listed', 'x1', in_queue=True), node(2, 'second-listed', 'y1', in_queue=True),
+                       node(3, 'flagged', 'z1', in_queue=True)], entries=[2, 1]), required=req) or {}
+    expect("a queued pull request carries its place in the queue, the order of the queue's own entries (kb/Work PB3723: "
+           "a conflict between two queued heads is read against it); one that only GitHub's flag calls queued has none",
+           (order['second-listed'].position, order['first-listed'].position, order['flagged'].position) == (1, 2, 0)
+           and prs['queued'].position == 1 and prs['auto'].position == 0, str(order))
     stuck = prs['stuck'].checks
     expect("a required check-run in progress whose Actions job completed is STUCK (PR #385's propagation fault), with "
            "the job's completion as its time; one whose job still runs is not; an unrequired check is no required one "
