@@ -1,4 +1,4 @@
-## PB1680 — library text is named by its directory entry's spelling, not by the suffix that was probed
+## Entry 2804 — 2026-10-30 13:27 PDT — PB1680 — library text is named by its directory entry's spelling, not by the suffix that was probed
 
 **Re-probe.** `COPY gr9dbook.` over `gr9dbook.cpy` holding `01 QX PIC X(0).` on the Windows build printed
 `gr9dbook.CPY(1,8): error COBOL2147 …`: `CopyProcessor.LocateInLibrary` returned `spelled + suffix`, and the
@@ -26,3 +26,4 @@ no longer compares the copybook name ignoring case (the loosening was the sympto
 
 **Rows.** None claimed or closed (`closes_rows: []` with its reason); DOC-A.1-40's text gained the sentence that the found text
 is named by its directory entry.
+
