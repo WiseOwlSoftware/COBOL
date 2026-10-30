@@ -44,11 +44,12 @@ public sealed class DeclinedFacilityOperandDriftTests
                 "VALIDATE { identifier-1 } … — the repeated operand, every one screened against §14.9.50.3 SR1/SR2/SR4/SR5"),
             ["mcsReceiveStatement"] = (3, 3,
                 "RECEIVE [FROM] data-name-1 GIVING identifier-1 data-name-2 — the three data references"),
-            ["mcsSendStatement"] = (3, 2,
+            ["mcsSendStatement"] = (3, 3,
                 "SEND [TO] { literal-1 | message-server-name-1 | data-name-2 } FROM identifier-1 [RETURNING data-name-1] — "
-                + "FROM and RETURNING resolve; the TO operand is NOT resolved: Format 1 names a message-server-name-1, "
-                + "'the name of a message server run unit' (§14.9.38.3 SR2), which is no data item, and the grammar's one "
-                + "dataReference alternative cannot tell it from Format 2's message-tag data-name-2"),
+                + "FROM and RETURNING always resolve; the TO operand resolves only in Format 2, where it is a data-name-2 "
+                + "(§14.9.38.3 SR4): in Format 1 it names a message-server-name-1, 'the name of a message server run unit' "
+                + "(SR2), which is no data item, and the grammar's one dataReference alternative cannot tell the two apart, "
+                + "so DeclinedFacilityBinder.ClassifySend decides the format first (kb/Work PB4090)"),
         };
 
     private static string CodeOf(string path)
