@@ -37,7 +37,8 @@ which is the §8.4.2.1 undefined reference PB655 already gave SELF, SUPER, NULL 
 `UnreservedKeywordReference` states that verdict once. `PredefinedNullRule.Report` asks it first;
 `ExpressionBinder.NullAdmittingOperand` refuses through it where the edition has no predefined NULL; and
 `RefuseNonReceivable` lost its private copy of the text. The grammar kept its superset parse. Negative
-`8.3.2-COBOL-words/pb1673-null-undeclared-at-85`.
+`8.3.2-COBOL-words/pb1673-null-undeclared-at-85`. The first gate's one Conformance red was rooted here:
+`pb791-currency-null-literal-7` pinned COBOL2576 at 85 too, and its `refuse-at` is now 2002 and later.
 
 **PB1920: a refused CURRENCY SIGN clause cascaded.** `CURRENCY SIGN IS SPACE WITH PICTURE SYMBOL "#"` followed by `PIC
 #9.99` drew SR18 and then COBOL0808 for '#'. The same happened after SR23 a), SR23 b) and NULL. `SwitchBindCurrency`

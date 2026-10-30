@@ -20541,7 +20541,6 @@
  },
  "pb791-currency-null-literal-7": {
   "refuse-at": [
-   "85",
    "2002",
    "2014",
    "2023"
