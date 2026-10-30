@@ -1044,7 +1044,8 @@ public sealed record PicInfo(
     /// <para>⛔ IT IS THE IMAGE-FORM QUESTION, NOT THE CARRIAGE ONE, and the pair is easy to conflate because
     /// for usage DISPLAY the two answers coincide. Read it where the item is VIEWED through its characters and
     /// keeps its native carrier — a reference modification (§8.4.3.3.4 GR3/GR5a), a RENAMES span's
-    /// <c>NumericImagePlace</c> (§13.18.45), a STRING receiver parsing an image. Do NOT read it where the
+    /// <c>NumericImagePlace</c> (§13.18.45). (A STRING receiver is not such a site: it is a CHARACTER CHANNEL, so
+    /// its numeric DISPLAY item is promoted to its image, kb/Work PB4089.) Do NOT read it where the
     /// question is whether the leaf's carrier may be REPLACED by that character string
     /// (<c>DataBinder.MarkImageForced</c> / <c>StorageFormPass</c>'s promotion): promotion pins the carrier at
     /// <c>ImageWidth</c> CHARACTER positions, which for usage DISPLAY is the leaf's whole storage and for usage
