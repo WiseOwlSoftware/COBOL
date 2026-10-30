@@ -1,4 +1,4 @@
-## PB596 discharged: the shared level-3 diagnostic already names its own statement's clause, now pinned end to end
+## Entry 2785 — 2026-10-30 10:53 PDT — PB596 discharged: the shared level-3 diagnostic already names its own statement's clause, now pinned end to end
 
 Wave 20261770, group D (the EcNameResolution root). PB596 said `EcNameResolution` hard-codes RAISE's §14.9.29.3 SR1 in the
 COBOL0710 message for every raising context, so `EXIT PROGRAM RAISING EC-BOUND` was pointed at the wrong statement.
@@ -21,3 +21,4 @@ gained the two new witnesses and the real implementing sites through a `record_v
 
 **Self-review.** Architecture: no new mechanism, the existing `EcRaiseSite` is the one carrier. Full code: the test cites the
 clauses the code cites. Performance: test-only. Duplication: none added.
+
