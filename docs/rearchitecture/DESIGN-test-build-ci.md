@@ -2476,7 +2476,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    one test per case (kb/Work PB3726). THE QUEUE'S CONFLICTS ARE SEEN BEFORE THEY HAPPEN (kb/Work PB3723): the queue
    builds each entry's merge group on main plus the entries ahead of it that stay, and removes one that conflicts there
    (`merge_conflict`) with no failed run and no event any reader sees until it has happened. `merge_drivers.foresee_queue`
-   replays that build through the drivers (`probe`, the one `merge-tree`), skipping the entries it would remove, on the
+   replays that build with git's own line merge and NO driver (`probe(drivers=False)`, the one `merge-tree`: GitHub's merge group runs no driver, so two entries that each add a key to one keyed catalogue conflict there and the queue removes the second), skipping the entries it would remove, on the
    queue's own order (`queue_facts.PullRequest.position`) and heads; `prune_worktrees.foresee_queued` asks it on every survey,
    and a queued head that conflicts reads BOUNCED (a FORESEEN CONFLICT, naming the entries ahead of it, or main alone) with
    `Row.foreseen`, so the review lane's conflict finisher takes it while the entry ahead is still queued:

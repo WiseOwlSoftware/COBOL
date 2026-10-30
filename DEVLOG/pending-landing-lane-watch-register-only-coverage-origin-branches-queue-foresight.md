@@ -32,8 +32,8 @@ verdict line counts them, which the session probe prints.
 **PB3723, queue conflicts were seen only after GitHub removed the entry.** Fix direction 2 is decided against: PB3643's
 trial of exactly the insert-only rule resolved 1 of 32 conflicted merges, in another order, and the wave 20261107 pair that
 read insert/insert was revise/revise (the design says so, so it is measured again, not rebuilt). Direction 4 is built:
-`merge_drivers.foresee_queue` replays the queue's builds through the drivers (one `probe`, the `merge-tree` that
-`merged_tree` and `merge_conflicts` now share), skipping the entries the queue would remove; `queue_facts.PullRequest.position`
+`merge_drivers.foresee_queue` replays the queue's builds with git's own line merge and no driver (one `probe`, the
+`merge-tree` that `merged_tree` and `merge_conflicts` share, `drivers=False` here), skipping the entries the queue would remove; `queue_facts.PullRequest.position`
 carries the queue's order; `prune_worktrees.foresee_queued` asks it on every survey and a queued head that conflicts reads
 BOUNCED (a FORESEEN CONFLICT naming the entry ahead) with `Row.foreseen`. The review lane's conflict finisher takes it while
 the entry ahead is still queued, and `land_lane.py conflict-brief` is against that entry's head. The measurement baseline
@@ -47,3 +47,10 @@ Gate (run `TestResults/build-local/000002-20261030T043315Z`, head bb3029ec4): `=
 PB2515): GREEN — leg 2 left to CI's whole-population run — Conformance 67/19,363 · Unit 5,632/38,436 · Characterization 36/36
 cases ran (skipped 0) in 1 of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN ===`. The first gate (000001, head 5e20763f8) was
 GREEN too; the follow-up commit added only a stderr note to `foresee_queue`.
+
+Review round 1 (R1-1, blocking): the first build replayed the queue THROUGH the drivers, but GitHub's merge group runs
+none, so two entries that each add a key to one keyed catalogue (diagnostics.json, the inventory, constructs.json, kb/Work
+notes) were read as clean while the queue removes the second, and a third entry was then foreseen against the removed
+one. `probe` takes `drivers` (False for the simulation) in place of `attributes_of`, and a self-test arm with the reviewer's
+scenario (seen RED first: k3 foreseen against the removed k2) pins it. R1-2 (the conflict brief's claim that bringing the
+head in keeps the pull request queued) is a lead for the clerk.
