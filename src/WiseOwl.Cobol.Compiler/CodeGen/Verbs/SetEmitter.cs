@@ -310,7 +310,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     }
 
     /// <summary>THE augment of a SET-style target by ±amount (shared by SET UP/DOWN BY, PERFORM VARYING and
-    /// SEARCH's GR8b varied index): index-name / index data item → THE GUARDED occurrence-number augment; a
+    /// SEARCH's varied item, §14.9.37.4 GR3 b)/c)): index-name / index data item → THE GUARDED occurrence-number augment; a
     /// numeric data item → an in-place add through its PICTURE store (legal as a VARYING induction variable,
     /// §14.9.28 GR13). ⛔ A plain <c>SET</c> UP/DOWN on a numeric item is invalid COBOL and is now REFUSED AT
     /// BIND (§14.9.39.2 Format 2's receiving operand is index-name-3; COBOL2112, kb/Work PB449) — this comment

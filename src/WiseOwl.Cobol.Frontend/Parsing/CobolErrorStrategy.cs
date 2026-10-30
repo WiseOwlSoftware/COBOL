@@ -245,12 +245,25 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         }
     }
 
-    /// <summary>The other half of the same rule: single-token deletion never deletes a '(' (kb/Work PB2152). Deleting
+    /// <summary><para>The other half of the same rule: single-token deletion never deletes a '(' (kb/Work PB2152). Deleting
     /// one paren of a balanced pair (§8.3.5 4) orphans the other, so <c>DISPLAY (W-S).</c> recovered by dropping the
     /// '(' and then reported its ')' as a second error. Declining here sends the error to <see cref="ConsumeUntil"/>,
-    /// which consumes the group whole.</summary>
-    protected override IToken? SingleTokenDeletion(Parser recognizer) =>
-        IsOpenParen(((ITokenStream)recognizer.InputStream).LA(1)) ? null : base.SingleTokenDeletion(recognizer);
+    /// which consumes the group whole.</para>
+    /// <para>⛔ AND NEVER THE TOKEN THAT ENDS AN EMPTY REQUIRED BLOCK (kb/Work PB911). Where one statement written here
+    /// would let the token follow (<see cref="OffendingPosition.EmptyBlockOwner"/>), the token is the OWNER's own
+    /// terminator or next phrase (<c>END-PERFORM</c>, a <c>WHEN</c>), not a stray word: the block is what is missing.
+    /// Deleting it because the token after it can start a statement turned that next statement into the body, and the
+    /// PERFORM, whose END-PERFORM the deletion had just consumed, drew a second, false COBOL0001 at the next
+    /// sentence's period (<c>PERFORM UNTIL X = 0 END-PERFORM STOP RUN.</c>) — the IF, EVALUATE and SEARCH, whose
+    /// terminators are optional, hid it. Declining leaves the token for the owner to match once the block's missing
+    /// statement is reported.</para></summary>
+    protected override IToken? SingleTokenDeletion(Parser recognizer)
+    {
+        var stream = (ITokenStream)recognizer.InputStream;
+        if (IsOpenParen(stream.LA(1))) return null;
+        if (new OffendingPosition(recognizer, recognizer.CurrentToken).EmptyBlockOwner() is not null) return null;
+        return base.SingleTokenDeletion(recognizer);
+    }
 
     /// <summary>⛔ A RESERVED WORD IS REFUSED WHERE THE CLOSED FORMAT'S LIST STANDS, NOT WHERE THE PARSE GIVES UP
     /// (kb/Work PB2533). ANTLR synchronizes at every subrule and loop iteration, and at a clause list that may END
