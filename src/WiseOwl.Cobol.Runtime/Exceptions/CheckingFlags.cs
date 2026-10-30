@@ -82,6 +82,13 @@ public struct CheckingFlags
     /// <see cref="RangePtr"/>.</summary>
     public bool SizeAddress;
 
+    /// <summary>EC-SIZE-TRUNCATION as the PRESENTING statement enables it (kb/Work PB4031): set by a GENERATE or TERMINATE
+    /// whose line enables EC-SIZE-TRUNCATION, and read by the report compose that statement runs, whose printable items'
+    /// implicit COMPUTE (§13.18.53.4 GR2) is compiled once, outside every statement, and so cannot carry the statement's
+    /// state in its code. Every other EC-SIZE-TRUNCATION store is compiled inside its own statement and selects its kernel
+    /// at compile time, so this is the one run-time reader (<c>ReportWriterEmitter.ImplicitComputeImage</c>).</summary>
+    public bool SizeTruncation;
+
     /// <summary>EC-RANGE-PTR — a SET pointer UP/DOWN BY whose new address falls outside the implementor range
     /// of data-pointer values (§14.9.39.4 GR20; the range is DOC-A.1-216). kb/Work PB465.</summary>
     public bool RangePtr;

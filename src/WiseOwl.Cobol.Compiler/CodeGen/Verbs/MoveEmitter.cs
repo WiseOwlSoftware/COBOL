@@ -793,8 +793,18 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// counter is computed according to the general rules for the COMPUTE statement with the ROUNDED phrase").
     /// A rounded implicit transfer is still THIS conversion — the receiver's PICTURE governs the store either
     /// way — so the mode is threaded rather than a second conversion written (kb/Work PB852).</param>
+    /// <param name="raiseOnSizeError">The RAISING final transfer of that same implicit COMPUTE, when the statement that
+    /// presents the item has EC-SIZE-TRUNCATION checking enabled (kb/Work PB4031): §14.7.5's no-phrase rule 4 ("if the
+    /// result of the arithmetic statement is a value further from zero than permitted for the associated resultant data
+    /// item, the EC-SIZE-TRUNCATION exception condition is set to exist") and rule 5 (the PROHIBITED-inexact value). Each
+    /// numeric arm then lands through its CHECKED form and its Try store — the forms the arithmetic statement's store
+    /// takes under checking (<c>ArithmeticEmitter.StoreArith</c>) — and a failed store throws the condition as a
+    /// <c>CobolSizeError</c>, the expression-position shape <c>CobolNum.StoreOrRaise</c> already gives the fixed-point
+    /// arm. A MOVE never passes it (§14.6.8.2 r4 truncates by rule, and MOVE is not in §14.7.5's list of statements the
+    /// size error condition may occur as a result of). It governs the receivers an implicit COMPUTE can have — numeric
+    /// and numeric-edited (§13.18.53.3 SR3) — and nothing else.</param>
     public string ConvertSource(BoundOperand source, DataItem target, string? runtimeWidth = null,
-        CobolRounding rounding = CobolRounding.Truncation)
+        CobolRounding rounding = CobolRounding.Truncation, bool raiseOnSizeError = false)
     {
         var pic = target.OperandPic!;   // an elementary receiver's picture, or a bit / national group's as-if picture (D20/PB79)
         // The figurative's CATEGORY is the receiver's character context — §14.9.25.4 GR7 Table 17, i.e. its Table 2
@@ -871,14 +881,17 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // A function whose value is on the exact wide form (an exact-family call over an argument expression past the
                 // Int128 carrier, kb/Work PB3953) is kept exact here and TRANSFERRED at the mask's scale below, so the edit sees
                 // the value's own low-order digits and not its 34-digit image.
-                NumX e = num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
+                NumX e = num.AsNum(source, ComputeSender(target, raiseOnSizeError), SendingRef.MoveToNumeric, keepWide: true);
                 // A FLOATING-POINT numeric-edited receiver (D21/PB66) takes the sender's EXACT form — no alignment to a
                 // mask scale (it has none) — and the transfer's mode rounds the significand to the mask's digits
                 // (kb/Work PB2638): TRUNCATION for a MOVE (§14.6.8.4 rule 2), the clause's own for the report's rounded
                 // implicit COMPUTE (kb/Work PB3990 review finding R1-1's sibling: it always truncated). A wide value reaches
                 // it as the SDIDI (round-to-odd), which every mask of at most 32 digit positions rounds as the exact value.
                 if (pic.IsFloatEdited)
-                    return RuntimeApi.EditFormatFloat(pic, NumericRenderer.LowerWide(e), rounding, ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
+                    return raiseOnSizeError
+                        ? RaisingImage(target, img => RuntimeApi.EditTryFormatFloat(pic, NumericRenderer.LowerWide(e), rounding, img,
+                            ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic)))
+                        : RuntimeApi.EditFormatFloat(pic, NumericRenderer.LowerWide(e), rounding, ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
                 // The edit Format takes a scaled Int128. A NATIVE scaled sender passes at its own scale: the formatter's
                 // own alignment IS the MOVE's truncation (§14.6.8.2). Every other carrier — a float (D16 review: CS1503),
                 // a STANDARD-DECIMAL intermediate (fix-queue PB65: CS1503), an unsigned-wide item (kb/Work PB2163's
@@ -892,13 +905,16 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // landing with that mode too, where ROUNDED MODE IS PROHIBITED raises rule 7 (kb/Work PB3990 review
                 // finding R1-1's sibling: `SOURCE IS WS-F ROUNDED` printed 1.55 as 1 into Z9).
                 int ems = pic.ReceiverScale();
-                e = NumericRenderer.TransferWide(e, ems, rounding, checkedTransfer: false);
+                e = NumericRenderer.TransferWide(e, ems, rounding, checkedTransfer: raiseOnSizeError);
                 bool nativeScaled = e.Carrier == NumXCarrier.Scaled && (rounding == CobolRounding.Truncation || e.Scale <= ems);
-                string editVal = nativeScaled ? e.Expr : NumericRenderer.EditedLanding(e, ems, rounding, checkedLanding: false);
+                string editVal = nativeScaled ? e.Expr : NumericRenderer.EditedLanding(e, ems, rounding, checkedLanding: raiseOnSizeError);
                 int editScale = nativeScaled ? e.Scale : ems;
-                // The form dispatch (mask vs LOCALE) is EditFormatFor's — never a call-site EditMask deref.
-                return RuntimeApi.EditFormatFor(pic, e, editVal, $"{editScale}",
-                    ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
+                // The form dispatch (mask vs LOCALE) is EditFormatFor's / EditTryFormatFor's — never a call-site EditMask deref.
+                return raiseOnSizeError
+                    ? RaisingImage(target, img => RuntimeApi.EditTryFormatFor(pic, editVal, $"{editScale}", img,
+                        ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic)))
+                    : RuntimeApi.EditFormatFor(pic, e, editVal, $"{editScale}",
+                        ArithmeticEmitter.BwzFlag(target) + ctx.EditCfg(pic));
             // An ELEMENTARY ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3
             // Table 16): the sending characters are treated as an unsigned integer and EDITED into the mask
             // (§14.9.25.4 GR5 — NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
@@ -928,6 +944,12 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // usage (COMP-1↔COMP-2, and the reachable narrowing) keeps the CobolFloat.Sending wrap.
                 if (pic.IsFloat)
                 {
+                    // An implicit COMPUTE never lands here: its receiver is a printable item, and "only the DISPLAY or
+                    // NATIONAL phrase may be specified in any USAGE clause associated with a report group item"
+                    // (§13.18.60.3 SR7), so no floating-point receiver exists.
+                    if (raiseOnSizeError)
+                        throw new InvalidOperationException(
+                            $"ConvertSource: a raising implicit COMPUTE into the floating-point item {target.CobolName} (kb/Work PB4031)");
                     bool sameUsage = source is BoundFieldOperand fsrc
                         && fsrc.Place.Item.Pic is { IsFloat: true } sp && sp.Usage == pic.Usage;
                     // ⛔ A SAME-USAGE FLOAT MOVE IS A COPY, NOT A CONVERSION (kb/Work PB961). §14.9.25.4 GR6 c):
@@ -969,7 +991,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 }
                 NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
                     ? AllDigitFill(allDigit.Literal, pic)
-                    : num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
+                    : num.AsNum(source, ComputeSender(target, raiseOnSizeError), SendingRef.MoveToNumeric, keepWide: true);
                 // A float SOURCE lands into the fixed receiver via the runtime's ToScaled at the receiver scale (MOVE
                 // truncates toward zero — §14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
                 // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).
@@ -978,19 +1000,40 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // the receiver's scale, unchecked as a MOVE is, so the store keeps the value's own low-order digits (§14.6.8.2 4:
                 // "transferred to the receiving digits with zero fill or truncation on either end as required") and never its
                 // 34-digit image's.
-                n = NumericRenderer.TransferWide(n, recvScaleM, rounding, checkedTransfer: false);
+                n = NumericRenderer.TransferWide(n, recvScaleM, rounding, checkedTransfer: raiseOnSizeError);
                 // A STANDARD-DECIMAL intermediate stores through the SDIDI Store overload (the §14.7 final
                 // transfer), exactly as the arithmetic path does — fix-queue PB65: the MOVE arm was the one
                 // numeric consumer without the Dec case, so MOVE FUNCTION E was a backend CS1503.
                 // …and every carrier stores through the ONE store (NumericRenderer.StoreExpr — kb/Work PB84), so
                 // the Dec/float/native switch is written once for MOVE, the arithmetic store and INVOKE alike.
-                string stored = ArithmeticEmitter.Narrow(NumericRenderer.StoreExpr(n, recvScaleM, target.ProfileName, rounding), target);
+                string stored = ArithmeticEmitter.Narrow(
+                    NumericRenderer.StoreExpr(n, recvScaleM, target.ProfileName, rounding, raiseOnSizeError), target);
                 // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
                 return target.StoreAsImage ? RuntimeApi.NumFormatImage(stored, target.ProfileName) : stored;
             default:
                 return "default";
         }
     }
+
+    /// <summary>The raising image of an edited receiver (<see cref="ConvertSource"/>'s <c>raiseOnSizeError</c>): the
+    /// arm's Try format, whose false answer — a value further from zero than the item permits, or a PROHIBITED value it
+    /// cannot represent exactly — throws EC-SIZE-TRUNCATION (§14.7.5 no-phrase rules 4 and 5).</summary>
+    private string RaisingImage(DataItem target, Func<string, string> tryFormat)
+    {
+        string img = $"__sv{ctx.Names.NextStoreTmp()}";
+        return RuntimeApi.SizeRaisingImage(tryFormat(img), img,
+            $"the value cannot be stored in the numeric-edited item {target.CobolName ?? "FILLER"}: it is further from zero "
+            + "than its picture permits, or ROUNDED MODE IS PROHIBITED and it is inexact (ISO §14.7.5 — EC-SIZE-TRUNCATION)");
+    }
+
+    /// <summary>The context a numeric sender renders under (<see cref="SenderContext"/>), and under the raising implicit
+    /// COMPUTE (<see cref="ConvertSource"/>'s <c>raiseOnSizeError</c>) with the size-error kernels too
+    /// (<c>ReceiverContext.InSizeError</c>): the presenting statement then has EC-SIZE checking enabled, so the operations
+    /// that develop the result take the CHECKED kernels an arithmetic statement takes under checking, and an intermediate
+    /// outside its range raises its own condition (§14.7.5 no-phrase rule 3, EC-SIZE-OVERFLOW) instead of landing a
+    /// wrapped or non-finite value that the final transfer would report as EC-SIZE-TRUNCATION (kb/Work PB4031).</summary>
+    private ReceiverContext ComputeSender(DataItem target, bool raiseOnSizeError) =>
+        raiseOnSizeError ? SenderContext(target) with { InSizeError = true } : SenderContext(target);
 
     /// <summary>The RECEIVER-SCALE context a numeric MOVE source renders under (fix-queue PB60 /
     /// RV-15.68.4-1 half 2). <c>Receiverless</c> STAYS TRUE — the float family keeps its deliberate binary64
