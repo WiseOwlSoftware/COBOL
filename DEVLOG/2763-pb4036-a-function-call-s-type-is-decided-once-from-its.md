@@ -1,4 +1,4 @@
-## PB4036: a function call's type is decided once, from its arguments as written
+## Entry 2763 — 2026-10-29 19:56 PDT — PB4036: a function call's type is decided once, from its arguments as written
 
 **What.** After PB3974 a function argument frozen for the left-to-right order (ISO §8.4.3.2.4 GR2) that is an integer arithmetic
 expression is held in a scale-0 compiler temporary, and `ArgumentOrder.Window.Settle` swaps that temporary into the call's `Args`.
@@ -25,3 +25,4 @@ Integer argument by §15.3 type 6, so §15.59.1's "All arguments integer" row wo
 expression arm and types it Numeric, and the integer-only positions refuse it. (2) A frozen argument's FunctionValueField description
 differs from the unfrozen one: `LENGTH (MAX (A * B, 3))` is 4 and `LENGTH (MAX (A * B, UDF (A)))` is 8; a frozen nested `MAX (MAX (C, 5), UDF (A))` is 38
 where the unfrozen is 8.
+
