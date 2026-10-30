@@ -78,19 +78,30 @@ def spawn_detached(argv: list[str], log: pathlib.Path, cwd: str | os.PathLike | 
 def pid_alive(pid: int) -> bool:
     """Is process `pid` running? (gate_slot's one probe: a zombie, which holds nothing, counts as dead.)"""
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-    from gate_slot import _pid_alive  # noqa: PLC0415  (gate_slot imports nothing from here)
+    from gate_slot import _pid_alive  # noqa: PLC0415  (imported where used: gate_slot's self-test harness takes kill_tree so)
     return _pid_alive(pid)
 
 
 def kill_tree(pid: int) -> None:
-    """Kill `pid` and every process its TREE reaches, as the agent harness does when an agent returns."""
+    """Kill `pid` and every process its TREE reaches, as the agent harness does when an agent returns: on Windows
+    `taskkill /T /F` walks the tree by parent id; on POSIX the tree is `pid`'s process GROUP, so `pid` must lead one
+    (start it with `start_new_session=True`, as the launcher here does). A `pid` already gone is no error. A LIVE `pid`
+    that leads no group is the caller's defect, never "already gone": it is killed alone and ChildProcessError says so,
+    since whatever it started lives on (kb/Work PB4072: the review lane started its reviewer with a plain Popen, this
+    swallowed the ProcessLookupError, the hung reviewer was never killed on Linux, and the self-test that should have
+    caught it waited out two 600 s sleeps and passed)."""
     if os.name == "nt":
         subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True)
-    else:
-        try:
-            os.killpg(pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
+        return
+    try:
+        os.killpg(pid, signal.SIGKILL)
+    except ProcessLookupError:
+        if not pid_alive(pid):
+            return
+        os.kill(pid, signal.SIGKILL)
+        raise ChildProcessError(f"kill_tree: process {pid} leads no process group (it was started without "
+                                "start_new_session), so it alone was killed and what it started may live on "
+                                "(kb/Work PB4072)") from None
 
 
 def _wait_for(predicate, what: str, limit_s: float = 120.0) -> None:
@@ -163,6 +174,31 @@ def self_test() -> int:
             words = log3.read_text(encoding="utf-8", errors="replace").split()
             expect("a detached target owns a console with no visible window, so nothing it starts opens a window",
                    words[:4:2] == ["console-cp", "visible"] and words[1] != "0" and words[3] == "0", " ".join(words))
+
+        # 4. kill_tree reaches the whole tree of a process that leads its own group, and never passes silently over one
+        #    that leads none (kb/Work PB4072): POSIX only, where the tree is the process group.
+        if os.name != "nt":
+            sleeper = [sys.executable, "-c", "import time; time.sleep(600)"]
+            lead = subprocess.Popen(sleeper, start_new_session=True)
+            kill_tree(lead.pid)
+            led_rc = lead.wait()
+            plain = subprocess.Popen(sleeper)
+            try:
+                kill_tree(plain.pid)
+                said = ""
+            except ChildProcessError as exc:
+                said = str(exc)
+            plain_rc = plain.wait()
+            try:
+                kill_tree(plain.pid)
+                gone = True
+            except ChildProcessError:
+                gone = False
+            expect("kill_tree kills a process that leads its own group; one started without a session is killed alone "
+                   "and ChildProcessError names the caller's defect (it never returns as if the process were gone); a "
+                   "process already gone is no error",
+                   led_rc == -signal.SIGKILL and plain_rc == -signal.SIGKILL and "leads no process group" in said and gone,
+                   f"led {led_rc}, plain {plain_rc}, said {said!r}, gone {gone}")
     finally:
         if survivor is not None and pid_alive(survivor):
             kill_tree(survivor)
