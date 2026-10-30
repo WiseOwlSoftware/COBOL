@@ -2763,10 +2763,18 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
    Inert is the BEHAVIOUR, not the source: every operand that is an identifier is still resolved (the FROM, GIVING and
    RETURNING operands, the `CONTINUE AFTER` expression, a `RAISING EXCEPTION` exception-name through the one
    exception-name funnel) and the statements of the ON EXCEPTION / NOT ON EXCEPTION phrases are bound as the
-   statements they are, so an undefined name there is the ordinary error (kb/Work PB3568). The `TO` operand is the one
-   operand NOT resolved: Format 1 names a message-server-name, a processor-defined name that is no data item
-   (§14.9.38.3 SR2), and the grammar cannot tell it from Format 2's message-tag. Pinned by
-   `conformance:wiseowl/cases/14.9.31-RECEIVE/pb3568-receive-undefined-operand` and its siblings.
+   statements they are, so an undefined name there is the ordinary error (kb/Work PB3568). SEND's `TO` operand is read
+   by the statement's FORMAT (kb/Work PB4090): Format 1 names a message-server-name, a processor-defined name that is no
+   data item (§14.9.38.3 SR2), so it is NOT resolved and an undefined one is no error; Format 2 names a message-tag
+   data-name-2 (SR4), a data reference like any other. The grammar's one rule cannot tell the formats apart, so
+   `DeclinedFacilityBinder.ClassifySend` does, from the phrases written (a literal-1 operand and RETURNING are Format 1's,
+   RAISING is Format 2's) and the declaration the name silently resolves to (a message-tag item is Format 2's); a
+   statement with evidence for both is **COBOL5488**, and one with evidence for neither is Format 1, so a bare
+   `SEND TO name FROM x` is **COBOL1850** (RETURNING is required there, §14.9.38.2 prints it without brackets). SR4's own
+   requirement that data-name-1 and data-name-2 BE message-tag items is not screened: the usage is refused by name
+   (COBOL1943, below), so no program that compiles can hold the item. Pinned by
+   `conformance:wiseowl/cases/14.9.31-RECEIVE/pb3568-receive-undefined-operand`, its siblings and the
+   `conformance:wiseowl/cases/14.9.38-SEND/pb4090-*` cases.
    They are a COBOL-2023 introduction, and below `--std 2023` the edition pass answers **COBOL0900**
    (`async-messaging-2023`) and the facility is not named: §8.9 reserves RECEIVE and SEND at COBOL-85 too, for the
    '85 communication module, so the 2023 formats are recognized at every edition and gated on introduction, never
