@@ -138,23 +138,28 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// UNRESTRICTED pointer was stored into a RESTRICTED one and a based item rebased through it read another
     /// type's storage — exactly what §13.18.60.4 GR23's last sentence ("A restricted data-pointer shall contain
     /// only the predefined address NULL or the address of a data item of the specified type") forbids. Both
-    /// routes now call THIS method; there is no second copy of the rule.</para></summary>
+    /// routes now call THIS method; there is no second copy of the rule. A THIRD route, the implicit SET of
+    /// INITIALIZE … REPLACING (<c>SetBinder.ScreenImplicitSet</c>, §14.9.20.4 GR4; kb/Work PB3966), asks it too and
+    /// names the statement and the subordinate receiver through <paramref name="implicitSet"/> — the one place the
+    /// receiver is not an operand the user wrote.</para></summary>
+    /// <param name="implicitSet">The words that lead the diagnostic when the store is an implicit SET (the statement,
+    /// the receiver, the sender); null for a written SET, which leads with the offending operand.</param>
     internal bool ScreenPointerReceiverRestriction(
         Place receiver, string receiverText, StrongTypeModel.TypeRestriction sourceRestriction,
-        string senderText, bool addressSender)
+        string senderText, bool addressSender, string? implicitSet = null)
     {
         var receiverRestriction = StrongTypeModel.PointerRestriction(receiver.Item);
         if (receiverRestriction.IsRestricted
             && !StrongTypeModel.SameRestriction(receiverRestriction, sourceRestriction))
         {
-            RejectRestriction(senderText,
+            RejectRestriction(implicitSet ?? $"'{senderText}'",
                 $"the receiving data-pointer is restricted to type '{receiverRestriction}', so the sender shall "
                 + "be NULL or a data-pointer restricted to the same type (ISO §14.9.39.3 SR19)");
             return false;
         }
         if (sourceRestriction.IsRestricted && !receiverRestriction.IsRestricted)
         {
-            RejectRestriction(receiverText,
+            RejectRestriction(implicitSet ?? $"'{receiverText}'",
                 $"{(addressSender ? $"ADDRESS OF '{senderText}'" : $"'{senderText}'")} is a RESTRICTED "
                 + $"data-pointer of type '{sourceRestriction}' "
                 + (addressSender
@@ -194,7 +199,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         var needed = StrongTypeModel.AddressOfRestriction(based);
         if (needed.IsRestricted && !StrongTypeModel.SameRestriction(needed, senderRestriction))
         {
-            RejectRestriction(senderText,
+            RejectRestriction($"'{senderText}'",
                 $"the receiver of SET ADDRESS OF is restricted to type '{needed}', so the sender shall "
                 + "reference a data-pointer restricted to the same type (ISO §14.9.39.3 SR19)");
             return false;
@@ -202,7 +207,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         if (senderRestriction.IsRestricted
             && !StrongTypeModel.SameRestriction(StrongTypeModel.TypedItemType(based), senderRestriction))
         {
-            RejectRestriction(senderText,
+            RejectRestriction($"'{senderText}'",
                 $"the sender{(addressSender ? " (ADDRESS OF a strongly-typed group — §8.4.3.11.4 GR2)" : "")} is a "
                 + $"data-pointer restricted to type '{senderRestriction}', and the receiving based "
                 + $"item '{based.CobolName}' is "
@@ -218,8 +223,8 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Report a restricted-data-pointer type-safety violation. The 0869 pointer band, where PtrBinder
     /// already reports every other §14.9.39 / §14.9.3 operand rule (SR1, SR2, SR3, SR17, SR18, SR23) — these are
     /// operand rules of the same statements, so they belong to the same band rather than to new codes.</summary>
-    private void RejectRestriction(string operandText, string what) =>
-        ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape, $"'{operandText}': {what}. Annex D.9.2.2: a restricted data-pointer "
+    private void RejectRestriction(string lead, string what) =>
+        ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape, $"{lead}: {what}. Annex D.9.2.2: a restricted data-pointer "
             + "\"shall contain only the predefined address NULL or the address of a data item of the specified "
             + "type\"");
 
@@ -414,7 +419,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // being half-enforced: Form 1 and Form 2 are separate code paths.
             if (StrongTypeModel.PointerRestriction(returning.Item) is { IsRestricted: true } charsRestriction)
             {
-                RejectRestriction(DataBinder.WrittenText(returningRef!),
+                RejectRestriction($"'{DataBinder.WrittenText(returningRef!)}'",
                     $"the RETURNING data item is a data-pointer restricted to type '{charsRestriction}', which "
                     + "ALLOCATE … CHARACTERS cannot satisfy — it specifies no data-name-1 to supply that type "
                     + "(ISO §14.9.3.3 SR4)");
@@ -449,7 +454,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             var basedType = StrongTypeModel.TypedItemType(based);
             if (strongType.IsRestricted && !StrongTypeModel.SameRestriction(strongType, returningRestriction))
             {
-                RejectRestriction(DataBinder.WrittenText(returningRef!),
+                RejectRestriction($"'{DataBinder.WrittenText(returningRef!)}'",
                     $"'{DataBinder.WrittenText(basedRef)}' is a strongly-typed group item of type '{strongType}', so the "
                     + "RETURNING data item shall be a data-pointer restricted to that type (ISO §14.9.3.3 SR5)");
                 return BoundRejected.Reported(ctx.Edition);
@@ -457,7 +462,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             if (returningRestriction.IsRestricted
                 && !StrongTypeModel.SameRestriction(returningRestriction, basedType))
             {
-                RejectRestriction(DataBinder.WrittenText(returningRef!),
+                RejectRestriction($"'{DataBinder.WrittenText(returningRef!)}'",
                     $"the RETURNING data item is a data-pointer restricted to type '{returningRestriction}', so "
                     + $"'{DataBinder.WrittenText(basedRef)}' shall reference a typed data item of that type — it is "
                     + $"{(basedType.IsRestricted ? $"of type '{basedType}'" : "untyped")} (ISO §14.9.3.3 SR4)");
@@ -514,7 +519,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         // Every receiver is a data reference: SetBinder.BindSet refused any other identifier format first (kb/Work PB1551).
         var drefs = Array.ConvertAll(ud.setReceivingIdentifier(), r => r.dataReference());
         if (drefs.Length == 0)
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET … UP BY / DOWN BY with no receiving operand (ISO §14.9.39.2)");
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET UP BY / DOWN BY with no receiving operand (ISO §14.9.39.2)");
         // SET pointer UP/DOWN BY (§14.9.39 Format 10) is a COBOL-2002 introduction; edition gate moved to
         // VersionConformancePass (Step 14b), firing on the self-identifying BoundSetPointerUpDown node.
         var targets = new List<Place>(drefs.Length);
@@ -528,7 +533,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // such a restriction exists to prevent (Annex D.9.2.2); asked of EVERY receiver, like SR23 above.
             if (StrongTypeModel.IsRestrictedToStrongType(p.Item))
             {
-                RejectRestriction(DataBinder.WrittenText(dref),
+                RejectRestriction($"'{DataBinder.WrittenText(dref)}'",
                     $"identifier-9 is a data-pointer restricted to type '{StrongTypeModel.PointerRestriction(p.Item)}', "
                     + "which is described with the STRONG phrase, so SET UP BY / DOWN BY shall not change it "
                     + "(ISO §14.9.39.3 SR24)");
