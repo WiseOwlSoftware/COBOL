@@ -1,4 +1,4 @@
-## Fuzz night 9 is triaged: one WiseOwl wrong answer (PB4096), two new GnuCOBOL records (PB4094, PB4095)
+## Entry 2783 — 2026-10-30 10:34 PDT — Fuzz night 9 is triaged: one WiseOwl wrong answer (PB4096), two new GnuCOBOL records (PB4094, PB4095)
 
 The ninth differential-fuzz night (run `fuzz-20261029-224533`, qwen3.6:35b, 8 hours, seed 20261030) judged 6,851
 programs on main 8803a84ff. Of them, 1,901 survived the harness's own filters, in 324 signatures, and 267 of those
@@ -25,3 +25,4 @@ plans a second finisher over a branch whose review finisher runs in another work
 on 10-29 on the local branch `notes-pb4091-carrier-lock` and never landed: the note lands here, unchanged.
 `worktree-wf_bacf469e-cf2-1`, the first PB4075 branch, is recorded ABANDONED in PB4075: the finisher branch that
 landed PB4075 (DEVLOG 2779) carried its whole change.
+
