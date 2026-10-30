@@ -7,8 +7,8 @@ recorded results stand and nothing could be fixed-since.
 
 - **WiseOwl: one defect, PB4096 (wrong answer).** TEST-NUMVAL-F returns LENGTH + 1 when a character in error follows
   the exponent's sign: `"12.34E+AB"` gives 10 where §15.95.4 1) b) gives 8, `"1E++2"` gives 6 where it gives 4. The
-  exponent arm of `NvfScan` lacks the end-of-text test PB121 gave the significand arm. Filed `owner`, as every
-  fuzz-found WiseOwl defect is.
+  exponent arm of `NvfScan` lacks the end-of-text test PB121 gave the significand arm. The owner approved the fix
+  the same morning, so it is filed `open`.
 - **GnuCOBOL: two new records, both upheld by an independent refuter.** PB4094: a negative literal exponent overwrites
   the shared literal, so a later `A * -1` or `A - -1` uses the wrong value. PB4095: `-std=cobol2014` refuses
   `MOVE ALL B"1"` to a boolean item. The refuter corrected both records in place (edition numbering, the overclaimed
