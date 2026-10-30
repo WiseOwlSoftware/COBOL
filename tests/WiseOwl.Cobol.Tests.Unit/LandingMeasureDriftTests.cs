@@ -58,10 +58,10 @@ public sealed class LandingMeasureDriftTests
 
     /// <summary>The files that may not name the retired writer: the whole tree but the narrative paths (docs, the work
     /// register, the history, tests) and the replacement, which names the script it replaced once, in its docstring.
-    /// Declared (kb/Work PB3531), so the drift-rule index names this class for each of them. The knowledge base and the
-    /// vault's settings are set aside whole: a sweep that read them made the vault a test input (kb/Work PB2878).</summary>
+    /// Declared (kb/Work PB3531), so the drift-rule index names this class for each of them. The knowledge base is set
+    /// aside whole: a sweep that read it made the vault a test input (kb/Work PB2878).</summary>
     private static readonly TreeScope NotNarrative = new(Under: [""],
-        Except: ["docs/", "kb/", ".obsidian/", "adjudication/", "specs/", "tests/", "DEVLOG/", "scripts/orchestrator/landing_measure.py"]);
+        Except: ["docs/", "kb/", "adjudication/", "specs/", "tests/", "DEVLOG/", "scripts/orchestrator/landing_measure.py"]);
 
     /// <summary>The retired writer is gone and nothing calls it: a second writer of the old file would split the
     /// instrument. The narrative paths (docs, the work register, the history, tests) may name it.</summary>

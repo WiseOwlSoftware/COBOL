@@ -25,7 +25,7 @@ REPO = pathlib.Path(__file__).resolve().parents[2]
 DIR = REPO / "docs" / "rearchitecture" / "spec-reconciliation"
 # The 455 per-agent files live in a subfolder: they are bulk data, not vault content, and having them at
 # the top level buried LEDGER/REPORT/REPAIR-PLAN — the three things a human actually opens — and forced an
-# Obsidian exclusion that hid the report too.
+# note-viewer exclusion that hid the report too.
 AGENTS = DIR / "agents"
 LEDGER = DIR / "LEDGER.json"
 REPORT = DIR / "REPORT.md"
