@@ -572,17 +572,19 @@ def merge_conflicts(repo: pathlib.Path | str, ref: str) -> list[str] | None:
     declined it (both sides changed one entry differently: a real conflict, kb/Work PB3640 review R1-1); None when git
     cannot say (a missing ref: merge-tree exits 1 for that too, with no tree on stdout, so the tree line decides). The
     runtime ABI pin's settle needs a build, so a pin `merge` could not settle is not foreseen here."""
-    return probe(repo, ["HEAD", ref], attributes_of="HEAD")[1]
+    return probe(repo, ["HEAD", ref])[1]
 
 
-def probe(repo: pathlib.Path | str, parents: list[str], attributes_of: str | None = None) -> tuple[str | None, list[str] | None]:
+def probe(repo: pathlib.Path | str, parents: list[str], drivers: bool = True) -> tuple[str | None, list[str] | None]:
     """THE ONE `git merge-tree --write-tree` THROUGH EVERY DRIVER (kb/Work PB3723): (the merged tree, []) when `parents`
     merge clean; (None, the conflicted files) when they do not (a file a driver merges by key is listed only when the
     driver declined it); (None, None) when git cannot say (a missing ref, unrelated histories: merge-tree exits 1 for
-    that too, with no tree on stdout, so the tree line decides). `attributes_of` (default: the first parent) names the
-    revision whose attributes the merge reads (attributes_tree). The worktree and the index are not touched."""
+    that too, with no tree on stdout, so the tree line decides). `drivers` False merges with git's own line merge and
+    no driver, which is what GitHub's merge group does (the module doc): a keyed file both sides edit conflicts there
+    (foresee_queue); True merges through every driver, reading the first parent's attributes (attributes_tree). The
+    worktree and the index are not touched."""
     r = git(pathlib.Path(repo), "merge-tree", "--write-tree", "--name-only", "--no-messages", *parents,
-            attributes_of=attributes_of or parents[0])
+            attributes_of=parents[0] if drivers else None)
     lines = r.stdout.splitlines()
     if r.returncode not in (0, 1) or not lines or not re.fullmatch(r"[0-9a-f]{40,64}", lines[0].strip()):
         return None, None
@@ -602,21 +604,24 @@ def foresee_queue(repo: pathlib.Path | str, base: str, entries: list[tuple[str, 
     """THE MERGE QUEUE, SIMULATED (kb/Work PB3723): the queue builds each entry's merge group on main plus the entries
     ahead of it that stay, and REMOVES an entry whose head conflicts there (reason `merge_conflict`, with no failed run
     and no event a reader sees until it has happened). `entries`: (label, head commit) in queue order; `base`: main.
-    Each head is merged onto the result of those before it through every driver (probe), and an entry that conflicts is
-    skipped, as the queue skips it. Returns {label: Foreseen} for each such entry, so its finisher can bring the entries
-    ahead in while they are still queued. A head git cannot merge (an object this repository lacks) is left out: it is
-    unknown, never a conflict. The runtime ABI pin's settle needs a build and is not foreseen (merge_conflicts)."""
+    Each head is merged onto the result of those before it WITH GIT'S OWN LINE MERGE AND NO DRIVER (probe with
+    drivers=False): GitHub's merge group runs none, so two entries that each add a key to one keyed catalogue
+    (diagnostics.json, the traceability inventory, constructs.json, kb/Work notes) conflict there, and the queue removes
+    the second, which the drivers would have merged. An entry that conflicts is skipped, as the queue skips it. Returns
+    {label: Foreseen} for each such entry, so its finisher can bring the entries ahead in while they are still queued.
+    A head git cannot merge (an object this repository lacks) is left out: it is unknown, never a conflict. The runtime
+    ABI pin's settle needs a build and is not foreseen (merge_conflicts)."""
     out: dict[str, Foreseen] = {}
     result, ahead = base, []
     for label, head in entries:
-        tree, files = probe(repo, [result, head], attributes_of=base)
+        tree, files = probe(repo, [result, head], drivers=False)
         if files is None:
             continue
         if tree is None:
-            if probe(repo, [base, head], attributes_of=base)[1]:   # it conflicts with main itself: GitHub reads that DIRTY
+            if probe(repo, [base, head], drivers=False)[1]:   # it conflicts with main itself: GitHub reads that DIRTY
                 out[label] = Foreseen(tuple(files), ())
                 continue
-            with_head = [lab for lab, h in ahead if probe(repo, [h, head], attributes_of=base)[1]]
+            with_head = [lab for lab, h in ahead if probe(repo, [h, head], drivers=False)[1]]
             out[label] = Foreseen(tuple(files), tuple(with_head or [lab for lab, _ in ahead]))
             continue
         made = git(pathlib.Path(repo), "-c", "user.name=merge_drivers", "-c", "user.email=merge_drivers@localhost",
@@ -1008,6 +1013,26 @@ def self_test() -> int:
         expect("queue: the simulation touches no worktree, and one clean entry of the queue is foreseen as nothing",
                not qr.git("status", "--porcelain") and foresee_queue(qr.path, "main", [("e2", heads["e2"])]) == {},
                qr.git("status", "--porcelain"))
+        # GitHub's merge group runs no driver (kb/Work PB3723 review R1-1): k1 and k2 each add a different key at the end of
+        # a keyed catalogue, which the drivers merge by key and a plain merge conflicts on, so the queue removes k2 -- and
+        # k3, which edits the line k2 also edits in e.txt, then stays, because k2 is gone.
+        kr = ScratchRepo.init(root / "queue-keyed")
+        kr.commit("base", {"d.json": obj(m("a", "85"), m("c", "85")), "e.txt": f"1{NL}2{NL}3{NL}",
+                           ".gitattributes": f"d.json merge=cobol-keyed-object{NL}"})
+        for name, files in (("k1", {"d.json": obj(m("a", "85"), m("c", "85"), m("x", "85"))}),
+                            ("k2", {"d.json": obj(m("a", "85"), m("c", "85"), m("y", "85")), "e.txt": f"1{NL}y{NL}3{NL}"}),
+                            ("k3", {"e.txt": f"1{NL}z{NL}3{NL}"})):
+            kr.git("switch", "-q", "-c", name, "main")
+            kr.commit(name, files)
+            kr.git("switch", "-q", "main")
+        kheads = [(n, kr.git("rev-parse", n)) for n in ("k1", "k2", "k3")]
+        expect("queue: the premise, the drivers merge k1 and k2 clean where a plain merge-tree (GitHub's) conflicts in d.json",
+               merged_tree(kr.path, ["k1", "k2"]) is not None and probe(kr.path, ["k1", "k2"], drivers=False)[1] == ["d.json"],
+               f"{merged_tree(kr.path, ['k1', 'k2'])} {probe(kr.path, ['k1', 'k2'], drivers=False)}")
+        kseen = foresee_queue(kr.path, "main", kheads)
+        expect("queue: the simulation merges as GitHub's merge group does, with no driver: k2 is foreseen against k1 on the "
+               "keyed catalogue the drivers would have merged, and k3 stays because k2, the entry it conflicts with, is removed",
+               kseen == {"k2": Foreseen(("d.json",), ("k1",))}, str(kseen))
         # A file the keyed merger declines (both sides changed one entry) but git's line merge merges cleanly (the changes are
         # on lines apart, as a plain `git merge` would merge them) merges: no conflict, no markers (review finding R1-1).
         fat = lambda p, s: (f'{{{NL} "x": {{{NL}  "p": "{p}",{NL}  "q": "q",{NL}  "r": "r",{NL}  "s": "{s}"{NL} }}{NL}}}{NL}')    # noqa: E731

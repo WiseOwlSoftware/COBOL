@@ -71,6 +71,7 @@ public sealed class MergeDriverDriftTests
             "conflicts: a ref git cannot read is None",
             "queue: an entry that conflicts on the entries ahead that stay is foreseen",
             "queue: the simulation touches no worktree",
+            "queue: the simulation merges as GitHub's merge group does, with no driver",
             "conflicts: the landing logs' CONFLICT lines name their files",
             "new driver: a branch that gives a pattern a driver main's attributes do not yet give it AND changes a file",
             "new driver: the same file back at main's bytes passes",
