@@ -33,7 +33,7 @@
            VALIDATE MSG-BODY.
            RECEIVE FROM MSG-TAG GIVING MSG-BODY MSG-LEN
            END-RECEIVE.
-           SEND TO MSG-TAG FROM MSG-BODY
+           SEND TO MSG-SERVER FROM MSG-BODY RETURNING MSG-TAG
            END-SEND.
       *> the facilities are inert, so ordinary control flow around them is unaffected
            PERFORM 3 TIMES
