@@ -411,6 +411,17 @@ are reported. Where §8.9 RESERVES the word nothing is retyped: a declaration ma
 the RULE — a new definition slot needs no C#), and a reference fails to parse and is re-coded to COBOL0901 by
 `CobolErrorListener` (below).
 
+The same loop settles the one other token decision only the parse can make (kb/Work PB3981): a figurative ZERO
+followed by a sign touching its literal (`ZERO -1`) is read as an operand-list item before the parse
+(`ZeroTokenRewriter.IsSignOfNextLiteral`, kb/Work PB3962), which is wrong where the grammar puts an arithmetic
+expression (`COMPUTE X = ZERO -1`, `IF X = ZERO -1`): there the characters are a subtraction written without its
+second space, and §8.7.1 refuses it by name (COBOL2993) as it refuses `Y -1`. A pass that fails AT such a sign
+(`ZeroSignReading.Revise`, fed by the same offender witness as the gate's second witness) makes that ZERO
+`ZERO_ARITH` and the source is parsed again; if the arithmetic reading fails at the ZERO or its sign too
+(`MOVE ZERO -1 TO X`) the ZERO goes back to figurative and is never tried again, so a source wrong either way
+reports the operand-list reading's error at the sign. The decision is the grammar's position, asked of the grammar,
+and the next front end that calls `ParseToFixpoint` inherits it.
+
 ⛔ **WHY NOT A PREDICATE — it was one, and it could not work (kb/Work PB655, `feedback_left_edge_predicates`).**
 Until PB655 every gated word was a `cobolWord` alternative behind `{userWordHere("W")}?`. ANTLR evaluates a
 semantic predicate only at the LEFT EDGE of the decision it is predicting, and `cobolWord` sits deep inside every
@@ -2230,7 +2241,14 @@ regression bisects to one step.
   the literal", so `DISPLAY ZERO -1`, `CALL "P" USING ZERO +1` and `88 C VALUE ALL ZERO -5` are operand lists of two
   operands and keep the figurative (`ZeroTokenRewriter.IsSignOfNextLiteral`, read off the token positions). The
   rewriter used to read the sign as an operator and the list no longer parsed; the VALUE-list reader that patched one
-  such list after the parse (`DataBinder.RewrittenAllZeroRawText`) is deleted.
+  such list after the parse (`DataBinder.RewrittenAllZeroRawText`) is deleted. ⛔ **Where the grammar wants an
+  arithmetic expression that same list reading fails to parse, so the parse decides the position** (kb/Work PB3981):
+  `ReservationGateRewriter.ParseToFixpoint` asks `ZeroSignReading.Revise` after each pass, which turns a ZERO whose
+  touching sign is a syntax-error offender into `ZERO_ARITH` and parses again (`COMPUTE X = ZERO -1` is COBOL2993
+  like `Y -1`, not a generic parse error), taking it back if the arithmetic reading fails there too. ⚠ The
+  `ZERO_ARITH` token's text stays "0" (several readers parse the text of an arithmetic operand), so a diagnostic that
+  quotes an operand node spells it with `WrittenSource.Of` (`DataBinder.WrittenText`), never `GetText()` (kb/Work
+  PB3961: `PERFORM VARYING X FROM 1 BY ZERO + 1` printed `'0+1'`).
 - **The five preprocessor stages and their order** — correct per the TURN-anchoring hazard analysis; only
   namespaces + the injected severity policy change.
 - **SUBSCRIPT lexer mode existence** — the `x(i)`/`(a+b)` disambiguation genuinely needs it; we dedup its

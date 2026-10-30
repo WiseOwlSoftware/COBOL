@@ -124,10 +124,9 @@ import impacted_tests  # noqa: E402
 import inert_lane  # noqa: E402  — THE classification of a change no test reads (kb/Work PB2878)
 import toolchain  # noqa: E402  — THE reader of toolchain.env, the versions CI and every host run (kb/Work PB4007)
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT  # noqa: E402
-from gate_slot import _pid_alive  # noqa: E402  — the first-red arm checks that a stopped audit's tree is gone
 from gate_slot import (DEFAULT_SCOPE, GATE_POOL, LIGHT_POOL, ExclusiveLock, GateSettings, GateSlots, Pool,  # noqa: E402
                        Setting, Slot, git_common_dir, slot_dir)
-from detached import kill_tree, spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536), THE one tree kill (PB4072)
+from detached import kill_tree, pid_alive, spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536), THE one tree kill (PB4072), THE one liveness probe (PB4008)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
 from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, so never part of a measured tree
 import queue_facts  # noqa: E402  — THE one reader of GitHub's facts: a merge-queue bounce's reds (kb/Work PB3644)
@@ -845,7 +844,7 @@ def gate_starting(run: Path, now: float | None = None) -> bool:
     if age is None or not -START_WINDOW_S < age < START_WINDOW_S:   # a stamp from the future is a clock step, not a start
         return False
     spawned = read_spawn(run)
-    return spawned is None or _pid_alive(spawned)
+    return spawned is None or pid_alive(spawned)
 
 
 def read_record(run: Path) -> dict | None:
@@ -1011,7 +1010,7 @@ def launch_and_follow(new_run: Callable[[], Path], argv_for: Callable[[Path], li
             f"STARTING for {START_WINDOW_S:.0f} s whether or not it dies")
     say(f"build-local: the gate runs DETACHED (pid {pid}, run directory {run}): it outlives this process; "
         f"`python scripts/run_gate_legs.py --await {run}` reads its verdict (kb/Work PB3536)")
-    code, line = watch(run, None, lambda: _pid_alive(pid), echo=say)
+    code, line = watch(run, None, lambda: pid_alive(pid), echo=say)
     if not (run / LOG_FILE).exists() or line not in (run / LOG_FILE).read_text(encoding="utf-8", errors="replace"):
         say(line)  # a verdict the gate's own output does not carry (DIED): the caller's last line is still the verdict
     return code
@@ -2251,7 +2250,7 @@ def self_test() -> int:
         heard: list[str] = []
         reasons = FirstRedStops(mark).audits(_no_slot, heard.append)
         grandchild = int(mark.read_text(encoding="utf-8"))
-        while _pid_alive(grandchild):  # termination is asynchronous; a tree that never dies is the hang detector's
+        while pid_alive(grandchild):  # termination is asynchronous; a tree that never dies is the hang detector's
             time.sleep(0.05)
         arm("the first RED audit stops every audit still running, its whole process tree included, and the stopped one "
             "is reported STOPPED, never RED (kb/Work PB3061)",
@@ -2895,7 +2894,7 @@ def self_test() -> int:
         gate_pid = read_pid(run2)
         kill_tree(follower.pid)
         follower.wait()
-        survived = gate_pid is not None and _pid_alive(gate_pid)
+        survived = gate_pid is not None and pid_alive(gate_pid)
         go.touch()
         handed = watch(run2, 120, lock_running(run2, plock))
         arm("a detached gate OUTLIVES its follower's tree kill and its verdict is read from the run directory",
