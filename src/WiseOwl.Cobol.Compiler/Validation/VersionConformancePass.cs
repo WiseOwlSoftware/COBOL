@@ -2685,10 +2685,14 @@ internal sealed class VersionConformancePass
             // B.3 permits it. The lexer's word class is a superset, so both are named here.
             if (CobolCharacterRepertoire.HasExtendedCharacter(raw) && (_overlongWords ??= []).Add("extended " + CobolNames.Fold(raw)))
             {
-                _p.Check(Constructs.UserWordExtendedLetter2002, $"the extended letter in the COBOL word '{raw}'");
+                string? character = CobolWordRule.CharacterViolation(raw, _p._edition.Year);
+                // Below 2002 a character in no edition's Annex B is no EXTENDED LETTER, so the 2002 gate would name
+                // the wrong fault: CharacterViolation answers it as COBOL2773 at every target (kb/Work PB4130).
+                if (character is null || _p._edition.Year >= 2002)
+                    _p.Check(Constructs.UserWordExtendedLetter2002, $"the extended letter in the COBOL word '{raw}'");
                 // A character the 2014 Annex B permitted here and 2023's does not (Annex E.2 item 4) is a REMOVED
                 // construct — error strict, warning and the 2014 rule under --permissive; every other one is 2773.
-                if (CobolWordRule.CharacterViolation(raw, _p._edition.Year) is { } character)
+                if (character is not null)
                 {
                     if (CobolWordRule.RemovedAt2023(raw, _p._edition.Year))
                         _p.Check(Constructs.UserWordCharacterRemoved2023, character);
