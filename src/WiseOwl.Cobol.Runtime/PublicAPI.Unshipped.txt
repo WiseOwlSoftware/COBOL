@@ -747,3 +747,13 @@ static WiseOwl.Cobol.Runtime.CobolNum.DeviceFunctionText(WiseOwl.Cobol.Runtime.C
 static WiseOwl.Cobol.Runtime.CobolWide.FromUnsigned(System.UInt128 value) -> WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfWide(WiseOwl.Cobol.Runtime.CobolWide value, int scale) -> WiseOwl.Cobol.Runtime.FunctionValueField
 static WiseOwl.Cobol.Runtime.CobolNum.FormatWideFunctionText(WiseOwl.Cobol.Runtime.CobolWide value, int scale, bool deSign = false, bool commaMode = false) -> string!
+WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.Size -> bool
+WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.SizeTruncation -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeChecking.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeChecking.set -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeChecking.get -> bool
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeChecking.set -> void
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeTruncationChecking.get -> bool
+WiseOwl.Cobol.Runtime.Exceptions.ExceptionEngine.SizeTruncationChecking.set -> void
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeTruncationChecking.get -> bool
+static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.SizeTruncationChecking.set -> void

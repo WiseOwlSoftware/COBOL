@@ -364,12 +364,41 @@ off-by-one through every later counter check.
   only truncates; `SOURCE IS WS-F ROUNDED` printed 1.55 as 1 into Z9) and the floating-point edited store
   (`RuntimeApi.EditFormatFloat` with the mode, never the MOVE's truncation). **ROUNDED MODE IS PROHIBITED** (§14.7.4.3
   rule 7 — "the content of the resultant identifier is unchanged") is kept by the ONE rule-7 catch the arithmetic
-  statements use (`ArithmeticEmitter.EmitProhibitedInexactKeep`, called from `ReportWriterEmitter.FieldImage`): the
-  compose is emitted outside every statement's EC-SIZE checking, so the item's image is formed inside that try over a
+  statements use (`ArithmeticEmitter.EmitProhibitedInexactKeep`, called from `ReportWriterEmitter.FieldImage`): while
+  the presenting statement does not enable EC-SIZE-TRUNCATION, the item's image is formed inside that try over a
   local holding the item's unchanged content, which is SPACES — a printable item is a horizontal division of a line
   composed afresh from a space-filled buffer each presentation, its value "determined solely by a SOURCE, SUM, or
   VALUE clause" (§13.8.6.2.3) — and the presentation continues (CONFORMANCE.md DOC-A.1-70). Goldens
   `13.18.53-SOURCE/pb3990_report_source_prohibited_keeps_the_item` and `pb3990_report_source_rounded_edited`.
+  ⛔ **THE PRESENTING STATEMENT'S TURN STATE GOVERNS THE COMPOSE'S ARITHMETIC** (kb/Work PB4031). §7.3.25.4 GR6 enables
+  checking "for the procedure division statements and procedure division headers that follow in the compilation
+  group", so a TURN at the REPORT SECTION entry enables nothing there, and §14.7.5 names GENERATE among the statements
+  whose execution the size error condition "may occur as a result of": the implicit COMPUTE, the PRESENT WHEN
+  conditions (§13.18.41.4 GR2) and the VARYING FROM/BY expressions (§13.18.64.4 GR3) are evaluated as part of the
+  GENERATE or TERMINATE that presents the group, and that statement's EC-SIZE enablement decides them. One compose
+  serves every presenting statement, so the state travels at run time, through the one checking scope a statement
+  guard opens, as TWO flags — the run-time twins of the two compile-time questions `EcState.SizeChecking` and
+  `EcState.SizeTruncationChecking`: a GENERATE or TERMINATE whose line enables any EC-SIZE-* name sets
+  `ExceptionState.SizeChecking`, and one that enables EC-SIZE-TRUNCATION sets `ExceptionState.SizeTruncationChecking`
+  too, around its engine call (`ReportWriterEmitter.EmitPresenting` → `EcEmitter.OpenGateFlags`, so a USE BEFORE
+  REPORTING procedure the engine runs starts from its own baseline).
+  (1) **The checked kernels** (§14.7.5 no-phrase rule 3): each numeric render the compose or the presence probe makes is
+  rendered twice — as no statement's checking, and under `EcState.ComposeSizeChecking`, where every receiver-less
+  render takes the checked kernels exactly as inside a statement with EC-SIZE checking (`NumericRenderer.CheckedFor`) —
+  and `ReportWriterEmitter.UnderPresentingChecking` selects on `ExceptionState.SizeChecking`; two equal renders (nothing
+  arithmetic in them) emit once. So an intermediate past its range raises EC-SIZE-OVERFLOW under EC-SIZE-OVERFLOW
+  checking alone (kb/Work PB4031 review finding R1-1: the first landing carried EC-SIZE-TRUNCATION only).
+  (2) **The raising final transfer** (no-phrase rule 4, §14.7.4.3 rule 7): per implicit COMPUTE, under
+  `ExceptionState.SizeTruncationChecking` (`MoveEmitter.ConvertSource`'s `raiseOnSizeError`, rendered with the checked
+  kernels: each numeric arm's checked landing and Try store, a failed store thrown as EC-SIZE-TRUNCATION —
+  `CobolNum.StoreOrRaise`, `RuntimeApi.SizeRaisingImage`), and the checking-off transfer otherwise (the low-order
+  digits, DOC-A.1-70, or the rule-7 keep). Each raise leaves the compose for the presenting statement's guard, which
+  catches the condition because the same line enables it (§14.6.13.1.3). A compilation group that uses no exception
+  checking emits only the plain render (`EcState.Active`, the zero-scaffolding gate). Goldens
+  `13.18.53-SOURCE/pb4031_report_source_size_checking` (2002+, numeric and numeric-edited items, GENERATE and
+  TERMINATE, the TURN in force at each), `pb4031_report_overflow_checking` (2002+, EC-SIZE-OVERFLOW alone: a SOURCE
+  expression, a PRESENT WHEN condition, a VARYING BY expression, and a truncation that stays unraised) and
+  `pb4031_report_source_prohibited_checked` (2014+).
 - **THE SUM COUNTER IS A PLACE, AND ITS IDENTITY IS ITS ENTRY** (kb/Work PB882 × PB840). §13.18.54.4 GR1 gives
   EACH entry its own counter, so `ReportSumModel.Id` is the entry's ORDINAL in its report description and the
   engine holds the counters in a `List<SumEntry>` indexed by it; GR5's data-name rides alongside as
