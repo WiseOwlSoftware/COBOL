@@ -76,10 +76,36 @@ def spawn_detached(argv: list[str], log: pathlib.Path, cwd: str | os.PathLike | 
 
 
 def pid_alive(pid: int) -> bool:
-    """Is process `pid` running? (gate_slot's one probe: a zombie, which holds nothing, counts as dead.)"""
-    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-    from gate_slot import _pid_alive  # noqa: PLC0415  (imported where used: gate_slot's self-test harness takes kill_tree so)
-    return _pid_alive(pid)
+    """Is process `pid` RUNNING? THE ONE liveness probe of the scripts (kb/Work PB4008): it asks the operating system
+    whether the process has EXITED, never whether a process listing still names it. On Windows an exited process whose
+    object another handle keeps (a `Popen` not yet closed) is signaled, and `WaitForSingleObject(h, 0)` says so; a
+    snapshot can still list it under its image name, which once read as alive. On Linux a zombie still answers
+    `kill(pid, 0)` and its /proc entry; it holds nothing, so it counts as dead.
+    A process that exists but is NOT OURS TO OPEN (another user's or a protected one: Windows ERROR_ACCESS_DENIED, POSIX
+    EPERM) reads as running, the same on both systems: its exit state cannot be asked, and a caller that must tell its
+    own process from a stranger on a reused pid does so by name and command line (`coord.runs_python`). It never raises."""
+    if os.name == "nt":
+        import ctypes  # noqa: PLC0415
+        k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        k32.OpenProcess.restype = ctypes.c_void_p
+        h = k32.OpenProcess(0x00100000 | 0x1000, False, pid)  # SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION
+        if not h:
+            return ctypes.get_last_error() == 5   # ERROR_ACCESS_DENIED: it exists; no such pid is ERROR_INVALID_PARAMETER
+        try:
+            return k32.WaitForSingleObject(ctypes.c_void_p(h), 0) != 0  # 0 = WAIT_OBJECT_0: it has exited
+        finally:
+            k32.CloseHandle(ctypes.c_void_p(h))
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        pass   # EPERM: it exists and is another user's; its /proc stat still says whether it is a zombie
+    try:
+        with open(f"/proc/{pid}/stat", encoding="ascii") as fh:
+            return fh.read().split(") ", 1)[1][:1] != "Z"
+    except OSError:
+        return True
 
 
 def kill_tree(pid: int) -> None:
@@ -199,6 +225,31 @@ def self_test() -> int:
                    "process already gone is no error",
                    led_rc == -signal.SIGKILL and plain_rc == -signal.SIGKILL and "leads no process group" in said and gone,
                    f"led {led_rc}, plain {plain_rc}, said {said!r}, gone {gone}")
+
+        # 5. pid_alive never raises, and a live process that is not ours to open reads as running on both systems
+        #    (kb/Work PB4008 review R1-1, R1-2): Windows' System process (pid 4) refuses this probe's open with
+        #    ERROR_ACCESS_DENIED to an unelevated caller (an elevated one opens it and finds it running: the same answer);
+        #    on POSIX, kill(pid, 0) answers EPERM for another user's process, made here for every host (a root runner may
+        #    signal any pid) by an os.kill that refuses as the kernel would.
+        if os.name == "nt":
+            expect("the System process (pid 4), which an unelevated caller cannot open, reads as running",
+                   pid_alive(4) is True)
+        else:
+            real_kill = os.kill
+
+            def refusing_kill(pid: int, sig: int) -> None:
+                raise PermissionError(1, "Operation not permitted")
+
+            os.kill = refusing_kill
+            try:
+                said = repr(pid_alive(os.getpid()))
+            except OSError as exc:
+                said = f"raised {exc!r}"
+            finally:
+                os.kill = real_kill
+            expect("a live process that refuses kill(pid, 0) with EPERM (another user's) reads as running; nothing raises",
+                   said == "True", said)
+        expect("a pid no process has reads dead", pid_alive(2 ** 22 + 12345) is False)
     finally:
         if survivor is not None and pid_alive(survivor):
             kill_tree(survivor)
