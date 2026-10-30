@@ -1,4 +1,4 @@
-## PB851: USAGE per occurrence of an OCCURS entry is witnessed on all three table bands
+## Entry 2794 — 2026-10-30 11:49 PDT — PB851: USAGE per occurrence of an OCCURS entry is witnessed on all three table bands
 
 kb/Work PB851 claimed `GR-13.18.38.4-1` (every data description clause other than OCCURS applies to each occurrence)
 as an open GAP with no witness. Re-probed on a fresh build, the row was no longer a GAP: the golden lane had already
@@ -23,3 +23,4 @@ the REDEFINES (§13.18.44) and TYPE (§13.18.57) rows found them all verdicted. 
 
 Branch review round 1 (R1-1): the formats 1 and 2 golden first dropped `--std 85` on a false edition fact (BINARY and
 PACKED-DECIMAL are not 2002 introductions here); it now lists 85, and the 85 run prints the same eight lines as the others.
+
