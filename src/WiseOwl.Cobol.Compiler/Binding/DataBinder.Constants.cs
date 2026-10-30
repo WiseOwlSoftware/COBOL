@@ -711,7 +711,7 @@ public sealed partial class DataBinder
         if (nn.figurativeConstant() is not null)
         {
             Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: literal-1 shall not be a figurative "
-                + $"constant (ISO §13.10.3 SR6; '{nn.GetText()}')");
+                + $"constant (ISO §13.10.3 SR6; '{WrittenText(nn)}')");
             return null;
         }
         // The predefined NULL is an identifier, not literal-1, and §13.10.3 SR7 makes every operand of

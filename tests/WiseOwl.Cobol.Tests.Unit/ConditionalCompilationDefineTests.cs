@@ -292,6 +292,88 @@ public sealed class ConditionalCompilationDefineTests
         Assert.Equal(2, bare.Diagnostics.Count(d => d.Code == "COBOL1911"));
     }
 
+    private static string[] ErrorMessages(DiagnosticBag b) =>
+        b.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => d.Message).ToArray();
+
+    private const string Undefined = "is not a previously-defined";
+
+    /// <summary>kb/Work PB3119 — a refused <c>&gt;&gt;DEFINE</c> is reported ONCE, at the directive. A later operand that
+    /// names the variable fails silently in every arm that reads a name: a comparison operand (§7.3.8), an arithmetic
+    /// operand (§7.3.6.2 SR1b) and a boolean operand (§7.3.7.2 SR1). The control is the same operand over a name nobody
+    /// wrote, which still says it was never defined — the cascade is cut, the diagnostic is not.</summary>
+    [Theory]
+    [InlineData(">>DEFINE FOO AS 1 +\n")]          // operand that is no expression
+    [InlineData(">>DEFINE FOO AS\n")]              // no operand (§7.3.11.2)
+    [InlineData(">>DEFINE FOO AS 'A' OFF\n")]      // a word after the operand
+    public void RefusedDefine_ReportsOnce_LaterUsesAreSilent(string define)
+    {
+        const string uses = ">>IF FOO = 2\n>>END-IF\n>>IF FOO + 1 = 2\n>>END-IF\n>>IF B\"1\" AND FOO\n>>END-IF\n";
+        var (_, diags) = Run(define + uses);
+        string[] errors = ErrorMessages(diags);
+        Assert.Single(errors);
+        Assert.Contains(">>DEFINE", errors[0]);
+
+        var (_, control) = Run(define + uses.Replace("FOO", "BAR"));
+        Assert.Equal(3, ErrorMessages(control).Count(m => m.Contains(Undefined) || m.Contains("'BAR'")));
+    }
+
+    [Fact] // a PARAMETER value that is a numeric literal but does not evaluate (past the digit capacity) is a refusal too
+    public void RefusedDefine_ParameterLiteralThatDoesNotEvaluate_LaterUseIsSilent()
+    {
+        Environment.SetEnvironmentVariable("CN-PB3119-NUM", new string('9', 60));
+        try
+        {
+            var (_, diags) = Run(">>DEFINE CN-PB3119-NUM AS PARAMETER\n>>IF CN-PB3119-NUM = 1\n>>END-IF\n");
+            string[] errors = ErrorMessages(diags);
+            Assert.Single(errors);
+            Assert.DoesNotContain(Undefined, errors[0]);
+        }
+        finally { Environment.SetEnvironmentVariable("CN-PB3119-NUM", null); }
+    }
+
+    [Fact] // the refusal belongs to the LAST directive that wrote the name: a good redefinition ends it
+    public void RefusedDefine_ThenGoodDefine_NameResolvesAgain()
+    {
+        var (text, diags) = Run(">>DEFINE FOO AS 1 +\n>>DEFINE FOO AS 2\n>>IF FOO = 2\nKEPT\n>>END-IF\n");
+        Assert.Single(ErrorMessages(diags));
+        Assert.Contains("KEPT", text);
+
+        // …and a name that does resolve, to the WRONG category, is still a genuine complaint, not a silent one.
+        var (_, wrong) = Run(">>DEFINE FOO AS 1 +\n>>DEFINE FOO AS 'A'\n>>IF FOO + 1 = 2\n>>END-IF\n");
+        Assert.Equal(2, ErrorMessages(wrong).Length);
+    }
+
+    [Fact] // a DEFINE in an OMITTED branch has no effect: it refuses nothing, so a later use is a genuine undefined name
+    public void RefusedDefine_InOmittedBranch_DoesNotSilenceLaterUse()
+    {
+        var (_, diags) = Run(">>IF 1 = 2\n>>DEFINE FOO AS 1 +\n>>END-IF\n>>IF FOO = 2\n>>END-IF\n");
+        Assert.Contains(ErrorMessages(diags), m => m.Contains(Undefined));
+    }
+
+    [Fact] // PUSH/POP restore the refusals with the table: after POP the refused definition is gone, so FOO is undefined
+    public void RefusedDefine_PopRestoresTheRefusals()
+    {
+        var (_, diags) = Run(">>PUSH ALL\n>>DEFINE FOO AS 1 +\n>>IF FOO = 2\n>>END-IF\n>>POP ALL\n>>IF FOO = 2\n>>END-IF\n");
+        string[] errors = ErrorMessages(diags);
+        Assert.Equal(2, errors.Length);   // the refusal, then the use AFTER the POP; the use inside the PUSH was silent
+        Assert.Contains(Undefined, errors[1]);
+    }
+
+    /// <summary>kb/Work PB3429 — a diagnostic that quotes an operand quotes it AS WRITTEN (<c>FOO OF X</c>), never the
+    /// tokens run together (<c>FOOOFX</c>), in every arm of the evaluator that quotes a multi-token operand.</summary>
+    [Theory]
+    [InlineData(">>IF FOO OF X + 1 = 2\n>>END-IF\n", "'FOO OF X'")]                       // arithmetic operand
+    [InlineData(">>IF B\"1\" AND FOO OF X\n>>END-IF\n", "'FOO OF X'")]                    // boolean operand
+    [InlineData(">>IF B\"1\" B-SHIFT-L FOO OF X\n>>END-IF\n", "'FOO OF X'")]              // boolean shift count
+    public void QuotedOperand_KeepsItsWrittenSpacing(string directive, string quoted)
+    {
+        var (_, diags) = Run(directive);
+        string[] errors = ErrorMessages(diags);
+        Assert.NotEmpty(errors);
+        Assert.Contains(errors, m => m.Contains(quoted));
+        Assert.DoesNotContain(errors, m => m.Contains("FOOOFX"));
+    }
+
     [Theory] // every standard §7.3 directive is RECOGNIZED (consumed with its operand), never a stray token.
     [InlineData(">>DISPLAY \"hi\"")]
     [InlineData(">>FLAG-02 ON")]
