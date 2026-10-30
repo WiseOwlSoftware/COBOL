@@ -245,11 +245,12 @@ public static partial class CobolIntrinsics
 
     /// <summary>arccos |x| for ½ &lt; |x| ≤ 1 as 2·asin(√((1 − |x|)/2)), with 1 − |x| formed on the EXACT carrier —
     /// the half-angle identity, well conditioned in 1 − |x| where arccos is not in x.</summary>
-    private static double AcosOfMagnitude(CobolDec v)
-    {
-        double fromOne = CobolDec.Sub(OneDec, v with { Sig = Int128.Abs(v.Sig) }, CobolRounding.NearestEven).ToDouble();
-        return 2 * Math.Asin(Math.Sqrt(fromOne / 2));
-    }
+    private static double AcosOfMagnitude(CobolDec v) =>
+        AcosOfGap(CobolDec.Sub(OneDec, v with { Sig = Int128.Abs(v.Sig) }, CobolRounding.NearestEven).ToDouble());
+
+    /// <summary>arccos of the magnitude 1 − <paramref name="fromOne"/> as 2·asin(√(fromOne/2)) — the half-angle identity over the
+    /// gap to 1, which <paramref name="fromOne"/> carries at binary64's RELATIVE precision (formed on the exact carrier).</summary>
+    private static double AcosOfGap(double fromOne) => 2 * Math.Asin(Math.Sqrt(fromOne / 2));
 
     /// <summary>§15.82 SIN of an exact argument: sin(q·π/2 + r) by quadrant over the residue r formed EXACTLY
     /// (<see cref="ReduceQuarterTurns"/>) — sin(10^400) is an ordinary value in [−1, +1], not sin(+∞), sin(10^40) is
@@ -259,9 +260,15 @@ public static partial class CobolIntrinsics
     {
         double d = x.ToDouble();
         if (Math.Abs(d) <= QuarterPi) return Math.Sin(d);
-        var (q, hi, lo) = ReduceQuarterTurns(x);
-        double v = (q & 1) == 0 ? SinDd(hi, lo) : CosDd(hi, lo);
-        return (q >= 2) != (x.Sig < 0) ? -v : v;                       // sin(x + π) = −sin x; sin is odd
+        return SinReduced(ReduceQuarterTurns(x), x.Sig < 0);
+    }
+
+    /// <summary>sin of an argument already reduced to quadrant and residue (<see cref="ReduceQuarterTurns"/>), the argument's
+    /// sign applied by the function's parity — the one place SIN's quadrant rule is written, for every carrier.</summary>
+    private static double SinReduced((int Quadrant, double Hi, double Lo) r, bool negative)
+    {
+        double v = (r.Quadrant & 1) == 0 ? SinDd(r.Hi, r.Lo) : CosDd(r.Hi, r.Lo);
+        return (r.Quadrant >= 2) != negative ? -v : v;                 // sin(x + π) = −sin x; sin is odd
     }
 
     /// <summary>§15.20 COS of an exact argument (<see cref="ReduceQuarterTurns"/>).</summary>
@@ -269,15 +276,17 @@ public static partial class CobolIntrinsics
     {
         double d = x.ToDouble();
         if (Math.Abs(d) <= QuarterPi) return Math.Cos(d);
-        var (q, hi, lo) = ReduceQuarterTurns(x);
-        return q switch                                                  // cos is even: |x| decides
-        {
-            0 => CosDd(hi, lo),
-            1 => -SinDd(hi, lo),
-            2 => -CosDd(hi, lo),
-            _ => SinDd(hi, lo),
-        };
+        return CosReduced(ReduceQuarterTurns(x));
     }
+
+    /// <summary>cos of an argument already reduced to quadrant and residue — even, so the magnitude decides.</summary>
+    private static double CosReduced((int Quadrant, double Hi, double Lo) r) => r.Quadrant switch
+    {
+        0 => CosDd(r.Hi, r.Lo),
+        1 => -SinDd(r.Hi, r.Lo),
+        2 => -CosDd(r.Hi, r.Lo),
+        _ => SinDd(r.Hi, r.Lo),
+    };
 
     /// <summary>§15.89 TAN of an exact argument: tan r in an even quadrant, −cot r in an odd one — TAN of an argument
     /// just below π/2 is the reciprocal of its residue, not tan of the binary64 nearest π/2
@@ -286,11 +295,17 @@ public static partial class CobolIntrinsics
     {
         double d = x.ToDouble();
         if (Math.Abs(d) <= QuarterPi) return Math.Tan(d);
-        var (q, hi, lo) = ReduceQuarterTurns(x);
-        double t = Math.Tan(hi);
-        t += lo * (1 + t * t);                                           // tan(hi + lo) to first order in lo
-        double v = (q & 1) == 0 ? t : -1 / t;
-        return x.Sig < 0 ? -v : v;                                       // tan is odd
+        return TanReduced(ReduceQuarterTurns(x), x.Sig < 0);
+    }
+
+    /// <summary>tan of an argument already reduced to quadrant and residue: tan r in an even quadrant, −cot r in an odd one,
+    /// negated for a negative argument (tan is odd).</summary>
+    private static double TanReduced((int Quadrant, double Hi, double Lo) r, bool negative)
+    {
+        double t = Math.Tan(r.Hi);
+        t += r.Lo * (1 + t * t);                                         // tan(hi + lo) to first order in lo
+        double v = (r.Quadrant & 1) == 0 ? t : -1 / t;
+        return negative ? -v : v;
     }
 
     /// <summary>sin(hi + lo) to first order in lo (|lo| ≤ 2^−53·|hi|).</summary>

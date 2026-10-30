@@ -689,6 +689,12 @@ internal static class RuntimeApi
             ? $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.DomainDecAdmitted)}({x.Expr}, {DomainTail(domain, function, rule)})"
             : throw new InvalidOperationException("DomainArgAdmitted screens an SDIDI operand only");
 
+    /// <summary>The SAME screen over an EXACT WIDE operand (<c>NumX.Wide</c>) whose body takes it unnarrowed (kb/Work PB4075) —
+    /// <c>CobolIntrinsics.DomainWideAdmitted</c>, sharing the predicate of <see cref="DomainArgAdmitted"/>'s and returning the
+    /// admitted <c>CobolWide?</c> (null = rejected).</summary>
+    public static string DomainWideAdmitted(string wide, int scale, WiseOwl.Cobol.Binding.IntrinsicDomain domain, string function, string rule) =>
+        $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.DomainWideAdmitted)}({wide}, {scale}, {DomainTail(domain, function, rule)})";
+
     private static string DomainTail(WiseOwl.Cobol.Binding.IntrinsicDomain domain, string function, string rule) =>
         $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.ArgumentDomain)}.{domain}, "
         + $"{Emit.EmitText.CsLiteral(function)}, {Emit.EmitText.CsLiteral(rule)}";
