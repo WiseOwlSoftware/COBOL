@@ -17,7 +17,12 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// <param name="Written">The DEFINE operand as written (empty for OFF and PARAMETER) — the "text represented by"
 /// the name, which a directive literal slot screens with its own literal rules (§7.3.10.3 SR2's "shall not be
 /// specified in hexadecimal-alphanumeric format" is a rule about the WRITTEN literal, not its value).</param>
-public sealed record CompilationVariableEvent(int Line, string Name, CtValue? Value, string Written);
+/// <param name="Refused">True when the directive was REFUSED (malformed, a compiler-directive word, or an operand
+/// that did not evaluate; reported at the directive, kb/Work PB3119): the table did not change, so
+/// <see cref="CompilationVariableTimeline.DefinitionAt"/> passes over the event, and
+/// <see cref="CompilationVariableTimeline.StandingAt"/> reads it so a later use of the name fails silently
+/// instead of reporting the name undefined. <paramref name="Value"/> and <paramref name="Written"/> are then empty.</param>
+public sealed record CompilationVariableEvent(int Line, string Name, CtValue? Value, string Written, bool Refused = false);
 
 /// <summary>
 /// THE question every non-conditional-compilation use of a compilation variable asks of the table's
@@ -31,7 +36,8 @@ public sealed record CompilationVariableEvent(int Line, string Name, CtValue? Va
 public static class CompilationVariableTimeline
 {
     /// <summary>The definition of <paramref name="name"/> in force at a construct on <paramref name="siteLine"/>: the
-    /// most recent DEFINE of that name written before the site and not revoked by a <c>&gt;&gt;POP</c> (§7.3.20.4
+    /// most recent DEFINE of that name written before the site that was not refused (a refused one changed nothing)
+    /// and not revoked by a <c>&gt;&gt;POP</c> (§7.3.20.4
     /// GR1/GR3 restore the whole table, §7.3.22.4 GR3), or null when that DEFINE specified OFF, supplied no PARAMETER
     /// value, or no DEFINE of the name precedes the site — the name's defined condition is then false (§7.3.11.4
     /// GR2). The match ignores case: "COBOL basic letters appearing elsewhere within the compilation group are treated
@@ -39,6 +45,16 @@ public static class CompilationVariableTimeline
     public static CompilationVariableEvent? DefinitionAt(
         this DirectiveTimeline<CompilationVariableEvent> timeline, string name, int siteLine) =>
         timeline.TryLastInEffectBefore(siteLine, ev => ev.Line, out var last,
-            ev => CobolNames.Same(ev.Name, name))
+            ev => !ev.Refused && CobolNames.Same(ev.Name, name))
         && last.Value is not null ? last : null;
+
+    /// <summary>What a use of <paramref name="name"/> at <paramref name="siteLine"/> stands on: its
+    /// <see cref="DefinitionAt">definition</see> when it has one; else the REFUSAL when the last directive in effect
+    /// that wrote the name was refused (the use then fails silently, the refusal having been reported at its
+    /// directive — kb/Work PB3119); else null, a name nobody defined, or whose last directive was OFF.</summary>
+    public static CompilationVariableEvent? StandingAt(
+        this DirectiveTimeline<CompilationVariableEvent> timeline, string name, int siteLine) =>
+        timeline.DefinitionAt(name, siteLine)
+        ?? (timeline.TryLastInEffectBefore(siteLine, ev => ev.Line, out var last, ev => CobolNames.Same(ev.Name, name))
+            && last.Refused ? last : null);
 }
