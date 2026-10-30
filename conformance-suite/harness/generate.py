@@ -1829,6 +1829,8 @@ def self_test() -> int:
           all(cobol.decode(mark + text.encode(enc)) == text for mark, enc in (
               (b"\xfe\xff", "utf-16-be"), (b"\xff\xfe", "utf-16-le"), (b"\x00\x00\xfe\xff", "utf-32-be"),
               (b"\xff\xfe\x00\x00", "utf-32-le"), (b"\xef\xbb\xbf", "utf-8"), (b"", "utf-8"))))
+    check("arm: a library text that is not well-formed is read leniently (its structure is all this reader needs)",
+          cobol.decode(b"COPY A\xe9.") == "COPY Aé." and cobol.decode(b"\xef\xbb\xbfCOPY A\xe9.") == "COPY A�.")
     print("=== generate.py --self-test: " + ("ALL GREEN" if not rc else "FAILED") + " ===")
     return rc
 

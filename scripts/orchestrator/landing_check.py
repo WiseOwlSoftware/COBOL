@@ -8,7 +8,8 @@ planner (plan_wave.py --cluster) admits a wave on its COMPUTED file set: its sit
 finds, the files under its site folders. Three refuter rounds each found a new hole in that computation (hand lists,
 then the index's blind spots, then its staleness), so the planner's set is an ADMISSION ESTIMATE; a miss in it must
 be caught, never silently landed. This is the second line: before a landing reaches main it first refuses a path no landing carries (0: coord.NEVER_WORK,
-above all the harness's tracked `.claude/settings.local.json`, which `git add -A` stages), then compares what the landing
+above all the harness's tracked `.claude/settings.local.json`, which `git add -A` stages) and a public-API baseline that lists a symbol
+twice (0b: RS0025, in the landing's own tree, kb/Work PB3694), then compares what the landing
 ACTUALLY changed with
 
   1. its DECLARED file set, for the R3 work it lands: the set the dispatch ledger recorded for those notes when they
@@ -86,6 +87,7 @@ from reports import Report, ledger_slug, load_reports  # noqa: E402  (THE fleet-
 import work  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+import merge_drivers  # noqa: E402  (scripts/: which files are public-API baselines, and the symbol one lists twice, kb/Work PB3694)
 
 PB = re.compile(r"\bPB\d+\b")
 LEADING_IDS = re.compile(r"^((?:PB\d+[\s+,&-]*)+)", re.M)   # "PB1939+PB2004: ..." — the notes a commit works on
@@ -187,6 +189,39 @@ def best_group(files: set[str], groups: list[dict[str, Any]]) -> dict[str, Any] 
                key=lambda ng: (ng[0], -len(ng[1].get("files", [])), ng[1].get("at", 0.0)), default=(0, None))[1]
 
 
+def baseline_texts(repo: pathlib.Path, git: Callable[..., Any], tree: str) -> dict[str, str]:
+    """{path: text} of every public-API baseline (merge_drivers.is_symbol_baseline) in `tree`, from one `git ls-tree -r`
+    and ONE batched blob read (git_batch.blobs), however many baselines the tree holds."""
+    listed = git("ls-tree", "-r", "-z", tree).stdout.split(chr(0))
+    paths = {}   # {path: blob id}: an entry reads `<mode> blob <id>\t<path>`
+    for entry in filter(None, listed):
+        meta, _, path = entry.partition(chr(9))
+        if merge_drivers.is_symbol_baseline(path):
+            paths[path] = meta.split()[2]
+    blob = dict(git_batch.blobs(repo, paths.values()))
+    return {path: blob[oid].decode("utf-8", "replace") for path, oid in paths.items()}
+
+
+def baseline_stops(repo: pathlib.Path, rev: str, git: Callable[..., Any]) -> list[str]:
+    """The public-API baselines of the landing's own tree that list a symbol twice, or in both PublicAPI.Shipped.txt and
+    PublicAPI.Unshipped.txt (kb/Work PB3694): RS0025 fails the Release build on one. The merge driver (PB3727) keeps a
+    symbol both sides added once in a merge this repository makes; this reads what the branch's head holds, which no
+    local test of a branch ever read.
+
+    What it does NOT read is GitHub's merge group's own merge. That merge runs no driver (PB3642) and keeps a symbol both
+    sides added at different places twice, but it merges the pushed head with the main of the moment it is made. Every
+    caller presents a head that already contains origin/main (enqueue.queue refuses any other, exit 2; the landing lane
+    checks from the merge base, which the head contains), so a `git merge-tree` of the two is the head's own tree and
+    reads nothing. Only a main that advances after the push makes the merge differ, and no check before the push can
+    read a commit that does not exist yet: CI's merge-group run is the net for it (kb/Work PB3694, Residual)."""
+    tree = git("rev-parse", "--verify", "-q", f"{rev}^{{tree}}").stdout.strip()
+    dups = merge_drivers.baseline_duplicates(baseline_texts(repo, git, tree)) if tree else []
+    return ([f"the landing's tree lists a public-API symbol twice, which fails the Release build (RS0025): "
+             f"{'; '.join(dups[:5])}{' …' if len(dups) > 5 else ''} — keep each symbol once in the baselines "
+             f"(`python scripts/merge_drivers.py merge <origin/main>` merges them as a set), commit, and re-gate"]
+            if dups else [])
+
+
 def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, items: list[dict], rules: dict[str, Any],
           declared_for: Callable[[list[str]], set[str]], git: Callable[..., Any] | None = None,
           r3_lead: str = work.R3_PROGRAM, reports: list[Report] = ()) -> tuple[list[str], list[str]]:
@@ -199,7 +234,8 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
     r3 = {i.get("id") for i in items if r3_lead in (i.get("cluster") or [])}
     status = {i.get("id"): i.get("status") for i in items}
     terminal = lambda n: status.get(n) in work.TERMINAL_STATUSES  # noqa: E731
-    mine = {p for p in inflight.changed_files(git, f"{base}...{rev}") if inside(p)}
+    touched = inflight.range_names(git, f"{base}...{rev}")   # THE one read of the range (kb/Work PB3791): arm 0 and `mine`
+    mine = {p for p in inflight.work_names(touched) if inside(p)}
     notes = work_notes(git, graph, base, rev)
     # R3 work is attributed PER COMMIT (PB2703): a landing can be MIXED — a branch that merged a predecessor, a train
     # before kb/Work PB3023 — some commits R3 notes, the rest fix lane or tooling — so the R3 work is the commits that
@@ -221,12 +257,13 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
     # landing that carried them would make every checkout whose copy is locally modified refuse `merge --ff-only` and
     # grant every session the broadened permissions (branch review R2-1 of PB3389; the same shape as round 2 of
     # kb/Work PB1563, which the DEVLOG recorded and nothing prevented).
-    # (changed_files drops these paths by design, so this reads the diff's names unfiltered.)
-    changed = git("diff", "--name-only", "--no-renames", f"{base}...{rev}").stdout.splitlines()
-    if leaked := sorted(p for p in changed if p.strip() and not coord.is_work(p.strip())):
+    # (`touched` is the range's names unfiltered; `mine` is its work paths: the range is asked about once, PB3791.)
+    if leaked := sorted(p for p in touched if not coord.is_work(p)):
         stops.append(f"carries {', '.join(leaked[:5])}{' …' if len(leaked) > 5 else ''}, which no landing carries "
                      f"(coord.NEVER_WORK: the harness's per-machine settings, the checkpoint file, the gate's results): "
                      f"restore each to its content on {base} (`git checkout {base} -- <path>`), commit, and re-gate")
+    # 0b. a public-API baseline that lists a symbol twice (kb/Work PB3694): RS0025 fails the Release build
+    stops += baseline_stops(repo, rev, git)
 
     if mine_r3:   # 1. the declared set
         # From the FULL ledger, terminal or not: the declaration recorded when the work was planned is the authority
@@ -752,7 +789,54 @@ def self_test() -> int:
     expect("... and the same fix without it lands",
            check(repo, "origin/main", "s-clean", cdir, items, rules, never, git), 0, 0)
     scratch.git("branch", "-D", "s-clean")
+    # kb/Work PB3791: `check` asks git for the range's names ONCE, whether the landing carries a NEVER_WORK path (arm 0 reads
+    # the names unfiltered) or not (`mine` reads them filtered); a second `git diff --name-only` of the range returning
+    # fails this arm
+    for name, edits in (("s-count-set", {"src/B.cs": "// fixed" + chr(10), ".claude/settings.local.json": "{}" + chr(10)}),
+                        ("s-count-clean", {"src/B.cs": "// fixed" + chr(10)})):
+        branch(name, "PB9100: a fix", edits, 1_000_970)
+        asked: list[tuple[str, ...]] = []
 
+        def counting(*args: str, **kw: Any) -> Any:
+            asked.append(args)
+            return git(*args, **kw)
+        check(repo, "origin/main", name, cdir, items, rules, never, counting)
+        reads = [a for a in asked if a[:1] == ("diff",) and "--name-only" in a and f"origin/main...{name}" in a]
+        expect(f"PB3791: the range of a landing {'carrying a NEVER_WORK path ' if 'set' in name else ''}is asked about once",
+               ([] if len(reads) == 1 else [f"{len(reads)} reads: {reads}"], []), 0, 0)
+        scratch.git("branch", "-D", name)
+
+    # kb/Work PB3694: a public-API baseline that lists a symbol twice fails the Release build (RS0025). The landing's own tree
+    # lists it twice, or in both Shipped and Unshipped. (The merge GitHub's merge group makes of a head and a main that moved
+    # after the push is not readable before the push: baseline_stops says so.) Its own repository, so main's commits do not
+    # move the cases above.
+    apis = ScratchRepo.init(root / "apis")
+    shipped, unshipped = "src/Lib/PublicAPI.Shipped.txt", "src/Lib/PublicAPI.Unshipped.txt"
+
+    def api(*symbols: str) -> str:
+        return "".join(line + chr(10) for line in ("#nullable enable", *symbols))
+    apis.commit("base", {shipped: api("A.A", "B.B"), unshipped: api("C.C", "E.E")}, when=1_002_000)
+    apis.git("update-ref", "refs/remotes/origin/main", "HEAD")
+    for name, edits in (("dup", {unshipped: api("C.C", "E.E", "E.E")}),
+                        ("both", {unshipped: api("A.A", "C.C", "E.E")}),
+                        ("removed", {unshipped: api("*REMOVED*B.B", "C.C", "E.E", "Z.Z")})):
+        apis.git("checkout", "-q", "-b", name, "origin/main")
+        apis.commit(f"a baseline edit: {name}", edits, when=1_002_100)
+        apis.git("checkout", "-q", "main")
+    empty = root / "coord-apis"
+    empty.mkdir()
+    apis_git = _git(apis.path)
+
+    def baselines(name: str, needle: str = "") -> list[str]:
+        """The landing's stops; with `needle`, the one stop that holds it ([] when it is not the only stop)."""
+        stops = check(apis.path, "origin/main", name, empty, [], rules, never, apis_git)[0]
+        return [s for s in stops if needle in s] if not needle or len(stops) == 1 else [*stops, "(more than one stop)"]
+    expect("PB3694: a baseline that lists a symbol twice STOPS, naming the file and the symbol",
+           (baselines("dup", f"(RS0025): {unshipped}: E.E is listed twice"), []), 1, 0)
+    expect("PB3694: a symbol in both PublicAPI.Shipped.txt and PublicAPI.Unshipped.txt STOPS",
+           (baselines("both", f"{shipped} and {unshipped}: A.A is listed in both"), []), 1, 0)
+    expect("PB3694: a `*REMOVED*` line beside the Shipped symbol it removes is no duplicate: lands",
+           (baselines("removed"), []), 0, 0)
     base_sha = scratch.git("rev-parse", "main")
     commits("f-behind", ("PB9100: a fix-lane branch", {"src/B.cs": "// fixed\n"}, 1_001_200))
     write("src/C.cs", "// main's own R3 landing, outside PB9001's declared set\n")

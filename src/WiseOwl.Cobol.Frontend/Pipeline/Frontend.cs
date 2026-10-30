@@ -89,7 +89,9 @@ public sealed class Frontend
     /// </summary>
     public CobolParserCore.CompilationUnitContext? Parse(string sourcePath, DiagnosticBag diagnostics)
     {
-        string raw = Inputs.ReadAllText(sourcePath);
+        // The bytes become characters in SourceTextDecoder (A.1 items 25 and 26): a marked file that is not well-formed in its
+        // encoding is COBOL5434 and ends the compilation here, an unmarked non-UTF-8 file is read as ISO/IEC 8859-1 with COBOL5435.
+        if (Inputs.ReadSourceText(sourcePath, diagnostics) is not { } raw) return null;
 
         // ISO §14.9.28.4 GR14 (kb/Work PB1004, PB1066): "An implicit PUSH ALL … is assumed at the end of
         // imperative-statement-1. Immediately preceding the END PERFORM phrase, there is an implicit POP ALL". ALL is

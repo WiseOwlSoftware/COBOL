@@ -50,6 +50,9 @@ THE DRIVERS (DRIVERS: the one registry; `.gitattributes` repeats its patterns, a
                     declines: a line is atomic, and a stale symbol fails the build (RS0017) as any wrong baseline does.
                     git's union merge, which governed these files before, kept a line one side removed when the other
                     side added a line beside it, and kept a symbol both sides added at different places twice (PB3694).
+                    `landing_check.py` (arm 0b) reads the baselines of the landing's tree and STOPS on a symbol listed
+                    twice (baseline_duplicates, RS0025). GitHub's merge group runs no driver and merges the pushed head
+                    with the main of the moment: a main that advanced after the push is read by CI alone (PB3694).
 PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643). `docs/CONFORMANCE.md` and the `DESIGN-*.md` documents look append-only
 and conflict at landings, but `--hunks <path>…` (replay every merge in history that touched the file, classify each
 conflict hunk of git's line merge) measured otherwise over CONFORMANCE.md, DESIGN-runtime-library.md and
@@ -372,6 +375,41 @@ def merge_symbol_set(base: str, ours: str, theirs: str) -> str:
     kept = (b | (o - b) | (t - b)) - (b - o) - (b - t)
     header = sorted(ln for ln in kept if ln.startswith("#"))
     return "".join(ln + NL for ln in header + sorted(kept.difference(header)))
+
+
+#: The DRIVERS row that merges the public-API baselines: the one definition of which files are symbol baselines.
+SYMBOL_SET_DRIVER = "cobol-keyed-publicapi"
+
+
+def is_symbol_baseline(path: str) -> bool:
+    """Whether `path` is a public-API baseline, a file the SYMBOL_SET_DRIVER row governs (its pattern, pattern_matches)."""
+    return any(pattern_matches(path, p) for d in DRIVERS if d.name == SYMBOL_SET_DRIVER for p in d.patterns)
+
+
+def baseline_duplicates(files: dict[str, str]) -> list[str]:
+    """The symbols the baselines `files` ({path: text}) list twice, which Microsoft.CodeAnalysis.PublicApiAnalyzers fails
+    the build on as RS0025 (kb/Work PB3694): a symbol line twice in one file, or one plain line in two files of one directory
+    (Shipped and Unshipped are one project's API). A `*REMOVED*X` line is a different line from the Shipped `X` it removes,
+    so that pair is no finding. A line is compared as merge_symbol_set reads it (a CR is no part of it; a blank line and a
+    `#` header line are no symbol). Sorted, one finding per symbol and place, each naming the file(s)."""
+    by_dir: dict[str, dict[str, set[str]]] = {}
+    found: list[str] = []
+    for path, text in sorted(files.items()):
+        seen: set[str] = set()
+        for line in (ln.rstrip(chr(13)) for ln in text.split(NL)):
+            if not line or line.startswith("#"):
+                continue
+            if line in seen:
+                found.append(f"{path}: {line} is listed twice")
+            seen.add(line)
+        directory = str(pathlib.PurePosixPath(path).parent)
+        for line in seen:
+            by_dir.setdefault(directory, {}).setdefault(line, set()).add(path)
+    for owners in by_dir.values():
+        for line, paths in owners.items():
+            if len(paths) > 1:
+                found.append(f"{' and '.join(sorted(paths))}: {line} is listed in both")
+    return sorted(found)
 
 
 # ── the registry ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -779,6 +817,22 @@ def self_test() -> int:
            and merge_symbol_set("", "", "") == "")
     expect("publicapi: the same line added by both is one line",
            merge_symbol_set(api(hdr, "A.X"), api(hdr, "A.N", "A.X"), api(hdr, "A.X", "A.N")) == api(hdr, "A.N", "A.X"))
+
+    shipped, unshipped = "src/L/PublicAPI.Shipped.txt", "src/L/PublicAPI.Unshipped.txt"
+    expect("publicapi: baseline_duplicates names a symbol listed twice in one file and a plain line in both Shipped and "
+           "Unshipped of one directory (RS0025, kb/Work PB3694); a `*REMOVED*X` beside the Shipped X, one symbol in two "
+           "directories, a repeated `#` header line, blank lines and a CR are no duplicate",
+           baseline_duplicates({shipped: api(hdr, "A.A", "B.B"), unshipped: api(hdr, "C.C", "C.C", "A.A", "*REMOVED*B.B")})
+           == [f"{shipped} and {unshipped}: A.A is listed in both", f"{unshipped}: C.C is listed twice"]
+           and baseline_duplicates({shipped: api(hdr, "A.A"), unshipped: api(hdr, "*REMOVED*A.A", "B.B", "", "B.A" + chr(13)),
+                                    "src/M/PublicAPI.Shipped.txt": api(hdr, "A.A", "B.B")}) == []
+           and baseline_duplicates({unshipped: api(hdr, "B.A", "B.A" + chr(13))}) == [f"{unshipped}: B.A is listed twice"]
+           and baseline_duplicates({}) == [])
+    expect("publicapi: is_symbol_baseline reads the SYMBOL_SET_DRIVER row's pattern, so a baseline anywhere under src/ is one "
+           "and a tests/ copy or a backup is not",
+           is_symbol_baseline("src/WiseOwl.Cobol.Runtime/PublicAPI.Unshipped.txt") and is_symbol_baseline("src/PublicAPI.Shipped.txt")
+           and not is_symbol_baseline("tests/a/PublicAPI.Shipped.txt") and not is_symbol_baseline("src/a/PublicAPI.Shipped.txt.bak")
+           and any(d.name == SYMBOL_SET_DRIVER for d in DRIVERS))
 
     lines = lambda *ls: NL.join(ls) + NL    # noqa: E731
     twelve = [f"l{i}" for i in range(1, 13)]
