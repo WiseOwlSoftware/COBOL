@@ -969,7 +969,11 @@ exactly the rows that executed it (an edited test METHOD is also tier 0a, §3.14
 
 What used to force the WHOLE-assembly filter — no map in the store, a `.g4`, project, build or source-generator input,
 a src file the map has never seen, non-C# data under `src/`, a method reached only outside every test's context — now
-puts EVERY test in tier 1, and the plan still contains all of them.
+puts EVERY test in tier 1, and the plan still contains all of them. A file the SDK or NuGet reads by its name
+(`global.json`, `nuget.config`, `Directory.*`) is that input only as a whole path segment
+(`impacted_tests.STRUCTURAL_RE`), and a conformance-suite file is attributed to its test before any of these: a refusal
+whose test id ends like one (`wiseowl/diagnostics/a42-screen-global.json`) is its test's tier-0a row, never a build input
+(kb/Work PB4147).
 
 **Which map serves a base (kb/Work PB3663; `impact_store.nearest`).** A map is a statement about the tree it was
 recorded at: per source file, the line ranges each method owns and the tests that executed them. It describes a base
@@ -1223,7 +1227,10 @@ because the raw name is not stable (`b7`):
   once lexed puts every test method of the file here, and `impacted_tests.py --audit-members` (run by
   `ImpactedTestsDriftTests`) holds the lexer to every source of the gated test projects (kb/Work PB3190: until
   2026-10-23 only an ADDED method was here, so under batched gating an edited test ran in leg 1 only if the tier-1
-  budget reached it, and its red surfaced first at the landing's Linux gate or in CI); a corpus row whose manifest entry or golden files the diff changes; a case red at this worktree's previous
+  budget reached it, and its red surfaced first at the landing's Linux gate or in CI); a corpus row whose manifest entry, golden files or
+  registry file (`wiseowl/diagnostics/<id>.json`, `options/`) the diff changes, named by its `id` argument whole or as xunit
+  cuts a string argument over 50 characters (`id: "<first 50>"···`, which names every touched id it begins:
+  `gate_plan.names_golden`, kb/Work PB4147); a case red at this worktree's previous
   gate on EITHER host: build-local's previous run, and the newest run of the Linux gate (`scripts/linux-gate.sh`, which
   a landing runs right after the Windows gate and which leaves its trx files in `TestResults/linux-gate/`), both read
   by ONE reader, `gate_plan.previous_gates` (kb/Work PB3155, PB3184), and a case red in the CI run that BOUNCED this

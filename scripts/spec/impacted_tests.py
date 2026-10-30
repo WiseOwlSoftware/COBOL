@@ -90,9 +90,12 @@ CONFORMANCE_DIR = "tests/WiseOwl.Cobol.Tests.Conformance/"
 TEST_ASSEMBLIES = {f"{d}/": k for k, d in GATED_ASSEMBLIES.items()}
 SHARED_TEST_DIR = "tests/_shared/"   # linked into every test project
 TEST_PROJECTS = (*TEST_ASSEMBLIES, SHARED_TEST_DIR)
-# Structural inputs: every assembly may change.
-STRUCTURAL_RE = re.compile(r"(\.g4|\.csproj|\.props|\.targets|\.sln|global\.json|nuget\.config|\.editorconfig)$"
-                           r"|^src/WiseOwl\.Cobol\.Compiler\.SourceGen/|(^|/)Directory\.[^/]+$", re.IGNORECASE)
+# Structural inputs: every assembly may change. A file the SDK or NuGet reads by its NAME (`global.json`,
+# `nuget.config`, `Directory.*`) is matched as a whole path segment, never as a name's tail: the refusal registry
+# holds one `<test id>.json` per test (kb/Work PB4147), and `a42-screen-global.json` is a refusal, not the SDK pin.
+STRUCTURAL_RE = re.compile(r"(\.g4|\.csproj|\.props|\.targets|\.sln|\.editorconfig)$"
+                           r"|(^|/)(global\.json|nuget\.config|Directory\.[^/]+)$"
+                           r"|^src/WiseOwl\.Cobol\.Compiler\.SourceGen/", re.IGNORECASE)
 #: Two non-C# files under `src/` that no assembly embeds and no test executes: the public-API baselines of the Roslyn
 #: analyzer (`<AdditionalFiles>` of the runtime project, RS0016/RS0017: read at build time) and the runtime ABI pin
 #: (`RuntimeAbi.pin`, which scripts/abi_pin.py measures and RuntimeAbiPinDriftTests reads; the version the build uses is
@@ -707,22 +710,8 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
         if path.startswith("tools/impact/"):
             reach.notes.append(f"{path}: the impact recorder itself — only a recording build compiles it")
             continue
-        if STRUCTURAL_RE.search(path):
-            reach.every_tier1.append(f"{path}: a grammar, build or source-generator input — every assembly may change")
-            continue
-        if path.endswith(".cs") and path.startswith(("src/", "tests/")):
-            if path.startswith("tests/") and not path.startswith(TEST_PROJECTS):
-                reach.notes.append(f"{path}: in a test project outside the three gated assemblies — no gated test "
-                                   f"runs it")
-                continue
-            if ix is not None:
-                reach_cs(ix, path, status, base, reach)
-            if path.startswith(TEST_PROJECTS) and status != "D":  # a deleted file has no test left to run
-                reach_test_file(path, base, reach)
-            continue
-        if path.startswith("src/") and not READ_ONLY_DATA_RE.search(path):
-            reach.every_tier1.append(f"{path}: a non-C# input under src/ (embedded data or resources)")
-            continue
+        # A suite file is data its own test reads, whatever its name: it is attributed before the structural names,
+        # so a test id or a declared file that ends like a build input (`…-global.json`) stays its test's.
         if path.startswith(SUITE_REGISTRIES):
             if status == "D":   # a deleted file leaves no refusal or option to run
                 reach.notes.append(f"{path}: a registry file removed — no refusal or option of it remains to run")
@@ -738,6 +727,22 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
             else:
                 reach.goldens |= tests
                 reach.notes.append(f"{path}: the suite test(s) {', '.join(sorted(tests))}")
+            continue
+        if STRUCTURAL_RE.search(path):
+            reach.every_tier1.append(f"{path}: a grammar, build or source-generator input — every assembly may change")
+            continue
+        if path.endswith(".cs") and path.startswith(("src/", "tests/")):
+            if path.startswith("tests/") and not path.startswith(TEST_PROJECTS):
+                reach.notes.append(f"{path}: in a test project outside the three gated assemblies — no gated test "
+                                   f"runs it")
+                continue
+            if ix is not None:
+                reach_cs(ix, path, status, base, reach)
+            if path.startswith(TEST_PROJECTS) and status != "D":  # a deleted file has no test left to run
+                reach_test_file(path, base, reach)
+            continue
+        if path.startswith("src/") and not READ_ONLY_DATA_RE.search(path):
+            reach.every_tier1.append(f"{path}: a non-C# input under src/ (embedded data or resources)")
             continue
         if ix is None:
             continue
@@ -1134,6 +1139,15 @@ def self_test() -> int:
     check("a one-file-per-test registry file is its test's entry: the id before the first dot is tier 0a, nothing "
           "is unattributable (kb/Work PB4147)",
           reach.goldens == {"refused-one", "multi-unit"} and not reach.every_tier1, (reach.goldens, reach.every_tier1))
+    _, reach = tiers_for([registry + "diagnostics/a42-screen-global.json", registry + "diagnostics/global.json"])
+    check("a registry file whose test id ends like a build input (`…-global.json`, or the id `global`) is its "
+          "test's entry, never the SDK pin (kb/Work PB4147)",
+          reach.goldens == {"a42-screen-global", "global"} and not reach.every_tier1, (reach.goldens, reach.every_tier1))
+    got = [bool(STRUCTURAL_RE.search(p)) for p in ("global.json", "nuget.config", "src/X/Directory.Build.props",
+                                                    "docs/x-global.json", "tests/x/my-nuget.config",
+                                                    "tests/x/NotDirectory.txt")]
+    check("the SDK's and NuGet's by-name files are structural as a whole path segment, never as a name's tail",
+          got == [True, True, True, False, False, False], got)
     reach = Reach()
     reach_of(ix, [("D", registry + "diagnostics/dropped.json")], None, reach)
     check("a deleted registry file names no test: no refusal of it remains to run",
