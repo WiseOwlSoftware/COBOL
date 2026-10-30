@@ -1507,6 +1507,32 @@ joined the table the same way, which is the table doing its job: a tenth format 
   same recovery serves a RESERVED word the arm names at a failed prediction (`OBJECT-COMPUTER. XYZ CHARACTER FOO IS
   X.`). A word the predicate ACCEPTS keeps its clause: `SEGMENT-LIMIT IS.` fails inside the clause and is never
   called foreign. `ClosedFormatReservedWordTests.PredicateRefusedWord` pins each shape as the one diagnostic.
+- **A token of a kind the position does not take, inside a clause or statement — what the parse EXPECTS there, named
+  (kb/Work PB3428, PB3861; hint 0i, COBOL5506).** A text predicate INSIDE a clause the parse has entered refuses a
+  word the expected set cannot show (`MEMORY SIZE 12 FOO`: the unit is `CHARACTERS | {memoryUnitAhead()}?
+  IDENTIFIER`, so the set holds the IDENTIFIER the predicate guards and FOO looks taken), an omitted operand leaves
+  only the operand's tokens (`SEGMENT-LIMIT IS .`), and a literal of the wrong category stands where other literals
+  are taken (`SET IX TO "A"`); each drew the bare COBOL0001. Two pieces close it, neither a table. (1) **A walk whose
+  every closure evaluates its predicates** (`CobolErrorStrategy.ResimulationWalk.AdmittedAt`): the same simulation as
+  the 0g walk, re-run from the parser's state (or, carried forward, from the start of the construct closed early)
+  with `collectPredicates` on, each closure's predicates evaluated at the token it precedes, as ANTLR's full-context
+  prediction evaluates a decision's (`PredTransition` seeks the input to `startIndex`). The blind walk kept paths a
+  predicate cuts: past SEGMENT-LIMIT the CHARACTER CLASSIFICATION clause's path stayed open and the period seemed to
+  take a locale-name. (2) **The words a predicate tests, read by running it**: the walk's `EvalSemanticContext`
+  evaluates each predicate through `CobolParserCoreBase.EvaluateTestingWords`, which records every word the one
+  `Word` funnel compares against the token, and a predicate that refuses with no word matching contributes its words
+  (a negated predicate, or MEMORY without SIZE, matched a word and contributes none). `AdmittedKinds` names the
+  result in the standard's terms (keywords and context words, the §8.3.3.1 literal categories through
+  `LiteralTokens.CategoryOf`, literal families read from the grammar's literal rules, figurative constants) in three
+  shapes: a CLOSED position (no user-defined word, period, end of input or statement start) names everything; a
+  literal at an open position that takes an operand names the literal categories taken, or none; a user-defined word
+  where only literals are taken says both. An open position that takes a period yields to the missing-period reading
+  where a period would let the sentence or entry starting at the token follow (`01 W-X PIC X` then `05 W-Y`). The
+  sentence says "expected", the parser's word: the grammar parses a superset of each format wherever a later check
+  names the departure (INSPECT tallying FIRST/TRAILING for COBOL2269, a later edition's words at every edition). The
+  arm stands after 0h and behind `HasStructuralHint`, so a residue, an empty block or a statement that ended keeps its
+  own code; it replaced the two guesses that named a kind in two shapes (COBOL0308 "a data-name is expected here",
+  COBOL0309 its converse). `WrittenKindRefusalTests` pins the shapes and the controls.
 - **The other half of a closed format — an element printed ONCE, written twice (kb/Work PB917).** A bracket with no
   ellipsis permits its element at most once (§5.2.6.2, §5.2.7), and the grammar writes only the order licence
   (`clause*`). `Frontend/Cst/ClauseCardinality.cs` (`ClauseCardinalities.ByClauseContext`) keys the clause lists whose
@@ -1763,8 +1789,9 @@ fault is a phrase the statement's general formats do not print there: hint 0h dr
 is the innermost one whose format prints the word AFTER a statement it holds (`CobolErrorStrategy.TokensAfterANestedStatement`, read
 from the ATN: the tokens that may follow a nested statement or block, through the end of the rules of the statement's own syntax: the
 IF of a second ELSE, not the DISPLAY before it; a SET format is named SET); a word an enclosing statement prints only before its
-nested statement (the `>` of an IF's condition after `IF c MOVE 1 TO A > 2`) ends no enclosing statement, so the nested one is named. The literal-for-data-name guess (COBOL0308) is silent where a literal is
-also expected (`SET X TO "A"` expects an arithmetic-expression too, §14.9.39.2 Format 1): "not a literal" was false there.
+nested statement (the `>` of an IF's condition after `IF c MOVE 1 TO A > 2`) ends no enclosing statement, so the nested one is named. A literal of a category the position does not take is no "data-name expected" guess
+(`SET X TO "A"` expects an arithmetic-expression too, §14.9.39.2 Format 1, so "not a literal" was false there): hint 0i
+names the literal categories expected (COBOL5506, kb/Work PB3861), and the COBOL0308 guess is gone.
 `ParseRecoveryHintTruthTests` pins both directions (PBHT38 a context-sensitive paragraph-name is a missing period; PBHT41-46).
 
 **⚠ DETERMINATION (owner-overturnable).** The two IF formats stay ONE grammar rule, so `END_IF?` also admits
