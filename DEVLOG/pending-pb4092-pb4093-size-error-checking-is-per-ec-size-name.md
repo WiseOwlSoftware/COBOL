@@ -42,3 +42,10 @@ run-time flags). No diagnostic code used (COBOL5497-5499 returned).
 **Rows.** GR-14.7.5-3, GR-14.7.5-4, GR-7.3.25.4-6, DOC-A.1-70 and DOC-A.1-179 were already CONFORMS (the rows never saw the
 per-name question); one record_verdicts batch added the goldens and code sites as witnesses, GAP unchanged (20). DOC-A.1-70 and
 DOC-A.1-179 carry the per-name determination; REPORT_WRITER_DESIGN, NUMERIC_DESIGN and DESIGN-codegen-backend name the new shape.
+
+**Gate.** The first gate was RED on three defects of this branch's own making (the PB4093 golden gave an edited item a numeric
+VALUE, which COBOL-2002/2014 refuse; DOC-A.1-179 did not list its two new witnesses; the inventory still cited the deleted
+`NumericRenderer.Checked`), all fixed before the second. `LEG 1 ONLY (batched gating, PB2515): GREEN` with the Linux half GREEN
+(Conformance 2,012 · Unit 32,926 · Characterization 36 cases ran), the ten new conformance cases among them passing.
+Self-review (architecture, full code, performance, duplication, and the silent-failure, test and comment lenses) found nothing
+beyond the missing EC-SIZE-UNDERFLOW gate row, fixed above.
