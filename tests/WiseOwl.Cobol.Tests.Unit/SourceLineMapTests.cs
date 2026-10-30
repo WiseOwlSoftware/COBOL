@@ -157,9 +157,9 @@ public sealed class SourceLineMapTests : IDisposable
         int b = Array.FindIndex(lines, l => l.Contains("01 B PIC X"));
         Assert.Equal(("t.cob", 3), (m.Lines[b].Origin.File, m.Lines[b].Origin.Line));
         int c2 = Array.FindIndex(lines, l => l.Contains("01 C2"));
-        // The path is the one the search FOUND: DOC-A.1-40 tries `.CPY` before `.cpy`, and on a case-insensitive file
-        // system (Windows) `three.CPY` is this same file (kb/Work PB1355).
-        Assert.EndsWith("three.cpy", m.Lines[c2].Origin.File, StringComparison.OrdinalIgnoreCase);
+        // The path is the file the search FOUND, spelled as its directory entry spells it: DOC-A.1-40 tries `.CPY` before
+        // `.cpy`, and on a case-insensitive file system (Windows) `three.CPY` is this same file (kb/Work PB1355, PB1680).
+        Assert.EndsWith("three.cpy", m.Lines[c2].Origin.File, StringComparison.Ordinal);
         Assert.Equal(2, m.Lines[c2].Origin.Line);
         int a = Array.FindIndex(lines, l => l.Contains("01 A PIC X"));
         Assert.Equal(("t.cob", 1), (m.Lines[a].Origin.File, m.Lines[a].Origin.Line));

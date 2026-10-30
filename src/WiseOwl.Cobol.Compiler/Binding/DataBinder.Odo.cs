@@ -406,8 +406,15 @@ public sealed partial class DataBinder
                 // A name the report section declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars this clause, of a
                 // section other than the report section, from referring to a report item.
                 if (ReportEntryReferenceRefused($"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers)) continue;
+                // Nor is a name declared as something other than a data item (kb/Work PB1906): the one query of what it is.
+                // A refused declaration was reported at its entry.
+                var nonData = NonDataDeclarationOf(depName, spec.DependingQualifiers, ScopeOf(item.Root));
+                if (nonData is { DeclarationRefused: true }) continue;
                 Edition.Error("COBOL0851", $"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
-                    + (spec.DependingQualifiers.Count > 0
+                    + (nonData is { } declared
+                        ? $"'{writtenDep}' {declared.DeclaredAs(writtenDep, depName)} (ISO §8.4.2.1: \"a statement "
+                          + "shall contain a reference that uniquely identifies that resource\")"
+                        : spec.DependingQualifiers.Count > 0
                         ? "is not defined under the given qualifiers (ISO §8.4.2.2.1: uniqueness shall be established "
                           + "through qualification)"
                         : "is not defined (ISO §13.18.38 Format 2)") + via);
