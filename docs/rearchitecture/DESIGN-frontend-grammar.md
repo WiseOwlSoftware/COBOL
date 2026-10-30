@@ -1864,6 +1864,25 @@ kb/Work PB1616: the literal rules, and in a compiled branch the edition gates of
 1635 / 2630 / 0900 there exactly as in the program text). A lexer action that ends a token early does
 so through `CutTokenTo(length)`, which restores the column with the input position (kb/Work PB1728).
 
+**A literal its line ends inside is still that literal's token (kb/Work PB3245).** The general formats close every
+delimited literal (§8.3.3.2.2, §8.3.3.4.2, §8.3.3.5.2), and one may stay open at the end of a line only when a
+continuation line continues it (§6.3.5 1), §6.4.2) — which the reference-format stage has already joined, so a literal
+still open when the text is lexed was never closed. `STR_BODY`'s closing delimiter is therefore optional: maximal munch
+takes the closed form whenever the line closes the literal (a doubled delimiter is content), and otherwise the literal
+runs to the end of its line, keeping its kind and prefix, so the parser reads the literal that was meant and draws no
+cascade (the delimiter used to fall to `ANY_CHAR` and the content to lex as words: a run of unnamed COBOL0001s). The four
+literal tokens share one action, `OnDelimitedLiteral`, which gives back an open literal's trailing spaces and ONE trailing
+period through `CutTokenTo`, so `DISPLAY "HELLO.` still ends its sentence (a closed literal ends on its quotation
+symbol, so the action needs only the match's last character to know it has nothing to cut).
+`CobolLiteral.IsUnterminated` is the one question the report asks; `CobolLiteral.SplitLiteral` declines an open literal, so the §8.3.3
+rules and the format gates never judge its content. `LiteralScreen.ReportUnterminated` names each one (COBOL5563) — over
+the unit's TOKEN stream in `Frontend.LexAndParseOnce`, first of the post-lex rules, because the open literal is usually why
+the parse fails and a unit whose parse fails is never bound; and over each directive fragment in
+`ScreenFragment`, whose verdict it joins (an open literal has no value to evaluate). The rule is not the reference-format
+stage's: a literal open on a line an `>>IF` omits is legal (§7.3.16.4 3)), and conditional compilation runs after that
+stage. The other literal scanners already name the case themselves (pseudo-text COBOL2449, a COPY operand COBOL2450,
+`>>COBOL-WORDS` its SR2 defect).
+
 ### 3.13 The characters of a COBOL word, and the ONE fold that compares words (kb/Work PB1402)
 
 ISO §8.3.2.1 makes a COBOL word basic letters, basic digits, hyphen, underscore and **extended letters**; §8.1.3.2 GR4
