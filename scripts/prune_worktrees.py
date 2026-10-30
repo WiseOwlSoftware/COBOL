@@ -625,9 +625,14 @@ def not_queued(row: Row, pr: PullRequest, lane: Lane | None, now: dt.datetime) -
         waited = f'{(now - dt.datetime.fromisoformat(since.replace("Z", "+00:00"))).total_seconds() / 60:.0f} min'
     except ValueError:
         waited = 'an unknown time'
+    # The watch's reading is the one of the last lane tick (it reads after the survey): a pull request this survey finds
+    # OUT of the queue under a QUEUED reading left it since, and the next tick reads that; said, never shown as current
+    # (kb/Work PB3772).
+    stale = (' (that reading is from before this survey: the pull request is out of the queue now, and the next lane '
+             'tick reads it)' if att and (att.get('watch') or {}).get('state') == land_lane.IN_QUEUE else '')
     return 'NOT QUEUED', (f'pull request #{pr.number} ({pr.url}) was handed to the merge queue {waited} ago '
                           f'({since or "?"}) and is NOT in it: {queue_facts.describe(pr)}; '
-                          + (land_lane.watch_text(att) if att else
+                          + (land_lane.watch_text(att) + stale if att else
                              'no landing-lane attempt at this tip watches it (the lane watches only its own landings)'))
 
 
@@ -2327,6 +2332,25 @@ def self_test() -> int:
               and 'queue watch' in pr_rows['lane-done'].why,
               f'with auto-merge off, the lane\'s ENQUEUED attempt at the tip is what says the PR was handed to the queue, '
               f'and the row names the lane\'s queue watch: {pr_rows["lane-done"].why}')
+        # A watch reading of QUEUED under a survey that finds the pull request out of the queue is shown as the last
+        # reading with its time, never as the current state (kb/Work PB3772; an ENDED watch says so: land_lane.watch_text).
+        done_att = next(a for a in land_lane.attempts(landed_coord) if a['branch'] == 'lane-done')
+        land_lane.update(done_att, {'watch': {'state': land_lane.IN_QUEUE, 'why': 'pull request #20 is in the merge queue',
+                                              'at': '2026-10-15T19:30:00+00:00', 'queued_at': '2026-10-15T19:30:00+00:00'}})
+        stale_row = lifecycle(pr_rows['lane-done'], in_flight_slugs=set(), min_age=180, live=live, prs=prs,
+                              lane=land_lane.view(landed_coord), now=then)
+        check(stale_row[0] == 'NOT QUEUED' and 'queue watch QUEUED' in stale_row[1]
+              and 'read at 2026-10-15T19:30:00+00:00' in stale_row[1] and 'out of the queue now' in stale_row[1]
+              and 'has ENDED' not in stale_row[1],
+              f'a QUEUED watch reading under a pull request found out of the queue is said to be the last reading, with '
+              f'its time: {stale_row}')
+        land_lane.update(done_att, {'watch': {'state': land_lane.ALERTED, 'why': 'stalled read 3',
+                                              'at': '2026-10-15T19:40:00+00:00'}})
+        ended_row = lifecycle(pr_rows['lane-done'], in_flight_slugs=set(), min_age=180, live=live, prs=prs,
+                              lane=land_lane.view(landed_coord), now=then)
+        check('queue watch ALERTED' in ended_row[1] and 'the watch has ENDED' in ended_row[1]
+              and 'out of the queue now' not in ended_row[1],
+              f'an ENDED watch (ALERTED) says nothing reads the pull request again: {ended_row}')
         # THE ONE PRODUCTION SURVEY (kb/Work PB2807 review R1-2): live_survey reads the open pull requests itself, so
         # every reader (main, the landing lane, the planner's partition) sees the queue states; and no production
         # reader calls survey directly with arguments of its own (the planner once omitted `prs` and never saw BOUNCED)
