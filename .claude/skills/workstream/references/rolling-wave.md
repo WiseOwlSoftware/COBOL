@@ -103,5 +103,5 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   it whole, or a member of one matches a member of the other) unless one declares `after:` the other: two groups on
   different members of one file whose claims meet nowhere run side by side (kb/Work PB3670, PB3696). The partition reads members the same way (DESIGN-orchestrator-loop.md section 9 item 1b):
   give a note's `**Sites:**` paragraph its members (`path#Member`, or `` `path` (`member`, ...) ``, a `:line` after
-  the path optional: MANDATORY-PRACTICES R3, `work.SITES_RULE`), or the planner claims the whole file, as it does for
-  a name the file does not declare; a note with no site block holds nothing and is planned UNPARTITIONED, never held.
+  the path optional: MANDATORY-PRACTICES R3, `work.SITES_RULE`), or `(whole: why)` when the change takes the file throughout (`work.py check` refuses a code file named with neither, and a name the
+  file does not declare, for a held note: kb/Work PB3797), or the planner claims the whole file; a note with no site block holds nothing and is planned UNPARTITIONED, never held.

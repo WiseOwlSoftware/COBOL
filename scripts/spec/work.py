@@ -14,15 +14,19 @@ When three artifacts each claim to be the source of truth, none is — and the c
 findings include a WRONG-ANSWER defect (`EXCEPTION-STATEMENT` returns `GO` where Table 12 requires `GO TO`) that
 no work list could see, because it lived inside a paragraph.
 
-⭐ THE FORM IS ONE NOTE PER ITEM, TRACKED IN GIT, WITH FRONTMATTER. Not one big JSON: a note gives Obsidian a
-graph node (link an item to its spec clause and its code-reference note), gives git a per-item history instead of
-a 2,484-line diff, and gives Bases every view without a query language. The forensic prose — repro, citation, why
-a previous summary was wrong — lives in the note BODY, which is where it already was. Nothing is discarded.
+⭐ THE FORM IS ONE NOTE PER ITEM, TRACKED IN GIT, WITH FRONTMATTER. Not one big JSON: a note gives git a per-item
+history instead of a 2,484-line diff and every reader a stable record to link to. The forensic prose — repro,
+citation, why a previous summary was wrong — lives in the note BODY, which is where it already was. Nothing is
+discarded. The views of the register are the subcommands below (kb/Work PB3799); there is no file for an application.
 
     python scripts/spec/work.py migrate    # ONE TIME: fold the five registers into kb/Work/
     python scripts/spec/work.py check      # validate frontmatter; non-zero on a bad/missing field
-    python scripts/spec/work.py next       # the ranked work list (session-probe prints this)
+    python scripts/spec/work.py next       # Fix next: the ranked work list (session-probe prints this)
     python scripts/spec/work.py next --cluster PB2108 [--json]   # one campaign's open notes, tier then blocked_by order
+    python scripts/spec/work.py blocked    # open notes waiting on an open blocker, or held (owner, blocked)
+    python scripts/spec/work.py unharmed   # open notes with no harm flag: deferred on purpose, never forgotten
+    python scripts/spec/work.py analyses   # every analysis note;  landed: finished defects and the rows each closed
+    python scripts/spec/work.py upstream   # records of another project's defects (every view takes --json and --top N)
     python scripts/spec/work.py stats      # counts by kind/status/harm
     python scripts/spec/work.py --self-test   # the frontmatter reader against tests/version-matrix/work-frontmatter-cases.json
 
@@ -48,8 +52,7 @@ closed CONFORMS the first time anyone looked. A landing therefore writes BOTH ha
 the rows leave `inventory_rows` as they are re-verdicted, and they arrive in `closes_rows`. A landing that
 closed no row says so with `closes_rows: []` **and** a `closes_rows_reason:`; silence is what the field
 replaced. The spelling is `closes_rows`, not the decision's `closes-rows`: every multiword key in this
-frontmatter is snake_case, and `kb/Work.base` addresses a property as `note.<key>`, where a hyphen would
-at best need quoting and at worst read as an operator. Checked against the inventory by `work_inventory.py` (the
+frontmatter is snake_case, so no key needs quoting in any reader. Checked against the inventory by `work_inventory.py` (the
 landed-note and the closed-row halves); the SHAPE half is :func:`closes_rows_shape` here.
 
 ⭐ `kind: upstream` — A RECORD OF ANOTHER PROJECT'S DEFECT (kb/Work PB3838), the register's newest kind. GnuCOBOL's
@@ -85,8 +88,8 @@ KINDS = {"defect", "analysis", "adjudication", "decision", "upstream"}
 STATUSES = {"open", "half", "landed", "owner", "blocked", "retired"}
 #: The statuses that mean an item is DONE — the ONE vocabulary every reader of the register asks (kb/Work PB3196:
 #: the R0 census and the note generator each read the status their own way, and the census's own copy held four
-#: statuses that `check` rejects). A view of open work shall exclude every one of them — see
-#: :func:`check_base_agrees`, which is what stops the next one added here from being half-applied. The reader's
+#: statuses that `check` rejects). A view of open work shall exclude every one of them — `_is_open` is the
+#: ONE test, so the next one added here is excluded everywhere at once. The reader's
 #: self-test holds the fixture to it: :func:`reading_view` reports `terminal`, and :func:`self_test` refuses a fixture
 #: that leaves any status of STATUSES without a case, so a status added here reaches the reader's answers.
 TERMINAL_STATUSES = ("landed", "retired")
@@ -245,6 +248,46 @@ def _split_list(inner: str) -> list[str]:
     return [m for m in (x.strip().strip('"').strip("'").strip() for x in inner.split(",")) if m]
 
 
+#: YAML 1.2 section 5.7's escape characters (the single-character ones), for the one-line double-quoted scalars the
+#: register writes; `\x`, `\u` and `\U` carry their code point in the hex digits that follow (`_YAML_ESCAPE`).
+_YAML_ESCAPES = {"0": "\0", "a": "\a", "b": "\b", "t": "\t", "\t": "\t", "n": "\n", "v": "\v", "f": "\f",
+                 "r": "\r", "e": "\x1b", " ": " ", '"': '"', "/": "/", "\\": "\\", "N": "\x85", "_": "\xa0",
+                 "L": " ", "P": " "}
+_YAML_ESCAPE = re.compile(r"\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|.)", re.S)
+
+
+def _scalar(v: str) -> tuple[str, str]:
+    r"""`(value, error)` of a one-line scalar as YAML reads it (kb/Work PB3812): a double-quoted one with its escapes
+    decoded (`\"` is a quote, `\\` a backslash, `′` a code point), a single-quoted one with `''` as a quote, a
+    plain one as written. `error` is `""` or a code: `unknown-escape` (a backslash YAML 1.2 does not define) or
+    `unterminated-quote` (an opening quote the value never closes). The value stays as written when it is in error,
+    and the caller records the code in `_errors`, so a malformed scalar is a reported third answer, never a silent
+    one (the fail-open doctrine below). It was `v.strip('"')`, which left every escape in the value: 279 titles
+    carried a visible backslash."""
+    quote = v[:1]
+    if quote not in ('"', "'"):
+        return v, ""
+    if len(v) < 2 or v[-1] != quote:
+        return v, "unterminated-quote"
+    inner = v[1:-1]
+    if quote == "'":
+        return inner.replace("''", "'"), ""
+    unknown = False
+
+    def decode(m: re.Match) -> str:
+        nonlocal unknown
+        e = m.group(1)
+        if len(e) > 1:
+            return chr(int(e[1:], 16))
+        if e not in _YAML_ESCAPES:
+            unknown = True
+            return m.group(0)
+        return _YAML_ESCAPES[e]
+
+    decoded = _YAML_ESCAPE.sub(decode, inner)
+    return (v, "unknown-escape") if unknown else (decoded, "")
+
+
 def parse_frontmatter(text: str) -> dict | None:
     """One note's frontmatter as `key -> str | bool | list[str]`, or `None` when the file is not a note.
 
@@ -290,7 +333,12 @@ def parse_frontmatter(text: str) -> dict | None:
         if not sep or not FM_KEY.match(k):
             continue              # a continuation of a wrapped SCALAR, a comment, a blank line
         if not v.startswith("["):
-            out[k] = True if v == "true" else False if v == "false" else v.strip('"')
+            if v in ("true", "false"):
+                out[k] = v == "true"
+            else:
+                out[k], bad = _scalar(v)
+                if bad:
+                    out["_errors"].append(f"{bad}:{k}")
         elif v.endswith("]"):
             out[k] = _split_list(v[1:-1])
         else:
@@ -365,85 +413,27 @@ HEADING_STATUS = re.compile(r"^#\s+\S+\s+—\s+(?P<status>[A-Z][A-Z\- ]*?)\s+—
 HEADING_ALIASES = {"closed": "landed", "fixed": "landed", "done": "landed"}
 
 
-def check_base_agrees(base: pathlib.Path = REPO / "kb" / "Work.base") -> list[str]:
-    """`kb/Work.base`'s **Fix next** filter shall select on the same harm flags as :data:`HARM_FLAGS`.
-
-    ⛔ THE PREDICATE IS WRITTEN TWICE AND CANNOT BE WRITTEN ONCE — `work.py` is Python and the Bases view is a
-    YAML expression Obsidian evaluates, with no import between them. Both copies read `wrong_answer or crashes`
-    and both were wrong the same way, which is what hid nine open items; CLAUDE.md advertises the two as "the
-    same list", so a reader has no way to notice when they stop being it. Since the copies must exist, this
-    holds them together. `base` is the shipped file; `--self-test` passes a doctored copy (kb/Work PB3939).
-    """
-    if not base.exists():
-        return [f"{base.relative_to(REPO) if base.is_relative_to(REPO) else base} is missing — the Fix next view is "
-                f"half the register's UI"]
-    text = base.read_text(encoding="utf-8")
-    m = re.search(r"name:\s*Fix next\s*\n\s*filters:\s*\n(?P<body>(?:\s{6,}.*\n)+)", text)
-    if m is None:
-        return ["kb/Work.base: no 'Fix next' view with a filters block — work.py check cannot verify it "
-                "agrees with HARM_FLAGS, and CLAUDE.md tells readers the two are the same list"]
-    # The one filter line that ORs the harm flags together.
-    line = next((l for l in m.group("body").splitlines() if " or " in l and "wrong_answer" in l), "")
-    named = set(re.findall(r"[a-z_]+", line)) & set(HARM_FLAGS)
-    missing = [f for f in HARM_FLAGS if f not in named]
-    out = [] if not missing else [
-        f"kb/Work.base 'Fix next' does not select on {missing} — an item whose only harm flag is one of those "
-        f"is invisible in the view while work.py next ranks it. Update the filter to match HARM_FLAGS."]
-
-    # ⛔ BLOCKED IS DERIVED (kb/Work PB3389): the views read the `blocked` FORMULA, which spells waiting_on's rule in
-    # the Bases language, so it must name the statuses that rule reads (every terminal status, and owner and blocked),
-    # and no view may read a stored `blocked` property, which no note carries any more.
-    formula = re.search(r"^  blocked:\s*'(?P<expr>.*)'\s*$", text, re.M)
-    if formula is None:
-        out.append("kb/Work.base: no `blocked` formula — blocked is derived (kb/Work PB3389), and the views need it")
-    else:
-        silent = [s for s in (*TERMINAL_STATUSES, "owner", "blocked") if f'"{s}"' not in formula.group("expr")]
-        if silent:
-            out.append(f"kb/Work.base: the `blocked` formula does not name the statuses {silent}, which work.py's "
-                       f"waiting_on reads — a note in one of them would show as unblocked (or blocked) there")
-    if re.search(r"(?<![\w.])blocked\s*[=!]=|note\.blocked", text):
-        out.append("kb/Work.base reads a stored `blocked` property; read `formula.blocked` — no note stores it "
-                   "(kb/Work PB3389)")
-
-    # ⭐ THE `upstream` KIND (kb/Work PB3838) has its own view and is nobody's deferred work: `Upstream records` lists
-    # the kind, `Open but no harm flag set` (the complement of Fix next, which an upstream record would otherwise
-    # fill) excludes it, and every upstream_* field is a displayed property (UPSTREAM_KEYS, so the next one is automatic).
-    views = {v.group("name"): v.group("body")
-             for v in re.finditer(r"^    name:\s*(?P<name>.+?)\s*\n(?P<body>(?:(?!  - type:).*\n)+)", text, re.M)}
-    if 'kind == "upstream"' not in views.get("Upstream records", ""):
-        out.append("kb/Work.base: no `Upstream records` view selecting `kind == \"upstream\"` — the record of another "
-                   "project's defects (kb/Work PB3838) has no place to be read")
-    if 'kind != "upstream"' not in views.get("Open but no harm flag set", ""):
-        out.append("kb/Work.base: `Open but no harm flag set` does not exclude `kind != \"upstream\"` — an upstream "
-                   "record is a note about another project and would be listed there as our deferred work (PB3838)")
-    out += [f"kb/Work.base: no `note.{k}` property (displayName) — the Upstream records view cannot label it"
-            for k in UPSTREAM_KEYS if f"note.{k}:" not in text]
-
-    # ⛔ THE SAME DUPLICATION ONE PROPERTY OVER. Every view of OPEN work spells the terminal statuses out one by
-    # one, and `retired` was added to STATUSES after those views were written — so the first retired note went on
-    # showing in "Open but no harm flag set" as though it were open, while `work.py next` (status in open/half)
-    # correctly ignored it. Two readers of one register, disagreeing about what DONE means, is exactly the shape
-    # `check_base_agrees` exists for. The invariant is written so the NEXT terminal status is automatic rather
-    # than remembered: a view that filters out ANY terminal status filters out ALL of them. A view that does not
-    # filter on status at all (`Everything`, `Analyses`) is not a view of open work and is left alone.
-    for v in re.finditer(r"^    name:\s*(?P<name>.+?)\s*\n\s*filters:\s*\n\s*and:\s*\n(?P<body>(?:\s{6,}-.*\n)+)",
-                         text, re.M):
-        body = v.group("body")
-        if not any(f'status != "{s}"' in body for s in TERMINAL_STATUSES):
-            continue
-        absent = [s for s in TERMINAL_STATUSES if f'status != "{s}"' not in body]
-        if absent:
-            out.append(
-                f"kb/Work.base view {v.group('name')!r} hides some terminal statuses but not {absent} — an item "
-                f"in one of those states still shows there as open work, while work.py counts it done. Add "
-                f"`- status != \"<status>\"` for each of {list(TERMINAL_STATUSES)}.")
-    return out
-
-
 #: A traceability-inventory rule-id, by SHAPE only — `AR-15.7.3-1`, `SR-13.18.40.3-22`, `FMT-14.9.32.2`,
 #: `GR-9.3.6-L4.1`. Whether the id names a row that EXISTS, and whether that row's verdict resolves, is
 #: `work_inventory.py`'s question (see :func:`closes_rows_shape`).
 RULE_ID_SHAPE = re.compile(r"\A[A-Z]{2,4}-[0-9A-Za-z.]+(?:-[0-9A-Za-z.]+)?\Z")
+
+
+#: What each frontmatter error code of `parse_frontmatter` (`_errors`) means for the person fixing the note.
+FRONTMATTER_ERRORS = {
+    "unterminated-list": "a wrapped list whose bracket never closes is read as NOTHING by every reader of this "
+                         "register (kb/Work/PB875); close it, or put it on one line",
+    "unknown-escape": "a double-quoted value holds a backslash that YAML 1.2 section 5.7 does not define, so a YAML "
+                      "reader refuses the note (kb/Work PB3812); write the backslash as two",
+    "unterminated-quote": "a value opens a quote it never closes, so a YAML reader refuses the note (kb/Work PB3812)",
+}
+
+
+def frontmatter_errors(it: dict) -> list[str]:
+    """One problem per error code the reader recorded for this note (`parse_frontmatter`'s `_errors`: a malformed value
+    is a reported third answer, never an empty one)."""
+    return [f'{it["_file"]}: frontmatter {e} — ' + FRONTMATTER_ERRORS.get(e.partition(":")[0], "malformed")
+            for e in it.get("_errors", [])]
 
 
 def closes_rows_shape(it: dict) -> list[str]:
@@ -462,9 +452,6 @@ def closes_rows_shape(it: dict) -> list[str]:
     (`feedback_one_rule_one_place`).
     """
     bad: list[str] = []
-    for e in it.get("_errors", []):
-        bad.append(f'{it["_file"]}: frontmatter {e} — a wrapped list whose bracket never closes is read as '
-                   f'NOTHING by both readers of this register (kb/Work/PB875); close it, or put it on one line')
     rows = it.get("closes_rows")
     if rows is not None and not isinstance(rows, list):
         bad.append(f'{it["_file"]}: closes_rows is {rows!r}, not a list — write `closes_rows: [RULE-ID, …]`')
@@ -490,7 +477,7 @@ def closes_rows_shape(it: dict) -> list[str]:
 # about ours, so it is kept OUT of every list that plans our work by ONE rule, checked below: it is `process_only`
 # (`actionable`, `next`, the ledger's compiler-work counts and the fuzz cadence's open-note rule already read that flag,
 # and its harm flags describe the GnuCOBOL user) and it is in no cluster, tier or blocking chain (so no campaign lane,
-# planner or `next --cluster` ever offers it). `kb/Work.base` carries the matching view (`check_base_agrees`).
+# planner or `next --cluster` ever offers it). `work.py upstream` lists the records, and `unharmed` leaves them out.
 UPSTREAM_CLASSES = ("crash", "wrong-output", "rejects-legal-source", "accepts-forbidden-source",
                     "not-implemented-at-run-time", "feature-missing")
 UPSTREAM_STATUSES = ("unreported", "reported", "fixed-upstream", "declined", "duplicate")
@@ -682,7 +669,7 @@ def upstream_problems(it: dict) -> list[str]:
 def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[str]]:
     """`(the notes under work_dir, every problem of the register)`: the unreadable notes (read_notes), each note's own
     schema, the topology and the site blocks, duplicate ids and, for the repository's OWN register only, the audits
-    that compare it with the rest of the tree (the inventory, the R3 program, the Bases view): a fixture directory
+    that compare it with the rest of the tree (the inventory, the R3 program): a fixture directory
     (`--work`, the self-test) has none of those to be compared with (kb/Work PB3654)."""
     items, bad = read_notes(work_dir)
     for it in items:
@@ -708,10 +695,13 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
         if (it.get("kind") == "defect" and it.get("status") in ("open", "half")
                 and not it.get("process_only") and not any(it.get(f) for f in HARM_FLAGS)):
             bad.append(f'{it["_file"]}: open defect with no harm flag set — it can never appear in '
-                       f'`work.py next`. Set one of {list(HARM_FLAGS)}, or process_only: true if it '
-                       f'genuinely does nothing to a user\'s program.')
+                       f'`work.py next`. Set one of {list(HARM_FLAGS)} (a message that names the wrong fault is '
+                       f'`misleads_diagnosis`), or process_only: true if it genuinely does nothing to a user\'s '
+                       f'program (process_only_problems refuses that on a note whose sites are all under src/).')
+        bad += frontmatter_errors(it)
         bad += closes_rows_shape(it)
         bad += frontier_model_shape(it)
+        bad += process_only_problems(it)
         bad += upstream_problems(it)
     bad += topology_problems(items)
     bad += sites_problems(items)
@@ -724,7 +714,6 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
 
         bad += work_inventory.live_problems(items, TERMINAL_STATUSES)
         bad += r3_program_problems(items)
-        bad += check_base_agrees()
     return items, bad
 
 
@@ -755,16 +744,119 @@ def check(work_dir: pathlib.Path = WORK) -> int:
 #: loudly wrong) rather than naming a harm of its own, so an item flagged silent alone would be one whose
 #: frontmatter has not said what it actually does. `process_only` is likewise not here — it marks an item that
 #: does nothing to a user's program by definition.
-HARM_FLAGS = ("wrong_answer", "crashes", "rejects_legal_source", "under_rejects")
+#:
+#: ⭐ `misleads_diagnosis` (kb/Work PB3836) IS THE HARM OF A DIAGNOSTIC THAT NAMES THE WRONG FAULT: the program is
+#: refused or warned about correctly, and the message names a wrong cause, position or rule, so the user is sent to
+#: the wrong place to fix their program. It had no word in this vocabulary, so a filer satisfied `check` with
+#: `process_only: true` ("does nothing to a user's program"), which is false and hid the note from `next`. It ranks
+#: last: a program that still compiles to the right answer outranks one that is merely told the wrong thing.
+#:
+#: THE HARM VOCABULARY IS THIS ONE TABLE (flag -> the word a listing prints), in rank order: `HARM_FLAGS`, `next`, the
+#: views below (`unharmed` is its complement) and the other readers of the register derive from it, so a harm class
+#: added here reaches every one of them, with no second copy of the predicate in another language (kb/Work PB3799).
+HARM_LABELS = {
+    "wrong_answer": "wrong answer",
+    "crashes": "crash",
+    "rejects_legal_source": "rejects legal source",
+    "under_rejects": "under-rejects",
+    "misleads_diagnosis": "misleading diagnostic",
+}
+HARM_FLAGS = tuple(HARM_LABELS)
+#: The harm words a review finding or an adjudicator's record uses (`wrong-answer`) and the frontmatter flag each files as
+#: (`wrong_answer`): HARM_FLAGS and `silent`, the qualifier no class ranks. The writers of defect notes (the R2 review's
+#: collector and census writer) read it, so a harm class added to HARM_LABELS is a word they accept and a flag they write.
+FINDING_HARMS = {flag.replace("_", "-"): flag for flag in (*HARM_FLAGS, "silent")}
+#: What a note with none of HARM_FLAGS is listed as.
+NO_HARM_LABEL = "process"
+
+
+def harm_label(it: dict) -> str:
+    """The word for the highest-ranked harm the note sets (HARM_LABELS' order), or NO_HARM_LABEL."""
+    return next((label for flag, label in HARM_LABELS.items() if it.get(flag)), NO_HARM_LABEL)
+
+
+def harm_rank(it: dict) -> int:
+    """The position in HARM_FLAGS of the highest-ranked harm the note sets (0 first); past the last for none."""
+    return next((n for n, flag in enumerate(HARM_FLAGS) if it.get(flag)), len(HARM_FLAGS))
 
 
 def actionable(items: list[dict]) -> list[dict]:
+    """`next`: the open, unblocked notes that harm a user's program, by severity, then by what the harm DOES to the
+    program (HARM_FLAGS' order: a wrong answer before a misleading message), then by id."""
     sev = {"BLOCKER": 0, "MAJOR": 1, "MINOR": 2, "OWNER": 3}
     by_id = {i.get("id"): i for i in items}
     live = [i for i in items if i.get("status") in ("open", "half")
             and any(i.get(f) for f in HARM_FLAGS)
             and not i.get("process_only") and not waiting_on(i, by_id)]
-    return sorted(live, key=lambda i: (sev.get(i.get("severity"), 9), i.get("id", "")))
+    return sorted(live, key=lambda i: (sev.get(i.get("severity"), 9), harm_rank(i), i.get("id", "")))
+
+
+# ── the register's views: `work.py <view>` (kb/Work PB3799) ───────────────────────────────────────────────────────
+#
+# ⭐ THE VIEWS A READER NEEDS ARE SUBCOMMANDS, NOT A FILE FOR AN APPLICATION (owner 2026-10-25, kb/Work PB3799): a view
+# in another application's query language would be a second copy of the harm predicate and of `waiting_on` that nothing
+# but a drift check could hold equal to this one. Each view is a row of VIEWS, a predicate over the one reader of the
+# register, so `unharmed` IS the complement of `next` and cannot drift from it. `next` (Fix next) is above; the
+# overview is `stats`.
+def _is_open(it: dict) -> bool:
+    return it.get("status") not in TERMINAL_STATUSES
+
+
+#: view name -> (what it lists, its predicate over (note, notes by id), its sort key).
+VIEWS = {
+    "blocked": ("open notes that wait on an open blocker or are held (status owner or blocked)",
+                lambda it, by_id: _is_open(it) and bool(waiting_on(it, by_id)),
+                lambda it: (it.get("kind", ""), it.get("id", ""))),
+    "unharmed": ("open notes with no harm flag set (the exact complement of `next`'s harm test; an upstream record is "
+                 "another project's defect and is listed by `upstream`)",
+                 lambda it, by_id: (_is_open(it) and it.get("kind") != "upstream"
+                                    and not any(it.get(f) for f in HARM_FLAGS)),
+                 lambda it: (it.get("kind", ""), it.get("id", ""))),
+    "analyses": ("every analysis note", lambda it, by_id: it.get("kind") == "analysis",
+                 lambda it: (it.get("status", ""), it.get("id", ""))),
+    "landed": ("defect notes whose landing is done (landed or retired) and the inventory rows each closed; finished "
+               "work, never a worklist", lambda it, by_id: it.get("kind") == "defect" and not _is_open(it),
+               lambda it: (it.get("id", ""),)),
+    "upstream": ("records of another project's defects (kind upstream), by their state there",
+                 lambda it, by_id: it.get("kind") == "upstream",
+                 lambda it: (it.get("upstream_status", ""), it.get("id", ""))),
+}
+
+
+def view_notes(items: list[dict], view: str) -> list[dict]:
+    """The notes of one of VIEWS, in its order."""
+    _, select, order = VIEWS[view]
+    by_id = {i.get("id"): i for i in items}
+    return sorted((i for i in items if select(i, by_id)), key=order)
+
+
+def view_row(it: dict, by_id: dict[str, dict]) -> dict:
+    """One note as a listing row (the `--json` form of every view): what a reader scans for."""
+    title = re.sub(rf"^{re.escape(str(it.get('id')))}\s*[—-]\s*", "", str(it.get("title", "")))
+    row = {"id": it.get("id"), "kind": it.get("kind"), "status": it.get("status"), "severity": it.get("severity"),
+           "area": it.get("area"), "harm": harm_label(it), "title": title,
+           "waiting_on": waiting_on(it, by_id), "closes_rows": it.get("closes_rows") or [],
+           "closes_rows_reason": it.get("closes_rows_reason") or ""}
+    row.update({k: it[k] for k in UPSTREAM_KEYS if k in it})
+    return row
+
+
+def print_view(items: list[dict], view: str, as_json: bool, top: int | None = None) -> int:
+    by_id = {i.get("id"): i for i in items}
+    rows = [view_row(i, by_id) for i in view_notes(items, view)]
+    if as_json:
+        print(json.dumps({"view": view, "notes": rows}, ensure_ascii=False))
+        return 0
+    print(f"{view}: {len(rows)} note(s) — {VIEWS[view][0]}")
+    for r in rows[:top]:
+        detail = "waits on " + ", ".join(r["waiting_on"]) if view == "blocked" else ""
+        if view == "landed":
+            detail = f"closes {len(r['closes_rows'])} row(s)" if r["closes_rows"] else "closes none"
+        if view == "upstream":
+            detail = f"{r.get('upstream_status')} · {r.get('upstream_class')} · {r.get('upstream_project')}"
+        print(f"  {r['id']:8} {str(r['kind']):10} {str(r['status']):7} {str(r['severity']):6} {str(r['area'])[:22]:22} "
+              f"{r['harm'][:20]:20} {detail}  {r['title'][:80]}".rstrip())
+    return 0
 
 
 # ── clusters and the blocked_by topology (kb/Work PB2120) ─────────────────────────────────────────────────────
@@ -1064,6 +1156,14 @@ class NoteSites:
     globs: tuple[str, ...] = ()
     #: A site block says `none (why)`: the note changes no code file, so a claim of nothing is its declaration.
     no_code: bool = False
+    #: The code files (CODE_SUFFIXES) the block names bare: some mention gives neither members nor a `(whole: why)`
+    #: reason (kb/Work PB3797). With `repo`, only a file the tree has and no glob sweep claims counts: a file the change
+    #: creates has no members to name, and a sweep is whole by its pattern.
+    unnamed: tuple[str, ...] = ()
+    #: {path: the member names its block gives that the file does not declare}, read only with `repo` and only for a
+    #: file with a unit reader (source_units.READERS): a name no unit matches (kb/Work PB3670 review R1-3 claimed the file
+    #: whole in silence; PB3797 reports it).
+    undeclared: dict[str, tuple[str, ...]] = dataclasses.field(default_factory=dict, hash=False)
 
     @property
     def fix_lane(self) -> bool:
@@ -1164,7 +1264,7 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None, repo: pathlib.Pa
     token = _path_token(roots or campaign_domain().roots)
     paths: set[str] = set()
     globs: set[str] = set()
-    mentions: dict[str, list[tuple[str, ...]]] = {}   # path -> the members each mention names (() = the whole file)
+    mentions: dict[str, list[tuple[tuple[str, ...], bool]]] = {}   # path -> (members, whole-file reason) per mention
     for b in blocks:
         for m in token.finditer(b):
             raw = m.group(1)
@@ -1185,14 +1285,20 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None, repo: pathlib.Pa
     for part in blocks + ([moves.group(1)] if moves else []):
         names += [d.split("~", 1)[0] for d in _DOC_ID.findall(part)]
     wave = m.group(1).lower() if (m := _WAVE_KIND.search(text)) else ""
-    members = {p: tuple(sorted({n for ms in each for n in ms})) for p, each in mentions.items() if all(each)}
+    members = {p: tuple(sorted({n for ms, _ in each for n in ms})) for p, each in mentions.items()
+               if all(ms for ms, _ in each)}
+    bare = {p for p, each in mentions.items() if CODE_FILE.search(p) and any(not ms and not why for ms, why in each)}
+    undeclared: dict[str, tuple[str, ...]] = {}
     if repo is not None:
-        members = {p: ms for p, ms in members.items() if _members_located(repo / p, ms)}
+        undeclared = {p: gone for p, ms in members.items() if (gone := _undeclared_names(repo / p, ms))}
+        members = {p: ms for p, ms in members.items() if p not in undeclared and _members_located(repo / p, ms)}
         swept = expand_globs(tuple(sorted(globs)), repo)
         paths |= set(swept)
         members = {p: ms for p, ms in members.items() if p not in swept}   # a sweep claims each file it matches whole
+        bare = {p for p in bare if (repo / p).is_file() and p not in swept}
+        undeclared = {p: gone for p, gone in undeclared.items() if p not in swept}
     return NoteSites(tuple(sorted(paths)), tuple(dict.fromkeys(names)), wave, bool(blocks), members,
-                     tuple(sorted(globs)), any(_says_none(b) for b in blocks))
+                     tuple(sorted(globs)), any(_says_none(b) for b in blocks), tuple(sorted(bare)), undeclared)
 
 
 def expand_globs(globs: tuple[str, ...], repo: pathlib.Path) -> tuple[str, ...]:
@@ -1222,39 +1328,47 @@ def _says_none(block: str) -> bool:
 
 #: A member a site block names after its path: an identifier, dotted (`Type.Member`), with an optional `()`; a `~`
 #: names a finalizer. A code span that names a file (`Foo.cs`) or holds a space is no member.
-_MEMBER_NAME = re.compile(r"~?[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*(?:\(\))?")
+_MEMBER_NAME = re.compile(r"~?(?:<[a-z]+>|[A-Za-z_][A-Za-z0-9_-]*)(?:\.(?:<own>|[A-Za-z_][A-Za-z0-9_-]*))*(?:\(\))?")
 _FILE_NAME = re.compile(r"\.(?:cs|py|md|json|ps1|psm1|g4|js|ts|txt|ya?ml|sh|csproj|props|targets|sln)$", re.I)
+#: The files whose site mention must name its members or say why the whole file changes (kb/Work PB3797): the code the
+#: wave planner partitions by unit (source_units.READERS) and the code kinds a note names beside it. A Markdown file is
+#: named by a section number (`(§8.7)`) or the file whole, a data file (json, yml) by the file.
+CODE_FILE = re.compile(r"\.(?:cs|py|ps1|psm1|js|g4|sh)$", re.I)
 _SECTION_REF = re.compile(r"§(\d+(?:\.\d+)*)")
 
 
-def _mention_members(raw: str, block: str, end: int) -> tuple[str, ...]:
-    """The members ONE mention of a site path names (kb/Work PB3670), or () for the whole file: its `#Member` suffix,
+def _mention_members(raw: str, block: str, end: int) -> tuple[tuple[str, ...], bool]:
+    """`(the members ONE mention of a site path names, whether it says why the whole file changes)` (kb/Work PB3670,
+    PB3797). The members are () for the whole file: the `#Member` suffix,
     else the code spans (and `§N.N` section numbers) of a parenthesis right after it (past its closing backtick) that
     OPENS with a code span or a section sign (`plan_wave.py` (`collision`, `collision_set`)), with or without a `:line`
     suffix (`DataBinder.cs:123` (`DataBinder.Bind`): the line says where to look, the member what is claimed, and the
     binding rule R3 writes sites this way, review R1-1); a bare mention, a `:line` alone and a prose parenthesis ("(the
     shared-primary-file rule)", "(the planner side that honours `x`)") name the whole file (a line number drifts as the
-    file changes, so it locates no unit)."""
+    file changes, so it locates no unit). The whole file with a REASON is the parenthesis `(whole: why)` right after the
+    path, with a non-empty why (the one form that names a code file bare without being refused: `work.SITES_RULE`)."""
     if "#" in raw:
         frag = raw.split("#", 1)[1].rstrip(".,:")
-        return (frag,) if _MEMBER_NAME.fullmatch(frag) and not _FILE_NAME.search(frag) else ()
+        return ((frag,) if _MEMBER_NAME.fullmatch(frag) and not _FILE_NAME.search(frag) else ()), False
     rest = block[end:]
     rest = rest[1:] if rest.startswith("`") else rest
     opened = re.match(r"[ \t]*\(", rest)
     if not opened:
-        return ()
+        return (), False
     depth, k = 0, opened.end() - 1
     for k in range(opened.end() - 1, len(rest)):
         depth += {"(": 1, ")": -1}.get(rest[k], 0)
         if depth == 0:
             break
     inner = rest[opened.end():k]
+    if (why := re.match(r"\s*whole:(.*)", inner, re.I | re.S)) is not None:
+        return (), bool(why.group(1).strip())
     if not inner.lstrip().startswith(("`", "§")):
-        return ()
+        return (), False
     names = [s.strip() for s in _CODE_SPAN.findall(inner)]
     out = [n.removesuffix("()") for n in names if _MEMBER_NAME.fullmatch(n) and not _FILE_NAME.search(n)]
     out += [f"§{s}" for s in _SECTION_REF.findall(_CODE_SPAN.sub("", inner))]
-    return tuple(dict.fromkeys(out))
+    return tuple(dict.fromkeys(out)), False
 
 
 #: The first note id `check` holds to SITES_RULE (kb/Work PB3263, filed 2026-10-19 at PB3443, the next id unallocated
@@ -1274,8 +1388,26 @@ SITES_RULE = ("an open note that names a cluster declares its sites: a `**Sites:
               "changes AND the members it changes in it, the file's path (a `:line` suffix optional) followed by a "
               "parenthesis of code spans, as in " + SITES_EXAMPLE + ", or `path#Member`; the wave planner partitions "
               "on the members, so a file named without them, or with a name the file does not declare, is claimed "
-              "whole and holds every other group on it (kb/Work PB3670); or `**Sites:** none (why)` when it changes "
-              "no code file")
+              "whole and holds every other group on it (kb/Work PB3670), and `check` refuses a code file (.py .cs .ps1 "
+              ".js .g4 .sh) named so, unless the parenthesis says why the whole file changes, `(whole: why)` (a file "
+              "the change creates needs neither); a Markdown section is named by its number outside backticks, "
+              "`(§8.7)`; or `**Sites:** none (why)` when it changes no code file")
+
+
+def _undeclared_names(path: pathlib.Path, names: tuple[str, ...]) -> tuple[str, ...]:
+    """The `names` no unit of the file `path` matches (source_units.match), or () when there is nothing to check them
+    against: a file not on the tree (one the change creates), a folder, or a file with no unit reader or that the reader
+    cannot balance (kb/Work PB3797)."""
+    if not path.is_file():
+        return ()
+    try:
+        stat = path.stat()
+        declared = _unit_names(str(path), stat.st_mtime_ns, stat.st_size)
+    except OSError:
+        return ()
+    if declared is None:
+        return ()
+    return tuple(n for n in names if not any(_source_units().match(n, u) for u in declared))
 
 
 def _members_located(path: pathlib.Path, names: tuple[str, ...]) -> bool:
@@ -1284,7 +1416,8 @@ def _members_located(path: pathlib.Path, names: tuple[str, ...]) -> bool:
     against and keeps them (so does a folder, which is no file claim: member_index.note_file_set drops it); a file
     with no units (no reader for its kind, one the reader cannot balance, one it cannot read) cannot locate any name,
     and a name no unit matches (a deleted function, a local, a prose word in a code span) says nothing about where the
-    edit lands: both claim the file whole (kb/Work PB3670 review R1-3)."""
+    edit lands: both claim the file whole (kb/Work PB3670 review R1-3), and `check` refuses the second for a note it
+    holds to the site rule (`NoteSites.undeclared`, kb/Work PB3797)."""
     if not path.is_file():
         return True
     try:
@@ -1292,7 +1425,7 @@ def _members_located(path: pathlib.Path, names: tuple[str, ...]) -> bool:
         declared = _unit_names(str(path), stat.st_mtime_ns, stat.st_size)
     except OSError:
         return False
-    return declared is not None and all(any(_source_units().match(n, u) for u in declared) for n in names)
+    return declared is not None and not _undeclared_names(path, names)
 
 
 @functools.lru_cache(maxsize=1)
@@ -1341,7 +1474,7 @@ def sites_problems(items: list[dict]) -> list[str]:
         from_cutover = bool(clusters) and number is not None and int(number.group(1)) >= SITES_REQUIRED_FROM
         if it.get("kind") == "decision" or it.get("status") in TERMINAL_STATUSES or not (from_cutover or in_campaign):
             continue
-        sites = note_sites(it.get("_body", ""))
+        sites = note_sites(it.get("_body", ""), repo=REPO)
         if not sites.declared:
             where = (f"names the campaign cluster(s) {', '.join(sorted(campaigns & set(clusters))) or 'it tiers'}"
                      if in_campaign else f"names the cluster(s) {', '.join(clusters)}")
@@ -1356,7 +1489,51 @@ def sites_problems(items: list[dict]) -> list[str]:
                        f"UNPARTITIONED beside every group on the files it changes (kb/Work PB3721): name each file "
                        f"under a campaign root ({', '.join(campaign_domain().roots)}), or a glob over tracked files "
                        f"such as `scripts/**/*.py`, or write `**Sites:** none (why)` when it changes no code file")
+        # ⛔ A CODE FILE NAMED BARE IS CLAIMED WHOLE (kb/Work PB3797). The planner partitions on members; a file named
+        # without them holds every other group on it, and nineteen PB1957 notes waited behind one dispatch for it on
+        # 2026-10-25. Naming the members, or saying why the whole file changes, is what R3 asks, so `check` asks it.
+        bad += [f"{it['_file']}: its site block names the code file `{p}` without the members the fix changes in it: "
+                f"write `{p}` (`Member`, …), `{p}#Member` or `{p}` (whole: why the whole file changes) — a file named "
+                f"bare is claimed whole and holds every other group on it (kb/Work PB3797, PB3670; MANDATORY-PRACTICES R3)"
+                for p in sites.unnamed]
+        bad += [f"{it['_file']}: its site block names {', '.join(f'`{n}`' for n in gone)} in `{p}`, which declares no such "
+                f"member, so the planner claims the whole file (kb/Work PB3797): name a member the file declares "
+                f"(`python scripts/arch/source_units.py {p}` lists them) or `(whole: why)`"
+                for p, gone in sorted(sites.undeclared.items())]
     return bad
+
+
+#: The tree a note's work lands in when it changes the compiler or its runtime: `process_only` says the item does
+#: NOTHING to a user's program, which a note whose every site is here contradicts unless it says why.
+COMPILER_ROOT = "src/"
+
+
+def process_only_problems(it: dict) -> list[str]:
+    """A not-yet-done note that sets `process_only: true` while every site it declares is under `src/` (kb/Work PB3836).
+
+    ⛔ `process_only` WAS THE FILER'S WAY THROUGH THE CHECK, NOT A FACT. The check refuses an open defect with no harm
+    flag and offers `process_only` as the other way out, so a defect whose message names the wrong fault (which does
+    something to a user's program, and had no harm class) was filed `process_only: true`: 23 open notes with compiler
+    sites carried it, hidden from `next`. A note whose sites are all compiler code sets a harm flag from HARM_FLAGS,
+    or states in `process_only_reason:` why its change reaches no user's program (a drift test that guards a site in
+    `src/`, a rename with no behaviour change). A note naming no `src/` site, or one outside it too, is unaffected: its
+    work is tooling, tests or documents. An `upstream` record describes another project and is exempt by its kind. A
+    RESTRUCTURING note (a `**Wave kind:**` of extract, unify, move-and-rename, data-ize, delete or modernize: the
+    architecture review's behavior-neutral waves, DESIGN-architecture-review.md section 8.7) states its reason by that
+    kind: its change reaches no user's program by construction, and the oracle that proves it is the wave's gate."""
+    if (not it.get("process_only") or it.get("kind") == "upstream" or it.get("status") in TERMINAL_STATUSES):
+        return []
+    sites = note_sites(it.get("_body", ""))
+    if not sites.paths or not all(p.startswith(COMPILER_ROOT) for p in sites.paths):
+        return []
+    reason = it.get("process_only_reason")
+    if (isinstance(reason, str) and reason.strip()) or (sites.wave and not sites.fix_lane):
+        return []
+    paths = sites.paths
+    return [f'{it["_file"]}: `process_only: true` on a note whose every site is under `{COMPILER_ROOT}` '
+            f'({", ".join(paths[:3])}{", …" if len(paths) > 3 else ""}): set the harm flag the defect really has '
+            f'({", ".join(HARM_FLAGS)}; a message that names the wrong fault is `misleads_diagnosis`), or state in '
+            f'`process_only_reason:` why the change reaches no user\'s program (kb/Work PB3836)']
 
 
 def _slice_rows(repo: pathlib.Path) -> list[list[str]]:
@@ -1664,6 +1841,27 @@ def case_findings(fixture: dict, answers: list[dict]) -> list[str]:
     return bad
 
 
+def scalar_findings(fixture: dict) -> list[str]:
+    """The fixture's `scalars` against `_scalar` (kb/Work PB3812): the value and the error code of each, and a case for
+    every escape the reader defines (a character added to `_YAML_ESCAPES` stops this until a case states it)."""
+    cases = fixture.get("scalars", [])
+    bad = []
+    for c in cases:
+        got = _scalar(c["value"])
+        if got != (c["expect"], c["error"]):
+            bad.append(f'scalar case "{c["name"]}": {c["value"]!r} reads as {got!r}, fixture says '
+                       f'{(c["expect"], c["error"])!r}')
+    backslash = chr(92)
+    stated = {c["value"][c["value"].index(backslash) + 1] for c in cases
+              if not c["error"] and c["value"][:1] == '"' and backslash in c["value"]}
+    bad += [f"the fixture carries no scalar case for the YAML escape backslash-{e!r}, which _scalar decodes"
+            for e in (*_YAML_ESCAPES, "x", "u", "U") if e not in stated]
+    for code in ("unknown-escape", "unterminated-quote"):
+        if not any(c["error"] == code for c in cases):
+            bad.append(f"the fixture's scalars carry no case reporting {code}")
+    return bad
+
+
 def directory_findings(fixture: dict) -> list[str]:
     """The fixture's files written into a directory and read as a register (kb/Work PB3654): `register_problems` and
     `load` refuse each file named like a note that does not parse, `check --work` counts the DIRECTORY's notes (it once
@@ -1736,7 +1934,7 @@ def _upstream_fixture(**changes: str | None) -> str:
 def upstream_findings() -> list[str]:
     """The `upstream` kind held to its own rules (kb/Work PB3838), the drift test of the kind: a well-formed record passes
     `register_problems`; each way of failing the bar is reported by name; the record is outside `actionable` and every
-    cluster; and the shipped `kb/Work.base` and the planner-facing exclusions agree (check_base_agrees)."""
+    cluster; and the views (`work.py upstream`, `unharmed`) list it where they should and nowhere else."""
     import tempfile  # noqa: PLC0415
 
     bad: list[str] = []
@@ -1809,23 +2007,164 @@ def upstream_findings() -> list[str]:
         if not any("upstream_project on a note of kind 'defect'" in p for p in problems):
             bad.append(f"an upstream_* field on a defect note is not refused: {problems}")
 
-        # ⛔ THE VIEWS ARE PART OF THE KIND (kb/Work PB3939): the shipped kb/Work.base agrees with the exclusions, and a
-        # copy with each of the kind's three arms removed in turn is refused by name, so a later edit of
-        # check_base_agrees that stops testing one of them fails here rather than passing in silence.
-        shipped = REPO / "kb" / "Work.base"
-        bad += [f"the shipped kb/Work.base: {p}" for p in check_base_agrees(shipped)]
-        text = shipped.read_text(encoding="utf-8") if shipped.exists() else ""
-        for arm, cut, expect in (
-                ("the Upstream records view", 'kind == "upstream"', "no `Upstream records` view"),
-                ("the exclusion from Open but no harm flag set", 'kind != "upstream"', "does not exclude"),
-                ("the upstream_ref property", "note.upstream_ref:", "no `note.upstream_ref` property")):
-            if cut not in text:
-                bad.append(f"kb/Work.base has no {cut!r}, so the case removing {arm} measures nothing")
+        # ⛔ THE VIEWS ARE PART OF THE KIND (kb/Work PB3939, PB3799): a record is listed by `upstream` and by no view of our
+        # work, whether or not it sets a harm flag (the `unharmed` complement would otherwise fill with it).
+        (d / "PB9101.md").unlink()
+        (d / "PB9102.md").write_bytes(_upstream_fixture(id="PB9102", wrong_answer=None).encode("utf-8"))
+        items = load(d)
+        for view, want in (("upstream", ["PB9100", "PB9102"]), ("unharmed", []), ("blocked", []), ("landed", [])):
+            got = [i["id"] for i in view_notes(items, view)]
+            if got != want:
+                bad.append(f"the `{view}` view of two upstream records lists {got}, not {want}")
+    return bad
+
+
+def site_member_findings() -> list[str]:
+    """R3's member rule as `check` enforces it (kb/Work PB3797): a governed note names each code file it changes WITH its
+    members or with `(whole: why)`, and a member the file does not declare is refused. Each shape is a fabricated note
+    over files of this repository, so the answers are the real readers' (source_units for .py and .ps1)."""
+    here = "scripts/spec/work.py"
+
+    def problems(sites: str) -> list[str]:
+        it = {"_file": "PB9999.md", "id": "PB9999", "kind": "defect", "status": "open", "cluster": ["PB1"],
+              "_body": "**Sites:** " + sites}
+        return sites_problems([it])
+
+    cases = (
+        ("a member the file declares", f"`{here}` (`sites_problems`)", 0),
+        ("two members, the second qualified", f"`{here}` (`sites_problems`, `NoteSites.fix_lane`)", 0),
+        ("a member after a :line suffix", f"`{here}:1400` (`sites_problems`)", 0),
+        ("the path#Member form", f"`{here}#sites_problems`", 0),
+        ("a module-level unit", "`scripts/hooks/dispatch_guard.py` (`<module>`)", 0),
+        ("a PowerShell function with a hyphen", "`scripts/orchestrator/orchestrate.ps1` (`Take-Lock`)", 0),
+        ("the whole file with a reason", f"`{here}` (whole: the register is restructured)", 0),
+        ("the whole file with an empty reason", f"`{here}` (whole: )", 1),
+        ("the whole file named bare", f"`{here}`", 1),
+        ("a prose parenthesis is no member", f"`{here}` (the register check)", 1),
+        ("a :line alone is no member", f"`{here}:1400`", 1),
+        ("a member the file does not declare", f"`{here}` (`no_such_member_anywhere`)", 1),
+        ("a file the change creates needs neither", "`scripts/spec/a_file_this_change_creates.py`", 0),
+        ("a Markdown file is named by its section number", "`docs/DOC_INDEX.md`, `docs/DESIGN.md` (§0.5)", 0),
+        ("a glob sweep is whole by its pattern", "`scripts/spec/work*.py`", 0),
+    )
+    return [f"site rule, {name}: {len(got)} problem(s), want {want}: {got}"
+            for name, sites, want in cases if len(got := problems(sites)) != want]
+
+
+def process_only_findings() -> list[str]:
+    """`process_only` on a note whose sites are all compiler code, and `next`'s order across harm classes (kb/Work PB3836)."""
+    src = "**Sites:** `src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs` (`DataBinder.Bind`)"
+    mixed = src + ", `tests/WiseOwl.Cobol.Tests.Unit/XTests.cs` (`XTests.Y`)"
+
+    def note(body: str, **fm) -> dict:
+        return {"_file": "PB9.md", "id": "PB9", "kind": "defect", "status": "open", "process_only": True, "_body": body, **fm}
+
+    cases = (
+        ("process_only on a src-only note without a reason", note(src), True),
+        ("process_only_reason states why", note(src, process_only_reason="a drift test guards the site"), False),
+        ("a blank reason is none", note(src, process_only_reason="  "), True),
+        ("a restructuring wave kind states it", note(src + chr(10) + "**Wave kind:** unify."), False),
+        ("the fix-lane wave kind does not", note(src + chr(10) + f"**Wave kind:** {FIX_LANE_WAVE}."), True),
+        ("a note that also sites a test", note(mixed), False),
+        ("a note with no site block", note("no sites"), False),
+        ("a landed note", note(src, status="landed"), False),
+        ("an upstream record", note(src, kind="upstream"), False),
+        ("a harm flag instead of process_only", note(src, process_only=False, misleads_diagnosis=True), False),
+    )
+    bad = [f"process_only_problems, {name}: {'no problem' if want else 'a problem'} was due"
+           for name, it, want in cases if bool(process_only_problems(it)) != want]
+    # next ranks within a severity by what the harm does, a misleading message last, then by id
+    ids = [i["id"] for i in actionable([
+        {"id": "PB1", "status": "open", "severity": "MINOR", "misleads_diagnosis": True},
+        {"id": "PB2", "status": "open", "severity": "MINOR", "under_rejects": True},
+        {"id": "PB3", "status": "open", "severity": "MINOR", "wrong_answer": True},
+        {"id": "PB4", "status": "open", "severity": "MAJOR", "misleads_diagnosis": True}])]
+    if ids != ["PB4", "PB3", "PB2", "PB1"]:
+        bad.append(f"next lists {ids}: severity, then the harm's rank, then the id (want PB4 PB3 PB2 PB1)")
+    return bad
+
+
+def view_findings() -> list[str]:
+    """The register's views (VIEWS, `next`) over a scratch register that holds one note of each shape (kb/Work PB3799):
+    which notes each lists is stated here, so a change to a predicate, to HARM_FLAGS or to TERMINAL_STATUSES that moves a
+    note in or out of a view fails by name. `next` and `unharmed` are measured as complements over every harm flag, so a
+    harm class added to HARM_LABELS is covered without an edit here."""
+    import tempfile  # noqa: PLC0415
+
+    def note(nid: str, **fm: str) -> str:
+        base = {"id": nid, "kind": "defect", "status": "open", "severity": "MINOR", "area": "x", "process_only": "false",
+                "title": f'"{nid} — a note"'}
+        lines = ["---", *(f"{k}: {v}" for k, v in {**base, **fm}.items()), "---", "", f"# {nid}", ""]
+        return chr(10).join(lines)
+
+    notes = {
+        "PB9001": {"wrong_answer": "true", "severity": "MAJOR"},
+        "PB9002": {"process_only": "true"},
+        "PB9003": {"crashes": "true", "blocked_by": "[PB9002]"},
+        "PB9004": {"status": "owner", "rejects_legal_source": "true"},
+        "PB9005": {"status": "landed", "closes_rows": "[]", "closes_rows_reason": '"none"'},
+        "PB9006": {"status": "retired", "wrong_answer": "true"},
+        "PB9007": {"kind": "analysis", "process_only": "true"},
+        "PB9008": {"kind": "analysis", "status": "landed", "process_only": "true"},
+        "PB9009": {"kind": "upstream", "process_only": "true", "upstream_status": "unreported"},
+        "PB9010": {"blocked_by": "[PB9005]", "under_rejects": "true"},
+        "PB9011": {"silent": "true"},
+    }
+    # one open note per harm flag the register ranks, each of which `next` must list and `unharmed` must not
+    notes.update({f"PB92{n:02d}": {flag: "true"} for n, flag in enumerate(HARM_FLAGS)})
+    harmed = [f"PB92{n:02d}" for n in range(len(HARM_FLAGS))]
+    want = {
+        "next": sorted(["PB9001", "PB9010", *harmed]),
+        "blocked": ["PB9003", "PB9004"],
+        "unharmed": ["PB9002", "PB9007", "PB9011"],
+        "analyses": ["PB9007", "PB9008"],
+        "landed": ["PB9005", "PB9006"],
+        "upstream": ["PB9009"],
+    }
+    bad = []
+    with tempfile.TemporaryDirectory(prefix="work-views-") as tmp:
+        for nid, fm in notes.items():
+            pathlib.Path(tmp, f"{nid}.md").write_bytes(note(nid, **fm).encode("utf-8"))
+        items = load(pathlib.Path(tmp))
+    got = {"next": sorted(i["id"] for i in actionable(items)),
+           **{v: sorted(i["id"] for i in view_notes(items, v)) for v in VIEWS}}
+    bad += [f"the `{v}` view lists {got[v]}, not {want[v]}" for v in want if got[v] != want[v]]
+    bad += [f"the register has a view `{v}` that the self-test states no listing for" for v in VIEWS if v not in want]
+    for flag in HARM_FLAGS:
+        if flag not in HARM_LABELS or not harm_label({flag: True}):
+            bad.append(f"HARM_FLAGS names {flag!r} that HARM_LABELS does not label")
+    return bad
+
+
+#: The repository files that restate the harm vocabulary (a flag list in a brief, an enum in a workflow template) and
+#: are the places a new harm class is forgotten: any file under these folders that names one of HARM_FLAGS or
+#: FINDING_HARMS must name them all.
+HARM_RESTATEMENT_ROOTS = (".claude/skills/workstream/templates",)
+
+
+def harm_vocabulary_findings(repo: pathlib.Path = REPO) -> list[str]:
+    """The harm vocabulary written outside this module agrees with HARM_LABELS (kb/Work PB3836): `.agent-fleet.json`
+    weighs exactly HARM_FLAGS, in rank order, each class strictly below the one before it (the planner and the branch
+    survey rank on the weights, clusters.harm_weights); and no template that restates the vocabulary leaves a class out,
+    so a harm class added to HARM_LABELS stops this until each restatement names it."""
+    bad = []
+    fleet = json.loads((repo / ".agent-fleet.json").read_text(encoding="utf-8"))
+    weights = {k: int(v) for k, v in (p.split("=") for p in fleet["harm"].split(","))}
+    if list(weights) != list(HARM_FLAGS):
+        bad.append(f".agent-fleet.json `harm` weighs {list(weights)}, not HARM_FLAGS {list(HARM_FLAGS)} in rank order")
+    elif any(a <= b for a, b in zip(weights.values(), list(weights.values())[1:])):
+        bad.append(f".agent-fleet.json `harm` weights {list(weights.values())} do not fall strictly with the rank of "
+                   f"{list(HARM_FLAGS)}: a class must weigh less than the one ranked before it")
+    ranked = {flag.replace("_", "-"): flag for flag in HARM_FLAGS}      # `silent` qualifies a harm and may be left out
+    for root in HARM_RESTATEMENT_ROOTS:
+        for path in sorted((repo / root).rglob("*")):
+            if not path.is_file() or path.suffix not in (".md", ".js", ".json", ".txt"):
                 continue
-            doctored = pathlib.Path(tmp, "Work.base")
-            doctored.write_bytes(text.replace(cut, "REMOVED-BY-SELF-TEST").encode("utf-8"))
-            if not any(expect in p for p in check_base_agrees(doctored)):
-                bad.append(f"check_base_agrees does not refuse kb/Work.base without {arm} (no problem names {expect!r})")
+            text = path.read_text(encoding="utf-8", errors="replace")
+            named = [word for word, flag in ranked.items() if word in text or flag in text]
+            if len(named) >= 2 and len(named) < len(ranked):   # two classes written out is a restatement of the list
+                bad.append(f"{path.relative_to(repo).as_posix()} restates the harm vocabulary but leaves out "
+                           f"{[word for word in ranked if word not in named]}")
     return bad
 
 
@@ -1865,8 +2204,29 @@ def self_test() -> int:
     if len(fixture["cases"]) < 8:
         findings.append(f'{len(fixture["cases"])} case(s) — too few to be measuring the reader')
 
+    findings += scalar_findings(fixture)
     findings += directory_findings(fixture)
     findings += upstream_findings()
+    findings += view_findings()
+    findings += process_only_findings()
+    findings += site_member_findings()
+    findings += harm_vocabulary_findings()
+    # FALSIFICATION: a repository whose weights are flat and whose brief names two classes of the vocabulary is refused
+    # on both counts, and one that is consistent is not.
+    import tempfile  # noqa: PLC0415
+
+    with tempfile.TemporaryDirectory(prefix="work-harm-") as tmp:
+        root = pathlib.Path(tmp)
+        (root / HARM_RESTATEMENT_ROOTS[0]).mkdir(parents=True)
+        (root / HARM_RESTATEMENT_ROOTS[0] / "brief.md").write_text("wrong_answer / crashes", encoding="utf-8", newline="\n")
+        weights = lambda ws: json.dumps({"harm": ",".join(f"{f}={w}" for f, w in zip(HARM_FLAGS, ws))})   # noqa: E731
+        (root / ".agent-fleet.json").write_text(weights([1] * len(HARM_FLAGS)), encoding="utf-8", newline="\n")
+        if len(harm_vocabulary_findings(root)) != 2:
+            findings.append("harm_vocabulary_findings does not refuse flat weights and a brief that leaves classes out")
+        (root / ".agent-fleet.json").write_text(weights(range(len(HARM_FLAGS), 0, -1)), encoding="utf-8", newline="\n")
+        (root / HARM_RESTATEMENT_ROOTS[0] / "brief.md").write_text(" ".join(HARM_FLAGS), encoding="utf-8", newline="\n")
+        if harm_vocabulary_findings(root):
+            findings.append(f"harm_vocabulary_findings refuses a consistent repository: {harm_vocabulary_findings(root)}")
 
     # `frontier_model:` names a frontier family or is absent (kb/Work PB3941): every family is accepted, and a value
     # that is none (the alias `opus`, a dated id, a LIST such as `[mythos]`, which must be refused by name rather than
@@ -1885,6 +2245,9 @@ def self_test() -> int:
     if not case_findings(corrupted, [{"name": c["name"], **reading_view(c["file"], c["text"])}
                                      for c in corrupted["cases"]]):
         findings.append("a fixture whose expected id is WRONG produced no finding — the comparison is inert")
+    corrupted["scalars"][0]["expect"] += "-X"
+    if not scalar_findings(corrupted):
+        findings.append("a fixture whose expected scalar is WRONG produced no finding — the scalar comparison is inert")
 
     print(f"cases  : {len(answers)} from {FIXTURE_REL}")
     if findings:
@@ -1898,10 +2261,10 @@ def self_test() -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", nargs="?", choices=["migrate", "check", "next", "stats"])
+    ap.add_argument("cmd", nargs="?", choices=["migrate", "check", "next", "stats", *VIEWS])
     ap.add_argument("--self-test", action="store_true", help="the frontmatter reader against its cases")
-    ap.add_argument("--top", type=int, default=3)
-    ap.add_argument("--json", action="store_true", help="emit one machine-readable JSON line (next --cluster)")
+    ap.add_argument("--top", type=int, default=None, help="next: how many to name (default 3); a view: list only the first N")
+    ap.add_argument("--json", action="store_true", help="emit one machine-readable JSON line (next --cluster, and every view)")
     ap.add_argument("--work", default=str(WORK), help="the register directory (default kb/Work; a test seam)")
     ap.add_argument("--cluster", metavar="LEAD", help="next: the open notes whose `cluster` names LEAD, in blocked_by "
                     "order, whatever their harm flags (a campaign; exit 1 when no note names it)")
@@ -1909,7 +2272,7 @@ def main() -> int:
     if a.self_test:
         return self_test()
     if a.cmd is None:
-        ap.error("a command (migrate, check, next, stats) or --self-test")
+        ap.error(f"a command (migrate, check, next, stats, {', '.join(VIEWS)}) or --self-test")
     if a.cmd == "migrate":
         return migrate()
     if a.cmd == "check":
@@ -1917,6 +2280,8 @@ def main() -> int:
     if a.cluster and a.cmd != "next":
         ap.error("--cluster goes with next")
     items = load(pathlib.Path(a.work))
+    if a.cmd in VIEWS:
+        return print_view(items, a.cmd, a.json, a.top)
     if a.cmd == "next" and a.cluster:
         return print_cluster(cluster_order(items, a.cluster), a.json)
     if a.cmd == "next":
@@ -1924,12 +2289,13 @@ def main() -> int:
         if not nxt:
             print("next   : (nothing unblocked harms a user's program)")
             return 0
-        print("next   : " + " · ".join(f'{i["id"]} ({i["area"]})' for i in nxt[:a.top])
+        print("next   : " + " · ".join(f'{i["id"]} ({i["area"]})' for i in nxt[:a.top or 3])
               + f"   [{len(nxt)} actionable]")
         return 0
     import collections
     print("kind   :", dict(collections.Counter(i.get("kind") for i in items)))
     print("status :", dict(collections.Counter(i.get("status") for i in items)))
+    print("harm   :", dict(collections.Counter(harm_label(i) for i in items if _is_open(i))), "(open notes)")
     print("actionable now:", len(actionable(items)))
     return 0
 
