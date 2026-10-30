@@ -1,4 +1,4 @@
-## PB4121: the three SetBinder "no receiving operand" guards stop opening with an elided SET, and the drift test sees BoundRejected.Report
+## Entry 2808 — 2026-10-30 14:11 PDT — PB4121: the three SetBinder "no receiving operand" guards stop opening with an elided SET, and the drift test sees BoundRejected.Report
 
 **Mechanism.** `SetDiagnosticNamesReceiversDriftTests.ElidedEcho` keyed on `Error(` only, so a `BoundRejected.Report(ctx.Edition, code, "SET …")` site was invisible to it; that blind spot is how `PtrBinder`'s message survived to PB1314 and three `SetBinder` guards survived after it.
 
@@ -9,3 +9,4 @@
 **Not fixed.** About forty messages in other binders open `VERB … PHRASE` (CALL, READ, WRITE, START, INSPECT, OCCURS DEPENDING ON, CODE-SET). They elide a phrase, not the receiver list, which is a separate mechanism; reported as a lead.
 
 **Rows.** None claimed or closed (`closes_rows: []`, message quality).
+
