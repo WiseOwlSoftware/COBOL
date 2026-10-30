@@ -1693,6 +1693,22 @@ predicate at the token (the walk evaluates none), and so does a structural hint 
 the parser stands, which diagnoses the token as written; only a guess or no hint gives way. The WHEN OTHER arm (0b) asks
 the same question before it reads a present body as a misplaced phrase (COBOL2073). The report covers every token from the parser's position through
 the one it names, and a later report among them is the recovery re-meeting it.
+**The tail of a construct closed early is discarded with its sentence (kb/Work PB3843).** The same early closure left the
+RECOVERY a second fault to invent. An explicit scope terminator is optional (ISO §14.5.3.2), so every statement ends where
+its next token is not its own and the refusal is deferred to the sentence's period; by then the IF around `IF c MOVE 1 TO N
+END-ADD MOVE 2 TO N END-IF.` is closed, and ANTLR's resynchronization resumed at the first token a statement could take and
+parsed the rest as statements of a sentence the IF no longer belonged to: the true COBOL0306 at END-ADD was followed by a
+false one at the IF's own END-IF, and a phrase no statement owns (COBOL2269: a second `ON OVERFLOW`, an `ON EXCEPTION` the
+format does not print) by the stray COBOL0306 of its statement's END-x, a second COBOL2269 at its `NOT ON …` phrase, or
+COBOL0901 at an END-x, and a repeated WHEN OTHER (COBOL2073) by the stray COBOL0306 of the END-EVALUATE. When the winning hint
+of a report is one of those three codes (`CobolErrorStrategy.EndsAConstructEarly`:
+the faults found AFTER the statements around the token had closed), the resynchronization of THAT fault stops only at the
+sentence's separator period (`ConsumeUntil` through `ResynchronizationSet`, which both the loop recovery of `Sync` and
+`Recover` reach; the sentence's own period is consumed when the sentence is the rule that recovers), so the tail is
+discarded with its sentence and the next sentence is parsed afresh. It is never a missing period (hint 0h is refused where a
+period lets the sentence follow; a terminator cannot begin one), and outside a sentence the base recovery runs.
+`ParseRecoveryTailTests` sweeps every scope terminator the grammar spells, read from the same ATN map as the hint, against an
+open and a closed enclosing statement, and pins the count of each row of the note.
 **What the one report reads (review R2).** Since the repeat is dropped, the first report must say everything it could:
 every hint reads the position's expected set (`OffendingPosition.Expected`) for every report kind, never the text of
 an exception's set, which a failed prediction does not carry. The expected-set guesses (the missing period COBOL0307,
