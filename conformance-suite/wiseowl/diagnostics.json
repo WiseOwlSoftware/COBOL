@@ -16369,6 +16369,24 @@
   ],
   "expect": "SET ADDRESS OF (data-pointer assignment) requires COBOL-2002"
  },
+ "pb1314-set-false-operand-not-condition-name": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "SET 'U' TO FALSE — 'U' is not a condition-name"
+ },
+ "pb1314-set-false-switch-status-condition-name": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "SET 'SW-ON' TO FALSE — 'SW-ON' IS a condition-name"
+ },
  "pb450-set-false-in-second-group-below-2002": {
   "refuse-at": [
    "85"
@@ -21777,6 +21795,22 @@
    "2023"
   ],
   "expect": "COBOL0869"
+ },
+ "pb3966-initialize-replacing-data-pointer-names-receiver": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0869: INITIALIZE REPLACING DATA-POINTER DATA BY 'PU' — the implicit SET 'PR' TO 'PU' (ISO §14.9.20.4 GR4)"
+ },
+ "pb3966-initialize-replacing-data-pointer-restricted-sender-names-receiver": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0869: INITIALIZE REPLACING DATA-POINTER DATA BY 'PRT' — the implicit SET 'PQ' TO 'PRT' (ISO §14.9.20.4 GR4)"
  },
  "pb94-value-alphanumeric-on-numeric": {
   "refuse-at": [
