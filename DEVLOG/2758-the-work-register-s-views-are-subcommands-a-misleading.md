@@ -1,4 +1,4 @@
-## The work register's views are subcommands, a misleading message has its own harm class, the reader decodes YAML escapes, and R3's member rule is checked
+## Entry 2758 — 2026-10-29 18:42 PDT — The work register's views are subcommands, a misleading message has its own harm class, the reader decodes YAML escapes, and R3's member rule is checked
 
 Wave 20261752 group A, four notes of the PB1957 tooling campaign, one root: `scripts/spec/work.py`, the register's one reader.
 
@@ -65,3 +65,4 @@ refuse: PB4073 and PB4074 set `process_only` on compiler sites, and PB4068 named
 its own code site. PB4073 changes only a doc comment, and its one caller reports the bag, not the null. PB4074 hardens a
 type, and every production construction already passes the compilation's bag. Both now say so in
 `process_only_reason:`. PB4068 names its test method, and its stale line about PB3819's unlanded reader is gone.
+
