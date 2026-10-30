@@ -358,7 +358,7 @@ public static partial class CobolNum
     // ── BINARY (radix 2, §13.18.60.4 GR4/GR6/GR12) ────────────────────────────────────────────────────────────
     // Two's complement, MOST SIGNIFICANT BYTE FIRST, in exactly StorageLength bytes. Big-endian is the choice
     // GR4 asks the implementor to make and is what IBM, Micro Focus and GnuCOBOL all write for USAGE BINARY, so
-    // a data file interchanges. An UNSIGNED item holds the magnitude (§14.9.25.4 GR8 — "the absolute value").
+    // a data file interchanges. An UNSIGNED item holds the magnitude (§14.9.25.4 GR6 d) 2. b. — "the absolute value").
 
     private static string FormatBinaryImage(Int128 unscaled, in NumProfile item)
     {
