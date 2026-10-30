@@ -1,4 +1,4 @@
-## PB2024: the grammar audit asks the inverse questions — an underlined word the grammar lets be omitted, a printed-once word it lets repeat — and its first full run finds SEND's END-SEND
+## Entry 2762 — 2026-10-29 19:47 PDT — PB2024: the grammar audit asks the inverse questions — an underlined word the grammar lets be omitted, a printed-once word it lets repeat — and its first full run finds SEND's END-SEND
 
 ### The gap
 
@@ -82,3 +82,4 @@ The audit measures the licensed PDF, so neither CI's `audits` job (no `specs-pri
 run its full join; both its self-tests and `figure_options.py`'s run in every gate through `self_tests.py`, on figures
 measured off the page. `sweep_figures.py --check` reports one figure differing from the generator, §14.9.9.2's
 `CONTINUE`, which is the transcription's deliberate C2 correction (kb/Work PB3751), not this change.
+
