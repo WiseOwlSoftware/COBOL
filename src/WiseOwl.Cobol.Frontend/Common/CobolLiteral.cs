@@ -40,32 +40,49 @@ public static class CobolLiteral
     /// or <c>"BX"</c> — and the quoted body; null when <paramref name="raw"/> is not a quoted literal.</summary>
     private static (string Prefix, string Body)? SplitLiteral(string raw)
     {
-        string body = raw;
-        string prefix = "";
+        int open = OpeningDelimiterAt(raw);
+        if (open < 0) return null;
+        string body = raw[open..];
+        // ⛔ ONE literal, WELL-FORMED (kb/Work PB71): the former first/last-character test answered "a literal" for
+        // `"A"&"B"` (a concatenation's source text) and Decode then produced `A"&"B`. Inside the delimiters an
+        // embedded delimiter shall be doubled (§8.3.3.2.3 r3), so an undoubled one before the end is not this literal.
+        if (body.Length < 2 || body[^1] != body[0]) return null;
+        char d = body[0];
+        for (int i = 1; i < body.Length - 1; i++)
+            if (body[i] == d) { if (i + 1 < body.Length - 1 && body[i + 1] == d) i++; else return null; }
+        return (raw[..open].ToUpperInvariant(), body);
+    }
+
+    /// <summary>The index of the OPENING DELIMITER of the delimited literal <paramref name="raw"/> begins — the length of
+    /// its prefix (0 for <c>"…"</c>, 1 for <c>N"…"</c> / <c>B"…"</c> / <c>X"…"</c>, 2 for <c>NX"…"</c> / <c>BX"…"</c>) —
+    /// or -1 when <paramref name="raw"/> does not open one. Whether a closing delimiter follows is not asked here.</summary>
+    private static int OpeningDelimiterAt(string raw) =>
         // ⛔ THE TWO-LETTER PREFIXES ARE TESTED FIRST, AND THE ORDER IS THE WHOLE CORRECTNESS ARGUMENT
         // (fix-queue R03). `NX"…"` is §8.3.3.5.2 Format 2 (hexadecimal-national) and `BX"…"` is §8.3.3.4.2
         // Format 2 (hexadecimal-boolean). Both open with a letter that is ALSO a single-letter prefix, so a
         // single-letter test running first sees `N` followed by `X` rather than a quote, concludes "not a
         // literal", and hands back the raw source text — which is precisely how the token used to degrade.
-        if (body.Length >= 4 && body[0] is 'N' or 'n' or 'B' or 'b' && body[1] is 'X' or 'x'
-            && body[2] is '"' or '\'')
-        {
-            prefix = body[..2].ToUpperInvariant();
-            body = body[2..];
-        }
-        else if (body.Length >= 3 && PrefixLetters.Contains(body[0]) && body[1] is '"' or '\'')
-        {
-            prefix = body[..1].ToUpperInvariant();
-            body = body[1..];
-        }
-        // ⛔ ONE literal, WELL-FORMED (kb/Work PB71): the former first/last-character test answered "a literal" for
-        // `"A"&"B"` (a concatenation's source text) and Decode then produced `A"&"B`. Inside the delimiters an
-        // embedded delimiter shall be doubled (§8.3.3.2.3 r3), so an undoubled one before the end is not this literal.
-        if (body.Length < 2 || body[0] is not ('"' or '\'') || body[^1] != body[0]) return null;
-        char d = body[0];
-        for (int i = 1; i < body.Length - 1; i++)
-            if (body[i] == d) { if (i + 1 < body.Length - 1 && body[i + 1] == d) i++; else return null; }
-        return (prefix, body);
+        raw.Length >= 3 && raw[0] is 'N' or 'n' or 'B' or 'b' && raw[1] is 'X' or 'x' && raw[2] is '"' or '\'' ? 2
+        : raw.Length >= 2 && PrefixLetters.Contains(raw[0]) && raw[1] is '"' or '\'' ? 1
+        : raw.Length >= 1 && raw[0] is '"' or '\'' ? 0
+        : -1;
+
+    /// <summary>True when <paramref name="raw"/> opens a delimited literal and never closes it — the text of a literal
+    /// TOKEN the line ended inside (kb/Work PB3245). The general formats close every alphanumeric, boolean and national
+    /// literal (ISO §8.3.3.2.2, §8.3.3.4.2, §8.3.3.5.2), and one may stay open at a line's end only when a continuation
+    /// line continues it (§6.3.5 1), §6.4.2), which the reference-format stage has already joined; the lexer still makes
+    /// such a literal ITS token (CobolLexer.g4 STR_BODY), and this is the question that tells the two apart. Read left to
+    /// right as the lexer reads it, a doubled delimiter being one embedded delimiter (§8.3.3.2.3 r3): <c>"AB""</c> is
+    /// open, <c>"AB"</c> is closed. Not a well-formedness test: text with an undoubled delimiter before its end
+    /// (<c>"A"&amp;"B"</c>) is not one literal, closed or open, and answers false.</summary>
+    public static bool IsUnterminated(string raw)
+    {
+        int open = OpeningDelimiterAt(raw);
+        if (open < 0) return false;
+        char d = raw[open];
+        for (int i = open + 1; i < raw.Length; i++)
+            if (raw[i] == d) { if (i + 1 < raw.Length && raw[i + 1] == d) i++; else return false; }
+        return true;
     }
 
     /// <summary>True when <paramref name="raw"/> is a quoted literal in EITHER ISO delimiter, optionally with an

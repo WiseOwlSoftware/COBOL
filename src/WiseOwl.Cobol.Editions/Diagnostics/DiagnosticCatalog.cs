@@ -6934,6 +6934,21 @@ public static class DiagnosticCatalog
         + "period, right parenthesis or closing pseudo-text delimiter.",
         "ISO §8.3.5 5)");
 
+    /// <summary>COBOL5563 — an alphanumeric, boolean or national literal its line ends inside (kb/Work PB3245). The general
+    /// formats close every such literal (ISO §8.3.3.2.2, §8.3.3.4.2, §8.3.3.5.2), and one may be left open at the end of a
+    /// line only when a continuation line continues it: §6.3.5 1) with the fixed continuation indicator, §6.4.2 with the
+    /// floating one ("When such a literal is incomplete at the end of a line, the incomplete portion of the literal shall be
+    /// terminated by a floating continuation indicator"). The reference-format stage joins every continued literal, so one
+    /// still open when the text is lexed was never closed. The lexer makes it the literal's own token, running to the end of
+    /// its line (CobolLexer.g4 STR_BODY), so the parser reads it as the literal it was meant to be, and
+    /// <c>LiteralScreen.ReportUnterminated</c> names it over every token of the unit and of each compiler-directive
+    /// fragment.</summary>
+    public static readonly DiagnosticDescriptor LiteralUnterminated = new(
+        "COBOL5563", "literal-unterminated", EditionSeverity.Error,
+        "An alphanumeric, boolean or national literal has no closing delimiter: its line ends inside it, and no "
+        + "continuation line continues it.",
+        "ISO §6.3.5 1) · §6.4.2 · §8.3.3.2.2");
+
     /// <summary>COBOL2993 — an operator not immediately preceded and followed by a separator space (kb/Work PB1430,
     /// PB2017). §8.7.3: "The concatenation operator is the COBOL character '&amp;', which shall be immediately preceded
     /// and followed by a separator space"; §8.7.4 says the same of the invocation operator '::'; §8.7.1 says it of the
