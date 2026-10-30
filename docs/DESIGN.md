@@ -815,7 +815,11 @@ banned substrate.)* See §14.8 for the `CobolString` vs `CobolStrings` roster sp
   `CobolNum` + `NumProfile` (a counter is NOT initialized, GR11). BACKWARD = reverse target+patterns, run forward,
   reverse back.
 - **STRING** seeds the working buffer from the dest's current value (GR7: only written positions change); pointer is
-  a C# `int` round-tripped via `CobolNum`; overflow when pointer<1 or >len before a char move (GR8).
+  a C# `int` round-tripped via `CobolNum`; overflow when pointer<1 or >len before a char move (GR8). Overlapping
+  operands (§14.9.43.4 GR10, Annex A.2 item 60) run IN PLACE, as libcob does (CONFORMANCE.md D-STR1 to D-STR4):
+  `StringEmitter` stores the working image into identifier-3 and reads a sender, an identifier delimiter or a function
+  argument again when its transfer begins, but only where `StorageOverlap.MayShareStorage` cannot prove it disjoint
+  from identifier-3 and only for a sending after the first; the POINTER is read once and stored last.
 - **UNSTRING** uses a per-INTO `UnstringExtract` (earliest delimiter wins, tie→first-listed, one occurrence consumed,
   the matched delimiter's list position returned; two contiguous delimiters → empty extract → space/zero fill via
   `CobolString.Store`/`CobolNum.Store`) and, for an ALL delimiter, a `UnstringSkipRun` after that INTO store that
