@@ -153,7 +153,7 @@ def derive(items: list[dict], state_now: dict[str, str],
 
 # ── writing the field ────────────────────────────────────────────────────────────────────────────────────────
 
-#: The register's own line width. A note is READ by people in a diff and in Obsidian, and PB283 closes 77 rows —
+#: The register's own line width. A note is READ by people in a diff, and PB283 closes 77 rows —
 #: 5 kB on one line. The field is therefore WRAPPED like the rest of the register's long lists, which also means
 #: the back-fill dogfoods the reader repair: `kb/Work/PB875`'s wrapped-list shape is now the shape three hundred
 #: notes carry, so a reader that regresses to dropping it fails loudly on the next build instead of quietly.

@@ -49,7 +49,8 @@ Owner-emphasized, each earned by a correction. These nine are the SSOT; `PROMPT.
    (`kind:` defect · analysis · adjudication · decision · upstream), tracked in git, frontmatter carrying `status`,
    `severity`, `area`, the harm flags, `inventory_rows` (the traceability-inventory rows the note CLAIMS while
    it is open) and `closes_rows` (the rows its landing CLOSED, with a `closes_rows_reason:` when it closed none);
-   the forensic prose lives in the note body. `kb/Work.base` is the view.
+   the forensic prose lives in the note body. Its views are `work.py` subcommands (`blocked`, `unharmed`, `analyses`,
+   `landed`, `upstream`, `stats`), not a file for an application (kb/Work PB3799).
    **Read it with `python scripts/spec/work.py next` and keep it CURRENT in the same change set as the work** —
    a landed fix flips its note's `status` AND writes `closes_rows` in the commit that lands it, and a newly
    found defect becomes a note before it becomes a DEVLOG paragraph.
@@ -77,8 +78,8 @@ Owner-emphasized, each earned by a correction. These nine are the SSOT; `PROMPT.
    (`workstream` for the operator before it supervises, lands or dispatches) — at every start, resume and clear, in an
    attended session and in a loop unit alike; after a compaction the loaded skills stay in force (owner 2026-10-08).
 1. **`kb/Work/` — THE WORK REGISTER, and the answer to "what do I do now".** Run
-   `python scripts/spec/work.py next`; `kb/Work.base` → **Fix next** is the same list, sortable. It ranks on what
-   a defect DOES to a user's program, not on its severity label. ⛔ Never re-derive a worklist from prose.
+   `python scripts/spec/work.py next` (**Fix next**; `work.py blocked`, `unharmed`, `analyses`, `landed` and `upstream`
+   are the other views, each with `--json`). It ranks on what a defect DOES to a user's program, not on its severity label. ⛔ Never re-derive a worklist from prose.
 2. **`docs/REARCHITECTURE_PLAN.md` §0** — live state, gates, open GAPs, owner decisions and the campaign
    narrative. ⛔ **It no longer carries a worklist and must never regrow one** (rule 8). Trust §0 over any status
    written anywhere else, including memory — but trust `kb/Work/` over §0 for what is OPEN.
@@ -110,9 +111,9 @@ comprehensive pass once the design settles (`PROMPT.md` §4).
   live only in history, and `scripts/rename_retired_names.py --check` (the RETIRED NAMES audit) refuses them elsewhere.
   Implementor environment variables are `WISEOWL_COBOL_*`.
 - **The work register:** **`kb/Work/`** — ONE note per item (defect · analysis · adjudication · decision · upstream),
-  tracked in git, with the forensic prose in the note body. `kb/Work.base` is the view; **`Fix next`** ranks
-  on what a defect DOES to a user's program, not on its severity label. `python scripts/spec/work.py next`
-  prints it and session-probe shows it every session. ⛔ It replaced FIVE overlapping registers, three of
+  tracked in git, with the forensic prose in the note body. `python scripts/spec/work.py next` prints **`Fix next`**,
+  which ranks on what a defect DOES to a user's program, not on its severity label (the other views are the
+  `work.py` subcommands `blocked`, `unharmed`, `analyses`, `landed`, `upstream`); session-probe shows it every session. ⛔ It replaced FIVE overlapping registers, three of
   which each claimed to be canonical; `CONFORMANCE-FIX-QUEUE.md` is now a pointer.
 - **History:** `DEVLOG/` (one file per entry), and nowhere else. **Doctrine:** `PROMPT.md`.
 - **Doc map:** `docs/DOC_INDEX.md` — consult it to find the right doc and keep it in sync. Exactly one canonical

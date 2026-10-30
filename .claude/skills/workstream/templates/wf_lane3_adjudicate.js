@@ -33,7 +33,7 @@ const ADJ_OUT = {
     slug: { type: 'string' },
     records: { type: 'array', items: RECORD },
     findings: { type: 'array', description: 'register-ready defect paragraphs, one per MECHANISM (cluster the rows)', items: { type: 'object', properties: {
-      mechanism: { type: 'string' }, rule_ids: { type: 'array', items: { type: 'string' } }, harm: { type: 'string', enum: ['wrong-answer', 'crashes', 'rejects-legal-source', 'under-rejects', 'silent'] },
+      mechanism: { type: 'string' }, rule_ids: { type: 'array', items: { type: 'string' } }, harm: { type: 'string', enum: ['wrong-answer', 'crashes', 'rejects-legal-source', 'under-rejects', 'misleads-diagnosis', 'silent'] },
       repro: { type: 'string' }, expected_from_spec: { type: 'string' }, observed_or_reasoning: { type: 'string' }, code_site: { type: 'string' }, clause: { type: 'string' },
     }, required: ['mechanism', 'rule_ids', 'harm', 'repro', 'expected_from_spec', 'observed_or_reasoning', 'code_site', 'clause'] } },
     dossier_gaps: { type: 'array', items: { type: 'string' } },

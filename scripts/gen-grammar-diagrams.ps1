@@ -1,6 +1,6 @@
 #!/usr/bin/env pwsh
 # ─────────────────────────────────────────────────────────────────────────────────────────────────────────
-# gen-grammar-diagrams.ps1 — railroad (syntax) diagrams for the ANTLR grammar fragments, for Obsidian.
+# gen-grammar-diagrams.ps1 — railroad (syntax) diagrams for the ANTLR grammar fragments, as Markdown notes.
 #
 # Pipeline: clean an ANTLR *.g4 parser fragment -> W3C-style EBNF -> bottlecaps RR (tools/rr/rr.war) -> Markdown
 # with one inline data-URI SVG railroad diagram per rule -> kb/Grammar/<Fragment>.md (a GITIGNORED build output).
@@ -22,11 +22,9 @@ param(
         'CobolWords', 'CobolExpressions', 'CobolData', 'CobolSpecialNames',
         'CobolControlFlow', 'CobolIO', 'CobolReportWriter', 'CobolScreen', 'CobolOO'),
     # Wrap threshold (px) handed to rr's -width: rules wider than this break into multiple stacked rows. The
-    # generated notes carry `cssclasses: [wide-diagram]`, which the vault snippet .obsidian/snippets/grammar-
-    # diagrams.css widens to a ~1600px column — so on that surface diagrams render at native font (no downscale)
-    # and we keep the threshold high to avoid needlessly fragmenting rules. A few rules (e.g. performStatement,
-    # ~1397px) have a single unbreakable row that rr won't wrap below their natural width regardless; the wide
-    # column is what makes those readable. Lower this (e.g. -Width 680) if viewing without the snippet.
+    # threshold stays high to avoid needlessly fragmenting rules in a wide viewer. A few rules (e.g. performStatement,
+    # ~1397px) have a single unbreakable row that rr won't wrap below their natural width regardless. Lower this
+    # (e.g. -Width 680) for a narrow reading column.
     [int]$Width = 1400,
     [switch]$Check
 )
@@ -103,8 +101,6 @@ foreach ($frag in $Fragments) {
 ---
 title: $frag — syntax diagrams
 generated: true
-cssclasses:
-  - wide-diagram
 tags:
   - wiseowl-cobol
   - grammar

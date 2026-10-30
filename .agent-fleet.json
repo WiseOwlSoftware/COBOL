@@ -10,7 +10,7 @@
   "src": ["src/WiseOwl.Cobol.*"],
   "ext": ".cs,.g4",
   "exclude_dir": ["Generated"],
-  "harm": "wrong_answer=8,crashes=4,rejects_legal_source=2,under_rejects=1",
+  "harm": "wrong_answer=16,crashes=8,rejects_legal_source=4,under_rejects=2,misleads_diagnosis=1",
   "kind": "defect",
   "skip_flag": ["process_only"],
   "base": "origin/main",
