@@ -790,6 +790,16 @@ public sealed class ExceptionEngine
     /// and terminated run units on legal COBOL (kb/Work PB465).</para></summary>
     public void SizeAddressError(string detail) => FatalIfEnabled(SizeAddressChecking, "EC-SIZE-ADDRESS", detail);
 
+    /// <summary>True while the executing GENERATE or TERMINATE has some EC-SIZE-* condition enabled, so the report compose
+    /// it runs takes the CHECKED kernels for its numeric renders (§14.7.5 no-phrase rule 3; kb/Work PB4031). No raise
+    /// helper reads it: the raise is the checked kernel's own <see cref="WiseOwl.Cobol.Runtime.CobolSizeError"/>, which
+    /// the presenting statement's guard dispatches.</summary>
+    public bool SizeChecking
+    {
+        get => _checking.Size;
+        set => _checking.Size = value;
+    }
+
     /// <summary>True while the executing GENERATE or TERMINATE has EC-SIZE-TRUNCATION checking enabled, so the report
     /// compose it runs takes the RAISING final transfer for a printable item's implicit COMPUTE (§14.7.5 no-phrase rule 4,
     /// §14.7.4.3 rule 7; kb/Work PB4031). No raise helper reads it: the raise is the transfer kernel's own
@@ -1852,6 +1862,13 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.SizeAddressError"/>
     public static void SizeAddressError(string detail) => E.SizeAddressError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.SizeChecking"/>
+    public static bool SizeChecking
+    {
+        get => E.SizeChecking;
+        set => E.SizeChecking = value;
+    }
 
     /// <inheritdoc cref="ExceptionEngine.SizeTruncationChecking"/>
     public static bool SizeTruncationChecking

@@ -1002,6 +1002,11 @@ internal static class RuntimeApi
     public static string SizeRaisingImage(string tryCall, string imgVar, string detail) =>
         $"({tryCall} ? {imgVar} : throw new {nameof(CobolSizeError)}({Emit.EmitText.CsLiteral(detail)}, \"EC-SIZE-TRUNCATION\"))";
 
+    /// <summary>The presenting statement's EC-SIZE-* family enablement as the report compose reads it at run time —
+    /// <c>ExceptionState.SizeChecking</c> (kb/Work PB4031): it selects the compose's checked numeric renders.</summary>
+    public const string SizeChecking =
+        $"{nameof(Runtime.Exceptions.ExceptionState)}.{nameof(Runtime.Exceptions.ExceptionState.SizeChecking)}";
+
     /// <summary>The presenting statement's EC-SIZE-TRUNCATION enablement as the report compose reads it at run time —
     /// <c>ExceptionState.SizeTruncationChecking</c> (kb/Work PB4031).</summary>
     public const string SizeTruncationChecking =
