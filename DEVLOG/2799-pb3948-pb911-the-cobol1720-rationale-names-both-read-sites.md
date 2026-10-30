@@ -1,4 +1,4 @@
-## PB3948, PB911: the COBOL1720 rationale names both READ sites, and the token that ends an empty required block is never deleted by the parser's recovery
+## Entry 2799 — 2026-10-30 12:30 PDT — PB3948, PB911: the COBOL1720 rationale names both READ sites, and the token that ends an empty required block is never deleted by the parser's recovery
 
 Two diagnostic-quality notes of the DiagnosticCatalog group, fixed in order of harm.
 
@@ -28,3 +28,4 @@ checked with `cite.py --check`; the citation list gained SR8, SR9 and GR19. The 
 `StatementValidation.CheckReadKeyFormat`'s summary and in `docs/CONFORMANCE.md` was reworded to match.
 
 Rows: none claimed, none closed (both notes carry `closes_rows_reason`). Both notes are `landed`.
+
