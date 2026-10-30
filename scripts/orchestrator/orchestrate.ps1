@@ -337,10 +337,13 @@ function Step-Lane([switch]$Now) {
 # supervisor's own script, the supervisor restarts in place (below) so a landed process fix applies at the NEXT unit.
 function Invoke-AdoptMain {
     try {
-        $a = Invoke-Py @((Join-Path $Here 'adopt_main.py'), 'adopt', '--repo', $RepoDir, '--coord', $CoordDir, '--gh', $GhExe, "--loaded=$LoadedHead", '--json') | ConvertFrom-Json
-        Say $a.line
-        return $a
+        $out = Invoke-Py @((Join-Path $Here 'adopt_main.py'), 'adopt', '--repo', $RepoDir, '--coord', $CoordDir, '--gh', $GhExe, "--loaded=$LoadedHead", '--json')
     } catch { Say "main not adopted (the loop continues on the checkout as it is): $_"; return $null }
+    # adopt_main.py fast-forwards before it answers, so an answer it cannot give whole is no "not adopted" (kb/Work PB4046)
+    try { $a = $out | ConvertFrom-Json } catch {
+        Say "adopt main: adopt_main.py's answer is unreadable (the checkout may have moved; no restart this time): $_"; return $null }
+    Say $a.line
+    return $a
 }
 
 # Re-executes THIS supervisor from the (just fast-forwarded) checkout and returns the child's exit code. All state a
@@ -369,8 +372,9 @@ function Restart-Supervisor([int]$failures, [int]$ran, $lastStarted) {
 
 # THE ONE WAY the supervisor runs a Python tool and reads its answer. Stdout IS the answer, and callers parse it (JSON);
 # stderr is diagnostics, said and never parsed (kb/Work PB4046): with `2>&1` folded into the answer, one line on stderr
-# from a SUCCESSFUL tool (a warning) made the JSON unreadable, and the loop said "main not adopted", ran its unit on the
-# old checkout, and went on. A tool that FAILS throws with both streams, its own message included.
+# from a SUCCESSFUL tool (a warning) made the JSON unreadable. adopt_main.py had already fast-forwarded the checkout, but
+# the loop said "main not adopted" and skipped the restart a landing of its own script needs. A tool that FAILS throws
+# with both streams, its own message included.
 function Invoke-Py([string[]]$ArgList) {
     $all = @(& $Python @ArgList 2>&1)
     $code = $LASTEXITCODE
