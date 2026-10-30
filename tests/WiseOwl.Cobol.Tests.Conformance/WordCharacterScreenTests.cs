@@ -176,8 +176,9 @@ public sealed class WordCharacterScreenTests
         string all = string.Join('\n', errors.Concat(warnings));
         Assert.False(ok);
         Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains(named));
+        // The gate's own detail text; COBOL2773's message names "the extended letters of Annex B" as what the word may hold.
         Assert.DoesNotContain("COBOL0900", all);
-        Assert.DoesNotContain("extended letter", all);
+        Assert.DoesNotContain("the extended letter in the COBOL word", all);
         Assert.Equal(!parses, all.Contains("COBOL0001"));
     }
 

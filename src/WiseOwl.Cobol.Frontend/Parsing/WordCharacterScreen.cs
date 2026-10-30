@@ -50,8 +50,9 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 public static class WordCharacterScreen
 {
     /// <summary>The frontend reported an error, so the binder will not run (the parse failed, or parsed beside another
-    /// frontend error): screen every word of <paramref name="tokens"/> (the lexer's whole stream). <paramref name="tree"/> is the unit's parse tree, complete or not: it names only the tokens that are NOT
-    /// words, those of a comment-entry (<c>AUTHOR. JOSÉ</c> is a legal '85 comment).</summary>
+    /// frontend error): screen every word of <paramref name="tokens"/> (the lexer's whole stream).
+    /// <paramref name="tree"/> is the unit's parse tree, complete or not: it names only the tokens that are NOT words,
+    /// those of a comment-entry (<c>AUTHOR. JOSÉ</c> is a legal '85 comment).</summary>
     public static void RunOnTokens(IEnumerable<IToken> tokens, IParseTree tree, EditionInfo edition, IDiagnosticSink sink)
     {
         List<IToken>? candidates = null;
