@@ -532,7 +532,7 @@ hold the status, this section the scope. Every slice ships its own tests and dri
   to a file its header declares or to its `wiseowl/` entry into leg 1 by the test's id
   (`impacted_tests.suite_tests`), and the citation audits read the suite (`citation_corpus.declaration_files`,
   past each test's metadata block). The `golden_registered.py` hook has no manifest to check: it echoes the
-  generator's refusal at the write of a file under the removed tree. `ConformanceSuiteTestsBase` (24 partitions) replaced
+  generator's refusal at the write of a file under the removed tree. `ConformanceSuiteTestsBase` (24 partitions then, 32 since 2026-10-30) replaced
   `CorpusRunnerTests`, and the neutrality proof is that runner over the moved corpus: 10,571 of 10,571 rows pass, every
   former positive at its former edition and every former negative refused with its former diagnostic. Corrections to
   this design, as built: the arch-oracle has no committed baseline since kb/Work PB3107 (the
