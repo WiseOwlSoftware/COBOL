@@ -2183,7 +2183,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL5506: missing token before '.'. The separator period is not expected here: expected NATIVE, STANDARD, STANDARD-BINARY or STANDARD-DECIMAL"
  },
  "l1c01-arithmetic-two-alternatives": {
   "refuse-at": [
@@ -2530,7 +2530,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL5506: cannot parse construct near '.'. The separator period is not expected here: expected B-AND, B-OR, B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R, B-SHIFT-RC, B-XOR, '**', ')', '+', '-', '*' or '/'"
  },
  "l1c18-merge-collating-alnum-is-national": {
   "refuse-at": [
@@ -2623,7 +2623,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: unexpected 'TO'"
+  "expect": "COBOL5506: unexpected 'TO'. The word TO is not expected here: expected an unsigned numeric literal"
  },
  "l1c19-object-implements-not-in-class-repository": {
   "refuse-at": [
@@ -2702,7 +2702,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: unexpected 'DISPLAY'"
+  "expect": "COBOL5506: unexpected 'DISPLAY'. The word DISPLAY is not expected here: expected END, IDENTIFICATION or METHOD-ID"
  },
  "l1c22-format3-in-method": {
   "refuse-at": [
@@ -2710,7 +2710,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: unexpected 'PROCEDURE'"
+  "expect": "COBOL5506: unexpected 'PROCEDURE'. The word PROCEDURE is not expected here: expected END"
  },
  "l1c22-format3-in-program": {
   "refuse-at": [
@@ -2726,7 +2726,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: unexpected 'DISPLAY'"
+  "expect": "COBOL5506: unexpected 'DISPLAY'. The word DISPLAY is not expected here: expected END, IDENTIFICATION or METHOD-ID"
  },
  "l1c22-method-prototype-statement": {
   "refuse-at": [
@@ -2742,7 +2742,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: unexpected 'DISPLAY'"
+  "expect": "COBOL5506: unexpected 'DISPLAY'. The word DISPLAY is not expected here: expected END, IDENTIFICATION or METHOD-ID"
  },
  "l1c23-program-address-boolean-literal": {
   "refuse-at": [
@@ -3445,7 +3445,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL5506: unexpected 'DECLARATIVES'. The word DECLARATIVES is not expected here: expected END, IDENTIFICATION or METHOD-ID"
  },
  "pb1012-strong-type-factory-strong-one-side": {
   "refuse-at": [
@@ -4524,7 +4524,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL5506: unexpected '\"A\"'. The alphanumeric literal \"A\" is not expected here: expected ALL, CHARACTERS, FIRST, LEADING or TRAILING"
  },
  "pb1125-inspect-tallying-first-operand-without-adjective": {
   "refuse-at": [
@@ -4533,7 +4533,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL5506: unexpected '\"A\"'. The alphanumeric literal \"A\" is not expected here: expected ALL, CHARACTERS, FIRST, LEADING or TRAILING"
  },
  "pb1125-inspect-tallying-second-for-same-counter": {
   "refuse-at": [
@@ -9545,7 +9545,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL5506: cannot parse construct near 'GLOBAL'. The word GLOBAL is not expected here: expected COMMON, INITIAL, PROTOTYPE or RECURSIVE"
  },
  "pb1507-program-in-function": {
   "refuse-at": [
@@ -14175,7 +14175,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL5506: cannot parse construct near 'IX-KEY'. The word 'IX-KEY' is not expected here: expected EQUAL, GREATER, LESS, NOT, '<=', '>=', '<>', '<', '>' or '='"
  },
  "pb332-start-length-word-required": {
   "refuse-at": [
@@ -14184,7 +14184,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL5506: missing token before '2'. The integer literal 2 is not expected here: expected LENGTH"
  },
  "pb332-use-format1-needs-exception-or-error": {
   "refuse-at": [
@@ -14193,7 +14193,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL5506: cannot parse construct near 'PROCEDURE'. The word PROCEDURE is not expected here: expected AFTER, BEFORE, EC, EO, ERROR, EXCEPTION, FOR, GLOBAL or STANDARD"
  },
  "pb333-start-not-or-equal-operator": {
   "refuse-at": [
@@ -14536,6 +14536,33 @@
    "2023"
   ],
   "expect": "COBOL1970: cannot parse construct near 'FOO'. 'FOO' is not a clause of the OBJECT-COMPUTER paragraph"
+ },
+ "pb3428-memory-size-unit-word": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5506: cannot parse construct near 'FOO'. The word 'FOO' is not expected here: expected CHARACTERS, MODULES or WORDS"
+ },
+ "pb3428-segment-limit-integer-omitted": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5506: cannot parse construct near '.'. The separator period is not expected here: expected an integer literal"
+ },
+ "pb3861-set-index-to-alphanumeric-literal": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL5506: cannot parse construct near '\"A\"'. The alphanumeric literal \"A\" is not expected here: of the literals, only a numeric literal is expected at this position"
  },
  "pb3391-special-names-locale-shape-word": {
   "refuse-at": [
@@ -20269,7 +20296,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: missing token before 'MULTIPLE'"
+  "expect": "COBOL5506: missing token before 'MULTIPLE'. The word 'MULTIPLE' is not expected here: expected ON"
  },
  "pb756-alternate-record-omitted": {
   "refuse-at": [
@@ -20278,7 +20305,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0312: missing token before 'KEY'"
+  "expect": "COBOL5506: missing token before 'KEY'. The word KEY is not expected here: expected RECORD"
  },
  "pb757-function-omitted-not-optional": {
   "refuse-at": [
@@ -22617,7 +22644,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL5506: unexpected '.'. The separator period is not expected here: expected an unsigned numeric literal"
  },
  "r03-hex-literal-digit-grouping": {
   "refuse-at": [
@@ -24187,7 +24214,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOL5506: missing token before 'WS-B'. The word 'WS-B' is not expected here: expected TO"
  },
  "pb2024-send-end-send-omitted": {
   "refuse-at": [
