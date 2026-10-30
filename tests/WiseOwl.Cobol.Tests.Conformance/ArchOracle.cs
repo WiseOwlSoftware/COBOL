@@ -75,8 +75,8 @@ public static class ArchOracle
             VersionMatrixTestsBase<Slot0>.AllObsoleteMatrix, row => MatrixCell(row, permissive: false)),
         new(typeof(VersionMatrixTestsBase<>), nameof(VersionMatrixTestsBase<Slot0>.AllContinuityCells),
             VersionMatrixTestsBase<Slot0>.AllContinuityCells, ContinuityCell),
-        // Partitioned since kb/Work PB2527: one subset spelling of a format's optional words per row, one case per spelling.
-        // Its templates live in the drift-test file; one is derived from a corpus golden.
+        // Partitioned since kb/Work PB2527: one subset spelling of a format's optional words per row (kb/Work PB4146),
+        // one case per spelling. Its templates live in the drift-test file; one is derived from a corpus golden.
         new(typeof(OptionalWordSubsetDriftTestsBase<>), nameof(OptionalWordSubsetDriftTestsBase<Slot0>.AllCases),
             OptionalWordSubsetDriftTestsBase<Slot0>.AllCases, OptionalWordSpelling),
     ];

@@ -19,9 +19,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// Replaying the measured durations onto 32 workers modeled the leg 247 s to 118 s with 24 corpus partitions, an 8-way
 /// optional-word split and longest-first order (the order is the gate plan's, timed from the shared timings store:
 /// <c>scripts/gate_plan.py</c>'s self-test arms).
-/// <para>Why the floors and not a size bound (DESIGN-test-build-ci.md §3.11): a partition's time is the family's time
-/// over P, and the leg's ideal wall is the leg's time over the host's T workers, so a partition stays under the wall
-/// while P ≥ T × (the family's share of the leg). The family's rows set neither side: a suite that doubles doubles
+/// <para>Why the floors and not a size bound (DESIGN-test-build-ci.md section 3.11): a partition's time is the family's
+/// time over P, and the leg's ideal wall is the leg's time over the host's T workers, so a partition stays under the
+/// wall while P ≥ T × (the family's share of the leg). The family's rows set neither side: a suite that doubles doubles
 /// every partition and the leg alike. A bound on rows per partition therefore guarded nothing the floor does not, and
 /// turned red on growth alone.</para>
 /// </remarks>

@@ -29,7 +29,8 @@ public sealed class TestPartitionCoverageDriftTests
     public void TheShareCheck_NamesEveryPartitionOutsideItsEvenShare()
     {
         Assert.Equal((2, 3), TestPartitionAudit.Share(10, 4));
-        int[] stride = [.. Enumerable.Range(0, 4).Select(k => TestPartitioning.Slice(Enumerable.Range(0, 10), k, 4).Count())];
+        int[] stride =
+            [.. Enumerable.Range(0, 4).Select(k => TestPartitioning.Slice(Enumerable.Range(0, 10), k, 4).Count())];
         Assert.Equal([3, 3, 2, 2], stride);
         Assert.Empty(TestPartitionAudit.OutsideTheirShare(10, [.. stride.Select((n, k) => ($"P{k}", n))]));
 

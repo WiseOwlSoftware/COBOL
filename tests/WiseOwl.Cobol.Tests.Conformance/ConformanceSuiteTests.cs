@@ -34,7 +34,7 @@ public abstract class ConformanceSuiteTestsBase<TSlot>
     /// PB2527). The suite is most of the Conformance leg's work, so a partition (the suite's time over 32) stays under
     /// the leg's ideal wall (the leg's time over 32 workers) at any suite size. The count is the host's, never the row
     /// total's: the stride gives each partition a 32nd of the rows, so the suite grows with no edit here
-    /// (kb/Work PB4146; DESIGN-test-build-ci.md §3.11).</summary>
+    /// (kb/Work PB4146; DESIGN-test-build-ci.md section 3.11).</summary>
     public const int Partitions = 32;
 
     [PartitionedRowSource(nameof(Tests))]

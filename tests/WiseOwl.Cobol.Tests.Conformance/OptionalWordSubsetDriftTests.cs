@@ -958,7 +958,8 @@ public abstract class OptionalWordSubsetDriftTestsBase<TSlot>
     /// spelling (the mask's bit <c>i</c> writes the format's optional word <c>i</c>).</summary>
     [PartitionedRowSource(nameof(Cases))]
     public static IEnumerable<object[]> AllCases() =>
-        Formats.SelectMany(f => Enumerable.Range(0, 1 << f.OptionalWords.Length).Select(mask => new object[] { f.Name, mask }));
+        Formats.SelectMany(f => Enumerable.Range(0, 1 << f.OptionalWords.Length)
+            .Select(mask => new object[] { f.Name, mask }));
 
     /// <summary>This partition's share of the spellings.</summary>
     public static IEnumerable<object[]> Cases() => TestPartitioning.SliceRows<TSlot>(AllCases(), Partitions);
