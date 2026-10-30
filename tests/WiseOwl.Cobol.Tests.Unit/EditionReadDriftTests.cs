@@ -156,7 +156,7 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4 | LPAREN | OnDefaultLParen"] = (1, Verdict.WordStatus),
         // The listeners: the authoritative pass's syntax-error listener reports and retypes a reservation-gated word.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorListener.cs | CobolErrorListener.SyntaxError | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
-        ["src/WiseOwl.Cobol.Frontend/Parsing/ReservationGateRewriter.cs | GatedOffenderWitness.SyntaxError | NoteGatedOffender"] = (1, Verdict.WordStatus),
+        ["src/WiseOwl.Cobol.Frontend/Parsing/ReservationGateRewriter.cs | OffenderWitness.SyntaxError | NoteGatedOffender"] = (1, Verdict.WordStatus),
         // The front end's driver decides whether a re-parse lexes differently because a word the program declared is
         // reserved at the edition.
         ["src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs | Frontend.LexAndParse | LexesDifferentlyFrom"] = (1, Verdict.WordStatus),
@@ -229,7 +229,7 @@ public sealed class EditionReadDriftTests
         Assert.Contains("PrimeLexer", model.RetypeReads.Keys);
         Assert.Equal(["_caseMappingEdition", "_reservedNonNames"], model.PrimedLexerFields.Order(StringComparer.Ordinal));
         Assert.Contains(model.Sites.Keys, s => s.EndsWith(".g4 | cobolWord | keywordContinuesHere", StringComparison.Ordinal));
-        Assert.Contains(model.Sites.Keys, s => s.EndsWith(".cs | GatedOffenderWitness.SyntaxError | NoteGatedOffender", StringComparison.Ordinal));
+        Assert.Contains(model.Sites.Keys, s => s.EndsWith(".cs | OffenderWitness.SyntaxError | NoteGatedOffender", StringComparison.Ordinal));
         // The fixpoint is real: NextToken reaches the edition only through ApplyEditionSpelling.
         Assert.Contains("NextToken", model.LexerReads.Keys);
     }
