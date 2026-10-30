@@ -60,7 +60,8 @@ verdict is recorded in the wave report.
 `dataReference` that word is the qualifier or absent, so `SET LINAGE-COUNTER TO TRUE` crashed with a
 NullReferenceException where main reports COBOL1639. `ReferenceResolver.WrittenWordOf` now returns the word a
 reference names (null for a register), and both the SET query and `SetAlterBinder.SwitchCondOf` ask it. The message
-now names a TO FALSE phrase as written; it used to say TO TRUE for both. R1-2: SET reads NULL itself in its
+names a TO FALSE phrase as written; this branch and main's PB1314 (entry 2786) made that fix the same way, and the
+merge of main keeps one `toTrue` parameter in `StatementValidation.RejectSetConditionName`, documented once. R1-2: SET reads NULL itself in its
 object-reference arm, not through `NullAdmittingOperand`, so `SET IX TO NULL` at 85 still drew the 2002 §14.9.39.3 8)
 refusal (COBOL0867). That arm now asks `UnreservedKeywordReference` before it selects a format. Witnesses: four
 `NonDataNameReferenceTests` register cases and the negative `8.3.2-COBOL-words/pb1673-set-null-undeclared-at-85`.
