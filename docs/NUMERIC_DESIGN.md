@@ -668,9 +668,10 @@ and existed only for a checked statement: unchecked, every one of those landings
 standard-decimal lane, whose rounding table always raised, terminated the run unit instead (PB1196's determination,
 reversed by PB3990). A value that is exact but too big is §14.7.5 case 3 alone (the low-order digits unchecked).
 
-**Blast radius, measured.** The whole Conformance corpus moved exactly ONE golden,
-`2023/pb65_codomain_clamp`, in two lines (`ASINH` 0.523598776 → 0.523598775, `SQRTD` 1.000000000 →
-0.999999999), both re-derived from the exact binary64 expansions.
+**Blast radius, measured (kb/Work PB647, history).** The whole Conformance corpus moved exactly ONE golden, then
+named `2023/pb65_codomain_clamp`, in two lines (`ASINH` 0.523598776 → 0.523598775, `SQRTD` 1.000000000 →
+0.999999999), both re-derived from the exact binary64 expansions. PB3829 later re-derived and renamed that golden
+(below), whose TRUNCATION legs still print those two values.
 
 **No landing clamps to a function's codomain (kb/Work PB3829).** PB65 had put a clamp on this landing for the
 functions whose §15.x.4 rule bounds the returned value (ACOS, ASIN, ATAN, RANDOM, FRACTION-PART), cutting a ROUNDED
@@ -679,8 +680,11 @@ satisfies) as a rule on the RESULTANT IDENTIFIER, whose value §14.9.8.4 r2 give
 `COMPUTE R ROUNDED = FUNCTION ACOS(-1)` into `9V9999` stored 3.1415 where §14.7.4.3 r4 gives 3.1416, while
 `FUNCTION ACOS(-1) + 0` (the nested arm) and the standard-decimal arm already stored 3.1416, and RANDOM ROUNDED into a
 `V9(4)` receiver stored a silent .9999 where the rounded 1.0000 is a §14.7.5 size error. The clamp is deleted: every
-function of the family lands through the one `FromDouble`, and the golden
-`15.10.4-Returned-value-rule/pb3829_rounded_bounded_returned_value` measures the rule over every rounding mode.
+function of the family lands through the one `FromDouble`. The goldens are
+`14.7.4-ROUNDED/pb3829_rounded_bounded_function_modes` (every rounding mode over ACOS, ASIN and ATAN into receivers
+whose nearest value lies above and below the bound, and a trailing-P receiver) and
+`15.10.4-Returned-value-rule/pb65_bounded_returned_value_landing` (the PB65 program, formerly `pb65_codomain_clamp`,
+re-derived: its ROUNDED legs assert the rounded value past the bound).
 
 **Guard.** `FloatLandingModeDriftTests` proves every invariant over every legal (integer-digits, scale) pair
 crossed with every one of the eight modes — the final transfer's scale and mode, the store's rescale being the

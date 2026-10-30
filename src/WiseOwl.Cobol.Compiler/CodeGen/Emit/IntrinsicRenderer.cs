@@ -678,7 +678,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             : RuntimeApi.DomainArg(x, ic.Sig.Domain, ic.Sig.Name, ic.Sig.DomainRule!);
 
     /// <summary>The §15.4.1 floating-math family: arguments as doubles (through the one scaled→double
-    /// conversion), result quantized by the ONE FromDouble at <c>ws = max(Receiver.Scale, 9)</c> (the ≥9 float floor).</summary>
+    /// conversion), the result landed by <see cref="RenderFloatNative"/> through the ONE FromDouble at the landing
+    /// <see cref="ReceiverContext.FloatLanding"/> chooses (a final transfer into a fixed-point resultant: its scale and
+    /// mode; any other shape: the binary64 stays), or converted into an SDIDI under a standard mode.</summary>
     private NumX RenderFloat(BoundIntrinsicCall ic, string method)
     {
         string call = FloatBody(ic, method);
