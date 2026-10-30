@@ -334,11 +334,12 @@ BRIEF_NOTES = 24
 Git = Callable[..., Any]   # prune_worktrees.git's shape: (*args, cwd=) -> CompletedProcess
 
 
-def _note_line(nid: str, worktree: str, git: Git, reports: list[Any]) -> str:
-    """`- PBnnnn (status): title — newest report: <path> (<status>)`, the note read from origin/main (where the notes of
-    main's commits are), else from the worktree's own copy (a note the branch filed)."""
+def _note_line(nid: str, worktree: str, git: Git, reports: list[Any], ref: str = MAIN) -> str:
+    """`- PBnnnn (status): title — newest report: <path> (<status>)`, the note read from `ref` (origin/main, where the
+    notes of main's commits are, or the queued head a brief is against), else from the worktree's own copy (a note the
+    branch filed)."""
     from clusters import note_of  # noqa: PLC0415  (the one note reader, on the one frontmatter reader)
-    shown = git("show", f"{MAIN}:kb/Work/{nid}.md", cwd=worktree)
+    shown = git("show", f"{ref}:kb/Work/{nid}.md", cwd=worktree)
     text = shown.stdout if shown.returncode == 0 else None
     if text is None and (local := pathlib.Path(worktree) / "kb" / "Work" / f"{nid}.md").is_file():
         text = local.read_text(encoding="utf-8", errors="replace")
@@ -349,24 +350,33 @@ def _note_line(nid: str, worktree: str, git: Git, reports: list[Any]) -> str:
 
 
 def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, reports: list[Any],
-                   now: dt.datetime | None = None) -> str:
-    """THE CONFLICT BRIEF (section doc) for `branch` in `worktree` against origin/main, as Markdown. `reports` are the
+                   now: dt.datetime | None = None, against: str = MAIN, label: str = "origin/main") -> str:
+    """THE CONFLICT BRIEF (section doc) for `branch` in `worktree` against origin/main, as Markdown; `against` (a ref or
+    a commit) and its `label` name another side instead: the head of a queued pull request ahead of this one that the
+    queue's simulation finds conflicting (kb/Work PB3723). `reports` are the
     fix-lane reports, oldest first (reports.load_reports with the dispatch ledger, so each names the notes it
     answers). Git answers three questions: the merge base, the commits main gained on `files` since it (ONE `git log`
     over every file), and the branch's own commit subjects; a question git cannot answer is said in the brief, never
     dropped."""
-    mb = git("merge-base", MAIN, "HEAD", cwd=worktree)
+    who = "main" if against == MAIN else label     # how the brief's prose names the other side
+    mb = git("merge-base", against, "HEAD", cwd=worktree)
     base = mb.stdout.strip() if mb.returncode == 0 else ""
-    main_sha = main_of(worktree, git)
+    main_sha = main_of(worktree, git) if against == MAIN else \
+        git("rev-parse", "--verify", "--quiet", against, cwd=worktree).stdout.strip()
     tip = git("rev-parse", "HEAD", cwd=worktree).stdout.strip()
     out = [f"# Conflict brief: {branch}", "",
            f"Written {(now or now_utc()).isoformat(timespec='seconds')} by `land_lane.py` (kb/Work PB3640) for the "
            "CONFLICT finisher, who gets it verbatim (units/enqueue.md step 4).",
-           f"Bringing origin/main ({main_sha[:12] or 'unreadable'}) into {branch} ({tip[:12] or 'unreadable'}, merge "
+           f"Bringing {label} ({main_sha[:12] or 'unreadable'}) into {branch} ({tip[:12] or 'unreadable'}, merge "
            f"base {base[:12] or 'unreadable'}) leaves {len(files)} file(s) in conflict: {', '.join(files) or 'none'}.",
-           "Merge with `python scripts/merge_drivers.py merge origin/main --keep` and resolve each file against BOTH "
-           "sides' intent: this branch's notes and report, and what main gained on the file, with its notes and "
-           "reports (finisher-brief.md, CONFLICT). Never take one side wholesale.", ""]
+           f"Merge with `python scripts/merge_drivers.py merge {against if against == MAIN else main_sha or against} --keep` and "
+           f"resolve each file against BOTH sides' intent: this branch's notes and report, and what {who} gained on the "
+           "file, with its notes and reports (finisher-brief.md, CONFLICT). Never take one side wholesale."
+           + ("" if against == MAIN else
+              f" {label} is a pull request QUEUED ahead of this one: the queue will remove this one for a merge conflict "
+              "with it (kb/Work PB3723), and bringing its head in now keeps it from being removed; this branch then carries "
+              "that pull request's stamped DEVLOG entry and lands after it (`enqueue.py land` exit 15 until it is on main)."),
+           ""]
     mine = [r for r in reports if r.branch == branch]
     own_ids = list(dict.fromkeys(mine[-1].notes if mine else []))
     out.append("## This branch")
@@ -376,12 +386,12 @@ def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, re
     if base:
         subjects = git("log", "--format=%s", f"{base}..HEAD", cwd=worktree)
         own_ids = list(dict.fromkeys(own_ids + (NOTE_ID.findall(subjects.stdout) if subjects.returncode == 0 else [])))
-        out += ["", "## What main gained on each file since the merge base"]
-        log = git("log", "--no-merges", "--format=%x1e%H%x1f%s", "--name-only", f"{base}..{MAIN}", "--", *files,
+        out += ["", f"## What {who} gained on each file since the merge base"]
+        log = git("log", "--no-merges", "--format=%x1e%H%x1f%s", "--name-only", f"{base}..{against}", "--", *files,
                   cwd=worktree) if files else None
         changes: dict[str, list[str]] = {f: [] for f in files}
         if log is not None and log.returncode != 0:
-            out.append(f"git log failed ({log.stderr.strip()[:200]}): read `git log {base[:12]}..origin/main -- <file>`")
+            out.append(f"git log failed ({log.stderr.strip()[:200]}): read `git log {base[:12]}..{label} -- <file>`")
         for chunk in (log.stdout.split(chr(30)) if log is not None and log.returncode == 0 else []):
             head, _, names = chunk.strip().partition(chr(10))
             sha, _, subject = head.partition(chr(31))
@@ -395,14 +405,14 @@ def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, re
             out += [f"### {f}", *(lines or ["- nothing since the merge base (the conflict is the branch's edit against "
                                             "an older one)"])]
     else:
-        out += ["", f"git could not read the merge base of HEAD and origin/main ({mb.stderr.strip()[:200]}): the "
-                    "commits main gained are not listed"]
+        out += ["", f"git could not read the merge base of HEAD and {label} ({mb.stderr.strip()[:200]}): the "
+                    f"commits {who} gained are not listed"]
     out += ["", "## The branch's notes"]
     ids = own_ids[:BRIEF_NOTES]
-    out += [_note_line(i, worktree, git, reports) for i in ids] or ["- none named by its report or its commits"]
+    out += [_note_line(i, worktree, git, reports, against) for i in ids] or ["- none named by its report or its commits"]
     other = [i for i in theirs if i not in own_ids]
-    out += ["", "## The notes main's commits name"]
-    out += [_note_line(i, worktree, git, reports) for i in other[:max(0, BRIEF_NOTES - len(ids))]] or \
+    out += ["", f"## The notes {who}'s commits name"]
+    out += [_note_line(i, worktree, git, reports, against) for i in other[:max(0, BRIEF_NOTES - len(ids))]] or \
         ["- none (their subjects name no PB note)"]
     if len(own_ids) + len(other) > BRIEF_NOTES:
         out.append(f"- ... {len(own_ids) + len(other) - BRIEF_NOTES} more not read (BRIEF_NOTES = {BRIEF_NOTES})")
@@ -457,18 +467,26 @@ def show_conflict_brief(cdir: pathlib.Path, branch: str, git: Git | None = None,
     if not wt:
         say(f"land lane: {branch}: no attempt and no survey row names its worktree: nothing to brief")
         return 1
-    recorded = pathlib.Path(last["brief"]) if last and last.get("brief") else None
+    # A queued pull request the queue's simulation finds conflicting with an entry ahead of it (the survey's `foreseen`,
+    # kb/Work PB3723) is briefed against that entry's head, the first it conflicts with; the others follow once it is in.
+    ahead = [f for f in (row or {}).get("foreseen") or [] if f.get("branch") != "origin/main"]
+    against, label = (ahead[0]["head"], ahead[0]["branch"]) if ahead else (MAIN, "origin/main")
+    recorded = pathlib.Path(last["brief"]) if last and last.get("brief") and not ahead else None
     if (recorded and recorded.is_file() and tip_of(wt) == last.get("end_head")
             and last.get("brief_main") and last.get("brief_main") == main_of(wt, git)):
         say(recorded.read_text(encoding="utf-8").rstrip())
         return 0
-    files = merge_drivers.merge_conflicts(wt, MAIN)
+    files = merge_drivers.merge_conflicts(wt, against)
     if not files:
-        say(f"land lane: {branch}: " + ("git could not merge-tree it against origin/main" if files is None else
-                                        "merging origin/main leaves nothing in conflict now: nothing to brief"))
+        say(f"land lane: {branch}: " + (f"git could not merge-tree it against {label}" if files is None else
+                                        f"merging {label} leaves nothing in conflict now: nothing to brief"))
         return 1
-    say(conflict_brief(branch, wt, files, git=git,
-                       reports=load_reports(coord.reports_dir(str(cdir)), cdir)).rstrip())
+    text = conflict_brief(branch, wt, files, git=git, reports=load_reports(coord.reports_dir(str(cdir)), cdir),
+                          against=against, label=label).rstrip()
+    if len(ahead) > 1:
+        text += (f"\n\nAlso queued ahead and conflicting: {', '.join(a['branch'] for a in ahead[1:])}. Run "
+                 f"`land_lane.py conflict-brief {branch}` again once {label} is merged in.")
+    say(text)
     return 0
 
 
@@ -556,7 +574,7 @@ def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, 
     if probe.returncode != 0:
         raise LaneError(f"{repo} is not a git repository ({probe.stderr.strip()[:120]})")
     prs = queue_facts.read()
-    fetch = prune_worktrees.git("fetch", "-q", "origin", cwd=repo)
+    fetch = prune_worktrees.fetch_origin(repo)
     if fetch.returncode != 0:
         raise LaneError(f"git fetch origin failed in {repo}: {fetch.stderr.strip()[:200]}")
     rows = prune_worktrees.live_survey(repo, coord_dir=cdir, prs=prs)
@@ -571,8 +589,10 @@ def row_dicts(rows: list, prs: dict | None) -> list[dict[str, Any]]:
     return [{"name": r.name, "state": r.state, "content": r.content, "tip": r.tip, "worktree": r.worktree,
              "why": r.why, "lead": r.report.lead if r.report else None,
              "report": str(r.report.path) if r.report else None,
-             # GitHub cannot create the pull request's merge commit (DIRTY): a CONFLICT finisher's, as an exit 4 is
-             "conflicts": bool(prs and r.name in prs and prs[r.name].conflicts)} for r in rows]
+             # GitHub cannot create the pull request's merge commit (DIRTY), or the queue's simulation finds its head
+             # conflicting with an entry ahead of it (foreseen, kb/Work PB3723): a CONFLICT finisher's, as an exit 4 is
+             "conflicts": bool(prs and r.name in prs and prs[r.name].conflicts) or bool(r.foreseen),
+             "foreseen": [{"branch": b, "head": h} for b, h in r.foreseen]} for r in rows]
 
 
 def landing_check_free(worktree: str) -> tuple[bool, str]:
@@ -772,12 +792,16 @@ def rearm(cdir: pathlib.Path, branch: str, why: str, say: Say = print,
 # A landing ends at `=== ENQUEUE: ENQUEUED ===`, which means only that the pull request was opened and handed to the
 # merge queue (auto-merge on): GitHub queues it once its required checks pass. On 2026-10-22 PR #385's `ci-gate` job
 # completed at 18:46:46Z and its check-run on the head commit stayed in_progress for 50 minutes, the queue empty and
-# the pull request BLOCKED, and nothing looked. So every tick WATCHES each pull request the lane queued until the merge
-# queue holds it, as a state machine over the facts the survey read on the same tick (queue_facts.read, the one
-# reader): never a wait inside enqueue.py, never a second reader of GitHub.
+# the pull request BLOCKED, and nothing looked. So every tick WATCHES each pull request the lane queued until it
+# merges, leaves or is alerted on (one IN the merge queue is read again: the queue can drop it, kb/Work PB3772), as a
+# state machine over the facts the survey read on the same tick (queue_facts.read, the one reader): never a wait
+# inside enqueue.py, never a second reader of GitHub.
 QUEUE_GRACE_MIN = 10          # how long a pull request may stay out of the queue after its head's checks' work ended
 WATCHING, IN_QUEUE, MERGED, LEFT, ALERTED = "watching", "queued", "merged", "left", "alerted"
-WATCH_DONE = (IN_QUEUE, MERGED, LEFT, ALERTED)
+#: The states in which the watch has ENDED. IN_QUEUE is not one: a pull request in the queue leaves it again without
+#: merging and without a failed run (a ruleset toggle, a `merge_conflict` removal, a dequeue), and only a watch that
+#: keeps reading it sees that (kb/Work PB3772: PR #593 sat out of the queue for an hour with auto-merge off).
+WATCH_DONE = (MERGED, LEFT, ALERTED)
 STUCK, NOT_QUEUED, CLOSED = "stuck-check-run", "not-queued", "closed"   # landing_measure.STALL_CAUSES
 RERUN, REQUEUE, ALERT = "rerun", "requeue", "alert"                     # landing_measure.STALL_ACTS
 
@@ -804,7 +828,11 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
     """THE QUEUE WATCH'S DECISION for the pull request a DONE attempt queued (pure: the self-test drives every arm).
     `row_state`: the branch's survey state (None: no longer surveyed); `pr`: its open pull request (queue_facts), None
     when none is open.
-      merged, or in the queue                        the watch ends: the queue has it (a bounce is BOUNCED's, PB3023)
+      the branch's work is on main                   the watch ends (MERGED)
+      in the queue                                   IN_QUEUE, and read again on every tick: it can leave the queue
+                                                       without merging and without a failed run (a ruleset toggle, a
+                                                       dequeue), and then it is a stalled read like any pull request
+                                                       out of the queue (kb/Work PB3772)
       a required check FAILED, the queue removed    the watch ends: BOUNCED, the enqueue unit's finisher (PB3096;
         it, or it conflicts with main (DIRTY)          a conflict is the branch's: no re-run or reopen clears it)
       the head moved past the attempt's              the watch ends: a new push is a new landing, watched afresh
@@ -814,10 +842,12 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
                                                        the requeue cancelled it (kb/Work PB4052)
       not in the queue, the checks' work ended       a STALLED read once QUEUE_GRACE_MIN have passed since that work
         (or no check-run at all) or since the last     ended (the newest check-run's end on the head; a stuck one's JOB
-        remedy                                         time), or since the last remedy: read 1 re-runs the workflow run
-                                                       of the stuck check, else of any check (`gh run rerun`; a pull
-                                                       request with no check-run goes straight to read 2's remedy),
-                                                       read 2 closes, reopens and re-queues the pull request
+        remedy or the last reading in the queue        time), or since the last remedy or the last reading IN the queue:
+                                                       read 1 re-runs the workflow run of the stuck check, else of any
+                                                       check (`gh run rerun`; a pull request with no check-run, or one
+                                                       the watch saw IN the queue, whose checks passed, goes straight
+                                                       to read 2's remedy), read 2 closes, reopens and re-queues the
+                                                       pull request
                                                        (enqueue.requeue, which refuses while a run on the head is still
                                                        in progress), read 3 ALERTS the operator and acts no more
       no pull request open, the branch not on main   a stalled read (closed by hand?): it ALERTS at once"""
@@ -849,6 +879,11 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
     if not ends:
         ends += [t for t in (_iso(att.get("ended", "")),) if t]
     ends += [t for t in (_iso(r.get("at", "")) for r in reads) if t]
+    # A pull request the watch SAW in the queue and now finds out of it (no failed run, no conflict: the cases above
+    # ended) was dequeued: its checks passed, so a re-run of them is no remedy, and the clock starts at the last
+    # reading in the queue, so the moment between its merge and the branch reading LANDED is no stall (kb/Work PB3772).
+    queued = _iso(w.get("queued_at", ""))
+    ends += [queued] if queued else []
     since = max(ends) if ends else now
     late = (now - since).total_seconds() / 60
     if late < QUEUE_GRACE_MIN:
@@ -859,13 +894,15 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
     unknown = [c.name for c in work if not c.resolved and not c.stuck]
     what = (f"{stuck.name}'s check-run is {stuck.status.lower()} although its job completed at {stuck.job_completed_at}"
             if stuck else
+            f"it left the merge queue (in it at {queued:%Y-%m-%dT%H:%M:%SZ}) without merging and without a failed run, "
+            f"auto-merge {'on' if pr.auto_merge_at else 'OFF'} ({pr.merge_state or '?'})" if queued else
             f"{', '.join(unknown)} unresolved and its job could not be read, and it is not in the queue "
             f"({pr.merge_state or '?'})" if unknown else
             f"its required checks resolved but it is not in the queue ({pr.merge_state or '?'})")
     n = len(reads) + 1
     if n >= 3:
         return WatchStep(ALERTED, f"stalled read {n}: {what}, after a re-run and a requeue", ALERT, cause)
-    run = next((c.run for c in ([stuck] if stuck else list(work)) if c.run), 0)
+    run = 0 if queued else next((c.run for c in ([stuck] if stuck else list(work)) if c.run), 0)
     if n == 1 and run:
         return WatchStep(WATCHING, f"stalled read 1: {what}; re-running workflow run {run}", RERUN, cause, run)
     return WatchStep(WATCHING, f"stalled read {n}: {what}; closing, reopening and re-queueing it", REQUEUE, cause)
@@ -905,15 +942,21 @@ def watch_text(att: dict[str, Any]) -> str:
         return "the landing lane's queue watch has not read it yet (it reads on every tick)"
     reads = "; ".join(f"read {r['read']} {r['cause']}: {r['act']} {'done' if r.get('ok') else 'FAILED'} at {r['at']}"
                       for r in w.get("reads") or [])
-    return (f"queue watch {w.get('state', WATCHING).upper()}"
-            + (f" ({w.get('why')})" if w.get("why") else "") + (f" [{reads}]" if reads else ""))
+    state = w.get("state", WATCHING)
+    # Its reading is the watch's LAST one: a tick later it may differ, and an ENDED watch reads nothing again, so the
+    # text says which, never presenting a stale reading as the current state (kb/Work PB3772).
+    when = (f" — read at {w['at']}" if w.get("at") else "") + (", and the watch has ENDED: nothing reads it again"
+                                                              if state in WATCH_DONE else "")
+    return (f"queue watch {state.upper()}"
+            + (f" ({w.get('why')})" if w.get("why") else "") + when + (f" [{reads}]" if reads else ""))
 
 
 def watch_queue(cdir: pathlib.Path, branches: dict[str, list[dict[str, Any]]], rows: list[dict[str, Any]],
                 prs: dict[str, Any] | None, effects: WatchEffects, held: str | None, say: Say,
                 now: dt.datetime | None = None) -> None:
-    """Read each branch's latest attempt that ended ENQUEUED (exit 0) and whose watch has not ended, and act on a
-    stalled read (watch_step). Unobserved facts (None) read nothing; a stop (`held`) lets it read but not act."""
+    """Read each branch's latest attempt that ended ENQUEUED (exit 0) and whose watch has not ended (WATCH_DONE; a
+    pull request in the queue is read again on every tick, kb/Work PB3772), and act on a stalled read (watch_step).
+    Unobserved facts (None) read nothing; a stop (`held`) lets it read but not act."""
     now = now or now_utc()
     if prs is None:
         if any(finished(a[-1]) and classify(a[-1]) == DONE and (a[-1].get("watch") or {}).get("state") not in WATCH_DONE
@@ -940,6 +983,8 @@ def watch_queue(cdir: pathlib.Path, branches: dict[str, list[dict[str, Any]]], r
             continue
         w.update(state=step.state, why=step.why, pr=pr.number if pr else (w.get("pr") or att.get("pr")),
                  at=now.isoformat(timespec="seconds"))
+        if step.state == IN_QUEUE:
+            w["queued_at"] = w["at"]    # the last reading IN the queue: watch_step's clock for one that then leaves it
         if step.act:
             number = int(w.get("pr") or 0)
             if step.act == RERUN:
@@ -1252,9 +1297,13 @@ def rearm_hold(rec: dict[str, Any], row: dict[str, Any] | None) -> str:
         return "the survey names no worktree for it, so the next tick does NOT land it (the re-arm waits for one)"
     if row.get("state") == "LANDED":
         return "its work is on main (the survey reads it LANDED): the next tick drops the re-arm, there is nothing to land"
-    if row.get("state") in QUEUE_OWNED:
-        return (f"the survey reads it {row['state']}: the queue owns its pull request, so the next tick does NOT land "
-                "it (the queue watch acts on it)")
+    if row.get("state") == "ENQUEUED":
+        return ("the survey reads it ENQUEUED: the merge queue holds its pull request, so the next tick does NOT land "
+                "it (the queue watch keeps reading it until it merges, and acts if it leaves the queue unmerged)")
+    if row.get("state") == "NOT QUEUED":
+        return ("the survey reads it NOT QUEUED: its pull request was handed to the queue, so the next tick does NOT "
+                "land it. The queue watch acts on it (a re-run, a requeue, then an alert to the operator); once it "
+                "has ALERTED, only the operator does (the branch's status line says the watch's state)")
     return ""
 
 
@@ -1426,6 +1475,12 @@ def self_test() -> int:
         expect("... with GitHub observed, a pull request GitHub cannot merge (DIRTY, not queued) is a conflict, a queued "
                "one is not (PullRequest.conflicts read through the real mapping)",
                [d["conflicts"] for d in row_dicts(planted, dirty)] == [True, False], str(row_dicts(planted, dirty)))
+        foreseen_row = prune_worktrees.Row("w1c", "CHECK", [], [], 1, None, None, 0, 5.0, "", None, "BOUNCED", tip="c1",
+                                           foreseen=(("w1a", "a1"),))
+        expect("... and a queued head the queue's simulation finds conflicting with an entry ahead of it (kb/Work PB3723) "
+               "is a conflict too, naming that entry's branch and head for the brief",
+               [(d["conflicts"], d["foreseen"]) for d in row_dicts([foreseen_row], {})]
+               == [(True, [{"branch": "w1a", "head": "a1"}])], str(row_dicts([foreseen_row], {})))
 
         # 2. exit 5 (GATE RED) is never relaunched at the same head; a new head (a finisher's commit) is eligible.
         f.rows[0] = row("w1a", "DECISION", "a2")                  # enqueue merged main in: the survey no longer lists it
@@ -1909,7 +1964,7 @@ def self_test() -> int:
                f12c.tick(c12c) == ["w12a"], f"{f12c.started} {f12c.said}")
         status = status_lines(c12c)    # after the tick: the survey it wrote is the one the status line reads
         expect("the status line of a re-armed NOT QUEUED branch does not promise a landing, and names why",
-               any(ln.startswith("REARMED") and "w12b" in ln and "does NOT land it" in ln and "NOT QUEUED" in ln
+               any(ln.startswith("REARMED") and "w12b" in ln and "does NOT land it" in ln and "NOT QUEUED" in ln and "only the operator does" in ln
                    for ln in status), "\n".join(status))
         # the one re-arm predicate (rearm_hold, review lead R1-1): every arm that keeps candidates() from launching a
         # re-arm is the arm the status line names, the worktree arm included, and only a launchable one is promised
@@ -1966,7 +2021,7 @@ def self_test() -> int:
                                            "2026-10-22T18:44:50Z", "BLOCKED", "", tuple(checks), "o/r", others=others)
 
         c14 = fresh("watch")
-        names = ["q", "m", "rerun", "reopen", "alert", "red", "closed", "held"]
+        names = ["q", "m", "rerun", "reopen", "alert", "red", "closed", "held", "drop", "qm"]
         f14 = Fake([row(f"w14{n}", "WAITING TO LAND", "z0") for n in names])
         f14.tick(c14)
         for n in names:
@@ -1977,8 +2032,11 @@ def self_test() -> int:
         n_of = {f"w14{n}": 380 + i for i, n in enumerate(names)}
 
         def facts(**over) -> dict[str, Any]:
-            base = {b: pr(n_of[b], stuck_gate) for b in n_of if b not in ("w14q", "w14m", "w14red", "w14closed")}
-            base.update(w14q=pr(n_of["w14q"], green_gate, in_queue=True), w14red=pr(n_of["w14red"], red_gate))
+            base = {b: pr(n_of[b], stuck_gate) for b in n_of
+                    if b not in ("w14q", "w14m", "w14red", "w14closed", "w14drop", "w14qm")}
+            base.update(w14q=pr(n_of["w14q"], green_gate, in_queue=True), w14red=pr(n_of["w14red"], red_gate),
+                        w14drop=pr(n_of["w14drop"], green_gate, in_queue=True),
+                        w14qm=pr(n_of["w14qm"], green_gate, in_queue=True))
             base.update(over)
             return {k: v for k, v in base.items() if v is not None}
 
@@ -2005,9 +2063,12 @@ def self_test() -> int:
 
         f14.prs, f14.now = facts(w14closed=None), t("18:50")
         f14.tick(c14)
-        expect("queue watch: a pull request in the queue ends the watch QUEUED; one whose branch's work is on main "
-               "ends it MERGED; a required check that failed ends it LEFT (BOUNCED: the finisher's); none acted on",
-               watch("w14q").get("state") == IN_QUEUE and watch("w14m").get("state") == MERGED
+        expect("queue watch: a pull request in the queue reads QUEUED and the watch does NOT end (kb/Work PB3772: it "
+               "can leave the queue unmerged); one whose branch's work is on main ends it MERGED; a required check that "
+               "failed ends it LEFT (BOUNCED: the finisher's); none acted on",
+               watch("w14q").get("state") == IN_QUEUE and IN_QUEUE not in WATCH_DONE
+               and watch("w14q").get("queued_at") == "2026-10-22T18:50:00+00:00"
+               and watch("w14m").get("state") == MERGED
                and watch("w14red").get("state") == LEFT and not acts("w14q") and not acts("w14m") and not acts("w14red"),
                f"{watch('w14q')} {watch('w14m')} {watch('w14red')} {f14.effects}")
         expect("queue watch: a stuck check-run inside the grace is only watched; a pull request with no open pull "
@@ -2024,23 +2085,24 @@ def self_test() -> int:
                and not acts("w14rerun") and watch("w14reopen")["reads"][0]["act"] == RERUN, str(f14.effects))
         f14.prs, f14.now = facts(w14closed=None, w14rerun=pr(n_of["w14rerun"], green_gate, in_queue=True)), t("19:05")
         f14.tick(c14)
-        expect("queue watch: stuck, then cleared by the re-run: the pull request enters the queue and the watch ends; "
-               "a stuck one only 8 min after its re-run is still inside the grace",
+        expect("queue watch: stuck, then cleared by the re-run: the pull request enters the queue (QUEUED, still "
+               "watched); a stuck one only 8 min after its re-run is still inside the grace",
                watch("w14rerun").get("state") == IN_QUEUE and len(watch("w14reopen")["reads"]) == 1,
                f"{watch('w14rerun')} {watch('w14reopen')}")
-        f14.prs, f14.now = facts(w14closed=None, w14rerun=None), t("19:08")
+        rerun_q = pr(n_of["w14rerun"], green_gate, in_queue=True)
+        reopen_q = pr(n_of["w14reopen"], green_gate, in_queue=True)
+        f14.prs, f14.now = facts(w14closed=None, w14rerun=rerun_q), t("19:08")
         f14.tick(c14)
         expect("queue watch: read 2 (still stuck one grace after the re-run) closes, reopens and re-queues the pull "
                "request, recorded as read 2",
                ("requeue", "o/r", n_of["w14reopen"]) in f14.effects and acts("w14reopen") == [RERUN, REQUEUE]
                and ("measure", n_of["w14reopen"], "w14reopen", 2, STUCK, REQUEUE) in f14.effects, str(f14.effects))
-        f14.prs, f14.now = facts(w14closed=None, w14rerun=None,
-                                 w14reopen=pr(n_of["w14reopen"], green_gate, in_queue=True)), t("19:12")
+        f14.prs, f14.now = facts(w14closed=None, w14rerun=rerun_q, w14reopen=reopen_q), t("19:12")
         f14.tick(c14)
-        expect("queue watch: stuck, then cleared by the reopen: in the queue, the watch ends with no third read",
+        expect("queue watch: stuck, then cleared by the reopen: in the queue, no third read",
                watch("w14reopen").get("state") == IN_QUEUE and len(watch("w14reopen")["reads"]) == 2,
                str(watch("w14reopen")))
-        f14.prs, f14.now = facts(w14closed=None, w14rerun=None, w14reopen=None), t("19:19")
+        f14.prs, f14.now = facts(w14closed=None, w14rerun=rerun_q, w14reopen=reopen_q), t("19:19")
         f14.tick(c14)
         f14.now = t("19:45")
         f14.tick(c14)
@@ -2051,11 +2113,40 @@ def self_test() -> int:
                and f"PR #{n_of['w14alert']}" in alerts[0][1] and "re-run" in alerts[0][2]
                and watch("w14alert").get("state") == ALERTED and len(watch("w14alert")["reads"]) == 3,
                f"{acts('w14alert')} {watch('w14alert')}")
-        expect("queue watch: status and the survey's NOT QUEUED row say the watch's state and each read",
+        expect("queue watch: status and the survey's NOT QUEUED row say the watch's state, when it read, that an "
+               "ended watch reads nothing again, and each read",
                any("w14alert" in ln and "queue watch ALERTED" in ln and "read 1 stuck-check-run: rerun done" in ln
+                   and "the watch has ENDED" in ln and "read at 2026-10-22T19:19:00+00:00" in ln
                    for ln in status_lines(c14))
+               and "has ENDED" not in watch_text(next(a for a in attempts(c14) if a["branch"] == "w14q"))
                and "read 2 stuck-check-run: requeue done" in watch_text(watch_holder := next(
                    a for a in attempts(c14) if a["branch"] == "w14alert")), str(watch_holder))
+        # kb/Work PB3772: PR #593's shape. QUEUED at 19:45 (the last reading in the queue), then out of it with auto-merge
+        # OFF, its ci-gate green and no failed run: the queue dropped it (a ruleset toggle, a dequeue). The watch that
+        # ended at QUEUED never saw it; this one waits the grace from the last reading in the queue, never re-runs a
+        # check whose work passed, requeues, and reads it in the queue again. Its sibling qm is merged by the queue.
+        dropped = queue_facts.PullRequest(n_of["w14drop"], "https://github.com/o/r/pull/389", "z1", False, "", "CLEAN",
+                                          "", (green_gate,), "o/r")
+        f14.rows[9]["content"] = "MERGED"
+        f14.prs, f14.now = facts(w14closed=None, w14rerun=rerun_q, w14reopen=reopen_q, w14drop=dropped, w14qm=None), t("19:50")
+        f14.tick(c14)
+        inside = (watch("w14drop").get("state"), acts("w14drop"), watch("w14qm").get("state"))
+        f14.now = t("19:56")
+        f14.tick(c14)
+        expect("queue watch: a pull request QUEUED and then out of the queue with auto-merge off and no failed run is "
+               "WATCHING inside the grace counted from its last reading in the queue, and past it read 1 is the "
+               "REQUEUE (no re-run of a check that passed), cause not-queued, saying it left the queue; one the queue "
+               "MERGED ends the watch MERGED (kb/Work PB3772)",
+               inside == (WATCHING, [], MERGED) and acts("w14drop") == [REQUEUE]
+               and ("requeue", "o/r", n_of["w14drop"]) in f14.effects
+               and ("measure", n_of["w14drop"], "w14drop", 1, NOT_QUEUED, REQUEUE) in f14.effects
+               and "left the merge queue" in watch("w14drop")["why"], f"{inside} {acts('w14drop')} {watch('w14drop')}")
+        f14.prs, f14.now = facts(w14closed=None, w14rerun=rerun_q, w14reopen=reopen_q,
+                                 w14drop=pr(n_of["w14drop"], green_gate, in_queue=True), w14qm=None), t("19:57")
+        f14.tick(c14)
+        expect("queue watch: the requeue put it back in the queue: QUEUED again, and watched on",
+               watch("w14drop").get("state") == IN_QUEUE and watch("w14drop").get("queued_at") == "2026-10-22T19:57:00+00:00"
+               and len(watch("w14drop")["reads"]) == 1, str(watch("w14drop")))
         unread_gate = queue_facts.CheckRun("ci-gate", "IN_PROGRESS", "", 120018552760, 39834070835)
         enq = {"end_head": "z1", "ended": "2026-10-22T18:45:00Z"}
         early, late = (watch_step(enq, "IN FLIGHT", pr(397, unread_gate), t(hm)) for hm in ("18:50", "18:56"))
@@ -2259,6 +2350,29 @@ def self_test() -> int:
                merge_drivers.covered_by_driver(diag)
                and show_conflict_brief(c17b, "wdirty", fixture_git, declined_out.append) == 0
                and f"leaves 1 file(s) in conflict: {diag}" in "".join(declined_out), str(declined_out))
+
+        # ... and a QUEUED pull request whose head conflicts with an entry queued ahead of it (the survey's `foreseen`,
+        #     kb/Work PB3723): origin/main merges clean, the entry ahead does not, so the brief is against that entry's
+        #     head, saying it is queued ahead and how its head is brought in
+        qbr = ScratchRepo.init(root / "wt-queue")
+        qbr.commit("base", {"scripts/q.py": "q = 0\n"})
+        qbr.git("update-ref", MAIN, "HEAD")
+        qbr.commit("the entry queued ahead", {"scripts/q.py": "q = 1\n"})
+        ahead_head = qbr.git("rev-parse", "HEAD")
+        qbr.git("reset", "-q", "--hard", MAIN)
+        qbr.commit("the queued branch", {"scripts/q.py": "q = 2\n"})
+        c17c = fresh("foreseen")
+        f17c = Fake([{"name": "wq", "state": "BOUNCED", "tip": qbr.git("rev-parse", "HEAD"), "worktree": str(qbr.path),
+                      "why": "", "lead": None, "conflicts": True, "foreseen": [{"branch": "wahead", "head": ahead_head}]}])
+        f17c.tick(c17c)
+        foreseen_out: list[str] = []
+        expect("conflict brief: a queued branch whose head conflicts with an entry ahead of it is briefed against THAT "
+               "head, not origin/main (which merges clean): the file, the entry's name, and the merge command for its head",
+               show_conflict_brief(c17c, "wq", lambda *a, cwd=None: qbr.run(*a, cwd=cwd), foreseen_out.append) == 0
+               and "Bringing wahead" in "".join(foreseen_out) and "leaves 1 file(s) in conflict: scripts/q.py" in "".join(foreseen_out)
+               and f"merge_drivers.py merge {ahead_head} --keep" in "".join(foreseen_out)
+               and "QUEUED ahead of this one" in "".join(foreseen_out) and "the entry queued ahead" in "".join(foreseen_out),
+               "".join(foreseen_out))
 
         # 13. the runner's launch (no window, outliving the tick) is scripts/detached.py's, with its own self-test
         #     arms (kb/Work PB3117, PB3536): the tick starts every runner through it.
