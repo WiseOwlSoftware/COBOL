@@ -10259,6 +10259,12 @@
   ],
   "expect": "COBOL0900"
  },
+ "pb1673-null-undeclared-at-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "§8.9 does not reserve the word at this edition"
+ },
  "pb1687-report-entry-32-digits": {
   "refuse-at": [
    "85",
