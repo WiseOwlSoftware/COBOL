@@ -2263,7 +2263,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private BoundExpr FunctionResultLength(IntrinsicSig sig, List<BoundOperand> args, bool bytes)
     {
         // An INDEX result is the index carrier, a compile-time constant. Every other result, string or numeric, is measured at run time.
-        if (args[0] is BoundComputedOperand { Expr: BoundIntrinsicCall fn } && IntrinsicResultType.Resolve(fn.Sig, fn.Args) is IntrinsicType.Index)
+        if (args[0] is BoundComputedOperand { Expr: BoundIntrinsicCall fn } && fn.ResultType is IntrinsicType.Index)
         {
             var item = new DataItem { Level = 1, CobolName = "__FN-RESULT", CsName = "__fnResult", Pic = PicInfo.IndexItem };
             return new BoundNumLiteral((bytes ? item.ByteWidth : ItemLength.Positions(item)).ToString());

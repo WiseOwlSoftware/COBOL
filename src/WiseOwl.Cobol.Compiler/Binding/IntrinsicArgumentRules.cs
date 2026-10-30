@@ -436,12 +436,12 @@ internal static class IntrinsicArgumentRules
         BoundFieldOperand f => ClassOfPlace(f.Place),
         // An arithmetic expression IS a numeric argument (§15.3 types 6 and 10 admit one outright); a nested
         // intrinsic contributes the class of ITS result category — resolved through the SAME
-        // IntrinsicResultType.Resolve the binder types results with (kb/Work PB124 wave 5b): §15.2 item 6
+        // type the binder gave the call (BoundIntrinsicCall.ResultType, kb/Work PB124 wave 5b): §15.2 item 6
         // makes MAX/MIN over index arguments an INDEX function ("these are of the class and category index"),
         // and the storage model's ResultCategory folds Index into Numeric, so reading the category alone let
         // FUNCTION SQRT(FUNCTION MAX(IX1 IX2)) pass a class-numeric screen (GR-15.2-6 / AR-15.3-10).
         BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
-            IntrinsicResultType.Resolve(ic.Sig, ic.Args) is IntrinsicType.Index
+            ic.ResultType is IntrinsicType.Index
                 ? CobolClass.Index : ClassOfCategory(ic.ResultCategory),
         // An INDEX-NAME operand (kb/Work R27): class index (§8.5.2.1 Table 2), which no §15 argument rule
         // admits — BEFORE the generic computed arm, whose is-numeric answer let `FUNCTION INTEGER(IX)`
@@ -1527,7 +1527,7 @@ internal static class IntrinsicArgumentRules
     {
         // §8.4.3.2.3 SR11 — a NUMERIC function, whatever this reference would evaluate to.
         BoundComputedOperand { Expr: BoundIntrinsicCall ic }
-            when IntrinsicResultType.Resolve(ic.Sig, ic.Args) is IntrinsicType.Numeric =>
+            when ic.ResultType is IntrinsicType.Numeric =>
             $"is FUNCTION {ic.Sig.Name}, a numeric function, which ISO §8.4.3.2.3 SR11 bars from an integer "
             + "operand position even though a particular reference might yield an integer value",
         // §15.3 type 6 — "an integer data item". The item shapes that are NOT one live in the ONE primitive
@@ -1571,7 +1571,7 @@ internal static class IntrinsicArgumentRules
     /// </summary>
     public static string? UnsignedIntegerViolation(BoundOperand op) =>
         op is BoundComputedOperand { Expr: BoundIntrinsicCall ic }
-            ? IntrinsicResultType.Resolve(ic.Sig, ic.Args) switch
+            ? ic.ResultType switch
             {
                 IntrinsicType.Numeric =>
                     $"is FUNCTION {ic.Sig.Name}, a numeric function, which ISO §8.4.3.2.3 SR11 bars from an integer "
