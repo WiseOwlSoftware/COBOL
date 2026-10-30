@@ -743,6 +743,15 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.RemWide(WiseOwl.Cobol.Runtime.Cobol
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.SignWide(WiseOwl.Cobol.Runtime.CobolWide v) -> long
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.SumWide(params WiseOwl.Cobol.Runtime.CobolWide[]! xs) -> WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.TruncateWide(WiseOwl.Cobol.Runtime.CobolWide v, int scale) -> WiseOwl.Cobol.Runtime.CobolWide
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.AcosWide(WiseOwl.Cobol.Runtime.CobolWide? x, int scale) -> double
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.AsinWide(WiseOwl.Cobol.Runtime.CobolWide? x, int scale) -> double
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CosWide(WiseOwl.Cobol.Runtime.CobolWide x, int scale) -> double
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.DomainWideAdmitted(WiseOwl.Cobol.Runtime.CobolWide value, int scale, WiseOwl.Cobol.Runtime.CobolIntrinsics.ArgumentDomain domain, string! function, string! rule) -> WiseOwl.Cobol.Runtime.CobolWide?
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.Log10Wide(WiseOwl.Cobol.Runtime.CobolWide? x, int scale) -> double
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.LogWide(WiseOwl.Cobol.Runtime.CobolWide? x, int scale) -> double
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.MeanWide(WiseOwl.Cobol.Runtime.CobolRounding mode, int scale, params WiseOwl.Cobol.Runtime.CobolWide[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.SinWide(WiseOwl.Cobol.Runtime.CobolWide x, int scale) -> double
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.TanWide(WiseOwl.Cobol.Runtime.CobolWide x, int scale) -> double
 static WiseOwl.Cobol.Runtime.CobolNum.DeviceFunctionText(WiseOwl.Cobol.Runtime.CobolWide value, int scale, bool commaMode) -> string!
 static WiseOwl.Cobol.Runtime.CobolWide.FromUnsigned(System.UInt128 value) -> WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.FunctionValueField.OfWide(WiseOwl.Cobol.Runtime.CobolWide value, int scale) -> WiseOwl.Cobol.Runtime.FunctionValueField
