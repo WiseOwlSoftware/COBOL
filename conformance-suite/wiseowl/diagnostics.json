@@ -24239,5 +24239,53 @@
    "2023"
   ],
   "expect": "COBOL2773"
+ },
+ "pb4118-send-to-subscripted": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL2024: SEND TO operand 'TBL(1)' is written with a subscript"
+ },
+ "pb4118-send-to-reference-modified": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL2024: SEND TO operand 'WS-REPLY(1:2)' is reference-modified"
+ },
+ "pb4118-send-to-special-register": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL2024: SEND TO operand 'LINE-COUNTER'"
+ },
+ "pb4118-send-to-qualified-undefined": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL1639: 'NOSUCH OF GRP-B' is not defined"
+ },
+ "pb4118-send-to-qualified-with-returning": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL5488: SEND is written with the RETURNING phrase"
+ },
+ "pb4118-send-returning-subscripted": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL2024: SEND RETURNING data-name-1 'TBL(1)' is written with a subscript"
+ },
+ "pb4118-receive-data-name-1-subscripted": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL2024: RECEIVE data-name-1 'TBL(1)' is written with a subscript"
+ },
+ "pb4118-receive-data-name-2-reference-modified": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOL2024: RECEIVE data-name-2 'WS-LEN(1:2)' is reference-modified"
  }
 }
