@@ -1,4 +1,4 @@
-## The conformance suite runs as 32 partitions: it crossed the 500-row bound at 24
+## Entry 2795 — 2026-10-30 12:05 PDT — The conformance suite runs as 32 partitions: it crossed the 500-row bound at 24
 
 The merge group of #811 (worktree-wf_f1d1c695-17b-15, PB3845; run 41107427092) went red on both operating systems in
 `ConformancePartitioningDriftTests.TheSuiteRunner_KeepsItsPartitionCount_AndBoundsEveryPartition`. The message was:
@@ -18,3 +18,4 @@ Why no local gate saw it (THE CI INVARIANT): 17b-15's gate measured the branch a
 the drift test passed there. The merge with main, which crossed the bound, is the merge queue's to test (owner
 2026-10-23, kb/Work PB3612). A bound on the sum of main and a branch can only be crossed in that merge. The remedy is the
 headroom above, raised before the bound is reached again; it is not a local re-gate of every merge.
+
