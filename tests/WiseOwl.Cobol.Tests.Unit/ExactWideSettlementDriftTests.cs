@@ -108,11 +108,12 @@ public sealed class ExactWideSettlementDriftTests
         Assert.Contains("if (x.Wide) return RuntimeApi.FunctionDeviceTextWide(x.Expr, x.Scale, Comma);", device);
         Assert.Contains(": x.Wide ? RuntimeApi.FunctionFieldOfWide(x.Expr, x.Scale)", device);
         Assert.Contains("? RuntimeApi.FunctionFieldOfWide(value.Expr, value.Scale)", device);
-        // A MOVE's store: transferred at the receiver's (or the mask's) scale, or lowered for a floating-point mask.
+        // A MOVE's store: transferred at the receiver's (or the mask's) scale, or lowered for a floating-point mask; the
+        // transfer is checked only for a report printable item's raising implicit COMPUTE (kb/Work PB4031).
         string move = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "MoveEmitter.cs"));
         Assert.Equal(2, Regex.Matches(move, @"keepWide\s*:\s*true").Count);
-        Assert.Contains("n = NumericRenderer.TransferWide(n, recvScaleM, rounding, checkedTransfer: false);", move);
-        Assert.Contains("e = NumericRenderer.TransferWide(e, ems, rounding, checkedTransfer: false);", move);
+        Assert.Contains("n = NumericRenderer.TransferWide(n, recvScaleM, rounding, checkedTransfer: raiseOnSizeError);", move);
+        Assert.Contains("e = NumericRenderer.TransferWide(e, ems, rounding, checkedTransfer: raiseOnSizeError);", move);
         Assert.Contains("NumericRenderer.LowerWide(e)", move);
         // The string-image channel of a numeric function's value: the kept value settles into the text of its every digit.
         string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "OperandText.cs"));
