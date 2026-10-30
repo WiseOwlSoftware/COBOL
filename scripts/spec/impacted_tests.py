@@ -28,8 +28,8 @@ A changed TEST file reaches tests the same way (the test assemblies are recorded
 a test calls — is tier 1 for the rows that executed it. It also names the tier-0a facts only the diff knows: the
 test METHODS the change ADDS OR EDITS (`tests_changed`, kb/Work PB3190: a hunk inside a test method's attribute
 block, declaration or body, or inside the `[MemberData]` source of a theory — the change's own tests, which the
-batched gate's leg 1 must run, where tier 1 is only budgeted), and the suite tests whose files or keyed entries the
-change touches (`gate_plan.py` puts their cases in leg 1). A whole changed test FILE is not tier 0a: a harness edit
+batched gate's leg 1 must run, where tier 1 is only budgeted), and the suite tests whose files or registry files
+(`wiseowl/diagnostics/<id>.json`, `wiseowl/options/`) the change touches (`gate_plan.py` puts their cases in leg 1). A whole changed test FILE is not tier 0a: a harness edit
 reaches every row of its theory, and 68b X's (b4) put 5,774 cases and 62.8 % of the work ahead of its first red.
 From the diff alone it names the tier-0d drift tests too: those the drift-rule index says govern a changed file
 (kb/Work PB3531), and those governing a register that cites what the change removes — a deleted member, a renamed
@@ -102,9 +102,10 @@ STRUCTURAL_RE = re.compile(r"(\.g4|\.csproj|\.props|\.targets|\.sln|global\.json
 READ_ONLY_DATA_RE = re.compile(r"(^|/)(PublicAPI\.(Shipped|Unshipped)\.txt|RuntimeAbi\.pin)$")
 HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 #: The conformance suite's test trees (conformance-suite/harness/generate.py's TREES): a file of one of their clause
-#: folders belongs to suite tests by id (`suite_tests`), and the two keyed files beside them name tests by id.
+#: folders belongs to suite tests by id (`suite_tests`), and the two one-file-per-test registries beside them
+#: (`wiseowl/diagnostics/<id>.json`, `wiseowl/options/<id>[.<step file>].json`, kb/Work PB4147) name a test by file name.
 SUITE_TREES = ("conformance-suite/cases/", "conformance-suite/wiseowl/cases/")
-SUITE_KEYED = ("conformance-suite/wiseowl/diagnostics.json", "conformance-suite/wiseowl/options.json")
+SUITE_REGISTRIES = ("conformance-suite/wiseowl/diagnostics/", "conformance-suite/wiseowl/options/")
 HEAD: str | None = None  # --head: diff base..HEAD instead of the worktree (a replay, or a landed branch)
 TIER_DIRECT, TIER_WIDENED, TIER_UNREACHED = 1, 2, 3
 
@@ -446,17 +447,12 @@ def suite_tests(path: str) -> set[str] | None:
     return owners or None
 
 
-def changed_entries(path: str, base: str) -> set[str]:
-    """The entries of a keyed JSON file (`wiseowl/diagnostics.json`, `wiseowl/options.json`: test id -> its entry)
-    that the change ADDS or CHANGES (present now with a value other than the base's); `$`-keys are documentation."""
-    def entries(rev: str | None) -> dict:
-        try:
-            text = git("show", f"{rev}:{path}") if rev else text_of(REPO / path)
-            return {k: v for k, v in json.loads(text).items() if not k.startswith("$")}
-        except (subprocess.CalledProcessError, ValueError, AttributeError):
-            return {}  # absent on that side (an added or deleted file)
-    now, then = entries(HEAD), entries(base)
-    return {k for k, v in now.items() if then.get(k) != v}
+def registry_test(path: str) -> str:
+    """The id of the suite test a file of a one-file-per-test registry (`SUITE_REGISTRIES`) belongs to, read by the
+    generator's one rule for a registry file's name (`generate.sidecar_key`)."""
+    sys.path.insert(0, str(REPO / "conformance-suite" / "harness"))
+    import generate  # noqa: PLC0415  (the suite's one reader of a registry file name; only a change to one pays for it)
+    return generate.sidecar_key(Path(path).name).partition("/")[0]
 
 
 class MapChoice(NamedTuple):
@@ -727,13 +723,13 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
         if path.startswith("src/") and not READ_ONLY_DATA_RE.search(path):
             reach.every_tier1.append(f"{path}: a non-C# input under src/ (embedded data or resources)")
             continue
-        if path in SUITE_KEYED:
-            if base is None:
-                reach.notes.append(f"{path}: named without a diff — which entries changed is unknown")
+        if path.startswith(SUITE_REGISTRIES):
+            if status == "D":   # a deleted file leaves no refusal or option to run
+                reach.notes.append(f"{path}: a registry file removed — no refusal or option of it remains to run")
             else:
-                changed = changed_entries(path, base)
-                reach.goldens |= changed
-                reach.notes.append(f"{path}: entries added or changed: {', '.join(sorted(changed)) or 'none'}")
+                test = registry_test(path)
+                reach.goldens.add(test)
+                reach.notes.append(f"{path}: the registry file of suite test {test}")
             continue
         if path.startswith(SUITE_TREES):
             tests = suite_tests(path)
@@ -1133,6 +1129,15 @@ def self_test() -> int:
     _, reach = tiers_for([copy + "CSCOPY01.cpy"])
     check("a declared suite file's test is tier 0a, every other row keeps its tier",
           reach.goldens == {"copy-library-text"} and not reach.every_tier1, (reach.goldens, reach.every_tier1))
+    registry = "conformance-suite/wiseowl/"
+    _, reach = tiers_for([registry + "diagnostics/refused-one.json", registry + "options/multi-unit.U1.cbl.json"])
+    check("a one-file-per-test registry file is its test's entry: the id before the first dot is tier 0a, nothing "
+          "is unattributable (kb/Work PB4147)",
+          reach.goldens == {"refused-one", "multi-unit"} and not reach.every_tier1, (reach.goldens, reach.every_tier1))
+    reach = Reach()
+    reach_of(ix, [("D", registry + "diagnostics/dropped.json")], None, reach)
+    check("a deleted registry file names no test: no refusal of it remains to run",
+          not reach.goldens and not reach.every_tier1, (reach.goldens, reach.every_tier1))
     # Tier 0d, from the REAL drift-rule index: the sweep that stopped PB3523's landing reads every tracked script
     # through its declared TreeScope, and names no path (kb/Work PB3531).
     _, reach = tiers_for(["scripts/differential_fuzz.py"])

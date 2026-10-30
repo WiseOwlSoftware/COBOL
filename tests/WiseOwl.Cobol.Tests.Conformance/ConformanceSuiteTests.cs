@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// ⛔ WISEOWL COBOL RUNS THE CONFORMANCE SUITE ON ITSELF, IN-PROCESS (DESIGN-conformance-suite.md §5 "In WiseOwl's own
 /// pipeline", §13 S1c, S2; kb/Work PB3176, PB3177): every test of the generator's <c>wiseowl</c> manifest (both trees,
 /// portable or not) at every edition it names, through <see cref="ConformanceSuiteRunner"/>, and every refusal of
-/// <c>conformance-suite/wiseowl/diagnostics.json</c> at every edition it names. Since S2 that is the whole corpus the
+/// <c>conformance-suite/wiseowl/diagnostics/</c> at every edition it names. Since S2 that is the whole corpus the
 /// former <c>tests/conformance/</c> held: its positive programs are accepted tests, its negative programs refusals.
 /// </summary>
 /// <remarks>
@@ -174,7 +174,7 @@ public sealed class ConformanceSuiteTests_P31 : ConformanceSuiteTestsBase<Slot31
 /// <summary>The suite's whole-manifest facts, run once (an inherited fact would run once per partition).</summary>
 public sealed class ConformanceSuiteTests
 {
-    /// <summary>A WiseOwl compile option (<c>wiseowl/options.json</c>, kb/Work PB803, PB1525) reaches the compile: the
+    /// <summary>A WiseOwl compile option (<c>wiseowl/options/</c>, kb/Work PB803, PB1525) reaches the compile: the
     /// golden of the alternative sign convention carries it in the manifest the runner reads, so the option is
     /// exercised by a program that runs and compares its output, never only by the generator's validation.</summary>
     [Fact]

@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "the argument (the figurative constant SPACE) is not a valid sending operand of a MOVE to the formal parameter (an elementary numeric-edited item described with PICTURE ZZ9 USAGE DISPLAY): the figurative constant SPACE shall not be moved to a numeric or numeric-edited item (ISO §14.9.25.3 SR5)"}

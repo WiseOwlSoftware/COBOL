@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL3408: SOURCE-COMPUTER paragraph: it ends after 'XYZ' without a separator period"}

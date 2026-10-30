@@ -2464,7 +2464,7 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    predecessor or a sibling carries conflict resolutions in its merge commits, which a rebase discards and asks for
    again, and the queue lands by merge commit anyway. **THROUGH THE MERGE DRIVERS** (`scripts/merge_drivers.py`, kb/Work
    PB3610): the files two landings both edit are merged by key, not by line — the keyed catalogues a landing adds an
-   entry to (`wiseowl/diagnostics.json` and `options.json`, the traceability inventory, `constructs.json`), the work notes
+   entry to (the traceability inventory, `constructs.json`), the work notes
    two branches append to, the runtime ABI pin (`RuntimeAbi.pin`, which `scripts/abi_pin.py` measures: the counters
    two branches each raised add, the merged surface's hashes are measured on the merged tree before the merge commit;
    that measuring build, like every build in a worktree after its agent has returned, is not blocked by a session's

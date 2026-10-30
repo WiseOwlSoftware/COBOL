@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL2776: 'OF SELF' follows a subscript or reference modifier of 'BAL'"}
