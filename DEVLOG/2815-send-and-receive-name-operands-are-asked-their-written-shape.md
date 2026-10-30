@@ -1,4 +1,4 @@
-## SEND and RECEIVE name operands are asked their written shape (PB4118)
+## Entry 2815 — 2026-10-30 15:02 PDT — SEND and RECEIVE name operands are asked their written shape (PB4118)
 
 `DeclinedFacilityBinder.ClassifySend` took every operand after TO that is no message-tag item for a message-server-name-1
 without asking how it was written. §14.9.38.2 prints that operand as a name in both formats (message-server-name-1, §14.9.38.3
@@ -33,3 +33,4 @@ DOCUMENTED-NON-SUPPORT verdict).
 neither resolved nor classified. Duplication: none added. The COBOL2024 text speaks of "the clause's general format prints
 data-name-n", which is loose for a Format 1 server name; the operand face and the statement's rule sentence carry the
 precision, and the shared message is not forked for one caller.
+
