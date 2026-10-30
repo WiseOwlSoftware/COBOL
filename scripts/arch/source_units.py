@@ -23,6 +23,8 @@ of the file (a name survives the lines moving under it), never a line number:
     Read with `ast`; a file that does not parse has no units.
   * Markdown (`.md`): a section, named by its heading text (to the next heading of any level); the lines before the
     first heading are `<preamble>`. A fenced block's `#` lines are no headings.
+  * PowerShell (`.ps1`, `.psm1`): a top-level `function` or `filter` named by its name, from the comment lines above it
+    to its closing brace; the script's other lines are `<header>` and `<footer>` (powershell_units).
   * any other file: no units (the whole file is one unit).
 
 A CHANGE touches the units its lines fall in, on BOTH sides of each hunk (`touched`): the new version's lines it adds
@@ -499,8 +501,98 @@ def markdown_units(text: str) -> list[Unit]:
     return _runs(owner, len(owner) - 1)
 
 
+# ── PowerShell ──────────────────────────────────────────────────────────────────────────────────────────────────
+_PS_FUNCTION = re.compile(r"(?i)(?:function|filter)[ \t]+(?:(?:global|script|local|private):)?([A-Za-z_][\w-]*)")
+
+
+def powershell_units(text: str) -> list[Unit] | None:
+    """A top-level `function`/`filter` (kb/Work PB3797) is a unit named by its name, from its declaration to the closing
+    brace that returns the brace depth to zero, with the comment lines straight above it (its help block: `<# … #>` or
+    `#`) as its leading trivia. The reading tracks what a brace may hide in: `#` and `<# … #>` comments, `'…'` and `"…"`
+    strings (a doubled quote or a backtick escapes, a string may span lines) and `@'…'@` / `@"…"@` here-strings (closed by
+    the terminator at column 0), so a brace in any of them counts for nothing. A function declared inside another is part
+    of it. A file whose braces, quotes or comments it cannot balance has no units; the script's own lines before the last
+    function are `<header>` and after it `<footer>`, as in C#."""
+    lines = text.split(chr(10))
+    depth, in_block, here, opened = 0, False, None, False
+    #: what the scan is inside, innermost last: a quote character (a string), or an int, the parenthesis depth of the
+    #: `$( … )` subexpression of a double-quoted string, whose code may hold strings of its own
+    stack: list[str | int] = []
+    decls: list[tuple[str, int, int, bool]] = []
+    tokens: set[int] = set()
+    cur: tuple[str, int] | None = None
+    for ln, line in enumerate(lines, 1):
+        clean = not in_block and here is None and not stack
+        i, n = 0, len(line)
+        if here is not None:
+            tokens.add(ln)
+            if not line.startswith(here):
+                continue
+            here, i = None, 2
+        if clean and depth == 0 and cur is None and (m := _PS_FUNCTION.match(line)):
+            cur = (m.group(1), ln)
+        while i < n:
+            c = line[i]
+            if in_block:
+                j = line.find("#>", i)
+                if j < 0:
+                    break
+                in_block, i = False, j + 2
+                continue
+            top = stack[-1] if stack else None
+            if isinstance(top, str):
+                tokens.add(ln)
+                if top == '"' and c == "`":
+                    i += 2
+                elif top == '"' and c == "$" and line[i + 1:i + 2] == "(":
+                    stack.append(1)
+                    i += 2
+                elif c == top:
+                    if line[i + 1:i + 2] == top:
+                        i += 2
+                    else:
+                        stack.pop()
+                        i += 1
+                else:
+                    i += 1
+                continue
+            if c in " \t\r":
+                i += 1
+            elif line.startswith("<#", i):
+                in_block, i = True, i + 2
+            elif c == "#":
+                break
+            else:
+                tokens.add(ln)
+                if c == "@" and line[i + 1:i + 2] in ("'", '"') and not line[i + 2:].strip():
+                    here = line[i + 1] + "@"
+                    break
+                if c in "'\"":
+                    stack.append(c)
+                elif c == "`":
+                    i += 1
+                elif top is not None and c in "()":      # the subexpression's own parentheses
+                    stack[-1] += 1 if c == "(" else -1
+                    if stack[-1] == 0:
+                        stack.pop()
+                else:
+                    depth += {"{": 1, "}": -1}.get(c, 0)
+                    if depth < 0:
+                        return None
+                i += 1
+        if cur is not None and (opened or depth > 0 or "{" in line):
+            opened = True
+            if depth == 0:
+                decls.append((cur[0], cur[1], ln, False))
+                cur, opened = None, False
+    if depth or in_block or here is not None or stack or cur is not None:
+        return None
+    return _cover(len(lines), decls, tokens)
+
+
 # ── the API ─────────────────────────────────────────────────────────────────────────────────────────────────────
-READERS = {".cs": csharp_units, ".py": python_units, ".md": markdown_units}
+READERS = {".cs": csharp_units, ".py": python_units, ".md": markdown_units, ".ps1": powershell_units,
+           ".psm1": powershell_units}
 
 
 def units(path: str, text: str) -> list[Unit] | None:
@@ -691,6 +783,21 @@ def self_test() -> int:
     expect("Python: the comment before f is f's", names_at(pu, [5]), {"f"})
     expect("Python: a class attribute is the class's", names_at(pu, [11]), {"C.<own>"})
     expect("Python: a file that does not parse has no units", units("x.py", "def (:\n"), None)
+
+    nl = chr(10)
+    ps = nl.join(["param([string]$X)", "# helper", "function Alpha {", '    $s = "brace } in a string"',
+                  "    $t = 'and { here'", "    # comment with { brace", "    if ($X) { 1 }", "}", "", "<#",
+                  ".SYNOPSIS", "  doc { not code", "#>", "function Beta", "{", "    $h = @'", "}}}", "'@",
+                  '    $m = "multi', 'line }"', "    return 1", "}", 'Write-Host "run"', ""])
+    psu = units("x.ps1", ps)
+    expect("PowerShell: a function with its help block and the blank line before it, braces in strings, comments and "
+           "here-strings counting for nothing, the script around them header and footer (kb/Work PB3797)",
+           [(u.name, u.start, u.end) for u in psu or []],
+           [("<header>", 1, 1), ("Alpha", 2, 8), ("Beta", 9, 22), ("<footer>", 23, 24)])
+    expect("PowerShell: one-line functions are units; an unclosed function or here-string has no units",
+           ([u.name for u in units("x.ps1", "function A { 1 }" + nl + "function B { 2 }" + nl) or []],
+            units("x.ps1", "function A {" + nl + "  1"), units("x.ps1", "$a = @'" + nl + "text" + nl)),
+           (["A", "B", "<footer>"], None, None))
 
     md = "intro\n# 8 Top\ntext\n## 8.7 The partition\nbody\n```\n# not a heading\n```\n### 8.7.1 Sub\nmore\n"
     mu = units("x.md", md)
