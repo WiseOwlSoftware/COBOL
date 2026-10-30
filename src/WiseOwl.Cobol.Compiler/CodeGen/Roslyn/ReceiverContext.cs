@@ -9,9 +9,9 @@ namespace WiseOwl.Cobol.CodeGen;
 /// The RECEIVER a numeric render is computed FOR (P7 Step 3; DESIGN-codegen-backend §2.5): the receiving item's
 /// scale (the division/power working scale, ISO §8.8.1/§14.7.4), its INTEGER-DIGIT CAPACITY (the float
 /// landing headroom — see <see cref="WorkingScale"/>), whether it is a floating-point receiver (the
-/// whole RHS then evaluates in IEEE binary64 — D16), its ROUNDED mode, and whether the statement runs under ON
-/// SIZE ERROR / EC-SIZE checking (a sum renders the checked
-/// <c>AddChecked</c>; ISO §14.7.5). Passed BY PARAMETER into every public numeric-render entry — replacing the
+/// whole RHS then evaluates in IEEE binary64 — D16), its ROUNDED mode, and which size error conditions the statement
+/// TAKES (<see cref="SizeChecks"/>: a sum renders the checked <c>AddChecked</c> when it takes EC-SIZE-OVERFLOW;
+/// ISO §14.7.5, §14.6.13.1.1). Passed BY PARAMETER into every public numeric-render entry — replacing the
 /// four mutable <c>EmitContext.Target*</c>/<c>InSizeErrorContext</c> fields whose manual set/reset discipline
 /// was the H1 staleness hazard (a receiver-less render inheriting the PREVIOUS statement's receiver). A site with
 /// no receiver in scope passes <see cref="None"/> (scale 0, no capacity, fixed-point, truncation, unchecked).
@@ -41,12 +41,12 @@ namespace WiseOwl.Cobol.CodeGen;
 /// scale a final transfer rounds at. <see cref="FloatLanding"/> is the one reader.
 /// </param>
 internal readonly record struct ReceiverContext(
-    int Scale, bool Real, CobolRounding Rounding, bool InSizeError, int IntegerDigits = 0,
+    int Scale, bool Real, CobolRounding Rounding, SizeChecks Checks, int IntegerDigits = 0,
     bool Receiverless = false, bool FloatEdited = false)
 {
     /// <summary>The receiver-less context: scale 0, no capacity, not floating, TRUNCATION, no size-error checking.</summary>
     public static readonly ReceiverContext None =
-        new(0, false, CobolRounding.Truncation, false, 0, Receiverless: true);
+        new(0, false, CobolRounding.Truncation, SizeChecks.None, 0, Receiverless: true);
 
     /// <summary>⛔ THE ONE RULE FOR "THE CONTEXT OF A RESULTANT DESCRIBED BY <paramref name="pic"/>" — its scale
     /// (<c>PicInfo.ReceiverScale</c>), its floating-point-ness, its INTEGER digit positions (measured from
@@ -60,10 +60,10 @@ internal readonly record struct ReceiverContext(
     /// fraction digits, a floating-point formal in binary64 — and never at the receiver-less working scale, which
     /// silently dropped the digits the formal could hold. Two lanes, one rule: before this factory the arithmetic
     /// statement and the argument crossing each derived the context, and the crossing derived none.</para></summary>
-    public static ReceiverContext Of(PicInfo? pic, CobolRounding rounding, bool inSizeError)
+    public static ReceiverContext Of(PicInfo? pic, CobolRounding rounding, SizeChecks checks)
     {
         int scale = pic?.ReceiverScale() ?? 0;
-        return new ReceiverContext(scale, pic is { IsFloat: true }, rounding, inSizeError,
+        return new ReceiverContext(scale, pic is { IsFloat: true }, rounding, checks,
             pic is null ? 0 : Math.Max(0, pic.DigitPositions - scale), FloatEdited: pic is { IsFloatEdited: true });
     }
 
@@ -77,7 +77,7 @@ internal readonly record struct ReceiverContext(
     /// receiver's normalized significand needs are far below them). It is <see cref="Truncation"/>-moded: the set has
     /// no single ROUNDED mode — each receiver's own final transfer is rendered by <see cref="Of"/> (kb/Work PB2694;
     /// before it five emit sites each spelled this out again and none carried the floating-point edited flag).</summary>
-    public static ReceiverContext OfSet(IReadOnlyList<PicInfo?> pics, bool inSizeError)
+    public static ReceiverContext OfSet(IReadOnlyList<PicInfo?> pics, SizeChecks checks)
     {
         var (scale, integerDigits) = PicInfo.WidestReceiving(pics);
         bool allFloat = true, anyFloatEdited = false;
@@ -86,7 +86,7 @@ internal readonly record struct ReceiverContext(
             allFloat &= pic is { IsFloat: true };
             anyFloatEdited |= pic is { IsFloatEdited: true };
         }
-        return new ReceiverContext(scale, allFloat, CobolRounding.Truncation, inSizeError, integerDigits,
+        return new ReceiverContext(scale, allFloat, CobolRounding.Truncation, checks, integerDigits,
             FloatEdited: anyFloatEdited);
     }
 

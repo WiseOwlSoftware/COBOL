@@ -377,17 +377,23 @@ off-by-one through every later counter check.
   conditions (§13.18.41.4 GR2) and the VARYING FROM/BY expressions (§13.18.64.4 GR3) are evaluated as part of the
   GENERATE or TERMINATE that presents the group, and that statement's EC-SIZE enablement decides them. One compose
   serves every presenting statement, so the state travels at run time, through the one checking scope a statement
-  guard opens, as TWO flags — the run-time twins of the two compile-time questions `EcState.SizeChecking` and
-  `EcState.SizeTruncationChecking`: a GENERATE or TERMINATE whose line enables any EC-SIZE-* name sets
-  `ExceptionState.SizeChecking`, and one that enables EC-SIZE-TRUNCATION sets `ExceptionState.SizeTruncationChecking`
-  too, around its engine call (`ReportWriterEmitter.EmitPresenting` → `EcEmitter.OpenGateFlags`, so a USE BEFORE
-  REPORTING procedure the engine runs starts from its own baseline).
+  guard opens, as ONE FLAG PER SIZE CONDITION NAME (kb/Work PB4092; §14.6.13.1.1 NOTE 3: a condition is set to exist
+  "only if checking for that condition is enabled" — a family flag raised EC-SIZE-OVERFLOW from a PRESENT WHEN under
+  EC-SIZE-TRUNCATION checking alone): the run-time twins of `EcState.EnabledChecks`, one row of `EcState.SizeCheckRows`
+  each — a GENERATE or TERMINATE whose line enables EC-SIZE-OVERFLOW sets `ExceptionState.SizeOverflowChecking`,
+  EC-SIZE-UNDERFLOW `SizeUnderflowChecking`, EC-SIZE-TRUNCATION `SizeTruncationChecking`, around its engine call
+  (`ReportWriterEmitter.EmitPresenting` → `EcEmitter.OpenGateFlags`, so a USE BEFORE REPORTING procedure the engine
+  runs starts from its own baseline). `ExceptionState.SizeChecksEnabled` reads them back as the `SizeChecks` value the
+  checked operators take.
   (1) **The checked kernels** (§14.7.5 no-phrase rule 3): each numeric render the compose or the presence probe makes is
   rendered twice — as no statement's checking, and under `EcState.ComposeSizeChecking`, where every receiver-less
-  render takes the checked kernels exactly as inside a statement with EC-SIZE checking (`NumericRenderer.CheckedFor`) —
-  and `ReportWriterEmitter.UnderPresentingChecking` selects on `ExceptionState.SizeChecking`; two equal renders (nothing
-  arithmetic in them) emit once. So an intermediate past its range raises EC-SIZE-OVERFLOW under EC-SIZE-OVERFLOW
-  checking alone (kb/Work PB4031 review finding R1-1: the first landing carried EC-SIZE-TRUNCATION only).
+  render takes the checked operators exactly as inside a statement with EC-SIZE checking, but handing each the
+  presenting statement's enablement AT RUN TIME (`NumericRenderer.RangeChecks` → `ExceptionState.SizeChecksEnabled`,
+  and `NumericRenderer.CheckedFlag` → `SizeTruncationChecking`) — and `ReportWriterEmitter.UnderPresentingChecking`
+  selects on `SizeChecksEnabled != SizeChecks.None`; two equal renders (nothing arithmetic in them) emit once. So an
+  intermediate past its range raises EC-SIZE-OVERFLOW under EC-SIZE-OVERFLOW checking alone (kb/Work PB4031 review
+  finding R1-1: the first landing carried EC-SIZE-TRUNCATION only) and ONLY there: a range condition whose checking the
+  presenting statement does not enable takes the not-enabled disposition, the IEEE value (DOC-A.1-70, DOC-A.1-179).
   (2) **The raising final transfer** (no-phrase rule 4, §14.7.4.3 rule 7): per implicit COMPUTE, under
   `ExceptionState.SizeTruncationChecking` (`MoveEmitter.ConvertSource`'s `raiseOnSizeError`, rendered with the checked
   kernels: each numeric arm's checked landing and Try store, a failed store thrown as EC-SIZE-TRUNCATION —
@@ -398,7 +404,9 @@ off-by-one through every later counter check.
   `13.18.53-SOURCE/pb4031_report_source_size_checking` (2002+, numeric and numeric-edited items, GENERATE and
   TERMINATE, the TURN in force at each), `pb4031_report_overflow_checking` (2002+, EC-SIZE-OVERFLOW alone: a SOURCE
   expression, a PRESENT WHEN condition, a VARYING BY expression, and a truncation that stays unraised) and
-  `pb4031_report_source_prohibited_checked` (2014+).
+  `pb4031_report_source_prohibited_checked` (2014+),
+  `pb4092_report_compose_per_name` (2002+, one name enabled at a time: a PRESENT WHEN under EC-SIZE-TRUNCATION alone
+  prints, a truncating SOURCE under EC-SIZE-OVERFLOW alone prints its low-order digits, and each enabled name raises).
 - **THE SUM COUNTER IS A PLACE, AND ITS IDENTITY IS ITS ENTRY** (kb/Work PB882 × PB840). §13.18.54.4 GR1 gives
   EACH entry its own counter, so `ReportSumModel.Id` is the entry's ORDINAL in its report description and the
   engine holds the counters in a `List<SumEntry>` indexed by it; GR5's data-name rides alongside as

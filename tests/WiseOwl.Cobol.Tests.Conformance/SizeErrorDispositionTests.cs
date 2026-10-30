@@ -157,6 +157,30 @@ public sealed class SizeErrorDispositionTests
         Assert.DoesNotContain("   at ", stderr);   // no CLR stack trace
     }
 
+    /// <summary>kb/Work PB4092 — checking enabled for ANOTHER EC-SIZE name is not checking for the condition that occurred
+    /// (§14.6.13.1.1 NOTE 3: "An exception condition is set to exist only if checking for that condition is enabled"), so
+    /// the zero divisor and the exponentiation-rule violation take the SAME not-enabled disposition as with no checking at
+    /// all — the run unit terminates abnormally naming the condition (DOC-A.1-70) — in an arithmetic statement and in a
+    /// condition alike. The family-wide catch used to latch the condition, find its name not enabled, drop it and go on
+    /// with the receiver unchanged ("AFTER" printed).</summary>
+    [Theory]
+    [InlineData(">>TURN EC-SIZE-OVERFLOW CHECKING ON", "NATIVE", "COMPUTE A = B / Z.", "EC-SIZE-ZERO-DIVIDE")]
+    [InlineData(">>TURN EC-SIZE-TRUNCATION CHECKING ON", "NATIVE", "DIVIDE Z INTO A.", "EC-SIZE-ZERO-DIVIDE")]
+    [InlineData(">>TURN EC-SIZE-UNDERFLOW CHECKING ON", "NATIVE", "COMPUTE FR = FL / FZ.", "EC-SIZE-ZERO-DIVIDE")]
+    [InlineData(">>TURN EC-SIZE-TRUNCATION CHECKING ON", "NATIVE", "IF B / Z > 1 DISPLAY \"GT\" END-IF.", "EC-SIZE-ZERO-DIVIDE")]
+    [InlineData(">>TURN EC-SIZE-OVERFLOW CHECKING ON", "STANDARD-DECIMAL", "COMPUTE A = B / Z.", "EC-SIZE-ZERO-DIVIDE")]
+    [InlineData(">>TURN EC-SIZE-ZERO-DIVIDE CHECKING ON", "NATIVE", "COMPUTE A = Z ** -1.", "EC-SIZE-EXPONENTIATION")]
+    [InlineData(">>TURN EC-SIZE-OVERFLOW CHECKING ON", "NATIVE", "COMPUTE A = Z ** -1.", "EC-SIZE-EXPONENTIATION")]
+    public void SizeCondition_OtherNameEnabled_TerminatesLikeCheckingOff(string turn, string arithmetic, string body, string condition)
+    {
+        var (exit, stdout, stderr) = Run(turn + "\n" + ProgZeroDivisor(arithmetic, body));
+        Assert.Equal(1, exit);
+        Assert.Contains("BEFORE", stdout);
+        Assert.DoesNotContain("AFTER", stdout);
+        Assert.Contains($"abnormal run-unit termination: {condition} (fatal)", stderr);
+        Assert.DoesNotContain("   at ", stderr);   // no CLR stack trace
+    }
+
     /// <summary>The same zero divisors under the SIZE ERROR phrase: §14.7.5 phrase rule 1 leaves every resultant
     /// unchanged and rule 3 runs the phrase, then execution continues — the unchecked kernels' raise must not
     /// change the checked path. A (VALUE 7) and FR (VALUE 9) are displayed as their initial values.</summary>
