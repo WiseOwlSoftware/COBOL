@@ -2029,6 +2029,27 @@ of an unsupported facility.
   comment), `conformance:cases/_unassigned/pb1705_debugging_mode_obsolete_2002`, `conformance:cases/_unassigned/debugging-mode`,
   `conformance:cases/_unassigned/pb1494-debugging-line-at-2014`, `unit:DebuggingLineRewriterTests`.
 
+- **D-CE1 — where a FREE-form comment-entry ends** (kb/Work PB3245, review finding R1-1; PB1494, PB1758). The
+  comment-entry paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY, REMARKS) are COBOL-85's,
+  removed by COBOL-2002, the edition that introduced free form, so no edition of the standard says where a free-form
+  comment-entry ends: it is accepted only at `--std 85 --source-format free` (WiseOwl's free form at 85) and under
+  `--permissive`. **Determination (CLAUDE.md rule 1: the standard is silent, so GnuCOBOL decides):** GnuCOBOL 3.2's
+  `-free` reading. Inside an IDENTIFICATION DIVISION, a line whose FIRST word is one of those paragraph words opens the
+  paragraph, its period optional, and the entry is the rest of that line; the next line is program text again. GnuCOBOL
+  3.2 measured: `AUTHOR. Pat O'Brien.`, `AUTHOR Pat O'Brien.` and `SECURITY. J. Smith.` are accepted, the paragraph
+  word part-way along a line is not a header, and a second line of entry text is refused. **Mechanism:** the §6.5 logical
+  conversion's free-form classifier (`ReferenceFormatProcessor.FreeFormConverter`) writes the header line as `AUTHOR. .`
+  and discards the entry, exactly as the fixed-form classifier does with a COBOL-85 entry that runs to the next Area-A
+  word, so no comment-entry character reaches the lexer in either format: an apostrophe in a name is no unclosed literal
+  (COBOL5563), and a comma with no space after it is no misplaced separator (COBOL2631). Which division a line stands in
+  is the one `DivisionCursor` rule, carried from each SOURCE FORMAT segment to the next in either format. Before this
+  determination, free-form entry text ran to the parser's first period token: entries with a period inside or an
+  unbalanced quotation mark were refused, and an entry continued on further lines was accepted. Pinned by
+  `conformance:wiseowl/cases/6.5-Logical-conversion/pb3245_free_comment_entry_is_commentary`,
+  `conformance:wiseowl/cases/6.5-Logical-conversion/pb3245-free-comment-entry-ends-at-line-end`,
+  `conformance:cases/6.5-Logical-conversion/pb3245_free_segment_hands_on_its_division` and
+  `unit:ReferenceFormatLogicalConversionTests.FreeFormCommentEntry_IsTheRestOfItsHeaderLine_AndIsDiscarded`.
+
 - **D-OOCIRC — the reach of "directly or indirectly references" in §9.3.8.2.3's closing sentence** (kb/Work PB1498;
   owner decision R63). §9.3.8.2.3: "If the description of the returning item of a method in interface-1 directly or
   indirectly references interface-2, the description of the returning item of the corresponding method in interface-2

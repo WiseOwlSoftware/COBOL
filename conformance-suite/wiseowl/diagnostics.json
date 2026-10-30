@@ -24234,5 +24234,11 @@
    "2023"
   ],
   "expect": "COBOL5563"
+ },
+ "pb3245-free-comment-entry-ends-at-line-end": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOL1971"
  }
 }

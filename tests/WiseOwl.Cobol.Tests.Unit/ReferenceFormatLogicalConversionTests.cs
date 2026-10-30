@@ -103,6 +103,55 @@ public sealed class ReferenceFormatLogicalConversionTests
         Assert.Equal("DISPLAY \"IN-REMARKS\".", lines[6].Trim());
     }
 
+    [Fact] // kb/Work PB3245 review R1-1, docs/CONFORMANCE.md D-CE1: a FREE-form comment-entry is commentary too, so no
+           // character of it reaches the lexer (an apostrophe in a name was an unclosed literal, COBOL5563). The header
+           // is written as in fixed form; the entry is the rest of the header line (GnuCOBOL 3.2 -free), so the next line
+           // is program text; a header word may be indented and need not carry its period.
+    public void FreeFormCommentEntry_IsTheRestOfItsHeaderLine_AndIsDiscarded()
+    {
+        string src = "IDENTIFICATION DIVISION.\n"
+                   + "PROGRAM-ID. P.\n"
+                   + "AUTHOR. Pat O'Brien, \"never closed.\n"
+                   + "   installation x\"ZZ\";Y\n"
+                   + "REMARKS\n"
+                   + "   NEXT LINE.\n"
+                   + "PROCEDURE DIVISION.\n"
+                   + "REMARKS.\n"
+                   + "    DISPLAY \"IN-REMARKS\".\n";
+        string[] lines = Convert(src, initial: InitialReferenceFormat.Free).Text.Text.Split('\n');
+        Assert.Equal(["AUTHOR. .", "   installation. .", "REMARKS. ."], lines[2..5]);
+        Assert.Equal("   NEXT LINE.", lines[5]);                       // the entry ended with its line
+        Assert.Equal("REMARKS.", lines[7]);                            // a procedure paragraph is program text
+    }
+
+    [Fact] // §6.5 8): the line a floating literal continuation indicator asks for is the literal's continuation line,
+           // whatever its first word spells (here read with COBOL2684, its opening quotation symbol missing), never a
+           // comment-entry header.
+    public void FreeFormFloatingContinuationLine_IsNeverACommentEntryHeader()
+    {
+        string[] lines = Convert("PROGRAM-ID. P AS \"AB\"-\nREMARKS CD\".\n", initial: InitialReferenceFormat.Free)
+            .Text.Text.Split('\n');
+        Assert.DoesNotContain("REMARKS. .", lines);
+    }
+
+    [Fact] // kb/Work PB1494 sibling, found with PB3245: the division a FREE segment leaves the text in is the one the next
+           // segment starts in. A free segment never handed it on, so a fixed segment after a free PROCEDURE DIVISION
+           // header still read REMARKS in Area A as a comment-entry paragraph and dropped the paragraph's lines.
+    public void FreeSegment_HandsItsDivisionToTheNextSegment()
+    {
+        string src = ">>SOURCE FORMAT FREE\n"
+                   + "IDENTIFICATION DIVISION.\n"
+                   + "PROGRAM-ID. P.\n"
+                   + "PROCEDURE DIVISION.\n"
+                   + ">>SOURCE FORMAT FIXED\n"
+                   + "000600 REMARKS.\n"
+                   + "000700     DISPLAY \"IN-REMARKS\".\n";
+        string[] lines = Convert(src).Text.Text.Split('\n');
+        Assert.Equal("PROCEDURE DIVISION.", lines[3]);                // read in FREE form, whole
+        Assert.Equal("REMARKS.", lines[5]);
+        Assert.Equal("DISPLAY \"IN-REMARKS\".", lines[6].Trim());
+    }
+
     [Fact] // kb/Work PB1361 + PB1690 — §7.3.3 SR2: in free form "000100 >>SOURCE ..." is NOT a directive (the sequence
            // number is program text, so the format is not switched) and is diagnosed by name, COBOL2691; the directive
            // text is cut so the parser does not add a nameless second error.
