@@ -69,7 +69,7 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
 
     private string CallText(BoundIntrinsicCall ic) => Describes(ic)
         ? RuntimeApi.FunctionFieldText(CallField(ic), Comma)
-        : ValueText(num.Render(ic, ReceiverContext.None));
+        : ValueText(num.Render(ic, ReceiverContext.None, keepWide: true));
 
     /// <summary>Does the call's temporary come from its arguments' items rather than from its value alone?</summary>
     private static bool Describes(BoundIntrinsicCall ic) => ic.Sig.DeviceForm switch
@@ -84,12 +84,15 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
         ic.Args is [var only] && only is not BoundFieldOperand { Place: TableAllPlace };
 
     /// <summary>The text of a value whose temporary the value alone describes.</summary>
-    /// <remarks>INTAKE(EXACT) - the value is read as the renderer carries it, a scaled integer or an SDIDI, never lifted or rounded.</remarks>
+    /// <remarks>INTAKE(EXACT) - the value is read as the renderer carries it, a scaled integer, an SDIDI or the exact wide form
+    /// (kb/Work PB3953: a call's value is rendered with keepWide, and this is where that value SETTLES, into its every digit),
+    /// never lifted or rounded.</remarks>
     private string ValueText(NumX x)
     {
         if (x.Real) return RuntimeApi.FloatDisplay(x.Expr);
         if (x.Dec) return RuntimeApi.FunctionDeviceTextDec(x.Expr, Comma);
-        if (x.Wide || x.U) return RuntimeApi.FunctionDeviceTextDec(num.DecOperand(x), Comma);
+        if (x.Wide) return RuntimeApi.FunctionDeviceTextWide(x.Expr, x.Scale, Comma);
+        if (x.U) return RuntimeApi.FunctionDeviceTextDec(num.DecOperand(x), Comma);
         return RuntimeApi.FunctionDeviceTextScaled(x.Expr, x.Scale, Comma);
     }
 
@@ -109,14 +112,16 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
                 case (_, "MeanScaled"): return Field(ic.Args[0]);
             }
         }
-        return ValueField(num.Render(ic, ReceiverContext.None));
+        return ValueField(num.Render(ic, ReceiverContext.None, keepWide: true));
     }
 
     /// <summary>A value that describes its own temporary, as a field.</summary>
-    /// <remarks>INTAKE(LIFTED) - an exact scaled value is lifted to the SDIDI through the one operand lift; an SDIDI and a binary64 pass through.</remarks>
+    /// <remarks>INTAKE(LIFTED) - an exact scaled value is lifted to the SDIDI through the one operand lift; an SDIDI and a binary64 pass
+    /// through, and a value on the exact wide form (kb/Work PB3953) SETTLES here into a temporary that keeps every digit.</remarks>
     private string ValueField(NumX x) =>
         x.Real ? RuntimeApi.FunctionFieldOfFloat(x.Expr)
         : x.Dec ? RuntimeApi.FunctionFieldOfValue(x.Expr)
+        : x.Wide ? RuntimeApi.FunctionFieldOfWide(x.Expr, x.Scale)
         : RuntimeApi.FunctionFieldOfValue(num.DecOperand(x));
 
     /// <summary>The argument list of a selecting function: the comma list, or one array expression when a table(ALL) is among
@@ -152,8 +157,12 @@ internal sealed class FunctionDeviceText(NumericRenderer num)
                     ? RuntimeApi.FunctionFieldOfFloatItem(num.DecOperand(read), place.Item.ProfileName, OperandText.AsTransferString(a, num, "DISPLAY of"), place.Item.ByteWidth)
                     : RuntimeApi.FunctionFieldOfItem(num.DecOperand(read), place.Item.ProfileName, ItemLength.Positions(place.Item), place.Item.ByteWidth);
             default:
-                // An arithmetic expression (GnuCOBOL evaluates it into a temporary), a register, an index: described by its value.
-                return RuntimeApi.FunctionFieldOfValue(num.DecOperand(num.AsNum(a, ReceiverContext.None)));
+                // An arithmetic expression (GnuCOBOL evaluates it into a temporary), a register, an index: described by its value, and
+                // an expression past the Int128 carrier holds every digit (kb/Work PB3953: GnuCOBOL's temporary is arbitrary-precision).
+                NumX value = num.AsNum(a, ReceiverContext.None, keepWide: true);
+                return value.Wide
+                    ? RuntimeApi.FunctionFieldOfWide(value.Expr, value.Scale)
+                    : RuntimeApi.FunctionFieldOfValue(num.DecOperand(value));
         }
     }
 

@@ -151,6 +151,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // floating-point numeric-EDITED sender, and a floating-point LITERAL operand, which owner decision D-B
         // made much the most common of them. This comment named only the first, and so did CombineCore's
         // (kb/Work PB273); the census is written out there.
+        // ⛔ AN ARGUMENT EXPRESSION PAST THE Int128 CARRIER IS TAKEN EXACT BY THE EXACT FAMILY, BEFORE THE SDIDI ARM (kb/Work
+        // PB3953). Such an argument (a nested product of 39 to 77 digits, NumX.Wide) would otherwise reach the SDIDI arm below
+        // lowered to its 34-digit round-to-odd image, and ABS (BIG * BIG * K3) answered from the image (…100000 for …000999);
+        // RenderWide evaluates the call on the same exact wide form the arithmetic statements keep (§8.8.1.3, §15.4.1, GnuCOBOL's
+        // arbitrary-precision argument temporary by CLAUDE.md rule 1).
+        else if (RenderWide(ic) is { } wideExact)
+            return wideExact;
         else if (AnyDecRaw(ic) && RenderDec(ic) is { } decNative)
             return decNative;
         // ⛔ A CROSS-ALIGNING ARM WHOSE ALIGNED ARGUMENTS PROVABLY CANNOT STAY IN THE Int128 CARRIER TAKES THE SDIDI
@@ -890,20 +897,40 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// EXCEPT at a §15.3 type-6 position, where it is INTEGRAL: an SDIDI operand becomes its integer on the SDIDI, a
     /// float or a fractional fixed-point operand lands at scale 0 through the type-6 intake (a scale-0 fixed-point
     /// integer passes as it stands), a float past the Int128 carrier raising rather than changing its value.</para>
-    /// <para>⛔ THE ONE EXCEPTION TO "NOTHING TRUNCATED" IS AN ARITHMETIC EXPRESSION PAST THE Int128 WINDOW, AND IT IS A KNOWN
-    /// DEFECT, NOT A DETERMINATION (kb/Work PB3953, open). <c>num.AsNum</c> settles the exact 256-bit intermediate of a nested
-    /// product or power of 39 to 77 digits (<c>NumX.Wide</c>) into the SDIDI by round-to-odd, because no function body consumes
-    /// the wide form (<c>ExactWideSettlementDriftTests</c> closes the list of consumers that do), so the function answers from
-    /// the 34-digit image: <c>ABS (BIG * BIG * K3)</c> of 18-, 18- and 3-digit items shows <c>…100000</c> where the product ends
-    /// <c>…000999</c>, and GnuCOBOL's arbitrary-precision argument temporary gives the exact one. CLAUDE.md rule 1 makes that
-    /// behaviour the answer for an implementor latitude (§8.8.1.3, §15.4.1), so the fix is a wide carrier for the function
-    /// family (docs/CONFORMANCE.md DOC-A.1-123 states the limit and what the fix needs). An expression within 38 digits
-    /// arrives exact (<c>pb3953_function_argument_int128_window</c>).</para>
+    /// <para>⛔ AN ARITHMETIC EXPRESSION PAST THE Int128 CARRIER (a nested product of 39 to 77 digits, <c>NumX.Wide</c>) IS
+    /// LOWERED HERE, and only here, for the consumers that have no wide form: <see cref="RawWideArg"/> keeps it exact and this
+    /// settles it into the SDIDI by round-to-odd, as <c>NumericRenderer.Settle</c> does for every receiver-less operand
+    /// (kb/Work PB1900). The exact family never reads it lowered: <see cref="RenderWide"/> evaluates such a call on the wide form
+    /// first (kb/Work PB3953), so <c>ABS (BIG * BIG * K3)</c> of 18-, 18- and 3-digit items is the exact 39-digit product, as
+    /// GnuCOBOL's arbitrary-precision argument temporary is. The consumers that still take the image are the bodies whose
+    /// value is an approximation in any case (the binary64 family, MEAN's SDIDI quotient) and the bounded integer positions,
+    /// where a value past 34 significant digits is outside the function's domain on either form.</para>
     /// </remarks>
-    private NumX RawArg(BoundIntrinsicCall ic, int i)
+    private NumX RawArg(BoundIntrinsicCall ic, int i) => NumericRenderer.LowerWide(RawWideArg(ic, i));
+
+    /// <summary>
+    /// ⛔ AN ARGUMENT AS ITS POSITION TAKES IT, KEEPING THE EXACT WIDE FORM (kb/Work PB3953) — <see cref="RawArg"/>'s intake before
+    /// the lowering: the operand rendered with <c>keepWide</c>, so an arithmetic expression past the <see cref="Int128"/> carrier
+    /// arrives as the exact 256-bit intermediate (<c>NumX.Wide</c>) the arithmetic statements and the relation already keep.
+    /// </summary>
+    /// <remarks>
+    /// <para>INTAKE(EXACT) — the operand on its OWN carrier at its OWN scale, the exact wide form included, nothing rescaled,
+    /// converted or truncated — EXCEPT at a §15.3 type-6 position, where it is INTEGRAL by the one intake of every carrier: an
+    /// SDIDI operand becomes its integer on the SDIDI, a wide one its integer on the wide form
+    /// (<c>CobolIntrinsics.IntegerArgWide</c>, so MOD (BIG * BIG * K3, 1000) sees every digit of its dividend and the
+    /// integrality test reads the exact fraction), a float or a fractional fixed-point operand lands at scale 0 through the
+    /// type-6 intake.</para>
+    /// <para>⛔ A WIDE VALUE IT RETURNS IS OWED A SETTLEMENT (<c>ExactWideSettlementDriftTests</c>): its two readers are
+    /// <see cref="RawArg"/>, which lowers it, and <see cref="RenderWide"/>, whose result is a <c>NumX.Wide</c> that
+    /// <c>NumericRenderer</c> settles at its public entry like any nested product.</para>
+    /// </remarks>
+    private NumX RawWideArg(BoundIntrinsicCall ic, int i)
     {
-        NumX x = num.AsNum(ic.Args[i], num.Receiver);
+        NumX x = num.AsNum(ic.Args[i], num.Receiver, keepWide: true);
         if (!(x.Real || x.Dec || x.Scale != 0) || !IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i)) return x;
+        if (x.Wide)
+            return new NumX(RuntimeApi.IntegerArgWide(x.Expr, x.Scale), 0, Wide: true,
+                Digits: x.Scale > 0 ? Math.Max(1, x.Digits - x.Scale) : x.Digits - x.Scale);
         return x.Dec
             ? x with { Expr = RuntimeApi.IntegerArgUnboundedDec(x.Expr), WithPrecision = null }
             : new NumX(IntegerIntake(x, wide: true), 0);
@@ -1232,6 +1259,84 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         };
 
         static NumX Dec(string expr) => new(expr, 0, Dec: true);
+    }
+
+    /// <summary>
+    /// ⛔ THE EXACT FAMILY ON THE EXACT WIDE INTERMEDIATE (kb/Work PB3953; docs/CONFORMANCE.md DOC-A.1-123): under native arithmetic,
+    /// a call with an argument expression past the <see cref="Int128"/> carrier (<c>NumX.Wide</c>, kept by <see cref="RawWideArg"/>)
+    /// is evaluated on <c>CobolWide</c> (<c>CobolIntrinsics.Wide.cs</c>) and returns a <c>NumX.Wide</c> where its value can be
+    /// as wide as an argument, which <c>NumericRenderer</c> settles at its public entry like a nested product: rounded once into a
+    /// fixed-point resultant, compared exactly by a relation, kept by a function above it, and lowered to the SDIDI otherwise.
+    /// </summary>
+    /// <remarks>
+    /// <para>WHY. §8.8.1.3 makes the method of evaluating "all integer and numeric functions" under native arithmetic the
+    /// implementor's, and §15.4.1 the returned value's characteristics; for that latitude CLAUDE.md rule 1 makes GnuCOBOL the
+    /// answer, and its argument temporary is arbitrary-precision. The argument used to reach the function as its 34-digit
+    /// round-to-odd image: <c>ABS (BIG * BIG * K3)</c> showed <c>…100000</c> for <c>…000999</c>, MOD of it by 1000 was 0 for 999.</para>
+    /// <para>WHEN. Some argument is wide and none is an SDIDI or a binary64 (those keep their own lanes, as beside a nested
+    /// product in an expression: <c>NumericRenderer.CombineCore</c>), and the arguments' digit bounds prove the WORK fits the wide
+    /// form's 77 digits: each argument aligned to the common scale (its digits plus the scale gap), plus what the function adds to
+    /// it (a digit per tenfold argument count for SUM, nine more for a table(ALL) argument, one for RANGE's difference and
+    /// INTEGER's floor, two for MEDIAN's and MIDRANGE's exact halving one place further). A call past that bound returns null and
+    /// keeps the SDIDI arm, the determination for an intermediate past 77 digits (DOC-A.1-123).</para>
+    /// <para>WHAT. Every exact-family arm of <see cref="RenderNum"/>'s switch that takes a numeric argument has a body here
+    /// (<c>ExactWideSettlementDriftTests</c> holds that closed): ABS, SIGN, INTEGER, INTEGER-PART and FRACTION-PART at the argument's
+    /// own scale; MOD and REM over their type-6 integers; MAX, MIN, ORD-MAX, ORD-MIN, SUM, RANGE, MEDIAN and MIDRANGE over the
+    /// arguments aligned to the common scale, exactly as the <c>…Scaled</c> bodies take them. A selection needs no
+    /// receiver-headroom arm: its value reaches the receiver whole, rounded once by the settlement.</para>
+    /// <para>INTAKE(ALIGNED) — each argument through <see cref="RawWideArg"/> (a table(ALL) element directly: an element is a data
+    /// item, never wide), aligned UP to the common scale on the wide form, which is exact: nothing is truncated or rounded.</para>
+    /// </remarks>
+    private NumX? RenderWide(BoundIntrinsicCall ic)
+    {
+        // Only a computed operand (an arithmetic expression, a nested call) can be wide; a call over data items and literals is
+        // answered here without rendering its arguments a further time.
+        if (num.StandardDecimal || !ic.Args.Any(a => a is BoundComputedOperand)) return null;
+        var xs = Enumerable.Range(0, ic.Args.Count).Select(i => RawWideArg(ic, i)).ToList();
+        if (!xs.Any(x => x.Wide) || xs.Any(x => x.Dec || x.Real)) return null;
+
+        int s = xs.Max(x => x.Scale);
+        int widest = xs.Max(x => NumericRenderer.DigitBound(x) + (s - x.Scale));
+        int one = xs[0].Scale;
+        string Aligned(int i) => NumericRenderer.WideAligned(xs[i], s);
+        // A written argument is the one RawWideArg kept; an element of a table(ALL) argument is a data item, never wide.
+        string Element(BoundOperand a)
+        {
+            for (int i = 0; i < ic.Args.Count; i++)
+                if (ReferenceEquals(ic.Args[i], a)) return Aligned(i);
+            return NumericRenderer.WideAligned(num.AsNum(a, num.Receiver), s);
+        }
+        string List() => ArgArray(ic, 0, "CobolWide", Element) ?? string.Join(", ", xs.Select((_, i) => Aligned(i)));
+        // A table(ALL) argument stands for an unknown number of elements, so SUM charges it nine more digits (as
+        // IntrinsicCarrierRules.AlignmentMayLeaveCarrier does), and every argument counts toward the digits of the count.
+        int sumDigits = xs.Select((x, i) => NumericRenderer.DigitBound(x) + (s - x.Scale)
+                                            + (ic.Args[i] is BoundFieldOperand { Place: TableAllPlace } ? 9 : 0)).Max()
+                        + xs.Count.ToString(System.Globalization.CultureInfo.InvariantCulture).Length;
+
+        (NumX Value, int Work)? call = ic.Sig.RuntimeMethod switch
+        {
+            "AbsScaled" => (Wide("AbsWide", Aligned(0), one, widest), widest),
+            "SignOf" => (new NumX(RuntimeApi.Intrinsic("SignWide", Aligned(0)), 0), widest),
+            // A negative scale (trailing P positions) is an integer already: its zeros are multiplied in.
+            "Floor" => (Wide("FloorWide", $"{Aligned(0)}, {one}", 0, widest + Math.Max(0, -one) + 1), widest + Math.Max(0, -one) + 1),
+            "Truncate" => (Wide("TruncateWide", $"{Aligned(0)}, {one}", 0, widest + Math.Max(0, -one)), widest + Math.Max(0, -one)),
+            "FractionPart" => (Wide("FractionPartWide", $"{Aligned(0)}, {one}", one, widest), widest),
+            "ModScaled" => (Wide("ModWide", $"{Aligned(0)}, {Aligned(1)}", s, widest), widest),
+            "RemScaled" => (Wide("RemWide", $"{Aligned(0)}, {Aligned(1)}", s, widest), widest),
+            "MaxScaled" => (Wide("MaxWide", List(), s, widest), widest),
+            "MinScaled" => (Wide("MinWide", List(), s, widest), widest),
+            "OrdMax" => (new NumX(RuntimeApi.Intrinsic("OrdMaxWide", List()), 0), widest),
+            "OrdMin" => (new NumX(RuntimeApi.Intrinsic("OrdMinWide", List()), 0), widest),
+            "SumScaled" => (Wide("SumWide", List(), s, sumDigits), sumDigits),
+            "RangeScaled" => (Wide("RangeWide", List(), s, widest + 1), widest + 1),
+            "MedianScaled" => (Wide("MedianWide", List(), s + 1, widest + 2), widest + 2),
+            "MidrangeScaled" => (Wide("MidrangeWide", List(), s + 1, widest + 2), widest + 2),
+            _ => null,
+        };
+        return call is { } c && c.Work <= RuntimeApi.WideMaxDigits ? c.Value : null;
+
+        static NumX Wide(string body, string args, int scale, int digits) =>
+            new(RuntimeApi.Intrinsic(body, args), scale, Digits: digits, Wide: true);
     }
 
     /// <summary>Does any argument render as FLOATING (binary64) rather than as a scaled integer? (PB2.)</summary>
