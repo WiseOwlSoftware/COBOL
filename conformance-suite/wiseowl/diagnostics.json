@@ -15263,6 +15263,42 @@
   ],
   "expect": "COBOL0803"
  },
+ "pb3961-varying-by-all-zero-expression": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "'ALL ZERO + 1' is not one of the operands"
+ },
+ "pb3961-varying-by-zero-expression": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "'ZERO + 1' is not one of the operands"
+ },
+ "pb3981-compute-zero-touching-sign": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2993"
+ },
+ "pb3981-relation-zero-touching-sign": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL2993"
+ },
  "pb388-goback-raising-level2-name": {
   "refuse-at": [
    "2002",

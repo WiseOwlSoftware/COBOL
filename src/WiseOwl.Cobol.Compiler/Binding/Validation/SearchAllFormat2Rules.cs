@@ -87,7 +87,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         var conjuncts = new List<Core.ComparisonExpressionContext>();
         if (!TryConjuncts(cond, conjuncts, out string? why))
             return validation.RejectStatementOperand(
-                $"SEARCH ALL '{table.CobolName}' WHEN {cond.GetText()} — the Format-2 WHEN phrase "
+                $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(cond)} — the Format-2 WHEN phrase "
                 + "is `data-name-1 IS EQUAL TO {identifier-3 | literal-1 | arithmetic-expression-1}` or a "
                 + $"bare condition-name, repeated with AND (ISO §14.9.37.2 Format 2); this WHEN specifies "
                 + $"{why}. The serial SEARCH (Format 1) is the form whose WHEN takes any conditional "
@@ -164,7 +164,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
     {
         if (ShapeViolation(ce) is { } shape)
             return validation.RejectStatementOperand(
-                $"SEARCH ALL '{table.CobolName}' WHEN {ce.GetText()} — the Format-2 WHEN phrase is "
+                $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(ce)} — the Format-2 WHEN phrase is "
                 + "`data-name-1 IS EQUAL TO {identifier-3 | literal-1 | arithmetic-expression-1}` or a bare "
                 + $"condition-name (ISO §14.9.37.2 Format 2); this operand specifies {shape}. The serial SEARCH "
                 + "(Format 1) is the form whose WHEN takes any conditional expression (§14.9.37.3 SR6).");
@@ -210,7 +210,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                               string firstIndex, bool[] referenced)
     {
         if (SoleDataReference(operand) is not { } dref)
-            return Key(table, $"the WHEN phrase's receiving operand '{operand.GetText()}' is not a data-name; "
+            return Key(table, $"the WHEN phrase's receiving operand '{DataBinder.WrittenText(operand)}' is not a data-name; "
                 + "data-name-1 and all repetitions of data-name-2 \"shall be … referenced in the KEY phrase in "
                 + "the OCCURS clause associated with identifier-1\" (ISO §14.9.37.3 SR8)");
 
@@ -263,14 +263,14 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
     {
         if (SoleDataReference(operand) is not { } dref)
             return validation.RejectStatementOperand(
-                $"SEARCH ALL '{table.CobolName}' WHEN {operand.GetText()} — a WHEN phrase written without a "
+                $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(operand)} — a WHEN phrase written without a "
                 + "relational operator is Format 2's condition-name-1 alternative, and this operand is not a "
                 + "condition-name (ISO §14.9.37.2 Format 2)");
 
         string name = dref.cobolWord()?.GetText() ?? dref.GetText();
         if (!data.Symbols.TryResolveCondition(name, data.ActiveScope, out var conds) || conds.Count == 0)
             return validation.RejectStatementOperand(
-                $"SEARCH ALL '{table.CobolName}' WHEN {operand.GetText()} — '{name}' is not a condition-name, and "
+                $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(operand)} — '{name}' is not a condition-name, and "
                 + "a WHEN phrase written without a relational operator is Format 2's condition-name-1 alternative "
                 + "(ISO §14.9.37.2 Format 2). Write `data-name-1 IS EQUAL TO …` to compare a key.");
 
