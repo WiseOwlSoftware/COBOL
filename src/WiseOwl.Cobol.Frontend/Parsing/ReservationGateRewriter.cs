@@ -57,6 +57,11 @@ public static class ReservationGateRewriter
     /// program that declares no such word — nearly every program — parses exactly once. Only the LAST pass's
     /// diagnostics describe the source; they are copied into <paramref name="diagnostics"/>, and the decisions reach
     /// the tree as <c>TokenRetypes</c> so every fragment re-parse reads each word exactly as the tree does.</para>
+    /// <para>⭐ THE SAME LOOP SETTLES THE ONE OTHER TOKEN DECISION ONLY THE PARSE CAN MAKE (kb/Work PB3981): a figurative
+    /// ZERO followed by a sign touching its literal (<c>ZERO -1</c>) is read as an operand-list item before the parse
+    /// (<see cref="ZeroTokenRewriter"/>); a pass that fails at that sign has found an arithmetic expression's slot, so
+    /// <see cref="ZeroSignReading"/> makes the ZERO that expression's operand and the source is
+    /// parsed again. Every whole-group parse therefore gets both decisions from the one entry.</para>
     /// <para><paramref name="parsePass"/> parses the whole stream once from token 0 into the bag it is handed, and
     /// attaches the listener it is handed to its AUTHORITATIVE pass only (never a speculative SLL pass, which can
     /// fail where full LL succeeds) — that listener is the gate's second witness,
@@ -68,29 +73,40 @@ public static class ReservationGateRewriter
         // Seeded with the words an earlier attempt already found declared (the caller's retypes; kb/Work PB1669), so a
         // later round's decisions ADD to them instead of replacing them.
         var freed = new HashSet<string>(retypes.FreedReservedWords, StringComparer.Ordinal);
-        var passDiagnostics = new DiagnosticBag();
-        var tree = parsePass(passDiagnostics, GatedOffenderWitness.Instance);
-        while (parser.FreeGatedDeclarations.Where(freed.Add).ToList() is { Count: > 0 })
+        var zeroSigns = new ZeroSignReading(tokens);
+        while (true)
         {
-            retypes = retypes with { FreedReservedWords = new HashSet<string>(freed, StringComparer.Ordinal) };
-            Retype(tokens, retypes.FreedReservedWords);
-            passDiagnostics = new DiagnosticBag();
-            tree = parsePass(passDiagnostics, GatedOffenderWitness.Instance);
+            var passDiagnostics = new DiagnosticBag();
+            var witness = new OffenderWitness();
+            var tree = parsePass(passDiagnostics, witness);
+            if (parser.FreeGatedDeclarations.Where(freed.Add).ToList() is { Count: > 0 })
+            {
+                retypes = retypes with { FreedReservedWords = new HashSet<string>(freed, StringComparer.Ordinal) };
+                Retype(tokens, retypes.FreedReservedWords);
+                continue;
+            }
+            // Only a pass the gate accepts can say what a ZERO's sign is: a ZERO read as an operand-list item where the
+            // grammar wanted an arithmetic expression (kb/Work PB3981).
+            if (zeroSigns.Revise(witness.Offenders)) continue;
+            foreach (var d in passDiagnostics.Diagnostics) diagnostics.Add(d);
+            tree.TokenRetypes = retypes;
+            return tree;
         }
-        foreach (var d in passDiagnostics.Diagnostics) diagnostics.Add(d);
-        tree.TokenRetypes = retypes;
-        return tree;
     }
 
     /// <summary>Feeds each syntax error's offending token to the gate's second witness
-    /// (<see cref="CobolParserCoreBase.NoteGatedOffender"/>). Stateless — the parser holds the set.</summary>
-    private sealed class GatedOffenderWitness : BaseErrorListener
+    /// (<see cref="CobolParserCoreBase.NoteGatedOffender"/>, the parser holds that set) and keeps the tokens for the
+    /// ZERO sign round (<see cref="ZeroSignReading"/>). One per pass.</summary>
+    private sealed class OffenderWitness : BaseErrorListener
     {
-        public static readonly GatedOffenderWitness Instance = new();
+        public List<IToken> Offenders { get; } = [];
 
         public override void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line,
             int charPositionInLine, string msg, RecognitionException e)
-            => (recognizer as CobolParserCoreBase)?.NoteGatedOffender(offendingSymbol);
+        {
+            (recognizer as CobolParserCoreBase)?.NoteGatedOffender(offendingSymbol);
+            if (offendingSymbol is not null) Offenders.Add(offendingSymbol);
+        }
     }
 
     /// <summary>Retype every default-channel reservation-gated keyword token whose word is in
