@@ -381,50 +381,44 @@ intermediateRoundingMode
     | TRUNCATION
     ;
 
-// AUTHOR.
-authorParagraph
-    : AUTHOR DOT authorContent? DOT
-    ;
-
-authorContent
+// ⛔ THE COMMENT-ENTRY, ONE RULE (kb/Work PB3845). A comment-entry is arbitrary text by definition - ISO/IEC 1989:2023
+// defines no syntax for one anywhere - so `~DOT+` is what it means, and it was spelled out six times (once per
+// paragraph below, kb/Work PB829). Its words are NOT COBOL words (§8.3.2.1 governs a word of a COBOL program, not
+// the text of a comment), so the stage that asks a rule of every word the lexer produced (WordCharacterScreen) finds
+// the entry's tokens by this ONE context, and a seventh comment paragraph needs no arm there.
+commentEntry
     : ~DOT+
     ;
+
+// AUTHOR.
+authorParagraph
+    : AUTHOR DOT commentEntry? DOT
+    ;
+
 
 // INSTALLATION.
 installationParagraph
-    : INSTALLATION DOT installationContent? DOT
+    : INSTALLATION DOT commentEntry? DOT
     ;
 
-installationContent
-    : ~DOT+
-    ;
 
 // DATE-WRITTEN.
 dateWrittenParagraph
-    : DATE_WRITTEN DOT dateWrittenContent? DOT
+    : DATE_WRITTEN DOT commentEntry? DOT
     ;
 
-dateWrittenContent
-    : ~DOT+
-    ;
 
 // DATE-COMPILED.
 dateCompiledParagraph
-    : DATE_COMPILED DOT dateCompiledContent? DOT
+    : DATE_COMPILED DOT commentEntry? DOT
     ;
 
-dateCompiledContent
-    : ~DOT+
-    ;
 
 // SECURITY.
 securityParagraph
-    : SECURITY DOT securityContent? DOT
+    : SECURITY DOT commentEntry? DOT
     ;
 
-securityContent
-    : ~DOT+
-    ;
 
 // REMARKS. (a COBOL-74 carryover, accepted at 85 for the CCVS and removal-gated at 2002+ — COBOL0902.)
 // ⛔ THE SIXTH COMMENT-ENTRY BODY, AND IT WAS THE ODD ONE OUT (kb/Work PB829). The five paragraphs above all
@@ -435,14 +429,11 @@ securityContent
 // paragraph "CCVS-STYLE REMARK" plus a generic paragraph "TEXT." — TEXT being a token — and closing that list
 // turned a silent mis-parse into a diagnostic on legal '85 source (VersionMatrixTests remarks-removed-2002).
 // A comment-entry is arbitrary text by definition, which is why ISO/IEC 1989:2023 defines no syntax for one
-// anywhere; `~DOT+` is what that means, and it is now written the same way in all six places.
+// anywhere; `~DOT+` is what that means, and it is now ONE rule, `commentEntry`, shared by all six paragraphs (kb/Work PB3845).
 remarksParagraph
-    : REMARKS DOT remarksContent? DOT
+    : REMARKS DOT commentEntry? DOT
     ;
 
-remarksContent
-    : ~DOT+
-    ;
 
 // ==========================================
 // ENVIRONMENT DIVISION
