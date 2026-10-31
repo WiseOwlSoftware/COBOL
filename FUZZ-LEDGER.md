@@ -6,9 +6,9 @@
 
 This page tracks a nightly test called **differential fuzzing**. An AI model picks sections of the standard at random, each one defining a COBOL statement, built-in function, data-description clause or kind of expression, and writes small test programs that use what that section defines. Both compilers run every one of those thousands of programs. When the two give different answers, at least one of them is wrong, or the standard allows both answers. Each disagreement is then settled by reading the standard itself, never by trusting either compiler. The totals below run from 2026-10-20 to 2026-10-29.
 
-> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Ledger version 118421220031. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
+> This page is machine-generated. A script (`scripts/fuzz_history.py`) rebuilds it, and it is republished automatically after each night's testing is reviewed. Nothing on it is typed by hand: the numbers come from a history file kept with the project's source code (`conformance-suite/fuzz-history.json`), and the status of each bug is read from the project's work tracker at the moment the page is built. Ledger version e6b6a29633ee. The same page is published at https://claude.ai/artifact/UBCptoMp1GohHrvpUFRS7g.
 
-**9** nights of testing · **51,107** test programs written and run · **14,484** on which the two compilers disagreed · **25** bugs found in WiseOwl · **24** of those bugs fixed · **79** bugs recorded in GnuCOBOL
+**9** nights of testing · **51,107** test programs written and run · **14,484** on which the two compilers disagreed · **25** bugs found in WiseOwl · **25** of those bugs fixed · **86** bugs recorded in GnuCOBOL
 
 ## How a night of testing works
 
@@ -95,7 +95,7 @@ Groups of disagreements / programs in them. "Both allowed by the standard" means
 | Night 6 | [PB3869](kb/Work/PB3869.md) | not a bug after all | retired | an arithmetic statement written with ONLY a NOT ON SIZE ERROR phrase keeps an overflowing receiver unchanged and continues, checking off: §14.6.13.… |
 | Night 7 | [PB3996](kb/Work/PB3996.md) | compiler bug | landed | a Format 1 CALL accepts OMITTED with no diagnostic: `CALL "P" USING W OMITTED`, `USING BY REFERENCE OMITTED` and `USING BY CONTENT W OMITTED` compi… |
 | Night 7 | [PB3997](kb/Work/PB3997.md) | compiler bug | landed | a VALUE literal outside a fixed-width binary usage's range is accepted with no diagnostic: BINARY-CHAR VALUE 255 / -129, BINARY-CHAR UNSIGNED VALUE… |
-| Night 9 | [PB4096](kb/Work/PB4096.md) | compiler bug | owner | TEST-NUMVAL-F returns LENGTH + 1 when the exponent's sign is followed by a character in error: TEST-NUMVAL-F("12.34E+AB") returns 10 where §15.95.4… |
+| Night 9 | [PB4096](kb/Work/PB4096.md) | compiler bug | landed | TEST-NUMVAL-F returns LENGTH + 1 when the exponent's sign is followed by a character in error: TEST-NUMVAL-F("12.34E+AB") returns 10 where §15.95.4… |
 | Run of 2026-10-22 | [PB3537](kb/Work/PB3537.md) | test-harness bug | landed | the fuzz harness spends the whole 6,000-token cap on a reply that degenerates into an enumeration loop (hundreds of data items differing only by a… |
 | Run of 2026-10-22 | [PB3538](kb/Work/PB3538.md) | compiler bug | landed | a COMPUTE with four or more chained divisions (A / B / B / B / B), or a product of quotients ((A / B) * (A / B) * (A / B)), ends the run unit with… |
 
@@ -108,6 +108,6 @@ Every note the testing filed on the WiseOwl side, including a run that stopped b
 | 2026-10-27 | 65 |
 | 2026-10-28 | 7 |
 | 2026-10-29 | 5 |
-| 2026-10-30 | 2 |
+| 2026-10-30 | 9 |
 
 The testing also checks the reference compiler: the GnuCOBOL bugs it found, by the day each was written up.
