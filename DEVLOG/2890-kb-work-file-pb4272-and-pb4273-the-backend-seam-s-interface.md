@@ -1,4 +1,4 @@
-## kb/Work: file PB4272 and PB4273, the backend seam's interface and assembly split
+## Entry 2890 — 2026-10-31 16:47 PDT — kb/Work: file PB4272 and PB4273, the backend seam's interface and assembly split
 
 The owner proposed putting the code generator in a separate DLL so generators can be substituted behind one
 interface, and corrected the first assessment: `InternalsVisibleTo`, not a public API, gives a backend assembly the
@@ -9,3 +9,4 @@ step: a `WiseOwl.Cobol.Model` assembly that grants friend access to the backends
 `WiseOwl.Cobol.Backend.Roslyn` and the CIL backend in `WiseOwl.Cobol.Backend.Cil`, composed at build time by the
 CLI, so a backend that reaches the binder fails to compile. Run-time DLL loading is rejected: the contract is the
 whole bound tree, runtime ABI and CLR naming, so backends ship in lockstep with the compiler.
+
