@@ -118,7 +118,7 @@ one session.
 |---|---|---|---|
 | `wave` | Opus (the orchestrator's judgment; the implementers are routed per group by `model_rules.json`) | nothing pending to land or resume and the budget says `go` | its Workflow returned (it starts no lander: the landing lane lands each DONE branch reviewed CLEAN while the wave runs, section 4.9), the ledger refreshed (`python scripts/spec/gen_ledger.py`, `references/landing.md`) and the handoff written |
 | `campaign` | Opus | only with `-Cluster <lead>[,<lead>...]`: a wave-type unit is due (a handoff named `wave` or `campaign`, or nothing else fired), a lead's cluster has a ready note and the last wave-type unit was not a `campaign`; the ready leads take turns (section 3.2, section 9.1) | as `wave`; its prompt is `units/wave.md` with `--cluster <lead>` on the `plan_wave.py` call |
-| `enqueue` | Opus | there is agent work (section 3.2 rule 6: a branch WAITING FOR REVIEW or BOUNCED, a landing lane attempt STOPPED or ENQUEUED and not yet collected), finished branches while the lane has no current survey, or a handoff says `next_unit: enqueue` | every STOPPED lane attempt has its finisher or reviewer dispatched and every ENQUEUED one its leads filed, both collected (`land_lane.py collect`), the leads filed, `prune_worktrees.py --apply` run and the ledger rendered to `{COORD}\ledger.html` (section 14). First it dispatches one read-only `cobol-reviewer` for each branch `prune_worktrees.py` lists WAITING FOR REVIEW (kb/Work PB3027); its prompt is `units/enqueue.md` (kb/Work PB3023) |
+| `enqueue` | Opus | there is agent work (section 3.2 rule 6: a branch WAITING FOR REVIEW or BOUNCED, a landing lane attempt STOPPED or ENQUEUED and not yet collected), or finished branches while the lane has no current survey (a handoff that says `next_unit: enqueue` starts it only while one of these holds, kb/Work PB4180) | every STOPPED lane attempt has its finisher or reviewer dispatched and every ENQUEUED one its leads filed, both collected (`land_lane.py collect`), the leads filed, `prune_worktrees.py --apply` run and the ledger rendered to `{COORD}\ledger.html` (section 14). First it dispatches one read-only `cobol-reviewer` for each branch `prune_worktrees.py` lists WAITING FOR REVIEW (kb/Work PB3027); its prompt is `units/enqueue.md` (kb/Work PB3023) |
 | `resume` | Opus | the previous unit died, timed out, was stopped with a Workflow in flight, or handed off `split` | it has classified every pending branch and report (finish, land, re-plan) and handed off the next unit |
 | `meter` | Sonnet, with `--chrome` | the newest reading in `readings.json` is older than 3 hours | the reading is appended (`budget.py --record`) and the handoff written |
 | `owner-question` | none | a handoff carries `owner_question` | immediately: the supervisor appends the question to `OWNER-QUESTIONS.md` and STOPS; it never guesses and never starts a session for it |
@@ -180,8 +180,16 @@ lost agent work exceeds that cost. Open decision D3.
    so a model that wrote `wave` in every handoff starved a ready campaign note indefinitely: PB2151, the legacy
    retirement's last note, sat ready and undispatched 2026-10-07 05:40–14:31 PDT through eight units (three of them
    fix-lane waves) while every supervisor start logged `campaign lane: cluster PB2108, 1 open note(s), 1 ready`. The alternation is the
-   supervisor's rule, not the model's. A handoff's `enqueue`, `resume` or `meter`, and an owner question (rule 1), still
-   outrank the campaign.
+   supervisor's rule, not the model's. A handoff's `resume` or `meter`, and an owner question (rule 1), still
+   outrank the campaign. A handoff's `enqueue` is a REQUEST, not an order (kb/Work PB4180): the landing lane lands
+   and the review lane reviews beside every unit, so `enqueue` is the one unit whose work the lanes own, and rule 2
+   runs it only while rule 6 finds agent work (the choice's reason then names both the handoff and the work).
+   Otherwise the handoff's `enqueue` is declined and the choice falls through to rules 3 to 7, its reason saying so.
+   Before this a handoff that named `enqueue` to wait for a merge ("f7f-29 lands once #811 merges") started an
+   enqueue unit whose handoff named it again: 28 chains, 75 units and 49.6 hours of the one supervisor between
+   2026-10-01 and 2026-10-30, while ready campaign notes and fix-lane waves waited. `next_unit.py --enqueue-chains`
+   is the drift measure: it prints every run of two or more consecutive `enqueue` units in `units.jsonl` (a
+   `meter` unit between two is invisible), so a chain that starts after the fix is a regression.
 3. The newest meter reading is older than 3 hours (`quota.meter_max_age_hours`), or there is none → `meter`, unless
    the meter is UNREADABLE (kb/Work PB2665): `METER_ATTEMPTS` (3) meter units of this account in a row ended without a
    reading (`units.jsonl` lines of unit `meter` with `environment_failure`; a unit of any other type between them
@@ -1413,7 +1421,7 @@ unit's fleet launch refused after `STOP-UNIT`, an attended session's not), `test
 marked, owed again after an input-touching commit, not after an unrelated one; per account, the first mark needs `--url`;
 a landing pushed from another clone is owed while the checkout is behind, and the mark refuses until it is fast-forwarded),
 `account.py --self-test`, `mailbox.py --self-test` (section 15), `test_checkpoint.py` (real linked worktrees: committed, dirty, clean, unreadable; a synthesized handoff checked
-against the schema's required and permitted keys), `test_next_unit.py` (rule 3's unreadable-meter gate on planted `units.jsonl` lines: the run counts only meter units, other units between them neither extend nor break it, a read breaks it, another account's attempts never count, the gate reopens a maximum age after the newest attempt, and an explicit name outranks it; kb/Work PB2665), `test_plan_wave.py` (fixture notes, clusters and reports in a temp directory, rendered through the
+against the schema's required and permitted keys), `test_next_unit.py` (rule 3's unreadable-meter gate on planted `units.jsonl` lines: the run counts only meter units, other units between them neither extend nor break it, a read breaks it, another account's attempts never count, the gate reopens a maximum age after the newest attempt, and an explicit name outranks it; kb/Work PB2665; and, kb/Work PB4180, a handoff naming `enqueue` runs the unit only while rule 6 finds agent work, whatever lane-owned rows the survey holds, and `enqueue_chains` finds the runs of consecutive enqueue units), `test_plan_wave.py` (fixture notes, clusters and reports in a temp directory, rendered through the
 real dispatch-spec template and `check_practices.py`'s same-file rule; the fix lane's whole plan against a golden the pre-campaign planner wrote; the campaign lane's selection, `blocked_by` order, `after:` derivation and waits, and `work.py check`'s topology rules, section 9.1), `test_watch_agent.py` (a transcript with a
 partial last line), `landing_measure.py --self-test` (the per-pull-request landing record, its completion from GitHub and the summary
 against the retired train records, kb/Work PB3028; `LandingMeasureDriftTests` also pins its arms), `landing_check.py
