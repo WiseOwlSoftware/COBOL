@@ -142,7 +142,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
             if (ctx.Table.ResolveProcedureOperand(names[0], "ALTER") is not { } target) { bad = true; continue; }
             if (!target.Range.IsParagraph || !AlterIsSoleGoToParagraph(target.Range.Start))
             {
-                ctx.Validation.RejectStatementOperand($"ALTER '{names[0].GetChild(0).GetText()}' — the procedure "
+                ctx.Validation.RejectStatementOperand($"ALTER '{ProcedureNameShape.Head(names[0])}' — the procedure "
                     + "to be altered shall be a paragraph consisting of a single sentence that is one GO TO "
                     + "statement (ANSI X3.23-1985 ALTER syntax rule)"
                     + (target.Range.IsParagraph ? "" : "; this name resolves to a SECTION"));
