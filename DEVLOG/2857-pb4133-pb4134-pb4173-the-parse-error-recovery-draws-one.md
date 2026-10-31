@@ -1,4 +1,4 @@
-## PB4133, PB4134, PB4173: the parse-error recovery draws one diagnostic per fault: it declines a deletion the missing element would let follow, and discards a refused operand's tail to the unit's period or to where the structure resumes
+## Entry 2857 — 2026-10-31 10:11 PDT — PB4133, PB4134, PB4173: the parse-error recovery draws one diagnostic per fault: it declines a deletion the missing element would let follow, and discards a refused operand's tail to the unit's period or to where the structure resumes
 
 **One root, three symptoms** (`CobolErrorStrategy.cs`, the recovery that follows a reported fault; wave 20261780, group F).
 
@@ -82,3 +82,4 @@ where the token is a reserved word written as an operand. `IsReservedOperand` is
 resynchronization and the deletion share: a §8.9 violation whose statement reading does not parse. Five rows in
 `ReservedWordPositionConformanceTests.AReservedVerbWrittenAsAnOperand_DrawsOneDiagnostic` pin the case, and
 `EditionReadDriftTests` records the moved read.
+
