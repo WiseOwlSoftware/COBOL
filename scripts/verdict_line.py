@@ -97,9 +97,9 @@ def self_test() -> int:
     expect("the CONFLICT outcome reads back its own files; any other outcome, and None, names none",
            outcome_files(conflict_outcome(["scripts/x.py", "kb/a.json"])) == ["scripts/x.py", "kb/a.json"]
            and outcome_files("GATE RED (Windows) on x") == [] and outcome_files(None) == [])
-    clog = render(conflict_outcome(["conformance-suite/wiseowl/diagnostics.json", "src/A.cs"]), "b") + "\n" + render("ENQUEUED", "b")
+    clog = render(conflict_outcome(["tests/version-matrix/constructs.json", "src/A.cs"]), "b") + "\n" + render("ENQUEUED", "b")
     expect("conflict_files: the files the CONFLICT lines of a log name, through the same line parser",
-           conflict_files(clog) == ["conformance-suite/wiseowl/diagnostics.json", "src/A.cs"], repr(conflict_files(clog)))
+           conflict_files(clog) == ["tests/version-matrix/constructs.json", "src/A.cs"], repr(conflict_files(clog)))
     print(f"=== VERDICT LINE SELF-TEST: {'RED' if failures else 'GREEN'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0
 

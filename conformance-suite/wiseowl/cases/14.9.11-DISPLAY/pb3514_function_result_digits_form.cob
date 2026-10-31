@@ -6,7 +6,7 @@
 *> portable: unverified
 *>---
       *> ISO §14.9.11.4 GR1 (Annex A.1 items 56 and 92, docs/CONFORMANCE.md DOC-A.1-92; kb/Work PB3514) under the
-      *> NON-DEFAULT `--numeric-display digits`, set for this test in wiseowl/options.json. The option selects DISPLAY's
+      *> NON-DEFAULT `--numeric-display digits`, set for this test in wiseowl/options/. The option selects DISPLAY's
       *> DIGIT IMAGE for a numeric ITEM (pb3505_display_numeric_digits_form); a numeric FUNCTION's returned value then keeps
       *> DOC-A.1-92's LITERAL form - the significant digits with no padding, a leading `-` when negative and the scale's
       *> fraction digits - which is the form MOVE, STRING and the comparisons give it in every mode. The default form

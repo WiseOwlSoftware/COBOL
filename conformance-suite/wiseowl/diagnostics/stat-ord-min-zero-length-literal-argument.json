@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "FUNCTION ORD-MIN argument-1 is a zero-length literal, which §15.72.3 r2 does not admit"}

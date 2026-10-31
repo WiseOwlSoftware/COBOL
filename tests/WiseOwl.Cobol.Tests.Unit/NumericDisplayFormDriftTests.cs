@@ -82,13 +82,17 @@ public sealed class NumericDisplayFormDriftTests
     [Fact]
     public void EveryNonDefaultValueOfTheOption_IsPinnedByAWiseOwlConformanceTest()
     {
-        using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.Suite("wiseowl", "options.json")));
-        var pinned = doc.RootElement.EnumerateObject()
-            .Select(test => test.Value.TryGetProperty("numeric-display", out var v) ? v.GetString() : null)
+        // wiseowl/options/ holds one file per test (or build step): {"<option>": "<value>"} (kb/Work PB4147).
+        var pinned = Directory.EnumerateFiles(TestRepo.Suite("wiseowl", "options"), "*.json")
+            .Select(file =>
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(file));
+                return doc.RootElement.TryGetProperty("numeric-display", out var v) ? v.GetString() : null;
+            })
             .Where(v => v is not null).ToHashSet(StringComparer.Ordinal);
         foreach (string spelling in NumericDisplayFormOption.OptionSpellings.Skip(1))   // the first is the default, pinned by every test that sets no option
             Assert.True(pinned.Contains(spelling),
-                $"--numeric-display {spelling} is pinned by no wiseowl/options.json entry (kb/Work PB3505): add a conformance test that sets it");
+                $"--numeric-display {spelling} is pinned by no wiseowl/options/ file (kb/Work PB3505): add a conformance test that sets it");
         Assert.Equal(NumericDisplayForm.Decimal, Enum.GetValues<NumericDisplayForm>()[0]);   // the default is the first member, as TryParse assumes
     }
 }

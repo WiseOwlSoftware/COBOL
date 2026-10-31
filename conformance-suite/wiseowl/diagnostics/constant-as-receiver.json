@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "constant-name 'K' shall not be specified as a receiving operand"}

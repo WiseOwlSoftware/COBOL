@@ -7,7 +7,7 @@
 *>---
       *> ISO §14.9.11.4 GR1 (Annex A.1 item 56; kb/Work PB3505, owner decision PB3467, which moves
       *> kb/Work R13's DISPLAY of a BinaryCapacity item to the option's other value) under
-      *> `--numeric-display digits`, set for this test in wiseowl/options.json: DISPLAY shows the
+      *> `--numeric-display digits`, set for this test in wiseowl/options/: DISPLAY shows the
       *> PICTURE-DIGIT image of a COMP-5 item holding a value beyond its PICTURE, the value modulo
       *> 10^digits, as before the option existed. The default form shows the whole value
       *> (pb3505_display_numeric_container_widths); the full value stays reachable here through the

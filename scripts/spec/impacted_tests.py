@@ -28,8 +28,8 @@ A changed TEST file reaches tests the same way (the test assemblies are recorded
 a test calls — is tier 1 for the rows that executed it. It also names the tier-0a facts only the diff knows: the
 test METHODS the change ADDS OR EDITS (`tests_changed`, kb/Work PB3190: a hunk inside a test method's attribute
 block, declaration or body, or inside the `[MemberData]` source of a theory — the change's own tests, which the
-batched gate's leg 1 must run, where tier 1 is only budgeted), and the suite tests whose files or keyed entries the
-change touches (`gate_plan.py` puts their cases in leg 1). A whole changed test FILE is not tier 0a: a harness edit
+batched gate's leg 1 must run, where tier 1 is only budgeted), and the suite tests whose files or registry files
+(`wiseowl/diagnostics/<id>.json`, `wiseowl/options/`) the change touches (`gate_plan.py` puts their cases in leg 1). A whole changed test FILE is not tier 0a: a harness edit
 reaches every row of its theory, and 68b X's (b4) put 5,774 cases and 62.8 % of the work ahead of its first red.
 From the diff alone it names the tier-0d drift tests too: those the drift-rule index says govern a changed file
 (kb/Work PB3531), and those governing a register that cites what the change removes — a deleted member, a renamed
@@ -90,9 +90,12 @@ CONFORMANCE_DIR = "tests/WiseOwl.Cobol.Tests.Conformance/"
 TEST_ASSEMBLIES = {f"{d}/": k for k, d in GATED_ASSEMBLIES.items()}
 SHARED_TEST_DIR = "tests/_shared/"   # linked into every test project
 TEST_PROJECTS = (*TEST_ASSEMBLIES, SHARED_TEST_DIR)
-# Structural inputs: every assembly may change.
-STRUCTURAL_RE = re.compile(r"(\.g4|\.csproj|\.props|\.targets|\.sln|global\.json|nuget\.config|\.editorconfig)$"
-                           r"|^src/WiseOwl\.Cobol\.Compiler\.SourceGen/|(^|/)Directory\.[^/]+$", re.IGNORECASE)
+# Structural inputs: every assembly may change. A file the SDK or NuGet reads by its NAME (`global.json`,
+# `nuget.config`, `Directory.*`) is matched as a whole path segment, never as a name's tail: the refusal registry
+# holds one `<test id>.json` per test (kb/Work PB4147), and `a42-screen-global.json` is a refusal, not the SDK pin.
+STRUCTURAL_RE = re.compile(r"(\.g4|\.csproj|\.props|\.targets|\.sln|\.editorconfig)$"
+                           r"|(^|/)(global\.json|nuget\.config|Directory\.[^/]+)$"
+                           r"|^src/WiseOwl\.Cobol\.Compiler\.SourceGen/", re.IGNORECASE)
 #: Two non-C# files under `src/` that no assembly embeds and no test executes: the public-API baselines of the Roslyn
 #: analyzer (`<AdditionalFiles>` of the runtime project, RS0016/RS0017: read at build time) and the runtime ABI pin
 #: (`RuntimeAbi.pin`, which scripts/abi_pin.py measures and RuntimeAbiPinDriftTests reads; the version the build uses is
@@ -102,9 +105,10 @@ STRUCTURAL_RE = re.compile(r"(\.g4|\.csproj|\.props|\.targets|\.sln|global\.json
 READ_ONLY_DATA_RE = re.compile(r"(^|/)(PublicAPI\.(Shipped|Unshipped)\.txt|RuntimeAbi\.pin)$")
 HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 #: The conformance suite's test trees (conformance-suite/harness/generate.py's TREES): a file of one of their clause
-#: folders belongs to suite tests by id (`suite_tests`), and the two keyed files beside them name tests by id.
+#: folders belongs to suite tests by id (`suite_tests`), and the two one-file-per-test registries beside them
+#: (`wiseowl/diagnostics/<id>.json`, `wiseowl/options/<id>[.<step file>].json`, kb/Work PB4147) name a test by file name.
 SUITE_TREES = ("conformance-suite/cases/", "conformance-suite/wiseowl/cases/")
-SUITE_KEYED = ("conformance-suite/wiseowl/diagnostics.json", "conformance-suite/wiseowl/options.json")
+SUITE_REGISTRIES = ("conformance-suite/wiseowl/diagnostics/", "conformance-suite/wiseowl/options/")
 HEAD: str | None = None  # --head: diff base..HEAD instead of the worktree (a replay, or a landed branch)
 TIER_DIRECT, TIER_WIDENED, TIER_UNREACHED = 1, 2, 3
 
@@ -446,17 +450,12 @@ def suite_tests(path: str) -> set[str] | None:
     return owners or None
 
 
-def changed_entries(path: str, base: str) -> set[str]:
-    """The entries of a keyed JSON file (`wiseowl/diagnostics.json`, `wiseowl/options.json`: test id -> its entry)
-    that the change ADDS or CHANGES (present now with a value other than the base's); `$`-keys are documentation."""
-    def entries(rev: str | None) -> dict:
-        try:
-            text = git("show", f"{rev}:{path}") if rev else text_of(REPO / path)
-            return {k: v for k, v in json.loads(text).items() if not k.startswith("$")}
-        except (subprocess.CalledProcessError, ValueError, AttributeError):
-            return {}  # absent on that side (an added or deleted file)
-    now, then = entries(HEAD), entries(base)
-    return {k for k, v in now.items() if then.get(k) != v}
+def registry_test(path: str) -> str:
+    """The id of the suite test a file of a one-file-per-test registry (`SUITE_REGISTRIES`) belongs to, read by the
+    generator's one rule for a registry file's name (`generate.sidecar_key`)."""
+    sys.path.insert(0, str(REPO / "conformance-suite" / "harness"))
+    import generate  # noqa: PLC0415  (the suite's one reader of a registry file name; only a change to one pays for it)
+    return generate.sidecar_key(Path(path).name).partition("/")[0]
 
 
 class MapChoice(NamedTuple):
@@ -711,6 +710,24 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
         if path.startswith("tools/impact/"):
             reach.notes.append(f"{path}: the impact recorder itself — only a recording build compiles it")
             continue
+        # A suite file is data its own test reads, whatever its name: it is attributed before the structural names,
+        # so a test id or a declared file that ends like a build input (`…-global.json`) stays its test's.
+        if path.startswith(SUITE_REGISTRIES):
+            if status == "D":   # a deleted file leaves no refusal or option to run
+                reach.notes.append(f"{path}: a registry file removed — no refusal or option of it remains to run")
+            else:
+                test = registry_test(path)
+                reach.goldens.add(test)
+                reach.notes.append(f"{path}: the registry file of suite test {test}")
+            continue
+        if path.startswith(SUITE_TREES):
+            tests = suite_tests(path)
+            if tests is None:
+                reach.every_tier1.append(f"{path}: a suite file no test of its folder declares — cannot attribute it")
+            else:
+                reach.goldens |= tests
+                reach.notes.append(f"{path}: the suite test(s) {', '.join(sorted(tests))}")
+            continue
         if STRUCTURAL_RE.search(path):
             reach.every_tier1.append(f"{path}: a grammar, build or source-generator input — every assembly may change")
             continue
@@ -726,22 +743,6 @@ def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | No
             continue
         if path.startswith("src/") and not READ_ONLY_DATA_RE.search(path):
             reach.every_tier1.append(f"{path}: a non-C# input under src/ (embedded data or resources)")
-            continue
-        if path in SUITE_KEYED:
-            if base is None:
-                reach.notes.append(f"{path}: named without a diff — which entries changed is unknown")
-            else:
-                changed = changed_entries(path, base)
-                reach.goldens |= changed
-                reach.notes.append(f"{path}: entries added or changed: {', '.join(sorted(changed)) or 'none'}")
-            continue
-        if path.startswith(SUITE_TREES):
-            tests = suite_tests(path)
-            if tests is None:
-                reach.every_tier1.append(f"{path}: a suite file no test of its folder declares — cannot attribute it")
-            else:
-                reach.goldens |= tests
-                reach.notes.append(f"{path}: the suite test(s) {', '.join(sorted(tests))}")
             continue
         if ix is None:
             continue
@@ -1133,6 +1134,24 @@ def self_test() -> int:
     _, reach = tiers_for([copy + "CSCOPY01.cpy"])
     check("a declared suite file's test is tier 0a, every other row keeps its tier",
           reach.goldens == {"copy-library-text"} and not reach.every_tier1, (reach.goldens, reach.every_tier1))
+    registry = "conformance-suite/wiseowl/"
+    _, reach = tiers_for([registry + "diagnostics/refused-one.json", registry + "options/multi-unit.U1.cbl.json"])
+    check("a one-file-per-test registry file is its test's entry: the id before the first dot is tier 0a, nothing "
+          "is unattributable (kb/Work PB4147)",
+          reach.goldens == {"refused-one", "multi-unit"} and not reach.every_tier1, (reach.goldens, reach.every_tier1))
+    _, reach = tiers_for([registry + "diagnostics/a42-screen-global.json", registry + "diagnostics/global.json"])
+    check("a registry file whose test id ends like a build input (`…-global.json`, or the id `global`) is its "
+          "test's entry, never the SDK pin (kb/Work PB4147)",
+          reach.goldens == {"a42-screen-global", "global"} and not reach.every_tier1, (reach.goldens, reach.every_tier1))
+    got = [bool(STRUCTURAL_RE.search(p)) for p in ("global.json", "nuget.config", "src/X/Directory.Build.props",
+                                                    "docs/x-global.json", "tests/x/my-nuget.config",
+                                                    "tests/x/NotDirectory.txt")]
+    check("the SDK's and NuGet's by-name files are structural as a whole path segment, never as a name's tail",
+          got == [True, True, True, False, False, False], got)
+    reach = Reach()
+    reach_of(ix, [("D", registry + "diagnostics/dropped.json")], None, reach)
+    check("a deleted registry file names no test: no refusal of it remains to run",
+          not reach.goldens and not reach.every_tier1, (reach.goldens, reach.every_tier1))
     # Tier 0d, from the REAL drift-rule index: the sweep that stopped PB3523's landing reads every tracked script
     # through its declared TreeScope, and names no path (kb/Work PB3531).
     _, reach = tiers_for(["scripts/differential_fuzz.py"])
