@@ -59,3 +59,14 @@ rule cited is §5.2.6.2 / §5.2.6.3 for the required operand and §14.5.3.2 for 
 because a one-token follow takes `END` of AT END. Performance: all of it runs on the error path; the ATN scans are cached per rule.
 Duplication: `EndsWithPeriod` replaces the sentence-only test; the PB3843 flag is the same flag, renamed. Silent failure: a unit that
 cannot be found leaves the base recovery in place.
+
+**Merge with main (finisher, CONFLICT).** Main gained PB3248's reserved-operand consume in the same `ConsumeUntil`: a
+reservation-gated word the last report named as an operand is consumed before the resynchronization asks its set, unless
+the statement it would begin parses. Both are kept. `BeginUnitTailDiscard` runs first, because it resets the fault's flag.
+Main's consume runs next, against the effective set, and then the loop with its `Resumes` stop. A discard's set is the
+period alone, which is never such a word, so the two never decide the same token, and outside a discard the method is
+exactly main's. Review leads answered: R1-2, `ParseRecoveryTailTests` now compiles through `RecoverySources` (its private
+copy of the compile is gone); R1-3, PB4134's `closes_rows_reason` now says the landing restores a lost true diagnostic.
+R1-1 (an entry without its period discards the next named entry) stays open as a lead. A pair test over the entry's ATN
+cannot tell the next entry's level-number and data-name from the entry's own tail: `OCCURS 5 STEP 2` (STEP is a
+predicated `cobolWord`) and `EDITING literal valueClauseOperand` both hold an integer then a word.
