@@ -116,7 +116,7 @@ MAIN.
     [InlineData("B", "INSPECT S TALLYING N FOR TRAILING \" \".", "COBOL2269", "FOR TRAILING")]
     [InlineData("C", "INSPECT S TALLYING N FOR FIRST \" \".", "COBOL2269", "FOR FIRST")]
     [InlineData("D", "SEARCH E AT END DISPLAY \"N\" NOT AT END DISPLAY \"Y\" WHEN E(IX) = 1 DISPLAY \"H\" END-SEARCH.",
-        "COBOL2269", "SEARCH … NOT AT END")]
+        "COBOL2269", "SEARCH NOT AT END")]
     [InlineData("E", "ENTRY \"PB909ENTRY\".", "COBOL2269", "ENTRY")]
     [InlineData("F", "OPEN OUTPUT IX-FILE. WRITE IX-REC AFTER ADVANCING 1 LINE.", "COBOL1720", "SR3")]
     [InlineData("G", "SORT TROW ASCENDING KEY TCELL.", "COBOL1757", "SR14 e")]
@@ -186,7 +186,7 @@ PROCEDURE DIVISION.
         var (ok, errors, warnings) = Compile(src);
         Assert.False(ok);
         Assert.Contains(errors, e => e.Contains("COBOL2269", StringComparison.Ordinal)
-                                     && e.Contains("SEARCH ALL … NOT AT END", StringComparison.Ordinal));
+                                     && e.Contains("SEARCH ALL NOT AT END", StringComparison.Ordinal));
         Assert.DoesNotContain(warnings, w => w.Contains("COBOL1756", StringComparison.Ordinal));
     }
 
