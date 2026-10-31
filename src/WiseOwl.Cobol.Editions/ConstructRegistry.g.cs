@@ -22,6 +22,7 @@ public static partial class ConstructRegistry
         new("free-2002", "FREE", 2002, null, null, "COBOL0900", "ISO §14.9.15"),
         new("invoke-2002", "INVOKE", 2002, null, null, "COBOL0900", "ISO §14.9.23 (OO)"),
         new("async-messaging-2023", "RECEIVE/SEND (asynchronous messaging)", 2023, null, null, "COBOL0900", "ISO §14.9.31 / §14.9.38 (asynchronous messaging; Annex E.3.2 item 1)"),
+        new("validate-statement-2002", "the VALIDATE statement", 2002, null, null, "COBOL0900", "ISO §14.9.50 (VALIDATE statement; Annex A.4.14, declined)"),
         new("apply-commit-clause-2023", "APPLY COMMIT clause (commit and rollback)", 2023, null, null, "COBOL1970", "ISO §12.4.6.3 (APPLY COMMIT clause; Annex E.3.2 item 2)"),
         new("goback-returning-2002", "GOBACK RETURNING", 2002, null, null, "COBOL0900", "NOT ISO — an extension of §14.9.18.2's general format; gated at the GOBACK statement's own 2002 introduction (ISO §14.9.18)"),
         new("stop-run-status-2002", "STOP RUN WITH status", 2002, null, null, "COBOL0900", "ISO §14.9.42"),

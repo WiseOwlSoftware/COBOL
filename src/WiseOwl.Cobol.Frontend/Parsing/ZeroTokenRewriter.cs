@@ -23,7 +23,10 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 ///                                        (§8.3.3.6.2 Format 1's optional word; kb/Work PB3846)
 ///
 /// All other ZERO tokens are left unchanged — they remain figurative constants
-/// for VALUE, MOVE, comparison, and other non-arithmetic contexts.
+/// for VALUE, MOVE, comparison, and other non-arithmetic contexts. An arithmetic context no neighbour shows — a BARE
+/// ZERO in a slot that takes only an arithmetic expression (<c>SET IX UP BY ZERO</c>, ISO §8.8.1.1) — is the parse's to
+/// find: it fails at the figurative ZERO there, and <see cref="ZeroSignReading"/> then reads it as ZERO_ARITH (kb/Work
+/// PB4120).
 ///
 /// <para>
 /// ⛔ ONE GROUPING PAREN IS NOT AN ARITHMETIC CONTEXT; A PAIR AROUND THE ZERO ALONE IS (kb/Work PB2734). A plain
@@ -135,14 +138,12 @@ public static class ZeroTokenRewriter
         token.Type is CobolLexer.ZERO or CobolLexer.ZEROS or CobolLexer.ZEROES;
 
     /// <summary>
-    /// Is a figurative ZERO written at <paramref name="index"/> in an arithmetic context, so that this pass makes it the
-    /// <c>ZERO_ARITH</c> token? The question is asked of the ZERO's neighbours only, so it has the same answer for the ZERO
-    /// written there and for a ZERO that WOULD be written in place of the token there: the rewrite asks it of every
-    /// ZERO, and a syntax error asks it before naming ZERO among the elements the parse expects at the token it refuses
-    /// (<c>AdmittedKinds.Refusal</c>, kb/Work PB3861 review R1-1), so the diagnostic names the figurative ZERO exactly where
-    /// writing it would parse. ONE rule, both readers.
+    /// Is the figurative ZERO at <paramref name="index"/> in an arithmetic context by its neighbours, so that this pass
+    /// makes it the <c>ZERO_ARITH</c> token? A context only the grammar knows (a bare ZERO in a slot that takes only an
+    /// arithmetic expression, a ZERO before a sign touching its literal in one) is the parse's to find
+    /// (<see cref="ZeroSignReading"/>, kb/Work PB3981, PB4120).
     /// </summary>
-    public static bool AZeroWrittenAtIsArithmetic(IList<IToken> tokens, int index)
+    private static bool AZeroWrittenAtIsArithmetic(IList<IToken> tokens, int index)
     {
         // The nearest non-hidden token on each side (-1 at either end of the stream, which no set contains). On
         // the left, a written ALL is the figurative constant's own optional word (§8.3.3.6.2 Format 1, `[ALL]
