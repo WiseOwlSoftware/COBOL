@@ -15,7 +15,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// arm (<c>StatementValidation.RejectSetConditionName</c>). A type-name drew "not defined" at all
 /// three (§13.18.58.4 GR2: "A type declaration has no storage associated with it"), a type declaration's member at all
 /// three (§13.18.58.4 GR1: such data-names "may be referenced only as subordinate items of groups defined using the
-/// type-name"), and every other kind at the two clause sites. One case per kind per site.
+/// type-name"), and every other kind at the two clause sites. One case per kind per site. A file-name is a kind too
+/// (kb/Work PB3557: a visible GLOBAL file of a containing program drew "no declaration in this source element").
 /// </summary>
 public sealed class NonDataNameReferenceTests
 {
@@ -47,6 +48,16 @@ public sealed class NonDataNameReferenceTests
         + "       DATA DIVISION.\n       FILE SECTION.\n       FD F1.\n       01 R1 PIC X.\n"
         + "       WORKING-STORAGE SECTION.\n" + Declarations
         + "       PROCEDURE DIVISION.\n           STOP RUN.\n";
+
+    /// <summary>A program with one file F1 whose FILE STATUS is <paramref name="statusOperand"/> (W2 is a legal one) and a
+    /// one-statement procedure division.</summary>
+    private static string FileStatusProgram(string statusOperand, string statement) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB3557F.\n"
+        + "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n"
+        + $"           SELECT F1 ASSIGN TO \"F1\" FILE STATUS IS {statusOperand}.\n"
+        + "       DATA DIVISION.\n       FILE SECTION.\n       FD F1.\n       01 R1 PIC X.\n"
+        + "       WORKING-STORAGE SECTION.\n       01 W2 PIC XX.\n"
+        + $"       PROCEDURE DIVISION.\n{statement}\n           STOP RUN.\n";
 
     private static string DependingProgram(string operand) =>
         "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB1906D.\n" + SpecialNames
@@ -158,6 +169,56 @@ public sealed class NonDataNameReferenceTests
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1637");
         EditionHarness.AssertNoDiagnostic(errors, "is not defined");
+    }
+
+    /// <summary>A FILE-NAME is declared too (kb/Work PB3557, ISO §12.4.5): a file clause's data-name operand and a statement
+    /// operand that name a file say what the word is, at both sites that ask <c>NonDataDeclarationOf</c>.</summary>
+    [Theory]
+    [InlineData("           MOVE \"A\" TO F1")]
+    [InlineData("           DISPLAY F1")]
+    public void AStatementOperandNamingAFile_NamesWhatTheWordIsDeclaredAs(string statement)
+    {
+        var (ok, errors) = EditionHarness.Compile(FileStatusProgram("W2", statement), 2023);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1639");
+        EditionHarness.AssertHasDiagnostic(errors, "'F1' is declared as a file-name");
+        EditionHarness.AssertNoDiagnostic(errors, "is not defined");
+        EditionHarness.AssertNoDiagnostic(errors, "no declaration in this source element gives the name");
+    }
+
+    /// <summary>The file clause site's twin: FILE STATUS naming a file.</summary>
+    [Fact]
+    public void AFileStatusOperandNamingAFile_NamesWhatTheWordIsDeclaredAs()
+    {
+        var (ok, errors) = EditionHarness.Compile(FileStatusProgram("F1", "           CONTINUE"), 2023);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1639");
+        EditionHarness.AssertHasDiagnostic(errors, "FILE STATUS 'F1'");
+        EditionHarness.AssertHasDiagnostic(errors, "'F1' is declared as a file-name");
+        EditionHarness.AssertNoDiagnostic(errors, "no declaration in this source element gives the name");
+    }
+
+    /// <summary>A containing program's GLOBAL file-name is visible in the contained program (§13.18.27.4 GR1), so a
+    /// statement there that wants a data item is told the word is a file-name — and a file with no GLOBAL clause is NOT
+    /// visible, so the word is truly undeclared there and the verdict is unchanged.</summary>
+    [Theory]
+    [InlineData(true, "'GF' is declared as a file-name")]
+    [InlineData(false, "no declaration in this source element gives the name 'GF'")]
+    public void AContainersFileInAContainedStatement_IsDeclaredOnlyWhenGlobal(bool global, string expected)
+    {
+        string source =
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB3557N.\n"
+            + "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n"
+            + "           SELECT GF ASSIGN TO \"GF\".\n"
+            + $"       DATA DIVISION.\n       FILE SECTION.\n       FD GF{(global ? " IS GLOBAL" : "")}.\n       01 GR PIC X.\n"
+            + "       PROCEDURE DIVISION.\n           CALL \"PB3557M\"\n           STOP RUN.\n"
+            + "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB3557M.\n"
+            + "       PROCEDURE DIVISION.\n           DISPLAY GF\n           GOBACK.\n"
+            + "       END PROGRAM PB3557M.\n       END PROGRAM PB3557N.\n";
+        var (ok, errors) = EditionHarness.Compile(source, 2023);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1639");
+        EditionHarness.AssertHasDiagnostic(errors, expected);
     }
 
     /// <summary>A reference to a constant-name whose entry was refused is that one fault's consequence (COBOL2364), never
