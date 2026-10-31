@@ -120,7 +120,7 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4 | performLocationPhrase | is2023"] = (1, Verdict.WordStatus),
         // OPEN's RETRY phrase: RETRY is a §8.9 user word below 2002 and sits in the file-name list.
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4 | openClause | is2002"] = (1, Verdict.WordStatus),
-        // APPLY COMMIT: APPLY is §8.10 context-sensitive at every edition and no edition before 2023 has an APPLY
+        // APPLY COMMIT: APPLY is a §8.10 context-sensitive word only from COBOL-2023 (Introduced) and no edition before 2023 has an APPLY
         // clause, so no earlier program reads `APPLY COMMIT` another way: the gate refuses a construct (COBOL0001)
         // where the conformance pass should name its 2023 introduction.
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4 | ioControlClause | is2023"] = (1, Verdict.ConstructGate),
@@ -159,8 +159,11 @@ public sealed class EditionReadDriftTests
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorListener.cs | CobolErrorListener.SyntaxError | ReservedUserWordViolation"] = (1, Verdict.WordStatus),
         // The error strategy's COBOL5506 sentence names the keywords EXPECTED at a refused token, leaving out each one a
         // general format of the compile edition cannot print (kb/Work PB4174, PrintsKeyword): a word the §8.9 table proves
-        // a LATER edition introduced. Every other word is named, the §8.10 context-sensitive words and the words a format
-        // spells where §8.9 leaves them free (IsKeywordWhereFree) included. It refuses nothing itself and gates no construct.
+        // a LATER edition introduced, or a §8.10 context-sensitive word first listed at a LATER edition
+        // (ContextSensitiveWordEntry.Introduced). Every other word is named: one reserved at the edition, one a later
+        // edition dropped (WORDS at 2023; COBOL and PHYSICAL, which 2023 formats underline though its §8.9 omits them), one in
+        // neither table, and the words a format spells where §8.9 leaves them free (IsKeywordWhereFree). It refuses nothing
+        // itself and gates no construct.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsKeyword"] = (1, Verdict.WordStatus),
         // The error strategy's recovery asks the same question of a reserved word it recovers at: a reference the
         // listener re-codes to COBOL0901 is consumed (or deleted) as the operand it stood for, never resumed at (kb/Work
