@@ -1,4 +1,4 @@
-## COBOL5506 names the §8.10 context-sensitive words of the compile edition (PB4174, second half) and a verb shared with another clause is no statement position (PB4201)
+## Entry 2863 — 2026-10-31 11:21 PDT — COBOL5506 names the §8.10 context-sensitive words of the compile edition (PB4174, second half) and a verb shared with another clause is no statement position (PB4201)
 
 Wave 20261785, group B, two mechanisms in the one root `AdmittedKinds`/`PrintsKeyword`, checkpointed per note.
 
@@ -32,3 +32,4 @@ E.3.3 item 13. The same stale claim in `IsReservedContextOrIntrinsic`, the APPLY
 was corrected (comment-only).
 
 Rows re-verdicted: none (a diagnostic's wording is the implementor's, ISO §4.2.2). Codes used: none.
+
