@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "SET 'SW-ON' TO FALSE — 'SW-ON' IS a condition-name"}

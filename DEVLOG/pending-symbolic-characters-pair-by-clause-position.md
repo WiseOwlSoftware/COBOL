@@ -27,6 +27,8 @@ Review round 1 found that the one-stream pairing checked only the totals: a clau
 format's repeated group `{symbolic-character-1}... [IS|ARE] {integer-1}...` (ISO §12.3.7.2) but whose counts balance, such as
 `SC1 66 67 SC2` or `K1 SC1 SC2 66`, compiled and paired SC2 with 67. `SymbolicClauseOperands` now also reports whether the
 stream opens with a name and closes with an ordinal (the only condition for (name+ ordinal+)+), and `SwitchBindSymbolic`
-refuses otherwise with one COBOL1670 and the names still declared. Goldens `pb4108-symbolic-trailing-name-without-ordinal` and
-`pb4108-symbolic-leading-constant-before-names` (COBOL1670 at 2002, 2014, 2023). The PB4110 note's reference to the renamed
-member was updated.
+refuses otherwise with one COBOL1670 and the names still declared. Goldens `pb4108-symbolic-trailing-name-without-ordinal`
+(COBOL1670 at 85, 2002, 2014, 2023: it uses no CONSTANT entry, and the clause's format is COBOL-85's too; review round 2's lead
+R2-1, fixed by the landing's finisher) and `pb4108-symbolic-leading-constant-before-names` (COBOL1670 at 2002, 2014, 2023).
+The PB4110 note's reference to the renamed member was updated. The landing's merge of main moved the three refusals into
+main's one-file-per-test layout (`conformance-suite/wiseowl/diagnostics/<id>.json`, kb/Work PB4147).

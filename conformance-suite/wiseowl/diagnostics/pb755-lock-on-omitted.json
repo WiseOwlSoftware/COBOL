@@ -1,0 +1,1 @@
+{"refuse-at": ["2002", "2014", "2023"], "expect": "COBOL5506: missing token before 'MULTIPLE'. The word 'MULTIPLE' is not expected here: expected ON"}
