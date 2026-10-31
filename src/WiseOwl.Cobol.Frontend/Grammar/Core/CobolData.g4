@@ -709,10 +709,16 @@ usageKeyword
 // deliberately exempts: BIT and NATIONAL are bare USAGE keywords AND `cobolWord` alternatives, so without a guard
 // `01 P USAGE POINTER BIT.` bound BIT as a type-name (MEASURED — PointerUsageOperandDriftTests caught it), as would
 // PROPERTY under --permissive or at an edition before its reservation. So the TO-less arm is guarded by
-// `pointerOperandHere()` (CobolParserCoreBase), which refuses a token in FOLLOW(usageKeyword) — the USAGE tail
-// phrases (HIGH-ORDER-RIGHT was measured swallowed too) and the next clause —
-// COMPUTED from the generated ATN — never a hand list — so a clause added to the closed format is excluded
-// automatically. With TO written, the word IS the operand; the predicate guards only the TO-less arm.
+// `pointerOperandHere()` (CobolParserCoreBase), which refuses a word that is the KEYWORD of what follows the usage
+// in THIS entry — the USAGE tail phrases (HIGH-ORDER-RIGHT was measured swallowed too) and the entry's next clause —
+// walked from the rule's end through the LIVE rule-invocation stack, the walk keywordContinuesHere() uses, so it
+// is COMPUTED from the generated ATN, never a hand list, and a clause added to a closed format is excluded
+// automatically. ⛔ Never the context-free FOLLOW(usageKeyword) (kb/Work PB4235): the usage clause is also a clause
+// of the screen and report group entries, and that union refused AUTO, BELL, SECURE and the other §8.10 screen
+// words — user-defined words outside the screen description entry (§8.3.2.1 3)) — as a data entry's type-name.
+// ⛔ The optional operand must stay each rule's LAST element: the predicate reads the rule's end as the slot's
+// exit (PointerUsageOperandDriftTests holds the shape). With TO written, the word IS the operand; the predicate
+// guards only the TO-less arm.
 //
 // Each is a RULE, not a bare terminal with a tail: DataBinder.UsageKeyword derives the canonical keyword from the
 // node, so the operand must not be glued into it ("POINTERT" — the OBJECT REFERENCE precedent).
