@@ -404,6 +404,21 @@ earlier alternative), and the only procedure-name lists — GO TO … DEPENDING'
 risk PB693 kept the arm off the reference slots for. A data or file REFERENCE keeps no arm: its error falls AT the
 word and is re-coded (below).
 
+A word reserved at EVERY edition (READ, DISPLAY, MOVE, EXIT) is no gated word: it is a keyword token with no name-slot
+arm, and it cannot have one, because a keyword alternative in `procedureName` would compete with every statement and
+header reading it is one of (`EXIT.` is a statement and would be a header). So the procedure-name slot answers for it
+after the fact, and only on a syntax error (kb/Work PB4229): `CobolParserCoreBase.ReservedProcedureName` takes the
+offending token and the first token of each open rule and of the rule each matched last (the misread statement begins
+at the word), keeps those §8.9 reserves at the edition, and re-reads the sentence from its first token through its
+separator period with that one word retyped to `IDENTIFIER` (`Reading`, the speculative `ParserInterpreter` parse
+`ReadingParses` uses too), as a `sentence` and, when the word begins it, as a `procedureUnit`. A complete reading with the
+word under `procedureName` is what the source means, and `CobolErrorStrategy.Report` names the word with COBOL0901 at
+the word, covering the sentence through its period as the one fault and discarding the misreading's tail as orphaned:
+`PERFORM READ.`, `PERFORM READ THRU P1.`, `GO TO READ.`, `GO TO P1 READ DEPENDING ON N.`, `ALTER READ TO P1.`, `READ.` as
+a header, `DISPLAY SECTION.` — each one diagnostic. A genuine fault elsewhere fails every re-read (`PERFORM DISPLAY X.`
+without END-PERFORM, `MOVE X TO` before a DISPLAY), and its own report stands. A reserved word in a DATA reference slot
+(`MOVE READ TO X`) is not this rule's: its error falls at the word and is still the strategy's own report.
+
 The user-word reading is decided on the TOKEN, before the parse that counts (`Parsing/ReservationGateRewriter`;
 its `ParseToFixpoint` is THE gate loop, and EVERY whole-group parse calls it — the greenfield
 `Frontend.LexAndParse` and the legacy differential oracle's `Compilation.LexAndParse` alike, because both parse

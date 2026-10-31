@@ -75,8 +75,24 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         _lastReported = (Math.Min(at.ParserTokenIndex, at.Token.TokenIndex), at.Token.TokenIndex);
         _orphansItsTail = OrphansItsTail(hints, kind);
         string? violation = ReservedWordUse(recognizer, at);
-        _reportedReservedWordUse = violation is not null;
-        recognizer.NotifyErrorListeners(at.Token,
+        var named = at.Token;
+        // A word reserved at every edition, written as a procedure-name the parse read as its keyword (kb/Work PB4229):
+        // the report names the word, wherever the misreading died. Where it died AFTER the word, the rest of the sentence
+        // is the tail of the reading the parse took (the inline PERFORM's END-PERFORM, the READ statement's phrases): the
+        // re-read found the whole sentence sound with the word as a name, so the one fault covers it through its period,
+        // and the recovery discards that tail as orphaned.
+        if (violation is null && recognizer is CobolParserCoreBase parser && parser.ReservedProcedureName(at.Token) is { } word)
+        {
+            (named, violation) = (word.Word, word.Message);
+            if (named != at.Token)
+            {
+                _lastReported = (_lastReported.From, Math.Max(_lastReported.Through, word.Through));
+                _orphansItsTail = true;
+            }
+        }
+        // The recovery consumes the named token as the operand it stood for only when it is the offending token itself.
+        _reportedReservedWordUse = violation is not null && named == at.Token;
+        recognizer.NotifyErrorListeners(named,
             violation is not null ? $"[{EditionCodes.ReservedWord}] {violation}" : BuildMessage(at.Token, kind, hints), e);
     }
 
