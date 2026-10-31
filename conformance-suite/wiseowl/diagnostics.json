@@ -2983,7 +2983,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL1688: CALL \u2026 program-prototype 'L1C34IS' argument 1 ('A') does not conform to formal parameter 'L': the formal parameter (a strongly-typed group of type tc) and the argument (a strongly-typed group of type tc) are not of the same type"
+  "expect": "COBOL1688: CALL of program-prototype 'L1C34IS' argument 1 ('A') does not conform to formal parameter 'L': the formal parameter (a strongly-typed group of type tc) and the argument (a strongly-typed group of type tc) are not of the same type"
  },
  "l1c34-type-same-as-ancestor": {
   "refuse-at": [
@@ -13446,7 +13446,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL1688: CALL \u2026 AS NESTED argument 1 ('Y') does not conform to formal parameter 'L': the formal parameter (an elementary alphanumeric item described with PICTURE X ANY LENGTH USAGE DISPLAY) and the argument (an elementary alphanumeric item described by no PICTURE clause)"
+  "expect": "COBOL1688: CALL AS NESTED argument 1 ('Y') does not conform to formal parameter 'L': the formal parameter (an elementary alphanumeric item described with PICTURE X ANY LENGTH USAGE DISPLAY) and the argument (an elementary alphanumeric item described by no PICTURE clause)"
  },
  "pb3101-override-group-for-elementary-formal": {
   "refuse-at": [
@@ -13478,7 +13478,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL1688: CALL \u2026 program-prototype 'N3101P' argument 1 ('Y') does not conform to formal parameter 'A': the formal parameter (an elementary alphanumeric item described with PICTURE X(5) USAGE DISPLAY) and the argument (an elementary alphanumeric item described by no PICTURE clause)"
+  "expect": "COBOL1688: CALL of program-prototype 'N3101P' argument 1 ('Y') does not conform to formal parameter 'A': the formal parameter (an elementary alphanumeric item described with PICTURE X(5) USAGE DISPLAY) and the argument (an elementary alphanumeric item described by no PICTURE clause)"
  },
  "pb3120-group-formal-data-pointer-declaration-mismatch": {
   "refuse-at": [
@@ -15027,7 +15027,7 @@
    "2014",
    "2023"
   ],
-  "expect": "error COBOL2031: INITIALIZE REPLACING NUMERIC \u2026 BY SPACE: ISO \u00a714.9.20.3 SR4 requires that `MOVE SPACE TO <an item of category NUMERIC>` be valid, and the figurative constant SPACE shall not be moved to a numeric or numeric-edited item (ISO \u00a714.9.25.3 SR5)"
+  "expect": "error COBOL2031: INITIALIZE REPLACING NUMERIC DATA BY SPACE: ISO \u00a714.9.20.3 SR4 requires that `MOVE SPACE TO <an item of category NUMERIC>` be valid, and the figurative constant SPACE shall not be moved to a numeric or numeric-edited item (ISO \u00a714.9.25.3 SR5)"
  },
  "pb3605-move-space-numeric": {
   "refuse-at": [
@@ -15036,7 +15036,7 @@
    "2014",
    "2023"
   ],
-  "expect": "(24,12): error COBOL0819: MOVE \u2026 TO N: the figurative constant SPACE shall not be moved to a numeric or numeric-edited item (ISO \u00a714.9.25.3 SR5)"
+  "expect": "(24,12): error COBOL0819: MOVE TO N: the figurative constant SPACE shall not be moved to a numeric or numeric-edited item (ISO \u00a714.9.25.3 SR5)"
  },
  "pb361-use-outside-declaratives": {
   "refuse-at": [

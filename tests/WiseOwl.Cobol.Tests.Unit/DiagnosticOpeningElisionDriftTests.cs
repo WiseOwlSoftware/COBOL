@@ -57,6 +57,22 @@ public sealed class DiagnosticOpeningElisionDriftTests
             + "PB4121, PB4160):\n  " + string.Join("\n  ", offenders));
     }
 
+    /// <summary>A construct's <c>display</c> is the HEAD of every edition-gate message the registry words
+    /// (<c>"{display} requires COBOL-2002 …"</c>, <c>"{display} was removed in …"</c>), so a row that spells
+    /// <c>SET … TO object-reference</c> there opens a diagnostic with an elided statement through no call the source scan
+    /// can see. The registry is data (tests/version-matrix/constructs.json), so it is asked as data.</summary>
+    [Fact]
+    public void NoConstructDisplayOpensWithAnElidedStatement()
+    {
+        var offenders = WiseOwl.Cobol.Editions.ConstructRegistry.Entries
+            .Where(e => ElidedMessageOpening.Opening.IsMatch(e.Display))
+            .Select(e => $"{e.Id}: {e.Display}")
+            .ToList();
+        Assert.True(offenders.Count == 0,
+            "A construct display opens with an elided statement; the registry puts it at the head of the edition-gate "
+            + "diagnostic (kb/Work PB4160). Spell the construct by its written words:\n  " + string.Join("\n  ", offenders));
+    }
+
     /// <summary>⛔ THE GATE FIRES. Each defect line is one the tree carried verbatim (or the call form it was reported
     /// through); each repaired twin and form reference must NOT match.</summary>
     [Fact]
