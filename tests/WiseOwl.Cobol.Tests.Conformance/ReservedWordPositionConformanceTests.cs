@@ -447,4 +447,69 @@ public sealed class ReservedWordPositionConformanceTests
                                      && diags[0].Contains("(11,", StringComparison.Ordinal),
             $"expected exactly one diagnostic, at '{word}' on line 11, got:\n{string.Join("\n", diags)}");
     }
+
+    // ── A reserved word in a procedure-name slot (kb/Work PB4206) ─────────────────────────────────────────────────
+
+    /// <summary>⛔ A RESERVED VERB WRITTEN AS A PROCEDURE-NAME IS NAMED BY COBOL0901, IN EVERY PROCEDURE-NAME SLOT (kb/Work
+    /// PB4206). A procedure-name is a user-defined word (ISO §8.3.2.2; §14.4.1 "A procedure-name is a word used to refer to
+    /// a paragraph or section"), so §8.3.2.1 1) "Reserved words shall not be used as user-defined words or system-names"
+    /// holds there. RECEIVE, SEND (reserved at 85, 2002 and 2023) and VALIDATE (from 2002) also begin a statement, and the
+    /// slot had no arm for a reserved word: <c>PERFORM RECEIVE.</c> parsed as an inline PERFORM whose RECEIVE statement
+    /// refused the period, <c>GO TO SEND.</c> as the 1985 target-less GO TO followed by a SEND statement, each a COBOL0001
+    /// at the period that never named the word. Every PERFORM format, both ends of THRU, both GO TO formats.
+    /// <para>With the procedure DEFINED under the word, the source has one fault per word, so exactly one diagnostic:
+    /// the COBOL0901 (the definition and the reference are the same word, reported once). With no such procedure,
+    /// §14.9.28.3 SR12 / §8.4.2.1 are broken as well, and the only other diagnostic is that rule's COBOL1639 — never a
+    /// parse error.</para></summary>
+    [Theory]
+    [InlineData(2023, "PERFORM RECEIVE.", "RECEIVE")]
+    [InlineData(85, "PERFORM RECEIVE.", "RECEIVE")]
+    [InlineData(2023, "PERFORM SEND.", "SEND")]
+    [InlineData(2002, "PERFORM VALIDATE.", "VALIDATE")]
+    [InlineData(2023, "PERFORM RECEIVE 2 TIMES.", "RECEIVE")]
+    [InlineData(2023, "PERFORM RECEIVE UNTIL W-N = 1.", "RECEIVE")]
+    [InlineData(2023, "PERFORM RECEIVE VARYING W-N FROM 1 BY 1 UNTIL W-N > 2.", "RECEIVE")]
+    [InlineData(2023, "PERFORM RECEIVE THRU P-END.", "RECEIVE")]
+    [InlineData(2023, "PERFORM P-END THRU SEND.", "SEND")]
+    [InlineData(2023, "GO TO RECEIVE.", "RECEIVE")]
+    [InlineData(85, "GO TO SEND.", "SEND")]
+    [InlineData(2023, "GO TO RECEIVE P-END DEPENDING ON W-N.", "RECEIVE")]
+    [InlineData(85, "GO TO P-END SEND DEPENDING ON W-N.", "SEND")]
+    public void AReservedVerbWrittenAsAProcedureName_IsNamedByCobol0901(int edition, string statement, string word)
+    {
+        foreach (bool defined in new[] { true, false })
+        {
+            string procedure = defined ? $"""
+                       {word}.
+                           DISPLAY "W".
+                   """ : "";
+            var (ok, diags) = EditionHarness.Compile($"""
+                       IDENTIFICATION DIVISION.
+                       PROGRAM-ID. PB4206R.
+                       DATA DIVISION.
+                       WORKING-STORAGE SECTION.
+                       01 W-N PIC 9(4) VALUE 1.
+                       PROCEDURE DIVISION.
+                       MAIN-P.
+                           {statement}
+                           STOP RUN.
+                   {procedure}
+                       P-END.
+                           DISPLAY "E".
+
+                   """, edition);
+            string all = string.Join("\n", diags);
+            Assert.False(ok, $"'{word}' is reserved at --std {edition}: the procedure-name is refused (defined: {defined})");
+            Assert.True(diags.Count(d => d.Contains("COBOL0901", StringComparison.Ordinal)
+                                         && d.Contains($"'{word}'", StringComparison.Ordinal)) == 1,
+                $"expected exactly one COBOL0901 naming '{word}' (defined: {defined}), got:\n{all}");
+            var others = diags.Where(d => !d.Contains("COBOL0901", StringComparison.Ordinal)).ToList();
+            if (defined)
+                Assert.True(others.Count == 0, $"the defined procedure leaves one fault, got:\n{all}");
+            else
+                Assert.True(others.All(d => d.Contains("COBOL1639", StringComparison.Ordinal)
+                                            && d.Contains($"'{word}'", StringComparison.Ordinal)),
+                    $"no procedure is named '{word}': only SR12's COBOL1639 may stand beside the COBOL0901, got:\n{all}");
+        }
+    }
 }
