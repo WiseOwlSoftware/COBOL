@@ -246,7 +246,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     private static string? DeviceFormatPhrase(Core.ConditionalPhrasesContext phrases, string verb,
         Antlr4.Runtime.ParserRuleContext? operand, string format1, string screenFormat) =>
         phrases.ChildCount > 0 && ConditionalPhrases.FirstOf(phrases, ConditionalPhraseFamily.Exception) is { } phrase
-            ? $"{verb} … {ConditionalPhrases.KindOf(phrase).Words}: "
+            ? $"{verb} {ConditionalPhrases.KindOf(phrase).Words}: "
               + (operand is null ? "the operand" : $"'{DataBinder.WrittenText(operand)}'")
               + " is not declared in the SCREEN SECTION, "
               + $"so this is ISO {format1}, which prints no exception phrase — only {screenFormat}, "
