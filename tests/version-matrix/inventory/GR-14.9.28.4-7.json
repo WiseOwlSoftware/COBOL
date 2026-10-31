@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-7",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "PERFORM statement",
+ "rule-digest": "6d2361e6cefc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#CountExpr",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb86_perform_times_function_count; nist:NC102A",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB86 (2026-08-18): the count is rendered once into the loop's bound (`long __n = ...`) - a literal verbatim, every other operand (an integer data item by VALUE - a P-scaled or unsigned-wide read included - or a function-identifier's result) through the ONE integer landing, NumericRenderer.Align(..., 0). NC102A PFM-TEST-F2-6 corroborates that modifying the count item inside the body does not change the iteration count.",
+ "state": "OK"
+}

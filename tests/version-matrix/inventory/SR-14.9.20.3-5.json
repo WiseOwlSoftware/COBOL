@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.20.3-5",
+ "section": "14.9.20.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "b5e6bfaa13fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInitializeTargetRenames",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/pb416-initialize-target-renames; conformance:cases/14.9.20-INITIALIZE/pb416_initialize_operand_screens_85; conformance:cases/14.9.20-INITIALIZE/pb966-initialize-level66-alias",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB416.md LANDED. The check now runs on the RESOLVED path and takes the resolved DataItem. It was previously wired into the arm taken when the reference does NOT resolve -- an arm a level-66 entry never reaches, because it resolves perfectly well -- so COBOL0835 had never fired for the case it was written for and the violation shipped as an unhandled run-time NotImplementedCobolFeatureException naming a missing COMPILER feature. Taking the resolved item also makes the rule qualification-correct: 'INITIALIZE R66 IN REC-2' names ONE entry, where the former name lookup answered over every same-named candidate. The negative rejects at all four editions with COBOL0835; the positive golden's T5 is the control that a 66 entry BESIDE identifier-1 is not a RENAMES clause in identifier-1's own data description entry and does not engage the rule.",
+ "state": "OK"
+}

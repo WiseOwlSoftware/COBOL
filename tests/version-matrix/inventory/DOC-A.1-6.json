@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-6",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 6,
+ "subject": "Alignment of alphanumeric group items (relative to first elementary item)",
+ "rule-digest": "02ae85060493",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-6; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#OffsetOf; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#PhysicalWidth",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1c01_group_start_coincident; conformance:cases/A.1-Implementor-defined-language-element-list/l1c01_group_start_typed_national_bit",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Row written from the code: RecordLayout.PhysicalWidth sums subordinate widths with no padding term and OffsetOf advances by the same widths, so every group (alphanumeric or strongly-typed) is coincident with its first item. Probe /tmp/adj/doc/doc-w1-s1/probe/i6.cob (--std 2023): 01 G (9(4) COMP, X) BYTE-LENGTH 3 and CONVERT(G ANY ANUM HEX)=01025A (G1=258 occupies bytes 1-2), strongly-typed SG (9(4) COMP-5, X) 3, K (N, X) 3. Refuter probe /tmp/adj/doc/doc-w1-s1/refute-probe/r6.cob: a bit item followed by PIC X is 2 bytes (the §8.5.1.6.3 filler bits), so the row's 'sum of sizes / none between items' claim is qualified for bit items; strongly-typed POINTER-first group 9, SYNC items unpadded (S=14). cite.py --check 8.5.1.6.1 and 8.5.1.6.5 OK. No spec-derived golden pins the group-start offset directly (test-ref empty; row says —). 8.5.1.6.5 applies from 2002; 8.5.1.6.1 at every edition. Owning note: A11 umbrella / PB1522 step 3.",
+ "state": "OK"
+}

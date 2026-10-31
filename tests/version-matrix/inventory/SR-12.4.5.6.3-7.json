@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.6.3-7",
+ "section": "12.4.5.6.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "ALTERNATE RECORD KEY clause",
+ "rule-digest": "d8c155a4e187",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ReadSuppressWhen",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1072-suppress-when-sr7; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1072_suppress_when_forms",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1072 landed (w61c). cite.py --check 12.4.5.6.3 'Literal-1 shall be an alphanumeric literal, a national literal, or a figurative constant' / 'shall be of the same category as data-name-1 or data-name-2' / 'If ALL literal is specified, the literal shall be one character long' -> OK SR7. Three FileControlKeyRules rows, one rule-id: the operand's kind (numeric literal, boolean literal, NULL refused), its category against data-name-1's, and an ALL literal's length; COBOL0863. The operand is read ONCE by DataBinder.ReadSuppressWhen through the literal-position chokepoint RawValueOperandText (grammar alternateKeySuppressWhen now takes valueClauseOperand), so a constant-name (13.10.3 SR2) and a symbolic-character (8.3.3.6.2 Format 7) are accepted and a concatenation expression folds. Negative: SUPPRESS WHEN 5 / N\"A\" on PIC X / ALL \"AB\" each draw SR7; positive golden accepts figurative, ALL, national, constant-name, symbolic-character, concatenation.",
+ "state": "OK"
+}

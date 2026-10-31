@@ -257,7 +257,22 @@ public sealed partial class ReferenceResolver(DataBinder data)
         // lookup above reads, so `MOVE PV TO W` and `DISPLAY DL` were told "no declaration gives the name" about names
         // the REPORT SECTION declares. The reference is refused for its position (§13.8.6.2.3, §13.15.3 SR7); the
         // admitted ones — a sum counter, resolved before name lookup, and a DETAIL group named by GENERATE — never get here.
-        if (data.ReportEntryReferenceRefused($"'{text}'", name, qualifiers)) return;
+        // ⛔ AN AMBIGUOUS ORDINARY REFERENCE IS TOLD ITS AMBIGUITY FIRST (kb/Work PB3767): when the written qualifiers reach
+        // SEVERAL data items, §8.4.2.2.3 SR1 ("uniqueness shall be established through a sequence of qualifiers that precludes
+        // any ambiguity of reference") is the rule the reference breaks whether or not a report entry spells the same, and the data-name candidates are the ones the programmer
+        // can write more qualifiers to single out. The report entry is the verdict only when no ambiguity among data items
+        // stands in its way: the refusal takes the candidates (QualifiedCandidates) and applies the one order itself
+        // (DataBinder.DataItemsAmbiguousBeforeReportEntry), as it does for every data division arm. A report entry of a
+        // NEARER source element than the ambiguous data items is the referenced item (§8.4.6.2.1 3) a)), so the refusal
+        // still stands (review R1-1).
+        var dataItems = data.QualifiedCandidates(name, qualifiers, data.ActiveScope);
+        if (data.ReportEntryReferenceRefused(dataItems, $"'{text}'", name, qualifiers)) return;
+        // A report entry of the data items' own source element is a data-name §8.4.2.2.3 SR1 counts with them, so the
+        // ambiguity's text counts it too (review R1-2).
+        int reportEntries = dataItems.Count > 1 ? data.ReportEntriesInTierOf(dataItems, name, qualifiers) : 0;
+        static string ReportEntriesWording(int count) => count == 0
+            ? ""
+            : $" (counting {(count == 1 ? "a REPORT SECTION entry" : $"{count} REPORT SECTION entries")} of that spelling)";
         string msg;
         // ⛔ A DECLARED CONDITION-NAME (kb/Work PB567): one qualified by a data-name it is NOT subordinate to (`IS-A OF
         // H1`, H1 an unrelated record; `IS-A OF G1 OF S`, real ancestors in reversed order) is worded by the one
@@ -274,15 +289,17 @@ public sealed partial class ReferenceResolver(DataBinder data)
                 + "the statement's reference identifies no resource (ISO §8.4.2.1: \"a statement shall contain a "
                 + "reference that uniquely identifies that resource\"). Check the spelling, or declare the item.";
         else if (qualifiers.Count == 0)
-            msg = $"'{text}' does not uniquely identify a data item — {candidates.Count} declarations share the "
-                + "name and no qualification distinguishes them (ISO §8.4.2.2 — qualification shall establish "
-                + "uniqueness).";
+            msg = $"'{text}' does not uniquely identify a data item — {candidates.Count + reportEntries} declarations share the "
+                + $"name{ReportEntriesWording(reportEntries)} and no qualification distinguishes them (ISO §8.4.2.2 — "
+                + "qualification shall establish uniqueness).";
         else
         {
             int matches = 0;
             foreach (var c in candidates) if (data.QualifierChainMatches(c, qualifiers)) matches++;
+            matches += reportEntries;
             msg = matches > 1
-                ? $"'{text}' does not uniquely identify a data item — {matches} declarations of '{name}' match "
+                ? $"'{text}' does not uniquely identify a data item — {matches} declarations of '{name}'"
+                  + $"{ReportEntriesWording(reportEntries)} match "
                   + "the written qualifiers (ISO §8.4.2.2 — qualification shall establish uniqueness; write "
                   + "further qualifiers to single one out)."
                 : $"'{text}' does not uniquely identify a data item — '{name}' is declared, but not under the "

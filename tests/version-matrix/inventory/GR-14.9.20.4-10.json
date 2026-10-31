@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.20.4-10",
+ "section": "14.9.20.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "INITIALIZE statement",
+ "rule-digest": "c2dc69a7b681",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandInitialize; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InitializeEmitter.cs#EmitAction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OccurrenceCounts.cs#Capacity",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/pb393_initialize_dyn_group; conformance:cases/14.9.20-INITIALIZE/dyn_initialize",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work/PB393.md landed. GR10's subject -- a GROUP CONTAINING a dynamic-capacity table -- is now the ordinary per-occurrence InitializeLoop over an AllCount.Capacity bound, with the element cursor writing through RefReceiving inside the bound so no element is created: \"all the elements of the table up to current capacity, if any, are initialized ... and the current capacity of the table is left unchanged\". It replaced an explicit `if (child.IsDynamicTable)` arm that staged COBOL1527 loud, a deferral written before GR10 was read. conformance:cases/14.9.20-INITIALIZE/pb393_initialize_dyn_group grows the table past its FROM seed first, so \"up to CURRENT capacity\" is proved at 3 rather than 2, and asserts the capacity is unchanged after. conformance:cases/14.9.20-INITIALIZE/dyn_initialize covers the sibling shape where identifier-1 IS the table; it is recorded here because it is genuine coverage of the same clause, but it is NOT what closes the row -- it never reaches the child walk. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#DynCapacity (kb/Work PB1144 moved INITIALIZE's private dynamic-capacity count into the shared OccurrenceCounts.Capacity (the 14.6.9.1 current count the variable-length group MOVE's element moves read too); same rule, one place)",
+ "state": "OK"
+}

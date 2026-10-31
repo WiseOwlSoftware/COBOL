@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.6.3-2",
+ "section": "14.9.6.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "CLOSE statement",
+ "rule-digest": "602041d5127b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs#VisitCloseStatement",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/pb141_close_forms; unit:FlagDirectiveTests.Compile_Flag02IoStatus07On_EmitsCobol1620_OnEachPhraseSpelling",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB141): both consumers of the CLOSE parse node now honour the REEL=UNIT equivalence. The binder always did (one ReelUnit kind); the FLAG-02 I-O-STATUS-07 predicate deliberately excluded REEL on a misreading of 7.3.14.4 GR4 c - by SR2 a CLOSE written with REEL specifies the UNIT phrase, so it flags identically now, and the FlagDirectiveTests theory pins all three spellings. pb141_close_forms shows REEL and UNIT FOR REMOVAL producing byte-identical behaviour ('07', file open). retired-witness: unit:FlagDirectiveTests.Compile_Flag02IoStatus07On_EmitsCobolnet1620_OnEachPhraseSpelling (the same witness, re-spelled when the product's name retired the compiler's first name (kb/Work PB3837: a test name carrying a code spells it COBOL####, kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

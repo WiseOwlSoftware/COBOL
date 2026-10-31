@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.27.4-9",
+ "section": "14.9.27.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "OPEN statement",
+ "rule-digest": "5d1aae6753b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+ "test-ref": "conformance:cases/14.9.27-OPEN/l1_open_no_first_record",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The first READ after OPEN INPUT delivers the FIRST record (nothing obtained); an OPEN OUTPUT and an OPEN EXTEND each followed immediately by CLOSE add no record (nothing released) - GR18 corroborating. retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753)) retired-witness: src/Cobol.Net.Runtime/IO/RelativeConnector.cs#OpenCore (the keyed OPEN arms are written once, in KeyedConnector.OpenCore, since both organizations drive the keyed store engine (kb/Work PB3334, PB2753))",
+ "state": "OK"
+}

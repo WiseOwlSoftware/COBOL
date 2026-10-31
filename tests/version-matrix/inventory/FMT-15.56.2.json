@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.56.2",
+ "section": "15.56.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "LOG10 function",
+ "rule-digest": "1d0ad8849bbc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FLOATLIT; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FN_SIGNED_DECIMALLIT; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SignedLiteralCanStart",
+ "test-ref": "conformance:cases/15.56-LOG10/l1_log10_format; conformance:cases/15.56-LOG10/l1-log10-two-arguments",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "15.56.2 'FUNCTION LOG10 ( argument-1 )' over every 15.3 type-10 argument shape plus the signed integer and signed-exponent floating literals, values exact from 15.56.4 r1 (log10 of powers of ten); the complement -- a second argument the format has no place for -- rejects with COBOL1504.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.7.3-6",
+ "section": "12.4.5.7.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "deab2c0a1494",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileCollatingSequenceClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CaptureFileCollating; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataName",
+ "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/l1-file-collating-key-subscripted",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1075: the Format-2 operand is a data reference, so a qualified key is legal; `COLLATING SEQUENCE OF IX-KEY (1) IS REV` is refused BY NAME through the one data-name-n capture DataBinder.ClauseDataName (COBOL2024: the operand is written with a subscript) instead of the former parse error COBOL0312.",
+ "state": "OK"
+}

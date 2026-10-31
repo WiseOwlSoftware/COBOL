@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.5.4-2",
+ "section": "8.4.3.5.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Object-view",
+ "rule-digest": "17ec698f2a9d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectView; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReferenceAtom; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.ObjectView.cs#OoBindObjectView; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoCreateObjectViewTemp; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitObjectView; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#ObjectView",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_object_view",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1019a). Class view, no phrase: USAGE OBJECT REFERENCE class; an object not of the class or a subclass sets EC-OO-CONFORMANCE (OK 2)). CobolObject.ObjectView<T>: `value is T`; failure -> ExceptionState.OoConformanceError (Table 13 fatal; the FatalAmbientGates row OoConformanceChecking, precise on BoundObjectView). Golden: a subclass object conforms (DERIVED); an unrelated PB1425VX -> HANDLED=EC-OO-CONFORMANCE with RESUME AT NEXT STATEMENT. [editions: the OO facility, 2002+]",
+ "state": "OK"
+}

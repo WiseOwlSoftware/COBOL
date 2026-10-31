@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.24.3-3",
+ "section": "7.3.24.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "SOURCE FORMAT directive",
+ "rule-digest": "680d03276c0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs#LibraryTextDefaultAt; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#Preprocess",
+ "test-ref": "conformance:cases/6.5-Logical-conversion/pb1067_library_text_source_format; unit:LibraryTextReferenceFormatTests.InheritedFormat_IsHandedOn; unit:LibraryTextReferenceFormatTests.DetectedFormat_FixedIsHandedOn_FreeIsNot",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1067 (w67m): the normalizer records a ReferenceFormatMap per text (the compilation group's registered by Frontend, each library text's by CopyProcessor); ResolveOneCopy looks the COPY statement's origin line up in the map of the text it is written in and starts the library text in that format (golden leg [LIB-FREE]: a copybook copied from free-form text is free). Determination (docs/CONFORMANCE.md): the compilation group's format, when no SOURCE directive states it, is DETECTED (documented extension over GR2, DEVLOG 931); a text detected fixed hands fixed on, a text detected free (no column structure — seven-space indentation is legal in both) hands nothing on and the library text is detected on its own.",
+ "state": "OK"
+}

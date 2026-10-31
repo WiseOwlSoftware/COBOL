@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.26.3-4",
+ "section": "14.9.26.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "MULTIPLY statement",
+ "rule-digest": "c0023066709a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+ "test-ref": "conformance:cases/14.9.26-MULTIPLY/l1c19-multiply-composite-giving-counted",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR4 'When native arithmetic is in effect, the composite of operands ... is determined by using all of the operands in the statement.' (cite --check 14.9.26.3 OK). Unlike ADD/SUBTRACT GIVING (which exclude receivers per their SR1b), MULTIPLY passes the GIVING receivers into the composite. Probe CP.cob: 9(5) x 9(5) GIVING 9(20)V9(11) = 31 accepted; MULTIPLY V9(12) BY 9(20) -> COBOL0805 (32); MULTIPLY 0.000000000001 BY B GIVING 9(20) -> 0805 (32, GIVING counted); not applied under STANDARD-DECIMAL (SD.cob). Note (14.7.7's subject, not this row): the cap is 31 at every edition, including --std 85, a documented reading in CheckComposite. No MULTIPLY composite negative golden (l1-add-composite-over-31 is ADD) -> test-needed. [code-location note: (CheckComposite('MULTIPLY',[a,b],recv) / ([a],byRecv))] || editions as adjudicated: 2002, 2014, 2023 (native arithmetic as a named mode; the composite cap itself is 14.7.7's)",
+ "state": "OK"
+}

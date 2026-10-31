@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.85.2",
+ "section": "15.85.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "STANDARD-COMPARE function",
+ "rule-digest": "0a649edd0a0d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare; unit:StandardCompareTests.TheClauseAndEveryReferenceShape_Compile",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB101 T7 (2026-08-18): FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ] [ argument-4 ] ) — the bespoke binder takes the two operands, then a bare ordering-name and/or an integer level in either order the format admits; ArgKinds ssoi ('o' = §15.3 argument type 12). Below 2002 the function is COBOL1502 (standard-compare-2002).",
+ "state": "OK"
+}

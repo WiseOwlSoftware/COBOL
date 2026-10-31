@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.12.1-1",
+ "section": "8.5.1.12.1",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Variable-length groups",
+ "rule-digest": "a2c0779ade29",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/GroupCompatibility.cs#Walk; src/WiseOwl.Cobol.Runtime/Values/GroupCompatibility.cs#Tail",
+ "test-ref": "conformance:cases/8.5.1.12-Variable-length-groups/pb204_vlg_boundary; conformance:cases/8.5.1.12-Variable-length-groups/pb204-nested-vlg-table-correspondence; conformance:cases/_unassigned/pb480_universal_variable_length_shapes; conformance:cases/8.5.1.12-Variable-length-groups/pb2689-dynamic-table-inside-shorter-group",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Condition 1 of the compatibility determination - 'For each dynamic-capacity table in either group there is a corresponding table in the other group as specified in 8.5.1.12.2, Positional correspondence' - is the dynamic-capacity arm of the ONE positional walk (kb/Work PB204). Correspondence is 8.5.1.12.2 sentence 2's 'at least one of them is a dynamic-capacity table and they occupy the same relative byte positions within their groups', computed over DataItem.ByteWidth, which already carries 8.5.1.12.3's two collapse conventions by construction (a dynamic-length item is zero bytes; a dynamic-capacity table carries no Occurs so a parent sums one element). The relation is CONSULTED at the activation boundary 14.8.2.2 / 14.8.3.2 name, through OoConformance.DescriptionMismatch - the one comparator shared by the Format-2 CALL, CALL RETURNING and INVOKE. POSITIVE: pb204_vlg_boundary crosses a matched dynamic-capacity pair at position 3 and the callee's growth returns to the caller. NEGATIVE: pb204-nested-vlg-table-correspondence puts a dynamic-capacity table opposite a non-table at the same position and is rejected naming this rule. 8.5.1.12.2's last-sentence latitude (a dynamic-capacity table beyond the shorter group's last character corresponds to a space-filled fixed-length table) is implemented in GroupCompatibility.Tail, for a table that starts AT or past the shorter group's end only: one that starts inside the shorter group's last item has no corresponding table (kb/Work PB2689; NEGATIVE conformance:cases/8.5.1.12-Variable-length-groups/pb2689-dynamic-table-inside-shorter-group). || kb/Work PB480 (w1031b): the walk moved to the runtime (GroupCompatibility.Walk over GroupAtom layouts) so the bind-time screens (VariableLengthCompatibility builds the atoms and words the reasons) and the run-time relation a universal INVOKE asks of two descriptions compiled apart are ONE copy; two variable-length groups of different shapes now cross both INVOKE lanes (CobolVarGroup.Reshape / Overlay) - conformance:cases/_unassigned/pb480_universal_variable_length_shapes. retired-witness: src/Cobol.Net.Compiler/Binding/Model/VariableLengthCompatibility.cs#Walk (kb/Work PB480 moved the 8.5.1.12 walk to the runtime (GroupCompatibility.Walk); VariableLengthCompatibility no longer has a Walk member)",
+ "state": "OK"
+}

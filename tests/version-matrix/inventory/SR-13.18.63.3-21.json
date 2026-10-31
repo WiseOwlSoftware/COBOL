@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-21",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 21,
+ "subject": "VALUE clause",
+ "rule-digest": "cd2275685bb7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.TableValue.cs#ScreenTableValueGeometry; src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#Compare",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb505_table_value_geometry; conformance-test:ValueFormat2Tests.ToLessThanFrom_Rejected1587; conformance-test:ValueFormat2Tests.MultiDimension_SuccessiveIsOdometerOrder_NotPerDimension; conformance-test:ValueFormat2Tests.SubscriptCountMismatch_Rejected1945",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-09-09 (kb/Work PB505). ALL THREE OBLIGATIONS, AT EVERY DIMENSION COUNT. The count sentence had no site (it now shares COBOL1945 with SR20's, the same requirement stated for subscript-2). The ceiling sentence is now per instance against its own dimension. And sentence 3 -- \"the table element associated with subscript-2 is the same occurrence or a successive occurrence of the table element associated with the corresponding subscript-1\" -- is now the ODOMETER comparison it is: 13.18.63.4 GR12 increments the LEAST inclusive subscript and carries into the next most inclusive one, so a tuple's place in the fill sequence is exactly its LEXICOGRAPHIC rank, and the test is Subscripts.Compare(to, from) >= 0. The scalar `t < from` it replaced was correct only because every tuple longer than one had already been refused; a per-dimension comparison would REJECT LEGAL SOURCE -- MEASURED: `FROM (1 3) TO (2 1)` on a 2x3 table names two SUCCESSIVE elements and now compiles and seeds ([AB]), while `FROM (2 1) TO (1 1)` precedes and draws COBOL1587. The over-rejection control still passes (`FROM (2) TO (2)`, the same occurrence). The lexicographic form also needs no dimension maxima, which matters because a DYNAMIC dimension may have none.",
+ "state": "OK"
+}

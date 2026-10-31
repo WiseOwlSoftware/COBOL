@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-12",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "PICTURE clause",
+ "rule-digest": "7f5655e33db3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#EditingPositions; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Render; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Materialize",
+ "test-ref": "conformance-test:PictureEditingTests.FixedSignControl_Renders; conformance-test:PictureEditingTests.MultiCharLiteral_RendersAtTheLiteralsWidth; conformance-test:PictureEditingTests.FloatingCharacter1_RendersAsAFloatingString; conformance:cases/13.18.40-PICTURE/pb491_editing_variable_width",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-09-19 (kb/Work PB491). GR12's aliasing - every reference to '+' applies to the POSITIVE phrase's literal and every reference to '-' to the NEGATIVE phrase's - now reaches BOTH arms it governs, not only fixed insertion with a one-character literal. The FLOATING arm (13.18.40.5 rule 6, Table 9) exists: rule 6's first sentence lists 'the extended editing sign control symbols, if specified' among the floating insertion symbols, so a FOR-phrase character-1 appearing twice or more is a floating string, and PictureComposition.MarkFloating now takes those letters as floating candidates instead of treating every character-1 as transparent. The MULTI-CHARACTER arm of Table 8 exists: EditRule carries literal-2/literal-3 as STRINGS and CobolEdit materializes them at GR14 'es' width. The two GREEN tests that pinned the GAP (MultiCharLiteral_StagedGap0899, FloatingCharacter1_StagedGap0899) are DELETED and replaced by the images Annex D.24 states. MEASURED: PIC L999.99 EDITING L FOR NEGATIVE IS \"DEBIT \" renders 'DEBIT 123.45' for -123.45 and six spaces then '123.45' for +123.45, SIZE 12; PIC LLLL9.99F with \"(\" and \")\" renders ' (123.45)', SIZE 9; PIC LLLL9.99 with \"DEBIT \" has SIZE 13, which is the arithmetic D.24 states outright.",
+ "state": "OK"
+}

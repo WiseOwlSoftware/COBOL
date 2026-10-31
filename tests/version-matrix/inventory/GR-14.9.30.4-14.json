@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-14",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "READ statement",
+ "rule-digest": "e85174ff8de7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RecordLengthShortLong; src/WiseOwl.Cobol.Runtime/IO/RecordLayoutNotice.cs#CheckFixedLengthFile",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/io_status_04",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "RULE: short -> right of the last valid character is undefined; long -> truncated on the right to the maximum size; either way SUCCESSFUL with '04'. cite.py --check 14.9.30.4 'the record is truncated on the right to the maximum size' -> OK 14.9.30.4 14). SequentialConnector.Read carries two record-sequential legs, both setting shortLong -> FileStatusCode.RecordLengthShortLong and both returning through ReadSucceeded (so the read IS successful and the record IS delivered): the FIXED leg (`if (n < RecordWidth) shortLong = true`, n==0 being EOF) and the RECORD IS VARYING leg (`if (n < VaryMin || n > VaryMax) shortLong = true`). Line sequential is correctly excluded (its short/long conditions are GR15's padding and '06'). BOTH HALVES VERIFIED. Short half: conformance:cases/9.1.13.2-Successful-completion/io_status_04 -- three 5-char records read through a 10-char FD gives S1=00 then S2=04 with the partial record right-padded. Long half (no golden exists, so probed): probe/gr14long/GR14LONG.cob writes a 10-byte record through an FD declared RECORD VARYING 1 TO 10 and reads it through a second FD over the same file declared RECORD VARYING 1 TO 5 -> 'LONG FS=04 REC=[ABCDE] LEN=0010' -- successful, '04', truncated on the right to the maximum size 5. Exactly GR14. FIXED-LEG MINIMUM: the fixed leg treats the record width as BOTH the minimum and the maximum fixed file attribute, which docs/CONFORMANCE.md section 3 pins as a behaviour determination ('fixed leg: shorter than the record width; varying leg: outside [VaryMin, VaryMax]') -- legitimate, since 9.1.13.2 item 3 defines '04' against 'the fixed file attributes for that file' and the implementor fixes those. ADJACENT OBSERVATION, NOT THIS ROW: the probe's DEPENDING item received 0010, the PHYSICAL length, after the record was truncated to 5 -- that is 13.18.43 GR15's rule (SequentialIoEmitter.EmitReadLengthStore over FileConnector.LastReadLength), outside this clause; flagged for whoever adjudicates 13.18.43. The 'undefined' right-hand portion is space-filled, which 'undefined' permits.",
+ "state": "OK"
+}

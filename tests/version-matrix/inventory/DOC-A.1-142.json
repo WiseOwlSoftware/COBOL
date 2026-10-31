@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-142",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 142,
+ "subject": "Program-address identifier (relation between address and non-COBOL program)",
+ "rule-digest": "8f70288f814b",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-142; src/WiseOwl.Cobol.Runtime/Control/ProgramRegistry.cs#EntryOfOperand",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/w59h_non_cobol_names_not_found",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in WiseOwl COBOL ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the program-address-identifier (ADDRESS OF PROGRAM) is a COBOL-2002 introduction.",
+ "state": "OK"
+}

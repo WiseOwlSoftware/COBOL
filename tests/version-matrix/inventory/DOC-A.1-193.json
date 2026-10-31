@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-193",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 193,
+ "subject": "STOP and GOBACK statements (mechanism for error termination)",
+ "rule-digest": "556eb4949d4f",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-193; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#SetExitStatus; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#ExitStatus",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Derived: a1-optional-not-provided (kb/Work PB280 Q1 — an A.1-OPTIONAL item whose §7 row opens 'Not provided.' is DOCUMENTED-NON-SUPPORT). Determination evidence (PB1522 step 3): Optional item not provided (PB280 Q1 convention). cite.py --check 14.9.42.4 'unless error termination has been indicated by an implementor-defined mechanism' -> OK §14.9.42.4 4); --check 14.9.18.4 'implementor-defined mechanism' -> OK §14.9.18.4 9). Code: StatementEmitter.cs:113-114 emits SetExitStatus only when a status phrase is present ('No status phrase => no SetExitStatus (exit stays 0)'); RunUnit.ExitStatus has no other writer (CallEmitter GOBACK arm likewise phrase-only). Probes probe/p193: STOPRUN.cob exit 0 at 85 and 2023; GOBACK.cob exit 0 at 2023 (GOBACK is COBOL0880 at 85); rc.cob MOVE 5 TO RETURN-CODE -> COBOL1639. StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode InlineData 'STOP RUN.' -> 0 and 'GOBACK.' -> 0. The existing §3 prose that labels the GR2/GR3 ERROR/NORMAL mapping 'item 193' should be relabelled by the integrator (that mapping belongs to item 192). Adjacent open kb/Work/PB1178 concerns the ERROR/STATUS value precedence (item 192), not this item. Owning note: kb/Work/PB1534, PB280.",
+ "state": "OK"
+}

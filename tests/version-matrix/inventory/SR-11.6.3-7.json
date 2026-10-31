@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.6.3-7",
+ "section": "11.6.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "INTERFACE-ID paragraph",
+ "rule-digest": "adf3844a60df",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#AddSkeleton",
+ "test-ref": "conformance-test:ParameterizedClassTests.RepeatedParameterName_2239",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. INTERFACE-ID USING T T -> COBOL2239 (the test is the interface arm).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.7.5.2-1",
+ "section": "8.7.5.2",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Relational operators",
+ "rule-digest": "cf536f66a4fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MapOperator",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/l1c26_relational_operator_spellings",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The existing golden cites SR1 and exercises all six Format 1 spellings plus the abbreviated-position forms (rows GT/LT/EQ and AB); every .out line was re-derived.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.35.4-22",
+ "section": "14.9.35.4",
+ "kind": "GR",
+ "ordinal": 22,
+ "subject": "REWRITE statement",
+ "rule-digest": "194a97fb0600",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#OrderOf",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1c26_rewrite_indexed_prime_key",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "NOW (kb/Work PB3334, INDEXED on the keyed store engine): the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): the prime-key equality of GR22 is the prime key order's (IndexedConnector.Rewrite). Rule: indexed ACCESS SEQUENTIAL - the prime key of the record to be replaced shall equal the prime key of the last record read, else unsuccessful with '21'. cite.py --check 14.9.35.4 -> OK 22). IndexedConnector.Rewrite (Access == Sequential) compares KeyOf(image, PrimeKey) with _lastReadPrime through IndexedConnector.OrderOf (collating-sequence equality) and returns SequenceError '21' with no update. Probe probe/rewrite-statement-p2/p1.cob: READ K001, MOVE \"K002\" TO key, REWRITE with INVALID KEY -> IK21 taken, NIK21 not, KEYCHG=21, record area unaffected (K002A01V01), K002 not overwritten (READ2 = K002A02V02). The collation-equal half is pinned by conformance:cases/_unassigned/ca17_indexed_rewrite_collating (FS=00 under ALPHABET A ALSO a), but no spec-derived golden pins the '21' outcome itself (KeyedIoDifferentialTests are legacy differential, disqualified) -> test-needed for the '21' arm. [editions as adjudicated: 1985, 2002, 2014, 2023] retired-witness: src/Cobol.Net.Runtime/IO/IndexedConnector.cs#KeyEq (the INDEXED organization moved to the keyed store engine (kb/Work PB3334; DESIGN-runtime-library 2.2.1.4): the prime-key equality of GR22 is the prime key order's (IndexedConnector.Rewrite))",
+ "state": "OK"
+}

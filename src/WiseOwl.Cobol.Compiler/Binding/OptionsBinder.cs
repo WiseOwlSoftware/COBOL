@@ -3,6 +3,7 @@
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
 namespace WiseOwl.Cobol.Binding;
@@ -163,6 +164,7 @@ internal static class OptionsBinder
     {
         if (m.STANDARD_BINARY() is not null)
         {
+            using var at = edition?.At(m);   // the clause's own position (kb/Work PB2034), as DeclineFloatDecimal's
             edition?.Error("COBOL0806", "ARITHMETIC IS STANDARD-BINARY is a processor-dependent language "
                 + "element (ISO Annex A.3 item 2) for which support is not claimed (§4.2.6); it is also obsolete "
                 + "(§8.8.1.4.1 NOTE 1 / Annex F.2 item 3). Use NATIVE or STANDARD-DECIMAL");
@@ -184,7 +186,11 @@ internal static class OptionsBinder
     private static OptionsModel DeclineFloatDecimal(OptionsModel m, Core.FloatDecimalClauseContext clause,
         EditionContext? edition)
     {
-        if (edition is null) return m;
+        // Below 2014 the clause is not this edition's to decline: the pass's COBOL0900 (options-float-decimal-2014)
+        // is the whole answer, and a COBOL2424 warning beside it would name a 2014 facility to a 2002 program
+        // (kb/Work PB916's mechanism, found at this sibling site: StatementBinder.BindDeclinedMcs is the precedent).
+        if (edition is null || !ConstructRegistry.IsAvailable(edition.Edition, Constructs.OptionsFloatDecimal2014))
+            return m;
         using var _ = edition.At(clause);
         edition.Declined(DiagnosticCatalog.FloatDecimalClauseUnsupported);
         return m;

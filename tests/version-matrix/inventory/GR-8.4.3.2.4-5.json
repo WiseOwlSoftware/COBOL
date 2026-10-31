@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.2.4-5",
+ "section": "8.4.3.2.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Function-identifier",
+ "rule-digest": "a19be35a5596",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfArg; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#IsReferenceIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#PermitsReceiving; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb1418_function_argument_manner; unit:ReceivingResolutionDriftTests.TheReceivingChokepoint_AsksTheConstantRecordRule; conformance:cases/8.4.3.2-Function-identifier/pb3760_function_parenthesized_literal_group_formal_refused; conformance:cases/14.9.4-CALL/pb3760_literal_and_expression_arguments",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1418 landed (w61h). GR5 (cite.py --check 8.4.3.2.4 'is an identifier that is permitted as a receiving operand, other than an object property or object data item' -> OK §8.4.3.2.4 5)). a) BY REFERENCE only for a sole data reference that resolves to a data item, is not an object property or object data item, and passes ExpressionBinder.PermitsReceiving - the SAME prohibition table (ReceivingFormBar/ReceivingPlaceBar) ResolveReceiving reports; b) BY CONTENT for a literal, an arithmetic or boolean expression (CALL's ContentBool channel), a function-identifier (§8.4.3.2.3 SR1), an object property/object data item, and a non-receivable identifier (a CONSTANT RECORD item, §13.18.15.3 SR2); c) BY VALUE for a BY VALUE formal. Measured: CONSTANT RECORD argument -> R=0006 C=0005 (was C=0006); WB B-AND B'1010' -> B=1000 (was COBOL1506). The figurative-constant argument form is SR8's residue (row SR-8.4.3.2.3-8), not a manner question.",
+ "state": "OK"
+}

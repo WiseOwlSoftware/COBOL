@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-9",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "SET statement",
+ "rule-digest": "3aa1eadfa86a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitSetObjectRef; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef",
+ "test-ref": "conformance:cases/9.3.6-Method-invocation/pb389_object_reference_descriptor; conformance:cases/14.9.39-SET/oo_universal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB389.md LANDED. GR9 -- 'a reference to the object identified by identifier-4 is placed into each data item referenced by identifier-3 in the order specified'. It was PARTIAL for two reasons and both are closed. (1) SR12 enumerates four alternatives for identifier-4 and the compiler could not EXPRESS two of them (an ACTIVE-CLASS reference and a FACTORY OF reference), so GR9 could never execute for those operands; the descriptor makes all four writable and EmitSetObjectRef renders the same reference copy for each. (2) The 'each ... in the order specified' half was pinned by no shipped test -- every existing golden had ONE receiver per statement. The golden now writes `SET B B2 TO D.` and invokes through BOTH, printing DERIVED twice; placing the reference into only the first receiver leaves B2 null and raises EC-OO-NULL.",
+ "state": "OK"
+}

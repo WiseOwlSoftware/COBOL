@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.11.2",
+ "section": "8.4.3.11.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Data-address-identifier",
+ "rule-digest": "aafcdc6a4110",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataAddressIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addressIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setAddressSender; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveForAddressOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#AddressOfText",
+ "test-ref": "conformance:cases/8.4.3.11-Data-address-identifier/address_of_qualified; conformance:cases/8.4.3.1-Identifier/pb1407_address_of_reference_modified",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1407. The one shape the format refused, a reference-modified identifier-1 (legal per 8.4.3.11.3 SR4 a)), is admitted through the ONE ref-mod admission (ReferenceResolver.ReadScreenedRefMod) and addresses its leftmost position (8.4.3.11.4 GR1 over 8.4.3.3.4 GR5), range-checked by the same CobolString test as a read. The OF-omitted, qualified, subscripted, relation-operand and CALL/INVOKE shapes were already witnessed.",
+ "state": "OK"
+}

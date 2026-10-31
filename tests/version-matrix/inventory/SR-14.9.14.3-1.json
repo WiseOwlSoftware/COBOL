@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.14.3-1",
+ "section": "14.9.14.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "EXIT statement",
+ "rule-digest": "b4b28175008f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#RefusedOutOfSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#StatementPosition; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement",
+ "test-ref": "conformance:cases/14.9.14-EXIT/pb397-exit-not-alone; conformance:cases/14.9.14-EXIT/pb397_sequence_placement_legal; conformance-test:StatementSequencePlacementTests.BareExit_NotAloneInItsParagraph_IsRefused; conformance-test:StatementSequencePlacementTests.BareExit_InASentenceByItselfAloneInItsParagraph_IsAccepted; unit:StatementSequenceDriftTests.SentencesInParagraph_CountsTheParagraphsSentences",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB397. A bare (Format 1) EXIT is refused (COBOL2966) unless it is the only statement of its sentence AND that sentence is the only one of its paragraph (section header runs and the procedure-division header run are paragraphs by 14.4.3, so a section without paragraphs is one such paragraph). Asked once by the statement funnel through StatementPosition, a parse-tree view; an EXIT written inside an IF or other statement is not in a sentence by itself. EXIT PERFORM/PARAGRAPH/SECTION/PROGRAM are Formats 2-4 and not governed.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-10",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "DELETE statement",
+ "rule-digest": "08ff3c4221fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteRecord",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate; unit:FileStatusDisciplineTests.Delete_OpenInput_Is49; unit:FileStatusDisciplineTests.Delete_RandomMissingKey_Is23; conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/file_sharing_mutate",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB140): the two fall-through arms that returned '30' WITHOUT SetStatus are gone - an unregistered name or a misrouted organization now throws the LOUD compiler-defect invariant (FileRegistry.Require / MisroutedVerb), unreachable from conforming source since the SD screens reject at bind time; every remaining DeleteRecord arm assigns through the connector's Status. The one-statement-two-channels split (branch local '30', FILE STATUS item '00') cannot recur because FileRegistry.Status no longer fail-opens. The '43' arm is pinned by pb140_read_gate (DEL1=43), '49' and '23' by the two unit facts; '51'/'00' were already pinned by file_sharing_mutate.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.4.3-5",
+ "section": "12.4.6.4.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "SAME clause",
+ "rule-digest": "6d3deb9a964c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#SameOccurrenceRule; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenSameClauses",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087-same-report-file-record-area; conformance:cases/12.4.6.4-SAME/pb1087-same-report-file-two-file-areas; conformance:cases/12.4.6.4-SAME/pb1087_same_clauses_legal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1087 (wave 1011 B2). cite.py --check 12.4.6.4.3 'A given file-name that represents a report file may be specified in one file-area format SAME clause' OK SR5. One occurrence table (file kind x format -> allowed count) serves SR5, SR6 and SR7; the report row is (file-area 1, record-area 0, sort-merge-area 0). Positive half: SAME AREA FOR R1 F4 in the golden.",
+ "state": "OK"
+}

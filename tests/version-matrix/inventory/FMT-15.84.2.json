@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.84.2",
+ "section": "15.84.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SQRT function",
+ "rule-digest": "0abf81904bf8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/15.84.4-Returned-value-rules/pb52_intrinsic_argument_stage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CONFORMS. The general format, read at specs/ISO_COBOL.md:33307-33309, is `FUNCTION SQRT ( argument-1 )` with FUNCTION and SQRT both UNDERLINED — required words — and exactly one argument inside required parentheses; there is no optional phrase, no ellipsis, and no second format. READ, GRAMMAR: src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4 line 333 — `: FUNCTION functionName (FNARG_LPAREN functionArgList? FNARG_RPAREN)? refModPart*` — so the FUNCTION keyword and the name are both required at this production, and the argument list's '(' is lexed in the dedicated FNARG mode so §8.4.3.2 SR6 ('that ( is ALWAYS the argument list') holds rather than the '(' being read as a subscript or a grouping paren. The optionality of the paren group in the grammar is deliberate (it serves the zero-argument functions) and does NOT leak into SQRT: the arity is the CATALOG's. READ, ARITY: IntrinsicCatalog.cs#Build line 133 — Add(new(\"SQRT\", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, \"n\", \"Sqrt\", IntrinsicBind.Runtime, true, 85)) — MinArgs = MaxArgs = 1, enforced at IntrinsicBinder.cs#BindIntrinsicCore lines 572-579: `if (given < sig.MinArgs || given > sig.MaxArgs)` -> COBOL1504 'FUNCTION SQRT takes 1 argument(s); N given (ISO §15.3)'. So a bare `FUNCTION SQRT` (given 0) and `FUNCTION SQRT(A B)` (given 2) are both rejected with the §15.3 citation. The FUNCTION-omitted spelling (§8.4.3.2.3 SR2, a REPOSITORY INTRINSIC declaration) is gated the same way — IntrinsicBinder.cs lines 301 and 339 both refuse to route a name written without an argument list unless sig.MinArgs == 0, which SQRT's is not. The row's IntrinsicType.Numeric matches §15.84.1's 'The type of this function is numeric'. GOLDEN: conformance:cases/15.84.4-Returned-value-rules/pb52_intrinsic_argument_stage writes the format both ways argument-1 can be spelled (a data item, `FUNCTION SQRT(NI)`, and a literal, `FUNCTION SQRT(4)`), each pinned to 2.00 in the .out. NOT COVERED: there is no SQRT-specific arity negative fixture; the COBOL1504 guard is catalog-driven and generic, so a SQRT-specific one could only re-test the shared guard. EDITIONS: the format is unchanged across the four editions (SQRT is a 1989 Intrinsic Function Module amendment function); batch default.",
+ "state": "OK"
+}

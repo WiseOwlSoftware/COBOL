@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.32.3-3",
+ "section": "15.32.3",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "EXCEPTION-STATEMENT function",
+ "rule-digest": "0bac494f8820",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap",
+ "test-ref": "conformance:cases/15.32.3-Returned-value-rules/l1_exception_statement_table12",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GO TO is Table 12's only multi-word Statement name; the golden writes it with the optional word TO omitted (underlining read off printed folio 630), so only a Table-12 lookup can answer 'GO TO'. MOVE and RAISE legs prove the map is per statement KIND.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.4.4-7",
+ "section": "7.2.4.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "REPLACE statement",
+ "rule-digest": "b852ae2eee8b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReplaceStates",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1357_replace_also_last; unit:TextManipulationStatementTests.AlsoStacks_CurrentFirst_AndLastOffPops; unit:TextManipulationStatementTests.WithoutAlso_TheQueueIsCanceled_AndOffCancelsAll",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1357 (w68x): a) ALSO pushes the active statement and activates the current operands followed by the pushed ones (cite.py OK 7.2.4.4 7) a) 2.) - golden [CCBB] proves current-first; b) a plain format 1 cancels the active one and the queue ([X1-CC]); c) LAST OFF pops ([AABB], [AAX2-]) and with an empty queue leaves none active ([X1-X2-]); d) OFF cancels all ([X1-X2-] after OFF + LAST OFF).",
+ "state": "OK"
+}

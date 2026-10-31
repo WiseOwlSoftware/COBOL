@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.12.4-3",
+ "section": "14.9.12.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "DIVIDE statement",
+ "rule-digest": "98e92396418d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap",
+ "test-ref": "conformance:cases/14.6.13.2-Incompatible-data/pb230_incompatible_sending_sweep; conformance-test:OnSizeErrorDifferentialTests.ProhibitedInexact_EditedReceiver_FiresSizeError_Unchanged; conformance-test:ExceptionConditionConformanceTests.SizeError_ZeroDivide_DeclarativeSeesPreciseName_ReceiverUnchanged",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Citation validated: `cite.py --check 14.9.12.4 \"Additional rules and explanations relative to this statement are given in\"` -> OK, GR 3. A pointer rule; conformance means all FOUR named facilities reach DIVIDE, and the fourth now does (kb/Work PB230). 14.6.13.2 rule 2 previously had no raise site anywhere - EcBinder.EcWrap gated EC-DATA-INCOMPATIBLE on `node is BoundMove`, so `DIVIDE A INTO B` over a DISPLAY window holding 'AB1' decoded deterministically and continued in silence even under `>>TURN EC-DATA-INCOMPATIBLE CHECKING ON`. The gate is now ambient and the raise rides the sending read (CobolNum.ParseImageSending); pb230_incompatible_sending_sweep pins DIVIDE at L5 (`DIVIDE N INTO 100 GIVING R` raises, R unchanged at 00000 after the declarative's RESUME AT NEXT STATEMENT) in one sweep with every other arithmetic statement class, which is the right shape because this was ONE predicate written in ONE place, not a per-verb defect. The other three were already wired: 14.7.4 ROUNDED through ExpressionBinder.RoundingOf (RoundedDifferentialTests.DivideGivingRounded_ModeIs, and the DIVIDE row of ProhibitedInexact_EditedReceiver_FiresSizeError_Unchanged); 14.7.5 SIZE ERROR as ArithmeticEmitter.EmitArith's two-phase shape (DivideByZero_FiresOnSizeError_ReceiverUnchanged; SizeError_ZeroDivide_DeclarativeSeesPreciseName_ReceiverUnchanged); 14.7.7 as StatementValidation.CheckComposite plus the Snapshot discipline, with rule 4b's per-receiver GuardedStore landed by PB129.",
+ "state": "OK"
+}

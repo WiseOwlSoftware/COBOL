@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.17.4-1",
+ "section": "13.18.17.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "DEFAULT clause",
+ "rule-digest": "271eadc2e1ee",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.17-DEFAULT/declined-validate-default",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1, \"An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor\", and its second sentence carrying the licence to the module's unlisted rules. Obsolescence (F.2 item 5) is corroboration, never the licence (kb/Work PB198). §13.18.17 is wholly VALIDATE content (§13.18.17.1: \"during the format validation stage of the execution of a VALIDATE statement\"); the clause is refused BY NAME, where it previously drew a bare \"no viable alternative at input 'DEFAULT'\".",
+ "state": "OK"
+}

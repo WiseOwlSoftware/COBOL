@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.6.3-3",
+ "section": "12.3.6.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "30e261b648a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ResolveClassification; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ClassificationPhrase; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#ResolveLocaleName",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5-classification-name-undeclared; conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19): locale-name-1 / locale-name-2 of the CHARACTER CLASSIFICATION clause resolve through the ONE undeclared-locale-name diagnostic (COBOL1664, citing this rule) against the SPECIAL-NAMES LOCALE clause's names — the negative pins an undeclared name; the golden binds a declared one (tr-TR). LOCALE / SYSTEM-DEFAULT / USER-DEFAULT are the other locale-phrase alternatives, matched by text (§8.9 context-sensitive words), never resolved as names.",
+ "state": "OK"
+}

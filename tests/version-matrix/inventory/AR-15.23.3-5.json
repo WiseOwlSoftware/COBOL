@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.23.3-5",
+ "section": "15.23.3",
+ "kind": "AR",
+ "ordinal": 5,
+ "subject": "DATE-TO-YYYYMMDD function",
+ "rule-digest": "fe4e90e187a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearToYyyy; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DateToYyyymmdd; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#CurrentDate; src/WiseOwl.Cobol.Runtime/IO/Clock.cs#SystemClock; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4",
+ "test-ref": "conformance:cases/15.23.3-Argument-rules/l1_windowing_omitted_arg3",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "r5 states an evaluation equivalence over a clock reading, so the golden asserts the equivalence rather than a value. r5's expression may not be WRITTEN in argument-3 (§8.4.3.2.3 SR11 over §15.67.1 and §15.23.3 r4), so it is staged through an integer item by a COMPUTE and the omitted form is compared against the explicit one. The window boundary is put ON the execution year (YY = MOD(CY,100), argument-1 = YY*10000+1003) and the identity asserted at argument-2 = 0 AND argument-2 = -1, so by §15.100.4 a one-year skew low breaks the first probe and one-year skew high the second — the fixed 851003/10 shape it replaced was constant across a ~100-year band. Clock-free witnesses beside it: mmdd = 1003 by §15.23.4 r1, and two explicit argument-3 values that must differ (18851003 / 19851003).",
+ "state": "OK"
+}

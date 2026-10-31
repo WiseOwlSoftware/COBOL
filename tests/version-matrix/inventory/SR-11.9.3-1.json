@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.9.3-1",
+ "section": "11.9.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "OPTIONS paragraph",
+ "rule-digest": "41a61b19d465",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#optionsParagraph",
+ "test-ref": "conformance:cases/11.9-OPTIONS/l1c20-options-clause-no-period; conformance:cases/11.9-OPTIONS/pb1508_options_period_bracket",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'If any of the clauses are specified, then there shall be a terminating separator period.' cite.py --check 11.9.3 \"If any of the clauses are specified, then there shall be a terminating separator period.\" -> OK  §11.9.3 1). CODE: `optionsParagraph : OPTIONS DOT (optionsClause+ DOT | DOT)? ;` - the first alternative is this rule (a written clause carries the terminating DOT, so a clause without the period cannot parse), the second is §11.9.2's independent `[.]` bracket written with no clause (`OPTIONS. .`, kb/Work PB1508), and omitting both is `OPTIONS.` alone. MEASURED: noperiod.cob (`OPTIONS.` + `DEFAULT ROUNDED MODE IS TRUNCATION` with no period, then DATA DIVISION) is rejected at 2014 and 2023 with COBOL0307 \"unexpected 'DATA'. A period may be missing at the end of the previous sentence.\" (the l1c20 negative); a clause with its period, `OPTIONS.` alone and `OPTIONS. .` compile and run at 2002/2014/2023 (the 2002 golden pb1508_options_period_bracket). At 85 the paragraph itself is refused, COBOL0804. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (not 85): the OPTIONS paragraph is a 2002 element (its ARITHMETIC clause's Standard Arithmetic was obsolete in 2014 and removed per Annex E.2 item 21); the seven-clause list is the 2023 format - initialize-clause is new in 2023 (Annex E.3 item 33), the other five non-ARITHMETIC clauses 2014",
+ "state": "OK"
+}

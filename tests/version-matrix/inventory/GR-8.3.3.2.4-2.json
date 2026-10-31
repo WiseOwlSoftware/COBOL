@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.2.4-2",
+ "section": "8.3.3.2.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Alphanumeric literals",
+ "rule-digest": "d6ddf594546b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericLiteralOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperandOf",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/pb399-evaluate-range-class-mix; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1663_inspect_hexadecimal_alphanumeric_literal; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1078_assign_hex_and_concat_literal; conformance:cases/8.3.3.2-Alphanumeric-literals/da3_hex_literal_operand",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED kb/Work PB1127 / PB1663 / PB1078. The two positions the refuter measured still refusing a hexadecimal-alphanumeric literal both take it now: INSPECT's operand arm goes through the one NonNumericLiteralOperand mapping (pb1663: FOR ALL X\"41\", REPLACING ALL X\"4142\", CONVERTING X\"414243\"), and ASSIGN TO X\"...\" is admitted by AssignTargetRule (pb1078). The relation / MOVE / intrinsic positions were pinned by da3_hex_literal_operand. Class alphanumeric of a digit-only alphanumeric literal in arithmetic stays refused (pb399).",
+ "state": "OK"
+}

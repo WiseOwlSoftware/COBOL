@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.7.4-2",
+ "section": "11.7.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "4a0f5cab2daf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/oo_override_final",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 11.7.4 \"The OVERRIDE phrase indicates that this method overrides the inherited method.\" -> OK. MarkRoster links m.OverrideOf = baseM and adopts the base slot's CsName; emission per the D7 table renders `override` (sealed override when FINAL). Golden oo_override_final: DOG overrides SPEAK and virtual dispatch through an ANIMAL-typed reference prints WOOF. Probe p13 (2002/2023): B's `M AS \"XM\" OVERRIDE IS FINAL` is reached via an A-typed reference (B-M). || Editions (adjudicator, verbatim): 2002, 2014, 2023 (METHOD-ID is part of the OO facility introduced by COBOL 2002; absent at 1985) || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build (MarkRoster: OverrideOf / CsName adoption); src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
+ "state": "OK"
+}

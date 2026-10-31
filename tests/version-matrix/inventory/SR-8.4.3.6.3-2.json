@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.6.3-2",
+ "section": "8.4.3.6.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "EXCEPTION-OBJECT",
+ "rule-digest": "e7dfe8579512",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExceptionObjectRegister; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#ExceptionObjectPlace; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#IsExceptionObjectRegister; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#Read; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#ExceptionObjectRead",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb922_exception_object_reference; conformance:cases/_unassigned/pb922_exception_object_user_word_85; conformance:cases/8.4.3.6-EXCEPTION-OBJECT/pb922-exception-object-receiving",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB922 (wave 42) - RULE (cite.py --check 8.4.3.6.3 'EXCEPTION-OBJECT is implicitly described as class object and category object reference, as an external data item, and as a universal object reference'): OK, SR2. The STANDARD declares this name and no data description entry does, so a resolver that does not know it answers 'is not defined' about a name that is defined - which is what every sending reference got. DataBinder.ExceptionObjectRegister now carries SR2's implicit description (PicInfo.ObjectReferenceItem(ObjectRefDescriptor.Universal)) and ReferenceResolver resolves the bare word to an ExceptionObjectPlace over it, beside the CAPACITY and DEBUG-ITEM registers, so every class/category screen reads it like any other object-reference item and every caller inherits the answer. It is a VIEW, never storage: 8.4.3.6.4 GR2 gives the run unit ONE instance, which is the runtime's ExceptionState, and PlaceRenderer renders the read (fully qualified, because a reference to it needs neither the EC model nor a class and the conditional 'using' would otherwise leave the backend with CS0103 on generated C# the user cannot see). MEASURED at 2002 and 2023: IF EXCEPTION-OBJECT = NULL is legal source and true when no exception object is associated with the current exception (GR1); SET U TO EXCEPTION-OBJECT copies that reference; two references denote the same instance (GR2). SR2's 'as an external data item' is deliberately NOT carried as HasExternalClause - that flag drives the 13.18.22 EXTERNAL-store re-basing of a DECLARED record, and what the phrase asserts (one instance per run unit) is already realized by the single ExceptionState. ExceptionObjectPlace is registered in PlaceStorageFormSwitchDriftTests' storage-form roster, so a switch that meets it in a catch-all is a failing test.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.9.1-1",
+ "section": "8.5.1.9.1",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Dynamic-capacity tables",
+ "rule-digest": "d4b46e27d854",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#GroupTarget; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#RefReceiving",
+ "test-ref": "conformance:cases/8.5.1.9-Dynamic-capacity-tables/dyn_implicit_grow; conformance:cases/8.5.1.9-Dynamic-capacity-tables/pb1411_dyn_vargroup_element_receiver; unit:GroupStoreTargetDriftTests.EveryPlaceRendererGroupStore_ReceivesThroughGroupTarget; conformance:cases/8.5.1.9-Dynamic-capacity-tables/dyn_nested_group_move",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1411 (landed w67o). The refuter's PARTIAL shape: a variable-length group ELEMENT of a dynamic-capacity table as a receiver rendered through RefSending (WriteVarGroupImage's Read(group)), so MOVE past the capacity wrote into scratch. Every group-level store in PlaceRenderer (FromImage, FromVarImage, FromContiguousImage, FromBits, FromNat) now calls its receiver through ONE helper, GroupTarget, which takes RefReceiving for a DynTablePlace; the drift test fails any store whose receiver is not GroupTarget. Witness: MOVE SRC TO EL (3) -> ELC=3, EA3=ZZ, EB(3,1..2)=B01,B02.",
+ "state": "OK"
+}

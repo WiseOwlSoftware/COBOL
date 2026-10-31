@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.22.3-4",
+ "section": "13.18.22.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "EXTERNAL clause",
+ "rule-digest": "f1a4663f029b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsageDeclaration.cs#CheckUsageDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsageDeclaration.cs#ScreenExternalClassItem",
+ "test-ref": "conformance:cases/13.18.22-EXTERNAL/pb231-external-pointer-item; conformance:cases/13.18.22-EXTERNAL/pb1026_external_out_of_line_records; conformance:cases/13.18.22-EXTERNAL/pb1212-external-type-of-class-pointer; conformance:cases/13.18.22-EXTERNAL/pb1212-external-type-of-class-object; conformance:cases/13.18.5-BASED/pb1212_composed_entry_class_rules_legal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(kb/Work PB1212) EXTERNAL on an entry whose class pointer/object comes from its TYPE clause is refused COBOL1796, as the direct spelling is.",
+ "state": "OK"
+}

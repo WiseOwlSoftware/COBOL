@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.6.4-7",
+ "section": "14.9.6.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "CLOSE statement",
+ "rule-digest": "239454c575d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb235_same_record_area_close",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB235). GR7's two halves, both settled and the observable one now PINNED rather than accidental. HALF (a) - if file-name-1 is in a SAME RECORD AREA clause and any OTHER file connector named in that clause is open, the area stays AVAILABLE after the CLOSE - is the half a program can observe, and it holds STRUCTURALLY: DataBinder.BindIoControl binds Format 2 by pointing every member's first record at one shared anchor (12.4.6.4.4 GR2, cite.py OK), so the area is a live typed field of the emitted program class for the whole runtime element and no CLOSE path can take it from a still-open sibling. pb235_same_record_area_close is the spec-derived golden that measures it end to end: two files in ONE SAME RECORD AREA clause, a READ of FA filling the shared area, a CLOSE FA while FB is open leaving the record readable through both record-names, a READ of FB then making the area FB's record (12.4.6.4.4 GR2's 'most recently-read file open in the input mode'), and a CLOSE FA UNIT proving the UNIT phrase changes nothing - GR7 governs 'the CLOSE statement WITHOUT the UNIT phrase'. The clause's binding site now CITES GR7, so the rule is written down where the area is created. HALF (b) - with no member open, a successful CLOSE makes the area UNAVAILABLE - carries NO OBSERVABLE OBLIGATION: the standard defines no behaviour for referencing an unavailable record area, and Annex A.2 item 5 makes the unsuccessful-CLOSE case outright undefined ('The unsuccessful execution of the CLOSE statement without the UNIT phrase leaves the availability of the record area undefined'). It is therefore a DETERMINATION, not an implementation gap, and it is stated at docs/CONFORMANCE.md 7 (A.1 item 24): the storage keeps its last content for the life of the runtime element - the answer every surveyed implementation gives - and the golden's final line pins it, labelled in the source as the determination rather than as the standard's answer so it cannot be misread as a conformance claim. The previous PARTIAL's charge that 'the implementation cannot tell case (a) from case (b)' is answered by that determination: under it the two cases have the same realization, so there is nothing to tell apart.",
+ "state": "OK"
+}

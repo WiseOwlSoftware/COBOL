@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.2.3.2-L2.6",
+ "section": "14.6.2.3.2",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "Initial and last-used states of data",
+ "rule-digest": "4c77cf817cfd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#FieldInit; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.TableValue.cs#ResolveTableValues; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#CobolDynTable; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs#GrowTo",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb500_format1_value_dynamic_table; conformance:cases/13.18.38-OCCURS/dyn_initialized; conformance-test:OccursDynamicGuardTests.GroupSubordinateValueWithTo_CompilesAndOpensAtMinimumCapacity",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-09-13 (kb/Work PB500). BOTH SENTENCES OF ITEM 6, INCLUDING THE EXCEPTION CLAUSE. Sentence 1, \"For each dynamic-capacity table, except where the table is defined by an elementary entry with a VALUE clause, the capacity of the table is set to the minimum capacity specified in the corresponding OCCURS clause\": ValueInitializer.FieldInit opens every CobolDynTable at `OccursSpec.InitialCap ?? 0` (13.18.38.4 GR16's minimum) and raises it only for the EXCEPTION, which is the 13.18.63.4 GR16 Format-2 derivation DataBinder.ResolveTableValues accumulates into DataItem.TableValueInitialCapacity. Sentence 2, \"If the INITIALIZED keyword is present in the OCCURS clause, all the occurrences, if any, of the table are then initialized\": CobolDynTable's constructor seeds every occurrence it opens through the one-occurrence initializer, per 8.5.1.9.5's \"as though they had been the subject of a statement of the form INITIALIZE ... WITH FILLER ALL TO VALUE THEN TO DEFAULT\". THE EXCEPTION CLAUSE'S SCOPE IS THE ONE READING THIS ROW TAKES A POSITION ON, and the position is robust rather than a choice: it carves out the capacity a VALUE clause derived, so it reaches only 13.18.63.4 GR16, a FORMAT 2 rule; for a FORMAT 1 VALUE the number is the minimum either way, because 8.5.1.9.1 gives the same answer from the other side -- \"The current capacity of a dynamic-capacity table may be initialized explicitly in the FROM phrase of the OCCURS clause or implicitly in the VALUE clause. If neither is specified, the current capacity is initialized to zero\" -- and GR16 is the only \"implicitly in the VALUE clause\" mechanism that exists. The row was a GAP because a COBOL1528 refusal rejected the whole Format-1-VALUE population before any capacity was computed; that refusal is deleted. MEASURED, golden pb500_format1_value_dynamic_table: minimum capacity at lines 1-4 (3, 2, 2, and 0 for an absent FROM); the INITIALIZED arm at initial state with no VALUE at line 7 (FROM 2 INITIALIZED gives two occurrences holding spaces and zero, the TO DEFAULT half); the INITIALIZED arm over a VALUE at line 5; and the EXCEPTION at line 6, where a Format 2 VALUE's GR16a subscript-2 of 4 raises a FROM 1 table to capacity 4 while the Format 1 VALUE on its sibling member moves nothing.",
+ "state": "OK"
+}

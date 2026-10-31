@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-3",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "PERFORM statement",
+ "rule-digest": "68bb206737e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#InitVaryingTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVarying; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#VaryingOperandKind; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#PerformVaryingIndexError; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/ec_range_perform_varying",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB439 (landed). The rule's premise is 'an identifier is specified in the associated FROM phrase', and 8.4.3.1.2 prints THREE identifier formats. The guard used to test the bound node's C# type (lv.From is BoundNumRef), which is the qualified-and-subscripted data-name format and nothing else, so a FUNCTION-IDENTIFIER FROM operand - an identifier by 8.4.3.2.4 GR1, and legal under 14.9.28.3 SR4 a) because an integer-type function meets 'an integer data item' - took the plain store path: the FATAL EC was never set to exist, no USE declarative ran, and the index was initialized to occurrence 0 and then used to subscript the table. The binder now decides the operand's COBOL kind once (VaryingOperandKind) and the emitter's guard asks that kind, so every identifier FORM is covered and the next one is covered automatically. Measured end to end in the golden: leg P7 (FROM FUNCTION INTEGER(WS-ZERO), checking ON) raises, is caught by the USE AFTER EXCEPTION CONDITION declarative and RESUMEs; leg P8 (FUNCTION INTEGER over a positive item) does not raise, so the guard tests the VALUE and not merely the shape. The rule stays correctly NARROW: a literal FROM (P4) and an index-name FROM are out of scope by GR3's own words, and a data-item induction variable (P5) is too. The out-of-line spelling takes the same BindVaryingLevel and the same InitVaryingTarget, so it inherits the fix by construction.",
+ "state": "OK"
+}

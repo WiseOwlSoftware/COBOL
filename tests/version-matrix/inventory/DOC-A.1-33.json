@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-33",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 33,
+ "subject": "Computer's coded character set (correspondence between alphanumeric and national characters)",
+ "rule-digest": "cd1f0bcd7d0e",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-33; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Repertoire; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsStorageImage; src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#StorageByte.ImageByte",
+ "test-ref": "conformance:cases/15.26.4-Returned-value-rules/pb59_repertoire_identity; conformance:cases/15.2-Types-of-functions/national_intrinsics",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): about national characters / national data, a COBOL-2002 introduction. retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#ByteSub (the symbol is deleted: CONVERT RawBytes and every REDEFINES view now share StorageByte.ImageByte (kb/Work PB547))",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.5-8",
+ "section": "13.18.40.5",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "PICTURE clause",
+ "rule-digest": "f2d90ffc1cd0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.Float.cs#FormatFloatCore; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.Float.cs#RenderFloat",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb66_float_edited_picture",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "`if (sig.IsZero) return RenderFloat(m, negative: false, new string('0', m.SigDigits), 0)` yields all-zero significand digit positions, all-zero exponent digit positions and a positive sign on both; the underflow path (a value nearer to zero than the mask can hold) returns the same rule-8 image rather than a saturated one. Probe p4 at --std 2023: PIC +9.9(3)E+99 MOVE 0 -> '+0.000E+00'; PIC -9.9(3)E+99 MOVE 0 -> ' 0.000E+00', the space being Table 8's rendering of the symbol '-' for a positive-or-zero value, which is what 'the sign of the significand, if present, shall be positive' means for that symbol. The exponent's sign is emitted as '+' whenever e >= 0. BLANK WHEN ZERO takes precedence and blanks the whole item (13.18.8's row, not this one). The named golden asserts the zero image and cites rule 8 by name in its header. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.Float.cs#CobolEdit.FormatFloatCore; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.Float.cs#CobolEdit.RenderFloat || editions, verbatim from the adjudication: 2002/2014/2023 (the floating-point numeric-edited picture is a COBOL-2002 addition - COBOL0900 at 85, pinned by DataSkeletonEditionTests.FloatEditedPicture_CompilesAt2002Plus_RejectedAt85)",
+ "state": "OK"
+}

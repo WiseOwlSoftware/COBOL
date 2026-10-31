@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.53.3-2",
+ "section": "15.53.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "LOCALE-TIME function",
+ "rule-digest": "7b9741a0ae8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Time",
+ "test-ref": "unit:CobolLocaleTests.Time_RendersPerTheLocalesLongTimePattern_WithItsOwnRanges",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: HHMMSS digits; a non-digit / wrong-length value is EC-ARGUMENT-FUNCTION.",
+ "state": "OK"
+}

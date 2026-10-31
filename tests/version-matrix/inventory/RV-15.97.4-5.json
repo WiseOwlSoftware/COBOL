@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.97.4-5",
+ "section": "15.97.4",
+ "kind": "RV",
+ "ordinal": 5,
+ "subject": "UPPER-CASE function",
+ "rule-digest": "122ec816c87b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/WiseOwl.Cobol.Runtime/Globalization/LocaleFacts.cs#TextInfo",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification; unit:CobolLocaleTests.CaseMapping_FollowsTheLocalesLcCtype",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19) — DETERMINATION L9: WiseOwl COBOL's LC_CTYPE correspondence is SIMPLE (one code unit to one — TextInfo.ToUpper/ToLower, which ISO 9945's toupper/tolower also are), so the correspondence is ALWAYS one-to-one and the returned string has argument-1's length in every case (LEN-UP = 1 for a tailored letter; 'straße' → 'STRAßE', length 6, in the unit test — never 'STRASSE'). The rule's second sentence ('may be longer or shorter') is a permission an implementation with a one-to-one correspondence is not obliged to exercise; documented under §4.2.7 in CONFORMANCE.md §4 item 5. Rule --check verified at 15.97.4 5).",
+ "state": "OK"
+}

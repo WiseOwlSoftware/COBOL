@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.10-1",
+ "section": "8.5.2.10",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "b3a1661a060d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+ "test-ref": "unit:PictureCategoryDriftTests.EveryAcceptedPicture_DefinesTheCategoryItsGeneralRuleDefines",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: '1) An elementary data item described as national by its PICTURE character-string.' (cite.py OK). PictureAnalyzer assigns PicCategory.National (no EditMask) to a PIC N string; PictureCategoryDriftTests pins the category against §13.18.40.4 GR9. Probe p2.cob: MOVE FUNCTION NATIONAL-OF(\"ab\") TO a PIC N(2) item, BYTE-LENGTH = 4 (2 bytes per national char under D-N1).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.6.3-4",
+ "section": "12.4.5.6.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "ALTERNATE RECORD KEY clause",
+ "rule-digest": "682f22b36f20",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1073-alternate-key-at-prime-key-position; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1073-alternate-key-at-another-alternate-position; conformance:cases/12.4.5-File-control/pb773_legal_file_control_entries_85; conformance-test:FileControlKeyRuleSpecTests.AnAlternateKey_AtAnotherKeysLeftmostBytePosition_IsRefusedAtEveryEdition; conformance-test:FileControlKeyRuleSpecTests.SourcePhrase_CompilesFrom2002_AndIsAnIntroductionBelow",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-10-05 (kb/Work PB1073). RULE (--check 12.4.5.6.3 4): \"Data-name-1 shall not reference an item whose leftmost byte position corresponds to the leftmost byte position of the prime record key, or of another alternate record key. This restriction does not apply in the case where either key is specified using the SOURCE phrase.\" FileControlKeyRules.Rules (AlternateRecordKey role, COBOL0863) compares each alternate clause's RecordLayout.KeyWindowInFile offset with the prime key's and with every OTHER alternate clause's (the operand carries its clause ordinal, so two clauses naming one item each violate it). The SOURCE exemption exempts a form this compiler declines (Annex A.3 item 40, COBOL1954), so no operand reaches the row through it. Positions are compared as the fixed-run offset plus whether a variable-length member precedes the key. Re-measured before the fix: sr4prime, sr4alt and sr4dupsame all compiled exit 0. kb/Work PB1099 Q1 (w1095i): the record-key SOURCE phrase is PROVIDED (owner rule R65); the last sentence: a SOURCE-form key at the leftmost byte of an alternate key is exempt (CoincidingKey).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.2.1-2",
+ "section": "8.4.2.2.1",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Qualification",
+ "rule-digest": "086b254bf115",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1280_redefines_entry_rules_legal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1280 (wave 1011 B2). cite.py --check 8.4.2.2.1 'REDEFINES' OK 2). Data-name-2 of a REDEFINES is unique 'within the context of a REDEFINES clause' because of its required placement (13.18.44.3 NOTE 1; SR7 'the entry that originally defined the area'): ResolveRedefines now names the nearest same-named preceding entry that is NOT itself a redefinition (and, at top level, of the subject's own section: SR10), so `05 N / 05 N REDEFINES N / 05 M REDEFINES N` binds M to the first N instead of misreporting SR7 (COBOL1656). Only when every candidate is a redefinition is the nearest one named, which is SR7's real violation.",
+ "state": "OK"
+}

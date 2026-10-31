@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.40.3-22",
+ "section": "13.18.40.3",
+ "kind": "SR",
+ "ordinal": 22,
+ "subject": "PICTURE clause",
+ "rule-digest": "362aa490251a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb528-picture-composition; unit:PictureCompositionTests.BlankWhenZeroWithSOrAsterisk_IsCOBOL1934",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-09 (kb/Work PB528). 'Neither the symbol S nor the symbol * shall be specified in character-string-1 when the BLANK WHEN ZERO clause is specified for the subject of the entry' - both legs are COBOL1934 (golden entries PB09 for * and PB10 for S). The S leg was worse than an unenforced rule: the numeric-edited promotion in Analyze required !signed, so PIC S9(5) BLANK WHEN ZERO SILENTLY DISCARDED the clause and the item stayed pure numeric, leaving '0000{' where the programmer asked for spaces. The validator now runs before that promotion, so the entry is refused rather than quietly re-interpreted. retired-witness: unit:PictureCompositionTests.BlankWhenZeroWithSOrAsterisk_IsCOBOLNET1934 (the same witness, re-spelled when the diagnostic code prefix became COBOL#### (kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

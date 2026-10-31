@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.13.3-7",
+ "section": "14.9.13.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "EVALUATE statement",
+ "rule-digest": "e2f76a05e69f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenPairing; src/WiseOwl.Cobol.Compiler/Binding/EvaluateOperandCombinations.cs#IsPermitted; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckFormat3Relation; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands",
+ "test-ref": "conformance:cases/14.9.13-EVALUATE/pb47-evaluate-table15-invalid-combination; conformance:cases/14.9.13-EVALUATE/pb398-evaluate-partial-condition-subject; conformance:cases/14.9.13-EVALUATE/pb398-evaluate-partial-true-subject; conformance:cases/14.9.13-EVALUATE/pb399-evaluate-pointer-object-class-mix; conformance:cases/8.4.3.1-Identifier/pb399_format3_relation_legal_shapes; conformance-test:Format3RelationSurfaceDriftTests.EverySurface_ReportsTheFormat3OperandRule; conformance-test:Format3RelationSurfaceDriftTests.EverySurface_AdmitsALegalFormat3Pair; conformance:cases/8.4.3.2-Function-identifier/pb1060_address_identifier_evaluate_argument; conformance:cases/14.9.13-EVALUATE/pb1060-evaluate-address-identifier-85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB399.md LANDED. a) is a DELEGATION - the selection objects shall be valid operands for comparison in accordance with 8.8.4.2 - and it is now implemented by construction, because every EVALUATE selection pair reaches the SAME BoundRelational checkpoint a written relation condition does. The 8.8.4.2.2 Format 3 band (message-tag / object / pointer operands: the equality-only format, and SR5's both-operands-of-one-of-those-classes-and-the-same-category rule) was written inside ConditionBinder.BindComparison's relation arm - one CALLER of the checkpoint - so it screened `IF WS-P = WS-X` and said nothing about the identical pair under EVALUATE, which reached the BACKEND and failed as a raw C# CS1503. It now lives in StatementValidation.CheckFormat3Relation, reached from CheckRelationalOperands, and the two separately-written class halves are ONE screen that also asks SR5's same-CATEGORY question (neither old half did) and reads class from the Table-2 lattice rather than from `Pic?.Category == PicCategory.Pointer` (one of the three categories Table 2 folds, so program-pointer and function-pointer operands left the whole band silent). b) and c) were already enforced through the Table-15 screen; d)'s correspondence restriction became reachable with PB398's partial-expression grammar and is Table 15's Partial-expression row. Format3RelationSurfaceDriftTests is the drift test for the one-checkpoint shape: five surfaces over one operand pair, with a legal-pair complement leg so it cannot pass by rejecting everything; measured RED (8 of 21) with the checkpoint call disabled.",
+ "state": "OK"
+}

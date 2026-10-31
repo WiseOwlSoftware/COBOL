@@ -409,7 +409,7 @@ internal sealed class VersionConformancePass
                     FigurativeAssociation.GateSr5(_edition, _sink, item.Sender,
                         cat is InitializeCategory.Numeric ? PicCategory.Numeric : PicCategory.NumericEdited,
                         integerReceiver: cat is InitializeCategory.Numeric,
-                        $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} … BY {figText} (the MOVE "
+                        $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {figText} (the MOVE "
                         + "ISO §14.9.20.3 SR4 requires to be valid)");
         }
     }
@@ -509,6 +509,11 @@ internal sealed class VersionConformancePass
                 ? Constructs.UsageFunctionPointer2014   // LIVE (kb/Work PB452/PB817) — the 0900 introduction gate below 2014, the ProgramPointer2002 shape
             : cat is PicCategory.ObjectReference || pu is Usage.ObjectReference || ou is Usage.ObjectReference
                 ? Constructs.UsageObjectReference2002
+            // USAGE MESSAGE-TAG — a 2023 introduction (§8.9; Annex E.2 item 25) whose entry binds the declined
+            // facility's recovery profile (PicInfo.MessageTagRecovery), so the resolved usage is the only witness
+            // (kb/Work PB916): below 2023 the word is a user-defined word and THIS gate is the whole edition answer —
+            // ParseUsage's COBOL1943 decline asks the same row and fires only where the usage exists.
+            : pu is Usage.MessageTag || ou is Usage.MessageTag ? Constructs.UsageMessageTag2023
             : pu is { } fixedPu && UsageFamilies.IsFixedWidthBinary(fixedPu)
               || ou is { } fixedOu && UsageFamilies.IsFixedWidthBinary(fixedOu)
                 ? Constructs.UsageBinaryCharFamily2002
@@ -2230,6 +2235,13 @@ internal sealed class VersionConformancePass
         /// <summary>SEND — the RECEIVE arm's twin; see <see cref="VisitMcsReceiveStatement"/>.</summary>
         public override object? VisitMcsSendStatement(CobolParserCore.McsSendStatementContext ctx)
         { _p.Check(Constructs.AsyncMessaging2023, "the SEND statement (asynchronous messaging)"); return base.VisitChildren(ctx); }
+
+        /// <summary>The VALIDATE statement (ISO §14.9.50) — a COBOL-2002 introduction, gated on RECOGNITION (kb/Work
+        /// PB3148). The arm is the union grammar like RECEIVE and SEND, so <c>VALIDATE WS-A.</c> at --std 85 reaches here
+        /// and names the edition instead of failing as a bare parse error at its operand. From 2002 the statement is
+        /// accepted inert by the binder (COBOL1580, Annex A.4.14).</summary>
+        public override object? VisitValidateFacilityStatement(CobolParserCore.ValidateFacilityStatementContext ctx)
+        { _p.Check(Constructs.ValidateStatement2002, "the VALIDATE statement"); return base.VisitChildren(ctx); }
 
         /// <summary>The INLINE METHOD INVOCATION (ISO §8.4.3.4 — the §8.4.3.1.2 Format 4 identifier), gated
         /// with the rest of the object-orientation facility at 2002 (kb/Work PB428).

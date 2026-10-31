@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.32.3-1",
+ "section": "15.32.3",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "EXCEPTION-STATEMENT function",
+ "rule-digest": "a48bf6ecbe2a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap",
+ "test-ref": "conformance:cases/7.3.25-TURN/l1_exception_no_location_arms; conformance:cases/7.3.25-TURN/exception_statement_ambient",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "A-T/B-T are 63 spaces on both enabling legs; exception_statement_ambient C1 is the pre-existing TURN-leg pin at the same measured 63 width.",
+ "state": "OK"
+}

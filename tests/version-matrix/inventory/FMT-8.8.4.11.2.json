@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.8.4.11.2",
+ "section": "8.8.4.11.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Complex Combined conditions",
+ "rule-digest": "77d59cb63e9d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#logicalXorExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PreviousTokenCouldBeDataName",
+ "test-ref": "conformance:cases/8.8.4.11-Complex-Combined-conditions/logical_xor; conformance:cases/8.8.4.11-Complex-Combined-conditions/pb1392-partial-xor-below-2023; unit:ConditionTierConnectiveDriftTests.TheExclusiveOrTokens_AreSpelledOnlyByXorOperator; conformance:cases/8.8.4.11-Complex-Combined-conditions/w73a_xor_parenthesized_condition; conformance:cases/7.3.8-Constant-conditional-expression/pb1390_abbreviated_tail_xor",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "cite.py --check 8.8.4.11.2 \"AND, OR, EXCLUSIVE-OR, and XOR are underlined in the printed standard (required words). Both\" OK. kb/Work PB1162 re-verdicted (wave 73 group A): the finding was a '(' after XOR / EXCLUSIVE-OR lexed in SUBSCRIPT mode at 2023; PB1465's reservation-aware trigger fixed it (both words are reserved at 2023). Golden: A = 1 XOR (B = 9) -> T, A = 1 EXCLUSIVE-OR (B = 9 OR C = 3) -> F, (A = 9) XOR (B = 2) -> T, each derived from Table 5 and the truth of XOR.",
+ "state": "OK"
+}

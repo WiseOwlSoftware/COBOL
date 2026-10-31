@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.19.3-1",
+ "section": "7.3.19.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "PAGE directive",
+ "rule-digest": "e267062793ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.19-PAGE/l1c21_page_directive_comment_text",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'Comment-text-1 may contain any character in the compile-time computer's coded character set except for control characters as specified in Clause 6, Reference format, rule 3b.' (cite.py --check 7.3.19.3 -> OK §7.3.19.3 1)); §6.1 3b 'The implementor shall specify any control characters that terminate a free-form line...' (cite.py --check 6.1 -> OK §6.1 b)). Permission half verified by probe out/probe/page-directive/p2.cob (free form): comment-text with TAB, Latin-1 letters, CJK, the ASCII punctuation set incl. backslash and < >, and a FORM FEED is accepted and the program runs (OK). Exclusion half: the excluded characters are the ones that TERMINATE a line, and the preprocessor splits lines at CR/LF, so a terminating control character cannot lie inside comment-text-1 by construction — nothing further to diagnose. Side note (not this row's defect): docs/CONFORMANCE.md has no §6.1 rule 3b determination naming the line-terminating control characters (the only control-character determination is A.1-115, line sequential files); that obligation belongs to the §6.1 row. No golden puts non-ASCII or control characters in >>PAGE text, so test-ref is empty. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 directive facility is post-85; Annex E lists no 2014->2023 change to §7.3.19; COBOL-85 has no >> lines — derived edge, VCR Table 7 row 7.21)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-8",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "USAGE clause",
+ "rule-digest": "73d7d64402db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#BytesPerPosition; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#ImageContribution; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceivingStore.cs#ContentCharacters",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb546_national_leaf_one_width; conformance:cases/13.18.60-USAGE/pb546_group_into_national_dynamic; unit:ImageWidthIsStorageWidthTests.UsageNationalLeaf_OccupiesTheUnitReadersBytesPerPosition; unit:NationalUnitDriftTests.EveryNationalUnitOperation_IsChosenByTheUsage_NeverByTheCategoryAlone; unit:NationalUnitDriftTests.TheUnitReader_AnswersByUsage_ForEveryUsageNationalCategory",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB546 (w1070 A), decision PB3099. Rule (cite.py --check 13.18.60.4 OK, GR8): 'National characters shall be represented in the storage of the computer as characters of a uniform size equal to or a multiple of the size of characters in the computer's alphanumeric character set'; D-N1 specifies two bytes (UTF-16BE). ONE uniform size is now spelled once, PicInfo.BytesPerPosition (usage-keyed), and every byte count reads it: ElementaryByteWidth, RefModPlace.PositionBits, RecordLayout.ImageContribution, ItemLength r2, FileModel.MaxDynamicExtent / RecordImageUnit / IsNationalRecord, the dynamic-length LENGTH arms of IntrinsicBinder, the SUPPRESS WHEN key positions. Measured on the w1070 A build: 01 G. 05 N PIC N(2). 05 A PIC X(2). gives LENGTH 6, BYTE-LENGTH 6, G(5:2) = YZ; usage-national boolean, numeric, numeric-edited and national-edited items occupy two bytes a position whole and sliced; MOVE of a three-byte group into PIC N DYNAMIC LENGTH leaves two positions and LENGTH 4 (D-N8, was 6), and back into a 4-byte group gives 'ABC '. The DIVERGES statement's group-layout repro was fixed earlier by PB327/PB1665 and stays right. retired-witness: unit:NationalUnitDriftTests (a class-only test-ref resolves to no test (SpecTraceabilityInventoryDriftTests expects <Class>.<Method>); restated as the two NationalUnitDriftTests methods that witness the rule)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.2.3.3-1",
+ "section": "7.2.3.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "COPY statement",
+ "rule-digest": "08a458b5094b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindStatementKeyword",
+ "test-ref": "unit:TextManipulationTextWordTests.CopyWithinCopy_DrawsSr1; unit:TextManipulationTextWordTests.LegalCopyPlacements_StayClean",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1354 verdict unchanged; w68x (PB1358) renamed the finder FindCopyKeyword -> FindStatementKeyword (one text-word walk for COPY and REPLACE), so the code-location is re-pointed. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#FindCopyKeyword (kb/Work PB1358 (w68x) renamed it FindStatementKeyword (one text-word finder for COPY and REPLACE), already named on this row)",
+ "state": "OK"
+}

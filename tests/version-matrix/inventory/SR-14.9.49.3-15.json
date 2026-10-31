@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-15",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "USE statement",
+ "rule-digest": "d409138d9dac",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#EO",
+ "test-ref": "conformance:cases/14.6.13.1.5-Exception-objects/oo_ec_raise_object",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Already covered: oo_ec_raise_object.cob writes USE AFTER EO CERR1 (line 20) alongside USE AFTER EXCEPTION OBJECT COTH1 (line 16) and its .out shows the EO-spelled declarative selected by the GR14 class match.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.3.11.3-3",
+ "section": "8.4.3.11.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Data-address-identifier",
+ "rule-digest": "5c4d267f7df5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AddressOfOperandScreen.cs#Admit",
+ "test-ref": "conformance:cases/8.4.3.11-Data-address-identifier/pb1407-address-of-constant-record",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1407. A CONSTANT RECORD item and an item subordinate to one (DataBinder.IsConstantRecordItem) are refused COBOL2785 in every ADDRESS OF surface; an ordinary record is addressed in the same statements.",
+ "state": "OK"
+}

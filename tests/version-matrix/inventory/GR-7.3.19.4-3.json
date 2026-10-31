@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.19.4-3",
+ "section": "7.3.19.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "PAGE directive",
+ "rule-digest": "f0c3ec92a6c4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#page-directive-2002",
+ "test-ref": "conformance:cases/7.3.18-LISTING/pb725_directive_facility",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: 'If a source listing is not being produced, a PAGE directive shall have no effect.' (cite.py --check 7.3.19.4 -> OK §7.3.19.4 3)). No listing is ever produced; Render replaces the PAGE line with a blank line and applies no state (DirectiveStateRegistry holds nothing for PAGE). Probes out/probe/page-directive/p1.cob (fixed form: bare >>PAGE before IDENTIFICATION, >>PAGE between headers and inside a statement sequence, lowercase >>page) and p2.cob (free form, >>PAGE between statements) run with the output the program has without the directives (ONE/TWO1; OK) at 2002 and 2023. Goldens pb725_directive_facility (2002, comment cites 7.3.19.4 GR3) and pb794_directive_operands (2023) contain >>PAGE with directive-independent expected output. Edition edge: at --std 85 each >>PAGE draws COBOL0900 (probe p1), correct because COBOL-85 has no >> directives (conformance:cases/_unassigned/pb725-directive-facility-below-2002). || editions (adjudicator): 2002, 2014, 2023 (the §7.3 directive facility is post-85; Annex E lists no 2014->2023 change to §7.3.19; COBOL-85 has no >> lines — derived edge, VCR Table 7 row 7.21)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.2-7",
+ "section": "9.1.13.2",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "I-O status",
+ "rule-digest": "17e3ad3ebaf6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/LineSequentialCharacterSet.cs; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#LineRecordInvalidCharRead",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/pb329_line_sequential_charset_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Rule (cite.py --check 9.1.13.2 \"the record contains one or more characters that are not in the implementor-defined character set for a line sequential file\" -> OK §9.1.13.2 7)). The set is the Annex A.1 item 115 determination (docs/CONFORMANCE.md DOC-A.1-115: code points U+0020 and above), shared with the '71' WRITE/REWRITE side; the test runs on the DELIVERED record area (§14.9.30.4 GR16), the record is delivered and the READ is successful. Probe out/probe/iostat-rel: a line 'AB'+X\"01\" -> LR=09 [AB^A  ], neighbours 00. kb/Work PB329 landed the producer; golden pb329_line_sequential_charset_2023 (R1=09) is spec-derived. || Editions (adjudicator, verbatim): 2023 (line sequential organization is new in 2023)",
+ "state": "OK"
+}

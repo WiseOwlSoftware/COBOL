@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.4.5.4-4",
+ "section": "13.4.5.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "File description entry",
+ "rule-digest": "b8dcd054bc84",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration; docs/CONFORMANCE.md#DOC-A.1-159",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb690_report_line_byte_image_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1253 (owner 2026-10-17: sequenced after PB2510 and PB2556, whose determinations rewrite DOC-A.1-159, the report file record structure this rule rests on). Rule: cite.py --check 13.4.5.4 \"The report writer logical record structure of the file associated with file-name-1 is defined by the implementor\" -> OK 13.4.5.4 4); Annex A.1 item 159 (required, documented). The structure is defined in code (ReportWriter writes each print line as one record of plain text, one byte per column in ISO/IEC 8859-1, through the sequential connector whatever the ORGANIZATION) and docs/CONFORMANCE.md DOC-A.1-159 now exists (CONFORMS, kb/Work PB690), witnessed by pb690_report_line_byte_image_85. PARTIAL again, deliberately: the PB929 sweep (wave 20261501) re-verdicted it CONFORMS and review round 1 (R1-1) refused it, because DOC-A.1-159 still says the refused write of a character above U+00FF is I-O status 71 'if the file is ORGANIZATION LINE SEQUENTIAL' while FileRegistry.RegisterReport registers every report connector lineSequential:false so the status is probably 91, unprobed (kb/Work PB2556, open, blocked_by PB3420), so the determination this rule rests on is probably wrong in one sentence. PB1253 owns the row again and closes it after PB2556 rewrites that sentence.",
+ "state": "GAP"
+}

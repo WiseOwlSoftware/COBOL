@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.7.7-4",
+ "section": "14.7.7",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "Common phrases and features for statements",
+ "rule-digest": "cfc34ed7e634",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs",
+ "test-ref": "conformance:cases/14.7.7-Arithmetic-statements/l1c04_arith_multiple_receivers",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule 4 a)/b) + NOTE 3. PROBE out/probe/arith/a3.cob at 2023 and 85 (identical): ADD X TO X Y (X=5,Y=1) -> X=10 Y=6 (the intermediate 5 is fixed before the first store); COMPUTE X Y = X + 1 -> 6 6; MULTIPLY X BY X Y -> 25 10; SUBTRACT X FROM Y X -> Y=3 X=0; DIVIDE X INTO X Y -> 1 0; ADD 4 TO Z X Z -> Z stored twice left to right (9+4=13->3, then 3+4=7); receiver identification 'as each data item is accessed' (--check 14.7.7 -> OK, cite.py labels the b) paragraph '4) a)' - PB308 family): COMPUTE I T (I) = 2 -> T(2)=2, ADD 1 TO I T (I) -> T(2)=3; operand identification at start: ADD 1 T (I) TO I -> 2; NOTE 3 overlap: ADD GX TO GA where GX REDEFINES the group holding GA -> G=4634 (1246 truncated into GA, sender read once). Size error on one store leaves only that receiver unchanged (sizeerr/p1.cob E9/E10). PB654 (landed) removed the double evaluation on the PROHIBITED float arm. || REFUTED: CONFORMS (test-ref must be empty: pb157_compute_multi_sizeerr pins only 4 b)'s last sentence, not 4 a)'s intermediate-before-any-store, the left-to-right order or the item-identification timing) — The behaviour holds on every arm I attacked: FLOAT-LONG overlap (ADD FX TO FX FY -> 10 6; COMPUTE FX FY = FX * 2 -> 10 10; MULTIPLY FX BY FX FY -> 25 10), GIVING overlap (ADD X Y GIVING X Y -> 6 6), DIVIDE Y INTO X GIVING Y REMAINDER X (17/5 -> Y=3, X=2 from the original dividend), receiver identification after an earlier receiver changed its subscript (ADD 1 TO I GIVING I T (I) -> T(2); COMPUTE I T (I) ROUNDED = I + 1.5 -> I=2, T(2)=3), a REMAINDER target subscripted by the dividend. But the cited test-ref is a single-statement COMPUTE BIG SML = 123456 whose only assertion is 'SE / BIG=123456 SML=99' - the 4 b) size-error sentence. Nothing in it can fail if the intermediate were not fixed before the first store or receivers were identified at statement start. A test that pins one sentence of a multi-part rule cannot close the row. || editions as adjudicated: 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

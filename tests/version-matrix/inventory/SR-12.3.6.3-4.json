@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.6.3-4",
+ "section": "12.3.6.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "OBJECT-COMPUTER paragraph",
+ "rule-digest": "c9c504f8f247",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph",
+ "test-ref": "conformance:cases/12.3.5-SOURCE-COMPUTER/pb78_object_computer_optional_name",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB78 (2026-08-18): with neither computer-name-1 nor any clause the second period may be omitted — the whole entry is optional in the grammar (`OBJECT-COMPUTER.` directly followed by the next paragraph parses).",
+ "state": "OK"
+}

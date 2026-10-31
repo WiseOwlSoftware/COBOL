@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.4.3.13.4-1",
+ "section": "8.4.3.13.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Program-address-identifier",
+ "rule-digest": "de1c647bb392",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindProgramAddressOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#ProgramAddressText; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetEntry; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EntryOf",
+ "test-ref": "conformance:cases/8.4.3.13-Program-address-identifier/pb549_program_address_identifier",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.4.3.13.4 'creates a unique data item of class pointer and category program-pointer' OK (GR1). a) identifier content: emitted as `(read).Trim()` into ProgramRegistry.EntryOf at statement time; b) literal value decoded at bind (STRINGLIT/HEXLIT/NATLIT/concatenation); c) prototype -> its externalized name. Class pointer / category program-pointer: the value is a ProgramPointer; `IF ADDRESS OF PROGRAM \"PAISUB\" = ADDRESS OF PROGRAM \"paisub\"` -> REL-EQ (probe ok2); CALL through it runs the program (pb549 golden SUB/SUB/SUB/PROTO). 8.3.2.2 2a (COBOL convention: the name is treated as a COBOL word) - lower-case content 'paisub' locates PAISUB; a national identifier and N\"PAISUB\" both locate it (probe ok2). The identifier arm's category screen is defective for group/alphabetic items, but that is SR1's rule and is recorded there. .Trim() also strips LEADING spaces - inside the 8.3.2.2 implementor-defined mapping, not a divergence. [editions as adjudicated: 2002, 2014, 2023 (the program-pointer family; absent from COBOL-85 - Annex E covers only 2014->2023, the introduction is the 2002 address-identifier; probe: --std 85 draws COBOL0900)]",
+ "state": "OK"
+}

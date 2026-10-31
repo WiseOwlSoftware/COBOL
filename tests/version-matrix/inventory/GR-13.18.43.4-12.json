@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.43.4-12",
+ "section": "13.18.43.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "RECORD clause",
+ "rule-digest": "5a6ebc2b0282",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs",
+ "test-ref": "conformance:cases/13.18.43-RECORD/l1c23_record_varying_bounds_depending",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 13.18.43.4 'the execution of a DELETE, RELEASE, REWRITE, START, or WRITE statement or the unsuccessful execution of a READ or RETURN statement does not alter the content' OK (GR12). Every verb probed: WRITE (L=3/21/7 kept, probe/record-clause/p4.cob), REWRITE (L=30 kept, p4.cob), unsuccessful sequential READ at end (L=99 kept, p4.cob), indexed START (L=77 kept), unsuccessful keyed READ status 23 (L=77 kept), DELETE (L=55 kept) (p5.cob), RELEASE (L=05 and 01 kept, p6.cob), RETURN AT END (L=88 kept, p6.cob). No single spec-derived test pins all eight -> test-ref empty.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-7",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "READ statement",
+ "rule-digest": "f34f4591d6b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#LocksEffective; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ApplyPostReadLockActions; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitSharingRegistration",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/l1_read_lock_mode_governs",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "The delegation measured as a pair: identical READs give '00' under 12.4.5.9 GR1a (SHARING WITH READ ONLY, no LOCK MODE clause) and '51' under GR4 (SHARING WITH ALL OTHER plus LOCK MODE IS AUTOMATIC). LEG 1 must carry READ ONLY, not ALL OTHER: 14.9.27.3 SR8 requires a LOCK MODE clause whenever the ALL phrase is in the SHARING clause and the OPEN omits its own sharing phrase, and GR1a's antecedent is any SHARING clause, so READ ONLY satisfies the rule under test while keeping the source conforming. || Code sites: FileRegistry.LocksEffective is the GR1a/b1 verdict (with no LOCK MODE clause no record lock is set), OpenShared registers the connector's posture, and FileRegistry.ApplyPostReadLockActions sets the lock that GR11 c)/d) call for, only when LocksEffective holds. GR11 a)'s release of the prior record's locks is ReleasePriorRecordLocks, which runs at the top of the READ rather than inside ApplyPostReadLockActions.",
+ "state": "OK"
+}

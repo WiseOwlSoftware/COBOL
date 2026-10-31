@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.37.3-9",
+ "section": "14.9.37.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "SEARCH statement",
+ "rule-digest": "5a6401654ebb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckConditionNameSide; src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckKeySubscript; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionOf",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb445-search-all-condition-name-multivalue; conformance:cases/14.9.37-SEARCH/pb445-search-all-condition-name-not-key; conformance:cases/14.9.37-SEARCH/pb445-search-all-condition-name-index-plus; conformance:cases/14.9.37-SEARCH/pb445_search_all_format2_legal; conformance:cases/14.9.37-SEARCH/pb443_search_identifier_1; unit:SearchOperandResolutionDriftTests.QualifiedConditionName_InAFormat2When_SelectsByTheQualifier",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB443 - RE-RECORDED, verdict unchanged, on a repaired premise. SR9's screens were right; WHICH level-88 they were asked about was not. CheckConditionNameSide selected `conds.FirstOrDefault(c => IsWithin(c.Parent, table)) ?? conds[0]` - a BASE-WORD lookup with the tie broken by DECLARATION ORDER - so the OF/IN qualifier that the condition BINDER honours was ignored by the SCREEN and the two disagreed about which key the WHEN referenced. ISO 8.4.2.2 Format 2 decides that question and it is now decided in the ONE place, ConditionBinder.ConditionOf, which gained a one-report-per-reference guard so the screen and the later bind cannot both report the same ambiguity. A reference whose qualifiers single out no declaration is now reported by SR9's own sink rather than silently resolved to a neighbour.",
+ "state": "OK"
+}

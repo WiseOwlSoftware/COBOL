@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.3.3-2",
+ "section": "8.3.3.3.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Numeric literals",
+ "rule-digest": "07147eda3950",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#CheckFloatingPointForm; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#NormalizeNumericLiteral",
+ "test-ref": "conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99-floating-literal-form; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99_floating_literal_extremes",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB99). 'shall include a decimal point' is the lexer's shape (a point-less 1E10 is a user-defined word, §8.3.1.1 — it is diagnosed as an undefined name, which it is); 'from 1 to 36 digits' is checked at the ONE normalizer both funnels share (COBOL1661 — a 40-digit significand); a 36-digit significand seeds a floating-point numeric-edited item exactly (the golden's E1).",
+ "state": "OK"
+}

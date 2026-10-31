@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.14.4-5",
+ "section": "15.14.4",
+ "kind": "RV",
+ "ordinal": 5,
+ "subject": "BYTE-LENGTH function",
+ "rule-digest": "285ae790efeb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindByteLengthFold; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#Render",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.14.4 r5 'the current length of argument-1 in bytes' for a DYNAMIC LENGTH elementary item — golden DL: BYTE-LENGTH(DLA) = 5 after MOVE \"HELLO\", BYTE-LENGTH(DLN) = 8 after MOVE N\"ABCD\" (the storage image, 2 bytes per national position). It bound a BoundExprError (run-time throw) where the LENGTH twin already rode the runtime channel.",
+ "state": "OK"
+}

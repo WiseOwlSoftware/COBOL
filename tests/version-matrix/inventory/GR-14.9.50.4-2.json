@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.50.4-2",
+ "section": "14.9.50.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "VALIDATE statement",
+ "rule-digest": "6ea39fbde208",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+ "test-ref": "conformance-test:DeclinedFacilityTests.ValidateStatement_DrawsTheNamedNonSupportWarning_AndStillCompiles",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "docs/CONFORMANCE.md §5 row A.4.14 (VALIDATE — Not claimed) + §4 item 3. Licence: Annex A.4.1, \"An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor\", and its second sentence carrying the licence to the module's unlisted rules. Obsolescence (F.2 item 5) is corroboration, never the licence (kb/Work PB198). The STATEMENT half is accepted-inert with the §4.2.6 ¶3 named warning (COBOL1580, landed by PHASE-13 Wave H) rather than refused. ⛔ Until this landing NOTHING asserted that warning: 2023/wave_h_facilities_inert.cob routes it to the non-failing compile channel and compares stdout only, so a repository-wide search found COBOL1560/1578/1579/1580 only inside source COMMENTS. The named test is the first assertion that the band fires, and its --std 85 arm (ValidateAt85_IsAUserWord_AndDrawsNoFacilityWarning, with conformance:cases/_unassigned/user-word-validate) is the arm that proves the probe can fail.",
+ "state": "OK"
+}

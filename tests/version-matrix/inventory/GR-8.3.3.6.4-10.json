@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.3.3.6.4-10",
+ "section": "8.3.3.6.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "Figurative constant values",
+ "rule-digest": "53d077a096ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs",
+ "test-ref": "conformance:wiseowl/cases/8.3.3.6-Figurative-constant-values/pb732_value_symbolic_character",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The symbolic-character format represents one or more of the character specified as the value of symbolic-character-1 in the SYMBOLIC CHARACTERS clause of the SPECIAL-NAMES paragraph.' (cite.py --check 8.3.3.6.4 -> OK 10)). PROBE probe/figurative-constant-values/p6.cob with 'SYMBOLIC CHARACTERS STAR IS 43' and 'SYMBOLIC CHARACTERS FOR NATIONAL NSTAR IS 43' (ordinal 43 = '*'): MOVE STAR TO PIC X(3) -> '***' (bare Format 7, ALL optional, repeated by GR2), MOVE ALL STAR -> '***', MOVE NSTAR TO PIC N(3) -> '***', DISPLAY STAR / ALL STAR -> '*' each (GR3 b), IF X3 = ALL STAR true, STRING ... STAR -> '*'. Golden 85/pb732_value_symbolic_character derives S1='A', S2='AAA' from this rule with GR2/GR3. || editions as written by the adjudicator: 85, 2002, 2014, 2023 (the FOR NATIONAL symbolic characters from 2002)",
+ "state": "OK"
+}

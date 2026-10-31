@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.10.3-5",
+ "section": "13.10.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Constant entry",
+ "rule-digest": "bb4b0e7a9b03",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindDeclaredConstant; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#ReportConstantCycle; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#ClosesConstantCycle; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#ResolveConstantName",
+ "test-ref": "conformance:cases/13.10-Constant/pb1231_constant_forward_references; conformance:cases/13.10-Constant/pb1231-constant-direct-cycle; conformance:cases/13.10-Constant/pb1231-constant-indirect-cycle",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1231 (w1007c). cite.py --check 13.10.3 \"Neither the value of literal-1 nor the value of any of the literals in arithmetic-expression-1 shall be dependent, directly or indirectly\" -> OK SR5. A constant entry being evaluated is on the demand chain (DataBinder._constantsInProgress); a reference that re-enters it closes the cycle, reported once at the re-entered entry with the chain named: `01 J CONSTANT AS J + 1.` -> 'circular dependence (J -> J) ... (ISO 13.10.3 SR5)' (negative pb1231-constant-direct-cycle), `01 K CONSTANT AS K2 + 1. 01 K2 CONSTANT AS K * 2.` -> '(K -> K2 -> K)' (pb1231-constant-indirect-cycle), each at 2002/2014/2023, with no cascade (the operand recovers as 1). The legal forward reference compiles: `01 KB CONSTANT AS K2 + 1. 01 K2 CONSTANT AS 3.` -> KB = 4 (golden pb1231_constant_forward_references).",
+ "state": "OK"
+}

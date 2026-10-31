@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-151",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 151,
+ "subject": "RECORD DELIMITER clause (if not specified, method for determining length of variable-length records)",
+ "rule-digest": "1c4689f07239",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-151; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrameHead; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#ReadFrame; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#NextFrame",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "A.1 item 151 — \"RECORD DELIMITER clause (if not specified, method for determining length of variable-length records). This item is required. This item shall be documented in the implementor's user documentation. (12.4.5.11, RECORD DELIMITER clause, General rule 5)\" (cite.py --check A.1 OK). The determination is filed in docs/CONFORMANCE.md §7 and the compiler does what it says: a 4-byte little-endian length prefix per record for record sequential, relative and indexed files, the line delimiter for LINE SEQUENTIAL. It governs EVERY variable-length file this implementation writes, including one that does write a RECORD DELIMITER clause, because that clause is declined whole (§2 row 26, COBOL1778) — which is why the item is discharged rather than withdrawn: the clause's non-support makes GR5's method universal, not unreachable. Witnessed by golden file F4, the one file in it with no clause, whose 3- and 8-byte records read back at those lengths. retired-witness: src/Cobol.Net.Runtime/IO/RecordFraming.cs#PrefixLength (kb/Work PB2754 made RecordFraming.EncodeFrameHead the one encoder and RecordFraming.ReadFrame the one decoder of the documented 4-byte length prefix, as docs/CONFORMANCE.md DOC-A.1-151 now states; the Latin-1 char decoders, PrefixLength among them, were deleted, and WritePrefix had already been replaced by WriteFrameHead) retired-witness: src/Cobol.Net.Runtime/IO/RecordFraming.cs#WritePrefix (kb/Work PB2754 made RecordFraming.EncodeFrameHead the one encoder and RecordFraming.ReadFrame the one decoder of the documented 4-byte length prefix, as docs/CONFORMANCE.md DOC-A.1-151 now states; the Latin-1 char decoders, PrefixLength among them, were deleted, and WritePrefix had already been replaced by WriteFrameHead)",
+ "state": "OK"
+}

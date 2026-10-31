@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.32.3-4",
+ "section": "13.18.32.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "JUSTIFIED clause",
+ "rule-digest": "914fa324b0ff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "unit:DataClausePlacementDriftTests.JustifiedOnADynamicLengthItem_IsRefused; conformance-test:DynamicLengthTests.JustifiedCoClause_Rejected1563",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "\"The JUSTIFIED clause shall not be specified for a dynamic-length elementary item.\" (cite.py --check 13.18.32.3 -> OK §13.18.32.3 4)). §8.5.1.10.1: a dynamic-length elementary item \"is defined by the DYNAMIC LENGTH clause\"; Annex E.3 (2023 changes) lists only a SET enhancement for dynamic-length items, so they pre-exist 2023 -> editions 2014, 2023. Enforced by the §13.16.3 SR18 co-clause guard (cite.py --find -> §13.16.3 18) \"If a DYNAMIC LENGTH clause is specified, the only other clauses permitted are level-number, entry-name, PICTURE, USAGE, and VALUE\"), which subsumes SR4. Probe P6 (2023) `01 D1 PIC X DYNAMIC LENGTH JUSTIFIED.` -> COBOL1563 naming JUSTIFIED; the TYPE-derived route (P9: TYPE of a DYNAMIC LENGTH typedef + JUSTIFIED) is rejected by §13.16.3 SR14 (COBOL2150). DynamicLengthTests.JustifiedCoClause_Rejected1563 compiles `PIC X DYNAMIC LENGTH JUSTIFIED RIGHT` at 2014 and asserts COBOL1563 — spec-derived. Note the diagnostic cites SR18, not §13.18.32.3 SR4; the verdict holds because the rejection is required by both. || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry (COBOL1563, line ~4778)",
+ "state": "OK"
+}

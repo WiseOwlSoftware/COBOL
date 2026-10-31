@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-135",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 135,
+ "subject": "MODULE-NAME Function, (What form of the module name is returned)",
+ "rule-digest": "8524f94d7754",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-135; src/WiseOwl.Cobol.Runtime/Control/ModuleStack.cs#Name",
+ "test-ref": "conformance:cases/15.65.4-Returned-value-rules/pb63_module_name_lengths",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "editions 2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the MODULE-NAME function is a COBOL-2023 introduction (Annex E.3.3 item 28). cite.py --check E.3.3 \"The MODULE-NAME intrinsic function has been added\" OK.",
+ "state": "OK"
+}

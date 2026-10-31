@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.11-5",
+ "section": "14.6.11",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Execution",
+ "rule-digest": "6816a81466c2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Begin; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Locale",
+ "test-ref": "unit:RunUnitStateDriftTests.EveryMember_IsFreshInTheNextRunUnit",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "w68w (kb/Work PB1069): cite.py --check 14.6.11 'the implementor specifies whether the locale is reset to the locale in effect when the run unit was activated' -> OK 14.6.11 5). Determination DOC-A.1-168 = yes, always: the locale state is a member of the RunUnit object (LocaleState), SET LOCALE never touches the process culture, and every new run unit (RunUnit.Begin from the generated Main, RunUnit.Run from a host) is a NEW object, so the next run unit starts from the process culture. The witness reflects over every RunUnit field and fails on any carried from the previous run unit. retired-witness: src/Cobol.Net.Runtime/Control/RunUnit.cs#ResetCurrent (ResetCurrent (the hand-listed reset of the ambient run unit) is deleted; RunUnit.Begin constructs a new run unit instead (kb/Work PB1069))",
+ "state": "OK"
+}

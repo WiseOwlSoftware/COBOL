@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.6.2-1",
+ "section": "7.3.6.2",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "Compile-time arithmetic expressions",
+ "rule-digest": "417f3f7d60ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalArith; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateDirectiveArithmetic; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantArithmetic",
+ "test-ref": "conformance:cases/7.3.6-Compile-time-arithmetic-expressions/constant-figurative-arith-operand; unit:CompileTimeExpressionEvaluatorTests.Rejects_FigurativeZeroOperand; unit:CompileTimeExpressionEvaluatorTests.Rejects_Exponentiation; unit:CompileTimeExpressionEvaluatorTests.Rejects_DivisionByZero",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1229 (wave 1031 D, registrar 15a's row). a) exponentiation and c) division by zero were already enforced in both arms; b) 'All operands shall be fixed-point numeric literals' now holds in the CONSTANT-entry arm too: EvalArith refuses the figurative ZERO_ARITH operand it used to evaluate as 0, so the shared recursion enforces SR1b for every consumer and the directive entry's earlier §7.3.3 SR10 scan states the master constraint under COBOL1619.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.25.4-8",
+ "section": "7.3.25.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "TURN directive",
+ "rule-digest": "0a593cb19461",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#EnabledAtHeader; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#Fold",
+ "test-ref": "conformance:cases/7.3.25-TURN/pb1381_turn_at_procedure_header; unit:TurnStateTests.LastMatchingEventWins; unit:TurnStateTests.FileScopedEvent_AppliesOnlyToThatFile; conformance:cases/7.3.25-TURN/pb963_turn_file_name_arms; conformance:cases/7.3.25-TURN/pb963-turn-file-name-below-2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1381 (w68z). cite.py --check 7.3.25.4 'checking is disabled only for exception conditions associated with that file-name' -> OK §7.3.25.4 8). The refuter's DIVERGES was the OFF sibling of GR6's header defect: a TURN ... OFF between the DATA DIVISION and the PROCEDURE DIVISION header did not disable checking for that header. Fixed with GR6 (TurnState.EnabledAtHeader); the golden's B leg (EC-PROGRAM-ARG-MISMATCH OFF just before PB1381B's header) prints IN-B / B OK — not set, the call succeeds. Statement half, file-name half and copybook-resident OFF were verified by the adjudicator/refuter (TRNF2, TRNF3, TRNG5B, TRNO6, RTC2/RTC3).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-17",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "UNSTRING statement",
+ "rule-digest": "12676253d3df",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitOverflow",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/l1c35_unstring_not_on_overflow",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR17 'the ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the UNSTRING statement or, if the NOT ON OVERFLOW phrase is specified, to imperative-statement-2' (cite.py --check -> OK 14.9.48.4 17)). EmitOverflow: 'if (!flag)' runs the NOT list; the ON list only under 'if (flag)'; pointer/tally are stored before the dispatch (so imperative-statement-2 sees the completed values). Probe p2 T6 (P=12, one char examined, no overflow) -> 'T6 NOVF'. The UNSTRING NOT-ON path is pinned only by the legacy-differential Unstring_SourceExhausted_IsNotOverflow_RemainingReceiversUntouched; phrase_order_overflow pins NOT-ON only for STRING -> test-ref empty.",
+ "state": "OK"
+}

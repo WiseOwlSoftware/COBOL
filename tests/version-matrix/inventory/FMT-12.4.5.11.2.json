@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-12.4.5.11.2",
+ "section": "12.4.5.11.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "RECORD DELIMITER clause",
+ "rule-digest": "acef440cb0dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordDelimiterClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterOptionalWordOmitted_NamedNonSupportWarning_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The general format is implemented EXACTLY as printed, and the printed page was rendered rather than inherited from the transcription (kb/Work PB292): RECORD, DELIMITER and STANDARD-1 are underlined (required words), IS is not (an optional word), feature-name-1 is a user-defined word, and the braces are a plain required choice of exactly one alternative with no choice indicators. `recordDelimiterClause : RECORD DELIMITER IS? (STANDARD_1 | cobolWord)` is that diagram one-for-one. All FOUR legal spellings are exercised by the golden and each draws the clause's named decline: STANDARD-1 with IS (file F1), feature-name-1 with IS (F2), STANDARD-1 with the optional word omitted (F3); the complement, a file with no clause at all (F4), draws none. The format row is CONFORMS rather than DOCUMENTED-NON-SUPPORT because the syntax IS accepted here — §4.2.6 licenses accepting a declined processor-dependent element and only compels the warning, unlike Annex A.4.1, which forbids accepting an unclaimed OPTIONAL element's syntax (the A.4.8 FORMAT rows are DOCUMENTED-NON-SUPPORT for that reason).",
+ "state": "OK"
+}

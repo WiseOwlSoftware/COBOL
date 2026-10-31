@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.9-2",
+ "section": "9.1.13.9",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "I-O status",
+ "rule-digest": "f6eac23641e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteFile; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#IsHeldByAnother; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#ForDeleteFileFailure",
+ "test-ref": "conformance:cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/delete_file_sharing; unit:SharingRefusalStatusTests.ADeleteFileRefusedByAnotherRunUnitsHandle_IsTheDeleteSharingConflict; unit:FileStatusDisciplineTests.DeleteFileFailure_MediumRefusalIs37_OtherIs30",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "'62' on both sides of the run-unit boundary: this run unit's other connectors through FileRegistry.OpenByAnotherConnector (2023/delete_file_sharing), another run unit's through HostFile.IsHeldByAnother - an exclusive read request asked before the delete and inside the RETRY loop, because a Unix unlink never consults open handles and deleted the file with '00' while Windows refused it with '30' (kb/Work PB860). The file is left in place (SharingRefusalStatusTests, all three organizations).",
+ "state": "OK"
+}

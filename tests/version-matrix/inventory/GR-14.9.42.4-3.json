@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.42.4-3",
+ "section": "14.9.42.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "STOP statement",
+ "rule-digest": "d630e8b4ccd9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#ExitStatus; docs/CONFORMANCE.md#DOC-A.1-192",
+ "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "w68w (kb/Work PB1178): GR3 (NORMAL) is GR2's twin: WITH NORMAL exits 0 (the normal indication), and with a STATUS value the value is passed (WITH NORMAL STATUS 7 exits 7) under the same recorded DOC-A.1-192 determination (value wins; section 3 'STOP RUN / GOBACK termination status'). Witnessed by TerminationStatus_SetsProcessExitCode's NORMAL rows.",
+ "state": "OK"
+}

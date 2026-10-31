@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.52.3-2",
+ "section": "15.52.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "LOCALE-DATE function",
+ "rule-digest": "4512e4fa5467",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Date",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t4_locale_functions; unit:CobolLocaleTests.Date_RendersPerTheLocalesShortDatePattern_AndRejectsAnInvalidDate",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T4: YYYYMMDD validated per CURRENT-DATE's definition (a Gregorian date, year 1601–9999); an invalid value is EC-ARGUMENT-FUNCTION at run time (the §15.3 default — the empty string — when checking is off; the ARG line).",
+ "state": "OK"
+}

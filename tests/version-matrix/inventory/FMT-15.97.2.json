@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.97.2",
+ "section": "15.97.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "UPPER-CASE function",
+ "rule-digest": "993889ff393e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#HasLocalePhrase; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t5_case_locale_phrase; conformance:cases/15.3-Arguments/pb64t5-case-phrase-name-undeclared; conformance-test:LocaleDispositionTests.CaseFunctionLocalePhrase_IsLive; conformance-test:LocaleDispositionTests.SupportedFunctions_WithoutLocale_StillWork",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB64 T5 (2026-08-19): FUNCTION UPPER-CASE ( argument-1 [ LOCALE locale-name-1 ] ) — argument-1 alone (85+) and with the LOCALE phrase (2002+, the construct row case-function-locale-phrase-2002); LOWER-CASE's twin in every respect (FMT-15.57.2). Format --check verified at 15.97.2.",
+ "state": "OK"
+}

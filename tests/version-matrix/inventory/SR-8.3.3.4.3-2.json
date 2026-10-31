@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.4.3-2",
+ "section": "8.3.3.4.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Boolean literals",
+ "rule-digest": "91afd79ef573",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#RepertoireViolation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#BOOL_BODY; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#Screen",
+ "test-ref": "conformance:cases/8.3.3.4-Boolean-literals/w73a-boolean-literal-non-boolean-character; unit:SeparatorRuleTests.OutsideRepertoire_NamesTheCharacterAndTheRule; conformance-test:DirectiveLiteralScreenTests.LiteralRepertoire_IsScreenedInAnOmittedBranch",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR2 (cite.py --check 8.3.3.4.3 \"Boolean-character-1 shall be a boolean character, '0' or '1'\" OK 2)). kb/Work PB1394 LANDED (wave 73 group A): BOOL_BODY Format 1 is now 'B' STR_BODY, so B\"012\" is one BOOLLIT and LiteralScreenPass reports COBOL2630 naming '2' and SR2 in every position; beside an item B it no longer compiles as B + \"012\" (refuter's silent split). Negative: DISPLAY B\"012\" beside 01 B -> COBOL2630 at 2002/2014/2023. retired-witness: src/Cobol.Net.Compiler/Validation/LiteralScreenPass.cs#Screen (kb/Work PB1616 moved LiteralScreenPass (Compiler/Validation) to LiteralScreen (Frontend/Parsing) so the directive lane asks the same body; the witness is the same code at its new path)",
+ "state": "OK"
+}

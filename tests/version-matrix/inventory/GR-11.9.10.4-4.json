@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.10.4-4",
+ "section": "11.9.10.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "INITIALIZE clause",
+ "rule-digest": "3c7d136fbb36",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#FillFor; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFor; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#ImageInitOfOne",
+ "test-ref": "conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_background; conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_tier_b; conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_arm_agreement",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-09-02 (PB152). The working-storage background reaches BOTH storage axes through ONE choke point: the native-field arm (ValueInitializer's no-VALUE branch) and the Tier-B image arm (GroupImageCodec's fall-through, the arm PB151 could not have reached because its fill decoder was private to PtrEmitter). Proven by reverting the image arm alone and watching pb152_options_initialize_tier_b and pb152_options_initialize_arm_agreement go RED while pb152_options_initialize_background stayed green.",
+ "state": "OK"
+}

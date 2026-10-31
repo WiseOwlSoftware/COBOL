@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.22.2",
+ "section": "13.18.22.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "EXTERNAL clause",
+ "rule-digest": "41674d41b2f8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#externalClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileGlobalExternalClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb511_external_as_name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§13.18.22.2 general format `IS EXTERNAL [ AS literal-1 ]` (cite.py --check 13.18.22.2 \"EXTERNAL\" -> OK §13.18.22.2 (General format), which prints the rendered format). Grammar: externalClause : IS? EXTERNAL externalizedNamePhrase? (data description) and fileGlobalExternalClause's EXTERNAL arm IS? EXTERNAL externalizedNamePhrase? (FD) - IS optional, EXTERNAL and AS required, AS literal optional, matching the rendered underlining. Probes (pinned cobol.exe, probe/external-clause): `01 A PIC X(3) EXTERNAL.` accepted at --std 85 and 2023; `01 A PIC X(3) IS EXTERNAL AS \"QQ\".` accepted at 2002, COBOL0900 at 85 (FMTAS); `FD F IS EXTERNAL AS \"ZZ\".` accepted at 2002, COBOL0900 at 85 (FMTFD). The golden pb511_external_as_name exercises both arms at 2002 with spec-derived expected output. || Editions (adjudicator): EXTERNAL: 1985, 2002, 2014, 2023; the AS literal-1 phrase: 2002+ (constructs row externalized-name-as-2002; X3.23-1985 prints no AS phrase)",
+ "state": "OK"
+}

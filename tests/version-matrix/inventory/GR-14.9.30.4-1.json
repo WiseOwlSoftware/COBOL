@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.30.4-1",
+ "section": "14.9.30.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "READ statement",
+ "rule-digest": "be083752f1e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RandomReadAbsentOptionalGuard; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/LineSequentialCharacterSet.cs#HasCharacterOutside; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead",
+ "test-ref": "conformance:cases/9.1.11-File-position-indicator/pb336_optional_absent_read_46; conformance:cases/9.1.13.4-At-end-condition-with-unsuccessful-completion/pb336_optional_absent_read_46_85; conformance:cases/9.1.13.2-Successful-completion/pb329_line_sequential_charset_2023; unit:ReadPreconditionOrderDriftTests.SharedSequentialGuard_TestsGr21Poison_BeforeTheAbsentOptionalArm",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB336 (LANDED 2026-09-05) and kb/Work PB329 (LANDED 2026-09-05) -- the two value defects that held this ALL-FORMATS roll-up at PARTIAL are both closed. RULE: 'The execution of the READ statement causes the value of the I-O status in the file connector referenced by file-name-1 to be updated as indicated in 9.1.13, I-O status.' MECHANISM HALF -- CONFORMS. FileConnector.Status is the ONE assignment path (its setter also records EverAccessed and drops the 43 gate), and every READ terminal on all three organizations assigns before returning: SequentialConnector.Read (47/10/46/00/04/06/09), RelativeConnector.ReadSequential+ReadRandom, IndexedConnector.ReadSequential+ReadRandom. Both emitters call EmitStoreFileStatus in BOTH the success and the failure branch, so the FILE STATUS data item is written on every execution. VALUE HALF -- both known defects have landed: (a) PB336 fixed the absent-OPTIONAL 10/46 guard order; (b) PB329 supplied the missing 09 producer (9.1.13.2 item 7 / 14.9.30.4 GR16) together with the Annex A.1 item 115 determination the rule delegates to (docs/CONFORMANCE.md DOC-A.1-115) -- FileStatusCode.LineRecordInvalidCharRead now exists and SequentialConnector.Read's line-sequential arm produces it. No 9.1.13 value a READ can require is left without a producer. kb/Work PB688 (2026-09-05): the 2002 copy of pb329_line_sequential_charset was deleted - ORGANIZATION IS LINE SEQUENTIAL is a 2023 introduction, so no edition below 2023 can express that program; the 2023 copy carries the evidence.",
+ "state": "OK"
+}

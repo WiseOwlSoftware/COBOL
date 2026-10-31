@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.8.4-2",
+ "section": "14.6.8.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Alignment and transfer of data into data items",
+ "rule-digest": "fb5cac0db01b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.Float.cs#FormatFloatCore; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.Float.cs#RenderFloat",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb66_float_edited_picture; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb66_float_edited_comma_mode; conformance:cases/14.6.8.4-Floating-point-numeric-edited-receiving-data/pb3829_float_edited_small_magnitude",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (PB66 / D21). After normalization the significand aligns at the mask's point, truncates to the mask's digit count (-12345.678 into +9(3).9(2)E+999 → -123.45E+002 — six digits truncated to five) and zero-fills (1.5E+3 into +9.9(3)E+99 → +1.500E+03); the significand's simple / special / fixed insertion symbols (B 0 / , . +/-) render per §13.18.40.5 Table 7 and the exponent takes none; DECIMAL-POINT IS COMMA exchanges the point and the grouping character in the image (-1,23456E+04; 1.234E+00 for 9.999E+99 in comma mode).",
+ "state": "OK"
+}

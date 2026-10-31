@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-23",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 23,
+ "subject": "Characters prohibited from use in text-words in COPY … REPLACING and REPLACE statements",
+ "rule-digest": "9a6cef7afd4e",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-23; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/pb1543_nbsp_is_a_text_word_character; unit:TextManipulationTextWordTests.UnicodeSpaceLookalike_IsATextWordCharacter",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1543 (w67m): the determination (no character is prohibited in a text-word; only the COBOL space, tab and line end separate) is now what the compiler does — TextWordScanner.IsSeparatorSpace (the lexer's WS set) replaced char.IsWhiteSpace at every text-word boundary (TryNext, SeparatorFollows, EndsCharacterString) and at the 7.2.3.3 SR2 'preceded by a space' test; U+00A0 / U+2003 / U+3000 are text-word characters (cite.py OK 8.3.5 1), 7.2.2.5 3)).",
+ "state": "OK"
+}

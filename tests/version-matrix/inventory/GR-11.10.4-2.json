@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.10.4-2",
+ "section": "11.10.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "101af340ea81",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#NestedCallablesOf",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/l1c21_common_program_visibility",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'A common program is contained within another program but may be called from programs other than that containing it as stated in 8.4.6' (cite.py --check 11.10.4 -> OK §11.10.4 2)); scope rule §8.4.6.3 2) (--check OK). ResolveVisible rule 3 walks the caller's ancestors and admits a sibling only when sib.Common, excluding the COMMON program itself and its containees unless it is recursive (the §8.4.6.3 2) exception); NestedCallablesOf mirrors it for AS NESTED. Probe probe dir out/probe/program-id-paragraph/gr2.cob at --std 85 and 2023: sibling GR2A calls COMMON GR2C -> 'C' runs; GR2A calls non-COMMON sibling GR2N -> ON EXCEPTION 'N NOT VISIBLE'; non-recursive COMMON GR2C calling itself -> 'SELF NOT VISIBLE'. All match the spec. No spec-derived golden exercises COMMON visibility (pb240_call_operand_screens uses COMMON incidentally) -> test-needed. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.8.3-3",
+ "section": "12.3.8.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "REPOSITORY paragraph",
+ "rule-digest": "a54b5d04432d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#AddSkeleton",
+ "test-ref": "conformance-test:ParameterizedClassTests.ExpandsInsideParameterizedDefinition_2239",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB759.md landed w46i3. An EXPANDS phrase in the REPOSITORY of a definition with a USING clause -> COBOL2239; the entry is inert (creates nothing).",
+ "state": "OK"
+}

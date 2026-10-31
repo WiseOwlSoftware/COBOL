@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-19",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 19,
+ "subject": "Data description entry",
+ "rule-digest": "5b9f6b594eba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16-Data-description/pb64t6-picture-locale-sign",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "",
+ "state": "OK"
+}

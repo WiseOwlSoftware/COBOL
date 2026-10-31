@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.5-L2.3",
+ "section": "14.6.13.1.5",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Exception conditions",
+ "rule-digest": "7026ca3cf283",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitPropagationPickup; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#ObjectPropagationReturn; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#AutomaticPropagation; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#SetPropagatingLast; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#PdRaisingObjectCsTypes; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#ObjectApplicableTest",
+ "test-ref": "conformance-test:AutomaticPropagationTests.ExceptionObject_ItemThree_ObjectOrEcOoException",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1119 LANDED (wave 73 D2). cite.py --check 14.6.13.1.5 'the RAISING phrase is EXCEPTION EC-OO-EXCEPTION, instead of LAST EXCEPTION' -> OK (label '2) b)' is the list-indentation artifact; the rule is the EXIT/GOBACK list's item 3). The pickup's -3 arm (no F4 declarative in the activator) now emits EcEmitter.ObjectPropagationReturn ahead of item 4 when the ACTIVATOR is under PROPAGATE ON: an 'is' test over the activator's PD-header RAISING classes (FACTORY OF: the factory type) and interfaces (AutomaticPropagation.Of) decides between re-staging the object (LAST) and staging EXCEPTION EC-OO-EXCEPTION, then the activator returns. Witness: a program whose header names the class re-propagates the object to the main program's F4 declarative; one whose header names none propagates EC-OO-EXCEPTION to its F3 declarative - before the fix both terminated the run unit in the middle program (item 4). retired-witness: src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#StageAutomaticObjectPropagation (kb/Work PB1121 deleted StageAutomaticObjectPropagation: it was the object-or-EC-OO-EXCEPTION choice that SetPropagatingLast(bool objectApplicable) now makes for items 1 and 3 alike, over the one EcState.PdRaisingObjectCsTypes census)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.9.6.3-1",
+ "section": "11.9.6.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "DEFAULT ROUNDED clause",
+ "rule-digest": "6267189f9810",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#Apply; src/WiseOwl.Cobol.Compiler/Binding/OptionsModel.cs#DefaultRounding; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RoundingOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations",
+ "test-ref": "conformance:cases/11.9.6-DEFAULT-ROUNDED/options_default_rounded",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "cite.py --check 11.9.6.3 \"The DEFAULT ROUNDED clause specifies the type of rounding that applies to any explicit ROUNDED phrase that does not include an explicit MODE phrase\" -> OK §11.9.6.3 1); companion §11.9.6.1 \"ROUNDED phrases of arithmetic statements, SOURCE clauses, and SUM clauses do not specify a rounding mode\" -> OK; §14.7.4.3 r1 \"If the MODE phrase is not specified, the form of rounding is as described in 11.9.6, DEFAULT ROUNDED clause\" -> OK; §11.9.4 r1 (inheritance into contained source elements, override by a contained OPTIONS) -> OK. Code: OptionsBinder.Apply maps the mode into OptionsModel.DefaultRounding; ExpressionBinder.RoundingOf returns it only for a bare ROUNDED (no phrase -> TRUNCATION, explicit MODE -> that mode); every receiver path (arithmetic receivers, CORRESPONDING, report SOURCE/SUM) routes through RoundingOf; DataBinder passes _inheritedOptions as the baseline so contained programs inherit. Probe p1 (DEFAULT ROUNDED TOWARD-GREATER): COMPUTE 2.1->3, -2.9->-2, ADD GIVING 1.1->2, SUBTRACT -1.1->-1, MULTIPLY 3.3->4, DIVIDE 7 BY 2 ROUNDED 3.5->4, ADD CORRESPONDING ROUNDED 2.1->3, explicit MODE IS NEAREST-EVEN 2.5->2 (override), no ROUNDED 2.9->2 (truncation, unaffected), contained program without OPTIONS 2.1->3 (inherits), contained with DEFAULT ROUNDED MODE TOWARD-LESSER 2.9->2 (overrides) -- all as §14.7.4/D.17 derive. p2 PROHIBITED default: inexact 2.5 -> SIZE ERROR, receiver unchanged (7); exact 3.0 -> no error, 3 (§14.7.5 r5). p4 RW SOURCE V ROUNDED under TOWARD-GREATER: 2.1 -> 003, un-ROUNDED SOURCE -> 002. Covering golden tests NEAREST-EVEN (2.5->2, 3.5->4, 0.5->0) plus the MODE override; inheritance/override and RW paths verified by probe only. || Code sites (adjudicator, verbatim): src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#Apply; src/WiseOwl.Cobol.Compiler/Binding/OptionsModel.cs#DefaultRounding; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RoundingOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations(_inheritedOptions)",
+ "state": "OK"
+}

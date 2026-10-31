@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.10.4-1",
+ "section": "7.3.10.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "COBOL-WORDS directive",
+ "rule-digest": "e57fb6004201",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CobolWordsDirectiveProcessor.cs#Literal; src/WiseOwl.Cobol.Editions/CobolWordsMap.cs",
+ "test-ref": "conformance:cases/7.3.10-COBOL-WORDS/l1c03_cobol_words_case_insensitive",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "GR1 'The content of each literal shall be processed as case-insensitive ... Any use of an equated or substituted literal shall be case-insensitive when used syntactically as a COBOL word' (cite.py OK §7.3.10.4 1)). Literal() upper-cases the content (ToUpperInvariant); CobolWordsMap dictionaries/sets are OrdinalIgnoreCase; the rewriter's synonym lookup is OrdinalIgnoreCase. Probe case_insens: EQUATE \"display\" WITH \"show\" then 'Show \"OK-CASE\"' and 'sHoW \"OK-CASE2\"' both DISPLAY (both halves verified by probe). unit:CobolWordsDirectiveTests.Literals_AreCaseInsensitive covers only the literal-content half (not the use-in-source half), so no test-ref is claimed: test-needed for the second half. || editions (adjudicator): 2023 only (new in COBOL-2023: Foreword list 'Additional compiler directives were added: COBOL-WORDS directive'; Annex E.3.3 item 12, cite.py OK §E.3.3 12)); below 2023 the directive word is COBOL0900 || code site: src/WiseOwl.Cobol.Editions/CobolWordsMap.cs#CobolWordsMap (its constructor) retired-witness: src/Cobol.Net.Frontend/Parsing/CobolWordsRewriter.cs#Rewrite (COBOL-WORDS is handled in the lexer since kb/Work PB1372 (f941be404); no Rewrite method exists in CobolWordsRewriter.cs)",
+ "state": "OK"
+}

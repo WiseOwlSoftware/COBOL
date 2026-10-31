@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-11.10.4-4",
+ "section": "11.10.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "PROGRAM-ID paragraph",
+ "rule-digest": "cc081ffc7e8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible",
+ "test-ref": "conformance:cases/8.4.6.3-Scope-of-program-names/pb133_recursive_containee; conformance:cases/11.10-PROGRAM-ID/l1_call_activating_instance_per_activation; conformance:cases/8.4.6.3-Scope-of-program-names/pb1133_recursive_attribute_scope",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1133 (wave 1012 J). cite.py --check 11.10.4 'specifies that the program and any programs contained within it are recursive' OK GR4. All three halves are witnessed: (a) inheritance and (b) the self-call by pb133_recursive_containee and pb1133_recursive_attribute_scope (XC inherits, has WS, contains XC1, calls itself); (c) a non-recursive program called while active (NR2 calls NR1 back) answers the exception path - cite.py --check 14.9.4.4 'EC-PROGRAM-RECURSIVE-CALL' OK GR3 f). The most ordinary shape of the rule - a recursive program with working-storage and nested programs - compiles.",
+ "state": "OK"
+}

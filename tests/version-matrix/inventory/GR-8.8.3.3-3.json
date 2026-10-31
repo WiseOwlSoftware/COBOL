@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.3.3-3",
+ "section": "8.8.3.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Concatenation expressions",
+ "rule-digest": "1d7a56d02f06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#assignTarget; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Text; src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs",
+ "test-ref": "conformance:cases/8.8.3-Concatenation-expressions/literal_concat; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1078_assign_hex_and_concat_literal",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1078: the ASSIGN clause's literal-1 slot was the one position that refused a concatenation expression; it now folds through the one ConcatFolder like every other literal slot.",
+ "state": "OK"
+}

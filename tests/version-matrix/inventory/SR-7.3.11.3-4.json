@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.11.3-4",
+ "section": "7.3.11.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "DEFINE directive",
+ "rule-digest": "32e1b116bae9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateOperandText",
+ "test-ref": "conformance:cases/7.3.11-DEFINE/l1c06-define-boolean-numeric-operand",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.11.3 \"Boolean-expression-1 shall be formed in accordance with 7.3.7\" -> OK SR4. §7.3.7.2 SR1 (all operands boolean literals) enforced: n12 'B\"1\" B-AND 1' and s2 'B\"1\" B-AND \"A\"' -> COBOL1619; well-formed B-AND / B-OR evaluate (p1b, t6). No DEFINE-level test asserts the rejection (CompileTimeBooleanCceTests exercises the evaluator directly, not through >>DEFINE) - test-needed. || editions (adjudicator): 2002, 2014, 2023 - §7.3 compiler-directive facility; ISO/IEC 1989:2023 Annex E lists no change to §7.3.11 against 2014 (the 2002 introduction is not stated in the 2023 text itself; below 2002 the directive is COBOL0900)",
+ "state": "OK"
+}

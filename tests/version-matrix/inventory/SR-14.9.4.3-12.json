@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.4.3-12",
+ "section": "14.9.4.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "CALL statement",
+ "rule-digest": "3e1ab09f7971",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenCallOperand",
+ "test-ref": "conformance:cases/14.9.4-CALL/pb132-call-vlg-argument",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB132): a Format-1 argument referencing a variable-length group (8.5.1.12.1) is rejected at bind through THE one predicate - ReferenceResolver.HasVariableLengthSubordinate - and the PB124-era second copy (IntrinsicBinder.IsVariableLengthGroup) now DELEGATES to it (13.18.44.3 SR17 bars a dynamic item under REDEFINES, so the old redefines-skip changed nothing on legal source). Editions: DYNAMIC LENGTH and dynamic-capacity tables are 2023 constructs.",
+ "state": "OK"
+}

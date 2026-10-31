@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.5.4-1",
+ "section": "13.5.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Working-storage section",
+ "rule-digest": "5d88c01b9978",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UnitStaticWs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RouteStaticUnitStorage; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/BoundUnit.cs#AnchorOf",
+ "test-ref": "conformance:cases/13.5-Working-storage-section/recursive_ws; conformance:cases/11.10-PROGRAM-ID/pb1133_recursive_container_static_ws; conformance:cases/8.4.6.3-Scope-of-program-names/pb1133_recursive_attribute_scope",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1133 (folded PB1307, wave 1012 J). cite.py --check 13.5.4 'Data items in the working-storage section of a program that does not have the initial attribute, a function, a factory, or an object are static data' OK. The DEFECTIVE half is fixed: UnitStaticWs no longer carries the childless conjunct (the unit's file-connector flag UnitStaticFiles was the same predicate and is merged into it), and the containee's GLOBAL bridges name a static member through the container's CLASS (BoundUnit.AnchorOf). pb1133_recursive_attribute_scope runs the probe's own shape (a RECURSIVE program, a contained program with a WS counter, no GLOBAL) - the counter is one copy across three activations.",
+ "state": "OK"
+}

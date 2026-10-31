@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.53.3-4",
+ "section": "13.18.53.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "SOURCE clause",
+ "rule-digest": "35eadd3ffa70",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ReportSectionNameIn; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SumCounterFamilyFor",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb1292_source_forms_85; conformance:cases/13.18.53-SOURCE/pb1292-source-names-report-section-item",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1292 landed. cite.py --check 13.18.53.3 'If identifier-1 specifies a report section item, it shall be a report counter identifier or a sum counter defined in the current report' OK (SR4). One walk (ReportSectionNameIn) screens identifier-1 and every identifier of arithmetic-expression-1: an own-report sum counter is a SOURCE identifier (SOURCE RUNTOT = 0005 0007, then 0000 at the control footing; a name two reports share is the current report's, ReferenceResolver.ReportScope), a report counter is admitted, any other report section item is COBOL2144 (negative). retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#BindSourceReference (BindSourceReference is deleted; the SR4 screen is ReportSectionNameIn over identifier-1 and every identifier of arithmetic-expression-1)",
+ "state": "OK"
+}

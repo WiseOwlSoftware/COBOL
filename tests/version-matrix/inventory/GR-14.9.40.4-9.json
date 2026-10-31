@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.40.4-9",
+ "section": "14.9.40.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "SORT statement",
+ "rule-digest": "45071729a244",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#FileNotOpen; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#Sequence",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb837_sort_implicit_io_status; conformance:cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Phase structure verified as adjudicated (pb837, pb714, pb440). Both EC-SORT-MERGE-FILE-OPEN sentences now have their raise site (kb/Work PB1036): SortEmitter.EmitSort emits CobolSort.FileNotOpen for the USING files when phase a) commences and for the GIVING files when phase c) commences (after the sequence phase, so a GIVING file the input procedure opened is caught), each before the implicit OPEN. Golden case A (G-OUT open when phase c) commences) -> SM=EC-SORT-MERGE-FILE-OPEN, A GS=00; the note's repro fopen.cob now prints DECL EC-SORT-MERGE-FILE-OPEN / AFTER GS=00. Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)). b) 'The file referenced by file-name-1 is sequenced' (cite.py --check 14.9.40.4 -> OK 9)): CobolSort.Sort ends the input phase and calls SortWork.Sequence, which sorts the chunk in memory when nothing was written, else writes it as the last run and merges the runs down to F (kb/Work PB3339).",
+ "state": "OK"
+}

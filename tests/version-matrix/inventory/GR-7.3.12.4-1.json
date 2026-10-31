@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.12.4-1",
+ "section": "7.3.12.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "DISPLAY directive",
+ "rule-digest": "600f04fdbe65",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ApplyDisplay; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#DisplayImage; src/WiseOwl.Cobol.Frontend/Diagnostics/DiagnosticBag.cs#Transfer; src/WiseOwl.Cobol.Compiler/CompilerDriver.cs#Compile",
+ "test-ref": "conformance:cases/7.3.12-DISPLAY/pb725_push_pop_display; unit:DisplayDirectiveTests.OperandsAreTransferredInOrderAsOneLine; unit:DisplayDirectiveTests.ConversionOfData_FollowsTheDeterminedImages; unit:DisplayDirectiveTests.CompilerDriverResult_CarriesTheTransferredLines",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1538 landed (w1004b). The directive transfers its operands when it is processed: one line per destination to the compiler's standard output or standard error, through DiagnosticBag.Transfer, CompilerDriver.Result.CompileOutput and the CLI. The conversion of data is the implementor's (GR1) and is documented as DOC-A.1-53.",
+ "state": "OK"
+}

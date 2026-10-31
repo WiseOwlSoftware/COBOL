@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.6.2",
+ "section": "14.9.6.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CLOSE statement",
+ "rule-digest": "b92f554aa426",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/pb141_close_forms; conformance:cases/13.4.6-Sort-merge-file-description/pb140-close-sd; conformance-test:PerformFormat3Tests.MultiFileCloseInImp1_Rejected1612",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB141 + PB140): the format is parsed AND modelled - all four written forms are distinguishable downstream (Normal / WithLock / ReelUnit / NoRewind), with FOR REMOVAL deliberately folded into ReelUnit ON A DERIVATION (Table 14's Non-unit column gives symbol e for both UNIT rows - the binder comment carries it, so the zero-consumer accessor is a decision, not an omission). The refuter's repointed defect - CLOSE of an SD file binding and silently no-opping - was closed by PB140's ScreenSortMergeFile (COBOL1692, negative pb140-close-sd). The WITH LOCK arm stays edition-gated at 2023 (close-with-lock negative).",
+ "state": "OK"
+}

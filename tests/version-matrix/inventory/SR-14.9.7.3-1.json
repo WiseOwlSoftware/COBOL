@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.7.3-1",
+ "section": "14.9.7.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "COMMIT statement",
+ "rule-digest": "ec080f031ee4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindCommitRollback",
+ "test-ref": "conformance:cases/14.9.7-COMMIT/pb137-commit-recursive; conformance:cases/14.9.7-COMMIT/pb137-rollback-in-function",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB137): COMMIT in a RECURSIVE source element rejects at bind (COBOL1690) - explicit RECURSIVE, the 11.10.4 GR4 inheritance, and the always-recursive functions/methods (8.6.6) all read one predicate (UnitRecursive / InMethod / UdfSelfName). Enforceable at all only because the bind now produces the identity-bearing BoundCommitRollback where a payload-free BoundNop stood.",
+ "state": "OK"
+}

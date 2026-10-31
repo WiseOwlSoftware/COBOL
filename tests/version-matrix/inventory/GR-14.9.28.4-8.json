@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.28.4-8",
+ "section": "14.9.28.4",
+ "kind": "GR",
+ "ordinal": 8,
+ "subject": "PERFORM statement",
+ "rule-digest": "cd31cd0f85a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformLoop; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_2023; conformance:cases/14.9.28-PERFORM/pb440_perform_range_composition; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_85; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_2002; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_2014",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB440.md - LANDED. The two arms the row's previous verdict rested on are fixed at the ROOT: a resolved procedure range is now a PcRange that CARRIES its emptiness (it cannot be derived - a zero-paragraph section, 14.4.2, and an ADJACENT inverted THRU range, GR6, are the identical pair (s, s-1)), BindPerform has ONE path that always binds the control phrase, EmitOutOfLinePerform emits the control-phrase scaffold for EVERY range and supplies an EMPTY body when the set is empty, and DispatchState.DispatchCall is the one place a range becomes __Dispatch and THROWS on an empty one. The ONCE half is structural (EmitPerformLoop's default arm emits the out-of-line body unconditionally, with no loop). The SET half is what was wrong and is now measured: over the empty THRU composition the basic PERFORM executes an EMPTY set once, so pb440_perform_empty_range reads PLAIN N=0 and THRUBASIC N=0 at all four editions - before the fix THRUBASIC read N=1, the FOLLOWING section's statement, which is not the specified set at all. The non-empty basic form is pinned by pb440_perform_range_composition (PARATHRU N=0007, SECTION N=0030).",
+ "state": "OK"
+}

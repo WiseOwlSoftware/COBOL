@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.7.4-1",
+ "section": "13.7.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Linkage section",
+ "rule-digest": "da5feb03942d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#GlobalBridgesOf",
+ "test-ref": "conformance:cases/13.7-Linkage-section/l1c17_linkage_based_access",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 13.7.4 \"The access to a based data item is described in 13.18.5, BASED clause\" -> OK §13.7.4 1)) is a delegation: a BASED linkage item is accessed through its data-address, not through a formal-parameter correspondence. LINKAGE BASED items bind through BindEntries(…, EntrySection.Linkage) into the same forest and the Tier-B BASED machinery (BasedPointerField). Probe gr5b.cob: `01 L-X BASED` group with VALUEs and `01 L-Y BASED PIC X(3)` in LINKAGE of a main program, no USING: ALLOCATE L-X INITIALIZED -> X=ABC42, ALLOCATE L-Y + MOVE -> Y=RST; no SR4 violation raised for the based items (SR4's based exemption). The substantive access rules are §13.18.5's rows. No spec-derived golden dedicated to a BASED linkage item located; test-needed. Probe: out13/probe/linkage-section/gr5b.cob. || Editions (adjudicator): 2002, 2014, 2023 (BASED clause, §13.18.5, is 2002+)",
+ "state": "OK"
+}

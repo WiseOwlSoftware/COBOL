@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-16",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 16,
+ "subject": "PICTURE clause",
+ "rule-digest": "05ecd6e001a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeLocaleEdited",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb64t6_picture_locale_smoke",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "",
+ "state": "OK"
+}

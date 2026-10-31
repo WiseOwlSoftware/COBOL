@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-14",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 14,
+ "subject": "SET statement",
+ "rule-digest": "ef42bdf24600",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetFunctionPointer; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetFunctionAddress; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetFunctionPointer; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetFunctionAddress; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#FunctionSignatureMatches",
+ "test-ref": "conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_set_function_pointer; conformance:cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb452_function_address_runtime; conformance:cases/8.4.3.12-Function-address-identifier/pb452-set-function-pointer-signature",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "SET Format 8 LANDED WHOLE (kb/Work PB452 + PB817). GR14 has three obligations and each has a witness. (1) 'The address identified by identifier-13 is stored in each data item referenced by identifier-12 in the order specified' - the 2014 golden's BOTH-SET line sets TWO receivers in one statement and both hold the address. (2) 'Item identification ... immediately before the value of that data item is changed' - each receiver is rendered as its own store after the ONE sender resolution, so a subscripted receiver is identified at its own store. (3) The EC-FUNCTION-PTR-INVALID screen - the 2023 golden's PI-RAISED/C-KEPT pair measures both halves: the declarative runs AND the receiver still holds its previous address, because GR14 NAMES the outcome ('no data items are changed, and the execution of the SET statement is terminated') and the store-skip is therefore unconditional while only the raise is checking-gated (14.6.13.1.4). TWO DETERMINATIONS, recorded in INTERPROGRAM_DESIGN.md D8: GR14's 'the function referenced in the definition of identifier-13' cannot be read literally when identifier-13 is a function-address-identifier of the 8.4.3.12.4 GR1a identifier-1 form, which names no prototype - the screen is implemented against the RECEIVING item's declared prototype, which is 13.18.60.4 GR26's own standing invariant and is what SR20 has already made identical wherever the sender does carry one; and the run-time compare is ARITY-ONLY because the run-unit registry carries FormalCount/RequiredCount and nothing finer, the same granularity as the compile-time COBOL1513 check. Before this landing the operand could not be declared at all (COBOL0899, plus a COBOL0881 'a PICTURE clause shall be specified' and a COBOL0844 calling the item 'of category alphanumeric'), so GR14 was unreachable.",
+ "state": "OK"
+}

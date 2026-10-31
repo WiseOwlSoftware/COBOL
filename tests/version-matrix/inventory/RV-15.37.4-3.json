@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.37.4-3",
+ "section": "15.37.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "FIND-STRING function",
+ "rule-digest": "b6bc218f430f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#FindString",
+ "test-ref": "conformance:cases/15.37.4-Returned-value-rules/find_string; conformance-test:IntrinsicFunctionDifferentialTests.FindString_CaseSensitiveByDefault_2023; conformance-test:IntrinsicFunctionDifferentialTests.FindString_Positions_2023",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "EVIDENCE STRENGTHENED, verdict unchanged (kb/Work PB254). Citation re-derived: cite.py --check 15.37.4 \"If no match is found, the function shall return zero\" -> OK (15.37.4 rule 3). The rule's NONE case (no occurrence at all) was pinned; its OTHER case - rule 2 ignoring every occurrence there is, which is equally 'no match is found' - was pinned only for values inside long. Before this landing FUNCTION FIND-STRING(hay ndl START AFTER 9999999999999999999) returned 1 instead of zero (10 under LAST), because the 15.3 narrowing landing substituted 0 for the ARGUMENT. Now pinned by conformance:cases/15.37.4-Returned-value-rules/find_string legs EXHAUST3 = 0, WIDESKIP = 0 and WIDELASTSKIP = 0 alongside the existing NONE = 0.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.41.3-8",
+ "section": "14.9.41.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "START statement",
+ "rule-digest": "d176754ff112",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+ "test-ref": "conformance:cases/14.9.41-START/pb352-start-length-non-indexed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB352. RULE (--check 14.9.41.3 8): 'If the LENGTH phrase is specified, file-name-1 shall reference a file with indexed organization.' CODE: BindStart -- 'if (length is not null && file.Organization != FileOrganization.Indexed) ctx.Edition.Error(\"COBOL0862\", ... \"the LENGTH phrase requires indexed organization (ISO 14.9.41 SR8)\");'. The predicate itself is right (Indexed is the only permitted organization), but the STATEMENT IS UNREACHABLE for one of the two organizations it exists to exclude.\nRELATIVE LEG VERIFIED (out-b1/probe/sr1-sr8): 'START RLF KEY IS = WS-RK WITH LENGTH 2' on ORGANIZATION RELATIVE reports COBOL0862 SR8.\nSEQUENTIAL LEG NOT REACHED: the check sits AFTER 'if (file.IsSequential) return new BoundUnsupported(...)'. In the SAME probe run, 'START SQF KEY IS = SQ-REC WITH LENGTH 2' on an ORGANIZATION SEQUENTIAL file produced ZERO diagnostics -- two syntax rules violated at once (SR8 and SR2) and neither reported; the statement becomes a runtime NotImplementedCobolFeatureException instead. I flipped the axis deliberately: probing only the relative case would have shown a green check for a rule half of whose domain is unenforced.\nA SECOND UNREACHED PATH: 'if (kp is not null && operand is null) return new BoundUnsupported(...)' precedes the LENGTH check, so a START whose KEY operand fails name resolution also suppresses SR8.\nEDITIONS: the WITH LENGTH phrase is absent from the COBOL-85 START format (gated at 2002 by ConstructRegistry 'start-with-length-2002' / COBOL0900); Annex E records no 14.9.41 change from 2014, so 2014 and 2023 are certain and the pre-2014 split is not derivable from the 2023 text alone.\nTEST: none.\n\nLANDED 2026-09-05 (kb/Work PB352). BOTH unreached paths the adjudication named are closed, because the organization-independent syntax rules are now screened BEFORE either arm bails: the SR8 test sits above SR2's sequential rejection and above the `operand is null` BoundUnsupported return, so `START SQF KEY IS = SQ-REC WITH LENGTH 2` on a sequential file now reports SR8 *and* SR2 where it used to report neither. conformance:cases/14.9.41-START/pb352-start-length-non-indexed carries both non-indexed organizations in one program and is the rule's first fixture.",
+ "state": "OK"
+}

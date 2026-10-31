@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.11.4-7",
+ "section": "7.3.11.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "DEFINE directive",
+ "rule-digest": "1f3705696e66",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand",
+ "test-ref": "unit:ConditionalCompilationDefineTests.Define_BooleanExpressionOperand_Evaluated",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 7.3.11.4 \"is evaluated according to 7.3.7, Compile-time boolean expressions\" -> OK GR7. p1b: B\"101\" B-AND B\"110\" = B\"100\" selects; the unit test pins B-OR. || editions (adjudicator): 2002, 2014, 2023 - §7.3 compiler-directive facility; ISO/IEC 1989:2023 Annex E lists no change to §7.3.11 against 2014 (the 2002 introduction is not stated in the 2023 text itself; below 2002 the directive is COBOL0900)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.4-3",
+ "section": "14.6.13.1.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Exception conditions",
+ "rule-digest": "5b5590c16501",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitNotPhrase; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid",
+ "test-ref": "conformance:cases/9.1.14-Invalid-key-condition/pb1120_handled_warning_by_use_declarative_skips_not_invalid_key; conformance:cases/9.1.14-Invalid-key-condition/pb1120_unhandled_warning_still_runs_not_invalid_key",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1120 landed. Sentence 3 (\"the imperative-statement in that phrase is not executed\") holds on the I-O path for a USE-declarative-handled EC-I-O-WARNING (indexed WRITE, status 02: NOTINV1 00 / DECL 02 / AFTER 02, no NOTINV2), and the unhandled control still runs the NOT phrase (a raised-but-unhandled nonfatal is only recorded, 4)). Sentences 1-2 and the CALL arm as before (ExceptionConditionConformanceTests, pb606).",
+ "state": "OK"
+}

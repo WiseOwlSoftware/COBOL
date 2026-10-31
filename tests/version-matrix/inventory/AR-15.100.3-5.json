@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.100.3-5",
+ "section": "15.100.3",
+ "kind": "AR",
+ "ordinal": 5,
+ "subject": "YEAR-TO-YYYY function",
+ "rule-digest": "9e1b5eb8c930",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearToYyyy; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RawArg",
+ "test-ref": "conformance:cases/15.100.3-Arguments-rule/pb119_windowing_float_args; unit:CobolDateWindowingTests.YearToYyyy_DefaultArg3_IsExecutionYear",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB119): the Real twins mirror the exact cores' OVERLOAD SPLIT - an omitted argument-3 takes the two-argument arm (windowing on the execution year per r5's NUMVAL(CURRENT-DATE(1:4)) identity), a WRITTEN argument-3 the three-argument arm where the r4 'greater than 1600' screen still applies (a sentinel default cannot express the difference; only arity can). The sweep fixed all THREE windowing twins (DATE-TO-YYYYMMDD / DAY-TO-YYYYDDD carried the identical shape) - the two-arm dispatch family's sixth occurrence, seven of seven arms now audited. retired-witness: src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#YearToYyyyReal (kb/Work PB651 deleted YearToYyyyReal: every YEAR-TO-YYYY position is 15.3 type 6, so a float argument reaches the one CobolDate.YearToYyyy body as its integer through IntrinsicRenderer.RawArg) || editions corrected from '85,2002,2014,2023' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the YEAR-TO-YYYY function exists from 2002 (IntrinsicCatalog.cs, the COBOL1502 edition window).",
+ "state": "OK"
+}

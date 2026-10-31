@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.9.10.3-1",
+ "section": "11.9.10.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "INITIALIZE clause",
+ "rule-digest": "b751ae9438bb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#OneByteHexAlphanumeric; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#InitializeOf",
+ "test-ref": "conformance:cases/11.9.10-INITIALIZE/pb152-options-initialize-fill-literal-not-hex; conformance:cases/11.9.10-INITIALIZE/pb152-options-initialize-fill-literal-two-bytes; unit:InitialStateBackgroundDriftTests.Sr1AdmitsOnlyAOneByteHexadecimalAlphanumericLiteral",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-09-02 (PB152), COBOL1727. 'Hexadecimal-alphanumeric literal' is a DEFINED TERM and the screen is written to it, not to a paraphrase: 8.3.3.2.2 gives the alphanumeric literal exactly two general formats - format 1 (\"...\" / '...') and format 2 (X\"...\" / X'...') - and 'hexadecimal-alphanumeric' names FORMAT 2, so a one-character format-1 literal such as \"Z\" is NOT admitted however short it is. One byte is exactly two hexadecimal digits (8.3.3.2.3 SR5). Before the screen the decoder took raw[0] for ANY shape, so INITIALIZE ALL TO \"AB\" silently became 'A'. The 2026-08-30 analysis that scoped this work carried the paraphrase 'a one-character alphanumeric OR one-byte hex literal', which would have shipped an under-reject; the printed page (PDF 307 / folio 277) was rendered and read to settle it. PB151's own golden pb151_options_fill was written with the format-1 spelling and is repaired to X\"51\" by this landing - 0x51 IS 'Q', so its expected output is unchanged byte for byte.",
+ "state": "OK"
+}

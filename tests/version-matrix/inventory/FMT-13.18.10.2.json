@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.10.2",
+ "section": "13.18.10.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "BLOCK CONTAINS clause",
+ "rule-digest": "80e87404b097",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blockContainsClause; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Slots",
+ "test-ref": "conformance:cases/13.18.10-BLOCK-CONTAINS/l1c02_block_contains_forms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Printed format: BLOCK [CONTAINS] [integer-1 TO] integer-2 {[CHARACTERS] | RECORDS} (BLOCK/TO/RECORDS underlined; CONTAINS and CHARACTERS optional words, so omitting the unit word = CHARACTERS). Grammar: BLOCK CONTAINS? integerLiteral (TO integerLiteral)? (CHARACTERS | RECORDS)? - exact. Placement: fileDescriptionClause alternative (FD only; SD excluded per sortMergeDescriptionEntry). Probed pinned cobol.exe at --std 85 and 2023: 'BLOCK CONTAINS 2 RECORDS', 'BLOCK 100', 'BLOCK CONTAINS 10 TO 100 CHARACTERS', 'BLOCK CONTAINS 10 TO 20' all compile and run; '+5' and '5.5' refused (COBOL0001, integer-n required); 'CHARACTERS RECORDS' refused (COBOL0307, braces choose one); zero refused COBOL2386 (§5.5 1) nonzero default). conformance:cases/11.2-Identification-division-structure/pb829_closed_formats_legal exercises only the 'BLOCK CONTAINS 1 RECORDS' arm, so it is not a covering test for the whole format -> test-ref empty. cite.py --check 13.18.10.1 \"The BLOCK CONTAINS clause specifies the size of a physical record.\" -> OK. || Editions (adjudicator): 1985, 2002, 2014, 2023 (clause present unchanged in every edition; Annex E records no change to 13.18.10)",
+ "state": "OK"
+}

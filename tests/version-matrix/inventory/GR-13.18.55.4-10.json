@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.55.4-10",
+ "section": "13.18.55.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "7bf7e96ed688",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-195",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_sync_occurs_and_no_auto_align",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "The declined option measured on unexcluded carriers with NO clause present: AUTO=4 (binary) and AUTO8=10 (BINARY-DOUBLE) carry GR10's FIRST sentence; A.1 item 7 makes the documentation optional and DOC-A.1-195 states the declination. ROUND-4: the REC=3 leg's claim to test GR10's SECOND sentence is WITHDRAWN - record synchronization is a placement and 13.18.55.4 GR6 keeps the size at 3 under either election, so the header now says the leg makes no claim about it and points at l1_sync_file_record's 4/4 legs instead.",
+ "state": "OK"
+}

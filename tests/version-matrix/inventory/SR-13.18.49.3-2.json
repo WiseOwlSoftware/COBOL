@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.49.3-2",
+ "section": "13.18.49.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "SAME AS clause",
+ "rule-digest": "fd19da5e2ff2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs",
+ "test-ref": "conformance:cases/13.18.49-SAME-AS/l1c27-same-as-followed-by-88; conformance:cases/13.18.49-SAME-AS/l1c27-same-as-followed-by-subordinate",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR2 \"A data description entry that specifies the SAME AS clause shall not be immediately followed by a subordinate data description entry or level 88 entry.\" (--check 13.18.49.3 -> OK 2)). ExpandSameAs: `item.Children.Count > 0 || item.Own88s.Count > 0` -> COBOL1555 before the copy. Both halves verified: subordinate half by SameAsTests.SameAsWithSubordinate_Rejected1555; level-88 half by probe p11_sr2_88 (`01 W SAME AS E. 88 W-ON VALUE 1.` -> COBOL1555 citing SR2). test-ref left empty: the existing test covers only the subordinate half, the 88 half has no test. Cosmetic: every SAME AS rejection that returns before the copy also emits a cascade COBOL0881 (PICTURE required) on the uncopied subject. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023)",
+ "state": "OK"
+}

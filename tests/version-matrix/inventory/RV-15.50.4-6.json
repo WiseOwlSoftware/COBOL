@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.50.4-6",
+ "section": "15.50.4",
+ "kind": "RV",
+ "ordinal": 6,
+ "subject": "LENGTH function",
+ "rule-digest": "285ae790efeb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#Render",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches; conformance:cases/14.9.25-MOVE/dynamic_length_figurative; conformance:cases/8.5.1.11.3-Availability-and-persistence-of-variable-length/dynamic_length_item",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). §15.50.4 r6 'the current length of argument-1 in bytes' for a DYNAMIC LENGTH elementary item — golden DL: LENGTH(DLA) = 5, LENGTH(DLN) = 8 for N\"ABCD\" (2 bytes per position, D-N1 — BoundIntrinsicCall.LengthInBytes reads the storage channel); the national arm staged loud where the alphanumeric sibling one line below rode the runtime channel.",
+ "state": "OK"
+}

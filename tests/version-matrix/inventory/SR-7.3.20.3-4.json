@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.20.3-4",
+ "section": "7.3.20.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "POP directive",
+ "rule-digest": "07733f4f13ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckDirectiveBans; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs",
+ "test-ref": "unit:ExceptionCheckingPerformDirectiveBanDriftTests.APushOrPopInsideAnExceptionCheckingPerform_WarnsCitingItsOwnRule; unit:ExceptionCheckingPerformDirectiveBanDriftTests.TheSameDirectivesOutsideTheStatement_DrawNothing; unit:ExceptionCheckingPerformDirectiveBanDriftTests.TheSiteScannerAndTheBanTable_NameTheSameDirectives",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work/PB595.md - LANDED with SR-7.3.25.3-5: the POP ban, decided by the same one predicate and reported with its own clause (7.3.20.3 SR4) and its own words. COBOL2187, a suppressible warning; the program still compiles. >>POP is a 2023 compiler-directive word (Annex E.2 item 5 / E.3.3 item 38). The 7.3.20 directive-state SEMANTICS remain unimplemented and are a separate row family; this row is the POSITION rule.",
+ "state": "OK"
+}

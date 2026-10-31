@@ -136,6 +136,18 @@
    "vcr": "VCR Table 2 row 38 (Annex E.3.2 item 1)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AMG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-TAG PIC X(8).\n01 WS-MSG PIC X(20).\n01 WS-LEN PIC 9(4).\n01 WS-REPLY PIC X(8).\nPROCEDURE DIVISION.\nMAIN.\n    RECEIVE FROM WS-TAG GIVING WS-MSG WS-LEN.\n    SEND TO WS-SRV FROM WS-MSG RETURNING WS-REPLY END-SEND.\n    STOP RUN.\n"
   },
+ {
+  "id": "validate-statement-2002",
+  "description": "The VALIDATE statement (ISO §14.9.50) - a COBOL-2002 introduction: §8.9 reserves VALIDATE from 2002 and COBOL-85 has no such statement. The facility is declined (Annex A.4.14; docs/CONFORMANCE.md §4 item 3): from 2002 the statement is accepted inert under COBOL1580. The grammar arm is the UNION grammar, predicated only on the verb's spelling, and the VersionConformancePass parse arm (VisitValidateFacilityStatement) names the edition on RECOGNITION, so a VALIDATE statement at --std 85 answers COBOL0900 (kb/Work PB3148: a reservation predicate had made it a bare parse error at its operand). A COBOL-85 program that declares a data item VALIDATE keeps it: the reservation gate retypes every occurrence of the declared word to a user-defined word (kb/Work PB655).",
+  "display": "the VALIDATE statement",
+  "diagnosticCode": "COBOL0900",
+  "citation": "ISO §14.9.50 (VALIDATE statement; Annex A.4.14, declined)",
+  "introducedIn": 2002,
+  "removedIn": null,
+  "expectDiagnostic": "COBOL0900",
+  "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only; §8.9 reserves VALIDATE from 2002)",
+  "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWVAL.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 WS-REC PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN-P.\n           VALIDATE WS-REC.\n           STOP RUN.\n"
+ },
   {
    "id": "apply-commit-clause-2023",
    "status": "active",
@@ -1271,10 +1283,23 @@
    "source": "IDENTIFICATION DIVISION.\nFUNCTION-ID. KFPPROTO IS PROTOTYPE.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-R PIC 9(4).\nPROCEDURE DIVISION RETURNING L-R.\nEND FUNCTION KFPPROTO.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. KFP.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION KFPPROTO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 FP USAGE FUNCTION-POINTER TO KFPPROTO.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\nEND PROGRAM KFP.\n"
   },
   {
+   "id": "usage-message-tag-2023",
+   "status": "pending",
+   "description": "PENDING - USAGE MESSAGE-TAG (ISO §13.18.60.2 / §13.18.60.4 GR9), a COBOL-2023 introduction (§8.9 reserves MESSAGE-TAG from 2023; Annex E.2 item 25 = VCR row 32): below 2023 the word is a user-defined word, so the entry draws the ordinary COBOL0900 introduction gate (bound-arm UsageConstructId, the usage-function-pointer-2014 shape) and PictureAnalyzer.ParseUsage's decline does NOT also fire (kb/Work PB916 - COBOL1943 used to fire at 85/2002/2014 against its own message text). The row is pending because no PROGRAM can be accepted at 2023: the data half of the asynchronous messaging facility is declined non-support (Annex A.3 item 4; docs/CONFORMANCE.md 4 item 1), so every conforming spelling is refused COBOL1943 and the active-row matrix cell 'compiles at introducedIn' cannot hold - the initialize-category-2023 precedent. The gate is live and witnessed by the pb916 goldens and MessageTagIntroductionGateTests.",
+   "display": "USAGE MESSAGE-TAG",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO §13.18.60.4 GR9 / §8.9 (reserved from 2023)",
+   "introducedIn": 2023,
+   "removedIn": null,
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "2023 introduction (ISO Annex E.2 item 25 = VCR row 32, the MESSAGE-TAG reserved word)",
+   "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KMT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 MT USAGE MESSAGE-TAG.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
    "id": "set-function-pointer-2014",
    "status": "active",
    "description": "SET { identifier-12 } … TO identifier-13 (ISO §14.9.39.2 Format 8, function-pointer-assignment), including the §8.4.3.12 ADDRESS OF FUNCTION function-address-identifier sender — dated 2014 by its only possible operand, the 2014 USAGE FUNCTION-POINTER item (usage-function-pointer-2014). The plain form reuses the setToValueStatement / setObjectReferenceStatement shapes and re-routes on the receiver's category in SetBinder (the Format-9 pattern); the ADDRESS OF FUNCTION sender is its own grammar rule (setFunctionAddressStatement). SR20's same-signature screen is COBOL1959 and §8.4.3.12.3 SR1/SR2 is COBOL1960. LIVE as of kb/Work PB452 + PB817.",
-   "display": "SET … TO function-pointer (Format 8)",
+   "display": "SET TO function-pointer (Format 8)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §14.9.39.2 Format 8 / §14.9.39.3 SR20 / §14.9.39.4 GR14 / §8.4.3.12",
    "introducedIn": 2014,
@@ -1286,7 +1311,7 @@
    "id": "set-program-pointer-2002",
    "status": "active",
    "description": "SET { identifier-7 } \u2026 TO identifier-8 (ISO \u00a714.9.39.2 Format 9, program-pointer-assignment), including the \u00a78.4.3.13 ADDRESS OF PROGRAM program-address-identifier sender \u2014 dated 2002 by its only possible operand, the 2002 USAGE PROGRAM-POINTER item (usage-program-pointer-2002), since \u00a714.9.39.3 SR21 makes every receiving operand category program-pointer. The plain form reuses the setToValueStatement / setObjectReferenceStatement shapes and re-routes on the receiver's category in SetBinder; the ADDRESS OF PROGRAM sender is its own grammar rule (setProgramAddressStatement over programAddressIdentifier), and OF is an optional word because the \u00a78.4.3.13.2 figure underlines ADDRESS and PROGRAM only. SR22's same-signature screen is COBOL1959 and \u00a78.4.3.13.3 SR1/SR2/SR3 is COBOL2157. LIVE as of kb/Work PB549, which measured the gap: the ISO spelling was a bare parse error at EVERY edition and the Micro Focus / IBM `SET pp TO ENTRY` extension (whose words are in no ISO general format) was the only route into a program-pointer.",
-   "display": "SET \u2026 TO program-pointer (Format 9)",
+   "display": "SET TO program-pointer (Format 9)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO \u00a714.9.39.2 Format 9 / \u00a714.9.39.3 SR21 / SR22 / \u00a78.4.3.13",
    "introducedIn": 2002,
@@ -1847,7 +1872,7 @@
     "id": "usage-object-reference-only-2002",
     "status": "active",
     "description": "USAGE OBJECT REFERENCE object-class-name-1 ONLY (ISO §13.18.60.2; GR22 d)2.) — the referenced object is of EXACTLY the named class, never a subclass. LIVE since kb/Work PB389 (a trailing ONLY was a raw COBOL0307 parse error before): the descriptor carries the flag and §14.9.39.3 SR12 a)1. / b)1. / c)1. read it. ONLY is §8.10 context-sensitive — a legal user word at every edition — so the shape is gated only by the USAGE OBJECT REFERENCE clause's own 2002 introduction.",
-    "display": "USAGE OBJECT REFERENCE … ONLY",
+    "display": "USAGE OBJECT REFERENCE ONLY",
     "diagnosticCode": "COBOL0900",
     "citation": "ISO §13.18.60.2 / §13.18.60.4 GR22 d)2. (OO)",
     "introducedIn": 2002,
@@ -2005,7 +2030,7 @@
   {
    "id": "set-save-locale-2002",
    "description": "SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}, ISO 14.9.39.2 Format 12 (save-locale) - introduced 2002 with the locale facility (Annex A.4.9 item 9; kb/Work PB64 T1): the current locale (GR26) or the user default (GR27) is saved and a reference to it - a managed saved-locale handle (DESIGN-locale-facility L4) - is placed into the data-pointer (SR28). Parse-arm gated on recognition (VisitSetLocaleStatement; the shape has no '85 reading).",
-   "display": "SET ... TO LOCALE (save-locale, Format 12)",
+   "display": "SET TO LOCALE (save-locale, Format 12)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §14.9.39.2 Format 12; §14.9.39.3 SR28; §14.9.39.4 GR26/GR27; parse-arm gate (VisitSetLocaleStatement)",
    "introducedIn": 2002,
@@ -2306,7 +2331,7 @@
    "id": "set-object-reference-2002",
    "status": "active",
    "description": "SET ... TO object-reference (ISO 14.9.39 Format 5) - introduced 2002 (OO). Grammar-gated (setObjectReferenceStatement) for NULL/SELF senders; a dataReference sender parses as the Format-1 shape and re-routes SEMANTICALLY in BindSetTo (the ANTLR alternative-order reality). Below 2002 the W1.5 mapping fires on the NULL/SELF-after-TO signature (0900). SR8/SR9/SR12/SR13 violations are COBOL0867; LIVE as of the universal wave (D-U7, DEVLOG 608).",
-   "display": "SET … TO object-reference (Format 5)",
+   "display": "SET TO object-reference (Format 5)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §14.9.39 F5 (OO); grammar-gated (setObjectReferenceStatement) for NULL/SELF senders + the BindSetTo semantic re-route for data senders (ANTLR alternative-order reality); LIVE as of the universal wave (D-U7) — SR8/SR9/SR12/SR13 = COBOL0867",
    "introducedIn": 2002,
@@ -2914,7 +2939,7 @@
   {
    "id": "call-on-overflow-removed-2023",
    "description": "the CALL ... ON OVERFLOW phrase — the COBOL-74-carried synonym of ON EXCEPTION, valid 85–2014 and REMOVED at 2023 (Annex E.2 item 1c; use ON EXCEPTION). Folded from the inline COBOL0882 binder gate (P2.6b).",
-   "display": "CALL … ON OVERFLOW",
+   "display": "CALL ON OVERFLOW",
    "diagnosticCode": "COBOL0882",
    "citation": "ISO 2023 Annex E.2 item 1c (removed 2023; use ON EXCEPTION)",
    "introducedIn": 85,
@@ -3053,7 +3078,7 @@
   {
    "id": "call-returning-2002",
    "description": "CALL ... RETURNING status-item, ISO 14.9.4 - the RETURNING phrase is a 2002 introduction (folded from the inline CallBinder gate, Exec Step E).",
-   "display": "CALL ... RETURNING",
+   "display": "CALL RETURNING",
    "diagnosticCode": "COBOL0884",
    "citation": "ISO §14.9.4 (the RETURNING phrase on CALL is 2002+)",
    "introducedIn": 2002,
@@ -3102,7 +3127,7 @@
   {
    "id": "initialize-filler-2002",
    "description": "The INITIALIZE WITH FILLER phrase - a 2002 introduction. Folded from the inline InitializeBinder gate (Exec Step E).",
-   "display": "INITIALIZE ... WITH FILLER",
+   "display": "INITIALIZE WITH FILLER",
    "diagnosticCode": "COBOL0830",
    "citation": "ISO §14.9.20 (the FILLER phrase is 2002+)",
    "introducedIn": 2002,
@@ -3114,7 +3139,7 @@
   {
    "id": "initialize-to-value-2002",
    "description": "The INITIALIZE [category] TO VALUE phrase - a 2002 introduction. Folded from the inline InitializeBinder gate (Exec Step E).",
-   "display": "INITIALIZE ... TO VALUE",
+   "display": "INITIALIZE TO VALUE",
    "diagnosticCode": "COBOL0831",
    "citation": "ISO §14.9.20 (the VALUE phrase is 2002+)",
    "introducedIn": 2002,
@@ -3126,7 +3151,7 @@
   {
    "id": "initialize-to-default-2002",
    "description": "The INITIALIZE THEN TO DEFAULT phrase - a 2002 introduction. Folded from the inline InitializeBinder gate (Exec Step E).",
-   "display": "INITIALIZE ... TO DEFAULT",
+   "display": "INITIALIZE TO DEFAULT",
    "diagnosticCode": "COBOL0832",
    "citation": "ISO §14.9.20 (the DEFAULT phrase is 2002+)",
    "introducedIn": 2002,
@@ -3138,7 +3163,7 @@
   {
    "id": "initialize-then-replacing-2002",
    "description": "The INITIALIZE THEN REPLACING connective - a 2002 introduction. Folded from the inline InitializeBinder gate (Exec Step E).",
-   "display": "INITIALIZE ... THEN REPLACING",
+   "display": "INITIALIZE THEN REPLACING",
    "diagnosticCode": "COBOL0833",
    "citation": "ISO §14.9.20 (the THEN connective is 2002+; REPLACING itself is COBOL-85)",
    "introducedIn": 2002,
@@ -3150,7 +3175,7 @@
   {
    "id": "initialize-category-2002",
    "description": "The COBOL-2002 INITIALIZE category-names - BOOLEAN, DATA-POINTER, NATIONAL, NATIONAL-EDITED, OBJECT-REFERENCE and PROGRAM-POINTER, the six of the printed thirteen (ISO 14.9.20.2 'where category-name is:') that entered with the 2002 data categories and that ISO 8.9 reserves from 2002. Gated on RECOGNITION in the VersionConformancePass parse arm (VisitInitializeCategoryName), so the edition is named whether or not the operands resolve. kb/Work PB415.",
-   "display": "INITIALIZE ... category-name (2002 words)",
+   "display": "INITIALIZE category-name (2002 words)",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §14.9.20.2 (category-name) / §8.9 (reserved from 2002)",
    "introducedIn": 2002,
@@ -3163,7 +3188,7 @@
   {
    "id": "initialize-category-2014",
    "description": "The COBOL-2014 INITIALIZE category-name FUNCTION-POINTER (ISO 14.9.20.2) - the one of the printed thirteen that entered with the 2014 USAGE FUNCTION-POINTER category, and that ISO 8.9 reserves from 2014. Same parse-arm gate as initialize-category-2002. kb/Work PB415.",
-   "display": "INITIALIZE ... FUNCTION-POINTER",
+   "display": "INITIALIZE FUNCTION-POINTER",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §14.9.20.2 (category-name) / §8.9 (reserved from 2014)",
    "introducedIn": 2014,
@@ -3176,7 +3201,7 @@
   {
    "id": "initialize-category-2023",
    "description": "PENDING - the COBOL-2023 INITIALIZE category-name MESSAGE-TAG (ISO 14.9.20.2; ISO 8.9 reserves MESSAGE-TAG from 2023, Annex E.2 item 25). The GATE is live and named from the VersionConformancePass parse arm exactly like its 2002/2014 siblings; the row is pending because no PROGRAM can exercise the ACCEPT side. 14.9.20.3 SR3 requires identifier-2 for a MESSAGE-TAG category-name and SR4 requires that `SET <message-tag item> TO identifier-2` be valid, so a conforming use needs a message-tag DATA ITEM - and the A.4 message-control facility is owner-declined (docs/CONFORMANCE.md 4), so no such item can be declared and every MESSAGE-TAG REPLACING item is refused COBOL1983. Activation is owned by the MCS facility decision, not by this lane. kb/Work PB415.",
-   "display": "INITIALIZE ... MESSAGE-TAG",
+   "display": "INITIALIZE MESSAGE-TAG",
    "diagnosticCode": "COBOL0900",
    "citation": "ISO §14.9.20.2 (category-name) / §8.9 (reserved from 2023)",
    "introducedIn": 2023,
@@ -3310,7 +3335,7 @@
   {
    "id": "program-id-recursive-2002",
    "description": "The PROGRAM-ID RECURSIVE attribute - a 2002 introduction. Folded from the inline BinderDriver gate (Exec Step E).",
-   "display": "PROGRAM-ID ... RECURSIVE",
+   "display": "PROGRAM-ID RECURSIVE",
    "diagnosticCode": "COBOL0885",
    "citation": "ISO §11.10 (the RECURSIVE attribute is 2002+)",
    "introducedIn": 2002,

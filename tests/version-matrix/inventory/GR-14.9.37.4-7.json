@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.37.4-7",
+ "section": "14.9.37.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "SEARCH statement",
+ "rule-digest": "fc96d5bff4ea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/l1_search_all_duplicate_keys",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Three settings satisfy WHEN over keys 01,03,03,03,09; only GR7's invariants are asserted (the search succeeds, the final setting satisfies the WHEN, it lies in 2..4) and never which one, so the golden passes under every conforming choice. CODE-LOCATION restored to the adjudicated value: the input row and the live tests/version-matrix/traceability-inventory.json both carry ControlFlowEmitter.cs, and that is where the behaviour lives — SearchBinder.BindSearchAll only resolves the table and binds the WHEN conditions, while the first-true-wins WHEN loop in ControlFlowEmitter.EmitSearchScan (:441-445, reached by SEARCH ALL too, since BindSearchAll lowers to BoundSearch) is what makes the final setting one of the settings satisfying the WHEN.",
+ "state": "OK"
+}

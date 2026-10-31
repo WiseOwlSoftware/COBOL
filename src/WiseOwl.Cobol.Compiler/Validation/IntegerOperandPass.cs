@@ -206,7 +206,7 @@ internal static class IntegerOperandRules
         [typeof(Core.SymbolicCharacterEntryContext)] =
             "the entry's FIRST alternative, the literal ordinals every program wrote before constant entries existed, listed "
             + "first so that such a program parses exactly as it did; its second and third alternatives write integerOperand "
-            + "and bare words (DataBinder.SymbolicEntryGroups), because a constant-name ordinal is the same kind of token as "
+            + "and bare words (DataBinder.SymbolicClauseOperands), because a constant-name ordinal is the same kind of token as "
             + "the next symbolic-character-1 and only the constant table tells them apart",
         [typeof(Core.SectionDefinitionContext)] = "the 1985 Segmentation module's priority-number, not an integer-n; deleted at 2002",
         [typeof(Core.DeclarativeSectionContext)] = "the 1985 Segmentation module's priority-number, not an integer-n; deleted at 2002",

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.23.4-9",
+ "section": "14.9.23.4",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "INVOKE statement",
+ "rule-digest": "f733d4900cb8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#OoSignatureOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitInstanceInvoke; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitCobolInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb757_invoke_omitted; conformance-test:MethodOmittedArgumentTests.InlineInvocation_Omitted_ConditionTrueInMethod; conformance-test:MethodOmittedArgumentTests.UniversalForward_OmittedFormal_StaysOmitted",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB757.md landed w46i2. Every method formal crosses as the pair (ref T, bool omitted) (OO_DESIGN D6). A spelled OMITTED passes true; a trailing omission (14.8.2.1: every formal past the last argument OPTIONAL) is bound to an explicit omitted slot; a universal receiver carries CobolInvokeArg.Omitted and admits fewer arguments down to the last non-OPTIONAL formal. The omitted-argument condition in the method reads the flag: golden TAKE (both spellings), TWO (trailing), GRP (a group formal), a universal receiver; the inline form at 2023 (test).",
+ "state": "OK"
+}

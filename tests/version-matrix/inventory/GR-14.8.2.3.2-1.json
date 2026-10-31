@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.8.2.3.2-1",
+ "section": "14.8.2.3.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Elementary items",
+ "rule-digest": "40f69e865688",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#CheckArgument",
+ "test-ref": "conformance:cases/14.8.2.3.2-Elementary-items-passed-by-reference/pb1115-function-arg-universal-mismatch; conformance:cases/8.4.3.2-Function-identifier/pb1115_function_objref_conforming",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1115 landed (w61h). Rule 1 (cite.py --check 14.8.2.3.2 'If either the argument or the formal parameter is a universal object reference' -> OK §14.8.2.3.2 1)). The third activation arm - a user-defined FUNCTION through a REPOSITORY function-prototype or a function pointer - now asks ParameterConformance.CheckArgument -> OoConformance.DescriptionMismatch at bind (§8.4.3.2.3 SR13), as the CALL AS NESTED/prototype and INVOKE arms already did. COBOL2470. Measured: universal formal with a class-typed argument, and the reverse -> COBOL2470 (were run-time EC-PROGRAM-ARG-MISMATCH).",
+ "state": "OK"
+}

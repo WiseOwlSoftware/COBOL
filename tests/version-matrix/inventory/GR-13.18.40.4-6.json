@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.40.4-6",
+ "section": "13.18.40.4",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "PICTURE clause",
+ "rule-digest": "ec2d490af8c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb535-picture-alphanumeric-combination; conformance:cases/13.18.40-PICTURE/pb535_picture_category_size_85; conformance:cases/13.18.40-PICTURE/pb535_picture_category_size_2023; unit:PictureCategoryDriftTests.EveryAcceptedPicture_DefinesTheCategoryItsGeneralRuleDefines",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB535 LANDED 2026-09-13. The PARTIAL was that the arm's predicate was 'contains an A or an X' where GR6's antecedent is 'a combination of symbols from THE SET A, X and 9, that includes at least one symbol X, or at least two different symbols from this set' - so strings whose antecedent GR6 does not satisfy were also defined as alphanumeric, silently short. Re-probed on this worktree's own cobol.exe: PIC XX,XX, PIC AAZZ, PIC XXCR and PIC ZZ9AA are now each rejected at all four editions (COBOL1935, naming the ordered pair whose Table 10 cell is blank), the behaviour PB528 closed. PB535 adds GR6/GR7's antecedent at the arm itself - the symbols shall come from 'A', 'X', '9' optionally with character-1 or the GR7 insertion set 'B', '0', '/' - as the same loud COBOL0808 assertion the national and boolean arms carry, so the arm states the rule it answers rather than inheriting it from a validator two screens up. GR6's POSITIVE legs are both witnessed: PIC XXX9 (at least one 'X') and PIC A9 (two DIFFERENT symbols from the set, no 'X' at all) in both goldens, with GR5's all-'A' case beside them (PicInfo.IsAlphabetic) and GR7's insertion forms PIC XX0XX and PIC XX/XX. The drift test asks GR6's antecedent of every accepted string in the walk rather than of a list of cases.",
+ "state": "OK"
+}

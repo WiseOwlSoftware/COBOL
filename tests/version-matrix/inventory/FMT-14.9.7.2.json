@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.7.2",
+ "section": "14.9.7.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "COMMIT statement",
+ "rule-digest": "53a270c9e136",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#commitFacilityStatement; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindCommitRollback",
+ "test-ref": "conformance:cases/14.9.7-COMMIT/pb137_commit_inert",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB284: the row the catalog LOST. §14.9.7.2 is headed 'General forms' (plural, the only such heading against 321 'General format(s)'), and the transcription printed its format as an inline backtick instead of a <pre> diagram, so the extractor never saw it. The printed page (PDF p.631, rendered) shows the bare underlined word COMMIT; the transcription is restored to the <pre> + <u> form of FMT-14.9.36.2 (cite.py --check 14.9.7.2 'COMMIT' -> OK, <u>COMMIT</u>). Grammar: commitFacilityStatement : COMMIT, reached from `statement` under {facilityWord(\"COMMIT\")}? so it is a statement exactly where §8.9 reserves the word. Probed on this tree's cobol.exe (pb137_commit_inert.cob, --source-format free): at --std 2023 bare COMMIT in sentence, IF and EVALUATE-WHEN positions parses as a statement (COBOL1579 warning, behaves as CONTINUE) and prints OK/DONE; at --std 2014 the word is a user word and the statement is refused (COBOL0307). Editions from the spec: the facility is a 2023 addition (cite.py --check E.3.2 'Commit and rollback facility.' -> OK). FMT under a declined module: the derived selector commit-and-rollback-only excludes FMT rows by KIND, which this row confirms (the shipped grammar matches the printed format). || editions 2023 (kb/Work PB284): the commit and rollback facility is a COBOL-2023 addition (cite.py --check E.3.2 'Commit and rollback facility.' -> OK, E.3.2 item 2: 'The addition of this facility allows the users to permanently commit file changes at specified stages of a run unit'); below 2023 there is no APPLY COMMIT, COMMIT or ROLLBACK.",
+ "state": "OK"
+}

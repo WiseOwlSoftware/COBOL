@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-37",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 37,
+ "subject": "SET statement",
+ "rule-digest": "99a51eb49d80",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetSize; src/WiseOwl.Cobol.Runtime/Values/Text/CobolDynString.cs#SetSize; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#SetSizeCall",
+ "test-ref": "conformance:cases/14.9.39-SET/ec_storage_not_avail; conformance:cases/14.9.39-SET/pb464_set_size_fraction_truncates; conformance:cases/14.9.39-SET/pb464-set-size-fraction-below-2023; unit:CobolDynStringTests.SetSize_NonIntegerNonnegative_TruncatesTowardZero_AndRaisesNothing; unit:CobolDynStringTests.SetSize_ScaledAmount_IsReadExactly_NeverThroughItsBinary64Image; unit:CobolDynStringTests.SetSize_DecimalAndUnsignedWideAmounts_TakeTheirLegs; unit:CobolDynStringTests.SetSizeCall_IsTotalOverTheNumXCarriers_AndNarrowsNothing",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB464.md LANDED. Both sentences are now implemented, determined and golden-driven. Citations (cite.py --check): 14.9.39.4 GR37 'If arithmetic-expression-5 evaluates to a number that is not an integer, the result of arithmetic-expression-5 is truncated to the nearest integer' -> OK; 14.7.4.3 GR2 'If the ROUNDED phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION had been specified' -> OK; 14.7.4.3 GR10 'If the TRUNCATION phrase is specified or implied, and the arithmetic value cannot be represented exactly in the resultant identifier, the arithmetic value is rounded to the nearest value nearer to zero' -> OK; 11.9.11.2 GR2 e) 'rounded to the nearest value that can be represented exactly in that format that is nearer to zero than the intermediate value' -> OK. DETERMINATION (docs/CONFORMANCE.md section 7, the SET SIZE OF 'truncated to the nearest integer' bullet): the phrase is the standard's TRUNCATION rounding-mode idiom, so the fraction is discarded toward zero (2.7 gives 2, 2.5 gives 2, 0.9 gives 0 with no condition); the sign test and GR38's 'greater than the maximum size' are asked of the EVALUATED value before the truncation. THE SECOND FINDING OF THE LANDING: the emitter handed the runtime a binary64 image of every amount, so a PIC 9V9(17) item holding 2.99999999999999999 gave a THREE-character item (the double is 3.0) where the exact value truncates to 2. CobolDynString.SetSize now has one overload per evaluation carrier (double, CobolDec, Int128+scale, UInt128+scale) and SetEmitter.SetSizeCall maps each NumXCarrier onto its own, the discipline CONTINUE AFTER follows (kb/Work PB1529); a drift test walks Enum.GetValues<NumXCarrier>. Editions: 2023 only (Annex E.3.3 item 17); the 85/2002/2014 compilers refuse the statement by name (COBOL0900, pb464-set-size-fraction-below-2023).",
+ "state": "OK"
+}

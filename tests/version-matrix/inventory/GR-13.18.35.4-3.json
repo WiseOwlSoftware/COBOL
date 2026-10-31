@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.35.4-3",
+ "section": "13.18.35.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "LINE clause",
+ "rule-digest": "24fba0d48d4b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FlushPendingLine",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb1247_line_placement_unpaged_85; conformance:cases/13.18.35-LINE/pb1130_report_sum_size_line_overlap",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1247/PB1130: a relative line with integer-2 zero overwrites the preceding line's characters (the held line is merged); any other overlap sets EC-REPORT-LINE-OVERLAP (raised when checking is enabled).",
+ "state": "OK"
+}

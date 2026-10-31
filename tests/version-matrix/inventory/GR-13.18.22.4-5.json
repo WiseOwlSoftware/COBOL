@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.22.4-5",
+ "section": "13.18.22.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "EXTERNAL clause",
+ "rule-digest": "5338d2d582e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallMakeExternal",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb511_external_as_name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§13.18.22.4 GR5: \"Literal-1, if specified, is the name of the file connector or record that is externalized to the operating environment. If literal-1 is not specified, the externalized name of the file connector or record is the name specified in the file description entry or the data-name format of the entry-name clause, respectively.\" (cite.py OK §13.18.22.4 5)). Both sentences applied in one place per surface. Probe GR5 (two elements): M-A AS \"SHR\" shares with the other element's default-named `01 SHR EXTERNAL`; M-C (default name) shares with AS \"M-C\"; both directions observed (S:AAAAA:BBBBB:CCCCC / M:xxxxx:yyyyy:zzzzz). The golden pb511_external_as_name pins the literal-1 sentence on BOTH the FD and the record arm; l1_cancel_external_unchanged pins the default-name sentence. Implementor latitude observed and NOT documented in docs/CONFORMANCE.md: the run-unit store maps externalized names case-INsensitively (AS \"Lower\" in one element shares with AS \"LOWER\" in another) - §8.3.2.2 2) leaves the mapping to the implementor; the inconsistency of that mapping with the SR2 screen is reported under SR-13.18.22.3-2. The FILLER / no-data-name record case (the entry-name data-name format) belongs to §13.16.3 SR7, owned by kb/Work PB518. || Editions (adjudicator): 1985, 2002, 2014, 2023 (the literal-1 sentence 2002+; the default-name sentence every edition) || Code sites (adjudicator detail): src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs (FD fileGlobalExternalClause arm: file.ExternalName); src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallMakeExternal (externalName ?? item.ExternalizedAs ?? CobolName.ToUpperInvariant())",
+ "state": "OK"
+}
