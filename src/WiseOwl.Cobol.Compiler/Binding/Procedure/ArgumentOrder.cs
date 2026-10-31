@@ -200,10 +200,7 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
     private BoundOperand? Hold(BoundOperand operand, int index, bool describedValue, out int added)
     {
         added = 0;
-        // A table(ALL) argument is no recorded operand (IntrinsicBinder.TryBindAllArgument): the backend ENUMERATES it where the call
-        // is rendered, so it cannot be held on its own and the call that names it is held as a value, as it always was.
-        if (!describedValue || !NeedsItsArguments(operand, out var computed, out var call)
-            || call.Args.Any(a => a is BoundFieldOperand { Place: TableAllPlace }))
+        if (!describedValue || !NeedsItsArguments(operand, out var computed, out var call))
             return StoreAt(operand, index, out added);
         var args = new List<BoundOperand>(call.Args.Count);
         bool changed = false;
@@ -229,11 +226,15 @@ internal sealed class ArgumentOrder(BinderContext ctx, SendingValueTemp temps,
         added = 0;
         // A boolean-expression argument has its own store (COMPUTE Format 2's) and its own length (§8.8.2 rule 10); a
         // run-time length is the one shape no intermediate item can describe, and stays where it was.
-        var held = operand is BoundBoolOperand { Expr: var boolean }
-            ? ConditionBinder.BoolResultLength(boolean) is int positions and > 0
+        var held = operand switch
+        {
+            BoundBoolOperand { Expr: var boolean } => ConditionBinder.BoolResultLength(boolean) is int positions and > 0
                 ? temps.MaterializeBoolean(boolean, positions, "fnarg", index)
-                : null
-            : temps.Materialize(operand, "fnarg", index);
+                : null,
+            // A table(ALL) argument is a SEQUENCE of arguments (§15.3), held as a table of its elements (kb/Work PB4162).
+            BoundFieldOperand { Place: TableAllPlace all } => temps.MaterializeTableAll(all, "fnarg", index),
+            _ => temps.Materialize(operand, "fnarg", index),
+        };
         if (held is not { } place) return null;
         added = Pending.Count - start;
         return new BoundFieldOperand(place);

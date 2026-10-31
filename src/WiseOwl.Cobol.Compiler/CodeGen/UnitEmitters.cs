@@ -35,6 +35,7 @@ internal sealed class UnitEmitters
     public StringEmitter Strings { get; }
     public PtrEmitter Ptr { get; }
     public SetEmitter Set { get; }
+    public TableHoldEmitter TableHold { get; }
     public KeyedIoEmitter KeyedIo { get; }
     public SequentialIoEmitter SeqIo { get; }
     public SortEmitter Sort { get; }
@@ -69,6 +70,7 @@ internal sealed class UnitEmitters
         Strings = new StringEmitter(Ctx, Num, Arith, Ec, Move, Brackets);
         Ptr = new PtrEmitter(Ctx, Num, ecState, Ec);
         Set = new SetEmitter(Ctx, Num, Arith, Ptr, Move, Brackets);
+        TableHold = new TableHoldEmitter(Ctx, Set);   // the held form of a table(ALL) function argument (kb/Work PB4162)
         KeyedIo = new KeyedIoEmitter(Ctx, Num, Refs, Arith, Move);
         SeqIo = new SequentialIoEmitter(Ctx, Num, Refs, dispatchState, ecState, callState, KeyedIo, Arith, Ec, Move);
         Transactions = new TransactionEmitter(Ctx, Refs, SeqIo);   // APPLY COMMIT, COMMIT, ROLLBACK (kb/Work PB3338)
@@ -91,6 +93,7 @@ internal sealed class UnitEmitters
         KeyedIo.SeqIo = SeqIo;
         SeqIo.Statements = Statements;
         Sort.Statements = Statements;
+        TableHold.Statements = Statements;
         ControlFlow.Statements = Statements;
         ControlFlow.Ec = Ec;   // CA36: SEARCH with EC-RANGE checking + no AT END dispatches via EcEmitter.EcDispatchExpr
         Call.Statements = Statements;

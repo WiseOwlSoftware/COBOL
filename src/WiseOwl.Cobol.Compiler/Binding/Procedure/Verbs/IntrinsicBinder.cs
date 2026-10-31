@@ -3070,6 +3070,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     {
         if (SoleDataReference(a) is not { } dref || dref.cobolWord() is not { } cw) return false;
         string name = cw.GetText();
+        var before = host.ArgOrder.Mark;   // the pre-ops its subscripts register are the argument's own (§8.4.3.2.4 GR2, recorded below)
 
         // Collect OF/IN qualifiers and the ONE trailing subscript group — which the grammar hangs off the LAST
         // qualification when qualifiers are present (qualification : (OF|IN) cobolWord (subscriptPart|refModPart)*).
@@ -3172,7 +3173,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"table(ALL) occurrence of '{name}'"));
             return true;
         }
-        args.Add(new BoundFieldOperand(new TableAllPlace(element, indices, counts)));
+        // ⛔ AN ALL ARGUMENT IS AN ARGUMENT OF THE LIST LIKE ANY OTHER (kb/Work PB4162): §15.3 makes it "as if each table element ...
+        // were specified", each evaluated at its place in the argument list (§8.4.3.2.4 GR2), so the window records it and a later
+        // argument's activation holds it (ArgumentOrder.Hold -> SendingValueTemp.MaterializeTableAll) - it used to be enumerated
+        // where the call renders, after the activation.
+        var operand = new BoundFieldOperand(new TableAllPlace(element, indices, counts));
+        args.Add(operand);
+        host.ArgOrder.Record(operand, before);
         return true;
     }
 
