@@ -2474,7 +2474,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // §13.8.6.2.3 bars the key clause from referring to a report item, the ONE refusal says so, and
                 // SR2's row stays silent about an operand already refused. It is asked before the ambiguity, which it
                 // leaves standing unless a report entry of a NEARER source element hides the data items (kb/Work
-                // PB3767's one order, ISO §8.4.6.2.1 3) a)); a key item of the file's own record is never hidden.
+                // PB3767's order, kept by the lookup itself since PB4196, ISO §8.4.6.2.1 3) a)); a key item of the file's own
+                // record is never hidden.
                 if (inFile.Count == 0 && cands.Count != 1
                     && ReportEntryReferenceRefused(cands, $"{face} '{written}'", keyName, quals))
                 {
@@ -2562,9 +2563,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         string written = WrittenQualified(name, quals);
         // A name the REPORT SECTION declares is not undefined (kb/Work PB1046): §13.8.6.2.3 bars every clause of a data
         // division section other than the report section from referring to a report item. (The report section's own
-        // clauses are that section's; their operand rules are theirs, so for them the ambiguity always stands.) The
-        // refusal applies the one order (kb/Work PB3767): several survivors are the ambiguity unless a report entry of a
-        // NEARER source element is the referenced item (ISO §8.4.6.2.1 3) a)).
+        // clauses are that section's; their operand rules are theirs, so for them the ambiguity always stands.) A report
+        // entry of a NEARER source element is the referenced item (ISO §8.4.6.2.1 3) a)): the lookup leaves it no survivor
+        // to hide (kb/Work PB4196), so the survivors here are the ambiguity (kb/Work PB3767) or nothing.
         if (!inReportSection && ReportEntryReferenceRefused(survivors, $"{clauseFace} '{written}'", name, quals)) return null;
         if (survivors.Count > 1) return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name declared as something other than a data item is not undefined (kb/Work PB1906): the one query of what
@@ -2812,7 +2813,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // data division section other than the report section from referring to a report item, so the ONE refusal
         // speaks (as ResolveClauseOperand does for the other file clauses) before "no such data item is described",
         // and before the ambiguity, which it leaves standing unless a report entry of a NEARER source element hides the
-        // data items (kb/Work PB3767's one order, ISO §8.4.6.2.1 3) a)). The subject is the head of the refusal, so it
+        // data items (kb/Work PB3767's order, kept by the lookup itself since PB4196, ISO §8.4.6.2.1 3) a)). The subject is the head of the refusal, so it
         // names the phrase as written, never `ASSIGN … USING` (kb/Work PB4160: a head that elides the statement renders
         // `ASSIGN . USING` on the console).
         if (candidates.Count != 1
@@ -3383,12 +3384,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// trailing-nonzero truncation. Zero (and a literal whose only nonzero digits are outside the tested span) is
     /// handled naturally: a literal of value zero is always representable and skipped. A picture-less numeric item
     /// (USAGE INDEX, Digits 0) has no digit positions to test and is skipped; SR3's signed-literal-into-unsigned test is
-    /// independent of the digit range. A fixed-width binary item's Digits equals the decimal width of its
-    /// range's maximum magnitude, so the digit test never false-rejects a capacity-valid value; it also cannot
-    /// refuse a value past the native band (BINARY-CHAR's three digits hold 255), so SR2's USAGE half is asked
-    /// separately, last: a <c>NumericTruncation.BinaryCapacity</c> subject's literal shall lie within
-    /// <see cref="AlgebraicRanges.Of"/>'s band, the one statement the runtime store bound and the
-    /// HIGHEST/LOWEST-ALGEBRAIC fold also read (kb/Work PB3997).
+    /// independent of the digit range. A fixed-width binary item (<c>NumericTruncation.BinaryCapacity</c>: BINARY-CHAR
+    /// … -DOUBLE, COMP-5) takes its LEADING range from its USAGE, never from the PICTURE's digit count: a literal
+    /// shall lie within <see cref="AlgebraicRanges.Of"/>'s band, the one statement the runtime store bound and the
+    /// HIGHEST/LOWEST-ALGEBRAIC fold also read (kb/Work PB3997), so `PIC 9(4) COMP-5 VALUE 65535` is admitted and
+    /// 65536 refused with the USAGE range named (kb/Work PB4113); the digit test keeps the TRAILING side
+    /// (<c>S99V99 COMP-5 VALUE 1.234</c> truncates), which the container cannot see.
     /// </remarks>
     private void ValidateNumericValue(PicInfo pic, string raw, string where)
     {
@@ -3474,25 +3475,29 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var (storedDigits, storedScale) = StoredShapeOf(pic);
         int lowStoredExp = -storedScale;
         int highStoredExp = storedDigits - storedScale - 1;
-        if (highLitExp > highStoredExp || lowLitExp < lowStoredExp)
+        // ⛔ A FIXED-WIDTH BINARY SUBJECT'S RANGE IS ITS USAGE'S (kb/Work PB4113). SR2 admits "permissible values within the
+        // range indicated by the PICTURE clause or the USAGE clause", and a usage that takes its range from the container
+        // (COMP-5: DOC-A.1-208, BINARY-*: §13.18.60.4 GR12) has its VALUE range from the container too: the PICTURE's digit
+        // count bounds only the TRAILING side (the scale), and the LEADING side is the band, asked once below. Asking the
+        // PICTURE's high exponent first refused `PIC 9(4) COMP-5 VALUE 65535`, a value MOVE, arithmetic and SET store.
+        var band = !edited && pic.Truncation == WiseOwl.Cobol.Runtime.NumericTruncation.BinaryCapacity ? AlgebraicRanges.Of(pic) : null;
+        if (lowLitExp < lowStoredExp || (band is null && highLitExp > highStoredExp))
             Edition.Error("COBOL1625", edited
                 ? $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not representable in the numeric-edited "
                     + $"PICTURE {mask} without truncation of leading or trailing nonzero digits (ISO §13.18.63.3 SR6)"
                 : $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
                     + "permissible value in the range the PICTURE indicates — it is not representable without truncation "
                     + "of leading or trailing nonzero digits (ISO §13.18.63.3 SR2)");
-        else if (!edited && pic.Truncation == WiseOwl.Cobol.Runtime.NumericTruncation.BinaryCapacity
-                 && AlgebraicRanges.Of(pic) is { } band
-                 && !AlgebraicRanges.Admits(band, magnitudeText, negative: negativeLiteral))
+        else if (band is { } usageBand && !AlgebraicRanges.Admits(usageBand, magnitudeText, negative: negativeLiteral))
             // SR2's other half: "permissible values within the range indicated by the PICTURE clause or the USAGE
             // clause" (ISO §13.18.63.3 SR2). A fixed-width binary usage (BINARY-CHAR … -DOUBLE, COMP-5) owns the
             // native two's-complement band of its byte width (§13.18.60.4 GR12; docs/CONFORMANCE.md DOC-A.1-206/-208),
-            // a band the PICTURE's digit span above cannot see (BINARY-CHAR's three digits admit 255). The band is
-            // read from AlgebraicRanges.Of, the one statement the runtime store bound and the HIGHEST/LOWEST-ALGEBRAIC
-            // fold agree on (kb/Work PB3997).
+            // a band the PICTURE's digit span cannot see (BINARY-CHAR's three digits admit 255; `PIC 9(4) COMP-5` holds
+            // 65535). The band is read from AlgebraicRanges.Of, the one statement the runtime store bound and the
+            // HIGHEST/LOWEST-ALGEBRAIC fold agree on (kb/Work PB3997).
             Edition.Error("COBOL1625", $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
-                + $"permissible value in the range the USAGE clause indicates — {(band.FarthestNegative ?? "0")} through "
-                + $"{band.Farthest} (ISO §13.18.63.3 SR2)");
+                + $"permissible value in the range the USAGE clause indicates — {(usageBand.FarthestNegative ?? "0")} through "
+                + $"{usageBand.Farthest} (ISO §13.18.63.3 SR2)");
     }
 
     /// <summary>The stored digit-position span and P-signed scale of a FIXED-POINT item — plain numeric
@@ -8653,8 +8658,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // (GR1), so `X OF T` naming the type itself stays an invalid reference.
         if (survivors.TrueForAll(InTypeDeclaration)) survivors.Clear();
         // §8.4.6.2.1 3) AFTER qualification (rule 1 applies "the normal rules for qualification" over the whole
-        // set first): the survivors of the nearest declaring source element (kb/Work PB1047 / PB1243).
-        return new NameCandidates<DataItem>(Symbols.NearestDeclaring(survivors, static i => i));
+        // set first): the survivors of the nearest declaring source element (kb/Work PB1047 / PB1243), and none when a
+        // report entry of a nearer source element is the referenced item (kb/Work PB4196).
+        return new NameCandidates<DataItem>(Symbols.NearestDeclaringNamed(survivors, static i => i, name, quals));
     }
 
     /// <summary>⛔ ISO §8.4.2.2.1 RULE 4, IN THE ONE PLACE EVERY DATA-NAME LOOKUP READS (kb/Work PB1476). "Qualification
@@ -8899,7 +8905,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var matches = qualifiers.Count == 0
             ? list
             : list.Where(c => ConditionQualifierChainMatches(c, qualifiers)).ToList();
-        matches = Symbols.NearestDeclaring(matches, static c => c.Parent);
+        matches = Symbols.NearestDeclaringNamed(matches, static c => c.Parent, name, qualifiers);   // kb/Work PB4196
         return matches.TrueForAll(IsTypeDeclarationCondition) ? [] : matches;
     }
 
