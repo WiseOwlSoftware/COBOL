@@ -55,4 +55,7 @@ collection serial; only `AcceptSourceTests` (`Console.In` in each of five facts)
 
 **Gate.** `TestResults/build-local/000001-20261031T004941Z` on `ebd24b37f`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
 gating, PB2515): GREEN — … Conformance 54/19,881 · Unit 5,578/38,701 · Characterization 3/36 cases ran (skipped 0) in 1
-of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN …`. The commit after it changes only this entry and the note.
+of 2 leg(s) · Linux half (WSL clone of HEAD) GREEN …`. The review finisher's gate,
+`TestResults/build-local/000001-20261031T024558Z` on `ddb28478f`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+PB2515): GREEN — … Conformance 81/19,961 · Unit 5,585/38,730 · Characterization 3/36 cases ran (skipped 0) in 1 of 2
+leg(s) · Linux half (WSL clone of HEAD) GREEN …`. The commit after it changes only this entry.
