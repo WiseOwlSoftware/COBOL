@@ -410,7 +410,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             if (returning is null)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    "ALLOCATE … CHARACTERS requires the RETURNING phrase (ISO §14.9.3.3 SR2 — without a based "
+                    "ALLOCATE CHARACTERS requires the RETURNING phrase (ISO §14.9.3.3 SR2 — without a based "
                     + "item there is no other way to address the storage)");
             }
             // §14.9.3.3 SR4, the CHARACTERS arm: "If data-name-2 references a restricted data-pointer,
@@ -421,7 +421,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             {
                 RejectRestriction($"'{DataBinder.WrittenText(returningRef!)}'",
                     $"the RETURNING data item is a data-pointer restricted to type '{charsRestriction}', which "
-                    + "ALLOCATE … CHARACTERS cannot satisfy — it specifies no data-name-1 to supply that type "
+                    + "ALLOCATE CHARACTERS cannot satisfy — it specifies no data-name-1 to supply that type "
                     + "(ISO §14.9.3.3 SR4)");
                 return BoundRejected.Reported(ctx.Edition);
             }

@@ -1370,7 +1370,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var ctx = recognizer.Context;
         if (token.Type == CobolLexer.KEY && NearestSearchBeforeWhen(ctx) is { } keyed)
             return (keyed is CobolParserCore.SearchAllStatementContext ? "SEARCH ALL" : "SEARCH")
-                + " … KEY:" + formats + "neither has a KEY phrase — the key of a SEARCH ALL is declared by the "
+                + " KEY:" + formats + "neither has a KEY phrase — the key of a SEARCH ALL is declared by the "
                 + "ASCENDING/DESCENDING KEY phrase of identifier-1's OCCURS clause (§14.9.37.3 SR7), and the "
                 + "Format-2 WHEN phrase names it. Remove the phrase.";
 
@@ -1382,9 +1382,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // reports a missing WHEN from INSIDE the just-entered (Format-2) WHEN clause, whose context already exists.
         if (notAtEnd && NearestSearchBeforeWhen(ctx) is { } searching)
             return searching is CobolParserCore.SearchAllStatementContext
-                ? "SEARCH ALL … NOT AT END:" + formats + "each has an AT END phrase alone — there is no "
+                ? "SEARCH ALL NOT AT END:" + formats + "each has an AT END phrase alone — there is no "
                   + "NOT AT END phrase. Test for a hit in the WHEN branch instead."
-                : "SEARCH … NOT AT END:" + formats + "each has an AT END phrase alone — there is no NOT "
+                : "SEARCH NOT AT END:" + formats + "each has an AT END phrase alone — there is no NOT "
                   + "AT END phrase. Test for a hit in a WHEN branch instead.";
 
         if (token.Type == CobolLexer.WHEN)

@@ -409,7 +409,7 @@ internal sealed class VersionConformancePass
                     FigurativeAssociation.GateSr5(_edition, _sink, item.Sender,
                         cat is InitializeCategory.Numeric ? PicCategory.Numeric : PicCategory.NumericEdited,
                         integerReceiver: cat is InitializeCategory.Numeric,
-                        $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} … BY {figText} (the MOVE "
+                        $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {figText} (the MOVE "
                         + "ISO §14.9.20.3 SR4 requires to be valid)");
         }
     }

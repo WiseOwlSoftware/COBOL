@@ -1137,7 +1137,7 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
     /// §14.9.18 (the ISO general format has no RETURNING phrase); ISO §14.9.18.4 GR2 makes that item's value "the
     /// result of the program activation", and the extension fills it by the MOVE rules.</summary>
     public static readonly ImplicitMovePhrase GobackReturning =
-        new("GOBACK … RETURNING", "ISO §14.9.18.4 GR2 (implementor extension)");
+        new("GOBACK RETURNING", "ISO §14.9.18.4 GR2 (implementor extension)");
 
     /// <summary>ACCEPT format 2's transfer — ISO §14.9.1.4 GR6, "The ACCEPT statement causes the information
     /// requested to be transferred to the data item specified by identifier-2 according to the rules for the MOVE
@@ -1145,19 +1145,19 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
     /// asks the validity question ITSELF (<c>AcceptDisplayBinder</c>, framed under §14.9.1.3 SR3 as COBOL0818),
     /// because SR3 is ACCEPT's own rule over the same receiver classes Table 16 refuses (kb/Work PB887).</summary>
     public static readonly ImplicitMovePhrase AcceptTemporal =
-        new("ACCEPT … FROM DATE/DAY/DAY-OF-WEEK/TIME", "ISO §14.9.1.4 GR6") { ValidityAskedByStatement = true };
+        new("ACCEPT FROM DATE/DAY/DAY-OF-WEEK/TIME", "ISO §14.9.1.4 GR6") { ValidityAskedByStatement = true };
     /// <summary>UNSTRING's store of the examined characters into identifier-4 — ISO §14.9.48.4 GR11 c), "shall be
     /// moved into the current receiving area according to the rules for the MOVE statement" (kb/Work PB979). The
     /// validity question is the statement's own: §14.9.48.3 SR4 names the admissible receivers (and SR10 the
     /// groups), and the sender is the conceptual elementary alphanumeric / national item GR11 c) defines, so the
     /// MOVE screens are not asked a second time.</summary>
     public static readonly ImplicitMovePhrase UnstringInto =
-        new("UNSTRING … INTO", "ISO §14.9.48.4 GR11 c)") { ValidityAskedByStatement = true };
+        new("UNSTRING INTO", "ISO §14.9.48.4 GR11 c)") { ValidityAskedByStatement = true };
 
     /// <summary>UNSTRING's store of the delimiting characters into identifier-5 — ISO §14.9.48.4 GR11 d), the same
     /// sentence for the DELIMITER IN phrase; §14.9.48.3 SR2 is the statement's own validity screen for it.</summary>
     public static readonly ImplicitMovePhrase UnstringDelimiterIn =
-        new("UNSTRING … DELIMITER IN", "ISO §14.9.48.4 GR11 d)") { ValidityAskedByStatement = true };
+        new("UNSTRING DELIMITER IN", "ISO §14.9.48.4 GR11 d)") { ValidityAskedByStatement = true };
 
     /// <summary>The element moves of a §14.9.25.4 GR9 variable-length group MOVE — ISO §14.6.9.2, "Correspondingly
     /// numbered elements are moved according to the rules of the MOVE statement specified in 14.9.25, MOVE
@@ -1175,7 +1175,7 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
     /// shape when <paramref name="phrase"/> is null. ONE spelling for both, so a screen written for the explicit
     /// statement reports correctly from an implicit phrase without an arm of its own.</summary>
     public static string WhereOf(ImplicitMovePhrase? phrase, string? receiver) =>
-        phrase?.Where(receiver) ?? $"MOVE … TO {receiver}";
+        phrase?.Where(receiver) ?? $"MOVE TO {receiver}";
 
     /// <summary>The trailing clause a MOVE diagnostic ADDS when its message already names the receiver its own
     /// way — empty for the explicit MOVE statement. The second of this type's two renderings, and both live
@@ -1248,7 +1248,7 @@ public sealed record IntoPhraseRules(
     /// from the record area to the area specified by identifier-1 according to the rules for the MOVE statement
     /// without the CORRESPONDING phrase."</summary>
     public static readonly IntoPhraseRules Read = new(
-        "READ … INTO", "ISO §14.9.30.4 GR4 b)", AdmitsRecordLessEntry: true,
+        "READ INTO", "ISO §14.9.30.4 GR4 b)", AdmitsRecordLessEntry: true,
         "ISO §14.9.30.3 SR1",
         "\"If no record description entry or only one record description is subordinate to the file description "
         + "entry\"",
@@ -1259,7 +1259,7 @@ public sealed record IntoPhraseRules(
     /// <summary><c>RETURN … INTO</c>. ISO §14.9.34.4 GR5 b) — the identical sentence, which is why the two
     /// phrases share one binder and one sender builder rather than one each.</summary>
     public static readonly IntoPhraseRules Return = new(
-        "RETURN … INTO", "ISO §14.9.34.4 GR5 b)", AdmitsRecordLessEntry: false,
+        "RETURN INTO", "ISO §14.9.34.4 GR5 b)", AdmitsRecordLessEntry: false,
         "ISO §14.9.34.3 SR2",
         "\"If only one record description is subordinate to the sort-merge file description entry\"",
         "ISO §14.9.34.3 SR3",
