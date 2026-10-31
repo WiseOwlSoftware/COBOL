@@ -57,12 +57,18 @@ LEG 1 = tier 0a + 0h + the cheap 0c + 0d + the admitted 0u + the cheapest tier-1
 within LEG_ONE_BUDGET and each case's collection's budgeted leg-1 time within LEG_ONE_COLLECTION_CAP (tiers 0a, 0h and
 0d are exempt from the cap). Trait membership is DERIVED from the test sources (`class_traits`), never listed here;
 `HostWitnessTraitDriftTests` holds the scan to the compiled attributes and the witnesses to their trait.
+⛔ A WHOLE TIER 1 WHEN THE CHANGE CANNOT BE ATTRIBUTED PRECISELY (owner 2026-10-31, kb/Work PB4269: "Run the whole
+tier"): the budget holds only for a change the map attributes by method. When `every_tier1` names a reason, or a changed
+file was taken at the file level because the map's version of it differs from the base's (`impacted_tests.Reach.drifted`),
+EVERY tier-1 case and every 0u case is leg 1, exempt from both budgets and the cap (`whole_tier_reason`), and the
+gate's verdict line says why. A budgeted slice of a superset the map could not narrow is chosen by duration, not by what
+the change reaches: PR #880's GREEN gate ran the cheapest 2 % of 19,609 tier-1 cases and left out the 11 it broke.
 LEG 2 = everything else, collections LONGEST FIRST. Degenerate inputs are decided PER ASSEMBLY: no timings → leg 1
-is tier 0a, 0h and 0d alone; an assembly whose whole recorded time fits the collection cap runs entirely in leg 1; an
-empty leg 1, or one holding the whole population, makes the assembly ONE leg.
+is tier 0a, 0h and 0d alone (and a whole tier 1); an assembly whose whole recorded time fits the collection cap runs
+entirely in leg 1; an empty leg 1, or one holding the whole population, makes the assembly ONE leg.
 
 THE PLAN FILE (`--out`), canonical JSON (UTF-8, sorted keys, no insignificant whitespace):
-  {"schema": 1, "base", "map", "map_state", "every_tier1": [...], "constants": {...},
+  {"schema": 1, "base", "map", "map_state", "every_tier1": [...], "drifted": [...], "whole_tier": "...", "constants": {...},
    "assemblies": {"<assembly>": {"legs": [1, 2] | [1] | [2], "leg1": [key, ...], "leg2": [key, ...],
                                   "stats": {...}}},
    "sha256": "<SHA-256 of the canonical JSON of every other field>"}
@@ -452,6 +458,24 @@ class Context:
     host_classes: set[str] = field(default_factory=set)    # tier 0h (HOST_ONLY trait), by class
     sweep_classes: set[str] = field(default_factory=set)   # tier 0c when cheap (SWEEP_TRAIT), by class
     drift_classes: set[str] = field(default_factory=set)   # tier 0d: drift tests governing a changed file, by class
+    whole_tier: str = ""                    # why tier 1 runs WHOLE in leg 1 (kb/Work PB4269, `whole_tier_reason`); "" = budgeted
+
+
+def whole_tier_reason(reach: impacted_tests.Reach) -> str:
+    """Why tier 1 runs WHOLE in leg 1, or "" when the change is attributed by method and leg 1 keeps the budgeted
+    cheapest slice of it (kb/Work PB4269, owner 2026-10-31: "Run the whole tier"). When a change cannot be attributed,
+    tier 1 is a superset the map could not narrow, and the cheapest LEG_ONE_BUDGET slice of it is chosen by DURATION,
+    not by what the change reaches: PR #880's GREEN gate left out all 11 cases it broke that way. Two causes:
+    `every_tier1` (no usable map, a grammar or build input, a file the map never saw, ...: every case is tier 1), and
+    `drifted` (a changed file that differs between the map's commit and the base, taken at the file level)."""
+    if reach.every_tier1:
+        more = f" (+{len(reach.every_tier1) - 1} more)" if len(reach.every_tier1) > 1 else ""
+        return f"the change cannot be attributed: {reach.every_tier1[0]}{more}"
+    if reach.drifted:
+        more = f" (+{len(reach.drifted) - 1} more)" if len(reach.drifted) > 1 else ""
+        return (f"{len(reach.drifted)} changed file(s) taken at the file level because the map's version of them differs "
+                f"from the base's: {reach.drifted[0]}{more}")
+    return ""
 
 
 @dataclass
@@ -539,7 +563,13 @@ def plan_assembly(displays: list[str], ctx: Context) -> dict:
         leg1 = list(order)
         reason = f"its whole recorded time {whole:.1f} s fits the collection cap"
     else:
-        leg1 = [u for u in order if u.tier in ("0a", "0h", "0d")]  # exempt from the budgets and the collection cap
+        # Exempt from the budgets and the collection cap: tiers 0a, 0h and 0d always, and tier 1 with the genuinely new
+        # 0u cases when the change cannot be attributed precisely (kb/Work PB4269): that tier is a superset the map could
+        # not narrow, and a budgeted slice of it is chosen by duration, not by what the change reaches.
+        whole = ("1", "0u") if ctx.whole_tier else ()
+        leg1 = [u for u in order if u.tier in ("0a", "0h", "0d") or u.tier in whole]
+        if ctx.whole_tier:
+            reason = f"tier 1 runs whole (kb/Work PB4269): {ctx.whole_tier}"
         for u in sorted((u for u in order if u.tier == "0c"), key=lambda u: (u.cost(median), u.index)):
             part = fits(u)
             if part is not None:  # a cheap sweep beyond its collection's cap stays in leg 2, never nowhere
@@ -547,13 +577,13 @@ def plan_assembly(displays: list[str], ctx: Context) -> dict:
                 for c, sec in part.items():
                     budget_per[c] += sec
         spent = 0.0
-        for u in (u for u in order if u.tier == "0u"):
+        for u in (u for u in order if u.tier == "0u" and not ctx.whole_tier):
             if spent + u.cost(median) <= LEG_ONE_UNKNOWN_BUDGET * total:
                 leg1.append(u)
                 spent += u.cost(median)
             else:
                 overflow.append(u)
-        if has_timings:
+        if has_timings and not ctx.whole_tier:  # a whole tier 1 is in leg 1 already
             acc = 0.0
             for u in sorted((u for u in order if u.tier == "1"), key=lambda u: (u.rank, u.cost(median), u.index)):
                 if acc + u.cost(median) > LEG_ONE_BUDGET * total:
@@ -567,7 +597,7 @@ def plan_assembly(displays: list[str], ctx: Context) -> dict:
                 acc += u.cost(median)
                 for c, s in part.items():
                     budget_per[c] += s
-        else:
+        elif not has_timings and not ctx.whole_tier:
             reason = "no timings: leg 1 is tier 0a, 0h and 0d alone"
 
     in_leg1 = {u.key for u in leg1}
@@ -608,7 +638,7 @@ def plan_assembly(displays: list[str], ctx: Context) -> dict:
              "leg1_seconds": round(sum(u.cost(median) for u in leg1), 3),
              "leg1_floor_seconds": round(big[1], 3), "leg1_floor_collection": big[0],
              "unknown_admitted": sum(1 for u in leg1 if u.tier == "0u"), "unknown_overflow": len(overflow),
-             "one_leg_reason": reason if len(legs) == 1 else ""}
+             "one_leg_reason": reason if len(legs) == 1 else "", "whole_tier": ctx.whole_tier}
     return {"legs": legs, "leg1": [u.key for u in leg1_ranked], "leg2": [u.key for u in leg2_ranked],
             "stats": stats}
 
@@ -634,6 +664,7 @@ def build_plan(listings: dict[str, list[str]], analysis: impacted_tests.Analysis
         collection_of_class[row[0]][row[3].rsplit(".", 1)[-1]] = row[4]
     plan: dict = {"schema": PLAN_SCHEMA, "base": base, "map": m["commit"] if m else None,
                   "map_state": analysis.map_state, "every_tier1": analysis.reach.every_tier1,
+                  "drifted": analysis.reach.drifted, "whole_tier": whole_tier_reason(analysis.reach),
                   "constants": {"LEG_ONE_BUDGET": LEG_ONE_BUDGET, "LEG_ONE_UNKNOWN_BUDGET": LEG_ONE_UNKNOWN_BUDGET,
                                 "LEG_ONE_COLLECTION_CAP": LEG_ONE_COLLECTION_CAP,
                                 "SWEEP_CHEAP_SECONDS": SWEEP_CHEAP_SECONDS, "HOST_ONLY": sorted(HOST_ONLY)},
@@ -650,7 +681,7 @@ def build_plan(listings: dict[str, list[str]], analysis: impacted_tests.Analysis
                       changed_tests=analysis.reach.changed_tests.get(asm, set()), goldens=analysis.reach.goldens,
                       reds=every_red, previous=previous, recorded=recorded,
                       collection_of_class=collection_of_class.get(asm, {}), host_classes=host, sweep_classes=sweep,
-                      drift_classes=analysis.reach.drift_tests)
+                      drift_classes=analysis.reach.drift_tests, whole_tier=plan["whole_tier"])
         plan["assemblies"][asm] = plan_assembly(displays, ctx)
     plan["sha256"] = hashlib.sha256(canonical(plan)).hexdigest()
     return plan
@@ -660,6 +691,8 @@ def summary_lines(plan: dict, out: Path) -> list[str]:
     """What a plan says, for people: the every-tier-1 reasons, each assembly's tiers, leg 1 and legs, and the plan's
     identity. The CLI and the gate driver (scripts/run_gate_legs.py) both print it."""
     lines = [f"  every case tier 1: {why}" for why in plan["every_tier1"]]
+    if plan["whole_tier"]:
+        lines.append(f"gate_plan: tier 1 runs WHOLE in leg 1 (kb/Work PB4269) — {plan['whole_tier']}")
     for asm, a in plan["assemblies"].items():
         s = a["stats"]
         lines.append(f"gate_plan: {asm}: {s['cases']} cases, tiers {s['tiers']}; leg 1 {s['leg1_cases']} cases "
@@ -808,6 +841,45 @@ def self_test() -> int:
     p = plan_assembly(cheap + [f"{ns}Changed.M"], ctx(changed_tests={"M"}))
     check("no timings: leg 1 is tier 0a alone and nothing is tier 0u",
           p["leg1"] == [f"{ns}Changed.M"] and p["stats"]["tiers"]["0u"] == 0 and p["legs"] == [1, 2], p["stats"])
+    # kb/Work PB4269 (owner 2026-10-31, "Run the whole tier"): a change that cannot be attributed precisely runs tier 1
+    # WHOLE in leg 1, exempt from LEG_ONE_BUDGET and the collection cap. The same 101 cases the "no map" arm above
+    # budgets to 22 all run, the 1,000 s pole included, so the plan is one leg.
+    why = "the change cannot be attributed: no map"
+    p = plan_assembly(cheap + [pole], ctx(previous=t, every_tier1=True, whole_tier=why))
+    check("PB4269: an unattributable change runs tier 1 whole, exempt from the budget and the cap: one leg",
+          p["stats"]["leg1_cases"] == 101 and p["legs"] == [1] and name_key(pole) in p["leg1"]
+          and p["stats"]["whole_tier"] == why and why in p["stats"]["one_leg_reason"], p["stats"])
+    # ... the collection cap does not cut it either: the 40-case class the cap holds to 15 runs all 40.
+    p = plan_assembly(one + [pole], ctx(previous=t2, map_known=k2, tiers={k: 1 for k in k2}, whole_tier=why))
+    check("PB4269: a whole tier 1 is exempt from the collection cap", p["stats"]["leg1_cases"] == 41, p["stats"])
+    # ... a drifted map (file-level tier 1 beside unreached cases): every tier-1 case runs, tiers 2 and 3 stay in leg 2.
+    reached = cheap[:60]
+    p = plan_assembly(cheap + [pole], ctx(previous=t, map_known=known,
+                                          tiers={**{k: 3 for k in known}, **{name_key(d): 1 for d in reached},
+                                                 name_key(pole): 2},
+                                          whole_tier="1 changed file(s) taken at the file level"))
+    check("PB4269: under a drifted map the whole tier 1 runs and tiers 2 and 3 stay in leg 2",
+          p["stats"]["leg1_cases"] == 60 and set(p["leg1"]) == {name_key(d) for d in reached}
+          and name_key(pole) in p["leg2"] and p["legs"] == [1, 2], p["stats"])
+    # ... genuinely new cases (tier 0u) are part of the unattributed population: all admitted, none overflow.
+    p = plan_assembly(cheap + [pole] + new, ctx(previous=t, map_known=known, tiers={k: 1 for k in known}, whole_tier=why))
+    check("PB4269: a whole tier admits every 0u case too, with no overflow",
+          p["stats"]["unknown_admitted"] == 30 and p["stats"]["unknown_overflow"] == 0
+          and p["stats"]["leg1_cases"] == 131, p["stats"])
+    # ... and with no timings at all tier 1 still runs whole (the budget needs timings; the whole tier does not).
+    p = plan_assembly(cheap + [f"{ns}Changed.M"], ctx(changed_tests={"M"}, every_tier1=True, whole_tier=why))
+    check("PB4269: with no timings a whole tier 1 still runs (the budget needs timings, the whole tier does not)",
+          p["stats"]["leg1_cases"] == 101 and p["legs"] == [1], p["stats"])
+    # the reason: every_tier1 first, then drifted; a method-level change has none, so its plan keeps the budget.
+    r_both = impacted_tests.Reach(every_tier1=["a.g4: a grammar input", "b.props: build"], drifted=["src/X.cs"])
+    r_drift = impacted_tests.Reach(drifted=["src/X.cs", "src/Y.cs"])
+    check("PB4269: whole_tier_reason names an every-tier-1 reason first, then the drifted files, and is empty for a "
+          "method-level change",
+          whole_tier_reason(r_both) == "the change cannot be attributed: a.g4: a grammar input (+1 more)"
+          and whole_tier_reason(r_drift).startswith("2 changed file(s) taken at the file level")
+          and whole_tier_reason(r_drift).endswith("src/X.cs (+1 more)")
+          and whole_tier_reason(impacted_tests.Reach()) == "",
+          (whole_tier_reason(r_both), whole_tier_reason(r_drift)))
     # tier 0h: a host-only witness is leg 1 whatever the diff, its cost and the collection cap (kb/Work PB3022).
     race = [f"{ns}RaceWitness_P1.Unlink{i}" for i in range(30)]
     t5 = timed([(d, 1.0) for d in cheap] + [(pole, 1000.0)] + [(d, 2.0) for d in race])
@@ -1088,6 +1160,19 @@ def self_test() -> int:
         check("the plan carries the SHA-256 of its content and the file digest is of its bytes",
               own == hashlib.sha256(canonical(body)).hexdigest()
               and digest == hashlib.sha256(out.read_bytes()).hexdigest())
+        # kb/Work PB4269 end to end: build_plan derives the reason from the analysis once, every assembly's plan carries
+        # it, and the summary the gate driver prints says why tier 1 is whole; a method-level analysis has no reason.
+        s = full["assemblies"]["Conformance"]["stats"]
+        check("PB4269: build_plan carries the whole-tier reason into every assembly and the summary names it",
+              full["whole_tier"] == "the change cannot be attributed: no map" and s["whole_tier"] == full["whole_tier"]
+              and s["leg1_cases"] == 3 and full["drifted"] == []
+              and any("tier 1 runs WHOLE in leg 1 (kb/Work PB4269)" in line for line in summary_lines(full, out)),
+              (full["whole_tier"], s["leg1_cases"]))
+        exact = impacted_tests.Analysis(None, "exact", impacted_tests.Reach(), {})
+        plain = build_plan({"Conformance": read_listing(lf)}, exact, Timings("none"), {}, None, {})
+        check("PB4269: a method-level analysis has no whole-tier reason and the summary prints no whole-tier line",
+              plain["whole_tier"] == "" and plain["assemblies"]["Conformance"]["stats"]["whole_tier"] == ""
+              and not any("runs WHOLE" in line for line in summary_lines(plain, out)), plain["whole_tier"])
     print("ALL GREEN" if not failures else f"⛔ {failures} SELF-TEST FAILURE(S)")
     return 1 if failures else 0
 
