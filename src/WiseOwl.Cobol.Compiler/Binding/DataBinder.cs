@@ -350,9 +350,42 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// (ISO §13.18.27.3 SR1 d)), so its file-name is not in <see cref="FilesByName"/>. It is still reachable through a
     /// record: a file-section level-1 entry may carry its own GLOBAL clause (SR1 b)), and the record-name is then
     /// visible here. Read ONLY by <c>StatementValidation.ResolveRecordName</c>, to refuse WRITE / REWRITE of such a
-    /// record by §14.9.51.3 SR21 / §14.9.35.3 SR3 (kb/Work PB1193); filled by <c>BinderDriver.BindUnitData</c> beside
-    /// the GLOBAL FD merge.</summary>
+    /// record by §14.9.51.3 SR21 / §14.9.35.3 SR3 (kb/Work PB1193); filled by <see cref="InheritFileNames"/>, beside
+    /// <see cref="InheritedGlobalFiles"/>.</summary>
     public List<FileModel> ContainerLocalFiles { get; } = [];
+
+    /// <summary>The GLOBAL files of every CONTAINING program, by file-name, nearest container first (ISO §13.18.27.4 GR1:
+    /// the file-name of a GLOBAL FD is a global name, visible in every directly or indirectly contained program; §13.18.27
+    /// GR1-GR2: the nearest declaration wins). Filled by <see cref="InheritFileNames"/> BEFORE this unit binds, so the
+    /// data division's own resolutions can tell a name that IS a visible file from one declared nowhere
+    /// (<see cref="NonDataDeclarationOf"/>; the APPLY COMMIT clause's SR1 and SR11, <see cref="ResolveApplyCommit"/>).
+    /// It joins <see cref="FilesByName"/> only AFTER the unit binds (<c>BinderDriver.BindUnitData</c>), where an own file
+    /// shadows it: an FD of this unit must find the unit's own SELECT, never an inherited model.</summary>
+    internal Dictionary<string, FileModel> InheritedGlobalFiles { get; } = new(CobolNames.Comparer);
+
+    /// <summary>Record one CONTAINING program's files: a GLOBAL one is a visible file-name here
+    /// (<see cref="InheritedGlobalFiles"/>, the nearest container's declaration kept), any other is known for one
+    /// question only (<see cref="ContainerLocalFiles"/>). Called for every container, nearest first, before this unit
+    /// binds — the file-name twin of <see cref="InheritGlobalTypeDecls"/>.</summary>
+    internal void InheritFileNames(DataBinder container)
+    {
+        foreach (var f in container.Files)
+        {
+            if (f.IsGlobal)
+                InheritedGlobalFiles.TryAdd(f.CobolName, f);
+            else
+                ContainerLocalFiles.Add(f);
+            foreach (var record in f.Records)
+                if (record.CobolName is { } recordName && container.CallGlobalRoots.Contains(record))
+                    InheritedGlobalRecordAreas.TryAdd(recordName, f);
+        }
+    }
+
+    /// <summary>The record areas of every CONTAINING program's files that are GLOBAL names (§13.18.27.4 GR1: the record
+    /// of a GLOBAL FD, or a level-1 entry with its own GLOBAL clause), by record-name, to the file that owns them —
+    /// SR11's second half (§12.4.6.3.3: "a file or record area … declared with the GLOBAL clause"). Filled by
+    /// <see cref="InheritFileNames"/>.</summary>
+    internal Dictionary<string, FileModel> InheritedGlobalRecordAreas { get; } = new(CobolNames.Comparer);
 
     /// <summary>Names DECLARED in the SCREEN SECTION, which is REFUSED as the declined Annex A.4.2 module
     /// (COBOL1560; <see cref="ScreenFacility"/>). Two consumers, both still needed after the refusal:

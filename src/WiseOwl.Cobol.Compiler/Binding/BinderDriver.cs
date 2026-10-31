@@ -700,6 +700,9 @@ internal sealed class BinderDriver
             // clause is a global name; kb/Work PB1303): the same BEFORE-Bind, nearest-first, local-shadows contract —
             // ExpandTypes runs inside data.Bind, so a TYPE clause here already sees the container's type-name.
             data.InheritGlobalTypeDecls(anc.Data);
+            // …and its files' names (§13.18.27.4 GR1), the same BEFORE-Bind contract: the data division's own
+            // resolutions ask whether a name that is no data item IS a visible file-name (kb/Work PB3557).
+            data.InheritFileNames(anc.Data);
         }
         // The member names every container's GLOBAL root will occupy in this unit's class (kb/Work PB1047): the
         // bridges are emitted for every global root below, so a LOCAL root spelled like one (the §8.4.6.2.1 3) a)
@@ -747,12 +750,10 @@ internal sealed class BinderDriver
         // GLOBAL FD's records to CallGlobalRoots).
         // A container's NON-global FD is recorded too, for one question only: a GLOBAL record under it (§13.18.27.3
         // SR1 b)) is visible here while its file is not, and WRITE / REWRITE of it is refused by name (kb/Work PB1193).
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-            foreach (var f in anc.Data.Files)
-                if (f.IsGlobal)
-                    data.FilesByName.TryAdd(f.CobolName, f);
-                else
-                    data.ContainerLocalFiles.Add(f);
+        // (The containers' files were recorded BEFORE this unit bound — DataBinder.InheritFileNames — so the data
+        // division could ask what a name is; the merge into FilesByName waits until the unit's own files are in.)
+        foreach (var (name, f) in data.InheritedGlobalFiles)
+            data.FilesByName.TryAdd(name, f);
 
         // GLOBAL RD inheritance (ISO §13.18.27.3 SR1 e) / §13.18.27.4 GR1–GR2; kb/Work PB369) — the report-name,
         // its groups and its sum counters, nearest container first so the nearer declaration hides. Like a GLOBAL
