@@ -167,9 +167,59 @@ public sealed class ReportItemReferenceTests
         Assert.Single(depending, x => x.Contains(ReportItemCode) && x.Contains("DEPENDING ON"));
     }
 
-    /// <summary>The complement of the scans above (feedback_measure_the_selectors_complement): the three arms that
+    /// <summary>kb/Work PB3766 — the clauses of a CONTAINED program's own data division reach the container's GLOBAL
+    /// report items (§13.18.27.4 GR1), so a FILE STATUS clause and an OCCURS … DEPENDING ON object that name one are
+    /// refused as report items too: the GLOBAL reports are inherited before the unit's post-build resolvers run, and
+    /// they were inherited after, so both said "not defined". Without the GLOBAL clause the name is no name of the
+    /// contained program at all, and the old verdicts stand.</summary>
+    [Fact]
+    public void ADataDivisionClauseOfAContainedProgram_NamingAGlobalReportItem_IsRefusedAsAReportItem()
+    {
+        const string innerData = """
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB1046UI.
+                   ENVIRONMENT DIVISION.
+                   INPUT-OUTPUT SECTION.
+                   FILE-CONTROL.
+                       SELECT DAT ASSIGN TO "pb3766u.dat" FILE STATUS IS PV.
+                   DATA DIVISION.
+                   FILE SECTION.
+                   FD  DAT.
+                   01  DAT-REC PIC X(3).
+                   WORKING-STORAGE SECTION.
+                   01  TB.
+                       05  ELT PIC X OCCURS 1 TO 5 TIMES DEPENDING ON PN.
+                   PROCEDURE DIVISION.
+                   SHOW.
+                       EXIT PROGRAM.
+                   END PROGRAM PB1046UI.
+            """;
+        var global = Bind(Source("", "", "           CALL \"PB1046UI\".", " GLOBAL", innerProgram: innerData));
+        Assert.Single(global, x => x.Contains(ReportItemCode) && x.Contains("FILE STATUS 'PV'"));
+        Assert.Single(global, x => x.Contains(ReportItemCode) && x.Contains("DEPENDING ON 'PN'"));
+        Assert.DoesNotContain(global, x => x.Contains("COBOL1639") || x.Contains("COBOL0851"));
+
+        var local = Bind(Source("", "", "           CALL \"PB1046UI\".", "", innerProgram: innerData));
+        Assert.DoesNotContain(local, x => x.Contains(ReportItemCode));
+        Assert.Contains(local, x => x.Contains("COBOL1639"));
+        Assert.Contains(local, x => x.Contains("COBOL0851"));
+    }
+
+    /// <summary>The method body of <paramref name="member"/> in a source file: from its declaration line to the
+    /// closing brace at the same indentation (every member this file's tests slice is a four-space-indented method).</summary>
+    private static string MethodText(string file, string declaration)
+    {
+        string text = File.ReadAllText(file);
+        int start = text.IndexOf(declaration, StringComparison.Ordinal);
+        Assert.True(start >= 0, $"{declaration} not found in {file}");
+        int end = text.IndexOf("\n    }", start, StringComparison.Ordinal);
+        return text[start..end];
+    }
+
+    /// <summary>The complement of the scans above (feedback_measure_the_selectors_complement): the arms that
     /// used to say "not defined" about a report entry's name each ask the one refusal before they say it, and nothing
-    /// else reports the descriptor.</summary>
+    /// else reports the descriptor. The data division's file-control arms are named by MEMBER (kb/Work PB3768): a
+    /// file-level substring would stay green when a new arm in the same file forgot the question.</summary>
     [Fact]
     public void EveryUndefinedNameArm_AsksTheOneRefusal()
     {
@@ -177,10 +227,18 @@ public sealed class ReportItemReferenceTests
         foreach (string rel in new[]
                  {
                      Path.Combine("Binding", "ReferenceResolver.cs"),   // procedure division: ReportUnidentified
-                     Path.Combine("Binding", "DataBinder.cs"),          // file / LINAGE / APPLY COMMIT: ResolveClauseOperand
                      Path.Combine("Binding", "DataBinder.Odo.cs"),      // OCCURS … DEPENDING ON
                  })
             Assert.Contains("ReportEntryReferenceRefused(", File.ReadAllText(Path.Combine(root, rel)));
+
+        string dataBinder = Path.Combine(root, "Binding", "DataBinder.cs");
+        foreach (string arm in new[]
+                 {
+                     "private DataItem? ResolveClauseOperand(",   // FILE STATUS / RELATIVE KEY / LINAGE / APPLY COMMIT
+                     "private void ResolveAssignUsing(",          // ASSIGN … USING (kb/Work PB3768)
+                     "DataItem? InRecords(",                      // RECORD KEY / ALTERNATE RECORD KEY (kb/Work PB3768's sibling)
+                 })
+            Assert.Contains("ReportEntryReferenceRefused(", MethodText(dataBinder, arm));
 
         var reporters = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
             .Where(f => !f.Contains("Generated", StringComparison.Ordinal) && !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))

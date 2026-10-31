@@ -163,6 +163,7 @@ internal static class OptionsBinder
     {
         if (m.STANDARD_BINARY() is not null)
         {
+            using var at = edition?.At(m);   // the clause's own position (kb/Work PB2034), as DeclineFloatDecimal's
             edition?.Error("COBOL0806", "ARITHMETIC IS STANDARD-BINARY is a processor-dependent language "
                 + "element (ISO Annex A.3 item 2) for which support is not claimed (§4.2.6); it is also obsolete "
                 + "(§8.8.1.4.1 NOTE 1 / Annex F.2 item 3). Use NATIVE or STANDARD-DECIMAL");

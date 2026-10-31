@@ -69,6 +69,9 @@ public abstract class ConformanceSuiteTestsBase<TSlot>
             $"[{edition}/{id}] must be REFUSED by the front end or the binder at --std {edition}; the compile ended "
             + $"{result.Status}: {string.Join("\n", result.Errors)}");
         EditionHarness.AssertHasDiagnostic(result.Errors, refusal.Expect);
+        // ⛔ AND EVERY DIAGNOSTIC THE REFUSAL DREW NAMES ITS FILE AND LINE (kb/Work PB2034): the one net under every
+        // producer of a diagnostic that sits outside a cursor-setting walker.
+        EditionHarness.AssertEveryDiagnosticPositioned([.. result.Errors, .. result.Warnings], $"[{edition}/{id}]");
     }
 }
 

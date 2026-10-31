@@ -310,6 +310,12 @@ public sealed class FileModel
     /// SR10), since there is no clause to point at. See <see cref="FileControlKeyRules"/>.</summary>
     public WiseOwl.Cobol.Editions.DiagnosticCursor EntryAt { get; set; }
 
+    /// <summary>Where a rule about one clause of this entry reports (kb/Work PB2034): the clause's own source position
+    /// when it has one, else the file control entry's — never an unset cursor, which leaves the enclosing position
+    /// standing and, from a post-build or group-level pass, prints the diagnostic with no file and line.</summary>
+    public WiseOwl.Cobol.Editions.DiagnosticCursor ClauseOrEntryAt(WiseOwl.Cobol.Editions.DiagnosticCursor clause) =>
+        clause.IsSet ? clause : EntryAt;
+
     /// <summary>The RECORD KEY clause's key name as written (ISO §12.4.5.12) — data-name-1, or record-key-name-1
     /// when <see cref="RecordKeySource"/> is set — resolved post-build to <see cref="PrimeKey"/>; null when the
     /// clause is absent (it is required for ORGANIZATION INDEXED, §12.4.5.1 Format 1).</summary>
@@ -504,7 +510,7 @@ public sealed class FileModel
     /// <summary>The report-names of the FD's REPORT(S) clause (ISO §13.18.46), in written order — a report file
     /// is exactly an FD with a non-empty list (§9.1.22; it legally has NO record description entries). The
     /// names resolve to <see cref="ReportModel"/>s post-build (<c>DataBinder.ResolveReports</c>).</summary>
-    public List<string> ReportNames { get; } = [];
+    public List<ReportClauseName> ReportNames { get; } = [];
 
     /// <summary>True for a REPORT FILE — an FD whose REPORT clause names at least one report (§9.1.22,
     /// §13.18.46). THE ONE spelling of that test.</summary>
@@ -1056,6 +1062,11 @@ public readonly record struct RecordClauseFacts(
         _ => "RECORD CONTAINS integer-1 (ISO §13.18.43.2 Format 1)",
     };
 }
+
+/// <summary>One report-name-1 of an FD's REPORT clause (ISO §13.18.46.2) and where it is written, so the rules over the
+/// correspondence between REPORT clauses and report descriptions (§13.18.46.3 SR1/SR2, §13.14.3 SR1; kb/Work PB1285)
+/// report at the name they are about (kb/Work PB2034).</summary>
+public sealed record ReportClauseName(string Name, WiseOwl.Cobol.Editions.DiagnosticCursor At);
 
 /// <summary>One LINAGE clause operand (ISO §13.18.34 GR6): a fixed literal value (GR6a) or a data-name whose
 /// content is read at the GR6b evaluation points (OPEN OUTPUT / WRITE ADVANCING PAGE / page overflow), resolved
