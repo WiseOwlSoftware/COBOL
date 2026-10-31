@@ -52,7 +52,7 @@ public sealed class CldrIcuCrossCheckTests(ITestOutputHelper output)
         yield return ["uk-UA", "uk", new[] { "\U00000430", "\U00000431", "\U00000433", "\U00000491", "\U00000434", "\U00000454", "\U00000435", "\U00000456", "\U00000438", "\U00000457", "\U00000439", "a" }];
         yield return ["el-GR", "el", new[] { "\U000003B1", "\U000003B2", "\U000003C9", "a", "b", "1", "\U00000391" }];
         yield return ["ja-JP", "ja", new[] { "\U00003042", "\U00003044", "\U000030A2", "\U000030A4", "\U00003041", "\U000030A1", "a", "\U00004E00", "\U0000304B", "\U0000304C", "\U000030AB", "\U000030AC", "\U00003042\U000030FC", "\U00003042\U00003042",
-            // kb/Work PB2761: the =-chain after an extension (ja.xml: <<<う|ゝ=ぅ|ゝ=ゔ|ゝ=う|ゞ/゙=ぅ|ゞ/゙=ゔ|ゞ/゙).
+            // kb/Work PB2761: the =-chain after an extension (ja.xml: <<<う|ゝ=ぅ|ゝ=ゔ|ゝ=う|ゞ/\u3099=ぅ|ゞ/\u3099=ゔ|ゞ/\u3099).
             "\U00003045\U0000309E", "\U00003045\U00003094", "\U00003094\U0000309E", "\U00003094\U00003094", "\U00003046\U0000309E", "\U00003046\U00003094",
             // kb/Work PB107: a `p|x` prefix context reads p's FINAL elements (ja.xml: `ァ|ー` is a rule, ァ itself is placed
             // later by `&ぁ<<<<ァ`), and the <<<< relations leave hiragana = katakana through level 3, as ICU has it.
@@ -106,7 +106,7 @@ public sealed class CldrIcuCrossCheckTests(ITestOutputHelper output)
         var icu = CultureInfo.GetCultureInfo("en-US").CompareInfo;
         var ours = Collator.Root.With(strength: CollationStrength.Primary, caseLevel: true);
         string[] corpus = ["a", "A", "á", "Á", "ab", "aB", "Ab", "AB", "áb", "Áb", "ábc", "b", "B", "ä", "Ä", "ß", "ss", "SS", "Ss", "æ", "Æ",
-            "é", "É", "résumé", "Resume", "RESUME", "resume", "1", "a-b", "A-b", "a b", "ǆ", "ǅ", "Ǆ", "ﬁ", "FI", "fi", "Fi"];
+            "e\u0301", "E\u0301", "résumé", "Resume", "RESUME", "resume", "1", "a-b", "A-b", "a b", "ǆ", "ǅ", "Ǆ", "ﬁ", "FI", "fi", "Fi"];
         var disagreements = new List<string>();
         foreach (string x in corpus)
             foreach (string y in corpus)

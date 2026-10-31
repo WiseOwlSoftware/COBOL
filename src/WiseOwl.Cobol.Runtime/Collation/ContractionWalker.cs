@@ -54,6 +54,10 @@ internal ref struct ContractionWalker
         return false;
     }
 
+    /// <summary>Move the cursor to <paramref name="index"/>, past text the caller read itself (a run of decimal digits
+    /// the numeric ordering takes as one number).</summary>
+    public void Advance(int index) => _pos = index;
+
     /// <summary>UTS #10 S2.1: the LONGEST contiguous contraction among <paramref name="candidates"/> (the contractions
     /// that begin with the code point just returned by <see cref="NextCodePoint"/>, longest first) starting at
     /// <paramref name="after"/>, then S2.1.1–S2.1.3: extend it with each following unblocked non-starter for which a

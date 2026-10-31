@@ -148,7 +148,7 @@ public sealed class CldrCollationSettingsTests
     [Fact]
     public void CaseLevel_Keys_AgreeWithCompare_AndCarryTheLevel()
     {
-        string[] corpus = ["a", "A", "á", "Á", "ab", "aB", "Ab", "AB", "áb", "b", "ß", "ss", "Ss", "SS", "æ", "Æ", "ａ", "Ａ", "é", "É", "a-b", "A-B", "", "ǅ", "ǆ"];
+        string[] corpus = ["a", "A", "á", "Á", "ab", "aB", "Ab", "AB", "áb", "b", "ß", "ss", "Ss", "SS", "æ", "Æ", "ａ", "Ａ", "e\u0301", "E\u0301", "a-b", "A-B", "", "ǅ", "ǆ"];
         foreach (var strength in new[] { CollationStrength.Primary, CollationStrength.Secondary, CollationStrength.Tertiary, CollationStrength.Quaternary, CollationStrength.Identical })
             foreach (var caseFirst in new[] { CaseFirst.Off, CaseFirst.Upper, CaseFirst.Lower })
                 foreach (var alternate in new[] { AlternateHandling.NonIgnorable, AlternateHandling.Shifted })
@@ -185,5 +185,152 @@ public sealed class CldrCollationSettingsTests
         Assert.Empty(cu.Unsupported);
         Assert.False(CollationEngine.ResolveLocale("en").Options.CaseLevel);
         Assert.NotSame(CollationEngine.For(CollationTable.Root, CollationOptions.Default), CollationEngine.For(CollationTable.Root, CollationOptions.Default with { CaseLevel = true }));
+    }
+
+    // ---- numeric ordering ------------------------------------------------------------------------------------------
+
+    private static readonly Collator Numeric = Collator.Root.With(numericOrdering: true);
+
+    /// <summary>"If set to on, any sequence of Decimal Digits (General_Category = Nd) is sorted at a primary level with
+    /// its numeric value. For example, "A-21" &lt; "A-123"."</summary>
+    [Fact]
+    public void NumericOrdering_SortsADigitRunByItsValue()
+    {
+        Assert.True(Collator.Root.Compare("A-21", "A-123") > 0);      // without it: '2' after '1'
+        Assert.True(Numeric.Compare("A-21", "A-123") < 0);
+        Assert.True(Numeric.Compare("a2", "a10") < 0);
+        Assert.True(Numeric.Compare("a9", "a10") < 0);
+        Assert.True(Numeric.Compare("a19", "a100") < 0);              // the shared prefix "a1" is no boundary inside a number
+        Assert.True(Numeric.Compare("a1b", "a1c") < 0);               // after the number, the text goes on as usual
+        Assert.True(Numeric.Compare("a12b", "a12") > 0);
+        Assert.True(Numeric.Compare("a", "a0") < 0);
+        Assert.True(Numeric.Compare("a0", "a1") < 0);
+        Assert.True(Numeric.Compare("1", "a") < 0);                   // numbers stand where digits do: before letters
+        Assert.True(Numeric.Compare("-", "1") < 0);                   // … and after punctuation
+    }
+
+    /// <summary>Leading zeros and the digit's script and width are not part of a number's value.</summary>
+    [Fact]
+    public void NumericOrdering_ValueIsAllThatCounts()
+    {
+        Assert.Equal(0, Numeric.Compare("a02", "a2"));
+        Assert.Equal(0, Numeric.Compare("a00", "a0"));
+        Assert.Equal(0, Numeric.Compare("a٢", "a2"));            // ARABIC-INDIC DIGIT TWO
+        Assert.Equal(0, Numeric.Compare("a２０", "a20"));     // fullwidth 2 0
+        Assert.Equal(0, Numeric.Compare("a\U0001D7D0", "a2"));        // MATHEMATICAL BOLD DIGIT TWO (a supplementary Nd)
+        Assert.True(Numeric.Compare("a٢٠", "a3") > 0);      // 20 > 3 across scripts
+        Assert.NotEqual(0, Collator.Root.Compare("a02", "a2"));
+    }
+
+    /// <summary>A mark after a digit ends the run (the digits are separate numbers on either side of it).</summary>
+    [Fact]
+    public void NumericOrdering_ARunEndsAtANonDigit()
+    {
+        Assert.True(Numeric.Compare("1\u030110", "1\u03019") > 0);    // 1 acute 10 vs 1 acute 9: the second number decides
+        Assert.True(Numeric.Compare("1\u03012", "1\u03013") < 0);
+        Assert.True(Numeric.Compare("12", "1\u03012") > 0);           // the number 12 against the number 1 (then an acute, then 2)
+        Assert.True(Numeric.Compare("2", "10") < 0);
+    }
+
+    /// <summary>The standard words the order by "numeric value": a run longer than 254 digits is not split into
+    /// 254-digit numbers (ICU splits it, and so orders a 255-digit number before a 254-digit one).</summary>
+    [Fact]
+    public void NumericOrdering_AVeryLongRunIsOneNumber()
+    {
+        string big = "1" + new string('0', 254), small = "2" + new string('0', 253);   // 10^254 (255 digits) and 2*10^253 (254 digits)
+        Assert.True(Numeric.Compare(big, small) > 0);
+        Assert.True(Numeric.Compare(new string('1', 600), new string('1', 599) + "2") < 0);     // the same length, so position by position
+        Assert.True(Numeric.Compare(new string('1', 599) + "2", new string('1', 599)) > 0);
+        Assert.Equal(0, Numeric.Compare(new string('0', 400) + "7", "7"));
+    }
+
+    [Fact]
+    public void NumericOrdering_Keys_AgreeWithCompare_AtEveryStrength()
+    {
+        string[] corpus = ["a1", "a2", "a10", "a02", "a٢", "A1", "a1b", "a1B", "1", "10", "9", "0", "00", "", "x-1", "x-10", "x 10", "1\u03012", "12", "\U0001D7D0", "１"];
+        foreach (var strength in new[] { CollationStrength.Primary, CollationStrength.Secondary, CollationStrength.Tertiary, CollationStrength.Quaternary, CollationStrength.Identical })
+            foreach (var alternate in new[] { AlternateHandling.NonIgnorable, AlternateHandling.Shifted })
+                foreach (bool caseLevel in new[] { false, true })
+                {
+                    var c = Collator.Root.With(strength: strength, alternate: alternate, caseLevel: caseLevel, numericOrdering: true);
+                    foreach (string x in corpus)
+                        foreach (string y in corpus)
+                            Assert.Equal(Math.Sign(c.Compare(x, y)), Math.Sign(c.GetKey(x).CompareTo(c.GetKey(y))));
+                }
+    }
+
+    /// <summary>Against the host's ICU (which .NET 10 reaches through <see cref="System.Globalization.CompareOptions.NumericOrdering"/>):
+    /// a deterministic corpus of random strings over digits of several scripts, letters, a mark and punctuation.</summary>
+    [Fact]
+    public void NumericOrdering_AgreesWithTheHostIcu()
+    {
+        var icu = System.Globalization.CultureInfo.GetCultureInfo("en-US").CompareInfo;
+        if (icu.Compare("a", "A", System.Globalization.CompareOptions.None) >= 0) return;   // globalization-invariant host: ordinal
+        string[] alphabet = ["a", "b", "A", "0", "1", "2", "5", "9", "-", " ", "١", "٣", "１", "\u0301", "x", "10", "00", "007", "๑"];
+        var rng = new Random(12345);
+        string Make() { var sb = new System.Text.StringBuilder(); int n = rng.Next(0, 7); for (int i = 0; i < n; i++) sb.Append(alphabet[rng.Next(alphabet.Length)]); return sb.ToString(); }
+        var disagreements = new List<string>();
+        for (int k = 0; k < 20000; k++)
+        {
+            string x = Make(), y = Make();
+            int mine = Math.Sign(Numeric.Compare(x, y)), theirs = Math.Sign(icu.Compare(x, y, System.Globalization.CompareOptions.NumericOrdering));
+            if (mine != theirs) disagreements.Add($"[{x}] vs [{y}]: ours {mine}, ICU {theirs}");
+        }
+        Assert.True(disagreements.Count == 0, $"{disagreements.Count} disagreement(s):\n" + string.Join("\n", disagreements.Take(20)));
+    }
+
+    [Fact]
+    public void NumericOrdering_ComesFromTheTag_AndThePrefixShapeCountsARunAsOneMapping()
+    {
+        var plain = CollationEngine.ResolveLocale("en");
+        var tag = CollationEngine.ResolveLocale("en-u-kn-true");
+        Assert.False(plain.Options.NumericOrdering);
+        Assert.True(tag.Options.NumericOrdering);
+        Assert.Empty(tag.Unsupported);
+        Assert.True(plain.Collator.Compare("a2", "a10") > 0);
+        Assert.True(tag.Collator.Compare("a2", "a10") < 0);
+        // A digit run is ONE mapping: three digits are two characters of overhang; "000" weighs a lead and a count for three characters.
+        var shape = tag.Collator.PrefixShapeOf("x007");
+        Assert.Equal(2, shape.Overhang);
+        Assert.Equal(0, shape.Deficit);
+        Assert.Equal(1, tag.Collator.PrefixShapeOf("x000").Deficit);
+        Assert.Equal(0, plain.Collator.PrefixShapeOf("x007").Overhang);
+    }
+
+    [Fact]
+    public void TheTableKnowsItsDecimalDigits()
+    {
+        var t = CollationTable.Root;
+        foreach (var (first, name) in new[] { (0x0030, "ASCII"), (0x0660, "Arabic-Indic"), (0x06F0, "Extended Arabic-Indic"), (0x0966, "Devanagari"), (0xFF10, "fullwidth"), (0x1D7CE, "math bold"), (0x1D7F6, "math monospace") })
+            for (int v = 0; v < 10; v++)
+            {
+                Assert.True(t.TryGetDecimalDigit(first + v, out int value), $"{name} {v}");
+                Assert.Equal(v, value);
+            }
+        foreach (int notDigit in new[] { 0x002F, 0x003A, 0x00B2, 0x00BD, 0x2460, 0x2080, 0x0041, 0x065F, 0x066A, 0xFF0F })
+            Assert.False(t.TryGetDecimalDigit(notDigit, out _), $"U+{notDigit:X4}");
+        // The table's runs ARE the UCD's Nd blocks: every General_Category=Nd line of the pinned UnicodeData.txt, with its
+        // decimal digit value (field 6), and no other code point.
+        int digits = 0;
+        foreach (string line in File.ReadLines(Path.Combine(RepoRoot(), "data", "unicode", "UnicodeData.txt")))
+        {
+            string[] f = line.Split(';');
+            if (f[2] != "Nd") continue;
+            int cp = Convert.ToInt32(f[0], 16);
+            Assert.True(t.TryGetDecimalDigit(cp, out int v), $"U+{cp:X4}");
+            Assert.Equal(int.Parse(f[6]), v);
+            digits++;
+        }
+        Assert.Equal(770, digits);        // 77 sets of ten (Unicode 17.0)
+        for (int cp = 0; cp <= 0x1FFFF; cp++)
+            if (t.TryGetDecimalDigit(cp, out _)) digits--;
+        Assert.Equal(0, digits);
+    }
+
+    private static string RepoRoot()
+    {
+        string? dir = AppContext.BaseDirectory;
+        while (dir is not null && !File.Exists(Path.Combine(dir, "WiseOwl.Cobol.sln"))) dir = Path.GetDirectoryName(dir);
+        return dir ?? throw new DirectoryNotFoundException("repository root (WiseOwl.Cobol.sln) not found above " + AppContext.BaseDirectory);
     }
 }

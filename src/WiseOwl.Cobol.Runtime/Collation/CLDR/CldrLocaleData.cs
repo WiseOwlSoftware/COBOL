@@ -180,7 +180,8 @@ public sealed record CldrSettings
     /// <summary><c>[caseLevel on|off]</c> — a level of case alone between level 2 and level 3
     /// (<see cref="CollationOptions.CaseLevel"/>).</summary>
     public bool? CaseLevel { get; init; }
-    /// <summary><c>[numericOrdering on|off]</c> — recorded; not implemented.</summary>
+    /// <summary><c>[numericOrdering on|off]</c> — a run of decimal digits is ordered by its numeric value
+    /// (<see cref="CollationOptions.NumericOrdering"/>).</summary>
     public bool? NumericOrdering { get; init; }
     /// <summary><c>[hiraganaQ on|off]</c> — recorded; not implemented (deprecated in CLDR).</summary>
     public bool? HiraganaQuaternary { get; init; }
@@ -201,6 +202,7 @@ public sealed record CldrSettings
         CaseFirst = CaseFirst ?? defaults.CaseFirst,
         BackwardsSecondary = BackwardsSecondary ?? defaults.BackwardsSecondary,
         CaseLevel = CaseLevel ?? defaults.CaseLevel,
+        NumericOrdering = NumericOrdering ?? defaults.NumericOrdering,
     };
 
     /// <summary>These settings with <paramref name="over"/>'s stated values applied on top (an import's settings are
@@ -225,7 +227,6 @@ public sealed record CldrSettings
     /// <summary>The settings this engine does not implement, as one-line descriptions.</summary>
     public IEnumerable<string> UnsupportedSettings()
     {
-        if (NumericOrdering == true) yield return "[numericOrdering on] — digit sequences collate by their digits, not by numeric value";
         if (HiraganaQuaternary == true) yield return "[hiraganaQ on] — the deprecated Hiragana quaternary distinction is not implemented";
     }
 }

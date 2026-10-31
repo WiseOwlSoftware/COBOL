@@ -58,10 +58,11 @@ public sealed class CollationTable
     private readonly Dictionary<int, int[]> _nfd;                 // code point → its FULL canonical decomposition (expanded, reordered)
     private readonly int _primaryShift;
     private readonly ReorderGroup[] _groups;                      // in this table's primary order
+    private readonly int[] _digitRuns;                            // first code point of each run of ten decimal digits (Nd), ascending
 
     private CollationTable(string name, string ucaVersion, string sourceTag, int primaryShift, CollationElement[] elements,
         Dictionary<int, int> singles, Dictionary<int, Contraction[]> contractions, Dictionary<int, byte> ccc,
-        ImplicitRange[] implicitRanges, Dictionary<int, int[]> nfd, ReorderGroup[] groups, TailoringRules? tailoring,
+        ImplicitRange[] implicitRanges, Dictionary<int, int[]> nfd, ReorderGroup[] groups, int[] digitRuns, TailoringRules? tailoring,
         string? description, WeightMap? primaryMap, WeightMap? secondaryMap, WeightMap? tertiaryMap)
     {
         Name = name;
@@ -75,6 +76,8 @@ public sealed class CollationTable
         _implicit = implicitRanges;
         _nfd = nfd;
         _groups = groups;
+        _digitRuns = digitRuns;
+        NumericLead = Lookup('0');
         Tailoring = tailoring;
         Description = description ?? name;
         PrimaryMap = primaryMap;
@@ -160,6 +163,22 @@ public sealed class CollationTable
             foreach (string c in g.Codes)
                 if (string.Equals(c, code, StringComparison.OrdinalIgnoreCase)) { group = g; return true; }
         group = default;
+        return false;
+    }
+
+    /// <summary>The element a NUMBER begins with under <see cref="CollationOptions.NumericOrdering"/>: the first element of
+    /// the digit zero, so a number stands where the digits do in the digit reordering group.</summary>
+    internal CollationElement NumericLead { get; }
+
+    /// <summary>The value 0-9 of <paramref name="codePoint"/> when it is a DECIMAL DIGIT (General_Category Nd) in the
+    /// Unicode data the table was generated from (the host's <see cref="System.Globalization.CharUnicodeInfo"/> may
+    /// know an older Unicode), else false. What <see cref="CollationOptions.NumericOrdering"/> reads a number from.</summary>
+    public bool TryGetDecimalDigit(int codePoint, out int value)
+    {
+        int i = Array.BinarySearch(_digitRuns, codePoint);
+        if (i < 0) i = ~i - 1;                         // the last run starting at or before the code point
+        if (i >= 0 && codePoint - _digitRuns[i] is >= 0 and < 10) { value = codePoint - _digitRuns[i]; return true; }
+        value = 0;
         return false;
     }
 
@@ -497,7 +516,7 @@ public sealed class CollationTable
         foreach (var list in contractions.Values)
             foreach (var c in list) longest = Math.Max(longest, c.Rest.Length + 1);
         return new CollationTable(plan.Name, UcaVersion, SourceTag, _primaryShift, pool, singles, contractions,
-            _ccc, _implicit, _nfd, plan.Groups ?? _groups, plan.Tailoring, plan.Description, plan.PrimaryMap, plan.SecondaryMap, plan.TertiaryMap)
+            _ccc, _implicit, _nfd, plan.Groups ?? _groups, _digitRuns, plan.Tailoring, plan.Description, plan.PrimaryMap, plan.SecondaryMap, plan.TertiaryMap)
         {
             ContractionCount = contractionCount, MaxContractionLength = longest, ClosedComposites = closedComposites,
             HasQuaternary = HasQuaternary || plan.Entries.Any(e => e.Elements.Any(x => x.Quaternary != 0)),
@@ -593,8 +612,8 @@ public sealed class CollationTable
     }
 
     /// <summary>Decode a table blob written by <c>generate-collation-table.py</c> ("CNCT", u32 raw length, raw-deflate
-    /// payload; format 1, or format 2 = format 1 + the reordering groups and the element case bits). Public so a
-    /// test can round-trip a regenerated file without touching the resource.</summary>
+    /// payload; format 3 - the elements with their case bits, the mappings, the Unicode data, the reordering groups and
+    /// the decimal-digit runs). Public so a test can round-trip a regenerated file without touching the resource.</summary>
     public static CollationTable Decode(ReadOnlySpan<byte> blob, string name)
     {
         if (blob.Length < 8 || blob[0] != (byte)'C' || blob[1] != (byte)'N' || blob[2] != (byte)'C' || blob[3] != (byte)'T')
@@ -606,7 +625,7 @@ public sealed class CollationTable
 
         var r = new Reader(raw);
         int format = r.U16();
-        if (format is not (1 or 2)) throw new InvalidDataException($"collation table: unsupported format {format}");
+        if (format != 3) throw new InvalidDataException($"collation table: unsupported format {format} (this runtime reads format 3)");
         int shift = r.U8();
         string version = r.Str();
         string sourceTag = r.Str();
@@ -616,9 +635,7 @@ public sealed class CollationTable
         for (int i = 0; i < elementCount; i++)
         {
             int p = r.U16(), s = r.U16(), t = r.U8(), flags = r.U8();
-            var elementCase = format >= 2
-                ? ((flags & 4) != 0 ? ElementCase.Mixed : (flags & 2) != 0 ? ElementCase.Upper : ElementCase.Lower)
-                : (CollationElement.IsUpperTertiary(t) ? ElementCase.Upper : ElementCase.Lower);
+            var elementCase = (flags & 4) != 0 ? ElementCase.Mixed : (flags & 2) != 0 ? ElementCase.Upper : ElementCase.Lower;
             elements[i] = new CollationElement(p << shift, s, t, (flags & 1) != 0, elementCase);
         }
         int singleCount = r.I32();
@@ -669,23 +686,23 @@ public sealed class CollationTable
             for (int k = 0; k < n; k++) seq[k] = r.I32();
             nfd.Add(cp, seq);
         }
-        var groups = Array.Empty<ReorderGroup>();
-        if (format >= 2)
+        int groupCount = r.U16();
+        var groups = new ReorderGroup[groupCount];
+        for (int i = 0; i < groupCount; i++)
         {
-            int groupCount = r.U16();
-            groups = new ReorderGroup[groupCount];
-            for (int i = 0; i < groupCount; i++)
-            {
-                string codes = r.Str();
-                int lo = r.U16(), hi = r.U16();
-                groups[i] = new ReorderGroup(codes.Split(' ', StringSplitOptions.RemoveEmptyEntries), lo << shift, hi << shift);
-            }
+            string codes = r.Str();
+            int lo = r.U16(), hi = r.U16();
+            groups[i] = new ReorderGroup(codes.Split(' ', StringSplitOptions.RemoveEmptyEntries), lo << shift, hi << shift);
         }
+        int digitRunCount = r.U16();
+        var digitRuns = new int[digitRunCount];
+        for (int i = 0; i < digitRunCount; i++) digitRuns[i] = r.I32();
+        Array.Sort(digitRuns);
         if (!r.AtEnd) throw new InvalidDataException("collation table: trailing bytes");
         int longest = 1;
         foreach (var list in contractions.Values)
             foreach (var c in list) longest = Math.Max(longest, c.Rest.Length + 1);
-        return new CollationTable(name, version, sourceTag, shift, elements, singles, contractions, ccc, ranges, nfd, groups,
+        return new CollationTable(name, version, sourceTag, shift, elements, singles, contractions, ccc, ranges, nfd, groups, digitRuns,
             tailoring: null, description: $"{name} ({sourceTag})", primaryMap: null, secondaryMap: null, tertiaryMap: null)
             { ContractionCount = contractionCount, MaxContractionLength = longest };
     }
