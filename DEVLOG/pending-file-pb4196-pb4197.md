@@ -1,0 +1,3 @@
+## Filed PB4196 (a single GLOBAL data item outranks a nearer report entry) and PB4197 (finishers sharing a gate log)
+
+Two leads from the finishers that landed wave 20261780/20261783's branches on 2026-10-31. PB4196 is a silent wrong answer already on main: a contained program's own report entry does not hide a container's single GLOBAL data item of the same name, so `MOVE PV TO W` binds the container's item where §8.4.6.2.1 3) a) makes the report entry the referenced item (the PB3766 finisher's lead; the two-item case is fixed on that branch). PB4197: the finisher brief leaves the gate's log unnamed, and two finishers of one session wrote the same scratchpad `gate.log`.
