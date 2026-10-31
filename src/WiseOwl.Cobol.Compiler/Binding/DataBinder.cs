@@ -2761,8 +2761,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // A name the REPORT SECTION declares is not undescribed (kb/Work PB3768): §13.8.6.2.3 bars every clause of a
         // data division section other than the report section from referring to a report item, so the ONE refusal
         // speaks (as ResolveClauseOperand does for the other file clauses) before "no such data item is described".
+        // The subject is the head of the refusal, so it names the phrase as written, never `ASSIGN … USING` (kb/Work
+        // PB4160: a head that elides the statement renders `ASSIGN . USING` on the console).
         if (item is null && ReportEntryReferenceRefused(
-                $"ASSIGN … USING '{WrittenQualified(dynName, file.AssignUsingQualifiers)}'", dynName, file.AssignUsingQualifiers)) return;
+                $"ASSIGN USING '{WrittenQualified(dynName, file.AssignUsingQualifiers)}'", dynName, file.AssignUsingQualifiers)) return;
         if (item is null || !ItemCategory.IsAlphanumeric(item))
         {
             Edition.Error(DiagnosticCatalog.AssignUsingNotAlphanumeric,
