@@ -1,4 +1,4 @@
-## PB4190: a stall message reaches the lane that dispatched the group, not always the operator
+## Entry 2873 — 2026-10-31 13:04 PDT — PB4190: a stall message reaches the lane that dispatched the group, not always the operator
 
 **Re-probe.** The live ledger (`E:\COBOL-coord\inflight-groups.json`) held 18 groups and none carried a `lane`;
 `progress.post_stalls` sent every stall to `to="operator"`. That is the 2026-10-30 report: six `STALL w20261780<x>`
@@ -17,3 +17,4 @@ inbox. `stall_line` is split out of `stall_lines` so the poster reads the stall,
 reads both inboxes; `test_plan_wave.py` covers the lane recorded, kept on a re-render, and absent; `mailbox.py
 --self-test` covers `account_lane` of a loop unit. `DESIGN-orchestrator-loop.md` (progress line, ledger row) is current.
 No inventory row is touched.
+
