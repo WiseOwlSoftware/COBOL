@@ -355,8 +355,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     public List<FileModel> ContainerLocalFiles { get; } = [];
 
     /// <summary>The GLOBAL files of every CONTAINING program, by file-name, nearest container first (ISO §13.18.27.4 GR1:
-    /// the file-name of a GLOBAL FD is a global name, visible in every directly or indirectly contained program; §13.18.27
-    /// GR1-GR2: the nearest declaration wins). Filled by <see cref="InheritFileNames"/> BEFORE this unit binds, so the
+    /// the file-name of a GLOBAL FD is a global name, visible in every directly or indirectly contained program; §8.4.6.2.1
+    /// 3) b): the nearest containing element's declaration is the referenced item). Filled by <see cref="InheritFileNames"/> BEFORE this unit binds, so the
     /// data division's own resolutions can tell a name that IS a visible file from one declared nowhere
     /// (<see cref="NonDataDeclarationOf"/>; the APPLY COMMIT clause's SR1 and SR11, <see cref="ResolveApplyCommit"/>).
     /// It joins <see cref="FilesByName"/> only AFTER the unit binds (<c>BinderDriver.BindUnitData</c>), where an own file
@@ -377,15 +377,31 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 ContainerLocalFiles.Add(f);
             foreach (var record in f.Records)
                 if (record.CobolName is { } recordName && container.CallGlobalRoots.Contains(record))
-                    InheritedGlobalRecordAreas.TryAdd(recordName, f);
+                    InheritedGlobalRecordAreas.Add((recordName, f));
         }
     }
 
     /// <summary>The record areas of every CONTAINING program's files that are GLOBAL names (§13.18.27.4 GR1: the record
-    /// of a GLOBAL FD, or a level-1 entry with its own GLOBAL clause), by record-name, to the file that owns them —
-    /// SR11's second half (§12.4.6.3.3: "a file or record area … declared with the GLOBAL clause"). Filled by
+    /// of a GLOBAL FD, or a level-1 entry with its own GLOBAL clause), each with the file that owns it, nearest container
+    /// first — SR11's second half (§12.4.6.3.3: "a file or record area … declared with the GLOBAL clause"). A list, not
+    /// a map by record-name: two files may each have a record of one name, told apart only by the file-report-qualifier
+    /// (§8.4.2.2.2 Format 1), so a qualified operand must find the one its qualifier names
+    /// (<see cref="InheritedGlobalRecordAreaOwner"/>, kb/Work PB3557 review R1-1). Filled by
     /// <see cref="InheritFileNames"/>.</summary>
-    internal Dictionary<string, FileModel> InheritedGlobalRecordAreas { get; } = new(CobolNames.Comparer);
+    internal List<(string Record, FileModel File)> InheritedGlobalRecordAreas { get; } = [];
+
+    /// <summary>The file that owns the containing program's GLOBAL record area <paramref name="name"/> names, or null.
+    /// A level-1 record area takes no data-qualifier, only the file-report-qualifier (§8.4.2.2.2 Format 1:
+    /// "data-name-1 [ data-qualifier ] … [ file-report-qualifier ]"), so the name is written bare or with its file-name
+    /// alone; the nearest container's record is the one found (§8.4.6.2.1 3) b)).</summary>
+    internal FileModel? InheritedGlobalRecordAreaOwner(string name, IReadOnlyList<string> quals)
+    {
+        if (quals.Count > 1) return null;
+        foreach (var (record, file) in InheritedGlobalRecordAreas)
+            if (CobolNames.Same(record, name) && (quals.Count == 0 || CobolNames.Same(file.CobolName, quals[0])))
+                return file;
+        return null;
+    }
 
     /// <summary>Names DECLARED in the SCREEN SECTION, which is REFUSED as the declined Annex A.4.2 module
     /// (COBOL1560; <see cref="ScreenFacility"/>). Two consumers, both still needed after the refusal:
