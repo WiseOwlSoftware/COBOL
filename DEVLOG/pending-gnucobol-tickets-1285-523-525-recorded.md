@@ -1,0 +1,3 @@
+## GnuCOBOL tickets 1285, 523, 524 and 525 recorded
+
+Recorded the 2026-10-31 GnuCOBOL filings in kb/Work: bugs #1285 (PB3885, PB3886), feature-requests #523 (PB3920), #524 (PB3877) and #525 (PB3928, PB3930, PB4043), and the comment on feature-requests #284 (PB3890, PB4099), all now `reported`. Added the visible comments on bugs #1103 (PB3876) and #971 (PB3873), the maintainer's reply on bugs #1274 (PB3879 to PB3884), the discussion on bugs #1271 (PB3904, PB3905) and the fix report for PB3887 (no ticket, by owner decision; it stays `reported` because `fixed-upstream` requires a terminal note status).
