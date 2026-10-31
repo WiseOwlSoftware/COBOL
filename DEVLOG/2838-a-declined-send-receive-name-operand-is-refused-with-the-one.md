@@ -1,4 +1,4 @@
-## A declined SEND/RECEIVE name operand is refused with the one clause that prints it (PB4169)
+## Entry 2838 — 2026-10-30 21:46 PDT — A declined SEND/RECEIVE name operand is refused with the one clause that prints it (PB4169)
 
 PB4118's `DeclinedFacilityBinder.ScreenName` passed one fixed rule sentence, "(ISO §14.9.38.2, §14.9.31.2)", to the
 shared data-name shape screen, so a subscripted RECEIVE data-name-1 was told SEND's format as well and a subscripted SEND
@@ -15,3 +15,4 @@ clause; no other fixed two-clause sentence exists.
 Pinned by: the `expect` text of the three subscripted `pb4118-*` diagnostics goldens (now the full message ending in
 the one clause), `DeclinedFacilityOperandDriftTests` (the census pairs each screened operand with its clause constant;
 a new test checks the constants and that no sentence names both). No inventory row claimed or closed.
+
