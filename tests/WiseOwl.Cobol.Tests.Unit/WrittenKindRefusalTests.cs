@@ -62,6 +62,20 @@ public sealed class WrittenKindRefusalTests
         + "only a numeric literal or the figurative constant ZERO is expected at this position")]
     [InlineData("call-returning-literal", 2023, Table + "       PROCEDURE DIVISION.\n           CALL \"P\" RETURNING 5.\n           STOP RUN.\n",
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: no literal is expected at this position")]
+    // ⛔ A VERB SHARED WITH ANOTHER CLAUSE IS NO STATEMENT POSITION (kb/Work PB4201). DISPLAY is a statement's opening word
+    // AND a USAGE keyword, so the one-token overlap made `USAGE 5` an "open" position and left it the bare COBOL0001; the
+    // usage keywords the edition has (ISO §13.18.60.2: [USAGE IS] followed by the usage) are named instead, the 2002
+    // words (BIT, NATIONAL, OBJECT, ...) from 2002 and the 2014 floating-point words from 2014.
+    [InlineData("usage-literal-85", 85, "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X USAGE 5.\n" + Proc,
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: expected BINARY, COMP, COMP-1, COMP-2, COMP-3, "
+        + "COMP-4, COMP-5, COMPUTATIONAL, COMPUTATIONAL-1, COMPUTATIONAL-2, COMPUTATIONAL-3, COMPUTATIONAL-4, "
+        + "COMPUTATIONAL-5, DISPLAY, INDEX, IS, PACKED-DECIMAL or POINTER (ISO §5.2.1).")]
+    [InlineData("usage-literal-2023", 2023, "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X USAGE 5.\n" + Proc,
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: expected BINARY, BINARY-CHAR, BINARY-DOUBLE, "
+        + "BINARY-LONG, BINARY-SHORT, BIT, COMP, COMP-1, COMP-2, COMP-3, COMP-4, COMP-5, COMPUTATIONAL, COMPUTATIONAL-1, "
+        + "COMPUTATIONAL-2, COMPUTATIONAL-3, COMPUTATIONAL-4, COMPUTATIONAL-5, DISPLAY, FLOAT-BINARY-128, FLOAT-BINARY-32, "
+        + "FLOAT-BINARY-64, FLOAT-DECIMAL-16, FLOAT-DECIMAL-34, FLOAT-EXTENDED, FLOAT-LONG, FLOAT-SHORT, FUNCTION-POINTER, "
+        + "INDEX, IS, MESSAGE-TAG, NATIONAL, OBJECT, PACKED-DECIMAL, POINTER or PROGRAM-POINTER (ISO §5.2.1).")]
     public void AWrittenKindThePositionDoesNotExpect_IsNamedOnce(string name, int edition, string source, string expected)
     {
         string text = Head + source;
@@ -143,6 +157,10 @@ public sealed class WrittenKindRefusalTests
     [InlineData("level-number-before-its-fd", 2023, "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n"
         + "       FILE-CONTROL.\n           SELECT F ASSIGN TO \"pb3428u.dat\".\n       DATA DIVISION.\n       FILE SECTION.\n"
         + "       01 W-LOOSE PIC X(5).\n       FD F.\n       01 R PIC X(5).\n" + Proc, "COBOL0001")]
+    // A position where a statement may begin expects every statement's opening word, which the imperative-statement arms
+    // own: a literal there stays the bare COBOL0001, never a list of fifty verbs (kb/Work PB4201).
+    [InlineData("literal-at-a-statement-start", 2023,
+        Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN 5 END-IF.\n           STOP RUN.\n", "COBOL0001")]
     public void APositionTheArmDoesNotName_KeepsItsDiagnosis(string name, int edition, string body, string code)
     {
         var errors = Compile(Head + body, edition);
