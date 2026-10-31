@@ -386,7 +386,8 @@ public sealed record CldrCollationSelection(CldrLocaleTag Tag, CldrLocaleData? M
 /// <c>bcp47/collation.xml</c>): <c>co</c> the collation type, and the settings keys mapped onto
 /// <see cref="CldrSettings"/> — <c>ka</c> alternate, <c>kb</c> backwards, <c>kc</c> caseLevel, <c>kf</c> caseFirst,
 /// <c>kh</c> hiraganaQ, <c>kk</c> normalization, <c>kn</c> numeric, <c>kr</c> reorder codes, <c>ks</c> strength,
-/// <c>kv</c> maxVariable. Anything the engine does not implement is listed in <see cref="Unsupported"/>.
+/// <c>kv</c> maxVariable. A key or value that is not a collation key is listed in <see cref="Unsupported"/>; a key the
+/// engine reads but does not implement (<c>kh</c>) is reported with the effective settings (<see cref="CldrSettings.UnsupportedSettings"/>).
 /// </summary>
 public sealed class CldrLocaleTag
 {
@@ -411,7 +412,7 @@ public sealed class CldrLocaleTag
     /// <summary>The settings the <c>-u-</c> keys stated.</summary>
     public CldrSettings Settings { get; }
 
-    /// <summary>Keys the engine does not honor.</summary>
+    /// <summary>Keys or values that are not collation keys of the BCP 47 <c>-u-</c> extension.</summary>
     public IReadOnlyList<string> Unsupported { get; }
 
     /// <summary>The CLDR file name of the base tag ("de_AT", "root").</summary>
@@ -486,7 +487,8 @@ public sealed class CldrLocaleTag
                 }
             }
         }
-        unsupported.AddRange(settings.UnsupportedSettings());
+        // A setting the engine recognizes but does not implement is NOT listed here: whether it is in force is a question
+        // of the EFFECTIVE settings (the collation's, overridden by this tag's), which the builder answers once.
         return new CldrLocaleTag(localeName ?? "", NormalizeBase(baseTag), type, settings, unsupported);
     }
 

@@ -8,7 +8,9 @@ Inputs (all pinned, all committed under data/unicode/, all under the Unicode Lic
   allkeys_CLDR.txt   the CLDR ROOT collation in DUCET format (cldr/common/uca, release tag in SOURCES.md) — the weights
   allkeys.txt        the DUCET of the same UCA version — read ONLY for its @version cross-check (the CLDR file's own
                      @version is authoritative; a mismatch aborts, so the two sources can never drift silently)
-  UnicodeData.txt    canonical combining classes (field 3) → the NON-STARTER set the runtime needs for canonical
+  UnicodeData.txt    the DECIMAL DIGITS (General_Category Nd, field 2; digit value, field 6) → the runs of ten the
+                     runtime's `numericOrdering` reads a number from (UTS #35 Part 5: "any sequence of Decimal Digits
+                     (General_Category = Nd) is sorted at a primary level with its numeric value"); canonical combining classes (field 3) → the NON-STARTER set the runtime needs for canonical
                      reordering / discontiguous contractions; canonical decomposition mappings (field 5) → the
                      runtime's OWN NFD (so canonical equivalence never depends on the host's Unicode version); the
                      First/Last ranges → ASSIGNED code points of the siniform blocks (UTS #10 Table 16)
@@ -51,7 +53,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-FORMAT_VERSION = 2          # 2 (2026-08-19): + reordering groups; element flags bit 1 = uppercase (case bit)
+FORMAT_VERSION = 3          # 3 (kb/Work PB107): + the decimal-digit runs; 2 (2026-08-19): + reordering groups; element flags bit 1 = uppercase (case bit)
 PRIMARY_SHIFT = 4          # stored primaries are the raw 16-bit CLDR values; the runtime shifts them left by this
 MAGIC = b"CNCT"            # "WiseOwl COBOL Collation Table"
 
@@ -104,6 +106,8 @@ def parse_allkeys(path: str):
 
 def parse_unicode_data(path: str):
     """→ (ccc: {cp: ccc≠0},
+         digit_runs: [first cp of each run of ten General_Category=Nd code points with decimal digit values 0..9 —
+         the Unicode Standard (§4.6, "Numeric Value") encodes every decimal digit set that way; checked, not assumed),
          assigned_ranges: [(first,last)] covering every assigned code point,
          nfd: {cp: [cp...]} — the FULL canonical decomposition (recursively expanded, canonically reordered) of every
          code point with a canonical decomposition mapping: field 5 without a <compatibility> tag. Hangul syllables
@@ -111,6 +115,7 @@ def parse_unicode_data(path: str):
     ccc = {}
     assigned = []
     direct = {}
+    digits = {}
     pending_first = None
     with open(path, encoding="utf-8") as f:
         for raw in f:
@@ -130,6 +135,8 @@ def parse_unicode_data(path: str):
             assigned.append((cp, cp))
             if c:
                 ccc[cp] = c
+            if fields[2] == "Nd":
+                digits[cp] = int(fields[6])   # field 6: decimal digit value
             d = fields[5]
             if d and not d.startswith("<"):
                 direct[cp] = [int(x, 16) for x in d.split()]
@@ -168,7 +175,17 @@ def parse_unicode_data(path: str):
         return cps
 
     nfd = {cp: reorder(expand(cp)) for cp in direct}
-    return ccc, merged, nfd
+    digit_runs = []
+    for cp in sorted(digits):
+        if digits[cp] != 0:
+            continue
+        if any(digits.get(cp + k) != k for k in range(10)):
+            raise SystemExit(f"U+{cp:04X}: a decimal digit zero not followed by the digit values 1..9")
+        digit_runs.append(cp)
+    covered = {cp + k for cp in digit_runs for k in range(10)}
+    if covered != set(digits):
+        raise SystemExit("a General_Category=Nd code point lies outside every run of ten digits 0..9")
+    return ccc, merged, nfd, digit_runs
 
 
 def parse_ranges_file(path: str, prop: str | None = None):
@@ -402,7 +419,7 @@ def main() -> int:
     ducet_version = read_version(p_ducet)
     if ducet_version != version:
         raise SystemExit(f"UCA version skew: allkeys_CLDR.txt is {version}, allkeys.txt is {ducet_version}")
-    ccc, assigned, nfd = parse_unicode_data(p_ud)
+    ccc, assigned, nfd, digit_runs = parse_unicode_data(p_ud)
     blocks = parse_ranges_file(p_blocks)
     unified = parse_ranges_file(p_props, "Unified_Ideograph")
     ranges = implicit_ranges(blocks, unified, assigned)
@@ -504,6 +521,9 @@ def main() -> int:
     for codes, lo, hi in groups:
         b = " ".join(codes).encode("ascii")
         body += struct.pack("<B", len(b)) + b + struct.pack("<HH", lo, hi)
+    body += struct.pack("<H", len(digit_runs))
+    for cp in digit_runs:
+        body += struct.pack("<I", cp)
 
     compressor = zlib.compressobj(9, zlib.DEFLATED, -15)      # raw deflate — what .NET's DeflateStream reads
     payload = compressor.compress(bytes(body)) + compressor.flush()
@@ -521,7 +541,7 @@ def main() -> int:
         maxPrimary=f"0x{max_p:04X}", maxSecondary=f"0x{max_s:04X}", maxTertiary=f"0x{max_t:02X}",
         nonStarters=len(ccc), implicitRanges=len(ranges), reorderGroups=len(groups),
         upperElements=sum(1 for _, _, t, _ in pool if t in UPPER_TERTIARIES),
-        canonicalDecompositions=len(nfd), maxDecompositionLength=max(len(v) for v in nfd.values()),
+        decimalDigitRuns=len(digit_runs), canonicalDecompositions=len(nfd), maxDecompositionLength=max(len(v) for v in nfd.values()),
         rawBytes=len(body), compressedBytes=len(blob),
     )
     manifest = OrderedDict(
@@ -542,7 +562,7 @@ def main() -> int:
 
     print(f"wrote {out_bin}: UCA {version}, {len(singles)} single mappings, {len(contractions)} contractions, "
           f"{len(pool)} pooled elements, {len(ccc)} non-starters, {len(ranges)} implicit ranges, "
-          f"{len(nfd)} canonical decompositions, {len(groups)} reordering groups, {len(body)} raw / {len(blob)} compressed bytes")
+          f"{len(nfd)} canonical decompositions, {len(groups)} reordering groups, {len(digit_runs)} decimal digit runs, {len(body)} raw / {len(blob)} compressed bytes")
     return 0
 
 

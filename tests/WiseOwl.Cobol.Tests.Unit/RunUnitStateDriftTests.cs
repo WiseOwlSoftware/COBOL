@@ -223,6 +223,8 @@ public sealed class RunUnitStateDriftTests
             "memo of collation keys per collator: derived from immutable collators, keyed by the collator object",
         ["WiseOwl.Cobol.Runtime.Collation.Cldr.CldrLocaleLoader::s_cache"] =
             "memo of parsed CLDR locale data, keyed by locale name: derived from immutable embedded data",
+        ["WiseOwl.Cobol.Runtime.Collation.Cldr.CldrTailoringBuilder::s_baseRoots"] =
+            "memo of a base table's distinct weights per level, keyed weakly by the (immutable) CollationTable: derived data every locale build shares (kb/Work PB107)",
         ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_locales"] =
             "memo of resolved locale collations, keyed by locale name: derived from immutable CLDR data",
         ["WiseOwl.Cobol.Runtime.Collation.CollationEngine::s_collators"] =

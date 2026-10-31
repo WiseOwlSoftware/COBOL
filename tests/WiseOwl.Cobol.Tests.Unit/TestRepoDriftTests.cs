@@ -35,8 +35,8 @@ public sealed class TestRepoDriftTests
     private static readonly string[] Anchors =
         ["AppContext.BaseDirectory", "AppDomain.CurrentDomain.BaseDirectory", "Directory.GetCurrentDirectory("];
 
-    /// <summary>How it then moves upward — climbing parents, or counting hops.</summary>
-    private static readonly string[] Ascents = [".Parent", "Directory.GetParent", "\"..\""];
+    /// <summary>How it then moves upward — climbing parents, trimming the path, or counting hops.</summary>
+    private static readonly string[] Ascents = [".Parent", "Directory.GetParent", "Path.GetDirectoryName(", "\"..\""];
 
     // The two files that legitimately name the pattern: the locator itself, and this test, which must quote the
     // needles it searches for.
