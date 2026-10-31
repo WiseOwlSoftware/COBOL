@@ -1,7 +1,8 @@
-## PB4212 — the messages of a running program no longer open with an elided statement
+## Entry 2867 — 2026-10-31 12:00 PDT — PB4212 — the messages of a running program no longer open with an elided statement
 
 PB4160 stopped at the compile-time layer; a program that faulted still printed `SET … TO — a non-integer value`, `SET … UP BY`, `PERFORM VARYING … FROM` (the emitter's `LandAmount` / `AugmentSetTarget` detail, which `CobolIndex` puts in front of its text) and the FileRegistry heads `OPEN … WITH NO REWIND` and `OPEN … REVERSED`. Re-probed on this build: the SET messages reproduced (`>>TURN EC-BOUND-SUBSCRIPT CHECKING ON`, `SET IX TO N` over a 1.5 item).
 
 The heads now name the operand's role in the general format (`SET index-name TO`, `SET index-name UP BY` / `DOWN BY`, `PERFORM VARYING index-name FROM`, as `SET capacity-register TO` already did) and the phrase as written (`OPEN WITH NO REWIND`, `OPEN REVERSED`). The UP/DOWN head is built by interpolation, so no conditional literal carries an ellipsis. The one characterization snapshot that pinned `"SET … TO"` (`char_occurs.85.g.cs.txt`) was edited to the new text; no other snapshot carried an ellipsis head.
 
 The next case is automatic: `ElidedMessageOpening.Source` now reads the emitter's `LandAmount(` / `AugmentSetTarget(` call sites, `MisroutedVerb(` and any `new …Exception(`, and `DiagnosticOpeningElisionDriftTests` pins the defect and repaired shapes. `IndexAmountMessageHeadTests` runs the four messages a source can reach (SET TO, UP BY, DOWN BY, PERFORM VARYING FROM over a 31-digit item) and asserts the head and the absence of an ellipsis; the two FileRegistry messages need a compiler defect to be raised, so the source scan is their witness. A first draft of the scan also matched a conditional's literal, which hit `VersionConformancePass`'s mid-sentence `where` label; it was dropped in favour of removing the conditional literal itself. No inventory row was claimed or closed.
+
