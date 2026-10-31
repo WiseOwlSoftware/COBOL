@@ -498,6 +498,7 @@ public sealed partial class DataBinder
         // RETURNING §14.2.3 GR6/SR1 resolution + the RAISING EC semantics (StatementBinder.Exceptions) stay bind-time.
         if (pd.returningClause()?.dataReference() is { } rref)
         {
+            using var returningAt = Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
             // §14.2.3 GR6: the returning item's storage is allocated IN THE ACTIVATED element — it stays an
             // ordinary callee-local field; its value transfers out at termination (GR7, the Call copy-out).
             LinkageReturning = FindLinkageRoot(rref.GetText());
