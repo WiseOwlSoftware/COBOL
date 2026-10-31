@@ -1,4 +1,4 @@
-## A qualified paragraph or section header is refused (COBOL5716) instead of declaring a glued name (PB4238)
+## Entry 2884 — 2026-10-31 15:05 PDT — A qualified paragraph or section header is refused (COBOL5716) instead of declaring a glued name (PB4238)
 
 **The defect.** `procedureName` is `word ((OF | IN) word)?` and `paragraphName`, `sectionName` are that rule, so the
 parse admitted `P1 OF S1.` and `S1 OF X SECTION.`. `ProcedureTableBuilder` read the header with `GetText()`, which glues
@@ -26,3 +26,4 @@ edition) and `pb4238-qualified-reference-bare-headers` (accepted from 85; two se
 `PERFORM P1 OF S1` and `PERFORM P1 IN S2`).
 
 **Rows.** PB4238 claimed none and closes none.
+
