@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-9",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "Data description entry",
+ "rule-digest": "b31edda45e9f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#SynthesizeImpliedPictures; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#Sr9ImpliedFor; src/WiseOwl.Cobol.Compiler/Binding/Passes/BindPipeline.cs#Build",
+ "test-ref": "conformance:cases/13.16-Data-description/pb504_value_implied_picture; conformance:cases/13.16-Data-description/pb504-value-implied-picture-below-2002; unit:ImpliedPictureTests.Sr9a_AlphanumericLiteral_ImpliesPictureXOfTheLiteralLength; unit:ImpliedPictureTests.Sr9_ImpliedPictureText_MatchesTheStandardsThreeArms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED (kb/Work PB504, with kb/Work PB831; the figurative admission is the kb/Work PB828 adjudication). The implied PICTURE is now SYNTHESIZED, by the SynthesizeImpliedPictures bind pass, which runs over the COMPOSITION forest between ExpandTypes and UsageInheritancePass. It builds the character-string SR9 spells out - X(length) / 1(length) / N(length), the length being CobolLiteral.Decode's character count, which is the standard's own per-format length (two hexadecimal digits per alphanumeric character, four per national character, four boolean characters per hexadecimal digit) - and hands it to the ONE PictureAnalyzer.Analyze call a WRITTEN clause takes, with the entry's own usage and SIGN clause and explicitUsage = 'this entry wrote a USAGE clause'. From that point the item is indistinguishable from one whose source wrote the clause, so 13.18.60.4 GR1 group inheritance, the 13.18.60.3 SR3/SR5/SR12/SR20 screens, the VALUE initializer and the emitter all apply through their existing single sites - 13.18.60.3 SR13 a) and SR20 are written for exactly this, naming the 'explicit or IMPLICIT picture character-string'. The FIGURATIVE spellings ride the same synthesis: 8.3.3.1 makes a figurative constant a literal, 8.3.3.6.4 GR3 b) gives a non-ALL figurative length one and GR3 c) gives ALL literal-1 the length of literal-1, GR1 selects the national representation in a national context and GR4 the boolean one for the ZERO format. SR9's exclusions are enforced by exclusion, not by carve-out: a zero-length literal, a numeric literal, the class-pointer figurative NULL and the Format-2 (table) VALUE all fall to SR-13.16.3-8's rejection. Edition gate: the construct row value-implied-picture-2002 rejects below 2002 (COBOL0900) - COBOL-85 required a PICTURE for every elementary item bar an index data item and the subject of a RENAMES clause. Measured: `01 A VALUE \"HELLO\".` prints [HELLO] and LENGTH 5; `01 R. 05 A VALUE \"HELLO\". 05 B PIC X(3) VALUE \"XYZ\".` prints [HELLOXYZ]; `01 G VALUE ALL \"AB\".` prints [AB] LENGTH 2 where it used to print A silently (kb/Work PB831).",
+ "state": "OK"
+}

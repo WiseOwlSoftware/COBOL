@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-7.3.11.2",
+ "section": "7.3.11.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "DEFINE directive",
+ "rule-digest": "a589579ff194",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ApplyDefine; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#TrySplitDefine; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#CheckOperandSyntax",
+ "test-ref": "conformance:cases/7.3.11-DEFINE/pb1367_define_general_format_alternatives; conformance:cases/7.3.11-DEFINE/pb1367-define-off-override; conformance:cases/7.3.11-DEFINE/pb1367-define-without-name; conformance:cases/7.3.11-DEFINE/pb1367-define-without-operand; conformance:cases/7.3.11-DEFINE/pb1367-define-words-after-off; conformance:cases/7.3.11-DEFINE/pb1367-define-off-override-in-omitted-branch; conformance:cases/7.3.11-DEFINE/pb1367-define-operand-malformed-in-omitted-branch; unit:ConditionalCompilationDefineTests.Parameter_NoValue_RedefiningADefinedName_WithoutOverride_Rejected1618",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1367. cite.py --check 7.3.11.2 'OVERRIDE' OK (general format). TrySplitDefine parses the directive from its general format (name required and a COBOL word, AS optional, then OFF alone or a value [OVERRIDE]); OVERRIDE after OFF, words after OFF, no name and no operand are COBOL2651. The positive golden writes every alternative (literal, arithmetic, boolean, PARAMETER, OVERRIDE, OFF, with and without AS) and checks each result; a DEFINE in an omitted branch is format-checked and its operand parsed but applies nothing.",
+ "state": "OK"
+}

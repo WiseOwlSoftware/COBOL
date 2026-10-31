@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-21",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 21,
+ "subject": "DELETE statement",
+ "rule-digest": "332d3cee8a52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitDeleteFile",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/delete_file_absent",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "|| UPHELD with independent evidence. GR21 b) --check OK ('The ON EXCEPTION phrase is ignored, if it is specified.'). Code READ myself: EmitDeleteFile emits SeqIo.EmitStoreFileStatus(df.File) immediately after the FileDeleteFile/FileDeleteFileRetry call (GR21 a); FileRegistry.DeleteFile returns FileStatusCode.Success on an actual File.Delete and FileStatusCode.OptionalFileNotFound for '!File.Exists(c.HostPath)' -- both successful values (GR14). GR21 b): the two-phrase arm emits 'if (__kstN[0] != '0') { <ON> } else { <NOT ON> }', so on any '0x' the NOT ON EXCEPTION block runs and the ON EXCEPTION block is skipped, which is literally 'the ON EXCEPTION phrase is ignored'; the NOT-ON-alone arm emits 'if (__kstN[0] == '0') { <NOT ON> }'. Control falls out of the emitted block, satisfying 'control is then transferred to the end of the DELETE statement'. Test re-read and confirmed spec-derived (not nist:, not characterization:, no *MatchesLegacy): tests/conformance/2023/delete_file_absent.cob DELETE FILEs the never-created 'df-absent-xyz.dat' with BOTH phrases written, and tests/conformance/2023/delete_file_absent.out is exactly 'NOEXC' then 'ST=05' -- the precedence of GR21 b) over GR20 c) pinned on the one case where they conflict, plus GR21 a)'s successful value. I checked the sibling fixture tests/conformance/2023/delete_file.cob and it carries NO phrases (golden 'ST=35'), so it does not add coverage here. Uncovered but read: NOT ON EXCEPTION alone on a successful delete of a PRESENT file ('00'); it is the same single 'if (__kstN[0] == '0')' branch. GR21 is unaffected by the GR20 b) EC defect (GR21 has no EC clause). Edition from Annex E.3.3 item 35, heading position verified in specs/ISO_COBOL.md.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.1.3.2-1",
+ "section": "8.1.3.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "COBOL character repertoire",
+ "rule-digest": "28d5b2b09ccf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadSourceText; src/WiseOwl.Cobol.Frontend/Pipeline/SourceTextDecoder.cs#Decode",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_encoding_unmarked_non_utf8_is_latin1; conformance:cases/A.1-Implementor-defined-language-element-list/l1_encoding_per_file_bom; conformance:cases/8.1.3-COBOL-character-repertoire/pb1402_extended_letters; unit:SourceTextDecoderTests.UnmarkedNonUtf8_IsLatin1_EveryByteItsOwnCodePoint",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'The implementor shall define a mapping of each basic letter, basic digit, basic special character, and extended letter of the COBOL character repertoire to one or more coded character sets.' (cite.py --check 8.1.3.2 -> OK 8.1.3.2 1)). The mapping is ISO/IEC 10646 held as UTF-16, ONE coded character set for both classes, so the two-set correspondence sentence is vacuous; it is defined and documented in docs/CONFORMANCE.md DOC-A.1-25, and implemented in SourceTextDecoder.Decode (the bytes of a file become those characters, none replaced by U+FFFD). The two halves the registrar found open are closed: (a) the documentation exists (DOC-A.1-25, DOC-A.1-26); (b) the lexer admits the extended letters of the mapping (GR-8.1.3.2-4, kb/Work PB1402, pinned by pb1402_extended_letters). Witnesses: l1_encoding_unmarked_non_utf8_is_latin1 (a raw 0xE9 is U+00E9 with COBOL5435), l1_encoding_per_file_bom. kb/Work PB1397. retired-witness: src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadAllText (CompilationInputs.ReadAllText no longer exists: the bytes of a source or library text become characters in SourceTextDecoder.Decode, read through CompilationInputs.ReadSourceText (kb/Work PB1397))",
+ "state": "OK"
+}

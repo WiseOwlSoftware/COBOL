@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.26.4-2",
+ "section": "15.26.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "DISPLAY-OF function",
+ "rule-digest": "0e3d51474751",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#DisplayOf; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Repertoire",
+ "test-ref": "conformance:cases/15.26.4-Returned-value-rules/pb59_repertoire_identity",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "r1 grants the correspondence to the implementor and WiseOwl COBOL's is the total UTF-16 identity (A.1 item 33), so r2 can only require that a specified argument-2 never displaces a real character: A2-DOF =000353 is U+0160 itself, not the '?' substitution (ordinal 64).",
+ "state": "OK"
+}

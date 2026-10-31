@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.44.3-14",
+ "section": "13.18.44.3",
+ "kind": "SR",
+ "ordinal": 14,
+ "subject": "REDEFINES clause",
+ "rule-digest": "863a45fa61a9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#Sr12Sr14Violation; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckStrongTypeDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenRedefinesClause",
+ "test-ref": "conformance:cases/13.18.44-REDEFINES/pb179-redefines-pointer-target; conformance:cases/13.18.44-REDEFINES/pb1282-redefines-in-strong-typedef; conformance:cases/13.18.44-REDEFINES/pb1282_redefines_in_weak_typedef_ok; conformance:cases/13.18.44-REDEFINES/pb2071-template-redefines-pointer; conformance:cases/13.18.44-REDEFINES/pb2071-template-redefines-in-nested-strong; conformance:cases/13.18.44-REDEFINES/pb2071_unused_template_redefines_conforms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1282 landed: the same-root exemption is gone; golden pb183_redefines_in_strong_typedef_ok flipped to the negative pb1282-redefines-in-strong-typedef (13.18.57.3 SR4 stays with CheckStrongTypeDeclarations for an EXTERNAL redefinition). Derivation: SR14's last disjunct, an item subordinate to a strongly-typed group item, can only be met by a REDEFINES written inside a STRONG typedef template (13.18.57.3 SR2 forbids a subordinate entry under a TYPE entry; subject and data-name-2 are siblings and share one strong root), which 13.18.58.4 GR3 makes part of every TYPE subject; the same-root exemption made the disjunct vacuous and is removed. A REDEFINES in a weak template stays legal.",
+ "state": "OK"
+}

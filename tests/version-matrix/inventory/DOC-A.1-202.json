@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-202",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 202,
+ "subject": "Time formats and corresponding function values (maximum precision not less than nine fractional digits)",
+ "rule-digest": "ea81e7c03c59",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-202; src/WiseOwl.Cobol.Compiler/Binding/DateTimeFormatGrammar.cs#MaxFractionDigits",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_time_fraction_max_digits",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Nine fraction digits accepted (§15.3.3.2's floor) and eighteen accepted (the determination); conformance:cases/_unassigned/l1-time-fraction-past-max rejects nineteen with COBOL1631, pinning the maximum at exactly 18. || editions 2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the standard numeric time form and the fractional-seconds time formats (15.3.3) serve the FORMATTED-* and SECONDS-PAST-MIDNIGHT functions, all 2014 introductions.",
+ "state": "OK"
+}

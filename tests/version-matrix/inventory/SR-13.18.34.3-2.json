@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.34.3-2",
+ "section": "13.18.34.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "LINAGE clause",
+ "rule-digest": "c6a1a3a0dee1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveLinage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#LinageOperandShapeFault",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb524-linage-operand-not-unsigned-integer; conformance:cases/13.18.34-LINAGE/pb524_linage_operand_shapes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB524 (landed): ResolveLinage screens every resolved LINAGE data-name operand against all four conjuncts of SR2 and names the first one broken under COBOL2025 - a group item (not elementary), a non-numeric item or an index item (class index), a non-integer (PicInfo.IsIntegerDescription: fixed-point with no fraction; a floating-point item is refused), a signed item. Measured on the implementer's build: group, PIC X(3), PIC S9(3), PIC 9V9 and alphanumeric FOOTING/BOTTOM operands each rejected at every edition; the positive golden binds a DISPLAY PIC 9(3) page and USAGE COMP PIC 99 margins and pins the GR7/GR26b counter/EOP sequence.",
+ "state": "OK"
+}

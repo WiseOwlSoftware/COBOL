@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.14.3-4",
+ "section": "14.9.14.3",
+ "kind": "SR",
+ "ordinal": 4,
+ "subject": "EXIT statement",
+ "rule-digest": "f54f33436164",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitRaisingStage",
+ "test-ref": "conformance:cases/14.6.13.1.5-Exception-objects/l1_exit_raising_object_sending",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Sending-operand property observed through 14.6.13.1.5 item 1 (EXCEPTION-OBJECT set to the CONTENT of identifier-1) and item 2 (the activator's declarative runs, then the CALL resumes).",
+ "state": "OK"
+}

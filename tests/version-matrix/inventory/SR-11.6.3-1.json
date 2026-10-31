@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.6.3-1",
+ "section": "11.6.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "INTERFACE-ID paragraph",
+ "rule-digest": "9df61c0a1e3e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#Screen",
+ "test-ref": "conformance:cases/11.6-INTERFACE-ID/pb303_as_interface_id_literal",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The INTERFACE-ID arm of the shared AS-literal screen. kb/Work PB303.",
+ "state": "OK"
+}

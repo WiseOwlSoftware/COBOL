@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.25.3-6",
+ "section": "14.9.25.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "MOVE statement",
+ "rule-digest": "f0a042e56a3b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#ShapeRefusal",
+ "test-ref": "conformance:cases/14.9.25-MOVE/pb416-move-zero-to-alphabetic; conformance:cases/14.9.20-INITIALIZE/pb416-initialize-replacing-zero-to-alphabetic",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB422 (re-verdict; the implementation landed with kb/Work PB416 and PB878's chain). cite.py --check 14.9.25.3 \"The figurative constant ZERO shall not be moved to an alphabetic data item\" -> OK SR6. Re-measured on the worktree build: MOVE ZERO TO PIC A(5) and MOVE ZEROES TO PIC A(5) are COBOL0819 (ISO 14.9.25.3 SR6) at 85, 2002, 2014, 2023 and 2023 --permissive; MOVE ZERO TO a group whose child is PIC A(5) stays legal (the receiver is an alphanumeric GROUP, 14.9.25.4 GR4) and stores 00000.",
+ "state": "OK"
+}

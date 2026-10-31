@@ -27,6 +27,12 @@ using Core = CobolParserCore;
 /// </summary>
 internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>The citation of SEND's general formats, the clause that prints the TO and RETURNING operands.</summary>
+    private const string SendClause = "ISO §14.9.38.2";
+
+    /// <summary>The citation of RECEIVE's general format, the clause that prints its data-name-1 and data-name-2.</summary>
+    private const string ReceiveClause = "ISO §14.9.31.2";
+
     /// <summary>Bind the operands of <c>VALIDATE { identifier-1 } …</c> (ISO §14.9.50.2): each identifier-1 is
     /// resolved and screened against §14.9.50.3 SR1, SR2, SR4 and SR5. SR6 (more than one identifier in an
     /// exception-checking PERFORM) is the EC binder's (COBOL1607) and SR3 (a VALIDATE-STATUS clause referencing the
@@ -55,7 +61,7 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
         for (int i = 0; i < references.Length; i++)
         {
             bool isDataName = i != 1;
-            if (isDataName && !ScreenName(references[i], i == 0 ? "RECEIVE data-name-1" : "RECEIVE data-name-2")) continue;
+            if (isDataName && !ScreenName(references[i], i == 0 ? "RECEIVE data-name-1" : "RECEIVE data-name-2", ReceiveClause)) continue;
             _ = host.Expr.ResolveSending(references[i]);
         }
         if (r.arithmeticExpression() is { } seconds) _ = host.Expr.BindExpr(seconds);
@@ -79,13 +85,13 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
         // ⛔ THE TO OPERAND IS A NAME IN BOTH FORMATS (kb/Work PB4118): ask how it was WRITTEN before ClassifySend reads
         // what it is. A subscripted, reference-modified or special-register operand is neither a message-server-name-1
         // nor a data-name-2 (ScreenName); it was reported once and is read no further.
-        bool toIsName = to is null || ScreenName(to, "SEND TO operand");
+        bool toIsName = to is null || ScreenName(to, "SEND TO operand", SendClause);
         var format = ClassifySend(s, to, toIsName, out bool toIsMessageTag);
         foreach (var dref in DataReferencesAfter(s, Core.FROM))
             _ = host.Expr.ResolveSending(dref);
         // RETURNING's data-name-1 is a name as well (§14.9.38.2 Format 1), asked the same.
         foreach (var dref in DataReferencesAfter(s, Core.RETURNING))
-            if (ScreenName(dref, "SEND RETURNING data-name-1"))
+            if (ScreenName(dref, "SEND RETURNING data-name-1", SendClause))
                 _ = host.Expr.ResolveSending(dref);
         // A message-tag data-name-2 has no place to build (its profile is the COBOL1943 recovery shape); its entry drew
         // that refusal and the name is a declared item. Any other Format 2 name resolves, so an undefined one is COBOL1639.
@@ -158,9 +164,12 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
     /// (COBOL2024), the same one the SORT and MERGE keys and the file clauses ask; a qualifier is a name's own form
     /// (§8.4.2.2.2 Format 1) and passes.</summary>
     /// <returns>true when the operand is written as a name; false after reporting it.</returns>
-    private bool ScreenName(Core.DataReferenceContext dref, string face) =>
+    /// <param name="clause">the ONE clause whose general format prints this operand — <see cref="SendClause"/> or
+    /// <see cref="ReceiveClause"/> — quoted in the refusal, so a RECEIVE operand is never told SEND's format and a SEND
+    /// operand never RECEIVE's (kb/Work PB4169).</param>
+    private bool ScreenName(Core.DataReferenceContext dref, string face, string clause) =>
         DataBinder.ScreenDataNameShape(dref, face, ctx.Edition,
-            "a name is what the statement's general format prints here (ISO §14.9.38.2, §14.9.31.2)");
+            $"a name is what the statement's general format prints here ({clause})");
 
     /// <summary>⛔ §14.9.38.2 prints `END-SEND` on its own line with NO brackets in BOTH formats, and Format 1's
     /// `RETURNING data-name-1` line with none either, while it brackets the exception phrases around them (PDF page
@@ -175,7 +184,7 @@ internal sealed class DeclinedFacilityBinder(BinderContext ctx, StatementBinder 
     private void ScreenSendRequiredPhrases(Core.McsSendStatementContext s, SendFormat format)
     {
         ctx.Validation.ScreenOmittedRequiredPhrase(s.END_SEND() is null, "END-SEND", "SEND",
-            "both of its general formats print END-SEND on a line of its own without brackets", "ISO §14.9.38.2");
+            "both of its general formats print END-SEND on a line of its own without brackets", SendClause);
         if (format is not SendFormat.ToMessageServer) return;
         bool literal = s.literal() is not null;
         ctx.Validation.ScreenOmittedRequiredPhrase(s.RETURNING() is null, "RETURNING",

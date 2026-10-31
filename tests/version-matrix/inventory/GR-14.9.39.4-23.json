@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-23",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 23,
+ "subject": "SET statement",
+ "rule-digest": "b1d6eb135b58",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#SetFromLocale; src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#SetFromSaved; src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#SetFromUserDefault; src/WiseOwl.Cobol.Runtime/Control/LocaleState.cs#SetFromSystemDefault",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t1_set_locale_categories; conformance:cases/14.9.39-SET/pb64t1_save_restore_locale; unit:LocaleStateTests.Set_SwitchesOnlyTheNamedCategories_AndTheyPersist; unit:LocaleStateTests.SaveAndRestore_IsAPerCategorySnapshot_ThroughAManagedHandle",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB64 T1 (2026-08-19): a) locale-name-1 / identifier-10 — the named locale's / the saved snapshot's value for each named category; b) USER-DEFAULT — the user default's; c) SYSTEM-DEFAULT — the system default's. The category operand is a SET (the format's choice indicators; LocaleCategorySet), switched per §14.6.6 r3 with the others unchanged. Was DOCUMENTED-NON-SUPPORT (PB92).",
+ "state": "OK"
+}

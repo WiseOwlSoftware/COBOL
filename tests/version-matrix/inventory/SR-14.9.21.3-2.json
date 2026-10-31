@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.21.3-2",
+ "section": "14.9.21.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "INITIATE statement",
+ "rule-digest": "721526fd0771",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindInitiate",
+ "test-ref": "unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused; unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWithAGlobalFile_Binds",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB369. Rule text (cite.py --check 14.9.21.3 \"the file description entry associated with report-name-1 shall contain a GLOBAL clause\" -> OK, SR 2). A contained program's INITIATE of a container's GLOBAL report whose FD is not GLOBAL is refused COBOL2392 (RejectContainedReportFile, shared with GENERATE and TERMINATE); a non-GLOBAL report of a container is not visible at all (13.18.27.4 GR2) and draws SR1's 'shall be defined by a report description entry'.",
+ "state": "OK"
+}

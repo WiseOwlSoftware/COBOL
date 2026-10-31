@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.18.3-p1",
+ "section": "9.1.18.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Commit and Rollback",
+ "rule-digest": "771c8a781ca0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Commit; src/WiseOwl.Cobol.Runtime/IO/Sharing/SequentialJournal.cs#Rollback; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CommitSequential; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RollbackSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.CommitControl.cs#JournalAppend",
+ "test-ref": "conformance:cases/14.9.36-ROLLBACK/pb3338_apply_commit_rollback; conformance:cases/14.9.36-ROLLBACK/pb3340_sequential_file_under_apply_commit; conformance:cases/_unassigned/pb695-apply-commit-no-on; unit:SequentialCommitControlTests.First_write_under_extend_then_commit; unit:SequentialJournalTests.First_write_under_extend_then_commit",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB3340 (wave 1157): COMMIT makes the changes permanent: a sequential file is synced, its directory synced and the decision D C synced before the retirement (2.2.2.6), so the state survives a later abnormal termination; witnessed under a death and a power loss at every operation. Annex A.4.3 is Claimed (docs/CONFORMANCE.md §5).",
+ "state": "OK"
+}

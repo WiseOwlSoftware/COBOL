@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-20",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 20,
+ "subject": "USAGE clause",
+ "rule-digest": "19cec5fcc99f",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#encodingPhrase",
+ "test-ref": "conformance:wiseowl/cases/13.18.60-USAGE/pb174-encoding-phrase-on-float-binary; conformance:cases/13.18.60-USAGE/pb174-float-decimal-encoding-nonsupport; conformance-test:FloatFamilyTests.ProcessorDependent_Rejected1564",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — the owner answered kb/Work PB579 Q1 for the whole class: a rule wholly inside a declined processor-dependent element closes as DOCUMENTED-NON-SUPPORT once the compiler correctly refuses it. Refused by name, COBOL1564 (Annex A.3 items 17/19/20, §4.2.6). Held by derived-verdicts.float-formats-not-provided. || kb/Work PB579 — Nothing in this rule can execute. a) and b) give BINARY-ENCODING and DECIMAL-ENCODING their meaning \"in a data item described with any standard decimal floating-point usage\", and c) defers the unstated case to §11.9.9 - all three are conditioned on the standard DECIMAL floating-point usages, which are NOT PROVIDED (FLOAT-DECIMAL-16/-34, rows GR17/GR18, rejected COBOL1564 under Annex A.3 item 19). What EXISTS is the syntax and the applicability screen, deliberately and no further: CobolData.g4's `floatFormatPhrase*` parses the bracketed choice-indicator group in either order (§5.2.6.4), DataBinder.BindEntry rejects an encoding-phrase on anything but FLOAT-DECIMAL-16/-34 with COBOL1717 citing GR20a (probe p20: `USAGE FLOAT-BINARY-32 BINARY-ENCODING`) and rejects a repeat with COBOL1718 - and the surviving value is then NOT carried onto PicInfo, which the binder's own comment records as a measured choice (\"a field nothing reads is a lookup nothing has ever contradicted\"). So there is no encoding to implement until the usages land. Annex A.3 item 20 makes the encoding-phrase itself processor-dependent and §4.2.6 licenses the absence; docs/CONFORMANCE.md §2 row 20-21 records it as N/A because item 19 is not claimed. ⛔ Converting this row to DOCUMENTED-NON-SUPPORT is an owner decision (D13), not an agent's - and it should be taken together with GR17/GR18, since it is derivative of them. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DataBinder.BindEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#encodingPhrase",
+ "state": "OK"
+}

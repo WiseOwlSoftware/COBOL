@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.7.4-4",
+ "section": "12.4.5.7.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "120b71fd501c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveKeyCollating",
+ "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/l1c03_file_collating_native_default",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 12.4.5.7.4 \"the native alphanumeric collating sequence applies to any record keys of class alphanumeric\" OK. When alphabet-name-1 is absent and no key-level clause names the key, `alphabet` stays null -> native ordinal (null weights). Probe p2 (only FOR NATIONAL written): the alphanumeric alternate key IX-ALT read A,M,Z (native); probe p5 (key-level on the prime only): IX-ALT A,M,Z native. No-clause files take the early return to native. No spec-derived test isolates this rule. [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (absent from COBOL-85: the file-control COLLATING SEQUENCE clause is a 2002 introduction; Annex E lists no 2014->2023 delta for it)]",
+ "state": "OK"
+}

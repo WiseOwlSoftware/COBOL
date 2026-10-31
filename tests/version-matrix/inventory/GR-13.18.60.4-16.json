@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-16",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 16,
+ "subject": "USAGE clause",
+ "rule-digest": "ad99c196d90f",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+ "test-ref": "conformance-test:FloatFamilyTests.ProcessorDependent_Rejected1564; conformance:cases/13.18.60-USAGE/pb174-float-decimal-encoding-nonsupport",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — the owner answered kb/Work PB579 Q1 for the whole class: a rule wholly inside a declined processor-dependent element closes as DOCUMENTED-NON-SUPPORT once the compiler correctly refuses it. Refused by name, COBOL1564 (Annex A.3 items 17/19/20, §4.2.6). Held by derived-verdicts.float-formats-not-provided. || kb/Work PB579 — USAGE FLOAT-BINARY-128 is NOT PROVIDED. The rule pins the format to ISO/IEC 60559:2020 binary128 and .NET has no IEEE binary128 type, so ParseUsage rejects the usage LOUD with COBOL1564 naming Annex A.3 item 17 (probe p15 at --std 2023; the grammar's usageKeyword and the 2014 introduction gate both carry the member so the reject is never a parse error at the wrong stage, and a double-backed approximation - which would be non-conforming against a PINNED format - is never emitted). The ground is spec-sanctioned: A.3 item 17 makes FLOAT-BINARY-32/-64/-128 processor-dependent and §4.2.6 says \"Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented\", with the absence to be specified in the implementor's documentation - which docs/CONFORMANCE.md §2 row 17 does (\"Partial - binary32→float, binary64→double claimed; binary128 not\"). ⛔ THE DOCUMENTED-NON-SUPPORT VERDICT IS THE OWNER'S, NEVER AN AGENT'S (D13), so this row is recorded NOT-IMPLEMENTED: an owner decision converting it needs no new evidence - the witness the schema requires (a test proving we diagnose rather than silently miscompile) already exists and is named in test-ref. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.ParseUsage",
+ "state": "OK"
+}

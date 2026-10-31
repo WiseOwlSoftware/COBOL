@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.41.3-3",
+ "section": "14.9.41.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "START statement",
+ "rule-digest": "6880d5273bca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/pb333_start_general_relation_operators; conformance:cases/14.9.41-START/pb333-start-not-or-equal-operator",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB333 LANDED (wave 56), moved by kb/Work PB1034 (wave 1005 D). RULE 14.9.41.3 SR3: the relational operator is one specified in the general-relation format of 8.8.4.2, except IS NOT EQUAL TO / IS NOT =. The MEMBERSHIP half is now the grammar's: comparisonOperator IS 8.8.4.2.2 Format 1's printed set, so IS NOT >=, NOT <=, NOT ... OR EQUAL and EQUAL THAN never reach the binder (they fail to parse, COBOL0001, at all four editions - the negative pb333-start-not-or-equal-operator keeps witnessing it); the EXCLUSION half (NOT EQUAL TO / NOT = / <>) is KeyedIoBinder.BindStart's own, COBOL0862. Positive golden pb333_start_general_relation_operators unchanged. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#InGeneralRelationFormat (kb/Work PB1034 deleted InGeneralRelationFormat: its membership screen moved into the grammar rule every condition shares)",
+ "state": "OK"
+}

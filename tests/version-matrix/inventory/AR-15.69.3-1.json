@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.69.3-1",
+ "section": "15.69.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "NUMVAL-F function",
+ "rule-digest": "6c231e3a9c17",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#PredicateViolation",
+ "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal; conformance:cases/15.67.3-Argument-rules/pb60_numval_one_scan; conformance:cases/15.67.3-Argument-rules/pb658-numval-numeric-edited-argument; unit:IntrinsicArgumentClassDriftTests.CategoryWordedStringArguments_CarryTheCategoryPredicate_AndClassWordedOnesDoNot; conformance-test:ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). NUMVAL-F's new 's' row (§15.69.3 r1): a numeric item (pb58-numvalf-numeric) and a numeric LITERAL (pb58-numvalf-literal) are rejected at bind — the literal used to reach a run-time NotImplemented; the r5 space rule is the one-scan's (PB60). || kb/Work PB658 (2026-10-03): NUMVAL-F's r1 has the same category wording as NUMVAL's and now carries the same CharacterCategory predicate. || editions corrected from '2014,2023' to 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the NUMVAL-F function exists from 2002 (IntrinsicCatalog.cs, the COBOL1502 edition window). retired-witness: conformance-test:CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (kb/Work PB3177 replaced the corpus runner with the conformance suite's: the refusal is asserted by ConformanceSuiteTests.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-6.5-5",
+ "section": "6.5",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Reference format",
+ "rule-digest": "ff0cdad9ea7f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#CommentEntryOf; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#KindOf; src/WiseOwl.Cobol.Frontend/Preprocessor/DivisionCursor.cs#DivisionCursor",
+ "test-ref": "unit:ReferenceFormatLogicalConversionTests.CommentEntryParagraphs_AreOnlyInTheIdentificationDivision; unit:ReferenceFormatLogicalConversionTests.IndicatorArea_OnlyFixedIndicators_OutsideNist; conformance:cases/6.3.4-Program-text-area/pb1494-indicator-not-fixed; conformance:cases/6.5-Logical-conversion/pb1758_comment_entry_multiline; conformance:cases/6.5-Logical-conversion/pb1758-fixed-author-at-2014; conformance:cases/6.5-Logical-conversion/pb1758-fixed-remarks-at-2023; unit:LogicalLineBuilderTests.CommentEntryParagraph_KeepsItsHeader; conformance:cases/6.5-Logical-conversion/pb1494_remarks_paragraph_in_copybook; conformance:cases/6.5-Logical-conversion/pb1494_comment_entry_in_copybook; unit:LogicalLineBuilderTests.LibraryText_IsConvertedInTheDivisionItsCopyStatementStandsIn",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1494 landed (w70b the indicator area and the division scope; w1001c the edition scope): every source-indicator line's program text is copied (a PROCEDURE DIVISION paragraph named REMARKS is program text); the obsolete COBOL-85 comment-entry (AUTHOR / INSTALLATION / DATE-WRITTEN / DATE-COMPILED / SECURITY / REMARKS, IDENTIFICATION DIVISION only) keeps its paragraph HEADER, written 'AUTHOR. .', and only the entry is discarded, so the ONE removal gate (COBOL0902 from 2002, owner decision kb/Work R61) sees a fixed-form paragraph as it sees a free-form one; the D indicator is gated by row debugging-line-removed-2014 (obsolete 2002, removed 2014).",
+ "state": "OK"
+}

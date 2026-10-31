@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.6.4.3-3",
+ "section": "12.4.6.4.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "SAME clause",
+ "rule-digest": "122cd6428e07",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.IoControl.cs#ScreenSameOperands",
+ "test-ref": "conformance:cases/12.4.6.4-SAME/pb1087-same-external-file",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1087 (wave 1011 B2). cite.py --check 12.4.6.4.3 'File-name-1 and file-name-2 shall not reference an external file connector' OK SR3. FileModel.IsExternal operand -> COBOL2738.",
+ "state": "OK"
+}

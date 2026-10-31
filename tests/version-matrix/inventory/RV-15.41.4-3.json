@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.41.4-3",
+ "section": "15.41.4",
+ "kind": "RV",
+ "ordinal": 3,
+ "subject": "FORMATTED-TIME function",
+ "rule-digest": "0c52de6532d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#EmitFormatted",
+ "test-ref": "conformance:cases/15.3.3.6.1-Offset-subformats/formatted_datetime; conformance:cases/15.41.3-Argument-rules/l1_formatted_time_offset_normalization",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Both conjuncts on one line: T3=123456+0200 keeps argument-2 unadjusted (a leak would read 103456) and renders 120 minutes as the 15.3.3.6.1 five-character subformat; pb11 pins the 15.41.3 4) boundary in both signs.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.5.4-2",
+ "section": "14.9.5.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "CANCEL statement",
+ "rule-digest": "007fccbb9e49",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible",
+ "test-ref": "conformance:cases/14.9.5-CANCEL/pb154_cancel_scope",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB154): Node.IsFunction discriminates program-names from function-names in BOTH directions - Register takes isFunction (EmitEntryWrapper emits `, isFunction: true` for FUNCTION-ID units), ResolveVisible takes (wantFunction, probe) and filters every arm, Cancel resolves wantFunction:false (8.4.6.3's first paragraph scopes program-name references; a function-name is not a program-name, so a UDF is not locatable by CANCEL), CallProgram passes wantFunction only when notFoundEc is EC-FUNCTION-NOT-FOUND, and EntryOf's two rule-4 loops filter !n.IsFunction. pb154_cancel_scope's F3=0003 pins the UDF's statics surviving a CANCEL of its own name.",
+ "state": "OK"
+}

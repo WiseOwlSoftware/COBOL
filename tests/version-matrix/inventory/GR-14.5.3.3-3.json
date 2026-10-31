@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.5.3.3-3",
+ "section": "14.5.3.3",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "Scope of statements",
+ "rule-digest": "bdf784cb4067",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sentence; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock",
+ "test-ref": "conformance:cases/14.5.3.2-Explicit-scope-termination/l1c31_scope_termination",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: 'for a conditional statement not contained within another statement, by a separator period' (cite.py --check 14.5.3.3 -> OK §14.5.3.3 3)). Mechanism: a phrase's statementBlock is statement+ and only DOT (or a phrase/terminator token) ends it, so every following statement up to the period belongs to the conditional phrase. Probes: 'IF FLG = 2 DISPLAY \"U4 WRONG1\" DISPLAY \"U4 WRONG2\".' prints neither (sc4 U4); 'ADD 1 TO A ON SIZE ERROR DISPLAY \"U5 SE\" DISPLAY \"U5 SE2\".' runs both only on size error (sc4 U5); top-level ADD with nested phrases runs to its period (sc1 T2). The golden's S1 pins it for IF (both IFs terminated by the sentence's period). probe dir out/probe/scope-of-statements (sc1/sc4/sc5, pinned cobol.exe; sc1 identical output at --std 85/2002/2014/2023, sc4 at 85 and 2023) || REFUTED: CONFORMS with test-ref EMPTY (test-needed) — The implementation conforms (sc4 U4/U5, refuter R2/R3/R8 all end at the period), but the cited golden does NOT decide this rule: in S1 the outer IF is TRUE and the inner else-arm executes, so had the period failed to end the outer (or inner) IF every later statement would fall inside an executed arm and the output would be IDENTICAL. The golden header itself says each shape is chosen so candidate readings differ, and that holds only for ELSE/END-IF matching (14.9.19.3 SR2), not for period termination. A non-discriminating golden must not close the row. A deciding test needs e.g. IF false DISPLAY \"a\". DISPLAY \"b\". (b must print). [editions as adjudicated: 85, 2002, 2014, 2023 (explicit/implicit scope termination is COBOL-85 surface; Annex E records no change to 14.5.3)]",
+ "state": "OK"
+}

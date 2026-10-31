@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.16.3-3",
+ "section": "14.9.16.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "GENERATE statement",
+ "rule-digest": "674c0c99ede8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#InheritGlobalReport",
+ "test-ref": "conformance:cases/14.9.16-GENERATE/pb369-contained-report-file-not-global; conformance:cases/14.9.16-GENERATE/pb369-contained-generate-non-global-report; unit:GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB369. Rule text (cite.py --check 14.9.16.3 \"the report description entry in which data-name-1 is specified and the file description entry associated with that report description entry shall contain a GLOBAL clause\" -> OK, SR 3). Both halves hold. The RD half by construction: only a GLOBAL report of a container is visible to a contained program (DataBinder.VisibleReports), so a group of a non-GLOBAL one does not resolve and the GENERATE is refused COBOL1757 (negative/pb369-contained-generate-non-global-report). The FD half: RejectContainedReportFile, the one check the four verb rules share, refuses a GLOBAL report whose FD is not GLOBAL with COBOL2392.",
+ "state": "OK"
+}

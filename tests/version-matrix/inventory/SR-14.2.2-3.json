@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.2.2-3",
+ "section": "14.2.2",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Procedure division structure",
+ "rule-digest": "8361b9b5c686",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#COBOL1507",
+ "test-ref": "conformance-test:UdfInvocationTests.FunctionWithoutReturning_1507; conformance-test:UdfInvocationTests.PrototypeWithoutReturning_1507",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "(supersedes the earlier line: code-location corrected to the emitting site BinderDriver.cs:1015) §14.2.2 SR3 (cite.py --check 14.2.2 \"The RETURNING phrase shall be specified in a function definition and in a function prototype definition\" -> OK §14.2.2 3)). Both halves probed: FUNCTION-ID without RETURNING -> COBOL1507; FUNCTION-ID ... IS PROTOTYPE without RETURNING -> COBOL1507. The diagnostic text cites '§14.2, procedure division header' rather than SR3 (imprecise, not wrong). Both halves have spec-derived conformance tests. || editions as adjudicated: 2002, 2014, 2023 (user-defined functions are a COBOL-2002 introduction) retired-witness: src/Cobol.Net.Compiler/Binding/BinderDriver.cs#COBOLNET1507 (the same witness, re-spelled when the diagnostic code prefix became COBOL#### (kb/Work PB3575); the new spelling is recorded in its place)",
+ "state": "OK"
+}

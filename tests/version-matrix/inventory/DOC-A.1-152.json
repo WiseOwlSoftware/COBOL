@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-152",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 152,
+ "subject": "Record locking (circumstances other than a locked logical record that return a locked record status)",
+ "rule-digest": "3fb47b7adfa6",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-152; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#HoldingsGate; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#HoldingsConflict",
+ "test-ref": "unit:LockedRecordStatusProducersDriftTests.LockedRecordStatus_IsProducedOnlyWhereAnotherConnectorHoldsTheLock; conformance:cases/A.1-Implementor-defined-language-element-list/pb669_lock_visibility_plain_connector; unit:CommitRollbackRuntimeTests.A_transactions_changes_are_held_against_every_other_connector; unit:CommitRollbackRuntimeTests.Every_holding_of_a_transaction_is_found_by_its_commit_or_rollback",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB3337 (2026-10-20): RE-ADJUDICATED, as the R43 item 3 determination it replaces asked ('CONTINGENT: re-adjudicate if the capability is ever added'). The circumstance now exists: under an active APPLY COMMIT clause a transaction's HOLDINGS (a record it changed, a deleted record's identity, a unique alternate key value its change freed; docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.10, findings R2-3 and R2-4) answer '51' to every other connector. A.1 item 152 is conditionally required ('Conditionally required: If the associated feature or language element is implemented then this element is also required.', A.1 preamble), and §9.1.16 permits it ('The implementor may specify circumstances other than a locked logical record that result in the return of a locked record status.', cite.py --check 9.1.16 OK). docs/CONFORMANCE.md §7 now documents it ('Provided: one circumstance'); LockedRecordStatusProducersDriftTests pins the three producers (KeyedConnector.HoldingsGate the new one) and CommitRollbackRuntimeTests the behaviour. || editions 2002,2014,2023 (kb/Work PB3173, S0b): record locking is a COBOL-2002 introduction.",
+ "state": "OK"
+}

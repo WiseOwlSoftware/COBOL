@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.13.3-12",
+ "section": "7.3.13.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "EVALUATE directive",
+ "rule-digest": "9c7593ac62dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-after-match-through-non-numeric",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1364. THROUGH needs numeric operands on every WHEN, matched or not.",
+ "state": "OK"
+}

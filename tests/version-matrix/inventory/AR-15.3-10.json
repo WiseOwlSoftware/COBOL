@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.3-10",
+ "section": "15.3",
+ "kind": "AR",
+ "ordinal": 10,
+ "subject": "Intrinsic functions",
+ "rule-digest": "32ceb1556cc2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOf1",
+ "test-ref": "conformance:cases/15.2-Types-of-functions/pb124-sqrt-index-function; conformance:cases/15.3-Arguments/pb48-figurative-space-numeric-argument; conformance:cases/15.3-Arguments/pb48-figurative-all-numeric-argument; conformance:cases/15.3-Arguments/pb1-numeric-arg-alphanumeric; conformance:cases/15.3-Arguments/pb1-numeric-arg-family; conformance:cases/15.3-Arguments/pb1-numeric-arg-numeric-edited; conformance:cases/15.3-Arguments/pb1-numeric-arg-trig-family",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB124 wave 5b): the admission direction's hole is closed - a nested INDEX function no longer reaches a class-numeric ('n') position as Numeric (SQRT(MAX(IX1 IX2)) draws COBOL1627 naming class index, the new negative), because ClassOf1 types the nested call through IntrinsicResultType.Resolve instead of the storage-category fold. The row's other charge - nothing pinned the ADMISSION of type 10 - is discharged by the same wave's fixtures exercising nested calls in numeric positions across the corpus (the always-integral zoo's CHAR expressions, the index negative's rejection complement).",
+ "state": "OK"
+}

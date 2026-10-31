@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-140",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 140,
+ "subject": "POP directive (warning mechanism for an unsuccessful POP directive)",
+ "rule-digest": "d5047f17c875",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-140; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs#Process",
+ "test-ref": "unit:DirectiveStateStackTests.ANamedPopWithNothingStored_Warns_AndPopAllDoesNot",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB941 (landed): the required warning mechanism is COBOL2297 (docs/CONFORMANCE.md DOC-A.1-140). || editions 2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): the PUSH and POP directives are a COBOL-2023 introduction (Annex E.3.3 item 38). cite.py --check E.3.3 \"The PUSH and POP directives are added\" OK.",
+ "state": "OK"
+}

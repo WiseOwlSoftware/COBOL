@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.51.3-22",
+ "section": "14.9.51.3",
+ "kind": "SR",
+ "ordinal": 22,
+ "subject": "WRITE statement",
+ "rule-digest": "29af532c5dad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#CheckRecordLockPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c37-write-auto-with-lock; conformance:cases/14.9.51-WRITE/l1c37-write-auto-with-no-lock",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "SR22: 'If automatic locking has been specified for the write file, neither the WITH LOCK phrase nor the WITH NO LOCK phrase shall be specified.' (--check OK). CheckRecordLockPhrase is called BEFORE the sequential/keyed reroute, so both arms are covered: LOCK MODE AUTOMATIC + WRITE WITH LOCK -> COBOL1512 (ws2auto), + WITH NO LOCK -> 1512 (ws2auton), relative dynamic file + WITH NO LOCK -> 1512 (ws2autorel). MANUAL mode admits all four spellings (ws2lock). With no LOCK MODE clause the phrase is accepted (ws2nolm) - automatic locking has not been 'specified'. read-auto-with-lock is READ's twin; no test pins the WRITE arm, so test-ref is empty. [editions as adjudicated: 2002, 2014, 2023 (the lock phrases do not exist in 1985 - rejected there with COBOL0900)]",
+ "state": "OK"
+}

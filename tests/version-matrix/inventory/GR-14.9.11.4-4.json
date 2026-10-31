@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.11.4-4",
+ "section": "14.9.11.4",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "DISPLAY statement",
+ "rule-digest": "569ad22be938",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#FieldAsString; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#ImageCapable; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#TransferImageCapable; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#SlotPlaceholder",
+ "test-ref": "conformance-test:TierCRejectionTests.DisplayComp5Group_RendersVerbatimBytes; conformance-test:TierCRejectionTests.DisplayIndexGroup_RendersVerbatimBytes; conformance:cases/11.9.8-FLOAT-BINARY/pb164_float_group_image; conformance:cases/14.9.11-DISPLAY/pb164_vlg_display; conformance:cases/14.9.11-DISPLAY/initialize_phrases; conformance:cases/13.18.40-PICTURE/national_data; conformance:cases/14.9.11-DISPLAY/pb189_dynamic_table_element_operand; conformance:cases/14.9.11-DISPLAY/pb244_pointer_group_transfer; conformance-test:TierCRejectionTests.DisplayPointerGroup_RendersPlaceholderPositions",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSED by kb/Work PB244 shape (a) (2026-09-22), the last residue member after PB164 + R40 + PB189. A strongly-typed group with a class POINTER/PROGRAM-POINTER/FUNCTION-POINTER/OBJECT-REFERENCE leaf (the only conforming spelling, 13.18.60.3 SR14) is a legal identifier-1 (14.9.11.3 SR1 bars only an item OF class message-tag, object or pointer; a strongly-typed group's class is its type-name, 8.5.2.1) and is now TRANSFERRED: its one-way storage image, each such leaf contributing its 8 reserved placeholder positions (spaces) - the extent D-SLOT reserves for it in a byte-addressed cell, so the record-struct group and its BASED twin display identically (A.1 item 56). DataItem.TransferImageCapable admits exactly that leaf kind beyond IsImageCapable; the record struct emits AsImage (no FromImage) for it; only the transfer readers (DISPLAY, a MOVE's sending group) ask it. Before the fix the program compiled and aborted at run time with the Tier-C loud, pinned GREEN by TierCRejectionTests.DisplayPointerGroup_FailsLoud (now DisplayPointerGroup_RendersPlaceholderPositions). The uncomposable variable-length shapes stay with GR7's row.",
+ "state": "OK"
+}

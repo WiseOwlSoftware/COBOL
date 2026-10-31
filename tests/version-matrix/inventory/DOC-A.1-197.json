@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-197",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 197,
+ "subject": "SYNCHRONIZED clause (positioning when neither RIGHT nor LEFT is specified)",
+ "rule-digest": "2823ca979368",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-197; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#syncClause; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#Synchronized",
+ "test-ref": "conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 13.18.55.4 'The specific positioning is determined by the implementor' -> OK §13.18.55.4 3). Code: DataBinder.cs:4067 sets only DataItem.Synchronized (LEFT/RIGHT token unread); layout never reads it. Probe probe/p197/sy.cob at --std 2002 and 2023: BYTE-LENGTH of X/S9(4) COMP/X groups with SYNC, SYNC LEFT, SYNC RIGHT and no clause = 4 4 4 4, with S9(9) COMP-5 SYNC = 6; image of the SYNC group via MOVE to X(4): ORD 82 2 3 91 = 'Q' 01 02 'Z' (B at bytes 2-3). Golden l1_byte_length_implicit_filler SYNC=3 (PIC X + PIC 9(4) COMP SYNCHRONIZED = 3 bytes) pins the bare form. kb/Work/PB538 (open analysis, wrong_answer false) says discarding LEFT/RIGHT needs exactly this written determination; this row supplies the one-byte natural-boundary determination that makes GR4/GR5 hold. Owning note: kb/Work/PB538, PB1534.",
+ "state": "OK"
+}

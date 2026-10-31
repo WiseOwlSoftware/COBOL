@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.60.4-10",
+ "section": "13.18.60.4",
+ "kind": "GR",
+ "ordinal": 10,
+ "subject": "USAGE clause",
+ "rule-digest": "9067f9ac28f8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#PicInfo.IndexItem; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Sr1Refusal; docs/CONFORMANCE.md#DOC-A.1-211",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb164_index_group_image; conformance:cases/8.8.4.4-Simple-class-condition/pb148-display-index-item; conformance:cases/8.8.4.4-Simple-class-condition/pb571-class-condition-index-operand",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB571 LANDED. The refuter's one leaking half is closed. Sentence 2 - 'The class and category of an index data item are index' - is now carried through the CLASS-CONDITION site as well as the MOVE (COBOL0809) and DISPLAY (pb148) ones: ConditionBinder.CheckClassConditionOperand asks ISO 8.8.4.4.3 SR1 of EVERY alternative before the alternative's own rules, through ClassConditionModel.Sr1Refusal, which delegates to ItemCategory.IsIndexMessageTagObjectOrPointer (13.18.60.3 SR4's phrase reader) and IntrinsicArgumentRules.ClassOf (the 8.5.2.1 Table-2 classifier) rather than writing a third class list. Measured on the fixed build: `01 IX USAGE INDEX. SET IX TO 3  IF IX IS NUMERIC` now draws COBOL2200 at every edition where it previously compiled clean and PRINTED 'IX IS NUMERIC'; the same refusal now reaches the EVALUATE selection subject's class test, a USAGE POINTER operand and an index-NAME operand (all three measured). Sentences 1, 3 and 4 were already held by the adjudication and are unchanged. The storage profile still carries category NUMERIC on purpose - the occurrence number IS a number - which is exactly why the CLASS question is answered by the Table-2 classifier and never from the storage category. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveIndexItems (ResolveIndexItems was removed when a group's USAGE clause became each leaf's USAGE clause (kb/Work PB495+PB520+PB540, b5101f8e0))",
+ "state": "OK"
+}

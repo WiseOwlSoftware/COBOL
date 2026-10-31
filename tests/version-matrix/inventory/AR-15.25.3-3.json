@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.25.3-3",
+ "section": "15.25.3",
+ "kind": "AR",
+ "ordinal": 3,
+ "subject": "DAY-TO-YYYYDDD function",
+ "rule-digest": "53d334d7b273",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DayToYyyyddd; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#IntArg",
+ "test-ref": "conformance:cases/15.19.3-Argument-rules/argument_rule_equivalences_batch1",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Verdict unchanged; supplies the missing spec-derived test. 'Evaluated as though 50 were specified' is an equivalence, asserted directly against the explicit-50 form. Argument-2 IS the windowing cut, so it is probed below it, AT it and above it (years 12/49/50/51/75) - a single sample on one side would pass while the windowing was wrong. The result VALUE is deliberately not pinned: 15.25.3 r5 defaults argument-3 to the current year, so the YYYY half is a clock reading; the DDD half is printed instead as the non-vacuity witness.",
+ "state": "OK"
+}

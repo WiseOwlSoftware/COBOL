@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.39.4-40",
+ "section": "14.9.39.4",
+ "kind": "GR",
+ "ordinal": 40,
+ "subject": "SET statement",
+ "rule-digest": "6192f11afdc4",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindMessageTagSet",
+ "test-ref": "conformance:wiseowl/cases/14.9.39-SET/pb453-set-message-tag-format17; conformance:wiseowl/cases/8.4.3.10-NULL-address-pointer-and-message-tag/pb487-message-tag-usage",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB453 - Format 17's general rule under the same decline as SR-14.9.39.3-35. GR40 - \"If data-name-5 is specified, the content of data-name-4 is moved to data-name-5\" (cite.py --check 14.9.39.4 OK). The facility is Annex A.3 item 4 (processor-dependent) and docs/CONFORMANCE.md section 4 item 1 declines it; the data half is refused by name at the entry (COBOL1943) and the statement half now names it too (COBOL2205), which is 4.2.6 paragraph 3's obligation discharged. It is NOT implemented, and an OWNER DETERMINATION is owed before it could be: the printed general format (rendered PDF p762) is `SET data-name-4 TO { data-name-5 | NULL }`, making data-name-4 the RECEIVER, while this rule moves the content of data-name-4 INTO data-name-5 - the two readings disagree about which operand is written, GR41 agrees with the rule and not the figure, and SR35 constrains only the class. kb/Work PB453 2) records the contradiction; it is a defect in the standard, not a choice this implementation may make silently.",
+ "state": "OK"
+}

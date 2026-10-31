@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-13.18.13.2",
+ "section": "13.18.13.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CODE-SET clause",
+ "rule-digest": "321e4fea0731",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#codeSetClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCodeSetClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCodeSetClause",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb110_code_set_identity; conformance:cases/13.18.13-CODE-SET/pb110-code-set-nonidentity; conformance:cases/13.18.13-CODE-SET/pb110-code-set-locale-alphabet",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB110 (2026-08-19) — ⛔ the grammar carried only the '85 one-name form (the 2002 FOR format was a raw parse error — rejects legal source) and NOTHING read the clause. Both formats parse and bind: IS alphabet-name-1 [alphabet-name-2], and the FOR ALPHANUMERIC / FOR NATIONAL phrases (one or both, any order — §5.2.6.4; a repeated class is COBOL1672); the national half (alphabet-name-2 / FOR) is gated below 2002 (code-set-national-2002, COBOL0900). Format --check verified at 13.18.13.2.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.11.4-3",
+ "section": "14.9.11.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "DISPLAY statement",
+ "rule-digest": "74efc3b18257",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/ca3_figurative_display_pcs; conformance:cases/14.9.11-DISPLAY/pb243_display_all_literal; conformance:cases/14.9.11-DISPLAY/pb243_display_all_literal_kinds",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSED by kb/Work PB243 (wave 1091). Both sentences of GR3 (cite.py --check OK §14.9.11.4 3)) are pinned on BOTH arms of OperandText.AsString. BARE-figurative arm: conformance:cases/14.9.11-DISPLAY/ca3_figurative_display_pcs (BARE=Z under an alphanumeric PROGRAM COLLATING SEQUENCE: length 1, the alphanumeric representation). ALL literal-1 / symbolic-character arm (BoundAllLiteral, the literal once): conformance:cases/14.9.11-DISPLAY/pb243_display_all_literal - ALL 'AB' -> AB, ALL 'XYZ', ALL 'Q', ALL symbolic-character and the bare symbolic-character (STAR IS 43 -> '*', §12.3.7.4 11) b)), ALL ZEROES/SPACES/QUOTES one character each (§8.3.3.6.4 3) b)), with the CONTRAST of the same ALL 'AB' associated with a 6-position item repeating to ABABAB (§8.3.3.6.4 2)); conformance:cases/14.9.11-DISPLAY/pb243_display_all_literal_kinds - ALL X'4142' -> AB, the national carve-out ALL N'XY' -> XY and ALL NX'0041' -> A, the boolean ALL B'101' -> 101 and ALL BX'A' -> 1010 (the alphanumeric representation, '0'/'1' characters, docs/CONFORMANCE.md DOC-A.1-56), the repeating contrasts PIC N(4)/PIC 1(6), and ALL over a concatenation expression (ALL 'AB' & 'C' -> ABC once, §8.3.3.6.3 2) / §8.8.3.2 1)). THE REFUTER'S NULL OBJECTION IS DISCHARGED, re-measured on today's tree: DISPLAY NULL is refused at compile time with COBOL2576 (§8.4.3.10.3 SR1; kb/Work PB1427 made NULL an identifier, never a figurative), and the fabricated §8.3.3.7 citation no longer occurs anywhere in src/.",
+ "state": "OK"
+}

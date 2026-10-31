@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.45.3-1",
+ "section": "13.18.45.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "RENAMES clause",
+ "rule-digest": "eb27fc6f99e8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveRedefines",
+ "test-ref": "conformance:cases/13.16-Data-description/l1_renames_through_thru",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR1 'Any number of RENAMES entries may be written for a record.' cite.py --check 13.18.45.3 -> OK §13.18.45.3 1). BindRenames appends every level-66 entry to _lastRoot.Renames66 (a list, no count limit); ResolveRedefines resolves each independently. Probe sr1.cob: four 66s on one record, overlapping (A THRU B, B THRU C, A THRU C, C) -> ABCD|CDEF|ABCDEF|EF, as §13.18.45.4 GR1/GR2 require. Covering golden l1_renames_through_thru writes two RENAMES entries on one record with spec-derived expected values. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85, 2002, 2014, 2023 (the RENAMES clause is in every edition; the rule text is the 2023 §13.18.45.3 wording)",
+ "state": "OK"
+}

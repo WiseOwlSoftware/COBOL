@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.10.3-3",
+ "section": "7.3.10.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "COBOL-WORDS directive",
+ "rule-digest": "c38042e0ade8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#IsReservedContextOrIntrinsic; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#ValidateCobolWords",
+ "test-ref": "conformance:cases/7.3.10-COBOL-WORDS/pb1373-cobol-words-sr3-word-in-no-2023-list; unit:CobolWordsDirectiveTests.Sr3_AWordNo2023ListHolds_Rejected1623; unit:CobolWordsDirectiveTests.Sr3_EachOfTheThreeLists_IsAnExistingWord; unit:CobolWordsDirectiveTests.Sr3_ExistingNotAWord_Rejected1623",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1373 landed (w1019 G). SR3 'The content of literal-1, literal-3, and literal-4 shall be a reserved word, a context-sensitive word, or an intrinsic function name' (cite.py OK §7.3.10.3 3)). The test is the 2023 population (ReservedWords R2023, ContextSensitiveWords, IntrinsicCatalog.IsDefinedAt(2023)), not the lexer vocabulary or any edition's table row: UNDEFINE AUTHOR and EQUATE MEMORY WITH RAM (words §8.9 dropped before 2023) are COBOL1623 (were clean). The special-character-word clause is vacuous: no special-character word is in any of the three lists. retired-witness: src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#IsExistingWordCategory (IsExistingWordCategory was replaced by IsReservedContextOrIntrinsic, the one 2023 population (§8.9 R2023 flag, §8.10, §8.11 window) that SR3 and SR4 share)",
+ "state": "OK"
+}

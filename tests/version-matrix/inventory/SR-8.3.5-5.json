@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.5-5",
+ "section": "8.3.5",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Lexical elements",
+ "rule-digest": "11a57475607e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations; src/WiseOwl.Cobol.Frontend/Parsing/LiteralTokens.cs#Types; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#HEX_BODY",
+ "test-ref": "conformance:cases/8.3.5-Separators/w73a-literal-delimiter-not-separated; conformance:cases/8.3.5-Separators/w73a_separator_context_conforming; conformance:cases/8.3.3.4-Boolean-literals/w73a_prefix_literal_beside_named_item; unit:SeparatorRuleTests.NonconformingSeparator_IsReportedOnce; unit:SeparatorRuleTests.AdjacentLiterals_ReportTheBoundaryOnce",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule 5 (cite.py --check 8.3.5 \"The opening delimiter shall be immediately preceded by a space, left parenthesis, or opening pseudo-text delimiter\" OK 5)). kb/Work PB1394 LANDED (wave 73 group A): SeparatorRule asks every literal token of either lexer mode (LiteralTokens.Types, the set LiteralScreenDriftTests derives from the grammar) whether the character before its opening delimiter is a space, '(' or '==' and the character after its closing delimiter is a space, ',', ';', '.', ')' or '==', and reports COBOL2633 otherwise; touching literals are one report. The prefixed opening delimiters (X\" N\" B\" NX\" BX\") are now always delimited as one token whatever their content (PB1441), so W\"AB\" beside an item W is IDENTIFIER + literal and reported, and X\"GG\" is a malformed hexadecimal literal (COBOL2630) rather than X + \"GG\". The parse-recovery guesses COBOL0301/COBOL0302 that stated the rule a second time are removed. Negative: DISPLAY \"AB\"N, MOVE\"AB\", IF \"AB\"=A -> COBOL2633 at all four editions.",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.8.4.2.3-3",
+ "section": "8.8.4.2.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Simple relation conditions",
+ "rule-digest": "adebc16a81e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/l1c32-relation-boolean-literal",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR3 (cite.py OK). The only literal class outside the list is boolean: a boolean literal against a numeric item (`IF NI = B\"1\"`) and ALL boolean against alphanumeric (`IF X1 = ALL B\"1\"`) are refused COBOL0844; alphanumeric, hex, national, numeric literals and alphanumeric figuratives are accepted. A boolean literal against a boolean operand is a Format-2 relation, not Format 1. (Two-literal relations are GR-13's prose rule, not SR3.) No negative golden located isolating a boolean LITERAL in a general relation. [editions as adjudicated: 85, 2002, 2014, 2023 (boolean literals, the excluded class, exist from 2002)]",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.19.3-6",
+ "section": "15.19.3",
+ "kind": "AR",
+ "ordinal": 6,
+ "subject": "CONVERT function",
+ "rule-digest": "bc1bb558df81",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindConvert; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#StaticUsageOf",
+ "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.Convert_ArgumentRuleViolations_1514; conformance:cases/15.19.3-Argument-rules/argument_rule_equivalences_batch1",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-09 (PB59 family 5a), the static half: a NAT source reads argument-1 as a string of NATIONAL characters, so the screen requires usage national (StaticUsageOf); CONVERT(WS-X2 NAT ANUM) of a PIC XX item - the re-run failing input - now rejects with COBOL1514. The screen reuses the ONE representation classifier rather than a third copy of the repertoire rule. Landing it surfaced that argument_rule_equivalences_batch1's NATIONAL/NAT source legs THEMSELVES used a PIC X item (non-conforming under this rule): the golden's source was corrected to a PIC NN national item on 2026-08-09, its printed value unchanged (UTF-16BE AB hexes to 00410042 from either declaration).",
+ "state": "OK"
+}

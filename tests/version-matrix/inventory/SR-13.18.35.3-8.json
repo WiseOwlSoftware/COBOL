@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.35.3-8",
+ "section": "13.18.35.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "LINE clause",
+ "rule-digest": "c4ca8e9879d5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportLineClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#GroupKindOf",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb1001-next-page-in-page-heading",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1001. The NEXT PAGE phrase in a report heading, page heading or page footing is COBOL2199; the group's TYPE is read from the level 1 entry through GroupKindOf, the one TYPE reader BindGroupType also uses. Body groups and report footings take it (2002/pb1001_line_next_page: DE-N, DE-B, DE-P, and RF-G / RF-B).",
+ "state": "OK"
+}

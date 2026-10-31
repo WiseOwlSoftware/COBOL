@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.2.3.2-L2.2",
+ "section": "14.6.2.3.2",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Initial and last-used states of data",
+ "rule-digest": "85961573e833",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitCallMethod; src/WiseOwl.Cobol.Runtime/Control/StorageCell.cs",
+ "test-ref": "conformance:cases/11.10-PROGRAM-ID/pb1133_recursive_container_static_ws",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1133 (wave 1012 J). cite.py --check 14.6.2.3.2 'The internal data described in the working-storage section and local-storage section is initialized as described in 13.18.63' (action 2). Both defects the refuter named are closed: (1) the RECURSIVE container with static storage and containees compiles, and pb1133_recursive_container_static_ws shows its VALUEs (elementary, table element, REDEFINES class) restored by CANCEL and last-used in between; (2) pb152_options_initialize_background is no longer a witness of THIS row - its NUM=[0000] expectation for a VALUE-less item under the OPTIONS INITIALIZE fill is action 1's question and belongs to kb/Work PB1134 (row GR-14.6.2.3.2-L2.1). retired-witness: conformance:cases/11.9.10-INITIALIZE/pb152_options_initialize_background (its expected NUM=[0000] for a VALUE-less item under INITIALIZE ALL TO X\"5A\" is not spec-derived (action 1 requires the fill); that is row L2.1 owned by kb/Work PB1134, and action 2 (the VALUE) is witnessed by pb1133_recursive_container_static_ws)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.35.3-3",
+ "section": "13.18.35.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "LINE clause",
+ "rule-digest": "56841236d5e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#ScreenReportLineClauses",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb1002-line-beyond-page-limit",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1002. 'Neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report is not divided into pages' - COBOL2199, screened once per written clause over the flat entry array (a Format 3 replay cannot repeat it). PAGE LIMIT 10 with LINE 20 compiled clean before. Unsigned: the grammar's integerLiteral carries no sign. 'Integer-2 may be zero' holds (no screen refuses PLUS 0).",
+ "state": "OK"
+}

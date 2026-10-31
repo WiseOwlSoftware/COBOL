@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.3.3.6.3-3",
+ "section": "8.3.3.6.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Figurative constant values",
+ "rule-digest": "3c0074ef7665",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr3; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckFigurativeAssociation; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr5",
+ "test-ref": "conformance:wiseowl/cases/8.3.3.6-Figurative-constant-values/pb422_all_multichar_numeric_85; conformance:cases/8.3.3.6-Figurative-constant-values/pb422-all-multichar-move-numeric; conformance:cases/8.3.3.6-Figurative-constant-values/pb422-all-multichar-compare-numeric; conformance-test:MoveEditionDifferentialTests.MultiCharacterDigitAll_Error0902_From2002_Sr3; conformance-test:MoveEditionDifferentialTests.MultiCharacterAll_ComparedWithNumeric_Sr3; conformance-test:MoveEditionDifferentialTests.Sr3ScopeBoundary_NotRefused_At2023; conformance:cases/14.8.2.3.3-Elementary-items-passed-by-content-or/pb3755-content-all-multichar-numeric-edited-2002",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB422. cite.py --check 8.3.3.6.3 \"greater than one, it is not permitted to be associated with a numeric or numeric-edited item\" -> OK SR3; cite.py --check 8.3.3.6.4 \"moved to it, compared with it, or paired with it in a binary operation\" -> OK (GR2 NOTE 1). ONE predicate (FigurativeAssociation) asked by every association: every asker of the MOVE rules, through FigurativeAssociation.GateSr5 (written MOVE, implicit FROM/INTO moves, INITIALIZE REPLACING and, since kb/Work PB3755, a figurative argument BY CONTENT into a numeric-edited formal of a CALL, an INVOKE or a function: ALL \"57\" there is COBOL0902 from 2002) and the one relation checkpoint (IF / EVALUATE / PERFORM UNTIL / SEARCH WHEN, either operand order); a binary operation cannot reach a numeric item (COBOL1511 refuses a non-boolean operand first). Measured on the worktree build: MOVE ALL \"57\" TO PIC 9(3), MOVE ALL \"57\" TO PIC ZZ9, MOVE ALL \"AB\" TO PIC 9(3), IF N = ALL \"57\", EVALUATE N WHEN ALL \"57\", INITIALIZE REPLACING NUMERIC DATA BY ALL \"57\": 85 accepted (575 / EQ), COBOL0902 naming SR3 at 2002/2014/2023, warning + value under 2023 --permissive; ALL \"5\", an alphanumeric item, a ref-mod view and a group are not refused. DETERMINATION (derived edge, VCR Table 7 row 7.13): an obsolete ANSI X3.23-1985 element deleted by ISO 2002 - row all-literal-multichar-numeric-removed-2002; the 2023 rule is unqualified and absent from Annex E, so 2014 = 2023. retired-witness: src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#GateSr5 (kb/Work PB3755: the SR5 edition rows moved from VersionConformancePass.GateSr5 to FigurativeAssociation.GateSr5, the one body every asker of the MOVE rules calls (the written MOVE, INITIALIZE REPLACING, a BY CONTENT argument))",
+ "state": "OK"
+}

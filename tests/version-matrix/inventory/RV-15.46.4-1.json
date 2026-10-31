@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.46.4-1",
+ "section": "15.46.4",
+ "kind": "RV",
+ "ordinal": 1,
+ "subject": "INTEGER-OF-DATE function",
+ "rule-digest": "33693922ca65",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#IntegerOfDate; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/15.46.4-Returned-value-rule/l1_integer_date_form_returned; conformance-test:IntrinsicFunctionDifferentialTests.IntegerDateForm_Epoch_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "r1's whole content is §15.5.2, so the golden pins what §15.5.2 defines: 16010101 -> 1 (the stated starting date) and 99991231 -> 3067671 (the value the standard writes into its own text), plus all three §15.5.1 leap branches — 16040229 -> 1155, 20000229 -> 145791, and 17000228 -> 36218 with 17000301 -> 36219, consecutive because 1700 has no February 29 — and 19950215 -> 143951. Every INTEGER-OF-DATE line has an INTEGER-OF-DAY twin it must equal, since §15.5.2 defines ONE integer date form.",
+ "state": "OK"
+}

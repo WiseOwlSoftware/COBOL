@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.28.4-2",
+ "section": "15.28.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "EXCEPTION-FILE function",
+ "rule-digest": "9f154a97c1bb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ExceptionFile",
+ "test-ref": "conformance:cases/15.3-Arguments/pb63_exception_file_select_names; conformance:cases/15.28.4-Returned-value-rules/exception_file_arg",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB63 — the exception surface: the FD screen, the SELECT-spelled name on the connector, the one access-recording path, the r2b procedure field and element name, the MODULE-NAME determinations). §15.28.4 r2a 'never been opened, attempted to be opened, or otherwise attempted to be accessed' — recorded on the ONE I-O-status assignment path (the FileConnector.Status setter — §9.1.13.1's CLOSE/DELETE/OPEN/READ/REWRITE/START/UNLOCK/WRITE all set it), replacing a flag written at two hand-picked sites: golden EFC=[42Closed] after a CLOSE on a never-opened connector, EFR=[47Readf] after a READ, EFU=[  ] for the untouched one.",
+ "state": "OK"
+}

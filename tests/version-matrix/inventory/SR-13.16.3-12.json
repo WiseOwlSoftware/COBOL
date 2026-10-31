@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-12",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 12,
+ "subject": "Data description entry",
+ "rule-digest": "c5d360178824",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Frontend/Cst/DataClauseKind.cs#SameAsCoPermitted",
+ "test-ref": "conformance:cases/13.16-Data-description/pb487-aligned-co-clause-rules; unit:DataClauseKindDriftTests.PermittedSets_MatchTheRuleSentences",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "The rule is over the WHOLE clause list and was an || chain of local decode flags that could not see ALIGNED, DYNAMIC LENGTH, GROUP-USAGE, PROPERTY, SELECT WHEN or the validation clauses - so 01 A SAME AS Z ALIGNED. compiled clean. It now reads the WRITTEN clause SET (DataDescriptionCst.WrittenClauses) against SameAsCoPermitted, a constant transcribed from the rule's sentence, and names the offending clause in the message. DataClauseKindDriftTests fails in both directions when a dataDescriptionClause alternative has no DataClauseKind, so the set cannot go incomplete again. kb/Work PB487.",
+ "state": "OK"
+}

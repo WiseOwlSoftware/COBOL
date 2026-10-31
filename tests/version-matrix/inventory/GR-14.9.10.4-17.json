@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.10.4-17",
+ "section": "14.9.10.4",
+ "kind": "GR",
+ "ordinal": 17,
+ "subject": "DELETE statement",
+ "rule-digest": "d4e6d98c910a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#ForDeleteFileFailure",
+ "test-ref": "unit:FileStatusDisciplineTests.DeleteFileFailure_MediumRefusalIs37_OtherIs30",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "LANDED (kb/Work PB140): the IOException arm now classifies GR17's own premise - a storage medium that does not allow deletion (Windows ERROR_WRITE_PROTECT HResult 0x80070013; Unix EROFS errno 30, which .NET surfaces as the IOException HResult) - as the '37' the rule states, with every other IOException staying the generic '30' (9.1.13.6 item 1). Annex E.3.3 item 35's status list ('05','37','39','41','62') corroborates that '30' from a medium refusal was out of bounds. FileStatusCode.ForDeleteFileFailure is public precisely so the classification is directly unit-pinned. docs/FILES_DESIGN.md line 117's GR16/GR17-both-'37' sentence, previously ahead of the code, is now true.",
+ "state": "OK"
+}

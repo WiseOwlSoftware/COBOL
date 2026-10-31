@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.1.2",
+ "section": "14.9.1.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "ACCEPT statement",
+ "rule-digest": "53eb8793e622",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#acceptSource; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAcceptFromMnemonic; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#MnemonicSuffixMessage; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#ConditionalPhraseAssociation",
+ "test-ref": "conformance:cases/14.9.1-ACCEPT/pb134_scope_terminators; conformance:cases/14.9.1-ACCEPT/pb2499-accept-mnemonic-subscript; conformance:cases/14.9.1-ACCEPT/pb2499-accept-mnemonic-refmod; conformance:cases/14.9.1-ACCEPT/pb2499-accept-mnemonic-qualified; conformance-test:AcceptDifferentialTests.Device_FromMnemonicName_ReadsTheAssociatedInputDevice; conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal; conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-positioned; conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-exception",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSED by kb/Work PB2499 (w1037d), on the kb/Work PB259 A.4.2 reasoning (the FMT-14.9.11.2 DISPLAY twin is the precedent). FORMAT 1 (device), `ACCEPT identifier-1 [ FROM mnemonic-name-1 ] [ END-ACCEPT ]` (cite.py --check 14.9.1.2 OK): the FROM operand is a mnemonic-name, a WORD (8.3.2.2.16), with no data description to subscript or reference-modify and no 8.4.2.2.2 qualified format. acceptSource's mnemonic arm was `dataReference` and BindAcceptFromMnemonic read only the word, so `ACCEPT X FROM MYIN (1)` / `(1:1)` / `OF WS-G` / `IN MYIN` compiled clean and the suffix vanished (the PB259 refuter's overturn). The arm is now `cobolWord`, as displayUpon and setSwitchPhrase spell the same slot, and the suffix is a syntax error CobolErrorStrategy.MnemonicSuffixMessage names COBOL2269 at every edition; the word itself binds and reads the associated input device (AcceptDifferentialTests.Device_FromMnemonicName_ReadsTheAssociatedInputDevice). END-ACCEPT parses and is 2002-gated (kb/Work PB134, conformance:cases/14.9.1-ACCEPT/pb134_scope_terminators). FORMAT 2 (temporal) is the bound MOVE of kb/Work PB887. FORMAT 3 (screen) is the Annex A.4.2 item 1 optional element docs/CONFORMANCE.md 5 records as Not claimed; every probed shape, the minimal `ACCEPT screen-name-1` included, is refused by name with COBOL1707 (negative/a42-accept-screen-minimal, a42-accept-screen-positioned) - a declined-and-refused alternative is unreachable rather than unverified, so it does not hold the row below CONFORMS.",
+ "state": "OK"
+}

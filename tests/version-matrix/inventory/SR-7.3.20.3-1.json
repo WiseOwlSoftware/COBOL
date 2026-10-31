@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.20.3-1",
+ "section": "7.3.20.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "POP directive",
+ "rule-digest": "6f84a268135b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#OperandDirectiveNames",
+ "test-ref": "conformance:cases/7.3.20-POP/pb1377-push-removed-directive-name",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1377. The admissible directive-name set is the rows AVAILABLE at the edition, so FLAG-85 and FLAG-NATIVE-ARITHMETIC (removed at 2023, Annex E.2 21)) are not names at 2023 for PUSH or POP alike (one OperandDirectiveNames, PUSH and POP share the row shape).",
+ "state": "OK"
+}

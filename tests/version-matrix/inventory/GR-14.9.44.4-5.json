@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.44.4-5",
+ "section": "14.9.44.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "SUBTRACT statement",
+ "rule-digest": "fd7c8f30989f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrAccess; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrEligible; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#Undecorated; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreInPlace",
+ "test-ref": "conformance:cases/14.9.44-SUBTRACT/pb393_corresponding_odo_group; conformance-test:CorrespondingDifferentialTests.SubtractCorr_TargetMinusSource_CorrToken; conformance:cases/14.9.2-ADD/pb229_corresponding_size_error_per_pair",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB393.md landed. The PARTIAL was an operand class this rule's selection never reached: an occurs-depending group -- a kind 14.9.44.3 SR6 admits BY NAME (\"Identifier-4 and identifier-5 shall be alphanumeric group items, national group items, variable-length groups, or strongly-typed group items\") -- resolves to an OdoGroupPlace, a decorator over the member place, and CorrAccess.Create's storage-form switch met it in its `_ => null` arm, so the statement compiled clean and ABORTED the run unit. Create now asks Place.Undecorated, which is correct rather than merely convenient: the decoration answers a question about the group's whole-group image EXTENT, and 14.7.6 rule 4 excludes every OCCURS item from correspondence, so the pairs are exactly the fixed members at their fixed offsets. conformance:cases/14.9.44-SUBTRACT/pb393_corresponding_odo_group pins the GR5 store (10 - 3 = 0007) together with its ADD and MOVE siblings, all three of which share CorrAccess, and asserts rule 4's exclusion by reading the occurs-depending member back unchanged. unit:PlaceStorageFormSwitchDriftTests.StorageFormSwitchesArePlaceDecoratorAware keeps the switch decorator-aware. NOTE the SR6 group-KIND set itself (which kinds StatementValidation.CheckCorrespondingGroupOperand admits) is kb/Work/PB392 and is untouched here.",
+ "state": "OK"
+}

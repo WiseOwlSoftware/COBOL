@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-8",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 8,
+ "subject": "USAGE clause",
+ "rule-digest": "0159892d0dae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#SenderClassRefusal; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#ReceiverClassRefusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb542-move-program-pointer-sender; conformance:cases/13.18.60-USAGE/l1-display-program-pointer-operand; conformance:cases/13.18.60-USAGE/l1-allocate-returning-program-pointer; conformance:cases/13.18.60-USAGE/program_pointer",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB542 (wave 42) - RE-MEASURED, THE HOLE IS CLOSED, AND THE ROW NOW HAS A WITNESS OF ITS OWN. The one measured gap this row recorded was MOVE: SR8's closed context list has no MOVE entry and 14.9.25.3 SR1 independently excludes class pointer from both operand positions, yet 'MOVE PP TO N' reached the BACKEND and failed as a raw Roslyn 'CS1503: cannot convert from WiseOwl.Cobol.Runtime.ProgramPointer to System.Int128', an error naming no COBOL rule. Re-run on this worktree's own build at --std 2002 and 2023 it now draws COBOL0809, whose text quotes 8.5.2.1 Table 2, 14.9.25.3 SR1 and SR8/SR9 by their own sentences - so the row's other complaint, that NO SITE NAMED THIS RULE, is closed too. The landing that fixed it is kb/Work PB416 + PB423 (MoveTable16.SenderClassRefusal / ReceiverClassRefusal, found with git log -S SenderClassRefusal), not this one; what this landing added is the missing PROGRAM-pointer witness, conformance:cases/13.18.60-USAGE/pb542-move-program-pointer-sender, because the data-pointer twin was pinned by pb423-move-pointer-sender / -receiver and the SR8 arm had nothing. The permitted contexts this row already measured are unchanged: SET TO ENTRY, CALL through the pointer and a relation condition in the positive golden; FREE and ALLOCATE RETURNING remain correctly refused for a program-pointer (COBOL0869) because they are on SR9's list and not SR8's.",
+ "state": "OK"
+}

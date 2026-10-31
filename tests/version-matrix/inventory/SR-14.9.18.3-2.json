@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.18.3-2",
+ "section": "14.9.18.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "GOBACK statement",
+ "rule-digest": "93653134c4ac",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcResolveLevel3; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising",
+ "test-ref": "conformance-test:ExceptionConditionConformanceTests.GobackRaising_EcUserNotInPdHeader_Diagnosed",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Both halves live at the GOBACK site and both measured on the pinned compiler. Level-3 half: `GOBACK RAISING EXCEPTION EC-SIZE.` -> COBOL0710 (EcNameResolution.TryResolve with requireLevel3:true). EC-USER half: `GOBACK RAISING EXCEPTION EC-USER-UNDECLARED.` -> COBOL0717 against ctx.EcState.PdRaising, which is loaded per source element for programs (EcCollectPdRaising) and per method (EcLoadPdRaising), satisfying 'the source element in which this GOBACK statement is contained'. ONE blemish, not enough to move the verdict: COBOL0710's message text cites 'ISO 14.9.29.3 SR1' (the RAISE statement's rule) even when the site is a GOBACK RAISING, where 14.9.18.3 SR2 is the rule the programmer broke; EcResolveLevel3's own doc comment names both clauses, so only the emitted string is stale.  || CODE SITES (verbatim from the adjudication, kept because the schema's code-location is symbol-keyed, not line-keyed): src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcResolveLevel3; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising",
+ "state": "OK"
+}

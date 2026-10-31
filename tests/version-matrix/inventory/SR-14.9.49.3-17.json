@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.49.3-17",
+ "section": "14.9.49.3",
+ "kind": "SR",
+ "ordinal": 17,
+ "subject": "USE statement",
+ "rule-digest": "456f49faec0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundEoOperand",
+ "test-ref": "conformance:cases/14.9.49-USE/pb365_use_eo_interface_two_pass; conformance:cases/14.9.49-USE/pb365-use-eo-not-in-repository",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB365, LANDED. 14.9.49.2's Format 4 is a brace group requiring exactly one of TWO alternatives, {object-class-name-1 | interface-name-1}, and only the class arm existed: DeclBindUse called OoClassTable.Find alone, never the sibling FindInterface, so a legal `USE AFTER EXCEPTION OBJECT interface-name-1` was HARD-REJECTED as an unknown class -- and by SR16's diagnostic, a real clause answering a different question. Measured before the fix: probe iface.cob (REPOSITORY CLASS CF4A INTERFACE IF4A; INTERFACE-ID IF4A; a class whose OBJECT paragraph writes IMPLEMENTS IF4A; USE AFTER EXCEPTION OBJECT IF4A) -> 'error COBOL0859 ... IF4A does not name a class of the compilation group'; the identical program naming the CLASS compiled and ran. Now both alternatives resolve through OoNameResolution with Want.Either and both are scoped to the REPOSITORY (SR17's own condition), and the bound shape is BoundEoOperand(CsName, IsInterface) -- ONE field with a discriminator rather than two nullable fields, because GR14 gives the two alternatives two different tests in two different passes. Witness: 2002/pb365_use_eo_interface_two_pass selects the interface declarative for the raise of a class that implements it but matches no class entry.",
+ "state": "OK"
+}

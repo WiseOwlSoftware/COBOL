@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.3.1-1",
+ "section": "8.5.3.1",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Types",
+ "rule-digest": "40d110d9e58b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#SameAnalyzedProfile; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#EquivalentTypeDeclarations; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#CanonicalCurrencyMask; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#CurrencyString",
+ "test-ref": "conformance:cases/8.5.3-Types/l1c34_strong_type_currency_string_match; conformance:cases/8.5.3-Types/l1c34-strong-type-currency-string-differs; unit:ActivationKeyCultureTests.Key_IsTheSameTextUnderAHostCultureWithAUnicodeMinusSign",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.5.3.1 'Currency symbols match if and only if the corresponding currency strings are the same' -> OK §8.5.3.1 1)). Code: PictureAnalyzer canonicalizes every currency SYMBOL in the mask to '$' and records the currency STRING in PicInfo.CurrencyString (null when the string is '$'); StrongTypeModel.SameAnalyzedProfile compares the PicInfo record (canonical EditMask + CurrencyString), so the match is by string, not by symbol - exactly the rule. The only cross-configuration site is two SEPARATE outermost source elements (§12.3.7.4 GR1 makes a contained unit inherit the container's currency signs), reached through a program-prototype CALL whose strongly-typed formal runs OoConformance.StrongTypeMismatch -> StrongTypeModel.SameType. Probes (pinned cobol.exe, E:\\Temp\\claude\\E--COBOL\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2\\out\\probe\\types): TPD caller default currency 'PIC $$9' vs callee CURRENCY SIGN IS \"$\" WITH PICTURE SYMBOL \"U\" 'PIC UU9' (different symbols, same string) -> compiles and runs 'OK' (expected: match, conforms); TPE caller '$'->\"$\" vs callee CURRENCY SIGN IS \"#\" WITH PICTURE SYMBOL \"$\" both 'PIC $$9' (same symbol, different strings) -> COBOL1688 strongly-typed argument not of the same type (expected: no match, conforms). Both directions verified. No existing spec-derived test exercises the currency exception (grep of tests/ for TYPEDEF together with CURRENCY SIGN finds none) -> test-ref empty. [editions as adjudicated: 2002, 2014, 2023 (§8.5.3.1 types: TYPEDEF/TYPE/STRONG exist from 2002; the ALIGNED item of the clause list is a 2023 change per Annex E.2 item 2; the LOCALE-phrase half applies only where PICTURE format 2 (§13.18.40.2) exists - Annex E of the 2023 text does not date that phrase)]",
+ "state": "OK"
+}

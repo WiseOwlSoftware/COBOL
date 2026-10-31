@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.4.2",
+ "section": "8.4.4.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Condition-name",
+ "rule-digest": "b4e24bfbc895",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AnalyzeBareOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchCondOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#BindImplementorNameEntry",
+ "test-ref": "conformance:cases/8.4.4-Condition-name/pb390_procedure_and_condition_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: §8.4.4.2 Format 1 'condition-name-1' (switch-status, bare word) and Format 2 'qualified-condition-name-with-subscripts-1' (cite.py --check 8.4.4.2 'Format 2 (qualified-condition-name-with-subscripts)' OK; the production is §8.4.2.3.2 'qualified-condition-name-1 [ ( subscript … ) ]', --find OK). Code: ConditionBinder.AnalyzeBareOperand tries level-88 resolution (Format 2, through ctx.Refs.ResolveForItem with qualifiers+subscripts) then SetAlterBinder.SwitchCondOf, which admits a switch-status condition-name ONLY when dataReferenceSuffix() is empty (Format 1 has no qualifier/subscript). Probes (pinned cobol.exe, out/probe/condition-name): p1.cob --std 2023 and --std 85 -> 'IF V-ONE OF T OF G (2)' TRUE, 'IF V-ONE (1)' FALSE, 'IF SW-ON' TRUE after SET SW1 TO ON, 'IF SW-OFF' FALSE, EVALUATE TRUE WHEN SW-OFF, and a contained program reading the container's SW-OFF (SPECIAL-NAMES inheritance, DataBinder.InheritConfiguration) all correct. n1 'IF SW-ON OF G' and n2 'IF SW-ON (1)' rejected (COBOL1639); n3 'IF SW1' (the mnemonic) rejected COBOL2318. Cosmetic only: the 1639 wording says 'no declaration gives the name SW-ON' although SW-ON IS declared as a switch-status condition-name — correct rejection, imprecise message (no harm). Coverage: Format 1 by conformance:cases/8.4.4-Condition-name/pb390_procedure_and_condition_operands (SW-ON true after SET SW-M TO ON) and 85/nested_special_names_inheritance; Format 2 by conformance:cases/8.4.2.2-Qualification/pb567_condition_name_qualification and conformance:cases/_unassigned/pb1030_reference_answers (IF C-THREE (I)). No negative golden pins the qualified/subscripted switch-status rejection. || editions as written by the adjudicator: 85, 2002, 2014, 2023 (both kinds of condition-name present in every edition; §8.4.4.1)",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.39.4-3",
+ "section": "13.18.39.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "PAGE clause",
+ "rule-digest": "971f3913ad24",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Reports.cs#BindReportDescriptionClauses",
+ "test-ref": "conformance:cases/13.18.39-PAGE/l1c20_page_clause_defaults",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR3 (cite.py --check 13.18.39.4 \"If LAST CONTROL HEADING is omitted, integer-5 will be equal to integer-6\" -> OK, 3) c)). DataBinder.Reports.cs:794-799 applies a) Heading=1, b) FirstDetail=Heading, c) LastControlHeading = LAST DETAIL if specified else FOOTING if specified else PageLimit, d) LastDetail = FOOTING if specified else PageLimit, e) Footing = LAST DETAIL if specified else PageLimit -- each exactly the spec's arm, and gated on Paged (GR3's 'If integer-1 is specified'). Run probes: gr3d.cob `PAGE LIMIT 10 LINES FOOTING 4.` + 6 x `LINE PLUS 1` details -> lines 1-4 then form feed then 2 lines (FIRST DETAIL defaulted to HEADING=1 per b), LAST DETAIL defaulted to FOOTING=4 per d)); gr3e.cob `HEADING 2 LAST DETAIL 3` -> PF relative LINE PLUS 1 printed on line 4 = FOOTING(defaulted to LAST DETAIL 3 per e))+1. c)'s 'specified' arm is unreachable only because LAST CONTROL HEADING has no surface (FMT/SR1 finding) -- the default computation itself is correct. No spec-derived golden asserts the defaults (every conformance PAGE clause writes the phrases or none are observable) -> test-needed. || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85, 2002, 2014, 2023 (Report Writer module, Annex A.4.11; the §13.18.39 text is the 2023 edition's and Annex E records no PAGE-clause change, so no edition gate is derivable from the spec)",
+ "state": "OK"
+}

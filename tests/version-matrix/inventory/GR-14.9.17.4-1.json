@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.17.4-1",
+ "section": "14.9.17.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "GO TO statement",
+ "rule-digest": "aada90d63f1b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#BoundGoTo; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#TransferOut",
+ "test-ref": "conformance:cases/14.9.17-GO-TO/pb413_go_to_out_of_inline_perform; unit:DispatcherTransferIdiomDriftTests.NoDispatcherTransferIsCapturedByALoweredContainer",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work/PB413.md - GR1's transfer is unconditional, and the adjudicated hole was the class of GO TOs written INSIDE an inline PERFORM: the emitter lowered the inline PERFORM to a real C# loop and rendered GO TO as a bare `break;`, which C# binds to that loop, so __pc was set and then overwritten by the paragraph's fall-through. Repaired at the ONE rendering site by the PB405+PB414 landing (66a00414): DispatchState.TransferOut renders every paragraph-leaving transfer as `__pc = t; goto __xfer;` and DispatchEmitter plants the __xfer label between the switch and the __atExit test. Re-measured here on a fresh build over every shape EmitPerformLoop produces - n TIMES, bare inline, VARYING with AFTER, UNTIL, WITH TEST AFTER, an EVALUATE nested inside a loop, a backward non-adjacent target, and the format-2 DEPENDING form inside a loop - and the transfer occurs in all of them. Pinned by conformance:cases/14.9.17-GO-TO/pb413_go_to_out_of_inline_perform (PB413XFER85), whose expected output is derived from GR1 plus 14.9.28.4 GR4/GR6-NOTE-2 and GR11/GR13's two-level VARYING augmentation order, and by the drift test that fails the pre-fix emission. Section targets, qualified targets and the optional word TO keep their original probes (p2/p10/p17).",
+ "state": "OK"
+}

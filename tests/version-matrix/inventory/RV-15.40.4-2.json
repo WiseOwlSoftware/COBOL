@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.40.4-2",
+ "section": "15.40.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "FORMATTED-DATETIME function",
+ "rule-digest": "6ac407e35299",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#EmitFormatted",
+ "test-ref": "conformance:cases/15.40.4-Returned-value-rules/l1_fdt_utc_adjust_vs_offset_direct",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "The UTC-* lines: the adjustment in both signs and at a non-whole-hour offset, direction derived from 15.3.3.6.1 item 1, with no leg rolling the date so r2's adjustment is separated from r25's roll-range interaction.",
+ "state": "OK"
+}

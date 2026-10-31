@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.16.4-3",
+ "section": "7.3.16.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "IF directive",
+ "rule-digest": "aabfe1b61329",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.16-IF/pb1006_source_format_in_false_path; conformance:cases/7.3.16-IF/pb1006-source-format-false-path-below-2002",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work/PB1006 (RETIRED 2026-09-22): a FALSE constant-conditional-expression omits text-1 and includes text-2 (golden L2). The omitted text's SOURCE FORMAT directive is still processed, per 7.2.1 Step 1 (golden L3).",
+ "state": "OK"
+}

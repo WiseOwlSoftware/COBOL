@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.8-1",
+ "section": "8.5.2.8",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "c2427dcfdab9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#ClassesOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfItem; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DataBinder",
+ "test-ref": "conformance:cases/8.5.2.8-Index-category/l1c04_index_category_implicit; conformance:cases/8.5.2.8-Index-category/l1c04-implicit-index-move-target",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule: '1) An elementary data item explicitly or implicitly described as usage index.' (cite.py OK). Both halves probed at --std 85 and 2023 (p5.cob/p6.cob): '01 G USAGE INDEX. 05 I1. 05 I2.' -- the IMPLICIT (inherited) leaves are index data items: SET I1 TO TX / SET TX TO I1 round-trip (TE(TX)=D), I1 < I2 relation true, MOVE 5 TO I1 rejected COBOL0809 (§14.9.25.3 SR1 class index) and COMPUTE N = I1 + 1 rejected COBOL0844 (class index not numeric). Explicit form covered by many goldens (e.g. 85/pb212_operand_class_screens) but no spec-derived test pins the IMPLICIT (group-inherited) half, so test-ref left empty (test-needed). [code-location note: (Usage.Index -> PicInfo.IndexItem)]",
+ "state": "OK"
+}

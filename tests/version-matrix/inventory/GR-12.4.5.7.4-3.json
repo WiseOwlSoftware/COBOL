@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.7.4-3",
+ "section": "12.4.5.7.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "COLLATING SEQUENCE clause",
+ "rule-digest": "de46ef663e2c",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveKeyCollating",
+ "test-ref": "conformance:wiseowl/cases/12.4.5.7-COLLATING-SEQUENCE/pb1074-file-collating-national-declined; conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1074_file_collating_key_class",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1074 landed (w61c). cite.py --check 12.4.5.7.4 'A national collating sequence referenced by alphabet-name-2 applies to any record keys of class national' -> OK GR3; cite.py --check A.3 'defined in the SPECIAL-NAMES paragraph with the LOCALE phrase or with literals is dependent on the capabilities of the processor' -> OK A.3 41). alphabet-name-2 is now READ for national keys: a NATIVE/UCS-4 national alphabet IS the native national sequence and applies (golden FOR NATIONAL IS NNAT, prime walk A M Z); one defined by literals or LOCALE is the Annex A.3 item 41 processor-dependent capability this implementation does not provide (docs/CONFORMANCE.md section 2 rows 41-42) and is DECLINED BY NAME through EditionContext.Declined, COBOL1584, severity Error (refused: an inert compile would order by a different sequence). Formerly silently ignored with no diagnostic (probe p2/gr1n).",
+ "state": "OK"
+}

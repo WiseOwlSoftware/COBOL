@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-8.4.3.1.2",
+ "section": "8.4.3.1.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "Identifier",
+ "rule-digest": "866d69f98ec7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#inlineMethodInvocation; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectReference; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addressIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#propertyObject; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.ObjectProperty.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.4.3.14-LINAGE-COUNTER/pb1153_counter_register_character_image; conformance:cases/8.4.3.1-Identifier/pb1425_object_property_identifier; conformance:cases/8.4.3.1-Identifier/pb1425_object_view; conformance:cases/8.4.3.1-Identifier/pb1425_predefined_object_operands",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1425 (w1021a). The eleven identifier formats (cite.py --check 8.4.3.1.3 -> OK 2)-12)). Formats 1-4 and 8-11 were verified by the registrar's probes; Format 5 (object-view) landed w1019a, Format 6's qualified SUPER w1014 and SELF / SUPER as identifiers w1020c, and Format 7's identifier-3 is now any identifier (the dataReference chain split by ResolveObjectProperty, plus the propertyObject suffix for SELF, SUPER, a view, a function, NULL). Every format is spelled and bound. retired-witness: src/Cobol.Net.Compiler/Binding/ReferenceResolver.cs#OoTryBindPropertyReference (the one-word property binder ReferenceResolver.OoTryBindPropertyReference is deleted by kb/Work PB1425 (w1021a): a property reference is resolved by ReferenceResolver.ResolveObjectProperty, which splits the chain and resolves identifier-3 through the ordinary resolver)",
+ "state": "OK"
+}

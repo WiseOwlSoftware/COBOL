@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.3.7.3-18",
+ "section": "12.3.7.3",
+ "kind": "SR",
+ "ordinal": 18,
+ "subject": "SPECIAL-NAMES paragraph",
+ "rule-digest": "a775211240be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#LiteralCharsOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#SwitchBindCurrency; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#CurrencyOperandOf",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb791-currency-figurative-literal-7-bare; conformance:cases/12.3.7-SPECIAL-NAMES/pb791-currency-figurative-literal-7-picture-symbol; conformance:cases/12.3.7-SPECIAL-NAMES/pb791-currency-null-literal-7; conformance:cases/12.3.7-SPECIAL-NAMES/pb791-currency-boolean-literal-7; conformance:cases/12.3.7-SPECIAL-NAMES/pb791_currency_literal_forms",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB791 LANDED. Rule: SR18 \"Literal-7 shall be an alphanumeric or national literal that is not a figurative constant\" (cite.py --check 12.3.7.3 -> OK 12.3.7.3 18)). The CURRENCY SIGN screen (CurrencyOperandOf, one CurrencyOperand rule value per operand) now decides from the TOKEN as written: a numeric literal, a boolean literal, a figurative constant (SPACE / QUOTE / ALL \"x\" ...) and the predefined NULL (COBOL2576, 8.4.3.10.3 SR1) are refused for literal-7 at every edition, in the bare form AND in the PICTURE SYMBOL form (where CURRENCY SIGN IS SPACE PICTURE SYMBOL \"#\" used to bind the currency string \"SPACE\" and display SPACE1.50). LiteralCharsOf lost its raw-text fallback (a word that is not a literal is not a literal; it now throws for a caller that skipped its screen) and its dead X\"...\" arm. retired-witness: src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs#CurrencyTextLiteral (CurrencyTextLiteral was replaced by CurrencyOperandOf (kb/Work PB667+PB1941+PB1942, c15bcc5f5))",
+ "state": "OK"
+}

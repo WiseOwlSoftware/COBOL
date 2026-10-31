@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.42.3-2",
+ "section": "13.18.42.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "PROPERTY clause",
+ "rule-digest": "eb366234533c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindPropertyClauses; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#OccursSubjectOf",
+ "test-ref": "conformance:cases/13.18.42-PROPERTY/pb1273-property-under-occurs",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1273: 'subject to an OCCURS clause' is asked by ancestry and in every OCCURS format through RecordLayout.OccursSubjectOf (IsTable — the dynamic-capacity table Occurs==null hole closed for every caller of IsSubjectToOccurs); a subordinate of an OCCURS group reached the C# backend (CS0103) before.",
+ "state": "OK"
+}

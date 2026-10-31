@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.2-9",
+ "section": "8.8.2",
+ "kind": "GR",
+ "ordinal": 9,
+ "subject": "Expressions",
+ "rule-digest": "3b6aedfd76f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs#Combine; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs#Shift; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BoolResultLength",
+ "test-ref": "conformance:cases/8.8.2-Boolean-expressions/pb1412_shift_only_boolean_conditions; unit:CobolBoolTests.And_UnequalLengths_RightZeroExtends; unit:CobolBoolTests.Or_ShorterRightExtended",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1412 LANDED (wave 1005 D). Rule 9 (cite.py --check 8.8.2 'the operation shall proceed as though the shorter operand were extended on the right by a sufficient number of boolean zeros' -> OK 9)) has four halves, all verified: usage-independence, shift result length = first item, positionwise combine, right zero-extension. The refuter's one divergence - a relation whose boolean operand carries only a shift missed the boolean channel - is closed by PB1412, and pb1412_shift_only_boolean_conditions pins the two halves no spec-derived test had: S2 = B\"10\" B-SHIFT-LC 1 = B\"01\" true and = B\"000001\" false (the result is as long as the FIRST item; a shift over a longer extended item answers the opposite on both), and a USAGE BIT item shifts like a PIC 1 item (UB B-SHIFT-R 1 = 0110). The positionwise and extension halves are CobolBoolTests. [editions: the shift half 2023 only (Annex E.2 item 3); the rest 2002+]",
+ "state": "OK"
+}

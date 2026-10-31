@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.49.3-9",
+ "section": "13.18.49.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "SAME AS clause",
+ "rule-digest": "dfc640f54703",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#SuperordinateWithRepresentationClause",
+ "test-ref": "conformance:cases/13.18.49-SAME-AS/pb889-group-usage-over-same-as; conformance:cases/13.18.49-SAME-AS/pb889_type_to_optional_word",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB889 LANDED. The rule names THREE clauses - 'A group item to which the subject of the entry is subordinate shall not contain a GROUP-USAGE, SIGN, or USAGE clause' - and ExpandSameAs's ancestor walk tested two (OwnUsage, OwnSign), so `01 OUTER GROUP-USAGE NATIONAL. 02 INNER SAME AS SRC2.` over SRC2 PIC N(4) compiled clean although COBOL1555's own text named GROUP-USAGE. Both SR walks now read ONE predicate, DataBinder.SuperordinateWithRepresentationClause (GroupUsage / OwnSign / OwnUsage), and the diagnostic names the offending superordinate. (Over a PIC X source the 13.18.60.3 SR12 rule, COBOL0881, rejects first and masks this answer - the negative uses PIC N(4) for that reason.) The legal side - a SAME AS entry under a group with none of the three clauses - is pinned by the 2002 positive. MEASURED at 2002 and 2014 on the worktree's own build: COBOL1555 '... shall not contain a GROUP-USAGE, SIGN, or USAGE clause - 'OUTER' does (ISO 13.18.49.3 SR9)'. EDITIONS 2002/2014/2023 (SAME AS is a 2002 introduction; its own 0900 gate covers 85).",
+ "state": "OK"
+}

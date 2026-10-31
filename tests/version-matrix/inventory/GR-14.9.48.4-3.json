@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.48.4-3",
+ "section": "14.9.48.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "UNSTRING statement",
+ "rule-digest": "4cca9cd878c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/da4_function_sending_operand",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GR3 'Literal-1 or the data item referenced by identifier-2 specifies a delimiter' (cite.py --check -> OK 14.9.48.4 3)). The binder binds each DELIMITED BY operand (literal, figurative, data item or function-identifier) as a BoundUnstringDelimiter value; the emitter renders its character content (a field's full content, trailing spaces included) as the delimiter string. Goldens: da4_function_sending_operand (DELIMITED BY \" \" literal and FUNCTION LOWER-CASE(\"L\") identifier), pb979_unstring_receiver_size (\",\" / \";\"). Probes p2/p1 exercised literal and identifier delimiters.",
+ "state": "OK"
+}

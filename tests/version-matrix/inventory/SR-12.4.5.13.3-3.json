@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-12.4.5.13.3-3",
+ "section": "12.4.5.13.3",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "RELATIVE KEY clause",
+ "rule-digest": "807b77371859",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#IsInRecordOfFile",
+ "test-ref": "conformance:cases/12.4.5.13-RELATIVE-KEY/pb699-relative-key-in-record-entry-only; conformance-test:FileControlKeyRuleSpecTests.RelativeKeyOperandRule_ReportsOnAnEntryOnlyProgram_AtEveryEdition",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-09-06 (kb/Work PB699). RULE (--check 12.4.5.13.3 3): \"Data-name-1 shall not be defined in a record description entry subordinate to the associated file-name.\" Implemented but unclaimed, and mis-cited as \"12.4.5.13 SR3\". Now a row of FileControlKeyRules over RecordLayout.IsInRecordOfFile - THE ONE predicate for \"the item's 01 root is a record of this file\", which 12.4.5.12.3 SR2 and 12.4.5.6.3 SR2 REQUIRE and this rule FORBIDS, so the three rules cannot drift apart.",
+ "state": "OK"
+}

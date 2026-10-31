@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.21.2",
+ "section": "15.21.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "CURRENT-DATE function",
+ "rule-digest": "8990066d0012",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb62_all_subscript_runtime_ranges; conformance-test:IntrinsicFunctionDifferentialTests.WhenCompiled_CompileTimeConstant_PinnedToSpec",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB62 — the ALL subscript as ONE enumerating operand with the standard's three ranges; admissibility from the definition; the summing family on the SDIDI carrier under a standard mode). `FUNCTION CURRENT-DATE` — the sweep's FIXED verdict (both divergences gone: the refModPart tail on functionCall for `FUNCTION CURRENT-DATE (1:4)`, the zero-suffix keyword-omitted bare name), now PINNED: golden CD = 21 (keyword-omitted CURRENT-DATE under FUNCTION ALL INTRINSIC — the 21-character §15.21.3 value) and 4 (LENGTH of `FUNCTION CURRENT-DATE (1:4)`, the ref-modified result). The keyword-omitted leg is 2002+ (REPOSITORY intrinsic declaration).",
+ "state": "OK"
+}

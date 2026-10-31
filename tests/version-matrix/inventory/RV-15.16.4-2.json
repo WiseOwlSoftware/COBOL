@@ -1,0 +1,15 @@
+{
+ "rule-id": "RV-15.16.4-2",
+ "section": "15.16.4",
+ "kind": "RV",
+ "ordinal": 2,
+ "subject": "CHAR-NATIONAL function",
+ "rule-digest": "97ca3b779217",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#CharAt; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Switches.cs#AlphabetLiteralPhrase; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CollatingTable",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1_char_national_also_positions",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "ALPHABET ... IS N\"C\" ALSO N\"A\" ALSO N\"B\", N\"M\" shares position 1 (12.3.7.4 GR7 k6); literal-1 C is the highest-coded member, so P1=00068 excludes both a lowest-code and a last-written implementation. SAME=YES is a presence check, not a discriminator, and the header says so. The alphanumeric twin 15.15.4 r2 is pinned separately by conformance:cases/12.3.7-SPECIAL-NAMES/pb59_char_representative over a DIFFERENT runtime body (AlphanumericCollation), which is why the national branch needed its own golden.",
+ "state": "OK"
+}

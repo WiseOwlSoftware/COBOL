@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.84.3-1",
+ "section": "15.84.3",
+ "kind": "AR",
+ "ordinal": 1,
+ "subject": "SQRT function",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/_unassigned/pb52-intrinsic-argument-stage;conformance:cases/15.84.4-Returned-value-rules/pb52_intrinsic_argument_stage",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CONFORMS. Citation re-derived mechanically, not inherited: `cite.py --check 15.84.3 \"Argument-1 shall be of class numeric\"` -> OK §15.84.3 1). THE CLAUSE NUMBER IS THE TRAP HERE AND I RE-RAN IT: §15.81.3 r1 (SIGN) carries the IDENTICAL sentence and an earlier pass in this repo took it for SQRT's; the in-code comment at IntrinsicArgumentRules.cs:515-517 records that miss. READ: IntrinsicArgumentRules.cs#Verified line 521 carries [\"SQRT\"] = Uniform('n', \"§15.84.3 r1\"), and Admissible('n') (line 841) resolves to [CobolClass.Numeric] — the §8.5.2.1 Table-2 CLASS axis, so a numeric-EDITED display item (Table 2 class alphanumeric) is correctly EXCLUDED, and the comment at 830-841 records that the widening argument was raised twice and refuted from §8.8.1.1 ('an identifier referencing a NUMERIC data item'). The screen runs on the generic path: IntrinsicBinder.cs#BindIntrinsicCore calls CheckArgumentClasses(sig, args) at line 587, AFTER the arity guard and BEFORE every bespoke arm, so the row is live for SQRT without a per-function arm. Diagnostic COBOL1627. The operand's class comes from IntrinsicArgumentRules.cs#CandidateClasses, which returns a SET rather than a scalar (§8.3.3.6.4 GR4, PB48): figurative ZERO presents {Numeric, Alphanumeric, National, Boolean} and PASSES (correct — 'the screen accepts ZERO here and there' is GR4 behaviour, not a hole); SPACE/HIGH-VALUE/LOW-VALUE/QUOTE present {Alphanumeric, National} and are rejected; ALL literal-1 carries its literal's own class (§8.3.3.6.3 SR1a); an index-name and an index DATA item both classify CobolClass.Index (ClassOfPlace keys USAGE before the category table, R27) and are rejected; a nested intrinsic contributes ITS result category (ClassOf1 line 352), so FUNCTION SQRT(FUNCTION UPPER-CASE(X)) is rejected. Violation() fails OPEN only at line 910 (candidates empty = class not statically decidable) and for an unmodelled figurative kind — no ordinary operand shape falls in that hole. TESTS ARE SPEC-DERIVED AND BOTH-SIDED: conformance:cases/_unassigned/pb52-intrinsic-argument-stage is FUNCTION SQRT(SPACE) -> COBOL1627 with the §15.84.3 r1 derivation in its header, and conformance:cases/15.84.4-Returned-value-rules/pb52_intrinsic_argument_stage is the legal side (SQRT(NI) and SQRT(4) both = 2.00 in the golden .out), which is the half that guards against the PB1 over-rejection direction. EDITIONS not taken from IntrinsicCatalog's row: SQRT is a function of the 1989 Intrinsic Function Module amendment carried unchanged into 2002/2014/2023 and §15.84.3 r1 has no edition delta, so the batch default stands.",
+ "state": "OK"
+}

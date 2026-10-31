@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.45.3-9",
+ "section": "13.18.45.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "RENAMES clause",
+ "rule-digest": "da4b1e0548c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#renamesClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames",
+ "test-ref": "conformance:cases/13.16-Data-description/l1_renames_through_thru",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR9 'The words THROUGH and THRU are equivalent.' cite.py --check 13.18.45.3 -> OK §13.18.45.3 9). Grammar renamesClause: RENAMES dataReference ((THRU | THROUGH) dataReference)?; BindRenames sets thru = THRU()!=null || THROUGH()!=null, one path for both. Probe sr9.cob (THROUGH) -> ABCD; golden l1_renames_through_thru proves both spellings name one area (it cites the identical §13.16.3 SR22 text). || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): 85, 2002, 2014, 2023 (the RENAMES clause is in every edition; the rule text is the 2023 §13.18.45.3 wording)",
+ "state": "OK"
+}

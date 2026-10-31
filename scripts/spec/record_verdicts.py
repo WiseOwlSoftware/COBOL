@@ -78,8 +78,9 @@ import sys
 from collections import Counter
 
 from inventory_schema import (ADJUDICATED, RETIRED_WITNESS_MARK, STATEMENT_FIELDS, WITNESS_FIELDS, load_catalog,
-                              load_inventory, load_schema, prose_of, resites, retired_symbols_left_in_prose,
-                              statement_losses, witness_losses, witness_shape_error, write_inventory)
+                              load_schema, prose_of, resites, retired_symbols_left_in_prose,
+                              statement_losses, witness_losses, witness_shape_error)
+from inventory_store import INVENTORY_DIR_REL, load_inventory, write_inventory
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -98,7 +99,6 @@ GATE_FILTER = "FullyQualifiedName~SpecTraceabilityInventory"
 GATE_PROJECT = "tests/WiseOwl.Cobol.Tests.Unit"
 GATE = (f'python scripts/filter_population.py --filter "{GATE_FILTER}" --filtered {GATE_PROJECT} --allow-build\n'
         f'    python scripts/test_population.py scrubbed dotnet test {GATE_PROJECT} --filter "{GATE_FILTER}"')
-INVENTORY_REL = "tests/version-matrix/traceability-inventory.json"
 
 
 def read_batch(path: pathlib.Path) -> list[dict]:
@@ -436,8 +436,8 @@ def main() -> int:
         print("\n--dry-run: nothing written.")
         return 0
 
-    write_inventory(rows)
-    print(f"\nwrote {INVENTORY_REL}")
+    changed = write_inventory(rows)
+    print(f"\nwrote {changed} row file(s) under {INVENTORY_DIR_REL}/")
     print(f"⛔ NOW RUN THE GATE — it is what checks that these references actually resolve:\n    {GATE}")
     return 0
 

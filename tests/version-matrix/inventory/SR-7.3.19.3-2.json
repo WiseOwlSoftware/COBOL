@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-7.3.19.3-2",
+ "section": "7.3.19.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "PAGE directive",
+ "rule-digest": "b6bc43815375",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb794_directive_operands; unit:TextManipulationDirectiveLineTests.CopyInPageCommentText_IsNotACopyStatement",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1352 (w67m): comment-text-1 is checked in no shape — CheckOperand checks presence only, and the text-manipulation scanners no longer scan a >>PAGE line for a COPY keyword (DirectiveLine element), so COPY FOO. in comment-text of REPLACING library text draws no COBOL1640.",
+ "state": "OK"
+}

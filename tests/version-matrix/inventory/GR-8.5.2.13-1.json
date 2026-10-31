@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.2.13-1",
+ "section": "8.5.2.13",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Class and category of data items and literals",
+ "rule-digest": "5db985f5a07a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+ "test-ref": "conformance-test:ArithmeticOperandClassTests.Strict_RejectsNumericEditedOperand",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 8.5.2.13 OK 1)): 'A data item described as numeric-edited by its PICTURE character-string.' PictureAnalyzer.Analyze returns PicCategory.NumericEdited on `anyEdit`. Probes (2023): PIC ZZ9.99 USAGE NATIONAL and PIC +9.9E+99 both refused as numeric data items (COBOL0844 §8.8.1.1, COBOL1938 §14.9.39.3 SR31) and MOVE 12 TO EN edits to ' 12.00'; PIC ZZ9 refused likewise. Table 2's class split (display -> alphanumeric, national -> national) is §8.5.2.1's rule, adjudicated in part 1. Covering test Strict_RejectsNumericEditedOperand computes its expectation from §8.8.1.1 + §8.5.2.13 (PIC ZZ9 is not a numeric data item); also conformance:cases/14.9.39-SET/pb452-set-content-numeric-edited. || editions as written by the adjudicator: 85, 2002, 2014, 2023 (national usage of a numeric-edited PICTURE 2002+; the 'E' floating-point form per §13.18.40.4 GR13 b in 2014/2023)",
+ "state": "OK"
+}

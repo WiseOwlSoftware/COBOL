@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.12.4-3",
+ "section": "7.3.12.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "DISPLAY directive",
+ "rule-digest": "811eb84c4a77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ApplyDisplay; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ParameterText",
+ "test-ref": "unit:DisplayDirectiveTests.Parameter_IsReadFromTheEnvironment_ByTheUpperCaseName; unit:DisplayDirectiveTests.AbsentParameter_TransfersNothingAtAll",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "kb/Work PB1538 landed (w1004b). A PARAMETER operand is the environment variable named by the name in upper case (the DEFINE PARAMETER lookup, DOC-A.1-55); when none is made available that directive transfers nothing at all and the name is not defined.",
+ "state": "OK"
+}

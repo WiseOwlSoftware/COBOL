@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-71",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 71,
+ "subject": "FILE-CONTROL entry, ASSIGN clause (TO phrase meaning and rules)",
+ "rule-digest": "302af67ef908",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-71; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#ResolveHostPath",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb829_assign_device_class; conformance:cases/12.4.5-File-control/pb829-assign-target-list",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB829 (wave 48 W). A.1 item 71 - FILE-CONTROL entry, ASSIGN clause (TO phrase meaning and rules), 12.4.5.2 SR5 and SR6 (cite.py --check OK for both). Determination, following GnuCOBOL per CLAUDE.md rule 1: the TO phrase is one operand naming the physical file, or a device class DISK or PRINTER followed by one operand naming it (the class selects nothing further - both are host files); any other list is COBOL2256. An operand's value or spelling maps to a host path by CobolFile.ResolveHostPath. SR6: TO alone, USING alone and both together are all allowed (GR3 b) lets the content win - item 10).",
+ "state": "OK"
+}

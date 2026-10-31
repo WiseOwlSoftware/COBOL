@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.8-2",
+ "section": "9.1.13.8",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "I-O status",
+ "rule-digest": "52aafea5b917",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ExhaustionStatus; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#Deadlock",
+ "test-ref": "conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/pb346_read_retry_record_conflict_2023; unit:SequentialCommitControlTests.A_holding_of_this_run_units_own_transaction_is_not_waited_for; conformance:cases/14.7.9-RETRY/pb3340_sequential_holding_exception_paths",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§9.1.13.8 2) '52' deadlock; 'The implementor shall specify under what conditions a deadlock is detected' (cite.py --check OK §9.1.13.8 2)). The specification is docs/CONFORMANCE.md §7 DOC-A.1-109: exactly one circumstance, RETRY FOREVER waiting on a record locked by another file connector. Code: FileRegistry line ~1635 `kind == FileRetryKind.Forever && conflict == FileStatusCode.RecordLocked ? FileStatusCode.Deadlock`, the one place the landing is decided; file-sharing conflicts keep '61'/'62' (PB142 landed). Tests: conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/pb346_read_retry_record_conflict_2023 (R2FVR=52, S1FVR=52 for random and sequential READ), conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/file_sharing_mutate (REWQFV=52 for REWRITE), conformance:cases/14.9.10-DELETE/pb142_retry_conflict_class_ec (FOREVER on DELETE FILE stays 62). PB322 determination C (open) is the documentation half and is now written as DOC-A.1-109; PB322's note itself says its row text is stale. || Editions (adjudicator, verbatim): 2002/2014/2023",
+ "state": "OK"
+}

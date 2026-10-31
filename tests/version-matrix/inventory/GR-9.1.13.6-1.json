@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.6-1",
+ "section": "9.1.13.6",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "I-O status",
+ "rule-digest": "496b685aec5d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadFailed; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#StartFirstLast; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#ReleaseFileLock",
+ "test-ref": "unit:FileBoundaryTests.SequentialWrite_OnAFullMedium_Is34_AtTheWrite; unit:FileBoundaryTests.WriteFailure_MediumExhaustionIs34_AnyOtherFailureIs30; unit:FileBoundaryTests.SequentialRead_HostFailure_Is30_AndRemainsInEffect; unit:KeyedClosePermanentErrorWitnessTests.A_keyed_close_that_answers_30_runs_the_use_procedure_stores_the_status_and_continues_or_terminates_by_the_rule",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1512 landed (w67p). cite.py --check 9.1.13.6 'A permanent error exists and no further information is available concerning the input-output operation' -> OK §9.1.13.6 1). Every statement that touches the host now maps a host IOException to an I-O status: OPEN/CLOSE/DELETE FILE (before), WRITE/WRITE ADVANCING/REWRITE ('34'/'30', kb/Work PB1192), and now READ and START FIRST/LAST (SequentialConnector.Read / StartFirstLast -> ReadFailed: '30', file position invalidated, §14.9.30.4 GR18 / §14.9.41.4 GR7). Keyed record verbs never touch the host between OPEN and CLOSE (the store is in memory). Sibling sweep: an unsuccessful OPEN's handle release (FileConnector.Open -> AbandonOpen, KeyedConnector.ReleaseFileLock) could throw outside OPEN's try - now caught, the OPEN's own status stands; OPEN … REVERSED counted the records AFTER the open returned, against SharedOpenAttempt's PB713 rule - now counted inside the OPEN body (ReversedRequested). Witness: a real host read failure per host (Linux /proc/self/mem EIO; Windows a locked byte range) -> '30', then '46', and START FIRST '30'. retired-witness: unit:FileBoundaryTests.SequentialRead_HostFailure_Is30_AndInvalidatesThePosition (renamed, not lost: the test pinned the pre-PB1541 '46' after a '30' READ; the permanent error now remains in effect (9.1.13.1), so it asserts '30' again and is named for that)",
+ "state": "OK"
+}

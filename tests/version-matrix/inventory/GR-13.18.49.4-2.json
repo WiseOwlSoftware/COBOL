@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.49.4-2",
+ "section": "13.18.49.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "SAME AS clause",
+ "rule-digest": "70da924886d6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CloneItem; src/WiseOwl.Cobol.Compiler/Binding/Model/Condition88.cs#CopyOnto",
+ "test-ref": "conformance:cases/13.18.49-SAME-AS/l1c27_same_as_group_hierarchy_past_49",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR2 a/b/c (--check 13.18.49.4 -> OK 2) a) and 2) c)). a) CloneItem reproduces names, descriptions (CopyEntryDescription scope Entry), OCCURS, REDEFINES, INDEXED BY, 88s and hierarchy; b) levelDelta = item.Level - target.Level renumbers; c) no 49 cap - probe p10 (`01 T. 49 L PIC 9. 88 L-ON`; `01 O. 10 S SAME AS T.` -> L at level 58; SET L-ON OF S TO TRUE -> [1], FUNCTION LENGTH(O)=1). The NOTE on 8.5.1.6.4 alignment is informative. typedef_same_as covers a) and b) (INNER-REC at 05 copying a level-1 group; CUST-ID OF INNER-REC etc.) but not c) or the copied 88s, so test-ref is left empty (test-needed for the >49 arm). || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the SAME AS clause is absent from COBOL-85 and is not in Annex E's 2014->2023 substantive-changes list, so the rule stands unchanged in 2014 and 2023)",
+ "state": "OK"
+}

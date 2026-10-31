@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.40.3-9",
+ "section": "14.9.40.3",
+ "kind": "SR",
+ "ordinal": 9,
+ "subject": "SORT statement",
+ "rule-digest": "9858337bd079",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenIndexedGivingKey",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb994_sort_merge_keyed_using_giving; conformance:cases/14.9.40-SORT/pb994-sort-giving-indexed-descending-first-key; conformance:cases/14.9.40-SORT/pb994-sort-giving-indexed-key-not-prime-bytes",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB994 landed: SortBinder.ScreenIndexedGivingKey - the first key shall be ASCENDING and lie at the byte location and size of the indexed GIVING file's prime record key (RecordLayout.KeyWindowOf of both), refused with COBOL1757 naming SR9; screened together with the lift of the keyed-file refusal so the over-rejection did not become an under-rejection.",
+ "state": "OK"
+}

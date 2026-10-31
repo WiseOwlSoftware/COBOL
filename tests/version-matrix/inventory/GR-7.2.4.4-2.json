@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.4.4-2",
+ "section": "7.2.4.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "REPLACE statement",
+ "rule-digest": "1f87a1982cd0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands",
+ "test-ref": "unit:TextManipulationTextWordTests.Colon_SeparatesTextWords; unit:TextManipulationTextWordTests.ReplaceStatement_PeriodInsidePseudoText; conformance:cases/7.2.2.5-Text-words/pb1350_text_words_85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1350 landed (w61a): Whole pseudo-text replacement over true text-words: colon-separated and prefixed-literal words now form correctly (probes colon.cob BCD/BCD, hex.cob AB). Spec re-derived and re-cited by the implementer; every probe of the note re-run on the fixed build. retired-witness: src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacements (the symbol was removed by kb/Work PB1350/PB1354 (one TextWordScanner + a parsed COPY/REPLACE statement); its successor is named in code-location)",
+ "state": "OK"
+}

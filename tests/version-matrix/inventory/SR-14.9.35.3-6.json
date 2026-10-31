@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.35.3-6",
+ "section": "14.9.35.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "REWRITE statement",
+ "rule-digest": "9b663a6699cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Rewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1c25-rewrite-from-invalid-move-sender",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "\"If record-name-1 is specified, identifier-1 or literal-1 shall be valid as a sending operand in a MOVE statement specifying record-name-1 as the receiving operand.\" Both REWRITE arms bind the FROM phrase through MoveBinder.BindFromPhrase(FromPhraseRules.Rewrite, record, ...), which builds the implicit MOVE at bind time and runs the MOVE validity screens against record-name-1. Probe pi.cob (01 R1 PIC 9(5), `REWRITE R1 FROM WA` with WA PIC A(5)) -> error COBOL0819 citing 14.9.35.3 SR6 / Table 16; pk.cob `REWRITE R1 FROM FUNCTION NATIONAL-OF(\"ab\")` into an alphanumeric X(8) record -> COBOL0819 (national to alphanumeric invalid). pb348_from_into_move_rules pins the positive equivalence. No REWRITE-specific negative fixture (the pb348 invalid-move-sender negatives are RELEASE/WRITE), so test-ref empty. cite.py --check 14.9.35.3 SR6 -> OK. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+ "state": "OK"
+}

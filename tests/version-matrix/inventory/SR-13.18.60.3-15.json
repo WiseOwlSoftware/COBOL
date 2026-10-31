@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.60.3-15",
+ "section": "13.18.60.3",
+ "kind": "SR",
+ "ordinal": 15,
+ "subject": "USAGE clause",
+ "rule-digest": "f27fdd64a4dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsageDeclaration.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsageDeclaration.cs#CheckUsageDeclarations; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsFileSectionItem",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb183-usage-objref-file-section",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "THE DIRECT ARM -- WHICH IS ALL SR15 GOVERNS -- IS ENFORCED, AND BOTH FILE-SECTION ENTRY KINDS WERE MEASURED. `FD F. 01 R USAGE OBJECT REFERENCE.` is COBOL1725 quoting SR15 (the negative golden); a SUBORDINATE object-reference member of an FD record is caught at the member (u_sr15_sub); and an `SD S. 01 SR USAGE OBJECT REFERENCE.` sort-merge record is caught too (u_sr15_sd) -- IsFileSectionItem is the SAME AS twin's own root test, shared rather than re-written. The report is deliberately independent of SR14 (an FD record may legally be a level-1 elementary item, so SR14 admits it and only SR15 rejects it), which is what makes the golden attributable. ⚠ A SIBLING RULE OF A DIFFERENT CLAUSE IS THE ONE THAT LEAKS, AND IT WAS MEASURED HERE: the standard states this prohibition THREE times -- SR15 for the direct clause, 13.18.49.3 SR6 for SAME AS (cite --check OK; enforced as COBOL1556 since the SAME AS landing) and 13.18.57.3 SR8 for TYPE (cite --check OK: \"When the TYPE clause is specified in the file section, the description of type-name-1, including its subordinate data items, shall not contain a data item described with a USAGE OBJECT REFERENCE clause\"). The TYPE arm is UNENFORCED: `FD F. 01 R TYPE OT.` with `01 OT IS TYPEDEF USAGE OBJECT REFERENCE.` in WORKING-STORAGE COMPILES AND RUNS CLEAN (probe u_sr15_typeclone) -- ConformanceForest prunes the TYPE clone subtree and the template itself is a legal level-1 working-storage entry, so no arm ever looks. That is a 13.18.57.3 row, not this one; see finding usage-p1/F8. || code sites, verbatim from the adjudication: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsageDeclaration.cs:112-125 (CheckUsageDeclarations, the SR15 arm -- COBOL1725 over IsFileSectionItem, reported independently of SR14 so a level-1 FD record is attributed to its own rule) || editions, verbatim from the adjudication: 2002,2014,2023 (USAGE OBJECT REFERENCE is post-1985)",
+ "state": "OK"
+}

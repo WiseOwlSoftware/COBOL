@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.5.1.9.1-3",
+ "section": "8.5.1.9.1",
+ "kind": "SR",
+ "ordinal": 3,
+ "subject": "Dynamic-capacity tables",
+ "rule-digest": "917f7f964aa2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#AssignCellComponents; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#CellComponents; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#WindowScopeOf; src/WiseOwl.Cobol.Runtime/Control/StorageCell.cs#DynTableAt; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#CellDynSeeds",
+ "test-ref": "conformance:cases/8.5.1.9-Dynamic-capacity-tables/pb1042_external_dynamic_table; conformance:cases/8.4.3.11-Data-address-identifier/pb1042_cell_variable_components; conformance:cases/8.5.1.9-Dynamic-capacity-tables/pb1042-external-dynamic-table; conformance-test:OccursDynamicGuardTests.FileSectionDynamicTable_Rejected1526",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "kb/Work PB1042 (wave 1021 B2). §8.5.1.9.1 3): a dynamic-capacity table 'may be defined in any place, other than the file section, in which a fixed-capacity table may be defined and may be nested in any combination to the same number of levels as a fixed-capacity table'. The EXTERNAL / ADDRESS-OF half that DIVERGED (COBOL0899 'cannot be cell-backed') is closed: a cell-backed area's components (dynamic-length items and dynamic-capacity tables) ride managed slots of the cell, one ordinal per occurrence of every enclosing fixed table (Place.CellComponents; DataBinder.AssignCellComponents), and a table's slot is a CobolDynTable<StorageCell> whose occurrences are element cells, a scope of their own, so nesting in any combination is the same mechanism one level down. Measured: two programs sharing an EXTERNAL record see each other's growth (§13.18.22.4 GR1), group MOVE recreates (§14.6.9.2), INITIALIZE keeps the capacity (§14.9.20.4 GR10), SEARCH/SORT/SUM(ALL)/LENGTH/SET capacity work, a table nested in a table element and a dynamic-length item per occurrence run. The FILE SECTION bar stays (COBOL1526). Editions: 2014 introduced OCCURS DYNAMIC (COBOL0900 below it).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.5-L2.2",
+ "section": "14.6.13.1.5",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Exception conditions",
+ "rule-digest": "6c1e9cb304b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitPropagationPickup; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitObjDispatchSelector",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/oo_ec_goback_raising",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule: §14.6.13.1.5 EXIT/GOBACK list item 2 (cite.py --check 14.6.13.1.5 \"Otherwise, if a USE statement in the activating runtime element specifies an applicable class or interface\" -> OK, labelled '2) b)' by cite.py's list-indentation artifact). EmitPropagationPickup runs after every CALL/INVOKE: TakePropagatedObject -> SetObject in the activator -> __EcObjDispatch (the §14.9.49.4 GR14 two-pass class-then-interface selector, factory+instance census) -> RESUME transfer or, on -1, normal continuation of the activating statement. Golden oo_ec_goback_raising: method GOBACK RAISING W-E (class in the method's RAISING), activator USE AFTER EXCEPTION OBJECT CERR2 -> 'HANDLED R=0077 / AFTER-INVOKE R=0077' (declarative, then the INVOKE completes normally with its RETURNING value delivered). Interface and factory selection pinned by goldens 2002/pb365_use_eo_interface_two_pass and 2002/pb366_use_exception_object_factory. || editions as adjudicated: 2002, 2014, 2023 (ISO 2002 OO/EC model)",
+ "state": "OK"
+}

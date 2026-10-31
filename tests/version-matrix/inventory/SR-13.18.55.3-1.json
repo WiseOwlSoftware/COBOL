@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.55.3-1",
+ "section": "13.18.55.3",
+ "kind": "SR",
+ "ordinal": 1,
+ "subject": "SYNCHRONIZED clause",
+ "rule-digest": "1871a9fed2bd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs; src/WiseOwl.Cobol.Editions/Constructs.g.cs",
+ "test-ref": "conformance:cases/13.18.55-SYNCHRONIZED/sync_group_below_2023; conformance:cases/13.18.55-SYNCHRONIZED/pb494-typedef-sync-group-below-2023",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB494 (landed, wave 20261032). The group-item edition gate (Annex E.3.2 item 6, COBOL0900 below 2023, a hard error under --permissive too, CA14 option (a)) moved out of the storage forest's usage walk into GateSynchronizedGroup, asked of every group entry that WROTE the clause wherever it is written: a TYPEDEF's group as well as a storage group (the refuted leg: `01 TG TYPEDEF SYNC.` compiled and ran at 2002/2014; golden pb494-typedef-sync-group-below-2023 refuses it at 2002 and 2014), and never again at a member a TYPE clause copied. The witness header of sync_group_below_2023, which claimed --permissive made it a warning, now says what the compiler does. Elementary items take the clause at every edition.",
+ "state": "OK"
+}

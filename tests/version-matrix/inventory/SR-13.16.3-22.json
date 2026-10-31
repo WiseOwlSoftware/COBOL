@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.16.3-22",
+ "section": "13.16.3",
+ "kind": "SR",
+ "ordinal": 22,
+ "subject": "Data description entry",
+ "rule-digest": "da4b1e0548c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#renamesClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames",
+ "test-ref": "conformance:cases/13.16-Data-description/l1_renames_through_thru",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "SR22 is a FORMAT 2 (renames) rule; the golden writes both spellings over the same operands and shows one storage area via §13.18.45.4 GR2 (same content, write-through, and the area concluding at WS-B).",
+ "state": "OK"
+}

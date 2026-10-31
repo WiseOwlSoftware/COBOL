@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.4.5.3-1",
+ "section": "8.8.4.5.3",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Simple condition-name condition (conditional variable)",
+ "rule-digest": "0eeb96d3e58d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderMembershipTest; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RangeCollateArg; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#UnscaledAtScale",
+ "test-ref": "conformance:cases/8.8.4.5-Simple-condition-name-condition/l1_value_thru_through_equivalent",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "cite.py --check 8.8.4.5.3 \"including the end values\" -> OK §8.8.4.5.3 1). A THRU range renders as inclusive >= lo && <= hi (numeric scaled, float double, string via CobolString.Compare or ThruMember under checking); multiple ranges OR together. Probed (probe out/probe/cn/p1.cob (--std 2023), p3.cob (--std 85), p2.cob/p4.cob (2023/2002)): S9(3)V99 VALUE -10 THRU -1.5 true at -10 and -1.5, false at -1.49; VALUE 1 THRU 2, 5, 7.25 THRU 8 true at 2, 5, 7.25, 8, false at 2.01 and 8.01; COMP-3 100 THRU 200 true at 200, false at 201; PIC X(5) \"B\" THRU \"D\" true at B and D, false at A and DA. Identical under --std 85. The golden derives FTTTTTFFFF / FTTFFFFFTT from GR1 + §14.7.8 rule 1. [editions as adjudicated: 85, 2002, 2014, 2023 (§8.8.4.5 carries no edition marking; the simple condition-name condition is base COBOL in every edition)]",
+ "state": "OK"
+}

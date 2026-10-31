@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.51.4-39",
+ "section": "14.9.51.4",
+ "kind": "GR",
+ "ordinal": 39,
+ "subject": "WRITE statement",
+ "rule-digest": "87df86349418",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c38_write_key_any_order",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Rule (cite.py --check 14.9.51.4 'WRITE statements may release records to the operating environment through that connector in any order' -> OK 39)). Code: the '21' order test is guarded by `sequentialRelease`, which is Access == Sequential, so random and dynamic access skip it. `_lastWrittenPrime` is updated only on the sequential arm. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). idx1.cob: a DYNAMIC I-O connector writes K05 (below every existing key) and then K47 (between existing keys), with 'D1 02' and 'D2 02' ('02' because alternate AA duplicates, which is correct). No golden is aimed at this rule; pb771_keyed_file_lock cites it only in passing, for lock behaviour. Test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
+ "state": "OK"
+}

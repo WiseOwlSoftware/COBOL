@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.11.4-5",
+ "section": "14.9.11.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "DISPLAY statement",
+ "rule-digest": "805614ce0f99",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay; docs/CONFORMANCE.md#DOC-A.1-58",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/l1_display_transfer_size; conformance-test:DisplayUponTests.Upon_EachOutputDevice_TransfersALongOperandAsOneLine",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CLOSED by kb/Work PB243 (wave 1091). Leg (a) (cite.py --check OK §14.9.11.4 5) a)) is the piecewise transfer of an item larger than one device transfer; its premise never arises because GR2's determination, now written down in docs/CONFORMANCE.md DOC-A.1-58 for EVERY output device, is UNBOUNDED - so GR4's arm (OK §14.9.11.4 4)) is always taken. That vacuity is now evidenced, not assumed: a bounded transfer size would fold a 2,000-position operand into two or more transfers (two or more lines), and l1_display_transfer_size (the standard device) and DisplayUponTests.Upon_EachOutputDevice_TransfersALongOperandAsOneLine (SYSOUT, CONSOLE, SYSERR) each observe exactly one unbroken line. Leg (b) (OK §14.9.11.4 5) b)) holds by construction: the stream write deposits the characters left to right from the current position and pads nothing, which every DISPLAY golden observes (each line begins with its first operand's first character).",
+ "state": "OK"
+}

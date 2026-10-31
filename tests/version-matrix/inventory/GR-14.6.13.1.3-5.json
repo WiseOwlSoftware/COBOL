@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.6.13.1.3-5",
+ "section": "14.6.13.1.3",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Exception conditions",
+ "rule-digest": "c4f2823da573",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitArgOrPlain; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Runtime/Exceptions/CobolFatalException.cs#Dispatched",
+ "test-ref": "conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb75_sdidi_overflow_outside_arithmetic; conformance:cases/14.6.13.1.3-Fatal-exception-conditions/ec_data_not_finite; conformance:cases/8.4.2.3-Subscripts/ec_bound_subscript; conformance-test:SizeErrorDispositionTests.FatalRaiseInsideAPerform_IsDispatchedOnce_ThenTerminates",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB75 (2026-08-18) + the EC waves: with checking enabled and an applicable USE declarative naming the condition (or a higher level), the declarative executes; if it completes normally (no RESUME) the run unit terminates abnormally. The declarative runs ONCE per raise — every enclosing statement's guard lets the dispatched condition pass on its way to the boundary (measured: a raise inside PERFORM 2 TIMES ran the declarative twice before this landing).",
+ "state": "OK"
+}

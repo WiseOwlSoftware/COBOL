@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.33.4-2",
+ "section": "14.9.33.4",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "RESUME statement",
+ "rule-digest": "81a3064f5d1f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#ResumeTransfer; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitActivationSite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformedRange; src/WiseOwl.Cobol.Runtime/Control/Signals/ResumeSignal.cs#ResumeSignal; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#EmitStatement",
+ "test-ref": "conformance:cases/14.9.33-RESUME/pb892_performed_declarative_resume; conformance:cases/14.9.18-GOBACK/pb892_operand_activation_resume; conformance:cases/8.4.3.4-Inline-method-invocation/pb892_inline_invocation_resume; conformance:cases/14.9.33-RESUME/pb141_resume_io; conformance:cases/14.9.33-RESUME/pb367b_nonfatal_runtime_resume; conformance:cases/14.9.33-RESUME/pb892-performed-declarative-resume-below-2002; conformance:cases/8.8.4.13-Order-of-evaluation-of-conditions/pb1432_operand_eval_resume",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "VERDICTED CONFORMS by kb/Work PB892. RESUME AT NEXT STATEMENT's implicit CONTINUE: a) an exception-entered declarative returns -2 from __RunUse to the raise site, which completes the applicable statement - 1. the raising statement, 2. the CALL/INVOKE or the statement a function/inline invocation is written in (BoundActivationSite), 3. the lowest such statement. b) a declarative entered by a PERFORM in the nondeclarative portion (14.9.49.3 SR4) - 'the implicit CONTINUE statement immediately follows the last statement of the terminating procedure referenced in that PERFORM statement' - used to have NO landing: the ResumeSignal escaped every frame and the run unit died with an unhandled .NET exception (probe w48s/p6). BoundOutOfLinePerform.EntersDeclarative marks that PERFORM (range declarative, PERFORM not itself in a declarative) and ControlFlowEmitter.EmitPerformedRange catches ResumeSignal around the range: NEXT STATEMENT completes this execution of the range (the TIMES/UNTIL phrase goes on), procedure-name is GR3's GO TO. The golden covers TIMES, a SECTION range (the section's later paragraph is skipped), RESUME AT procedure-name, and the exception entry of the same declarative. The transcription dedents b) to column 0, so cite.py locates the b) text under '2) a) 3.'; it is GR2 b) in the printed standard. retired-witness: src/Cobol.Net.Compiler/CodeGen/EmitterState.cs#OperandActivationResume (kb/Work PB1432 made the operand landing the ONE ResumeTransfer inside the operand-evaluation scope StatementEmitter.EmitStatement opens (OperandActivationResume became the private OperandEvaluationResume); the public method no longer exists)",
+ "state": "OK"
+}

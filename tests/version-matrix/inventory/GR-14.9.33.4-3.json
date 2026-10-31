@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.9.33.4-3",
+ "section": "14.9.33.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "RESUME statement",
+ "rule-digest": "6062ddca7b9b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#ResumeTransfer; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#ExplicitTransferOut",
+ "test-ref": "conformance:cases/14.9.33-RESUME/pb1148_resume_at_paragraph_after_perform_exit",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1148: a RESUME AT procedure-name landing is an explicit GO TO-like transfer, so it does not return to a PERFORM whose exit paragraph is the one just before the target.",
+ "state": "OK"
+}

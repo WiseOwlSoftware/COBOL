@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.1.3.2-3",
+ "section": "8.1.3.2",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "COBOL character repertoire",
+ "rule-digest": "502f7c3300d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/CobolNames.cs#Fold; src/WiseOwl.Cobol.Runtime/CobolNames.cs#Comparer; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#ApplyEditionSpelling; src/WiseOwl.Cobol.Runtime/CobolNames.cs#UpperFold; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#WordIdentifier",
+ "test-ref": "conformance:cases/8.1.3-COBOL-character-repertoire/pb1402_extended_letters; conformance:cases/8.1.3-COBOL-character-repertoire/pb1402_extended_letters_2023; unit:CobolNameFoldDriftTests.Same_IsTheAnnexCFold; conformance:cases/8.1.3-COBOL-character-repertoire/pb1965_annex_c_word_keys; unit:CobolNameFoldDriftTests.NoHostUpperCase_AsTheKeyOfACobolWord; unit:CobolNameFoldDriftTests.UpperFold_IsTheFoldWithTheBasicLettersRaised; unit:CobolNameFoldDriftTests.NoOrdinalIgnoreCase_OverACobolWord_InAnyProject",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1965 (w1047a): the fold's reach is now every word key. The Editions word tables (CobolWordsMap, CompilerDirectiveCatalog, ContextSensitiveWords, ImplementorNames, NonstandardExtension, ReservedWords) are keyed by CobolNames.Comparer (WiseOwl.Cobol.Editions references the runtime for it); a word's upper-case KEY (a >>COBOL-WORDS Resolve argument, a C# identifier derived from a class, method, property, program or formal name, a default externalized name, the run-time EXTERNAL identities) is CobolNames.UpperFold, the Annex C fold with only the basic letters raised, never the host's ToUpperInvariant (CobolNameFoldDriftTests.NoHostUpperCase_AsTheKeyOfACobolWord). Before it: FUNCTION <Kelvin>UP under EQUATE \"UPPER-CASE\" WITH \"KUP\" was COBOL1501; at 2023 the EXTERNAL items X<final sigma> and X<sigma> were one item (MAIN S), and methods of those names one C# member (CS0111). retired-witness: unit:CobolNameFoldDriftTests.NoOrdinalIgnoreCase_OverACobolWord_InTheCompilerOrTheFrontend (renamed by kb/Work PB2845 when the drift test's scan widened from the compiler and the front end to every project; the same check under its new name is added)",
+ "state": "OK"
+}

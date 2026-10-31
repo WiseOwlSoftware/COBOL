@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.5.3-2",
+ "section": "9.3.5.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Polymorphism",
+ "rule-digest": "c58094f01fe9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckWords",
+ "test-ref": "conformance:cases/7.3.9-CALL-CONVENTION/pb1383-call-convention-undefined-name",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "Rule 9.3.5.3 item 2 'The expected calling convention' and its consumer 9.3.6 match rule 2 (cite.py OK 9.3.6 2) 'The same calling convention shall be in effect for the invocation as is in effect for the invoked method'). The METHOD side is constant: ENTRY-CONVENTION admits only COBOL (entry-convention-name-1 is COBOL2385, DOC-A.1-64). The INVOCATION side is now constant too: >>CALL-CONVENTION admits only COBOL (any other word is COBOL1911), so the component cannot differ between an invocation and a method and the name-only signature is exactly equivalent to one that includes it. LANDED w1007b (kb/Work PB1383): WiseOwl COBOL defines no call-convention-name, as docs/CONFORMANCE.md DOC-A.1-68 states, so the directive row's operand set is COBOL alone (constructs.json call-convention-directive-2002; the 'any COBOL word' userWord column is deleted): >>CALL-CONVENTION XYZZY is COBOL1911 (conformance:cases/7.3.9-CALL-CONVENTION/pb1383-call-convention-undefined-name), and >>CALL-CONVENTION COBOL + CALL \"p1383s\" reaches P1383S by the case-insensitive COBOL-word mapping (conformance:cases/7.3.9-CALL-CONVENTION/pb1383_call_convention_cobol).",
+ "state": "OK"
+}

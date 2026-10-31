@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.3.3-5",
+ "section": "8.4.2.3.3",
+ "kind": "SR",
+ "ordinal": 5,
+ "subject": "Subscripts",
+ "rule-digest": "f4e14e4d694e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ScreenSubscriptArity; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveForItem; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveForAddressOf; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveTableOperand",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb681-table-element-not-subscripted; unit:SubscriptAdmissionDriftTests.TheOmittedSubscriptList_IsScreenedAtEveryIdentifierEntry; conformance:cases/8.4.2.3-Subscripts/pb1016_constant_length_subscripts",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "GAP -> CONFORMS (kb/Work PB681). Rule text validated: cite.py --check 8.4.2.3.3 \"Each table element reference shall be subscripted except when such reference appears\" -> OK 5). An OMITTED subscript list on a table element is COBOL2270 at all three identifier entries (Resolve, ResolveForItem for a condition-name's conditional variable, ResolveForAddressOf); before, each returned an unreported null (or the first occurrence's address) and MOVE E TO B aborted at run time. The seven exception contexts a)-g) never reach the screen: the SEARCH subject resolves through ResolveTableOperand, the SORT table subject and keys through SortBinder's own data-description walk, REDEFINES / OCCURS KEY / SUM through the data binder; the screen's summary records that boundary.",
+ "state": "OK"
+}

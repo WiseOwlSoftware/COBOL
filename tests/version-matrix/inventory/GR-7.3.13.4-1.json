@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.3.13.4-1",
+ "section": "7.3.13.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "EVALUATE directive",
+ "rule-digest": "124f5134c0cd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Flush",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_copy_replace",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "GR1 (cite.py --check 7.3.13.4 OK): text-1/text-2 are not part of the directive line, and their non-directive text words are subject to COPY/REPLACE matching. Render() consumes only lines starting '>>' as directives; every other emitting line is accumulated into a block and Flush() runs CopyProcessor.ExpandCopiesOneLevel on it, and REPLACE acts downstream on the resultant text; omitted lines are blanked. Probe p2.cob: REPLACE ==FOOTAG== BY ==\"GR1-REPLACE-OK\"== then text-1 'DISPLAY FOOTAG' and 'COPY cb1 REPLACING ==ZZTAG== BY ==\"GR1-COPY-OK\"==' inside a taken >>WHEN -> printed GR1-REPLACE-OK, GR1-COPY-OK; a REPLACE statement inside the omitted WHEN OTHER text did not act (its pseudo-text word stayed undefined, COBOL1639), and a nested >>IF inside text-1 was processed as a directive, not as text words. Both halves verified. No spec-derived golden exercises COPY/REPLACE inside >>EVALUATE text. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOL0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+ "state": "OK"
+}

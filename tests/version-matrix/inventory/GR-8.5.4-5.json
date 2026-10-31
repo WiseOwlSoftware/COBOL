@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.4-5",
+ "section": "8.5.4",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Data description and representation",
+ "rule-digest": "100db9c2745c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#ZeroLengthItemRoute; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#CurrentRecordLength",
+ "test-ref": "conformance:cases/8.5.4-Zero-length-items/pb1409_read_into_zero_length_record_takes_the_literal_substitution; conformance:cases/8.5.4-Zero-length-items/pb721_zero_length_record",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1409 landed. Format 3 (RECORD CONTAINS 0 TO n) half: ZeroLengthItemRoute now matches the READ/RETURN INTO sender, a BoundCurrentRecord whose file has VaryMin 0 and whose implied move is not the Format 2 alphanumeric group move (14.9.30.4 4) b)), returning a ZeroLengthSender the emitter tests with OperandText.CurrentRecordLength (GR16 byte count): a zero-byte record is a zero-length item (8.5.4 5)), GR1 -> GR2 substitutes SPACE and EDITS it into PIC XX/XX (\"  /  \"), a 3-byte record stays a group move (no editing), and the same program's MOVE FR0 TO WE agrees. Format 2 half unchanged (pb721_zero_length_record).",
+ "state": "OK"
+}

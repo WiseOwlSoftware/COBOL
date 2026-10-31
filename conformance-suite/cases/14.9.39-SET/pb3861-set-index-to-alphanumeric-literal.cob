@@ -16,11 +16,11 @@
       *> data-name is expected here, not a literal" was silenced as false
       *> (kb/Work PB906): a numeric literal IS expected there. COBOL5506
       *> now names both sides at every edition: the literal written is
-      *> alphanumeric, and of the literals only a numeric literal is
-      *> expected. The parse takes a ZERO here only beside an arithmetic
-      *> operator (ZeroTokenRewriter's ZERO_ARITH), so the message does
-      *> not name it: a sole SET IX TO ZERO is still refused by the
-      *> parse, a separate defect (kb/Work PB3861 review R1-1).
+      *> alphanumeric, and of the literals only a numeric literal or the
+      *> figurative constant ZERO is expected: a sole SET IX TO ZERO
+      *> parses, the ZERO read as the arithmetic expression's operand
+      *> where the slot refuses the figurative (kb/Work PB4120), so the
+      *> message names it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. N3861SI.
        DATA DIVISION.

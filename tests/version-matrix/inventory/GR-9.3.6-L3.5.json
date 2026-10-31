@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.3.6-L3.5",
+ "section": "9.3.6",
+ "kind": "GR",
+ "ordinal": 5,
+ "subject": "Objects",
+ "rule-digest": "36eab4693cf2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitCobolInvokeCase",
+ "test-ref": "conformance:cases/8.4.3.4-Inline-method-invocation/pb1051_method_by_value; conformance:cases/9.3.6-Method-invocation/pb1051_method_by_value_match; conformance:cases/9.3.6-Method-invocation/pb1051_universal_by_value_no_match",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1051 landed (wave 1011 C): a METHOD formal declared BY VALUE is carried (OoFormal.ByValue). Match rule 5: a BY VALUE parameter needs a corresponding BY VALUE formal (a), and the SET/MOVE legs (c, d) hold with literal truncation ignored in step 5 - goldens pb1051_method_by_value and pb1051_method_by_value_match; a universal invocation passes every argument BY REFERENCE (SR6), so it never reaches rule 5 and a BY VALUE formal never matches it (golden pb1051_universal_by_value_no_match). OMITTED (b) is a BY REFERENCE word, never written for a BY VALUE parameter.",
+ "state": "OK"
+}

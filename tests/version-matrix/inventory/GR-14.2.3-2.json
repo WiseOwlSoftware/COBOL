@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-14.2.3-2",
+ "section": "14.2.3",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Procedure division structure",
+ "rule-digest": "6c726258a227",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundCall.cs",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/l1c22_call_positional_formals; conformance:cases/14.2-Procedure-division-structure/l1c22_positional_formals_oo_func",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§14.2.3 GR2 (positional correspondence; five argument sources). Probed with names chosen to CONTRADICT position: CALL 'SUB9' USING Y X into formals X Y -> callee sees BBBAAA and its store to its first formal lands in the caller's Y (b2/gr2_pos.cob); inline invocation O::\"CAT\"(B, A) -> BBBAAA and INVOKE O \"CAT\" USING A B -> AAABBB (b5/gr2_oo.cob); function reference FR6(A) delivers (b4/gr6_func.cob); implicit SET property method via MOVE B TO P OF O -> P=BBB (b5/gr2_oo.cob). The conformance delegation to 14.8.2/14.8.3 is owned by those clauses' rows. No single existing test pins position-vs-name - test-needed. || editions as adjudicated: 85, 2002, 2014, 2023 (CALL arm 85; INVOKE / inline invocation / function reference / property SET arms 2002+)",
+ "state": "OK"
+}

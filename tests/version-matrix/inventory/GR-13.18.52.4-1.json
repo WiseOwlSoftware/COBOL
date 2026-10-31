@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-13.18.52.4-1",
+ "section": "13.18.52.4",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "SIGN clause",
+ "rule-digest": "e2f672522328",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#WithInheritedSign; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ReportItemDescription.cs#EnclosingReportItem; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ReportItemDescription.cs#ReportPrintablePicture; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritSignClauses",
+ "test-ref": "conformance:cases/13.18.52-SIGN/pb536_code_set_group_sign; conformance:cases/13.18.52-SIGN/pb493_report_group_sign_inherited; conformance:cases/14.9.39-SET/pb3682_set_restricted_pointer_to_typedef_group_clauses",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB493 (landed, wave 20261032). A group's SIGN clause reaches each subordinate signed numeric item through ONE rule, DataBinder.WithInheritedSign, read by the data division's group walk (InheritSignClauses), the 13.18.49.4 GR5 SAME AS transform and now the REPORT SECTION: a report group description entry hands its clause down through EnclosingReportItem, the same reader that hands down its USAGE (13.18.60.4 GR1). Before the fix `01 DET-A TYPE DE SIGN LEADING SEPARATE. 02 COLUMN 1 PIC S9(3) SOURCE WN.` printed the GR4 default `00N` for -5; golden 2002/pb493_report_group_sign_inherited prints `-005 +007`. Determination D-SIGN1 (docs/CONFORMANCE.md section 3): an inherited clause reaches a display or national signed item only; a binary or packed item keeps its representation (data division witness: pb536_code_set_group_sign).",
+ "state": "OK"
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.23.3-7",
+ "section": "14.9.23.3",
+ "kind": "SR",
+ "ordinal": 7,
+ "subject": "INVOKE statement",
+ "rule-digest": "01cee4790bf1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvoke",
+ "test-ref": "conformance:cases/14.9.23-INVOKE/pb1136-invoke-identifier-2-typed-receiver; conformance:cases/14.9.23-INVOKE/pb1136-invoke-class-name-identifier-2; conformance:cases/8.3.3.5-National-literals/pb1136_invoke_selector_forms",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1136 LANDED (w1014u). cite.py --check 14.9.23.3 'Identifier-2 may be specified only when identifier-1 is a universal object reference' OK 7). Typed receiver + identifier-2 -> COBOL0866 naming SR7 (negative); class-name + identifier-2 -> COBOL0866 naming SR3 and SR7 (negative); universal U + identifier-2 runs (golden lines 1, 2, 7).",
+ "state": "OK"
+}

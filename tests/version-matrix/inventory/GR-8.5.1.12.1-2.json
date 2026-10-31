@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.5.1.12.1-2",
+ "section": "8.5.1.12.1",
+ "kind": "GR",
+ "ordinal": 2,
+ "subject": "Variable-length groups",
+ "rule-digest": "ebb6b785274b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/GroupCompatibility.cs#Walk",
+ "test-ref": "conformance:cases/8.5.1.12-Variable-length-groups/pb204_vlg_boundary; conformance:cases/8.5.1.12-Variable-length-groups/pb204-nested-vlg-element-width; conformance:cases/_unassigned/pb480_universal_variable_length_shapes; conformance:cases/_unassigned/pb2689_vlg_element_measured_length; unit:GroupCompatibilityWalkTests.ElementsHoldingADynamicTableOppositeAFixedOne_MatchAtTheLengthThePairGivesThem",
+ "derivation": "",
+ "editions": "2023",
+ "notes": "Condition 2 - 'For each pair of corresponding tables, these tables match, as specified in 8.5.1.12.3, Matching' - is the same walk's matching arm: 8.5.1.12.3 sentence 2's 'the byte length of their elements is equal and their elements are compatible', the second conjunct RECURSING into the same relation (VariableLengthCompatibility.Elements) because a table of variable-length groups is exactly the shape the condition exists for. Sentence 3's 'the dynamic-capacity table is considered to be the same length as the corresponding table' when only one side is dynamic, and sentence 4's single-element length when both are, are applied as the pair's position advance - a fact about a PAIR, which is why it cannot live on either item. POSITIVE: pb204_vlg_boundary's 3-byte elements match and the crossing recovers the callee's capacity by dividing the carried content by that element width. NEGATIVE: pb204-nested-vlg-element-width corresponds two tables of 3- and 4-byte elements and is rejected naming this rule. || kb/Work PB480 (w1031b): the walk moved to the runtime (GroupCompatibility.Walk over GroupAtom layouts) so the bind-time screens (VariableLengthCompatibility builds the atoms and words the reasons) and the run-time relation a universal INVOKE asks of two descriptions compiled apart are ONE copy; two variable-length groups of different shapes now cross both INVOKE lanes (CobolVarGroup.Reshape / Overlay) - conformance:cases/_unassigned/pb480_universal_variable_length_shapes. retired-witness: src/Cobol.Net.Compiler/Binding/Model/VariableLengthCompatibility.cs#Walk (kb/Work PB480 moved the 8.5.1.12 walk to the runtime (GroupCompatibility.Walk); VariableLengthCompatibility no longer has a Walk member) || kb/Work PB2689 (w1045d): the element lengths sentence 2 compares are the ones the element walk MEASURES for the pair (sentence 3 applied inside the element pair), so an element holding OCCURS DYNAMIC opposite one holding OCCURS 2 matches - conformance:cases/_unassigned/pb2689_vlg_element_measured_length.",
+ "state": "OK"
+}

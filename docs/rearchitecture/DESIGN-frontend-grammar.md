@@ -409,9 +409,24 @@ so the loop ends; a program that declares no such word parses exactly once, and 
 are reported. Where §8.9 RESERVES the word nothing is retyped: a declaration matches `reservedGatedWord` and
 `VersionConformancePass`'s funnel answers with the targeted COBOL0901 (`VisitReservedGatedWord`, which hangs on
 the RULE — a new definition slot needs no C#), and a reference fails to parse and is re-coded to COBOL0901 by
-`CobolErrorListener` (below).
+`CobolErrorListener` (below). The recovery from that report reads the word the same way: `CobolErrorStrategy.ConsumeUntil`
+consumes the token the report named (`IsReportedReservedOperand`) as the operand it stood for before resynchronizing,
+because a reserved VERB (RECEIVE, SEND, VALIDATE) is in every statement-level recovery set and the base recovery resumed
+AT it, parsed it as its statement and refused the next token — `DISPLAY RECEIVE.` drew COBOL0901 and a second
+`unexpected '.'` (kb/Work PB3248; one occurrence, one §8.3.2.1 1) violation, one diagnostic). The same report fires at a
+verb that correctly begins the NEXT statement after an incomplete one (`MOVE W-X TO` then `RECEIVE FROM W-X GIVING W-Y
+W-N`), so the grammar tells the two apart: the word is consumed only when the statement it would begin does not parse
+(`CobolParserCoreBase.LookaheadBeginsAStatementThatParses`, a speculative `ParserInterpreter` parse of `statement` up to the
+separator period — the one helper, `ReadingParses`, that also answers `entryNameHere`'s clause reading); where it parses,
+the recovery resumes at it and the statement is read as written.
 
-The same loop settles the one other token decision only the parse can make (kb/Work PB3981): a figurative ZERO
+The same loop settles the one other token decision only the parse can make — is this figurative ZERO an arithmetic
+operand? (kb/Work PB3981, PB4120). A BARE figurative ZERO in a slot the grammar types arithmetic-expression alone
+(`SET IX UP BY ZERO`, `CONTINUE AFTER ZERO SECONDS`, `ALLOCATE ZERO CHARACTERS`; §8.8.1.1 admits "the figurative
+constant ZERO (ZEROS, ZEROES)") has no neighbour that shows the expression, so the rewriter leaves it figurative and the
+slot refuses it: a pass that fails AT a figurative ZERO puts it on trial as `ZERO_ARITH` and parses again, and a trial
+refused at the ZERO again goes back (`MOVE X TO ZERO`). No slot list exists: the failing parse is the grammar's answer,
+so the next arithmetic-expression-only slot is covered. And a figurative ZERO
 followed by a sign touching its literal (`ZERO -1`) is read as an operand-list item before the parse
 (`ZeroTokenRewriter.IsSignOfNextLiteral`, kb/Work PB3962), which is wrong where the grammar puts an arithmetic
 expression (`COMPUTE X = ZERO -1`, `IF X = ZERO -1`): there the characters are a subtraction written without its
@@ -502,6 +517,9 @@ form to a repeating entry) — so the operand list is greedy by design and the r
 
 `reservedHere` keeps its own meaning ("is this token the reserved keyword here") for `facilityWord`
 and the SPECIAL-NAMES CRT/CURSOR clause guards, which must keep recognizing their clauses under `--permissive`.
+`facilityWord` guards only the bare-verb COMMIT and ROLLBACK arms (below 2023 `COMMIT.` is a paragraph header); a
+declined statement that takes operands — RECEIVE, SEND, VALIDATE — is the union grammar (`wordAhead`), and the
+edition pass names its introduction (kb/Work PB374, PB3148).
 
 **The gate has NO exclusions (kb/Work PB845).** It once exempted the name-slot rows that the `functionName` rule
 also lists (LENGTH, NATIONAL, BIT) as "intrinsic function names" whose `cobolWord` occurrence was the
@@ -1954,6 +1972,11 @@ lowercase with Annex C. Three pieces, each in one place:
   compiler's sink, so the reports sit beside the binder's own diagnostics and do not stop the compile before it). The one text that is not words is a comment-entry (`AUTHOR. JOSÉ` is a legal '85 comment), which the parse tree
   names by its single context `commentEntry`; the six paragraph rules call it. The directive stages scan their own words
   and ask `CobolWordRule` themselves (a directive leaves the text before the lexer runs).
+  **The order it reports in (kb/Work PB4131).** The frontend screen needs the failed parse, so it reports after it, but the word
+  it names is why the parser died at the NEXT token: `LexAndParseOnce` screens into a bag of its own and
+  `DiagnosticBag.AddBeforeEffects` places each report before the first parse report of the same file at or after its position
+  (a tie going to the cause). So the COBOL2773 for a word reads before the COBOL0001 it explains, a parse error before the
+  word stays before it, and the placement is the one place, for every diagnosis the screen makes.
 - **The fold** — `CobolNames` (Runtime, because the run-time externalized-name match needs it too): `Fold`, the
   `Comparer` every name table uses, `Same` / `StartsWith` / `EndsWith` / `Contains` over spans, and `UpperFold`, a
   word's one upper-case spelling (the fold with the basic letters raised), which is the key wherever a word is
@@ -2320,7 +2343,11 @@ regression bisects to one step.
   arithmetic expression that same list reading fails to parse, so the parse decides the position** (kb/Work PB3981):
   `ReservationGateRewriter.ParseToFixpoint` asks `ZeroSignReading.Revise` after each pass, which turns a ZERO whose
   touching sign is a syntax-error offender into `ZERO_ARITH` and parses again (`COMPUTE X = ZERO -1` is COBOL2993
-  like `Y -1`, not a generic parse error), taking it back if the arithmetic reading fails there too. ⚠ The
+  like `Y -1`, not a generic parse error), taking it back if the arithmetic reading fails there too. ⛔ **The same round
+  takes a figurative ZERO that is itself the offender** (kb/Work PB4120, PB4172): a slot the grammar types
+  arithmetic-expression alone refuses the figurative, and a bare ZERO there (`SET IX TO ZERO`) is put on trial as
+  `ZERO_ARITH` the same way — so `AdmittedKinds.Refusal` names "the figurative constant ZERO" wherever the parse expects
+  `ZERO_ARITH`, with no neighbour test of its own. ⚠ The
   `ZERO_ARITH` token's text stays "0" (several readers parse the text of an arithmetic operand), so a diagnostic that
   quotes an operand node spells it with `WrittenSource.Of` (`DataBinder.WrittenText`), never `GetText()` (kb/Work
   PB3961: `PERFORM VARYING X FROM 1 BY ZERO + 1` printed `'0+1'`).

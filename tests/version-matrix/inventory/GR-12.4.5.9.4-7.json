@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.9.4-7",
+ "section": "12.4.5.9.4",
+ "kind": "GR",
+ "ordinal": 7,
+ "subject": "LOCK MODE clause",
+ "rule-digest": "a6a2f5cb910b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#ConnectorLockMax; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#RunUnitLockMax; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#PreflightNewLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReleasePriorRecordLocks; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#PreflightReadLock",
+ "test-ref": "conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/pb338_read_lock_limit_position",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "cite.py --check 12.4.5.9.4 7) 'that maximum shall be at least 15' OK. §9.1.13.8 4) 'I-O status = 54 ... this file connector holds the maximum number of locks' OK, and 3) = 53 for the run unit. Code: under Multiple, ReleasePriorRecordLocks returns early, so a connector keeps several locks. ConnectorLockMax = 15 and RunUnitLockMax = 255 (both exactly the floors). PreflightNewLock answers 54 or 53 BEFORE acquiring, which makes the statement unsuccessful. Probe rt1.cob phase 2 control C2 (ALL OTHER, MANUAL MULTIPLE): 15 x '00', then '54' on the 16th and 17th. 'will not deny them access to records that are not locked' holds: the conflict check is per record id (IsLockedByOther). Covering tests: conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/pb338_read_lock_limit_position (54 on both Format 1 and Format 2), and for the run-unit half unit:CobolFileLockTests.RunUnitLockLimit_256thRunUnitLock_Is53. The 'implementor shall specify' maxima (15/255) are not yet in the user documentation docs/CONFORMANCE.md. That obligation is carried by Annex A.1 items 154/155 (separate DOC rows; see dossier_gaps). kb/Work PB707 (open) owns the neighbouring defect that WriteShared/RewriteShared discard the RETRY phrase on a 53/54 denial, which is a §14.7.9 question, not a GR7 one. [registrar 14a — editions as adjudicated: 2002, 2014, 2023 (the clause is absent from ISO 1989:1985; it arrives with the 2002 file sharing / record locking facility, D.2.4 / A.4.7; no later change to 12.4.5.9 located)]",
+ "state": "OK"
+}

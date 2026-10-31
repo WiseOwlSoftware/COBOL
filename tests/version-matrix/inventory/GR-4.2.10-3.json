@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-4.2.10-3",
+ "section": "4.2.10",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "A conforming implementation",
+ "rule-digest": "de5685c3de9c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/NonstandardExtension.cs#NonstandardExtensionRegister; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Extension; src/WiseOwl.Cobol.Cli/Program.cs; tests/version-matrix/cobol-words.json; src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs#FlagConformancePass",
+ "test-ref": "unit:CobolWordsDriftTests.LexerWordTokens_Cost_The_User_No_Word_Iso_Leaves_Free; unit:NonstandardExtensionRegisterDriftTests.TheReservedWordsOfTheRows_AreTheLexersExtensionReservedTable; unit:NonstandardExtensionRegisterDriftTests.EveryUsageSpelling_IsFlaggedByTheOneUsageFunnel_OnlyWhenAsked; unit:NonstandardExtensionRegisterDriftTests.EveryVendorUsageTokenTheGrammarAccepts_IsASpellingOfARow; unit:CliParserTests.FlagExtensions_IsAnOptIn_SwitchThatSwallowsNothing; conformance-test:NonstandardExtensionWarningTests.AStandardUsageSpelling_IsNeverNamed",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1525 landed (wave 1020 A). The four sentences of the paragraph: (a) class 3 - the selectable nonstandard behaviours have a standard default and an implementor-defined selector (--permissive, --sign-encoding ibm|ascii, --source-format fixed|free|auto; src/WiseOwl.Cobol.Cli/Program.cs); (b)+(c-reserved words) the 15 extension-reserved words are specified in docs/CONFORMANCE.md D-RW1, equal to cobol-words.json extensionReserved (CobolWordsDriftTests) and to the ReservedWords of the register's rows (NonstandardExtensionRegisterDriftTests); (c-extensions) docs/CONFORMANCE.md 3.2 identifies the nonstandard extensions for which support is claimed, one table row per register row; (d) the warning mechanism is `cobol --flag-extensions`: optional (off by default, byte-identical output without it), at compile time, COBOL2894 at each use of a syntactically distinguishable extension, and ONLY those - a standard spelling (COMP, COMPUTATIONAL, BINARY, PACKED-DECIMAL, DISPLAY) is never named (AStandardUsageSpelling_IsNeverNamed) and --source-format auto, which is a property of the invocation, is documented and not flagged. The >>FLAG-02/-14 pass (FlagConformancePass) flags ISO migration items, a different §4.2.12/§4.2.13 mechanism, and is unchanged. GR-4.2.10-2 (the class-2 members) is CONFORMS: kb/Work PB298 re-probed both members the earlier PARTIAL named (the OPTIONS FLOAT-DECIMAL clause, COBOL2424; the EC-MCS-* names, COBOL1578) and closed it. Verdict DIVERGES -> CONFORMS.",
+ "state": "OK"
+}

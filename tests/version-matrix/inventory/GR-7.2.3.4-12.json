@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-7.2.3.4-12",
+ "section": "7.2.3.4",
+ "kind": "GR",
+ "ordinal": 12,
+ "subject": "COPY statement",
+ "rule-digest": "66b76be182c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel",
+ "test-ref": "unit:TextManipulationStatementTests.NestedCopyWithReplacing_IsRejected",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1356 (w68x): 'If the REPLACING phrase is not specified, the library text may contain a COPY statement that does not include a REPLACING phrase' (cite.py OK 7.2.3.4 12)): a COPY met inside library text (ExpandCopiesOneLevel depth > 0) with a REPLACING phrase is COBOL1640 (probe p6: printed IN, now rejected); nesting without REPLACING still expands; circular copy is CBL3621 and depth 20 CBL3622 as before.",
+ "state": "OK"
+}

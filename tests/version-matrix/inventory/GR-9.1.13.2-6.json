@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.2-6",
+ "section": "9.1.13.2",
+ "kind": "GR",
+ "ordinal": 6,
+ "subject": "I-O status",
+ "rule-digest": "45887fbca7d4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#NoRewindPhraseEffect; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#PhraseOnNonReelMedium",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/pb317_open_no_rewind; conformance:cases/9.1.13.2-Successful-completion/pb317_open_no_rewind_85; conformance:cases/9.1.13.2-Successful-completion/pb141_close_forms; conformance:cases/9.1.13.2-Successful-completion/pb1515_io_status_07_open_close_only; conformance:cases/9.1.13.2-Successful-completion/pb1515_io_status_07_keyed_organizations; conformance:cases/9.1.13.2-Successful-completion/pb1515_io_status_07_sharing_conflict; conformance:cases/9.1.13.2-Successful-completion/pb1515_io_warning_07_raises_ec; conformance:cases/9.1.13.2-Successful-completion/pb1515-io-warning-07-below-2023; unit:IoStatus07SetterDriftTests.TheNamedConstant_IsUsedOnlyByTheCloseDispatchAndTheOpenNoRewindArm; unit:IoStatus07SetterDriftTests.TheValue_IsNeverSpelledOutsideItsConstant",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1515: 2023 VERIFIED (cite.py --check 9.1.13.2 \"an OPEN statement with the NO REWIND phrase references a physical file on a non-reel/unit medium\" -> OK 9.1.13.2 6)); the setters are CLOSE REEL/UNIT [FOR REMOVAL] and CLOSE WITH NO REWIND (CloseByFormat) and OPEN WITH NO REWIND (NoRewindPhraseEffect), every connector being 14.9.6.4 category (a) or (d) (DOC-A.1-24); IoStatus07SetterDriftTests pins that no other site names or spells the value. BELOW 2023 IS A DETERMINATION, NOT A READING OF THE OLDER TEXT: the repository holds no 1985/2002/2014 text and E.2 item 16 (cite.py --check E.2 \"The setting of I-O Status '07' is now restricted to the execution of the OPEN and CLOSE statements\" -> OK) names neither the other statements nor their condition, so VERSION_CHANGE_REFERENCE row 22 fails its admission test and is ref-only; under the rule 1 order the behaviour is edition-invariant, as GnuCOBOL 3.2.0 (probed in WSL 2026-10-17: '07' from CLOSE alone, READ/WRITE/REWRITE/START/DELETE never) answers. docs/CONFORMANCE.md section 3 carries the determination; the four goldens pin one output at 85, 2002, 2014 and 2023 on the success and failure paths of each statement (35, 41, 42, 46, 61, 10, 22, 23; USE declarative, FILE STATUS, AT END, INVALID KEY, EC-I-O-WARNING with and without FILE STATUS). A text of an earlier edition that states a distinct rule makes row 22 a behavior: row (DialectBehaviors).",
+ "state": "OK"
+}

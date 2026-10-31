@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-8.4.2.3.3-2",
+ "section": "8.4.2.3.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "Subscripts",
+ "rule-digest": "8a31dbf61c30",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#IsTableElement; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#CannotBeSubscripted; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ScreenSubscriptArity; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Constants.cs#BindConstantLength",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb877_subscripted_subscript; conformance:cases/8.4.2.3-Subscripts/pb877-subscript-on-non-table-item; unit:SubscriptAdmissionDriftTests.TheSr2Predicate_AsksIsTableElement_NotIsTable; unit:SubscriptAdmissionDriftTests.IsTableElement_IsDefinedAsANonZeroSubscriptArity; conformance:cases/8.4.2.3-Subscripts/pb1016-constant-length-subscript-on-non-table; conformance:cases/8.4.2.3-Subscripts/pb1016_constant_length_subscripts",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "PB1016 LANDED 2026-09-22: the DATA DIVISION reference - CONSTANT AS LENGTH OF data-name-2 (SS13.10) - now reaches the same ReferenceResolver.ScreenSubscriptArity every procedure-division reference takes; before, `01 KL CONSTANT AS LENGTH OF PLAIN(1).` over a non-table item compiled and KL was 7. The constant binder's private suffix walk is gone (ReadWritten), so a subscript hung off a qualification is screened too. SR2 has two halves - 'shall contain an OCCURS clause OR SHALL BE SUBORDINATE TO a data description entry that contains an OCCURS clause' - and the compiler wrote down only the first, as DataItem.IsTable. Both halves are now one predicate, DataItem.IsTableElement (= SubscriptArity > 0), read by the ONE declaration-informed '(' rule the three subscript-splitting callers share. POSITIVE: the 85 golden subscripts X, which carries no OCCURS clause of its own and is subordinate to one, in every reference position - a receiving operand of MOVE / ADD / COMPUTE / STRING / UNSTRING / INITIALIZE, a sending operand, a relative subscript, a reference-modification leftmost position, an intrinsic-function argument and a SEARCH ALL identifier-1. NEGATIVE: a subscript on an item satisfying NEITHER half is COBOL2096 at all four editions. Before kb/Work PB877 that violation drew COBOL0899 'not yet implemented' on the receiving side - a promise about permanently illegal source - and compiled clean and aborted at run time on the sending side, where 4.2.2 requires a compile-time mechanism.",
+ "state": "OK"
+}

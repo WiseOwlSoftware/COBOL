@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-15.14.2",
+ "section": "15.14.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "BYTE-LENGTH function",
+ "rule-digest": "c8b4d661f878",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFamily; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/13.18.29-GROUP-USAGE/pb61_length_byte_length_rule_branches",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED 2026-08-18 (kb/Work PB61 — the LENGTH/BYTE-LENGTH folds enumerated from the rule branches; one builder for a runtime-length group; SR6 decided from the definition before binding). `FUNCTION BYTE-LENGTH ( argument-1 [ PHYSICAL ] )` — the optional PHYSICAL keyword is now consumed on the BYTE-LENGTH route exactly as on LENGTH's (BindLengthFamily serves both; the catalog row is Fixed(1,2) with the keyword position): golden PHYS: BYTE-LENGTH(GG PHYSICAL) = 7, BYTE-LENGTH(VLG PHYSICAL) = 9. It was 'takes 1 argument(s); 2 given' — a two-arm dispatch with one arm fixed (PB24 fixed LENGTH only). The keyword is transparent under the §15.14.4 r7 determination (CONFORMANCE.md). Editions: the argument-1-only format is 2002's (byte_length_below_2002 pins the 85 gate); PHYSICAL belongs to the 2014 variable-length-group family and is not separately edition-gated (the 2002 text is not in the submodule to cite).",
+ "state": "OK"
+}

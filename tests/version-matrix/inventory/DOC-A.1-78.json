@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-78",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 78,
+ "subject": "Fixed file attribute (whether the ability to share a file is a fixed file attribute)",
+ "rule-digest": "daceb9949177",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-78; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterSharing; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1c11_sharing_not_fixed_attribute",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "§9.1.6 (cite.py OK: 'The implementor shall specify whether the ability to share a physical file is a fixed file attribute'). The answer NO was previously written only inside the DOC-A.1-129 row; this row files it under its own key. Probe /tmp/adj/doc/doc-w1-s3/probe/sh78.cob (one path, F1 SHARING WITH NO OTHER, F2/F3 SHARING WITH ALL OTHER LOCK MODE MANUAL): OPEN OUTPUT F1 00; OPEN INPUT F2 while F1 open 61; after CLOSE, F2 and F3 INPUT together 00/00; F1 INPUT while they are open 61; F1 alone 00. No spec-derived test pins the not-carried-by-the-file answer; test-ref empty. Owning note: kb/Work/PB1534 (item 78).",
+ "state": "OK"
+}

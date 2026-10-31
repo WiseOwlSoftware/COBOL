@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-9.1.13.7-4",
+ "section": "9.1.13.7",
+ "kind": "GR",
+ "ordinal": 4,
+ "subject": "I-O status",
+ "rule-digest": "8cb702a5a928",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecordSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OutsideVaryingBounds",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1168_rs_rewrite_size_gr16; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1190_varying_advancing_bounds",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1168 landed (w67p). Item 4 b) ('an attempt is made to rewrite a record to a sequential file and the record is not the same size as the record being replaced', cite.py OK §9.1.13.7 4) b)) now holds on a FIXED-length record sequential file too (it held only for a varying one); a), c), d) were already verified (registrar 15d) and a) now also binds the print-control WRITE arm (PB1190).",
+ "state": "OK"
+}

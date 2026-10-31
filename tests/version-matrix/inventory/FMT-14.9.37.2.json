@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-14.9.37.2",
+ "section": "14.9.37.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "SEARCH statement",
+ "rule-digest": "9cbf28da6367",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock; src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb446-search-all-key-phrase; conformance:cases/14.9.37-SEARCH/pb446-search-all-second-when; conformance:cases/14.9.37-SEARCH/pb446-search-at-end-next-sentence; conformance:cases/14.9.37-SEARCH/pb446-search-when-next-sentence-mixed; conformance:cases/14.9.37-SEARCH/pb909-search-not-at-end; conformance:cases/14.9.37-SEARCH/pb909-search-all-not-at-end; conformance:cases/14.9.37-SEARCH/pb444_search_next_sentence; unit:SearchGeneralFormatShapeTests.ShapeNoFormatPrints_IsRefusedAtCompileTime; unit:SearchGeneralFormatShapeTests.ConformingSpelling_Compiles; unit:SearchGeneralFormatShapeTests.SearchGrammar_SpellsThePrintedFormats; conformance:cases/14.9.37-SEARCH/pb351-search-when-conditional; conformance:cases/14.9.34-RETURN/pb351_delimited_conditional_operand",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB351 LANDED (w1015c): the last SEARCH divergence (PB446 landed the rest). imperative-statement-1 (AT END) and imperative-statement-2 (WHEN) of both formats admit no conditional statement - an undelimited IF there is refused COBOL2796 at every edition (ISO 14.5.1; cite.py --check 14.5.1 OK); a delimited one (END-IF) compiles and runs (pb351_delimited_conditional_operand: FOUND-AT-2). Re-affirmed 2026-10-22 (kb/Work PB3530) against the figure regenerated from the printed page: render_figure.py's brace-group layout now keeps every alternative inside its own enclosure, so the diagram's layout changed while its words did not (sweep_figures.py's word gate); the verdict stands on the printed format.",
+ "state": "OK"
+}

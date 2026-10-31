@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-11.7.3-6",
+ "section": "11.7.3",
+ "kind": "SR",
+ "ordinal": 6,
+ "subject": "METHOD-ID paragraph",
+ "rule-digest": "18207c350655",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Oo.cs#ScreenPropertyMethodHeader",
+ "test-ref": "conformance:cases/11.7-METHOD-ID/pb1503-get-property-active-class; conformance-test:OoSpineTests.AccessorShape_GetWithUsing_2790",
+ "derivation": "",
+ "editions": "2002,2014,2023",
+ "notes": "kb/Work PB1503 LANDED (wave 1015 Z). cite.py --check 11.7.3 'then the method shall have no USING phrase parameters specified in the procedure division header and shall have a single RETURNING phrase' OK 6); 'The returning item shall not be an object reference described with the ACTIVE-CLASS phrase' OK 6). Asked of the BOUND header by DataBinder.ScreenPropertyMethodHeader (from OoBindMethodData), for instance, factory and interface-prototype accessors alike (the factory arm had no SR6 check at all; the instance arm tested header presence only). A GET PROPERTY returning an ACTIVE-CLASS reference is COBOL2790 (it compiled clean). retired-witness: conformance-test:OoSpineTests.AccessorShape_GetWithUsing_0842 (renamed AccessorShape_GetWithUsing_2790 by kb/Work PB1503 (the rule moved to the bound header and its own descriptor COBOL2790))",
+ "state": "OK"
+}

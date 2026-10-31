@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-12.4.5.6.4-3",
+ "section": "12.4.5.6.4",
+ "kind": "GR",
+ "ordinal": 3,
+ "subject": "ALTERNATE RECORD KEY clause",
+ "rule-digest": "baff6e934e27",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#DeclaredKeys; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/Store/MetaPage.cs#WriteKeyDescriptor",
+ "test-ref": "conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/open_fixed_attribute_conflict_ix; unit:FixedFileAttributeFormatTests.TheNumberOfAlternateKeysIsItsOwnRequirement",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "CONFORMS, unchanged in substance and re-homed by kb/Work PB802 - the ALTERNATE-key twin of GR-12.4.5.12.4-3, carrying a SECOND requirement that one does not: 'The number of alternate record keys for the file shall also be the same as that used when the physical file was created.' Both halves are recorded and compared. IndexedConnector.DeclaredKeys puts every alternate key's window, DUPLICATES phrase, 12.4.5.6.4 GR6 SUPPRESS WHEN value and collating sequence into the FRAMED STORE'S HEADER in declaration order (the order key numbers are assigned in) - no longer into a .cbattr sidecar beside the file, but into the file itself, which is where GnuCOBOL's ISAM format keeps the same information. The SUPPRESS WHEN value is length-prefixed in the header rather than delimiter-separated, because GR6 admits any figurative-constant or literal value, including one carrying a NUL or a line ending; a legal COBOL program therefore cannot write a store its own next OPEN refuses. FixedFileAttributes.Conflicts compares the key COUNT before the descriptors, so an added or missing alternate index is itself the 14.9.27.4 GR10 file attribute conflict condition and the OPEN is unsuccessful with '39'. The descriptor's scope and its derivation are the same as GR-12.4.5.12.4-3's, and so is the WISEOWL_COBOL_KEYCHECK=OFF opt-out (on by default; documented at DOC-A.1-129). Pinned by open_fixed_attribute_conflict_ix step I3 (a connector whose prime key agrees but which declares an ALTERNATE RECORD KEY the file was never built with gives '39') and by the unit test for the count requirement on its own - a description that simply OMITS the alternate, every key it does declare agreeing. retired-witness: src/Cobol.Net.Runtime/IO/RecordFraming.cs#WriteStore (kb/Work PB2660 split the store write into ComposeStore (the framing) and KeyedConnector.Persist (the positional I/O); WriteStore no longer exists) retired-witness: src/Cobol.Net.Runtime/IO/RecordFraming.cs#ComposeStore (the whole-store model's remains are deleted (kb/Work PB3335; DESIGN-runtime-library 2.2.1.13): the key's fixed attributes are recorded by the one key codec of the meta page (MetaPage.WriteKeyDescriptor), not by a whole store's header)",
+ "state": "OK"
+}

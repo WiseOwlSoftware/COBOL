@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-14.9.19.3-2",
+ "section": "14.9.19.3",
+ "kind": "SR",
+ "ordinal": 2,
+ "subject": "IF statement",
+ "rule-digest": "f8014a966de1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
+ "test-ref": "conformance:cases/14.5.3.2-Explicit-scope-termination/l1_if_nested_else_endif_match",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "Four nesting shapes chosen so the two candidate ELSE/END-IF matchings give different output, including the 'already matched with an ELSE' half of SR2 a) and the period-terminates-the-nest NOTE.",
+ "state": "OK"
+}

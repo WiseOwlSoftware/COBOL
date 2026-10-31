@@ -1,0 +1,15 @@
+{
+ "rule-id": "SR-13.18.63.3-11",
+ "section": "13.18.63.3",
+ "kind": "SR",
+ "ordinal": 11,
+ "subject": "VALUE clause",
+ "rule-digest": "27116f0eda78",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs; src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs",
+ "test-ref": "conformance:cases/13.18.63-VALUE/value_numeric_edited; conformance:cases/13.18.40-PICTURE/pb492_national_edited_2002; conformance:cases/13.18.63-VALUE/pb492-national-edited-value-literal-class",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB554 - CLOSED BY RE-PROBE (wave 39); the defect this row carried does NOT reproduce and the sentence that was unverifiable is now pinned. SENTENCE 1 (numeric-edited + numeric literal -> editing applied) conforms at its edition: `01 X PIC ZZ9.99 VALUE 12.5.` DISPLAYs [ 12.50] at 2023, and below 2023 the numeric-literal route is the COBOL0900 edition gate (Annex E.3.3 item 43); the pre-2023 alphanumeric-image route still works. SENTENCE 2 (alphanumeric-edited and national-edited -> NO editing at initialization) conforms at every edition: `01 Y PIC XXBXX VALUE \"ABCDE\".` DISPLAYs [ABCDE], and the NATIONAL-EDITED half, which was PARTIAL only because national-edited data was staged out by COBOL0899, is live since the PB492 landing - `01 Z PIC NNBNN USAGE NATIONAL VALUE N\"ABCDE\".` now compiles and DISPLAYs [ABCDE] (re-probed on a fresh build), and 2002/pb492_national_edited pins the same sentence as VAL=[AB CD], the literal stored exactly as written. The COBOL0898 mis-rejection this row also recorded is gone with the same landing: PicCategory has no NationalEdited member at all (data-model D-N6), a national-edited item is Category National with an EditMask, and ValidateValueCategory's cross-category catch-all therefore never reaches it. The opposite direction, an ALPHANUMERIC literal on a national-edited item, is correctly refused by SR5 (negative pb492-national-edited-value-literal-class).",
+ "state": "OK"
+}

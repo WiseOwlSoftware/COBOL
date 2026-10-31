@@ -1,0 +1,15 @@
+{
+ "rule-id": "GR-8.8.1.5.2-1",
+ "section": "8.8.1.5.2",
+ "kind": "GR",
+ "ordinal": 1,
+ "subject": "Standard-decimal arithmetic",
+ "rule-digest": "b86f9eab3e7d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#DecOperand; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#FromParsed",
+ "test-ref": "conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb145_round_away; conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb145_round_even; conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb145_round_trunc; conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/pb145_round_prohib; conformance-test:StandardDecimalTests.PerOpRounding_TwoSeventhsTimesSeven_IsExactlyTwo; conformance:cases/8.8.1.5.2-Standard-decimal-intermediate-data-item/v56_reldec_float_sdidi; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99_floating_literal_standard_decimal",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "LANDED (kb/Work PB145): r1's second sentence - the inexact-operand rounding - is pinned per mode at last. The pb145_round_* family lands a 36-digit-significand floating literal under each of NEAREST-AWAY-FROM-ZERO / NEAREST-EVEN / TRUNCATION (L36 = 235/235/234 through the exact subtract-the-bulk viewport) and PROHIBITED (the r3d raise); the SUBNORMAL band (the refuter's widened enumeration) is pinned by the SUB leg's gradual-underflow quantum landing (2/2/1) and by CobolDecPowRangeTests.SubnormalTie_LandsOnTheQuantumByMode. PREMISE CORRECTED while writing the close: NUMVAL-F is NOT a third inexact producer in this implementation - NvfScan REJECTS a significand past the mode's 34-digit cap (the settled r1b digit-cap determination, PB60/PB121), so it never delivers a >34-digit value to FromParsed; the reachable inexact producers are the literal conversion and computed intermediates, both covered. The DeEditFloat 36-digit pass-through premise remains strict-mode-shielded (COBOL0844 rejects the numeric-edited arithmetic operand; the --permissive lane carries the residue).",
+ "state": "OK"
+}

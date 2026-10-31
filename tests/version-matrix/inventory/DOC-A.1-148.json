@@ -1,0 +1,15 @@
+{
+ "rule-id": "DOC-A.1-148",
+ "section": "A.1",
+ "kind": "DOC",
+ "ordinal": 148,
+ "subject": "RECORD clause (whether fixed or variable records produced for fixed-or-variable-length format)",
+ "rule-digest": "af5b814c5fbc",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-148; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRecordClause; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#RecordFraming",
+ "test-ref": "conformance:cases/13.18.43-RECORD/l1c23_record_format3_variable",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "§13.18.43.4 GR17 (cite.py OK 17)) leaves fixed vs variable to the implementor. Code: DataBinder.BindRecordClause (DataBinder.cs:1686-1714) binds a TO-without-VARYING clause as file.Varying = VaryingRecordInfo(lo, hi, dep, VaryingClause: false) - the variable-length model. Probe probe/f3.cob at --std 85 and 2023: sequential file = 05000000 'ABCDE' 0A000000 'ABCDEFGHIJ' (23 bytes); relative file = header then the same two prefixed frames; both editions identical. No golden distinguishes fixed from variable for format 3 (pb721_zero_length_record F3 reads back its record but cannot tell), so Pinned by is empty. Owning note kb/Work PB1278 (open; this row discharges its item-148 half, the item-146 half stays open behind PB1276).",
+ "state": "OK"
+}

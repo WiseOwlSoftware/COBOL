@@ -811,7 +811,8 @@ def main(argv: list[str]) -> int:
     # The determination and its evidence are ONE artifact: §7's `Pinned by` cell and the inventory row's own
     # spec-derived test-ref must agree. Imported lazily so the register audit still runs where the inventory
     # has not been built (the error a missing inventory raises is a SystemExit with the rebuild command).
-    from inventory_schema import load_inventory, load_schema
+    from inventory_schema import load_schema
+    from inventory_store import load_inventory
     findings.extend(check_pins(pinned, load_inventory(), load_schema()))
     findings.extend(check_pin_resolution(pinned, load_schema(), ROOT))
     # kb/Work PB593 — no Annex A.1 element is grounded on §4.2.7, which its own first sentence scopes to Annex A.4.

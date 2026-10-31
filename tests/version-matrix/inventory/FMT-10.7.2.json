@@ -1,0 +1,15 @@
+{
+ "rule-id": "FMT-10.7.2",
+ "section": "10.7.2",
+ "kind": "FMT",
+ "ordinal": 0,
+ "subject": "End markers",
+ "rule-digest": "a443e1a6af4e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#methodDefinition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionIdParagraph",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988_end_markers; conformance:cases/10.7-End-markers/pb988-function-definition-85",
+ "derivation": "",
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB988 LANDED (wave 1015 Z2). The refuter's PARTIAL was the edition half: END FUNCTION (and the FUNCTION-ID paragraph it closes) is a COBOL-2002 introduction, accepted at --std 85 with no gate. The new construct row function-definition-2002 is recognition-fired on the FUNCTION-ID paragraph (ParseArm.VisitFunctionIdParagraph, COBOL0900; the prototype format keeps its own function-prototype-2002 row on prototypePhrase), so pb988-function-definition-85 names the edition; END FUNCTION closing a PROGRAM-ID unit is COBOL2274 (§10.6.1) at every edition. The 2002 positive pb988_end_markers writes all nine alternatives (END PROGRAM program and prototype, END FUNCTION function and prototype, END CLASS, END FACTORY, END OBJECT, END METHOD named and bare, END INTERFACE) and runs: NESTED F=14 MAKE V=5 LAST.",
+ "state": "OK"
+}

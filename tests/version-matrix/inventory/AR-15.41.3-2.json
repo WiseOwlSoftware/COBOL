@@ -1,0 +1,15 @@
+{
+ "rule-id": "AR-15.41.3-2",
+ "section": "15.41.3",
+ "kind": "AR",
+ "ordinal": 2,
+ "subject": "FORMATTED-TIME function",
+ "rule-digest": "36351a0f63f1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DateTimeFormatGrammar.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FormatKindsAdmittedBy",
+ "test-ref": "conformance:cases/15.3.3.6.1-Offset-subformats/pb11_datetime_format_grammar",
+ "derivation": "",
+ "editions": "2014,2023",
+ "notes": "Was DIVERGES. FORMATTED-TIME now requires a TIME format; a DATE format is rejected with COBOL1631 where it previously fabricated a value. The golden covers the common-time shapes of 15.3.3.1/15.3.3.2 plus the UTC (15.3.3.5) and offset (15.3.3.6) forms, including the extended offset subformat pairing 15.3.3.6.1 requires.",
+ "state": "OK"
+}
