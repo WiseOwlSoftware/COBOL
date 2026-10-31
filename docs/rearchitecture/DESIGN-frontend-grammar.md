@@ -2028,8 +2028,11 @@ the unit's TOKEN stream in `Frontend.LexAndParseOnce`, first of the post-lex rul
 the parse fails and a unit whose parse fails is never bound; and over each directive fragment in
 `ScreenFragment`, whose verdict it joins (an open literal has no value to evaluate). The rule is not the reference-format
 stage's: a literal open on a line an `>>IF` omits is legal (§7.3.16.4 3)), and conditional compilation runs after that
-stage. The other literal scanners already name the case themselves (pseudo-text COBOL2449, a COPY operand COBOL2450,
-`>>COBOL-WORDS` its SR2 defect).
+stage. The text-manipulation stage reads COPY and REPLACE before the lexer, and its text-word scanner runs an open
+literal to the end of its line the same way, so its statement cursor asks the same `LiteralScreen.ReportUnterminated` of
+every literal text-word it consumes, operand or pseudo-text alike, and that report is the statement's first error
+(kb/Work PB4176: `COPY "ABC` drew COBOL2450 "not an alphanumeric literal" and then COBOL2449 at the next line's word).
+`>>COBOL-WORDS` names its own case (its SR2 defect).
 
 ### 3.13 The characters of a COBOL word, and the ONE fold that compares words (kb/Work PB1402)
 

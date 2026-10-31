@@ -183,16 +183,34 @@ public static class LiteralScreen
         {
             if (t.Channel == CobolLexer.ABSENT_DEBUG_LINE || !LiteralTokens.Types.Contains(t.Type)
                 || !CobolLiteral.IsUnterminated(t.Text)) continue;
-            // The opening delimiter is the first quotation symbol: a prefix letter is never one.
-            string closing = t.Text[t.Text.IndexOfAny(Quotes)] == '"' ? "quotation mark (\")" : "apostrophe (')";
-            report(t, DiagnosticCatalog.LiteralUnterminated,
-                $"the literal {CobolLiteral.Abbreviated(t.Text)} is not closed — its line ends before the closing "
-                + $"{closing}, and no continuation line continues it. ISO §6.4.2: \"When such a literal is incomplete at "
-                + "the end of a line, the incomplete portion of the literal shall be terminated by a floating continuation "
-                + "indicator\" (in fixed form, §6.3.5 1) also admits a hyphen in the indicator area of the next line)");
+            report(t, DiagnosticCatalog.LiteralUnterminated, UnterminatedMessage(t.Text));
             clean = false;
         }
         return clean;
+    }
+
+    /// <summary>The same question of ONE literal text-word of a COPY or REPLACE statement (kb/Work PB4176): the
+    /// text-manipulation stage reads those statements before the lexer runs, and its scanner makes an open literal run
+    /// to the end of its line exactly as the lexer does. <paramref name="report"/> is called once, under COBOL5563, when
+    /// <paramref name="literal"/> is open; true when it is closed.</summary>
+    public static bool ReportUnterminated(string literal, Action<DiagnosticDescriptor, string> report)
+    {
+        if (!CobolLiteral.IsUnterminated(literal)) return true;
+        report(DiagnosticCatalog.LiteralUnterminated, UnterminatedMessage(literal));
+        return false;
+    }
+
+    /// <summary>The COBOL5563 message for <paramref name="literal"/>, a literal its line ends inside — the one wording,
+    /// for a literal token and for a literal text-word of a COPY or REPLACE statement.</summary>
+    private static string UnterminatedMessage(string literal)
+    {
+        // The opening delimiter is the first quotation symbol: a prefix letter is never one.
+        string closing = literal[literal.IndexOfAny(Quotes)] == '"' ? "quotation mark (\")" : "apostrophe (')";
+        // Shown without the spaces it runs on to its line's end (a fixed-form line's program-text area is space-filled).
+        return $"the literal {CobolLiteral.Abbreviated(literal.TrimEnd(' '))} is not closed — its line ends before the closing "
+               + $"{closing}, and no continuation line continues it. ISO §6.4.2: \"When such a literal is incomplete at "
+               + "the end of a line, the incomplete portion of the literal shall be terminated by a floating continuation "
+               + "indicator\" (in fixed form, §6.3.5 1) also admits a hyphen in the indicator area of the next line)";
     }
 
     /// <summary><see cref="ReportUnterminated(IEnumerable{IToken}, Action{IToken, DiagnosticDescriptor, string})"/> over

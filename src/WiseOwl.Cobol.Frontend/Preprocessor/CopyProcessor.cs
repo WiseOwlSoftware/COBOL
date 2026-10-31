@@ -126,9 +126,7 @@ public sealed class CopyProcessor(
 
             // The statement is parsed over text-words (§7.2.4.2 general format) through its separator period — a
             // period INSIDE pseudo-text is a text-word of the operand, never the statement's end (kb/Work PB1354).
-            var statement = new StatementCursor(text, replaceIdx + "REPLACE".Length, (p, message) =>
-                diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.TextManipulationStatementSyntax.Code,
-                    "REPLACE statement: " + message + " (§7.2.4.2)", mapped.LocateAt(p), default));
+            var statement = new StatementCursor(mapped, replaceIdx + "REPLACE".Length, diagnostics, "REPLACE", "§7.2.4.2");
             // §7.2.4.3 SR2: "A REPLACE statement shall be preceded by a space except when it is the first statement in
             // a compilation group" — REPLACE directly after a parenthesis, a colon, a literal or a pseudo-text delimiter.
             if (replaceIdx > 0 && !CobolSpace.IsSeparator(text[replaceIdx - 1]))
@@ -545,9 +543,7 @@ public sealed class CopyProcessor(
     /// <see cref="GateCopyPhrase"/> (kb/Work PB1601).</summary>
     private CopyStatement ParseCopyStatement(MappedText mapped, int copyIdx)
     {
-        var c = new StatementCursor(mapped.Text, copyIdx + "COPY".Length, (p, message) =>
-            _diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.TextManipulationStatementSyntax.Code,
-                "COPY statement: " + message + " (§7.2.3.2)", mapped.LocateAt(p), default));
+        var c = new StatementCursor(mapped, copyIdx + "COPY".Length, _diagnostics, "COPY", "§7.2.3.2");
 
         string? textName = ReadCopyName(mapped, c, "text-name-1 or literal-1");
         string? libraryName = null;
@@ -654,7 +650,9 @@ public sealed class CopyProcessor(
             name = !literal.Terminated || !literal.IsAlphanumeric ? null
                 : literal.Prefix.Length == 0 ? literal.Content
                 : WiseOwl.Cobol.Common.CobolLiteral.DecodeHexDigits(literal.Content);
-            if (name is null)
+            // An open literal was named as it was consumed (COBOL5563, StatementCursor.Advance): it is no literal of any
+            // category, so SR5's category is not its fault.
+            if (name is null && literal.Terminated)
                 LiteralForm(w.Start, $"{w.Value} is not an alphanumeric literal — §7.2.3.3 SR5: \"Literal-1 and "
                     + "literal-2 shall be alphanumeric literals\"");
         }
@@ -844,10 +842,19 @@ public sealed class CopyProcessor(
     /// <summary>A cursor over the text-words of ONE COPY or REPLACE statement — the parser of their general formats
     /// (§7.2.3.2 / §7.2.4.2) reads through it. Separator commas and semicolons "may be used anywhere the separator
     /// space is used" (§8.3.5 2)), so <see cref="TryPeek"/> steps over them. Only a statement's FIRST syntax error is
-    /// reported; recovery (<see cref="ExpectSeparatorPeriod"/>) skips to the statement's separator period.</summary>
-    private sealed class StatementCursor(string text, int pos, Action<int, string> reportSyntax)
+    /// reported; recovery (<see cref="ExpectSeparatorPeriod"/>) skips to the statement's separator period.
+    /// <para>⛔ A LITERAL ITS LINE ENDS INSIDE IS NAMED WHERE IT IS CONSUMED (kb/Work PB4176). The text-word scanner makes
+    /// an open literal run to the end of its line, as the lexer does (ISO §6.3.5 1) and §6.4.2 let a literal stay open at
+    /// a line's end only where a continuation line continues it, and the reference-format stage has joined every one that
+    /// was), so a COPY or REPLACE statement holding one has lost the rest of its line: <c>COPY "ABC</c> drew COBOL2450 "not
+    /// an alphanumeric literal" and then COBOL2449 at the next line's first word. Every text-word the statement consumes
+    /// passes <see cref="Advance"/> or <see cref="TryTake"/>, so the literal is named there, once, by the code and the
+    /// words the lexer's own screen uses (COBOL5563, <c>LiteralScreen.ReportUnterminated</c>), and it is the statement's
+    /// first error: nothing else is reported for the text it swallowed.</para></summary>
+    private sealed class StatementCursor(MappedText mapped, int pos, DiagnosticBag? diagnostics, string statement,
+        string clause)
     {
-        public string Text { get; } = text;
+        public string Text { get; } = mapped.Text;
 
         /// <summary>The position just past the last text-word consumed.</summary>
         public int Pos { get; private set; } = pos;
@@ -871,17 +878,33 @@ public sealed class CopyProcessor(
             int p = Pos;
             if (!TextWordScanner.TryNext(Text, ref p, out word)) return false;
             Pos = p;
+            ScreenLiteral(word);
             return true;
         }
 
-        public void Advance(in TextWord word) => Pos = word.End;
+        public void Advance(in TextWord word)
+        {
+            Pos = word.End;
+            ScreenLiteral(word);
+        }
+
+        private void ScreenLiteral(in TextWord word)
+        {
+            if (HasError || word.Kind != TextWordKind.Literal) return;
+            int start = word.Start;
+            if (!Parsing.LiteralScreen.ReportUnterminated(word.Value,
+                    (descriptor, message) => diagnostics?.ReportError(descriptor.Code, message, mapped.LocateAt(start), default)))
+                HasError = true;
+        }
 
         /// <summary>Report a syntax error (the statement's first only).</summary>
         public void Error(int at, string message)
         {
             if (HasError) return;
             HasError = true;
-            reportSyntax(Math.Min(at, Math.Max(0, Text.Length - 1)), message);
+            diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.TextManipulationStatementSyntax.Code,
+                $"{statement} statement: {message} ({clause})", mapped.LocateAt(Math.Min(at, Math.Max(0, Text.Length - 1))),
+                default);
         }
 
         /// <summary>Record that the caller reported an error of its own, so no syntax error follows it.</summary>

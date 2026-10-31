@@ -97,7 +97,9 @@ word of its own; `==` is the pseudo-text delimiter. Its three consumers:
   (`{text-name-1 | literal-1} [{OF|IN} …] [SUPPRESS [PRINTING]] [REPLACING …] .`) through a `StatementCursor`, and
   the REPLACE statement uses the same cursor and the same `ParseReplacingOperands`. A statement ends at its
   SEPARATOR period (§7.2.3.4 GR6), never at a `.` inside pseudo-text or a literal; a word out of order is
-  COBOL2449, SR4/SR5 literal forms COBOL2450, a COPY within a COPY statement COBOL2451 (SR1). Each operand
+  COBOL2449, SR4/SR5 literal forms COBOL2450, a COPY within a COPY statement COBOL2451 (SR1), and a literal its
+  line ends inside COBOL5563, named by the cursor as it consumes the text-word and standing as the statement's one
+  error (`LiteralScreen.ReportUnterminated`, the lexer's own question; kb/Work PB4176). Each operand
   pair is screened by ONE `ScreenOperandPair` against its statement's `OperandRules` row — the §7.2.3.3 / §7.2.4.3
   content rules are word-for-word twins (COBOL2572) — and `ReadOperand` checks the §8.3.5 6) separation of each
   `==` (COBOL2573) (kb/Work PB1353). A directive line CONSUMED before the operand is read leaves only a blank
